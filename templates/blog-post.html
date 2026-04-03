@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}｜毛利順活税理士事務所</title>
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <link rel="canonical" href="https://mori-tax.jp/blog/{{SLUG}}/">
+  <meta property="og:title" content="{{TITLE}}｜毛利順活税理士事務所">
+  <meta property="og:description" content="{{META_DESCRIPTION}}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://mori-tax.jp/blog/{{SLUG}}/">
+  <meta property="article:published_time" content="{{PUBLISH_AT_ISO}}">
+  <meta property="article:modified_time" content="{{UPDATED_AT_ISO}}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/blog.css">
+  <script type="application/ld+json">{{STRUCTURED_DATA}}</script>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header id="header">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg py-0" style="height:var(--header-height);">
+      <a class="navbar-brand" href="/">
+        <span class="logo-text">毛利順活税理士事務所</span>
+        <small class="logo-sub">Mori Yoshiiku Tax Accountant Office</small>
+      </a>
+      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="メニューを開く">
+        <div class="navbar-toggler-icon-custom">
+          <span></span><span></span><span></span>
+        </div>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+          <li class="nav-item"><a class="nav-link" href="/">ホーム</a></li>
+          <li class="nav-item"><a class="nav-link" href="/services.html">取扱業務</a></li>
+          <li class="nav-item"><a class="nav-link" href="/about.html">事務所紹介</a></li>
+          <li class="nav-item"><a class="nav-link" href="/voice.html">お客様の声</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/blog/" aria-current="page">税務コラム</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact.html">お問い合わせ</a></li>
+        </ul>
+        <a href="/contact.html" class="btn-header-cta ms-lg-3">無料相談する</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ========== POST HERO ========== -->
+<section class="blog-post-hero">
+  <div class="container" data-aos="fade-up">
+    <div class="blog-post-meta">
+      <span class="blog-card-category">{{CATEGORY}}</span>
+      <time datetime="{{PUBLISH_AT_ISO}}">{{PUBLISH_DATE}}</time>
+      {{UPDATED_DATE_HTML}}
+    </div>
+    <h1 class="blog-post-title">{{TITLE}}</h1>
+    <p class="blog-post-summary">{{META_DESCRIPTION}}</p>
+  </div>
+</section>
+
+<!-- ========== ARTICLE ========== -->
+<main class="container">
+  <div class="blog-article">
+    <a href="/blog/" class="blog-back-link">
+      <i class="bi bi-arrow-left"></i> 税務コラム一覧へ戻る
+    </a>
+
+    <article>
+      {{BODY}}
+    </article>
+
+    <p class="blog-source">
+      参考：<a href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">{{SOURCE_TITLE}}</a>
+    </p>
+  </div>
+</main>
+
+<!-- ========== CTA ========== -->
+<section class="cta-section">
+  <div class="container position-relative" style="z-index:1;">
+    <div data-aos="fade-up">
+      <h2>税務のお悩み、お気軽にご相談ください</h2>
+      <p>初回相談は無料です。記事の内容についてのご質問もお受けします。</p>
+      <a href="/contact.html" class="btn-outline-custom"><i class="bi bi-envelope"></i>無料相談・お問い合わせ</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <div class="footer-logo-text">毛利順活税理士事務所<small class="footer-logo-sub">Mori Yoshiiku Tax Accountant Office</small></div>
+        <p class="footer-desc">「自利利他」の理念のもと、お客様の理想の未来を共に創造します。eBay輸出セラー専門・全国オンライン対応。</p>
+      </div>
+      <div class="col-lg-8">
+        <div class="row g-4">
+          <div class="col-6 col-md-4">
+            <div class="footer-heading">サービス</div>
+            <ul class="footer-links">
+              <li><a href="/services.html">記帳代行</a></li>
+              <li><a href="/services.html">決算・申告</a></li>
+              <li><a href="/services.html">eBay輸出税務支援</a></li>
+              <li><a href="/services.html">相続・事業承継</a></li>
+              <li><a href="/services.html">税務調査対応</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-md-4">
+            <div class="footer-heading">事務所情報</div>
+            <ul class="footer-links">
+              <li><a href="/about.html">事務所紹介</a></li>
+              <li><a href="/about.html">代表メッセージ</a></li>
+              <li><a href="/voice.html">お客様の声</a></li>
+              <li><a href="/contact.html">お問い合わせ</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-md-4">
+            <div class="footer-heading">その他</div>
+            <ul class="footer-links">
+              <li><a href="/blog/">税務コラム</a></li>
+              <li><a href="/privacy.html">プライバシーポリシー</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2024 毛利順活税理士事務所 All Rights Reserved.</span>
+      <a href="/privacy.html">プライバシーポリシー</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

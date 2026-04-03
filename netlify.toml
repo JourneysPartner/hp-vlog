@@ -1,0 +1,18 @@
+[build]
+  command = "npm install && npm run build"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# ブログ記事URL: /blog/slug/ → blog/slug/index.html
+[[redirects]]
+  from = "/blog/:slug"
+  to = "/blog/:slug/"
+  status = 301
+
+# 404
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

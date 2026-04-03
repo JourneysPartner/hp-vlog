@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "TZ": "Asia/Tokyo",
+    "NETLIFY_SITE_ID": "your-site-id",
+    "NETLIFY_BUILD_HOOK_URL": "your-build-hook-url",
+    "LINE_CHANNEL_ACCESS_TOKEN": "your-line-token",
+    "LINE_CHANNEL_SECRET": "your-line-secret",
+    "GITHUB_APP_ID": "your-github-app-id",
+    "GITHUB_APP_INSTALLATION_ID": "your-installation-id"
+  }
+}

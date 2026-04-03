@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ko-ch/hp-project/**)",
+      "Bash(cp -r \"c:/Users/ko-ch/hp-project/assets\" \"c:/Users/ko-ch/HP・LP作成/hp-vlog/assets\")",
+      "Bash(cp \"c:/Users/ko-ch/hp-project/index.html\" \"c:/Users/ko-ch/HP・LP作成/hp-vlog/index.html\")",
+      "Bash(cp \"c:/Users/ko-ch/hp-project/about.html\" \"c:/Users/ko-ch/HP・LP作成/hp-vlog/about.html\")",
+      "Bash(cp \"c:/Users/ko-ch/hp-project/services.html\" \"c:/Users/ko-ch/HP・LP作成/hp-vlog/services.html\")",
+      "Bash(cp \"c:/Users/ko-ch/hp-project/voice.html\" \"c:/Users/ko-ch/HP・LP作成/hp-vlog/voice.html\")",
+      "Bash(node scripts/build.js)",
+      "Bash(node scripts/validate.js)"
+    ]
+  }
+}

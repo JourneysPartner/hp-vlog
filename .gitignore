@@ -1,0 +1,4 @@
+node_modules/
+blog/
+.env
+secrets/
