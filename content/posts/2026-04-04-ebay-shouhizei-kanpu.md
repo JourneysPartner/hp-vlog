@@ -7,7 +7,7 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm"
 source_title: "国税庁タックスアンサー No.6551 輸出取引の免税"
 summary: "eBayで商品を輸出販売するセラーは、仕入れにかかった消費税の還付を受けられる場合があります。課税事業者の要件から申告の流れまで、実務上の注意点とともに解説します。"
-review_status: "published"
+review_status: "skipped"
 review_comment: ""
 approved_at: "2026-04-03T12:00:00+09:00"
 publish_at: "2026-04-03T11:10:00+09:00"
@@ -15,7 +15,7 @@ published_at: "2026-04-03T11:10:00+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-03T10:00:00+09:00"
-updated_at: "2026-04-03T12:00:00+09:00"
+updated_at: "2026-04-06T18:47:10.755+09:00"
 ---
 
 ## 結論：輸出販売は消費税が免除され、仕入税額は還付対象になりえる
