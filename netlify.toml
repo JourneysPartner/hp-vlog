@@ -1,9 +1,16 @@
 [build]
   command = "npm install && npm run build"
   publish = "."
+  functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+
+# レビュー画面: /review?file=xxx.md → Netlify Function
+[[redirects]]
+  from = "/review"
+  to = "/.netlify/functions/review-page"
+  status = 200
 
 # ブログ記事URL: /blog/slug/ → blog/slug/index.html
 [[redirects]]

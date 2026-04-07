@@ -84,6 +84,27 @@ function getExistingSlugs() {
   return slugs;
 }
 
+// ── 直近の差し戻しコメントを収集 ────────────────────────────────
+// review_status が needs_revision かつ review_comment が非空の記事から
+// 直近3件までのコメントを取得し、改善ヒントとして返す
+function getRecentRevisionComments(limit = 3) {
+  if (!fs.existsSync(POSTS_DIR)) return [];
+  const files = fs.readdirSync(POSTS_DIR).filter(f => f.endsWith('.md'));
+  const comments = [];
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
+    const status  = (raw.match(/^review_status:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const comment = (raw.match(/^review_comment:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    if (status === 'needs_revision' && comment) {
+      const updated = (raw.match(/^updated_at:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+      comments.push({ file, comment, updated });
+    }
+  }
+  // 更新日の降順でソートし、直近 limit 件を返す
+  comments.sort((a, b) => (b.updated || '').localeCompare(a.updated || ''));
+  return comments.slice(0, limit);
+}
+
 // ── テーマプールから未使用テーマを選択 ──────────────────────────
 function pickTopic(dateStr) {
   const existing = getExistingSlugs();
@@ -210,6 +231,14 @@ ${sourceInstruction}
 
 記事のヒント: ${topic.hint}`;
 
+  // 直近の差し戻しコメントがあれば改善ヒントとして追加
+  const revisions = getRecentRevisionComments(3);
+  let revisionHint = '';
+  if (revisions.length > 0) {
+    const items = revisions.map(r => `- ${r.comment}`).join('\n');
+    revisionHint = `\n\n過去の記事で以下のレビュー指摘がありました。同様の問題を避けてください:\n${items}`;
+  }
+
   const sourceUrl   = topic.source_url || '';
   const sourceTitle = topic.source_title || '';
 
@@ -217,7 +246,7 @@ ${sourceInstruction}
 
 テーマ: ${topic.title}
 ターゲット読者: ${persona.label}
-カテゴリ: ${topic.category}
+カテゴリ: ${topic.category}${revisionHint}
 
 以下の形式でそのまま出力してください（コードブロック不要）:
 
@@ -268,6 +297,12 @@ async function main() {
   console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
   console.log(`[generate] テーマ品質: ${topic.quality || 'standard'}`);
   console.log(`[generate] 使用モデル: ${model}（${reason}）`);
+
+  // 差し戻しコメントの確認
+  const revisionComments = getRecentRevisionComments(3);
+  if (revisionComments.length > 0) {
+    console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
+  }
 
   let content;
   if (process.env.ANTHROPIC_API_KEY) {

@@ -2,3 +2,7 @@ node_modules/
 blog/
 .env
 secrets/
+
+# Local Netlify folder
+.netlify
+*.pem

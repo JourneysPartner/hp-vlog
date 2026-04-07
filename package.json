@@ -10,7 +10,9 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "gray-matter": "^4.0.3",
+    "jsonwebtoken": "^9.0.3",
     "marked": "^9.1.6"
   }
 }
