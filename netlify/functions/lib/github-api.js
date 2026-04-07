@@ -185,4 +185,91 @@ function nowJST() {
   return jst.toISOString().replace('Z', '+09:00');
 }
 
-module.exports = { getFile, putFile, updateFrontmatter, nowJST };
+// ── PR 一覧から branch に一致する PR を取得 ────────────────────────────
+async function findPR(headBranch) {
+  const url = `${API_BASE}/repos/${REPO()}/pulls?head=${REPO().split('/')[0]}:${headBranch}&state=open&per_page=5`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub PR list ${res.status}: ${text}`);
+  }
+  const prs = await res.json();
+  return prs.length > 0 ? prs[0] : null;
+}
+
+// ── PR をマージする ────────────────────────────────────────────────────
+async function mergePR(prNumber, commitTitle) {
+  const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/merge`;
+  const h = await headers();
+  const body = JSON.stringify({
+    commit_title: commitTitle || `merge: PR #${prNumber}`,
+    merge_method: 'squash',
+  });
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { ...h, 'Content-Type': 'application/json' },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub merge ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── PR をクローズする ──────────────────────────────────────────────────
+async function closePR(prNumber) {
+  const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}`;
+  const h = await headers();
+  const body = JSON.stringify({ state: 'closed' });
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { ...h, 'Content-Type': 'application/json' },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub close PR ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── PR にコメントを追加する ────────────────────────────────────────────
+async function commentOnPR(prNumber, body) {
+  const url = `${API_BASE}/repos/${REPO()}/issues/${prNumber}/comments`;
+  const h = await headers();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...h, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub comment ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── GitHub Actions workflow_dispatch をトリガーする ─────────────────────
+async function triggerWorkflow(workflowFile, ref, inputs) {
+  const url = `${API_BASE}/repos/${REPO()}/actions/workflows/${workflowFile}/dispatches`;
+  const h = await headers();
+  const body = JSON.stringify({ ref: ref || 'main', inputs: inputs || {} });
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...h, 'Content-Type': 'application/json' },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub dispatch ${res.status}: ${text}`);
+  }
+  // 204 No Content = 成功
+  return { ok: true };
+}
+
+module.exports = {
+  getFile, putFile, updateFrontmatter, nowJST,
+  findPR, mergePR, closePR, commentOnPR, triggerWorkflow,
+};

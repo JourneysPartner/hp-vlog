@@ -137,10 +137,11 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
             <td>${previewUrl ? `<a href="${previewUrl}" target="_blank" rel="noopener">${previewUrl} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
           </tr>
           <tr>
-            <th>公開予定日時</th>
+            <th>公開日時（任意）</th>
             <td>
               <input type="datetime-local" id="publishAt" class="form-control form-control-sm" style="max-width:280px"
                 value="${publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : ''}">
+              <small class="text-muted">未入力の場合は翌日 11:30 に自動設定されます</small>
             </td>
           </tr>
           <tr><th>ファイル</th><td><code>${filename}</code></td></tr>
@@ -229,7 +230,15 @@ async function handleAction(action) {
     const data = await res.json();
     if (res.ok) {
       resultEl.className = 'result-msg show success';
-      resultEl.textContent = data.message || '処理が完了しました。';
+      if (action === 'approve') {
+        resultEl.textContent = '公開処理を開始しました。PRの自動マージと公開完了通知が送信されます。';
+      } else if (action === 'revise') {
+        resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。';
+      } else if (action === 'skip') {
+        resultEl.textContent = '見送りにしました。PRは自動でクローズされます。';
+      } else {
+        resultEl.textContent = data.message || '処理が完了しました。';
+      }
     } else {
       throw new Error(data.error || 'エラーが発生しました。');
     }

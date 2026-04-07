@@ -285,8 +285,148 @@ updated_at: "${now}"
   return (fenced ? fenced[1] : raw).trim();
 }
 
+// ── 既存記事の frontmatter をパースする ─────────────────────────
+function parseFrontmatter(raw) {
+  const match = raw.match(/^---\r?\n([\s\S]+?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!match) return { meta: {}, body: raw };
+  const meta = {};
+  for (const line of match[1].split('\n')) {
+    const m = line.match(/^(\w[\w_]*):\s*"?([^"]*)"?\s*$/);
+    if (m) meta[m[1]] = m[2];
+  }
+  return { meta, body: match[2] };
+}
+
+// ── 差し戻し対応の再生成 (Claude API) ──────────────────────────────
+async function regenerateWithClaude(existingContent, comment, modelId) {
+  const _sdk    = require('@anthropic-ai/sdk');
+  const Anthropic = _sdk.default || _sdk;
+  const client  = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const { meta, body: existingBody } = parseFrontmatter(existingContent);
+  const persona = PERSONA_MAP[meta.primary_persona] || { label: meta.primary_persona || '' };
+  const cta     = CTA_MAP[meta.primary_persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
+  const now     = new Date().toISOString();
+
+  const sourceInstruction = meta.source_url
+    ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
+    : '- source_url / source_title は空文字のまま出力してください';
+
+  const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
+${persona.label}が実務で直面する税務上の疑問に答える記事を書いてください。
+
+文体・トーン:
+- 税理士事務所として穏当で信頼感のある文体にすること
+- 「です・ます」調で統一すること
+- 読者（${persona.label}）に直接語りかける視点で書くこと
+
+禁止事項:
+- 誇大表現は使用禁止
+- 断定を避け、穏当な表現を使うこと
+
+構成ルール:
+- h2見出し（## ）を最低3つ使い、読みやすく区切ること
+${sourceInstruction}
+- 記事末尾に免責事項を含めること
+- 免責事項の後に、以下の相談導線を自然に入れること:
+  「${cta}」
+  「毛利順活税理士事務所では、初回のご相談を無料で承っております。お気軽にお問い合わせください。」`;
+
+  const userPrompt = `以下のブログ記事に対して、レビュー担当者から差し戻しがありました。
+コメントの内容を踏まえて、記事を改善してください。
+
+【差し戻しコメント】
+${comment}
+
+【現在の記事】
+${existingBody.substring(0, 3000)}
+
+【記事情報】
+タイトル: ${meta.title || ''}
+ターゲット読者: ${persona.label}
+カテゴリ: ${meta.category || ''}
+
+改善した記事を、以下の形式でそのまま出力してください（コードブロック不要）:
+
+---
+title: "${meta.title || ''}"
+slug: "${meta.slug || ''}"
+category: "${meta.category || ''}"
+primary_persona: "${meta.primary_persona || ''}"
+secondary_persona: "${meta.secondary_persona || ''}"
+source_url: "${meta.source_url || ''}"
+source_title: "${meta.source_title || ''}"
+summary: "（改善した内容に合わせた要約。120文字以内）"
+review_status: "draft"
+review_comment: ""
+approved_at: ""
+publish_at: ""
+published_at: ""
+pr_number: "${meta.pr_number || ''}"
+preview_url: "${meta.preview_url || ''}"
+created_at: "${meta.created_at || now}"
+updated_at: "${now}"
+---
+
+（改善した Markdown 本文 1000〜1500文字）`;
+
+  const message = await client.messages.create({
+    model: modelId,
+    max_tokens: 3000,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  });
+
+  const raw = message.content[0].type === 'text' ? message.content[0].text : '';
+  const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
+  return (fenced ? fenced[1] : raw).trim();
+}
+
+// ── CLI 引数ヘルパー ────────────────────────────────────────────────
+function getArg(name) {
+  const args = process.argv.slice(2);
+  const idx = args.indexOf(name);
+  return idx !== -1 && args[idx + 1] ? args[idx + 1] : null;
+}
+
 // ── エントリポイント ─────────────────────────────────────────────
 async function main() {
+  const args = process.argv.slice(2);
+
+  // ── 再生成モード ──────────────────────────────────────────────
+  if (args.includes('--regenerate')) {
+    const filename = getArg('--filename');
+    const comment  = getArg('--comment');
+    if (!filename || !comment) {
+      console.error('[regenerate] --filename と --comment は必須です');
+      process.exit(1);
+    }
+
+    const filepath = path.join(POSTS_DIR, filename);
+    if (!fs.existsSync(filepath)) {
+      console.error(`[regenerate] ファイルが見つかりません: ${filepath}`);
+      process.exit(1);
+    }
+
+    const existing = fs.readFileSync(filepath, 'utf8');
+    console.log(`[regenerate] 対象: content/posts/${filename}`);
+    console.log(`[regenerate] コメント: ${comment}`);
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('[regenerate] ANTHROPIC_API_KEY が必要です');
+      process.exit(1);
+    }
+
+    const modelId = MODEL_STANDARD;
+    console.log(`[regenerate] Claude API で再生成します（${modelId}）...`);
+    const content = await regenerateWithClaude(existing, comment, modelId);
+
+    fs.writeFileSync(filepath, content + '\n', 'utf8');
+    console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
+    return;
+  }
+
+  // ── 通常の新規生成モード ──────────────────────────────────────
   const dateStr = getTodayJST();
   const topic   = pickTopic(dateStr);
   const persona = PERSONA_MAP[topic.persona];

@@ -1,0 +1,80 @@
+name: Regenerate Draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: '再生成する記事ファイル名 (例: 2026-04-07-xxx.md)'
+        required: true
+        type: string
+      branch:
+        description: '対象ブランチ (例: draft/blog-2026-04-07-3)'
+        required: true
+        type: string
+      comment:
+        description: '差し戻しコメント'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Regenerate draft
+        id: regen
+        run: |
+          node scripts/generate-draft.js \
+            --regenerate \
+            --filename "${{ inputs.filename }}" \
+            --comment "${{ inputs.comment }}"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Validate
+        run: npm run validate
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "content/posts/${{ inputs.filename }}"
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
+          git push origin "${{ inputs.branch }}"
+
+      - name: Extract info for notification
+        id: fm
+        run: |
+          FILE="content/posts/${{ inputs.filename }}"
+          TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
+          echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify via Netlify
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ inputs.filename }}&ref=${{ inputs.branch }}"
+          node scripts/notify.js \
+            --event regenerated \
+            --title "${{ steps.fm.outputs.title }}" \
+            --review-url "$REVIEW_URL" \
+            --comment "${{ inputs.comment }}"

@@ -1,18 +1,18 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 
 /**
- * review-revise — 「差し戻し（修正コメント付き）」操作
+ * review-revise — 「差し戻し」操作（自動再生成付き）
  *
  * POST /.netlify/functions/review-revise
- * Body: { filename, comment }
+ * Body: { filename, comment, ref? }
  *
  * 処理:
- * 1. GitHub API で対象記事を取得
- * 2. review_status → "needs_revision", review_comment → comment
- * 3. GitHub API で書き戻し
+ * 1. review_status → needs_revision, review_comment → comment
+ * 2. GitHub Actions の regenerate-draft ワークフローを起動
+ * 3. 再生成ジョブが完了したら Chatwork に通知が届く
  */
 
 exports.handler = async (event) => {
@@ -40,9 +40,40 @@ exports.handler = async (event) => {
       updated_at: now,
     });
 
-    const result = await putFile(filepath, updated, sha, `review: revise ${filename}`, ref || undefined);
+    await putFile(filepath, updated, sha, `review: revise ${filename}`, ref || undefined);
 
-    // 通知（非致命的）
+    // PR にコメントを残す（非致命的）
+    if (ref) {
+      try {
+        const pr = await findPR(ref);
+        if (pr) {
+          await commentOnPR(pr.number, `📝 差し戻しコメント:\n\n${comment.trim()}\n\n自動再生成を開始します。`);
+        }
+      } catch (e) {
+        console.warn(`[review-revise] PR コメント失敗: ${e.message}`);
+      }
+    }
+
+    // GitHub Actions で再生成ジョブを起動
+    const branch = ref || 'main';
+    try {
+      await triggerWorkflow('regenerate-draft.yml', 'main', {
+        filename,
+        branch,
+        comment: comment.trim(),
+      });
+      console.log(`[review-revise] regenerate-draft ワークフローを起動しました`);
+    } catch (dispatchErr) {
+      console.error(`[review-revise] ワークフロー起動失敗: ${dispatchErr.message}`);
+      // 起動失敗時は通知で知らせる
+      sendNotification('regenerate_failed', {
+        title: '',
+        filename,
+        comment: comment.trim(),
+      }).catch(() => {});
+    }
+
+    // 差し戻し受付通知
     const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
     const reviewQuery = ref ? `file=${filename}&ref=${encodeURIComponent(ref)}` : `file=${filename}`;
     sendNotification('revised', {
@@ -56,11 +87,10 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `差し戻しました: ${filename}`,
+        message: `差し戻しを受け付けました。自動再生成を開始しています。完了後に Chatwork で通知します。`,
         action: 'revise',
         filename,
         comment: comment.trim(),
-        commit_sha: result.commit?.sha || null,
       }),
     };
   } catch (err) {
