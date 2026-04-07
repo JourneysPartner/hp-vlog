@@ -7,7 +7,7 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
 source_title: "国税庁タックスアンサー No.2210 やさしい必要経費の知識"
 summary: "eBay輸出セラー向けに、海外取引の基本と実務上の注意点を解説します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: "テンプレートから自動生成された下書きです。内容の加筆・修正が必要です。"
 approved_at: ""
 publish_at: ""
@@ -15,7 +15,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-07T10:20:36.826Z"
-updated_at: "2026-04-07T10:20:36.826Z"
+updated_at: "2026-04-07T19:58:02.155+09:00"
 ---
 
 ## はじめに
