@@ -50,7 +50,32 @@ jobs:
       - name: Build (smoke test)
         run: npm run build
 
-      - name: Commit and create PR
+      - name: Commit and push branch
+        id: commit
+        run: |
+          DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          BRANCH="draft/blog-${DATE}-${GITHUB_RUN_NUMBER}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add content/posts/
+
+          if git diff --cached --quiet; then
+            echo "新規ファイルなし。スキップします。"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "draft: ブログ下書き自動生成 ${DATE}"
+          git push origin "$BRANCH"
+
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.skipped != 'true'
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,44 +98,34 @@ jobs:
 
             > このドラフトはAIが自動生成しました。内容の正確性は必ず人間がレビューしてください。
         run: |
-          DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
-          BRANCH="draft/blog-${DATE}-${GITHUB_RUN_NUMBER}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add content/posts/
-
-          if git diff --cached --quiet; then
-            echo "新規ファイルなし。スキップします。"
-            echo "skipped=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git commit -m "draft: ブログ下書き自動生成 ${DATE}"
-          git push origin "$BRANCH"
-
           printf '%s\n' "$PR_BODY" > /tmp/pr-body.md
-          PR_URL=$(gh pr create \
-            --title "【自動生成ドラフト】${DATE}" \
+          if PR_URL=$(gh pr create \
+            --title "【自動生成ドラフト】${{ steps.commit.outputs.date }}" \
             --body-file /tmp/pr-body.md \
             --base main \
-            --head "$BRANCH" 2>&1 | tail -1)
-
-          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
-          echo "skipped=false" >> "$GITHUB_OUTPUT"
+            --head "${{ steps.commit.outputs.branch }}" 2>&1); then
+            echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+            echo "pr_failed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pull Request を作成しました: ${PR_URL}"
+          else
+            echo "::error::Pull Request の作成に失敗しました: ${PR_URL}"
+            echo "pr_url=" >> "$GITHUB_OUTPUT"
+            echo "pr_failed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Extract frontmatter for notification
-        if: steps.pr.outputs.skipped != 'true'
+        if: steps.commit.outputs.skipped != 'true'
         id: fm
         run: |
           FILE=$(ls -t content/posts/*.md | head -1)
+          BASENAME=$(basename "$FILE")
           TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
           SUMMARY=$(grep '^summary:' "$FILE" | head -1 | sed 's/^summary: *"//;s/"$//')
           PERSONA=$(grep '^primary_persona:' "$FILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
           CATEGORY=$(grep '^category:' "$FILE" | head -1 | sed 's/^category: *"//;s/"$//')
           SLUG=$(grep '^slug:' "$FILE" | head -1 | sed 's/^slug: *"//;s/"$//')
 
+          echo "basename=${BASENAME}" >> "$GITHUB_OUTPUT"
           echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
           echo "summary=${SUMMARY}" >> "$GITHUB_OUTPUT"
           echo "persona=${PERSONA}" >> "$GITHUB_OUTPUT"
@@ -118,12 +133,18 @@ jobs:
           echo "slug=${SLUG}" >> "$GITHUB_OUTPUT"
 
       - name: Notify via Netlify
-        if: steps.pr.outputs.skipped != 'true'
+        if: steps.commit.outputs.skipped != 'true'
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=content/posts/$(ls -t content/posts/*.md | head -1 | xargs basename)"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename }}"
+
+          PR_URL="${{ steps.pr.outputs.pr_url }}"
+          if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then
+            PR_URL="作成失敗（GitHub Actions のログを確認してください）"
+          fi
+
           node scripts/notify.js \
             --event draft_created \
             --title "${{ steps.fm.outputs.title }}" \
@@ -131,4 +152,4 @@ jobs:
             --persona "${{ steps.fm.outputs.persona }}" \
             --category "${{ steps.fm.outputs.category }}" \
             --review-url "$REVIEW_URL" \
-            --pr-url "${{ steps.pr.outputs.pr_url }}"
+            --pr-url "$PR_URL"

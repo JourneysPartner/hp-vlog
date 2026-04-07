@@ -48,7 +48,7 @@ exports.handler = async (event) => {
       title: '',
       filename,
       comment: comment.trim(),
-      reviewUrl: `${baseUrl}/review?file=${filepath}`,
+      reviewUrl: `${baseUrl}/review?file=${filename}`,
     }).catch(() => {});
 
     return {

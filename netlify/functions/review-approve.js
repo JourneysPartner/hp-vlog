@@ -48,7 +48,7 @@ exports.handler = async (event) => {
     sendNotification('approved', {
       title: '',
       filename,
-      reviewUrl: `${baseUrl}/review?file=${filepath}`,
+      reviewUrl: `${baseUrl}/review?file=${filename}`,
     }).catch(() => {});
 
     return {
