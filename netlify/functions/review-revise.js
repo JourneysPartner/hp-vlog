@@ -21,7 +21,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { filename, comment } = JSON.parse(event.body || '{}');
+    const { filename, comment, ref } = JSON.parse(event.body || '{}');
 
     if (!filename) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     }
 
     const filepath = `content/posts/${filename}`;
-    const { content, sha } = await getFile(filepath);
+    const { content, sha } = await getFile(filepath, ref || undefined);
 
     const now = nowJST();
     const updated = updateFrontmatter(content, {
@@ -40,15 +40,16 @@ exports.handler = async (event) => {
       updated_at: now,
     });
 
-    const result = await putFile(filepath, updated, sha, `review: revise ${filename}`);
+    const result = await putFile(filepath, updated, sha, `review: revise ${filename}`, ref || undefined);
 
     // 通知（非致命的）
     const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
+    const reviewQuery = ref ? `file=${filename}&ref=${encodeURIComponent(ref)}` : `file=${filename}`;
     sendNotification('revised', {
       title: '',
       filename,
       comment: comment.trim(),
-      reviewUrl: `${baseUrl}/review?file=${filename}`,
+      reviewUrl: `${baseUrl}/review?${reviewQuery}`,
     }).catch(() => {});
 
     return {

@@ -122,8 +122,10 @@ async function headers(accept = 'application/vnd.github.v3+json') {
 }
 
 // ── ファイル取得 (content + sha) ────────────────────────────────────────
-async function getFile(filepath) {
-  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${BRANCH()}`;
+// ref: 省略時は GITHUB_BRANCH (デフォルト main)
+async function getFile(filepath, ref) {
+  const branch = ref || BRANCH();
+  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${branch}`;
   const h = await headers();
   const res = await fetch(url, { headers: h });
   if (!res.ok) {
@@ -136,14 +138,16 @@ async function getFile(filepath) {
 }
 
 // ── ファイル書き戻し (PUT) ──────────────────────────────────────────────
-async function putFile(filepath, content, sha, message) {
+// ref: 省略時は GITHUB_BRANCH (デフォルト main)
+async function putFile(filepath, content, sha, message, ref) {
+  const branch = ref || BRANCH();
   const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}`;
   const h = await headers();
   const body = JSON.stringify({
     message,
     content: Buffer.from(content, 'utf8').toString('base64'),
     sha,
-    branch: BRANCH(),
+    branch,
   });
   const res = await fetch(url, {
     method: 'PUT',

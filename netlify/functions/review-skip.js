@@ -21,14 +21,14 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { filename } = JSON.parse(event.body || '{}');
+    const { filename, ref } = JSON.parse(event.body || '{}');
 
     if (!filename) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
     }
 
     const filepath = `content/posts/${filename}`;
-    const { content, sha } = await getFile(filepath);
+    const { content, sha } = await getFile(filepath, ref || undefined);
 
     const now = nowJST();
     const updated = updateFrontmatter(content, {
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
       updated_at: now,
     });
 
-    const result = await putFile(filepath, updated, sha, `review: skip ${filename}`);
+    const result = await putFile(filepath, updated, sha, `review: skip ${filename}`, ref || undefined);
 
     // 通知（非致命的）
     sendNotification('skipped', {

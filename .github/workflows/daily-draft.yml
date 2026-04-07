@@ -138,7 +138,7 @@ jobs:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename }}&ref=${{ steps.commit.outputs.branch }}"
 
           PR_URL="${{ steps.pr.outputs.pr_url }}"
           if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then

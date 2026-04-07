@@ -29,12 +29,13 @@ function parseFrontmatter(raw) {
 }
 
 // ── GitHub API で content/posts/{file} を取得 ────────────────────────
-async function fetchPostFromGitHub(filename) {
+// ref: 省略時は GITHUB_BRANCH (デフォルト main)
+async function fetchPostFromGitHub(filename, ref) {
   const repo  = process.env.GITHUB_REPO  || 'JourneysPartner/hp-vlog';
-  const branch = process.env.GITHUB_BRANCH || 'main';
+  const branch = ref || process.env.GITHUB_BRANCH || 'main';
   const token = process.env.GITHUB_TOKEN;
 
-  const url = `https://api.github.com/repos/${repo}/contents/content/posts/${encodeURIComponent(filename)}?ref=${branch}`;
+  const url = `https://api.github.com/repos/${repo}/contents/content/posts/${encodeURIComponent(filename)}?ref=${encodeURIComponent(branch)}`;
   const headers = { 'Accept': 'application/vnd.github.v3.raw', 'User-Agent': 'mori-tax-review' };
   if (token) headers['Authorization'] = `token ${token}`;
 
@@ -44,7 +45,7 @@ async function fetchPostFromGitHub(filename) {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd) {
+function renderReviewPage(filename, meta, bodyMd, ref) {
   const title      = meta.title      || '（タイトル未設定）';
   const summary    = meta.summary    || '';
   const sourceUrl  = meta.source_url || '';
@@ -186,6 +187,7 @@ function renderReviewPage(filename, meta, bodyMd) {
 
 <script>
 const FILENAME = ${JSON.stringify(filename)};
+const REF = ${JSON.stringify(ref || '')};
 const FUNC_BASE = '/.netlify/functions';
 
 function toggleRevise() {
@@ -221,7 +223,7 @@ async function handleAction(action) {
     const res = await fetch(FUNC_BASE + '/review-' + action, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: FILENAME, publish_at: publishAt, comment }),
+      body: JSON.stringify({ filename: FILENAME, publish_at: publishAt, comment, ref: REF || undefined }),
     });
 
     const data = await res.json();
@@ -250,7 +252,10 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  const filename = (event.queryStringParameters || {}).file;
+  const params = event.queryStringParameters || {};
+  const filename = params.file;
+  const ref = params.ref || '';   // draft ブランチ名（省略時は main）
+
   if (!filename || !/^[\w-]+\.md$/.test(filename)) {
     return {
       statusCode: 400,
@@ -265,8 +270,8 @@ exports.handler = async (event) => {
       // ローカルファイルがあればそちらを優先（netlify dev 用）
       raw = fetchPostLocal(filename);
     } catch {
-      // ローカルになければ GitHub API フォールバック
-      raw = await fetchPostFromGitHub(filename);
+      // ローカルになければ GitHub API フォールバック（ref 指定対応）
+      raw = await fetchPostFromGitHub(filename, ref || undefined);
     }
     const { meta, body } = parseFrontmatter(raw);
 
@@ -288,7 +293,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml),
+      body: renderReviewPage(filename, meta, bodyHtml, ref),
     };
   } catch (err) {
     return {
