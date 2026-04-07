@@ -43,14 +43,31 @@ exports.handler = async (event) => {
     const updated = updateFrontmatter(content, updates);
     const result = await putFile(filepath, updated, sha, `review: approve ${filename}`, ref || undefined);
 
+    // frontmatter から記事情報を抽出
+    const fmTitle    = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const fmSlug     = (content.match(/^slug:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const fmCategory = (content.match(/^category:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const fmPersona  = (content.match(/^primary_persona:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+
     // 通知（非致命的）
     const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
     const reviewQuery = ref ? `file=${filename}&ref=${encodeURIComponent(ref)}` : `file=${filename}`;
     sendNotification('approved', {
-      title: '',
+      title: fmTitle,
       filename,
       reviewUrl: `${baseUrl}/review?${reviewQuery}`,
+      publishAt: updates.publish_at || '',
     }).catch(() => {});
+
+    // 公開日時が設定されていれば公開完了通知も送る
+    if (updates.publish_at && fmSlug) {
+      sendNotification('published', {
+        title: fmTitle,
+        publicUrl: `${baseUrl}/blog/${fmSlug}/`,
+        category: fmCategory,
+        persona: fmPersona,
+      }).catch(() => {});
+    }
 
     return {
       statusCode: 200,

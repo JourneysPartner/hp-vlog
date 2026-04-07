@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -82,21 +82,21 @@ jobs:
           PR_BODY: |
             ## 自動生成ドラフト
 
-            このPRは GitHub Actions によって自動生成されたブログ下書きです。
+            GitHub Actions がブログ下書きを自動生成しました。
+            Chatwork 通知のレビューURLから内容を確認してください。
 
-            ### レビュー項目
-            - [ ] タイトルと内容の確認
-            - [ ] source_url の実在確認（国税庁サイト等で照合）
-            - [ ] 免責事項の記載確認
-            - [ ] frontmatter の review_status を approved に変更
+            ### レビュー手順
+            1. Chatwork 通知内のレビュー画面リンクを開く
+            2. 記事の内容を確認する
+               - タイトル・本文の妥当性
+               - 出典URL（source_url）が実在するか
+               - 免責事項の記載
+            3. レビュー画面のボタンで操作する
+               - **「このまま公開」** → 承認（公開日時を設定可能）
+               - **「差し戻し」** → 修正コメントを記入して送信
+               - **「今回は見送り」** → 記事を見送り
 
-            ### 公開手順
-            1. PRで内容を確認・編集する
-            2. review_status を approved に変更する
-            3. publish_at に公開日時を設定する（翌日 11:10〜11:50 JST 推奨）
-            4. PR をマージする
-
-            > このドラフトはAIが自動生成しました。内容の正確性は必ず人間がレビューしてください。
+            > この下書きはAIが自動生成しています。内容の正確性は必ず確認してください。
         run: |
           printf '%s\n' "$PR_BODY" > /tmp/pr-body.md
           if PR_URL=$(gh pr create \
