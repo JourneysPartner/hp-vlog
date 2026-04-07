@@ -1,0 +1,134 @@
+name: Daily Blog Draft
+
+on:
+  schedule:
+    # UTC 00:00 = JST 09:00 に毎日実行
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      high_quality:
+        description: 'Opus 4.6 で高品質生成する場合は true'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-draft:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate draft
+        id: draft
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.high_quality }}" = "true" ]; then
+            ARGS="--high-quality"
+          fi
+          node scripts/generate-draft.js $ARGS
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Validate
+        run: npm run validate
+
+      - name: Build (smoke test)
+        run: npm run build
+
+      - name: Commit and create PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: |
+            ## 自動生成ドラフト
+
+            このPRは GitHub Actions によって自動生成されたブログ下書きです。
+
+            ### レビュー項目
+            - [ ] タイトルと内容の確認
+            - [ ] source_url の実在確認（国税庁サイト等で照合）
+            - [ ] 免責事項の記載確認
+            - [ ] frontmatter の review_status を approved に変更
+
+            ### 公開手順
+            1. PRで内容を確認・編集する
+            2. review_status を approved に変更する
+            3. publish_at に公開日時を設定する（翌日 11:10〜11:50 JST 推奨）
+            4. PR をマージする
+
+            > このドラフトはAIが自動生成しました。内容の正確性は必ず人間がレビューしてください。
+        run: |
+          DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          BRANCH="draft/blog-${DATE}-${GITHUB_RUN_NUMBER}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add content/posts/
+
+          if git diff --cached --quiet; then
+            echo "新規ファイルなし。スキップします。"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "draft: ブログ下書き自動生成 ${DATE}"
+          git push origin "$BRANCH"
+
+          printf '%s\n' "$PR_BODY" > /tmp/pr-body.md
+          PR_URL=$(gh pr create \
+            --title "【自動生成ドラフト】${DATE}" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$BRANCH" 2>&1 | tail -1)
+
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+      - name: Extract frontmatter for notification
+        if: steps.pr.outputs.skipped != 'true'
+        id: fm
+        run: |
+          FILE=$(ls -t content/posts/*.md | head -1)
+          TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
+          SUMMARY=$(grep '^summary:' "$FILE" | head -1 | sed 's/^summary: *"//;s/"$//')
+          PERSONA=$(grep '^primary_persona:' "$FILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
+          CATEGORY=$(grep '^category:' "$FILE" | head -1 | sed 's/^category: *"//;s/"$//')
+          SLUG=$(grep '^slug:' "$FILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+
+          echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
+          echo "summary=${SUMMARY}" >> "$GITHUB_OUTPUT"
+          echo "persona=${PERSONA}" >> "$GITHUB_OUTPUT"
+          echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
+          echo "slug=${SLUG}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify via Netlify
+        if: steps.pr.outputs.skipped != 'true'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          REVIEW_URL="https://mori-zeirishi.net/review?file=content/posts/$(ls -t content/posts/*.md | head -1 | xargs basename)"
+          node scripts/notify.js \
+            --event draft_created \
+            --title "${{ steps.fm.outputs.title }}" \
+            --summary "${{ steps.fm.outputs.summary }}" \
+            --persona "${{ steps.fm.outputs.persona }}" \
+            --category "${{ steps.fm.outputs.category }}" \
+            --review-url "$REVIEW_URL" \
+            --pr-url "${{ steps.pr.outputs.pr_url }}"

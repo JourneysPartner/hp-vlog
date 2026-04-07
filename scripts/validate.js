@@ -16,8 +16,12 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 // ── 必須フロントマター項目 ──────────────────────────────────────
 const REQUIRED_FIELDS = [
   'title', 'slug', 'category', 'primary_persona',
-  'source_url', 'summary', 'review_status',
+  'summary', 'review_status',
 ];
+
+// source_url は公開前に必須だが、draft / needs_review では警告に留める
+const REQUIRED_FOR_PUBLISH = ['source_url'];
+const DRAFT_STATUSES = ['draft', 'needs_review'];
 
 // ── 禁止表現（誇大広告チェック）────────────────────────────────
 const BANNED_PHRASES = [
@@ -47,6 +51,18 @@ function validateFile(filePath) {
   // 1. 必須フィールド
   for (const field of REQUIRED_FIELDS) {
     if (!fm[field]) errors.push(`必須項目が未設定: ${field}`);
+  }
+
+  // 1b. 公開前必須フィールド（draft/needs_review では警告、それ以外はエラー）
+  const isDraft = DRAFT_STATUSES.includes(fm.review_status);
+  for (const field of REQUIRED_FOR_PUBLISH) {
+    if (!fm[field]) {
+      if (isDraft) {
+        warnings.push(`${field} が未設定です（公開前に設定が必要）`);
+      } else {
+        errors.push(`必須項目が未設定: ${field}`);
+      }
+    }
   }
 
   // 2. review_status の値
