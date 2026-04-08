@@ -7,15 +7,15 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
 source_title: "国税庁タックスアンサー No.6451 仕入税額控除の対象範囲"
 summary: "国内EC物販セラー向けに、消費税の基本と実務上の注意点を解説します。"
-review_status: "skipped"
-review_comment: "テンプレートから自動生成された下書きです。内容の加筆・修正が必要です。"
+review_status: "needs_revision"
+review_comment: "税理士がスタッフに教えるような形式にして。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-08T07:44:30.371Z"
-updated_at: "2026-04-08T16:44:58.371+09:00"
+updated_at: "2026-04-08T16:47:35.250+09:00"
 ---
 
 ## はじめに
