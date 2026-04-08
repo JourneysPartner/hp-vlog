@@ -7,7 +7,7 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
 source_title: "国税庁タックスアンサー No.6451 仕入税額控除の対象範囲"
 summary: "Amazon物販で発生するFBA手数料や広告費、配送代行費が消費税の仕入税額控除の対象になるか、実務上の注意点と確認方法を国内ECセラー向けに整理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -15,7 +15,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-08T12:18:01.636Z"
-updated_at: "2026-04-08T12:18:01.636Z"
+updated_at: "2026-04-08T21:21:01.813+09:00"
 ---
 
 Amazon物販をされていると、「FBA手数料に消費税はかかっているのか」「そのまま仕入税額控除に入れてよいのか」と迷う場面が多いのではないでしょうか。特に、Amazonの各種手数料は種類が多く、明細の見方も複雑になりやすいです。
