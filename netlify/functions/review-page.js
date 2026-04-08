@@ -221,17 +221,22 @@ async function handleAction(action) {
   document.querySelectorAll('.action-section button').forEach(b => b.disabled = true);
 
   try {
-    const res = await fetch(FUNC_BASE + '/review-' + action, {
+    // approve のみバックグラウンド関数（最大15分）にルーティングし、
+    // mergeable 待機 + マージリトライが Netlify の 10秒制限に阻まれないようにする。
+    // バックグラウンド関数は 202 Accepted を即返すため、結果は Chatwork 通知で受け取る。
+    const endpoint = action === 'approve' ? '/review-approve-background' : '/review-' + action;
+    const res = await fetch(FUNC_BASE + endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filename: FILENAME, publish_at: publishAt, comment, ref: REF || undefined }),
     });
 
-    const data = await res.json();
+    // 202 Accepted (background function) はボディが空なので JSON 解析を試みない
+    const data = res.status === 202 ? {} : await res.json().catch(() => ({}));
     if (res.ok) {
       resultEl.className = 'result-msg show success';
       if (action === 'approve') {
-        resultEl.textContent = '公開処理を開始しました。PRの自動マージと公開完了通知が送信されます。';
+        resultEl.textContent = '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
         resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。';
       } else if (action === 'skip') {

@@ -211,40 +211,82 @@ async function getPR(prNumber) {
 }
 
 // ── PR の mergeable 状態が確定するまで待つ ─────────────────────────────
-// GitHub は push 直後 mergeable=null を返すため、ポーリングで確定を待つ
-async function waitForMergeable(prNumber, { maxAttempts = 8, intervalMs = 1500 } = {}) {
+// GitHub は GET /pulls/{n} を呼んだ瞬間に mergeable の再計算を開始するため、
+// 1) 初回呼び出しで再計算をトリガ → 2) 短いインターバルでポーリング、という流れ。
+//
+// mergeable_state の意味（GitHub 公式）:
+//   clean       — マージ可能（CI も green）
+//   has_hooks   — マージ可能（pre-receive hook あり）
+//   unstable    — マージ可能（CI 失敗中だが merge は可能）
+//   unknown     — まだ計算中（再試行対象）
+//   blocked     — branch protection 等で blocked（再試行対象 / 場合により失敗）
+//   behind      — base に追いついていない
+//   dirty       — コンフリクトあり（マージ不可）
+//   draft       — draft PR
+//
+async function waitForMergeable(prNumber, { maxAttempts = 12, intervalMs = 2000 } = {}) {
+  const MERGEABLE_STATES = new Set(['clean', 'has_hooks', 'unstable']);
+  let lastPr = null;
+
   for (let i = 0; i < maxAttempts; i++) {
     const pr = await getPR(prNumber);
-    // mergeable が null = まだ計算中
-    if (pr.mergeable === true) return pr;
-    if (pr.mergeable === false) {
-      throw new Error(`PR #${prNumber} はマージ不可状態です (mergeable_state=${pr.mergeable_state})`);
+    lastPr = pr;
+
+    // mergeable=true かつ state がマージ許可セットなら即 OK
+    if (pr.mergeable === true && MERGEABLE_STATES.has(pr.mergeable_state)) {
+      return pr;
     }
-    // null の場合は待機して再試行
+
+    // mergeable=true だが state が unknown/blocked でも少し待って再試行
+    // mergeable=null = GitHub がまだ計算中 → 待機
+    // mergeable=false でも mergeable_state が unknown のうちは再計算待ちのことがある
+    //   （push 直後など）→ ここでは throw しない
+    if (pr.mergeable === false && pr.mergeable_state === 'dirty') {
+      throw new Error(`PR #${prNumber} はコンフリクト状態です (mergeable_state=dirty)`);
+    }
+
+    console.log(`[waitForMergeable] PR #${prNumber} attempt ${i + 1}/${maxAttempts}: mergeable=${pr.mergeable} state=${pr.mergeable_state}`);
     await new Promise(r => setTimeout(r, intervalMs));
   }
-  // 最後まで null のまま → 楽観的にマージ試行を許可
-  return await getPR(prNumber);
+
+  // 最後まで確定しなかった → 楽観的に最後の状態を返す（mergePR 側でリトライ）
+  console.warn(`[waitForMergeable] PR #${prNumber} 状態未確定のままタイムアウト → 楽観的に続行`);
+  return lastPr;
 }
 
-// ── PR をマージする ────────────────────────────────────────────────────
-async function mergePR(prNumber, commitTitle) {
+// ── PR をマージする（405 not mergeable に対するリトライ付き）───────────
+async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 3000 } = {}) {
   const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/merge`;
-  const h = await headers();
   const body = JSON.stringify({
     commit_title: commitTitle || `merge: PR #${prNumber}`,
     merge_method: 'squash',
   });
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { ...h, 'Content-Type': 'application/json' },
-    body,
-  });
-  if (!res.ok) {
+
+  let lastError = null;
+  for (let i = 0; i < maxAttempts; i++) {
+    const h = await headers();
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { ...h, 'Content-Type': 'application/json' },
+      body,
+    });
+    if (res.ok) return res.json();
+
     const text = await res.text();
-    throw new Error(`GitHub merge ${res.status}: ${text}`);
+    lastError = new Error(`GitHub merge ${res.status}: ${text}`);
+
+    // 405 "not mergeable" は GitHub の mergeable 再計算待ちで一時的に出ることがある
+    // → 待って再取得 → 再試行
+    const retryable = res.status === 405 || res.status === 409 || res.status === 502 || res.status === 503;
+    if (!retryable || i === maxAttempts - 1) {
+      throw lastError;
+    }
+    console.warn(`[mergePR] PR #${prNumber} attempt ${i + 1}/${maxAttempts} 失敗 (${res.status}) → ${intervalMs}ms 待機して再試行`);
+    await new Promise(r => setTimeout(r, intervalMs));
+    // 再取得して状態を更新（GitHub に再計算を促す）
+    try { await getPR(prNumber); } catch { /* noop */ }
   }
-  return res.json();
+  throw lastError || new Error(`GitHub merge failed after ${maxAttempts} attempts`);
 }
 
 // ── PR をクローズする ──────────────────────────────────────────────────

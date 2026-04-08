@@ -4,16 +4,21 @@ const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, m
 const { sendNotification } = require('./lib/notify');
 
 /**
- * review-approve — 「このまま公開」操作（完全自動）
+ * review-approve-background — 「このまま公開」操作（完全自動 / バックグラウンド実行）
  *
- * POST /.netlify/functions/review-approve
+ * Netlify Background Function: 関数名末尾の `-background` により最大15分まで実行可能。
+ * 呼び出し元には 202 Accepted を即返し、後続処理は非同期で進む。
+ * これにより mergeable 確定待ち + merge リトライを 10s 制限なしで実行できる。
+ *
+ * POST /.netlify/functions/review-approve-background
  * Body: { filename, publish_at?, ref? }
  *
  * 処理:
  * 1. frontmatter を approved + published に更新
  * 2. publish_at を自動設定（未指定なら翌日 11:30 JST）
- * 3. PR を自動マージ
- * 4. 公開完了通知を送信
+ * 3. PR の mergeable 状態が確定するまで待機（waitForMergeable）
+ * 4. PR を自動マージ（mergePR は 405/409/502/503 に対しリトライ）
+ * 5. 成功時のみ published、失敗時のみ merge_failed を Chatwork に通知
  */
 
 // 翌日 11:30 JST を返す
@@ -75,8 +80,15 @@ exports.handler = async (event) => {
         if (!pr) {
           throw new Error(`対象 PR が見つかりません (head=${ref})`);
         }
+        console.log(`[review-approve] PR #${pr.number} 検出 → mergeable 確定待ち`);
+
         // GitHub の mergeable 計算が落ち着くまで待つ
-        await waitForMergeable(pr.number);
+        // 直前の putFile で sha が更新されているため、push 直後と同じく
+        // mergeable=null になりやすい。長めに待つ。
+        const stable = await waitForMergeable(pr.number, { maxAttempts: 12, intervalMs: 2000 });
+        console.log(`[review-approve] PR #${pr.number} 状態: mergeable=${stable && stable.mergeable} state=${stable && stable.mergeable_state}`);
+
+        // mergePR 内部でも 405/409/502/503 に対し最大 4 回リトライ
         mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`);
         console.log(`[review-approve] PR #${pr.number} をマージしました`);
       } catch (mergeErr) {
