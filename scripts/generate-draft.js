@@ -187,6 +187,52 @@ ${cta}
 `;
 }
 
+// ── 標準免責事項ブロック ─────────────────────────────────────────
+// validate.js が要求する正規表現:
+//   /本記事は.{0,30}情報提供/  /免責/  /個別事情/
+// のいずれかにマッチしていれば OK。下記文面はすべてを満たす。
+const DISCLAIMER_BLOCK = `\n\n---\n\n本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります（免責事項）。\n`;
+
+// 免責事項が無い場合に末尾へ自動補完する
+function ensureDisclaimer(content) {
+  // body 部分のみで判定（frontmatter は除く）
+  const m = content.match(/^---\r?\n[\s\S]+?\r?\n---\r?\n([\s\S]*)$/);
+  const body = m ? m[1] : content;
+  const hasDisclaimer =
+    /本記事は.{0,30}情報提供/.test(body) ||
+    /免責/.test(body) ||
+    /個別事情/.test(body);
+  if (hasDisclaimer) return content;
+  console.warn('[generate] 免責事項が検出できなかったため自動補完します');
+  return content.replace(/\s*$/, '') + DISCLAIMER_BLOCK;
+}
+
+// 禁止表現を穏当な表現に置換（validate の BANNED_PHRASES に対応）
+const BANNED_REPLACEMENTS = [
+  [/必ず節税/g,    '節税につながる場合があります'],
+  [/絶対安心/g,    '安心につながります'],
+  [/確実に節税/g,  '節税につながる場合があります'],
+  [/100%節税/g,    '節税につながる場合があります'],
+  [/受賞歴/g,      '実績'],
+  [/最優秀/g,      '高い評価'],
+  [/No\.1税理士/g, '税理士'],
+];
+function sanitizeBannedPhrases(content) {
+  let out = content;
+  for (const [re, rep] of BANNED_REPLACEMENTS) {
+    if (re.test(out)) {
+      console.warn(`[generate] 禁止表現を置換: ${re}`);
+      out = out.replace(re, rep);
+    }
+  }
+  return out;
+}
+
+// 生成物を validate.js が通る形に整える共通フック
+function postProcess(content) {
+  return ensureDisclaimer(sanitizeBannedPhrases(content));
+}
+
 // ── OpenAI クライアント生成 ─────────────────────────────────────
 function createOpenAIClient() {
   const _sdk = require('openai');
@@ -240,7 +286,8 @@ ${persona.label}が実務で直面する税務上の疑問に答える記事を�
 - 想定事例を含める場合は「【想定事例】」と見出しまたは冒頭に明記すること
 - 個別事情で結論が変わりうる場合は、その旨を自然に記載すること
 ${sourceInstruction}
-- 記事末尾に免責事項を含めること
+- 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
+  「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
   「${cta}」
   「毛利順活税理士事務所では、初回のご相談を無料で承っております。お気軽にお問い合わせください。」
@@ -299,7 +346,7 @@ updated_at: "${now}"
   const raw = extractText(completion);
   // コードブロックで包まれていた場合は除去
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
-  return (fenced ? fenced[1] : raw).trim();
+  return postProcess((fenced ? fenced[1] : raw).trim());
 }
 
 // ── 既存記事の frontmatter をパースする ─────────────────────────
@@ -342,7 +389,8 @@ ${persona.label}が実務で直面する税務上の疑問に答える記事を�
 構成ルール:
 - h2見出し（## ）を最低3つ使い、読みやすく区切ること
 ${sourceInstruction}
-- 記事末尾に免責事項を含めること
+- 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
+  「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
   「${cta}」
   「毛利順活税理士事務所では、初回のご相談を無料で承っております。お気軽にお問い合わせください。」`;
@@ -395,7 +443,7 @@ updated_at: "${now}"
 
   const raw = extractText(completion);
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
-  return (fenced ? fenced[1] : raw).trim();
+  return postProcess((fenced ? fenced[1] : raw).trim());
 }
 
 // ── CLI 引数ヘルパー ────────────────────────────────────────────────
