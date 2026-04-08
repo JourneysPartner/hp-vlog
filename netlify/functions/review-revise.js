@@ -66,22 +66,30 @@ exports.handler = async (event) => {
     } catch (dispatchErr) {
       console.error(`[review-revise] ワークフロー起動失敗: ${dispatchErr.message}`);
       // 起動失敗時は通知で知らせる
-      sendNotification('regenerate_failed', {
+      try {
+        await sendNotification('regenerate_failed', {
+          title: '',
+          filename,
+          comment: comment.trim(),
+        });
+      } catch (e) {
+        console.error(`[review-revise] regenerate_failed 通知失敗: ${e.message}`);
+      }
+    }
+
+    // 差し戻し受付通知（await して Lambda 終了前に必ず送信完了させる）
+    const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
+    const reviewQuery = ref ? `file=${filename}&ref=${encodeURIComponent(ref)}` : `file=${filename}`;
+    try {
+      await sendNotification('revised', {
         title: '',
         filename,
         comment: comment.trim(),
-      }).catch(() => {});
+        reviewUrl: `${baseUrl}/review?${reviewQuery}`,
+      });
+    } catch (notifyErr) {
+      console.error(`[review-revise] 通知送信失敗: ${notifyErr.message}`);
     }
-
-    // 差し戻し受付通知
-    const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
-    const reviewQuery = ref ? `file=${filename}&ref=${encodeURIComponent(ref)}` : `file=${filename}`;
-    sendNotification('revised', {
-      title: '',
-      filename,
-      comment: comment.trim(),
-      reviewUrl: `${baseUrl}/review?${reviewQuery}`,
-    }).catch(() => {});
 
     return {
       statusCode: 200,

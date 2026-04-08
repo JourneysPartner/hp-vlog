@@ -198,6 +198,35 @@ async function findPR(headBranch) {
   return prs.length > 0 ? prs[0] : null;
 }
 
+// ── PR の詳細を取得する ───────────────────────────────────────────────
+async function getPR(prNumber) {
+  const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub get PR ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── PR の mergeable 状態が確定するまで待つ ─────────────────────────────
+// GitHub は push 直後 mergeable=null を返すため、ポーリングで確定を待つ
+async function waitForMergeable(prNumber, { maxAttempts = 8, intervalMs = 1500 } = {}) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const pr = await getPR(prNumber);
+    // mergeable が null = まだ計算中
+    if (pr.mergeable === true) return pr;
+    if (pr.mergeable === false) {
+      throw new Error(`PR #${prNumber} はマージ不可状態です (mergeable_state=${pr.mergeable_state})`);
+    }
+    // null の場合は待機して再試行
+    await new Promise(r => setTimeout(r, intervalMs));
+  }
+  // 最後まで null のまま → 楽観的にマージ試行を許可
+  return await getPR(prNumber);
+}
+
 // ── PR をマージする ────────────────────────────────────────────────────
 async function mergePR(prNumber, commitTitle) {
   const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/merge`;
@@ -271,5 +300,5 @@ async function triggerWorkflow(workflowFile, ref, inputs) {
 
 module.exports = {
   getFile, putFile, updateFrontmatter, nowJST,
-  findPR, mergePR, closePR, commentOnPR, triggerWorkflow,
+  findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR, triggerWorkflow,
 };

@@ -54,11 +54,12 @@ exports.handler = async (event) => {
       }
     }
 
-    // 見送り完了通知
-    sendNotification('skipped', {
-      title: fmTitle,
-      filename,
-    }).catch(() => {});
+    // 見送り完了通知（await して Lambda 終了前に必ず送信完了させる）
+    try {
+      await sendNotification('skipped', { title: fmTitle, filename });
+    } catch (notifyErr) {
+      console.error(`[review-skip] 通知送信失敗: ${notifyErr.message}`);
+    }
 
     return {
       statusCode: 200,

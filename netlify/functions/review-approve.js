@@ -1,6 +1,6 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, mergePR } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 
 /**
@@ -64,33 +64,45 @@ exports.handler = async (event) => {
     await putFile(filepath, updated, sha, `publish: ${fmTitle || filename}`, ref || undefined);
 
     // PR 自動マージ
+    // - findPR → waitForMergeable で mergeable 確定を待ってから merge
+    // - 成功時のみ published 通知、失敗時は merge_failed 通知（両方は送らない）
     const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
     let mergeResult = null;
+    let mergeError = null;
     if (ref) {
       try {
         const pr = await findPR(ref);
-        if (pr) {
-          mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`);
-          console.log(`[review-approve] PR #${pr.number} をマージしました`);
-        } else {
-          console.warn('[review-approve] 対象 PR が見つかりません');
+        if (!pr) {
+          throw new Error(`対象 PR が見つかりません (head=${ref})`);
         }
+        // GitHub の mergeable 計算が落ち着くまで待つ
+        await waitForMergeable(pr.number);
+        mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`);
+        console.log(`[review-approve] PR #${pr.number} をマージしました`);
       } catch (mergeErr) {
+        mergeError = mergeErr;
         console.error(`[review-approve] PR マージ失敗: ${mergeErr.message}`);
-        sendNotification('merge_failed', {
-          title: fmTitle,
-          filename,
-        }).catch(() => {});
       }
     }
 
-    // 公開完了通知
-    sendNotification('published', {
-      title: fmTitle,
-      publicUrl: fmSlug ? `${baseUrl}/blog/${fmSlug}/` : '',
-      category: fmCategory,
-      persona: fmPersona,
-    }).catch(() => {});
+    // 通知: マージ成功時のみ published、失敗時のみ merge_failed
+    try {
+      if (mergeError || (ref && !mergeResult)) {
+        await sendNotification('merge_failed', {
+          title: fmTitle,
+          filename,
+        });
+      } else {
+        await sendNotification('published', {
+          title: fmTitle,
+          publicUrl: fmSlug ? `${baseUrl}/blog/${fmSlug}/` : '',
+          category: fmCategory,
+          persona: fmPersona,
+        });
+      }
+    } catch (notifyErr) {
+      console.error(`[review-approve] 通知送信失敗: ${notifyErr.message}`);
+    }
 
     return {
       statusCode: 200,

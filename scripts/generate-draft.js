@@ -8,9 +8,10 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
 const { TOPICS } = require('./topic-pool');
 
-// ── モデル定義 ───────────────────────────────────────────────────
-const MODEL_STANDARD = 'claude-sonnet-4-6';
-const MODEL_HIGH     = 'claude-opus-4-6';
+// ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
+// 環境変数 OPENAI_MODEL を設定すれば任意のモデルに切り替え可能
+const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
+const MODEL_HIGH     = process.env.OPENAI_MODEL_HIGH || 'gpt-5.4';
 
 // ── ペルソナ定義 ─────────────────────────────────────────────────
 const PERSONAS = [
@@ -37,37 +38,32 @@ const CTA_MAP = {
 // ── モデル選択ロジック ──────────────────────────────────────────
 //
 // 優先順位:
-//   1. --high-quality フラグ → Opus 4.6
+//   1. --high-quality フラグ → 高品質モデル
 //   2. --model <model-id> フラグ → 指定モデル
-//   3. 環境変数 ANTHROPIC_MODEL → 指定モデル
-//   4. topic.quality === 'high' → Opus 4.6（自動判定）
-//   5. デフォルト → Sonnet 4.6
+//   3. 環境変数 OPENAI_MODEL → 指定モデル
+//   4. topic.quality === 'high' → 高品質モデル（自動判定）
+//   5. デフォルト → MODEL_STANDARD
 //
 function resolveModel(topic) {
   const args = process.argv.slice(2);
 
-  // 1. --high-quality フラグ
   if (args.includes('--high-quality')) {
     return { model: MODEL_HIGH, reason: '--high-quality フラグ' };
   }
 
-  // 2. --model <model-id> フラグ
   const modelIdx = args.indexOf('--model');
   if (modelIdx !== -1 && args[modelIdx + 1]) {
     return { model: args[modelIdx + 1], reason: `--model フラグ` };
   }
 
-  // 3. 環境変数 ANTHROPIC_MODEL
-  if (process.env.ANTHROPIC_MODEL) {
-    return { model: process.env.ANTHROPIC_MODEL, reason: '環境変数 ANTHROPIC_MODEL' };
+  if (process.env.OPENAI_MODEL) {
+    return { model: process.env.OPENAI_MODEL, reason: '環境変数 OPENAI_MODEL' };
   }
 
-  // 4. テーマの quality フィールド
   if (topic.quality === 'high') {
     return { model: MODEL_HIGH, reason: `テーマ quality=high（自動判定）` };
   }
 
-  // 5. デフォルト
   return { model: MODEL_STANDARD, reason: 'デフォルト' };
 }
 
@@ -191,11 +187,31 @@ ${cta}
 `;
 }
 
-// ── Claude API を使った生成 ──────────────────────────────────────
-async function generateWithClaude(dateStr, topic, modelId) {
-  const _sdk    = require('@anthropic-ai/sdk');
-  const Anthropic = _sdk.default || _sdk;
-  const client  = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ── OpenAI クライアント生成 ─────────────────────────────────────
+function createOpenAIClient() {
+  const _sdk = require('openai');
+  const OpenAI = _sdk.default || _sdk.OpenAI || _sdk;
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+
+// OpenAI chat.completions レスポンスから本文テキストを取り出す
+function extractText(completion) {
+  const choice = completion && completion.choices && completion.choices[0];
+  if (!choice) return '';
+  // chat.completions
+  if (choice.message && typeof choice.message.content === 'string') {
+    return choice.message.content;
+  }
+  // 配列形式
+  if (choice.message && Array.isArray(choice.message.content)) {
+    return choice.message.content.map(p => (typeof p === 'string' ? p : p.text || '')).join('');
+  }
+  return '';
+}
+
+// ── OpenAI API を使った生成 ──────────────────────────────────────
+async function generateWithOpenAI(dateStr, topic, modelId) {
+  const client  = createOpenAIClient();
   const now     = new Date().toISOString();
   const persona = PERSONA_MAP[topic.persona];
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
@@ -272,14 +288,15 @@ updated_at: "${now}"
 
 （Markdown本文 1000〜1500文字）`;
 
-  const message = await client.messages.create({
+  const completion = await client.chat.completions.create({
     model: modelId,
-    max_tokens: 3000,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: userPrompt },
+    ],
   });
 
-  const raw = message.content[0].type === 'text' ? message.content[0].text : '';
+  const raw = extractText(completion);
   // コードブロックで包まれていた場合は除去
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return (fenced ? fenced[1] : raw).trim();
@@ -297,11 +314,9 @@ function parseFrontmatter(raw) {
   return { meta, body: match[2] };
 }
 
-// ── 差し戻し対応の再生成 (Claude API) ──────────────────────────────
-async function regenerateWithClaude(existingContent, comment, modelId) {
-  const _sdk    = require('@anthropic-ai/sdk');
-  const Anthropic = _sdk.default || _sdk;
-  const client  = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
+async function regenerateWithOpenAI(existingContent, comment, modelId) {
+  const client = createOpenAIClient();
 
   const { meta, body: existingBody } = parseFrontmatter(existingContent);
   const persona = PERSONA_MAP[meta.primary_persona] || { label: meta.primary_persona || '' };
@@ -370,14 +385,15 @@ updated_at: "${now}"
 
 （改善した Markdown 本文 1000〜1500文字）`;
 
-  const message = await client.messages.create({
+  const completion = await client.chat.completions.create({
     model: modelId,
-    max_tokens: 3000,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: userPrompt },
+    ],
   });
 
-  const raw = message.content[0].type === 'text' ? message.content[0].text : '';
+  const raw = extractText(completion);
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return (fenced ? fenced[1] : raw).trim();
 }
@@ -412,14 +428,14 @@ async function main() {
     console.log(`[regenerate] 対象: content/posts/${filename}`);
     console.log(`[regenerate] コメント: ${comment}`);
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('[regenerate] ANTHROPIC_API_KEY が必要です');
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('[regenerate] OPENAI_API_KEY が必要です');
       process.exit(1);
     }
 
     const modelId = MODEL_STANDARD;
-    console.log(`[regenerate] Claude API で再生成します（${modelId}）...`);
-    const content = await regenerateWithClaude(existing, comment, modelId);
+    console.log(`[regenerate] OpenAI API で再生成します（${modelId}）...`);
+    const content = await regenerateWithOpenAI(existing, comment, modelId);
 
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
@@ -445,16 +461,16 @@ async function main() {
   }
 
   let content;
-  if (process.env.ANTHROPIC_API_KEY) {
-    console.log(`[generate] Claude API で生成します（${model}）...`);
+  if (process.env.OPENAI_API_KEY) {
+    console.log(`[generate] OpenAI API で生成します（${model}）...`);
     try {
-      content = await generateWithClaude(dateStr, topic, model);
+      content = await generateWithOpenAI(dateStr, topic, model);
     } catch (err) {
-      console.warn(`[generate] Claude API 失敗: ${err.message} → テンプレートにフォールバック`);
+      console.warn(`[generate] OpenAI API 失敗: ${err.message} → テンプレートにフォールバック`);
       content = generateFromTemplate(dateStr, topic);
     }
   } else {
-    console.log('[generate] ANTHROPIC_API_KEY 未設定 → テンプレートで生成します');
+    console.log('[generate] OPENAI_API_KEY 未設定 → テンプレートで生成します');
     content = generateFromTemplate(dateStr, topic);
   }
 
