@@ -12,13 +12,11 @@
   to = "/.netlify/functions/review-page"
   status = 200
 
-# ブログ記事URL: /blog/slug/ → blog/slug/index.html
-[[redirects]]
-  from = "/blog/:slug"
-  to = "/blog/:slug/"
-  status = 301
+# ブログ記事URL: Netlify の Pretty URLs が自動的に
+# /blog/slug → /blog/slug/ → blog/slug/index.html を解決するため
+# 手動の 301 redirect は不要（設定すると redirect loop の原因になる）
 
-# 404
+# 404 — 静的ファイルが存在しないパスのみ発動
 [[redirects]]
   from = "/*"
   to = "/404.html"
