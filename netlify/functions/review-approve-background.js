@@ -21,13 +21,17 @@ const { sendNotification } = require('./lib/notify');
  * 5. 成功時のみ published、失敗時のみ merge_failed を Chatwork に通知
  */
 
-// 翌日 11:30 JST を返す
+// 翌日 11:05〜11:55 JST のうちランダムな時刻を返す
+// 時刻にばらつきを持たせるため、分は 5〜55 の範囲でランダム選択。
 function defaultPublishAt() {
   const now = new Date();
+  // UTC → JST に変換した「翌日」を作る
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  jst.setDate(jst.getDate() + 1);
-  jst.setHours(11, 30, 0, 0);
-  return jst.toISOString().replace(/\.\d{3}Z$/, '+09:00');
+  jst.setUTCDate(jst.getUTCDate() + 1);
+  const minute = 5 + Math.floor(Math.random() * 51); // 5〜55
+  jst.setUTCHours(11, minute, 0, 0);
+  // JST 表記の ISO 文字列に変換
+  return jst.toISOString().replace('Z', '+09:00');
 }
 
 exports.handler = async (event) => {
@@ -53,15 +57,16 @@ exports.handler = async (event) => {
 
     const now = nowJST();
 
-    // publish_at: ユーザー指定 > 自動設定（翌日 11:30 JST）
+    // publish_at: ユーザー指定 > 自動設定（翌日 11:05〜11:55 JST のランダム時刻）
     let publishAt = publish_at || defaultPublishAt();
     if (publishAt && !publishAt.includes('+')) publishAt += '+09:00';
 
+    // 「公開予約」状態にする。published への昇格は publish-scheduled ワークフローが
+    // publish_at 到来後に実施し、main へ commit/push する。
     const updates = {
-      review_status: 'published',
+      review_status: 'approved',
       approved_at: now,
       publish_at: publishAt,
-      published_at: now,
       updated_at: now,
     };
 
@@ -97,7 +102,8 @@ exports.handler = async (event) => {
       }
     }
 
-    // 通知: マージ成功時のみ published、失敗時のみ merge_failed
+    // 通知: マージ成功時は approved（公開予約完了）、失敗時のみ merge_failed
+    // 実際の公開完了通知 (published) は publish-scheduled ワークフローが送る。
     try {
       if (mergeError || (ref && !mergeResult)) {
         await sendNotification('merge_failed', {
@@ -105,9 +111,10 @@ exports.handler = async (event) => {
           filename,
         });
       } else {
-        await sendNotification('published', {
+        await sendNotification('approved', {
           title: fmTitle,
-          publicUrl: fmSlug ? `${baseUrl}/blog/${fmSlug}/` : '',
+          filename,
+          publishAt,
           category: fmCategory,
           persona: fmPersona,
         });

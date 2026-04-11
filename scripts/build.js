@@ -41,12 +41,14 @@ function toISO(dateStr) {
 }
 
 // ── 公開判定 ────────────────────────────────────────────────────
-// review_status が 'published' なら公開対象とする。
-// publish_at は予約日時だが、approve 時に published_at も同時にセットされるため、
-// マージ直後のビルドで HTML が生成されないとリダイレクトループや 404 になる。
-// そのため review_status === 'published' であれば即座にビルド対象にする。
+// 1. review_status === 'published' であること
+// 2. publish_at が現在時刻以前であること（未来の予約記事はビルドしない）
+// approve 時は review_status='approved' / publish_at=翌日11時台 に予約され、
+// publish-scheduled ワークフローが due 記事だけを 'published' に昇格させる。
 function isPublished(fm) {
-  return fm.review_status === 'published';
+  if (fm.review_status !== 'published') return false;
+  if (!fm.publish_at) return false;
+  return new Date(fm.publish_at) <= new Date();
 }
 
 // ── Markdown ファイルを読み込み、公開済みのものを返す ──────────

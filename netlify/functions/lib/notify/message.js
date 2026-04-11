@@ -7,10 +7,10 @@
  *   - draft_created      : 下書き生成完了
  *   - regenerated        : 差し戻し対応版の再生成完了
  *   - regenerate_failed  : 再生成失敗
- *   - approved           : 承認完了（使用しない — published に統合）
+ *   - approved           : 承認完了（公開予約された状態）
  *   - revised            : 差し戻し受付
  *   - skipped            : 見送り完了
- *   - published          : 公開完了
+ *   - published          : 公開完了（publish-scheduled が送信）
  *   - merge_failed       : PRマージ失敗
  */
 
@@ -83,6 +83,34 @@ function buildMessage(event, data) {
           `■ タイトル: ${title || filename}`,
         ].join('\n'),
       };
+    }
+
+    case 'approved': {
+      const { title, publishAt, category, persona } = data;
+      // publishAt を JST 表記の見やすい文字列に整形
+      let publishLabel = publishAt || '';
+      if (publishAt) {
+        try {
+          const d = new Date(publishAt);
+          const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+          const yyyy = jst.getUTCFullYear();
+          const mm = String(jst.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(jst.getUTCDate()).padStart(2, '0');
+          const hh = String(jst.getUTCHours()).padStart(2, '0');
+          const mi = String(jst.getUTCMinutes()).padStart(2, '0');
+          publishLabel = `${yyyy}-${mm}-${dd} ${hh}:${mi} JST`;
+        } catch { /* noop */ }
+      }
+      const lines = [
+        '記事を承認しました。公開予約を受け付けました。',
+        '',
+        `■ タイトル: ${title}`,
+      ];
+      if (category) lines.push(`■ カテゴリ: ${category}`);
+      if (persona)  lines.push(`■ 対象読者: ${persona}`);
+      if (publishLabel) lines.push(`■ 公開予定: ${publishLabel}`);
+      lines.push('', '公開予定時刻になると自動で本番サイトに反映され、公開完了通知をお送りします。');
+      return { subject: '【ブログ】公開予約を受け付けました', body: lines.join('\n') };
     }
 
     case 'published': {

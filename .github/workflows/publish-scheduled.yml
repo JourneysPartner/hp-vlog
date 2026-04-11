@@ -1,0 +1,94 @@
+name: Publish Scheduled Articles
+
+on:
+  schedule:
+    # UTC 02:05 = JST 11:05 に毎日起動
+    # （11:00 ちょうどは GitHub Actions の混雑で遅延しやすいため 5分ずらす）
+    - cron: '5 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      # 11:05 JST 起動後に 0〜50分のランダム待機を入れ、
+      # 実際の公開昇格時刻を 11:05〜11:55 JST の範囲で毎日ばらつかせる。
+      # workflow_dispatch（手動実行）の場合は待機をスキップする。
+      - name: Random delay (0-50 min)
+        if: github.event_name == 'schedule'
+        run: |
+          DELAY=$(( RANDOM % 3001 ))
+          echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"
+          sleep "$DELAY"
+          echo "[delay] 待機完了（JST $(TZ=Asia/Tokyo date '+%H:%M:%S')）"
+
+      - name: Promote due articles to published
+        id: promote
+        run: node scripts/publish-due.js
+
+      - name: Validate
+        if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
+        run: npm run validate
+
+      - name: Build (smoke test)
+        if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
+        run: npm run build
+
+      - name: Commit and push to main
+        if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/posts/
+          if git diff --cached --quiet; then
+            echo "差分なし。スキップします。"
+            exit 0
+          fi
+          COUNT="${{ steps.promote.outputs.published_count }}"
+          git commit -m "publish: ${COUNT} 件の予約記事を公開"
+          # 競合に備えて pull --rebase してから push
+          git pull --rebase origin main || true
+          git push origin main
+
+      - name: Notify Chatwork (per article)
+        if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+          SITE_BASE_URL: https://mori-zeirishi.net
+        run: |
+          IFS='|' read -r -a TITLES   <<< "${{ steps.promote.outputs.published_titles }}"
+          IFS=','  read -r -a SLUGS    <<< "${{ steps.promote.outputs.published_slugs }}"
+          IFS='|' read -r -a CATEGORIES <<< "${{ steps.promote.outputs.published_categories }}"
+          IFS=','  read -r -a PERSONAS <<< "${{ steps.promote.outputs.published_personas }}"
+
+          for i in "${!TITLES[@]}"; do
+            TITLE="${TITLES[$i]}"
+            SLUG="${SLUGS[$i]}"
+            CATEGORY="${CATEGORIES[$i]}"
+            PERSONA="${PERSONAS[$i]}"
+            PUBLIC_URL="${SITE_BASE_URL}/blog/${SLUG}/"
+
+            node scripts/notify.js \
+              --event published \
+              --title "$TITLE" \
+              --category "$CATEGORY" \
+              --persona "$PERSONA" \
+              --public-url "$PUBLIC_URL"
+          done

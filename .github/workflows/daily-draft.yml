@@ -2,9 +2,9 @@ name: Daily Blog Draft
 
 on:
   schedule:
-    # UTC 02:05 = JST 11:05 に毎日起動
-    # （11:00 ちょうどは GitHub Actions の混雑で遅延しやすいため 5分ずらす）
-    - cron: '5 2 * * *'
+    # UTC 00:05 = JST 09:05 に毎日起動
+    # （09:00 ちょうどは GitHub Actions の混雑で遅延しやすいため 5分ずらす）
+    - cron: '5 0 * * *'
   workflow_dispatch:
     inputs:
       high_quality:
@@ -34,8 +34,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 11:05 JST に起動した後、0〜50分のランダム待機を入れ
-      # 実際の生成開始時刻を 11:05〜11:55 JST の範囲で毎日ばらつかせる。
+      # 09:05 JST に起動した後、0〜50分のランダム待機を入れ
+      # 実際の生成開始時刻を 09:05〜09:55 JST の範囲で毎日ばらつかせる。
       # workflow_dispatch（手動実行）の場合は待機をスキップする。
       - name: Random delay (0-50 min)
         if: github.event_name == 'schedule'
