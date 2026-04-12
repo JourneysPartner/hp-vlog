@@ -1,14 +1,18 @@
 name: Daily Blog Draft
 
 on:
-  schedule:
-    # UTC 00:05 = JST 09:05 に毎日起動
-    # （09:00 ちょうどは GitHub Actions の混雑で遅延しやすいため 5分ずらす）
-    - cron: '5 0 * * *'
   workflow_dispatch:
     inputs:
       high_quality:
         description: 'Opus 4.6 で高品質生成する場合は true'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      auto:
+        description: 'Netlify スケジューラからの自動実行（ランダム待機あり）'
         required: false
         default: 'false'
         type: choice
@@ -34,11 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 09:05 JST に起動した後、0〜50分のランダム待機を入れ
+      # Netlify スケジューラ経由 (auto=true) の場合、0〜50分のランダム待機を入れ
       # 実際の生成開始時刻を 09:05〜09:55 JST の範囲で毎日ばらつかせる。
-      # workflow_dispatch（手動実行）の場合は待機をスキップする。
+      # 手動実行 (auto=false) の場合は待機をスキップする。
       - name: Random delay (0-50 min)
-        if: github.event_name == 'schedule'
+        if: github.event.inputs.auto == 'true'
         run: |
           DELAY=$(( RANDOM % 3001 ))   # 0〜3000秒 = 0〜50分
           echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"

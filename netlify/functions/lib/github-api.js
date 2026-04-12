@@ -340,7 +340,22 @@ async function triggerWorkflow(workflowFile, ref, inputs) {
   return { ok: true };
 }
 
+// ── Workflow Runs 一覧取得 ─────────────────────────────────────────────
+// params 例: { created: '>=2026-04-12', per_page: '1' }
+async function listWorkflowRuns(workflowFile, params = {}) {
+  const qs = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/repos/${REPO()}/actions/workflows/${workflowFile}/runs${qs ? '?' + qs : ''}`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub workflow runs ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
 module.exports = {
   getFile, putFile, updateFrontmatter, nowJST,
-  findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR, triggerWorkflow,
+  findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR,
+  triggerWorkflow, listWorkflowRuns,
 };

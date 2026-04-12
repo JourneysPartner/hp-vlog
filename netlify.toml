@@ -6,6 +6,20 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ── Netlify Scheduled Functions ────────────────────────────────────────
+# GitHub Actions の schedule は数時間遅延するため、Netlify 側で時刻トリガーを管理する。
+# 各関数は GitHub Actions の workflow_dispatch を叩いて起動する。
+
+# 毎日 JST 09:05 に daily-draft を起動 → Chatwork 記事確認通知（9時台）
+[functions."scheduler-daily-draft"]
+  schedule = "5 0 * * *"
+
+# 毎日 JST 11:05 に publish-scheduled を起動 → 予約記事の自動公開（11時台）
+[functions."scheduler-publish"]
+  schedule = "5 2 * * *"
+
+# ── Redirects / Rewrites ──────────────────────────────────────────────
+
 # レビュー画面: /review?file=xxx.md → Netlify Function
 [[redirects]]
   from = "/review"

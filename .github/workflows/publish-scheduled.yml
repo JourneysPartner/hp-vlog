@@ -1,11 +1,16 @@
 name: Publish Scheduled Articles
 
 on:
-  schedule:
-    # UTC 02:05 = JST 11:05 に毎日起動
-    # （11:00 ちょうどは GitHub Actions の混雑で遅延しやすいため 5分ずらす）
-    - cron: '5 2 * * *'
   workflow_dispatch:
+    inputs:
+      auto:
+        description: 'Netlify スケジューラからの自動実行（ランダム待機あり）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   contents: write
@@ -27,11 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 11:05 JST 起動後に 0〜50分のランダム待機を入れ、
+      # Netlify スケジューラ経由 (auto=true) の場合、0〜50分のランダム待機を入れ
       # 実際の公開昇格時刻を 11:05〜11:55 JST の範囲で毎日ばらつかせる。
-      # workflow_dispatch（手動実行）の場合は待機をスキップする。
+      # 手動実行 (auto=false) の場合は待機をスキップする。
       - name: Random delay (0-50 min)
-        if: github.event_name == 'schedule'
+        if: github.event.inputs.auto == 'true'
         run: |
           DELAY=$(( RANDOM % 3001 ))
           echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"
