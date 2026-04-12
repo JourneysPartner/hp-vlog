@@ -6,10 +6,10 @@
  * 毎日 JST 09:05 に起動し、GitHub Actions の daily-draft.yml を
  * workflow_dispatch で叩く。
  *
- * - GitHub Actions の schedule は数時間遅延することがあるため、
- *   時刻トリガーを Netlify 側に移管した。
- * - 二重起動防止: 同日 (UTC) にすでにワークフロー実行がある場合はスキップ。
- * - auto=true を渡し、workflow 内で 0〜50分のランダム待機を実行させる。
+ * 二重起動防止:
+ *   GitHub workflow runs の display_title に
+ *   [source=scheduler-daily-draft][jst=YYYY-MM-DD] が含まれるかで判定。
+ *   手動実行 (source=manual) は対象外なので、手動 → 自動の順でも自動がスキップされない。
  *
  * スケジュールは netlify.toml [functions."scheduler-daily-draft"] で定義。
  */
@@ -17,35 +17,46 @@
 const { triggerWorkflow, listWorkflowRuns } = require('./lib/github-api');
 
 const WORKFLOW_FILE = 'daily-draft.yml';
+const TRIGGER_SOURCE = 'scheduler-daily-draft';
+
+// JST の今日の日付 (YYYY-MM-DD) を返す
+function todayJST() {
+  const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return d.toISOString().split('T')[0];
+}
 
 exports.handler = async (event) => {
-  console.log(`[scheduler] ${WORKFLOW_FILE} チェック開始`);
+  const dateJST = todayJST();
+  console.log(`[scheduler] ${WORKFLOW_FILE} チェック開始 (JST ${dateJST})`);
 
   try {
-    // 今日の UTC 日付を取得（JST 09:05 = UTC 00:05 なのでほぼ同日）
-    const todayUTC = new Date().toISOString().split('T')[0];
+    // 直近のワークフロー実行を取得し、同日・同ソースの run があるか確認する。
+    // display_title (= run-name) に [source=...][jst=...] が入っているのでそれで判定。
+    const needle = `[source=${TRIGGER_SOURCE}][jst=${dateJST}]`;
 
-    // 本日すでに実行済みかチェック
-    const data = await listWorkflowRuns(WORKFLOW_FILE, {
-      created: `>=${todayUTC}`,
-      per_page: '1',
-    });
+    // 直近 10 件を取得して display_title にマッチする run を探す
+    const data = await listWorkflowRuns(WORKFLOW_FILE, { per_page: '10' });
+    const runs = data.workflow_runs || [];
+    const alreadyRun = runs.some(r => (r.display_title || '').includes(needle));
 
-    if (data.total_count > 0) {
-      console.log(`[scheduler] ${WORKFLOW_FILE} は本日すでに ${data.total_count} 件実行済み → スキップ`);
+    if (alreadyRun) {
+      console.log(`[scheduler] ${WORKFLOW_FILE} は JST ${dateJST} に scheduler 由来で実行済み → スキップ`);
       return {
         statusCode: 200,
-        body: JSON.stringify({ status: 'skipped', reason: 'already run today', count: data.total_count }),
+        body: JSON.stringify({ status: 'skipped', reason: 'already dispatched today by scheduler', dateJST }),
       };
     }
 
-    // workflow_dispatch で起動 (auto=true → ランダム待機あり)
-    await triggerWorkflow(WORKFLOW_FILE, 'main', { auto: 'true' });
-    console.log(`[scheduler] ${WORKFLOW_FILE} を dispatch しました`);
+    // workflow_dispatch で起動
+    await triggerWorkflow(WORKFLOW_FILE, 'main', {
+      trigger_source: TRIGGER_SOURCE,
+      scheduled_date_jst: dateJST,
+    });
+    console.log(`[scheduler] ${WORKFLOW_FILE} を dispatch しました (JST ${dateJST})`);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ status: 'dispatched', workflow: WORKFLOW_FILE }),
+      body: JSON.stringify({ status: 'dispatched', workflow: WORKFLOW_FILE, dateJST }),
     };
   } catch (err) {
     console.error(`[scheduler] ${WORKFLOW_FILE} エラー:`, err.message);

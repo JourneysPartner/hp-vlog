@@ -1,16 +1,21 @@
 name: Publish Scheduled Articles
 
+run-name: >-
+  Publish Scheduled Articles [source=${{ inputs.trigger_source || 'manual' }}][jst=${{ inputs.scheduled_date_jst || 'none' }}]
+
 on:
   workflow_dispatch:
     inputs:
-      auto:
-        description: 'Netlify スケジューラからの自動実行（ランダム待機あり）'
+      trigger_source:
+        description: '起動元 (manual / scheduler-publish)'
         required: false
-        default: 'false'
-        type: choice
-        options:
-          - 'false'
-          - 'true'
+        default: 'manual'
+        type: string
+      scheduled_date_jst:
+        description: 'スケジューラが対象とする JST 日付 (YYYY-MM-DD)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -32,11 +37,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Netlify スケジューラ経由 (auto=true) の場合、0〜50分のランダム待機を入れ
-      # 実際の公開昇格時刻を 11:05〜11:55 JST の範囲で毎日ばらつかせる。
-      # 手動実行 (auto=false) の場合は待機をスキップする。
+      # Netlify スケジューラ経由 (trigger_source=scheduler-*) の場合、
+      # 0〜50分のランダム待機を入れ、11:05〜11:55 JST の範囲でばらつかせる。
+      # 手動実行 (trigger_source=manual) の場合は待機をスキップする。
       - name: Random delay (0-50 min)
-        if: github.event.inputs.auto == 'true'
+        if: github.event.inputs.trigger_source != 'manual' && github.event.inputs.trigger_source != ''
         run: |
           DELAY=$(( RANDOM % 3001 ))
           echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"
