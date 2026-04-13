@@ -88,7 +88,7 @@ function buildMessage(event, data) {
     case 'approved': {
       const { title, publishAt, category, persona } = data;
       // publishAt を JST 表記の見やすい文字列に整形
-      let publishLabel = publishAt || '';
+      let publishDateLabel = '';
       if (publishAt) {
         try {
           const d = new Date(publishAt);
@@ -96,9 +96,7 @@ function buildMessage(event, data) {
           const yyyy = jst.getUTCFullYear();
           const mm = String(jst.getUTCMonth() + 1).padStart(2, '0');
           const dd = String(jst.getUTCDate()).padStart(2, '0');
-          const hh = String(jst.getUTCHours()).padStart(2, '0');
-          const mi = String(jst.getUTCMinutes()).padStart(2, '0');
-          publishLabel = `${yyyy}-${mm}-${dd} ${hh}:${mi} JST`;
+          publishDateLabel = `${yyyy}-${mm}-${dd}`;
         } catch { /* noop */ }
       }
       const lines = [
@@ -108,8 +106,8 @@ function buildMessage(event, data) {
       ];
       if (category) lines.push(`■ カテゴリ: ${category}`);
       if (persona)  lines.push(`■ 対象読者: ${persona}`);
-      if (publishLabel) lines.push(`■ 公開予定: ${publishLabel}`);
-      lines.push('', '公開予定時刻になると自動で本番サイトに反映され、公開完了通知をお送りします。');
+      if (publishDateLabel) lines.push(`■ 公開予定: ${publishDateLabel} 11時台`);
+      lines.push('', '翌日11時台に自動で本番サイトに反映され、公開完了通知をお送りします。');
       return { subject: '【ブログ】公開予約を受け付けました', body: lines.join('\n') };
     }
 

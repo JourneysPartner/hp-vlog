@@ -21,16 +21,15 @@ const { sendNotification } = require('./lib/notify');
  * 5. 成功時のみ published、失敗時のみ merge_failed を Chatwork に通知
  */
 
-// 翌日 11:05〜11:55 JST のうちランダムな時刻を返す
-// 時刻にばらつきを持たせるため、分は 5〜55 の範囲でランダム選択。
+// 翌日 11:05 JST 固定を返す
+// 公開時刻のばらつきは publish-scheduled ワークフロー側のランダム待機で作るため、
+// publish_at 自体は固定にして取りこぼしを防ぐ。
+// (publish run は 11:05 JST 以降に due 判定するので、11:05 固定なら必ず拾える)
 function defaultPublishAt() {
   const now = new Date();
-  // UTC → JST に変換した「翌日」を作る
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   jst.setUTCDate(jst.getUTCDate() + 1);
-  const minute = 5 + Math.floor(Math.random() * 51); // 5〜55
-  jst.setUTCHours(11, minute, 0, 0);
-  // JST 表記の ISO 文字列に変換
+  jst.setUTCHours(11, 5, 0, 0);
   return jst.toISOString().replace('Z', '+09:00');
 }
 
