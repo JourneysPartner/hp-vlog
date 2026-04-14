@@ -7,15 +7,15 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
 source_title: "国税庁タックスアンサー No.2080 白色申告者の記帳・帳簿等の保存"
 summary: "せどり・転売の利益計算の基本から、売上台帳・仕入台帳の付け方、レシート保存の注意点まで、初心者向けにわかりやすく整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-13T15:55:51.336+09:00"
 publish_at: "2026-04-14T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-14T11:44:51.945+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-13T06:53:46.067Z"
-updated_at: "2026-04-13T15:55:51.336+09:00"
+updated_at: "2026-04-14T11:44:51.945+09:00"
 ---
 
 せどり・転売を始めると、「売上は分かるけれど、利益がいくら残ったのか分からない」「レシートをどこまで残せばよいのか不安」と感じる方が多いです。確定申告では、単に入金額を見るのではなく、売上と必要経費を整理して利益を計算することが基本です。

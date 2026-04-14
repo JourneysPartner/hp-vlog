@@ -7,15 +7,15 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
 source_title: "国税庁タックスアンサー No.4408 贈与税の計算と税率"
 summary: "生前贈与を検討する方向けに、暦年贈与と相続時精算課税制度の違い、110万円非課税枠や2500万円特別控除、選び方の考え方を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-12T21:36:36.811+09:00"
 publish_at: "2026-04-13T11:45:00.000+09:00"
-published_at: ""
+published_at: "2026-04-14T11:44:51.945+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-12T12:32:57.537Z"
-updated_at: "2026-04-12T21:36:36.811+09:00"
+updated_at: "2026-04-14T11:44:51.945+09:00"
 ---
 
 生前贈与は、相続税対策としてよく検討される方法です。ただし、「毎年110万円まで贈与すればよい」と単純に考えると、後で思わぬ課税関係が生じる場合があります。生前贈与には主に「暦年課税」と「相続時精算課税制度」があり、選び方によって将来の税負担や手続きが変わります。ここでは、国税庁タックスアンサー No.4408 贈与税の計算と税率を参考に、基本的な違いと考え方を整理します。
