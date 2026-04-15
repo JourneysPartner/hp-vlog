@@ -7,15 +7,15 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm"
 source_title: "国税庁タックスアンサー No.6551 輸出取引の免税"
 summary: "eBay輸出セラー向けに、消費税還付の仕組み、輸出免税の条件、必要書類、課税事業者届出から申告までの流れをわかりやすく整理して解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-14T15:06:49.688+09:00"
 publish_at: "2026-04-15T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-15T11:51:54.405+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-14T00:55:35.235Z"
-updated_at: "2026-04-14T15:06:49.688+09:00"
+updated_at: "2026-04-15T11:51:54.405+09:00"
 ---
 
 eBay輸出をしていると、「国内で仕入れたときの消費税は戻るのか」と気になる方が多いのではないでしょうか。結論からいうと、一定の要件を満たす場合には、輸出取引が消費税の免税取引となり、仕入時に負担した消費税について還付を受けられる場合があります。
