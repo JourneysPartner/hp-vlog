@@ -11,34 +11,11 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
-<!-- ========== HEADER ========== -->
-<header id="header">
-  <div class="container">
-    <nav class="navbar navbar-expand-lg py-0" style="height:var(--header-height);">
-      <a class="navbar-brand" href="index.html">
-        <span class="logo-text">毛利順活税理士事務所</span>
-        <small class="logo-sub">Mori Yoshiiku Tax Accountant Office</small>
-      </a>
-      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="メニューを開く">
-        <div class="navbar-toggler-icon-custom"><span></span><span></span><span></span></div>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
-          <li class="nav-item"><a class="nav-link" href="index.html">ホーム</a></li>
-          <li class="nav-item"><a class="nav-link" href="services.html">取扱業務</a></li>
-          <li class="nav-item"><a class="nav-link" href="about.html">事務所紹介</a></li>
-          <li class="nav-item"><a class="nav-link" href="voice.html">お客様の声</a></li>
-          <li class="nav-item"><a class="nav-link" href="contact.html">お問い合わせ</a></li>
-        </ul>
-        <a href="contact.html" class="btn-header-cta ms-lg-3">無料相談する</a>
-      </div>
-    </nav>
-  </div>
-</header>
+{{HEADER}}
 
 <!-- ========== PAGE HERO ========== -->
 <section class="page-hero">
@@ -46,7 +23,7 @@
     <h1>お問い合わせ</h1>
     <p class="page-hero-sub">初回相談無料・全国オンライン対応</p>
     <div class="breadcrumb-custom">
-      <a href="index.html">ホーム</a><span class="sep">›</span>お問い合わせ
+      <a href="/">ホーム</a><span class="sep">›</span>お問い合わせ
     </div>
   </div>
 </section>
@@ -192,7 +169,7 @@
             </div>
 
             <div class="info-box mb-4">
-              <i class="bi bi-lock me-2"></i>入力いただいた情報はプライバシーポリシーに従い適切に管理します。<a href="privacy.html" style="color:var(--color-secondary);">プライバシーポリシー</a>
+              <i class="bi bi-lock me-2"></i>入力いただいた情報はプライバシーポリシーに従い適切に管理します。<a href="/privacy.html" style="color:var(--color-secondary);">プライバシーポリシー</a>
             </div>
 
             <button type="submit" class="btn-primary-custom w-100 justify-content-center" style="font-size:1rem;padding:14px;">
@@ -206,52 +183,10 @@
   </div>
 </section>
 
-<!-- ========== FOOTER ========== -->
-<footer class="footer">
-  <div class="container">
-    <div class="row g-5">
-      <div class="col-lg-4">
-        <div class="footer-logo-text">毛利順活税理士事務所<small class="footer-logo-sub">Mori Yoshiiku Tax Accountant Office</small></div>
-        <p class="footer-desc">「自利利他」の理念のもと、お客様の理想の未来を共に創造します。eBay輸出セラー専門・全国オンライン対応。</p>
-      </div>
-      <div class="col-lg-8">
-        <div class="row g-4">
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">サービス</div>
-            <ul class="footer-links">
-              <li><a href="services.html">記帳代行</a></li>
-              <li><a href="services.html">決算・申告</a></li>
-              <li><a href="services.html">eBay輸出税務支援</a></li>
-              <li><a href="services.html">相続・事業承継</a></li>
-              <li><a href="services.html">税務調査対応</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">事務所情報</div>
-            <ul class="footer-links">
-              <li><a href="about.html">事務所紹介</a></li>
-              <li><a href="voice.html">お客様の声</a></li>
-              <li><a href="contact.html">お問い合わせ</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">その他</div>
-            <ul class="footer-links">
-              <li><a href="privacy.html">プライバシーポリシー</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2024 毛利順活税理士事務所 All Rights Reserved.</span>
-      <a href="privacy.html">プライバシーポリシー</a>
-    </div>
-  </div>
-</footer>
+{{FOOTER}}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="/assets/js/main.js"></script>
 </body>
 </html>

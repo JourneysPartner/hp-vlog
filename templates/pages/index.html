@@ -11,36 +11,11 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
-<!-- ========== HEADER ========== -->
-<header id="header">
-  <div class="container">
-    <nav class="navbar navbar-expand-lg py-0" style="height:var(--header-height);">
-      <a class="navbar-brand" href="index.html">
-        <span class="logo-text">毛利順活税理士事務所</span>
-        <small class="logo-sub">Mori Yoshiiku Tax Accountant Office</small>
-      </a>
-      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="メニューを開く">
-        <div class="navbar-toggler-icon-custom">
-          <span></span><span></span><span></span>
-        </div>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
-          <li class="nav-item"><a class="nav-link" href="index.html">ホーム</a></li>
-          <li class="nav-item"><a class="nav-link" href="services.html">取扱業務</a></li>
-          <li class="nav-item"><a class="nav-link" href="about.html">事務所紹介</a></li>
-          <li class="nav-item"><a class="nav-link" href="voice.html">お客様の声</a></li>
-          <li class="nav-item"><a class="nav-link" href="contact.html">お問い合わせ</a></li>
-        </ul>
-        <a href="contact.html" class="btn-header-cta ms-lg-3">無料相談する</a>
-      </div>
-    </nav>
-  </div>
-</header>
+{{HEADER}}
 
 <!-- ========== HERO ========== -->
 <section class="hero">
@@ -59,8 +34,8 @@
           「自利利他」の精神を礎に、お客様・スタッフ・社会すべての幸福度向上を目指す税理士事務所です。国税局出身の経験と、eBay輸出ビジネス特有の税務知識で、適切なサポートをご提供します。
         </p>
         <div class="hero-buttons" data-aos="fade-up" data-aos-delay="400">
-          <a href="services.html" class="btn-primary-custom"><i class="bi bi-grid-1x2"></i>サービスを見る</a>
-          <a href="contact.html" class="btn-outline-custom"><i class="bi bi-envelope"></i>無料相談する</a>
+          <a href="/services.html" class="btn-primary-custom"><i class="bi bi-grid-1x2"></i>サービスを見る</a>
+          <a href="/contact.html" class="btn-outline-custom"><i class="bi bi-envelope"></i>無料相談する</a>
         </div>
         <div class="hero-stats" data-aos="fade-up" data-aos-delay="500">
           <div class="hero-stat-box">
@@ -139,7 +114,7 @@
           <div class="service-icon"><i class="bi bi-journal-text"></i></div>
           <div class="service-title">記帳代行</div>
           <p class="service-desc">日々の経理業務をお任せいただき、経営者が本業に専念できる環境をサポートします。クラウド会計にも対応。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
       <div class="col-sm-6 col-lg-4" data-aos="fade-up" data-aos-delay="130">
@@ -147,7 +122,7 @@
           <div class="service-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
           <div class="service-title">決算・申告書作成</div>
           <p class="service-desc">法人・個人を問わず、決算書・確定申告書の作成から提出まで対応。適切な節税策もご提案します。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
       <div class="col-sm-6 col-lg-4" data-aos="fade-up" data-aos-delay="160">
@@ -155,7 +130,7 @@
           <div class="service-icon"><i class="bi bi-globe-americas"></i></div>
           <div class="service-title">eBay輸出セラー税務支援</div>
           <p class="service-desc">輸出免税・消費税還付の確実なサポート。eBay輸出セラー特有の税務課題に熟練した専門対応です。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
       <div class="col-sm-6 col-lg-4" data-aos="fade-up" data-aos-delay="190">
@@ -163,7 +138,7 @@
           <div class="service-icon"><i class="bi bi-house-heart"></i></div>
           <div class="service-title">相続・事業承継</div>
           <p class="service-desc">相続税申告・遺産分割のサポートから、事業承継・生前贈与の対策まで丁寧にご支援します。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
       <div class="col-sm-6 col-lg-4" data-aos="fade-up" data-aos-delay="220">
@@ -171,7 +146,7 @@
           <div class="service-icon"><i class="bi bi-shield-check"></i></div>
           <div class="service-title">税務調査対応</div>
           <p class="service-desc">国税局出身の知見を活かし、税務調査の事前準備から当日の立会い、事後対応まで一貫してサポートします。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
       <div class="col-sm-6 col-lg-4" data-aos="fade-up" data-aos-delay="250">
@@ -179,12 +154,12 @@
           <div class="service-icon"><i class="bi bi-graph-up-arrow"></i></div>
           <div class="service-title">創業・経営サポート</div>
           <p class="service-desc">法人設立・創業融資・資金繰り改善など、事業のスタートアップから成長フェーズまでご支援します。</p>
-          <a href="services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
+          <a href="/services.html" class="service-link">詳しく見る <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
     </div>
     <div class="text-center mt-5" data-aos="fade-up">
-      <a href="services.html" class="btn-outline-navy">すべてのサービスを見る <i class="bi bi-arrow-right"></i></a>
+      <a href="/services.html" class="btn-outline-navy">すべてのサービスを見る <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>
@@ -331,7 +306,7 @@
       </div>
     </div>
     <div class="text-center mt-5" data-aos="fade-up">
-      <a href="voice.html" class="btn-outline-navy">お客様の声をもっと見る <i class="bi bi-arrow-right"></i></a>
+      <a href="/voice.html" class="btn-outline-navy">お客様の声をもっと見る <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>
@@ -343,60 +318,17 @@
       <h2>まずはお気軽にご相談ください</h2>
       <p>初回相談は無料です。税務・経理に関するお悩みをお聞きします。</p>
       <div class="d-flex gap-3 justify-content-center flex-wrap">
-        <a href="contact.html" class="btn-outline-custom"><i class="bi bi-envelope"></i>お問い合わせフォーム</a>
-        <a href="services.html" class="btn-outline-custom"><i class="bi bi-grid-1x2"></i>サービスを見る</a>
+        <a href="/contact.html" class="btn-outline-custom"><i class="bi bi-envelope"></i>お問い合わせフォーム</a>
+        <a href="/services.html" class="btn-outline-custom"><i class="bi bi-grid-1x2"></i>サービスを見る</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ========== FOOTER ========== -->
-<footer class="footer">
-  <div class="container">
-    <div class="row g-5">
-      <div class="col-lg-4">
-        <div class="footer-logo-text">毛利順活税理士事務所<small class="footer-logo-sub">Mori Yoshiiku Tax Accountant Office</small></div>
-        <p class="footer-desc">「自利利他」の理念のもと、お客様の理想の未来を共に創造します。eBay輸出セラー専門・全国オンライン対応。</p>
-      </div>
-      <div class="col-lg-8">
-        <div class="row g-4">
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">サービス</div>
-            <ul class="footer-links">
-              <li><a href="services.html">記帳代行</a></li>
-              <li><a href="services.html">決算・申告</a></li>
-              <li><a href="services.html">eBay輸出税務支援</a></li>
-              <li><a href="services.html">相続・事業承継</a></li>
-              <li><a href="services.html">税務調査対応</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">事務所情報</div>
-            <ul class="footer-links">
-              <li><a href="about.html">事務所紹介</a></li>
-              <li><a href="about.html">代表メッセージ</a></li>
-              <li><a href="voice.html">お客様の声</a></li>
-              <li><a href="contact.html">お問い合わせ</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-4">
-            <div class="footer-heading">その他</div>
-            <ul class="footer-links">
-              <li><a href="privacy.html">プライバシーポリシー</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2024 毛利順活税理士事務所 All Rights Reserved.</span>
-      <a href="privacy.html">プライバシーポリシー</a>
-    </div>
-  </div>
-</footer>
+{{FOOTER}}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="/assets/js/main.js"></script>
 </body>
 </html>

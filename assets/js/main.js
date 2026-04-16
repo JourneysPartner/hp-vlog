@@ -17,10 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
   onScroll(); // 初期状態
 
   // ── 2. Active nav link ──
-  const currentFile = location.pathname.split('/').pop() || 'index.html';
+  const currentPath = location.pathname;
   document.querySelectorAll('#header .nav-link').forEach(link => {
     const href = link.getAttribute('href');
-    if (href === currentFile || (currentFile === '' && href === 'index.html')) {
+    if (!href) return;
+    // 完全一致（/, /about.html 等）
+    if (href === currentPath) {
+      link.classList.add('active');
+    }
+    // トップページ: /index.html → / にもマッチ
+    else if (href === '/' && (currentPath === '/index.html' || currentPath === '')) {
+      link.classList.add('active');
+    }
+    // ブログ: /blog/ 以下のパスは /blog/ リンクをアクティブにする
+    else if (href === '/blog/' && currentPath.startsWith('/blog')) {
       link.classList.add('active');
     }
   });

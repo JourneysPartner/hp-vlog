@@ -6,3 +6,11 @@ secrets/
 # Local Netlify folder
 .netlify
 *.pem
+
+# ビルド生成物（静的ページ）— templates/pages/ がソース
+/index.html
+/services.html
+/about.html
+/voice.html
+/contact.html
+/privacy.html
