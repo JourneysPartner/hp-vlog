@@ -8,11 +8,24 @@ const { marked } = require('marked');
 const ROOT         = path.join(__dirname, '..');
 const POSTS_DIR    = path.join(ROOT, 'content', 'posts');
 const TEMPLATES    = path.join(ROOT, 'templates');
+const PARTIALS     = path.join(TEMPLATES, 'partials');
+const PAGES_DIR    = path.join(TEMPLATES, 'pages');
 const BLOG_OUT     = path.join(ROOT, 'blog');
+
+// ── 共通パーシャル読み込み ──────────────────────────────────────
+const HEADER_HTML = fs.readFileSync(path.join(PARTIALS, 'header.html'), 'utf8');
+const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
 
 // ── テンプレート読み込み ─────────────────────────────────────────
 function readTemplate(name) {
   return fs.readFileSync(path.join(TEMPLATES, name), 'utf8');
+}
+
+// ── パーシャルを注入（{{HEADER}} / {{FOOTER}} を置換）─────────
+function injectPartials(html) {
+  return html
+    .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
+    .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML);
 }
 
 // ── シンプルなテンプレート置換（{{KEY}} → value）────────────────
@@ -125,7 +138,7 @@ function generatePost(post, tpl) {
     publisher: {
       '@type': 'Organization',
       name: '毛利順活税理士事務所',
-      url: 'https://mori-tax.jp',
+      url: 'https://mori-zeirishi.net',
     },
   });
 
@@ -157,14 +170,35 @@ function escAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// ── 静的ページ生成 ──────────────────────────────────────────────
+function buildStaticPages() {
+  if (!fs.existsSync(PAGES_DIR)) return;
+
+  const pages = fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html'));
+  console.log(`[build] 静的ページ: ${pages.length} 件`);
+
+  for (const page of pages) {
+    const src = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
+    const html = injectPartials(src);
+    fs.writeFileSync(path.join(ROOT, page), html, 'utf8');
+    console.log(`[build]   → ${page}`);
+  }
+}
+
 // ── エントリポイント ────────────────────────────────────────────
 function main() {
+  // 1. 静的ページ生成（テンプレートにパーシャルを注入してルートへ出力）
+  console.log('[build] 静的ページを生成しています...');
+  buildStaticPages();
+
+  // 2. ブログ記事生成
   console.log('[build] ブログ記事を生成しています...');
 
   fs.mkdirSync(BLOG_OUT, { recursive: true });
 
-  const listTpl = readTemplate('blog-list.html');
-  const postTpl = readTemplate('blog-post.html');
+  // テンプレート読み込み → パーシャル注入
+  const listTpl = injectPartials(readTemplate('blog-list.html'));
+  const postTpl = injectPartials(readTemplate('blog-post.html'));
 
   const posts = loadPublishedPosts();
   console.log(`[build] 公開済み記事: ${posts.length} 件`);
