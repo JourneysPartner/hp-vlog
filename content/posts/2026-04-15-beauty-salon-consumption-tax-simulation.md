@@ -7,15 +7,15 @@ secondary_persona: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm"
 source_title: "国税庁タックスアンサー No.6505 簡易課税制度"
 summary: "美容室・サロンの消費税申告で迷いやすい簡易課税と本則課税の違いを、サービス売上と物販売上のあるケースで分かりやすく整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-15T16:26:24.733+09:00"
 publish_at: "2026-04-16T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-16T11:13:25.413+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-15T00:10:26.597Z"
-updated_at: "2026-04-15T16:26:24.733+09:00"
+updated_at: "2026-04-16T11:13:25.413+09:00"
 ---
 
 美容室・サロンの消費税申告では、「簡易課税と本則課税のどちらが有利なのか」で悩まれることが多いです。特に、施術売上が中心で店販もあるサロンでは、売上の区分によって計算結果が変わる場合があります。
