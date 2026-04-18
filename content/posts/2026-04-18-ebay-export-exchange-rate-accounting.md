@@ -12,7 +12,7 @@ related_link_text: "申告実務の注意点はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1920.htm"
 source_title: "国税庁タックスアンサー No.1920 海外転勤と所得税"
 summary: "eBay輸出の売上計上時期と為替レートの基本を、TTB・TTS・TTMの違い、PayPal入金日基準の考え方、仕訳例を交えて初心者向けに整理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -20,7 +20,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-18T12:51:26.289Z"
-updated_at: "2026-04-18T12:51:26.289Z"
+updated_at: "2026-04-18T22:37:19.094+09:00"
 ---
 
 eBay輸出を始めると、USDで売れた売上を日本円でいつ・いくらで計上するのか迷いやすいです。特に、eBayやPayPal、決済代行会社を経由すると、販売日・入金日・円転日がずれることも多いためです。そこで本記事では、売上計上の基本、為替レートの選び方、仕訳の考え方を順に整理します。
