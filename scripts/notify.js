@@ -33,8 +33,10 @@ function parseArgs() {
       case '--category':   opts.category  = args[++i]; break;
       case '--review-url': opts.reviewUrl = args[++i]; break;
       case '--pr-url':     opts.prUrl     = args[++i]; break;
-      case '--comment':    opts.comment   = args[++i]; break;
-      case '--public-url': opts.publicUrl = args[++i]; break;
+      case '--comment':      opts.comment     = args[++i]; break;
+      case '--public-url':   opts.publicUrl   = args[++i]; break;
+      case '--article-type': opts.articleType = args[++i]; break;
+      case '--article-role': opts.articleRole = args[++i]; break;
     }
   }
 
@@ -65,8 +67,10 @@ async function main() {
     category:  opts.category  || '',
     reviewUrl: opts.reviewUrl || '',
     prUrl:     opts.prUrl     || '',
-    comment:   opts.comment   || '',
-    publicUrl: opts.publicUrl || '',
+    comment:     opts.comment     || '',
+    publicUrl:   opts.publicUrl   || '',
+    articleType: opts.articleType || '',
+    articleRole: opts.articleRole || '',
   };
 
   console.log(`[notify] Netlify notify-dispatch に送信: event=${payload.event}`);

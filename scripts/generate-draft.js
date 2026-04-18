@@ -9,7 +9,6 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 const { TOPICS } = require('./topic-pool');
 
 // ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
-// 環境変数 OPENAI_MODEL を設定すれば任意のモデルに切り替え可能
 const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
 const MODEL_HIGH     = process.env.OPENAI_MODEL_HIGH || 'gpt-5.4';
 
@@ -35,15 +34,50 @@ const CTA_MAP = {
   inheritance_client:          '相続税・贈与税に関するご相談を承っております。個別のご事情に応じたアドバイスが可能ですので、まずはお気軽にお問い合わせください。',
 };
 
+// ── 記事タイプ別の構成指示 ──────────────────────────────────────
+const ARTICLE_TYPE_INSTRUCTIONS = {
+  basic_explainer: `この記事は「基本解説」タイプです。
+- 制度の全体像を初心者にも分かるように体系的に説明してください
+- 専門用語には初出時に簡潔な説明を添えてください
+- 「そもそも○○とは」から始め、要件・計算方法・手続きの順に構成してください`,
+
+  comparison_decision: `この記事は「比較・判断」タイプです。
+- 2つ以上の選択肢（制度・方法）を比較し、それぞれのメリット・デメリットを整理してください
+- 表形式やリストで比較ポイントを明示してください
+- 「どちらを選ぶべきか」の判断基準を具体的な数値例と共に提示してください
+- 読者が自分の状況に当てはめて判断できるよう、条件別の推奨を示してください`,
+
+  edge_case: `この記事は「判断に迷うケース」タイプです。
+- 実務上よくある「グレーゾーン」や「例外パターン」に焦点を当ててください
+- 「原則はこうだが、○○の場合はこうなる」という構成にしてください
+- 具体的な想定シナリオを2〜3パターン示してください
+- 判断に迷った場合の対処法（専門家への相談推奨）も含めてください`,
+
+  industry_example: `この記事は「業種別具体例」タイプです。
+- この業種特有の税務上の論点に絞って解説してください
+- 業界用語や実際の取引フローに即した具体例を多く含めてください
+- 他の業種との違い（特にこの業種ならではの注意点）を強調してください`,
+
+  filing_practice: `この記事は「申告実務」タイプです。
+- 実際の申告書作成・届出手続きの流れに沿って解説してください
+- 「いつまでに」「何を」「どこに」提出するかを時系列で整理してください
+- 必要書類・準備物のチェックリストを含めてください
+- よくある記入ミスや提出漏れの注意点を含めてください`,
+
+  misconception_fix: `この記事は「よくある誤解」タイプです。
+- 冒頭で「○○と思っていませんか？」と誤解を提示し、正しい理解を解説してください
+- 誤解が生じる原因や背景を説明してください
+- 誤解のまま対応した場合のリスクを具体的に示してください
+- 正しい対応方法を段階的に説明してください`,
+
+  case_study: `この記事は「ケーススタディ」タイプです。
+- 具体的な想定事例をベースに解説してください（【想定事例】と明記）
+- 数値を含む具体的なシナリオで計算過程を示してください
+- 事例から得られる教訓・ポイントをまとめてください
+- 読者が自分のケースに応用できるよう、条件の違いによる影響も説明してください`,
+};
+
 // ── モデル選択ロジック ──────────────────────────────────────────
-//
-// 優先順位:
-//   1. --high-quality フラグ → 高品質モデル
-//   2. --model <model-id> フラグ → 指定モデル
-//   3. 環境変数 OPENAI_MODEL → 指定モデル
-//   4. topic.quality === 'high' → 高品質モデル（自動判定）
-//   5. デフォルト → MODEL_STANDARD
-//
 function resolveModel(topic) {
   const args = process.argv.slice(2);
 
@@ -81,8 +115,6 @@ function getExistingSlugs() {
 }
 
 // ── 直近の差し戻しコメントを収集 ────────────────────────────────
-// review_status が needs_revision かつ review_comment が非空の記事から
-// 直近3件までのコメントを取得し、改善ヒントとして返す
 function getRecentRevisionComments(limit = 3) {
   if (!fs.existsSync(POSTS_DIR)) return [];
   const files = fs.readdirSync(POSTS_DIR).filter(f => f.endsWith('.md'));
@@ -96,25 +128,55 @@ function getRecentRevisionComments(limit = 3) {
       comments.push({ file, comment, updated });
     }
   }
-  // 更新日の降順でソートし、直近 limit 件を返す
   comments.sort((a, b) => (b.updated || '').localeCompare(a.updated || ''));
   return comments.slice(0, limit);
 }
 
-// ── テーマプールから未使用テーマを選択 ──────────────────────────
-function pickTopic(dateStr) {
+// ── ペアグループから未使用ペアを選択 ────────────────────────────
+function pickPair(dateStr) {
   const existing = getExistingSlugs();
   const available = TOPICS.filter(t => !existing.has(t.slug));
 
-  if (available.length === 0) {
-    console.warn('[generate] テーマプールを全て使い切りました。ランダムに再選択します。');
-    const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-    return TOPICS[hash % TOPICS.length];
+  // pair_group ごとにグルーピング（未使用テーマのみ）
+  const groups = {};
+  for (const t of available) {
+    if (!t.pair_group) continue;
+    if (!groups[t.pair_group]) groups[t.pair_group] = [];
+    groups[t.pair_group].push(t);
   }
 
-  // 日付から決定的に選択（同じ日付なら同じテーマ）
+  // 2本揃っているペアグループを優先
+  const fullPairs = Object.entries(groups).filter(([, topics]) => topics.length >= 2);
+
+  if (fullPairs.length > 0) {
+    const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
+    const [, topics] = fullPairs[hash % fullPairs.length];
+    // main（basic_explainer / comparison_decision）と support を分ける
+    const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
+    const main = topics.find(t => mainTypes.has(t.article_type)) || topics[0];
+    const support = topics.find(t => t !== main) || topics[1];
+    return [main, support];
+  }
+
+  // 2本揃うペアがない場合: 残りの未使用テーマから1本ずつ（ペアなし）
+  if (available.length >= 2) {
+    const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
+    const first = available[hash % available.length];
+    const rest = available.filter(t => t !== first);
+    const second = rest[(hash + 1) % rest.length];
+    return [first, second];
+  }
+
+  if (available.length === 1) {
+    return [available[0]];
+  }
+
+  // 全テーマ使い切り → ランダム再選択
+  console.warn('[generate] テーマプールを全て使い切りました。ランダムに再選択します。');
   const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-  return available[hash % available.length];
+  const first = TOPICS[hash % TOPICS.length];
+  const second = TOPICS[(hash + 1) % TOPICS.length];
+  return [first, second];
 }
 
 // ── JST の今日の日付文字列 (YYYY-MM-DD) ─────────────────────────
@@ -123,14 +185,21 @@ function getTodayJST() {
 }
 
 // ── テンプレートベース生成（APIキー未設定時フォールバック）────────
-function generateFromTemplate(dateStr, topic) {
+function generateFromTemplate(dateStr, topic, pairedSlug) {
   const now     = new Date().toISOString();
   const persona = PERSONA_MAP[topic.persona];
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
+  const articleType = topic.article_type || 'basic_explainer';
+  const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
+  const articleRole = mainTypes.has(articleType) ? 'main' : 'support';
 
   const sourceBlock = topic.source_url
     ? `source_url: "${topic.source_url}"\nsource_title: "${topic.source_title}"`
     : `source_url: ""\nsource_title: ""`;
+
+  const relatedBlock = pairedSlug
+    ? `related_slug: "${pairedSlug}"`
+    : `related_slug: ""`;
 
   return `---
 title: "${topic.title}"
@@ -138,6 +207,9 @@ slug: "${topic.slug}"
 category: "${topic.category}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
+article_type: "${articleType}"
+article_role: "${articleRole}"
+${relatedBlock}
 ${sourceBlock}
 summary: "${persona.label}向けに、${topic.category}の基本と実務上の注意点を解説します。"
 review_status: "draft"
@@ -188,14 +260,9 @@ ${cta}
 }
 
 // ── 標準免責事項ブロック ─────────────────────────────────────────
-// validate.js が要求する正規表現:
-//   /本記事は.{0,30}情報提供/  /免責/  /個別事情/
-// のいずれかにマッチしていれば OK。下記文面はすべてを満たす。
 const DISCLAIMER_BLOCK = `\n\n---\n\n本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります（免責事項）。\n`;
 
-// 免責事項が無い場合に末尾へ自動補完する
 function ensureDisclaimer(content) {
-  // body 部分のみで判定（frontmatter は除く）
   const m = content.match(/^---\r?\n[\s\S]+?\r?\n---\r?\n([\s\S]*)$/);
   const body = m ? m[1] : content;
   const hasDisclaimer =
@@ -207,7 +274,6 @@ function ensureDisclaimer(content) {
   return content.replace(/\s*$/, '') + DISCLAIMER_BLOCK;
 }
 
-// 禁止表現を穏当な表現に置換（validate の BANNED_PHRASES に対応）
 const BANNED_REPLACEMENTS = [
   [/必ず節税/g,    '節税につながる場合があります'],
   [/絶対安心/g,    '安心につながります'],
@@ -228,7 +294,6 @@ function sanitizeBannedPhrases(content) {
   return out;
 }
 
-// 生成物を validate.js が通る形に整える共通フック
 function postProcess(content) {
   return ensureDisclaimer(sanitizeBannedPhrases(content));
 }
@@ -240,15 +305,12 @@ function createOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
-// OpenAI chat.completions レスポンスから本文テキストを取り出す
 function extractText(completion) {
   const choice = completion && completion.choices && completion.choices[0];
   if (!choice) return '';
-  // chat.completions
   if (choice.message && typeof choice.message.content === 'string') {
     return choice.message.content;
   }
-  // 配列形式
   if (choice.message && Array.isArray(choice.message.content)) {
     return choice.message.content.map(p => (typeof p === 'string' ? p : p.text || '')).join('');
   }
@@ -256,18 +318,36 @@ function extractText(completion) {
 }
 
 // ── OpenAI API を使った生成 ──────────────────────────────────────
-async function generateWithOpenAI(dateStr, topic, modelId) {
+async function generateWithOpenAI(dateStr, topic, modelId, pairedTopic) {
   const client  = createOpenAIClient();
   const now     = new Date().toISOString();
   const persona = PERSONA_MAP[topic.persona];
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
+  const articleType = topic.article_type || 'basic_explainer';
+  const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
+  const articleRole = mainTypes.has(articleType) ? 'main' : 'support';
 
   const sourceInstruction = topic.source_url
     ? `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること`
     : '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください';
 
+  const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
+
+  // ペア記事への内部リンク指示
+  let crossLinkInstruction = '';
+  if (pairedTopic) {
+    crossLinkInstruction = `
+内部リンク:
+- この記事にはペア記事があります: 「${pairedTopic.title}」（/blog/${pairedTopic.slug}/）
+- 本文中の適切な箇所で、ペア記事へのリンクを自然に挿入してください
+- 例: 「詳しくは[${pairedTopic.title}](/blog/${pairedTopic.slug}/)をご覧ください。」
+- リンクは1〜2箇所に留め、自然な文脈で挿入してください`;
+  }
+
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 ${persona.label}が実務で直面する税務上の疑問に答える記事を書いてください。
+
+${typeInstruction}
 
 文体・トーン:
 - 税理士事務所として穏当で信頼感のある文体にすること
@@ -286,6 +366,7 @@ ${persona.label}が実務で直面する税務上の疑問に答える記事を�
 - 想定事例を含める場合は「【想定事例】」と見出しまたは冒頭に明記すること
 - 個別事情で結論が変わりうる場合は、その旨を自然に記載すること
 ${sourceInstruction}
+${crossLinkInstruction}
 - 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
   「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
@@ -294,7 +375,6 @@ ${sourceInstruction}
 
 記事のヒント: ${topic.hint}`;
 
-  // 直近の差し戻しコメントがあれば改善ヒントとして追加
   const revisions = getRecentRevisionComments(3);
   let revisionHint = '';
   if (revisions.length > 0) {
@@ -304,12 +384,15 @@ ${sourceInstruction}
 
   const sourceUrl   = topic.source_url || '';
   const sourceTitle = topic.source_title || '';
+  const relatedSlug = pairedTopic ? pairedTopic.slug : '';
 
   const userPrompt = `以下の条件でブログ記事の下書きを1本作成してください。
 
 テーマ: ${topic.title}
 ターゲット読者: ${persona.label}
-カテゴリ: ${topic.category}${revisionHint}
+カテゴリ: ${topic.category}
+記事タイプ: ${articleType}
+記事の役割: ${articleRole === 'main' ? '本命記事' : '補強記事'}${revisionHint}
 
 以下の形式でそのまま出力してください（コードブロック不要）:
 
@@ -319,6 +402,9 @@ slug: "${topic.slug}"
 category: "${topic.category}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
+article_type: "${articleType}"
+article_role: "${articleRole}"
+related_slug: "${relatedSlug}"
 source_url: "${sourceUrl}"
 source_title: "${sourceTitle}"
 summary: "（記事の内容が分かる自然な文章。120文字以内。検索結果に表示されるmeta descriptionとして使用）"
@@ -344,7 +430,6 @@ updated_at: "${now}"
   });
 
   const raw = extractText(completion);
-  // コードブロックで包まれていた場合は除去
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return postProcess((fenced ? fenced[1] : raw).trim());
 }
@@ -369,13 +454,26 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
   const persona = PERSONA_MAP[meta.primary_persona] || { label: meta.primary_persona || '' };
   const cta     = CTA_MAP[meta.primary_persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
   const now     = new Date().toISOString();
+  const articleType = meta.article_type || 'basic_explainer';
+  const articleRole = meta.article_role || 'main';
 
   const sourceInstruction = meta.source_url
     ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
     : '- source_url / source_title は空文字のまま出力してください';
 
+  const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
+
+  let crossLinkInstruction = '';
+  if (meta.related_slug) {
+    crossLinkInstruction = `
+- この記事にはペア記事があります（slug: ${meta.related_slug}）
+- 本文中でペア記事へのリンク（/blog/${meta.related_slug}/）を維持してください`;
+  }
+
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 ${persona.label}が実務で直面する税務上の疑問に答える記事を書いてください。
+
+${typeInstruction}
 
 文体・トーン:
 - 税理士事務所として穏当で信頼感のある文体にすること
@@ -389,6 +487,7 @@ ${persona.label}が実務で直面する税務上の疑問に答える記事を�
 構成ルール:
 - h2見出し（## ）を最低3つ使い、読みやすく区切ること
 ${sourceInstruction}
+${crossLinkInstruction}
 - 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
   「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
@@ -408,6 +507,8 @@ ${existingBody.substring(0, 3000)}
 タイトル: ${meta.title || ''}
 ターゲット読者: ${persona.label}
 カテゴリ: ${meta.category || ''}
+記事タイプ: ${articleType}
+記事の役割: ${articleRole === 'main' ? '本命記事' : '補強記事'}
 
 改善した記事を、以下の形式でそのまま出力してください（コードブロック不要）:
 
@@ -417,6 +518,9 @@ slug: "${meta.slug || ''}"
 category: "${meta.category || ''}"
 primary_persona: "${meta.primary_persona || ''}"
 secondary_persona: "${meta.secondary_persona || ''}"
+article_type: "${articleType}"
+article_role: "${articleRole}"
+related_slug: "${meta.related_slug || ''}"
 source_url: "${meta.source_url || ''}"
 source_title: "${meta.source_title || ''}"
 summary: "（改善した内容に合わせた要約。120文字以内）"
@@ -490,53 +594,83 @@ async function main() {
     return;
   }
 
-  // ── 通常の新規生成モード ──────────────────────────────────────
+  // ── 通常の新規生成モード（2本ペア生成）────────────────────────
   const dateStr = getTodayJST();
-  const topic   = pickTopic(dateStr);
-  const persona = PERSONA_MAP[topic.persona];
-  const { model, reason } = resolveModel(topic);
+  const pair = pickPair(dateStr);
 
   console.log(`[generate] 日付: ${dateStr}`);
-  console.log(`[generate] テーマ: ${topic.title}`);
-  console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
-  console.log(`[generate] テーマ品質: ${topic.quality || 'standard'}`);
-  console.log(`[generate] 使用モデル: ${model}（${reason}）`);
+  console.log(`[generate] 生成本数: ${pair.length}`);
 
-  // 差し戻しコメントの確認
-  const revisionComments = getRecentRevisionComments(3);
-  if (revisionComments.length > 0) {
-    console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
-  }
+  const results = [];
 
-  let content;
-  if (process.env.OPENAI_API_KEY) {
-    console.log(`[generate] OpenAI API で生成します（${model}）...`);
-    try {
-      content = await generateWithOpenAI(dateStr, topic, model);
-    } catch (err) {
-      console.warn(`[generate] OpenAI API 失敗: ${err.message} → テンプレートにフォールバック`);
-      content = generateFromTemplate(dateStr, topic);
+  for (let i = 0; i < pair.length; i++) {
+    const topic = pair[i];
+    const pairedTopic = pair.length === 2 ? pair[1 - i] : null;
+    const persona = PERSONA_MAP[topic.persona];
+    const { model, reason } = resolveModel(topic);
+
+    console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
+    console.log(`[generate] テーマ: ${topic.title}`);
+    console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
+    console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
+    console.log(`[generate] テーマ品質: ${topic.quality || 'standard'}`);
+    console.log(`[generate] 使用モデル: ${model}（${reason}）`);
+    if (pairedTopic) {
+      console.log(`[generate] ペア記事: ${pairedTopic.title}`);
     }
-  } else {
-    console.log('[generate] OPENAI_API_KEY 未設定 → テンプレートで生成します');
-    content = generateFromTemplate(dateStr, topic);
+
+    const revisionComments = getRecentRevisionComments(3);
+    if (i === 0 && revisionComments.length > 0) {
+      console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
+    }
+
+    let content;
+    const pairedSlug = pairedTopic ? pairedTopic.slug : '';
+
+    if (process.env.OPENAI_API_KEY) {
+      console.log(`[generate] OpenAI API で生成します（${model}）...`);
+      try {
+        content = await generateWithOpenAI(dateStr, topic, model, pairedTopic);
+      } catch (err) {
+        console.warn(`[generate] OpenAI API 失敗: ${err.message} → テンプレートにフォールバック`);
+        content = generateFromTemplate(dateStr, topic, pairedSlug);
+      }
+    } else {
+      console.log('[generate] OPENAI_API_KEY 未設定 → テンプレートで生成します');
+      content = generateFromTemplate(dateStr, topic, pairedSlug);
+    }
+
+    const filename = `${dateStr}-${topic.slug}.md`;
+    const filepath = path.join(POSTS_DIR, filename);
+
+    fs.mkdirSync(POSTS_DIR, { recursive: true });
+    fs.writeFileSync(filepath, content + '\n', 'utf8');
+    console.log(`[generate] 生成完了: content/posts/${filename}`);
+
+    results.push({ filename, slug: topic.slug, model });
   }
 
-  // ファイル名を決定
-  const filename = `${dateStr}-${topic.slug}.md`;
-  const filepath = path.join(POSTS_DIR, filename);
-
-  fs.mkdirSync(POSTS_DIR, { recursive: true });
-  fs.writeFileSync(filepath, content + '\n', 'utf8');
-  console.log(`[generate] 生成完了: content/posts/${filename}`);
-
-  // GitHub Actions 出力変数
+  // GitHub Actions 出力変数（2本分）
   const ghOutput = process.env.GITHUB_OUTPUT;
   if (ghOutput) {
-    fs.appendFileSync(ghOutput, `filename=${filename}\n`);
-    fs.appendFileSync(ghOutput, `slug=${topic.slug}\n`);
     fs.appendFileSync(ghOutput, `date=${dateStr}\n`);
-    fs.appendFileSync(ghOutput, `model=${model}\n`);
+    fs.appendFileSync(ghOutput, `count=${results.length}\n`);
+
+    // 1本目
+    fs.appendFileSync(ghOutput, `filename1=${results[0].filename}\n`);
+    fs.appendFileSync(ghOutput, `slug1=${results[0].slug}\n`);
+    fs.appendFileSync(ghOutput, `model1=${results[0].model}\n`);
+
+    // 2本目（ある場合）
+    if (results.length >= 2) {
+      fs.appendFileSync(ghOutput, `filename2=${results[1].filename}\n`);
+      fs.appendFileSync(ghOutput, `slug2=${results[1].slug}\n`);
+      fs.appendFileSync(ghOutput, `model2=${results[1].model}\n`);
+    }
+
+    // カンマ区切りリスト（通知・コミット用）
+    fs.appendFileSync(ghOutput, `filenames=${results.map(r => r.filename).join(',')}\n`);
+    fs.appendFileSync(ghOutput, `slugs=${results.map(r => r.slug).join(',')}\n`);
   }
 }
 

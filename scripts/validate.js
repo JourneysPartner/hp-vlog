@@ -41,6 +41,12 @@ const VALID_PERSONAS = [
   'influencer_creator', 'beauty_salon_owner', 'inheritance_client',
 ];
 
+// ── article_type の許容値 ──────────────────────────────────────
+const VALID_ARTICLE_TYPES = [
+  'basic_explainer', 'comparison_decision', 'edge_case',
+  'industry_example', 'filing_practice', 'misconception_fix', 'case_study',
+];
+
 function validateFile(filePath) {
   const rel = path.relative(ROOT, filePath);
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -73,6 +79,11 @@ function validateFile(filePath) {
   // 3. primary_persona の値
   if (fm.primary_persona && !VALID_PERSONAS.includes(fm.primary_persona)) {
     warnings.push(`primary_persona が未定義の値: "${fm.primary_persona}"`);
+  }
+
+  // 3b. article_type の値
+  if (fm.article_type && !VALID_ARTICLE_TYPES.includes(fm.article_type)) {
+    warnings.push(`article_type が未定義の値: "${fm.article_type}"`);
   }
 
   // 4. source_url の形式
