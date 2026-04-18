@@ -112,17 +112,22 @@ function generateList(posts, tpl) {
   return render(tpl, { POSTS_HTML: postsHtml });
 }
 
-// ── 関連記事HTML生成 ────────────────────────────────────────────
+// ── 関連記事HTML生成（公開済みの場合のみ表示）─────────────────
 function buildRelatedArticleHtml(post, postsMap) {
   if (!post.related_slug) return '';
   const related = postsMap.get(post.related_slug);
   if (!related) return '';
+
+  const linkText = post.related_link_text || 'あわせて読みたい';
+  const title    = related.title;
+  const summary  = related.summary || '';
+
   return `
     <div class="blog-related-article">
-      <h3><i class="bi bi-link-45deg"></i> 関連記事</h3>
+      <h3><i class="bi bi-link-45deg"></i> ${escHtml(linkText)}</h3>
       <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
-        <span class="blog-related-title">${escHtml(related.title)}</span>
-        <span class="blog-related-summary">${escHtml(related.summary || '')}</span>
+        <span class="blog-related-title">${escHtml(title)}</span>
+        <span class="blog-related-summary">${escHtml(summary)}</span>
         <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
       </a>
     </div>`;

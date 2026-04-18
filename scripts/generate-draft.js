@@ -77,6 +77,17 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 - 読者が自分のケースに応用できるよう、条件の違いによる影響も説明してください`,
 };
 
+// ── 関連記事リンクテキスト（相手の記事タイプに応じた導線文言）────
+const RELATED_LINK_TEXTS = {
+  basic_explainer:     '基本から確認したい方はこちら',
+  comparison_decision: '比較・判断のポイントはこちら',
+  edge_case:           '判断に迷うケースについてはこちら',
+  industry_example:    '業種別の具体例はこちら',
+  filing_practice:     '申告実務の注意点はこちら',
+  misconception_fix:   'よくある誤解と正しい理解はこちら',
+  case_study:          '具体的な事例で確認するにはこちら',
+};
+
 // ── モデル選択ロジック ──────────────────────────────────────────
 function resolveModel(topic) {
   const args = process.argv.slice(2);
@@ -185,7 +196,7 @@ function getTodayJST() {
 }
 
 // ── テンプレートベース生成（APIキー未設定時フォールバック）────────
-function generateFromTemplate(dateStr, topic, pairedSlug) {
+function generateFromTemplate(dateStr, topic, pairedTopic) {
   const now     = new Date().toISOString();
   const persona = PERSONA_MAP[topic.persona];
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
@@ -197,9 +208,9 @@ function generateFromTemplate(dateStr, topic, pairedSlug) {
     ? `source_url: "${topic.source_url}"\nsource_title: "${topic.source_title}"`
     : `source_url: ""\nsource_title: ""`;
 
-  const relatedBlock = pairedSlug
-    ? `related_slug: "${pairedSlug}"`
-    : `related_slug: ""`;
+  const relatedSlug      = pairedTopic ? pairedTopic.slug : '';
+  const relatedTitle     = pairedTopic ? pairedTopic.title : '';
+  const relatedLinkText  = pairedTopic ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい') : '';
 
   return `---
 title: "${topic.title}"
@@ -209,7 +220,9 @@ primary_persona: "${topic.persona}"
 secondary_persona: ""
 article_type: "${articleType}"
 article_role: "${articleRole}"
-${relatedBlock}
+related_slug: "${relatedSlug}"
+related_title: "${relatedTitle}"
+related_link_text: "${relatedLinkText}"
 ${sourceBlock}
 summary: "${persona.label}向けに、${topic.category}の基本と実務上の注意点を解説します。"
 review_status: "draft"
@@ -333,17 +346,6 @@ async function generateWithOpenAI(dateStr, topic, modelId, pairedTopic) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  // ペア記事への内部リンク指示
-  let crossLinkInstruction = '';
-  if (pairedTopic) {
-    crossLinkInstruction = `
-内部リンク:
-- この記事にはペア記事があります: 「${pairedTopic.title}」（/blog/${pairedTopic.slug}/）
-- 本文中の適切な箇所で、ペア記事へのリンクを自然に挿入してください
-- 例: 「詳しくは[${pairedTopic.title}](/blog/${pairedTopic.slug}/)をご覧ください。」
-- リンクは1〜2箇所に留め、自然な文脈で挿入してください`;
-  }
-
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 ${persona.label}が実務で直面する税務上の疑問に答える記事を書いてください。
 
@@ -366,7 +368,7 @@ ${typeInstruction}
 - 想定事例を含める場合は「【想定事例】」と見出しまたは冒頭に明記すること
 - 個別事情で結論が変わりうる場合は、その旨を自然に記載すること
 ${sourceInstruction}
-${crossLinkInstruction}
+- 本文中に他の記事への直接リンクは挿入しないこと（関連記事の導線はサイト側で自動生成します）
 - 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
   「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
@@ -382,9 +384,11 @@ ${crossLinkInstruction}
     revisionHint = `\n\n過去の記事で以下のレビュー指摘がありました。同様の問題を避けてください:\n${items}`;
   }
 
-  const sourceUrl   = topic.source_url || '';
-  const sourceTitle = topic.source_title || '';
-  const relatedSlug = pairedTopic ? pairedTopic.slug : '';
+  const sourceUrl      = topic.source_url || '';
+  const sourceTitle    = topic.source_title || '';
+  const relatedSlug    = pairedTopic ? pairedTopic.slug : '';
+  const relatedTitle   = pairedTopic ? pairedTopic.title : '';
+  const relatedLinkText = pairedTopic ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい') : '';
 
   const userPrompt = `以下の条件でブログ記事の下書きを1本作成してください。
 
@@ -405,6 +409,8 @@ secondary_persona: ""
 article_type: "${articleType}"
 article_role: "${articleRole}"
 related_slug: "${relatedSlug}"
+related_title: "${relatedTitle}"
+related_link_text: "${relatedLinkText}"
 source_url: "${sourceUrl}"
 source_title: "${sourceTitle}"
 summary: "（記事の内容が分かる自然な文章。120文字以内。検索結果に表示されるmeta descriptionとして使用）"
@@ -463,13 +469,6 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  let crossLinkInstruction = '';
-  if (meta.related_slug) {
-    crossLinkInstruction = `
-- この記事にはペア記事があります（slug: ${meta.related_slug}）
-- 本文中でペア記事へのリンク（/blog/${meta.related_slug}/）を維持してください`;
-  }
-
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 ${persona.label}が実務で直面する税務上の疑問に答える記事を書いてください。
 
@@ -487,7 +486,7 @@ ${typeInstruction}
 構成ルール:
 - h2見出し（## ）を最低3つ使い、読みやすく区切ること
 ${sourceInstruction}
-${crossLinkInstruction}
+- 本文中に他の記事への直接リンクは挿入しないこと（関連記事の導線はサイト側で自動生成します）
 - 記事末尾に必ず以下の免責事項ブロックを含めること（文言は変更しない）:
   「本記事は情報提供を目的として作成しており、特定の税務判断を推奨するものではありません。実際の税務処理・申告については、税理士等の専門家にご相談ください。個別事情によって結論が異なる場合があります。」
 - 免責事項の後に、以下の相談導線を自然に入れること:
@@ -521,6 +520,8 @@ secondary_persona: "${meta.secondary_persona || ''}"
 article_type: "${articleType}"
 article_role: "${articleRole}"
 related_slug: "${meta.related_slug || ''}"
+related_title: "${meta.related_title || ''}"
+related_link_text: "${meta.related_link_text || ''}"
 source_url: "${meta.source_url || ''}"
 source_title: "${meta.source_title || ''}"
 summary: "（改善した内容に合わせた要約。120文字以内）"
@@ -625,7 +626,6 @@ async function main() {
     }
 
     let content;
-    const pairedSlug = pairedTopic ? pairedTopic.slug : '';
 
     if (process.env.OPENAI_API_KEY) {
       console.log(`[generate] OpenAI API で生成します（${model}）...`);
@@ -633,11 +633,11 @@ async function main() {
         content = await generateWithOpenAI(dateStr, topic, model, pairedTopic);
       } catch (err) {
         console.warn(`[generate] OpenAI API 失敗: ${err.message} → テンプレートにフォールバック`);
-        content = generateFromTemplate(dateStr, topic, pairedSlug);
+        content = generateFromTemplate(dateStr, topic, pairedTopic);
       }
     } else {
       console.log('[generate] OPENAI_API_KEY 未設定 → テンプレートで生成します');
-      content = generateFromTemplate(dateStr, topic, pairedSlug);
+      content = generateFromTemplate(dateStr, topic, pairedTopic);
     }
 
     const filename = `${dateStr}-${topic.slug}.md`;

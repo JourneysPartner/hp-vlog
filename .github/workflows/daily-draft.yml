@@ -43,13 +43,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Netlify スケジューラ経由 (trigger_source=scheduler-*) の場合、
-      # 0〜50分のランダム待機を入れ、09:05〜09:55 JST の範囲でばらつかせる。
-      # 手動実行 (trigger_source=manual) の場合は待機をスキップする。
+      # Netlify スケジューラ経由の場合、0〜50分のランダム待機
       - name: Random delay (0-50 min)
         if: github.event.inputs.trigger_source != 'manual' && github.event.inputs.trigger_source != ''
         run: |
-          DELAY=$(( RANDOM % 3001 ))   # 0〜3000秒 = 0〜50分
+          DELAY=$(( RANDOM % 3001 ))
           echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"
           sleep "$DELAY"
           echo "[delay] 待機完了（JST $(TZ=Asia/Tokyo date '+%H:%M:%S')）"
@@ -72,144 +70,237 @@ jobs:
       - name: Build (smoke test)
         run: npm run build
 
-      - name: Commit and push branch
-        id: commit
+      # ── 2本を別ブランチ・別PRに分離 ──────────────────────────────
+      # generate-draft.js が出力した filename1/filename2 を使い、
+      # 各記事を独立したブランチに commit → 個別 PR を作成する。
+      # これにより片方だけ skip / revise / approve が可能になる。
+
+      - name: Prepare articles for separate PRs
+        id: prep
         run: |
           DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
-          BRANCH="draft/blog-${DATE}-${GITHUB_RUN_NUMBER}"
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add content/posts/
 
-          if git diff --cached --quiet; then
+          # generate-draft.js の出力から取得
+          FILE1="${{ steps.draft.outputs.filename1 }}"
+          FILE2="${{ steps.draft.outputs.filename2 }}"
+          COUNT="${{ steps.draft.outputs.count }}"
+
+          if [ -z "$FILE1" ]; then
             echo "新規ファイルなし。スキップします。"
             echo "skipped=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          COUNT=$(git diff --cached --name-only | wc -l)
-          git commit -m "draft: ブログ下書き自動生成 ${DATE}（${COUNT}本）"
-          git push origin "$BRANCH"
-
-          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
-          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
           echo "skipped=false" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "count=${COUNT:-1}" >> "$GITHUB_OUTPUT"
 
-      - name: Create Pull Request
-        if: steps.commit.outputs.skipped != 'true'
-        id: pr
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_BODY: |
-            ## 自動生成ドラフト（2本）
-
-            GitHub Actions がブログ下書きを自動生成しました。
-            Chatwork 通知のレビューURLから内容を確認してください。
-
-            ### レビュー手順
-            1. Chatwork 通知内のレビュー画面リンクを開く（記事ごとに1通）
-            2. 記事の内容を確認する
-               - タイトル・本文の妥当性
-               - 出典URL（source_url）が実在するか
-               - 免責事項の記載
-            3. レビュー画面のボタンで操作する
-               - **「このまま公開」** → 承認（公開日時を設定可能）
-               - **「差し戻し」** → 修正コメントを記入して送信
-               - **「今回は見送り」** → 記事を見送り
-
-            > この下書きはAIが自動生成しています。内容の正確性は必ず確認してください。
-        run: |
-          printf '%s\n' "$PR_BODY" > /tmp/pr-body.md
-          if PR_URL=$(gh pr create \
-            --title "【自動生成ドラフト】${{ steps.commit.outputs.date }}（2本）" \
-            --body-file /tmp/pr-body.md \
-            --base main \
-            --head "${{ steps.commit.outputs.branch }}" 2>&1); then
-            echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
-            echo "pr_failed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Pull Request を作成しました: ${PR_URL}"
-          else
-            echo "::error::Pull Request の作成に失敗しました: ${PR_URL}"
-            echo "pr_url=" >> "$GITHUB_OUTPUT"
-            echo "pr_failed=true" >> "$GITHUB_OUTPUT"
+          # 記事ファイルを /tmp に退避
+          cp "content/posts/$FILE1" /tmp/article1.md
+          if [ -n "$FILE2" ]; then
+            cp "content/posts/$FILE2" /tmp/article2.md
           fi
 
-      - name: Extract frontmatter for notification
-        if: steps.commit.outputs.skipped != 'true'
-        id: fm
-        run: |
-          # 最新の2ファイルを取得（日付降順）
-          FILES=$(ls -t content/posts/*.md | head -2)
-          INDEX=0
-          for FILE in $FILES; do
-            INDEX=$((INDEX + 1))
-            BASENAME=$(basename "$FILE")
-            TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
-            SUMMARY=$(grep '^summary:' "$FILE" | head -1 | sed 's/^summary: *"//;s/"$//')
-            PERSONA=$(grep '^primary_persona:' "$FILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
-            CATEGORY=$(grep '^category:' "$FILE" | head -1 | sed 's/^category: *"//;s/"$//')
-            SLUG=$(grep '^slug:' "$FILE" | head -1 | sed 's/^slug: *"//;s/"$//')
-            ARTICLE_TYPE=$(grep '^article_type:' "$FILE" | head -1 | sed 's/^article_type: *"//;s/"$//')
-            ARTICLE_ROLE=$(grep '^article_role:' "$FILE" | head -1 | sed 's/^article_role: *"//;s/"$//')
+          # 各記事のメタデータ抽出
+          for IDX in 1 2; do
+            TMPFILE="/tmp/article${IDX}.md"
+            [ -f "$TMPFILE" ] || continue
 
-            echo "basename${INDEX}=${BASENAME}" >> "$GITHUB_OUTPUT"
-            echo "title${INDEX}=${TITLE}" >> "$GITHUB_OUTPUT"
-            echo "summary${INDEX}=${SUMMARY}" >> "$GITHUB_OUTPUT"
-            echo "persona${INDEX}=${PERSONA}" >> "$GITHUB_OUTPUT"
-            echo "category${INDEX}=${CATEGORY}" >> "$GITHUB_OUTPUT"
-            echo "slug${INDEX}=${SLUG}" >> "$GITHUB_OUTPUT"
-            echo "article_type${INDEX}=${ARTICLE_TYPE}" >> "$GITHUB_OUTPUT"
-            echo "article_role${INDEX}=${ARTICLE_ROLE}" >> "$GITHUB_OUTPUT"
+            BASENAME=$(eval echo "\$FILE${IDX}")
+            TITLE=$(grep '^title:' "$TMPFILE" | head -1 | sed 's/^title: *"//;s/"$//')
+            SUMMARY=$(grep '^summary:' "$TMPFILE" | head -1 | sed 's/^summary: *"//;s/"$//')
+            PERSONA=$(grep '^primary_persona:' "$TMPFILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
+            CATEGORY=$(grep '^category:' "$TMPFILE" | head -1 | sed 's/^category: *"//;s/"$//')
+            SLUG=$(grep '^slug:' "$TMPFILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+            ARTICLE_TYPE=$(grep '^article_type:' "$TMPFILE" | head -1 | sed 's/^article_type: *"//;s/"$//')
+            ARTICLE_ROLE=$(grep '^article_role:' "$TMPFILE" | head -1 | sed 's/^article_role: *"//;s/"$//')
+
+            echo "basename${IDX}=${BASENAME}" >> "$GITHUB_OUTPUT"
+            echo "title${IDX}=${TITLE}" >> "$GITHUB_OUTPUT"
+            echo "summary${IDX}=${SUMMARY}" >> "$GITHUB_OUTPUT"
+            echo "persona${IDX}=${PERSONA}" >> "$GITHUB_OUTPUT"
+            echo "category${IDX}=${CATEGORY}" >> "$GITHUB_OUTPUT"
+            echo "slug${IDX}=${SLUG}" >> "$GITHUB_OUTPUT"
+            echo "article_type${IDX}=${ARTICLE_TYPE}" >> "$GITHUB_OUTPUT"
+            echo "article_role${IDX}=${ARTICLE_ROLE}" >> "$GITHUB_OUTPUT"
           done
-          echo "count=${INDEX}" >> "$GITHUB_OUTPUT"
 
-      # 記事ごとに個別通知（レビューURLが記事ごとに異なるため）
+          # 生成ファイルを作業ツリーから削除（各ブランチで個別に追加するため）
+          rm -f "content/posts/$FILE1"
+          [ -n "$FILE2" ] && rm -f "content/posts/$FILE2"
+
+      # ── 記事1: 専用ブランチ → 専用PR ──────────────────────────
+      - name: Create branch & PR for article 1
+        if: steps.prep.outputs.skipped != 'true'
+        id: pr1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE="${{ steps.prep.outputs.date }}"
+          SLUG="${{ steps.prep.outputs.slug1 }}"
+          BASENAME="${{ steps.prep.outputs.basename1 }}"
+          TITLE="${{ steps.prep.outputs.title1 }}"
+          ROLE="${{ steps.prep.outputs.article_role1 }}"
+
+          BRANCH="draft/${DATE}-${SLUG}"
+
+          git checkout -b "$BRANCH"
+          cp /tmp/article1.md "content/posts/${BASENAME}"
+          git add "content/posts/${BASENAME}"
+          git commit -m "draft: ${TITLE}"
+          git push origin "$BRANCH"
+
+          ROLE_LABEL="補強記事"
+          if [ "$ROLE" = "main" ]; then ROLE_LABEL="本命記事"; fi
+
+          PAIR_INFO=""
+          if [ -n "${{ steps.prep.outputs.title2 }}" ]; then
+            PAIR_INFO="■ ペア記事: ${{ steps.prep.outputs.title2 }}"
+          fi
+
+          PR_BODY=$(cat <<PREOF
+          ## 自動生成ドラフト（${ROLE_LABEL}）
+
+          | 項目 | 内容 |
+          |---|---|
+          | 記事タイプ | ${{ steps.prep.outputs.article_type1 }} |
+          | 記事の役割 | ${ROLE_LABEL} |
+          ${PAIR_INFO:+| ペア記事 | ${{ steps.prep.outputs.title2 }} |}
+
+          ### レビュー手順
+          1. Chatwork 通知内のレビュー画面リンクを開く
+          2. 記事の内容を確認する
+          3. レビュー画面のボタンで操作する
+             - **「このまま公開」** → 承認
+             - **「差し戻し」** → 修正コメントを記入して送信
+             - **「今回は見送り」** → 記事を見送り
+
+          > この下書きはAIが自動生成しています。内容の正確性は必ず確認してください。
+          > **この記事は独立してレビュー・承認できます。** ペア記事の操作には影響しません。
+          PREOF
+          )
+
+          if PR_URL=$(gh pr create \
+            --title "【${ROLE_LABEL}】${TITLE}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" 2>&1); then
+            echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+            echo "::notice::PR を作成しました: ${PR_URL}"
+          else
+            echo "::error::PR の作成に失敗しました: ${PR_URL}"
+            echo "pr_url=" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+          # 次の記事のためにメインブランチに戻る
+          git checkout main
+
+      # ── 記事2: 専用ブランチ → 専用PR ──────────────────────────
+      - name: Create branch & PR for article 2
+        if: steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 != ''
+        id: pr2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE="${{ steps.prep.outputs.date }}"
+          SLUG="${{ steps.prep.outputs.slug2 }}"
+          BASENAME="${{ steps.prep.outputs.basename2 }}"
+          TITLE="${{ steps.prep.outputs.title2 }}"
+          ROLE="${{ steps.prep.outputs.article_role2 }}"
+
+          BRANCH="draft/${DATE}-${SLUG}"
+
+          git checkout -b "$BRANCH"
+          cp /tmp/article2.md "content/posts/${BASENAME}"
+          git add "content/posts/${BASENAME}"
+          git commit -m "draft: ${TITLE}"
+          git push origin "$BRANCH"
+
+          ROLE_LABEL="補強記事"
+          if [ "$ROLE" = "main" ]; then ROLE_LABEL="本命記事"; fi
+
+          PR_BODY=$(cat <<PREOF
+          ## 自動生成ドラフト（${ROLE_LABEL}）
+
+          | 項目 | 内容 |
+          |---|---|
+          | 記事タイプ | ${{ steps.prep.outputs.article_type2 }} |
+          | 記事の役割 | ${ROLE_LABEL} |
+          ${PAIR_INFO:+| ペア記事 | ${{ steps.prep.outputs.title1 }} |}
+
+          ### レビュー手順
+          1. Chatwork 通知内のレビュー画面リンクを開く
+          2. 記事の内容を確認する
+          3. レビュー画面のボタンで操作する
+             - **「このまま公開」** → 承認
+             - **「差し戻し」** → 修正コメントを記入して送信
+             - **「今回は見送り」** → 記事を見送り
+
+          > この下書きはAIが自動生成しています。内容の正確性は必ず確認してください。
+          > **この記事は独立してレビュー・承認できます。** ペア記事の操作には影響しません。
+          PREOF
+          )
+
+          if PR_URL=$(gh pr create \
+            --title "【${ROLE_LABEL}】${TITLE}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" 2>&1); then
+            echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+            echo "::notice::PR を作成しました: ${PR_URL}"
+          else
+            echo "::error::PR の作成に失敗しました: ${PR_URL}"
+            echo "pr_url=" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      # ── 通知（記事ごとに個別送信）──────────────────────────────
       - name: Notify article 1
-        if: steps.commit.outputs.skipped != 'true' && steps.fm.outputs.basename1 != ''
+        if: steps.prep.outputs.skipped != 'true'
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename1 }}&ref=${{ steps.commit.outputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.prep.outputs.basename1 }}&ref=${{ steps.pr1.outputs.branch }}"
 
-          PR_URL="${{ steps.pr.outputs.pr_url }}"
-          if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then
-            PR_URL="作成失敗（GitHub Actions のログを確認してください）"
-          fi
+          PR_URL="${{ steps.pr1.outputs.pr_url }}"
+          [ -z "$PR_URL" ] && PR_URL="作成失敗（GitHub Actions のログを確認してください）"
 
           node scripts/notify.js \
             --event draft_created \
-            --title "${{ steps.fm.outputs.title1 }}" \
-            --summary "${{ steps.fm.outputs.summary1 }}" \
-            --persona "${{ steps.fm.outputs.persona1 }}" \
-            --category "${{ steps.fm.outputs.category1 }}" \
-            --article-type "${{ steps.fm.outputs.article_type1 }}" \
-            --article-role "${{ steps.fm.outputs.article_role1 }}" \
+            --title "${{ steps.prep.outputs.title1 }}" \
+            --summary "${{ steps.prep.outputs.summary1 }}" \
+            --persona "${{ steps.prep.outputs.persona1 }}" \
+            --category "${{ steps.prep.outputs.category1 }}" \
+            --article-type "${{ steps.prep.outputs.article_type1 }}" \
+            --article-role "${{ steps.prep.outputs.article_role1 }}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
 
       - name: Notify article 2
-        if: steps.commit.outputs.skipped != 'true' && steps.fm.outputs.basename2 != ''
+        if: steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 != ''
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename2 }}&ref=${{ steps.commit.outputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.prep.outputs.basename2 }}&ref=${{ steps.pr2.outputs.branch }}"
 
-          PR_URL="${{ steps.pr.outputs.pr_url }}"
-          if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then
-            PR_URL="作成失敗（GitHub Actions のログを確認してください）"
-          fi
+          PR_URL="${{ steps.pr2.outputs.pr_url }}"
+          [ -z "$PR_URL" ] && PR_URL="作成失敗（GitHub Actions のログを確認してください）"
 
           node scripts/notify.js \
             --event draft_created \
-            --title "${{ steps.fm.outputs.title2 }}" \
-            --summary "${{ steps.fm.outputs.summary2 }}" \
-            --persona "${{ steps.fm.outputs.persona2 }}" \
-            --category "${{ steps.fm.outputs.category2 }}" \
-            --article-type "${{ steps.fm.outputs.article_type2 }}" \
-            --article-role "${{ steps.fm.outputs.article_role2 }}" \
+            --title "${{ steps.prep.outputs.title2 }}" \
+            --summary "${{ steps.prep.outputs.summary2 }}" \
+            --persona "${{ steps.prep.outputs.persona2 }}" \
+            --category "${{ steps.prep.outputs.category2 }}" \
+            --article-type "${{ steps.prep.outputs.article_type2 }}" \
+            --article-role "${{ steps.prep.outputs.article_role2 }}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
