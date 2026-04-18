@@ -10,7 +10,7 @@ related_slug: "ebay-export-exchange-rate-accounting"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
 source_title: "国税庁タックスアンサー No.2210 やさしい必要経費の知識"
 summary: "eBay輸出で発生する国際送料、関税、eBay手数料、PayPal手数料を必要経費として整理し、申告時の仕訳例と提出実務の注意点を解説します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -18,7 +18,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-18T10:42:51.885Z"
-updated_at: "2026-04-18T10:42:51.885Z"
+updated_at: "2026-04-18T19:44:30.321+09:00"
 ---
 
 eBay輸出をしていると、売上だけでなく国際送料、eBay手数料、決済手数料、関税対応など、細かな支出が多く発生します。これらが経費になるのか、どの勘定科目で処理するのかは、確定申告の際によくご相談を受ける点です。
