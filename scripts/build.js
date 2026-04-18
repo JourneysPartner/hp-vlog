@@ -112,8 +112,24 @@ function generateList(posts, tpl) {
   return render(tpl, { POSTS_HTML: postsHtml });
 }
 
+// ── 関連記事HTML生成 ────────────────────────────────────────────
+function buildRelatedArticleHtml(post, postsMap) {
+  if (!post.related_slug) return '';
+  const related = postsMap.get(post.related_slug);
+  if (!related) return '';
+  return `
+    <div class="blog-related-article">
+      <h3><i class="bi bi-link-45deg"></i> 関連記事</h3>
+      <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
+        <span class="blog-related-title">${escHtml(related.title)}</span>
+        <span class="blog-related-summary">${escHtml(related.summary || '')}</span>
+        <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
+      </a>
+    </div>`;
+}
+
 // ── 記事ページ生成 ──────────────────────────────────────────────
-function generatePost(post, tpl) {
+function generatePost(post, tpl, postsMap) {
   const htmlBody = marked(post._body);
   const publishDateISO = toISO(post.publish_at);
   const updatedDateISO = toISO(post.updated_at || post.publish_at);
@@ -142,6 +158,8 @@ function generatePost(post, tpl) {
     },
   });
 
+  const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap);
+
   return render(tpl, {
     TITLE:            escHtml(post.title),
     META_DESCRIPTION: escHtml(post.summary || ''),
@@ -155,6 +173,7 @@ function generatePost(post, tpl) {
     SOURCE_URL:       escAttr(post.source_url || ''),
     SOURCE_TITLE:     escHtml(post.source_title || post.source_url || ''),
     STRUCTURED_DATA:  structuredData,
+    RELATED_ARTICLE_HTML: relatedArticleHtml,
   });
 }
 
@@ -203,6 +222,12 @@ function main() {
   const posts = loadPublishedPosts();
   console.log(`[build] 公開済み記事: ${posts.length} 件`);
 
+  // slug → post のマップ（関連記事リンク用）
+  const postsMap = new Map();
+  for (const post of posts) {
+    if (post.slug) postsMap.set(post.slug, post);
+  }
+
   // 記事ページ
   for (const post of posts) {
     if (!post.slug) {
@@ -211,7 +236,7 @@ function main() {
     }
     const dir = path.join(BLOG_OUT, post.slug);
     fs.mkdirSync(dir, { recursive: true });
-    const html = generatePost(post, postTpl);
+    const html = generatePost(post, postTpl, postsMap);
     fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
     console.log(`[build]   → blog/${post.slug}/index.html`);
   }

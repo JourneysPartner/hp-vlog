@@ -54,7 +54,7 @@ jobs:
           sleep "$DELAY"
           echo "[delay] 待機完了（JST $(TZ=Asia/Tokyo date '+%H:%M:%S')）"
 
-      - name: Generate draft
+      - name: Generate draft (2 articles)
         id: draft
         run: |
           ARGS=""
@@ -89,7 +89,8 @@ jobs:
             exit 0
           fi
 
-          git commit -m "draft: ブログ下書き自動生成 ${DATE}"
+          COUNT=$(git diff --cached --name-only | wc -l)
+          git commit -m "draft: ブログ下書き自動生成 ${DATE}（${COUNT}本）"
           git push origin "$BRANCH"
 
           echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
@@ -102,13 +103,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BODY: |
-            ## 自動生成ドラフト
+            ## 自動生成ドラフト（2本）
 
             GitHub Actions がブログ下書きを自動生成しました。
             Chatwork 通知のレビューURLから内容を確認してください。
 
             ### レビュー手順
-            1. Chatwork 通知内のレビュー画面リンクを開く
+            1. Chatwork 通知内のレビュー画面リンクを開く（記事ごとに1通）
             2. 記事の内容を確認する
                - タイトル・本文の妥当性
                - 出典URL（source_url）が実在するか
@@ -122,7 +123,7 @@ jobs:
         run: |
           printf '%s\n' "$PR_BODY" > /tmp/pr-body.md
           if PR_URL=$(gh pr create \
-            --title "【自動生成ドラフト】${{ steps.commit.outputs.date }}" \
+            --title "【自動生成ドラフト】${{ steps.commit.outputs.date }}（2本）" \
             --body-file /tmp/pr-body.md \
             --base main \
             --head "${{ steps.commit.outputs.branch }}" 2>&1); then
@@ -139,28 +140,39 @@ jobs:
         if: steps.commit.outputs.skipped != 'true'
         id: fm
         run: |
-          FILE=$(ls -t content/posts/*.md | head -1)
-          BASENAME=$(basename "$FILE")
-          TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
-          SUMMARY=$(grep '^summary:' "$FILE" | head -1 | sed 's/^summary: *"//;s/"$//')
-          PERSONA=$(grep '^primary_persona:' "$FILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
-          CATEGORY=$(grep '^category:' "$FILE" | head -1 | sed 's/^category: *"//;s/"$//')
-          SLUG=$(grep '^slug:' "$FILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+          # 最新の2ファイルを取得（日付降順）
+          FILES=$(ls -t content/posts/*.md | head -2)
+          INDEX=0
+          for FILE in $FILES; do
+            INDEX=$((INDEX + 1))
+            BASENAME=$(basename "$FILE")
+            TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
+            SUMMARY=$(grep '^summary:' "$FILE" | head -1 | sed 's/^summary: *"//;s/"$//')
+            PERSONA=$(grep '^primary_persona:' "$FILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
+            CATEGORY=$(grep '^category:' "$FILE" | head -1 | sed 's/^category: *"//;s/"$//')
+            SLUG=$(grep '^slug:' "$FILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+            ARTICLE_TYPE=$(grep '^article_type:' "$FILE" | head -1 | sed 's/^article_type: *"//;s/"$//')
+            ARTICLE_ROLE=$(grep '^article_role:' "$FILE" | head -1 | sed 's/^article_role: *"//;s/"$//')
 
-          echo "basename=${BASENAME}" >> "$GITHUB_OUTPUT"
-          echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
-          echo "summary=${SUMMARY}" >> "$GITHUB_OUTPUT"
-          echo "persona=${PERSONA}" >> "$GITHUB_OUTPUT"
-          echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
-          echo "slug=${SLUG}" >> "$GITHUB_OUTPUT"
+            echo "basename${INDEX}=${BASENAME}" >> "$GITHUB_OUTPUT"
+            echo "title${INDEX}=${TITLE}" >> "$GITHUB_OUTPUT"
+            echo "summary${INDEX}=${SUMMARY}" >> "$GITHUB_OUTPUT"
+            echo "persona${INDEX}=${PERSONA}" >> "$GITHUB_OUTPUT"
+            echo "category${INDEX}=${CATEGORY}" >> "$GITHUB_OUTPUT"
+            echo "slug${INDEX}=${SLUG}" >> "$GITHUB_OUTPUT"
+            echo "article_type${INDEX}=${ARTICLE_TYPE}" >> "$GITHUB_OUTPUT"
+            echo "article_role${INDEX}=${ARTICLE_ROLE}" >> "$GITHUB_OUTPUT"
+          done
+          echo "count=${INDEX}" >> "$GITHUB_OUTPUT"
 
-      - name: Notify via Netlify
-        if: steps.commit.outputs.skipped != 'true'
+      # 記事ごとに個別通知（レビューURLが記事ごとに異なるため）
+      - name: Notify article 1
+        if: steps.commit.outputs.skipped != 'true' && steps.fm.outputs.basename1 != ''
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename }}&ref=${{ steps.commit.outputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename1 }}&ref=${{ steps.commit.outputs.branch }}"
 
           PR_URL="${{ steps.pr.outputs.pr_url }}"
           if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then
@@ -169,9 +181,35 @@ jobs:
 
           node scripts/notify.js \
             --event draft_created \
-            --title "${{ steps.fm.outputs.title }}" \
-            --summary "${{ steps.fm.outputs.summary }}" \
-            --persona "${{ steps.fm.outputs.persona }}" \
-            --category "${{ steps.fm.outputs.category }}" \
+            --title "${{ steps.fm.outputs.title1 }}" \
+            --summary "${{ steps.fm.outputs.summary1 }}" \
+            --persona "${{ steps.fm.outputs.persona1 }}" \
+            --category "${{ steps.fm.outputs.category1 }}" \
+            --article-type "${{ steps.fm.outputs.article_type1 }}" \
+            --article-role "${{ steps.fm.outputs.article_role1 }}" \
+            --review-url "$REVIEW_URL" \
+            --pr-url "$PR_URL"
+
+      - name: Notify article 2
+        if: steps.commit.outputs.skipped != 'true' && steps.fm.outputs.basename2 != ''
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.fm.outputs.basename2 }}&ref=${{ steps.commit.outputs.branch }}"
+
+          PR_URL="${{ steps.pr.outputs.pr_url }}"
+          if [ "${{ steps.pr.outputs.pr_failed }}" = "true" ]; then
+            PR_URL="作成失敗（GitHub Actions のログを確認してください）"
+          fi
+
+          node scripts/notify.js \
+            --event draft_created \
+            --title "${{ steps.fm.outputs.title2 }}" \
+            --summary "${{ steps.fm.outputs.summary2 }}" \
+            --persona "${{ steps.fm.outputs.persona2 }}" \
+            --category "${{ steps.fm.outputs.category2 }}" \
+            --article-type "${{ steps.fm.outputs.article_type2 }}" \
+            --article-role "${{ steps.fm.outputs.article_role2 }}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"

@@ -17,20 +17,38 @@
 function buildMessage(event, data) {
   switch (event) {
     case 'draft_created': {
-      const { title, summary, persona, category, reviewUrl, prUrl } = data;
+      const { title, summary, persona, category, reviewUrl, prUrl, articleType, articleRole } = data;
+
+      const ARTICLE_TYPE_LABELS = {
+        basic_explainer:     '基本解説',
+        comparison_decision: '比較・判断',
+        edge_case:           '判断に迷うケース',
+        industry_example:    '業種別具体例',
+        filing_practice:     '申告実務',
+        misconception_fix:   'よくある誤解',
+        case_study:          'ケーススタディ',
+      };
+      const roleLabel = articleRole === 'main' ? '本命記事' : articleRole === 'support' ? '補強記事' : '';
+      const typeLabel = ARTICLE_TYPE_LABELS[articleType] || articleType || '';
+
       const lines = [
         '本日のブログ下書きが生成されました。',
         '',
         `■ タイトル: ${title}`,
+      ];
+      if (roleLabel || typeLabel) {
+        lines.push(`■ 記事区分: ${[roleLabel, typeLabel].filter(Boolean).join('／')}`);
+      }
+      lines.push(
         `■ 対象読者: ${persona}`,
         `■ カテゴリ: ${category}`,
         `■ 概要: ${summary}`,
         '',
-      ];
+      );
       if (reviewUrl) lines.push(`▶ レビュー画面: ${reviewUrl}`);
       if (prUrl)     lines.push(`▶ Pull Request: ${prUrl}`);
       lines.push('', 'レビュー画面から内容を確認し、承認・差し戻し・見送りの操作をお願いいたします。');
-      return { subject: '【ブログ】下書きが生成されました', body: lines.join('\n') };
+      return { subject: `【ブログ】${roleLabel ? `${roleLabel}の` : ''}下書きが生成されました`, body: lines.join('\n') };
     }
 
     case 'regenerated': {

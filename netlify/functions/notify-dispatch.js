@@ -45,15 +45,17 @@ exports.handler = async (event) => {
     }
 
     await sendNotification(notifyEvent, {
-      title:     body.title     || '',
-      summary:   body.summary   || '',
-      persona:   body.persona   || '',
-      category:  body.category  || '',
-      reviewUrl: body.reviewUrl || '',
-      prUrl:     body.prUrl     || '',
-      comment:   body.comment   || '',
-      publicUrl: body.publicUrl || '',
-      filename:  body.filename  || '',
+      title:       body.title       || '',
+      summary:     body.summary     || '',
+      persona:     body.persona     || '',
+      category:    body.category    || '',
+      reviewUrl:   body.reviewUrl   || '',
+      prUrl:       body.prUrl       || '',
+      comment:     body.comment     || '',
+      publicUrl:   body.publicUrl   || '',
+      filename:    body.filename    || '',
+      articleType: body.articleType || '',
+      articleRole: body.articleRole || '',
     });
 
     return {
