@@ -354,8 +354,87 @@ async function listWorkflowRuns(workflowFile, params = {}) {
   return res.json();
 }
 
+// ── ディレクトリ内容一覧取得 ──────────────────────────────────────────
+async function listDirectory(dirpath, ref) {
+  const branch = ref || BRANCH();
+  const url = `${API_BASE}/repos/${REPO()}/contents/${dirpath}?ref=${branch}`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    const text = await res.text();
+    throw new Error(`GitHub listDir ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── frontmatter フィールド抽出 ────────────────────────────────────────
+function extractFmField(raw, key) {
+  const m = raw.match(new RegExp(`^${key}:\\s*"?([^"\\n\\r]+)"?`, 'm'));
+  return m ? m[1].trim() : '';
+}
+
+// ── 指定日の approved 記事を検索（main ブランチ）────────────────────
+async function findApprovedArticlesForDate(targetDateJST, excludeFilename) {
+  let items;
+  try {
+    items = await listDirectory('content/posts', 'main');
+  } catch (e) {
+    console.warn(`[findApproved] ディレクトリ読み取り失敗: ${e.message}`);
+    return [];
+  }
+
+  const approved = [];
+  for (const item of items) {
+    if (!item.name.endsWith('.md') || item.name === excludeFilename) continue;
+    try {
+      const { content, sha } = await getFile(item.path, 'main');
+      const status = extractFmField(content, 'review_status');
+      if (status !== 'approved') continue;
+      const pa = extractFmField(content, 'publish_at');
+      if (!pa) continue;
+      const d = new Date(pa);
+      if (isNaN(d)) continue;
+      const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+      if (jst.toISOString().split('T')[0] !== targetDateJST) continue;
+      const slot = extractFmField(content, 'publish_slot');
+      const title = extractFmField(content, 'title');
+      approved.push({ filename: item.name, slot, title, content, sha });
+    } catch (e) {
+      console.warn(`[findApproved] ${item.name} 読み取りスキップ: ${e.message}`);
+    }
+  }
+  return approved;
+}
+
+// ── 公開枠の再調整（承認済み1本だけ残った場合 evening→morning）─────
+async function readjustPublishSlots(publishAtStr, excludeFilename) {
+  if (!publishAtStr) return null;
+  const d = new Date(publishAtStr);
+  if (isNaN(d)) return null;
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const targetDate = jst.toISOString().split('T')[0];
+
+  const approved = await findApprovedArticlesForDate(targetDate, excludeFilename);
+  if (approved.length === 1 && approved[0].slot === 'evening') {
+    const article = approved[0];
+    const morningAt = `${targetDate}T11:05:00.000+09:00`;
+    const updated = updateFrontmatter(article.content, {
+      publish_slot: 'morning',
+      publish_at: morningAt,
+      updated_at: nowJST(),
+    });
+    await putFile(`content/posts/${article.filename}`, updated, article.sha,
+      `readjust: ${article.title || article.filename} を morning 枠へ変更`, 'main');
+    console.log(`[readjust] ${article.filename} を evening → morning に変更`);
+    return { filename: article.filename, title: article.title, publishAt: morningAt };
+  }
+  return null;
+}
+
 module.exports = {
   getFile, putFile, updateFrontmatter, nowJST,
   findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR,
   triggerWorkflow, listWorkflowRuns,
+  listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
 };

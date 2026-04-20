@@ -12,6 +12,7 @@
  *   - skipped            : 見送り完了
  *   - published          : 公開完了（publish-scheduled が送信）
  *   - merge_failed       : PRマージ失敗
+ *   - slot_readjusted    : 公開枠変更（evening→morning 繰り上げ）
  */
 
 function buildMessage(event, data) {
@@ -104,8 +105,8 @@ function buildMessage(event, data) {
     }
 
     case 'approved': {
-      const { title, publishAt, category, persona } = data;
-      // publishAt を JST 表記の見やすい文字列に整形
+      const { title, publishAt, publishSlot, category, persona } = data;
+      const slotLabel = publishSlot === 'evening' ? '17時台' : '11時台';
       let publishDateLabel = '';
       if (publishAt) {
         try {
@@ -124,8 +125,8 @@ function buildMessage(event, data) {
       ];
       if (category) lines.push(`■ カテゴリ: ${category}`);
       if (persona)  lines.push(`■ 対象読者: ${persona}`);
-      if (publishDateLabel) lines.push(`■ 公開予定: ${publishDateLabel} 11時台`);
-      lines.push('', '翌日11時台に自動で本番サイトに反映され、公開完了通知をお送りします。');
+      if (publishDateLabel) lines.push(`■ 公開予定: ${publishDateLabel} ${slotLabel}`);
+      lines.push('', `翌日${slotLabel}に自動で本番サイトに反映され、公開完了通知をお送りします。`);
       return { subject: '【ブログ】公開予約を受け付けました', body: lines.join('\n') };
     }
 
@@ -140,6 +141,32 @@ function buildMessage(event, data) {
       if (persona)  lines.push(`■ 対象読者: ${persona}`);
       if (publicUrl) lines.push(`▶ 公開URL: ${publicUrl}`);
       return { subject: '【ブログ】記事が公開されました', body: lines.join('\n') };
+    }
+
+    case 'slot_readjusted': {
+      const { title, publishAt: raPublishAt } = data;
+      let raDateLabel = '';
+      if (raPublishAt) {
+        try {
+          const d = new Date(raPublishAt);
+          const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+          const yyyy = jst.getUTCFullYear();
+          const mm = String(jst.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(jst.getUTCDate()).padStart(2, '0');
+          raDateLabel = `${yyyy}-${mm}-${dd}`;
+        } catch { /* noop */ }
+      }
+      return {
+        subject: '【ブログ】公開枠が変更されました',
+        body: [
+          'ペア記事の見送り・差し戻しにより、公開枠を変更しました。',
+          '',
+          `■ タイトル: ${title}`,
+          raDateLabel ? `■ 公開予定: ${raDateLabel} 11時台` : '',
+          '',
+          '17時台 → 11時台へ自動的に繰り上げられました。',
+        ].filter(Boolean).join('\n'),
+      };
     }
 
     case 'merge_failed': {

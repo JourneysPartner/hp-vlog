@@ -47,6 +47,9 @@ const VALID_ARTICLE_TYPES = [
   'industry_example', 'filing_practice', 'misconception_fix', 'case_study',
 ];
 
+// ── publish_slot の許容値 ──────────────────────────────────────
+const VALID_PUBLISH_SLOTS = ['morning', 'evening'];
+
 function validateFile(filePath) {
   const rel = path.relative(ROOT, filePath);
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -84,6 +87,11 @@ function validateFile(filePath) {
   // 3b. article_type の値
   if (fm.article_type && !VALID_ARTICLE_TYPES.includes(fm.article_type)) {
     warnings.push(`article_type が未定義の値: "${fm.article_type}"`);
+  }
+
+  // 3c. publish_slot の値
+  if (fm.publish_slot && !VALID_PUBLISH_SLOTS.includes(fm.publish_slot)) {
+    warnings.push(`publish_slot が未定義の値: "${fm.publish_slot}"`);
   }
 
   // 4. source_url の形式

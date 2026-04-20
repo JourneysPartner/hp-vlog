@@ -14,9 +14,13 @@
 [functions."scheduler-daily-draft"]
   schedule = "5 0 * * *"
 
-# 毎日 JST 11:05 に publish-scheduled を起動 → 予約記事の自動公開（11時台）
+# 毎日 JST 11:05 に publish-scheduled を起動 → 予約記事の自動公開（11時台 morning 枠）
 [functions."scheduler-publish"]
   schedule = "5 2 * * *"
+
+# 毎日 JST 17:05 に publish-scheduled を起動 → 予約記事の自動公開（17時台 evening 枠）
+[functions."scheduler-publish-evening"]
+  schedule = "5 8 * * *"
 
 # ── Redirects / Rewrites ──────────────────────────────────────────────
 
