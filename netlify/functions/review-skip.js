@@ -1,6 +1,6 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, closePR } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 
 /**
@@ -54,11 +54,38 @@ exports.handler = async (event) => {
       }
     }
 
+    // 公開枠の再調整: 承認済み記事が1本だけ残った場合 evening→morning
+    const origStatus = extractFmField(content, 'review_status');
+    const origPublishAt = extractFmField(content, 'publish_at');
+    let readjusted = null;
+    if (origStatus === 'approved' && origPublishAt) {
+      try {
+        readjusted = await readjustPublishSlots(origPublishAt, filename);
+        if (readjusted) {
+          console.log(`[review-skip] 公開枠を再調整: ${readjusted.filename} → morning`);
+        }
+      } catch (e) {
+        console.error(`[review-skip] 公開枠再調整失敗: ${e.message}`);
+      }
+    }
+
     // 見送り完了通知（await して Lambda 終了前に必ず送信完了させる）
     try {
       await sendNotification('skipped', { title: fmTitle, filename });
     } catch (notifyErr) {
       console.error(`[review-skip] 通知送信失敗: ${notifyErr.message}`);
+    }
+
+    // 公開枠再調整通知
+    if (readjusted) {
+      try {
+        await sendNotification('slot_readjusted', {
+          title: readjusted.title,
+          publishAt: readjusted.publishAt,
+        });
+      } catch (e) {
+        console.error(`[review-skip] 再調整通知失敗: ${e.message}`);
+      }
     }
 
     return {

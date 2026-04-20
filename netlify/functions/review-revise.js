@@ -1,6 +1,6 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 
 /**
@@ -41,6 +41,21 @@ exports.handler = async (event) => {
     });
 
     await putFile(filepath, updated, sha, `review: revise ${filename}`, ref || undefined);
+
+    // 公開枠の再調整: 承認済み記事が1本だけ残った場合 evening→morning
+    const origStatus = extractFmField(content, 'review_status');
+    const origPublishAt = extractFmField(content, 'publish_at');
+    let readjusted = null;
+    if (origStatus === 'approved' && origPublishAt) {
+      try {
+        readjusted = await readjustPublishSlots(origPublishAt, filename);
+        if (readjusted) {
+          console.log(`[review-revise] 公開枠を再調整: ${readjusted.filename} → morning`);
+        }
+      } catch (e) {
+        console.error(`[review-revise] 公開枠再調整失敗: ${e.message}`);
+      }
+    }
 
     // PR にコメントを残す（非致命的）
     if (ref) {
@@ -89,6 +104,18 @@ exports.handler = async (event) => {
       });
     } catch (notifyErr) {
       console.error(`[review-revise] 通知送信失敗: ${notifyErr.message}`);
+    }
+
+    // 公開枠再調整通知
+    if (readjusted) {
+      try {
+        await sendNotification('slot_readjusted', {
+          title: readjusted.title,
+          publishAt: readjusted.publishAt,
+        });
+      } catch (e) {
+        console.error(`[review-revise] 再調整通知失敗: ${e.message}`);
+      }
     }
 
     return {

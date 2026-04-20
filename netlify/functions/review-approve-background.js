@@ -1,6 +1,6 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, findApprovedArticlesForDate } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 
 /**
@@ -21,16 +21,23 @@ const { sendNotification } = require('./lib/notify');
  * 5. 成功時のみ published、失敗時のみ merge_failed を Chatwork に通知
  */
 
-// 翌日 11:05 JST 固定を返す
-// 公開時刻のばらつきは publish-scheduled ワークフロー側のランダム待機で作るため、
+// 翌日の公開時刻を返す（公開枠に応じた時刻）
 // publish_at 自体は固定にして取りこぼしを防ぐ。
-// (publish run は 11:05 JST 以降に due 判定するので、11:05 固定なら必ず拾える)
-function defaultPublishAt() {
+function publishAtForSlot(slot) {
+  const hour = slot === 'evening' ? 17 : 11;
   const now = new Date();
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   jst.setUTCDate(jst.getUTCDate() + 1);
-  jst.setUTCHours(11, 5, 0, 0);
+  jst.setUTCHours(hour, 5, 0, 0);
   return jst.toISOString().replace('Z', '+09:00');
+}
+
+// 翌日の JST 日付文字列を返す
+function targetPublishDateJST() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  jst.setUTCDate(jst.getUTCDate() + 1);
+  return jst.toISOString().split('T')[0];
 }
 
 exports.handler = async (event) => {
@@ -56,16 +63,28 @@ exports.handler = async (event) => {
 
     const now = nowJST();
 
-    // publish_at: ユーザー指定 > 自動設定（翌日 11:05〜11:55 JST のランダム時刻）
-    let publishAt = publish_at || defaultPublishAt();
+    // 公開枠の決定: 同日に他の approved 記事がなければ morning、あれば evening
+    let publishAt;
+    let publishSlot;
+
+    if (publish_at) {
+      publishAt = publish_at;
+      publishSlot = 'morning';
+    } else {
+      const targetDate = targetPublishDateJST();
+      const otherApproved = await findApprovedArticlesForDate(targetDate, filename);
+      const hasMorning = otherApproved.some(a => a.slot === 'morning');
+      publishSlot = hasMorning ? 'evening' : 'morning';
+      publishAt = publishAtForSlot(publishSlot);
+      console.log(`[review-approve] 公開枠: ${publishSlot} (同日 approved: ${otherApproved.length} 件)`);
+    }
     if (publishAt && !publishAt.includes('+')) publishAt += '+09:00';
 
-    // 「公開予約」状態にする。published への昇格は publish-scheduled ワークフローが
-    // publish_at 到来後に実施し、main へ commit/push する。
     const updates = {
       review_status: 'approved',
       approved_at: now,
       publish_at: publishAt,
+      publish_slot: publishSlot,
       updated_at: now,
     };
 
@@ -114,6 +133,7 @@ exports.handler = async (event) => {
           title: fmTitle,
           filename,
           publishAt,
+          publishSlot,
           category: fmCategory,
           persona: fmPersona,
         });
