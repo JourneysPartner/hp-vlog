@@ -12,15 +12,15 @@ related_link_text: "判断に迷うケースについてはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm"
 source_title: "国税庁 インボイス制度の概要"
 summary: "Amazon・楽天出店者向けに、インボイス登録の基本、登録しない場合の影響、BtoB・BtoC別の判断ポイント、手続きの流れを整理して解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-19T17:39:01.540+09:00"
 publish_at: "2026-04-20T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-20T11:37:51.939+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-19T00:26:15.772Z"
-updated_at: "2026-04-19T17:39:01.540+09:00"
+updated_at: "2026-04-20T11:37:51.939+09:00"
 ---
 
 Amazonや楽天で販売していると、「インボイス登録は必要なのか」「登録しないと売上に影響するのか」と迷う方も多いのではないでしょうか。国内EC物販セラーにとっては、販売先が一般消費者中心か、事業者中心かで判断が変わりやすい制度です。ここでは、インボイス制度の全体像を整理しながら、登録しない場合の影響を分かりやすくご説明します。出典は国税庁「インボイス制度の概要」を参照しています。

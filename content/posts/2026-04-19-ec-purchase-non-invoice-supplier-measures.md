@@ -12,15 +12,15 @@ related_link_text: "基本から確認したい方はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm"
 source_title: "国税庁 インボイス制度の概要"
 summary: "EC物販の仕入先がインボイス未登録でも、経過措置により一定割合の仕入税額控除が認められる場合があります。判断に迷いやすい実務対応を整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-19T17:41:34.621+09:00"
 publish_at: "2026-04-20T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-20T11:37:51.939+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-19T00:26:37.658Z"
-updated_at: "2026-04-19T17:41:34.621+09:00"
+updated_at: "2026-04-20T11:37:51.939+09:00"
 ---
 
 EC物販をされていると、卸先や外注先から「まだインボイス登録をしていません」と言われることがあります。そうした場合、「その仕入はもう経費にならないのか」「消費税は全く控除できないのか」と不安になりやすいところです。
