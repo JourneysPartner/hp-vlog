@@ -12,15 +12,15 @@ related_link_text: "判断に迷うケースについてはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm"
 source_title: "国税庁タックスアンサー No.1350 事業所得の課税のしくみ"
 summary: "YouTuber・インフルエンサー向けに、広告収入の所得区分、確定申告の流れ、青色申告の特典と基本的な節税ポイントを分かりやすく解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-20T10:08:16.904+09:00"
 publish_at: "2026-04-21T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-04-21T11:53:17.758+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-20T00:24:33.736Z"
-updated_at: "2026-04-20T10:08:16.904+09:00"
+updated_at: "2026-04-21T11:53:17.758+09:00"
 ---
 
 ## そもそも確定申告とは
