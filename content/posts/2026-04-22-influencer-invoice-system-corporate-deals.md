@@ -12,15 +12,15 @@ related_link_text: "基本から確認したい方はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm"
 source_title: "国税庁 インボイス制度の概要"
 summary: "インフルエンサー・配信者がインボイス登録をするべきかを、企業案件への影響、2割特例、売上規模ごとの判断基準で比較整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「登録する場合・しない場合の比較」の文中の中で、表を表示しようとしていたと思うが表にならずに表示されているから、ちゃんと表にして。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-22T00:11:01.303Z"
-updated_at: "2026-04-22T00:11:01.303Z"
+updated_at: "2026-04-22T18:40:59.070+09:00"
 ---
 
 企業案件を受けるインフルエンサー・配信者の方にとって、インボイス登録をするかどうかは実務上の大きな判断です。特に広告主や代理店が「適格請求書発行事業者であること」を求める場面が増えており、未登録のままだと条件面で影響が出る場合があります。
