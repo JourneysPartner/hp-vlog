@@ -135,7 +135,9 @@ function buildRelatedArticleHtml(post, postsMap) {
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap) {
-  const htmlBody = marked(post._body);
+  const htmlBody = marked(post._body)
+    .replace(/<table>/g, '<div class="table-wrapper"><table>')
+    .replace(/<\/table>/g, '</table></div>');
   const publishDateISO = toISO(post.publish_at);
   const updatedDateISO = toISO(post.updated_at || post.publish_at);
   const publishDate    = formatDate(post.publish_at);

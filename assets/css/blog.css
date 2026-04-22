@@ -187,6 +187,39 @@
   font-style: normal;
 }
 
+/* ── Article Table ── */
+.blog-article .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.5rem 0;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 480px;
+}
+.blog-article thead th {
+  background: var(--color-primary-light);
+  color: var(--color-secondary);
+  font-weight: 600;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+.blog-article tbody td {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-border);
+  line-height: 1.75;
+}
+.blog-article tbody tr:nth-child(even) {
+  background: var(--color-bg-gray, #f8f9fa);
+}
+.blog-article tbody tr:hover {
+  background: var(--color-primary-light);
+}
+
 /* ── Disclaimer ── */
 .blog-disclaimer {
   background: var(--color-bg-gray);

@@ -89,6 +89,13 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   .article-body blockquote { background: #fafafa; border-left: 3px solid #ccc; padding: .75rem 1rem; margin: 1rem 0; }
   .article-body ul, .article-body ol { padding-left: 1.5rem; }
   .article-body hr { margin: 1.5rem 0; }
+  .article-body .table-wrapper { overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
+  .article-body table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 480px; }
+  .article-body thead th { background: var(--primary-light); color: var(--primary); font-weight: 600;
+    padding: .6rem .75rem; border: 1px solid #c8e6c9; text-align: left; white-space: nowrap; }
+  .article-body tbody td { padding: .6rem .75rem; border: 1px solid #e0e0e0; line-height: 1.7; }
+  .article-body tbody tr:nth-child(even) { background: #fafafa; }
+  .article-body tbody tr:hover { background: #f0f7f1; }
 
   .action-section { position: sticky; bottom: 0; background: #fff;
     border-top: 1px solid #dee2e6; padding: 1rem 0; z-index: 10; }
@@ -289,20 +296,11 @@ exports.handler = async (event) => {
     }
     const { meta, body } = parseFrontmatter(raw);
 
-    // Markdown → 簡易HTML変換（marked が使えないのでシンプルに）
-    const bodyHtml = body
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^---$/gm, '<hr>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/\n{2,}/g, '</p><p>')
-      .replace(/^(?!<[hubloa])(.+)$/gm, '<p>$1</p>')
-      .replace(/<p><\/p>/g, '');
+    // Markdown → HTML 変換（marked + GFM テーブル対応）
+    const { marked } = require('marked');
+    const bodyHtml = marked(body)
+      .replace(/<table>/g, '<div class="table-wrapper"><table>')
+      .replace(/<\/table>/g, '</table></div>');
 
     return {
       statusCode: 200,
