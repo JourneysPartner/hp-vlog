@@ -12,15 +12,15 @@ related_link_text: "判断に迷うケースについてはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm"
 source_title: "国税庁タックスアンサー No.2260 所得税の税率"
 summary: "美容室オーナーが法人化を検討する売上の目安を、所得税率・社会保険・手間の違いから比較し、判断基準を整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "検討の方向性にある、「法人化のメリットが見えやすくなる場合があります」を、「法人化のメリットが大きくなってきます」に変更してください。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-23T00:40:14.849Z"
-updated_at: "2026-04-23T00:40:14.849Z"
+updated_at: "2026-04-23T11:06:57.209+09:00"
 ---
 
 美容室オーナーの方から、「売上がいくらになったら法人化を考えるべきですか」というご相談をよくいただきます。結論からいえば、売上だけで決めるのではなく、**利益水準・役員報酬・社会保険料負担・事務負担**を合わせて判断することが大切です。
