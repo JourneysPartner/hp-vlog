@@ -12,15 +12,15 @@ related_link_text: "申告実務の注意点はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm"
 source_title: "国税庁タックスアンサー No.2070 青色申告制度"
 summary: "美容室を個人で開業したときに押さえたい税金の基本を、開業届・青色申告・経費・事業開始後の主な届出まで順を追って分かりやすく整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "青色申告承認申請書の提出期限は明記してほしい。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-24T00:33:04.935Z"
-updated_at: "2026-04-24T00:33:04.935Z"
+updated_at: "2026-04-24T13:37:55.565+09:00"
 ---
 
 美容室を個人で開業すると、売上づくりと同時に税金まわりの準備も必要になります。とはいえ、最初からすべてを細かく理解する必要はありません。まずは「何を出すのか」「何を記録するのか」「どこまでが経費になるのか」という全体像を押さえることが大切です。
