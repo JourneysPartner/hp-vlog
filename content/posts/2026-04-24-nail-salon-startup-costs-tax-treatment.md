@@ -12,15 +12,15 @@ related_link_text: "基本から確認したい方はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
 source_title: "国税庁タックスアンサー No.2100 減価償却のあらまし"
 summary: "ネイルサロン開業時の初期費用について、開業費と固定資産の違い、申告までの流れ、償却方法や仕訳例を実務目線で整理して解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "青色申告承認申請書の提出期限は明記してほしい。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-24T00:33:41.042Z"
-updated_at: "2026-04-24T00:33:41.042Z"
+updated_at: "2026-04-24T13:39:15.848+09:00"
 ---
 
 ネイルサロンを開業すると、物件取得費、内装工事、ネイルデスク、ライト、広告宣伝費など、さまざまな初期費用が発生します。これらはすべて同じように経費になるわけではなく、「開業費」として処理するものと、「固定資産」として減価償却するものに分かれるのが一般的です。申告時に迷いやすい部分ですので、開業前後の流れに沿って整理しておきましょう。
