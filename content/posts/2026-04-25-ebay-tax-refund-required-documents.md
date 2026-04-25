@@ -12,15 +12,15 @@ related_link_text: "比較・判断のポイントはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm"
 source_title: "国税庁タックスアンサー No.6551 輸出取引の免税"
 summary: "eBay輸出セラー向けに、消費税還付申告で必要となる通関書類・売上資料・仕入資料を、提出時期や整理方法、よくあるミスとあわせて実務目線で解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "【まず確認したい提出時期と流れ】中の表はいらないです。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-25T00:29:38.180Z"
-updated_at: "2026-04-25T00:29:38.180Z"
+updated_at: "2026-04-25T10:35:07.253+09:00"
 ---
 
 eBayで海外販売をしていると、輸出売上が消費税の免税取引となり、仕入や経費で支払った消費税の還付申告を検討する場面があります。もっとも、還付申告では「売上が輸出であること」を資料で説明できる状態が重要です。国税庁タックスアンサー No.6551 輸出取引の免税も、輸出証明書類の保存を要件として示しています。
