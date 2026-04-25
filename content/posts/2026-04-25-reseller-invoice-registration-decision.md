@@ -12,15 +12,15 @@ related_link_text: "申告実務の注意点はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm"
 source_title: "国税庁 インボイス制度の概要"
 summary: "せどり・転売業者がインボイス登録すべきかを、BtoC中心・法人販売あり・古物商特例・2割特例の観点から比較し、判断基準を整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "記事の中に表が多すぎます。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-25T00:29:59.634Z"
-updated_at: "2026-04-25T00:29:59.634Z"
+updated_at: "2026-04-25T10:36:34.335+09:00"
 ---
 
 せどり・転売をしていると、「自分もインボイス登録した方がよいのか」と迷いやすいです。特に免税事業者の方は、登録すると消費税の申告負担が生じるため、売上先や仕入方法に応じて慎重に判断したいところです。ここでは、フリマ・転売セラーの実務に絞って比較します。なお、制度の概要は国税庁「インボイス制度の概要」を前提にしています。
