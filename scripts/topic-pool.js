@@ -27,6 +27,10 @@
  * source_url:
  *   公的根拠が明確な場合のみ設定する。根拠が弱い場合は空文字で可。
  *   validate.js は draft/needs_review では source_url 未設定を警告扱いにする。
+ *
+ * 企画メタ情報（search_intent / reader_problem / success_outcome / primary_question）:
+ *   各記事の検索意図・読者の課題・読後の成功状態・中心疑問を定義する。
+ *   生成プロンプトの入力に使い、frontmatter に保存して再生成時にも引き継ぐ。
  */
 
 const TOPICS = [
@@ -40,7 +44,11 @@ const TOPICS = [
     slug: 'ebay-export-consumption-tax-refund-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
     source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
-    hint: '輸出免税の要件・証拠書類・課税事業者届出の手順を解説' },
+    hint: '輸出免税の要件・証拠書類・課税事業者届出の手順を解説',
+    search_intent: 'eBay輸出の消費税還付の仕組みと申請条件を理解したい',
+    reader_problem: '輸出免税の要件や課税事業者届出の手順が分からず、還付を受けられるか判断できない',
+    success_outcome: '還付の条件・必要書類・申請手順を理解し、自分が対象か判断できる',
+    primary_question: 'eBay輸出で消費税還付を受けるための条件と手順は？' },
 
   { persona: 'ebay_export_seller', category: '消費税', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'ebay-tax-refund',
@@ -48,7 +56,11 @@ const TOPICS = [
     slug: 'ebay-tax-refund-required-documents',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
     source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
-    hint: '輸出証明書・通関書類・PayPalレポートの整理方法' },
+    hint: '輸出証明書・通関書類・PayPalレポートの整理方法',
+    search_intent: '消費税還付申告に必要な書類と準備方法を確認したい',
+    reader_problem: '輸出証明書やPayPalレポートなど、何をどう揃えればよいか分からない',
+    success_outcome: '必要書類の一覧と整理方法を把握し、漏れなく準備できる',
+    primary_question: 'eBay輸出の消費税還付申告にはどんな書類が必要か？' },
 
   { persona: 'ebay_export_seller', category: '消費税', quality: 'high',
     article_type: 'comparison_decision', pair_group: 'ebay-taxable-status',
@@ -56,7 +68,11 @@ const TOPICS = [
     slug: 'ebay-taxable-vs-exempt-business',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm',
     source_title: '国税庁タックスアンサー No.6501 納税義務の免除',
-    hint: '基準期間の売上判定・課税事業者届出のタイミングを解説' },
+    hint: '基準期間の売上判定・課税事業者届出のタイミングを解説',
+    search_intent: '課税事業者と免税事業者の違いを理解し、どちらが有利か判断したい',
+    reader_problem: '課税事業者届出のメリット・デメリットが分からず、判断できない',
+    success_outcome: '自分の売上規模で課税事業者になるべきかを判断できる',
+    primary_question: 'eBay輸出セラーは課税事業者になるべきか、免税のままがよいか？' },
 
   { persona: 'ebay_export_seller', category: 'インボイス', quality: 'standard',
     article_type: 'edge_case', pair_group: 'ebay-taxable-status',
@@ -64,7 +80,11 @@ const TOPICS = [
     slug: 'ebay-export-invoice-system-impact',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: '輸出免税と仕入税額控除の関係、国内仕入先との取引への影響' },
+    hint: '輸出免税と仕入税額控除の関係、国内仕入先との取引への影響',
+    search_intent: 'インボイス制度が輸出セラーに影響するか確認したい',
+    reader_problem: 'インボイス制度の対象範囲が不明で、自分が対応すべきか分からない',
+    success_outcome: '輸出セラーとしてインボイス制度への対応要否を判断できる',
+    primary_question: 'eBay輸出セラーはインボイス制度に対応する必要があるか？' },
 
   { persona: 'ebay_export_seller', category: '海外取引', quality: 'standard',
     article_type: 'basic_explainer', pair_group: 'ebay-overseas-accounting',
@@ -72,7 +92,11 @@ const TOPICS = [
     slug: 'ebay-export-exchange-rate-accounting',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1920.htm',
     source_title: '国税庁タックスアンサー No.1920 海外転勤と所得税',
-    hint: 'TTB/TTS/TTMの使い分け・PayPal入金日基準の処理' },
+    hint: 'TTB/TTS/TTMの使い分け・PayPal入金日基準の処理',
+    search_intent: '外貨建て売上の計上方法と為替レートの選び方を知りたい',
+    reader_problem: 'TTB/TTS/TTMの違いや計上日基準が分からず、仕訳に迷う',
+    success_outcome: '為替レートの選び方と仕訳方法を理解し、正しく記帳できる',
+    primary_question: 'eBay輸出の外貨建て売上はどの為替レートで計上するか？' },
 
   { persona: 'ebay_export_seller', category: '海外取引', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'ebay-overseas-accounting',
@@ -80,7 +104,11 @@ const TOPICS = [
     slug: 'ebay-export-shipping-customs-expenses',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '国際送料・eBay手数料・PayPal手数料・関税の勘定科目' },
+    hint: '国際送料・eBay手数料・PayPal手数料・関税の勘定科目',
+    search_intent: '輸出にかかる各種費用の経費計上可否と仕訳方法を知りたい',
+    reader_problem: '国際送料・eBay手数料・関税など、どの勘定科目で処理すべきか分からない',
+    success_outcome: '各費用の勘定科目と仕訳方法を把握し、正しく経費処理できる',
+    primary_question: 'eBay輸出の送料・手数料・関税はどう仕訳するか？' },
 
   // ────────────────────────────────────────────
   //  国内EC物販セラー × 消費税・インボイス
@@ -91,7 +119,11 @@ const TOPICS = [
     slug: 'amazon-fba-consumption-tax-deduction',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm',
     source_title: '国税庁タックスアンサー No.6451 仕入税額控除の対象範囲',
-    hint: 'FBA手数料・広告費・配送代行費の課税仕入処理' },
+    hint: 'FBA手数料・広告費・配送代行費の課税仕入処理',
+    search_intent: 'FBA手数料の仕入税額控除など、Amazon物販の消費税処理を知りたい',
+    reader_problem: 'FBA手数料や広告費が課税仕入に該当するか判断できない',
+    success_outcome: 'FBA関連費用の消費税処理を理解し、正しく仕入税額控除を受けられる',
+    primary_question: 'Amazon物販のFBA手数料は仕入税額控除の対象になるか？' },
 
   { persona: 'domestic_ec_seller', category: '帳簿・経費', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'ec-fba-tax',
@@ -99,7 +131,11 @@ const TOPICS = [
     slug: 'amazon-seller-deductible-expenses-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '仕入原価・FBA保管料・広告費・梱包資材費の勘定科目' },
+    hint: '仕入原価・FBA保管料・広告費・梱包資材費の勘定科目',
+    search_intent: 'Amazon物販で認められる経費の範囲と仕訳方法を確認したい',
+    reader_problem: '仕入原価・FBA保管料・広告費の勘定科目が分からない',
+    success_outcome: '各経費の勘定科目と仕訳方法を把握し、確定申告に備えられる',
+    primary_question: 'Amazon物販ではどこまで経費として認められるか？' },
 
   { persona: 'domestic_ec_seller', category: 'インボイス', quality: 'standard',
     article_type: 'basic_explainer', pair_group: 'ec-invoice',
@@ -107,7 +143,11 @@ const TOPICS = [
     slug: 'ec-seller-invoice-registration-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: '適格請求書発行事業者登録の判断基準・BtoB/BtoC別の影響' },
+    hint: '適格請求書発行事業者登録の判断基準・BtoB/BtoC別の影響',
+    search_intent: 'EC出店者としてインボイス登録が必要か判断したい',
+    reader_problem: '登録しないとどうなるか、BtoB/BtoCで影響が異なるか分からない',
+    success_outcome: '自分のEC事業でインボイス登録すべきかを判断できる',
+    primary_question: 'Amazon・楽天の出店者はインボイス登録が必要か？' },
 
   { persona: 'domestic_ec_seller', category: 'インボイス', quality: 'high',
     article_type: 'edge_case', pair_group: 'ec-invoice',
@@ -115,7 +155,11 @@ const TOPICS = [
     slug: 'ec-purchase-non-invoice-supplier-measures',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: '80%→50%控除の経過措置・仕入先への確認方法' },
+    hint: '80%→50%控除の経過措置・仕入先への確認方法',
+    search_intent: '仕入先がインボイス未登録の場合の実務対応を知りたい',
+    reader_problem: '経過措置の適用方法や仕入先への確認手順が分からない',
+    success_outcome: '経過措置を活用した実務対応と仕入先への対応方法を把握できる',
+    primary_question: '仕入先がインボイス未登録の場合、仕入税額控除はどうなるか？' },
 
   { persona: 'domestic_ec_seller', category: '帳簿・経費', quality: 'standard',
     article_type: 'misconception_fix', pair_group: 'ec-inventory',
@@ -123,7 +167,11 @@ const TOPICS = [
     slug: 'ec-inventory-stocktaking-tax-return',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '期末棚卸の評価方法・売上原価の計算・帳簿のつけ方' },
+    hint: '期末棚卸の評価方法・売上原価の計算・帳簿のつけ方',
+    search_intent: '棚卸の方法と確定申告での在庫の取り扱いを知りたい',
+    reader_problem: '期末棚卸や売上原価の計算方法が分からず、申告で失敗しそう',
+    success_outcome: '棚卸の手順と評価方法を理解し、正しく確定申告できる',
+    primary_question: 'せどり・物販の棚卸はどうやって行い、確定申告にどう反映するか？' },
 
   { persona: 'domestic_ec_seller', category: '消費税', quality: 'high',
     article_type: 'comparison_decision', pair_group: 'ec-inventory',
@@ -131,7 +179,11 @@ const TOPICS = [
     slug: 'ec-shop-simplified-vs-standard-tax',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm',
     source_title: '国税庁タックスアンサー No.6505 簡易課税制度',
-    hint: '第1種〜第6種の事業区分・みなし仕入率の比較' },
+    hint: '第1種〜第6種の事業区分・みなし仕入率の比較',
+    search_intent: '簡易課税と本則課税のどちらが有利か判断したい',
+    reader_problem: '事業区分やみなし仕入率の仕組みが複雑で判断できない',
+    success_outcome: '自分の事業に適した課税方式を選択し、消費税負担を最適化できる',
+    primary_question: 'ネットショップ運営では簡易課税と本則課税のどちらが有利か？' },
 
   // ────────────────────────────────────────────
   //  フリマ・転売セラー × 所得税
@@ -142,7 +194,11 @@ const TOPICS = [
     slug: 'mercari-yahoo-auction-tax-filing-threshold',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1906.htm',
     source_title: '国税庁タックスアンサー No.1906 給与所得者がネットオークション等で副収入',
-    hint: '生活用動産の非課税範囲・20万円ルール・事業所得との線引き' },
+    hint: '生活用動産の非課税範囲・20万円ルール・事業所得との線引き',
+    search_intent: 'フリマアプリの売上に確定申告が必要か確認したい',
+    reader_problem: '生活用動産の非課税範囲や20万円ルールの適用条件が分からない',
+    success_outcome: '自分の売上が申告対象か判断し、必要な場合の手順を理解できる',
+    primary_question: 'メルカリ・ヤフオクの売上はいくらから確定申告が必要か？' },
 
   { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
     article_type: 'edge_case', pair_group: 'reseller-tax-filing',
@@ -150,7 +206,11 @@ const TOPICS = [
     slug: 'side-job-reselling-tax-return-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1900.htm',
     source_title: '国税庁タックスアンサー No.1900 給与所得者で確定申告が必要な人',
-    hint: '住民税の普通徴収切替・雑所得vs事業所得の判断基準' },
+    hint: '住民税の普通徴収切替・雑所得vs事業所得の判断基準',
+    search_intent: '副業せどりの確定申告方法と会社バレ防止策を知りたい',
+    reader_problem: '住民税の普通徴収切替や所得区分の判断が分からない',
+    success_outcome: '副業せどりの申告方法と住民税の処理を理解し、適切に対応できる',
+    primary_question: '副業せどりの確定申告はどう行い、会社に知られないようにするには？' },
 
   { persona: 'reseller_marketplace_seller', category: '帳簿・経費', quality: 'standard',
     article_type: 'basic_explainer', pair_group: 'reseller-bookkeeping',
@@ -158,7 +218,11 @@ const TOPICS = [
     slug: 'reselling-profit-bookkeeping-beginners',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm',
     source_title: '国税庁タックスアンサー No.2080 白色申告者の記帳・帳簿等の保存',
-    hint: '売上台帳・仕入台帳のテンプレート・レシート保存ルール' },
+    hint: '売上台帳・仕入台帳のテンプレート・レシート保存ルール',
+    search_intent: 'せどりの帳簿の付け方と利益計算方法を基礎から知りたい',
+    reader_problem: '売上台帳・仕入台帳の書き方やレシート保存のルールが分からない',
+    success_outcome: '帳簿の基本的な付け方と利益計算方法を理解し、記帳を始められる',
+    primary_question: 'せどり・転売の利益計算と帳簿はどうつけるか？' },
 
   { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
     article_type: 'industry_example', pair_group: 'reseller-bookkeeping',
@@ -166,7 +230,11 @@ const TOPICS = [
     slug: 'flea-market-app-shipping-cost-deduction',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '送料・梱包材・販売手数料・仕入交通費の計上可否' },
+    hint: '送料・梱包材・販売手数料・仕入交通費の計上可否',
+    search_intent: 'フリマ・せどり特有の経費の計上可否を確認したい',
+    reader_problem: '送料・梱包材・販売手数料など、何が経費になるか分からない',
+    success_outcome: 'せどり特有の経費項目と計上方法を理解し、正しく処理できる',
+    primary_question: 'フリマアプリの送料・手数料・梱包材は経費にできるか？' },
 
   { persona: 'reseller_marketplace_seller', category: 'インボイス', quality: 'standard',
     article_type: 'comparison_decision', pair_group: 'reseller-invoice',
@@ -174,7 +242,11 @@ const TOPICS = [
     slug: 'reseller-invoice-registration-decision',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: 'BtoC中心なら不要？古物商特例・2割特例の活用' },
+    hint: 'BtoC中心なら不要？古物商特例・2割特例の活用',
+    search_intent: 'せどり・転売でインボイス登録が必要か判断したい',
+    reader_problem: 'BtoC中心でも登録すべきか、特例が使えるか分からない',
+    success_outcome: '自分の事業形態でインボイス登録すべきかを判断できる',
+    primary_question: 'せどり・転売業者はインボイス登録すべきか？' },
 
   // ────────────────────────────────────────────
   //  インフルエンサー・クリエイター × 所得税・経費
@@ -185,7 +257,11 @@ const TOPICS = [
     slug: 'youtuber-influencer-tax-return-basics',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm',
     source_title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ',
-    hint: 'Google AdSense収入の所得区分・青色申告の特典' },
+    hint: 'Google AdSense収入の所得区分・青色申告の特典',
+    search_intent: '広告収入の申告方法と節税ポイントを知りたい',
+    reader_problem: 'AdSense収入の所得区分や青色申告の特典が分からない',
+    success_outcome: '広告収入の正しい申告方法と活用できる節税制度を理解できる',
+    primary_question: 'YouTuber・インフルエンサーの広告収入はどう確定申告するか？' },
 
   { persona: 'influencer_creator', category: '帳簿・経費', quality: 'standard',
     article_type: 'edge_case', pair_group: 'creator-tax-return',
@@ -193,7 +269,11 @@ const TOPICS = [
     slug: 'influencer-deductible-expenses-criteria',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '家事按分・衣装費・美容院代・旅行費用のグレーゾーン' },
+    hint: '家事按分・衣装費・美容院代・旅行費用のグレーゾーン',
+    search_intent: '撮影機材・衣装・美容代などの経費計上の可否を確認したい',
+    reader_problem: '家事按分の基準や経費のグレーゾーンが分からない',
+    success_outcome: '各費目の経費該当性と家事按分の判断基準を理解できる',
+    primary_question: 'インフルエンサーの撮影機材・衣装・美容代は経費にできるか？' },
 
   { persona: 'influencer_creator', category: '帳簿・経費', quality: 'high',
     article_type: 'basic_explainer', pair_group: 'creator-withholding',
@@ -201,7 +281,11 @@ const TOPICS = [
     slug: 'creator-outsourcing-withholding-tax',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm',
     source_title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金',
-    hint: '企業案件の源泉徴収・支払調書の確認・外注時の源泉義務' },
+    hint: '企業案件の源泉徴収・支払調書の確認・外注時の源泉義務',
+    search_intent: '外注費・企業案件の源泉徴収の仕組みを知りたい',
+    reader_problem: '源泉徴収の対象範囲や支払調書の確認方法が分からない',
+    success_outcome: '源泉徴収の仕組みと実務対応を理解し、正しく処理できる',
+    primary_question: 'クリエイターの外注費・案件報酬の源泉徴収はどう処理するか？' },
 
   { persona: 'influencer_creator', category: 'インボイス', quality: 'standard',
     article_type: 'comparison_decision', pair_group: 'creator-withholding',
@@ -209,7 +293,11 @@ const TOPICS = [
     slug: 'influencer-invoice-system-corporate-deals',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: '企業がインボイスを求める理由・2割特例の活用・登録判断' },
+    hint: '企業がインボイスを求める理由・2割特例の活用・登録判断',
+    search_intent: 'インボイス制度が企業案件に与える影響と対策を知りたい',
+    reader_problem: '企業がインボイスを求める理由や登録判断の基準が分からない',
+    success_outcome: 'インボイス登録の要否を判断し、企業案件への影響に備えられる',
+    primary_question: 'インフルエンサーはインボイス登録すべきか？企業案件にどう影響するか？' },
 
   { persona: 'influencer_creator', category: '所得税', quality: 'standard',
     article_type: 'misconception_fix', pair_group: 'creator-income-timing',
@@ -217,7 +305,11 @@ const TOPICS = [
     slug: 'affiliate-pr-income-recognition-timing',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2200.htm',
     source_title: '国税庁タックスアンサー No.2200 収入金額とその計算',
-    hint: '発生主義・確定日基準・ASP報酬の未払計上' },
+    hint: '発生主義・確定日基準・ASP報酬の未払計上',
+    search_intent: '収入の計上時期（発生主義vs入金ベース）を正しく理解したい',
+    reader_problem: '発生主義と入金ベースの違い、ASP報酬の計上タイミングが分からない',
+    success_outcome: '収入計上の正しいタイミングを理解し、適切に処理できる',
+    primary_question: 'アフィリエイト・PR案件の収入はいつ計上すべきか？' },
 
   { persona: 'influencer_creator', category: '所得税', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'creator-income-timing',
@@ -225,7 +317,11 @@ const TOPICS = [
     slug: 'side-youtuber-opening-notification-blue-return',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm',
     source_title: '国税庁タックスアンサー No.2070 青色申告制度',
-    hint: '開業届の提出期限・青色申告承認申請書・65万円控除の条件' },
+    hint: '開業届の提出期限・青色申告承認申請書・65万円控除の条件',
+    search_intent: '開業届の提出タイミングと青色申告の始め方を知りたい',
+    reader_problem: '開業届を出すべき時期や青色申告承認申請の手続きが分からない',
+    success_outcome: '開業届・青色申告の手続きとタイミングを理解し、行動に移せる',
+    primary_question: '副業YouTuber・ブロガーはいつ開業届を出すべきか？' },
 
   // ────────────────────────────────────────────
   //  美容サロンオーナー × 消費税・所得税・経費
@@ -236,7 +332,11 @@ const TOPICS = [
     slug: 'beauty-salon-consumption-tax-simulation',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm',
     source_title: '国税庁タックスアンサー No.6505 簡易課税制度',
-    hint: 'サービス業（第5種）のみなし仕入率50%・物販併設時の注意' },
+    hint: 'サービス業（第5種）のみなし仕入率50%・物販併設時の注意',
+    search_intent: 'サロン経営での簡易課税と本則課税の有利判定を知りたい',
+    reader_problem: 'サービス業のみなし仕入率や物販併設時の取り扱いが分からない',
+    success_outcome: '自分のサロンに適した課税方式を判断し、消費税負担を最適化できる',
+    primary_question: '美容サロンでは簡易課税と本則課税のどちらが有利か？' },
 
   { persona: 'beauty_salon_owner', category: '所得税', quality: 'standard',
     article_type: 'basic_explainer', pair_group: 'beauty-salon-startup',
@@ -244,7 +344,11 @@ const TOPICS = [
     slug: 'beauty-salon-sole-proprietor-tax-basics',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm',
     source_title: '国税庁タックスアンサー No.2070 青色申告制度',
-    hint: '開業届・青色申告・事業開始後に必要な届出一覧' },
+    hint: '開業届・青色申告・事業開始後に必要な届出一覧',
+    search_intent: '美容室開業時に必要な税務届出と全体像を把握したい',
+    reader_problem: '開業届・青色申告・消費税など、何から始めればよいか分からない',
+    success_outcome: '開業後に必要な届出と税務の全体像を理解し、手続きの漏れを防げる',
+    primary_question: '美容室を個人で開業したら、税金関係で何をすべきか？' },
 
   { persona: 'beauty_salon_owner', category: '帳簿・経費', quality: 'standard',
     article_type: 'edge_case', pair_group: 'beauty-salon-expenses',
@@ -252,7 +356,11 @@ const TOPICS = [
     slug: 'esthetic-salon-deductible-expenses-entries',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
     source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
-    hint: '美容機器の減価償却・消耗品費・技術研修費・ユニフォーム代' },
+    hint: '美容機器の減価償却・消耗品費・技術研修費・ユニフォーム代',
+    search_intent: 'サロン特有の経費の計上可否と仕訳方法を知りたい',
+    reader_problem: '美容機器の減価償却や研修費など、経費の判断基準が分からない',
+    success_outcome: 'サロン特有の経費項目と仕訳方法を理解し、適切に経費処理できる',
+    primary_question: 'エステ・脱毛サロンの美容機器・消耗品・研修費は経費にできるか？' },
 
   { persona: 'beauty_salon_owner', category: '帳簿・経費', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'beauty-salon-startup',
@@ -260,7 +368,11 @@ const TOPICS = [
     slug: 'nail-salon-startup-costs-tax-treatment',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm',
     source_title: '国税庁タックスアンサー No.2100 減価償却のあらまし',
-    hint: '内装工事・設備投資の資産計上基準と開業費の5年任意償却' },
+    hint: '内装工事・設備投資の資産計上基準と開業費の5年任意償却',
+    search_intent: '開業費の税務処理と償却方法を知りたい',
+    reader_problem: '内装工事や設備投資の資産計上基準が分からない',
+    success_outcome: '開業費の償却方法と仕訳を理解し、適切に税務処理できる',
+    primary_question: 'ネイルサロン開業の初期費用はどう税務処理するか？' },
 
   { persona: 'beauty_salon_owner', category: '消費税', quality: 'standard',
     article_type: 'misconception_fix', pair_group: 'beauty-salon-tax-sim',
@@ -268,7 +380,11 @@ const TOPICS = [
     slug: 'beauty-salon-invoice-btoc-decision',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
     source_title: '国税庁 インボイス制度の概要',
-    hint: 'BtoC中心でも登録が必要になるケース・法人顧客の有無' },
+    hint: 'BtoC中心でも登録が必要になるケース・法人顧客の有無',
+    search_intent: 'BtoC中心のサロンでインボイス登録が必要か判断したい',
+    reader_problem: '個人客中心でも登録すべきか、法人顧客がいる場合の判断が分からない',
+    success_outcome: '自分のサロンでインボイス登録が必要かを判断できる',
+    primary_question: 'お客様がほぼ個人の美容サロンでもインボイス登録は必要か？' },
 
   { persona: 'beauty_salon_owner', category: '所得税', quality: 'high',
     article_type: 'comparison_decision', pair_group: 'beauty-salon-expenses',
@@ -276,7 +392,11 @@ const TOPICS = [
     slug: 'beauty-salon-incorporation-threshold',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm',
     source_title: '国税庁タックスアンサー No.2260 所得税の税率',
-    hint: '所得税率との比較・社会保険料負担・法人設立届出' },
+    hint: '所得税率との比較・社会保険料負担・法人設立届出',
+    search_intent: '法人化のメリット・デメリットと判断基準を知りたい',
+    reader_problem: '所得税率との比較や社会保険料負担の影響が分からない',
+    success_outcome: '法人化の判断基準を理解し、自分の売上規模で有利かを判断できる',
+    primary_question: '美容室オーナーはいくらの売上から法人化すべきか？' },
 
   // ────────────────────────────────────────────
   //  相続・贈与の依頼者 × 相続税・贈与税
@@ -287,7 +407,11 @@ const TOPICS = [
     slug: 'inheritance-tax-basic-deduction-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm',
     source_title: '国税庁タックスアンサー No.4152 相続税の計算',
-    hint: '3000万円+600万円×法定相続人数の基礎控除・速算表の使い方' },
+    hint: '3000万円+600万円×法定相続人数の基礎控除・速算表の使い方',
+    search_intent: '相続税の基礎控除の計算方法と自分が対象かを知りたい',
+    reader_problem: '基礎控除の金額や計算方法が分からず、相続税がかかるか判断できない',
+    success_outcome: '基礎控除を計算し、自分の家族構成で相続税が発生するか判断できる',
+    primary_question: 'うちは相続税がかかるのか？基礎控除はいくらか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
     article_type: 'comparison_decision', pair_group: 'inheritance-gifts',
@@ -295,7 +419,11 @@ const TOPICS = [
     slug: 'lifetime-gift-inheritance-tax-planning',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm',
     source_title: '国税庁タックスアンサー No.4408 贈与税の計算と税率',
-    hint: '年110万円非課税枠・相続時精算課税2500万円枠・7年加算ルール' },
+    hint: '年110万円非課税枠・相続時精算課税2500万円枠・7年加算ルール',
+    search_intent: '暦年贈与と相続時精算課税の違いと選び方を知りたい',
+    reader_problem: '2つの制度の違いやどちらが有利かの判断基準が分からない',
+    success_outcome: '2つの贈与制度を比較し、自分に適した方法を選択できる',
+    primary_question: '生前贈与は暦年贈与と相続時精算課税のどちらを選ぶべきか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
     article_type: 'edge_case', pair_group: 'inheritance-special',
@@ -303,7 +431,11 @@ const TOPICS = [
     slug: 'small-residential-land-special-provision',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm',
     source_title: '国税庁タックスアンサー No.4124 相続した事業の用や居住の用の宅地等の価額の特例',
-    hint: '特定居住用宅地330㎡まで80%減額・同居要件・家なき子特例' },
+    hint: '特定居住用宅地330㎡まで80%減額・同居要件・家なき子特例',
+    search_intent: '小規模宅地等の特例の条件と減額効果を確認したい',
+    reader_problem: '同居要件や家なき子特例の条件が複雑で、自分が該当するか分からない',
+    success_outcome: '特例の適用条件を理解し、自分のケースで使えるか判断できる',
+    primary_question: '自宅を相続する場合、小規模宅地等の特例は使えるか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'standard',
     article_type: 'filing_practice', pair_group: 'inheritance-basics',
@@ -311,7 +443,11 @@ const TOPICS = [
     slug: 'inheritance-tax-filing-deadline-checklist',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm',
     source_title: '国税庁タックスアンサー No.4205 相続税の申告と納税',
-    hint: '死亡日から10ヶ月・準確定申告4ヶ月・遺産分割協議の期限' },
+    hint: '死亡日から10ヶ月・準確定申告4ヶ月・遺産分割協議の期限',
+    search_intent: '相続発生後の手続きスケジュールと期限を確認したい',
+    reader_problem: '10ヶ月以内に何をすべきか、手続きの優先順位が分からない',
+    success_outcome: '相続発生後のスケジュールと各手続きの期限を把握し、計画的に対応できる',
+    primary_question: '相続税の申告期限はいつで、10ヶ月以内に何をすべきか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
     article_type: 'case_study', pair_group: 'inheritance-special',
@@ -319,7 +455,11 @@ const TOPICS = [
     slug: 'inheritance-spouse-tax-reduction',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm',
     source_title: '国税庁タックスアンサー No.4158 配偶者の税額の軽減',
-    hint: '法定相続分or1億6000万円の大きい方まで非課税・申告要件' },
+    hint: '法定相続分or1億6000万円の大きい方まで非課税・申告要件',
+    search_intent: '配偶者の税額軽減の条件と限度額を知りたい',
+    reader_problem: '1億6千万円の限度額や申告要件の詳細が分からない',
+    success_outcome: '配偶者控除の条件と計算方法を理解し、活用可否を判断できる',
+    primary_question: '相続税の配偶者控除はどのような条件で使えるか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
     article_type: 'misconception_fix', pair_group: 'inheritance-gifts',
@@ -327,7 +467,11 @@ const TOPICS = [
     slug: 'housing-fund-gift-tax-exemption',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm',
     source_title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税',
-    hint: '省エネ住宅1000万円・一般住宅500万円の非課税枠・適用条件' },
+    hint: '省エネ住宅1000万円・一般住宅500万円の非課税枠・適用条件',
+    search_intent: '住宅資金贈与の非課税特例の条件と金額を知りたい',
+    reader_problem: '非課税枠の金額や適用条件の詳細が分からない',
+    success_outcome: '住宅資金贈与の非課税特例の条件を理解し、活用計画を立てられる',
+    primary_question: '親から住宅資金の贈与を受けた場合、いくらまで非課税か？' },
 ];
 
 module.exports = { TOPICS };

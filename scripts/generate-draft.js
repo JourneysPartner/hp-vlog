@@ -124,14 +124,111 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 
 // ── 記事タイプ別の目安文字数 ─────────────────────────────────────
 const WORD_COUNT_GUIDE = {
-  basic_explainer:     '1500〜2500文字',
-  comparison_decision: '1500〜2500文字',
-  edge_case:           '1000〜1800文字',
+  basic_explainer:     '1600〜2600文字',
+  comparison_decision: '2000〜3200文字',
+  edge_case:           '1200〜1800文字',
   industry_example:    '1200〜2000文字',
-  filing_practice:     '1200〜2000文字',
-  misconception_fix:   '1000〜1500文字',
+  filing_practice:     '2000〜3200文字',
+  misconception_fix:   '1200〜1800文字',
   case_study:          '1500〜2500文字',
 };
+
+// ── 記事タイプ別の必須要素チェックリスト（内部ロジック）──────────
+const ARTICLE_TYPE_CHECKLIST = {
+  basic_explainer: [
+    'この記事が答える疑問',
+    '冒頭の結論',
+    '制度の基本',
+    '対象者',
+    'よくある誤解',
+    '実務上の注意点',
+    '相談が必要になる境目',
+  ],
+  comparison_decision: [
+    '冒頭の結論',
+    '比較表',
+    '判断軸',
+    'どちらが向くか',
+    '例外や注意点',
+    '実務での選び方',
+  ],
+  edge_case: [
+    'ケース設定',
+    '条件分岐',
+    'どこで結論が変わるか',
+    '確認すべき事実や証憑',
+    '間違えやすい点',
+  ],
+  industry_example: [
+    '業種特有の事情',
+    '一般論との違い',
+    '具体例',
+    '実務上の注意点',
+  ],
+  filing_practice: [
+    '実務フロー',
+    '必要書類',
+    '保存資料',
+    'ミスしやすい点',
+    '相談が必要な場面',
+  ],
+  misconception_fix: [
+    '誤解されやすい言い方',
+    '何が違うか',
+    '正しい考え方',
+    '実務上の扱い',
+  ],
+  case_study: [
+    '事例設定',
+    '論点',
+    '判断の流れ',
+    '処理方法',
+    '同様ケースへの注意点',
+  ],
+};
+
+// ── 生成後の自己点検（軽量なヒューリスティック）────────────────
+function selfCheckContent(content, articleType, slug) {
+  const m = content.match(/^---\r?\n[\s\S]+?\r?\n---\r?\n([\s\S]*)$/);
+  const body = m ? m[1] : content;
+  const warnings = [];
+
+  const h2Count = (body.match(/^## /gm) || []).length;
+  if (h2Count < 3) {
+    warnings.push(`h2見出しが${h2Count}個（3個以上推奨）`);
+  }
+
+  const hasTable = /\|.+\|/.test(body) && /\|[-:]+\|/.test(body);
+  const tableRecommended = ['comparison_decision', 'filing_practice', 'case_study'];
+  if (tableRecommended.includes(articleType) && !hasTable) {
+    warnings.push(`${articleType} タイプにはテーブルの使用を推奨`);
+  }
+
+  if (articleType === 'case_study' && !/想定事例/.test(body)) {
+    warnings.push('case_study タイプには【想定事例】の明記を推奨');
+  }
+
+  if (articleType === 'misconception_fix' && !/思っていませんか|誤解/.test(body)) {
+    warnings.push('misconception_fix タイプには冒頭の誤解提示を推奨');
+  }
+
+  const hasConclusion = /^## /.test(body) &&
+    (body.indexOf('結論') < 500 || body.indexOf('まとめると') < 500 ||
+     body.indexOf('ポイントは') < 500 || body.indexOf('答えは') < 500);
+  if (!hasConclusion && body.length > 200) {
+    warnings.push('冒頭500文字以内に結論・要点の記載を推奨');
+  }
+
+  if (warnings.length > 0) {
+    console.warn(`[self-check] ${slug}: ${warnings.length} 件の改善推奨事項`);
+    for (const w of warnings) {
+      console.warn(`[self-check]   - ${w}`);
+    }
+  } else {
+    console.log(`[self-check] ${slug}: OK`);
+  }
+  return warnings;
+}
 
 // ── 関連記事リンクテキスト（相手の記事タイプに応じた導線文言）────
 const RELATED_LINK_TEXTS = {
@@ -226,11 +323,36 @@ function pickPair(dateStr) {
   }
 
   // 2本揃うペアがない場合: 残りの未使用テーマから1本ずつ（ペアなし）
+  // → 本命+補強の組み合わせを優先し、同タイプ・同カテゴリの重複を避ける
   if (available.length >= 2) {
     const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
+    const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
     const first = available[hash % available.length];
     const rest = available.filter(t => t !== first);
-    const second = rest[(hash + 1) % rest.length];
+
+    // 1本目と異なる article_type を優先（同タイプ2本を避ける）
+    let candidates = rest.filter(t => t.article_type !== first.article_type);
+    // さらにカテゴリも異なる候補があればそちらを優先（カニバリ防止）
+    const diffCat = candidates.filter(t => t.category !== first.category);
+    if (diffCat.length > 0) candidates = diffCat;
+    // 本命+補強の組み合わせを試みる
+    if (mainTypes.has(first.article_type)) {
+      const supportCandidates = candidates.filter(t => !mainTypes.has(t.article_type));
+      if (supportCandidates.length > 0) candidates = supportCandidates;
+    } else {
+      const mainCandidates = candidates.filter(t => mainTypes.has(t.article_type));
+      if (mainCandidates.length > 0) candidates = mainCandidates;
+    }
+    if (candidates.length === 0) candidates = rest;
+    const second = candidates[(hash + 1) % candidates.length];
+
+    if (first.article_type === second.article_type) {
+      console.warn(`[generate] 注意: 2本とも同じ記事タイプ（${first.article_type}）です`);
+    }
+    if (first.category === second.category && first.persona === second.persona) {
+      console.warn(`[generate] 注意: 2本とも同じペルソナ・カテゴリの組み合わせです（カニバリリスク）`);
+    }
+
     return [first, second];
   }
 
@@ -280,6 +402,10 @@ related_slug: "${relatedSlug}"
 related_title: "${relatedTitle}"
 related_link_text: "${relatedLinkText}"
 ${sourceBlock}
+search_intent: "${topic.search_intent || ''}"
+reader_problem: "${topic.reader_problem || ''}"
+success_outcome: "${topic.success_outcome || ''}"
+primary_question: "${topic.primary_question || ''}"
 summary: "${persona.label}向けに、${topic.category}の基本と実務上の注意点を解説します。"
 review_status: "draft"
 review_comment: "テンプレートから自動生成された下書きです。内容の加筆・修正が必要です。"
@@ -404,16 +530,31 @@ async function generateWithOpenAI(dateStr, topic, modelId, pairedTopic) {
 
   const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
+  const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
+
+  const searchIntent   = topic.search_intent || '';
+  const readerProblem  = topic.reader_problem || '';
+  const successOutcome = topic.success_outcome || '';
+  const primaryQuestion = topic.primary_question || '';
 
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 ${persona.label}が実務で直面する税務上の疑問に答える、検索意図に合った独自価値のある記事を書いてください。
 
 ═══ 最上位ルール ═══
 この記事の目的は「記事の量産」ではなく「読者の検索意図に正確に応え、独自の価値を提供すること」です。
+記事は、検索順位を取るためだけではなく、特定の悩みを持つ見込み客が判断・行動しやすくなるために作るものです。
+SEOはその結果として取りにいきます。単なる言い換えや薄い量産記事は禁止です。
+
 以下の順で優先してください:
 1. 読者が検索した疑問に直接答える
 2. 他のサイトにはない具体性・実務性を提供する
 3. 結果として「この税理士事務所に相談してみよう」と思わせる
+
+═══ 企画メタ情報（この記事の設計意図）═══
+検索意図: ${searchIntent || '（テーマから推測してください）'}
+読者の課題: ${readerProblem || '（テーマから推測してください）'}
+読後の成功状態: ${successOutcome || '（テーマから推測してください）'}
+中心疑問: ${primaryQuestion || '（テーマから推測してください）'}
 
 ═══ 記事の役割: ${roleLabel} ═══
 ${articleRole === 'main'
@@ -429,17 +570,28 @@ ${articleRole === 'main'
 ═══ 記事タイプ別の構成指示 ═══
 ${typeInstruction}
 
+═══ 記事タイプの必須要素チェックリスト ═══
+この記事タイプ（${articleType}）では、以下の要素を必ず本文に含めてください:
+${checklist.map((item, i) => `${i + 1}. ${item}`).join('\n')}
+
 ═══ 出典・根拠の引用ルール ═══
 以下の優先順位で根拠を示してください:
-1. 国税庁タックスアンサー（No.XXXX形式で番号を明記）
+1. 国税庁タックスアンサー（No.XXXX形式で番号を明記。必要な場合に優先して参考にする）
 2. 法令・通達（条文番号を明記。例：「消費税法第7条」「所得税法第37条第1項」）
-3. 国税庁公式ページ・パンフレット
-4. 上記がない場合：「国税庁の見解では」「実務上の一般的な取り扱いとして」等、根拠の強さを明示
+3. 国税庁公式ページ・パンフレット・e-Tax手続案内
+4. 自社の実務観点による整理・解説（「実務上の一般的な取り扱いとして」等、根拠の強さを明示）
 
-タックスアンサー引用時の注意:
+タックスアンサー活用の位置づけ:
+- 「必ず全記事で使う」ものではなく、「必要な場合に優先して参考にする」
+- 原則確認・制度の基本整理・よくある誤解の確認・税目ごとの典型論点の洗い出しには有力に使う
+- 業種別具体例・実務フロー・ケース判断では、無理に毎回タックスアンサーに寄せなくてよい
 - 番号は正確に記載し、存在しない番号を捏造しないこと
-- 引用するタックスアンサーの内容と記事テーマの対応が正しいことを確認すること
 - 不確かな場合は番号を省略し、「国税庁のウェブサイトで確認できます」と案内すること
+
+出典の禁止事項:
+- タックスアンサーの要約や言い換えだけで記事を作ること
+- 見出しだけ焼き直すこと
+- 原則だけで終わること（必ず例外・実務上の注意・相談の境目を加えること）
 ${sourceInstruction}
 
 ═══ コンテンツ構成ルール ═══
@@ -458,9 +610,14 @@ ${sourceInstruction}
 
 ═══ 顧客獲得ルール ═══
 - 記事の主目的は「情報提供」であり、営業色を出さないこと
+- 記事の終盤またはまとめ部分で、以下を自然に示すこと:
+  - 自力で進めやすいケース
+  - 専門家に相談した方がよいケース
+  - 相談すると何が整理できるか
 - 「税理士に相談すべきケース」は、記事の文脈の中で自然に言及する（専用セクションを作らない）
 - 本文中で「当事務所では〜」「弊所では〜」等の自己PRは一切行わない
 - 免責事項の後に置く相談導線のみが唯一の営業接点とする
+- 目的は問い合わせを無理に増やすことではなく、相談すべき読者が自然に相談しやすくなること
 
 ═══ 文体・トーン ═══
 - 税理士事務所として穏当で信頼感のある文体にすること
@@ -506,13 +663,14 @@ ${topic.hint}`;
 記事タイプ: ${articleType}
 記事の役割: ${roleLabel}${revisionHint}
 
-【記事作成前の計画】
-記事を書き始める前に、以下の5項目を内部的に整理してから執筆してください（出力には含めない）:
-1. この記事を検索する読者は、どんな状況で何を知りたいのか？
-2. この記事でしか得られない独自の価値は何か？
-3. 読者が記事を読み終えた後に取るべきアクションは何か？
-4. 記事タイプの必須要素をすべて含められる構成になっているか？
+【記事作成前の計画（出力には含めない）】
+記事を書き始める前に、以下を内部的に整理してから執筆してください:
+1. 検索意図: 「${searchIntent || topic.title}」— この疑問に直接答えているか？
+2. 読者の課題: 「${readerProblem || '（テーマから推測）'}」— この迷いを解消できているか？
+3. 読後の成功状態: 「${successOutcome || '（テーマから推測）'}」— この状態に導けているか？
+4. 必須要素チェック: ${checklist.join(' / ')} — すべて本文に含められるか？
 5. テーブルを使って整理すべき情報はあるか？
+6. 自力で進めやすいケースと、専門家に相談すべきケースの境目を自然に示せているか？
 
 以下の形式でそのまま出力してください（コードブロック不要）:
 
@@ -529,6 +687,10 @@ related_title: "${relatedTitle}"
 related_link_text: "${relatedLinkText}"
 source_url: "${sourceUrl}"
 source_title: "${sourceTitle}"
+search_intent: "${searchIntent}"
+reader_problem: "${readerProblem}"
+success_outcome: "${successOutcome}"
+primary_question: "${primaryQuestion}"
 summary: "（記事の結論や具体的な情報を含む自然な文章。120文字以内。「○○を解説します」のような曖昧な表現ではなく、読者が検索結果で見て「これが知りたかった」と思える内容にすること）"
 review_status: "draft"
 review_comment: ""
@@ -587,12 +749,25 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 
   const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
+  const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
+
+  const searchIntent    = meta.search_intent || '';
+  const readerProblem   = meta.reader_problem || '';
+  const successOutcome  = meta.success_outcome || '';
+  const primaryQuestion = meta.primary_question || '';
 
   const systemPrompt = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 差し戻しコメントを踏まえて記事を改善してください。改善時も以下のルールを遵守すること。
 
 ═══ 最上位ルール ═══
 この記事の目的は「読者の検索意図に正確に応え、独自の価値を提供すること」です。
+差し戻しで別テーマの記事に変えてはいけません。検索意図・対象読者・記事の役割を維持したまま改善してください。
+
+═══ 企画メタ情報（維持すべき設計意図）═══
+検索意図: ${searchIntent || '（元の記事テーマから維持）'}
+読者の課題: ${readerProblem || '（元の記事テーマから維持）'}
+読後の成功状態: ${successOutcome || '（元の記事テーマから維持）'}
+中心疑問: ${primaryQuestion || '（元の記事テーマから維持）'}
 
 ═══ 記事の役割: ${roleLabel} ═══
 ${articleRole === 'main'
@@ -601,9 +776,13 @@ ${articleRole === 'main'
 
 ${typeInstruction}
 
+═══ 必須要素チェックリスト ═══
+${checklist.map((item, i) => `${i + 1}. ${item}`).join('\n')}
+
 ═══ 出典・根拠の引用ルール ═══
-引用の優先順位: 1. タックスアンサー（No.XXXX） 2. 法令・通達 3. 国税庁公式ページ 4. 一般的な表現
+引用の優先順位: 1. タックスアンサー（No.XXXX、必要な場合に優先参考） 2. 法令・通達 3. 国税庁公式ページ 4. 実務観点の整理
 タックスアンサー番号は正確に記載し、不確かな場合は番号を省略すること。
+出典の単なる言い換えや原則だけで終わることは禁止。
 ${sourceInstruction}
 
 ═══ コンテンツ構成ルール ═══
@@ -611,6 +790,7 @@ ${sourceInstruction}
 - 原則→例外の順序で構成する
 - 実務上の注意点を随所に挟む
 - テーブルを積極的に活用する
+- 自力で進めやすいケースと専門家に相談すべきケースの境目を自然に示す
 
 ═══ 文体・トーン ═══
 - 税理士事務所として穏当で信頼感のある「です・ます」調
@@ -630,7 +810,7 @@ ${sourceInstruction}
 
 ═══ 差し戻し再生成の注意 ═══
 - コメントで指摘された箇所を重点的に修正すること
-- 指摘されていない部分の品質も記事タイプの必須要素に照らして改善すること
+- 指摘されていない部分の品質も記事タイプの必須要素チェックリストに照らして改善すること
 - 修正の際に記事全体の論理的一貫性が保たれるよう注意すること`;
 
   const userPrompt = `以下のブログ記事に対して、レビュー担当者から差し戻しがありました。
@@ -649,12 +829,12 @@ ${existingBody.substring(0, 3000)}
 記事タイプ: ${articleType}
 記事の役割: ${roleLabel}
 
-【改善前の確認】
-改善する前に、以下を内部的に確認してください（出力には含めない）:
+【改善前の確認（出力には含めない）】
 1. 差し戻しコメントの指摘は具体的にどの部分に関するか？
-2. 記事タイプの必須要素はすべて含まれているか？
+2. 必須要素チェック: ${checklist.join(' / ')} — すべて本文に含まれているか？
 3. 出典・根拠は適切に引用されているか？
 4. テーブルで整理すべき情報はあるか？
+5. 自力で進めやすいケースと専門家に相談すべきケースの境目が示せているか？
 
 改善した記事を、以下の形式でそのまま出力してください（コードブロック不要）:
 
@@ -671,6 +851,10 @@ related_title: "${meta.related_title || ''}"
 related_link_text: "${meta.related_link_text || ''}"
 source_url: "${meta.source_url || ''}"
 source_title: "${meta.source_title || ''}"
+search_intent: "${searchIntent}"
+reader_problem: "${readerProblem}"
+success_outcome: "${successOutcome}"
+primary_question: "${primaryQuestion}"
 summary: "（記事の結論や具体的情報を含む要約。120文字以内。曖昧な表現を避けること）"
 review_status: "draft"
 review_comment: ""
@@ -739,6 +923,9 @@ async function main() {
 
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
+
+    const { meta: regenMeta } = parseFrontmatter(content);
+    selfCheckContent(content, regenMeta.article_type || 'basic_explainer', regenMeta.slug || filename);
     return;
   }
 
@@ -793,6 +980,8 @@ async function main() {
     fs.mkdirSync(POSTS_DIR, { recursive: true });
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[generate] 生成完了: content/posts/${filename}`);
+
+    selfCheckContent(content, topic.article_type || 'basic_explainer', topic.slug);
 
     results.push({ filename, slug: topic.slug, model });
   }

@@ -94,6 +94,14 @@ function validateFile(filePath) {
     warnings.push(`publish_slot が未定義の値: "${fm.publish_slot}"`);
   }
 
+  // 3d. 企画メタ情報の存在チェック（警告のみ）
+  const META_FIELDS = ['search_intent', 'reader_problem', 'success_outcome', 'primary_question'];
+  for (const field of META_FIELDS) {
+    if (!fm[field] && !isDraft) {
+      warnings.push(`${field} が未設定です（検索意図の内部メタ情報として推奨）`);
+    }
+  }
+
   // 4. source_url の形式
   if (fm.source_url) {
     try { new URL(fm.source_url); }
