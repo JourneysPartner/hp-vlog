@@ -94,11 +94,20 @@ function validateFile(filePath) {
     warnings.push(`publish_slot が未定義の値: "${fm.publish_slot}"`);
   }
 
-  // 3d. 企画メタ情報の存在チェック（警告のみ）
+  // 3d. 企画メタ情報の存在チェック
+  // 運用方針: 2026-04-30 以前の既存記事 → WARN（後方互換）
+  //          2026-05-01 以降の新規記事 → ERROR（生成時に必ず付与される前提）
   const META_FIELDS = ['search_intent', 'reader_problem', 'success_outcome', 'primary_question'];
+  const META_CUTOFF = new Date('2026-05-01T00:00:00+09:00');
+  const createdAt = fm.created_at ? new Date(fm.created_at) : null;
+  const isLegacy = !createdAt || createdAt < META_CUTOFF;
   for (const field of META_FIELDS) {
     if (!fm[field] && !isDraft) {
-      warnings.push(`${field} が未設定です（検索意図の内部メタ情報として推奨）`);
+      if (isLegacy) {
+        warnings.push(`${field} が未設定です（既存記事のため警告に留めます）`);
+      } else {
+        errors.push(`${field} が未設定です（2026-05-01以降の記事では必須）`);
+      }
     }
   }
 
