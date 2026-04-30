@@ -130,7 +130,7 @@ jobs:
 
           # 生成ファイルを作業ツリーから削除（各ブランチで個別に追加するため）
           rm -f "content/posts/$FILE1"
-          [ -n "$FILE2" ] && rm -f "content/posts/$FILE2"
+          if [ -n "$FILE2" ]; then rm -f "content/posts/$FILE2"; fi
 
       # ── 記事1: 専用ブランチ → 専用PR ──────────────────────────
       - name: Create branch & PR for article 1
