@@ -16,15 +16,15 @@ reader_problem: "発生主義と入金ベースの違い、ASP報酬の計上タ
 success_outcome: "収入計上の正しいタイミングを理解し、適切に処理できる"
 primary_question: "アフィリエイト・PR案件の収入はいつ計上すべきか？"
 summary: "アフィリエイト報酬やPR案件は、原則として入金日ではなく報酬が確定した時点で計上します。ASPごとの確定日の見方と年またぎ時の実務対応を整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-04-30T17:42:11.607+09:00"
 publish_at: "2026-05-01T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-01T17:08:21.135+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-04-30T08:24:45.766Z"
-updated_at: "2026-04-30T17:42:11.607+09:00"
+updated_at: "2026-05-01T17:08:21.135+09:00"
 publish_slot: "evening"
 ---
 
