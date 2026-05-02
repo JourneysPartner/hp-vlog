@@ -16,15 +16,15 @@ reader_problem: "輸出免税の要件や課税事業者届出の手順が分か
 success_outcome: "還付の条件・必要書類・申請手順を理解し、自分が対象か判断できる"
 primary_question: "eBay輸出で消費税還付を受けるための条件と手順は？"
 summary: "eBay輸出の消費税還付は、輸出免税の売上があり、課税事業者として申告することで受けられる可能性があります。要件、必要書類、届出と申請の流れを整理しました。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-01T15:10:28.082+09:00"
 publish_at: "2026-05-02T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-02T11:29:34.318+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-01T00:35:40.689Z"
-updated_at: "2026-05-01T15:10:28.082+09:00"
+updated_at: "2026-05-02T11:29:34.318+09:00"
 publish_slot: "morning"
 ---
 
