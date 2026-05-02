@@ -16,15 +16,16 @@ reader_problem: "輸出証明書やPayPalレポートなど、何をどう揃え
 success_outcome: "必要書類の一覧と整理方法を把握し、漏れなく準備できる"
 primary_question: "eBay輸出の消費税還付申告にはどんな書類が必要か？"
 summary: "eBay輸出の消費税還付申告では、輸出証明書・売上資料・PayPal等の入金記録・仕入請求書の突合が重要です。必要書類と準備の順序、漏れやすい点を一覧で確認できます。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-02T12:06:11.272+09:00"
+publish_at: "2026-05-03T11:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-02T00:29:28.502Z"
-updated_at: "2026-05-02T00:29:28.502Z"
+updated_at: "2026-05-02T12:06:11.272+09:00"
+publish_slot: "morning"
 ---
 
 この記事では、eBay輸出の消費税還付申告に向けて、必要書類を**準備期間→書類作成→提出→事後確認**の順で時系列整理します。  
