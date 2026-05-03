@@ -16,15 +16,15 @@ reader_problem: "課税事業者届出のメリット・デメリットが分か
 success_outcome: "自分の売上規模で課税事業者になるべきかを判断できる"
 primary_question: "eBay輸出セラーは課税事業者になるべきか、免税のままがよいか？"
 summary: "eBay輸出は売上が輸出免税になる一方、仕入や経費の消費税は還付対象になり得ます。課税事業者と免税事業者の違い、売上規模別の判断基準、届出の注意点を整理しました。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-02T12:06:42.413+09:00"
 publish_at: "2026-05-03T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-03T17:42:24.719+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-02T00:30:12.160Z"
-updated_at: "2026-05-02T12:06:42.413+09:00"
+updated_at: "2026-05-03T17:42:24.719+09:00"
 publish_slot: "evening"
 ---
 
