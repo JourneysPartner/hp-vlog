@@ -30,6 +30,24 @@
   to = "/.netlify/functions/review-page"
   status = 200
 
+# 管理画面: /admin/articles → Netlify Function（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/articles"
+  to = "/.netlify/functions/admin-articles-page"
+  status = 200
+
+# 管理API: 記事一覧取得（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/api/list"
+  to = "/.netlify/functions/admin-list-articles"
+  status = 200
+
+# 管理API: 状態変更（unpublish / cancel_publish。HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/api/change"
+  to = "/.netlify/functions/admin-change-article-status"
+  status = 200
+
 # ブログ記事URL: Netlify の Pretty URLs が自動的に
 # /blog/slug → /blog/slug/ → blog/slug/index.html を解決するため
 # 手動の 301 redirect は不要（設定すると redirect loop の原因になる）
