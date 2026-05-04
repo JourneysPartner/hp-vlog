@@ -72,6 +72,15 @@ const SLUG_TO_CLUSTER = [
   { match: /^kaigyou-|^opening-notification-|^blue-return-/, cluster: 'opening-notification', macro: MACRO.TAX_DOMAIN },
   { match: /^withholding-/,                    cluster: 'withholding',   macro: MACRO.TAX_DOMAIN },
   { match: /^bookkeeping-/,                    cluster: 'bookkeeping',   macro: MACRO.TAX_DOMAIN },
+  { match: /^tax-bookkeeping-/,                cluster: 'bookkeeping',   macro: MACRO.TAX_DOMAIN },
+  { match: /^tax-consumption-tax-/,            cluster: 'consumption-tax-basics', macro: MACRO.TAX_DOMAIN },
+  { match: /^tax-withholding-/,                cluster: 'withholding',   macro: MACRO.TAX_DOMAIN },
+
+  // 一般事業者
+  { match: /^general-business-incorporation/,  cluster: 'incorporation',    macro: MACRO.GENERAL },
+  { match: /^general-side-income-/,            cluster: 'income-classification', macro: MACRO.GENERAL },
+  { match: /^general-sole-proprietor-/,        cluster: 'social-insurance', macro: MACRO.GENERAL },
+  { match: /^general-family-employment-/,      cluster: 'family-employment', macro: MACRO.GENERAL },
 ];
 
 // カテゴリ → tax_domain のデフォルト紐付け
