@@ -7,6 +7,9 @@ const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
 const { TOPICS } = require('./topic-pool');
+const { selectDailyTopics } = require('./lib/topic-selector');
+const { getRefsForTopic, formatRefsForPrompt } = require('./lib/tax-authority-refs');
+const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 
 // ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
 const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
@@ -297,75 +300,50 @@ function getRecentRevisionComments(limit = 3) {
 }
 
 // ── ペアグループから未使用ペアを選択 ────────────────────────────
+//
+// 新しい選定ロジック (lib/topic-selector) を使用する。
+// 旧 pickPair() は削除し、selectDailyTopics() に一本化。
+//
+// selectDailyTopics() は以下を行う:
+//   1. 既存slug除外（site-corpus全体）
+//   2. cooldown フィルタ（subcluster 90日 / cluster 45日 / persona×category 21日）
+//   3. 類似度フィルタ（slug/title/intent をJaccardで計算、閾値0.55）
+//   4. カテゴリ偏り是正（直近7日で大分類が60%超ならハードブロック）
+//   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
+//   6. 同日2本の最終類似度チェック
 function pickPair(dateStr) {
-  const existing = getExistingSlugs();
-  const available = TOPICS.filter(t => !existing.has(t.slug));
-
-  // pair_group ごとにグルーピング（未使用テーマのみ）
-  const groups = {};
-  for (const t of available) {
-    if (!t.pair_group) continue;
-    if (!groups[t.pair_group]) groups[t.pair_group] = [];
-    groups[t.pair_group].push(t);
+  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date() });
+  // 選定ログを表示（運用での偏り確認用）
+  console.log('[generate] === topic selection ===');
+  for (const step of explanation.steps) {
+    console.log(`[generate] ${step.step}:`, JSON.stringify({
+      remaining: step.remaining, blocked: step.blocked,
+    }));
   }
-
-  // 2本揃っているペアグループを優先
-  const fullPairs = Object.entries(groups).filter(([, topics]) => topics.length >= 2);
-
-  if (fullPairs.length > 0) {
+  if (explanation.macroRatios14 || (explanation.steps.find(s => s.macroRatios14))) {
+    const ratios = explanation.steps.find(s => s.macroRatios14);
+    if (ratios) {
+      const r14 = Object.entries(ratios.macroRatios14)
+        .map(([k, v]) => `${k}:${(v * 100).toFixed(0)}%`)
+        .join(' ');
+      console.log(`[generate] 直近14日 macro比率: ${r14}`);
+    }
+  }
+  if (explanation.warnings) {
+    for (const w of explanation.warnings) console.warn(`[generate] ⚠ ${w}`);
+  }
+  if (explanation.picks) {
+    for (const p of explanation.picks) {
+      console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role})`);
+    }
+  }
+  if (picks.length === 0) {
+    console.warn('[generate] テーマプールを全て使い切りました。topic-pool.js への追加を検討してください。');
+    // 最終フォールバック: ハッシュで選ぶ
     const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-    const [, topics] = fullPairs[hash % fullPairs.length];
-    // main（basic_explainer / comparison_decision）と support を分ける
-    const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
-    const main = topics.find(t => mainTypes.has(t.article_type)) || topics[0];
-    const support = topics.find(t => t !== main) || topics[1];
-    return [main, support];
+    return [TOPICS[hash % TOPICS.length]];
   }
-
-  // 2本揃うペアがない場合: 残りの未使用テーマから1本ずつ（ペアなし）
-  // → 本命+補強の組み合わせを優先し、同タイプ・同カテゴリの重複を避ける
-  if (available.length >= 2) {
-    const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-    const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
-    const first = available[hash % available.length];
-    const rest = available.filter(t => t !== first);
-
-    // 1本目と異なる article_type を優先（同タイプ2本を避ける）
-    let candidates = rest.filter(t => t.article_type !== first.article_type);
-    // さらにカテゴリも異なる候補があればそちらを優先（カニバリ防止）
-    const diffCat = candidates.filter(t => t.category !== first.category);
-    if (diffCat.length > 0) candidates = diffCat;
-    // 本命+補強の組み合わせを試みる
-    if (mainTypes.has(first.article_type)) {
-      const supportCandidates = candidates.filter(t => !mainTypes.has(t.article_type));
-      if (supportCandidates.length > 0) candidates = supportCandidates;
-    } else {
-      const mainCandidates = candidates.filter(t => mainTypes.has(t.article_type));
-      if (mainCandidates.length > 0) candidates = mainCandidates;
-    }
-    if (candidates.length === 0) candidates = rest;
-    const second = candidates[(hash + 1) % candidates.length];
-
-    if (first.article_type === second.article_type) {
-      console.warn(`[generate] 注意: 2本とも同じ記事タイプ（${first.article_type}）です`);
-    }
-    if (first.category === second.category && first.persona === second.persona) {
-      console.warn(`[generate] 注意: 2本とも同じペルソナ・カテゴリの組み合わせです（カニバリリスク）`);
-    }
-
-    return [first, second];
-  }
-
-  if (available.length === 1) {
-    return [available[0]];
-  }
-
-  // 全テーマ使い切り → ランダム再選択
-  console.warn('[generate] テーマプールを全て使い切りました。ランダムに再選択します。');
-  const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-  const first = TOPICS[hash % TOPICS.length];
-  const second = TOPICS[(hash + 1) % TOPICS.length];
-  return [first, second];
+  return picks;
 }
 
 // ── JST の今日の日付文字列 (YYYY-MM-DD) ─────────────────────────
@@ -526,6 +504,18 @@ async function generateWithOpenAI(dateStr, topic, modelId, pairedTopic) {
     ? `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること`
     : '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください';
 
+  // 国税庁タックスアンサー / 関連レファレンス（必要な場合に優先して参考にする）
+  const ntaRefs = getRefsForTopic(topic, 4);
+  const ntaRefsBlock = ntaRefs.length > 0
+    ? `\n\n═══ 関連する国税庁タックスアンサー / 公式情報（必要に応じて参考）═══\n以下は本テーマに関連しうる国税庁タックスアンサー等の公式情報です。\n必ずすべてを引用する必要はありませんが、原則確認・誤解整理・税目典型論点では優先的に参考にしてください。\nタックスアンサー番号は捏造せず、ここに掲載のものか確実に存在するもののみ記載すること。\n${formatRefsForPrompt(ntaRefs)}`
+    : '';
+
+  // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
+  const lawChanges = topic.freshness_sensitive ? getChangesForTopic(topic, 2) : [];
+  const lawChangesBlock = lawChanges.length > 0
+    ? `\n\n═══ 近年の改正・制度変更で参考になる論点 ═══\n本テーマは改正論点と関係がある可能性があります。読者の実務に影響しうる場合に限り、現行ルールと改正点を区別して触れてください。\n（"最新ニュースだから書く" のではなく、"読者の判断に影響するから書く" を基準に取り上げ要否を判断すること）\n${formatChangesForPrompt(lawChanges)}`
+    : '';
+
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
   const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
@@ -592,7 +582,7 @@ ${checklist.map((item, i) => `${i + 1}. ${item}`).join('\n')}
 - タックスアンサーの要約や言い換えだけで記事を作ること
 - 見出しだけ焼き直すこと
 - 原則だけで終わること（必ず例外・実務上の注意・相談の境目を加えること）
-${sourceInstruction}
+${sourceInstruction}${ntaRefsBlock}${lawChangesBlock}
 
 ═══ コンテンツ構成ルール ═══
 1. 結論ファースト: 冒頭で「この記事で分かること」「結論」を1〜2文で示す
@@ -892,6 +882,24 @@ function getArg(name) {
 // ── エントリポイント ─────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
+
+  // ── 選定 dry-run モード（OpenAI を呼ばずに選定結果のみ出力）──
+  if (args.includes('--explain') || args.includes('--dry-run')) {
+    const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date() });
+    console.log('\n=== Topic Selection Explanation ===\n');
+    console.log(JSON.stringify(explanation, null, 2));
+    console.log('\n=== Final Picks ===\n');
+    if (picks.length === 0) {
+      console.log('（候補なし）');
+    }
+    for (const p of picks) {
+      console.log(`- [${p.macro}/${p.cluster}] ${p.slug}`);
+      console.log(`    title: ${p.title}`);
+      console.log(`    persona/category: ${p.persona} / ${p.category}`);
+      console.log(`    article_type/role: ${p.article_type} (${p.article_role || (['basic_explainer','comparison_decision'].includes(p.article_type)?'main':'support')})`);
+    }
+    return;
+  }
 
   // ── 再生成モード ──────────────────────────────────────────────
   if (args.includes('--regenerate')) {
