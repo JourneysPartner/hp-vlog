@@ -8,6 +8,15 @@
  * - 各テーマは実際に検索されるキーワード・疑問をベースに設計
  * - persona / category は既存の validate.js と整合していること
  *
+ * ────── トピックメタ情報 ──────
+ *
+ * macro:           大分類（物販 / インフルエンサー / サロン / 相続贈与 / 一般事業者 / 税目実務）
+ * cluster:         同一テーマ群を束ねる識別子（ebay / amazon / mercari / instagram / hair-salon / ...）
+ * subcluster:      cluster 内のさらに細かい論点識別子（例: ebay-tax-refund, instagram-pr-income）
+ *                  cooldown はこの単位で 90 日効く（短期間で同じ subcluster を出さない）
+ * tax_domain:      税目（consumption_tax / income_tax / invoice_system / bookkeeping_expenses /
+ *                       inheritance_tax / overseas_transactions / withholding）
+ *
  * quality:
  *   'standard' — Sonnet 4.6 で生成（デフォルト）
  *   'high'     — Opus 4.6 で生成（税制度の複雑な論点・相続・特例等）
@@ -24,6 +33,10 @@
  * pair_group: 同一ペルソナ内で「本命+補強」ペアを組むためのグループ識別子
  *   同じ pair_group を持つテーマ同士は 1日2本セットで生成される。
  *
+ * cooldown_days: subcluster 単位の cooldown 上書き（省略時は 90 日）
+ * priority:      'high' / 'medium' / 'low'（省略時 medium）— 同点時の選定優先度
+ * freshness_sensitive: true なら近年の改正論点に敏感なテーマ。プロンプトに改正論点を強く含める。
+ *
  * source_url:
  *   公的根拠が明確な場合のみ設定する。根拠が弱い場合は空文字で可。
  *   validate.js は draft/needs_review では source_url 未設定を警告扱いにする。
@@ -35,10 +48,11 @@
 
 const TOPICS = [
 
-  // ────────────────────────────────────────────
-  //  eBay輸出セラー × 消費税
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【物販】eBay輸出セラー
+  // ════════════════════════════════════════════════════════════
   { persona: 'ebay_export_seller', category: '消費税', quality: 'high',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-tax-refund', tax_domain: 'consumption_tax',
     article_type: 'basic_explainer', pair_group: 'ebay-tax-refund',
     title: 'eBay輸出の消費税還付とは？仕組み・条件・申請手順をわかりやすく解説',
     slug: 'ebay-export-consumption-tax-refund-guide',
@@ -51,6 +65,7 @@ const TOPICS = [
     primary_question: 'eBay輸出で消費税還付を受けるための条件と手順は？' },
 
   { persona: 'ebay_export_seller', category: '消費税', quality: 'standard',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-tax-refund', tax_domain: 'consumption_tax',
     article_type: 'filing_practice', pair_group: 'ebay-tax-refund',
     title: 'eBayセラーが消費税還付申告で必要な書類一覧と準備のコツ',
     slug: 'ebay-tax-refund-required-documents',
@@ -63,6 +78,7 @@ const TOPICS = [
     primary_question: 'eBay輸出の消費税還付申告にはどんな書類が必要か？' },
 
   { persona: 'ebay_export_seller', category: '消費税', quality: 'high',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-taxable-status', tax_domain: 'consumption_tax',
     article_type: 'comparison_decision', pair_group: 'ebay-taxable-status',
     title: 'eBay輸出で課税事業者になるべき？免税事業者との違いとメリット・デメリット',
     slug: 'ebay-taxable-vs-exempt-business',
@@ -75,6 +91,7 @@ const TOPICS = [
     primary_question: 'eBay輸出セラーは課税事業者になるべきか、免税のままがよいか？' },
 
   { persona: 'ebay_export_seller', category: 'インボイス', quality: 'standard',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-invoice', tax_domain: 'invoice_system',
     article_type: 'edge_case', pair_group: 'ebay-taxable-status',
     title: 'eBay輸出セラーにインボイス制度は関係ある？対応すべきケースを解説',
     slug: 'ebay-export-invoice-system-impact',
@@ -87,6 +104,7 @@ const TOPICS = [
     primary_question: 'eBay輸出セラーはインボイス制度に対応する必要があるか？' },
 
   { persona: 'ebay_export_seller', category: '海外取引', quality: 'standard',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-fx-accounting', tax_domain: 'overseas_transactions',
     article_type: 'basic_explainer', pair_group: 'ebay-overseas-accounting',
     title: 'eBay輸出の売上はどう計上する？為替レートの選び方と仕訳例',
     slug: 'ebay-export-exchange-rate-accounting',
@@ -99,6 +117,7 @@ const TOPICS = [
     primary_question: 'eBay輸出の外貨建て売上はどの為替レートで計上するか？' },
 
   { persona: 'ebay_export_seller', category: '海外取引', quality: 'standard',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-shipping-customs', tax_domain: 'overseas_transactions',
     article_type: 'filing_practice', pair_group: 'ebay-overseas-accounting',
     title: 'eBay輸出の送料・関税・手数料は経費にできる？仕訳と注意点',
     slug: 'ebay-export-shipping-customs-expenses',
@@ -110,10 +129,11 @@ const TOPICS = [
     success_outcome: '各費用の勘定科目と仕訳方法を把握し、正しく経費処理できる',
     primary_question: 'eBay輸出の送料・手数料・関税はどう仕訳するか？' },
 
-  // ────────────────────────────────────────────
-  //  国内EC物販セラー × 消費税・インボイス
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【物販】Amazon / 楽天 / EC物販セラー
+  // ════════════════════════════════════════════════════════════
   { persona: 'domestic_ec_seller', category: '消費税', quality: 'standard',
+    macro: '物販', cluster: 'amazon', subcluster: 'amazon-fba-tax', tax_domain: 'consumption_tax',
     article_type: 'basic_explainer', pair_group: 'ec-fba-tax',
     title: 'Amazon物販の消費税はどうなる？FBA手数料の仕入税額控除と注意点',
     slug: 'amazon-fba-consumption-tax-deduction',
@@ -126,6 +146,7 @@ const TOPICS = [
     primary_question: 'Amazon物販のFBA手数料は仕入税額控除の対象になるか？' },
 
   { persona: 'domestic_ec_seller', category: '帳簿・経費', quality: 'standard',
+    macro: '物販', cluster: 'amazon', subcluster: 'amazon-expenses', tax_domain: 'bookkeeping_expenses',
     article_type: 'filing_practice', pair_group: 'ec-fba-tax',
     title: 'Amazon物販の経費はどこまで認められる？仕入・梱包・広告費の仕訳ガイド',
     slug: 'amazon-seller-deductible-expenses-guide',
@@ -138,7 +159,8 @@ const TOPICS = [
     primary_question: 'Amazon物販ではどこまで経費として認められるか？' },
 
   { persona: 'domestic_ec_seller', category: 'インボイス', quality: 'standard',
-    article_type: 'basic_explainer', pair_group: 'ec-invoice',
+    macro: '物販', cluster: 'ec-general', subcluster: 'ec-invoice-registration', tax_domain: 'invoice_system',
+    article_type: 'basic_explainer', pair_group: 'ec-invoice', freshness_sensitive: true,
     title: 'Amazon・楽天出店者のインボイス対応ガイド｜登録しないとどうなる？',
     slug: 'ec-seller-invoice-registration-guide',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
@@ -150,7 +172,8 @@ const TOPICS = [
     primary_question: 'Amazon・楽天の出店者はインボイス登録が必要か？' },
 
   { persona: 'domestic_ec_seller', category: 'インボイス', quality: 'high',
-    article_type: 'edge_case', pair_group: 'ec-invoice',
+    macro: '物販', cluster: 'ec-general', subcluster: 'ec-invoice-suppliers', tax_domain: 'invoice_system',
+    article_type: 'edge_case', pair_group: 'ec-invoice', freshness_sensitive: true,
     title: 'EC物販の仕入先がインボイス未登録だったら？経過措置と実務対応',
     slug: 'ec-purchase-non-invoice-supplier-measures',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
@@ -162,6 +185,7 @@ const TOPICS = [
     primary_question: '仕入先がインボイス未登録の場合、仕入税額控除はどうなるか？' },
 
   { persona: 'domestic_ec_seller', category: '帳簿・経費', quality: 'standard',
+    macro: '物販', cluster: 'ec-general', subcluster: 'ec-inventory', tax_domain: 'bookkeeping_expenses',
     article_type: 'misconception_fix', pair_group: 'ec-inventory',
     title: 'せどり・物販の在庫管理と棚卸のやり方｜確定申告で失敗しないために',
     slug: 'ec-inventory-stocktaking-tax-return',
@@ -174,6 +198,7 @@ const TOPICS = [
     primary_question: 'せどり・物販の棚卸はどうやって行い、確定申告にどう反映するか？' },
 
   { persona: 'domestic_ec_seller', category: '消費税', quality: 'high',
+    macro: '物販', cluster: 'ec-general', subcluster: 'ec-tax-method-comparison', tax_domain: 'consumption_tax',
     article_type: 'comparison_decision', pair_group: 'ec-inventory',
     title: 'ネットショップ運営者の消費税申告｜簡易課税と本則課税どちらが有利？',
     slug: 'ec-shop-simplified-vs-standard-tax',
@@ -185,10 +210,11 @@ const TOPICS = [
     success_outcome: '自分の事業に適した課税方式を選択し、消費税負担を最適化できる',
     primary_question: 'ネットショップ運営では簡易課税と本則課税のどちらが有利か？' },
 
-  // ────────────────────────────────────────────
-  //  フリマ・転売セラー × 所得税
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【物販】メルカリ / フリマ / ヤフオク / 転売
+  // ════════════════════════════════════════════════════════════
   { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
+    macro: '物販', cluster: 'mercari', subcluster: 'mercari-tax-threshold', tax_domain: 'income_tax',
     article_type: 'basic_explainer', pair_group: 'reseller-tax-filing',
     title: 'メルカリ・ヤフオクの売上に税金はかかる？確定申告が必要なラインを解説',
     slug: 'mercari-yahoo-auction-tax-filing-threshold',
@@ -201,6 +227,7 @@ const TOPICS = [
     primary_question: 'メルカリ・ヤフオクの売上はいくらから確定申告が必要か？' },
 
   { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
+    macro: '物販', cluster: 'reseller-general', subcluster: 'side-job-resell', tax_domain: 'income_tax',
     article_type: 'edge_case', pair_group: 'reseller-tax-filing',
     title: '副業せどりの確定申告ガイド｜会社にバレない方法と経費の考え方',
     slug: 'side-job-reselling-tax-return-guide',
@@ -213,6 +240,7 @@ const TOPICS = [
     primary_question: '副業せどりの確定申告はどう行い、会社に知られないようにするには？' },
 
   { persona: 'reseller_marketplace_seller', category: '帳簿・経費', quality: 'standard',
+    macro: '物販', cluster: 'reseller-general', subcluster: 'reseller-bookkeeping', tax_domain: 'bookkeeping_expenses',
     article_type: 'basic_explainer', pair_group: 'reseller-bookkeeping',
     title: 'せどり転売の利益計算と帳簿の付け方｜初心者でもわかる記帳入門',
     slug: 'reselling-profit-bookkeeping-beginners',
@@ -225,6 +253,7 @@ const TOPICS = [
     primary_question: 'せどり・転売の利益計算と帳簿はどうつけるか？' },
 
   { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
+    macro: '物販', cluster: 'flea-general', subcluster: 'flea-shipping-cost', tax_domain: 'income_tax',
     article_type: 'industry_example', pair_group: 'reseller-bookkeeping',
     title: 'フリマアプリの送料負担は経費になる？せどり特有の経費と落とし穴',
     slug: 'flea-market-app-shipping-cost-deduction',
@@ -237,7 +266,8 @@ const TOPICS = [
     primary_question: 'フリマアプリの送料・手数料・梱包材は経費にできるか？' },
 
   { persona: 'reseller_marketplace_seller', category: 'インボイス', quality: 'standard',
-    article_type: 'comparison_decision', pair_group: 'reseller-invoice',
+    macro: '物販', cluster: 'reseller-general', subcluster: 'reseller-invoice', tax_domain: 'invoice_system',
+    article_type: 'comparison_decision', pair_group: 'reseller-invoice', freshness_sensitive: true,
     title: 'せどり・転売業者もインボイス登録すべき？免税事業者が考える判断基準',
     slug: 'reseller-invoice-registration-decision',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
@@ -248,10 +278,53 @@ const TOPICS = [
     success_outcome: '自分の事業形態でインボイス登録すべきかを判断できる',
     primary_question: 'せどり・転売業者はインボイス登録すべきか？' },
 
-  // ────────────────────────────────────────────
-  //  インフルエンサー・クリエイター × 所得税・経費
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【物販】新規追加: Yahoo / Shopify など分散
+  // ════════════════════════════════════════════════════════════
+  { persona: 'domestic_ec_seller', category: '所得税', quality: 'standard',
+    macro: '物販', cluster: 'yahoo-shopping', subcluster: 'yahoo-shopping-tax-basics', tax_domain: 'income_tax',
+    article_type: 'basic_explainer',
+    title: 'ヤフーショッピング出店者の確定申告｜売上計上と販売手数料の処理',
+    slug: 'yahoo-shopping-tax-basics-guide',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm',
+    source_title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ',
+    hint: 'ストア登録料・販売手数料・PayPayポイント原資負担の処理',
+    search_intent: 'ヤフーショッピング出店者の売上・経費の取り扱いを知りたい',
+    reader_problem: 'ストア登録料や販売手数料の経費区分・売上計上のタイミングが分からない',
+    success_outcome: 'ヤフーショッピング特有の費用処理と売上計上ルールを理解できる',
+    primary_question: 'ヤフーショッピング出店者は売上・販売手数料をどう処理するか？' },
+
+  { persona: 'domestic_ec_seller', category: '消費税', quality: 'standard',
+    macro: '物販', cluster: 'shopify', subcluster: 'shopify-platform-tax', tax_domain: 'consumption_tax',
+    article_type: 'industry_example',
+    title: 'Shopifyで個人ECを運営するときの消費税の扱い｜国内・越境のケース別整理',
+    slug: 'shopify-platform-consumption-tax-case-guide',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
+    source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
+    hint: '国内BtoC・越境EC・サブスク商品ごとの消費税の判断',
+    search_intent: 'Shopifyで国内/越境ECを運営する場合の消費税の扱いを整理したい',
+    reader_problem: '国内向けと海外向けで消費税の扱いが違うのか、Shopify手数料は課税仕入か分からない',
+    success_outcome: '取扱商品・販売先別に消費税処理の論点を整理できる',
+    primary_question: 'Shopifyで運営するEC事業者は消費税をどう扱えばよいか？' },
+
+  { persona: 'reseller_marketplace_seller', category: '所得税', quality: 'standard',
+    macro: '物販', cluster: 'yahoo-flea', subcluster: 'yahoo-flea-side-income', tax_domain: 'income_tax',
+    article_type: 'misconception_fix',
+    title: 'ヤフーフリマの売上は確定申告がいらないって本当？よくある誤解と判断基準',
+    slug: 'yahoo-flea-side-income-misconception',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1906.htm',
+    source_title: '国税庁タックスアンサー No.1906 給与所得者がネットオークション等で副収入',
+    hint: '生活用動産の範囲・反復継続性・雑所得20万円基準の誤解',
+    search_intent: 'ヤフーフリマの売上に税金がかかるかを正しく理解したい',
+    reader_problem: '生活用動産だから不要と思い込んでいるが本当に申告不要か不安',
+    success_outcome: '生活用動産か事業性かの境目と、確定申告が必要なケースを判断できる',
+    primary_question: 'ヤフーフリマの売上は本当に確定申告がいらないのか？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【インフルエンサー】YouTuber / クリエイター
+  // ════════════════════════════════════════════════════════════
   { persona: 'influencer_creator', category: '所得税', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'youtube', subcluster: 'youtuber-tax-basics', tax_domain: 'income_tax',
     article_type: 'basic_explainer', pair_group: 'creator-tax-return',
     title: 'YouTuber・インフルエンサーの確定申告入門｜広告収入の申告方法と節税ポイント',
     slug: 'youtuber-influencer-tax-return-basics',
@@ -264,6 +337,7 @@ const TOPICS = [
     primary_question: 'YouTuber・インフルエンサーの広告収入はどう確定申告するか？' },
 
   { persona: 'influencer_creator', category: '帳簿・経費', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'influencer-general', subcluster: 'influencer-expenses', tax_domain: 'bookkeeping_expenses',
     article_type: 'edge_case', pair_group: 'creator-tax-return',
     title: 'インフルエンサーの経費はどこまでOK？撮影機材・衣装・美容代の判断基準',
     slug: 'influencer-deductible-expenses-criteria',
@@ -276,6 +350,7 @@ const TOPICS = [
     primary_question: 'インフルエンサーの撮影機材・衣装・美容代は経費にできるか？' },
 
   { persona: 'influencer_creator', category: '帳簿・経費', quality: 'high',
+    macro: 'インフルエンサー', cluster: 'creator-general', subcluster: 'creator-withholding', tax_domain: 'withholding',
     article_type: 'basic_explainer', pair_group: 'creator-withholding',
     title: 'SNS運用の外注費・案件報酬の源泉徴収｜クリエイターが知るべき税務処理',
     slug: 'creator-outsourcing-withholding-tax',
@@ -288,7 +363,8 @@ const TOPICS = [
     primary_question: 'クリエイターの外注費・案件報酬の源泉徴収はどう処理するか？' },
 
   { persona: 'influencer_creator', category: 'インボイス', quality: 'standard',
-    article_type: 'comparison_decision', pair_group: 'creator-withholding',
+    macro: 'インフルエンサー', cluster: 'influencer-general', subcluster: 'influencer-invoice', tax_domain: 'invoice_system',
+    article_type: 'comparison_decision', pair_group: 'creator-withholding', freshness_sensitive: true,
     title: 'インフルエンサー・配信者のインボイス対応｜企業案件への影響と対策',
     slug: 'influencer-invoice-system-corporate-deals',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
@@ -300,6 +376,7 @@ const TOPICS = [
     primary_question: 'インフルエンサーはインボイス登録すべきか？企業案件にどう影響するか？' },
 
   { persona: 'influencer_creator', category: '所得税', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'affiliate-pr', subcluster: 'affiliate-pr-timing', tax_domain: 'income_tax',
     article_type: 'misconception_fix', pair_group: 'creator-income-timing',
     title: 'アフィリエイト・PR案件の収入はいつ計上する？発生主義と入金ベースの違い',
     slug: 'affiliate-pr-income-recognition-timing',
@@ -312,6 +389,7 @@ const TOPICS = [
     primary_question: 'アフィリエイト・PR案件の収入はいつ計上すべきか？' },
 
   { persona: 'influencer_creator', category: '所得税', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'youtube', subcluster: 'youtube-opening-notification', tax_domain: 'income_tax',
     article_type: 'filing_practice', pair_group: 'creator-income-timing',
     title: '副業YouTuber・ブロガーが開業届を出すべきタイミングと青色申告の始め方',
     slug: 'side-youtuber-opening-notification-blue-return',
@@ -323,10 +401,40 @@ const TOPICS = [
     success_outcome: '開業届・青色申告の手続きとタイミングを理解し、行動に移せる',
     primary_question: '副業YouTuber・ブロガーはいつ開業届を出すべきか？' },
 
-  // ────────────────────────────────────────────
-  //  美容サロンオーナー × 消費税・所得税・経費
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【インフルエンサー】新規追加: Instagram / TikTok 分散
+  // ════════════════════════════════════════════════════════════
+  { persona: 'influencer_creator', category: '所得税', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'instagram', subcluster: 'instagram-pr-income', tax_domain: 'income_tax',
+    article_type: 'industry_example',
+    title: 'Instagram企業案件の報酬は確定申告すべき？収入の種類別の取り扱い',
+    slug: 'instagram-pr-income-tax-treatment',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm',
+    source_title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ',
+    hint: 'PR案件・物品提供（換金性あり）・タイアップ投稿の所得区分',
+    search_intent: 'Instagramの企業案件報酬の確定申告方法を知りたい',
+    reader_problem: 'PR案件・物品提供がそれぞれ収入になるかどうかの判断が分からない',
+    success_outcome: 'Instagram運用での収入種別と申告の必要性を整理できる',
+    primary_question: 'Instagramの企業案件報酬は確定申告すべきか？' },
+
+  { persona: 'influencer_creator', category: '帳簿・経費', quality: 'standard',
+    macro: 'インフルエンサー', cluster: 'tiktok', subcluster: 'tiktok-creator-fund', tax_domain: 'bookkeeping_expenses',
+    article_type: 'industry_example',
+    title: 'TikTok収益化の税務｜投げ銭・LIVEギフト・クリエイターファンドの所得区分',
+    slug: 'tiktok-creator-fund-income-tax',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm',
+    source_title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ',
+    hint: '投げ銭・LIVEギフト・クリエイターファンドそれぞれの所得性・経費の考え方',
+    search_intent: 'TikTokで得る各種収益の所得区分と経費の扱いを知りたい',
+    reader_problem: 'プラットフォーム手数料や換金タイミングで収入計上時期が分かりにくい',
+    success_outcome: 'TikTok収益の所得区分・経費の扱いを実務上整理できる',
+    primary_question: 'TikTokの収益はどの所得区分で、どう申告すべきか？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【サロン】美容室 / ネイル / エステ / まつエク / 脱毛
+  // ════════════════════════════════════════════════════════════
   { persona: 'beauty_salon_owner', category: '消費税', quality: 'high',
+    macro: 'サロン', cluster: 'hair-salon', subcluster: 'beauty-salon-tax-method', tax_domain: 'consumption_tax',
     article_type: 'comparison_decision', pair_group: 'beauty-salon-tax-sim',
     title: '美容室・サロンの消費税申告｜簡易課税と本則課税の有利判定シミュレーション',
     slug: 'beauty-salon-consumption-tax-simulation',
@@ -339,6 +447,7 @@ const TOPICS = [
     primary_question: '美容サロンでは簡易課税と本則課税のどちらが有利か？' },
 
   { persona: 'beauty_salon_owner', category: '所得税', quality: 'standard',
+    macro: 'サロン', cluster: 'hair-salon', subcluster: 'beauty-salon-startup', tax_domain: 'income_tax',
     article_type: 'basic_explainer', pair_group: 'beauty-salon-startup',
     title: '美容室を個人で開業したときの税金の基本｜届出・青色申告・経費の全体像',
     slug: 'beauty-salon-sole-proprietor-tax-basics',
@@ -351,6 +460,7 @@ const TOPICS = [
     primary_question: '美容室を個人で開業したら、税金関係で何をすべきか？' },
 
   { persona: 'beauty_salon_owner', category: '帳簿・経費', quality: 'standard',
+    macro: 'サロン', cluster: 'esthetic', subcluster: 'esthetic-deductible-expenses', tax_domain: 'bookkeeping_expenses',
     article_type: 'edge_case', pair_group: 'beauty-salon-expenses',
     title: 'エステ・脱毛サロンの経費はどこまで落とせる？美容機器・消耗品・研修費の仕訳',
     slug: 'esthetic-salon-deductible-expenses-entries',
@@ -363,6 +473,7 @@ const TOPICS = [
     primary_question: 'エステ・脱毛サロンの美容機器・消耗品・研修費は経費にできるか？' },
 
   { persona: 'beauty_salon_owner', category: '帳簿・経費', quality: 'standard',
+    macro: 'サロン', cluster: 'nail-salon', subcluster: 'nail-salon-startup-cost', tax_domain: 'bookkeeping_expenses',
     article_type: 'filing_practice', pair_group: 'beauty-salon-startup',
     title: 'ネイルサロン開業の初期費用と税務処理｜開業費の償却と仕訳例',
     slug: 'nail-salon-startup-costs-tax-treatment',
@@ -375,7 +486,8 @@ const TOPICS = [
     primary_question: 'ネイルサロン開業の初期費用はどう税務処理するか？' },
 
   { persona: 'beauty_salon_owner', category: '消費税', quality: 'standard',
-    article_type: 'misconception_fix', pair_group: 'beauty-salon-tax-sim',
+    macro: 'サロン', cluster: 'hair-salon', subcluster: 'beauty-salon-invoice', tax_domain: 'invoice_system',
+    article_type: 'misconception_fix', pair_group: 'beauty-salon-tax-sim', freshness_sensitive: true,
     title: '美容サロンでインボイス登録は必要？お客様がほぼ個人の場合の判断基準',
     slug: 'beauty-salon-invoice-btoc-decision',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
@@ -387,6 +499,7 @@ const TOPICS = [
     primary_question: 'お客様がほぼ個人の美容サロンでもインボイス登録は必要か？' },
 
   { persona: 'beauty_salon_owner', category: '所得税', quality: 'high',
+    macro: 'サロン', cluster: 'hair-salon', subcluster: 'beauty-salon-incorporation', tax_domain: 'income_tax',
     article_type: 'comparison_decision', pair_group: 'beauty-salon-expenses',
     title: '美容室オーナーが法人化すべき売上の目安と法人化のメリット・デメリット',
     slug: 'beauty-salon-incorporation-threshold',
@@ -398,10 +511,40 @@ const TOPICS = [
     success_outcome: '法人化の判断基準を理解し、自分の売上規模で有利かを判断できる',
     primary_question: '美容室オーナーはいくらの売上から法人化すべきか？' },
 
-  // ────────────────────────────────────────────
-  //  相続・贈与の依頼者 × 相続税・贈与税
-  // ────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════
+  //  【サロン】新規追加: まつエク・脱毛・店販物販の論点
+  // ════════════════════════════════════════════════════════════
+  { persona: 'beauty_salon_owner', category: '帳簿・経費', quality: 'standard',
+    macro: 'サロン', cluster: 'eyelash', subcluster: 'eyelash-tax-basics', tax_domain: 'bookkeeping_expenses',
+    article_type: 'industry_example',
+    title: 'まつエクサロンの確定申告｜面貸し・業務委託・経費区分の整理',
+    slug: 'eyelash-salon-tax-return-guide',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm',
+    source_title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ',
+    hint: '面貸し・業務委託契約と源泉・グルー等消耗品の経費区分',
+    search_intent: 'まつエクサロンの収入区分と経費の整理方法を知りたい',
+    reader_problem: '面貸しや業務委託で受け取る収入の所得区分が分からない',
+    success_outcome: 'まつエクサロン特有の収入・経費を整理して申告できる',
+    primary_question: 'まつエクサロンの確定申告ではどんな点に注意すべきか？' },
+
+  { persona: 'beauty_salon_owner', category: '消費税', quality: 'standard',
+    macro: 'サロン', cluster: 'hair-removal', subcluster: 'hair-removal-product-sales', tax_domain: 'consumption_tax',
+    article_type: 'edge_case',
+    title: '脱毛サロンの店販商品はどう処理する？役務提供と物販で分かれる消費税の論点',
+    slug: 'hair-removal-product-sales-vat-treatment',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm',
+    source_title: '国税庁タックスアンサー No.6505 簡易課税制度',
+    hint: '役務提供（第5種）と物販（第2/3種）の事業区分・売上区分管理',
+    search_intent: '店販ありの脱毛サロンの消費税の取り扱いを整理したい',
+    reader_problem: '物販と役務でみなし仕入率が異なるが管理方法が分からない',
+    success_outcome: '事業区分ごとの売上区分と消費税の影響を理解できる',
+    primary_question: '脱毛サロンの店販商品売上は消費税上どう扱うか？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【相続贈与】相続税・贈与税
+  // ════════════════════════════════════════════════════════════
   { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'inheritance', subcluster: 'inheritance-basic-deduction', tax_domain: 'inheritance_tax',
     article_type: 'basic_explainer', pair_group: 'inheritance-basics',
     title: '相続税の基礎控除とは？計算方法と「うちは相続税がかかるのか」の判断基準',
     slug: 'inheritance-tax-basic-deduction-guide',
@@ -414,7 +557,8 @@ const TOPICS = [
     primary_question: 'うちは相続税がかかるのか？基礎控除はいくらか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
-    article_type: 'comparison_decision', pair_group: 'inheritance-gifts',
+    macro: '相続贈与', cluster: 'gift', subcluster: 'lifetime-gift-planning', tax_domain: 'inheritance_tax',
+    article_type: 'comparison_decision', pair_group: 'inheritance-gifts', freshness_sensitive: true,
     title: '生前贈与で相続税対策｜暦年贈与と相続時精算課税制度の違いと選び方',
     slug: 'lifetime-gift-inheritance-tax-planning',
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm',
@@ -426,6 +570,7 @@ const TOPICS = [
     primary_question: '生前贈与は暦年贈与と相続時精算課税のどちらを選ぶべきか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'gift', subcluster: 'small-residential-land-special', tax_domain: 'inheritance_tax',
     article_type: 'edge_case', pair_group: 'inheritance-special',
     title: '自宅の相続で使える小規模宅地等の特例とは？最大80%減額の条件を解説',
     slug: 'small-residential-land-special-provision',
@@ -438,6 +583,7 @@ const TOPICS = [
     primary_question: '自宅を相続する場合、小規模宅地等の特例は使えるか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'standard',
+    macro: '相続贈与', cluster: 'inheritance', subcluster: 'inheritance-deadline', tax_domain: 'inheritance_tax',
     article_type: 'filing_practice', pair_group: 'inheritance-basics',
     title: '相続税の申告期限と手続きの流れ｜10ヶ月以内にやるべきことチェックリスト',
     slug: 'inheritance-tax-filing-deadline-checklist',
@@ -450,6 +596,7 @@ const TOPICS = [
     primary_question: '相続税の申告期限はいつで、10ヶ月以内に何をすべきか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'inheritance', subcluster: 'inheritance-spouse-reduction', tax_domain: 'inheritance_tax',
     article_type: 'case_study', pair_group: 'inheritance-special',
     title: '相続税の配偶者控除（配偶者の税額軽減）とは？1億6千万円まで非課税の条件',
     slug: 'inheritance-spouse-tax-reduction',
@@ -462,6 +609,7 @@ const TOPICS = [
     primary_question: '相続税の配偶者控除はどのような条件で使えるか？' },
 
   { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'gift', subcluster: 'housing-fund-gift-tax', tax_domain: 'inheritance_tax',
     article_type: 'misconception_fix', pair_group: 'inheritance-gifts',
     title: '親から子への住宅資金贈与で非課税になる条件｜贈与税の特例を活用する方法',
     slug: 'housing-fund-gift-tax-exemption',
@@ -472,6 +620,80 @@ const TOPICS = [
     reader_problem: '非課税枠の金額や適用条件の詳細が分からない',
     success_outcome: '住宅資金贈与の非課税特例の条件を理解し、活用計画を立てられる',
     primary_question: '親から住宅資金の贈与を受けた場合、いくらまで非課税か？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【相続贈与】新規追加: 改正論点（7年加算・精算課税基礎控除）
+  // ════════════════════════════════════════════════════════════
+  { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'gift', subcluster: 'gift-seven-year-addback', tax_domain: 'inheritance_tax',
+    article_type: 'misconception_fix', freshness_sensitive: true,
+    title: '生前贈与の7年加算ルールとは？2024年改正で変わった暦年贈与の使い方',
+    slug: 'gift-seven-year-addback-rule-update',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm',
+    source_title: '国税庁タックスアンサー No.4408 贈与税の計算と税率',
+    hint: '7年加算への段階的拡大・100万円控除・段階適用スケジュール',
+    search_intent: '改正後の暦年贈与の影響と相続加算の取扱いを知りたい',
+    reader_problem: '7年加算と従来の3年加算がどう違うか、自分への影響が分からない',
+    success_outcome: '改正後の暦年贈与プランを見直せるようになる',
+    primary_question: '7年加算ルールで暦年贈与は使えなくなるのか？' },
+
+  { persona: 'inheritance_client', category: '相続', quality: 'high',
+    macro: '相続贈与', cluster: 'gift', subcluster: 'settlement-tax-basic-deduction', tax_domain: 'inheritance_tax',
+    article_type: 'comparison_decision', freshness_sensitive: true,
+    title: '相続時精算課税の年110万円控除（2024年新設）｜暦年贈与とどう使い分ける？',
+    slug: 'settlement-tax-basic-deduction-2024',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm',
+    source_title: '国税庁タックスアンサー 相続時精算課税の選択',
+    hint: '年110万円基礎控除新設・暦年贈与との損得比較・申告要否',
+    search_intent: '相続時精算課税の新基礎控除と暦年贈与の比較を知りたい',
+    reader_problem: '新設の控除と従来の暦年贈与のどちらが有利か判断できない',
+    success_outcome: '改正後の制度比較で自分に適した贈与プランを選べる',
+    primary_question: '改正後は相続時精算課税と暦年贈与のどちらを選ぶべきか？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【一般事業者】個人事業主・法人横断
+  // ════════════════════════════════════════════════════════════
+  { persona: 'domestic_ec_seller', category: '帳簿・経費', quality: 'standard',
+    macro: '一般事業者', cluster: 'bookkeeping', subcluster: 'electronic-bookkeeping-law', tax_domain: 'bookkeeping_expenses',
+    article_type: 'basic_explainer', freshness_sensitive: true,
+    title: '電子帳簿保存法はいつから？個人事業主・小規模法人がやるべき最低限の対応',
+    slug: 'electronic-bookkeeping-law-minimum-actions',
+    source_url: 'https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/index.htm',
+    source_title: '国税庁 電子帳簿保存法関係',
+    hint: '電子取引データの保存義務・改ざん防止要件・検索要件・猶予措置',
+    search_intent: '電子帳簿保存法対応で最低限やるべきことを知りたい',
+    reader_problem: '電子取引データの保存義務がいつから・どう対応すべきか分からない',
+    success_outcome: '自社規模で必要な電子保存対応の最低ラインを把握できる',
+    primary_question: '電子帳簿保存法に対応するには最低限何をすればよいか？' },
+
+  { persona: 'beauty_salon_owner', category: '所得税', quality: 'standard',
+    macro: '一般事業者', cluster: 'opening-notification', subcluster: 'opening-notification-basics', tax_domain: 'income_tax',
+    article_type: 'filing_practice',
+    title: '個人事業主の開業届と青色申告承認申請｜出すべきタイミングと提出方法',
+    slug: 'opening-notification-blue-return-submission-guide',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm',
+    source_title: '国税庁タックスアンサー No.2070 青色申告制度',
+    hint: '開業届の提出期限・青色申告の特典・期限を逃した場合の対応',
+    search_intent: '開業届と青色申告承認申請のタイミング・手順を知りたい',
+    reader_problem: '開業届と青色申告のタイミングを逃すとどうなるか不安',
+    success_outcome: '開業に必要な届出のタイミングと手順を理解できる',
+    primary_question: '開業届と青色申告承認申請はいつまでに出すべきか？' },
+
+  // ════════════════════════════════════════════════════════════
+  //  【税目実務】源泉徴収・定額減税
+  // ════════════════════════════════════════════════════════════
+  { persona: 'beauty_salon_owner', category: '所得税', quality: 'high',
+    macro: '税目実務', cluster: 'withholding', subcluster: 'fixed-amount-tax-reduction', tax_domain: 'income_tax',
+    article_type: 'filing_practice', freshness_sensitive: true,
+    title: '定額減税の月次減税事務｜小規模事業者が押さえる手続きと従業員への対応',
+    slug: 'fixed-amount-tax-reduction-monthly-procedure',
+    source_url: 'https://www.nta.go.jp/users/gensen/teigakugenzei/index.htm',
+    source_title: '国税庁 定額減税特設サイト',
+    hint: '月次減税事務・年調減税事務・対象者把握・控除しきれない場合',
+    search_intent: '定額減税の事業者側の事務処理を理解したい',
+    reader_problem: '減税事務がいつ・どう必要か、従業員別の処理が分からない',
+    success_outcome: '小規模事業者として最低限やるべき定額減税の事務手順を理解できる',
+    primary_question: '定額減税で事業者は何をどう処理すればよいか？' },
 ];
 
 module.exports = { TOPICS };
