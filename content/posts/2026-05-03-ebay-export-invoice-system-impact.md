@@ -16,15 +16,15 @@ reader_problem: "インボイス制度の対象範囲が不明で、自分が対
 success_outcome: "輸出セラーとしてインボイス制度への対応要否を判断できる"
 primary_question: "eBay輸出セラーはインボイス制度に対応する必要があるか？"
 summary: "eBay輸出は売上先が海外なら原則として日本の買手向けインボイス発行は不要です。ただし国内仕入れ・還付・国内販売併用では対応要否が変わります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-03T20:35:04.075+09:00"
 publish_at: "2026-05-04T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-04T17:42:18.961+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-03T00:49:06.204Z"
-updated_at: "2026-05-03T20:35:04.075+09:00"
+updated_at: "2026-05-04T17:42:18.961+09:00"
 publish_slot: "evening"
 ---
 
