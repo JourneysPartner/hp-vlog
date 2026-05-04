@@ -16,7 +16,7 @@ reader_problem: "TTB/TTS/TTMの違いや計上日基準が分からず、仕訳�
 success_outcome: "為替レートの選び方と仕訳方法を理解し、正しく記帳できる"
 primary_question: "eBay輸出の外貨建て売上はどの為替レートで計上するか？"
 summary: "eBay輸出の売上は、原則として売上計上日の為替レートで円換算します。TTMを継続適用するのが一般的で、入金日との差額は為替差損益で処理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -24,7 +24,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-04T00:17:32.385Z"
-updated_at: "2026-05-04T00:17:32.385Z"
+updated_at: "2026-05-04T15:38:48.619+09:00"
 ---
 
 eBay輸出の売上は、**外貨で受け取っていても、日本円に換算して売上計上する**のが基本です。迷いやすいポイントは「いつのレートを使うか」と「TTB・TTS・TTMのどれを使うか」ですが、原則を押さえれば記帳は整理できます。
