@@ -16,15 +16,16 @@ reader_problem: "専従者の要件（6ヶ月超・年齢・他からの給与�
 success_outcome: "家族に給与を支払って経費化する要件と手続きを把握できる"
 primary_question: "家族を青色専従者にできる条件と給与額の目安は？"
 summary: "青色専従者にできる家族の条件は「生計一・15歳以上・原則6か月超専従」です。届出の期限、給与額の決め方、年末調整まで時系列で確認できます。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-05T18:12:15.030+09:00"
+publish_at: "2026-05-06T11:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-05T00:42:09.748Z"
-updated_at: "2026-05-05T00:42:09.748Z"
+updated_at: "2026-05-05T18:12:15.030+09:00"
+publish_slot: "morning"
 ---
 
 この記事では、国内EC物販セラーが家族を青色事業専従者にする際の申告・届出手続きを時系列で整理します。結論として、経費にできるかどうかは「家族だから」ではなく、専従者の要件を満たし、期限内に届出を出し、仕事内容に見合う給与額で継続的に支払っているかで決まります。
