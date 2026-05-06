@@ -16,15 +16,15 @@ reader_problem: "専従者の要件（6ヶ月超・年齢・他からの給与�
 success_outcome: "家族に給与を支払って経費化する要件と手続きを把握できる"
 primary_question: "家族を青色専従者にできる条件と給与額の目安は？"
 summary: "青色専従者にできる家族の条件は「生計一・15歳以上・原則6か月超専従」です。届出の期限、給与額の決め方、年末調整まで時系列で確認できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-05T18:12:15.030+09:00"
 publish_at: "2026-05-06T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-06T11:35:22.056+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-05T00:42:09.748Z"
-updated_at: "2026-05-05T18:12:15.030+09:00"
+updated_at: "2026-05-06T11:35:22.056+09:00"
 publish_slot: "morning"
 ---
 
