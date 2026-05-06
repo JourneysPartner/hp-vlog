@@ -16,15 +16,15 @@ reader_problem: "基準期間・特定期間・新設法人の判定がそれぞ
 success_outcome: "自分（自社）が課税事業者になるか判断できる"
 primary_question: "消費税の課税事業者になるのはどの基準を満たしたときか？"
 summary: "消費税の課税事業者になるかは、原則として基準期間の課税売上高1,000万円超で判定します。特定期間や新設法人、課税事業者選択届出書の影響まで整理すれば、自社の判定がしやすくなります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-05T18:14:09.534+09:00"
 publish_at: "2026-05-06T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-06T17:39:54.849+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-05T00:42:56.776Z"
-updated_at: "2026-05-05T18:14:09.534+09:00"
+updated_at: "2026-05-06T17:39:54.849+09:00"
 publish_slot: "evening"
 ---
 
