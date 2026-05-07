@@ -16,15 +16,15 @@ reader_problem: "雑所得と事業所得のどちらにすべきか、損失通
 success_outcome: "自分の副業の所得区分を判断し、帳簿要件を満たせる"
 primary_question: "副業の収入は事業所得と雑所得のどちらで申告すべきか？"
 summary: "副業収入は売上額だけで決まりません。300万円基準、帳簿保存、反復継続性から、事業所得と雑所得の分かれ目を具体例で確認できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-06T19:29:25.109+09:00"
 publish_at: "2026-05-07T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-07T11:47:51.942+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-06T00:47:16.428Z"
-updated_at: "2026-05-06T19:29:25.109+09:00"
+updated_at: "2026-05-07T11:47:51.942+09:00"
 publish_slot: "morning"
 ---
 
