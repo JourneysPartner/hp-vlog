@@ -16,15 +16,15 @@ reader_problem: "電子取引データの保存義務がいつから・どう対
 success_outcome: "自社規模で必要な電子保存対応の最低ラインを把握できる"
 primary_question: "電子帳簿保存法に対応するには最低限何をすればよいか？"
 summary: "2024年1月以降、電子で受け取った請求書や明細は紙保存だけでは不十分です。個人事業主・小規模法人が行うべき最低限の保存対応を整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-06T19:47:47.713+09:00"
 publish_at: "2026-05-07T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-07T17:52:26.537+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-06T00:46:36.695Z"
-updated_at: "2026-05-06T19:47:47.713+09:00"
+updated_at: "2026-05-07T17:52:26.537+09:00"
 publish_slot: "evening"
 ---
 
