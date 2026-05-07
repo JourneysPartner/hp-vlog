@@ -16,15 +16,16 @@ reader_problem: "社会保険料負担まで含めると本当に得かどうか
 success_outcome: "自分の売上・経費・家族構成で法人化が有利か判断できる"
 primary_question: "個人事業主はどの売上規模で法人化を検討すべきか？"
 summary: "法人化の目安は売上ではなく利益と役員報酬設計です。インフルエンサー・クリエイター向けに、税率と社会保険料を含めた判断ラインを具体例で整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-07T19:54:09.083+09:00"
+publish_at: "2026-05-08T11:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-07T00:51:23.792Z"
-updated_at: "2026-05-07T00:51:23.792Z"
+updated_at: "2026-05-07T19:54:09.083+09:00"
+publish_slot: "morning"
 ---
 
 この記事を読めば、**個人事業主のまま続けるべきか、法人化を検討すべきか**を、税率だけでなく社会保険料まで含めて判断しやすくなります。  
