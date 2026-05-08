@@ -16,15 +16,16 @@ reader_problem: "7年加算と従来の3年加算がどう違うか、自分へ�
 success_outcome: "改正後の暦年贈与プランを見直せるようになる"
 primary_question: "7年加算ルールで暦年贈与は使えなくなるのか？"
 summary: "7年加算で暦年贈与が無意味になるわけではありません。3年加算との違い、延長4年分の100万円控除、見直すべき贈与設計を整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-08T13:10:17.682+09:00"
+publish_at: "2026-05-09T11:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-08T00:05:52.259Z"
-updated_at: "2026-05-08T00:05:52.259Z"
+updated_at: "2026-05-08T13:10:17.682+09:00"
+publish_slot: "morning"
 ---
 
 この記事は、すでに暦年贈与の基本は知っていて、「2024年改正で何が実際に変わるのか」を確認したい方向けです。結論からいうと、**7年加算ルールで暦年贈与が使えなくなるわけではありません**。ただし、亡くなる直前まで毎年同額を渡すだけの設計は、以前より効果を見込みにくくなりました。
