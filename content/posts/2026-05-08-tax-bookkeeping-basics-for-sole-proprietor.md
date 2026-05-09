@@ -16,15 +16,15 @@ reader_problem: "白色と青色で記帳要件がどう違うか・最低限何
 success_outcome: "個人事業主の記帳の最低ラインを理解し、自分で始められる"
 primary_question: "個人事業主は白色と青色で帳簿付けをどう変えるべきか？"
 summary: "個人事業主は白色でも記帳が必要です。白色は簡易な記録と保存、青色は承認申請のうえ帳簿を整備し、特別控除を受けるなら複式簿記が基本です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-08T13:12:13.242+09:00"
 publish_at: "2026-05-09T17:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-09T17:43:16.958+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-08T00:06:22.138Z"
-updated_at: "2026-05-08T13:12:13.242+09:00"
+updated_at: "2026-05-09T17:43:16.958+09:00"
 publish_slot: "evening"
 ---
 
