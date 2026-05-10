@@ -16,15 +16,16 @@ reader_problem: "PR案件・物品提供がそれぞれ収入になるかどう�
 success_outcome: "Instagram運用での収入種別と申告の必要性を整理できる"
 primary_question: "Instagramの企業案件報酬は確定申告すべきか？"
 summary: "Instagramの企業案件は、現金報酬だけでなく換金性のある商品提供も収入になる場合があります。PR案件・物品提供・タイアップ投稿ごとの申告要否を整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-10T11:45:07.599+09:00"
+publish_at: "2026-05-11T11:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-09T00:26:15.970Z"
-updated_at: "2026-05-09T00:26:15.970Z"
+updated_at: "2026-05-10T11:45:07.599+09:00"
+publish_slot: "morning"
 ---
 
 Instagramで企業案件を受けているインフルエンサー・クリエイター向けに、あなたの業種特有の論点をまとめました。結論からいうと、**Instagramの企業案件報酬は、現金だけでなく商品提供でも収入として確定申告が必要になる場合があります。**
