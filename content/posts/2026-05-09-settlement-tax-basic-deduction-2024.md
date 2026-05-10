@@ -16,15 +16,16 @@ reader_problem: "新設の控除と従来の暦年贈与のどちらが有利か
 success_outcome: "改正後の制度比較で自分に適した贈与プランを選べる"
 primary_question: "改正後は相続時精算課税と暦年贈与のどちらを選ぶべきか？"
 summary: "2024年から相続時精算課税にも年110万円の基礎控除が創設されました。暦年贈与との違い、7年加算の影響、有利不利の分かれ目を比較して判断しやすく整理しています。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-10T11:50:41.149+09:00"
+publish_at: "2026-05-11T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-09T00:26:45.640Z"
-updated_at: "2026-05-09T00:26:45.640Z"
+updated_at: "2026-05-10T11:50:41.149+09:00"
+publish_slot: "evening"
 ---
 
 相続時精算課税の年110万円控除が2024年から新設され、贈与の選び方は以前より複雑になりました。この記事を読めば、**相続時精算課税と暦年贈与のどちらが自分に合うか**、基本ルールから判断できるようになります。
