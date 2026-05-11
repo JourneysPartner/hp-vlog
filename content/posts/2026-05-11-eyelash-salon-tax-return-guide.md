@@ -16,15 +16,16 @@ reader_problem: "面貸しや業務委託で受け取る収入の所得区分が
 success_outcome: "まつエクサロン特有の収入・経費を整理して申告できる"
 primary_question: "まつエクサロンの確定申告ではどんな点に注意すべきか？"
 summary: "まつエクサロンの申告では、施術売上・面貸し収入・業務委託報酬を分けて整理することが重要です。グルーやリムーバーの経費区分、仕訳例、よくある誤りまで確認できます。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-11T22:46:22.338+09:00"
+publish_at: "2026-05-12T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-11T00:48:44.395Z"
-updated_at: "2026-05-11T00:48:44.395Z"
+updated_at: "2026-05-11T22:46:22.338+09:00"
+publish_slot: "evening"
 ---
 
 この記事は、まつエクサロンを運営している方に向けて、業種特有の収入区分と経費整理をまとめたものです。結論からいうと、**施術売上・面貸し収入・業務委託で受け取る報酬は、契約実態ごとに分けて記帳すること**が、確定申告で最も重要です。
