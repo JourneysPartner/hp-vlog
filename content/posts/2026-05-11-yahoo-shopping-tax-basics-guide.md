@@ -16,15 +16,15 @@ reader_problem: "ストア登録料や販売手数料の経費区分・売上計
 success_outcome: "ヤフーショッピング特有の費用処理と売上計上ルールを理解できる"
 primary_question: "ヤフーショッピング出店者は売上・販売手数料をどう処理するか？"
 summary: "ヤフーショッピングの売上は原則として販売額総額で計上し、販売手数料やストア登録料は必要経費として処理します。入金額ベースでの記帳で起きやすいズレも整理できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-11T22:44:12.958+09:00"
 publish_at: "2026-05-12T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-12T11:13:14.363+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-11T00:49:21.680Z"
-updated_at: "2026-05-11T22:44:12.958+09:00"
+updated_at: "2026-05-12T11:13:14.363+09:00"
 publish_slot: "morning"
 ---
 
