@@ -16,15 +16,16 @@ reader_problem: "物販と役務でみなし仕入率が異なるが管理方法
 success_outcome: "事業区分ごとの売上区分と消費税の影響を理解できる"
 primary_question: "脱毛サロンの店販商品売上は消費税上どう扱うか？"
 summary: "脱毛施術は役務提供、店販商品は通常は物販として区分します。簡易課税では事業区分でみなし仕入率が変わるため、レシート・メニュー・請求書で売上を分けて管理することが重要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-12T15:25:46.813+09:00"
+publish_at: "2026-05-13T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-12T00:56:08.658Z"
-updated_at: "2026-05-12T00:56:08.658Z"
+updated_at: "2026-05-12T15:25:46.813+09:00"
+publish_slot: "evening"
 ---
 
 この記事は、**脱毛サロンの消費税の原則は理解しているが、店販商品が混ざるケースで売上区分に迷っている方向け**です。
