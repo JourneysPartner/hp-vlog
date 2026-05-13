@@ -16,15 +16,15 @@ reader_problem: "配偶者控除と社保の扶養を混同し、扶養から外
 success_outcome: "社保上の扶養と税法上の扶養の違いを理解できる"
 primary_question: "個人事業主の配偶者は扶養に入れるか？年収の壁はいくらか？"
 summary: "個人事業主の配偶者は、税金の扶養と社会保険の扶養で判定基準が別です。103万円・130万円の混同を避けるため、年収と所得、国保・国民年金の扱いを整理して確認しましょう。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "令和8年現在の税制を基にしているか、今一度再考してください。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-13T00:37:34.720Z"
-updated_at: "2026-05-13T00:37:34.720Z"
+updated_at: "2026-05-13T20:37:37.112+09:00"
 ---
 
 この記事は、フリマ・転売セラーとして活動する個人事業主の方が、**税法上の扶養と社会保険上の扶養をどう分けて考えるか**を整理するための記事です。  
