@@ -16,15 +16,15 @@ reader_problem: "プラットフォーム手数料や換金タイミングで収
 success_outcome: "TikTok収益の所得区分・経費の扱いを実務上整理できる"
 primary_question: "TikTokの収益はどの所得区分で、どう申告すべきか？"
 summary: "TikTok収益は一律ではなく、継続性や事業性で事業所得・雑所得が分かれます。LIVEギフトや投げ銭の計上時期、手数料控除後の入金処理、必要経費の考え方を実務ベースで整理しました。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-12T15:23:25.002+09:00"
 publish_at: "2026-05-13T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-13T11:45:21.804+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-12T00:55:28.430Z"
-updated_at: "2026-05-12T15:23:25.002+09:00"
+updated_at: "2026-05-13T11:45:21.804+09:00"
 publish_slot: "morning"
 ---
 
