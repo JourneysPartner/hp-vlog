@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "comment": "今後自動生成から外したいテーマを記録するファイル。topic-selector / regenerate-draft で参照される。各 entry の type は slug / subcluster / cluster / primary_question / keyword / topic_id のいずれか。expires_at が空なら無期限、ISO 8601 が入っていればその時刻まで有効。active=false にすると一時的に無効化できる。",
+  "entries": [
+    {
+      "id": "manual-fixed-amount-tax-reduction-2026-05-04",
+      "type": "subcluster",
+      "value": "fixed-amount-tax-reduction",
+      "reason": "令和6年（2024年）限定の単年制度。2026年現在は実務上の関心がほぼ消えており、通常記事として再出力しない。",
+      "created_at": "2026-05-04T00:00:00+09:00",
+      "expires_at": "",
+      "source": "manual",
+      "active": true
+    },
+    {
+      "id": "manual-fixed-amount-keyword-2026-05-04",
+      "type": "keyword",
+      "value": "定額減税",
+      "reason": "令和6年限定の単年制度。通常記事として再出力しない（過去制度の解説記事を書きたい場合は historical_only オプションで明示的に許可すること）。",
+      "created_at": "2026-05-04T00:00:00+09:00",
+      "expires_at": "",
+      "source": "manual",
+      "active": true
+    }
+  ]
+}

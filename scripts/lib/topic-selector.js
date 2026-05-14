@@ -26,6 +26,7 @@ const { readAllPostsSorted } = require('./site-corpus');
 const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
+const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
 
 const SIM_THRESHOLD_VS_CORPUS  = 0.55;
 const SIM_THRESHOLD_BETWEEN_PAIR = 0.45;
@@ -148,6 +149,53 @@ function selectDailyTopics(topics, options = {}) {
 
   if (candidates.length === 0) {
     explanation.warnings = ['すべてのトピックが既存slugと重複（pool枯渇）'];
+    return { picks: [], explanation };
+  }
+
+  // 2.5. 単年限定・期限切れトピックを除外（historical_only / valid_to / disabled）
+  const timeLimitedExcluded = [];
+  candidates = candidates.filter(t => {
+    const r = isTimeLimitedExpired(t, now);
+    if (r.expired) {
+      timeLimitedExcluded.push({ slug: t.slug, reason: r.reason });
+      return false;
+    }
+    return true;
+  });
+  explanation.steps.push({
+    step: 'filter-time-limited',
+    blocked: timeLimitedExcluded.length,
+    remaining: candidates.length,
+    blockedDetails: timeLimitedExcluded.slice(0, 5),
+  });
+
+  // 2.7. グローバル denylist（topic-denylist.json）でフィルタ
+  const denylist = loadDenylist();
+  const denylistExcluded = [];
+  candidates = candidates.filter(t => {
+    const hit = findMatchingEntry(t, denylist, now);
+    if (hit) {
+      denylistExcluded.push({
+        slug: t.slug,
+        denyType: hit.type,
+        denyValue: hit.value,
+        reason: hit.reason,
+      });
+      return false;
+    }
+    return true;
+  });
+  explanation.steps.push({
+    step: 'filter-denylist',
+    blocked: denylistExcluded.length,
+    remaining: candidates.length,
+    blockedDetails: denylistExcluded.slice(0, 5),
+  });
+
+  if (candidates.length === 0) {
+    explanation.warnings = (explanation.warnings || []).concat([
+      'denylist / 単年限定で候補が枯渇しました',
+    ]);
     return { picks: [], explanation };
   }
 
