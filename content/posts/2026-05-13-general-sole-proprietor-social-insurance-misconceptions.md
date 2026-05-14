@@ -16,15 +16,15 @@ reader_problem: "配偶者控除と社保の扶養を混同し、扶養から外
 success_outcome: "社保上の扶養と税法上の扶養の違いを理解できる"
 primary_question: "個人事業主の配偶者は扶養に入れるか？年収の壁はいくらか？"
 summary: "個人事業主世帯では、税法上の配偶者控除と社会保険上の扶養は別制度です。令和8年時点の基準で、税は所得判定、国保・国民年金は原則扶養なしで整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-13T20:41:52.038+09:00"
 publish_at: "2026-05-14T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-14T11:34:32.726+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-13T00:37:34.720Z"
-updated_at: "2026-05-13T20:41:52.038+09:00"
+updated_at: "2026-05-14T11:34:32.726+09:00"
 publish_slot: "morning"
 ---
 
