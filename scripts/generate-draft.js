@@ -10,6 +10,7 @@ const { TOPICS } = require('./topic-pool');
 const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt } = require('./lib/tax-authority-refs');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
+const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 
 // ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
 const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
@@ -919,6 +920,48 @@ async function main() {
     const existing = fs.readFileSync(filepath, 'utf8');
     console.log(`[regenerate] 対象: content/posts/${filename}`);
     console.log(`[regenerate] コメント: ${comment}`);
+
+    // ── テーマ禁止チェック ──────────────────────────────────────
+    // 当該記事の frontmatter から topic 情報を取り出し、以下のいずれかなら
+    // 同テーマ再生成をしない（明示的に止める）:
+    //   1. denylist (data/topic-denylist.json) に登録済み
+    //   2. 単年限定 / historical_only / valid_to が過ぎている
+    //   3. コメント自体が「今後このテーマは生成しない」と明示している
+    //      （review-revise 側で denylist 登録するが、念のためここでも再判定）
+    const { meta: existingMeta } = parseFrontmatter(existing);
+    const topicSnapshot = {
+      slug:           existingMeta.slug,
+      title:          existingMeta.title,
+      cluster:        existingMeta.cluster,
+      subcluster:     existingMeta.subcluster,
+      category:       existingMeta.category,
+      primary_persona: existingMeta.primary_persona,
+      primary_question: existingMeta.primary_question,
+      search_intent:  existingMeta.search_intent,
+      reader_problem: existingMeta.reader_problem,
+      historical_only: existingMeta.historical_only === 'true',
+      valid_to:       existingMeta.valid_to,
+    };
+    const denyHit = findMatchingEntry(topicSnapshot, loadDenylist(), new Date());
+    const timeLimited = isTimeLimitedExpired(topicSnapshot, new Date());
+    const commentDeny = detectDenyIntent(comment);
+    if (denyHit || timeLimited.expired || commentDeny) {
+      const reasons = [];
+      if (denyHit) reasons.push(`denylist[${denyHit.type}=${denyHit.value}]`);
+      if (timeLimited.expired) reasons.push(`time_limited[${timeLimited.reason}]`);
+      if (commentDeny) reasons.push('コメントで明示的に「今後このテーマは生成しない」指示');
+      console.error(`[regenerate] テーマ禁止のため再生成を中止: ${reasons.join(' / ')}`);
+      console.error('[regenerate] frontmatter の review_status を needs_revision のまま残し、再生成スキップを報告します。');
+
+      // 既存ファイルは触らず、GitHub Actions の outputs にスキップ理由を出力
+      const ghOutput = process.env.GITHUB_OUTPUT;
+      if (ghOutput) {
+        fs.appendFileSync(ghOutput, `regenerate_skipped=true\n`);
+        fs.appendFileSync(ghOutput, `regenerate_skip_reason=${reasons.join('; ')}\n`);
+      }
+      // 非ゼロ終了で「スキップ」を表現（CIから検知しやすく）
+      process.exit(2);
+    }
 
     if (!process.env.OPENAI_API_KEY) {
       console.error('[regenerate] OPENAI_API_KEY が必要です');

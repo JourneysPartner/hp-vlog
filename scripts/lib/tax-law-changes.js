@@ -18,9 +18,23 @@
  *   reference: 主たる根拠 URL
  */
 
+/**
+ * 各エントリの活性度メタ:
+ *   status:
+ *     'active'              — 現役で検索価値が高い（プロンプトに含めてよい）
+ *     'transitional'        — 経過措置中で実務影響あり（含めてよい）
+ *     'historical_reference' — 過去の重要論点だが通常記事には不要（含めない）
+ *     'expired'              — 期限切れ（通常記事から完全除外）
+ *   valid_to: 期限がある場合の終了日（ISO）。current date > valid_to なら参照対象から外す。
+ *
+ * 注: status='historical_reference' / 'expired' のものは getChangesForTopic で返さない。
+ *     定額減税は令和6年（2024年）限定 → expired 扱い。
+ */
 const CHANGES = [
   {
     key: 'invoice_transitional_measures',
+    status: 'transitional',
+    valid_to: '2029-09-30',
     title: 'インボイス制度の経過措置（80%・50%控除の縮小スケジュール）',
     summary: '2023年10月開始のインボイス制度では、免税事業者からの仕入につき経過措置（80%控除：2023.10〜2026.9 / 50%控除：2026.10〜2029.9）が設けられている。読者の事業区分・取引相手によって影響時期が異なる。',
     tax_domain: 'invoice_system',
@@ -29,6 +43,8 @@ const CHANGES = [
   },
   {
     key: 'invoice_2wari_special',
+    status: 'transitional',
+    valid_to: '2026-09-30',
     title: 'インボイス登録した小規模事業者向けの 2 割特例',
     summary: '免税事業者がインボイス登録した場合、納税額を売上税額の2割にできる特例。期間限定（令和5年10月1日〜令和8年9月30日属する課税期間まで）。対象は基準期間の課税売上1000万円以下等。',
     tax_domain: 'invoice_system',
@@ -37,6 +53,8 @@ const CHANGES = [
   },
   {
     key: 'electronic_bookkeeping_law',
+    status: 'active',
+    valid_to: '',
     title: '電子帳簿保存法（電子取引データの保存義務）',
     summary: '2024年1月から、電子取引（メール添付請求書・ECモール明細等）で受領したデータは電子保存が義務化。改ざん防止要件・検索要件を満たす必要がある。猶予措置はあるが整備が前提。',
     tax_domain: 'bookkeeping_expenses',
@@ -45,6 +63,8 @@ const CHANGES = [
   },
   {
     key: 'gift_tax_seven_year_addback',
+    status: 'active',
+    valid_to: '',
     title: '生前贈与の相続財産加算が 3 年→ 7 年に拡大',
     summary: '令和6年（2024年）以降の贈与から、相続開始前 7 年以内の暦年贈与が相続財産に加算される（段階適用）。延長分の100万円控除はあるが、暦年贈与プランは見直しが必要。',
     tax_domain: 'inheritance_tax',
@@ -53,6 +73,8 @@ const CHANGES = [
   },
   {
     key: 'inheritance_settlement_basic_deduction',
+    status: 'active',
+    valid_to: '',
     title: '相続時精算課税制度の基礎控除（年110万円）創設',
     summary: '令和6年から、相続時精算課税を選択していても年110万円までの贈与は申告不要・相続時加算なし。暦年贈与との併用設計が変わった。',
     tax_domain: 'inheritance_tax',
@@ -61,21 +83,34 @@ const CHANGES = [
   },
   {
     key: 'fixed_amount_tax_reduction',
+    status: 'expired',
+    valid_to: '2024-12-31',
     title: '定額減税（令和6年分の所得税・住民税）',
-    summary: '令和6年分について、本人および同一生計配偶者・扶養親族 1 人につき所得税3万円・住民税1万円の定額減税。給与・年金・事業所得で扱いが異なる。事業者は従業員の月次減税事務にも影響。',
+    summary: '令和6年分限定の単年制度。2025年以降は通常記事として扱わない（過去制度の振り返り記事を書く場合のみ historical_reference として参照可能）。',
     tax_domain: 'income_tax',
     personas: ['beauty_salon_owner', 'influencer_creator', 'domestic_ec_seller'],
     reference: 'https://www.nta.go.jp/users/gensen/teigakugenzei/index.htm',
   },
 ];
 
+function isChangeStillRelevant(change, now = new Date()) {
+  if (change.status === 'expired' || change.status === 'historical_reference') return false;
+  if (change.valid_to) {
+    const vt = new Date(change.valid_to);
+    if (!isNaN(vt) && vt < now) return false;
+  }
+  return true;
+}
+
 /**
  * 候補トピックに該当する改正論点を返す（ペルソナ × tax_domain で照合）。
+ * status='expired' / 'historical_reference' のものは自動的に除外する。
  */
-function getChangesForTopic(topic, limit = 2) {
+function getChangesForTopic(topic, limit = 2, now = new Date()) {
   const persona  = topic.persona || topic.primary_persona;
   const taxDomain = topic.tax_domain;
   const matches = CHANGES.filter(c => {
+    if (!isChangeStillRelevant(c, now)) return false;
     const personaMatch = persona ? c.personas.includes(persona) : true;
     const domainMatch  = taxDomain ? c.tax_domain === taxDomain : true;
     return personaMatch && domainMatch;
@@ -92,4 +127,5 @@ module.exports = {
   CHANGES,
   getChangesForTopic,
   formatChangesForPrompt,
+  isChangeStillRelevant,
 };

@@ -2,6 +2,8 @@
 
 const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
+const { appendEntries } = require('./lib/denylist-store');
+const { detectDenyIntent, buildEntriesFromContext } = require('../../scripts/lib/denylist');
 
 /**
  * review-revise — 「差し戻し」操作（自動再生成付き）
@@ -21,7 +23,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { filename, comment, ref } = JSON.parse(event.body || '{}');
+    const { filename, comment, ref, suppress_topic } = JSON.parse(event.body || '{}');
 
     if (!filename) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
@@ -32,6 +34,31 @@ exports.handler = async (event) => {
 
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
+
+    // ── テーマ禁止判定（コメントの明示指示 or suppress_topic フラグ）─
+    // 既存記事の frontmatter から topic 情報を抜き、denylist に登録する。
+    // 登録された entries は regenerate-draft 側でも、翌日以降の daily-draft でも参照される。
+    const fmExisting = {};
+    for (const line of (content.match(/^---[\s\S]+?---/) || [''])[0].split(/\r?\n/)) {
+      const m = line.match(/^([a-zA-Z_]+):\s*"?(.*?)"?\s*$/);
+      if (m) fmExisting[m[1]] = m[2].replace(/^"(.*)"$/, '$1');
+    }
+    const intentMatch = detectDenyIntent(comment);
+    const shouldSuppress = suppress_topic === true || intentMatch;
+    let denylistAdded = [];
+    if (shouldSuppress) {
+      const newEntries = buildEntriesFromContext(fmExisting, comment, 'review_revise');
+      try {
+        const result = await appendEntries(newEntries,
+          `denylist: review-revise ${filename}（${intentMatch ? 'コメントの明示指示' : 'チェックボックス指定'}）`);
+        denylistAdded = result.added || [];
+        if (denylistAdded.length > 0) {
+          console.log(`[review-revise] denylist に ${denylistAdded.length} 件追加: ${denylistAdded.map(e => e.type + '=' + e.value).join(', ')}`);
+        }
+      } catch (e) {
+        console.error(`[review-revise] denylist 更新失敗（処理は続行）: ${e.message}`);
+      }
+    }
 
     const now = nowJST();
     const updated = updateFrontmatter(content, {
@@ -118,14 +145,19 @@ exports.handler = async (event) => {
       }
     }
 
+    const suppressionMsg = denylistAdded.length > 0
+      ? `\n※このテーマは今後生成しない設定に登録しました（denylist に ${denylistAdded.length} 件追加）。再生成は自動でスキップされます。`
+      : '';
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `差し戻しを受け付けました。自動再生成を開始しています。完了後に Chatwork で通知します。`,
+        message: `差し戻しを受け付けました。自動再生成を開始しています。完了後に Chatwork で通知します。${suppressionMsg}`,
         action: 'revise',
         filename,
         comment: comment.trim(),
+        denylistAdded: denylistAdded.map(e => ({ type: e.type, value: e.value })),
       }),
     };
   } catch (err) {

@@ -737,9 +737,13 @@ const TOPICS = [
   // ════════════════════════════════════════════════════════════
   //  【税目実務】源泉徴収・定額減税・消費税基本・帳簿
   // ════════════════════════════════════════════════════════════
+  // 注: 定額減税は令和6年（2024年）限定の単年制度のため、
+  //     historical_only / time_limited フラグで通常自動生成から外している。
+  //     過去制度の振り返り記事として書く場合は、明示的に topic 側で許可すること。
   { persona: 'beauty_salon_owner', category: '所得税', quality: 'high',
     macro: '税目実務', cluster: 'withholding', subcluster: 'fixed-amount-tax-reduction', tax_domain: 'income_tax',
     article_type: 'filing_practice', freshness_sensitive: true,
+    time_limited: true, valid_to: '2024-12-31', historical_only: true,
     title: '定額減税の月次減税事務｜小規模事業者が押さえる手続きと従業員への対応',
     slug: 'fixed-amount-tax-reduction-monthly-procedure',
     source_url: 'https://www.nta.go.jp/users/gensen/teigakugenzei/index.htm',

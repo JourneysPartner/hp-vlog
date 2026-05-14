@@ -2,6 +2,8 @@
 
 const { getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
+const { appendEntries } = require('./lib/denylist-store');
+const { buildEntriesFromContext } = require('../../scripts/lib/denylist');
 
 /**
  * review-skip — 「今回は見送り」操作（PR自動クローズ付き）
@@ -21,7 +23,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { filename, ref } = JSON.parse(event.body || '{}');
+    const { filename, ref, suppress_topic } = JSON.parse(event.body || '{}');
 
     if (!filename) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
@@ -30,8 +32,29 @@ exports.handler = async (event) => {
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
 
-    // frontmatter からタイトルを取得
+    // frontmatter からタイトル + denylist 用メタを取得
     const fmTitle = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const fmExisting = {};
+    for (const line of (content.match(/^---[\s\S]+?---/) || [''])[0].split(/\r?\n/)) {
+      const m = line.match(/^([a-zA-Z_]+):\s*"?(.*?)"?\s*$/);
+      if (m) fmExisting[m[1]] = m[2].replace(/^"(.*)"$/, '$1');
+    }
+
+    // suppress_topic フラグがあれば denylist にも登録
+    let denylistAdded = [];
+    if (suppress_topic === true) {
+      const newEntries = buildEntriesFromContext(fmExisting, '見送り時にチェック', 'review_skip');
+      try {
+        const result = await appendEntries(newEntries,
+          `denylist: review-skip ${filename}（このテーマを今後生成しない指定）`);
+        denylistAdded = result.added || [];
+        if (denylistAdded.length > 0) {
+          console.log(`[review-skip] denylist に ${denylistAdded.length} 件追加: ${denylistAdded.map(e => e.type + '=' + e.value).join(', ')}`);
+        }
+      } catch (e) {
+        console.error(`[review-skip] denylist 更新失敗（処理は続行）: ${e.message}`);
+      }
+    }
 
     const now = nowJST();
     const updated = updateFrontmatter(content, {
@@ -88,13 +111,18 @@ exports.handler = async (event) => {
       }
     }
 
+    const suppressionMsg = denylistAdded.length > 0
+      ? `\n※このテーマは今後生成しない設定に登録しました（denylist に ${denylistAdded.length} 件追加）。`
+      : '';
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `見送りにしました: ${fmTitle || filename}`,
+        message: `見送りにしました: ${fmTitle || filename}${suppressionMsg}`,
         action: 'skip',
         filename,
+        denylistAdded: denylistAdded.map(e => ({ type: e.type, value: e.value })),
       }),
     };
   } catch (err) {

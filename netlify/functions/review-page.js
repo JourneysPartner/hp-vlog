@@ -171,6 +171,15 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       <label for="reviewComment" class="form-label fw-bold">修正コメント</label>
       <textarea id="reviewComment" class="form-control" rows="4"
         placeholder="修正してほしい内容を具体的に記入してください…"></textarea>
+      <div class="form-check mt-3">
+        <input class="form-check-input" type="checkbox" id="suppressTopic">
+        <label class="form-check-label" for="suppressTopic">
+          このテーマを<strong>今後生成しない</strong>（denylist に追加 / 再生成もスキップ）
+        </label>
+      </div>
+      <div class="form-text">
+        コメントに「今後…書かないでください」「もう生成しないでください」等の文言があれば、自動で禁止登録されます。
+      </div>
     </div>
   </div>
 
@@ -189,6 +198,9 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
     </button>
     <button class="btn btn-skip btn-lg px-4" id="btnSkip" onclick="handleAction('skip')">
       <i class="bi bi-skip-forward me-1"></i>今回は見送り
+    </button>
+    <button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" onclick="handleAction('skip', true)" title="このテーマを今後生成しない設定にしたうえで見送る">
+      <i class="bi bi-slash-circle me-1"></i>見送り＋今後このテーマを生成しない
     </button>
   </div>
 </div>
@@ -212,16 +224,25 @@ function toggleRevise() {
   }
 }
 
-async function handleAction(action) {
+async function handleAction(action, forceSuppress) {
   const publishAt = document.getElementById('publishAt').value;
   const comment   = document.getElementById('reviewComment').value;
   const resultEl  = document.getElementById('resultMsg');
+  const suppressCheckbox = document.getElementById('suppressTopic');
+  const suppress_topic = (suppressCheckbox && suppressCheckbox.checked) || forceSuppress === true;
 
   // 差し戻し時はコメント必須
   if (action === 'revise' && !comment.trim()) {
     resultEl.className = 'result-msg show error';
     resultEl.textContent = '修正コメントを入力してください。';
     return;
+  }
+
+  // 「今後生成しない」が選ばれている時は確認ダイアログ
+  if (suppress_topic) {
+    if (!confirm('このテーマを今後生成しない設定にします（denylist に追加されます）。よろしいですか？')) {
+      return;
+    }
   }
 
   // ボタン無効化
@@ -235,21 +256,28 @@ async function handleAction(action) {
     const res = await fetch(FUNC_BASE + endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: FILENAME, publish_at: publishAt, comment, ref: REF || undefined }),
+      body: JSON.stringify({
+        filename: FILENAME, publish_at: publishAt, comment,
+        ref: REF || undefined,
+        suppress_topic: suppress_topic,
+      }),
     });
 
     // 202 Accepted (background function) はボディが空なので JSON 解析を試みない
     const data = res.status === 202 ? {} : await res.json().catch(() => ({}));
     if (res.ok) {
       resultEl.className = 'result-msg show success';
+      const suppressNote = (data.denylistAdded && data.denylistAdded.length > 0)
+        ? '\\n※このテーマは今後生成しない設定に登録しました（' + data.denylistAdded.length + ' 件）。再生成も自動でスキップされます。'
+        : '';
       if (action === 'approve') {
         resultEl.textContent = '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
-        resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。';
+        resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
       } else if (action === 'skip') {
-        resultEl.textContent = '見送りにしました。PRは自動でクローズされます。';
+        resultEl.textContent = '見送りにしました。PRは自動でクローズされます。' + suppressNote;
       } else {
-        resultEl.textContent = data.message || '処理が完了しました。';
+        resultEl.textContent = (data.message || '処理が完了しました。') + suppressNote;
       }
     } else {
       throw new Error(data.error || 'エラーが発生しました。');
