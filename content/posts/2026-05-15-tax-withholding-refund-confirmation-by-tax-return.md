@@ -16,15 +16,16 @@ reader_problem: "報酬から引かれた税金が取り戻せるのか・どう
 success_outcome: "源泉徴収された税金の精算方法と還付申告の流れを理解できる"
 primary_question: "源泉徴収された税金は確定申告で取り戻せるのか？"
 summary: "報酬から源泉徴収された税金は、そのまま確定ではありません。確定申告で年間所得税を計算し直し、引かれ過ぎなら還付、不足なら追納になります。支払調書がなくても申告は可能です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-05-15T15:26:40.897+09:00"
+publish_at: "2026-05-16T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-15T00:39:53.813Z"
-updated_at: "2026-05-15T00:39:53.813Z"
+updated_at: "2026-05-15T15:26:40.897+09:00"
+publish_slot: "evening"
 ---
 
 この記事で分かることは、「報酬から天引きされた税金はそのまま確定ではなく、確定申告で精算される」という点です。特にPR案件、記事監修、出演料などで源泉徴収されるインフルエンサー・クリエイターの方向けに、還付の考え方と申告の実務を整理します。
