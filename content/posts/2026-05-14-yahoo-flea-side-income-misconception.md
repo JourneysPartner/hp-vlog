@@ -16,15 +16,15 @@ reader_problem: "生活用動産だから不要と思い込んでいるが本当
 success_outcome: "生活用動産か事業性かの境目と、確定申告が必要なケースを判断できる"
 primary_question: "ヤフーフリマの売上は本当に確定申告がいらないのか？"
 summary: "ヤフーフリマの売上はすべて申告不要ではありません。生活用動産なら非課税のことがありますが、仕入れて売る転売や継続的な販売は課税対象になり得ます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-14T17:12:07.230+09:00"
 publish_at: "2026-05-15T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-15T11:16:57.618+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-14T00:27:49.480Z"
-updated_at: "2026-05-14T17:12:07.230+09:00"
+updated_at: "2026-05-15T11:16:57.618+09:00"
 publish_slot: "morning"
 ---
 
