@@ -30,6 +30,23 @@ const LIFE_STAGES = [
   { id: 'within-10months',      label: '10ヶ月以内（相続税申告期限）', order: 6 },
   { id: 'after-filing',         label: '申告後',                       order: 7 },
   { id: 'second-inheritance',   label: '二次相続検討期',               order: 8 },
+  { id: 'multi-year-review',    label: '数年後の見直し期',             order: 9 },
+];
+
+// ── 相続人の立場（heir_role）— 相続記事内の差別化に使う
+// 注: primary_persona は validate.js 互換で 'inheritance_client' を維持。
+//     heir_role は記事ごとの細分化（タイトル / 検索意図向け）に使う。
+const HEIR_ROLES = [
+  { id: 'spouse',             label: '配偶者' },
+  { id: 'child',              label: '子ども' },
+  { id: 'one-of-heirs',       label: '相続人の一人' },
+  { id: 'sole-heir',          label: '相続人が少ない方' },
+  { id: 'sibling',            label: '兄弟相続の家族' },
+  { id: 'remarried-family',   label: '再婚家庭' },
+  { id: 'no-child-couple',    label: '子どもがいない夫婦' },
+  { id: 'business-owner-family', label: '会社オーナー家族' },
+  { id: 'sole-proprietor-family', label: '個人事業主の遺族' },
+  { id: 'real-estate-heir',   label: '不動産を相続する家族' },
 ];
 
 // ── 取引パターン
@@ -66,6 +83,10 @@ const PROCEDURE_STAGES = [
   { id: 'amendment-return',     label: '修正申告・更正の請求' },
   { id: 'initial-immediate',    label: '初動（最初の手続き）' },
   { id: 'bank-procedure',       label: '銀行口座の解約・凍結解除' },
+  // 相続実務向けに追加
+  { id: 'document-collection',  label: '戸籍・残高証明・評価資料の収集' },
+  { id: 'valuation-check',      label: '財産評価' },
+  { id: 'second-inheritance-review', label: '二次相続の見直し' },
 ];
 
 // ── 痛点（pain point）— 業種横断で使える
@@ -95,6 +116,18 @@ const PAIN_POINTS = [
   { id: 'family-dispute',            label: '家族間で揉めそう',                     macros: ['相続贈与'] },
   { id: 'bank-frozen',               label: '銀行口座の凍結対応',                   macros: ['相続贈与'] },
   { id: 'business-succession',       label: '事業承継の進め方',                     macros: ['相続贈与', '一般事業者'] },
+  // 相続系（追加）
+  { id: 'name-deposits-concern',     label: '名義預金とみなされる不安',             macros: ['相続贈与'] },
+  { id: 'lifetime-gift-addback',     label: '生前贈与が相続税に戻るか不安',         macros: ['相続贈与'] },
+  { id: 'life-insurance-exemption',  label: '生命保険金の非課税枠の使い方',         macros: ['相続贈与'] },
+  { id: 'funeral-debt-deduction',    label: '借入金・葬式費用の控除',               macros: ['相続贈与'] },
+  { id: 'second-inheritance-loss',   label: '二次相続で損しないか',                 macros: ['相続贈与'] },
+  { id: 'heir-confirmation',         label: '相続人の確定（戸籍収集）',             macros: ['相続贈与'] },
+  { id: 'company-shares-valuation',  label: '自社株（未上場株式）の評価と承継',     macros: ['相続贈与'] },
+  { id: 'real-estate-registration-pain', label: '相続登記の進め方',                 macros: ['相続贈与'] },
+  { id: 'amendment-needed',          label: '評価額や控除の見直し（修正申告）',     macros: ['相続贈与'] },
+  { id: 'rental-property-treatment', label: '賃貸不動産の評価と相続税',             macros: ['相続贈与'] },
+  { id: 'vacant-house-handling',     label: '空き家相続の選択肢',                   macros: ['相続贈与'] },
   // 法人成り・税目実務
   { id: 'incorporation-threshold',   label: '法人成りのタイミング',                 macros: ['物販', 'インフルエンサー', 'サロン', '一般事業者'] },
   { id: 'consumption-tax-judgement', label: '消費税課税事業者の判定',               macros: ['物販', 'インフルエンサー', 'サロン', '一般事業者', '税目実務'] },
@@ -171,6 +204,7 @@ function lookup(arr, id) {
 module.exports = {
   BUSINESS_STAGES,
   LIFE_STAGES,
+  HEIR_ROLES,
   TRANSACTION_PATTERNS,
   PROCEDURE_STAGES,
   PAIN_POINTS,

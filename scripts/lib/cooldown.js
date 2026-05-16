@@ -14,11 +14,16 @@
 
 const { postReferenceDate } = require('./site-corpus');
 
+// cooldown 日数（短縮版）
+//   - 同 slug は永久ブロック（変更なし）
+//   - subcluster / cluster / persona×category は短縮し、候補が必要以上に減らないようにする
+//   - 同 slug の永久ブロック + similarity / time-limited / denylist が十分なフィルタになっているため、
+//     ここでは「近すぎるテーマの連発を防ぐ」程度の短い間隔で十分
 const DEFAULT_COOLDOWN = {
   slug:           Infinity,  // 同 slug は永久 NG
-  subcluster:     90,
-  cluster:        45,
-  personaCategory: 21,
+  subcluster:     30,        // 旧: 90日 → 短縮
+  cluster:        14,        // 旧: 45日 → 短縮
+  personaCategory: 7,        // 旧: 21日 → 短縮
 };
 
 /**
