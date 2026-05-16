@@ -216,6 +216,7 @@ function selectDailyTopics(topics, options = {}) {
   }
 
   // 4. 類似度フィルタ（vs コーパス）
+  // タイトルが違っても "場面として同じ" なら高スコアになるよう、シナリオ軸も渡す
   const afterSim = [];
   const simBlocked = [];
   for (const t of working) {
@@ -230,6 +231,11 @@ function selectDailyTopics(topics, options = {}) {
       subcluster: t.subcluster,
       persona: t.persona,
       category: t.category,
+      business_stage:   t.business_stage,
+      life_stage:       t.life_stage,
+      pain_point:       t.pain_point,
+      procedure_stage:  t.procedure_stage,
+      tax_domain:       t.tax_domain,
     };
     const hit = findSimilarInCorpus(candidateForSim, corpus, SIM_THRESHOLD_VS_CORPUS);
     if (hit) {
