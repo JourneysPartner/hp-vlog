@@ -22,6 +22,7 @@ const {
   PAIN_POINTS, ASSET_TYPES, RETAIL_PLATFORMS, INFLUENCER_CHANNELS, SALON_TYPES,
   MAIN_ARTICLE_TYPES, lookup,
 } = require('./scenario-axes');
+const { buildTitle } = require('./title-builder');
 
 // ── 文字列ヘルパー ────────────────────────────────────────────────
 function kebab(s) {
@@ -115,7 +116,7 @@ const INHERITANCE_STAGE_PAIN_MATRIX = {
     'real-estate-valuation', 'deadline-pressure', 'family-dispute',
     'bank-frozen', 'life-insurance-exemption', 'funeral-debt-deduction',
     'company-shares-valuation', 'name-deposits-concern', 'lifetime-gift-addback',
-    'rental-property-treatment', 'vacant-house-handling',
+    'rental-property-treatment', 'vacant-house-handling', 'heir-confirmation',
   ],
   'after-filing': [
     'real-estate-valuation', 'family-dispute', 'amendment-needed',
@@ -365,20 +366,27 @@ function expandRetail() {
         const pain = lookup(PAIN_POINTS, painId); if (!pain) continue;
         if (!pain.macros.includes('物販')) continue;
 
-        // 1 シナリオから 2 candidates（main + support）を作る
         const slugPrefix = `${platform.cluster}-${kebab(stageId)}-${kebab(painId)}`;
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'industry_example']);
         const pg = pairKey({ cluster: platform.cluster }, `${stage.id}-${pain.id}`);
 
-        const baseVars = { platform: platform.label, stage: stage.label, pain: pain.label };
+        const mainSlug = [platform.cluster, stage.id, pain.id, 'guide'].join('-');
+        const supSlug  = [platform.cluster, stage.id, pain.id, 'practice'].join('-');
+        const mainCtx = {
+          macro: '物販', article_type: mainType, cluster: platform.cluster,
+          persona: platform.persona, business_stage: stage.id, pain_point: pain.id,
+          platform_id: platform.id, slug: mainSlug,
+        };
+        const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
+
         out.push(buildTopic({
           macro: '物販', cluster: platform.cluster, persona: platform.persona, tax_domain: 'consumption_tax',
           subclusterParts: [stage.id, pain.id],
           slugParts: [platform.cluster, stage.id, pain.id, 'guide'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[mainType].retail, baseVars),
+          title: buildTitle(mainCtx),
           search_intent: `${platform.label}で${stage.label}にいる事業者が${pain.label}を理解したい`,
           reader_problem: pain.label,
           success_outcome: `${pain.label}を整理し、自分のケースで判断できる`,
@@ -391,7 +399,7 @@ function expandRetail() {
           slugParts: [platform.cluster, stage.id, pain.id, 'practice'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[supType].retail, baseVars),
+          title: buildTitle(supCtx),
           search_intent: `${platform.label}セラーが${pain.label}の実務でつまずく場面を解消したい`,
           reader_problem: `${pain.label} の実務処理が不安`,
           success_outcome: `${pain.label}を実務上どう処理するか具体的に分かる`,
@@ -418,7 +426,15 @@ function expandInfluencer() {
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'industry_example']);
         const pg = pairKey({ cluster: ch.cluster }, `${stage.id}-${pain.id}`);
-        const baseVars = { channel: ch.label, stage: stage.label, pain: pain.label };
+
+        const mainSlug = [ch.cluster, stage.id, pain.id, 'guide'].join('-');
+        const supSlug  = [ch.cluster, stage.id, pain.id, 'practice'].join('-');
+        const mainCtx = {
+          macro: 'インフルエンサー', article_type: mainType, cluster: ch.cluster,
+          persona: ch.persona, business_stage: stage.id, pain_point: pain.id,
+          channel_id: ch.id, slug: mainSlug,
+        };
+        const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
 
         out.push(buildTopic({
           macro: 'インフルエンサー', cluster: ch.cluster, persona: ch.persona, tax_domain: 'income_tax',
@@ -426,7 +442,7 @@ function expandInfluencer() {
           slugParts: [ch.cluster, stage.id, pain.id, 'guide'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[mainType].influencer, baseVars),
+          title: buildTitle(mainCtx),
           search_intent: `${ch.label}運用で${stage.label}にいるクリエイターが${pain.label}を理解したい`,
           reader_problem: pain.label,
           success_outcome: `${pain.label}を自分のケースで判断できる`,
@@ -439,7 +455,7 @@ function expandInfluencer() {
           slugParts: [ch.cluster, stage.id, pain.id, 'practice'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[supType].influencer, baseVars),
+          title: buildTitle(supCtx),
           search_intent: `${ch.label}運用者が${pain.label}の実務でつまずく場面を解消したい`,
           reader_problem: `${pain.label} の実務処理が不安`,
           success_outcome: `${pain.label}を実務上どう処理するか具体的に分かる`,
@@ -466,7 +482,15 @@ function expandSalon() {
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'industry_example']);
         const pg = pairKey({ cluster: sa.cluster }, `${stage.id}-${pain.id}`);
-        const baseVars = { salon_type: sa.label, stage: stage.label, pain: pain.label };
+
+        const mainSlug = [sa.cluster, stage.id, pain.id, 'guide'].join('-');
+        const supSlug  = [sa.cluster, stage.id, pain.id, 'practice'].join('-');
+        const mainCtx = {
+          macro: 'サロン', article_type: mainType, cluster: sa.cluster,
+          persona: sa.persona, business_stage: stage.id, pain_point: pain.id,
+          salon_id: sa.id, slug: mainSlug,
+        };
+        const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
 
         out.push(buildTopic({
           macro: 'サロン', cluster: sa.cluster, persona: sa.persona, tax_domain: 'income_tax',
@@ -474,7 +498,7 @@ function expandSalon() {
           slugParts: [sa.cluster, stage.id, pain.id, 'guide'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[mainType].salon, baseVars),
+          title: buildTitle(mainCtx),
           search_intent: `${sa.label}オーナーが${stage.label}にいるときの${pain.label}を整理したい`,
           reader_problem: pain.label,
           success_outcome: `${pain.label}を自分のサロンで判断できる`,
@@ -487,7 +511,7 @@ function expandSalon() {
           slugParts: [sa.cluster, stage.id, pain.id, 'practice'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[supType].salon, baseVars),
+          title: buildTitle(supCtx),
           search_intent: `${sa.label}が${pain.label}の実務でつまずく場面を解消したい`,
           reader_problem: `${pain.label} の実務処理が不安`,
           success_outcome: `${pain.label}を実務上どう処理するか具体的に分かる`,
@@ -521,10 +545,23 @@ function expandInheritance() {
 
   function pushPair({ subclusterParts, slugParts, pair_group, life_stage, pain_point,
                        asset_type, heir_role, procedure_stage,
-                       mainVars, supVars, mainExtra, supExtra }) {
+                       mainExtra, supExtra }) {
     const slugHash = slugParts.join('-');
+    const mainSlug = [...slugParts, 'guide'].join('-');
+    const supSlug  = [...slugParts, 'practice'].join('-');
     const mainType = deterministicTypeIndex(slugHash + '-m', ['basic_explainer', 'comparison_decision']);
     const supType  = deterministicTypeIndex(slugHash + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'case_study']);
+
+    const mainCtx = {
+      macro: '相続贈与', article_type: mainType,
+      cluster: 'inheritance', persona: 'inheritance_client',
+      tax_domain: 'inheritance_tax',
+      life_stage, pain_point, asset_type, heir_role, procedure_stage,
+      slug: mainSlug,
+    };
+    const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
+    // heir_role を mainCtx の expand 後 topic にも反映（後段の selector / similarity 用）
+    // （buildTopic 経由では現状 heir_role は捨てられているため、subcluster で表現する）
 
     add(buildTopic({
       macro: '相続贈与', cluster: 'inheritance', persona: 'inheritance_client', tax_domain: 'inheritance_tax',
@@ -532,7 +569,7 @@ function expandInheritance() {
       life_stage, pain_point, asset_type, procedure_stage,
       article_type: mainType, article_role: articleRoleFor(mainType), pair_group,
       priority: 'high',
-      title: fillTemplate(TITLE_TPL[mainType].inheritance, mainVars),
+      title: buildTitle(mainCtx),
       search_intent: mainExtra.search_intent,
       reader_problem: mainExtra.reader_problem,
       success_outcome: mainExtra.success_outcome,
@@ -546,7 +583,7 @@ function expandInheritance() {
       life_stage, pain_point, asset_type, procedure_stage,
       article_type: supType, article_role: articleRoleFor(supType), pair_group,
       priority: 'high',
-      title: fillTemplate(TITLE_TPL[supType].inheritance, supVars),
+      title: buildTitle(supCtx),
       search_intent: supExtra.search_intent,
       reader_problem: supExtra.reader_problem,
       success_outcome: supExtra.success_outcome,
@@ -630,7 +667,7 @@ function expandInheritance() {
           subclusterParts: [stage.id, role.id, pain.id],
           slugParts: ['inheritance', stage.id, role.id, pain.id],
           pair_group: pairKey({ cluster: 'inheritance' }, `${stage.id}-${role.id}-${pain.id}`),
-          life_stage: stage.id, pain_point: pain.id,
+          life_stage: stage.id, pain_point: pain.id, heir_role: role.id,
           mainVars: { life_stage: `${stage.label}の${role.label}`, pain: pain.label },
           supVars:  { life_stage: `${stage.label}の${role.label}`, pain: pain.label },
           mainExtra: {
@@ -695,7 +732,15 @@ function expandGeneral() {
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case']);
         const pg = pairKey({ cluster: 'general-business' }, `${stage.id}-${pain.id}-${persona}`);
-        const baseVars = { stage: stage.label, pain: pain.label };
+
+        const mainSlug = ['general', pain.id, persona.replace(/_/g, '-'), stage.id, 'guide'].join('-');
+        const supSlug  = ['general', pain.id, persona.replace(/_/g, '-'), stage.id, 'practice'].join('-');
+        const mainCtx = {
+          macro: '一般事業者', article_type: mainType, cluster: 'general-business',
+          persona, business_stage: stage.id, pain_point: pain.id,
+          slug: mainSlug,
+        };
+        const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
 
         out.push(buildTopic({
           macro: '一般事業者', cluster: 'general-business', persona, tax_domain: 'income_tax',
@@ -703,7 +748,7 @@ function expandGeneral() {
           slugParts: ['general', pain.id, persona.replace(/_/g, '-'), stage.id, 'guide'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[mainType].general, baseVars),
+          title: buildTitle(mainCtx),
           search_intent: `${stage.label}にいる個人事業主が${pain.label}を理解したい`,
           reader_problem: pain.label,
           success_outcome: `${pain.label}を自分のケースで判断できる`,
@@ -716,7 +761,7 @@ function expandGeneral() {
           slugParts: ['general', pain.id, persona.replace(/_/g, '-'), stage.id, 'practice'],
           business_stage: stage.id, pain_point: pain.id,
           article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[supType].general, baseVars),
+          title: buildTitle(supCtx),
           search_intent: `${stage.label}の個人事業主が${pain.label}の実務でつまずく場面を解消したい`,
           reader_problem: `${pain.label} の実務処理が不安`,
           success_outcome: `${pain.label}を実務上どう処理するか具体的に分かる`,
@@ -742,7 +787,16 @@ function expandTaxDomain() {
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case']);
         const pg = pairKey({ cluster: td.cluster }, `${proc.id}-${pain.id}`);
-        const baseVars = { tax_label: td.label, procedure: proc.label, pain: pain.label };
+
+        const mainSlug = ['tax', td.tax_domain, proc.id, pain.id, 'guide'].join('-');
+        const supSlug  = ['tax', td.tax_domain, proc.id, pain.id, 'practice'].join('-');
+        const mainCtx = {
+          macro: '税目実務', article_type: mainType, cluster: td.cluster,
+          tax_domain: td.tax_domain,
+          procedure_stage: proc.id, pain_point: pain.id,
+          slug: mainSlug,
+        };
+        const supCtx = { ...mainCtx, article_type: supType, slug: supSlug };
 
         out.push(buildTopic({
           macro: '税目実務', cluster: td.cluster,
@@ -752,7 +806,7 @@ function expandTaxDomain() {
           slugParts: ['tax', td.tax_domain, proc.id, pain.id, 'guide'],
           procedure_stage: proc.id, pain_point: pain.id,
           article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[mainType].tax_domain, baseVars),
+          title: buildTitle(mainCtx),
           search_intent: `${td.label}の${proc.label}で${pain.label}に向き合いたい`,
           reader_problem: pain.label,
           success_outcome: `${td.label}の${proc.label}での${pain.label}の判断軸を理解できる`,
@@ -767,7 +821,7 @@ function expandTaxDomain() {
           slugParts: ['tax', td.tax_domain, proc.id, pain.id, 'practice'],
           procedure_stage: proc.id, pain_point: pain.id,
           article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-          title: fillTemplate(TITLE_TPL[supType].tax_domain, baseVars),
+          title: buildTitle(supCtx),
           search_intent: `${td.label}の${proc.label}に関する${pain.label}の実務でつまずく場面を解消したい`,
           reader_problem: `${pain.label} の処理に自信がない`,
           success_outcome: `${pain.label}を実務上どう処理するか具体的に分かる`,
