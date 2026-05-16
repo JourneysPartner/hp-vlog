@@ -794,4 +794,31 @@ const TOPICS = [
     primary_question: '源泉徴収された税金は確定申告で取り戻せるのか？' },
 ];
 
-module.exports = { TOPICS };
+// ════════════════════════════════════════════════════════════════
+//  シナリオ展開エンジンとのマージ
+// ════════════════════════════════════════════════════════════════
+// 上記の TOPICS は「人間がキュレートした個別記事」のリスト。
+// シナリオ展開エンジン（scripts/lib/scenario-expansion）が、業種×事業ステージ×痛点
+// などの軸の組み合わせから大量の候補（1500件以上）を動的に生成する。
+//
+// 最終的な「候補プール」は両者をマージしたもの。重複（slug 完全一致）はキュレート版を優先。
+// 既存記事増加で候補が尽きないようにする目的。
+const { expandAll: _expandAll } = require('./lib/scenario-expansion');
+
+function getAllTopics() {
+  const curated = TOPICS;
+  const curatedSlugs = new Set(curated.map(t => t.slug));
+  const expanded = _expandAll().filter(t => !curatedSlugs.has(t.slug));
+  return [...curated, ...expanded];
+}
+
+// CURATED_TOPICS: 後方互換のため、元の TOPICS 配列も維持
+// TOPICS: マージ済み（getAllTopics() の結果）— 既存コードはこれを参照しつづけて OK
+const CURATED_TOPICS = TOPICS;
+const ALL_TOPICS = getAllTopics();
+
+module.exports = {
+  TOPICS: ALL_TOPICS,
+  CURATED_TOPICS,
+  getAllTopics,
+};

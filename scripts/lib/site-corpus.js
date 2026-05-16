@@ -75,6 +75,13 @@ function readAllPosts() {
       published_at:     fm.published_at || '',
       created_at:       fm.created_at || '',
       updated_at:       fm.updated_at || '',
+      // シナリオ軸（scenario-expansion 由来。既存記事は無くても OK）
+      business_stage:   fm.business_stage || '',
+      life_stage:       fm.life_stage || '',
+      pain_point:       fm.pain_point || '',
+      procedure_stage:  fm.procedure_stage || '',
+      transaction_pattern: fm.transaction_pattern || '',
+      asset_type:       fm.asset_type || '',
       macro:            cluster.macro,
       cluster:          cluster.cluster,
       subcluster:       cluster.subcluster,

@@ -99,15 +99,38 @@ function similarityScore(candidate, existing) {
   const categoryMatch = candidate.category && existing.category && candidate.category === existing.category ? 1 : 0;
   breakdown.personaCategory = personaMatch && categoryMatch ? 1 : 0;
 
+  // 6. シナリオ軸の一致（business_stage / life_stage / pain_point / procedure_stage / tax_domain）
+  //   タイトルが違っても "場面として同じ" なら高スコアになるようにする
+  const sceneAxes = ['business_stage', 'life_stage', 'pain_point', 'procedure_stage', 'tax_domain'];
+  let sceneTotal = 0;
+  let sceneMatched = 0;
+  for (const axis of sceneAxes) {
+    if (candidate[axis] && existing[axis]) {
+      sceneTotal++;
+      if (candidate[axis] === existing[axis]) sceneMatched++;
+    }
+  }
+  const sceneMatch = sceneTotal > 0 ? sceneMatched / sceneTotal : 0;
+  breakdown.scene = sceneMatch;
+
+  // 7. primary_question / search_intent の完全一致は強いシグナル
+  const pqMatch = candidate.primary_question && existing.primary_question &&
+    candidate.primary_question.trim() === existing.primary_question.trim() ? 1 : 0;
+  const siMatch = candidate.search_intent && existing.search_intent &&
+    candidate.search_intent.trim() === existing.search_intent.trim() ? 1 : 0;
+  breakdown.questionMatch = pqMatch || siMatch;
+
   // 重み付けスコア（合計 1.0 に正規化）
-  // slug と intent の重なりが最重要、persona×category は弱い背景情報
+  // slug / intent / scene が中心、scene は "場面が同じ" を捉える
   const score =
-    0.30 * slugSim +
-    0.25 * titleSim +
-    0.25 * intentSim +
+    0.20 * slugSim +
+    0.20 * titleSim +
+    0.18 * intentSim +
+    0.15 * sceneMatch +
     0.10 * subMatch +
+    0.08 * breakdown.questionMatch +
     0.05 * clusterMatch +
-    0.05 * breakdown.personaCategory;
+    0.04 * breakdown.personaCategory;
 
   return { score, breakdown };
 }
