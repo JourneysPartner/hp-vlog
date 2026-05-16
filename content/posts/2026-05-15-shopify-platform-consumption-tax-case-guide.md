@@ -16,15 +16,15 @@ reader_problem: "国内向けと海外向けで消費税の扱いが違うのか
 success_outcome: "取扱商品・販売先別に消費税処理の論点を整理できる"
 primary_question: "Shopifyで運営するEC事業者は消費税をどう扱えばよいか？"
 summary: "Shopify物販の消費税は、国内販売は原則課税、海外発送は輸出免税の検討、Shopify手数料は相手先や請求内容で処理が分かれます。国内・越境のケース別に整理できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-15T15:23:21.456+09:00"
 publish_at: "2026-05-16T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-16T11:55:29.389+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-15T00:40:25.294Z"
-updated_at: "2026-05-15T15:23:21.456+09:00"
+updated_at: "2026-05-16T11:55:29.389+09:00"
 publish_slot: "morning"
 ---
 
