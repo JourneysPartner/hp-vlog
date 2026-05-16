@@ -18,7 +18,7 @@
  */
 
 const {
-  BUSINESS_STAGES, LIFE_STAGES, TRANSACTION_PATTERNS, PROCEDURE_STAGES,
+  BUSINESS_STAGES, LIFE_STAGES, HEIR_ROLES, TRANSACTION_PATTERNS, PROCEDURE_STAGES,
   PAIN_POINTS, ASSET_TYPES, RETAIL_PLATFORMS, INFLUENCER_CHANNELS, SALON_TYPES,
   MAIN_ARTICLE_TYPES, lookup,
 } = require('./scenario-axes');
@@ -78,29 +78,131 @@ const SALON_PAINS = [
 const SALON_STAGES = ['pre-opening', 'just-opened', 'growth', 'hiring', 'incorporation'];
 
 // ── 相続シナリオ ──────────────────────────────────────────────────
-// 軸: life_stage × pain_point（asset_type は任意で 1 軸追加）
-const INHERITANCE_PAINS = [
-  'what-first', 'tax-applicable-or-not', 'spouse-reduction',
-  'small-residential-land', 'real-estate-valuation', 'deadline-pressure',
-  'family-dispute', 'bank-frozen', 'business-succession',
-];
+// 軸: life_stage × pain_point × (asset_type | heir_role | procedure_stage)
+// 不自然な組み合わせは matrix で除外する。
 const INHERITANCE_STAGES = [
   'pre-planning', 'cognitive-decline', 'critical-immediate',
   'within-7days', 'within-4months', 'within-10months',
-  'after-filing', 'second-inheritance',
+  'after-filing', 'second-inheritance', 'multi-year-review',
 ];
+
 // life_stage と pain_point の「自然な組み合わせ」だけを許容
 // （例: 認知機能低下 × 銀行凍結 は不自然なので組まない）
 const INHERITANCE_STAGE_PAIN_MATRIX = {
-  'pre-planning':         ['tax-applicable-or-not', 'spouse-reduction', 'business-succession', 'family-dispute'],
-  'cognitive-decline':    ['what-first', 'family-dispute', 'business-succession'],
-  'critical-immediate':   ['what-first', 'bank-frozen', 'deadline-pressure'],
-  'within-7days':         ['what-first', 'bank-frozen'],
-  'within-4months':       ['deadline-pressure', 'what-first'],
-  'within-10months':      ['tax-applicable-or-not', 'spouse-reduction', 'small-residential-land',
-                           'real-estate-valuation', 'deadline-pressure', 'family-dispute', 'bank-frozen'],
-  'after-filing':         ['real-estate-valuation', 'family-dispute'],
-  'second-inheritance':   ['tax-applicable-or-not', 'spouse-reduction', 'small-residential-land'],
+  'pre-planning': [
+    'tax-applicable-or-not', 'spouse-reduction', 'business-succession',
+    'family-dispute', 'name-deposits-concern', 'lifetime-gift-addback',
+    'life-insurance-exemption', 'company-shares-valuation',
+    'second-inheritance-loss', 'small-residential-land',
+  ],
+  'cognitive-decline': [
+    'what-first', 'family-dispute', 'business-succession',
+    'name-deposits-concern', 'lifetime-gift-addback',
+  ],
+  'critical-immediate': [
+    'what-first', 'bank-frozen', 'deadline-pressure',
+    'heir-confirmation', 'funeral-debt-deduction',
+  ],
+  'within-7days': [
+    'what-first', 'bank-frozen', 'heir-confirmation',
+    'funeral-debt-deduction',
+  ],
+  'within-4months': [
+    'deadline-pressure', 'what-first', 'funeral-debt-deduction',
+  ],
+  'within-10months': [
+    'tax-applicable-or-not', 'spouse-reduction', 'small-residential-land',
+    'real-estate-valuation', 'deadline-pressure', 'family-dispute',
+    'bank-frozen', 'life-insurance-exemption', 'funeral-debt-deduction',
+    'company-shares-valuation', 'name-deposits-concern', 'lifetime-gift-addback',
+    'rental-property-treatment', 'vacant-house-handling',
+  ],
+  'after-filing': [
+    'real-estate-valuation', 'family-dispute', 'amendment-needed',
+    'real-estate-registration-pain',
+  ],
+  'second-inheritance': [
+    'tax-applicable-or-not', 'spouse-reduction', 'small-residential-land',
+    'second-inheritance-loss',
+  ],
+  'multi-year-review': [
+    'second-inheritance-loss', 'real-estate-valuation', 'amendment-needed',
+    'rental-property-treatment',
+  ],
+};
+
+// life_stage ごとの「自然な asset_type」セット
+const INHERITANCE_STAGE_ASSET_MATRIX = {
+  'pre-planning':       ['home', 'rental-property', 'unlisted-stocks', 'name-deposits', 'pre-gifted', 'business-assets', 'life-insurance'],
+  'cognitive-decline':  ['cash-deposits', 'home', 'business-assets', 'unlisted-stocks'],
+  'critical-immediate': ['cash-deposits'],
+  'within-7days':       ['cash-deposits'],
+  'within-4months':     ['cash-deposits', 'business-assets'],
+  'within-10months':    ['cash-deposits', 'home', 'rental-property', 'vacant-house',
+                         'listed-stocks', 'unlisted-stocks', 'life-insurance',
+                         'retirement-money', 'business-assets', 'name-deposits', 'pre-gifted'],
+  'after-filing':       ['home', 'rental-property', 'unlisted-stocks'],
+  'second-inheritance': ['cash-deposits', 'home', 'rental-property'],
+  'multi-year-review':  ['home', 'rental-property', 'vacant-house', 'unlisted-stocks'],
+};
+
+// asset_type ごとの「最も組ませやすい pain_point」（自然性確保）
+const INHERITANCE_ASSET_PAIN_MATRIX = {
+  'cash-deposits':    ['bank-frozen', 'name-deposits-concern', 'heir-confirmation'],
+  'home':             ['small-residential-land', 'real-estate-valuation', 'real-estate-registration-pain'],
+  'rental-property':  ['rental-property-treatment', 'real-estate-valuation', 'amendment-needed'],
+  'vacant-house':     ['vacant-house-handling', 'real-estate-valuation'],
+  'listed-stocks':    ['real-estate-valuation', 'amendment-needed'],
+  'unlisted-stocks':  ['company-shares-valuation', 'business-succession'],
+  'life-insurance':   ['life-insurance-exemption'],
+  'retirement-money': ['life-insurance-exemption', 'tax-applicable-or-not'],
+  'business-assets':  ['business-succession', 'company-shares-valuation'],
+  'name-deposits':    ['name-deposits-concern', 'family-dispute'],
+  'pre-gifted':       ['lifetime-gift-addback'],
+  'borrowings':       ['funeral-debt-deduction'],
+};
+
+// life_stage ごとの「自然な heir_role」セット
+const INHERITANCE_STAGE_ROLE_MATRIX = {
+  'pre-planning':       ['spouse', 'business-owner-family', 'sole-proprietor-family', 'no-child-couple', 'remarried-family', 'real-estate-heir'],
+  'cognitive-decline':  ['spouse', 'child', 'business-owner-family'],
+  'critical-immediate': ['spouse', 'child', 'one-of-heirs', 'sibling'],
+  'within-7days':       ['spouse', 'child', 'one-of-heirs', 'sibling'],
+  'within-4months':     ['spouse', 'child', 'sole-proprietor-family'],
+  'within-10months':    ['spouse', 'child', 'one-of-heirs', 'sibling', 'remarried-family',
+                         'no-child-couple', 'business-owner-family', 'sole-proprietor-family',
+                         'real-estate-heir'],
+  'after-filing':       ['spouse', 'child', 'one-of-heirs'],
+  'second-inheritance': ['spouse', 'child', 'remarried-family'],
+  'multi-year-review':  ['spouse', 'child', 'real-estate-heir'],
+};
+
+// life_stage ごとの「自然な procedure_stage」セット
+const INHERITANCE_STAGE_PROCEDURE_MATRIX = {
+  'pre-planning':       ['valuation-check', 'document-collection'],
+  'cognitive-decline':  ['document-collection'],
+  'critical-immediate': ['initial-immediate', 'bank-procedure', 'document-collection'],
+  'within-7days':       ['initial-immediate', 'bank-procedure', 'document-collection'],
+  'within-4months':     ['quasi-final-return', 'document-collection'],
+  'within-10months':    ['inheritance-filing', 'estate-division', 'valuation-check',
+                         'real-estate-registration', 'bank-procedure'],
+  'after-filing':       ['real-estate-registration', 'amendment-return'],
+  'second-inheritance': ['second-inheritance-review'],
+  'multi-year-review':  ['second-inheritance-review', 'amendment-return'],
+};
+
+// heir_role ごとの「特に組ませやすい pain_point」
+const INHERITANCE_ROLE_PAIN_MATRIX = {
+  'spouse':                 ['spouse-reduction', 'second-inheritance-loss', 'tax-applicable-or-not'],
+  'child':                  ['tax-applicable-or-not', 'small-residential-land', 'family-dispute'],
+  'one-of-heirs':           ['family-dispute', 'heir-confirmation'],
+  'sole-heir':              ['what-first', 'tax-applicable-or-not'],
+  'sibling':                ['heir-confirmation', 'family-dispute'],
+  'remarried-family':       ['heir-confirmation', 'family-dispute'],
+  'no-child-couple':        ['heir-confirmation', 'spouse-reduction'],
+  'business-owner-family':  ['company-shares-valuation', 'business-succession'],
+  'sole-proprietor-family': ['business-succession', 'funeral-debt-deduction'],
+  'real-estate-heir':       ['small-residential-land', 'real-estate-valuation', 'real-estate-registration-pain'],
 };
 
 // ── 一般事業者シナリオ ────────────────────────────────────────────
@@ -399,47 +501,182 @@ function expandSalon() {
 }
 
 // ── 相続贈与の展開 ────────────────────────────────────────────────
+// 4 種類の seed から候補を展開:
+//   A) life_stage × pain                       — 場面と迷いの基本展開
+//   B) life_stage × asset_type × pain          — 資産別の具体論点
+//   C) life_stage × heir_role × pain           — 立場別の論点
+//   D) life_stage × procedure_stage            — 手続き別の進め方
+// それぞれ matrix で「自然な組合せだけ」に絞る。
+// 各 seed から main + support の 2 トピックを生成。
 function expandInheritance() {
   const out = [];
+  const seenSlugs = new Set();
+  const seenSubs  = new Set();
+
+  function add(topic) {
+    if (seenSlugs.has(topic.slug)) return;
+    seenSlugs.add(topic.slug);
+    out.push(topic);
+  }
+
+  function pushPair({ subclusterParts, slugParts, pair_group, life_stage, pain_point,
+                       asset_type, heir_role, procedure_stage,
+                       mainVars, supVars, mainExtra, supExtra }) {
+    const slugHash = slugParts.join('-');
+    const mainType = deterministicTypeIndex(slugHash + '-m', ['basic_explainer', 'comparison_decision']);
+    const supType  = deterministicTypeIndex(slugHash + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'case_study']);
+
+    add(buildTopic({
+      macro: '相続贈与', cluster: 'inheritance', persona: 'inheritance_client', tax_domain: 'inheritance_tax',
+      subclusterParts, slugParts: [...slugParts, 'guide'],
+      life_stage, pain_point, asset_type, procedure_stage,
+      article_type: mainType, article_role: articleRoleFor(mainType), pair_group,
+      priority: 'high',
+      title: fillTemplate(TITLE_TPL[mainType].inheritance, mainVars),
+      search_intent: mainExtra.search_intent,
+      reader_problem: mainExtra.reader_problem,
+      success_outcome: mainExtra.success_outcome,
+      primary_question: mainExtra.primary_question,
+      hint: mainExtra.hint,
+    }));
+    add(buildTopic({
+      macro: '相続贈与', cluster: 'inheritance', persona: 'inheritance_client', tax_domain: 'inheritance_tax',
+      subclusterParts: [...subclusterParts, 'support'],
+      slugParts: [...slugParts, 'practice'],
+      life_stage, pain_point, asset_type, procedure_stage,
+      article_type: supType, article_role: articleRoleFor(supType), pair_group,
+      priority: 'high',
+      title: fillTemplate(TITLE_TPL[supType].inheritance, supVars),
+      search_intent: supExtra.search_intent,
+      reader_problem: supExtra.reader_problem,
+      success_outcome: supExtra.success_outcome,
+      primary_question: supExtra.primary_question,
+      hint: supExtra.hint,
+    }));
+  }
+
   for (const stageId of INHERITANCE_STAGES) {
     const stage = lookup(LIFE_STAGES, stageId); if (!stage) continue;
+
+    // ── A) life_stage × pain（既存と同等の基本展開）
     const pains = INHERITANCE_STAGE_PAIN_MATRIX[stageId] || [];
     for (const painId of pains) {
       const pain = lookup(PAIN_POINTS, painId); if (!pain) continue;
-      const slugPrefix = `inheritance-${kebab(stageId)}-${kebab(painId)}`;
-      const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
-      const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case', 'case_study']);
-      const pg = pairKey({ cluster: 'inheritance' }, `${stage.id}-${pain.id}`);
-      const baseVars = { life_stage: stage.label, pain: pain.label };
-
-      out.push(buildTopic({
-        macro: '相続贈与', cluster: 'inheritance', persona: 'inheritance_client', tax_domain: 'inheritance_tax',
+      pushPair({
         subclusterParts: [stage.id, pain.id],
-        slugParts: ['inheritance', stage.id, pain.id, 'guide'],
+        slugParts: ['inheritance', stage.id, pain.id],
+        pair_group: pairKey({ cluster: 'inheritance' }, `${stage.id}-${pain.id}`),
         life_stage: stage.id, pain_point: pain.id,
-        article_type: mainType, article_role: articleRoleFor(mainType), pair_group: pg,
-        priority: 'high',
-        title: fillTemplate(TITLE_TPL[mainType].inheritance, baseVars),
-        search_intent: `相続の${stage.label}にあって${pain.label}に向き合う方が、判断軸を理解したい`,
-        reader_problem: pain.label,
-        success_outcome: `${stage.label}に${pain.label}をどう進めるか判断できる`,
-        primary_question: `${stage.label}に${pain.label}にどう向き合うべきか？`,
-        hint: `相続 ${stage.label} における ${pain.label} の整理`,
-      }));
-      out.push(buildTopic({
-        macro: '相続贈与', cluster: 'inheritance', persona: 'inheritance_client', tax_domain: 'inheritance_tax',
-        subclusterParts: [stage.id, pain.id, 'support'],
-        slugParts: ['inheritance', stage.id, pain.id, 'practice'],
-        life_stage: stage.id, pain_point: pain.id,
-        article_type: supType, article_role: articleRoleFor(supType), pair_group: pg,
-        priority: 'high',
-        title: fillTemplate(TITLE_TPL[supType].inheritance, baseVars),
-        search_intent: `相続${stage.label}に${pain.label}で実務に詰まる場面を解消したい`,
-        reader_problem: `${pain.label} の進め方が分からない`,
-        success_outcome: `${pain.label}の具体的な進め方を理解できる`,
-        primary_question: `${stage.label}に${pain.label}を実務でどう進めるか？`,
-        hint: `相続 ${stage.label} の ${pain.label} の手順`,
-      }));
+        mainVars: { life_stage: stage.label, pain: pain.label },
+        supVars:  { life_stage: stage.label, pain: pain.label },
+        mainExtra: {
+          search_intent: `相続の${stage.label}にあって${pain.label}に向き合う方が、判断軸を理解したい`,
+          reader_problem: pain.label,
+          success_outcome: `${stage.label}に${pain.label}をどう進めるか判断できる`,
+          primary_question: `${stage.label}に${pain.label}にどう向き合うべきか？`,
+          hint: `相続 ${stage.label} における ${pain.label} の整理`,
+        },
+        supExtra: {
+          search_intent: `相続${stage.label}に${pain.label}で実務に詰まる場面を解消したい`,
+          reader_problem: `${pain.label} の進め方が分からない`,
+          success_outcome: `${pain.label}の具体的な進め方を理解できる`,
+          primary_question: `${stage.label}に${pain.label}を実務でどう進めるか？`,
+          hint: `相続 ${stage.label} の ${pain.label} の手順`,
+        },
+      });
+    }
+
+    // ── B) life_stage × asset_type × pain
+    const assets = INHERITANCE_STAGE_ASSET_MATRIX[stageId] || [];
+    for (const assetId of assets) {
+      const asset = lookup(ASSET_TYPES, assetId); if (!asset) continue;
+      const assetPains = (INHERITANCE_ASSET_PAIN_MATRIX[assetId] || []).filter(p => pains.includes(p));
+      // 該当 stage の pains と asset の pains の積集合のみ使う
+      for (const painId of assetPains) {
+        const pain = lookup(PAIN_POINTS, painId); if (!pain) continue;
+        pushPair({
+          subclusterParts: [stage.id, asset.id, pain.id],
+          slugParts: ['inheritance', stage.id, asset.id, pain.id],
+          pair_group: pairKey({ cluster: 'inheritance' }, `${stage.id}-${asset.id}-${pain.id}`),
+          life_stage: stage.id, pain_point: pain.id, asset_type: asset.id,
+          mainVars: { life_stage: `${stage.label}の${asset.label}相続`, pain: pain.label },
+          supVars:  { life_stage: `${stage.label}の${asset.label}相続`, pain: pain.label },
+          mainExtra: {
+            search_intent: `${stage.label}に${asset.label}を相続することになり、${pain.label}を整理したい`,
+            reader_problem: `${asset.label}に関する${pain.label}が分からない`,
+            success_outcome: `${asset.label}相続での${pain.label}の判断軸を理解できる`,
+            primary_question: `${stage.label}に${asset.label}を相続するとき、${pain.label}にどう向き合うか？`,
+            hint: `${asset.label} の相続における ${pain.label}`,
+          },
+          supExtra: {
+            search_intent: `${asset.label}相続の実務で${pain.label}に詰まる場面を解消したい`,
+            reader_problem: `${asset.label}相続の${pain.label}の進め方が不安`,
+            success_outcome: `${asset.label}相続で${pain.label}を実務上どう進めるか分かる`,
+            primary_question: `${asset.label}を相続する際、${pain.label}を実務でどう進めるか？`,
+            hint: `${asset.label} 相続の ${pain.label} の実務手順`,
+          },
+        });
+      }
+    }
+
+    // ── C) life_stage × heir_role × pain
+    const roles = INHERITANCE_STAGE_ROLE_MATRIX[stageId] || [];
+    for (const roleId of roles) {
+      const role = lookup(HEIR_ROLES, roleId); if (!role) continue;
+      const rolePains = (INHERITANCE_ROLE_PAIN_MATRIX[roleId] || []).filter(p => pains.includes(p));
+      for (const painId of rolePains) {
+        const pain = lookup(PAIN_POINTS, painId); if (!pain) continue;
+        pushPair({
+          subclusterParts: [stage.id, role.id, pain.id],
+          slugParts: ['inheritance', stage.id, role.id, pain.id],
+          pair_group: pairKey({ cluster: 'inheritance' }, `${stage.id}-${role.id}-${pain.id}`),
+          life_stage: stage.id, pain_point: pain.id,
+          mainVars: { life_stage: `${stage.label}の${role.label}`, pain: pain.label },
+          supVars:  { life_stage: `${stage.label}の${role.label}`, pain: pain.label },
+          mainExtra: {
+            search_intent: `${stage.label}に${role.label}として${pain.label}を判断したい`,
+            reader_problem: `${role.label}として${pain.label}の判断ができない`,
+            success_outcome: `${role.label}として${pain.label}の判断軸を理解できる`,
+            primary_question: `${stage.label}に${role.label}が${pain.label}にどう向き合うか？`,
+            hint: `${role.label} × ${stage.label} × ${pain.label}`,
+          },
+          supExtra: {
+            search_intent: `${role.label}が${pain.label}の実務で詰まる場面を解消したい`,
+            reader_problem: `${role.label}としての${pain.label}の進め方が不安`,
+            success_outcome: `${role.label}として${pain.label}を実務上どう進めるか分かる`,
+            primary_question: `${role.label}は${pain.label}を実務でどう進めるか？`,
+            hint: `${role.label} の ${pain.label} の手順`,
+          },
+        });
+      }
+    }
+
+    // ── D) life_stage × procedure_stage
+    const procs = INHERITANCE_STAGE_PROCEDURE_MATRIX[stageId] || [];
+    for (const procId of procs) {
+      const proc = lookup(PROCEDURE_STAGES, procId); if (!proc) continue;
+      pushPair({
+        subclusterParts: [stage.id, proc.id],
+        slugParts: ['inheritance', stage.id, proc.id],
+        pair_group: pairKey({ cluster: 'inheritance' }, `${stage.id}-${proc.id}`),
+        life_stage: stage.id, procedure_stage: proc.id, pain_point: '',
+        mainVars: { life_stage: stage.label, pain: proc.label },
+        supVars:  { life_stage: stage.label, pain: proc.label },
+        mainExtra: {
+          search_intent: `${stage.label}に${proc.label}をどう進めるか整理したい`,
+          reader_problem: `${proc.label}の進め方が分からない`,
+          success_outcome: `${proc.label}の全体像と注意点を理解できる`,
+          primary_question: `${stage.label}に${proc.label}をどう進めるか？`,
+          hint: `${stage.label} の ${proc.label} の進め方`,
+        },
+        supExtra: {
+          search_intent: `${stage.label}の${proc.label}で実務に詰まる場面を解消したい`,
+          reader_problem: `${proc.label}の実務手順が不安`,
+          success_outcome: `${proc.label}を実務上どう進めるか具体的に分かる`,
+          primary_question: `${proc.label}を実務でどう進めるか？`,
+          hint: `${proc.label} の実務手順`,
+        },
+      });
     }
   }
   return out;
