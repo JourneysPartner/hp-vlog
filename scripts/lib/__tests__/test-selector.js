@@ -69,6 +69,52 @@ console.log('\n=== Test 3: 同日2本のペアは類似度 < 0.45 ===');
   }
 }
 
+console.log('\n=== Test 3b: 同日2本は main + support の役割になる ===');
+{
+  const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
+  const isMain = (t) => MAIN_TYPES.has(t.article_type);
+  const isSupport = (t) => !MAIN_TYPES.has(t.article_type);
+
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  if (picks.length === 2) {
+    const hasMain    = picks.some(isMain);
+    const hasSupport = picks.some(isSupport);
+    assert(hasMain,    '2本のうち少なくとも 1 本は main 型');
+    assert(hasSupport, '2本のうち少なくとも 1 本は support 型');
+    assert(isMain(picks[0]),    '1本目が main 型');
+    assert(isSupport(picks[1]), '2本目が support 型');
+  } else {
+    console.log(`  picks=${picks.length} 件のため main+support 検証スキップ`);
+    passed++;
+  }
+}
+
+console.log('\n=== Test 3c: buildBestPair の単体検証（main+support 強制）===');
+{
+  const { buildBestPair } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
+  // 故意に main 2本だけのケース
+  const mainOnly = [
+    { topic: { slug: 'a', article_type: 'basic_explainer', cluster: 'x', persona: 'p1' }, balance: 1 },
+    { topic: { slug: 'b', article_type: 'comparison_decision', cluster: 'y', persona: 'p2' }, balance: 0.5 },
+  ];
+  const r1 = buildBestPair(mainOnly);
+  // main しかない場合は最終フォールバックで 2 本返るがその役割は同じ。これは想定内（warning 段階で fallback）
+  assert(r1.length >= 1, 'main のみでも 1 本以上は返る');
+
+  // 通常ケース: main + support 候補が両方ある
+  const mixed = [
+    { topic: { slug: 'm1', article_type: 'basic_explainer', cluster: 'x', persona: 'p1' }, balance: 1 },
+    { topic: { slug: 'm2', article_type: 'comparison_decision', cluster: 'y', persona: 'p2' }, balance: 0.5 },
+    { topic: { slug: 's1', article_type: 'filing_practice', cluster: 'z', persona: 'p3' }, balance: 0.3 },
+    { topic: { slug: 's2', article_type: 'misconception_fix', cluster: 'w', persona: 'p4' }, balance: 0.2 },
+  ];
+  const r2 = buildBestPair(mixed);
+  assert(r2.length === 2, 'mixed では 2 本返る');
+  const MAIN = new Set(['basic_explainer', 'comparison_decision']);
+  assert(MAIN.has(r2[0].article_type), '1本目が main');
+  assert(!MAIN.has(r2[1].article_type), '2本目が support');
+}
+
 console.log('\n=== Test 4: ハードブロック (直近7日で macro が60%超) が機能 ===');
 {
   const ratios = computeMacroRatios(new Date());
