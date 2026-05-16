@@ -53,70 +53,113 @@ function enrichTopic(topic) {
   return topic;
 }
 
+// 役割判定ヘルパー
+function isMain(topic) { return MAIN_TYPES.has(topic.article_type); }
+function isSupport(topic) { return !MAIN_TYPES.has(topic.article_type); }
+
+// main と support の類似度を測る（slug ベース）
+function pairSim(a, b) {
+  return similarityScore(
+    { ...a, slug: a.slug },
+    { ...b, primary_persona: b.persona }
+  ).score;
+}
+
+/**
+ * scored リストから、anchor と "役割が逆かつ類似度が低い" 候補を探す。
+ * 役割逆 > 異 cluster > 低 sim の優先順位で best を返す。
+ */
+function findComplement(anchor, scored, excludeSet) {
+  const anchorIsMain = isMain(anchor);
+  let best = null;
+  let bestRank = -1;
+  for (const s of scored) {
+    if (excludeSet.has(s.topic)) continue;
+    const sim = pairSim(anchor, s.topic);
+    if (sim >= SIM_THRESHOLD_BETWEEN_PAIR) continue;  // 類似度が高いものは除外
+    // ランクを段階的に: 役割逆 + 異cluster (3) > 役割逆 + 同cluster (2) > 同役割 + 異cluster (1) > 同役割 + 同cluster (0)
+    const oppositeRole = isMain(s.topic) !== anchorIsMain;
+    const differentCluster = s.topic.cluster !== anchor.cluster;
+    const rank = (oppositeRole ? 2 : 0) + (differentCluster ? 1 : 0);
+    // 同ランクなら sim が低い方を優先
+    if (rank > bestRank || (rank === bestRank && (best == null || sim < pairSim(anchor, best.topic)))) {
+      bestRank = rank;
+      best = s;
+    }
+  }
+  return best;
+}
+
 /**
  * 同じ persona / category / pair_group / cluster でペアになる候補を組む。
  *
- * 戻り値: [main, support] または [main]
+ * 優先順位:
+ *   1. pair_group full pair（main + support が同じ pair_group に揃う）
+ *   2. scored 上位から anchor を選び、役割逆 + 低 sim の complement を探す
+ *      - anchor が main → support を探す
+ *      - anchor が support → main を探す
+ *      - 役割逆候補がなければ最後に同役割で妥協
+ *
+ * 戻り値: [main, support] または [main]（順序は main → support に並べる）
  */
 function buildBestPair(scored, candidatesAll) {
   if (scored.length === 0) return [];
   if (scored.length === 1) return [scored[0].topic];
 
-  // 1. 同 pair_group が揃っているか
+  // 1. pair_group full pair: 同じ pair_group に main + support が揃っているもの
   const groups = {};
   for (const s of scored) {
     const g = s.topic.pair_group;
     if (!g) continue;
     (groups[g] = groups[g] || []).push(s);
   }
-  const fullPairs = Object.entries(groups).filter(([, arr]) => arr.length >= 2);
+  // main + support の両方が揃っている pair_group だけを採用
+  const fullPairs = Object.entries(groups)
+    .map(([k, arr]) => {
+      const mainEntry = arr.find(s => isMain(s.topic));
+      const supEntry  = arr.find(s => isSupport(s.topic));
+      if (mainEntry && supEntry) {
+        return { key: k, main: mainEntry, support: supEntry,
+                 total: (mainEntry.balance || 0) + (supEntry.balance || 0) };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
   if (fullPairs.length > 0) {
-    // balance score の合計が最も高いペアを選ぶ
-    let best = null;
-    for (const [, arr] of fullPairs) {
-      const main = arr.find(s => MAIN_TYPES.has(s.topic.article_type)) || arr[0];
-      const support = arr.find(s => s !== main) || arr[1];
-      const total = (main.balance || 0) + (support.balance || 0);
-      if (!best || total > best.total) {
-        best = { main, support, total };
-      }
-    }
-    if (best) return [best.main.topic, best.support.topic];
+    // balance score 合計が最も高いペアを採用
+    fullPairs.sort((a, b) => b.total - a.total);
+    const best = fullPairs[0];
+    return [best.main.topic, best.support.topic];
   }
 
-  // 2. ペアグループが組めない → 本命+補強の組み合わせをスコア順で探索
-  // 上位から本命候補を選び、それと「異 cluster かつ補強型」のものを 2 本目に
+  // 2. ペアグループが組めない → anchor + complement を探索
+  // scored 上位から順に anchor とし、役割逆の complement を探す
   for (let i = 0; i < scored.length; i++) {
-    const main = scored[i];
-    const candidates = scored.slice(0, i).concat(scored.slice(i + 1));
-
-    // 役割が逆になる候補を優先
-    const mainIsMainType = MAIN_TYPES.has(main.topic.article_type);
-    const roleCandidates = candidates.filter(s => MAIN_TYPES.has(s.topic.article_type) !== mainIsMainType);
-
-    // cluster が異なる候補を優先
-    const diffCluster = (roleCandidates.length ? roleCandidates : candidates)
-      .filter(s => s.topic.cluster !== main.topic.cluster);
-
-    // 類似度が低いもの優先
-    const pool = diffCluster.length > 0 ? diffCluster : (roleCandidates.length ? roleCandidates : candidates);
-    let support = null;
-    let bestSim = Infinity;
-    for (const s of pool) {
-      const sim = similarityScore(
-        { ...main.topic, slug: main.topic.slug },
-        { ...s.topic, primary_persona: s.topic.persona }
-      ).score;
-      if (sim < SIM_THRESHOLD_BETWEEN_PAIR && sim < bestSim) {
-        bestSim = sim;
-        support = s;
-      }
+    const anchor = scored[i];
+    const excludeSet = new Set([anchor.topic]);
+    const comp = findComplement(anchor.topic, scored, excludeSet);
+    if (comp && isMain(anchor.topic) !== isMain(comp.topic)) {
+      // 役割逆が見つかった → main を先頭にして返す
+      return isMain(anchor.topic)
+        ? [anchor.topic, comp.topic]
+        : [comp.topic, anchor.topic];
     }
-
-    if (support) return [main.topic, support.topic];
   }
 
-  // 3. それでも 2 本目が見つからない → 1 本目だけ
+  // 3. 役割逆ペアが見つからない → main を 1 つと support を 1 つ（最も balance スコア高いもの）
+  const bestMain    = scored.find(s => isMain(s.topic));
+  const bestSupport = scored.find(s => isSupport(s.topic));
+  if (bestMain && bestSupport && pairSim(bestMain.topic, bestSupport.topic) < SIM_THRESHOLD_BETWEEN_PAIR) {
+    return [bestMain.topic, bestSupport.topic];
+  }
+
+  // 4. それでも見つからない → 上位 2 件（役割重複の可能性あり、最終フォールバック）
+  if (scored.length >= 2 && pairSim(scored[0].topic, scored[1].topic) < SIM_THRESHOLD_BETWEEN_PAIR) {
+    return [scored[0].topic, scored[1].topic];
+  }
+
+  // 5. 1 本だけ
   return [scored[0].topic];
 }
 
@@ -316,14 +359,15 @@ function selectDailyTopics(topics, options = {}) {
       explanation.warnings = (explanation.warnings || []).concat([
         `2本目との類似度が高い (${sim.score.toFixed(2)}) → 2本目を差し替え`,
       ]);
-      // 2本目をリストの中から差し替え
-      const replacement = scored.find(s =>
-        s.topic !== picks[0] && s.topic !== picks[1] &&
-        similarityScore(
-          { ...picks[0], slug: picks[0].slug },
-          { ...s.topic, primary_persona: s.topic.persona }
-        ).score < SIM_THRESHOLD_BETWEEN_PAIR
-      );
+      // 2本目を差し替え: 役割が逆（picks[0] が main なら support、逆も同様）かつ低 sim を優先
+      const wantRoleIsMain = !isMain(picks[0]);  // 2本目に求める役割: main の逆
+      const finder = (preferOppositeRole) => scored.find(s => {
+        if (s.topic === picks[0] || s.topic === picks[1]) return false;
+        if (preferOppositeRole && isMain(s.topic) !== wantRoleIsMain) return false;
+        return pairSim(picks[0], s.topic) < SIM_THRESHOLD_BETWEEN_PAIR;
+      });
+      // まず役割逆で探す → 見つからなければ役割無視で探す
+      const replacement = finder(true) || finder(false);
       if (replacement) {
         picks[1] = replacement.topic;
         explanation.picks[1] = {
@@ -340,6 +384,13 @@ function selectDailyTopics(topics, options = {}) {
         explanation.picks.pop();
       }
     }
+  }
+
+  // 8. 最終整列: main を 1 本目、support を 2 本目になるよう並べ替える
+  //    （差し替えなどで順序が逆転している場合に対応）
+  if (picks.length === 2 && isSupport(picks[0]) && isMain(picks[1])) {
+    [picks[0], picks[1]] = [picks[1], picks[0]];
+    [explanation.picks[0], explanation.picks[1]] = [explanation.picks[1], explanation.picks[0]];
   }
 
   return { picks, explanation };
