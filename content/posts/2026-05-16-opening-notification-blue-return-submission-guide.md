@@ -16,15 +16,15 @@ reader_problem: "開業届と青色申告のタイミングを逃すとどうな
 success_outcome: "開業に必要な届出のタイミングと手順を理解できる"
 primary_question: "開業届と青色申告承認申請はいつまでに出すべきか？"
 summary: "開業届は原則1か月以内、青色申告承認申請は原則2か月以内です。美容サロン開業時の提出先、必要書類、遅れた場合の扱いまで時系列で確認できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-05-16T11:23:58.095+09:00"
 publish_at: "2026-05-17T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-05-17T11:15:31.421+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-16T00:22:54.912Z"
-updated_at: "2026-05-16T11:23:58.095+09:00"
+updated_at: "2026-05-17T11:15:31.421+09:00"
 publish_slot: "morning"
 ---
 
