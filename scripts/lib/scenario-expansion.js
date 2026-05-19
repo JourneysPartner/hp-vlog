@@ -23,6 +23,7 @@ const {
   MAIN_ARTICLE_TYPES, lookup,
 } = require('./scenario-axes');
 const { buildTitle } = require('./title-builder');
+const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 
 // ── 文字列ヘルパー ────────────────────────────────────────────────
 function kebab(s) {
@@ -319,6 +320,17 @@ function buildTopic({ macro, cluster, persona, tax_domain, subclusterParts,
                        freshness_sensitive, priority, source_url, source_title }) {
   const subcluster = subclusterParts.filter(Boolean).map(kebab).join('-');
   const slug       = slugParts.filter(Boolean).map(kebab).join('-');
+
+  // source_url が未指定の場合は tax_domain / pain_point に基づくデフォルトを必ず付与
+  // （これにより validate.js の approved/scheduled/published 段階で ERROR にならない）
+  let finalSourceUrl   = source_url || '';
+  let finalSourceTitle = source_title || '';
+  if (!finalSourceUrl) {
+    const def = getDefaultSourceForTopic({ tax_domain, pain_point });
+    finalSourceUrl   = def.url;
+    finalSourceTitle = def.title;
+  }
+
   return {
     macro,
     cluster,
@@ -340,8 +352,8 @@ function buildTopic({ macro, cluster, persona, tax_domain, subclusterParts,
     freshness_sensitive: !!freshness_sensitive,
     title,
     slug,
-    source_url: source_url || '',
-    source_title: source_title || '',
+    source_url:   finalSourceUrl,
+    source_title: finalSourceTitle,
     hint: hint || '',
     search_intent,
     reader_problem,

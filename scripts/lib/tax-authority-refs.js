@@ -108,8 +108,74 @@ function formatRefsForPrompt(refs) {
   }).join('\n');
 }
 
+// ── tax_domain / pain_point → 自動 source mapping ─────────────────
+// シナリオ展開で source_url 未指定のトピックに「最低限の出典」を必ず付ける。
+// validate.js は approved/scheduled/published で source_url 空欄を ERROR にするため、
+// 生成記事が必ず source_url を持つようにここで fallback を提供する。
+const DEFAULT_SOURCE_BY_TAX_DOMAIN = {
+  consumption_tax:        { no: '6501', title: '国税庁タックスアンサー No.6501 納税義務の免除',  url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
+  income_tax:             { no: '1350', title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
+  invoice_system:         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  bookkeeping_expenses:   { no: '2210', title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm' },
+  inheritance_tax:        { no: '4152', title: '国税庁タックスアンサー No.4152 相続税の計算',         url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm' },
+  overseas_transactions:  { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税',       url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
+  withholding:            { no: '2792', title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm' },
+};
+
+// pain_point 別の優先 source（より具体的に出典を当てたい場合）
+const DEFAULT_SOURCE_BY_PAIN = {
+  'small-residential-land':    { no: '4124', title: '国税庁タックスアンサー No.4124 相続した事業の用や居住の用の宅地等の価額の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm' },
+  'spouse-reduction':          { no: '4158', title: '国税庁タックスアンサー No.4158 配偶者の税額の軽減', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm' },
+  'second-inheritance-loss':   { no: '4158', title: '国税庁タックスアンサー No.4158 配偶者の税額の軽減', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm' },
+  'deadline-pressure':         { no: '4205', title: '国税庁タックスアンサー No.4205 相続税の申告と納税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm' },
+  'tax-applicable-or-not':     { no: '4152', title: '国税庁タックスアンサー No.4152 相続税の計算', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm' },
+  'lifetime-gift-addback':     { no: '4408', title: '国税庁タックスアンサー No.4408 贈与税の計算と税率', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm' },
+  'life-insurance-exemption':  { no: '4114', title: '国税庁タックスアンサー No.4114 相続税の課税対象になる死亡保険金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4114.htm' },
+  'funeral-debt-deduction':    { no: '4129', title: '国税庁タックスアンサー No.4129 相続財産から控除できる債務', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4129.htm' },
+  'real-estate-valuation':     { no: '4602', title: '国税庁タックスアンサー No.4602 土地家屋の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4602.htm' },
+  'rental-property-treatment': { no: '4614', title: '国税庁タックスアンサー No.4614 貸家建付地の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4614.htm' },
+  'company-shares-valuation':  { no: '4638', title: '国税庁タックスアンサー No.4638 取引相場のない株式の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm' },
+  'consumption-tax-judgement': { no: '6501', title: '国税庁タックスアンサー No.6501 納税義務の免除',  url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
+  'invoice-judgement':         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  'tax-refund-eligibility':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
+  'overseas-tax-uncertain':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
+  'incorporation-threshold':   { no: '2260', title: '国税庁タックスアンサー No.2260 所得税の税率', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm' },
+  'income-classification':     { no: '1350', title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
+  'family-employment':         { no: '2075', title: '国税庁タックスアンサー No.2075 専従者給与と専従者控除', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm' },
+  'withholding-treatment':     { no: '2792', title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm' },
+};
+
+// ── 最終フォールバック（どこにもマッチしなかった場合）
+const ULTIMATE_FALLBACK = {
+  title: '国税庁ホームページ',
+  url:   'https://www.nta.go.jp/',
+};
+
+/**
+ * トピックに source_url / source_title が未設定の場合に、
+ * tax_domain → pain_point の順で適切なデフォルト出典を返す。
+ * 必ず非空の { url, title } を返す（最終フォールバックは国税庁トップ）。
+ */
+function getDefaultSourceForTopic(topic) {
+  const painId    = topic.pain_point || topic.pain || '';
+  const taxDomain = topic.tax_domain || '';
+
+  if (painId && DEFAULT_SOURCE_BY_PAIN[painId]) {
+    const r = DEFAULT_SOURCE_BY_PAIN[painId];
+    return { url: r.url, title: r.title };
+  }
+  if (taxDomain && DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain]) {
+    const r = DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain];
+    return { url: r.url, title: r.title };
+  }
+  return { url: ULTIMATE_FALLBACK.url, title: ULTIMATE_FALLBACK.title };
+}
+
 module.exports = {
   REFS,
   getRefsForTopic,
   formatRefsForPrompt,
+  getDefaultSourceForTopic,
+  DEFAULT_SOURCE_BY_TAX_DOMAIN,
+  DEFAULT_SOURCE_BY_PAIN,
 };

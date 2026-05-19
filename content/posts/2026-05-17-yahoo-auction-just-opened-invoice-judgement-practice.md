@@ -1,31 +1,32 @@
 ---
-title: "ヤフオクセラーはインボイス登録すべき？判断のポイント｜誤解しやすい点を整理"
-slug: "yahoo-auction-just-opened-invoice-judgement-practice"
-category: "消費税"
-primary_persona: "reseller_marketplace_seller"
-secondary_persona: ""
-article_type: "misconception_fix"
-article_role: "support"
-related_slug: "yahoo-auction-just-opened-consumption-tax-judgement-guide"
-related_title: "ヤフオクの売上に消費税はいつから関係する？課税事業者の判断基準｜比較して考えるポイント"
-related_link_text: "比較・判断のポイントはこちら"
-source_url: ""
-source_title: ""
-search_intent: "ヤフオクセラーがインボイス登録の判断の実務でつまずく場面を解消したい"
-reader_problem: "インボイス登録の判断 の実務処理が不安"
-success_outcome: "インボイス登録の判断を実務上どう処理するか具体的に分かる"
-primary_question: "インボイス登録の判断を実務でどう処理するか？"
-summary: "ヤフオクで売っているだけではインボイス登録は必須ではありません。課税事業者判定、販売先、値下げ要請の有無を順に確認して判断します。"
-review_status: "approved"
-review_comment: ""
-approved_at: "2026-05-17T14:15:18.956+09:00"
-publish_at: "2026-05-18T17:05:00.000+09:00"
-published_at: ""
-pr_number: ""
-preview_url: ""
-created_at: "2026-05-17T00:53:25.427Z"
-updated_at: "2026-05-17T14:15:18.956+09:00"
-publish_slot: "evening"
+title: ヤフオクセラーはインボイス登録すべき？判断のポイント｜誤解しやすい点を整理
+slug: yahoo-auction-just-opened-invoice-judgement-practice
+category: 消費税
+primary_persona: reseller_marketplace_seller
+secondary_persona: ''
+article_type: misconception_fix
+article_role: support
+related_slug: yahoo-auction-just-opened-consumption-tax-judgement-guide
+related_title: ヤフオクの売上に消費税はいつから関係する？課税事業者の判断基準｜比較して考えるポイント
+related_link_text: 比較・判断のポイントはこちら
+source_url: >-
+  https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm
+source_title: 国税庁 インボイス制度の概要
+search_intent: ヤフオクセラーがインボイス登録の判断の実務でつまずく場面を解消したい
+reader_problem: インボイス登録の判断 の実務処理が不安
+success_outcome: インボイス登録の判断を実務上どう処理するか具体的に分かる
+primary_question: インボイス登録の判断を実務でどう処理するか？
+summary: ヤフオクで売っているだけではインボイス登録は必須ではありません。課税事業者判定、販売先、値下げ要請の有無を順に確認して判断します。
+review_status: approved
+review_comment: ''
+approved_at: '2026-05-17T14:15:18.956+09:00'
+publish_at: '2026-05-18T17:05:00.000+09:00'
+published_at: ''
+pr_number: ''
+preview_url: ''
+created_at: '2026-05-17T00:53:25.427Z'
+updated_at: '2026-05-17T14:15:18.956+09:00'
+publish_slot: evening
 ---
 
 ヤフオクで販売しているからといって、インボイス登録が必須になるわけではありません。実務では、**自分が課税事業者か、販売先がインボイスを必要とする相手か**を分けて確認することが大切です。

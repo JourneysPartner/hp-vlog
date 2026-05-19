@@ -105,6 +105,19 @@ console.log('\n=== Test 7: 全 topic に必須フィールドがある ===');
   if (allOk) { console.log(`  ✓ 全 ${topics.length} 件で必須フィールド充足`); passed++; }
 }
 
+// ── 7b. 全 topic に source_url / source_title がある（validate.js 互換）─
+console.log('\n=== Test 7b: 全 topic に source_url / source_title がある ===');
+{
+  const topics = expandAll();
+  const missing = topics.filter(t => !t.source_url || !t.source_title);
+  assert(missing.length === 0,
+    `source 未設定: ${missing.length}/${topics.length}` +
+    (missing.length > 0 ? ` 例: ${missing[0].slug}` : ''));
+  // 国税庁 URL であること
+  const ntaCount = topics.filter(t => /nta\.go\.jp/.test(t.source_url)).length;
+  assert(ntaCount === topics.length, `全 ${topics.length} 件が国税庁 URL（実: ${ntaCount}）`);
+}
+
 // ── 8. title にテンプレートプレースホルダが残っていない ─────────
 console.log('\n=== Test 8: title に未充足プレースホルダがない ===');
 {
