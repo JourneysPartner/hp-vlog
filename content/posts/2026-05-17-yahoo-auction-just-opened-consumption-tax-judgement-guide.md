@@ -23,17 +23,16 @@ business_stage: just-opened
 life_stage: ''
 pain_point: consumption-tax-judgement
 procedure_stage: ''
-summary: >-
-  開業直後のヤフオクセラーは、原則としてすぐ消費税の課税事業者にはなりません。基準期間・特定期間・インボイス登録の3つで、いつから消費税が関係するか判断できます。
-review_status: approved
+summary: 開業直後のヤフオクセラーは、原則としてすぐ消費税の課税事業者にはなりません。基準期間・特定期間・インボイス登録の3つで、いつから消費税が関係するか判断できます。
+review_status: "published"
 review_comment: ''
 approved_at: '2026-05-17T13:54:45.486+09:00'
 publish_at: '2026-05-18T11:05:00.000+09:00'
-published_at: ''
+published_at: "2026-05-19T13:23:31.862+09:00"
 pr_number: ''
 preview_url: ''
 created_at: '2026-05-17T00:52:49.490Z'
-updated_at: '2026-05-17T13:54:45.486+09:00'
+updated_at: "2026-05-19T13:23:31.862+09:00"
 publish_slot: morning
 ---
 
