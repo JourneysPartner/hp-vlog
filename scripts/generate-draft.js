@@ -8,9 +8,24 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
 const { TOPICS } = require('./topic-pool');
 const { selectDailyTopics } = require('./lib/topic-selector');
-const { getRefsForTopic, formatRefsForPrompt } = require('./lib/tax-authority-refs');
+const { getRefsForTopic, formatRefsForPrompt, getDefaultSourceForTopic } = require('./lib/tax-authority-refs');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
+
+// ── トピックに必ず source_url / source_title を埋める fallback ─────
+// validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
+// 生成記事には必ず非空の出典を持たせる。scenario-expansion で対応済みだが、
+// 念のため generate-draft でも二重防御する。
+function ensureSourceOnTopic(topic) {
+  if (!topic.source_url) {
+    const def = getDefaultSourceForTopic(topic);
+    topic.source_url   = def.url;
+    topic.source_title = def.title;
+  } else if (!topic.source_title) {
+    topic.source_title = topic.source_url;
+  }
+  return topic;
+}
 
 // ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
 const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
@@ -1004,6 +1019,9 @@ async function main() {
   console.log(`[generate] 生成本数: ${pair.length}`);
 
   const results = [];
+
+  // 各トピックに source_url / source_title が必ず付くよう fallback を適用
+  pair.forEach(ensureSourceOnTopic);
 
   for (let i = 0; i < pair.length; i++) {
     const topic = pair[i];
