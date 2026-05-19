@@ -36,12 +36,25 @@ function nowJST() {
   return jst.toISOString().replace('Z', '+09:00');
 }
 
+// 単/双引用符を剥がす（YAML スカラ値が "...", '...', または素のいずれでも受ける）
+function unquote(s) {
+  if (!s) return '';
+  const t = s.trim();
+  if ((t.startsWith('"') && t.endsWith('"')) ||
+      (t.startsWith("'") && t.endsWith("'"))) {
+    return t.slice(1, -1);
+  }
+  return t;
+}
+
 // frontmatter の特定キーを書き換える（既存値があれば差替、無ければ追加）
+// 既存値の引用符スタイル（', "）を問わずマッチする。書き戻しは double quote に統一する。
 function setFmField(raw, key, value) {
   const m = raw.match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!m) throw new Error('frontmatter が見つかりません');
   let fm = m[2];
-  const re = new RegExp(`^(${key}:\\s*)"?[^"\\n]*"?\\s*$`, 'm');
+  // 行全体（quote 種類を問わず）: key: <something>
+  const re = new RegExp(`^(${key}:\\s*).*$`, 'm');
   if (re.test(fm)) {
     fm = fm.replace(re, `$1"${value}"`);
   } else {
@@ -51,8 +64,9 @@ function setFmField(raw, key, value) {
 }
 
 function getFmField(raw, key) {
-  const m = raw.match(new RegExp(`^${key}:\\s*"?([^"\\n\\r]+)"?`, 'm'));
-  return m ? m[1].trim() : '';
+  // single / double quote のいずれにもマッチする
+  const m = raw.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'));
+  return m ? unquote(m[1]) : '';
 }
 
 function main() {

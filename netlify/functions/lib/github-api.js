@@ -162,13 +162,14 @@ async function putFile(filepath, content, sha, message, ref) {
 }
 
 // ── frontmatter フィールド更新 ──────────────────────────────────────────
+// 既存値の引用符スタイル（', ", 素）に関わらずマッチして、書き戻しは double quote に統一する。
 function updateFrontmatter(raw, updates) {
   const match = raw.match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!match) throw new Error('frontmatter が見つかりません');
 
   let fm = match[2];
   for (const [key, value] of Object.entries(updates)) {
-    const regex = new RegExp(`^(${key}:\\s*)"?[^"\\n]*"?\\s*$`, 'm');
+    const regex = new RegExp(`^(${key}:\\s*).*$`, 'm');
     if (regex.test(fm)) {
       fm = fm.replace(regex, `$1"${value}"`);
     } else {
@@ -369,9 +370,16 @@ async function listDirectory(dirpath, ref) {
 }
 
 // ── frontmatter フィールド抽出 ────────────────────────────────────────
+// single / double quote のいずれにもマッチして、引用符を剥がした値を返す。
 function extractFmField(raw, key) {
-  const m = raw.match(new RegExp(`^${key}:\\s*"?([^"\\n\\r]+)"?`, 'm'));
-  return m ? m[1].trim() : '';
+  const m = raw.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'));
+  if (!m) return '';
+  const t = m[1].trim();
+  if ((t.startsWith('"') && t.endsWith('"')) ||
+      (t.startsWith("'") && t.endsWith("'"))) {
+    return t.slice(1, -1);
+  }
+  return t;
 }
 
 // ── 指定日の approved 記事を検索（main ブランチ）────────────────────
