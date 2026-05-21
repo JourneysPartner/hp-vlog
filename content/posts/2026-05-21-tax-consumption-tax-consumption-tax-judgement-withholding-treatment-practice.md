@@ -16,15 +16,15 @@ reader_problem: "源泉徴収の処理 の処理に自信がない"
 success_outcome: "源泉徴収の処理を実務上どう処理するか具体的に分かる"
 primary_question: "源泉徴収の処理を消費税課税事業者判定で実務上どう扱うか？"
 summary: "課税事業者判定は源泉徴収後の入金額ではなく対価総額で行うのが原則です。美容サロン以外の業種例も含め、迷いやすい場面別に整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "全体的に日本語が固くなりすぎているから、自然な日本語でわかりやすく伝えて。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-21T00:08:05.473Z"
-updated_at: "2026-05-21T08:52:15.466Z"
+updated_at: "2026-05-21T18:00:34.110+09:00"
 ---
 
 この記事は、消費税の課税事業者判定の原則は理解しているものの、**「源泉徴収があるとき、どの金額で判定するのか」や「他業種の報酬でも同じ考え方か」**で迷っている方向けです。
