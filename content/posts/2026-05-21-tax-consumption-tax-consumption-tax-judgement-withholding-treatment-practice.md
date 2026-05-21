@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "withholding-treatment"
 procedure_stage: "consumption-tax-judgement"
 summary: "消費税の課税事業者判定では、売上や報酬が源泉徴収されていても原則は税込の対価総額で見ます。入金額ベースで判定しないための確認ポイントを整理しました。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "美容サロンだけでなく他の業種での例も出して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-21T00:08:05.473Z"
-updated_at: "2026-05-21T00:08:05.473Z"
+updated_at: "2026-05-21T17:51:57.524+09:00"
 ---
 
 この記事は、消費税の課税事業者判定の原則は理解しているものの、「売上や報酬で源泉徴収が入ると、どの金額で判定すればよいのか」で迷っている美容サロンオーナー向けです。
