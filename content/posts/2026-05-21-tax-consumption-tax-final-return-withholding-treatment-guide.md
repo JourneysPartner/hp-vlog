@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "withholding-treatment"
 procedure_stage: "final-return"
 summary: "消費税の確定申告では、源泉徴収された金額は消費税の納付額から直接差し引きません。税込・税抜の記帳方法と売上計上額を揃えて判断するのが基本です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "美容サロンだけでなく、他の業種も例に出してどういう費用で気を付けないといけないか(例えば、EC物販ならリサーチの外注費等)も記載して下さい。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-21T00:07:21.229Z"
-updated_at: "2026-05-21T00:07:21.229Z"
+updated_at: "2026-05-21T17:42:08.246+09:00"
 ---
 
 美容サロンを経営していて、外部企業への施術協力や監修料などで**源泉徴収（報酬の支払時に所得税等が天引きされる仕組み）**が入る場合、消費税の確定申告では「源泉徴収された分をどう扱うのか」で迷いやすいです。結論からいうと、**源泉徴収は所得税の前払いであり、消費税の納付額を直接減らすものではありません。** まずはこの切り分けが基本になります。
