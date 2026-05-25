@@ -11,6 +11,8 @@ const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, getDefaultSourceForTopic } = require('./lib/tax-authority-refs');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
+const { classifyRevision } = require('./lib/revision-classifier');
+const partial = require('./lib/partial-revise');
 
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
@@ -904,6 +906,103 @@ updated_at: "${now}"
   return postProcess((fenced ? fenced[1] : raw).trim());
 }
 
+// ── シンプルな system/user プロンプトで OpenAI を呼ぶ（部分再生成用）──
+async function callSimpleOpenAI({ system, user }, maxTokens) {
+  const client = createOpenAIClient();
+  const completion = await client.chat.completions.create({
+    model: MODEL_STANDARD,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user',   content: user },
+    ],
+    ...(maxTokens ? { max_tokens: maxTokens } : {}),
+  });
+  return extractText(completion).trim();
+}
+
+// ── 部分再生成: title_only（本文を保持し title/summary だけ更新）──
+async function regenerateTitleOnly(existingContent, comment) {
+  const { meta } = parseFrontmatter(existingContent);
+  const { system, user } = partial.buildTitleOnlyPrompt(meta, comment);
+  const raw = await callSimpleOpenAI({ system, user }, 512);
+  // JSON 抽出
+  let title = meta.title, summary = meta.summary;
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.title)   title = parsed.title;
+      if (parsed.summary) summary = parsed.summary;
+    }
+  } catch (e) {
+    console.warn(`[regenerate] title_only JSON 解析失敗 → 元タイトル維持: ${e.message}`);
+  }
+  const now = new Date().toISOString();
+  return partial.applyTitleOnly(existingContent, { title, summary }, now).replace(/\s*$/, '\n').trimEnd() + '\n';
+}
+
+// ── 部分再生成: section（対象セクションのみ差し替え／追加）──────
+async function regenerateSection(existingContent, comment, classification) {
+  const { meta, body } = parseFrontmatter(existingContent);
+  const { intro, sections } = partial.splitSections(body);
+
+  if (classification.type === 'add_section') {
+    // 新セクションを生成して末尾（まとめの前）に挿入
+    const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification);
+    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 1500));
+    // まとめセクションがあればその前に、なければ末尾に追加
+    const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
+    const parsedNew = partial.splitSections(newSection).sections[0] ||
+      { heading: '補足', body: newSection };
+    if (concludeIdx >= 0) sections.splice(concludeIdx, 0, parsedNew);
+    else sections.push(parsedNew);
+    const newBody = partial.joinSections(intro, sections);
+    return rebuildWithBody(existingContent, newBody);
+  }
+
+  // 既存セクションの差し替え
+  const idx = partial.findTargetSectionIndex(sections, classification.sectionHint, classification.type);
+  if (idx < 0) {
+    // 対象が特定できない → targeted にフォールバック（全文最小修正）
+    console.warn('[regenerate] 対象セクション特定不可 → targeted にフォールバック');
+    return regenerateTargeted(existingContent, comment);
+  }
+  const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification);
+  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 1500));
+  const reparsed = partial.splitSections(revisedRaw).sections[0];
+  if (reparsed) sections[idx] = reparsed;
+  else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
+  const newBody = partial.joinSections(intro, sections);
+  return rebuildWithBody(existingContent, newBody);
+}
+
+// ── 部分再生成: targeted（本文全体を渡し最小修正）──────────────
+async function regenerateTargeted(existingContent, comment) {
+  const { body } = parseFrontmatter(existingContent);
+  const { system, user } = partial.buildTargetedPrompt({ ...parseFrontmatter(existingContent).meta }, comment, body);
+  const revised = postProcessBodyOnly(await callSimpleOpenAI({ system, user }));
+  return rebuildWithBody(existingContent, revised);
+}
+
+// 本文だけ後処理（禁止表現置換のみ。免責は本文側で維持される前提）
+function postProcessBodyOnly(text) {
+  const fenced = text.match(/^```(?:markdown|md)?\n([\s\S]+)\n```\s*$/m);
+  return sanitizeBannedPhrases((fenced ? fenced[1] : text).trim());
+}
+
+// 既存 frontmatter を保ち、本文だけ差し替えて updated_at / review_status を更新
+function rebuildWithBody(existingContent, newBody) {
+  const m = existingContent.match(/^(---\r?\n[\s\S]+?\r?\n---\r?\n)([\s\S]*)$/);
+  if (!m) return existingContent;
+  const now = new Date().toISOString();
+  const fmBlock = m[1]
+    .replace(/^(updated_at:\s*).*$/m, `$1"${now}"`)
+    .replace(/^(review_status:\s*).*$/m, `$1"draft"`)
+    .replace(/^(review_comment:\s*).*$/m, `$1""`);
+  const ensured = ensureDisclaimer(`${fmBlock}${newBody}`);
+  return ensured.replace(/\s*$/, '\n');
+}
+
 // ── CLI 引数ヘルパー ────────────────────────────────────────────────
 function getArg(name) {
   const args = process.argv.slice(2);
@@ -994,17 +1093,48 @@ async function main() {
       process.exit(2);
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY && (process.env.CONTENT_MODEL_PROVIDER || 'openai') === 'openai') {
       console.error('[regenerate] OPENAI_API_KEY が必要です');
       process.exit(1);
     }
 
+    // ── 差し戻しコメントを分類し、再生成範囲を決める（部分再生成）──
+    const classification = classifyRevision(comment);
+    console.log(`[regenerate] 分類: type=${classification.type} scope=${classification.scope} (${classification.reason})`);
+
+    // ENABLE_PARTIAL_REVISE=false で従来の全文再生成に固定可能
+    const partialEnabled = (process.env.ENABLE_PARTIAL_REVISE || 'true').toLowerCase() !== 'false';
+    const scope = partialEnabled ? classification.scope : 'full';
+
+    let content;
     const modelId = MODEL_STANDARD;
-    console.log(`[regenerate] OpenAI API で再生成します（${modelId}）...`);
-    const content = await regenerateWithOpenAI(existing, comment, modelId);
+
+    if (scope === 'frontmatter') {
+      // title_only: 本文を保ったまま title/summary だけ調整（最も安価）
+      content = await regenerateTitleOnly(existing, comment);
+      console.log('[regenerate] title_only: 本文を保持し frontmatter のみ更新');
+    } else if (scope === 'section') {
+      // section スコープ: 対象セクションだけ抽出して差し替え／追加
+      content = await regenerateSection(existing, comment, classification);
+      console.log('[regenerate] section: 対象セクションのみ差し替え');
+    } else if (scope === 'targeted') {
+      // targeted: 本文全体を渡し「指摘箇所のみ最小修正」
+      content = await regenerateTargeted(existing, comment);
+      console.log('[regenerate] targeted: 指摘箇所のみ最小修正');
+    } else {
+      // full: 全文再生成（従来）
+      console.log(`[regenerate] full: 全文再生成（${modelId}）...`);
+      content = await regenerateWithOpenAI(existing, comment, modelId);
+    }
 
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
+
+    const ghOut = process.env.GITHUB_OUTPUT;
+    if (ghOut) {
+      fs.appendFileSync(ghOut, `revision_type=${classification.type}\n`);
+      fs.appendFileSync(ghOut, `revision_scope=${scope}\n`);
+    }
 
     const { meta: regenMeta } = parseFrontmatter(content);
     selfCheckContent(content, regenMeta.article_type || 'basic_explainer', regenMeta.slug || filename);
