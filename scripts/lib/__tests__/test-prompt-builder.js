@@ -109,5 +109,20 @@ console.log('\n=== Test 6: STATIC_RULES の網羅性 ===');
   }
 }
 
+// ── 7. 生成プロンプトが「frontmatter + Markdown本文」形式を指示 ──
+console.log('\n=== Test 7: 出力形式が frontmatter + 本文 を指示 ===');
+{
+  const ir = builder.buildGenerationPrompt({
+    topic, persona, cta: 'C', articleType: 'comparison_decision', articleRole: 'main',
+    now: '2026-05-25T00:00:00Z',
+  });
+  // user に frontmatter テンプレ（--- 区切り）と本文指示が含まれる
+  assert(/---/.test(ir.user), 'user に frontmatter 区切り（---）');
+  assert(/title:/.test(ir.user) && /slug:/.test(ir.user) && /review_status:/.test(ir.user),
+    'frontmatter テンプレに必須キー');
+  assert(/Markdown本文|本文/.test(ir.user), '本文生成の指示を含む');
+  assert(/コードブロック不要/.test(ir.user), 'コードブロック不要の指示');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
