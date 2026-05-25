@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "incorporation-threshold"
 procedure_stage: ""
 summary: "Amazonセラーが法人化を検討すべき目安は、課税所得600〜800万円超または年商1,000万円超が迫ったタイミング。所得税・消費税の両面から判断する必要があります。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルの「Amazonは法人化を考えるべき売上ライン？」を「Amazonセラーが法人化を考えるべき売上ラインは？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-25T10:17:50.682Z"
-updated_at: "2026-05-25T10:17:50.682Z"
+updated_at: "2026-05-25T20:02:15.627+09:00"
 ---
 
 ## この記事でわかること・結論
