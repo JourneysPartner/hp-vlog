@@ -61,6 +61,17 @@ jobs:
           fi
           node scripts/generate-draft.js $ARGS
         env:
+          # 本文生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
+          CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          # prompt caching フラグ（Variables 推奨。Secret 側にしかない場合の後方互換で両参照）
+          CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
+          # 周辺作業: Haiku 4.5 またはルールベース
+          AUX_MODEL_ENABLED: ${{ vars.AUX_MODEL_ENABLED }}
+          AUX_MODEL_PROVIDER: ${{ vars.AUX_MODEL_PROVIDER }}
+          AUX_MODEL: ${{ vars.AUX_MODEL }}
+          # OpenAI（fallback 用。必ず OPENAI_MODEL=gpt-5.4 を使う）
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
 
