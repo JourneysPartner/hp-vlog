@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "invoice-judgement"
 procedure_stage: "final-return"
 summary: "インボイス登録は「した方が得」で決めるものではありません。国内EC物販セラー向けに、帳簿・経費・仕入税額控除への影響と判断手順を実務目線で整理しました。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルの「帳簿・経費の確定申告でインボイス登録の判断にどう向き合う？」を「インボイスは登録すべきか？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-24T00:51:53.478Z"
-updated_at: "2026-05-24T00:51:53.478Z"
+updated_at: "2026-05-25T16:55:52.219+09:00"
 ---
 
 この記事は、国内EC物販セラーで「確定申告の帳簿づけの流れで、インボイス登録すべきか迷っている方」向けです。結論からいうと、**インボイス登録の判断は、確定申告の有利不利だけで決めるものではなく、消費税の納税義務・取引先・帳簿管理の負担をセットで見る必要があります。**
