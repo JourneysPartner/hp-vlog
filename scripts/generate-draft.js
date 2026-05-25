@@ -16,6 +16,7 @@ const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
+const { normalizeGeneratedDraft } = require('./lib/draft-normalizer');
 
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
@@ -519,9 +520,9 @@ function extractText(completion) {
   return '';
 }
 
-// ── OpenAI API を使った生成 ──────────────────────────────────────
-async function generateWithOpenAI(dateStr, topic, modelId, pairedTopic) {
-  const client  = createOpenAIClient();
+// ── 本文生成（content-model 経由。Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）────
+// strictFormat=true で「---開始・コードブロック禁止・h2 3個以上」を強く指示する。
+async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat) {
   const now     = new Date().toISOString();
   const persona = PERSONA_MAP[topic.persona];
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
@@ -668,6 +669,19 @@ ${topic.hint}`;
     revisionHint = `\n\n過去の記事で以下のレビュー指摘がありました。同様の問題を避けてください:\n${items}`;
   }
 
+  // 強い形式指定（retry 時）。frontmatter はシステム側で再構築するが、
+  // 本文の構造崩れ（h2 不足・前置き混入）を防ぐために明示する。
+  if (strictFormat) {
+    revisionHint += `\n\n═══ 出力フォーマット厳守（必須）═══
+- 出力は必ず frontmatter の \`---\` から開始する
+- コードブロック（\`\`\`）で全体を囲まない
+- frontmatter と Markdown 本文以外の説明文・前置きを書かない
+- 本文には h2（## ）見出しを3個以上含める
+${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'comparison_decision' || topic.article_type === 'filing_practice' || topic.article_type === 'case_study')
+  ? '- この記事タイプでは GFM テーブル（| 列 | 列 | と |---|---|）を必ず1つ以上含める'
+  : ''}`;
+  }
+
   const sourceUrl      = topic.source_url || '';
   const sourceTitle    = topic.source_title || '';
   const relatedSlug    = pairedTopic ? pairedTopic.slug : '';
@@ -743,9 +757,45 @@ updated_at: "${now}"
     relatedSlug, relatedTitle, relatedLinkText, now,
   });
   const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
-  const raw = result.text || '';
-  const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
-  return postProcess((fenced ? fenced[1] : raw).trim());
+  // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
+  // provider/model は content-model がログ出力済み。
+  return { raw: result.text || '', provider: result.provider, model: result.model };
+}
+
+// ── 新規記事を生成し、frontmatter を保証して返す（retry 付き）─────
+// 1. 本文生成（content-model）
+// 2. normalizeGeneratedDraft で frontmatter をシステム側から再構築
+// 3. 本文 h2 が0個など形式異常なら、strictFormat で1回だけ再生成
+// 4. それでも h2 が0個なら本文をそのまま採用（frontmatter は保証済みなので validate は通る）
+async function generateArticle(dateStr, topic, pairedTopic) {
+  const now = new Date().toISOString();
+  let gen = await generateWithOpenAI(dateStr, topic, pairedTopic, false);
+  let normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, { now, pairedTopic });
+
+  if (normalized.bodyH2Count === 0) {
+    console.warn(`[generate] 本文に h2 見出しが0個（形式異常の可能性）→ strictFormat で1回再生成`);
+    try {
+      gen = await generateWithOpenAI(dateStr, topic, pairedTopic, true);
+      const retryNorm = normalizeGeneratedDraft(postProcess(gen.raw), topic, { now, pairedTopic });
+      if (retryNorm.bodyH2Count > 0) {
+        normalized = retryNorm;
+        console.log('[generate] 再生成で h2 見出しを確保しました');
+      } else {
+        console.warn('[generate] 再生成後も h2 が0個。frontmatter は保証済みのため本文をそのまま採用します');
+        normalized = retryNorm;
+      }
+    } catch (e) {
+      console.warn(`[generate] strictFormat 再生成失敗（${e.message}）→ 初回結果を使用`);
+    }
+  }
+
+  if (normalized.hadFrontmatter === false) {
+    console.log('[generate] LLM出力に frontmatter が無かったため topic metadata から構築しました');
+  }
+  if (normalized.bodyH2Count < 3) {
+    console.warn(`[self-check] h2 見出しが ${normalized.bodyH2Count} 個（3個以上推奨）`);
+  }
+  return { content: normalized.content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
 }
 
 // ── 既存記事の frontmatter をパースする ─────────────────────────
@@ -1149,18 +1199,22 @@ async function main() {
   // 各トピックに source_url / source_title が必ず付くよう fallback を適用
   pair.forEach(ensureSourceOnTopic);
 
+  // 本文生成 provider/model の表示（content-model の解決結果）
+  const contentProvider = contentModel.resolveProvider();
+  const contentModelId  = contentModel.resolveModel(contentProvider);
+  const hasContentKey = contentProvider === 'anthropic'
+    ? !!process.env.ANTHROPIC_API_KEY
+    : !!process.env.OPENAI_API_KEY;
+
   for (let i = 0; i < pair.length; i++) {
     const topic = pair[i];
     const pairedTopic = pair.length === 2 ? pair[1 - i] : null;
-    const persona = PERSONA_MAP[topic.persona];
-    const { model, reason } = resolveModel(topic);
 
     console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
     console.log(`[generate] テーマ: ${topic.title}`);
     console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
     console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
-    console.log(`[generate] テーマ品質: ${topic.quality || 'standard'}`);
-    console.log(`[generate] 使用モデル: ${model}（${reason}）`);
+    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
     if (pairedTopic) {
       console.log(`[generate] ペア記事: ${pairedTopic.title}`);
     }
@@ -1170,19 +1224,26 @@ async function main() {
       console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
     }
 
-    let content;
+    let content, usedModel = contentModelId;
 
-    if (process.env.OPENAI_API_KEY) {
-      console.log(`[generate] OpenAI API で生成します（${model}）...`);
+    if (hasContentKey || process.env.OPENAI_API_KEY) {
       try {
-        content = await generateWithOpenAI(dateStr, topic, model, pairedTopic);
+        const art = await generateArticle(dateStr, topic, pairedTopic);
+        content = art.content;
+        usedModel = art.model || contentModelId;
+        // content-model 内で provider=anthropic から openai に fallback した場合はここで明示
+        if (contentProvider === 'anthropic' && art.provider === 'openai') {
+          console.warn(`[generate] ⚠ Anthropic 失敗のため OpenAI fallback で生成（model=${art.model}）`);
+        }
       } catch (err) {
-        console.warn(`[generate] OpenAI API 失敗: ${err.message} → テンプレートにフォールバック`);
+        console.warn(`[generate] 本文生成 API 失敗: ${err.message} → テンプレートにフォールバック`);
         content = generateFromTemplate(dateStr, topic, pairedTopic);
+        usedModel = 'template';
       }
     } else {
-      console.log('[generate] OPENAI_API_KEY 未設定 → テンプレートで生成します');
+      console.log('[generate] APIキー未設定（ANTHROPIC_API_KEY / OPENAI_API_KEY）→ テンプレートで生成します');
       content = generateFromTemplate(dateStr, topic, pairedTopic);
+      usedModel = 'template';
     }
 
     const filename = `${dateStr}-${topic.slug}.md`;
@@ -1194,7 +1255,7 @@ async function main() {
 
     selfCheckContent(content, topic.article_type || 'basic_explainer', topic.slug);
 
-    results.push({ filename, slug: topic.slug, model });
+    results.push({ filename, slug: topic.slug, model: usedModel });
   }
 
   // GitHub Actions 出力変数（2本分）
