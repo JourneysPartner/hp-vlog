@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "prepayment-recognition"
 procedure_stage: ""
 summary: "美容室の回数券は、受け取った時点で必ず売上になるわけではありません。開業前は原則「前受金」として管理し、施術時に売上計上する考え方が判断しやすいです。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "開業前に販売した回数券についてではなく、単純に、回数券の取り扱いを書いてください。開業前に限定するのは不自然です。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-25T00:31:02.668Z"
-updated_at: "2026-05-25T00:31:02.668Z"
+updated_at: "2026-05-25T17:00:29.871+09:00"
 ---
 
 美容室の回数券や前受金は、**「受け取った時に売上にするか」「施術した時に売上にするか」**で迷いやすい論点です。この記事を読めば、**開業前に販売した回数券をどちらの考え方で処理すべきか、自分のサロンに合う判断ができます。**
