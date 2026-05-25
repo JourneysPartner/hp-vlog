@@ -121,6 +121,17 @@ async function headers(accept = 'application/vnd.github.v3+json') {
   };
 }
 
+// ── rate limit ヘッダのログ出力（秘密情報は出さない）──────────────────
+function logRateLimit(res, label) {
+  const remaining = res.headers.get('x-ratelimit-remaining');
+  const limit     = res.headers.get('x-ratelimit-limit');
+  const reset     = res.headers.get('x-ratelimit-reset');
+  if (remaining != null) {
+    const resetStr = reset ? new Date(Number(reset) * 1000).toISOString() : 'unknown';
+    console.warn(`[github-api] ${label} rate limit: remaining=${remaining}/${limit} reset=${resetStr}`);
+  }
+}
+
 // ── ファイル取得 (content + sha) ────────────────────────────────────────
 // ref: 省略時は GITHUB_BRANCH (デフォルト main)
 async function getFile(filepath, ref) {
@@ -129,6 +140,7 @@ async function getFile(filepath, ref) {
   const h = await headers();
   const res = await fetch(url, { headers: h });
   if (!res.ok) {
+    if (res.status === 403 || res.status === 429) logRateLimit(res, 'getFile');
     const text = await res.text();
     throw new Error(`GitHub GET ${res.status}: ${text}`);
   }

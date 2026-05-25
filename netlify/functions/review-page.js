@@ -3,11 +3,21 @@
 const fs   = require('fs');
 const path = require('path');
 
+// GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
+const { getFile } = require('./lib/github-api');
+
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
  *
  * GET /.netlify/functions/review-page?file=2026-04-04-slug.md
- *   → content/posts/{file} を GitHub API 経由で取得し、レビューUIを返す
+ *   → content/posts/{file} を GitHub App 認証つき API で取得し、レビューUIを返す
+ *
+ * 認証:
+ *   netlify/functions/lib/github-api.js の getFile() を使用。
+ *   GH_APP_ID / GH_APP_PRIVATE_KEY / GH_APP_INSTALLATION_ID から
+ *   installation access token を生成して必ず authenticated に呼ぶ。
+ *   （以前は GITHUB_TOKEN が未設定だと無認証 fetch にフォールバックしており、
+ *     GitHub API の rate limit (60 req/h) に到達して 403 → 500 になっていた）
  */
 
 // ── ローカルファイル読み取り（netlify dev 用）──────────────────────────
@@ -28,20 +38,27 @@ function parseFrontmatter(raw) {
   return { meta, body: match[2] };
 }
 
-// ── GitHub API で content/posts/{file} を取得 ────────────────────────
+// ── GitHub App 認証つきで content/posts/{file} を取得 ─────────────────
 // ref: 省略時は GITHUB_BRANCH (デフォルト main)
+// getFile は { content, sha } を返すので content を取り出す。
 async function fetchPostFromGitHub(filename, ref) {
-  const repo  = process.env.GITHUB_REPO  || 'JourneysPartner/hp-vlog';
-  const branch = ref || process.env.GITHUB_BRANCH || 'main';
-  const token = process.env.GITHUB_TOKEN;
+  const filepath = `content/posts/${filename}`;
+  const { content } = await getFile(filepath, ref || undefined);
+  return content;
+}
 
-  const url = `https://api.github.com/repos/${repo}/contents/content/posts/${encodeURIComponent(filename)}?ref=${encodeURIComponent(branch)}`;
-  const headers = { 'Accept': 'application/vnd.github.v3.raw', 'User-Agent': 'mori-tax-review' };
-  if (token) headers['Authorization'] = `token ${token}`;
-
-  const res = await fetch(url, { headers });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
-  return res.text();
+// ── GitHub App 認証情報が揃っているか事前チェック ────────────────────
+// 不足している場合は無認証 fallback で呼び続けず、明確なエラーを投げる。
+function assertGitHubCredentials() {
+  const hasApp = process.env.GH_APP_ID &&
+                 process.env.GH_APP_PRIVATE_KEY &&
+                 process.env.GH_APP_INSTALLATION_ID;
+  const hasPat = process.env.GITHUB_TOKEN;
+  if (!hasApp && !hasPat) {
+    throw new Error(
+      'GitHub App credentials are missing: GH_APP_ID / GH_APP_PRIVATE_KEY / GH_APP_INSTALLATION_ID'
+    );
+  }
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
@@ -319,7 +336,9 @@ exports.handler = async (event) => {
       // ローカルファイルがあればそちらを優先（netlify dev 用）
       raw = fetchPostLocal(filename);
     } catch {
-      // ローカルになければ GitHub API フォールバック（ref 指定対応）
+      // ローカルになければ GitHub App 認証つき API で取得（ref 指定対応）
+      // 認証情報が無い場合は無認証 fallback せず明確なエラーにする
+      assertGitHubCredentials();
       raw = await fetchPostFromGitHub(filename, ref || undefined);
     }
     const { meta, body } = parseFrontmatter(raw);
@@ -336,10 +355,41 @@ exports.handler = async (event) => {
       body: renderReviewPage(filename, meta, bodyHtml, ref),
     };
   } catch (err) {
+    const msg = String(err && err.message || err);
+    // 秘密情報をログに出さないため、token / 秘密鍵は含めない（err.message は GitHub の応答のみ）
+    console.error('[review-page] error:', msg);
+
+    // rate limit (403) の場合は分かりやすいメッセージにする
+    const isRateLimit = /rate limit|API rate limit exceeded|\b403\b/.test(msg);
+    const isAuthMissing = /credentials are missing/.test(msg);
+
+    let statusCode = 500;
+    let heading = '500 Error';
+    let detail = msg;
+
+    if (isRateLimit) {
+      statusCode = 503;
+      heading = '一時的にレビュー画面を表示できません';
+      detail = 'GitHub API の制限に達しました。しばらく待ってから再度お試しください。' +
+        '（本来は認証付きで呼び出すため通常は発生しません。継続する場合は GitHub App の認証設定をご確認ください）';
+    } else if (isAuthMissing) {
+      statusCode = 500;
+      heading = 'GitHub 認証が未設定です';
+      detail = 'GitHub App の認証情報（GH_APP_ID / GH_APP_PRIVATE_KEY / GH_APP_INSTALLATION_ID）が' +
+        'Netlify 環境変数に設定されていません。設定後に再度お試しください。';
+    }
+
     return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: `<h1>500 Error</h1><p>${err.message}</p>`,
+      statusCode,
+      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">` +
+            `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
+            `<title>${heading}</title>` +
+            `<style>body{font-family:'Noto Sans JP',sans-serif;background:#f5f5f5;padding:2rem;color:#2c2c2c;}` +
+            `.box{max-width:640px;margin:2rem auto;background:#fff;border-radius:12px;padding:2rem;` +
+            `box-shadow:0 2px 12px rgba(0,0,0,0.08);border-left:4px solid #c62828;}` +
+            `h1{font-size:1.2rem;color:#0B2045;}p{line-height:1.8;font-size:.95rem;color:#5a6572;}</style></head>` +
+            `<body><div class="box"><h1>${heading}</h1><p>${detail}</p></div></body></html>`,
     };
   }
 };
