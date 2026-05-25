@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "final-return"
 summary: "消費税課税事業者の判定は、所得税の確定申告書ではなく基準期間・特定期間・登録状況で整理するのが出発点です。帳簿確認の順番と見落としやすい注意点をまとめました。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルの「帳簿・経費の確定申告で消費税課税事業者の判定にどう向き合う？」を「消費税の納税義務者かどうかの判定はどうする？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-24T00:51:22.970Z"
-updated_at: "2026-05-24T00:51:22.970Z"
+updated_at: "2026-05-25T16:50:26.253+09:00"
 ---
 
 国内EC物販セラーの方が確定申告の時期にまず押さえるべき結論は、**消費税課税事業者かどうかの判定は、所得税の確定申告書で決まるのではなく、過去の売上高やインボイス登録の有無を帳簿で確認して判断する**という点です。  
