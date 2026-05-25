@@ -43,6 +43,18 @@ jobs:
             --filename "${{ inputs.filename }}" \
             --comment "${{ inputs.comment }}"
         env:
+          # 本文/部分再生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
+          CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
+          # 周辺作業（分類補助・タイトル自然化等）: Haiku 4.5 またはルールベース
+          AUX_MODEL_ENABLED: ${{ vars.AUX_MODEL_ENABLED }}
+          AUX_MODEL_PROVIDER: ${{ vars.AUX_MODEL_PROVIDER }}
+          AUX_MODEL: ${{ vars.AUX_MODEL }}
+          # 部分再生成の有効/無効
+          ENABLE_PARTIAL_REVISE: ${{ vars.ENABLE_PARTIAL_REVISE }}
+          # OpenAI（fallback 用。必ず OPENAI_MODEL=gpt-5.4 を使う）
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
 

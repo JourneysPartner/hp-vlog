@@ -13,6 +13,9 @@ const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-ch
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
 const partial = require('./lib/partial-revise');
+const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
+const contentModel = require('./lib/content-model');
+const auxModel = require('./lib/aux-model');
 
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
@@ -729,15 +732,18 @@ updated_at: "${now}"
 
 （Markdown本文 ${wordCount}）`;
 
-  const completion = await client.chat.completions.create({
-    model: modelId,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user',   content: userPrompt },
-    ],
+  // 本文生成は content-model 経由（CONTENT_MODEL_PROVIDER=anthropic なら
+  // Claude Sonnet 4.6 + prompt caching、失敗時は OpenAI gpt-5.4 に fallback）。
+  // 固定ルールは article-prompt-static の STATIC_RULES（キャッシュ対象）に集約。
+  // userPrompt/systemPrompt の従来文面はフォールバック互換のため温存しつつ、
+  // builder の中間表現を主経路にする。
+  const promptIR = buildGenerationPrompt({
+    topic, persona, cta, articleType, articleRole,
+    ntaRefsBlock, lawChangesBlock, revisionHint,
+    relatedSlug, relatedTitle, relatedLinkText, now,
   });
-
-  const raw = extractText(completion);
+  const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
+  const raw = result.text || '';
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return postProcess((fenced ? fenced[1] : raw).trim());
 }
@@ -893,31 +899,21 @@ updated_at: "${now}"
 
 （改善した Markdown 本文 ${wordCount}）`;
 
-  const completion = await client.chat.completions.create({
-    model: modelId,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user',   content: userPrompt },
-    ],
-  });
-
-  const raw = extractText(completion);
+  // full_regenerate も content-model 経由（Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）。
+  // 差し戻し再生成は per-article 指示が多いため cache 効果は限定的だが provider 統一のため使用。
+  const regenResult = await contentModel.generateSimple(
+    { system: systemPrompt, user: userPrompt }, { maxTokens: 4096 });
+  const raw = regenResult.text || '';
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return postProcess((fenced ? fenced[1] : raw).trim());
 }
 
-// ── シンプルな system/user プロンプトで OpenAI を呼ぶ（部分再生成用）──
+// ── シンプルな system/user プロンプトでモデルを呼ぶ（部分再生成用）──
+// 本文に直結する部分修正（section / targeted / title_only）は品質維持のため
+// content-model（本文 provider = Sonnet 4.6、失敗時 OpenAI gpt-5.4 fallback）を使う。
 async function callSimpleOpenAI({ system, user }, maxTokens) {
-  const client = createOpenAIClient();
-  const completion = await client.chat.completions.create({
-    model: MODEL_STANDARD,
-    messages: [
-      { role: 'system', content: system },
-      { role: 'user',   content: user },
-    ],
-    ...(maxTokens ? { max_tokens: maxTokens } : {}),
-  });
-  return extractText(completion).trim();
+  const result = await contentModel.generateSimple({ system, user }, { maxTokens });
+  return (result.text || '').trim();
 }
 
 // ── 部分再生成: title_only（本文を保持し title/summary だけ更新）──

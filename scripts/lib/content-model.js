@@ -17,7 +17,7 @@
  */
 
 const ANTHROPIC_DEFAULT_MODEL = 'claude-sonnet-4-6';
-const OPENAI_DEFAULT_MODEL    = process.env.OPENAI_MODEL || 'gpt-5.4';
+const OPENAI_DEFAULT_MODEL    = 'gpt-5.4';
 const ANTHROPIC_VERSION       = '2023-06-01';
 
 function resolveProvider() {
@@ -34,10 +34,17 @@ function useCache() {
   return v !== 'false' && v !== '0';
 }
 
+// provider ごとに「その provider 専用の env」からモデルを解決する。
+// 重要: OpenAI に CONTENT_MODEL（= claude-sonnet-4-6）を渡さないため、
+//       provider が openai のときは OPENAI_MODEL / gpt-5.4 のみを返す。
+//       provider が anthropic のときは CONTENT_MODEL / claude-sonnet-4-6 を返す。
 function resolveModel(provider, override) {
   if (override) return override;
-  if (process.env.CONTENT_MODEL) return process.env.CONTENT_MODEL;
-  return provider === 'anthropic' ? ANTHROPIC_DEFAULT_MODEL : OPENAI_DEFAULT_MODEL;
+  if (provider === 'anthropic') {
+    return process.env.CONTENT_MODEL || ANTHROPIC_DEFAULT_MODEL;
+  }
+  // openai（本文生成 provider が openai の時、または anthropic 失敗時の fallback）
+  return process.env.OPENAI_MODEL || OPENAI_DEFAULT_MODEL;
 }
 
 // ── OpenAI 呼び出し（既存挙動）──────────────────────────────────
@@ -58,6 +65,9 @@ async function callOpenAI(promptIR, { model, maxTokens }) {
     : (choice && choice.message && Array.isArray(choice.message.content)
         ? choice.message.content.map(p => p.text || '').join('')
         : '');
+  const u = completion.usage || {};
+  console.log(`[content-model] provider=openai model=${model} cache=false ` +
+    `usage(in=${u.prompt_tokens ?? '?'} out=${u.completion_tokens ?? '?'})`);
   return { text, usage: completion.usage || null, provider: 'openai', model };
 }
 
@@ -85,7 +95,11 @@ async function callAnthropic(promptIR, { model, maxTokens }) {
   const text = Array.isArray(data.content)
     ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
     : '';
-  // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる
+  // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる（秘密情報ではない）
+  const u = data.usage || {};
+  console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
+    `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
+    `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0})`);
   return { text, usage: data.usage || null, provider: 'anthropic', model };
 }
 

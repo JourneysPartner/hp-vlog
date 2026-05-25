@@ -51,10 +51,17 @@
 | **既存 gpt-5.4 を低 max_tokens で流用** | 軽い校正 | 本文と同単価（割高） | 低 | 最低（追加実装ほぼ無） | 中 | △ | 高 | 強 | ○ | OPENAI_API_KEY | ★★☆☆☆ |
 | **ローカル処理のみ**（kuromoji 等の形態素解析） | 表記ゆれ/簡易校正 | 0円 | 中（辞書依存） | 中〜高 | 即時 | 不要 | 完全 | 強 | △ | なし | ★★★☆☆ |
 
-### モデルID メモ（採用時に最新確認）
-- 本文生成（確定方針）: **`claude-sonnet-4-6`**
-- 周辺処理候補（Anthropic 安価）: Haiku 系 = `claude-haiku-4-5-20251001`（※リリース状況・型番は要確認）
-- OpenAI 安価帯（mini/nano）: 型番は OpenAI の最新一覧で要確認
+### モデルID / 価格（Anthropic 公式で確認済み 2026-05）
+公式: https://platform.claude.com/docs/en/docs/about-claude/models/overview
+
+| モデル | Claude API ID | alias | 価格(入/出 per 1M) |
+|---|---|---|---|
+| 本文生成（確定） | **`claude-sonnet-4-6`** | claude-sonnet-4-6 | **$3 / $15** |
+| 周辺処理（確定候補） | **`claude-haiku-4-5-20251001`** | claude-haiku-4-5 | **$1 / $5** |
+
+- `claude-haiku-4-5-20251001` は **正式な pinned snapshot ID**。`claude-haiku-4-5` は同モデルへの alias。
+  → **dated ID（`claude-haiku-4-5-20251001`）を推奨**（再現性のためスナップショット固定）。alias でも動作するが本番は固定IDが安全。
+- OpenAI 安価帯（mini/nano）: 型番は OpenAI の最新一覧で要確認（今回は採用せず Haiku を推奨）
 
 ---
 
