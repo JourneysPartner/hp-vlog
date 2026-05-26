@@ -98,4 +98,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── 7. Blog pills: 「もっと見る」トグルでカテゴリ pill を展開 ──
+  document.querySelectorAll('.blog-pills-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('aria-controls');
+      const extra = targetId && document.getElementById(targetId);
+      if (!extra) return;
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      btn.setAttribute('aria-expanded', String(next));
+      if (next) {
+        extra.removeAttribute('hidden');
+        const lbl = btn.querySelector('.blog-pills-toggle-label');
+        if (lbl) lbl.textContent = btn.getAttribute('data-label-close') || '閉じる';
+      } else {
+        extra.setAttribute('hidden', '');
+        const lbl = btn.querySelector('.blog-pills-toggle-label');
+        if (lbl) lbl.textContent = btn.getAttribute('data-label-open') || 'もっと見る';
+      }
+    });
+  });
+
+  // 現在ページがカテゴリページなら最初から展開しておく（active pill を見えるように）
+  const activeCatPill = document.querySelector('.blog-pill--cat.is-active');
+  if (activeCatPill) {
+    const toggle = document.querySelector('.blog-pills-toggle');
+    if (toggle && toggle.getAttribute('aria-expanded') !== 'true') {
+      toggle.click();
+    }
+  }
+
 });

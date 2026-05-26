@@ -94,21 +94,18 @@ function loadPublishedPosts() {
   return posts;
 }
 
-// ── カード HTML（A案: カテゴリ色ブロック画像、サマリー表示）────
+// ── カード HTML（白本体のみ。サマリー表示、ホバーで影） ──────
+// カテゴリラベルには色トークンクラス（category--<slug>）を当て、
+// チップ色だけでカテゴリ識別を保てるようにする。
 function renderArticleCard(p, { headingLevel = 'h2' } = {}) {
   const date = formatDate(p.publish_at);
   const cat  = getCategoryMeta(p.category);
   const slug = cat ? cat.slug : 'misc';
-  const icon = cat ? cat.icon : 'bi-file-earmark-text';
   const label = p.category || '記事';
   const H = headingLevel;
   return `
-    <article class="blog-card" data-aos="fade-up">
+    <article class="blog-card category--${slug}" data-aos="fade-up">
       <a href="/blog/${escAttr(p.slug)}/" class="blog-card-link">
-        <div class="blog-card-cover category--${slug}" aria-hidden="true">
-          <i class="bi ${icon}"></i>
-          <span class="blog-card-cover-label">${escHtml(label)}</span>
-        </div>
         <div class="blog-card-body">
           <div class="blog-card-meta">
             <span class="blog-card-category">${escHtml(label)}</span>
@@ -122,28 +119,67 @@ function renderArticleCard(p, { headingLevel = 'h2' } = {}) {
     </article>`;
 }
 
-// ── macro pills（横一列のフィルタチップ）──────────────────────
-// allRoot=true は /blog/ ルート（業種フィルタ未適用）を意味し、「すべて」を active 表示。
-// カテゴリページなど他軸の絞り込み中は allRoot=false、いずれの pill も非アクティブ。
-function renderMacroPills(allPosts, { activeSlug = null, allRoot = false } = {}) {
-  const counts = new Map();
+// ── フィルタ pills（業種マクロ + 展開で全カテゴリ）──────────────
+// 構造:
+//   [すべて] [物販] [サロン] ... [一般事業者] [もっと見る ▾]
+//   ── ここから展開時に表示 ──
+//   ｜カテゴリーから探す｜ [所得税] [消費税] ... [海外取引]
+// 展開トグルは JS（main.js）で aria-expanded を切り替え、
+// hidden 属性で .blog-pills-extra の表示/非表示を制御する。
+function renderMacroPills(allPosts, { activeSlug = null, allRoot = false, activeCategorySlug = null } = {}) {
+  const macroCounts = new Map();
+  const catCounts   = new Map();
   for (const p of allPosts) {
-    if (!p.macro) continue;
-    counts.set(p.macro, (counts.get(p.macro) || 0) + 1);
+    if (p.macro)    macroCounts.set(p.macro,    (macroCounts.get(p.macro) || 0) + 1);
+    if (p.category) catCounts.set(p.category,   (catCounts.get(p.category) || 0) + 1);
   }
-  const items = [];
-  items.push(`<a href="/blog/" class="blog-pill ${allRoot ? 'is-active' : ''}">
+
+  // ── マクロ（常時表示）──────────────────────────────
+  const baseItems = [];
+  baseItems.push(`<a href="/blog/" class="blog-pill ${allRoot ? 'is-active' : ''}">
     <span>すべて</span><span class="blog-pill-count">${allPosts.length}</span>
   </a>`);
   for (const m of MACROS) {
-    const c = counts.get(m.ja) || 0;
-    if (c === 0) continue; // 記事ゼロのマクロは出さない
+    const c = macroCounts.get(m.ja) || 0;
+    if (c === 0) continue;
     const active = m.slug === activeSlug ? 'is-active' : '';
-    items.push(`<a href="/blog/macro/${m.slug}/" class="blog-pill ${active}">
+    baseItems.push(`<a href="/blog/macro/${m.slug}/" class="blog-pill ${active}">
       <i class="bi ${m.icon}"></i><span>${escHtml(m.ja)}</span><span class="blog-pill-count">${c}</span>
     </a>`);
   }
-  return `<nav class="blog-pills" aria-label="業種別フィルタ">\n${items.join('\n')}\n</nav>`;
+
+  // ── カテゴリ（展開時に表示）─────────────────────────
+  const catItems = [];
+  for (const c of CATEGORIES) {
+    const cnt = catCounts.get(c.ja) || 0;
+    if (cnt === 0) continue;
+    const active = c.slug === activeCategorySlug ? 'is-active' : '';
+    catItems.push(`<a href="/blog/category/${c.slug}/" class="blog-pill blog-pill--cat category--${c.slug} ${active}">
+      <i class="bi ${c.icon}"></i><span>${escHtml(c.ja)}</span><span class="blog-pill-count">${cnt}</span>
+    </a>`);
+  }
+
+  const toggle = catItems.length === 0 ? '' : `
+    <button type="button" class="blog-pills-toggle"
+            aria-expanded="false" aria-controls="blog-pills-extra"
+            data-label-open="もっと見る" data-label-close="閉じる">
+      <span class="blog-pills-toggle-label">もっと見る</span>
+      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+    </button>`;
+
+  const extra = catItems.length === 0 ? '' : `
+    <div class="blog-pills-extra" id="blog-pills-extra" hidden>
+      <span class="blog-pills-extra-label">カテゴリーから探す</span>
+      ${catItems.join('\n')}
+    </div>`;
+
+  return `<nav class="blog-pills-nav" aria-label="フィルタ">
+    <div class="blog-pills">
+      ${baseItems.join('\n')}
+      ${toggle}
+    </div>
+    ${extra}
+  </nav>`;
 }
 
 // ── サイドバー（おすすめ + カテゴリ一覧）─────────────────────
@@ -263,7 +299,9 @@ function buildListPageHtml({
 }) {
   // 「すべて」を active 表示するのは /blog/ ルート（カテゴリ/マクロ未適用）に限る
   const allRoot = activeCategorySlug == null && activeMacroSlug == null;
-  const pills    = renderMacroPills(allPosts, { activeSlug: activeMacroSlug, allRoot });
+  const pills    = renderMacroPills(allPosts, {
+    activeSlug: activeMacroSlug, allRoot, activeCategorySlug,
+  });
   const sidebar  = renderSidebar(allPosts, { activeCategorySlug });
   const grid     = renderListGrid(pagePosts);
   const pg       = renderPagination(currentPage, totalPages, basePath);
