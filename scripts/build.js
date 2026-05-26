@@ -4,6 +4,11 @@ const fs   = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
+const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
+
+// 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
+// renderer 拡張を一度だけ適用する（marked は module singleton）。
+applyExternalLinkRenderer(marked);
 
 const ROOT         = path.join(__dirname, '..');
 const POSTS_DIR    = path.join(ROOT, 'content', 'posts');
@@ -135,7 +140,17 @@ function buildRelatedArticleHtml(post, postsMap) {
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap) {
-  const htmlBody = marked(post._body)
+  // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
+  // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
+  const { markdown: linkedBody, stats } = linkCitations(post._body, {
+    onMiss: ({ no, matched }) => {
+      console.warn(`[build]   ⚠ 出典番号がカタログ未収録: ${matched} (${post.slug}) — tax-authority-refs.js への追加を検討`);
+    },
+  });
+  if (stats.guessed > 0) {
+    console.log(`[build]   ℹ ${post.slug}: 出典リンク化 ${stats.linked} 件（うち推定 ${stats.guessed} 件 → カタログ追加候補）`);
+  }
+  const htmlBody = marked(linkedBody)
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
     .replace(/<\/table>/g, '</table></div>');
   const publishDateISO = toISO(post.publish_at);

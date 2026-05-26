@@ -23,10 +23,12 @@ const REFS = {
   ],
 
   income_tax: [
+    { no: '1191', title: '配偶者控除',                       url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm' },
     { no: '1350', title: '事業所得の課税のしくみ',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
     { no: '1900', title: '給与所得者で確定申告が必要な人',   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1900.htm' },
     { no: '1906', title: '給与所得者がネットオークション等で副収入', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1906.htm' },
     { no: '2070', title: '青色申告制度',                     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm' },
+    { no: '2075', title: '専従者給与と専従者控除',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm' },
     { no: '2080', title: '白色申告者の記帳・帳簿等の保存',   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm' },
     { no: '2200', title: '収入金額とその計算',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2200.htm' },
     { no: '2210', title: 'やさしい必要経費の知識',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm' },
@@ -53,7 +55,7 @@ const REFS = {
     { no: '4205', title: '相続税の申告と納税',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm' },
     { no: '4408', title: '贈与税の計算と税率',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm' },
     { no: '4508', title: '直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm' },
-    { no: '4503', title: '相続時精算課税の選択',             url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm' },
+    { no: '4103', title: '相続時精算課税の選択',             url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm' },
   ],
 
   overseas_transactions: [
@@ -171,6 +173,69 @@ function getDefaultSourceForTopic(topic) {
   return { url: ULTIMATE_FALLBACK.url, title: ULTIMATE_FALLBACK.title };
 }
 
+// ── 番号 → URL 解決（カタログ優先 / 未収録は番号レンジから推定）─────
+// 国税庁タックスアンサーの URL 構造は番号レンジでセクションがほぼ決まるため、
+// カタログ未収録の番号もベストエフォートで URL を構築する。
+// 後で人手でカタログに追加すれば、以降の記事では確定マッピングで使われる。
+const NTA_URL_PREFIX_RULES = [
+  // gensen（源泉徴収）— 27xx の一部（279x など）
+  { match: /^(2790|2791|2792|2793|2794|2795|2796|2797|2798|2799)$/, section: 'gensen' },
+  // hyoka（財産評価）— 46xx
+  { match: /^46\d\d$/, section: 'hyoka' },
+  // sozoku（相続税）— 41xx / 42xx / 43xx
+  { match: /^4[123]\d\d$/, section: 'sozoku' },
+  // zoyo（贈与税）— 44xx / 45xx
+  { match: /^4[45]\d\d$/, section: 'zoyo' },
+  // shotoku（所得税）— 1xxx / 20xx-26xx / 28xx-29xx 等
+  { match: /^1\d{3}$/, section: 'shotoku' },
+  { match: /^2[0-6]\d\d$/, section: 'shotoku' },
+  { match: /^2[89]\d\d$/, section: 'shotoku' },
+  // shohi（消費税）— 64xx / 65xx / 66xx
+  { match: /^6[456]\d\d$/, section: 'shohi' },
+  // hojin（法人税）— 54xx 等
+  { match: /^54\d\d$/, section: 'hojin' },
+];
+
+function buildCatalogIndex() {
+  const idx = {};  // number(string) → { url, title, section }
+  for (const list of Object.values(REFS)) {
+    for (const r of list) {
+      if (r.no && r.url) idx[r.no] = { url: r.url, title: r.title, fromCatalog: true };
+    }
+  }
+  return idx;
+}
+let _catalogIdxCache = null;
+function catalogIndex() {
+  if (!_catalogIdxCache) _catalogIdxCache = buildCatalogIndex();
+  return _catalogIdxCache;
+}
+
+/**
+ * 国税庁タックスアンサー番号 → URL を解決する。
+ * 戻り値: { url, title?, fromCatalog: boolean, guessed: boolean } or null
+ * - カタログ収録の番号: 確定 URL + title を返す
+ * - 未収録だがレンジ推定できる番号: 推定 URL を返す（title 無し）
+ * - レンジ外: null
+ */
+function resolveNtaUrlByNumber(no) {
+  const n = String(no);
+  const cat = catalogIndex();
+  if (cat[n]) {
+    return { url: cat[n].url, title: cat[n].title, fromCatalog: true, guessed: false };
+  }
+  for (const rule of NTA_URL_PREFIX_RULES) {
+    if (rule.match.test(n)) {
+      return {
+        url: `https://www.nta.go.jp/taxes/shiraberu/taxanswer/${rule.section}/${n}.htm`,
+        fromCatalog: false,
+        guessed: true,
+      };
+    }
+  }
+  return null;
+}
+
 module.exports = {
   REFS,
   getRefsForTopic,
@@ -178,4 +243,6 @@ module.exports = {
   getDefaultSourceForTopic,
   DEFAULT_SOURCE_BY_TAX_DOMAIN,
   DEFAULT_SOURCE_BY_PAIN,
+  resolveNtaUrlByNumber,
+  NTA_URL_PREFIX_RULES,
 };
