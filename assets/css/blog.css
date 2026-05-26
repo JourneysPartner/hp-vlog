@@ -49,7 +49,7 @@
   gap: 1.5rem;
 }
 
-/* ── Macro Pills (フィルタチップ) ── */
+/* ── Filter Pills (業種マクロ + 展開でカテゴリ) ── */
 .blog-pills-wrap {
   background: #fff;
   padding: 1rem 0;
@@ -58,13 +58,17 @@
   top: 0;
   z-index: 10;
 }
+.blog-pills-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
 .blog-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  align-items: center;
 }
 .blog-pill {
   display: inline-flex;
@@ -103,6 +107,75 @@
   background: rgba(255,255,255,0.2);
 }
 
+/* 展開トグルボタン */
+.blog-pills-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border: 1px dashed var(--color-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.blog-pills-toggle:hover {
+  background: var(--color-primary);
+  color: #fff;
+  border-style: solid;
+}
+.blog-pills-toggle i {
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+.blog-pills-toggle[aria-expanded="true"] i {
+  transform: rotate(180deg);
+}
+
+/* 展開時のカテゴリ pill 列 */
+.blog-pills-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  padding: 0.7rem 0.6rem 0.3rem;
+  border-top: 1px dashed var(--color-border);
+  animation: blog-pills-extra-in 0.18s ease-out;
+}
+.blog-pills-extra[hidden] { display: none; }
+@keyframes blog-pills-extra-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.blog-pills-extra-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  padding-right: 0.25rem;
+}
+
+/* カテゴリ pill はカテゴリ色で縁取り（識別しやすく） */
+.blog-pill--cat {
+  border-color: var(--cat-color, var(--color-border));
+  color: var(--cat-color, var(--color-secondary));
+  background: #fff;
+}
+.blog-pill--cat:hover {
+  background: var(--cat-color-pale, var(--color-secondary-pale));
+  color: var(--cat-color, var(--color-secondary));
+}
+.blog-pill--cat.is-active {
+  background: var(--cat-color, var(--color-secondary));
+  color: #fff;
+  border-color: var(--cat-color, var(--color-secondary));
+}
+
 /* ── Category color tokens (A案: 画像の代わりに色ブロック) ── */
 .category--shotoku     { --cat-color: #4f7fc2; --cat-color-pale: #eaf1fa; }
 .category--shouhi      { --cat-color: #e8924c; --cat-color-pale: #fcf0e3; }
@@ -132,42 +205,6 @@
   color: inherit;
   text-decoration: none;
   height: 100%;
-}
-.blog-card-cover {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  background:
-    linear-gradient(135deg, var(--cat-color, #4f7fc2) 0%, color-mix(in srgb, var(--cat-color, #4f7fc2) 70%, #000 30%) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255,255,255,0.92);
-  overflow: hidden;
-}
-.blog-card-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 50%),
-    radial-gradient(circle at 20% 90%, rgba(0,0,0,0.10), transparent 60%);
-  pointer-events: none;
-}
-.blog-card-cover i {
-  font-size: 3rem;
-  opacity: 0.85;
-}
-.blog-card-cover-label {
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.8rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #fff;
-  background: rgba(0,0,0,0.25);
-  padding: 0.15rem 0.55rem;
-  border-radius: 12px;
 }
 .blog-card-body {
   padding: 1.25rem;
