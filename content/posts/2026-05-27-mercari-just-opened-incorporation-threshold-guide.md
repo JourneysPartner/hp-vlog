@@ -1,5 +1,5 @@
 ---
-title: "メルカリは法人化を考えるべき売上ライン？｜初動を整理"
+title: "メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理"
 slug: "mercari-just-opened-incorporation-threshold-guide"
 category: "消費税"
 primary_persona: "reseller_marketplace_seller"
@@ -32,7 +32,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-27T00:40:35.332Z"
-updated_at: "2026-05-27T08:27:33.137Z"
+updated_at: "2026-05-27T09:00:00.000Z"
 ---
 ## この記事でわかること
 
