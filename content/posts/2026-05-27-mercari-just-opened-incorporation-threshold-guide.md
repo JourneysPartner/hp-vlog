@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "incorporation-threshold"
 procedure_stage: ""
 summary: "メルカリセラーが法人化を検討すべき目安は「課税売上1,000万円超」または「所得税の実効税率が法人税を上回る水準」。個人・法人それぞれの税負担と消費税免税期間のしくみを整理し、自分のタイミングを判断できます。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルの「メルカリは法人化を考えるべき売上ライン？」を「メルカリ販売で法人化を考えるべき売上ラインは？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-27T00:40:35.332Z"
-updated_at: "2026-05-27T00:40:35.332Z"
+updated_at: "2026-05-27T16:29:28.369+09:00"
 ---
 
 ## この記事でわかること
