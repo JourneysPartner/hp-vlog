@@ -130,5 +130,48 @@ console.log('\n=== Test 11: sectionHint で見出し特定 ===');
   assert(idx === 1, `hint一致 index=${idx}`);
 }
 
+// ── 12. extractDirectTitleSwap: コメントから新タイトル直接抽出 ───
+// 実ユーザーケース: 「タイトルの「旧」を「新」に変更して。」
+console.log('\n=== Test 12: extractDirectTitleSwap ===');
+{
+  // パターンA: 旧→新 を両方提示（ユーザー実コメント）
+  const c1 = 'タイトルの「メルカリは法人化を考えるべき売上ライン？」を「メルカリ販売で法人化を考えるべき売上ラインは？」に変更して。';
+  const r1 = partial.extractDirectTitleSwap(c1);
+  assert(r1 !== null, 'A: 抽出成功');
+  assert(r1 && r1.oldTitle === 'メルカリは法人化を考えるべき売上ライン？', 'A: 旧タイトル抽出');
+  assert(r1 && r1.newTitle === 'メルカリ販売で法人化を考えるべき売上ラインは？', 'A: 新タイトル抽出');
+
+  // パターンB: 新のみ提示
+  const c2 = 'タイトルを「新しい言い回し」に変更して。';
+  const r2 = partial.extractDirectTitleSwap(c2);
+  assert(r2 !== null, 'B: 抽出成功');
+  assert(r2 && r2.newTitle === '新しい言い回し', 'B: 新タイトル抽出');
+
+  // パターンC: 「直して」表現
+  const c3 = 'タイトルを「新案」に直してください。';
+  const r3 = partial.extractDirectTitleSwap(c3);
+  assert(r3 !== null && r3.newTitle === '新案', 'C: 「直して」表現');
+
+  // パターンD: 抽出不可（自由文 → LLM へ）
+  const c4 = 'タイトルが硬いので柔らかくしてください。';
+  const r4 = partial.extractDirectTitleSwap(c4);
+  assert(r4 === null, 'D: 自由文は抽出不可（LLM へ委ねる）');
+
+  // パターンE: 本文系コメントは抽出されない
+  const c5 = '本文全体を見直して。';
+  const r5 = partial.extractDirectTitleSwap(c5);
+  assert(r5 === null, 'E: 本文系コメントは抽出されない');
+}
+
+// ── 13. buildTitleOnlyPrompt: 新タイトル明示時は強い指示を入れる ─
+console.log('\n=== Test 13: buildTitleOnlyPrompt が直接指定を尊重 ===');
+{
+  const meta = { title: '旧', summary: '旧サマリー' };
+  const c = 'タイトルを「新タイトル候補」に変更して。';
+  const { user } = partial.buildTitleOnlyPrompt(meta, c);
+  assert(/新タイトル候補/.test(user), '新タイトル候補がプロンプトに含まれる');
+  assert(/採用してください/.test(user), '直接採用の指示が含まれる');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

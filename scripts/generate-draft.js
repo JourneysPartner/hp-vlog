@@ -969,6 +969,21 @@ async function callSimpleOpenAI({ system, user }, maxTokens) {
 // ── 部分再生成: title_only（本文を保持し title/summary だけ更新）──
 async function regenerateTitleOnly(existingContent, comment) {
   const { meta } = parseFrontmatter(existingContent);
+
+  // ① コメントに新タイトルが明示されていれば、LLM を呼ばず直接置換する。
+  //    これは最も信頼でき、ユーザー意図を取りこぼさない。
+  const direct = partial.extractDirectTitleSwap(comment);
+  if (direct && direct.newTitle && direct.newTitle.length >= 4 && direct.newTitle.length <= 80) {
+    console.log(`[regenerate] title_only: コメントから新タイトルを直接抽出 → "${direct.newTitle}"`);
+    const now = new Date().toISOString();
+    return partial.applyTitleOnly(
+      existingContent,
+      { title: direct.newTitle, summary: meta.summary }, // summary は据え置き
+      now,
+    ).replace(/\s*$/, '\n').trimEnd() + '\n';
+  }
+
+  // ② 明示指定が無ければ LLM に整文してもらう（既存ロジック）。
   const { system, user } = partial.buildTitleOnlyPrompt(meta, comment);
   const raw = await callSimpleOpenAI({ system, user }, 512);
   // JSON 抽出
