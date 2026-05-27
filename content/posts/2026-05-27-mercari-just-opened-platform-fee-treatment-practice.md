@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "platform-fee-treatment"
 procedure_stage: ""
 summary: "メルカリ販売手数料（売上の10%）は「支払手数料」として経費計上し、消費税区分は課税仕入れが原則。ただし免税事業者・インボイス未登録業者からの仕入れなど判断に迷うケースを具体例で整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「この記事でわかること」の区分の中にある、「原則は短く言えます。」を「結論としては、」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-27T00:41:37.376Z"
-updated_at: "2026-05-27T00:41:37.376Z"
+updated_at: "2026-05-27T16:33:32.640+09:00"
 ---
 
 ## この記事で分かること
