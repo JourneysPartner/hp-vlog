@@ -973,12 +973,21 @@ async function regenerateTitleOnly(existingContent, comment) {
   // ① コメントに新タイトルが明示されていれば、LLM を呼ばず直接置換する。
   //    これは最も信頼でき、ユーザー意図を取りこぼさない。
   const direct = partial.extractDirectTitleSwap(comment);
-  if (direct && direct.newTitle && direct.newTitle.length >= 4 && direct.newTitle.length <= 80) {
-    console.log(`[regenerate] title_only: コメントから新タイトルを直接抽出 → "${direct.newTitle}"`);
+  if (direct && direct.newTitle && direct.newTitle.length >= 4 && direct.newTitle.length <= 120) {
+    let finalTitle = direct.newTitle;
+    const cur = meta.title || '';
+    // 旧タイトル指定が現タイトルの一部（例: 「｜初動を整理」のような suffix を伴う）なら、
+    // suffix/prefix を保持したまま該当部分のみ置換する。
+    if (direct.oldTitle && cur && cur.includes(direct.oldTitle) && cur !== direct.oldTitle) {
+      finalTitle = cur.replace(direct.oldTitle, direct.newTitle);
+      console.log(`[regenerate] title_only: 部分一致 → サフィックス/プレフィックスを保持して置換 → "${finalTitle}"`);
+    } else {
+      console.log(`[regenerate] title_only: コメントから新タイトルを直接抽出 → "${finalTitle}"`);
+    }
     const now = new Date().toISOString();
     return partial.applyTitleOnly(
       existingContent,
-      { title: direct.newTitle, summary: meta.summary }, // summary は据え置き
+      { title: finalTitle, summary: meta.summary }, // summary は据え置き
       now,
     ).replace(/\s*$/, '\n').trimEnd() + '\n';
   }

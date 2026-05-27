@@ -173,5 +173,23 @@ console.log('\n=== Test 13: buildTitleOnlyPrompt が直接指定を尊重 ===');
   assert(/採用してください/.test(user), '直接採用の指示が含まれる');
 }
 
+// ── 14. 部分一致時のサフィックス保持（実ユーザーケース）───────────
+// 現タイトル: 「メルカリは法人化を考えるべき売上ライン？｜初動を整理」
+// ユーザー指定: 旧=「メルカリは法人化を考えるべき売上ライン？」（｜初動を整理 を含まない）
+//                新=「メルカリ販売で法人化を考えるべき売上ラインは？」
+// 期待挙動: cur.replace(old, new) で「｜初動を整理」を保持して置換
+console.log('\n=== Test 14: 旧タイトルが現タイトルの部分一致 → サフィックス保持 ===');
+{
+  const cur = 'メルカリは法人化を考えるべき売上ライン？｜初動を整理';
+  const oldT = 'メルカリは法人化を考えるべき売上ライン？';
+  const newT = 'メルカリ販売で法人化を考えるべき売上ラインは？';
+  // ロジック検証: 文字列の単純置換が期待通り動く
+  const finalTitle = cur.replace(oldT, newT);
+  assert(finalTitle === 'メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理',
+    `サフィックス保持置換: "${finalTitle}"`);
+  // 部分一致判定の境界
+  assert(cur.includes(oldT) && cur !== oldT, '現タイトルが旧を含み完全一致しない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

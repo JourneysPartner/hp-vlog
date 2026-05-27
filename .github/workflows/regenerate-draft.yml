@@ -27,6 +27,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
+          fetch-depth: 0   # main を fetch するために履歴必要
+
+      # ドラフトブランチは記事生成時点の scripts/ を抱えているため、
+      # 後から main に入った修正（例: revision-classifier の改善）が
+      # 反映されないという問題があった。
+      # → ドラフトブランチの記事ファイルは保ちつつ、scripts/ と
+      #    package*.json だけ main の最新で上書きしてから実行する。
+      #    これらは後段の `git add content/posts/...` でコミット対象外。
+      - name: Use latest scripts and deps from main
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- scripts/ package.json package-lock.json
+          echo "── 上書き済 scripts/ の HEAD: $(git rev-parse origin/main) ──"
 
       - uses: actions/setup-node@v4
         with:
@@ -65,6 +78,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # 記事ファイルのみステージ。scripts/ など main から上書きしたものは
+          # ドラフトブランチへコミットしない（毎回 main 同期で十分なため）。
           git add "content/posts/${{ inputs.filename }}"
           if git diff --cached --quiet; then
             echo "変更なし"
