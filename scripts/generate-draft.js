@@ -1019,7 +1019,7 @@ async function regenerateSection(existingContent, comment, classification) {
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification);
-    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 1500));
+    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 2048));
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -1038,7 +1038,7 @@ async function regenerateSection(existingContent, comment, classification) {
     return regenerateTargeted(existingContent, comment);
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification);
-  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 1500));
+  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 2048));
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -1047,10 +1047,13 @@ async function regenerateSection(existingContent, comment, classification) {
 }
 
 // ── 部分再生成: targeted（本文全体を渡し最小修正）──────────────
+// 本文全体を再出力させるため、本文生成と同じ 4096 トークンを必ず確保する。
+// 以前は maxTokens 未指定で generateSimple のデフォルト 2048 が効き、
+// 本文が途中で切れる事故が発生していた。
 async function regenerateTargeted(existingContent, comment) {
   const { body } = parseFrontmatter(existingContent);
   const { system, user } = partial.buildTargetedPrompt({ ...parseFrontmatter(existingContent).meta }, comment, body);
-  const revised = postProcessBodyOnly(await callSimpleOpenAI({ system, user }));
+  const revised = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
   return rebuildWithBody(existingContent, revised);
 }
 
