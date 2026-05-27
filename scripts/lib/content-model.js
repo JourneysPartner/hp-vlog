@@ -134,11 +134,14 @@ async function generateSimple({ system, user }, opts = {}) {
   const provider = resolveProvider();
   const model = resolveModel(provider, opts.model);
   const promptIR = { staticSystem: system, dynamicSystem: '', user };
+  // デフォルト 4096：本文相当の出力長を呼び出し側が忘れても安全側に倒す。
+  // 短い JSON 等を返す呼び出しは opts.maxTokens で明示的に絞ること。
+  const maxTokens = opts.maxTokens || 4096;
   if (provider === 'anthropic') {
     try {
       const req = {
         model,
-        max_tokens: opts.maxTokens || 2048,
+        max_tokens: maxTokens,
         system: [{ type: 'text', text: system }],
         messages: [{ role: 'user', content: user }],
       };
@@ -160,7 +163,7 @@ async function generateSimple({ system, user }, opts = {}) {
     }
   }
   // openai
-  return await callOpenAI(promptIR, { model: resolveModel('openai', null), maxTokens: opts.maxTokens });
+  return await callOpenAI(promptIR, { model: resolveModel('openai', null), maxTokens });
 }
 
 module.exports = {
