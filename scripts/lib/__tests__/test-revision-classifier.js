@@ -97,5 +97,42 @@ console.log('\n=== Test 10: 短い自由文 → targeted ===');
     `add_section/section_only/factual_correction のいずれか（実際: ${r.type}）`);
 }
 
+// ── 11. 「『○○』の(章|区分|...)の中にある」型 → section_only ─────
+// 実ユーザーケース。以前はパターン未マッチで targeted に落ち、本文全体が
+// LLM に流れていた。これを section_only に振り、該当章のみ送信に倒す。
+console.log('\n=== Test 11: 引用 + 章/区分/部分/セクション の明示指定 → section_only ===');
+{
+  // 実ユーザーコメント
+  const c1 = '「この記事でわかること」の区分の中にある、「原則は短く言えます。」を「結論としては、」に変更して。';
+  const r1 = classifyRevision(c1);
+  assert(r1.type === 'section_only' && r1.scope === 'section',
+    `type=section_only scope=section（実際: ${r1.type}/${r1.scope}）`);
+  // セクションヒントが引用から正しく抽出される
+  assert(r1.sectionHint === 'この記事でわかること',
+    `sectionHint="この記事でわかること"（実際: "${r1.sectionHint}"）`);
+
+  // 別バリエーション: 「『○○』の章を直して」
+  const r2 = classifyRevision('『よくある誤解』の章を少し直してください。');
+  assert(r2.type === 'section_only', `『○○』の章: section_only（実際: ${r2.type}）`);
+  assert(r2.sectionHint === 'よくある誤解', `hint=よくある誤解（実際: "${r2.sectionHint}"）`);
+
+  // 「○○」の部分
+  const r3 = classifyRevision('「個人事業 vs 法人：主な比較」の部分、表が見にくいので整えて。');
+  // 表が含まれているので table_fix（先評価）に拾われる可能性がある。
+  // どちらでも section スコープになることだけ確認。
+  assert(r3.scope === 'section', `scope=section（実際: ${r3.scope}, type=${r3.type}）`);
+
+  // 「○○」のセクション
+  const r4 = classifyRevision('「メルカリ販売で法人化を考えるべき売上ラインは？」のセクションだけ直して。');
+  assert(r4.type === 'section_only', `「○○」のセクション → section_only（実際: ${r4.type}）`);
+  assert(r4.sectionHint === 'メルカリ販売で法人化を考えるべき売上ラインは？',
+    `hint 正しく抽出（実際: "${r4.sectionHint}"）`);
+
+  // 引用部分が短すぎる / 「章」キーワードがない → section_only にはマッチしない
+  const r5 = classifyRevision('「あ」を「い」に変更して。');
+  assert(r5.type !== 'section_only',
+    `セクションキーワード無しは section_only にしない（実際: ${r5.type}）`);
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
