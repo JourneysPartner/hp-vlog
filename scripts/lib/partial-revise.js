@@ -104,12 +104,51 @@ function replaceFmField(raw, key, value) {
   return m[1] + fm + m[3] + m[4];
 }
 
+// ── コメントから「新タイトルを直接指定している」かを抽出 ─────────
+// パターン例:
+//   「タイトルを「新」に変更して」
+//   「タイトルの「旧」を「新」に変更して」
+//   「タイトルを『新』に直して」
+//   → 新タイトルを直接返す。マッチしなければ null。
+//
+// 既存タイトルとの一致確認用に、旧タイトルもあわせて返す（任意）。
+function extractDirectTitleSwap(comment) {
+  if (!comment) return null;
+  const c = comment.replace(/\s+/g, ' ');
+
+  // パターンA: 「タイトルの「旧」を「新」に(変更|直し|変え|...)」
+  // 2 つ目の「...」を新タイトルとして採用する。
+  const mPair = c.match(
+    /タイトル[^「『]*[「『]([^」』]{2,80})[」』]\s*を\s*[「『]([^」』]{2,80})[」』]\s*に\s*(?:変更|変え|直し|つけ直|付け直|修正|して)/
+  );
+  if (mPair) {
+    return { oldTitle: mPair[1].trim(), newTitle: mPair[2].trim(), source: 'pair' };
+  }
+
+  // パターンB: 「タイトル(を|は|の)[新]に(変更|直し|...)」
+  // 1 つだけ「...」がある場合、それを新タイトルとして採用する。
+  const mSingle = c.match(
+    /タイトル[^「『]{0,20}(?:を|は|の|→)\s*[「『]([^」』]{2,80})[」』]\s*に?\s*(?:変更|変え|直し|つけ直|付け直|修正|して|でお願い)/
+  );
+  if (mSingle) {
+    return { oldTitle: null, newTitle: mSingle[1].trim(), source: 'single' };
+  }
+
+  return null;
+}
+
 // ── 部分修正プロンプト（title_only）────────────────────────────
 function buildTitleOnlyPrompt(meta, comment) {
+  // コメント内に新タイトルが直接書かれていれば、LLM に literal 適用を強く指示する。
+  const direct = extractDirectTitleSwap(comment);
+  const directHint = direct
+    ? `\n\n【重要】差し戻しコメントに新タイトル候補「${direct.newTitle}」が明示されています。特段の理由がない限り、これを採用してください（句読点や記号の微調整は可）。`
+    : '';
+
   return {
-    system: 'あなたは日本の税理士事務所のブログ編集者です。記事タイトルとサマリーだけを、検索者が自然に検索しそうな表現に調整します。本文は変更しません。',
-    user: `以下の記事のタイトルとサマリーを、差し戻しコメントを踏まえて自然な日本語に調整してください。
-本文は一切変更しません。タイトルとサマリーのみを JSON で返してください。
+    system: 'あなたは日本の税理士事務所のブログ編集者です。記事タイトルとサマリーだけを、差し戻しコメントの指示に従って調整します。本文は変更しません。コメントで明示的に新タイトルが提示されている場合は原則それを採用します。',
+    user: `以下の記事のタイトルとサマリーを、差し戻しコメントに沿って調整してください。
+本文は一切変更しません。タイトルとサマリーのみを JSON で返してください。${directHint}
 
 【差し戻しコメント】
 ${comment}
@@ -189,6 +228,7 @@ module.exports = {
   findTargetSectionIndex,
   applyTitleOnly,
   replaceFmField,
+  extractDirectTitleSwap,
   buildTitleOnlyPrompt,
   buildSectionPrompt,
   buildTargetedPrompt,
