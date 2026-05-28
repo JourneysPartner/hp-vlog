@@ -36,8 +36,10 @@ console.log('\n=== Test 1: buildGenerationPrompt が静的/可変を分離 ===')
     relatedSlug: 'r', relatedTitle: 'rt', relatedLinkText: 'rl', now: '2026-05-25T00:00:00Z',
   });
   assert(ir.staticSystem === STATIC_RULES, 'staticSystem は固定ルール（キャッシュ対象）');
-  assert(/テストタイトル/.test(ir.dynamicSystem), 'dynamicSystem に可変 topic が入る');
-  assert(/テストタイトル/.test(ir.user), 'user に frontmatter テンプレ');
+  assert(/テストタイトル/.test(ir.dynamicSystem), 'dynamicSystem に topic.title が「参考タイトル」として入る');
+  // Pattern C: title は LLM が生成するため、user prompt の frontmatter には
+  // topic.title をそのまま埋め込まず、生成指示の placeholder が入る
+  assert(/最も適したタイトル/.test(ir.user), 'user に LLM タイトル生成の placeholder');
   assert(!/テストタイトル/.test(ir.staticSystem), '静的部分に可変情報が漏れていない');
 }
 
