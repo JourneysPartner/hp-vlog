@@ -32,9 +32,16 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
     ? `出典として「${topic.source_title || ''}」（${topic.source_url}）を参照すること`
     : 'source_url / source_title は空文字のまま出力（本文では「国税庁によると」等の一般表現に留める）';
 
+  // 参考タイトル: curated トピックには人間が書いた title が、
+  // 拡張シナリオでは空文字が入る。LLM はこれを「ヒント」として扱い、
+  // 自分自身でこの記事に最も適切なタイトルを生成する（Pattern C）。
+  const titleHintLine = topic.title
+    ? `参考タイトル（任意のヒント。改善余地があると判断したら変更可）: ${topic.title}`
+    : 'タイトル: 下記の企画メタ情報からあなた自身で最適な日本語タイトルを生成してください。';
+
   return `═══ この記事の可変条件 ═══
 大分類: ${macro}
-テーマ: ${topic.title}
+${titleHintLine}
 ターゲット読者: ${persona.label}
 カテゴリ: ${topic.category || ''}
 記事タイプ: ${articleType}（${roleLabel}）
@@ -42,11 +49,11 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
     ? '本命記事。テーマの入口・全体像・原則を網羅的に。例外/応用は補強記事に委ねる。'
     : '補強記事。原則の説明は最小限（3行以内）。例外・応用・具体例の深掘りに集中。'}
 
-═══ 企画メタ情報（この記事の設計意図）═══
-検索意図: ${topic.search_intent || '（テーマから推測）'}
-読者の課題: ${topic.reader_problem || '（テーマから推測）'}
-読後の成功状態: ${topic.success_outcome || '（テーマから推測）'}
-中心疑問: ${topic.primary_question || '（テーマから推測）'}
+═══ 企画メタ情報（この記事の設計意図 — タイトル生成にも活用すること）═══
+検索意図: ${topic.search_intent || '（パーソナと痛点から推測）'}
+読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
+読後の成功状態: ${topic.success_outcome || '（パーソナと痛点から推測）'}
+中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
 
 ═══ このタイプの必須要素チェックリスト ═══
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -62,10 +69,13 @@ ${revisionHint || ''}
 }
 
 // ── 出力フォーマット指定（frontmatter テンプレ）────────────────
+// title はあなた（LLM）が記事内容に最も適したタイトルを生成する（Pattern C）。
+// 30〜70 文字、検索者が自然に検索する具体的な表現、`｜サブテキスト` 形式可、
+// 曖昧表現禁止、「〜の徹底解説」など中身がない煽り禁止。
 function buildFrontmatterTemplate({ topic, articleType, articleRole, relatedSlug,
                                      relatedTitle, relatedLinkText, now }) {
   return `---
-title: "${topic.title}"
+title: "（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、\`｜サブテキスト\`形式可、曖昧表現禁止）"
 slug: "${topic.slug}"
 category: "${topic.category || ''}"
 primary_persona: "${topic.persona}"
@@ -119,6 +129,13 @@ function buildGenerationPrompt(args) {
   });
   const user = `以下の条件でブログ記事の下書きを1本作成してください。
 記事を書く前に、検索意図に直接答えているか・必須要素を満たすか・表で整理すべき情報がないかを内部で点検してください。
+
+【タイトル生成に関する重要指示】
+- title は frontmatter の placeholder ではなく、あなたが書いた本文の内容を最も的確に伝える日本語タイトルを生成して入れること
+- 検索者が実際に検索しそうな具体的な疑問形・名詞句で（例: 「〜はどうなる？」「〜の判断基準｜サブテキスト」）
+- 30〜70 文字を目安。70 文字を超えない
+- 「徹底解説」「完全ガイド」「必読」などの中身のない煽り表現は禁止
+- 本文を書き上げた後、その内容を踏まえてタイトルを最適化すること
 
 以下の形式でそのまま出力（コードブロック不要）:
 

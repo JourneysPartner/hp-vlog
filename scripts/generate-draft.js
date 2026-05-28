@@ -1238,7 +1238,9 @@ async function main() {
     const pairedTopic = pair.length === 2 ? pair[1 - i] : null;
 
     console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
-    console.log(`[generate] テーマ: ${topic.title}`);
+    // タイトルは LLM が本文生成と同時に決定するため、ここでは slug を識別子として表示。
+    // 参考タイトル（curated TOPICS の場合のみ存在）は併記する。
+    console.log(`[generate] slug: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
     console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
     console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
     console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);

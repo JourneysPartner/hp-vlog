@@ -133,5 +133,53 @@ console.log('\n=== Test 9: 出力が gray-matter で再パース可能 ===');
   assert(!threw, 'gray-matter でパースエラーにならない');
 }
 
+// ── 10. Pattern C: LLM が生成した妥当な title を採用 ──────────────
+console.log('\n=== Test 10: LLM 生成の妥当な title を採用（Pattern C）===');
+{
+  const TOPIC_NO_TITLE = { ...TOPIC, title: '' };  // 拡張シナリオ相当（title 空）
+  const raw = '---\ntitle: "メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理"\nsummary: "妥当なサマリーで十分な長さ"\n---\n\n## 章1\n本文\n## 章2\n本文\n## 章3\n本文';
+  const n = normalizeGeneratedDraft(raw, TOPIC_NO_TITLE, { now: '2026-05-25T00:00:00Z' });
+  const { data } = matter(n.content);
+  assert(data.title === 'メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理',
+    `LLM title を採用: "${data.title}"`);
+}
+
+// ── 11. Pattern C: 無効な LLM title はフォールバック ─────────────
+// 短すぎる/煽り表現含む LLM title は採用せず、curated topic.title かプレースホルダ
+console.log('\n=== Test 11: 無効な LLM title はフォールバック ===');
+{
+  // (a) curated topic.title が妥当 → topic.title を採用
+  const raw1 = '---\ntitle: "X"\n---\n\n## 章\n本文';
+  const n1 = normalizeGeneratedDraft(raw1, TOPIC, { now: '2026-05-25T00:00:00Z' });
+  const d1 = matter(n1.content).data;
+  assert(d1.title === TOPIC.title, `LLM 無効 + topic.title 妥当 → topic.title 採用: "${d1.title}"`);
+
+  // (b) 煽り語を含む LLM title も無効 → topic.title 採用
+  const raw2 = '---\ntitle: "メルカリの徹底解説"\n---\n\n## 章\n本文';
+  const n2 = normalizeGeneratedDraft(raw2, TOPIC, { now: '2026-05-25T00:00:00Z' });
+  const d2 = matter(n2.content).data;
+  assert(d2.title === TOPIC.title, `「徹底解説」含む LLM title は不採用: "${d2.title}"`);
+
+  // (c) LLM 無効 + topic.title も空 → [要レビュー] プレースホルダ
+  const TOPIC_NO_TITLE = { ...TOPIC, title: '' };
+  const raw3 = '---\ntitle: "X"\n---\n\n## 章\n本文';
+  const n3 = normalizeGeneratedDraft(raw3, TOPIC_NO_TITLE, { now: '2026-05-25T00:00:00Z' });
+  const d3 = matter(n3.content).data;
+  assert(/\[要レビュー\]/.test(d3.title), `両方無効 → [要レビュー] プレースホルダ: "${d3.title}"`);
+}
+
+// ── 12. isValidLlmTitle の単体テスト ──────────────────────────────
+console.log('\n=== Test 12: isValidLlmTitle ===');
+{
+  const { isValidLlmTitle } = require(path.join(ROOT, 'scripts/lib/draft-normalizer'));
+  assert(isValidLlmTitle('メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理'), '妥当な日本語タイトル');
+  assert(!isValidLlmTitle(''), '空文字は無効');
+  assert(!isValidLlmTitle('短'), '6字未満は無効');
+  assert(!isValidLlmTitle('a'.repeat(81)), '80字超は無効');
+  assert(!isValidLlmTitle('（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、`｜サブテキスト`形式可、曖昧表現禁止）'), 'placeholder 文字列は無効');
+  assert(!isValidLlmTitle('メルカリ販売の徹底解説'), '徹底解説 を含むのは無効');
+  assert(!isValidLlmTitle('メルカリ販売の完全ガイド'), '完全ガイド を含むのは無効');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

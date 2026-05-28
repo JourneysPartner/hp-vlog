@@ -129,21 +129,20 @@ console.log('\n=== Test 7: サロンのタイトル生成 ===');
   assert(/ネイルサロン/.test(t) && /経費/.test(t), `自然: "${t}"`);
 }
 
-// ── 8. 全 expandAll() のタイトルが lint を通る ──────────────────
-console.log('\n=== Test 8: 全 expanded topics が lint pass ===');
+// ── 8. Pattern C 切替後: expanded topics の title は空文字 ─────────
+// 以前は title-builder で生成したタイトルが入っていたが、現在は
+// 本文 LLM が生成するため、scenario-expansion 段階では空文字。
+console.log('\n=== Test 8: expanded topics の title は空（LLM 生成のため）===');
 {
   const topics = expandAll();
-  const r = lintAll(topics);
-  assert(r.failCount === 0, `fail 0 / ${r.total}（実: ${r.failCount}）`);
-  if (r.failCount > 0) {
-    for (const s of r.failedSamples) console.error('   - ' + s.title + ' / ' + s.fails.join(', '));
-  }
-  // warn は許容（重複語など）だが 0 にしている。0 を確認:
-  assert(r.warnCount === 0, `warn 0 / ${r.total}（実: ${r.warnCount}）`);
+  const nonEmpty = topics.filter(t => t.title && t.title.length > 0);
+  assert(nonEmpty.length === 0, `全 ${topics.length} 件で title が空（Pattern C）`);
 }
 
-// ── 9. 要求された相続サンプル ──────────────────────────────────
-console.log('\n=== Test 9: 要求された相続サンプル ===');
+// ── 9. 要求された相続サンプルの組み合わせが存在する ──────────────
+// title の中身は LLM 任せだが、軸の組み合わせとしてのトピックは
+// scenario-expansion が正しく生成しているか（slug/cluster/pain_point 等で確認）。
+console.log('\n=== Test 9: 要求された相続サンプルの組み合わせが存在 ===');
 {
   const inh = expandInheritance();
   const cases = [
@@ -158,11 +157,7 @@ console.log('\n=== Test 9: 要求された相続サンプル ===');
   ];
   for (const [label, pred] of cases) {
     const m = inh.find(pred);
-    assert(m && m.title, `${label} がマッチ: "${m && m.title}"`);
-    if (m) {
-      assert(!/に押さえる/.test(m.title), `${label}: "に押さえる"を含まない`);
-      assert(!/が直面するに/.test(m.title), `${label}: "が直面するに"を含まない`);
-    }
+    assert(!!m, `${label} の軸組み合わせが存在 (slug=${m && m.slug})`);
   }
 }
 

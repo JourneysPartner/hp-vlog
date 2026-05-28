@@ -128,8 +128,23 @@ function escFm(v) {
   return String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ');
 }
 
+// ── LLM 出力のタイトルを検証 ──────────────────────────────────
+// 妥当: 6〜80 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない
+function isValidLlmTitle(s) {
+  if (!s || typeof s !== 'string') return false;
+  const t = s.trim();
+  if (t.length < 6 || t.length > 80) return false;
+  // placeholder（プロンプトの「（〜記入）」が残っているケース）
+  if (/^（.+記入.*）$/.test(t)) return false;
+  if (/あなたがこの記事に最も適したタイトル/.test(t)) return false;
+  // 安直な煽り（最終ガード）
+  if (/(徹底解説|完全ガイド|必読)/.test(t)) return false;
+  return true;
+}
+
 // ── topic metadata から canonical frontmatter を構築 ────────────
-// LLM frontmatter（llmMeta）から summary だけ借用（妥当な場合）。
+// LLM frontmatter（llmMeta）から title / summary を採用（妥当な場合）。
+// title は Pattern C: ルールベース生成は使わず、LLM 出力を最終タイトルとする。
 function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {}) {
   const ts = now || new Date().toISOString();
   const articleType = topic.article_type || 'basic_explainer';
@@ -141,6 +156,22 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
     ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい')
     : (topic.related_link_text || '');
 
+  // title: LLM 出力を採用（Pattern C）。妥当性チェックに失敗した場合のみ
+  // 「[要レビュー] {slug}」を入れて人間レビュアーが気付けるようにする。
+  // ※ルールベースの title 生成（title-builder）には絶対に戻さない。
+  const llmTitle = (llmMeta.title || '').trim();
+  let title;
+  if (isValidLlmTitle(llmTitle)) {
+    title = llmTitle;
+  } else if (topic.title && isValidLlmTitle(topic.title)) {
+    // curated トピック（topic-pool）の人手キュレートタイトルは妥当ならそのまま使う
+    title = topic.title;
+    console.warn(`[draft-normalizer] LLM タイトル無効 → curated topic.title を採用: "${title}"`);
+  } else {
+    title = `[要レビュー] ${topic.slug || 'untitled'}`;
+    console.warn(`[draft-normalizer] LLM タイトル無効 + topic.title 無し → "${title}" を仮置き。レビューで修正必須`);
+  }
+
   // summary: LLM のものが妥当（10〜160字）ならそれ、なければ topic、なければ本文派生（呼び出し側で渡す）
   let summary = '';
   const llmSummary = (llmMeta.summary || '').trim();
@@ -151,11 +182,11 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   } else if (topic._derivedSummary) {
     summary = topic._derivedSummary;
   } else {
-    summary = `${topic.title || ''}について、判断のポイントと実務上の注意点を整理します。`;
+    summary = `${title}について、判断のポイントと実務上の注意点を整理します。`;
   }
 
   return `---
-title: "${escFm(topic.title)}"
+title: "${escFm(title)}"
 slug: "${escFm(topic.slug)}"
 category: "${escFm(topic.category || '')}"
 primary_persona: "${escFm(topic.persona || topic.primary_persona || '')}"
@@ -234,5 +265,6 @@ module.exports = {
   parseYamlish,
   countH2,
   deriveSummary,
+  isValidLlmTitle,
   RELATED_LINK_TEXTS,
 };

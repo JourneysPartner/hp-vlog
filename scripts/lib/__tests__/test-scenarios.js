@@ -84,11 +84,13 @@ console.log('\n=== Test 6: サロンの業種別展開 ===');
 }
 
 // ── 7. 全 topic に必須フィールドがある ──────────────────────────
+// 注: Pattern C 切替後、title は LLM が本文生成と同時に決定するため、
+// scenario-expansion 段階では空文字。必須フィールドからは外す。
 console.log('\n=== Test 7: 全 topic に必須フィールドがある ===');
 {
   const topics = expandAll();
   const required = ['macro', 'cluster', 'subcluster', 'persona', 'tax_domain',
-                    'category', 'article_type', 'article_role', 'title', 'slug',
+                    'category', 'article_type', 'article_role', 'slug',
                     'search_intent', 'primary_question'];
   let allOk = true;
   for (const t of topics) {
@@ -118,16 +120,17 @@ console.log('\n=== Test 7b: 全 topic に source_url / source_title がある ==
   assert(ntaCount === topics.length, `全 ${topics.length} 件が国税庁 URL（実: ${ntaCount}）`);
 }
 
-// ── 8. title にテンプレートプレースホルダが残っていない ─────────
-console.log('\n=== Test 8: title に未充足プレースホルダがない ===');
+// ── 8. title は空文字（Pattern C: LLM が本文生成と同時に決定）─────
+// 拡張シナリオの topic.title はビルド時点では空。本文生成時に LLM が埋める。
+console.log('\n=== Test 8: 拡張トピックの title は空（LLM 生成のため）===');
 {
   const topics = expandAll();
-  const broken = topics.filter(t => /\{[a-zA-Z_]+\}/.test(t.title));
-  if (broken.length === 0) {
-    console.log(`  ✓ 全 ${topics.length} 件で title 充足`);
+  const nonEmpty = topics.filter(t => t.title && t.title.length > 0);
+  if (nonEmpty.length === 0) {
+    console.log(`  ✓ 全 ${topics.length} 件で title が空（Pattern C）`);
     passed++;
   } else {
-    console.error(`  ✗ ${broken.length} 件で未充足: ${broken.slice(0, 3).map(t => t.title).join(' | ')}`);
+    console.error(`  ✗ ${nonEmpty.length} 件で title が空ではない（ルールベース残存？）: ${nonEmpty.slice(0, 3).map(t => t.slug).join(' | ')}`);
     failed++;
   }
 }
