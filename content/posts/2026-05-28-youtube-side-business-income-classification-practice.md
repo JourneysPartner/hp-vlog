@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "income-classification"
 procedure_stage: ""
 summary: "YouTube収益が事業所得か雑所得かは「継続性・規模・営利目的」で判断します。会社員の副業でも収益が安定・拡大傾向なら事業所得になりうるため、収入額や活動実態を記録しておくことが重要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「まず原則を3行で確認する」→「ここで重要ポイントを確認💡」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-28T00:33:57.321Z"
-updated_at: "2026-05-28T00:33:57.321Z"
+updated_at: "2026-05-28T16:44:33.462+09:00"
 ---
 
 ## YouTubeの収益は「事業所得」か「雑所得」か、どちらになる？
