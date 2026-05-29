@@ -69,30 +69,67 @@ const REFS = {
 };
 
 /**
- * tax_domain と任意の cluster / category から、関連するレファレンスを返す。
- * 上限件数を持たせて、プロンプトの肥大化を防ぐ。
+ * tax_domain と任意の cluster / category / pain_point / subcluster から、
+ * 関連するレファレンスを返す。記事が cross-domain な内容（例: 所得税の
+ * 確定申告で消費税課税事業者判定にも触れる）の場合でも、本文中で具体数値が
+ * 必要になる税目の refs を漏れなく渡すことを目的とする。
+ *
+ * 上限件数を持たせてプロンプト肥大化を防ぐ（既定 4 件）。
  */
 function getRefsForTopic(topic, limit = 4) {
   const taxDomain = topic.tax_domain;
-  const refs = [];
+  // 優先順位ごとに別配列に積み、最後にマージして dedup + limit を適用する。
+  // 上位ほど「この記事の本文で具体数値が必要になりやすい」refs を入れる。
+  const priorityHigh = [];   // cross-domain で本文が触れそうな税目の refs（ハルシネーション対策）
+  const priorityMid  = [];   // taxDomain の代表 refs
+  const priorityLow  = [];   // taxDomain の補足 refs + その他サジェスト
 
+  // ── ① Cross-domain refs（pain_point / cluster / subcluster から推定）─────
+  // ハルシネーション事故の真因対策: 記事の本筋 tax_domain と違う税目の
+  // 具体数値（みなし仕入率など）に本文で触れる場合、その税目の refs が
+  // 渡らないと LLM が記憶頼りで誤った数値を書く。pain_point 等のシグナルから
+  // 「触れそうな税目」を推定し、該当 refs を **最優先** で渡す。
+  const xd = collectCrossDomainSignals(topic);
+
+  if (xd.touchesConsumptionTax && taxDomain !== 'consumption_tax' && REFS.consumption_tax) {
+    priorityHigh.push(
+      REFS.consumption_tax.find(r => r.no === '6501'),  // 納税義務の免除
+      REFS.consumption_tax.find(r => r.no === '6505'),  // 簡易課税制度（みなし仕入率）
+    );
+  }
+  if (xd.touchesInvoice && taxDomain !== 'invoice_system' && REFS.invoice_system) {
+    priorityHigh.push(REFS.invoice_system[0]);
+  }
+  if (xd.touchesIncomeTax && taxDomain !== 'income_tax' && REFS.income_tax) {
+    priorityHigh.push(
+      REFS.income_tax.find(r => r.no === '2070'),  // 青色申告制度
+      REFS.income_tax.find(r => r.no === '1350'),  // 事業所得
+    );
+  }
+  if (xd.touchesBookkeeping && taxDomain !== 'bookkeeping_expenses' && REFS.bookkeeping_expenses) {
+    priorityHigh.push(REFS.bookkeeping_expenses[0]);
+  }
+
+  // ── ② taxDomain refs ────────────────────────────────────────
   if (taxDomain && REFS[taxDomain]) {
-    refs.push(...REFS[taxDomain]);
+    // 先頭 2 件を mid、それ以降は low（多すぎる ref で cross-domain を弾かないため）
+    priorityMid.push(...REFS[taxDomain].slice(0, 2));
+    priorityLow.push(...REFS[taxDomain].slice(2));
   }
 
-  // インボイスは消費税まわりとも関連性が高いので追加サジェスト
+  // ── ③ 既存の補足サジェスト ──────────────────────────────────
   if (topic.category === '消費税' && taxDomain !== 'invoice_system' && REFS.invoice_system) {
-    refs.push(...REFS.invoice_system.slice(0, 1));
+    priorityLow.push(...REFS.invoice_system.slice(0, 1));
   }
-  // 海外取引と消費税の還付論点は併用されやすい
   if (taxDomain === 'overseas_transactions' && REFS.consumption_tax) {
-    refs.push(REFS.consumption_tax.find(r => r.no === '6551'));
+    priorityLow.push(REFS.consumption_tax.find(r => r.no === '6551'));
   }
 
-  // 重複除去
+  // マージ + dedup（URL ベース）
+  const merged = [...priorityHigh, ...priorityMid, ...priorityLow];
   const unique = [];
   const seen = new Set();
-  for (const r of refs) {
+  for (const r of merged) {
     if (!r || !r.url || seen.has(r.url)) continue;
     seen.add(r.url);
     unique.push(r);
@@ -100,6 +137,43 @@ function getRefsForTopic(topic, limit = 4) {
   }
 
   return unique;
+}
+
+/**
+ * topic の pain_point / cluster / subcluster / primary_question などから、
+ * 本文中で「触れそうな税目領域」のシグナルを集める。
+ * 完全網羅ではなく、ハルシネーション事故が起きやすい cross-domain
+ * パターンに絞って判定する。
+ */
+function collectCrossDomainSignals(topic) {
+  const blob = [
+    topic.pain_point, topic.cluster, topic.subcluster, topic.procedure_stage,
+    topic.primary_question, topic.search_intent, topic.reader_problem,
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  const ja = [
+    topic.primary_question, topic.search_intent, topic.reader_problem,
+    topic.success_outcome, topic.title,
+  ].filter(Boolean).join(' ');
+
+  return {
+    // consumption_tax: 課税事業者判定/免除/みなし仕入率/簡易課税/法人化売上ライン
+    touchesConsumptionTax:
+      /consumption-tax|simplified-tax|incorporation-threshold|tax-refund|kanpu|shouhi/.test(blob) ||
+      /消費税|課税事業者|免税事業者|納税義務|簡易課税|みなし仕入率|法人化/.test(ja),
+    // invoice_system: インボイス/適格請求書
+    touchesInvoice:
+      /invoice/.test(blob) ||
+      /インボイス|適格請求書/.test(ja),
+    // income_tax: 青色/白色/事業所得/必要経費（本文の事業所得・帳簿説明）
+    touchesIncomeTax:
+      /income-tax|blue-return|sole-proprietor|business-income/.test(blob) ||
+      /所得税|事業所得|青色申告|必要経費/.test(ja),
+    // bookkeeping_expenses
+    touchesBookkeeping:
+      /bookkeeping|expense|kicho|electronic-book/.test(blob) ||
+      /帳簿|経費|記帳|電子帳簿/.test(ja),
+  };
 }
 
 function formatRefsForPrompt(refs) {

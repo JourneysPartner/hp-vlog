@@ -244,6 +244,20 @@ function selfCheckContent(content, articleType, slug) {
     warnings.push('冒頭500文字以内に結論・要点の記載を推奨');
   }
 
+  // ── リスク数値表現の検知（ハルシネーション抑止用 flag）─────────────
+  // L2/L3 該当: 業種別/区分別/年度別の具体数値が、対応する出典 ref（国税庁
+  // タックスアンサー No.XXXX）を本文に併記せずに書かれているケースを検出。
+  // 検出 = ブロックではなく **警告のみ**（人間レビューに委ねる）。
+  const numericRisks = detectRiskyNumericClaims(body);
+  if (numericRisks.length > 0) {
+    warnings.push(
+      `具体数値の出典不足の可能性 (${numericRisks.length} 件): 業種別/区分別/年度別の数値に対応する国税庁 No.XXXX が近接していません`
+    );
+    for (const r of numericRisks.slice(0, 5)) {
+      warnings.push(`  - ${r.phrase}（行 ${r.line}）`);
+    }
+  }
+
   if (warnings.length > 0) {
     console.warn(`[self-check] ${slug}: ${warnings.length} 件の改善推奨事項`);
     for (const w of warnings) {
@@ -253,6 +267,58 @@ function selfCheckContent(content, articleType, slug) {
     console.log(`[self-check] ${slug}: OK`);
   }
   return warnings;
+}
+
+// ── リスク数値表現の検知 ─────────────────────────────────────────
+// L2: 「第○種事業は X%」「小売業は X%」「卸売業は X%」など業種・区分別の率
+// L3: 「令和X年から X 円」「X年から基礎控除 X 万円」など改正値
+// 検出した数値表現の近傍（前後 ~200 字）に「No.XXXX」（タックスアンサー番号）
+// または明示的な出典 URL がない場合のみ warning として返す。
+function detectRiskyNumericClaims(body) {
+  const PATTERNS = [
+    // 業種別みなし仕入率パターン
+    /(?:第[一二三四五六]種事業|卸売業|小売業|製造業|飲食店業|サービス業|不動産業)[はが]?\s*\d{1,3}\s*[%％]/g,
+    // 「みなし仕入率 X%」「源泉徴収率 X%」など
+    /(?:みなし仕入率|源泉徴収率|還付率|軽減税率)\s*(?:は|が|＝)?\s*\d{1,3}\s*[%％]/g,
+    // 改正値: 「令和X年から〜X円」「X年改正後〜X万円」
+    /令和\d+年(?:から|以後|度)?[\s\S]{0,30}?\d{1,4}\s*(?:円|万円|％|%)/g,
+    /\d{1,4}\s*年(?:改正|度)[\s\S]{0,30}?\d{1,4}\s*(?:円|万円|％|%)/g,
+  ];
+  const lines = body.split(/\r?\n/);
+  const results = [];
+  for (const re of PATTERNS) {
+    let m;
+    re.lastIndex = 0;
+    while ((m = re.exec(body)) !== null) {
+      const matched = m[0];
+      const idx = m.index;
+      // 近傍 ±200 字に出典マークがあるか
+      const ctxStart = Math.max(0, idx - 200);
+      const ctxEnd   = Math.min(body.length, idx + matched.length + 200);
+      const context  = body.slice(ctxStart, ctxEnd);
+      const hasSource =
+        /No\.\s*\d{3,4}/.test(context) ||         // タックスアンサー番号
+        /nta\.go\.jp/.test(context) ||             // 国税庁ドメイン
+        /国税庁(?:タックスアンサー|公式)?/.test(context.replace(matched, '')) ||
+        /[消所相贈]?税法第\d+条/.test(context);     // 法令条文
+      if (!hasSource) {
+        // 行番号を概算
+        const upto = body.slice(0, idx);
+        const line = (upto.match(/\n/g) || []).length + 1;
+        results.push({ phrase: matched, line });
+      }
+    }
+  }
+  // 重複除去
+  const uniq = [];
+  const seen = new Set();
+  for (const r of results) {
+    const key = `${r.phrase}@${r.line}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(r);
+  }
+  return uniq;
 }
 
 // ── 関連記事リンクテキスト（相手の記事タイプに応じた導線文言）────
