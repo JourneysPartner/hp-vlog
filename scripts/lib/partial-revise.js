@@ -207,19 +207,60 @@ ${section.body}
 // ── 部分修正プロンプト（targeted: 全文を渡し最小修正）──────────
 function buildTargetedPrompt(meta, comment, body) {
   return {
-    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をできるだけ保ちます。',
+    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をそのまま保ちます。本文を書き換えたり短くしたりしてはいけません。',
     user: `以下の記事本文を、差し戻しコメントで指摘された箇所だけ最小限修正してください。
-指摘されていない箇所は元の文章をできるだけ維持し、不要な書き換えはしないでください。
+指摘されていない箇所は元の文章をそのまま維持し、不要な書き換えはしないでください。
 修正後の「本文 Markdown 全体」だけを返してください（frontmatter は出力しない）。
+
+【絶対に守る制約】
+1. **差し戻しコメントで指摘された文字列が本文中に見つからない場合、本文を一切変更せず、元の本文をそのまま全文出力すること**（勝手に新しい構成・新しい本文を作らない）。
+2. **本文の章構成（## 見出し）・段落数・表・リストを変更しないこと**。コメントが文字列の置換のみを指示している場合は、その置換以外の変更を加えない。
+3. **本文の総文字数は、元の本文の 80% 以上を必ず維持すること**（短縮や要約は禁止）。
+4. **新しいタイトル・新しい章・ASCII アート・フローチャート図形を勝手に追加しないこと**。
+5. 免責文と末尾の相談導線は元のまま維持すること。
 
 【差し戻しコメント】
 ${comment}
 
-【記事本文（現状）】
+【記事本文（現状）— これを全文ベースに、指摘箇所のみ最小修正したものを出力】
 ${body}
 
-穏当な「です・ます」調。誇大表現禁止。免責文と末尾の相談導線は維持すること。`,
+穏当な「です・ます」調。誇大表現禁止。`,
   };
+}
+
+// ── セーフティチェック: LLM 出力が元本文より極端に短くないか ─────
+// targeted scope は本文全体を入出力するため、LLM が混乱して本文を
+// 大幅に削減/置換するリスクがある。新本文の長さが元の MIN_RATIO
+// (デフォルト 0.6 = 60%) 未満なら不正出力と判定し、呼び出し側で
+// 元本文を採用する判断材料を返す。
+function isBodyShrinkageSuspicious(originalBody, newBody, minRatio = 0.6) {
+  const orig = (originalBody || '').trim();
+  const next = (newBody || '').trim();
+  if (orig.length === 0) return false; // 元が空ならチェック不能
+  const ratio = next.length / orig.length;
+  if (ratio < minRatio) {
+    return {
+      suspicious: true,
+      ratio,
+      origLen: orig.length,
+      newLen: next.length,
+      reason: `本文長さ ${next.length}/${orig.length} = ${(ratio * 100).toFixed(0)}% (閾値 ${(minRatio * 100).toFixed(0)}%)`,
+    };
+  }
+  // 章数（h2）の激減もチェック
+  const origH2 = (orig.match(/^##\s+/gm) || []).length;
+  const newH2  = (next.match(/^##\s+/gm) || []).length;
+  if (origH2 >= 3 && newH2 < Math.ceil(origH2 * 0.5)) {
+    return {
+      suspicious: true,
+      ratio,
+      origLen: orig.length,
+      newLen: next.length,
+      reason: `h2 章数 ${newH2}/${origH2} = 半減未満`,
+    };
+  }
+  return { suspicious: false, ratio };
 }
 
 module.exports = {
@@ -232,4 +273,5 @@ module.exports = {
   buildTitleOnlyPrompt,
   buildSectionPrompt,
   buildTargetedPrompt,
+  isBodyShrinkageSuspicious,
 };
