@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "final-return"
 summary: "国内EC物販の売上が1,000万円を超えた場合、2年後に消費税の課税事業者になります。所得税の確定申告とは別の判定ロジックがあるため、売上規模ごとの判断軸と届出のタイミングを理解しておくことが重要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「小売業は40%のみなし仕入率」→「小売業は80%のみなし仕入率」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-29T00:27:18.504Z"
-updated_at: "2026-05-29T00:27:18.504Z"
+updated_at: "2026-05-29T11:35:09.001+09:00"
 ---
 
 ## この記事で分かること・結論
