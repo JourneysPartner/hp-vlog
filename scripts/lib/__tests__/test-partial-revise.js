@@ -173,6 +173,34 @@ console.log('\n=== Test 13: buildTitleOnlyPrompt が直接指定を尊重 ===');
   assert(/採用してください/.test(user), '直接採用の指示が含まれる');
 }
 
+// ── 14b. isBodyShrinkageSuspicious: 本文激減の検出 ─────────────
+// targeted 再生成で LLM が本文を ASCII フローチャート等に書き換える事故
+// （実例 2026-05-29）を防ぐためのガード。
+console.log('\n=== Test 14b: isBodyShrinkageSuspicious ===');
+{
+  const longBody = '## 章1\n本文です。'.repeat(50);  // 約 600 文字
+  // 通常: 同程度の長さ → suspicious=false
+  const g1 = partial.isBodyShrinkageSuspicious(longBody, longBody);
+  assert(!g1.suspicious, '同じ本文は suspicious=false');
+
+  // 短縮 50% → 閾値 60% を割っているので suspicious=true
+  const shortBody = longBody.slice(0, Math.floor(longBody.length * 0.4));
+  const g2 = partial.isBodyShrinkageSuspicious(longBody, shortBody);
+  assert(g2.suspicious, '40% に縮んだ本文は suspicious=true');
+  assert(/40%/.test(g2.reason) || /40\b/.test(g2.reason), 'reason に短縮率を含む');
+
+  // h2 激減: 元が 4 章、新が 1 章 → suspicious
+  const orig4Sections = '## 1\nA\n## 2\nB\n## 3\nC\n## 4\nD';
+  const new1Section   = '## 1\nA\n（あれこれ書く）'.repeat(20);  // 文字数は十分ある
+  const g3 = partial.isBodyShrinkageSuspicious(orig4Sections, new1Section);
+  // 文字数だけ見ると suspicious=false かもしれないが、h2 半減で trigger
+  assert(g3.suspicious, 'h2 章数が半減未満は suspicious');
+
+  // 元が空 → チェック不能で false
+  const g4 = partial.isBodyShrinkageSuspicious('', 'something');
+  assert(!g4.suspicious, '元本文が空ならチェック不能で suspicious=false');
+}
+
 // ── 14. 部分一致時のサフィックス保持（実ユーザーケース）───────────
 // 現タイトル: 「メルカリは法人化を考えるべき売上ライン？｜初動を整理」
 // ユーザー指定: 旧=「メルカリは法人化を考えるべき売上ライン？」（｜初動を整理 を含まない）

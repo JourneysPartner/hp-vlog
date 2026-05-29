@@ -1049,11 +1049,23 @@ async function regenerateSection(existingContent, comment, classification) {
 // ── 部分再生成: targeted（本文全体を渡し最小修正）──────────────
 // 本文全体を再出力させるため、本文生成と同じ 4096 トークンを必ず確保する。
 // 以前は maxTokens 未指定で generateSimple のデフォルト 2048 が効き、
-// 本文が途中で切れる事故が発生していた。
+// 本文が途中で切れる事故が発生していた（PR #129 で修正済）。
+//
+// セーフティ: LLM が「コメントに該当する箇所が本文に無い」状況で混乱して
+// 本文を ASCII フローチャート等に書き換えてしまう事故があった（実例 2026-05-29）。
+// 出力本文が元の 60% 未満（または h2 章数が半減未満）なら不正出力と判定し、
+// 元本文を維持して human レビューに委ねる。
 async function regenerateTargeted(existingContent, comment) {
   const { body } = parseFrontmatter(existingContent);
   const { system, user } = partial.buildTargetedPrompt({ ...parseFrontmatter(existingContent).meta }, comment, body);
   const revised = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
+
+  const guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
+  if (guard.suspicious) {
+    console.warn(`[regenerate] ⚠ targeted: 本文が異常に短縮された → 元本文を維持。${guard.reason}`);
+    console.warn('[regenerate] ⚠ 差し戻しコメントが本文の内容と合っていない、または LLM が混乱した可能性。レビューで再判断してください。');
+    return rebuildWithBody(existingContent, body);
+  }
   return rebuildWithBody(existingContent, revised);
 }
 
