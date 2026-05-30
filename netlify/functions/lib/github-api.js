@@ -175,17 +175,37 @@ async function putFile(filepath, content, sha, message, ref) {
 
 // ── frontmatter フィールド更新 ──────────────────────────────────────────
 // 既存値の引用符スタイル（', ", 素）に関わらずマッチして、書き戻しは double quote に統一する。
+// YAML double-quoted 文字列向けの安全エスケープ。
+// 改行入りのコメント（review_comment 等）を含めて 1 行 YAML として
+// 安全に格納できるよう、以下を処理する:
+//   - バックスラッシュ → \\
+//   - ダブルクォート → \"
+//   - CR/LF → \n（YAML double-quoted は \n を改行として解釈）
+// これをしないと、改行つき値が複数行 YAML として解釈され、後段の YAML
+// パースが「a multiline key may not be an implicit key」で失敗する。
+function escapeYamlDoubleQuoted(value) {
+  return String(value == null ? '' : value)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\r\n/g, '\\n')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\n')
+    .replace(/\t/g, '\\t');
+}
+
 function updateFrontmatter(raw, updates) {
   const match = raw.match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!match) throw new Error('frontmatter が見つかりません');
 
   let fm = match[2];
   for (const [key, value] of Object.entries(updates)) {
+    const safe = escapeYamlDoubleQuoted(value);
+    // 既存行: `^key:\s*<...rest of line>$` を `key: "<safe>"` に置換
     const regex = new RegExp(`^(${key}:\\s*).*$`, 'm');
     if (regex.test(fm)) {
-      fm = fm.replace(regex, `$1"${value}"`);
+      fm = fm.replace(regex, `$1"${safe}"`);
     } else {
-      fm += `\n${key}: "${value}"`;
+      fm += `\n${key}: "${safe}"`;
     }
   }
   return match[1] + fm + match[3] + match[4];
@@ -453,7 +473,7 @@ async function readjustPublishSlots(publishAtStr, excludeFilename) {
 }
 
 module.exports = {
-  getFile, putFile, updateFrontmatter, nowJST,
+  getFile, putFile, updateFrontmatter, escapeYamlDoubleQuoted, nowJST,
   findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR,
   triggerWorkflow, listWorkflowRuns,
   listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
