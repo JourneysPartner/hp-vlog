@@ -258,6 +258,19 @@ function selfCheckContent(content, articleType, slug) {
     }
   }
 
+  // ── データ駆動禁止フレーズの残存検知 ─────────────────────────
+  // sanitizeBannedPhrases で replacement=null のものは置換されず残るため、
+  // ここで再検出して warning を立てる（レビュー画面で人間が判断）。
+  const bannedHits = bannedPhrasesLib.detectBannedInBody(body);
+  if (bannedHits.length > 0) {
+    warnings.push(
+      `禁止指定フレーズの残存 (${bannedHits.length} 件): data/banned-phrases.json のエントリに該当`
+    );
+    for (const h of bannedHits.slice(0, 5)) {
+      warnings.push(`  - "${h.match}"（pattern: ${h.pattern}）`);
+    }
+  }
+
   if (warnings.length > 0) {
     console.warn(`[self-check] ${slug}: ${warnings.length} 件の改善推奨事項`);
     for (const w of warnings) {
@@ -543,6 +556,7 @@ function ensureDisclaimer(content) {
   return content.replace(/\s*$/, '') + DISCLAIMER_BLOCK;
 }
 
+// 誇大表現等のハードコード禁止フレーズ（永続的に有効）
 const BANNED_REPLACEMENTS = [
   [/必ず節税/g,    '節税につながる場合があります'],
   [/絶対安心/g,    '安心につながります'],
@@ -552,12 +566,29 @@ const BANNED_REPLACEMENTS = [
   [/最優秀/g,      '高い評価'],
   [/No\.1税理士/g, '税理士'],
 ];
+
+// data/banned-phrases.json から動的に読み込む禁止フレーズ
+// （ユーザーが差し戻しコメントで「今後〜書かないで」と指示したものが蓄積される）
+const bannedPhrasesLib = require('./lib/banned-phrases');
+
 function sanitizeBannedPhrases(content) {
   let out = content;
+  // ① ハードコード禁止フレーズ
   for (const [re, rep] of BANNED_REPLACEMENTS) {
     if (re.test(out)) {
       console.warn(`[generate] 禁止表現を置換: ${re}`);
       out = out.replace(re, rep);
+    }
+  }
+  // ② データ駆動禁止フレーズ（data/banned-phrases.json）
+  //    replacement あり → 自動置換、無し → 検出ログのみ（self-check で警告）
+  const { text: outAfterData, applied } = bannedPhrasesLib.applyBannedPhrasesToBody(out);
+  out = outAfterData;
+  for (const a of applied) {
+    if (a.hasReplacement) {
+      console.warn(`[generate] 動的禁止フレーズを置換: ${a.pattern}`);
+    } else {
+      console.warn(`[generate] ⚠ 動的禁止フレーズ検出（置換無し、要レビュー）: ${a.pattern}`);
     }
   }
   return out;

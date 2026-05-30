@@ -4,6 +4,7 @@ const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, co
 const { sendNotification } = require('./lib/notify');
 const { appendEntries } = require('./lib/denylist-store');
 const { detectDenyIntent, buildEntriesFromContext } = require('../../scripts/lib/denylist');
+const bannedPhrasesLib = require('../../scripts/lib/banned-phrases');
 
 /**
  * review-revise — 「差し戻し」操作（自動再生成付き）
@@ -68,6 +69,40 @@ exports.handler = async (event) => {
     });
 
     await putFile(filepath, updated, sha, `review: revise ${filename}`, ref || undefined);
+
+    // ── 「今後〜書かないで」型の禁止フレーズ自動抽出 ─────────────
+    // 差し戻しコメントから永続的な禁止フレーズを検出し、
+    // data/banned-phrases.json（main ブランチ）へ追記する。
+    // 以降の新規生成・差し戻し再生成で LLM プロンプト + sanitize + self-check
+    // の 3 段で抑止される。
+    let bannedAdded = [];
+    try {
+      const slug = (fmExisting.slug || filename.replace(/\.md$/, '')).replace(/^\d{4}-\d{2}-\d{2}-/, '');
+      const extracted = bannedPhrasesLib.extractBannedFromComment(comment, {
+        sourceArticle: slug,
+        now: new Date().toISOString(),
+      });
+      if (extracted.length > 0) {
+        // main から最新を読み、マージして書き戻す（重複は pattern で除外）
+        const BANNED_PATH = 'data/banned-phrases.json';
+        const { content: bpContent, sha: bpSha } = await getFile(BANNED_PATH, 'main');
+        const data = JSON.parse(bpContent);
+        const before = data.phrases.length;
+        data.phrases = bannedPhrasesLib.mergeEntries(data.phrases, extracted);
+        const added = data.phrases.length - before;
+        if (added > 0) {
+          const newJson = JSON.stringify(data, null, 2) + '\n';
+          await putFile(BANNED_PATH, newJson, bpSha,
+            `banned-phrases: auto-extract from ${filename} (${added} 件)`, 'main');
+          bannedAdded = extracted.slice(0, added);
+          console.log(`[review-revise] banned-phrases.json に ${added} 件追記`);
+        } else {
+          console.log(`[review-revise] banned-phrases.json: 抽出 ${extracted.length} 件は既に登録済`);
+        }
+      }
+    } catch (e) {
+      console.error(`[review-revise] banned-phrases 自動追記失敗（処理は続行）: ${e.message}`);
+    }
 
     // 公開枠の再調整: 承認済み記事が1本だけ残った場合 evening→morning
     const origStatus = extractFmField(content, 'review_status');
@@ -148,16 +183,20 @@ exports.handler = async (event) => {
     const suppressionMsg = denylistAdded.length > 0
       ? `\n※このテーマは今後生成しない設定に登録しました（denylist に ${denylistAdded.length} 件追加）。再生成は自動でスキップされます。`
       : '';
+    const bannedMsg = bannedAdded.length > 0
+      ? `\n※コメントから「今後使わない表現」を自動抽出し、banned-phrases に ${bannedAdded.length} 件追加しました（${bannedAdded.map(b => b.pattern).join(' / ')}）。今後の生成で自動的に避けられます。`
+      : '';
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `差し戻しを受け付けました。自動再生成を開始しています。完了後に Chatwork で通知します。${suppressionMsg}`,
+        message: `差し戻しを受け付けました。自動再生成を開始しています。完了後に Chatwork で通知します。${suppressionMsg}${bannedMsg}`,
         action: 'revise',
         filename,
         comment: comment.trim(),
         denylistAdded: denylistAdded.map(e => ({ type: e.type, value: e.value })),
+        bannedAdded: bannedAdded.map(b => ({ pattern: b.pattern, id: b.id })),
       }),
     };
   } catch (err) {
