@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "description": "本文・タイトルで禁止する定型表現のリスト。差し戻しコメントで「今後〜書かないでください」と指示されたフレーズが auto-extracted で追加される。手動追加も可。pattern は正規表現。replacement が null なら警告のみ（人間レビュー）、文字列なら自動置換。",
+  "phrases": [
+    {
+      "id": "no-principle-N-lines",
+      "pattern": "原則を\\s*(?:まず\\s*)?[\\d◯〇○XxⅩ]+\\s*行で押さえる",
+      "humanReadable": "原則を◯行で押さえる",
+      "replacement": null,
+      "reason": "定型句として陳腐化（ユーザー指摘 2026-05-30）",
+      "appliesTo": ["body"],
+      "addedAt": "2026-05-30T06:30:00.000Z",
+      "sourceArticle": "general-income-classification-influencer-creator-pre-opening-practice",
+      "autoExtracted": false
+    }
+  ]
+}

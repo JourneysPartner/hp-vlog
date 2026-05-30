@@ -1,0 +1,134 @@
+'use strict';
+
+/**
+ * banned-phrases モジュールのテスト。
+ *   node scripts/lib/__tests__/test-banned-phrases.js
+ */
+
+const path = require('path');
+const ROOT = path.join(__dirname, '..', '..', '..');
+const bp = require(path.join(ROOT, 'scripts/lib/banned-phrases'));
+
+let passed = 0, failed = 0;
+function assert(cond, label) {
+  if (cond) { console.log(`  ✓ ${label}`); passed++; }
+  else      { console.error(`  ✗ ${label}`); failed++; }
+}
+
+// ── 1. loadBannedPhrases ─────────────────────────────────────
+console.log('\n=== Test 1: loadBannedPhrases ===');
+{
+  const data = bp.loadBannedPhrases();
+  assert(data && typeof data === 'object', 'object を返す');
+  assert(Array.isArray(data.phrases), 'phrases は array');
+  assert(data.phrases.length >= 1, '初期エントリが 1 件以上');
+}
+
+// ── 2. extractBannedFromComment: 実ユーザーケース ─────────────
+// 「今後、「<A>」という文言や、<B>、というような文言は書かないでください。」
+console.log('\n=== Test 2: extractBannedFromComment（実ユーザーケース）===');
+{
+  const comment = '「原則をまず3行で押さえる」→「重要ポイントを整理💡」に変更して。\n\n今後、「原則をまず3行で押さえる」という文言や、原則を◯行で押さえる、というような文言は書かないでください。';
+  const found = bp.extractBannedFromComment(comment, { sourceArticle: 'test' });
+  assert(found.length >= 2, `2 件以上抽出（実: ${found.length}）`);
+  assert(found.some(f => /原則をまず3行で押さえる/.test(f.pattern)), 'リテラル「原則をまず3行で押さえる」');
+  assert(found.some(f => /原則を.*\\d\+.*行で押さえる/.test(f.pattern)), 'ワイルドカード化「原則を\\d+行で押さえる」');
+  assert(found.every(f => f.autoExtracted === true), '全て autoExtracted=true');
+  assert(found.every(f => f.appliesTo.includes('body')), 'appliesTo=body');
+}
+
+// ── 3. extractBannedFromComment: 「今後」がない普通の差し戻し ───
+console.log('\n=== Test 3: 「今後」が無いコメントは抽出されない ===');
+{
+  const c = '「40%」を「80%」に変更して。';
+  const found = bp.extractBannedFromComment(c);
+  assert(found.length === 0, `抽出 0 件（実: ${found.length}）`);
+}
+
+// ── 4. detectBannedInBody: パターンマッチ ─────────────────────
+console.log('\n=== Test 4: detectBannedInBody ===');
+{
+  // 初期エントリ "原則を(?:まず)?[\d◯〇○...]+行で押さえる" に該当
+  const hits1 = bp.detectBannedInBody('まず原則をまず3行で押さえる形で進めます。');
+  assert(hits1.length === 1, 'リテラル数字をキャッチ');
+
+  const hits2 = bp.detectBannedInBody('原則を5行で押さえる方針です。');
+  assert(hits2.length === 1, 'まず無しの数字パターンもキャッチ');
+
+  const hits3 = bp.detectBannedInBody('原則を◯行で押さえる形にします。');
+  assert(hits3.length === 1, '◯ ワイルドカードもキャッチ');
+
+  const hits4 = bp.detectBannedInBody('安全な本文です。');
+  assert(hits4.length === 0, 'クリーンな本文は 0 件');
+}
+
+// ── 5. applyBannedPhrasesToBody: replacement あり/無し ─────────
+console.log('\n=== Test 5: applyBannedPhrasesToBody ===');
+{
+  // 初期エントリは replacement=null → 検出ログのみ、本文は変わらない
+  const before = '原則をまず3行で押さえる形で。';
+  const { text, applied } = bp.applyBannedPhrasesToBody(before);
+  assert(text === before, 'replacement=null は本文を変更しない');
+  assert(applied.length === 1, 'applied に 1 件記録');
+  assert(applied[0].hasReplacement === false, 'hasReplacement=false');
+}
+
+// ── 6. applyBannedPhrasesToBody: replacement あり（ad-hoc data）─
+console.log('\n=== Test 6: replacement あり時は自動置換 ===');
+{
+  const adhoc = {
+    version: 1,
+    phrases: [{
+      id: 'test-replace',
+      pattern: 'NG表現',
+      replacement: 'OK表現',
+      appliesTo: ['body'],
+    }],
+  };
+  const { text, applied } = bp.applyBannedPhrasesToBody('これは NG表現 を含みます。', adhoc);
+  assert(text === 'これは OK表現 を含みます。', '置換成功');
+  assert(applied[0].hasReplacement === true, 'hasReplacement=true');
+}
+
+// ── 7. formatForPrompt ───────────────────────────────────────
+console.log('\n=== Test 7: formatForPrompt ===');
+{
+  const out = bp.formatForPrompt();
+  assert(out.length > 0, '出力が空でない');
+  assert(/絶対に使わない/.test(out), '禁止指示文言を含む');
+  assert(/原則を/.test(out), '初期エントリのフレーズが含まれる');
+}
+
+// ── 8. mergeEntries: 重複 pattern は無視 ─────────────────────
+console.log('\n=== Test 8: mergeEntries ===');
+{
+  const existing = [{ id: 'a', pattern: 'foo' }, { id: 'b', pattern: 'bar' }];
+  const additions = [
+    { id: 'c', pattern: 'foo' },      // 重複
+    { id: 'd', pattern: 'baz' },      // 新規
+  ];
+  const merged = bp.mergeEntries(existing, additions);
+  assert(merged.length === 3, '重複除外で 3 件');
+  assert(merged.some(e => e.pattern === 'baz'), 'baz が追加されている');
+  assert(merged.filter(e => e.pattern === 'foo').length === 1, 'foo は重複なく 1 件');
+}
+
+// ── 9. wildcardize: ◯〇○ → \d+ ─────────────────────────────
+console.log('\n=== Test 9: wildcardize ===');
+{
+  assert(bp.wildcardize('原則を◯行で') === '原則を\\d+行で', '◯ → \\d+');
+  assert(bp.wildcardize('原則を〇行で') === '原則を\\d+行で', '〇 → \\d+');
+  assert(bp.wildcardize('a.b') === 'a\\.b', 'ドットを escape');
+}
+
+// ── 10. extractBannedFromComment: 単一引用句のみのケース ───────
+console.log('\n=== Test 10: 単一引用句のみのケース ===');
+{
+  const c = '今後、「丁寧に解説します」という文言は使わないでください。';
+  const found = bp.extractBannedFromComment(c);
+  assert(found.length === 1, '1 件抽出');
+  assert(/丁寧に解説します/.test(found[0].pattern), 'リテラル「丁寧に解説します」');
+}
+
+console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
+process.exit(failed === 0 ? 0 : 1);
