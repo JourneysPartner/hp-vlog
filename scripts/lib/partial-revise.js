@@ -93,12 +93,20 @@ function applyTitleOnly(originalRaw, { title, summary }, nowJST) {
 }
 
 // frontmatter フィールド置換（quote スタイル非依存、double quote で書き戻し）
+// YAML double-quoted の完全エスケープ（バックスラッシュ・ダブルクォート・
+// 改行・タブ）を行い、改行入り値が複数行 YAML として解釈されないようにする。
 function replaceFmField(raw, key, value) {
   const m = raw.match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!m) return raw;
   let fm = m[2];
   const re = new RegExp(`^(${key}:\\s*).*$`, 'm');
-  const safe = String(value).replace(/"/g, '\\"');
+  const safe = String(value == null ? '' : value)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\r\n/g, '\\n')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\n')
+    .replace(/\t/g, '\\t');
   if (re.test(fm)) fm = fm.replace(re, `$1"${safe}"`);
   else fm += `\n${key}: "${safe}"`;
   return m[1] + fm + m[3] + m[4];
