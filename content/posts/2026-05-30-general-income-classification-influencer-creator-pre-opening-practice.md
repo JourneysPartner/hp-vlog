@@ -24,15 +24,17 @@ life_stage: ""
 pain_point: "income-classification"
 procedure_stage: ""
 summary: "事業所得か雑所得か判断が難しい場合の実務処理を解説。判断が揺れる場面での記録の残し方、確定申告での対応、ミスしやすい落とし穴と専門家に相談すべきタイミングが分かります。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「原則をまず3行で押さえる」→「重要ポイントを整理💡」に変更して。
+
+今後、「原則をまず3行で押さえる」という文言や、原則を◯行で押さえる、というような文言は書かないでください。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-05-30T00:52:41.369Z"
-updated_at: "2026-05-30T00:52:41.369Z"
+updated_at: "2026-05-30T14:09:51.610+09:00"
 ---
 
 ## この記事で分かること
