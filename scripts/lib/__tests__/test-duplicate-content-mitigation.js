@@ -115,10 +115,10 @@ console.log('\n=== Fix 2: pain_point クオータが効く ===');
     const c = counts.get(pain) || 0;
     assert(c <= quota, `${pain}: ${c} 件 <= 上限 ${quota}`);
   }
-  // QUOTA_DEFAULT (8 件) 以下
+  // QUOTA_DEFAULT (10 件) 以下
   for (const [pain, c] of counts) {
     if (PAIN_POINT_QUOTA[pain]) continue;
-    assert(c <= 8, `${pain}: ${c} 件 <= 8（QUOTA_DEFAULT）`);
+    assert(c <= 10, `${pain}: ${c} 件 <= 10（QUOTA_DEFAULT）`);
   }
 
   // applyPainPointQuota 単体: 多様性を保ったまま絞り込む
@@ -132,9 +132,9 @@ console.log('\n=== Fix 2: pain_point クオータが効く ===');
     { slug: 'e-1', cluster: 'e', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
     { slug: 'f-1', cluster: 'f', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
   ];
-  // PAIN_POINT_QUOTA で X が指定されていないので QUOTA_DEFAULT (8) → 全部
+  // PAIN_POINT_QUOTA で X が指定されていないので QUOTA_DEFAULT (10) → 全部
   const all8 = applyPainPointQuota(fake);
-  assert(all8.length === 8, 'X は QUOTA_DEFAULT 8 で全件通過');
+  assert(all8.length === 8, 'X は QUOTA_DEFAULT 10 内なので全 8 件通過');
 
   // 強制クオータ 3 で絞り込み
   const fakeQ = [

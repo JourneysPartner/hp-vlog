@@ -25,6 +25,7 @@ const {
 // title はルールベースで生成せず、本文 LLM が同時に決定する（Pattern C）。
 // scenario-expansion で組み立てるトピックの title は空文字とする。
 const { getDefaultSourceForTopic } = require('./tax-authority-refs');
+const { expandDeepDive } = require('./scenario-deep-dive');
 
 // ── 文字列ヘルパー ────────────────────────────────────────────────
 function kebab(s) {
@@ -856,6 +857,7 @@ function expandAll() {
     ...expandInheritance(),
     ...expandGeneral(),
     ...expandTaxDomain(),
+    ...expandDeepDive(),
   ];
   return applyPainPointQuota(raw);
 }
@@ -879,7 +881,9 @@ const PAIN_POINT_QUOTA = {
   'platform-fee-treatment':      5,
   // それ以外（採用しなかった場合）は QUOTA_DEFAULT が適用される
 };
-const QUOTA_DEFAULT = 8;
+// 深堀り論点は各 pain_point が独立した記事として価値があるため、
+// 横展開上限を 10（5 persona × 2 役割）まで許容。
+const QUOTA_DEFAULT = 10;
 
 function applyPainPointQuota(topics) {
   // pain_point ごとに分類
