@@ -16,7 +16,8 @@ const builder = require(path.join(ROOT, 'scripts/lib/article-prompt-builder'));
 const { lintTitle } = require(path.join(ROOT, 'scripts/lib/title-lint'));
 const { STATIC_RULES } = require(path.join(ROOT, 'scripts/lib/article-prompt-static'));
 const { isValidLlmTitle } = require(path.join(ROOT, 'scripts/lib/draft-normalizer'));
-const { expandAll, applyPainPointQuota, PAIN_POINT_QUOTA } =
+const { expandAll, applyPainPointQuota, PAIN_POINT_QUOTA,
+        PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES, PAIN_TYPE_CLUSTER_LIMIT_DEFAULT } =
   require(path.join(ROOT, 'scripts/lib/scenario-expansion'));
 const { TOPICS, CURATED_TOPICS } = require(path.join(ROOT, 'scripts/topic-pool'));
 
@@ -101,49 +102,73 @@ console.log('\n=== Fix 3b: isValidLlmTitle が同一名詞繰り返しを reject
     '正常タイトルは有効');
 }
 
-// ── Fix 2: pain_point クオータ ───────────────────────────────
-console.log('\n=== Fix 2: pain_point クオータが効く ===');
+// ── Fix 2: (pain_point × article_type) クオータが効く ─────────
+// 案 B: クオータ軸が「pain_point」から「pain_point × article_type」に変更された。
+// 各 (pain × type) で cluster 多様性が上限以内であることを検証する。
+console.log('\n=== Fix 2: (pain × type) クオータが効く ===');
 {
   const all = expandAll();
-  const counts = new Map();
+  // (pain × type) ごとに cluster の Set を集計
+  const byKey = new Map();
   for (const t of all) {
     if (!t.pain_point) continue;
-    counts.set(t.pain_point, (counts.get(t.pain_point) || 0) + 1);
+    const key = `${t.pain_point}::${t.article_type || '?'}`;
+    if (!byKey.has(key)) byKey.set(key, new Set());
+    byKey.get(key).add(t.cluster || '?');
   }
-  // QUOTA 対象（5 件まで）
-  for (const [pain, quota] of Object.entries(PAIN_POINT_QUOTA)) {
-    const c = counts.get(pain) || 0;
-    assert(c <= quota, `${pain}: ${c} 件 <= 上限 ${quota}`);
+
+  // 重要 pain_point (上限 3) を検証
+  for (const pain of Object.keys(PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES)) {
+    const limit = PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES[pain];
+    for (const [key, clusters] of byKey) {
+      if (!key.startsWith(pain + '::')) continue;
+      assert(clusters.size <= limit, `${key}: ${clusters.size} cluster <= ${limit}`);
+    }
   }
-  // QUOTA_DEFAULT (10 件) 以下
-  for (const [pain, c] of counts) {
-    if (PAIN_POINT_QUOTA[pain]) continue;
-    assert(c <= 10, `${pain}: ${c} 件 <= 10（QUOTA_DEFAULT）`);
+  // デフォルト上限を検証
+  for (const [key, clusters] of byKey) {
+    const pain = key.split('::')[0];
+    if (PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES[pain]) continue;
+    assert(clusters.size <= PAIN_TYPE_CLUSTER_LIMIT_DEFAULT,
+      `${key}: ${clusters.size} cluster <= ${PAIN_TYPE_CLUSTER_LIMIT_DEFAULT}（DEFAULT）`);
   }
 
   // applyPainPointQuota 単体: 多様性を保ったまま絞り込む
+  // 8 件すべて pain='X' (override 無し, default 上限 6)、basic_explainer のみ
   const fake = [
     { slug: 'a-1', cluster: 'a', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
-    { slug: 'a-2', cluster: 'a', pain_point: 'X', article_role: 'support', article_type: 'edge_case' },
     { slug: 'b-1', cluster: 'b', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
-    { slug: 'b-2', cluster: 'b', pain_point: 'X', article_role: 'support', article_type: 'edge_case' },
     { slug: 'c-1', cluster: 'c', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
     { slug: 'd-1', cluster: 'd', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
     { slug: 'e-1', cluster: 'e', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
     { slug: 'f-1', cluster: 'f', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
+    { slug: 'g-1', cluster: 'g', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
+    { slug: 'h-1', cluster: 'h', pain_point: 'X', article_role: 'main', article_type: 'basic_explainer' },
   ];
-  // PAIN_POINT_QUOTA で X が指定されていないので QUOTA_DEFAULT (10) → 全部
-  const all8 = applyPainPointQuota(fake);
-  assert(all8.length === 8, 'X は QUOTA_DEFAULT 10 内なので全 8 件通過');
+  const out = applyPainPointQuota(fake);
+  // DEFAULT (6) を超えないこと
+  assert(out.length === PAIN_TYPE_CLUSTER_LIMIT_DEFAULT,
+    `X × basic_explainer: ${out.length} 件（DEFAULT=${PAIN_TYPE_CLUSTER_LIMIT_DEFAULT} に絞られる）`);
 
-  // 強制クオータ 3 で絞り込み
-  const fakeQ = [
+  // 別 article_type を入れると、同じ pain でも別カウントで通る
+  const fakeMixed = [
     ...fake,
-    ...new Array(10).fill(0).map((_, i) => ({ slug: `g-${i}`, cluster: 'g', pain_point: 'invoice-judgement', article_role: 'main', article_type: 'basic_explainer' })),
+    { slug: 'i-1', cluster: 'i', pain_point: 'X', article_role: 'support', article_type: 'edge_case' },
   ];
-  const limited = applyPainPointQuota(fakeQ);
-  const invCnt = limited.filter(t => t.pain_point === 'invoice-judgement').length;
-  assert(invCnt <= PAIN_POINT_QUOTA['invoice-judgement'], `invoice-judgement: ${invCnt} 件 <= ${PAIN_POINT_QUOTA['invoice-judgement']}`);
+  const outMixed = applyPainPointQuota(fakeMixed);
+  // basic_explainer 6 + edge_case 1 = 7
+  const basicCount = outMixed.filter(t => t.article_type === 'basic_explainer').length;
+  const edgeCount = outMixed.filter(t => t.article_type === 'edge_case').length;
+  assert(basicCount === 6, `basic_explainer: ${basicCount} 件`);
+  assert(edgeCount === 1, `edge_case: ${edgeCount} 件（別 type なので通る）`);
+
+  // 重要 pain (invoice-judgement, 上限 3) で確認
+  const fakeIJ = new Array(10).fill(0).map((_, i) => ({
+    slug: `ij-${i}`, cluster: `c${i}`, pain_point: 'invoice-judgement',
+    article_role: 'main', article_type: 'basic_explainer',
+  }));
+  const outIJ = applyPainPointQuota(fakeIJ);
+  assert(outIJ.length === 3, `invoice-judgement × basic_explainer: ${outIJ.length} 件 = 上限 3`);
 }
 
 // ── Fix 4: curated と slug が重なる expanded は除外 ─────────

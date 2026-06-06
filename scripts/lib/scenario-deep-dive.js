@@ -761,8 +761,10 @@ function expandDeepDive() {
       const baseSlug = `deepdive-${persona.id}-${pain.id}`;
       const pairGroup = baseSlug;
       const macro = '税目実務';
-      const cluster = pain.tax_domain.replace(/_/g, '-');  // consumption-tax / income-tax / etc.
-      const subcluster = `${pain.id}-${persona.id}`;
+      // cluster は persona ベースに（cooldown / similarity / (pain × type) クオータで
+      // 多様性カウントが効くようにするため）。tax_domain は subcluster 内で表現。
+      const cluster = `deepdive-${persona.id.replace(/_/g, '-')}`;
+      const subcluster = `${pain.tax_domain.replace(/_/g, '-')}-${pain.id}`;
 
       const sourceFallback = getDefaultSourceForTopic({ tax_domain: pain.tax_domain, pain_point: pain.id });
       const source_url = (sourceFallback && sourceFallback.url) || '';

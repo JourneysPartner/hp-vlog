@@ -862,28 +862,40 @@ function expandAll() {
   return applyPainPointQuota(raw);
 }
 
-// ── pain_point 単位のクオータ ────────────────────────────────
-// 同じ pain_point（例: invoice-judgement, consumption-tax-judgement）が
-// 多数の cluster × persona で乱発されると、論点ベースで読者から見た
-// 「重複記事」が増える。各 pain_point は最大 N トピックまでに絞る。
+// ── (pain_point × article_type) 単位のクオータ ────────────────
+// 案 B: クオータ軸を「pain_point」から「pain_point × article_type」に変更。
 //
-// 上限を超えるものはランダムではなく決定論的に選定:
-//   1. cluster の多様性を優先（同じ pain_point で各 cluster 1 件以上）
-//   2. その後、article_role=main を優先
-//   3. それから article_type の多様性
-//   4. 最後に slug の辞書順で安定化
-const PAIN_POINT_QUOTA = {
-  // 横展開が過度になりがちな論点（5 cluster まで）
-  'invoice-judgement':           5,
-  'consumption-tax-judgement':   5,
-  'incorporation-threshold':     5,
-  'income-classification':       5,
-  'platform-fee-treatment':      5,
-  // それ以外（採用しなかった場合）は QUOTA_DEFAULT が適用される
+// 同じ pain_point でも、記事の書き方（article_type）が違えば本文構成も
+// 違うため、読者目線での重複感は薄い。
+// 例: invoice-judgement
+//   × basic_explainer（基本解説）→ Amazon / eBay / メルカリ の 3 cluster
+//   × comparison_decision（比較判断）→ ヤフオク / サロン / インフル の 3 cluster
+//   × misconception_fix（誤解整理）→ ...
+//   × edge_case（判断ケース）→ ...
+//   ↑ 同じ pain_point でも別記事として通る
+//
+// 各 (pain × type) は最大 N cluster まで。
+// pair_group の整合性は維持する。
+//
+// 上限を超える場合の選定:
+//   1. pair_group 単位で「全メンバーが各 type の cluster 上限内に収まる」かをチェック
+//   2. 収まれば pair ごとそのまま採用
+//   3. 収まらなければスキップ（pair の片側だけ残すような中途半端は避ける）
+//   4. orphans (pair_group なし) は (pain × type) の cluster 上限内で個別追加
+const PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES = {
+  // 横展開が乱発しやすい論点: 各 article_type で 3 cluster まで
+  'invoice-judgement':           3,
+  'consumption-tax-judgement':   3,
+  'incorporation-threshold':     3,
+  'income-classification':       3,
+  'platform-fee-treatment':      3,
 };
-// 深堀り論点は各 pain_point が独立した記事として価値があるため、
-// 横展開上限を 10（5 persona × 2 役割）まで許容。
-const QUOTA_DEFAULT = 10;
+// デフォルトは 6 cluster per type（深堀りの 5 persona + buffer）
+const PAIN_TYPE_CLUSTER_LIMIT_DEFAULT = 6;
+
+// 互換: 既存 export を保つため alias を残す
+const PAIN_POINT_QUOTA = PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES;
+const QUOTA_DEFAULT = PAIN_TYPE_CLUSTER_LIMIT_DEFAULT;
 
 function applyPainPointQuota(topics) {
   // pain_point ごとに分類
@@ -897,16 +909,86 @@ function applyPainPointQuota(topics) {
 
   const out = [...others];
   for (const [pain, list] of byPain) {
-    const limit = PAIN_POINT_QUOTA[pain] || QUOTA_DEFAULT;
-    if (list.length <= limit) {
-      out.push(...list);
-      continue;
-    }
-    // limit を超える場合: pair_group 整合性を保ちつつ多様性で絞る
-    const selected = selectDiverseTopics(list, limit);
+    const clusterLimit = PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES[pain] || PAIN_TYPE_CLUSTER_LIMIT_DEFAULT;
+    // (pain × type) 軸で cluster 多様性を制限しつつ pair_group 整合性を保つ
+    const selected = selectByPainTypeClusterLimit(list, clusterLimit);
     out.push(...selected);
   }
   return out;
+}
+
+// (pain × article_type) ごとに cluster 多様性 N 件まで絞り、pair_group 整合性を維持
+function selectByPainTypeClusterLimit(list, clusterLimit) {
+  // 1. pair_group ごとにグルーピング
+  const byPairGroup = new Map();
+  const orphans = [];
+  for (const t of list) {
+    if (!t.pair_group) { orphans.push(t); continue; }
+    if (!byPairGroup.has(t.pair_group)) byPairGroup.set(t.pair_group, []);
+    byPairGroup.get(t.pair_group).push(t);
+  }
+
+  // 2. pair_group を安定順（key の辞書順）で評価
+  const sortedPairGroups = [...byPairGroup.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+  // 3. usedByType: article_type → 使用中の cluster Set
+  const usedByType = new Map();
+
+  function getUsed(type) {
+    if (!usedByType.has(type)) usedByType.set(type, new Set());
+    return usedByType.get(type);
+  }
+
+  const kept = [];
+  for (const [_groupKey, items] of sortedPairGroups) {
+    // pair_group の全メンバーが各 type の cluster 上限内に収まるかチェック
+    // 計画的に追加するクラスタを集計
+    const plan = new Map(); // type → Set of clusters to newly add for this group
+    let canFit = true;
+
+    for (const t of items) {
+      const type = t.article_type || 'unknown';
+      const cluster = t.cluster || '';
+      const used = getUsed(type);
+      const planned = plan.get(type) || new Set();
+      const combinedSize = (used.has(cluster) || planned.has(cluster))
+        ? new Set([...used, ...planned]).size
+        : new Set([...used, ...planned]).size + 1;
+      if (combinedSize > clusterLimit) {
+        canFit = false;
+        break;
+      }
+      if (!planned.has(cluster)) {
+        planned.add(cluster);
+        plan.set(type, planned);
+      }
+    }
+
+    if (canFit) {
+      for (const t of items) {
+        const type = t.article_type || 'unknown';
+        getUsed(type).add(t.cluster || '');
+        kept.push(t);
+      }
+    }
+    // 収まらないなら pair まるごとスキップ（pair_group 整合性を維持）
+  }
+
+  // 4. orphans を slug 辞書順で個別追加
+  const sortedOrphans = [...orphans].sort((a, b) => (a.slug || '').localeCompare(b.slug || ''));
+  for (const t of sortedOrphans) {
+    const type = t.article_type || 'unknown';
+    const cluster = t.cluster || '';
+    const used = getUsed(type);
+    if (used.has(cluster)) {
+      kept.push(t);
+    } else if (used.size < clusterLimit) {
+      used.add(cluster);
+      kept.push(t);
+    }
+  }
+
+  return kept;
 }
 
 // list から limit 件を選ぶ。pair_group 整合性（main+support のセット）を最優先。
@@ -986,7 +1068,10 @@ module.exports = {
   expandTaxDomain,
   applyPainPointQuota,
   selectDiverseTopics,
+  selectByPainTypeClusterLimit,
   PAIN_POINT_QUOTA,
   QUOTA_DEFAULT,
+  PAIN_TYPE_CLUSTER_LIMIT_OVERRIDES,
+  PAIN_TYPE_CLUSTER_LIMIT_DEFAULT,
   kebab,
 };
