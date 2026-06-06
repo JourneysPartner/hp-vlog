@@ -805,10 +805,59 @@ const TOPICS = [
 // 既存記事増加で候補が尽きないようにする目的。
 const { expandAll: _expandAll } = require('./lib/scenario-expansion');
 
+// curated TOPICS と expanded scenarios を merge する際の重複防止。
+// slug 完全一致だけでなく、curated 人手キュレートトピックと意味的に近い
+// expanded トピックも除外する。
+// 例: curated「相続税の配偶者控除（配偶者の税額軽減）とは？...」と
+//     expanded「相続税の配偶者の税額軽減はどう使う？...」のような
+//     pain_point 違いだが内容が重複するケースの事故対策。
+//
+// curated は title/persona/category しか持たない（pain_point や intent が空）の
+// ケースが多いので similarityScore は使わず、slug トークンの強い重なりで判定する。
+const SLUG_TOKEN_OVERLAP_THRESHOLD = 0.60;  // expanded.slug の 60% が curated.slug に含まれる
+
+function _slugTokens(slug) {
+  if (!slug) return new Set();
+  // kebab-case + 短すぎる "or", "to" 等は除外
+  const STOP = new Set(['the', 'a', 'an', 'and', 'or', 'to', 'in', 'for', 'of', 'with']);
+  return new Set(slug.split('-').filter(t => t.length >= 3 && !STOP.has(t)));
+}
+
+function _slugOverlapRatio(expandedSlug, curatedSlug) {
+  const e = _slugTokens(expandedSlug);
+  const c = _slugTokens(curatedSlug);
+  if (e.size === 0) return 0;
+  let shared = 0;
+  for (const t of e) if (c.has(t)) shared++;
+  return shared / e.size;
+}
+
 function getAllTopics() {
   const curated = TOPICS;
   const curatedSlugs = new Set(curated.map(t => t.slug));
-  const expanded = _expandAll().filter(t => !curatedSlugs.has(t.slug));
+
+  // ① まず slug 完全一致を除外（既存ロジック）
+  let expanded = _expandAll().filter(t => !curatedSlugs.has(t.slug));
+
+  // ② slug トークンの大半が curated と被るものは除外
+  //    cluster が一致しないと共通トークンも少ないので、自然と cluster 内に限定される。
+  const initialCount = expanded.length;
+  expanded = expanded.filter(e => {
+    for (const c of curated) {
+      // cluster が違うものは tokens が被ってもテーマは別なので無視
+      if (c.cluster && e.cluster && c.cluster !== e.cluster) continue;
+      const ratio = _slugOverlapRatio(e.slug, c.slug);
+      if (ratio >= SLUG_TOKEN_OVERLAP_THRESHOLD) {
+        return false;
+      }
+    }
+    return true;
+  });
+  const droppedBySlug = initialCount - expanded.length;
+  if (droppedBySlug > 0 && process.env.SCENARIO_EXPANSION_VERBOSE === 'true') {
+    console.log(`[topic-pool] curated と slug トークン重なりが高い expanded を ${droppedBySlug} 件除外`);
+  }
+
   return [...curated, ...expanded];
 }
 

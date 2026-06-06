@@ -129,8 +129,9 @@ function escFm(v) {
 }
 
 // ── LLM 出力のタイトルを検証 ──────────────────────────────────
-// 妥当: 6〜80 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない
-function isValidLlmTitle(s) {
+// 妥当: 6〜80 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない、
+// title-lint の HARD_FAIL を含まない（同一名詞 2 回繰り返しなど）。
+function isValidLlmTitle(s, ctx = {}) {
   if (!s || typeof s !== 'string') return false;
   const t = s.trim();
   if (t.length < 6 || t.length > 80) return false;
@@ -139,6 +140,13 @@ function isValidLlmTitle(s) {
   if (/あなたがこの記事に最も適したタイトル/.test(t)) return false;
   // 安直な煽り（最終ガード）
   if (/(徹底解説|完全ガイド|必読)/.test(t)) return false;
+  // title-lint の HARD_FAIL（同一名詞繰り返し、機械的連結等）
+  // 循環参照を避けるため遅延 require
+  try {
+    const { lintTitle } = require('./title-lint');
+    const r = lintTitle(t, ctx);
+    if (r.fails && r.fails.length > 0) return false;
+  } catch { /* lint 失敗時は他のチェックだけで判定 */ }
   return true;
 }
 
@@ -160,10 +168,11 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   // 「[要レビュー] {slug}」を入れて人間レビュアーが気付けるようにする。
   // ※ルールベースの title 生成（title-builder）には絶対に戻さない。
   const llmTitle = (llmMeta.title || '').trim();
+  const titleCtx = { macro: topic.macro, article_type: articleType };
   let title;
-  if (isValidLlmTitle(llmTitle)) {
+  if (isValidLlmTitle(llmTitle, titleCtx)) {
     title = llmTitle;
-  } else if (topic.title && isValidLlmTitle(topic.title)) {
+  } else if (topic.title && isValidLlmTitle(topic.title, titleCtx)) {
     // curated トピック（topic-pool）の人手キュレートタイトルは妥当ならそのまま使う
     title = topic.title;
     console.warn(`[draft-normalizer] LLM タイトル無効 → curated topic.title を採用: "${title}"`);
