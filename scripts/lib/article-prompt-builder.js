@@ -23,7 +23,8 @@ const bannedPhrasesLib = require('./banned-phrases');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
-                                        ntaRefsBlock, lawChangesBlock, revisionHint }) {
+                                        ntaRefsBlock, lawChangesBlock, revisionHint,
+                                        pairedTopic, pairedArticleType, pairedArticleRole }) {
   const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
@@ -40,6 +41,38 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
     ? `参考タイトル（任意のヒント。改善余地があると判断したら変更可）: ${topic.title}`
     : 'タイトル: 下記の企画メタ情報からあなた自身で最適な日本語タイトルを生成してください。';
 
+  // ── ペア記事ブロック ──────────────────────────────────────
+  // 同じ pair_group の本命+補強で「タイトルの主題部が同一」になり、
+  // ブログ一覧で重複に見える問題への対策。
+  // ペアの相手記事の情報を渡し、主題部を被らせず、別角度から書くよう明示。
+  let pairBlock = '';
+  if (pairedTopic) {
+    const pairedRoleLabel = pairedArticleRole === 'main' ? '本命記事' : '補強記事';
+    const pairedTitleHint = pairedTopic.title
+      ? `ペア記事の想定タイトル: ${pairedTopic.title}`
+      : 'ペア記事のタイトルはまだ未生成（同じ場で並行生成）';
+    pairBlock = `
+
+═══ 【最重要】ペア記事との差別化（同じ pair_group の相方）═══
+${pairedTitleHint}
+ペア記事の役割: ${pairedRoleLabel}（記事タイプ: ${pairedArticleType || pairedTopic.article_type || ''}）
+ペア記事の中心疑問: ${pairedTopic.primary_question || '（同じテーマを別角度で）'}
+
+【絶対に守る】
+1. **あなたのタイトルの主題部（最初の問い、｜より前）は、ペア記事と完全に被らせないこと**。
+   悪い例:
+     - あなた: 「うちは相続税がかかる？生前に確認したい判断ライン｜基本を整理」
+     - ペア:   「うちは相続税がかかる？生前に確認したい判断ライン｜必要書類と注意点」
+   ↑ これは読者から見ると「同じ記事が2つ並んでる」状態。禁止。
+2. **副題（｜以降）だけで違いを表現してはいけない**。主題部自体を別角度の問いに変える。
+3. あなたの役割（${roleLabel}）とペアの役割（${pairedRoleLabel}）の違いを、
+   主題部の問い方そのもので表現する。例:
+     - 本命（basic_explainer）: 「相続税はどこから課税される？基本のしくみと判断軸」
+     - 補強（filing_practice）:  「生前の財産棚卸し、何を集めて何を残す？実務チェックリスト」
+   ↑ 主題部の問いが完全に違う。これが読者にとって価値ある「2記事セット」。
+4. ペア記事の参考タイトル（あれば上記）の表現とは別の動詞・別の名詞を選ぶ。`;
+  }
+
   return `═══ この記事の可変条件 ═══
 大分類: ${macro}
 ${titleHintLine}
@@ -55,6 +88,7 @@ ${titleHintLine}
 読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
 読後の成功状態: ${topic.success_outcome || '（パーソナと痛点から推測）'}
 中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
+${pairBlock}
 
 ═══ このタイプの必須要素チェックリスト ═══
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -119,11 +153,13 @@ updated_at: "${now}"
  */
 function buildGenerationPrompt(args) {
   const { topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock,
-          revisionHint, relatedSlug, relatedTitle, relatedLinkText, now } = args;
+          revisionHint, relatedSlug, relatedTitle, relatedLinkText, now,
+          pairedTopic, pairedArticleType, pairedArticleRole } = args;
 
   const staticSystem = STATIC_RULES;  // ← キャッシュ対象（固定）
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
+    pairedTopic, pairedArticleType, pairedArticleRole,
   });
   const frontmatter = buildFrontmatterTemplate({
     topic, articleType, articleRole, relatedSlug, relatedTitle, relatedLinkText, now,

@@ -70,6 +70,28 @@ function lintTitle(title, ctx = {}) {
     seen.add(t);
   }
 
+  // 3b. 同一名詞の繰り返し（3文字以上の漢字/カタカナのまとまり）
+  // 「消費税の消費税課税事業者判定」「インボイス登録のインボイス対応」等の
+  // slug 由来冗長表現が日本語化されたまま残るケースを fail として捕捉する。
+  //
+  // 単純な「同一トークン 2 回」では「消費税」と「消費税課税事業者判定」が
+  // 別文字列扱いになって捕捉できないため、3 文字スライディング窓で
+  // 「同じ 3-gram が 2 回以上出現」を判定する。
+  // ただし、判定対象は漢字/カタカナのみを連結した文字列で行う
+  // （ひらがな・記号を間に挟んだ繰り返しも検知できる）。
+  const kanjiKataOnly = title.replace(/[^一-鿿ァ-ヶ]/g, '');
+  const ngramCount = new Map();
+  for (let i = 0; i + 3 <= kanjiKataOnly.length; i++) {
+    const gram = kanjiKataOnly.slice(i, i + 3);
+    ngramCount.set(gram, (ngramCount.get(gram) || 0) + 1);
+  }
+  for (const [gram, count] of ngramCount) {
+    if (count >= 2) {
+      fails.push(`同一名詞の繰り返し: "${gram}" を含む語が ${count} 回出現`);
+      break;
+    }
+  }
+
   // 4. の の過剰連続
   const noCount = countChar(title, 'の');
   if (noCount > 5) warns.push(`「の」が多すぎ: ${noCount} 個`);

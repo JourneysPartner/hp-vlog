@@ -849,7 +849,7 @@ function expandTaxDomain() {
 
 // ── 全展開 ────────────────────────────────────────────────────────
 function expandAll() {
-  return [
+  const raw = [
     ...expandRetail(),
     ...expandInfluencer(),
     ...expandSalon(),
@@ -857,6 +857,119 @@ function expandAll() {
     ...expandGeneral(),
     ...expandTaxDomain(),
   ];
+  return applyPainPointQuota(raw);
+}
+
+// ── pain_point 単位のクオータ ────────────────────────────────
+// 同じ pain_point（例: invoice-judgement, consumption-tax-judgement）が
+// 多数の cluster × persona で乱発されると、論点ベースで読者から見た
+// 「重複記事」が増える。各 pain_point は最大 N トピックまでに絞る。
+//
+// 上限を超えるものはランダムではなく決定論的に選定:
+//   1. cluster の多様性を優先（同じ pain_point で各 cluster 1 件以上）
+//   2. その後、article_role=main を優先
+//   3. それから article_type の多様性
+//   4. 最後に slug の辞書順で安定化
+const PAIN_POINT_QUOTA = {
+  // 横展開が過度になりがちな論点（5 cluster まで）
+  'invoice-judgement':           5,
+  'consumption-tax-judgement':   5,
+  'incorporation-threshold':     5,
+  'income-classification':       5,
+  'platform-fee-treatment':      5,
+  // それ以外（採用しなかった場合）は QUOTA_DEFAULT が適用される
+};
+const QUOTA_DEFAULT = 8;
+
+function applyPainPointQuota(topics) {
+  // pain_point ごとに分類
+  const byPain = new Map();
+  const others = [];
+  for (const t of topics) {
+    if (!t.pain_point) { others.push(t); continue; }
+    if (!byPain.has(t.pain_point)) byPain.set(t.pain_point, []);
+    byPain.get(t.pain_point).push(t);
+  }
+
+  const out = [...others];
+  for (const [pain, list] of byPain) {
+    const limit = PAIN_POINT_QUOTA[pain] || QUOTA_DEFAULT;
+    if (list.length <= limit) {
+      out.push(...list);
+      continue;
+    }
+    // limit を超える場合: pair_group 整合性を保ちつつ多様性で絞る
+    const selected = selectDiverseTopics(list, limit);
+    out.push(...selected);
+  }
+  return out;
+}
+
+// list から limit 件を選ぶ。pair_group 整合性（main+support のセット）を最優先。
+// pair_group なしの topic はその後 cluster 多様性で選ぶ。
+function selectDiverseTopics(list, limit) {
+  // 安定化のため slug でソート
+  const sorted = [...list].sort((a, b) => (a.slug || '').localeCompare(b.slug || ''));
+
+  // pair_group ごとに main / support を分類
+  const byGroup = new Map();   // pair_group => { main: [...], support: [...] }
+  const orphans = [];           // pair_group なし
+  for (const t of sorted) {
+    if (!t.pair_group) { orphans.push(t); continue; }
+    if (!byGroup.has(t.pair_group)) byGroup.set(t.pair_group, { main: [], support: [] });
+    const g = byGroup.get(t.pair_group);
+    if (t.article_role === 'main') g.main.push(t);
+    else g.support.push(t);
+  }
+
+  // 完全ペア（main 1 件以上 + support 1 件以上）を持つ pair_group を優先
+  const fullPairs = [];   // [{ groupKey, main, support, cluster, article_type }]
+  const partialGroups = []; // { groupKey, items[] } — main だけ / support だけのグループ
+  for (const [groupKey, g] of byGroup) {
+    if (g.main.length > 0 && g.support.length > 0) {
+      fullPairs.push({
+        groupKey,
+        main: g.main[0],
+        support: g.support[0],
+        cluster: g.main[0].cluster,
+      });
+    } else {
+      partialGroups.push({ groupKey, items: [...g.main, ...g.support] });
+    }
+  }
+  // 完全ペアを cluster 多様性順に並び替え
+  fullPairs.sort((a, b) => (a.cluster || '').localeCompare(b.cluster || ''));
+
+  const picked = [];
+  const usedClusters = new Set();
+
+  // パス1: 完全ペアから cluster 多様性で 1 ペアずつ採用（main+support の 2 件追加）
+  for (const p of fullPairs) {
+    if (picked.length + 2 > limit) break;
+    if (usedClusters.has(p.cluster)) continue;
+    picked.push(p.main, p.support);
+    usedClusters.add(p.cluster);
+  }
+  // パス2: まだ枠があれば、cluster が被ってもよいので残りの完全ペアを追加
+  for (const p of fullPairs) {
+    if (picked.length + 2 > limit) break;
+    if (picked.includes(p.main)) continue;
+    picked.push(p.main, p.support);
+  }
+  // パス3: partial グループ（片側だけ）から拾う
+  for (const pg of partialGroups) {
+    if (picked.length >= limit) break;
+    for (const t of pg.items) {
+      if (picked.length >= limit) break;
+      if (!picked.includes(t)) picked.push(t);
+    }
+  }
+  // パス4: orphans（pair_group なし）から拾う
+  for (const t of orphans) {
+    if (picked.length >= limit) break;
+    if (!picked.includes(t)) picked.push(t);
+  }
+  return picked;
 }
 
 module.exports = {
@@ -867,5 +980,9 @@ module.exports = {
   expandInheritance,
   expandGeneral,
   expandTaxDomain,
+  applyPainPointQuota,
+  selectDiverseTopics,
+  PAIN_POINT_QUOTA,
+  QUOTA_DEFAULT,
   kebab,
 };

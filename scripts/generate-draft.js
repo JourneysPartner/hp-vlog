@@ -852,6 +852,9 @@ updated_at: "${now}"
     topic, persona, cta, articleType, articleRole,
     ntaRefsBlock, lawChangesBlock, revisionHint,
     relatedSlug, relatedTitle, relatedLinkText, now,
+    // ペア記事情報: タイトル主題の重複防止のため、相手記事の役割・中心疑問を渡す
+    pairedTopic, pairedArticleType: pairedTopic && pairedTopic.article_type,
+    pairedArticleRole: pairedTopic && pairedTopic.article_role,
   });
   const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。

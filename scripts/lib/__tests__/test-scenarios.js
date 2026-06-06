@@ -20,21 +20,28 @@ function assert(cond, label) {
   else      { console.error(`  ✗ ${label}`); failed++; }
 }
 
-// ── 1. expandAll が大量に展開する ───────────────────────────────
-console.log('\n=== Test 1: expandAll で大量候補が生成される ===');
+// ── 1. expandAll が十分な候補を生成する ─────────────────────────
+// pain_point クオータ導入後（PR 重複対策）は理論値の 1842 から 300+ に削減される。
+// 直近 30 日分（60 本/月）を生成するに足る量があれば OK。
+console.log('\n=== Test 1: expandAll で十分な候補が生成される ===');
 {
   const topics = expandAll();
-  assert(topics.length >= 1000, `topics.length=${topics.length} >= 1000`);
+  assert(topics.length >= 200, `topics.length=${topics.length} >= 200（クオータ適用後）`);
 }
 
 // ── 2. 各 macro が十分な候補数を持つ ────────────────────────────
-console.log('\n=== Test 2: 各macroで候補数が十分（>=20）===');
+console.log('\n=== Test 2: 各macroで候補数が十分 ===');
 {
   const topics = expandAll();
   const byMacro = {};
   for (const t of topics) byMacro[t.macro] = (byMacro[t.macro] || 0) + 1;
-  for (const macro of ['物販', 'インフルエンサー', 'サロン', '相続贈与', '一般事業者', '税目実務']) {
-    assert((byMacro[macro] || 0) >= 20, `${macro}: ${byMacro[macro]||0} 件 >= 20`);
+  // 物販/サロン/相続贈与は厚く、一般事業者/税目実務はやや薄いのが現状
+  const expectations = {
+    '物販': 20, 'インフルエンサー': 15, 'サロン': 20,
+    '相続贈与': 50, '一般事業者': 8, '税目実務': 4,
+  };
+  for (const [macro, min] of Object.entries(expectations)) {
+    assert((byMacro[macro] || 0) >= min, `${macro}: ${byMacro[macro]||0} 件 >= ${min}`);
   }
 }
 
@@ -149,7 +156,7 @@ console.log('\n=== Test 10: topic-pool が curated と expanded をマージ ===
 {
   const all = getAllTopics();
   assert(all.length > CURATED_TOPICS.length, `合計 ${all.length} > curated ${CURATED_TOPICS.length}`);
-  assert(all.length >= 1000, `合計 ${all.length} >= 1000（候補空間が大きい）`);
+  assert(all.length >= 250, `合計 ${all.length} >= 250（クオータ + curated 衝突除外後）`);
   // curated の代表 slug が含まれる
   assert(all.some(t => t.slug === 'ebay-export-consumption-tax-refund-guide'), 'curated slug を含む');
   // expanded の代表 slug が含まれる
