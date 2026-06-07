@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "b2b-electronic-services"
 procedure_stage: ""
 summary: "GoogleやMeta等の海外プラットフォームへの広告費・SaaS利用料はB2Bデジタルサービスとして消費税のリバースチャージ方式が適用され、課税事業者は申告が必要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "課税売上割合が95%以上の課税事業者は特定課税仕入れが無かったと考えるので、リバースチャージ方式は不適用となるはず。ここを再考して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-07T00:06:44.927Z"
-updated_at: "2026-06-07T00:06:44.927Z"
+updated_at: "2026-06-08T00:45:51.396+09:00"
 ---
 
 ## この記事で分かること
