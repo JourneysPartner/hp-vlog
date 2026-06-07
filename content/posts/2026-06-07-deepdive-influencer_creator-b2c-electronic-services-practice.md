@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "b2c-electronic-services"
 procedure_stage: ""
 summary: "海外プラットフォーム経由のB2Cデジタルサービスは、プラットフォーマー課税が適用されれば納税義務はプラットフォーム側に移る。ただし直接販売やプラットフォームの仕組み次第で自社申告が必要になるケースがあり、状況別の判断が必要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「プラットフォーマー課税」→「プラットフォーム課税」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-07T00:07:44.412Z"
-updated_at: "2026-06-07T00:07:44.412Z"
+updated_at: "2026-06-08T00:49:55.521+09:00"
 ---
 
 ## この記事で分かること
