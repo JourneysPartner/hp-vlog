@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "used-asset-useful-life"
 procedure_stage: ""
 summary: "中古資産の耐用年数は「法定年数の20%＋経過年数×80%」の簡便法で計算しますが、経過年数が不明・修繕歴あり・法定年数を超過済みなど迷うケースごとに正しい判断方法を解説します。"
-review_status: "needs_revision"
-review_comment: "要約の、「法定年数の20%＋経過年数×80%」が正しいか再考して。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-09T00:27:10.901Z"
-updated_at: "2026-06-09T15:32:39.144+09:00"
+updated_at: "2026-06-09T06:33:35.936Z"
 ---
 
 ## この記事で分かること
