@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "used-asset-useful-life"
 procedure_stage: ""
 summary: "中古資産の耐用年数は「法定耐用年数の全部を経過した場合は法定耐用年数×20%」「一部経過の場合は残年数＋経過年数×20%」の簡便法で計算します。サロンで多いスチーマー・施術ベッド・中古車への適用手順を具体的な数値例で解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "誤解③「1円未満の端数は四捨五入」→誤解③「1年未満の端数は四捨五入」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-09T00:26:14.950Z"
-updated_at: "2026-06-09T00:26:14.950Z"
+updated_at: "2026-06-09T15:27:42.473+09:00"
 ---
 
 ## この記事で分かること・結論
