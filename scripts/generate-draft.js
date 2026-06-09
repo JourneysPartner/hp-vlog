@@ -1072,14 +1072,14 @@ async function regenerateTitleOnly(existingContent, comment) {
 
   // ① コメントに新タイトルが明示されていれば、LLM を呼ばず直接置換する。
   //    これは最も信頼でき、ユーザー意図を取りこぼさない。
-  const direct = partial.extractDirectTitleSwap(comment);
-  if (direct && direct.newTitle && direct.newTitle.length >= 4 && direct.newTitle.length <= 120) {
-    let finalTitle = direct.newTitle;
+  const directTitle = partial.extractDirectTitleSwap(comment);
+  if (directTitle && directTitle.newTitle && directTitle.newTitle.length >= 4 && directTitle.newTitle.length <= 120) {
+    let finalTitle = directTitle.newTitle;
     const cur = meta.title || '';
     // 旧タイトル指定が現タイトルの一部（例: 「｜初動を整理」のような suffix を伴う）なら、
     // suffix/prefix を保持したまま該当部分のみ置換する。
-    if (direct.oldTitle && cur && cur.includes(direct.oldTitle) && cur !== direct.oldTitle) {
-      finalTitle = cur.replace(direct.oldTitle, direct.newTitle);
+    if (directTitle.oldTitle && cur && cur.includes(directTitle.oldTitle) && cur !== directTitle.oldTitle) {
+      finalTitle = cur.replace(directTitle.oldTitle, directTitle.newTitle);
       console.log(`[regenerate] title_only: 部分一致 → サフィックス/プレフィックスを保持して置換 → "${finalTitle}"`);
     } else {
       console.log(`[regenerate] title_only: コメントから新タイトルを直接抽出 → "${finalTitle}"`);
@@ -1092,7 +1092,30 @@ async function regenerateTitleOnly(existingContent, comment) {
     ).replace(/\s*$/, '\n').trimEnd() + '\n';
   }
 
-  // ② 明示指定が無ければ LLM に整文してもらう（既存ロジック）。
+  // ②  コメントに「要約/サマリーの旧→新」が明示されていれば、LLM を呼ばず直接置換する。
+  //     旧 summary が現 summary の部分一致なら、その箇所だけ置換（PR #128 と同思想）。
+  const directSummary = partial.extractDirectSummarySwap(comment);
+  if (directSummary && directSummary.newSummary && directSummary.newSummary.length >= 4 && directSummary.newSummary.length <= 300) {
+    const curSummary = meta.summary || '';
+    let finalSummary;
+    if (directSummary.oldSummary && curSummary.includes(directSummary.oldSummary)) {
+      // 部分一致: 該当部分だけ置換、他は維持
+      finalSummary = curSummary.replace(directSummary.oldSummary, directSummary.newSummary);
+      console.log(`[regenerate] summary 直接抽出: 部分一致 → 該当部分のみ置換`);
+    } else {
+      // 全体置換 or 旧 summary 未指定
+      finalSummary = directSummary.newSummary;
+      console.log(`[regenerate] summary 直接抽出: 全体を新 summary に置換`);
+    }
+    const now = new Date().toISOString();
+    return partial.applyTitleOnly(
+      existingContent,
+      { title: meta.title, summary: finalSummary }, // title は据え置き
+      now,
+    ).replace(/\s*$/, '\n').trimEnd() + '\n';
+  }
+
+  // ③ 明示指定が無ければ LLM に整文してもらう（既存ロジック）。
   const { system, user } = partial.buildTitleOnlyPrompt(meta, comment);
   const raw = await callSimpleOpenAI({ system, user }, 512);
   // JSON 抽出

@@ -134,5 +134,26 @@ console.log('\n=== Test 11: 引用 + 章/区分/部分/セクション の明示
     `セクションキーワード無しは section_only にしない（実際: ${r5.type}）`);
 }
 
+// ── 12. 「要約」コメントを title_only に分類 ─────────────────────
+// 実ユーザーケース。以前は分類器に「要約」パターンが無く、targeted に
+// 流れて summary が更新されなかったバグへの対策。
+console.log('\n=== Test 12: 「要約を〜に変更」→ title_only ===');
+{
+  const c1 = '要約部分の、「中古資産の耐用年数は「法定年数の20%＋経過年数×80%」」を、「中古資産の耐用年数は基本的に「(法定年数−経過年数)＋経過年数×20%」」に変更して。';
+  const r1 = classifyRevision(c1);
+  assert(r1.type === 'title_only' && r1.scope === 'frontmatter',
+    `type=title_only scope=frontmatter（実際: ${r1.type}/${r1.scope}）`);
+
+  const r2 = classifyRevision('要約を短く修正してください。');
+  assert(r2.type === 'title_only', `要約を短く修正 → title_only（実際: ${r2.type}）`);
+
+  const r3 = classifyRevision('要約のここを直して。');
+  assert(r3.type === 'title_only', `要約のここを直して → title_only（実際: ${r3.type}）`);
+
+  // 「要約」キーワードが無いコメントは title_only にしない
+  const r4 = classifyRevision('本文を短くしてください。');
+  assert(r4.type !== 'title_only', '本文系は title_only にしない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

@@ -145,6 +145,47 @@ function extractDirectTitleSwap(comment) {
   return null;
 }
 
+// ── コメントから「要約/サマリーの新旧」を直接指定しているかを抽出 ──
+// パターン例:
+//   「要約部分の「旧」を「新」に変更して」
+//   「要約を「新」に変更して」
+//   「サマリーの「旧」を「新」に直して」
+// 戻り値: { oldSummary, newSummary, source } または null
+//
+// 重要: 「旧」と「新」が深さ 2 までネストした 「」 を含む場合に対応する
+// （例: 「中古資産の耐用年数は「法定年数の20%＋経過年数×80%」」のような表記）
+function extractDirectSummarySwap(comment) {
+  if (!comment) return null;
+  const c = comment.replace(/\s+/g, ' ');
+
+  // 深さ 2 までのネストを許す quoted パターン:
+  //   open 「 + (非ブラケット | バランス「..」)* + close 」
+  // ${quoted} を 2 回使ってOLD/NEW を抽出。
+  const quoted = `[「『]((?:[^「『」』]|[「『][^」』]*[」』])*)[」』]`;
+  // 助詞「を」「に」前後の読点（、，,）と空白を許容
+  const SEP = `[、，,\\s]*`;
+
+  // パターンA: 「要約/サマリー」 ... 「OLD」 を 「NEW」 に 変更/直し/修正
+  const reA = new RegExp(
+    `(?:要約|サマリー|メタ説明)(?:部分)?[^「『]*${quoted}${SEP}を${SEP}${quoted}${SEP}に${SEP}(?:変更|変え|直し|つけ直|付け直|修正|して)`
+  );
+  const mA = c.match(reA);
+  if (mA) {
+    return { oldSummary: mA[1].trim(), newSummary: mA[2].trim(), source: 'pair' };
+  }
+
+  // パターンB: 「要約/サマリー」 を/は/の/→ 「NEW」 に 変更/直し/...
+  const reB = new RegExp(
+    `(?:要約|サマリー|メタ説明)(?:部分)?[^「『]{0,40}(?:を|は|の|→)${SEP}${quoted}${SEP}に?${SEP}(?:変更|変え|直し|つけ直|付け直|修正|して|でお願い)`
+  );
+  const mB = c.match(reB);
+  if (mB) {
+    return { oldSummary: null, newSummary: mB[1].trim(), source: 'single' };
+  }
+
+  return null;
+}
+
 // ── 部分修正プロンプト（title_only）────────────────────────────
 function buildTitleOnlyPrompt(meta, comment) {
   // コメント内に新タイトルが直接書かれていれば、LLM に literal 適用を強く指示する。
@@ -278,6 +319,7 @@ module.exports = {
   applyTitleOnly,
   replaceFmField,
   extractDirectTitleSwap,
+  extractDirectSummarySwap,
   buildTitleOnlyPrompt,
   buildSectionPrompt,
   buildTargetedPrompt,

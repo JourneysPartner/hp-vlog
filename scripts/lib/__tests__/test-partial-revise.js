@@ -219,5 +219,54 @@ console.log('\n=== Test 14: 旧タイトルが現タイトルの部分一致 →
   assert(cur.includes(oldT) && cur !== oldT, '現タイトルが旧を含み完全一致しない');
 }
 
+// ── 15. extractDirectSummarySwap: 実ユーザーケース ──────────────
+// 中古資産耐用年数の式の誤りを訂正したコメント。深さ 2 のネスト 「..」 を含む。
+console.log('\n=== Test 15: extractDirectSummarySwap（実ユーザーケース）===');
+{
+  // 実ユーザーコメント（中古資産耐用年数の式訂正）
+  const c1 = '要約部分の、「中古資産の耐用年数は「法定年数の20%＋経過年数×80%」」を、「中古資産の耐用年数は基本的に「(法定年数−経過年数)＋経過年数×20%」」に変更して。';
+  const r1 = partial.extractDirectSummarySwap(c1);
+  assert(r1 !== null, '抽出成功');
+  assert(r1 && r1.oldSummary === '中古資産の耐用年数は「法定年数の20%＋経過年数×80%」',
+    `旧 summary: "${r1 && r1.oldSummary}"`);
+  assert(r1 && r1.newSummary === '中古資産の耐用年数は基本的に「(法定年数−経過年数)＋経過年数×20%」',
+    `新 summary: "${r1 && r1.newSummary}"`);
+  assert(r1 && r1.source === 'pair', 'source=pair');
+
+  // パターンB: 「要約を「新案」に変更して」
+  const c2 = '要約を「短くて分かりやすい新サマリー」に変更してください。';
+  const r2 = partial.extractDirectSummarySwap(c2);
+  assert(r2 !== null, 'B: 抽出成功');
+  assert(r2 && r2.newSummary === '短くて分かりやすい新サマリー', 'B: 新 summary 抽出');
+  assert(r2 && r2.oldSummary === null, 'B: 旧 summary は null');
+
+  // 「サマリー」表記も対応
+  const c3 = 'サマリーの「旧A」を「新A」に変更して。';
+  const r3 = partial.extractDirectSummarySwap(c3);
+  assert(r3 !== null && r3.newSummary === '新A', 'サマリー 表記対応');
+
+  // タイトル系コメントには反応しない
+  const c4 = 'タイトルを「新タイトル」に変更してください。';
+  const r4 = partial.extractDirectSummarySwap(c4);
+  assert(r4 === null, 'タイトル系には反応しない');
+
+  // 「要約」キーワードなし → null
+  const c5 = '本文をもう少し短くしてください。';
+  const r5 = partial.extractDirectSummarySwap(c5);
+  assert(r5 === null, '要約キーワード無しは null');
+}
+
+// ── 16. 部分一致時の summary サフィックス保持 ────────────────────
+console.log('\n=== Test 16: summary 部分一致 → 該当箇所のみ置換 ===');
+{
+  const cur = '中古資産の耐用年数は「法定年数の20%＋経過年数×80%」の簡便法で計算しますが、経過年数が不明・修繕歴あり・法定年数を超過済みなど迷うケースごとに正しい判断方法を解説します。';
+  const oldS = '中古資産の耐用年数は「法定年数の20%＋経過年数×80%」';
+  const newS = '中古資産の耐用年数は基本的に「(法定年数−経過年数)＋経過年数×20%」';
+  const result = cur.replace(oldS, newS);
+  assert(result.startsWith('中古資産の耐用年数は基本的に'), '冒頭が新 summary に置換');
+  assert(result.includes('の簡便法で計算しますが'), '部分一致箇所以外は維持');
+  assert(cur.includes(oldS) && cur !== oldS, '現 summary が旧を含み完全一致しない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
