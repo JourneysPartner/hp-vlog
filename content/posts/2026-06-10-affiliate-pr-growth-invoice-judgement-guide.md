@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "invoice-judgement"
 procedure_stage: ""
 summary: "ブログ・アフィリエイト収入が年間1,000万円以下でも、取引先の業種次第でインボイス登録を求められるケースがあります。登録すべきか否かは「誰に請求するか」で変わります。"
-review_status: "needs_revision"
-review_comment: "「この記事でわかること」の区分にある、「ブログ・アフィリエイト収入が月10万円を超えてきたとき」ですが、月10万円の数字の根拠がわからない為再考して。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-10T00:16:28.163Z"
-updated_at: "2026-06-10T15:43:11.283+09:00"
+updated_at: "2026-06-10T06:43:55.894Z"
 ---
 
 ## この記事で分かること
