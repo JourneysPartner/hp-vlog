@@ -268,5 +268,53 @@ console.log('\n=== Test 16: summary 部分一致 → 該当箇所のみ置換 ==
   assert(cur.includes(oldS) && cur !== oldS, '現 summary が旧を含み完全一致しない');
 }
 
+// ── 17. normalizeForSectionMatch / 表記揺れ吸収 ───────────────
+console.log('\n=== Test 17: 漢字↔ひらがな正規化（表記揺れ）===');
+{
+  const { normalizeForSectionMatch } = partial;
+  assert(normalizeForSectionMatch('この記事で分かること') === 'この記事でわかること',
+    '「分かる」→「わかる」');
+  assert(normalizeForSectionMatch('行うべき手続き') === 'おこなうべき手続き',
+    '「行う」→「おこなう」');
+  // 既にひらがなの場合はそのまま
+  assert(normalizeForSectionMatch('この記事でわかること') === 'この記事でわかること',
+    '既にひらがなはそのまま');
+}
+
+// ── 18. findTargetSectionIndex の表記揺れ吸収 ───────────────────
+console.log('\n=== Test 18: findTargetSectionIndex（実ユーザーケース）===');
+{
+  const sections = [
+    { heading: 'この記事で分かること', body: 'a' },
+    { heading: 'インボイス制度とは何か', body: 'b' },
+    { heading: 'よくある誤解', body: 'c' },
+  ];
+  // ユーザーが「わかる」（ひらがな）で書いても、「分かる」のセクションに hit する
+  const idx = partial.findTargetSectionIndex(sections, 'この記事でわかること', 'section_only');
+  assert(idx === 0, `表記揺れ正規化で hit（実際: ${idx}）`);
+
+  // 完全一致も従来通り
+  const idx2 = partial.findTargetSectionIndex(sections, 'インボイス制度', 'section_only');
+  assert(idx2 === 1, '完全 includes 一致');
+
+  // fuzzy: 「制度の概要」→「インボイス制度とは何か」（2-gram Jaccard でも 0.5 未満なので hit しない）
+  const idx3 = partial.findTargetSectionIndex(sections, '存在しないセクション', 'section_only');
+  assert(idx3 === -1, '存在しないセクションは -1');
+}
+
+// ── 19. buildTargetedPromptRetry が前回失敗の通告を含む ──────────
+console.log('\n=== Test 19: buildTargetedPromptRetry ===');
+{
+  const meta = { title: 'X' };
+  const comment = 'A を B に変更して。';
+  const body = '本文'.repeat(100);  // 200 字
+  const p = partial.buildTargetedPromptRetry(meta, comment, body, 10, body.length);
+  assert(/前回出力の問題/.test(p.user), '前回失敗の通告セクションを含む');
+  assert(/拒否メッセージ/.test(p.user) && /厳禁/.test(p.system),
+    '拒否メッセージの禁止が明示');
+  assert(/90%/.test(p.user), '90% 以上の文字数制約');
+  assert(/${origBodyLen}/.test(p.user) === false, 'テンプレ変数が展開されている');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
