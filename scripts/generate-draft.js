@@ -1179,17 +1179,48 @@ async function regenerateSection(existingContent, comment, classification) {
 // 出力本文が元の 60% 未満（または h2 章数が半減未満）なら不正出力と判定し、
 // 元本文を維持して human レビューに委ねる。
 async function regenerateTargeted(existingContent, comment) {
-  const { body } = parseFrontmatter(existingContent);
-  const { system, user } = partial.buildTargetedPrompt({ ...parseFrontmatter(existingContent).meta }, comment, body);
-  const revised = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
+  const { body, meta } = parseFrontmatter(existingContent);
+  const origLen = body.trim().length;
 
-  const guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
+  // 1 回目: 通常プロンプト
+  const p1 = partial.buildTargetedPrompt(meta, comment, body);
+  let revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 4096));
+  let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
+
+  // 2 回目: 1 回目が shrinkage 判定なら、より厳しいプロンプトでリトライ
   if (guard.suspicious) {
-    console.warn(`[regenerate] ⚠ targeted: 本文が異常に短縮された → 元本文を維持。${guard.reason}`);
-    console.warn('[regenerate] ⚠ 差し戻しコメントが本文の内容と合っていない、または LLM が混乱した可能性。レビューで再判断してください。');
-    return rebuildWithBody(existingContent, body);
+    console.warn(`[regenerate] ⚠ targeted 1 回目: ${guard.reason}`);
+    console.warn('[regenerate] より厳しいプロンプトでリトライ...');
+    const prevLen = (revised || '').trim().length;
+    const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen);
+    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p2.system, user: p2.user }, 4096));
+    guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
+  }
+
+  if (guard.suspicious) {
+    console.warn(`[regenerate] ⚠ targeted: リトライ後も本文が異常に短縮。${guard.reason}`);
+    console.warn('[regenerate] ⚠ 元本文を維持し、review_comment に警告を追記します。');
+    const warnNote = `\n\n【自動再生成の警告】このコメントを自動で本文に反映できませんでした（LLM が ${guard.reason}）。手動で該当箇所を直すか、コメントを具体化して再度お試しください。`;
+    return rebuildWithBodyAndWarning(existingContent, body, comment + warnNote);
   }
   return rebuildWithBody(existingContent, revised);
+}
+
+// targeted 二度失敗時: 元本文を維持しつつ、review_comment 末尾に
+// 警告を追記して needs_revision のままにする（人間に判断を委ねる）。
+function rebuildWithBodyAndWarning(existingContent, body, augmentedComment) {
+  const m = existingContent.match(/^(---\r?\n[\s\S]+?\r?\n---\r?\n)([\s\S]*)$/);
+  if (!m) return existingContent;
+  const now = new Date().toISOString();
+  // augmentedComment は改行を含むため YAML エスケープ（\n に変換）
+  const safe = String(augmentedComment || '')
+    .replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+    .replace(/\r\n/g, '\\n').replace(/\n/g, '\\n').replace(/\r/g, '\\n');
+  const fmBlock = m[1]
+    .replace(/^(updated_at:\s*).*$/m, `$1"${now}"`)
+    .replace(/^(review_status:\s*).*$/m, `$1"needs_revision"`)
+    .replace(/^(review_comment:\s*).*$/m, `$1"${safe}"`);
+  return (fmBlock + body).replace(/\s*$/, '\n');
 }
 
 // 本文だけ後処理（禁止表現置換のみ。免責は本文側で維持される前提）

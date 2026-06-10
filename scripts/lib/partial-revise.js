@@ -55,13 +55,87 @@ function joinSections(intro, sections) {
   return parts.join('\n\n') + '\n';
 }
 
+// ── 漢字↔ひらがな等の表記揺れ正規化 ────────────────────────
+// ユーザーが「この記事でわかること」と書いて記事が「この記事で分かること」
+// だったときの取りこぼしを防ぐ。形態素解析は避け、よくある語彙を
+// 単純テーブルで漢字→ひらがなに変換してから比較する。
+// 動詞・形容詞のみ。「事」「物」「時」など単漢字の名詞は他の語の一部に
+// 紛れ込むため変換しない（例: 「記事」→「記こと」になるのを避ける）。
+// 送りがな付きの動詞・形容詞は語境界を持つので安全に変換できる。
+const KANJI_TO_KANA_NORMALIZE = {
+  '分かる': 'わかる', '分か': 'わか',
+  '解る': 'わかる', '判る': 'わかる',
+  '行う': 'おこなう', '行な': 'おこな',
+  '出来る': 'できる', '出来': 'でき',
+  '言う': 'いう', '言い': 'いい',
+  '思う': 'おもう', '思い': 'おもい',
+  '受け': 'うけ',
+  '良い': 'よい', '善い': 'よい',
+  '持つ': 'もつ', '持ち': 'もち',
+  '起こ': 'おこ',
+  '終わ': 'おわ', '始ま': 'はじま', '始め': 'はじめ',
+  '考え': 'かんがえ', '答え': 'こたえ',
+  '迷う': 'まよう', '迷い': 'まよい',
+  '違う': 'ちがう', '違い': 'ちがい',
+  '使う': 'つかう', '使い': 'つかい',
+  '足す': 'たす', '足り': 'たり',
+  '頂く': 'いただく', '頂き': 'いただき',
+  '頷く': 'うなずく',
+  '基づ': 'もとづ',
+  '関わ': 'かかわ',
+  '伴う': 'ともなう', '伴い': 'ともない',
+  '備える': 'そなえる', '備え': 'そなえ',
+  '揃う': 'そろう', '揃え': 'そろえ',
+};
+
+function normalizeForSectionMatch(s) {
+  if (!s) return '';
+  let n = String(s);
+  for (const [k, h] of Object.entries(KANJI_TO_KANA_NORMALIZE)) {
+    if (n.includes(k)) n = n.split(k).join(h);
+  }
+  return n;
+}
+
+// 簡易類似度: 双方向の文字集合重なり率（短い方の長さに対する共通文字数）
+// 厳密な編集距離は重いため、3-gram の Jaccard を採用。
+function fuzzyMatchRatio(a, b) {
+  if (!a || !b) return 0;
+  const toGrams = (s) => {
+    const g = new Set();
+    for (let i = 0; i + 2 <= s.length; i++) g.add(s.slice(i, i + 2));
+    return g;
+  };
+  const ga = toGrams(a);
+  const gb = toGrams(b);
+  if (ga.size === 0 || gb.size === 0) return 0;
+  let inter = 0;
+  for (const g of ga) if (gb.has(g)) inter++;
+  const union = ga.size + gb.size - inter;
+  return inter / union;
+}
+
 // ── コメントのヒントから対象セクションの index を推定 ───────────
 // sectionHint（見出しキーワード）に最も近い見出しを探す。なければ -1。
+// 3 段階で探索: 完全一致 → 表記揺れ正規化一致 → fuzzy（2-gram Jaccard）一致
 function findTargetSectionIndex(sections, sectionHint, type) {
   if (sectionHint) {
-    // 見出しに hint を含むものを優先
+    // 1. 厳密な includes 一致
     const idx = sections.findIndex(s => s.heading.includes(sectionHint));
     if (idx >= 0) return idx;
+
+    // 2. 漢字↔ひらがな正規化後の一致（「分かる」vs「わかる」を救う）
+    const normHint = normalizeForSectionMatch(sectionHint);
+    const normIdx = sections.findIndex(s => normalizeForSectionMatch(s.heading).includes(normHint));
+    if (normIdx >= 0) return normIdx;
+
+    // 3. fuzzy（2-gram Jaccard）類似度 >= 0.5 のセクション
+    let bestIdx = -1, bestRatio = 0;
+    for (let i = 0; i < sections.length; i++) {
+      const r = fuzzyMatchRatio(sections[i].heading, sectionHint);
+      if (r > bestRatio) { bestRatio = r; bestIdx = i; }
+    }
+    if (bestIdx >= 0 && bestRatio >= 0.5) return bestIdx;
   }
   // intro_conclusion_fix の「まとめ/結論」系
   if (type === 'intro_conclusion_fix') {
@@ -278,6 +352,44 @@ ${body}
   };
 }
 
+// ── 部分修正プロンプト（targeted のリトライ用、より厳格版）──────
+// 1 回目で shrinkage が検出されたときに使う。プロンプトの最上部に
+// 「前回失敗の通告 + 絶対遵守の出力フォーマット指示」を強化する。
+function buildTargetedPromptRetry(meta, comment, body, prevOutputLen, origBodyLen) {
+  return {
+    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をそのまま保ちます。指示が技術的に難しい・該当文字列が無い等の場合でも、必ず元の本文を全文そのまま出力すること。短縮・要約・拒否メッセージ・解説文の出力は厳禁です。',
+    user: `【前回出力の問題】
+前回の出力は ${prevOutputLen} 文字でした（元本文は ${origBodyLen} 文字）。
+本文の 60% 未満まで縮小されたため、システムにより破棄されました。
+
+【今回の指示】
+以下の記事本文を、差し戻しコメントで指摘された箇所だけ最小限修正してください。
+**修正できない・該当箇所が見つからない・指示が曖昧な場合も、必ず元本文を全文そのまま出力してください**。
+「拒否メッセージ」「修正不能の説明文」「短い要約」「箇条書きだけ」を返してはいけません。
+
+【絶対に守る出力フォーマット】
+- 出力は必ず元本文の Markdown 全体である（${origBodyLen} 文字相当）
+- 出力の冒頭は元本文の冒頭（## などの見出し）と一致する
+- 出力の末尾は元本文の末尾（免責文・相談導線）と一致する
+- frontmatter は出力しない
+
+【絶対に守る制約】
+1. 差し戻しコメントで指摘された文字列が本文中に見つからない場合、**本文を一切変更せず、元の本文をそのまま全文出力**する。
+2. 章構成（## 見出し）・段落数・表・リストを変更しない。
+3. 本文の総文字数は元本文の **90% 以上**（${Math.floor(origBodyLen * 0.9)} 文字以上）を必ず維持する。
+4. 新しいタイトル・新しい章・ASCII アート・フローチャート・拒否メッセージ・解説文を勝手に追加しない。
+5. 免責文と末尾の相談導線は元のまま維持する。
+
+【差し戻しコメント】
+${comment}
+
+【記事本文（現状）— これを全文ベースに、指摘箇所のみ最小修正したものを出力】
+${body}
+
+穏当な「です・ます」調。誇大表現禁止。`,
+  };
+}
+
 // ── セーフティチェック: LLM 出力が元本文より極端に短くないか ─────
 // targeted scope は本文全体を入出力するため、LLM が混乱して本文を
 // 大幅に削減/置換するリスクがある。新本文の長さが元の MIN_RATIO
@@ -323,5 +435,8 @@ module.exports = {
   buildTitleOnlyPrompt,
   buildSectionPrompt,
   buildTargetedPrompt,
+  buildTargetedPromptRetry,
   isBodyShrinkageSuspicious,
+  normalizeForSectionMatch,
+  fuzzyMatchRatio,
 };
