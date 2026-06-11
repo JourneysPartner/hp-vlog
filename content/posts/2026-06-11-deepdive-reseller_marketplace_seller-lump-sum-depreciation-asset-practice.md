@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "lump-sum-depreciation-asset"
 procedure_stage: ""
 summary: "10万円以上20万円未満の資産は「一括償却資産」として3年均等償却が可能。少額減価償却の特例との使い分けや、スマホ・棚・備品など具体的なケース別の判断ポイントを整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「判断の教訓」という言葉は今後一切使用しないでください。\n\n「判断の教訓」→「注意点」に変えてください。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-11T00:34:38.081Z"
-updated_at: "2026-06-11T00:34:38.081Z"
+updated_at: "2026-06-11T13:07:56.433+09:00"
 ---
 
 ## この記事を読む前に：原則を3行で確認
