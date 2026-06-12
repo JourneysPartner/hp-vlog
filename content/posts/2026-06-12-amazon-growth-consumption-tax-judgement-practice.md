@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: ""
 summary: "Amazon物販で売上が伸びてきたとき「自分は課税事業者になるのか」と迷うケースを、判定年度・売上計上タイミング・複数チャネル合算など実務のつまずきポイント別に整理しました。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "輸出免税のため課税売上に含めないというのは誤りです。\n基準期間における課税売上高に輸出免税売上は含めます。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-12T00:22:35.142Z"
-updated_at: "2026-06-12T00:22:35.142Z"
+updated_at: "2026-06-12T12:36:42.912+09:00"
 ---
 
 ## この記事を読んで分かること
