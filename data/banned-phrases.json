@@ -14,13 +14,24 @@
       "autoExtracted": false
     },
     {
-      "id": "no-markdown-bold",
-      "pattern": "\\*\\*",
-      "humanReadable": "** （Markdown 太字記法）",
-      "replacement": "",
-      "reason": "Markdown 太字記法は使わない（ユーザー指摘 2026-06-16）。**太字** のような強調は避け、必要なら見出しや文章構造で強調する。",
+      "id": "convert-markdown-bold-to-strong",
+      "pattern": "\\*\\*([^*\\n]+?)\\*\\*",
+      "humanReadable": "**...** → <strong>...</strong>",
+      "replacement": "<strong>$1</strong>",
+      "reason": "Markdown 太字 (**...**) は日本語の文字境界で marked.js が認識できず生のアスタリスクが見える事故が頻発するため、確実にレンダリングされる HTML <strong> タグに変換する（ユーザー指摘 2026-06-16）。太字スタイル自体は維持される。",
       "appliesTo": ["body"],
       "addedAt": "2026-06-16T00:00:00.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
+    },
+    {
+      "id": "strip-stray-double-asterisk",
+      "pattern": "\\*\\*",
+      "humanReadable": "** （ペア未マッチの孤立アスタリスク）",
+      "replacement": "",
+      "reason": "上の変換ルールでペアが揃わず残った孤立 ** は本文に出すと見苦しいため削除する（2026-06-16）。",
+      "appliesTo": ["body"],
+      "addedAt": "2026-06-16T00:00:01.000Z",
       "sourceArticle": null,
       "autoExtracted": false
     }

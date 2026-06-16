@@ -152,19 +152,34 @@ console.log('\n=== Test 11: replacement: "" は「削除」として置換され
     'hasReplacement=true（空文字も replacement とみなす）');
 }
 
-// ── 12. 本番 banned-phrases.json: ** が削除される ────────────────
-console.log('\n=== Test 12: 本番 JSON 上の ** ルール ===');
+// ── 12. 本番 banned-phrases.json: ** → <strong> 変換 ──────────────
+// 太字スタイルは維持しつつ、生の ** が見える事故を防ぐ。
+console.log('\n=== Test 12: 本番 JSON 上の ** → <strong> 変換 ===');
 {
   const data = bp.loadBannedPhrases();
-  const boldRule = data.phrases.find(p => p.id === 'no-markdown-bold');
-  assert(!!boldRule, 'no-markdown-bold ルールが登録されている');
-  if (boldRule) {
-    assert(boldRule.pattern === '\\*\\*', 'pattern は \\*\\*');
-    assert(boldRule.replacement === '', 'replacement は空文字（削除）');
-  }
-  // 実際の sanitize 動作
-  const { text } = bp.applyBannedPhrasesToBody('これは**太字**です。');
-  assert(text === 'これは太字です。', '本番 JSON 経由で ** が削除される');
+  const convertRule = data.phrases.find(p => p.id === 'convert-markdown-bold-to-strong');
+  assert(!!convertRule, 'convert-markdown-bold-to-strong ルールが登録されている');
+  const stripRule = data.phrases.find(p => p.id === 'strip-stray-double-asterisk');
+  assert(!!stripRule, '孤立 ** 除去ルールも登録されている');
+
+  // 通常の太字: **X** → <strong>X</strong>
+  const { text: t1 } = bp.applyBannedPhrasesToBody('これは**太字**です。');
+  assert(t1 === 'これは<strong>太字</strong>です。', '通常の太字が <strong> に変換');
+
+  // 日本語境界の実例（スクショの問題ケース）
+  const { text: t2 } = bp.applyBannedPhrasesToBody(
+    'それが**青色申告者向けの「青色事業専従者給与」**です（所得税法第57条）。'
+  );
+  assert(t2 === 'それが<strong>青色申告者向けの「青色事業専従者給与」</strong>です（所得税法第57条）。',
+    '日本語境界の太字も <strong> に変換');
+
+  // 連続する太字
+  const { text: t3 } = bp.applyBannedPhrasesToBody('**項目1**と**項目2**');
+  assert(t3 === '<strong>項目1</strong>と<strong>項目2</strong>', '連続太字も正しく変換');
+
+  // 孤立 ** は削除
+  const { text: t4 } = bp.applyBannedPhrasesToBody('** が孤立');
+  assert(!t4.includes('**'), '孤立 ** は削除される');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
