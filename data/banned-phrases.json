@@ -12,6 +12,17 @@
       "addedAt": "2026-05-30T06:30:00.000Z",
       "sourceArticle": "general-income-classification-influencer-creator-pre-opening-practice",
       "autoExtracted": false
+    },
+    {
+      "id": "no-markdown-bold",
+      "pattern": "\\*\\*",
+      "humanReadable": "** （Markdown 太字記法）",
+      "replacement": "",
+      "reason": "Markdown 太字記法は使わない（ユーザー指摘 2026-06-16）。**太字** のような強調は避け、必要なら見出しや文章構造で強調する。",
+      "appliesTo": ["body"],
+      "addedAt": "2026-06-16T00:00:00.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
     }
   ]
 }

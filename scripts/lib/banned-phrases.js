@@ -54,7 +54,8 @@ function getPhrasesForScope(scope, data) {
 }
 
 // ── 本文への適用（sanitize）────────────────────────────────────
-// replacement あり → 置換、無し → 検出ログだけ返す
+// replacement が文字列なら置換（空文字 "" も置換対象＝該当箇所を削除する意図）。
+// replacement が null/undefined なら検出のみ。
 function applyBannedPhrasesToBody(text, data) {
   const phrases = getPhrasesForScope('body', data);
   let out = text;
@@ -67,8 +68,9 @@ function applyBannedPhrasesToBody(text, data) {
       continue;
     }
     if (re.test(out)) {
-      applied.push({ id: p.id, pattern: p.pattern, hasReplacement: !!p.replacement });
-      if (p.replacement) {
+      const hasReplacement = typeof p.replacement === 'string';
+      applied.push({ id: p.id, pattern: p.pattern, hasReplacement });
+      if (hasReplacement) {
         out = out.replace(re, p.replacement);
       }
     }
