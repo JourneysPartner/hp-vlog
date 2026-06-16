@@ -130,5 +130,42 @@ console.log('\n=== Test 10: 単一引用句のみのケース ===');
   assert(/丁寧に解説します/.test(found[0].pattern), 'リテラル「丁寧に解説します」');
 }
 
+// ── 11. replacement: "" （空文字）も置換対象として扱う ────────
+// 「Markdown 太字 ** を削除」のような「該当文字列を消したい」ケース。
+// JavaScript の falsy 判定（!p.replacement）で空文字を弾いていたバグ修正のリグレッション。
+console.log('\n=== Test 11: replacement: "" は「削除」として置換される ===');
+{
+  const adhoc = {
+    version: 1,
+    phrases: [{
+      id: 'test-delete', pattern: '\\*\\*', replacement: '',
+      appliesTo: ['body'],
+    }],
+  };
+  const { text, applied } = bp.applyBannedPhrasesToBody(
+    '消費税の**課税事業者**は**インボイス登録**が必要です。',
+    adhoc,
+  );
+  assert(text === '消費税の課税事業者はインボイス登録が必要です。',
+    'replacement: "" で ** が削除される');
+  assert(applied.length === 1 && applied[0].hasReplacement === true,
+    'hasReplacement=true（空文字も replacement とみなす）');
+}
+
+// ── 12. 本番 banned-phrases.json: ** が削除される ────────────────
+console.log('\n=== Test 12: 本番 JSON 上の ** ルール ===');
+{
+  const data = bp.loadBannedPhrases();
+  const boldRule = data.phrases.find(p => p.id === 'no-markdown-bold');
+  assert(!!boldRule, 'no-markdown-bold ルールが登録されている');
+  if (boldRule) {
+    assert(boldRule.pattern === '\\*\\*', 'pattern は \\*\\*');
+    assert(boldRule.replacement === '', 'replacement は空文字（削除）');
+  }
+  // 実際の sanitize 動作
+  const { text } = bp.applyBannedPhrasesToBody('これは**太字**です。');
+  assert(text === 'これは太字です。', '本番 JSON 経由で ** が削除される');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
