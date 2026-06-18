@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "bookkeeping"
 summary: "国内EC物販セラーが消費税の課税事業者かどうかを正しく判定するには、基準期間の課税売上高1,000万円ラインと特定期間の判定を帳簿上でどう把握するかが鍵になります。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「帳簿付けで押さえておくべき実務ポイント」の章の表中にある振込手数料（金融機関）は、非課税ではなく課税仕入れです。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-18T00:23:24.441Z"
-updated_at: "2026-06-18T18:15:29.378Z"
+updated_at: "2026-06-19T03:20:57.335+09:00"
 ---
 ## この記事でわかること
 国内ECで物販を行っているセラーが「自分は消費税を納める必要があるか」を判断するには、正しい判定の仕組みを知り、その根拠となる数字を帳簿上できちんと把握することが欠かせません。
