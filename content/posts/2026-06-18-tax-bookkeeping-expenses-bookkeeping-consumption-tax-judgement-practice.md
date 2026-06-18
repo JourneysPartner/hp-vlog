@@ -1,5 +1,5 @@
 ---
-title: "[要レビュー] tax-bookkeeping-expenses-bookkeeping-consumption-tax-judgement-practice"
+title: "EC物販セラーの消費税判定と帳簿付け実務ガイド"
 slug: "tax-bookkeeping-expenses-bookkeeping-consumption-tax-judgement-practice"
 category: "帳簿・経費"
 primary_persona: "domestic_ec_seller"
@@ -23,16 +23,16 @@ business_stage: ""
 life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "bookkeeping"
-summary: "EC物販セラーが課税事業者か免税事業者かを判定し、日々の帳簿付けに反映する手順を、必要書類・よくあるミス・相談が必要な場面とともに具体的に解説します。"
-review_status: "needs_revision"
-review_comment: "タイトルを正しく書き直して。\n記事もわかりやすい日本語で書き直して。"
+summary: "EC物販セラーが課税・免税事業者の判定を正しく行い、日々の帳簿に反映する手順を、必要書類・よくあるミス・専門家への相談タイミングとともにわかりやすく解説します。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-18T00:24:30.669Z"
-updated_at: "2026-06-19T03:16:50.181+09:00"
+updated_at: "2026-06-18T18:17:15.843Z"
 ---
 
 ## この記事で分かること
