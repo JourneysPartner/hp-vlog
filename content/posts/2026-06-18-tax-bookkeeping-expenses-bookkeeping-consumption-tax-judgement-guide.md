@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "bookkeeping"
 summary: "国内EC物販セラーが消費税の課税事業者かどうかを正しく判定するには、基準期間の課税売上高1,000万円ラインと特定期間の判定を帳簿上でどう把握するかが鍵になります。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「帳簿付けで「課税売上高」をどう把握するか」の章で書いている課税売上高が、基準期間における課税売上高のことなのであれば、「輸出免税売上は基準期間における課税売上高に含まれる」が正しいです。\n今後も必ず輸出免税売上は基準期間における課税売上高に含まれると認識してください。\n\n「帳簿付けで押さえておくべき実務ポイント」の章の振込手数料（金融機関）は非課税ではなく課税仕入れです。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-18T00:23:24.441Z"
-updated_at: "2026-06-18T00:23:24.441Z"
+updated_at: "2026-06-19T03:15:01.041+09:00"
 ---
 
 ## この記事でわかること
