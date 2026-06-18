@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "bookkeeping"
 summary: "EC物販セラーが課税事業者か免税事業者かを判定し、日々の帳簿付けに反映する手順を、必要書類・よくあるミス・相談が必要な場面とともに具体的に解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルを正しく書き直して。\n記事もわかりやすい日本語で書き直して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-18T00:24:30.669Z"
-updated_at: "2026-06-18T00:24:30.669Z"
+updated_at: "2026-06-19T03:16:50.181+09:00"
 ---
 
 ## この記事で分かること
