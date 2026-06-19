@@ -34,6 +34,28 @@
       "addedAt": "2026-06-16T00:00:01.000Z",
       "sourceArticle": null,
       "autoExtracted": false
+    },
+    {
+      "id": "specific-period-or-vs-and",
+      "pattern": "課税売上高(?:または|もしくは|か)\\s*給与等(?:支払額|の支払額|の合計額)?[^。\\n]{0,30}1[,，]?\\s*000\\s*万円(?:を)?超",
+      "humanReadable": "課税売上高または給与等支払額が1,000万円超 → 課税事業者（誤記）",
+      "replacement": null,
+      "reason": "特定期間判定の OR/AND 誤記（ユーザー指摘 2026-06-19）。正しくは『両方とも1,000万円超で初めて強制的に課税事業者』。納税者は課税売上高 / 給与等支払額のうち有利な方を選べるため、どちらか一方が1,000万円以下なら、そちらを選択して免税のまま留まれる。タックスアンサー No.6501 の原文「課税売上高に代えて、給与等支払額により判定することもできる」を論理ORに誤訳した典型例。",
+      "appliesTo": ["body"],
+      "addedAt": "2026-06-19T00:00:00.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
+    },
+    {
+      "id": "specific-period-either-or",
+      "pattern": "いずれか[一二]?方?が\\s*1[,，]?\\s*000\\s*万円(?:を)?超(?:[、,。\\n]|[^。\\n]{0,15}課税事業者)",
+      "humanReadable": "いずれかが1,000万円超 → 課税事業者（誤記）",
+      "replacement": null,
+      "reason": "特定期間判定の OR/AND 誤記の別表現（ユーザー指摘 2026-06-19）。正しくは『いずれもが1,000万円超』。",
+      "appliesTo": ["body"],
+      "addedAt": "2026-06-19T00:00:01.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
     }
   ]
 }
