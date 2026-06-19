@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "consumption-tax-judgement"
 procedure_stage: "bookkeeping"
 summary: "EC物販セラーが課税・免税事業者の判定を正しく行い、日々の帳簿に反映する手順を、必要書類・よくあるミス・専門家への相談タイミングとともにわかりやすく解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「判定を誤ったまま帳簿を続けると、」→「判定を誤ったまま帳簿付けを続けると、」に変更して。\n「「つまずきやすい場面」の具体的な対処に集中します。」→「「つまずきやすい場面」の対処を説明します。」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-18T00:24:30.669Z"
-updated_at: "2026-06-18T18:17:15.843Z"
+updated_at: "2026-06-19T18:42:04.978+09:00"
 ---
 
 ## この記事で分かること
