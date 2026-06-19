@@ -152,6 +152,36 @@ console.log('\n=== Test 11: replacement: "" は「削除」として置換され
     'hasReplacement=true（空文字も replacement とみなす）');
 }
 
+// ── 11b. 特定期間判定の AND/OR 誤記検知 ──────────────────────
+console.log('\n=== Test 11b: 特定期間判定の OR 誤記検知 ===');
+{
+  // 誤記パターン: 必ず検出される
+  for (const txt of [
+    '前年1月〜6月の課税売上高または給与等支払額が1,000万円超で課税事業者となる。',
+    '特定期間の課税売上高もしくは給与等支払額が1,000万円を超えると課税事業者になります。',
+    '| 課税売上高または給与等支払額 | いずれか1,000万円超で課税 |',
+  ]) {
+    const hits = bp.detectBannedInBody(txt);
+    assert(hits.some(h => h.id === 'specific-period-or-vs-and'),
+      `誤記検出: "${txt.slice(0, 30)}..."`);
+  }
+  // 「いずれかが1,000万円超」型
+  const hitsEither = bp.detectBannedInBody('いずれかが1,000万円超 → 課税事業者');
+  assert(hitsEither.some(h => h.id === 'specific-period-either-or'),
+    'いずれか型の誤記検出');
+
+  // 正しい記述: 検出されない
+  for (const txt of [
+    '課税売上高と給与等支払額がいずれもが1,000万円超 → 課税事業者',
+    '課税売上高に代えて、給与等支払額により判定することもできます。',
+    '基準期間の課税売上高が1,000万円を超えると課税事業者になります。',
+  ]) {
+    const hits = bp.detectBannedInBody(txt);
+    const wrongHit = hits.filter(h => h.id === 'specific-period-or-vs-and' || h.id === 'specific-period-either-or');
+    assert(wrongHit.length === 0, `正しい記述は誤検出されない: "${txt.slice(0, 30)}..."`);
+  }
+}
+
 // ── 12. 本番 banned-phrases.json: ** → <strong> 変換 ──────────────
 // 太字スタイルは維持しつつ、生の ** が見える事故を防ぐ。
 console.log('\n=== Test 12: 本番 JSON 上の ** → <strong> 変換 ===');
