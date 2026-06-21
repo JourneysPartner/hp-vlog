@@ -163,6 +163,10 @@ async function fetchPage(url, options = {}) {
 
   const res = result.response;
   const contentType = res.headers.get('content-type') || '';
+  // GET レスポンスからも Last-Modified / ETag を拾っておくと、初回 crawl 後の
+  // incremental で HEAD 比較が即 hit する。
+  const lastModified = res.headers.get('last-modified') || null;
+  const etag = res.headers.get('etag') || null;
   const arrayBuffer = await res.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const encoding = detectEncoding(buffer, contentType);
@@ -191,7 +195,101 @@ async function fetchPage(url, options = {}) {
     byteSize: buffer.length,
     fetchedAt,
     status: result.status,
+    lastModified,
+    etag,
   };
+}
+
+// ── HEAD リクエスト（差分 crawl 用） ────────────────────────────
+// 本文を取得せず Last-Modified / ETag だけ確認する。
+// ボディが空のため、リトライは GET と同じロジックを使う。
+//
+// 戻り値:
+//   { ok: true, url, status, lastModified, etag, contentLength, contentType, checkedAt }
+//   { ok: false, url, reason, status, checkedAt }
+async function fetchPageHead(url, options = {}) {
+  const checkedAt = new Date().toISOString();
+  const timeout = options.timeout || DEFAULT_TIMEOUT_MS;
+  const maxRetries = options.maxRetries ?? MAX_RETRIES;
+
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    if (attempt > 0) {
+      const delay = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      await new Promise(r => setTimeout(r, delay));
+    }
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeout);
+      try {
+        const res = await fetch(url, {
+          method: 'HEAD',
+          headers: { 'User-Agent': USER_AGENT },
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (res.status === 404 || res.status === 410) {
+          return { ok: false, url, reason: 'not_found', status: res.status, checkedAt };
+        }
+        if (res.status >= 500 && res.status < 600) {
+          lastError = new Error(`HTTP ${res.status}`);
+          continue;
+        }
+        if (!res.ok) {
+          return { ok: false, url, reason: 'http_error', status: res.status, checkedAt };
+        }
+        return {
+          ok: true,
+          url,
+          status: res.status,
+          lastModified: res.headers.get('last-modified') || null,
+          etag: res.headers.get('etag') || null,
+          contentLength: parseInt(res.headers.get('content-length') || '0', 10) || null,
+          contentType: res.headers.get('content-type') || null,
+          checkedAt,
+        };
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  return { ok: false, url, reason: 'retry_exhausted', status: 0, checkedAt, error: lastError };
+}
+
+// ── 差分判定 ───────────────────────────────────────────────────
+// 既存エントリの metadata（last_modified / etag）と HEAD レスポンスを比較し、
+// 更新の要否を判定する。
+//
+// 戻り値:
+//   { decision: 'skip' | 'fetch' | 'mark_deleted' | 'first_time', reason }
+//
+// 判定ロジック:
+//   1. 既存エントリなし → 'first_time'（全文 GET）
+//   2. HEAD が 404/410 → 'mark_deleted'（削除フラグ付与、JSON は保持）
+//   3. HEAD 取得失敗 → 'fetch'（安全側に倒す）
+//   4. ETag が同じ → 'skip'
+//   5. Last-Modified が同じ → 'skip'
+//   6. それ以外 → 'fetch'（変更あり）
+function decideIncrementalAction(existingEntry, headResult) {
+  if (!existingEntry || !existingEntry.html_hash) {
+    return { decision: 'first_time', reason: 'no_existing_entry' };
+  }
+  if (!headResult.ok) {
+    if (headResult.reason === 'not_found') {
+      return { decision: 'mark_deleted', reason: 'head_404' };
+    }
+    return { decision: 'fetch', reason: `head_error:${headResult.reason}` };
+  }
+  const { etag, lastModified } = headResult;
+  if (etag && existingEntry.etag && etag === existingEntry.etag) {
+    return { decision: 'skip', reason: 'etag_match' };
+  }
+  if (lastModified && existingEntry.last_modified && lastModified === existingEntry.last_modified) {
+    return { decision: 'skip', reason: 'last_modified_match' };
+  }
+  return { decision: 'fetch', reason: 'metadata_changed' };
 }
 
 // ── 公開 API ───────────────────────────────────────────────────
@@ -203,5 +301,7 @@ module.exports = {
   detectMojibake,
   sha256Hex,
   fetchPage,
+  fetchPageHead,
   fetchWithRetry,
+  decideIncrementalAction,
 };

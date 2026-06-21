@@ -111,6 +111,67 @@ async function probe(url, verbose) {
   }
 }
 
+// ── 共通：差分 crawl の判定 + GET フェッチ ───────────────────────
+// HEAD を先に投げ、Last-Modified/ETag を既存と比較。
+// 戻り値: { action: 'skipped'|'fetched'|'deleted'|'error', stored?, error? }
+//
+// action 'fetched' なら呼び出し側で parser に渡して save する。
+// 'skipped' は last_checked_at だけ更新したものを返す。
+// 'deleted' は { ...existing, deleted: true, last_checked_at } を返す。
+async function performIncrementalFetch(entry, existing, rl, args) {
+  // 既存なしなら incremental の対象外 → 全文 GET
+  if (!args.incremental || !existing || !existing.html_hash) {
+    await rl.wait();
+    const fetchResult = await crawler.fetchPage(entry.url);
+    return { action: fetchResult.ok ? 'fetched' : 'error', fetchResult };
+  }
+
+  // HEAD で差分判定
+  await rl.wait();
+  const head = await crawler.fetchPageHead(entry.url);
+  const { decision, reason } = crawler.decideIncrementalAction(existing, head);
+
+  if (decision === 'skip') {
+    return {
+      action: 'skipped',
+      reason,
+      updatedEntry: { ...existing, last_checked_at: head.checkedAt },
+    };
+  }
+
+  if (decision === 'mark_deleted') {
+    return {
+      action: 'deleted',
+      reason,
+      updatedEntry: { ...existing, deleted: true, last_checked_at: head.checkedAt },
+    };
+  }
+
+  // 'fetch' または 'first_time' → 本文 GET
+  await rl.wait();
+  const fetchResult = await crawler.fetchPage(entry.url);
+  if (!fetchResult.ok) {
+    return { action: 'error', fetchResult, headMeta: head };
+  }
+
+  // hash が一致するなら、HEAD は変わったが実体は変わらず → skipped 扱い
+  if (existing.html_hash && fetchResult.htmlHash === existing.html_hash) {
+    return {
+      action: 'skipped',
+      reason: 'hash_match_after_get',
+      updatedEntry: {
+        ...existing,
+        last_checked_at: head.checkedAt,
+        // 新しい HEAD メタは反映しておく
+        last_modified: head.lastModified || existing.last_modified,
+        etag: head.etag || existing.etag,
+      },
+    };
+  }
+
+  return { action: 'fetched', fetchResult, headMeta: head };
+}
+
 // ── タックスアンサーの全件 crawl ────────────────────────────────
 async function crawlTaxAnswer(args) {
   const verbose = args.verbose;
@@ -139,41 +200,56 @@ async function crawlTaxAnswer(args) {
   console.log(`[taxanswer] ${target} 件を crawl 開始（rate limit 1 req/sec）…`);
 
   const rl = new crawler.RateLimiter(1000);
-  const results = { fetched: 0, skipped: 0, errors: [] };
+  const results = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
   let i = 0;
 
   for (const entry of entries) {
     if (i >= target) break;
     i++;
 
-    if (args.incremental) {
-      const existing = store.loadTaxAnswerEntry(entry.category, entry.id);
-      if (existing && existing.html_hash) {
-        // C-4 で HEAD リクエストでの判定を実装予定。
-        // ここでは「既存があれば skip」の単純判定に留める。
-        if (verbose) console.log(`  [skip] ${entry.id} (existing)`);
-        results.skipped++;
-        continue;
-      }
-    }
+    const existing = args.incremental
+      ? store.loadTaxAnswerEntry(entry.category, entry.id)
+      : null;
 
-    await rl.wait();
+    const r = await performIncrementalFetch(entry, existing, rl, args);
 
-    const fetchResult = await crawler.fetchPage(entry.url);
-    if (!fetchResult.ok) {
-      results.errors.push({ url: entry.url, reason: fetchResult.reason, status: fetchResult.status });
-      if (verbose) console.warn(`  [error] ${entry.url}: ${fetchResult.reason}`);
+    if (r.action === 'skipped') {
+      store.saveTaxAnswerEntry(r.updatedEntry);
+      results.skipped++;
+      if (verbose) console.log(`  [skip] ${entry.category}/${entry.id} (${r.reason})`);
       continue;
     }
 
+    if (r.action === 'deleted') {
+      store.saveTaxAnswerEntry(r.updatedEntry);
+      results.deleted++;
+      console.warn(`  [deleted] ${entry.category}/${entry.id} (HEAD 404)`);
+      continue;
+    }
+
+    if (r.action === 'error') {
+      results.errors.push({
+        url: entry.url,
+        reason: r.fetchResult.reason,
+        status: r.fetchResult.status,
+      });
+      if (verbose) console.warn(`  [error] ${entry.url}: ${r.fetchResult.reason}`);
+      continue;
+    }
+
+    // action === 'fetched'
     try {
-      const parsed = taxanswerParser.parseTaxAnswerHtml(fetchResult.html, entry.url);
+      const parsed = taxanswerParser.parseTaxAnswerHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
-        fetched_at: fetchResult.fetchedAt,
-        html_hash: fetchResult.htmlHash,
-        byte_size: fetchResult.byteSize,
-        encoding: fetchResult.encoding,
+        fetched_at: r.fetchResult.fetchedAt,
+        last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
+        html_hash: r.fetchResult.htmlHash,
+        byte_size: r.fetchResult.byteSize,
+        encoding: r.fetchResult.encoding,
+        // HEAD で取れていればそれ、無ければ GET レスポンスから
+        last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
+        etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
       store.saveTaxAnswerEntry(stored);
       results.fetched++;
@@ -186,7 +262,7 @@ async function crawlTaxAnswer(args) {
     }
   }
 
-  console.log(`\n[taxanswer] 完了: fetched=${results.fetched}, skipped=${results.skipped}, errors=${results.errors.length}`);
+  console.log(`\n[taxanswer] 完了: fetched=${results.fetched}, skipped=${results.skipped}, deleted=${results.deleted}, errors=${results.errors.length}`);
   if (results.errors.length > 0) {
     console.log('[taxanswer] エラー詳細（最大 10 件）:');
     for (const e of results.errors.slice(0, 10)) {
@@ -224,41 +300,55 @@ async function crawlShitsugi(args) {
   console.log(`[shitsugi] ${target} 件を crawl 開始（rate limit 1 req/sec）…`);
 
   const rl = new crawler.RateLimiter(1000);
-  const results = { fetched: 0, skipped: 0, errors: [] };
+  const results = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
   let i = 0;
 
   for (const entry of entries) {
     if (i >= target) break;
     i++;
 
-    if (args.incremental) {
-      const existing = store.readJson(
-        store.shitsugiPath(entry.category, entry.section, entry.id)
-      );
-      if (existing && existing.html_hash) {
-        if (verbose) console.log(`  [skip] ${entry.category}/${entry.section}/${entry.id}`);
-        results.skipped++;
-        continue;
-      }
-    }
+    const existing = args.incremental
+      ? store.readJson(store.shitsugiPath(entry.category, entry.section, entry.id))
+      : null;
 
-    await rl.wait();
+    const r = await performIncrementalFetch(entry, existing, rl, args);
 
-    const fetchResult = await crawler.fetchPage(entry.url);
-    if (!fetchResult.ok) {
-      results.errors.push({ url: entry.url, reason: fetchResult.reason, status: fetchResult.status });
-      if (verbose) console.warn(`  [error] ${entry.url}: ${fetchResult.reason}`);
+    if (r.action === 'skipped') {
+      store.saveShitsugiEntry(r.updatedEntry);
+      results.skipped++;
+      if (verbose) console.log(`  [skip] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
       continue;
     }
 
+    if (r.action === 'deleted') {
+      store.saveShitsugiEntry(r.updatedEntry);
+      results.deleted++;
+      console.warn(`  [deleted] ${entry.category}/${entry.section}/${entry.id} (HEAD 404)`);
+      continue;
+    }
+
+    if (r.action === 'error') {
+      results.errors.push({
+        url: entry.url,
+        reason: r.fetchResult.reason,
+        status: r.fetchResult.status,
+      });
+      if (verbose) console.warn(`  [error] ${entry.url}: ${r.fetchResult.reason}`);
+      continue;
+    }
+
+    // action === 'fetched'
     try {
-      const parsed = shitsugiParser.parseShitsugiHtml(fetchResult.html, entry.url);
+      const parsed = shitsugiParser.parseShitsugiHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
-        fetched_at: fetchResult.fetchedAt,
-        html_hash: fetchResult.htmlHash,
-        byte_size: fetchResult.byteSize,
-        encoding: fetchResult.encoding,
+        fetched_at: r.fetchResult.fetchedAt,
+        last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
+        html_hash: r.fetchResult.htmlHash,
+        byte_size: r.fetchResult.byteSize,
+        encoding: r.fetchResult.encoding,
+        last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
+        etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
       store.saveShitsugiEntry(stored);
       results.fetched++;
@@ -271,7 +361,7 @@ async function crawlShitsugi(args) {
     }
   }
 
-  console.log(`\n[shitsugi] 完了: fetched=${results.fetched}, skipped=${results.skipped}, errors=${results.errors.length}`);
+  console.log(`\n[shitsugi] 完了: fetched=${results.fetched}, skipped=${results.skipped}, deleted=${results.deleted}, errors=${results.errors.length}`);
   if (results.errors.length > 0) {
     console.log('[shitsugi] エラー詳細（最大 10 件）:');
     for (const e of results.errors.slice(0, 10)) {
