@@ -859,7 +859,29 @@ updated_at: "${now}"
   const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
-  return { raw: result.text || '', provider: result.provider, model: result.model };
+  // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
+  return {
+    raw: result.text || '',
+    provider: result.provider,
+    model: result.model,
+    stopReason: result.stopReason || null,
+  };
+}
+
+// ── 本文末尾の完全性チェック ───────────────────────────────────────
+// max_tokens 到達による途中打ち切りを検出する。
+// 正常な記事は disclaimer + CTA の段落で終わるため、本文末尾が
+// 句点 / 閉じ括弧 / 改行 で終わるはず。それ以外で終わっていれば打ち切り疑い。
+function checkBodyTailComplete(body) {
+  if (!body || typeof body !== 'string') return { ok: false, reason: 'empty' };
+  const tail = body.replace(/\s+$/, '');           // 末尾空白除去
+  const lastChar = tail.slice(-1);
+  // 正常終端: 句点・記号・閉じタグ・閉じ括弧
+  const COMPLETE_END = /[。！？）」』\]\>]/;
+  if (COMPLETE_END.test(lastChar)) return { ok: true };
+  // 「</strong>」「---」で終わるパターンも許容
+  if (/<\/strong>\s*$/.test(tail) || /-{3,}\s*$/.test(tail)) return { ok: true };
+  return { ok: false, reason: `末尾が「${tail.slice(-20)}」で句点なし — truncation 疑い` };
 }
 
 // ── 新規記事を生成し、frontmatter を保証して返す（retry 付き）─────
@@ -895,7 +917,28 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   if (normalized.bodyH2Count < 3) {
     console.warn(`[self-check] h2 見出しが ${normalized.bodyH2Count} 個（3個以上推奨）`);
   }
-  return { content: normalized.content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
+
+  // ── max_tokens 打ち切り検知 + 末尾完全性チェック ─────────────────
+  // どちらかが truncation を疑わせる場合、review_comment に警告を埋め込み
+  // 人間レビューで気付ける状態にする（自動再生成はしない）。
+  const stopHitMaxTokens = gen.stopReason === 'max_tokens' || gen.stopReason === 'length';
+  const { body: parsedBody } = parseFrontmatter(normalized.content);
+  const tailCheck = checkBodyTailComplete(parsedBody);
+  let content = normalized.content;
+  if (stopHitMaxTokens || !tailCheck.ok) {
+    const warnLines = [];
+    if (stopHitMaxTokens) warnLines.push(`stop_reason=${gen.stopReason}`);
+    if (!tailCheck.ok)    warnLines.push(tailCheck.reason);
+    const warningMsg = `⚠ 末尾途切れの疑い（${warnLines.join(' / ')}） — 公開前に末尾を確認してください`;
+    console.warn(`[self-check] ${warningMsg}`);
+    // review_comment フィールドに警告を埋め込む（既存の空 review_comment を上書き）
+    content = content.replace(
+      /^review_comment:\s*""\s*$/m,
+      `review_comment: "${warningMsg}"`,
+    );
+  }
+
+  return { content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
 }
 
 // ── 既存記事の frontmatter をパースする ─────────────────────────

@@ -66,9 +66,14 @@ async function callOpenAI(promptIR, { model, maxTokens }) {
         ? choice.message.content.map(p => p.text || '').join('')
         : '');
   const u = completion.usage || {};
+  // OpenAI: finish_reason='length' は max_tokens 到達による打ち切りを意味する
+  const finishReason = (choice && choice.finish_reason) || null;
+  if (finishReason === 'length') {
+    console.warn(`[content-model] ⚠ max_tokens 到達で打ち切り検知 (provider=openai model=${model}) — 本文末尾が途切れている可能性`);
+  }
   console.log(`[content-model] provider=openai model=${model} cache=false ` +
-    `usage(in=${u.prompt_tokens ?? '?'} out=${u.completion_tokens ?? '?'})`);
-  return { text, usage: completion.usage || null, provider: 'openai', model };
+    `usage(in=${u.prompt_tokens ?? '?'} out=${u.completion_tokens ?? '?'}) finish=${finishReason}`);
+  return { text, usage: completion.usage || null, provider: 'openai', model, stopReason: finishReason };
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
@@ -97,10 +102,15 @@ async function callAnthropic(promptIR, { model, maxTokens }) {
     : '';
   // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる（秘密情報ではない）
   const u = data.usage || {};
+  // Anthropic: stop_reason='max_tokens' は max_tokens 到達による打ち切りを意味する
+  const stopReason = data.stop_reason || null;
+  if (stopReason === 'max_tokens') {
+    console.warn(`[content-model] ⚠ max_tokens 到達で打ち切り検知 (provider=anthropic model=${model}) — 本文末尾が途切れている可能性`);
+  }
   console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
     `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
-    `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0})`);
-  return { text, usage: data.usage || null, provider: 'anthropic', model };
+    `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${stopReason}`);
+  return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason };
 }
 
 /**
@@ -157,7 +167,11 @@ async function generateSimple({ system, user }, opts = {}) {
       if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
       const data = await res.json();
       const text = Array.isArray(data.content) ? data.content.map(b => b.text || '').join('') : '';
-      return { text, usage: data.usage || null, provider: 'anthropic', model };
+      const stopReason = data.stop_reason || null;
+      if (stopReason === 'max_tokens') {
+        console.warn(`[content-model] ⚠ generateSimple: max_tokens 到達で打ち切り検知 (provider=anthropic model=${model})`);
+      }
+      return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason };
     } catch (e) {
       console.warn(`[content-model] Anthropic(simple) 失敗（${e.message}）→ openai に fallback`);
     }
