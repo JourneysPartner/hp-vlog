@@ -1,0 +1,259 @@
+name: Crawl NTA Sources
+
+run-name: >-
+  Crawl NTA Sources [mode=${{ github.event.inputs.mode || 'incremental' }}]
+
+# 月次自動 + 手動実行（初回フル crawl 用）
+#   - 自動：毎月 1 日 JST 00:00（UTC 15:00）に --incremental で実行
+#   - 手動：workflow_dispatch で mode=full|incremental を選択可
+#   - 変更があれば main へ自動 PR 化（main 直 push ではない、user 承認方針）
+#   - Chatwork 通知（API キーが設定されていれば）
+on:
+  schedule:
+    - cron: '0 15 1 * *'   # 毎月 1 日 JST 00:00（UTC 15:00）
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'crawl モード（full: 全件 GET、incremental: HEAD で差分 skip）'
+        required: false
+        default: 'incremental'
+        type: choice
+        options:
+          - 'incremental'
+          - 'full'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120   # 2,000 ページ × 1 req/sec ≈ 35 分、余裕を持って 2 時間
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determine crawl mode
+        id: mode
+        run: |
+          MODE='${{ github.event.inputs.mode || 'incremental' }}'
+          if [ "$MODE" = "full" ]; then
+            echo "args=" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=--incremental" >> "$GITHUB_OUTPUT"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode: $MODE"
+
+      - name: Run crawl
+        id: crawl
+        run: |
+          set -o pipefail
+          node scripts/crawl-nta-sources.js ${{ steps.mode.outputs.args }} 2>&1 | tee /tmp/crawl.log
+          echo "log_tail<<EOF" >> "$GITHUB_OUTPUT"
+          tail -50 /tmp/crawl.log >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Read meta.json
+        id: meta
+        run: |
+          if [ -f data/nta-sources/meta.json ]; then
+            FETCHED=$(jq -r '.crawl_results.fetched // 0' data/nta-sources/meta.json)
+            SKIPPED=$(jq -r '.crawl_results.skipped // 0' data/nta-sources/meta.json)
+            DELETED=$(jq -r '.crawl_results.deleted // 0' data/nta-sources/meta.json)
+            ERRORS=$(jq -r '.crawl_results.errors_count // 0' data/nta-sources/meta.json)
+            TOTAL=$(jq -r '.total_entries_processed // 0' data/nta-sources/meta.json)
+            DURATION=$(jq -r '.last_crawl_duration_seconds // 0' data/nta-sources/meta.json)
+          else
+            FETCHED=0; SKIPPED=0; DELETED=0; ERRORS=0; TOTAL=0; DURATION=0
+          fi
+          # error_rate（％、小数1桁）
+          if [ "$TOTAL" -gt 0 ]; then
+            ERROR_RATE=$(awk "BEGIN { printf \"%.1f\", ($ERRORS * 100.0) / $TOTAL }")
+          else
+            ERROR_RATE="0.0"
+          fi
+          {
+            echo "fetched=$FETCHED"
+            echo "skipped=$SKIPPED"
+            echo "deleted=$DELETED"
+            echo "errors=$ERRORS"
+            echo "total=$TOTAL"
+            echo "duration=$DURATION"
+            echo "error_rate=$ERROR_RATE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet data/nta-sources/ 2>/dev/null; then
+            # untracked file（初回 crawl 時）も検知
+            if git status --porcelain data/nta-sources/ | grep -q .; then
+              echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR if changes
+        id: pr
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FETCHED: ${{ steps.meta.outputs.fetched }}
+          SKIPPED: ${{ steps.meta.outputs.skipped }}
+          DELETED: ${{ steps.meta.outputs.deleted }}
+          ERRORS: ${{ steps.meta.outputs.errors }}
+          TOTAL: ${{ steps.meta.outputs.total }}
+          DURATION: ${{ steps.meta.outputs.duration }}s
+          ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
+          MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="chore/nta-crawl-${DATE}"
+          git checkout -b "$BRANCH"
+          git add data/nta-sources/
+
+          COMMIT_MSG=$(cat <<COMMITEOF
+          chore(nta): 国税庁ソース DB 月次更新 (${DATE})
+
+          mode: ${MODE}
+          fetched: ${FETCHED}
+          skipped: ${SKIPPED}
+          deleted: ${DELETED}
+          errors:  ${ERRORS}
+          duration: ${DURATION}
+          COMMITEOF
+          )
+          git commit -m "$COMMIT_MSG"
+          git push origin "$BRANCH"
+
+          PR_BODY=$(cat <<PRBODYEOF
+          ## 概要
+          国税庁ソース DB の月次自動更新です（mode: ${MODE}）。
+
+          | 項目 | 件数 |
+          |---|---|
+          | fetched | ${FETCHED} |
+          | skipped | ${SKIPPED} |
+          | deleted | ${DELETED} |
+          | errors | ${ERRORS} |
+          | total processed | ${TOTAL} |
+          | duration | ${DURATION} |
+          | error rate | ${ERROR_RATE}% |
+
+          ## 確認ポイント
+          - **大量の deleted があれば**：対象 URL の削除・移転が発生している可能性。国税庁サイトの構造変更を疑う
+          - **error_rate が 5% 超なら**：crawl ロジックの問題か NTA サイト構造変更を疑う
+          - **fetched が想定より多い**：通常の incremental では数件〜数十件が想定範囲
+
+          ## レビュー観点
+          - 内容に問題なければそのまま merge してください
+          - 改正情報が反映された場合、関連記事の更新検討も
+          PRBODYEOF
+          )
+
+          PR_URL=$(gh pr create \
+            --title "chore(nta): 国税庁ソース DB 月次更新 (${DATE})" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH")
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "::notice::PR を作成しました: $PR_URL"
+
+      - name: Notify Chatwork
+        if: always()
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          MODE: ${{ steps.mode.outputs.mode }}
+          FETCHED: ${{ steps.meta.outputs.fetched }}
+          SKIPPED: ${{ steps.meta.outputs.skipped }}
+          DELETED: ${{ steps.meta.outputs.deleted }}
+          ERRORS: ${{ steps.meta.outputs.errors }}
+          DURATION: ${{ steps.meta.outputs.duration }}
+          ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
+          HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
+          PR_URL: ${{ steps.pr.outputs.pr_url }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ -z "${CHATWORK_API_TOKEN:-}" ] || [ -z "${CHATWORK_ROOM_ID:-}" ]; then
+            echo "::notice::Chatwork 環境変数が未設定 → 通知スキップ"
+            exit 0
+          fi
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATUS_MARK="✓ 成功"
+          else
+            STATUS_MARK="✗ 失敗（job.status=$JOB_STATUS）"
+          fi
+          if [ "$HAS_CHANGES" = "true" ]; then
+            CHANGE_LINE="■ 変更あり → PR: ${PR_URL}"
+          else
+            CHANGE_LINE="■ 変更なし（差分なし）"
+          fi
+          # エラー率と削除件数の警告
+          WARN_LINE=""
+          ERROR_RATE_INT=$(awk "BEGIN { printf \"%d\", ${ERROR_RATE} }")
+          if [ "$ERROR_RATE_INT" -ge 5 ]; then
+            WARN_LINE="${WARN_LINE}
+          ■ ⚠ error_rate 5%超：crawl ロジック または NTA サイト構造変更を疑う"
+          fi
+          if [ "$DELETED" -ge 10 ]; then
+            WARN_LINE="${WARN_LINE}
+          ■ ⚠ deleted 10件以上：大量の URL 削除/移転検知"
+          fi
+
+          BODY=$(cat <<BODYEOF
+          国税庁ソース DB 月次 crawl ${STATUS_MARK}
+          mode: ${MODE}
+          fetched: ${FETCHED} / skipped: ${SKIPPED} / deleted: ${DELETED} / errors: ${ERRORS} (${ERROR_RATE}%)
+          duration: ${DURATION}s
+          ${CHANGE_LINE}${WARN_LINE}
+          BODYEOF
+          )
+
+          MSG_BODY="[info][title]NTA Source DB Crawl[/title]${BODY}[/info]"
+
+          curl -sS -X POST \
+            -H "X-ChatWorkToken: ${CHATWORK_API_TOKEN}" \
+            --data-urlencode "body=${MSG_BODY}" \
+            "https://api.chatwork.com/v2/rooms/${CHATWORK_ROOM_ID}/messages" \
+            | head -c 500
+          echo ""
+
+      - name: Emit job summary
+        if: always()
+        run: |
+          {
+            echo "## NTA Source DB Crawl Result"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|---|---|"
+            echo "| mode | ${{ steps.mode.outputs.mode }} |"
+            echo "| job status | ${{ job.status }} |"
+            echo "| fetched | ${{ steps.meta.outputs.fetched }} |"
+            echo "| skipped | ${{ steps.meta.outputs.skipped }} |"
+            echo "| deleted | ${{ steps.meta.outputs.deleted }} |"
+            echo "| errors | ${{ steps.meta.outputs.errors }} |"
+            echo "| total processed | ${{ steps.meta.outputs.total }} |"
+            echo "| duration | ${{ steps.meta.outputs.duration }}s |"
+            echo "| error rate | ${{ steps.meta.outputs.error_rate }}% |"
+            echo "| has_changes | ${{ steps.changes.outputs.has_changes }} |"
+            if [ -n "${{ steps.pr.outputs.pr_url }}" ]; then
+              echo "| PR | ${{ steps.pr.outputs.pr_url }} |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
