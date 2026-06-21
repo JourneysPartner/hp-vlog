@@ -1,0 +1,22 @@
+{
+  "id": "02",
+  "section": "12",
+  "type": "shitsugi",
+  "tax_category": "譲渡所得",
+  "tax_category_code": "joto",
+  "url": "https://www.nta.go.jp/law/shitsugi/joto/12/02.htm",
+  "title": "保留地予定地の譲渡",
+  "shokai_yoshi": "土地区画整理事業の施行者から取得した保留地予定地(転売のために取得したものではない。)を換地処分前に譲渡した場合、その譲渡所得は、土地の譲渡にあたるものとして分離課税の対象となると解してよろしいですか。",
+  "kaitou_yoshi": "照会意見のとおり解して差し支えありません。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "土地区画整理事業の施行者から取得した保留地予定地(転売のために取得したものではない。)を換地処分前に譲渡した場合、その譲渡所得は、土地の譲渡にあたるものとして分離課税の対象となると解してよろしいですか。 照会意見のとおり解して差し支えありません。",
+  "char_count_body": 123,
+  "fetched_at": "2026-06-21T14:07:48.063Z",
+  "last_checked_at": "2026-06-21T14:07:48.063Z",
+  "html_hash": "cf3606bbf93456b7e55c99981707a8ca1a03d3c31609bd11b3b5fb73121bdc7d",
+  "byte_size": 4307,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT",
+  "etag": "\"10d3-6450805afb0d8\""
+}

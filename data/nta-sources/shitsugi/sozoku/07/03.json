@@ -1,0 +1,22 @@
+{
+  "id": "03",
+  "section": "07",
+  "type": "shitsugi",
+  "tax_category": "相続税・贈与税",
+  "tax_category_code": "sozoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/sozoku/07/03.htm",
+  "title": "被相続人の直系卑属でない者が養子となっている場合の相続税の2割加算",
+  "shokai_yoshi": "被相続人甲の子の配偶者Aが、甲の養子になっている場合、Aは相続税額の加算の規定の対象となる者に該当しますか。",
+  "kaitou_yoshi": "Aは、養子縁組後は被相続人の一親等の血族であることから、相続税額の加算の規定の対象となる者に該当しません。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "被相続人甲の子の配偶者Aが、甲の養子になっている場合、Aは相続税額の加算の規定の対象となる者に該当しますか。 Aは、養子縁組後は被相続人の一親等の血族であることから、相続税額の加算の規定の対象となる者に該当しません。",
+  "char_count_body": 108,
+  "fetched_at": "2026-06-21T14:11:16.053Z",
+  "last_checked_at": "2026-06-21T14:11:16.053Z",
+  "html_hash": "b798fd8d4e57c4c019ae8e61288e931ad8556d8217aa1937a9a772b6396ef30b",
+  "byte_size": 4490,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT",
+  "etag": "\"118a-64508052ed490\""
+}

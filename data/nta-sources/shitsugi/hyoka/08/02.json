@@ -1,0 +1,22 @@
+{
+  "id": "02",
+  "section": "08",
+  "type": "shitsugi",
+  "tax_category": "財産の評価",
+  "tax_category_code": "hyoka",
+  "url": "https://www.nta.go.jp/law/shitsugi/hyoka/08/02.htm",
+  "title": "欠損法人の負債に計上する保険差益に対応する法人税額等",
+  "shokai_yoshi": "欠損法人である評価会社が被相続人を被保険者として保険料を負担していた生命保険契約について、被相続人の死亡により生命保険金を受け取った場合には、この生命保険金に係る保険差益について課されることとなる法人税額等は、どのように計算するのでしょうか。",
+  "kaitou_yoshi": "保険差益の額から欠損金の額を控除して法人税額等を計算します。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "欠損法人である評価会社が被相続人を被保険者として保険料を負担していた生命保険契約について、被相続人の死亡により生命保険金を受け取った場合には、この生命保険金に係る保険差益について課されることとなる法人税額等は、どのように計算するのでしょうか。 保険差益の額から欠損金の額を控除して法人税額等を計算します。",
+  "char_count_body": 152,
+  "fetched_at": "2026-06-21T14:15:11.052Z",
+  "last_checked_at": "2026-06-21T14:15:11.052Z",
+  "html_hash": "4601b1eb3c38a40b4586568a9ef35de4c3f21df17cfef5a1d957512af831c316",
+  "byte_size": 4367,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT",
+  "etag": "\"110f-6450806070c20\""
+}

@@ -1,0 +1,22 @@
+{
+  "id": "10",
+  "section": "18",
+  "type": "shitsugi",
+  "tax_category": "相続税・贈与税",
+  "tax_category_code": "sozoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/10.htm",
+  "title": "相続税の特例農地等の一部について地役権が設定された場合",
+  "shokai_yoshi": "相続税の特例農地等の一部について、K(株)が上空に電線路を架設するため、地役権を設定し、その対価の支払いを特例適用者が受けた場合には、納税猶予の確定事由に該当しますか。",
+  "kaitou_yoshi": "地役権の設定は、納税猶予の確定事由に該当しません。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "相続税の特例農地等の一部について、K(株)が上空に電線路を架設するため、地役権を設定し、その対価の支払いを特例適用者が受けた場合には、納税猶予の確定事由に該当しますか。 地役権の設定は、納税猶予の確定事由に該当しません。",
+  "char_count_body": 110,
+  "fetched_at": "2026-06-21T14:12:29.048Z",
+  "last_checked_at": "2026-06-21T14:12:29.048Z",
+  "html_hash": "ec89a94c85f88ce3aca337052bdc018d6d7116567e6ecb91b870c5beaae0fabf",
+  "byte_size": 4436,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT",
+  "etag": "\"1154-64508050138c8\""
+}

@@ -1,0 +1,22 @@
+{
+  "id": "07",
+  "section": "01",
+  "type": "shitsugi",
+  "tax_category": "財産の評価",
+  "tax_category_code": "hyoka",
+  "url": "https://www.nta.go.jp/law/shitsugi/hyoka/01/07.htm",
+  "title": "山林の地積",
+  "shokai_yoshi": "山林の地積は、水平面積又は傾斜面積のいずれによるのでしょうか。",
+  "kaitou_yoshi": "立木は地表より垂線的に生育するものであり、また植樹本数は一般的には傾斜面積の多少に影響されるものではないので水平面積をその山林の地積とします。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "山林の地積は、水平面積又は傾斜面積のいずれによるのでしょうか。 立木は地表より垂線的に生育するものであり、また植樹本数は一般的には傾斜面積の多少に影響されるものではないので水平面積をその山林の地積とします。",
+  "char_count_body": 103,
+  "fetched_at": "2026-06-21T14:12:55.056Z",
+  "last_checked_at": "2026-06-21T14:12:55.056Z",
+  "html_hash": "6cd3ad81efe21e5932a361bed912dc3bbc2efb386f5554c3eab0fc93d109a9ec",
+  "byte_size": 4099,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT",
+  "etag": "\"1003-64508064e32f8\""
+}

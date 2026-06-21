@@ -1,0 +1,22 @@
+{
+  "id": "05",
+  "section": "03",
+  "type": "shitsugi",
+  "tax_category": "相続税・贈与税",
+  "tax_category_code": "sozoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/05.htm",
+  "title": "建物更生共済契約に係る課税関係",
+  "shokai_yoshi": "甲は、乙所有の建物の共済を目的とする建物更生共済に加入し、掛金を負担していました。 甲又は乙について相続が開始した場合、建物更生共済契約に関する相続税の課税関係はどのようになりますか。 [契約関係] 共済契約者(掛金負担者) ：甲(長男) 被共済者 (建物所有者) ：乙(父) 満期共済金受取人 ：甲",
+  "kaitou_yoshi": null,
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "甲は、乙所有の建物の共済を目的とする建物更生共済に加入し、掛金を負担していました。 甲又は乙について相続が開始した場合、建物更生共済契約に関する相続税の課税関係はどのようになりますか。 [契約関係] 共済契約者(掛金負担者) ：甲(長男) 被共済者 (建物所有者) ：乙(父) 満期共済金受取人 ：甲",
+  "char_count_body": 150,
+  "fetched_at": "2026-06-21T14:10:54.056Z",
+  "last_checked_at": "2026-06-21T14:10:54.056Z",
+  "html_hash": "062d5183cca640d6cc18a0ab3f6675156d0b98eb60004eb79dd5bc5029d08624",
+  "byte_size": 4862,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT",
+  "etag": "\"12fe-64508053b3488\""
+}

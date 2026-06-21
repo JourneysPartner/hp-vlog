@@ -1,0 +1,22 @@
+{
+  "id": "05",
+  "section": "21",
+  "type": "shitsugi",
+  "tax_category": "法人税",
+  "tax_category_code": "hojin",
+  "url": "https://www.nta.go.jp/law/shitsugi/hojin/21/05.htm",
+  "title": "医療保健業の範囲（健康診断等）",
+  "shokai_yoshi": "各種健康診断、検診等は、収益事業に該当するでしょうか。",
+  "kaitou_yoshi": "医療保健業に該当し、法人税法施行令第5条第1項第29号イからヨまで((収益事業の範囲))に掲げるものに該当しない限り、収益事業となります。",
+  "kankei_hourei": "法人税法施行令第5条第1項第29号",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "各種健康診断、検診等は、収益事業に該当するでしょうか。 医療保健業に該当し、法人税法施行令第5条第1項第29号イからヨまで((収益事業の範囲))に掲げるものに該当しない限り、収益事業となります。",
+  "char_count_body": 97,
+  "fetched_at": "2026-06-21T14:20:15.174Z",
+  "last_checked_at": "2026-06-21T14:20:15.174Z",
+  "html_hash": "a53cc5f5e210da813232c59c0106330494ad242fe65648570265763e70a3acc9",
+  "byte_size": 4298,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:31:28 GMT",
+  "etag": "\"10ca-6450809ef2390\""
+}

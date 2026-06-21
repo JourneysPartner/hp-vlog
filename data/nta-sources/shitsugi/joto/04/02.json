@@ -1,0 +1,22 @@
+{
+  "id": "02",
+  "section": "04",
+  "type": "shitsugi",
+  "tax_category": "譲渡所得",
+  "tax_category_code": "joto",
+  "url": "https://www.nta.go.jp/law/shitsugi/joto/04/02.htm",
+  "title": "競売に係る譲渡資産の課税時期",
+  "shokai_yoshi": "競売された資産の譲渡所得の課税時期は、いつとすべきですか。",
+  "kaitou_yoshi": "競売された資産が競落人に引渡された時によります。ただし、納税者が競落許可決定が確定した日を譲渡所得の収入金額の総収入金額に算入すべき時期として申告をした場合には、認められます。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "競売された資産の譲渡所得の課税時期は、いつとすべきですか。 競売された資産が競落人に引渡された時によります。ただし、納税者が競落許可決定が確定した日を譲渡所得の収入金額の総収入金額に算入すべき時期として申告をした場合には、認められます。",
+  "char_count_body": 118,
+  "fetched_at": "2026-06-21T14:06:48.065Z",
+  "last_checked_at": "2026-06-21T14:06:48.065Z",
+  "html_hash": "54060e24057a300c7210b1af1ec13d04a867fd7267012489b86f1eb9a9212ced",
+  "byte_size": 4385,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT",
+  "etag": "\"1121-6450805d5e230\""
+}

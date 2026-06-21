@@ -1,0 +1,22 @@
+{
+  "id": "10",
+  "section": "05",
+  "type": "shitsugi",
+  "tax_category": "譲渡所得",
+  "tax_category_code": "joto",
+  "url": "https://www.nta.go.jp/law/shitsugi/joto/05/10.htm",
+  "title": "利付公社債を既経過利息相当額を付して購入した場合のその利付公社債の取得価額",
+  "shokai_yoshi": "利付公社債(既発債)を購入する場合には、譲渡者に対して直前の利払期から取引の日までの期間に対応する既経過利息が売買価額に含まれて取引されますが、この経過利息に相当する金額は、有価証券の取得価額に算入されますか。",
+  "kaitou_yoshi": "既経過利息相当額も購入の対価ですから、有価証券の取得価額に算入されます。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "利付公社債(既発債)を購入する場合には、譲渡者に対して直前の利払期から取引の日までの期間に対応する既経過利息が売買価額に含まれて取引されますが、この経過利息に相当する金額は、有価証券の取得価額に算入されますか。 既経過利息相当額も購入の対価ですから、有価証券の取得価額に算入されます。",
+  "char_count_body": 142,
+  "fetched_at": "2026-06-21T14:06:50.066Z",
+  "last_checked_at": "2026-06-21T14:06:50.066Z",
+  "html_hash": "c8617c9403d58caa4f1cc62a2d62fe6c00f41904a9e7cfab09228204826d8e54",
+  "byte_size": 4568,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT",
+  "etag": "\"11d8-6450805d0b9e0\""
+}

@@ -1,0 +1,22 @@
+{
+  "id": "31",
+  "section": "03",
+  "type": "shitsugi",
+  "tax_category": "源泉所得税",
+  "tax_category_code": "gensen",
+  "url": "https://www.nta.go.jp/law/shitsugi/gensen/03/31.htm",
+  "title": "給与の支給期日に死亡した者に対する課税",
+  "shokai_yoshi": "給与の支給期日に死亡した者に対し支給する給与は、所得税基本通達9-17《相続財産とされる死亡者の給与等、公的年金等及び退職手当等》の適用がありますか。",
+  "kaitou_yoshi": "給与の支給期日に死亡した者に対して支給する給与については、所得税基本通達9-17の適用はありません。",
+  "kankei_hourei": "所得税基本通達9-17",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "給与の支給期日に死亡した者に対し支給する給与は、所得税基本通達9-17《相続財産とされる死亡者の給与等、公的年金等及び退職手当等》の適用がありますか。 給与の支給期日に死亡した者に対して支給する給与については、所得税基本通達9-17の適用はありません。",
+  "char_count_body": 126,
+  "fetched_at": "2026-06-21T14:04:43.071Z",
+  "last_checked_at": "2026-06-21T14:04:43.071Z",
+  "html_hash": "2448c0c5b4af575a6febe8d519b6c171ead58414e49a539f221fe283e0e020c3",
+  "byte_size": 4378,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:31:15 GMT",
+  "etag": "\"111a-645080922a7e8\""
+}
