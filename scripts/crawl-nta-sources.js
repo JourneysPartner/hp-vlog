@@ -30,6 +30,7 @@ const taxanswerIndex   = require(path.join(ROOT, 'scripts/lib/nta-index/taxanswe
 const shitsugiParser   = require(path.join(ROOT, 'scripts/lib/nta-parsers/shitsugi'));
 const shitsugiIndex    = require(path.join(ROOT, 'scripts/lib/nta-index/shitsugi-index'));
 const store            = require(path.join(ROOT, 'scripts/lib/nta-store'));
+const indexBuilder     = require(path.join(ROOT, 'scripts/lib/nta-index-builder'));
 
 // ── 引数パーサ ─────────────────────────────────────────────────
 function parseArgs(argv) {
@@ -41,6 +42,8 @@ function parseArgs(argv) {
     verbose: false,
     maxPages: Infinity,
     probe: null,
+    rebuildIndex: false,
+    skipIndex: false,
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -52,6 +55,8 @@ function parseArgs(argv) {
       case '--verbose':      args.verbose = true; break;
       case '--max-pages':    args.maxPages = parseInt(argv[++i], 10); break;
       case '--probe':        args.probe = argv[++i]; break;
+      case '--rebuild-index': args.rebuildIndex = true; break;
+      case '--skip-index':   args.skipIndex = true; break;
       case '-h':
       case '--help':         printHelp(); process.exit(0);
       default:
@@ -75,10 +80,9 @@ Options:
   --verbose           詳細ログ
   --max-pages <N>     最大 N ページで停止（テスト用）
   --probe <url>       1 ページだけ fetch して表示
+  --rebuild-index     crawl をスキップして index.json / meta.json だけ再生成
+  --skip-index        crawl 後の index/meta 自動生成をスキップ
   -h, --help          このヘルプ
-
-Phase C-1（骨子）では --probe での動作確認のみ可能。
-タックスアンサー全件 crawl は C-2、質疑応答事例は C-3 で実装。
 `);
 }
 
@@ -371,13 +375,53 @@ async function crawlShitsugi(args) {
   return results;
 }
 
+// ── index.json + meta.json の生成 ────────────────────────────
+function buildAndSaveIndex(startedAt, results) {
+  console.log('\n[index] index.json と meta.json を生成中…');
+  const indexData = indexBuilder.buildIndex();
+  indexBuilder.saveIndex(indexData);
+  console.log(`[index] index.json: ${indexData.total_count} エントリ`);
+  console.log(`        by_type: ${JSON.stringify(indexData.by_type)}`);
+
+  // meta.json は crawl 実行時のみ保存（rebuild-index 単独時は results が null）
+  if (results) {
+    indexBuilder.saveMeta({
+      startedAt,
+      finishedAt: new Date().toISOString(),
+      results,
+      byType: indexData.by_type,
+    });
+    console.log(`[meta] meta.json: fetched=${results.fetched} skipped=${results.skipped} deleted=${results.deleted} errors=${results.errors.length}`);
+  }
+}
+
 // ── 全件 crawl の振分け ────────────────────────────────────────
 async function crawlAll(args) {
+  const startedAt = new Date().toISOString();
+  // 全 type の集計
+  const aggregated = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
+
   if (args.type === 'taxanswer' || args.type === 'all') {
-    await crawlTaxAnswer(args);
+    const r = await crawlTaxAnswer(args);
+    if (r) {
+      aggregated.fetched += r.fetched;
+      aggregated.skipped += r.skipped;
+      aggregated.deleted += r.deleted;
+      aggregated.errors.push(...r.errors);
+    }
   }
   if (args.type === 'shitsugi' || args.type === 'all') {
-    await crawlShitsugi(args);
+    const r = await crawlShitsugi(args);
+    if (r) {
+      aggregated.fetched += r.fetched;
+      aggregated.skipped += r.skipped;
+      aggregated.deleted += r.deleted;
+      aggregated.errors.push(...r.errors);
+    }
+  }
+
+  if (!args.dryRun && !args.skipIndex) {
+    buildAndSaveIndex(startedAt, aggregated);
   }
 }
 
@@ -387,6 +431,15 @@ async function main() {
 
   if (args.probe) {
     await probe(args.probe, args.verbose);
+    return;
+  }
+
+  if (args.rebuildIndex) {
+    console.log('[rebuild] index.json を再生成中（crawl はスキップ）…');
+    const indexData = indexBuilder.buildIndex();
+    indexBuilder.saveIndex(indexData);
+    console.log(`[rebuild] 完了: ${indexData.total_count} エントリ`);
+    console.log(`          by_type: ${JSON.stringify(indexData.by_type)}`);
     return;
   }
 
