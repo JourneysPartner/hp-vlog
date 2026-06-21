@@ -50,6 +50,26 @@ const VALID_ARTICLE_TYPES = [
 // ── publish_slot の許容値 ──────────────────────────────────────
 const VALID_PUBLISH_SLOTS = ['morning', 'evening'];
 
+// ── source_type の許容値 ───────────────────────────────────────
+// 通常記事は未設定 or 空文字。nta_shitsugi（質疑応答事例ベース）は条件付き必須項目あり。
+// 将来 nta_taxanswer 等の追加を想定し配列で管理する。
+const VALID_SOURCE_TYPES = ['', 'nta_taxanswer', 'nta_shitsugi'];
+
+// ── nta_shitsugi 記事の条件付き必須フィールド ─────────────────
+// `source_type === "nta_shitsugi"` の記事のみに適用される
+const NTA_SHITSUGI_REQUIRED_FIELDS = [
+  'source_url', 'source_title',
+  'case_based', 'case_transformed',
+  'case_transform_note', 'source_tax_category',
+];
+
+// ── nta_shitsugi 記事の本文必須キーワード（いずれか1つ以上）─────
+const NTA_SHITSUGI_BODY_KEYWORDS = ['想定事例', '一般化した事例'];
+
+// ── nta_shitsugi 記事の見出しに使ってはいけないラベル ──────────
+// 国税庁原文の構造をなぞる印象を避ける
+const NTA_SHITSUGI_FORBIDDEN_HEADINGS = ['照会要旨', '回答要旨'];
+
 function validateFile(filePath) {
   const rel = path.relative(ROOT, filePath);
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -152,6 +172,63 @@ function validateFile(filePath) {
   // 10. summary 長さ
   if (fm.summary && fm.summary.length > 160) {
     warnings.push(`summary（meta description）が長すぎます（${fm.summary.length}文字）: 160文字以内推奨`);
+  }
+
+  // 11. source_type の許容値チェック
+  // 通常記事は source_type 未設定 or 空文字。設定する場合は VALID_SOURCE_TYPES のいずれかであること。
+  if (fm.source_type !== undefined && fm.source_type !== null) {
+    if (!VALID_SOURCE_TYPES.includes(fm.source_type)) {
+      warnings.push(`source_type が未定義の値: "${fm.source_type}"（許容値: ${VALID_SOURCE_TYPES.filter(Boolean).join(', ')}）`);
+    }
+  }
+
+  // 12. nta_shitsugi 記事の条件付き必須フィールドチェック
+  // source_type === "nta_shitsugi" のときに、定型 metadata と本文構造を検証する。
+  // 通常記事には影響しない（後方互換性確保）。
+  if (fm.source_type === 'nta_shitsugi') {
+    // 12a. 必須フィールドの存在
+    for (const field of NTA_SHITSUGI_REQUIRED_FIELDS) {
+      const val = fm[field];
+      // boolean フィールド（case_based / case_transformed）は true でないと NG
+      if (field === 'case_based' || field === 'case_transformed') {
+        if (val !== true) {
+          errors.push(`nta_shitsugi 記事では ${field}: true が必須`);
+        }
+      } else {
+        // 文字列フィールドは空文字 / undefined を NG
+        if (!val || (typeof val === 'string' && val.trim() === '')) {
+          errors.push(`nta_shitsugi 記事では ${field} が必須`);
+        }
+      }
+    }
+
+    // 12b. 本文に「想定事例」または「一般化した事例」のキーワードがあること
+    const hasKeyword = NTA_SHITSUGI_BODY_KEYWORDS.some(k => body.includes(k));
+    if (!hasKeyword) {
+      errors.push(`nta_shitsugi 記事の本文に「想定事例」または「一般化した事例」の明示がありません`);
+    }
+
+    // 12c. 国税庁原文の構造をなぞる印象を避けるため、特定の見出しラベルを禁止
+    for (const forbidden of NTA_SHITSUGI_FORBIDDEN_HEADINGS) {
+      // h2/h3 見出しに含まれている場合のみ NG
+      const headingRegex = new RegExp(`^#{2,3}\\s.*${forbidden}`, 'm');
+      if (headingRegex.test(body)) {
+        errors.push(`nta_shitsugi 記事の見出しに「${forbidden}」が使われています（国税庁原文の構造をなぞらないこと）`);
+      }
+    }
+
+    // 12d. supporting_source_urls は設定されている場合 array であること
+    if (fm.supporting_source_urls !== undefined && fm.supporting_source_urls !== null) {
+      if (!Array.isArray(fm.supporting_source_urls)) {
+        errors.push(`supporting_source_urls は配列である必要があります`);
+      } else {
+        // 各要素が URL として valid か
+        for (const url of fm.supporting_source_urls) {
+          try { new URL(url); }
+          catch { errors.push(`supporting_source_urls に URL として不正な値: "${url}"`); }
+        }
+      }
+    }
   }
 
   return { file: rel, errors, warnings };
