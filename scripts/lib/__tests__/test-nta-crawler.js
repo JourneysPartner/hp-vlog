@@ -111,8 +111,73 @@ console.log('\n=== Test 4: sha256Hex ===');
     '日本語入力でも 64 hex 文字を返す');
 }
 
-// ── 5. RateLimiter ────────────────────────────────────────────
-console.log('\n=== Test 5: RateLimiter ===');
+// ── 6. decideIncrementalAction ────────────────────────────────
+console.log('\n=== Test 6: decideIncrementalAction ===');
+{
+  // 1. 既存なし → first_time
+  {
+    const r = crawler.decideIncrementalAction(null, { ok: true, etag: 'X', lastModified: 'L' });
+    assert(r.decision === 'first_time', `既存なし → first_time`);
+  }
+  // 2. 既存に html_hash なし → first_time
+  {
+    const r = crawler.decideIncrementalAction({}, { ok: true, etag: 'X', lastModified: 'L' });
+    assert(r.decision === 'first_time', `html_hash なし → first_time`);
+  }
+  // 3. HEAD 404 → mark_deleted
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', etag: 'X' },
+      { ok: false, reason: 'not_found', status: 404 }
+    );
+    assert(r.decision === 'mark_deleted', `HEAD 404 → mark_deleted`);
+  }
+  // 4. HEAD エラー → fetch（安全側）
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', etag: 'X' },
+      { ok: false, reason: 'retry_exhausted', status: 0 }
+    );
+    assert(r.decision === 'fetch', `HEAD エラー → fetch (安全側)`);
+  }
+  // 5. ETag 一致 → skip
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', etag: '"abc123"', last_modified: 'old' },
+      { ok: true, etag: '"abc123"', lastModified: 'new' }
+    );
+    assert(r.decision === 'skip' && r.reason === 'etag_match', `ETag 一致 → skip`);
+  }
+  // 6. Last-Modified 一致（ETag 不一致 or なし）→ skip
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', last_modified: 'Wed, 03 Dec 2025 08:30:43 GMT' },
+      { ok: true, etag: null, lastModified: 'Wed, 03 Dec 2025 08:30:43 GMT' }
+    );
+    assert(r.decision === 'skip' && r.reason === 'last_modified_match',
+      `Last-Modified 一致 → skip`);
+  }
+  // 7. ETag/Last-Modified 不一致 → fetch
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', etag: '"old"', last_modified: 'old' },
+      { ok: true, etag: '"new"', lastModified: 'new' }
+    );
+    assert(r.decision === 'fetch' && r.reason === 'metadata_changed',
+      `metadata 変更 → fetch`);
+  }
+  // 8. HEAD に metadata なし → fetch（既存とは別状態と判断）
+  {
+    const r = crawler.decideIncrementalAction(
+      { html_hash: 'h', etag: '"old"', last_modified: 'old' },
+      { ok: true, etag: null, lastModified: null }
+    );
+    assert(r.decision === 'fetch', `HEAD に metadata なし → fetch`);
+  }
+}
+
+// ── 7. RateLimiter ────────────────────────────────────────────
+console.log('\n=== Test 7: RateLimiter ===');
 {
   const rl = new crawler.RateLimiter(100);  // 100ms 最小間隔
 
