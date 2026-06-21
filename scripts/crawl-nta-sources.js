@@ -24,7 +24,10 @@
 
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const crawler = require(path.join(ROOT, 'scripts/lib/nta-crawler'));
+const crawler          = require(path.join(ROOT, 'scripts/lib/nta-crawler'));
+const taxanswerParser  = require(path.join(ROOT, 'scripts/lib/nta-parsers/taxanswer'));
+const taxanswerIndex   = require(path.join(ROOT, 'scripts/lib/nta-index/taxanswer-index'));
+const store            = require(path.join(ROOT, 'scripts/lib/nta-store'));
 
 // ── 引数パーサ ─────────────────────────────────────────────────
 function parseArgs(argv) {
@@ -106,15 +109,99 @@ async function probe(url, verbose) {
   }
 }
 
-// ── 全件 crawl（C-2 以降で実装） ────────────────────────────────
+// ── タックスアンサーの全件 crawl ────────────────────────────────
+async function crawlTaxAnswer(args) {
+  const verbose = args.verbose;
+  const maxPages = args.maxPages;
+  const categoryFilter = args.category ? [args.category] : null;
+
+  console.log('[taxanswer] index ページを取得中…');
+  const entries = await taxanswerIndex.fetchTaxAnswerIndex({ categories: categoryFilter });
+  console.log(`[taxanswer] index から ${entries.length} 件の URL を取得`);
+
+  // カテゴリ別件数の表示
+  const byCategory = {};
+  for (const e of entries) {
+    byCategory[e.category] = (byCategory[e.category] || 0) + 1;
+  }
+  for (const [cat, n] of Object.entries(byCategory).sort()) {
+    console.log(`  ${cat.padEnd(10)} : ${n}`);
+  }
+
+  if (args.dryRun) {
+    console.log('[taxanswer] --dry-run のため crawl は実行しません。');
+    return { fetched: 0, skipped: 0, errors: [] };
+  }
+
+  const target = Number.isFinite(maxPages) ? Math.min(entries.length, maxPages) : entries.length;
+  console.log(`[taxanswer] ${target} 件を crawl 開始（rate limit 1 req/sec）…`);
+
+  const rl = new crawler.RateLimiter(1000);
+  const results = { fetched: 0, skipped: 0, errors: [] };
+  let i = 0;
+
+  for (const entry of entries) {
+    if (i >= target) break;
+    i++;
+
+    if (args.incremental) {
+      const existing = store.loadTaxAnswerEntry(entry.category, entry.id);
+      if (existing && existing.html_hash) {
+        // C-4 で HEAD リクエストでの判定を実装予定。
+        // ここでは「既存があれば skip」の単純判定に留める。
+        if (verbose) console.log(`  [skip] ${entry.id} (existing)`);
+        results.skipped++;
+        continue;
+      }
+    }
+
+    await rl.wait();
+
+    const fetchResult = await crawler.fetchPage(entry.url);
+    if (!fetchResult.ok) {
+      results.errors.push({ url: entry.url, reason: fetchResult.reason, status: fetchResult.status });
+      if (verbose) console.warn(`  [error] ${entry.url}: ${fetchResult.reason}`);
+      continue;
+    }
+
+    try {
+      const parsed = taxanswerParser.parseTaxAnswerHtml(fetchResult.html, entry.url);
+      const stored = {
+        ...parsed,
+        fetched_at: fetchResult.fetchedAt,
+        html_hash: fetchResult.htmlHash,
+        byte_size: fetchResult.byteSize,
+        encoding: fetchResult.encoding,
+      };
+      store.saveTaxAnswerEntry(stored);
+      results.fetched++;
+      if (verbose || i % 20 === 0) {
+        console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${parsed.title.slice(0, 30)}`);
+      }
+    } catch (e) {
+      results.errors.push({ url: entry.url, reason: 'parse_failed', error: e.message });
+      console.warn(`  [parse error] ${entry.url}: ${e.message}`);
+    }
+  }
+
+  console.log(`\n[taxanswer] 完了: fetched=${results.fetched}, skipped=${results.skipped}, errors=${results.errors.length}`);
+  if (results.errors.length > 0) {
+    console.log('[taxanswer] エラー詳細（最大 10 件）:');
+    for (const e of results.errors.slice(0, 10)) {
+      console.log(`  - ${e.url}: ${e.reason}${e.error ? ' / ' + e.error : ''}`);
+    }
+  }
+  return results;
+}
+
+// ── 全件 crawl の振分け ────────────────────────────────────────
 async function crawlAll(args) {
-  console.log('[crawl] Phase C-1 骨子では全件 crawl は未実装です。');
-  console.log('[crawl] C-2（タックスアンサーパーサ）と C-3（質疑応答事例パーサ）で実装予定。');
-  console.log('[crawl] 動作確認には --probe <url> を使用してください。');
-  console.log('');
-  console.log('例:');
-  console.log('  node scripts/crawl-nta-sources.js --probe https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm');
-  console.log('  node scripts/crawl-nta-sources.js --probe https://www.nta.go.jp/law/shitsugi/shohi/02/01.htm --verbose');
+  if (args.type === 'taxanswer' || args.type === 'all') {
+    await crawlTaxAnswer(args);
+  }
+  if (args.type === 'shitsugi' || args.type === 'all') {
+    console.log('[shitsugi] パーサは Phase C-3 で実装予定。');
+  }
 }
 
 // ── main ───────────────────────────────────────────────────────
