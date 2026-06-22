@@ -48,6 +48,24 @@
   to = "/.netlify/functions/admin-change-article-status"
   status = 200
 
+# 管理画面: /admin/candidates → 質疑応答事例候補管理（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/candidates"
+  to = "/.netlify/functions/admin-candidates-page"
+  status = 200
+
+# 管理API: 候補リスト取得（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/api/candidates/list"
+  to = "/.netlify/functions/admin-list-candidates"
+  status = 200
+
+# 管理API: 候補の採用フラグ保存（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/api/candidates/save"
+  to = "/.netlify/functions/admin-save-candidates"
+  status = 200
+
 # ブログ記事URL: Netlify の Pretty URLs が自動的に
 # /blog/slug → /blog/slug/ → blog/slug/index.html を解決するため
 # 手動の 301 redirect は不要（設定すると redirect loop の原因になる）
