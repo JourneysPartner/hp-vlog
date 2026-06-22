@@ -48,13 +48,13 @@ const EXCLUDED_CATEGORIES = ['inshi', 'hotei', 'shinki'];
 
 // ── HTML パース ────────────────────────────────────────────────
 // bodyArea 抽出は taxanswer.js のヘルパーを再利用
-const { extractBodyArea, stripHtmlTags } = taxanswer;
+const { extractBodyArea, stripHtmlTags, collapseCjkSpaces } = taxanswer;
 
 // タイトル抽出（page-header div の h1 から）
 function extractTitle(bodyArea) {
   const m = bodyArea.match(/<div\s+class="page-header"[^>]*>\s*<h1[^>]*>([\s\S]+?)<\/h1>/);
   if (!m) return null;
-  return stripHtmlTags(m[1]).replace(/\s+/g, ' ').trim();
+  return collapseCjkSpaces(stripHtmlTags(m[1]).replace(/\s+/g, ' ').trim());
 }
 
 // 各 h2 ラベルの後ろにある内容を抽出する。
@@ -69,7 +69,7 @@ function extractByLabel(bodyArea, label) {
   );
   const m = bodyArea.match(re);
   if (!m) return null;
-  return stripHtmlTags(m[1]).replace(/\s+/g, ' ').trim();
+  return collapseCjkSpaces(stripHtmlTags(m[1]).replace(/\s+/g, ' ').trim());
 }
 
 // 関係法令通達（ラベル名のバリエーションあり：関係法令通達 / 関係法令）
