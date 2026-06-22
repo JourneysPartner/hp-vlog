@@ -181,6 +181,82 @@ const FILTERS = {
     ],
     max: 20,
   },
+
+  // 業種を問わない個人事業者全般向け
+  general_individual_proprietor: {
+    positive: [
+      // 青色・白色申告
+      '青色申告', '白色申告', '青色事業専従者', '専従者給与', '専従者控除',
+      // 経費・必要経費
+      '必要経費', '家事関連費', '家事按分',
+      // 減価償却・固定資産
+      '減価償却', '少額減価償却資産', '一括償却資産', '取得価額',
+      // 開業・廃業
+      '開業費', '廃業', '相続による事業承継', '事業承継',
+      // 中間申告・予定納税
+      '予定納税', '中間申告',
+      // 共済・年金
+      '小規模企業共済', '国民年金基金', '個人型確定拠出年金', 'iDeCo',
+      // 損益通算・繰越
+      '損益通算', '純損失の繰越', '繰戻し還付',
+      // 売上の認識・期間
+      '計上時期', '売上計上', '帰属年分',
+    ],
+    negative: [
+      // 業種特化系（既存ペルソナでカバー）
+      '美容', 'ネイル', 'サロン', 'インフルエンサー', 'YouTube',
+      'eBay', 'Amazon', 'メルカリ', '輸出',
+      // 大企業・特殊主体
+      '所有権移転外ファイナンス・リース', '公益法人', 'プロゴルファー',
+      '米国人', 'ＪＶ', 'JV', '居宅介護', '障害者手帳',
+      'カフェテリアプラン', '退職手当金が支給された',
+      // 相続・贈与（既存）
+      '相続', '贈与', '遺産', '配偶者居住権', '小規模宅地',
+      // 法人特化
+      '法人成り', '役員報酬', '取締役', '取締役会', '株主総会',
+    ],
+    max: 25,
+    // どの auto-scorer 分類からも拾い上げる
+    reclassifyFromOtherPersonas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator', 'beauty_salon_owner'],
+  },
+
+  // 業種を問わない法人全般向け
+  general_corporation: {
+    positive: [
+      // 法人税の基本
+      '法人税', '中間申告', '予定申告', '確定申告書',
+      // 役員・株主
+      '役員報酬', '役員退職金', '役員給与', '定期同額給与',
+      '株主', '取締役', '使用人兼務役員',
+      // 減価償却・棚卸
+      '減価償却', '取得価額', '耐用年数',
+      '棚卸資産の評価方法',
+      // 交際費・福利厚生
+      '交際費', '寄附金', '福利厚生費',
+      // 設立・組織再編
+      '新設法人', '設立', '事業承継', '組織再編',
+      // 繰越欠損金
+      '欠損金', '繰越控除',
+      // 中小法人特例
+      '中小法人', '中小企業',
+    ],
+    negative: [
+      // 業種特化系（既存ペルソナでカバー）
+      '美容', 'ネイル', 'サロン', 'インフルエンサー', 'YouTube',
+      'eBay', 'Amazon', 'メルカリ',
+      // 個人特化
+      '専従者', '家事按分', '個人事業者',
+      // 相続贈与
+      '相続', '贈与', '遺産',
+      // 居宅介護等
+      '居宅介護', '障害者手帳', '公益法人', 'プロゴルファー',
+      '所有権移転外ファイナンス・リース',
+      // 高度・特殊
+      '取引相場のない', '純資産価額計算', 'デリバティブ',
+    ],
+    max: 30,
+    reclassifyFromOtherPersonas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator', 'beauty_salon_owner', 'ebay_export_seller'],
+  },
 };
 
 // ── タイトルがフィルタにマッチするか ─────────────────────────
@@ -249,25 +325,40 @@ function main() {
     return;
   }
 
-  // adopted を更新
+  // adopted を更新 + 新ペルソナで再分類された候補は persona も更新
   // 既存 adopted=true は保持。新規にマッチしたものを追加。
-  const selectedUrls = new Set();
+  //
+  // 各候補が「どのペルソナで選定されたか」を記録する map を作る。
+  // 同じ URL が複数ペルソナで選ばれた場合は、宣言順で最初のペルソナを優先
+  // （selections の処理順で adoptedUrlsGlobal が排他制御する設計）。
+  const urlToSelectedPersona = new Map();
   for (const persona of Object.keys(selections)) {
     for (const { c } of selections[persona]) {
-      selectedUrls.add(c.shitsugi_url);
+      if (!urlToSelectedPersona.has(c.shitsugi_url)) {
+        urlToSelectedPersona.set(c.shitsugi_url, persona);
+      }
     }
   }
 
-  let added = 0, alreadyAdopted = 0;
+  let added = 0, alreadyAdopted = 0, reclassified = 0;
   for (const c of data.candidates) {
-    if (selectedUrls.has(c.shitsugi_url)) {
-      if (c.adopted === true) {
-        alreadyAdopted++;
-      } else {
-        c.adopted = true;
-        if (!c.adoption_note) c.adoption_note = 'Claude 一次選定: ペルソナ実務との直結性で選別';
-        added++;
-      }
+    const selectedPersona = urlToSelectedPersona.get(c.shitsugi_url);
+    if (!selectedPersona) continue;
+
+    // 新ペルソナ（general_*）で選ばれた場合、proposed.persona を更新する
+    const isReclassifying = selectedPersona.startsWith('general_') &&
+                            c.proposed && c.proposed.persona !== selectedPersona;
+    if (isReclassifying) {
+      c.proposed.persona = selectedPersona;
+      reclassified++;
+    }
+
+    if (c.adopted === true) {
+      alreadyAdopted++;
+    } else {
+      c.adopted = true;
+      if (!c.adoption_note) c.adoption_note = 'Claude 一次選定: ペルソナ実務との直結性で選別';
+      added++;
     }
   }
 
@@ -281,6 +372,7 @@ function main() {
   console.log('\n=== 適用結果 ===');
   console.log('  新規追加: ' + added + ' 件');
   console.log('  既に採用済（保持）: ' + alreadyAdopted + ' 件');
+  console.log('  proposed.persona を general_* に再分類: ' + reclassified + ' 件');
   console.log('  合計採用: ' + totalAdopted + ' 件');
   console.log('  ファイル: ' + FILE);
 }

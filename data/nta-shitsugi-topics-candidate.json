@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 88,
+    "adopted_count": 142,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -330,13 +330,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第30条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/25.htm",
@@ -1260,13 +1261,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第42条第6項、第8項、消費税法基本通達15－1－1の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/42.htm",
@@ -1360,13 +1362,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第37条、第63条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/05.htm",
@@ -1385,13 +1388,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第37条、所得税基本通達37-2の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/14.htm",
@@ -1737,13 +1741,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第49条、所得税法施行令第134条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/30.htm",
@@ -1887,13 +1892,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "influencer_creator",
+        "persona": "general_corporation",
         "macro": "インフルエンサー",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第30条、第199条、所得税基本通達30-1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/06/51.htm",
@@ -3955,13 +3961,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第42条、第43条、消費税法基本通達15-1-2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/04.htm",
@@ -3980,13 +3987,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第44条、消費税法基本通達15-1-5、15-1-6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/06.htm",
@@ -4031,13 +4039,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第42条第6項、第8項、消費税法基本通達15－1－1の3",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/24/02.htm",
@@ -4385,13 +4394,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第35条第2項第2号、所得税法施行令第183条第1項第3号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/07.htm",
@@ -5060,13 +5070,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第57条、昭40.10.8直審(資)4「青色事業専従者が事業から給与の支給を受けた場合の贈与税の取扱いについて」",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
@@ -5085,13 +5096,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第57条、所得税法施行令第165条第1項第2号、所得税法施行規則第36条の4第3項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/23.htm",
@@ -5461,13 +5473,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第78条第2項第1号、第120条第3項第1号、所得税法施行令第262条第1項第6号、所得税法施行規則第47条の2第3項第1号イ、昭和40年大蔵省告示第154号（最終改正平成29年財務省告示第97号）、所得税基本通達78－4",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/79.htm",
@@ -5761,13 +5774,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第41条の18第1項、第3項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/26.htm",
@@ -5911,13 +5925,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第41条第36項、第41条の5第2項、租税特別措置法施行規則別表第8、情報通信技術を活用した行政の推進等に関する法律第11条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/41.htm",
@@ -6136,13 +6151,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第95条第1項、第4項第16号、所得税法施行令第222条第3項、第225条の13、日韓租税条約第16条、第23条第2項(a)",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/01.htm",
@@ -6211,13 +6227,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第121条第１項１号、租税特別措置法第25の２条第１項第１号、所得税基本通達121－6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
@@ -6236,13 +6253,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第121条第１項第１号、租税特別措置法第25の２条第３項第１号、第６項、所得税基本通達121－６",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
@@ -6437,13 +6455,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第30条第2項、消費税法基本通達11-2-10",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/16.htm",
@@ -7318,13 +7337,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "influencer_creator",
+        "persona": "general_individual_proprietor",
         "macro": "インフルエンサー",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第2条第1項第33号、第57条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/joto/03/01.htm",
@@ -10650,13 +10670,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法別表第二第4号ハ、消費税法基本通達6-4-5、9-1-22、法人税基本通達2-1-39",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/12/04.htm",
@@ -11176,13 +11197,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第12条の2第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/07.htm",
@@ -11331,13 +11353,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "消費税法第12条の2第1項、第3項、第12条の3第1項、第5項、消費税法基本通達1-5-15、1-5-15の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/24/01.htm",
@@ -11856,13 +11879,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第28条第1項、第30条第1項、所得税法施行令第64条第1項第1号、所得税基本通達30－2(1)",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/20.htm",
@@ -12031,13 +12055,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法施行令第120条、第120条の2、所得税基本通達49-1、租税特別措置法第33条の3、第33条の6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/17.htm",
@@ -12081,13 +12106,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第10条の3、租税特別措置法施行令第5条の5、租税特別措置法施行規則第5条の8",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/34.htm",
@@ -15622,13 +15648,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第49条、所得税法施行令第120条の2第1項第1号、所得税基本通達49－18",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/37.htm",
@@ -15672,13 +15699,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第2条第6号、第4条第1項、第6条、第57条第1項、第10項、第58条第1項 法人税法施行令第5条第1項第1号、第31号 特定非営利活動促進法第70条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/18.htm",
@@ -15822,13 +15850,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法施行令第120の2第1項第1号イ(2)、第127条第1項、第2項、第5項、平成23年政令第378号附則2条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/12.htm",
@@ -16398,13 +16427,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "influencer_creator",
+        "persona": "general_corporation",
         "macro": "インフルエンサー",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第28条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/45.htm",
@@ -16548,13 +16578,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "influencer_creator",
+        "persona": "general_corporation",
         "macro": "インフルエンサー",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第30条1項、第36条、所得税基本通達36－10",
       "law_version": "令和７年８月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/05/15.htm",
@@ -17075,13 +17106,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "beauty_salon_owner",
+        "persona": "general_corporation",
         "macro": "サロン",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第42条の12の５第３項、第５項、第９項 租税特別措置法施行令第27条の12の5第6項、第14項～第20項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/33/40.htm",
@@ -18850,13 +18882,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第49条、所得税基本通達49-19",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/20.htm",
@@ -18875,13 +18908,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "reseller_marketplace_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法第49条、所得税法施行令第127条、第132条、所得税基本通達49-1の2、49-31",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/32.htm",
@@ -19601,13 +19635,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第42条等 租税特別措置法第52条の3第1項、第55条等",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/31/02.htm",
@@ -20632,13 +20667,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第22条の２第１項 法人税基本通達２－１－40の２ 企業会計基準適用指針第30号「収益認識に関する会計基準の適用指針」第57項、第58項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/02/02.htm",
@@ -20733,13 +20769,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第42条の12の4 租税特別措置法関係通達42の12の4-2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/04/17.htm",
@@ -20758,13 +20795,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第2条第12号の7の6、第14条第1項第5号、第61条の11第1項、第3項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/07/01.htm",
@@ -20858,13 +20896,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第34条第1項第1号、法人税法施行令第69条第1項第1号 法人税基本通達9－2－12の3",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/12/03.htm",
@@ -20933,13 +20972,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "一般社団法人及び一般財団法人に関する法律第11条第2項、第153条第3項 公益社団法人及び公益財団法人の認定等に関する法律第2条第2号、第4条、第5条第17号 租税特別措置法施行令第37条の4 地方自治法第199条第7項 地方自治法施行令第140条の7第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/15/06.htm",
@@ -20958,13 +20998,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第61条の４ 租税特別措置法施行令第37条の４ 一般社団法人及び一般財団法人に関する法律第131条、第144条第１項 一般社団法人及び一般財団法人に関する法律施行規則第31条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/21/09.htm",
@@ -21133,13 +21174,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第22条第3項第2号、第41条、第69条第1項 法人税法施行令第142条の2第8項第5号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/23/11.htm",
@@ -21158,13 +21200,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "beauty_salon_owner",
+        "persona": "general_corporation",
         "macro": "サロン",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第42条の12の５第２項、第５項第10号",
       "law_version": "令和６年８月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/24/01.htm",
@@ -21183,13 +21226,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第22条第3項第1号 法人税基本通達9－5－1(1)イ",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/24/02.htm",
@@ -21208,13 +21252,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第72条第1項 法人税基本通達11－1－1 租税特別措置法関係通達（法人税編）55～57の8(共)－1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/24/03.htm",
@@ -21233,13 +21278,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第72条、第74条 租税特別措置法第65条の7",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/24/05.htm",
@@ -21258,13 +21304,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第75条の2 会社法124条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/26/01.htm",
@@ -21308,13 +21355,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "所得税法等の一部を改正する法律（令和７年法律第13号）（以下「令和７年改正法」といいます。）による改正前の法人税法第63条、第64条の2、令和７年改正法附則第17条第２項 法人税法施行令及び法人税法施行令等の一部を改正する政令の一部を改正する政令（令和７年政令第121号）（以下「令和７年改正令」といいます。）による改正前の法人税法施行令第131条の2、令和７年改正令附則第12条第１項 令和７年６月30日付課法２－７他１課共同「法人税基本通達等の一部改正について」（法令解釈通達）による改正前の法人税基本通達12の5－1－1、12の5－1－2 民間資金等の活用による公共施設等の整備等の促進に関する法律第2条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/26/05.htm",
@@ -21383,13 +21431,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_individual_proprietor",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第48条 倉庫業法第2条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/27/12.htm",
@@ -21483,13 +21532,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "租税特別措置法第67条 租税特別措置法関係通達（法人税編）67－4（1）",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/32/01.htm",
@@ -21508,13 +21558,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "国税通則法第35条第2項、第59条第2項、第66条第1項 法人税法第75条の２",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/33/15.htm",
@@ -21609,13 +21660,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第2条第12号の8、第24条第1項第1号、第61条の2第1項、第2項 法人税法施行令第4条の3第4項、第23条第1項第1号、第119条第1項第5号、第119条の7の2第1項 法人税法施行規則第27条の3第10号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/33/31.htm",
@@ -21659,13 +21711,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第61条の2第1項、第2項 法人税法施行令第139条の3の2第1項 法人税法施行規則第27条の3第10号 法人税基本通達2－3－25",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/33/38.htm",
@@ -21834,13 +21887,14 @@
         "taxanswer_support": 25
       },
       "proposed": {
-        "persona": "domestic_ec_seller",
+        "persona": "general_corporation",
         "macro": "物販",
         "article_type": "case_study"
       },
       "kankei_hourei": "法人税法第64条の11第1項 法人税法施行令第131条の15第1項第1号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/11.htm",
