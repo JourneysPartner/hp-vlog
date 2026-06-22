@@ -42,10 +42,20 @@ const HTML = `<!DOCTYPE html>
   html, body { height: 100%; }
   body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: #2c2c2c; margin: 0; }
 
+  /* 固定ヘッダの高さは CSS 変数で一元管理（テーブル thead の sticky 計算に使用） */
+  :root {
+    --header-h: 48px;
+    --filter-h: 48px;
+    --stack-h:  96px;   /* header-h + filter-h */
+  }
+
   .admin-header {
     background: var(--primary); color: #fff; padding: .75rem 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky; top: 0; z-index: 50;
+    height: var(--header-h);
     display: flex; align-items: center; justify-content: space-between;
+    box-sizing: border-box;
   }
   .admin-header h1 { font-size: 1rem; margin: 0; font-weight: 700; }
   .admin-header .meta { font-size: .8rem; opacity: .9; }
@@ -53,7 +63,8 @@ const HTML = `<!DOCTYPE html>
   .filter-bar {
     background: #fff; padding: .6rem 1rem; border-bottom: 1px solid var(--border);
     display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
-    position: sticky; top: 41px; z-index: 49;
+    position: sticky; top: var(--header-h); z-index: 49;
+    min-height: var(--filter-h); box-sizing: border-box;
   }
   .filter-bar label { font-size: .82rem; color: var(--muted); margin-right: .3rem; }
   .filter-bar select, .filter-bar input[type="text"] {
@@ -69,16 +80,18 @@ const HTML = `<!DOCTYPE html>
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   }
   table.candidates {
-    width: 100%; border-collapse: collapse; font-size: .85rem;
+    width: 100%; border-collapse: separate; border-spacing: 0; font-size: .85rem;
   }
-  table.candidates thead {
-    background: var(--primary); color: #fff; position: sticky; top: 100px; z-index: 48;
-  }
-  table.candidates th {
+  /* <thead> ではなく各 <th> に sticky を適用（thead sticky はブラウザ互換性が悪い）。
+     top はヘッダ + フィルタバー合計の var(--stack-h) で計算する。 */
+  table.candidates thead th {
+    background: var(--primary); color: #fff;
+    position: sticky; top: var(--stack-h); z-index: 48;
     padding: .55rem .5rem; text-align: left; font-weight: 500; cursor: pointer; user-select: none;
     white-space: nowrap;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.15);
   }
-  table.candidates th:hover { background: rgba(255,255,255,0.08); }
+  table.candidates thead th:hover { background: #1a3268; }
   table.candidates th .sort-arrow { opacity: .5; font-size: .75rem; margin-left: 4px; }
   table.candidates th.sorted-asc  .sort-arrow::after { content: ' ▲'; opacity: 1; }
   table.candidates th.sorted-desc .sort-arrow::after { content: ' ▼'; opacity: 1; }
