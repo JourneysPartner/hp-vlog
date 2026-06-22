@@ -229,6 +229,31 @@ function validateFile(filePath) {
         }
       }
     }
+
+    // 12e. n-gram 転載検知（Phase D）
+    // 国税庁原文と本文の連続 3 文一致を検出。FAIL 判定。
+    // data/nta-sources/index.json が存在しない場合は警告に留める（DB 未構築環境への配慮）。
+    try {
+      const ngramCheck = require('./lib/nta-ngram-check');
+      const ngramResult = ngramCheck.checkNgramOverlapForArticle(fm, body);
+      if (!ngramResult.sourceFound) {
+        warnings.push(`n-gram 転載検知: 国税庁ソース DB に対応する原文が見つかりませんでした（data/nta-sources/ 未構築の可能性）`);
+      } else {
+        for (const r of ngramResult.results) {
+          if (r.matched) {
+            for (const ov of r.overlaps) {
+              const preview = ov.sentences.join(' ').slice(0, 80);
+              errors.push(
+                `n-gram 転載検知: ${r.url} と連続 ${ov.length} 文一致 ` +
+                `（記事の文 ${ov.indexInArticle + 1} 以降）: "${preview}${preview.length >= 80 ? '...' : ''}"`
+              );
+            }
+          }
+        }
+      }
+    } catch (e) {
+      warnings.push(`n-gram 転載検知でエラー: ${e.message}`);
+    }
   }
 
   return { file: rel, errors, warnings };
