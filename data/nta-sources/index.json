@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-06-22T06:20:22.554Z",
+  "generated_at": "2026-06-22T07:06:44.726Z",
   "total_count": 2222,
   "by_type": {
     "shitsugi": 1550,
@@ -954,9 +954,9 @@
       "title": "使用者が使用人等に対し食事代として金銭を支給した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/gensen/03/44.htm",
       "file_path": "shitsugi/gensen/03/44.json",
-      "char_count_body": 1134,
+      "char_count_body": 1132,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:04:33.069Z",
+      "fetched_at": "2026-06-22T06:56:26.428Z",
       "last_modified": "Tue, 31 Mar 2026 14:00:52 GMT"
     },
     {
@@ -970,7 +970,7 @@
       "file_path": "shitsugi/gensen/03/45.json",
       "char_count_body": 992,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:04:50.071Z",
+      "fetched_at": "2026-06-22T06:56:27.436Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:15 GMT"
     },
     {
@@ -1138,7 +1138,7 @@
       "file_path": "shitsugi/gensen/04/12.json",
       "char_count_body": 1381,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:05:09.065Z",
+      "fetched_at": "2026-06-22T06:56:28.450Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:14 GMT"
     },
     {
@@ -1152,7 +1152,7 @@
       "file_path": "shitsugi/gensen/04/13.json",
       "char_count_body": 590,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:05:10.064Z",
+      "fetched_at": "2026-06-22T06:56:29.460Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:14 GMT"
     },
     {
@@ -4190,7 +4190,7 @@
       "file_path": "shitsugi/hojin/15/07.json",
       "char_count_body": 537,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:18:30.173Z",
+      "fetched_at": "2026-06-22T06:56:30.469Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:30 GMT"
     },
     {
@@ -4302,7 +4302,7 @@
       "file_path": "shitsugi/hojin/16/08.json",
       "char_count_body": 2116,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:18:41.174Z",
+      "fetched_at": "2026-06-22T06:56:31.479Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:29 GMT"
     },
     {
@@ -4862,7 +4862,7 @@
       "file_path": "shitsugi/hojin/21/21.json",
       "char_count_body": 2003,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:26.171Z",
+      "fetched_at": "2026-06-22T06:56:32.493Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:28 GMT"
     },
     {
@@ -4876,7 +4876,7 @@
       "file_path": "shitsugi/hojin/21/22.json",
       "char_count_body": 1756,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:17.173Z",
+      "fetched_at": "2026-06-22T06:56:33.500Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:28 GMT"
     },
     {
@@ -4960,7 +4960,7 @@
       "file_path": "shitsugi/hojin/23/10.json",
       "char_count_body": 3485,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:36.169Z",
+      "fetched_at": "2026-06-22T06:56:34.509Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:28 GMT"
     },
     {
@@ -4972,9 +4972,9 @@
       "title": "組織再編成があった場合の特定法人の判定について（従業員数の調整の有無）",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/23/11.htm",
       "file_path": "shitsugi/hojin/23/11.json",
-      "char_count_body": 2346,
+      "char_count_body": 2344,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:37.170Z",
+      "fetched_at": "2026-06-22T06:56:35.520Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:28 GMT"
     },
     {
@@ -5128,7 +5128,7 @@
       "file_path": "shitsugi/hojin/26/07.json",
       "char_count_body": 2128,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:57.047Z",
+      "fetched_at": "2026-06-22T06:56:36.533Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT"
     },
     {
@@ -5366,7 +5366,7 @@
       "file_path": "shitsugi/hojin/28/07.json",
       "char_count_body": 1528,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:20:19.978Z",
+      "fetched_at": "2026-06-22T06:56:37.542Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT"
     },
     {
@@ -5450,7 +5450,7 @@
       "file_path": "shitsugi/hojin/29/07.json",
       "char_count_body": 1763,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:06.173Z",
+      "fetched_at": "2026-06-22T06:56:38.552Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT"
     },
     {
@@ -5518,9 +5518,9 @@
       "title": "外国子会社からの配当が外貨で行われた場合における子会社株式簿価減額特例の適用免除基準（2,000万円基準）について",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/30/05.htm",
       "file_path": "shitsugi/hojin/30/05.json",
-      "char_count_body": 2428,
+      "char_count_body": 2422,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:16:04.048Z",
+      "fetched_at": "2026-06-22T06:56:39.565Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT"
     },
     {
@@ -6232,9 +6232,9 @@
       "title": "被合併法人が債務超過の場合の対価省略型の非適格合併における資産調整勘定の金額及び差額負債調整勘定の金額",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/51.htm",
       "file_path": "shitsugi/hojin/33/51.json",
-      "char_count_body": 2996,
+      "char_count_body": 2990,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:50.174Z",
+      "fetched_at": "2026-06-22T06:56:40.575Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT"
     },
     {
@@ -6318,7 +6318,7 @@
       "file_path": "shitsugi/hojin/33/58.json",
       "char_count_body": 1866,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:19.171Z",
+      "fetched_at": "2026-06-22T06:56:41.584Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT"
     },
     {
@@ -6330,9 +6330,9 @@
       "title": "分割型分割における分割法人の株主等について、実質的な権利者が存在する場合の株式あん分交付要件について",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/59.htm",
       "file_path": "shitsugi/hojin/33/59.json",
-      "char_count_body": 2475,
+      "char_count_body": 2474,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:31.168Z",
+      "fetched_at": "2026-06-22T06:56:42.598Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT"
     },
     {
@@ -6346,7 +6346,7 @@
       "file_path": "shitsugi/hojin/33/60.json",
       "char_count_body": 2271,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:41.172Z",
+      "fetched_at": "2026-06-22T06:56:43.610Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -6358,9 +6358,9 @@
       "title": "一定の資産評定が行われない対価省略型の非適格分割(分社型分割)が行われた場合の調整勘定の金額及び資本金等の額",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/61.htm",
       "file_path": "shitsugi/hojin/33/61.json",
-      "char_count_body": 3341,
+      "char_count_body": 3335,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:19:49.174Z",
+      "fetched_at": "2026-06-22T06:56:44.615Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -6388,7 +6388,7 @@
       "file_path": "shitsugi/hojin/34/02.json",
       "char_count_body": 1038,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:17:26.167Z",
+      "fetched_at": "2026-06-22T06:56:45.620Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -6486,7 +6486,7 @@
       "file_path": "shitsugi/hojin/36/07.json",
       "char_count_body": 4353,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:43.172Z",
+      "fetched_at": "2026-06-22T06:56:46.628Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -6500,7 +6500,7 @@
       "file_path": "shitsugi/hyoka/01/01.json",
       "char_count_body": 214,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:49.055Z",
+      "fetched_at": "2026-06-22T06:56:47.630Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6512,9 +6512,9 @@
       "title": "土地の地目の判定",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/01/02.htm",
       "file_path": "shitsugi/hyoka/01/02.json",
-      "char_count_body": 444,
+      "char_count_body": 435,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:50.055Z",
+      "fetched_at": "2026-06-22T06:56:48.642Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6528,7 +6528,7 @@
       "file_path": "shitsugi/hyoka/01/03.json",
       "char_count_body": 523,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:51.055Z",
+      "fetched_at": "2026-06-22T06:56:49.644Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6542,7 +6542,7 @@
       "file_path": "shitsugi/hyoka/01/04.json",
       "char_count_body": 671,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:53.055Z",
+      "fetched_at": "2026-06-22T06:56:50.646Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6556,7 +6556,7 @@
       "file_path": "shitsugi/hyoka/01/05.json",
       "char_count_body": 347,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:54.056Z",
+      "fetched_at": "2026-06-22T06:56:51.646Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6570,7 +6570,7 @@
       "file_path": "shitsugi/hyoka/01/06.json",
       "char_count_body": 191,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:52.055Z",
+      "fetched_at": "2026-06-22T06:56:52.659Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6584,7 +6584,7 @@
       "file_path": "shitsugi/hyoka/01/07.json",
       "char_count_body": 103,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:55.056Z",
+      "fetched_at": "2026-06-22T06:56:53.673Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6598,7 +6598,7 @@
       "file_path": "shitsugi/hyoka/02/01.json",
       "char_count_body": 921,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:56.057Z",
+      "fetched_at": "2026-06-22T06:56:54.688Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6612,7 +6612,7 @@
       "file_path": "shitsugi/hyoka/02/02.json",
       "char_count_body": 302,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:57.057Z",
+      "fetched_at": "2026-06-22T06:56:55.693Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT"
     },
     {
@@ -6626,7 +6626,7 @@
       "file_path": "shitsugi/hyoka/02/03.json",
       "char_count_body": 477,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:58.056Z",
+      "fetched_at": "2026-06-22T06:56:56.702Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6640,7 +6640,7 @@
       "file_path": "shitsugi/hyoka/02/04.json",
       "char_count_body": 648,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:59.056Z",
+      "fetched_at": "2026-06-22T06:56:57.717Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6654,7 +6654,7 @@
       "file_path": "shitsugi/hyoka/02/05.json",
       "char_count_body": 251,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:01.055Z",
+      "fetched_at": "2026-06-22T06:56:58.721Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6668,7 +6668,7 @@
       "file_path": "shitsugi/hyoka/02/06.json",
       "char_count_body": 212,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:02.054Z",
+      "fetched_at": "2026-06-22T06:56:59.736Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6682,7 +6682,7 @@
       "file_path": "shitsugi/hyoka/02/07.json",
       "char_count_body": 592,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:03.053Z",
+      "fetched_at": "2026-06-22T06:57:00.738Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6696,7 +6696,7 @@
       "file_path": "shitsugi/hyoka/02/08.json",
       "char_count_body": 301,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:04.052Z",
+      "fetched_at": "2026-06-22T06:57:01.739Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6710,7 +6710,7 @@
       "file_path": "shitsugi/hyoka/02/09.json",
       "char_count_body": 413,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:05.051Z",
+      "fetched_at": "2026-06-22T06:57:02.742Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6724,7 +6724,7 @@
       "file_path": "shitsugi/hyoka/02/10.json",
       "char_count_body": 809,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:07.050Z",
+      "fetched_at": "2026-06-22T06:57:03.748Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6736,9 +6736,9 @@
       "title": "宅地の評価単位－不合理分割(2)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/11.htm",
       "file_path": "shitsugi/hyoka/02/11.json",
-      "char_count_body": 427,
+      "char_count_body": 426,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:08.050Z",
+      "fetched_at": "2026-06-22T06:57:04.753Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6752,7 +6752,7 @@
       "file_path": "shitsugi/hyoka/02/12.json",
       "char_count_body": 285,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:00.055Z",
+      "fetched_at": "2026-06-22T06:57:05.757Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6766,7 +6766,7 @@
       "file_path": "shitsugi/hyoka/02/13.json",
       "char_count_body": 319,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:06.050Z",
+      "fetched_at": "2026-06-22T06:57:06.768Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6778,9 +6778,9 @@
       "title": "正面路線の判定(1)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/01.htm",
       "file_path": "shitsugi/hyoka/03/01.json",
-      "char_count_body": 412,
+      "char_count_body": 408,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:09.050Z",
+      "fetched_at": "2026-06-22T06:57:07.768Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6794,7 +6794,7 @@
       "file_path": "shitsugi/hyoka/03/02.json",
       "char_count_body": 376,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:10.050Z",
+      "fetched_at": "2026-06-22T06:57:08.775Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6808,7 +6808,7 @@
       "file_path": "shitsugi/hyoka/03/03.json",
       "char_count_body": 276,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:13.050Z",
+      "fetched_at": "2026-06-22T06:57:09.774Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6822,7 +6822,7 @@
       "file_path": "shitsugi/hyoka/03/04.json",
       "char_count_body": 227,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:14.049Z",
+      "fetched_at": "2026-06-22T06:57:10.787Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6834,9 +6834,9 @@
       "title": "側方路線に宅地の一部が接している場合の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/05.htm",
       "file_path": "shitsugi/hyoka/03/05.json",
-      "char_count_body": 326,
+      "char_count_body": 324,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:15.050Z",
+      "fetched_at": "2026-06-22T06:57:11.794Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6850,7 +6850,7 @@
       "file_path": "shitsugi/hyoka/03/06.json",
       "char_count_body": 239,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:20.049Z",
+      "fetched_at": "2026-06-22T06:57:12.798Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6864,7 +6864,7 @@
       "file_path": "shitsugi/hyoka/03/07.json",
       "char_count_body": 317,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:23.049Z",
+      "fetched_at": "2026-06-22T06:57:13.806Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6878,7 +6878,7 @@
       "file_path": "shitsugi/hyoka/03/08.json",
       "char_count_body": 159,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:24.048Z",
+      "fetched_at": "2026-06-22T06:57:14.812Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6892,7 +6892,7 @@
       "file_path": "shitsugi/hyoka/03/09.json",
       "char_count_body": 180,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:25.048Z",
+      "fetched_at": "2026-06-22T06:57:15.827Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6906,7 +6906,7 @@
       "file_path": "shitsugi/hyoka/03/10.json",
       "char_count_body": 269,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:26.048Z",
+      "fetched_at": "2026-06-22T06:57:16.831Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6920,7 +6920,7 @@
       "file_path": "shitsugi/hyoka/03/11.json",
       "char_count_body": 244,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:27.047Z",
+      "fetched_at": "2026-06-22T06:57:17.840Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6934,7 +6934,7 @@
       "file_path": "shitsugi/hyoka/03/12.json",
       "char_count_body": 188,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:28.047Z",
+      "fetched_at": "2026-06-22T06:57:18.845Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6946,9 +6946,9 @@
       "title": "不整形地の評価――区分した整形地を基として評価する場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/13.htm",
       "file_path": "shitsugi/hyoka/03/13.json",
-      "char_count_body": 171,
+      "char_count_body": 169,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:29.046Z",
+      "fetched_at": "2026-06-22T06:57:19.860Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6962,7 +6962,7 @@
       "file_path": "shitsugi/hyoka/03/14.json",
       "char_count_body": 93,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:30.047Z",
+      "fetched_at": "2026-06-22T06:57:20.871Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6976,7 +6976,7 @@
       "file_path": "shitsugi/hyoka/03/15.json",
       "char_count_body": 368,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:31.047Z",
+      "fetched_at": "2026-06-22T06:57:21.886Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT"
     },
     {
@@ -6990,7 +6990,7 @@
       "file_path": "shitsugi/hyoka/03/16.json",
       "char_count_body": 558,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:32.048Z",
+      "fetched_at": "2026-06-22T06:57:22.892Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7002,9 +7002,9 @@
       "title": "不整形地の評価――不整形地としての評価を行わない場合(1)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/17.htm",
       "file_path": "shitsugi/hyoka/03/17.json",
-      "char_count_body": 260,
+      "char_count_body": 259,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:33.048Z",
+      "fetched_at": "2026-06-22T06:57:23.902Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7016,9 +7016,9 @@
       "title": "不整形地の評価――不整形地としての評価を行わない場合(2)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/18.htm",
       "file_path": "shitsugi/hyoka/03/18.json",
-      "char_count_body": 422,
+      "char_count_body": 421,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:34.049Z",
+      "fetched_at": "2026-06-22T06:57:24.917Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7030,9 +7030,9 @@
       "title": "接道義務を満たしていない宅地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/19.htm",
       "file_path": "shitsugi/hyoka/03/19.json",
-      "char_count_body": 715,
+      "char_count_body": 714,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:36.047Z",
+      "fetched_at": "2026-06-22T06:57:25.932Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7046,7 +7046,7 @@
       "file_path": "shitsugi/hyoka/03/20.json",
       "char_count_body": 215,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:37.047Z",
+      "fetched_at": "2026-06-22T06:57:26.934Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7060,7 +7060,7 @@
       "file_path": "shitsugi/hyoka/03/21.json",
       "char_count_body": 152,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:38.046Z",
+      "fetched_at": "2026-06-22T06:57:27.944Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7072,9 +7072,9 @@
       "title": "がけ地等を有する宅地の評価――2方向にがけ地部分を有する場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/22.htm",
       "file_path": "shitsugi/hyoka/03/22.json",
-      "char_count_body": 261,
+      "char_count_body": 260,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:39.045Z",
+      "fetched_at": "2026-06-22T06:57:28.955Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7088,7 +7088,7 @@
       "file_path": "shitsugi/hyoka/03/23.json",
       "char_count_body": 521,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:12.051Z",
+      "fetched_at": "2026-06-22T06:57:29.965Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7102,7 +7102,7 @@
       "file_path": "shitsugi/hyoka/03/24.json",
       "char_count_body": 375,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:16.049Z",
+      "fetched_at": "2026-06-22T06:57:30.978Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7116,7 +7116,7 @@
       "file_path": "shitsugi/hyoka/03/25.json",
       "char_count_body": 130,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:17.049Z",
+      "fetched_at": "2026-06-22T06:57:31.993Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7130,7 +7130,7 @@
       "file_path": "shitsugi/hyoka/03/26.json",
       "char_count_body": 545,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:18.048Z",
+      "fetched_at": "2026-06-22T06:57:33.002Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7144,7 +7144,7 @@
       "file_path": "shitsugi/hyoka/03/27.json",
       "char_count_body": 407,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:19.049Z",
+      "fetched_at": "2026-06-22T06:57:34.017Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7158,7 +7158,7 @@
       "file_path": "shitsugi/hyoka/03/28.json",
       "char_count_body": 711,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:21.048Z",
+      "fetched_at": "2026-06-22T06:57:35.029Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7172,7 +7172,7 @@
       "file_path": "shitsugi/hyoka/03/29.json",
       "char_count_body": 238,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:22.049Z",
+      "fetched_at": "2026-06-22T06:57:36.031Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7186,7 +7186,7 @@
       "file_path": "shitsugi/hyoka/03/30.json",
       "char_count_body": 255,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:35.048Z",
+      "fetched_at": "2026-06-22T06:57:37.041Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7198,9 +7198,9 @@
       "title": "正面路線に2以上の路線価が付されている場合の宅地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/31.htm",
       "file_path": "shitsugi/hyoka/03/31.json",
-      "char_count_body": 266,
+      "char_count_body": 265,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:11.051Z",
+      "fetched_at": "2026-06-22T06:57:38.048Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7212,9 +7212,9 @@
       "title": "土地の評価単位――地目の異なる土地を一団として評価する場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/01.htm",
       "file_path": "shitsugi/hyoka/04/01.json",
-      "char_count_body": 1016,
+      "char_count_body": 1015,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:55.053Z",
+      "fetched_at": "2026-06-22T06:57:39.061Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7228,7 +7228,7 @@
       "file_path": "shitsugi/hyoka/04/02.json",
       "char_count_body": 1031,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:57.053Z",
+      "fetched_at": "2026-06-22T06:57:40.075Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7242,7 +7242,7 @@
       "file_path": "shitsugi/hyoka/04/03.json",
       "char_count_body": 413,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:58.052Z",
+      "fetched_at": "2026-06-22T06:57:41.086Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7256,7 +7256,7 @@
       "file_path": "shitsugi/hyoka/04/04.json",
       "char_count_body": 396,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:07.055Z",
+      "fetched_at": "2026-06-22T06:57:42.101Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7270,7 +7270,7 @@
       "file_path": "shitsugi/hyoka/04/05.json",
       "char_count_body": 378,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:08.056Z",
+      "fetched_at": "2026-06-22T06:57:43.111Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7282,9 +7282,9 @@
       "title": "不特定多数の者の通行の用に供されている私道",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/06.htm",
       "file_path": "shitsugi/hyoka/04/06.json",
-      "char_count_body": 431,
+      "char_count_body": 426,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:09.056Z",
+      "fetched_at": "2026-06-22T06:57:44.122Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7298,7 +7298,7 @@
       "file_path": "shitsugi/hyoka/04/07.json",
       "char_count_body": 562,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:11.055Z",
+      "fetched_at": "2026-06-22T06:57:45.137Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7312,7 +7312,7 @@
       "file_path": "shitsugi/hyoka/04/08.json",
       "char_count_body": 435,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:15.053Z",
+      "fetched_at": "2026-06-22T06:57:46.141Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7324,9 +7324,9 @@
       "title": "一般定期借地権の目的となっている宅地の評価――簡便法(2)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/09.htm",
       "file_path": "shitsugi/hyoka/04/09.json",
-      "char_count_body": 925,
+      "char_count_body": 921,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:16.053Z",
+      "fetched_at": "2026-06-22T06:57:47.154Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT"
     },
     {
@@ -7340,7 +7340,7 @@
       "file_path": "shitsugi/hyoka/04/10.json",
       "char_count_body": 521,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:18.052Z",
+      "fetched_at": "2026-06-22T06:57:48.157Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7354,7 +7354,7 @@
       "file_path": "shitsugi/hyoka/04/11.json",
       "char_count_body": 600,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:21.051Z",
+      "fetched_at": "2026-06-22T06:57:49.171Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7366,9 +7366,9 @@
       "title": "貸家建付地等の評価における一時的な空室の範囲",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/12.htm",
       "file_path": "shitsugi/hyoka/04/12.json",
-      "char_count_body": 969,
+      "char_count_body": 967,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:22.051Z",
+      "fetched_at": "2026-06-22T06:57:50.186Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7382,7 +7382,7 @@
       "file_path": "shitsugi/hyoka/04/13.json",
       "char_count_body": 287,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:23.050Z",
+      "fetched_at": "2026-06-22T06:57:51.202Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7396,7 +7396,7 @@
       "file_path": "shitsugi/hyoka/04/14.json",
       "char_count_body": 89,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:26.051Z",
+      "fetched_at": "2026-06-22T06:57:52.217Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7410,7 +7410,7 @@
       "file_path": "shitsugi/hyoka/04/15.json",
       "char_count_body": 306,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:27.051Z",
+      "fetched_at": "2026-06-22T06:57:53.231Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7424,7 +7424,7 @@
       "file_path": "shitsugi/hyoka/04/16.json",
       "char_count_body": 167,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:29.051Z",
+      "fetched_at": "2026-06-22T06:57:54.234Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7436,9 +7436,9 @@
       "title": "市民農園として貸し付けている農地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/17.htm",
       "file_path": "shitsugi/hyoka/04/17.json",
-      "char_count_body": 1006,
+      "char_count_body": 1003,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:30.051Z",
+      "fetched_at": "2026-06-22T06:57:55.238Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7450,9 +7450,9 @@
       "title": "雑種地の賃借権の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/18.htm",
       "file_path": "shitsugi/hyoka/04/18.json",
-      "char_count_body": 538,
+      "char_count_body": 536,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:42.049Z",
+      "fetched_at": "2026-06-22T06:57:56.245Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7466,7 +7466,7 @@
       "file_path": "shitsugi/hyoka/04/19.json",
       "char_count_body": 274,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:43.048Z",
+      "fetched_at": "2026-06-22T06:57:57.260Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7480,7 +7480,7 @@
       "file_path": "shitsugi/hyoka/04/20.json",
       "char_count_body": 208,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:44.048Z",
+      "fetched_at": "2026-06-22T06:57:58.263Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7494,7 +7494,7 @@
       "file_path": "shitsugi/hyoka/04/21.json",
       "char_count_body": 427,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:45.048Z",
+      "fetched_at": "2026-06-22T06:57:59.274Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7506,9 +7506,9 @@
       "title": "土地の評価単位――市街地農地等",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/22.htm",
       "file_path": "shitsugi/hyoka/04/22.json",
-      "char_count_body": 619,
+      "char_count_body": 617,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:56.053Z",
+      "fetched_at": "2026-06-22T06:58:00.284Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7522,7 +7522,7 @@
       "file_path": "shitsugi/hyoka/04/23.json",
       "char_count_body": 591,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:59.052Z",
+      "fetched_at": "2026-06-22T06:58:01.290Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7536,7 +7536,7 @@
       "file_path": "shitsugi/hyoka/04/24.json",
       "char_count_body": 175,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:00.052Z",
+      "fetched_at": "2026-06-22T06:58:02.299Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7550,7 +7550,7 @@
       "file_path": "shitsugi/hyoka/04/25.json",
       "char_count_body": 421,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:01.053Z",
+      "fetched_at": "2026-06-22T06:58:03.309Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7564,7 +7564,7 @@
       "file_path": "shitsugi/hyoka/04/26.json",
       "char_count_body": 390,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:02.053Z",
+      "fetched_at": "2026-06-22T06:58:04.324Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7578,7 +7578,7 @@
       "file_path": "shitsugi/hyoka/04/27.json",
       "char_count_body": 537,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:03.053Z",
+      "fetched_at": "2026-06-22T06:58:05.331Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7592,7 +7592,7 @@
       "file_path": "shitsugi/hyoka/04/28.json",
       "char_count_body": 1033,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:04.053Z",
+      "fetched_at": "2026-06-22T06:58:06.335Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7606,7 +7606,7 @@
       "file_path": "shitsugi/hyoka/04/29.json",
       "char_count_body": 291,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:06.054Z",
+      "fetched_at": "2026-06-22T06:58:07.339Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7620,7 +7620,7 @@
       "file_path": "shitsugi/hyoka/04/30.json",
       "char_count_body": 212,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:12.055Z",
+      "fetched_at": "2026-06-22T06:58:08.354Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7634,7 +7634,7 @@
       "file_path": "shitsugi/hyoka/04/31.json",
       "char_count_body": 424,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:19.053Z",
+      "fetched_at": "2026-06-22T06:58:09.369Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7648,7 +7648,7 @@
       "file_path": "shitsugi/hyoka/04/32.json",
       "char_count_body": 308,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:24.050Z",
+      "fetched_at": "2026-06-22T06:58:10.374Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7662,7 +7662,7 @@
       "file_path": "shitsugi/hyoka/04/33.json",
       "char_count_body": 367,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:25.050Z",
+      "fetched_at": "2026-06-22T06:58:11.375Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7676,7 +7676,7 @@
       "file_path": "shitsugi/hyoka/04/34.json",
       "char_count_body": 284,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:46.049Z",
+      "fetched_at": "2026-06-22T06:58:12.385Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT"
     },
     {
@@ -7688,9 +7688,9 @@
       "title": "容積率の異なる2以上の地域にわたる宅地の一部が都市計画道路予定地の区域内となる宅地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/35.htm",
       "file_path": "shitsugi/hyoka/04/35.json",
-      "char_count_body": 518,
+      "char_count_body": 517,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:05.054Z",
+      "fetched_at": "2026-06-22T06:58:13.398Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7702,9 +7702,9 @@
       "title": "農用地利用集積計画の公告により賃借権が設定されている農地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/36.htm",
       "file_path": "shitsugi/hyoka/04/36.json",
-      "char_count_body": 697,
+      "char_count_body": 695,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:31.051Z",
+      "fetched_at": "2026-06-22T06:58:14.408Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7718,7 +7718,7 @@
       "file_path": "shitsugi/hyoka/04/37.json",
       "char_count_body": 430,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:34.051Z",
+      "fetched_at": "2026-06-22T06:58:15.409Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7732,7 +7732,7 @@
       "file_path": "shitsugi/hyoka/04/38.json",
       "char_count_body": 764,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:41.049Z",
+      "fetched_at": "2026-06-22T06:58:16.420Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7746,7 +7746,7 @@
       "file_path": "shitsugi/hyoka/04/39.json",
       "char_count_body": 600,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:13.055Z",
+      "fetched_at": "2026-06-22T06:58:17.433Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7760,7 +7760,7 @@
       "file_path": "shitsugi/hyoka/04/40.json",
       "char_count_body": 699,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:14.054Z",
+      "fetched_at": "2026-06-22T06:58:18.438Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7774,7 +7774,7 @@
       "file_path": "shitsugi/hyoka/04/41.json",
       "char_count_body": 412,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:17.051Z",
+      "fetched_at": "2026-06-22T06:58:19.446Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7786,9 +7786,9 @@
       "title": "借地権と区分地上権に準ずる地役権とが競合する場合の宅地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/42.htm",
       "file_path": "shitsugi/hyoka/04/42.json",
-      "char_count_body": 303,
+      "char_count_body": 301,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:20.052Z",
+      "fetched_at": "2026-06-22T06:58:20.457Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7800,9 +7800,9 @@
       "title": "生産緑地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/44.htm",
       "file_path": "shitsugi/hyoka/04/44.json",
-      "char_count_body": 877,
+      "char_count_body": 868,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:28.051Z",
+      "fetched_at": "2026-06-22T06:58:21.463Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7814,9 +7814,9 @@
       "title": "特別緑地保全地区内で管理協定が締結されている山林の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/45.htm",
       "file_path": "shitsugi/hyoka/04/45.json",
-      "char_count_body": 496,
+      "char_count_body": 493,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:35.051Z",
+      "fetched_at": "2026-06-22T06:58:22.464Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7828,9 +7828,9 @@
       "title": "市民緑地契約が締結されている土地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/46.htm",
       "file_path": "shitsugi/hyoka/04/46.json",
-      "char_count_body": 575,
+      "char_count_body": 572,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:36.050Z",
+      "fetched_at": "2026-06-22T06:58:23.478Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7842,9 +7842,9 @@
       "title": "風景地保護協定が締結されている土地の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/47.htm",
       "file_path": "shitsugi/hyoka/04/47.json",
-      "char_count_body": 584,
+      "char_count_body": 581,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:37.049Z",
+      "fetched_at": "2026-06-22T06:58:24.491Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7858,7 +7858,7 @@
       "file_path": "shitsugi/hyoka/04/48.json",
       "char_count_body": 787,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:32.051Z",
+      "fetched_at": "2026-06-22T06:58:25.495Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7872,7 +7872,7 @@
       "file_path": "shitsugi/hyoka/04/49.json",
       "char_count_body": 701,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:39.048Z",
+      "fetched_at": "2026-06-22T06:58:26.499Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7886,7 +7886,7 @@
       "file_path": "shitsugi/hyoka/04/50.json",
       "char_count_body": 852,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:40.049Z",
+      "fetched_at": "2026-06-22T06:58:27.501Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7914,7 +7914,7 @@
       "file_path": "shitsugi/hyoka/04/52.json",
       "char_count_body": 618,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:33.052Z",
+      "fetched_at": "2026-06-22T06:58:28.510Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7928,7 +7928,7 @@
       "file_path": "shitsugi/hyoka/04/53.json",
       "char_count_body": 701,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:38.049Z",
+      "fetched_at": "2026-06-22T06:58:29.523Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7942,7 +7942,7 @@
       "file_path": "shitsugi/hyoka/05/01.json",
       "char_count_body": 282,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:48.050Z",
+      "fetched_at": "2026-06-22T06:58:30.527Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7954,9 +7954,9 @@
       "title": "同族会社が株主である場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/05/02.htm",
       "file_path": "shitsugi/hyoka/05/02.json",
-      "char_count_body": 638,
+      "char_count_body": 637,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:49.050Z",
+      "fetched_at": "2026-06-22T06:58:31.541Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7970,7 +7970,7 @@
       "file_path": "shitsugi/hyoka/05/03.json",
       "char_count_body": 580,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:50.050Z",
+      "fetched_at": "2026-06-22T06:58:32.552Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7982,9 +7982,9 @@
       "title": "遺産が未分割である場合の議決権割合の判定",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/05/04.htm",
       "file_path": "shitsugi/hyoka/05/04.json",
-      "char_count_body": 714,
+      "char_count_body": 713,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:51.051Z",
+      "fetched_at": "2026-06-22T06:58:33.555Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -7998,7 +7998,7 @@
       "file_path": "shitsugi/hyoka/06/01.json",
       "char_count_body": 444,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:53.053Z",
+      "fetched_at": "2026-06-22T06:58:34.569Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -8010,9 +8010,9 @@
       "title": "従業員の範囲",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/06/02.htm",
       "file_path": "shitsugi/hyoka/06/02.json",
-      "char_count_body": 1144,
+      "char_count_body": 1133,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:52.052Z",
+      "fetched_at": "2026-06-22T06:58:35.574Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -8026,7 +8026,7 @@
       "file_path": "shitsugi/hyoka/07/01.json",
       "char_count_body": 344,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:54.053Z",
+      "fetched_at": "2026-06-22T06:58:36.587Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
     },
     {
@@ -8040,7 +8040,7 @@
       "file_path": "shitsugi/hyoka/07/03.json",
       "char_count_body": 385,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:56.054Z",
+      "fetched_at": "2026-06-22T06:58:37.590Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8054,7 +8054,7 @@
       "file_path": "shitsugi/hyoka/07/04.json",
       "char_count_body": 280,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:57.054Z",
+      "fetched_at": "2026-06-22T06:58:38.595Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8068,7 +8068,7 @@
       "file_path": "shitsugi/hyoka/07/06.json",
       "char_count_body": 207,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:55.054Z",
+      "fetched_at": "2026-06-22T06:58:39.600Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8082,7 +8082,7 @@
       "file_path": "shitsugi/hyoka/07/07.json",
       "char_count_body": 231,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:58.054Z",
+      "fetched_at": "2026-06-22T06:58:40.606Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8094,9 +8094,9 @@
       "title": "1株当たりの利益金額 －外国子会社等から剰余金の配当等がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/08.htm",
       "file_path": "shitsugi/hyoka/07/08.json",
-      "char_count_body": 569,
+      "char_count_body": 568,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:59.054Z",
+      "fetched_at": "2026-06-22T06:58:41.620Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8108,9 +8108,9 @@
       "title": "1株当たりの利益金額 －譲渡損益調整資産の譲渡等があった場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/09.htm",
       "file_path": "shitsugi/hyoka/07/09.json",
-      "char_count_body": 1046,
+      "char_count_body": 1045,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:00.054Z",
+      "fetched_at": "2026-06-22T06:58:42.622Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8124,7 +8124,7 @@
       "file_path": "shitsugi/hyoka/07/10.json",
       "char_count_body": 551,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:01.054Z",
+      "fetched_at": "2026-06-22T06:58:43.628Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8136,9 +8136,9 @@
       "title": "1株当たりの配当金額 －自己株式の取得によるみなし配当の金額がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/11.htm",
       "file_path": "shitsugi/hyoka/07/11.json",
-      "char_count_body": 412,
+      "char_count_body": 411,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:02.054Z",
+      "fetched_at": "2026-06-22T06:58:44.637Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8150,9 +8150,9 @@
       "title": "1株当たりの利益金額 －みなし配当の金額がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/12.htm",
       "file_path": "shitsugi/hyoka/07/12.json",
-      "char_count_body": 662,
+      "char_count_body": 661,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:03.054Z",
+      "fetched_at": "2026-06-22T06:58:45.652Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8166,7 +8166,7 @@
       "file_path": "shitsugi/hyoka/07/13.json",
       "char_count_body": 402,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:04.054Z",
+      "fetched_at": "2026-06-22T06:58:46.660Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8180,7 +8180,7 @@
       "file_path": "shitsugi/hyoka/07/14.json",
       "char_count_body": 845,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:05.053Z",
+      "fetched_at": "2026-06-22T06:58:47.673Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8192,9 +8192,9 @@
       "title": "1株当たりの利益金額 －グループ通算制度における損益通算等の適用がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/15.htm",
       "file_path": "shitsugi/hyoka/07/15.json",
-      "char_count_body": 1922,
+      "char_count_body": 1916,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:06.053Z",
+      "fetched_at": "2026-06-22T06:58:48.677Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8208,7 +8208,7 @@
       "file_path": "shitsugi/hyoka/08/01.json",
       "char_count_body": 969,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:09.053Z",
+      "fetched_at": "2026-06-22T06:58:49.679Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8222,7 +8222,7 @@
       "file_path": "shitsugi/hyoka/08/02.json",
       "char_count_body": 152,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:11.052Z",
+      "fetched_at": "2026-06-22T06:58:50.692Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8236,7 +8236,7 @@
       "file_path": "shitsugi/hyoka/08/03.json",
       "char_count_body": 384,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:07.053Z",
+      "fetched_at": "2026-06-22T06:58:51.700Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8250,7 +8250,7 @@
       "file_path": "shitsugi/hyoka/08/04.json",
       "char_count_body": 351,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:12.052Z",
+      "fetched_at": "2026-06-22T06:58:52.701Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8264,7 +8264,7 @@
       "file_path": "shitsugi/hyoka/08/05.json",
       "char_count_body": 915,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:10.052Z",
+      "fetched_at": "2026-06-22T06:58:53.710Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8278,7 +8278,7 @@
       "file_path": "shitsugi/hyoka/08/06.json",
       "char_count_body": 523,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:08.053Z",
+      "fetched_at": "2026-06-22T06:58:54.721Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8292,7 +8292,7 @@
       "file_path": "shitsugi/hyoka/09/01.json",
       "char_count_body": 873,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:13.053Z",
+      "fetched_at": "2026-06-22T06:58:55.729Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8304,9 +8304,9 @@
       "title": "判定の基礎となる「株式等」の範囲",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/10/01.htm",
       "file_path": "shitsugi/hyoka/10/01.json",
-      "char_count_body": 1323,
+      "char_count_body": 1314,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:15.053Z",
+      "fetched_at": "2026-06-22T06:58:56.735Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8320,7 +8320,7 @@
       "file_path": "shitsugi/hyoka/10/02.json",
       "char_count_body": 814,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:16.053Z",
+      "fetched_at": "2026-06-22T06:58:57.750Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8332,9 +8332,9 @@
       "title": "「比準要素数1の会社」の判定の際の端数処理",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/11/01.htm",
       "file_path": "shitsugi/hyoka/11/01.json",
-      "char_count_body": 253,
+      "char_count_body": 252,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:17.053Z",
+      "fetched_at": "2026-06-22T06:58:58.764Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8348,7 +8348,7 @@
       "file_path": "shitsugi/hyoka/12/01.json",
       "char_count_body": 403,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:18.053Z",
+      "fetched_at": "2026-06-22T06:58:59.769Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
     },
     {
@@ -8360,9 +8360,9 @@
       "title": "信用金庫等の出資の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/13/01.htm",
       "file_path": "shitsugi/hyoka/13/01.json",
-      "char_count_body": 858,
+      "char_count_body": 853,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:22.053Z",
+      "fetched_at": "2026-06-22T06:59:00.777Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8376,7 +8376,7 @@
       "file_path": "shitsugi/hyoka/13/02.json",
       "char_count_body": 282,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:21.054Z",
+      "fetched_at": "2026-06-22T06:59:01.791Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8388,9 +8388,9 @@
       "title": "持分会社の退社時の出資の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/13/03.htm",
       "file_path": "shitsugi/hyoka/13/03.json",
-      "char_count_body": 499,
+      "char_count_body": 497,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:23.053Z",
+      "fetched_at": "2026-06-22T06:59:02.802Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8402,9 +8402,9 @@
       "title": "企業組合の定款に特別の定めがある場合の出資の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/13/04.htm",
       "file_path": "shitsugi/hyoka/13/04.json",
-      "char_count_body": 834,
+      "char_count_body": 827,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:24.053Z",
+      "fetched_at": "2026-06-22T06:59:03.815Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8418,7 +8418,7 @@
       "file_path": "shitsugi/hyoka/14/01.json",
       "char_count_body": 380,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:25.052Z",
+      "fetched_at": "2026-06-22T06:59:04.826Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8430,9 +8430,9 @@
       "title": "国外財産の評価――取引金融機関の為替相場(1)",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/15/01.htm",
       "file_path": "shitsugi/hyoka/15/01.json",
-      "char_count_body": 609,
+      "char_count_body": 607,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:33.050Z",
+      "fetched_at": "2026-06-22T06:59:05.827Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8446,7 +8446,7 @@
       "file_path": "shitsugi/hyoka/15/02.json",
       "char_count_body": 645,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:34.049Z",
+      "fetched_at": "2026-06-22T06:59:06.839Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8460,7 +8460,7 @@
       "file_path": "shitsugi/hyoka/15/03.json",
       "char_count_body": 654,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:35.049Z",
+      "fetched_at": "2026-06-22T06:59:07.850Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8474,7 +8474,7 @@
       "file_path": "shitsugi/hyoka/15/04.json",
       "char_count_body": 434,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:36.048Z",
+      "fetched_at": "2026-06-22T06:59:08.858Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8488,7 +8488,7 @@
       "file_path": "shitsugi/hyoka/15/05.json",
       "char_count_body": 685,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:40.047Z",
+      "fetched_at": "2026-06-22T06:59:09.870Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8502,7 +8502,7 @@
       "file_path": "shitsugi/hyoka/15/06.json",
       "char_count_body": 506,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:29.051Z",
+      "fetched_at": "2026-06-22T06:59:10.886Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8514,9 +8514,9 @@
       "title": "EB債（他社株転換債）の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/15/07.htm",
       "file_path": "shitsugi/hyoka/15/07.json",
-      "char_count_body": 1027,
+      "char_count_body": 1024,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:30.050Z",
+      "fetched_at": "2026-06-22T06:59:11.890Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8530,7 +8530,7 @@
       "file_path": "shitsugi/hyoka/15/08.json",
       "char_count_body": 880,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:31.051Z",
+      "fetched_at": "2026-06-22T06:59:12.890Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8542,9 +8542,9 @@
       "title": "不動産所有権付リゾート会員権の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/15/09.htm",
       "file_path": "shitsugi/hyoka/15/09.json",
-      "char_count_body": 875,
+      "char_count_body": 871,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:32.050Z",
+      "fetched_at": "2026-06-22T06:59:13.892Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8558,7 +8558,7 @@
       "file_path": "shitsugi/hyoka/15/10.json",
       "char_count_body": 257,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:37.047Z",
+      "fetched_at": "2026-06-22T06:59:14.903Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8572,7 +8572,7 @@
       "file_path": "shitsugi/hyoka/15/12.json",
       "char_count_body": 399,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:38.047Z",
+      "fetched_at": "2026-06-22T06:59:15.908Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8586,7 +8586,7 @@
       "file_path": "shitsugi/hyoka/15/14.json",
       "char_count_body": 224,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:39.048Z",
+      "fetched_at": "2026-06-22T06:59:16.922Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8600,7 +8600,7 @@
       "file_path": "shitsugi/hyoka/15/15.json",
       "char_count_body": 383,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:26.052Z",
+      "fetched_at": "2026-06-22T06:59:17.928Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8614,7 +8614,7 @@
       "file_path": "shitsugi/hyoka/15/16.json",
       "char_count_body": 713,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:28.050Z",
+      "fetched_at": "2026-06-22T06:59:18.943Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8626,9 +8626,9 @@
       "title": "電話加入権の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/15/17.htm",
       "file_path": "shitsugi/hyoka/15/17.json",
-      "char_count_body": 431,
+      "char_count_body": 428,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:27.051Z",
+      "fetched_at": "2026-06-22T06:59:19.958Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8642,7 +8642,7 @@
       "file_path": "shitsugi/hyoka/16/01.json",
       "char_count_body": 339,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:14.054Z",
+      "fetched_at": "2026-06-22T06:59:20.965Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8654,9 +8654,9 @@
       "title": "種類株式の評価（その1）－上場会社が発行した利益による消却が予定されている非上場株式の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/17/01.htm",
       "file_path": "shitsugi/hyoka/17/01.json",
-      "char_count_body": 1201,
+      "char_count_body": 1175,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:19.053Z",
+      "fetched_at": "2026-06-22T06:59:21.973Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8668,9 +8668,9 @@
       "title": "種類株式の評価（その2）－上場会社が発行した普通株式に転換が予定されている非上場株式の評価",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/17/02.htm",
       "file_path": "shitsugi/hyoka/17/02.json",
-      "char_count_body": 1817,
+      "char_count_body": 1806,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:15:20.054Z",
+      "fetched_at": "2026-06-22T06:59:22.978Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT"
     },
     {
@@ -8684,7 +8684,7 @@
       "file_path": "shitsugi/hyoka/19/01.json",
       "char_count_body": 674,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:14:47.050Z",
+      "fetched_at": "2026-06-22T06:59:23.993Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8698,7 +8698,7 @@
       "file_path": "shitsugi/hyoka/20/01.json",
       "char_count_body": 292,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:41.046Z",
+      "fetched_at": "2026-06-22T06:59:25.008Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8712,7 +8712,7 @@
       "file_path": "shitsugi/hyoka/20/02.json",
       "char_count_body": 313,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:42.047Z",
+      "fetched_at": "2026-06-22T06:59:26.013Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8726,7 +8726,7 @@
       "file_path": "shitsugi/hyoka/20/03.json",
       "char_count_body": 226,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:43.048Z",
+      "fetched_at": "2026-06-22T06:59:27.016Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8740,7 +8740,7 @@
       "file_path": "shitsugi/hyoka/20/04.json",
       "char_count_body": 284,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:44.048Z",
+      "fetched_at": "2026-06-22T06:59:28.028Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8754,7 +8754,7 @@
       "file_path": "shitsugi/hyoka/20/05.json",
       "char_count_body": 148,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:45.049Z",
+      "fetched_at": "2026-06-22T06:59:29.042Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8766,9 +8766,9 @@
       "title": "地積規模の大きな宅地の評価－倍率地域に所在する場合の評価方法",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/06.htm",
       "file_path": "shitsugi/hyoka/20/06.json",
-      "char_count_body": 421,
+      "char_count_body": 420,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:46.049Z",
+      "fetched_at": "2026-06-22T06:59:30.051Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8782,7 +8782,7 @@
       "file_path": "shitsugi/hyoka/20/07.json",
       "char_count_body": 349,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:47.049Z",
+      "fetched_at": "2026-06-22T06:59:31.051Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8796,7 +8796,7 @@
       "file_path": "shitsugi/hyoka/20/08.json",
       "char_count_body": 110,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:48.050Z",
+      "fetched_at": "2026-06-22T06:59:32.058Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8808,9 +8808,9 @@
       "title": "地積規模の大きな宅地の評価－計算例&#x2461;（用途地域が工業専用地域とそれ以外の地域にわたる場合）",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/09.htm",
       "file_path": "shitsugi/hyoka/20/09.json",
-      "char_count_body": 312,
+      "char_count_body": 311,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:49.050Z",
+      "fetched_at": "2026-06-22T06:59:33.066Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8822,9 +8822,9 @@
       "title": "地積規模の大きな宅地の評価－計算例&#x2462;（指定容積率の異なる2以上の地域にわたる場合）",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/10.htm",
       "file_path": "shitsugi/hyoka/20/10.json",
-      "char_count_body": 304,
+      "char_count_body": 303,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:50.050Z",
+      "fetched_at": "2026-06-22T06:59:34.081Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8836,9 +8836,9 @@
       "title": "地積規模の大きな宅地の評価－計算例&#x2463;（正面路線が2以上の地区にわたる場合）",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/11.htm",
       "file_path": "shitsugi/hyoka/20/11.json",
-      "char_count_body": 383,
+      "char_count_body": 382,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:51.050Z",
+      "fetched_at": "2026-06-22T06:59:35.096Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8850,9 +8850,9 @@
       "title": "地積規模の大きな宅地の評価－計算例&#x2464;（倍率地域に所在する宅地の場合）",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/12.htm",
       "file_path": "shitsugi/hyoka/20/12.json",
-      "char_count_body": 360,
+      "char_count_body": 358,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:52.051Z",
+      "fetched_at": "2026-06-22T06:59:36.104Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8866,7 +8866,7 @@
       "file_path": "shitsugi/hyoka/20/13.json",
       "char_count_body": 147,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:13:53.052Z",
+      "fetched_at": "2026-06-22T06:59:37.114Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8908,7 +8908,7 @@
       "file_path": "shitsugi/joto/01/01.json",
       "char_count_body": 497,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:23.063Z",
+      "fetched_at": "2026-06-22T06:59:38.114Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8922,7 +8922,7 @@
       "file_path": "shitsugi/joto/01/02.json",
       "char_count_body": 520,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:24.062Z",
+      "fetched_at": "2026-06-22T06:59:39.116Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8936,7 +8936,7 @@
       "file_path": "shitsugi/joto/01/03.json",
       "char_count_body": 299,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:25.063Z",
+      "fetched_at": "2026-06-22T06:59:40.125Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8950,7 +8950,7 @@
       "file_path": "shitsugi/joto/01/04.json",
       "char_count_body": 369,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:26.062Z",
+      "fetched_at": "2026-06-22T06:59:41.127Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8964,7 +8964,7 @@
       "file_path": "shitsugi/joto/01/05.json",
       "char_count_body": 245,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:27.061Z",
+      "fetched_at": "2026-06-22T06:59:42.128Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8978,7 +8978,7 @@
       "file_path": "shitsugi/joto/02/01.json",
       "char_count_body": 227,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:29.059Z",
+      "fetched_at": "2026-06-22T06:59:43.130Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT"
     },
     {
@@ -8990,9 +8990,9 @@
       "title": "長期間保有していた土地に区画形質の変更を加えて譲渡した場合の所得計算",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/02/02.htm",
       "file_path": "shitsugi/joto/02/02.json",
-      "char_count_body": 257,
+      "char_count_body": 252,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:32.060Z",
+      "fetched_at": "2026-06-22T06:59:44.143Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9006,7 +9006,7 @@
       "file_path": "shitsugi/joto/02/03.json",
       "char_count_body": 284,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:33.060Z",
+      "fetched_at": "2026-06-22T06:59:45.143Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9020,7 +9020,7 @@
       "file_path": "shitsugi/joto/02/04.json",
       "char_count_body": 320,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:34.060Z",
+      "fetched_at": "2026-06-22T06:59:46.154Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9034,7 +9034,7 @@
       "file_path": "shitsugi/joto/02/05.json",
       "char_count_body": 410,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:36.061Z",
+      "fetched_at": "2026-06-22T06:59:47.158Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9046,9 +9046,9 @@
       "title": "不動産取引業廃業後の一定期間経過後において譲渡した土地の所得区分等",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/02/06.htm",
       "file_path": "shitsugi/joto/02/06.json",
-      "char_count_body": 343,
+      "char_count_body": 341,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:28.060Z",
+      "fetched_at": "2026-06-22T06:59:48.162Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9062,7 +9062,7 @@
       "file_path": "shitsugi/joto/02/07.json",
       "char_count_body": 358,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:30.059Z",
+      "fetched_at": "2026-06-22T06:59:49.166Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9076,7 +9076,7 @@
       "file_path": "shitsugi/joto/02/08.json",
       "char_count_body": 339,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:31.060Z",
+      "fetched_at": "2026-06-22T06:59:50.179Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9090,7 +9090,7 @@
       "file_path": "shitsugi/joto/02/09.json",
       "char_count_body": 298,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:35.061Z",
+      "fetched_at": "2026-06-22T06:59:51.185Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9104,7 +9104,7 @@
       "file_path": "shitsugi/joto/03/01.json",
       "char_count_body": 683,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:38.062Z",
+      "fetched_at": "2026-06-22T06:59:52.194Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9118,7 +9118,7 @@
       "file_path": "shitsugi/joto/03/02.json",
       "char_count_body": 400,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:41.064Z",
+      "fetched_at": "2026-06-22T06:59:53.197Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9132,7 +9132,7 @@
       "file_path": "shitsugi/joto/03/03.json",
       "char_count_body": 576,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:44.065Z",
+      "fetched_at": "2026-06-22T06:59:54.208Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9146,7 +9146,7 @@
       "file_path": "shitsugi/joto/03/04.json",
       "char_count_body": 412,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:45.065Z",
+      "fetched_at": "2026-06-22T06:59:55.212Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9160,7 +9160,7 @@
       "file_path": "shitsugi/joto/03/05.json",
       "char_count_body": 263,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:39.062Z",
+      "fetched_at": "2026-06-22T06:59:56.222Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9172,9 +9172,9 @@
       "title": "土地改良事業の事業費を捻出するために集合換地した土地を譲渡した場合の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/03/06.htm",
       "file_path": "shitsugi/joto/03/06.json",
-      "char_count_body": 1596,
+      "char_count_body": 1589,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:40.063Z",
+      "fetched_at": "2026-06-22T06:59:57.227Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9188,7 +9188,7 @@
       "file_path": "shitsugi/joto/03/07.json",
       "char_count_body": 1392,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:42.065Z",
+      "fetched_at": "2026-06-22T06:59:58.240Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9202,7 +9202,7 @@
       "file_path": "shitsugi/joto/03/08.json",
       "char_count_body": 381,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:43.065Z",
+      "fetched_at": "2026-06-22T06:59:59.241Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9216,7 +9216,7 @@
       "file_path": "shitsugi/joto/03/09.json",
       "char_count_body": 906,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:46.065Z",
+      "fetched_at": "2026-06-22T07:00:00.256Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9230,7 +9230,7 @@
       "file_path": "shitsugi/joto/03/10.json",
       "char_count_body": 732,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:37.061Z",
+      "fetched_at": "2026-06-22T07:00:01.260Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9244,7 +9244,7 @@
       "file_path": "shitsugi/joto/04/01.json",
       "char_count_body": 367,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:47.065Z",
+      "fetched_at": "2026-06-22T07:00:02.276Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9258,7 +9258,7 @@
       "file_path": "shitsugi/joto/04/02.json",
       "char_count_body": 118,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:48.065Z",
+      "fetched_at": "2026-06-22T07:00:03.284Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9272,7 +9272,7 @@
       "file_path": "shitsugi/joto/05/01.json",
       "char_count_body": 271,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:49.065Z",
+      "fetched_at": "2026-06-22T07:00:04.286Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9286,7 +9286,7 @@
       "file_path": "shitsugi/joto/05/02.json",
       "char_count_body": 456,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:51.066Z",
+      "fetched_at": "2026-06-22T07:00:05.298Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9298,9 +9298,9 @@
       "title": "特別土地保有税と取得費",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/05/03.htm",
       "file_path": "shitsugi/joto/05/03.json",
-      "char_count_body": 352,
+      "char_count_body": 351,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:52.066Z",
+      "fetched_at": "2026-06-22T07:00:06.305Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9314,7 +9314,7 @@
       "file_path": "shitsugi/joto/05/06.json",
       "char_count_body": 258,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:54.067Z",
+      "fetched_at": "2026-06-22T07:00:07.307Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT"
     },
     {
@@ -9328,7 +9328,7 @@
       "file_path": "shitsugi/joto/05/07.json",
       "char_count_body": 330,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:57.069Z",
+      "fetched_at": "2026-06-22T07:00:08.312Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9342,7 +9342,7 @@
       "file_path": "shitsugi/joto/05/08.json",
       "char_count_body": 242,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:58.070Z",
+      "fetched_at": "2026-06-22T07:00:09.326Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9356,7 +9356,7 @@
       "file_path": "shitsugi/joto/05/09.json",
       "char_count_body": 366,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:01.072Z",
+      "fetched_at": "2026-06-22T07:00:10.342Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9370,7 +9370,7 @@
       "file_path": "shitsugi/joto/05/10.json",
       "char_count_body": 142,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:50.066Z",
+      "fetched_at": "2026-06-22T07:00:11.354Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9384,7 +9384,7 @@
       "file_path": "shitsugi/joto/05/11.json",
       "char_count_body": 351,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:53.067Z",
+      "fetched_at": "2026-06-22T07:00:12.356Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9398,7 +9398,7 @@
       "file_path": "shitsugi/joto/05/12.json",
       "char_count_body": 498,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:55.068Z",
+      "fetched_at": "2026-06-22T07:00:13.370Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9412,7 +9412,7 @@
       "file_path": "shitsugi/joto/05/13.json",
       "char_count_body": 386,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:56.069Z",
+      "fetched_at": "2026-06-22T07:00:14.373Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9424,9 +9424,9 @@
       "title": "競落した資産の取得時期",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/05/14.htm",
       "file_path": "shitsugi/joto/05/14.json",
-      "char_count_body": 359,
+      "char_count_body": 356,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:06:59.071Z",
+      "fetched_at": "2026-06-22T07:00:15.387Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9440,7 +9440,7 @@
       "file_path": "shitsugi/joto/05/15.json",
       "char_count_body": 262,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:00.071Z",
+      "fetched_at": "2026-06-22T07:00:16.396Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9454,7 +9454,7 @@
       "file_path": "shitsugi/joto/05/16.json",
       "char_count_body": 996,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:02.073Z",
+      "fetched_at": "2026-06-22T07:00:17.396Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9468,7 +9468,7 @@
       "file_path": "shitsugi/joto/06/01.json",
       "char_count_body": 157,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:03.073Z",
+      "fetched_at": "2026-06-22T07:00:18.399Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9482,7 +9482,7 @@
       "file_path": "shitsugi/joto/06/02.json",
       "char_count_body": 240,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:04.072Z",
+      "fetched_at": "2026-06-22T07:00:19.401Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9496,7 +9496,7 @@
       "file_path": "shitsugi/joto/06/03.json",
       "char_count_body": 271,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:05.073Z",
+      "fetched_at": "2026-06-22T07:00:20.404Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9510,7 +9510,7 @@
       "file_path": "shitsugi/joto/06/04.json",
       "char_count_body": 529,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:06.072Z",
+      "fetched_at": "2026-06-22T07:00:21.409Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9524,7 +9524,7 @@
       "file_path": "shitsugi/joto/06/05.json",
       "char_count_body": 268,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:07.072Z",
+      "fetched_at": "2026-06-22T07:00:22.417Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9538,7 +9538,7 @@
       "file_path": "shitsugi/joto/07/01.json",
       "char_count_body": 271,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:08.072Z",
+      "fetched_at": "2026-06-22T07:00:23.417Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9550,9 +9550,9 @@
       "title": "ゴルフ会員権を譲渡した場合の取得費及び譲渡費用",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/07/02.htm",
       "file_path": "shitsugi/joto/07/02.json",
-      "char_count_body": 524,
+      "char_count_body": 523,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:09.072Z",
+      "fetched_at": "2026-06-22T07:00:24.430Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9566,7 +9566,7 @@
       "file_path": "shitsugi/joto/07/03.json",
       "char_count_body": 720,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:10.072Z",
+      "fetched_at": "2026-06-22T07:00:25.444Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9580,7 +9580,7 @@
       "file_path": "shitsugi/joto/07/04.json",
       "char_count_body": 511,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:11.071Z",
+      "fetched_at": "2026-06-22T07:00:26.450Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9592,9 +9592,9 @@
       "title": "更生手続等により優先的施設利用権のみとなったゴルフ会員権をその後譲渡した場合の譲渡所得に係る取得費の計算",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/07/05.htm",
       "file_path": "shitsugi/joto/07/05.json",
-      "char_count_body": 837,
+      "char_count_body": 831,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:12.070Z",
+      "fetched_at": "2026-06-22T07:00:27.451Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9608,7 +9608,7 @@
       "file_path": "shitsugi/joto/08/01.json",
       "char_count_body": 431,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:13.070Z",
+      "fetched_at": "2026-06-22T07:00:28.454Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9622,7 +9622,7 @@
       "file_path": "shitsugi/joto/08/02.json",
       "char_count_body": 348,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:14.070Z",
+      "fetched_at": "2026-06-22T07:00:29.468Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9636,7 +9636,7 @@
       "file_path": "shitsugi/joto/08/03.json",
       "char_count_body": 478,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:15.070Z",
+      "fetched_at": "2026-06-22T07:00:30.483Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT"
     },
     {
@@ -9648,9 +9648,9 @@
       "title": "未分割遺産を換価したことによる譲渡所得の申告とその後分割が確定したことによる更正の請求、修正申告等",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/09/01.htm",
       "file_path": "shitsugi/joto/09/01.json",
-      "char_count_body": 1121,
+      "char_count_body": 1119,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:16.069Z",
+      "fetched_at": "2026-06-22T07:00:31.495Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9664,7 +9664,7 @@
       "file_path": "shitsugi/joto/09/02.json",
       "char_count_body": 449,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:17.069Z",
+      "fetched_at": "2026-06-22T07:00:32.495Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9678,7 +9678,7 @@
       "file_path": "shitsugi/joto/10/01.json",
       "char_count_body": 260,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:19.068Z",
+      "fetched_at": "2026-06-22T07:00:33.508Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9692,7 +9692,7 @@
       "file_path": "shitsugi/joto/10/02.json",
       "char_count_body": 254,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:20.067Z",
+      "fetched_at": "2026-06-22T07:00:34.513Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9706,7 +9706,7 @@
       "file_path": "shitsugi/joto/10/03.json",
       "char_count_body": 484,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:22.066Z",
+      "fetched_at": "2026-06-22T07:00:35.528Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9718,9 +9718,9 @@
       "title": "農地を宅地に造成した後宅地と交換した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/10/04.htm",
       "file_path": "shitsugi/joto/10/04.json",
-      "char_count_body": 500,
+      "char_count_body": 498,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:24.066Z",
+      "fetched_at": "2026-06-22T07:00:36.529Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9734,7 +9734,7 @@
       "file_path": "shitsugi/joto/10/05.json",
       "char_count_body": 331,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:25.066Z",
+      "fetched_at": "2026-06-22T07:00:37.543Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9748,7 +9748,7 @@
       "file_path": "shitsugi/joto/10/06.json",
       "char_count_body": 190,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:29.066Z",
+      "fetched_at": "2026-06-22T07:00:38.556Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9762,7 +9762,7 @@
       "file_path": "shitsugi/joto/10/07.json",
       "char_count_body": 308,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:31.065Z",
+      "fetched_at": "2026-06-22T07:00:39.567Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9774,9 +9774,9 @@
       "title": "一団の土地を2分して交換した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/10/08.htm",
       "file_path": "shitsugi/joto/10/08.json",
-      "char_count_body": 187,
+      "char_count_body": 185,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:32.066Z",
+      "fetched_at": "2026-06-22T07:00:40.580Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9788,9 +9788,9 @@
       "title": "効用の異なる2個の資産のうち1個を交換とし他の1個を売買とした場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/10/09.htm",
       "file_path": "shitsugi/joto/10/09.json",
-      "char_count_body": 326,
+      "char_count_body": 325,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:33.065Z",
+      "fetched_at": "2026-06-22T07:00:41.582Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9804,7 +9804,7 @@
       "file_path": "shitsugi/joto/10/10.json",
       "char_count_body": 490,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:36.066Z",
+      "fetched_at": "2026-06-22T07:00:42.590Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9818,7 +9818,7 @@
       "file_path": "shitsugi/joto/10/11.json",
       "char_count_body": 548,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:18.069Z",
+      "fetched_at": "2026-06-22T07:00:43.594Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9832,7 +9832,7 @@
       "file_path": "shitsugi/joto/10/12.json",
       "char_count_body": 242,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:21.066Z",
+      "fetched_at": "2026-06-22T07:00:44.599Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9846,7 +9846,7 @@
       "file_path": "shitsugi/joto/10/13.json",
       "char_count_body": 317,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:23.066Z",
+      "fetched_at": "2026-06-22T07:00:45.613Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9860,7 +9860,7 @@
       "file_path": "shitsugi/joto/10/14.json",
       "char_count_body": 654,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:26.067Z",
+      "fetched_at": "2026-06-22T07:00:46.624Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9874,7 +9874,7 @@
       "file_path": "shitsugi/joto/10/15.json",
       "char_count_body": 611,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:27.067Z",
+      "fetched_at": "2026-06-22T07:00:47.635Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9888,7 +9888,7 @@
       "file_path": "shitsugi/joto/10/16.json",
       "char_count_body": 490,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:28.066Z",
+      "fetched_at": "2026-06-22T07:00:48.643Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9902,7 +9902,7 @@
       "file_path": "shitsugi/joto/10/17.json",
       "char_count_body": 222,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:30.065Z",
+      "fetched_at": "2026-06-22T07:00:49.652Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9914,9 +9914,9 @@
       "title": "土地所有者と借地権者とが共に他の土地と交換した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/10/18.htm",
       "file_path": "shitsugi/joto/10/18.json",
-      "char_count_body": 540,
+      "char_count_body": 536,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:34.065Z",
+      "fetched_at": "2026-06-22T07:00:50.656Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9930,7 +9930,7 @@
       "file_path": "shitsugi/joto/10/19.json",
       "char_count_body": 340,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:35.065Z",
+      "fetched_at": "2026-06-22T07:00:51.656Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9944,7 +9944,7 @@
       "file_path": "shitsugi/joto/11/01.json",
       "char_count_body": 378,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:37.065Z",
+      "fetched_at": "2026-06-22T07:00:52.666Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9956,9 +9956,9 @@
       "title": "保証債務を履行するために2つの資産を譲渡した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/11/02.htm",
       "file_path": "shitsugi/joto/11/02.json",
-      "char_count_body": 584,
+      "char_count_body": 577,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:38.064Z",
+      "fetched_at": "2026-06-22T07:00:53.667Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9972,7 +9972,7 @@
       "file_path": "shitsugi/joto/11/03.json",
       "char_count_body": 301,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:39.064Z",
+      "fetched_at": "2026-06-22T07:00:54.681Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -9986,7 +9986,7 @@
       "file_path": "shitsugi/joto/11/04.json",
       "char_count_body": 292,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:40.063Z",
+      "fetched_at": "2026-06-22T07:00:55.689Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT"
     },
     {
@@ -10000,7 +10000,7 @@
       "file_path": "shitsugi/joto/11/05.json",
       "char_count_body": 177,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:41.062Z",
+      "fetched_at": "2026-06-22T07:00:56.704Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10014,7 +10014,7 @@
       "file_path": "shitsugi/joto/11/06.json",
       "char_count_body": 291,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:42.063Z",
+      "fetched_at": "2026-06-22T07:00:57.705Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10028,7 +10028,7 @@
       "file_path": "shitsugi/joto/11/07.json",
       "char_count_body": 392,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:43.063Z",
+      "fetched_at": "2026-06-22T07:00:58.709Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10042,7 +10042,7 @@
       "file_path": "shitsugi/joto/11/08.json",
       "char_count_body": 311,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:44.064Z",
+      "fetched_at": "2026-06-22T07:00:59.711Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10054,9 +10054,9 @@
       "title": "交換によって資産を譲渡した年と同一年中に、その交換によって取得した資産を保証債務の履行のために譲渡した場合の譲渡所得の計算",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/11/09.htm",
       "file_path": "shitsugi/joto/11/09.json",
-      "char_count_body": 1080,
+      "char_count_body": 1074,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:45.064Z",
+      "fetched_at": "2026-06-22T07:01:00.723Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10068,9 +10068,9 @@
       "title": "庭園の一部である樹木等を譲渡した場合の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/12/01.htm",
       "file_path": "shitsugi/joto/12/01.json",
-      "char_count_body": 344,
+      "char_count_body": 342,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:46.063Z",
+      "fetched_at": "2026-06-22T07:01:01.735Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10084,7 +10084,7 @@
       "file_path": "shitsugi/joto/12/02.json",
       "char_count_body": 123,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:48.063Z",
+      "fetched_at": "2026-06-22T07:01:02.741Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10098,7 +10098,7 @@
       "file_path": "shitsugi/joto/12/03.json",
       "char_count_body": 294,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:49.064Z",
+      "fetched_at": "2026-06-22T07:01:03.744Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10112,7 +10112,7 @@
       "file_path": "shitsugi/joto/12/04.json",
       "char_count_body": 75,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:47.063Z",
+      "fetched_at": "2026-06-22T07:01:04.750Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10126,7 +10126,7 @@
       "file_path": "shitsugi/joto/12/05.json",
       "char_count_body": 534,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:50.064Z",
+      "fetched_at": "2026-06-22T07:01:05.750Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10140,7 +10140,7 @@
       "file_path": "shitsugi/joto/12/06.json",
       "char_count_body": 361,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:51.064Z",
+      "fetched_at": "2026-06-22T07:01:06.762Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10154,7 +10154,7 @@
       "file_path": "shitsugi/joto/13/01.json",
       "char_count_body": 541,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:52.065Z",
+      "fetched_at": "2026-06-22T07:01:07.774Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10166,9 +10166,9 @@
       "title": "2棟の建築物を建築する場合の建築面積及び施行地区面積の判定(12号)",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/13/02.htm",
       "file_path": "shitsugi/joto/13/02.json",
-      "char_count_body": 604,
+      "char_count_body": 602,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:56.065Z",
+      "fetched_at": "2026-06-22T07:01:08.778Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10182,7 +10182,7 @@
       "file_path": "shitsugi/joto/13/03.json",
       "char_count_body": 703,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:58.065Z",
+      "fetched_at": "2026-06-22T07:01:09.791Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10194,9 +10194,9 @@
       "title": "自ら開発許可を受けた上で土地を譲渡する場合(13号)",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/13/04.htm",
       "file_path": "shitsugi/joto/13/04.json",
-      "char_count_body": 567,
+      "char_count_body": 566,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:00.065Z",
+      "fetched_at": "2026-06-22T07:01:10.797Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10210,7 +10210,7 @@
       "file_path": "shitsugi/joto/13/05.json",
       "char_count_body": 313,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:02.066Z",
+      "fetched_at": "2026-06-22T07:01:11.809Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10224,7 +10224,7 @@
       "file_path": "shitsugi/joto/13/06.json",
       "char_count_body": 641,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:03.066Z",
+      "fetched_at": "2026-06-22T07:01:12.817Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10236,9 +10236,9 @@
       "title": "仮換地指定の変更があった場合の「仮換地指定があった日」の判定(16号)",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/13/07.htm",
       "file_path": "shitsugi/joto/13/07.json",
-      "char_count_body": 575,
+      "char_count_body": 574,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:05.068Z",
+      "fetched_at": "2026-06-22T07:01:13.827Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10252,7 +10252,7 @@
       "file_path": "shitsugi/joto/13/08.json",
       "char_count_body": 315,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:06.068Z",
+      "fetched_at": "2026-06-22T07:01:14.841Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10266,7 +10266,7 @@
       "file_path": "shitsugi/joto/13/09.json",
       "char_count_body": 473,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:07.068Z",
+      "fetched_at": "2026-06-22T07:01:15.848Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10280,7 +10280,7 @@
       "file_path": "shitsugi/joto/13/10.json",
       "char_count_body": 500,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:10.069Z",
+      "fetched_at": "2026-06-22T07:01:16.850Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10294,7 +10294,7 @@
       "file_path": "shitsugi/joto/13/11.json",
       "char_count_body": 467,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:53.065Z",
+      "fetched_at": "2026-06-22T07:01:17.853Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10308,7 +10308,7 @@
       "file_path": "shitsugi/joto/13/12.json",
       "char_count_body": 489,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:54.065Z",
+      "fetched_at": "2026-06-22T07:01:18.861Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT"
     },
     {
@@ -10322,7 +10322,7 @@
       "file_path": "shitsugi/joto/13/13.json",
       "char_count_body": 530,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:55.065Z",
+      "fetched_at": "2026-06-22T07:01:19.876Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10336,7 +10336,7 @@
       "file_path": "shitsugi/joto/13/14.json",
       "char_count_body": 220,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:57.065Z",
+      "fetched_at": "2026-06-22T07:01:20.880Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10348,9 +10348,9 @@
       "title": "既存建築物の増築のための譲渡に係る軽減税率の適用(12号)",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/13/15.htm",
       "file_path": "shitsugi/joto/13/15.json",
-      "char_count_body": 975,
+      "char_count_body": 971,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:07:59.065Z",
+      "fetched_at": "2026-06-22T07:01:21.883Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10364,7 +10364,7 @@
       "file_path": "shitsugi/joto/13/16.json",
       "char_count_body": 616,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:01.065Z",
+      "fetched_at": "2026-06-22T07:01:22.884Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10378,7 +10378,7 @@
       "file_path": "shitsugi/joto/13/17.json",
       "char_count_body": 250,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:04.067Z",
+      "fetched_at": "2026-06-22T07:01:23.897Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10392,7 +10392,7 @@
       "file_path": "shitsugi/joto/13/18.json",
       "char_count_body": 269,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:08.069Z",
+      "fetched_at": "2026-06-22T07:01:24.904Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10406,7 +10406,7 @@
       "file_path": "shitsugi/joto/13/19.json",
       "char_count_body": 374,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:09.069Z",
+      "fetched_at": "2026-06-22T07:01:25.916Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10420,7 +10420,7 @@
       "file_path": "shitsugi/joto/13/20.json",
       "char_count_body": 515,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:11.070Z",
+      "fetched_at": "2026-06-22T07:01:26.919Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10434,7 +10434,7 @@
       "file_path": "shitsugi/joto/13/21.json",
       "char_count_body": 631,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:12.070Z",
+      "fetched_at": "2026-06-22T07:01:27.932Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10448,7 +10448,7 @@
       "file_path": "shitsugi/joto/14/01.json",
       "char_count_body": 500,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:13.070Z",
+      "fetched_at": "2026-06-22T07:01:28.934Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10462,7 +10462,7 @@
       "file_path": "shitsugi/joto/14/02.json",
       "char_count_body": 910,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:16.070Z",
+      "fetched_at": "2026-06-22T07:01:29.941Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10476,7 +10476,7 @@
       "file_path": "shitsugi/joto/14/03.json",
       "char_count_body": 335,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:20.070Z",
+      "fetched_at": "2026-06-22T07:01:30.942Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10490,7 +10490,7 @@
       "file_path": "shitsugi/joto/14/04.json",
       "char_count_body": 299,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:22.070Z",
+      "fetched_at": "2026-06-22T07:01:31.947Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10504,7 +10504,7 @@
       "file_path": "shitsugi/joto/14/05.json",
       "char_count_body": 404,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:23.069Z",
+      "fetched_at": "2026-06-22T07:01:32.961Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10518,7 +10518,7 @@
       "file_path": "shitsugi/joto/14/06.json",
       "char_count_body": 194,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:24.068Z",
+      "fetched_at": "2026-06-22T07:01:33.976Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10532,7 +10532,7 @@
       "file_path": "shitsugi/joto/14/07.json",
       "char_count_body": 597,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:25.067Z",
+      "fetched_at": "2026-06-22T07:01:34.989Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10546,7 +10546,7 @@
       "file_path": "shitsugi/joto/14/08.json",
       "char_count_body": 233,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:30.072Z",
+      "fetched_at": "2026-06-22T07:01:35.999Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10560,7 +10560,7 @@
       "file_path": "shitsugi/joto/14/09.json",
       "char_count_body": 530,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:32.070Z",
+      "fetched_at": "2026-06-22T07:01:37.007Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10572,9 +10572,9 @@
       "title": "土地区画整理事業に伴う清算金に対する課税",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/10.htm",
       "file_path": "shitsugi/joto/14/10.json",
-      "char_count_body": 804,
+      "char_count_body": 801,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:33.070Z",
+      "fetched_at": "2026-06-22T07:01:38.018Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10588,7 +10588,7 @@
       "file_path": "shitsugi/joto/14/11.json",
       "char_count_body": 233,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:35.069Z",
+      "fetched_at": "2026-06-22T07:01:39.030Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10602,7 +10602,7 @@
       "file_path": "shitsugi/joto/14/12.json",
       "char_count_body": 349,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:36.069Z",
+      "fetched_at": "2026-06-22T07:01:40.041Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10616,7 +10616,7 @@
       "file_path": "shitsugi/joto/14/13.json",
       "char_count_body": 195,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:37.069Z",
+      "fetched_at": "2026-06-22T07:01:41.055Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10630,7 +10630,7 @@
       "file_path": "shitsugi/joto/14/14.json",
       "char_count_body": 491,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:38.068Z",
+      "fetched_at": "2026-06-22T07:01:42.057Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10642,9 +10642,9 @@
       "title": "土地区画整理事業の施行地区内において第一種市街地再開発事業が施行される場合の「やむを得ない事情」の判定",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/15.htm",
       "file_path": "shitsugi/joto/14/15.json",
-      "char_count_body": 777,
+      "char_count_body": 772,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:40.068Z",
+      "fetched_at": "2026-06-22T07:01:43.067Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT"
     },
     {
@@ -10658,7 +10658,7 @@
       "file_path": "shitsugi/joto/14/16.json",
       "char_count_body": 259,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:42.067Z",
+      "fetched_at": "2026-06-22T07:01:44.080Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10672,7 +10672,7 @@
       "file_path": "shitsugi/joto/14/17.json",
       "char_count_body": 400,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:44.066Z",
+      "fetched_at": "2026-06-22T07:01:45.093Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10686,7 +10686,7 @@
       "file_path": "shitsugi/joto/14/18.json",
       "char_count_body": 300,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:45.066Z",
+      "fetched_at": "2026-06-22T07:01:46.094Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10700,7 +10700,7 @@
       "file_path": "shitsugi/joto/14/19.json",
       "char_count_body": 330,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:46.065Z",
+      "fetched_at": "2026-06-22T07:01:47.100Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10712,9 +10712,9 @@
       "title": "種類の異なる代替資産を2以上取得した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/20.htm",
       "file_path": "shitsugi/joto/14/20.json",
-      "char_count_body": 253,
+      "char_count_body": 251,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:47.065Z",
+      "fetched_at": "2026-06-22T07:01:48.102Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10726,9 +10726,9 @@
       "title": "一の効用を有する一組の資産",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/21.htm",
       "file_path": "shitsugi/joto/14/21.json",
-      "char_count_body": 723,
+      "char_count_body": 721,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:48.065Z",
+      "fetched_at": "2026-06-22T07:01:49.105Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10742,7 +10742,7 @@
       "file_path": "shitsugi/joto/14/22.json",
       "char_count_body": 606,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:50.066Z",
+      "fetched_at": "2026-06-22T07:01:50.117Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10756,7 +10756,7 @@
       "file_path": "shitsugi/joto/14/23.json",
       "char_count_body": 404,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:55.068Z",
+      "fetched_at": "2026-06-22T07:01:51.125Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10770,7 +10770,7 @@
       "file_path": "shitsugi/joto/14/24.json",
       "char_count_body": 502,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:56.069Z",
+      "fetched_at": "2026-06-22T07:01:52.126Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10784,7 +10784,7 @@
       "file_path": "shitsugi/joto/14/25.json",
       "char_count_body": 605,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:58.067Z",
+      "fetched_at": "2026-06-22T07:01:53.142Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10798,7 +10798,7 @@
       "file_path": "shitsugi/joto/14/26.json",
       "char_count_body": 513,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:00.067Z",
+      "fetched_at": "2026-06-22T07:01:54.156Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10812,7 +10812,7 @@
       "file_path": "shitsugi/joto/14/27.json",
       "char_count_body": 317,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:14.070Z",
+      "fetched_at": "2026-06-22T07:01:55.167Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10826,7 +10826,7 @@
       "file_path": "shitsugi/joto/14/28.json",
       "char_count_body": 770,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:15.070Z",
+      "fetched_at": "2026-06-22T07:01:56.180Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10840,7 +10840,7 @@
       "file_path": "shitsugi/joto/14/29.json",
       "char_count_body": 198,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:17.072Z",
+      "fetched_at": "2026-06-22T07:01:57.191Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10854,7 +10854,7 @@
       "file_path": "shitsugi/joto/14/30.json",
       "char_count_body": 313,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:18.071Z",
+      "fetched_at": "2026-06-22T07:01:58.203Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10868,7 +10868,7 @@
       "file_path": "shitsugi/joto/14/31.json",
       "char_count_body": 698,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:19.069Z",
+      "fetched_at": "2026-06-22T07:01:59.208Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10880,9 +10880,9 @@
       "title": "収用事業に必要な土砂の譲渡と収用証明書",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/32.htm",
       "file_path": "shitsugi/joto/14/32.json",
-      "char_count_body": 325,
+      "char_count_body": 321,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:21.071Z",
+      "fetched_at": "2026-06-22T07:02:00.216Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10896,7 +10896,7 @@
       "file_path": "shitsugi/joto/14/33.json",
       "char_count_body": 555,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:27.069Z",
+      "fetched_at": "2026-06-22T07:02:01.226Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10910,7 +10910,7 @@
       "file_path": "shitsugi/joto/14/34.json",
       "char_count_body": 309,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:28.070Z",
+      "fetched_at": "2026-06-22T07:02:02.232Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10924,7 +10924,7 @@
       "file_path": "shitsugi/joto/14/35.json",
       "char_count_body": 490,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:29.071Z",
+      "fetched_at": "2026-06-22T07:02:03.248Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10938,7 +10938,7 @@
       "file_path": "shitsugi/joto/14/36.json",
       "char_count_body": 733,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:39.068Z",
+      "fetched_at": "2026-06-22T07:02:04.263Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10952,7 +10952,7 @@
       "file_path": "shitsugi/joto/14/37.json",
       "char_count_body": 382,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:43.067Z",
+      "fetched_at": "2026-06-22T07:02:05.270Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10966,7 +10966,7 @@
       "file_path": "shitsugi/joto/14/38.json",
       "char_count_body": 344,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:49.065Z",
+      "fetched_at": "2026-06-22T07:02:06.281Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10980,7 +10980,7 @@
       "file_path": "shitsugi/joto/14/39.json",
       "char_count_body": 313,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:51.067Z",
+      "fetched_at": "2026-06-22T07:02:07.295Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -10994,7 +10994,7 @@
       "file_path": "shitsugi/joto/14/40.json",
       "char_count_body": 379,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:52.068Z",
+      "fetched_at": "2026-06-22T07:02:08.305Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT"
     },
     {
@@ -11008,7 +11008,7 @@
       "file_path": "shitsugi/joto/14/41.json",
       "char_count_body": 439,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:53.068Z",
+      "fetched_at": "2026-06-22T07:02:09.320Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11020,9 +11020,9 @@
       "title": "権利変換期日前での申告の可否及び被相続人が先行取得した資産を代替資産とすることの可否",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/42.htm",
       "file_path": "shitsugi/joto/14/42.json",
-      "char_count_body": 543,
+      "char_count_body": 541,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:54.068Z",
+      "fetched_at": "2026-06-22T07:02:10.326Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11036,7 +11036,7 @@
       "file_path": "shitsugi/joto/14/43.json",
       "char_count_body": 248,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:59.067Z",
+      "fetched_at": "2026-06-22T07:02:11.338Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11050,7 +11050,7 @@
       "file_path": "shitsugi/joto/14/44.json",
       "char_count_body": 198,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:01.066Z",
+      "fetched_at": "2026-06-22T07:02:12.348Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11064,7 +11064,7 @@
       "file_path": "shitsugi/joto/14/45.json",
       "char_count_body": 557,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:02.066Z",
+      "fetched_at": "2026-06-22T07:02:13.362Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11078,7 +11078,7 @@
       "file_path": "shitsugi/joto/14/46.json",
       "char_count_body": 645,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:04.066Z",
+      "fetched_at": "2026-06-22T07:02:14.369Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11090,9 +11090,9 @@
       "title": "特掲事業の施設と特掲事業以外の施設が併設される場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/14/47.htm",
       "file_path": "shitsugi/joto/14/47.json",
-      "char_count_body": 1785,
+      "char_count_body": 1783,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:31.071Z",
+      "fetched_at": "2026-06-22T07:02:15.373Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11106,7 +11106,7 @@
       "file_path": "shitsugi/joto/14/48.json",
       "char_count_body": 1750,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:34.069Z",
+      "fetched_at": "2026-06-22T07:02:16.378Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11120,7 +11120,7 @@
       "file_path": "shitsugi/joto/14/49.json",
       "char_count_body": 763,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:57.068Z",
+      "fetched_at": "2026-06-22T07:02:17.387Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11134,7 +11134,7 @@
       "file_path": "shitsugi/joto/14/50.json",
       "char_count_body": 436,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:26.068Z",
+      "fetched_at": "2026-06-22T07:02:18.393Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11148,7 +11148,7 @@
       "file_path": "shitsugi/joto/14/51.json",
       "char_count_body": 911,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:03.066Z",
+      "fetched_at": "2026-06-22T07:02:19.407Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11162,7 +11162,7 @@
       "file_path": "shitsugi/joto/14/52.json",
       "char_count_body": 1044,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:08:41.068Z",
+      "fetched_at": "2026-06-22T07:02:20.421Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11176,7 +11176,7 @@
       "file_path": "shitsugi/joto/15/01.json",
       "char_count_body": 382,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:05.066Z",
+      "fetched_at": "2026-06-22T07:02:21.424Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11190,7 +11190,7 @@
       "file_path": "shitsugi/joto/15/02.json",
       "char_count_body": 575,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:06.067Z",
+      "fetched_at": "2026-06-22T07:02:22.433Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11204,7 +11204,7 @@
       "file_path": "shitsugi/joto/15/03.json",
       "char_count_body": 900,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:07.068Z",
+      "fetched_at": "2026-06-22T07:02:23.436Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11218,7 +11218,7 @@
       "file_path": "shitsugi/joto/15/04.json",
       "char_count_body": 309,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:08.068Z",
+      "fetched_at": "2026-06-22T07:02:24.438Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11232,7 +11232,7 @@
       "file_path": "shitsugi/joto/16/01.json",
       "char_count_body": 142,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:09.068Z",
+      "fetched_at": "2026-06-22T07:02:25.448Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11246,7 +11246,7 @@
       "file_path": "shitsugi/joto/16/02.json",
       "char_count_body": 365,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:10.068Z",
+      "fetched_at": "2026-06-22T07:02:26.462Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11260,7 +11260,7 @@
       "file_path": "shitsugi/joto/16/03.json",
       "char_count_body": 202,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:11.068Z",
+      "fetched_at": "2026-06-22T07:02:27.464Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11274,7 +11274,7 @@
       "file_path": "shitsugi/joto/16/04.json",
       "char_count_body": 354,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:14.069Z",
+      "fetched_at": "2026-06-22T07:02:28.478Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11288,7 +11288,7 @@
       "file_path": "shitsugi/joto/16/05.json",
       "char_count_body": 415,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:15.070Z",
+      "fetched_at": "2026-06-22T07:02:29.478Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11300,9 +11300,9 @@
       "title": "貸付地が収用対償地として買い取られた場合において小作人が受け取る離作料に対する課税の特例の適用",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/16/06.htm",
       "file_path": "shitsugi/joto/16/06.json",
-      "char_count_body": 493,
+      "char_count_body": 490,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:17.070Z",
+      "fetched_at": "2026-06-22T07:02:30.493Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT"
     },
     {
@@ -11316,7 +11316,7 @@
       "file_path": "shitsugi/joto/16/07.json",
       "char_count_body": 381,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:19.071Z",
+      "fetched_at": "2026-06-22T07:02:31.493Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11330,7 +11330,7 @@
       "file_path": "shitsugi/joto/16/08.json",
       "char_count_body": 233,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:20.071Z",
+      "fetched_at": "2026-06-22T07:02:32.508Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11344,7 +11344,7 @@
       "file_path": "shitsugi/joto/16/10.json",
       "char_count_body": 401,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:12.068Z",
+      "fetched_at": "2026-06-22T07:02:33.509Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11358,7 +11358,7 @@
       "file_path": "shitsugi/joto/16/11.json",
       "char_count_body": 209,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:13.069Z",
+      "fetched_at": "2026-06-22T07:02:34.511Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11372,7 +11372,7 @@
       "file_path": "shitsugi/joto/16/12.json",
       "char_count_body": 407,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:16.070Z",
+      "fetched_at": "2026-06-22T07:02:35.525Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11386,7 +11386,7 @@
       "file_path": "shitsugi/joto/16/13.json",
       "char_count_body": 533,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:18.070Z",
+      "fetched_at": "2026-06-22T07:02:36.526Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11400,7 +11400,7 @@
       "file_path": "shitsugi/joto/16/14.json",
       "char_count_body": 478,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:21.072Z",
+      "fetched_at": "2026-06-22T07:02:37.540Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11414,7 +11414,7 @@
       "file_path": "shitsugi/joto/16/15.json",
       "char_count_body": 919,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:23.072Z",
+      "fetched_at": "2026-06-22T07:02:38.547Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11428,7 +11428,7 @@
       "file_path": "shitsugi/joto/16/16.json",
       "char_count_body": 181,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:24.073Z",
+      "fetched_at": "2026-06-22T07:02:39.561Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11442,7 +11442,7 @@
       "file_path": "shitsugi/joto/16/17.json",
       "char_count_body": 410,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:25.073Z",
+      "fetched_at": "2026-06-22T07:02:40.574Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11456,7 +11456,7 @@
       "file_path": "shitsugi/joto/16/18.json",
       "char_count_body": 365,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:26.074Z",
+      "fetched_at": "2026-06-22T07:02:41.588Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11470,7 +11470,7 @@
       "file_path": "shitsugi/joto/16/19.json",
       "char_count_body": 229,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:27.074Z",
+      "fetched_at": "2026-06-22T07:02:42.591Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11482,9 +11482,9 @@
       "title": "未許可農地を転売した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/17/01.htm",
       "file_path": "shitsugi/joto/17/01.json",
-      "char_count_body": 486,
+      "char_count_body": 484,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:28.074Z",
+      "fetched_at": "2026-06-22T07:02:43.598Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11498,7 +11498,7 @@
       "file_path": "shitsugi/joto/17/02.json",
       "char_count_body": 451,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:30.073Z",
+      "fetched_at": "2026-06-22T07:02:44.601Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11512,7 +11512,7 @@
       "file_path": "shitsugi/joto/17/03.json",
       "char_count_body": 397,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:29.074Z",
+      "fetched_at": "2026-06-22T07:02:45.616Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11526,7 +11526,7 @@
       "file_path": "shitsugi/joto/18/01.json",
       "char_count_body": 296,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:31.074Z",
+      "fetched_at": "2026-06-22T07:02:46.625Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11540,7 +11540,7 @@
       "file_path": "shitsugi/joto/18/02.json",
       "char_count_body": 203,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:32.073Z",
+      "fetched_at": "2026-06-22T07:02:47.633Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11554,7 +11554,7 @@
       "file_path": "shitsugi/joto/18/03.json",
       "char_count_body": 360,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:33.073Z",
+      "fetched_at": "2026-06-22T07:02:48.636Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11568,7 +11568,7 @@
       "file_path": "shitsugi/joto/18/04.json",
       "char_count_body": 288,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:34.073Z",
+      "fetched_at": "2026-06-22T07:02:49.644Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11582,7 +11582,7 @@
       "file_path": "shitsugi/joto/18/05.json",
       "char_count_body": 336,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:35.072Z",
+      "fetched_at": "2026-06-22T07:02:50.659Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11596,7 +11596,7 @@
       "file_path": "shitsugi/joto/18/06.json",
       "char_count_body": 252,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:36.071Z",
+      "fetched_at": "2026-06-22T07:02:51.660Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11610,7 +11610,7 @@
       "file_path": "shitsugi/joto/18/07.json",
       "char_count_body": 280,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:37.071Z",
+      "fetched_at": "2026-06-22T07:02:52.675Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11624,7 +11624,7 @@
       "file_path": "shitsugi/joto/18/08.json",
       "char_count_body": 303,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:38.071Z",
+      "fetched_at": "2026-06-22T07:02:53.689Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11638,7 +11638,7 @@
       "file_path": "shitsugi/joto/18/09.json",
       "char_count_body": 403,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:40.070Z",
+      "fetched_at": "2026-06-22T07:02:54.703Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT"
     },
     {
@@ -11652,7 +11652,7 @@
       "file_path": "shitsugi/joto/18/10.json",
       "char_count_body": 296,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:41.069Z",
+      "fetched_at": "2026-06-22T07:02:55.711Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11666,7 +11666,7 @@
       "file_path": "shitsugi/joto/18/11.json",
       "char_count_body": 250,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:44.066Z",
+      "fetched_at": "2026-06-22T07:02:56.719Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11680,7 +11680,7 @@
       "file_path": "shitsugi/joto/18/12.json",
       "char_count_body": 546,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:45.066Z",
+      "fetched_at": "2026-06-22T07:02:57.721Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11694,7 +11694,7 @@
       "file_path": "shitsugi/joto/18/13.json",
       "char_count_body": 389,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:53.063Z",
+      "fetched_at": "2026-06-22T07:02:58.721Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11708,7 +11708,7 @@
       "file_path": "shitsugi/joto/18/14.json",
       "char_count_body": 424,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:54.062Z",
+      "fetched_at": "2026-06-22T07:02:59.730Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11722,7 +11722,7 @@
       "file_path": "shitsugi/joto/18/15.json",
       "char_count_body": 496,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:55.062Z",
+      "fetched_at": "2026-06-22T07:03:00.735Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11736,7 +11736,7 @@
       "file_path": "shitsugi/joto/18/16.json",
       "char_count_body": 589,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:56.062Z",
+      "fetched_at": "2026-06-22T07:03:01.749Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11750,7 +11750,7 @@
       "file_path": "shitsugi/joto/18/17.json",
       "char_count_body": 219,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:39.070Z",
+      "fetched_at": "2026-06-22T07:03:02.749Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11764,7 +11764,7 @@
       "file_path": "shitsugi/joto/18/18.json",
       "char_count_body": 386,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:42.068Z",
+      "fetched_at": "2026-06-22T07:03:03.749Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11778,7 +11778,7 @@
       "file_path": "shitsugi/joto/18/19.json",
       "char_count_body": 580,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:43.067Z",
+      "fetched_at": "2026-06-22T07:03:04.761Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11792,7 +11792,7 @@
       "file_path": "shitsugi/joto/18/20.json",
       "char_count_body": 1068,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:57.061Z",
+      "fetched_at": "2026-06-22T07:03:05.766Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11806,7 +11806,7 @@
       "file_path": "shitsugi/joto/18/21.json",
       "char_count_body": 763,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:47.065Z",
+      "fetched_at": "2026-06-22T07:03:06.776Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11820,7 +11820,7 @@
       "file_path": "shitsugi/joto/18/22.json",
       "char_count_body": 838,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:48.065Z",
+      "fetched_at": "2026-06-22T07:03:07.785Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11834,7 +11834,7 @@
       "file_path": "shitsugi/joto/18/23.json",
       "char_count_body": 666,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:49.065Z",
+      "fetched_at": "2026-06-22T07:03:08.792Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11848,7 +11848,7 @@
       "file_path": "shitsugi/joto/18/25.json",
       "char_count_body": 889,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:50.064Z",
+      "fetched_at": "2026-06-22T07:03:09.801Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11862,7 +11862,7 @@
       "file_path": "shitsugi/joto/18/26.json",
       "char_count_body": 815,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:24.062Z",
+      "fetched_at": "2026-06-22T07:03:10.813Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11876,7 +11876,7 @@
       "file_path": "shitsugi/joto/18/27.json",
       "char_count_body": 720,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:51.063Z",
+      "fetched_at": "2026-06-22T07:03:11.826Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11890,7 +11890,7 @@
       "file_path": "shitsugi/joto/18/28.json",
       "char_count_body": 377,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:52.063Z",
+      "fetched_at": "2026-06-22T07:03:12.838Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11904,7 +11904,7 @@
       "file_path": "shitsugi/joto/18/29.json",
       "char_count_body": 635,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:46.066Z",
+      "fetched_at": "2026-06-22T07:03:13.849Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -11918,7 +11918,7 @@
       "file_path": "shitsugi/joto/19/01.json",
       "char_count_body": 552,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:59.060Z",
+      "fetched_at": "2026-06-22T07:03:14.852Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11932,7 +11932,7 @@
       "file_path": "shitsugi/joto/19/03.json",
       "char_count_body": 339,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:02.061Z",
+      "fetched_at": "2026-06-22T07:03:15.853Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11946,7 +11946,7 @@
       "file_path": "shitsugi/joto/19/04.json",
       "char_count_body": 433,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:03.060Z",
+      "fetched_at": "2026-06-22T07:03:16.863Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11960,7 +11960,7 @@
       "file_path": "shitsugi/joto/19/05.json",
       "char_count_body": 758,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:05.061Z",
+      "fetched_at": "2026-06-22T07:03:17.878Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11974,7 +11974,7 @@
       "file_path": "shitsugi/joto/19/06.json",
       "char_count_body": 430,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:08.061Z",
+      "fetched_at": "2026-06-22T07:03:18.889Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -11988,7 +11988,7 @@
       "file_path": "shitsugi/joto/19/07.json",
       "char_count_body": 256,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:09.060Z",
+      "fetched_at": "2026-06-22T07:03:19.899Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -12002,7 +12002,7 @@
       "file_path": "shitsugi/joto/19/08.json",
       "char_count_body": 372,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:10.060Z",
+      "fetched_at": "2026-06-22T07:03:20.909Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT"
     },
     {
@@ -12016,7 +12016,7 @@
       "file_path": "shitsugi/joto/19/09.json",
       "char_count_body": 118,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:09:58.060Z",
+      "fetched_at": "2026-06-22T07:03:21.916Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12030,7 +12030,7 @@
       "file_path": "shitsugi/joto/19/10.json",
       "char_count_body": 286,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:00.061Z",
+      "fetched_at": "2026-06-22T07:03:22.917Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12044,7 +12044,7 @@
       "file_path": "shitsugi/joto/19/14.json",
       "char_count_body": 220,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:04.060Z",
+      "fetched_at": "2026-06-22T07:03:23.929Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12058,7 +12058,7 @@
       "file_path": "shitsugi/joto/19/15.json",
       "char_count_body": 240,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:06.061Z",
+      "fetched_at": "2026-06-22T07:03:24.929Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12072,7 +12072,7 @@
       "file_path": "shitsugi/joto/19/16.json",
       "char_count_body": 179,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:07.061Z",
+      "fetched_at": "2026-06-22T07:03:25.931Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12086,7 +12086,7 @@
       "file_path": "shitsugi/joto/19/17.json",
       "char_count_body": 341,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:01.062Z",
+      "fetched_at": "2026-06-22T07:03:26.932Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12098,9 +12098,9 @@
       "title": "租税特別措置法第35条の２と旧租税特別措置法第37条の９の適用関係",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/19/18.htm",
       "file_path": "shitsugi/joto/19/18.json",
-      "char_count_body": 1276,
+      "char_count_body": 1275,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:11.060Z",
+      "fetched_at": "2026-06-22T07:03:27.945Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12114,7 +12114,7 @@
       "file_path": "shitsugi/joto/20/01.json",
       "char_count_body": 569,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:23.062Z",
+      "fetched_at": "2026-06-22T07:03:28.949Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12126,9 +12126,9 @@
       "title": "相続税の修正申告があった場合における譲渡所得の取得費加算",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/20/03.htm",
       "file_path": "shitsugi/joto/20/03.json",
-      "char_count_body": 210,
+      "char_count_body": 205,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:22.062Z",
+      "fetched_at": "2026-06-22T07:03:29.953Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12140,9 +12140,9 @@
       "title": "相続開始時点で売買契約中であった不動産の譲渡についての相続税額の取得費加算の特例の適用",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/20/04.htm",
       "file_path": "shitsugi/joto/20/04.json",
-      "char_count_body": 1716,
+      "char_count_body": 1709,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:25.062Z",
+      "fetched_at": "2026-06-22T07:03:30.963Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12156,7 +12156,7 @@
       "file_path": "shitsugi/joto/20/05.json",
       "char_count_body": 840,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:26.062Z",
+      "fetched_at": "2026-06-22T07:03:31.966Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12170,7 +12170,7 @@
       "file_path": "shitsugi/joto/20/06.json",
       "char_count_body": 615,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:27.063Z",
+      "fetched_at": "2026-06-22T07:03:32.968Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12184,7 +12184,7 @@
       "file_path": "shitsugi/joto/20/07.json",
       "char_count_body": 962,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:28.064Z",
+      "fetched_at": "2026-06-22T07:03:33.969Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT"
     },
     {
@@ -12198,7 +12198,7 @@
       "file_path": "shitsugi/joto/21/01.json",
       "char_count_body": 384,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:29.065Z",
+      "fetched_at": "2026-06-22T07:03:34.977Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12210,9 +12210,9 @@
       "title": "無配株等やゴルフ会員権を寄附した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/21/02.htm",
       "file_path": "shitsugi/joto/21/02.json",
-      "char_count_body": 567,
+      "char_count_body": 565,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:30.065Z",
+      "fetched_at": "2026-06-22T07:03:35.991Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12226,7 +12226,7 @@
       "file_path": "shitsugi/joto/21/03.json",
       "char_count_body": 357,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:31.065Z",
+      "fetched_at": "2026-06-22T07:03:37.002Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12240,7 +12240,7 @@
       "file_path": "shitsugi/joto/21/04.json",
       "char_count_body": 542,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:32.066Z",
+      "fetched_at": "2026-06-22T07:03:38.005Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12254,7 +12254,7 @@
       "file_path": "shitsugi/joto/21/05.json",
       "char_count_body": 306,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:33.066Z",
+      "fetched_at": "2026-06-22T07:03:39.013Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12268,7 +12268,7 @@
       "file_path": "shitsugi/joto/21/06.json",
       "char_count_body": 821,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:34.066Z",
+      "fetched_at": "2026-06-22T07:03:40.023Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12282,7 +12282,7 @@
       "file_path": "shitsugi/joto/21/07.json",
       "char_count_body": 530,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:35.066Z",
+      "fetched_at": "2026-06-22T07:03:41.036Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12296,7 +12296,7 @@
       "file_path": "shitsugi/joto/21/08.json",
       "char_count_body": 355,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:36.065Z",
+      "fetched_at": "2026-06-22T07:03:42.039Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12310,7 +12310,7 @@
       "file_path": "shitsugi/joto/21/09.json",
       "char_count_body": 421,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:37.065Z",
+      "fetched_at": "2026-06-22T07:03:43.047Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12324,7 +12324,7 @@
       "file_path": "shitsugi/joto/21/10.json",
       "char_count_body": 477,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:38.065Z",
+      "fetched_at": "2026-06-22T07:03:44.053Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12336,9 +12336,9 @@
       "title": "特約の付された株券貸借取引に係る特約権料等の課税上の取扱い",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/22/01.htm",
       "file_path": "shitsugi/joto/22/01.json",
-      "char_count_body": 1349,
+      "char_count_body": 1346,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:15.060Z",
+      "fetched_at": "2026-06-22T07:03:45.059Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12350,9 +12350,9 @@
       "title": "店頭デリバティブ取引の義務の履行により特定口座内保管上場株式等を証券会社に譲渡する場合等の課税上の取扱い",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/22/02.htm",
       "file_path": "shitsugi/joto/22/02.json",
-      "char_count_body": 1197,
+      "char_count_body": 1194,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:16.060Z",
+      "fetched_at": "2026-06-22T07:03:46.069Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:11 GMT"
     },
     {
@@ -12366,7 +12366,7 @@
       "file_path": "shitsugi/joto/22/03.json",
       "char_count_body": 310,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:13.060Z",
+      "fetched_at": "2026-06-22T07:03:47.081Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12380,7 +12380,7 @@
       "file_path": "shitsugi/joto/22/04.json",
       "char_count_body": 727,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:17.061Z",
+      "fetched_at": "2026-06-22T07:03:48.085Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12394,7 +12394,7 @@
       "file_path": "shitsugi/joto/22/05.json",
       "char_count_body": 858,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:12.060Z",
+      "fetched_at": "2026-06-22T07:03:49.097Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12408,7 +12408,7 @@
       "file_path": "shitsugi/joto/22/06.json",
       "char_count_body": 913,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:18.061Z",
+      "fetched_at": "2026-06-22T07:03:50.110Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12420,9 +12420,9 @@
       "title": "国外発行のディスカウント債を譲渡した場合",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/22/08.htm",
       "file_path": "shitsugi/joto/22/08.json",
-      "char_count_body": 823,
+      "char_count_body": 821,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:19.061Z",
+      "fetched_at": "2026-06-22T07:03:51.114Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12434,9 +12434,9 @@
       "title": "再生計画に基づき社債の一部が消滅した場合等の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/joto/22/09.htm",
       "file_path": "shitsugi/joto/22/09.json",
-      "char_count_body": 1346,
+      "char_count_body": 1344,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:20.061Z",
+      "fetched_at": "2026-06-22T07:03:52.128Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12450,7 +12450,7 @@
       "file_path": "shitsugi/joto/22/10.json",
       "char_count_body": 535,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:14.060Z",
+      "fetched_at": "2026-06-22T07:03:53.132Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -12464,7 +12464,7 @@
       "file_path": "shitsugi/joto/23/01.json",
       "char_count_body": 592,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:21.062Z",
+      "fetched_at": "2026-06-22T07:03:54.137Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -15696,9 +15696,9 @@
       "title": "値引きに補填される交付金",
       "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/14.htm",
       "file_path": "shitsugi/shohi/21/14.json",
-      "char_count_body": 941,
+      "char_count_body": 939,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:24:43.177Z",
+      "fetched_at": "2026-06-22T07:03:55.143Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:33 GMT"
     },
     {
@@ -17222,9 +17222,9 @@
       "title": "一の申請に対し複数回支給される地方公共団体からの給付金の所得区分",
       "url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/54.htm",
       "file_path": "shitsugi/shotoku/02/54.json",
-      "char_count_body": 720,
+      "char_count_body": 717,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:00:34.083Z",
+      "fetched_at": "2026-06-22T07:03:56.158Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:05 GMT"
     },
     {
@@ -17238,7 +17238,7 @@
       "file_path": "shitsugi/shotoku/02/55.json",
       "char_count_body": 472,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:00:35.084Z",
+      "fetched_at": "2026-06-22T07:03:57.160Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:05 GMT"
     },
     {
@@ -17784,7 +17784,7 @@
       "file_path": "shitsugi/shotoku/04/33.json",
       "char_count_body": 824,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:01:06.086Z",
+      "fetched_at": "2026-06-22T07:03:58.173Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:03 GMT"
     },
     {
@@ -17798,7 +17798,7 @@
       "file_path": "shitsugi/shotoku/04/34.json",
       "char_count_body": 404,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:01:15.089Z",
+      "fetched_at": "2026-06-22T07:03:59.181Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:03 GMT"
     },
     {
@@ -18538,9 +18538,9 @@
       "title": "寝たきりの者のおむつ代",
       "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/54.htm",
       "file_path": "shitsugi/shotoku/05/54.json",
-      "char_count_body": 1612,
+      "char_count_body": 1610,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:02:04.082Z",
+      "fetched_at": "2026-06-22T07:04:00.181Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:01 GMT"
     },
     {
@@ -18974,7 +18974,7 @@
       "file_path": "shitsugi/shotoku/05/86.json",
       "char_count_body": 399,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:02:20.085Z",
+      "fetched_at": "2026-06-22T07:04:01.185Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:00 GMT"
     },
     {
@@ -19814,7 +19814,7 @@
       "file_path": "shitsugi/shotoku/06/66.json",
       "char_count_body": 654,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:03:36.076Z",
+      "fetched_at": "2026-06-22T07:04:02.200Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:57 GMT"
     },
     {
@@ -19926,7 +19926,7 @@
       "file_path": "shitsugi/shotoku/07/16.json",
       "char_count_body": 531,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:03:41.073Z",
+      "fetched_at": "2026-06-22T07:04:03.214Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:57 GMT"
     },
     {
@@ -19940,7 +19940,7 @@
       "file_path": "shitsugi/shotoku/07/17.json",
       "char_count_body": 574,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:03:42.072Z",
+      "fetched_at": "2026-06-22T07:04:04.215Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:57 GMT"
     },
     {
@@ -19952,9 +19952,9 @@
       "title": "民法第255条の規定により共有持分を取得した場合の相続税の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/01/01.htm",
       "file_path": "shitsugi/sozoku/01/01.json",
-      "char_count_body": 345,
+      "char_count_body": 341,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:39.064Z",
+      "fetched_at": "2026-06-22T07:04:05.231Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -19968,7 +19968,7 @@
       "file_path": "shitsugi/sozoku/01/02.json",
       "char_count_body": 371,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:40.064Z",
+      "fetched_at": "2026-06-22T07:04:06.243Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -19982,7 +19982,7 @@
       "file_path": "shitsugi/sozoku/02/01.json",
       "char_count_body": 410,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:41.063Z",
+      "fetched_at": "2026-06-22T07:04:07.257Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -19996,7 +19996,7 @@
       "file_path": "shitsugi/sozoku/02/02.json",
       "char_count_body": 387,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:43.063Z",
+      "fetched_at": "2026-06-22T07:04:08.266Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20010,7 +20010,7 @@
       "file_path": "shitsugi/sozoku/02/03.json",
       "char_count_body": 268,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:44.062Z",
+      "fetched_at": "2026-06-22T07:04:09.279Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20024,7 +20024,7 @@
       "file_path": "shitsugi/sozoku/02/04.json",
       "char_count_body": 295,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:42.064Z",
+      "fetched_at": "2026-06-22T07:04:10.289Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20036,9 +20036,9 @@
       "title": "財団たる医療法人に対する残余財産分配請求権の相続性",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/02/05.htm",
       "file_path": "shitsugi/sozoku/02/05.json",
-      "char_count_body": 358,
+      "char_count_body": 357,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:45.062Z",
+      "fetched_at": "2026-06-22T07:04:11.291Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20050,9 +20050,9 @@
       "title": "連生終身保険における高度障害保険金等の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/02/06.htm",
       "file_path": "shitsugi/sozoku/02/06.json",
-      "char_count_body": 740,
+      "char_count_body": 727,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:46.063Z",
+      "fetched_at": "2026-06-22T07:04:12.295Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20066,7 +20066,7 @@
       "file_path": "shitsugi/sozoku/02/07.json",
       "char_count_body": 983,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:47.062Z",
+      "fetched_at": "2026-06-22T07:04:13.306Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20080,7 +20080,7 @@
       "file_path": "shitsugi/sozoku/02/09.json",
       "char_count_body": 1113,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:49.061Z",
+      "fetched_at": "2026-06-22T07:04:14.315Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20092,9 +20092,9 @@
       "title": "国家公務員の殉職によりその遺族に授与された賞じゅつ金の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/02/10.htm",
       "file_path": "shitsugi/sozoku/02/10.json",
-      "char_count_body": 1577,
+      "char_count_body": 1570,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:50.060Z",
+      "fetched_at": "2026-06-22T07:04:15.317Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20106,9 +20106,9 @@
       "title": "相互会社が株式会社に組織変更した場合の相続税の取扱い",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/02/11.htm",
       "file_path": "shitsugi/sozoku/02/11.json",
-      "char_count_body": 2891,
+      "char_count_body": 2879,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:51.059Z",
+      "fetched_at": "2026-06-22T07:04:16.324Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20120,9 +20120,9 @@
       "title": "相続開始時点で売買契約中であった不動産に係る相続税の課税",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/02/12.htm",
       "file_path": "shitsugi/sozoku/02/12.json",
-      "char_count_body": 1256,
+      "char_count_body": 1252,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:48.061Z",
+      "fetched_at": "2026-06-22T07:04:17.338Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20134,9 +20134,9 @@
       "title": "特別夫婦年金保険に係る課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/01.htm",
       "file_path": "shitsugi/sozoku/03/01.json",
-      "char_count_body": 1293,
+      "char_count_body": 1291,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:52.058Z",
+      "fetched_at": "2026-06-22T07:04:18.349Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20150,7 +20150,7 @@
       "file_path": "shitsugi/sozoku/03/02.json",
       "char_count_body": 549,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:53.057Z",
+      "fetched_at": "2026-06-22T07:04:19.356Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20162,9 +20162,9 @@
       "title": "建物更生共済契約に係る課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/05.htm",
       "file_path": "shitsugi/sozoku/03/05.json",
-      "char_count_body": 150,
+      "char_count_body": 381,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:54.056Z",
+      "fetched_at": "2026-06-22T07:04:20.370Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20178,7 +20178,7 @@
       "file_path": "shitsugi/sozoku/03/06.json",
       "char_count_body": 480,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:55.055Z",
+      "fetched_at": "2026-06-22T07:04:21.381Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT"
     },
     {
@@ -20192,7 +20192,7 @@
       "file_path": "shitsugi/sozoku/03/07.json",
       "char_count_body": 314,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:56.055Z",
+      "fetched_at": "2026-06-22T07:04:22.392Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20206,7 +20206,7 @@
       "file_path": "shitsugi/sozoku/03/08.json",
       "char_count_body": 772,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:59.054Z",
+      "fetched_at": "2026-06-22T07:04:23.398Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20220,7 +20220,7 @@
       "file_path": "shitsugi/sozoku/03/09.json",
       "char_count_body": 335,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:57.055Z",
+      "fetched_at": "2026-06-22T07:04:24.412Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20234,7 +20234,7 @@
       "file_path": "shitsugi/sozoku/03/10.json",
       "char_count_body": 339,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:10:58.054Z",
+      "fetched_at": "2026-06-22T07:04:25.420Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20246,9 +20246,9 @@
       "title": "遺言に基づき遺産の換価代金で特定公益信託を設定した場合の相続税及び譲渡所得の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/11.htm",
       "file_path": "shitsugi/sozoku/03/11.json",
-      "char_count_body": 1206,
+      "char_count_body": 1204,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:00.053Z",
+      "fetched_at": "2026-06-22T07:04:26.431Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20262,7 +20262,7 @@
       "file_path": "shitsugi/sozoku/04/01.json",
       "char_count_body": 224,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:01.052Z",
+      "fetched_at": "2026-06-22T07:04:27.439Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20276,7 +20276,7 @@
       "file_path": "shitsugi/sozoku/04/02.json",
       "char_count_body": 465,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:02.053Z",
+      "fetched_at": "2026-06-22T07:04:28.445Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20290,7 +20290,7 @@
       "file_path": "shitsugi/sozoku/05/01.json",
       "char_count_body": 272,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:03.052Z",
+      "fetched_at": "2026-06-22T07:04:29.460Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20304,7 +20304,7 @@
       "file_path": "shitsugi/sozoku/05/02.json",
       "char_count_body": 283,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:04.051Z",
+      "fetched_at": "2026-06-22T07:04:30.474Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20318,7 +20318,7 @@
       "file_path": "shitsugi/sozoku/05/03.json",
       "char_count_body": 319,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:05.051Z",
+      "fetched_at": "2026-06-22T07:04:31.487Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20332,7 +20332,7 @@
       "file_path": "shitsugi/sozoku/05/04.json",
       "char_count_body": 210,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:06.050Z",
+      "fetched_at": "2026-06-22T07:04:32.501Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20346,7 +20346,7 @@
       "file_path": "shitsugi/sozoku/06/01.json",
       "char_count_body": 251,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:07.051Z",
+      "fetched_at": "2026-06-22T07:04:33.517Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20360,7 +20360,7 @@
       "file_path": "shitsugi/sozoku/06/02.json",
       "char_count_body": 89,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:08.052Z",
+      "fetched_at": "2026-06-22T07:04:34.521Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20374,7 +20374,7 @@
       "file_path": "shitsugi/sozoku/06/03.json",
       "char_count_body": 555,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:11.053Z",
+      "fetched_at": "2026-06-22T07:04:35.525Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20388,7 +20388,7 @@
       "file_path": "shitsugi/sozoku/06/04.json",
       "char_count_body": 147,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:12.053Z",
+      "fetched_at": "2026-06-22T07:04:36.530Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20402,7 +20402,7 @@
       "file_path": "shitsugi/sozoku/06/05.json",
       "char_count_body": 165,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:09.053Z",
+      "fetched_at": "2026-06-22T07:04:37.540Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20416,7 +20416,7 @@
       "file_path": "shitsugi/sozoku/06/06.json",
       "char_count_body": 227,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:10.054Z",
+      "fetched_at": "2026-06-22T07:04:38.547Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20430,7 +20430,7 @@
       "file_path": "shitsugi/sozoku/07/01.json",
       "char_count_body": 247,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:14.052Z",
+      "fetched_at": "2026-06-22T07:04:39.548Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20442,9 +20442,9 @@
       "title": "相続税法第18条の解釈",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/07/02.htm",
       "file_path": "shitsugi/sozoku/07/02.json",
-      "char_count_body": 398,
+      "char_count_body": 394,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:13.052Z",
+      "fetched_at": "2026-06-22T07:04:40.556Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20458,7 +20458,7 @@
       "file_path": "shitsugi/sozoku/07/03.json",
       "char_count_body": 108,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:16.053Z",
+      "fetched_at": "2026-06-22T07:04:41.566Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20472,7 +20472,7 @@
       "file_path": "shitsugi/sozoku/07/04.json",
       "char_count_body": 275,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:15.053Z",
+      "fetched_at": "2026-06-22T07:04:42.574Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20486,7 +20486,7 @@
       "file_path": "shitsugi/sozoku/08/01.json",
       "char_count_body": 481,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:18.053Z",
+      "fetched_at": "2026-06-22T07:04:43.584Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20498,9 +20498,9 @@
       "title": "配偶者に対する相続税額の軽減の規定の適用を受ける場合の「相続分不存在証明書」の適否",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/08/03.htm",
       "file_path": "shitsugi/sozoku/08/03.json",
-      "char_count_body": 590,
+      "char_count_body": 589,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:20.053Z",
+      "fetched_at": "2026-06-22T07:04:44.586Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20514,7 +20514,7 @@
       "file_path": "shitsugi/sozoku/08/04.json",
       "char_count_body": 357,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:21.053Z",
+      "fetched_at": "2026-06-22T07:04:45.595Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20528,7 +20528,7 @@
       "file_path": "shitsugi/sozoku/08/05.json",
       "char_count_body": 798,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:19.053Z",
+      "fetched_at": "2026-06-22T07:04:46.609Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20542,7 +20542,7 @@
       "file_path": "shitsugi/sozoku/09/01.json",
       "char_count_body": 408,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:22.053Z",
+      "fetched_at": "2026-06-22T07:04:47.614Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20556,7 +20556,7 @@
       "file_path": "shitsugi/sozoku/09/02.json",
       "char_count_body": 458,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:23.053Z",
+      "fetched_at": "2026-06-22T07:04:48.624Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT"
     },
     {
@@ -20570,7 +20570,7 @@
       "file_path": "shitsugi/sozoku/10/01.json",
       "char_count_body": 509,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:25.053Z",
+      "fetched_at": "2026-06-22T07:04:49.636Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20584,7 +20584,7 @@
       "file_path": "shitsugi/sozoku/10/02.json",
       "char_count_body": 238,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:27.054Z",
+      "fetched_at": "2026-06-22T07:04:50.649Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20598,7 +20598,7 @@
       "file_path": "shitsugi/sozoku/10/03.json",
       "char_count_body": 356,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:28.053Z",
+      "fetched_at": "2026-06-22T07:04:51.656Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20612,7 +20612,7 @@
       "file_path": "shitsugi/sozoku/10/04.json",
       "char_count_body": 624,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:29.053Z",
+      "fetched_at": "2026-06-22T07:04:52.669Z",
       "last_modified": "Thu, 18 Jan 2024 09:32:34 GMT"
     },
     {
@@ -20624,9 +20624,9 @@
       "title": "小規模宅地等の特例の対象となる「被相続人等の居住の用に供されていた宅地等」の判定",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/05.htm",
       "file_path": "shitsugi/sozoku/10/05.json",
-      "char_count_body": 425,
+      "char_count_body": 419,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:31.054Z",
+      "fetched_at": "2026-06-22T07:04:53.673Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20640,7 +20640,7 @@
       "file_path": "shitsugi/sozoku/10/06.json",
       "char_count_body": 370,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:32.054Z",
+      "fetched_at": "2026-06-22T07:04:54.684Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20654,7 +20654,7 @@
       "file_path": "shitsugi/sozoku/10/08.json",
       "char_count_body": 477,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:37.056Z",
+      "fetched_at": "2026-06-22T07:04:55.691Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20668,7 +20668,7 @@
       "file_path": "shitsugi/sozoku/10/09.json",
       "char_count_body": 476,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:39.056Z",
+      "fetched_at": "2026-06-22T07:04:56.695Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20682,7 +20682,7 @@
       "file_path": "shitsugi/sozoku/10/10.json",
       "char_count_body": 209,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:24.053Z",
+      "fetched_at": "2026-06-22T07:04:57.698Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20696,7 +20696,7 @@
       "file_path": "shitsugi/sozoku/10/11.json",
       "char_count_body": 308,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:26.053Z",
+      "fetched_at": "2026-06-22T07:04:58.709Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20710,7 +20710,7 @@
       "file_path": "shitsugi/sozoku/10/12.json",
       "char_count_body": 389,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:36.055Z",
+      "fetched_at": "2026-06-22T07:04:59.722Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20724,7 +20724,7 @@
       "file_path": "shitsugi/sozoku/10/14.json",
       "char_count_body": 467,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:38.056Z",
+      "fetched_at": "2026-06-22T07:05:00.722Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20736,9 +20736,9 @@
       "title": "老人ホームへの入所により空家となっていた建物の敷地についての小規模宅地等の特例（平成26年1月1日以後に相続又は遺贈により取得する場合の取扱い）",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/15.htm",
       "file_path": "shitsugi/sozoku/10/15.json",
-      "char_count_body": 948,
+      "char_count_body": 947,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:34.054Z",
+      "fetched_at": "2026-06-22T07:05:01.727Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20750,9 +20750,9 @@
       "title": "老人ホームに入所していた被相続人が要介護認定の申請中に死亡した場合の小規模宅地等の特例",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/16.htm",
       "file_path": "shitsugi/sozoku/10/16.json",
-      "char_count_body": 1064,
+      "char_count_body": 1061,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:35.054Z",
+      "fetched_at": "2026-06-22T07:05:02.741Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20766,7 +20766,7 @@
       "file_path": "shitsugi/sozoku/10/17.json",
       "char_count_body": 1000,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:30.053Z",
+      "fetched_at": "2026-06-22T07:05:03.746Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20780,7 +20780,7 @@
       "file_path": "shitsugi/sozoku/10/18.json",
       "char_count_body": 581,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:40.056Z",
+      "fetched_at": "2026-06-22T07:05:04.756Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20792,9 +20792,9 @@
       "title": "認定死亡と相続開始があったことを知った日",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/11/01.htm",
       "file_path": "shitsugi/sozoku/11/01.json",
-      "char_count_body": 311,
+      "char_count_body": 307,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:41.057Z",
+      "fetched_at": "2026-06-22T07:05:05.757Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20808,7 +20808,7 @@
       "file_path": "shitsugi/sozoku/11/02.json",
       "char_count_body": 247,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:43.059Z",
+      "fetched_at": "2026-06-22T07:05:06.772Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20822,7 +20822,7 @@
       "file_path": "shitsugi/sozoku/11/03.json",
       "char_count_body": 491,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:42.058Z",
+      "fetched_at": "2026-06-22T07:05:07.779Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20836,7 +20836,7 @@
       "file_path": "shitsugi/sozoku/11/04.json",
       "char_count_body": 750,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:44.060Z",
+      "fetched_at": "2026-06-22T07:05:08.784Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20850,7 +20850,7 @@
       "file_path": "shitsugi/sozoku/12/01.json",
       "char_count_body": 427,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:46.061Z",
+      "fetched_at": "2026-06-22T07:05:09.790Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20864,7 +20864,7 @@
       "file_path": "shitsugi/sozoku/12/02.json",
       "char_count_body": 351,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:47.061Z",
+      "fetched_at": "2026-06-22T07:05:10.801Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20878,7 +20878,7 @@
       "file_path": "shitsugi/sozoku/13/01.json",
       "char_count_body": 212,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:48.060Z",
+      "fetched_at": "2026-06-22T07:05:11.804Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20892,7 +20892,7 @@
       "file_path": "shitsugi/sozoku/14/01.json",
       "char_count_body": 373,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:49.060Z",
+      "fetched_at": "2026-06-22T07:05:12.807Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20906,7 +20906,7 @@
       "file_path": "shitsugi/sozoku/14/02.json",
       "char_count_body": 259,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:50.061Z",
+      "fetched_at": "2026-06-22T07:05:13.821Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20920,7 +20920,7 @@
       "file_path": "shitsugi/sozoku/14/03.json",
       "char_count_body": 313,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:51.060Z",
+      "fetched_at": "2026-06-22T07:05:14.830Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20932,9 +20932,9 @@
       "title": "父所有の家屋に子が増築した場合の贈与税の課税関係",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/14/04.htm",
       "file_path": "shitsugi/sozoku/14/04.json",
-      "char_count_body": 311,
+      "char_count_body": 425,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:52.059Z",
+      "fetched_at": "2026-06-22T07:05:15.832Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT"
     },
     {
@@ -20948,7 +20948,7 @@
       "file_path": "shitsugi/sozoku/14/05.json",
       "char_count_body": 432,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:53.058Z",
+      "fetched_at": "2026-06-22T07:05:16.842Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -20962,7 +20962,7 @@
       "file_path": "shitsugi/sozoku/14/06.json",
       "char_count_body": 236,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:55.058Z",
+      "fetched_at": "2026-06-22T07:05:17.856Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -20976,7 +20976,7 @@
       "file_path": "shitsugi/sozoku/14/07.json",
       "char_count_body": 282,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:54.058Z",
+      "fetched_at": "2026-06-22T07:05:18.866Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -20990,7 +20990,7 @@
       "file_path": "shitsugi/sozoku/14/08.json",
       "char_count_body": 677,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:56.057Z",
+      "fetched_at": "2026-06-22T07:05:19.869Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21004,7 +21004,7 @@
       "file_path": "shitsugi/sozoku/15/01.json",
       "char_count_body": 372,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:58.055Z",
+      "fetched_at": "2026-06-22T07:05:20.875Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21018,7 +21018,7 @@
       "file_path": "shitsugi/sozoku/15/02.json",
       "char_count_body": 404,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:59.054Z",
+      "fetched_at": "2026-06-22T07:05:21.879Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21032,7 +21032,7 @@
       "file_path": "shitsugi/sozoku/15/03.json",
       "char_count_body": 243,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:57.056Z",
+      "fetched_at": "2026-06-22T07:05:22.885Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21046,7 +21046,7 @@
       "file_path": "shitsugi/sozoku/15/04.json",
       "char_count_body": 328,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:00.055Z",
+      "fetched_at": "2026-06-22T07:05:23.887Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21060,7 +21060,7 @@
       "file_path": "shitsugi/sozoku/16/01.json",
       "char_count_body": 248,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:01.056Z",
+      "fetched_at": "2026-06-22T07:05:24.888Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21074,7 +21074,7 @@
       "file_path": "shitsugi/sozoku/16/02.json",
       "char_count_body": 375,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:04.055Z",
+      "fetched_at": "2026-06-22T07:05:25.894Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21088,7 +21088,7 @@
       "file_path": "shitsugi/sozoku/16/03.json",
       "char_count_body": 160,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:05.054Z",
+      "fetched_at": "2026-06-22T07:05:26.906Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21100,9 +21100,9 @@
       "title": "贈与税の配偶者控除の対象となる居住用不動産の範囲(2)",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/04.htm",
       "file_path": "shitsugi/sozoku/16/04.json",
-      "char_count_body": 300,
+      "char_count_body": 298,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:06.053Z",
+      "fetched_at": "2026-06-22T07:05:27.913Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21114,9 +21114,9 @@
       "title": "日本国籍を有しない者が受ける贈与税の配偶者控除に係る贈与税の申告書の添付書類",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/05.htm",
       "file_path": "shitsugi/sozoku/16/05.json",
-      "char_count_body": 793,
+      "char_count_body": 789,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:07.053Z",
+      "fetched_at": "2026-06-22T07:05:28.922Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21130,7 +21130,7 @@
       "file_path": "shitsugi/sozoku/16/06.json",
       "char_count_body": 288,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:02.055Z",
+      "fetched_at": "2026-06-22T07:05:29.926Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21144,7 +21144,7 @@
       "file_path": "shitsugi/sozoku/16/07.json",
       "char_count_body": 386,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:03.056Z",
+      "fetched_at": "2026-06-22T07:05:30.940Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT"
     },
     {
@@ -21158,7 +21158,7 @@
       "file_path": "shitsugi/sozoku/17/01.json",
       "char_count_body": 195,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:09.053Z",
+      "fetched_at": "2026-06-22T07:05:31.944Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21172,7 +21172,7 @@
       "file_path": "shitsugi/sozoku/17/02.json",
       "char_count_body": 443,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:11.052Z",
+      "fetched_at": "2026-06-22T07:05:32.951Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21186,7 +21186,7 @@
       "file_path": "shitsugi/sozoku/17/03.json",
       "char_count_body": 334,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:12.052Z",
+      "fetched_at": "2026-06-22T07:05:33.967Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21198,9 +21198,9 @@
       "title": "住宅用家屋の新築等の対価又は増改築等の費用の範囲",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/05.htm",
       "file_path": "shitsugi/sozoku/17/05.json",
-      "char_count_body": 989,
+      "char_count_body": 984,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:08.053Z",
+      "fetched_at": "2026-06-22T07:05:34.978Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21214,7 +21214,7 @@
       "file_path": "shitsugi/sozoku/17/06.json",
       "char_count_body": 491,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:13.052Z",
+      "fetched_at": "2026-06-22T07:05:35.982Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21228,7 +21228,7 @@
       "file_path": "shitsugi/sozoku/17/07.json",
       "char_count_body": 497,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:10.053Z",
+      "fetched_at": "2026-06-22T07:05:36.984Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21242,7 +21242,7 @@
       "file_path": "shitsugi/sozoku/17/08.json",
       "char_count_body": 750,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:14.051Z",
+      "fetched_at": "2026-06-22T07:05:37.989Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21256,7 +21256,7 @@
       "file_path": "shitsugi/sozoku/18/01.json",
       "char_count_body": 279,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:16.051Z",
+      "fetched_at": "2026-06-22T07:05:38.996Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21270,7 +21270,7 @@
       "file_path": "shitsugi/sozoku/18/02.json",
       "char_count_body": 338,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:22.049Z",
+      "fetched_at": "2026-06-22T07:05:40.010Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21284,7 +21284,7 @@
       "file_path": "shitsugi/sozoku/18/03.json",
       "char_count_body": 346,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:24.049Z",
+      "fetched_at": "2026-06-22T07:05:41.014Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21298,7 +21298,7 @@
       "file_path": "shitsugi/sozoku/18/04.json",
       "char_count_body": 357,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:26.048Z",
+      "fetched_at": "2026-06-22T07:05:42.016Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21312,7 +21312,7 @@
       "file_path": "shitsugi/sozoku/18/05.json",
       "char_count_body": 208,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:30.048Z",
+      "fetched_at": "2026-06-22T07:05:43.025Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21326,7 +21326,7 @@
       "file_path": "shitsugi/sozoku/18/06.json",
       "char_count_body": 274,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:47.054Z",
+      "fetched_at": "2026-06-22T07:05:44.035Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21340,7 +21340,7 @@
       "file_path": "shitsugi/sozoku/18/07.json",
       "char_count_body": 446,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:17.051Z",
+      "fetched_at": "2026-06-22T07:05:45.037Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21354,7 +21354,7 @@
       "file_path": "shitsugi/sozoku/18/08.json",
       "char_count_body": 239,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:25.049Z",
+      "fetched_at": "2026-06-22T07:05:46.047Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21366,9 +21366,9 @@
       "title": "納付すべき相続税額が算出されない配偶者についての納税猶予の適用",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/09.htm",
       "file_path": "shitsugi/sozoku/18/09.json",
-      "char_count_body": 636,
+      "char_count_body": 633,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:28.048Z",
+      "fetched_at": "2026-06-22T07:05:47.052Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21382,7 +21382,7 @@
       "file_path": "shitsugi/sozoku/18/10.json",
       "char_count_body": 110,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:29.048Z",
+      "fetched_at": "2026-06-22T07:05:48.058Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21394,9 +21394,9 @@
       "title": "特例適用農地の譲渡代金の一部について代替農地の取得の見積承認申請があった場合",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/11.htm",
       "file_path": "shitsugi/sozoku/18/11.json",
-      "char_count_body": 401,
+      "char_count_body": 399,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:46.053Z",
+      "fetched_at": "2026-06-22T07:05:49.072Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21410,7 +21410,7 @@
       "file_path": "shitsugi/sozoku/18/12.json",
       "char_count_body": 674,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:48.055Z",
+      "fetched_at": "2026-06-22T07:05:50.078Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21422,9 +21422,9 @@
       "title": "納税猶予の対象となる農地(1)",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/13.htm",
       "file_path": "shitsugi/sozoku/18/13.json",
-      "char_count_body": 1537,
+      "char_count_body": 1531,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:15.051Z",
+      "fetched_at": "2026-06-22T07:05:51.084Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21438,7 +21438,7 @@
       "file_path": "shitsugi/sozoku/18/14.json",
       "char_count_body": 347,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:18.050Z",
+      "fetched_at": "2026-06-22T07:05:52.097Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT"
     },
     {
@@ -21452,7 +21452,7 @@
       "file_path": "shitsugi/sozoku/18/15.json",
       "char_count_body": 375,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:19.049Z",
+      "fetched_at": "2026-06-22T07:05:53.100Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21466,7 +21466,7 @@
       "file_path": "shitsugi/sozoku/18/16.json",
       "char_count_body": 347,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:20.050Z",
+      "fetched_at": "2026-06-22T07:05:54.107Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21480,7 +21480,7 @@
       "file_path": "shitsugi/sozoku/18/17.json",
       "char_count_body": 230,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:21.049Z",
+      "fetched_at": "2026-06-22T07:05:55.114Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21494,7 +21494,7 @@
       "file_path": "shitsugi/sozoku/18/18.json",
       "char_count_body": 243,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:27.048Z",
+      "fetched_at": "2026-06-22T07:05:56.119Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21508,7 +21508,7 @@
       "file_path": "shitsugi/sozoku/18/19.json",
       "char_count_body": 506,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:31.049Z",
+      "fetched_at": "2026-06-22T07:05:57.128Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21520,9 +21520,9 @@
       "title": "鉄塔の建替え工事のため仮鉄塔の敷地として一時使用されている土地",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/20.htm",
       "file_path": "shitsugi/sozoku/18/20.json",
-      "char_count_body": 1149,
+      "char_count_body": 1148,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:32.049Z",
+      "fetched_at": "2026-06-22T07:05:58.140Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21534,9 +21534,9 @@
       "title": "砂利採取中の土地",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/21.htm",
       "file_path": "shitsugi/sozoku/18/21.json",
-      "char_count_body": 860,
+      "char_count_body": 859,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:33.049Z",
+      "fetched_at": "2026-06-22T07:05:59.148Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21550,7 +21550,7 @@
       "file_path": "shitsugi/sozoku/18/23.json",
       "char_count_body": 243,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:34.049Z",
+      "fetched_at": "2026-06-22T07:06:00.162Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21564,7 +21564,7 @@
       "file_path": "shitsugi/sozoku/18/24.json",
       "char_count_body": 266,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:35.050Z",
+      "fetched_at": "2026-06-22T07:06:01.167Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21578,7 +21578,7 @@
       "file_path": "shitsugi/sozoku/18/25.json",
       "char_count_body": 376,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:36.050Z",
+      "fetched_at": "2026-06-22T07:06:02.170Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21592,7 +21592,7 @@
       "file_path": "shitsugi/sozoku/18/26.json",
       "char_count_body": 177,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:37.050Z",
+      "fetched_at": "2026-06-22T07:06:03.182Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21604,9 +21604,9 @@
       "title": "同一年中に2人の贈与者から農地等の生前一括贈与を受けた場合",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/27.htm",
       "file_path": "shitsugi/sozoku/18/27.json",
-      "char_count_body": 188,
+      "char_count_body": 420,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:38.049Z",
+      "fetched_at": "2026-06-22T07:06:04.196Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21618,9 +21618,9 @@
       "title": "2人以上の者が農地等を共有で相続した場合の納税猶予の特例の可否",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/28.htm",
       "file_path": "shitsugi/sozoku/18/28.json",
-      "char_count_body": 862,
+      "char_count_body": 859,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:39.049Z",
+      "fetched_at": "2026-06-22T07:06:05.197Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21634,7 +21634,7 @@
       "file_path": "shitsugi/sozoku/18/29.json",
       "char_count_body": 293,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:40.050Z",
+      "fetched_at": "2026-06-22T07:06:06.211Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21648,7 +21648,7 @@
       "file_path": "shitsugi/sozoku/18/30.json",
       "char_count_body": 283,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:41.051Z",
+      "fetched_at": "2026-06-22T07:06:07.215Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21662,7 +21662,7 @@
       "file_path": "shitsugi/sozoku/18/31.json",
       "char_count_body": 379,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:42.052Z",
+      "fetched_at": "2026-06-22T07:06:08.220Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21676,7 +21676,7 @@
       "file_path": "shitsugi/sozoku/18/32.json",
       "char_count_body": 424,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:43.052Z",
+      "fetched_at": "2026-06-22T07:06:09.220Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21690,7 +21690,7 @@
       "file_path": "shitsugi/sozoku/18/33.json",
       "char_count_body": 388,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:44.052Z",
+      "fetched_at": "2026-06-22T07:06:10.224Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21702,9 +21702,9 @@
       "title": "経営移譲年金の受給資格取得のために経営移譲が行われていた場合の相続税の納税猶予の特例の適用",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/34.htm",
       "file_path": "shitsugi/sozoku/18/34.json",
-      "char_count_body": 395,
+      "char_count_body": 394,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:45.053Z",
+      "fetched_at": "2026-06-22T07:06:11.225Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21716,9 +21716,9 @@
       "title": "対象年の前年以前又は対象年に農地法第5条の許可を受けた農地等の贈与を行った場合の贈与税の納税猶予の適用",
       "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/35.htm",
       "file_path": "shitsugi/sozoku/18/35.json",
-      "char_count_body": 746,
+      "char_count_body": 745,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:12:23.049Z",
+      "fetched_at": "2026-06-22T07:06:12.230Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21732,7 +21732,7 @@
       "file_path": "shitsugi/sozoku/19/01.json",
       "char_count_body": 592,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:17.053Z",
+      "fetched_at": "2026-06-22T07:06:13.243Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
@@ -21746,7 +21746,7 @@
       "file_path": "shitsugi/sozoku/20/01.json",
       "char_count_body": 374,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:11:45.060Z",
+      "fetched_at": "2026-06-22T07:06:14.256Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT"
     },
     {
