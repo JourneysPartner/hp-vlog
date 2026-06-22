@@ -1,0 +1,22 @@
+{
+  "id": "37",
+  "section": "05",
+  "type": "shitsugi",
+  "tax_category": "所得税",
+  "tax_category_code": "shotoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/37.htm",
+  "title": "不妊症の治療費・人工授精の費用",
+  "shokai_yoshi": "不妊症の治療費や人工授精の費用は、医療費控除の対象になりますか。",
+  "kaitou_yoshi": "医師による診療等の対価として支払われる不妊症の治療費及び人工授精の費用は、医療費控除の対象となります。",
+  "kankei_hourei": "所得税法施行令第207条",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "不妊症の治療費や人工授精の費用は、医療費控除の対象になりますか。 医師による診療等の対価として支払われる不妊症の治療費及び人工授精の費用は、医療費控除の対象となります。",
+  "char_count_body": 84,
+  "fetched_at": "2026-06-21T14:01:33.083Z",
+  "last_checked_at": "2026-06-21T14:01:33.083Z",
+  "html_hash": "d206f59637ede9566aaa6bf27c530a9d4b6fa7e896eaafdb3d096dc4bfa5bd99",
+  "byte_size": 4268,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:31:02 GMT",
+  "etag": "\"10ac-645080859f118\""
+}

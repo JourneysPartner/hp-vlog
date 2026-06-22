@@ -1,0 +1,22 @@
+{
+  "id": "31",
+  "section": "02",
+  "type": "shitsugi",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "url": "https://www.nta.go.jp/law/shitsugi/shohi/02/31.htm",
+  "title": "チップの支払",
+  "shokai_yoshi": "運転手等に対するチップは、課税仕入れに該当するのでしょうか。",
+  "kaitou_yoshi": "運転手等に対するチップは、運送等の役務の提供の対価の支払とは別に支出するものであり、提供を受ける役務との間に明白な対価関係は認められませんから、課税仕入れに該当しません（法2 八、十二）。",
+  "kankei_hourei": "消費税法第2条第1項第8号、第12号",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "運転手等に対するチップは、課税仕入れに該当するのでしょうか。 運転手等に対するチップは、運送等の役務の提供の対価の支払とは別に支出するものであり、提供を受ける役務との間に明白な対価関係は認められませんから、課税仕入れに該当しません（法2 八、十二）。",
+  "char_count_body": 125,
+  "fetched_at": "2026-06-21T14:21:15.180Z",
+  "last_checked_at": "2026-06-21T14:21:15.180Z",
+  "html_hash": "eafa31bb51e0c8fbc1b74262127a8d7262ca25e952f24408d972ce71ca70a097",
+  "byte_size": 4355,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:42 GMT",
+  "etag": "\"1103-645080726fb10\""
+}

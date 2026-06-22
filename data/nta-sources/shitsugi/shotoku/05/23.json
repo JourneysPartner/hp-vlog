@@ -1,0 +1,22 @@
+{
+  "id": "23",
+  "section": "05",
+  "type": "shitsugi",
+  "tax_category": "所得税",
+  "tax_category_code": "shotoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/23.htm",
+  "title": "空気清浄機の購入費用",
+  "shokai_yoshi": "ぜんそくの患者が、医師に勧められて空気清浄機を自宅に取り付けた場合の購入費用は、医療費控除の対象になりますか。",
+  "kaitou_yoshi": "自宅に取り付ける空気清浄機の購入費用は、医師等による診療等を受けるため直接必要な費用には当たらないので、医療費控除の対象とはなりません。",
+  "kankei_hourei": "所得税基本通達73-3",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "ぜんそくの患者が、医師に勧められて空気清浄機を自宅に取り付けた場合の購入費用は、医療費控除の対象になりますか。 自宅に取り付ける空気清浄機の購入費用は、医師等による診療等を受けるため直接必要な費用には当たらないので、医療費控除の対象とはなりません。",
+  "char_count_body": 124,
+  "fetched_at": "2026-06-21T14:02:03.081Z",
+  "last_checked_at": "2026-06-21T14:02:03.081Z",
+  "html_hash": "05cfaa46694c677680526d7fb342e530297386e590b50d287561ad561202311c",
+  "byte_size": 4305,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:31:02 GMT",
+  "etag": "\"10d1-6450808618680\""
+}

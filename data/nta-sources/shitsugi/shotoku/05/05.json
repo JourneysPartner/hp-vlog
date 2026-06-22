@@ -1,0 +1,22 @@
+{
+  "id": "05",
+  "section": "05",
+  "type": "shitsugi",
+  "tax_category": "所得税",
+  "tax_category_code": "shotoku",
+  "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/05.htm",
+  "title": "詐欺による損失",
+  "shokai_yoshi": "詐欺による損失は雑損控除の対象となりますか。",
+  "kaitou_yoshi": "雑損控除は、「災害又は盗難若しくは横領」により生じた損失を対象としますが、「詐欺」による損失は対象となりません。",
+  "kankei_hourei": "所得税法第72条",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "詐欺による損失は雑損控除の対象となりますか。 雑損控除は、「災害又は盗難若しくは横領」により生じた損失を対象としますが、「詐欺」による損失は対象となりません。",
+  "char_count_body": 79,
+  "fetched_at": "2026-06-21T14:01:21.087Z",
+  "last_checked_at": "2026-06-21T14:01:21.087Z",
+  "html_hash": "a4afc98d72ea3ce597aaf9c33d4a8fbb0bc6b2baf6ad5320ac1056d5f56efb76",
+  "byte_size": 4187,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:31:03 GMT",
+  "etag": "\"105b-64508086c2d10\""
+}

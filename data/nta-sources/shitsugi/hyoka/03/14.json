@@ -1,0 +1,22 @@
+{
+  "id": "14",
+  "section": "03",
+  "type": "shitsugi",
+  "tax_category": "財産の評価",
+  "tax_category_code": "hyoka",
+  "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/14.htm",
+  "title": "不整形地の評価――計算上の奥行距離を基として評価する場合",
+  "shokai_yoshi": "次の図のような不整形地はどのように評価するのでしょうか。",
+  "kaitou_yoshi": "不整形地の地積を間口距離で除して算出した計算上の奥行距離を基として求めた整形地としての価額に、不整形地補正率を乗じて評価します。",
+  "kankei_hourei": null,
+  "law_version": null,
+  "body_combined": "次の図のような不整形地はどのように評価するのでしょうか。 不整形地の地積を間口距離で除して算出した計算上の奥行距離を基として求めた整形地としての価額に、不整形地補正率を乗じて評価します。",
+  "char_count_body": 93,
+  "fetched_at": "2026-06-21T14:13:30.047Z",
+  "last_checked_at": "2026-06-21T14:13:30.047Z",
+  "html_hash": "0efd637820959c00876595248028478ee306d8dc31c5763160b345e24d9591c0",
+  "byte_size": 4592,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
+  "etag": "\"11f0-64508063e0270\""
+}

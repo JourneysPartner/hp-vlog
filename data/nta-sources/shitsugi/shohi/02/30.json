@@ -1,0 +1,22 @@
+{
+  "id": "30",
+  "section": "02",
+  "type": "shitsugi",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "url": "https://www.nta.go.jp/law/shitsugi/shohi/02/30.htm",
+  "title": "お布施、戒名料、玉串料等",
+  "shokai_yoshi": "寺の住職がもらう「お布施」も課税の対象となるのでしょうか。",
+  "kaitou_yoshi": "お布施、戒名料、玉串料等の葬儀、法要等に伴う収入は、その収受が現金で行われるか、現金以外で行われるかにかかわらず、宗教活動に伴う実質的な喜捨金と認識されているものですから、課税の対象とはなりません。",
+  "kankei_hourei": "消費税法第2条第1項第8号",
+  "law_version": "令和7年8月1日現在の法令・通達等",
+  "body_combined": "寺の住職がもらう「お布施」も課税の対象となるのでしょうか。 お布施、戒名料、玉串料等の葬儀、法要等に伴う収入は、その収受が現金で行われるか、現金以外で行われるかにかかわらず、宗教活動に伴う実質的な喜捨金と認識されているものですから、課税の対象とはなりません。",
+  "char_count_body": 129,
+  "fetched_at": "2026-06-21T14:21:13.180Z",
+  "last_checked_at": "2026-06-21T14:21:13.180Z",
+  "html_hash": "78863df08fd929f4b0474fe5b027dc1465caa049b3dc4d61d54651ca4d6e27f9",
+  "byte_size": 4331,
+  "encoding": "shift_jis",
+  "last_modified": "Wed, 03 Dec 2025 08:30:42 GMT",
+  "etag": "\"10eb-6450807279368\""
+}
