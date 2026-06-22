@@ -59,12 +59,19 @@ function extractTitle(bodyArea) {
 
 // 各 h2 ラベルの後ろにある内容を抽出する。
 // 例: 【照会要旨】<h2>【照会要旨】</h2> の直後の <p> ブロック全部
+//
+// 終端判定の lookahead:
+//   - 次の <h2> （別セクション開始）
+//   - <p class="red"> （shohi 系の 注記ブロック直前）
+//   - <p>\s*<strong class="red"> （sozoku/hyoka 系の 注記ブロック直前）
+//   - <strong class="red"> （注記単体の手前パターン）
+//   - </div></div> （bodyArea 末尾）
 function extractByLabel(bodyArea, label) {
-  // <h2>【照会要旨】</h2>...次の <h2> または <p class="red"> または </div> まで
-  // ラベル内の <span> 等を許容するため正規表現で flexible に
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(
-    `<h2[^>]*>\\s*${escaped}\\s*<\\/h2>([\\s\\S]+?)(?=<h2[^>]*>|<p\\s+class="red"|<\\/div>\\s*<\\/div>)`,
+    `<h2[^>]*>\\s*${escaped}\\s*<\\/h2>` +
+    `([\\s\\S]+?)` +
+    `(?=<h2[^>]*>|<p\\s+class="red"|<p[^>]*>\\s*<strong\\s+class="red"|<strong\\s+class="red"|<\\/div>\\s*<\\/div>)`,
     'i'
   );
   const m = bodyArea.match(re);
@@ -81,14 +88,28 @@ function extractKankeiHourei(bodyArea) {
 }
 
 // law_version 抽出（注記ブロックから「令和X年X月X日現在の法令・通達等」）
+// 2 つの構造に対応:
+//   shohi 系:        <p class="red">注記<br>令和X年...</p>
+//   sozoku/hyoka 系: <p><strong class="red">注記<br>令和X年...</strong></p>
 function extractLawVersion(bodyArea) {
-  // <p class="red">注記...令和X年X月X日現在の法令・通達等...</p>
-  const noteMatch = bodyArea.match(/<p\s+class="red"[\s\S]+?<\/p>/);
-  if (!noteMatch) return null;
-  const noteText = stripHtmlTags(noteMatch[0]).replace(/\s+/g, ' ').trim();
+  // <p class="red"> または <strong class="red"> のいずれかを起点に注記ブロック内を探す
+  const patterns = [
+    /<p\s+class="red"[\s\S]+?<\/p>/,
+    /<strong\s+class="red"[\s\S]+?<\/strong>/,
+  ];
+  let noteText = null;
+  for (const re of patterns) {
+    const m = bodyArea.match(re);
+    if (m) {
+      noteText = stripHtmlTags(m[0]).replace(/\s+/g, ' ').trim();
+      // 「令和X年...」を含むものを優先
+      if (/[令和平成昭和]/.test(noteText)) break;
+    }
+  }
+  if (!noteText) return null;
   // 元号は (令和|平成|昭和|大正|明治) のグループとして扱う（文字クラスだと 2 文字目を誤マッチする）
-  // 末尾は「...等」までで止める（後続「に基づいて...」を取り込まない）
-  const lvMatch = noteText.match(/((?:令和|平成|昭和|大正|明治)\d+年\d+月\d+日現在の[^。\s]*?等)/);
+  // 全角数字も含めるよう [0-9０-９] にする（sozoku/hyoka 系は全角数字を使う）
+  const lvMatch = noteText.match(/((?:令和|平成|昭和|大正|明治)[\d０-９]+年[\d０-９]+月[\d０-９]+日現在の[^。\s]*?等)/);
   return lvMatch ? lvMatch[1].trim() : null;
 }
 
