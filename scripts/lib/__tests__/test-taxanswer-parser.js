@@ -134,5 +134,50 @@ console.log('\n=== Test 8: エラーケース ===');
   }
 }
 
+// ── 9. stripHtmlTags: インラインタグは空白なし ─────────────────
+console.log('\n=== Test 9: stripHtmlTags inline tags ===');
+{
+  // span は空白なしで除去（CJK 文字間にスペースを入れない）
+  assert(parser.stripHtmlTags('<span class="active">山</span>林の伐採') === '山林の伐採',
+    '<span> 除去で空白挿入なし');
+  assert(parser.stripHtmlTags('<a href="#">税理士</a>に相談') === '税理士に相談',
+    '<a> 除去で空白挿入なし');
+  assert(parser.stripHtmlTags('<strong>重要</strong>です') === '重要です',
+    '<strong> 除去で空白挿入なし');
+  assert(parser.stripHtmlTags('<em>強調</em>テキスト') === '強調テキスト',
+    '<em> 除去で空白挿入なし');
+  // ブロック系タグは空白を残す
+  assert(parser.stripHtmlTags('<p>段落1</p><p>段落2</p>').trim().replace(/\s+/g, ' ') === '段落1 段落2',
+    '<p> はブロック系で空白挿入');
+}
+
+// ── 10. collapseCjkSpaces ────────────────────────────────────
+console.log('\n=== Test 10: collapseCjkSpaces ===');
+{
+  // 山林の伐採事例の問題（インラインタグ strip 由来、修正後はこのケース自体は発生しないが、念のため CJK 間 collapse でカバー）
+  assert(parser.collapseCjkSpaces('山 林の伐採') === '山林の伐採',
+    'CJK 一文字 + space + CJK → 削る');
+  // 国税庁 HTML の改行が CJK 間に入るケース
+  assert(parser.collapseCjkSpaces('第１項 の「収用等のあつた日」') === '第１項の「収用等のあつた日」',
+    '空白で区切られた CJK は連結');
+  // 連続スペース
+  assert(parser.collapseCjkSpaces('租税  特別  措置法') === '租税特別措置法',
+    '複数スペースも処理');
+  // 3 連続 CJK 区切り
+  assert(parser.collapseCjkSpaces('山 林 の 伐採') === '山林の伐採',
+    '3 連続スペースも処理');
+  // 英字 - CJK 境界はスペース保持
+  assert(parser.collapseCjkSpaces('Amazon の販売') === 'Amazon の販売',
+    '英字-CJK 境界はスペース保持');
+  // CJK - 英字境界もスペース保持
+  assert(parser.collapseCjkSpaces('販売 Amazon') === '販売 Amazon',
+    'CJK-英字境界はスペース保持');
+  // 数字 - CJK もスペース保持（"1,000 万円" などの財務表記）
+  assert(parser.collapseCjkSpaces('1,000 万円') === '1,000 万円',
+    '数字-CJK 境界はスペース保持');
+  // 空文字 / null セーフ
+  assert(parser.collapseCjkSpaces('') === '', '空文字 OK');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

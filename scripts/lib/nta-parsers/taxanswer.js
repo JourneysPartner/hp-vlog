@@ -68,8 +68,8 @@ function extractTitle(bodyArea) {
   const m = bodyArea.match(/<div\s+class="page-header"[^>]*>\s*<h1[^>]*>([\s\S]+?)<\/h1>/);
   if (!m) return { id: null, title: null, titleFull: null };
 
-  // <span class="active">N</span>o.6501 ... のような span 装飾を除去
-  const cleaned = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  // インラインタグ（span 装飾等）は空白なしで除去 → 残るタグは空白に → CJK 間スペース除去
+  const cleaned = collapseCjkSpaces(stripHtmlTags(m[1]).replace(/\s+/g, ' ').trim());
   const noMatch = cleaned.match(/^No\.(\d+)\s*(.+)$/);
   if (noMatch) {
     return { id: noMatch[1], title: noMatch[2].trim(), titleFull: cleaned };
@@ -92,8 +92,8 @@ function extractSections(bodyArea) {
   const h2Pattern = /<h2[^>]*>([\s\S]+?)<\/h2>([\s\S]+?)(?=<h2[^>]*>|<p\s+class="red">|$)/g;
   let match;
   while ((match = h2Pattern.exec(bodyArea)) !== null) {
-    const heading = stripHtmlTags(match[1]).trim();
-    const body = stripHtmlTags(match[2]).replace(/\s+/g, ' ').trim();
+    const heading = collapseCjkSpaces(stripHtmlTags(match[1]).trim());
+    const body = collapseCjkSpaces(stripHtmlTags(match[2]).replace(/\s+/g, ' ').trim());
     if (heading && body) {
       sections[heading] = body;
     }
@@ -107,22 +107,48 @@ function extractPlainBody(bodyArea) {
   let cleaned = bodyArea
     .replace(/<ol\s+class="breadcrumb"[\s\S]+?<\/ol>/g, '')
     .replace(/<div\s+class="page-header"[\s\S]+?<\/div>/g, '');
-  cleaned = stripHtmlTags(cleaned).replace(/\s+/g, ' ').trim();
+  cleaned = collapseCjkSpaces(stripHtmlTags(cleaned).replace(/\s+/g, ' ').trim());
   return cleaned;
 }
 
-// HTML タグを除去
+// HTML タグを除去。
+// インラインタグ (<span>, <a>, <em>, <strong>, <b>, <i>, <sup>, <sub>,
+// <small>, <font>, <wbr>) は空白を入れず除去する（CJK 文字間に余分なスペースを
+// 入れないため）。それ以外のブロック系タグは空白に置換する。
+const INLINE_TAGS = ['span', 'a', 'em', 'strong', 'b', 'i', 'sup', 'sub', 'small', 'font', 'wbr'];
+const INLINE_TAG_RE = new RegExp(`<\\/?(?:${INLINE_TAGS.join('|')})\\b[^>]*>`, 'gi');
+
 function stripHtmlTags(html) {
   return String(html)
     .replace(/<script[\s\S]*?<\/script>/g, ' ')
     .replace(/<style[\s\S]*?<\/style>/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
+    .replace(INLINE_TAG_RE, '')          // インラインタグは空白なしで除去
+    .replace(/<[^>]+>/g, ' ')             // 残るブロック系タグは空白に
     .replace(/&nbsp;/g, ' ')
     .replace(/&emsp;/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"');
+}
+
+// CJK 文字間の単一スペースを除去する。
+// 原因の例:
+//   1. <span class="active">山</span>林 を strip → "山 林"（インラインタグ修正後は消える）
+//   2. HTML 内の改行が CJK 文字を挟む → "第１項\nの「..." → 「\s+」collapse 後も "第１項 の「..."
+//
+// ルール: ([CJK 一文字])\s+([CJK 一文字]) → くっつける
+//   ※ "Amazon の販売" のような英数字-日本語境界はスペース保持（CJK 同士のみ削る）
+function collapseCjkSpaces(text) {
+  // 2 回適用するのは、3 連続以上（A B C）のときに最初の置換で「AB C」となり残るため。
+  // 例: "山 林 の" → 1 回目で "山林 の" → 2 回目で "山林の"
+  let prev;
+  let curr = String(text);
+  do {
+    prev = curr;
+    curr = curr.replace(/([一-龯ぁ-んァ-ヶ々〆ヵヶ])\s+([一-龯ぁ-んァ-ヶ々〆ヵヶ])/g, '$1$2');
+  } while (curr !== prev);
+  return curr;
 }
 
 // ── メインパース関数 ───────────────────────────────────────────
@@ -185,6 +211,7 @@ module.exports = {
   extractSections,
   extractPlainBody,
   stripHtmlTags,
+  collapseCjkSpaces,
   isIncludedCategory,
   isExcludedCategory,
 };

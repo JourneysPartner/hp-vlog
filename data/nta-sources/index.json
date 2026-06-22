@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-06-21T14:25:23.471Z",
+  "generated_at": "2026-06-22T06:20:22.554Z",
   "total_count": 2222,
   "by_type": {
     "shitsugi": 1550,
@@ -5361,12 +5361,12 @@
       "type": "shitsugi",
       "tax_category": "法人税",
       "tax_category_code": "hojin",
-      "title": "租税特別措置法第64条の２((収用等に伴い特別勘定を設けた場合の課税の特例))第１項 の「収用等のあつた日」について",
+      "title": "租税特別措置法第64条の２((収用等に伴い特別勘定を設けた場合の課税の特例))第１項の「収用等のあつた日」について",
       "url": "https://www.nta.go.jp/law/shitsugi/hojin/28/07.htm",
       "file_path": "shitsugi/hojin/28/07.json",
       "char_count_body": 1528,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:17:04.164Z",
+      "fetched_at": "2026-06-22T06:20:19.978Z",
       "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT"
     },
     {
@@ -12473,12 +12473,12 @@
       "type": "shitsugi",
       "tax_category": "消費税",
       "tax_category_code": "shohi",
-      "title": "山 林の伐採、譲渡が事業に該当するかどうかの判定",
+      "title": "山林の伐採、譲渡が事業に該当するかどうかの判定",
       "url": "https://www.nta.go.jp/law/shitsugi/shohi/01/01.htm",
       "file_path": "shitsugi/shohi/01/01.json",
       "char_count_body": 481,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:20:50.173Z",
+      "fetched_at": "2026-06-22T06:20:20.979Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:43 GMT"
     },
     {
@@ -13089,12 +13089,12 @@
       "type": "shitsugi",
       "tax_category": "消費税",
       "tax_category_code": "shohi",
-      "title": "平成20年3月31日以前に契約した所有権移転外ファイナンス・リース取引 に係る規定損害金等の取扱い",
+      "title": "平成20年3月31日以前に契約した所有権移転外ファイナンス・リース取引に係る規定損害金等の取扱い",
       "url": "https://www.nta.go.jp/law/shitsugi/shohi/03/01.htm",
       "file_path": "shitsugi/shohi/03/01.json",
-      "char_count_body": 1243,
+      "char_count_body": 1240,
       "deleted": false,
-      "fetched_at": "2026-06-21T14:21:34.167Z",
+      "fetched_at": "2026-06-22T06:20:21.994Z",
       "last_modified": "Wed, 03 Dec 2025 08:30:41 GMT"
     },
     {
