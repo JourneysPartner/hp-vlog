@@ -45,6 +45,9 @@ const PERSONAS = [
   { id: 'influencer_creator',          label: 'インフルエンサー・クリエイター', categories: ['所得税', '帳簿・経費', 'インボイス'] },
   { id: 'beauty_salon_owner',          label: '美容サロンオーナー',            categories: ['消費税', '所得税', '帳簿・経費'] },
   { id: 'inheritance_client',          label: '相続・贈与の依頼者',            categories: ['相続'] },
+  // 業種を問わない広義ペルソナ（PR #214 の curation 結果を活かすため追加）
+  { id: 'general_individual_proprietor', label: '個人事業者全般',              categories: ['所得税', '帳簿・経費', '消費税'] },
+  { id: 'general_corporation',           label: '法人全般',                    categories: ['法人税', '消費税', '帳簿・経費'] },
 ];
 
 const PERSONA_MAP = Object.fromEntries(PERSONAS.map(p => [p.id, p]));
@@ -57,6 +60,8 @@ const CTA_MAP = {
   influencer_creator:          '広告収入・PR案件・海外プラットフォームからの入金など、収入源が多岐にわたる場合は税務処理も複雑になりがちです。不安な点があれば、税理士に相談してみてください。',
   beauty_salon_owner:          'サロン経営では、開業届から日々の記帳、消費税の届出判断まで、段階ごとに異なる税務対応が必要です。「今の自分に必要な手続きは何か」を整理したい方は、お気軽にご相談ください。',
   inheritance_client:          '相続税は、財産の種類や相続人の状況によって計算方法や特例の適用が大きく変わります。「うちの場合はどうなるか」を知りたい方は、早めに税理士へご相談されることをおすすめします。',
+  general_individual_proprietor: '個人事業の税務は、青色申告・経費区分・専従者給与・消費税の判定など、業種を問わず共通の論点が多くあります。自分のケースにどう当てはまるかを整理したい方は、税理士への相談がおすすめです。',
+  general_corporation:           '法人の税務は、法人税の計算・役員報酬・減価償却・消費税の判定など、論点が多岐にわたります。設立直後や事業拡大期は判断ミスが影響しやすいため、税理士に早めにご相談いただくと安心です。',
 };
 
 // ── 記事タイプ別の構成指示と目安文字数 ─────────────────────────

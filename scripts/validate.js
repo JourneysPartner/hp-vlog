@@ -39,6 +39,7 @@ const VALID_STATUSES = [
 const VALID_PERSONAS = [
   'ebay_export_seller', 'domestic_ec_seller', 'reseller_marketplace_seller',
   'influencer_creator', 'beauty_salon_owner', 'inheritance_client',
+  'general_individual_proprietor', 'general_corporation',
 ];
 
 // ── article_type の許容値 ──────────────────────────────────────
