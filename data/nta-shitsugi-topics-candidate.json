@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 0,
+    "adopted_count": 81,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -86,7 +86,8 @@
       },
       "kankei_hourei": "消費税法第9条第4項、第37条第1項、消費税法基本通達1-4-12、13-1-3の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/09/02.htm",
@@ -236,7 +237,8 @@
       },
       "kankei_hourei": "消費税法第28条第4項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/01.htm",
@@ -386,7 +388,8 @@
       },
       "kankei_hourei": "消費税法第31条第1項、消費税法施行令第17条第3項、第51条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/12.htm",
@@ -811,7 +814,8 @@
       },
       "kankei_hourei": "消費税法第30条第2項、消費税法基本通達11-2-11",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/19.htm",
@@ -1061,7 +1065,8 @@
       },
       "kankei_hourei": "消費税法第30条第1項、第7項、平成28年改正法附則第45条、第52条、第53条、平成30年改正令附則第24条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/08.htm",
@@ -1086,7 +1091,8 @@
       },
       "kankei_hourei": "所得税法第50条、所得税法施行令第137条第1項、第3項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/22.htm",
@@ -1236,7 +1242,8 @@
       },
       "kankei_hourei": "消費税法第9条、第9条の2、消費税法施行規則第11条の2、消費税法基本通達1-5-23",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/07.htm",
@@ -1586,7 +1593,8 @@
       },
       "kankei_hourei": "消費税法第30条第7項、第9項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/21/09.htm",
@@ -1711,7 +1719,8 @@
       },
       "kankei_hourei": "所得税法第37条、第45条、所得税基本通達37-25(3)",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/18.htm",
@@ -2136,7 +2145,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第8号、第28条第1項、消費税法施行令第45条第3項、消費税法基本通達10-1-19",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/02/22.htm",
@@ -2211,7 +2221,8 @@
       },
       "kankei_hourei": "消費税法第4条第3項第1号、消費税法基本通達5-2-1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/04/07.htm",
@@ -2411,7 +2422,8 @@
       },
       "kankei_hourei": "消費税法第7条第2項、消費税法施行規則第5条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/11/02.htm",
@@ -2436,7 +2448,8 @@
       },
       "kankei_hourei": "消費税法施行令第17条第2項第7号、消費税法基本通達7-2-16",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/12/01.htm",
@@ -2586,7 +2599,8 @@
       },
       "kankei_hourei": "消費税法基本通達10-1-7",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/14/07.htm",
@@ -2661,7 +2675,8 @@
       },
       "kankei_hourei": "消費税法第38条第1項、消費税法基本通達14-1-2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/15/03.htm",
@@ -2711,7 +2726,8 @@
       },
       "kankei_hourei": "消費税法第38条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/02.htm",
@@ -2961,7 +2977,8 @@
       },
       "kankei_hourei": "消費税法第30条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/27.htm",
@@ -2986,7 +3003,8 @@
       },
       "kankei_hourei": "消費税法第30条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/01.htm",
@@ -3211,7 +3229,8 @@
       },
       "kankei_hourei": "消費税法第31条第2項、消費税法施行令第51条第3項、第4項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/14.htm",
@@ -3511,7 +3530,8 @@
       },
       "kankei_hourei": "消費税法基本通達13-2-1、13-2-2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/20/11.htm",
@@ -3561,7 +3581,8 @@
       },
       "kankei_hourei": "消費税法第37条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/21/01.htm",
@@ -3761,7 +3782,8 @@
       },
       "kankei_hourei": "消費税法第9条第1項、消費税法基本通達1-4-5",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/11.htm",
@@ -3786,7 +3808,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第16号、第9条第4項、第6項、第7項、第37条第3項、消費税法施行令第5条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/12.htm",
@@ -3811,7 +3834,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第16号、第12条の2第2項、第37条第3項、消費税法施行令第5条、消費税法基本通達1-5-21、1-5-22、13-1-4の3",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/13.htm",
@@ -3836,7 +3860,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第7号、消費税法基本通達1-2-2、1-2-3",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/14.htm",
@@ -3861,7 +3886,8 @@
       },
       "kankei_hourei": "消費税法第12条の4第1項、第37条第3項第3号、消費税法施行令第25条の5、平成28年改正法附則第32条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/01.htm",
@@ -3886,7 +3912,8 @@
       },
       "kankei_hourei": "消費税法第9条第4項、消費税法施行令第20条第1号、 消費税法基本通達1－4－7",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/02.htm",
@@ -3986,7 +4013,8 @@
       },
       "kankei_hourei": "消費税法施行令第43条第3号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/23/08.htm",
@@ -4036,7 +4064,8 @@
       },
       "kankei_hourei": "消費税法別表第二第2号、消費税法施行令第9条第3項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/26/01.htm",
@@ -4061,7 +4090,8 @@
       },
       "kankei_hourei": "消費税法第9条第1項 消費税法基本通達1-4-2（注）4",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/26/02.htm",
@@ -4111,7 +4141,8 @@
       },
       "kankei_hourei": "消費税法第4条第1項、5条第1項、消費税法基本通達5-8-1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/26/04.htm",
@@ -4161,7 +4192,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第8号の4、第5条第1項、第30条第1項、平成27年改正法附則第42条、第44条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/01/01.htm",
@@ -5111,7 +5143,8 @@
       },
       "kankei_hourei": "所得税法施行令第182条の2、所得税基本通達37－30の4",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/32.htm",
@@ -6236,7 +6269,8 @@
       },
       "kankei_hourei": "租税特別措置法第25条の２第１項、第３項、第４項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/14.htm",
@@ -6436,7 +6470,8 @@
       },
       "kankei_hourei": "消費税法第30条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/20/03.htm",
@@ -6661,7 +6696,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第8号の3、第8号の4、消費税法基本通達5－8－4",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/16.htm",
@@ -6836,7 +6872,8 @@
       },
       "kankei_hourei": "所得税法第216条、所得税基本通達216-1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/35.htm",
@@ -6886,7 +6923,8 @@
       },
       "kankei_hourei": "所得税法施行令第69条第1項、所得税基本通達30-10",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/06/63.htm",
@@ -7136,7 +7174,8 @@
       },
       "kankei_hourei": "消費税法第9条の2、消費税法施行令第20条の5、第20条の6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/06.htm",
@@ -7236,7 +7275,8 @@
       },
       "kankei_hourei": "相続税法第31条、第32条租税特別措置法第69条の4 所得税基本通達33－1の6 民法第1046条",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/14/08.htm",
@@ -7636,7 +7676,8 @@
       },
       "kankei_hourei": "相続税法第5条、第21条の6",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/07.htm",
@@ -7661,7 +7702,8 @@
       },
       "kankei_hourei": "相続税法第21条の6 相続税法施行規則第9条",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/01/05.htm",
@@ -8711,7 +8753,8 @@
       },
       "kankei_hourei": "租税特別措置法第35条第３項、第５項",
       "law_version": "令和７年８月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/joto/18/29.htm",
@@ -8836,7 +8879,8 @@
       },
       "kankei_hourei": "租税特別措置法第39条、第70条の３の２ 租税特別措置法施行令第25条の16第１項、第40条の５の２ 相続税法第21の15、第21条の16 相続税法施行令第５条の２ 相続税法基本通達21の11の２－２ 令和５年改正法附則第19条",
       "law_version": "令和７年８月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/joto/23/01.htm",
@@ -8911,7 +8955,8 @@
       },
       "kankei_hourei": "消費税法第2条第1項第8号、第4条第1項、消費税法施行令第2条第3項、消費税法基本通達5-1-1、5-1-7",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/02/05.htm",
@@ -9561,7 +9606,8 @@
       },
       "kankei_hourei": "消費税法第2条～第4条、第57条の2、第57条の4",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/04/01.htm",
@@ -10561,7 +10607,8 @@
       },
       "kankei_hourei": "消費税法施行令第17条第2項第4号、消費税法基本通達7-2-1、7-2-13の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/11/08.htm",
@@ -10761,7 +10808,8 @@
       },
       "kankei_hourei": "消費税法第28条第3項第1号、消費税法基本通達10-1-18",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/14/09.htm",
@@ -11161,7 +11209,8 @@
       },
       "kankei_hourei": "消費税法第9条第1項、第12条の2第1項、第19条、消費税法施行令第3条、法人税法第13条第1項、一般社団法人及び一般財団法人に関する法律、一般社団法人及び一般財団法人に関する法律及び公益社団法人及び公益財団法人の認定等に関する法律の施行に伴う関係法律の整備等に関する法律施行規則第2条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/09.htm",
@@ -11186,7 +11235,8 @@
       },
       "kankei_hourei": "消費税法第9条の2、消費税法施行規則第11条の2、消費税法基本通達1-5-23",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/15.htm",
@@ -11211,7 +11261,8 @@
       },
       "kankei_hourei": "消費税法第12条の3第1項、消費税法施行令第25条の2、消費税法施行令第25条の3、消費税法基本通達1－5－15の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/16.htm",
@@ -11236,7 +11287,8 @@
       },
       "kankei_hourei": "消費税法第12条の3第1項、消費税法施行令第25条の2、消費税法基本通達1－5－15の2",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/17.htm",
@@ -11261,7 +11313,8 @@
       },
       "kankei_hourei": "消費税法第12条の3第1項、消費税法施行令第25条の3",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/18.htm",
@@ -12061,7 +12114,8 @@
       },
       "kankei_hourei": "租税特別措置法第27条、租税特別措置法施行令第18条の２第１項",
       "law_version": null,
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/01.htm",
@@ -14336,7 +14390,8 @@
       },
       "kankei_hourei": "相続税法第3条第1項第2号民法第30条、第31条所得税基本通達36-10 相続税法基本通達3-30",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/09.htm",
@@ -14361,7 +14416,8 @@
       },
       "kankei_hourei": "相続税法第3条第1項第2号相続税法基本通達3-30",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/03/11.htm",
@@ -14486,7 +14542,8 @@
       },
       "kankei_hourei": "相続税法第1条の3 相続税法基本通達19の2-17",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/08/05.htm",
@@ -14536,7 +14593,8 @@
       },
       "kankei_hourei": "租税特別措置法第69条の4第1項租税特別措置法関係通達69の4－1",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
@@ -14586,7 +14644,8 @@
       },
       "kankei_hourei": "租税特別措置法第69条の4第3項第3号租税特別措置法関係通達69の4-19",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/11/02.htm",
@@ -14636,7 +14695,8 @@
       },
       "kankei_hourei": "相続税法第19条第１項相続税法基本通達19－１、19－６",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/12/01.htm",
@@ -14761,7 +14821,8 @@
       },
       "kankei_hourei": "相続税法第21条の2第1項",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/14/05.htm",
@@ -14911,7 +14972,8 @@
       },
       "kankei_hourei": "相続税法第21条の6 相続税法基本通達21の6-1",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/03.htm",
@@ -14936,7 +14998,8 @@
       },
       "kankei_hourei": "相続税法第21条の6 相続税法基本通達21の6-1",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/04.htm",
@@ -14961,7 +15024,8 @@
       },
       "kankei_hourei": "相続税法第21条の6第1項相続税法基本通達21の6-1 昭和48年11月1日付直資2-189「使用貸借に係る土地についての相続税及び贈与税の取扱いについて」",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/05.htm",
@@ -14986,7 +15050,8 @@
       },
       "kankei_hourei": "相続税法第21条の6 相続税法施行規則第9条法の適用に関する通則法第24条",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/06.htm",
@@ -15011,7 +15076,8 @@
       },
       "kankei_hourei": "相続税法第21条の6第1項",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/01.htm",
@@ -15036,7 +15102,8 @@
       },
       "kankei_hourei": "租税特別措置法第70条の2第1項、第70条の3第1項相続税法第5条第1項",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/02.htm",
@@ -15061,7 +15128,8 @@
       },
       "kankei_hourei": "租税特別措置法第70条の2第1項、第70条の3第1項",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/03.htm",
@@ -15086,7 +15154,8 @@
       },
       "kankei_hourei": "租税特別措置法第70条の2第2項、第70条の3第3項租税特別措置法関係通達70の2-7、70の3-7 財産評価基本通達4-4、27-3",
       "law_version": "令和７年８月１日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/06.htm",
@@ -16161,7 +16230,8 @@
       },
       "kankei_hourei": "所得税法第28条、会社法第28条第3号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/19.htm",
@@ -16511,7 +16581,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/06/01.htm",
@@ -16836,7 +16907,8 @@
       },
       "kankei_hourei": "所得税法第161条第1項第12号イ、日米租税条約第3条第1項(e)、(g)、第7条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/06/59.htm",
@@ -19511,7 +19583,8 @@
       },
       "kankei_hourei": "法人税法第2条第6号、第4条第1項 法人税法施行令第5条第1項第10号、第29号、第2項第2号 法人税基本通達15-1-1、15-1-27から15-1-29 特定非営利活動促進法第70条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/27/19.htm",
@@ -20086,7 +20159,8 @@
       },
       "kankei_hourei": "所得税法第23条、第36条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/03/05.htm",
@@ -20236,7 +20310,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項第1号、所得税基本通達204-6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/05/02.htm",
@@ -20261,7 +20336,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項第1号、所得税基本通達204－6、204－7",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/05/04.htm",
@@ -20286,7 +20362,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項第1号、所得税法施行令第320条第1項、所得税基本通達204-6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/05/05.htm",
@@ -20336,7 +20413,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項第1号、所得税基本通達204-6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/05/09.htm",
@@ -20411,7 +20489,8 @@
       },
       "kankei_hourei": "所得税法第204条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/gensen/06/05.htm",
@@ -20611,7 +20690,8 @@
       },
       "kankei_hourei": "法人税法第75条の2、第80条第3項 法人税法施行令第29条第2項、第51条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/04/14.htm",
@@ -21486,7 +21566,8 @@
       },
       "kankei_hourei": "法人税法施行令第29条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true,
+      "adoption_note": "Claude 一次選定: ペルソナ実務との直結性で選別"
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hojin/33/25.htm",
