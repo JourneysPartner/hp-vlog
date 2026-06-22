@@ -39,7 +39,7 @@ const HTML = `<!DOCTYPE html>
     --border:  #e2e8f0;
     --bg:      #f8f9fc;
   }
-  html, body { height: 100%; }
+  /* html, body は overflow / height を制限しない（sticky の scroll context を body に保つ） */
   body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: #2c2c2c; margin: 0; }
 
   /* 固定ヘッダの高さは CSS 変数で一元管理（テーブル thead の sticky 計算に使用） */
@@ -75,9 +75,14 @@ const HTML = `<!DOCTYPE html>
   .filter-bar .save-indicator.saved  { color: var(--success); }
   .filter-bar .save-indicator.error  { color: var(--danger); font-weight: 700; }
 
+  /* ⚠ 重要: .table-wrap には overflow: hidden を付けない。
+     付けると内側 <th> の position: sticky の scroll context が
+     table-wrap に変わってしまい、フィルタバー直下に固定できない。
+     border-radius でクリップしたい場合は、別途 inner div を使う想定。 */
   .table-wrap {
-    background: #fff; margin: 1rem; border-radius: 8px; overflow: hidden;
+    background: #fff; margin: 1rem;
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    border-radius: 8px;
   }
   table.candidates {
     width: 100%; border-collapse: separate; border-spacing: 0; font-size: .85rem;
