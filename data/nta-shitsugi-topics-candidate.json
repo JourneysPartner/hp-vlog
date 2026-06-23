@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 204,
+    "adopted_count": 207,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -3761,7 +3761,7 @@
       },
       "kankei_hourei": "消費税法第9条第1項 消費税法基本通達1-4-6",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/05.htm",
@@ -4123,7 +4123,7 @@
       },
       "kankei_hourei": "消費税法第5条第1項、第30条第1項、平成27年改正法附則第42条、第44条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/26/03.htm",
@@ -4174,7 +4174,7 @@
       },
       "kankei_hourei": "消費税法第30条第1項、第6項、消費税法施行令第48条第1項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/26/07.htm",
