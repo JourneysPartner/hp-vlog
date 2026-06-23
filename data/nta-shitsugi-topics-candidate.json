@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 180,
+    "adopted_count": 181,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -2276,7 +2276,7 @@
       },
       "kankei_hourei": "消費税法第4条第3項第1号、消費税法基本通達5-7-10、7-2-1",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/06/01.htm",
