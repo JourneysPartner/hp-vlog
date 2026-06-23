@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 208,
+    "adopted_count": 209,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -413,7 +413,7 @@
       },
       "kankei_hourei": "消費税法第30条第2項第1号",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/13.htm",
