@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 222,
+    "adopted_count": 223,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -6436,7 +6436,7 @@
       },
       "kankei_hourei": "消費税法第30条第1項、所得税法第67条の2、法人税法第64条の2、所得税法施行令第120条の2第2項第5号、法人税法施行令第48条の2第5項第5号、消費税法基本通達5-1-9、11-3-2",
       "law_version": "令和6年10月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/05.htm",
