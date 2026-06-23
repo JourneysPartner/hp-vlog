@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 170,
+    "adopted_count": 171,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -1671,7 +1671,7 @@
       },
       "kankei_hourei": "所得税法第64条第1項、第152条、所得税法施行令第180条第2項",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/45.htm",
