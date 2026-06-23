@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 176,
+    "adopted_count": 177,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -2024,7 +2024,7 @@
       },
       "kankei_hourei": "財産評価基本通達183、193、197-2、197-5、198、199、203、212、213、214 相続税法基本通達24-3、25-1 相続税法第24条、第25条東日本大震災からの復興のための施策を実施するために必要な財源の確保に関する特別措置法第28条",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/02/03.htm",
