@@ -14,7 +14,7 @@
     "total_shitsugi_scanned": 1550,
     "read_errors": 0,
     "candidates_count": 982,
-    "adopted_count": 181,
+    "adopted_count": 182,
     "by_score": {
       "90+": 5,
       "80-89": 610,
@@ -2401,7 +2401,7 @@
       },
       "kankei_hourei": "消費税法別表第二第13号、消費税法基本通達6-13-8",
       "law_version": "令和7年8月1日現在の法令・通達等",
-      "adopted": false
+      "adopted": true
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/11/01.htm",
