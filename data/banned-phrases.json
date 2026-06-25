@@ -14,6 +14,17 @@
       "autoExtracted": false
     },
     {
+      "id": "no-N-lines-de-kakunin",
+      "pattern": "[\\d０-９◯〇○]+\\s*行で確認",
+      "humanReadable": "◯行で確認",
+      "replacement": null,
+      "reason": "「3行で確認」のような定型句は AI 感が強く陳腐化するため使わない（ユーザー指摘 2026-06-25）。",
+      "appliesTo": ["body"],
+      "addedAt": "2026-06-25T00:00:00.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
+    },
+    {
       "id": "convert-markdown-bold-to-strong",
       "pattern": "\\*\\*([^*\\n]+?)\\*\\*",
       "humanReadable": "**...** → <strong>...</strong>",
