@@ -14,13 +14,16 @@
 [functions."scheduler-daily-draft"]
   schedule = "5 0 * * *"
 
-# 毎日 JST 11:05 に publish-scheduled を起動 → 予約記事の自動公開（11時台 morning 枠）
+# 毎日 JST 12:00 に publish-scheduled を起動 → 予約記事の自動公開（morning 枠）
+# 旧 11:05 起動から後ろ倒し。publish_at は 11:05〜11:55 のジッタが入るため、
+# 窓の末尾 (11:55) より後ろの 12:00 に起動して publish-due.js が全件拾えるようにする。
 [functions."scheduler-publish"]
-  schedule = "5 2 * * *"
+  schedule = "0 3 * * *"
 
-# 毎日 JST 17:05 に publish-scheduled を起動 → 予約記事の自動公開（17時台 evening 枠）
+# 毎日 JST 18:00 に publish-scheduled を起動 → 予約記事の自動公開（evening 枠）
+# 旧 17:05 起動から後ろ倒し（同様に publish_at 17:05〜17:55 のジッタを拾う）。
 [functions."scheduler-publish-evening"]
-  schedule = "5 8 * * *"
+  schedule = "0 9 * * *"
 
 # ── Redirects / Rewrites ──────────────────────────────────────────────
 
