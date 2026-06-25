@@ -22,13 +22,29 @@ const { sendNotification } = require('./lib/notify');
  */
 
 // 翌日の公開時刻を返す（公開枠に応じた時刻）
-// publish_at 自体は固定にして取りこぼしを防ぐ。
+//
+// publish_at に 0〜50 分のランダムジッタを乗せて、サイト上の表示時刻を散らす
+// （機械的に見えないようにする）。
+//   morning: JST 11:05〜11:55
+//   evening: JST 17:05〜17:55
+//
+// scheduler-publish 系の cron は publish_at 窓の末尾より後（12:00 / 18:00 JST）に
+// 設定してあるため、ジッタを乗せた publish_at が 11:55 でも次の起動で確実に拾える。
+// 既存の publish-due.js の `publish_at <= now` ロジックには手を入れない。
+//
+// なぜ GitHub Actions の sleep ではなくここでジッタを乗せるか:
+//   PR #224 で GitHub Actions 内の sleep を削除し月 1,900 分を削減した。
+//   その代わり投稿時刻が JST 09:05 / 11:05 / 17:05 ぴったりに固定されてしまったので、
+//   GitHub Actions minutes を消費しない形で publish_at だけランダム化する。
 function publishAtForSlot(slot) {
-  const hour = slot === 'evening' ? 17 : 11;
+  const baseHour   = slot === 'evening' ? 17 : 11;
+  const baseMinute = 5;
+  // 0〜50 分のジッタ → 末尾は最大 55 分
+  const jitterMin  = Math.floor(Math.random() * 51);
   const now = new Date();
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   jst.setUTCDate(jst.getUTCDate() + 1);
-  jst.setUTCHours(hour, 5, 0, 0);
+  jst.setUTCHours(baseHour, baseMinute + jitterMin, 0, 0);
   return jst.toISOString().replace('Z', '+09:00');
 }
 
