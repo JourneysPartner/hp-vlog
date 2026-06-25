@@ -20,6 +20,12 @@ on:
 permissions:
   contents: write
 
+# 同一日・同一枠に複数回 dispatch されても 1 つだけ走らせる（手動再実行と
+# Netlify scheduler の二重起動による壊れを防ぐ最小限の保護）。
+concurrency:
+  group: publish-scheduled-${{ github.event.inputs.scheduled_date_jst || github.run_id }}-${{ github.event.inputs.trigger_source }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -37,16 +43,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Netlify スケジューラ経由 (trigger_source=scheduler-*) の場合、
-      # 0〜50分のランダム待機を入れ、11:05〜11:55 JST の範囲でばらつかせる。
-      # 手動実行 (trigger_source=manual) の場合は待機をスキップする。
-      - name: Random delay (0-50 min)
-        if: github.event.inputs.trigger_source != 'manual' && github.event.inputs.trigger_source != ''
-        run: |
-          DELAY=$(( RANDOM % 3001 ))
-          echo "[delay] ${DELAY} 秒待機します（JST $(TZ=Asia/Tokyo date '+%H:%M:%S') 開始）"
-          sleep "$DELAY"
-          echo "[delay] 待機完了（JST $(TZ=Asia/Tokyo date '+%H:%M:%S')）"
+      # NOTE: 旧 "Random delay (0-50 min)" ステップは GitHub Actions minutes を
+      # 大量消費（月 ≈ 1,225 分）するため削除した（2026-06-25）。
+      # 公開時刻のばらつきが将来必要なら、GitHub Actions の sleep ではなく
+      # Netlify Functions 側（スケジューラ）または publish タイミングのアプリ側で
+      # 再設計する前提とする。
 
       - name: Promote due articles to published
         id: promote
