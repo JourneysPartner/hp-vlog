@@ -864,7 +864,44 @@ updated_at: "${now}"
   const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
-  return { raw: result.text || '', provider: result.provider, model: result.model };
+  // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
+  return {
+    raw: result.text || '',
+    provider: result.provider,
+    model: result.model,
+    stopReason: result.stopReason || null,
+  };
+}
+
+// ── 本文末尾の完全性チェック ───────────────────────────────────────
+// max_tokens 到達 / LLM 早期終端による途中打ち切りを検出する。
+// 正常な記事は disclaimer + CTA の段落で終わるため、本文末尾が
+// 句点 / 閉じ括弧 / 改行 で終わるはず。それ以外で終わっていれば打ち切り疑い。
+function checkBodyTailComplete(body) {
+  if (!body || typeof body !== 'string') return { ok: false, reason: 'empty' };
+  const tail = body.replace(/\s+$/, '');           // 末尾空白除去
+  const lastChar = tail.slice(-1);
+  // 正常終端: 句点・記号・閉じタグ・閉じ括弧
+  const COMPLETE_END = /[。！？）」』\]\>]/;
+  if (COMPLETE_END.test(lastChar)) return { ok: true };
+  // 「</strong>」「---」で終わるパターンも許容
+  if (/<\/strong>\s*$/.test(tail) || /-{3,}\s*$/.test(tail)) return { ok: true };
+  return { ok: false, reason: `末尾が「${tail.slice(-20)}」で句点なし — truncation 疑い` };
+}
+
+// ── LLM raw 出力に免責文が含まれているか判定 ────────────────────────
+// ensureDisclaimer() は免責文がなければ自動補完してしまうため、
+// それを検出するには postProcess 前の raw に対して判定する必要がある。
+//
+// 2026-06-25 のリグレッション事例:
+//   LLM が「免税事業者・簡易」で途中切断 → 免責文が含まれない
+//   → ensureDisclaimer が免責文を自動付与
+//   → postProcess 後の末尾が「。」になり checkBodyTailComplete を通過
+//   → 警告ゼロで draft 化 → user が気付くまで放置
+function rawHasDisclaimer(raw) {
+  if (!raw) return false;
+  return /本記事は.{0,30}情報提供/.test(raw) ||
+         /個別事情によって結論が異なる/.test(raw);
 }
 
 // ── 新規記事を生成し、frontmatter を保証して返す（retry 付き）─────
@@ -900,7 +937,37 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   if (normalized.bodyH2Count < 3) {
     console.warn(`[self-check] h2 見出しが ${normalized.bodyH2Count} 個（3個以上推奨）`);
   }
-  return { content: normalized.content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
+
+  // ── truncation 検知（3 層判定） ─────────────────────────────────
+  // postProcess の ensureDisclaimer() が免責文を自動付与すると
+  // 末尾が「。」で終わり tail check が通過してしまうため、
+  // raw 出力に対する判定を併用する。
+  //
+  //   ① stop_reason === 'max_tokens' / 'length' — LLM が物理的に切れた
+  //   ② raw に免責文がない — LLM が免責文を出す前に止まった可能性大
+  //   ③ raw 末尾が句点で終わらない — まとめセクション内などで途切れた
+  //
+  // いずれかが該当すれば review_comment に警告を埋め込む。
+  const stopHitMaxTokens = gen.stopReason === 'max_tokens' || gen.stopReason === 'length';
+  const disclaimerWasMissingInRaw = !rawHasDisclaimer(gen.raw);
+  const rawTailCheck = checkBodyTailComplete(gen.raw);
+
+  let content = normalized.content;
+  if (stopHitMaxTokens || disclaimerWasMissingInRaw || !rawTailCheck.ok) {
+    const warnLines = [];
+    if (stopHitMaxTokens)         warnLines.push(`stop_reason=${gen.stopReason}`);
+    if (disclaimerWasMissingInRaw) warnLines.push('免責文が生成されず自動補完');
+    if (!rawTailCheck.ok)         warnLines.push(rawTailCheck.reason);
+    const warningMsg = `⚠ 末尾途切れの疑い（${warnLines.join(' / ')}） — 公開前に末尾を確認してください`;
+    console.warn(`[self-check] ${warningMsg}`);
+    // review_comment フィールドに警告を埋め込む（既存の空 review_comment を上書き）
+    content = content.replace(
+      /^review_comment:\s*""\s*$/m,
+      `review_comment: "${warningMsg}"`,
+    );
+  }
+
+  return { content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
 }
 
 // ── 既存記事の frontmatter をパースする ─────────────────────────
