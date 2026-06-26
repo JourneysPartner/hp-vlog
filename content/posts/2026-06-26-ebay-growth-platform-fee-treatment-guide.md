@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "platform-fee-treatment"
 procedure_stage: ""
 summary: "eBayのプラットフォーム手数料は海外事業者への支払いのため消費税不課税。輸出売上は免税売上に該当し、仕入税額控除の仕組みも変わる。売上拡大前に納税義務・課税方式の判断が必要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "eBayの手数料は、課税部分と不課税部分があります。課税部分があるのでもう一度調べて。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-26T00:06:19.753Z"
-updated_at: "2026-06-26T00:06:19.753Z"
+updated_at: "2026-06-26T11:44:44.879+09:00"
 ---
 
 ## この記事でわかること
