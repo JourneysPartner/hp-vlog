@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "incorporation-threshold"
 procedure_stage: ""
 summary: "法人成りのタイミングは「いつ設立するか」だけでなく、年の途中で個人と法人の収入が混在する期間の処理が実務上の本当の難所です。収入帰属・契約切替・源泉徴収の3点を中心に整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "ケース2：年の途中で法人設立した場合の個人の確定申告の章の、課税所得の範囲はすべて「以下」ではなく「未満」。また、この表にある「900万円超」は「900万円以上」が正しい。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-29T00:06:06.745Z"
-updated_at: "2026-06-29T00:06:06.745Z"
+updated_at: "2026-06-29T16:00:26.326+09:00"
 ---
 
 ## 「法人成りしたら終わり」ではない——実務の本当の難所はここにある
