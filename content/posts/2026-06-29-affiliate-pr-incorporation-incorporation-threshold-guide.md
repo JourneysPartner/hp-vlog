@@ -24,15 +24,15 @@ life_stage: ""
 pain_point: "incorporation-threshold"
 procedure_stage: ""
 summary: "個人事業として運営するアフィリエイト・ブログ収入が年800〜900万円を超えると、所得税の税率が高まり法人成りによる節税効果が出やすくなります。消費税・社会保険・運営コストも含めて総合的に判断することが重要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「課税所得が900万円を超えると」→「課税所得が900万円を以上になると」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-06-29T00:05:22.086Z"
-updated_at: "2026-06-29T06:56:48.826Z"
+updated_at: "2026-06-29T16:03:29.394+09:00"
 ---
 ## この記事で分かること
 
