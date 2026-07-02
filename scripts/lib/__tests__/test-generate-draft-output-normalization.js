@@ -179,6 +179,12 @@ console.log('\n=== Test 12: isValidLlmTitle ===');
   assert(!isValidLlmTitle('（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、`｜サブテキスト`形式可、曖昧表現禁止）'), 'placeholder 文字列は無効');
   assert(!isValidLlmTitle('メルカリ販売の徹底解説'), '徹底解説 を含むのは無効');
   assert(!isValidLlmTitle('メルカリ販売の完全ガイド'), '完全ガイド を含むのは無効');
+  // 誤検知回帰防止: 「課税事業者／免税事業者」の正当な対比は共有 3-gram
+  // （"税事業"）で HARD_FAIL にしない（title-lint rule 3b の中和）
+  assert(isValidLlmTitle('eBay手数料の消費税、課税事業者と免税事業者で処理はどう変わる？'), '課税事業者／免税事業者の対比は有効');
+  // 本物の同語反復は引き続き無効
+  assert(!isValidLlmTitle('消費税の消費税課税事業者判定で源泉徴収の処理'), '同語反復（消費税×2）は無効');
+  assert(!isValidLlmTitle('課税事業者と課税事業者の判定はどう違う？'), '課税事業者の単独重複は無効');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

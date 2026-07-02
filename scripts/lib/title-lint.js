@@ -79,7 +79,17 @@ function lintTitle(title, ctx = {}) {
   // 「同じ 3-gram が 2 回以上出現」を判定する。
   // ただし、判定対象は漢字/カタカナのみを連結した文字列で行う
   // （ひらがな・記号を間に挟んだ繰り返しも検知できる）。
-  const kanjiKataOnly = title.replace(/[^一-鿿ァ-ヶ]/g, '');
+  //
+  // 【誤検知対策】「課税事業者／免税事業者」のような正当な対比ペアは、
+  // 共有する 3-gram（"税事業"・"事業者"）が 2 回出現するため、この窓では
+  // 冗長表現と誤判定される。これらは slug 由来の同語反復ではなく自然な対比
+  // なので、両方が揃っているときに限り走査対象から除去して中和する
+  // （片方だけの重複は従来どおり検知する）。
+  let scanTitle = title;
+  if (/課税事業者/.test(scanTitle) && /免税事業者/.test(scanTitle)) {
+    scanTitle = scanTitle.replace(/課税事業者/g, '').replace(/免税事業者/g, '');
+  }
+  const kanjiKataOnly = scanTitle.replace(/[^一-鿿ァ-ヶ]/g, '');
   const ngramCount = new Map();
   for (let i = 0; i + 3 <= kanjiKataOnly.length; i++) {
     const gram = kanjiKataOnly.slice(i, i + 3);
