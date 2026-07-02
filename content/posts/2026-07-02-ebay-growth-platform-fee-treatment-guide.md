@@ -1,5 +1,5 @@
 ---
-title: "[要レビュー] ebay-growth-platform-fee-treatment-guide"
+title: "eBayのプラットフォーム手数料、消費税はどう処理する？リバースチャージと課税判定"
 slug: "ebay-growth-platform-fee-treatment-guide"
 category: "消費税"
 primary_persona: "ebay_export_seller"
