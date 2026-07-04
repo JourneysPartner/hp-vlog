@@ -219,6 +219,14 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'income-classification':     { no: '1350', title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
   'family-employment':         { no: '2075', title: '国税庁タックスアンサー No.2075 専従者給与と専従者控除', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm' },
   'withholding-treatment':     { no: '2792', title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm' },
+  // 国外プラットフォーム手数料・海外取引（電気通信利用役務／リバースチャージ）は
+  // 「納税義務の免除(No.6501)」ではなく、国境を越えた役務提供の消費税を主出典にする。
+  'platform-fee-treatment':           { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
+  'foreign-business-consumption-tax': { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
+  'b2b-electronic-services':          { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
+  'b2c-electronic-services':          { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
+  // 住宅取得等資金の贈与（贈与税。相続の申告期限などと混同しないよう明示）
+  'housing-fund-gift':                { no: '4508', title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm' },
 };
 
 // ── 最終フォールバック（どこにもマッチしなかった場合）
