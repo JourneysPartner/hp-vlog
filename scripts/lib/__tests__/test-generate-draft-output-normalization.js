@@ -187,5 +187,26 @@ console.log('\n=== Test 12: isValidLlmTitle ===');
   assert(!isValidLlmTitle('課税事業者と課税事業者の判定はどう違う？'), '課税事業者の単独重複は無効');
 }
 
+// ── 13. 適合スコアが frontmatter に出力される（Phase 3b）──────────
+console.log('\n=== Test 13: 適合スコア frontmatter ===');
+{
+  const badTopic = { ...TOPIC, slug: 'salon-foreign', persona: 'beauty_salon_owner',
+    customer_segment: 'beauty_salon', macro: 'サロン', tax_domain: 'consumption_tax',
+    pain_point: 'foreign-business-consumption-tax' };
+  const db = matter(normalizeGeneratedDraft('## 章1\n本文\n## 章2\n本文\n## 章3\n本文', badTopic, { now: '2026-07-04T00:00:00Z' }).content).data;
+  assert(db.customer_segment === 'beauty_salon', 'customer_segment が出力される');
+  assert(db.customer_fit_score === 1, '不整合トピックは customer_fit_score=1');
+  assert(db.recommendation === 'reject', '不整合トピックは recommendation=reject');
+  assert(typeof db.review_warning === 'string' && db.review_warning.length > 0, 'review_warning に理由');
+
+  const goodTopic = { ...TOPIC, slug: 'salon-ticket', persona: 'beauty_salon_owner',
+    customer_segment: 'beauty_salon', macro: 'サロン', tax_domain: 'consumption_tax',
+    pain_point: 'salon-prepayment-ticket', search_intent: 'エステ 回数券 売上 計上 タイミング',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' };
+  const dg = matter(normalizeGeneratedDraft('## 章1\n本文\n## 章2\n本文\n## 章3\n本文', goodTopic, { now: '2026-07-04T00:00:00Z' }).content).data;
+  assert(dg.recommendation === 'publish', '良好トピックは recommendation=publish');
+  assert(dg.customer_fit_score >= 4, '良好トピックは customer_fit_score>=4');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

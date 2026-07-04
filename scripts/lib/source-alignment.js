@@ -74,6 +74,11 @@ function checkSourceAlignment(topic = {}) {
   if (af === 'external') {
     return { aligned: false, score: 2, severity: 'soft', expectedTitle: expected.title, reason: '出典が国税庁体系外' };
   }
+  // どちらかがセクション判別不可（国税庁だが taxanswer 外の一般ページ等）は
+  // 断定せず不明扱い（hard にしない＝誤検知を避ける）。
+  if (af === 'nta_other' || ef === 'nta_other') {
+    return { aligned: true, score: 3, severity: 'unknown', expectedTitle: expected.title, reason: '出典のカテゴリを判別できない' };
+  }
   if (af !== ef) {
     return {
       aligned: false, score: 1, severity: 'hard', expectedTitle: expected.title,
