@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
+const { checkSourceAlignment } = require('./lib/source-alignment');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
@@ -136,6 +137,16 @@ function validateFile(filePath) {
   if (fm.source_url) {
     try { new URL(fm.source_url); }
     catch { errors.push(`source_url が URL として不正: "${fm.source_url}"`); }
+  }
+
+  // 4b. 出典一致（主論点と主出典の税目カテゴリが違う場合は警告）
+  // 例: リバースチャージ記事に相続税ページ、相続税申告要否記事に贈与税ページ 等。
+  // 既存記事をブロックしないよう、強い不一致（カテゴリ違い）のみ警告に留める。
+  if (fm.source_url && (fm.pain_point || fm.tax_domain)) {
+    const sa = checkSourceAlignment({ pain_point: fm.pain_point, tax_domain: fm.tax_domain, source_url: fm.source_url });
+    if (sa.severity === 'hard') {
+      warnings.push(`出典一致: ${sa.reason}。期待出典の例:「${sa.expectedTitle}」`);
+    }
   }
 
   // 5. 見出し構造（h2 が最低1つ）

@@ -24,6 +24,8 @@
  * （循環 require を避けるため leaf モジュールに保つ）。
  */
 
+const { checkSourceAlignment } = require('./source-alignment');
+
 // ── 顧客カテゴリ定義（既存 persona / macro を正規化）─────────────
 // Phase 1 で扱う segment。新カテゴリ（youtuber / content_seller /
 // construction_solo / retail_store / wholesale）は Phase 4 で追加する。
@@ -256,18 +258,25 @@ function evaluateTopicFit(topic = {}) {
   const si = String(topic.search_intent || '');
   const search_intent_score = si.length >= 12 ? 4 : (si.length > 0 ? 3 : 2);
 
-  // source_alignment_score（Phase 1 暫定）
-  const source_alignment_score = topic.source_url ? 3 : 2;
+  // source_alignment_score（出典一致ゲート。主論点と主出典が一致しているか）
+  const sa = checkSourceAlignment(topic);
+  const source_alignment_score = sa.score;
 
-  // その他（Phase 1 既定値。Phase 3 で精緻化）
+  // その他（Phase 1 既定値。後続で精緻化）
   const practical_usefulness_score = natural ? 4 : 2;
   const lead_value_score = natural ? 4 : 2;
   const tax_risk_score = topic.tax_domain === 'inheritance_tax' ? 4 : 3;
 
   let decision = 'approve';
-  if (!natural || customer_fit_score <= 3 || search_intent_score <= 3) {
-    decision = (!natural || customer_fit_score <= 2) ? 'reject' : 'revise';
+  if (!natural || customer_fit_score <= 2) {
+    decision = 'reject';
+  } else if (customer_fit_score <= 3 || search_intent_score <= 3 || sa.severity === 'hard') {
+    decision = 'revise';
   }
+
+  let reason = '';
+  if (!natural) reason = rejectionReason(topic) || '関連性なし';
+  else if (sa.severity === 'hard') reason = sa.reason;
 
   return {
     customer_segment: seg || '',
@@ -275,10 +284,11 @@ function evaluateTopicFit(topic = {}) {
     search_intent_score,
     practical_usefulness_score,
     source_alignment_score,
+    source_alignment_reason: sa.reason,
     lead_value_score,
     tax_risk_score,
     decision,
-    reason: natural ? '' : (rejectionReason(topic) || '関連性なし'),
+    reason,
   };
 }
 
