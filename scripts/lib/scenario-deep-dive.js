@@ -16,6 +16,48 @@
  */
 
 const { getDefaultSourceForTopic } = require('./tax-authority-refs');
+const { SEGMENT_PERSONAS } = require('./customer-relevance');
+
+// ── 論点 → 出稿してよい顧客カテゴリ（customer_segment）────────────
+// 「税務論点をペルソナに一律展開する」のをやめ、論点ごとに現実的な
+// 顧客カテゴリだけへ展開する。ここに無い論点は事業者向け全般を既定
+// にする（相続贈与カテゴリには deep-dive 論点を一切出さない）。
+const DEFAULT_DEEP_SEGMENTS = ['ec_seller', 'beauty_salon', 'creator', 'general_business'];
+const DEEP_PAIN_SEGMENTS = {
+  // 消費税・海外取引系（読者カテゴリを絞る）
+  'b2b-electronic-services':           ['ec_seller', 'creator', 'beauty_salon', 'general_business'], // 海外広告/SaaS は広く自然
+  'b2c-electronic-services':           ['ec_seller', 'creator', 'general_business'],
+  'specified-services':                ['general_business'], // 海外アーティスト・選手：一般事業者のみ
+  'foreign-business-consumption-tax':  ['ec_seller', 'general_business'],
+  'import-tax-refund-detail':          ['ec_seller', 'general_business'],
+  'customs-duty-treatment':            ['ec_seller', 'general_business'],
+  'taxable-sales-ratio':               ['ec_seller', 'general_business'],
+  'individual-vs-proportional-method': ['ec_seller', 'general_business'],
+  'director-salary-fixed-amount':      ['general_business'],
+  // 業種特化の会計論点
+  'salon-prepayment-ticket':           ['beauty_salon'],
+  'salon-product-service-distinction': ['beauty_salon'],
+  'ec-inventory-fba-fbm':              ['ec_seller'],
+  'influencer-pr-product-revenue':     ['creator'],
+  'creator-royalty-income':            ['creator'],
+  'affiliate-withholding-judgment':    ['creator'],
+  'restaurant-cash-management':        ['general_business'],
+  'construction-progress-method':      ['general_business'],
+  'crowdfunding-tax-treatment':        ['ec_seller', 'creator', 'general_business'],
+};
+
+// deep-dive では 1 顧客カテゴリ = 1 代表 persona で展開する
+// （同一論点を複数 persona に増殖させない）。
+const SEGMENT_PRIMARY_PERSONA = {
+  ec_seller: 'domestic_ec_seller',
+  beauty_salon: 'beauty_salon_owner',
+  creator: 'influencer_creator',
+  general_business: 'general_individual_proprietor',
+};
+
+function allowedSegmentsForPain(pain) {
+  return DEEP_PAIN_SEGMENTS[pain.id] || DEFAULT_DEEP_SEGMENTS;
+}
 
 // ── ユーティリティ ─────────────────────────────────────────
 function kebab(s) {
@@ -735,7 +777,7 @@ function getAllDeepPains() {
     category: '帳簿・経費',
     tax_domain: 'bookkeeping_expenses',
   };
-  return [
+  const all = [
     ...DEEP_PAINS_CONSUMPTION_TAX,
     ...DEEP_PAINS_DEPRECIATION,
     ...DEEP_PAINS_INDIRECT_TAX,
@@ -743,6 +785,8 @@ function getAllDeepPains() {
     ...DEEP_PAINS_TAX_PRACTICE,
     ...DEEP_PAINS_EXPENSE_JUDGMENT.map(e => ({ ...expenseDefaults, ...e })),
   ];
+  // 各論点に「出稿してよい顧客カテゴリ」を付与
+  return all.map(p => ({ ...p, allowed_segments: allowedSegmentsForPain(p) }));
 }
 
 // ── 各論点を topic として展開 ─────────────────────────────
@@ -776,6 +820,8 @@ function expandDeepDive() {
         slug: `${baseSlug}-guide`,
         category: pain.category,
         persona: persona.id,
+        customer_segment: persona.segment,
+        allowed_customer_segments: pain.allowed_segments,
         macro, cluster, subcluster,
         tax_domain: pain.tax_domain,
         business_stage: '',
@@ -797,6 +843,8 @@ function expandDeepDive() {
         slug: `${baseSlug}-practice`,
         category: pain.category,
         persona: persona.id,
+        customer_segment: persona.segment,
+        allowed_customer_segments: pain.allowed_segments,
         macro, cluster, subcluster: subcluster + '-support',
         tax_domain: pain.tax_domain,
         business_stage: '',
@@ -818,33 +866,23 @@ function expandDeepDive() {
   return out;
 }
 
-// pain ごとに展開対象 persona を決定
+// pain ごとに展開対象を決定する。
+// 旧実装は「税目が一致すれば内容問わず複数 persona に一律展開」していたため、
+// 美容サロン × 海外アーティスト報酬のような不自然な組み合わせを生んでいた。
+// 現在は pain.allowed_segments（＝現実的な顧客カテゴリ）だけへ、
+// 1 カテゴリ = 1 代表 persona で展開する。
+// 返り値: [{ id: personaId, segment: customerSegment }, ...]
 function pickPersonasForPain(pain) {
-  // 経費判断は経営者全般に響くので 5 persona に展開
-  const isExpenseJudgment = DEEP_PAINS_EXPENSE_JUDGMENT.some(e => e.id === pain.id);
-  if (isExpenseJudgment) {
-    return [
-      { id: 'domestic_ec_seller' },
-      { id: 'influencer_creator' },
-      { id: 'beauty_salon_owner' },
-      { id: 'reseller_marketplace_seller' },
-      { id: 'ebay_export_seller' },
-    ];
+  const segs = pain.allowed_segments || allowedSegmentsForPain(pain);
+  const out = [];
+  const seen = new Set();
+  for (const seg of segs) {
+    const pid = SEGMENT_PRIMARY_PERSONA[seg];
+    if (!pid || seen.has(pid)) continue;
+    seen.add(pid);
+    out.push({ id: pid, segment: seg });
   }
-  // 消費税・減価償却・税務実務は業種横断 → 4 persona
-  if (['consumption_tax', 'bookkeeping_expenses', 'income_tax', 'invoice_system'].includes(pain.tax_domain)) {
-    return [
-      { id: 'domestic_ec_seller' },
-      { id: 'influencer_creator' },
-      { id: 'beauty_salon_owner' },
-      { id: 'reseller_marketplace_seller' },
-    ];
-  }
-  // 海外取引等
-  return [
-    { id: 'ebay_export_seller' },
-    { id: 'domestic_ec_seller' },
-  ];
+  return out;
 }
 
 module.exports = {

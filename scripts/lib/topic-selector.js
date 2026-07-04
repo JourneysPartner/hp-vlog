@@ -27,6 +27,7 @@ const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
+const { isNaturalCombination, deriveSegment, rejectionReason } = require('./customer-relevance');
 
 const SIM_THRESHOLD_VS_CORPUS  = 0.55;
 const SIM_THRESHOLD_BETWEEN_PAIR = 0.45;
@@ -234,6 +235,31 @@ function selectDailyTopics(topics, options = {}) {
     remaining: candidates.length,
     blockedDetails: denylistExcluded.slice(0, 5),
   });
+
+  // 2.8. 顧客カテゴリ関連性ゲート（安全網）
+  // 生成プール（expandAll）側でも除外しているが、curated topic や取りこぼしを
+  // 選定時にも止める。全滅する場合はゲートを無視して継続（安全側）。
+  const relevanceExcluded = [];
+  const afterRelevance = candidates.filter(t => {
+    if (isNaturalCombination(t)) return true;
+    relevanceExcluded.push({
+      slug: t.slug,
+      segment: deriveSegment(t).customer_segment,
+      reason: rejectionReason(t),
+    });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-relevance',
+    blocked: relevanceExcluded.length,
+    remaining: afterRelevance.length,
+    blockedDetails: relevanceExcluded.slice(0, 5),
+  });
+  if (afterRelevance.length > 0) {
+    candidates = afterRelevance;
+  } else if (relevanceExcluded.length > 0) {
+    explanation.warnings = (explanation.warnings || []).concat(['関連性ゲートで全滅 → ゲート無視で継続']);
+  }
 
   if (candidates.length === 0) {
     explanation.warnings = (explanation.warnings || []).concat([

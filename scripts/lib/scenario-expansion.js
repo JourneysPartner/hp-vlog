@@ -26,6 +26,7 @@ const {
 // scenario-expansion で組み立てるトピックの title は空文字とする。
 const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 const { expandDeepDive } = require('./scenario-deep-dive');
+const { deriveSegment, isNaturalCombination, rejectionReason } = require('./customer-relevance');
 
 // ── 文字列ヘルパー ────────────────────────────────────────────────
 function kebab(s) {
@@ -859,7 +860,31 @@ function expandAll() {
     ...expandTaxDomain(),
     ...expandDeepDive(),
   ];
-  return applyPainPointQuota(raw);
+
+  // 全 topic に customer_segment を付与（未設定のものは persona/macro から導出）。
+  for (const t of raw) {
+    if (!t.customer_segment) {
+      t.customer_segment = deriveSegment(t).customer_segment || '';
+    }
+  }
+
+  // 顧客カテゴリ関連性ゲート: 「税務論点として正しくても、その読者カテゴリに
+  // 現実味がない組み合わせ」を生成対象から外す（deep-dive を含む全 expander が対象）。
+  // 相続の既存 INHERITANCE_*_MATRIX はそのまま残しつつの二重防御。
+  const gated = [];
+  const dropped = [];
+  for (const t of raw) {
+    if (isNaturalCombination(t)) gated.push(t);
+    else dropped.push(t);
+  }
+  if (dropped.length > 0 && process.env.SCENARIO_EXPANSION_VERBOSE === 'true') {
+    console.log(`[scenario-expansion] 関連性ゲートで ${dropped.length} 件除外`);
+    for (const d of dropped.slice(0, 8)) {
+      console.log(`  - ${d.customer_segment} × ${d.pain_point || d.subcluster} (${d.slug}): ${rejectionReason(d)}`);
+    }
+  }
+
+  return applyPainPointQuota(gated);
 }
 
 // ── (pain_point × article_type) 単位のクオータ ────────────────
