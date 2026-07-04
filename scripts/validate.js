@@ -41,6 +41,8 @@ const VALID_PERSONAS = [
   'ebay_export_seller', 'domestic_ec_seller', 'reseller_marketplace_seller',
   'influencer_creator', 'beauty_salon_owner', 'inheritance_client',
   'general_individual_proprietor', 'general_corporation',
+  // Phase 4 で追加した新カテゴリのペルソナ
+  'youtuber', 'content_seller', 'construction_solo', 'retail_store', 'wholesale',
 ];
 
 // ── article_type の許容値 ──────────────────────────────────────

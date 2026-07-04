@@ -60,6 +60,42 @@ const CUSTOMER_SEGMENTS = {
     personas: ['inheritance_client'],
     kind: 'life_event',
   },
+  // ── Phase 4 で追加した新カテゴリ ──────────────────────────
+  youtuber: {
+    label: 'YouTuber',
+    macro: 'YouTube',
+    personas: ['youtuber'],
+    kind: 'business',
+    sub_segments: ['adsense', 'sponsorship', 'membership', 'superchat', 'shorts'],
+  },
+  content_seller: {
+    label: 'コンテンツ販売',
+    macro: 'コンテンツ販売',
+    personas: ['content_seller'],
+    kind: 'business',
+    sub_segments: ['note', 'brain', 'online-course', 'subscription', 'online-salon'],
+  },
+  construction_solo: {
+    label: '1人親方・職人',
+    macro: '建設',
+    personas: ['construction_solo'],
+    kind: 'business',
+    sub_segments: ['interior', 'electrical', 'plumbing', 'carpenter', 'painting'],
+  },
+  retail_store: {
+    label: '小売店',
+    macro: '小売',
+    personas: ['retail_store'],
+    kind: 'business',
+    sub_segments: ['apparel', 'variety', 'food', 'select-shop', 'souvenir'],
+  },
+  wholesale: {
+    label: '卸売',
+    macro: '卸売',
+    personas: ['wholesale'],
+    kind: 'business',
+    sub_segments: ['btob', 'business-goods'],
+  },
 };
 
 // segment → deep-dive 展開に使う代表 persona 群
@@ -81,6 +117,36 @@ const MACRO_TO_SEGMENT = {
   '相続贈与': 'inheritance_gift',
   '一般事業者': 'general_business',
   '税目実務': 'general_business',
+  'YouTube': 'youtuber',
+  'コンテンツ販売': 'content_seller',
+  '建設': 'construction_solo',
+  '小売': 'retail_store',
+  '卸売': 'wholesale',
+};
+
+// ── 業種特化の論点 → 所属 customer_segment ───────────────────────
+// これらの論点はその業種の記事にしか出さない（他業種に流用しない）。
+// 例: 回数券は美容サロンのみ、AdSense収益は YouTuber のみ。
+const INDUSTRY_PAIN_SEGMENT = {
+  'salon-prepayment-ticket': 'beauty_salon',
+  'salon-product-service-distinction': 'beauty_salon',
+  'ec-inventory-fba-fbm': 'ec_seller',
+  'influencer-pr-product-revenue': 'creator',
+  'creator-royalty-income': 'creator',
+  'affiliate-withholding-judgment': 'creator',
+  // 新カテゴリの論点（生成は Phase 4b。所属をここで先に定義）
+  'youtube-adsense-revenue': 'youtuber',
+  'youtube-membership': 'youtuber',
+  'youtube-superchat': 'youtuber',
+  'youtube-equipment-expense': 'youtuber',
+  'content-note-revenue': 'content_seller',
+  'content-online-course': 'content_seller',
+  'construction-labor-cost': 'construction_solo',
+  'construction-material-cost': 'construction_solo',
+  'retail-register-sales': 'retail_store',
+  'retail-reduced-tax-rate': 'retail_store',
+  'wholesale-accounts-receivable': 'wholesale',
+  'wholesale-inventory-valuation': 'wholesale',
 };
 
 // 事業者向けの税目（相続贈与カテゴリには出さない）
@@ -191,7 +257,18 @@ function isNaturalCombination(topic = {}) {
   if (Array.isArray(excluded) && excluded.includes(seg)) {
     return false;
   }
-  // 3) REJECT_MATRIX（pain_point / tax_domain）
+  // 3) 業種特化の論点は所属 segment 以外に出さない（回数券=サロン、AdSense=YouTuber 等）
+  const owner = INDUSTRY_PAIN_SEGMENT[topic.pain_point];
+  if (owner && owner !== seg) {
+    return false;
+  }
+  // 4) 事業者向け ⇔ 相続贈与 の税目分離（kind ベース。新カテゴリも自動で対象）
+  const def = CUSTOMER_SEGMENTS[seg];
+  if (def) {
+    if (def.kind === 'business' && topic.tax_domain === 'inheritance_tax') return false;
+    if (def.kind === 'life_event' && BUSINESS_TAX_DOMAINS.includes(topic.tax_domain)) return false;
+  }
+  // 5) REJECT_MATRIX（既存カテゴリの pain_point / tax_domain の明示リスト）
   const rm = REJECT_MATRIX[seg];
   if (rm) {
     if (topic.pain_point && rm.pain_points && rm.pain_points.includes(topic.pain_point)) {
@@ -201,7 +278,7 @@ function isNaturalCombination(topic = {}) {
       return false;
     }
   }
-  // 4) forbidden_context（topic に明示されている場合のみ・安全網）
+  // 6) forbidden_context（topic に明示されている場合のみ・安全網）
   if (Array.isArray(topic.forbidden_context) && topic.forbidden_context.length > 0) {
     const text = topicText(topic);
     if (topic.forbidden_context.some(term => term && text.includes(term))) {
@@ -222,6 +299,19 @@ function rejectionReason(topic = {}) {
   const excluded = topic.excluded_customer_segments;
   if (Array.isArray(excluded) && excluded.includes(seg)) {
     return `${seg} は excluded に指定されている`;
+  }
+  const owner = INDUSTRY_PAIN_SEGMENT[topic.pain_point];
+  if (owner && owner !== seg) {
+    return `論点「${topic.pain_point}」は ${owner} 専用（${seg} には不自然）`;
+  }
+  const def = CUSTOMER_SEGMENTS[seg];
+  if (def) {
+    if (def.kind === 'business' && topic.tax_domain === 'inheritance_tax') {
+      return `事業者カテゴリ ${seg} に相続税の論点は不適合`;
+    }
+    if (def.kind === 'life_event' && BUSINESS_TAX_DOMAINS.includes(topic.tax_domain)) {
+      return `相続贈与カテゴリに事業者税目「${topic.tax_domain}」は不適合`;
+    }
   }
   const rm = REJECT_MATRIX[seg];
   if (rm) {
@@ -298,6 +388,7 @@ module.exports = {
   PERSONA_TO_SEGMENT,
   MACRO_TO_SEGMENT,
   REJECT_MATRIX,
+  INDUSTRY_PAIN_SEGMENT,
   BUSINESS_TAX_DOMAINS,
   deriveSegment,
   isNaturalCombination,
