@@ -72,6 +72,32 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   const status     = meta.review_status || 'needs_review';
   const category   = meta.category   || '';
 
+  // ── 顧客カテゴリ・適合スコア（Phase 3b）─────────────────────────
+  const customerSegment = meta.customer_segment || '';
+  const recommendation  = meta.recommendation || '';
+  const reviewWarning   = meta.review_warning || '';
+  const SEGMENT_LABELS = {
+    ec_seller: 'EC物販', beauty_salon: '美容・サロン', creator: 'インフルエンサー',
+    general_business: '一般事業者', inheritance_gift: '相続・贈与',
+  };
+  const scoreDefs = [
+    ['顧客適合', meta.customer_fit_score], ['検索意図', meta.search_intent_score],
+    ['出典一致', meta.source_alignment_score], ['実務有用', meta.practical_usefulness_score],
+    ['集客価値', meta.lead_value_score], ['税リスク', meta.tax_risk_score],
+  ];
+  const scoreChip = (label, v) => {
+    const n = parseInt(v, 10);
+    const color = isNaN(n) ? '#888' : (n >= 4 ? '#198754' : (n >= 3 ? '#fd7e14' : '#dc3545'));
+    return `<span style="display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;border-radius:10px;background:${color};color:#fff;font-size:12px">${label} ${isNaN(n) ? '-' : n}</span>`;
+  };
+  const scoresHtml = scoreDefs.map(([l, v]) => scoreChip(l, v)).join('');
+  const recLabel = { publish: '✅ 公開推奨', revise: '⚠ 要修正（内容確認）', reject: '⛔ 非推奨（作り直し検討）' }[recommendation] || '';
+  const warnBanner = (recommendation && recommendation !== 'publish')
+    ? `<div style="margin-bottom:12px;padding:10px 14px;border-radius:6px;background:#fff3cd;border:1px solid #ffe69c;color:#664d03">
+        <strong>${recLabel}</strong>${reviewWarning ? `<div style="margin-top:4px;font-size:13px">理由: ${reviewWarning}</div>` : ''}
+      </div>`
+    : '';
+
   const statusLabel = {
     needs_review:   '🔍 レビュー待ち',
     approved:       '✅ 承認済み',
@@ -148,9 +174,12 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   <div class="card mb-4">
     <div class="card-body">
       <h2 class="h5 mb-3">${title}</h2>
+      ${warnBanner}
       <table class="table table-sm meta-table mb-0">
         <tbody>
           <tr><th>カテゴリ</th><td>${category}</td></tr>
+          <tr><th>顧客カテゴリ</th><td>${SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）'}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${recLabel}</span>` : ''}</td></tr>
+          <tr><th>適合スコア</th><td>${scoresHtml}<div class="text-muted" style="font-size:11px;margin-top:2px">5=良 / 3=注意 / 1-2=要改善</div></td></tr>
           <tr><th>要約</th><td>${summary}</td></tr>
           <tr>
             <th>出典URL</th>

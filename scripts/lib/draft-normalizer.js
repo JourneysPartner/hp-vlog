@@ -15,6 +15,8 @@
  * → LLM に frontmatter を完全依存せず、必須項目をシステムで保証する。
  */
 
+const { evaluateTopicFit } = require('./customer-relevance');
+
 const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
 
 // 記事タイプ別の関連記事リンク文言（generate-draft の RELATED_LINK_TEXTS と整合）
@@ -194,6 +196,11 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
     summary = `${title}について、判断のポイントと実務上の注意点を整理します。`;
   }
 
+  // 適合スコア（顧客カテゴリ関連性・出典一致等）をレビュー画面用に付与する。
+  // 生成時に code 側で算出し、レビュアーが判断材料として見られるようにする。
+  const fit = evaluateTopicFit({ ...topic, article_type: articleType });
+  const recommendation = fit.decision === 'approve' ? 'publish' : fit.decision; // publish | revise | reject
+
   return `---
 title: "${escFm(title)}"
 slug: "${escFm(topic.slug)}"
@@ -219,6 +226,15 @@ business_stage: "${escFm(topic.business_stage || '')}"
 life_stage: "${escFm(topic.life_stage || '')}"
 pain_point: "${escFm(topic.pain_point || '')}"
 procedure_stage: "${escFm(topic.procedure_stage || '')}"
+customer_segment: "${escFm(fit.customer_segment)}"
+customer_fit_score: ${fit.customer_fit_score}
+search_intent_score: ${fit.search_intent_score}
+source_alignment_score: ${fit.source_alignment_score}
+practical_usefulness_score: ${fit.practical_usefulness_score}
+lead_value_score: ${fit.lead_value_score}
+tax_risk_score: ${fit.tax_risk_score}
+recommendation: "${escFm(recommendation)}"
+review_warning: "${escFm(fit.reason || '')}"
 summary: "${escFm(summary)}"
 review_status: "draft"
 review_comment: ""
