@@ -18,17 +18,25 @@
 
 const {
   STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, DISCLAIMER_TEXT,
+  selectConditionalRules,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
                                         ntaRefsBlock, lawChangesBlock, revisionHint,
-                                        pairedTopic, pairedArticleType, pairedArticleRole }) {
+                                        pairedTopic, pairedArticleType, pairedArticleRole,
+                                        conditionalRules = [] }) {
   const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
   const macro = topic.macro || '';
+
+  // 論点別ルール（この記事に該当するものだけ）。全記事共通ではなく、
+  // eBay手数料・特定期間判定・インボイス経過措置 等を該当記事にだけ注入する。
+  const conditionalBlock = (conditionalRules && conditionalRules.length)
+    ? `\n\n═══ この記事に必ず適用する論点別ルール（正確性・最優先）═══\n${conditionalRules.join('\n\n')}`
+    : '';
 
   const sourceInstruction = topic.source_url
     ? `出典として「${topic.source_title || ''}」（${topic.source_url}）を参照すること`
@@ -94,7 +102,7 @@ ${pairBlock}
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 ═══ 出典 ═══
-${sourceInstruction}${ntaRefsBlock || ''}${lawChangesBlock || ''}
+${sourceInstruction}${ntaRefsBlock || ''}${lawChangesBlock || ''}${conditionalBlock}
 ${bannedPhrasesLib.formatForPrompt()}
 ═══ 末尾の相談導線（免責の後に自然に）═══
 「${cta}」
@@ -157,9 +165,10 @@ function buildGenerationPrompt(args) {
           pairedTopic, pairedArticleType, pairedArticleRole } = args;
 
   const staticSystem = STATIC_RULES;  // ← キャッシュ対象（固定）
+  const conditionalRules = selectConditionalRules(topic);  // 該当する論点別ルールだけ
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
-    pairedTopic, pairedArticleType, pairedArticleRole,
+    pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules,
   });
   const frontmatter = buildFrontmatterTemplate({
     topic, articleType, articleRole, relatedSlug, relatedTitle, relatedLinkText, now,
