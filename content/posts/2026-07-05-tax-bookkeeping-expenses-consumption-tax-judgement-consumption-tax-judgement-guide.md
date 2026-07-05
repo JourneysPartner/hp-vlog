@@ -33,7 +33,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "国内EC物販で年間売上が増えてきたら、消費税の課税事業者になるタイミングを正確に把握することが重要です。基準期間・特定期間の2段階の判定ルールと、帳簿への影響を解説します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -41,7 +41,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-05T00:06:22.678Z"
-updated_at: "2026-07-05T00:06:22.678Z"
+updated_at: "2026-07-05T16:24:26.906+09:00"
 ---
 
 ## この記事で分かること
