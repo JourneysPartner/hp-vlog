@@ -26,6 +26,7 @@ const {
 // scenario-expansion で組み立てるトピックの title は空文字とする。
 const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 const { expandDeepDive } = require('./scenario-deep-dive');
+const { expandNewSegments } = require('./scenario-new-segments');
 const { deriveSegment, isNaturalCombination, rejectionReason } = require('./customer-relevance');
 
 // ── 文字列ヘルパー ────────────────────────────────────────────────
@@ -859,6 +860,7 @@ function expandAll() {
     ...expandGeneral(),
     ...expandTaxDomain(),
     ...expandDeepDive(),
+    ...expandNewSegments(),
   ];
 
   // 全 topic に customer_segment を付与（未設定のものは persona/macro から導出）。

@@ -23,6 +23,12 @@ const MACRO = {
   INHERITANCE: '相続贈与',
   GENERAL:     '一般事業者',
   TAX_DOMAIN:  '税目実務',
+  // Phase 4 で追加した新カテゴリ
+  YOUTUBE:      'YouTube',
+  CONTENT:      'コンテンツ販売',
+  CONSTRUCTION: '建設',
+  RETAIL_STORE: '小売',
+  WHOLESALE:    '卸売',
 };
 
 // ペルソナ → 大分類のデフォルト紐付け（未指定時のfallback）
@@ -33,6 +39,11 @@ const PERSONA_TO_MACRO = {
   influencer_creator:          MACRO.INFLUENCER,
   beauty_salon_owner:          MACRO.SALON,
   inheritance_client:          MACRO.INHERITANCE,
+  youtuber:                    MACRO.YOUTUBE,
+  content_seller:              MACRO.CONTENT,
+  construction_solo:           MACRO.CONSTRUCTION,
+  retail_store:                MACRO.RETAIL_STORE,
+  wholesale:                   MACRO.WHOLESALE,
 };
 
 // slug プレフィックスで cluster を推定（cluster未指定時のfallback）
