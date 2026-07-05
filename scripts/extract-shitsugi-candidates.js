@@ -29,6 +29,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const scorer = require(path.join(ROOT, 'scripts/lib/nta-shitsugi-scorer'));
 const store  = require(path.join(ROOT, 'scripts/lib/nta-store'));
+const { applyTriage } = require(path.join(ROOT, 'scripts/lib/candidate-triage'));
 
 const NTA_SOURCES_DIR = store.NTA_SOURCES_DIR;
 const INDEX_FILE      = path.join(NTA_SOURCES_DIR, 'index.json');
@@ -91,14 +92,16 @@ function loadAdoptedUrls(filePath) {
   }
 }
 
-// ── 既存ファイルから adopted エントリのメタも保持 ──────────────
+// ── 既存ファイルから手動編集エントリ（adopted/rejected/notes）を保持 ──
+// 再抽出後も、人が付けた採用/除外/メモが復活・消失しないようにする。
 function loadExistingAdoptedEntries(filePath) {
   if (!fs.existsSync(filePath)) return new Map();
   try {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const map = new Map();
     for (const c of data.candidates || []) {
-      if (c.adopted === true && c.shitsugi_url) {
+      const hasManual = c.adopted === true || c.rejected === true || c.adoption_note || c.rejection_note;
+      if (hasManual && c.shitsugi_url) {
         map.set(c.shitsugi_url, c);
       }
     }
@@ -169,12 +172,13 @@ function main() {
     allScored.push(candidate);
 
     if (result.score >= args.minScore) {
-      // 既存 adopted エントリと merge（adopted=true を保持）
+      // 既存の手動編集（adopted/rejected/notes/proposed）を保持
       if (existingAdopted.has(data.url)) {
         const existing = existingAdopted.get(data.url);
-        candidate.adopted = true;
-        // adoption_note や proposed の手動編集を保持
+        if (existing.adopted === true) candidate.adopted = true;
+        if (existing.rejected === true) candidate.rejected = true;
         if (existing.adoption_note) candidate.adoption_note = existing.adoption_note;
+        if (existing.rejection_note) candidate.rejection_note = existing.rejection_note;
         if (existing.proposed && existing.proposed.persona) {
           candidate.proposed = existing.proposed;
         }
@@ -183,15 +187,19 @@ function main() {
     }
   }
 
-  // 4. 既存 adopted で min-score 未満のものも保持
+  // 4. 手動編集（adopted/rejected/notes）済みで min-score 未満のものも保持
+  //    （既存の adopted/rejected をそのまま維持。除外フラグを復活させない）
   for (const [url, existing] of existingAdopted) {
     if (!candidates.some(c => c.shitsugi_url === url)) {
-      candidates.push({ ...existing, adopted: true });
+      candidates.push({ ...existing });
     }
   }
 
   // スコア降順でソート
   candidates.sort((a, b) => b.score - a.score);
+
+  // 4b. 自動一次選別（auto_decision 等）を再付与（冪等）
+  applyTriage(candidates);
 
   // 集計
   const byScore = { '90+': 0, '80-89': 0, '70-79': 0 };

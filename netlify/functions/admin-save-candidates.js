@@ -63,27 +63,40 @@ exports.handler = async (event) => {
 
     const data = JSON.parse(file.content);
 
-    // 3. updates を適用
+    // 3. updates を適用（adopted / rejected / notes）
     let appliedCount = 0;
     let adoptedCount = 0;
+    let rejectedCount = 0;
     for (const c of data.candidates || []) {
       const u = updates[c.shitsugi_url];
       if (u) {
         if (typeof u.adopted === 'boolean' && c.adopted !== u.adopted) {
           c.adopted = u.adopted;
+          if (u.adopted) c.rejected = false; // 採用したら除外は解除
+          appliedCount++;
+        }
+        if (typeof u.rejected === 'boolean' && c.rejected !== u.rejected) {
+          c.rejected = u.rejected;
+          if (u.rejected) c.adopted = false; // 除外したら採用は解除
           appliedCount++;
         }
         if (typeof u.adoption_note === 'string' && c.adoption_note !== u.adoption_note) {
           c.adoption_note = u.adoption_note;
           appliedCount++;
         }
+        if (typeof u.rejection_note === 'string' && c.rejection_note !== u.rejection_note) {
+          c.rejection_note = u.rejection_note;
+          appliedCount++;
+        }
       }
       if (c.adopted) adoptedCount++;
+      if (c.rejected) rejectedCount++;
     }
 
-    // 4. stats.adopted_count を更新
+    // 4. stats を更新
     if (data.stats) {
       data.stats.adopted_count = adoptedCount;
+      data.stats.rejected_count = rejectedCount;
     }
 
     if (appliedCount === 0) {
@@ -114,6 +127,7 @@ exports.handler = async (event) => {
         ok: true,
         applied: appliedCount,
         adopted_count: adoptedCount,
+        rejected_count: rejectedCount,
         sha: result.content && result.content.sha,
       }),
     };
