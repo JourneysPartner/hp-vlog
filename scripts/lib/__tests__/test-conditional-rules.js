@@ -40,7 +40,10 @@ const salon = { pain_point: 'salon-prepayment-ticket', tax_domain: 'consumption_
 assert(st.selectConditionalRules(salon).length === 0, 'サロン回数券記事 → 論点別ルールなし（漏れ込み無し）');
 
 const inheritance = { pain_point: 'inheritance-tax-return', tax_domain: 'inheritance_tax', search_intent: '相続税 申告 必要か' };
-assert(st.selectConditionalRules(inheritance).length === 0, '相続記事 → 事業者向けルールなし');
+// 相続記事には事業者向けルール（eBay/特定期間/経過措置/速算表）は注入されない
+// （相続専用の構成ルールは注入されてよい）。
+assert(!st.selectConditionalRules(inheritance).some(r => /T1700150104215|特定期間|経過措置|速算表/.test(r)),
+  '相続記事 → 事業者向けルールは注入されない');
 
 const invoice = { pain_point: 'invoice-judgement', tax_domain: 'invoice_system', search_intent: 'インボイス 登録 すべきか' };
 assert(st.selectConditionalRules(invoice).some(r => r.includes('経過措置')), 'インボイス記事 → 経過措置ルール注入');
@@ -49,6 +52,13 @@ const houjinnari = { pain_point: 'incorporation-threshold', tax_domain: 'income_
 const hnRules = st.selectConditionalRules(houjinnari);
 assert(hnRules.some(r => r.includes('特定期間')), '法人成り記事 → 特定期間ルール注入');
 assert(hnRules.some(r => r.includes('速算表')), '法人成り記事 → 所得税速算表ルール注入');
+
+// 相続贈与記事 → 相続構成ルール（仕訳例を作らない）注入。事業者記事には非注入
+const inh = { pain_point: 'tax-applicable-or-not', tax_domain: 'inheritance_tax', customer_segment: 'inheritance_gift', search_intent: '相続税 申告 必要か' };
+assert(st.selectConditionalRules(inh).some(r => r.includes('「仕訳例」は作らない')), '相続記事 → 相続構成ルール注入');
+assert(!st.selectConditionalRules(ebay).some(r => r.includes('「仕訳例」は作らない')), 'eBay記事 → 相続構成ルールは非注入');
+assert(st.STATIC_RULES.includes('記事構成テンプレート'), 'STATIC_RULES に記事構成テンプレート');
+assert(st.STATIC_RULES.includes('読者の検索語起点'), 'STATIC_RULES にタイトル検索語起点ルール');
 
 // ── 3. builder が dynamicSystem にだけ注入する ──────────────────
 console.log('\n=== Test 3: builder の注入先は dynamicSystem（非キャッシュ）===');
