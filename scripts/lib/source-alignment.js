@@ -19,7 +19,7 @@
  */
 
 const {
-  DEFAULT_SOURCE_BY_PAIN, DEFAULT_SOURCE_BY_TAX_DOMAIN,
+  DEFAULT_SOURCE_BY_PAIN, DEFAULT_SOURCE_BY_TAX_DOMAIN, NEEDS_SOURCE_REVIEW,
 } = require('./tax-authority-refs');
 
 // 国税庁URL → カテゴリ（セクション）
@@ -59,6 +59,14 @@ function expectedSourceFor(topic = {}) {
  */
 function checkSourceAlignment(topic = {}) {
   const url = topic.source_url || '';
+  const pain = topic.pain_point || topic.pain || '';
+
+  // 個別出典を確定できない論点は、汎用フォールバックで score=5 にせず revise 扱い。
+  if (pain && NEEDS_SOURCE_REVIEW && NEEDS_SOURCE_REVIEW.has(pain)) {
+    return { aligned: false, score: 3, severity: 'soft', expectedTitle: '',
+      reason: 'この論点は個別出典が未確定（tax_domain 汎用出典のため要確認）' };
+  }
+
   const { entry: expected, byPain } = expectedSourceFor(topic);
 
   if (!url) {

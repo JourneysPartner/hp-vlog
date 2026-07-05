@@ -20,6 +20,7 @@ const REFS = {
     { no: '6505', title: '簡易課税制度',                     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm' },
     { no: '6551', title: '輸出取引の免税',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
     { no: '6253', title: '免税事業者からの仕入れに係る経過措置', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6253.htm' },
+    { no: '6102', title: '消費税の軽減税率制度',             url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6102.htm' },
   ],
 
   income_tax: [
@@ -229,6 +230,68 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'housing-fund-gift':                { no: '4508', title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm' },
 };
 
+// ── 新カテゴリ（Phase 4）の pain_point 別 個別出典 ─────────────────
+// 「tax_domain 汎用フォールバックで false な score=5」を防ぐため、新カテゴリの
+// pain は全て明示的にここで扱う。検証済みカタログ内の出典だけを使い、番号は捏造しない。
+const _NS = {
+  revenue:      { no: '2200', title: '国税庁タックスアンサー No.2200 収入金額とその計算', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2200.htm' },
+  business_inc: { no: '1350', title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
+  filing_need:  { no: '1900', title: '国税庁タックスアンサー No.1900 給与所得者で確定申告が必要な人', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1900.htm' },
+  side_income:  { no: '1906', title: '国税庁タックスアンサー No.1906 給与所得者がネットオークション等で得た所得', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1906.htm' },
+  expense:      { no: '2210', title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm' },
+  depreciation: { no: '2100', title: '国税庁タックスアンサー No.2100 減価償却のあらまし', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm' },
+  bookkeeping:  { no: '2080', title: '国税庁タックスアンサー No.2080 白色申告者の記帳・帳簿等の保存', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm' },
+  withholding:  { no: '2792', title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm' },
+  invoice:      { title: '国税庁 インボイス制度の概要', url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  reduced_rate: { no: '6102', title: '国税庁タックスアンサー No.6102 消費税の軽減税率制度', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6102.htm' },
+  input_credit: { no: '6451', title: '国税庁タックスアンサー No.6451 仕入税額控除の対象範囲', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm' },
+};
+const NEW_SEGMENT_PAIN_SOURCE = {
+  // YouTuber
+  'youtube-adsense-revenue': _NS.revenue,      'youtube-superchat': _NS.business_inc,
+  'youtube-equipment-expense': _NS.depreciation, 'youtube-editing-outsource': _NS.withholding,
+  'youtube-sponsorship-withholding': _NS.withholding, 'youtube-home-office': _NS.expense,
+  'youtube-invoice': _NS.invoice, 'youtube-gaming-hardware': _NS.depreciation,
+  'youtube-gaming-capture': _NS.depreciation, 'youtube-review-product-received': _NS.revenue,
+  'youtube-review-purchase': _NS.expense, 'youtube-live-costume': _NS.expense,
+  'youtube-edu-material': _NS.expense, 'youtube-vlog-vehicle': _NS.expense,
+  'youtube-tax-return-need': _NS.filing_need, 'youtube-income-classification': _NS.business_inc,
+  // コンテンツ販売
+  'content-note-revenue': _NS.revenue, 'content-online-course': _NS.revenue,
+  'content-subscription-revenue': _NS.revenue, 'content-platform-fee': _NS.input_credit,
+  'content-refund-handling': _NS.revenue, 'content-invoice': _NS.invoice,
+  'content-membership-tiers': _NS.revenue, 'content-ebook-royalty': _NS.revenue,
+  'content-license-revenue': _NS.revenue, 'content-tax-return-need': _NS.filing_need,
+  'content-income-classification': _NS.business_inc,
+  // 1人親方
+  'construction-labor-cost': _NS.withholding, 'construction-material-cost': _NS.expense,
+  'construction-tools-expense': _NS.expense, 'construction-invoice': _NS.invoice,
+  'construction-withholding-received': _NS.withholding, 'construction-vehicle-expense': _NS.expense,
+  'construction-bookkeeping': _NS.bookkeeping, 'construction-qualification-cost': _NS.expense,
+  'construction-consumables': _NS.expense, 'construction-power-tools': _NS.depreciation,
+  'construction-workform-judgment': _NS.withholding,
+  // 小売
+  'retail-register-sales': _NS.revenue, 'retail-reduced-tax-rate': _NS.reduced_rate,
+  'retail-inventory-count': _NS.expense, 'retail-qr-payment': _NS.revenue,
+  'retail-invoice': _NS.invoice, 'retail-food-eatin': _NS.reduced_rate,
+  'retail-apparel-season-inventory': _NS.expense, 'retail-consignment-sales': _NS.revenue,
+  // 卸売
+  'wholesale-accounts-receivable': _NS.revenue, 'wholesale-inventory-valuation': _NS.expense,
+  'wholesale-invoice': _NS.invoice, 'wholesale-closing-date-sales': _NS.revenue,
+  'wholesale-billing-omission': _NS.revenue, 'wholesale-food-loss': _NS.expense,
+  'wholesale-consignment': _NS.revenue,
+};
+Object.assign(DEFAULT_SOURCE_BY_PAIN, NEW_SEGMENT_PAIN_SOURCE);
+
+// 個別出典を確定できない pain。これらは source_alignment_score を 5 にせず
+// revise 扱いにする（消費税の課税区分・時期など、検証済みカタログに適切な
+// 個別ページが無いもの。捏造しない）。source-alignment.js が参照する。
+const NEEDS_SOURCE_REVIEW = new Set([
+  'content-digital-consumption-tax', 'content-course-bundle',
+  'retail-point-discount', 'retail-return-handling', 'retail-gift-certificate',
+  'wholesale-return-rebate', 'wholesale-apparel-return',
+]);
+
 // ── 最終フォールバック（どこにもマッチしなかった場合）
 const ULTIMATE_FALLBACK = {
   title: '国税庁ホームページ',
@@ -325,6 +388,7 @@ module.exports = {
   getDefaultSourceForTopic,
   DEFAULT_SOURCE_BY_TAX_DOMAIN,
   DEFAULT_SOURCE_BY_PAIN,
+  NEEDS_SOURCE_REVIEW,
   resolveNtaUrlByNumber,
   NTA_URL_PREFIX_RULES,
 };

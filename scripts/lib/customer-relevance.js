@@ -61,40 +61,41 @@ const CUSTOMER_SEGMENTS = {
     kind: 'life_event',
   },
   // ── Phase 4 で追加した新カテゴリ ──────────────────────────
+  // ※ sub_segments の ID は scenario-new-segments.js の subLabels のキーと一致させる
   youtuber: {
     label: 'YouTuber',
     macro: 'YouTube',
     personas: ['youtuber'],
     kind: 'business',
-    sub_segments: ['adsense', 'sponsorship', 'membership', 'superchat', 'shorts'],
+    sub_segments: ['gaming', 'education', 'vlog', 'live', 'review'],
   },
   content_seller: {
     label: 'コンテンツ販売',
     macro: 'コンテンツ販売',
     personas: ['content_seller'],
     kind: 'business',
-    sub_segments: ['note', 'brain', 'online-course', 'subscription', 'online-salon'],
+    sub_segments: ['note', 'course', 'membership', 'ebook', 'template'],
   },
   construction_solo: {
     label: '1人親方・職人',
     macro: '建設',
     personas: ['construction_solo'],
     kind: 'business',
-    sub_segments: ['interior', 'electrical', 'plumbing', 'carpenter', 'painting'],
+    sub_segments: ['interior', 'electrical', 'plumbing', 'painting', 'carpenter'],
   },
   retail_store: {
     label: '小売店',
     macro: '小売',
     personas: ['retail_store'],
     kind: 'business',
-    sub_segments: ['apparel', 'variety', 'food', 'select-shop', 'souvenir'],
+    sub_segments: ['apparel', 'food', 'variety', 'select', 'souvenir'],
   },
   wholesale: {
     label: '卸売',
     macro: '卸売',
     personas: ['wholesale'],
     kind: 'business',
-    sub_segments: ['btob', 'business-goods'],
+    sub_segments: ['food', 'apparel', 'material', 'general'],
   },
 };
 
