@@ -236,9 +236,11 @@ function selectDailyTopics(topics, options = {}) {
     blockedDetails: denylistExcluded.slice(0, 5),
   });
 
-  // 2.8. 顧客カテゴリ関連性ゲート（安全網）
+  // 2.8. 顧客カテゴリ関連性ゲート（安全装置・必ず効く）
   // 生成プール（expandAll）側でも除外しているが、curated topic や取りこぼしを
-  // 選定時にも止める。全滅する場合はゲートを無視して継続（安全側）。
+  // 選定時にも止める。
+  // 【重要】不適合候補は絶対に復活させない。全滅した場合は「ゲート無視で継続」せず、
+  // picks を空にして生成しない（危険な記事を作らないための安全装置）。
   const relevanceExcluded = [];
   const afterRelevance = candidates.filter(t => {
     if (isNaturalCombination(t)) return true;
@@ -255,15 +257,13 @@ function selectDailyTopics(topics, options = {}) {
     remaining: afterRelevance.length,
     blockedDetails: relevanceExcluded.slice(0, 5),
   });
-  if (afterRelevance.length > 0) {
-    candidates = afterRelevance;
-  } else if (relevanceExcluded.length > 0) {
-    explanation.warnings = (explanation.warnings || []).concat(['関連性ゲートで全滅 → ゲート無視で継続']);
-  }
+  candidates = afterRelevance; // 不適合は必ず除外（フォールバックしない）
 
   if (candidates.length === 0) {
     explanation.warnings = (explanation.warnings || []).concat([
-      'denylist / 単年限定で候補が枯渇しました',
+      relevanceExcluded.length > 0
+        ? '関連性ゲートで全候補が除外されたため生成しない（不適合記事を作らない安全装置）'
+        : 'denylist / 単年限定で候補が枯渇しました',
     ]);
     return { picks: [], explanation };
   }

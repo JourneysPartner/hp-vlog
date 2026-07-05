@@ -26,6 +26,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { publishGateReasons } = require('./lib/customer-relevance');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
@@ -79,6 +80,7 @@ function main() {
   const now = new Date();
   const nowStr = nowJST();
   const published = [];
+  const skipped = [];
 
   for (const file of files) {
     const filepath = path.join(POSTS_DIR, file);
@@ -92,6 +94,21 @@ function main() {
 
     const due = new Date(publishAt);
     if (isNaN(due) || due > now) continue;
+
+    // ── 品質ゲート（最終チェック）────────────────────────────
+    // スコアが設定されている記事（Phase 3b 以降）のみ対象。スコア未設定の
+    // レガシー記事は従来どおり昇格させる（既存記事を止めない）。
+    const gateReasons = publishGateReasons({
+      recommendation:         getFmField(raw, 'recommendation'),
+      customer_fit_score:     getFmField(raw, 'customer_fit_score'),
+      search_intent_score:    getFmField(raw, 'search_intent_score'),
+      source_alignment_score: getFmField(raw, 'source_alignment_score'),
+    });
+    if (gateReasons.length > 0) {
+      skipped.push({ file, reasons: gateReasons });
+      console.warn(`[publish-due] SKIP(品質ゲート): ${file} — ${gateReasons.join(', ')} → published に昇格しません`);
+      continue;
+    }
 
     // 公開時刻に到達 → published に昇格
     let updated = raw;
@@ -111,10 +128,16 @@ function main() {
   }
 
   console.log(`[publish-due] 公開対象: ${published.length} 件`);
+  if (skipped.length > 0) {
+    console.warn(`[publish-due] 品質ゲートで公開見送り: ${skipped.length} 件`);
+    for (const s of skipped) console.warn(`  - ${s.file}: ${s.reasons.join(', ')}`);
+  }
 
   // GitHub Actions 出力変数
   const ghOutput = process.env.GITHUB_OUTPUT;
   if (ghOutput) {
+    fs.appendFileSync(ghOutput, `skipped_count=${skipped.length}\n`);
+    fs.appendFileSync(ghOutput, `skipped_files=${skipped.map(s => s.file).join(',')}\n`);
     const filesCsv      = published.map(p => p.file).join(',');
     const titlesPipe    = published.map(p => p.title).join('|');
     const slugsCsv      = published.map(p => p.slug).join(',');

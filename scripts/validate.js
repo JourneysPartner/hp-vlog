@@ -141,13 +141,33 @@ function validateFile(filePath) {
     catch { errors.push(`source_url が URL として不正: "${fm.source_url}"`); }
   }
 
-  // 4b. 出典一致（主論点と主出典の税目カテゴリが違う場合は警告）
-  // 例: リバースチャージ記事に相続税ページ、相続税申告要否記事に贈与税ページ 等。
-  // 既存記事をブロックしないよう、強い不一致（カテゴリ違い）のみ警告に留める。
+  // 4b. 出典一致・適合スコアのチェック
+  // スコアが設定されている記事（Phase 3b 以降 = recommendation あり）は「新規記事」
+  // として厳格に扱い、不適合を error にする。スコア未設定のレガシー記事は warning に留める。
+  const isScored = fm.recommendation !== undefined && fm.recommendation !== null && fm.recommendation !== '';
+  const isLive = ['approved', 'scheduled', 'published'].includes(fm.review_status);
+  const saScore = Number.isFinite(fm.source_alignment_score) ? fm.source_alignment_score
+    : (fm.source_alignment_score != null ? parseInt(fm.source_alignment_score, 10) : null);
+
   if (fm.source_url && (fm.pain_point || fm.tax_domain)) {
     const sa = checkSourceAlignment({ pain_point: fm.pain_point, tax_domain: fm.tax_domain, source_url: fm.source_url });
     if (sa.severity === 'hard') {
-      warnings.push(`出典一致: ${sa.reason}。期待出典の例:「${sa.expectedTitle}」`);
+      const msg = `出典一致: ${sa.reason}。期待出典の例:「${sa.expectedTitle}」`;
+      if (isScored) errors.push(msg);       // 新規（スコア付き）記事はブロック
+      else warnings.push(msg);              // レガシー記事は警告に留める
+    }
+  }
+
+  // スコア付き記事の recommendation / 低スコアのチェック（レガシー記事は対象外）
+  if (isScored) {
+    if (fm.recommendation === 'reject' && isLive) {
+      errors.push(`recommendation=reject の記事が ${fm.review_status} になっています（承認・公開すべきでない）`);
+    }
+    if (fm.recommendation === 'revise' && isLive) {
+      errors.push(`recommendation=revise の記事が ${fm.review_status} になっています（差し戻して見直すべき）`);
+    }
+    if (saScore != null && saScore <= 3 && isLive) {
+      errors.push(`source_alignment_score=${saScore} の記事が ${fm.review_status} になっています（主出典が主論点と不一致の可能性）`);
     }
   }
 

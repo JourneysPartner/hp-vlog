@@ -83,7 +83,7 @@ const good = evaluateTopicFit({ persona: 'inheritance_client', pain_point: 'smal
 assert(good.source_alignment_score === 5, '一致記事は source_alignment_score=5');
 const bad = evaluateTopicFit({ persona: 'inheritance_client', pain_point: 'tax-applicable-or-not', tax_domain: 'inheritance_tax', source_url: U.zoyo4408, search_intent: '相続税 申告 必要か' });
 assert(bad.source_alignment_score === 1, 'カテゴリ不一致は source_alignment_score=1');
-assert(bad.decision === 'revise', 'カテゴリ不一致は decision=revise');
+assert(bad.decision === 'reject', 'カテゴリ不一致（hard）は decision=reject');
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
