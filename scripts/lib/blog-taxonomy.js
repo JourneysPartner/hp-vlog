@@ -39,6 +39,12 @@ const MACROS = [
   { ja: 'インフルエンサー', slug: 'influencer',   icon: 'bi-camera-video' },
   { ja: '相続贈与',         slug: 'inheritance',  icon: 'bi-people' },
   { ja: '一般事業者',       slug: 'general',      icon: 'bi-briefcase' },
+  // Phase 4 で追加した新カテゴリ
+  { ja: 'YouTube',          slug: 'youtube',      icon: 'bi-youtube' },
+  { ja: 'コンテンツ販売',   slug: 'content',      icon: 'bi-file-earmark-text' },
+  { ja: '建設',             slug: 'construction', icon: 'bi-hammer' },
+  { ja: '小売',             slug: 'retail-store', icon: 'bi-shop' },
+  { ja: '卸売',             slug: 'wholesale',    icon: 'bi-boxes' },
 ];
 
 const MACRO_BY_JA = new Map(MACROS.map(m => [m.ja, m]));
