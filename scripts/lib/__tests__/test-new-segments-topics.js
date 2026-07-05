@@ -52,5 +52,17 @@ assert(adsenseWrong.length === 0, 'AdSense論点は youtuber 以外に出ない'
 const salonWrong = all.filter(t => ['youtuber', 'wholesale', 'construction_solo'].includes(t.customer_segment) && t.pain_point === 'salon-prepayment-ticket');
 assert(salonWrong.length === 0, '回数券論点は新カテゴリに出ない');
 
+// ── 5. YouTuber の AI 拡張（サブ業種×テーマ×ステージの掛け合わせ）─────
+console.log('\n=== Test 5: YouTuber 掛け合わせ拡張 ===');
+const yt = topics.filter(t => t.customer_segment === 'youtuber');
+assert(yt.length >= 40, `YouTuber が掛け合わせで増える（${yt.length} 本 >= 40）`);
+assert(yt.every(t => evaluateTopicFit(t).decision === 'approve'), 'YouTuber は全て approve（不自然/低スコアは無い）');
+// ジャンル特化テーマが該当ジャンルにだけ出る
+const gamingOnly = yt.filter(t => t.pain_point === 'youtube-gaming-hardware');
+assert(gamingOnly.length > 0 && gamingOnly.every(t => t.sub_segment === 'gaming'), 'ゲーム機材テーマは gaming ジャンルのみ');
+// 開業ステージで掛け合わされている
+const stageVariants = yt.filter(t => t.pain_point === 'youtube-tax-return-need' && t.article_role === 'main');
+assert(new Set(stageVariants.map(t => t.business_stage)).size >= 3, '確定申告テーマが副業/専業/法人化で展開される');
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
