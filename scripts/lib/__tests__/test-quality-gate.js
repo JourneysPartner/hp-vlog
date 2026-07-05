@@ -65,5 +65,46 @@ assert(publishGateReasons({ recommendation: 'publish', customer_fit_score: 5, se
 assert(publishGateReasons({}).length === 0, 'スコア未設定（レガシー）→ ブロックしない');
 assert(publishGateReasons({ recommendation: '' }).length === 0, 'recommendation 空（レガシー）→ ブロックしない');
 
+// ── 4. topic-selector は approve 候補だけを選定する（revise/reject を除外）──
+console.log('\n=== Test 4: 品質ゲート（approve のみ選定）===');
+const mkEc = (slug, si) => ({
+  slug, title: '', persona: 'domestic_ec_seller', customer_segment: 'ec_seller', category: '消費税',
+  macro: '物販', cluster: 'amazon', subcluster: slug, tax_domain: 'consumption_tax',
+  pain_point: 'platform-fee-treatment', allowed_customer_segments: ['ec_seller', 'general_business'],
+  article_type: 'basic_explainer', article_role: 'main',
+  source_url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm',
+  search_intent: si, reader_problem: 'r', success_outcome: 's', primary_question: 'q',
+});
+const approveT = mkEc('test-qf-approve', 'Amazon 手数料 消費税 仕入税額控除 いつ');
+const reviseT1 = mkEc('test-qf-revise-1', 'x');
+const reviseT2 = mkEc('test-qf-revise-2', 'y');
+// 前提: fit の decision が想定どおり
+assert(evaluateTopicFit(approveT).decision === 'approve', '前提: approveT は approve');
+assert(evaluateTopicFit(reviseT1).decision === 'revise', '前提: reviseT1 は revise');
+
+// revise だけ → picks 空・filter-quality-fit・warning
+const rOnly = selectDailyTopics([reviseT1, reviseT2], { now: new Date() });
+assert(rOnly.picks.length === 0, 'revise のみ → picks 空（生成しない）');
+const qStep = (rOnly.explanation.steps || []).find(s => s.step === 'filter-quality-fit');
+assert(qStep && qStep.remaining === 0, 'filter-quality-fit ステップが残り、remaining=0');
+assert((qStep.blockedDetails || []).some(d => d.decision === 'revise' && d.slug && d.search_intent_score != null),
+  'blockedDetails に slug/decision/score が入る');
+assert((rOnly.explanation.warnings || []).some(w => /品質ゲート/.test(w)), 'warnings に品質ゲートで生成しない旨');
+
+// approve + revise 混在 → approve だけ残る
+const mixed = selectDailyTopics([approveT, reviseT1], { now: new Date() });
+assert(mixed.picks.length >= 1 && mixed.picks.every(p => p.slug !== 'test-qf-revise-1'),
+  'approve+revise 混在 → revise は選ばれない');
+assert(mixed.picks.every(p => evaluateTopicFit(p).decision === 'approve'), 'picks は全て approve');
+
+// ── 5. 実プールの dry-run：picks は全て approve ─────────────────
+console.log('\n=== Test 5: 実プール dry-run ===');
+const { TOPICS } = require(path.join(ROOT, 'scripts/topic-pool'));
+const dry = selectDailyTopics(TOPICS, { now: new Date() });
+assert(dry.picks.every(p => evaluateTopicFit(p).decision === 'approve'),
+  `dry-run の picks は全て approve（${dry.picks.length} 本）`);
+const dryQ = (dry.explanation.steps || []).find(s => s.step === 'filter-quality-fit');
+assert(dryQ && dryQ.blocked >= 0 && dryQ.remaining >= 0, 'dry-run に filter-quality-fit ステップが残る');
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
