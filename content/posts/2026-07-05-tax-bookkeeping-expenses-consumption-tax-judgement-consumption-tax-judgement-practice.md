@@ -33,7 +33,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "EC物販セラーが課税事業者かどうか迷いやすい3つの場面を具体的に解説。基準期間・特定期間の計算タイミングや、売上をどこで集計するかなど実務上の判断ポイントを整理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -41,7 +41,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-05T00:07:08.645Z"
-updated_at: "2026-07-05T00:07:08.645Z"
+updated_at: "2026-07-05T16:24:35.924+09:00"
 ---
 
 ## 「自分は免税のはず」と思っていませんか？
