@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "AdSense収益は「Googleに収益が確定した月」を基準に売上計上します。年間所得が一定額を超えると確定申告が必要になり、副業の場合は雑所得・事業的規模なら事業所得として申告します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-06T16:46:25.026+09:00"
+publish_at: "2026-07-07T11:35:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-06T07:40:53.113Z"
-updated_at: "2026-07-06T07:40:53.113Z"
+updated_at: "2026-07-06T16:46:25.026+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
