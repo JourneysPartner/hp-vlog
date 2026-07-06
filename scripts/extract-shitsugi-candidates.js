@@ -124,12 +124,12 @@ function main() {
   const shitsugiEntries = (index.entries || []).filter(e => e.type === 'shitsugi' && !e.deleted);
   console.log(`[extract] index から shitsugi エントリ ${shitsugiEntries.length} 件を読込`);
 
-  // 2. 既存 adopted の保持
+  // 2. 既存の手動編集（採用/除外/メモ）の保持
   const existingAdopted = args.preserveAdopted
     ? loadExistingAdoptedEntries(args.output)
     : new Map();
   if (existingAdopted.size > 0) {
-    console.log(`[extract] 既存 adopted=true: ${existingAdopted.size} 件を保持`);
+    console.log(`[extract] 既存の手動編集（adopted/rejected/notes）: ${existingAdopted.size} 件を保持`);
   }
 
   // 3. 各エントリを採点
