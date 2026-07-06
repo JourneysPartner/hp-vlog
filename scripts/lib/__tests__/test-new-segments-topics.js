@@ -34,11 +34,31 @@ assert(topics.filter(t => t.article_role === 'main').length === topics.length / 
 assert(topics.every(t => Array.isArray(t.allowed_customer_segments) && t.allowed_customer_segments.length === 1),
   '各 topic に allowed_customer_segments=[自カテゴリ]');
 
-// ── 3. 全 topic が関連性ゲートを通る ────────────────────────
+// ── 3. 関連性・出典・推奨 ─────────────────────────────────────
+// 出典を個別確定できた topic は approve（score=5）、確定できない論点
+// （NEEDS_SOURCE_REVIEW）は汎用フォールバックで approve にせず revise。
+const { DEFAULT_SOURCE_BY_PAIN, NEEDS_SOURCE_REVIEW } = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
 console.log('\n=== Test 3: 関連性・出典・推奨 ===');
 assert(topics.every(t => isNaturalCombination(t)), '全 topic が関連性ゲートを通過');
-assert(topics.every(t => evaluateTopicFit(t).source_alignment_score >= 4), '全 topic の出典一致スコア>=4');
-assert(topics.every(t => evaluateTopicFit(t).decision === 'approve'), '全 topic の推奨=approve');
+// 新カテゴリの全 pain は「個別出典登録済み」または「明示的に要確認(NEEDS_SOURCE_REVIEW)」
+const pains = [...new Set(topics.map(t => t.pain_point))];
+assert(pains.every(p => DEFAULT_SOURCE_BY_PAIN[p] || NEEDS_SOURCE_REVIEW.has(p)),
+  '全 pain が DEFAULT_SOURCE_BY_PAIN 登録済み or NEEDS_SOURCE_REVIEW（汎用フォールバックの放置なし）');
+// approve の topic は個別出典（byPain）に基づく（tax_domain 汎用フォールバックではない）
+const approveTopics = topics.filter(t => evaluateTopicFit(t).decision === 'approve');
+assert(approveTopics.every(t => DEFAULT_SOURCE_BY_PAIN[t.pain_point] && evaluateTopicFit(t).source_alignment_score === 5),
+  'approve は pain 個別出典に一致（score=5）している');
+// NEEDS_SOURCE_REVIEW の pain は approve にならない
+assert(topics.filter(t => NEEDS_SOURCE_REVIEW.has(t.pain_point)).every(t => evaluateTopicFit(t).decision !== 'approve'),
+  'NEEDS_SOURCE_REVIEW の論点は approve にならない');
+// ユーザー指摘の4例: 汎用フォールバックで approve にならない
+const eatin = topics.find(t => t.pain_point === 'retail-food-eatin');
+assert(evaluateTopicFit(eatin).decision === 'approve' && !/6501/.test(eatin.source_url),
+  'retail-food-eatin は軽減税率の個別出典で approve（6501汎用ではない）');
+for (const p of ['retail-gift-certificate', 'content-course-bundle', 'wholesale-return-rebate']) {
+  const t = topics.find(x => x.pain_point === p);
+  assert(evaluateTopicFit(t).decision !== 'approve', `${p} は汎用フォールバックで approve にならない`);
+}
 
 // ── 4. expandAll に合流し、他業種に漏れない ──────────────────
 console.log('\n=== Test 4: expandAll 合流と漏れ防止 ===');
@@ -51,6 +71,18 @@ const adsenseWrong = all.filter(t => t.pain_point === 'youtube-adsense-revenue' 
 assert(adsenseWrong.length === 0, 'AdSense論点は youtuber 以外に出ない');
 const salonWrong = all.filter(t => ['youtuber', 'wholesale', 'construction_solo'].includes(t.customer_segment) && t.pain_point === 'salon-prepayment-ticket');
 assert(salonWrong.length === 0, '回数券論点は新カテゴリに出ない');
+
+// ── 5. YouTuber の AI 拡張（サブ業種×テーマ×ステージの掛け合わせ）─────
+console.log('\n=== Test 5: YouTuber 掛け合わせ拡張 ===');
+const yt = topics.filter(t => t.customer_segment === 'youtuber');
+assert(yt.length >= 40, `YouTuber が掛け合わせで増える（${yt.length} 本 >= 40）`);
+assert(yt.every(t => evaluateTopicFit(t).decision === 'approve'), 'YouTuber は全て approve（不自然/低スコアは無い）');
+// ジャンル特化テーマが該当ジャンルにだけ出る
+const gamingOnly = yt.filter(t => t.pain_point === 'youtube-gaming-hardware');
+assert(gamingOnly.length > 0 && gamingOnly.every(t => t.sub_segment === 'gaming'), 'ゲーム機材テーマは gaming ジャンルのみ');
+// 開業ステージで掛け合わされている
+const stageVariants = yt.filter(t => t.pain_point === 'youtube-tax-return-need' && t.article_role === 'main');
+assert(new Set(stageVariants.map(t => t.business_stage)).size >= 3, '確定申告テーマが副業/専業/法人化で展開される');
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
