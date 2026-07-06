@@ -48,9 +48,27 @@ const PERSONAS = [
   // 業種を問わない広義ペルソナ（PR #214 の curation 結果を活かすため追加）
   { id: 'general_individual_proprietor', label: '個人事業者全般',              categories: ['所得税', '帳簿・経費', '消費税'] },
   { id: 'general_corporation',           label: '法人全般',                    categories: ['法人税', '消費税', '帳簿・経費'] },
+  // Phase 4 で追加した新カテゴリ。topic-selector 側で選定されるため、生成側にも必ず登録する。
+  { id: 'youtuber',                       label: 'YouTuber・動画配信者',        categories: ['所得税', '帳簿・経費', 'インボイス'] },
+  { id: 'content_seller',                 label: 'コンテンツ販売者',            categories: ['所得税', '消費税', 'インボイス'] },
+  { id: 'construction_solo',              label: '1人親方・建設業の個人事業者', categories: ['所得税', '帳簿・経費', '源泉徴収'] },
+  { id: 'retail_store',                   label: '小売店オーナー',              categories: ['消費税', '帳簿・経費', 'インボイス'] },
+  { id: 'wholesale',                      label: '卸売業者',                    categories: ['消費税', '帳簿・経費', '法人税'] },
 ];
 
 const PERSONA_MAP = Object.fromEntries(PERSONAS.map(p => [p.id, p]));
+
+function getPersonaForTopic(topic) {
+  const persona = PERSONA_MAP[topic.persona];
+  if (persona) return persona;
+  const fallbackLabel = topic.customer_segment || topic.persona || '事業者';
+  console.warn(`[generate] ⚠ 未登録 persona=${topic.persona || '(empty)'} のため fallback label=${fallbackLabel} で生成します`);
+  return {
+    id: topic.persona || 'unknown',
+    label: fallbackLabel,
+    categories: topic.category ? [topic.category] : [],
+  };
+}
 
 // ── ペルソナ別 相談導線（営業色を排し、自然な文脈で相談を促す）───
 const CTA_MAP = {
@@ -62,6 +80,11 @@ const CTA_MAP = {
   inheritance_client:          '相続税は、財産の種類や相続人の状況によって計算方法や特例の適用が大きく変わります。「うちの場合はどうなるか」を知りたい方は、早めに税理士へご相談されることをおすすめします。',
   general_individual_proprietor: '個人事業の税務は、青色申告・経費区分・専従者給与・消費税の判定など、業種を問わず共通の論点が多くあります。自分のケースにどう当てはまるかを整理したい方は、税理士への相談がおすすめです。',
   general_corporation:           '法人の税務は、法人税の計算・役員報酬・減価償却・消費税の判定など、論点が多岐にわたります。設立直後や事業拡大期は判断ミスが影響しやすいため、税理士に早めにご相談いただくと安心です。',
+  youtuber:                       'YouTube収入は、広告収入・投げ銭・企業案件・機材費など論点が分かれやすい分野です。収入規模や活動形態に応じた申告方法を整理したい場合は、税理士への相談がおすすめです。',
+  content_seller:                 'コンテンツ販売では、販売形態・継続課金・プラットフォーム手数料・消費税の扱いで判断が分かれることがあります。自分の商品設計に合う処理を確認したい方は、早めにご相談ください。',
+  construction_solo:              '1人親方の税務は、外注か給与かの判定、工具や材料費、源泉徴収、帳簿管理など実務上の確認点が多くあります。現場ごとの契約形態に不安がある場合は、税理士に相談しておくと安心です。',
+  retail_store:                   '小売店では、軽減税率・在庫評価・返品値引・商品券など、日々の販売処理が税務に直結します。店舗の取扱商品や販売方法に合わせて整理したい方は、お気軽にご相談ください。',
+  wholesale:                      '卸売業では、返品値引・廃棄ロス・委託販売・在庫管理など、取引条件によって処理が変わる論点があります。継続取引のルールを整えたい場合は、税理士への相談がおすすめです。',
 };
 
 // ── 記事タイプ別の構成指示と目安文字数 ─────────────────────────
@@ -460,7 +483,7 @@ function getTodayJST() {
 // ── テンプレートベース生成（APIキー未設定時フォールバック）────────
 function generateFromTemplate(dateStr, topic, pairedTopic) {
   const now     = new Date().toISOString();
-  const persona = PERSONA_MAP[topic.persona];
+  const persona = getPersonaForTopic(topic);
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
   const articleType = topic.article_type || 'basic_explainer';
   const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
@@ -626,7 +649,7 @@ function extractText(completion) {
 // strictFormat=true で「---開始・コードブロック禁止・h2 3個以上」を強く指示する。
 async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat) {
   const now     = new Date().toISOString();
-  const persona = PERSONA_MAP[topic.persona];
+  const persona = getPersonaForTopic(topic);
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
   const articleType = topic.article_type || 'basic_explainer';
   const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
