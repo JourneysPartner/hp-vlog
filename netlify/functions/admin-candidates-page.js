@@ -74,6 +74,24 @@ const HTML = `<!DOCTYPE html>
   .filter-bar .save-indicator.saving { color: var(--warning); }
   .filter-bar .save-indicator.saved  { color: var(--success); }
   .filter-bar .save-indicator.error  { color: var(--danger); font-weight: 700; }
+  .bulk-btn { border: 0; border-radius: 6px; padding: .35rem .7rem; font-size: .82rem; cursor: pointer; color: #fff; }
+  .bulk-btn.adopt  { background: #198754; }
+  .bulk-btn.reject { background: #dc3545; }
+  .bulk-btn:hover { opacity: .9; }
+  .hint-bar { padding: .25rem 1rem; font-size: .78rem; color: var(--muted); background: #f6f8fc; border-bottom: 1px solid var(--border); }
+  .hint-bar kbd { background: #e9eef7; border-radius: 4px; padding: 0 .35rem; font-family: monospace; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: .72rem; color: #fff; }
+  .badge.recommend { background: #198754; }
+  .badge.review    { background: #fd7e14; }
+  .badge.reject    { background: #6c757d; }
+  .pot-high   { color: #198754; font-weight: 700; }
+  .pot-medium { color: #fd7e14; }
+  .pot-low    { color: #adb5bd; }
+  .reasons { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+  .segtag { display: inline-block; background: #eaf0fb; color: #2a4d8f; border-radius: 4px; padding: 0 5px; font-size: .7rem; margin-right: 3px; }
+  table.candidates tbody tr.rejected { background: #fdeff0; }
+  table.candidates tbody tr.current { outline: 2px solid #ffc107; outline-offset: -2px; }
+  table.candidates td.reject { width: 56px; text-align: center; }
 
   /* ⚠ 重要: .table-wrap には overflow: hidden を付けない。
      付けると内側 <th> の position: sticky の scroll context が
@@ -156,17 +174,25 @@ const HTML = `<!DOCTYPE html>
     <option value="">全て</option>
   </select>
 
-  <label>表示:</label>
-  <select id="filter-adopted">
+  <label>判定:</label>
+  <select id="filter-decision">
     <option value="all">すべて</option>
-    <option value="adopted">採用済のみ</option>
-    <option value="unadopted">未採用のみ</option>
+    <option value="recommend">おすすめ</option>
+    <option value="review">要確認</option>
+    <option value="reject">除外候補</option>
+    <option value="adopted">採用済</option>
+    <option value="rejected">除外済</option>
+    <option value="undecided">未判断（採用も除外もしていない）</option>
   </select>
 
-  <input type="text" id="filter-keyword" placeholder="タイトル検索..." style="min-width: 200px;">
+  <input type="text" id="filter-keyword" placeholder="タイトル検索..." style="min-width: 160px;">
+
+  <button type="button" id="bulk-adopt" class="bulk-btn adopt">おすすめを一括採用</button>
+  <button type="button" id="bulk-reject" class="bulk-btn reject">表示中を一括除外</button>
 
   <span class="save-indicator" id="save-indicator">準備中…</span>
 </div>
+<div class="hint-bar">キーボード: <kbd>A</kbd>=採用 / <kbd>R</kbd>=除外 / <kbd>N</kbd>=次の候補（黄色の行が対象）</div>
 
 <div class="stats-bar" id="stats-bar">読込中…</div>
 
@@ -175,16 +201,18 @@ const HTML = `<!DOCTYPE html>
     <thead>
       <tr>
         <th data-key="idx">#<span class="sort-arrow"></span></th>
-        <th data-key="score">スコア<span class="sort-arrow"></span></th>
+        <th data-key="auto_decision">判定<span class="sort-arrow"></span></th>
+        <th data-key="auto_score">適合<span class="sort-arrow"></span></th>
         <th data-key="tax_category">税目<span class="sort-arrow"></span></th>
         <th data-key="proposed_persona">ペルソナ<span class="sort-arrow"></span></th>
-        <th data-key="shitsugi_title">タイトル<span class="sort-arrow"></span></th>
+        <th data-key="shitsugi_title">タイトル / 対象・理由<span class="sort-arrow"></span></th>
         <th>原文</th>
         <th data-key="adopted">採用<span class="sort-arrow"></span></th>
+        <th data-key="rejected">除外<span class="sort-arrow"></span></th>
       </tr>
     </thead>
     <tbody id="tbody">
-      <tr><td colspan="7" class="loading">読込中…</td></tr>
+      <tr><td colspan="9" class="loading">読込中…</td></tr>
     </tbody>
   </table>
 </div>
@@ -207,17 +235,25 @@ const HTML = `<!DOCTYPE html>
   let state = {
     sha: null,
     candidates: [],
-    sortKey: 'score',
+    summary: null,
+    sortKey: 'auto_score',
     sortDir: 'desc',
     filterTax: '',
     filterPersona: '',
-    filterAdopted: 'all',
+    filterDecision: 'all',
     filterKeyword: '',
-    pendingUpdates: {},  // shitsugi_url → { adopted, adoption_note }
+    pendingUpdates: {},  // shitsugi_url → { adopted?, rejected? }
     saveTimer: null,
+    currentUrl: null,   // キーボード操作の対象行
   };
 
   const $ = (id) => document.getElementById(id);
+  const DECISION_LABEL = { recommend: 'おすすめ', review: '要確認', reject: '除外候補' };
+  const SEG_LABEL = {
+    ec_seller: 'EC', beauty_salon: 'サロン', creator: 'インフルエンサー',
+    general_business: '一般', inheritance_gift: '相続贈与', youtuber: 'YouTuber',
+    content_seller: 'コンテンツ', construction_solo: '1人親方', retail_store: '小売', wholesale: '卸売',
+  };
 
   // ── 初期化 ──────────────────────────────────────────────────
   async function init() {
@@ -228,6 +264,7 @@ const HTML = `<!DOCTYPE html>
       const data = await res.json();
       state.sha = data.sha;
       state.candidates = data.candidates;
+      state.summary = data.summary || null;
       $('meta-info').textContent =
         '全 ' + data.candidates.length + ' 件　最終生成 ' +
         (data.generated_at ? data.generated_at.slice(0, 10) : '?');
@@ -235,7 +272,7 @@ const HTML = `<!DOCTYPE html>
       render();
       setIndicator('saved', '保存済');
     } catch (e) {
-      $('tbody').innerHTML = '<tr><td colspan="7" class="loading">読込失敗: ' + e.message + '</td></tr>';
+      $('tbody').innerHTML = '<tr><td colspan="9" class="loading">読込失敗: ' + e.message + '</td></tr>';
       setIndicator('error', '読込失敗');
     }
   }
@@ -260,11 +297,14 @@ const HTML = `<!DOCTYPE html>
   }
 
   function applyFilters(items) {
+    const d = state.filterDecision;
     return items.filter(c => {
       if (state.filterTax && c.tax_category !== state.filterTax) return false;
       if (state.filterPersona && c.proposed_persona !== state.filterPersona) return false;
-      if (state.filterAdopted === 'adopted' && !c.adopted) return false;
-      if (state.filterAdopted === 'unadopted' && c.adopted) return false;
+      if (d === 'adopted' && !c.adopted) return false;
+      if (d === 'rejected' && !c.rejected) return false;
+      if (d === 'undecided' && (c.adopted || c.rejected)) return false;
+      if ((d === 'recommend' || d === 'review' || d === 'reject') && c.auto_decision !== d) return false;
       if (state.filterKeyword) {
         const kw = state.filterKeyword.toLowerCase();
         if (!(c.shitsugi_title || '').toLowerCase().includes(kw)) return false;
@@ -288,13 +328,17 @@ const HTML = `<!DOCTYPE html>
   }
 
   function updateStats(filtered) {
-    const total = state.candidates.length;
+    const s = state.summary || {};
     const adopted = state.candidates.filter(c => c.adopted).length;
-    const visible = filtered.length;
+    const rejected = state.candidates.filter(c => c.rejected).length;
     $('stats-bar').innerHTML =
-      '全 <strong>' + total + '</strong> 件、' +
-      '採用済 <strong>' + adopted + '</strong> 件、' +
-      '表示中 <strong>' + visible + '</strong> 件';
+      '全 <strong>' + state.candidates.length + '</strong>　' +
+      'おすすめ <strong>' + (s.recommend || 0) + '</strong>　' +
+      '要確認 <strong>' + (s.review || 0) + '</strong>　' +
+      '除外候補 <strong>' + (s.reject || 0) + '</strong>　' +
+      '採用済 <strong>' + adopted + '</strong>　' +
+      '除外済 <strong>' + rejected + '</strong>　' +
+      '表示中 <strong>' + filtered.length + '</strong>';
   }
 
   function updateSortArrows() {
@@ -309,22 +353,31 @@ const HTML = `<!DOCTYPE html>
   function renderTable(items) {
     const tbody = $('tbody');
     if (items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty">該当する候補がありません</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty">該当する候補がありません</td></tr>';
+      state.currentUrl = null;
       return;
     }
+    if (!items.some(c => c.shitsugi_url === state.currentUrl)) state.currentUrl = items[0].shitsugi_url;
     const html = items.map(c => {
       const personaLabel = PERSONA_LABELS[c.proposed_persona] || c.proposed_persona || '-';
-      const rowClass = c.adopted ? 'adopted' : '';
+      const cls = [c.adopted ? 'adopted' : '', c.rejected ? 'rejected' : '', c.shitsugi_url === state.currentUrl ? 'current' : ''].filter(Boolean).join(' ');
       const safeUrl = (c.shitsugi_url || '').replace(/"/g, '&quot;');
-      const safeTitle = escapeHtml(c.shitsugi_title || '');
-      return '<tr class="' + rowClass + '" data-url="' + safeUrl + '">' +
+      const dec = c.auto_decision || '';
+      const badge = dec ? '<span class="badge ' + dec + '">' + (DECISION_LABEL[dec] || dec) + '</span>' : '';
+      const potCls = c.article_potential === 'high' ? 'pot-high' : (c.article_potential === 'medium' ? 'pot-medium' : 'pot-low');
+      const segs = (c.target_segments || []).map(s => '<span class="segtag">' + escapeHtml(SEG_LABEL[s] || s) + '</span>').join('');
+      const reasons = (c.auto_reasons || []).slice(0, 3).map(escapeHtml).join(' / ');
+      return '<tr class="' + cls + '" data-url="' + safeUrl + '">' +
         '<td class="num">' + c.idx + '</td>' +
-        '<td class="score">' + c.score + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td class="score"><span class="' + potCls + '">' + (c.auto_score != null ? c.auto_score : c.score) + '</span></td>' +
         '<td class="tax">' + escapeHtml(c.tax_category || '') + '</td>' +
         '<td class="persona">' + escapeHtml(personaLabel) + '</td>' +
-        '<td class="title">' + safeTitle + '</td>' +
-        '<td class="link"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">原文 <i class="bi bi-box-arrow-up-right"></i></a></td>' +
-        '<td class="adopt"><input type="checkbox" data-url="' + safeUrl + '"' + (c.adopted ? ' checked' : '') + '></td>' +
+        '<td class="title">' + escapeHtml(c.shitsugi_title || '') +
+          '<div class="reasons">' + segs + (reasons ? ' ' + reasons : '') + '</div></td>' +
+        '<td class="link"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">原文</a></td>' +
+        '<td class="adopt"><input type="checkbox" data-kind="adopted" data-url="' + safeUrl + '"' + (c.adopted ? ' checked' : '') + '></td>' +
+        '<td class="reject"><input type="checkbox" data-kind="rejected" data-url="' + safeUrl + '"' + (c.rejected ? ' checked' : '') + '></td>' +
       '</tr>';
     }).join('');
     tbody.innerHTML = html;
@@ -348,32 +401,67 @@ const HTML = `<!DOCTYPE html>
     });
   });
 
-  ['filter-tax', 'filter-persona', 'filter-adopted'].forEach(id => {
-    $(id).addEventListener('change', () => {
-      state['filter' + id.split('-')[1].replace(/^./, c => c.toUpperCase())] = $(id).value;
-      render();
-    });
-  });
-  // 上の split マッピングが分かりづらいので明示的に再設定
   $('filter-tax').addEventListener('change', () => { state.filterTax = $('filter-tax').value; render(); });
   $('filter-persona').addEventListener('change', () => { state.filterPersona = $('filter-persona').value; render(); });
-  $('filter-adopted').addEventListener('change', () => { state.filterAdopted = $('filter-adopted').value; render(); });
+  $('filter-decision').addEventListener('change', () => { state.filterDecision = $('filter-decision').value; render(); });
   $('filter-keyword').addEventListener('input', () => { state.filterKeyword = $('filter-keyword').value; render(); });
 
-  // チェックボックス変更 → イベント委譲
+  // 採用/除外は排他。ローカル state と pendingUpdates を更新して保存予約。
+  function setDecision(url, kind, val) {
+    const c = state.candidates.find(x => x.shitsugi_url === url);
+    if (!c) return;
+    if (kind === 'adopted') { c.adopted = val; if (val) c.rejected = false; }
+    else { c.rejected = val; if (val) c.adopted = false; }
+    const u = state.pendingUpdates[url] || {};
+    if (kind === 'adopted') { u.adopted = val; if (val) u.rejected = false; }
+    else { u.rejected = val; if (val) u.adopted = false; }
+    state.pendingUpdates[url] = u;
+    render();
+    scheduleSave();
+  }
+
+  // チェックボックス変更（採用 / 除外）→ イベント委譲
   $('tbody').addEventListener('change', (e) => {
     const cb = e.target;
     if (cb.tagName !== 'INPUT' || cb.type !== 'checkbox') return;
-    const url = cb.dataset.url;
-    const adopted = cb.checked;
-    // local state 更新
-    const cand = state.candidates.find(c => c.shitsugi_url === url);
-    if (cand) cand.adopted = adopted;
-    cb.closest('tr').classList.toggle('adopted', adopted);
-    state.pendingUpdates[url] = { adopted };
-    // 統計更新
-    updateStats(applyFilters(state.candidates));
-    scheduleSave();
+    setDecision(cb.dataset.url, cb.dataset.kind, cb.checked);
+  });
+  // 行クリックでキーボード対象行を移動
+  $('tbody').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr'); if (!tr || !tr.dataset.url) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'A') return;
+    state.currentUrl = tr.dataset.url; render();
+  });
+
+  // ── 一括操作（確認ダイアログあり）──────────────────────────
+  $('bulk-adopt').addEventListener('click', () => {
+    const targets = applyFilters(state.candidates).filter(c => c.auto_decision === 'recommend' && !c.adopted);
+    if (targets.length === 0) { alert('採用対象（表示中の「おすすめ」かつ未採用）がありません。'); return; }
+    if (!confirm('表示中の「おすすめ」' + targets.length + ' 件を一括採用します。よろしいですか？')) return;
+    for (const c of targets) { c.adopted = true; c.rejected = false; state.pendingUpdates[c.shitsugi_url] = { adopted: true }; }
+    render(); scheduleSave();
+  });
+  $('bulk-reject').addEventListener('click', () => {
+    const targets = applyFilters(state.candidates).filter(c => !c.rejected && !c.adopted);
+    if (targets.length === 0) { alert('除外対象（表示中の未採用・未除外）がありません。'); return; }
+    if (!confirm('表示中の未判断 ' + targets.length + ' 件を一括除外します。よろしいですか？')) return;
+    for (const c of targets) { c.rejected = true; state.pendingUpdates[c.shitsugi_url] = { rejected: true }; }
+    render(); scheduleSave();
+  });
+
+  // ── キーボード操作（A=採用 / R=除外 / N=次 / P=前）────────────
+  function scrollCurrent() { const el = document.querySelector('tr.current'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  document.addEventListener('keydown', (e) => {
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+    const visible = applySorting(applyFilters(state.candidates));
+    if (visible.length === 0) return;
+    let idx = visible.findIndex(c => c.shitsugi_url === state.currentUrl);
+    if (idx < 0) idx = 0;
+    const key = e.key.toLowerCase();
+    if (key === 'n') { e.preventDefault(); idx = Math.min(visible.length - 1, idx + 1); state.currentUrl = visible[idx].shitsugi_url; render(); scrollCurrent(); }
+    else if (key === 'p') { e.preventDefault(); idx = Math.max(0, idx - 1); state.currentUrl = visible[idx].shitsugi_url; render(); scrollCurrent(); }
+    else if (key === 'a') { e.preventDefault(); const ni = Math.min(visible.length - 1, idx + 1); state.currentUrl = visible[ni].shitsugi_url; setDecision(visible[idx].shitsugi_url, 'adopted', true); scrollCurrent(); }
+    else if (key === 'r') { e.preventDefault(); const ni = Math.min(visible.length - 1, idx + 1); state.currentUrl = visible[ni].shitsugi_url; setDecision(visible[idx].shitsugi_url, 'rejected', true); scrollCurrent(); }
   });
 
   // ── 保存（debounced） ──────────────────────────────────────
@@ -411,7 +499,7 @@ const HTML = `<!DOCTYPE html>
       }
       if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
       state.sha = data.sha;
-      setIndicator('saved', '保存済（採用 ' + data.adopted_count + ' 件）');
+      setIndicator('saved', '保存済（採用 ' + data.adopted_count + ' / 除外 ' + (data.rejected_count != null ? data.rejected_count : '?') + ' 件）');
     } catch (e) {
       setIndicator('error', '保存失敗: ' + e.message);
       // pending を戻す（次回保存で再試行）

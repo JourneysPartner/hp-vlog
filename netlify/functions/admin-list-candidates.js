@@ -40,9 +40,24 @@ exports.handler = async (event) => {
       id: c.id,
       score: c.score,
       proposed_persona: c.proposed && c.proposed.persona,
+      auto_decision: c.auto_decision || '',
+      auto_score: c.auto_score != null ? c.auto_score : c.score,
+      auto_reasons: c.auto_reasons || [],
+      target_segments: c.target_segments || [],
+      article_potential: c.article_potential || '',
       adopted: c.adopted === true,
+      rejected: c.rejected === true,
       adoption_note: c.adoption_note || '',
+      rejection_note: c.rejection_note || '',
     }));
+
+    // 件数集計（管理画面のタブ表示用）
+    const summary = { total: candidates.length, recommend: 0, review: 0, reject: 0, adopted: 0, rejected: 0 };
+    for (const c of candidates) {
+      if (c.auto_decision && summary[c.auto_decision] != null) summary[c.auto_decision]++;
+      if (c.adopted) summary.adopted++;
+      if (c.rejected) summary.rejected++;
+    }
 
     return {
       statusCode: 200,
@@ -52,6 +67,7 @@ exports.handler = async (event) => {
         generated_at: data.generated_at,
         sha: file.sha,
         stats: data.stats,
+        summary,
         candidates,
       }),
     };
