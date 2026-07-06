@@ -77,6 +77,42 @@ exports.handler = async (event) => {
     const fmCategory = (content.match(/^category:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmPersona  = (content.match(/^primary_persona:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
 
+    // ── 品質ゲート（承認前チェック）─────────────────────────────
+    // recommendation / 適合スコアが低い記事は承認を拒否する（400）。
+    // スコア未設定のレガシー記事は従来どおり承認可（既存運用を壊さない）。
+    const fmStr = (re) => (content.match(re) || [])[1];
+    const fmNum = (re) => { const v = fmStr(re); const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+    const recommendation = fmStr(/^recommendation:\s*"?([^"\n\r]+)"?/m);
+    if (recommendation) {
+      const scores = {
+        customer_fit_score:     fmNum(/^customer_fit_score:\s*"?(\d+)"?/m),
+        search_intent_score:    fmNum(/^search_intent_score:\s*"?(\d+)"?/m),
+        source_alignment_score: fmNum(/^source_alignment_score:\s*"?(\d+)"?/m),
+      };
+      const reviewWarning = fmStr(/^review_warning:\s*"?([^"\n\r]*)"?/m) || '';
+      const reasons = [];
+      if (recommendation === 'reject') reasons.push('recommendation が reject です');
+      if (recommendation === 'revise') reasons.push('recommendation が revise です');
+      if (scores.customer_fit_score != null && scores.customer_fit_score <= 3) reasons.push(`顧客適合スコアが低い (${scores.customer_fit_score}/5)`);
+      if (scores.search_intent_score != null && scores.search_intent_score <= 3) reasons.push(`検索意図スコアが低い (${scores.search_intent_score}/5)`);
+      if (scores.source_alignment_score != null && scores.source_alignment_score <= 3) reasons.push(`出典一致スコアが低い (${scores.source_alignment_score}/5)`);
+      if (reasons.length > 0) {
+        console.warn(`[review-approve] 承認拒否(品質ゲート): ${filename} — ${reasons.join(' / ')}`);
+        return {
+          statusCode: 400,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            error: 'この記事は品質ゲートにより承認できません。差し戻して内容・出典・タイトルを見直してください。',
+            blocked: true,
+            recommendation,
+            scores,
+            reasons,
+            review_warning: reviewWarning,
+          }),
+        };
+      }
+    }
+
     const now = nowJST();
 
     // 公開枠の決定: 同日に他の approved 記事がなければ morning、あれば evening

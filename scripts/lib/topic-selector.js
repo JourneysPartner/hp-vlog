@@ -27,7 +27,7 @@ const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
-const { isNaturalCombination, deriveSegment, rejectionReason } = require('./customer-relevance');
+const { isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit } = require('./customer-relevance');
 
 const SIM_THRESHOLD_VS_CORPUS  = 0.55;
 const SIM_THRESHOLD_BETWEEN_PAIR = 0.45;
@@ -236,9 +236,11 @@ function selectDailyTopics(topics, options = {}) {
     blockedDetails: denylistExcluded.slice(0, 5),
   });
 
-  // 2.8. 顧客カテゴリ関連性ゲート（安全網）
+  // 2.8. 顧客カテゴリ関連性ゲート（安全装置・必ず効く）
   // 生成プール（expandAll）側でも除外しているが、curated topic や取りこぼしを
-  // 選定時にも止める。全滅する場合はゲートを無視して継続（安全側）。
+  // 選定時にも止める。
+  // 【重要】不適合候補は絶対に復活させない。全滅した場合は「ゲート無視で継続」せず、
+  // picks を空にして生成しない（危険な記事を作らないための安全装置）。
   const relevanceExcluded = [];
   const afterRelevance = candidates.filter(t => {
     if (isNaturalCombination(t)) return true;
@@ -255,15 +257,46 @@ function selectDailyTopics(topics, options = {}) {
     remaining: afterRelevance.length,
     blockedDetails: relevanceExcluded.slice(0, 5),
   });
-  if (afterRelevance.length > 0) {
-    candidates = afterRelevance;
-  } else if (relevanceExcluded.length > 0) {
-    explanation.warnings = (explanation.warnings || []).concat(['関連性ゲートで全滅 → ゲート無視で継続']);
-  }
+  candidates = afterRelevance; // 不適合は必ず除外（フォールバックしない）
 
   if (candidates.length === 0) {
     explanation.warnings = (explanation.warnings || []).concat([
-      'denylist / 単年限定で候補が枯渇しました',
+      relevanceExcluded.length > 0
+        ? '関連性ゲートで全候補が除外されたため生成しない（不適合記事を作らない安全装置）'
+        : 'denylist / 単年限定で候補が枯渇しました',
+    ]);
+    return { picks: [], explanation };
+  }
+
+  // 2.9. 品質ゲート（evaluateTopicFit の approve 判定だけを選定対象にする）
+  // revise / reject 候補は「生成してから承認ゲートで止まる」無駄を生むため、
+  // 選定段階で除外する（特に revise は search_intent 不足など topic 由来が多く、
+  // 再生成しても revise になりやすい）。全滅時はフォールバックせず picks を空にする。
+  const qualityExcluded = [];
+  const afterQuality = candidates.filter(t => {
+    const fit = evaluateTopicFit(t);
+    if (fit.decision === 'approve') return true;
+    qualityExcluded.push({
+      slug: t.slug,
+      decision: fit.decision,
+      customer_fit_score: fit.customer_fit_score,
+      search_intent_score: fit.search_intent_score,
+      source_alignment_score: fit.source_alignment_score,
+      reason: fit.reason,
+    });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-quality-fit',
+    blocked: qualityExcluded.length,
+    remaining: afterQuality.length,
+    blockedDetails: qualityExcluded.slice(0, 5),
+  });
+  candidates = afterQuality; // approve 以外は必ず除外（フォールバックしない）
+
+  if (candidates.length === 0) {
+    explanation.warnings = (explanation.warnings || []).concat([
+      '品質ゲートで全候補が除外されたため生成しない（approve 判定の記事だけを生成する安全装置）',
     ]);
     return { picks: [], explanation };
   }

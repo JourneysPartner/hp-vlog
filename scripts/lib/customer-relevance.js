@@ -333,6 +333,55 @@ function rejectionReason(topic = {}) {
 // ── 適合スコア評価 ───────────────────────────────────────────
 // Phase 1 は customer_fit / search_intent を実装。source_alignment は
 // 暫定（tax_domain / source_url の粗評価）で、厳密版は Phase 3。
+// 実務・生活イベントに直結する語（検索意図/実用性の判定に使う）
+const REAL_WORLD_WORDS = /売上|仕入|在庫|棚卸|手数料|送料|返品|値引|ポイント|経費|報酬|源泉|家賃|給与|外注|人工|材料|工具|回数券|前受金|キャンセル|現金|決済|レジ|軽減税率|売掛|買掛|リベート|機材|編集|旅費|按分|AdSense|収益|収入|スーパーチャット|メンバーシップ|投げ銭|講座|サブスク|返金|note|輸出|輸入|還付|インボイス|相続|贈与|申告|名義預金|生命保険|小規模宅地|住宅取得|準確定|消費税|所得税|法人税|課税|減価償却|デジタル|PDF|前受|棚卸/;
+// 読者の悩み・行動語（税務専門用語だけで終わらせない）
+const WORRY_WORDS = /いつ|どう|どこ|どちら|必要|できる|なる|いくら|判断|判定|計算|仕訳|確認|注意|扱い|処理|対象|タイミング|方法|ケース|べき|ますか|の？|\?/;
+// 相談につながりやすい（判断が割れる・期限・金額影響）
+const JUDGMENT_WORDS = /判定|判断|迷|どちら|べき|分かれ/;
+const DEADLINE_WORDS = /期限|いつまで|申告|準確定|相続/;
+const AMOUNT_WORDS = /還付|節税|税率|控除|万円|軽減|特例|納税/;
+
+function clamp(n) { return Math.min(5, Math.max(1, n)); }
+
+function scoreSearchIntent(topic) {
+  const si = String(topic.search_intent || '');
+  if (!si) return 1;
+  const seg = deriveSegment(topic).customer_segment;
+  const segLabel = (CUSTOMER_SEGMENTS[seg] && CUSTOMER_SEGMENTS[seg].label) || '';
+  // 業種/カテゴリ名が入っているか（segment ラベル or macro or 業種語）
+  const hasSegment = (segLabel && si.includes(segLabel)) || (topic.macro && si.includes(topic.macro));
+  // 実際の取引・生活イベントが入っているか
+  const hasTransaction = REAL_WORLD_WORDS.test(si);
+  // 読者の悩み・行動語が入っているか（キーワード型検索では無い場合もある）
+  const hasWorry = WORRY_WORDS.test(si);
+  let s = 2;                                       // 非空の基本点
+  if (si.length >= 8) s += 1;                      // 具体性
+  if (hasSegment || hasTransaction) s += 1;        // 業種 or 実取引が入っている
+  if (hasWorry || (hasSegment && hasTransaction)) s += 1; // 悩み語 or 業種×取引の両方
+  return clamp(s);
+}
+
+function scorePractical(topic) {
+  let p = 1;
+  if (topic.reader_problem) p += 1;
+  if (topic.success_outcome) p += 1;
+  const q = String(topic.primary_question || '');
+  if (q.length >= 8 && (WORRY_WORDS.test(q) || REAL_WORLD_WORDS.test(q))) p += 1;
+  if (topic.pain_point) p += 1;
+  return clamp(p);
+}
+
+function scoreLeadValue(topic) {
+  const text = [topic.primary_question, topic.search_intent, topic.reader_problem, topic.pain_point, topic.topic]
+    .filter(Boolean).join(' ');
+  let l = 2;
+  if (JUDGMENT_WORDS.test(text)) l += 1;                                  // 判断が分かれる
+  if (DEADLINE_WORDS.test(text) || topic.tax_domain === 'inheritance_tax') l += 1; // 期限がある
+  if (AMOUNT_WORDS.test(text)) l += 1;                                    // 金額影響
+  return clamp(l);
+}
+
 function evaluateTopicFit(topic = {}) {
   const natural = isNaturalCombination(topic);
   const { customer_segment: seg } = deriveSegment(topic);
@@ -344,29 +393,38 @@ function evaluateTopicFit(topic = {}) {
   else if (seg) customer_fit_score = 4;
   else customer_fit_score = 3;
 
-  // search_intent_score（検索意図が具体的に書かれているか）
-  const si = String(topic.search_intent || '');
-  const search_intent_score = si.length >= 12 ? 4 : (si.length > 0 ? 3 : 2);
+  const search_intent_score = scoreSearchIntent(topic);
 
   // source_alignment_score（出典一致ゲート。主論点と主出典が一致しているか）
   const sa = checkSourceAlignment(topic);
   const source_alignment_score = sa.score;
 
-  // その他（Phase 1 既定値。後続で精緻化）
-  const practical_usefulness_score = natural ? 4 : 2;
-  const lead_value_score = natural ? 4 : 2;
+  const practical_usefulness_score = natural ? scorePractical(topic) : 2;
+  const lead_value_score = natural ? scoreLeadValue(topic) : 2;
   const tax_risk_score = topic.tax_domain === 'inheritance_tax' ? 4 : 3;
 
-  let decision = 'approve';
-  if (!natural || customer_fit_score <= 2) {
+  // ── 判定（厳格化）─────────────────────────────────────────
+  // hard 不一致 = reject / soft or 出典スコア<=3 = revise /
+  // approve は fit>=4 かつ 検索意図>=4 かつ 出典一致>=4 を満たす場合のみ。
+  let decision;
+  if (!natural) {
     decision = 'reject';
-  } else if (customer_fit_score <= 3 || search_intent_score <= 3 || sa.severity === 'hard') {
+  } else if (sa.severity === 'hard') {
+    decision = 'reject';
+  } else if (sa.severity === 'soft' || source_alignment_score <= 3) {
+    decision = 'revise';
+  } else if (customer_fit_score >= 4 && search_intent_score >= 4 && source_alignment_score >= 4) {
+    decision = 'approve';
+  } else {
     decision = 'revise';
   }
 
-  let reason = '';
-  if (!natural) reason = rejectionReason(topic) || '関連性なし';
-  else if (sa.severity === 'hard') reason = sa.reason;
+  // reason には出典一致の理由を必ず含める
+  const parts = [];
+  if (!natural) parts.push(rejectionReason(topic) || '関連性なし');
+  if (sa.reason) parts.push(`出典: ${sa.reason}`);
+  if (decision !== 'approve' && natural && search_intent_score < 4) parts.push('検索意図が弱い（読者の悩み語・業種名を含めて具体化）');
+  const reason = parts.join(' / ');
 
   return {
     customer_segment: seg || '',
@@ -382,6 +440,26 @@ function evaluateTopicFit(topic = {}) {
   };
 }
 
+// ── 承認・公開ゲート（frontmatter の recommendation / スコアで判定）─────────
+// 承認処理・公開処理・validate が共通で使う。
+// recommendation 未設定（スコア無しのレガシー記事）は対象外＝ブロックしない。
+// 返り値: ブロック理由の配列（空ならブロックしない）。
+function publishGateReasons(meta = {}) {
+  const rec = meta.recommendation;
+  if (!rec) return [];
+  const num = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+  const cf = num(meta.customer_fit_score);
+  const si = num(meta.search_intent_score);
+  const sa = num(meta.source_alignment_score);
+  const reasons = [];
+  if (rec === 'reject') reasons.push('recommendation=reject');
+  if (rec === 'revise') reasons.push('recommendation=revise');
+  if (cf != null && cf <= 3) reasons.push(`customer_fit_score=${cf}`);
+  if (si != null && si <= 3) reasons.push(`search_intent_score=${si}`);
+  if (sa != null && sa <= 3) reasons.push(`source_alignment_score=${sa}`);
+  return reasons;
+}
+
 module.exports = {
   CUSTOMER_SEGMENTS,
   SEGMENT_PERSONAS,
@@ -394,4 +472,5 @@ module.exports = {
   isNaturalCombination,
   rejectionReason,
   evaluateTopicFit,
+  publishGateReasons,
 };

@@ -444,10 +444,10 @@ function pickPair(dateStr) {
     }
   }
   if (picks.length === 0) {
-    console.warn('[generate] テーマプールを全て使い切りました。topic-pool.js への追加を検討してください。');
-    // 最終フォールバック: ハッシュで選ぶ
-    const hash = [...dateStr].reduce((a, c) => a + c.charCodeAt(0), 0);
-    return [TOPICS[hash % TOPICS.length]];
+    // 【重要】ランダムフォールバックはしない。関連性ゲート等で候補が空になった場合、
+    // 不適合な記事を作らないために「その日は生成しない」を選ぶ（空を返す）。
+    console.warn('[generate] 選定候補が0件のため、本日は記事を生成しません（関連性/品質ゲート等で全除外、または枯渇）。');
+    return [];
   }
   return picks;
 }
