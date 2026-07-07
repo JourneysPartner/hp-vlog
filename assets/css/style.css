@@ -76,8 +76,8 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 
 .section-heading {
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  font-weight: 700;
+  font-size: clamp(1.85rem, 3.8vw, 2.7rem);
+  font-weight: 900;
   color: var(--color-secondary);
   margin-bottom: 0.5rem;
   letter-spacing: 0.02em;
@@ -382,23 +382,23 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   gap: 8px;
   background: rgba(232,83,32,0.95);
   color: #fff;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 7px 18px;
+  padding: 8px 20px;
   border-radius: 30px;
-  margin-bottom: 26px;
+  margin-bottom: 28px;
   box-shadow: 0 4px 16px rgba(232,83,32,0.35);
 }
 
 .hero h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(2.3rem, 5.8vw, 4.2rem);
   font-weight: 900;
   color: #fff;
-  line-height: 1.4;
+  line-height: 1.38;
   letter-spacing: 0.02em;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .hero h1 .accent {
@@ -407,11 +407,11 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 }
 
 .hero-lead {
-  font-size: 1.05rem;
+  font-size: 1.12rem;
   color: rgba(255,255,255,0.88);
   line-height: 2;
-  margin-bottom: 34px;
-  max-width: 600px;
+  margin-bottom: 36px;
+  max-width: 640px;
 }
 
 .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
@@ -427,9 +427,9 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.88);
 }
 .hero-trust li i {
   color: #FFB088;
@@ -487,16 +487,16 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 }
 .hero-stat-box .stat-num {
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.5rem;
+  font-weight: 900;
   color: #FF9B6A;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-.hero-stat-box .stat-num .count-suffix { font-size: 1rem; }
+.hero-stat-box .stat-num .count-suffix { font-size: 1.15rem; }
 .hero-stat-box .stat-label {
-  font-size: 0.76rem;
-  color: rgba(255,255,255,0.78);
+  font-size: 0.84rem;
+  color: rgba(255,255,255,0.8);
   line-height: 1.5;
 }
 
@@ -550,8 +550,8 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 }
 .worry-bridge p {
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
-  font-weight: 700;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 900;
   color: var(--color-secondary);
   line-height: 1.7;
   margin: 0;
@@ -702,18 +702,18 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 .stat-item { text-align: center; position: relative; z-index: 1; }
 .stat-item .count-num {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 5vw, 3.4rem);
-  font-weight: 700;
+  font-size: clamp(2.8rem, 5.4vw, 3.9rem);
+  font-weight: 900;
   color: #FF9B6A;
   line-height: 1;
   display: inline-flex;
   align-items: baseline;
   gap: 2px;
 }
-.stat-item .count-suffix { font-size: 1.3rem; }
-.stat-item .count-prefix { font-size: 1.3rem; }
+.stat-item .count-suffix { font-size: 1.5rem; }
+.stat-item .count-prefix { font-size: 1.5rem; }
 .stat-item .count-label {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: rgba(255,255,255,0.75);
   margin-top: 10px;
   line-height: 1.5;
@@ -1048,7 +1048,8 @@ ul { list-style: none; padding-left: 0; margin: 0; }
 .cta-section h2 {
   font-family: var(--font-display);
   color: #fff;
-  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
+  font-size: clamp(1.65rem, 3.8vw, 2.6rem);
+  font-weight: 900;
   margin-bottom: 14px;
   letter-spacing: 0.02em;
 }
@@ -1579,11 +1580,11 @@ select.form-control-custom { cursor: pointer; }
 
 @media (max-width: 767.98px) {
   :root { --section-py: 56px; }
-  .hero h1 { font-size: 1.9rem; }
-  .hero-lead { font-size: 0.98rem; }
+  .hero h1 { font-size: 2.1rem; }
+  .hero-lead { font-size: 1.02rem; }
   .hero-stats { grid-template-columns: repeat(3, 1fr); }
   .hero-stat-box { padding: 16px 10px 12px; }
-  .hero-stat-box .stat-num { font-size: 1.5rem; }
+  .hero-stat-box .stat-num { font-size: 1.8rem; }
   .hero-scroll { display: none; }
   .stat-divider { display: none; }
   .worry-list { grid-template-columns: 1fr; }
