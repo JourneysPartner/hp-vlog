@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "スーパーチャット・メンバーシップ収益は事業所得（または雑所得）に該当し、Googleから支払われた金額が収入計上の基準。手取り額ではなくGoogleへの入金ベースで記録し、確定申告に含める必要があります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-06T16:48:21.137+09:00"
 publish_at: "2026-07-07T17:45:00.000+09:00"
-published_at: ""
+published_at: "2026-07-07T18:08:09.979+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-06T07:41:39.566Z"
-updated_at: "2026-07-06T16:48:21.137+09:00"
+updated_at: "2026-07-07T18:08:09.979+09:00"
 publish_slot: "evening"
 ---
 
