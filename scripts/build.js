@@ -415,16 +415,46 @@ function escAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// ── トップページ用: 最新記事カード（style.css の .post-card を使用）──
+function renderLatestPostCard(p, delay) {
+  const date = formatDate(p.publish_at);
+  return `
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="${delay}">
+        <article class="post-card">
+          <a href="/blog/${escAttr(p.slug)}/" class="post-card-link">
+            <div class="post-card-meta">
+              <span class="post-card-category">${escHtml(p.category || '記事')}</span>
+              <time class="post-card-date" datetime="${escAttr(toISO(p.publish_at))}">${date}</time>
+            </div>
+            <h3 class="post-card-title">${escHtml(p.title)}</h3>
+            <p class="post-card-summary">${escHtml(p.summary || '')}</p>
+            <span class="post-card-more">続きを読む <i class="bi bi-arrow-right"></i></span>
+          </a>
+        </article>
+      </div>`;
+}
+
+function renderLatestPostsHtml(posts, n = 3) {
+  const latest = posts.slice(0, n);
+  if (latest.length === 0) {
+    return `<div class="col-12 text-center"><p style="color:var(--color-text-muted);">記事は準備中です。</p></div>`;
+  }
+  return latest.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n');
+}
+
 // ── 静的ページ生成 ──────────────────────────────────────────────
-function buildStaticPages() {
+function buildStaticPages(posts) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
   const pages = fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html'));
   console.log(`[build] 静的ページ: ${pages.length} 件`);
 
+  const latestPostsHtml = renderLatestPostsHtml(posts || []);
+
   for (const page of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
-    const html = injectPartials(src);
+    const html = injectPartials(src)
+      .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml);
     fs.writeFileSync(path.join(ROOT, page), html, 'utf8');
     console.log(`[build]   → ${page}`);
   }
@@ -432,9 +462,12 @@ function buildStaticPages() {
 
 // ── エントリポイント ────────────────────────────────────────────
 function main() {
-  // 1. 静的ページ生成（テンプレートにパーシャルを注入してルートへ出力）
+  const posts = loadPublishedPosts();
+  console.log(`[build] 公開済み記事: ${posts.length} 件`);
+
+  // 1. 静的ページ生成（テンプレートにパーシャルと最新記事を注入してルートへ出力）
   console.log('[build] 静的ページを生成しています...');
-  buildStaticPages();
+  buildStaticPages(posts);
 
   // 2. ブログ記事生成
   console.log('[build] ブログ記事を生成しています...');
@@ -444,9 +477,6 @@ function main() {
   // テンプレート読み込み → パーシャル注入
   const listTpl = injectPartials(readTemplate('blog-list.html'));
   const postTpl = injectPartials(readTemplate('blog-post.html'));
-
-  const posts = loadPublishedPosts();
-  console.log(`[build] 公開済み記事: ${posts.length} 件`);
 
   // slug → post のマップ（関連記事リンク用）
   const postsMap = new Map();
