@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "noteやBrainの収益は「購入者が代金を支払った日（販売成立日）」に売上計上が原則。年間所得20万円超で確定申告が必要になります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-07T19:40:30.758+09:00"
 publish_at: "2026-07-08T17:26:00.000+09:00"
-published_at: ""
+published_at: "2026-07-08T18:11:47.874+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-07T00:07:30.384Z"
-updated_at: "2026-07-07T19:40:30.758+09:00"
+updated_at: "2026-07-08T18:11:47.874+09:00"
 publish_slot: "evening"
 ---
 ## この記事でわかること
