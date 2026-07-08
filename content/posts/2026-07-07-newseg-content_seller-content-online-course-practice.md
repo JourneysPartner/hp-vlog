@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "オンライン講座の売上は「提供完了時」に計上するのが原則。入金先行の場合は前受金として処理し、講座提供後に売上へ振り替えます。形式別の仕訳例を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-07T18:49:34.305+09:00"
 publish_at: "2026-07-08T11:41:00.000+09:00"
-published_at: ""
+published_at: "2026-07-08T12:11:09.664+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-07T00:08:18.358Z"
-updated_at: "2026-07-07T18:49:34.305+09:00"
+updated_at: "2026-07-08T12:11:09.664+09:00"
 publish_slot: "morning"
 ---
 
