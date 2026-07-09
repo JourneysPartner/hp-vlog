@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "小売店のレジ売上は販売時点で計上が原則。現金・クレカ・電子マネーで仕訳が異なり、現金過不足は原因究明→雑収入・雑損失で処理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-09T15:04:08.724+09:00"
+publish_at: "2026-07-10T11:25:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-09T00:06:47.294Z"
-updated_at: "2026-07-09T00:06:47.294Z"
+updated_at: "2026-07-09T15:04:08.724+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
