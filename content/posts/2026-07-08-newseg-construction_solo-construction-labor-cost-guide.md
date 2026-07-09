@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "応援人工への支払いが外注費か給与かは、指揮命令・時間拘束・道具の負担・代替性などで判断します。給与と判定されると源泉徴収が必要になるため、契約形態を事前に整理することが重要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-08T15:31:35.759+09:00"
 publish_at: "2026-07-09T11:19:00.000+09:00"
-published_at: ""
+published_at: "2026-07-09T12:05:59.116+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-08T00:06:36.682Z"
-updated_at: "2026-07-08T15:31:35.759+09:00"
+updated_at: "2026-07-09T12:05:59.116+09:00"
 publish_slot: "morning"
 ---
 
