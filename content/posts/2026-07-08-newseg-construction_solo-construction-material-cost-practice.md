@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "1人親方が材料費を立て替えた場合、元請への請求方法と帳簿への記録方法は「自分持ち」か「実費精算」かで異なります。仕訳の具体例を使って、材料費の扱い方を整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-08T15:33:20.718+09:00"
 publish_at: "2026-07-09T17:44:00.000+09:00"
-published_at: ""
+published_at: "2026-07-09T18:01:20.538+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-08T00:07:19.293Z"
-updated_at: "2026-07-08T15:33:20.718+09:00"
+updated_at: "2026-07-09T18:01:20.538+09:00"
 publish_slot: "evening"
 ---
 
