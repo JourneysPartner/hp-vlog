@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "食品小売では飲食料品は原則8%、イートインスペースでの飲食提供は10%。判定は販売時の顧客の意思確認が基準となり、帳簿・レシートへの税率区分記載も必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-09T15:05:53.595+09:00"
 publish_at: "2026-07-10T17:17:00.000+09:00"
-published_at: ""
+published_at: "2026-07-10T18:07:02.937+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-09T00:07:37.043Z"
-updated_at: "2026-07-09T15:05:53.595+09:00"
+updated_at: "2026-07-10T18:07:02.937+09:00"
 publish_slot: "evening"
 ---
 
