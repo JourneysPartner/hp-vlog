@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の棚卸では「期末の在庫金額をどう計算するか」が利益に直結します。主な評価方法（移動平均法・先入先出法）と期末棚卸の仕訳・廃棄ロスの処理を具体例で解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-10T15:03:40.299+09:00"
+publish_at: "2026-07-11T17:44:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-10T00:06:22.764Z"
-updated_at: "2026-07-10T00:06:22.764Z"
+updated_at: "2026-07-10T15:03:40.299+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
