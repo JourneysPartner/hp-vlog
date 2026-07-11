@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の売掛金・買掛金は得意先元帳と仕入先元帳で残高を管理し、入金・支払ごとに消込処理を行うことが基本です。差異が出たときは返品・値引・手数料の取り扱いを確認しましょう。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-10T14:57:30.182+09:00"
 publish_at: "2026-07-11T11:28:00.000+09:00"
-published_at: ""
+published_at: "2026-07-11T12:06:04.349+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-10T00:05:34.631Z"
-updated_at: "2026-07-10T14:57:30.182+09:00"
+updated_at: "2026-07-11T12:06:04.349+09:00"
 publish_slot: "morning"
 ---
 
