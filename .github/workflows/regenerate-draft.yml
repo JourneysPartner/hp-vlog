@@ -35,11 +35,16 @@ jobs:
       # → ドラフトブランチの記事ファイルは保ちつつ、scripts/ と
       #    package*.json だけ main の最新で上書きしてから実行する。
       #    これらは後段の `git add content/posts/...` でコミット対象外。
-      - name: Use latest scripts and deps from main
+      #    禁止フレーズ/denylist は review-revise が main 側へ追記するため、
+      #    再生成でも main の最新を参照する（本文サニタイズ・タイトル禁止語ガードが
+      #    今回追加した語を確実に見られるようにする）。
+      - name: Use latest scripts, deps and moderation data from main
         run: |
           git fetch origin main --depth=1
-          git checkout origin/main -- scripts/ package.json package-lock.json
+          git checkout origin/main -- scripts/ package.json package-lock.json \
+            data/banned-phrases.json data/topic-denylist.json
           echo "── 上書き済 scripts/ の HEAD: $(git rev-parse origin/main) ──"
+          echo "── banned-phrases 件数: $(node -e "console.log((require('./data/banned-phrases.json').phrases||[]).length)") ──"
 
       - uses: actions/setup-node@v4
         with:
