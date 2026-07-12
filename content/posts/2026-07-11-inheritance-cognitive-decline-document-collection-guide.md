@@ -33,15 +33,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "認知症が進む前に相続準備を進めるには、戸籍謄本・残高証明書・不動産評価資料の3種類を軸に、入手先・タイミング・注意点を把握しておくことが重要です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "・「認知機能」は今後使用しないで。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-11T00:06:30.108Z"
-updated_at: "2026-07-11T00:06:30.108Z"
+updated_at: "2026-07-12T17:02:11.032+09:00"
 ---
 
 ## この記事でわかること
