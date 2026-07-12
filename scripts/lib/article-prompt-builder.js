@@ -103,7 +103,7 @@ ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 ═══ 出典 ═══
 ${sourceInstruction}${ntaRefsBlock || ''}${lawChangesBlock || ''}${conditionalBlock}
-${bannedPhrasesLib.formatForPrompt()}
+${bannedPhrasesLib.formatForPrompt()}${bannedPhrasesLib.formatTitleBannedForPrompt()}
 ═══ 末尾の相談導線（免責の後に自然に）═══
 「${cta}」
 「毛利順活税理士事務所では、初回のご相談を無料で承っております。お気軽にお問い合わせください。」
