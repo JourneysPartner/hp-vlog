@@ -1229,6 +1229,32 @@ async function regenerateTitleOnly(existingContent, comment) {
   return partial.applyTitleOnly(existingContent, { title, summary }, now).replace(/\s*$/, '\n').trimEnd() + '\n';
 }
 
+// ── タイトルの禁止フレーズガード ──────────────────────────────
+// 差し戻しで「今後使わない」と指定された語は本文だけでなくタイトルからも消す。
+// 再生成スコープが targeted/section/full でも、タイトル（frontmatter）が旧いまま
+// 禁止フレーズを含んでいれば、title_only 再生成でタイトルを作り直す。
+function _titleFromContent(content) {
+  const m = String(content).match(/^title:\s*"?([^"\n\r]+?)"?\s*$/m);
+  return m ? m[1] : '';
+}
+async function enforceTitleBannedPhrases(content, comment) {
+  const hits = bannedPhrasesLib.detectBannedInTitle(_titleFromContent(content));
+  if (hits.length === 0) return content;
+  console.log(`[regenerate] タイトルに禁止フレーズ検出（${hits.map(h => h.match).join(', ')}）→ タイトルを再生成`);
+  let out = content;
+  try {
+    out = await regenerateTitleOnly(content, comment);
+  } catch (e) {
+    console.warn(`[regenerate] タイトル再生成に失敗: ${e.message}`);
+    return content;
+  }
+  const still = bannedPhrasesLib.detectBannedInTitle(_titleFromContent(out));
+  if (still.length > 0) {
+    console.warn(`[regenerate] ⚠ 再生成後もタイトルに禁止フレーズが残存（${still.map(h => h.match).join(', ')}）。レビューで手動修正してください。`);
+  }
+  return out;
+}
+
 // ── 部分再生成: section（対象セクションのみ差し替え／追加）──────
 async function regenerateSection(existingContent, comment, classification) {
   const { meta, body } = parseFrontmatter(existingContent);
@@ -1460,6 +1486,9 @@ async function main() {
       console.log(`[regenerate] full: 全文再生成（${modelId}）...`);
       content = await regenerateWithOpenAI(existing, comment, modelId);
     }
+
+    // 差し戻しで禁止指定された語がタイトルに残っていれば、タイトルからも除去する
+    content = await enforceTitleBannedPhrases(content, comment);
 
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);

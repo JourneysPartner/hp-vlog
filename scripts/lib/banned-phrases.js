@@ -96,6 +96,50 @@ function detectBannedInBody(text, data) {
   return hits;
 }
 
+// ── タイトルの禁止フレーズ検出 ────────────────────────────────
+// タイトルに使ってはいけないフレーズ:
+//   - appliesTo に 'title' を含むもの、または
+//   - replacement が null の「内容の禁止語」（＝ユーザーが「使わない」と指定した語。
+//     置換ではなく完全に使わせないので、本文だけでなくタイトルにも適用する）。
+//   ※ replacement ありの整形ルール（例: **◯◯** → <strong>）は本文専用なので除外。
+function getTitleBannedPhrases(data) {
+  const all = (data || loadBannedPhrases()).phrases || [];
+  return all.filter(p => {
+    const scopes = Array.isArray(p.appliesTo) ? p.appliesTo : [];
+    if (scopes.includes('title')) return true;
+    if (scopes.includes('body') && (p.replacement === null || p.replacement === undefined)) return true;
+    return false;
+  });
+}
+
+// タイトル文字列に禁止フレーズが含まれていれば検出（[{id,match,pattern}]）
+function detectBannedInTitle(title, data) {
+  const phrases = getTitleBannedPhrases(data);
+  const hits = [];
+  const text = String(title || '');
+  for (const p of phrases) {
+    let re;
+    try { re = new RegExp(p.pattern); }
+    catch { continue; }
+    const m = re.exec(text);
+    if (m) hits.push({ id: p.id, match: m[0], pattern: p.pattern });
+  }
+  return hits;
+}
+
+// タイトル生成 LLM に「タイトルで使わない」指示を注入する文（該当時のみ）
+function formatTitleBannedForPrompt(maxItems = 30) {
+  const phrases = getTitleBannedPhrases();
+  if (phrases.length === 0) return '';
+  const items = phrases.slice(0, maxItems).map(p => {
+    const human = p.humanReadable || p.pattern
+      .replace(/\\d\+/g, '◯').replace(/\\d/g, '◯')
+      .replace(/\\([.*+?^${}()|[\]\\])/g, '$1');
+    return `- 「${human}」`;
+  }).join('\n');
+  return `\n【タイトルで絶対に使わない語（過去のレビューで禁止指定）】\n${items}\n↑ これらの語はタイトル・サブタイトルのどこにも使わないこと（言い換える）。`;
+}
+
 // ── LLM プロンプト用の指示文を生成 ────────────────────────────
 // data/banned-phrases.json の body スコープエントリを「使わない」リストとして
 // 動的プロンプトに注入する。空なら空文字を返す（プロンプト肥大化を避ける）。
@@ -130,40 +174,38 @@ function extractBannedFromComment(comment, opts = {}) {
   const now = opts.now || new Date().toISOString();
   const sourceArticle = opts.sourceArticle || null;
 
-  // スコープ: 「今後/以後/これから」～「書かないで/使わないで/...」の範囲
-  // 末尾の「書かないでください」「使わないでください」「やめてください」「禁止して」までを抽出範囲とする。
-  const scopeRe = /(?:今後|以後|これから|今回以降|今度から)[、,]?\s*([\s\S]+?)(?:書かないで|使わないで|入れないで|やめて|禁止して|お願いします|お願いいたします)/;
-  const scopeMatch = comment.match(scopeRe);
-  if (!scopeMatch) return [];
-  const scope = scopeMatch[1];
-
   const found = [];
   const seenPatterns = new Set();
-
-  // 1) 引用符 (「」/『』) 内のフレーズ → リテラル（regex メタ文字を escape）
-  const quotedRe = /[「『]([^」』]{3,80})[」』]/g;
-  let q;
-  while ((q = quotedRe.exec(scope)) !== null) {
-    const phrase = q[1].trim();
-    const pattern = escapeRegex(phrase);
-    if (seenPatterns.has(pattern)) continue;
+  const push = (phrase, pattern, isWildcard) => {
+    const ph = (phrase || '').trim();
+    if (!ph || !pattern || seenPatterns.has(pattern)) return;
+    if (/^(?:や|や、|と|また)$/.test(ph)) return; // 接続詞のみは除外
     seenPatterns.add(pattern);
-    found.push(makeEntry(phrase, pattern, false, now, sourceArticle));
+    found.push(makeEntry(ph, pattern, isWildcard, now, sourceArticle));
+  };
+
+  // 禁止の語尾（〜しないで/〜ないで/やめて/禁止して 等）。「使用しないで」も含める。
+  const banVerb = '(?:書か(?:ないで|ず|ない)|使わ(?:ないで|ず|ない)|使用し(?:ないで|ず|ない)|入れ(?:ないで|ない)|やめて|禁止して|お願いします|お願いいたします)';
+
+  // A) 「今後 … <引用/文言> … 使わない/使用しない/書かない」の範囲内を抽出
+  const scopeMatch = comment.match(new RegExp(`(?:今後|以後|これから|今回以降|今度から)[、,]?\\s*([\\s\\S]+?)${banVerb}`));
+  if (scopeMatch) {
+    const scope = scopeMatch[1];
+    // 1) 引用符 (「」/『』) 内のフレーズ → リテラル
+    const quotedRe = /[「『]([^」』]{3,80})[」』]/g;
+    let q;
+    while ((q = quotedRe.exec(scope)) !== null) push(q[1], escapeRegex(q[1].trim()), false);
+    // 2) 「、<phrase>、というような文言」→ wildcard 化（◯〇○XxⅩ → \d+）
+    const unquotedRe = /[、,]\s*([^「『、,。\n]{4,40}?)[、,]\s*(?:というような|というよう|というふう|という形|のような)?\s*文言/g;
+    let u;
+    while ((u = unquotedRe.exec(scope)) !== null) push(u[1], wildcardize(u[1].trim()), true);
   }
 
-  // 2) 「、<phrase>、というような文言」「、<phrase>、というよう文言」 → wildcard 化
-  //    ◯〇○XxⅩ等を \d+ に変換
-  const unquotedRe = /[、,]\s*([^「『、,。\n]{4,40}?)[、,]\s*(?:というような|というよう|というふう|という形|のような)?\s*文言/g;
-  let u;
-  while ((u = unquotedRe.exec(scope)) !== null) {
-    const phrase = u[1].trim();
-    if (!phrase) continue;
-    if (/^(?:や|や、|と|また)$/.test(phrase)) continue;  // 接続詞のみは除外
-    const pattern = wildcardize(phrase);
-    if (seenPatterns.has(pattern)) continue;
-    seenPatterns.add(pattern);
-    found.push(makeEntry(phrase, pattern, true, now, sourceArticle));
-  }
+  // B) 「<X>」は/を 今後 … 使わない（引用が「今後」より前にあるケース。
+  //    例: 「認知機能」は今後使用しないで）
+  const beforeRe = /[「『]([^」』]{2,80})[」』][^。\n]{0,8}?(?:今後|以後|これから|今回以降|今度から)[^。\n]{0,8}?(?:使わ|使用し|書か|入れ|やめ|禁止)/g;
+  let b;
+  while ((b = beforeRe.exec(comment)) !== null) push(b[1], escapeRegex(b[1].trim()), false);
 
   return found;
 }
@@ -179,7 +221,8 @@ function makeEntry(originalPhrase, pattern, isWildcard, now, sourceArticle) {
     pattern,
     replacement: null,           // 自動抽出は基本「警告のみ」（誤適用を避ける）
     reason: `ユーザー指摘で禁止（${sourceArticle || 'review'} ${now.slice(0, 10)}${isWildcard ? '、ワイルドカード化' : ''}）`,
-    appliesTo: ['body'],
+    // ユーザーが「今後使わない」と指定した語は、本文だけでなくタイトルでも使わせない。
+    appliesTo: ['body', 'title'],
     addedAt: now,
     sourceArticle,
     autoExtracted: true,
@@ -219,7 +262,10 @@ module.exports = {
   getPhrasesForScope,
   applyBannedPhrasesToBody,
   detectBannedInBody,
+  getTitleBannedPhrases,
+  detectBannedInTitle,
   formatForPrompt,
+  formatTitleBannedForPrompt,
   extractBannedFromComment,
   mergeEntries,
   escapeRegex,

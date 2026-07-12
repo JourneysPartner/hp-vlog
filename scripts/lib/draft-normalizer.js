@@ -142,6 +142,11 @@ function isValidLlmTitle(s, ctx = {}) {
   if (/あなたがこの記事に最も適したタイトル/.test(t)) return false;
   // 安直な煽り（最終ガード）
   if (/(徹底解説|完全ガイド|必読)/.test(t)) return false;
+  // 禁止フレーズ（差し戻しで「今後使わない」と指定された語）はタイトルにも使わせない
+  try {
+    const { detectBannedInTitle } = require('./banned-phrases');
+    if (detectBannedInTitle(t).length > 0) return false;
+  } catch { /* 読込失敗時は他チェックのみで判定 */ }
   // title-lint の HARD_FAIL（同一名詞繰り返し、機械的連結等）
   // 循環参照を避けるため遅延 require
   try {
