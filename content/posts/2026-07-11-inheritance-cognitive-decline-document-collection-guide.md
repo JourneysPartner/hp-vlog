@@ -33,15 +33,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "認知症が進む前に相続準備を進めるには、戸籍謄本・残高証明書・不動産評価資料の3種類を軸に、入手先・タイミング・注意点を把握しておくことが重要です。"
-review_status: "needs_revision"
-review_comment: "タイトルに「認知機能」は使用しないで。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-11T00:06:30.108Z"
-updated_at: "2026-07-12T17:04:47.317+09:00"
+updated_at: "2026-07-12T08:05:42.851Z"
 ---
 ## この記事でわかること
 
@@ -95,7 +95,7 @@ updated_at: "2026-07-12T17:04:47.317+09:00"
 <strong>判断ポイント：</strong>
 - 生前のうちに、親が持つ口座（銀行・証券・郵便局）の一覧を本人と一緒に確認しておく
 - 通帳・カードの保管場所を把握しておく
-- 認知症が進むと、本人しか知らない口座が「眠った口座」になる恐れがある
+- 判断力が低下すると、本人しか知らない口座が「眠った口座」になる恐れがある
 
 ### 評価資料：不動産は「評価方法の選択」も関係する
 
