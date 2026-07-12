@@ -1238,19 +1238,29 @@ function _titleFromContent(content) {
   return m ? m[1] : '';
 }
 async function enforceTitleBannedPhrases(content, comment) {
-  const hits = bannedPhrasesLib.detectBannedInTitle(_titleFromContent(content));
-  if (hits.length === 0) return content;
-  console.log(`[regenerate] タイトルに禁止フレーズ検出（${hits.map(h => h.match).join(', ')}）→ タイトルを再生成`);
   let out = content;
-  try {
-    out = await regenerateTitleOnly(content, comment);
-  } catch (e) {
-    console.warn(`[regenerate] タイトル再生成に失敗: ${e.message}`);
-    return content;
+  // テーマ中心の語（例: 認知機能低下の記事で「認知機能」）だと 1 回では残ることが
+  // あるため、最大 2 回まで作り直す。禁止語を明示した合成コメントで強く指示する。
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const hits = bannedPhrasesLib.detectBannedInTitle(_titleFromContent(out));
+    if (hits.length === 0) return out;
+    const words = [...new Set(hits.map(h => h.match))];
+    console.log(`[regenerate] タイトルに禁止フレーズ検出（${words.join(', ')}）→ タイトルを再生成（試行${attempt}）`);
+    const strongComment =
+      `${comment}\n【最重要】タイトルに次の語を絶対に使わないでください（言い換える）: ${words.map(w => `「${w}」`).join('、')}。` +
+      `記事の主題であっても、これらの語は別表現（例: 判断能力の低下 / もしものとき / 元気なうち 等）に置き換えてタイトルを作り直してください。`;
+    try {
+      out = await regenerateTitleOnly(out, strongComment);
+    } catch (e) {
+      console.warn(`[regenerate] タイトル再生成に失敗: ${e.message}`);
+      return out;
+    }
   }
   const still = bannedPhrasesLib.detectBannedInTitle(_titleFromContent(out));
   if (still.length > 0) {
     console.warn(`[regenerate] ⚠ 再生成後もタイトルに禁止フレーズが残存（${still.map(h => h.match).join(', ')}）。レビューで手動修正してください。`);
+    // 少なくとも人間が気づけるよう、レビュー用コメントに残す
+    out = out.replace(/^review_comment:\s*.*$/m, `review_comment: "⚠タイトルに禁止語が残っています（${still.map(h => h.match).join(', ')}）。手動修正してください"`);
   }
   return out;
 }

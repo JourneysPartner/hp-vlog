@@ -8,7 +8,9 @@
       "humanReadable": "原則を◯行で押さえる",
       "replacement": null,
       "reason": "定型句として陳腐化（ユーザー指摘 2026-05-30）",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-05-30T06:30:00.000Z",
       "sourceArticle": "general-income-classification-influencer-creator-pre-opening-practice",
       "autoExtracted": false
@@ -19,7 +21,9 @@
       "humanReadable": "◯行で確認",
       "replacement": null,
       "reason": "「3行で確認」のような定型句は AI 感が強く陳腐化するため使わない（ユーザー指摘 2026-06-25）。",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-06-25T00:00:00.000Z",
       "sourceArticle": null,
       "autoExtracted": false
@@ -30,7 +34,9 @@
       "humanReadable": "**...** → <strong>...</strong>",
       "replacement": "<strong>$1</strong>",
       "reason": "Markdown 太字 (**...**) は日本語の文字境界で marked.js が認識できず生のアスタリスクが見える事故が頻発するため、確実にレンダリングされる HTML <strong> タグに変換する（ユーザー指摘 2026-06-16）。太字スタイル自体は維持される。",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-06-16T00:00:00.000Z",
       "sourceArticle": null,
       "autoExtracted": false
@@ -41,7 +47,9 @@
       "humanReadable": "** （ペア未マッチの孤立アスタリスク）",
       "replacement": "",
       "reason": "上の変換ルールでペアが揃わず残った孤立 ** は本文に出すと見苦しいため削除する（2026-06-16）。",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-06-16T00:00:01.000Z",
       "sourceArticle": null,
       "autoExtracted": false
@@ -52,7 +60,9 @@
       "humanReadable": "課税売上高または給与等支払額が1,000万円超 → 課税事業者（誤記）",
       "replacement": null,
       "reason": "特定期間判定の OR/AND 誤記（ユーザー指摘 2026-06-19）。正しくは『両方とも1,000万円超で初めて強制的に課税事業者』。納税者は課税売上高 / 給与等支払額のうち有利な方を選べるため、どちらか一方が1,000万円以下なら、そちらを選択して免税のまま留まれる。タックスアンサー No.6501 の原文「課税売上高に代えて、給与等支払額により判定することもできる」を論理ORに誤訳した典型例。",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-06-19T00:00:00.000Z",
       "sourceArticle": null,
       "autoExtracted": false
@@ -63,10 +73,25 @@
       "humanReadable": "いずれかが1,000万円超 → 課税事業者（誤記）",
       "replacement": null,
       "reason": "特定期間判定の OR/AND 誤記の別表現（ユーザー指摘 2026-06-19）。正しくは『いずれもが1,000万円超』。",
-      "appliesTo": ["body"],
+      "appliesTo": [
+        "body"
+      ],
       "addedAt": "2026-06-19T00:00:01.000Z",
       "sourceArticle": null,
       "autoExtracted": false
+    },
+    {
+      "id": "auto-認知機能-mrhj88lm",
+      "pattern": "認知機能",
+      "replacement": null,
+      "reason": "ユーザー指摘で禁止（inheritance-cognitive-decline-document-collection-guide 2026-07-12）",
+      "appliesTo": [
+        "body",
+        "title"
+      ],
+      "addedAt": "2026-07-12T08:29:15.273Z",
+      "sourceArticle": "inheritance-cognitive-decline-document-collection-guide",
+      "autoExtracted": true
     }
   ]
 }
