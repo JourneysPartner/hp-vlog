@@ -33,15 +33,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "戸籍は「出生〜死亡」の連続取得が鉄則。残高証明は相続開始日時点の全金融機関分を取得し、不動産は固定資産税課税明細と登記事項証明書の両方を揃えることが実務のポイントです。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-12T17:05:30.210+09:00"
+publish_at: "2026-07-13T11:55:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-11T00:07:26.130Z"
-updated_at: "2026-07-12T08:04:21.093Z"
+updated_at: "2026-07-12T17:05:30.210+09:00"
+publish_slot: "morning"
 ---
 ## この記事でわかること
 
