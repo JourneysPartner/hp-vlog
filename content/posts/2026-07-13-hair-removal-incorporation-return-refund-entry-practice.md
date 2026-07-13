@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "脱毛サロンの返金は「いつ・何を受け取っていたか」で仕訳が変わる。回数券・コース代金別に売上取消・前受金戻しの処理パターンを具体例で解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-13T15:03:54.536+09:00"
+publish_at: "2026-07-14T11:39:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-13T00:07:35.083Z"
-updated_at: "2026-07-13T00:07:35.083Z"
+updated_at: "2026-07-13T15:03:54.536+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
