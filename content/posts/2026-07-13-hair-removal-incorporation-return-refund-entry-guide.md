@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "脱毛サロンの返金・返品は「売上の取り消し」か「費用計上」かで仕訳が変わります。コース契約の解約返金と物販返品それぞれの処理パターンと、法人成り前に帳簿を整える理由を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-13T15:03:23.912+09:00"
+publish_at: "2026-07-14T11:22:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-13T00:06:36.198Z"
-updated_at: "2026-07-13T00:06:36.198Z"
+updated_at: "2026-07-13T15:03:23.912+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
