@@ -56,6 +56,18 @@ function targetPublishDateJST() {
   return jst.toISOString().split('T')[0];
 }
 
+// 公開枠の決定（article_role ベース・レース非依存）。
+//   本命(main)   → morning 優先（同枠が埋まっていて逆枠が空いていれば evening）
+//   補強(support)→ evening 優先（同枠が埋まっていて逆枠が空いていれば morning）
+// これにより本命+補強を短時間に承認しても、レースで両方 morning になって
+// 同時公開されることがなくなり、ペアは必ず別枠に分かれる。
+function decidePublishSlot(role, hasMorning, hasEvening) {
+  if (role === 'support') return (hasEvening && !hasMorning) ? 'morning' : 'evening';
+  return (hasMorning && !hasEvening) ? 'evening' : 'morning';
+}
+
+exports.decidePublishSlot = decidePublishSlot;
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -76,6 +88,7 @@ exports.handler = async (event) => {
     const fmSlug     = (content.match(/^slug:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmCategory = (content.match(/^category:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmPersona  = (content.match(/^primary_persona:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+    const fmRole     = (content.match(/^article_role:\s*"?([^"\n\r]+)"?/m) || [])[1] || 'main';
 
     // ── 品質ゲート（承認前チェック）─────────────────────────────
     // recommendation / 適合スコアが低い記事は承認を拒否する（400）。
@@ -115,7 +128,7 @@ exports.handler = async (event) => {
 
     const now = nowJST();
 
-    // 公開枠の決定: 同日に他の approved 記事がなければ morning、あれば evening
+    // 公開枠の決定: article_role ベース（本命=morning / 補強=evening）
     let publishAt;
     let publishSlot;
 
@@ -126,9 +139,16 @@ exports.handler = async (event) => {
       const targetDate = targetPublishDateJST();
       const otherApproved = await findApprovedArticlesForDate(targetDate, filename);
       const hasMorning = otherApproved.some(a => a.slot === 'morning');
-      publishSlot = hasMorning ? 'evening' : 'morning';
+      const hasEvening = otherApproved.some(a => a.slot === 'evening');
+      // 「同日の承認状況」だけで枠を決めると、本命+補強を短時間に承認したとき、
+      // 2本目の枠判定が1本目の main 反映前に走り、両方 morning になって同時公開
+      // される（レース）。role ベースにすればレースの影響を受けず、ペアは必ず別枠。
+      //   本命(main)   → morning 優先
+      //   補強(support)→ evening 優先
+      // 逆枠が空いていて同枠が既に埋まっていれば、軽くバランスを取って逆へ回す。
+      publishSlot = decidePublishSlot(fmRole, hasMorning, hasEvening);
       publishAt = publishAtForSlot(publishSlot);
-      console.log(`[review-approve] 公開枠: ${publishSlot} (同日 approved: ${otherApproved.length} 件)`);
+      console.log(`[review-approve] 公開枠: ${publishSlot} (role=${fmRole}, 同日 approved: ${otherApproved.length} 件, morning=${hasMorning}, evening=${hasEvening})`);
     }
     if (publishAt && !publishAt.includes('+')) publishAt += '+09:00';
 
