@@ -1,12 +1,20 @@
 # 仕様書・設計書：訪問者計測（自前アナリティクス）
 
-最終更新: 2026-07-14 / ステータス: ドラフト（実装前レビュー v2・レビュー反映）
+最終更新: 2026-07-14 / ステータス: ドラフト（実装前レビュー v3・レビュー反映）
 
-> v2 反映：daily の同時更新欠落を **CAS（ETag/onlyIfMatch）＋onlyIfNew を MVP 必須**に格上げ／
-> `/track` 濫用対策を具体化（Origin・Sec-Fetch-Site・本文サイズ・PV上限・本番ホスト限定）／
-> Cookie を **署名付き**に／プライバシー文言を「個人関連情報」前提に強化・参照元(r)は Phase1 で送らない／
-> コスト前提を「実プラン要確認」に修正／人気ページのタイトル取得を `analytics-page-map.json` で定義／
-> ローテを専用 Scheduled Function に分離／テスト計画を追加／断定表現を是正。
+> v3 反映（クロスキー整合性・実装細部）：
+> **UU は daily.visitors を持たず `uniq/<date>/*` の件数から算出**（PV だけを daily で CAS。マーカー作成と
+> visitors++ が別キーで CAS 失敗時に過少計上する問題を根本回避）／CAS の**新規キー分岐**を明記
+> （ETag があれば `onlyIfMatch`、無ければ `onlyIfNew`、競合は再読込リトライ）／レート上限の状態を
+> **Blobs マーカー**で保持（メモリ不可）とデータモデルに追加／パス許可を `startsWith('/')` でなく
+> **固定ページ完全一致＋ブログ正規表現**に／`analytics-page-map.json` は**ブラウザ側が同一オリジン取得**で変換／
+> `analytics-cleanup` の**頻度・対象日・list ページネーション**を定義／HMAC Cookie を
+> **Base64URL・`v1.` バージョン接頭辞・`timingSafeEqual`** で確定。
+>
+> v2 反映：daily の同時更新欠落を CAS 必須に格上げ／`/track` 濫用対策を具体化／Cookie を署名付きに／
+> プライバシー文言を「個人関連情報」前提に強化・参照元(r)は Phase1 で送らない／コスト前提を「実プラン要確認」に／
+> 人気ページのタイトル取得を `analytics-page-map.json` で定義／ローテを専用 Scheduled Function に分離／
+> テスト計画を追加／断定表現を是正。
 
 ## 1. 目的・背景
 
@@ -66,19 +74,24 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 
 | キー | 値（JSON） | 用途 | 書き込み方式 |
 |---|---|---|---|
-| `daily/<YYYY-MM-DD>` | `{ date, pageviews, visitors, byPath: { "<path>": pv } }` | 日次集計（表示の主データ） | **強整合読み取り＋ETag CAS（§6.5）** |
-| `uniq/<YYYY-MM-DD>/<vidHash>` | `"1"`（マーカー） | その日そのブラウザが訪問済みか | **onlyIfNew（原子的作成・§6.4）** |
+| `daily/<YYYY-MM-DD>` | `{ date, pageviews, byPath: { "<path>": pv } }` | 日次 **PV** 集計（visitors は持たない） | **強整合読み取り＋条件付き書き込み CAS（§6.5）** |
+| `uniq/<YYYY-MM-DD>/<vidHash>` | `"1"`（マーカー） | その日そのブラウザが訪問済みか（**UU は件数から算出**） | **onlyIfNew（原子的作成・§6.4）** |
+| `rate/<YYYY-MM-DD-HHmm>/<vidHash>/<pathHash>` | `"1"`（マーカー） | 1 Cookie・1 パス・1 分の PV 上限判定（§6.2） | **onlyIfNew（原子的作成）** |
 
-- `vidHash` = 署名付き Cookie `mz_vid` の**ID 部分**を SHA-256 でハッシュした先頭 16 桁。**IP は保存しない**。
+- `vidHash` = 署名付き Cookie `mz_vid` の**ID 部分**を SHA-256 でハッシュした先頭 16 桁。`pathHash` = 正規化パスの SHA-256 先頭 8 桁。**IP は保存しない**。
 
 ### 4.1 整合性（重大・MVP 必須）
 - Netlify Blobs は**既定で結果整合性**であり、同一キーの同時更新は **last-write-wins**。
-  素朴な read-modify-write（RMW）では、**低トラフィックでも同時アクセスで PV・訪問者が欠落する**。
-- したがって MVP から次を必須とする：
-  - `daily/<date>` の更新は **強整合読み取り（`{ consistency: 'strong' }`）で ETag を取得 →
-    `setJSON(..., { onlyIfMatch: etag })` で条件付き書き込み → 競合（未更新）ならリトライ**（CAS）。
-  - ユニークマーカーは **`set(uniqKey, "1", { onlyIfNew: true })` で原子的に作成**し、
-    「初回作成できたか（modified）」で visitors を増やすか判定する（二重計上を防ぐ）。
+  素朴な read-modify-write（RMW）では、**低トラフィックでも同時アクセスで PV が欠落する**。
+- **UU（visitors）は daily に持たせない**。§6.4 で述べたクロスキーの非原子性
+  （uniq マーカー作成成功 ↔ daily.visitors++ が別キーで、CAS 失敗時に整合性が崩れ**永久に過少計上**）
+  を根本回避するため、**UU は集計時に `uniq/<date>/*` の件数から数える**（§6.6 / §8）。
+- **daily は PV（pageviews・byPath）だけ**を、次の CAS で更新する（visitors を含めないのでクロスキー問題なし）：
+  - **強整合読み取り**（`getWithMetadata(key, { consistency: 'strong' })`）で現在値と ETag を取得。
+  - **キーが存在する場合**：`setJSON(key, v, { onlyIfMatch: etag })`。
+  - **キーが存在しない（ETag が無い）場合**：`onlyIfMatch` は使えないため `setJSON(key, v, { onlyIfNew: true })`。
+  - どちらも**条件不一致（未更新）なら再読込して 1 からリトライ**（最大 N 回・指数バックオフ）。
+- ユニーク／レート上限マーカーは **`set(key, "1", { onlyIfNew: true })` で原子的に作成**する。
 
 ## 5. 収集仕様（ビーコン）
 
@@ -102,32 +115,46 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 - **`Sec-Fetch-Site` が `same-origin`（または `same-site`）**であること（クロスサイトからの直POSTを弾く）。
 - **User-Agent 必須**、既知クローラ（`bot|crawl|spider|slurp|preview|lighthouse|headless|monitor` 等）は除外。
 - **実際に読み込んだ本文サイズの上限**（例：1KB）を超えたら破棄（Content-Length 申告だけに頼らない）。
-- パスは**許可プレフィックス（`/`, `/blog/`, 既知の固定ページ）**のみ計上。クエリ除去・末尾スラッシュ統一・長さ制限。
+- **パス許可判定は `startsWith('/')` にしない**（それでは全パスが通る）。次で判定し、外れたら記録しない：
+  - **固定ページは完全一致**の許可リスト：`/`, `/about/`, `/contact/`, `/blog/`（一覧）等（末尾スラッシュ正規化後）。
+  - **ブログ記事は明示的な正規表現**：`^/blog/[a-z0-9-]+/?$`（生成 slug の形に一致）。
+  - クエリ・フラグメント除去、末尾スラッシュ統一、長さ上限（例 128 文字）。いずれにも合致しないパスは無視。
 
-### 6.2 レート制限（数値汚染の緩和）
-- **1 Cookie・1 パス・1 分あたりの PV 上限**（例：同一 `vidHash`×同一パスは 1 分に 1PV まで）。上限超過分は無視。
-- Netlify 側の **レート制限（Edge/Functions のリクエスト制限）**も併用する前提で設計（設定は実装時に確認）。
+### 6.2 レート制限（数値汚染の緩和・状態は Blobs で保持）
+- **1 Cookie・1 パス・1 分あたり PV 1 回**。判定は**メモリではなく Blobs マーカー**で行う（Function は毎回別インスタンスになり得るため、メモリでは効かない）：
+  - キー `rate/<YYYY-MM-DD-HHmm>/<vidHash>/<pathHash>`（分単位バケット）に `set(..., { onlyIfNew: true })`。
+  - **作成できた（初回）場合のみ PV を計上**。作成失敗（既存）＝同一分の重複とみなし PV を計上しない。
+  - `rate/*` は短命。**`analytics-cleanup` が当日分より前のバケットを削除**（§7）。
+- Netlify 側の **レート制限（Edge/Functions のリクエスト制限）**も併用（設定は実装時に確認）。
 - **完全防止は不可能**であり、数値は**「参考値」**として扱う（管理画面にも明記・§8）。
 
 ### 6.3 Cookie（改ざん耐性）
 - 属性：`HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=31536000`（1年）。
-- 値：`"<ランダムID>.<HMAC-SHA256(ID, 秘密鍵)>"` の**署名付き**。秘密鍵は環境変数（例 `ANALYTICS_COOKIE_SECRET`）。
-- 受信時に**署名を検証**し、不正・欠落なら**新規発行**して当該リクエストは新規訪問者として扱う（改ざんCookieを信用しない）。
-- `HttpOnly` によりクライアント JS からは読めない（ID 生成・付与はすべてサーバー側）。
+- 値の形式：**`v1.<idB64url>.<sigB64url>`**（**バージョン接頭辞 `v1.` を付与**し将来の鍵ローテ／方式変更に備える）。
+  - `id` = ランダム 16 バイト、`sig` = `HMAC-SHA256(secret, "v1." + idB64url)`。両者とも **Base64URL（パディング無し）**。
+  - `secret` は環境変数 `ANALYTICS_COOKIE_SECRET`（表示・ログ出力しない）。
+- 検証：形式・バージョン一致を確認し、署名は **`crypto.timingSafeEqual` で定数時間比較**（`==` は使わない）。
+  不正・欠落・バージョン不一致なら**新規発行**し、当該リクエストは新規訪問者として扱う（改ざん Cookie を信用しない）。
+- `HttpOnly` によりクライアント JS からは読めない（ID 生成・署名・付与はすべてサーバー側）。
 
-### 6.4 ユニーク判定（原子的）
+### 6.4 ユニーク判定（マーカーのみ・visitors は加算しない）
 1. `vidHash` を算出。
-2. `set('uniq/<date>/<vidHash>', "1", { onlyIfNew: true })` を実行。
-3. **作成できた（初回）場合のみ** `visitors += 1` の対象とする（§6.5 の CAS 内で加算）。
+2. `set('uniq/<date>/<vidHash>', "1", { onlyIfNew: true })` を実行（**そのブラウザがその日訪問した事実だけ**を残す）。
+3. **daily.visitors は更新しない**。UU は集計時に `uniq/<date>/*` の**件数**から数える（§6.6 / §8）。
+   これによりユニークマーカー作成と PV 集計が**別キーでも整合が崩れない**（過少計上バグの根本回避）。
 
-### 6.5 PV / 集計（CAS）
-1. `daily/<date>` を **強整合読み取り**（無ければ初期値）。ETag を保持。
-2. メモリ上で `pageviews += 1`、`byPath[path] += 1`、（§6.4 が初回なら）`visitors += 1`。
-3. `setJSON('daily/<date>', v, { onlyIfMatch: etag })`。**未更新なら 1 から再試行**（最大 N 回、指数バックオフ）。
-4. N 回失敗時は記録を諦め 204（サイト表示に影響させない）。件数増で頻発するなら §11 の移行。
+### 6.5 PV 集計（CAS・新規キー分岐）
+1. `daily/<date>` を **強整合読み取り**（`getWithMetadata(key, { consistency: 'strong' })`）。値と ETag を取得。
+2. メモリ上で `pageviews += 1`、`byPath[path] += 1`（**visitors は扱わない**）。§6.2 で計上対象と判定された時のみ実行。
+3. 書き込み：
+   - **存在する場合**：`setJSON(key, v, { onlyIfMatch: etag })`。
+   - **存在しない（ETag 無し）場合**：`setJSON(key, v, { onlyIfNew: true })`。
+4. **条件不一致（未更新）なら再読込して 1 から再試行**（最大 N 回・指数バックオフ）。N 回失敗時は記録を諦め 204。
 
-### 6.6 ローテはここで行わない
-- 初回アクセスの重さ・削除競合を避けるため、`uniq/*` の削除は **`/track` 内で行わない**（§7 の専用 Function）。
+### 6.6 UU の算出（集計時）
+- 日次 UU = `store.list({ prefix: 'uniq/<date>/' })` の**件数**（`list` は**ページネーション**するため全ページを走査・§7）。
+- 期間 UU（7/30 日など）は各日の件数を合算（同一ブラウザが複数日訪問すれば各日でカウント＝日次ユニークの定義どおり）。
+- ローテ削除は `/track` では行わない（§7 の専用 Function）。
 
 ### 6.7 本番ホスト限定（Blobs 混入防止）
 - Blobs はサイト全体（本番・各 Deploy Preview）で**共有**される。ビーコン側の除外だけでなく、
@@ -136,9 +163,14 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 ## 7. 集計・データ保持（ローテーションは専用 Function）
 
 - `daily/<date>`：**無期限保持**（1日1レコード・軽量）。
-- `uniq/<date>/*`：**90 日でローテ削除**。既存の Scheduled Function 運用に合わせ、
-  **専用の日次/月次クリーンアップ Function（`analytics-cleanup`）**で古い日付分を削除する
-  （`/track` では実施しない）。
+- `uniq/<date>/*`：**90 日でローテ削除**（UU 集計は直近 90 日で足りる）。
+- `rate/<...>`：**当日より前を削除**（短命・分単位バケット）。
+- **専用 Scheduled Function `analytics-cleanup`**（`/track` では実施しない）：
+  - **実行頻度**：日次 1 回（既存 scheduler と同様に Netlify scheduled → 早朝 JST。例 03:00）。
+  - **削除対象**：`uniq/<date>/*` は `date < today−90日`、`rate/*` は当日バケットより前すべて。
+  - **列挙**：`store.list({ prefix })` は**ページネーションする**ため、`cursor` が無くなるまで全ページを取得して
+    対象キーを `delete`。1 回の実行で処理しきれない量になったら日付範囲を分割（当面は不要想定）。
+  - 削除件数を `console.log` に残す（監視用）。
 - 人気ページ Top は `daily.byPath` を期間合算して算出（表示時に計算）。
 
 ## 8. 管理画面仕様：`/admin/analytics`
@@ -146,8 +178,9 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 - 認証：既存の `requireBasicAuth(event)`（`ADMIN_BASIC_USER` / `ADMIN_BASIC_PASS`）を必須。
 - 応答は **`Cache-Control: no-store`**（画面・API とも）。
 - 構成：`admin-analytics-page`（HTML）＋ `admin-list-analytics`（API・`?days=30` 等で日次集計を返す）。
+  - API は各日について **PV（`daily/<date>`）と UU（`uniq/<date>/*` の件数・§6.6）**を集計して返す。
 - 表示要素：
-  1. サマリー：**今日／昨日／直近7日／直近30日** の「ユニーク訪問者」と「PV」。
+  1. サマリー：**今日／昨日／直近7日／直近30日** の「ユニーク訪問者（uniq 件数由来）」と「PV」。
   2. 日次グラフ（自前の軽量インライン SVG。外部CDN禁止方針に合わせる）。期間切替 7 / 30 / 90 日。
   3. **人気ページ Top 10**：期間内 PV 上位。**パス→記事タイトルの変換**は §8.1。
   4. 注記：「数値はブラウザ単位の日次ユニークによる**参考値**（bot・スパムを完全には除去できない）」。
@@ -155,9 +188,12 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 ### 8.1 パス→タイトルの取得（人気ページ）
 - `daily.byPath` は**パスしか持たない**。タイトル変換方法を Phase 1 で確定する：
   - **採用案**：`build.js` がビルド時に **`analytics-page-map.json`（`{ "/blog/xxx/": "記事タイトル", ... }`）**
-    を出力し、管理画面（API）がこれを読んでタイトル表示・記事リンク化する。
+    を**サイトの静的ファイルとして出力**する（例 `/analytics-page-map.json`）。
+  - 変換は **Function ではなく管理画面のブラウザ側**が行う：`/admin/analytics` の JS が
+    **同一オリジンの静的 JSON を fetch** し、API が返したパス別 PV にタイトルを突き合わせて表示・リンク化する。
+    （Function のローカルファイル読み取りに依存しない。バンドル・デプロイ差異の影響を受けないため安全。）
   - 代替：Phase 1 は**パスのみ表示**（マップ導入は後回し）。
-- どちらにするかはレビューで決定（既定は `analytics-page-map.json` 方式）。
+- どちらにするかはレビューで決定（既定は `analytics-page-map.json`＋ブラウザ側変換）。
 
 ### 8.2 画面レイアウト案（ワイヤー）
 ```
@@ -220,23 +256,31 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
   - `netlify/functions/track-visit.js`（記録・CAS・検証・署名Cookie）
   - `netlify/functions/admin-analytics-page.js`（画面・no-store）
   - `netlify/functions/admin-list-analytics.js`（API・no-store）
-  - `netlify/functions/analytics-cleanup.js`（Scheduled・uniq ローテ削除）
-  - `netlify/functions/lib/analytics-store.js`（Blobs I/O・CAS・onlyIfNew・bot 判定・パス正規化・ハッシュ・署名検証）
+  - `netlify/functions/analytics-cleanup.js`（Scheduled・`uniq`/`rate` ローテ削除・list ページネーション）
+  - `netlify/functions/lib/analytics-store.js`（Blobs I/O・CAS＋新規キー分岐・onlyIfNew・UU件数集計・bot 判定・パス許可判定・ハッシュ・HMAC署名検証）
 - 変更：
   - `netlify.toml`：`/track`→track-visit、`/admin/analytics`→admin-analytics-page、
     `/admin/api/analytics`→admin-list-analytics の redirect、`analytics-cleanup` の schedule を追加。
-  - `scripts/build.js`：ビーコン注入（各HTML1回）＋ **`analytics-page-map.json` 出力**。
+  - `scripts/build.js`：ビーコン注入（各HTML1回）＋ **`analytics-page-map.json` を静的出力**（`/analytics-page-map.json`）。
+- 環境変数：`ANALYTICS_COOKIE_SECRET`（HMAC 用）を追加。
 - テスト：`scripts/lib/__tests__/test-analytics-store.js` ほか（§14）。
 
 ## 14. テスト計画
 
-- **整合性**：`daily` に対し**同時 20 リクエストで PV/UU が欠落しない**（CAS リトライで合算が一致）。
-- **ユニーク**：`onlyIfNew` で同一 `vidHash`×同日は **visitors が一度だけ増える**（二重計上しない）。
+- **PV 整合性**：`daily` に対し**同時 20 リクエストで PV が欠落しない**（CAS＋新規キー分岐で合算が一致）。
+- **CAS 新規キー**：`daily/<date>` 未作成時は `onlyIfNew`、以後は `onlyIfMatch`、競合時は再読込リトライで正しく増える。
+- **UU 算出**：同一 `vidHash`×同日は `uniq` マーカーが 1 個だけ → **UU 件数が一度だけ増える**（二重計上しない）。
+  別 `vidHash` は別カウント。UU は `uniq/<date>/*` の件数と一致。
+- **クロスキー過少計上の非再現**：uniq 作成成功後に daily CAS が失敗しても、**UU は uniq 件数由来なので過少計上しない**。
+- **レート上限**：同一 `vidHash`×同一パス×同一分は 2 回目以降 PV を計上しない（`rate/*` マーカーで判定）。
 - **ホスト限定**：**本番以外のホスト（プレビュー）からは記録しない**。
-- **改ざん**：**不正 Cookie・署名不正を拒否**（新規発行扱い、既存カウントを汚さない）。
+- **改ざん**：**不正 Cookie・署名不正・バージョン不一致を拒否**（`timingSafeEqual`／新規発行扱い、既存カウントを汚さない）。
 - **キャッシュ**：管理画面 / API 応答が **`no-store`**。
 - **ビーコン**：`build` 後、**各生成 HTML にビーコンが 1 回だけ**入る（`/admin`・`/review` には入らない）。
-- **bot / パス正規化 / JST 日付境界 / レート上限**の単体。
+- **パス許可判定**：`/`・固定ページは完全一致で通り、`/blog/<slug>/` は正規表現で通り、
+  それ以外（例 `/../`, `/random`, クエリ付き）は通らない（`startsWith('/')` 誤判定の非再現）。
+- **クリーンアップ**：`uniq` は 90 日超、`rate` は前日以前を削除。`list` の**複数ページ**を走査できる。
+- **bot / パス正規化 / JST 日付境界**の単体。
 - 既存回帰：`scripts/lib/__tests__/test-*.js` 全 PASS、`npm run build` 成功。
 
 ## 15. 段階リリース
@@ -249,8 +293,11 @@ mori-zeirishi.net（Netlify ホスティング／`hp-vlog` リポジトリの静
 
 - クロスデバイス同定は不可（§2）。Cookie 単位・日次ユニークの定義で合意が前提。
 - **Netlify の実契約プランを確認**し、コスト見積もりを更新（§10）。
-- **Netlify Blobs の有効化**確認、`consistency: 'strong'` / `onlyIfMatch` / `onlyIfNew` の
-  対応をランタイムで確認（実装時）。
+- **Netlify Blobs の有効化**確認、`getWithMetadata(..., { consistency: 'strong' })` の ETag 返却／
+  `onlyIfMatch` / `onlyIfNew` / `list` のページネーション（cursor）対応をランタイムで確認（実装時）。
+- **UU は `uniq/<date>/*` の件数から算出**（daily.visitors は持たない）で確定（§4.1/§6.6）。
+  トラフィックが増えて `list` 件数集計が重くなったら、日次確定後に件数を `daily` へ**書き戻して確定値化**する
+  最適化を検討（§11）。
 - 人気ページのタイトル取得：`analytics-page-map.json` 方式かパスのみか決定（§8.1・既定は前者）。
 - `ANALYTICS_COOKIE_SECRET` の払い出し。
 - 海外提供時の同意/地域別停止の要否（§9）。
