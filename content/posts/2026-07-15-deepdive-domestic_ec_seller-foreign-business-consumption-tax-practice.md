@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "国外事業者からの仕入れは、物品の輸入・役務の受取・プラットフォーム手数料でケースごとに消費税の扱いが異なります。仕入税額控除の可否はインボイス登録の有無で決まります。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-15T16:53:21.844+09:00"
+publish_at: "2026-07-16T17:44:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-15T07:37:40.590Z"
-updated_at: "2026-07-15T07:37:40.590Z"
+updated_at: "2026-07-15T16:53:21.844+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
