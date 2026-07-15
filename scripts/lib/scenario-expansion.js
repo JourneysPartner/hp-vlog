@@ -799,6 +799,11 @@ function expandTaxDomain() {
       for (const painId of TAX_PAINS) {
         const pain = lookup(PAIN_POINTS, painId); if (!pain) continue;
         if (!pain.macros.includes('税目実務')) continue;
+        // procedure と pain が同一の対角要素は退化した重複トピックになる。
+        // subcluster / slug が `X-X` と二重化し（例: consumption-tax-judgement-
+        // consumption-tax-judgement）、cooldown / 類似度の subcluster 一致を
+        // すり抜ける原因になるため生成しない（同 pain は他 procedure で網羅される）。
+        if (procId === painId) continue;
         const slugPrefix = `tax-${kebab(td.tax_domain)}-${kebab(procId)}-${kebab(painId)}`;
         const mainType = deterministicTypeIndex(slugPrefix + '-m', ['basic_explainer', 'comparison_decision']);
         const supType  = deterministicTypeIndex(slugPrefix + '-s', ['filing_practice', 'misconception_fix', 'edge_case']);

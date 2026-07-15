@@ -24,7 +24,7 @@
 const { resolveCluster, resolveTaxDomain, MACRO } = require('./cluster-taxonomy');
 const { readAllPostsSorted } = require('./site-corpus');
 const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
-const { filterByCooldown } = require('./cooldown');
+const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
 const { isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit } = require('./customer-relevance');
@@ -297,6 +297,29 @@ function selectDailyTopics(topics, options = {}) {
   if (candidates.length === 0) {
     explanation.warnings = (explanation.warnings || []).concat([
       '品質ゲートで全候補が除外されたため生成しない（approve 判定の記事だけを生成する安全装置）',
+    ]);
+    return { picks: [], explanation };
+  }
+
+  // 2.95. 意味的重複ゲート（customer_segment × pain_point の既出を除外）
+  // subcluster / slug / タイトルが違っても、読者にとって同じ論点なら重複として止める。
+  // タイトル非依存なので、選定時に title が空のトピック（scenario 展開由来）でも確実に効く。
+  // 【重要】既出テーマは絶対に復活させない。全滅した場合はフォールバックせず picks を
+  // 空にして生成しない（実質同一の記事を量産しないための安全装置）。
+  const { passed: afterIdentity, blocked: identityBlocked } = filterByTopicIdentity(candidates, corpus, now);
+  explanation.steps.push({
+    step: 'filter-topic-identity',
+    blocked: identityBlocked.length,
+    remaining: afterIdentity.length,
+    blockedDetails: identityBlocked.slice(0, 5).map(b => ({
+      slug: b.topic.slug, existing: b.hit.post, days: b.hit.days, reason: b.hit.reason,
+    })),
+  });
+  candidates = afterIdentity; // 既出（segment×pain）は必ず除外（フォールバックしない）
+
+  if (candidates.length === 0) {
+    explanation.warnings = (explanation.warnings || []).concat([
+      '意味的重複ゲート（segment×pain）で全候補が除外されたため生成しない（既出テーマの焼き直しを作らない安全装置）',
     ]);
     return { picks: [], explanation };
   }
