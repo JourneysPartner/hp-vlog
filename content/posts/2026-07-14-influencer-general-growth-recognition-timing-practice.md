@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "XのPR案件は納品・承認日、投げ銭はプラットフォーム確定日、サブスク収入は月次で売上計上が実務の基本。入金日ではなく「権利が確定した日」が判断軸です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-14T15:32:35.746+09:00"
 publish_at: "2026-07-15T11:10:00.000+09:00"
-published_at: ""
+published_at: "2026-07-15T12:11:31.299+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-14T00:07:36.729Z"
-updated_at: "2026-07-14T15:32:35.746+09:00"
+updated_at: "2026-07-15T12:11:31.299+09:00"
 publish_slot: "morning"
 ---
 

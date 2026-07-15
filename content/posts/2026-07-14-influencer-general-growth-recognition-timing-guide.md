@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "X（旧Twitter）の収益は入金日ではなく「役務提供完了日」や「確定日」が売上計上の基準。PR案件・サブスクリプション・Tips収入ごとに計上タイミングが異なるため、収入源別の判断軸を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-14T15:32:09.583+09:00"
 publish_at: "2026-07-15T11:39:00.000+09:00"
-published_at: ""
+published_at: "2026-07-15T12:11:31.299+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-14T00:06:49.152Z"
-updated_at: "2026-07-14T15:32:09.583+09:00"
+updated_at: "2026-07-15T12:11:31.299+09:00"
 publish_slot: "morning"
 ---
 
