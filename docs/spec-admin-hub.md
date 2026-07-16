@@ -1,7 +1,13 @@
 # 仕様書・設計書：管理画面の統合ハブ化（共通ナビ）
 
-最終更新: 2026-07-16 / ステータス: ドラフト（実装前レビュー v2・レビュー反映・codex 実装向け）
+最終更新: 2026-07-16 / ステータス: ドラフト（実装前レビュー v3・レビュー反映・codex 実装向け）
 
+> v3 反映（実装前の最終明確化）：
+> **ナビのルートクラス名を `.admin-nav` に統一**（`.mzadmin-nav` 表記を廃止）／
+> **`admin-home` の HTTP 契約を明記**（GET 以外は 405＋`Allow: GET`／成功は 302＋`Location: /admin/articles`＋
+> `Cache-Control: no-store`／未認証 401）／**ルーティング試験の実行層を分離**（Function 単体＝ロジック、
+> 結合＝`netlify dev`／Deploy Preview で `/admin`・`/admin/`・`/admin?foo=bar` の実 HTTP を検証し catch-all 404 非落下を確認）。
+>
 > v2 反映：`/admin` の**認証境界を厳密化**（単純リダイレクトでは /admin 自体が Basic 認証されないため
 > `admin-home` Function で `requireBasicAuth` → 302 とする）／**`/admin` と `/admin/`・クエリ付き**の
 > 正規化と catch-all 404 非落下を受入条件に追加／候補管理の **sticky（`--header-h`/`--stack-h`）連動**要件を明記／
@@ -68,7 +74,9 @@
 - **外部 CDN（Bootstrap/Icons）に依存しない**：ナビ自身が `<style>` を内包し、アイコンは
   **絵文字またはインライン SVG** を使う（方言B＝解析ページでも Bootstrap が無いため）。
 - 配色はハブ共通のブランド色（navy `#0b2045` / orange `#e85320`）をナビ内で自前定義。
-- CSS は独自クラス接頭辞（例 `.mzadmin-nav`）で**スコープ**し、各ページの既存 CSS と衝突させない。
+- **ルートクラス名は `.admin-nav` に統一**する（本仕様・実装・テストすべてでこの名前を使う。
+  ナビのコンテナ `<nav class="admin-nav">` とし、CSS は必ず `.admin-nav` 配下でスコープする・§4.5）。
+  既存の `.admin-header` と名前空間が揃い、各ページの既存 CSS と衝突しない。
 
 ```js
 // lib/admin-nav.js（インターフェイス案）
@@ -96,8 +104,13 @@ module.exports = { renderAdminNav, ADMIN_NAV_ITEMS };
   ```
   /admin  → admin-home Function
              1) requireBasicAuth(event)（失敗なら 401 をそのまま返す）
-             2) 認証OK → 302 Location: /admin/articles
+             2) 認証OK かつ GET → 302 Location: /admin/articles
   ```
+- **`admin-home` の HTTP 契約（明記・テスト対象）**：
+  - **認証を最初に評価**：未認証は 401（`WWW-Authenticate` 付き。`requireBasicAuth` の戻り値をそのまま返す）。
+  - **メソッド**：認証後、**GET 以外は 405 Method Not Allowed**（`Allow: GET` を付与）。
+  - **成功時**：**302** を返し、ヘッダに **`Location: /admin/articles`** と **`Cache-Control: no-store`**。
+    本文は空でよい。
 - **`/admin` と `/admin/`・クエリ付き**の両方を受ける（**正規化**）：
   - `/admin`・`/admin/`（末尾スラッシュ）・`/admin?foo=bar` のいずれも `admin-home` に到達させ、
     **catch-all 404 に落とさない**（受入条件・§7 でテスト）。
@@ -189,10 +202,21 @@ module.exports = { renderAdminNav, ADMIN_NAV_ITEMS };
 - ナビの `<style>` が **`.admin-nav` 配下のみ**（`body`/`:root`/`.btn` 等のグローバルセレクタを含まない）。
 - 認証：`requireBasicAuth` が**先に評価**される（未認証は 401、ナビ HTML を返さない）。
 
-### 7.3 `/admin` 入口（`admin-home`）
-- 未認証：`/admin`・`/admin/` ともに **401**（`WWW-Authenticate` 付き）。
-- 認証済み：`/admin`・`/admin/`・`/admin?foo=bar` すべて **302 Location `/admin/articles`**。
-- **catch-all 404 に落ちない**（`/admin`・`/admin/` が確実に Function に到達する）ことを確認。
+### 7.3 `/admin` 入口（`admin-home`）— **試験の実行層を分ける**
+Function 単体テストだけでは「`/admin/` が実際に catch-all 404 を回避してこの Function に届くか」は
+検証できない（ルーティングは `netlify.toml` の解決に依存するため）。**単体（Function ロジック）と
+結合（実 HTTP ルーティング）を分けて**検証する。
+
+**(a) 単体（`admin-home` ハンドラを直接呼ぶ）**
+- 未認証：**401**（`WWW-Authenticate` 付き）を返す。
+- 認証済み・GET：**302**、`Location: /admin/articles`、`Cache-Control: no-store`。
+- 認証済み・**GET 以外（POST 等）：405**（`Allow: GET`）。
+
+**(b) 結合（実 HTTP・`netlify dev` または Deploy Preview）**
+- 実リクエストで **`/admin`・`/admin/`・`/admin?foo=bar`** の 3 経路が
+  **`admin-home` に到達し（catch-all 404 に落ちない）**、認証後 302 で `/admin/articles` に遷移することを確認。
+- 未認証時に 401 ダイアログが出ることを確認。
+- 既存の個別ルート（`/admin/articles`・`/admin/candidates`・`/admin/analytics`）が引き続き 200 で開くこと。
 
 ### 7.4 目視（手動・Deploy Preview）
 - **モバイル幅**でナビが横スクロールで崩れない。
