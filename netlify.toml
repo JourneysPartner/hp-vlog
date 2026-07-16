@@ -25,7 +25,22 @@
 [functions."scheduler-publish-evening"]
   schedule = "0 9 * * *"
 
+# 毎日 JST 03:00 にアクセス解析の短期マーカーを削除
+[functions."analytics-cleanup"]
+  schedule = "0 18 * * *"
+
 # ── Redirects / Rewrites ──────────────────────────────────────────────
+
+# 管理画面の入口: 認証後に /admin/articles へリダイレクト
+[[redirects]]
+  from = "/admin"
+  to = "/.netlify/functions/admin-home"
+  status = 200
+
+[[redirects]]
+  from = "/admin/"
+  to = "/.netlify/functions/admin-home"
+  status = 200
 
 # レビュー画面: /review?file=xxx.md → Netlify Function
 [[redirects]]
@@ -67,6 +82,22 @@
 [[redirects]]
   from = "/admin/api/candidates/save"
   to = "/.netlify/functions/admin-save-candidates"
+  status = 200
+
+# アクセス解析: 公開ビーコンと Basic 認証付き管理画面/API
+[[redirects]]
+  from = "/track"
+  to = "/.netlify/functions/track-visit"
+  status = 200
+
+[[redirects]]
+  from = "/admin/analytics"
+  to = "/.netlify/functions/admin-analytics-page"
+  status = 200
+
+[[redirects]]
+  from = "/admin/api/analytics"
+  to = "/.netlify/functions/admin-list-analytics"
   status = 200
 
 # ブログ記事URL: Netlify の Pretty URLs が自動的に
