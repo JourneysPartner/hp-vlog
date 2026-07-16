@@ -18,6 +18,7 @@ const REFS = {
     { no: '6451', title: '仕入税額控除の対象範囲',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm' },
     { no: '6501', title: '納税義務の免除',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
     { no: '6505', title: '簡易課税制度',                     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm' },
+    { no: '6509', title: '簡易課税制度の事業区分',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
     { no: '6551', title: '輸出取引の免税',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
     { no: '6253', title: '免税事業者からの仕入れに係る経過措置', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6253.htm' },
     { no: '6102', title: '消費税の軽減税率制度',             url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6102.htm' },
@@ -109,6 +110,22 @@ function getRefsForTopic(topic, limit = 4) {
   }
   if (xd.touchesBookkeeping && taxDomain !== 'bookkeeping_expenses' && REFS.bookkeeping_expenses) {
     priorityHigh.push(REFS.bookkeeping_expenses[0]);
+  }
+
+  // ── ①' 簡易課税・事業区分ブースト ───────────────────────────
+  // 「簡易課税の事業区分（第1〜6種）」を扱う記事では、事業区分を明示列挙した
+  // No.6509 と制度概要 No.6505 を最優先で渡す。REFS 先頭2件[6451,6501]に
+  // 押し出されて事業区分の正解ソースが落ち、LLM が記憶頼りで業種→種を誤る
+  // （例: 理容・旅館を第4種と誤記）事故を防ぐ。
+  if (REFS.consumption_tax) {
+    const blob = [topic.pain_point, topic.subcluster, topic.cluster].filter(Boolean).join(' ');
+    const ja   = [topic.title, topic.search_intent, topic.primary_question, topic.reader_problem].filter(Boolean).join(' ');
+    if (/simplified-tax|business-category/.test(blob) || /簡易課税|みなし仕入率|事業区分/.test(ja)) {
+      priorityHigh.push(
+        REFS.consumption_tax.find(r => r.no === '6509'),  // 簡易課税制度の事業区分
+        REFS.consumption_tax.find(r => r.no === '6505'),  // 簡易課税制度
+      );
+    }
   }
 
   // ── ② taxDomain refs ────────────────────────────────────────
@@ -213,6 +230,9 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'rental-property-treatment': { no: '4614', title: '国税庁タックスアンサー No.4614 貸家建付地の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4614.htm' },
   'company-shares-valuation':  { no: '4638', title: '国税庁タックスアンサー No.4638 取引相場のない株式の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm' },
   'consumption-tax-judgement': { no: '6501', title: '国税庁タックスアンサー No.6501 納税義務の免除',  url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
+  // 簡易課税の事業区分（第1〜6種の判定）は「納税義務の免除(No.6501)」ではなく
+  // 事業区分を明示列挙した No.6509 を主出典にする（No.6505 は制度概要）。
+  'simplified-tax-business-category': { no: '6509', title: '国税庁タックスアンサー No.6509 簡易課税制度の事業区分', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
   'invoice-judgement':         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
   'tax-refund-eligibility':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
   'overseas-tax-uncertain':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
