@@ -1,6 +1,13 @@
 # 仕様書・設計書：管理画面の統合ハブ化（共通ナビ）
 
-最終更新: 2026-07-16 / ステータス: ドラフト（実装前レビュー用・codex 実装向け）
+最終更新: 2026-07-16 / ステータス: ドラフト（実装前レビュー v2・レビュー反映・codex 実装向け）
+
+> v2 反映：`/admin` の**認証境界を厳密化**（単純リダイレクトでは /admin 自体が Basic 認証されないため
+> `admin-home` Function で `requireBasicAuth` → 302 とする）／**`/admin` と `/admin/`・クエリ付き**の
+> 正規化と catch-all 404 非落下を受入条件に追加／候補管理の **sticky（`--header-h`/`--stack-h`）連動**要件を明記／
+> ナビの**アクセシビリティ**（`aria-current`・無効項目は span/`button disabled`・絵文字 `aria-hidden`）を厳密化／
+> **「scoped CSS」の定義**を明文化（`.admin-nav` 配下のみ・`body`/`:root`/汎用タグ/Bootstrap クラスを触らない）／
+> **テスト計画を具体化**。
 
 ## 1. 目的・背景
 
@@ -79,30 +86,69 @@ module.exports = { renderAdminNav, ADMIN_NAV_ITEMS };
 | `analytics` | アクセス解析 | `/admin/analytics` | 📊 | 有効（解析マージ後） |
 | `settings` | HP設定 | `/admin/settings` | ⚙️ | **準備中（disabled・将来）** |
 
-- 「HP設定」は**リンク無効（`aria-disabled` ＋ 淡色 ＋「準備中」バッジ）**で表示。中身は本仕様では作らない。
-  将来ページができたら `disabled` を外すだけにする。
+- 「HP設定」は**リンクにしない**（中身が無いため）。**`<span>` または `<button disabled>`** で表示し、
+  淡色＋「準備中」バッジ＋`aria-disabled="true"`。`href` は張らない。将来ページができたら要素を `<a>` に差し替える。
 
-### 4.2 `/admin` ルート（入口の一本化）
-- `netlify.toml` に `from = "/admin"` → **`/admin/articles` へ 301/302 リダイレクト**を追加（MVP）。
+### 4.2 `/admin` ルート（入口の一本化）と**認証境界**
+- **認証境界を厳密に守る**：`netlify.toml` の**単純リダイレクトでは `/admin` 自体は Basic 認証されない**
+  （リダイレクト応答は認証前に返る）。認証必須の方針を守るため、**`admin-home` Function を新設**し、
+  **`requireBasicAuth(event)` を通過してから `/admin/articles` へ 302** を返す。
+  ```
+  /admin  → admin-home Function
+             1) requireBasicAuth(event)（失敗なら 401 をそのまま返す）
+             2) 認証OK → 302 Location: /admin/articles
+  ```
+- **`/admin` と `/admin/`・クエリ付き**の両方を受ける（**正規化**）：
+  - `/admin`・`/admin/`（末尾スラッシュ）・`/admin?foo=bar` のいずれも `admin-home` に到達させ、
+    **catch-all 404 に落とさない**（受入条件・§7 でテスト）。
+  - `netlify.toml` の redirect は `from = "/admin"` と `from = "/admin/"` の**両方**を Function に向ける
+    （必要なら `/admin/*` のうちハブ対象外に誤マッチしないよう、既存の `/admin/articles` 等より**後**に
+    ならない順序で明示。既存の個別ルートを壊さないこと）。
+  - 302 の Location は絶対パス `/admin/articles`。クエリは基本的に引き継がない（管理トップに用途が無いため）。
   - 代替（将来）：軽量ダッシュボード `admin-hub-page.js`（各画面カード＋最近の状態サマリ）を `/admin` に置く。
-    MVP はリダイレクトで十分とし、ダッシュボードは Phase 2。
+    その場合も `requireBasicAuth` を先頭で必須にする。MVP はリダイレクトで十分・ダッシュボードは Phase 2。
 
-### 4.3 差し込み位置（各ページ共通の適用ルール）
+### 4.3 差し込み位置と**固定/非固定の方針**（sticky 連動）
 - 各ページの `<header>`（`.admin-header` または `.head`）**直後**に `renderAdminNav('<key>')` を挿入する。
-  ヘッダの見た目は既存のまま変えない（ナビは独立バーとして下に追加）。
-- 各ページで渡す `current` は自ページの key（articles/candidates/analytics）。
+  ヘッダの見た目は既存のまま変えない（ナビは独立バーとして下に追加）。渡す `current` は自ページの key。
+- **既定：ナビは固定しない（非 sticky）**。ページ先頭でのみ表示し、スクロール時は一緒に流れる。
+  → これにより既存の sticky レイアウト（特に候補管理）の座標計算に**影響を与えない**。実装ぶれ防止のため
+  「ナビは非固定」を既定として明記する。
+- **候補管理（`admin-candidates-page.js`）の sticky 連動（重要）**：
+  同ページは `--header-h: 48px`／`--filter-h: 48px`／`--stack-h: 96px`（= header + filter）を CSS 変数で持ち、
+  `.admin-header`（`top:0`）→ フィルタバー（`top: var(--header-h)`）→ 表ヘッダ `th`（`top: var(--stack-h)`）が
+  連動している。
+  - **ナビを非固定にする場合（既定）**：これらの変数は**変更不要**。ナビはヘッダ直後・非 sticky で置くだけ。
+  - **ナビを固定表示にしたい場合（任意）**：`.admin-header` の下にナビを sticky で重ねる分、
+    **`--header-h` を「ヘッダ高＋ナビ高」に、`--stack-h` を `header-h + filter-h + ナビ高` に更新**しないと、
+    フィルタバー・表ヘッダの sticky 位置がナビと重なる。固定を選ぶ場合はこの変数更新を受入条件に含める。
+  - MVP は**非固定を採用**（変数を触らない＝最小差分・最小リスク）。固定は Phase 2 で検討。
 
 ### 4.4 スタイル整合の方針
 - **本仕様ではスタイル統一（方言A→B寄せ等）は行わない**（差分最小・リスク回避）。ナビだけを両対応にする。
 - 将来的に各ページの重複 CSS を共有化する場合は別 Issue（`lib/admin-styles.js` 化）として切り出す（任意・Phase 2）。
 
+### 4.5 「scoped CSS」の定義（厳守）
+ナビが内包する `<style>` は、**`.admin-nav` 配下のセレクタだけ**を対象にする。次を**変更してはならない**：
+- `body` / `html` / `:root`（CSS 変数の再定義を含む。特に候補管理の `--header-h`/`--stack-h`、
+  解析の `--navy`/`--orange` 等に触れない）。
+- `a` / `button` / `ul` / `nav` などの**汎用タグセレクタ**（`.admin-nav` で必ず限定する。例 `.admin-nav a { … }`）。
+- **Bootstrap の既存クラス**（`.btn`・`.container`・`.badge` 等）や各ページ独自クラス。
+- 目的：**方言A（Bootstrap）でも方言B（アクセス解析の完全自己完結 CSS）でも副作用ゼロ**で載ること。
+  アクセス解析画面は外部 CDN 非依存の自己完結 CSS のため、グローバル汚染は特に厳禁。
+
 ## 5. 画面仕様（共通ナビ）
 
-- 位置：ヘッダ直下の横並びバー。左からナビ項目、アクティブ項目を塗り（navy 背景/白文字）でハイライト。
-- 無効項目（HP設定）：淡色＋カーソル `not-allowed`＋「準備中」小バッジ。クリック不可（`href` を張らない）。
+- 位置：ヘッダ直下の横並びバー（**非固定**・§4.3）。アクティブ項目を塗り（navy 背景/白文字）でハイライト。
+- 無効項目（HP設定）：淡色＋カーソル `not-allowed`＋「準備中」小バッジ。**リンクにせず** `<span>`/`<button disabled>`。
 - レスポンシブ：狭幅では横スクロール（`overflow-x:auto`・`white-space:nowrap`）で崩さない。
-- アクセシビリティ：`<nav aria-label="管理メニュー">`、アクティブに `aria-current="page"`、無効に `aria-disabled="true"`。
-- アイコン：絵文字（CDN不要）。将来インライン SVG に差し替え可。
+- **アクセシビリティ（厳守）**：
+  - コンテナは `<nav aria-label="管理メニュー">`。
+  - 有効な現在地の項目に **`aria-current="page"`**（active スタイルと一致）。
+  - 準備中項目は**リンクにしない**：`<span aria-disabled="true">` または `<button type="button" disabled>`。
+  - **絵文字アイコンは `aria-hidden="true"`**（装飾）とし、**ラベル本文（記事管理 等）は必ずテキストで残す**
+    （アイコンだけにしない）。
+- アイコン：絵文字（CDN不要・`aria-hidden`）。将来インライン SVG に差し替え可。
 
 ### ワイヤー（イメージ）
 ```
@@ -116,31 +162,56 @@ module.exports = { renderAdminNav, ADMIN_NAV_ITEMS };
 ## 6. 実装対象ファイル
 
 - **新規**：`netlify/functions/lib/admin-nav.js`（`renderAdminNav`・`ADMIN_NAV_ITEMS`）。
+- **新規**：`netlify/functions/admin-home.js`（`/admin` の入口。`requireBasicAuth` → 302 `/admin/articles`・§4.2）。
 - **変更**：
   - `netlify/functions/admin-articles-page.js`：`require` してヘッダ直後に `renderAdminNav('articles')` 挿入。
   - `netlify/functions/admin-candidates-page.js`：同上 `renderAdminNav('candidates')`。
   - `netlify/functions/admin-analytics-page.js`：同上 `renderAdminNav('analytics')`（**解析ブランチ側に適用**・§8）。
-  - `netlify.toml`：`/admin` → `/admin/articles` リダイレクトを追加。
-- **テスト**：`scripts/lib/__tests__/test-admin-nav.js`（新規・§9）。
+  - `netlify.toml`：`from = "/admin"` と `from = "/admin/"` を **`admin-home`** に向ける redirect を追加
+    （`/admin/articles` 等の既存個別ルートを壊さない順序で）。
+- **テスト**：`scripts/lib/__tests__/test-admin-nav.js`（新規・§7）。
 
-## 7. テスト計画
+## 7. テスト計画（具体化）
 
-- `renderAdminNav('articles')` が:
-  - 4 項目すべてを含む（記事/候補/アクセス解析/HP設定）。
-  - `articles` のみ**アクティブ**（`aria-current="page"`）で、他は非アクティブ。
-  - `settings` は**無効**（`aria-disabled="true"`・`href` 無し・「準備中」表記）。
-  - 各有効項目の `href` が正しい（`/admin/articles`・`/admin/candidates`・`/admin/analytics`）。
-  - 出力に外部 CDN 参照（`cdn.jsdelivr`・`http`）を含まない（自己完結）。
-- 各ページ Function の出力にナビ HTML（`mzadmin-nav`）が 1 回だけ含まれ、認証（`requireBasicAuth`）が先に効く。
-- 既存テスト回帰：`test-admin.js` ほか全 PASS。
+既存 `scripts/lib/__tests__/test-admin.js` は**記事画面中心**。以下を追加対象にする。
+
+### 7.1 `renderAdminNav(key)`（単体・`test-admin-nav.js`）
+- 4 項目すべてを含む（記事/候補/アクセス解析/HP設定）。
+- 指定 key（例 `articles`）**のみ** `aria-current="page"`＝アクティブ、他は非アクティブ。
+- `settings` は**リンクでない**（`<a href` を持たない）＝ `aria-disabled="true"`＋「準備中」表記。
+- 各有効項目の `href` が正しい（`/admin/articles`・`/admin/candidates`・`/admin/analytics`）。
+- **CDN URL を含まない**（`cdn.jsdelivr`・`http://`・`https://` の外部参照が出力に無い＝自己完結）。
+- 絵文字に `aria-hidden="true"` が付き、各項目に**テキストラベル**が残る。
+- `<nav aria-label="管理メニュー">` を含む。
+
+### 7.2 各ページへの適用（単体）
+- 記事／候補／解析の各 Function 出力に、ナビ（`.admin-nav`）が **ちょうど 1 つ**含まれる。
+- ナビの `<style>` が **`.admin-nav` 配下のみ**（`body`/`:root`/`.btn` 等のグローバルセレクタを含まない）。
+- 認証：`requireBasicAuth` が**先に評価**される（未認証は 401、ナビ HTML を返さない）。
+
+### 7.3 `/admin` 入口（`admin-home`）
+- 未認証：`/admin`・`/admin/` ともに **401**（`WWW-Authenticate` 付き）。
+- 認証済み：`/admin`・`/admin/`・`/admin?foo=bar` すべて **302 Location `/admin/articles`**。
+- **catch-all 404 に落ちない**（`/admin`・`/admin/` が確実に Function に到達する）ことを確認。
+
+### 7.4 目視（手動・Deploy Preview）
+- **モバイル幅**でナビが横スクロールで崩れない。
+- **候補管理の sticky 表ヘッダ**がナビ追加後もズレない（非固定方針＝§4.3 の変数不変更を確認）。
+
+### 7.5 回帰
+- `test-admin.js` ほか全 PASS、`npm run build` 成功。
 
 ## 8. 実装順序・マージ調整（重要）
 
-アクセス解析系が**未コミット**のため、衝突回避のため次の順で進める:
-1. **先に解析ブランチを確定**（`admin-analytics-page.js` 等をコミット/PR 化）。
-2. その後 or 併せて **`lib/admin-nav.js` を追加**し、記事・候補・解析の 3 ページへ適用。
-   - 解析ページへの適用は解析ブランチ上で行う（同一ファイルを二重編集しない）。
-3. `netlify.toml` の `/admin` リダイレクトを追加（解析の redirect 追加と同じ差分に載せると衝突しにくい）。
+アクセス解析系が**未コミットの並行差分**（`admin-analytics-page.js`・`admin-list-analytics.js`・
+`netlify.toml` ほか）として存在する。特に **`netlify.toml` は `/admin` の追加と競合**するため、
+**アクセス解析を先に確定してからハブ化**するのが安全。次の順で進める:
+1. **先に解析ブランチを確定**（`admin-analytics-page.js`・`admin-list-analytics.js`・`analytics-cleanup.js`・
+   `lib/analytics-store.js`・`track-visit.js` と `netlify.toml` の解析 redirect をコミット/PR 化・マージ）。
+2. その後 **`lib/admin-nav.js` と `admin-home.js` を追加**し、記事・候補・解析の 3 ページへナビ適用。
+   - 解析ページへの適用は解析確定後に行う（同一ファイル `admin-analytics-page.js` を二重編集しない）。
+3. `netlify.toml` の `/admin`・`/admin/` → `admin-home` redirect を追加（**解析の `netlify.toml` 差分が
+   main に入った後**に追記して競合を避ける）。既存の `/admin/articles` 等の個別ルートは順序・内容とも変更しない。
 
 ## 9. 段階リリース
 
