@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "輸入時に税関で納付した消費税は、課税事業者（原則課税）であれば消費税申告で仕入税額控除でき、輸出比率が高い場合は還付となります。必要書類と申告の流れを解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-15T16:51:20.652+09:00"
 publish_at: "2026-07-16T11:38:00.000+09:00"
-published_at: ""
+published_at: "2026-07-16T12:03:01.233+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-15T07:36:49.119Z"
-updated_at: "2026-07-15T16:51:20.652+09:00"
+updated_at: "2026-07-16T12:03:01.233+09:00"
 publish_slot: "morning"
 ---
 
