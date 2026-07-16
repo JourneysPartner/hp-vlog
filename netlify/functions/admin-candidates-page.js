@@ -16,6 +16,7 @@
  */
 
 const { requireBasicAuth } = require('./lib/admin-auth');
+const { renderAdminNav } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -162,6 +163,8 @@ const HTML = `<!DOCTYPE html>
   <h1><i class="bi bi-check2-square"></i> 候補管理｜質疑応答事例</h1>
   <div class="meta" id="meta-info">読込中…</div>
 </header>
+
+${renderAdminNav('candidates')}
 
 <div class="filter-bar">
   <label>税目:</label>
@@ -532,7 +535,11 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
     body: HTML,
   };
 };

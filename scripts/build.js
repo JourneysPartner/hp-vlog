@@ -21,6 +21,17 @@ const PARTIALS     = path.join(TEMPLATES, 'partials');
 const PAGES_DIR    = path.join(TEMPLATES, 'pages');
 const BLOG_OUT     = path.join(ROOT, 'blog');
 
+const ANALYTICS_BEACON = `
+<script>
+(() => {
+  if (location.hostname !== 'mori-zeirishi.net' || navigator.doNotTrack === '1') return;
+  const body = JSON.stringify({ p: location.pathname });
+  if (!navigator.sendBeacon('/track', body)) {
+    fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+  }
+})();
+</script>`;
+
 // ── 共通パーシャル読み込み ──────────────────────────────────────
 const HEADER_HTML = fs.readFileSync(path.join(PARTIALS, 'header.html'), 'utf8');
 const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
@@ -35,6 +46,12 @@ function injectPartials(html) {
   return html
     .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
     .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML);
+}
+
+function injectAnalyticsBeacon(html) {
+  if (html.includes("navigator.sendBeacon('/track'")) return html;
+  if (!html.includes('</body>')) throw new Error('計測ビーコンを注入できません: </body> がありません');
+  return html.replace('</body>', `${ANALYTICS_BEACON}\n</body>`);
 }
 
 // ── シンプルなテンプレート置換（{{KEY}} → value）────────────────
@@ -453,11 +470,33 @@ function buildStaticPages(posts) {
 
   for (const page of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
-    const html = injectPartials(src)
+    const html = injectAnalyticsBeacon(injectPartials(src))
       .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml);
     fs.writeFileSync(path.join(ROOT, page), html, 'utf8');
     console.log(`[build]   → ${page}`);
   }
+}
+
+function writeAnalyticsPageMap(posts) {
+  const map = {};
+  if (fs.existsSync(PAGES_DIR)) {
+    for (const page of fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html'))) {
+      const raw = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
+      const match = raw.match(/<title>([\s\S]*?)<\/title>/i);
+      const title = match ? match[1].trim().replace(/｜毛利順活税理士事務所$/, '') : page;
+      map[page === 'index.html' ? '/' : `/${page}`] = title;
+    }
+  }
+  map['/blog/'] = '税務コラム';
+  for (const post of posts) if (post.slug) map[`/blog/${post.slug}/`] = post.title || post.slug;
+  for (const category of CATEGORIES) {
+    if (posts.some(post => post.category === category.ja)) map[`/blog/category/${category.slug}/`] = `${category.ja}の記事一覧`;
+  }
+  for (const macro of MACROS) {
+    if (posts.some(post => post.macro === macro.ja)) map[`/blog/macro/${macro.slug}/`] = `${macro.ja}向けの記事`;
+  }
+  fs.writeFileSync(path.join(ROOT, 'analytics-page-map.json'), `${JSON.stringify(map, null, 2)}\n`, 'utf8');
+  console.log(`[build]   → analytics-page-map.json (${Object.keys(map).length} 件)`);
 }
 
 // ── エントリポイント ────────────────────────────────────────────
@@ -475,8 +514,8 @@ function main() {
   fs.mkdirSync(BLOG_OUT, { recursive: true });
 
   // テンプレート読み込み → パーシャル注入
-  const listTpl = injectPartials(readTemplate('blog-list.html'));
-  const postTpl = injectPartials(readTemplate('blog-post.html'));
+  const listTpl = injectAnalyticsBeacon(injectPartials(readTemplate('blog-list.html')));
+  const postTpl = injectAnalyticsBeacon(injectPartials(readTemplate('blog-post.html')));
 
   // slug → post のマップ（関連記事リンク用）
   const postsMap = new Map();
@@ -553,6 +592,8 @@ function main() {
       },
     });
   }
+
+  writeAnalyticsPageMap(posts);
 
   console.log('[build] 完了');
 }

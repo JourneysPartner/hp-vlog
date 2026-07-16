@@ -13,6 +13,7 @@
  */
 
 const { requireBasicAuth } = require('./lib/admin-auth');
+const { renderAdminNav } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -125,6 +126,8 @@ const HTML = `<!DOCTYPE html>
     <div class="subtitle">毛利順活税理士事務所｜公開済み記事の未公開・公開予約取消・状態確認</div>
   </div>
 </header>
+
+${renderAdminNav('articles')}
 
 <main class="container">
   <div class="filter-bar">

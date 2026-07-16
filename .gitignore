@@ -14,4 +14,5 @@ secrets/
 /voice.html
 /contact.html
 /privacy.html
+/analytics-page-map.json
 deno.lock
