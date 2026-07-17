@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "フリマ・転売で売上が増えると事業所得か雑所得かで迷いやすい。判断は「継続性・反復性」と「帳簿の有無」が鍵。ケース別の確認ポイントと証憑管理のコツを解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-17T15:37:21.597+09:00"
+publish_at: "2026-07-18T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-17T00:07:17.567Z"
-updated_at: "2026-07-17T00:07:17.567Z"
+updated_at: "2026-07-17T15:37:21.597+09:00"
+publish_slot: "evening"
 ---
 
 ## 判断が分かれやすい場面はここ
