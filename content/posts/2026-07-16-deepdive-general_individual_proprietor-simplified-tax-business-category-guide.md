@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "簡易課税の業種区分（第1〜6種）はみなし仕入率40〜90%に直結します。複数事業を兼業する場合は事業ごとに区分するか、特例で最大2区分まで有利な率が適用できます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-16T15:46:26.265+09:00"
 publish_at: "2026-07-17T11:41:00.000+09:00"
-published_at: ""
+published_at: "2026-07-17T12:08:27.998+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-16T00:06:13.855Z"
-updated_at: "2026-07-16T15:46:26.265+09:00"
+updated_at: "2026-07-17T12:08:27.998+09:00"
 publish_slot: "morning"
 ---
 ## この記事でわかること
