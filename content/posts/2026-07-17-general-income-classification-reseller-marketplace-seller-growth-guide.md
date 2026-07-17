@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "フリマ・転売の利益が事業所得か雑所得かは「継続性・営利性・規模・記帳の有無」で判断する。青色申告の特別控除や損失の繰越は事業所得にしか適用されないため、売上拡大期の早めの確認が重要。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-17T15:36:43.920+09:00"
+publish_at: "2026-07-18T11:43:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-17T00:06:35.322Z"
-updated_at: "2026-07-17T00:06:35.322Z"
+updated_at: "2026-07-17T15:36:43.920+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
