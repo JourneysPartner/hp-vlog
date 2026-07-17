@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "通関時に支払った輸入消費税は、課税事業者なら消費税申告で仕入税額控除として取り戻せます。免税事業者は還付不可。課税方式（原則・簡易）によって手続きが異なるため、輸入書類の保存と申告方法を事前に確認しましょう。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-16T15:09:08.706+09:00"
 publish_at: "2026-07-17T17:16:00.000+09:00"
-published_at: ""
+published_at: "2026-07-17T18:03:42.219+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-16T00:07:01.325Z"
-updated_at: "2026-07-16T15:09:08.706+09:00"
+updated_at: "2026-07-17T18:03:42.219+09:00"
 publish_slot: "evening"
 ---
 
