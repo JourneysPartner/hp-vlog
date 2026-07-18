@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBayセラーの経費グレーゾーン（手数料・梱包材・自宅光熱費・仕入れ調査費など）は、事業目的の証跡を残しながら按分根拠を記録しておくことが実務の核心。本記事では書類保存・処理手順・よくあるミスを整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-18T21:06:46.649+09:00"
+publish_at: "2026-07-19T17:13:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-18T00:06:48.537Z"
-updated_at: "2026-07-18T00:06:48.537Z"
+updated_at: "2026-07-18T21:06:46.649+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
