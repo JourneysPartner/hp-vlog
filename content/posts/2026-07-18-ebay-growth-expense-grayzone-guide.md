@@ -33,15 +33,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBayセラーの経費は「事業との直接関係」と「按分の合理性」が判断軸。プラットフォーム手数料・仕入・送料は明確に落とせる一方、自宅作業スペース・スマホ代・海外仕入れ旅費は按分根拠の記録が不可欠です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-18T21:04:16.899+09:00"
+publish_at: "2026-07-19T11:10:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-18T00:05:52.142Z"
-updated_at: "2026-07-18T00:05:52.142Z"
+updated_at: "2026-07-18T21:04:16.899+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
