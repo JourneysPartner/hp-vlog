@@ -1,6 +1,17 @@
 # 仕様書・設計書：出典の自動マッチャ＋ガードレール
 
-最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v6・レビュー反映・codex 実装向け）
+最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v7・レビュー反映・codex 実装向け）
+
+> v7 反映（`promote-source.js` の P1×1・P2×2）：
+> **[P1] promotion を fail-closed の2段階に** — 「マップ登録→URL検証」の順だと中止時にマップだけ更新済みになる。
+> **Preflight（書き込みなしで全検証）→ Apply（全通過後にマップと記事を更新・途中失敗は両方ロールバック）** に変更。
+> 失敗テストは「URL不一致／既存マップ競合／対象記事が published」で**マップも記事も一切変更されない**ことを確認。
+> **[P2] promotion 後の recommendation 変換を明記** — `evaluateTopicFit` の成功は `decision='approve'` だが
+> frontmatter 正規値は `recommendation='publish'`。**`draft-normalizer` と同じ変換を共通関数化**
+> （`recommendation = fit.decision==='approve' ? 'publish' : fit.decision`）。E2E で
+> `provenance==='curated'`／`source_alignment_score===5`／`recommendation==='publish'`／`recommendation!=='approve'` を明示検証。
+> **[P2] §7 の再生成対象一覧を一式へ統一** — 本文・テストは7項目復元だが §7 だけ「version＋provenance/confidence」のまま。
+> `source_url/source_title/source_provenance/source_confidence/source_guard_version/pain_point/tax_domain` に統一。
 
 > v6 反映（v5 の厳密化で判明した P1×2・P2×1）：
 > **[P1] 再生成後に固定する項目を拡張** — provenance/confidence だけでは不足（全文再生成テンプレは `pain_point`/`tax_domain`
@@ -265,13 +276,24 @@ provenance だけ復元しても **URL 改変が素通り**する／explicit で
 #### 保留の解除：人が確認した auto 記事の承認可能化（P1）
 auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート（`recommendation==='revise'` を 400 拒否）に止まる。
 **`DEFAULT_SOURCE_BY_PAIN` へ昇格しても、既存記事の frontmatter は auto/revise のまま**＝永久ブロックになる。
-そこで**人の確認後の遷移**を専用手順（例：`scripts/promote-source.js`／管理操作）として契約化する：
-1. 候補を **`DEFAULT_SOURCE_BY_PAIN` に登録**（curated 化）。
-2. 対象記事の **`source_url` と登録URLの一致を検証**（不一致なら中止＝取り違え防止）。
-3. frontmatter の **`source_provenance` を `auto` → `curated`** に更新。
-4. **`evaluateTopicFit` を再実行**し、**`recommendation`・各スコア（source_alignment 等）を更新**。
-5. **再 `validate`** して、`review-approve-background` で**承認可能**になることを確認。
-- **E2E テスト**：「auto 記事 → 人が確認 → curated 化 → 承認成功（400 にならない）」を検証。
+そこで**人の確認後の遷移**を専用手順（`scripts/promote-source.js`）として、**fail-closed の2段階**で契約化する
+（「マップ登録→URL検証」の順だと、URL 不一致で中止しても `DEFAULT_SOURCE_BY_PAIN` だけ更新済みになり、以後の topic が
+誤って curated 扱いされる）。
+- **Preflight（書き込み一切なし・全検証）**：対象記事の `source_provenance`（auto/fallback であること）・`review_status`
+  （published でないこと）・`pain_point`・`source_url`、**登録URLと記事URLの一致**、**既存マップとの競合**（同 pain に別URLが
+  既登録でないか）、**NTA カタログ収録**（登録URLが `index.json` に存在）を**すべて検証**。1つでも失敗なら**中止（無変更）**。
+- **Apply（全検証成功後のみ）**：`DEFAULT_SOURCE_BY_PAIN` への登録**と**記事 frontmatter の更新を行う。
+  **途中で失敗したら、マップ・記事の両方を変更前へロールバック**する（部分適用を残さない）。
+- 記事 frontmatter の更新内容：
+  - `source_provenance` を **`auto` → `curated`**。
+  - **`evaluateTopicFit` を再実行**し、**`recommendation`・各スコア（source_alignment 等）を更新**。
+  - **recommendation は `draft-normalizer` と同じ共通関数で変換**：`recommendation = fit.decision==='approve' ? 'publish' : fit.decision`
+    （`decision='approve'` をそのまま保存しない。承認ゲートは reject/revise しか弾かないため `approve` だと誤って承認可能になる）。
+  - **再 `validate`**。
+- **E2E テスト（成功系）**：auto 記事 → 昇格後、`review-approve-background` で**承認成功**し、かつ
+  **`source_provenance==='curated'`／`source_alignment_score===5`／`recommendation==='publish'`／`recommendation!=='approve'`** を明示検証。
+- **E2E テスト（失敗系・無変更）**：**URL不一致／既存マップ競合／対象記事が published** のいずれでも、
+  **`DEFAULT_SOURCE_BY_PAIN` も記事 frontmatter も一切変更されない**ことを確認。
 
 **`checkSourceAlignment` の是正**：現状の「期待==実際==6501 → score 5」を**やめる**。`expectedSourceFor` に
 **「curated 由来か」** を持たせ、**curated 個別出典と一致した時だけ aligned=5**。curated でない（auto/fallback/unknown）は
@@ -318,7 +340,7 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
 - **新規**：
   - `scripts/lib/nta-source-matcher.js`（matcher 本体・専用トークナイザ）
   - `scripts/propose-sources.js`（バックフィル提案）
-  - `scripts/promote-source.js`（auto→curated の保留解除・§4.3）
+  - `scripts/promote-source.js`（auto→curated の保留解除・**Preflight/Apply の2段階 fail-closed**・§4.3）
   - `scripts/lib/__tests__/test-nta-source-matcher.js`
   - `scripts/lib/__tests__/test-source-provenance-e2e.js`（topic→frontmatter・再生成4経路の強制復元・auto→curated 昇格）
 - **変更**：
@@ -328,7 +350,8 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
   - `scripts/lib/scenario-deep-dive.js`／`scenario-expansion.js`／`scenario-new-segments.js`：早期の url/title 焼き込みをやめる。
   - `scripts/lib/draft-normalizer.js`：frontmatter に `source_provenance`/`source_confidence` を保持（欠落は unknown/0）。
   - `scripts/generate-draft.js`：`ensureSourceOnTopic` を `resolveSourceForTopic` 経由に。**再生成の全4経路（full/section/
-    targeted/title_only）完了後に、コード側で `source_guard_version:1` 強制付与＋provenance/confidence を再生成前値へ復元**
+    targeted/title_only）完了後に、コード側で一式を再生成前値へ強制復元**：
+    **`source_url`・`source_title`・`source_provenance`・`source_confidence`・`source_guard_version(=1)`・`pain_point`・`tax_domain`**
     （LLM 出力を信用しない・欠落は unknown/0 か resolver 再実行・explicit へ昇格しない）。
   - `scripts/lib/source-alignment.js`：`expectedSourceFor`（curated/explicit 由来かを返す）／`checkSourceAlignment` を provenance 対応。
   - **`scripts/lib/customer-relevance.js`（`evaluateTopicFit`）**：唯一の保留理由が source の時 `decision='revise'`＋
@@ -363,9 +386,10 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
 - **再生成4経路の強制復元（一式）**：**full／section／targeted／title_only** いずれの再生成後も、
   **`source_url`・`source_title`・`source_provenance`・`source_confidence`・`source_guard_version(=1)`・`pain_point`・
   `tax_domain`** が**再生成前の値に復元**される。**LLM 出力がこれらを改変・削除しても**再生成前値へ戻る（explicit へ昇格しない）。
-- **保留解除（auto→curated）E2E**：auto 記事（recommendation='revise'）を、マップ登録→URL一致検証→provenance を curated 化→
-  `evaluateTopicFit` 再実行→recommendation/スコア更新→再 validate、の手順後に **`review-approve-background` で承認成功
-  （400 にならない）**。URL 不一致なら昇格を中止する。
+- **保留解除（auto→curated）E2E（成功系）**：auto 記事を Preflight→Apply で昇格後、`review-approve-background` で**承認成功**し、
+  かつ **`source_provenance==='curated'`／`source_alignment_score===5`／`recommendation==='publish'`／`recommendation!=='approve'`** を明示検証。
+- **保留解除 E2E（失敗系・無変更）**：**URL不一致／既存マップ競合／対象記事が published** のいずれでも、
+  **`DEFAULT_SOURCE_BY_PAIN` も記事 frontmatter も一切変更されない**（Preflight で中止・部分適用を残さない）。
 - **レガシー両立（規則）**：version なしの **`published` のみ警告で通す**。version なしの
   **draft/needs_review/needs_revision/approved/scheduled は承認・公開できない**（`needs_revision`・`scheduled` の回帰も追加）。
   新規生成は **version 1** が付く。
@@ -412,8 +436,10 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
 - **`source_guard_version:1` を導入（規則）**：例外は **published のみ警告**、それ以外（needs_revision/scheduled 含む）は
   version なしを承認・公開不可。**再生成の全4経路完了後にコード側で version 付与＋一式（source_url/title/provenance/
   confidence/guard_version/pain_point/tax_domain）を再生成前値へ強制復元**（LLM 出力を信用しない・迂回防止の要）。
-- **保留解除（auto→curated）の遷移を契約化**：マップ登録→URL一致検証→provenance を curated 化→`evaluateTopicFit` 再実行→
-  recommendation/スコア更新→再 validate→承認可能（`scripts/promote-source.js`）。E2E テストで担保。
+- **保留解除（auto→curated）を fail-closed 2段階で契約化**（`scripts/promote-source.js`）：
+  **Preflight（書込なし全検証）→ Apply（全通過後にマップと記事を更新・途中失敗は両方ロールバック）**。
+  recommendation は **共通変換関数**（`fit.decision==='approve' ? 'publish' : fit.decision`）で `publish` に。
+  E2E で成功系（provenance=curated／score=5／recommendation=publish）と失敗系（URL不一致/競合/published は無変更）を検証。
 - **既存 CURATED_TOPICS(54件) を移行時に `explicit` 付与**。explicit は人手指定URLを正本とする信頼済み override
   （**URL 書換ブロックの検出対象は `curated`**。explicit は現在URL=期待URLのため対象外）。
 - **税目フィルタは 1対多**、未対応/欠損/破損は `null`→保留。
