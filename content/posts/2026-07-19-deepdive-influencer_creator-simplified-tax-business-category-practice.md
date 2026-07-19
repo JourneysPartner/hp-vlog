@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "YouTube広告・PR案件・デジタルコンテンツ販売など収入源が複数あるクリエイターの簡易課税業種区分を、ケース別に判断基準と注意点とともに解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「小売販売に近い形態（自社ECや直接取引）→ 実態としては第2種（小売業）に区分される場合があります」→「小売販売に近い形態（自社ECや直接取引）→ 実態としては第5種（サービス業）に区分される場合があります」が正しい。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-19T00:07:18.310Z"
-updated_at: "2026-07-19T00:07:18.310Z"
+updated_at: "2026-07-20T00:10:48.102+09:00"
 ---
 
 ## 複数収入があるクリエイターほど、業種区分で悩みやすい
