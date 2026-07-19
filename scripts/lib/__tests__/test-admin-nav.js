@@ -31,7 +31,7 @@ function count(haystack, needle) {
   process.env.ADMIN_BASIC_PASS = 's3cret';
 
   const { renderAdminNav } = require(path.join(FUNCTION_ROOT, 'lib', 'admin-nav.js'));
-  for (const key of ['articles', 'candidates', 'analytics']) {
+  for (const key of ['home', 'articles', 'candidates', 'analytics']) {
     const html = renderAdminNav(key);
     const markup = html.slice(html.indexOf('<nav'));
     assert(count(markup, '<nav class="admin-nav"') === 1, `${key}: nav is rendered once`);
@@ -49,10 +49,17 @@ function count(haystack, needle) {
   assert(unauth.headers && unauth.headers['WWW-Authenticate'], 'admin-home: 401 has challenge');
 
   const get = await adminHome.handler({ httpMethod: 'GET', headers: { authorization: authHeader() } });
-  assert(get.statusCode === 302, 'admin-home: authenticated GET is 302');
-  assert(get.headers && get.headers.Location === '/admin/articles', 'admin-home: Location is articles');
-  assert(get.headers && get.headers['Cache-Control'] === 'no-store', 'admin-home: redirect is not cached');
-  assert(get.body === '', 'admin-home: redirect body is empty');
+  assert(get.statusCode === 200, 'admin-home: authenticated GET is 200');
+  assert(get.headers && get.headers['Content-Type'].includes('text/html'), 'admin-home: response is HTML');
+  assert(get.headers && get.headers['Cache-Control'] === 'no-store', 'admin-home: dashboard is not cached');
+  assert(get.body && get.body.includes('<h1>管理トップ</h1>'), 'admin-home: dashboard title is present');
+  assert(count(get.body || '', '<nav class="admin-nav"') === 1, 'admin-home: shared nav is injected once');
+  const homeNav = get.body.slice(get.body.indexOf('<nav'), get.body.indexOf('</nav>') + 6);
+  assert(count(homeNav, 'aria-current="page"') === 1, 'admin-home: only home is current in nav markup');
+  assert(get.body && get.body.includes('href="/admin/articles"'), 'admin-home: articles card is present');
+  assert(get.body && get.body.includes('href="/admin/candidates"'), 'admin-home: candidates card is present');
+  assert(get.body && get.body.includes('href="/admin/analytics"'), 'admin-home: analytics card is present');
+  assert(get.body && get.body.includes('HP設定') && get.body.includes('準備中'), 'admin-home: settings placeholder is present');
 
   const post = await adminHome.handler({ httpMethod: 'POST', headers: { authorization: authHeader() } });
   assert(post.statusCode === 405, 'admin-home: authenticated non-GET is 405');
