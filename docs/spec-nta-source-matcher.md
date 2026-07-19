@@ -1,6 +1,16 @@
 # 仕様書・設計書：出典の自動マッチャ＋ガードレール
 
-最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v7・レビュー反映・codex 実装向け）
+最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v8・レビュー反映・codex 実装向け）
+
+> v8 反映（fail-closed 完成のための P1×2・P2×1）：
+> **[P1] promotion 可能な status を限定** — 「published でない」だけだと approved/scheduled も昇格でき、再承認なしで
+> `publish-due` が公開する経路ができる。**promotion 可能なのは `draft`/`needs_review`/`needs_revision` のみ**に確定
+> （かつ promotion 後は必ず `review_status: draft` に戻し `approved_at`/`publish_at`/`publish_slot` を消去）。失敗テストに approved/scheduled を追加。
+> promotion 可能な **provenance は実値の `auto`/`domain-fallback`** と明記。
+> **[P1] Apply 途中失敗のロールバックをテスト** — 障害注入で「マップ更新後に記事更新失敗」「マップ・記事更新後に再評価/validate 失敗」を
+> 起こし、**両ファイルとメモリ上の `DEFAULT_SOURCE_BY_PAIN` が変更前へ戻る**ことを検証。
+> **[P2] §7 の危険な旧順番を統一** — 実装対象一覧に残る「マップ登録→URL一致検証」を
+> **Preflight（無変更で全検証）→Apply（マップ・記事更新）→再評価・validate。途中失敗は両方ロールバック** に統一。
 
 > v7 反映（`promote-source.js` の P1×1・P2×2）：
 > **[P1] promotion を fail-closed の2段階に** — 「マップ登録→URL検証」の順だと中止時にマップだけ更新済みになる。
@@ -279,21 +289,29 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
 そこで**人の確認後の遷移**を専用手順（`scripts/promote-source.js`）として、**fail-closed の2段階**で契約化する
 （「マップ登録→URL検証」の順だと、URL 不一致で中止しても `DEFAULT_SOURCE_BY_PAIN` だけ更新済みになり、以後の topic が
 誤って curated 扱いされる）。
-- **Preflight（書き込み一切なし・全検証）**：対象記事の `source_provenance`（auto/fallback であること）・`review_status`
-  （published でないこと）・`pain_point`・`source_url`、**登録URLと記事URLの一致**、**既存マップとの競合**（同 pain に別URLが
-  既登録でないか）、**NTA カタログ収録**（登録URLが `index.json` に存在）を**すべて検証**。1つでも失敗なら**中止（無変更）**。
+- **Preflight（書き込み一切なし・全検証）**：次を**すべて検証**。1つでも失敗なら**中止（無変更）**。
+  - `source_provenance` が **`auto` または `domain-fallback`**（実値。curated/explicit/unknown は対象外）。
+  - **`review_status` が `draft` / `needs_review` / `needs_revision` のいずれか**（＝**未承認のみ**）。
+    **approved / scheduled / published は不可**（承認済み記事を再承認なしに書き換えて `publish-due` が公開する経路を塞ぐ）。
+  - `pain_point`・`source_url` の存在、**登録URLと記事URLの一致**、**既存マップとの競合**（同 pain に別URLが既登録でないか）、
+    **NTA カタログ収録**（登録URLが `index.json` に存在）。
 - **Apply（全検証成功後のみ）**：`DEFAULT_SOURCE_BY_PAIN` への登録**と**記事 frontmatter の更新を行う。
-  **途中で失敗したら、マップ・記事の両方を変更前へロールバック**する（部分適用を残さない）。
+  **途中で失敗したら、マップ・記事の両方（ファイル＋メモリ上の `DEFAULT_SOURCE_BY_PAIN`）を変更前へロールバック**する
+  （部分適用を残さない）。
 - 記事 frontmatter の更新内容：
-  - `source_provenance` を **`auto` → `curated`**。
+  - `source_provenance` を **`auto`/`domain-fallback` → `curated`**。
+  - **`review_status` を `draft` に戻し**、**`approved_at`/`publish_at`/`publish_slot` を消去**（昇格後は必ず再レビューを経る）。
   - **`evaluateTopicFit` を再実行**し、**`recommendation`・各スコア（source_alignment 等）を更新**。
   - **recommendation は `draft-normalizer` と同じ共通関数で変換**：`recommendation = fit.decision==='approve' ? 'publish' : fit.decision`
     （`decision='approve'` をそのまま保存しない。承認ゲートは reject/revise しか弾かないため `approve` だと誤って承認可能になる）。
   - **再 `validate`**。
 - **E2E テスト（成功系）**：auto 記事 → 昇格後、`review-approve-background` で**承認成功**し、かつ
   **`source_provenance==='curated'`／`source_alignment_score===5`／`recommendation==='publish'`／`recommendation!=='approve'`** を明示検証。
-- **E2E テスト（失敗系・無変更）**：**URL不一致／既存マップ競合／対象記事が published** のいずれでも、
-  **`DEFAULT_SOURCE_BY_PAIN` も記事 frontmatter も一切変更されない**ことを確認。
+- **E2E テスト（Preflight 失敗・無変更）**：**URL不一致／既存マップ競合／status が approved・scheduled・published** の
+  いずれでも、**`DEFAULT_SOURCE_BY_PAIN` も記事 frontmatter も一切変更されない**ことを確認。
+- **E2E テスト（Apply 途中失敗・ロールバック）**：障害注入で
+  (a)「マップ更新後に記事更新が失敗」、(b)「マップ・記事更新後に再評価/validate が失敗」を起こし、
+  **両ファイル＋メモリ上の `DEFAULT_SOURCE_BY_PAIN` が変更前へ戻る**ことを確認。
 
 **`checkSourceAlignment` の是正**：現状の「期待==実際==6501 → score 5」を**やめる**。`expectedSourceFor` に
 **「curated 由来か」** を持たせ、**curated 個別出典と一致した時だけ aligned=5**。curated でない（auto/fallback/unknown）は
@@ -357,8 +375,10 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
   - **`scripts/lib/customer-relevance.js`（`evaluateTopicFit`）**：唯一の保留理由が source の時 `decision='revise'`＋
     `source_hold=true`＋`selection_eligible=true` を返す（フラグは frontmatter に保存しない・§4.3）。
   - **`scripts/lib/topic-selector.js`**：品質ゲートで **`decision==='approve'` または `selection_eligible===true`** を通す（他の revise は除外のまま）。
-  - **`scripts/promote-source.js`（新規）**：auto 記事の保留解除（マップ登録→URL一致検証→provenance を curated 化→
-    `evaluateTopicFit` 再実行→recommendation/スコア更新→再 validate。§4.3）。
+  - **`scripts/promote-source.js`（新規）**：auto/domain-fallback 記事の保留解除。**Preflight（無変更で全検証：
+    provenance・status[draft/needs_review/needs_revision のみ]・URL一致・マップ競合・カタログ収録）→ Apply（マップ・記事更新：
+    provenance を curated 化・status を draft へ戻す・`evaluateTopicFit` 再実行・recommendation を共通変換・再 validate）**。
+    **途中失敗は両方（ファイル＋メモリ）ロールバック**。§4.3。
   - **`scripts/topic-pool.js`**：既存 `CURATED_TOPICS`(54件) に `source_provenance:'explicit'` を付与（§4.2 移行）。
   - `scripts/lib/draft-normalizer.js`：`source_provenance`/`source_confidence` に加え **`source_guard_version:1`** を付与。
   - `netlify/functions/review-approve-background.js`：**承認時に再判定**（保存 score を信用しない・version なしは §4.3 で分岐）。
@@ -437,9 +457,12 @@ auto 記事は `recommendation='revise'`＋`provenance=auto` で承認ゲート�
   version なしを承認・公開不可。**再生成の全4経路完了後にコード側で version 付与＋一式（source_url/title/provenance/
   confidence/guard_version/pain_point/tax_domain）を再生成前値へ強制復元**（LLM 出力を信用しない・迂回防止の要）。
 - **保留解除（auto→curated）を fail-closed 2段階で契約化**（`scripts/promote-source.js`）：
-  **Preflight（書込なし全検証）→ Apply（全通過後にマップと記事を更新・途中失敗は両方ロールバック）**。
-  recommendation は **共通変換関数**（`fit.decision==='approve' ? 'publish' : fit.decision`）で `publish` に。
-  E2E で成功系（provenance=curated／score=5／recommendation=publish）と失敗系（URL不一致/競合/published は無変更）を検証。
+  **Preflight（書込なし全検証）→ Apply（全通過後にマップと記事を更新・途中失敗は両方＝ファイル＋メモリをロールバック）**。
+  - **対象 provenance は `auto`/`domain-fallback`**。**対象 status は未承認（`draft`/`needs_review`/`needs_revision`）のみ**
+    （approved/scheduled/published は不可）。昇格後は **status を draft に戻し `approved_at`/`publish_at`/`publish_slot` を消去**。
+  - recommendation は **共通変換関数**（`fit.decision==='approve' ? 'publish' : fit.decision`）で `publish` に。
+  - E2E：成功系（provenance=curated／score=5／recommendation=publish／status=draft）／Preflight 失敗系（URL不一致・競合・
+    approved/scheduled/published は無変更）／Apply 途中失敗系（障害注入で両方ロールバック）。
 - **既存 CURATED_TOPICS(54件) を移行時に `explicit` 付与**。explicit は人手指定URLを正本とする信頼済み override
   （**URL 書換ブロックの検出対象は `curated`**。explicit は現在URL=期待URLのため対象外）。
 - **税目フィルタは 1対多**、未対応/欠損/破損は `null`→保留。
