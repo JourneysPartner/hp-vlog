@@ -2,6 +2,13 @@
 
 const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, findApprovedArticlesForDate } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
+const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
+
+function approvalSourceGuard(content) {
+  return evaluateSourceGuard(parseFrontmatterMeta(content), { stage: 'approve' });
+}
+
+exports.approvalSourceGuard = approvalSourceGuard;
 
 /**
  * review-approve-background — 「このまま公開」操作（完全自動 / バックグラウンド実行）
@@ -82,6 +89,19 @@ exports.handler = async (event) => {
 
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
+
+    const sourceGuard = approvalSourceGuard(content);
+    if (sourceGuard.blocked) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: 'Source review is required before approval.',
+          blocked: true,
+          reasons: sourceGuard.reasons,
+        }),
+      };
+    }
 
     // frontmatter から記事情報を抽出
     const fmTitle    = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';

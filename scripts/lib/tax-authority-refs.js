@@ -313,6 +313,12 @@ const NEW_SEGMENT_PAIN_SOURCE = {
 };
 Object.assign(DEFAULT_SOURCE_BY_PAIN, NEW_SEGMENT_PAIN_SOURCE);
 
+// 人が matcher の提案を確認して curated へ昇格した追加分。
+// JSON を静的 require にして、生成スクリプトと Netlify Functions の双方で
+// 同じ信頼済みマップを参照できるようにする。
+const PROMOTED_SOURCE_BY_PAIN = require('../../data/curated-source-promotions.json');
+Object.assign(DEFAULT_SOURCE_BY_PAIN, PROMOTED_SOURCE_BY_PAIN);
+
 // 個別出典を確定できない pain。これらは source_alignment_score を 5 にせず
 // revise 扱いにする（消費税の課税区分・時期など、検証済みカタログに適切な
 // 個別ページが無いもの。捏造しない）。source-alignment.js が参照する。
@@ -333,19 +339,57 @@ const ULTIMATE_FALLBACK = {
  * tax_domain → pain_point の順で適切なデフォルト出典を返す。
  * 必ず非空の { url, title } を返す（最終フォールバックは国税庁トップ）。
  */
-function getDefaultSourceForTopic(topic) {
+function resolveSourceForTopic(topic = {}) {
   const painId    = topic.pain_point || topic.pain || '';
   const taxDomain = topic.tax_domain || '';
 
+  // 明示指定は provenance を伴う場合だけ信頼する。URL があるだけでは explicit にしない。
+  if (topic.source_provenance === 'explicit' && topic.source_url) {
+    return {
+      url: topic.source_url,
+      title: topic.source_title || topic.source_url,
+      provenance: 'explicit',
+      confidence: Number.isFinite(Number(topic.source_confidence)) ? Number(topic.source_confidence) : 1,
+    };
+  }
+
   if (painId && DEFAULT_SOURCE_BY_PAIN[painId]) {
     const r = DEFAULT_SOURCE_BY_PAIN[painId];
-    return { url: r.url, title: r.title };
+    return { url: r.url, title: r.title, provenance: 'curated', confidence: 1 };
   }
+
+  // matcher はこの経路でだけ遅延ロードする。承認/公開時の source-alignment は
+  // ローカルカタログを必要とせず、Netlify bundle でも軽量なまま動く。
+  try {
+    const { rankSources, selectSource } = require('./nta-source-matcher');
+    const selected = selectSource(rankSources(topic));
+    if (selected) {
+      return {
+        url: selected.url,
+        title: selected.title,
+        provenance: 'auto',
+        confidence: selected.confidence,
+        margin: selected.margin,
+      };
+    }
+  } catch (_error) {
+    // カタログ障害は下の domain fallback に倒す。
+  }
+
   if (taxDomain && DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain]) {
     const r = DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain];
-    return { url: r.url, title: r.title };
+    return { url: r.url, title: r.title, provenance: 'domain-fallback', confidence: 0 };
   }
-  return { url: ULTIMATE_FALLBACK.url, title: ULTIMATE_FALLBACK.title };
+  return {
+    url: ULTIMATE_FALLBACK.url,
+    title: ULTIMATE_FALLBACK.title,
+    provenance: 'ultimate',
+    confidence: 0,
+  };
+}
+
+function getDefaultSourceForTopic(topic) {
+  return resolveSourceForTopic(topic);
 }
 
 // ── 番号 → URL 解決（カタログ優先 / 未収録は番号レンジから推定）─────
@@ -416,8 +460,10 @@ module.exports = {
   getRefsForTopic,
   formatRefsForPrompt,
   getDefaultSourceForTopic,
+  resolveSourceForTopic,
   DEFAULT_SOURCE_BY_TAX_DOMAIN,
   DEFAULT_SOURCE_BY_PAIN,
+  PROMOTED_SOURCE_BY_PAIN,
   NEEDS_SOURCE_REVIEW,
   resolveNtaUrlByNumber,
   NTA_URL_PREFIX_RULES,

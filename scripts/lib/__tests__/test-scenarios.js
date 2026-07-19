@@ -114,10 +114,13 @@ console.log('\n=== Test 7: 全 topic に必須フィールドがある ===');
   if (allOk) { console.log(`  ✓ 全 ${topics.length} 件で必須フィールド充足`); passed++; }
 }
 
-// ── 7b. 全 topic に source_url / source_title がある（validate.js 互換）─
-console.log('\n=== Test 7b: 全 topic に source_url / source_title がある ===');
+// ── 7b. 展開後・選定前の一括 resolver で source が付く ─────────
+console.log('\n=== Test 7b: topic-pool resolver が source_url / source_title を付与 ===');
 {
-  const topics = expandAll();
+  const expanded = expandAll();
+  assert(expanded.every(t => !t.source_url && !t.source_title),
+    'scenario 展開層では出典を早期確定しない');
+  const topics = getAllTopics();
   const missing = topics.filter(t => !t.source_url || !t.source_title);
   assert(missing.length === 0,
     `source 未設定: ${missing.length}/${topics.length}` +

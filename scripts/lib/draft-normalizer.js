@@ -15,7 +15,7 @@
  * → LLM に frontmatter を完全依存せず、必須項目をシステムで保証する。
  */
 
-const { evaluateTopicFit } = require('./customer-relevance');
+const { evaluateTopicFit, recommendationForDecision } = require('./customer-relevance');
 
 const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
 
@@ -204,7 +204,9 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   // 適合スコア（顧客カテゴリ関連性・出典一致等）をレビュー画面用に付与する。
   // 生成時に code 側で算出し、レビュアーが判断材料として見られるようにする。
   const fit = evaluateTopicFit({ ...topic, article_type: articleType });
-  const recommendation = fit.decision === 'approve' ? 'publish' : fit.decision; // publish | revise | reject
+  const recommendation = recommendationForDecision(fit.decision); // publish | revise | reject
+  const sourceConfidence = Number.isFinite(Number(topic.source_confidence))
+    ? Number(topic.source_confidence) : 0;
 
   return `---
 title: "${escFm(title)}"
@@ -219,6 +221,9 @@ related_title: "${escFm(relatedTitle)}"
 related_link_text: "${escFm(relatedLinkText)}"
 source_url: "${escFm(topic.source_url || '')}"
 source_title: "${escFm(topic.source_title || '')}"
+source_provenance: "${escFm(topic.source_provenance || 'unknown')}"
+source_confidence: ${sourceConfidence}
+source_guard_version: 1
 search_intent: "${escFm(topic.search_intent || '')}"
 reader_problem: "${escFm(topic.reader_problem || '')}"
 success_outcome: "${escFm(topic.success_outcome || '')}"

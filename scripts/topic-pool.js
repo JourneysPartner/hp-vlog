@@ -804,6 +804,7 @@ const TOPICS = [
 // 最終的な「候補プール」は両者をマージしたもの。重複（slug 完全一致）はキュレート版を優先。
 // 既存記事増加で候補が尽きないようにする目的。
 const { expandAll: _expandAll } = require('./lib/scenario-expansion');
+const { resolveSourceForTopic } = require('./lib/tax-authority-refs');
 
 // curated TOPICS と expanded scenarios を merge する際の重複防止。
 // slug 完全一致だけでなく、curated 人手キュレートトピックと意味的に近い
@@ -833,7 +834,7 @@ function _slugOverlapRatio(expandedSlug, curatedSlug) {
 }
 
 function getAllTopics() {
-  const curated = TOPICS;
+  const curated = CURATED_TOPICS;
   const curatedSlugs = new Set(curated.map(t => t.slug));
 
   // ① まず slug 完全一致を除外（既存ロジック）
@@ -858,12 +859,25 @@ function getAllTopics() {
     console.log(`[topic-pool] curated と slug トークン重なりが高い expanded を ${droppedBySlug} 件除外`);
   }
 
-  return [...curated, ...expanded];
+  return [...curated, ...expanded].map(topic => {
+    const source = resolveSourceForTopic(topic);
+    return {
+      ...topic,
+      source_url: source.url,
+      source_title: source.title,
+      source_provenance: source.provenance,
+      source_confidence: source.confidence,
+    };
+  });
 }
 
 // CURATED_TOPICS: 後方互換のため、元の TOPICS 配列も維持
 // TOPICS: マージ済み（getAllTopics() の結果）— 既存コードはこれを参照しつづけて OK
-const CURATED_TOPICS = TOPICS;
+const CURATED_TOPICS = TOPICS.map(topic => ({
+  ...topic,
+  source_provenance: 'explicit',
+  source_confidence: 1,
+}));
 const ALL_TOPICS = getAllTopics();
 
 module.exports = {

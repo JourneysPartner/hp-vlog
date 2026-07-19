@@ -15,7 +15,8 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
 const refs = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
-const { checkSourceAlignment } = require(path.join(ROOT, 'scripts/lib/source-alignment'));
+const { checkSourceAlignment: checkCurrentSourceAlignment } = require(path.join(ROOT, 'scripts/lib/source-alignment'));
+const checkSourceAlignment = topic => checkCurrentSourceAlignment({ source_provenance: 'curated', ...topic });
 const staticRules = require(path.join(ROOT, 'scripts/lib/article-prompt-static'));
 
 let passed = 0, failed = 0;

@@ -10,6 +10,7 @@ const ROOT = path.join(__dirname, '..', '..', '..');
 const { expandNewSegments } = require(path.join(ROOT, 'scripts/lib/scenario-new-segments'));
 const { expandAll } = require(path.join(ROOT, 'scripts/lib/scenario-expansion'));
 const { isNaturalCombination, evaluateTopicFit } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const { resolveSourceForTopic } = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -17,7 +18,16 @@ function assert(cond, label) {
   else      { console.error(`  ✗ ${label}`); failed++; }
 }
 
-const topics = expandNewSegments();
+const topics = expandNewSegments().map(topic => {
+  const source = resolveSourceForTopic(topic);
+  return {
+    ...topic,
+    source_url: source.url,
+    source_title: source.title,
+    source_provenance: source.provenance,
+    source_confidence: source.confidence,
+  };
+});
 
 // ── 1. 5カテゴリすべてが生成される ──────────────────────────
 console.log('\n=== Test 1: 5カテゴリの生成 ===');

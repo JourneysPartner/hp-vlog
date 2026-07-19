@@ -8,7 +8,7 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
 const { TOPICS } = require('./topic-pool');
 const { selectDailyTopics } = require('./lib/topic-selector');
-const { getRefsForTopic, formatRefsForPrompt, getDefaultSourceForTopic } = require('./lib/tax-authority-refs');
+const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
@@ -17,19 +17,18 @@ const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft } = require('./lib/draft-normalizer');
+const { restoreSourceGuardFields } = require('./lib/source-guard');
 
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
 // 生成記事には必ず非空の出典を持たせる。scenario-expansion で対応済みだが、
 // 念のため generate-draft でも二重防御する。
 function ensureSourceOnTopic(topic) {
-  if (!topic.source_url) {
-    const def = getDefaultSourceForTopic(topic);
-    topic.source_url   = def.url;
-    topic.source_title = def.title;
-  } else if (!topic.source_title) {
-    topic.source_title = topic.source_url;
-  }
+  const source = resolveSourceForTopic(topic);
+  topic.source_url = source.url;
+  topic.source_title = source.title;
+  topic.source_provenance = source.provenance;
+  topic.source_confidence = source.confidence;
   return topic;
 }
 
@@ -1499,6 +1498,13 @@ async function main() {
 
     // 差し戻しで禁止指定された語がタイトルに残っていれば、タイトルからも除去する
     content = await enforceTitleBannedPhrases(content, comment);
+
+    // LLM output must never rewrite source identity or the metadata used to
+    // validate it.  Restore the complete guard tuple for every regeneration
+    // path (full / section / targeted / title_only).
+    content = restoreSourceGuardFields(existing, content, {
+      resolveSource: resolveSourceForTopic,
+    });
 
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);

@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
+const { evaluateSourceGuard } = require('./lib/source-guard');
 const { checkSourceAlignment } = require('./lib/source-alignment');
 
 const ROOT      = path.join(__dirname, '..');
@@ -22,7 +23,7 @@ const REQUIRED_FIELDS = [
 
 // source_url は公開前に必須だが、draft / needs_review では警告に留める
 const REQUIRED_FOR_PUBLISH = ['source_url'];
-const DRAFT_STATUSES = ['draft', 'needs_review'];
+const DRAFT_STATUSES = ['draft', 'needs_review', 'needs_revision'];
 
 // ── 禁止表現（誇大広告チェック）────────────────────────────────
 const BANNED_PHRASES = [
@@ -144,6 +145,15 @@ function validateFile(filePath) {
   // 4b. 出典一致・適合スコアのチェック
   // スコアが設定されている記事（Phase 3b 以降 = recommendation あり）は「新規記事」
   // として厳格に扱い、不適合を error にする。スコア未設定のレガシー記事は warning に留める。
+  // Re-evaluate the current frontmatter. Persisted alignment scores are never
+  // sufficient to pass the source guard.
+  const sourceGuard = evaluateSourceGuard(fm, { stage: 'validate' });
+  for (const reason of sourceGuard.reasons) {
+    const message = `source guard: ${typeof reason === 'string' ? reason : `${reason.code}: ${reason.message}`}`;
+    if (sourceGuard.level === 'error') errors.push(message);
+    else warnings.push(message);
+  }
+
   const isScored = fm.recommendation !== undefined && fm.recommendation !== null && fm.recommendation !== '';
   const isLive = ['approved', 'scheduled', 'published'].includes(fm.review_status);
   const saScore = Number.isFinite(fm.source_alignment_score) ? fm.source_alignment_score
@@ -331,4 +341,6 @@ function main() {
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { validateFile, main };
