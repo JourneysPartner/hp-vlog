@@ -16,11 +16,8 @@
  *
  * 設計方針:
  *   - 各 topic に customer_segment と allowed_customer_segments=[そのカテゴリ] を付与。
- *   - 出典は tax_domain ベースの確実なもの（getDefaultSourceForTopic）を割当て、
- *     出典一致ゲートに通す。番号は捏造しない。
+ *   - 出典は展開完了後に resolveSourceForTopic で一括解決する。番号は捏造しない。
  */
-
-const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 
 const CATEGORY_BY_DOMAIN = {
   income_tax: '所得税',
@@ -489,8 +486,6 @@ function expandNewSegments() {
           const baseSlug = `newseg-${def.persona}-${idParts.join('-')}`;
           const cluster = `newseg-${def.persona}`;
           const subclusterBase = `${th.tax_domain.replace(/_/g, '-')}-${idParts.join('-')}`;
-          const src = getDefaultSourceForTopic({ tax_domain: th.tax_domain, pain_point: th.id });
-
           // ジャンル/ステージを検索意図・テーマ名に自然に織り込む
           const topic = prefix ? `${prefix}の${th.topic}` : th.topic;
           const q = prefix ? `${prefix}の場合：${th.q}` : th.q;
@@ -511,8 +506,6 @@ function expandNewSegments() {
             pain_point: th.id,
             procedure_stage: '',
             pair_group: baseSlug,
-            source_url: (src && src.url) || '',
-            source_title: (src && src.title) || '',
             reader_problem: th.reader,
             topic,
           };

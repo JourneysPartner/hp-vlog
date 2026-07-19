@@ -15,7 +15,6 @@
  * （basic_explainer + edge_case の本命+補強）で展開する。
  */
 
-const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 const { SEGMENT_PERSONAS } = require('./customer-relevance');
 
 // ── 論点 → 出稿してよい顧客カテゴリ（customer_segment）────────────
@@ -810,10 +809,6 @@ function expandDeepDive() {
       const cluster = `deepdive-${persona.id.replace(/_/g, '-')}`;
       const subcluster = `${pain.tax_domain.replace(/_/g, '-')}-${pain.id}`;
 
-      const sourceFallback = getDefaultSourceForTopic({ tax_domain: pain.tax_domain, pain_point: pain.id });
-      const source_url = (sourceFallback && sourceFallback.url) || '';
-      const source_title = (sourceFallback && sourceFallback.title) || '';
-
       // main 記事
       out.push({
         title: '',
@@ -831,7 +826,6 @@ function expandDeepDive() {
         article_type: 'basic_explainer',
         article_role: 'main',
         pair_group: pairGroup,
-        source_url, source_title,
         search_intent: pain.intent,
         reader_problem: pain.reader,
         success_outcome: pain.success,
@@ -854,7 +848,6 @@ function expandDeepDive() {
         article_type: 'edge_case',
         article_role: 'support',
         pair_group: pairGroup,
-        source_url, source_title,
         search_intent: pain.intent + '（判断に迷うケース別）',
         reader_problem: pain.reader,
         success_outcome: pain.success + '。具体的なケース別の判断ができる',

@@ -8,7 +8,8 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
 const { selectDailyTopics } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
-const { evaluateTopicFit, publishGateReasons } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const { evaluateTopicFit: evaluateCurrentTopicFit, publishGateReasons } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const evaluateTopicFit = topic => evaluateCurrentTopicFit({ source_provenance: 'curated', ...topic });
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -70,9 +71,10 @@ console.log('\n=== Test 4: 品質ゲート（approve のみ選定）===');
 const mkEc = (slug, si) => ({
   slug, title: '', persona: 'domestic_ec_seller', customer_segment: 'ec_seller', category: '消費税',
   macro: '物販', cluster: 'amazon', subcluster: slug, tax_domain: 'consumption_tax',
-  pain_point: 'platform-fee-treatment', allowed_customer_segments: ['ec_seller', 'general_business'],
+  pain_point: 'test-platform-fee-treatment', allowed_customer_segments: ['ec_seller', 'general_business'],
   article_type: 'basic_explainer', article_role: 'main',
   source_url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm',
+  source_provenance: 'explicit',
   search_intent: si, reader_problem: 'r', success_outcome: 's', primary_question: 'q',
 });
 const approveT = mkEc('test-qf-approve', 'Amazon 手数料 消費税 仕入税額控除 いつ');

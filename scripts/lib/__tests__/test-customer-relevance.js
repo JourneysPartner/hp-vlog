@@ -13,8 +13,9 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
 const {
-  deriveSegment, isNaturalCombination, evaluateTopicFit,
+  deriveSegment, isNaturalCombination, evaluateTopicFit: evaluateCurrentTopicFit,
 } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const evaluateTopicFit = topic => evaluateCurrentTopicFit({ source_provenance: 'curated', ...topic });
 const { expandAll } = require(path.join(ROOT, 'scripts/lib/scenario-expansion'));
 
 let passed = 0, failed = 0;
@@ -66,7 +67,7 @@ console.log('\n=== Test 4: evaluateTopicFit ===');
 const rej = evaluateTopicFit({ persona: 'beauty_salon_owner', pain_point: 'foreign-business-consumption-tax', tax_domain: 'consumption_tax', search_intent: '国外事業者からの仕入れの消費税を知りたい' });
 assert(rej.decision === 'reject', '不自然な組合せは decision=reject');
 assert(rej.customer_fit_score <= 2, '不自然な組合せは customer_fit_score<=2');
-const ok = evaluateTopicFit({ customer_segment: 'beauty_salon', persona: 'beauty_salon_owner', pain_point: 'salon-prepayment-ticket', tax_domain: 'consumption_tax', allowed_customer_segments: ['beauty_salon'], search_intent: 'エステ 回数券 売上 計上 タイミング', source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' });
+const ok = evaluateTopicFit({ customer_segment: 'beauty_salon', persona: 'beauty_salon_owner', pain_point: 'salon-prepayment-ticket', tax_domain: 'consumption_tax', allowed_customer_segments: ['beauty_salon'], search_intent: 'エステ 回数券 売上 計上 タイミング', source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm', source_provenance: 'explicit' });
 assert(ok.decision === 'approve', '自然な組合せ（出典一致・具体的検索意図）は decision=approve');
 assert(ok.customer_fit_score === 5, '許可カテゴリ一致は customer_fit_score=5');
 

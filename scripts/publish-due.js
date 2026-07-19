@@ -27,9 +27,14 @@
 const fs = require('fs');
 const path = require('path');
 const { publishGateReasons } = require('./lib/customer-relevance');
+const { parseFrontmatterMeta, evaluateSourceGuard } = require('./lib/source-guard');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
+
+function publicationSourceGuard(raw) {
+  return evaluateSourceGuard(parseFrontmatterMeta(raw), { stage: 'publish' });
+}
 
 function nowJST() {
   const now = new Date();
@@ -95,9 +100,18 @@ function main() {
     const due = new Date(publishAt);
     if (isNaN(due) || due > now) continue;
 
+    // Re-evaluate the current frontmatter immediately before publication.
+    // A previously stored score cannot bypass source review.
+    const sourceGuard = publicationSourceGuard(raw);
+    if (sourceGuard.blocked) {
+      skipped.push({ file, reasons: sourceGuard.reasons });
+      console.warn(`[publish-due] SKIP(source guard): ${file} - ${sourceGuard.reasons.join(', ')}`);
+      continue;
+    }
+
     // ── 品質ゲート（最終チェック）────────────────────────────
     // スコアが設定されている記事（Phase 3b 以降）のみ対象。スコア未設定の
-    // レガシー記事は従来どおり昇格させる（既存記事を止めない）。
+    // source guard を通過した記事について、既存の品質スコア条件も確認する。
     const gateReasons = publishGateReasons({
       recommendation:         getFmField(raw, 'recommendation'),
       customer_fit_score:     getFmField(raw, 'customer_fit_score'),
@@ -153,4 +167,6 @@ function main() {
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { main, getFmField, setFmField, publicationSourceGuard };

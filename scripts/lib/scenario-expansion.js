@@ -24,7 +24,6 @@ const {
 } = require('./scenario-axes');
 // title はルールベースで生成せず、本文 LLM が同時に決定する（Pattern C）。
 // scenario-expansion で組み立てるトピックの title は空文字とする。
-const { getDefaultSourceForTopic } = require('./tax-authority-refs');
 const { expandDeepDive } = require('./scenario-deep-dive');
 const { expandNewSegments } = require('./scenario-new-segments');
 const { deriveSegment, isNaturalCombination, rejectionReason } = require('./customer-relevance');
@@ -325,15 +324,9 @@ function buildTopic({ macro, cluster, persona, tax_domain, subclusterParts,
   const subcluster = subclusterParts.filter(Boolean).map(kebab).join('-');
   const slug       = slugParts.filter(Boolean).map(kebab).join('-');
 
-  // source_url が未指定の場合は tax_domain / pain_point に基づくデフォルトを必ず付与
-  // （これにより validate.js の approved/scheduled/published 段階で ERROR にならない）
-  let finalSourceUrl   = source_url || '';
-  let finalSourceTitle = source_title || '';
-  if (!finalSourceUrl) {
-    const def = getDefaultSourceForTopic({ tax_domain, pain_point });
-    finalSourceUrl   = def.url;
-    finalSourceTitle = def.title;
-  }
+  // 出典は展開完了後、topic-pool の最終段で完成 topic に対して一括解決する。
+  const finalSourceUrl   = source_url || '';
+  const finalSourceTitle = source_title || '';
 
   return {
     macro,
