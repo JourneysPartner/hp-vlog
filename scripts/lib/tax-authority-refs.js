@@ -17,6 +17,7 @@ const REFS = {
   consumption_tax: [
     { no: '6451', title: '仕入税額控除の対象範囲',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm' },
     { no: '6501', title: '納税義務の免除',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
+    { no: '6502', title: '高額特定資産を取得した場合等の納税義務の免除等の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm' },
     { no: '6505', title: '簡易課税制度',                     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm' },
     { no: '6509', title: '簡易課税制度の事業区分',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
     { no: '6551', title: '輸出取引の免税',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
@@ -126,6 +127,13 @@ function getRefsForTopic(topic, limit = 4) {
         REFS.consumption_tax.find(r => r.no === '6505'),  // 簡易課税制度
       );
     }
+    // 高額特定資産の3年縛りを扱う記事では、特例を定めた No.6502 を最優先で渡す
+    // （No.6501 の一般免除規定に押し出されて期間の起点を誤る事故を防ぐ）。
+    if (/high-value-asset/.test(blob) || /高額特定資産|3年縛り|調整対象固定資産/.test(ja)) {
+      priorityHigh.push(
+        REFS.consumption_tax.find(r => r.no === '6502'),  // 高額特定資産の特例
+      );
+    }
   }
 
   // ── ② taxDomain refs ────────────────────────────────────────
@@ -233,6 +241,8 @@ const DEFAULT_SOURCE_BY_PAIN = {
   // 簡易課税の事業区分（第1〜6種の判定）は「納税義務の免除(No.6501)」ではなく
   // 事業区分を明示列挙した No.6509 を主出典にする（No.6505 は制度概要）。
   'simplified-tax-business-category': { no: '6509', title: '国税庁タックスアンサー No.6509 簡易課税制度の事業区分', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
+  // 高額特定資産の3年縛りは「納税義務の免除(No.6501)」ではなく、特例を定めた No.6502 を主出典にする。
+  'high-value-asset-3year-restriction': { no: '6502', title: '国税庁タックスアンサー No.6502 高額特定資産を取得した場合等の納税義務の免除等の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm' },
   'invoice-judgement':         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
   'tax-refund-eligibility':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
   'overseas-tax-uncertain':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
