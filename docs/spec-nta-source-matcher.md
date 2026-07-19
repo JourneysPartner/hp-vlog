@@ -1,6 +1,18 @@
 # 仕様書・設計書：出典の自動マッチャ＋ガードレール
 
-最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v4・レビュー反映・codex 実装向け）
+最終更新: 2026-07-19 / ステータス: ドラフト（実装前レビュー v5・レビュー反映・codex 実装向け）
+
+> v5 反映（実装開始前に確定すべき P1×3・P2×1）：
+> **[P1] source_hold の返却契約を一意化** — `evaluateTopicFit` は **`decision='revise'` のまま**、
+> `source_hold=true`＋`selection_eligible=true` を返す。**`topic-selector` だけが `selection_eligible` を見て生成対象に通す**。
+> frontmatter の `recommendation` は **revise のまま**（`draft-normalizer:207` が approve→publish に変換するため、approve は使わない）。
+> **[P1] 再生成後にコード側で強制復元** — 全再生成モード完了後に **`source_guard_version:1` を強制付与**し、
+> **provenance/confidence は LLM 出力を信用せず"再生成前の値を復元"**（欠落は unknown/0 か resolver 再実行）。
+> full/partial/targeted/title_only の**4経路**をテスト。
+> **[P1] レガシー判定を"列挙"から"規則"へ** — version なしを例外扱いできるのは **published のみ**。他（draft/needs_review/
+> **needs_revision**/approved/**scheduled**）は承認・公開不可。承認Function は現在ステータスを検査しないため列挙は危険。
+> **[P2] URL 書換テストの対象を `curated` に確定** — explicit は「現在の source_url 自体が期待URL」＝信頼済み override
+> なので URL 書換ブロックは成立しない。**URL 書換検出テストは `provenance='curated'` を対象**にする。
 
 > v4 反映（「auto も生成する」方針に伴う残 P1×3・P2×1）：
 > **[P1] auto を選定に通すための実装対象・契約を明記** — 現行 `topic-selector` は `decision==='approve'` だけ通し、
@@ -200,21 +212,38 @@ expandAll（scenario 展開）─▶ resolveSourceForTopic(topic)  → { url, ti
 - **承認・公開・validate は厳格（provenance ゲート）**：`provenance ∈ {auto, domain-fallback, ultimate, unknown}`
   なら **`needs_source_review`** として**止める**。`{explicit, curated}` かつ URL が期待出典（§4.2）と一致した時だけ通す。
 
-**選定を通すための契約（P1・必須の実装対象追加）**：現行は `topic-selector` が `decision==='approve'` **だけ**通し、
+**選定を通すための契約（P1・一意に確定）**：現行は `topic-selector` が `decision==='approve'` **だけ**通し、
 `evaluateTopicFit` は source_alignment が soft／score≤3 だと **`revise`** を返す＝**auto は生成前に除外**される。
 - **`scripts/lib/customer-relevance.js`（`evaluateTopicFit`）** と **`scripts/lib/topic-selector.js`（品質ゲート）** を実装対象に追加。
-- 契約：**「顧客適合・検索意図は合格（≥4）で、唯一の保留理由が source（needs_source_review／provenance=auto・fallback）」の
-  topic だけ、選定を許可**する（例：`decision='approve'` かつ `source_hold=true` を返す、または専用の許可フラグ）。
-- **他の revise 理由（顧客不適合 customer_fit≤3・検索意図不足 search_intent≤3 等）は従来どおり除外**（生成対象に戻さない）。
-- 生成された記事は provenance=auto/fallback を frontmatter に持つので、下流の承認/公開/validate ゲートで確実に保留される。
+- **返却契約（二択を排除）**：`evaluateTopicFit` は
+  - **`decision='revise'` のまま**（＝ `draft-normalizer:207` の `decision==='approve' ? 'publish' : decision` で
+    frontmatter `recommendation` は **revise** になる。「出典確認待ちなのに publish 推奨」の矛盾を避ける）。
+  - 追加で **`source_hold=true`**（保留理由が source であることの明示）と、
+    **`selection_eligible=true`**（生成対象に通してよい）を返す。
+  - `selection_eligible=true` の条件：**顧客適合≥4・検索意図≥4 で、`revise` の唯一の理由が source（needs_source_review／
+    provenance=auto・fallback）** の時だけ。
+- **`topic-selector` は `decision` ではなく `selection_eligible` を見て通す**（`decision='approve'` または
+  `selection_eligible=true` を生成対象に含める）。**他の revise 理由（顧客不適合≤3・検索意図不足≤3 等）は
+  `selection_eligible=false`＝従来どおり除外**（生成対象に戻さない）。
+- 生成物は `recommendation='revise'`＋`provenance=auto/fallback`＋`source_hold` を持つので、承認/公開/validate で確実に保留される。
 
 #### 既存記事との両立：`source_guard_version`（P1・レガシー移行）
 main は記事166件中 **`source_provenance` 0件・published 多数**。provenance 欠落を一律ブロックすると既存が壊れるため、
-**`source_guard_version`（整数・現行 v1）** を導入して段階適用する：
-- **新規生成・再生成**：`source_guard_version: 1` を**必須**付与。provenance 欠落は**ブロック**（unknown＝保留）。
-- **既存 published（version なし＝レガシー）**：**警告のみ**（validate も published は従来どおり通す）。**再判定しない**。
-- **未承認・公開予約中（draft/needs_review/approved で version なし）**：**承認・公開を止め**、再生成 or 移行を要求。
-→ これで既存 published を壊さず、新規の同型事故だけを止める。`validate.js`／承認・公開ゲートは version の有無で分岐する。
+**`source_guard_version`（整数・現行 v1）** を導入して**規則**で適用する（列挙しない）：
+- **例外扱いできるのは `review_status: published` のみ**（version なし＝レガシー published は**警告のみ・再判定しない**）。
+- **published 以外は version なしを承認・公開不可**（draft / needs_review / **needs_revision** / approved / **scheduled** すべて）。
+  承認Function（`review-approve-background`）は**現在ステータスを検査せず直接呼べる**ため、列挙ではなく「published 以外はブロック」の
+  規則で守る。
+- **新規生成・再生成**：`source_guard_version: 1` を**必須**付与。provenance 欠落は unknown＝保留。
+
+#### 再生成での強制復元（P1・迂回防止の要）
+再生成はガードレール迂回の穴になりやすい（全文再生成は frontmatter を組み直し、部分/タイトル再生成は既存 frontmatter を
+保持するため、レガシーが version なしのまま残る／LLM が provenance を書き換える恐れ）。**再生成の全経路の完了後に、
+コード側で強制的に**次を適用する契約とする：
+- **`source_guard_version: 1` を強制付与**。
+- **provenance/confidence は LLM 出力を信用せず、"再生成前の値"を復元**（再生成前の frontmatter から読み取って上書き）。
+- 再生成前に**欠落していた**場合は **`unknown`/`0`**、または **`resolveSourceForTopic` を再実行**して補う（explicit へは昇格しない）。
+- **対象は全4経路：full（全文）／section（部分）／targeted／title_only**。各経路で version 付与・provenance 復元をテストする。
 
 **`checkSourceAlignment` の是正**：現状の「期待==実際==6501 → score 5」を**やめる**。`expectedSourceFor` に
 **「curated 由来か」** を持たせ、**curated 個別出典と一致した時だけ aligned=5**。curated でない（auto/fallback/unknown）は
@@ -269,8 +298,9 @@ main は記事166件中 **`source_provenance` 0件・published 多数**。proven
   - `scripts/topic-pool.js`（or 呼び出し元）：**`expandAll` 後・`selectDailyTopics` の前**に `resolveSourceForTopic` を一括適用（§4.2）。
   - `scripts/lib/scenario-deep-dive.js`／`scenario-expansion.js`／`scenario-new-segments.js`：早期の url/title 焼き込みをやめる。
   - `scripts/lib/draft-normalizer.js`：frontmatter に `source_provenance`/`source_confidence` を保持（欠落は unknown/0）。
-  - `scripts/generate-draft.js`：`ensureSourceOnTopic` を `resolveSourceForTopic` 経由に。**再生成（`regenerateWithOpenAI` 等）で
-    既存 `source_provenance`/`source_confidence` を引き継ぐ**（explicit へ自動昇格しない）。
+  - `scripts/generate-draft.js`：`ensureSourceOnTopic` を `resolveSourceForTopic` 経由に。**再生成の全4経路（full/section/
+    targeted/title_only）完了後に、コード側で `source_guard_version:1` 強制付与＋provenance/confidence を再生成前値へ復元**
+    （LLM 出力を信用しない・欠落は unknown/0 か resolver 再実行・explicit へ昇格しない）。
   - `scripts/lib/source-alignment.js`：`expectedSourceFor`（curated/explicit 由来かを返す）／`checkSourceAlignment` を provenance 対応。
   - **`scripts/lib/customer-relevance.js`（`evaluateTopicFit`）**：唯一の保留理由が source の時だけ生成を許可（`source_hold` 契約・§4.3）。
   - **`scripts/lib/topic-selector.js`**：品質ゲートで「source_hold のみの approve」を通す（他の revise は除外のまま）。
@@ -293,23 +323,30 @@ main は記事166件中 **`source_provenance` 0件・published 多数**。proven
 - **税目フィルタ（1対多）**：`inheritance_tax` は `sozoku/zoyo/hyoka` を対象に含む。未対応 domain は `null`。
 - **rankSources のカタログ障害**：`index.json` 欠損/破損時に **`{candidates:[], top1:null, margin:0,
   errorCode:'catalog_unavailable'}`** を返す（例外を投げない）。`selectSource`→`null`、resolver→fallback。
-- **選定の source_hold 契約**：**顧客適合≥4・検索意図≥4 で唯一の保留が source** の topic は**選定を通る**（生成される）。
-  一方、**顧客不適合（≤3）・検索意図不足（≤3）は除外のまま**（source が良くても生成対象に戻さない）。
+- **選定の source_hold 契約（返却形）**：唯一の保留が source の topic は `evaluateTopicFit` が
+  **`decision='revise'`＋`source_hold=true`＋`selection_eligible=true`** を返し、`topic-selector` は **`selection_eligible` で通す**。
+  frontmatter の **`recommendation` は `revise` のまま**（`publish` にならない）。
+  一方、**顧客不適合（≤3）・検索意図不足（≤3）は `selection_eligible=false`＝除外のまま**。
 - **既存 CURATED は explicit**：静的 `CURATED_TOPICS`(54件) が resolver 通過後も **`explicit`（unknown にならない）**。
-- **レガシー両立（`source_guard_version`）**：version なしの **published はエラーにならず警告のみ**。version なしの
-  **draft/needs_review/approved は承認・公開できない**。新規生成は **version 1** が付く。
+- **再生成4経路の強制復元**：**full／section／targeted／title_only** いずれの再生成後も
+  **`source_guard_version:1` が付き**、**provenance/confidence が再生成前の値に復元**される（LLM が書き換えても無視・
+  欠落は unknown/0 か resolver 再実行・explicit へ昇格しない）。
+- **レガシー両立（規則）**：version なしの **`published` のみ警告で通す**。version なしの
+  **draft/needs_review/needs_revision/approved/scheduled は承認・公開できない**（`needs_revision`・`scheduled` の回帰も追加）。
+  新規生成は **version 1** が付く。
+- **URL 書換ブロック（対象＝curated）**：**`provenance='curated'` の記事**で `source_alignment_score:5` を残したまま
+  `source_url` を 6501／別ページに書き換えると、承認・公開・validate が**再判定でブロック**する
+  （explicit は人手 override＝現在URLが期待URLのため、この改変検出テストの対象にしない）。
 - **解決タイミング**：`resolveSourceForTopic` 適用後に `selectDailyTopics` を通しても、**curated topic が
   "source 未設定"で除外されない**（選定は緩め）。
 - **provenance 結合（E2E）**：topic → `resolveSourceForTopic` → `draft-normalizer` の frontmatter に
   `source_provenance`/`source_confidence` が**保持される**（curated/auto/domain-fallback/unknown 各ケース）。
-- **再生成で provenance 不変**：**全文・部分・タイトルのみ**いずれの再生成後も `source_provenance` が変わらない
-  （auto→explicit に昇格しない・欠落は unknown のまま）。
 - **explicit 昇格の禁止**：`source_url` があるだけの記事を resolver に通しても explicit にならない。
-- **承認・公開・validate の再判定（必須ケース）**：**`source_alignment_score: 5` を残したまま `source_url` を
-  6501／fallback に書き換えた記事**、および **provenance が auto/fallback/unknown の記事**が、
+- **承認・公開・validate の再判定（必須ケース）**：**provenance が auto/fallback/unknown の記事**（version 1・published 以外）が、
+  `source_alignment_score:5` を残していても、
   - `review-approve-background` で **承認できない（400 ブロック）**、
   - `scripts/publish-due.js` で **公開されない（スキップ）**、
-  - `scripts/validate.js`（approved/scheduled/published 段階）で **保留/エラー** になることを確認。
+  - `scripts/validate.js`（approved/scheduled 段階）で **保留/エラー** になることを確認。
 - **オフライン決定論**：ネット非依存・実行ごとに同結果（カタログ順に依存しない）。
 - **回帰**：`test-simplified-tax-source`／`test-high-value-asset-source`／`test-selector`／`test-cross-domain-refs`／
   `test-conditional-rules`／`test-publish-slot` 全 PASS。`npm run build`／`npm run validate` 成功。
@@ -334,10 +371,13 @@ main は記事166件中 **`source_provenance` 0件・published 多数**。proven
   現在の frontmatter＋provenance から再判定**（保存 score を信用しない）。
 - **matcher API を `rankSources`/`selectSource` に分離**（confidence=top1.score・margin は採用判定用）。
   カタログ障害は `errorCode:'catalog_unavailable'` の fail-closed 返却。
-- **選定で auto を通すため `customer-relevance.js`/`topic-selector.js` を実装対象に追加**。
-  「唯一の保留理由が source」の時だけ許可（顧客不適合・検索意図不足は除外のまま）。
-- **`source_guard_version:1` を導入**：新規/再生成は必須、既存 published は警告のみ、未承認/予約中は version なしを止める。
-- **既存 CURATED_TOPICS(54件) を移行時に `explicit` 付与**。explicit は人手指定URLを正本とする信頼済み override。
+- **選定で auto を通す返却契約を一意化**：`evaluateTopicFit` は **`decision='revise'`＋`source_hold`＋`selection_eligible`**、
+  `topic-selector` は `selection_eligible` で通す（`recommendation` は revise のまま）。顧客不適合・検索意図不足は除外のまま。
+- **`source_guard_version:1` を導入（規則）**：例外は **published のみ警告**、それ以外（needs_revision/scheduled 含む）は
+  version なしを承認・公開不可。**再生成の全4経路（full/section/targeted/title_only）完了後にコード側で version 付与＋
+  provenance を再生成前値へ強制復元**（迂回防止の要）。
+- **既存 CURATED_TOPICS(54件) を移行時に `explicit` 付与**。explicit は人手指定URLを正本とする信頼済み override
+  （**URL 書換ブロックの検出対象は `curated`**。explicit は現在URL=期待URLのため対象外）。
 - **税目フィルタは 1対多**、未対応/欠損/破損は `null`→保留。
 - **matcher 専用トークナイザを新設**（`topic-similarity.js` は変更しない）。
 
