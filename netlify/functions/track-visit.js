@@ -1,6 +1,6 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 const {
   COOKIE_NAME, DEFAULT_PRODUCTION_HOST, jstDate, jstMinute, hash, parseCookies,
   issueVisitorCookie, verifyVisitorCookie, cookieHeader, isProductionRequest, isBot,
@@ -42,6 +42,9 @@ async function handler(event, { getStoreFn = getStore } = {}) {
   let store;
   let ownRateMarker;
   try {
+    // Netlify Functions の Lambda 互換形式では、Blobs 利用前にリクエストの
+    // 接続情報を渡す必要がある。テスト時の注入ストアには不要。
+    if (getStoreFn === getStore) connectLambda(event);
     store = getStoreFn('analytics');
     const now = new Date();
     const date = jstDate(now);

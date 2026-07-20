@@ -1,6 +1,6 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 const { requireBasicAuth } = require('./lib/admin-auth');
 const { jstDate, dateOffset, countPrefix } = require('./lib/analytics-store');
 
@@ -30,6 +30,8 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
+    // Lambda 互換形式で Netlify Blobs を初期化する。
+    connectLambda(event);
     const store = getStore('analytics');
     const today = jstDate();
     const dates = Array.from({ length: 90 }, (_, i) => dateOffset(today, -89 + i));

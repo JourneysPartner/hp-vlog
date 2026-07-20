@@ -1,10 +1,12 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 const { jstDate, dateOffset, listPrefixKeys, deleteKeys } = require('./lib/analytics-store');
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   try {
+    // Scheduled Function でも Blobs の接続情報を初期化する。
+    connectLambda(event);
     const store = getStore('analytics');
     const today = jstDate();
     const oldestRetained = dateOffset(today, -89); // 今日を含む直近90日を残す
