@@ -33,15 +33,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "YouTube広告・PR案件・デジタルコンテンツ販売など収入源が複数あるクリエイターの簡易課税業種区分を、ケース別に判断基準と注意点とともに解説します。"
-review_status: "needs_revision"
-review_comment: "「クリエイターの収入は基本的に第5種（サービス業・50%）が多いですが、デジタルコンテンツ販売の形態によっては第2種になる場合もあります。」→「クリエイターの収入は基本的に第5種（サービス業・50%）が多いです。」に変更して。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-19T00:07:18.310Z"
-updated_at: "2026-07-20T16:23:00.893+09:00"
+updated_at: "2026-07-20T07:23:46.377Z"
 source_provenance: "curated"
 source_confidence: 1
 source_guard_version: 1
@@ -129,7 +129,7 @@ YouTubeのAdSense収入は、Google（海外事業者）から受け取る対価
 
 ## まとめ
 
-クリエイターの収入は基本的に<strong>第5種（サービス業・50%）</strong>が多いですが、デジタルコンテンツ販売の形態によっては第2種になる場合もあります。複数の収入がある場合は区分ごとの管理が必要で、区分が不明確なまま申告すると不利な仕入率が全体適用されるリスクがあります。収入の種類と取引の実態を一つずつ整理することが、正確な判定への近道です。
+クリエイターの収入は基本的に<strong>第5種（サービス業・50%）</strong>が多いです。複数の収入がある場合は区分ごとの管理が必要で、区分が不明確なまま申告すると不利な仕入率が全体適用されるリスクがあります。収入の種類と取引の実態を一つずつ整理することが、正確な判定への近道です。
 
 ---
 
