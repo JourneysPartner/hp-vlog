@@ -78,7 +78,11 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
 
       - name: Validate
-        run: npm run validate
+        # 再生成したファイルだけを検証する（リポジトリ全体ではなく）。
+        # ドラフトブランチには main で既に公開済みの記事が「古い未公開ステータス」の
+        # スナップショットとして残っていることがあり、それらのレガシー（source_guard_version 無し）が
+        # 全体 validate を ERROR にして無関係な再生成まで止めてしまうため。
+        run: node scripts/validate.js "content/posts/${{ inputs.filename }}"
 
       - name: Commit and push
         run: |
