@@ -4,8 +4,9 @@ const assert = require('assert');
 const analytics = require('../../../netlify/functions/lib/analytics-store');
 
 class FakeStore {
-  constructor() { this.values = new Map(); this.etags = new Map(); this.next = 1; this.failUpdates = 0; }
-  async getWithMetadata(key) {
+  constructor() { this.values = new Map(); this.etags = new Map(); this.next = 1; this.failUpdates = 0; this.getOptions = []; }
+  async getWithMetadata(key, options = {}) {
+    this.getOptions.push(options);
     if (!this.values.has(key)) return null;
     return { data: JSON.parse(JSON.stringify(this.values.get(key))), etag: this.etags.get(key), metadata: {} };
   }
@@ -52,6 +53,8 @@ class FakeStore {
   assert.strictEqual(await analytics.incrementPageview(store, date, '/'), true);
   store.failUpdates = 1;
   assert.strictEqual(await analytics.incrementPageview(store, date, '/'), true);
+  assert.ok(store.getOptions.every(options => options.consistency !== 'strong'),
+    'Lambda互換Functionで利用できないstrong consistencyを要求しない');
   const daily = (await store.getWithMetadata(analytics.dailyKey(date))).data;
   assert.strictEqual(daily.pageviews, 2);
   assert.strictEqual(daily.byPath['/'], 2);

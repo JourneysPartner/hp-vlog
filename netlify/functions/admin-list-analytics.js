@@ -37,7 +37,9 @@ exports.handler = async (event) => {
     const dates = Array.from({ length: 90 }, (_, i) => dateOffset(today, -89 + i));
     const rows = await mapWithConcurrency(dates, 6, async date => {
       const [daily, visitors] = await Promise.all([
-        store.get(`daily/${date}`, { consistency: 'strong', type: 'json' }),
+        // アクセス解析は参考値であり、Lambda互換Functionで利用可能な
+        // Blobs標準のeventual consistency（最大約60秒の反映差）で取得する。
+        store.get(`daily/${date}`, { type: 'json' }),
         countPrefix(store, `uniq/${date}/`),
       ]);
       const data = daily && typeof daily === 'object' ? daily : {};

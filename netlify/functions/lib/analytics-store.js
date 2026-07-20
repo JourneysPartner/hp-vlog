@@ -147,7 +147,9 @@ async function markRate(store, minute, vidHash, path) {
 async function incrementPageview(store, date, path, { maxAttempts = 8, sleep = defaultSleep } = {}) {
   const key = dailyKey(date);
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const current = await store.getWithMetadata(key, { consistency: 'strong', type: 'json' });
+    // Lambda 互換Functionに渡されるBlobs接続情報にはuncachedEdgeURLがないため、
+    // 標準のeventual consistencyで読み取る。ETag条件付き書き込みは引き続き使用する。
+    const current = await store.getWithMetadata(key, { type: 'json' });
     const previous = current && current.data && typeof current.data === 'object' ? current.data : {};
     const next = {
       date,
