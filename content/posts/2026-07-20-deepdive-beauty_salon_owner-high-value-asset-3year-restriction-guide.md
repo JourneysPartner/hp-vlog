@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "税抜1,000万円以上の設備を本則課税で取得すると、翌課税期間から最長3年間は免税・簡易課税に戻れなくなります。取得前に課税方式の選択を必ず確認しましょう。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「美容サロンの文脈では、以下が典型的な該当例です。」この文言は固すぎる。もっと自然な日本語にして。例えば、「例えば美容サロンでは、以下がよくある例です。」など。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-20T06:04:21.869Z"
-updated_at: "2026-07-20T06:04:21.869Z"
+updated_at: "2026-07-20T15:45:44.035+09:00"
 ---
 
 ## この記事でわかること
