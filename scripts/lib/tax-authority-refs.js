@@ -17,6 +17,7 @@ const REFS = {
   consumption_tax: [
     { no: '6451', title: '仕入税額控除の対象範囲',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm' },
     { no: '6501', title: '納税義務の免除',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
+    { no: '6502', title: '高額特定資産を取得した場合等の納税義務の免除等の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm' },
     { no: '6505', title: '簡易課税制度',                     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm' },
     { no: '6509', title: '簡易課税制度の事業区分',           url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
     { no: '6551', title: '輸出取引の免税',                   url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
@@ -126,6 +127,13 @@ function getRefsForTopic(topic, limit = 4) {
         REFS.consumption_tax.find(r => r.no === '6505'),  // 簡易課税制度
       );
     }
+    // 高額特定資産の3年縛りを扱う記事では、特例を定めた No.6502 を最優先で渡す
+    // （No.6501 の一般免除規定に押し出されて期間の起点を誤る事故を防ぐ）。
+    if (/high-value-asset/.test(blob) || /高額特定資産|3年縛り|調整対象固定資産/.test(ja)) {
+      priorityHigh.push(
+        REFS.consumption_tax.find(r => r.no === '6502'),  // 高額特定資産の特例
+      );
+    }
   }
 
   // ── ② taxDomain refs ────────────────────────────────────────
@@ -233,6 +241,8 @@ const DEFAULT_SOURCE_BY_PAIN = {
   // 簡易課税の事業区分（第1〜6種の判定）は「納税義務の免除(No.6501)」ではなく
   // 事業区分を明示列挙した No.6509 を主出典にする（No.6505 は制度概要）。
   'simplified-tax-business-category': { no: '6509', title: '国税庁タックスアンサー No.6509 簡易課税制度の事業区分', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
+  // 高額特定資産の3年縛りは「納税義務の免除(No.6501)」ではなく、特例を定めた No.6502 を主出典にする。
+  'high-value-asset-3year-restriction': { no: '6502', title: '国税庁タックスアンサー No.6502 高額特定資産を取得した場合等の納税義務の免除等の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm' },
   'invoice-judgement':         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
   'tax-refund-eligibility':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
   'overseas-tax-uncertain':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
@@ -303,6 +313,18 @@ const NEW_SEGMENT_PAIN_SOURCE = {
 };
 Object.assign(DEFAULT_SOURCE_BY_PAIN, NEW_SEGMENT_PAIN_SOURCE);
 
+// 人が matcher の提案を確認して curated へ昇格した追加分。
+// 生成スクリプトと Netlify Functions の双方で同じ信頼済みマップを参照する。
+// ファイルが無い環境（regenerate の部分チェックアウト・Netlify のバンドル漏れ等）でも
+// モジュール読込ごとクラッシュしないよう、防御的に読み込む（未配置なら空で継続）。
+let PROMOTED_SOURCE_BY_PAIN = {};
+try {
+  PROMOTED_SOURCE_BY_PAIN = require('../../data/curated-source-promotions.json');
+} catch (e) {
+  console.warn('[tax-authority-refs] curated-source-promotions.json を読めませんでした（未配置として続行）:', e.message);
+}
+Object.assign(DEFAULT_SOURCE_BY_PAIN, PROMOTED_SOURCE_BY_PAIN);
+
 // 個別出典を確定できない pain。これらは source_alignment_score を 5 にせず
 // revise 扱いにする（消費税の課税区分・時期など、検証済みカタログに適切な
 // 個別ページが無いもの。捏造しない）。source-alignment.js が参照する。
@@ -323,19 +345,57 @@ const ULTIMATE_FALLBACK = {
  * tax_domain → pain_point の順で適切なデフォルト出典を返す。
  * 必ず非空の { url, title } を返す（最終フォールバックは国税庁トップ）。
  */
-function getDefaultSourceForTopic(topic) {
+function resolveSourceForTopic(topic = {}) {
   const painId    = topic.pain_point || topic.pain || '';
   const taxDomain = topic.tax_domain || '';
 
+  // 明示指定は provenance を伴う場合だけ信頼する。URL があるだけでは explicit にしない。
+  if (topic.source_provenance === 'explicit' && topic.source_url) {
+    return {
+      url: topic.source_url,
+      title: topic.source_title || topic.source_url,
+      provenance: 'explicit',
+      confidence: Number.isFinite(Number(topic.source_confidence)) ? Number(topic.source_confidence) : 1,
+    };
+  }
+
   if (painId && DEFAULT_SOURCE_BY_PAIN[painId]) {
     const r = DEFAULT_SOURCE_BY_PAIN[painId];
-    return { url: r.url, title: r.title };
+    return { url: r.url, title: r.title, provenance: 'curated', confidence: 1 };
   }
+
+  // matcher はこの経路でだけ遅延ロードする。承認/公開時の source-alignment は
+  // ローカルカタログを必要とせず、Netlify bundle でも軽量なまま動く。
+  try {
+    const { rankSources, selectSource } = require('./nta-source-matcher');
+    const selected = selectSource(rankSources(topic));
+    if (selected) {
+      return {
+        url: selected.url,
+        title: selected.title,
+        provenance: 'auto',
+        confidence: selected.confidence,
+        margin: selected.margin,
+      };
+    }
+  } catch (_error) {
+    // カタログ障害は下の domain fallback に倒す。
+  }
+
   if (taxDomain && DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain]) {
     const r = DEFAULT_SOURCE_BY_TAX_DOMAIN[taxDomain];
-    return { url: r.url, title: r.title };
+    return { url: r.url, title: r.title, provenance: 'domain-fallback', confidence: 0 };
   }
-  return { url: ULTIMATE_FALLBACK.url, title: ULTIMATE_FALLBACK.title };
+  return {
+    url: ULTIMATE_FALLBACK.url,
+    title: ULTIMATE_FALLBACK.title,
+    provenance: 'ultimate',
+    confidence: 0,
+  };
+}
+
+function getDefaultSourceForTopic(topic) {
+  return resolveSourceForTopic(topic);
 }
 
 // ── 番号 → URL 解決（カタログ優先 / 未収録は番号レンジから推定）─────
@@ -406,8 +466,10 @@ module.exports = {
   getRefsForTopic,
   formatRefsForPrompt,
   getDefaultSourceForTopic,
+  resolveSourceForTopic,
   DEFAULT_SOURCE_BY_TAX_DOMAIN,
   DEFAULT_SOURCE_BY_PAIN,
+  PROMOTED_SOURCE_BY_PAIN,
   NEEDS_SOURCE_REVIEW,
   resolveNtaUrlByNumber,
   NTA_URL_PREFIX_RULES,

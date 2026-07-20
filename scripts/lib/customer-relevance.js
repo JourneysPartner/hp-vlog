@@ -427,6 +427,16 @@ function evaluateTopicFit(topic = {}) {
   if (decision !== 'approve' && natural && search_intent_score < 4) parts.push('検索意図が弱い（読者の悩み語・業種名を含めて具体化）');
   const reason = parts.join(' / ');
 
+  // 出典だけが保留理由なら、公開判定は revise のまま維持しつつ生成対象には残す。
+  // source_hold / selection_eligible は選定時だけの一時フラグで frontmatter には保存しない。
+  const source_hold = decision === 'revise'
+    && natural
+    && sa.severity !== 'hard'
+    && customer_fit_score >= 4
+    && search_intent_score >= 4
+    && (sa.needs_source_review === true || source_alignment_score <= 3);
+  const selection_eligible = source_hold;
+
   return {
     customer_segment: seg || '',
     customer_fit_score,
@@ -437,8 +447,14 @@ function evaluateTopicFit(topic = {}) {
     lead_value_score,
     tax_risk_score,
     decision,
+    source_hold,
+    selection_eligible,
     reason,
   };
+}
+
+function recommendationForDecision(decision) {
+  return decision === 'approve' ? 'publish' : decision;
 }
 
 // ── 承認・公開ゲート（frontmatter の recommendation / スコアで判定）─────────
@@ -473,5 +489,6 @@ module.exports = {
   isNaturalCombination,
   rejectionReason,
   evaluateTopicFit,
+  recommendationForDecision,
   publishGateReasons,
 };

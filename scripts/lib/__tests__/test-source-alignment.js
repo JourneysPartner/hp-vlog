@@ -9,7 +9,8 @@
 
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
-const { checkSourceAlignment, sourceFamily } = require(path.join(ROOT, 'scripts/lib/source-alignment'));
+const { checkSourceAlignment: checkCurrentSourceAlignment, sourceFamily } = require(path.join(ROOT, 'scripts/lib/source-alignment'));
+const checkSourceAlignment = topic => checkCurrentSourceAlignment({ source_provenance: 'curated', ...topic });
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -78,7 +79,8 @@ assert(!r.aligned && r.severity === 'soft', '出典未設定 → soft');
 
 // ── 6. evaluateTopicFit への反映 ────────────────────────────
 console.log('\n=== Test 6: evaluateTopicFit の source_alignment_score ===');
-const { evaluateTopicFit } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const { evaluateTopicFit: evaluateCurrentTopicFit } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const evaluateTopicFit = topic => evaluateCurrentTopicFit({ source_provenance: 'curated', ...topic });
 const good = evaluateTopicFit({ persona: 'inheritance_client', pain_point: 'small-residential-land', tax_domain: 'inheritance_tax', source_url: U.sozoku4124, search_intent: '小規模宅地 特例 要件' });
 assert(good.source_alignment_score === 5, '一致記事は source_alignment_score=5');
 const bad = evaluateTopicFit({ persona: 'inheritance_client', pain_point: 'tax-applicable-or-not', tax_domain: 'inheritance_tax', source_url: U.zoyo4408, search_intent: '相続税 申告 必要か' });

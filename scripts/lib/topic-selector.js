@@ -275,10 +275,12 @@ function selectDailyTopics(topics, options = {}) {
   const qualityExcluded = [];
   const afterQuality = candidates.filter(t => {
     const fit = evaluateTopicFit(t);
-    if (fit.decision === 'approve') return true;
+    if (fit.decision === 'approve' || fit.selection_eligible === true) return true;
     qualityExcluded.push({
       slug: t.slug,
       decision: fit.decision,
+      source_hold: fit.source_hold,
+      selection_eligible: fit.selection_eligible,
       customer_fit_score: fit.customer_fit_score,
       search_intent_score: fit.search_intent_score,
       source_alignment_score: fit.source_alignment_score,
