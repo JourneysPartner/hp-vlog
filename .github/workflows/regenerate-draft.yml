@@ -42,7 +42,8 @@ jobs:
         run: |
           git fetch origin main --depth=1
           git checkout origin/main -- scripts/ package.json package-lock.json \
-            data/banned-phrases.json data/topic-denylist.json
+            data/banned-phrases.json data/topic-denylist.json \
+            data/curated-source-promotions.json data/nta-sources/
           echo "── 上書き済 scripts/ の HEAD: $(git rev-parse origin/main) ──"
           echo "── banned-phrases 件数: $(node -e "console.log((require('./data/banned-phrases.json').phrases||[]).length)") ──"
 
