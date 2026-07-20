@@ -314,9 +314,15 @@ const NEW_SEGMENT_PAIN_SOURCE = {
 Object.assign(DEFAULT_SOURCE_BY_PAIN, NEW_SEGMENT_PAIN_SOURCE);
 
 // 人が matcher の提案を確認して curated へ昇格した追加分。
-// JSON を静的 require にして、生成スクリプトと Netlify Functions の双方で
-// 同じ信頼済みマップを参照できるようにする。
-const PROMOTED_SOURCE_BY_PAIN = require('../../data/curated-source-promotions.json');
+// 生成スクリプトと Netlify Functions の双方で同じ信頼済みマップを参照する。
+// ファイルが無い環境（regenerate の部分チェックアウト・Netlify のバンドル漏れ等）でも
+// モジュール読込ごとクラッシュしないよう、防御的に読み込む（未配置なら空で継続）。
+let PROMOTED_SOURCE_BY_PAIN = {};
+try {
+  PROMOTED_SOURCE_BY_PAIN = require('../../data/curated-source-promotions.json');
+} catch (e) {
+  console.warn('[tax-authority-refs] curated-source-promotions.json を読めませんでした（未配置として続行）:', e.message);
+}
 Object.assign(DEFAULT_SOURCE_BY_PAIN, PROMOTED_SOURCE_BY_PAIN);
 
 // 個別出典を確定できない pain。これらは source_alignment_score を 5 にせず
