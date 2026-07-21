@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "税抜1,000万円以上の設備を本則課税で取得すると、翌課税期間から最長3年間は免税・簡易課税に戻れなくなります。取得前に課税方式の選択を必ず確認しましょう。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-20T15:48:33.168+09:00"
 publish_at: "2026-07-21T11:14:00.000+09:00"
-published_at: ""
+published_at: "2026-07-21T12:04:07.361+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-20T06:04:21.869Z"
-updated_at: "2026-07-20T15:48:33.168+09:00"
+updated_at: "2026-07-21T12:04:07.361+09:00"
 publish_slot: "morning"
 ---
 ## この記事でわかること
