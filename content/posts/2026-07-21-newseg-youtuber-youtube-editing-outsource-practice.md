@@ -16,20 +16,21 @@ reader_problem: "編集外注費の勘定科目と源泉の要否が分からな
 success_outcome: "編集外注費の仕訳と源泉徴収の要否が判断できる。具体的な仕訳・手順が分かる"
 primary_question: "動画編集を外注したときの仕訳と源泉徴収はどうする？（具体例で解説）"
 summary: "動画編集の外注費は勘定科目「外注費」で処理し、源泉徴収は原則不要（支払者が法人でも同じ）。源泉が必要になるのは、実態が給与と認定される場合やデザイン等の報酬に当たる場合に限られます。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-21T17:31:15.262+09:00"
+publish_at: "2026-07-22T17:48:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-21T00:06:34.351Z"
-updated_at: "2026-07-21T08:21:39.442Z"
+updated_at: "2026-07-21T17:31:15.262+09:00"
 source_provenance: "curated"
 source_confidence: 1
 source_guard_version: 1
 pain_point: "youtube-editing-outsource"
 tax_domain: "withholding"
+publish_slot: "evening"
 ---
 ## 動画編集外注費の仕訳と源泉徴収、結論から
 動画編集を外注したとき、<strong>個人YouTuberが個人の編集者に支払う場合は源泉徴収不要</strong>が原則です。勘定科目は「外注費」で処理し、支払金額をそのまま計上します。
