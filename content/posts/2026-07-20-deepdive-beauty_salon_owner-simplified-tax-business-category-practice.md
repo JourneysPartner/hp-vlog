@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "美容サロンは原則として第5種（サービス業・みなし仕入率50%）ですが、物販や飲食を兼業する場合は事業ごとに区分が変わります。判定を誤ると消費税の納付額が変わるため、ケース別の判断基準を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-20T15:47:52.673+09:00"
 publish_at: "2026-07-21T17:12:00.000+09:00"
-published_at: ""
+published_at: "2026-07-21T18:08:13.519+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-20T06:05:11.643Z"
-updated_at: "2026-07-20T15:47:52.673+09:00"
+updated_at: "2026-07-21T18:08:13.519+09:00"
 publish_slot: "evening"
 ---
 
