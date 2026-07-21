@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "個人YouTuberが動画編集を外注する場合、源泉徴収は原則不要。勘定科目は外注費で、支払額をそのまま計上するのが基本的な処理です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「ケース2：法人チャンネル運営会社が個人編集者に3万円支払い（源泉要）\n法人が給与支払いをしている場合、個人への報酬は源泉徴収の対象になります。所得税の源泉徴収税率は一定の計算式によって決まりますが、動画編集報酬は一般的に10.21%が適用されます。」この部分がわかりにくいからもっとわかりやすい文章にして。内容も再考して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-21T00:06:34.351Z"
-updated_at: "2026-07-21T00:06:34.351Z"
+updated_at: "2026-07-21T16:49:57.762+09:00"
 ---
 
 ## 動画編集外注費の仕訳と源泉徴収、結論から
