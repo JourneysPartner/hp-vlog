@@ -60,6 +60,15 @@ assert(!st.selectConditionalRules(ebay).some(r => r.includes('「仕訳例」は
 assert(st.STATIC_RULES.includes('記事構成テンプレート'), 'STATIC_RULES に記事構成テンプレート');
 assert(st.STATIC_RULES.includes('読者の検索語起点'), 'STATIC_RULES にタイトル検索語起点ルール');
 
+// 源泉徴収（204条）の対象範囲ルール: 外注費/源泉の記事に注入。無関係には非注入
+const outsource = { pain_point: 'youtube-editing-outsource', tax_domain: 'withholding', title: '動画編集を外注したときの仕訳と源泉徴収はどうする？' };
+const wsRules = st.selectConditionalRules(outsource);
+assert(wsRules.some(r => r.includes('源泉徴収（所得税法204条）の対象範囲')), '外注費・源泉記事 → 源泉スコープルール注入');
+assert(wsRules.some(r => r.includes('列挙された報酬・料金に限られる')), '源泉ルール: 204条は列挙報酬に限る旨を含む');
+assert(wsRules.some(r => /動画編集・映像制作[\s\S]*源泉徴収は不要/.test(r)), '源泉ルール: 動画編集の外注費は原則不要を明記');
+assert(wsRules.some(r => r.includes('支払者が法人だから源泉徴収が必要')), '源泉ルール: 「法人だから要」を誤りとして警告');
+assert(!st.selectConditionalRules(inh).some(r => r.includes('源泉徴収（所得税法204条）の対象範囲')), '相続記事 → 源泉スコープルールは非注入');
+
 // ── 3. builder が dynamicSystem にだけ注入する ──────────────────
 console.log('\n=== Test 3: builder の注入先は dynamicSystem（非キャッシュ）===');
 const persona = { label: 'eBay輸出セラー' };
