@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "個人事業のエステサロンが家族を雇う場合、青色専従者給与か一般の雇用かで税務上の扱いが大きく異なります。届出の要否・給与の妥当性・配偶者控除との関係を整理して判断しましょう。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-22T17:11:32.562+09:00"
+publish_at: "2026-07-23T11:31:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-22T00:08:52.849Z"
-updated_at: "2026-07-22T00:08:52.849Z"
+updated_at: "2026-07-22T17:11:32.562+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
