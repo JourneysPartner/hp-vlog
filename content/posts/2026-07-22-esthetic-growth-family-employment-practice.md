@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "個人事業のエステサロンが家族を雇う場合、青色事業専従者給与の届出・給与額の妥当性・配偶者控除との選択など、実務でつまずく場面を具体例で整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-22T17:17:27.541+09:00"
+publish_at: "2026-07-23T17:55:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-22T00:09:48.459Z"
-updated_at: "2026-07-22T00:09:48.459Z"
+updated_at: "2026-07-22T17:17:27.541+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
