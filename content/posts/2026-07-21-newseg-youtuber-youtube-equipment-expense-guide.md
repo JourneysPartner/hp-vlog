@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "YouTuberがカメラや照明などの機材を購入した場合、10万円未満なら一括経費、10万円以上なら原則として耐用年数で減価償却が必要です。青色申告なら30万円未満は即時一括経費にできる特例もあります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-21T16:47:07.700+09:00"
 publish_at: "2026-07-22T11:14:00.000+09:00"
-published_at: ""
+published_at: "2026-07-22T12:03:04.066+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-21T00:05:46.930Z"
-updated_at: "2026-07-21T16:47:07.700+09:00"
+updated_at: "2026-07-22T12:03:04.066+09:00"
 publish_slot: "morning"
 ---
 
