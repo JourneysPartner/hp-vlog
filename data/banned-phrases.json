@@ -92,6 +92,20 @@
       "addedAt": "2026-07-12T08:29:15.273Z",
       "sourceArticle": "inheritance-cognitive-decline-document-collection-guide",
       "autoExtracted": true
+    },
+    {
+      "id": "kyoudai-use-kanji",
+      "pattern": "きょうだい",
+      "humanReadable": "きょうだい（ひらがな）",
+      "replacement": "兄弟姉妹",
+      "reason": "「きょうだい」は「兄弟姉妹」と表記する（ユーザー指摘 esthetic-growth-family-employment-guide 2026-07-22）。",
+      "appliesTo": [
+        "body",
+        "title"
+      ],
+      "addedAt": "2026-07-22T00:00:00.000Z",
+      "sourceArticle": "esthetic-growth-family-employment-guide",
+      "autoExtracted": false
     }
   ]
 }
