@@ -212,10 +212,32 @@ exports.handler = async (event) => {
       }
     }
 
+    // マージが失敗に見えても、記事が既に main に取り込まれていれば
+    // 「二度押し等で既に公開処理が完了している」＝実質成功。
+    // （典型例: 1回目の承認でマージ成功 → 2回目は開いている PR が無く findPR が null →
+    //  例外 → 従来は誤って merge_failed 通知を出していた）
+    // この場合は誤った失敗通知を出さず、かつ重複の approved 通知も出さない。
+    let alreadyPublished = false;
+    if (ref && (mergeError || !mergeResult)) {
+      try {
+        const mainFile = await getFile(filepath); // ref 省略 = main
+        const mainStatus = (mainFile.content.match(/^review_status:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+        if (['approved', 'scheduled', 'published'].includes(mainStatus)) {
+          alreadyPublished = true;
+          console.log(`[review-approve] 記事は既に main に取り込み済み (status=${mainStatus}) → 二度押し等の空振り。merge_failed 通知は抑止`);
+        }
+      } catch (_) {
+        // main に無い = 本当に未マージ（通常の失敗）
+      }
+    }
+
     // 通知: マージ成功時は approved（公開予約完了）、失敗時のみ merge_failed
     // 実際の公開完了通知 (published) は publish-scheduled ワークフローが送る。
     try {
-      if (mergeError || (ref && !mergeResult)) {
+      if (alreadyPublished) {
+        // 既に公開処理済み（二度押し等）→ 追加通知しない（重複・誤報の防止）
+        console.log('[review-approve] 既に公開処理済みのため通知はスキップ');
+      } else if (mergeError || (ref && !mergeResult)) {
         await sendNotification('merge_failed', {
           title: fmTitle,
           filename,
