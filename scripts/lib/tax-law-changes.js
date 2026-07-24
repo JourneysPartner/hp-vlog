@@ -34,9 +34,9 @@ const CHANGES = [
   {
     key: 'invoice_transitional_measures',
     status: 'transitional',
-    valid_to: '2029-09-30',
-    title: 'インボイス制度の経過措置（80%・50%控除の縮小スケジュール）',
-    summary: '2023年10月開始のインボイス制度では、免税事業者からの仕入につき経過措置（80%控除：2023.10〜2026.9 / 50%控除：2026.10〜2029.9）が設けられている。読者の事業区分・取引相手によって影響時期が異なる。',
+    valid_to: '2031-09-30',
+    title: 'インボイス制度の経過措置（80%→70%→50%→30%→0%の縮小スケジュール・令和8年改正で延長）',
+    summary: '免税事業者からの仕入れに係る経過措置は令和8年度税制改正で2年延長され、70%区分が新設された。80%(2023.10〜2026.9)／70%(2026.10〜2028.9)／50%(2028.10〜2030.9)／30%(2030.10〜2031.9)／0%(2031.10〜)。旧「50%(2026.10〜2029.9)」は誤り。読者の事業区分・取引相手によって影響時期が異なる。',
     tax_domain: 'invoice_system',
     personas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator', 'beauty_salon_owner'],
     reference: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6253.htm',

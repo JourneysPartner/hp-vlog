@@ -46,7 +46,12 @@ assert(!st.selectConditionalRules(inheritance).some(r => /T1700150104215|特定�
   '相続記事 → 事業者向けルールは注入されない');
 
 const invoice = { pain_point: 'invoice-judgement', tax_domain: 'invoice_system', search_intent: 'インボイス 登録 すべきか' };
-assert(st.selectConditionalRules(invoice).some(r => r.includes('経過措置')), 'インボイス記事 → 経過措置ルール注入');
+const invRules = st.selectConditionalRules(invoice);
+assert(invRules.some(r => r.includes('経過措置')), 'インボイス記事 → 経過措置ルール注入');
+// 令和8年度税制改正の新スケジュール（80→70→50→30→0）を注入し、旧スケジュールを使わない
+assert(invRules.some(r => /2026年10月1日〜2028年9月30日:\s*<strong>70%控除/.test(r)), '経過措置ルール: 2026.10〜2028.9=70%（改正後）を明記');
+assert(invRules.some(r => r.includes('2031年10月1日以降: 控除不可')), '経過措置ルール: 2031.10以降=0%（延長後の終了）を明記');
+assert(!invRules.some(r => /2026年10月1日〜2029年9月30日:\s*仕入税額相当額の50%/.test(r)), '経過措置ルール: 旧「2026.10〜2029.9=50%」を含まない');
 
 const houjinnari = { pain_point: 'incorporation-threshold', tax_domain: 'income_tax', search_intent: '法人成り 所得税率 逆転' };
 const hnRules = st.selectConditionalRules(houjinnari);
