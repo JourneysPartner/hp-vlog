@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "サブスク・オンラインサロン収入は受取月ごとに計上するのが基本。所得区分・経費の範囲・収入の集計単位を正しく把握して確定申告に備えましょう。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-23T15:39:22.119+09:00"
 publish_at: "2026-07-24T11:54:00.000+09:00"
-published_at: ""
+published_at: "2026-07-24T12:03:38.662+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-23T00:07:26.372Z"
-updated_at: "2026-07-23T15:39:22.119+09:00"
+updated_at: "2026-07-24T12:03:38.662+09:00"
 publish_slot: "morning"
 ---
 
