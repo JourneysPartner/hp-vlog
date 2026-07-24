@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "コンテンツ販売でプラットフォームに手数料を差し引かれた入金額を「純額」で売上計上する処理は誤り。売上は総額計上が原則で、手数料は別途「支払手数料」として計上する。消費税区分も含めた具体的な仕訳例を解説。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-23T15:42:10.367+09:00"
 publish_at: "2026-07-24T17:21:00.000+09:00"
-published_at: ""
+published_at: "2026-07-24T18:03:58.907+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-23T00:08:20.735Z"
-updated_at: "2026-07-23T15:42:10.367+09:00"
+updated_at: "2026-07-24T18:03:58.907+09:00"
 publish_slot: "evening"
 ---
 
