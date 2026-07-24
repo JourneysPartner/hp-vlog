@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "1人親方が現場で使う工具・作業着・ガソリン代は、業務との関連が明確であれば必要経費として計上できます。私用との按分ルールと少額減価償却の考え方を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-24T16:39:22.272+09:00"
+publish_at: "2026-07-25T11:13:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-24T00:06:23.582Z"
-updated_at: "2026-07-24T00:06:23.582Z"
+updated_at: "2026-07-24T16:39:22.272+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
