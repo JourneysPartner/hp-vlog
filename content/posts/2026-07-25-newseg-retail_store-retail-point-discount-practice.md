@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "revise"
 review_warning: "出典: この論点は個別出典が未確定（人による出典確認が必要）"
 summary: "ポイント値引き・割引は「値引後の実際受取額」が消費税の課税対象。ポイント付与時は負債計上、利用時は売上値引として処理。仕訳例で具体的に確認できます。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-25T07:15:24.453Z"
-updated_at: "2026-07-25T07:15:24.453Z"
+updated_at: "2026-07-25T16:20:24.123+09:00"
 ---
 
 ## ポイント・値引きの売上仕訳、何が論点か
