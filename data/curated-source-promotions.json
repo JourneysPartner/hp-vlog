@@ -1,1 +1,27 @@
-{}
+{
+  "retail-point-discount": {
+    "no": "6359",
+    "title": "国税庁タックスアンサー No.6359 値引き、返品、割戻しなどを行った場合の税額の調整（売上げに係る対価の返還等）",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6359.htm"
+  },
+  "retail-return-handling": {
+    "no": "6359",
+    "title": "国税庁タックスアンサー No.6359 値引き、返品、割戻しなどを行った場合の税額の調整（売上げに係る対価の返還等）",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6359.htm"
+  },
+  "wholesale-return-rebate": {
+    "no": "6359",
+    "title": "国税庁タックスアンサー No.6359 値引き、返品、割戻しなどを行った場合の税額の調整（売上げに係る対価の返還等）",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6359.htm"
+  },
+  "wholesale-apparel-return": {
+    "no": "6359",
+    "title": "国税庁タックスアンサー No.6359 値引き、返品、割戻しなどを行った場合の税額の調整（売上げに係る対価の返還等）",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6359.htm"
+  },
+  "retail-gift-certificate": {
+    "no": "6229",
+    "title": "国税庁タックスアンサー No.6229 商品券やプリペイドカードなど",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6229.htm"
+  }
+}

@@ -329,9 +329,13 @@ Object.assign(DEFAULT_SOURCE_BY_PAIN, PROMOTED_SOURCE_BY_PAIN);
 // revise 扱いにする（消費税の課税区分・時期など、検証済みカタログに適切な
 // 個別ページが無いもの。捏造しない）。source-alignment.js が参照する。
 const NEEDS_SOURCE_REVIEW = new Set([
+  // デジタルコンテンツ/オンライン講座の消費税は論点が分かれる（電気通信利用役務・
+  // 課税/非課税判定等）ため、個別出典が確定するまで保留のまま。
   'content-digital-consumption-tax', 'content-course-bundle',
-  'retail-point-discount', 'retail-return-handling', 'retail-gift-certificate',
-  'wholesale-return-rebate', 'wholesale-apparel-return',
+  // ↓ 値引き・返品・割戻し・商品券は curated 化済み（data/curated-source-promotions.json）:
+  //   retail-point-discount / retail-return-handling / wholesale-return-rebate /
+  //   wholesale-apparel-return → No.6359（売上げに係る対価の返還等）
+  //   retail-gift-certificate → No.6229（商品券・物品切手等）
 ]);
 
 // ── 最終フォールバック（どこにもマッチしなかった場合）
