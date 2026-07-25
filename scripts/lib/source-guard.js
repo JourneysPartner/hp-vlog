@@ -86,11 +86,17 @@ function evaluateSourceGuard(meta = {}, options = {}) {
   });
   if (alignment.needs_source_review || !alignment.aligned || alignment.score <= 3) {
     const reason = alignment.reason || '出典の人手確認が必要';
+    // 出典が未確定の記事は「承認・公開はさせない」が、生成/CI(validate)段階の
+    // 未承認ドラフト（draft/needs_review/needs_revision）は "保留したまま生成する"
+    // 設計なので警告に留める（version 未設定の分岐と同じ扱い）。
+    // これにより、ペアの片方が出典保留でも daily-draft のバッチ全体が落ちて
+    // 何も生成されない事故を防ぐ。承認(approve)・公開(publish)段階では従来どおりブロック。
+    const draftOk = stage === 'validate' && DRAFT_STATUSES.has(status);
     return {
-      allowed: false,
-      blocked: true,
+      allowed: draftOk,
+      blocked: !draftOk,
       legacy: false,
-      level: 'error',
+      level: draftOk ? 'warning' : 'error',
       reasons: [`needs_source_review: ${reason}`],
       alignment,
     };

@@ -99,7 +99,14 @@ assert.strictEqual(evaluateSourceGuard(curatedMeta, { stage: 'approve' }).allowe
 assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_url: U6501 }, { stage: 'approve' }).blocked, true,
   'current URL must be rechecked even if a stored score was 5');
 assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_provenance: 'auto' }, { stage: 'approve' }).blocked, true);
-assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_provenance: 'auto' }, { stage: 'validate' }).blocked, true);
+// 未承認ドラフト（draft/needs_review/needs_revision）は validate では警告に留め、生成させる
+// （承認/公開で保留する設計。ペアの片方が出典保留でも daily-draft バッチ全体を落とさない）。
+assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_provenance: 'auto' }, { stage: 'validate' }).blocked, false);
+assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_provenance: 'auto' }, { stage: 'validate' }).level, 'warning');
+// ただし approved 等 LIVE ステータスは validate でもブロック（誤って公開させない）
+assert.strictEqual(evaluateSourceGuard({ ...curatedMeta, source_provenance: 'auto', review_status: 'approved' }, { stage: 'validate' }).blocked, true);
+// NEEDS_SOURCE_REVIEW の論点（例: retail-point-discount）の未承認ドラフトも validate は警告
+assert.strictEqual(evaluateSourceGuard({ review_status: 'draft', source_guard_version: 1, source_provenance: 'curated', pain_point: 'retail-point-discount', tax_domain: 'invoice_system', source_url: 'https://www.nta.go.jp/x' }, { stage: 'validate' }).blocked, false);
 assert.strictEqual(evaluateSourceGuard({ review_status: 'published' }, { stage: 'validate' }).allowed, true);
 assert.strictEqual(evaluateSourceGuard({ review_status: 'draft' }, { stage: 'validate' }).allowed, true);
 assert.strictEqual(evaluateSourceGuard({ review_status: 'draft' }, { stage: 'approve' }).blocked, true);
