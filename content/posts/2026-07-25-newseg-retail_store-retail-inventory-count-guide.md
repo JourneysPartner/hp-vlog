@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "棚卸をしないと売上原価が正しく計算できず、所得税・法人税の申告が誤りになります。年1回の期末棚卸は白色申告者も含め全ての小売店に義務があります。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-25T16:19:19.538+09:00"
+publish_at: "2026-07-26T11:51:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-25T07:14:42.811Z"
-updated_at: "2026-07-25T07:14:42.811Z"
+updated_at: "2026-07-25T16:19:19.538+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
