@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "免税事業者のまま仕事を続けると元請けが仕入税額控除できず、単価交渉や取引継続に影響が出る場合があります。登録の要否と経過措置・仕訳例を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-24T16:58:51.408+09:00"
 publish_at: "2026-07-25T17:06:00.000+09:00"
-published_at: ""
+published_at: "2026-07-25T18:07:05.102+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-24T00:07:11.574Z"
-updated_at: "2026-07-24T16:58:51.408+09:00"
+updated_at: "2026-07-25T18:07:05.102+09:00"
 publish_slot: "evening"
 ---
 
