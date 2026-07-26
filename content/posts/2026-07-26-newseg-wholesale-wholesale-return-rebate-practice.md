@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の返品・値引き・リベートは「売上に係る対価の返還等」として消費税を減額処理します。仕訳例と注意点を実務目線で整理しました。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-26T15:32:34.976+09:00"
+publish_at: "2026-07-27T17:29:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-26T00:09:03.727Z"
-updated_at: "2026-07-26T00:09:03.727Z"
+updated_at: "2026-07-26T15:32:34.976+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
