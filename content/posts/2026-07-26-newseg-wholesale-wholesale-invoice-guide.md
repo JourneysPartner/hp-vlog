@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業がインボイス制度で注意すべき適格請求書の必須6項目・免税事業者への対応・経過措置の控除割合を整理。請求書の確認手順と取引先対応の判断基準を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-26T15:30:11.610+09:00"
 publish_at: "2026-07-27T11:50:00.000+09:00"
-published_at: ""
+published_at: "2026-07-27T12:04:05.101+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-26T00:08:18.725Z"
-updated_at: "2026-07-26T15:30:11.610+09:00"
+updated_at: "2026-07-27T12:04:05.101+09:00"
 publish_slot: "morning"
 ---
 
