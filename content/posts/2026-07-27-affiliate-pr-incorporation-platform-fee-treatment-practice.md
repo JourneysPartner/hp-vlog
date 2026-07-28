@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "ブログ・アフィリエイト運用者が支払うプラットフォーム手数料は、国内事業者か海外事業者か・インボイス登録の有無によって消費税の扱いが変わる。適格請求書の有無を確認して仕訳・控除可否を判断する方法を解説。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-27T14:54:49.006+09:00"
 publish_at: "2026-07-28T17:16:00.000+09:00"
-published_at: ""
+published_at: "2026-07-28T18:12:27.280+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-27T00:07:12.004Z"
-updated_at: "2026-07-27T14:54:49.006+09:00"
+updated_at: "2026-07-28T18:12:27.280+09:00"
 publish_slot: "evening"
 ---
 
