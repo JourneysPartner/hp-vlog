@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "ブログ・アフィリエイト運営者が法人成りを検討する際、ASPや海外プラットフォームの手数料を所得税・消費税の両面で正しく処理する方法と判断ポイントを解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-07-27T14:53:47.763+09:00"
 publish_at: "2026-07-28T11:32:00.000+09:00"
-published_at: ""
+published_at: "2026-07-28T12:06:57.847+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-27T00:06:18.859Z"
-updated_at: "2026-07-27T14:53:47.763+09:00"
+updated_at: "2026-07-28T12:06:57.847+09:00"
 publish_slot: "morning"
 ---
 
