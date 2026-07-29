@@ -33,7 +33,7 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "認知機能低下が気になり始めたら、戸籍・残高証明・不動産評価資料を早期に収集しておくことが相続手続きの出発点。収集先・タイミング・注意点を整理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -41,7 +41,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-12T00:06:07.004Z"
-updated_at: "2026-07-12T00:06:07.004Z"
+updated_at: "2026-07-29T15:50:40.823+09:00"
 ---
 
 ## この記事でわかること
