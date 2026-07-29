@@ -49,6 +49,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # 未マージの下書き（draft/* ブランチ）を重複検知コーパスに含めるため、
+      # 生成前にメタデータを .pending-drafts.json へ収集する。
+      # これが無いと、前日の下書きが未承認のまま溜まったとき同一トピックを再生成する
+      # （2026-07-28 / 07-29 の準確定申告ペア重複の再発防止）。
+      - name: Collect pending drafts (dedup vs unmerged drafts)
+        run: node scripts/collect-pending-drafts.js
+
       # NOTE: 旧 "Random delay (0-50 min)" ステップは GitHub Actions minutes を
       # 大量消費（月 ≈ 625 分）するため削除した（2026-06-25）。
       # 投稿時刻のばらつきが将来必要なら、GitHub Actions の sleep ではなく

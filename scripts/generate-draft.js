@@ -19,6 +19,24 @@ const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft } = require('./lib/draft-normalizer');
 const { restoreSourceGuardFields } = require('./lib/source-guard');
 
+// 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
+// collect-pending-drafts.js が生成前に .pending-drafts.json を書き出す。
+// これが無い環境（ローカル / テスト）では空配列を返し、従来どおり main のみを見る。
+function loadPendingDraftCorpus() {
+  try {
+    const p = path.join(ROOT, '.pending-drafts.json');
+    if (!fs.existsSync(p)) return [];
+    const arr = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (Array.isArray(arr) && arr.length) {
+      console.log(`[generate] 未マージ下書き ${arr.length} 件を重複検知コーパスに追加`);
+      return arr;
+    }
+  } catch (e) {
+    console.warn('[generate] .pending-drafts.json 読込失敗（無視して続行）:', e.message);
+  }
+  return [];
+}
+
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
 // 生成記事には必ず非空の出典を持たせる。scenario-expansion で対応済みだが、
@@ -440,7 +458,7 @@ function getRecentRevisionComments(limit = 3) {
 //   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
 //   6. 同日2本の最終類似度チェック
 function pickPair(dateStr) {
-  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: loadPendingDraftCorpus() });
   // 選定ログを表示（運用での偏り確認用）
   console.log('[generate] === topic selection ===');
   for (const step of explanation.steps) {
@@ -1385,7 +1403,7 @@ async function main() {
 
   // ── 選定 dry-run モード（OpenAI を呼ばずに選定結果のみ出力）──
   if (args.includes('--explain') || args.includes('--dry-run')) {
-    const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date() });
+    const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: loadPendingDraftCorpus() });
     console.log('\n=== Topic Selection Explanation ===\n');
     console.log(JSON.stringify(explanation, null, 2));
     console.log('\n=== Final Picks ===\n');

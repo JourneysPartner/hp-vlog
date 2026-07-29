@@ -143,12 +143,17 @@ function filterByCooldown(topics, corpus, now = new Date()) {
  */
 function checkTopicIdentity(candidate, corpus, now = new Date(), windowDays = IDENTITY_COOLDOWN_DAYS) {
   const seg  = deriveSegment(candidate).customer_segment;
-  const pain = candidate.pain_point;
-  // segment / pain が取れない候補は対象外（curated topic など既存挙動を壊さない）
-  if (!seg || !pain) return null;
+  // pain_point を第一キーにする。相続など pain_point が空の論点
+  // （life_stage / subcluster で表現されるテーマ）は subcluster を代替キーにする。
+  // 代替キーは candidate 側で決めた同じフィールドを post 側でも参照するため、
+  // pain と subcluster が名前空間を跨いで誤マッチすることはない。
+  const keyField = candidate.pain_point ? 'pain_point' : 'subcluster';
+  const key = candidate[keyField];
+  // segment / キーが取れない候補は対象外（curated topic など既存挙動を壊さない）
+  if (!seg || !key) return null;
 
   for (const post of corpus) {
-    if (!post.pain_point || post.pain_point !== pain) continue;
+    if (!post[keyField] || post[keyField] !== key) continue;
     if (deriveSegment(post).customer_segment !== seg) continue;
     const postDate = postReferenceDate(post);
     if (isNaN(postDate)) continue;
@@ -156,7 +161,7 @@ function checkTopicIdentity(candidate, corpus, now = new Date(), windowDays = ID
     if (diffDays < windowDays) {
       return {
         level: 'identity',
-        reason: `customer_segment '${seg}' × pain_point '${pain}' は既出（${diffDays}日前に ${post.slug}）`,
+        reason: `customer_segment '${seg}' × ${keyField} '${key}' は既出（${diffDays}日前に ${post.slug}）`,
         post: post.slug,
         days: diffDays,
         cooldownDays: windowDays,
