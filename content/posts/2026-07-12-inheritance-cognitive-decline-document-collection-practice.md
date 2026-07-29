@@ -33,7 +33,7 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "相続の事前準備で必要な戸籍・残高証明・評価資料は、入手先と請求タイミングを押さえれば迷いが減ります。本記事では書類の種類別に実務手順を整理します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -41,7 +41,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-12T00:07:03.245Z"
-updated_at: "2026-07-12T00:07:03.245Z"
+updated_at: "2026-07-29T15:50:54.076+09:00"
 ---
 
 ## 「まず何を集めればいい？」で止まってしまう方へ
