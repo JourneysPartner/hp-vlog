@@ -33,7 +33,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "税抜1,000万円以上の資産を取得すると、取得した課税期間の翌課税期間から所定の課税期間まで、免税事業者への復帰と簡易課税制度の選択が制限されます。機材・スタジオ購入を検討するクリエイターが押さえるべきルールを解説します。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -41,7 +41,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-19T00:06:31.026Z"
-updated_at: "2026-07-19T00:06:31.026Z"
+updated_at: "2026-07-29T15:54:56.230+09:00"
 ---
 
 ## この記事でわかること
