@@ -171,6 +171,17 @@ function buildBestPair(scored, candidatesAll) {
  * @param {Object} options - { explain: bool, dryRun: bool, now: Date, requireTwo: bool }
  * @returns {Object} { picks: Topic[], explanation: object }
  */
+/**
+ * extraCorpus（未マージ下書き）を site-corpus の post 形状に正規化する。
+ * postReferenceDate が post.file を参照するため、file を必ず補完する。
+ */
+function normalizeExtraCorpus(extra) {
+  if (!Array.isArray(extra)) return [];
+  return extra
+    .filter(p => p && p.slug)
+    .map(p => ({ ...p, file: p.file || `${p.slug}.md` }));
+}
+
 function selectDailyTopics(topics, options = {}) {
   const now = options.now || new Date();
   const explanation = { steps: [] };
@@ -178,9 +189,12 @@ function selectDailyTopics(topics, options = {}) {
   // 0. 全候補を enrich
   const enriched = topics.map(enrichTopic);
 
-  // 1. コーパス読込
-  const corpus = readAllPostsSorted();
-  explanation.steps.push({ step: 'corpus', count: corpus.length });
+  // 1. コーパス読込（main の content/posts）＋ 未マージ下書き（extraCorpus）
+  //    extraCorpus は承認前の下書き（draft/* ブランチ）を重複検知に含めるための追加分。
+  //    これが無いと、前日の下書きが未承認のまま溜まったときに同一トピックを再生成する。
+  const pending = normalizeExtraCorpus(options.extraCorpus);
+  const corpus = readAllPostsSorted().concat(pending);
+  explanation.steps.push({ step: 'corpus', count: corpus.length, pending: pending.length });
 
   // 2. 既存 slug 除外
   const existingSlugs = new Set(corpus.map(p => p.slug));
