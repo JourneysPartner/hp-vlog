@@ -65,6 +65,22 @@ function buildMessage(event, data) {
       return { subject: '【ブログ】差し戻し対応版ができました', body: lines.join('\n') };
     }
 
+    // 差し戻しコメントを自動で本文に反映できなかった（または一部のみ）ケース。
+    // 本文長さガードで LLM の全文再生成が破棄されたときなど。誤って「対応版ができました」と
+    // 通知すると内容が変わっていないのに完了扱いになるため、明確に手動対応を促す。
+    case 'regenerate_not_applied': {
+      const { title, reviewUrl, comment } = data;
+      const lines = [
+        '差し戻しコメントを自動で本文に反映できませんでした（本文は変更されていないか、禁止表現の置換のみ適用されています）。',
+        'お手数ですが、レビュー画面から手動で修正するか、コメントをより具体的にして再度お試しください。',
+        '',
+        `■ タイトル: ${title}`,
+      ];
+      if (comment) lines.push(`■ 差し戻しコメント: ${comment}`);
+      if (reviewUrl) lines.push(`▶ レビュー画面: ${reviewUrl}`);
+      return { subject: '【ブログ】差し戻しを自動反映できませんでした（要手動対応）', body: lines.join('\n') };
+    }
+
     case 'regenerate_failed': {
       const { filename, comment } = data;
       return {

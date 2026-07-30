@@ -110,8 +110,9 @@
     {
       "id": "auto-読後-ms79aj6j",
       "pattern": "読後",
-      "replacement": null,
-      "reason": "ユーザー指摘で禁止（shopify-growth-overseas-tax-uncertain-guide 2026-07-30）",
+      "replacement": "読み終えたあと",
+      "humanReadable": "読後",
+      "reason": "ユーザー指摘で禁止（shopify-growth-overseas-tax-uncertain-guide 2026-07-30）。当初 replacement=null（警告のみ）で本文から消えなかったため、自然な言い換え『読み終えたあと』へ自動置換するよう手動是正（2026-07-30）。",
       "appliesTo": [
         "body",
         "title"

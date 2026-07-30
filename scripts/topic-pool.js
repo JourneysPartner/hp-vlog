@@ -42,7 +42,7 @@
  *   validate.js は draft/needs_review では source_url 未設定を警告扱いにする。
  *
  * 企画メタ情報（search_intent / reader_problem / success_outcome / primary_question）:
- *   各記事の検索意図・読者の課題・読後の成功状態・中心疑問を定義する。
+ *   各記事の検索意図・読者の課題・読み終えたあとの成功状態・中心疑問を定義する。
  *   生成プロンプトの入力に使い、frontmatter に保存して再生成時にも引き継ぐ。
  */
 
