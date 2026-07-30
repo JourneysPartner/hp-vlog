@@ -94,7 +94,7 @@ ${titleHintLine}
 ═══ 企画メタ情報（この記事の設計意図 — タイトル生成にも活用すること）═══
 検索意図: ${topic.search_intent || '（パーソナと痛点から推測）'}
 読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
-読後の成功状態: ${topic.success_outcome || '（パーソナと痛点から推測）'}
+読み終えたあとの状態: ${topic.success_outcome || '（パーソナと痛点から推測）'}
 中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
 ${pairBlock}
 

@@ -212,5 +212,23 @@ console.log('\n=== Test 12: 本番 JSON 上の ** → <strong> 変換 ===');
   assert(!t4.includes('**'), '孤立 ** は削除される');
 }
 
+// ── 13. 本番 banned-phrases.json: 「読後」→「読み終えたあと」自動置換 ──────
+// ユーザー指摘（2026-07-30）。当初 replacement=null で本文から消えなかったため、
+// 自然な言い換えへ自動置換するよう是正したことのリグレッション。
+console.log('\n=== Test 13: 「読後」→「読み終えたあと」自動置換 ===');
+{
+  const data = bp.loadBannedPhrases();
+  const rule = data.phrases.find(p => p.pattern === '読後');
+  assert(!!rule, '「読後」ルールが登録されている');
+  assert(rule && rule.replacement === '読み終えたあと', 'replacement が「読み終えたあと」（null ではない）');
+
+  const { text, applied } = bp.applyBannedPhrasesToBody(
+    '読後には、自分のケースで次の行動を判断できる状態を目指します。'
+  );
+  assert(!text.includes('読後'), '本文から「読後」が消える');
+  assert(text.startsWith('読み終えたあとには'), '「読み終えたあとには…」に置換される');
+  assert(applied.some(a => a.hasReplacement === true), '置換として記録される');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

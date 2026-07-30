@@ -104,6 +104,14 @@ jobs:
           FILE="content/posts/${{ inputs.filename }}"
           TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
           echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
+          # 差し戻しコメントを自動反映できなかった（または一部のみ）場合、
+          # generate-draft が review_comment にマーカーを追記する。これを検出して
+          # 通知イベントを切り替え、「対応版ができました」の誤通知を防ぐ。
+          if grep -qE '自動再生成の警告|自動反映は一部のみ' "$FILE"; then
+            echo "event=regenerate_not_applied" >> "$GITHUB_OUTPUT"
+          else
+            echo "event=regenerated" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Notify via Netlify
         env:
@@ -112,7 +120,7 @@ jobs:
         run: |
           REVIEW_URL="https://mori-zeirishi.net/review?file=${{ inputs.filename }}&ref=${{ inputs.branch }}"
           node scripts/notify.js \
-            --event regenerated \
+            --event "${{ steps.fm.outputs.event }}" \
             --title "${{ steps.fm.outputs.title }}" \
             --review-url "$REVIEW_URL" \
             --comment "${{ inputs.comment }}"

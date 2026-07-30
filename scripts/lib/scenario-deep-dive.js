@@ -75,7 +75,7 @@ function kebab(s) {
 // q: 中心疑問（primary_question）
 // intent: 検索意図（search_intent）
 // reader: 読者の課題（reader_problem）
-// success: 読後の成功状態（success_outcome）
+// success: 読み終えたあとの成功状態（success_outcome）
 // tax_domain: 税目
 
 const DEEP_PAINS_CONSUMPTION_TAX = [

@@ -715,7 +715,7 @@ SEOはその結果として取りにいきます。単なる言い換えや薄�
 ═══ 企画メタ情報（この記事の設計意図）═══
 検索意図: ${searchIntent || '（テーマから推測してください）'}
 読者の課題: ${readerProblem || '（テーマから推測してください）'}
-読後の成功状態: ${successOutcome || '（テーマから推測してください）'}
+読み終えたあとの状態: ${successOutcome || '（テーマから推測してください）'}
 中心疑問: ${primaryQuestion || '（テーマから推測してください）'}
 
 ═══ 記事の役割: ${roleLabel} ═══
@@ -842,7 +842,7 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
 記事を書き始める前に、以下を内部的に整理してから執筆してください:
 1. 検索意図: 「${searchIntent || topic.title}」— この疑問に直接答えているか？
 2. 読者の課題: 「${readerProblem || '（テーマから推測）'}」— この迷いを解消できているか？
-3. 読後の成功状態: 「${successOutcome || '（テーマから推測）'}」— この状態に導けているか？
+3. 読み終えたあとの状態: 「${successOutcome || '（テーマから推測）'}」— この状態に導けているか？
 4. 必須要素チェック: ${checklist.join(' / ')} — すべて本文に含められるか？
 5. テーブルを使って整理すべき情報はあるか？
 6. 自力で進めやすいケースと、専門家に相談すべきケースの境目を自然に示せているか？
@@ -1058,7 +1058,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 ═══ 企画メタ情報（維持すべき設計意図）═══
 検索意図: ${searchIntent || '（元の記事テーマから維持）'}
 読者の課題: ${readerProblem || '（元の記事テーマから維持）'}
-読後の成功状態: ${successOutcome || '（元の記事テーマから維持）'}
+読み終えたあとの状態: ${successOutcome || '（元の記事テーマから維持）'}
 中心疑問: ${primaryQuestion || '（元の記事テーマから維持）'}
 
 ═══ 記事の役割: ${roleLabel} ═══
@@ -1347,6 +1347,15 @@ async function regenerateTargeted(existingContent, comment) {
 
   if (guard.suspicious) {
     console.warn(`[regenerate] ⚠ targeted: リトライ後も本文が異常に短縮。${guard.reason}`);
+    // LLM による全文再生成は破棄するが、決定論的な禁止表現サニタイズ（例: 読後→読み終えたあと）
+    // だけは元本文に適用しておく。禁止表現が原因の差し戻しは、LLM が全文を返せなくても
+    // これで最低限は是正できる。
+    const sanitized = sanitizeBannedPhrases(body);
+    if (sanitized !== body) {
+      console.warn('[regenerate] ⚠ 全文再生成は破棄。禁止表現の自動置換のみ適用して needs_revision を維持します。');
+      const partialNote = `\n\n【自動反映は一部のみ】禁止表現の自動置換だけ適用しました（LLM が ${guard.reason} のため全文再生成は破棄）。その他のご指示は手動でご確認ください。`;
+      return rebuildWithBodyAndWarning(existingContent, sanitized, comment + partialNote);
+    }
     console.warn('[regenerate] ⚠ 元本文を維持し、review_comment に警告を追記します。');
     const warnNote = `\n\n【自動再生成の警告】このコメントを自動で本文に反映できませんでした（LLM が ${guard.reason}）。手動で該当箇所を直すか、コメントを具体化して再度お試しください。`;
     return rebuildWithBodyAndWarning(existingContent, body, comment + warnNote);
