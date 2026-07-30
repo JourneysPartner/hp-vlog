@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "Shopifyで海外の消費者に商品を販売した売上は、輸出免税として消費税がかかりません。ただし免税が認められるには帳簿・証拠書類の保存が必須で、記帳方法を間違えると仕入税額控除を取りこぼします。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-07-30T17:34:36.921+09:00"
+publish_at: "2026-07-31T17:21:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-30T00:08:55.678Z"
-updated_at: "2026-07-30T00:08:55.678Z"
+updated_at: "2026-07-30T17:34:36.921+09:00"
+publish_slot: "evening"
 ---
 
 ## この記事でわかること
