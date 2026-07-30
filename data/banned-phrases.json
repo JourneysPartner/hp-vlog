@@ -106,6 +106,19 @@
       "addedAt": "2026-07-22T00:00:00.000Z",
       "sourceArticle": "esthetic-growth-family-employment-guide",
       "autoExtracted": false
+    },
+    {
+      "id": "auto-読後-ms79aj6j",
+      "pattern": "読後",
+      "replacement": null,
+      "reason": "ユーザー指摘で禁止（shopify-growth-overseas-tax-uncertain-guide 2026-07-30）",
+      "appliesTo": [
+        "body",
+        "title"
+      ],
+      "addedAt": "2026-07-30T08:33:06.715Z",
+      "sourceArticle": "shopify-growth-overseas-tax-uncertain-guide",
+      "autoExtracted": true
     }
   ]
 }
