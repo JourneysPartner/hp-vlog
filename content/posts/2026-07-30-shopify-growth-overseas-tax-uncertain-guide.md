@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "Shopifyで海外に商品を販売する場合、一定の条件を満たせば消費税は免税（ゼロ税率）になります。判断に必要な要件と、免税事業者・課税事業者で異なる対応を整理します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「読後」は今後使用禁止。\n「読後には、自分のケースで次の行動を判断できる状態を目指します。」←この表現が日本語として不自然だから、もっとわかりやすい表現に変えて。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-30T00:08:05.774Z"
-updated_at: "2026-07-30T00:08:05.774Z"
+updated_at: "2026-07-30T17:33:05.626+09:00"
 ---
 
 ## この記事でわかること
