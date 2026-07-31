@@ -9,10 +9,10 @@ article_role: "support"
 related_slug: "deepdive-domestic_ec_seller-special-depreciation-guide"
 related_title: ""
 related_link_text: "基本から確認したい方はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
-source_title: "国税庁タックスアンサー No.2210 やさしい必要経費の知識"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
+source_title: "国税庁タックスアンサー No.2100 減価償却のあらまし"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "美容室の椅子・鏡台、飲食店の厨房、運送業のトラック等の耐用年数を知りたい（判断に迷うケース別）"
 reader_problem: "自社業種の主要設備の耐用年数表が見つからない"
@@ -34,7 +34,7 @@ practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
 recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+review_warning: ""
 summary: "美容室のセット椅子は13年、飲食店の厨房設備は8年、運送業のトラックは5年など、業種別・設備別の耐用年数を具体ケースで整理。判断が分かれやすい複合設備の考え方も解説します。"
 review_status: "draft"
 review_comment: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-31T00:06:46.443Z"
-updated_at: "2026-07-31T00:06:46.443Z"
+updated_at: "2026-07-31T03:49:49.256Z"
 ---
 
 ## この記事でわかること
@@ -55,7 +55,7 @@ updated_at: "2026-07-31T00:06:46.443Z"
 
 ## 耐用年数とは（原則）
 
-減価償却費の計算に使う「法定耐用年数」は、財務省令の「減価償却資産の耐用年数等に関する省令」別表で定められています。国税庁タックスアンサー No.2210 でも「固定資産の取得に要した金額は、取得した年に一括して必要経費にはならず、使用可能期間（耐用年数）にわたって分割して必要経費に算入する」と説明されています。
+減価償却費の計算に使う「法定耐用年数」は、財務省令の「減価償却資産の耐用年数等に関する省令」別表で定められています。国税庁タックスアンサー No.2100「減価償却のあらまし」でも、事業に使う建物・機械・器具備品などは取得した年に一括して必要経費にはせず、使用可能期間（耐用年数）にわたって分割して必要経費に算入する（減価償却）と説明されています。
 
 ---
 
