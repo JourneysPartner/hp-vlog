@@ -41,6 +41,33 @@ function loadPendingDraftCorpus() {
 // validate.js は approved/scheduled/published 段階で source_url 空欄を ERROR にするため、
 // 生成記事には必ず非空の出典を持たせる。scenario-expansion で対応済みだが、
 // 念のため generate-draft でも二重防御する。
+// 出典が弱い（domain-fallback/ultimate/unknown）トピックに対し、LLM(GPT-5.6 Luna)で
+// 検証済みカタログから的確な出典を選定する。provenance='llm-auto'（人の確認は従来どおり必要）。
+// フラグ ENABLE_LLM_SOURCE_SELECT!=='true' または OPENAI_API_KEY 未設定なら何もしない。
+const LLM_SOURCE_WEAK_PROVENANCE = new Set(['domain-fallback', 'ultimate', 'unknown']);
+async function enrichSourceWithLLM(topic) {
+  if (process.env.ENABLE_LLM_SOURCE_SELECT !== 'true') return;
+  if (!process.env.OPENAI_API_KEY) return;
+  if (!LLM_SOURCE_WEAK_PROVENANCE.has(topic.source_provenance)) return;
+  try {
+    const { resolveSourceWithLLM, makeOpenAILuna } = require('./lib/llm-source-selector');
+    const picked = await resolveSourceWithLLM(topic, { callLLM: makeOpenAILuna() });
+    if (picked) {
+      const before = topic.source_provenance;
+      topic.source_url = picked.url;
+      topic.source_title = picked.title;
+      topic.source_provenance = 'llm-auto';
+      topic.source_confidence = picked.confidence;
+      console.log(`[source] LLM選定(${picked.tier}) ${before}→llm-auto: No.${picked.no} ` +
+        `conf=${picked.confidence} 理由=${picked.reason}`);
+    } else {
+      console.log(`[source] LLM選定: 適合候補なし（${topic.source_provenance} のまま）: ${topic.slug}`);
+    }
+  } catch (e) {
+    console.warn(`[source] LLM選定失敗（${topic.source_provenance} のまま）: ${e.message}`);
+  }
+}
+
 function ensureSourceOnTopic(topic) {
   const source = resolveSourceForTopic(topic);
   topic.source_url = source.url;
@@ -1558,6 +1585,13 @@ async function main() {
 
   // 各トピックに source_url / source_title が必ず付くよう fallback を適用
   pair.forEach(ensureSourceOnTopic);
+
+  // 出典が domain-fallback/ultimate（＝的確な出典が見つからず汎用に倒れた）場合、
+  // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で
+  // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
+  for (const t of pair) {
+    await enrichSourceWithLLM(t);
+  }
 
   // 本文生成 provider/model の表示（content-model の解決結果）
   const contentProvider = contentModel.resolveProvider();

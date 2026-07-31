@@ -84,6 +84,11 @@ jobs:
           # OpenAI（fallback 用。必ず OPENAI_MODEL=gpt-5.4 を使う）
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          # LLM 出典選定（A＝Luna 選定 ＋ C＝Luna 深掘り）。
+          # 有効化は Variables に ENABLE_LLM_SOURCE_SELECT=true を設定するだけ（未設定なら無効＝従来挙動）。
+          # domain-fallback/ultimate に倒れた出典だけを、検証済みカタログから LLM が選び直す。
+          ENABLE_LLM_SOURCE_SELECT: ${{ vars.ENABLE_LLM_SOURCE_SELECT }}
+          LLM_SOURCE_SELECT_MODEL: ${{ vars.LLM_SOURCE_SELECT_MODEL || 'gpt-5.6-luna' }}
 
       - name: Validate
         run: npm run validate
