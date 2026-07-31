@@ -134,14 +134,19 @@ function loadEntries(indexPath) {
  */
 function rankSources(topic = {}, options = {}) {
   try {
+    // allCategories=true のときは税目カテゴリの縛りを外し、taxanswer 全体から探す。
+    // LLM 出典選定の「C（深掘り）」で、税目カテゴリ外の正本（例: bookkeeping_expenses
+    // の論点に対する hojin/5433）も候補に載せるために使う。
+    const allCategories = options.allCategories === true;
     const categories = TAX_CATEGORY_CODES[topic.tax_domain];
-    if (!Array.isArray(categories) || categories.length === 0) return unavailable();
+    if (!allCategories && (!Array.isArray(categories) || categories.length === 0)) return unavailable();
 
     const entries = Array.isArray(options.entries)
       ? options.entries
       : loadEntries(options.indexPath || DEFAULT_INDEX_PATH);
     const pool = entries.filter(entry => entry && entry.type === 'taxanswer' && entry.deleted !== true
-      && categories.includes(entry.tax_category_code) && entry.title && entry.url);
+      && entry.title && entry.url
+      && (allCategories || categories.includes(entry.tax_category_code)));
     if (pool.length === 0) return unavailable();
 
     const raw = topicText(topic);
@@ -164,7 +169,8 @@ function rankSources(topic = {}, options = {}) {
       || a.no.localeCompare(b.no, 'en', { numeric: true })
       || a.url.localeCompare(b.url));
 
-    const top = candidates.slice(0, 5);
+    const limit = Number.isInteger(options.limit) && options.limit > 0 ? options.limit : 5;
+    const top = candidates.slice(0, limit);
     const top1 = top[0] || null;
     const top2 = top[1] || null;
     const margin = top1 ? roundScore(top1.score - (top2 ? top2.score : 0)) : 0;
