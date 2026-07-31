@@ -715,7 +715,7 @@ SEOはその結果として取りにいきます。単なる言い換えや薄�
 ═══ 企画メタ情報（この記事の設計意図）═══
 検索意図: ${searchIntent || '（テーマから推測してください）'}
 読者の課題: ${readerProblem || '（テーマから推測してください）'}
-読み終えたあとの状態: ${successOutcome || '（テーマから推測してください）'}
+読者が得られる到達点: ${successOutcome || '（テーマから推測してください）'}
 中心疑問: ${primaryQuestion || '（テーマから推測してください）'}
 
 ═══ 記事の役割: ${roleLabel} ═══
@@ -842,7 +842,7 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
 記事を書き始める前に、以下を内部的に整理してから執筆してください:
 1. 検索意図: 「${searchIntent || topic.title}」— この疑問に直接答えているか？
 2. 読者の課題: 「${readerProblem || '（テーマから推測）'}」— この迷いを解消できているか？
-3. 読み終えたあとの状態: 「${successOutcome || '（テーマから推測）'}」— この状態に導けているか？
+3. 読者が得られる到達点: 「${successOutcome || '（テーマから推測）'}」— この状態に導けているか？
 4. 必須要素チェック: ${checklist.join(' / ')} — すべて本文に含められるか？
 5. テーブルを使って整理すべき情報はあるか？
 6. 自力で進めやすいケースと、専門家に相談すべきケースの境目を自然に示せているか？
@@ -1058,7 +1058,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 ═══ 企画メタ情報（維持すべき設計意図）═══
 検索意図: ${searchIntent || '（元の記事テーマから維持）'}
 読者の課題: ${readerProblem || '（元の記事テーマから維持）'}
-読み終えたあとの状態: ${successOutcome || '（元の記事テーマから維持）'}
+読者が得られる到達点: ${successOutcome || '（元の記事テーマから維持）'}
 中心疑問: ${primaryQuestion || '（元の記事テーマから維持）'}
 
 ═══ 記事の役割: ${roleLabel} ═══

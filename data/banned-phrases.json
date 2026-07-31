@@ -3,6 +3,19 @@
   "description": "本文・タイトルで禁止する定型表現のリスト。差し戻しコメントで「今後〜書かないでください」と指示されたフレーズが auto-extracted で追加される。手動追加も可。pattern は正規表現。replacement が null なら警告のみ（人間レビュー）、文字列なら自動置換。",
   "phrases": [
     {
+      "id": "no-formulaic-outcome-closer",
+      "pattern": "[^。\\n]*できる状態を目指しま(?:す|しょう)。",
+      "humanReadable": "〜できる状態を目指します（定型の締め文）",
+      "replacement": "",
+      "reason": "『判定できる状態を目指します』『判断できる状態を目指します』等の締め文はAIが書いた印象になるため使わない（ユーザー指摘 2026-07-31）。定型の締めは情報価値がないので文ごと削除する。",
+      "appliesTo": [
+        "body"
+      ],
+      "addedAt": "2026-07-31T00:00:00.000Z",
+      "sourceArticle": "deepdive-domestic_ec_seller-special-depreciation-guide",
+      "autoExtracted": false
+    },
+    {
       "id": "no-principle-N-lines",
       "pattern": "原則を\\s*(?:まず\\s*)?[\\d◯〇○XxⅩ]+\\s*行で押さえる",
       "humanReadable": "原則を◯行で押さえる",
