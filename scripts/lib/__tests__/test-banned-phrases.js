@@ -222,12 +222,38 @@ console.log('\n=== Test 13: 「読後」→「読み終えたあと」自動置�
   assert(!!rule, '「読後」ルールが登録されている');
   assert(rule && rule.replacement === '読み終えたあと', 'replacement が「読み終えたあと」（null ではない）');
 
+  // ※定型締め文（〜できる状態を目指します）は別ルールで文ごと削除されるため、
+  //   ここでは締め文でない「読後」用例で置換のみを検証する。
   const { text, applied } = bp.applyBannedPhrasesToBody(
-    '読後には、自分のケースで次の行動を判断できる状態を目指します。'
+    '読後の理解が深まるよう、具体例を多く載せています。'
   );
   assert(!text.includes('読後'), '本文から「読後」が消える');
-  assert(text.startsWith('読み終えたあとには'), '「読み終えたあとには…」に置換される');
+  assert(text.startsWith('読み終えたあとの理解が深まる'), '「読み終えたあと」に置換される');
   assert(applied.some(a => a.hasReplacement === true), '置換として記録される');
+}
+
+// ── 14. 定型の締め文『〜できる状態を目指します』を文ごと削除 ──────
+// ユーザー指摘（2026-07-31）。AIが書いた印象になる定型の締めを本文から除去する。
+console.log('\n=== Test 14: 「〜できる状態を目指します」定型締め文の削除 ===');
+{
+  const data = bp.loadBannedPhrases();
+  const rule = data.phrases.find(p => p.id === 'no-formulaic-outcome-closer');
+  assert(!!rule, 'no-formulaic-outcome-closer ルールが登録されている');
+
+  // 直前の文は残し、定型の締め文だけ消える
+  const { text: t1 } = bp.applyBannedPhrasesToBody(
+    'この記事では対象資産と適用要件を整理します。読み終えたあとに「自分のケースで使えるか」を判定できる状態を目指します。'
+  );
+  assert(t1 === 'この記事では対象資産と適用要件を整理します。', '締め文だけ削除され前文は残る');
+
+  // 「判断できる状態を目指します」も対象
+  const { text: t2 } = bp.applyBannedPhrasesToBody('本文本文。自分のケースで判断できる状態を目指します。');
+  assert(!/目指します/.test(t2), '判断できる状態を目指しますも削除される');
+  assert(t2.startsWith('本文本文。'), '前の文は保持される');
+
+  // 「目指します」でも「できる状態」を伴わない通常文は消さない（過剰削除の防止）
+  const { text: t3 } = bp.applyBannedPhrasesToBody('私たちは地域No.1事務所を目指します。');
+  assert(t3 === '私たちは地域No.1事務所を目指します。', '「できる状態を目指します」以外は削除しない');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
