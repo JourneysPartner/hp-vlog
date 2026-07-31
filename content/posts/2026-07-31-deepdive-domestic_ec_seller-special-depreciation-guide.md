@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "deepdive-domestic_ec_seller-industry-fixed-assets-practice"
 related_title: ""
 related_link_text: "判断に迷うケースについてはこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
-source_title: "国税庁タックスアンサー No.2210 やさしい必要経費の知識"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5433.htm"
+source_title: "国税庁タックスアンサー No.5433 中小企業投資促進税制（中小企業者等が機械等を取得した場合の特別償却又は税額控除）"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "中小企業投資促進税制等の特別償却の対象資産と適用要件を知りたい"
 reader_problem: "特別償却制度の選択と税効果が不明"
@@ -34,7 +34,7 @@ practical_usefulness_score: 4
 lead_value_score: 2
 tax_risk_score: 3
 recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+review_warning: ""
 summary: "中小企業向け特別償却の主要制度（中小企業投資促進税制・中小企業経営強化税制）の対象資産・適用要件・税効果を整理。EC事業者が機材や設備投資時に活用できるかを判定できる内容です。"
 review_status: "draft"
 review_comment: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-07-31T00:05:57.736Z"
-updated_at: "2026-07-31T00:05:57.736Z"
+updated_at: "2026-07-31T03:49:49.256Z"
 ---
 
 ## この記事でわかること
