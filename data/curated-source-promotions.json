@@ -23,5 +23,15 @@
     "no": "6229",
     "title": "国税庁タックスアンサー No.6229 商品券やプリペイドカードなど",
     "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6229.htm"
+  },
+  "special-depreciation": {
+    "no": "5433",
+    "title": "国税庁タックスアンサー No.5433 中小企業投資促進税制（中小企業者等が機械等を取得した場合の特別償却又は税額控除）",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5433.htm"
+  },
+  "industry-fixed-assets": {
+    "no": "2100",
+    "title": "国税庁タックスアンサー No.2100 減価償却のあらまし",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
   }
 }
