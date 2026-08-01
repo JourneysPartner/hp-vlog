@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "last_crawl_started_at": "2026-06-21T13:48:05.111Z",
-  "last_crawl_finished_at": "2026-06-21T14:25:23.477Z",
-  "last_crawl_duration_seconds": 2238,
+  "last_crawl_started_at": "2026-08-01T15:55:44.897Z",
+  "last_crawl_finished_at": "2026-08-01T16:33:23.267Z",
+  "last_crawl_duration_seconds": 2258,
   "crawl_results": {
-    "fetched": 2222,
-    "skipped": 0,
+    "fetched": 19,
+    "skipped": 2203,
     "deleted": 0,
     "errors_count": 11
   },

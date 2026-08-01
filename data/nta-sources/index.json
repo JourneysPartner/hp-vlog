@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-06-22T07:06:44.726Z",
+  "generated_at": "2026-08-01T16:33:23.258Z",
   "total_count": 2222,
   "by_type": {
     "shitsugi": 1550,
@@ -7982,10 +7982,10 @@
       "title": "遺産が未分割である場合の議決権割合の判定",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/05/04.htm",
       "file_path": "shitsugi/hyoka/05/04.json",
-      "char_count_body": 713,
+      "char_count_body": 727,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:33.555Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT"
+      "fetched_at": "2026-08-01T16:22:44.871Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "01",
@@ -8094,10 +8094,10 @@
       "title": "1株当たりの利益金額 －外国子会社等から剰余金の配当等がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/08.htm",
       "file_path": "shitsugi/hyoka/07/08.json",
-      "char_count_body": 568,
+      "char_count_body": 571,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:41.620Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:22:53.875Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "09",
@@ -8108,10 +8108,10 @@
       "title": "1株当たりの利益金額 －譲渡損益調整資産の譲渡等があった場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/09.htm",
       "file_path": "shitsugi/hyoka/07/09.json",
-      "char_count_body": 1045,
+      "char_count_body": 1048,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:42.622Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:22:55.876Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "10",
@@ -8136,10 +8136,10 @@
       "title": "1株当たりの配当金額 －自己株式の取得によるみなし配当の金額がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/11.htm",
       "file_path": "shitsugi/hyoka/07/11.json",
-      "char_count_body": 411,
+      "char_count_body": 414,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:44.637Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:22:58.877Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "12",
@@ -8150,10 +8150,10 @@
       "title": "1株当たりの利益金額 －みなし配当の金額がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/12.htm",
       "file_path": "shitsugi/hyoka/07/12.json",
-      "char_count_body": 661,
+      "char_count_body": 664,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:45.652Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:23:00.879Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "13",
@@ -8192,10 +8192,10 @@
       "title": "1株当たりの利益金額 －グループ通算制度における損益通算等の適用がある場合",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/15.htm",
       "file_path": "shitsugi/hyoka/07/15.json",
-      "char_count_body": 1916,
+      "char_count_body": 1939,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:48.677Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:23:04.878Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "01",
@@ -8332,10 +8332,10 @@
       "title": "「比準要素数1の会社」の判定の際の端数処理",
       "url": "https://www.nta.go.jp/law/shitsugi/hyoka/11/01.htm",
       "file_path": "shitsugi/hyoka/11/01.json",
-      "char_count_body": 252,
+      "char_count_body": 255,
       "deleted": false,
-      "fetched_at": "2026-06-22T06:58:58.764Z",
-      "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT"
+      "fetched_at": "2026-08-01T16:23:16.881Z",
+      "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT"
     },
     {
       "id": "01",
@@ -22654,10 +22654,10 @@
       "title": "外国居住者等所得相互免除法による課税の特例の概要（台湾関係）",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2890.htm",
       "file_path": "taxanswer/gensen/2890.json",
-      "char_count_body": 1562,
+      "char_count_body": 1543,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:52:33.612Z",
-      "last_modified": "Fri, 06 Feb 2026 08:30:11 GMT"
+      "fetched_at": "2026-08-01T16:00:25.901Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "2891",
@@ -28044,10 +28044,10 @@
       "title": "居住者に係る外国税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1240.htm",
       "file_path": "taxanswer/shotoku/1240.json",
-      "char_count_body": 11588,
+      "char_count_body": 11531,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:51:25.608Z",
-      "last_modified": "Fri, 27 Mar 2026 05:55:05 GMT"
+      "fetched_at": "2026-08-01T15:59:15.899Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "1241",
@@ -28058,10 +28058,10 @@
       "title": "非居住者に係る外国税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1241.htm",
       "file_path": "taxanswer/shotoku/1241.json",
-      "char_count_body": 9152,
+      "char_count_body": 9099,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:51:26.608Z",
-      "last_modified": "Fri, 27 Mar 2026 05:55:05 GMT"
+      "fetched_at": "2026-08-01T15:59:17.900Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "1250",
@@ -28114,10 +28114,10 @@
       "title": "公益社団法人等に寄附をしたとき",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1266.htm",
       "file_path": "taxanswer/shotoku/1266.json",
-      "char_count_body": 2253,
+      "char_count_body": 2188,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:49:00.592Z",
-      "last_modified": "Mon, 25 May 2026 05:00:01 GMT"
+      "fetched_at": "2026-08-01T15:56:42.880Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "1270",
@@ -28758,10 +28758,10 @@
       "title": "先物取引に係る雑所得等の課税の特例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1522.htm",
       "file_path": "taxanswer/shotoku/1522.json",
-      "char_count_body": 2605,
+      "char_count_body": 2561,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:49:39.594Z",
-      "last_modified": "Fri, 06 Feb 2026 08:30:10 GMT"
+      "fetched_at": "2026-08-01T15:57:22.896Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "1523",
@@ -28772,10 +28772,10 @@
       "title": "先物取引の差金等決済に係る損失の繰越控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
       "file_path": "taxanswer/shotoku/1523.json",
-      "char_count_body": 1290,
+      "char_count_body": 1218,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:49:40.593Z",
-      "last_modified": "Fri, 27 Mar 2026 05:55:04 GMT"
+      "fetched_at": "2026-08-01T15:57:24.895Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "1524",
@@ -29570,10 +29570,10 @@
       "title": "確定申告",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
       "file_path": "taxanswer/shotoku/2020.json",
-      "char_count_body": 1788,
+      "char_count_body": 1747,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:49.602Z",
-      "last_modified": "Fri, 06 Feb 2026 08:30:09 GMT"
+      "fetched_at": "2026-08-01T15:58:35.905Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT"
     },
     {
       "id": "2022",
@@ -29584,10 +29584,10 @@
       "title": "納税者が死亡したときの確定申告(準確定申告)",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2022.htm",
       "file_path": "taxanswer/shotoku/2022.json",
-      "char_count_body": 1828,
+      "char_count_body": 1778,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:50.601Z",
-      "last_modified": "Fri, 27 Mar 2026 05:55:04 GMT"
+      "fetched_at": "2026-08-01T15:58:37.904Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:11 GMT"
     },
     {
       "id": "2024",
@@ -29626,10 +29626,10 @@
       "title": "確定申告書の提出先(納税地)",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2029.htm",
       "file_path": "taxanswer/shotoku/2029.json",
-      "char_count_body": 1006,
+      "char_count_body": 990,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:51.600Z",
-      "last_modified": "Tue, 21 Oct 2025 01:00:01 GMT"
+      "fetched_at": "2026-08-01T15:58:39.903Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:11 GMT"
     },
     {
       "id": "2030",
@@ -29640,10 +29640,10 @@
       "title": "還付申告",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2030.htm",
       "file_path": "taxanswer/shotoku/2030.json",
-      "char_count_body": 2228,
+      "char_count_body": 2170,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:48:10.594Z",
-      "last_modified": "Fri, 06 Feb 2026 08:30:09 GMT"
+      "fetched_at": "2026-08-01T15:55:51.854Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:11 GMT"
     },
     {
       "id": "2031",
@@ -29682,10 +29682,10 @@
       "title": "予定納税",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2040.htm",
       "file_path": "taxanswer/shotoku/2040.json",
-      "char_count_body": 2655,
+      "char_count_body": 2544,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:53.601Z",
-      "last_modified": "Mon, 15 Jun 2026 01:00:06 GMT"
+      "fetched_at": "2026-08-01T15:58:42.904Z",
+      "last_modified": "Fri, 31 Jul 2026 05:00:01 GMT"
     },
     {
       "id": "2070",
@@ -29906,10 +29906,10 @@
       "title": "国庫補助金等を受け取ったとき",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2202.htm",
       "file_path": "taxanswer/shotoku/2202.json",
-      "char_count_body": 754,
+      "char_count_body": 736,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:36.602Z",
-      "last_modified": "Mon, 20 Oct 2025 05:00:21 GMT"
+      "fetched_at": "2026-08-01T15:58:21.900Z",
+      "last_modified": "Wed, 24 Jun 2026 01:00:11 GMT"
     },
     {
       "id": "2210",
