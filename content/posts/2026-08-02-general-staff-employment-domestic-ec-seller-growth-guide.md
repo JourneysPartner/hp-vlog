@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "general-staff-employment-domestic-ec-seller-growth-practice"
 related_title: ""
 related_link_text: "よくある誤解と正しい理解はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm"
-source_title: "国税庁タックスアンサー No.1350 事業所得の課税のしくみ"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2110.htm"
+source_title: "国税庁タックスアンサー No.2110 事業主がしなければならない源泉徴収"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "売上拡大期にいる個人事業主がスタッフ雇用と源泉・社保を理解したい"
 reader_problem: "スタッフ雇用と源泉・社保"
@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "ec_seller"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 2
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+recommendation: "approve"
+review_warning: ""
 summary: "個人事業主がスタッフを雇用する際に必要な源泉徴収の手続き・社会保険の加入義務・給与の経費処理を整理。雇用形態ごとに対応が変わる点を解説します。"
 review_status: "draft"
 review_comment: ""
