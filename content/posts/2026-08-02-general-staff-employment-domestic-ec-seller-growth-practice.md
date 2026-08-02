@@ -9,10 +9,10 @@ article_role: "support"
 related_slug: "general-staff-employment-domestic-ec-seller-growth-guide"
 related_title: ""
 related_link_text: "基本から確認したい方はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm"
-source_title: "国税庁タックスアンサー No.1350 事業所得の課税のしくみ"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2502.htm"
+source_title: "国税庁タックスアンサー No.2502 源泉徴収義務者とは"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "売上拡大期の個人事業主がスタッフ雇用と源泉・社保の実務でつまずく場面を解消したい"
 reader_problem: "スタッフ雇用と源泉・社保 の実務処理が不安"
@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "ec_seller"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 2
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+recommendation: "approve"
+review_warning: ""
 summary: "「少額だから源泉不要」「業務委託なら社保は関係ない」など現場で多い誤解を整理し、ECセラーがスタッフ雇用時に直面する源泉徴収・社会保険の正しい処理手順を具体的に解説します。"
 review_status: "draft"
 review_comment: ""
