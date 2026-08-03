@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "deepdive-general_individual_proprietor-high-value-asset-3year-restriction-practice"
 related_title: ""
 related_link_text: "判断に迷うケースについてはこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
-source_title: "国税庁タックスアンサー No.6501 納税義務の免除"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/law/shitsugi/shohi/19/21.htm"
+source_title: "国税庁質疑応答事例 居住用賃貸建物の取得に係る仕入税額控除の制限"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "居住用賃貸建物を取得したときの消費税の還付可否を知りたい"
 reader_problem: "住居用と店舗用混在の不動産の消費税処理が不安"
@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "general_business"
 customer_fit_score: 5
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+recommendation: "approve"
+review_warning: ""
 summary: "居住用賃貸建物の取得にかかる消費税は、原則として仕入税額控除が認められません。ただし、課税賃貸割合による調整や店舗・事務所との混用物件では例外的な処理が必要です。"
 review_status: "draft"
 review_comment: ""
