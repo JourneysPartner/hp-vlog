@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "税抜1,000万円以上の資産（高額特定資産）を本則課税中に取得すると、翌課税期間から最大3年間、免税・簡易課税に戻れなくなります。ケース別の適用パターンを整理します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-03T15:08:40.367+09:00"
 publish_at: "2026-08-04T17:48:00.000+09:00"
-published_at: ""
+published_at: "2026-08-04T18:00:52.898+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-03T00:06:41.536Z"
-updated_at: "2026-08-03T15:08:40.367+09:00"
+updated_at: "2026-08-04T18:00:52.898+09:00"
 publish_slot: "evening"
 ---
 
