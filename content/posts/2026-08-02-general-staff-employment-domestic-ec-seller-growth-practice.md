@@ -11,7 +11,7 @@ related_title: ""
 related_link_text: "基本から確認したい方はこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2502.htm"
 source_title: "国税庁タックスアンサー No.2502 源泉徴収義務者とは"
-source_provenance: "curated"
+source_provenance: "explicit"
 source_confidence: 1
 source_guard_version: 1
 search_intent: "売上拡大期の個人事業主がスタッフ雇用と源泉・社保の実務でつまずく場面を解消したい"
