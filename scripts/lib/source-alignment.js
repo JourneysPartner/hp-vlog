@@ -42,6 +42,14 @@ function expectedSourceFor(topic = {}) {
       trusted: true,
     };
   }
+  if (provenance === 'curated' && topic.source_url) {
+    return {
+      entry: { url: topic.source_url, title: topic.source_title || topic.source_url },
+      byPain: false,
+      provenance,
+      trusted: true,
+    };
+  }
   return { entry: null, byPain: false, provenance, trusted: false };
 }
 
