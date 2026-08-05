@@ -92,6 +92,17 @@ exports.handler = async (event) => {
 
     const sourceGuard = approvalSourceGuard(content);
     if (sourceGuard.blocked) {
+      const blockedTitle = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || filename;
+      console.warn(`[review-approve] 承認拒否(出典ガード): ${filename} — ${(sourceGuard.reasons || []).join(' / ')}`);
+      try {
+        await sendNotification('source_blocked', {
+          title: blockedTitle,
+          filename,
+          reasons: sourceGuard.reasons || [],
+        });
+      } catch (notifyErr) {
+        console.error(`[review-approve] 出典ガード通知送信失敗: ${notifyErr.message}`);
+      }
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -131,6 +142,15 @@ exports.handler = async (event) => {
       if (scores.source_alignment_score != null && scores.source_alignment_score <= 3) reasons.push(`出典一致スコアが低い (${scores.source_alignment_score}/5)`);
       if (reasons.length > 0) {
         console.warn(`[review-approve] 承認拒否(品質ゲート): ${filename} — ${reasons.join(' / ')}`);
+        try {
+          await sendNotification('quality_blocked', {
+            title: fmTitle || filename,
+            filename,
+            reasons,
+          });
+        } catch (notifyErr) {
+          console.error(`[review-approve] 品質ゲート通知送信失敗: ${notifyErr.message}`);
+        }
         return {
           statusCode: 400,
           headers: { 'Content-Type': 'application/json' },
