@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "個人事業主がスタッフを雇用する際に必要な源泉徴収の手続き・社会保険の加入義務・給与の経費処理を整理。雇用形態ごとに対応が変わる点を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-05T09:00:00.000+09:00"
+publish_at: "2026-08-05T11:35:00.000+09:00"
+publish_slot: "morning"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-02T00:08:25.040Z"
-updated_at: "2026-08-02T00:08:25.040Z"
+updated_at: "2026-08-05T09:00:00.000+09:00"
 ---
 
 ## この記事でわかること
