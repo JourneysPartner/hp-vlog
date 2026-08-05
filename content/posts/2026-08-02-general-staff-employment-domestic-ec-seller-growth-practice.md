@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "「少額だから源泉不要」「業務委託なら社保は関係ない」など現場で多い誤解を整理し、ECセラーがスタッフ雇用時に直面する源泉徴収・社会保険の正しい処理手順を具体的に解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-05T09:00:00.000+09:00"
+publish_at: "2026-08-05T17:35:00.000+09:00"
+publish_slot: "evening"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-02T00:09:17.158Z"
-updated_at: "2026-08-02T00:09:17.158Z"
+updated_at: "2026-08-05T09:00:00.000+09:00"
 ---
 
 ## 「少額だから源泉しなくていい」は誤りです
