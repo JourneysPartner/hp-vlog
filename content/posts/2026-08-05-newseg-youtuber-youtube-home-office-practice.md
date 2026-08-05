@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "自宅で撮影・編集するYouTuberは、家賃や光熱費の一部を家事按分で経費にできます。按分割合は「仕事に使う面積÷全体の面積」などで合理的に算出し、帳簿に根拠を残すことが重要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-05T16:00:37.619+09:00"
+publish_at: "2026-08-06T17:45:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-05T06:23:53.108Z"
-updated_at: "2026-08-05T06:23:53.108Z"
+updated_at: "2026-08-05T16:00:37.619+09:00"
+publish_slot: "evening"
 ---
 
 自宅を撮影・編集スペースとして使っているYouTuberにとって、「家賃や光熱費は経費になるの？」という疑問は確定申告の準備で必ずぶつかるポイントです。結論からいうと、<strong>業務で使っている部分の割合を合理的に算出できれば、経費として計上できます</strong>。これを「家事按分」といいます。
