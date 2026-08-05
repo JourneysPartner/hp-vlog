@@ -61,7 +61,7 @@ async function callAux({ system, user, task, maxTokens = 512 }) {
       },
       body: JSON.stringify({
         model,
-        max_completion_tokens: maxTokens,
+        max_tokens: maxTokens,
         system: system ? [{ type: 'text', text: system }] : undefined,
         messages: [{ role: 'user', content: user }],
       }),
