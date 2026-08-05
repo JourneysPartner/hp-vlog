@@ -141,7 +141,7 @@ async function generateSimple({ system, user }, opts = {}) {
     try {
       const req = {
         model,
-        max_completion_tokens: maxTokens,
+        max_tokens: maxTokens,
         system: [{ type: 'text', text: system }],
         messages: [{ role: 'user', content: user }],
       };
