@@ -57,7 +57,7 @@ async function callOpenAI(promptIR, { model, maxTokens }) {
   const completion = await client.chat.completions.create({
     model,
     messages,
-    ...(maxTokens ? { max_tokens: maxTokens } : {}),
+    ...(maxTokens ? { max_completion_tokens: maxTokens } : {}),
   });
   const choice = completion && completion.choices && completion.choices[0];
   const text = choice && choice.message && typeof choice.message.content === 'string'
@@ -141,7 +141,7 @@ async function generateSimple({ system, user }, opts = {}) {
     try {
       const req = {
         model,
-        max_tokens: maxTokens,
+        max_completion_tokens: maxTokens,
         system: [{ type: 'text', text: system }],
         messages: [{ role: 'user', content: user }],
       };

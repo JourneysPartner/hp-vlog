@@ -61,7 +61,7 @@ async function callAux({ system, user, task, maxTokens = 512 }) {
       },
       body: JSON.stringify({
         model,
-        max_tokens: maxTokens,
+        max_completion_tokens: maxTokens,
         system: system ? [{ type: 'text', text: system }] : undefined,
         messages: [{ role: 'user', content: user }],
       }),
@@ -84,7 +84,7 @@ async function callAux({ system, user, task, maxTokens = 512 }) {
       ...(system ? [{ role: 'system', content: system }] : []),
       { role: 'user', content: user },
     ],
-    max_tokens: maxTokens,
+    max_completion_tokens: maxTokens,
   });
   const u = completion.usage || {};
   console.log(`[aux-model] provider=openai model=${process.env.OPENAI_MODEL || 'gpt-5.4'} task=${task} ` +
