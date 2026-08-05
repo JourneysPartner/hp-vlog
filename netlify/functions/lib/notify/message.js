@@ -199,6 +199,38 @@ function buildMessage(event, data) {
       };
     }
 
+    case 'source_blocked': {
+      const { title, filename, reasons } = data;
+      const reasonLines = (reasons || []).map(r => `  - ${r}`).join('\n');
+      return {
+        subject: '【ブログ】出典ガードにより承認をブロックしました',
+        body: [
+          '「そのまま公開」が実行されましたが、出典の検証に問題があり承認処理をブロックしました。',
+          '',
+          `■ タイトル: ${title || filename}`,
+          reasonLines ? `■ 理由:\n${reasonLines}` : '',
+          '',
+          'レビュー画面から出典を修正した上で、再度「そのまま公開」を押してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'quality_blocked': {
+      const { title, filename, reasons } = data;
+      const reasonLines = (reasons || []).map(r => `  - ${r}`).join('\n');
+      return {
+        subject: '【ブログ】品質ゲートにより承認をブロックしました',
+        body: [
+          '「そのまま公開」が実行されましたが、品質基準を満たさず承認処理をブロックしました。',
+          '',
+          `■ タイトル: ${title || filename}`,
+          reasonLines ? `■ 理由:\n${reasonLines}` : '',
+          '',
+          'レビュー画面から差し戻して、内容・出典・タイトルを見直してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     default:
       return { subject: event, body: JSON.stringify(data, null, 2) };
   }
