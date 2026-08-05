@@ -220,7 +220,7 @@ function toAnthropicRequest({ staticSystem, dynamicSystem, user }, { model, maxT
   ];
   return {
     model,
-    max_tokens: maxTokens || 4096,
+    max_completion_tokens: maxTokens || 4096,
     system: systemBlocks,
     messages: [{ role: 'user', content: user }],
   };
