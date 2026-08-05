@@ -36,16 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "居住用賃貸建物の取得にかかる消費税は、原則として仕入税額控除が認められません。ただし、課税賃貸割合による調整や店舗・事務所との混用物件では例外的な処理が必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-04T18:00:00.000+09:00"
 publish_at: "2026-08-05T11:22:00.000+09:00"
 publish_slot: "morning"
-published_at: ""
+published_at: "2026-08-05T18:00:59.963+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-03T00:05:49.070Z"
-updated_at: "2026-08-04T18:00:00.000+09:00"
+updated_at: "2026-08-05T18:00:59.963+09:00"
 ---
 
 アパートや賃貸マンションを購入したとき、「建物の消費税分を還付できないか」と考える方は少なくありません。しかし2020年10月以降、居住用賃貸建物については仕入税額控除が大きく制限されています。この制限を知らずに申告してしまうと、後から修正申告や追徴課税が生じるリスクがあります。
