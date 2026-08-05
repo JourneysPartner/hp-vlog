@@ -8,7 +8,7 @@ function sourceFamily(url = '') {
   if (!url) return '';
   if (!/nta\.go\.jp/.test(url)) return 'external';
   const m = url.match(/\/(sozoku|zoyo|hyoka|shohi|shotoku|gensen|josetsu)\//);
-  if (m) return m[1];
+  if (m) return m[1] === 'gensen' ? 'shotoku' : m[1];
   if (/invoice|keigenzeiritsu|\/pamph\/shohi\//.test(url)) return 'shohi';
   return 'nta_other';
 }
