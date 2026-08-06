@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBay輸出セラーが消費税還付を受けるには課税事業者になる必要があります。開業初年度から還付を狙うには「消費税課税事業者選択届出書」の提出が必須で、免税事業者のままでは還付を受けられません。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-06T00:05:45.350Z"
-updated_at: "2026-08-06T00:05:45.350Z"
+updated_at: "2026-08-06T15:21:07.601+09:00"
 ---
 
 eBayで輸出販売をはじめた直後、「消費税の還付が受けられると聞いたけれど、自分は対象なのか」と疑問に思う方は少なくありません。結論からお伝えすると、<strong>消費税の還付を受けるには課税事業者である必要があり、開業直後で免税事業者のままでは還付は受けられません。</strong>ただし、届出書を提出することで初年度から課税事業者を選択し、還付を受ける道は開かれています。
