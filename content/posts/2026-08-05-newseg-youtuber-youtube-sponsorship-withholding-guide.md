@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "企業案件報酬から源泉徴収されていても確定申告は必要です。源泉税は仮払いであり、申告で精算することで払いすぎた税金が還付される場合があります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-05T15:59:14.680+09:00"
 publish_at: "2026-08-06T11:38:00.000+09:00"
-published_at: ""
+published_at: "2026-08-06T12:00:57.423+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-05T06:23:07.035Z"
-updated_at: "2026-08-05T15:59:14.680+09:00"
+updated_at: "2026-08-06T12:00:57.423+09:00"
 publish_slot: "morning"
 ---
 
