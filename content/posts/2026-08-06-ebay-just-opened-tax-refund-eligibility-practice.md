@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBayセラーの消費税還付は「輸出免税売上を課税売上割合の分子・分母両方に算入し、仕入費用の消費税を控除する」仕組みで成立します。課税事業者の届出・輸出証明書の保存・eBay Tax Invoiceの取得が実務の要点です。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-06T00:06:34.250Z"
-updated_at: "2026-08-06T00:06:34.250Z"
+updated_at: "2026-08-06T15:21:10.442+09:00"
 ---
 
 ## eBay輸出セラーの消費税還付が成立する仕組み
