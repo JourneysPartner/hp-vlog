@@ -484,8 +484,9 @@ function getRecentRevisionComments(limit = 3) {
 //   4. カテゴリ偏り是正（直近7日で大分類が60%超ならハードブロック）
 //   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
 //   6. 同日2本の最終類似度チェック
-function pickPair(dateStr) {
-  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: loadPendingDraftCorpus() });
+async function pickPair(dateStr) {
+  const pendingDrafts = loadPendingDraftCorpus();
+  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: pendingDrafts });
   // 選定ログを表示（運用での偏り確認用）
   console.log('[generate] === topic selection ===');
   for (const step of explanation.steps) {
@@ -516,6 +517,28 @@ function pickPair(dateStr) {
     console.warn('[generate] 選定候補が0件のため、本日は記事を生成しません（関連性/品質ゲート等で全除外、または枯渇）。');
     return [];
   }
+
+  // AI重複判定（Haiku による意味的重複チェック）
+  const { readAllPostsSorted } = require('./lib/site-corpus');
+  const { checkDuplicatesWithAI } = require('./lib/ai-dedup');
+  const corpus = readAllPostsSorted().concat(pendingDrafts.filter(p => p && p.slug));
+  const aiResult = await checkDuplicatesWithAI(picks, corpus);
+  if (!aiResult.skipped) {
+    const blocked = aiResult.results.filter(r => r.duplicate);
+    if (blocked.length > 0) {
+      for (const b of blocked) {
+        console.warn(`[generate] AI重複判定: ${b.slug} → 重複(${b.similar_to}): ${b.reason}`);
+      }
+      const blockedSlugs = new Set(blocked.map(b => b.slug));
+      const filtered = picks.filter(p => !blockedSlugs.has(p.slug));
+      console.log(`[generate] AI重複判定で ${picks.length - filtered.length} 件除外 → 残り ${filtered.length} 件`);
+      return filtered;
+    }
+    console.log('[generate] AI重複判定: 重複なし');
+  } else {
+    console.log('[generate] AI重複判定: スキップ（aux未有効 or エラー）');
+  }
+
   return picks;
 }
 
@@ -1576,7 +1599,7 @@ async function main() {
 
   // ── 通常の新規生成モード（2本ペア生成）────────────────────────
   const dateStr = getTodayJST();
-  const pair = pickPair(dateStr);
+  const pair = await pickPair(dateStr);
 
   console.log(`[generate] 日付: ${dateStr}`);
   console.log(`[generate] 生成本数: ${pair.length}`);
