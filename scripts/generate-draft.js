@@ -1652,6 +1652,32 @@ async function main() {
       resolveSource: resolveSourceForTopic,
     });
 
+    // 出典が弱い（domain-fallback 等）ままなら LLM 出典選定を試みる
+    {
+      const { meta: srcMeta } = parseFrontmatter(content);
+      if (LLM_SOURCE_WEAK_PROVENANCE.has(srcMeta.source_provenance)) {
+        const topicLike = {
+          slug: srcMeta.slug, title: srcMeta.title,
+          persona: srcMeta.primary_persona || srcMeta.persona,
+          customer_segment: srcMeta.primary_persona || srcMeta.persona,
+          tax_domain: srcMeta.tax_domain || srcMeta.category,
+          pain_point: srcMeta.pain_point || '',
+          search_intent: srcMeta.search_intent || '',
+          source_provenance: srcMeta.source_provenance,
+          source_url: srcMeta.source_url, source_title: srcMeta.source_title,
+        };
+        await enrichSourceWithLLM(topicLike);
+        if (topicLike.source_provenance !== srcMeta.source_provenance) {
+          content = content
+            .replace(/^(source_url:\s*).*$/m, `$1"${topicLike.source_url}"`)
+            .replace(/^(source_title:\s*).*$/m, `$1"${topicLike.source_title}"`)
+            .replace(/^(source_provenance:\s*).*$/m, `$1"${topicLike.source_provenance}"`)
+            .replace(/^(source_confidence:\s*).*$/m, `$1${topicLike.source_confidence}`);
+          console.log(`[regenerate] LLM出典選定で出典を更新: ${srcMeta.source_provenance} → ${topicLike.source_provenance}`);
+        }
+      }
+    }
+
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
 
