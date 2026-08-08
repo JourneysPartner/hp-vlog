@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "revise"
 review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
 summary: "美容サロンに設置した飲料自販機の売上は、自販機特例により適格請求書なしで仕入税額控除が認められます。適用条件・帳簿の記載方法・課税売上への算入ルールを具体的に解説します。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "要約で、ターゲットが限定されてしまているから、個人事業者・法人と幅広くして。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-07T00:05:53.771Z"
-updated_at: "2026-08-08T09:06:46.086Z"
+updated_at: "2026-08-08T18:36:06.505+09:00"
 ---
 自動販売機を設置している個人事業者や法人の方から、「自販機の売上って消費税はどう扱うの？」「帳簿に何を書けばいいの？」という疑問が、インボイス制度が始まってからとくに増えています。
 
