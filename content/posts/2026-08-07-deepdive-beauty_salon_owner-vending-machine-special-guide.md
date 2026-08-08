@@ -1,5 +1,5 @@
 ---
-title: "美容サロンの自動販売機売上、消費税はどう処理する？自販機特例の帳簿要件と適用範囲を解説"
+title: "自動販売機の売上、消費税はどう処理する？個人事業者・法人が知っておきたい自販機特例の帳簿要件と適用範囲を解説"
 slug: "deepdive-beauty_salon_owner-vending-machine-special-guide"
 category: "消費税"
 primary_persona: "beauty_salon_owner"
@@ -36,20 +36,16 @@ tax_risk_score: 3
 recommendation: "revise"
 review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
 summary: "美容サロンに設置した飲料自販機の売上は、自販機特例により適格請求書なしで仕入税額控除が認められます。適用条件・帳簿の記載方法・課税売上への算入ルールを具体的に解説します。"
-review_status: "needs_revision"
-review_comment: "タイトルと要約で、ターゲットが限定されてしまているから、個人事業者は法人と幅広くして。"
+review_status: "draft"
+review_comment: ""
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-07T00:05:53.771Z"
-updated_at: "2026-08-08T18:05:50.442+09:00"
+updated_at: "2026-08-08T09:06:46.086Z"
 ---
-個人事業者や法人を広くターゲットとし、自動販売機の取引のみを扱うよう、指摘箇所を最小限修正しました。
-
----
-
 自動販売機を設置している個人事業者や法人の方から、「自販機の売上って消費税はどう扱うの？」「帳簿に何を書けばいいの？」という疑問が、インボイス制度が始まってからとくに増えています。
 
 ## まず結論
