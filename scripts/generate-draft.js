@@ -1410,7 +1410,46 @@ async function regenerateTargeted(existingContent, comment) {
     const warnNote = `\n\n【自動再生成の警告】このコメントを自動で本文に反映できませんでした（LLM が ${guard.reason}）。手動で該当箇所を直すか、コメントを具体化して再度お試しください。`;
     return rebuildWithBodyAndWarning(existingContent, body, comment + warnNote);
   }
-  return rebuildWithBody(existingContent, revised);
+  let result = rebuildWithBody(existingContent, revised);
+  result = await maybeUpdateTitleForTargeted(result, comment, meta);
+  return result;
+}
+
+/**
+ * targeted 修正後、差し戻しコメントがタイトルにも影響する場合にタイトルを更新する。
+ * 例: 「ターゲットを広げて」→ 本文は targeted で修正済み、タイトルも合わせて更新が必要。
+ */
+async function maybeUpdateTitleForTargeted(content, comment, origMeta) {
+  const titleRelevant =
+    /ターゲット|対象(?:者|読者)?|ペルソナ|(?:広[くげ]|限定|絞)/
+      .test(comment) ||
+    /タイトル/.test(comment);
+  if (!titleRelevant) return content;
+
+  const { body, meta } = parseFrontmatter(content);
+  const raw = await callSimpleOpenAI({
+    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントを踏まえて、記事タイトルを1行で書き直してください。',
+    user: `差し戻しコメントの指摘を踏まえ、以下の記事タイトルを修正してください。
+タイトルだけを1行で返してください。
+
+【差し戻しコメント】
+${comment}
+
+【現在のタイトル】
+${meta.title}
+
+【記事本文の冒頭】
+${body.slice(0, 500)}`,
+  }, 100);
+  if (!raw || raw.trim().length < 4) return content;
+  const newTitle = raw.trim().replace(/^["「『]|["」』]$/g, '');
+  if (newTitle === meta.title) return content;
+
+  console.log(`[regenerate] targeted後タイトル更新: "${meta.title}" → "${newTitle}"`);
+  return content.replace(
+    /^(title:\s*)".*"$/m,
+    `$1"${newTitle.replace(/"/g, '\\"')}"`,
+  );
 }
 
 // targeted 二度失敗時: 元本文を維持しつつ、review_comment 末尾に
