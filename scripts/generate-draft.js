@@ -1416,21 +1416,25 @@ async function regenerateTargeted(existingContent, comment) {
 }
 
 /**
- * targeted 修正後、差し戻しコメントがタイトルにも影響する場合にタイトルを更新する。
- * 例: 「ターゲットを広げて」→ 本文は targeted で修正済み、タイトルも合わせて更新が必要。
+ * targeted 修正後、差し戻しコメントがタイトルや要約にも影響する場合に更新する。
+ * 例: 「ターゲットを広げて」→ 本文は targeted で修正済み、タイトル・要約も合わせて更新が必要。
  */
 async function maybeUpdateTitleForTargeted(content, comment, origMeta) {
   const titleRelevant =
     /ターゲット|対象(?:者|読者)?|ペルソナ|(?:広[くげ]|限定|絞)/
       .test(comment) ||
     /タイトル/.test(comment);
-  if (!titleRelevant) return content;
+  const summaryRelevant =
+    /要約|サマリー|summary|(?:メタ|meta).{0,8}(?:説明|description)/i
+      .test(comment) ||
+    titleRelevant; // ターゲット変更はタイトル・要約の両方に波及
+  if (!titleRelevant && !summaryRelevant) return content;
 
   const { body, meta } = parseFrontmatter(content);
   const raw = await callSimpleOpenAI({
-    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントを踏まえて、記事タイトルを1行で書き直してください。',
-    user: `差し戻しコメントの指摘を踏まえ、以下の記事タイトルを修正してください。
-タイトルだけを1行で返してください。
+    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントを踏まえて、記事のタイトルと要約（summary）を修正してください。JSON形式で返してください。',
+    user: `差し戻しコメントの指摘を踏まえ、以下の記事のタイトルと要約を修正してください。
+JSON形式で {"title":"修正後タイトル","summary":"修正後要約（120文字以内）"} だけを返してください。
 
 【差し戻しコメント】
 ${comment}
@@ -1438,18 +1442,44 @@ ${comment}
 【現在のタイトル】
 ${meta.title}
 
+【現在の要約】
+${meta.summary || ''}
+
 【記事本文の冒頭】
 ${body.slice(0, 500)}`,
-  }, 100);
+  }, 300);
   if (!raw || raw.trim().length < 4) return content;
-  const newTitle = raw.trim().replace(/^["「『]|["」』]$/g, '');
-  if (newTitle === meta.title) return content;
 
-  console.log(`[regenerate] targeted後タイトル更新: "${meta.title}" → "${newTitle}"`);
-  return content.replace(
-    /^(title:\s*)".*"$/m,
-    `$1"${newTitle.replace(/"/g, '\\"')}"`,
-  );
+  let newTitle = meta.title;
+  let newSummary = meta.summary;
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.title) newTitle = parsed.title.replace(/^["「『]|["」』]$/g, '');
+      if (parsed.summary) newSummary = parsed.summary.replace(/^["「『]|["」』]$/g, '');
+    }
+  } catch (e) {
+    const line = raw.trim().replace(/^["「『]|["」』]$/g, '');
+    if (line.length >= 4) newTitle = line;
+  }
+
+  let result = content;
+  if (newTitle !== meta.title) {
+    console.log(`[regenerate] targeted後タイトル更新: "${meta.title}" → "${newTitle}"`);
+    result = result.replace(
+      /^(title:\s*)".*"$/m,
+      `$1"${newTitle.replace(/"/g, '\\"')}"`,
+    );
+  }
+  if (newSummary !== meta.summary) {
+    console.log(`[regenerate] targeted後要約更新: "${meta.summary}" → "${newSummary}"`);
+    result = result.replace(
+      /^(summary:\s*)".*"$/m,
+      `$1"${newSummary.replace(/"/g, '\\"')}"`,
+    );
+  }
+  return result;
 }
 
 // targeted 二度失敗時: 元本文を維持しつつ、review_comment 末尾に
