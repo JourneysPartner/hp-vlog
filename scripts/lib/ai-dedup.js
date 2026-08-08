@@ -5,11 +5,19 @@ const { generateAux } = require('./aux-model');
 const SYSTEM_PROMPT = `あなたは日本の税務ブログの編集者です。
 候補トピックが既存記事と内容的に重複しているか判定してください。
 
-判定基準:
-- 読者にとって「同じ疑問に同じ角度で答える記事」なら重複（duplicate: true）
-- slug やタイトルの文字面が違っても、扱う論点・対象者・状況が実質同じなら重複
-- 同じ税制度でも、対象者（ペルソナ）や状況（開業期/成長期/副業）が明確に異なれば非重複
-- 基本解説(guide)と実践Tips(practice/misconception_fix)は、同一テーマでも別記事として非重複
+## 非重複（duplicate: false にすべきケース）
+以下のいずれかに該当すれば、たとえ税制度テーマが同じでも非重複です:
+- persona（対象読者）が異なる（例: beauty_salon_owner と content_seller は別読者）
+- 記事タイプが異なる（guide と practice / misconception_fix は別記事）
+- 事業ステージが異なる（startup と growth は別状況）
+
+## 重複（duplicate: true にすべきケース）
+以下のすべてを満たす場合のみ重複と判定してください:
+- persona（対象読者）が同一または実質同一
+- 扱う論点・疑問が同一
+- 記事タイプも同一（guide同士、practice同士）
+
+迷ったら非重複としてください。過剰な重複判定は記事生成を止めてしまいます。
 
 応答は指定の JSON 配列のみ。説明文や前置きは不要。`;
 
@@ -19,8 +27,8 @@ function buildCorpusSummary(corpus) {
     if (!p.slug) continue;
     const parts = [p.slug];
     if (p.title) parts.push(p.title);
-    const q = p.primary_question || p.search_intent;
-    if (q) parts.push(q);
+    const persona = p.primary_persona || p.persona;
+    if (persona) parts.push(`persona:${persona}`);
     if (p.category) parts.push(p.category);
     lines.push(parts.join(' | '));
   }
@@ -62,7 +70,7 @@ async function checkDuplicatesWithAI(picks, corpus) {
   const userPrompt = `## 候補トピック
 ${candidateBlocks}
 
-## 既存記事一覧（slug | title | question | category）
+## 既存記事一覧（slug | title | persona | category）
 ${corpusSummary}
 
 ## 応答形式
