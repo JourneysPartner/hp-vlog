@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "元請けに源泉徴収された報酬は、確定申告で所得税を計算し直し、差額が還付または追納になります。支払調書・源泉徴収票の数字を申告書に転記する方法を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-09T13:29:07.090+09:00"
+publish_at: "2026-08-10T11:12:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-09T00:05:48.182Z"
-updated_at: "2026-08-09T00:05:48.182Z"
+updated_at: "2026-08-09T13:29:07.090+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
