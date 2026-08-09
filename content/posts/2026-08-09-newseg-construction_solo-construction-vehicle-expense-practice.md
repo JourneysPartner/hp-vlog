@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "1人親方が現場移動や資材運搬に使う車は、走行距離の記録をもとに事業割合を算出し、ガソリン代・車検費用・駐車場代などを按分して経費計上できます。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-09T13:30:15.174+09:00"
+publish_at: "2026-08-10T17:48:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-09T00:06:33.642Z"
-updated_at: "2026-08-09T00:06:33.642Z"
+updated_at: "2026-08-09T13:30:15.174+09:00"
+publish_slot: "evening"
 ---
 
 ## 車の費用、全額は経費にできない？
