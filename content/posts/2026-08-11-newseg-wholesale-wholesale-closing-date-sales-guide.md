@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の売上は入金日ではなく「商品を引き渡した日（出荷日または検収日）」に計上します。締日・入金日とのズレが生じても、引渡し基準で記録することが所得税・法人税の原則です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-11T16:02:03.234+09:00"
+publish_at: "2026-08-12T11:44:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-11T00:05:51.226Z"
-updated_at: "2026-08-11T00:05:51.226Z"
+updated_at: "2026-08-11T16:02:03.234+09:00"
+publish_slot: "morning"
 ---
 
 月末締め・翌月末払いの取引が多い卸売業では、「請求書の締日」「実際の入金日」「商品を届けた日」がすべて異なることがよくあります。では、所得税（や法人税）の申告で売上を計上するのは、これらのうちどの時点なのでしょうか。
