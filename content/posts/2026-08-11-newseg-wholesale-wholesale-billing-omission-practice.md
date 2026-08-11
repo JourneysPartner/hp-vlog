@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の請求漏れは、発覚した時期によって当期修正か修正申告かが変わります。仕訳例と申告への影響を具体的に解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-11T16:04:34.732+09:00"
+publish_at: "2026-08-12T17:25:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-11T00:06:37.162Z"
-updated_at: "2026-08-11T00:06:37.162Z"
+updated_at: "2026-08-11T16:04:34.732+09:00"
+publish_slot: "evening"
 ---
 
 棚卸しや帳簿照合をしていると、「この取引、請求書を出し忘れていた」「売上に計上していなかった」と気づくことがあります。卸売業では継続取引が多く、月をまたいだ請求漏れが数件まとめて見つかるケースも珍しくありません。
