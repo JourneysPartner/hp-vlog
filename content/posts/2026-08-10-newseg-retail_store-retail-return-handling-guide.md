@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "小売店で返品が発生した場合、売上返品は「売上対価の返還等」として消費税を減額調整し、仕入返品は仕入税額控除を修正します。それぞれの処理方法と帳簿記載のポイントを解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-11T00:22:40.561+09:00"
 publish_at: "2026-08-12T11:54:00.000+09:00"
-published_at: ""
+published_at: "2026-08-12T12:01:14.546+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-10T00:05:43.703Z"
-updated_at: "2026-08-11T00:22:40.561+09:00"
+updated_at: "2026-08-12T12:01:14.546+09:00"
 publish_slot: "morning"
 ---
 ## この記事でわかること

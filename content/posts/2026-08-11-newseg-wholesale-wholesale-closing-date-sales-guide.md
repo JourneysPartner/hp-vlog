@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の売上は入金日ではなく「商品を引き渡した日（出荷日または検収日）」に計上します。締日・入金日とのズレが生じても、引渡し基準で記録することが所得税・法人税の原則です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-11T16:02:03.234+09:00"
 publish_at: "2026-08-12T11:44:00.000+09:00"
-published_at: ""
+published_at: "2026-08-12T12:01:14.546+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-11T00:05:51.226Z"
-updated_at: "2026-08-11T16:02:03.234+09:00"
+updated_at: "2026-08-12T12:01:14.546+09:00"
 publish_slot: "morning"
 ---
 
