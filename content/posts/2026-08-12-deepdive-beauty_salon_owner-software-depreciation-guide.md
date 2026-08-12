@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "予約管理ソフトやPOSレジアプリの費用処理に迷うサロンオーナー向けに、購入型・サブスク型・自社開発型の3区分ごとに減価償却か全額経費かを整理して解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-12T19:30:14.366+09:00"
+publish_at: "2026-08-13T11:09:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-12T00:05:59.148Z"
-updated_at: "2026-08-12T00:05:59.148Z"
+updated_at: "2026-08-12T19:30:14.366+09:00"
+publish_slot: "morning"
 ---
 
 サロン経営では、予約管理システムやPOSレジアプリ、顧客管理ツールといったソフトウェアを導入する機会が増えています。いざ確定申告や経費入力の場面で「これは減価償却？それとも全額経費にできる？」と迷った経験のある方は少なくないはずです。
