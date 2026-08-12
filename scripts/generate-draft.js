@@ -1692,9 +1692,23 @@ async function main() {
     return;
   }
 
+  // ── 指定slug生成モード（--force-slug で特定トピックだけ生成）──
+  const forceSlugs = (getArg('--force-slug') || '').split(',').map(s => s.trim()).filter(Boolean);
+  const forceDate = getArg('--date');
+
   // ── 通常の新規生成モード（2本ペア生成）────────────────────────
-  const dateStr = getTodayJST();
-  const pair = await pickPair(dateStr);
+  const dateStr = forceDate || getTodayJST();
+  let pair;
+  if (forceSlugs.length > 0) {
+    pair = forceSlugs.map(slug => {
+      const t = TOPICS.find(t => t.slug === slug);
+      if (!t) { console.error(`[generate] --force-slug: slug "${slug}" がトピックプールに見つかりません`); process.exit(1); }
+      return t;
+    });
+    console.log(`[generate] --force-slug: ${pair.map(t => t.slug).join(', ')}`);
+  } else {
+    pair = await pickPair(dateStr);
+  }
 
   console.log(`[generate] 日付: ${dateStr}`);
   console.log(`[generate] 生成本数: ${pair.length}`);
