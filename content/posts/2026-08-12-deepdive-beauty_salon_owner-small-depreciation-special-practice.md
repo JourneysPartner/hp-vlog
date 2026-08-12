@@ -11,8 +11,8 @@ related_title: ""
 related_link_text: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
 source_title: "国税庁タックスアンサー No.2100 減価償却のあらまし"
-source_provenance: "pain-map"
-source_confidence: 0.7
+source_provenance: "explicit"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "40万円未満の固定資産取得時の即時償却特例を活用したい（判断に迷うケース別）"
 reader_problem: "少額減価償却特例の対象判定と上限管理が不安（令和8年改正後）"
