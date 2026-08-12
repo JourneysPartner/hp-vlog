@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "美容サロンが40万円未満の備品を取得した際、少額減価償却特例・一括償却・少額の資産の3つのルールからどれを選ぶか、ケース別に判断基準と上限管理の注意点を解説します（令和8年改正対応）。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-12T19:30:45.162+09:00"
+publish_at: "2026-08-13T17:18:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-12T06:56:53.448Z"
-updated_at: "2026-08-12T06:56:53.448Z"
+updated_at: "2026-08-12T19:30:45.162+09:00"
+publish_slot: "evening"
 ---
 
 スチーマーやシャンプー台、タブレットのPOSレジなど、サロンでは数万〜数十万円の備品を買う機会が多くあります。「40万円未満なら全額経費にできる」と耳にしたことがある方も多いと思いますが、実際には使える制度が複数あり、どれを選ぶかで今期の節税効果がかなり変わります。
