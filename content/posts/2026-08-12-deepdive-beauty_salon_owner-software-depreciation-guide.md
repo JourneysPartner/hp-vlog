@@ -11,8 +11,8 @@ related_title: ""
 related_link_text: ""
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
 source_title: "国税庁タックスアンサー No.2100 減価償却のあらまし"
-source_provenance: "pain-map"
-source_confidence: 0.7
+source_provenance: "explicit"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "購入ソフト・SaaS・自社開発ソフトの会計処理を区分したい"
 reader_problem: "ソフトウェアの種類別の処理方法が分からない"
