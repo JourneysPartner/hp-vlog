@@ -97,6 +97,35 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
     if (!Array.isArray(parsed)) {
       return { results: [], skipped: true, parseError: true };
     }
+
+    // ── 決定論的ガード: persona/type が異なれば LLM の判定をオーバーライド ──
+    const pickBySlug = Object.create(null);
+    for (const p of picks) if (p.slug) pickBySlug[p.slug] = p;
+    const corpusBySlug = Object.create(null);
+    for (const c of corpus) if (c.slug) corpusBySlug[c.slug] = c;
+
+    for (const r of parsed) {
+      if (!r.duplicate || !r.similar_to) continue;
+      const cand = pickBySlug[r.slug];
+      const existing = corpusBySlug[r.similar_to];
+      if (!cand || !existing) continue;
+
+      const candPersona = cand.persona || cand.primary_persona || '';
+      const existPersona = existing.primary_persona || existing.persona || '';
+      const candType = cand.article_type || '';
+      const existType = existing.article_type || '';
+
+      if (candPersona && existPersona && candPersona !== existPersona) {
+        console.log(`[ai-dedup] ガード: persona不一致(${candPersona} vs ${existPersona}) → 非重複にオーバーライド: ${r.slug}`);
+        r.duplicate = false;
+        r.reason = `[override] persona不一致: ${candPersona} ≠ ${existPersona}`;
+      } else if (candType && existType && candType !== existType) {
+        console.log(`[ai-dedup] ガード: type不一致(${candType} vs ${existType}) → 非重複にオーバーライド: ${r.slug}`);
+        r.duplicate = false;
+        r.reason = `[override] type不一致: ${candType} ≠ ${existType}`;
+      }
+    }
+
     return { results: parsed, skipped: false };
   } catch (e) {
     console.warn(`[ai-dedup] JSON parse失敗: ${e.message}`);
