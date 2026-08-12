@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "PayPayなどQR決済は決済日に売上を計上し、入金日に売掛金を消込む2段階で記帳します。具体的な仕訳例と手順を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-11T00:22:20.907+09:00"
 publish_at: "2026-08-12T17:50:00.000+09:00"
-published_at: ""
+published_at: "2026-08-12T18:01:09.120+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-10T00:06:27.838Z"
-updated_at: "2026-08-11T00:22:20.907+09:00"
+updated_at: "2026-08-12T18:01:09.120+09:00"
 publish_slot: "evening"
 ---
 
