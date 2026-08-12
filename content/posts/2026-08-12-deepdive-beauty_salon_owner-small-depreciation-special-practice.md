@@ -29,7 +29,7 @@ procedure_stage: ""
 customer_segment: "beauty_salon"
 customer_fit_score: 5
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
