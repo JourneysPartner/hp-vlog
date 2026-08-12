@@ -24,6 +24,11 @@ on:
         required: false
         default: ''
         type: string
+      force_slug:
+        description: '特定のslugだけ生成（カンマ区切りで複数可）'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -68,6 +73,9 @@ jobs:
           ARGS=""
           if [ "${{ github.event.inputs.high_quality }}" = "true" ]; then
             ARGS="--high-quality"
+          fi
+          if [ -n "${{ github.event.inputs.force_slug }}" ]; then
+            ARGS="$ARGS --force-slug ${{ github.event.inputs.force_slug }}"
           fi
           node scripts/generate-draft.js $ARGS
         env:
