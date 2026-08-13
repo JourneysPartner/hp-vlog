@@ -530,8 +530,38 @@ async function pickPair(dateStr) {
         console.warn(`[generate] AI重複判定: ${b.slug} → 重複(${b.similar_to}): ${b.reason}`);
       }
       const blockedSlugs = new Set(blocked.map(b => b.slug));
-      const filtered = picks.filter(p => !blockedSlugs.has(p.slug));
+      let filtered = picks.filter(p => !blockedSlugs.has(p.slug));
       console.log(`[generate] AI重複判定で ${picks.length - filtered.length} 件除外 → 残り ${filtered.length} 件`);
+
+      // 重複除外で 2→1 / 2→0 になった場合、代替候補を補充する（1回のみ）
+      if (filtered.length < 2) {
+        const usedSlugs = new Set([...blockedSlugs, ...filtered.map(p => p.slug)]);
+        const pool = TOPICS.filter(t => !usedSlugs.has(t.slug));
+        if (pool.length > 0) {
+          const { picks: repicks } = selectDailyTopics(pool, { now: new Date(), extraCorpus: pendingDrafts });
+          const candidates = repicks.filter(r => !usedSlugs.has(r.slug));
+          if (candidates.length > 0) {
+            const needed = 2 - filtered.length;
+            const additions = candidates.slice(0, needed);
+            const recheck = await checkDuplicatesWithAI(additions, corpus);
+            const reBlocked = new Set(
+              (!recheck.skipped ? recheck.results.filter(r => r.duplicate).map(r => r.slug) : [])
+            );
+            for (const a of additions) {
+              if (reBlocked.has(a.slug)) {
+                console.log(`[generate] 補充候補も重複: ${a.slug} → スキップ`);
+              } else {
+                filtered.push(a);
+                console.log(`[generate] 補充: ${a.slug} (${a.article_role || 'unknown'})`);
+              }
+            }
+          }
+        }
+        if (filtered.length < picks.length) {
+          console.log(`[generate] 補充後: ${filtered.length} 件`);
+        }
+      }
+
       return filtered;
     }
     console.log('[generate] AI重複判定: 重複なし');
