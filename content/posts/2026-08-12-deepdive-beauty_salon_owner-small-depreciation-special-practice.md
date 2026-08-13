@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "美容サロンが40万円未満の備品を取得した際、少額減価償却特例・一括償却・少額の資産の3つのルールからどれを選ぶか、ケース別に判断基準と上限管理の注意点を解説します（令和8年改正対応）。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-12T19:30:45.162+09:00"
 publish_at: "2026-08-13T17:18:00.000+09:00"
-published_at: ""
+published_at: "2026-08-13T18:01:10.153+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-12T06:56:53.448Z"
-updated_at: "2026-08-12T19:30:45.162+09:00"
+updated_at: "2026-08-13T18:01:10.153+09:00"
 publish_slot: "evening"
 ---
 
