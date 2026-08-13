@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "予約管理ソフトやPOSレジアプリの費用処理に迷うサロンオーナー向けに、購入型・サブスク型・自社開発型の3区分ごとに減価償却か全額経費かを整理して解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-12T19:30:14.366+09:00"
 publish_at: "2026-08-13T11:09:00.000+09:00"
-published_at: ""
+published_at: "2026-08-13T12:02:09.561+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-12T00:05:59.148Z"
-updated_at: "2026-08-12T19:30:14.366+09:00"
+updated_at: "2026-08-13T12:02:09.561+09:00"
 publish_slot: "morning"
 ---
 
