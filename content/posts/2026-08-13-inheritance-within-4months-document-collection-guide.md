@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: ""
 related_title: ""
 related_link_text: ""
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
-source_title: "国税庁タックスアンサー No.4152 相続税の計算"
-source_provenance: "domain-fallback"
-source_confidence: 0
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm"
+source_title: "国税庁タックスアンサー No.4205 相続税の申告と納税"
+source_provenance: "explicit"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "4ヶ月以内（準確定申告期限）に戸籍・残高証明・評価資料の収集をどう進めるか整理したい"
 reader_problem: "戸籍・残高証明・評価資料の収集の進め方が分からない"
@@ -29,12 +29,12 @@ procedure_stage: "document-collection"
 customer_segment: "inheritance_gift"
 customer_fit_score: 4
 search_intent_score: 5
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 4
 lead_value_score: 3
 tax_risk_score: 4
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=domain-fallback）"
+recommendation: "approve"
+review_warning: ""
 summary: "相続開始後4ヶ月以内は準確定申告の期限でもあり、同時に相続税申告の準備として戸籍・残高証明・不動産評価資料の収集を始める必要があります。優先順位と入手先を整理しました。"
 review_status: "draft"
 review_comment: ""
