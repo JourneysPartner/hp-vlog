@@ -27,7 +27,9 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
                                         ntaRefsBlock, lawChangesBlock, revisionHint,
                                         pairedTopic, pairedArticleType, pairedArticleRole,
                                         conditionalRules = [] }) {
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
+  // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
+  // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
+  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
   const macro = topic.macro || '';
