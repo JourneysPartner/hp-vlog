@@ -94,6 +94,23 @@ const WORD_COUNT_GUIDE = {
   case_study:          '4000〜5500文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
 };
 
+// ── 上の WORD_COUNT_GUIDE を数値で持つ版（生成後チェック用）──────
+// generate-draft.js が「下限を割っていないか」を判定するのに使う。
+// WORD_COUNT_GUIDE の文言と必ず一致させること（テストで整合を検証している）。
+const WORD_COUNT_RANGE = {
+  basic_explainer:     { min: 5000, max: 7000 },
+  comparison_decision: { min: 5000, max: 7000 },
+  edge_case:           { min: 3500, max: 5000 },
+  industry_example:    { min: 3500, max: 5000 },
+  filing_practice:     { min: 5000, max: 7000 },
+  misconception_fix:   { min: 3500, max: 5000 },
+  case_study:          { min: 4000, max: 5500 },
+};
+
+// 下限判定に用いる許容率。LLM に厳密な文字数制御はできないため、
+// 下限の 90% を下回った場合のみ「短すぎ」と判定して再生成する。
+const WORD_COUNT_FLOOR_RATIO = 0.9;
+
 // ── 記事タイプ別の必須要素チェックリスト ────────────────────────
 const ARTICLE_TYPE_CHECKLIST = {
   basic_explainer:     ['読者の悩みを言語化したリード文', 'この記事が答える疑問', '冒頭の結論', '制度の基本', '対象者', 'よくある誤解', '実務上の注意点', '相談が必要になる境目', 'よくある質問(FAQ)'],
@@ -567,6 +584,8 @@ module.exports = {
   selectConditionalRules,
   ARTICLE_TYPE_INSTRUCTIONS,
   WORD_COUNT_GUIDE,
+  WORD_COUNT_RANGE,
+  WORD_COUNT_FLOOR_RATIO,
   ARTICLE_TYPE_CHECKLIST,
   DISCLAIMER_TEXT,
   MACRO_GUIDE,

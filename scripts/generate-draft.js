@@ -220,15 +220,11 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 };
 
 // ── 記事タイプ別の目安文字数 ─────────────────────────────────────
-const WORD_COUNT_GUIDE = {
-  basic_explainer:     '1600〜2600文字',
-  comparison_decision: '2000〜3200文字',
-  edge_case:           '1200〜1800文字',
-  industry_example:    '1200〜2000文字',
-  filing_practice:     '2000〜3200文字',
-  misconception_fix:   '1200〜1800文字',
-  case_study:          '1500〜2500文字',
-};
+// 単一の情報源は article-prompt-static.js。以前ここに独自のコピーがあり、
+// 本文長を 5,000〜7,000 文字へ引き上げた際に旧値（1600〜2600 等）が残って
+// 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
+const { WORD_COUNT_GUIDE } = require('./lib/article-prompt-static');
+const { checkBodyLength } = require('./lib/article-length');
 
 // ── 記事タイプ別の必須要素チェックリスト（内部ロジック）──────────
 const ARTICLE_TYPE_CHECKLIST = {
@@ -744,7 +740,9 @@ function extractText(completion) {
 
 // ── 本文生成（content-model 経由。Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）────
 // strictFormat=true で「---開始・コードブロック禁止・h2 3個以上」を強く指示する。
-async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat) {
+// shortfall={produced,min} を渡すと「前回は短すぎた」旨と増量方針を追加指示する
+// （本文長の下限割れリトライ用）。
+async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, shortfall) {
   const now     = new Date().toISOString();
   const persona = getPersonaForTopic(topic);
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
@@ -770,7 +768,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
+  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 
@@ -904,6 +902,25 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
   : ''}`;
   }
 
+  // 本文長の下限割れリトライ。何文字足りないかを具体的に伝え、
+  // 「水増しではなく中身で埋める」方向を指示する。
+  if (shortfall && shortfall.min) {
+    const need = Math.max(0, shortfall.min - shortfall.produced);
+    revisionHint += `\n\n═══ 本文が短すぎたため再生成（必須）═══
+前回の出力は本文 ${shortfall.produced} 文字で、下限 ${shortfall.min} 文字に ${need} 文字届いていません。
+今回は必ず ${shortfall.min} 文字以上にしてください。
+
+【増やし方（この順で検討する。水増しは禁止）】
+1. 「実際によくあるケース」を 2〜3 個入れる（具体的な金額・状況を伴うもの）
+2. 判断が分かれる境目を条件別に分解する（「Aなら〜、Bなら〜」）
+3. よくある間違いを「なぜ間違えるのか」の原因まで書く
+4. 帳簿・証憑の具体的な書き方を記載例つきで示す
+5. FAQ を 3〜5 問入れる（本文の焼き直しではなく周辺の疑問）
+
+❌ 同じ内容の言い換え、前置きの引き伸ばし、「〜が重要です」だけの段落で
+   字数を稼ぐことは禁止。内容が増えていない増量は品質欠陥として扱う。`;
+  }
+
   const sourceUrl      = topic.source_url || '';
   const sourceTitle    = topic.source_title || '';
   const relatedSlug    = pairedTopic ? pairedTopic.slug : '';
@@ -1031,7 +1048,8 @@ function rawHasDisclaimer(raw) {
 // 1. 本文生成（content-model）
 // 2. normalizeGeneratedDraft で frontmatter をシステム側から再構築
 // 3. 本文 h2 が0個など形式異常なら、strictFormat で1回だけ再生成
-// 4. それでも h2 が0個なら本文をそのまま採用（frontmatter は保証済みなので validate は通る）
+// 4. 本文が記事タイプの下限を大きく割っていたら、増量指示つきで1回だけ再生成
+// 5. それでも満たさなければ、より長い方を採用し review_comment に警告を残す
 async function generateArticle(dateStr, topic, pairedTopic) {
   const now = new Date().toISOString();
   let gen = await generateWithOpenAI(dateStr, topic, pairedTopic, false);
@@ -1051,6 +1069,41 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       }
     } catch (e) {
       console.warn(`[generate] strictFormat 再生成失敗（${e.message}）→ 初回結果を使用`);
+    }
+  }
+
+  // ── 本文長の下限チェック（短すぎたら1回だけ増量再生成）──────────
+  // 5,000〜7,000 文字へ引き上げた本文長は、指示するだけでは下限割れが起きる
+  // （実測で下限を数十文字下回るケースを確認）。足りない字数を具体的に伝えて
+  // 1 回だけ引き直す。水増しではなく中身で埋めるよう prompt 側で縛っている。
+  const articleTypeForLen = topic.article_type || 'basic_explainer';
+  let lenCheck = checkBodyLength(normalized.content, articleTypeForLen);
+  if (!lenCheck.ok) {
+    console.warn(
+      `[generate] 本文が短い（${lenCheck.produced} 文字 / 下限 ${lenCheck.min} 文字）→ 増量指示つきで1回再生成`,
+    );
+    try {
+      const retryGen = await generateWithOpenAI(dateStr, topic, pairedTopic, false, {
+        produced: lenCheck.produced,
+        min: lenCheck.min,
+      });
+      const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
+      const retryLen = checkBodyLength(retryNorm.content, articleTypeForLen);
+      // 短縮リグレッションを防ぐため、長くなった場合のみ採用する。
+      if (retryLen.produced > lenCheck.produced && retryNorm.bodyH2Count > 0) {
+        gen = retryGen;
+        normalized = retryNorm;
+        lenCheck = retryLen;
+        console.log(
+          `[generate] 再生成で ${retryLen.produced} 文字に${retryLen.ok ? '（下限クリア）' : '（下限には未達）'}`,
+        );
+      } else {
+        console.warn(
+          `[generate] 再生成しても伸びなかった（${retryLen.produced} 文字）→ 初回結果を維持`,
+        );
+      }
+    } catch (e) {
+      console.warn(`[generate] 増量再生成に失敗（${e.message}）→ 初回結果を使用`);
     }
   }
 
@@ -1076,12 +1129,22 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   const rawTailCheck = checkBodyTailComplete(gen.raw);
 
   let content = normalized.content;
+  const warnings = [];
   if (stopHitMaxTokens || disclaimerWasMissingInRaw || !rawTailCheck.ok) {
     const warnLines = [];
     if (stopHitMaxTokens)         warnLines.push(`stop_reason=${gen.stopReason}`);
     if (disclaimerWasMissingInRaw) warnLines.push('免責文が生成されず自動補完');
     if (!rawTailCheck.ok)         warnLines.push(rawTailCheck.reason);
-    const warningMsg = `⚠ 末尾途切れの疑い（${warnLines.join(' / ')}） — 公開前に末尾を確認してください`;
+    warnings.push(`⚠ 末尾途切れの疑い（${warnLines.join(' / ')}） — 公開前に末尾を確認してください`);
+  }
+  // 増量再生成後も下限に届かなかった場合は、レビュー時に気付けるよう残す。
+  if (!lenCheck.ok) {
+    warnings.push(
+      `⚠ 本文が短い（${lenCheck.produced} 文字 / 目安 ${lenCheck.min} 文字以上） — 内容の追記を検討してください`,
+    );
+  }
+  if (warnings.length > 0) {
+    const warningMsg = warnings.join(' ／ ');
     console.warn(`[self-check] ${warningMsg}`);
     // review_comment フィールドに警告を埋め込む（既存の空 review_comment を上書き）
     content = content.replace(
@@ -1090,7 +1153,10 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     );
   }
 
-  return { content, provider: gen.provider, model: gen.model, h2: normalized.bodyH2Count };
+  return {
+    content, provider: gen.provider, model: gen.model,
+    h2: normalized.bodyH2Count, bodyLength: lenCheck.produced,
+  };
 }
 
 // ── 既存記事の frontmatter をパースする ─────────────────────────
@@ -1122,7 +1188,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '1000〜1500文字';
+  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 
