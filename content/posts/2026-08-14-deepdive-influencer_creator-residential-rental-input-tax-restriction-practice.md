@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "居住用賃貸建物の取得に係る消費税は原則として仕入税額控除が認められない。ただし住居と事業用の混在物件や、転用・譲渡時の調整など例外もあり、ケース別の判断が必要。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "「そもそもの原則（3行）」→「原則」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-14T00:06:49.541Z"
-updated_at: "2026-08-14T00:06:49.541Z"
+updated_at: "2026-08-14T14:48:36.635+09:00"
 ---
 
 ## 居住用賃貸建物の仕入税額控除、「できない」だけでは終わらない話
