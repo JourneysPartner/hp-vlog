@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "approve"
 review_warning: ""
 summary: "自動販売機・コインランドリー等からの3万円未満の購入は、帳簿記載のみで仕入税額控除が認められます。適用範囲・対象外の取引（コインパーキング等）・帳簿の書き方を整理しました。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-14T14:43:53.718+09:00"
+publish_at: "2026-08-15T11:44:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-14T00:05:59.853Z"
-updated_at: "2026-08-14T00:05:59.853Z"
+updated_at: "2026-08-14T14:43:53.718+09:00"
+publish_slot: "morning"
 ---
 
 ## この記事でわかること
