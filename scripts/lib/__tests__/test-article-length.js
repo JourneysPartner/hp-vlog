@@ -92,7 +92,39 @@ ok(r2.ok === true, '未知タイプは常に OK（既存挙動を壊さない）
 ok(r2.min === null, '未知タイプは min=null');
 ok(r2.produced === 10, '未知タイプでも produced は返す');
 
-console.log('\n=== Test 8: 許容率が想定範囲 ===');
+console.log('\n=== Test 8: 未知タイプのフォールバック文字数が古い値でない ===');
+// WORD_COUNT_GUIDE[articleType] が未定義のときのフォールバックが
+// 旧来の「1000〜1500文字」に落ちると、薄い記事が生成されてしまう。
+// prompt を実際に組み立てて、その文言が混入していないことを確認する。
+{
+  const fs = require('fs');
+  const path = require('path');
+  const SRC = path.join(__dirname, '..');
+  const files = ['article-prompt-builder.js', '../generate-draft.js'];
+  const STALE = /(1000〜1500|1500〜2400|1600〜2600|1800〜2800|2000〜3200|1100〜1600|1200〜1800|1400〜2200|1500〜2500)文字/;
+  for (const f of files) {
+    const p = path.join(SRC, f);
+    const src = fs.readFileSync(p, 'utf8');
+    // コメント行（旧値の説明）は除外して判定する
+    const code = src.split('\n').filter(l => !/^\s*(\/\/|\*)/.test(l)).join('\n');
+    ok(!STALE.test(code), `${path.basename(f)}: 旧文字数のフォールバックが残っていない`);
+  }
+}
+{
+  const { buildGenerationPrompt } = require('../article-prompt-builder');
+  const ir = buildGenerationPrompt({
+    topic: { slug: 's', title: 't', tax_domain: 'consumption_tax' },
+    persona: { id: '', label: '' }, cta: 'c',
+    articleType: 'no_such_type', articleRole: 'support',
+    ntaRefsBlock: '', lawChangesBlock: '', revisionHint: '',
+    relatedSlug: '', relatedTitle: '', relatedLinkText: '', now: '2026-01-01T00:00:00Z',
+  });
+  const all = ir.staticSystem + ir.dynamicSystem + ir.user;
+  ok(!/1000〜1500文字/.test(all), '未知タイプでもプロンプトに「1000〜1500文字」が出ない');
+  ok(/3500〜5000文字/.test(all), '未知タイプは補強記事の下限（3500〜5000文字）にフォールバックする');
+}
+
+console.log('\n=== Test 9: 許容率が想定範囲 ===');
 ok(WORD_COUNT_FLOOR_RATIO > 0 && WORD_COUNT_FLOOR_RATIO <= 1,
   `WORD_COUNT_FLOOR_RATIO=${WORD_COUNT_FLOOR_RATIO} が 0〜1`);
 ok(WORD_COUNT_FLOOR_RATIO >= 0.8,
