@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "approve"
 review_warning: ""
 summary: "相続開始後4ヶ月以内は準確定申告の期限でもあり、同時に相続税申告の準備として戸籍・残高証明・不動産評価資料の収集を始める必要があります。優先順位と入手先を整理しました。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-13T17:00:58.953+09:00"
 publish_at: "2026-08-14T11:11:00.000+09:00"
-published_at: ""
+published_at: "2026-08-14T12:01:01.800+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-13T00:05:58.934Z"
-updated_at: "2026-08-13T17:00:58.953+09:00"
+updated_at: "2026-08-14T12:01:01.800+09:00"
 publish_slot: "morning"
 ---
 
