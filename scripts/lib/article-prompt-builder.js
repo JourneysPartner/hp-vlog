@@ -187,7 +187,7 @@ function buildGenerationPrompt(args) {
 
 ${frontmatter}
 
-（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || '1000〜1500文字'}）`;
+（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || '3500〜5000文字'}）`;
 
   return { staticSystem, dynamicSystem, user };
 }

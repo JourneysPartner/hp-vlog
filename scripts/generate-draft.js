@@ -981,7 +981,10 @@ updated_at: "${now}"
     pairedTopic, pairedArticleType: pairedTopic && pairedTopic.article_type,
     pairedArticleRole: pairedTopic && pairedTopic.article_role,
   });
-  const result = await contentModel.generateContent(promptIR, { maxTokens: 4096 });
+  // 本文 5,000〜7,000 文字（本命）を出し切るための出力枠。
+  // 日本語は 1 文字 ≈ 1〜1.5 token。7,000 文字 ≈ 10,000 token に
+  // frontmatter(≈600) と安全マージンを乗せて 12,000 とする。
+  const result = await contentModel.generateContent(promptIR, { maxTokens: 12000 });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
   // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
@@ -1243,8 +1246,9 @@ updated_at: "${now}"
 
   // full_regenerate も content-model 経由（Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）。
   // 差し戻し再生成は per-article 指示が多いため cache 効果は限定的だが provider 統一のため使用。
+  // 本文長は生成時と同じレンジ（本命 5,000〜7,000 文字）なので出力枠も揃える。
   const regenResult = await contentModel.generateSimple(
-    { system: systemPrompt, user: userPrompt }, { maxTokens: 4096 });
+    { system: systemPrompt, user: userPrompt }, { maxTokens: 12000 });
   const raw = regenResult.text || '';
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return postProcess((fenced ? fenced[1] : raw).trim());
@@ -1370,7 +1374,8 @@ async function regenerateSection(existingContent, comment, classification) {
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification);
-    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 2048));
+    // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
+    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -1389,7 +1394,7 @@ async function regenerateSection(existingContent, comment, classification) {
     return regenerateTargeted(existingContent, comment);
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification);
-  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 2048));
+  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -1398,9 +1403,12 @@ async function regenerateSection(existingContent, comment, classification) {
 }
 
 // ── 部分再生成: targeted（本文全体を渡し最小修正）──────────────
-// 本文全体を再出力させるため、本文生成と同じ 4096 トークンを必ず確保する。
+// 本文全体を再出力させるため、本文生成と同じ 12,000 トークンを必ず確保する。
 // 以前は maxTokens 未指定で generateSimple のデフォルト 2048 が効き、
 // 本文が途中で切れる事故が発生していた（PR #129 で修正済）。
+// 本文長を 5,000〜7,000 文字に引き上げた際、ここが 4096 のままだと
+// 出力が切れ → 下の shrinkage ガードが発火 → 差し戻しが破棄され
+// 「修正したのに反映されない」事故になるため、生成側と同じ枠にする。
 //
 // セーフティ: LLM が「コメントに該当する箇所が本文に無い」状況で混乱して
 // 本文を ASCII フローチャート等に書き換えてしまう事故があった（実例 2026-05-29）。
@@ -1412,7 +1420,7 @@ async function regenerateTargeted(existingContent, comment) {
 
   // 1 回目: 通常プロンプト
   const p1 = partial.buildTargetedPrompt(meta, comment, body);
-  let revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 4096));
+  let revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
   // 2 回目: 1 回目が shrinkage 判定なら、より厳しいプロンプトでリトライ
@@ -1421,7 +1429,7 @@ async function regenerateTargeted(existingContent, comment) {
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen);
-    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p2.system, user: p2.user }, 4096));
+    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000));
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
 
