@@ -9,10 +9,10 @@ article_role: "support"
 related_slug: "deepdive-influencer_creator-vending-machine-special-guide"
 related_title: ""
 related_link_text: "基本から確認したい方はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6401.htm"
-source_title: "仕入控除税額の計算方法"
-source_provenance: "llm-auto"
-source_confidence: 0.68
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
+source_title: "国税庁タックスアンサー No.6451 仕入税額控除の対象範囲"
+source_provenance: "explicit"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "居住用賃貸建物を取得したときの消費税の還付可否を知りたい（判断に迷うケース別）"
 reader_problem: "住居用と店舗用混在の不動産の消費税処理が不安"
@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "creator"
 customer_fit_score: 5
 search_intent_score: 5
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=llm-auto）"
+recommendation: "approve"
+review_warning: ""
 summary: "居住用賃貸建物の取得に係る消費税は原則として仕入税額控除が認められない。ただし住居と事業用の混在物件や、転用・譲渡時の調整など例外もあり、ケース別の判断が必要。"
 review_status: "draft"
 review_comment: ""
