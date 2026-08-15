@@ -9,8 +9,8 @@ article_role: "main"
 related_slug: "deepdive-influencer_creator-residential-rental-input-tax-restriction-practice"
 related_title: ""
 related_link_text: "判断に迷うケースについてはこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm"
-source_title: "国税庁 インボイス制度の概要"
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm"
+source_title: "国税庁タックスアンサー No.6496 仕入税額控除をするための帳簿及び請求書等の保存"
 source_provenance: "explicit"
 source_confidence: 1
 source_guard_version: 1
