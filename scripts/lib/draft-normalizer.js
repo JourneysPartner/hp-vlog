@@ -19,6 +19,12 @@ const { evaluateTopicFit, recommendationForDecision } = require('./customer-rele
 
 const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
 
+// primary_persona は validate.js の REQUIRED_FIELDS。空文字だと品質チェックが
+// ERROR になり、日次生成のジョブごと落ちる（2026-08-15 に発生）。
+// トピックにペルソナが無い / 意図的に対象を絞らない記事でも必ず値が入るよう、
+// 汎用ペルソナ（customer_segment=general_business に対応）をフォールバックにする。
+const DEFAULT_PERSONA = 'general_individual_proprietor';
+
 // 記事タイプ別の関連記事リンク文言（generate-draft の RELATED_LINK_TEXTS と整合）
 const RELATED_LINK_TEXTS = {
   basic_explainer:     '基本から確認したい方はこちら',
@@ -212,7 +218,7 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
 title: "${escFm(title)}"
 slug: "${escFm(topic.slug)}"
 category: "${escFm(topic.category || '')}"
-primary_persona: "${escFm(topic.persona || topic.primary_persona || '')}"
+primary_persona: "${escFm(topic.persona || topic.primary_persona || DEFAULT_PERSONA)}"
 secondary_persona: ""
 article_type: "${escFm(articleType)}"
 article_role: "${escFm(articleRole)}"

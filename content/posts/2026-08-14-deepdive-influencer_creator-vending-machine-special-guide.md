@@ -2,7 +2,7 @@
 title: "自動販売機特例とは？インボイス不要で仕入税額控除できる取引と帳簿の書き方"
 slug: "deepdive-influencer_creator-vending-machine-special-guide"
 category: "消費税"
-primary_persona: ""
+primary_persona: "general_individual_proprietor"
 secondary_persona: ""
 article_type: "basic_explainer"
 article_role: "main"
@@ -26,7 +26,7 @@ business_stage: ""
 life_stage: ""
 pain_point: "vending-machine-special"
 procedure_stage: ""
-customer_segment: ""
+customer_segment: "general_business"
 customer_fit_score: 5
 search_intent_score: 4
 source_alignment_score: 5
