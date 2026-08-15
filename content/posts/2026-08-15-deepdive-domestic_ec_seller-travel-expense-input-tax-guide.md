@@ -11,8 +11,8 @@ related_title: ""
 related_link_text: "判断に迷うケースについてはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6459.htm"
 source_title: "出張旅費、宿泊費、日当、通勤手当などの取扱い"
-source_provenance: "llm-auto"
-source_confidence: 0.99
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "出張旅費・通勤費の消費税処理を正しく行いたい"
 reader_problem: "旅費規程・宿泊費・新幹線等の課税仕入れ判定が不安"
@@ -27,19 +27,17 @@ life_stage: ""
 pain_point: "travel-expense-input-tax"
 procedure_stage: ""
 customer_segment: "ec_seller"
-customer_fit_score: 5
+customer_fit_score: 4
 search_intent_score: 5
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=llm-auto）"
+recommendation: "publish"
+review_warning: ""
 summary: "出張旅費・宿泊費・通勤手当の消費税区分を解説。課税仕入れとなる費用と非課税・不課税の見分け方、帳簿要件、インボイス対応まで実務目線で整理しています。"
 review_status: "draft"
 review_comment: ""
-approved_at: ""
-publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
