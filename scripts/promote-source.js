@@ -21,7 +21,10 @@ const ROOT = path.join(__dirname, '..');
 const DEFAULT_MAP_PATH = path.join(ROOT, 'data', 'curated-source-promotions.json');
 const DEFAULT_CATALOG_PATH = path.join(ROOT, 'data', 'nta-sources', 'index.json');
 const PROMOTABLE_STATUSES = new Set(['draft', 'needs_review', 'needs_revision']);
-const PROMOTABLE_PROVENANCE = new Set(['auto', 'domain-fallback']);
+// llm-auto は LLM 出典選定（PR #390）の追加後に生まれた provenance。
+// 「機械が選んだので人の確認が要る」点は auto / domain-fallback と同じ性質なので、
+// 同様に昇格対象に含める（人が --url で明示指定して初めて curated になる）。
+const PROMOTABLE_PROVENANCE = new Set(['auto', 'domain-fallback', 'llm-auto']);
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));

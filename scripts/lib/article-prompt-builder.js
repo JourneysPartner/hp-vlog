@@ -17,8 +17,8 @@
  */
 
 const {
-  STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, DISCLAIMER_TEXT,
-  selectConditionalRules,
+  STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK,
+  DISCLAIMER_TEXT, selectConditionalRules,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 
@@ -29,7 +29,7 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
                                         conditionalRules = [] }) {
   // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
   // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
+  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
   const macro = topic.macro || '';
@@ -189,7 +189,7 @@ function buildGenerationPrompt(args) {
 
 ${frontmatter}
 
-（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || '3500〜5000文字'}）`;
+（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK}）`;
 
   return { staticSystem, dynamicSystem, user };
 }

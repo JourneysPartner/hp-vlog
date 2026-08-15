@@ -34,17 +34,30 @@ function measureBodyLength(content) {
  * LLM に厳密な字数制御はできないため、下限そのものではなく
  * 下限 × WORD_COUNT_FLOOR_RATIO を実際のしきい値にする。
  *
+ * 上限は受入基準そのもの（余裕を持たせない）。プロンプト側は
+ * WORD_COUNT_GUIDE で受入基準より低い値を指示しているため、
+ * ここに引っかかる時点でキャリブレーションが外れている。
+ *
  * @param {string} content frontmatter を含む記事全体
  * @param {string} articleType 記事タイプ
- * @returns {{ok:boolean, produced:number, min:number|null, floor:number|null}}
+ * @returns {{ok:boolean, tooShort:boolean, tooLong:boolean, produced:number,
+ *            min:number|null, max:number|null, floor:number|null}}
  */
 function checkBodyLength(content, articleType) {
   const produced = measureBodyLength(content);
   const range = WORD_COUNT_RANGE[articleType];
   // 未知の記事タイプは判定対象外（既存挙動を壊さない）
-  if (!range) return { ok: true, produced, min: null, floor: null };
+  if (!range) {
+    return { ok: true, tooShort: false, tooLong: false, produced, min: null, max: null, floor: null };
+  }
   const floor = Math.floor(range.min * WORD_COUNT_FLOOR_RATIO);
-  return { ok: produced >= floor, produced, min: range.min, floor };
+  const tooShort = produced < floor;
+  const tooLong = produced > range.max;
+  return {
+    ok: !tooShort && !tooLong,
+    tooShort, tooLong, produced,
+    min: range.min, max: range.max, floor,
+  };
 }
 
 module.exports = { measureBodyLength, checkBodyLength };
