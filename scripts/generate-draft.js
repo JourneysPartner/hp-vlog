@@ -223,7 +223,7 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 単一の情報源は article-prompt-static.js。以前ここに独自のコピーがあり、
 // 本文長を 5,000〜7,000 文字へ引き上げた際に旧値（1600〜2600 等）が残って
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
-const { WORD_COUNT_GUIDE } = require('./lib/article-prompt-static');
+const { WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
 // ── 記事タイプ別の必須要素チェックリスト（内部ロジック）──────────
@@ -768,7 +768,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
+  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 
@@ -919,6 +919,28 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
 
 ❌ 同じ内容の言い換え、前置きの引き伸ばし、「〜が重要です」だけの段落で
    字数を稼ぐことは禁止。内容が増えていない増量は品質欠陥として扱う。`;
+  }
+
+  // 本文長の上限超過リトライ。何文字削るかを具体的に伝える。
+  // プロンプトの指示値は受入基準より低く設定済み（キャリブレーション）なので、
+  // ここに来る時点で想定より長い出力になっている。
+  if (shortfall && shortfall.max) {
+    const over = Math.max(0, shortfall.produced - shortfall.max);
+    revisionHint += `\n\n═══ 本文が長すぎたため再生成（必須）═══
+前回の出力は本文 ${shortfall.produced} 文字で、上限 ${shortfall.max} 文字を ${over} 文字超えています。
+今回は必ず ${shortfall.max} 文字以内にしてください。目標は ${Math.floor(shortfall.max * 0.92)} 文字前後です。
+
+【削り方（この順で検討する）】
+1. 表の行数を減らす（最重要の3〜4行に絞る）
+2. ケース・例示の数を減らす（代表 1〜2 個に絞る）
+3. 同じ内容の言い換え・前置き・重複する注意書きを削除する
+4. FAQ を 3 問程度に絞る
+5. 「専門家に相談した方がいいケース」を 3〜4 項目に絞る
+
+❌ 以下は削ってはいけない（削ると記事として成立しない）:
+   リード文 / まず結論 / 判断ポイント / チェックリスト / 免責文 / CTA
+❌ 途中で打ち切らないこと。まとめ・免責文・CTA まで必ず完結させたうえで
+   上限内に収めること。`;
   }
 
   const sourceUrl      = topic.source_url || '';
@@ -1072,38 +1094,48 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     }
   }
 
-  // ── 本文長の下限チェック（短すぎたら1回だけ増量再生成）──────────
-  // 5,000〜7,000 文字へ引き上げた本文長は、指示するだけでは下限割れが起きる
-  // （実測で下限を数十文字下回るケースを確認）。足りない字数を具体的に伝えて
-  // 1 回だけ引き直す。水増しではなく中身で埋めるよう prompt 側で縛っている。
+  // ── 本文長チェック（レンジ外なら1回だけ再生成）────────────────
+  // プロンプトの指示値は受入基準を LENGTH_OVERSHOOT で割った値
+  // （article-prompt-static.js のキャリブレーション）。それでもレンジを
+  // 外れることがあるため、不足/超過を具体的な字数で伝えて1回引き直す。
   const articleTypeForLen = topic.article_type || 'basic_explainer';
   let lenCheck = checkBodyLength(normalized.content, articleTypeForLen);
   if (!lenCheck.ok) {
+    const dir = lenCheck.tooShort ? '短い' : '長い';
+    const bound = lenCheck.tooShort
+      ? `下限 ${lenCheck.min} 文字`
+      : `上限 ${lenCheck.max} 文字`;
     console.warn(
-      `[generate] 本文が短い（${lenCheck.produced} 文字 / 下限 ${lenCheck.min} 文字）→ 増量指示つきで1回再生成`,
+      `[generate] 本文が${dir}（${lenCheck.produced} 文字 / ${bound}）→ ${lenCheck.tooShort ? '増量' : '圧縮'}指示つきで1回再生成`,
     );
     try {
-      const retryGen = await generateWithOpenAI(dateStr, topic, pairedTopic, false, {
-        produced: lenCheck.produced,
-        min: lenCheck.min,
-      });
+      // shortfall に min を渡すと増量指示、max を渡すと圧縮指示になる
+      const hint = lenCheck.tooShort
+        ? { produced: lenCheck.produced, min: lenCheck.min }
+        : { produced: lenCheck.produced, max: lenCheck.max };
+      const retryGen = await generateWithOpenAI(dateStr, topic, pairedTopic, false, hint);
       const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
       const retryLen = checkBodyLength(retryNorm.content, articleTypeForLen);
-      // 短縮リグレッションを防ぐため、長くなった場合のみ採用する。
-      if (retryLen.produced > lenCheck.produced && retryNorm.bodyH2Count > 0) {
+      // 意図と逆方向に動いた結果は採用しない（短くしたいのに伸びた等）。
+      const improved = retryNorm.bodyH2Count > 0 && (
+        lenCheck.tooShort
+          ? retryLen.produced > lenCheck.produced
+          : retryLen.produced < lenCheck.produced
+      );
+      if (improved) {
         gen = retryGen;
         normalized = retryNorm;
         lenCheck = retryLen;
         console.log(
-          `[generate] 再生成で ${retryLen.produced} 文字に${retryLen.ok ? '（下限クリア）' : '（下限には未達）'}`,
+          `[generate] 再生成で ${retryLen.produced} 文字に${retryLen.ok ? '（レンジ内）' : '（レンジ外のまま）'}`,
         );
       } else {
         console.warn(
-          `[generate] 再生成しても伸びなかった（${retryLen.produced} 文字）→ 初回結果を維持`,
+          `[generate] 再生成が改善しなかった（${retryLen.produced} 文字）→ 初回結果を維持`,
         );
       }
     } catch (e) {
-      console.warn(`[generate] 増量再生成に失敗（${e.message}）→ 初回結果を使用`);
+      console.warn(`[generate] 文字数調整の再生成に失敗（${e.message}）→ 初回結果を使用`);
     }
   }
 
@@ -1137,10 +1169,14 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     if (!rawTailCheck.ok)         warnLines.push(rawTailCheck.reason);
     warnings.push(`⚠ 末尾途切れの疑い（${warnLines.join(' / ')}） — 公開前に末尾を確認してください`);
   }
-  // 増量再生成後も下限に届かなかった場合は、レビュー時に気付けるよう残す。
-  if (!lenCheck.ok) {
+  // 再生成後もレンジ外だった場合は、レビュー時に気付けるよう残す。
+  if (lenCheck.tooShort) {
     warnings.push(
       `⚠ 本文が短い（${lenCheck.produced} 文字 / 目安 ${lenCheck.min} 文字以上） — 内容の追記を検討してください`,
+    );
+  } else if (lenCheck.tooLong) {
+    warnings.push(
+      `⚠ 本文が長い（${lenCheck.produced} 文字 / 上限 ${lenCheck.max} 文字） — 内容の圧縮が必要です`,
     );
   }
   if (warnings.length > 0) {
@@ -1188,7 +1224,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || '3500〜5000文字';
+  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 

@@ -46,19 +46,42 @@ console.log('\n=== Test 3: CRLF 改行でも動く ===');
 const crlf = '---\r\ntitle: "t"\r\n---\r\n\r\nあいう';
 ok(measureBodyLength(crlf) === 3, 'CRLF の frontmatter を除去できる');
 
-console.log('\n=== Test 4: WORD_COUNT_GUIDE と WORD_COUNT_RANGE の整合 ===');
+console.log('\n=== Test 4: 文字数指示のキャリブレーション ===');
+// GUIDE（LLM への指示）は RANGE（受入基準）より小さくなければならない。
+// LLM は指示値を約 1.11 倍で超過するため、指示値をそのまま受入基準にすると必ず超過する。
+// 実測: 2026-08-15 本命 7,000指示→7,767実測 / 補強 5,000指示→5,552実測
+const OVERSHOOT = 1.11;
 for (const [type, guide] of Object.entries(WORD_COUNT_GUIDE)) {
   const m = guide.match(/^(\d+)〜(\d+)文字/);
   const r = WORD_COUNT_RANGE[type];
   ok(!!m, `${type}: GUIDE が「N〜M文字」形式`);
   ok(!!r, `${type}: RANGE に定義がある`);
   if (m && r) {
-    ok(Number(m[1]) === r.min && Number(m[2]) === r.max,
-      `${type}: GUIDE(${m[1]}〜${m[2]}) と RANGE(${r.min}〜${r.max}) が一致`);
+    const gMin = Number(m[1]), gMax = Number(m[2]);
+    ok(gMax < r.max,
+      `${type}: 指示上限(${gMax}) < 受入上限(${r.max}) — 指示値がキャリブレーション済み`);
+    ok(Math.round(gMax * OVERSHOOT) <= r.max,
+      `${type}: 予測実測(${Math.round(gMax * OVERSHOOT)}) が受入上限(${r.max}) 以内`);
+    ok(Math.round(gMin * OVERSHOOT) >= Math.floor(r.min * 0.98),
+      `${type}: 予測実測の下側(${Math.round(gMin * OVERSHOOT)}) が受入下限(${r.min}) をほぼ満たす`);
   }
 }
 ok(Object.keys(WORD_COUNT_RANGE).length === Object.keys(WORD_COUNT_GUIDE).length,
   'RANGE と GUIDE のキー数が一致（片方だけの記事タイプが無い）');
+
+console.log('\n=== Test 4b: 上限超過の検知 ===');
+{
+  const over = (n, t) => checkBodyLength(fm('あ'.repeat(n)), t);
+  const r = WORD_COUNT_RANGE.basic_explainer;
+  ok(over(r.max, 'basic_explainer').ok === true, `上限ちょうど(${r.max}) は OK`);
+  ok(over(r.max + 1, 'basic_explainer').tooLong === true, `上限+1(${r.max + 1}) は tooLong`);
+  ok(over(r.max + 1, 'basic_explainer').ok === false, '上限超過は ok=false');
+  ok(over(7767, 'basic_explainer').tooLong === true, '2026-08-15 の実測値 7767 は tooLong と判定される');
+  ok(over(r.max - 100, 'basic_explainer').tooLong === false, '上限内は tooLong にならない');
+  // 下限側と上限側が同時に立たないこと
+  const s = over(100, 'basic_explainer');
+  ok(s.tooShort === true && s.tooLong === false, '短すぎる場合は tooShort のみ');
+}
 
 console.log('\n=== Test 5: checkBodyLength の下限判定 ===');
 const body = (n) => fm('あ'.repeat(n));
@@ -120,8 +143,14 @@ console.log('\n=== Test 8: 未知タイプのフォールバック文字数が�
     relatedSlug: '', relatedTitle: '', relatedLinkText: '', now: '2026-01-01T00:00:00Z',
   });
   const all = ir.staticSystem + ir.dynamicSystem + ir.user;
+  const { WORD_COUNT_GUIDE_FALLBACK } = require('../article-prompt-static');
   ok(!/1000〜1500文字/.test(all), '未知タイプでもプロンプトに「1000〜1500文字」が出ない');
-  ok(/3500〜5000文字/.test(all), '未知タイプは補強記事の下限（3500〜5000文字）にフォールバックする');
+  ok(all.includes(WORD_COUNT_GUIDE_FALLBACK),
+    '未知タイプはキャリブレーション済みのフォールバック値を使う');
+  // フォールバックもハードコードではなく受入基準から導出されていること
+  const fbMax = Number((WORD_COUNT_GUIDE_FALLBACK.match(/〜(\d+)文字/) || [])[1]);
+  ok(fbMax < WORD_COUNT_RANGE.edge_case.max,
+    `フォールバック上限(${fbMax}) < 補強の受入上限(${WORD_COUNT_RANGE.edge_case.max})`);
 }
 
 console.log('\n=== Test 9: 許容率が想定範囲 ===');

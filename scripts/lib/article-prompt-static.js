@@ -84,19 +84,8 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 //     まとめ途中で切断され、ensureDisclaimer が免責文を付与して
 //     検出を擦り抜けた
 // → 出力枠を広げた現在も「免責文・CTA まで完結」は絶対条件のまま。
-const WORD_COUNT_GUIDE = {
-  basic_explainer:     '5000〜7000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  comparison_decision: '5000〜7000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  edge_case:           '3500〜5000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  industry_example:    '3500〜5000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  filing_practice:     '5000〜7000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  misconception_fix:   '3500〜5000文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-  case_study:          '4000〜5500文字（下限・上限とも厳守。免責文・CTA まで必ず含める）',
-};
-
-// ── 上の WORD_COUNT_GUIDE を数値で持つ版（生成後チェック用）──────
-// generate-draft.js が「下限を割っていないか」を判定するのに使う。
-// WORD_COUNT_GUIDE の文言と必ず一致させること（テストで整合を検証している）。
+// ── 受入基準（実際に守らせたい文字数）───────────────────────────
+// これが「本当の上限・下限」。生成後チェック（article-length.js）はこの値で判定する。
 const WORD_COUNT_RANGE = {
   basic_explainer:     { min: 5000, max: 7000 },
   comparison_decision: { min: 5000, max: 7000 },
@@ -106,6 +95,60 @@ const WORD_COUNT_RANGE = {
   misconception_fix:   { min: 3500, max: 5000 },
   case_study:          { min: 4000, max: 5500 },
 };
+
+// ── 文字数指示のキャリブレーション ─────────────────────────────
+// LLM は指示した上限を一定割合で超えて出力する。2026-08-15 の実測:
+//   本命 basic_explainer : 指示上限 7,000 → 実測 7,767 (1.1096)
+//   補強 edge_case       : 指示上限 5,000 → 実測 5,552 (1.1104)
+// 記事タイプが違っても比率がほぼ一致したため、一律 1.11 倍で補正する。
+// プロンプトには「受入基準 ÷ 1.11」を指示値として渡し、実出力が受入基準に
+// 収まるようにする（指示値をそのまま書くと必ず超過する）。
+const LENGTH_OVERSHOOT = 1.11;
+// 実測は2件のみで分散が不明なため、さらに安全側へ丸める余白。
+const LENGTH_SAFETY = 0.98;
+
+// 100文字単位に切り下げ / 切り上げ（プロンプト上の見た目を整える）
+const floor100 = n => Math.floor(n / 100) * 100;
+
+/** 受入基準から、LLM に提示する指示レンジを算出する */
+function calibratedRange(range) {
+  return {
+    min: floor100(range.min / LENGTH_OVERSHOOT),
+    max: floor100((range.max / LENGTH_OVERSHOOT) * LENGTH_SAFETY),
+  };
+}
+
+// ── 記事タイプ別の本文文字数（プロンプトに渡す指示文）─────────────
+// 競合の上位記事（税理士事務所のせどり/確定申告解説など）は本命で 6,000〜
+// 14,000 文字あり、当ブログの 1,500〜2,800 文字では検索意図の網羅性で劣る。
+// 本命記事を 5,000〜7,000 文字、補強記事を 3,500〜5,000 文字に引き上げた。
+//
+// ここに出る数値は上のキャリブレーション後の値であり、WORD_COUNT_RANGE
+// （受入基準）とは意図的に一致しない。両者を手で二重管理すると必ずズレるため、
+// 指示文は WORD_COUNT_RANGE から自動生成する。
+//
+// 出力枠: maxTokens=12,000（generate-draft.js）。
+// 日本語 1 文字 ≈ 1〜1.5 token のため 7,000 文字 ≈ 10,000 token。
+// frontmatter(≈600 token) を足しても収まる。
+//
+// 過去の途切れ事故（max_tokens=4096 時代）:
+//   - 2026-06-21 Shopify 記事が 4011 文字で「販」の途中で打ち切られた
+//   - 2026-06-25 外国アーティスト報酬記事が「免税事業者・簡易」で
+//     まとめ途中で切断され、ensureDisclaimer が免責文を付与して
+//     検出を擦り抜けた
+// → 出力枠を広げた現在も「免責文・CTA まで完結」は絶対条件のまま。
+function guideTextFor(range) {
+  const c = calibratedRange(range);
+  return `${c.min}〜${c.max}文字（下限・上限とも厳守。${c.max}文字を1文字でも超えないこと。免責文・CTA まで必ず含める）`;
+}
+
+const WORD_COUNT_GUIDE = Object.fromEntries(
+  Object.entries(WORD_COUNT_RANGE).map(([type, range]) => [type, guideTextFor(range)]),
+);
+
+// 未知の記事タイプ用のフォールバック。補強記事の受入基準から同じ式で導出する
+// （ハードコードするとキャリブレーション変更時に取り残される）。
+const WORD_COUNT_GUIDE_FALLBACK = guideTextFor(WORD_COUNT_RANGE.edge_case);
 
 // 下限判定に用いる許容率。LLM に厳密な文字数制御はできないため、
 // 下限の 90% を下回った場合のみ「短すぎ」と判定して再生成する。
@@ -584,8 +627,10 @@ module.exports = {
   selectConditionalRules,
   ARTICLE_TYPE_INSTRUCTIONS,
   WORD_COUNT_GUIDE,
+  WORD_COUNT_GUIDE_FALLBACK,
   WORD_COUNT_RANGE,
   WORD_COUNT_FLOOR_RATIO,
+  LENGTH_OVERSHOOT,
   ARTICLE_TYPE_CHECKLIST,
   DISCLAIMER_TEXT,
   MACRO_GUIDE,
