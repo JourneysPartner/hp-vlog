@@ -153,6 +153,27 @@ console.log('\n=== Test 8: 未知タイプのフォールバック文字数が�
     `フォールバック上限(${fbMax}) < 補強の受入上限(${WORD_COUNT_RANGE.edge_case.max})`);
 }
 
+console.log('\n=== Test 8b: max_tokens が受入上限に対応している ===');
+{
+  const { maxTokensFor, TOKENS_PER_CHAR } = require('../article-prompt-static');
+  const FM = 700, SAFETY = 1.05;
+  for (const [type, r] of Object.entries(WORD_COUNT_RANGE)) {
+    const mt = maxTokensFor(type);
+    // 受入上限の文字数を出し切れるだけの枠はある（途中切れしない）
+    const needed = Math.ceil(r.max * TOKENS_PER_CHAR) + FM;
+    ok(mt >= needed, `${type}: max_tokens(${mt}) が受入上限 ${r.max} 文字を出し切れる(${needed} 以上)`);
+    // かつ、受入上限を大きく超える余地は残さない（安全率 5% 程度）
+    ok(mt <= Math.ceil(needed * SAFETY / 100) * 100,
+      `${type}: max_tokens(${mt}) が過大でない（安全率5%以内）`);
+  }
+  // 旧来の一律 12000 では本命の上限 7,000 文字を大きく超えて出力できてしまう
+  ok(maxTokensFor('basic_explainer') < 12000,
+    '本命の max_tokens が旧来の一律 12000 より絞られている');
+  // 未知タイプでも値が返る（補強相当にフォールバック）
+  ok(maxTokensFor('unknown_type') === maxTokensFor('edge_case'),
+    '未知タイプは補強記事の枠にフォールバックする');
+}
+
 console.log('\n=== Test 9: 許容率が想定範囲 ===');
 ok(WORD_COUNT_FLOOR_RATIO > 0 && WORD_COUNT_FLOOR_RATIO <= 1,
   `WORD_COUNT_FLOOR_RATIO=${WORD_COUNT_FLOOR_RATIO} が 0〜1`);

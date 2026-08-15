@@ -38,5 +38,9 @@
     "no": "2110",
     "title": "国税庁タックスアンサー No.2110 事業主がしなければならない源泉徴収",
     "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2110.htm"
+  },
+  "vending-machine-special": {
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
+    "title": "仕入税額控除をするための帳簿及び請求書等の保存"
   }
 }
