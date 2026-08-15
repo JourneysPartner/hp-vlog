@@ -223,7 +223,9 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 単一の情報源は article-prompt-static.js。以前ここに独自のコピーがあり、
 // 本文長を 5,000〜7,000 文字へ引き上げた際に旧値（1600〜2600 等）が残って
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
-const { WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK } = require('./lib/article-prompt-static');
+const {
+  WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor,
+} = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
 // ── 記事タイプ別の必須要素チェックリスト（内部ロジック）──────────
@@ -1020,10 +1022,12 @@ updated_at: "${now}"
     pairedTopic, pairedArticleType: pairedTopic && pairedTopic.article_type,
     pairedArticleRole: pairedTopic && pairedTopic.article_role,
   });
-  // 本文 5,000〜7,000 文字（本命）を出し切るための出力枠。
-  // 日本語は 1 文字 ≈ 1〜1.5 token。7,000 文字 ≈ 10,000 token に
-  // frontmatter(≈600) と安全マージンを乗せて 12,000 とする。
-  const result = await contentModel.generateContent(promptIR, { maxTokens: 12000 });
+  // 出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
+  // プロンプトでの字数指示は努力目標で超過を防ぎきれないが、max_tokens は
+  // API 側の物理制約なので、ここを絞れば受入上限を絶対に超えられない。
+  // 実測 0.874 token/文字（2026-08-15, Claude Sonnet 4.6, 日本語）。
+  const maxTokens = maxTokensFor(articleType);
+  const result = await contentModel.generateContent(promptIR, { maxTokens });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
   // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
@@ -1348,9 +1352,10 @@ updated_at: "${now}"
 
   // full_regenerate も content-model 経由（Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）。
   // 差し戻し再生成は per-article 指示が多いため cache 効果は限定的だが provider 統一のため使用。
-  // 本文長は生成時と同じレンジ（本命 5,000〜7,000 文字）なので出力枠も揃える。
+  // 本文長は生成時と同じレンジなので出力枠も同じ式で揃える
+  // （差し戻し再生成だけ上限を超えられる、という抜け穴を作らない）。
   const regenResult = await contentModel.generateSimple(
-    { system: systemPrompt, user: userPrompt }, { maxTokens: 12000 });
+    { system: systemPrompt, user: userPrompt }, { maxTokens: maxTokensFor(articleType) });
   const raw = regenResult.text || '';
   const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
   return postProcess((fenced ? fenced[1] : raw).trim());

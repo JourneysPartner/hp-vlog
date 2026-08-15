@@ -142,6 +142,27 @@ function guideTextFor(range) {
   return `${c.min}〜${c.max}文字（下限・上限とも厳守。${c.max}文字を1文字でも超えないこと。免責文・CTA まで必ず含める）`;
 }
 
+// ── 出力トークン上限（受入上限を物理的に超えられなくする）─────────
+// プロンプトでの指示（キャリブレーション）は「守らせる」努力目標であり、
+// 超過を完全には防げない。max_tokens は API 側の物理制約なので、
+// 受入上限に相当するトークン数を上限に設定すれば絶対に超えられない。
+//
+// 2026-08-15 実測（Claude Sonnet 4.6 / 日本語）:
+//   本命 7,767文字 → 出力 7,482 token
+//   補強 5,552文字 → 出力 5,384 token
+//   frontmatter を約600トークンとすると 本文は 0.874 token/文字
+const TOKENS_PER_CHAR = 0.8739;
+const FRONTMATTER_TOKENS = 700;   // 実測約600 + 余裕
+// 途中切れを防ぐ余白。これを大きくすると上限超過の余地が戻るため 5% に留める。
+const MAX_TOKENS_SAFETY = 1.05;
+
+/** 記事タイプの受入上限に相当する max_tokens を返す */
+function maxTokensFor(articleType) {
+  const range = WORD_COUNT_RANGE[articleType] || WORD_COUNT_RANGE.edge_case;
+  const bodyTokens = Math.ceil(range.max * TOKENS_PER_CHAR);
+  return Math.ceil((bodyTokens + FRONTMATTER_TOKENS) * MAX_TOKENS_SAFETY / 100) * 100;
+}
+
 const WORD_COUNT_GUIDE = Object.fromEntries(
   Object.entries(WORD_COUNT_RANGE).map(([type, range]) => [type, guideTextFor(range)]),
 );
@@ -631,6 +652,8 @@ module.exports = {
   WORD_COUNT_RANGE,
   WORD_COUNT_FLOOR_RATIO,
   LENGTH_OVERSHOOT,
+  maxTokensFor,
+  TOKENS_PER_CHAR,
   ARTICLE_TYPE_CHECKLIST,
   DISCLAIMER_TEXT,
   MACRO_GUIDE,
