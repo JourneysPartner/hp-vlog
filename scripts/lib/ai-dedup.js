@@ -5,19 +5,26 @@ const { generateAux } = require('./aux-model');
 const SYSTEM_PROMPT = `あなたは日本の税務ブログの編集者です。
 候補トピックが既存記事と内容的に重複しているか判定してください。
 
+## 最優先の判定軸: 論点（pain）が同じか
+読者は「どの制度・どの論点の記事か」で読み分けます。persona や記事タイプは
+書き手側の都合であって、読者から見れば同じ話が2回並ぶだけです。
+
+- <strong>pain（論点）が同一なら、persona や記事タイプが違っても重複</strong>とする。
+  例: pain:vending-machine-special の記事が既にあるとき、
+      persona だけ変えた自販機特例の記事は重複。
+- pain が明示されていない場合は、title と intent から実質的な論点を読み取って判断する。
+
 ## 非重複（duplicate: false にすべきケース）
-以下のいずれかに該当すれば、たとえ税制度テーマが同じでも非重複です:
-- persona（対象読者）が異なる（例: beauty_salon_owner と content_seller は別読者）
-- 記事タイプが異なる（guide と practice / misconception_fix は別記事）
-- 事業ステージが異なる（startup と growth は別状況）
+論点そのものが違う場合です:
+- 扱う制度・論点が異なる（例: 簡易課税の事業区分 と 高額特定資産の3年縛り）
+- 同じ制度でも、読者が知りたい問いが別（例: 「対象になるか」と「申告書の書き方」）
+- 業種特有の事情が本質的に違い、判断基準そのものが変わる
 
 ## 重複（duplicate: true にすべきケース）
-以下のすべてを満たす場合のみ重複と判定してください:
-- persona（対象読者）が同一または実質同一
-- 扱う論点・疑問が同一
-- 記事タイプも同一（guide同士、practice同士）
+- pain（論点）が同一
+- または、扱う制度・中心疑問が実質的に同じで、読者が「同じ記事」と感じる
 
-迷ったら非重複としてください。過剰な重複判定は記事生成を止めてしまいます。
+論点が同じかどうかで判断してください。persona 違いを非重複の根拠にしないこと。
 
 応答は指定の JSON 配列のみ。説明文や前置きは不要。`;
 
@@ -30,6 +37,9 @@ function buildCorpusSummary(corpus) {
     const persona = p.primary_persona || p.persona;
     if (persona) parts.push(`persona:${persona}`);
     if (p.category) parts.push(p.category);
+    // pain_point（論点）は重複判定の最重要シグナル。同じ論点なら persona が
+    // 違っても読者から見れば同じ記事なので、LLM にも必ず見せる。
+    if (p.pain_point) parts.push(`pain:${p.pain_point}`);
     lines.push(parts.join(' | '));
   }
   return lines.join('\n');
@@ -114,6 +124,18 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
       const existPersona = existing.primary_persona || existing.persona || '';
       const candType = cand.article_type || '';
       const existType = existing.article_type || '';
+      const candPain = cand.pain_point || '';
+      const existPain = existing.pain_point || '';
+
+      // 論点（pain_point）が同一なら、persona/type が違ってもオーバーライドしない。
+      // 2026-08-15 の事故: 自販機特例(vending-machine-special)の記事が
+      // persona 違い(influencer_creator vs domestic_ec_seller)を理由に
+      // 非重複と判定され、前日とほぼ同内容の記事が生成された。
+      // 読者から見れば「同じ話が2回」であり、書き分けの余地は persona だけでは作れない。
+      if (candPain && existPain && candPain === existPain) {
+        console.log(`[ai-dedup] ガード対象外: pain_point一致(${candPain}) → LLMの重複判定を維持: ${r.slug}`);
+        continue;
+      }
 
       if (candPersona && existPersona && candPersona !== existPersona) {
         console.log(`[ai-dedup] ガード: persona不一致(${candPersona} vs ${existPersona}) → 非重複にオーバーライド: ${r.slug}`);
@@ -133,4 +155,6 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
   }
 }
 
-module.exports = { checkDuplicatesWithAI };
+// buildCorpusSummary はテスト用にも公開する（LLM に渡す情報の欠落は
+// 重複見逃しに直結するため、内容を直接検証できるようにしておく）。
+module.exports = { checkDuplicatesWithAI, buildCorpusSummary };

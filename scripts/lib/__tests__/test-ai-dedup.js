@@ -96,6 +96,76 @@ const PICKS = [
   const r6 = await checkDuplicatesWithAI([], CORPUS);
   assert(r6.skipped === true, '空picks → skipped');
 
+  // ── Test 7: pain_point 一致なら persona/type 違いでもオーバーライドしない ──
+  // 2026-08-15 の事故の再現。自販機特例の記事が persona 違いを理由に
+  // 非重複へ上書きされ、前日とほぼ同内容の記事が生成された。
+  console.log('\n=== Test 7: pain_point 一致は persona/type 違いでも重複を維持 ===');
+  {
+    const corpus = [{
+      slug: 'deepdive-influencer_creator-vending-machine-special-guide',
+      title: '自動販売機特例とは？',
+      primary_persona: 'influencer_creator',
+      article_type: 'basic_explainer',
+      pain_point: 'vending-machine-special',
+      category: '消費税',
+    }];
+    const picks = [{
+      slug: 'deepdive-domestic_ec_seller-vending-machine-special-practice',
+      title: '自販機・コインパーキングの売上は？',
+      persona: 'domestic_ec_seller',      // persona 違い
+      article_type: 'edge_case',           // type も違い
+      pain_point: 'vending-machine-special', // ただし論点は同一
+      category: '消費税',
+    }];
+    mockAuxReturn = JSON.stringify([{
+      slug: picks[0].slug, duplicate: true,
+      similar_to: corpus[0].slug, reason: '同じ自販機特例',
+    }]);
+    const r7 = await checkDuplicatesWithAI(picks, corpus);
+    assert(r7.skipped === false, 'skipped=false');
+    assert(r7.results[0].duplicate === true,
+      'pain_point 一致なら persona/type が違っても重複のまま（オーバーライドされない）');
+    assert(!/override/.test(r7.results[0].reason || ''),
+      'reason がオーバーライドで書き換えられていない');
+  }
+
+  // ── Test 8: pain_point が違えば従来どおり persona ガードが効く ──
+  console.log('\n=== Test 8: pain_point 相違なら persona ガードは従来どおり ===');
+  {
+    const corpus = [{
+      slug: 'a-guide', title: '簡易課税の事業区分',
+      primary_persona: 'beauty_salon_owner', article_type: 'basic_explainer',
+      pain_point: 'simplified-tax-business-category', category: '消費税',
+    }];
+    const picks = [{
+      slug: 'b-guide', title: '高額特定資産の3年縛り',
+      persona: 'domestic_ec_seller', article_type: 'basic_explainer',
+      pain_point: 'high-value-asset-3year-restriction', category: '消費税',
+    }];
+    mockAuxReturn = JSON.stringify([{
+      slug: 'b-guide', duplicate: true, similar_to: 'a-guide', reason: 'どちらも消費税',
+    }]);
+    const r8 = await checkDuplicatesWithAI(picks, corpus);
+    assert(r8.results[0].duplicate === false,
+      'pain_point が違えば persona 不一致で非重複にオーバーライドされる');
+    assert(/override/.test(r8.results[0].reason || ''),
+      'reason にオーバーライドの記録が残る');
+  }
+
+  // ── Test 9: コーパス要約に pain_point が載る ──
+  console.log('\n=== Test 9: コーパス要約に pain が含まれる ===');
+  {
+    const { buildCorpusSummary } = require(path.join(ROOT, 'scripts/lib/ai-dedup'));
+    const summary = buildCorpusSummary([
+      { slug: 'y', title: 'u', primary_persona: 'influencer_creator',
+        category: '消費税', pain_point: 'vending-machine-special' },
+    ]);
+    assert(/pain:vending-machine-special/.test(summary),
+      'LLM に渡すコーパス要約に既存記事の pain_point が含まれる');
+    assert(/persona:influencer_creator/.test(summary),
+      'persona も従来どおり含まれる');
+  }
+
   console.log(`\n=== 結果 ===`);
   console.log(`PASS: ${passed} / FAIL: ${failed}`);
   if (failed > 0) process.exit(1);
