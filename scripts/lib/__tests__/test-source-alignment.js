@@ -26,7 +26,7 @@ const U = {
   zoyo4508:   'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm',   // 住宅取得資金贈与
   shohi6501:  'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm',  // 納税義務の免除
   cross:      'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm',      // 国境を越えた役務
-  invoice:    'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
+  invoice:    'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm',
 };
 
 // ── 1. sourceFamily ─────────────────────────────────────────
