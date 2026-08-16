@@ -9,6 +9,7 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 const { TOPICS } = require('./topic-pool');
 const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
+const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
@@ -758,9 +759,24 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
 
   // 国税庁タックスアンサー / 関連レファレンス（必要な場合に優先して参考にする）
   const ntaRefs = getRefsForTopic(topic, 4);
-  const ntaRefsBlock = ntaRefs.length > 0
+  const ntaRefsList = ntaRefs.length > 0
     ? `\n\n═══ 関連する国税庁タックスアンサー / 公式情報（必要に応じて参考）═══\n以下は本テーマに関連しうる国税庁タックスアンサー等の公式情報です。\n必ずすべてを引用する必要はありませんが、原則確認・誤解整理・税目典型論点では優先的に参考にしてください。\nタックスアンサー番号は捏造せず、ここに掲載のものか確実に存在するもののみ記載すること。\n${formatRefsForPrompt(ntaRefs)}`
     : '';
+
+  // 出典の「本文」をカタログから読み、プロンプトに含める。
+  // タイトルとURLだけを渡していた頃は、LLM が出典を読まずに記憶で書き、
+  // 読んでいない文書を引用する事故が続いた（2026-08-16 に判明）。
+  // 主出典＋参考1件の全文を渡し、記憶ではなく本文を根拠にさせる。
+  const sourceBodyBlock = buildSourceBodyBlock(topic, ntaRefs, { maxRefs: 1 });
+  if (sourceBodyBlock) {
+    const nos = (sourceBodyBlock.match(/No\.(\d{4})/g) || []).join(', ');
+    console.log(`[source] 出典本文をプロンプトに添付: ${nos} (${sourceBodyBlock.length} 文字)`);
+  } else if (topic.source_url) {
+    // パンフレット等カタログ外の出典。従来どおりタイトル+URLのみで生成する。
+    console.log(`[source] 出典本文なし（カタログ外）→ タイトル/URLのみ: ${topic.source_url}`);
+  }
+
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   const lawChanges = topic.freshness_sensitive ? getChangesForTopic(topic, 2) : [];
