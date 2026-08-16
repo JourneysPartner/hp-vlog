@@ -36,13 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "出張旅費・宿泊費・通勤手当の消費税区分を解説。課税仕入れとなる費用と非課税・不課税の見分け方、帳簿要件、インボイス対応まで実務目線で整理しています。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-15T06:44:16.217Z"
-updated_at: "2026-08-15T06:44:16.217Z"
+updated_at: "2026-08-16T18:29:50.209+09:00"
+approved_at: "2026-08-16T18:29:50.209+09:00"
+publish_at: "2026-08-17T11:26:00.000+09:00"
+publish_slot: "morning"
 ---
 
 出張の交通費や宿泊費を経費で落とした後、「これは消費税の仕入税額控除に使えるのか」と手が止まることはないでしょうか。仕入れや送料の処理には慣れていても、旅費・交通費には別のルールが働くため迷いやすい領域です。
