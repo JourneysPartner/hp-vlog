@@ -155,5 +155,35 @@ console.log('\n=== Test 12: 「要約を〜に変更」→ title_only ===');
   assert(r4.type !== 'title_only', '本文系は title_only にしない');
 }
 
+// ── Test 13: 事実誤認は table_fix より優先（2026-08-16 の事故）─────
+// 「本文が事実誤認。…また比較表の該当行も修正して」というコメントが
+// 表のパターンに当たって table_fix(scope=section) と分類され、
+// 表のセクションだけ差し替わって本体の誤りが残った。
+console.log('\n=== Test 13: 事実誤認は table_fix より優先 ===');
+{
+  const factual = [
+    ['事実誤認＋表への言及', '「ケース①」の記述が事実誤認です。この章を修正してください。また、比較表の該当行も修正してください。'],
+    ['事実誤認のみ', '記述が事実誤認です。プラットフォーム課税の対象は国外事業者に限られます。'],
+    ['誤りがあります', 'この説明に誤りがあります。3万円未満の要件が抜けています。'],
+    ['税務上の誤り', '税務上の誤りがあります。表の数値も含めて直してください。'],
+  ];
+  for (const [label, comment] of factual) {
+    const r = classifyRevision(comment);
+    assert(r.type === 'factual_correction', `${label} → factual_correction（実際: ${r.type}）`);
+    assert(r.scope === 'targeted', `${label} → scope=targeted（実際: ${r.scope}）`);
+  }
+
+  // 純粋な表の指摘は従来どおり table_fix のまま
+  const tableOnly = [
+    ['比較表に行を追加', '比較表に「簡易課税」の行を追加してください。'],
+    ['テーブルの整理', 'テーブルの列が多すぎるので整理してください。'],
+  ];
+  for (const [label, comment] of tableOnly) {
+    const r = classifyRevision(comment);
+    assert(r.type === 'table_fix', `${label} → table_fix のまま（実際: ${r.type}）`);
+    assert(r.scope === 'section', `${label} → scope=section のまま（実際: ${r.scope}）`);
+  }
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
