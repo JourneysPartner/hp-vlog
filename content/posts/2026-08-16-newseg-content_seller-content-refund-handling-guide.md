@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "コンテンツ販売の返金は「売上のマイナス（売上返還）」として記帳し、返金した期に収入から差し引きます。返金時期が売上計上年と異なる場合の処理も解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-16T16:33:12.591+09:00"
+publish_at: "2026-08-17T11:16:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-16T00:05:46.851Z"
-updated_at: "2026-08-16T00:05:46.851Z"
+updated_at: "2026-08-16T16:33:12.591+09:00"
+publish_slot: "morning"
 ---
 
 オンライン講座や電子書籍を販売していると、購入者から返金を求められることがあります。返金した月の帳簿にどう記録すればいいか、売上を消せばいいのか、それとも別の科目で処理するのか——いざ帳簿をつけようとして手が止まる方は少なくありません。
