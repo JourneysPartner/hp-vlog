@@ -22,6 +22,22 @@ function sourcePage(url = '') {
   }
 }
 
+// ── 出典差し替え時のレガシー許容 ─────────────────────────────────
+// 「期待する出典を新しいURLに移したが、旧URLの記事が既に公開済み」という
+// ケースで、既存記事を書き換えずに済ませるための対応表。
+// key: 新しい期待出典（現行）, value: 同等とみなす旧出典の集合
+const LEGACY_EQUIVALENT_SOURCES = {
+  // インボイス制度: 概要ページ → No.6498（2026-08-16 に差し替え）
+  '/taxes/shiraberu/taxanswer/shohi/6498.htm': new Set([
+    '/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
+  ]),
+};
+
+function isLegacyEquivalent(expectedUrl, actualUrl) {
+  const legacy = LEGACY_EQUIVALENT_SOURCES[sourcePage(expectedUrl)];
+  return !!legacy && legacy.has(sourcePage(actualUrl));
+}
+
 function expectedSourceFor(topic = {}) {
   const painId = topic.pain_point || topic.pain || '';
   const provenance = topic.source_provenance || 'unknown';
@@ -89,6 +105,17 @@ function checkSourceAlignment(topic = {}) {
 
   // explicit は人が指定した現在のURL自体を正本とする。
   if (provenance === 'explicit') {
+    return result({ aligned: true, score: 5, severity: 'ok', expectedTitle: expected.title,
+      reason: '', needs_source_review: false, provenance });
+  }
+
+  // 出典を差し替えた際、既に公開済みの記事まで「不一致」になるのを防ぐ。
+  // 2026-08-16: インボイス制度の概要ページを使用禁止にし No.6498 へ移したが、
+  // 概要ページを出典にした公開済み記事が15件あった。既存記事は変更しない方針
+  // （公開済みの内容を後から書き換えない）のため、旧出典は同等として許容する。
+  // ※新規生成では tax-authority-refs 側で概要ページが選ばれないので、
+  //   この許容が新しい記事に効くことはない。
+  if (isLegacyEquivalent(expected.url, url)) {
     return result({ aligned: true, score: 5, severity: 'ok', expectedTitle: expected.title,
       reason: '', needs_source_review: false, provenance });
   }

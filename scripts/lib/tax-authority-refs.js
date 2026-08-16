@@ -40,7 +40,7 @@ const REFS = {
   ],
 
   invoice_system: [
-    { title: 'インボイス制度の概要',           url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+    { no: '6498', title: '適格請求書等保存方式（インボイス制度）', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm' },
     { title: '適格請求書発行事業者公表サイト', url: 'https://www.invoice-kohyo.nta.go.jp/' },
     { no: '6253', title: '免税事業者からの仕入れに係る経過措置', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6253.htm' },
   ],
@@ -217,7 +217,7 @@ function formatRefsForPrompt(refs) {
 const DEFAULT_SOURCE_BY_TAX_DOMAIN = {
   consumption_tax:        { no: '6501', title: '国税庁タックスアンサー No.6501 納税義務の免除',  url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
   income_tax:             { no: '1350', title: '国税庁タックスアンサー No.1350 事業所得の課税のしくみ', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm' },
-  invoice_system:         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  invoice_system:         { no: '6498', title: '国税庁タックスアンサー No.6498 適格請求書等保存方式（インボイス制度）', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm' },
   bookkeeping_expenses:   { no: '2210', title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm' },
   inheritance_tax:        { no: '4152', title: '国税庁タックスアンサー No.4152 相続税の計算',         url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm' },
   overseas_transactions:  { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税',       url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
@@ -243,7 +243,7 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'simplified-tax-business-category': { no: '6509', title: '国税庁タックスアンサー No.6509 簡易課税制度の事業区分', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6509.htm' },
   // 高額特定資産の3年縛りは「納税義務の免除(No.6501)」ではなく、特例を定めた No.6502 を主出典にする。
   'high-value-asset-3year-restriction': { no: '6502', title: '国税庁タックスアンサー No.6502 高額特定資産を取得した場合等の納税義務の免除等の特例', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm' },
-  'invoice-judgement':         {              title: '国税庁 インボイス制度の概要',                       url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  'invoice-judgement':         { no: '6498', title: '国税庁タックスアンサー No.6498 適格請求書等保存方式（インボイス制度）', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm' },
   'tax-refund-eligibility':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
   'overseas-tax-uncertain':    { no: '6551', title: '国税庁タックスアンサー No.6551 輸出取引の免税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm' },
   'incorporation-threshold':   { no: '2260', title: '国税庁タックスアンサー No.2260 所得税の税率', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm' },
@@ -272,7 +272,7 @@ const _NS = {
   depreciation: { no: '2100', title: '国税庁タックスアンサー No.2100 減価償却のあらまし', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm' },
   bookkeeping:  { no: '2080', title: '国税庁タックスアンサー No.2080 白色申告者の記帳・帳簿等の保存', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm' },
   withholding:  { no: '2792', title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm' },
-  invoice:      { title: '国税庁 インボイス制度の概要', url: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm' },
+  invoice:      { no: '6498', title: '国税庁タックスアンサー No.6498 適格請求書等保存方式（インボイス制度）', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm' },
   reduced_rate: { no: '6102', title: '国税庁タックスアンサー No.6102 消費税の軽減税率制度', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6102.htm' },
   input_credit: { no: '6451', title: '国税庁タックスアンサー No.6451 仕入税額控除の対象範囲', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm' },
 };
@@ -338,6 +338,20 @@ const NEEDS_SOURCE_REVIEW = new Set([
   //   retail-gift-certificate → No.6229（商品券・物品切手等）
 ]);
 
+// ── 使用禁止の出典 ──────────────────────────────────────────────
+// 「制度の入口ページ」は論点を特定できず、記事の主張を裏付けられない。
+// 2026-08-16: インボイス制度の概要ページを出典にした記事で、
+// プラットフォーム課税の対象（国外事業者限定）を誤った記述が発生した。
+// 概要ページには論点の記載がないため、LLM が記憶で補ってしまう。
+// → 論点に対応するタックスアンサー（No.6498 等）を使うこと。
+const DENIED_SOURCE_URLS = new Set([
+  'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
+]);
+
+function isDeniedSource(url) {
+  return DENIED_SOURCE_URLS.has(String(url || '').trim());
+}
+
 // ── 最終フォールバック（どこにもマッチしなかった場合）
 const ULTIMATE_FALLBACK = {
   title: '国税庁ホームページ',
@@ -354,7 +368,8 @@ function resolveSourceForTopic(topic = {}) {
   const taxDomain = topic.tax_domain || '';
 
   // 明示指定は provenance を伴う場合だけ信頼する。URL があるだけでは explicit にしない。
-  if (topic.source_provenance === 'explicit' && topic.source_url) {
+  // ただし使用禁止の出典（制度の入口ページ等）は明示指定でも採用しない。
+  if (topic.source_provenance === 'explicit' && topic.source_url && !isDeniedSource(topic.source_url)) {
     return {
       url: topic.source_url,
       title: topic.source_title || topic.source_url,
@@ -475,6 +490,8 @@ module.exports = {
   DEFAULT_SOURCE_BY_PAIN,
   PROMOTED_SOURCE_BY_PAIN,
   NEEDS_SOURCE_REVIEW,
+  DENIED_SOURCE_URLS,
+  isDeniedSource,
   resolveNtaUrlByNumber,
   NTA_URL_PREFIX_RULES,
 };
