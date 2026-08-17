@@ -48,6 +48,7 @@ const NON_TAX_SOURCES = {
     agency: '日本年金機構',
     entries: [
       {
+        agency: '日本年金機構',
         title: '日本年金機構 従業員が家族を被扶養者にするとき、被扶養者に異動があったときの手続き',
         url: 'https://www.nenkin.go.jp/service/kounen/tekiyo/hihokensha1/20141202.html',
         // 原文の該当箇所をそのまま note に持たせる。ここを要約すると LLM が
@@ -57,6 +58,7 @@ const NON_TAX_SOURCES = {
           + 'さらに原文に「※自営業者についての収入額は、当該事業遂行のための必要経費を控除した額となります。」と明記されている',
       },
       {
+        agency: '厚生労働省',
         title: '厚生労働省 収入がある者についての被扶養者の認定について（昭和52年4月6日 庁保発第9号・保発第9号）',
         url: 'https://www.mhlw.go.jp/web/t_doc?dataId=00tb0189&dataType=1&pageNo=1',
         note: '認定は「専らその者の収入及び被保険者との関連における生活の実態を勘案して、保険者が行う」。'
@@ -64,6 +66,7 @@ const NON_TAX_SOURCES = {
           + 'なお本通達には経費控除の可否・計算方法の記述は無い（経費控除は上記の日本年金機構の記載が根拠）',
       },
       {
+        agency: '厚生労働省',
         title: '厚生労働省 「年収の壁」への対応',
         url: 'https://www.mhlw.go.jp/stf/taiou_001_00002.html',
         note: '106万円・130万円の壁と支援強化パッケージ',
@@ -124,10 +127,44 @@ ${list}
 4. 制度改正が頻繁な分野のため、断定的な将来予測は書かない。`;
 }
 
+/**
+ * 記事本文中の官庁名をリンク化するための「官庁名 → URL」対応を返す。
+ *
+ * 背景（2026-08-17）:
+ *   citation-linker は「国税庁タックスアンサー No.XXXX」だけをリンク化するため、
+ *   社会保険の論点を日本年金機構の原文で裏付けても、読者はその出典に辿れなかった。
+ *   記事の主たる出典（frontmatter の source_url）はテンプレートが1件だけ表示するので、
+ *   税以外の出典はどこにも現れない状態だった。
+ *
+ * 方針:
+ *   - リンク先は「その記事に適用された非税出典セット」からのみ引く。
+ *     官庁名を無条件に固定 URL へ飛ばすと、別テーマの記事で無関係な
+ *     ページに飛ばすことになるため。
+ *   - 同じ官庁の entry が複数ある場合は最初の1件を採用する（記事の主論点に
+ *     最も近いものを先頭に置く運用）。
+ *
+ * @returns {Array<{agency: string, url: string, title: string}>} 該当なしなら空配列
+ */
+function agencyLinksForTopic(topic = {}) {
+  const found = findNonTaxSource(topic);
+  if (!found) return [];
+  const seen = new Set();
+  const links = [];
+  for (const e of found.entries) {
+    const agency = String(e.agency || '').trim();
+    if (!agency || seen.has(agency)) continue;
+    if (!isOfficialDomain(e.url)) continue;   // go.jp 以外は絶対にリンクしない
+    seen.add(agency);
+    links.push({ agency, url: e.url, title: e.title });
+  }
+  return links;
+}
+
 module.exports = {
   OFFICIAL_DOMAINS,
   isOfficialDomain,
   NON_TAX_SOURCES,
   findNonTaxSource,
   buildNonTaxSourceBlock,
+  agencyLinksForTopic,
 };
