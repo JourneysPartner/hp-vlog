@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "general-social-insurance-misconception-influencer-creator-growth-guide"
 related_title: ""
 related_link_text: "基本から確認したい方はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
-source_title: "配偶者控除"
-source_provenance: "llm-auto"
-source_confidence: 0.88
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1190.htm"
+source_title: "配偶者の所得がいくらまでなら配偶者控除が受けられるか"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "売上拡大期にいる個人事業主が社会保険の扶養と税の扶養の違いを理解したい"
 reader_problem: "社会保険の扶養と税の扶養の違い"
@@ -29,17 +29,15 @@ procedure_stage: ""
 customer_segment: "beauty_salon"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 2
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=llm-auto）"
+recommendation: "publish"
+review_warning: ""
 summary: "社会保険の扶養（年収130万円基準）と税の扶養（所得58万円基準・令和7年分以後）は判定基準がまったく異なる。売上が伸びてきたサロンオーナーは両方を別々に確認する必要がある。"
 review_status: "draft"
 review_comment: ""
-approved_at: ""
-publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
