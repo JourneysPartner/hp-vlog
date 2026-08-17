@@ -1813,6 +1813,22 @@ async function main() {
       content = await regenerateWithOpenAI(existing, comment, modelId);
     }
 
+    // ── frontmatter 欠落の救済 ────────────────────────────────────
+    // full_regenerate は LLM 出力をそのまま使うため、LLM が frontmatter を
+    // 出し忘れると後続の restoreSourceGuardFields が例外を投げ、ジョブごと
+    // 落ちる（2026-08-17 に発生。通常生成は draft-normalizer が
+    // frontmatter をコード側で構築するため同じ事故は起きない）。
+    // 本文だけが返ってきた場合は、元記事の frontmatter を被せて救済する。
+    if (!/^---\r?\n[\s\S]+?\r?\n---\r?\n/.test(content)) {
+      const m = existing.match(/^(---\r?\n[\s\S]+?\r?\n---\r?\n)/);
+      if (m) {
+        console.warn('[regenerate] ⚠ 再生成結果に frontmatter が無い → 元記事の frontmatter を復元');
+        content = m[1] + content.replace(/^\s*/, '');
+      } else {
+        throw new Error('再生成結果にも元記事にも frontmatter が無く復元できません');
+      }
+    }
+
     // 差し戻しで禁止指定された語がタイトルに残っていれば、タイトルからも除去する
     content = await enforceTitleBannedPhrases(content, comment);
 
