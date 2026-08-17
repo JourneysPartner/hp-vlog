@@ -42,5 +42,9 @@
   "vending-machine-special": {
     "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
     "title": "仕入税額控除をするための帳簿及び請求書等の保存"
+  },
+  "social-insurance-misconception": {
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1190.htm",
+    "title": "配偶者の所得がいくらまでなら配偶者控除が受けられるか"
   }
 }
