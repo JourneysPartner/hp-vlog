@@ -291,9 +291,20 @@ ${meta.summary || ''}
   };
 }
 
+// 出典本文ブロックをプロンプト末尾に差し込む形に整える。
+// 事実誤認の差し戻し（factual_correction）では、LLM が記憶で数字や適用範囲を
+// 補ってしまうのが誤りの主因だった（2026-08-14〜16 に3件）。通常生成には
+// PR #404 で出典本文を渡すようにしたが、部分再生成の経路には渡していなかった。
+// 「事実を直せ」という差し戻しこそ原文が必要なので、ここでも必ず添付する。
+function sourceSection(sourceBlock) {
+  const block = String(sourceBlock || '').trim();
+  if (!block) return '';
+  return `\n\n${block}`;
+}
+
 // ── 部分修正プロンプト（section スコープ）──────────────────────
 // 対象セクションだけを渡し、そのセクションだけを返してもらう。
-function buildSectionPrompt(meta, comment, section, classification) {
+function buildSectionPrompt(meta, comment, section, classification, sourceBlock) {
   const isAdd = classification.type === 'add_section';
   const sys = 'あなたは日本の税理士事務所のブログライターです。記事の指定セクションだけを、差し戻しコメントに沿って改善します。記事全体は作り直しません。';
 
@@ -309,7 +320,7 @@ ${comment}
 【記事タイトル】${meta.title || ''}
 【記事タイプ】${meta.article_type || ''}
 【ターゲット読者】${meta.primary_persona || ''}
-
+${sourceSection(sourceBlock)}
 表が有効なら GFM テーブルで。穏当な「です・ます」調。誇大表現禁止。`,
     };
   }
@@ -325,16 +336,18 @@ ${comment}
 【対象セクション（現状）】
 ## ${section.heading}
 ${section.body}
-
+${sourceSection(sourceBlock)}
 表の指摘があれば GFM テーブル（| 列 | 列 | と |---|---| 区切り）で正しく整える。
 見出しの階層は h2/h3 のみ。穏当な「です・ます」調。誇大表現禁止。`,
   };
 }
 
 // ── 部分修正プロンプト（targeted: 全文を渡し最小修正）──────────
-function buildTargetedPrompt(meta, comment, body) {
+// sourceBlock は本文より前に置く。本文は末尾に来るほど「これを全文ベースに出力」
+// という指示と隣接し、出力が断片化しにくいため。
+function buildTargetedPrompt(meta, comment, body, sourceBlock) {
   return {
-    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をそのまま保ちます。本文を書き換えたり短くしたりしてはいけません。',
+    system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をそのまま保ちます。本文を書き換えたり短くしたりしてはいけません。事実の修正は、添付された出典の本文だけを根拠に行い、記憶で数字や適用範囲を補ってはいけません。',
     user: `以下の記事本文を、差し戻しコメントで指摘された箇所だけ最小限修正してください。
 指摘されていない箇所は元の文章をそのまま維持し、不要な書き換えはしないでください。
 修正後の「本文 Markdown 全体」だけを返してください（frontmatter は出力しない）。
@@ -345,9 +358,11 @@ function buildTargetedPrompt(meta, comment, body) {
 3. **本文の総文字数は、元の本文の 80% 以上を必ず維持すること**（短縮や要約は禁止）。
 4. **新しいタイトル・新しい章・ASCII アート・フローチャート図形を勝手に追加しないこと**。
 5. 免責文と末尾の相談導線は元のまま維持すること。
+6. **事実（数字・要件・適用範囲）を直す場合は、添付された出典の本文に書かれていることだけを根拠にすること**。出典の本文に無いことを「出典に明示されている」と書かない。
 
 【差し戻しコメント】
 ${comment}
+${sourceSection(sourceBlock)}
 
 【記事本文（現状）— これを全文ベースに、指摘箇所のみ最小修正したものを出力】
 ${body}
@@ -359,7 +374,7 @@ ${body}
 // ── 部分修正プロンプト（targeted のリトライ用、より厳格版）──────
 // 1 回目で shrinkage が検出されたときに使う。プロンプトの最上部に
 // 「前回失敗の通告 + 絶対遵守の出力フォーマット指示」を強化する。
-function buildTargetedPromptRetry(meta, comment, body, prevOutputLen, origBodyLen) {
+function buildTargetedPromptRetry(meta, comment, body, prevOutputLen, origBodyLen, sourceBlock) {
   return {
     system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントで指摘された箇所のみを最小限修正し、それ以外は元の文章をそのまま保ちます。指示が技術的に難しい・該当文字列が無い等の場合でも、必ず元の本文を全文そのまま出力すること。短縮・要約・拒否メッセージ・解説文の出力は厳禁です。',
     user: `【前回出力の問題】
@@ -383,9 +398,11 @@ function buildTargetedPromptRetry(meta, comment, body, prevOutputLen, origBodyLe
 3. 本文の総文字数は元本文の **90% 以上**（${Math.floor(origBodyLen * 0.9)} 文字以上）を必ず維持する。
 4. 新しいタイトル・新しい章・ASCII アート・フローチャート・拒否メッセージ・解説文を勝手に追加しない。
 5. 免責文と末尾の相談導線は元のまま維持する。
+6. 事実（数字・要件・適用範囲）を直す場合は、添付された出典の本文に書かれていることだけを根拠にする。
 
 【差し戻しコメント】
 ${comment}
+${sourceSection(sourceBlock)}
 
 【記事本文（現状）— これを全文ベースに、指摘箇所のみ最小修正したものを出力】
 ${body}
@@ -437,6 +454,7 @@ module.exports = {
   extractDirectTitleSwap,
   extractDirectSummarySwap,
   buildTitleOnlyPrompt,
+  sourceSection,
   buildSectionPrompt,
   buildTargetedPrompt,
   buildTargetedPromptRetry,
