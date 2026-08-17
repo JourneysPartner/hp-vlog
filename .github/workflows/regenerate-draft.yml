@@ -44,6 +44,12 @@ jobs:
           git checkout origin/main -- scripts/ package.json package-lock.json \
             data/banned-phrases.json data/topic-denylist.json \
             data/curated-source-promotions.json data/nta-sources/
+          # git checkout <ref> -- <path> は対象を index にもステージする。
+          # そのままだと後段の `git commit` が scripts/ ごと巻き込んでコミットし、
+          # ドラフトブランチに main のスクリプト差分が混入する（実際に混入していた）。
+          # ドラフト PR を後で main へマージすると、そのとき main が先に進んでいれば
+          # スクリプトが巻き戻る危険がある。作業ツリーは保ったまま index だけ空にする。
+          git reset -q
           echo "── 上書き済 scripts/ の HEAD: $(git rev-parse origin/main) ──"
           echo "── banned-phrases 件数: $(node -e "console.log((require('./data/banned-phrases.json').phrases||[]).length)") ──"
 
@@ -89,14 +95,47 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # 記事ファイルのみステージ。scripts/ など main から上書きしたものは
-          # ドラフトブランチへコミットしない（毎回 main 同期で十分なため）。
+          # 前段で index から外してあるのでコミット対象外。
           git add "content/posts/${{ inputs.filename }}"
           if git diff --cached --quiet; then
             echo "変更なし"
             exit 0
           fi
+          # 念のため、記事以外が混入していないか確認して落とす。
+          STAGED=$(git diff --cached --name-only)
+          if [ "$STAGED" != "content/posts/${{ inputs.filename }}" ]; then
+            echo "::error::記事以外がステージされています:"; echo "$STAGED"
+            exit 1
+          fi
           git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
-          git push origin "${{ inputs.branch }}"
+          # レビュー画面からの差し戻し（review: revise）が実行中に同じブランチへ
+          # push すると、こちらの push が rejected になり再生成結果が失われる
+          # （2026-08-17 に発生。ジョブは1分以上かかるので現実的に起こる）。
+          # リモート先端に載せ直してリトライする。
+          ARTICLE="content/posts/${{ inputs.filename }}"
+          for i in 1 2 3; do
+            if git push origin "HEAD:${{ inputs.branch }}"; then
+              echo "push 成功（試行 $i）"
+              exit 0
+            fi
+            echo "::warning::push が rejected（試行 $i）→ リモート先端に載せ直します"
+            git fetch origin "${{ inputs.branch }}"
+            echo "── 実行中にリモートで変わったもの ──"
+            git diff --name-only HEAD "origin/${{ inputs.branch }}" || true
+            # 再生成結果を退避 → リモート先端へ移動 → 記事だけ載せ直す。
+            # rebase の -X ours/theirs は向きを間違えやすいので使わない。
+            cp "$ARTICLE" "${RUNNER_TEMP}/regenerated.md"
+            git reset --hard "origin/${{ inputs.branch }}"
+            cp "${RUNNER_TEMP}/regenerated.md" "$ARTICLE"
+            git add "$ARTICLE"
+            if git diff --cached --quiet; then
+              echo "リモート側が同じ内容だった → 変更なしで終了"
+              exit 0
+            fi
+            git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
+          done
+          echo "::error::3 回リトライしても push できませんでした。"
+          exit 1
 
       - name: Extract info for notification
         id: fm

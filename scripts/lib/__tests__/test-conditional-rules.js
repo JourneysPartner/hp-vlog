@@ -82,5 +82,54 @@ const irSalon = builder.buildGenerationPrompt({
 assert(!irSalon.dynamicSystem.includes('T1700150104215'), 'サロン記事: eBayルールが注入されない');
 assert(!irSalon.dynamicSystem.includes('リバースチャージ'), 'サロン記事: リバースチャージが注入されない');
 
+// ── 4. 社会保険の被扶養者の収入判定ルール ─────────────────────────
+// 2026-08-17: 記事に「経費がいくらあっても収入は200万円とカウントされ、
+// 130万円の基準を超えてしまいます」と書かれていた。日本年金機構の原文には
+// 「自営業者についての収入額は、当該事業遂行のための必要経費を控除した額と
+// なります」と明記されており、誤りだった（ユーザー指摘で発覚）。
+console.log('\n=== Test 4: 社会保険の被扶養者の収入判定 ===');
+{
+  const si = {
+    pain_point: 'social-insurance-misconception',
+    tax_domain: 'income_tax',
+    customer_segment: 'influencer_creator',
+    title: '税の扶養と社会保険の扶養は別物？',
+    search_intent: '社会保険の扶養 130万円',
+  };
+  const rules = st.selectConditionalRules(si);
+  const rule = rules.find(r => /被扶養者認定における「収入」/.test(r));
+  assert(!!rule, '社会保険テーマ → ルールが注入される');
+  assert(/当該事業遂行のための必要経費を控除した額/.test(rule || ''),
+    '年金機構の原文（必要経費を控除した額）が含まれる');
+  assert(/経費がいくらあっても総収入でカウントされる/.test(rule || ''),
+    '誤った表現が禁止例として明示されている');
+  assert(/社会保険では必要経費を差し引けない/.test(rule || ''),
+    '「経費を差し引けない」も禁止例に含まれる');
+  assert(/保険者/.test(rule || '') && /確認/.test(rule || ''),
+    '最終判断は保険者であり確認を案内する指示がある');
+  assert(/半分未満/.test(rule || ''), '「かつ被保険者の収入の半分未満」の条件が含まれる');
+  assert(/国税庁の出典を根拠にしないこと/.test(rule || ''),
+    '国税庁を根拠にしない指示がある（所管が厚労省・年金機構のため）');
+  assert(/nenkin\.go\.jp/.test(rule || '') && /mhlw\.go\.jp/.test(rule || ''),
+    '年金機構・厚労省の URL が根拠として示される');
+
+  // 無関係なトピックには注入されない
+  assert(!st.selectConditionalRules(ebay).some(r => /被扶養者認定における「収入」/.test(r)),
+    'eBay記事 → 社会保険ルールは非注入');
+  assert(!st.selectConditionalRules(inh).some(r => /被扶養者認定における「収入」/.test(r)),
+    '相続記事 → 社会保険ルールは非注入');
+
+  // builder 経由でも dynamicSystem に載る（キャッシュ側には載らない）
+  const irSi = builder.buildGenerationPrompt({
+    topic: { ...si, slug: 'si-x', category: '所得税', persona: 'influencer_creator', macro: '一般事業者' },
+    persona: { label: 'インフルエンサー' }, cta: 'C',
+    articleType: 'basic_explainer', articleRole: 'main', now: '2026-08-17T00:00:00Z',
+  });
+  assert(irSi.dynamicSystem.includes('当該事業遂行のための必要経費を控除した額'),
+    '社会保険記事: dynamicSystem に注入される');
+  assert(!irSi.staticSystem.includes('当該事業遂行のための必要経費を控除した額'),
+    '社会保険記事: staticSystem（キャッシュ）には入らない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
