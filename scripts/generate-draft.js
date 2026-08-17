@@ -19,7 +19,7 @@ const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft } = require('./lib/draft-normalizer');
-const { restoreSourceGuardFields } = require('./lib/source-guard');
+const { restoreSourceGuardFields, setFrontmatterFields } = require('./lib/source-guard');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
 // collect-pending-drafts.js が生成前に .pending-drafts.json を書き出す。
@@ -1811,6 +1811,25 @@ async function main() {
       // full: 全文再生成（従来）
       console.log(`[regenerate] full: 全文再生成（${modelId}）...`);
       content = await regenerateWithOpenAI(existing, comment, modelId);
+
+      // 本文短縮ガード。targeted には以前からあったが full には無く、
+      // LLM が本文の断片しか返さなくてもそのまま採用されて記事が壊れた
+      // （2026-08-17: 5,915文字の記事が136文字に置き換わった）。
+      // full は全面書き直しなので構成は変わってよいが、極端な短縮は
+      // 「本文を返さなかった」ことを意味するため、元記事を維持する。
+      {
+        const { body: beforeBody } = parseFrontmatter(existing);
+        const { body: afterBody } = parseFrontmatter(content);
+        const g = partial.isBodyShrinkageSuspicious(beforeBody, afterBody, 0.5);
+        if (g.suspicious) {
+          console.warn(`[regenerate] ⚠ full: 本文が異常に短縮。${g.reason}`);
+          console.warn('[regenerate] ⚠ 元記事を維持し、review_comment に警告を追記します。');
+          content = setFrontmatterFields(existing, {
+            review_status: 'needs_revision',
+            review_comment: `${comment}\n\n【自動再生成の警告】全文再生成の結果が異常に短かったため破棄しました（${g.reason}）。手動で修正するか、コメントを具体化して再度お試しください。`,
+          });
+        }
+      }
     }
 
     // ── frontmatter 欠落の救済 ────────────────────────────────────
