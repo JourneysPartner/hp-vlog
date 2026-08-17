@@ -1234,6 +1234,31 @@ function parseFrontmatter(raw) {
   return { meta, body: match[2] };
 }
 
+// ── 再生成プロンプトに添付する出典ブロックを組む ───────────────────
+// 出典の本文・税以外の出典を、通常生成と同じように再生成の経路にも渡す。
+// 渡していなかった頃は、差し戻しても LLM が記憶で書き直すため
+// 同じ誤りが残り続けた（2026-08-14〜17 に4件）。
+// full / section / targeted のどの経路でも同じブロックを使う。
+function buildRegenSourceBlocks(meta = {}) {
+  const topicLike = {
+    slug: meta.slug, title: meta.title, category: meta.category,
+    tax_domain: meta.tax_domain, pain_point: meta.pain_point,
+    search_intent: meta.search_intent, reader_problem: meta.reader_problem,
+    primary_question: meta.primary_question, summary: meta.summary,
+    subcluster: meta.subcluster,
+    source_url: meta.source_url, source_title: meta.source_title,
+  };
+  const sourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
+  const nonTax = buildNonTaxSourceBlock(topicLike);
+  if (sourceBody) console.log(`[regenerate] 出典本文を添付 (${sourceBody.length} 文字)`);
+  else console.warn('[regenerate] ⚠ 出典本文を添付できませんでした（カタログに本文が無い出典）');
+  if (nonTax) {
+    const f = findNonTaxSource(topicLike);
+    console.log(`[regenerate] 税以外の出典を添付: ${f.label}（${f.agency}）`);
+  }
+  return { sourceBody, nonTax, combined: `${sourceBody}${nonTax}` };
+}
+
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
 async function regenerateWithOpenAI(existingContent, comment, modelId) {
   // 注: 実際の呼び出しは下部の contentModel.generateSimple に移行済み。
@@ -1249,24 +1274,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
     ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
     : '- source_url / source_title は空文字のまま出力してください';
 
-  // 出典の本文・税以外の出典を、通常生成と同じようにこの経路にも渡す。
-  // 渡していなかった頃は、差し戻しても LLM が記憶で書き直すため
-  // 同じ誤りが残り続けた（2026-08-17）。
-  const topicLike = {
-    slug: meta.slug, title: meta.title, category: meta.category,
-    tax_domain: meta.tax_domain, pain_point: meta.pain_point,
-    search_intent: meta.search_intent, reader_problem: meta.reader_problem,
-    primary_question: meta.primary_question, summary: meta.summary,
-    subcluster: meta.subcluster,
-    source_url: meta.source_url, source_title: meta.source_title,
-  };
-  const regenSourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
-  const regenNonTax = buildNonTaxSourceBlock(topicLike);
-  if (regenSourceBody) console.log(`[regenerate] 出典本文を添付 (${regenSourceBody.length} 文字)`);
-  if (regenNonTax) {
-    const f = findNonTaxSource(topicLike);
-    console.log(`[regenerate] 税以外の出典を添付: ${f.label}（${f.agency}）`);
-  }
+  const { sourceBody: regenSourceBody, nonTax: regenNonTax } = buildRegenSourceBlocks(meta);
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
@@ -1528,10 +1536,11 @@ async function enforceTitleBannedPhrases(content, comment) {
 async function regenerateSection(existingContent, comment, classification) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
+  const { combined: srcBlock } = buildRegenSourceBlocks(meta);
 
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
-    const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification);
+    const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification, srcBlock);
     // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
     const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
     // まとめセクションがあればその前に、なければ末尾に追加
@@ -1551,7 +1560,7 @@ async function regenerateSection(existingContent, comment, classification) {
     console.warn('[regenerate] 対象セクション特定不可 → targeted にフォールバック');
     return regenerateTargeted(existingContent, comment);
   }
-  const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification);
+  const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
   const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
@@ -1577,7 +1586,8 @@ async function regenerateTargeted(existingContent, comment) {
   const origLen = body.trim().length;
 
   // 1 回目: 通常プロンプト
-  const p1 = partial.buildTargetedPrompt(meta, comment, body);
+  const { combined: srcBlock } = buildRegenSourceBlocks(meta);
+  const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
   let revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
@@ -1586,7 +1596,7 @@ async function regenerateTargeted(existingContent, comment) {
     console.warn(`[regenerate] ⚠ targeted 1 回目: ${guard.reason}`);
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
-    const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen);
+    const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
     revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000));
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
