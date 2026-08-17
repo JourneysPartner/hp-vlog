@@ -10,6 +10,7 @@ const { TOPICS } = require('./topic-pool');
 const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
+const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
@@ -776,7 +777,16 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     console.log(`[source] 出典本文なし（カタログ外）→ タイトル/URLのみ: ${topic.source_url}`);
   }
 
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock;
+  // 税以外の論点（社会保険等）に触れるテーマは、所管官庁の出典を併せて渡す。
+  // 国税庁のタックスアンサーは税以外を扱っていないため、これが無いと
+  // 記事の主題が裏付けのないまま書かれる（2026-08-17 の社会保険記事）。
+  const nonTaxBlock = buildNonTaxSourceBlock(topic);
+  if (nonTaxBlock) {
+    const found = findNonTaxSource(topic);
+    console.log(`[source] 税以外の出典を添付: ${found.label}（${found.agency}）`);
+  }
+
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   const lawChanges = topic.freshness_sensitive ? getChangesForTopic(topic, 2) : [];
@@ -1801,6 +1811,22 @@ async function main() {
       // full: 全文再生成（従来）
       console.log(`[regenerate] full: 全文再生成（${modelId}）...`);
       content = await regenerateWithOpenAI(existing, comment, modelId);
+    }
+
+    // ── frontmatter 欠落の救済 ────────────────────────────────────
+    // full_regenerate は LLM 出力をそのまま使うため、LLM が frontmatter を
+    // 出し忘れると後続の restoreSourceGuardFields が例外を投げ、ジョブごと
+    // 落ちる（2026-08-17 に発生。通常生成は draft-normalizer が
+    // frontmatter をコード側で構築するため同じ事故は起きない）。
+    // 本文だけが返ってきた場合は、元記事の frontmatter を被せて救済する。
+    if (!/^---\r?\n[\s\S]+?\r?\n---\r?\n/.test(content)) {
+      const m = existing.match(/^(---\r?\n[\s\S]+?\r?\n---\r?\n)/);
+      if (m) {
+        console.warn('[regenerate] ⚠ 再生成結果に frontmatter が無い → 元記事の frontmatter を復元');
+        content = m[1] + content.replace(/^\s*/, '');
+      } else {
+        throw new Error('再生成結果にも元記事にも frontmatter が無く復元できません');
+      }
     }
 
     // 差し戻しで禁止指定された語がタイトルに残っていれば、タイトルからも除去する
