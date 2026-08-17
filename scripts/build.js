@@ -5,6 +5,7 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
+const { agencyLinksForTopic } = require('./lib/official-sources');
 const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getMacroSlug } =
   require('./lib/blog-taxonomy');
 
@@ -363,13 +364,21 @@ function buildRelatedArticleHtml(post, postsMap) {
 function generatePost(post, tpl, postsMap) {
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
+  // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
+  // その記事に適用された非税出典（official-sources.js）へリンクする。
+  // frontmatter の source_url はテンプレートが1件しか表示しないため、
+  // これが無いと読者は社会保険側の出典に辿れない。
   const { markdown: linkedBody, stats } = linkCitations(post._body, {
+    agencyLinks: agencyLinksForTopic(post),
     onMiss: ({ no, matched }) => {
       console.warn(`[build]   ⚠ 出典番号がカタログ未収録: ${matched} (${post.slug}) — tax-authority-refs.js への追加を検討`);
     },
   });
   if (stats.guessed > 0) {
     console.log(`[build]   ℹ ${post.slug}: 出典リンク化 ${stats.linked} 件（うち推定 ${stats.guessed} 件 → カタログ追加候補）`);
+  }
+  if (stats.agenciesLinked > 0) {
+    console.log(`[build]   ℹ ${post.slug}: 官庁名リンク化 ${stats.agenciesLinked} 件（${stats.agencies.join(' / ')}）`);
   }
   const htmlBody = marked(linkedBody)
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
