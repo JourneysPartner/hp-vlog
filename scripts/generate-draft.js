@@ -723,6 +723,42 @@ function postProcess(content) {
   return ensureDisclaimer(sanitizeBannedPhrases(content));
 }
 
+// ── LLM 出力を囲むコードフェンスだけを外す ───────────────────────
+// 記事本文は自前のコードフェンス（計算式ブロック等）を含むことがある。
+// 以前の正規表現は /m フラグ付きだったため ^``` が行頭のどこにでも一致し、
+// 本文の途中にあるフェンスを「出力全体を囲むフェンス」と誤認して、
+// 記事全体をそのフェンスの中身に置き換えてしまっていた。
+//
+// 実例 2026-08-17: 5,711 文字の記事が
+//   「合計所得金額 ＝ 売上（総収入金額） − 必要経費」（25 文字）
+// に置き換わり、差し戻し再生成が3回続けて失敗した。
+// full 経路では ensureDisclaimer が免責文を足すため 136 文字の記事が
+// そのままコミットされ、記事が壊れた。
+//
+// 通常生成が同じ事故を起こしていないのは、draft-normalizer が
+// /m を付けずに文字列全体へアンカーしているため。こちらもそれに揃える。
+//
+// 対策は二重にする。
+//   ① /m を使わず、文字列全体がフェンスで囲まれている場合だけ中身を採用
+//   ② 取り出した中身が元の 60% 未満なら本文内フェンスへの誤一致とみなし捨てる
+const FENCE_MIN_RATIO = 0.6;
+function stripWrappingFence(text) {
+  const s = String(text || '').trim();
+  const candidates = [
+    // 出力全体がフェンス
+    s.match(/^```(?:markdown|md|yaml|yml)?[ \t]*\r?\n([\s\S]+)\r?\n```$/),
+    // 「はい、修正しました。」のような短い前置きの後にフェンスが始まる
+    s.match(/^[\s\S]{0,200}?\r?\n```(?:markdown|md|yaml|yml)?[ \t]*\r?\n([\s\S]+)\r?\n```$/),
+  ];
+  for (const m of candidates) {
+    if (!m) continue;
+    const inner = m[1].trim();
+    if (inner.length >= s.length * FENCE_MIN_RATIO) return inner;
+    console.warn(`[generate] ⚠ フェンス除去を中止: 中身 ${inner.length}/${s.length} 文字は本文内フェンスへの誤一致と判断`);
+  }
+  return s;
+}
+
 // OpenAI クライアントの直接生成は廃止した。
 // provider 設定（CONTENT_MODEL_PROVIDER=anthropic）を無視して OpenAI を
 // 直叩きしてしまうため、生成・再生成とも content-model 経由に統一する。
@@ -1416,8 +1452,19 @@ updated_at: "${now}"
     console.log(`[regenerate] full: 入力 ${u.input_tokens ?? u.prompt_tokens ?? '?'} / ` +
       `出力 ${u.output_tokens ?? u.completion_tokens ?? '?'} token`);
   }
-  const fenced = raw.match(/^```(?:markdown|yaml|md)?\n([\s\S]+)\n```\s*$/m);
-  return postProcess((fenced ? fenced[1] : raw).trim());
+  return postProcess(stripWrappingFence(raw));
+}
+
+// 差し戻し再生成が失敗したとき、LLM が実際に何を返したのかをログに残す。
+// これが無かったため、2026-08-17 の3連続失敗で原因の特定に時間がかかった
+// （実際の原因は本文内のコードフェンスへの誤一致だったが、出力が見えず
+//   「LLM が短い出力を返す」までしか分からなかった）。
+function logRawOutput(label, raw) {
+  const s = String(raw || '');
+  const oneLine = (t) => t.replace(/\r?\n/g, '⏎');
+  const head = oneLine(s.slice(0, 300));
+  const tail = s.length > 450 ? ' … ' + oneLine(s.slice(-150)) : '';
+  console.warn(`[regenerate] ${label}: ${s.length} 文字 | ${head}${tail}`);
 }
 
 // ── シンプルな system/user プロンプトでモデルを呼ぶ（部分再生成用）──
@@ -1588,21 +1635,25 @@ async function regenerateTargeted(existingContent, comment) {
   // 1 回目: 通常プロンプト
   const { combined: srcBlock } = buildRegenSourceBlocks(meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
-  let revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
+  let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000);
+  let revised = postProcessBodyOnly(raw);
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
   // 2 回目: 1 回目が shrinkage 判定なら、より厳しいプロンプトでリトライ
   if (guard.suspicious) {
     console.warn(`[regenerate] ⚠ targeted 1 回目: ${guard.reason}`);
+    logRawOutput('targeted 1 回目の LLM 生出力', raw);
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
-    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000));
+    raw = await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000);
+    revised = postProcessBodyOnly(raw);
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
 
   if (guard.suspicious) {
     console.warn(`[regenerate] ⚠ targeted: リトライ後も本文が異常に短縮。${guard.reason}`);
+    logRawOutput('targeted リトライの LLM 生出力', raw);
     // LLM による全文再生成は破棄するが、決定論的な禁止表現サニタイズ（例: 読後→読み終えたあと）
     // だけは元本文に適用しておく。禁止表現が原因の差し戻しは、LLM が全文を返せなくても
     // これで最低限は是正できる。
@@ -1707,8 +1758,7 @@ function rebuildWithBodyAndWarning(existingContent, body, augmentedComment) {
 
 // 本文だけ後処理（禁止表現置換のみ。免責は本文側で維持される前提）
 function postProcessBodyOnly(text) {
-  const fenced = text.match(/^```(?:markdown|md)?\n([\s\S]+)\n```\s*$/m);
-  return sanitizeBannedPhrases((fenced ? fenced[1] : text).trim());
+  return sanitizeBannedPhrases(stripWrappingFence(text));
 }
 
 // 既存 frontmatter を保ち、本文だけ差し替えて updated_at / review_status を更新
