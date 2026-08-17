@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "個人向けコンテンツ販売はインボイス登録が不要なケースが多い。ただしBtoB取引や法人購入者が混在する場合は登録を検討すべきで、仕訳と経過措置も合わせて解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-16T17:05:01.681+09:00"
 publish_at: "2026-08-17T17:16:00.000+09:00"
-published_at: ""
+published_at: "2026-08-17T18:01:05.787+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-16T00:07:19.080Z"
-updated_at: "2026-08-16T17:05:01.681+09:00"
+updated_at: "2026-08-17T18:01:05.787+09:00"
 publish_slot: "evening"
 ---
 
