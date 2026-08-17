@@ -316,5 +316,49 @@ console.log('\n=== Test 19: buildTargetedPromptRetry ===');
   assert(/${origBodyLen}/.test(p.user) === false, 'テンプレ変数が展開されている');
 }
 
+// ── 20. 出典本文が部分再生成のプロンプトに添付される ──────────────
+// 2026-08-14〜17 の事実誤認4件は、いずれも出典の本文を LLM に渡さないまま
+// 「事実を直せ」と差し戻していたことが原因だった。通常生成には PR #404 で
+// 渡すようにしたが、部分再生成の経路には渡していなかった。
+console.log('\n=== Test 20: 出典本文の添付（section / targeted）===');
+{
+  const SRC = '═══ 出典の本文 ═══\n合計所得金額が58万円以下であれば配偶者控除が受けられます。';
+  const meta = { title: 'X', article_type: 'basic_explainer', primary_persona: 'beauty_salon_owner' };
+  const comment = '数字が誤りです。正しくは58万円です。';
+  const body = '## 見出し\n' + '本文'.repeat(200);
+
+  // targeted（1 回目）
+  const p1 = partial.buildTargetedPrompt(meta, comment, body, SRC);
+  assert(p1.user.includes(SRC), 'targeted: 出典本文がプロンプトに含まれる');
+  assert(/出典の本文に書かれていることだけを根拠/.test(p1.user),
+    'targeted: 記憶で補うことを禁じる制約がある');
+  assert(/記憶で数字や適用範囲を補ってはいけません/.test(p1.system),
+    'targeted: system 側でも記憶による補完を禁じている');
+  assert(p1.user.indexOf(SRC) < p1.user.indexOf('【記事本文（現状）'),
+    'targeted: 出典本文は本文より前（本文を末尾に置き出力指示と隣接させる）');
+
+  // targeted（リトライ）
+  const p2 = partial.buildTargetedPromptRetry(meta, comment, body, 10, body.length, SRC);
+  assert(p2.user.includes(SRC), 'targeted リトライ: 出典本文がプロンプトに含まれる');
+
+  // section（既存セクション差し替え）
+  const sec = { heading: '見出し', body: '本文' };
+  const ps = partial.buildSectionPrompt(meta, comment, sec, { type: 'factual_correction' }, SRC);
+  assert(ps.user.includes(SRC), 'section: 出典本文がプロンプトに含まれる');
+
+  // section（新セクション追加）
+  const pa = partial.buildSectionPrompt(meta, comment, null, { type: 'add_section' }, SRC);
+  assert(pa.user.includes(SRC), 'add_section: 出典本文がプロンプトに含まれる');
+
+  // 出典が無い場合でもプロンプトが壊れない（後方互換）
+  const pNone = partial.buildTargetedPrompt(meta, comment, body);
+  assert(!/undefined/.test(pNone.user), '出典未指定でも undefined が混入しない');
+  assert(pNone.user.includes(body), '出典未指定でも本文は渡される');
+  const psNone = partial.buildSectionPrompt(meta, comment, sec, { type: 'table_fix' });
+  assert(!/undefined/.test(psNone.user), 'section: 出典未指定でも undefined が混入しない');
+  assert(partial.sourceSection('') === '', '空文字なら何も差し込まない');
+  assert(partial.sourceSection('  \n ') === '', '空白のみなら何も差し込まない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
