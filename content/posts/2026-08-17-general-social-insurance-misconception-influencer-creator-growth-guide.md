@@ -36,13 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "税の扶養（配偶者控除）と社会保険の扶養は、判定基準・管轄・収入の定義がすべて異なります。クリエイターが売上拡大期に押さえるべき違いと、自分のケースへの当てはめ方を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-17T00:07:48.011Z"
-updated_at: "2026-08-17T09:08:52.348Z"
+updated_at: "2026-08-17T18:30:44.435+09:00"
+approved_at: "2026-08-17T18:30:44.435+09:00"
+publish_at: "2026-08-18T17:46:00.000+09:00"
+publish_slot: "evening"
 ---
 「収入が増えてきたクリエイターへ｜税の扶養と社会保険の扶養は別物？違いと判断基準を解説」
 
