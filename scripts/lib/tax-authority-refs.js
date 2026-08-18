@@ -348,8 +348,25 @@ const DENIED_SOURCE_URLS = new Set([
   'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
 ]);
 
+// 参考にはするが主出典にはしない資料（nta-reference-pages.js）。
+// タックスアンサー未収録の国税庁資料をプロンプトに渡すようになったため、
+// それが source_url として選ばれないよう、ここでも弾く。
+// 循環 require を避けるため遅延読み込みする。
+let _referenceOnly = null;
+function isReferenceOnlySource(url) {
+  if (_referenceOnly === null) {
+    try {
+      _referenceOnly = require('./nta-reference-pages').isReferenceOnlyUrl;
+    } catch (_error) {
+      _referenceOnly = () => false;
+    }
+  }
+  return _referenceOnly(url);
+}
+
 function isDeniedSource(url) {
-  return DENIED_SOURCE_URLS.has(String(url || '').trim());
+  const u = String(url || '').trim();
+  return DENIED_SOURCE_URLS.has(u) || isReferenceOnlySource(u);
 }
 
 // ── 最終フォールバック（どこにもマッチしなかった場合）
