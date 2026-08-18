@@ -36,16 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "社会保険の扶養（年収130万円基準）と税の扶養（所得58万円基準・令和7年分以後）は判定基準がまったく異なる。売上が伸びてきたサロンオーナーは両方を別々に確認する必要がある。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-17T00:06:15.928Z"
-updated_at: "2026-08-17T09:43:49.804Z"
-approved_at: ""
-publish_at: ""
-publish_slot: ""
+updated_at: "2026-08-18T17:48:57.432+09:00"
+approved_at: "2026-08-18T17:48:57.432+09:00"
+publish_at: "2026-08-19T11:28:00.000+09:00"
+publish_slot: "morning"
 ---
 「お客さんが増えてきて売上が上がってきたけど、夫の扶養から外れるタイミングはいつ？」——予約が埋まりはじめた頃、多くのサロンオーナーが一度はこの疑問を抱きます。
 
