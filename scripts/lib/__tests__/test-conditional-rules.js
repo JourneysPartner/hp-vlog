@@ -131,5 +131,57 @@ console.log('\n=== Test 4: 社会保険の被扶養者の収入判定 ===');
     '社会保険記事: staticSystem（キャッシュ）には入らない');
 }
 
+// -- 5. 2割特例の終了と3割特例の創設（令和8年度税制改正）--------------
+// 2026-08-18: 「2割特例が終わったあとは簡易課税への移行も選択肢」とだけ書いた
+// 記事が生成された。個人事業者は令和9年分・令和10年分に3割特例が使える。
+console.log('');
+console.log('=== Test 5: 3割特例ルール ===');
+{
+  const inv = {
+    tax_domain: 'invoice_system',
+    pain_point: 'youtube-invoice',
+    title: 'YouTuberはインボイス登録すべき？',
+    customer_segment: 'youtuber',
+    search_intent: 'インボイス 登録 判断',
+  };
+  const rules = st.selectConditionalRules(inv);
+  const rule = rules.find(r => /3割特例（令和8年度税制改正で新設）/.test(r));
+  assert(!!rule, 'インボイス記事 → 3割特例ルールが注入される');
+  assert(/令和9年分・令和10年分/.test(rule || ''), '対象年分が令和9年分・令和10年分');
+  assert(/法人は適用不可/.test(rule || ''), '法人は適用不可と明示');
+  assert(/売上税額の3割/.test(rule || ''), '納付税額は売上税額の3割');
+  assert(/いずれも1,000万円以下/.test(rule || ''), '基準期間と特定期間がいずれも1,000万円以下');
+  assert(/事前の届出は不要/.test(rule || ''), '事前届出は不要と明示');
+  assert(/令和8年9月30日までの日の属する課税期間/.test(rule || ''),
+    '2割特例の期間は「日の属する課税期間」で書かせる');
+  assert(/2割特例が終わったあとは簡易課税か本則課税のどちらかになる/.test(rule || ''),
+    '旧スケジュールの言い回しが禁止例に入っている');
+  assert(/invoice-review/.test(rule || ''), '国税庁の令和8年度税制改正特集が根拠として示される');
+
+  // 経過措置ルール側に 1億円 の見直しが入っていること
+  const rt = rules.find(r => /免税事業者からの仕入経過措置/.test(r));
+  assert(!!rt, '経過措置ルールも同時に注入される');
+  assert(/1億円/.test(rt || '') && /改正前10億円/.test(rt || ''),
+    '7・5・3割控除の1億円上限（改正前10億円）が入っている');
+
+  // 無関係なトピックには注入されない
+  assert(!st.selectConditionalRules(inh).some(r => /3割特例（令和8年度税制改正で新設）/.test(r)),
+    '相続記事 → 3割特例ルールは非注入');
+  const si = { pain_point: 'social-insurance-misconception', tax_domain: 'income_tax', title: '扶養' };
+  assert(!st.selectConditionalRules(si).some(r => /3割特例（令和8年度税制改正で新設）/.test(r)),
+    '社会保険記事 → 3割特例ルールは非注入');
+
+  // builder 経由では dynamicSystem 側（キャッシュ対象外）
+  const irInv = builder.buildGenerationPrompt({
+    topic: { ...inv, slug: 'inv-x', category: '消費税', persona: 'youtuber', macro: 'インフルエンサー' },
+    persona: { label: 'YouTuber' }, cta: 'C',
+    articleType: 'basic_explainer', articleRole: 'main', now: '2026-08-18T00:00:00Z',
+  });
+  assert(irInv.dynamicSystem.includes('令和9年分・令和10年分'),
+    'インボイス記事: dynamicSystem に注入される');
+  assert(!irInv.staticSystem.includes('令和9年分・令和10年分'),
+    'インボイス記事: staticSystem（キャッシュ）には入らない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
