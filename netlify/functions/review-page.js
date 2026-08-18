@@ -361,14 +361,27 @@ exports.handler = async (event) => {
 
   try {
     let raw;
-    try {
-      // ローカルファイルがあればそちらを優先（netlify dev 用）
-      raw = fetchPostLocal(filename);
-    } catch {
-      // ローカルになければ GitHub App 認証つき API で取得（ref 指定対応）
-      // 認証情報が無い場合は無認証 fallback せず明確なエラーにする
+    if (ref) {
+      // ref が明示されていれば必ずその ref から取得する。
+      //
+      // 以前はローカル読み込みを無条件に優先していたため、記事が main にも
+      // 存在する場合（公開済み・マージ済みの記事を差し戻して直しているとき）に
+      // ローカル読み込みが成功してしまい、ref が黙って無視されていた。
+      // その結果、下書きブランチの修正版を見に行ったつもりで main の
+      // 修正前の本文が表示された（2026-08-17 に発生）。
+      // 「ローカル優先」は netlify dev のためのものなので、ref 指定時は使わない。
       assertGitHubCredentials();
-      raw = await fetchPostFromGitHub(filename, ref || undefined);
+      raw = await fetchPostFromGitHub(filename, ref);
+    } else {
+      try {
+        // ローカルファイルがあればそちらを優先（netlify dev 用）
+        raw = fetchPostLocal(filename);
+      } catch {
+        // ローカルになければ GitHub App 認証つき API で取得
+        // 認証情報が無い場合は無認証 fallback せず明確なエラーにする
+        assertGitHubCredentials();
+        raw = await fetchPostFromGitHub(filename, undefined);
+      }
     }
     const { meta, body } = parseFrontmatter(raw);
 
