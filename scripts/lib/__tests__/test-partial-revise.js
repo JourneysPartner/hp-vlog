@@ -360,5 +360,36 @@ console.log('\n=== Test 20: 出典本文の添付（section / targeted）===');
   assert(partial.sourceSection('  \n ') === '', '空白のみなら何も差し込まない');
 }
 
+// -- 21. 論点別ルールが部分再生成のプロンプトに載る ------------------
+// 2026-08-18: 事実誤認の差し戻しは factual_correction -> targeted に振り分けられるが、
+// 論点別ルール（CONDITIONAL_RULES）は builder 経由の通常生成と full 経路にしか
+// 載っていなかった。「同じ誤りを繰り返さないためのルール」が、最もそれを必要と
+// する経路に届いていなかった。generate-draft 側で組み立てて sourceBlock と一緒に
+// 渡すようにしたので、ここでは受け取り側が確実に載せることを検証する。
+console.log('');
+console.log('=== Test 21: 論点別ルールの受け渡し ===');
+{
+  const RULES = '=== この記事に必ず適用する論点別ルール ===' + String.fromCharCode(10)
+    + '3割特例は法人には適用されない。';
+  const meta = { title: 'X', article_type: 'basic_explainer', primary_persona: 'youtuber' };
+  const comment = '事実誤認です。3割特例を反映してください。';
+  const body = '## 見出し' + String.fromCharCode(10) + '本文'.repeat(200);
+
+  const p1 = partial.buildTargetedPrompt(meta, comment, body, RULES);
+  assert(p1.user.includes(RULES), 'targeted: ルールがプロンプトに載る');
+  assert(p1.user.indexOf(RULES) < p1.user.indexOf('【記事本文（現状）'),
+    'targeted: ルールは本文より前（本文を末尾に置き出力指示と隣接させる）');
+
+  const p2 = partial.buildTargetedPromptRetry(meta, comment, body, 10, body.length, RULES);
+  assert(p2.user.includes(RULES), 'targeted リトライ: ルールが載る');
+
+  const ps = partial.buildSectionPrompt(meta, comment, { heading: 'h', body: 'b' },
+    { type: 'factual_correction' }, RULES);
+  assert(ps.user.includes(RULES), 'section: ルールが載る');
+
+  const pa = partial.buildSectionPrompt(meta, comment, null, { type: 'add_section' }, RULES);
+  assert(pa.user.includes(RULES), 'add_section: ルールが載る');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

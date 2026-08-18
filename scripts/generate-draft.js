@@ -11,6 +11,7 @@ const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
+const { buildReferencePagesBlock, findReferencePages } = require('./lib/nta-reference-pages');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
@@ -226,7 +227,7 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 本文長を 5,000〜7,000 文字へ引き上げた際に旧値（1600〜2600 等）が残って
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
 const {
-  WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor,
+  WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor, selectConditionalRules,
 } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
@@ -819,7 +820,15 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     console.log(`[source] 税以外の出典を添付: ${found.label}（${found.agency}）`);
   }
 
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock;
+  // タックスアンサー未収録の国税庁資料（制度改正直後など）。
+  // タックスアンサーと同等に参照させるが、主出典（source_url）にはしない。
+  const refPagesBlock = buildReferencePagesBlock(topic);
+  if (refPagesBlock) {
+    const pages = findReferencePages(topic);
+    console.log(`[source] 参考資料を添付: ${pages.map(p => p.label).join(' / ')}`);
+  }
+
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock + refPagesBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   const lawChanges = topic.freshness_sensitive ? getChangesForTopic(topic, 2) : [];
@@ -1284,15 +1293,36 @@ function buildRegenSourceBlocks(meta = {}) {
     subcluster: meta.subcluster,
     source_url: meta.source_url, source_title: meta.source_title,
   };
+  // 論点別ルール（CONDITIONAL_RULES）。通常生成と full 経路は builder 経由で
+  // dynamicSystem に載るが、targeted / section 経路は builder を通らないため
+  // 載っていなかった。事実誤認の差し戻しは targeted に振り分けられるので、
+  // 「同じ誤りを繰り返さないためのルール」が最も必要な経路に届いていなかった
+  // （2026-08-18 の3割特例で判明）。ここで組み立てて渡す。
+  const rules = selectConditionalRules(topicLike);
+  const RULE_SEP = `
+
+`;   // ルール間の区切り（実改行2つ）
+  const rulesBlock = rules.length
+    ? `
+
+═══ この記事に必ず適用する論点別ルール（正確性・最優先）═══
+${rules.join(RULE_SEP)}`
+    : '';
+  if (rules.length) console.log(`[regenerate] 論点別ルールを適用: ${rules.length} 件`);
+
   const sourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
   const nonTax = buildNonTaxSourceBlock(topicLike);
+  const refPages = buildReferencePagesBlock(topicLike);
+  if (refPages) {
+    console.log(`[regenerate] 参考資料を添付: ${findReferencePages(topicLike).map(p => p.label).join(' / ')}`);
+  }
   if (sourceBody) console.log(`[regenerate] 出典本文を添付 (${sourceBody.length} 文字)`);
   else console.warn('[regenerate] ⚠ 出典本文を添付できませんでした（カタログに本文が無い出典）');
   if (nonTax) {
     const f = findNonTaxSource(topicLike);
     console.log(`[regenerate] 税以外の出典を添付: ${f.label}（${f.agency}）`);
   }
-  return { sourceBody, nonTax, combined: `${sourceBody}${nonTax}` };
+  return { sourceBody, nonTax, refPages, rulesBlock, combined: `${sourceBody}${nonTax}${refPages}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
