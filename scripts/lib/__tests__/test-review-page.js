@@ -103,6 +103,68 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
     assert(threw, '認証情報なしでは getFile が認証エラーで throw（無認証 fetch しない）');
   }
 
+  // -- 6. ref 指定時はローカルを使わず必ずその ref から取得する --------
+  // 2026-08-17: 公開済みの記事を差し戻して下書きブランチで直したとき、
+  // 記事が main にも存在するためローカル読み込みが成功し、ref が黙って
+  // 無視されて main の修正前本文が表示された。
+  console.log('');
+  console.log('=== Test 6: ref 指定時はローカル優先しない ===');
+  {
+    const postsDir = path.join(ROOT, 'content', 'posts');
+    const md = fs.readdirSync(postsDir).find(f => f.endsWith('.md'));
+    if (md) {
+      // ローカルにファイルがある状態で ref を渡す。認証情報は無いので、
+      // ref を尊重していれば GitHub 取得へ進んで credentials エラーになる。
+      // ローカルを返してしまうなら 200 になる。
+      delete process.env.GH_APP_ID;
+      delete process.env.GH_APP_PRIVATE_KEY;
+      delete process.env.GH_APP_INSTALLATION_ID;
+      delete process.env.GITHUB_TOKEN;
+      const origCwd = process.cwd();
+      process.chdir(ROOT);
+      const fn = reload(reviewPagePath);
+      const res = await fn.handler({
+        httpMethod: 'GET',
+        queryStringParameters: { file: md, ref: 'draft/some-branch' },
+      });
+      process.chdir(origCwd);
+      assert(res.statusCode !== 200,
+        `ref 指定時はローカルを返さない（実: ${res.statusCode}）`);
+      assert(/credentials|認証/.test(res.body),
+        'ref 指定時は GitHub 取得経路に進む');
+    } else {
+      console.log('  （content/posts に .md が無いためスキップ）');
+      passed += 2;
+    }
+  }
+
+  // -- 7. ref 無しなら従来どおりローカル優先（後方互換）---------------
+  console.log('');
+  console.log('=== Test 7: ref 無しならローカル優先のまま ===');
+  {
+    const postsDir = path.join(ROOT, 'content', 'posts');
+    const md = fs.readdirSync(postsDir).find(f => f.endsWith('.md'));
+    if (md) {
+      delete process.env.GH_APP_ID;
+      delete process.env.GH_APP_PRIVATE_KEY;
+      delete process.env.GH_APP_INSTALLATION_ID;
+      delete process.env.GITHUB_TOKEN;
+      const origCwd = process.cwd();
+      process.chdir(ROOT);
+      const fn = reload(reviewPagePath);
+      const res = await fn.handler({
+        httpMethod: 'GET',
+        queryStringParameters: { file: md },
+      });
+      process.chdir(origCwd);
+      assert(res.statusCode === 200,
+        `ref 無しはローカルから 200（実: ${res.statusCode}）`);
+    } else {
+      console.log('  （content/posts に .md が無いためスキップ）');
+      passed++;
+    }
+  }
+
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
   process.exit(failed === 0 ? 0 : 1);
 })();
