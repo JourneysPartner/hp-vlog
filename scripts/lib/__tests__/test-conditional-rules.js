@@ -183,5 +183,36 @@ console.log('=== Test 5: 3割特例ルール ===');
     'インボイス記事: staticSystem（キャッシュ）には入らない');
 }
 
+// -- 6. 少額減価償却資産の特例ルール ---------------------------------
+console.log('');
+console.log('=== Test 6: 少額減価償却資産の特例ルール ===');
+{
+  const game = {
+    tax_domain: 'bookkeeping_expenses',
+    pain_point: 'youtube-gaming-hardware',
+    title: 'ゲーム実況のゲーム機・PC・ソフト代は経費になる？減価償却の仕訳を具体例で解説',
+    search_intent: 'ゲーム実況 ゲーム機 PC ソフト代 経費 減価償却',
+    customer_segment: 'youtuber',
+  };
+  const rules = st.selectConditionalRules(game);
+  const rule = rules.find(r => /少額減価償却資産の特例（令和8年度税制改正/.test(r));
+  assert(!!rule, '減価償却記事 → ルールが注入される');
+  assert(/令和8年3月31日までに取得したものが対象/.test(rule || ''),
+    '古い記載が禁止例として明示されている');
+  assert(/令和8年4月1日以後に取得等/.test(rule || '') && /40万円未満/.test(rule || ''),
+    '改正後の基準が示される');
+  assert(/取得等をする日/.test(rule || ''), '取得等の日で判定する旨');
+  assert(/3年延長/.test(rule || ''), '適用期限3年延長');
+  assert(/300万円/.test(rule || ''), '年間上限300万円');
+  assert(/青色申告/.test(rule || ''), '青色申告が要件である旨');
+  assert(/一括償却資産/.test(rule || ''), '変わらない部分（一括償却資産）も示す');
+  assert(/令和7年4月1日現在法令等/.test(rule || ''), 'タックスアンサー未反映の注意');
+
+  assert(!st.selectConditionalRules(inh).some(r => /少額減価償却資産の特例（令和8年度/.test(r)),
+    '相続記事 → 非注入');
+  assert(!st.selectConditionalRules(ebay).some(r => /少額減価償却資産の特例（令和8年度/.test(r)),
+    'eBay記事 → 非注入');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

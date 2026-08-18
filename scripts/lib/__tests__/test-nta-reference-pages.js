@@ -108,5 +108,43 @@ console.log('\n=== Test 5: 壊れた入力 ===');
   assert(ref.buildReferencePagesBlock(undefined) === '', 'undefined でも空文字');
 }
 
+// -- 6. 少額減価償却資産の特例（令和8年度税制改正）--------------------
+// 2026-08-18: タックスアンサー No.2100 / No.5408 が「令和7年4月1日現在法令等」の
+// ままで、出典どおりに書くと「令和8年3月31日まで・30万円未満」という失効済みの
+// 内容になった。参考資料として補う。
+console.log('');
+console.log('=== Test 6: 少額減価償却資産の特例 ===');
+{
+  const GAME = {
+    tax_domain: 'bookkeeping_expenses',
+    pain_point: 'youtube-gaming-hardware',
+    title: 'ゲーム実況のゲーム機・PC・ソフト代は経費になる？減価償却の仕訳を具体例で解説',
+    search_intent: 'ゲーム実況 ゲーム機 PC ソフト代 経費 減価償却',
+  };
+  const pages = ref.findReferencePages(GAME);
+  assert(pages.length === 1, `減価償却記事 → 1件（実: ${pages.length}）`);
+  assert(pages[0].key === 'small_depreciable_assets_2026', 'キーが少額減価償却資産の特例');
+
+  const block = ref.buildReferencePagesBlock(GAME);
+  assert(/40万円未満/.test(block), '40万円未満に引き上げ');
+  assert(/令和8年4月1日以後に取得等/.test(block), '取得等の日で判定する境界');
+  assert(/3年延長/.test(block), '適用期限3年延長');
+  assert(/引き続き年300万円が上限/.test(block), '年300万円の上限は据え置き');
+  assert(/所得税についても同様とする/.test(block), '個人事業者にも適用される旨');
+  assert(/令和7年4月1日現在法令等/.test(block), 'タックスアンサーが未反映である注意書き');
+  assert(/500人超/.test(block) && /400人超/.test(block), '対象法人の従業員数要件の変更');
+
+  // インボイスの記事には減価償却の資料を出さない（相互に混ざらない）
+  const inv = ref.findReferencePages({ tax_domain: 'invoice_system', title: 'インボイス登録すべき？' });
+  assert(inv.length === 1 && inv[0].key === 'invoice_tax_reform_2026',
+    'インボイス記事には invoice のエントリだけ');
+  assert(ref.findReferencePages({ tax_domain: 'income_tax', pain_point: 'social-insurance-misconception', title: '扶養' }).length === 0,
+    '社会保険記事には出さない');
+
+  // 主出典には採用されない
+  const { isDeniedSource } = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
+  assert(isDeniedSource(pages[0].url), '出典としては拒否される');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
