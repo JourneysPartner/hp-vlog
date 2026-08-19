@@ -231,6 +231,14 @@ const {
 } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
+// 改正論点ブロックの見出し。通常生成と差し戻し再生成で同じ文言を使うため定数にする。
+const LAW_CHANGES_HEADING = `
+
+═══ 近年の改正・制度変更で参考になる論点 ═══
+本テーマは改正論点と関係がある可能性があります。読者の実務に影響しうる場合に限り、現行ルールと改正点を区別して触れてください。
+（「最新ニュースだから書く」のではなく、「読者の判断に影響するから書く」を基準に取り上げ要否を判断すること）
+`;
+
 // ── 記事タイプ別の必須要素チェックリスト（内部ロジック）──────────
 const ARTICLE_TYPE_CHECKLIST = {
   basic_explainer: [
@@ -831,9 +839,21 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock + refPagesBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
-  const lawChanges = topic.freshness_sensitive ? getChangesForTopic(topic, 2) : [];
+  //
+  // 以前は topic.freshness_sensitive が真のトピックにしか渡していなかった。
+  // だが実測するとフラグが立っているのは 1,800 件中 10 件（1%）だけで、
+  // 99% のトピックではこの経路が最初から機能していなかった。
+  // 新セグメント由来のトピック（scenario-expansion）は既定 false になるため、
+  // 新しく増えたテーマほど改正情報が届かないという逆の挙動になっていた。
+  // 2026-08-18 の少額減価償却資産の特例（出典が令和7年4月1日現在法令等のままで
+  // 改正未反映）も、このトピックがフラグ無しだったため改正情報が渡らなかった。
+  //
+  // getChangesForTopic 自身が税目とペルソナで絞り込み、上限2件、
+  // status が expired / historical_reference のものは返さない作りなので、
+  // フラグによる二重の絞り込みは無くてよい。
+  const lawChanges = getChangesForTopic(topic, 2);
   const lawChangesBlock = lawChanges.length > 0
-    ? `\n\n═══ 近年の改正・制度変更で参考になる論点 ═══\n本テーマは改正論点と関係がある可能性があります。読者の実務に影響しうる場合に限り、現行ルールと改正点を区別して触れてください。\n（"最新ニュースだから書く" のではなく、"読者の判断に影響するから書く" を基準に取り上げ要否を判断すること）\n${formatChangesForPrompt(lawChanges)}`
+    ? `${LAW_CHANGES_HEADING}${formatChangesForPrompt(lawChanges)}`
     : '';
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
@@ -1313,6 +1333,17 @@ ${rules.join(RULE_SEP)}`
   const sourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
+
+  // 近年の改正論点。通常生成と同じものを再生成にも渡す。
+  // 事実誤認の差し戻しは targeted に振り分けられるため、
+  // 改正情報が最も必要な場面がこの経路になる。
+  const changes = getChangesForTopic(topicLike, 2);
+  const changesBlock = changes.length
+    ? `${LAW_CHANGES_HEADING}${formatChangesForPrompt(changes)}`
+    : '';
+  if (changes.length) {
+    console.log(`[regenerate] 改正論点を添付: ${changes.map(c => c.title.slice(0, 30)).join(' / ')}`);
+  }
   if (refPages) {
     console.log(`[regenerate] 参考資料を添付: ${findReferencePages(topicLike).map(p => p.label).join(' / ')}`);
   }
@@ -1322,7 +1353,8 @@ ${rules.join(RULE_SEP)}`
     const f = findNonTaxSource(topicLike);
     console.log(`[regenerate] 税以外の出典を添付: ${f.label}（${f.agency}）`);
   }
-  return { sourceBody, nonTax, refPages, rulesBlock, combined: `${sourceBody}${nonTax}${refPages}${rulesBlock}` };
+  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock,
+    combined: `${sourceBody}${nonTax}${refPages}${changesBlock}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
