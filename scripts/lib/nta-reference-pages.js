@@ -22,10 +22,13 @@
  *   - 実在確認した URL だけを登録する。
  */
 
+// __body は本文ベースの再判定時にだけ載る（findReferencePagesFromBody）。
+// 生成時のトピックには存在しないので、通常の判定結果は変わらない。
 const _kwText = (topic) => [
   topic.title, topic.search_intent, topic.primary_question,
   topic.reader_problem, topic.subcluster, topic.slug,
   topic.pain_point, topic.summary, topic.tax_domain, topic.category,
+  topic.__body,
 ].filter(Boolean).join(' ');
 
 const kw = (topic, terms) => {
@@ -141,8 +144,8 @@ function findReferencePages(topic = {}) {
  * 生成プロンプトに差し込む「参考資料」ブロックを組み立てる。
  * 該当しなければ空文字。
  */
-function buildReferencePagesBlock(topic = {}) {
-  const pages = findReferencePages(topic);
+function buildReferencePagesBlock(topic = {}, pagesOverride = null) {
+  const pages = pagesOverride || findReferencePages(topic);
   if (pages.length === 0) return '';
 
   const body = pages.map(p => {
@@ -169,10 +172,37 @@ ${body}
    タックスアンサー番号を割り当てない（番号は存在しない）。`;
 }
 
+/**
+ * 書き上がった本文を根拠に、該当する参考資料を検出する。
+ *
+ * 2026-08-19: 企画メタの語句一致だけで判定していたため、企画段階で予測
+ * できなかった論点が本文に出てきても参考資料が渡らなかった。
+ * 「電気工事の資格更新費や専用工具」の記事は、企画メタに「減価償却」が
+ * 一度も出てこないが、本文は当然に減価償却の閾値表を書いていた。
+ */
+function findReferencePagesFromBody(topic = {}, body = '') {
+  return findReferencePages({ ...topic, __body: body });
+}
+
+/** 本文を見て初めて該当する（＝生成時に渡っていなかった）参考資料 */
+function findUnappliedReferencePages(topic = {}, body = '') {
+  const applied = new Set(findReferencePages(topic).map(p => p.key));
+  return findReferencePagesFromBody(topic, body).filter(p => !applied.has(p.key));
+}
+
+/** 参考資料の配列からプロンプト用ブロックを組む（buildReferencePagesBlock の下請け） */
+function formatReferencePages(pages) {
+  if (!pages || pages.length === 0) return '';
+  return buildReferencePagesBlock({}, pages);
+}
+
 module.exports = {
   NTA_REFERENCE_PAGES,
   REFERENCE_ONLY_URLS,
   isReferenceOnlyUrl,
   findReferencePages,
   buildReferencePagesBlock,
+  findReferencePagesFromBody,
+  findUnappliedReferencePages,
+  formatReferencePages,
 };

@@ -209,10 +209,14 @@ const MACRO_GUIDE = {
 // dynamicSystem 側（非キャッシュ・トピック毎）に注入する。
 //
 // scope: 'tax_domain' | 'topic_specific'（将来 'customer_segment' / 'source_specific' も）
+// 企画メタ（と、本文ベース再判定のときは本文）を連結して語句一致を見る。
+// __body は detectRulesFromBody が一時的に載せるフィールド。
+// 生成時のトピックには存在しないので、通常の判定結果は従来どおり変わらない。
 const _kw = (topic, terms) => {
   const text = [
     topic.title, topic.search_intent, topic.primary_question,
     topic.reader_problem, topic.subcluster, topic.slug, topic.pain_point,
+    topic.__body,
   ].filter(Boolean).join(' ');
   return terms.some(t => text.includes(t));
 };
@@ -598,11 +602,56 @@ note / BASE / Udemy / App Store 等のプラットフォーム販売を扱うと
 
 // topic に該当する条件付きルールのテキスト配列を返す
 function selectConditionalRules(topic = {}) {
+  return selectConditionalRuleEntries(topic).map(r => r.text);
+}
+
+/**
+ * 該当する条件付きルールを key つきで返す。
+ * 本文ベースの検出（下記 detectRulesFromBody）と差分を取るために key が要る。
+ */
+function selectConditionalRuleEntries(topic = {}) {
   const hits = [];
-  for (const rule of Object.values(CONDITIONAL_RULES)) {
-    try { if (rule.match(topic)) hits.push(rule.text); } catch { /* match 失敗は無視 */ }
+  for (const [key, rule] of Object.entries(CONDITIONAL_RULES)) {
+    try { if (rule.match(topic)) hits.push({ key, text: rule.text }); } catch { /* match 失敗は無視 */ }
   }
   return hits;
+}
+
+/**
+ * 「書き上がった本文」を根拠に、適用されるべきルールを検出する。
+ *
+ * 2026-08-19: 判定が企画メタ（title / search_intent / pain_point 等）の
+ * 語句一致だけだったため、企画段階で予測できなかった論点が本文に出てきても
+ * ルールが適用されなかった。
+ * 実例: 「電気工事・配管の資格更新費や専用工具は経費になる？」という企画メタには
+ * 「減価償却」「少額」「耐用年数」のいずれも含まれないが、工具の話をすれば
+ * 本文は当然に減価償却の閾値表を書く。結果、令和8年度改正（40万円未満）を
+ * 反映させるルールが一度も渡らず、古い30万円の表が生成された。
+ *
+ * 企画メタは「何を書く予定か」でしかなく、「実際に何を書いたか」は本文にしかない。
+ * そこで本文を検索対象に加えて再判定する。
+ *
+ * @param {Object} topic 企画メタ
+ * @param {string} body  生成された本文
+ * @returns {Array<{key: string, text: string}>} 本文を含めると該当するルール
+ */
+function detectRulesFromBody(topic = {}, body = '') {
+  // 本文を「マッチャが見るフィールド」に載せた仮のトピックを作って再判定する。
+  // _kw は複数フィールドを連結して includes するだけなので、本文を1つ足せばよい。
+  const withBody = { ...topic, __body: body };
+  const hits = [];
+  for (const [key, rule] of Object.entries(CONDITIONAL_RULES)) {
+    try { if (rule.match(withBody)) hits.push({ key, text: rule.text }); } catch { /* 無視 */ }
+  }
+  return hits;
+}
+
+/**
+ * 本文を見て初めて該当する（＝生成時には渡っていなかった）ルールを返す。
+ */
+function findUnappliedRules(topic = {}, body = '') {
+  const applied = new Set(selectConditionalRuleEntries(topic).map(r => r.key));
+  return detectRulesFromBody(topic, body).filter(r => !applied.has(r.key));
 }
 
 // ── 共通の固定ルール本体（キャッシュ対象の核）───────────────────
@@ -872,6 +921,9 @@ module.exports = {
   STATIC_RULES,
   CONDITIONAL_RULES,
   selectConditionalRules,
+  selectConditionalRuleEntries,
+  detectRulesFromBody,
+  findUnappliedRules,
   ARTICLE_TYPE_INSTRUCTIONS,
   WORD_COUNT_GUIDE,
   WORD_COUNT_GUIDE_FALLBACK,
