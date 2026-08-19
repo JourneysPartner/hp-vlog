@@ -6,7 +6,11 @@
  * 位置づけ:
  *   - 「ニュース性だけで記事化しない」が大原則
  *   - ただし、各分野で読者の実務に影響する近年の改正論点は記事候補として持っておく
- *   - generate-draft.js の選定時に freshness_sensitive 判定の元情報として参照
+ *   - generate-draft.js から getChangesForTopic() で参照し、税目とペルソナが
+ *     一致する改正論点をプロンプトに渡す（通常生成・差し戻し再生成の両方）
+ *   - 以前は topic.freshness_sensitive が真のトピックにしか渡していなかったが、
+ *     フラグが立っているのは 1,800 件中 10 件（1%）だけで、99% のトピックでは
+ *     この経路が機能していなかったため、2026-08-18 にフラグ判定を廃止した
  *   - プロンプトに渡し、執筆時に「現在の制度」「近年の変更点」が混同されないよう案内する
  *
  * 各エントリは:
@@ -102,16 +106,32 @@ function isChangeStillRelevant(change, now = new Date()) {
   return true;
 }
 
+// このカタログが知っているペルソナの語彙。
+// CHANGES の personas に一度も出てこないペルソナは「未知」とみなす。
+const KNOWN_PERSONAS = new Set(CHANGES.flatMap(c => c.personas || []));
+
 /**
  * 候補トピックに該当する改正論点を返す（ペルソナ × tax_domain で照合）。
  * status='expired' / 'historical_reference' のものは自動的に除外する。
+ *
+ * ペルソナ照合は「知っているペルソナのときだけ」効かせる。
+ *
+ * 2026-08-18: 新セグメント（youtuber / content_seller / construction_solo /
+ * retail_store / wholesale）のペルソナ名が、このカタログの語彙
+ * （domestic_ec_seller / influencer_creator / beauty_salon_owner 等）と
+ * 全く重なっておらず、新セグメントの記事には改正論点が1件も渡っていなかった。
+ * ペルソナを厳格に照合すると、カタログ側に追記し忘れた瞬間に
+ * 「黙って何も出ない」状態になり、それに気付けない。
+ * → 未知のペルソナのときは tax_domain だけで照合する。
+ *   税目が一致していれば、その改正はそのテーマに関係があるため。
  */
 function getChangesForTopic(topic, limit = 2, now = new Date()) {
   const persona  = topic.persona || topic.primary_persona;
   const taxDomain = topic.tax_domain;
+  const personaKnown = persona ? KNOWN_PERSONAS.has(persona) : false;
   const matches = CHANGES.filter(c => {
     if (!isChangeStillRelevant(c, now)) return false;
-    const personaMatch = persona ? c.personas.includes(persona) : true;
+    const personaMatch = personaKnown ? c.personas.includes(persona) : true;
     const domainMatch  = taxDomain ? c.tax_domain === taxDomain : true;
     return personaMatch && domainMatch;
   });
