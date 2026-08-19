@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "電気工事士や配管技能士の資格更新費・講習費は必要経費になります。専用工具は金額に応じて消耗品費か減価償却費に分け、令和8年4月1日以後の取得は40万円未満まで全額経費化できる特例も含め、仕訳例で解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-19T18:57:39.843+09:00"
+publish_at: "2026-08-20T17:09:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-19T00:07:15.107Z"
-updated_at: "2026-08-19T08:37:57.030Z"
+updated_at: "2026-08-19T18:57:39.843+09:00"
+publish_slot: "evening"
 ---
 電気工事士の免状更新、高圧電気取扱の特別教育、配管技能士の講習——毎年あるいは数年ごとに費用がかかるのに「これは経費として落とせるのか」と迷っている1人親方の方は少なくないはずです。工具についても同じで、絶縁抵抗計やパイプベンダーを新たに買ったとき、帳簿にどう書けばいいか手が止まることがあるのではないでしょうか。
 
