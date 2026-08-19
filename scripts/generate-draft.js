@@ -11,7 +11,8 @@ const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
-const { buildReferencePagesBlock, findReferencePages } = require('./lib/nta-reference-pages');
+const { buildReferencePagesBlock, findReferencePages,
+  findUnappliedReferencePages, formatReferencePages } = require('./lib/nta-reference-pages');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
 const { classifyRevision } = require('./lib/revision-classifier');
@@ -228,6 +229,7 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
 const {
   WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor, selectConditionalRules,
+  findUnappliedRules,
 } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
@@ -1158,6 +1160,76 @@ function rawHasDisclaimer(raw) {
          /個別事情によって結論が異なる/.test(raw);
 }
 
+// ── 書き上がった本文を見て、適用漏れの論点別ルールを反映させる ─────
+//
+// 論点別ルールと参考資料の判定は企画メタ（title / search_intent / pain_point 等）の
+// 語句一致で行っている。だが企画メタは「何を書く予定か」でしかなく、
+// 「実際に何を書いたか」は本文にしかない。
+//
+// 実例（2026-08-19）: 「電気工事・配管の資格更新費や専用工具は経費になる？」は
+// 企画メタに「減価償却」「少額」「耐用年数」のいずれも含まないが、工具の話をすれば
+// 本文は当然に減価償却の閾値表を書く。結果、令和8年度改正（40万円未満）を反映させる
+// ルールが一度も渡らず、古い30万円だけの表が生成された。
+//
+// 記事を捨てるのではなく、不足していたルールと参考資料を渡して直させる。
+async function applyMissingRulesToBody(content, topic, articleType) {
+  const { meta, body } = parseFrontmatter(content);
+  const missingRules = findUnappliedRules(topic, body);
+  const missingRefs  = findUnappliedReferencePages(topic, body);
+  if (missingRules.length === 0 && missingRefs.length === 0) return { content, applied: false };
+
+  const names = [
+    ...missingRules.map(r => r.key),
+    ...missingRefs.map(r => r.key),
+  ].join(', ');
+  console.warn(`[rules] ⚠ 本文に企画メタで予測できなかった論点あり → 反映させます: ${names}`);
+
+  const RULE_SEP = `
+
+`;
+  const rulesBlock = missingRules.length
+    ? `
+
+═══ この記事に必ず適用する論点別ルール（正確性・最優先）═══
+${missingRules.map(r => r.text).join(RULE_SEP)}`
+    : '';
+  const refsBlock = formatReferencePages(missingRefs);
+
+  const comment = [
+    'この記事の本文は、企画時に想定していなかった論点に踏み込んで書かれています。',
+    '添付した論点別ルールと参考資料に照らして、該当箇所が最新の制度に合っているか確認し、',
+    '合っていない箇所だけを最小限修正してください。',
+    '該当する記述がすでに正しい場合は、本文を変更せずそのまま全文出力してください。',
+    '添付資料に書かれていないことを補って書かないでください。',
+  ].join('');
+
+  const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${rulesBlock}`);
+  let revised;
+  try {
+    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
+  } catch (e) {
+    console.warn(`[rules] ⚠ ルール反映の再生成に失敗（${e.message}）→ 元の本文を維持します`);
+    return { content, applied: false, failed: true, names };
+  }
+
+  // 本文が壊れていないかは既存のガードで判定する（差し戻し再生成と同じ基準）。
+  const guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
+  if (guard.suspicious) {
+    console.warn(`[rules] ⚠ ルール反映の結果が異常（${guard.reason}）→ 元の本文を維持します`);
+    logRawOutput('ルール反映の LLM 生出力', revised);
+    return { content, applied: false, failed: true, names };
+  }
+
+  const len = checkBodyLength(revised, articleType);
+  if (len.tooLong) {
+    console.warn(`[rules] ⚠ ルール反映で上限超過（${len.produced} / ${len.max}）→ 元の本文を維持します`);
+    return { content, applied: false, failed: true, names };
+  }
+
+  console.log(`[rules] ルールを反映しました（${body.trim().length} → ${revised.trim().length} 文字）`);
+  return { content: rebuildWithBody(content, revised), applied: true, names };
+}
+
 // ── 新規記事を生成し、frontmatter を保証して返す（retry 付き）─────
 // 1. 本文生成（content-model）
 // 2. normalizeGeneratedDraft で frontmatter をシステム側から再構築
@@ -1231,6 +1303,19 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     }
   }
 
+  // ── 本文を見て、適用漏れの論点別ルール・参考資料を反映させる ──────
+  // 文字数調整まで終わった最終形に対して行う（ここで直した内容を
+  // 後続の再生成で上書きされないようにするため）。
+  let ruleFix = { applied: false };
+  try {
+    ruleFix = await applyMissingRulesToBody(normalized.content, topic, articleTypeForLen);
+    if (ruleFix.applied) {
+      normalized = { ...normalized, content: ruleFix.content };
+    }
+  } catch (e) {
+    console.warn(`[rules] ⚠ ルール反映の判定に失敗（${e.message}）→ そのまま続行します`);
+  }
+
   if (normalized.hadFrontmatter === false) {
     console.log('[generate] LLM出力に frontmatter が無かったため topic metadata から構築しました');
   }
@@ -1253,7 +1338,21 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   const rawTailCheck = checkBodyTailComplete(gen.raw);
 
   let content = normalized.content;
+  // ルール反映で本文長が変わっている可能性があるため測り直す。
+  if (ruleFix.applied) lenCheck = checkBodyLength(normalized.content, articleTypeForLen);
+
   const warnings = [];
+  // 本文に出てきた論点のルールを反映できなかった場合は、人が見て直せるように残す。
+  // 記事は捨てず、警告つきでレビューに回す。
+  if (ruleFix.failed) {
+    warnings.push(
+      `⚠ 本文に企画外の論点（${ruleFix.names}）があり、対応する最新ルールを自動反映できませんでした`
+      + ' — 該当箇所が現行制度に合っているか確認してください',
+    );
+  }
+  if (ruleFix.applied) {
+    console.log(`[rules] 反映済みルール: ${ruleFix.names}`);
+  }
   if (stopHitMaxTokens || disclaimerWasMissingInRaw || !rawTailCheck.ok) {
     const warnLines = [];
     if (stopHitMaxTokens)         warnLines.push(`stop_reason=${gen.stopReason}`);

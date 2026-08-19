@@ -18,7 +18,7 @@
 
 const {
   STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK,
-  DISCLAIMER_TEXT, selectConditionalRules,
+  DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 
@@ -168,6 +168,13 @@ function buildGenerationPrompt(args) {
 
   const staticSystem = STATIC_RULES;  // ← キャッシュ対象（固定）
   const conditionalRules = selectConditionalRules(topic);  // 該当する論点別ルールだけ
+  // 何が適用されたかを必ずログに残す。以前はログが無かったため、
+  // ルールが発火しなかったことに人の指摘があるまで気付けなかった（2026-08-19）。
+  if (conditionalRules.length) {
+    console.log(`[rules] 論点別ルールを適用: ${selectConditionalRuleEntries(topic).map(r => r.key).join(', ')}`);
+  } else {
+    console.log('[rules] 論点別ルール: 該当なし');
+  }
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
     pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules,
