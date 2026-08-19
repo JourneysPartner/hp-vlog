@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "企業案件を受けるYouTuberがインボイス未登録だと単価交渉の火種になる。登録後の消費税負担を抑える2割特例（〜令和8年分）・3割特例（令和9〜10年分、個人のみ）の活用も含めて解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-18T18:05:00.139+09:00"
 publish_at: "2026-08-19T17:50:00.000+09:00"
-published_at: ""
+published_at: "2026-08-19T18:01:31.212+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-18T00:05:48.891Z"
-updated_at: "2026-08-18T18:05:00.139+09:00"
+updated_at: "2026-08-19T18:01:31.212+09:00"
 publish_slot: "evening"
 ---
 企業案件のオファーが来たとき、「インボイスの登録番号を教えてください」と担当者から言われた経験はありませんか。あるいは、登録していないことを告げると報酬の金額が変わると聞いて、どう対処すればいいか迷っている方もいるかもしれません。

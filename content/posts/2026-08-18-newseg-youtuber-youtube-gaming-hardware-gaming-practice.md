@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "ゲーム実況用PC・ゲーム機は10万円未満なら全額経費、以上は減価償却が必要。青色申告者は令和8年4月1日以後の取得分から40万円未満に特例が拡充。趣味兼用は業務割合で按分。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-18T21:02:13.225+09:00"
 publish_at: "2026-08-19T17:10:00.000+09:00"
-published_at: ""
+published_at: "2026-08-19T18:01:31.212+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-18T00:07:17.225Z"
-updated_at: "2026-08-18T21:02:13.225+09:00"
+updated_at: "2026-08-19T18:01:31.212+09:00"
 publish_slot: "evening"
 ---
 ゲーム実況でYouTubeを始めたとき、真っ先に気になるのが機材費の扱いです。「買ったゲーム機やPCは全部経費にしていいの？」「趣味でも遊んでいるソフトは？」——確定申告の時期になって手が止まる方は少なくありません。
