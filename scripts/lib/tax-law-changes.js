@@ -35,6 +35,84 @@
  *     定額減税は令和6年（2024年）限定 → expired 扱い。
  */
 const CHANGES = [
+  // ── 令和8年度税制改正（令和7年12月26日閣議決定の大綱／国税庁の改正の概要）──
+  // 2026-08-20 に大綱・改正の概要の原文で確認して一括登録した。
+  // 国税庁のタックスアンサーは672件中665件が「令和7年4月1日現在法令等」のままで、
+  // 令和8年度改正がほとんど反映されていない。出典どおりに書くと古い内容になるため、
+  // 改正論点として明示的に持っておく。
+  {
+    key: 'r8_basic_deduction_and_dependent_threshold',
+    status: 'active',
+    title: '基礎控除の引上げと、扶養・同一生計配偶者の所得要件の引上げ（令和8年分以後）',
+    summary: '令和8年度税制改正で、合計所得金額2,350万円以下の個人の基礎控除が62万円に引き上げられた'
+      + '（大綱「合計所得金額が2,350万円以下である個人 62万円」）。'
+      + 'これに伴い「同一生計配偶者及び扶養親族の合計所得金額要件を62万円以下（現行：58万円以下）に引き上げる」'
+      + 'とされ、令和8年分以後の所得税について適用される。'
+      + '扶養に入れるかどうかの所得ラインは、令和7年分は58万円、令和8年分以後は62万円になる。'
+      + '「令和7年分以後は58万円」とだけ書くと令和8年分について誤りになるので注意すること。'
+      + 'なお配偶者特別控除の範囲（58万円超133万円以下）については大綱に記載が無いため、'
+      + '確認できない範囲を推測で書かないこと。',
+    tax_domain: 'income_tax',
+    personas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator',
+      'beauty_salon_owner', 'ebay_export_seller'],
+    reference: 'https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_01.htm',
+  },
+  {
+    key: 'r8_employment_income_deduction',
+    status: 'active',
+    title: '給与所得控除の最低保障額の引上げ（65万円→69万円・令和8年分以後）',
+    summary: '大綱「給与所得控除について、65万円の最低保障額を69万円に引き上げる」。令和8年分以後の所得税について適用。'
+      + 'さらに「令和8年及び令和9年における給与所得控除の最低保障額を5万円引き上げる特例」が創設された。'
+      + '給与所得者のいわゆる「103万円の壁」の計算根拠（給与所得控除の最低保障額＋基礎控除）が変わるため、'
+      + '古い数値のまま壁の金額を書かないこと。個人事業主は給与所得控除の対象外である点は従来どおり。',
+    tax_domain: 'income_tax',
+    personas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator',
+      'beauty_salon_owner', 'ebay_export_seller'],
+    reference: 'https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_01.htm',
+  },
+  {
+    key: 'r8_small_depreciable_assets',
+    status: 'active',
+    title: '少額減価償却資産の特例の拡充・延長（30万円未満→40万円未満・3年延長）',
+    summary: '国税庁の改正の概要「令和8年4月1日以後に取得等をする減価償却資産の取得価額基準が30万円未満のものから'
+      + '40万円未満のものに引き上げられ、その適用期限が3年延長されました（措法67の5①、改正法附則65）」。'
+      + '取得価額基準は「取得等をする日」で判定する（令和8年3月31日以前は30万円未満、同年4月1日以後は40万円未満）。'
+      + '年300万円の上限は据え置き。大綱に「（所得税についても同様とする。）」とあり個人事業者にも適用される。'
+      + 'タックスアンサー No.2100 / No.5408 は令和7年4月1日現在法令等のままで未反映のため、'
+      + 'その記載をそのまま書き写すと「令和8年3月31日まで・30万円未満」という失効済みの内容になる。',
+    tax_domain: 'bookkeeping_expenses',
+    personas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator',
+      'beauty_salon_owner', 'ebay_export_seller'],
+    reference: 'https://www.nta.go.jp/publication/pamph/hojin/kaisei_gaiyo2026/pdf/G.pdf',
+  },
+  {
+    key: 'r8_invoice_30pct_special',
+    status: 'active',
+    title: 'インボイスの3割特例の創設（個人事業者・令和9年分と令和10年分）',
+    summary: '令和8年度税制改正で、インボイス発行事業者の登録により免税事業者から課税事業者となった個人事業者について、'
+      + '令和9年分・令和10年分の消費税の納付税額を売上税額の3割とできる特例が創設された。法人は適用不可。'
+      + '2割特例は令和8年9月30日までの日の属する課税期間で終了する（個人事業者は令和8年分が最後）。'
+      + '「2割特例が終わったら簡易課税か本則課税だけ」と書かないこと。'
+      + '3割特例は事前の届出不要で、申告書の所定欄に適用を受ける旨を記載するだけで適用できる。',
+    tax_domain: 'invoice_system',
+    personas: ['domestic_ec_seller', 'reseller_marketplace_seller', 'influencer_creator',
+      'beauty_salon_owner', 'ebay_export_seller'],
+    reference: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice-review/index.htm',
+  },
+  {
+    key: 'r8_education_fund_gift_end',
+    status: 'transitional',
+    valid_to: '2026-03-31',
+    title: '教育資金の一括贈与の非課税措置が令和8年3月31日で終了（延長されない）',
+    summary: '大綱「直系尊属から教育資金の一括贈与を受けた場合の贈与税の非課税措置について、'
+      + '令和8年3月31日までとされている教育資金管理契約に基づく信託等可能期間を延長せずに終了することとし、'
+      + '同日までに拠出された金銭等については、引き続き本措置を適用できることとする」。'
+      + '新たに契約して非課税の適用を受けることはできなくなるが、同日までに拠出済みのものは引き続き適用される。'
+      + '「今から使える制度」として書かないこと。',
+    tax_domain: 'inheritance_tax',
+    personas: ['inheritance_client'],
+    reference: 'https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_02.htm',
+  },
   {
     key: 'invoice_transitional_measures',
     status: 'transitional',

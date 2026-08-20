@@ -132,13 +132,66 @@ console.log('=== Test 6: 新セグメントのペルソナ ===');
   const wrongDomain = getChangesForTopic({ tax_domain: 'inheritance_tax', persona: 'youtuber' }, 5);
   assert(wrongDomain.every(c => c.tax_domain === 'inheritance_tax'),
     '未知ペルソナでも税目の絞り込みは効く');
-  const noDomain = getChangesForTopic({ tax_domain: 'income_tax', persona: 'youtuber' }, 5);
-  assert(noDomain.length === 0,
-    '該当する現役の改正が無い税目では 0 件（期限切れは返らない）');
+  // 期限切れ（定額減税）が混ざらないこと。
+  // 令和8年度改正の登録で income_tax にも現役の改正が入ったため、
+  // 件数ではなく「expired が返らない」ことで判定する。
+  const incomeTax = getChangesForTopic({ tax_domain: 'income_tax', persona: 'youtuber' }, 5);
+  assert(incomeTax.every(c => c.status !== 'expired'),
+    '期限切れ（定額減税）は返らない');
+  assert(!incomeTax.some(c => /定額減税/.test(c.title)),
+    '定額減税が混ざらない');
 
   // 既知ペルソナの厳格な照合は維持される（従来の挙動を壊さない）
   assert(getChangesForTopic({ tax_domain: 'inheritance_tax', persona: 'beauty_salon_owner' }, 5).length === 0,
     '既知ペルソナは従来どおり厳格に照合される');
+}
+
+// -- 7. 令和8年度税制改正の一括登録 -----------------------------------
+// 2026-08-20: 大綱と国税庁の改正の概要から、当ブログが扱う領域の項目を登録した。
+console.log('');
+console.log('=== Test 7: 令和8年度税制改正の登録 ===');
+{
+  const byKey = Object.fromEntries(CHANGES.map(c => [c.key, c]));
+  const EXPECTED = [
+    'r8_basic_deduction_and_dependent_threshold',
+    'r8_employment_income_deduction',
+    'r8_small_depreciable_assets',
+    'r8_invoice_30pct_special',
+    'r8_education_fund_gift_end',
+  ];
+  for (const k of EXPECTED) {
+    assert(!!byKey[k], `登録されている: ${k}`);
+  }
+
+  // 扶養の所得ライン（公開済み記事が古い数値を書いていた論点）
+  const dep = byKey.r8_basic_deduction_and_dependent_threshold;
+  assert(/62万円以下（現行：58万円以下）/.test(dep.summary), '大綱の原文（62万円以下）を持っている');
+  assert(/令和8年分以後/.test(dep.summary), '適用年分が入っている');
+  assert(/推測で書かないこと/.test(dep.summary), '配偶者特別控除は推測で書かない注意がある');
+  assert(dep.tax_domain === 'income_tax', '税目は所得税');
+
+  // 少額減価償却資産
+  const dep2 = byKey.r8_small_depreciable_assets;
+  assert(/40万円未満/.test(dep2.summary) && /取得等をする日/.test(dep2.summary),
+    '40万円未満と取得等の日での判定');
+  assert(/令和7年4月1日現在法令等のまま/.test(dep2.summary),
+    'タックスアンサーが未反映である注意');
+
+  // 教育資金の一括贈与は期限つき
+  const edu = byKey.r8_education_fund_gift_end;
+  assert(edu.valid_to === '2026-03-31', '教育資金は valid_to が設定されている');
+  assert(edu.tax_domain === 'inheritance_tax', '税目は相続税');
+
+  // 実際にトピックへ届くこと
+  assert(getChangesForTopic({ tax_domain: 'income_tax', persona: 'youtuber' }, 3)
+    .some(c => c.key === 'r8_basic_deduction_and_dependent_threshold'),
+    '所得税の記事に扶養の所得ラインが届く');
+  assert(getChangesForTopic({ tax_domain: 'bookkeeping_expenses', persona: 'construction_solo' }, 3)
+    .some(c => c.key === 'r8_small_depreciable_assets'),
+    '帳簿経費の記事に少額減価償却が届く');
+  assert(getChangesForTopic({ tax_domain: 'inheritance_tax', persona: 'inheritance_client' }, 5)
+    .every(c => c.tax_domain === 'inheritance_tax'),
+    '相続の記事には相続の改正だけ');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
