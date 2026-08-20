@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "リース契約の経理処理は「売買処理」か「賃貸借処理」かで大きく異なります。中途解約不可・フルペイアウトの2要件を満たすと資産計上が必要になります。判断基準と仕訳の考え方を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-20T20:39:54.857+09:00"
+publish_at: "2026-08-21T11:17:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-20T00:06:06.571Z"
-updated_at: "2026-08-20T00:08:47.249Z"
+updated_at: "2026-08-20T20:39:54.857+09:00"
+publish_slot: "morning"
 ---
 コピー機や車、パソコンをリースで調達したとき、毎月のリース料を「そのまま経費にしていい」と思っていた方は少なくありません。しかし契約の内容によっては、リース料をそのまま費用にするのではなく、資産を購入したときと同じ処理が必要になります。
 
