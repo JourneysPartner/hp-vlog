@@ -26,11 +26,6 @@ preview_url: ""
 created_at: "2026-05-13T00:37:34.720Z"
 updated_at: "2026-08-20T07:30:54.609Z"
 publish_slot: "morning"
-source_provenance: "ultimate"
-source_confidence: 0
-source_guard_version: 1
-pain_point: ""
-tax_domain: ""
 ---
 フリマ・転売セラーの方で、「配偶者の年収が103万円以下なら、税金も社会保険も扶養に入れる」と思っていませんか。  
 よくある誤解ですが、<strong>令和8年現在でも、税法上の扶養と社会保険上の扶養は別制度</strong>です。個人事業主世帯では、国民健康保険・国民年金に会社員のような扶養の考え方は原則ありません。
