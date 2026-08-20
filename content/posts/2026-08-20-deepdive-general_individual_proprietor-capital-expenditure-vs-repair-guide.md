@@ -27,7 +27,7 @@ life_stage: ""
 pain_point: "capital-expenditure-vs-repair"
 procedure_stage: ""
 customer_segment: "general_business"
-customer_fit_score: 5
+customer_fit_score: 4
 search_intent_score: 5
 source_alignment_score: 3
 practical_usefulness_score: 5
