@@ -182,5 +182,58 @@ console.log('=== Test 6: 対応表の登録 ===');
   assert(Object.keys(promotions).length >= 60, `対応表が増えている（実: ${Object.keys(promotions).length}）`);
 }
 
+// -- 7. 承認ガードが確信度を渡すこと --------------------------------
+// 2026-08-20: source-guard.js が checkSourceAlignment を呼ぶときに
+// source_confidence を渡しておらず、frontmatter に 0.98 があるのに
+// 「確信度が不明」として必ずブロックされていた。
+console.log('');
+console.log('=== Test 7: 承認ガードの受け渡し ===');
+{
+  const sg = require(path.join(ROOT, 'scripts/lib/source-guard'));
+  const article = [
+    '---',
+    'title: "リース料は経費にできる？"',
+    'source_url: "' + LEASE + '"',
+    'source_title: "リース取引についての取扱いの概要"',
+    'source_provenance: "llm-auto"',
+    'source_confidence: 0.98',
+    'source_guard_version: 1',
+    'tax_domain: "bookkeeping_expenses"',
+    'pain_point: "lease-transaction"',
+    'review_status: "draft"',
+    '---',
+    '',
+    '## 本文',
+  ].join(String.fromCharCode(10));
+
+  const meta = sg.parseFrontmatterMeta(article);
+  assert(meta.source_confidence === 0.98, 'frontmatter から確信度を数値で読める');
+
+  for (const stage of ['validate', 'approve', 'publish']) {
+    const g = sg.evaluateSourceGuard(meta, { stage });
+    assert(g.blocked === false, `${stage}: ブロックされない`);
+  }
+
+  // 確信度が低ければ従来どおり止まる
+  const lowMeta = sg.parseFrontmatterMeta(article.replace('0.98', '0.6'));
+  const low = sg.evaluateSourceGuard(lowMeta, { stage: 'approve' });
+  assert(low.blocked === true, '確信度が低ければ承認は止まる');
+  assert(/確信度/.test((low.reasons || []).join(' ')), '理由に確信度が出る');
+
+  // 確信度そのものが無ければ止まる（安全側）
+  const noConf = sg.parseFrontmatterMeta(
+    article.replace('source_confidence: 0.98' + String.fromCharCode(10), ''));
+  assert(sg.evaluateSourceGuard(noConf, { stage: 'approve' }).blocked === true,
+    '確信度が無ければ承認は止まる');
+
+  // ガード対象フィールドは漏れなく渡すこと（この取りこぼしの再発防止）
+  const src = require('fs').readFileSync(path.join(ROOT, 'scripts/lib/source-guard.js'), 'utf8');
+  const call = (src.match(/checkSourceAlignment\(\{[\s\S]*?\}\)/) || [''])[0];
+  for (const f of ['source_url', 'source_title', 'source_provenance', 'source_confidence',
+    'pain_point', 'tax_domain']) {
+    assert(call.includes(f + ':'), `checkSourceAlignment に ${f} を渡している`);
+  }
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
