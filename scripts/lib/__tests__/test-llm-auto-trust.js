@@ -235,5 +235,29 @@ console.log('=== Test 7: 承認ガードの受け渡し ===');
   }
 }
 
+// -- 8. 品質ゲートは出典ガードの再判定結果を使う ----------------------
+// 2026-08-20: 出典ガードは今のルールで「問題なし」と判定するのに、
+// 品質ゲートが frontmatter の古い source_alignment_score(3) を読んで
+// 承認を拒否していた。同じ出典について矛盾した judgement になっていた。
+console.log('');
+console.log('=== Test 8: 品質ゲートの参照元 ===');
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(
+    path.join(ROOT, 'netlify/functions/review-approve-background.js'), 'utf8');
+
+  assert(/sourceGuard\s*&&\s*sourceGuard\.alignment/.test(src),
+    '出典ガードの再判定結果を参照している');
+  assert(/const alignmentScore =/.test(src), '判定に使うスコアを一本化している');
+  assert(/alignmentScore != null && alignmentScore <= 3/.test(src),
+    '再判定スコアで閾値判定している');
+  // frontmatter の値を直接読んで判定していないこと
+  assert(!/scores\.source_alignment_score != null && scores\.source_alignment_score <= 3/.test(src),
+    '古い保存値だけで拒否する分岐が残っていない');
+  // レガシー記事（alignment が null）では保存値にフォールバックすること
+  assert(/:\s*scores\.source_alignment_score/.test(src),
+    'ガードが判定できない記事では保存値にフォールバックする');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

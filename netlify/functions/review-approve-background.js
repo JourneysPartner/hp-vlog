@@ -139,7 +139,17 @@ exports.handler = async (event) => {
       if (recommendation === 'revise') reasons.push('recommendation が revise です');
       if (scores.customer_fit_score != null && scores.customer_fit_score <= 3) reasons.push(`顧客適合スコアが低い (${scores.customer_fit_score}/5)`);
       if (scores.search_intent_score != null && scores.search_intent_score <= 3) reasons.push(`検索意図スコアが低い (${scores.search_intent_score}/5)`);
-      if (scores.source_alignment_score != null && scores.source_alignment_score <= 3) reasons.push(`出典一致スコアが低い (${scores.source_alignment_score}/5)`);
+      // 出典一致スコアは、直前の出典ガードが今のルールで再判定した結果を優先する。
+      // frontmatter の値は生成時点のスナップショットで、出典の扱いを後から変えると
+      // 古いまま残る。出典ガードが「問題なし」と判定した記事を、同じ出典について
+      // 古いスコアで拒否するのは矛盾している（2026-08-20 に発生）。
+      const freshAlignment = sourceGuard && sourceGuard.alignment;
+      const alignmentScore = freshAlignment && typeof freshAlignment.score === 'number'
+        ? freshAlignment.score
+        : scores.source_alignment_score;
+      if (alignmentScore != null && alignmentScore <= 3) {
+        reasons.push(`出典一致スコアが低い (${alignmentScore}/5)`);
+      }
       if (reasons.length > 0) {
         console.warn(`[review-approve] 承認拒否(品質ゲート): ${filename} — ${reasons.join(' / ')}`);
         try {
