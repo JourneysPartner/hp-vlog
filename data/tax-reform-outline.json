@@ -1,0 +1,168 @@
+{
+  "year": 2026,
+  "checked_at": "2026-08-20T07:32:59.455Z",
+  "chapters": {
+    "01": {
+      "label": "個人所得課税",
+      "tax_domains": [
+        "income_tax"
+      ],
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_01.htm",
+      "chapter_title": "一個人所得課税",
+      "items": [
+        {
+          "no": "１",
+          "title": "物価上昇局面における基礎控除等の対応",
+          "status": "registered",
+          "note": "r8_basic_deduction_and_dependent_threshold / r8_employment_income_deduction（基礎控除62万円・扶養62万円・給与所得控除69万円）"
+        },
+        {
+          "no": "２",
+          "title": "住宅・土地税制",
+          "status": "not_applicable",
+          "note": "住宅ローン控除等。個人事業主の事業税務が主題の当ブログでは扱わない"
+        },
+        {
+          "no": "３",
+          "title": "金融・証券税制",
+          "status": "not_applicable",
+          "note": "NISA・株式等の譲渡課税。当ブログの読者テーマ外"
+        },
+        {
+          "no": "４",
+          "title": "租税特別措置等",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        },
+        {
+          "no": "５",
+          "title": "その他",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        }
+      ]
+    },
+    "02": {
+      "label": "資産課税",
+      "tax_domains": [
+        "inheritance_tax"
+      ],
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_02.htm",
+      "chapter_title": "二資産課税",
+      "items": [
+        {
+          "no": "１",
+          "title": "教育資金の一括贈与に係る贈与税の非課税措置",
+          "status": "registered",
+          "note": "r8_education_fund_gift_end（令和8年3月31日で信託等可能期間が終了）"
+        },
+        {
+          "no": "２",
+          "title": "租税特別措置等",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        },
+        {
+          "no": "３",
+          "title": "その他",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        }
+      ]
+    },
+    "03": {
+      "label": "法人課税",
+      "tax_domains": [
+        "bookkeeping_expenses",
+        "corporate_tax"
+      ],
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_03.htm",
+      "chapter_title": "三法人課税",
+      "items": [
+        {
+          "no": "１",
+          "title": "税制上の基準額の点検・見直し",
+          "status": "registered",
+          "note": "r8_small_depreciable_assets（少額減価償却資産 40万円未満・3年延長）"
+        },
+        {
+          "no": "２",
+          "title": "「強い経済」の実現に向けた対応",
+          "status": "not_applicable",
+          "note": "大規模な設備投資向けの特別償却・税額控除が中心。個人事業主の規模では該当しない"
+        },
+        {
+          "no": "３",
+          "title": "活力ある地方・中小企業の後押し",
+          "status": "not_applicable",
+          "note": "地方拠点強化税制等。当ブログの読者テーマ外"
+        },
+        {
+          "no": "４",
+          "title": "公平かつ円滑な納税のための環境整備",
+          "status": "not_applicable",
+          "note": "法人向けの申告・納税手続。個人事業主向けの記事では扱わない"
+        },
+        {
+          "no": "５",
+          "title": "その他の租税特別措置等",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        },
+        {
+          "no": "６",
+          "title": "その他",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        }
+      ]
+    },
+    "04": {
+      "label": "消費課税",
+      "tax_domains": [
+        "consumption_tax",
+        "invoice_system"
+      ],
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_04.htm",
+      "chapter_title": "四消費課税",
+      "items": [
+        {
+          "no": "１",
+          "title": "国境を越えた電子商取引に係る課税の見直し",
+          "status": "not_applicable",
+          "note": "特定少額資産販売事業者の登録制度。主に国外の販売事業者向けで、当ブログ読者（国内の個人事業主）への影響を確認できていない。国内セラーに影響が及ぶことが分かった時点で registered に切り替える"
+        },
+        {
+          "no": "２",
+          "title": "適格請求書等保存方式に係る経過措置の見直し",
+          "status": "registered",
+          "note": "r8_invoice_30pct_special（3割特例）＋ invoice_transitional_measures（7・5・3割控除）"
+        },
+        {
+          "no": "３",
+          "title": "自動車関係諸税の見直し",
+          "status": "not_applicable",
+          "note": "自動車税制。当ブログの読者テーマ外"
+        },
+        {
+          "no": "４",
+          "title": "国際観光旅客税の税率引上げ",
+          "status": "not_applicable",
+          "note": "出国税。当ブログの読者テーマ外"
+        },
+        {
+          "no": "５",
+          "title": "租税特別措置等",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        },
+        {
+          "no": "６",
+          "title": "その他",
+          "status": "not_applicable",
+          "note": "見出しが総称のため個別判断できない。中身に当ブログ関連の改正が入った場合は、その項目名で新規検出される"
+        }
+      ]
+    }
+  }
+}

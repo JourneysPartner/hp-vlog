@@ -1,0 +1,110 @@
+name: Check Tax Reform Outline
+
+# 税制改正の大綱（財務省）を監視し、未登録の改正項目を検出する。
+#   - 監視対象は 一 個人所得課税 / 二 資産課税 / 三 法人課税 / 四 消費課税 の4章のみ
+#   - 新規項目・未判断項目があれば通知し、スナップショットの変更は PR 化する
+#     （main 直 push はしない。crawl-nta-sources と同じ方針）
+#   - 登録そのものは人が行う。改正内容の要約を自動生成させない
+#
+# 背景: 令和8年度改正（3割特例・少額減価償却資産40万円・扶養の所得要件62万円）が
+# 国税庁のタックスアンサーに反映されず、古い内容の記事が生成された。
+# 大綱の側で改正を把握する必要がある。
+on:
+  schedule:
+    - cron: '0 16 5 * *'   # 毎月 5 日 JST 01:00（UTC 16:00）
+  workflow_dispatch:
+    inputs:
+      year:
+        description: '確認する年度（西暦。例: 2026 は令和8年度）'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine year
+        id: year
+        run: |
+          YEAR='${{ github.event.inputs.year }}'
+          if [ -z "$YEAR" ]; then YEAR=$(date -u +%Y); fi
+          echo "year=$YEAR" >> "$GITHUB_OUTPUT"
+          echo "確認する年度: $YEAR"
+
+      - name: Check outline
+        id: check
+        continue-on-error: true   # 抽出失敗でも通知まで進める
+        run: node scripts/check-tax-reform-outline.js --year "${{ steps.year.outputs.year }}" --update
+
+      - name: Detect snapshot change
+        id: diff
+        run: |
+          if git diff --quiet -- data/tax-reform-outline.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "スナップショットに変更なし"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "スナップショットに変更あり"
+          fi
+
+      - name: Open PR for snapshot change
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="chore/tax-reform-outline-${{ steps.year.outputs.year }}-$(date -u +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data/tax-reform-outline.json
+          git commit -m "chore: 税制改正の大綱スナップショットを更新（${{ steps.year.outputs.year }}年度）"
+          git push origin "$BRANCH"
+          {
+            echo '税制改正の大綱に変更を検出しました。'
+            echo
+            echo '新規・未判断の項目があれば、原文を確認して次のいずれかを行ってください。'
+            echo
+            echo '- 当ブログに関係する → `scripts/lib/tax-law-changes.js` または'
+            echo '  `scripts/lib/nta-reference-pages.js` に登録し、`status` を `registered` に'
+            echo '- 関係しない → `status` を `not_applicable` にし、`note` に理由を書く'
+            echo
+            echo '改正内容の要約は自動生成していません。原文を読んで登録してください。'
+            echo
+            echo '```'
+            echo "${{ steps.check.outputs.report }}"
+            echo '```'
+          } > /tmp/pr-body.md
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore: 税制改正の大綱に変更を検出（${{ steps.year.outputs.year }}年度）" \
+            --body-file /tmp/pr-body.md
+
+      - name: Notify
+        if: steps.check.outputs.added != '0' || steps.check.outputs.unregistered != '0' || steps.check.outputs.errors != '0'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          node scripts/notify.js \
+            --event "tax_reform_outline_changed" \
+            --title "税制改正の大綱に未登録の項目があります（${{ steps.year.outputs.year }}年度）" \
+            --comment "${{ steps.check.outputs.report }}" \
+          || echo "::warning::通知に失敗しました（処理は継続）"
+
+      - name: Fail if extraction broke
+        if: steps.check.outputs.errors != '0'
+        run: |
+          echo "::error::大綱の抽出に失敗しました。ページ構成が変わった可能性があります。"
+          echo "${{ steps.check.outputs.report }}"
+          exit 1
