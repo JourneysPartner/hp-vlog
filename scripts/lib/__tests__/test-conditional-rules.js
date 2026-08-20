@@ -214,5 +214,30 @@ console.log('=== Test 6: 少額減価償却資産の特例ルール ===');
     'eBay記事 → 非注入');
 }
 
+// -- 7. 扶養に入れる所得ライン（令和8年度税制改正）----------------------
+console.log('');
+console.log('=== Test 7: 扶養の所得ラインのルール ===');
+{
+  const fuyou = { title: '扶養から外れる？社会保険と税の違い', tax_domain: 'income_tax',
+    pain_point: 'social-insurance-misconception', search_intent: '扶養 130万円 配偶者控除' };
+  const rule = st.selectConditionalRules(fuyou).find(r => /扶養に入れる所得ライン/.test(r));
+  assert(!!rule, '扶養の記事 → ルールが注入される');
+  assert(/令和8年分以後　<strong>62万円以下<\/strong>/.test(rule || '')
+    || /令和8年分以後/.test(rule || '') && /62万円以下/.test(rule || ''),
+    '令和8年分以後は62万円以下');
+  assert(/令和7年分　　　<strong>58万円以下/.test(rule || '') || /令和7年分/.test(rule || ''),
+    '令和7年分は58万円以下（年分ごとに書き分けさせる）');
+  assert(/令和7年分以後は58万円/.test(rule || ''), '古い言い方が禁止例に入っている');
+  assert(/69万円/.test(rule || ''), '給与所得控除の最低保障額の変更も示す');
+  assert(/推測で書かないこと/.test(rule || ''), '配偶者特別控除は推測で書かない');
+  assert(/社会保険の被扶養者（130万円）はこの改正と無関係/.test(rule || ''),
+    '社会保険と混同しない注意がある');
+
+  assert(!st.selectConditionalRules(ebay).some(r => /扶養に入れる所得ライン/.test(r)),
+    'eBay記事 → 非注入');
+  assert(!st.selectConditionalRules(inh).some(r => /扶養に入れる所得ライン/.test(r)),
+    '相続記事 → 非注入');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
