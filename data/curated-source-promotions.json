@@ -46,5 +46,270 @@
   "social-insurance-misconception": {
     "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1190.htm",
     "title": "配偶者の所得がいくらまでなら配偶者控除が受けられるか"
+  },
+  "used-asset-useful-life": {
+    "no": "5404",
+    "title": "国税庁タックスアンサー No.5404 中古資産の耐用年数",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5404.htm"
+  },
+  "software-depreciation": {
+    "no": "5461",
+    "title": "国税庁タックスアンサー No.5461 ソフトウエアの取得価額と耐用年数",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5461.htm"
+  },
+  "lease-transaction": {
+    "no": "5702",
+    "title": "国税庁タックスアンサー No.5702 リース取引についての取扱いの概要(平成20年4月1日以後契約分)",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5702.htm"
+  },
+  "capital-expenditure-vs-repair": {
+    "no": "1379",
+    "title": "国税庁タックスアンサー No.1379 修繕費とならないものの判定",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm"
+  },
+  "acquisition-cost-inclusion": {
+    "no": "5400",
+    "title": "国税庁タックスアンサー No.5400 減価償却資産の取得価額に含めないことができる付随費用",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5400.htm"
+  },
+  "depreciation-method-change": {
+    "no": "5407",
+    "title": "国税庁タックスアンサー No.5407 減価償却資産の償却方法の変更手続",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5407.htm"
+  },
+  "book-only-input-tax-credit": {
+    "no": "6496",
+    "title": "国税庁タックスアンサー No.6496 仕入税額控除をするための帳簿及び請求書等の保存",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm"
+  },
+  "taxable-sales-ratio": {
+    "no": "6405",
+    "title": "国税庁タックスアンサー No.6405 課税売上割合の計算方法",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6405.htm"
+  },
+  "simplified-vs-standard-judgment": {
+    "no": "6505",
+    "title": "国税庁タックスアンサー No.6505 簡易課税制度",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm"
+  },
+  "entertainment-expense-deduction": {
+    "no": "5265",
+    "title": "国税庁タックスアンサー No.5265 交際費等の範囲と損金不算入額の計算",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5265.htm"
+  },
+  "registration-license-tax": {
+    "no": "2215",
+    "title": "国税庁タックスアンサー No.2215 固定資産税、登録免許税又は不動産取得税を支払った場合",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2215.htm"
+  },
+  "fixed-asset-tax": {
+    "no": "2215",
+    "title": "国税庁タックスアンサー No.2215 固定資産税、登録免許税又は不動産取得税を支払った場合",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2215.htm"
+  },
+  "real-estate-acquisition-tax": {
+    "no": "2215",
+    "title": "国税庁タックスアンサー No.2215 固定資産税、登録免許税又は不動産取得税を支払った場合",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2215.htm"
+  },
+  "creator-royalty-income": {
+    "no": "2795",
+    "title": "国税庁タックスアンサー No.2795 原稿料や講演料等を支払ったとき",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2795.htm"
+  },
+  "construction-progress-method": {
+    "no": "6161",
+    "title": "国税庁タックスアンサー No.6161 工事進行基準を用いているとき",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6161.htm"
+  },
+  "expense-family-salary": {
+    "no": "2075",
+    "title": "国税庁タックスアンサー No.2075 青色事業専従者給与と事業専従者控除",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm"
+  },
+  "book-retention-requirements": {
+    "no": "2080",
+    "title": "国税庁タックスアンサー No.2080 白色申告者の記帳・帳簿等保存制度",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  "small-depreciation-special": {
+    "no": "2100",
+    "title": "国税庁タックスアンサー No.2100 減価償却のあらまし",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
+  },
+  "lump-sum-depreciation-asset": {
+    "no": "2100",
+    "title": "国税庁タックスアンサー No.2100 減価償却のあらまし",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
+  },
+  "expense-suit-shoes": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-glasses-contacts": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-gym-fitness": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-health-checkup": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-seminar-books": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-home-office": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-solo-lunch": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-family-meal": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-car-related": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-travel-companion": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-mobile-internet": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-pc-smartphone": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-beauty-cosmetics": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-gift-condolence": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-wedding-cost": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-celebration-business": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-meeting-cafe": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-golf-entertainment": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-funeral": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-office-supply-snacks": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-decoration-plants": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-moving-cost": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-taxi-late-night": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-children-education": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-pet-cost": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-outsourcing-vs-salary": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-clothing-cosmetics-sns": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-security-camera": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-interview-location-fee": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-health-supplement": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-insurance-premium": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-professional-fee": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-corporate-conversion-consult": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+  },
+  "expense-subsidy-application": {
+    "no": "2210",
+    "title": "国税庁タックスアンサー No.2210 必要経費の知識",
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
   }
 }
