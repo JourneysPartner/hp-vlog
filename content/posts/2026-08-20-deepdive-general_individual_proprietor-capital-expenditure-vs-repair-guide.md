@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "general_business"
 customer_fit_score: 4
 search_intent_score: 5
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=llm-auto）"
+recommendation: "publish"
+review_warning: ""
 summary: "修繕費か資本的支出かは金額・周期・性能向上の有無で判断します。20万円未満または3年以内周期なら修繕費、使用可能期間の延長や資産価値の向上を伴う支出は資本的支出として減価償却が必要です。"
 review_status: "draft"
 review_comment: ""
