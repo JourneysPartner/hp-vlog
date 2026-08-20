@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "1人親方の確定申告では、売上・経費を記帳した帳簿と領収書・請求書などの証憑書類を7年または5年保存する義務があります。白色申告でも記帳は必須で、日々の取引を整理しておくことが申告の土台になります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-19T17:07:16.791+09:00"
 publish_at: "2026-08-20T11:55:00.000+09:00"
-published_at: ""
+published_at: "2026-08-20T12:01:47.831+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-19T00:05:46.169Z"
-updated_at: "2026-08-19T17:07:16.791+09:00"
+updated_at: "2026-08-20T12:01:47.831+09:00"
 publish_slot: "morning"
 ---
 
