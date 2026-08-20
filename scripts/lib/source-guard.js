@@ -81,6 +81,10 @@ function evaluateSourceGuard(meta = {}, options = {}) {
     source_url: meta.source_url || '',
     source_title: meta.source_title || '',
     source_provenance: meta.source_provenance || 'unknown',
+    // llm-auto の判定に確信度が要る。渡し忘れると「確信度が不明」として
+    // 必ずブロックされる（2026-08-20 に発生）。GUARDED_SOURCE_FIELDS に
+    // 含まれている項目は漏れなく渡すこと。
+    source_confidence: meta.source_confidence,
     pain_point: meta.pain_point || '',
     tax_domain: meta.tax_domain || '',
   });
