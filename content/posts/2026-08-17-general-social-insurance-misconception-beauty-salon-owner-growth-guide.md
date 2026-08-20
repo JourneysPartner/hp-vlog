@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "社会保険の扶養（年収130万円基準）と税の扶養（所得基準）は判定基準がまったく異なる。税の扶養は令和7年分58万円、令和8年分以後62万円。売上が伸びてきたサロンオーナーは両方を別々に確認する必要がある。"
-review_status: "draft"
+review_status: "published"
 review_comment: ""
 published_at: "2026-08-19T12:00:56.239+09:00"
 pr_number: ""
