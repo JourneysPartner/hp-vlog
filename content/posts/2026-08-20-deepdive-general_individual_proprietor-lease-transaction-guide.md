@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "general_business"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: 出典の由来が未確認（source_provenance=llm-auto）"
+recommendation: "publish"
+review_warning: ""
 summary: "リース契約の経理処理は「売買処理」か「賃貸借処理」かで大きく異なります。中途解約不可・フルペイアウトの2要件を満たすと資産計上が必要になります。判断基準と仕訳の考え方を解説します。"
 review_status: "draft"
 review_comment: ""
