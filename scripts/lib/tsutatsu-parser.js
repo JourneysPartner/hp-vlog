@@ -41,6 +41,10 @@ function stripTags(html) {
 }
 
 // 条番号として妥当な形か。
+// 相続税法基本通達は「・」で複数条にまたがり、「共」で共通関係を示す。
+//   1の2-1            通常形
+//   1の3・1の4共-1     第1条の3と第1条の4の共通関係
+//   2・2の2共-1        第2条と第2条の2の共通関係
 // 「の」は章・節・枝番のどこにも入りうる。
 //   37-13      所得税の一般形
 //   6-4-5      消費税の一般形
@@ -49,8 +53,7 @@ function stripTags(html) {
 //   7-6の2-1   節番号に「の」
 // 2026-08-21: 末尾の「の」しか許していなかったため、リース取引の条文を
 // 9条まるごと取りこぼしていた。各要素に「のN」を許す形に直す。
-const PROVISION_NO_RE = /^\d{1,3}(?:の\d{1,2})?(?:-\d{1,3}(?:の\d{1,2})?){1,3}$/;
-
+const PROVISION_NO_RE = /^\d{1,3}(?:の\d{1,2})?(?:・\d{1,3}(?:の\d{1,2})?)*共?(?:-\d{1,3}(?:の\d{1,2})?(?:・\d{1,3}(?:の\d{1,2})?)*共?){1,3}$/;
 function looksLikeProvisionNo(s) {
   return PROVISION_NO_RE.test(normalizeProvisionNo(s));
 }
@@ -114,7 +117,9 @@ function parseTsutatsuPage(html, opts = {}) {
 /** 目次ページから節ページの URL を集める */
 function parseIndexPage(html, circularKey, baseUrl) {
   const src = String(html || '');
-  const re = new RegExp(`href="([^"]*?/kihon/${circularKey}/[^"]*?\\.htm)"`, 'g');
+  // 相続税は 01/01.htm#a-1_1_2_1 のようにアンカー付きで並ぶため、
+  // アンカーを落として重複を潰す。
+  const re = new RegExp(`href="([^"]*?/kihon/${circularKey}/[^"]*?\\.htm)(?:#[^"]*)?"`, 'g');
   const seen = new Set();
   const urls = [];
   let m;

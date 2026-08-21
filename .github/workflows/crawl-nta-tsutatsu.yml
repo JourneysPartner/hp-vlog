@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: '対象を1つに絞る（shotoku / shohi / hojin）。空なら全部'
+        description: '対象を1つに絞る（shotoku / shohi / hojin / sozoku）。空なら全部'
         required: false
         type: string
 
@@ -26,7 +26,7 @@ permissions:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 60   # 約440ページ × 1req/sec ≈ 8分、余裕を持って
+    timeout-minutes: 60   # 約530ページ × 1req/sec ≈ 9分、余裕を持って
 
     steps:
       - uses: actions/checkout@v4
