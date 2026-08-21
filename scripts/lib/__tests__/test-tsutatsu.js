@@ -44,6 +44,10 @@ console.log('\n=== Test 1: 条番号の正規化 ===');
   assert(P.looksLikeProvisionNo('7-6の2-1'), '節番号に「の」');
   assert(P.looksLikeProvisionNo('1-2-3-4'), '4階層の番号');
   assert(!P.looksLikeProvisionNo('abc'), '文字列は条番号ではない');
+  // 相続税は「・」で複数条にまたがり、「共」で共通関係を示す。
+  assert(P.looksLikeProvisionNo('1の2-1'), '相基通の通常形');
+  assert(P.looksLikeProvisionNo('1の3・1の4共-1'), '「・」と「共」を含む番号');
+  assert(P.looksLikeProvisionNo('2・2の2共-1'), '「・」を含む番号');
   assert(!P.looksLikeProvisionNo(''), '空文字は条番号ではない');
 }
 
@@ -85,7 +89,7 @@ console.log('\n=== Test 2: ページ解析 ===');
 console.log('\n=== Test 3: カタログ ===');
 {
   const stats = T.catalogStats();
-  assert(stats.length >= 3, `所得税・消費税・法人税が取得済み（実: ${stats.length} 通達）`);
+  assert(stats.length >= 4, `4通達が取得済み（実: ${stats.length}）`);
   for (const s of stats) {
     assert(s.provisions > 100, `${s.label}: 条文が十分にある（${s.provisions} 条）`);
   }
@@ -195,8 +199,8 @@ console.log('=== Test 7: index の保全 ===');
   const index = JSON.parse(fs.readFileSync(
     path.join(ROOT, 'data/nta-tsutatsu/index.json'), 'utf8'));
   const keys = index.map(e => e.circular).sort();
-  assert(keys.includes('shotoku') && keys.includes('shohi') && keys.includes('hojin'),
-    `3通達すべてが index にある（実: ${keys.join(', ')}）`);
+  assert(['shotoku', 'shohi', 'hojin', 'sozoku'].every(k => keys.includes(k)),
+    `4通達すべてが index にある（実: ${keys.join(', ')}）`);
   assert(new Set(keys).size === keys.length, '同じ通達が重複していない');
   for (const e of index) {
     assert(fs.existsSync(path.join(ROOT, 'data/nta-tsutatsu', e.file)),
@@ -209,6 +213,56 @@ console.log('=== Test 7: index の保全 ===');
     '同じ通達の古い記録だけを差し替える実装になっている');
   assert(/JSON\.parse\(fs\.readFileSync\(indexPath/.test(src),
     '既存の index を読み込んでいる');
+}
+
+// -- 8. 相続税法基本通達 ----------------------------------------------
+// URL 階層・条番号の形式・目次のリンク形式が他の3通達と異なる。
+//   URL      /kihon/sisan/sozoku2/…（他は /kihon/<税目>/…）
+//   条番号   1の3・1の4共-1（「・」で複数条、「共」で共通関係）
+//   目次     節ページへのリンクにアンカーが付く（01/01.htm#a-1_1_2_1）
+console.log('');
+console.log('=== Test 8: 相続税法基本通達 ===');
+{
+  const cat = T.loadCatalog();
+  assert(!!cat.sozoku, 'カタログに相続税が入っている');
+  assert(Object.keys(cat.sozoku.provisions).length > 300,
+    `相続税の条文が十分にある（${cat.sozoku ? Object.keys(cat.sozoku.provisions).length : 0} 条）`);
+
+  const p = T.findProvision('1の3・1の4共-1');
+  assert(!!p, '相基通1の3・1の4共-1 が引ける');
+  assert(p.short === '相基通', '略称が相基通');
+  assert(/個人/.test(p.title), '見出しが取れている');
+  assert(!!T.findProvision('1の2-1'), '相基通1の2-1 が引ける');
+
+  const c = T.checkCitations('相基通1の3・1の4共-1により判定します。');
+  assert(c.citations.length === 1, `相続税の引用を検出（実: ${c.citations.length}）`);
+  assert(c.unknown.length === 0, '実在する相続税の引用は unknown にならない');
+  assert(T.checkCitations('相続税法基本通達99・99共-1を参照。').unknown.length === 1,
+    '存在しない相続税の番号を検出する');
+}
+
+// -- 9. カタログ全体の品質 --------------------------------------------
+console.log('');
+console.log('=== Test 9: 品質 ===');
+{
+  const fs = require('fs');
+  const index = JSON.parse(fs.readFileSync(
+    path.join(ROOT, 'data/nta-tsutatsu/index.json'), 'utf8'));
+  const NTA_PREFIX = 'https://www.nta.go.jp/';
+  let total = 0;
+  for (const e of index) {
+    const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/nta-tsutatsu', e.file), 'utf8'));
+    const ps = Object.values(d.provisions);
+    total += ps.length;
+    const noTitle = ps.filter(x => !x.title).length;
+    const noBody = ps.filter(x => !x.body || x.body.length < 20).length;
+    assert(noTitle === 0, `${e.label}: 見出しが空の条文が無い（${noTitle} 件）`);
+    assert(noBody <= Math.ceil(ps.length * 0.02),
+      `${e.label}: 本文が極端に短い条文が2%以下（${noBody}/${ps.length}）`);
+    assert(ps.every(x => x.url && x.url.startsWith(NTA_PREFIX)),
+      `${e.label}: すべての条文に国税庁の URL が付いている`);
+  }
+  assert(total > 3000, `カタログ全体で十分な条文数（${total} 条）`);
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

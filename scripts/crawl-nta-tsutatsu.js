@@ -50,6 +50,17 @@ const CIRCULARS = {
     short: '法基通',
     index: 'https://www.nta.go.jp/law/tsutatsu/kihon/hojin/01.htm',
   },
+  // 相続税は他の3通達と URL 階層も条番号の形式も違う。
+  //   URL      /kihon/sisan/sozoku2/…（他は /kihon/<税目>/…）
+  //   条番号   1の3・1の4共-1 のように「・」「共」が入る
+  //   目次     節ページへのリンクにアンカーが付く（01/01.htm#a-1_1_2_1）
+  // そのため linkKey を別に持たせる。
+  sozoku: {
+    label: '相続税法基本通達',
+    short: '相基通',
+    index: 'https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/01.htm',
+    linkKey: 'sisan',
+  },
 };
 
 const SLEEP_MS = 1000;   // 1 秒 1 リクエスト
@@ -73,7 +84,7 @@ function getArg(name) {
 async function crawlCircular(key, def, limit) {
   console.log(`\n=== ${def.label} ===`);
   const indexHtml = await fetchShiftJis(def.index);
-  let urls = parseIndexPage(indexHtml, key, def.index);
+  let urls = parseIndexPage(indexHtml, def.linkKey || key, def.index);
   if (limit) urls = urls.slice(0, limit);
   console.log(`  節ページ: ${urls.length} 件`);
 
