@@ -411,6 +411,60 @@ ${body}
   };
 }
 
+// ── LLM が「検討過程」を本文の前に書いてしまう事故への対策 ───────
+//
+// 2026-08-21: ルール自動反映の出力が次のように始まっていた。
+//   「差し戻しコメントで指摘された論点（…）を本文中で確認します。
+//     該当箇所：…　より精査すると…　最小限加筆します。」
+// これがそのまま記事の本文になった。
+//
+// 短縮ガードは縮んだときしか反応しないため、解説文が前に足されて
+// 「増えた」ケースは素通りしていた。
+//
+// 記事の本文に絶対に現れない、作業指示側の語彙。
+// 改行の分割用。エスケープ記法を避けて文字コードから組み立てる。
+const NEWLINE_RE = new RegExp(String.fromCharCode(13) + '?' + String.fromCharCode(10));
+
+const INTERNAL_PROCESS_WORDS = [
+  '差し戻しコメント', '論点別ルール', '参考資料に照らして', '最小限加筆',
+  '最小限修正します', '誤記パターン', 'より精査すると', '本文中で確認します',
+  '該当箇所：', '該当箇所:', '添付資料', '出典本文ブロック',
+];
+
+/**
+ * 本文に作業指示側の語彙が混入していないか調べる。
+ * @returns {{contaminated: boolean, words: string[]}}
+ */
+function findInternalProcessWords(body) {
+  const s = String(body || '');
+  const words = INTERNAL_PROCESS_WORDS.filter(w => s.includes(w));
+  return { contaminated: words.length > 0, words };
+}
+
+/**
+ * LLM が本文の前に付けた検討過程を取り除く。
+ *
+ * 元本文の書き出し（先頭の非空行）が、出力の途中から始まっている場合は
+ * その前を捨てる。書き出しが見つからない場合は何もしない
+ * （本文を作り替えている可能性があり、切り取ると壊すため）。
+ */
+function stripAnalysisPreamble(originalBody, revisedBody) {
+  const orig = String(originalBody || '').trim();
+  const rev = String(revisedBody || '').trim();
+  if (!orig || !rev) return { body: rev, stripped: '' };
+
+  const firstLine = (orig.split(NEWLINE_RE).find(l => l.trim().length > 0) || '').trim();
+  if (firstLine.length < 12) return { body: rev, stripped: '' };
+
+  const idx = rev.indexOf(firstLine);
+  if (idx <= 0) return { body: rev, stripped: '' };
+
+  const prefix = rev.slice(0, idx);
+  // 前置きが長すぎる場合は、本文を作り替えている可能性があるので触らない。
+  if (prefix.length > orig.length * 0.5) return { body: rev, stripped: '' };
+  return { body: rev.slice(idx).trim(), stripped: prefix.trim() };
+}
+
 // ── セーフティチェック: LLM 出力が元本文より極端に短くないか ─────
 // targeted scope は本文全体を入出力するため、LLM が混乱して本文を
 // 大幅に削減/置換するリスクがある。新本文の長さが元の MIN_RATIO
@@ -459,6 +513,9 @@ module.exports = {
   buildTargetedPrompt,
   buildTargetedPromptRetry,
   isBodyShrinkageSuspicious,
+  findInternalProcessWords,
+  stripAnalysisPreamble,
+  INTERNAL_PROCESS_WORDS,
   normalizeForSectionMatch,
   fuzzyMatchRatio,
 };

@@ -141,5 +141,67 @@ console.log('\n=== Test 6: 組み込み ===');
   assert(/\[rules\] 論点別ルール: 該当なし/.test(builder), '該当なしもログに出す');
 }
 
+// -- 7. LLM の検討過程が本文に混入するのを防ぐ ------------------------
+// 2026-08-21: ルール自動反映の出力が「差し戻しコメントで指摘された論点を
+// 本文中で確認します。該当箇所：… 最小限加筆します。」で始まり、
+// それがそのまま記事の本文になった（403文字）。
+// 短縮ガードは縮んだときしか反応せず、前置きが足されて増えた場合は素通りした。
+console.log('');
+console.log('=== Test 7: 検討過程の混入 ===');
+{
+  const partial = require(path.join(ROOT, 'scripts/lib/partial-revise'));
+  const NL = String.fromCharCode(10);
+  const lead = 'レジで印刷するレシートは、これまでと同じ内容のままで本当に大丈夫なのか。';
+  const origBody = [lead, '', '## 見出し', '本文です。'.repeat(300)].join(NL);
+  const preamble = [
+    '差し戻しコメントで指摘された論点（特定期間の判定に関する記述）を本文中で確認します。',
+    '',
+    '該当箇所：「3割特例」の要件説明の中の以下の記述',
+    '',
+    'より精査すると、問題は…最小限加筆します。',
+    '',
+    '---',
+    '',
+  ].join(NL);
+
+  // 前置きを取り除ける
+  const r = partial.stripAnalysisPreamble(origBody, preamble + origBody);
+  assert(r.stripped.length > 0, '前置きを検出して除去する');
+  assert(r.body === origBody, '本文はそのまま保たれる');
+  assert(r.body.startsWith(lead), '元の書き出しから始まる');
+
+  // 変更が無ければ何もしない
+  const same = partial.stripAnalysisPreamble(origBody, origBody);
+  assert(same.stripped === '' && same.body === origBody, '前置きが無ければ触らない');
+
+  // 本文を作り替えている場合は触らない（切り取って壊さない）
+  const rewritten = '全く別の本文です。'.repeat(50);
+  assert(partial.stripAnalysisPreamble(origBody, rewritten).stripped === '',
+    '書き出しが見つからなければ切り取らない');
+
+  // 作業指示側の語彙を検出できる
+  const c1 = partial.findInternalProcessWords(preamble + origBody);
+  assert(c1.contaminated, '内部用語の混入を検出する');
+  assert(c1.words.includes('差し戻しコメント'), '「差し戻しコメント」を検出');
+  assert(c1.words.includes('該当箇所：'), '「該当箇所：」を検出');
+  assert(!partial.findInternalProcessWords(origBody).contaminated,
+    '正常な本文では検出しない');
+  assert(!partial.findInternalProcessWords(r.body).contaminated,
+    '除去後は汚染なし');
+
+  // 呼び出し側に組み込まれている
+  const src = require('fs').readFileSync(path.join(ROOT, 'scripts/generate-draft.js'), 'utf8');
+  assert(/partial\.stripAnalysisPreamble\(body, revised\)/.test(src),
+    'ルール自動反映で前置きを除去している');
+  assert(/partial\.findInternalProcessWords\(revised\)/.test(src),
+    'ルール自動反映で混入を検査している');
+  assert(/sanitizeRevisedBody\(body, postProcessBodyOnly/.test(src),
+    '差し戻し再生成でも同じ処理をかけている');
+  assert(/検討の過程・確認結果・修正方針の説明を本文に書かない/.test(src),
+    '指示文で検討過程を書かないよう明示している');
+  assert(!/該当箇所が最新の制度に合っているか確認し/.test(src),
+    '「確認し」という誘発しやすい指示が残っていない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
