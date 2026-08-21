@@ -146,5 +146,45 @@ console.log('=== Test 6: 少額減価償却資産の特例 ===');
   assert(isDeniedSource(pages[0].url), '出典としては拒否される');
 }
 
+// -- 7. 法令解釈通達の登録 --------------------------------------------
+// 2026-08-20〜21 に通達の誤りが2日続いた。
+//   所基通37-14 を「按分が必要」と書いた（実際は継続適用が条件の任意の取扱い）
+//   商品券の「発行」を非課税と書いた（実際は不課税。消基通6-4-5）
+// タックスアンサーに書かれていない論点で、LLM が記憶で補っていた。
+console.log('');
+console.log('=== Test 7: 通達の登録 ===');
+{
+  // 商品券の記事 → 消費税法基本通達
+  const gift = { title: '商品券・ギフトカードで代金を受け取ったとき', tax_domain: 'consumption_tax',
+    pain_point: 'retail-gift-certificate' };
+  const gp = ref.findReferencePages(gift);
+  assert(gp.some(p => p.key === 'shohi_tsutatsu_bukkin_kitte'), '商品券記事 → 消基通が該当');
+  const gb = ref.buildReferencePagesBlock(gift);
+  assert(/資産の譲渡等の対価に該当しない/.test(gb), '6-4-5 の原文が入っている');
+  assert(/不課税（課税対象外）/.test(gb), '発行は不課税と明示');
+  assert(/発行の根拠に引かないこと/.test(gb), 'No.6229 を発行の根拠に引かない注意');
+
+  // 修繕費の記事 → 所得税基本通達
+  const rep = { title: '修繕費か資本的支出か？', tax_domain: 'bookkeeping_expenses',
+    pain_point: 'capital-expenditure-vs-repair' };
+  const rp = ref.findReferencePages(rep);
+  assert(rp.some(p => p.key === 'shotoku_tsutatsu_shihonteki_shishutsu'), '修繕費記事 → 所基通が該当');
+  const rb = ref.buildReferencePagesBlock(rep);
+  assert(/60万円・10%の形式基準は37-13であって37-14ではない/.test(rb),
+    '形式基準の条番号（37-13）を明示');
+  assert(/任意の取扱い/.test(rb) && /義務ではない/.test(rb), '37-14 が任意である旨');
+  assert(/按分が必要」と書かないこと/.test(rb), '「必要」と書かない注意');
+
+  // 通達も主出典には採用しない
+  const { isDeniedSource } = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
+  for (const p of [...gp, ...rp]) {
+    assert(isDeniedSource(p.url), `${p.key}: 主出典には採用されない`);
+  }
+
+  // 無関係な記事には出さない
+  assert(ref.findReferencePages({ title: '扶養と社会保険', tax_domain: 'income_tax',
+    pain_point: 'social-insurance-misconception' }).length === 0, '社会保険記事には出さない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
