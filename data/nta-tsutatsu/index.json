@@ -1,14 +1,14 @@
 [
   {
-    "circular": "shotoku",
-    "label": "所得税基本通達",
-    "short": "所基通",
-    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
-    "file": "shotoku.json",
-    "section_pages": 82,
-    "provision_count": 572,
+    "circular": "hojin",
+    "label": "法人税基本通達",
+    "short": "法基通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/hojin/01.htm",
+    "file": "hojin.json",
+    "section_pages": 257,
+    "provision_count": 1310,
     "errors": 0,
-    "fetched_at": "2026-08-21T07:38:46.191Z"
+    "fetched_at": "2026-08-21T08:05:37.880Z"
   },
   {
     "circular": "shohi",
@@ -19,6 +19,17 @@
     "section_pages": 100,
     "provision_count": 645,
     "errors": 0,
-    "fetched_at": "2026-08-21T07:40:37.920Z"
+    "fetched_at": "2026-08-21T08:00:57.237Z"
+  },
+  {
+    "circular": "shotoku",
+    "label": "所得税基本通達",
+    "short": "所基通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
+    "file": "shotoku.json",
+    "section_pages": 82,
+    "provision_count": 623,
+    "errors": 0,
+    "fetched_at": "2026-08-21T07:59:06.805Z"
   }
 ]
