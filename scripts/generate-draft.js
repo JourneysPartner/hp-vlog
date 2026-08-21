@@ -11,6 +11,7 @@ const { selectDailyTopics } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
+const { checkCitations, buildProvisionBlock } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
   findUnappliedReferencePages, formatReferencePages } = require('./lib/nta-reference-pages');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
@@ -1191,12 +1192,30 @@ async function applyMissingRulesToBody(content, topic, articleType) {
   const { meta, body } = parseFrontmatter(content);
   const missingRules = findUnappliedRules(topic, body);
   const missingRefs  = findUnappliedReferencePages(topic, body);
-  if (missingRules.length === 0 && missingRefs.length === 0) return { content, applied: false };
+
+  // 本文が引いている通達の原文を添える。
+  // 番号が正しくても内容の性質を取り違える誤りがあったため
+  // （2026-08-20: 所基通37-14 は任意の取扱いなのに「按分が必要」と書いた）、
+  // 原文を見せて記述が合っているか確かめさせる。
+  const cited = checkCitations(body);
+  const known = cited.citations.filter(c => c.found);
+  const provisionBlock = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
+
+  if (missingRules.length === 0 && missingRefs.length === 0 && cited.citations.length === 0) {
+    return { content, applied: false };
+  }
 
   const names = [
     ...missingRules.map(r => r.key),
     ...missingRefs.map(r => r.key),
+    ...cited.citations.map(c => c.matched),
   ].join(', ');
+  if (cited.unknown.length) {
+    console.warn(`[rules] ⚠ カタログに無い通達番号: ${cited.unknown.map(u => u.matched).join(', ')}`);
+  }
+  if (known.length) {
+    console.log(`[rules] 通達の原文を添付: ${known.map(c => c.matched).join(', ')}`);
+  }
   console.warn(`[rules] ⚠ 本文に企画メタで予測できなかった論点あり → 反映させます: ${names}`);
 
   const RULE_SEP = `
@@ -1215,6 +1234,21 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
     '添付した論点別ルールと参考資料に合っていない記述があれば、その箇所だけを最小限修正してください。',
     'すでに正しい場合は、本文を一切変更せずそのまま全文出力してください。',
     '添付資料に書かれていないことを補って書かないでください。',
+    // 通達は「〜を認めるものとする」という書き方が多く、任意の取扱いを
+    // 義務のように書き換える誤りが起きた（2026-08-20 所基通37-14）。
+    // 原文を添えたうえで、記述が原文と合っているかを直させる。
+    ...(provisionBlock ? [
+      '添付した通達の原文と、本文の記述が食い違っていないか見てください。',
+      'とくに「〜が必要」「〜しなければならない」と書いている箇所が、',
+      '原文では「〜することができる」「〜を認めるものとする」という',
+      '任意の取扱いになっていないかを確かめ、食い違っていれば直してください。',
+    ] : []),
+    ...(cited.unknown.length ? [
+      `本文の「${cited.unknown.map(u => u.matched).join('」「')}」は、`,
+      '国税庁の通達カタログに存在しない条番号です。',
+      '正しい番号が分からない場合は、条番号を書かずに内容だけを記述してください。',
+      '推測で別の番号に置き換えないでください。',
+    ] : []),
     // 2026-08-21: 「確認し」と書いたため、LLM が確認作業そのものを文章にして
     // 本文の先頭に書き、それが記事として公開されかけた。
     // 出力は記事の本文だけであることを明示する。
@@ -1224,7 +1258,7 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
     '本文は元の書き出しからそのまま始めてください。',
   ].join('');
 
-  const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${rulesBlock}`);
+  const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${provisionBlock}${rulesBlock}`);
   let revised;
   try {
     revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
@@ -1443,7 +1477,7 @@ function parseFrontmatter(raw) {
 // 渡していなかった頃は、差し戻しても LLM が記憶で書き直すため
 // 同じ誤りが残り続けた（2026-08-14〜17 に4件）。
 // full / section / targeted のどの経路でも同じブロックを使う。
-function buildRegenSourceBlocks(meta = {}) {
+function buildRegenSourceBlocks(meta = {}, body = '') {
   const topicLike = {
     slug: meta.slug, title: meta.title, category: meta.category,
     tax_domain: meta.tax_domain, pain_point: meta.pain_point,
@@ -1492,8 +1526,21 @@ ${rules.join(RULE_SEP)}`
     const f = findNonTaxSource(topicLike);
     console.log(`[regenerate] 税以外の出典を添付: ${f.label}（${f.agency}）`);
   }
-  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock,
-    combined: `${sourceBody}${nonTax}${refPages}${changesBlock}${rulesBlock}` };
+  // 本文が引いている通達の原文。差し戻し再生成でも、記述が原文と
+  // 合っているか確かめられるようにする。
+  let provisions = '';
+  if (body) {
+    const cited = checkCitations(body);
+    const known = cited.citations.filter(c => c.found);
+    provisions = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
+    if (known.length) console.log(`[regenerate] 通達の原文を添付: ${known.map(c => c.matched).join(', ')}`);
+    if (cited.unknown.length) {
+      console.warn(`[regenerate] ⚠ カタログに無い通達番号: ${cited.unknown.map(u => u.matched).join(', ')}`);
+    }
+  }
+
+  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions,
+    combined: `${sourceBody}${nonTax}${refPages}${provisions}${changesBlock}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
@@ -1511,7 +1558,8 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
     ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
     : '- source_url / source_title は空文字のまま出力してください';
 
-  const { sourceBody: regenSourceBody, nonTax: regenNonTax } = buildRegenSourceBlocks(meta);
+  const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions } =
+    buildRegenSourceBlocks(meta, existingBody);
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
@@ -1552,7 +1600,7 @@ ${checklist.map((item, i) => `${i + 1}. ${item}`).join('\n')}
 タックスアンサー番号は正確に記載し、不確かな場合は番号を省略すること。
 出典の単なる言い換えや原則だけで終わることは禁止。
 ${sourceInstruction}
-${regenSourceBody}${regenNonTax}
+${regenSourceBody}${regenNonTax}${regenProvisions}
 
 ═══ コンテンツ構成ルール ═══
 - 結論ファースト: 冒頭で結論を1〜2文で示す
@@ -1784,7 +1832,7 @@ async function enforceTitleBannedPhrases(content, comment) {
 async function regenerateSection(existingContent, comment, classification) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
-  const { combined: srcBlock } = buildRegenSourceBlocks(meta);
+  const { combined: srcBlock } = buildRegenSourceBlocks(meta, body);
 
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
@@ -1846,7 +1894,7 @@ async function regenerateTargeted(existingContent, comment) {
   const origLen = body.trim().length;
 
   // 1 回目: 通常プロンプト
-  const { combined: srcBlock } = buildRegenSourceBlocks(meta);
+  const { combined: srcBlock } = buildRegenSourceBlocks(meta, body);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
   let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000);
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
