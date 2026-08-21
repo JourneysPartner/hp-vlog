@@ -1,0 +1,95 @@
+name: Crawl NTA Tsutatsu
+
+# 法令解釈通達（基本通達）を取得してカタログを更新する。
+#   - 月次自動 + 手動実行
+#   - 変更があれば main へ自動 PR 化（main 直 push はしない）
+#   - 取得エラーがあれば失敗させる
+#
+# 背景（2026-08-20〜21）: 通達に関する誤りが2日続けて出た。
+#   所基通37-14 を「按分が必要」と書いた（実際は継続適用が条件の任意の取扱い）
+#   商品券の「発行」を非課税と書いた（実際は不課税。消基通6-4-5）
+# タックスアンサー番号はカタログで照合できるが、通達番号は照合できなかった。
+on:
+  schedule:
+    - cron: '0 16 8 * *'   # 毎月 8 日 JST 01:00（UTC 16:00）
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '対象を1つに絞る（shotoku / shohi）。空なら全部'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # 約180ページ × 1req/sec ≈ 3分、余裕を持って
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Crawl
+        id: crawl
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.only }}" ]; then
+            ARGS="--only ${{ github.event.inputs.only }}"
+          fi
+          node scripts/crawl-nta-tsutatsu.js $ARGS
+
+      - name: Verify catalog
+        run: node scripts/lib/__tests__/test-tsutatsu.js
+
+      - name: Detect change
+        id: diff
+        run: |
+          if git diff --quiet -- data/nta-tsutatsu; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "変更なし"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- data/nta-tsutatsu
+          fi
+
+      - name: Open PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="chore/nta-tsutatsu-$(date -u +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data/nta-tsutatsu
+          git commit -m "chore: 法令解釈通達のカタログを更新（${{ steps.crawl.outputs.provisions }} 条）"
+          git push origin "$BRANCH"
+          {
+            echo '法令解釈通達のカタログに変更を検出しました。'
+            echo
+            echo "- 収録条文: ${{ steps.crawl.outputs.provisions }} 条"
+            echo
+            echo '通達の改正があった可能性があります。差分を確認してください。'
+            echo '記事が引用している条文が変わっていないかは、レビュー時にご確認ください。'
+          } > /tmp/pr-body.md
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore: 法令解釈通達のカタログを更新" \
+            --body-file /tmp/pr-body.md
+
+      - name: Notify
+        if: steps.diff.outputs.changed == 'true' || steps.crawl.outputs.errors != '0'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          node scripts/notify.js \
+            --event "tsutatsu_catalog_updated" \
+            --title "法令解釈通達のカタログを更新しました" \
+            --comment "収録 ${{ steps.crawl.outputs.provisions }} 条 / 取得エラー ${{ steps.crawl.outputs.errors }} 件" \
+          || echo "::warning::通知に失敗しました（処理は継続）"
