@@ -301,6 +301,21 @@ function selfCheckContent(content, articleType, slug) {
   const body = m ? m[1] : content;
   const warnings = [];
 
+  // 通達の引用がカタログに実在するか照合する。
+  // タックスアンサー番号は捏造防止の仕組みがあるが、通達番号は
+  // 照合できず、1つ間違えても検出されないまま公開されていた
+  // （2026-08-20 所基通37-14 / 2026-08-21 消基通6-4-5）。
+  try {
+    const { checkCitations } = require('./lib/nta-tsutatsu');
+    const { unknown } = checkCitations(body);
+    if (unknown.length > 0) {
+      const list = [...new Set(unknown.map(u => u.matched))].join(', ');
+      warnings.push(`通達番号がカタログに無い: ${list} — 番号が正しいか確認してください`);
+    }
+  } catch (e) {
+    console.warn(`[self-check] 通達の照合に失敗（${e.message}）→ 照合をスキップ`);
+  }
+
   const h2Count = (body.match(/^## /gm) || []).length;
   if (h2Count < 3) {
     warnings.push(`h2見出しが${h2Count}個（3個以上推奨）`);

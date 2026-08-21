@@ -1,0 +1,24 @@
+[
+  {
+    "circular": "shotoku",
+    "label": "所得税基本通達",
+    "short": "所基通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
+    "file": "shotoku.json",
+    "section_pages": 82,
+    "provision_count": 572,
+    "errors": 0,
+    "fetched_at": "2026-08-21T07:38:46.191Z"
+  },
+  {
+    "circular": "shohi",
+    "label": "消費税法基本通達",
+    "short": "消基通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01.htm",
+    "file": "shohi.json",
+    "section_pages": 100,
+    "provision_count": 645,
+    "errors": 0,
+    "fetched_at": "2026-08-21T07:40:37.920Z"
+  }
+]
