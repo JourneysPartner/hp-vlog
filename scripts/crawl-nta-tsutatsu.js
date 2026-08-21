@@ -29,8 +29,11 @@ const {
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'data', 'nta-tsutatsu');
 
-// 対象。まず所得税・消費税から始める（読者が個人事業主中心のため）。
-// 問題なく取得できたら法人税・相続税を追加する。
+// 対象。所得税・消費税から始め、問題なく取得できたので法人税を追加した。
+// 法人税基本通達は、リース取引・中古資産の耐用年数など「法人税の通達しか
+// 存在しない論点」を個人事業者向けの記事で引くときに必要になる
+// （例: リースのタックスアンサーは No.5700〜5705 の法人税しかない）。
+// 相続税法基本通達は目次の構造が他と異なるため別途対応する。
 const CIRCULARS = {
   shotoku: {
     label: '所得税基本通達',
@@ -41,6 +44,11 @@ const CIRCULARS = {
     label: '消費税法基本通達',
     short: '消基通',
     index: 'https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01.htm',
+  },
+  hojin: {
+    label: '法人税基本通達',
+    short: '法基通',
+    index: 'https://www.nta.go.jp/law/tsutatsu/kihon/hojin/01.htm',
   },
 };
 
@@ -110,7 +118,13 @@ async function main() {
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const index = [];
+  // --only で1つだけ取得したときに、他の通達の記録を消さないよう既存を読む。
+  const indexPath = path.join(OUT_DIR, 'index.json');
+  let index = [];
+  try {
+    index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+    if (!Array.isArray(index)) index = [];
+  } catch (_error) { index = []; }
   let totalErrors = 0;
 
   for (const [key, def] of targets) {
@@ -136,6 +150,8 @@ async function main() {
       provisions: byNo,
     }, null, 2)}\n`, 'utf8');
 
+    // 同じ通達の古い記録は差し替える
+    index = index.filter(e => e.circular !== key);
     index.push({
       circular: key,
       label: def.label,
@@ -150,7 +166,7 @@ async function main() {
     console.log(`  → ${path.relative(ROOT, bodyPath)}（${Object.keys(byNo).length} 条）`);
   }
 
-  const indexPath = path.join(OUT_DIR, 'index.json');
+  index.sort((a, b) => a.circular.localeCompare(b.circular));
   fs.writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`, 'utf8');
   console.log(`\n[tsutatsu] 目次: ${path.relative(ROOT, indexPath)}`);
 

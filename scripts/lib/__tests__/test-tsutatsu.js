@@ -37,6 +37,14 @@ console.log('\n=== Test 1: 条番号の正規化 ===');
   assert(P.looksLikeProvisionNo('37-14の2'), '37-14の2 は条番号');
   assert(!P.looksLikeProvisionNo('2026'), '年号は条番号ではない');
   assert(!P.looksLikeProvisionNo('37'), '枝番が無いものは条番号としない');
+
+  // 2026-08-21: 「の」を末尾にしか許しておらず、章・節番号に「の」が入る
+  // 条文を181条まるごと取りこぼしていた（法人税のリース取引など）。
+  assert(P.looksLikeProvisionNo('12の5-1-1'), '章番号に「の」（法基通のリース取引）');
+  assert(P.looksLikeProvisionNo('7-6の2-1'), '節番号に「の」');
+  assert(P.looksLikeProvisionNo('1-2-3-4'), '4階層の番号');
+  assert(!P.looksLikeProvisionNo('abc'), '文字列は条番号ではない');
+  assert(!P.looksLikeProvisionNo(''), '空文字は条番号ではない');
 }
 
 // ── 2. ページ解析 ──────────────────────────────────────────────
@@ -77,7 +85,7 @@ console.log('\n=== Test 2: ページ解析 ===');
 console.log('\n=== Test 3: カタログ ===');
 {
   const stats = T.catalogStats();
-  assert(stats.length >= 2, `所得税・消費税が取得済み（実: ${stats.length} 通達）`);
+  assert(stats.length >= 3, `所得税・消費税・法人税が取得済み（実: ${stats.length} 通達）`);
   for (const s of stats) {
     assert(s.provisions > 100, `${s.label}: 条文が十分にある（${s.provisions} 条）`);
   }
@@ -134,6 +142,73 @@ console.log('\n=== Test 5: プロンプト用ブロック ===');
   assert(/任意の取扱い/.test(block), '任意の取扱いである旨の注意');
   assert(T.buildProvisionBlock([]) === '', '空配列なら空文字');
   assert(T.buildProvisionBlock(['99-99-99']) === '', '存在しない番号だけなら空文字');
+}
+
+// -- 6. 法人税基本通達 ------------------------------------------------
+// リース取引・中古資産の耐用年数など「法人税の通達しか存在しない論点」を
+// 個人事業者向けの記事で引くことがあるため追加した。
+console.log('');
+console.log('=== Test 6: 法人税基本通達 ===');
+{
+  const cat = T.loadCatalog();
+  assert(!!cat.hojin, 'カタログに法人税が入っている');
+  assert(Object.keys(cat.hojin.provisions).length > 500,
+    `法人税の条文が十分にある（${cat.hojin ? Object.keys(cat.hojin.provisions).length : 0} 条）`);
+
+  // 所得税と対になる条文（同じ論点の法人税版）
+  const p = T.findProvision('7-8-4');
+  assert(!!p, '法基通7-8-4（形式基準による修繕費の判定）が引ける');
+  assert(/60万円/.test(p.body), '7-8-4 に60万円の形式基準がある');
+  assert(p.short === '法基通', '略称が法基通');
+
+  const p5 = T.findProvision('7-8-5');
+  assert(!!p5 && /資本的支出と修繕費の区分の特例/.test(p5.title),
+    '法基通7-8-5（区分の特例）が引ける');
+
+  // 引用の照合が法人税にも効く
+  const c = T.checkCitations('法基通7-8-4により判定します。法人税基本通達7-8-5も参照。');
+  assert(c.citations.length === 2, `法人税の引用を2件検出（実: ${c.citations.length}）`);
+  assert(c.unknown.length === 0, '実在する法人税の引用は unknown にならない');
+  assert(T.checkCitations('法基通9-9-99を参照。').unknown.length === 1,
+    '存在しない法人税の番号を検出する');
+
+  // 通達をまたいで同じ番号があっても、指定した通達から引ける
+  // リース取引は法人税の通達にしかない（第12章の5）。
+  // 個人事業者向けの記事でも引くことがあるため、取得できていることを確かめる。
+  const lease = T.findProvision('12の5-1-3');
+  assert(!!lease, '法基通12の5-1-3（リース取引の判定）が引ける');
+  assert(/リース/.test(lease.title), '見出しがリース取引');
+  assert(T.checkCitations('法基通12の5-1-3を参照。').unknown.length === 0,
+    '章番号に「の」が入る番号も照合できる');
+
+  const both = T.findProvision('7-8-4', 'hojin');
+  assert(both && both.circular === 'hojin', '通達を指定して引ける');
+}
+
+// -- 7. --only で他の通達の記録を消さない ------------------------------
+// 2026-08-21: --only で1つだけ取得すると index.json が上書きされ、
+// 他の通達の記録が消えていた。
+console.log('');
+console.log('=== Test 7: index の保全 ===');
+{
+  const fs = require('fs');
+  const index = JSON.parse(fs.readFileSync(
+    path.join(ROOT, 'data/nta-tsutatsu/index.json'), 'utf8'));
+  const keys = index.map(e => e.circular).sort();
+  assert(keys.includes('shotoku') && keys.includes('shohi') && keys.includes('hojin'),
+    `3通達すべてが index にある（実: ${keys.join(', ')}）`);
+  assert(new Set(keys).size === keys.length, '同じ通達が重複していない');
+  for (const e of index) {
+    assert(fs.existsSync(path.join(ROOT, 'data/nta-tsutatsu', e.file)),
+      `${e.circular}: 本文ファイルが存在する`);
+    assert(e.provision_count > 0, `${e.circular}: 条文数が記録されている`);
+  }
+
+  const src = fs.readFileSync(path.join(ROOT, 'scripts/crawl-nta-tsutatsu.js'), 'utf8');
+  assert(/index = index\.filter\(e => e\.circular !== key\)/.test(src),
+    '同じ通達の古い記録だけを差し替える実装になっている');
+  assert(/JSON\.parse\(fs\.readFileSync\(indexPath/.test(src),
+    '既存の index を読み込んでいる');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

@@ -27,6 +27,8 @@ const SHORT_TO_CIRCULAR = {
   所得税基本通達: 'shotoku',
   消基通: 'shohi',
   消費税法基本通達: 'shohi',
+  法基通: 'hojin',
+  法人税基本通達: 'hojin',
 };
 
 let _catalog = null;
