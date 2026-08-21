@@ -203,5 +203,50 @@ console.log('=== Test 7: 検討過程の混入 ===');
     '「確認し」という誘発しやすい指示が残っていない');
 }
 
+// -- 8. 通達の原文を本文の引用に応じて渡す ----------------------------
+// 2026-08-20: 所基通37-14 は「継続して…これを認めるものとする」という
+// 任意の取扱いなのに「按分が必要になります」と書いた。番号は合っていたが
+// 内容の性質を取り違えた。原文を渡して照合させる。
+console.log('');
+console.log('=== Test 8: 通達原文の受け渡し ===');
+{
+  const T = require(path.join(ROOT, 'scripts/lib/nta-tsutatsu'));
+  const NL = String.fromCharCode(10);
+  // 実際に書かれた誤りの文面
+  const body = [
+    'もし取得価額が500万円であれば、80万円は50万円を超えるため、',
+    '所基通37-14の特例による按分が必要になります。',
+    'また、商品券の発行については消基通6-4-5を参照してください。',
+    'なお所基通37-99も関係します。',
+  ].join(NL);
+
+  const cited = T.checkCitations(body);
+  assert(cited.citations.length === 3, `3件の引用を検出（実: ${cited.citations.length}）`);
+  assert(cited.unknown.length === 1, '存在しない番号を1件検出');
+  assert(cited.unknown[0].no === '37-99', '検出した番号が 37-99');
+
+  const known = cited.citations.filter(c => c.found);
+  const block = T.buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
+  assert(/これを認めるものとする/.test(block), '37-14 の原文が渡る（任意の取扱いだと分かる）');
+  assert(/資産の譲渡等の対価に該当しない/.test(block), '6-4-5 の原文が渡る');
+  assert(/任意の取扱い/.test(block) && /義務ではない/.test(block),
+    '任意の取扱いである旨の注意が入る');
+  assert(!/37-99/.test(block), '存在しない番号の原文は入らない');
+
+  // 呼び出し側に組み込まれている
+  const src = require('fs').readFileSync(path.join(ROOT, 'scripts/generate-draft.js'), 'utf8');
+  assert(/const cited = checkCitations\(body\)/.test(src),
+    '通常生成の後処理で引用を調べている');
+  assert(/\$\{refsBlock\}\$\{provisionBlock\}\$\{rulesBlock\}/.test(src),
+    'ルール自動反映のプロンプトに原文を渡している');
+  assert(/buildRegenSourceBlocks\(meta, body\)/.test(src),
+    '差し戻し再生成でも本文を渡している');
+  assert(/\$\{regenProvisions\}/.test(src), '全文再生成にも原文を渡している');
+  assert(/任意の取扱いになっていないかを確かめ/.test(src),
+    '任意か義務かを確かめる指示がある');
+  assert(/推測で別の番号に置き換えないでください/.test(src),
+    '存在しない番号を推測で置き換えない指示がある');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
