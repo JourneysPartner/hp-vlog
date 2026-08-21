@@ -1196,11 +1196,17 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
   const refsBlock = formatReferencePages(missingRefs);
 
   const comment = [
-    'この記事の本文は、企画時に想定していなかった論点に踏み込んで書かれています。',
-    '添付した論点別ルールと参考資料に照らして、該当箇所が最新の制度に合っているか確認し、',
-    '合っていない箇所だけを最小限修正してください。',
-    '該当する記述がすでに正しい場合は、本文を変更せずそのまま全文出力してください。',
+    'この記事の本文には、企画時に想定していなかった論点が含まれています。',
+    '添付した論点別ルールと参考資料に合っていない記述があれば、その箇所だけを最小限修正してください。',
+    'すでに正しい場合は、本文を一切変更せずそのまま全文出力してください。',
     '添付資料に書かれていないことを補って書かないでください。',
+    // 2026-08-21: 「確認し」と書いたため、LLM が確認作業そのものを文章にして
+    // 本文の先頭に書き、それが記事として公開されかけた。
+    // 出力は記事の本文だけであることを明示する。
+    '【出力の形式】出力は記事の本文（Markdown）だけにしてください。',
+    '検討の過程・確認結果・修正方針の説明を本文に書かないでください。',
+    '「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させないでください。',
+    '本文は元の書き出しからそのまま始めてください。',
   ].join('');
 
   const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${rulesBlock}`);
@@ -1209,6 +1215,25 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
     revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
   } catch (e) {
     console.warn(`[rules] ⚠ ルール反映の再生成に失敗（${e.message}）→ 元の本文を維持します`);
+    return { content, applied: false, failed: true, names };
+  }
+
+  // LLM が検討過程を本文の前に書いてしまった場合は取り除く。
+  // 短縮ガードは縮んだときしか反応せず、前置きが足されて「増えた」場合は
+  // 素通りしていた（2026-08-21 に記事へ混入）。
+  const pre = partial.stripAnalysisPreamble(body, revised);
+  if (pre.stripped) {
+    console.warn(`[rules] ⚠ 本文の前に検討過程が書かれていたので除去しました（${pre.stripped.length} 文字）`);
+    logRawOutput('除去した前置き', pre.stripped);
+    revised = pre.body;
+  }
+
+  // 除去しても作業指示側の語彙が残っているなら、本文を作り替えている。
+  // 記事を壊すより元の本文を維持するほうが安全なので破棄する。
+  const contamination = partial.findInternalProcessWords(revised);
+  if (contamination.contaminated) {
+    console.warn(`[rules] ⚠ 本文に作業用の語が混入（${contamination.words.join(', ')}）→ 元の本文を維持します`);
+    logRawOutput('混入したルール反映の出力', revised);
     return { content, applied: false, failed: true, names };
   }
 
@@ -1789,6 +1814,18 @@ async function regenerateSection(existingContent, comment, classification) {
 // 本文を ASCII フローチャート等に書き換えてしまう事故があった（実例 2026-05-29）。
 // 出力本文が元の 60% 未満（または h2 章数が半減未満）なら不正出力と判定し、
 // 元本文を維持して human レビューに委ねる。
+// 差し戻し再生成でも、LLM が検討過程を本文の前に書くことがある。
+// ルール自動反映と同じ処理をかける（2026-08-21 の事故と同じ経路の prompt を使うため）。
+function sanitizeRevisedBody(originalBody, revisedBody, label) {
+  const pre = partial.stripAnalysisPreamble(originalBody, revisedBody);
+  if (pre.stripped) {
+    console.warn(`[regenerate] ⚠ ${label}: 本文の前の検討過程を除去（${pre.stripped.length} 文字）`);
+    logRawOutput(`${label} の前置き`, pre.stripped);
+    return pre.body;
+  }
+  return revisedBody;
+}
+
 async function regenerateTargeted(existingContent, comment) {
   const { body, meta } = parseFrontmatter(existingContent);
   const origLen = body.trim().length;
@@ -1797,7 +1834,7 @@ async function regenerateTargeted(existingContent, comment) {
   const { combined: srcBlock } = buildRegenSourceBlocks(meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
   let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000);
-  let revised = postProcessBodyOnly(raw);
+  let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
   // 2 回目: 1 回目が shrinkage 判定なら、より厳しいプロンプトでリトライ
@@ -1808,7 +1845,7 @@ async function regenerateTargeted(existingContent, comment) {
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
     raw = await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000);
-    revised = postProcessBodyOnly(raw);
+    revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted リトライ');
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
 
