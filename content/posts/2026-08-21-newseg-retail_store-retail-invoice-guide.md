@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "小売店が発行するレシートは「適格簡易請求書」として使用できます。宛名不要で6項目の記載が必要です。登録番号・軽減税率の記載漏れが多く、未登録のままでは取引先が仕入税額控除を受けられません。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-21T15:15:24.440+09:00"
+publish_at: "2026-08-22T11:16:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-21T00:05:47.712Z"
-updated_at: "2026-08-21T00:08:41.023Z"
+updated_at: "2026-08-21T15:15:24.440+09:00"
+publish_slot: "morning"
 ---
 レジで印刷するレシートは、これまでと同じ内容のままで本当に大丈夫なのか。インボイス制度が始まってから、こんな疑問を持つ小売店オーナーは少なくありません。
 
