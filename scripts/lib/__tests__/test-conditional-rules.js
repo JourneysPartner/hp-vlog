@@ -239,5 +239,27 @@ console.log('=== Test 7: 扶養の所得ラインのルール ===');
     '相続記事 → 非注入');
 }
 
+// -- 8. 通達の引用ルール ----------------------------------------------
+console.log('');
+console.log('=== Test 8: 通達の引用ルール ===');
+{
+  const gift = { title: '商品券・ギフトカードの処理', tax_domain: 'consumption_tax',
+    pain_point: 'retail-gift-certificate' };
+  const rule = st.selectConditionalRules(gift).find(r => /法令解釈通達を引くときの厳守事項/.test(r));
+  assert(!!rule, '商品券の記事 → 通達ルールが注入される');
+  assert(/記憶で通達の条番号を書く/.test(rule || ''), '記憶で番号を書かない禁止');
+  assert(/原文が載っている通達だけ/.test(rule || ''), '原文がある通達だけ引く');
+  assert(/任意の取扱い/.test(rule || '') && /義務ではない/.test(rule || ''),
+    '「〜を認めるものとする」は任意である旨');
+  assert(/不課税（課税対象外）/.test(rule || '') && /非課税/.test(rule || ''),
+    '不課税と非課税の混同を戒めている');
+
+  assert(st.selectConditionalRules({ title: '修繕費か資本的支出か', tax_domain: 'bookkeeping_expenses',
+    pain_point: 'capital-expenditure-vs-repair' })
+    .some(r => /法令解釈通達を引くときの厳守事項/.test(r)), '修繕費の記事にも注入される');
+  assert(!st.selectConditionalRules(ebay).some(r => /法令解釈通達を引くときの厳守事項/.test(r)),
+    'eBay記事 → 非注入');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
