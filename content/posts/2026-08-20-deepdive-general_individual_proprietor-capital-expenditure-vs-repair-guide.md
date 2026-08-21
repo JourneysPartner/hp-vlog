@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "修繕費か資本的支出かは金額・周期・性能向上の有無で判断します。20万円未満または3年以内周期なら修繕費、使用可能期間の延長や資産価値の向上を伴う支出は資本的支出として減価償却が必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-20T20:56:01.754+09:00"
 publish_at: "2026-08-21T17:13:00.000+09:00"
-published_at: ""
+published_at: "2026-08-21T18:01:05.755+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-20T00:08:47.264Z"
-updated_at: "2026-08-20T20:56:01.754+09:00"
+updated_at: "2026-08-21T18:01:05.755+09:00"
 publish_slot: "evening"
 ---
 事務所の壁にひびが入ったので補修した、古くなった機械の部品を交換した、店舗の内装を改装した——そういった支出を帳簿に記録しようとして、「これは経費に落とせるのか、それとも資産として計上して毎年少しずつ経費にしていくのか」と手が止まることがあるかもしれません。
