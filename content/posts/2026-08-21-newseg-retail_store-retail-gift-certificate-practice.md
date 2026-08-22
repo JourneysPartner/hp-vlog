@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "商品券・ギフトカードで代金を受け取ったとき、売上は「商品を渡した時点」で計上し、消費税も同じタイミングで発生します。商品券の発行は不課税（課税対象外）、譲渡は非課税と扱いが異なる点にも注意が必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-21T16:33:44.147+09:00"
 publish_at: "2026-08-22T17:23:00.000+09:00"
-published_at: ""
+published_at: "2026-08-22T18:00:53.975+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-21T00:08:41.038Z"
-updated_at: "2026-08-21T16:33:44.147+09:00"
+updated_at: "2026-08-22T18:00:53.975+09:00"
 publish_slot: "evening"
 ---
 商品券で支払われたとき、「この売上はいつ立てる？」「消費税はどうなる？」と手が止まった経験はないでしょうか。現金払いと同じように処理してよいのか、それとも何か別の対応が必要なのか、迷いやすいポイントです。
