@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "卸売業の委託販売は受託者が販売した時点、預け在庫は得意先が使用・販売した時点が売上計上のタイミング。代金入金前でも売上に計上が必要な理由と仕訳例を具体的に解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-23T15:07:33.127+09:00"
+publish_at: "2026-08-24T17:51:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-23T00:08:59.351Z"
-updated_at: "2026-08-23T00:08:59.351Z"
+updated_at: "2026-08-23T15:07:33.127+09:00"
+publish_slot: "evening"
 ---
 
 得意先に商品を預けたまま年をまたいだとき、「代金はまだ受け取っていないのに今年の売上になるのか」と迷う方は少なくありません。卸売業特有の取引形態である委託販売や預け在庫は、通常の売買と売上計上のタイミングが異なります。
