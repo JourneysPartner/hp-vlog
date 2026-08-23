@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "相続税の申告期限は被相続人が亡くなった日の翌日から10ヶ月以内。申告が必要かの確認から財産の洗い出し・遺産分割・申告書提出・納税まで、各ステップの流れと落とし穴を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-22T11:18:29.990+09:00"
 publish_at: "2026-08-23T11:53:00.000+09:00"
-published_at: ""
+published_at: "2026-08-23T12:00:54.432+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-22T00:06:06.178Z"
-updated_at: "2026-08-22T11:18:29.990+09:00"
+updated_at: "2026-08-23T12:00:54.432+09:00"
 publish_slot: "morning"
 ---
 身近な人が亡くなり、葬儀が一段落したあと、「相続税の申告って何をすればいいんだろう」と手が止まる方は少なくありません。
