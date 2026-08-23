@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "遺産分割協議が相続税申告期限（10ヶ月）までに終わらない場合でも申告は必要。未分割のまま申告すると配偶者の税額軽減や小規模宅地等の特例が使えなくなる点に注意が必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-22T11:24:36.946+09:00"
 publish_at: "2026-08-23T17:11:00.000+09:00"
-published_at: ""
+published_at: "2026-08-23T18:00:59.161+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-22T00:09:07.156Z"
-updated_at: "2026-08-22T11:24:36.946+09:00"
+updated_at: "2026-08-23T18:00:59.161+09:00"
 publish_slot: "evening"
 ---
 親が亡くなり、気持ちの整理もつかないまま「遺産をどう分けるか」を話し合わなければならない——そんな状況に置かれている方は少なくありません。兄弟姉妹の間で意見が合わない、不動産の扱いが決まらない、そもそも何から手をつければいいのか分からない、という声はよく聞かれます。
