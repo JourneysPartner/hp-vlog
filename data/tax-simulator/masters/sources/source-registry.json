@@ -554,6 +554,52 @@
       "coverage_basis": "none",
       "note": "小規模宅地等の特例。特定事業用400㎡80%・特定同族会社事業用400㎡80%・特定居住用330㎡80%・貸付事業用200㎡50%。貸付事業用を選ぶと全体が200㎡枠の按分になる",
       "url_verified": true
+    },
+    "NTA-TA-1129": {
+      "label": "No.1129 特定一般用医薬品等購入費を支払ったとき（医療費控除の特例）【セルフメディケーション税制】",
+      "kind": "taxanswer",
+      "taxanswer_id": "1129",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1129.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "セルフメディケーション税制。購入費−12,000円、上限88,000円。通常の医療費控除との選択適用。令和8年12月31日まで",
+      "url_verified": true
+    },
+    "NTA-TA-1131": {
+      "label": "No.1131 セルフメディケーション税制と通常の医療費控除との選択適用",
+      "kind": "taxanswer",
+      "taxanswer_id": "1131",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1131.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "セルフメディケーション税制と通常の医療費控除との選択適用。選択後は更正の請求・修正申告でも変更できない",
+      "url_verified": true,
+      "reference_only": true,
+      "_reference_note": "セルフメディケーション税制と通常の医療費控除の選択適用・選択後の変更不可の根拠。medical-deduction.json の注記が参照する。個別レコードの値の出典ではない"
+    },
+    "NTA-TA-1177": {
+      "label": "No.1177 特定親族特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1177",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1177.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "特定親族特別控除（R7新設）。19〜23歳で控除対象扶養親族に該当しない親族。63万→3万で逓減",
+      "url_verified": true
+    },
+    "NTA-TA-1195": {
+      "label": "No.1195 配偶者特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1195",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1195.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "配偶者特別控除。配偶者の合計所得金額9段階×本人3段階。R7から配偶者の所得要件の下限が48万→58万",
+      "url_verified": true
     }
   }
 }

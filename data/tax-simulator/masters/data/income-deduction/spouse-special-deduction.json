@@ -1,0 +1,2255 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "配偶者特別控除（令和7年分以降）。No.1195 より。配偶者の合計所得金額と納税者本人の合計所得金額の2軸で決まる。",
+  "_generated": "生成物。出典の表をそのまま配列にして展開している。手で編集せず、生成し直すこと。",
+  "_extraction_source": {
+    "taxanswer_id": "1195",
+    "html_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+    "law_version": "令和7年4月1日現在法令等"
+  },
+  "_structure": "配偶者の合計所得金額9段階 × 納税者本人の合計所得金額3段階 ＝ 27通り。加えて本人1,000万円超の0円の段を9件。",
+  "_two_axes": "納税者本人の合計所得金額は income_lower_inclusive / income_upper_inclusive で、配偶者の合計所得金額は applicability_conditions（gte と lte の2条件）で表す。段階表の軸は本人の所得で、配偶者の所得は表を選ぶ条件という位置づけ。",
+  "_eligibility": [
+    "納税者本人の合計所得金額が1,000万円以下",
+    "配偶者の合計所得金額が58万円超133万円以下（令和2〜6年分は48万円超133万円以下）",
+    "民法上の配偶者で生計を一にしていること（内縁関係は不可）",
+    "青色事業専従者として給与の支払を受けていない、または白色事業専従者でないこと",
+    "夫婦の間で互いに受けることはできない"
+  ],
+  "_r7_change": "配偶者の所得要件の下限が48万円超→58万円超に変わった（令和7年12月1日施行・令和7年分から適用）。上限133万円は変わらない。",
+  "_older_versions": "令和2年分から令和6年分の表（48万円超95万円以下から始まる）は未登録。過去年の計算が要るときに追加する。",
+  "records": [
+    {
+      "record_id": "IDED-SPOUSE-SP-S01-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s1",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "380000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "580001"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "950000"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "58万円超95万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 58万円超95万円以下 × 900万円以下 ＝ 38万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S01-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s1",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "260000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "580001"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "950000"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "58万円超95万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 58万円超95万円以下 × 900万円超950万円以下 ＝ 26万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S01-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s1",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "130000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "580001"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "950000"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "58万円超95万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 58万円超95万円以下 × 950万円超1,000万円以下 ＝ 13万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S02-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s2",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "360000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "950001"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000000"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "95万円超100万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 95万円超100万円以下 × 900万円以下 ＝ 36万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S02-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s2",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "240000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "950001"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000000"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "95万円超100万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 95万円超100万円以下 × 900万円超950万円以下 ＝ 24万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S02-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s2",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "120000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "950001"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000000"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "95万円超100万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 95万円超100万円以下 × 950万円超1,000万円以下 ＝ 12万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S03-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s3",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "310000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000001"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050000"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "100万円超105万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 100万円超105万円以下 × 900万円以下 ＝ 31万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S03-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s3",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "210000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000001"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050000"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "100万円超105万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 100万円超105万円以下 × 900万円超950万円以下 ＝ 21万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S03-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s3",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "110000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000001"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050000"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "100万円超105万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 100万円超105万円以下 × 950万円超1,000万円以下 ＝ 11万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S04-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s4",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "260000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050001"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100000"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "105万円超110万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 105万円超110万円以下 × 900万円以下 ＝ 26万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S04-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s4",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "180000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050001"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100000"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "105万円超110万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 105万円超110万円以下 × 900万円超950万円以下 ＝ 18万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S04-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s4",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "90000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050001"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100000"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "105万円超110万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 105万円超110万円以下 × 950万円超1,000万円以下 ＝ 9万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S05-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s5",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "210000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100001"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150000"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "110万円超115万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 110万円超115万円以下 × 900万円以下 ＝ 21万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S05-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s5",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "140000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100001"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150000"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "110万円超115万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 110万円超115万円以下 × 900万円超950万円以下 ＝ 14万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S05-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s5",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "70000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100001"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150000"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "110万円超115万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 110万円超115万円以下 × 950万円超1,000万円以下 ＝ 7万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S06-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s6",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "160000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150001"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200000"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "115万円超120万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 115万円超120万円以下 × 900万円以下 ＝ 16万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S06-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s6",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "110000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150001"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200000"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "115万円超120万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 115万円超120万円以下 × 900万円超950万円以下 ＝ 11万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S06-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s6",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "60000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150001"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200000"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "115万円超120万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 115万円超120万円以下 × 950万円超1,000万円以下 ＝ 6万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S07-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s7",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "110000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200001"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250000"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "120万円超125万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 120万円超125万円以下 × 900万円以下 ＝ 11万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S07-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s7",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "80000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200001"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250000"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "120万円超125万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 120万円超125万円以下 × 900万円超950万円以下 ＝ 8万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S07-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s7",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "40000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200001"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250000"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "120万円超125万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 120万円超125万円以下 × 950万円超1,000万円以下 ＝ 4万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S08-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s8",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "60000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250001"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300000"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "125万円超130万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 125万円超130万円以下 × 900万円以下 ＝ 6万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S08-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s8",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "40000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250001"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300000"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "125万円超130万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 125万円超130万円以下 × 900万円超950万円以下 ＝ 4万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S08-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s8",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "20000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250001"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300000"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "125万円超130万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 125万円超130万円以下 × 950万円超1,000万円以下 ＝ 2万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S09-T1",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s9",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "30000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300001"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1330000"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "130万円超133万円以下",
+      "_self_income_range": "900万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 130万円超133万円以下 × 900万円以下 ＝ 3万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S09-T2",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s9",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9000001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "9500000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "20000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300001"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1330000"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "130万円超133万円以下",
+      "_self_income_range": "900万円超950万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 130万円超133万円以下 × 900万円超950万円以下 ＝ 2万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S09-T3",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s9",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "9500001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "10000"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300001"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1330000"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "130万円超133万円以下",
+      "_self_income_range": "950万円超1,000万円以下",
+      "_income_basis": "納税者本人の合計所得金額（income_lower/upper）と配偶者の合計所得金額（applicability_conditions）の2軸",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除の金額 令和7年分以降 130万円超133万円以下 × 950万円超1,000万円以下 ＝ 1万円",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S01-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s1",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "580001"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "950000"
+          },
+          "description": "配偶者の合計所得金額 58万円超95万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "58万円超95万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S02-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s2",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "950001"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000000"
+          },
+          "description": "配偶者の合計所得金額 95万円超100万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "95万円超100万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S03-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s3",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1000001"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050000"
+          },
+          "description": "配偶者の合計所得金額 100万円超105万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "100万円超105万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S04-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s4",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1050001"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100000"
+          },
+          "description": "配偶者の合計所得金額 105万円超110万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "105万円超110万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S05-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s5",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1100001"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150000"
+          },
+          "description": "配偶者の合計所得金額 110万円超115万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "110万円超115万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S06-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s6",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1150001"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200000"
+          },
+          "description": "配偶者の合計所得金額 115万円超120万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "115万円超120万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S07-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s7",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1200001"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250000"
+          },
+          "description": "配偶者の合計所得金額 120万円超125万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "120万円超125万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S08-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s8",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1250001"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300000"
+          },
+          "description": "配偶者の合計所得金額 125万円超130万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "125万円超130万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-SPOUSE-SP-S09-T4",
+      "value_key": "income_deduction_spouse_special",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "deduction_category": "spouse_special_s9",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "10000001"
+      },
+      "income_upper_inclusive": null,
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "applicability_conditions": [
+        {
+          "subject": "spouse_total_income",
+          "operator": "gte",
+          "value": {
+            "unit": "JPY",
+            "value": "1300001"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（下限）"
+        },
+        {
+          "subject": "spouse_total_income",
+          "operator": "lte",
+          "value": {
+            "unit": "JPY",
+            "value": "1330000"
+          },
+          "description": "配偶者の合計所得金額 130万円超133万円以下（上限）"
+        }
+      ],
+      "_spouse_income_range": "130万円超133万円以下",
+      "_meaning": "納税者本人の合計所得金額が1,000万円超は配偶者特別控除の適用なし",
+      "source_document_id": "NTA-TA-1195",
+      "source_locator": "配偶者特別控除を受けるための要件（1）本人の合計所得金額が1,000万円以下であること",
+      "source_hash": "1e9f21662f23f845a30291dff950bc61cf32a9db71a7cb2914db1413d4de70a1",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ]
+}

@@ -117,5 +117,75 @@
     }
   ],
 
-  "_self_medication_note": "セルフメディケーション税制（医療費控除の特例）は平成29年1月1日から令和8年12月31日までの制度で、通常の医療費控除との選択。シミュレータで扱う場合は別レコードにする。現時点では未登録。"
+  "self_medication": {
+    "_comment": "セルフメディケーション税制（医療費控除の特例）。No.1129 より。通常の医療費控除との選択適用。",
+    "_extraction_source": {
+      "taxanswer_id": "1129",
+      "html_hash": "6bfc0a8afeb758e403dd143efc51599da9c6e7bcac82621bc3ebc1a08b343bf6",
+      "law_version": "令和7年4月1日現在法令等"
+    },
+    "_formula": "セルフメディケーション税制による医療費控除額 ＝ 特定一般用医薬品等購入費の合計額（保険金等で補填される部分を除く）− 12,000円。上限88,000円。",
+    "_exclusive": "通常の医療費控除との選択適用。両方を併せて受けることはできない。セルフメディケーション税制を選んだ場合、対象外の医療費が通常の医療費控除の適用下限額を超えていても通常の医療費控除は受けられない（No.1131）。",
+    "_irreversible": "確定申告書を提出した後、更正の請求や修正申告でこの選択を変更することはできない（No.1131 注）。シミュレータで有利判定を出す場合は、選択が後から変えられないことを結果に明示する。",
+    "_eligibility": "健康の保持増進および疾病の予防への一定の取組（健康診査・予防接種など）を行っていること。ただしその取組に要した費用自体はこの控除の対象にならない。",
+    "records": [
+      {
+        "record_id": "IDED-SELFMED-FLOOR",
+        "value_key": "self_medication_deduction_floor",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2017-01-01",
+        "effective_to": "2026-12-31",
+        "deduction_category": "self_medication",
+        "threshold_amount": { "unit": "JPY", "value": "12000" },
+        "_meaning": "足切り額（定額12,000円）。通常の医療費控除の足切り（10万円 or 総所得金額等の5%）とは別",
+        "source_document_id": "NTA-TA-1129",
+        "source_locator": "計算方法・計算式（12,000円を差し引いた金額）",
+        "source_hash": "6bfc0a8afeb758e403dd143efc51599da9c6e7bcac82621bc3ebc1a08b343bf6",
+        "as_of_date": "2026-08-24",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IDED-SELFMED-CAP",
+        "value_key": "self_medication_deduction_cap",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2017-01-01",
+        "effective_to": "2026-12-31",
+        "deduction_category": "self_medication",
+        "threshold_amount": { "unit": "JPY", "value": "88000" },
+        "_meaning": "控除額の上限88,000円。通常の医療費控除の上限200万円とは桁が違う",
+        "_sunset": "この制度は令和8年12月31日までの購入分が対象。延長の有無を令和9年度改正で確認すること",
+        "source_document_id": "NTA-TA-1129",
+        "source_locator": "計算方法・計算式（最高88,000円）",
+        "source_hash": "6bfc0a8afeb758e403dd143efc51599da9c6e7bcac82621bc3ebc1a08b343bf6",
+        "as_of_date": "2026-08-24",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  }
 }
