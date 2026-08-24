@@ -352,8 +352,20 @@ const NEEDS_SOURCE_REVIEW = new Set([
 // プラットフォーム課税の対象（国外事業者限定）を誤った記述が発生した。
 // 概要ページには論点の記載がないため、LLM が記憶で補ってしまう。
 // → 論点に対応するタックスアンサー（No.6498 等）を使うこと。
+//
+// 2026-08-24: 税目全体のしくみを説明する総論ページも同じ理由で禁止に加えた。
+// 「オンライン講座＋個別コンサルのセット販売」の記事で、論点に合う候補が見つからず
+// No.6101「消費税の基本的なしくみ」が選ばれ、その本文を根拠として記事が書かれた。
+// 結果、記事の冒頭が「消費税はほぼ全てを課税の対象とする」という総論の言い回しになり、
+// 記事が実際に扱う論点（前受金・売上計上時期）とは無関係な根拠が付いた。
+// 対象は「その税目の入口にあたる総論ページ」に限る。論点別の『あらまし』ページ
+// （No.2100 減価償却のあらまし 等）は主出典として妥当なので含めない。
 const DENIED_SOURCE_URLS = new Set([
   'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
+  // No.6101 消費税の基本的なしくみ
+  'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6101.htm',
+  // No.1000 所得税のしくみ
+  'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1000.htm',
 ]);
 
 // 参考にはするが主出典にはしない資料（nta-reference-pages.js）。
