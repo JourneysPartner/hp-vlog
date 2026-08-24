@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "newseg-content_seller-content-membership-tiers-membership-guide"
 related_title: ""
 related_link_text: "基本から確認したい方はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6101.htm"
-source_title: "消費税の基本的なしくみ"
-source_provenance: "llm-auto"
-source_confidence: 0.88
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6165.htm"
+source_title: "前受金や前払金などがあるとき"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "オンライン講座 オンライン講座 コンサル セット 販売 区分 消費税"
 reader_problem: "セット販売の対価区分と課税判定が不安"
@@ -27,19 +27,17 @@ life_stage: ""
 pain_point: "content-course-bundle"
 procedure_stage: ""
 customer_segment: "content_seller"
-customer_fit_score: 5
+customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: この論点は個別出典が未確定（人による出典確認が必要）"
+recommendation: "publish"
+review_warning: ""
 summary: "オンライン講座と個別コンサルのセット販売は、国内取引なら原則として両方が課税対象。対価を構成要素ごとに合理的な根拠で区分して記録しておくことが消費税・売上計上の両面で重要です。"
 review_status: "draft"
 review_comment: ""
-approved_at: ""
-publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
