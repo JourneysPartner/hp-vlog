@@ -87,5 +87,44 @@ const bad = evaluateTopicFit({ persona: 'inheritance_client', pain_point: 'tax-a
 assert(bad.source_alignment_score === 1, 'カテゴリ不一致は source_alignment_score=1');
 assert(bad.decision === 'reject', 'カテゴリ不一致（hard）は decision=reject');
 
+// -- セット販売の出典を確定した（2026-08-24）----------------------------
+// content-course-bundle は「個別出典が未確定」として保留され、承認が
+// ブロックされていた。保留の理由書きは「電気通信利用役務・課税/非課税判定」
+// だったが、記事の実際の論点は前受金と売上計上時期だった。
+// No.6165「前受金や前払金などがあるとき」の原文が直接対応するため保留を解除した。
+console.log('');
+console.log('=== セット販売の出典確定 ===');
+{
+  const t = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
+
+  const r = t.resolveSourceForTopic({ pain_point: 'content-course-bundle',
+    tax_domain: 'consumption_tax', title: 'オンライン講座とコンサルのセット販売' });
+  assert(r.provenance === 'curated', `curated で解決する（実: ${r.provenance}）`);
+  assert(/shohi\/6165/.test(r.url), 'No.6165 が割り当たる');
+
+  const c = checkSourceAlignment({ source_url: r.url, source_provenance: 'curated',
+    source_confidence: 1, tax_domain: 'consumption_tax', pain_point: 'content-course-bundle' });
+  assert(c.needs_source_review === false, '人による出典確認が不要になる');
+  assert(c.score === 5, `出典一致スコアが5（実: ${c.score}）`);
+
+  // 出典の原文が論点に対応していること（カタログから確認）
+  const idx = require(path.join(ROOT, 'data/nta-sources/index.json'));
+  const list = Array.isArray(idx) ? idx : (idx.entries || idx.items || []);
+  const e = list.find(x => String(x.id) === '6165' && /taxanswer/.test(x.url || ''));
+  assert(!!e && e.deleted !== true, 'No.6165 がカタログに実在し削除されていない');
+  const body = JSON.parse(require('fs').readFileSync(
+    path.join(ROOT, 'data/nta-sources', e.file_path), 'utf8')).body || '';
+  assert(/前受金/.test(body), '原文に「前受金」が含まれる');
+  assert(/サービスの提供があった時/.test(body), '原文に売上計上時期の原則が含まれる');
+
+  // もう一方は保留のまま（課税/非課税の判定そのものが論点なので性質が違う）
+  const held = checkSourceAlignment({
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm',
+    source_provenance: 'domain-fallback', tax_domain: 'consumption_tax',
+    pain_point: 'content-digital-consumption-tax' });
+  assert(held.needs_source_review === true, 'デジタルコンテンツの論点は保留のまま');
+  assert(/個別出典が未確定/.test(held.reason), '保留の理由が出る');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
