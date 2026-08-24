@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "食品卸の廃棄・期限切れロスは「棚卸減耗損」として必要経費に計上できます。期末在庫の実地棚卸と廃棄記録の整備が、税務調査でも認められる処理の要件です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-23T15:01:11.821+09:00"
 publish_at: "2026-08-24T11:29:00.000+09:00"
-published_at: ""
+published_at: "2026-08-24T12:00:55.821+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-23T00:05:45.227Z"
-updated_at: "2026-08-23T15:01:11.821+09:00"
+updated_at: "2026-08-24T12:00:55.821+09:00"
 publish_slot: "morning"
 ---
 期末の棚卸をしたら、帳簿上の在庫と実際の数量が合わない——食品卸を営んでいると、賞味期限切れや品質劣化による廃棄が日常的に発生し、こうした差異をどう処理すればよいか迷う場面は少なくありません。
