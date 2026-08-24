@@ -532,6 +532,17 @@
       "coverage_basis": "none",
       "note": "令和5年10月1日から令和8年9月30日までの日の属する各課税期間。納付税額を売上税額の2割にできる。後継は個人事業者のみの3割特例（令和9年分・令和10年分）",
       "url_verified": true
+    },
+    "MHLW-EMPLOYMENT-INSURANCE": {
+      "label": "雇用保険料率（厚生労働省）",
+      "kind": "manual",
+      "url": "https://jsite.mhlw.go.jp/tokyo-hellowork/list/tachikawa/kyushokusha/koyouhokenryouritu08.html",
+      "pdf_url": "https://www.mhlw.go.jp/content/001692566.pdf",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 2,
+      "note": "年度（4月1日〜翌3月31日）で切り替わる。健康保険料率が3月分からなのとは違う。失業等給付等は労使折半、雇用保険二事業は事業主のみ。事業区分は一般／農林水産・清酒製造／建設の3つ。厚労省のPDFはCIDフォントで機械抽出できないため、ハローワークのHTMLページから取得している。年度ごとにURLの末尾（08の部分）が変わる",
+      "url_verified": true
     }
   }
 }

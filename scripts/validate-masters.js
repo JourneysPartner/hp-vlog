@@ -153,7 +153,15 @@ function boundPair(rec) {
 function categoryKey(rec) {
   return [
     rec.value_key || `(value_key未設定:${rec.record_id})`,
+    // 同じ value_key の中で並列に存在する別軸。
+    // business_type は簡易課税の事業区分。
+    // deduction_category / difference_category は控除の項目名で、
+    // 「条件でどれか一つを選ぶ」のではなく「該当するものを全部合算する」関係にある
+    // （調整控除の人的控除の差など）。項目が違えば別の表として扱う。
     rec.business_type != null ? `bt${rec.business_type}` : '',
+    rec.deduction_category || '',
+    rec.difference_category || '',
+    rec.insurance_type || '',
     JSON.stringify(rec.jurisdiction || {}),
   ].join('|');
 }
