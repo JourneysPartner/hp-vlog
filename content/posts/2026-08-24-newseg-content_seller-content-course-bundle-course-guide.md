@@ -36,13 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "国内でオンライン講座と個別コンサルをセット販売する場合、両方が課税対象。対価は合理的な根拠で構成要素ごとに区分し、売上はサービス提供時に計上するのが基本です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-24T00:08:47.426Z"
-updated_at: "2026-08-24T08:08:36.771Z"
+updated_at: "2026-08-24T17:26:25.354+09:00"
+approved_at: "2026-08-24T17:26:25.354+09:00"
+publish_at: "2026-08-25T17:05:00.000+09:00"
+publish_slot: "evening"
 ---
 「オンライン講座と個別コンサルを一緒にして9万8,000円のプログラムを作った。でも、消費税はどう計算すればいい？売上はどのタイミングで立てる？」——そんな疑問を持ったまま販売を始めてしまうと、決算や申告のタイミングで手が止まります。
 
