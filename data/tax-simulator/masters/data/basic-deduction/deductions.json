@@ -1,0 +1,939 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "基礎控除額。No.1199 より抽出。R7/R8/R9以後で構造が異なる（R8は一時的累進強化、R9以後は恒久的2段階）。",
+  "_extraction_source": {
+    "taxanswer_id": "1199",
+    "html_hash": "f9d7fe68c013752423d87e22f08a2cb1de886c7e42d362f1f70e0fdad0bd31ff",
+    "fetched_at": "2026-06-21T13:51:23.606Z",
+    "last_checked_at": "2026-08-01T15:59:12.900Z",
+    "law_version": "令和7年4月1日現在法令等",
+    "legal_basis": "所法86、措法41の16の2"
+  },
+  "_column_parsing_note": "No.1199のHTML表はrowspan/colspanでセル結合されているが、テキスト平坦化で列対応が消失。本ファイルの R8/R9以後 の列割当ては、値の数・注釈(注3)・tax-law-changes.js との突合から推論。二者確認が完了するまで blocked とする。",
+  "_r7_施行_note": "R7分の規定は令和7年12月1日施行（注1）。施行前の準確定申告はR6以前の金額を適用（注2）。",
+  "_non_resident_note": "R7分以後、非居住者の基礎控除の最高額は58万円（注3）。本ファイルは居住者のみ対象。",
+  "r6_and_prior": {
+    "_applies_to": "令和6年分以前（令和2年分〜令和6年分。令和元年分以前は一律38万円＝注4）",
+    "records": [
+      {
+        "record_id": "BD-R2-TIER-01",
+        "value_key": "basic_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "480000"
+        },
+        "calculation_order": 1,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 R6以前列",
+        "source_hash": "f9d7fe68c013752423d87e22f08a2cb1de886c7e42d362f1f70e0fdad0bd31ff",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R2-TIER-02",
+        "value_key": "basic_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "320000"
+        },
+        "calculation_order": 2,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和6年分以前列 第2行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R2-TIER-03",
+        "value_key": "basic_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "160000"
+        },
+        "calculation_order": 3,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和6年分以前列 第3行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R2-TIER-04",
+        "value_key": "basic_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "calculation_order": 4,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和6年分以前列 第4行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+  "r7": {
+    "_applies_to": "令和7年分（12/1施行。基礎控除を48万→58万に引上げ、2,350万超で段階的逓減を新設）",
+    "records": [
+      {
+        "record_id": "BD-R7-TIER-01",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "23500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "580000"
+        },
+        "calculation_order": 1,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 R7列 + 注3（58万円が最高額）",
+        "source_hash": "f9d7fe68c013752423d87e22f08a2cb1de886c7e42d362f1f70e0fdad0bd31ff",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-02",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "23500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "480000"
+        },
+        "calculation_order": 2,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第2行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-03",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "320000"
+        },
+        "calculation_order": 3,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第3行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-04",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "160000"
+        },
+        "calculation_order": 4,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第4行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-05",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "calculation_order": 5,
+        "source_document_id": "NTA-TA-1199",
+        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第5行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+  "r8": {
+    "_applies_to": "令和8年分",
+    "_basis": "令和8年度税制改正の大綱（財務省）。「基礎控除について、合計所得金額が2,350万円以下である個人の控除額を４万円引き上げる」→ 58万→62万。加えて「令和8年分及び令和9年分」の加算額を 合計所得489万円以下は42万円、489万円超（655万円以下）は5万円 とする。",
+    "_supersedes": "タックスアンサー No.1199 の令和8年分列（95万／88万／68万／63万／58万）は令和7年度改正時点の内容で、令和8年度改正が上書きしている。法令基準日が令和7年4月1日のため未反映。No.1199 だけを見て登録してはいけない。",
+    "_status": "施行前。令和8年12月1日施行・令和8年分以後の所得税に適用（国税庁「令和8年度税制改正による所得税の改正について」）。legal_status は enacted。施行後に所法86・措法41の16の2の条文で二者確認する。",
+    "_wall": "給与所得控除の最低保障額74万円（69万＋特例5万）と合わせると、給与収入178万円で課税所得が0になる（74万＋104万＝178万）。",
+    "records": [
+      {
+        "record_id": "BD-R8-TIER-01",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "4890000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "1040000"
+        },
+        "_composition": "基礎控除62万円 ＋ 特例加算42万円",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-02",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "4890001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6550000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "670000"
+        },
+        "_composition": "基礎控除62万円 ＋ 特例加算5万円",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-03",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6550001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "23500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "620000"
+        },
+        "_composition": "基礎控除62万円（加算なし。合計所得655万円超）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-04",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "23500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "480000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-05",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 5,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "320000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-06",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 6,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "160000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R8-TIER-07",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 7,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "_composition": "合計所得2,500万円超は適用なし（所法86柱書）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+  "r9": {
+    "_applies_to": "令和9年分",
+    "_basis": "大綱の特例は「令和8年分及び令和9年分」を同じ加算額としているため、R8と同じ構成。",
+    "_status": "施行前。legal_status は enacted。",
+    "records": [
+      {
+        "record_id": "BD-R9-TIER-01",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "4890000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "1040000"
+        },
+        "_composition": "基礎控除62万円 ＋ 特例加算42万円",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-02",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "4890001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6550000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "670000"
+        },
+        "_composition": "基礎控除62万円 ＋ 特例加算5万円",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-03",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6550001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "23500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "620000"
+        },
+        "_composition": "基礎控除62万円（加算なし。合計所得655万円超）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "令和8年度税制改正の大綱 一 個人所得課税（1）基礎控除の引上げ／（4）令和7年分以後の各年分の基礎控除等の特例 イ",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-04",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "23500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "480000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-05",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 5,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "320000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-06",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 6,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "160000"
+        },
+        "_composition": "逓減（改正なし）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R9-TIER-07",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2027,
+        "calculation_order": 7,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2027-01-01",
+        "effective_to": "2027-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "_composition": "合計所得2,500万円超は適用なし（所法86柱書）",
+        "source_document_id": "MOF-R8-LAW",
+        "source_locator": "所得税法86条1項（改正なしの逓減部分）",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+  "r10_and_after": {
+    "_applies_to": "令和10年分以後",
+    "_status": "blocked — 加算の対象が「合計所得金額132万円以下」に狭まることは大綱に明記されているが、その加算額を取得できていない。",
+    "_known": "大綱「居住者のその年分の合計所得金額が655万円（令和10年分以後の各年分にあっては、132万円）以下である場合の基礎控除の控除額の加算額を…」。基礎控除の本体は62万円。",
+    "_next_action": "大綱の当該項目の「ロ 令和10年分以後」の金額を確認する。または措法41の16の2の改正後条文を施行後に取得する。"
+  }
+}

@@ -1,0 +1,3306 @@
+{
+  "$schema": "../../schemas/social-insurance.schema.json",
+  "_comment": "標準報酬月額の等級表。健康保険50等級・厚生年金32等級。e-Gov 法令APIの原文から生成。",
+  "_generated": "生成物。手で編集せず、原文を取り直して再生成すること。",
+  "_health_source": {
+    "law_id": "211AC0000000070",
+    "law_name": "健康保険法",
+    "article": "第40条第1項",
+    "api": "https://laws.e-gov.go.jp/api/1/lawdata/211AC0000000070",
+    "extracted_at": "2026-08-24",
+    "effective_note": "第48〜50級は平成28年4月1日に追加（厚生労働省 社会保障審議会年金部会 資料「標準報酬月額の上限について」）。等級区分を改定する政令は現在存在しないため、法本文の50等級が現行。"
+  },
+  "_pension_source": {
+    "law_id": "329AC0000000115",
+    "law_name": "厚生年金保険法",
+    "article": "第20条第1項",
+    "order_law_id": "502CO0000000246",
+    "order_name": "厚生年金保険法の標準報酬月額の等級区分の改定等に関する政令（令和2年政令第246号）",
+    "extracted_at": "2026-08-24",
+    "important": "法本文の表は第31級（620,000円・605,000円以上）までの31等級。現行の32等級は政令246号1条の読替えによる。法20条2項が「政令で最高等級の上に等級を加える改定を行うことができる」と定めており、改定しても法本文の表は書き換わらない。法令原文だけを見ると31等級と誤認する。",
+    "replacement": "第31級の報酬月額を「605,000円以上635,000円未満」に読み替え、第32級（650,000円・635,000円以上）を加える。令和2年9月1日施行。"
+  },
+  "_verification": {
+    "health": "50等級・58,000〜1,390,000円・報酬月額の範囲が連続・標準報酬月額が単調増加",
+    "pension": "32等級・88,000〜650,000円・同上",
+    "test": "masters/scripts/__tests__/test-standard-remuneration-grades.js"
+  },
+  "health_insurance_grades": [
+    {
+      "record_id": "SI-HG-G01",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 1,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "58000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "62999"
+      },
+      "calculation_order": 1,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第1級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G02",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 2,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "68000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "63000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "72999"
+      },
+      "calculation_order": 2,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第2級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G03",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 3,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "78000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "73000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "82999"
+      },
+      "calculation_order": 3,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第3級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G04",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 4,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "88000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "83000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "92999"
+      },
+      "calculation_order": 4,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第4級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G05",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 5,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "98000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "93000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "100999"
+      },
+      "calculation_order": 5,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第5級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G06",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 6,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "104000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "101000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "106999"
+      },
+      "calculation_order": 6,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第6級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G07",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 7,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "110000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "107000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "113999"
+      },
+      "calculation_order": 7,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第7級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G08",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 8,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "118000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "114000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "121999"
+      },
+      "calculation_order": 8,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第8級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G09",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 9,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "126000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "122000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "129999"
+      },
+      "calculation_order": 9,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第9級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G10",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 10,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "134000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "130000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "137999"
+      },
+      "calculation_order": 10,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第10級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G11",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 11,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "142000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "138000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "145999"
+      },
+      "calculation_order": 11,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第11級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G12",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 12,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "150000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "146000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "154999"
+      },
+      "calculation_order": 12,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第12級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G13",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 13,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "160000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "155000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "164999"
+      },
+      "calculation_order": 13,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第13級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G14",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 14,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "170000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "165000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "174999"
+      },
+      "calculation_order": 14,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第14級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G15",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 15,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "180000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "175000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "184999"
+      },
+      "calculation_order": 15,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第15級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G16",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 16,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "190000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "185000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "194999"
+      },
+      "calculation_order": 16,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第16級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G17",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 17,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "200000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "195000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "209999"
+      },
+      "calculation_order": 17,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第17級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G18",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 18,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "220000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "210000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "229999"
+      },
+      "calculation_order": 18,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第18級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G19",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 19,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "240000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "230000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "249999"
+      },
+      "calculation_order": 19,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第19級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G20",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 20,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "260000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "250000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "269999"
+      },
+      "calculation_order": 20,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第20級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G21",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 21,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "280000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "270000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "289999"
+      },
+      "calculation_order": 21,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第21級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G22",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 22,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "300000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "290000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "309999"
+      },
+      "calculation_order": 22,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第22級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G23",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 23,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "320000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "310000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "329999"
+      },
+      "calculation_order": 23,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第23級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G24",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 24,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "340000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "330000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "349999"
+      },
+      "calculation_order": 24,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第24級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G25",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 25,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "360000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "350000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "369999"
+      },
+      "calculation_order": 25,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第25級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G26",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 26,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "380000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "370000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "394999"
+      },
+      "calculation_order": 26,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第26級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G27",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 27,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "410000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "395000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "424999"
+      },
+      "calculation_order": 27,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第27級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G28",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 28,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "440000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "425000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "454999"
+      },
+      "calculation_order": 28,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第28級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G29",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 29,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "470000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "455000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "484999"
+      },
+      "calculation_order": 29,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第29級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G30",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 30,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "500000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "485000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "514999"
+      },
+      "calculation_order": 30,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第30級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G31",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 31,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "530000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "515000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "544999"
+      },
+      "calculation_order": 31,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第31級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G32",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 32,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "560000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "545000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "574999"
+      },
+      "calculation_order": 32,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第32級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G33",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 33,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "590000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "575000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "604999"
+      },
+      "calculation_order": 33,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第33級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G34",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 34,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "620000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "605000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "634999"
+      },
+      "calculation_order": 34,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第34級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G35",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 35,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "650000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "635000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "664999"
+      },
+      "calculation_order": 35,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第35級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G36",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 36,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "680000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "665000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "694999"
+      },
+      "calculation_order": 36,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第36級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G37",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 37,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "710000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "695000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "729999"
+      },
+      "calculation_order": 37,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第37級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G38",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 38,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "750000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "730000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "769999"
+      },
+      "calculation_order": 38,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第38級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G39",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 39,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "790000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "770000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "809999"
+      },
+      "calculation_order": 39,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第39級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G40",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 40,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "830000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "810000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "854999"
+      },
+      "calculation_order": 40,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第40級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G41",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 41,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "880000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "855000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "904999"
+      },
+      "calculation_order": 41,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第41級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G42",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 42,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "930000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "905000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "954999"
+      },
+      "calculation_order": 42,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第42級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G43",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 43,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "980000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "955000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1004999"
+      },
+      "calculation_order": 43,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第43級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G44",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 44,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1030000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1005000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1054999"
+      },
+      "calculation_order": 44,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第44級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G45",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 45,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1090000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1055000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1114999"
+      },
+      "calculation_order": 45,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第45級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G46",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 46,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1150000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1115000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1174999"
+      },
+      "calculation_order": 46,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第46級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G47",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 47,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1210000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1175000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1234999"
+      },
+      "calculation_order": 47,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第47級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G48",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 48,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1270000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1235000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1294999"
+      },
+      "calculation_order": 48,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第48級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G49",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 49,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1330000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1295000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "1354999"
+      },
+      "calculation_order": 49,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第49級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-HG-G50",
+      "value_key": "health_insurance_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "health_insurance",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2016-04-01",
+      "effective_to": null,
+      "grade": 50,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "1390000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "1355000"
+      },
+      "remuneration_upper_inclusive": null,
+      "calculation_order": 50,
+      "source_document_id": "EGOV-HEALTH-INSURANCE-ACT",
+      "source_locator": "第40条第1項 標準報酬月額等級表 第50級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ],
+  "employees_pension_grades": [
+    {
+      "record_id": "SI-PG-G01",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 1,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "88000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "92999"
+      },
+      "calculation_order": 1,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第1級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G02",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 2,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "98000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "93000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "100999"
+      },
+      "calculation_order": 2,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第2級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G03",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 3,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "104000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "101000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "106999"
+      },
+      "calculation_order": 3,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第3級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G04",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 4,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "110000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "107000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "113999"
+      },
+      "calculation_order": 4,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第4級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G05",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 5,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "118000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "114000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "121999"
+      },
+      "calculation_order": 5,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第5級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G06",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 6,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "126000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "122000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "129999"
+      },
+      "calculation_order": 6,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第6級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G07",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 7,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "134000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "130000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "137999"
+      },
+      "calculation_order": 7,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第7級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G08",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 8,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "142000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "138000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "145999"
+      },
+      "calculation_order": 8,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第8級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G09",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 9,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "150000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "146000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "154999"
+      },
+      "calculation_order": 9,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第9級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G10",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 10,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "160000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "155000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "164999"
+      },
+      "calculation_order": 10,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第10級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G11",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 11,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "170000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "165000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "174999"
+      },
+      "calculation_order": 11,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第11級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G12",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 12,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "180000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "175000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "184999"
+      },
+      "calculation_order": 12,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第12級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G13",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 13,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "190000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "185000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "194999"
+      },
+      "calculation_order": 13,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第13級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G14",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 14,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "200000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "195000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "209999"
+      },
+      "calculation_order": 14,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第14級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G15",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 15,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "220000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "210000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "229999"
+      },
+      "calculation_order": 15,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第15級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G16",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 16,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "240000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "230000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "249999"
+      },
+      "calculation_order": 16,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第16級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G17",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 17,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "260000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "250000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "269999"
+      },
+      "calculation_order": 17,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第17級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G18",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 18,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "280000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "270000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "289999"
+      },
+      "calculation_order": 18,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第18級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G19",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 19,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "300000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "290000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "309999"
+      },
+      "calculation_order": 19,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第19級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G20",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 20,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "320000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "310000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "329999"
+      },
+      "calculation_order": 20,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第20級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G21",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 21,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "340000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "330000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "349999"
+      },
+      "calculation_order": 21,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第21級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G22",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 22,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "360000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "350000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "369999"
+      },
+      "calculation_order": 22,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第22級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G23",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 23,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "380000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "370000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "394999"
+      },
+      "calculation_order": 23,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第23級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G24",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 24,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "410000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "395000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "424999"
+      },
+      "calculation_order": 24,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第24級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G25",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 25,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "440000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "425000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "454999"
+      },
+      "calculation_order": 25,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第25級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G26",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 26,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "470000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "455000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "484999"
+      },
+      "calculation_order": 26,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第26級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G27",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 27,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "500000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "485000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "514999"
+      },
+      "calculation_order": 27,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第27級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G28",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 28,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "530000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "515000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "544999"
+      },
+      "calculation_order": 28,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第28級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G29",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 29,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "560000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "545000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "574999"
+      },
+      "calculation_order": 29,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第29級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G30",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 30,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "590000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "575000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "604999"
+      },
+      "calculation_order": 30,
+      "source_document_id": "EGOV-EMPLOYEES-PENSION-ACT",
+      "source_locator": "第20条第1項 標準報酬月額等級表 第30級",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G31",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 31,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "620000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "605000"
+      },
+      "remuneration_upper_inclusive": {
+        "unit": "JPY",
+        "value": "634999"
+      },
+      "calculation_order": 31,
+      "source_document_id": "EGOV-PENSION-GRADE-ORDER-R2",
+      "source_locator": "令和2年政令第246号 第1条（読替え）",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "SI-PG-G32",
+      "value_key": "employees_pension_standard_remuneration_grades",
+      "tax_year": null,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2020-08-14",
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "social_insurance_master",
+      "tax_or_insurance_type": "employees_pension",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2020-09-01",
+      "effective_to": null,
+      "grade": 32,
+      "monthly_standard": {
+        "unit": "JPY",
+        "value": "650000"
+      },
+      "remuneration_lower_inclusive": {
+        "unit": "JPY",
+        "value": "635000"
+      },
+      "remuneration_upper_inclusive": null,
+      "calculation_order": 32,
+      "source_document_id": "EGOV-PENSION-GRADE-ORDER-R2",
+      "source_locator": "令和2年政令第246号 第1条（読替え）",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ]
+}

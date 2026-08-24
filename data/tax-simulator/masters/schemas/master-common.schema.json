@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "master-common.schema.json",
+  "title": "税務マスター共通フィールド",
+  "description": "全マスターレコードが持つ共通フィールド。仕様書 §3-1 に基づく。",
+
+  "$defs": {
+    "Money": {
+      "type": "object",
+      "properties": {
+        "unit": { "const": "JPY" },
+        "value": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "円単位の整数。bigint互換のため文字列。小数円は不可。"
+        }
+      },
+      "required": ["unit", "value"],
+      "additionalProperties": false
+    },
+
+    "Rate": {
+      "type": "object",
+      "properties": {
+        "num": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "分子。整数。"
+        },
+        "den": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$",
+          "description": "分母。正の整数。0は不可。"
+        }
+      },
+      "required": ["num", "den"],
+      "additionalProperties": false,
+      "description": "率。小数リテラルで保持しない（§3-3）。"
+    },
+
+    "LocalDate": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "日付。YYYY-MM-DD形式。タイムゾーンを含まない。"
+    },
+
+    "Instant": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339のオフセット付き日時。オフセット無し不可。"
+    },
+
+    "Jurisdiction": {
+      "type": "object",
+      "properties": {
+        "country": { "const": "JP" },
+        "codeSystemVersion": { "type": "string" },
+        "asOfForCodes": { "$ref": "#/$defs/LocalDate" },
+        "prefectureCode": {
+          "type": "string",
+          "pattern": "^[0-9]{2}$",
+          "description": "都道府県コード2桁（JIS X 0401）"
+        },
+        "municipalityCode": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$",
+          "description": "全国地方公共団体コード5桁（検査数字含む、JIS X 0402）"
+        },
+        "healthInsurerCode": {
+          "type": "string",
+          "description": "保険者番号。協会けんぽ支部と健保組合を同一体系で扱わない。"
+        }
+      },
+      "required": ["country"],
+      "additionalProperties": false
+    },
+
+    "LegalStatus": {
+      "type": "string",
+      "enum": ["draft", "announced", "enacted", "effective", "expired", "repealed"],
+      "description": "制度の法的状態（§48）"
+    },
+
+    "DataReviewStatus": {
+      "type": "string",
+      "enum": ["unverified", "single_checked", "double_checked", "approved", "blocked"],
+      "description": "データ審査状態（§48）"
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "description": "マスター内で一意のレコード識別子。年度・世代を含んでよい（例: BD-R8-TIER-01）"
+    },
+    "value_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "年度に依存しない『この値は何か』の識別子（例: basic_deduction_table）。計算エンジンは value_key と適用日でレコードを引く。record_id は年度を含むため、コードから直接参照すると毎年の改正でコード修正が必要になり、§3-1 の『税率をコードへ直接書かない』が守れない。段階表は全行が同じ value_key を共有し、行の区別は上下限と calculation_order が担う。"
+    },
+    "applicability_conditions": {
+      "type": "array",
+      "description": "同じ value_key・同じ期間・同じ段階のレコードが複数ある場合に、どちらを使うかを決める条件。適用条件が無いレコードが同一条件下で2件以上あってはならない（エンジンが選べない）。",
+      "items": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "判定対象（例: total_annual_income）"
+          },
+          "operator": {
+            "enum": ["lt", "lte", "gt", "gte", "eq", "neq", "in", "not_in"]
+          },
+          "value": {
+            "description": "比較値。金額なら Money、その他は文字列・数値・配列"
+          },
+          "description": {
+            "type": "string",
+            "description": "条件の日本語説明と根拠（出典の注番号等）"
+          }
+        },
+        "required": ["subject", "operator", "value"]
+      }
+    },
+    "master_name": {
+      "type": "string",
+      "description": "所属するマスターテーブル名"
+    },
+
+    "tax_or_insurance_type": {
+      "type": "string",
+      "enum": [
+        "income_tax",
+        "reconstruction_income_tax",
+        "resident_tax",
+        "sole_proprietor_enterprise_tax",
+        "corporate_tax",
+        "local_corporate_tax",
+        "corporate_inhabitant_tax",
+        "corporate_enterprise_tax",
+        "special_corporate_enterprise_tax",
+        "consumption_tax",
+        "local_consumption_tax",
+        "inheritance_tax",
+        "gift_tax",
+        "health_insurance",
+        "nursing_care_insurance",
+        "welfare_pension",
+        "child_support_levy",
+        "child_contribution"
+      ],
+      "description": "税目または保険種別"
+    },
+    "jurisdiction": { "$ref": "#/$defs/Jurisdiction" },
+
+    "effective_from": {
+      "$ref": "#/$defs/LocalDate",
+      "description": "この制度値が効力を持つ開始日"
+    },
+    "effective_to": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "効力の終了日。nullは無期限。"
+    },
+    "applies_to_period_start_from": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "この値が適用される課税期間等の開始日の下限"
+    },
+    "applies_to_period_start_to": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "同上限"
+    },
+    "applies_to_transaction_from": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "取引日の下限（消費税経過措置等）"
+    },
+    "applies_to_transaction_to": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "同上限"
+    },
+
+    "calculation_order": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "同一課税段階内での適用順序"
+    },
+    "rounding_rule_id": {
+      "type": "string",
+      "description": "端数規則表の参照ID"
+    },
+
+    "source_document_id": {
+      "type": "string",
+      "description": "出典の識別子（SourceReference.sourceId）"
+    },
+    "source_locator": {
+      "type": "string",
+      "description": "条・項・ページ・表番号・行番号等"
+    },
+    "source_hash": {
+      "type": "string",
+      "description": "出典ファイルのSHA-256ハッシュ"
+    },
+    "verified_at": {
+      "oneOf": [
+        { "$ref": "#/$defs/Instant" },
+        { "type": "null" }
+      ]
+    },
+    "verified_by": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "null" }
+      ]
+    },
+    "promulgated_at": {
+      "oneOf": [
+        { "$ref": "#/$defs/LocalDate" },
+        { "type": "null" }
+      ],
+      "description": "公布日"
+    },
+    "as_of_date": {
+      "$ref": "#/$defs/LocalDate",
+      "description": "この値の根拠を確認した日"
+    },
+
+    "legal_status": { "$ref": "#/$defs/LegalStatus" },
+    "data_review_status": { "$ref": "#/$defs/DataReviewStatus" }
+  },
+  "required": [
+    "record_id",
+    "value_key",
+    "master_name",
+    "tax_or_insurance_type",
+    "jurisdiction",
+    "effective_from",
+    "effective_to",
+    "as_of_date",
+    "legal_status",
+    "data_review_status"
+  ]
+}

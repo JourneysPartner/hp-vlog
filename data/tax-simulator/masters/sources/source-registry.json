@@ -1,0 +1,417 @@
+{
+  "_comment": "出典台帳。マスターレコードの source_document_id から、その出典をどう監視するかを引く。",
+  "_design_note": "値の更新は人が行う。このファイルが定めるのは『いつ・どこを見て・何を確認するか』だけ。",
+  "_kind_values": {
+    "taxanswer": "国税庁タックスアンサー。nta-sources の html_hash で自動検知できる",
+    "web": "その他のWebページ。専用のスナップショット監視が必要",
+    "law": "法令原文。改正時のみ確認。自動検知の対象外",
+    "manual": "PDF等で機械監視が難しい。カレンダーで期日管理する"
+  },
+  "_update_cycle_values": {
+    "stable": "制度変更時のみ。定期確認は不要（例: 所得税率表はH27から不変）",
+    "on_reform": "税制改正時に変わりうる。大綱チェック（check-tax-reform）と連動",
+    "annual_april": "毎年度改定。3月頃に告示され4月から適用（社会保険系）",
+    "annual_calendar": "毎年1月1日から適用（所得税系の改正）"
+  },
+  "_coverage_basis_values": {
+    "calendar_year": "暦年（1/1〜12/31）でマスターを揃える必要がある",
+    "fiscal_april": "年度（4/1〜翌3/31）でマスターを揃える必要がある",
+    "none": "期間区分なし（改正があった時だけレコードを追加）"
+  },
+  "sources": {
+    "NTA-TA-2260": {
+      "label": "No.2260 所得税の税率",
+      "kind": "taxanswer",
+      "taxanswer_id": "2260",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "税率表自体はH27から不変。高額所得者加算(R7〜)・復興特別所得税(〜R19)を含む",
+      "url_verified": true
+    },
+    "NTA-TA-1410": {
+      "label": "No.1410 給与所得控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1410",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "calendar_year",
+      "note": "R8改正で最低保障額が変わる。R8/R9は特例上乗せがあり年ごとに別レコードが要る",
+      "url_verified": true
+    },
+    "NTA-TA-1199": {
+      "label": "No.1199 基礎控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1199",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "calendar_year",
+      "note": "R6以前/R7/R8/R9以後の4列構造。HTMLの表を平坦化すると列対応が失われるので、テキストから値を確定させない",
+      "url_verified": true
+    },
+    "NTA-TA-4155": {
+      "label": "No.4155 相続税の税率",
+      "kind": "taxanswer",
+      "taxanswer_id": "4155",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "H27から不変",
+      "url_verified": true
+    },
+    "NTA-TA-4152": {
+      "label": "No.4152 相続税の計算",
+      "kind": "taxanswer",
+      "taxanswer_id": "4152",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-4114": {
+      "label": "No.4114 相続税の課税対象になる死亡保険金",
+      "kind": "taxanswer",
+      "taxanswer_id": "4114",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4114.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-4117": {
+      "label": "No.4117 相続税の課税対象になる死亡退職金",
+      "kind": "taxanswer",
+      "taxanswer_id": "4117",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4117.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-4157": {
+      "label": "No.4157 相続税額の2割加算",
+      "kind": "taxanswer",
+      "taxanswer_id": "4157",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-4158": {
+      "label": "No.4158 配偶者の税額の軽減",
+      "kind": "taxanswer",
+      "taxanswer_id": "4158",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-6303": {
+      "label": "No.6303 消費税および地方消費税の税率",
+      "kind": "taxanswer",
+      "taxanswer_id": "6303",
+      "category": "shohi",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6303.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-6501": {
+      "label": "No.6501 納税義務の免除",
+      "kind": "taxanswer",
+      "taxanswer_id": "6501",
+      "category": "shohi",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-6505": {
+      "label": "No.6505 簡易課税制度",
+      "kind": "taxanswer",
+      "taxanswer_id": "6505",
+      "category": "shohi",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true
+    },
+    "NTA-TA-5759": {
+      "label": "No.5759 法人税の税率",
+      "kind": "taxanswer",
+      "taxanswer_id": "5759",
+      "category": "hojin",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5759.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "R7.4.1以後、所得10億超の事業年度は軽減税率が15%→17%（注7）",
+      "url_verified": true
+    },
+    "EGOV-INCOME-TAX-APDX5": {
+      "label": "所得税法 別表第五（年末調整等のための給与所得控除後の給与等の金額の表）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340AC0000000033",
+      "law_id": "340AC0000000033",
+      "update_cycle": "on_reform",
+      "coverage_basis": "calendar_year",
+      "expected_update_month": 12,
+      "note": "所法28条4項により、給与収入660万円未満はこの表で給与所得を求める（算式表を使ってはならない）。給与所得控除の改正に連動して改正される。R7改正の施行は令和7年12月1日だったため、R8版も同時期の施行が見込まれる",
+      "url_verified": true,
+      "_fetch_note": "e-Gov法令APIのXML（約15MB）。AppdxTable のうちタイトルが別表第五のものを取り出す。3列組×8表の紙面レイアウトで、先頭の空セルが1つ欠けている行があるため9セルへ右寄せして桁を揃えること"
+    },
+    "NTA-INVOICE-R8": {
+      "label": "インボイス制度 令和8年度改正（3割特例・相手先別1億円上限）",
+      "kind": "web",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "経過措置の控除割合と適用期間。タックスアンサーへの反映が遅れるため個別監視",
+      "url_verified": true
+    },
+    "NTA-INCOME-R8": {
+      "label": "国税庁 令和8年度改正（所得税関係）特集",
+      "kind": "web",
+      "url": "https://www.nta.go.jp/users/gensen/2026kiso/index.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "calendar_year",
+      "note": "基礎控除・給与所得控除のR8改正の確定値。URLは年度ごとに変わるため要確認",
+      "url_verified": true
+    },
+    "MOF-R8-LAW": {
+      "label": "令和8年度税制改正法（財務省）",
+      "kind": "law",
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_01.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "check-tax-reform.yml が大綱を監視している。改正法の条文確認はここから辿る",
+      "url_verified": true
+    },
+    "EGOV-HEALTH-INSURANCE-ACT": {
+      "label": "健康保険法（標準報酬月額等級表・標準賞与額）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/211AC0000000070",
+      "law_id": "211AC0000000070",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "40条1項が標準報酬月額の50等級表。40条2項により政令で最高等級の上に等級を追加できるため、法本文だけでは現行表と一致しない可能性がある。現時点で健保の等級改定政令は存在しない",
+      "url_verified": true
+    },
+    "EGOV-EMPLOYEES-PENSION-ACT": {
+      "label": "厚生年金保険法（標準報酬月額等級表・保険料率）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/329AC0000000115",
+      "law_id": "329AC0000000115",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "20条1項の表は第31級（620,000円）まで。現行の第32級は政令246号による読替えなので、この法令だけを見ると31等級と誤認する。必ず EGOV-PENSION-GRADE-ORDER-R2 と併せて読むこと",
+      "url_verified": true
+    },
+    "EGOV-PENSION-GRADE-ORDER-R2": {
+      "label": "厚生年金保険法の標準報酬月額の等級区分の改定等に関する政令（令和2年政令第246号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/502CO0000000246",
+      "law_id": "502CO0000000246",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "1条: 第31級の報酬月額を「605,000円以上635,000円未満」に読み替え、第32級（650,000円・635,000円以上）を追加。2条: 標準賞与額の上限150万円。令和2年9月1日施行。厚年法20条2項に基づく改定は毎年9月1日に行われうるため、e-Gov の法令一覧を「標準報酬」で検索して新しい政令が出ていないか確認すること",
+      "url_verified": true
+    },
+    "NENKIN-NATL": {
+      "label": "国民年金保険料の変遷（日本年金機構）",
+      "kind": "web",
+      "url": "https://www.nenkin.go.jp/service/kokunen/hokenryo/hensen.html",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 3,
+      "note": "年度ごとの定額保険料と付加保険料の一覧。マスターの値はこの表から取っている。毎年度改定",
+      "url_verified": true,
+      "machine_reachable": false,
+      "_unreachable_reason": "日本年金機構は node の fetch からの接続を切る（UAを変えてもECONNRESET）。ブラウザおよびWebFetch経由では到達でき、令和7年度17,510円・令和8年度17,920円・付加保険料400円をこのページで確認済み（2026-08-24）。年度更新時は人が開いて確認する。"
+    },
+    "KYOKAI-KENPO-HEALTH": {
+      "label": "協会けんぽ 健康保険料率（都道府県別）",
+      "kind": "manual",
+      "url": "https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 3,
+      "note": "都道府県別の料率一覧。HTMLの表なので機械抽出できる（fetch-kenpo-rates.js）。毎年3月頃に翌年度分が公表され、3月分（4月納付分）から適用",
+      "url_verified": true
+    },
+    "KYOKAI-KENPO-NURSING": {
+      "label": "協会けんぽ 介護保険料率",
+      "kind": "manual",
+      "url": "https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 3,
+      "note": "全国一律。健保料率と同じページに載る",
+      "url_verified": true
+    },
+    "MHLW-CHILD-LEVY": {
+      "label": "子ども・子育て拠出金率（こども家庭庁）",
+      "kind": "web",
+      "url": "https://www.cfa.go.jp/policies/kodomokosodateshienkinseido",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 3,
+      "note": "事業主のみ負担。法定上限0.45%に対し適用率0.36%。所管は厚労省からこども家庭庁へ移っている",
+      "url_verified": true
+    },
+    "MHLW-SUPPORT-R8": {
+      "label": "子ども・子育て支援金制度（こども家庭庁）",
+      "kind": "manual",
+      "url": "https://www.cfa.go.jp/policies/kodomokosodateshienkinseido",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 3,
+      "note": "令和8年4月分から医療保険料と併せて徴収。R8→R9→R10と段階的に引上げ（支援金総額の目安 R8約0.6兆円→R9約0.8兆円→R10約1兆円）",
+      "url_verified": true
+    },
+    "NTA-LOCAL-CORP-TAX": {
+      "label": "地方法人税法（平成26年法律第11号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/426AC0000000011",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "10条が税率（基準法人税額の10.3%）。R2.10.1以後開始事業年度から。総務省の解説ページではなく法令原文を出典にする",
+      "url_verified": true,
+      "_url_note": "当初 5900.htm を指していたが、これはグループ通算制度の解説で地方法人税ではない。差し替えたURLも未確認。原文を確認して確定させること",
+      "law_id": "426AC0000000011"
+    },
+    "SOUMU-CORP-INHAB": {
+      "label": "地方税法（法人住民税）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "51条（道府県民税法人税割の標準税率）、314条の4（市町村民税法人税割）、52条・312条（均等割）",
+      "url_verified": true,
+      "law_id": "325AC0000000226"
+    },
+    "SOUMU-ENT-TAX": {
+      "label": "地方税法（法人事業税）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "72条の24の7が所得割の標準税率。外形標準課税は資本金1億超のみ",
+      "url_verified": true,
+      "law_id": "325AC0000000226"
+    },
+    "SOUMU-SPECIAL-ENT": {
+      "label": "特別法人事業税及び特別法人事業譲与税に関する法律（平成31年法律第4号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/431AC0000000004",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "url_verified": true,
+      "law_id": "431AC0000000004",
+      "note": "7条が税率（基準法人所得割額に対する割合）"
+    },
+    "SOUMU-RESIDENT-TAX": {
+      "label": "地方税法（個人住民税）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+      "update_cycle": "on_reform",
+      "coverage_basis": "calendar_year",
+      "note": "35条・314条の3（所得割の標準税率）、38条・310条（均等割）、34条・314条の2（所得控除）、37条・314条の6（調整控除）、20条の4の2（端数計算）",
+      "url_verified": true,
+      "law_id": "325AC0000000226"
+    },
+    "SOUMU-FOREST-TAX": {
+      "label": "森林環境税及び森林環境譲与税に関する法律（平成31年法律第3号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/431AC0000000003",
+      "update_cycle": "stable",
+      "coverage_basis": "none",
+      "note": "国税だが市町村が個人住民税と併せて賦課徴収する。令和6年度から年1,000円",
+      "url_verified": true,
+      "law_id": "431AC0000000003"
+    },
+    "EGOV-KOKUZEI-TSUSOKU": {
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "label": "国税通則法（昭和37年法律第66号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/337AC0000000066",
+      "law_id": "337AC0000000066",
+      "note": "118条1項が課税標準の千円未満切捨て、119条1項が確定金額の百円未満切捨て。端数規則表の根拠",
+      "url_verified": true,
+      "reference_only": true,
+      "_reference_note": "端数規則表（data/rounding-rules/rules.json）の legal_basis が指す条文。個別レコードからは source_document_id で参照しない"
+    },
+    "EGOV-CHIHOUZEI": {
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "label": "地方税法（端数計算）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+      "law_id": "325AC0000000226",
+      "note": "20条の4の2。1項が課税標準額の千円未満切捨て、3項が確定金額の百円未満切捨て。8項により個人の市町村民税・道府県民税・森林環境税は「一の地方税」とみなして端数計算する",
+      "url_verified": true,
+      "reference_only": true,
+      "_reference_note": "端数規則表（data/rounding-rules/rules.json）の legal_basis が指す条文。個別レコードからは source_document_id で参照しない"
+    },
+    "NTA-TA-4164": {
+      "label": "No.4164 未成年者の税額控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "4164",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4164.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "未成年者控除。満18歳になるまで1年10万円。成年年齢引下げで令和4年4月1日から20歳→18歳",
+      "url_verified": true
+    },
+    "NTA-TA-4167": {
+      "label": "No.4167 障害者の税額控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "4167",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4167.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "障害者控除。満85歳まで1年10万円（特別障害者は20万円）",
+      "url_verified": true
+    },
+    "NTA-TA-4168": {
+      "label": "No.4168 相次相続控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "4168",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4168.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "相次相続控除。10年以内の前相続の税額を1年10%逓減。経過年数は切捨て",
+      "url_verified": true
+    },
+    "NTA-TA-4161": {
+      "label": "No.4161 贈与財産の加算と税額控除（暦年課税）",
+      "kind": "taxanswer",
+      "taxanswer_id": "4161",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "生前贈与加算の対象期間。令和6年改正で3年→7年。経過措置で相続開始日により3段階",
+      "url_verified": true
+    },
+    "MOF-R8-OUTLINE-CONSUMPTION": {
+      "label": "令和8年度税制改正の大綱 四 消費課税（財務省）",
+      "kind": "law",
+      "url": "https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_04.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "インボイスの経過措置（控除割合70/50/30%と相手先別1億円上限）の根拠。大綱であって条文ではないので、改正法の公布後に条文で二者確認する",
+      "url_verified": true
+    }
+  }
+}

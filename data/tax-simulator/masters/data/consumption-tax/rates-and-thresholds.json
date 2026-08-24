@@ -1,0 +1,614 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "消費税率・閾値・簡易課税みなし仕入率・インボイス経過措置。No.6303,6501,6505等より抽出。",
+  "tax_rates": [
+    {
+      "record_id": "CT-R1-STANDARD",
+      "value_key": "consumption_tax_rate_standard",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "consumption_tax_master",
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "rate_type": "standard",
+      "combined_rate": {
+        "num": "10",
+        "den": "100"
+      },
+      "national_rate": {
+        "num": "78",
+        "den": "1000"
+      },
+      "local_rate": {
+        "num": "22",
+        "den": "1000"
+      },
+      "_local_rate_basis": "地方消費税は消費税額の22/78（結果として課税標準の2.2%）",
+      "effective_from": "2019-10-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6303",
+      "source_locator": "概要 > 標準税率 列",
+      "source_hash": "1f5facdb9e16565f81dae93b5039ac8475f467368ffe61dd0f54073c4c97a3de",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "CT-R1-REDUCED",
+      "value_key": "consumption_tax_rate_reduced",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "consumption_tax_master",
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "rate_type": "reduced",
+      "combined_rate": {
+        "num": "8",
+        "den": "100"
+      },
+      "national_rate": {
+        "num": "624",
+        "den": "10000"
+      },
+      "local_rate": {
+        "num": "176",
+        "den": "10000"
+      },
+      "_local_rate_basis": "地方消費税は消費税額の22/78（結果として課税標準の1.76%）",
+      "_scope": "飲食料品の譲渡（酒類・外食を除く）、週2回以上発行の新聞（定期購読契約）",
+      "effective_from": "2019-10-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6303",
+      "source_locator": "概要 > 軽減税率 列",
+      "source_hash": "1f5facdb9e16565f81dae93b5039ac8475f467368ffe61dd0f54073c4c97a3de",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "CT-H26-OLD-RATE",
+      "value_key": "consumption_tax_rate_old_transitional",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "consumption_tax_master",
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "rate_type": "old_transitional",
+      "combined_rate": {
+        "num": "8",
+        "den": "100"
+      },
+      "national_rate": {
+        "num": "63",
+        "den": "1000"
+      },
+      "local_rate": {
+        "num": "17",
+        "den": "1000"
+      },
+      "_note": "旧税率8%（消費税6.3%＋地方1.7%）。令和元年10月1日以後でも経過措置が適用される取引に使う。軽減税率8%とは内訳が違うので取り違えないこと（注1）",
+      "effective_from": "2014-04-01",
+      "effective_to": "2019-09-30",
+      "source_document_id": "NTA-TA-6303",
+      "source_locator": "概要 > 注1",
+      "source_hash": "1f5facdb9e16565f81dae93b5039ac8475f467368ffe61dd0f54073c4c97a3de",
+      "as_of_date": "2026-08-23",
+      "legal_status": "expired",
+      "data_review_status": "approved"
+    }
+  ],
+  "thresholds": [
+    {
+      "record_id": "CT-EXEMPT-THRESHOLD",
+      "value_key": "taxable_sales_exemption_threshold",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "consumption_tax_master",
+      "description": "免税点: 基準期間の課税売上高",
+      "threshold_amount": {
+        "unit": "JPY",
+        "value": "10000000"
+      },
+      "comparison": "less_than_or_equal",
+      "effect": "免税事業者",
+      "_base_period": "個人事業者は前々年、事業年度1年の法人は前々事業年度",
+      "_exceptions": [
+        "適格請求書発行事業者の登録を受けている場合は免除されない",
+        "特定期間（個人：前年1/1〜6/30、法人：原則として前事業年度開始後6か月）の課税売上高が1,000万円超の場合は免除されない。特定期間は給与等支払額での判定に代えることもできる（納税者の任意）"
+      ],
+      "effective_from": "2004-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6501",
+      "source_locator": "概要 > 消費税の納税義務の免除",
+      "source_hash": "aa9d9817d7d0856483dcb261974c0d8604d33bf1db15317dec9a0bd24b9d995c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "CT-SIMPLIFIED-THRESHOLD",
+      "value_key": "simplified_taxation_ceiling",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "consumption_tax_master",
+      "description": "簡易課税適用上限: 基準期間の課税売上高",
+      "threshold_amount": {
+        "unit": "JPY",
+        "value": "50000000"
+      },
+      "comparison": "less_than_or_equal",
+      "effect": "簡易課税制度を選択可能",
+      "_requires": "消費税簡易課税制度選択届出書の提出",
+      "_exception": "令和6年10月1日以後開始の課税期間から、恒久的施設（PE）を有しない国外事業者は適用不可",
+      "effective_from": "2004-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 基準期間における課税売上高が5,000万円以下",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ],
+  "_simplified_source": {
+    "source_document_id": "NTA-TA-6505",
+    "source_locator": "概要 > 事業区分およびみなし仕入率の表",
+    "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+    "_note": "business_category は出典の表記をそのまま写している。要約すると第2種・第3種の飲食料品の切分けが失われるため縮めないこと。"
+  },
+  "simplified_deemed_rates": [
+    {
+      "record_id": "ST-TYPE1",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 1,
+      "business_category": "卸売業",
+      "deemed_purchase_rate": {
+        "num": "90",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第1種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "ST-TYPE2",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 2,
+      "business_category": "小売業、農業・林業・漁業（飲食料品の譲渡に係る事業に限る）",
+      "deemed_purchase_rate": {
+        "num": "80",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第2種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "ST-TYPE3",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 3,
+      "business_category": "農業・林業・漁業（飲食料品の譲渡に係る事業を除く）、鉱業、建設業、製造業、電気業、ガス業、熱供給業および水道業",
+      "deemed_purchase_rate": {
+        "num": "70",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第3種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "ST-TYPE4",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 4,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 4,
+      "business_category": "第1種事業、第2種事業、第3種事業、第5種事業および第6種事業以外の事業",
+      "_examples": "飲食店業など",
+      "deemed_purchase_rate": {
+        "num": "60",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第4種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "ST-TYPE5",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 5,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 5,
+      "business_category": "運輸通信業、金融業および保険業、サービス業（飲食店業に該当するものを除く）",
+      "deemed_purchase_rate": {
+        "num": "50",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第5種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "ST-TYPE6",
+      "value_key": "simplified_deemed_purchase_rates",
+      "tax_year": null,
+      "calculation_order": 6,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "simplified_tax_master",
+      "business_type": 6,
+      "business_category": "不動産業",
+      "deemed_purchase_rate": {
+        "num": "40",
+        "den": "100"
+      },
+      "effective_from": "2015-04-01",
+      "effective_to": null,
+      "source_document_id": "NTA-TA-6505",
+      "source_locator": "概要 > 事業区分の表 第6種事業",
+      "source_hash": "11746dfb1cf2a47028d1fcad3895992d2f906ca6de669f7311ab00d0cfac615c",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ],
+  "invoice_transition_rates": [
+    {
+      "record_id": "INV-TRANS-01",
+      "value_key": "invoice_transition_deduction_rate",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "invoice_transition_master",
+      "description": "免税事業者等からの課税仕入れに係る経過措置（80%控除）",
+      "deductible_rate": {
+        "num": "80",
+        "den": "100"
+      },
+      "applies_to_transaction_from": "2023-10-01",
+      "applies_to_transaction_to": "2026-09-30",
+      "effective_from": "2023-10-01",
+      "effective_to": "2026-09-30",
+      "source_document_id": "NTA-INVOICE-R8",
+      "source_locator": "免税事業者等からの課税仕入れに係る経過措置 第1期",
+      "as_of_date": "2026-08-23",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "INV-TRANS-02",
+      "value_key": "invoice_transition_deduction_rate",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "invoice_transition_master",
+      "description": "経過措置（70%控除）",
+      "deductible_rate": {
+        "num": "70",
+        "den": "100"
+      },
+      "applies_to_transaction_from": "2026-10-01",
+      "applies_to_transaction_to": "2028-09-30",
+      "effective_from": "2026-10-01",
+      "effective_to": "2028-09-30",
+      "source_document_id": "MOF-R8-OUTLINE-CONSUMPTION",
+      "source_locator": "令和8年度税制改正の大綱 四 消費課税 2 適格請求書等保存方式に係る経過措置の見直し（2）適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置（令和8年10月1日から令和10年9月30日まで70％）",
+      "as_of_date": "2026-08-23",
+      "legal_status": "enacted",
+      "data_review_status": "approved",
+      "_note": "大綱の原文どおり。改正前は令和8年10月1日から50%になる予定だったが、R8改正で70%に引き上げたうえで期間を延長した"
+    },
+    {
+      "record_id": "INV-TRANS-03",
+      "value_key": "invoice_transition_deduction_rate",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "invoice_transition_master",
+      "description": "経過措置（50%控除）",
+      "deductible_rate": {
+        "num": "50",
+        "den": "100"
+      },
+      "applies_to_transaction_from": "2028-10-01",
+      "applies_to_transaction_to": "2030-09-30",
+      "effective_from": "2028-10-01",
+      "effective_to": "2030-09-30",
+      "source_document_id": "MOF-R8-OUTLINE-CONSUMPTION",
+      "source_locator": "令和8年度税制改正の大綱 四 消費課税 2 適格請求書等保存方式に係る経過措置の見直し（2）適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置（令和10年10月1日から令和12年9月30日まで50％）",
+      "as_of_date": "2026-08-23",
+      "legal_status": "enacted",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "INV-TRANS-04",
+      "value_key": "invoice_transition_deduction_rate",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "invoice_transition_master",
+      "description": "経過措置（30%控除）",
+      "deductible_rate": {
+        "num": "30",
+        "den": "100"
+      },
+      "applies_to_transaction_from": "2030-10-01",
+      "applies_to_transaction_to": "2031-09-30",
+      "effective_from": "2030-10-01",
+      "effective_to": "2031-09-30",
+      "source_document_id": "MOF-R8-OUTLINE-CONSUMPTION",
+      "source_locator": "令和8年度税制改正の大綱 四 消費課税 2 適格請求書等保存方式に係る経過措置の見直し（2）適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置（令和12年10月1日から令和13年9月30日まで30％）",
+      "as_of_date": "2026-08-23",
+      "legal_status": "enacted",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "INV-TRANS-05",
+      "value_key": "invoice_transition_deduction_rate",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "invoice_transition_master",
+      "description": "経過措置の終了（控除なし）",
+      "deductible_rate": {
+        "num": "0",
+        "den": "100"
+      },
+      "applies_to_transaction_from": "2031-10-01",
+      "applies_to_transaction_to": null,
+      "effective_from": "2031-10-01",
+      "effective_to": null,
+      "source_document_id": "MOF-R8-OUTLINE-CONSUMPTION",
+      "source_locator": "令和8年度税制改正の大綱 四 消費課税 2 適格請求書等保存方式に係る経過措置の見直し（2）適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置（令和13年9月30日をもって終了）",
+      "as_of_date": "2026-08-23",
+      "legal_status": "enacted",
+      "data_review_status": "approved",
+      "_note": "大綱が定める最後の段階（30%）が令和13年9月30日で終わるため、令和13年10月1日以後は経過措置なし"
+    }
+  ],
+  "invoice_counterparty_cap": {
+    "record_id": "INV-CAP-R8",
+    "value_key": "invoice_counterparty_annual_cap",
+    "tax_year": null,
+    "calculation_order": 1,
+    "rounding_rule_id": "R-NONE",
+    "promulgated_at": null,
+    "verified_at": "2026-08-24",
+    "verified_by": "毛利順活税理士事務所",
+    "applies_to_transaction_from": null,
+    "applies_to_transaction_to": null,
+    "tax_or_insurance_type": "consumption_tax",
+    "jurisdiction": {
+      "country": "JP"
+    },
+    "master_name": "invoice_transition_master",
+    "description": "相手先ごとの年間上限額（R8改正で10億円→1億円）",
+    "counterparty_annual_cap_amount": {
+      "unit": "JPY",
+      "value": "100000000"
+    },
+    "cap_amount_basis": "inclusive",
+    "counterparty_aggregation_unit": "同一のインボイス発行事業者以外の者",
+    "cap_period_basis": "個人は暦年、法人は事業年度",
+    "cap_excess_treatment": "1億円を超える部分のみ経過措置対象外",
+    "applies_to_period_start_from": "2026-10-01",
+    "applies_to_period_start_to": null,
+    "effective_from": "2026-10-01",
+    "effective_to": null,
+    "source_document_id": "MOF-R8-OUTLINE-CONSUMPTION",
+    "source_locator": "令和8年度税制改正の大綱 四 消費課税 2 適格請求書等保存方式に係る経過措置の見直し（2）適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置（一の適格請求書発行事業者以外の者からの課税仕入れの額の合計額が1億円（現行：10億円）を超える場合）",
+    "as_of_date": "2026-08-23",
+    "legal_status": "enacted",
+    "data_review_status": "approved",
+    "_previous_cap": {
+      "unit": "JPY",
+      "value": "1000000000"
+    },
+    "_note": "大綱の原文「一の適格請求書発行事業者以外の者からの課税仕入れの額の合計額がその年又はその事業年度で1億円（現行：10億円）を超える場合には、その超えた部分の課税仕入れについて、本経過措置の適用を認めない」。相手先ごと・年（個人）または事業年度（法人）ごとに判定する",
+    "_needs_confirmation": "「課税仕入れの額」が税込か税抜かを条文で確認すること。大綱の文言だけでは確定できない"
+  }
+}

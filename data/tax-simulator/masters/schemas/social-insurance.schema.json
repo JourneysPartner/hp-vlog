@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "social-insurance.schema.json",
+  "title": "社会保険マスタースキーマ",
+  "description": "協会けんぽ・厚生年金・国民年金・国民健康保険の保険料率および標準報酬月額等級表",
+
+  "$defs": {
+    "InsuranceRateRecord": {
+      "type": "object",
+      "required": [
+        "record_id", "master_name", "tax_or_insurance_type", "jurisdiction",
+        "effective_from", "effective_to", "rate_category",
+        "as_of_date", "legal_status", "data_review_status"
+      ],
+      "properties": {
+        "record_id": { "type": "string" },
+        "master_name": { "const": "social_insurance_master" },
+        "tax_or_insurance_type": {
+          "enum": [
+            "employees_pension",
+            "health_insurance",
+            "nursing_care_insurance",
+            "child_support_levy",
+            "child_rearing_support",
+            "employment_insurance",
+            "national_pension",
+            "national_health_insurance"
+          ]
+        },
+        "jurisdiction": {
+          "type": "object",
+          "properties": {
+            "country": { "const": "JP" },
+            "prefectureCode": {
+              "type": "string",
+              "pattern": "^[0-9]{2}$",
+              "description": "都道府県コード（健保料率で必須）"
+            },
+            "healthInsurerCode": {
+              "type": "string",
+              "description": "保険者番号（協会けんぽ以外の健保組合を区別する場合）"
+            }
+          },
+          "required": ["country"]
+        },
+        "effective_from": { "type": "string", "format": "date" },
+        "effective_to": { "type": ["string", "null"], "format": "date" },
+
+        "rate_category": {
+          "enum": [
+            "total_rate",
+            "employer_rate",
+            "employee_rate",
+            "fixed_premium"
+          ],
+          "description": "total_rate=労使合計率, employer/employee=各負担率, fixed_premium=定額保険料"
+        },
+        "rate": {
+          "description": "保険料率（Rate型）。fixed_premiumの場合はnull",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "num": { "type": "string", "pattern": "^-?[0-9]+$" },
+                "den": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+              },
+              "required": ["num", "den"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "fixed_amount": {
+          "description": "定額保険料（国民年金等）。rate_category=fixed_premiumの場合に使用",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "unit": { "const": "JPY" },
+                "value": { "type": "string", "pattern": "^[0-9]+$" }
+              },
+              "required": ["unit", "value"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "applies_to": {
+          "type": "string",
+          "description": "適用対象の説明（例：40歳以上65歳未満、事業主のみ等）"
+        },
+
+        "rounding_rule_id": { "type": ["string", "null"] },
+        "source_document_id": { "type": "string" },
+        "source_locator": { "type": "string" },
+        "source_hash": { "type": ["string", "null"] },
+        "as_of_date": { "type": "string", "format": "date" },
+        "legal_status": {
+          "enum": ["draft", "announced", "enacted", "effective", "expired", "repealed"]
+        },
+        "data_review_status": {
+          "enum": ["unverified", "single_checked", "double_checked", "approved", "blocked"]
+        }
+      }
+    },
+
+    "StandardRemunerationGrade": {
+      "type": "object",
+      "description": "標準報酬月額等級表の1行",
+      "required": [
+        "record_id", "insurance_type", "grade",
+        "monthly_standard", "revenue_lower", "revenue_upper"
+      ],
+      "properties": {
+        "record_id": { "type": "string" },
+        "insurance_type": {
+          "enum": ["health_insurance", "employees_pension"],
+          "description": "健康保険(50等級)と厚生年金(32等級)で範囲が異なる"
+        },
+        "grade": { "type": "integer", "minimum": 1 },
+        "monthly_standard": {
+          "type": "object",
+          "properties": {
+            "unit": { "const": "JPY" },
+            "value": { "type": "string" }
+          },
+          "required": ["unit", "value"]
+        },
+        "revenue_lower": {
+          "type": "object",
+          "properties": {
+            "unit": { "const": "JPY" },
+            "value": { "type": "string" }
+          },
+          "required": ["unit", "value"]
+        },
+        "revenue_upper": {
+          "type": ["object", "null"],
+          "properties": {
+            "unit": { "const": "JPY" },
+            "value": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "BonusCap": {
+      "type": "object",
+      "description": "標準賞与額の上限",
+      "required": ["record_id", "insurance_type", "cap_amount", "cap_period"],
+      "properties": {
+        "record_id": { "type": "string" },
+        "insurance_type": {
+          "enum": ["health_insurance", "employees_pension"]
+        },
+        "cap_amount": {
+          "type": "object",
+          "properties": {
+            "unit": { "const": "JPY" },
+            "value": { "type": "string" }
+          },
+          "required": ["unit", "value"]
+        },
+        "cap_period": {
+          "enum": ["annual", "per_payment"],
+          "description": "健保=年度累計573万、厚年=1回150万"
+        }
+      }
+    }
+  }
+}

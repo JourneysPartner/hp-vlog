@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corporate-tax.schema.json",
+  "title": "法人税・地方法人税・法人住民税・法人事業税マスタースキーマ",
+  "description": "法人成りシミュレータで使用する法人側の税率テーブル",
+
+  "$defs": {
+    "CorporateTaxRecord": {
+      "type": "object",
+      "required": [
+        "record_id", "master_name", "tax_or_insurance_type", "jurisdiction",
+        "effective_from", "effective_to", "tax_category",
+        "as_of_date", "legal_status", "data_review_status"
+      ],
+      "properties": {
+        "record_id": { "type": "string" },
+        "master_name": {
+          "enum": [
+            "corporate_tax_master",
+            "local_corporate_tax_master",
+            "corporate_inhabitant_tax_master",
+            "enterprise_tax_master"
+          ]
+        },
+        "tax_or_insurance_type": {
+          "enum": [
+            "corporate_tax",
+            "local_corporate_tax",
+            "corporate_inhabitant_tax",
+            "enterprise_tax",
+            "special_enterprise_tax"
+          ]
+        },
+        "jurisdiction": {
+          "type": "object",
+          "properties": {
+            "country": { "const": "JP" },
+            "prefectureCode": { "type": "string", "pattern": "^[0-9]{2}$" },
+            "municipalityCode": { "type": "string", "pattern": "^[0-9]{6}$" }
+          },
+          "required": ["country"]
+        },
+        "effective_from": { "type": "string", "format": "date" },
+        "effective_to": { "type": ["string", "null"], "format": "date" },
+
+        "tax_category": {
+          "enum": [
+            "base_rate",
+            "sme_reduced_rate",
+            "local_corporate_tax_rate",
+            "inhabitant_tax_income_rate",
+            "inhabitant_tax_per_capita",
+            "enterprise_income_rate",
+            "enterprise_added_value_rate",
+            "enterprise_capital_rate",
+            "special_enterprise_tax_rate"
+          ]
+        },
+        "entity_type": {
+          "enum": ["ordinary", "sme", "micro"],
+          "description": "ordinary=普通法人, sme=中小法人(資本金1億以下), micro=中小企業者(資本金1億以下+一定条件)"
+        },
+
+        "rate": {
+          "description": "税率（Rate型）",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "num": { "type": "string", "pattern": "^-?[0-9]+$" },
+                "den": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+              },
+              "required": ["num", "den"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "income_lower_inclusive": {
+          "description": "所得段階の下限（法人事業税等の段階税率で使用）",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "unit": { "const": "JPY" },
+                "value": { "type": "string" }
+              },
+              "required": ["unit", "value"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "income_upper_inclusive": {
+          "description": "所得段階の上限",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "unit": { "const": "JPY" },
+                "value": { "type": "string" }
+              },
+              "required": ["unit", "value"]
+            },
+            { "type": "null" }
+          ]
+        },
+
+        "per_capita_amounts": {
+          "description": "均等割の段階表（資本金等の額 × 従業者数で決まる。法人住民税用）",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "capital_lower": { "type": "string" },
+              "capital_upper": { "type": ["string", "null"] },
+              "employee_lower": { "type": "integer" },
+              "employee_upper": { "type": ["integer", "null"] },
+              "municipal_amount": {
+                "type": "object",
+                "properties": {
+                  "unit": { "const": "JPY" },
+                  "value": { "type": "string" }
+                }
+              },
+              "prefectural_amount": {
+                "type": "object",
+                "properties": {
+                  "unit": { "const": "JPY" },
+                  "value": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+
+        "rate_base": {
+          "type": "string",
+          "description": "税率の課税標準。例：法人税額、所得金額、付加価値額、資本金等"
+        },
+        "calculation_order": { "type": "integer" },
+        "rounding_rule_id": { "type": ["string", "null"] },
+        "source_document_id": { "type": "string" },
+        "source_locator": { "type": "string" },
+        "source_hash": { "type": ["string", "null"] },
+        "as_of_date": { "type": "string", "format": "date" },
+        "legal_status": {
+          "enum": ["draft", "announced", "enacted", "effective", "expired", "repealed"]
+        },
+        "data_review_status": {
+          "enum": ["unverified", "single_checked", "double_checked", "approved", "blocked"]
+        }
+      }
+    }
+  }
+}
