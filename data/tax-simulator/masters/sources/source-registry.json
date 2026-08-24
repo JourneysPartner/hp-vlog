@@ -543,6 +543,17 @@
       "expected_update_month": 2,
       "note": "年度（4月1日〜翌3月31日）で切り替わる。健康保険料率が3月分からなのとは違う。失業等給付等は労使折半、雇用保険二事業は事業主のみ。事業区分は一般／農林水産・清酒製造／建設の3つ。厚労省のPDFはCIDフォントで機械抽出できないため、ハローワークのHTMLページから取得している。年度ごとにURLの末尾（08の部分）が変わる",
       "url_verified": true
+    },
+    "NTA-TA-4124": {
+      "label": "No.4124 相続した事業の用や居住の用の宅地等の価額の特例（小規模宅地等の特例）",
+      "kind": "taxanswer",
+      "taxanswer_id": "4124",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "小規模宅地等の特例。特定事業用400㎡80%・特定同族会社事業用400㎡80%・特定居住用330㎡80%・貸付事業用200㎡50%。貸付事業用を選ぶと全体が200㎡枠の按分になる",
+      "url_verified": true
     }
   }
 }

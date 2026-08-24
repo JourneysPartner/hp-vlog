@@ -158,10 +158,14 @@ function categoryKey(rec) {
     // deduction_category / difference_category は控除の項目名で、
     // 「条件でどれか一つを選ぶ」のではなく「該当するものを全部合算する」関係にある
     // （調整控除の人的控除の差など）。項目が違えば別の表として扱う。
+    // 税目。value_key が税目を含まない場合（tax_period_basis のように
+    // 税目ごとに1レコードずつ並ぶもの）に必要。
+    rec.tax_or_insurance_type || '',
     rec.business_type != null ? `bt${rec.business_type}` : '',
     rec.deduction_category || '',
     rec.difference_category || '',
     rec.insurance_type || '',
+    rec.land_category || '',
     JSON.stringify(rec.jurisdiction || {}),
   ].join('|');
 }
