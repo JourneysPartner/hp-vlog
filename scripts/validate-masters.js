@@ -158,19 +158,27 @@ function categoryKey(rec) {
   ].join('|');
 }
 
-/** 同じ段階表とみなすキー。適用期間が違えば別世代の表。 */
-function seriesKey(rec) {
-  return [categoryKey(rec), rec.effective_from || '', rec.effective_to || ''].join('|');
-}
-
 /**
  * 適用条件の指紋。同じ value_key・同じ期間でも、適用条件が違えば共存できる。
  * 例: 中小法人の軽減税率は通常15%だが、所得10億円超の事業年度は17%。
  */
 function conditionKey(rec) {
   const c = rec.applicability_conditions;
-  if (!c || (Array.isArray(c) && c.length === 0)) return '';
-  return JSON.stringify(c);
+  if (!Array.isArray(c) || c.length === 0) return '';
+  // description は人が読むための説明なので同一性の判定に使わない。
+  // 同じ条件でも書き方が違うだけで別グループになってしまう。
+  return JSON.stringify(c.map(x => [x.subject, x.operator, x.value]));
+}
+
+/**
+ * 同じ段階表とみなすキー。適用期間が違えば別世代の表。
+ *
+ * 適用条件も含める。同じ value_key でも条件が違えば並列の別表だから。
+ * 例: 配偶者控除は「一般の控除対象配偶者」と「老人控除対象配偶者」で
+ * 同じ所得区分の表が2本並ぶ。条件を無視すると重なりとして誤検知する。
+ */
+function seriesKey(rec) {
+  return [categoryKey(rec), conditionKey(rec), rec.effective_from || '', rec.effective_to || ''].join('|');
 }
 
 function periodsOverlap(a, b) {

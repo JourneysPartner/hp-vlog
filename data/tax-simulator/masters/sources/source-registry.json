@@ -413,6 +413,125 @@
       "coverage_basis": "none",
       "note": "インボイスの経過措置（控除割合70/50/30%と相手先別1億円上限）の根拠。大綱であって条文ではないので、改正法の公布後に条文で二者確認する",
       "url_verified": true
+    },
+    "NTA-TA-1120": {
+      "label": "No.1120 医療費を支払ったとき（医療費控除）",
+      "kind": "taxanswer",
+      "taxanswer_id": "1120",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1120.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "医療費控除。上限200万円、足切りは10万円または総所得金額等の5%",
+      "url_verified": true
+    },
+    "NTA-TA-1140": {
+      "label": "No.1140 生命保険料控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1140",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1140.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "生命保険料控除。新契約・旧契約で段階が違う。合計上限12万円",
+      "url_verified": true
+    },
+    "NTA-TA-1145": {
+      "label": "No.1145 地震保険料控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1145",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1145.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "地震保険料控除。地震保険料と旧長期損害保険料。合計上限5万円",
+      "url_verified": true
+    },
+    "NTA-TA-1160": {
+      "label": "No.1160 障害者控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1160",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1160.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "障害者控除。障害者27万・特別障害者40万・同居特別障害者75万",
+      "url_verified": true
+    },
+    "NTA-TA-1170": {
+      "label": "No.1170 寡婦控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1170",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1170.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "寡婦控除27万円（令和2年分以後は一律）",
+      "url_verified": true
+    },
+    "NTA-TA-1171": {
+      "label": "No.1171 ひとり親控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1171",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1171.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "ひとり親控除35万円。寡婦控除と重複適用しない",
+      "url_verified": true
+    },
+    "NTA-TA-1175": {
+      "label": "No.1175 勤労学生控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1175",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1175.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "勤労学生控除27万円",
+      "url_verified": true
+    },
+    "NTA-TA-1180": {
+      "label": "No.1180 扶養控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1180",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1180.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "扶養控除。一般38万・特定63万・老人48万／同居老親等58万",
+      "url_verified": true
+    },
+    "NTA-TA-1191": {
+      "label": "No.1191 配偶者控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1191",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "配偶者控除。本人の合計所得金額と配偶者の年齢の2軸。配偶者の所得要件はR7から48万→58万",
+      "url_verified": true
+    },
+    "NTA-TA-2072": {
+      "label": "No.2072 青色申告特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "2072",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "青色申告特別控除。65万／55万／10万の3区分と要件",
+      "url_verified": true
+    },
+    "NTA-2WARI-TOKUREI": {
+      "label": "2割特例（インボイス発行事業者となる小規模事業者に対する負担軽減措置）",
+      "kind": "web",
+      "url": "https://www.nta.go.jp/publication/pamph/shohi/kaisei/202304/01.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "令和5年10月1日から令和8年9月30日までの日の属する各課税期間。納付税額を売上税額の2割にできる。後継は個人事業者のみの3割特例（令和9年分・令和10年分）",
+      "url_verified": true
     }
   }
 }

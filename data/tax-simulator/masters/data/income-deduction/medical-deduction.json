@@ -1,0 +1,121 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "医療費控除。No.1120 より。実額から算式で求めるので、率と上限・足切り額だけをマスター化する。",
+  "_extraction_source": {
+    "taxanswer_id": "1120",
+    "html_hash": "1b6602492f52bf700e27b04f08ee44ca6b1777d4273850ddd3f3d61673a14c67",
+    "law_version": "令和7年4月1日現在法令等"
+  },
+
+  "_formula": "医療費控除額 = （実際に支払った医療費の合計額 − 保険金などで補てんされる金額）− 足切り額。上限200万円。",
+  "_threshold_rule": "足切り額は10万円。ただしその年の総所得金額等が200万円未満の人は、総所得金額等の5%。",
+  "_reimbursement_rule": "保険金などで補てんされる金額は、その給付の目的となった医療費の金額を限度として差し引く。引ききれない金額が生じても他の医療費からは差し引かない。医療費ごとに対応させる必要があり、単純に合計から引いてはいけない。",
+
+  "records": [
+    {
+      "record_id": "IDED-MEDICAL-CAP",
+      "value_key": "medical_expense_deduction_cap",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2015-01-01",
+      "effective_to": null,
+      "deduction_category": "medical_expense",
+      "threshold_amount": { "unit": "JPY", "value": "2000000" },
+      "_meaning": "医療費控除額の上限",
+      "source_document_id": "NTA-TA-1120",
+      "source_locator": "医療費控除の対象となる金額（最高で200万円）",
+      "source_hash": "1b6602492f52bf700e27b04f08ee44ca6b1777d4273850ddd3f3d61673a14c67",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-MEDICAL-FLOOR-FIXED",
+      "value_key": "medical_expense_deduction_floor",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2015-01-01",
+      "effective_to": null,
+      "deduction_category": "medical_expense",
+      "threshold_amount": { "unit": "JPY", "value": "100000" },
+      "rate": null,
+      "applicability_conditions": [
+        {
+          "subject": "total_income",
+          "operator": "gte",
+          "value": { "unit": "JPY", "value": "2000000" },
+          "description": "その年の総所得金額等が200万円以上"
+        }
+      ],
+      "_meaning": "足切り額（定額10万円）",
+      "source_document_id": "NTA-TA-1120",
+      "source_locator": "医療費控除の対象となる金額（2）10万円",
+      "source_hash": "1b6602492f52bf700e27b04f08ee44ca6b1777d4273850ddd3f3d61673a14c67",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "IDED-MEDICAL-FLOOR-RATE",
+      "value_key": "medical_expense_deduction_floor",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2015-01-01",
+      "effective_to": null,
+      "deduction_category": "medical_expense",
+      "threshold_amount": null,
+      "rate": { "num": "5", "den": "100" },
+      "applicability_conditions": [
+        {
+          "subject": "total_income",
+          "operator": "lt",
+          "value": { "unit": "JPY", "value": "2000000" },
+          "description": "その年の総所得金額等が200万円未満"
+        }
+      ],
+      "_meaning": "足切り額（総所得金額等の5%）",
+      "_rate_base": "総所得金額等",
+      "source_document_id": "NTA-TA-1120",
+      "source_locator": "医療費控除の対象となる金額（2）注（総所得金額等が200万円未満の人は総所得金額等の5パーセント）",
+      "source_hash": "1b6602492f52bf700e27b04f08ee44ca6b1777d4273850ddd3f3d61673a14c67",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ],
+
+  "_self_medication_note": "セルフメディケーション税制（医療費控除の特例）は平成29年1月1日から令和8年12月31日までの制度で、通常の医療費控除との選択。シミュレータで扱う場合は別レコードにする。現時点では未登録。"
+}
