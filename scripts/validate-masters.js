@@ -153,14 +153,21 @@ function boundPair(rec) {
 function categoryKey(rec) {
   return [
     rec.value_key || `(value_key未設定:${rec.record_id})`,
+    // 同じ value_key の中で並列に存在する別軸。
+    // business_type は簡易課税の事業区分。
+    // deduction_category / difference_category は控除の項目名で、
+    // 「条件でどれか一つを選ぶ」のではなく「該当するものを全部合算する」関係にある
+    // （調整控除の人的控除の差など）。項目が違えば別の表として扱う。
+    // 税目。value_key が税目を含まない場合（tax_period_basis のように
+    // 税目ごとに1レコードずつ並ぶもの）に必要。
+    rec.tax_or_insurance_type || '',
     rec.business_type != null ? `bt${rec.business_type}` : '',
+    rec.deduction_category || '',
+    rec.difference_category || '',
+    rec.insurance_type || '',
+    rec.land_category || '',
     JSON.stringify(rec.jurisdiction || {}),
   ].join('|');
-}
-
-/** 同じ段階表とみなすキー。適用期間が違えば別世代の表。 */
-function seriesKey(rec) {
-  return [categoryKey(rec), rec.effective_from || '', rec.effective_to || ''].join('|');
 }
 
 /**
@@ -169,8 +176,21 @@ function seriesKey(rec) {
  */
 function conditionKey(rec) {
   const c = rec.applicability_conditions;
-  if (!c || (Array.isArray(c) && c.length === 0)) return '';
-  return JSON.stringify(c);
+  if (!Array.isArray(c) || c.length === 0) return '';
+  // description は人が読むための説明なので同一性の判定に使わない。
+  // 同じ条件でも書き方が違うだけで別グループになってしまう。
+  return JSON.stringify(c.map(x => [x.subject, x.operator, x.value]));
+}
+
+/**
+ * 同じ段階表とみなすキー。適用期間が違えば別世代の表。
+ *
+ * 適用条件も含める。同じ value_key でも条件が違えば並列の別表だから。
+ * 例: 配偶者控除は「一般の控除対象配偶者」と「老人控除対象配偶者」で
+ * 同じ所得区分の表が2本並ぶ。条件を無視すると重なりとして誤検知する。
+ */
+function seriesKey(rec) {
+  return [categoryKey(rec), conditionKey(rec), rec.effective_from || '', rec.effective_to || ''].join('|');
 }
 
 function periodsOverlap(a, b) {

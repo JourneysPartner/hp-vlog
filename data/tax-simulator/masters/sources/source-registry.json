@@ -413,6 +413,193 @@
       "coverage_basis": "none",
       "note": "インボイスの経過措置（控除割合70/50/30%と相手先別1億円上限）の根拠。大綱であって条文ではないので、改正法の公布後に条文で二者確認する",
       "url_verified": true
+    },
+    "NTA-TA-1120": {
+      "label": "No.1120 医療費を支払ったとき（医療費控除）",
+      "kind": "taxanswer",
+      "taxanswer_id": "1120",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1120.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "医療費控除。上限200万円、足切りは10万円または総所得金額等の5%",
+      "url_verified": true
+    },
+    "NTA-TA-1140": {
+      "label": "No.1140 生命保険料控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1140",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1140.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "生命保険料控除。新契約・旧契約で段階が違う。合計上限12万円",
+      "url_verified": true
+    },
+    "NTA-TA-1145": {
+      "label": "No.1145 地震保険料控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1145",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1145.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "地震保険料控除。地震保険料と旧長期損害保険料。合計上限5万円",
+      "url_verified": true
+    },
+    "NTA-TA-1160": {
+      "label": "No.1160 障害者控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1160",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1160.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "障害者控除。障害者27万・特別障害者40万・同居特別障害者75万",
+      "url_verified": true
+    },
+    "NTA-TA-1170": {
+      "label": "No.1170 寡婦控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1170",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1170.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "寡婦控除27万円（令和2年分以後は一律）",
+      "url_verified": true
+    },
+    "NTA-TA-1171": {
+      "label": "No.1171 ひとり親控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1171",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1171.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "ひとり親控除35万円。寡婦控除と重複適用しない",
+      "url_verified": true
+    },
+    "NTA-TA-1175": {
+      "label": "No.1175 勤労学生控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1175",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1175.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "勤労学生控除27万円",
+      "url_verified": true
+    },
+    "NTA-TA-1180": {
+      "label": "No.1180 扶養控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1180",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1180.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "扶養控除。一般38万・特定63万・老人48万／同居老親等58万",
+      "url_verified": true
+    },
+    "NTA-TA-1191": {
+      "label": "No.1191 配偶者控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1191",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "配偶者控除。本人の合計所得金額と配偶者の年齢の2軸。配偶者の所得要件はR7から48万→58万",
+      "url_verified": true
+    },
+    "NTA-TA-2072": {
+      "label": "No.2072 青色申告特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "2072",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "青色申告特別控除。65万／55万／10万の3区分と要件",
+      "url_verified": true
+    },
+    "NTA-2WARI-TOKUREI": {
+      "label": "2割特例（インボイス発行事業者となる小規模事業者に対する負担軽減措置）",
+      "kind": "web",
+      "url": "https://www.nta.go.jp/publication/pamph/shohi/kaisei/202304/01.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "令和5年10月1日から令和8年9月30日までの日の属する各課税期間。納付税額を売上税額の2割にできる。後継は個人事業者のみの3割特例（令和9年分・令和10年分）",
+      "url_verified": true
+    },
+    "MHLW-EMPLOYMENT-INSURANCE": {
+      "label": "雇用保険料率（厚生労働省）",
+      "kind": "manual",
+      "url": "https://jsite.mhlw.go.jp/tokyo-hellowork/list/tachikawa/kyushokusha/koyouhokenryouritu08.html",
+      "pdf_url": "https://www.mhlw.go.jp/content/001692566.pdf",
+      "update_cycle": "annual_april",
+      "coverage_basis": "fiscal_april",
+      "expected_update_month": 2,
+      "note": "年度（4月1日〜翌3月31日）で切り替わる。健康保険料率が3月分からなのとは違う。失業等給付等は労使折半、雇用保険二事業は事業主のみ。事業区分は一般／農林水産・清酒製造／建設の3つ。厚労省のPDFはCIDフォントで機械抽出できないため、ハローワークのHTMLページから取得している。年度ごとにURLの末尾（08の部分）が変わる",
+      "url_verified": true
+    },
+    "NTA-TA-4124": {
+      "label": "No.4124 相続した事業の用や居住の用の宅地等の価額の特例（小規模宅地等の特例）",
+      "kind": "taxanswer",
+      "taxanswer_id": "4124",
+      "category": "sozoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "小規模宅地等の特例。特定事業用400㎡80%・特定同族会社事業用400㎡80%・特定居住用330㎡80%・貸付事業用200㎡50%。貸付事業用を選ぶと全体が200㎡枠の按分になる",
+      "url_verified": true
+    },
+    "NTA-TA-1129": {
+      "label": "No.1129 特定一般用医薬品等購入費を支払ったとき（医療費控除の特例）【セルフメディケーション税制】",
+      "kind": "taxanswer",
+      "taxanswer_id": "1129",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1129.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "セルフメディケーション税制。購入費−12,000円、上限88,000円。通常の医療費控除との選択適用。令和8年12月31日まで",
+      "url_verified": true
+    },
+    "NTA-TA-1131": {
+      "label": "No.1131 セルフメディケーション税制と通常の医療費控除との選択適用",
+      "kind": "taxanswer",
+      "taxanswer_id": "1131",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1131.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "セルフメディケーション税制と通常の医療費控除との選択適用。選択後は更正の請求・修正申告でも変更できない",
+      "url_verified": true,
+      "reference_only": true,
+      "_reference_note": "セルフメディケーション税制と通常の医療費控除の選択適用・選択後の変更不可の根拠。medical-deduction.json の注記が参照する。個別レコードの値の出典ではない"
+    },
+    "NTA-TA-1177": {
+      "label": "No.1177 特定親族特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1177",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1177.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "特定親族特別控除（R7新設）。19〜23歳で控除対象扶養親族に該当しない親族。63万→3万で逓減",
+      "url_verified": true
+    },
+    "NTA-TA-1195": {
+      "label": "No.1195 配偶者特別控除",
+      "kind": "taxanswer",
+      "taxanswer_id": "1195",
+      "category": "shotoku",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1195.htm",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "配偶者特別控除。配偶者の合計所得金額9段階×本人3段階。R7から配偶者の所得要件の下限が48万→58万",
+      "url_verified": true
     }
   }
 }

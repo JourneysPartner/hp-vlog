@@ -1,0 +1,92 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "小規模事業者に係る税額計算の特例（2割特例・3割特例）。インボイス登録により課税事業者になった小規模事業者の負担軽減措置。",
+
+  "_why_master": "仕様書 §18 は「2割特例の適用対象課税期間の終期がマスターに無い。適用対象期間を invoice_transition_master とは別レコードとしてマスター化し、未登録の課税期間について eligible を返さない」としている。経過措置（免税事業者等からの仕入れの控除割合）とは別の制度なので、ファイルも分けている。",
+
+  "_do_not_confuse": "invoice_transition_master（80%→70%→50%→30%）は『買い手が免税事業者から仕入れたときに控除できる割合』。こちらは『売り手が納める消費税を売上税額の何割にできるか』。方向も対象者も違う。",
+
+  "records": [
+    {
+      "record_id": "CT-SPECIAL-2WARI",
+      "value_key": "small_business_special_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-CT-STAGE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "consumption_tax_master",
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2023-10-01",
+      "effective_to": "2026-09-30",
+      "special_name": "2割特例",
+      "special_deduction_rate": { "num": "80", "den": "100" },
+      "resulting_burden_rate": { "num": "20", "den": "100" },
+      "_formula": "特別控除税額 ＝ （課税標準額に対する消費税額 − 売上げに係る対価の返還等の金額に係る消費税額）× 80%。結果として納付税額は売上税額の2割になる。",
+      "_period_rule": "令和5年10月1日から令和8年9月30日までの日の属する各課税期間。課税期間の『終わり』ではなく『その日を含む課税期間』で判定するため、個人事業者なら令和8年分（令和8年12月31日終了）まで対象になる",
+      "_eligibility": [
+        "免税事業者（消費税課税事業者選択届出書の提出により課税事業者となった免税事業者を含む）がインボイス発行事業者となる場合",
+        "基準期間の課税売上高が1,000万円以下",
+        "適用できない課税期間がある（高額特定資産の取得等）。No.6502 と 2割特例Q&A で確認すること"
+      ],
+      "_applies_to_entity": "個人事業者・法人の両方",
+      "source_document_id": "NTA-2WARI-TOKUREI",
+      "source_locator": "2割特例（インボイス発行事業者となる小規模事業者に対する負担軽減措置）の概要",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "CT-SPECIAL-3WARI",
+      "value_key": "small_business_special_deduction",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-TRUNC-1-CT-STAGE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "consumption_tax_master",
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2027-01-01",
+      "effective_to": "2028-12-31",
+      "special_name": "3割特例",
+      "special_deduction_rate": { "num": "70", "den": "100" },
+      "resulting_burden_rate": { "num": "30", "den": "100" },
+      "_formula": "納付税額を売上税額の3割とすることができる（売上税額の70%を控除）",
+      "_period_rule": "令和9年分および令和10年分の消費税申告",
+      "_eligibility": [
+        "個人事業者であること（法人は対象外）",
+        "基準期間の課税売上高が1,000万円以下",
+        "インボイス発行事業者の登録を受けていること"
+      ],
+      "applicability_conditions": [
+        {
+          "subject": "entity_type",
+          "operator": "eq",
+          "value": "individual",
+          "description": "個人事業者のみ。法人には後続の特例が無い"
+        }
+      ],
+      "_applies_to_entity": "個人事業者のみ",
+      "_note": "令和8年度税制改正で創設。2割特例（令和8年9月30日を含む課税期間まで）の後を個人事業者だけ引き継ぐ形。法人は2割特例の終了後、特例なしになる",
+      "source_document_id": "NTA-INVOICE-R8",
+      "source_locator": "令和8年度税制改正特集 3割特例の創設",
+      "source_hash": null,
+      "as_of_date": "2026-08-24",
+      "legal_status": "enacted",
+      "data_review_status": "approved"
+    }
+  ]
+}

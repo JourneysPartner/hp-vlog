@@ -1,0 +1,135 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "青色申告特別控除。No.2072 より。事業所得・不動産所得から差し引く。所得控除ではなく所得金額の計算段階で引く点に注意。",
+  "_extraction_source": {
+    "taxanswer_id": "2072",
+    "html_hash": "ee335ba24d1e67cc3540e829d85f39d239fc21c17d44e5b3ad0f0ae143f2baea",
+    "law_version": "令和7年4月1日現在法令等"
+  },
+
+  "_where_applied": "仕様書 §17 の計算順序では『青色申告特別控除（不動産所得・事業所得の順に、控除前所得を限度として充当。控除額の区分と要件はマスターで判定し、要件を確認しないまま最大額を適用しない）』。所得控除（income_deduction_master）とは適用段階が違う。",
+
+  "_cap_by_income": "不動産所得の金額または事業所得の金額の合計額が控除額より少ない場合は、その合計額が限度。この合計額は損益通算前の黒字の所得金額の合計額で、いずれかに損失があればその損失を無いものとして計算する。",
+
+  "records": [
+    {
+      "record_id": "BLUE-DEDUCTION-650K",
+      "value_key": "blue_return_special_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_tax_master",
+      "record_type": "deduction",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2020-01-01",
+      "effective_to": null,
+      "deduction_amount": { "unit": "JPY", "value": "650000" },
+      "applicability_conditions": [
+        {
+          "subject": "blue_return_tier",
+          "operator": "eq",
+          "value": "650k",
+          "description": "55万円の要件を満たし、かつ 優良な電子帳簿保存 または e-Tax による申告のいずれかに該当"
+        }
+      ],
+      "_requirements": [
+        "不動産所得または事業所得を生ずべき事業を営んでいること",
+        "正規の簿記の原則（一般的には複式簿記）により記帳していること",
+        "貸借対照表・損益計算書等を確定申告書に添付し、控除額を記載して申告期限（翌年3月15日）までに提出すること",
+        "加えて次のいずれか：(イ) 仕訳帳・総勘定元帳について優良な電子帳簿の要件を満たして電子データで備付け・保存し、届出書を提出（令和4年分以後）／(ロ) 確定申告書・貸借対照表・損益計算書等を期限までに e-Tax で提出"
+      ],
+      "_not_eligible": "現金主義による所得計算の特例を選択している場合は適用できない",
+      "source_document_id": "NTA-TA-2072",
+      "source_locator": "65万円の青色申告特別控除",
+      "source_hash": "ee335ba24d1e67cc3540e829d85f39d239fc21c17d44e5b3ad0f0ae143f2baea",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "BLUE-DEDUCTION-550K",
+      "value_key": "blue_return_special_deduction",
+      "tax_year": null,
+      "calculation_order": 2,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_tax_master",
+      "record_type": "deduction",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2020-01-01",
+      "effective_to": null,
+      "deduction_amount": { "unit": "JPY", "value": "550000" },
+      "applicability_conditions": [
+        {
+          "subject": "blue_return_tier",
+          "operator": "eq",
+          "value": "550k",
+          "description": "複式簿記・貸借対照表添付・期限内申告の要件を満たすが、電子帳簿保存もe-Tax申告もしていない"
+        }
+      ],
+      "_requirements": [
+        "不動産所得または事業所得を生ずべき事業を営んでいること",
+        "正規の簿記の原則（一般的には複式簿記）により記帳していること",
+        "貸借対照表・損益計算書等を確定申告書に添付し、控除額を記載して申告期限（翌年3月15日）までに提出すること"
+      ],
+      "_not_eligible": "現金主義による所得計算の特例を選択している場合は適用できない",
+      "source_document_id": "NTA-TA-2072",
+      "source_locator": "55万円の青色申告特別控除",
+      "source_hash": "ee335ba24d1e67cc3540e829d85f39d239fc21c17d44e5b3ad0f0ae143f2baea",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    },
+    {
+      "record_id": "BLUE-DEDUCTION-100K",
+      "value_key": "blue_return_special_deduction",
+      "tax_year": null,
+      "calculation_order": 3,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-24",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "income_tax_master",
+      "record_type": "deduction",
+      "tax_or_insurance_type": "income_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "2020-01-01",
+      "effective_to": null,
+      "deduction_amount": { "unit": "JPY", "value": "100000" },
+      "applicability_conditions": [
+        {
+          "subject": "blue_return_tier",
+          "operator": "eq",
+          "value": "100k",
+          "description": "55万円・65万円のいずれの要件も満たさない青色申告者（簡易簿記・現金主義の特例選択者を含む）"
+        }
+      ],
+      "_note": "山林所得についてもこの区分の控除がある。事業所得・不動産所得・山林所得の順に充当する",
+      "source_document_id": "NTA-TA-2072",
+      "source_locator": "10万円の青色申告特別控除",
+      "source_hash": "ee335ba24d1e67cc3540e829d85f39d239fc21c17d44e5b3ad0f0ae143f2baea",
+      "as_of_date": "2026-08-24",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ]
+}
