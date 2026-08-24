@@ -1,0 +1,124 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "端数規則表（§3-3）。丸めはこの表が定める段階でのみ1回行い、二重丸めを禁止する。",
+
+  "rules": [
+    {
+      "rounding_rule_id": "R-NONE",
+      "description": "このレコードの値を使う段階では丸めない",
+      "direction": "none",
+      "unit": null,
+      "legal_basis": "—",
+      "applies_to": "表から引く固定額、閾値との比較、率そのもの",
+      "notes": "『丸めを考えた上で不要』を明示するための規則。rounding_rule_id が null（未決定）と区別する。丸めは後続の課税標準・税額の段階で別の規則が担う。"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1000-BASE",
+      "description": "課税標準の1,000円未満切捨て",
+      "direction": "truncate",
+      "unit": 1000,
+      "legal_basis": "通法118条1項",
+      "applies_to": "課税標準（所得税・法人税・相続税等の課税価格）",
+      "notes": "申告納税方式の国税の課税標準を計算する場合"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-100-TAX",
+      "description": "確定申告の年税額の100円未満切捨て",
+      "direction": "truncate",
+      "unit": 100,
+      "legal_basis": "通法119条1項",
+      "applies_to": "確定申告による納付すべき税額",
+      "notes": "申告納税方式の国税の確定金額"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1000-LOCAL-BASE",
+      "description": "地方税の課税標準額の1,000円未満切捨て",
+      "direction": "truncate",
+      "unit": 1000,
+      "legal_basis": "地方税法20条の4の2第1項",
+      "applies_to": "住民税・事業税等の課税標準額",
+      "notes": "国税（通法118条1項）と効果は同じだが根拠条文が違うので分けている。ただし書きで政令の定める地方税は除かれる。"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-100-LOCAL-TAX",
+      "description": "地方税の確定金額の100円未満切捨て",
+      "direction": "truncate",
+      "unit": 100,
+      "legal_basis": "地方税法20条の4の2第3項",
+      "applies_to": "住民税・事業税等の納付すべき税額",
+      "notes": "個人の市町村民税・道府県民税・森林環境税は同条8項により『一の地方税』とみなして端数計算する。税目ごとに別々に丸めない。"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "description": "円未満切捨て",
+      "direction": "truncate",
+      "unit": 1,
+      "legal_basis": "各税法の個別規定",
+      "applies_to": "中間計算結果（復興特別所得税、消費税の税率別税額等）",
+      "notes": null
+    },
+    {
+      "rounding_rule_id": "R-ROUND-HALF-UP-1",
+      "description": "円未満四捨五入",
+      "direction": "half_up",
+      "unit": 1,
+      "legal_basis": "保険者規則（健康保険法施行規則等）",
+      "applies_to": "社会保険料の計算で保険者が指定する場合",
+      "notes": "銀行丸め（偶数丸め）は法定根拠がある場合を除き使用しない"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1000-BONUS",
+      "description": "標準賞与額の1,000円未満切捨て",
+      "direction": "truncate",
+      "unit": 1000,
+      "legal_basis": "健康保険法45条1項、厚生年金保険法24条の4第1項",
+      "applies_to": "賞与額から標準賞与額を決定する段階",
+      "notes": "切捨て後に上限（健保は年度累計573万円、厚年は1回150万円）を当てる。順序を逆にしない。"
+    },
+    {
+      "rounding_rule_id": "R-SHARE-REMAINDER",
+      "description": "労使折半等の端数負担規則",
+      "direction": "insurer_specific",
+      "unit": 1,
+      "legal_basis": "健康保険法167条3項等",
+      "applies_to": "被保険者と事業主の保険料負担の端数",
+      "notes": "被保険者負担が50銭以下切捨て、50銭超切上げ（事業所の労使協定で別途定めがある場合はそれに従う）。保険者別に個別定義。"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1000-IHT-BASE",
+      "description": "相続税の課税価格の1,000円未満切捨て",
+      "direction": "truncate",
+      "unit": 1000,
+      "legal_basis": "通法118条1項、相法15条",
+      "applies_to": "各人の課税価格",
+      "notes": "§28-1 段階7で適用"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1000-IHT-LEGAL-SHARE",
+      "description": "法定相続分に応ずる取得金額の1,000円未満切捨て",
+      "direction": "truncate",
+      "unit": 1000,
+      "legal_basis": "相法16条",
+      "applies_to": "法定相続分に応ずる各取得金額",
+      "notes": "§28-1 段階11で適用"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-100-IHT-FINAL",
+      "description": "各人の納付すべき相続税額の100円未満切捨て",
+      "direction": "truncate",
+      "unit": 100,
+      "legal_basis": "通法119条1項",
+      "applies_to": "各人の申告納付税額",
+      "notes": "§28-1 段階18で適用"
+    },
+    {
+      "rounding_rule_id": "R-TRUNC-1-CT-STAGE",
+      "description": "消費税の税率別税額計算の円未満切捨て",
+      "direction": "truncate",
+      "unit": 1,
+      "legal_basis": "消法28条、45条",
+      "applies_to": "消費税額の中間計算段階",
+      "notes": null
+    }
+  ]
+}

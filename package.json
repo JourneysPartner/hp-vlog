@@ -4,7 +4,14 @@
   "description": "毛利順活税理士事務所 ブログシステム",
   "scripts": {
     "build": "node scripts/build.js",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "masters:validate": "node scripts/validate-masters.js",
+    "masters:freshness": "node scripts/check-master-freshness.js",
+    "masters:gate": "node scripts/check-master-freshness.js --gate",
+    "masters:urls": "node scripts/verify-source-urls.js",
+    "masters:kenpo": "node scripts/fetch-kenpo-rates.js",
+    "masters:approve": "node scripts/approve-records.js",
+    "masters:test": "node scripts/lib/__tests__/test-appendix5-rule.js && node scripts/lib/__tests__/test-check-master-freshness.js && node scripts/lib/__tests__/test-inheritance-credits.js && node scripts/lib/__tests__/test-social-insurance-rates.js && node scripts/lib/__tests__/test-standard-remuneration-grades.js"
   },
   "engines": {
     "node": ">=18"

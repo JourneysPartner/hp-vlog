@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "income-tax.schema.json",
+  "title": "所得税率マスター（income_tax_master）",
+  "description": "所得税の速算表。出典: No.2260「所得税の税率」。根拠法令: 所法89、通法118、措法41の19、復興財確法8,9,10,13,18",
+
+  "type": "object",
+  "allOf": [{ "$ref": "master-common.schema.json" }],
+  "properties": {
+    "record_type": {
+      "type": "string",
+      "enum": ["bracket", "surcharge", "surtax"],
+      "description": "bracket=速算表の段階、surcharge=高額所得者加算、surtax=復興特別所得税"
+    },
+    "bracket_lower_inclusive": {
+      "$ref": "master-common.schema.json#/$defs/Money",
+      "description": "課税所得金額の下限（この金額を含む）"
+    },
+    "bracket_upper_inclusive": {
+      "oneOf": [
+        { "$ref": "master-common.schema.json#/$defs/Money" },
+        { "type": "null" }
+      ],
+      "description": "上限（この金額を含む）。nullは「以上」（上限なし）。"
+    },
+    "rate": {
+      "$ref": "master-common.schema.json#/$defs/Rate",
+      "description": "税率。分子/分母の整数対。"
+    },
+    "quick_deduction": {
+      "$ref": "master-common.schema.json#/$defs/Money",
+      "description": "速算控除額"
+    },
+    "surcharge_threshold": {
+      "oneOf": [
+        { "$ref": "master-common.schema.json#/$defs/Money" },
+        { "type": "null" }
+      ],
+      "description": "高額所得者加算の基準所得金額閾値（surchargeのみ）"
+    },
+    "surtax_base": {
+      "type": "string",
+      "description": "付加税の課税標準の説明（surtaxのみ）"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+name: Check Tax Simulator Masters
+
+# 税シミュレータのマスターデータが、現在の法令・料率に追いついているかを確認する。
+#
+#   - 出典（タックスアンサー）の html_hash がマスターの source_hash と食い違えば、
+#     出典が更新されたということ。マスターの見直しが要る
+#   - 年度で揃えるマスター（給与所得控除・社会保険料率など）に対象期間のレコードが無ければ、
+#     新年度分が未登録ということ
+#   - 告示の時期（社会保険は3月、税制は12月）には、切替前に「次の期間がまだ無い」と予告する
+#
+# 値の自動更新はしない。crawl-nta-sources / check-tax-reform と同じ方針で、
+# 検知と通知までを自動化し、金額の入力と二者確認は人が行う（仕様書 §50-1）。
+#
+# 実行順序の意図:
+#   1日  crawl-nta-sources    国税庁ソースDBを更新（hash が動く）
+#   5日  check-tax-reform     財務省の大綱を確認
+#   8日  このワークフロー       更新後の hash でマスターを突き合わせる
+on:
+  schedule:
+    - cron: '0 16 8 * *'   # 毎月 8 日 JST 01:00（UTC 16:00）
+  workflow_dispatch:
+    inputs:
+      as_of:
+        description: '基準日（YYYY-MM-DD。省略時は当日）。告示前の予告動作を試すのにも使う'
+        required: false
+        type: string
+  pull_request:
+    paths:
+      - 'data/tax-simulator/masters/**'
+      - 'scripts/check-master-freshness.js'
+      - 'scripts/validate-masters.js'
+      - 'scripts/approve-records.js'
+      - 'scripts/fetch-kenpo-rates.js'
+      - 'scripts/verify-source-urls.js'
+      - 'scripts/lib/__tests__/test-appendix5-rule.js'
+      - 'scripts/lib/__tests__/test-check-master-freshness.js'
+      - 'scripts/lib/__tests__/test-inheritance-credits.js'
+      - 'scripts/lib/__tests__/test-social-insurance-rates.js'
+      - 'scripts/lib/__tests__/test-standard-remuneration-grades.js'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 形式が壊れていたら止める。ここは要確認の有無と関係なく落ちてよい。
+      - name: Validate master data
+        run: node scripts/validate-masters.js
+
+      - name: Run master tests
+        run: |
+          set -e
+          for t in appendix5-rule check-master-freshness inheritance-credits \
+                   social-insurance-rates standard-remuneration-grades; do
+            echo "--- $t ---"
+            node "scripts/lib/__tests__/test-$t.js"
+          done
+
+      - name: Check master freshness
+        id: check
+        continue-on-error: true   # 要確認があっても通知まで進める
+        env:
+          MASTERS_DIR: data/tax-simulator/masters
+          NTA_SOURCES_DIR: data/nta-sources
+        run: |
+          AS_OF='${{ github.event.inputs.as_of }}'
+          if [ -n "$AS_OF" ]; then
+            node scripts/check-master-freshness.js --as-of "$AS_OF"
+          else
+            node scripts/check-master-freshness.js
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo '## マスターデータ鮮度チェック'
+            echo
+            echo '```'
+            echo "${{ steps.check.outputs.report }}"
+            echo '```'
+          } > /tmp/comment.md
+          gh pr comment "${{ github.event.number }}" --body-file /tmp/comment.md
+
+      - name: Notify Chatwork
+        if: github.event_name != 'pull_request' && steps.check.outputs.needs_attention != '0'
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          HASH_MISMATCH: ${{ steps.check.outputs.hash_mismatch }}
+          COVERAGE_GAP: ${{ steps.check.outputs.coverage_gap }}
+          COVERAGE_UPCOMING: ${{ steps.check.outputs.coverage_upcoming }}
+          BLOCKED: ${{ steps.check.outputs.blocked }}
+          NOT_APPROVED: ${{ steps.check.outputs.not_approved }}
+          REPORT: ${{ steps.check.outputs.report }}
+        run: |
+          if [ -z "${CHATWORK_API_TOKEN:-}" ] || [ -z "${CHATWORK_ROOM_ID:-}" ]; then
+            echo "::notice::Chatwork 環境変数が未設定 → 通知スキップ"
+            exit 0
+          fi
+          BODY=$(cat <<BODYEOF
+          税シミュレータのマスターに確認が必要な項目があります。
+
+          出典が更新された: ${HASH_MISMATCH} 件
+          対象期間のレコード無し: ${COVERAGE_GAP} 件
+          次の期間が未登録（予告）: ${COVERAGE_UPCOMING} 件
+          確認待ち(blocked): ${BLOCKED} 件
+          未承認: ${NOT_APPROVED} 件
+
+          ${REPORT}
+          BODYEOF
+          )
+          MSG="[info][title]Tax Simulator Masters[/title]${BODY}[/info]"
+          curl -sS -X POST \
+            -H "X-ChatWorkToken: ${CHATWORK_API_TOKEN}" \
+            --data-urlencode "body=${MSG}" \
+            "https://api.chatwork.com/v2/rooms/${CHATWORK_ROOM_ID}/messages" \
+            | head -c 500
+          echo ""
+
+      - name: Emit job summary
+        if: always()
+        run: |
+          {
+            echo "## Tax Simulator Masters"
+            echo ""
+            echo "| 項目 | 件数 |"
+            echo "|---|---|"
+            echo "| 出典が更新された | ${{ steps.check.outputs.hash_mismatch }} |"
+            echo "| 対象期間のレコード無し | ${{ steps.check.outputs.coverage_gap }} |"
+            echo "| 次の期間が未登録（予告） | ${{ steps.check.outputs.coverage_upcoming }} |"
+            echo "| 確認待ち(blocked) | ${{ steps.check.outputs.blocked }} |"
+            echo "| 未承認 | ${{ steps.check.outputs.not_approved }} |"
+            echo ""
+            echo '```'
+            echo "${{ steps.check.outputs.report }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if sources are unreachable
+        if: steps.check.outcome == 'failure'
+        run: |
+          echo "::error::出典が取得できていません。台帳の URL か crawl の状態を確認してください。"
+          exit 1

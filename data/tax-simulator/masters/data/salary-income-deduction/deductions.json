@@ -1,0 +1,736 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "給与所得控除額。No.1410 より抽出。R8改正で最低保障額が変更されるため年度別に分離。",
+  "_do_not_use_below_6600000": {
+    "rule": "給与等の収入金額が660万円未満の場合、この算式表から給与所得を求めてはならない（所法28条4項）。別表第五（value_key: salary_income_after_deduction_appendix5）を使うこと。",
+    "why": "No.1410 本文にも「給与等の収入金額が660万円未満の場合には、以下の表にかかわらず、所得税法別表第五により給与所得の金額を求めます」とある。別表第五は1,900,000〜6,600,000を4,000円刻みの帯で扱うため、算式と最大3,199円ずれる。法人成り・役員報酬シミュレータの主対象がこの層なので、代用すると常時ずれた結果を出す。",
+    "see": "masters/data/salary-income-deduction/appendix5.json",
+    "note": "660万円以上でも、この算式表は給与所得控除『額』を返す。別表第五は給与所得『金額』（控除後）を返す。返す値が違うので取り違えないこと。"
+  },
+  "_extraction_source": {
+    "taxanswer_id": "1410",
+    "html_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+    "fetched_at": "2026-06-21T13:48:18.594Z",
+    "last_checked_at": "2026-08-01T15:55:59.860Z",
+    "law_version": "令和7年4月1日現在法令等"
+  },
+  "_r8_reform_note": "tax-law-changes.js r8_employment_income_deduction: 最低保障額65万→69万（R8以後恒久）＋R8・R9に5万円上乗せ特例。タックスアンサーは令和7年分以降としか記載しておらずR8分を分離していない。MOF-R8-LAW で確認するまで R8 版は blocked。",
+  "r7": {
+    "_applies_to": "令和7年分（R7改正後。No.1410 記載の「令和7年分以降」表）",
+    "records": [
+      {
+        "record_id": "SID-R7-TIER-01",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "1900000"
+        },
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "650000"
+        },
+        "rate": null,
+        "rate_addition": null,
+        "calculation_order": 1,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和7年分以降 第1行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R7-TIER-02",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "1900001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "3600000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "30",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "80000"
+        },
+        "calculation_order": 2,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和7年分以降 第2行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R7-TIER-03",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "3600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6600000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "20",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "440000"
+        },
+        "calculation_order": 3,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和7年分以降 第3行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R7-TIER-04",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "8500000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "10",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "1100000"
+        },
+        "calculation_order": 4,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和7年分以降 第4行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R7-TIER-05",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "8500001"
+        },
+        "revenue_upper_inclusive": null,
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "1950000"
+        },
+        "rate": null,
+        "rate_addition": null,
+        "calculation_order": 5,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和7年分以降 第5行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+  "r8": {
+    "_applies_to": "令和8年分",
+    "_basis": "令和8年度税制改正の大綱（財務省）「給与所得控除について、65万円の最低保障額を69万円に引き上げる」「令和8年及び令和9年における給与所得控除の最低保障額を5万円引き上げる特例を創設する」。恒久69万＋特例5万＝74万。",
+    "_status": "施行前。令和8年12月1日施行・令和8年分以後に適用。legal_status は enacted。",
+    "_derived_boundary_warning": "大綱には段階ごとの表が無い。第1段階の上限2,200,000円は、現行の第2段階の算式（65万＋(収入−190万)×30%）が74万に達する点として導いたもので、原文に書かれた値ではない。この導出だと第2段階の終点（収入360万）は116万となり現行と一致するため整合はとれているが、改正法が別の構造を採る可能性はある。施行後に所法28条3項の改正後条文で必ず確認すること。",
+    "records": [
+      {
+        "record_id": "SID-R8-TIER-01",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "source_document_id": "MOF-R8-LAW",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "2200000"
+        },
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "740000"
+        },
+        "rate": null,
+        "rate_addition": null,
+        "_composition": "最低保障額 恒久69万円 ＋ 令和8年・9年の特例5万円 ＝ 74万円",
+        "source_locator": "大綱 一 個人所得課税（2）給与所得控除の最低保障額の引上げ（上限額2,200,000円は連続性からの導出）",
+        "value_certainty": "derived",
+        "requires_result_warning": true,
+        "_derivation": "大綱には「65万円の最低保障額を69万円に引き上げる」としか書かれておらず、段階ごとの表が無い。第1段階の上限2,200,000円は次のように導いた。(1) 大綱は最低保障額以外の改正に触れていないので、第2段階以降の算式（所法28条3項2〜5号）は現行のままとみなす。(2) 現行の第2段階は 65万＋(収入−190万)×30% なので、これが74万に達するのは収入220万円。(3) 境界を190万のままにすると、190万を1円超えた時点で控除額が74万から65万へ下がる。収入が増えて控除が減る不連続が生じるため、その形はとらないと考えられる。(4) 導出後の第2段階の終点（収入360万）は74万＋(360万−220万)×30%＝116万となり、現行と一致する。整合はとれている。",
+        "_warning_text": "令和8年分の給与所得控除は、改正法の施行前のため段階の境界が確定していません。この結果は概算です。",
+        "_affected_range": "給与収入190万円超220万円以下の範囲で、確定値と最大9万円（控除額）ずれる可能性があります。この範囲外では境界の取り方によらず同じ結果になります。"
+      },
+      {
+        "record_id": "SID-R8-TIER-02",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "source_document_id": "MOF-R8-LAW",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "2200001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "3600000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "30",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "80000"
+        },
+        "_note": "算式は現行（所法28条3項2号）と同じ。下限だけが190万→220万に動く",
+        "source_locator": "所得税法28条3項2号（改正後の下限は導出）",
+        "value_certainty": "derived",
+        "requires_result_warning": true,
+        "_derivation": "大綱には「65万円の最低保障額を69万円に引き上げる」としか書かれておらず、段階ごとの表が無い。第1段階の上限2,200,000円は次のように導いた。(1) 大綱は最低保障額以外の改正に触れていないので、第2段階以降の算式（所法28条3項2〜5号）は現行のままとみなす。(2) 現行の第2段階は 65万＋(収入−190万)×30% なので、これが74万に達するのは収入220万円。(3) 境界を190万のままにすると、190万を1円超えた時点で控除額が74万から65万へ下がる。収入が増えて控除が減る不連続が生じるため、その形はとらないと考えられる。(4) 導出後の第2段階の終点（収入360万）は74万＋(360万−220万)×30%＝116万となり、現行と一致する。整合はとれている。",
+        "_warning_text": "令和8年分の給与所得控除は、改正法の施行前のため段階の境界が確定していません。この結果は概算です。",
+        "_affected_range": "給与収入190万円超220万円以下の範囲で、確定値と最大9万円（控除額）ずれる可能性があります。この範囲外では境界の取り方によらず同じ結果になります。"
+      },
+      {
+        "record_id": "SID-R8-TIER-03",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "source_document_id": "MOF-R8-LAW",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "3600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6600000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "20",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "440000"
+        },
+        "_note": "改正なし（所法28条3項3号）",
+        "source_locator": "所得税法28条3項3号",
+        "value_certainty": "confirmed_from_source"
+      },
+      {
+        "record_id": "SID-R8-TIER-04",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "source_document_id": "MOF-R8-LAW",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "8500000"
+        },
+        "deduction_type": "formula",
+        "fixed_amount": null,
+        "rate": {
+          "num": "10",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "1100000"
+        },
+        "_note": "改正なし（所法28条3項4号）",
+        "source_locator": "所得税法28条3項4号",
+        "value_certainty": "confirmed_from_source"
+      },
+      {
+        "record_id": "SID-R8-TIER-05",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": 2026,
+        "calculation_order": 5,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": "2026-12-31",
+        "source_document_id": "MOF-R8-LAW",
+        "source_hash": null,
+        "as_of_date": "2026-08-24",
+        "legal_status": "enacted",
+        "data_review_status": "approved",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "8500001"
+        },
+        "revenue_upper_inclusive": null,
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "1950000"
+        },
+        "rate": null,
+        "rate_addition": null,
+        "_note": "上限。改正なし（所法28条3項5号）",
+        "source_locator": "所得税法28条3項5号",
+        "value_certainty": "confirmed_from_source"
+      }
+    ],
+    "_usable_as_estimate": "導出した2件は value_certainty: \"derived\" と requires_result_warning: true を持つ。計算エンジンはこれを含む計算で resultStatus を \"partial\" とし、_warning_text を結果に添える。概算でも出したほうが利用者の役に立つため、値としては使う。施行後に条文で確認して confirmed_from_source に切り替える。"
+  },
+  "r2_to_r6": {
+    "_applies_to": "令和2年分〜令和6年分（回帰テスト用。No.1410 記載）",
+    "records": [
+      {
+        "record_id": "SID-R2-TIER-01",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "1625000"
+        },
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "550000"
+        },
+        "calculation_order": 1,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第1行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R2-TIER-02",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "1625001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "1800000"
+        },
+        "deduction_type": "formula",
+        "rate": {
+          "num": "40",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "-100000"
+        },
+        "calculation_order": 2,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第2行",
+        "source_hash": "1d7a7668e3430ce7f4f65409fd7f133b6c979bb5097ef203ca06cd802f85780e",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R2-TIER-03",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "1800001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "3600000"
+        },
+        "deduction_type": "formula",
+        "rate": {
+          "num": "30",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "80000"
+        },
+        "calculation_order": 3,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第3行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R2-TIER-04",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "3600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6600000"
+        },
+        "deduction_type": "formula",
+        "rate": {
+          "num": "20",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "440000"
+        },
+        "calculation_order": 4,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第4行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R2-TIER-05",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6600001"
+        },
+        "revenue_upper_inclusive": {
+          "unit": "JPY",
+          "value": "8500000"
+        },
+        "deduction_type": "formula",
+        "rate": {
+          "num": "10",
+          "den": "100"
+        },
+        "rate_addition": {
+          "unit": "JPY",
+          "value": "1100000"
+        },
+        "calculation_order": 5,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第5行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "SID-R2-TIER-06",
+        "value_key": "salary_income_deduction_table",
+        "tax_year": null,
+        "rounding_rule_id": "R-TRUNC-1-YEN",
+        "promulgated_at": null,
+        "verified_at": "2026-08-24",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "salary_income_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2020-01-01",
+        "effective_to": "2024-12-31",
+        "revenue_lower_inclusive": {
+          "unit": "JPY",
+          "value": "8500001"
+        },
+        "revenue_upper_inclusive": null,
+        "deduction_type": "fixed",
+        "fixed_amount": {
+          "unit": "JPY",
+          "value": "1950000"
+        },
+        "calculation_order": 6,
+        "source_document_id": "NTA-TA-1410",
+        "source_locator": "概要 > 令和2年分から令和6年分 第6行",
+        "as_of_date": "2026-08-23",
+        "legal_status": "expired",
+        "data_review_status": "approved"
+      }
+    ]
+  }
+}
