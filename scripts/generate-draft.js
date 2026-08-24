@@ -73,6 +73,48 @@ async function enrichSourceWithLLM(topic) {
   }
 }
 
+// ── 出典を探す前に「税務の論点語」を決める ────────────────────
+// 企画の段階にあるのは読者の場面のことば（オンライン講座・セット販売・区分）で、
+// 国税庁のページは税務の概念のことば（前受金・譲渡等の時期）で書かれている。
+// 語が重ならないため、企画のことばだけで出典を探しても当たらない。
+// 実測では正解が 52位 だったものが、論点語を足すと 1位 になった。
+// 失敗しても生成は止めず、論点語なし（＝従来どおり）で続ける。
+async function enrichTaxTerms(topic) {
+  if (process.env.DISABLE_TAX_TERMS === 'true') return;
+  try {
+    const { resolveTaxTerms } = require('./lib/tax-terms');
+    const terms = await resolveTaxTerms(topic, ({ system, user }) => callSimpleOpenAI({ system, user }, 256));
+    if (terms.length > 0) {
+      topic.tax_terms = terms.join(' ');
+      console.log(`[source] 税務の論点語: ${terms.join(' / ')}`);
+    } else {
+      console.log(`[source] 税務の論点語: 特定できず（従来どおり企画のことばで探す）`);
+    }
+  } catch (e) {
+    console.warn(`[source] 論点語の特定に失敗（従来どおり続行）: ${e.message}`);
+  }
+}
+
+// 出典が「人の確認が必要」な状態か。承認時と同じ判定を使う。
+// 判定に失敗した場合は、出典の決め方が弱いかどうかだけで判断する。
+function isSourceUnconfirmed(topic) {
+  if (!topic || !topic.source_url) return false;
+  try {
+    const { checkSourceAlignment } = require('./lib/source-alignment');
+    const r = checkSourceAlignment({
+      source_url: topic.source_url,
+      source_title: topic.source_title,
+      source_provenance: topic.source_provenance,
+      source_confidence: topic.source_confidence,
+      pain_point: topic.pain_point,
+      tax_domain: topic.tax_domain,
+    });
+    return r.needs_source_review === true;
+  } catch (_error) {
+    return LLM_SOURCE_WEAK_PROVENANCE.has(topic.source_provenance);
+  }
+}
+
 function ensureSourceOnTopic(topic) {
   const source = resolveSourceForTopic(topic);
   topic.source_url = source.url;
@@ -814,9 +856,23 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
   const articleRole = mainTypes.has(articleType) ? 'main' : 'support';
 
-  const sourceInstruction = topic.source_url
-    ? `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること`
-    : '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください';
+  // 安全弁: 出典が確定していない（人の確認が必要な状態）のときは、
+  // そのページを「根拠」として本文に引かせない。
+  //
+  // 2026-08-24: 論点に合う候補が無いまま No.6101「消費税の基本的なしくみ」が選ばれ、
+  // その本文がプロンプトに添付された結果、記事の冒頭が総論の言い回しで書かれた。
+  // 承認は出典ガードが正しく止めたが、本文の中身は既に汚染されていた。
+  // 確定していない出典は、参考として渡すことはしても根拠としては名指しさせない。
+  const sourceUnconfirmed = isSourceUnconfirmed(topic);
+  if (sourceUnconfirmed) {
+    console.log(`[source] 出典が未確定のため根拠としては渡さない: ${topic.source_url}`);
+  }
+
+  const sourceInstruction = !topic.source_url
+    ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください'
+    : sourceUnconfirmed
+      ? '- このテーマは論点に対応する出典が未確定です。特定の国税庁ページを「〜によれば」と根拠に挙げて断定しないでください。制度の一般的な説明にとどめ、断定が必要な箇所は「国税庁の公表資料をご確認ください」等の表現にしてください'
+      : `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること`;
 
   // 国税庁タックスアンサー / 関連レファレンス（必要な場合に優先して参考にする）
   const ntaRefs = getRefsForTopic(topic, 4);
@@ -828,7 +884,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // タイトルとURLだけを渡していた頃は、LLM が出典を読まずに記憶で書き、
   // 読んでいない文書を引用する事故が続いた（2026-08-16 に判明）。
   // 主出典＋参考1件の全文を渡し、記憶ではなく本文を根拠にさせる。
-  const sourceBodyBlock = buildSourceBodyBlock(topic, ntaRefs, { maxRefs: 1 });
+  const sourceBodyBlock = sourceUnconfirmed ? '' : buildSourceBodyBlock(topic, ntaRefs, { maxRefs: 1 });
   if (sourceBodyBlock) {
     const nos = (sourceBodyBlock.match(/No\.(\d{4})/g) || []).join(', ');
     console.log(`[source] 出典本文をプロンプトに添付: ${nos} (${sourceBodyBlock.length} 文字)`);
@@ -2250,6 +2306,19 @@ async function main() {
 
   // 各トピックに source_url / source_title が必ず付くよう fallback を適用
   pair.forEach(ensureSourceOnTopic);
+
+  // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
+  // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
+  for (const t of pair) {
+    if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
+    const before = t.source_url;
+    await enrichTaxTerms(t);
+    if (!t.tax_terms) continue;
+    ensureSourceOnTopic(t);
+    if (t.source_url !== before) {
+      console.log(`[source] 論点語で探し直し: ${t.source_provenance} → ${t.source_title}`);
+    }
+  }
 
   // 出典が domain-fallback/ultimate（＝的確な出典が見つからず汎用に倒れた）場合、
   // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で

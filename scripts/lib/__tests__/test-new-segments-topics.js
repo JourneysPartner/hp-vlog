@@ -61,13 +61,27 @@ assert(approveTopics.every(t => DEFAULT_SOURCE_BY_PAIN[t.pain_point] && evaluate
 // NEEDS_SOURCE_REVIEW の pain は approve にならない
 assert(topics.filter(t => NEEDS_SOURCE_REVIEW.has(t.pain_point)).every(t => evaluateTopicFit(t).decision !== 'approve'),
   'NEEDS_SOURCE_REVIEW の論点は approve にならない');
-// ユーザー指摘の4例: 汎用フォールバックで approve にならない
+// ユーザー指摘の4例: 汎用フォールバックのまま approve にしないこと。
+// 当初はこの4例すべて出典が未確定で、approve にならないことを確認していた。
+// その後 3例は原文を確認して個別出典を確定し、対応表に登録した。
+//   retail-gift-certificate → No.6229 商品券やプリペイドカードなど
+//   wholesale-return-rebate → No.6359 値引き、返品、割戻しなどを行った場合の税額の調整
+//   content-course-bundle   → No.6165 前受金や前払金などがあるとき（2026-08-24）
+// 確定済みのものは approve になるのが正しい。検証したいのは
+// 「汎用フォールバックのまま approve にしない」ことなので、そちらを確認する。
 const eatin = topics.find(t => t.pain_point === 'retail-food-eatin');
 assert(evaluateTopicFit(eatin).decision === 'approve' && !/6501/.test(eatin.source_url),
   'retail-food-eatin は軽減税率の個別出典で approve（6501汎用ではない）');
 for (const p of ['retail-gift-certificate', 'content-course-bundle', 'wholesale-return-rebate']) {
   const t = topics.find(x => x.pain_point === p);
-  assert(evaluateTopicFit(t).decision !== 'approve', `${p} は汎用フォールバックで approve にならない`);
+  const fit = evaluateTopicFit(t);
+  if (NEEDS_SOURCE_REVIEW.has(p)) {
+    assert(fit.decision !== 'approve', `${p} は出典が未確定なので approve にならない`);
+  } else {
+    assert(fit.decision === 'approve' && fit.source_alignment_score === 5,
+      `${p} は個別出典が確定済みなので approve（出典一致スコア5）`);
+    assert(!!DEFAULT_SOURCE_BY_PAIN[p], `${p} は対応表に登録されている`);
+  }
 }
 
 // ── 4. expandAll に合流し、他業種に漏れない ──────────────────
