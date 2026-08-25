@@ -124,13 +124,15 @@ type TaxationMethod =
 
 interface IncomeItem {
   label?: string;
-  category: IncomeCategory;      // 必須。省略できない
+  category: IncomeCategory;       // 必須。省略できない
   taxationMethod: TaxationMethod; // 必須。省略できない
-  amount: Money;                  // 所得金額（収入金額ではない）
-  isAmountRevenue?: boolean;      // true のとき amount は収入金額。経費を別に入力する
-  expenses?: Money;
+  amount: Money;                  // 所得金額。収入金額を入れない（§11-3 の決定）
 }
 ```
+
+`amount` は必ず**所得金額**（必要経費・給与所得控除・公的年金等控除を引いた後）とする。収入金額を受け取れる余地を型に残さない。確定申告書・源泉徴収票から転記できる数字に統一し、収入金額から所得金額を求める計算をシミュレーター側に持たせない。
+
+UIには「必要経費を引いた後の金額を入れてください」と明示し、給与・公的年金の欄では源泉徴収票のどの欄を見ればよいかを示す。書類が手元に無いユーザーは §5 の判定順に従い、追加質問または `blocked` で扱う。推定した所得金額を暗黙に代入しない。
 
 `"unknown"` を型から排除しない。排除するとUIに「分からない」の選択肢を置けず、ユーザーが当てずっぽうで区分を選ぶ。`simulate` が `"unknown"` を見て `blocked` を返す設計にする（§9-1）。
 
@@ -386,8 +388,7 @@ interface HojinnariInput {
 
 ```ts
 interface HojinnariIndividualInput {
-  jurisdiction: Jurisdiction;    // 住所地。住民税は municipalityCode 必須（§3-2 の粒度表）
-
+  // 自治体は CalculationContext.jurisdiction を使う。入力型に持たない（§11-1 の決定）
   business: {
     revenue: PeriodSegment<Money>[];        // §2-3。法人成り年は個人期間だけを入れる
     expenses: PeriodSegment<Money>[];
@@ -444,7 +445,10 @@ type NationalPensionInput =
 
 ```ts
 interface HojinnariCorporateInput {
-  jurisdiction: Jurisdiction;    // 法人所在地。個人の住所地と別（§11-1 の論点を参照）
+  // 自治体は CalculationContext.jurisdiction（＝個人の住所地）を共用する。
+  // 本店所在地が住所地と違う場合はこのフラグで検知し、法人の地方税を
+  // 標準税率による概算へ切り替えて partial とする（§11-1 の決定）
+  locationSameAsResidence: TriState;
 
   capital: Money;
   employeeCount?: number;
@@ -853,8 +857,8 @@ type YakuinHoshuInput =
 
 interface YakuinHoshuCommonInput {
   precision: "simple" | "detailed";
-  jurisdiction: Jurisdiction;          // 法人所在地
-  individualJurisdiction?: Jurisdiction; // 役員の住所地。住民税に使う（§11-1 の論点）
+  // 自治体は CalculationContext.jurisdiction を使う。①と同じ扱い（§11-1 の決定）
+  officerResidenceSameAsCompany: TriState;
 
   capital: Money;
   employeeCount?: number;
@@ -1022,7 +1026,9 @@ interface ModeCInput {
 
 ### 9-3. `simulate` が `partial` を返す条件
 
-- `corporate.jurisdiction` の税率が未登録 → 標準税率概算（§3-2 の粒度表・§46）
+- `corporate.locationSameAsResidence` が `"yes"` 以外 → 法人の地方税を標準税率概算（§11-1）
+- 自治体の税率が未登録 → 標準税率概算（§3-2 の粒度表・§46）
+- `consumptionTax.include=true` で②が `blocked` → 消費税を `ExcludedItem` へ落とす（§11-7）
 - `nationalHealthInsurance.kind="estimate_accepted"` → 概算である旨を表示（§5・§9）
 - 住民税の非課税限度額が自治体固有の額でない → 標準額による概算（住民税マスターの `_simulator_rule`）
 - `setupAndMaintenanceCosts` 未入力 → 比較対象外として `ExcludedItem` に記載（§11）
@@ -1061,21 +1067,23 @@ interface ModeCInput {
 
 本書を書く過程で、仕様書の記述だけでは決まらなかった点。レビューの対象とする。
 
-### 11-1. `CalculationContext.jurisdiction` が1つしかない
+### 11-1. 自治体は1つとし、違う場合は概算＋注意書きとする（決定済み・2026-08-25）
 
-§3-2 の `CalculationContext` は `jurisdiction` を1個だけ持つ。しかし法人成りシミュレーターは、
+§3-2 の `CalculationContext` は `jurisdiction` を1個だけ持つ。しかし法人成りシミュレーターは、個人の住所地（住民税・個人事業税）と法人の所在地（法人住民税・法人事業税）を同時に必要とし、両者が一致するとは限らない。役員報酬シミュレーターも同じである。
 
-- 個人の住所地（住民税・個人事業税に使う）
-- 法人の所在地（法人住民税・法人事業税に使う）
+**決定**: `CalculationContext.jurisdiction` を1つのまま使い、仕様書本体は変更しない。入力型には自治体を持たせず、「本店所在地が住所地と同じか」を尋ねるフラグだけを持つ。
 
-の2つを同時に必要とする。両者が一致するとは限らない（自宅と本店所在地が別の市区町村にある場合、隣県に法人を設立する場合）。役員報酬シミュレーターも同様に、法人所在地と役員の住所地が別になりうる。
+| フラグ | 挙動 |
+| --- | --- |
+| `"yes"` | `CalculationContext.jurisdiction` で個人側・法人側とも計算する |
+| `"no"` | 法人の地方税（法人住民税・法人事業税・特別法人事業税）を**標準税率による概算**へ切り替え、`resultStatus: "partial"` とし、`ExcludedItem` に「法人所在地の自治体独自の税率は反映していない」と記載する |
+| `"unknown"` / 未回答 | 同上（`"no"` と同じ扱い） |
 
-本書では暫定的に `HojinnariIndividualInput.jurisdiction` と `HojinnariCorporateInput.jurisdiction` を入力型側に持たせた。ただしこれは §3-2 が意図した設計とずれる可能性がある。次のどちらかを選ぶ必要がある。
+`"no"` のときに住所地の自治体の超過税率を法人側へ適用しない。未登録の自治体を標準税率で概算するのは §3-2 の粒度表が認める扱いだが、**別の自治体の税率を当てはめるのは誤った数値を出すことになる**ため、区別する。
 
-- (a) `CalculationContext` に `jurisdictions: { individual?: Jurisdiction; corporate?: Jurisdiction }` を追加し、入力型からは外す
-- (b) 本書のとおり入力型に持たせ、`CalculationContext.jurisdiction` は結果表示の代表値と位置付ける
+個人側（住民税・個人事業税）は住所地で計算するため影響を受けない。
 
-(a) のほうが §3-2 の「団体コードの解決関数を1箇所に置く」という規定と整合するが、仕様書本体の変更を伴う。
+将来、法人所在地の入力に対応する場合は `CalculationContext` に `jurisdictions` を追加する案（仕様書 §3-2 の変更）へ移行する。そのときは `inputSchemaVersion` の major を上げる。
 
 ### 11-2. 「かんたん計算」を型で表すか実行時で表すか
 
@@ -1085,9 +1093,17 @@ interface ModeCInput {
 
 ただし②の売上・仕入だけは例外として `simple` / `detailed` の判別可能ユニオンにしている（§5-2）。かんたん計算の入力が「年間課税売上＋10%割合＋8%割合」という**別の単位**であり、省略可能フィールドの有無では表せないためである。「詳細の項目が省略されている」のではなく「入力の意味が違う」場合はユニオンにする、という基準で使い分ける。この基準を他の箇所へ適用すべきか（例: ③の不動産評価は既に `appraised` / `screening_*` のユニオンになっている）は、実装時に再確認する。
 
-### 11-3. `IncomeItem` に収入金額と所得金額のどちらを入れるか
+### 11-3. `IncomeItem` は所得金額のみを受ける（決定済み・2026-08-25）
 
-`isAmountRevenue` フラグで両方を許す形にしたが、これは §2-6 の「合計と内訳を排他にする」原則からするとゆるい。判別可能ユニオンにすべきかもしれない。ただし所得区分によって「収入金額から所得金額を計算する式」が全く違う（給与は給与所得控除、雑所得の公的年金等は公的年金等控除、譲渡は取得費・譲渡費用）ため、区分ごとに別の型を用意すると `IncomeItem` が10種類のユニオンになる。初期版で必要なのは給与と雑（業務）程度と見て、フラグ方式を採った。
+初稿は `isAmountRevenue` フラグで収入金額も受けられる形にしていた。
+
+**決定**: 所得金額のみとし、収入金額を受け取れる余地を型に残さない。
+
+理由。収入金額から所得金額を求める式は所得区分ごとに全く違い（給与は給与所得控除、公的年金等は公的年金等控除、譲渡は取得費・譲渡費用、不動産は必要経費）、区分ごとに別の型と別の計算経路を持つことになる。実装量と検証コストに対して、得られるのは「確定申告書が手元に無いユーザーが概算を入れられる」という利得だけであり、その概算は §5 が明示選択を求める推定値になる。
+
+書類が手元に無いユーザーは §5 の判定順（追加質問 → 範囲 → `blocked`）で扱う。UIには源泉徴収票・確定申告書のどの欄を見るかを示す。
+
+役員報酬から給与所得を求める計算は別経路であり、この決定の影響を受けない（`salary_income_deduction_table` と `salary_income_after_deduction_appendix5` を使う）。
 
 ### 11-4. 面積を文字列で持つ理由
 
@@ -1118,19 +1134,23 @@ interface ModeCInput {
 
 - ①の `CalculationContext` は `consumptionTaxPeriod` を1つしか持てない。法人成り年は個人の課税期間と法人の課税期間が両方立つため、②を2回呼ぶことになる。その2回分の `CalculationContext` を誰が組み立てるか。
 - §13-1 は画面間の受け渡しを `Handoff` に限定しているが、①の内部から②のエンジンを呼ぶのは画面間の受け渡しではない。`Handoff` を経由すべきか、`SimulatorService.simulate` を直接呼んでよいか。
-- ②の結果が `blocked` のとき、①の結果をどうするか。§13-1 は「`sourceResultStatus: "blocked"` の結果を `Handoff` の材料にしない」としているが、内部呼び出しには適用されない。①全体を `blocked` にするのか、消費税を除外項目として `partial` にするのかを決める必要がある。
+**②の結果が `blocked` のときの①の扱いは決定済み（2026-08-25）。** ①全体を `blocked` にせず、消費税だけを `ExcludedItem` へ落として `resultStatus: "partial"` とする。所得税・住民税・法人税・社会保険の比較は表示する。これは §11「法人設立費用等は未入力時は比較対象外として金額を仮定しない」と同じ考え方であり、消費税額を0円として比較へ混ぜないことが要点となる。
 
-本書は `HojinnariInput.consumptionTax` を2本の `ShohizeiInput` を持つ判別可能ユニオンとしたが、これは入力の形を決めただけで、上の3点は決まっていない。
+結論カード（§6）には、消費税を含めない比較である旨を併記する。§12 の「消費税：比較対象外」の表示をそのまま使う。
+
+残りの2点（`CalculationContext` を誰が組み立てるか、`Handoff` を経由するか）は未決。
 
 ---
 
 ## 12. 次のアクション
 
-1. §11 の未決事項の決着（特に 11-1 の `Jurisdiction` は仕様書本体の変更を伴う）
-2. JSON Schema の作成と TypeScript 型生成の整備（§10-1）
-3. §8-5 の未登録マスターの作成
-4. §52-3 の公開ゲートを §8 の依存表で絞り込む
-5. §11-6 のマスター修正（`applies_to_period_start_to` の設定）
+2026-08-25 に §11-1・§11-3・§11-7（一部）が決着し、着手順も決まった。
+
+1. **§8-5 の未登録マスターの作成**（着手中）。相続税シミュレーターを止めている3件（法定相続分・養子の算入制限・相続時精算課税）を先に埋める
+2. §52-3 の公開ゲートを §8 の依存表で絞り込む
+3. §11-6 のマスター修正（`applies_to_period_start_to` の設定）
+4. JSON Schema の作成と TypeScript 型生成の整備（§10-1）
+5. 残る未決事項（§11-2 の使い分け基準、§11-4 の面積の型、§11-5 の被覆条件の検査場所、§11-7 の残り2点）
 
 ---
 
@@ -1159,6 +1179,16 @@ interface ModeCInput {
 **上場株式の配当・譲渡で所得税と住民税の課税方式が別々になる場合**
 
 `IncomeItem.taxationMethod` は1つしか持たない。令和4年分以前は所得税と住民税で別の課税方式を選択できたため、過去年分を扱うなら2つ必要になる。しかし `supported_tax_year` は令和7年・8年・9年の3年分であり、対象外。型を複雑にする利得が無いため変更しない。対応年を過去へ広げる場合は再検討する。
+
+### 決着した未決事項（2026-08-25）
+
+| 項目 | 決定 |
+| --- | --- |
+| §11-1 自治体を2つ持つか | **持たない。** `CalculationContext.jurisdiction` を1つのまま使い、本店所在地が住所地と違う場合は法人の地方税を標準税率概算にして `partial` とし、注意書きを表示する。仕様書本体は変更しない |
+| §11-3 収入金額を受けるか | **受けない。** `IncomeItem.amount` は所得金額のみ。`isAmountRevenue` と `expenses` を削除した |
+| §11-7 ②が `blocked` のときの①の扱い | **①全体を止めない。** 消費税だけ `ExcludedItem` へ落として `partial` とし、他の税目の比較は表示する |
+
+§11-1 の決定で、法人の所在地が住所地と違うときに**住所地の超過税率を法人側へ当てはめない**点が要になる。未登録の自治体を標準税率で概算するのは §3-2 の粒度表が認める扱いだが、別の自治体の税率を当てはめるのは誤った数値を出すことになるため、両者を区別して実装する。
 
 ### レビューで確認できたこと
 
