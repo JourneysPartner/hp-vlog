@@ -26,12 +26,17 @@ const MASTERS_DIR = process.env.MASTERS_DIR
   : path.join(__dirname, '..', 'data', 'tax-simulator', 'masters');
 const DATA_DIR = path.join(MASTERS_DIR, 'data');
 
-const LEGAL_STATUS = ['draft', 'announced', 'enacted', 'effective', 'expired', 'repealed'];
-const REVIEW_STATUS = ['unverified', 'single_checked', 'double_checked', 'approved', 'blocked'];
-
 function readJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
+
+// 値集合はスキーマから読む。検証器側に同じ一覧を書くと必ず食い違う。
+// 実際、tax_or_insurance_type はスキーマに列挙がありながら検証器が見ておらず、
+// データ側で 10 種類の未登録値が使われていた（2026-08-25 に発見）。
+const SCHEMA = readJson(path.join(MASTERS_DIR, 'schemas', 'master-common.schema.json'));
+const LEGAL_STATUS = SCHEMA.$defs.LegalStatus.enum;
+const REVIEW_STATUS = SCHEMA.$defs.DataReviewStatus.enum;
+const TAX_TYPES = SCHEMA.properties.tax_or_insurance_type.enum;
 
 function listDataFiles(dir) {
   const out = [];
@@ -113,6 +118,14 @@ function checkCommon(rec, file, errors, warnings) {
   if (!rec.data_review_status) {
     warnings.push(`${rec.record_id} (${file}): data_review_status が無い（公開可否を判定できない）`);
   }
+  // 税目が値集合の外にあると、税目でレコードを絞る処理が黙って0件を返す。
+  // 公開ゲートの絞り込み（§52-3）も税目を手掛かりにするため、綴りの揺れを許さない。
+  if (rec.tax_or_insurance_type && !TAX_TYPES.includes(rec.tax_or_insurance_type)) {
+    errors.push(
+      `${rec.record_id} (${file}): tax_or_insurance_type がスキーマの値集合に無い → ` +
+      `"${rec.tax_or_insurance_type}"（schemas/master-common.schema.json に追加するか、綴りを直すこと）`
+    );
+  }
   for (const k of ['effective_from', 'effective_to', 'as_of_date']) {
     const v = rec[k];
     if (v === null || v === undefined) continue;
@@ -169,6 +182,13 @@ function categoryKey(rec) {
     rec.exemption_category || '',
     rec.threshold_component || '',
     rec.business_category || '',
+    // heir_class（相続順位の血族区分）と division_method（同順位者の分け方）も、
+    // 「条件でどれか一つを選ぶ」のではなく「1つの表を構成する別々の行」である。
+    // 配偶者・子・直系尊属・兄弟姉妹は同時に存在しうるし、900条4号の均等分割と
+    // 半血兄弟の特則も併存する（均等に分けたうえで半血だけ半分にする）。
+    // 条件で排他にできないため、区分の軸として持つ。
+    rec.heir_class || '',
+    rec.division_method || '',
     JSON.stringify(rec.jurisdiction || {}),
   ].join('|');
 }

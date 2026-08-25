@@ -3,22 +3,25 @@
   "$id": "master-common.schema.json",
   "title": "税務マスター共通フィールド",
   "description": "全マスターレコードが持つ共通フィールド。仕様書 §3-1 に基づく。",
-
   "$defs": {
     "Money": {
       "type": "object",
       "properties": {
-        "unit": { "const": "JPY" },
+        "unit": {
+          "const": "JPY"
+        },
         "value": {
           "type": "string",
           "pattern": "^-?[0-9]+$",
           "description": "円単位の整数。bigint互換のため文字列。小数円は不可。"
         }
       },
-      "required": ["unit", "value"],
+      "required": [
+        "unit",
+        "value"
+      ],
       "additionalProperties": false
     },
-
     "Rate": {
       "type": "object",
       "properties": {
@@ -33,29 +36,35 @@
           "description": "分母。正の整数。0は不可。"
         }
       },
-      "required": ["num", "den"],
+      "required": [
+        "num",
+        "den"
+      ],
       "additionalProperties": false,
       "description": "率。小数リテラルで保持しない（§3-3）。"
     },
-
     "LocalDate": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
       "description": "日付。YYYY-MM-DD形式。タイムゾーンを含まない。"
     },
-
     "Instant": {
       "type": "string",
       "format": "date-time",
       "description": "RFC 3339のオフセット付き日時。オフセット無し不可。"
     },
-
     "Jurisdiction": {
       "type": "object",
       "properties": {
-        "country": { "const": "JP" },
-        "codeSystemVersion": { "type": "string" },
-        "asOfForCodes": { "$ref": "#/$defs/LocalDate" },
+        "country": {
+          "const": "JP"
+        },
+        "codeSystemVersion": {
+          "type": "string"
+        },
+        "asOfForCodes": {
+          "$ref": "#/$defs/LocalDate"
+        },
         "prefectureCode": {
           "type": "string",
           "pattern": "^[0-9]{2}$",
@@ -71,23 +80,35 @@
           "description": "保険者番号。協会けんぽ支部と健保組合を同一体系で扱わない。"
         }
       },
-      "required": ["country"],
+      "required": [
+        "country"
+      ],
       "additionalProperties": false
     },
-
     "LegalStatus": {
       "type": "string",
-      "enum": ["draft", "announced", "enacted", "effective", "expired", "repealed"],
+      "enum": [
+        "draft",
+        "announced",
+        "enacted",
+        "effective",
+        "expired",
+        "repealed"
+      ],
       "description": "制度の法的状態（§48）"
     },
-
     "DataReviewStatus": {
       "type": "string",
-      "enum": ["unverified", "single_checked", "double_checked", "approved", "blocked"],
+      "enum": [
+        "unverified",
+        "single_checked",
+        "double_checked",
+        "approved",
+        "blocked"
+      ],
       "description": "データ審査状態（§48）"
     }
   },
-
   "type": "object",
   "properties": {
     "record_id": {
@@ -110,7 +131,16 @@
             "description": "判定対象（例: total_annual_income）"
           },
           "operator": {
-            "enum": ["lt", "lte", "gt", "gte", "eq", "neq", "in", "not_in"]
+            "enum": [
+              "lt",
+              "lte",
+              "gt",
+              "gte",
+              "eq",
+              "neq",
+              "in",
+              "not_in"
+            ]
           },
           "value": {
             "description": "比較値。金額なら Money、その他は文字列・数値・配列"
@@ -120,80 +150,107 @@
             "description": "条件の日本語説明と根拠（出典の注番号等）"
           }
         },
-        "required": ["subject", "operator", "value"]
+        "required": [
+          "subject",
+          "operator",
+          "value"
+        ]
       }
     },
     "master_name": {
       "type": "string",
       "description": "所属するマスターテーブル名"
     },
-
     "tax_or_insurance_type": {
       "type": "string",
       "enum": [
+        "common",
         "income_tax",
         "reconstruction_income_tax",
         "resident_tax",
-        "sole_proprietor_enterprise_tax",
+        "forest_environment_tax",
+        "individual_business_tax",
         "corporate_tax",
         "local_corporate_tax",
         "corporate_inhabitant_tax",
-        "corporate_enterprise_tax",
-        "special_corporate_enterprise_tax",
+        "enterprise_tax",
+        "special_enterprise_tax",
         "consumption_tax",
         "local_consumption_tax",
         "inheritance_tax",
         "gift_tax",
         "health_insurance",
         "nursing_care_insurance",
-        "welfare_pension",
+        "employees_pension",
+        "national_pension",
+        "employment_insurance",
         "child_support_levy",
-        "child_contribution"
+        "child_rearing_support"
       ],
-      "description": "税目または保険種別"
+      "description": "税目・保険の種別。common は特定の税目に属さないもの（対応年度の宣言など）"
     },
-    "jurisdiction": { "$ref": "#/$defs/Jurisdiction" },
-
+    "jurisdiction": {
+      "$ref": "#/$defs/Jurisdiction"
+    },
     "effective_from": {
       "$ref": "#/$defs/LocalDate",
       "description": "この制度値が効力を持つ開始日"
     },
     "effective_to": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "効力の終了日。nullは無期限。"
     },
     "applies_to_period_start_from": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "この値が適用される課税期間等の開始日の下限"
     },
     "applies_to_period_start_to": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "同上限"
     },
     "applies_to_transaction_from": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "取引日の下限（消費税経過措置等）"
     },
     "applies_to_transaction_to": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "同上限"
     },
-
     "calculation_order": {
       "type": "integer",
       "minimum": 0,
@@ -203,7 +260,6 @@
       "type": "string",
       "description": "端数規則表の参照ID"
     },
-
     "source_document_id": {
       "type": "string",
       "description": "出典の識別子（SourceReference.sourceId）"
@@ -218,20 +274,32 @@
     },
     "verified_at": {
       "oneOf": [
-        { "$ref": "#/$defs/Instant" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/Instant"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "verified_by": {
       "oneOf": [
-        { "type": "string" },
-        { "type": "null" }
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "promulgated_at": {
       "oneOf": [
-        { "$ref": "#/$defs/LocalDate" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/LocalDate"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "公布日"
     },
@@ -239,9 +307,12 @@
       "$ref": "#/$defs/LocalDate",
       "description": "この値の根拠を確認した日"
     },
-
-    "legal_status": { "$ref": "#/$defs/LegalStatus" },
-    "data_review_status": { "$ref": "#/$defs/DataReviewStatus" }
+    "legal_status": {
+      "$ref": "#/$defs/LegalStatus"
+    },
+    "data_review_status": {
+      "$ref": "#/$defs/DataReviewStatus"
+    }
   },
   "required": [
     "record_id",
