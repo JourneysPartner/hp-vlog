@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "オンラインサロンの会員課金は「サービス提供権利が確定した月」の売上。ランク別・月次課金の場合は課金月ごとに計上し、年払いは月割りで按分するのが原則です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-24T15:51:05.778+09:00"
 publish_at: "2026-08-25T11:48:00.000+09:00"
-published_at: ""
+published_at: "2026-08-25T12:00:52.929+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-24T00:05:57.070Z"
-updated_at: "2026-08-24T15:51:05.778+09:00"
+updated_at: "2026-08-25T12:00:52.929+09:00"
 publish_slot: "morning"
 ---
 月末に売上を集計しようとして、「ライトプランとプレミアムプランで課金タイミングが違う」「年払いの会員がいるけど12ヶ月分をどう扱えばいいのか」——こうした手が止まる場面は、オンラインサロン運営者の確定申告シーズンに繰り返し起きます。
