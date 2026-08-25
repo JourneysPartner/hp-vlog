@@ -600,6 +600,36 @@
       "coverage_basis": "none",
       "note": "配偶者特別控除。配偶者の合計所得金額9段階×本人3段階。R7から配偶者の所得要件の下限が48万→58万",
       "url_verified": true
+    },
+    "SOUMU-INDIVIDUAL-BUSINESS-TAX": {
+      "label": "地方税法（個人事業税）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+      "law_id": "325AC0000000226",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "72条の2第8〜10項が法定業種（第1種29・第2種3・第3種30）、72条の49の14が事業主控除290万円、72条の49の17が標準税率（第1種5%・第2種4%・第3種5%／あん摩等と装蹄師業は3%）。法定業種に該当しない事業は課税されない",
+      "url_verified": true
+    },
+    "EGOV-CORPORATE-TAX-ACT": {
+      "label": "法人税法（昭和40年法律第34号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340AC0000000034",
+      "law_id": "340AC0000000034",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "57条が欠損金の繰越し。1項が繰越10年・控除限度50%、11項1号が中小法人等は100%。中小法人等の定義（57条11項1号）は軽減税率の中小法人（66条5項）と条文が別なので流用しない",
+      "url_verified": true
+    },
+    "SOUMU-RESIDENT-TAX-ORDER": {
+      "label": "地方税法施行令（住民税の非課税限度額の基準）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325CO0000000245",
+      "law_id": "325CO0000000245",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "47条の3が均等割の非課税限度額の基準。基本額35万円・加算額21万円はいずれも上限で、生活保護法の級地区分ごとの率を乗じて市町村の条例で定める。10万円の一律加算は定額。全国一律の金額ではない",
+      "url_verified": true
     }
   }
 }

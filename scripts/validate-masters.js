@@ -166,6 +166,9 @@ function categoryKey(rec) {
     rec.difference_category || '',
     rec.insurance_type || '',
     rec.land_category || '',
+    rec.exemption_category || '',
+    rec.threshold_component || '',
+    rec.business_category || '',
     JSON.stringify(rec.jurisdiction || {}),
   ].join('|');
 }
