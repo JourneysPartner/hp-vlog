@@ -630,6 +630,36 @@
       "coverage_basis": "none",
       "note": "47条の3が均等割の非課税限度額の基準。基本額35万円・加算額21万円はいずれも上限で、生活保護法の級地区分ごとの率を乗じて市町村の条例で定める。10万円の一律加算は定額。全国一律の金額ではない",
       "url_verified": true
+    },
+    "EGOV-CIVIL-CODE": {
+      "label": "民法（明治29年法律第89号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/129AC0000000089",
+      "law_id": "129AC0000000089",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "887条・889条・890条が相続順位、900条が法定相続分、901条が代襲相続人の相続分。900条の現行規定は平成25年法律第94号附則2項により平成25年9月5日以後に開始した相続に適用（嫡出でない子の相続分を2分の1とするただし書は削除済み）。半血兄弟姉妹のただし書は現在も有効",
+      "url_verified": true
+    },
+    "EGOV-INHERITANCE-TAX-ACT": {
+      "label": "相続税法（昭和25年法律第73号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000073",
+      "law_id": "325AC0000000073",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "15条2項3項が法定相続人の数（放棄はなかったものとする・養子の算入制限・実子とみなす者）、21条の9以下が相続時精算課税。21条の11の2の基礎控除は本則60万円で、110万円は措置法70条の3の2の特例。本則だけを見ると控除不足になる",
+      "url_verified": true
+    },
+    "EGOV-SPECIAL-TAX-MEASURES": {
+      "label": "租税特別措置法（昭和32年法律第26号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/332AC0000000026",
+      "law_id": "332AC0000000026",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "70条の3の2が相続時精算課税の基礎控除110万円（令和6年1月1日以後）、70条の2の4が暦年課税の基礎控除110万円。いずれも相続税法本則（60万円）の特例。約15MBの大きな法令のため、条文の抜き出しは条番号を指定して行う",
+      "url_verified": true
     }
   }
 }

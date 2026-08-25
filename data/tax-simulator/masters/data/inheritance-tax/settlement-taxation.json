@@ -1,0 +1,263 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "相続時精算課税。相続税法21条の9・21条の11の2・21条の12・21条の13・21条の15、租税特別措置法70条の3の2より。",
+
+  "_why_needed": "仕様書 §26 の財産入力に『相続時精算課税適用財産』があり、§28-1 の5で課税価格へ加算する。基礎控除後の残額を加算する規定（相法21条の15第1項）のため、基礎控除額を持たないと加算額を過大にする。",
+
+  "_critical_trap": {
+    "本則は60万円・特例が110万円": "相続税法21条の11の2第1項の基礎控除は『六十万円』である。よく言われる110万円は租税特別措置法70条の3の2の特例（令和6年1月1日以後）。本則の条文だけを見て60万円を使うと控除不足になり、措置法だけを見て本則を無視すると根拠が欠ける。暦年課税の110万円も同じ構造で、相法21条の5が60万円・措法70条の2の4が110万円",
+    "基礎控除と特別控除は別物": "基礎控除110万円は毎年使える。特別控除2,500万円は特定贈与者ごとの累積枠で、使い切ると復活しない",
+    "相続時に加算するのは基礎控除後": "相法21条の15第1項は『第二十一条の十一の二第一項の規定による控除をした残額を相続税の課税価格に加算する』としている。措法70条の3の2第2項により、110万円の控除も同項による控除とみなされる。したがって年110万円までの贈与は相続財産に加算されない"
+  },
+
+  "_relation_to_gift_addback": "暦年課税の生前贈与加算（相法19条・inheritance-tax/tax-credits.json の inheritance_gift_addback_period）とは別制度。相続時精算課税を選択した特定贈与者からの贈与は、年数にかかわらず全額（基礎控除後）が加算される。両者を同じ加算期間の規則で処理しない。",
+
+  "_source": {
+    "law_id": "325AC0000000073",
+    "law_name": "相続税法",
+    "articles": "21条の9（相続時精算課税の選択）、21条の11の2（基礎控除60万円）、21条の12（特別控除2,500万円）、21条の13（税率20%）、21条の15第1項（相続税の課税価格への加算）",
+    "special_measures_law_id": "332AC0000000026",
+    "special_measures_law_name": "租税特別措置法",
+    "special_measures_articles": "70条の3の2（相続時精算課税に係る贈与税の基礎控除の特例・110万円）",
+    "extracted_at": "2026-08-25"
+  },
+
+  "eligibility": {
+    "_comment": "適用要件（相法21条の9第1項）。年齢はいずれも贈与の年の1月1日で判定する。",
+    "records": [
+      {
+        "record_id": "IHT-SETTLEMENT-ELIGIBILITY",
+        "value_key": "settlement_taxation_eligibility",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": "2022-04-01",
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "rule",
+        "tax_or_insurance_type": "gift_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2022-04-01",
+        "effective_to": null,
+        "recipient_min_age": 18,
+        "donor_min_age": 60,
+        "age_determination_date": "january_1_of_gift_year",
+        "recipient_relation": "presumptive_heir_lineal_descendant",
+        "_meaning": "受贈者は贈与者の推定相続人である直系卑属で、その年1月1日に18歳以上。贈与者は同日に60歳以上",
+        "_verbatim": "贈与により財産を取得した者がその贈与をした者の推定相続人（その贈与をした者の直系卑属である者のうちその年一月一日において十八歳以上であるものに限る。）であり、かつ、その贈与をした者が同日において六十歳以上の者である場合",
+        "_age_history": "受贈者の年齢要件は成年年齢引下げに伴い令和4年4月1日から18歳。それ以前は20歳",
+        "_grandchild": "孫も直系卑属であるが、子が生存していれば推定相続人ではない。ただし措置法により住宅取得等資金の特例等で対象が広がる場合がある（本マスター未登録）",
+        "_irrevocable": "届出書は撤回できない（21条の9第6項）。一度選択すると同じ贈与者からの贈与は以後すべて相続時精算課税となり、暦年課税へ戻せない",
+        "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+        "source_locator": "相続税法21条の9第1項・第6項",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "deductions": {
+    "_comment": "基礎控除と特別控除。基礎控除は本則60万円と措置法特例110万円の2レコードを持つ。",
+    "records": [
+      {
+        "record_id": "IHT-SETTLEMENT-BASIC-DEDUCTION-LAW",
+        "value_key": "settlement_taxation_basic_deduction",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": "2024-01-01",
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "deduction",
+        "tax_or_insurance_type": "gift_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2024-01-01",
+        "effective_to": null,
+        "provision_kind": "general_law",
+        "deduction_amount": { "unit": "JPY", "value": "600000" },
+        "applicability_conditions": [
+          { "subject": "apply_special_measures_law", "operator": "eq", "value": false, "description": "租税特別措置法70条の3の2の特例を適用しない場合（本則）" }
+        ],
+        "_meaning": "相続税法本則の基礎控除。年60万円",
+        "_verbatim": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、贈与税の課税価格から六十万円を控除する。",
+        "_do_not_use_alone": "実務では措置法70条の3の2により110万円となる。本レコードは根拠関係を示すために持つものであり、計算にはこちらを使わない",
+        "_multiple_donors": "特定贈与者が2人以上ある場合の各人への配分は政令で定める（21条の11の2第2項）。政令は本マスターに未登録",
+        "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+        "source_locator": "相続税法21条の11の2第1項",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IHT-SETTLEMENT-BASIC-DEDUCTION-SPECIAL",
+        "value_key": "settlement_taxation_basic_deduction",
+        "tax_year": null,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": "2024-01-01",
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "deduction",
+        "tax_or_insurance_type": "gift_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2024-01-01",
+        "effective_to": null,
+        "provision_kind": "special_measures_law",
+        "deduction_amount": { "unit": "JPY", "value": "1100000" },
+        "applicability_conditions": [
+          { "subject": "apply_special_measures_law", "operator": "eq", "value": true, "description": "令和6年1月1日以後の贈与（措置法の特例。実務上はこちらを使う）" }
+        ],
+        "_meaning": "措置法の特例による基礎控除。年110万円。令和6年1月1日以後の贈与に適用",
+        "_verbatim": "令和六年一月一日以後に相続税法第二十一条の九第五項に規定する相続時精算課税適用者がその年中において同条第五項に規定する特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、同法第二十一条の十一の二第一項の規定にかかわらず、贈与税の課税価格から百十万円を控除する。",
+        "_deemed_as_general_law": "措置法70条の3の2第2項により、この控除は相続税法21条の11の2第1項による控除とみなされる。したがって相続税の課税価格への加算（21条の15第1項）でも110万円控除後の残額が加算される",
+        "_annual": "毎年使える。使わなかった枠は翌年へ繰り越せない",
+        "_no_filing_needed_if_within": "基礎控除以下であれば贈与税の申告は不要。ただし相続時精算課税選択届出書の提出は初年度に必要",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "租税特別措置法70条の3の2第1項・第2項",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IHT-SETTLEMENT-SPECIAL-DEDUCTION",
+        "value_key": "settlement_taxation_special_deduction",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "deduction",
+        "tax_or_insurance_type": "gift_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2003-01-01",
+        "effective_to": null,
+        "deduction_amount": { "unit": "JPY", "value": "25000000" },
+        "is_cumulative": true,
+        "per_donor": true,
+        "_meaning": "特定贈与者ごとの累積2,500万円。既に控除した額の合計を差し引いた残額が限度",
+        "_verbatim": "二千五百万円（既にこの条の規定の適用を受けて控除した金額がある場合には、その金額の合計額を控除した残額）",
+        "_order": "基礎控除（21条の11の2）を先に引き、その後の課税価格から特別控除を引く（21条の12第1項『前条第一項の規定による控除後の贈与税の課税価格から』）。順序を逆にしない",
+        "_limit": "控除額は『2,500万円の残枠』と『基礎控除後の課税価格』のいずれか低い方（21条の12第1項1号・2号）",
+        "_filing_requirement": "期限内申告書に控除を受ける金額等の記載がある場合に限り適用（21条の12第2項）。やむを得ない事情があると税務署長が認めるときは書類の提出により適用できる（同3項）",
+        "_no_revival": "使い切った枠は復活しない。基礎控除110万円が毎年使えるのと違う",
+        "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+        "source_locator": "相続税法21条の12第1項1号・2号",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "tax_rate": {
+    "_comment": "相続時精算課税の贈与税率（相法21条の13）。暦年課税の超過累進税率と違い一律。",
+    "records": [
+      {
+        "record_id": "IHT-SETTLEMENT-RATE",
+        "value_key": "settlement_taxation_gift_tax_rate",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-TRUNC-100-TAX",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "rate",
+        "tax_or_insurance_type": "gift_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2003-01-01",
+        "effective_to": null,
+        "rate": { "num": "20", "den": "100" },
+        "_meaning": "基礎控除・特別控除後の課税価格に一律20%",
+        "_verbatim": "特定贈与者ごとに、第二十一条の十一の二第一項の規定による控除後の贈与税の課税価格（前条第一項の規定の適用がある場合には、同項の規定による控除後の金額）にそれぞれ百分の二十の税率を乗じて計算した金額とする。",
+        "_not_progressive": "暦年課税の超過累進税率（一般贈与・特例贈与の税率表）を使わない。相続時精算課税を選択した特定贈与者からの贈与には税率表を適用しない",
+        "_credited_at_inheritance": "ここで納めた贈与税は相続税額から控除する。控除しきれない場合は還付される（21条の15第3項）。控除しきれずに0円になる場合と還付になる場合を区別する（§28-1 の18）",
+        "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+        "source_locator": "相続税法21条の13",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "inheritance_addback": {
+    "_comment": "相続時の課税価格への加算（相法21条の15第1項）。",
+    "records": [
+      {
+        "record_id": "IHT-SETTLEMENT-ADDBACK",
+        "value_key": "settlement_taxation_addback_rule",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "inheritance_tax_master",
+        "record_type": "rule",
+        "tax_or_insurance_type": "inheritance_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2024-01-01",
+        "effective_to": null,
+        "addback_basis": "value_after_basic_deduction",
+        "addback_period_years": null,
+        "_meaning": "特定贈与者からの相続時精算課税適用財産の価額から基礎控除をした残額を、相続税の課税価格に加算する",
+        "_verbatim": "当該特定贈与者からの贈与により取得した財産で第二十一条の九第三項の規定の適用を受けるもの…の価額から第二十一条の十一の二第一項の規定による控除をした残額を相続税の課税価格に加算した価額をもつて、相続税の課税価格とする。",
+        "_no_period_limit": "暦年課税の生前贈与加算と違い、年数の制限が無い。相続時精算課税を選択した年以後のすべての贈与が対象",
+        "_basic_deduction_effect": "令和6年1月1日以後は年110万円まで加算されない。措法70条の3の2第2項が『相続税法21条の11の2第1項の規定により控除されたものとみなす』としているため、加算の計算でも110万円控除後になる",
+        "_valuation_date": "加算する価額は贈与時の価額。相続時の時価ではない",
+        "_even_if_not_heir": "特定贈与者から相続または遺贈により財産を取得しなかった相続時精算課税適用者も、精算課税適用財産を相続または遺贈により取得したものとみなされる（21条の16）。本マスターは21条の16を未登録",
+        "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+        "source_locator": "相続税法21条の15第1項",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "_not_registered": [
+    "相続税法21条の11の2第2項の政令（特定贈与者が2人以上ある場合の基礎控除の配分）",
+    "相続税法21条の16（特定贈与者から相続等により財産を取得しなかった場合のみなし取得）",
+    "相続時精算課税を選択した場合の小規模宅地等の特例の不適用",
+    "住宅取得等資金の贈与に係る相続時精算課税の特例（措置法70条の3。贈与者の年齢要件が無い）"
+  ],
+
+  "_simulator_rule": "相続時精算課税適用財産がある場合、特定贈与者が複数いるか、選択年以後の贈与額が把握できているかを質問する。特定贈与者が2人以上で基礎控除の配分が必要な場合、政令が未登録のため blocked とする。贈与額を年ごとに把握できない場合も、110万円控除を年数分まとめて適用せず blocked とする。"
+}
