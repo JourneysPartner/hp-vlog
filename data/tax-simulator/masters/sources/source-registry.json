@@ -660,6 +660,46 @@
       "coverage_basis": "none",
       "note": "70条の3の2が相続時精算課税の基礎控除110万円（令和6年1月1日以後）、70条の2の4が暦年課税の基礎控除110万円。いずれも相続税法本則（60万円）の特例。約15MBの大きな法令のため、条文の抜き出しは条番号を指定して行う",
       "url_verified": true
+    },
+    "EGOV-INCOME-TAX-ACT": {
+      "label": "所得税法（昭和40年法律第33号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340AC0000000033",
+      "law_id": "340AC0000000033",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "71条が雑損失の繰越控除（3年・青色申告不要）、72条が雑損控除。72条1項の足切りの分母は「総所得金額＋退職所得金額＋山林所得金額」であって合計所得金額ではない。28条4項の給与所得控除・別表第五は EGOV-INCOME-TAX-APDX5 を参照",
+      "url_verified": true
+    },
+    "EGOV-CORPORATE-TAX-ORDER": {
+      "label": "法人税法施行令（昭和40年政令第97号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340CO0000000097",
+      "law_id": "340CO0000000097",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "69条1項1号が定期同額給与の改定時期。イが通常改定（会計期間開始の日から3月を経過する日まで）、ロが臨時改定事由（増減とも可）、ハが業績悪化改定事由（減額のみ）。69条2項は源泉税等控除後の手取りが同額なら支給額を同額とみなす",
+      "url_verified": true
+    },
+    "EGOV-SPECIAL-TAX-MEASURES-ORDER": {
+      "label": "租税特別措置法施行令（昭和32年政令第43号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/332CO0000000043",
+      "law_id": "332CO0000000043",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "37条の5第1項が交際費等から除かれる飲食費の判定。飲食費を参加者数で除した金額が1万円以下であれば交際費等に含めない。令和6年4月1日以後の支出から1万円で、それ以前は5,000円",
+      "url_verified": true
+    },
+    "EGOV-NHI-ORDER": {
+      "label": "国民健康保険法施行令（昭和33年政令第362号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/333CO0000000362",
+      "law_id": "333CO0000000362",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "29条の7が保険料の賦課限度額と軽減判定。限度額は医療67万・支援金26万・介護17万・子ども子育て支援3万（合計113万）。軽減判定は43万円＋(給与所得者等の数−1)×10万を基準に、5割は被保険者数×31万、2割は×57万を加算。いずれもほぼ毎年度改正されるため年度更新の対象。所得割率・均等割額は市町村の条例で定まり全国一律の値は無い",
+      "url_verified": true
     }
   }
 }
