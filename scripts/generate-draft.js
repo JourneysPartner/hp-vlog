@@ -21,7 +21,7 @@ const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
-const { normalizeGeneratedDraft } = require('./lib/draft-normalizer');
+const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle } = require('./lib/draft-normalizer');
 const { restoreSourceGuardFields } = require('./lib/source-guard');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
@@ -1366,6 +1366,43 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
 // 3. 本文 h2 が0個など形式異常なら、strictFormat で1回だけ再生成
 // 4. 本文が記事タイプの下限を大きく割っていたら、増量指示つきで1回だけ再生成
 // 5. それでも満たさなければ、より長い方を採用し review_comment に警告を残す
+// ── タイトルが確定できなかったときに、本文からタイトルだけ作り直す ─────
+// 2026-08-25: モデルがタイトルを出せず「[要レビュー] {slug}」の仮置きのまま
+// 下書きが出来た。本文は6,807文字あり完成していたので、タイトルだけ引き直せば済む。
+// 失敗したら仮置きのままにする（承認側で止まる）。
+async function retryTitleOnce(body, topic) {
+  const heads = (body.match(/^#{2,3} .*$/gm) || []).slice(0, 12).map(h => h.replace(/^#+ /, ''));
+  const lead = body.replace(/^#{1,6} .*$/gm, '').trim().slice(0, 300);
+  const system = [
+    'あなたは日本の税務ブログの編集者です。記事本文に合った日本語のタイトルを1つ作ります。',
+    '制約:',
+    '- 30〜45文字程度。80文字を超えない。',
+    '- 「徹底解説」「完全ガイド」「必読」は使わない。',
+    '- 同じ名詞を繰り返さない。',
+    '- 記事に書かれていないことをタイトルにしない。',
+    '出力はタイトルの文字列のみ。前置きも引用符も付けない。',
+  ].join('\n');
+  const user = [
+    `税目カテゴリ: ${topic.category || ''}`,
+    `想定読者: ${topic.persona || ''}`,
+    '',
+    '# 記事の見出し',
+    ...heads.map(h => `- ${h}`),
+    '',
+    '# 本文の冒頭',
+    lead,
+  ].join('\n');
+
+  const raw = (await callSimpleOpenAI({ system, user }, 200) || '').trim();
+  const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
+  const check = checkLlmTitle(candidate, { macro: topic.macro, article_type: topic.article_type });
+  if (!check.ok) {
+    console.warn(`[generate] タイトル再取得も不採用（${check.reasons.join(' / ')}）: "${candidate}"`);
+    return null;
+  }
+  return candidate;
+}
+
 async function generateArticle(dateStr, topic, pairedTopic) {
   const now = new Date().toISOString();
   let gen = await generateWithOpenAI(dateStr, topic, pairedTopic, false);
@@ -1430,6 +1467,29 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       }
     } catch (e) {
       console.warn(`[generate] 文字数調整の再生成に失敗（${e.message}）→ 初回結果を使用`);
+    }
+  }
+
+  // ── タイトルが仮置きに落ちていたら、本文から1回だけ作り直す ──────
+  // 仮置き（[要レビュー] {slug}）のまま出すと、レビュー画面に slug が並び、
+  // 承認もできない。本文は出来ているので、タイトルだけ引き直せば救える。
+  if (isPlaceholderTitle(normalized.title)) {
+    console.warn('[generate] タイトルが仮置きのまま → 本文からタイトルだけ1回作り直します');
+    try {
+      const retitled = await retryTitleOnce(normalized.body, topic);
+      if (retitled) {
+        const renorm = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+          now, pairedTopic, titleOverride: retitled,
+        });
+        if (!isPlaceholderTitle(renorm.title)) {
+          normalized = renorm;
+          console.log(`[generate] タイトルを作り直しました: "${renorm.title}"`);
+        }
+      } else {
+        console.warn('[generate] タイトルを作り直せませんでした → 仮置きのまま（承認側で止まります）');
+      }
+    } catch (e) {
+      console.warn(`[generate] タイトル作り直しに失敗（${e.message}）→ 仮置きのまま`);
     }
   }
 

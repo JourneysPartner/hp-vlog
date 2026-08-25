@@ -3,6 +3,7 @@
 const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, findApprovedArticlesForDate } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
+const { isPlaceholderTitle } = require('../../scripts/lib/draft-normalizer');
 
 function approvalSourceGuard(content) {
   return evaluateSourceGuard(parseFrontmatterMeta(content), { stage: 'approve' });
@@ -127,6 +128,26 @@ exports.handler = async (event) => {
     const fmStr = (re) => (content.match(re) || [])[1];
     const fmNum = (re) => { const v = fmStr(re); const n = parseInt(v, 10); return isNaN(n) ? null : n; };
     const recommendation = fmStr(/^recommendation:\s*"?([^"\n\r]+)"?/m);
+
+    // タイトルが仮置きのままなら承認しない。生成時にタイトルを確定できないと
+    // 「[要レビュー] {slug}」が入る。これが公開されると slug が記事タイトルになる。
+    // 2026-08-25: 仮置きのまま「公開推奨」と表示され、承認できる状態になっていた。
+    // recommendation の有無に関係なく必ず見る（レガシー記事でも公開してよい理由がない）。
+    if (fmTitle && isPlaceholderTitle(fmTitle)) {
+      const reason = 'タイトルが仮置きのままです（記事に合ったタイトルを付けてください）';
+      console.warn(`[review-approve] 承認拒否(タイトル未確定): ${filename}`);
+      try {
+        await sendNotification('quality_blocked', { title: fmTitle, filename, reasons: [reason] });
+      } catch (notifyErr) {
+        console.error(`[review-approve] 通知送信失敗: ${notifyErr.message}`);
+      }
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: reason }),
+      };
+    }
+
     if (recommendation) {
       const scores = {
         customer_fit_score:     fmNum(/^customer_fit_score:\s*"?(\d+)"?/m),

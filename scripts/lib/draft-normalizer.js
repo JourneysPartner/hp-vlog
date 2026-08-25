@@ -139,28 +139,43 @@ function escFm(v) {
 // ── LLM 出力のタイトルを検証 ──────────────────────────────────
 // 妥当: 6〜80 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない、
 // title-lint の HARD_FAIL を含まない（同一名詞 2 回繰り返しなど）。
-function isValidLlmTitle(s, ctx = {}) {
-  if (!s || typeof s !== 'string') return false;
+// 生成時にタイトルを確定できなかったときに入れる仮置き。
+// これが記事タイトルとして公開されないよう、承認/公開の各所で弾く。
+const PLACEHOLDER_TITLE_PREFIX = '[要レビュー] ';
+
+function isPlaceholderTitle(title) {
+  return String(title || '').trim().startsWith(PLACEHOLDER_TITLE_PREFIX);
+}
+
+/**
+ * LLM が出したタイトルが使えるかを、理由つきで判定する。
+ * 2026-08-25: 理由を残していなかったため、仮置きに落ちた記事の原因が追えなかった。
+ * @returns {{ok: boolean, reasons: string[]}}
+ */
+function checkLlmTitle(s, ctx = {}) {
+  const reasons = [];
+  if (!s || typeof s !== 'string') return { ok: false, reasons: ['タイトルが空'] };
   const t = s.trim();
-  if (t.length < 6 || t.length > 80) return false;
-  // placeholder（プロンプトの「（〜記入）」が残っているケース）
-  if (/^（.+記入.*）$/.test(t)) return false;
-  if (/あなたがこの記事に最も適したタイトル/.test(t)) return false;
-  // 安直な煽り（最終ガード）
-  if (/(徹底解説|完全ガイド|必読)/.test(t)) return false;
-  // 禁止フレーズ（差し戻しで「今後使わない」と指定された語）はタイトルにも使わせない
+  if (t.length < 6) reasons.push(`短すぎ: ${t.length}文字`);
+  if (t.length > 80) reasons.push(`長すぎ: ${t.length}文字`);
+  if (/^（.+記入.*）$/.test(t)) reasons.push('プロンプトの記入欄が残っている');
+  if (/あなたがこの記事に最も適したタイトル/.test(t)) reasons.push('プロンプトの指示文が残っている');
+  if (/(徹底解説|完全ガイド|必読)/.test(t)) reasons.push('安直な煽り表現');
   try {
     const { detectBannedInTitle } = require('./banned-phrases');
-    if (detectBannedInTitle(t).length > 0) return false;
-  } catch { /* 読込失敗時は他チェックのみで判定 */ }
-  // title-lint の HARD_FAIL（同一名詞繰り返し、機械的連結等）
-  // 循環参照を避けるため遅延 require
+    const banned = detectBannedInTitle(t);
+    if (banned.length > 0) reasons.push(`禁止フレーズ: ${banned.join(' / ')}`);
+  } catch (_) { /* 読込失敗時は他チェックのみで判定 */ }
   try {
     const { lintTitle } = require('./title-lint');
     const r = lintTitle(t, ctx);
-    if (r.fails && r.fails.length > 0) return false;
-  } catch { /* lint 失敗時は他のチェックだけで判定 */ }
-  return true;
+    if (r.fails && r.fails.length > 0) reasons.push(...r.fails);
+  } catch (_) { /* lint 失敗時は他のチェックだけで判定 */ }
+  return { ok: reasons.length === 0, reasons };
+}
+
+function isValidLlmTitle(s, ctx = {}) {
+  return checkLlmTitle(s, ctx).ok;
 }
 
 // ── topic metadata から canonical frontmatter を構築 ────────────
@@ -182,16 +197,22 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   // ※ルールベースの title 生成（title-builder）には絶対に戻さない。
   const llmTitle = (llmMeta.title || '').trim();
   const titleCtx = { macro: topic.macro, article_type: articleType };
+  const llmCheck = checkLlmTitle(llmTitle, titleCtx);
   let title;
-  if (isValidLlmTitle(llmTitle, titleCtx)) {
+  if (llmCheck.ok) {
     title = llmTitle;
   } else if (topic.title && isValidLlmTitle(topic.title, titleCtx)) {
     // curated トピック（topic-pool）の人手キュレートタイトルは妥当ならそのまま使う
     title = topic.title;
-    console.warn(`[draft-normalizer] LLM タイトル無効 → curated topic.title を採用: "${title}"`);
+    console.warn(`[draft-normalizer] LLM タイトルを採用せず（${llmCheck.reasons.join(' / ')}）` +
+      ` 却下したタイトル: "${llmTitle}" → curated topic.title を採用: "${title}"`);
   } else {
-    title = `[要レビュー] ${topic.slug || 'untitled'}`;
-    console.warn(`[draft-normalizer] LLM タイトル無効 + topic.title 無し → "${title}" を仮置き。レビューで修正必須`);
+    title = `${PLACEHOLDER_TITLE_PREFIX}${topic.slug || 'untitled'}`;
+    // 何を弾いたのかを必ず残す。理由を書いていなかったため、2026-08-25 に
+    // 仮置きへ落ちた記事の原因を後から特定できなかった。
+    console.warn(`[draft-normalizer] LLM タイトルを採用せず（${llmCheck.reasons.join(' / ')}）` +
+      ` 却下したタイトル: "${llmTitle}"（${llmTitle.length}文字）`);
+    console.warn(`[draft-normalizer] topic.title も無いため "${title}" を仮置き。この記事は承認できない`);
   }
 
   // summary: LLM のものが妥当（10〜160字）ならそれ、なければ topic、なければ本文派生（呼び出し側で渡す）
@@ -210,7 +231,17 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   // 適合スコア（顧客カテゴリ関連性・出典一致等）をレビュー画面用に付与する。
   // 生成時に code 側で算出し、レビュアーが判断材料として見られるようにする。
   const fit = evaluateTopicFit({ ...topic, article_type: articleType });
-  const recommendation = recommendationForDecision(fit.decision); // publish | revise | reject
+  let recommendation = recommendationForDecision(fit.decision); // publish | revise | reject
+  let reviewWarning = fit.reason || '';
+
+  // タイトルが仮置きのままなら、判定を「要修正」に落としてレビュー画面に理由を出す。
+  // 2026-08-25: 仮置きタイトルのまま「公開推奨」と表示され、そのまま承認できる
+  // 状態になっていた（気付かず承認していれば slug が記事タイトルとして公開された）。
+  if (isPlaceholderTitle(title)) {
+    recommendation = 'revise';
+    reviewWarning = [reviewWarning, 'タイトル: 生成時に確定できず仮置きのままです（要修正）']
+      .filter(Boolean).join(' / ');
+  }
   const sourceConfidence = Number.isFinite(Number(topic.source_confidence))
     ? Number(topic.source_confidence) : 0;
 
@@ -250,7 +281,7 @@ practical_usefulness_score: ${fit.practical_usefulness_score}
 lead_value_score: ${fit.lead_value_score}
 tax_risk_score: ${fit.tax_risk_score}
 recommendation: "${escFm(recommendation)}"
-review_warning: "${escFm(fit.reason || '')}"
+review_warning: "${escFm(reviewWarning)}"
 summary: "${escFm(summary)}"
 review_status: "draft"
 review_comment: ""
@@ -284,14 +315,19 @@ function normalizeGeneratedDraft(rawText, topic, opts = {}) {
   const derived = deriveSummary(body, topic);
   const topicForFm = { ...topic, _derivedSummary: derived };
 
+  // titleOverride: LLM のタイトルが使えず仮置きに落ちたとき、呼び出し側が
+  // タイトルだけ作り直して渡してくる（generate-draft.js の retryTitleOnce）。
+  const metaForFm = opts.titleOverride ? { ...llmMeta, title: opts.titleOverride } : llmMeta;
+
   const frontmatter = buildCanonicalFrontmatter(topicForFm, {
-    llmMeta, now: opts.now, pairedTopic: opts.pairedTopic,
+    llmMeta: metaForFm, now: opts.now, pairedTopic: opts.pairedTopic,
   });
 
   const content = `${frontmatter}\n\n${body.trim()}\n`;
   return {
     content,
     body: body.trim(),
+    title: (frontmatter.match(/^title:\s*"(.*)"$/m) || [])[1] || '',
     bodyH2Count: countH2(body),
     hadFrontmatter,
     leadingTextStripped: !!(extractFrontmatterAndBody(stripped).leadingText),
@@ -307,5 +343,8 @@ module.exports = {
   countH2,
   deriveSummary,
   isValidLlmTitle,
+  checkLlmTitle,
+  isPlaceholderTitle,
+  PLACEHOLDER_TITLE_PREFIX,
   RELATED_LINK_TEXTS,
 };
