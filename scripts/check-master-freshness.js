@@ -6,6 +6,7 @@
  *   node masters/scripts/check-master-freshness.js
  *   node masters/scripts/check-master-freshness.js --as-of 2027-01-15
  *   node masters/scripts/check-master-freshness.js --gate      # 未承認があれば異常終了（公開前ゲート）
+ *   node masters/scripts/check-master-freshness.js --gate=sozoku # 相続税だけを判定
  *   node masters/scripts/check-master-freshness.js --json      # 機械可読出力
  *
  * 何をするか:
@@ -24,6 +25,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const {
+  SIMULATOR_TYPES,
+  loadSimulatorDependencies,
+  inspectSimulatorDependencies,
+  evaluateSimulatorGates,
+} = require('./lib/simulator-dependencies');
 
 // 場所は環境変数で差し替えられる（CI やテストから別の場所を指すため）。
 const REPO_ROOT = path.join(__dirname, '..');
@@ -195,6 +202,13 @@ function check(asOf) {
     }
   }
 
+  const dependencyTable = loadSimulatorDependencies(MASTERS_DIR);
+  const dependencyInspection = inspectSimulatorDependencies(all, dependencyTable);
+  if (dependencyInspection.errors.length > 0) {
+    throw new Error(`シミュレーター依存表に誤りがあります: ${dependencyInspection.errors.join(' / ')}`);
+  }
+  const simulatorGates = evaluateSimulatorGates(all, dependencyInspection);
+
   const findings = {
     hashMismatch: [],     // 出典が更新された → 見直しが要る
     hashUntracked: [],    // source_hash 未記録 → 変更を検知できない
@@ -328,7 +342,15 @@ function check(asOf) {
     });
   }
 
-  return { asOf, periods, findings, totalRecords: all.length, sourceCount: bySource.size };
+  return {
+    asOf,
+    periods,
+    findings,
+    totalRecords: all.length,
+    sourceCount: bySource.size,
+    simulatorGates,
+    unclassifiedValueKeys: dependencyInspection.unclassifiedValueKeys,
+  };
 }
 
 // ── レポート ──────────────────────────────────────────────────
@@ -407,7 +429,27 @@ function buildReport(result) {
   const approvedGate = f.notApproved.length + f.blocked.length;
   L.push(`■ 承認状況: 未承認 ${f.notApproved.length} 件 / 確認待ち ${f.blocked.length} 件`);
   if (approvedGate > 0) {
-    L.push('  すべて approved になるまで本番公開はできません（仕様書 §48）。');
+    L.push('  指定なしの全体ゲートでは、すべて approved になるまで本番公開できません（仕様書 §48）。');
+  }
+  L.push('');
+
+  L.push('■ シミュレーター別公開ゲート');
+  for (const simulatorType of SIMULATOR_TYPES) {
+    const gate = result.simulatorGates[simulatorType];
+    const requiredCount = gate.required.notApproved.length + gate.required.blocked.length +
+      gate.required.missingValueKeys.length;
+    const optionalCount = gate.optional.notApproved.length + gate.optional.blocked.length +
+      gate.optional.missingValueKeys.length;
+    L.push(
+      `  - ${gate.label}（${simulatorType}）: ${gate.publishable ? '公開可能' : '公開不可'}` +
+      ` / 必須の要確認 ${requiredCount} 件 / 任意の要確認 ${optionalCount} 件`
+    );
+  }
+  if (result.unclassifiedValueKeys.length > 0) {
+    L.push(
+      `  未分類の value_key は ${result.unclassifiedValueKeys.length} 件です。` +
+      '設計書 §8 に根拠を追加してから依存表へ分類してください。'
+    );
   }
 
   return L.join('\n');
@@ -418,8 +460,17 @@ function main() {
   const argv = process.argv.slice(2);
   const asOfIdx = argv.indexOf('--as-of');
   const asOf = asOfIdx >= 0 ? argv[asOfIdx + 1] : new Date().toISOString().slice(0, 10);
-  const gate = argv.includes('--gate');
+  const gateArg = argv.find(arg => arg === '--gate' || arg.startsWith('--gate='));
+  const gate = Boolean(gateArg);
+  const gateTarget = gateArg && gateArg.startsWith('--gate=') ? gateArg.slice('--gate='.length) : null;
   const asJson = argv.includes('--json');
+
+  if (gateTarget !== null && !SIMULATOR_TYPES.includes(gateTarget)) {
+    throw new Error(
+      `公開ゲートのシミュレーター指定が不正です: "${gateTarget}"。` +
+      `指定できる値は ${SIMULATOR_TYPES.join(' / ')} です`
+    );
+  }
 
   const result = check(asOf);
   const f = result.findings;
@@ -444,14 +495,39 @@ function main() {
     fs.appendFileSync(ghOut, `coverage_upcoming=${f.coverageUpcoming.length}\n`);
     fs.appendFileSync(ghOut, `blocked=${f.blocked.length}\n`);
     fs.appendFileSync(ghOut, `not_approved=${f.notApproved.length}\n`);
+    for (const simulatorType of SIMULATOR_TYPES) {
+      fs.appendFileSync(
+        ghOut,
+        `gate_${simulatorType}=${result.simulatorGates[simulatorType].publishable ? 'pass' : 'stop'}\n`
+      );
+    }
     fs.appendFileSync(ghOut, `report<<REPORT_EOF\n${report}\nREPORT_EOF\n`);
   }
 
-  // --gate: 公開前チェック。承認されていないものが1つでもあれば止める。
-  if (gate && (f.notApproved.length > 0 || f.blocked.length > 0)) {
+  // 引数なしの --gate は互換性のため従来どおり全レコードを一括判定する。
+  if (gate && gateTarget === null && (f.notApproved.length > 0 || f.blocked.length > 0)) {
     console.error('\n[gate] 未承認または確認待ちのレコードがあるため、公開できません。');
     process.exitCode = 1;
     return;
+  }
+
+  if (gateTarget !== null) {
+    const selectedGate = result.simulatorGates[gateTarget];
+    const optionalCount = selectedGate.optional.notApproved.length + selectedGate.optional.blocked.length;
+    if (!selectedGate.publishable) {
+      console.error(
+        `\n[gate:${gateTarget}] ${selectedGate.label}シミュレーターで` +
+        '必須の未承認または確認待ちレコードがあるため、公開できません。'
+      );
+      process.exitCode = 1;
+      return;
+    }
+    if (optionalCount > 0) {
+      console.warn(
+        `\n[gate:${gateTarget}] 任意の依存に要確認が ${optionalCount} 件ありますが、` +
+        '主要結果へ必須ではないため公開ゲートは通過します。'
+      );
+    }
   }
 
   // 通常実行では、要確認があっても異常終了はしない（通知して人が判断するため）。

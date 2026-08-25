@@ -20,6 +20,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const {
+  loadSimulatorDependencies,
+  inspectSimulatorDependencies,
+} = require('./lib/simulator-dependencies');
 
 const MASTERS_DIR = process.env.MASTERS_DIR
   ? path.resolve(process.env.MASTERS_DIR)
@@ -474,6 +478,18 @@ function main() {
   checkOverlaps(allRecords, errors);
   checkSubstance(allRecords, warnings);
   checkOrphanSources(allRecords, path.join(MASTERS_DIR, 'sources', 'source-registry.json'), warnings);
+
+  // 依存表の漏れは、未承認値がシミュレーター別ゲートをすり抜ける方向に働く。
+  // 未分類は設計書 §8 に無い項目を勝手に割り当てないため警告に留めるが、
+  // 依存表にしか無い綴り間違いはゲートを無効にするため形式エラーとする。
+  try {
+    const dependencyTable = loadSimulatorDependencies(MASTERS_DIR);
+    const dependencyInspection = inspectSimulatorDependencies(allRecords, dependencyTable);
+    errors.push(...dependencyInspection.errors);
+    warnings.push(...dependencyInspection.warnings);
+  } catch (e) {
+    errors.push(e.message);
+  }
 
   // ── 出力 ──
   console.log(`マスターデータ形式検証: ${total} レコード / ${listDataFiles(DATA_DIR).length} ファイル\n`);
