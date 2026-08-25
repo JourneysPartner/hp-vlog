@@ -700,6 +700,60 @@
       "coverage_basis": "none",
       "note": "29条の7が保険料の賦課限度額と軽減判定。限度額は医療67万・支援金26万・介護17万・子ども子育て支援3万（合計113万）。軽減判定は43万円＋(給与所得者等の数−1)×10万を基準に、5割は被保険者数×31万、2割は×57万を加算。いずれもほぼ毎年度改正されるため年度更新の対象。所得割率・均等割額は市町村の条例で定まり全国一律の値は無い",
       "url_verified": true
+    },
+    "NHI-SHIBUYA": {
+      "label": "東京都渋谷区 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.shibuya.tokyo.jp/kurashi/kokuho/kenkohokenryo/hokenryo_26.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "特別区の統一保険料方式の代表として登録。令和8年度は医療分7.51%/47,600円、支援金分2.80%/17,600円、子ども分0.27%/1,873円、介護分2.43%/17,800円。平等割なし。基礎控除43万円。限度額の合計113万円が政令と一致する",
+      "url_verified": true
+    },
+    "NHI-YOKOHAMA": {
+      "label": "神奈川県横浜市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/kokuho/hokenryo/r7hokennryouritu.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.33%/40,870円、支援分2.62%/13,380円、子ども分0.34%/1,770円、介護分2.84%/16,200円。平等割なし。子ども分の均等割は被保険者均等割1,690円＋18歳以上均等割80円の合算",
+      "url_verified": true
+    },
+    "NHI-NAGOYA": {
+      "label": "愛知県名古屋市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.nagoya.jp/kurashi/hoken/1011736/1011793/1011794/1011799.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.83%/50,591円、支援金分2.58%/15,784円、子ども分0.26%/1,771円、介護分2.34%/16,120円。平等割なし。登録6自治体のうち均等割が最も高い",
+      "url_verified": true
+    },
+    "NHI-OSAKA": {
+      "label": "大阪府大阪市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.osaka.lg.jp/fukushima/page/0000624311.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分9.50%/34,990円/平等割33,908円、支援金分3.06%/11,191円/平等割10,845円、子ども分0.28%/1,745円、介護分2.60%/18,682円。医療分の賦課限度額が66万円で政令の上限67万円より低い。所得割率は登録6自治体で最も高い",
+      "url_verified": true
+    },
+    "NHI-FUKUOKA": {
+      "label": "福岡県福岡市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.fukuoka.lg.jp/hofuku/kokuho/hp/seido/06-02.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は基礎分5.58%/19,807円/平等割18,664円、支援分3.14%/10,441円/平等割9,838円、子ども分0.28%/1,039円/平等割911円、介護分2.61%/10,160円/平等割7,751円。4区分すべてに平等割がある。所得割率・均等割額とも登録6自治体で最も低い",
+      "url_verified": true
+    },
+    "NHI-SAPPORO": {
+      "label": "北海道札幌市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.sapporo.jp/hoken-iryo/kokuho/fuka.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.61%/20,550円/平等割32,540円、支援金分2.56%/6,330円/平等割10,010円、子ども支援分0.29%/1,100円/平等割1,000円、介護分2.33%/6,020円/平等割7,550円。均等割は低いが平等割が高く、世帯人数が少ないほど1人当たりの負担が重い",
+      "url_verified": true
     }
   }
 }

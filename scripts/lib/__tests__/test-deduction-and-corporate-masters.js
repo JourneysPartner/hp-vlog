@@ -401,8 +401,8 @@ console.log('\n=== Test 14: 国保は概算できないことが明示されて�
     '未登録の項目と理由が列挙されている');
   assert(/0円として計算すると/.test(nhiDoc._simulator_rule || ''),
     '0円扱いにしない方針が記録されている');
-  assert(/derived/.test(nhiDoc._estimation_note || ''),
-    '概算を採用する場合に value_certainty を derived にする方針が記録されている');
+  assert(/nhi-municipal-rates.json/.test(nhiDoc._estimation_decision || ''),
+    '概算の方針（代表的な市町村の料率を複数登録して選ばせる）が決まり、料率マスターへの参照がある');
 }
 
 console.log('\n=== Test 15: 出典と承認状態 ===');
