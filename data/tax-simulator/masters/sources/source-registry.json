@@ -660,6 +660,100 @@
       "coverage_basis": "none",
       "note": "70条の3の2が相続時精算課税の基礎控除110万円（令和6年1月1日以後）、70条の2の4が暦年課税の基礎控除110万円。いずれも相続税法本則（60万円）の特例。約15MBの大きな法令のため、条文の抜き出しは条番号を指定して行う",
       "url_verified": true
+    },
+    "EGOV-INCOME-TAX-ACT": {
+      "label": "所得税法（昭和40年法律第33号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340AC0000000033",
+      "law_id": "340AC0000000033",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "71条が雑損失の繰越控除（3年・青色申告不要）、72条が雑損控除。72条1項の足切りの分母は「総所得金額＋退職所得金額＋山林所得金額」であって合計所得金額ではない。28条4項の給与所得控除・別表第五は EGOV-INCOME-TAX-APDX5 を参照",
+      "url_verified": true
+    },
+    "EGOV-CORPORATE-TAX-ORDER": {
+      "label": "法人税法施行令（昭和40年政令第97号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/340CO0000000097",
+      "law_id": "340CO0000000097",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "69条1項1号が定期同額給与の改定時期。イが通常改定（会計期間開始の日から3月を経過する日まで）、ロが臨時改定事由（増減とも可）、ハが業績悪化改定事由（減額のみ）。69条2項は源泉税等控除後の手取りが同額なら支給額を同額とみなす",
+      "url_verified": true
+    },
+    "EGOV-SPECIAL-TAX-MEASURES-ORDER": {
+      "label": "租税特別措置法施行令（昭和32年政令第43号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/332CO0000000043",
+      "law_id": "332CO0000000043",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "37条の5第1項が交際費等から除かれる飲食費の判定。飲食費を参加者数で除した金額が1万円以下であれば交際費等に含めない。令和6年4月1日以後の支出から1万円で、それ以前は5,000円",
+      "url_verified": true
+    },
+    "EGOV-NHI-ORDER": {
+      "label": "国民健康保険法施行令（昭和33年政令第362号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/333CO0000000362",
+      "law_id": "333CO0000000362",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "29条の7が保険料の賦課限度額と軽減判定。限度額は医療67万・支援金26万・介護17万・子ども子育て支援3万（合計113万）。軽減判定は43万円＋(給与所得者等の数−1)×10万を基準に、5割は被保険者数×31万、2割は×57万を加算。いずれもほぼ毎年度改正されるため年度更新の対象。所得割率・均等割額は市町村の条例で定まり全国一律の値は無い",
+      "url_verified": true
+    },
+    "NHI-SHIBUYA": {
+      "label": "東京都渋谷区 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.shibuya.tokyo.jp/kurashi/kokuho/kenkohokenryo/hokenryo_26.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "特別区の統一保険料方式の代表として登録。令和8年度は医療分7.51%/47,600円、支援金分2.80%/17,600円、子ども分0.27%/1,873円、介護分2.43%/17,800円。平等割なし。基礎控除43万円。限度額の合計113万円が政令と一致する",
+      "url_verified": true
+    },
+    "NHI-YOKOHAMA": {
+      "label": "神奈川県横浜市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/kokuho/hokenryo/r7hokennryouritu.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.33%/40,870円、支援分2.62%/13,380円、子ども分0.34%/1,770円、介護分2.84%/16,200円。平等割なし。子ども分の均等割は被保険者均等割1,690円＋18歳以上均等割80円の合算",
+      "url_verified": true
+    },
+    "NHI-NAGOYA": {
+      "label": "愛知県名古屋市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.nagoya.jp/kurashi/hoken/1011736/1011793/1011794/1011799.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.83%/50,591円、支援金分2.58%/15,784円、子ども分0.26%/1,771円、介護分2.34%/16,120円。平等割なし。登録6自治体のうち均等割が最も高い",
+      "url_verified": true
+    },
+    "NHI-OSAKA": {
+      "label": "大阪府大阪市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.osaka.lg.jp/fukushima/page/0000624311.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分9.50%/34,990円/平等割33,908円、支援金分3.06%/11,191円/平等割10,845円、子ども分0.28%/1,745円、介護分2.60%/18,682円。医療分の賦課限度額が66万円で政令の上限67万円より低い。所得割率は登録6自治体で最も高い",
+      "url_verified": true
+    },
+    "NHI-FUKUOKA": {
+      "label": "福岡県福岡市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.fukuoka.lg.jp/hofuku/kokuho/hp/seido/06-02.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は基礎分5.58%/19,807円/平等割18,664円、支援分3.14%/10,441円/平等割9,838円、子ども分0.28%/1,039円/平等割911円、介護分2.61%/10,160円/平等割7,751円。4区分すべてに平等割がある。所得割率・均等割額とも登録6自治体で最も低い",
+      "url_verified": true
+    },
+    "NHI-SAPPORO": {
+      "label": "北海道札幌市 国民健康保険料率",
+      "kind": "municipal",
+      "url": "https://www.city.sapporo.jp/hoken-iryo/kokuho/fuka.html",
+      "update_cycle": "fiscal_april",
+      "coverage_basis": "none",
+      "note": "令和8年度は医療分8.61%/20,550円/平等割32,540円、支援金分2.56%/6,330円/平等割10,010円、子ども支援分0.29%/1,100円/平等割1,000円、介護分2.33%/6,020円/平等割7,550円。均等割は低いが平等割が高く、世帯人数が少ないほど1人当たりの負担が重い",
+      "url_verified": true
     }
   }
 }

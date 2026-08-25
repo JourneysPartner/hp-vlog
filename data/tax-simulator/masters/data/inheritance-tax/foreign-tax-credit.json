@@ -1,0 +1,59 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "在外財産に対する相続税額の控除（外国税額控除）。相続税法20条の2より。",
+
+  "_why_needed": "仕様書 §28-1 の17 が税額控除の適用順序に外国税額控除を含めている。順序が固定されている以上、規則を持たないと段階を飛ばすことになる。",
+
+  "_scope_note": "仕様書 §68-1 は③相続税の初期対応を『国内財産・国内居住者』とし、『国外・非居住』を専門判定へ送るとしている。したがって本マスターは初期版の計算では使わない。適用順序の完全性と、国外財産がある場合に blocked とする判定のために登録する。",
+
+  "_source": {
+    "law_id": "325AC0000000073",
+    "law_name": "相続税法",
+    "articles": "20条の2（在外財産に対する相続税額の控除）",
+    "extracted_at": "2026-08-25"
+  },
+
+  "records": [
+    {
+      "record_id": "IHT-FOREIGN-TAX-CREDIT",
+      "value_key": "inheritance_foreign_tax_credit",
+      "tax_year": null,
+      "calculation_order": 7,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-25",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "inheritance_tax_master",
+      "record_type": "credit",
+      "tax_or_insurance_type": "inheritance_tax",
+      "jurisdiction": { "country": "JP" },
+      "effective_from": "1950-04-01",
+      "effective_to": null,
+      "credit_method": "lesser_of_foreign_tax_and_proportional_limit",
+      "_meaning": "国外財産について外国で相続税に相当する税が課された場合、その税額を日本の相続税額から控除する。ただし控除額には上限がある",
+      "_limit_formula": "上限 ＝ 15条から20条までの規定により算出した金額 × （国外財産の価額 ÷ その者が相続または遺贈により取得した財産の価額のうち課税価格計算の基礎に算入された部分）",
+      "_verbatim": "当該財産についてその地の法令により相続税に相当する税が課せられたときは、当該財産を取得した者については、第十五条から前条までの規定により算出した金額からその課せられた税額に相当する金額を控除した金額をもつて、その納付すべき相続税額とする。ただし、その控除すべき金額が、その者についてこれらの規定により算出した金額に当該財産の価額が当該相続又は遺贈により取得した財産の価額のうち課税価格計算の基礎に算入された部分のうちに占める割合を乗じて算出した金額を超える場合においては、その超える部分の金額については、当該控除をしない。",
+      "_order": "『第十五条から前条まで』を引いているため、基礎控除から相次相続控除（20条）までをすべて適用した後の金額が基数になる。仕様書 §28-1 の17 が定める税額控除の順序（贈与税額控除→配偶者の税額軽減→未成年者控除→障害者控除→相次相続控除→外国税額控除）と一致する",
+      "_currency": "外国で課された税額の邦貨換算が必要になる。換算レートの規則は本マスターに未登録",
+      "_gift_included": "21条の2第4項に規定する贈与（相続開始の年に被相続人から受けた贈与）を含む",
+      "source_document_id": "EGOV-INHERITANCE-TAX-ACT",
+      "source_locator": "相続税法20条の2",
+      "source_hash": null,
+      "as_of_date": "2026-08-25",
+      "legal_status": "effective",
+      "data_review_status": "approved"
+    }
+  ],
+
+  "_not_registered": [
+    "外国で課された税額の邦貨換算レートの規則",
+    "所得税の外国税額控除（所法95条）。法人成りシミュレーターの対象範囲外",
+    "法人税の外国税額控除（法69条）。同上"
+  ],
+
+  "_simulator_rule": "国外財産があると入力された場合、仕様書 §68-1 に従って専門判定へ送る。本マスターの規則で概算を出さない。邦貨換算レートが未登録であり、外国の税額を利用者が正確に把握しているとも限らないため、blocked とする。"
+}
