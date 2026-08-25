@@ -1,5 +1,5 @@
 ---
-title: "[要レビュー] newseg-youtuber-youtube-gaming-capture-live-guide"
+title: "ライブ配信者の機材費はどう処理する？取得価額別の経費・減価償却と少額特例の活用法"
 slug: "newseg-youtuber-youtube-gaming-capture-live-guide"
 category: "帳簿・経費"
 primary_persona: "youtuber"
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-25T00:08:58.985Z"
-updated_at: "2026-08-25T00:12:48.677Z"
+updated_at: "2026-08-25T06:12:35.909Z"
 ---
 配信環境を整えるたびに「この機材費、確定申告でどう処理すればいいのか」と手が止まる方は少なくありません。
 
