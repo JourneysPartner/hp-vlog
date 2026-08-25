@@ -1,0 +1,198 @@
+{
+  "$schema": "../../schemas/master-common.schema.json",
+  "_comment": "個人事業税。地方税法72条の2・72条の49の14・72条の49の17より。法人成りシミュレータの個人事業主側で使う。",
+
+  "_why_needed": "法人成りの損得比較では、個人事業主側の税負担に個人事業税が含まれる（仕様書 §10）。所得税・住民税だけで比較すると個人側を過小に見積もる。",
+
+  "_calculation": "事業税額 ＝（事業の所得 − 事業主控除290万円 − 各種控除）× 業種別の標準税率。事業の所得は前年中の所得（72条の49の11）。",
+
+  "_important_differences": {
+    "青色申告特別控除は引かない": "個人事業税の課税標準は所得税の事業所得とは別に計算する。青色申告特別控除は事業税では適用されない。所得税の事業所得をそのまま課税標準にしてはいけない",
+    "課税されない業種がある": "法定業種（第1種29業種・第2種3業種・第3種30業種）に該当しない事業は課税されない。代表例は農業・林業・作家業・スポーツ選手など。業種が不明なら blocked とし、0円とみなさない",
+    "都道府県税": "事務所・事業所所在の道府県が課す。超過課税は標準税率の1.1倍が上限（72条の49の17第3項）"
+  },
+
+  "_source": {
+    "law_id": "325AC0000000226",
+    "law_name": "地方税法",
+    "articles": "72条の2第8〜10項（事業の種類）、72条の49の11（課税標準）、72条の49の14（事業主控除）、72条の49の17（標準税率）",
+    "extracted_at": "2026-08-25"
+  },
+
+  "rates": {
+    "_comment": "業種区分別の標準税率（72条の49の17第1項）。",
+    "records": [
+      {
+        "record_id": "IBT-RATE-TYPE1",
+        "value_key": "individual_business_tax_rate",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-TRUNC-1000-LOCAL-BASE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "individual_business_tax_master",
+        "tax_or_insurance_type": "individual_business_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2015-01-01",
+        "effective_to": null,
+        "business_category": "type1",
+        "business_category_label": "第1種事業",
+        "rate": { "num": "5", "den": "100" },
+        "applicability_conditions": [
+          { "subject": "business_tax_category", "operator": "eq", "value": "type1", "description": "第1種事業（物品販売業・不動産貸付業・製造業・請負業・飲食店業など29業種）" }
+        ],
+        "_examples": "物品販売業、保険業、金銭貸付業、物品貸付業、不動産貸付業、製造業、電気供給業、土石採取業、電気通信事業、運送業、運送取扱業、船舶定係場業、倉庫業、駐車場業、請負業、印刷業、出版業、写真業、席貸業、旅館業、料理店業、飲食店業、周旋業、代理業、仲立業、問屋業、両替業、公衆浴場業（第3種のものを除く）、演劇興行業、遊技場業、遊覧所業",
+        "_max_rate_note": "超過課税は標準税率×1.1が上限（5.5%）",
+        "source_document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "source_locator": "地方税法72条の49の17第1項1号（第一種事業 百分の五）",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IBT-RATE-TYPE2",
+        "value_key": "individual_business_tax_rate",
+        "tax_year": null,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-TRUNC-1000-LOCAL-BASE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "individual_business_tax_master",
+        "tax_or_insurance_type": "individual_business_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2015-01-01",
+        "effective_to": null,
+        "business_category": "type2",
+        "business_category_label": "第2種事業",
+        "rate": { "num": "4", "den": "100" },
+        "applicability_conditions": [
+          { "subject": "business_tax_category", "operator": "eq", "value": "type2", "description": "第2種事業（畜産業・水産業・薪炭製造業）" }
+        ],
+        "_examples": "畜産業（農業に付随して行うものを除く）、水産業（小規模な採捕を除く）、薪炭製造業",
+        "_note": "主として自家労力を用いて行うもの（政令で定める）は除かれる",
+        "source_document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "source_locator": "地方税法72条の49の17第1項2号（第二種事業 百分の四）",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IBT-RATE-TYPE3-STANDARD",
+        "value_key": "individual_business_tax_rate",
+        "tax_year": null,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-TRUNC-1000-LOCAL-BASE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "individual_business_tax_master",
+        "tax_or_insurance_type": "individual_business_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2015-01-01",
+        "effective_to": null,
+        "business_category": "type3_standard",
+        "business_category_label": "第3種事業（一般）",
+        "rate": { "num": "5", "den": "100" },
+        "applicability_conditions": [
+          { "subject": "business_tax_category", "operator": "eq", "value": "type3_standard", "description": "第3種事業のうち、あん摩等（10項5号）と装蹄師業（10項7号）以外" }
+        ],
+        "_examples": "医業、歯科医業、薬剤師業、獣医業、弁護士業、司法書士業、行政書士業、公証人業、弁理士業、税理士業、公認会計士業、計理士業、社会保険労務士業、コンサルタント業、設計監督者業、不動産鑑定業、デザイン業、諸芸師匠業、理容業、美容業、クリーニング業、公衆浴場業（政令で定めるものを除く）",
+        "source_document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "source_locator": "地方税法72条の49の17第1項3号（第三種事業 百分の五）",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "IBT-RATE-TYPE3-REDUCED",
+        "value_key": "individual_business_tax_rate",
+        "tax_year": null,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-TRUNC-1000-LOCAL-BASE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "individual_business_tax_master",
+        "tax_or_insurance_type": "individual_business_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2015-01-01",
+        "effective_to": null,
+        "business_category": "type3_reduced",
+        "business_category_label": "第3種事業（軽減）",
+        "rate": { "num": "3", "den": "100" },
+        "applicability_conditions": [
+          { "subject": "business_tax_category", "operator": "eq", "value": "type3_reduced", "description": "第3種事業のうち、あん摩・マッサージ・指圧・はり・きゅう・柔道整復その他の医業に類する事業（10項5号）と装蹄師業（10項7号）" }
+        ],
+        "_examples": "あん摩、マッサージ、指圧、はり、きゅう、柔道整復その他の医業に類する事業、装蹄師業",
+        "_exclusion": "両眼の視力を喪失した者その他政令で定める視力障害のある者が行うあん摩等は課税対象外（72条の2第10項5号括弧書）",
+        "source_document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "source_locator": "地方税法72条の49の17第1項4号（第三種事業のうち72条の2第10項5号・7号 百分の三）",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "owner_deduction": {
+    "_comment": "事業主控除（72条の49の14）。年290万円。事業期間が1年未満なら月割。",
+    "records": [
+      {
+        "record_id": "IBT-OWNER-DEDUCTION",
+        "value_key": "individual_business_tax_owner_deduction",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-25",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "individual_business_tax_master",
+        "tax_or_insurance_type": "individual_business_tax",
+        "jurisdiction": { "country": "JP" },
+        "effective_from": "2015-01-01",
+        "effective_to": null,
+        "deduction_amount": { "unit": "JPY", "value": "2900000" },
+        "proration_rule": "monthly",
+        "_formula": "事業を行った期間が1年に満たないときは 290万円 × その年に事業を行った月数 ÷ 12",
+        "_month_counting": "月数は暦に従って計算し、1月に満たない端数は1月とする（72条の49の14第3項）。切上げなので、法人成りで年の途中に廃業した場合も端数月が1月として数えられる",
+        "_法人成りでの意味": "個人事業を年の途中で廃止して法人成りすると、事業主控除が月割になる。年間290万円で計算すると個人側の税負担を過小に見積もる",
+        "source_document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "source_locator": "地方税法72条の49の14（事業を行う個人については所得の計算上二百九十万円を控除する）",
+        "source_hash": null,
+        "as_of_date": "2026-08-25",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      }
+    ]
+  },
+
+  "_not_taxable_note": "法定業種に該当しない事業（農業、林業、鉱物掘採業、作家業、スポーツ選手、通訳業など）は個人事業税が課されない。業種の判定は都道府県が行うため、シミュレータでは利用者に業種を選ばせ、判定できない場合は blocked とする。0円とみなして比較すると法人成りの損得が逆転しうる。",
+
+  "_taxable_base_note": "個人事業税の課税標準は所得税の事業所得と一致しない。青色申告特別控除は適用されず、事業専従者控除・損失の繰越控除の扱いも別。所得税側の事業所得をそのまま流用しないこと。"
+}
