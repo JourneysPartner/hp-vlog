@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "ライブ配信用のキャプチャボードや配信機材は、取得価額が10万円未満なら全額即時経費、10万円以上なら減価償却が原則。青色申告者は令和8年4月1日以後の取得なら40万円未満まで即時経費にできる特例がある。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-25T16:07:24.974+09:00"
+publish_at: "2026-08-26T17:42:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-25T00:08:58.985Z"
-updated_at: "2026-08-25T06:12:35.909Z"
+updated_at: "2026-08-25T16:07:24.974+09:00"
+publish_slot: "evening"
 ---
 配信環境を整えるたびに「この機材費、確定申告でどう処理すればいいのか」と手が止まる方は少なくありません。
 
