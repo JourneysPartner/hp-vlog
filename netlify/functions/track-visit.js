@@ -4,7 +4,7 @@ const { connectLambda, getStore } = require('@netlify/blobs');
 const {
   COOKIE_NAME, DEFAULT_PRODUCTION_HOST, jstDate, jstMinute, hash, parseCookies,
   issueVisitorCookie, verifyVisitorCookie, cookieHeader, isProductionRequest, isBot,
-  parseBeaconBody, markUnique, markRate, rateKey, incrementPageview,
+  parseBeaconBody, parseBeaconPayload, markUnique, markRate, rateKey, incrementPageview, incrementTransition,
 } = require('./lib/analytics-store');
 
 function noContent(headers = {}) {
@@ -21,8 +21,9 @@ async function handler(event, { getStoreFn = getStore } = {}) {
   const productionHost = process.env.ANALYTICS_PRODUCTION_HOST || DEFAULT_PRODUCTION_HOST;
   if (!isProductionRequest(event, productionHost) || isBot((event.headers || {})['user-agent'] || (event.headers || {})['User-Agent'])) return noContent();
 
-  const path = parseBeaconBody(rawBody(event));
-  if (!path) return noContent();
+  const payload = parseBeaconPayload(rawBody(event));
+  if (!payload) return noContent();
+  const { path, ref } = payload;
 
   const secret = process.env.ANALYTICS_COOKIE_SECRET;
   if (!secret) {
@@ -59,6 +60,12 @@ async function handler(event, { getStoreFn = getStore } = {}) {
     ownRateMarker = rateKey(minute, vidHash, path);
 
     const stored = await incrementPageview(store, date, path);
+    // 問い合わせページへの遷移なら、どのページから来たかも記録する
+    // （どの記事が問い合わせを生んだかの実測。失敗しても閲覧記録には影響させない）
+    if (ref) {
+      try { await incrementTransition(store, date, ref); }
+      catch (e) { console.warn('[track-visit] 遷移の記録に失敗:', e.message); }
+    }
     if (!stored) {
       // 自分が作ったマーカーだけを補償削除する。再送は同じ分でも再試行できる。
       await store.delete(ownRateMarker);

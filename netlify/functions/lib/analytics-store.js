@@ -120,11 +120,36 @@ function isAllowedPath(path) {
   return false;
 }
 
+// 問い合わせページ（遷移の計測対象）。ここに内部ページから遷移した場合だけ、
+// 遷移元（どの記事から問い合わせに進んだか）を記録する。
+const CONTACT_PATH = '/contact.html';
+
+/**
+ * ビーコンの本文を {path, ref} に分解する。
+ * ref（遷移元）は、現在ページが問い合わせページで、遷移元がサイト内の許可された
+ * パス（問い合わせページ自身を除く）の場合だけ有効。それ以外は null。
+ */
+function parseBeaconPayload(raw) {
+  if (typeof raw !== 'string' || Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return null;
+  let body;
+  try { body = JSON.parse(raw); } catch { return null; }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  if (Object.keys(body).some(k => k !== 'p' && k !== 'r')) return null;
+  const path = normalizePath(body.p);
+  if (!path || !isAllowedPath(path)) return null;
+  let ref = null;
+  if (path === CONTACT_PATH && typeof body.r === 'string') {
+    const candidate = normalizePath(body.r);
+    if (candidate && candidate !== CONTACT_PATH && isAllowedPath(candidate)) ref = candidate;
+  }
+  return { path, ref };
+}
+
 function parseBeaconBody(raw) {
   if (typeof raw !== 'string' || Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return null;
   try {
     const body = JSON.parse(raw);
-    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => k !== 'p')) return null;
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => k !== 'p' && k !== 'r')) return null;
     const path = normalizePath(body.p);
     return path && isAllowedPath(path) ? path : null;
   } catch {
@@ -166,6 +191,32 @@ async function incrementPageview(store, date, path, { maxAttempts = 8, sleep = d
   return false;
 }
 
+function transitionKey(date) { return `transitions/${date}`; }
+
+/**
+ * 問い合わせページへの遷移を記録する（日別・遷移元パス別の回数）。
+ * どの記事が問い合わせを生んだかの実測になり、記事候補の選定に還元する。
+ */
+async function incrementTransition(store, date, fromPath, { maxAttempts = 8, sleep = defaultSleep } = {}) {
+  const key = transitionKey(date);
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const current = await store.getWithMetadata(key, { type: 'json' });
+    const previous = current && current.data && typeof current.data === 'object' ? current.data : {};
+    const next = {
+      date,
+      total: Number.isSafeInteger(previous.total) ? previous.total + 1 : 1,
+      byFrom: { ...(previous.byFrom && typeof previous.byFrom === 'object' ? previous.byFrom : {}) },
+    };
+    next.byFrom[fromPath] = (Number.isSafeInteger(next.byFrom[fromPath]) ? next.byFrom[fromPath] : 0) + 1;
+    const result = current
+      ? await store.setJSON(key, next, { onlyIfMatch: current.etag })
+      : await store.setJSON(key, next, { onlyIfNew: true });
+    if (result && result.modified) return true;
+    if (attempt < maxAttempts - 1) await sleep(Math.min(5 * (2 ** attempt), 160));
+  }
+  return false;
+}
+
 function defaultSleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 async function countPrefix(store, prefix) {
@@ -189,6 +240,7 @@ async function deleteKeys(store, keys, batchSize = 25) {
 module.exports = {
   COOKIE_NAME, COOKIE_MAX_AGE, DEFAULT_PRODUCTION_HOST,
   jstDate, jstMinute, dateOffset, hash, parseCookies, issueVisitorCookie, verifyVisitorCookie, cookieHeader,
-  isProductionRequest, isBot, normalizePath, isAllowedPath, parseBeaconBody,
+  isProductionRequest, isBot, normalizePath, isAllowedPath, parseBeaconBody, parseBeaconPayload,
+  CONTACT_PATH, incrementTransition, transitionKey,
   dailyKey, uniqueKey, rateKey, markUnique, markRate, incrementPageview, countPrefix, listPrefixKeys, deleteKeys,
 };
