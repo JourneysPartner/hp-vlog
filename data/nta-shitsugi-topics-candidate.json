@@ -77,7 +77,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "中小法人が土地・建物を売却した際の仲介手数料の仕入税額控除に関する実務上の疑問である。",
+        "corrected_persona": "general_corporation",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/22/03.htm",
@@ -114,7 +121,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "事業を承継した相続人が、被相続人の消費税届出の効力を確認する場面に直結する。",
+        "corrected_persona": "inheritance_client",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/09/02.htm",
@@ -151,7 +165,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "賃貸住宅を経営する個人事業主が、家賃・共益費・管理料の消費税区分で迷う論点である。",
+        "corrected_persona": "general_individual_proprietor",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/15.htm",
@@ -188,7 +209,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "課税売上割合が低い法人が、事業部門ごとの仕入税額控除を計算する際に実際に迷いうる論点である。",
+        "corrected_persona": "general_corporation",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/17.htm",
@@ -226,7 +254,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "投資信託による外債運用と信託報酬の処理に関する金融商品の専門論点で、顧客層との接点が薄い。",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/hyoka/08/05.htm",
@@ -263,7 +297,13 @@
       "target_segments": [
         "inheritance_gift"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "デリバティブ取引を行う法人の非上場株式評価という高度かつ特殊な論点で、想定読者が検索する場面を想定しにくい。",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/02/21.htm",
@@ -299,7 +339,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "小売店がメーカーから無償提供された陳列棚を取得した場合の消費税処理に関する実務的な疑問である。",
+        "corrected_persona": "retail_store",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/15/04.htm",
@@ -335,7 +382,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "輸入販売を行う事業者が、海外仕入先から受けた事後的な割戻しの消費税処理で迷う場面に合致する。",
+        "corrected_persona": "reseller_marketplace_seller",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/01.htm",
@@ -371,7 +425,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "中小法人が増資や社債発行を行う際の発行費用に係る仕入税額控除の論点である。",
+        "corrected_persona": "general_corporation",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/10.htm",
@@ -407,7 +468,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "従業員向けの食事代を負担する法人が、福利厚生費の仕入税額控除を判断する実務論点である。",
+        "corrected_persona": "general_corporation",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/13.htm",
@@ -443,7 +511,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "商品を試作・サンプル提供する小売・卸売事業者が、原材料等の仕入税額控除区分で迷いうる。",
+        "corrected_persona": "wholesale",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/14.htm",
@@ -481,7 +556,13 @@
         "general_business",
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "中小法人が株主総会を開催する際の会場費等の仕入税額控除に関する自然な実務疑問である。",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/16/25.htm",
@@ -517,7 +598,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "建設業者が新築住宅を引き渡す際に負担する瑕疵担保責任保険料等の税務処理に関する論点である。",
+        "corrected_persona": "construction_solo",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/04.htm",
@@ -554,7 +642,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "外債利子と輸出取引扱いに関する金融・債券運用の専門論点で、顧客層との接点が不自然である。",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/12.htm",
@@ -590,7 +684,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "リース会社を前提とするファイナンス・リースの仕入税額控除という金融・リース業界向けの専門論点である。",
+        "judged_at": "2026-08-26T09:22:58.443Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/13.htm",
@@ -626,7 +726,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "課税売上割合の端数処理は、EC事業者が仕入税額控除の全額適用可否を判断する際に迷いやすい論点。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/17/16.htm",
@@ -662,7 +768,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "休業中の店舗改装費と還付申告の関係は、店舗を持つ小売店等が実際に直面しうる論点。",
+        "corrected_persona": "retail_store",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/01.htm",
@@ -698,7 +811,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "投資目的の債券・株式売買に関する取次手数料であり、金融商品の運用に関する論点で顧客層の外。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/02.htm",
@@ -734,7 +853,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "商品券を発行する小売店が、印刷費の仕入税額控除区分に迷う場面を扱っている。",
+        "corrected_persona": "retail_store",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/03.htm",
@@ -770,7 +896,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "包装紙・カタログ・広告費の仕入税額控除区分は、EC、小売、卸売事業者が実務で迷いやすい論点。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/04.htm",
@@ -806,7 +938,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "病院における薬品仕入れと課税売上割合に準ずる割合の論点で、顧客層に医療機関が含まれていない。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/06.htm",
@@ -842,7 +980,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "投資目的の株式売買に伴う委託手数料の論点であり、金融商品の運用に関する顧客層の外のテーマ。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/07.htm",
@@ -878,7 +1022,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "卸売会社が自社店舗と賃貸部分を含む建物を建設する場合の仕入税額控除は、事業会社が迷いうる実務論点。",
+        "corrected_persona": "wholesale",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/08.htm",
@@ -914,7 +1065,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "貸ビル業者による仮店舗建設・既存店舗撤去費の論点で、顧客層に不動産賃貸業者が明示されておらず接点が弱い。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/09.htm",
@@ -950,7 +1107,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "建設業者が販売予定の土地を一時的に資材置場として利用する場合の造成費は、建設事業者が直面しうる論点。",
+        "corrected_persona": "construction_solo",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/10.htm",
@@ -986,7 +1150,14 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "社宅・従業員寮に関する仕入税額控除は、中小法人が福利厚生や事業所整備で迷いやすい論点。",
+        "corrected_persona": "general_corporation",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/11.htm",
@@ -1022,7 +1193,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "分譲マンション開発と土地賃貸を前提とする不動産開発業特有の論点で、顧客層との接点が弱い。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/12.htm",
@@ -1058,7 +1235,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "損害賠償請求に伴う交通費・弁護士費用の仕入税額控除は、事業者がトラブル時に迷いやすい論点。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/13.htm",
@@ -1094,7 +1277,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "adopt",
+        "reason": "被災者への自社製品の無償提供に伴う仕入税額控除は、EC・小売事業者やメーカーが実際に検討しうる論点。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/14.htm",
@@ -1130,7 +1319,13 @@
       "target_segments": [
         "ec_seller"
       ],
-      "article_potential": "high"
+      "article_potential": "high",
+      "llm_triage": {
+        "decision": "reject",
+        "reason": "国外所有土地の売却に伴う国内専門家費用の区分で、海外不動産取引に特化した顧客層外の論点。",
+        "judged_at": "2026-08-26T09:23:19.831Z",
+        "model": "gpt-5.6-luna"
+      }
     },
     {
       "shitsugi_url": "https://www.nta.go.jp/law/shitsugi/shohi/19/15.htm",
