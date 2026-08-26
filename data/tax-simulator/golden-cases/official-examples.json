@@ -109,6 +109,86 @@
       "_input_note": "inheritance_open_date は適用マスターを引くための相続開始日（対応年の範囲内の任意の日）。No.4155 の例は日付を特定していないため、令和7年の日付を置いた"
     },
     {
+      "case_id": "GC-IHT-FULL-PIPELINE",
+      "target_module": "inheritance_tax_engine",
+      "kind": "table_derived",
+      "description": "妻が1億円、子2人が各5,000万円を取得した場合を基礎控除から相続税総額・実取得比按分まで接続する全工程ケース",
+      "source": {
+        "document_id": "NTA-TA-4152+4155",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "locator": "No.4152 相続税の基礎控除額（3,000万円＋600万円×法定相続人の数）と、No.4155 計算例（課税遺産総額1億5,200万円・総額2,700万円）の接続",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "No.4152の算式とNo.4155の数値・算式を接続して導出"
+      },
+      "related_sources": [
+        {
+          "document_id": "NTA-TA-4155",
+          "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+          "usage": "課税遺産総額1億5,200万円から相続税総額2,700万円まで"
+        }
+      ],
+      "inputs": {
+        "inheritance_open_date": "2025-06-01",
+        "is_divided": "yes",
+        "apply_spouse_relief": false,
+        "heirs": [
+          { "id": "wife", "relation": "spouse", "taxable_price": "100000000" },
+          { "id": "child-1", "relation": "child", "taxable_price": "50000000" },
+          { "id": "child-2", "relation": "child", "taxable_price": "50000000" }
+        ]
+      },
+      "expected": {
+        "heir_count_for_tax": 3,
+        "basic_deduction": "48000000",
+        "taxable_estate": "152000000",
+        "total_inheritance_tax": "27000000",
+        "wife_allocated_tax": "13500000",
+        "child_allocated_tax_each": "6750000",
+        "surcharge_total": "0"
+      },
+      "_master_dependency": [
+        "inheritance_basic_deduction",
+        "statutory_share_by_combination",
+        "inheritance_tax_brackets",
+        "inheritance_two_tenths_surcharge"
+      ]
+    },
+    {
+      "case_id": "GC-IHT-SPOUSE-RELIEF",
+      "target_module": "inheritance_tax_engine",
+      "kind": "table_derived",
+      "description": "妻1億円・子2人各5,000万円の取得について、相続税法19条の2の配偶者の税額軽減まで適用するケース",
+      "source": {
+        "document_id": "INHERITANCE-TAX-ACT-19-2+NTA-TA-4158",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+        "locator": "相続税法19条の2およびNo.4158 概要（1億6千万円または配偶者の法定相続分相当額）",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "配偶者の税額軽減の算式と閾値。閾値はマスター IHT-H27-SPOUSE-RELIEF から取得"
+      },
+      "inputs": {
+        "inheritance_open_date": "2025-06-01",
+        "is_divided": "yes",
+        "apply_spouse_relief": true,
+        "heirs": [
+          { "id": "wife", "relation": "spouse", "taxable_price": "100000000" },
+          { "id": "child-1", "relation": "child", "taxable_price": "50000000" },
+          { "id": "child-2", "relation": "child", "taxable_price": "50000000" }
+        ]
+      },
+      "expected": {
+        "spouse_relief": "13500000",
+        "wife_payable": "0",
+        "child_payable_each": "6750000"
+      },
+      "_master_dependency": [
+        "spouse_tax_relief_threshold",
+        "statutory_share_by_combination",
+        "inheritance_tax_brackets"
+      ]
+    },
+    {
       "case_id": "GC-SID-R7-CAP",
       "target_module": "salary_income_deduction",
       "kind": "table_derived",
