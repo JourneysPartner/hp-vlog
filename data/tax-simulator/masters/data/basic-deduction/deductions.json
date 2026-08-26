@@ -176,7 +176,7 @@
         "tax_year": 2025,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
+        "verified_at": "2026-08-26",
         "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
@@ -195,17 +195,18 @@
         },
         "income_upper_inclusive": {
           "unit": "JPY",
-          "value": "23500000"
+          "value": "1320000"
         },
         "deduction_amount": {
           "unit": "JPY",
-          "value": "580000"
+          "value": "950000"
         },
         "calculation_order": 1,
-        "source_document_id": "NTA-TA-1199",
-        "source_locator": "概要 > 基礎控除の金額 R7列 + 注3（58万円が最高額）",
-        "source_hash": "f9d7fe68c013752423d87e22f08a2cb1de886c7e42d362f1f70e0fdad0bd31ff",
-        "as_of_date": "2026-08-23",
+        "_note": "58万円＋37万円。令和7年12月1日施行・令和7年分から適用",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "租税特別措置法41条の16の2第1項1号イ（合計所得132万円以下 加算37万円）＋所得税法86条1項1号（58万円）",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
         "legal_status": "effective",
         "data_review_status": "approved"
       },
@@ -215,7 +216,166 @@
         "tax_year": 2025,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
+        "verified_at": "2026-08-26",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "1320001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "3360000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "880000"
+        },
+        "calculation_order": 2,
+        "_note": "58万円＋30万円。令和7年分・令和8年分限定の段（1号柱書）",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "租税特別措置法41条の16の2第1項1号ロ（132万円超336万円以下 加算30万円）＋所得税法86条1項1号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-03",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-26",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "3360001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "4890000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "680000"
+        },
+        "calculation_order": 3,
+        "_note": "58万円＋10万円",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "租税特別措置法41条の16の2第1項1号ハ（336万円超489万円以下 加算10万円）＋所得税法86条1項1号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-04",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-26",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "4890001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "6550000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "630000"
+        },
+        "calculation_order": 4,
+        "_note": "58万円＋5万円",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "租税特別措置法41条の16の2第1項1号ニ（489万円超 加算5万円。柱書により655万円以下に限る）＋所得税法86条1項1号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-05",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-26",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "basic_deduction_master",
+        "tax_or_insurance_type": "income_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": "2025-12-31",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "6550001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "23500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "580000"
+        },
+        "calculation_order": 5,
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "所得税法86条1項1号（合計所得2,350万円以下 58万円）。655万円超は措法の加算なし",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "BD-R7-TIER-06",
+        "value_key": "basic_deduction_table",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-26",
         "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
@@ -240,20 +400,21 @@
           "unit": "JPY",
           "value": "480000"
         },
-        "calculation_order": 2,
-        "source_document_id": "NTA-TA-1199",
-        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第2行",
-        "as_of_date": "2026-08-23",
+        "calculation_order": 6,
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "所得税法86条1項2号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
         "legal_status": "effective",
         "data_review_status": "approved"
       },
       {
-        "record_id": "BD-R7-TIER-03",
+        "record_id": "BD-R7-TIER-07",
         "value_key": "basic_deduction_table",
         "tax_year": 2025,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
+        "verified_at": "2026-08-26",
         "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
@@ -278,20 +439,21 @@
           "unit": "JPY",
           "value": "320000"
         },
-        "calculation_order": 3,
-        "source_document_id": "NTA-TA-1199",
-        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第3行",
-        "as_of_date": "2026-08-23",
+        "calculation_order": 7,
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "所得税法86条1項3号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
         "legal_status": "effective",
         "data_review_status": "approved"
       },
       {
-        "record_id": "BD-R7-TIER-04",
+        "record_id": "BD-R7-TIER-08",
         "value_key": "basic_deduction_table",
         "tax_year": 2025,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
+        "verified_at": "2026-08-26",
         "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
@@ -316,20 +478,21 @@
           "unit": "JPY",
           "value": "160000"
         },
-        "calculation_order": 4,
-        "source_document_id": "NTA-TA-1199",
-        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第4行",
-        "as_of_date": "2026-08-23",
+        "calculation_order": 8,
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "所得税法86条1項4号",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
         "legal_status": "effective",
         "data_review_status": "approved"
       },
       {
-        "record_id": "BD-R7-TIER-05",
+        "record_id": "BD-R7-TIER-09",
         "value_key": "basic_deduction_table",
         "tax_year": 2025,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
+        "verified_at": "2026-08-26",
         "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
@@ -351,10 +514,11 @@
           "unit": "JPY",
           "value": "0"
         },
-        "calculation_order": 5,
-        "source_document_id": "NTA-TA-1199",
-        "source_locator": "概要 > 基礎控除の金額 令和7年分列 第5行",
-        "as_of_date": "2026-08-23",
+        "calculation_order": 9,
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "source_locator": "所得税法86条1項柱書（合計所得2,500万円超は基礎控除なし）",
+        "source_hash": null,
+        "as_of_date": "2026-08-26",
         "legal_status": "effective",
         "data_review_status": "approved"
       }
@@ -935,5 +1099,6 @@
     "_status": "blocked — 加算の対象が「合計所得金額132万円以下」に狭まることは大綱に明記されているが、その加算額を取得できていない。",
     "_known": "大綱「居住者のその年分の合計所得金額が655万円（令和10年分以後の各年分にあっては、132万円）以下である場合の基礎控除の控除額の加算額を…」。基礎控除の本体は62万円。",
     "_next_action": "大綱の当該項目の「ロ 令和10年分以後」の金額を確認する。または措法41の16の2の改正後条文を施行後に取得する。"
-  }
+  },
+  "_r7_correction_note": "2026-08-26 訂正。令和7年分は当初、所法86条の本体（58万円〜逓減）の5段だけで登録されており、措法41条の16の2第1項1号の上乗せ（132万円以下+37万、336万円以下+30万、489万円以下+10万、655万円以下+5万）が欠けていた。合計所得655万円以下の基礎控除を最大37万円過小にし、所得税を過大に出す誤り。公的計算例の照合基盤を作る過程で発見した。e-Govの現行条文（施行済み）と国税庁の特集ページ（令和7年度税制改正による所得税の基礎控除の見直し等・95/88/68/63/58万円の表）の両方で確認して訂正した。なお令和8年分・令和9年分（104/67/62万円）は令和8年度改正法（令和8年12月1日施行・MOF-R8-LAW）由来であり、この訂正の対象外。12月の施行後確認の予定も従来どおり。"
 }
