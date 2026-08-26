@@ -1,0 +1,518 @@
+{
+  "fetched_at": "2026-08-26T10:05:07.219Z",
+  "seeds": [
+    {
+      "id": "ec-kakutei",
+      "term": "ネットショップ 確定申告",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "ネットショップ 確定申告 やり方",
+        "ネットショップ 確定申告 バレる",
+        "ネットショップ 売上 確定申告",
+        "副業 ネットショップ 確定申告",
+        "確定申告 ネットショップ 領収書"
+      ]
+    },
+    {
+      "id": "ec-shohizei",
+      "term": "ネットショップ 消費税",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "ネットショップ 海外発送 消費税",
+        "ネットショップ 海外 消費税"
+      ]
+    },
+    {
+      "id": "ec-amazon",
+      "term": "amazon 販売 税金",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "amazon 販売手数料 税金"
+      ]
+    },
+    {
+      "id": "ec-kaigai",
+      "term": "海外販売 消費税",
+      "persona_hint": "ebay_export_seller",
+      "phrases": [
+        "海外販売 消費税 還付",
+        "国内仕入れ 海外販売 消費税",
+        "国内仕入 海外販売 消費税"
+      ]
+    },
+    {
+      "id": "ec-ebay",
+      "term": "ebay 輸出 消費税",
+      "persona_hint": "ebay_export_seller",
+      "phrases": [
+        "ebay 輸出 消費税還付"
+      ]
+    },
+    {
+      "id": "furima-mercari",
+      "term": "メルカリ 売上 税金",
+      "persona_hint": "reseller_marketplace_seller",
+      "phrases": [
+        "メルカリ 売上 税金 いくら",
+        "メルカリ 売上 税金 不用品",
+        "メルカリ 売上 税金 グッズ",
+        "メルカリ 売上 税金 いくら から",
+        "メルカリ 売上 税金 かかる"
+      ]
+    },
+    {
+      "id": "furima-sedori",
+      "term": "せどり 確定申告",
+      "persona_hint": "reseller_marketplace_seller",
+      "phrases": [
+        "せどり 確定申告 メルカリ",
+        "せどり 確定申告 書き方",
+        "せどり 確定申告 帳簿",
+        "せどり 確定申告 バレない",
+        "せどり 確定申告 赤字",
+        "せどり 確定申告 やり方",
+        "せどり 確定申告 バレない 知恵袋",
+        "せどり 確定申告 レシート ない",
+        "せどり 確定申告 バレる"
+      ]
+    },
+    {
+      "id": "furima-handmade",
+      "term": "ハンドメイド販売 税金",
+      "persona_hint": "reseller_marketplace_seller",
+      "phrases": [
+        "メルカリ ハンドメイド販売 税金"
+      ]
+    },
+    {
+      "id": "creator-youtuber",
+      "term": "youtuber 税金",
+      "persona_hint": "youtuber",
+      "phrases": [
+        "youtuber 税金対策",
+        "youtuber 税金払ってない",
+        "youtuber 税金 払い方",
+        "youtuber 税金 いくら"
+      ]
+    },
+    {
+      "id": "creator-haishin",
+      "term": "動画配信 収入 確定申告",
+      "persona_hint": "youtuber",
+      "phrases": []
+    },
+    {
+      "id": "creator-nagesen",
+      "term": "投げ銭 税金",
+      "persona_hint": "youtuber",
+      "phrases": [
+        "投げ銭 税金 ばれ ない",
+        "投げ銭 税金 いくら から",
+        "投げ銭 税金 対策"
+      ]
+    },
+    {
+      "id": "creator-influencer",
+      "term": "インフルエンサー 確定申告",
+      "persona_hint": "influencer_creator",
+      "phrases": [
+        "インフルエンサー 確定申告 やり方",
+        "インフルエンサー 確定申告 経費",
+        "インフルエンサー 確定申告 職業",
+        "インフルエンサー 確定申告 いくらから",
+        "インフルエンサー 確定申告 種目",
+        "インフルエンサー 確定申告 業種",
+        "インフルエンサー 商品提供のみ 確定申告",
+        "インフルエンサー 無償提供 確定申告",
+        "インフルエンサー 副業 確定申告"
+      ]
+    },
+    {
+      "id": "creator-anken",
+      "term": "企業案件 収入 税金",
+      "persona_hint": "influencer_creator",
+      "phrases": []
+    },
+    {
+      "id": "content-hanbai",
+      "term": "コンテンツ販売 税金",
+      "persona_hint": "content_seller",
+      "phrases": []
+    },
+    {
+      "id": "content-kouza",
+      "term": "オンライン講座 確定申告",
+      "persona_hint": "content_seller",
+      "phrases": []
+    },
+    {
+      "id": "content-note",
+      "term": "note 収益 税金",
+      "persona_hint": "content_seller",
+      "phrases": [
+        "note 収益 化 税金"
+      ]
+    },
+    {
+      "id": "salon-biyoushitsu",
+      "term": "美容室 経費",
+      "persona_hint": "beauty_salon_owner",
+      "phrases": [
+        "美容室 経費 科目",
+        "美容室 経費にできるもの",
+        "美容室 経費削減",
+        "美容室 経費率",
+        "美容室 経費 個人事業主",
+        "美容室 経費で落とせるもの",
+        "美容室 経費 勘定科目",
+        "美容室 経費 割合",
+        "美容室 経費になる"
+      ]
+    },
+    {
+      "id": "salon-nail",
+      "term": "ネイルサロン 開業 税金",
+      "persona_hint": "beauty_salon_owner",
+      "phrases": []
+    },
+    {
+      "id": "salon-kakutei",
+      "term": "サロン経営 確定申告",
+      "persona_hint": "beauty_salon_owner",
+      "phrases": []
+    },
+    {
+      "id": "kensetsu-hitori",
+      "term": "一人親方 確定申告",
+      "persona_hint": "construction_solo",
+      "phrases": [
+        "一人親方 確定申告 やり方",
+        "一人親方 確定申告してない",
+        "一人親方 確定申告 経費",
+        "一人親方 確定申告 白",
+        "一人親方 確定申告 書き方",
+        "一人親方 確定申告してない 知恵袋",
+        "一人親方 確定申告 スマホ",
+        "一人親方 確定申告 必要書類",
+        "一人親方 確定申告 税理士"
+      ]
+    },
+    {
+      "id": "kensetsu-invoice",
+      "term": "一人親方 インボイス",
+      "persona_hint": "construction_solo",
+      "phrases": [
+        "一人親方 インボイス登録",
+        "一人親方 インボイス 消費税",
+        "一人親方 インボイス制度"
+      ]
+    },
+    {
+      "id": "kensetsu-gaichu",
+      "term": "外注費 給与 違い",
+      "persona_hint": "construction_solo",
+      "phrases": []
+    },
+    {
+      "id": "kouri-shohizei",
+      "term": "小売店 消費税",
+      "persona_hint": "retail_store",
+      "phrases": [
+        "小売店 消費税 納税",
+        "小売店 消費税 免除",
+        "小売店 消費税 表示",
+        "消費税 小売店 1000万円",
+        "消費税減税 小売店"
+      ]
+    },
+    {
+      "id": "kouri-shohinken",
+      "term": "商品券 販売 消費税",
+      "persona_hint": "retail_store",
+      "phrases": []
+    },
+    {
+      "id": "oroshi-henpin",
+      "term": "卸売 返品 消費税",
+      "persona_hint": "wholesale",
+      "phrases": []
+    },
+    {
+      "id": "kojin-shohizei",
+      "term": "個人事業主 消費税",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "個人事業主 消費税 免除",
+        "個人事業主 消費税 いつ払う",
+        "個人事業主 消費税 インボイス",
+        "個人事業主 消費税 計算方法",
+        "個人事業主 消費税計算 シュミレーション",
+        "個人事業主 消費税 勘定科目",
+        "個人事業主 消費税 経費",
+        "個人事業主 消費税 中間納付",
+        "個人事業主 消費税 予定納税"
+      ]
+    },
+    {
+      "id": "kojin-keihi",
+      "term": "個人事業主 経費 どこまで",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": []
+    },
+    {
+      "id": "kojin-aoiro",
+      "term": "青色申告 メリット",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "青色申告 メリット デメリット",
+        "青色申告 メリット 法人",
+        "青色申告 メリット 個人",
+        "青色申告 メリット 個人事業主"
+      ]
+    },
+    {
+      "id": "kojin-freelance",
+      "term": "フリーランス 税金",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "フリーランス 税金 計算",
+        "フリーランス 税金 シミュレーション",
+        "フリーランス 税金対策",
+        "フリーランス 税金 いつ払う",
+        "フリーランス 税金 いくら",
+        "フリーランス 税金 本",
+        "フリーランス 税金 払い方",
+        "フリーランス 税金 何割",
+        "フリーランス 税金 高すぎる"
+      ]
+    },
+    {
+      "id": "kojin-kaigyou",
+      "term": "開業届 出さないと",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "開業届 出さないとどうなる",
+        "開業届 出さないといけない",
+        "開業届 出さないといけない人",
+        "開業届け 出さないとどうなる",
+        "個人事業主 開業届 出さないとどうなる",
+        "個人事業主 開業届 出さないと",
+        "フリーランス 開業届 出さないとどうなる"
+      ]
+    },
+    {
+      "id": "kojin-yotei",
+      "term": "予定納税 払えない",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "予定納税 払えない場合",
+        "予定納税 払えない 法人"
+      ]
+    },
+    {
+      "id": "houjin-yakuin",
+      "term": "役員報酬 決め方",
+      "persona_hint": "general_corporation",
+      "phrases": [
+        "役員報酬 決め方 中小企業",
+        "役員報酬 決め方 合同会社",
+        "役員報酬 決め方 有限会社",
+        "役員報酬 決め方 取締役会",
+        "役員報酬 決め方 会社法",
+        "役員報酬 決め方 シュミレーション",
+        "役員報酬 決め方 一人",
+        "役員報酬 決め方 議事録",
+        "役員報酬 決め方 金額"
+      ]
+    },
+    {
+      "id": "houjin-ka",
+      "term": "法人化 タイミング",
+      "persona_hint": "general_corporation",
+      "phrases": [
+        "法人化 タイミング 月",
+        "法人化 タイミング 売上",
+        "法人化 タイミング 利益",
+        "法人化 タイミング 何月",
+        "法人化 タイミング 所得",
+        "個人事業主 法人化 タイミング",
+        "飲食店 法人化 タイミング",
+        "仮想通貨 法人化 タイミング",
+        "不動産投資 法人化 タイミング"
+      ]
+    },
+    {
+      "id": "houjin-kessan",
+      "term": "決算賞与 損金",
+      "persona_hint": "general_corporation",
+      "phrases": [
+        "決算賞与 損金算入",
+        "決算賞与 損金算入 要件",
+        "決算賞与 損金算入時期",
+        "決算賞与 損金要件"
+      ]
+    },
+    {
+      "id": "invoice-yametai",
+      "term": "インボイス やめたい",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "インボイス 辞めたい",
+        "インボイス やめたいとき",
+        "インボイス 辞めたい場合",
+        "インボイス やめたい場合",
+        "インボイス 登録 やめたい",
+        "インボイス 経理 辞めたい",
+        "インボイス 登録 辞めたい",
+        "個人事業主 インボイス 辞めたい"
+      ]
+    },
+    {
+      "id": "invoice-2wari",
+      "term": "インボイス 2割特例",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "インボイス 2割特例 いつまで",
+        "インボイス 2割特例 わかりやすく",
+        "インボイス 2割特例 計算 シュミレーション",
+        "インボイス 2割特例とは",
+        "インボイス 2割特例 フローチャート",
+        "インボイス 2割特例 法人",
+        "インボイス 2割特例 延長",
+        "インボイス 2割特例 3割特例",
+        "インボイス 2割特例 計算方法"
+      ]
+    },
+    {
+      "id": "invoice-menzei",
+      "term": "免税事業者 インボイス",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "免税事業者 インボイス登録",
+        "免税事業者 インボイス 経過措置",
+        "免税事業者 インボイス番号",
+        "免税事業者 インボイス 特例",
+        "免税事業者 インボイス 消費税",
+        "免税事業者 インボイス登録なし",
+        "免税事業者 インボイス制度",
+        "免税事業者 インボイス 簡易課税",
+        "免税事業者 インボイス 請求書"
+      ]
+    },
+    {
+      "id": "gensen-houshu",
+      "term": "源泉徴収 報酬 計算",
+      "persona_hint": "general_corporation",
+      "phrases": [
+        "源泉徴収 報酬 計算方法",
+        "報酬 源泉徴収 計算 自動",
+        "報酬 源泉徴収 計算 消費税",
+        "報酬 料金 源泉徴収 計算",
+        "報酬 源泉徴収 計算ツール",
+        "報酬 源泉徴収 計算 手取り",
+        "弁護士 報酬 源泉徴収 計算",
+        "税理士 報酬 源泉徴収 計算",
+        "司法書士 報酬 源泉徴収 計算"
+      ]
+    },
+    {
+      "id": "gensen-nencho",
+      "term": "年末調整 自分で",
+      "persona_hint": "general_individual_proprietor",
+      "phrases": [
+        "年末調整 自分でやる",
+        "年末調整 自分でやる場合",
+        "年末調整 自分でやる 会社員",
+        "年末調整 自分で確定申告",
+        "年末調整 自分でやるには",
+        "年末調整 自分で確定申告 やり方",
+        "年末調整 自分で確定申告 どこで",
+        "年末調整 自分で確定申告する場合",
+        "年末調整 自分で払った住民税"
+      ]
+    },
+    {
+      "id": "souzoku-ikura",
+      "term": "相続税 いくらから",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "相続税 いくらからかかる",
+        "相続税 いくらから 親子",
+        "相続税 いくらから発生",
+        "相続税 いくらから 妻",
+        "相続税 いくらから税金かかる",
+        "相続税 いくらから土地",
+        "相続税 いくらから 3人",
+        "相続税 いくらから 兄弟",
+        "相続税 いくらから 家"
+      ]
+    },
+    {
+      "id": "souzoku-tetsuduki",
+      "term": "相続 手続き 期限",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "相続 手続き 期限 銀行",
+        "相続 手続き 期限 過ぎ たら どうなる",
+        "相続 手続き 期限 3 年",
+        "相続 手続き 期限 延長"
+      ]
+    },
+    {
+      "id": "souzoku-jikka",
+      "term": "実家 相続 どうする",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "相続 した 実家 どうする"
+      ]
+    },
+    {
+      "id": "souzoku-tochi",
+      "term": "土地 相続税 計算",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "土地 相続税 計算方法",
+        "土地 相続税 計算 シュミレーション",
+        "土地 相続税 計算式",
+        "土地 相続税 計算の仕方",
+        "土地 相続税 計算 路線価",
+        "土地 家屋 相続税 計算",
+        "土地 建物 相続税 計算",
+        "国税庁 土地 相続税 計算",
+        "相続税 土地 評価額 計算方法"
+      ]
+    },
+    {
+      "id": "zouyo-seizen",
+      "term": "生前贈与 やり方",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "生前贈与 やり方 現金",
+        "生前贈与 やり方 土地",
+        "生前贈与 やり方 不動産",
+        "生前贈与 やり方 認知症",
+        "生前贈与 やり方 家",
+        "生前贈与 非課税 やり方",
+        "生前贈与 確定申告 やり方",
+        "株 生前贈与 やり方",
+        "マンション 生前贈与 やり方"
+      ]
+    },
+    {
+      "id": "zouyo-hikazei",
+      "term": "贈与税 非課税",
+      "persona_hint": "inheritance_client",
+      "phrases": [
+        "贈与税 非課税枠",
+        "贈与税 非課税 住宅",
+        "贈与税 非課税 いくらまで",
+        "贈与税 非課税 110万円",
+        "贈与税 非課税 住宅 必要書類",
+        "贈与税 非課税制度",
+        "贈与税 非課税枠 住宅",
+        "贈与税 非課税特例",
+        "贈与税 非課税額"
+      ]
+    }
+  ]
+}
