@@ -1,0 +1,587 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sozoku-input.schema.json",
+  "title": "相続税シミュレーター入力",
+  "description": "入力型設計書 §3〜§7 に基づくWire形式。自動生成物。",
+  "$ref": "#/$defs/SozokuInputWire",
+  "$defs": {
+    "SozokuInputWire": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "enum": [
+            1,
+            2,
+            3
+          ]
+        },
+        "precision": {
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "decedent": {
+          "$ref": "#/$defs/DecedentInputWire"
+        },
+        "heirs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HeirInputWire"
+          }
+        },
+        "assets": {
+          "$ref": "#/$defs/EstateInputWire"
+        },
+        "debts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DebtInputWire"
+          }
+        },
+        "specialistChecks": {
+          "$ref": "#/$defs/SpecialistChecksWire"
+        },
+        "division": {
+          "$ref": "#/$defs/DivisionInputWire"
+        },
+        "smallResidentialLand": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SmallResidentialLandInputWire"
+          }
+        },
+        "secondaryInheritance": {
+          "$ref": "#/$defs/SecondaryInheritanceInputWire"
+        }
+      },
+      "required": [
+        "level",
+        "precision",
+        "decedent",
+        "heirs",
+        "assets",
+        "debts",
+        "specialistChecks"
+      ],
+      "additionalProperties": false
+    },
+    "DecedentInputWire": {
+      "type": "object",
+      "properties": {
+        "residencyStatus": {
+          "enum": [
+            "domestic_resident",
+            "non_resident",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "HeirInputWire": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/HeirRelationWire"
+        },
+        "isAlive": {
+          "type": "boolean"
+        },
+        "diedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "renounced": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "disqualifiedOrExcluded": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "substitutedFor": {
+          "type": "string"
+        },
+        "adoptionFacts": {
+          "type": "object",
+          "properties": {
+            "isSpecialAdoption": {
+              "type": "boolean"
+            },
+            "isStepChildOfSpouse": {
+              "type": "boolean"
+            },
+            "isSubstituteForDescendant": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "isMinor": {
+          "type": "boolean"
+        },
+        "ageAtInheritance": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "residencyStatus": {
+          "enum": [
+            "domestic_resident",
+            "non_resident",
+            "unknown"
+          ]
+        },
+        "previousInheritanceWithin10Years": {
+          "type": "object",
+          "properties": {
+            "occurredOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "taxPaid": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "netEstateReceived": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "occurredOn",
+            "taxPaid",
+            "netEstateReceived"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "relation",
+        "isAlive"
+      ],
+      "additionalProperties": false
+    },
+    "HeirRelationWire": {
+      "enum": [
+        "spouse",
+        "child",
+        "adopted_child",
+        "special_adopted_child",
+        "grandchild",
+        "parent",
+        "grandparent",
+        "sibling_full",
+        "sibling_half",
+        "nephew_niece",
+        "other"
+      ]
+    },
+    "LocalDateWire": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "検証済みの日付。YYYY-MM-DD形式。"
+    },
+    "TriStateWire": {
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "DisabilityCategoryWire": {
+      "enum": [
+        "none",
+        "general",
+        "special",
+        "special_cohabiting"
+      ]
+    },
+    "MoneyWire": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "JPY"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "EstateInputWire": {
+      "type": "object",
+      "properties": {
+        "cash": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "securities": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "businessAssets": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "otherAssets": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "realEstate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RealEstateInputWire"
+          }
+        },
+        "lifeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BeneficiaryAmountWire"
+          }
+        },
+        "retirementAllowance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BeneficiaryAmountWire"
+          }
+        },
+        "giftAddback": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GiftAddbackInputWire"
+          }
+        },
+        "settlementTaxationGifts": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RealEstateInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "appraised"
+            },
+            "category": {
+              "enum": [
+                "land",
+                "building"
+              ]
+            },
+            "value": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "ownershipShare": {
+              "$ref": "#/$defs/ShareWire"
+            }
+          },
+          "required": [
+            "kind",
+            "category",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "screening_land"
+            },
+            "roadsideValuePerSqm": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "areaSqm": {
+              "$ref": "#/$defs/AreaWire"
+            },
+            "isMultiplierArea": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "hasLeaseholdOrRented": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "ownershipShare": {
+              "$ref": "#/$defs/ShareWire"
+            }
+          },
+          "required": [
+            "kind",
+            "roadsideValuePerSqm",
+            "areaSqm"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "screening_building"
+            },
+            "fixedAssetTaxValue": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "ownershipShare": {
+              "$ref": "#/$defs/ShareWire"
+            }
+          },
+          "required": [
+            "kind",
+            "fixedAssetTaxValue"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ShareWire": {
+      "$ref": "#/$defs/RateWire"
+    },
+    "RateWire": {
+      "type": "object",
+      "properties": {
+        "num": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        },
+        "den": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$",
+          "description": "正の整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "num",
+        "den"
+      ],
+      "additionalProperties": false
+    },
+    "AreaWire": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "SQM"
+        },
+        "num": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        },
+        "den": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$",
+          "description": "正の整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "unit",
+        "num",
+        "den"
+      ],
+      "additionalProperties": false
+    },
+    "BeneficiaryAmountWire": {
+      "type": "object",
+      "properties": {
+        "isHeir": {
+          "type": "boolean"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "beneficiaryHeirId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "isHeir",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "GiftAddbackInputWire": {
+      "type": "object",
+      "properties": {
+        "giftedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "recipientHeirId": {
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "giftTaxPaid": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "giftedOn",
+        "recipientHeirId",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "DebtInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "loan",
+            "unpaid",
+            "funeral",
+            "other"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "bearerHeirId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "SpecialistChecksWire": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TriStateWire"
+      }
+    },
+    "DivisionInputWire": {
+      "type": "object",
+      "properties": {
+        "isDivided": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "acquisitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "heirId": {
+                "type": "string"
+              },
+              "share": {
+                "$ref": "#/$defs/ShareWire"
+              }
+            },
+            "required": [
+              "heirId",
+              "share"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dividedAfterFilingDeadline": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "spouseAcquisitionAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "isDivided",
+        "acquisitions"
+      ],
+      "additionalProperties": false
+    },
+    "SmallResidentialLandInputWire": {
+      "type": "object",
+      "properties": {
+        "realEstateIndex": {
+          "type": "integer"
+        },
+        "category": {
+          "$ref": "#/$defs/SmallResidentialLandCategoryWire"
+        },
+        "areaSqm": {
+          "$ref": "#/$defs/AreaWire"
+        },
+        "acquirerHeirId": {
+          "type": "string"
+        },
+        "acquirerRelation": {
+          "enum": [
+            "spouse",
+            "cohabiting_relative",
+            "separate_household_relative",
+            "other"
+          ]
+        },
+        "intendedAppliedAreaSqm": {
+          "$ref": "#/$defs/AreaWire"
+        },
+        "useAtInheritance": {
+          "type": "string"
+        },
+        "acquirerResidesAndOwns": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "willHoldUntilFilingDeadline": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "realEstateIndex",
+        "category",
+        "areaSqm",
+        "acquirerHeirId",
+        "acquirerRelation"
+      ],
+      "additionalProperties": false
+    },
+    "SmallResidentialLandCategoryWire": {
+      "enum": [
+        "specified_residential",
+        "specified_business",
+        "specified_same_business",
+        "rental_business"
+      ]
+    },
+    "SecondaryInheritanceInputWire": {
+      "type": "object",
+      "properties": {
+        "spouseOwnAssets": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "spouseAcquisitionRatios": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShareWire"
+          }
+        },
+        "expectedHeirs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HeirInputWire"
+          }
+        },
+        "yearsUntilSecondary": {
+          "type": "integer"
+        },
+        "annualLivingCost": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "annualAssetChangeRate": {
+          "$ref": "#/$defs/RateWire"
+        }
+      },
+      "required": [
+        "spouseOwnAssets",
+        "spouseAcquisitionRatios",
+        "expectedHeirs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

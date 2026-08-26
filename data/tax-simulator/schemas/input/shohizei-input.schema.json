@@ -1,0 +1,554 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shohizei-input.schema.json",
+  "title": "消費税シミュレーター入力",
+  "description": "入力型設計書 §3〜§7 に基づくWire形式。自動生成物。",
+  "$ref": "#/$defs/ShohizeiInputWire",
+  "$defs": {
+    "ShohizeiInputWire": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "taxpayerType": {
+          "enum": [
+            "individual",
+            "corporation"
+          ]
+        },
+        "eligibility": {
+          "$ref": "#/$defs/ShohizeiEligibilityInputWire"
+        },
+        "sales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/SalesInputWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "purchases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/PurchaseInputWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "specialistChecks": {
+          "$ref": "#/$defs/SpecialistChecksWire"
+        },
+        "simplified": {
+          "$ref": "#/$defs/SimplifiedTaxationInputWire"
+        }
+      },
+      "required": [
+        "precision",
+        "taxpayerType",
+        "eligibility",
+        "sales",
+        "purchases",
+        "specialistChecks"
+      ],
+      "additionalProperties": false
+    },
+    "ShohizeiEligibilityInputWire": {
+      "type": "object",
+      "properties": {
+        "invoiceRegistration": {
+          "type": "object",
+          "properties": {
+            "registered": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "registeredOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "becameTaxableByRegistration": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "required": [
+            "registered"
+          ],
+          "additionalProperties": false
+        },
+        "filings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShohizeiFilingStatusWire"
+          }
+        },
+        "basePeriod": {
+          "type": "object",
+          "properties": {
+            "exists": {
+              "type": "boolean"
+            },
+            "taxableSales": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "lengthInMonths": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "exists"
+          ],
+          "additionalProperties": false
+        },
+        "specifiedPeriod": {
+          "type": "object",
+          "properties": {
+            "taxableSales": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "salaryPayments": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "newCompany": {
+          "type": "object",
+          "properties": {
+            "isNewlyEstablished": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "isSpecifiedNewlyEstablished": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "events": {
+          "type": "object",
+          "properties": {
+            "inheritance": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "merger": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "corporateSplit": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "highValueAssetAcquisition": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "adjustableFixedAssetAcquisition": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "taxablePeriodShortened": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "invoiceRegistration",
+        "filings"
+      ],
+      "additionalProperties": false
+    },
+    "TriStateWire": {
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "LocalDateWire": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "検証済みの日付。YYYY-MM-DD形式。"
+    },
+    "ShohizeiFilingStatusWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ShohizeiFilingKindWire"
+        },
+        "filed": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "filedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "effectiveFromPeriodStart": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "kind",
+        "filed"
+      ],
+      "additionalProperties": false
+    },
+    "ShohizeiFilingKindWire": {
+      "enum": [
+        "taxable_person_election",
+        "taxable_person_election_cancel",
+        "simplified_election",
+        "simplified_election_cancel"
+      ]
+    },
+    "MoneyWire": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "JPY"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "DateRangeWire": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "to": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "SalesInputWire": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SimpleSalesInputWire"
+        },
+        {
+          "$ref": "#/$defs/DetailedSalesInputWire"
+        }
+      ]
+    },
+    "SimpleSalesInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "simple"
+        },
+        "taxableTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "standardRatio": {
+          "$ref": "#/$defs/RateWire"
+        },
+        "reducedRatio": {
+          "$ref": "#/$defs/RateWire"
+        },
+        "exportExempt": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "primaryCategory": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        }
+      },
+      "required": [
+        "kind",
+        "taxableTotal",
+        "standardRatio",
+        "reducedRatio"
+      ],
+      "additionalProperties": false
+    },
+    "TaxInclWire": {
+      "type": "object",
+      "properties": {
+        "basis": {
+          "enum": [
+            "inclusive",
+            "exclusive"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "basis",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "RateWire": {
+      "type": "object",
+      "properties": {
+        "num": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        },
+        "den": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$",
+          "description": "正の整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "num",
+        "den"
+      ],
+      "additionalProperties": false
+    },
+    "SimplifiedBusinessCategoryWire": {
+      "enum": [
+        "type1",
+        "type2",
+        "type3",
+        "type4",
+        "type5",
+        "type6",
+        "unclassifiable"
+      ]
+    },
+    "DetailedSalesInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "detailed"
+        },
+        "taxable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "exportExempt": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "nonTaxable": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "outOfScope": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "returnsAndDiscounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "badDebts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "simplifiedCategoryBreakdown": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SimplifiedCategorySalesWire"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "taxable"
+      ],
+      "additionalProperties": false
+    },
+    "BandAmountWire": {
+      "type": "object",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        }
+      },
+      "required": [
+        "band",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "ConsumptionTaxRateBandWire": {
+      "enum": [
+        "standard_10",
+        "reduced_8",
+        "old_8"
+      ]
+    },
+    "SimplifiedCategorySalesWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        }
+      },
+      "required": [
+        "category",
+        "amount",
+        "band"
+      ],
+      "additionalProperties": false
+    },
+    "PurchaseInputWire": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SimplePurchaseInputWire"
+        },
+        {
+          "$ref": "#/$defs/DetailedPurchaseInputWire"
+        }
+      ]
+    },
+    "SimplePurchaseInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "simple"
+        },
+        "taxableTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "hasPurchasesFromNonRegistered": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "kind",
+        "taxableTotal",
+        "hasPurchasesFromNonRegistered"
+      ],
+      "additionalProperties": false
+    },
+    "DetailedPurchaseInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "detailed"
+        },
+        "taxableWithInvoice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "taxableWithoutInvoice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransitionalPurchaseWire"
+          }
+        },
+        "nonTaxable": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "outOfScope": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "personnelCost": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "returns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "taxableWithInvoice",
+        "taxableWithoutInvoice"
+      ],
+      "additionalProperties": false
+    },
+    "TransitionalPurchaseWire": {
+      "type": "object",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "counterpartyId": {
+          "type": "string"
+        },
+        "counterpartyAnnualTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "hasRequiredRecords": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "band",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "SpecialistChecksWire": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TriStateWire"
+      }
+    },
+    "SimplifiedTaxationInputWire": {
+      "type": "object",
+      "properties": {
+        "categorySelectedByUser": {
+          "const": true
+        },
+        "primaryCategory": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        }
+      },
+      "required": [
+        "categorySelectedByUser"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

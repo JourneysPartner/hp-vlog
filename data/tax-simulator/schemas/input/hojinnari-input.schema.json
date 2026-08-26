@@ -1,0 +1,1632 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hojinnari-input.schema.json",
+  "title": "法人成りシミュレーター入力",
+  "description": "入力型設計書 §3〜§7 に基づくWire形式。自動生成物。",
+  "$ref": "#/$defs/HojinnariInputWire",
+  "$defs": {
+    "HojinnariInputWire": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "comparisonBasis": {
+          "enum": [
+            "steady_state",
+            "transition_year"
+          ]
+        },
+        "individual": {
+          "$ref": "#/$defs/HojinnariIndividualInputWire"
+        },
+        "corporate": {
+          "$ref": "#/$defs/HojinnariCorporateInputWire"
+        },
+        "consumptionTax": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "include": {
+                  "const": false
+                }
+              },
+              "required": [
+                "include"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "include": {
+                  "const": true
+                },
+                "individualPeriodInput": {
+                  "$ref": "#/$defs/ShohizeiInputWire"
+                },
+                "corporatePeriodInput": {
+                  "$ref": "#/$defs/ShohizeiInputWire"
+                }
+              },
+              "required": [
+                "include",
+                "individualPeriodInput",
+                "corporatePeriodInput"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "specialistChecks": {
+          "$ref": "#/$defs/SpecialistChecksWire"
+        },
+        "setupAndMaintenanceCosts": {
+          "$ref": "#/$defs/CorporateCostInputWire"
+        }
+      },
+      "required": [
+        "precision",
+        "comparisonBasis",
+        "individual",
+        "corporate",
+        "consumptionTax",
+        "specialistChecks"
+      ],
+      "additionalProperties": false
+    },
+    "HojinnariIndividualInputWire": {
+      "type": "object",
+      "properties": {
+        "business": {
+          "type": "object",
+          "properties": {
+            "revenue": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "period": {
+                    "$ref": "#/$defs/DateRangeWire"
+                  },
+                  "value": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "period",
+                  "value"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "expenses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "period": {
+                    "$ref": "#/$defs/DateRangeWire"
+                  },
+                  "value": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "period",
+                  "value"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "periodFacts": {
+              "$ref": "#/$defs/BusinessPeriodFactsWire"
+            },
+            "expensesExcludeSocialInsuranceAndMutualAid": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "businessTaxCategory": {
+              "$ref": "#/$defs/IndividualBusinessTaxCategoryWire"
+            }
+          },
+          "required": [
+            "revenue",
+            "expenses",
+            "periodFacts"
+          ],
+          "additionalProperties": false
+        },
+        "blueReturn": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "blue",
+                "white",
+                "unknown"
+              ]
+            },
+            "specialDeductionCategory": {
+              "enum": [
+                "e_tax_650k",
+                "bookkeeping_550k",
+                "simple_100k",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "self": {
+          "$ref": "#/$defs/PersonFactsWire"
+        },
+        "residentTaxBasis": {
+          "enum": [
+            "steady_state",
+            "actual_year"
+          ]
+        },
+        "otherIncomes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IncomeItemWire"
+          }
+        },
+        "deductions": {
+          "$ref": "#/$defs/PersonalDeductionFactsWire"
+        },
+        "spouse": {
+          "$ref": "#/$defs/SpouseFactsWire"
+        },
+        "dependents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DependentFactsWire"
+          }
+        },
+        "nationalHealthInsurance": {
+          "$ref": "#/$defs/NationalHealthInsuranceInputWire"
+        },
+        "nationalPension": {
+          "$ref": "#/$defs/NationalPensionInputWire"
+        },
+        "taxCredits": {
+          "type": "object",
+          "properties": {
+            "housingLoan": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "other": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "code",
+                  "amount"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "business",
+        "blueReturn",
+        "self",
+        "residentTaxBasis"
+      ],
+      "additionalProperties": false
+    },
+    "DateRangeWire": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "to": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "LocalDateWire": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "検証済みの日付。YYYY-MM-DD形式。"
+    },
+    "MoneyWire": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "JPY"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "BusinessPeriodFactsWire": {
+      "type": "object",
+      "properties": {
+        "openedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "closedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TriStateWire": {
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "IndividualBusinessTaxCategoryWire": {
+      "enum": [
+        "type1",
+        "type2",
+        "type3_standard",
+        "type3_reduced",
+        "not_listed",
+        "unknown"
+      ]
+    },
+    "PersonFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DisabilityCategoryWire": {
+      "enum": [
+        "none",
+        "general",
+        "special",
+        "special_cohabiting"
+      ]
+    },
+    "IncomeItemWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/IncomeCategoryWire"
+        },
+        "taxationMethod": {
+          "$ref": "#/$defs/TaxationMethodWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "taxationMethod",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "IncomeCategoryWire": {
+      "enum": [
+        "business",
+        "real_estate",
+        "salary",
+        "dividend",
+        "interest",
+        "misc",
+        "capital_gain",
+        "occasional",
+        "forestry",
+        "retirement",
+        "unknown"
+      ]
+    },
+    "TaxationMethodWire": {
+      "enum": [
+        "aggregate",
+        "separate_declared",
+        "separate_withheld",
+        "separate_retirement",
+        "unknown"
+      ]
+    },
+    "PersonalDeductionFactsWire": {
+      "type": "object",
+      "properties": {
+        "socialInsurance": {
+          "$ref": "#/$defs/SocialInsuranceDeductionInputWire"
+        },
+        "smallEnterpriseMutualAid": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "lifeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LifeInsurancePremiumInputWire"
+          }
+        },
+        "earthquakeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EarthquakeInsurancePremiumInputWire"
+          }
+        },
+        "medical": {
+          "$ref": "#/$defs/MedicalExpenseInputWire"
+        },
+        "donations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DonationInputWire"
+          }
+        },
+        "casualtyLoss": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "isWorkingStudent": {
+          "type": "boolean"
+        },
+        "widowOrSingleParent": {
+          "enum": [
+            "none",
+            "widow",
+            "single_parent"
+          ]
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeductionOverrideWire"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SocialInsuranceDeductionInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "total"
+            },
+            "annualTotal": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind",
+            "annualTotal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "itemized"
+            },
+            "nationalHealthInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPension": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPensionFund": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "employeeShareOfSocialInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "other": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "LifeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "$ref": "#/$defs/LifeInsuranceContractGenerationWire"
+        },
+        "category": {
+          "enum": [
+            "life",
+            "nursing_medical",
+            "annuity"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "generation",
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "LifeInsuranceContractGenerationWire": {
+      "enum": [
+        "new",
+        "old"
+      ]
+    },
+    "EarthquakeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "earthquake",
+            "old_long_term"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "MedicalExpenseInputWire": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "medical",
+            "self_medication"
+          ]
+        },
+        "paidAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "insuranceReimbursement": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "mode",
+        "paidAmount"
+      ],
+      "additionalProperties": false
+    },
+    "DonationInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "furusato",
+            "designated",
+            "political",
+            "other"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "DeductionOverrideWire": {
+      "type": "object",
+      "properties": {
+        "forIncomeTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "forResidentTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "forIncomeTax",
+        "forResidentTax",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "SpouseFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "livesTogether": {
+          "type": "boolean"
+        },
+        "totalIncome": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "isFullTimeHomemaker": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "exists"
+      ],
+      "additionalProperties": false
+    },
+    "DependentFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/DependentRelationWire"
+        },
+        "livesTogether": {
+          "type": "boolean"
+        },
+        "isLivingApartAndSupported": {
+          "type": "boolean"
+        },
+        "totalIncome": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "id",
+        "relation"
+      ],
+      "additionalProperties": false
+    },
+    "DependentRelationWire": {
+      "enum": [
+        "child",
+        "parent",
+        "grandparent",
+        "sibling",
+        "other_relative"
+      ]
+    },
+    "NationalHealthInsuranceInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "actual"
+            },
+            "annualAmount": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind",
+            "annualAmount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "estimate_accepted"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "NationalPensionInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "actual"
+            },
+            "annualAmount": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind",
+            "annualAmount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "standard"
+            },
+            "months": {
+              "type": "integer"
+            },
+            "hasAdditionalPremium": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "months"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "exempted"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "HojinnariCorporateInputWire": {
+      "type": "object",
+      "properties": {
+        "locationSameAsResidence": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "capital": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "officerCompensation": {
+          "$ref": "#/$defs/CompensationPlanWire"
+        },
+        "healthInsurer": {
+          "$ref": "#/$defs/HealthInsurerInputWire"
+        },
+        "revenue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/MoneyWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "expenses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/MoneyWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "employeeCount": {
+          "type": "integer"
+        },
+        "establishedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "spouseOfficer": {
+          "type": "object",
+          "properties": {
+            "isOfficer": {
+              "type": "boolean"
+            },
+            "compensation": {
+              "$ref": "#/$defs/CompensationPlanWire"
+            },
+            "facts": {
+              "$ref": "#/$defs/PersonFactsWire"
+            }
+          },
+          "required": [
+            "isOfficer"
+          ],
+          "additionalProperties": false
+        },
+        "taxAdjustments": {
+          "$ref": "#/$defs/CorporateTaxAdjustmentInputWire"
+        },
+        "lossCarryforward": {
+          "$ref": "#/$defs/LossCarryforwardInputWire"
+        }
+      },
+      "required": [
+        "locationSameAsResidence",
+        "capital",
+        "officerCompensation",
+        "healthInsurer",
+        "revenue",
+        "expenses"
+      ],
+      "additionalProperties": false
+    },
+    "CompensationPlanWire": {
+      "type": "object",
+      "properties": {
+        "monthlySegments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "monthlyAmount": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "monthlyAmount"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "revisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CompensationRevisionWire"
+          }
+        },
+        "bonuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredeterminedBonusWire"
+          }
+        },
+        "appointedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "resignedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "monthlySegments"
+      ],
+      "additionalProperties": false
+    },
+    "CompensationRevisionWire": {
+      "type": "object",
+      "properties": {
+        "effectiveOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "reason": {
+          "$ref": "#/$defs/RevisionReasonWire"
+        },
+        "newMonthlyAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "effectiveOn",
+        "reason",
+        "newMonthlyAmount"
+      ],
+      "additionalProperties": false
+    },
+    "RevisionReasonWire": {
+      "enum": [
+        "ordinary",
+        "extraordinary",
+        "performance_decline",
+        "other"
+      ]
+    },
+    "PredeterminedBonusWire": {
+      "type": "object",
+      "properties": {
+        "payOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "hasFiling": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "filedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "paidAsFiled": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "payOn",
+        "amount",
+        "hasFiling"
+      ],
+      "additionalProperties": false
+    },
+    "HealthInsurerInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "kyokai_kenpo"
+            },
+            "prefectureCode": {
+              "$ref": "#/$defs/PrefectureCodeWire"
+            }
+          },
+          "required": [
+            "kind",
+            "prefectureCode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "kenpo_kumiai"
+            },
+            "insurerCode": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "insurerCode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PrefectureCodeWire": {
+      "type": "string",
+      "pattern": "^[0-9]{2}$",
+      "description": "JIS X 0401の都道府県コード2桁。"
+    },
+    "CorporateTaxAdjustmentInputWire": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CorporateTaxAdjustmentItemWire"
+          }
+        },
+        "treatUnansweredAsZero": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "CorporateTaxAdjustmentItemWire": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "entertainment",
+            "donation",
+            "depreciation",
+            "allowance",
+            "taxes_and_dues",
+            "officer_salary",
+            "dividend_received",
+            "other"
+          ]
+        },
+        "applies": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "direction": {
+          "enum": [
+            "add",
+            "subtract"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "applies"
+      ],
+      "additionalProperties": false
+    },
+    "LossCarryforwardInputWire": {
+      "type": "object",
+      "properties": {
+        "hasBlueReturnForLossYears": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "losses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fiscalYearStartedOn": {
+                "$ref": "#/$defs/LocalDateWire"
+              },
+              "amount": {
+                "$ref": "#/$defs/MoneyWire"
+              }
+            },
+            "required": [
+              "fiscalYearStartedOn",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ShohizeiInputWire": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "taxpayerType": {
+          "enum": [
+            "individual",
+            "corporation"
+          ]
+        },
+        "eligibility": {
+          "$ref": "#/$defs/ShohizeiEligibilityInputWire"
+        },
+        "sales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/SalesInputWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "purchases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "$ref": "#/$defs/PurchaseInputWire"
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "specialistChecks": {
+          "$ref": "#/$defs/SpecialistChecksWire"
+        },
+        "simplified": {
+          "$ref": "#/$defs/SimplifiedTaxationInputWire"
+        }
+      },
+      "required": [
+        "precision",
+        "taxpayerType",
+        "eligibility",
+        "sales",
+        "purchases",
+        "specialistChecks"
+      ],
+      "additionalProperties": false
+    },
+    "ShohizeiEligibilityInputWire": {
+      "type": "object",
+      "properties": {
+        "invoiceRegistration": {
+          "type": "object",
+          "properties": {
+            "registered": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "registeredOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "becameTaxableByRegistration": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "required": [
+            "registered"
+          ],
+          "additionalProperties": false
+        },
+        "filings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShohizeiFilingStatusWire"
+          }
+        },
+        "basePeriod": {
+          "type": "object",
+          "properties": {
+            "exists": {
+              "type": "boolean"
+            },
+            "taxableSales": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "lengthInMonths": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "exists"
+          ],
+          "additionalProperties": false
+        },
+        "specifiedPeriod": {
+          "type": "object",
+          "properties": {
+            "taxableSales": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "salaryPayments": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "newCompany": {
+          "type": "object",
+          "properties": {
+            "isNewlyEstablished": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "isSpecifiedNewlyEstablished": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "events": {
+          "type": "object",
+          "properties": {
+            "inheritance": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "merger": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "corporateSplit": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "highValueAssetAcquisition": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "adjustableFixedAssetAcquisition": {
+              "$ref": "#/$defs/TriStateWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "taxablePeriodShortened": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "invoiceRegistration",
+        "filings"
+      ],
+      "additionalProperties": false
+    },
+    "ShohizeiFilingStatusWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ShohizeiFilingKindWire"
+        },
+        "filed": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "filedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "effectiveFromPeriodStart": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "kind",
+        "filed"
+      ],
+      "additionalProperties": false
+    },
+    "ShohizeiFilingKindWire": {
+      "enum": [
+        "taxable_person_election",
+        "taxable_person_election_cancel",
+        "simplified_election",
+        "simplified_election_cancel"
+      ]
+    },
+    "SalesInputWire": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SimpleSalesInputWire"
+        },
+        {
+          "$ref": "#/$defs/DetailedSalesInputWire"
+        }
+      ]
+    },
+    "SimpleSalesInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "simple"
+        },
+        "taxableTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "standardRatio": {
+          "$ref": "#/$defs/RateWire"
+        },
+        "reducedRatio": {
+          "$ref": "#/$defs/RateWire"
+        },
+        "exportExempt": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "primaryCategory": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        }
+      },
+      "required": [
+        "kind",
+        "taxableTotal",
+        "standardRatio",
+        "reducedRatio"
+      ],
+      "additionalProperties": false
+    },
+    "TaxInclWire": {
+      "type": "object",
+      "properties": {
+        "basis": {
+          "enum": [
+            "inclusive",
+            "exclusive"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "basis",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "RateWire": {
+      "type": "object",
+      "properties": {
+        "num": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        },
+        "den": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$",
+          "description": "正の整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "num",
+        "den"
+      ],
+      "additionalProperties": false
+    },
+    "SimplifiedBusinessCategoryWire": {
+      "enum": [
+        "type1",
+        "type2",
+        "type3",
+        "type4",
+        "type5",
+        "type6",
+        "unclassifiable"
+      ]
+    },
+    "DetailedSalesInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "detailed"
+        },
+        "taxable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "exportExempt": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "nonTaxable": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "outOfScope": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "returnsAndDiscounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "badDebts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "simplifiedCategoryBreakdown": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SimplifiedCategorySalesWire"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "taxable"
+      ],
+      "additionalProperties": false
+    },
+    "BandAmountWire": {
+      "type": "object",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        }
+      },
+      "required": [
+        "band",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "ConsumptionTaxRateBandWire": {
+      "enum": [
+        "standard_10",
+        "reduced_8",
+        "old_8"
+      ]
+    },
+    "SimplifiedCategorySalesWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        }
+      },
+      "required": [
+        "category",
+        "amount",
+        "band"
+      ],
+      "additionalProperties": false
+    },
+    "PurchaseInputWire": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SimplePurchaseInputWire"
+        },
+        {
+          "$ref": "#/$defs/DetailedPurchaseInputWire"
+        }
+      ]
+    },
+    "SimplePurchaseInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "simple"
+        },
+        "taxableTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "hasPurchasesFromNonRegistered": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "kind",
+        "taxableTotal",
+        "hasPurchasesFromNonRegistered"
+      ],
+      "additionalProperties": false
+    },
+    "DetailedPurchaseInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "detailed"
+        },
+        "taxableWithInvoice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        },
+        "taxableWithoutInvoice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransitionalPurchaseWire"
+          }
+        },
+        "nonTaxable": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "outOfScope": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "personnelCost": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "returns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BandAmountWire"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "taxableWithInvoice",
+        "taxableWithoutInvoice"
+      ],
+      "additionalProperties": false
+    },
+    "TransitionalPurchaseWire": {
+      "type": "object",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/ConsumptionTaxRateBandWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "counterpartyId": {
+          "type": "string"
+        },
+        "counterpartyAnnualTotal": {
+          "$ref": "#/$defs/TaxInclWire"
+        },
+        "hasRequiredRecords": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "band",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "SpecialistChecksWire": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TriStateWire"
+      }
+    },
+    "SimplifiedTaxationInputWire": {
+      "type": "object",
+      "properties": {
+        "categorySelectedByUser": {
+          "const": true
+        },
+        "primaryCategory": {
+          "$ref": "#/$defs/SimplifiedBusinessCategoryWire"
+        }
+      },
+      "required": [
+        "categorySelectedByUser"
+      ],
+      "additionalProperties": false
+    },
+    "CorporateCostInputWire": {
+      "type": "object",
+      "properties": {
+        "incorporationCost": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "annualAccountingFee": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "annualLaborConsultantFee": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "otherAnnualCost": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

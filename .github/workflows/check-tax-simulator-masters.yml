@@ -27,6 +27,11 @@ on:
   pull_request:
     paths:
       - 'data/tax-simulator/masters/**'
+      - 'data/tax-simulator/schemas/input/**'
+      - 'scripts/generate-input-types.js'
+      - 'scripts/lib/input-types/**'
+      - 'scripts/lib/__tests__/test-input-types.js'
+      - 'package.json'
       - 'scripts/check-master-freshness.js'
       - 'scripts/validate-masters.js'
       - 'scripts/approve-records.js'
@@ -54,6 +59,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: 入力型の生成差分を検査
+        run: npm run input-types:check
+
       # 形式が壊れていたら止める。ここは要確認の有無と関係なく落ちてよい。
       - name: Validate master data
         run: node scripts/validate-masters.js
@@ -62,7 +70,7 @@ jobs:
         run: |
           set -e
           for t in appendix5-rule check-master-freshness inheritance-credits \
-                   social-insurance-rates standard-remuneration-grades; do
+                   social-insurance-rates standard-remuneration-grades input-types; do
             echo "--- $t ---"
             node "scripts/lib/__tests__/test-$t.js"
           done
