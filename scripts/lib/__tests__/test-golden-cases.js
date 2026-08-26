@@ -18,6 +18,19 @@
 const fs = require('fs');
 const path = require('path');
 
+const {
+  money,
+  rate,
+  moneyToExact,
+  multiplyRateByMoney,
+  addExact,
+  subtractExact,
+  addMoney,
+  subtractMoney,
+} = require('../../../src/tax-engine/common/money.js');
+const { applyRounding } = require('../../../src/tax-engine/common/rounding.js');
+const masters = require('../../../src/tax-engine/masters/snapshot.js');
+
 const ROOT = path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator');
 const CASES = JSON.parse(fs.readFileSync(path.join(ROOT, 'golden-cases', 'official-examples.json'), 'utf8'));
 
@@ -27,99 +40,114 @@ function assert(cond, label) {
   else { console.error(`  ✗ ${label}`); failed++; }
 }
 
-// ── マスターの読み取り ──────────────────────────────────────
-function collect(file) {
-  const doc = JSON.parse(fs.readFileSync(path.join(ROOT, 'masters', 'data', file), 'utf8'));
-  const out = [];
-  const walk = (o) => {
-    if (!o || typeof o !== 'object') return;
-    if (typeof o.value_key === 'string') out.push(o);
-    for (const v of Object.values(o)) walk(v);
-  };
-  walk(doc);
-  return out;
-}
-
-const yen = (m) => BigInt(m.value);
-// その年をカバーする行だけに絞る
-const forYear = (rows, year) => rows.filter(r =>
-  (r.effective_from || '') <= `${year}-12-31` && (r.effective_to || '9999') >= `${year}-01-01`);
+// ── マスターのWire値から計算用の型を構築 ────────────────────
+const masterMoney = value => money({ unit: value.unit, value: BigInt(value.value) });
+const masterRate = value => rate({ num: BigInt(value.num), den: BigInt(value.den) });
+const inputMoney = value => money({ unit: 'JPY', value: BigInt(value) });
 
 // ── 計算手順（マスターの値＋文書化された手順のみで組む） ──────────
 
 // 所得税の速算表: 該当する段を引き、金額×税率−速算控除
 function incomeTaxQuickTable(taxableIncome, year) {
-  const rows = forYear(collect('income-tax/brackets-h27.json')
-    .filter(r => r.value_key === 'income_tax_brackets'), year);
-  const x = BigInt(taxableIncome);
-  const row = rows.find(r =>
-    x >= yen(r.bracket_lower_inclusive) &&
-    (!r.bracket_upper_inclusive || x <= yen(r.bracket_upper_inclusive)));
+  const input = inputMoney(taxableIncome);
+  const criterion = { taxYear: year };
+  const row = masters.findBracket('income_tax_brackets', input, criterion);
   if (!row) throw new Error(`速算表に該当なし: ${taxableIncome}`);
-  return x * BigInt(row.rate.num) / BigInt(row.rate.den) - yen(row.quick_deduction);
+  const taxableBase = applyRounding(moneyToExact(input), row.rounding_rule_id);
+  const tax = subtractExact(
+    multiplyRateByMoney(masterRate(row.rate), taxableBase),
+    moneyToExact(masterMoney(row.quick_deduction))
+  );
+  return applyRounding(tax, 'R-NONE').value;
 }
 
 // 相続税の総額: 法定相続分で按分 → 各人に速算表 → 合計
-function inheritanceTaxTotal(estate, heirs) {
-  const shares = collect('inheritance-tax/statutory-shares.json');
-  const combo = shares.find(r => r.value_key === 'statutory_share_by_combination'
-    && r.combination === 'spouse_and_child');
-  const brackets = collect('inheritance-tax/brackets-h27.json')
-    .filter(r => r.value_key === 'inheritance_tax_brackets');
-  const taxOn = (x) => {
-    const row = brackets.find(r =>
-      x >= yen(r.bracket_lower_inclusive) &&
-      (!r.bracket_upper_inclusive || x <= yen(r.bracket_upper_inclusive)));
-    return x * BigInt(row.rate.num) / BigInt(row.rate.den) - yen(row.quick_deduction);
+function inheritanceTaxTotal(estate, heirs, onDate) {
+  const criterion = { onDate };
+  const combo = masters.find('statutory_share_by_combination', criterion)
+    .find(row => row.combination === 'spouse_and_child');
+  const equalDivision = masters.find('statutory_share_equal_division', criterion)
+    .find(row => row.division_method === 'equal');
+  const brackets = masters.find('inheritance_tax_brackets', criterion);
+  if (!combo || !equalDivision || brackets.length === 0) {
+    throw new Error('法定相続分または相続税速算表に該当なし');
+  }
+  const legalShareRoundingRuleId = brackets[0].rounding_rule_id;
+  if (!brackets.every(row => row.rounding_rule_id === legalShareRoundingRuleId)) {
+    throw new Error('法定相続分に応ずる取得金額の端数規則が段ごとに不一致');
+  }
+  const taxOn = (amount) => {
+    const row = masters.findBracket('inheritance_tax_brackets', amount, criterion);
+    if (!row) throw new Error(`相続税速算表に該当なし: ${amount.value}`);
+    const tax = subtractExact(
+      multiplyRateByMoney(masterRate(row.rate), amount),
+      moneyToExact(masterMoney(row.quick_deduction))
+    );
+    return applyRounding(tax, 'R-NONE');
   };
-  const e = BigInt(estate);
-  const nChildren = BigInt(heirs.filter(h => h.relation === 'child').length);
+  const estateMoney = inputMoney(estate);
+  const children = heirs.filter(heir => heir.relation === 'child');
+  const nChildren = BigInt(children.length);
+  if (nChildren === 0n) throw new Error('子が1人以上必要');
   // 配偶者の取り分（900条1号）と、子の残りの均等分割（900条4号）
-  const spouseAmount = e * BigInt(combo.spouse_share.num) / BigInt(combo.spouse_share.den);
-  const childrenTotal = e * BigInt(combo.blood_relative_share.num) / BigInt(combo.blood_relative_share.den);
-  const childAmount = childrenTotal / nChildren;
+  const spouseAmount = applyRounding(
+    multiplyRateByMoney(masterRate(combo.spouse_share), estateMoney),
+    legalShareRoundingRuleId
+  );
+  const childAmount = applyRounding(
+    multiplyRateByMoney(rate({
+      num: BigInt(combo.blood_relative_share.num),
+      den: BigInt(combo.blood_relative_share.den) * nChildren,
+    }), estateMoney),
+    legalShareRoundingRuleId
+  );
   const spouseTax = taxOn(spouseAmount);
   const childTax = taxOn(childAmount);
-  return { spouseAmount, childAmount, spouseTax, childTax,
-    total: spouseTax + childTax * nChildren };
+  let total = spouseTax;
+  for (const _child of children) total = addMoney(total, childTax);
+  return {
+    spouseAmount: spouseAmount.value,
+    childAmount: childAmount.value,
+    spouseTax: spouseTax.value,
+    childTax: childTax.value,
+    total: total.value,
+  };
 }
 
 // 給与所得控除（660万円以上の表）
 function salaryIncomeDeduction(revenue, year) {
-  const rows = forYear(collect('salary-income-deduction/deductions.json')
-    .filter(r => r.value_key === 'salary_income_deduction_table'), year);
-  const x = BigInt(revenue);
-  const row = rows.find(r =>
-    x >= yen(r.revenue_lower_inclusive) &&
-    (!r.revenue_upper_inclusive || x <= yen(r.revenue_upper_inclusive)));
+  const input = inputMoney(revenue);
+  const row = masters.findBracket('salary_income_deduction_table', input, { taxYear: year });
   if (!row) throw new Error(`給与所得控除の表に該当なし: ${revenue}`);
-  if (row.deduction_type === 'fixed') return yen(row.fixed_amount);
-  return x * BigInt(row.rate.num) / BigInt(row.rate.den) + yen(row.rate_addition);
+  if (row.deduction_type === 'fixed') return masterMoney(row.fixed_amount).value;
+  const deduction = addExact(
+    multiplyRateByMoney(masterRate(row.rate), input),
+    moneyToExact(masterMoney(row.rate_addition))
+  );
+  return applyRounding(deduction, row.rounding_rule_id).value;
 }
 
 // 基礎控除
 function basicDeduction(totalIncome, year) {
-  const rows = forYear(collect('basic-deduction/deductions.json')
-    .filter(r => r.value_key === 'basic_deduction_table'), year);
-  const x = BigInt(totalIncome);
-  const row = rows.find(r =>
-    x >= yen(r.income_lower_inclusive) &&
-    (!r.income_upper_inclusive || x <= yen(r.income_upper_inclusive)));
+  const input = inputMoney(totalIncome);
+  const row = masters.findBracket('basic_deduction_table', input, { taxYear: year });
   if (!row) throw new Error(`基礎控除の表に該当なし: ${totalIncome}`);
-  return yen(row.deduction_amount);
+  return masterMoney(row.deduction_amount).value;
 }
 
 // 2割特例
 function smallBusinessSpecial(salesTax, periodFrom, periodTo) {
-  const rows = collect('consumption-tax/small-business-special.json')
-    .filter(r => r.value_key === 'small_business_special_deduction');
-  // 課税期間がいずれかの日を含むか（period_match_rule: taxable_period_intersects）
-  const row = rows.find(r =>
-    periodTo >= r.effective_from && periodFrom <= r.effective_to);
+  const rows = masters.find('small_business_special_deduction', {
+    periodIntersects: { from: periodFrom, to: periodTo },
+  });
+  const row = rows[0];
   if (!row) throw new Error('特例の対象期間外');
-  const x = BigInt(salesTax);
-  const deduction = x * BigInt(row.special_deduction_rate.num) / BigInt(row.special_deduction_rate.den);
-  return { deduction, payable: x - deduction };
+  const input = inputMoney(salesTax);
+  const deduction = applyRounding(
+    multiplyRateByMoney(masterRate(row.special_deduction_rate), input),
+    row.rounding_rule_id
+  );
+  return { deduction: deduction.value, payable: subtractMoney(input, deduction).value };
 }
 
 // ── 照合 ────────────────────────────────────────────────────
@@ -143,7 +171,11 @@ console.log('\n=== §63 公的計算例との照合 ===');
 }
 {
   const c = byId.get('GC-IHT-4155-WIFE-2KIDS');
-  const r = inheritanceTaxTotal(c.inputs.taxable_estate_after_basic_deduction, c.inputs.heirs);
+  const r = inheritanceTaxTotal(
+    c.inputs.taxable_estate_after_basic_deduction,
+    c.inputs.heirs,
+    c.inputs.inheritance_open_date
+  );
   assert(r.spouseAmount === BigInt(c.expected.spouse_share_amount),
     `${c.case_id}: 妻の法定相続分 7,600万円`);
   assert(r.childAmount === BigInt(c.expected.child_share_amount),
