@@ -2,7 +2,6 @@
   "$schema": "../../schemas/master-common.schema.json",
   "_comment": "住民税（個人）。所得割・均等割・調整控除。法人成り・役員報酬シミュレータで使用。",
   "_source_note": "住民税はNTAタックスアンサーに完全な税率表がないため、地方税法および総務省資料から構成。",
-
   "income_rate": {
     "_comment": "住民税 所得割。合計10%は全国共通だが、市と県の内訳が政令指定都市では逆転する。",
     "_designated_city_note": "地方税法35条・314条の3。非指定都市は 市6%＋県4%、政令指定都市は 市8%＋県2%。合計10%は変わらないので総額には影響しないが、市民税・県民税を分けて表示するなら区別が要る。指定都市は地方自治法252条の19第1項の市（横浜・大阪・名古屋・札幌・京都・神戸・福岡・川崎・広島・仙台・千葉・さいたま・静岡・堺・新潟・浜松・岡山・相模原・熊本の20市）。",
@@ -22,13 +21,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2007-06-01",
         "effective_to": null,
         "component": "income_rate",
-        "combined_rate": { "num": "10", "den": "100" },
-        "municipal_rate": { "num": "6", "den": "100" },
-        "prefectural_rate": { "num": "4", "den": "100" },
+        "combined_rate": {
+          "num": "10",
+          "den": "100"
+        },
+        "municipal_rate": {
+          "num": "6",
+          "den": "100"
+        },
+        "prefectural_rate": {
+          "num": "4",
+          "den": "100"
+        },
         "applicability_conditions": [
           {
             "subject": "is_designated_city",
@@ -59,13 +69,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2018-01-01",
         "effective_to": null,
         "component": "income_rate",
-        "combined_rate": { "num": "10", "den": "100" },
-        "municipal_rate": { "num": "8", "den": "100" },
-        "prefectural_rate": { "num": "2", "den": "100" },
+        "combined_rate": {
+          "num": "10",
+          "den": "100"
+        },
+        "municipal_rate": {
+          "num": "8",
+          "den": "100"
+        },
+        "prefectural_rate": {
+          "num": "2",
+          "den": "100"
+        },
         "applicability_conditions": [
           {
             "subject": "is_designated_city",
@@ -83,7 +104,6 @@
       }
     ]
   },
-
   "per_capita_levy": {
     "_comment": "住民税 均等割 + 森林環境税。",
     "records": [
@@ -102,11 +122,16 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2024-06-01",
         "effective_to": null,
         "component": "per_capita_municipal",
-        "amount": { "unit": "JPY", "value": "3000" },
+        "amount": {
+          "unit": "JPY",
+          "value": "3000"
+        },
         "_note": "R6以後：復興臨時増税（+500円）廃止で3,000円に戻り、代わりに森林環境税1,000円が国税として課税",
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法310条",
@@ -129,11 +154,16 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2024-06-01",
         "effective_to": null,
         "component": "per_capita_prefectural",
-        "amount": { "unit": "JPY", "value": "1000" },
+        "amount": {
+          "unit": "JPY",
+          "value": "1000"
+        },
         "_note": "標準額。都道府県独自の超過課税あり（例：神奈川県 +300円〜）",
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法38条",
@@ -156,11 +186,16 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "forest_environment_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2024-01-01",
         "effective_to": null,
         "component": "forest_environment_tax",
-        "amount": { "unit": "JPY", "value": "1000" },
+        "amount": {
+          "unit": "JPY",
+          "value": "1000"
+        },
         "_note": "令和6年度から。国税として市区町村が住民税と併せて徴収",
         "source_document_id": "SOUMU-FOREST-TAX",
         "source_locator": "森林環境税及び森林環境譲与税に関する法律",
@@ -170,7 +205,6 @@
       }
     ]
   },
-
   "basic_deduction_resident_tax": {
     "_comment": "住民税の基礎控除額（所得税の基礎控除とは金額が異なる）。",
     "records": [
@@ -189,13 +223,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2020-01-01",
         "effective_to": "2024-12-31",
         "component": "basic_deduction",
-        "income_lower_inclusive": { "unit": "JPY", "value": "0" },
-        "income_upper_inclusive": { "unit": "JPY", "value": "24000000" },
-        "deduction_amount": { "unit": "JPY", "value": "430000" },
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "430000"
+        },
         "_note": "R2〜R6。所得税の基礎控除48万との差額（5万円）が調整控除の基礎",
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法34条、314条の2",
@@ -218,13 +263,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2020-01-01",
         "effective_to": "2024-12-31",
         "component": "basic_deduction",
-        "income_lower_inclusive": { "unit": "JPY", "value": "24000001" },
-        "income_upper_inclusive": { "unit": "JPY", "value": "24500000" },
-        "deduction_amount": { "unit": "JPY", "value": "290000" },
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "290000"
+        },
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法34条1項・314条の2第1項 基礎控除の表 第2行",
         "as_of_date": "2026-08-23",
@@ -246,13 +302,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2020-01-01",
         "effective_to": "2024-12-31",
         "component": "basic_deduction",
-        "income_lower_inclusive": { "unit": "JPY", "value": "24500001" },
-        "income_upper_inclusive": { "unit": "JPY", "value": "25000000" },
-        "deduction_amount": { "unit": "JPY", "value": "150000" },
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "150000"
+        },
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法34条1項・314条の2第1項 基礎控除の表 第3行",
         "as_of_date": "2026-08-23",
@@ -274,13 +341,21 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2020-01-01",
         "effective_to": "2024-12-31",
         "component": "basic_deduction",
-        "income_lower_inclusive": { "unit": "JPY", "value": "25000001" },
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
         "income_upper_inclusive": null,
-        "deduction_amount": { "unit": "JPY", "value": "0" },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
         "source_document_id": "SOUMU-RESIDENT-TAX",
         "source_locator": "地方税法34条1項・314条の2第1項 基礎控除の表 第4行",
         "as_of_date": "2026-08-23",
@@ -294,7 +369,6 @@
       "_expected": "所得税の基礎控除引上げ（48万→58万）に対応して住民税も引上げ（43万→?万）の見込み"
     }
   },
-
   "adjustment_deduction": {
     "_comment": "調整控除。人的控除の所得税・住民税間の差額 × 税率で算出。",
     "records": [
@@ -313,13 +387,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2007-06-01",
         "effective_to": null,
         "component": "adjustment_deduction",
-        "municipal_rate": { "num": "3", "den": "100" },
-        "prefectural_rate": { "num": "2", "den": "100" },
-        "combined_rate": { "num": "5", "den": "100" },
+        "municipal_rate": {
+          "num": "3",
+          "den": "100"
+        },
+        "prefectural_rate": {
+          "num": "2",
+          "den": "100"
+        },
+        "combined_rate": {
+          "num": "5",
+          "den": "100"
+        },
         "rate_base": "人的控除の差の合計額（所得税の控除額 − 住民税の控除額）",
         "applicability_conditions": [
           {
@@ -335,7 +420,23 @@
         "source_locator": "地方税法37条1号（道府県 百分の二）、314条の6第1号（市町村 百分の三）",
         "as_of_date": "2026-08-24",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "approved",
+        "threshold_taxable_income": {
+          "unit": "JPY",
+          "value": "2000000"
+        },
+        "minimum_base_amount": {
+          "unit": "JPY",
+          "value": "50000"
+        },
+        "eligibility_income_cap": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "_formula_below_threshold": "合計課税所得金額が200万円以下: min(人的控除の差の合計額, 合計課税所得金額) × 率",
+        "_formula_above_threshold": "200万円超: {人的控除の差の合計額 − (合計課税所得金額 − 200万円)} × 率。この額が5万円×率を下回る場合は5万円×率（市3%なら1,500円・県2%なら1,000円、合計2,500円が下限）",
+        "_verbatim_above": "地方税法37条2号: 人的控除差の合計額から当該課税総所得金額から二百万円を控除した金額を控除した金額（当該金額が五万円を下回る場合には、五万円）の百分の二に相当する金額（314条の6第2号は百分の三）",
+        "_machine_fields_added": "2026-08-27 追記。200万円の分岐・5万円の最低基準・合計所得2,500万円の適用上限は _two_cases の文章にしか無く、エンジンが定数を持たざるを得なかったため条文から機械可読化した"
       },
       {
         "record_id": "RT-ADJUST-DESIGNATED-CITY",
@@ -352,13 +453,24 @@
         "applies_to_transaction_to": null,
         "master_name": "resident_tax_master",
         "tax_or_insurance_type": "resident_tax",
-        "jurisdiction": { "country": "JP" },
+        "jurisdiction": {
+          "country": "JP"
+        },
         "effective_from": "2018-01-01",
         "effective_to": null,
         "component": "adjustment_deduction",
-        "municipal_rate": { "num": "4", "den": "100" },
-        "prefectural_rate": { "num": "1", "den": "100" },
-        "combined_rate": { "num": "5", "den": "100" },
+        "municipal_rate": {
+          "num": "4",
+          "den": "100"
+        },
+        "prefectural_rate": {
+          "num": "1",
+          "den": "100"
+        },
+        "combined_rate": {
+          "num": "5",
+          "den": "100"
+        },
         "rate_base": "人的控除の差の合計額（所得税の控除額 − 住民税の控除額）",
         "applicability_conditions": [
           {
@@ -373,7 +485,23 @@
         "source_locator": "地方税法37条1号括弧書（指定都市は百分の一）、314条の6第1号括弧書（指定都市は百分の四）",
         "as_of_date": "2026-08-24",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "approved",
+        "threshold_taxable_income": {
+          "unit": "JPY",
+          "value": "2000000"
+        },
+        "minimum_base_amount": {
+          "unit": "JPY",
+          "value": "50000"
+        },
+        "eligibility_income_cap": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "_formula_below_threshold": "合計課税所得金額が200万円以下: min(人的控除の差の合計額, 合計課税所得金額) × 率",
+        "_formula_above_threshold": "200万円超: {人的控除の差の合計額 − (合計課税所得金額 − 200万円)} × 率。この額が5万円×率を下回る場合は5万円×率（市3%なら1,500円・県2%なら1,000円、合計2,500円が下限）",
+        "_verbatim_above": "地方税法37条2号: 人的控除差の合計額から当該課税総所得金額から二百万円を控除した金額を控除した金額（当該金額が五万円を下回る場合には、五万円）の百分の二に相当する金額（314条の6第2号は百分の三）",
+        "_machine_fields_added": "2026-08-27 追記。200万円の分岐・5万円の最低基準・合計所得2,500万円の適用上限は _two_cases の文章にしか無く、エンジンが定数を持たざるを得なかったため条文から機械可読化した"
       }
     ]
   }
