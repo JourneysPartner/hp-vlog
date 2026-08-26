@@ -421,6 +421,95 @@
       "_master_dependency": [
         "income_deduction_spouse"
       ]
+    },
+    {
+      "case_id": "GC-SI-TOKYO-R7-410",
+      "target_module": "social_insurance_monthly_premium",
+      "kind": "table_derived",
+      "description": "東京・令和7年5月分・39歳・報酬月額41万円の社会保険料（50銭ちょうどの本人負担を切捨て）",
+      "source": {
+        "document_id": "KYOKAI-KENPO-HEALTH",
+        "url": "https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures",
+        "locator": "令和7年度東京都9.91%・保険料額表欄外の被保険者負担端数注記。厚生年金は日本年金機構の保険料計算方法も参照",
+        "law_version": "令和7年度",
+        "retrieved_at": "2026-08-26",
+        "usage": "標準報酬月額、健康保険料率、厚生年金料率、労使折半後の期待額"
+      },
+      "inputs": {
+        "premium_month": "2025-05",
+        "prefecture_code": "13",
+        "age": 39,
+        "insurer_type": "kyokai_kenpo",
+        "monthly_remuneration": "410000"
+      },
+      "expected": {
+        "health_standard_remuneration": "410000",
+        "health_total": "40631",
+        "health_employee": "20315",
+        "health_employer": "20316",
+        "employees_pension_standard_remuneration": "410000",
+        "employees_pension_total": "75030",
+        "employees_pension_employee": "37515",
+        "employees_pension_employer": "37515"
+      },
+      "_additional_sources": [
+        "https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20121017.html"
+      ],
+      "_master_dependency": [
+        "health_insurance_standard_remuneration_grades",
+        "employees_pension_standard_remuneration_grades",
+        "health_insurance_rate_total",
+        "employees_pension_rate_total"
+      ]
+    },
+    {
+      "case_id": "GC-SI-TOKYO-R8-KAIGO",
+      "target_module": "social_insurance_monthly_premium",
+      "kind": "table_derived",
+      "description": "東京・令和8年5月分・45歳・報酬月額41万円の介護保険・子ども子育て支援金込み社会保険料",
+      "source": {
+        "document_id": "MHLW-SUPPORT-R8",
+        "url": "https://www.cfa.go.jp/policies/kodomokosodateshienkinseido",
+        "locator": "令和8年4月分以後の支援金率0.23%。協会けんぽ令和8年度東京都9.85%・介護1.62%も参照",
+        "law_version": "令和8年度",
+        "retrieved_at": "2026-08-26",
+        "usage": "健康保険・介護保険・支援金の合算率と労使折半後の期待額"
+      },
+      "inputs": {
+        "premium_month": "2026-05",
+        "prefecture_code": "13",
+        "age": 45,
+        "insurer_type": "kyokai_kenpo",
+        "monthly_remuneration": "410000"
+      },
+      "expected": {
+        "health_standard_remuneration": "410000",
+        "health_combined_rate_num": "117",
+        "health_combined_rate_den": "1000",
+        "health_total": "47970",
+        "health_employee": "23985",
+        "health_employer": "23985",
+        "employees_pension_standard_remuneration": "410000",
+        "employees_pension_total": "75030",
+        "employees_pension_employee": "37515",
+        "employees_pension_employer": "37515",
+        "child_support_levy_total": "1476",
+        "child_support_levy_employee": "0",
+        "child_support_levy_employer": "1476"
+      },
+      "_additional_sources": [
+        "https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures",
+        "https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20121017.html"
+      ],
+      "_master_dependency": [
+        "health_insurance_standard_remuneration_grades",
+        "employees_pension_standard_remuneration_grades",
+        "health_insurance_rate_total",
+        "nursing_care_insurance_rate_total",
+        "child_rearing_support_rate",
+        "employees_pension_rate_total",
+        "child_support_levy_rate"
+      ]
     }
   ]
 }
