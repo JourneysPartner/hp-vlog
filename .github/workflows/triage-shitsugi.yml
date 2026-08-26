@@ -1,0 +1,111 @@
+name: Triage Shitsugi Candidates
+
+# 質疑応答事例候補の LLM 全件選別（段階1.5）。手動実行のみ。
+# 選別結果は triage/shitsugi-* ブランチの PR として出し、
+# 人の検収（不適切候補が reject されているか等）を経てマージする。
+# 自動マージはしない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '選別済みの候補も判定し直す場合は true'
+        required: false
+        default: 'false'
+      limit:
+        description: '判定する件数の上限（動作確認用。空なら全件）'
+        required: false
+        default: ''
+
+concurrency:
+  group: triage-shitsugi
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run triage
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_TRIAGE_MODEL: ${{ vars.LLM_TRIAGE_MODEL }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
+          if [ -n "${{ github.event.inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"; fi
+          node scripts/triage-shitsugi-topics.js $ARGS
+
+      - name: Create PR with triage results
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet data/nta-shitsugi-topics-candidate.json; then
+            echo "::notice::選別結果に変更なし（すべて選別済み、または全バッチ失敗）。PR は作成しません"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          STAMP=$(date -u +%Y%m%d-%H%M)
+          BRANCH="triage/shitsugi-${STAMP}"
+          git checkout -b "$BRANCH"
+          git add data/nta-shitsugi-topics-candidate.json
+          git commit -m "triage: 質疑応答候補の LLM 選別結果 (${STAMP})"
+          git push origin "$BRANCH"
+
+          # 集計を PR 本文に載せる
+          SUMMARY=$(node -e "
+            const d = require('./data/nta-shitsugi-topics-candidate.json');
+            const cs = d.candidates || [];
+            const t = cs.filter(c => c.llm_triage && c.llm_triage.decision);
+            const adopt = t.filter(c => c.llm_triage.decision === 'adopt').length;
+            const corrected = t.filter(c => c.llm_triage.corrected_persona).length;
+            const wasAdopted = cs.filter(c => c.adopted === true);
+            const flipped = wasAdopted.filter(c => c.llm_triage && c.llm_triage.decision === 'reject').length;
+            console.log('| 指標 | 件数 |');
+            console.log('|---|---|');
+            console.log('| 候補総数 | ' + cs.length + ' |');
+            console.log('| 選別済み | ' + t.length + ' |');
+            console.log('| adopt | ' + adopt + ' |');
+            console.log('| reject | ' + (t.length - adopt) + ' |');
+            console.log('| 読者想定の補正 | ' + corrected + ' |');
+            console.log('| 手動採用だったが reject に変わったもの | ' + flipped + ' |');
+          ")
+
+          PR_BODY=$(cat <<PREOF
+          ## 質疑応答候補の LLM 選別結果
+
+          ${SUMMARY}
+
+          ### 検収の観点（マージ前に確認）
+          - 分類表・一覧ページ（例: 日本標準産業分類からみた事業区分）が reject になっているか
+          - 顧客層の外（公益法人・金融商品等）が reject になっているか
+          - 正当な候補（例: 土地付建物の仲介手数料の仕入税額控除）が adopt のままか
+          - reject 理由の抜き取り確認
+
+          マージすると、日次生成の接続対象が「LLM選別で adopt になった候補」に切り替わります。
+          記事1本ごとの公開前の手動承認は変わりません。
+          PREOF
+          )
+
+          if PR_URL=$(gh pr create \
+            --title "質疑応答候補の LLM 選別結果 (${STAMP})" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" 2>&1); then
+            echo "::notice::PR を作成しました: ${PR_URL}"
+          else
+            echo "::error::PR の作成に失敗しました: ${PR_URL}"
+            exit 1
+          fi
