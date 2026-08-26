@@ -133,9 +133,21 @@
         "is_divided": "yes",
         "apply_spouse_relief": false,
         "heirs": [
-          { "id": "wife", "relation": "spouse", "taxable_price": "100000000" },
-          { "id": "child-1", "relation": "child", "taxable_price": "50000000" },
-          { "id": "child-2", "relation": "child", "taxable_price": "50000000" }
+          {
+            "id": "wife",
+            "relation": "spouse",
+            "taxable_price": "100000000"
+          },
+          {
+            "id": "child-1",
+            "relation": "child",
+            "taxable_price": "50000000"
+          },
+          {
+            "id": "child-2",
+            "relation": "child",
+            "taxable_price": "50000000"
+          }
         ]
       },
       "expected": {
@@ -172,9 +184,21 @@
         "is_divided": "yes",
         "apply_spouse_relief": true,
         "heirs": [
-          { "id": "wife", "relation": "spouse", "taxable_price": "100000000" },
-          { "id": "child-1", "relation": "child", "taxable_price": "50000000" },
-          { "id": "child-2", "relation": "child", "taxable_price": "50000000" }
+          {
+            "id": "wife",
+            "relation": "spouse",
+            "taxable_price": "100000000"
+          },
+          {
+            "id": "child-1",
+            "relation": "child",
+            "taxable_price": "50000000"
+          },
+          {
+            "id": "child-2",
+            "relation": "child",
+            "taxable_price": "50000000"
+          }
         ]
       },
       "expected": {
@@ -509,6 +533,74 @@
         "child_rearing_support_rate",
         "employees_pension_rate_total",
         "child_support_levy_rate"
+      ]
+    },
+    {
+      "case_id": "GC-RT-FULL-500",
+      "target_module": "resident_tax",
+      "kind": "table_derived",
+      "description": "住民税の全工程。非指定都市・単身・前年の総所得金額500万円・社会保険料控除100万円",
+      "source": {
+        "document_id": "SOUMU-RESIDENT-TAX",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+        "locator": "地方税法34条2項（基礎控除43万円）・35条/314条の3（所得割4%/6%）・37条/314条の6（調整控除。200万円超は{人的控除差−(課税所得−200万)}×率、5万円が下限）・38条/310条（均等割1,000円/3,000円）＋森林環境税法（年額1,000円）",
+        "law_version": "現行（2026-08-27 取得）",
+        "retrieved_at": "2026-08-27",
+        "usage": "条文の税率・金額のみ"
+      },
+      "inputs": {
+        "municipality": "13113（非指定都市扱い）",
+        "previous_year_total_income": "5000000",
+        "social_insurance_deduction": "1000000"
+      },
+      "expected": {
+        "resident_basic_deduction": "430000",
+        "taxable_total_income": "3570000",
+        "municipal_income_levy": "212700",
+        "prefectural_income_levy": "141800",
+        "adjustment_deduction_municipal": "1500",
+        "adjustment_deduction_prefectural": "1000",
+        "per_capita_total": "4000",
+        "forest_environment_tax": "1000",
+        "annual_tax_total": "359500"
+      },
+      "_note": "調整控除は課税所得200万円超で{5万−157万}が5万円の下限を割るため、下限5万円×市3%＝1,500円・県2%＝1,000円になる。5万円の下限が効く値を意図的に選んだ。所得税の基礎控除63万円（令和7年分）と違い、住民税は43万円のままである点も本ケースが固定する",
+      "_master_dependency": [
+        "resident_tax_basic_deduction_table",
+        "resident_tax_income_rate",
+        "resident_tax_adjustment_deduction_rate",
+        "resident_tax_adjustment_difference",
+        "resident_tax_per_capita_municipal",
+        "resident_tax_per_capita_prefectural",
+        "forest_environment_tax"
+      ]
+    },
+    {
+      "case_id": "GC-RT-EXEMPT-44",
+      "target_module": "resident_tax",
+      "kind": "table_derived",
+      "description": "住民税の非課税。単身・前年の合計所得44万円 → 均等割の非課税限度額45万円以下で全額0円",
+      "source": {
+        "document_id": "SOUMU-RESIDENT-TAX-ORDER",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/325CO0000000245",
+        "locator": "地方税法施行令47条の3（基本額35万円×(本人+同一生計配偶者+扶養親族)＋10万円＋扶養等ありなら加算21万円。単身は45万円）",
+        "law_version": "現行",
+        "retrieved_at": "2026-08-27",
+        "usage": "算式のみ"
+      },
+      "inputs": {
+        "municipality": "13113",
+        "previous_year_total_income": "440000"
+      },
+      "expected": {
+        "annual_tax_total": "0",
+        "warning": "RT_EXEMPTION_STANDARD_AMOUNT_ESTIMATE"
+      },
+      "_note": "基本額35万円は級地区分で下がりうる上限（標準額）のため、非課税の判定結果には標準額による概算の警告が必ず付く。均等割が非課税なら森林環境税・所得割も0円",
+      "_master_dependency": [
+        "resident_tax_per_capita_exemption_base",
+        "resident_tax_per_capita_exemption_flat",
+        "resident_tax_per_capita_exemption_addition"
       ]
     }
   ]
