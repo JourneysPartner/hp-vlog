@@ -95,6 +95,16 @@ function multiplyRateByMoney(rateValue, moneyValue) {
   };
 }
 
+function multiplyRateByExact(rateValue, exactValue) {
+  const checkedRate = rate(rateValue);
+  const checkedExact = exact(exactValue);
+  return {
+    unit: 'JPY',
+    num: checkedRate.num * checkedExact.num,
+    den: checkedRate.den * checkedExact.den,
+  };
+}
+
 function multiplyAreaByMoney(areaValue, unitPrice) {
   const checkedArea = area(areaValue);
   const checkedPrice = money(unitPrice);
@@ -157,6 +167,7 @@ module.exports = {
   area,
   moneyToExact,
   multiplyRateByMoney,
+  multiplyRateByExact,
   multiplyAreaByMoney,
   addExact,
   subtractExact,

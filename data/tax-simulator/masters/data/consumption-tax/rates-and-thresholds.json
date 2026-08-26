@@ -202,6 +202,43 @@
       "as_of_date": "2026-08-23",
       "legal_status": "effective",
       "data_review_status": "approved"
+    },
+    {
+      "record_id": "CT-FULL-DEDUCTION-CAP",
+      "value_key": "full_deduction_taxable_sales_cap",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": null,
+      "verified_at": "2026-08-27",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "tax_or_insurance_type": "consumption_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "master_name": "consumption_tax_master",
+      "description": "仕入税額の全額控除の上限: 課税期間中の課税売上高（年換算）",
+      "threshold_amount": {
+        "unit": "JPY",
+        "value": "500000000"
+      },
+      "comparison": "less_than_or_equal",
+      "effect": "課税売上高5億円以下かつ課税売上割合95%以上の場合に限り、課税仕入れ等の税額の全額を控除できる。超える場合は個別対応方式または一括比例配分方式",
+      "_verbatim": "消費税法30条2項: 当該課税期間における課税売上高が五億円を超えるとき、又は当該課税期間における課税売上割合が百分の九十五に満たないときは…課税仕入れ等の税額の合計額は、次の各号に掲げる場合の区分に応じ当該各号に定める方法により計算した金額とする",
+      "_ratio_note": "95%の課税売上割合の閾値も同項にある。割合は分数（課税売上高÷総売上高）で判定し、率のレコード化は個別対応方式の実装時に行う",
+      "_why_added": "2026-08-27 追加。エンジンが5億円を定数で持たざるを得なかったため（§3-1）。平成24年4月1日以後に開始する課税期間から適用",
+      "effective_from": "2012-04-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CONSUMPTION-TAX-ACT",
+      "source_locator": "消費税法30条2項柱書",
+      "source_hash": null,
+      "as_of_date": "2026-08-27",
+      "legal_status": "effective",
+      "data_review_status": "approved"
     }
   ],
   "_simplified_source": {

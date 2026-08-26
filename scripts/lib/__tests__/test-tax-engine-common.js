@@ -15,6 +15,7 @@ const {
   area,
   moneyToExact,
   multiplyRateByMoney,
+  multiplyRateByExact,
   multiplyAreaByMoney,
   addExact,
   subtractExact,
@@ -221,6 +222,27 @@ console.log('\n=== 検証5: マスタースナップショット ===');
   assert(throws(() => masters.find('income_tax_brackets', {
     onDate: '2025-01-01', taxYear: 2025,
   }), 'いずれか1つ'), '検索基準を複数指定したら拒否する');
+}
+
+console.log('\n=== Rate × Exact（消費税エンジンで必要になり追加された演算） ===');
+{
+  // 税込11,000,000×100/110（Exact）に 7.8% を掛ける。分数のまま閉じること。
+  // 率は既約化されるため表現は検査せず、交差乗算の同値性で「途中で丸めていない」ことを固定する。
+  const base = multiplyRateByMoney(rate({ num: 100n, den: 110n }),
+    money({ unit: 'JPY', value: 11000000n }));
+  const tax = multiplyRateByExact(rate({ num: 78n, den: 1000n }), base);
+  assert(compareExact(tax, { unit: 'JPY', num: 780000n, den: 1n }) === 0,
+    '11,000,000×100/110×78/1000 ＝ 780,000円（通分比較）');
+  // 中間値が割り切れない入力でも厳密に等しいこと（丸めていれば必ずずれる）
+  const base2 = multiplyRateByMoney(rate({ num: 100n, den: 110n }),
+    money({ unit: 'JPY', value: 11000001n }));
+  const tax2 = multiplyRateByExact(rate({ num: 78n, den: 1000n }), base2);
+  assert(compareExact(tax2,
+    { unit: 'JPY', num: 11000001n * 100n * 78n, den: 110n * 1000n }) === 0,
+    '割り切れない中間値でも分数のまま厳密に等しい（途中で丸めていない）');
+  let threw = false;
+  try { multiplyRateByExact(rate({ num: 1n, den: 0n }), base); } catch (e) { threw = true; }
+  assert(threw, '分母0の率は構築時に拒否される');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

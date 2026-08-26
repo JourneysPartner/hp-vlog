@@ -754,6 +754,16 @@
       "coverage_basis": "none",
       "note": "令和8年度は医療分8.61%/20,550円/平等割32,540円、支援金分2.56%/6,330円/平等割10,010円、子ども支援分0.29%/1,100円/平等割1,000円、介護分2.33%/6,020円/平等割7,550円。均等割は低いが平等割が高く、世帯人数が少ないほど1人当たりの負担が重い",
       "url_verified": true
+    },
+    "EGOV-CONSUMPTION-TAX-ACT": {
+      "label": "消費税法（昭和63年法律第108号）",
+      "kind": "law",
+      "url": "https://laws.e-gov.go.jp/api/1/lawdata/363AC0000000108",
+      "law_id": "363AC0000000108",
+      "update_cycle": "on_reform",
+      "coverage_basis": "none",
+      "note": "30条2項が仕入税額の全額控除の要件（課税売上高5億円以下かつ課税売上割合95%以上）。37条が簡易課税。",
+      "url_verified": true
     }
   }
 }
