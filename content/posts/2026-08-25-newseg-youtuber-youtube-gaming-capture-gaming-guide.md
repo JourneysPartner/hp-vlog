@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "キャプチャボードや配信用PCなど10万円未満の機材は全額即時経費。10万円以上は取得価額と申告方法によって少額特例・一括償却・減価償却の3パターンに分かれる。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-25T16:04:56.855+09:00"
 publish_at: "2026-08-26T11:34:00.000+09:00"
-published_at: ""
+published_at: "2026-08-26T12:00:56.199+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-25T00:05:48.995Z"
-updated_at: "2026-08-25T16:04:56.855+09:00"
+updated_at: "2026-08-26T12:00:56.199+09:00"
 publish_slot: "morning"
 ---
 キャプチャボードを買ったけど、これって確定申告でどう処理すればいいんだろう——そんな疑問を抱えたまま決算時期を迎えるゲーム実況者の方は少なくありません。
