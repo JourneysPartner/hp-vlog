@@ -6,8 +6,8 @@ const path = require('path');
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
-const { TOPICS, getShitsugiTopicStats } = require('./topic-pool');
-const { selectDailyTopics, isShitsugiTopic } = require('./lib/topic-selector');
+const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats } = require('./topic-pool');
+const { selectDailyTopics, demandKindOf } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
@@ -612,9 +612,10 @@ async function pickPair(dateStr) {
         const pool = TOPICS.filter(t => !usedSlugs.has(t.slug));
         if (pool.length > 0) {
           const { picks: repicks } = selectDailyTopics(pool, { now: new Date(), extraCorpus: pendingDrafts });
-          const alreadyHasShitsugi = filtered.some(isShitsugiTopic);
+          // 既に選ばれている需要の証拠と同じ種類は補充しない（1日1件の上限を保つ）
+          const pickedKinds = new Set(filtered.map(demandKindOf).filter(Boolean));
           const candidates = repicks.filter(r => (
-            !usedSlugs.has(r.slug) && !(alreadyHasShitsugi && isShitsugiTopic(r))
+            !usedSlugs.has(r.slug) && !(demandKindOf(r) && pickedKinds.has(demandKindOf(r)))
           ));
           if (candidates.length > 0) {
             const needed = 2 - filtered.length;
@@ -2170,6 +2171,12 @@ async function main() {
   const args = process.argv.slice(2);
   const shitsugiStats = getShitsugiTopicStats();
   console.log(`[generate] 質疑応答由来の候補: ${shitsugiStats.included}件（変換スキップ ${shitsugiStats.skipped}件）`);
+  const suggestStats = getSuggestTopicStats();
+  if (suggestStats.total > 0 || suggestStats.disabled) {
+    console.log(`[generate] 検索需要由来の候補: ${suggestStats.included}件` +
+      `${suggestStats.invalid ? `（形式不正スキップ ${suggestStats.invalid}件）` : ''}` +
+      `${suggestStats.disabled ? '（無効化中）' : ''}`);
+  }
 
   // ── 選定 dry-run モード（OpenAI を呼ばずに選定結果のみ出力）──
   if (args.includes('--explain') || args.includes('--dry-run')) {
