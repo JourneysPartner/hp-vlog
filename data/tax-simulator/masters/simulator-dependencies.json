@@ -242,6 +242,14 @@
           "value_keys": [
             "taxable_sales_exemption_threshold"
           ]
+        },
+        {
+          "_basis": "仕様書 §47（税制年度）。課税期間は暦年（個人）・事業年度（法人）を起点に解釈する。どのシミュレーターも対応年の宣言（supported_tax_year）と期間の起算（tax_period_basis）を前提とするため、全シミュレーターの必須とする（2026-08-26 の全体レビューで②③に欠けていたことが判明）。",
+          "value_keys": [
+            "supported_tax_year",
+            "tax_period_basis",
+            "era_definition"
+          ]
         }
       ],
       "optional": [
@@ -291,6 +299,14 @@
             "statutory_heir_count_renunciation_rule",
             "statutory_heir_count_adopted_limit",
             "statutory_heir_count_deemed_real_child"
+          ]
+        },
+        {
+          "_basis": "仕様書 §47（税制年度）。相続開始日がどの対応年に属するかで適用マスターが決まる。どのシミュレーターも対応年の宣言（supported_tax_year）と期間の起算（tax_period_basis）を前提とするため、全シミュレーターの必須とする（2026-08-26 の全体レビューで②③に欠けていたことが判明）。",
+          "value_keys": [
+            "supported_tax_year",
+            "tax_period_basis",
+            "era_definition"
           ]
         }
       ],
