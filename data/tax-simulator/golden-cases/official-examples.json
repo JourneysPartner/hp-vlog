@@ -722,6 +722,102 @@
         "enterprise_tax_income_brackets",
         "special_enterprise_tax_rate"
       ]
+    },
+    {
+      "case_id": "GC-NHI-SHIBUYA-500",
+      "target_module": "national_health_insurance_premium",
+      "kind": "table_derived",
+      "description": "渋谷区・令和8年度・単身40歳未満・前年の総所得金額500万円の国民健康保険料",
+      "source": {
+        "document_id": "NHI-SHIBUYA+EGOV-NHI-ORDER",
+        "url": "https://www.city.shibuya.tokyo.jp/kurashi/kokuho/kenkohokenryo/hokenryo_26.html",
+        "locator": "令和8年度国民健康保険料率の表、国民健康保険法施行令29条の7",
+        "law_version": "令和8年度",
+        "retrieved_at": "2026-08-25",
+        "usage": "所得割率・均等割額・賦課限度額と算式"
+      },
+      "inputs": {
+        "municipality_code": "13113",
+        "tax_year": 2026,
+        "previous_year_total_income": "5000000",
+        "insured_ages": [39]
+      },
+      "expected": {
+        "assessment_base": "4570000",
+        "medical_income_levy": "343207",
+        "medical_per_capita_levy": "47600",
+        "medical": "390807",
+        "elderly_support_income_levy": "127960",
+        "elderly_support_per_capita_levy": "17600",
+        "elderly_support": "145560",
+        "child_rearing_support_income_levy": "12339",
+        "child_rearing_support_per_capita_levy": "1873",
+        "child_rearing_support": "14212",
+        "nursing_care": "0",
+        "annual_premium": "550579"
+      },
+      "_additional_sources": [
+        "https://laws.e-gov.go.jp/law/333CO0000000362"
+      ],
+      "_master_dependency": [
+        "national_health_insurance_municipal_rate",
+        "national_health_insurance_reduction_base_amount",
+        "national_health_insurance_reduction_rate"
+      ]
+    },
+    {
+      "case_id": "GC-IBT-TYPE3-500",
+      "target_module": "individual_business_tax",
+      "kind": "table_derived",
+      "description": "第3種事業（一般5%）・所得500万円・12か月の個人事業税",
+      "source": {
+        "document_id": "SOUMU-INDIVIDUAL-BUSINESS-TAX",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/325AC0000000226",
+        "locator": "地方税法72条の49の17・72条の49の14",
+        "law_version": "現行",
+        "retrieved_at": "2026-08-25",
+        "usage": "第3種事業の標準税率と事業主控除"
+      },
+      "inputs": {
+        "business_category": "type3_standard",
+        "business_income": "5000000",
+        "business_months": 12
+      },
+      "expected": {
+        "owner_deduction": "2900000",
+        "taxable_base": "2100000",
+        "tax_amount": "105000"
+      },
+      "_master_dependency": [
+        "individual_business_tax_rate",
+        "individual_business_tax_owner_deduction"
+      ]
+    },
+    {
+      "case_id": "GC-NP-R8",
+      "target_module": "national_pension",
+      "kind": "table_derived",
+      "description": "令和8年度・12か月・付加保険料なしの国民年金保険料",
+      "source": {
+        "document_id": "NENKIN-NATL",
+        "url": "https://www.nenkin.go.jp/service/kokunen/hokenryo/hensen.html",
+        "locator": "国民年金保険料の変遷 令和8年4月〜令和9年3月 定額",
+        "law_version": "令和8年度",
+        "retrieved_at": "2026-08-24",
+        "usage": "令和8年度の月額保険料"
+      },
+      "inputs": {
+        "tax_year": 2026,
+        "payment_months": 12,
+        "include_additional_premium": false
+      },
+      "expected": {
+        "monthly_premium": "17920",
+        "total_premium": "215040"
+      },
+      "_master_dependency": [
+        "national_pension_monthly_premium"
+      ]
     }
   ]
 }
