@@ -1,0 +1,61 @@
+{
+  "note": "季節ブーストの定義。月は日本時間。boost_months は需要ピークの約1か月前〜当月。",
+  "entries": [
+    {
+      "id": "kakutei-shinkoku",
+      "label": "確定申告",
+      "boost_months": [1, 2, 3],
+      "tax_domains": ["income_tax", "bookkeeping_expenses"],
+      "keywords": ["確定申告", "青色申告", "収支内訳書", "決算書", "医療費控除", "ふるさと納税"]
+    },
+    {
+      "id": "shohizei-kojin-shinkoku",
+      "label": "個人事業者の消費税申告",
+      "boost_months": [1, 2, 3],
+      "tax_domains": ["consumption_tax", "invoice_system"],
+      "keywords": ["消費税の申告", "簡易課税", "2割特例", "インボイス"]
+    },
+    {
+      "id": "nenmatsu-chosei",
+      "label": "年末調整",
+      "boost_months": [10, 11, 12],
+      "tax_domains": ["withholding"],
+      "keywords": ["年末調整", "扶養控除", "保険料控除", "源泉徴収票"]
+    },
+    {
+      "id": "zoyo-kakekomi",
+      "label": "贈与の年内実行",
+      "boost_months": [9, 10, 11, 12],
+      "tax_domains": ["inheritance_tax"],
+      "keywords": ["贈与", "暦年課税", "相続時精算課税", "教育資金", "住宅取得等資金"]
+    },
+    {
+      "id": "shokyaku-shisan-chosho",
+      "label": "償却資産申告・法定調書",
+      "boost_months": [12, 1],
+      "tax_domains": ["bookkeeping_expenses", "withholding"],
+      "keywords": ["償却資産", "法定調書", "支払調書", "給与支払報告書"]
+    },
+    {
+      "id": "kessan-3gatsu",
+      "label": "3月決算法人の申告",
+      "boost_months": [3, 4, 5],
+      "tax_domains": ["bookkeeping_expenses"],
+      "keywords": ["決算", "法人税の申告", "役員報酬", "決算賞与", "少額減価償却"]
+    },
+    {
+      "id": "yotei-nozei",
+      "label": "予定納税",
+      "boost_months": [6, 7, 11],
+      "tax_domains": ["income_tax"],
+      "keywords": ["予定納税", "減額申請"]
+    },
+    {
+      "id": "gensen-noki-tokurei",
+      "label": "源泉所得税の納期の特例",
+      "boost_months": [6, 7, 12, 1],
+      "tax_domains": ["withholding"],
+      "keywords": ["納期の特例", "源泉所得税の納付"]
+    }
+  ]
+}

@@ -27,7 +27,10 @@ const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
-const { isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit } = require('./customer-relevance');
+const {
+  isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit, scoreLeadValue,
+} = require('./customer-relevance');
+const { seasonBoost, matchingSeasonEntries } = require('./tax-calendar');
 
 const SIM_THRESHOLD_VS_CORPUS  = 0.55;
 const SIM_THRESHOLD_BETWEEN_PAIR = 0.45;
@@ -64,6 +67,94 @@ function pairSim(a, b) {
     { ...a, slug: a.slug },
     { ...b, primary_persona: b.persona }
   ).score;
+}
+
+function isShitsugiTopic(topic = {}) {
+  return topic.demand_evidence && topic.demand_evidence.kind === 'nta-shitsugi';
+}
+
+function priorityBreakdown(topic, now) {
+  const demand = topic.demand_evidence ? 1 : 0;
+  const season = seasonBoost(topic, now);
+  const seasonEntries = season ? matchingSeasonEntries(topic, now) : [];
+  const lead = (scoreLeadValue(topic) - 2) / 3;
+  return {
+    demand,
+    season,
+    lead,
+    priority: demand * 3 + season * 2 + lead,
+    seasonLabels: seasonEntries.map(entry => entry.label),
+  };
+}
+
+function rankBySelectionPriority(scored, now) {
+  return scored
+    .map(entry => {
+      const priorityParts = priorityBreakdown(entry.topic, now);
+      return { ...entry, priority: priorityParts.priority, priorityParts };
+    })
+    .sort((a, b) => {
+      const priorityDiff = (b.priority || 0) - (a.priority || 0);
+      return priorityDiff || (b.balance || 0) - (a.balance || 0);
+    });
+}
+
+function selectionReason(topic, parts) {
+  const reasons = [];
+  if (parts.demand) {
+    const evidence = topic.demand_evidence || {};
+    reasons.push(`需要の証拠あり(${evidence.kind || '不明'}${evidence.score == null ? '' : ` score=${evidence.score}`})`);
+  }
+  if (parts.season) reasons.push(`季節(${parts.seasonLabels.join('・') || '該当月'})`);
+  if (parts.lead > 0) reasons.push(`問い合わせ近接度(${parts.lead.toFixed(2)})`);
+  if (reasons.length === 0) reasons.push('カテゴリバランス');
+  return `${reasons.join(' + ')} で優先`;
+}
+
+function explainPick(topic, scored) {
+  const entry = scored.find(s => s.topic === topic || s.topic.slug === topic.slug);
+  const parts = entry ? entry.priorityParts : { demand: 0, season: 0, lead: 0, priority: 0, seasonLabels: [] };
+  return {
+    slug: topic.slug, title: topic.title,
+    macro: topic.macro, cluster: topic.cluster, subcluster: topic.subcluster,
+    persona: topic.persona, category: topic.category,
+    article_type: topic.article_type,
+    article_role: MAIN_TYPES.has(topic.article_type) ? 'main' : 'support',
+    priority: Number((parts.priority || 0).toFixed(3)),
+    priority_breakdown: {
+      demand: parts.demand || 0,
+      season: parts.season || 0,
+      lead: Number((parts.lead || 0).toFixed(3)),
+      balance: Number(((entry && entry.balance) || 0).toFixed(3)),
+    },
+    season_labels: parts.seasonLabels || [],
+    reason: selectionReason(topic, parts),
+  };
+}
+
+function enforceShitsugiDailyLimit(picks, scored) {
+  const limited = picks.slice();
+  const shitsugiIndexes = limited
+    .map((topic, index) => ({ topic, index }))
+    .filter(item => isShitsugiTopic(item.topic));
+  if (shitsugiIndexes.length <= 1) return limited;
+
+  shitsugiIndexes.sort((a, b) => {
+    const aEntry = scored.find(s => s.topic === a.topic);
+    const bEntry = scored.find(s => s.topic === b.topic);
+    return ((bEntry && bEntry.priority) || 0) - ((aEntry && aEntry.priority) || 0);
+  });
+  const keep = shitsugiIndexes[0].topic;
+  const replaceIndex = limited.findIndex(topic => topic !== keep && isShitsugiTopic(topic));
+  const remaining = limited.filter((_, index) => index !== replaceIndex);
+  const replacement = scored.find(entry => {
+    if (isShitsugiTopic(entry.topic) || remaining.includes(entry.topic)) return false;
+    return remaining.every(topic => pairSim(topic, entry.topic) < SIM_THRESHOLD_BETWEEN_PAIR);
+  });
+
+  if (replacement) limited[replaceIndex] = replacement.topic;
+  else limited.splice(replaceIndex, 1);
+  return limited;
 }
 
 /**
@@ -107,45 +198,29 @@ function buildBestPair(scored, candidatesAll) {
   if (scored.length === 0) return [];
   if (scored.length === 1) return [scored[0].topic];
 
-  // 1. pair_group full pair: 同じ pair_group に main + support が揃っているもの
-  const groups = {};
-  for (const s of scored) {
-    const g = s.topic.pair_group;
-    if (!g) continue;
-    (groups[g] = groups[g] || []).push(s);
-  }
-  // main + support の両方が揃っている pair_group だけを採用
-  const fullPairs = Object.entries(groups)
-    .map(([k, arr]) => {
-      const mainEntry = arr.find(s => isMain(s.topic));
-      const supEntry  = arr.find(s => isSupport(s.topic));
-      if (mainEntry && supEntry) {
-        return { key: k, main: mainEntry, support: supEntry,
-                 total: (mainEntry.balance || 0) + (supEntry.balance || 0) };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  if (fullPairs.length > 0) {
-    // balance score 合計が最も高いペアを採用
-    fullPairs.sort((a, b) => b.total - a.total);
-    const best = fullPairs[0];
-    return [best.main.topic, best.support.topic];
-  }
-
-  // 2. ペアグループが組めない → anchor + complement を探索
-  // scored 上位から順に anchor とし、役割逆の complement を探す
-  for (let i = 0; i < scored.length; i++) {
-    const anchor = scored[i];
-    const excludeSet = new Set([anchor.topic]);
-    const comp = findComplement(anchor.topic, scored, excludeSet);
-    if (comp && isMain(anchor.topic) !== isMain(comp.topic)) {
-      // 役割逆が見つかった → main を先頭にして返す
+  // 1. 複合優先度が最も高い候補を anchor にする。同じ pair_group に
+  //    役割が逆の相方がいれば、既存の本命+補強ペアを維持する。
+  const anchor = scored[0];
+  if (anchor.topic.pair_group) {
+    const paired = scored.find(s => (
+      s !== anchor
+      && s.topic.pair_group === anchor.topic.pair_group
+      && isMain(s.topic) !== isMain(anchor.topic)
+      && pairSim(anchor.topic, s.topic) < SIM_THRESHOLD_BETWEEN_PAIR
+    ));
+    if (paired) {
       return isMain(anchor.topic)
-        ? [anchor.topic, comp.topic]
-        : [comp.topic, anchor.topic];
+        ? [anchor.topic, paired.topic]
+        : [paired.topic, anchor.topic];
     }
+  }
+
+  // 2. pair_group が組めない場合も、最上位 anchor の相補候補を探す。
+  const comp = findComplement(anchor.topic, scored, new Set([anchor.topic]));
+  if (comp && isMain(anchor.topic) !== isMain(comp.topic)) {
+    return isMain(anchor.topic)
+      ? [anchor.topic, comp.topic]
+      : [comp.topic, anchor.topic];
   }
 
   // 3. 役割逆ペアが見つからない → main を 1 つと support を 1 つ（最も balance スコア高いもの）
@@ -423,8 +498,8 @@ function selectDailyTopics(topics, options = {}) {
     explanation.warnings = (explanation.warnings || []).concat(['カテゴリ偏りハードブロックで全滅 → ブロック解除']);
   }
 
-  // balance のスコア順でソート
-  scored.sort((a, b) => (b.balance || 0) - (a.balance || 0));
+  // 需要の証拠 > 季節 > 問い合わせ近接度で並べ、同点時だけ balance を使う。
+  scored = rankBySelectionPriority(scored, now);
   explanation.topCandidates = scored.slice(0, 8).map(s => ({
     slug: s.topic.slug,
     macro: s.topic.macro,
@@ -432,19 +507,17 @@ function selectDailyTopics(topics, options = {}) {
     persona: s.topic.persona,
     category: s.topic.category,
     article_type: s.topic.article_type,
+    priority: Number((s.priority || 0).toFixed(3)),
+    demand: s.priorityParts.demand,
+    season: s.priorityParts.season,
+    lead: Number(s.priorityParts.lead.toFixed(3)),
     balance: Number((s.balance || 0).toFixed(3)),
     reasons: s.balanceReasons || [],
   }));
 
   // 6. ペアリング
   const picks = buildBestPair(scored, candidates);
-  explanation.picks = picks.map(p => ({
-    slug: p.slug, title: p.title,
-    macro: p.macro, cluster: p.cluster, subcluster: p.subcluster,
-    persona: p.persona, category: p.category,
-    article_type: p.article_type,
-    article_role: MAIN_TYPES.has(p.article_type) ? 'main' : 'support',
-  }));
+  explanation.picks = picks.map(p => explainPick(p, scored));
 
   // 7. 同日 2 本の最終類似度チェック
   if (picks.length === 2) {
@@ -468,13 +541,7 @@ function selectDailyTopics(topics, options = {}) {
       const replacement = finder(true) || finder(false);
       if (replacement) {
         picks[1] = replacement.topic;
-        explanation.picks[1] = {
-          slug: picks[1].slug, title: picks[1].title,
-          macro: picks[1].macro, cluster: picks[1].cluster, subcluster: picks[1].subcluster,
-          persona: picks[1].persona, category: picks[1].category,
-          article_type: picks[1].article_type,
-          article_role: MAIN_TYPES.has(picks[1].article_type) ? 'main' : 'support',
-        };
+        explanation.picks[1] = explainPick(picks[1], scored);
       } else {
         // 差し替え候補がない → 1本だけにする
         explanation.warnings.push('代替候補が見つからないため 2 本目を取り下げ、1 本のみ生成します');
@@ -484,12 +551,26 @@ function selectDailyTopics(topics, options = {}) {
     }
   }
 
-  // 8. 最終整列: main を 1 本目、support を 2 本目になるよう並べ替える
+  // 8. 質疑応答事例は1日最大1件。低優先度側を非質疑応答の次点へ差し替える。
+  const beforeLimit = picks.filter(isShitsugiTopic).length;
+  const limitedPicks = enforceShitsugiDailyLimit(picks, scored);
+  if (beforeLimit > 1) {
+    explanation.warnings = (explanation.warnings || []).concat([
+      limitedPicks.length === picks.length
+        ? '質疑応答由来が2件になったため、低優先度側を非質疑応答の次点へ差し替え'
+        : '質疑応答由来が2件になり代替候補がないため、低優先度側を取り下げ',
+    ]);
+  }
+  picks.splice(0, picks.length, ...limitedPicks);
+
+  // 9. 最終整列: main を 1 本目、support を 2 本目になるよう並べ替える
   //    （差し替えなどで順序が逆転している場合に対応）
   if (picks.length === 2 && isSupport(picks[0]) && isMain(picks[1])) {
     [picks[0], picks[1]] = [picks[1], picks[0]];
     [explanation.picks[0], explanation.picks[1]] = [explanation.picks[1], explanation.picks[0]];
   }
+
+  explanation.picks = picks.map(p => explainPick(p, scored));
 
   return { picks, explanation };
 }
@@ -498,6 +579,10 @@ module.exports = {
   selectDailyTopics,
   enrichTopic,
   buildBestPair,
+  priorityBreakdown,
+  rankBySelectionPriority,
+  enforceShitsugiDailyLimit,
+  isShitsugiTopic,
   SIM_THRESHOLD_VS_CORPUS,
   SIM_THRESHOLD_BETWEEN_PAIR,
 };

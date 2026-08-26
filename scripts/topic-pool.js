@@ -859,7 +859,7 @@ function getAllTopics() {
     console.log(`[topic-pool] curated と slug トークン重なりが高い expanded を ${droppedBySlug} 件除外`);
   }
 
-  return [...curated, ...expanded].map(topic => {
+  return [...curated, ...expanded, ...SHITSUGI_TOPICS].map(topic => {
     const source = resolveSourceForTopic(topic);
     return {
       ...topic,
@@ -878,10 +878,28 @@ const CURATED_TOPICS = TOPICS.map(topic => ({
   source_provenance: 'explicit',
   source_confidence: 1,
 }));
+
+let SHITSUGI_TOPICS = [];
+let SHITSUGI_TOPIC_STATS = {
+  adopted: 0, included: 0, skipped: 0, unreadable: 0, relevanceRejected: 0, disabled: false,
+};
+try {
+  const { expandShitsugiTopics, getLastExpansionStats } = require('./lib/shitsugi-topics');
+  SHITSUGI_TOPICS = expandShitsugiTopics();
+  SHITSUGI_TOPIC_STATS = getLastExpansionStats();
+} catch (error) {
+  console.warn(`[topic-pool] 質疑応答由来の候補を読み込めません（従来プールで続行）: ${error.message}`);
+}
+
 const ALL_TOPICS = getAllTopics();
+
+function getShitsugiTopicStats() {
+  return { ...SHITSUGI_TOPIC_STATS };
+}
 
 module.exports = {
   TOPICS: ALL_TOPICS,
   CURATED_TOPICS,
   getAllTopics,
+  getShitsugiTopicStats,
 };
