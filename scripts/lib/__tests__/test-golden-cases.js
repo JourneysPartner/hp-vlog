@@ -25,11 +25,12 @@ const {
   multiplyRateByMoney,
   addExact,
   subtractExact,
-  addMoney,
   subtractMoney,
+  compareExactToMoney,
 } = require('../../../src/tax-engine/common/money.js');
 const { applyRounding } = require('../../../src/tax-engine/common/rounding.js');
 const masters = require('../../../src/tax-engine/masters/snapshot.js');
+const inheritanceEngine = require('../../../src/tax-engine/inheritance/inheritance-tax.js');
 
 const ROOT = path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator');
 const CASES = JSON.parse(fs.readFileSync(path.join(ROOT, 'golden-cases', 'official-examples.json'), 'utf8'));
@@ -63,54 +64,22 @@ function incomeTaxQuickTable(taxableIncome, year) {
 
 // 相続税の総額: 法定相続分で按分 → 各人に速算表 → 合計
 function inheritanceTaxTotal(estate, heirs, onDate) {
-  const criterion = { onDate };
-  const combo = masters.find('statutory_share_by_combination', criterion)
-    .find(row => row.combination === 'spouse_and_child');
-  const equalDivision = masters.find('statutory_share_equal_division', criterion)
-    .find(row => row.division_method === 'equal');
-  const brackets = masters.find('inheritance_tax_brackets', criterion);
-  if (!combo || !equalDivision || brackets.length === 0) {
-    throw new Error('法定相続分または相続税速算表に該当なし');
-  }
-  const legalShareRoundingRuleId = brackets[0].rounding_rule_id;
-  if (!brackets.every(row => row.rounding_rule_id === legalShareRoundingRuleId)) {
-    throw new Error('法定相続分に応ずる取得金額の端数規則が段ごとに不一致');
-  }
-  const taxOn = (amount) => {
-    const row = masters.findBracket('inheritance_tax_brackets', amount, criterion);
-    if (!row) throw new Error(`相続税速算表に該当なし: ${amount.value}`);
-    const tax = subtractExact(
-      multiplyRateByMoney(masterRate(row.rate), amount),
-      moneyToExact(masterMoney(row.quick_deduction))
-    );
-    return applyRounding(tax, 'R-NONE');
-  };
-  const estateMoney = inputMoney(estate);
-  const children = heirs.filter(heir => heir.relation === 'child');
-  const nChildren = BigInt(children.length);
-  if (nChildren === 0n) throw new Error('子が1人以上必要');
-  // 配偶者の取り分（900条1号）と、子の残りの均等分割（900条4号）
-  const spouseAmount = applyRounding(
-    multiplyRateByMoney(masterRate(combo.spouse_share), estateMoney),
-    legalShareRoundingRuleId
+  const result = inheritanceEngine.calculateTaxTotalFromTaxableEstate(
+    inputMoney(estate),
+    heirs.map((heir, index) => ({ ...heir, id: `${heir.relation}-${index}` })),
+    { onDate }
   );
-  const childAmount = applyRounding(
-    multiplyRateByMoney(rate({
-      num: BigInt(combo.blood_relative_share.num),
-      den: BigInt(combo.blood_relative_share.den) * nChildren,
-    }), estateMoney),
-    legalShareRoundingRuleId
-  );
-  const spouseTax = taxOn(spouseAmount);
-  const childTax = taxOn(childAmount);
-  let total = spouseTax;
-  for (const _child of children) total = addMoney(total, childTax);
+  if (result.status !== 'complete') {
+    throw new Error(`相続税エンジンがblockedを返しました: ${JSON.stringify(result.blockedReasons)}`);
+  }
+  const spouse = result.statutoryShares.find(row => row.relation === 'spouse');
+  const child = result.statutoryShares.find(row => row.relation === 'child');
   return {
-    spouseAmount: spouseAmount.value,
-    childAmount: childAmount.value,
-    spouseTax: spouseTax.value,
-    childTax: childTax.value,
-    total: total.value,
+    spouseAmount: spouse.legalShareAmount.value,
+    childAmount: child.legalShareAmount.value,
+    spouseTax: spouse.tax.value,
+    childTax: child.tax.value,
+    total: result.totalTax.value,
   };
 }
 
@@ -186,6 +155,57 @@ console.log('\n=== §63 公的計算例との照合 ===');
     `${c.case_id}: 子の税額 各560万円（20%−200万）`);
   assert(r.total === BigInt(c.expected.total_inheritance_tax),
     `${c.case_id}: 相続税の総額 2,700万円（No.4155の計算例）`);
+}
+{
+  const c = byId.get('GC-IHT-FULL-PIPELINE');
+  const result = inheritanceEngine.calculate({
+    heirs: c.inputs.heirs.map(heir => ({
+      id: heir.id,
+      relation: heir.relation,
+      isAlive: true,
+      taxablePrice: inputMoney(heir.taxable_price),
+    })),
+    isDivided: c.inputs.is_divided,
+    applySpouseRelief: c.inputs.apply_spouse_relief,
+  }, { onDate: c.inputs.inheritance_open_date });
+  const wife = result.perHeir.find(heir => heir.id === 'wife');
+  const child = result.perHeir.find(heir => heir.id === 'child-1');
+  assert(result.status === 'complete', `${c.case_id}: 全工程がcomplete`);
+  assert(result.heirCountForTax === BigInt(c.expected.heir_count_for_tax),
+    `${c.case_id}: 税法上の法定相続人は3人`);
+  assert(result.basicDeduction.value === BigInt(c.expected.basic_deduction),
+    `${c.case_id}: 基礎控除4,800万円（No.4152）`);
+  assert(result.taxableEstate.value === BigInt(c.expected.taxable_estate),
+    `${c.case_id}: 課税遺産総額1億5,200万円`);
+  assert(result.totalTax.value === BigInt(c.expected.total_inheritance_tax),
+    `${c.case_id}: 相続税の総額2,700万円（No.4155）`);
+  assert(compareExactToMoney(wife.allocatedTax, inputMoney(c.expected.wife_allocated_tax)) === 0,
+    `${c.case_id}: 妻への按分1,350万円`);
+  assert(compareExactToMoney(child.allocatedTax, inputMoney(c.expected.child_allocated_tax_each)) === 0,
+    `${c.case_id}: 子への按分各675万円`);
+  assert(result.perHeir.every(heir => compareExactToMoney(heir.surcharge,
+    inputMoney(c.expected.surcharge_total)) === 0), `${c.case_id}: 2割加算なし`);
+}
+{
+  const c = byId.get('GC-IHT-SPOUSE-RELIEF');
+  const result = inheritanceEngine.calculate({
+    heirs: c.inputs.heirs.map(heir => ({
+      id: heir.id,
+      relation: heir.relation,
+      isAlive: true,
+      taxablePrice: inputMoney(heir.taxable_price),
+    })),
+    isDivided: c.inputs.is_divided,
+    applySpouseRelief: c.inputs.apply_spouse_relief,
+  }, { onDate: c.inputs.inheritance_open_date });
+  const wife = result.perHeir.find(heir => heir.id === 'wife');
+  const children = result.perHeir.filter(heir => heir.id.startsWith('child-'));
+  assert(compareExactToMoney(wife.credits.spouseRelief,
+    inputMoney(c.expected.spouse_relief)) === 0, `${c.case_id}: 配偶者軽減1,350万円`);
+  assert(wife.payable.value === BigInt(c.expected.wife_payable),
+    `${c.case_id}: 妻の納付税額0円`);
+  assert(children.every(child => child.payable.value === BigInt(c.expected.child_payable_each)),
+    `${c.case_id}: 子の納付税額は各675万円`);
 }
 {
   const c = byId.get('GC-SID-R7-CAP');
