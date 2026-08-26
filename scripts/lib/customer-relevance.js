@@ -489,6 +489,7 @@ module.exports = {
   isNaturalCombination,
   rejectionReason,
   evaluateTopicFit,
+  scoreLeadValue,
   recommendationForDecision,
   publishGateReasons,
 };

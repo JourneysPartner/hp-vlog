@@ -6,8 +6,8 @@ const path = require('path');
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
-const { TOPICS } = require('./topic-pool');
-const { selectDailyTopics } = require('./lib/topic-selector');
+const { TOPICS, getShitsugiTopicStats } = require('./topic-pool');
+const { selectDailyTopics, isShitsugiTopic } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
@@ -577,7 +577,11 @@ async function pickPair(dateStr) {
   }
   if (explanation.picks) {
     for (const p of explanation.picks) {
-      console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role})`);
+      const parts = p.priority_breakdown || {};
+      console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role}) ` +
+        `priority=${p.priority} [demand=${parts.demand || 0} season=${parts.season || 0} ` +
+        `lead=${parts.lead || 0} balance=${parts.balance || 0}]`);
+      console.log(`[select] ${p.reason}`);
     }
   }
   if (picks.length === 0) {
@@ -608,7 +612,10 @@ async function pickPair(dateStr) {
         const pool = TOPICS.filter(t => !usedSlugs.has(t.slug));
         if (pool.length > 0) {
           const { picks: repicks } = selectDailyTopics(pool, { now: new Date(), extraCorpus: pendingDrafts });
-          const candidates = repicks.filter(r => !usedSlugs.has(r.slug));
+          const alreadyHasShitsugi = filtered.some(isShitsugiTopic);
+          const candidates = repicks.filter(r => (
+            !usedSlugs.has(r.slug) && !(alreadyHasShitsugi && isShitsugiTopic(r))
+          ));
           if (candidates.length > 0) {
             const needed = 2 - filtered.length;
             const additions = candidates.slice(0, needed);
@@ -2161,6 +2168,8 @@ function getArg(name) {
 // ── エントリポイント ─────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
+  const shitsugiStats = getShitsugiTopicStats();
+  console.log(`[generate] 質疑応答由来の候補: ${shitsugiStats.included}件（変換スキップ ${shitsugiStats.skipped}件）`);
 
   // ── 選定 dry-run モード（OpenAI を呼ばずに選定結果のみ出力）──
   if (args.includes('--explain') || args.includes('--dry-run')) {
@@ -2176,6 +2185,12 @@ async function main() {
       console.log(`    title: ${p.title}`);
       console.log(`    persona/category: ${p.persona} / ${p.category}`);
       console.log(`    article_type/role: ${p.article_type} (${p.article_role || (['basic_explainer','comparison_decision'].includes(p.article_type)?'main':'support')})`);
+      const detail = (explanation.picks || []).find(item => item.slug === p.slug);
+      if (detail) {
+        const parts = detail.priority_breakdown;
+        console.log(`    priority: ${detail.priority} (demand=${parts.demand}, season=${parts.season}, lead=${parts.lead}, balance=${parts.balance})`);
+        console.log(`    reason: ${detail.reason}`);
+      }
     }
     return;
   }

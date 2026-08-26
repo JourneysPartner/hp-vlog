@@ -23,6 +23,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
 const TAXANSWER_DIR = path.join(ROOT, 'data', 'nta-sources', 'taxanswer');
+const SHITSUGI_DIR = path.join(ROOT, 'data', 'nta-sources', 'shitsugi');
 
 // 1出典あたりの上限。カタログ最長は約11,500字あり、そのまま入れると
 // プロンプトが膨らんで主要論点が埋もれる。制度の要件は本文前半に
@@ -35,6 +36,12 @@ function parseTaxanswerUrl(url) {
   return m ? { section: m[1], no: m[2] } : null;
 }
 
+/** URL から質疑応答事例の税目・セクション・番号を取り出す */
+function parseShitsugiUrl(url) {
+  const m = String(url || '').match(/law\/shitsugi\/([a-z]+)\/([a-z0-9_-]+)\/([a-z0-9_-]+)\.htm/i);
+  return m ? { category: m[1], section: m[2], id: m[3] } : null;
+}
+
 /**
  * 出典URLに対応する本文を返す。
  * @returns {{no:string, title:string, url:string, body:string, truncated:boolean}|null}
@@ -42,23 +49,30 @@ function parseTaxanswerUrl(url) {
 function loadSourceBody(url, options = {}) {
   const maxChars = Number.isInteger(options.maxChars) && options.maxChars > 0
     ? options.maxChars : DEFAULT_MAX_CHARS;
-  const parsed = parseTaxanswerUrl(url);
-  if (!parsed) return null;   // タックスアンサー以外（パンフレット等）は対象外
+  const taxanswer = parseTaxanswerUrl(url);
+  const shitsugi = parseShitsugiUrl(url);
+  if (!taxanswer && !shitsugi) return null;   // カタログ収録対象外（パンフレット等）
 
-  const file = path.join(TAXANSWER_DIR, parsed.section, `${parsed.no}.json`);
+  const file = taxanswer
+    ? path.join(TAXANSWER_DIR, taxanswer.section, `${taxanswer.no}.json`)
+    : path.join(SHITSUGI_DIR, shitsugi.category, shitsugi.section, `${shitsugi.id}.json`);
   try {
     if (!fs.existsSync(file)) return null;
     const entry = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (entry.deleted === true) return null;
-    const raw = String(entry.body || '').replace(/\s+/g, ' ').trim();
+    const sourceBody = taxanswer
+      ? entry.body
+      : (entry.body_combined || [entry.shokai_yoshi, entry.kaitou_yoshi].filter(Boolean).join(' '));
+    const raw = String(sourceBody || '').replace(/\s+/g, ' ').trim();
     if (!raw) return null;
     const truncated = raw.length > maxChars;
     return {
-      no: String(entry.id || parsed.no),
+      no: String(entry.id || (taxanswer ? taxanswer.no : shitsugi.id)),
       title: entry.title || '',
       url,
       body: truncated ? raw.slice(0, maxChars) : raw,
       truncated,
+      kind: taxanswer ? 'taxanswer' : 'shitsugi',
     };
   } catch (_error) {
     return null;   // 破損・読込失敗はカタログ無しとして扱う
@@ -97,7 +111,9 @@ function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
   if (loaded.length === 0) return '';
 
   const sections = loaded.map(s => {
-    const label = `【${s.role}】国税庁タックスアンサー No.${s.no}「${s.title}」`;
+    const label = s.kind === 'shitsugi'
+      ? `【${s.role}】国税庁 質疑応答事例「${s.title}」`
+      : `【${s.role}】国税庁タックスアンサー No.${s.no}「${s.title}」`;
     const note = s.truncated ? '\n（※本文が長いため冒頭のみ抜粋）' : '';
     return `${label}\n${s.url}${note}\n---\n${s.body}\n---`;
   }).join('\n\n');
@@ -126,5 +142,6 @@ module.exports = {
   loadSourceBody,
   buildSourceBodyBlock,
   parseTaxanswerUrl,
+  parseShitsugiUrl,
   DEFAULT_MAX_CHARS,
 };
