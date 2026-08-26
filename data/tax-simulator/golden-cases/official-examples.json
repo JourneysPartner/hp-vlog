@@ -602,6 +602,53 @@
         "resident_tax_per_capita_exemption_flat",
         "resident_tax_per_capita_exemption_addition"
       ]
+    },
+    {
+      "case_id": "GC-CORP-FULL-600",
+      "target_module": "corporate_tax",
+      "kind": "table_derived",
+      "description": "中小法人・資本金300万円・従業員5人・12か月事業年度・所得600万円の法人課税5点セット",
+      "source": {
+        "document_id": "NTA-TA-5759",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5759.htm",
+        "locator": "法人税法66条・租税特別措置法42条の3の2・地方法人税法10条・地方税法51条/52条/72条の24の7/312条/314条の4・特別法人事業税法7条",
+        "law_version": "令和7年4月1日以後開始事業年度の現行法令",
+        "retrieved_at": "2026-08-27",
+        "usage": "税率、段階、均等割額および課税標準のみ"
+      },
+      "inputs": {
+        "fiscal_period_from": "2025-04-01",
+        "fiscal_period_to": "2026-03-31",
+        "capital": "3000000",
+        "employee_count": 5,
+        "accounting_profit_before_tax": "6000000",
+        "tax_adjustments": "none",
+        "loss_carryforward": "none"
+      },
+      "expected": {
+        "corporate_tax": "900000",
+        "local_corporate_tax": "92700",
+        "inhabitant_tax_prefectural_income_levy": "9000",
+        "inhabitant_tax_municipal_income_levy": "54000",
+        "inhabitant_tax_per_capita_total": "70000",
+        "enterprise_tax": "246000",
+        "special_enterprise_tax": "91000",
+        "total_tax": "1462700"
+      },
+      "_note": "特別法人事業税は基準法人所得割額246,000円×37%=91,020円を100円未満切り捨てて91,000円。丸めを外す回帰を検出するため所得600万円を選んだ。",
+      "_additional_sources": [
+        "https://laws.e-gov.go.jp/law/340AC0000000034",
+        "https://laws.e-gov.go.jp/law/325AC0000000226"
+      ],
+      "_master_dependency": [
+        "corporate_tax_sme_brackets",
+        "local_corporate_tax_rate",
+        "corporate_inhabitant_income_rate_prefectural",
+        "corporate_inhabitant_income_rate_municipal",
+        "corporate_inhabitant_per_capita",
+        "enterprise_tax_income_brackets",
+        "special_enterprise_tax_rate"
+      ]
     }
   ]
 }

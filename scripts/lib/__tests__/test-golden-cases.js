@@ -31,6 +31,7 @@ const {
 const { applyRounding } = require('../../../src/tax-engine/common/rounding.js');
 const masters = require('../../../src/tax-engine/masters/snapshot.js');
 const inheritanceEngine = require('../../../src/tax-engine/inheritance/inheritance-tax.js');
+const corporateTaxEngine = require('../../../src/tax-engine/corporate/corporate-tax.js');
 
 const ROOT = path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator');
 const CASES = JSON.parse(fs.readFileSync(path.join(ROOT, 'golden-cases', 'official-examples.json'), 'utf8'));
@@ -239,6 +240,42 @@ console.log('\n=== §63 公的計算例との照合 ===');
     `${c.case_id}: 特別控除 56万円（売上税額×80%）`);
   assert(r.payable === BigInt(c.expected.tax_payable),
     `${c.case_id}: 納付税額 14万円`);
+}
+{
+  const c = byId.get('GC-CORP-FULL-600');
+  const result = corporateTaxEngine.calculate({
+    entityType: 'domestic_ordinary',
+    comparisonBasis: 'steady_state',
+    capital: inputMoney(c.inputs.capital),
+    employeeCount: c.inputs.employee_count,
+    accountingProfitBeforeTax: inputMoney(c.inputs.accounting_profit_before_tax),
+    fiscalPeriod: {
+      from: c.inputs.fiscal_period_from,
+      to: c.inputs.fiscal_period_to,
+    },
+    enterpriseTaxReducedRateEligible: true,
+    taxAdjustments: { items: [], treatUnansweredAsZero: true },
+  });
+  assert(result.status === 'complete', `${c.case_id}: 全5税目をcompleteで計算`);
+  assert(result.corporateTax.amount.value === BigInt(c.expected.corporate_tax),
+    `${c.case_id}: 法人税900,000円`);
+  assert(result.localCorporateTax.amount.value === BigInt(c.expected.local_corporate_tax),
+    `${c.case_id}: 地方法人税92,700円`);
+  assert(result.corporateInhabitantTax.prefecturalIncomeLevy.value ===
+    BigInt(c.expected.inhabitant_tax_prefectural_income_levy) &&
+    result.corporateInhabitantTax.municipalIncomeLevy.value ===
+    BigInt(c.expected.inhabitant_tax_municipal_income_levy),
+  `${c.case_id}: 法人税割は県9,000円・市54,000円`);
+  assert(result.corporateInhabitantTax.perCapitaLevyTotal.value ===
+    BigInt(c.expected.inhabitant_tax_per_capita_total),
+  `${c.case_id}: 均等割70,000円`);
+  assert(result.enterpriseTax.amount.value === BigInt(c.expected.enterprise_tax),
+    `${c.case_id}: 事業税246,000円（段階計算）`);
+  assert(result.specialEnterpriseTax.amount.value ===
+    BigInt(c.expected.special_enterprise_tax),
+  `${c.case_id}: 特別法人事業税91,020円を91,000円へ切捨て`);
+  assert(result.totalTax.value === BigInt(c.expected.total_tax),
+    `${c.case_id}: 合計1,462,700円`);
 }
 
 console.log('\n=== ケースの体裁（§63 の要求） ===');
