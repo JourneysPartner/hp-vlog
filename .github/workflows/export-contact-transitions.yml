@@ -36,7 +36,7 @@ jobs:
           fi
           HTTP=$(curl -sS -o /tmp/analytics.json -w "%{http_code}" \
             -u "${ADMIN_BASIC_USER}:${ADMIN_BASIC_PASS}" \
-            "https://mori-zeirishi.net/admin/api/analytics/list")
+            "https://mori-zeirishi.net/admin/api/analytics")
           if [ "$HTTP" != "200" ]; then
             echo "::error::管理APIの取得に失敗 (HTTP ${HTTP})"
             exit 1
