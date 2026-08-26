@@ -6,6 +6,8 @@
 
   "_do_not_confuse": "invoice_transition_master（80%→70%→50%→30%）は『買い手が免税事業者から仕入れたときに控除できる割合』。こちらは『売り手が納める消費税を売上税額の何割にできるか』。方向も対象者も違う。",
 
+  "_period_match_note": "適用対象課税期間の判定は、課税期間が effective_from 〜 effective_to のいずれかの日を含むかで行う（period_match_rule = taxable_period_intersects）。effective_from / effective_to を単一の日付と突き合わせる通常の判定と意味が違う。開始日だけ、あるいは終了日だけで判定すると対象を取りこぼす。",
+
   "records": [
     {
       "record_id": "CT-SPECIAL-2WARI",
@@ -25,11 +27,13 @@
       "jurisdiction": { "country": "JP" },
       "effective_from": "2023-10-01",
       "effective_to": "2026-09-30",
+      "period_match_rule": "taxable_period_intersects",
       "special_name": "2割特例",
       "special_deduction_rate": { "num": "80", "den": "100" },
       "resulting_burden_rate": { "num": "20", "den": "100" },
       "_formula": "特別控除税額 ＝ （課税標準額に対する消費税額 − 売上げに係る対価の返還等の金額に係る消費税額）× 80%。結果として納付税額は売上税額の2割になる。",
       "_period_rule": "令和5年10月1日から令和8年9月30日までの日の属する各課税期間。課税期間の『終わり』ではなく『その日を含む課税期間』で判定するため、個人事業者なら令和8年分（令和8年12月31日終了）まで対象になる",
+      "_period_match_basis": "平成28年所得税法等改正法附則51条の2「令和五年十月一日から令和八年九月三十日までの日の属する各課税期間」。国税庁の2割特例Q&A（問114〜116）も同じ文言で説明している。開始日の上限だけで判定すると3月決算法人の令和5年度（2023-04-01開始）を取りこぼし、終了日だけで判定すると個人事業者の令和8年分を取りこぼす。どちらの誤りも特例を使えないと表示する方向に働き、納税額を過大に見せる",
       "_eligibility": [
         "免税事業者（消費税課税事業者選択届出書の提出により課税事業者となった免税事業者を含む）がインボイス発行事業者となる場合",
         "基準期間の課税売上高が1,000万円以下",
@@ -61,11 +65,13 @@
       "jurisdiction": { "country": "JP" },
       "effective_from": "2027-01-01",
       "effective_to": "2028-12-31",
+      "period_match_rule": "taxable_period_intersects",
       "special_name": "3割特例",
       "special_deduction_rate": { "num": "70", "den": "100" },
       "resulting_burden_rate": { "num": "30", "den": "100" },
       "_formula": "納付税額を売上税額の3割とすることができる（売上税額の70%を控除）",
       "_period_rule": "令和9年分および令和10年分の消費税申告",
+      "_period_match_basis": "令和8年度税制改正で創設。個人事業者の令和9年分・令和10年分。個人の課税期間は暦年なので『含む』判定と『収まる』判定は同じ答えになるが、規則は2割特例と揃える",
       "_eligibility": [
         "個人事業者であること（法人は対象外）",
         "基準期間の課税売上高が1,000万円以下",
