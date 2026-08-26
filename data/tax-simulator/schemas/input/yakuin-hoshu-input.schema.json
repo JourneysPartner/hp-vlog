@@ -1,0 +1,1145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yakuin-hoshu-input.schema.json",
+  "title": "役員報酬シミュレーター入力",
+  "description": "入力型設計書 §3〜§7 に基づくWire形式。自動生成物。",
+  "$ref": "#/$defs/YakuinHoshuInputWire",
+  "$defs": {
+    "YakuinHoshuInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "A"
+            },
+            "precision": {
+              "enum": [
+                "simple",
+                "detailed"
+              ]
+            },
+            "officerResidenceSameAsCompany": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "capital": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "healthInsurer": {
+              "$ref": "#/$defs/HealthInsurerInputWire"
+            },
+            "officer": {
+              "$ref": "#/$defs/PersonFactsWire"
+            },
+            "specialistChecks": {
+              "$ref": "#/$defs/SpecialistChecksWire"
+            },
+            "employeeCount": {
+              "type": "integer"
+            },
+            "spouse": {
+              "$ref": "#/$defs/SpouseFactsWire"
+            },
+            "dependents": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DependentFactsWire"
+              }
+            },
+            "otherIncomes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/IncomeItemWire"
+              }
+            },
+            "deductions": {
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
+            },
+            "taxCredits": {
+              "type": "object",
+              "properties": {
+                "housingLoan": {
+                  "$ref": "#/$defs/MoneyWire"
+                },
+                "other": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "$ref": "#/$defs/MoneyWire"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "amount"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "appointedOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "previousMonthlyAmount": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "standardRemunerationDecisionKind": {
+              "enum": [
+                "on_qualification",
+                "regular",
+                "occasional"
+              ]
+            },
+            "profitBeforeOfficerCompensation": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "searchStep": {
+              "enum": [
+                "10000",
+                "50000"
+              ]
+            },
+            "optimizationCriterion": {
+              "enum": [
+                "min_burden",
+                "max_total_retained",
+                "max_corporate_with_floor"
+              ]
+            },
+            "searchUpperBound": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "minPersonalNetIncome": {
+                  "$ref": "#/$defs/MoneyWire"
+                },
+                "minCorporateRetained": {
+                  "$ref": "#/$defs/MoneyWire"
+                },
+                "officerCompensationCeilingByResolution": {
+                  "$ref": "#/$defs/MoneyWire"
+                }
+              },
+              "additionalProperties": false
+            },
+            "bonusPlan": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/PredeterminedBonusWire"
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "precision",
+            "officerResidenceSameAsCompany",
+            "capital",
+            "healthInsurer",
+            "officer",
+            "specialistChecks",
+            "profitBeforeOfficerCompensation",
+            "searchStep",
+            "optimizationCriterion"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "B"
+            },
+            "precision": {
+              "enum": [
+                "simple",
+                "detailed"
+              ]
+            },
+            "officerResidenceSameAsCompany": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "capital": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "healthInsurer": {
+              "$ref": "#/$defs/HealthInsurerInputWire"
+            },
+            "officer": {
+              "$ref": "#/$defs/PersonFactsWire"
+            },
+            "specialistChecks": {
+              "$ref": "#/$defs/SpecialistChecksWire"
+            },
+            "employeeCount": {
+              "type": "integer"
+            },
+            "spouse": {
+              "$ref": "#/$defs/SpouseFactsWire"
+            },
+            "dependents": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DependentFactsWire"
+              }
+            },
+            "otherIncomes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/IncomeItemWire"
+              }
+            },
+            "deductions": {
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
+            },
+            "taxCredits": {
+              "type": "object",
+              "properties": {
+                "housingLoan": {
+                  "$ref": "#/$defs/MoneyWire"
+                },
+                "other": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "$ref": "#/$defs/MoneyWire"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "amount"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "appointedOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "previousMonthlyAmount": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "standardRemunerationDecisionKind": {
+              "enum": [
+                "on_qualification",
+                "regular",
+                "occasional"
+              ]
+            },
+            "desiredMonthlyNetIncome": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "searchStep": {
+              "enum": [
+                "10000",
+                "50000"
+              ]
+            },
+            "assumedBonusPlan": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/PredeterminedBonusWire"
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "precision",
+            "officerResidenceSameAsCompany",
+            "capital",
+            "healthInsurer",
+            "officer",
+            "specialistChecks",
+            "desiredMonthlyNetIncome",
+            "searchStep"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "C"
+            },
+            "precision": {
+              "enum": [
+                "simple",
+                "detailed"
+              ]
+            },
+            "officerResidenceSameAsCompany": {
+              "$ref": "#/$defs/TriStateWire"
+            },
+            "capital": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "healthInsurer": {
+              "$ref": "#/$defs/HealthInsurerInputWire"
+            },
+            "officer": {
+              "$ref": "#/$defs/PersonFactsWire"
+            },
+            "specialistChecks": {
+              "$ref": "#/$defs/SpecialistChecksWire"
+            },
+            "employeeCount": {
+              "type": "integer"
+            },
+            "spouse": {
+              "$ref": "#/$defs/SpouseFactsWire"
+            },
+            "dependents": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DependentFactsWire"
+              }
+            },
+            "otherIncomes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/IncomeItemWire"
+              }
+            },
+            "deductions": {
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
+            },
+            "taxCredits": {
+              "type": "object",
+              "properties": {
+                "housingLoan": {
+                  "$ref": "#/$defs/MoneyWire"
+                },
+                "other": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "$ref": "#/$defs/MoneyWire"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "amount"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "appointedOn": {
+              "$ref": "#/$defs/LocalDateWire"
+            },
+            "previousMonthlyAmount": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "standardRemunerationDecisionKind": {
+              "enum": [
+                "on_qualification",
+                "regular",
+                "occasional"
+              ]
+            },
+            "plan": {
+              "$ref": "#/$defs/CompensationPlanWire"
+            }
+          },
+          "required": [
+            "mode",
+            "precision",
+            "officerResidenceSameAsCompany",
+            "capital",
+            "healthInsurer",
+            "officer",
+            "specialistChecks",
+            "plan"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "YakuinHoshuCommonInputWire": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "officerResidenceSameAsCompany": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "capital": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "healthInsurer": {
+          "$ref": "#/$defs/HealthInsurerInputWire"
+        },
+        "officer": {
+          "$ref": "#/$defs/PersonFactsWire"
+        },
+        "specialistChecks": {
+          "$ref": "#/$defs/SpecialistChecksWire"
+        },
+        "employeeCount": {
+          "type": "integer"
+        },
+        "spouse": {
+          "$ref": "#/$defs/SpouseFactsWire"
+        },
+        "dependents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DependentFactsWire"
+          }
+        },
+        "otherIncomes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IncomeItemWire"
+          }
+        },
+        "deductions": {
+          "$ref": "#/$defs/PersonalDeductionFactsWire"
+        },
+        "taxCredits": {
+          "type": "object",
+          "properties": {
+            "housingLoan": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "other": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "code",
+                  "amount"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "appointedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "previousMonthlyAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "standardRemunerationDecisionKind": {
+          "enum": [
+            "on_qualification",
+            "regular",
+            "occasional"
+          ]
+        }
+      },
+      "required": [
+        "precision",
+        "officerResidenceSameAsCompany",
+        "capital",
+        "healthInsurer",
+        "officer",
+        "specialistChecks"
+      ],
+      "additionalProperties": false
+    },
+    "TriStateWire": {
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "MoneyWire": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "JPY"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "description": "整数を表すDecimal。指数表記と桁区切りは不可。"
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "HealthInsurerInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "kyokai_kenpo"
+            },
+            "prefectureCode": {
+              "$ref": "#/$defs/PrefectureCodeWire"
+            }
+          },
+          "required": [
+            "kind",
+            "prefectureCode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "kenpo_kumiai"
+            },
+            "insurerCode": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "insurerCode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PrefectureCodeWire": {
+      "type": "string",
+      "pattern": "^[0-9]{2}$",
+      "description": "JIS X 0401の都道府県コード2桁。"
+    },
+    "PersonFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DisabilityCategoryWire": {
+      "enum": [
+        "none",
+        "general",
+        "special",
+        "special_cohabiting"
+      ]
+    },
+    "SpecialistChecksWire": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TriStateWire"
+      }
+    },
+    "SpouseFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "livesTogether": {
+          "type": "boolean"
+        },
+        "totalIncome": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "isFullTimeHomemaker": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "exists"
+      ],
+      "additionalProperties": false
+    },
+    "DependentFactsWire": {
+      "type": "object",
+      "properties": {
+        "ageAtYearEnd": {
+          "type": "integer"
+        },
+        "disability": {
+          "$ref": "#/$defs/DisabilityCategoryWire"
+        },
+        "isNonResident": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/DependentRelationWire"
+        },
+        "livesTogether": {
+          "type": "boolean"
+        },
+        "isLivingApartAndSupported": {
+          "type": "boolean"
+        },
+        "totalIncome": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "id",
+        "relation"
+      ],
+      "additionalProperties": false
+    },
+    "DependentRelationWire": {
+      "enum": [
+        "child",
+        "parent",
+        "grandparent",
+        "sibling",
+        "other_relative"
+      ]
+    },
+    "IncomeItemWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/IncomeCategoryWire"
+        },
+        "taxationMethod": {
+          "$ref": "#/$defs/TaxationMethodWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "taxationMethod",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "IncomeCategoryWire": {
+      "enum": [
+        "business",
+        "real_estate",
+        "salary",
+        "dividend",
+        "interest",
+        "misc",
+        "capital_gain",
+        "occasional",
+        "forestry",
+        "retirement",
+        "unknown"
+      ]
+    },
+    "TaxationMethodWire": {
+      "enum": [
+        "aggregate",
+        "separate_declared",
+        "separate_withheld",
+        "separate_retirement",
+        "unknown"
+      ]
+    },
+    "PersonalDeductionFactsWire": {
+      "type": "object",
+      "properties": {
+        "socialInsurance": {
+          "$ref": "#/$defs/SocialInsuranceDeductionInputWire"
+        },
+        "smallEnterpriseMutualAid": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "lifeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LifeInsurancePremiumInputWire"
+          }
+        },
+        "earthquakeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EarthquakeInsurancePremiumInputWire"
+          }
+        },
+        "medical": {
+          "$ref": "#/$defs/MedicalExpenseInputWire"
+        },
+        "donations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DonationInputWire"
+          }
+        },
+        "casualtyLoss": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "isWorkingStudent": {
+          "type": "boolean"
+        },
+        "widowOrSingleParent": {
+          "enum": [
+            "none",
+            "widow",
+            "single_parent"
+          ]
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeductionOverrideWire"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SocialInsuranceDeductionInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "total"
+            },
+            "annualTotal": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind",
+            "annualTotal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "itemized"
+            },
+            "nationalHealthInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPension": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPensionFund": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "employeeShareOfSocialInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "other": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "LifeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "$ref": "#/$defs/LifeInsuranceContractGenerationWire"
+        },
+        "category": {
+          "enum": [
+            "life",
+            "nursing_medical",
+            "annuity"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "generation",
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "LifeInsuranceContractGenerationWire": {
+      "enum": [
+        "new",
+        "old"
+      ]
+    },
+    "EarthquakeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "earthquake",
+            "old_long_term"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "MedicalExpenseInputWire": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "medical",
+            "self_medication"
+          ]
+        },
+        "paidAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "insuranceReimbursement": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "mode",
+        "paidAmount"
+      ],
+      "additionalProperties": false
+    },
+    "DonationInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "furusato",
+            "designated",
+            "political",
+            "other"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "DeductionOverrideWire": {
+      "type": "object",
+      "properties": {
+        "forIncomeTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "forResidentTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "forIncomeTax",
+        "forResidentTax",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "LocalDateWire": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "検証済みの日付。YYYY-MM-DD形式。"
+    },
+    "ModeAInputWire": {
+      "type": "object",
+      "properties": {
+        "profitBeforeOfficerCompensation": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "searchStep": {
+          "enum": [
+            "10000",
+            "50000"
+          ]
+        },
+        "optimizationCriterion": {
+          "enum": [
+            "min_burden",
+            "max_total_retained",
+            "max_corporate_with_floor"
+          ]
+        },
+        "searchUpperBound": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "minPersonalNetIncome": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "minCorporateRetained": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "officerCompensationCeilingByResolution": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "additionalProperties": false
+        },
+        "bonusPlan": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredeterminedBonusWire"
+          }
+        }
+      },
+      "required": [
+        "profitBeforeOfficerCompensation",
+        "searchStep",
+        "optimizationCriterion"
+      ],
+      "additionalProperties": false
+    },
+    "PredeterminedBonusWire": {
+      "type": "object",
+      "properties": {
+        "payOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "hasFiling": {
+          "$ref": "#/$defs/TriStateWire"
+        },
+        "filedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "paidAsFiled": {
+          "$ref": "#/$defs/TriStateWire"
+        }
+      },
+      "required": [
+        "payOn",
+        "amount",
+        "hasFiling"
+      ],
+      "additionalProperties": false
+    },
+    "ModeBInputWire": {
+      "type": "object",
+      "properties": {
+        "desiredMonthlyNetIncome": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "searchStep": {
+          "enum": [
+            "10000",
+            "50000"
+          ]
+        },
+        "assumedBonusPlan": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredeterminedBonusWire"
+          }
+        }
+      },
+      "required": [
+        "desiredMonthlyNetIncome",
+        "searchStep"
+      ],
+      "additionalProperties": false
+    },
+    "ModeCInputWire": {
+      "type": "object",
+      "properties": {
+        "plan": {
+          "$ref": "#/$defs/CompensationPlanWire"
+        }
+      },
+      "required": [
+        "plan"
+      ],
+      "additionalProperties": false
+    },
+    "CompensationPlanWire": {
+      "type": "object",
+      "properties": {
+        "monthlySegments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "$ref": "#/$defs/DateRangeWire"
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "monthlyAmount": {
+                    "$ref": "#/$defs/MoneyWire"
+                  }
+                },
+                "required": [
+                  "monthlyAmount"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "period",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "revisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CompensationRevisionWire"
+          }
+        },
+        "bonuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredeterminedBonusWire"
+          }
+        },
+        "appointedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "resignedOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "monthlySegments"
+      ],
+      "additionalProperties": false
+    },
+    "DateRangeWire": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "to": {
+          "$ref": "#/$defs/LocalDateWire"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "CompensationRevisionWire": {
+      "type": "object",
+      "properties": {
+        "effectiveOn": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
+        "reason": {
+          "$ref": "#/$defs/RevisionReasonWire"
+        },
+        "newMonthlyAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "effectiveOn",
+        "reason",
+        "newMonthlyAmount"
+      ],
+      "additionalProperties": false
+    },
+    "RevisionReasonWire": {
+      "enum": [
+        "ordinary",
+        "extraordinary",
+        "performance_decline",
+        "other"
+      ]
+    }
+  }
+}
