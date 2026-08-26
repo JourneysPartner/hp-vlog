@@ -74,7 +74,15 @@ function isShitsugiTopic(topic = {}) {
 }
 
 function priorityBreakdown(topic, now) {
-  const demand = topic.demand_evidence ? 1 : 0;
+  // 需要の証拠に点数（質疑応答候補の自動採点 0〜100）がある場合はそれを反映し、
+  // 高得点の候補から先に使われるようにする。点数の無い証拠は従来どおり 1。
+  // 例: 91点→0.91×3=2.73、72点→0.72×3=2.16。いずれも季節ブースト(2)を上回るので
+  // 「需要の証拠が最優先」という設計は変わらない。
+  const evidence = topic.demand_evidence;
+  const evidenceScore = evidence ? Number(evidence.score) : NaN;
+  const demand = evidence
+    ? (Number.isFinite(evidenceScore) ? Math.max(0, Math.min(1, evidenceScore / 100)) : 1)
+    : 0;
   const season = seasonBoost(topic, now);
   const seasonEntries = season ? matchingSeasonEntries(topic, now) : [];
   const lead = (scoreLeadValue(topic) - 2) / 3;

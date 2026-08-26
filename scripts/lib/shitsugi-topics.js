@@ -28,12 +28,31 @@ const TAX_DOMAIN_BY_CODE = {
   hojin: 'bookkeeping_expenses',
 };
 
+// corrected_persona（選別時の読者想定の補正）から macro を引くための対応表。
+// 既存トピックプールの実際の persona→macro を集計して作成（主たる macro を採用）。
+const MACRO_BY_PERSONA = {
+  ebay_export_seller: '物販',
+  domestic_ec_seller: '物販',
+  reseller_marketplace_seller: '物販',
+  influencer_creator: 'インフルエンサー',
+  beauty_salon_owner: 'サロン',
+  inheritance_client: '相続贈与',
+  general_individual_proprietor: '税目実務',
+  general_corporation: '税目実務',
+  youtuber: 'YouTube',
+  content_seller: 'コンテンツ販売',
+  construction_solo: '建設',
+  retail_store: '小売',
+  wholesale: '卸売',
+};
+
 let lastStats = {
   adopted: 0,
   included: 0,
   skipped: 0,
   unreadable: 0,
   relevanceRejected: 0,
+  triaged: 0,
   disabled: false,
 };
 
@@ -41,10 +60,10 @@ function normalizeText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
-function sourceFileFor(candidate) {
+function sourceFileFor(candidate, sourceRoot = SOURCE_ROOT) {
   const relative = String(candidate.file_path || '').replace(/[\\/]+/g, path.sep);
-  const resolved = path.resolve(SOURCE_ROOT, relative);
-  const rootPrefix = `${path.resolve(SOURCE_ROOT)}${path.sep}`;
+  const resolved = path.resolve(sourceRoot, relative);
+  const rootPrefix = `${path.resolve(sourceRoot)}${path.sep}`;
   return resolved.startsWith(rootPrefix) ? resolved : '';
 }
 
@@ -54,6 +73,15 @@ function toTopic(candidate, sourceEntry) {
   const id = String(candidate.id || '');
   const slug = `shitsugi-${code}-${section}-${id}`;
   const proposed = candidate.proposed || {};
+  // LLM 選別が読者想定を補正した場合はそれを使い、macro も対応表で引き直す。
+  const triage = candidate.llm_triage || null;
+  const persona = (triage && triage.corrected_persona) || proposed.persona;
+  const macro = (triage && triage.corrected_persona)
+    ? MACRO_BY_PERSONA[triage.corrected_persona]
+    : proposed.macro;
+  if (!persona || !macro) {
+    throw new Error(`読者想定を解決できません (persona=${persona || '無し'})`);
+  }
   const question = normalizeText(sourceEntry.shokai_yoshi);
   const targetSegments = Array.isArray(candidate.target_segments)
     ? candidate.target_segments.filter(Boolean).join(' ')
@@ -62,8 +90,8 @@ function toTopic(candidate, sourceEntry) {
   return {
     slug,
     title: '',
-    macro: proposed.macro,
-    persona: proposed.persona,
+    macro,
+    persona,
     article_type: proposed.article_type,
     category: CATEGORY_BY_TAX_CATEGORY[candidate.tax_category],
     tax_domain: TAX_DOMAIN_BY_CODE[code],
@@ -88,15 +116,30 @@ function toTopic(candidate, sourceEntry) {
   };
 }
 
+// 接続対象の決め方:
+//   LLM 選別（llm_triage）が済んでいる候補は decision === 'adopt' のものだけを使う。
+//   まだ選別されていない候補は、従来の手動採用フラグ（adopted === true）を使う。
+//   → 選別が途中でも壊れず、全件選別が済めば手動採用は自然に役目を終える。
+function isConnectable(candidate) {
+  if (!candidate) return false;
+  const triage = candidate.llm_triage;
+  if (triage && triage.decision) return triage.decision === 'adopt';
+  return candidate.adopted === true;
+}
+
 function expandShitsugiTopics(options = {}) {
   const filterRelevance = options.filterRelevance !== false;
   const logger = options.logger === undefined ? console : options.logger;
+  // candidateFile / sourceRoot はテスト用の注入口。通常は既定のまま。
+  const candidateFile = options.candidateFile || CANDIDATE_FILE;
+  const sourceRoot = options.sourceRoot || SOURCE_ROOT;
   const stats = {
     adopted: 0,
     included: 0,
     skipped: 0,
     unreadable: 0,
     relevanceRejected: 0,
+    triaged: 0,
     disabled: process.env.DISABLE_SHITSUGI_TOPICS === 'true',
   };
 
@@ -105,9 +148,11 @@ function expandShitsugiTopics(options = {}) {
     return [];
   }
 
-  const parsed = JSON.parse(fs.readFileSync(CANDIDATE_FILE, 'utf8'));
-  const adopted = (Array.isArray(parsed.candidates) ? parsed.candidates : [])
-    .filter(candidate => candidate && candidate.adopted === true)
+  const parsed = JSON.parse(fs.readFileSync(candidateFile, 'utf8'));
+  const allCandidates = Array.isArray(parsed.candidates) ? parsed.candidates : [];
+  stats.triaged = allCandidates.filter(c => c && c.llm_triage && c.llm_triage.decision).length;
+  const adopted = allCandidates
+    .filter(isConnectable)
     .sort((a, b) => {
       const highDiff = Number(b.article_potential === 'high') - Number(a.article_potential === 'high');
       return highDiff || (Number(b.score) || 0) - (Number(a.score) || 0);
@@ -116,7 +161,7 @@ function expandShitsugiTopics(options = {}) {
 
   const topics = [];
   for (const candidate of adopted) {
-    const file = sourceFileFor(candidate);
+    const file = sourceFileFor(candidate, sourceRoot);
     try {
       if (!file || !fs.existsSync(file)) throw new Error('本文ファイルがありません');
       const sourceEntry = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -151,6 +196,8 @@ function getLastExpansionStats() {
 module.exports = {
   expandShitsugiTopics,
   getLastExpansionStats,
+  isConnectable,
+  MACRO_BY_PERSONA,
   CATEGORY_BY_TAX_CATEGORY,
   TAX_DOMAIN_BY_CODE,
   CANDIDATE_FILE,
