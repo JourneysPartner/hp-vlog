@@ -26,7 +26,16 @@ const ANALYTICS_BEACON = `
 <script>
 (() => {
   if (location.hostname !== 'mori-zeirishi.net' || navigator.doNotTrack === '1') return;
-  const body = JSON.stringify({ p: location.pathname });
+  const data = { p: location.pathname };
+  // 問い合わせページでは、どのページから来たか（サイト内のみ）を添える。
+  // どの記事が問い合わせにつながったかを実測するため。
+  if (location.pathname === '/contact.html' && document.referrer) {
+    try {
+      const from = new URL(document.referrer);
+      if (from.hostname === location.hostname) data.r = from.pathname;
+    } catch (e) {}
+  }
+  const body = JSON.stringify(data);
   if (!navigator.sendBeacon('/track', body)) {
     fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
   }

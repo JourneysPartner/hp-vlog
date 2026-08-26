@@ -2,7 +2,7 @@
 
 const { connectLambda, getStore } = require('@netlify/blobs');
 const { requireBasicAuth } = require('./lib/admin-auth');
-const { jstDate, dateOffset, countPrefix } = require('./lib/analytics-store');
+const { jstDate, dateOffset, countPrefix, transitionKey } = require('./lib/analytics-store');
 
 async function mapWithConcurrency(items, concurrency, fn) {
   const out = new Array(items.length);
@@ -36,11 +36,12 @@ exports.handler = async (event) => {
     const today = jstDate();
     const dates = Array.from({ length: 90 }, (_, i) => dateOffset(today, -89 + i));
     const rows = await mapWithConcurrency(dates, 6, async date => {
-      const [daily, visitors] = await Promise.all([
+      const [daily, visitors, transitions] = await Promise.all([
         // アクセス解析は参考値であり、Lambda互換Functionで利用可能な
         // Blobs標準のeventual consistency（最大約60秒の反映差）で取得する。
         store.get(`daily/${date}`, { type: 'json' }),
         countPrefix(store, `uniq/${date}/`),
+        store.get(transitionKey(date), { type: 'json' }),
       ]);
       const data = daily && typeof daily === 'object' ? daily : {};
       return {
@@ -48,8 +49,17 @@ exports.handler = async (event) => {
         pageviews: Number.isSafeInteger(data.pageviews) ? data.pageviews : 0,
         visitors,
         byPath: data.byPath && typeof data.byPath === 'object' ? data.byPath : {},
+        // 問い合わせページへの遷移（遷移元パス別）。どの記事が問い合わせを生んだかの実測。
+        contactFrom: transitions && typeof transitions.byFrom === 'object' ? transitions.byFrom : {},
       };
     });
+
+    const contactFrom = {};
+    for (const row of rows) {
+      for (const [from, count] of Object.entries(row.contactFrom)) {
+        if (Number.isSafeInteger(count) && count > 0) contactFrom[from] = (contactFrom[from] || 0) + count;
+      }
+    }
 
     const byPath = {};
     for (const row of rows) {
@@ -66,7 +76,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Cache-Control': 'no-store' },
-      body: JSON.stringify({ ok: true, today, daily: rows, summaries, byPath }),
+      body: JSON.stringify({ ok: true, today, daily: rows, summaries, byPath, contactFrom }),
     };
   } catch (err) {
     console.error('[admin-analytics] list failed:', err.message);

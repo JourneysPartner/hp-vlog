@@ -31,6 +31,7 @@ const {
   isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit, scoreLeadValue,
 } = require('./customer-relevance');
 const { seasonBoost, matchingSeasonEntries } = require('./tax-calendar');
+const { inquirySignalFor } = require('./inquiry-signals');
 
 const SIM_THRESHOLD_VS_CORPUS  = 0.55;
 const SIM_THRESHOLD_BETWEEN_PAIR = 0.45;
@@ -86,11 +87,15 @@ function priorityBreakdown(topic, now) {
   const season = seasonBoost(topic, now);
   const seasonEntries = season ? matchingSeasonEntries(topic, now) : [];
   const lead = (scoreLeadValue(topic) - 2) / 3;
+  // 問い合わせ実績: 実際に問い合わせページへの遷移を生んだ記事と同じ・近い論点なら 1。
+  // 重みは季節と同じ 2（実測の転換実績は時宜と同等以上に重い）。需要の証拠（×3）は超えない。
+  const inquiry = inquirySignalFor(topic);
   return {
     demand,
     season,
     lead,
-    priority: demand * 3 + season * 2 + lead,
+    inquiry,
+    priority: demand * 3 + season * 2 + inquiry * 2 + lead,
     seasonLabels: seasonEntries.map(entry => entry.label),
   };
 }
@@ -114,6 +119,7 @@ function selectionReason(topic, parts) {
     reasons.push(`需要の証拠あり(${evidence.kind || '不明'}${evidence.score == null ? '' : ` score=${evidence.score}`})`);
   }
   if (parts.season) reasons.push(`季節(${parts.seasonLabels.join('・') || '該当月'})`);
+  if (parts.inquiry) reasons.push('問い合わせ実績のある論点');
   if (parts.lead > 0) reasons.push(`問い合わせ近接度(${parts.lead.toFixed(2)})`);
   if (reasons.length === 0) reasons.push('カテゴリバランス');
   return `${reasons.join(' + ')} で優先`;
@@ -132,6 +138,7 @@ function explainPick(topic, scored) {
     priority_breakdown: {
       demand: parts.demand || 0,
       season: parts.season || 0,
+      inquiry: parts.inquiry || 0,
       lead: Number((parts.lead || 0).toFixed(3)),
       balance: Number(((entry && entry.balance) || 0).toFixed(3)),
     },

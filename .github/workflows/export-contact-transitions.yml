@@ -1,0 +1,89 @@
+name: Export Contact Transitions
+
+# 問い合わせページへの遷移実測（どの記事が問い合わせを生んだか）を
+# サイトの管理APIから取得し、data/contact-transitions.json に書き出す（段階2）。
+# 週1回（月曜 JST 03:00）＋手動。変更があれば PR を作成（自動マージなし）。
+#
+# 必要な secrets（Netlify の管理画面と同じ値）:
+#   ADMIN_BASIC_USER / ADMIN_BASIC_PASS
+# 未設定の場合はスキップして正常終了する（計測自体はサイト側で貯まり続ける）。
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'   # 日曜 18:00 UTC = 月曜 JST 03:00
+  workflow_dispatch:
+
+concurrency:
+  group: export-contact-transitions
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch transitions from admin API
+        env:
+          ADMIN_BASIC_USER: ${{ secrets.ADMIN_BASIC_USER }}
+          ADMIN_BASIC_PASS: ${{ secrets.ADMIN_BASIC_PASS }}
+        run: |
+          if [ -z "$ADMIN_BASIC_USER" ] || [ -z "$ADMIN_BASIC_PASS" ]; then
+            echo "::warning::ADMIN_BASIC_USER / ADMIN_BASIC_PASS が未設定のためスキップします（計測はサイト側で継続中）"
+            echo "SKIP=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          HTTP=$(curl -sS -o /tmp/analytics.json -w "%{http_code}" \
+            -u "${ADMIN_BASIC_USER}:${ADMIN_BASIC_PASS}" \
+            "https://mori-zeirishi.net/admin/api/analytics/list")
+          if [ "$HTTP" != "200" ]; then
+            echo "::error::管理APIの取得に失敗 (HTTP ${HTTP})"
+            exit 1
+          fi
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('/tmp/analytics.json', 'utf8'));
+            if (!data.ok) { console.error('APIエラー'); process.exit(1); }
+            const out = {
+              note: 'どのページから問い合わせページへ進んだかの実測（直近90日）。週次で更新。',
+              updated_at: new Date().toISOString(),
+              days: 90,
+              byFrom: data.contactFrom || {},
+            };
+            fs.writeFileSync('data/contact-transitions.json', JSON.stringify(out, null, 2) + '\n');
+            const n = Object.keys(out.byFrom).length;
+            console.log('遷移元ページ: ' + n + ' 件');
+          "
+
+      - name: Create PR if changed
+        if: env.SKIP != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- data/contact-transitions.json && [ -f data/contact-transitions.json ]; then
+            CHANGED=$(git status --porcelain -- data/contact-transitions.json)
+            if [ -z "$CHANGED" ]; then
+              echo "::notice::変更なし。PR は作成しません"
+              exit 0
+            fi
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          STAMP=$(date -u +%Y%m%d)
+          BRANCH="transitions/${STAMP}"
+          git checkout -b "$BRANCH"
+          git add data/contact-transitions.json
+          if git diff --cached --quiet; then
+            echo "::notice::変更なし。PR は作成しません"
+            exit 0
+          fi
+          git commit -m "chore: 問い合わせ遷移の実測を更新 (${STAMP})"
+          git push origin "$BRANCH"
+
+          gh pr create --base main --head "$BRANCH" \
+            --title "問い合わせ遷移の実測を更新 (${STAMP})" \
+            --body "どのページから問い合わせページへ進んだかの週次エクスポートです。マージすると、実績のある論点が記事候補の選定で優先されます（重みは季節と同じ）。記事の公開前手動承認は変わりません。" \
+            || echo "::error::PR の作成に失敗しました"

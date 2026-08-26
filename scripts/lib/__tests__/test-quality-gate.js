@@ -103,8 +103,20 @@ assert(mixed.picks.every(p => evaluateTopicFit(p).decision === 'approve'), 'pick
 console.log('\n=== Test 5: 実プール dry-run ===');
 const { TOPICS } = require(path.join(ROOT, 'scripts/topic-pool'));
 const dry = selectDailyTopics(TOPICS, { now: new Date() });
-assert(dry.picks.every(p => evaluateTopicFit(p).decision === 'approve'),
-  `dry-run の picks は全て approve（${dry.picks.length} 本）`);
+// 2026-08-27: 検索サジェスト由来の候補は出典を持たずにプールへ入り、出典は生成時に
+// 解決される（確定しなければ承認時の出典ガードが止める）。そのため候補段階の判定は
+// approve とは限らない。ここでは「reject が選ばれない」ことと、approve でない pick は
+// 出典未解決の需要つき候補（設計どおりの状態）だけであることを確認する。
+assert(dry.picks.every(p => evaluateTopicFit(p).decision !== 'reject'),
+  `dry-run の picks に reject が無い（${dry.picks.length} 本）`);
+assert(dry.picks.every(p => {
+  const fit = evaluateTopicFit(p);
+  if (fit.decision === 'approve') return true;
+  // 選定段階では汎用の出典が仮置きされる（domain-fallback 等）。人が確定した出典
+  // （explicit / curated）で revise になっているなら本当の問題なので許容しない。
+  const weak = ['domain-fallback', 'ultimate', 'auto', 'unknown', undefined];
+  return !!p.demand_evidence && weak.includes(p.source_provenance);
+}), 'approve でない pick は出典が仮置きの需要つき候補だけ');
 const dryQ = (dry.explanation.steps || []).find(s => s.step === 'filter-quality-fit');
 assert(dryQ && dryQ.blocked >= 0 && dryQ.remaining >= 0, 'dry-run に filter-quality-fit ステップが残る');
 
