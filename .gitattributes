@@ -1,0 +1,2 @@
+data/tax-simulator/schemas/input/*.json  text eol=lf
+scripts/lib/input-types/generated/**     text eol=lf

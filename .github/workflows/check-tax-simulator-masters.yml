@@ -30,18 +30,13 @@ on:
       - 'data/tax-simulator/schemas/input/**'
       - 'scripts/generate-input-types.js'
       - 'scripts/lib/input-types/**'
-      - 'scripts/lib/__tests__/test-input-types.js'
+      - 'scripts/lib/__tests__/**'
       - 'package.json'
       - 'scripts/check-master-freshness.js'
       - 'scripts/validate-masters.js'
       - 'scripts/approve-records.js'
       - 'scripts/fetch-kenpo-rates.js'
       - 'scripts/verify-source-urls.js'
-      - 'scripts/lib/__tests__/test-appendix5-rule.js'
-      - 'scripts/lib/__tests__/test-check-master-freshness.js'
-      - 'scripts/lib/__tests__/test-inheritance-credits.js'
-      - 'scripts/lib/__tests__/test-social-insurance-rates.js'
-      - 'scripts/lib/__tests__/test-standard-remuneration-grades.js'
 
 permissions:
   contents: read
@@ -67,13 +62,7 @@ jobs:
         run: node scripts/validate-masters.js
 
       - name: Run master tests
-        run: |
-          set -e
-          for t in appendix5-rule check-master-freshness inheritance-credits \
-                   social-insurance-rates standard-remuneration-grades input-types; do
-            echo "--- $t ---"
-            node "scripts/lib/__tests__/test-$t.js"
-          done
+        run: npm run masters:test
 
       - name: Check master freshness
         id: check

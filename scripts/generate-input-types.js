@@ -288,12 +288,16 @@ function relative(filePath) {
   return path.relative(REPO_ROOT, filePath).replaceAll(path.sep, '/');
 }
 
+function withoutCarriageReturns(content) {
+  return content === null ? null : content.replaceAll('\r', '');
+}
+
 function main() {
   let differences = 0;
   for (const [filePath, content] of expectedOutputs()) {
     if (CHECK_ONLY) {
       const current = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
-      if (current !== content) {
+      if (withoutCarriageReturns(current) !== withoutCarriageReturns(content)) {
         console.error(`  ✗ 生成物が定義元と一致しません: ${relative(filePath)}`);
         differences++;
       } else {

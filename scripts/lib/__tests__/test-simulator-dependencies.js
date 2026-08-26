@@ -84,7 +84,21 @@ console.log('\n=== 検証1: 4シミュレーターの値集合 ===');
   );
 }
 
-console.log('\n=== 検証2: 未分類 value_key の検出 ===');
+console.log('\n=== 検証2: 対応年の宣言は全シミュレーターで必須 ===');
+{
+  const taxYearKeys = ['supported_tax_year', 'tax_period_basis', 'era_definition'];
+  for (const simulatorType of SIMULATOR_TYPES) {
+    const required = new Set(
+      realTable.simulators[simulatorType].required.flatMap(dependency => dependency.value_keys)
+    );
+    assert(
+      taxYearKeys.every(valueKey => required.has(valueKey)),
+      `${simulatorType} は対応年・期間・元号の3キーを必須とする`
+    );
+  }
+}
+
+console.log('\n=== 検証3: 未分類 value_key の検出 ===');
 {
   const table = minimalTable();
   table.simulators.hojinnari.required = group(['classified_key']);
@@ -100,7 +114,7 @@ console.log('\n=== 検証2: 未分類 value_key の検出 ===');
   assert(inspection.warnings.length === 1, '未分類を警告として返す');
 }
 
-console.log('\n=== 検証3: マスターに無い value_key の検出 ===');
+console.log('\n=== 検証4: マスターに無い value_key の検出 ===');
 {
   const table = JSON.parse(JSON.stringify(realTable));
   table.simulators.sozoku.required[0].value_keys.push('not_existing_value_key');
@@ -115,7 +129,7 @@ console.log('\n=== 検証3: マスターに無い value_key の検出 ===');
   );
 }
 
-console.log('\n=== 検証4: シミュレーター別ゲートの独立判定 ===');
+console.log('\n=== 検証5: シミュレーター別ゲートの独立判定 ===');
 {
   const table = minimalTable();
   table.simulators.shohizei.required = group(['consumption_required']);
@@ -140,7 +154,7 @@ console.log('\n=== 検証4: シミュレーター別ゲートの独立判定 ===
   );
 }
 
-console.log('\n=== 検証5: コマンドのゲート指定 ===');
+console.log('\n=== 検証6: コマンドのゲート指定 ===');
 {
   const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulator-gate-'));
   try {
