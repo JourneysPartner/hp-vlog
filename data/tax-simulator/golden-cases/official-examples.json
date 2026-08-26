@@ -604,6 +604,79 @@
       ]
     },
     {
+      "case_id": "GC-CT-SIMPLIFIED-T5",
+      "target_module": "consumption_tax_simplified",
+      "kind": "table_derived",
+      "description": "簡易課税・第5種（サービス業）・税込課税売上1,100万円（全て標準10%）",
+      "source": {
+        "document_id": "NTA-TA-6505",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm",
+        "locator": "消費税法37条・事業区分およびみなし仕入率の表（第5種事業50%）・地方税法72条の83（22/78）",
+        "law_version": "現行（2026-08-27）",
+        "retrieved_at": "2026-08-27",
+        "usage": "第5種のみなし仕入率と地方消費税の算式から導出"
+      },
+      "inputs": {
+        "taxable_period": {
+          "from": "2025-01-01",
+          "to": "2025-12-31"
+        },
+        "standard_rate_tax_inclusive_sales": "11000000",
+        "business_type": 5
+      },
+      "expected": {
+        "taxable_base": "10000000",
+        "national_sales_tax": "780000",
+        "deemed_purchase_tax": "390000",
+        "national_tax": "390000",
+        "local_tax": "110000",
+        "total_tax": "500000"
+      },
+      "_additional_sources": [
+        "https://laws.e-gov.go.jp/law/325AC0000000226"
+      ],
+      "_master_dependency": [
+        "consumption_tax_rate_standard",
+        "simplified_deemed_purchase_rates"
+      ]
+    },
+    {
+      "case_id": "GC-CT-GENERAL-FULL",
+      "target_module": "consumption_tax_general",
+      "kind": "table_derived",
+      "description": "一般課税・全額控除・税込課税売上1,100万円・税込課税仕入660万円（全て標準10%・インボイスあり）",
+      "source": {
+        "document_id": "E-GOV-CONSUMPTION-TAX-ACT",
+        "url": "https://laws.e-gov.go.jp/law/363AC0000000108",
+        "locator": "消費税法28条・29条・30条、地方税法72条の83（22/78）",
+        "law_version": "現行（2026-08-27）",
+        "retrieved_at": "2026-08-27",
+        "usage": "課税標準・売上税額・仕入税額控除と地方消費税の算式から導出"
+      },
+      "inputs": {
+        "taxable_period": {
+          "from": "2025-01-01",
+          "to": "2025-12-31"
+        },
+        "standard_rate_tax_inclusive_sales": "11000000",
+        "standard_rate_tax_inclusive_purchases_with_invoice": "6600000"
+      },
+      "expected": {
+        "taxable_base": "10000000",
+        "national_sales_tax": "780000",
+        "deductible_purchase_tax": "468000",
+        "national_tax": "312000",
+        "local_tax": "88000",
+        "total_tax": "400000"
+      },
+      "_additional_sources": [
+        "https://laws.e-gov.go.jp/law/325AC0000000226"
+      ],
+      "_master_dependency": [
+        "consumption_tax_rate_standard"
+      ]
+    },
+    {
       "case_id": "GC-CORP-FULL-600",
       "target_module": "corporate_tax",
       "kind": "table_derived",

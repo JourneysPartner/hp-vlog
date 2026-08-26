@@ -25,13 +25,13 @@ const {
   multiplyRateByMoney,
   addExact,
   subtractExact,
-  subtractMoney,
   compareExactToMoney,
 } = require('../../../src/tax-engine/common/money.js');
 const { applyRounding } = require('../../../src/tax-engine/common/rounding.js');
 const masters = require('../../../src/tax-engine/masters/snapshot.js');
 const inheritanceEngine = require('../../../src/tax-engine/inheritance/inheritance-tax.js');
 const corporateTaxEngine = require('../../../src/tax-engine/corporate/corporate-tax.js');
+const consumptionTaxEngine = require('../../../src/tax-engine/consumption/consumption-tax.js');
 
 const ROOT = path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator');
 const CASES = JSON.parse(fs.readFileSync(path.join(ROOT, 'golden-cases', 'official-examples.json'), 'utf8'));
@@ -103,21 +103,6 @@ function basicDeduction(totalIncome, year) {
   const row = masters.findBracket('basic_deduction_table', input, { taxYear: year });
   if (!row) throw new Error(`基礎控除の表に該当なし: ${totalIncome}`);
   return masterMoney(row.deduction_amount).value;
-}
-
-// 2割特例
-function smallBusinessSpecial(salesTax, periodFrom, periodTo) {
-  const rows = masters.find('small_business_special_deduction', {
-    periodIntersects: { from: periodFrom, to: periodTo },
-  });
-  const row = rows[0];
-  if (!row) throw new Error('特例の対象期間外');
-  const input = inputMoney(salesTax);
-  const deduction = applyRounding(
-    multiplyRateByMoney(masterRate(row.special_deduction_rate), input),
-    row.rounding_rule_id
-  );
-  return { deduction: deduction.value, payable: subtractMoney(input, deduction).value };
 }
 
 // ── 照合 ────────────────────────────────────────────────────
@@ -234,11 +219,11 @@ console.log('\n=== §63 公的計算例との照合 ===');
 }
 {
   const c = byId.get('GC-CT-2WARI-70');
-  const r = smallBusinessSpecial(c.inputs.sales_tax_after_returns,
-    c.inputs.taxable_period.from, c.inputs.taxable_period.to);
-  assert(r.deduction === BigInt(c.expected.special_deduction),
+  const r = consumptionTaxEngine.calculateTwoWariFromSalesTax(
+    inputMoney(c.inputs.sales_tax_after_returns), c.inputs.taxable_period);
+  assert(r.specialDeduction.value === BigInt(c.expected.special_deduction),
     `${c.case_id}: 特別控除 56万円（売上税額×80%）`);
-  assert(r.payable === BigInt(c.expected.tax_payable),
+  assert(r.nationalTax.value === BigInt(c.expected.tax_payable),
     `${c.case_id}: 納付税額 14万円`);
 }
 {
