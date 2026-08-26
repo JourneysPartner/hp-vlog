@@ -1,0 +1,917 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "slug": "suggest-ec-kakutei-673b3d",
+      "seed_id": "ec-kakutei",
+      "phrases": [
+        "ネットショップ 確定申告 やり方",
+        "ネットショップ 売上 確定申告",
+        "副業 ネットショップ 確定申告"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "ネットショップの売上を副業で得た場合、確定申告はいつ、どのような手順で行えばよい？",
+      "reader_problem": "ネットショップの売上をどの所得として申告し、何を準備すればよいのか分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-kakutei-d589f6",
+      "seed_id": "ec-kakutei",
+      "phrases": [
+        "ネットショップ 確定申告 バレる"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "ネットショップの売上を確定申告しないと税務署に把握される？",
+      "reader_problem": "ネットショップの売上を申告しなかった場合に、どのように発覚し、どんなペナルティがあるのか不安を感じている。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-kakutei-a57de4",
+      "seed_id": "ec-kakutei",
+      "phrases": [
+        "確定申告 ネットショップ 領収書"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "ネットショップの確定申告では領収書をどのように保存し、領収書がない支出はどう処理すればよい？",
+      "reader_problem": "仕入れや販売にかかった費用の領収書をどこまで保管すべきか分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-shohizei-5c9f81",
+      "seed_id": "ec-shohizei",
+      "phrases": [
+        "ネットショップ 海外発送 消費税",
+        "ネットショップ 海外 消費税"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "ネットショップの商品を海外発送する場合、販売価格や送料に消費税はかかる？",
+      "reader_problem": "海外向け販売を始めたものの、輸出免税の対象になる条件や消費税の表示方法が分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-amazon-02edd8",
+      "seed_id": "ec-amazon",
+      "phrases": [
+        "amazon 販売手数料 税金"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "Amazonの販売手数料は事業の必要経費として計上できる？",
+      "reader_problem": "Amazonに支払う販売手数料を売上から差し引くだけでよいのか、経費として帳簿に記載すべきか迷っている。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-kaigai-be2551",
+      "seed_id": "ec-kaigai",
+      "phrases": [
+        "海外販売 消費税 還付",
+        "国内仕入れ 海外販売 消費税",
+        "国内仕入 海外販売 消費税"
+      ],
+      "persona": "ebay_export_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "国内で仕入れた商品を海外販売した場合、仕入れ時に支払った消費税の還付を受けられる？",
+      "reader_problem": "海外販売で売上に消費税をかけていないため、国内仕入れに含まれる消費税を還付できる条件や手続きが分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-ec-ebay-8a5624",
+      "seed_id": "ec-ebay",
+      "phrases": [
+        "ebay 輸出 消費税還付"
+      ],
+      "persona": "ebay_export_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "eBayで商品を輸出販売した場合、仕入れにかかった消費税の還付を受けるには何が必要？",
+      "reader_problem": "eBay輸出をしているが、輸出取引の証明書類や課税事業者など、消費税還付の要件を満たしているか確認したい。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-mercari-f1d33d",
+      "seed_id": "furima-mercari",
+      "phrases": [
+        "メルカリ 売上 税金 いくら",
+        "メルカリ 売上 税金 不用品",
+        "メルカリ 売上 税金 グッズ",
+        "メルカリ 売上 税金 いくら から",
+        "メルカリ 売上 税金 かかる"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "メルカリの売上はいくらから税金がかかり、不用品やグッズの販売では扱いがどう変わる？",
+      "reader_problem": "メルカリで得た売上について、生活用品の処分と継続的な販売のどちらが課税対象になるのか判断できない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-1e1ea0",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 メルカリ",
+        "せどり 確定申告 書き方",
+        "せどり 確定申告 帳簿",
+        "せどり 確定申告 やり方"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "メルカリなどで行うせどりの確定申告では、売上や仕入れを帳簿にどう記録して申告書を作ればよい？",
+      "reader_problem": "販売先ごとの売上、商品の仕入れ、送料や手数料をどのように整理して確定申告すればよいか分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-babf47",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 バレない",
+        "せどり 確定申告 バレない 知恵袋",
+        "せどり 確定申告 バレる"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの売上を確定申告しないと税務署に把握される？",
+      "reader_problem": "フリマアプリや決済サービスを利用したせどりの売上が把握される仕組みと、無申告のリスクを知りたい。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-344de0",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 赤字"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "せどりが赤字でも確定申告は必要？赤字を給与など他の所得と通算できる？",
+      "reader_problem": "仕入れや販売経費を差し引くと赤字になる場合に、申告する必要性や税金への影響が分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-291b7c",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 レシート ない"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの仕入れでレシートがない場合、必要経費として確定申告するにはどうすればよい？",
+      "reader_problem": "フリマアプリや現金取引で仕入れた商品のレシートがなく、仕入れを経費にできるか不安を感じている。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-furima-handmade-bf620e",
+      "seed_id": "furima-handmade",
+      "phrases": [
+        "メルカリ ハンドメイド販売 税金"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "メルカリでハンドメイド作品を販売した利益には税金がかかり、確定申告は必要？",
+      "reader_problem": "材料費や販売手数料を差し引いた利益の計算方法と、趣味と事業のどちらとして申告すべきか分からない。",
+      "selected_at": "2026-08-26T10:05:39.767Z"
+    },
+    {
+      "slug": "suggest-creator-youtuber-ae05b3",
+      "seed_id": "creator-youtuber",
+      "phrases": [
+        "youtuber 税金対策",
+        "youtuber 税金払ってない",
+        "youtuber 税金 払い方",
+        "youtuber 税金 いくら"
+      ],
+      "persona": "youtuber",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "YouTuberの収入にはいくら税金がかかり、どのように納めればよい？",
+      "reader_problem": "動画収入が増えてきたものの、税金の計算方法や支払い方が分からず、申告漏れも心配している。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-creator-nagesen-ba7064",
+      "seed_id": "creator-nagesen",
+      "phrases": [
+        "投げ銭 税金 ばれ ない",
+        "投げ銭 税金 いくら から",
+        "投げ銭 税金 対策"
+      ],
+      "persona": "youtuber",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "投げ銭収入はいくらから申告が必要で、どのように税金を適切に処理すればよい？",
+      "reader_problem": "配信などで得た投げ銭を申告すべき基準が分からず、税務署に把握される可能性や申告漏れを不安に感じている。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-adfd4a",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 確定申告 やり方",
+        "インフルエンサー 確定申告 いくらから",
+        "インフルエンサー 副業 確定申告"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "インフルエンサーの収入はいくらから確定申告が必要で、どのように申告すればよい？",
+      "reader_problem": "本業または副業として得た案件報酬について、申告が必要になる金額や手続きが分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-e29e2b",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 確定申告 経費"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "comparison_decision",
+      "primary_question": "インフルエンサー活動で使った費用のうち、どこまでを必要経費にできる？",
+      "reader_problem": "撮影機材や衣装、通信費などを経費にできるか、プライベート利用との区分をどう判断すべきか悩んでいる。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-173f94",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 確定申告 職業",
+        "インフルエンサー 確定申告 種目",
+        "インフルエンサー 確定申告 業種"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "インフルエンサーは確定申告で職業・業種・所得の種類をどのように記載すればよい？",
+      "reader_problem": "確定申告書や開業関連書類に、インフルエンサーの活動内容をどの区分で記載すればよいか分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-6e17f7",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 商品提供のみ 確定申告",
+        "インフルエンサー 無償提供 確定申告"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "case_study",
+      "primary_question": "インフルエンサーが報酬の代わりに商品提供を受けた場合、確定申告は必要？",
+      "reader_problem": "現金報酬がなく商品だけを受け取った案件についても所得になるのか、申告や評価額の扱いに迷っている。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-content-note-e79e2e",
+      "seed_id": "content-note",
+      "phrases": [
+        "note 収益 化 税金"
+      ],
+      "persona": "content_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "noteの有料記事やメンバーシップで得た収益にはどのような税金がかかる？",
+      "reader_problem": "noteの収益化を始めたものの、売上の申告要否や経費、納税の基本的な扱いが分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-salon-biyoushitsu-a6bfe4",
+      "seed_id": "salon-biyoushitsu",
+      "phrases": [
+        "美容室 経費 科目",
+        "美容室 経費にできるもの",
+        "美容室 経費 個人事業主",
+        "美容室 経費で落とせるもの",
+        "美容室 経費 勘定科目",
+        "美容室 経費になる"
+      ],
+      "persona": "beauty_salon_owner",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "comparison_decision",
+      "primary_question": "美容室の支出はどこまで経費にでき、勘定科目をどのように分ければよい？",
+      "reader_problem": "材料費や広告費、家賃などの支出について、経費にできるかと適切な勘定科目の判断に悩んでいる。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kensetsu-hitori-5cdd76",
+      "seed_id": "kensetsu-hitori",
+      "phrases": [
+        "一人親方 確定申告 やり方",
+        "一人親方 確定申告してない",
+        "一人親方 確定申告 白",
+        "一人親方 確定申告 書き方",
+        "一人親方 確定申告してない 知恵袋",
+        "一人親方 確定申告 スマホ",
+        "一人親方 確定申告 必要書類",
+        "一人親方 確定申告 税理士"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "一人親方は確定申告が必要で、必要書類をそろえてどのように申告すればよい？",
+      "reader_problem": "確定申告の必要性や白色申告の書き方、スマホでの手続き、未申告の場合の対応が分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kensetsu-hitori-3b4ccc",
+      "seed_id": "kensetsu-hitori",
+      "phrases": [
+        "一人親方 確定申告 経費"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "comparison_decision",
+      "primary_question": "一人親方は材料費や車両費などのどこまでを必要経費にできる？",
+      "reader_problem": "建設業務に関連する資材、工具、車両、外注費などを経費にできる範囲や按分方法が分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kensetsu-invoice-ac1629",
+      "seed_id": "kensetsu-invoice",
+      "phrases": [
+        "一人親方 インボイス登録",
+        "一人親方 インボイス 消費税",
+        "一人親方 インボイス制度"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "一人親方はインボイス登録をするべきで、登録すると消費税の納税はどう変わる？",
+      "reader_problem": "取引先から登録を求められているが、インボイス登録による受注への影響や消費税負担を比較できていない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kouri-shohizei-2d2990",
+      "seed_id": "kouri-shohizei",
+      "phrases": [
+        "小売店 消費税 納税",
+        "小売店 消費税 免除",
+        "消費税 小売店 1000万円"
+      ],
+      "persona": "retail_store",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "小売店は売上1,000万円を基準に、いつから消費税の納税義務が発生する？",
+      "reader_problem": "売上規模によって消費税が免税になるのか、課税事業者として納税が必要になる時期が分からない。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kouri-shohizei-3b8d29",
+      "seed_id": "kouri-shohizei",
+      "phrases": [
+        "小売店 消費税 表示"
+      ],
+      "persona": "retail_store",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "小売店の商品価格は消費税込みでどのように表示すればよい？",
+      "reader_problem": "店頭や広告での商品価格について、税込表示のルールや税率が異なる商品の表示方法に不安がある。",
+      "selected_at": "2026-08-26T10:06:09.776Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-a476eb",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 免除"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "個人事業主はどのような条件で消費税の納税が免除されるのか？",
+      "reader_problem": "消費税を納めなくてよい基準や、課税事業者になるタイミングが分からない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-4702d2",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 いつ払う"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "個人事業主の消費税はいつまでに納付するのか？",
+      "reader_problem": "消費税の申告・納付期限が分からず、期限を過ぎて延滞税が発生しないか不安である。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-3d872e",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 インボイス"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "個人事業主はインボイス発行事業者に登録して消費税を納めるべきか？",
+      "reader_problem": "取引先からインボイス登録を求められているが、登録による消費税負担と取引上のメリットを比較できない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-9b9273",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 計算方法",
+        "個人事業主 消費税計算 シュミレーション"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "個人事業主の消費税はどのように計算し、納税額をシミュレーションするのか？",
+      "reader_problem": "売上や仕入れから実際の消費税納税額を計算できず、簡易課税と本則課税のどちらが有利か判断できない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-c6e24d",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 勘定科目",
+        "個人事業主 消費税 経費"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "個人事業主が支払った消費税は帳簿上どの勘定科目で処理し、経費にできるのか？",
+      "reader_problem": "税込経理・税抜経理の違いや、納付した消費税を必要経費にできるかが分からない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-shohizei-7eeff5",
+      "seed_id": "kojin-shohizei",
+      "phrases": [
+        "個人事業主 消費税 中間納付",
+        "個人事業主 消費税 予定納税"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "個人事業主の消費税の中間納付は、いつ、いくら納めるのか？",
+      "reader_problem": "確定申告時の納税とは別に中間納付が必要になる条件や金額が分からない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-aoiro-8dd03f",
+      "seed_id": "kojin-aoiro",
+      "phrases": [
+        "青色申告 メリット デメリット",
+        "青色申告 メリット 個人",
+        "青色申告 メリット 個人事業主"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "個人事業主は青色申告を選ぶべきか、メリットとデメリットは何か？",
+      "reader_problem": "青色申告特別控除などの節税効果は知りたいが、帳簿作成の負担に見合うのか判断できない。",
+      "selected_at": "2026-08-26T10:06:53.914Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-305c9a",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金 計算",
+        "フリーランス 税金 シミュレーション",
+        "フリーランス 税金 いくら",
+        "フリーランス 税金 何割"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "フリーランスの税金はいくらで、所得に対して何割程度を準備すべきか？",
+      "reader_problem": "売上は分かっていても所得税や住民税などの納税額を見積もれず、資金をいくら残せばよいか分からない。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-85e883",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金 いつ払う",
+        "フリーランス 税金 払い方"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "フリーランスの税金はいつ、どのような方法で支払うのか？",
+      "reader_problem": "所得税などの申告・納付時期や、口座振替・クレジットカードなどの支払い方法が分からない。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-d2fcab",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金対策",
+        "フリーランス 税金 高すぎる"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "フリーランスが適正な範囲で税負担を抑えるには何をすべきか？",
+      "reader_problem": "税金が高すぎると感じているが、経費や控除、青色申告など合法的な対策の優先順位が分からない。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-kojin-kaigyou-624f45",
+      "seed_id": "kojin-kaigyou",
+      "phrases": [
+        "開業届 出さないとどうなる",
+        "開業届 出さないといけない",
+        "開業届 出さないといけない人",
+        "開業届け 出さないとどうなる",
+        "個人事業主 開業届 出さないとどうなる",
+        "個人事業主 開業届 出さないと",
+        "フリーランス 開業届 出さないとどうなる"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "個人事業主やフリーランスが開業届を出さないと、税務上どのような影響があるのか？",
+      "reader_problem": "開業届の提出義務や未提出による罰則、青色申告への影響が分からず、提出すべきか迷っている。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-kojin-yotei-ddc407",
+      "seed_id": "kojin-yotei",
+      "phrases": [
+        "予定納税 払えない場合"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "所得税の予定納税を払えない場合、どのように対処すればよいのか？",
+      "reader_problem": "資金繰りの悪化で予定納税が難しく、減額申請や延納の可否、滞納時の影響を知りたい。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-houjin-yakuin-cd7daf",
+      "seed_id": "houjin-yakuin",
+      "phrases": [
+        "役員報酬 決め方 中小企業",
+        "役員報酬 決め方 合同会社",
+        "役員報酬 決め方 有限会社",
+        "役員報酬 決め方 取締役会",
+        "役員報酬 決め方 会社法",
+        "役員報酬 決め方 シュミレーション",
+        "役員報酬 決め方 一人",
+        "役員報酬 決め方 金額"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "withholding",
+      "category": "源泉徴収",
+      "article_type": "comparison_decision",
+      "primary_question": "中小企業は役員報酬の金額や決定時期をどのように設定すれば、税務上適切で会社と役員の手取りを最適化できるのか？",
+      "reader_problem": "役員報酬をいくらにすれば法人税・所得税・社会保険の負担が適切になるのか、会社形態や決定手続も含めて判断できない。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-houjin-yakuin-8c91e0",
+      "seed_id": "houjin-yakuin",
+      "phrases": [
+        "役員報酬 決め方 議事録"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "withholding",
+      "category": "源泉徴収",
+      "article_type": "basic_explainer",
+      "primary_question": "役員報酬を決定・変更する際に、どのような議事録や税務上の記録を残すべきか？",
+      "reader_problem": "役員報酬を損金算入するために必要な株主総会議事録などの書類や保存方法が分からない。",
+      "selected_at": "2026-08-26T10:06:53.915Z"
+    },
+    {
+      "slug": "suggest-invoice-yametai-dd16cd",
+      "seed_id": "invoice-yametai",
+      "phrases": [
+        "インボイス 辞めたい",
+        "インボイス やめたいとき",
+        "インボイス やめたい場合",
+        "インボイス 登録 やめたい",
+        "インボイス 登録 辞めたい",
+        "個人事業主 インボイス 辞めたい"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "インボイス登録をやめるにはどのような手続きが必要で、やめると何が変わる？",
+      "reader_problem": "インボイス登録後に納税負担や事務負担が増え、登録を取り消すべきかや手続きの時期が分からない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-invoice-2wari-f451e6",
+      "seed_id": "invoice-2wari",
+      "phrases": [
+        "インボイス 2割特例 いつまで",
+        "インボイス 2割特例 わかりやすく",
+        "インボイス 2割特例とは",
+        "インボイス 2割特例 フローチャート",
+        "インボイス 2割特例 法人",
+        "インボイス 2割特例 延長",
+        "インボイス 2割特例 3割特例"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "インボイス制度の2割特例は誰がいつまで利用でき、どのような条件がある？",
+      "reader_problem": "2割特例の対象者や適用期限、法人でも使えるのかが分からず、自分が利用できるか判断できない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-invoice-2wari-a8e573",
+      "seed_id": "invoice-2wari",
+      "phrases": [
+        "インボイス 2割特例 計算 シュミレーション",
+        "インボイス 2割特例 計算方法"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "case_study",
+      "primary_question": "インボイス制度の2割特例による消費税額はどのように計算する？",
+      "reader_problem": "売上金額から実際の納税額がいくらになるのか、計算方法や通常の課税方式との違いが分からない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-invoice-menzei-d94411",
+      "seed_id": "invoice-menzei",
+      "phrases": [
+        "免税事業者 インボイス登録",
+        "免税事業者 インボイス 経過措置",
+        "免税事業者 インボイス番号",
+        "免税事業者 インボイス 特例",
+        "免税事業者 インボイス 消費税",
+        "免税事業者 インボイス登録なし",
+        "免税事業者 インボイス制度"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "免税事業者はインボイス登録すべきか、登録しない場合にどのような影響がある？",
+      "reader_problem": "取引先から登録を求められているものの、課税事業者になる負担と取引への影響を比較できない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-invoice-menzei-56fadf",
+      "seed_id": "invoice-menzei",
+      "phrases": [
+        "免税事業者 インボイス 請求書",
+        "免税事業者 インボイス登録なし",
+        "免税事業者 インボイス 経過措置"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "basic_explainer",
+      "primary_question": "インボイス未登録の免税事業者はどのような請求書を発行し、取引先の仕入税額控除はどうなる？",
+      "reader_problem": "インボイス番号がない状態で請求書を発行してよいのか、取引先側の控除や経過措置への影響が分からない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-gensen-houshu-0c7c44",
+      "seed_id": "gensen-houshu",
+      "phrases": [
+        "源泉徴収 報酬 計算方法",
+        "報酬 源泉徴収 計算 消費税",
+        "報酬 料金 源泉徴収 計算",
+        "報酬 源泉徴収 計算 手取り",
+        "弁護士 報酬 源泉徴収 計算",
+        "税理士 報酬 源泉徴収 計算",
+        "司法書士 報酬 源泉徴収 計算"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "withholding",
+      "category": "源泉徴収",
+      "article_type": "basic_explainer",
+      "primary_question": "弁護士・税理士などへの報酬にかかる源泉徴収税額は、消費税込みの金額からどのように計算する？",
+      "reader_problem": "専門家への報酬支払いで源泉徴収が必要か、消費税を含めるか、相手の手取りをいくらにすべきか判断できない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-gensen-nencho-d4bfef",
+      "seed_id": "gensen-nencho",
+      "phrases": [
+        "年末調整 自分でやる",
+        "年末調整 自分でやる場合",
+        "年末調整 自分でやる 会社員",
+        "年末調整 自分で確定申告",
+        "年末調整 自分でやるには",
+        "年末調整 自分で確定申告 やり方",
+        "年末調整 自分で確定申告 どこで",
+        "年末調整 自分で確定申告する場合",
+        "年末調整 自分で払った住民税"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "withholding",
+      "category": "源泉徴収",
+      "article_type": "comparison_decision",
+      "primary_question": "会社で年末調整を受けられない場合、自分で確定申告をすればよい？",
+      "reader_problem": "年末調整と確定申告の役割の違いや、自分で手続きする方法、住民税の扱いが分からない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-souzoku-ikura-5998df",
+      "seed_id": "souzoku-ikura",
+      "phrases": [
+        "相続税 いくらからかかる",
+        "相続税 いくらから 親子",
+        "相続税 いくらから発生",
+        "相続税 いくらから 妻",
+        "相続税 いくらから税金かかる",
+        "相続税 いくらから土地",
+        "相続税 いくらから 3人",
+        "相続税 いくらから 兄弟",
+        "相続税 いくらから 家"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "case_study",
+      "primary_question": "相続税はいくらからかかり、親子・配偶者・兄弟や土地・家を相続した場合にどう判定する？",
+      "reader_problem": "遺産総額が基礎控除を超えるか、相続人の人数や不動産の有無で相続税が発生するか分からない。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-souzoku-tetsuduki-4ff059",
+      "seed_id": "souzoku-tetsuduki",
+      "phrases": [
+        "相続 手続き 期限 銀行",
+        "相続 手続き 期限 過ぎ たら どうなる",
+        "相続 手続き 期限 3 年",
+        "相続 手続き 期限 延長"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "相続に関する手続きの期限はいつで、期限を過ぎた場合や延長したい場合はどうすればよい？",
+      "reader_problem": "銀行の解約や相続税申告など手続きごとの期限が分からず、期限経過による不利益や延長の可否を心配している。",
+      "selected_at": "2026-08-26T10:07:18.226Z"
+    },
+    {
+      "slug": "suggest-souzoku-tochi-51187a",
+      "seed_id": "souzoku-tochi",
+      "phrases": [
+        "土地 相続税 計算方法",
+        "土地 相続税 計算 シュミレーション",
+        "土地 相続税 計算式",
+        "土地 相続税 計算の仕方",
+        "土地 相続税 計算 路線価",
+        "土地 家屋 相続税 計算",
+        "土地 建物 相続税 計算",
+        "国税庁 土地 相続税 計算",
+        "相続税 土地 評価額 計算方法"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "土地や建物の相続税は、路線価などを使ってどのように計算する？",
+      "reader_problem": "相続した土地や家屋の評価額と相続税の計算方法が分からず、自分で税額を試算できない。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-6b02c8",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 やり方 現金",
+        "生前贈与 確定申告 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "現金を生前贈与する場合、贈与の手続きと贈与税の申告はどのように行う？",
+      "reader_problem": "現金を家族に贈与したいが、贈与契約や申告が必要か、どのように進めればよいか分からない。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-684441",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 やり方 土地",
+        "生前贈与 やり方 不動産",
+        "生前贈与 やり方 家",
+        "マンション 生前贈与 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "comparison_decision",
+      "primary_question": "土地や家などの不動産を生前贈与する場合、どのような手続きと税金が必要？",
+      "reader_problem": "不動産を生前贈与した場合の評価方法、贈与税、登記や諸費用の負担が分からず、相続とどちらが有利か判断できない。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-9a18ca",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "株 生前贈与 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "株式を生前贈与する場合、株価の評価と贈与税の申告はどのように行う？",
+      "reader_problem": "保有株式を家族へ移したいが、贈与時の株価の決め方や贈与税の計算方法が分からない。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-11c29c",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 やり方 認知症"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "case_study",
+      "primary_question": "贈与する人が認知症になった場合でも、生前贈与を行って贈与税の手続きを進められる？",
+      "reader_problem": "親が認知症になった後に財産を移したいが、生前贈与の有効性や贈与税申告を誰が行えるのか不安がある。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-hikazei-e5322d",
+      "seed_id": "zouyo-hikazei",
+      "phrases": [
+        "贈与税 非課税枠",
+        "贈与税 非課税 いくらまで",
+        "贈与税 非課税 110万円",
+        "贈与税 非課税額",
+        "贈与税 非課税制度",
+        "贈与税 非課税特例"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "贈与税は年間いくらまで非課税になり、110万円の基礎控除はどのように適用される？",
+      "reader_problem": "家族に財産を贈与したいが、非課税となる金額や制度の適用条件、申告の要否が分からない。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-zouyo-hikazei-351e52",
+      "seed_id": "zouyo-hikazei",
+      "phrases": [
+        "贈与税 非課税 住宅",
+        "贈与税 非課税 住宅 必要書類",
+        "贈与税 非課税枠 住宅"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "住宅取得のための贈与税非課税制度を利用するには、どのような要件と必要書類がある？",
+      "reader_problem": "住宅購入資金を親から贈与してもらいたいが、非課税特例の適用条件や申告時の必要書類を確認したい。",
+      "selected_at": "2026-08-26T10:07:36.756Z"
+    }
+  ],
+  "updated_at": "2026-08-26T10:07:36.756Z"
+}
