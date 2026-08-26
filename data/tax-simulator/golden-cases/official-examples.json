@@ -1,17 +1,13 @@
 {
   "_comment": "公的計算例のゴールデンケース。仕様書 §63「国税庁公式計算例をテストケースとして登録する」に対応する。",
-
   "_why_needed": "マスターの値が正しくても、引き方や式の組み立てを誤れば結果は狂う。公式の計算例を『入力→期待値』として固定し、マスターから同じ答えが出ることを機械で照合する。計算エンジンができる前でも、マスター＋計算手順の検証として機能する。実際、この基盤を作る過程で令和7年分の基礎控除の欠落（上乗せ特例の未反映）が見つかった。",
-
   "_policy": {
     "出典の記録": "仕様書 §63 に従い、各ケースに出典・取得日・利用範囲を記録する",
     "架空名称": "公式例の固有の架空名称や識別文字列を内部テスト名へ流用しない（№4155の例は『妻と子2人』という一般的な表現のみで固有名称を含まない）",
     "kind の区別": "official_example は公式ページに計算例として明記されているもの。table_derived は公式の表・算式から導いたもので、計算例そのものは公式ページに無い",
     "エンジン実装後": "同じケースを計算エンジンの受け入れテストとして流用する。期待値は変えない"
   },
-
   "_verification_date": "2026-08-26",
-
   "cases": [
     {
       "case_id": "GC-IT-2260-700",
@@ -26,9 +22,16 @@
         "retrieved_at": "2026-08-26",
         "usage": "数値と算式のみ転載。固有名称なし"
       },
-      "inputs": { "taxable_income": "7000000", "tax_year": 2025 },
-      "expected": { "income_tax_before_credits": "974000" },
-      "_master_dependency": ["income_tax_brackets"]
+      "inputs": {
+        "taxable_income": "7000000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "income_tax_before_credits": "974000"
+      },
+      "_master_dependency": [
+        "income_tax_brackets"
+      ]
     },
     {
       "case_id": "GC-IT-2260-BOUNDARY",
@@ -43,12 +46,24 @@
         "retrieved_at": "2026-08-26",
         "usage": "表の値のみ"
       },
-      "inputs": { "taxable_income": "1949000", "tax_year": 2025 },
-      "expected": { "income_tax_before_credits": "97450" },
-      "inputs_2": { "taxable_income": "1950000", "tax_year": 2025 },
-      "expected_2": { "income_tax_before_credits": "97500" },
+      "inputs": {
+        "taxable_income": "1949000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "income_tax_before_credits": "97450"
+      },
+      "inputs_2": {
+        "taxable_income": "1950000",
+        "tax_year": 2025
+      },
+      "expected_2": {
+        "income_tax_before_credits": "97500"
+      },
       "_note": "1,949,000×5%=97,450 と 1,950,000×10%−97,500=97,500。境界で50円しか変わらないのは速算控除がその為にある",
-      "_master_dependency": ["income_tax_brackets"]
+      "_master_dependency": [
+        "income_tax_brackets"
+      ]
     },
     {
       "case_id": "GC-IHT-4155-WIFE-2KIDS",
@@ -66,10 +81,17 @@
       "inputs": {
         "taxable_estate_after_basic_deduction": "152000000",
         "heirs": [
-          { "relation": "spouse" },
-          { "relation": "child" },
-          { "relation": "child" }
-        ]
+          {
+            "relation": "spouse"
+          },
+          {
+            "relation": "child"
+          },
+          {
+            "relation": "child"
+          }
+        ],
+        "inheritance_open_date": "2025-06-01"
       },
       "expected": {
         "spouse_share_amount": "76000000",
@@ -79,7 +101,12 @@
         "total_inheritance_tax": "27000000"
       },
       "_exercises": "法定相続分（配偶者1/2・子は残りを均等）と相続税の速算表の両方を通る。statutory-shares.json と brackets-h27.json の連携の検証になる",
-      "_master_dependency": ["statutory_share_by_combination", "statutory_share_equal_division", "inheritance_tax_brackets"]
+      "_master_dependency": [
+        "statutory_share_by_combination",
+        "statutory_share_equal_division",
+        "inheritance_tax_brackets"
+      ],
+      "_input_note": "inheritance_open_date は適用マスターを引くための相続開始日（対応年の範囲内の任意の日）。No.4155 の例は日付を特定していないため、令和7年の日付を置いた"
     },
     {
       "case_id": "GC-SID-R7-CAP",
@@ -94,9 +121,16 @@
         "retrieved_at": "2026-08-26",
         "usage": "表の値のみ"
       },
-      "inputs": { "salary_revenue": "10000000", "tax_year": 2025 },
-      "expected": { "salary_income_deduction": "1950000" },
-      "_master_dependency": ["salary_income_deduction_table"]
+      "inputs": {
+        "salary_revenue": "10000000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "salary_income_deduction": "1950000"
+      },
+      "_master_dependency": [
+        "salary_income_deduction_table"
+      ]
     },
     {
       "case_id": "GC-SID-R7-700",
@@ -111,10 +145,17 @@
         "retrieved_at": "2026-08-26",
         "usage": "表の算式のみ"
       },
-      "inputs": { "salary_revenue": "7000000", "tax_year": 2025 },
-      "expected": { "salary_income_deduction": "1800000" },
+      "inputs": {
+        "salary_revenue": "7000000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "salary_income_deduction": "1800000"
+      },
       "_note": "660万円未満なら別表第五（appendix5）で求める。この表を適用できるのは660万円以上だけ",
-      "_master_dependency": ["salary_income_deduction_table"]
+      "_master_dependency": [
+        "salary_income_deduction_table"
+      ]
     },
     {
       "case_id": "GC-BD-R7-500",
@@ -129,10 +170,17 @@
         "retrieved_at": "2026-08-26",
         "usage": "条文の金額のみ"
       },
-      "inputs": { "total_income": "5000000", "tax_year": 2025 },
-      "expected": { "basic_deduction": "630000" },
+      "inputs": {
+        "total_income": "5000000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "basic_deduction": "630000"
+      },
       "_why_this_case": "このケースを作る過程で、マスターの令和7年分に上乗せ特例が欠けていることが発覚した（訂正済み）。同じ欠落が再発したらこのケースが落ちる",
-      "_master_dependency": ["basic_deduction_table"]
+      "_master_dependency": [
+        "basic_deduction_table"
+      ]
     },
     {
       "case_id": "GC-BD-R7-100",
@@ -147,10 +195,17 @@
         "retrieved_at": "2026-08-26",
         "usage": "条文の金額のみ"
       },
-      "inputs": { "total_income": "1000000", "tax_year": 2025 },
-      "expected": { "basic_deduction": "950000" },
+      "inputs": {
+        "total_income": "1000000",
+        "tax_year": 2025
+      },
+      "expected": {
+        "basic_deduction": "950000"
+      },
       "_note": "基礎控除95万円＋給与所得控除の最低保障65万円＝160万円。給与収入160万円まで所得税がかからない、という令和7年改正の説明と整合する",
-      "_master_dependency": ["basic_deduction_table"]
+      "_master_dependency": [
+        "basic_deduction_table"
+      ]
     },
     {
       "case_id": "GC-CT-2WARI-70",
@@ -165,9 +220,20 @@
         "retrieved_at": "2026-08-26",
         "usage": "算式のみ。ページの計算イメージは画像のため数値は算式から導出"
       },
-      "inputs": { "sales_tax_after_returns": "700000", "taxable_period": { "from": "2025-01-01", "to": "2025-12-31" } },
-      "expected": { "special_deduction": "560000", "tax_payable": "140000" },
-      "_master_dependency": ["small_business_special_deduction"]
+      "inputs": {
+        "sales_tax_after_returns": "700000",
+        "taxable_period": {
+          "from": "2025-01-01",
+          "to": "2025-12-31"
+        }
+      },
+      "expected": {
+        "special_deduction": "560000",
+        "tax_payable": "140000"
+      },
+      "_master_dependency": [
+        "small_business_special_deduction"
+      ]
     }
   ]
 }
