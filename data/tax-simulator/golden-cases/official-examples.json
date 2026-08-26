@@ -1,0 +1,173 @@
+{
+  "_comment": "公的計算例のゴールデンケース。仕様書 §63「国税庁公式計算例をテストケースとして登録する」に対応する。",
+
+  "_why_needed": "マスターの値が正しくても、引き方や式の組み立てを誤れば結果は狂う。公式の計算例を『入力→期待値』として固定し、マスターから同じ答えが出ることを機械で照合する。計算エンジンができる前でも、マスター＋計算手順の検証として機能する。実際、この基盤を作る過程で令和7年分の基礎控除の欠落（上乗せ特例の未反映）が見つかった。",
+
+  "_policy": {
+    "出典の記録": "仕様書 §63 に従い、各ケースに出典・取得日・利用範囲を記録する",
+    "架空名称": "公式例の固有の架空名称や識別文字列を内部テスト名へ流用しない（№4155の例は『妻と子2人』という一般的な表現のみで固有名称を含まない）",
+    "kind の区別": "official_example は公式ページに計算例として明記されているもの。table_derived は公式の表・算式から導いたもので、計算例そのものは公式ページに無い",
+    "エンジン実装後": "同じケースを計算エンジンの受け入れテストとして流用する。期待値は変えない"
+  },
+
+  "_verification_date": "2026-08-26",
+
+  "cases": [
+    {
+      "case_id": "GC-IT-2260-700",
+      "target_module": "income_tax_quick_table",
+      "kind": "official_example",
+      "description": "課税される所得金額700万円の所得税額（復興特別所得税を含まない）",
+      "source": {
+        "document_id": "NTA-TA-2260",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm",
+        "locator": "計算例（7,000,000円×0.23 - 636,000円 = 974,000円）",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "数値と算式のみ転載。固有名称なし"
+      },
+      "inputs": { "taxable_income": "7000000", "tax_year": 2025 },
+      "expected": { "income_tax_before_credits": "974000" },
+      "_master_dependency": ["income_tax_brackets"]
+    },
+    {
+      "case_id": "GC-IT-2260-BOUNDARY",
+      "target_module": "income_tax_quick_table",
+      "kind": "table_derived",
+      "description": "速算表の段の境界。1,949,000円は5%の段、1,950,000円は10%の段（課税標準は1,000円未満切捨てなので中間の値は存在しない）",
+      "source": {
+        "document_id": "NTA-TA-2260",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm",
+        "locator": "速算表 第1行・第2行",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "表の値のみ"
+      },
+      "inputs": { "taxable_income": "1949000", "tax_year": 2025 },
+      "expected": { "income_tax_before_credits": "97450" },
+      "inputs_2": { "taxable_income": "1950000", "tax_year": 2025 },
+      "expected_2": { "income_tax_before_credits": "97500" },
+      "_note": "1,949,000×5%=97,450 と 1,950,000×10%−97,500=97,500。境界で50円しか変わらないのは速算控除がその為にある",
+      "_master_dependency": ["income_tax_brackets"]
+    },
+    {
+      "case_id": "GC-IHT-4155-WIFE-2KIDS",
+      "target_module": "inheritance_tax_total",
+      "kind": "official_example",
+      "description": "法定相続人が妻と子2人、課税遺産総額1億5,200万円の場合の相続税の総額",
+      "source": {
+        "document_id": "NTA-TA-4155",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "locator": "計算例（妻 7,600万×30%−700万=1,580万、子 各3,800万×20%−200万=560万、総額2,700万）",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "数値と算式のみ転載。『妻と子2人』は一般的表現で固有名称を含まない"
+      },
+      "inputs": {
+        "taxable_estate_after_basic_deduction": "152000000",
+        "heirs": [
+          { "relation": "spouse" },
+          { "relation": "child" },
+          { "relation": "child" }
+        ]
+      },
+      "expected": {
+        "spouse_share_amount": "76000000",
+        "child_share_amount": "38000000",
+        "spouse_tax": "15800000",
+        "child_tax_each": "5600000",
+        "total_inheritance_tax": "27000000"
+      },
+      "_exercises": "法定相続分（配偶者1/2・子は残りを均等）と相続税の速算表の両方を通る。statutory-shares.json と brackets-h27.json の連携の検証になる",
+      "_master_dependency": ["statutory_share_by_combination", "statutory_share_equal_division", "inheritance_tax_brackets"]
+    },
+    {
+      "case_id": "GC-SID-R7-CAP",
+      "target_module": "salary_income_deduction",
+      "kind": "table_derived",
+      "description": "令和7年分・給与収入1,000万円の給与所得控除は上限の195万円",
+      "source": {
+        "document_id": "NTA-TA-1410",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm",
+        "locator": "令和7年分の表 最終行（8,500,001円以上 1,950,000円（上限））",
+        "law_version": "令和7年4月1日現在法令等（令和7年12月1日施行・令和7年分から適用）",
+        "retrieved_at": "2026-08-26",
+        "usage": "表の値のみ"
+      },
+      "inputs": { "salary_revenue": "10000000", "tax_year": 2025 },
+      "expected": { "salary_income_deduction": "1950000" },
+      "_master_dependency": ["salary_income_deduction_table"]
+    },
+    {
+      "case_id": "GC-SID-R7-700",
+      "target_module": "salary_income_deduction",
+      "kind": "table_derived",
+      "description": "令和7年分・給与収入700万円の給与所得控除は 700万×10%＋110万＝180万円",
+      "source": {
+        "document_id": "NTA-TA-1410",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm",
+        "locator": "令和7年分の表（6,600,001円〜8,500,000円 収入金額×10%+1,100,000円）",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-26",
+        "usage": "表の算式のみ"
+      },
+      "inputs": { "salary_revenue": "7000000", "tax_year": 2025 },
+      "expected": { "salary_income_deduction": "1800000" },
+      "_note": "660万円未満なら別表第五（appendix5）で求める。この表を適用できるのは660万円以上だけ",
+      "_master_dependency": ["salary_income_deduction_table"]
+    },
+    {
+      "case_id": "GC-BD-R7-500",
+      "target_module": "basic_deduction",
+      "kind": "table_derived",
+      "description": "令和7年分・合計所得500万円の基礎控除は63万円（58万円＋措法41条の16の2の加算5万円）",
+      "source": {
+        "document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/332AC0000000026",
+        "locator": "措法41条の16の2第1項1号ニ（489万円超 5万円）＋所法86条1項1号（58万円）。国税庁特集ページ（2025kiso）の表でも確認",
+        "law_version": "現行（令和7年12月1日施行済み）",
+        "retrieved_at": "2026-08-26",
+        "usage": "条文の金額のみ"
+      },
+      "inputs": { "total_income": "5000000", "tax_year": 2025 },
+      "expected": { "basic_deduction": "630000" },
+      "_why_this_case": "このケースを作る過程で、マスターの令和7年分に上乗せ特例が欠けていることが発覚した（訂正済み）。同じ欠落が再発したらこのケースが落ちる",
+      "_master_dependency": ["basic_deduction_table"]
+    },
+    {
+      "case_id": "GC-BD-R7-100",
+      "target_module": "basic_deduction",
+      "kind": "table_derived",
+      "description": "令和7年分・合計所得100万円の基礎控除は95万円（58万円＋37万円）",
+      "source": {
+        "document_id": "EGOV-SPECIAL-TAX-MEASURES",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/332AC0000000026",
+        "locator": "措法41条の16の2第1項1号イ（132万円以下 37万円）＋所法86条1項1号",
+        "law_version": "現行（令和7年12月1日施行済み）",
+        "retrieved_at": "2026-08-26",
+        "usage": "条文の金額のみ"
+      },
+      "inputs": { "total_income": "1000000", "tax_year": 2025 },
+      "expected": { "basic_deduction": "950000" },
+      "_note": "基礎控除95万円＋給与所得控除の最低保障65万円＝160万円。給与収入160万円まで所得税がかからない、という令和7年改正の説明と整合する",
+      "_master_dependency": ["basic_deduction_table"]
+    },
+    {
+      "case_id": "GC-CT-2WARI-70",
+      "target_module": "small_business_special",
+      "kind": "table_derived",
+      "description": "2割特例。売上税額（返還等控除後）70万円 → 特別控除56万円・納付14万円",
+      "source": {
+        "document_id": "NTA-2WARI-TOKUREI",
+        "url": "https://www.nta.go.jp/publication/pamph/shohi/kaisei/202304/01.htm",
+        "locator": "概要の算式（特別控除税額＝課税標準額に対する消費税額から売上対価の返還等に係る消費税額を控除した残額の80%）",
+        "law_version": "平成28年改正法附則51条の2",
+        "retrieved_at": "2026-08-26",
+        "usage": "算式のみ。ページの計算イメージは画像のため数値は算式から導出"
+      },
+      "inputs": { "sales_tax_after_returns": "700000", "taxable_period": { "from": "2025-01-01", "to": "2025-12-31" } },
+      "expected": { "special_deduction": "560000", "tax_payable": "140000" },
+      "_master_dependency": ["small_business_special_deduction"]
+    }
+  ]
+}
