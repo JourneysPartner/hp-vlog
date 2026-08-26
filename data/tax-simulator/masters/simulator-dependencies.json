@@ -1,0 +1,507 @@
+{
+  "_comment": "税務シミュレーターごとに、計算時に参照するマスターの value_key を必須・任意に分けた公開ゲート用の依存表。シミュレーター識別子は仕様書 §7 の SimulationResult.simulatorType と同じ値集合に固定する。",
+  "_why_needed": "マスター全体を一括で止めると、無関係な制度の確認待ちまで全シミュレーターへ波及する。一方、依存の書き漏れは未承認値の公開につながるため、マスター実体との全件照合と組み合わせて使う。必須は主要結果に不可欠な値、任意は特定の入力がある場合だけ使う値とする。判断が分かれるものは必須側へ置く。",
+  "_simulator_type_basis": "docs/tax-simulator/tax-simulator-spec-reviewed-final.md §7 SimulationResult.simulatorType",
+  "_gate_basis": "docs/tax-simulator/tax-simulator-spec-reviewed-final.md §52-3 公開・緊急停止ゲート",
+  "simulators": {
+    "hojinnari": {
+      "_label": "法人成り",
+      "required": [
+        {
+          "_basis": "入力型設計書 §8-1『corporate.officerCompensation（役員個人の給与所得）』。役員報酬を給与所得へ直す主要計算で常に使う。",
+          "value_keys": [
+            "salary_income_deduction_table",
+            "salary_income_after_deduction_appendix5"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『（課税所得の確定）』。個人側の所得税額を出す主要計算で常に使う。",
+          "value_keys": [
+            "basic_deduction_table",
+            "income_tax_brackets",
+            "reconstruction_income_surtax",
+            "income_tax_highearner_surcharge"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『residentTaxBasis / individual.jurisdiction』。住民税の税額と非課税判定に必要。resident_tax_deduction_* は人的控除がある場合だけなので任意側に分ける。",
+          "value_keys": [
+            "resident_tax_income_rate",
+            "resident_tax_per_capita_municipal",
+            "resident_tax_per_capita_prefectural",
+            "forest_environment_tax",
+            "resident_tax_basic_deduction_table",
+            "resident_tax_adjustment_deduction_rate",
+            "resident_tax_adjustment_difference",
+            "resident_tax_exemption_attribute",
+            "resident_tax_per_capita_exemption_base",
+            "resident_tax_per_capita_exemption_addition",
+            "resident_tax_per_capita_exemption_flat"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『business.businessTaxCategory / periodFacts』。個人事業側の負担比較に必要。",
+          "value_keys": [
+            "individual_business_tax_rate",
+            "individual_business_tax_owner_deduction"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『corporate.capital / 所得』『corporate.jurisdiction』。法人側の国税・地方税を出す主要計算に必要。",
+          "value_keys": [
+            "corporate_tax_sme_brackets",
+            "corporate_tax_ordinary_rate",
+            "local_corporate_tax_rate",
+            "corporate_inhabitant_income_rate_prefectural",
+            "corporate_inhabitant_income_rate_municipal",
+            "corporate_inhabitant_per_capita",
+            "enterprise_tax_income_brackets",
+            "special_enterprise_tax_rate"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『officerCompensation / healthInsurer』。役員報酬に伴う社会保険負担を出す主要計算に必要。",
+          "value_keys": [
+            "health_insurance_standard_remuneration_grades",
+            "employees_pension_standard_remuneration_grades",
+            "health_insurance_rate_total",
+            "nursing_care_insurance_rate_total",
+            "employees_pension_rate_employee",
+            "employees_pension_rate_employer",
+            "employees_pension_rate_total",
+            "health_insurance_bonus_cap",
+            "employees_pension_bonus_cap",
+            "child_support_levy_rate",
+            "child_rearing_support_rate"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『（全体）』。対象年と期間の解釈に必要。",
+          "value_keys": [
+            "supported_tax_year",
+            "tax_period_basis",
+            "era_definition"
+          ]
+        },
+        {
+          "_basis": "仕様書 §10 の個人事業主側「国民健康保険」。実額未入力時は市町村別料率で概算する（§9 の優先順位2）。0円として計算すると個人側の負担を大きく過小にし、有利判定が逆転しうる",
+          "value_keys": [
+            "national_health_insurance_municipal_rate",
+            "national_health_insurance_assessment_cap",
+            "national_health_insurance_reduction_base_amount",
+            "national_health_insurance_reduction_rate"
+          ]
+        },
+        {
+          "_basis": "法人税法34条1項1号・法人税法施行令69条。役員報酬が定期同額給与に当たらないと損金不算入になり、法人税・地方法人税・法人住民税法人税割・法人事業税がすべて増える",
+          "value_keys": [
+            "officer_compensation_ordinary_revision_deadline",
+            "officer_compensation_revision_reason",
+            "officer_compensation_net_amount_rule"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "_basis": "入力型設計書 §8-1『blueReturn.specialDeductionCategory』。青色申告特別控除を入力した場合だけ使う。",
+          "value_keys": [
+            "blue_return_special_deduction"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『deductions（人的控除の事実）』。該当する人的事実がある場合だけ使う。",
+          "value_keys": [
+            "income_deduction_spouse",
+            "income_deduction_spouse_special",
+            "income_deduction_dependent",
+            "income_deduction_specific_relative_special",
+            "income_deduction_disability",
+            "income_deduction_widow",
+            "income_deduction_single_parent",
+            "income_deduction_working_student"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『residentTaxBasis / individual.jurisdiction』の resident_tax_deduction_*。該当する人的控除がある場合だけ使う。",
+          "value_keys": [
+            "resident_tax_deduction_spouse",
+            "resident_tax_deduction_spouse_special",
+            "resident_tax_deduction_dependent",
+            "resident_tax_deduction_specific_relative_special",
+            "resident_tax_deduction_disability",
+            "resident_tax_deduction_widow",
+            "resident_tax_deduction_single_parent",
+            "resident_tax_deduction_working_student"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『deductions.lifeInsurance』『deductions.earthquakeInsurance』。各保険料の入力がある場合だけ使う。",
+          "value_keys": [
+            "life_insurance_deduction_new",
+            "life_insurance_deduction_old",
+            "earthquake_insurance_deduction"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『deductions.medical』。医療費控除またはセルフメディケーション税制の入力がある場合だけ使う。",
+          "value_keys": [
+            "medical_expense_deduction_floor",
+            "medical_expense_deduction_cap",
+            "self_medication_deduction_floor",
+            "self_medication_deduction_cap"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『nationalPension.kind=standard』。国民年金を標準額で見積もる場合だけ使う。",
+          "value_keys": [
+            "national_pension_monthly_premium",
+            "national_pension_additional_premium"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『lossCarryforward』。繰越欠損金を入力した場合だけ使う。",
+          "value_keys": [
+            "loss_carryforward_period",
+            "loss_carryforward_deduction_limit",
+            "loss_carryforward_blue_return_requirement"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-1『corporate.employeeCount』。従業員を含む入力がある場合だけ使う。",
+          "value_keys": [
+            "employment_insurance_rate_employee",
+            "employment_insurance_rate_employer_benefit",
+            "employment_insurance_rate_employer_two_businesses"
+          ]
+        },
+        {
+          "_basis": "仕様書 §10 の所得控除。雑損失の入力があるときだけ使う。所得控除のうち雑損控除だけが最初に適用される",
+          "value_keys": [
+            "casualty_loss_income_floor_rate",
+            "casualty_loss_disaster_expense_floor",
+            "casualty_loss_scope",
+            "casualty_loss_carryforward_years"
+          ]
+        },
+        {
+          "_basis": "所得税法78条・地方税法37条の2・314条の7・附則7条の2。寄附（ふるさと納税を含む）の入力があるときだけ使う",
+          "value_keys": [
+            "donation_deduction_floor",
+            "donation_deduction_income_cap_rate",
+            "donation_basic_credit_rate",
+            "furusato_special_credit_rate_table",
+            "furusato_special_credit_allocation",
+            "furusato_special_credit_cap_rate",
+            "furusato_onestop_credit_rate_table"
+          ]
+        },
+        {
+          "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
+          "value_keys": [
+            "resident_tax_housing_loan_credit_limit",
+            "resident_tax_housing_loan_credit_applicable_years"
+          ]
+        },
+        {
+          "_basis": "租税特別措置法61条の4・同施行令37条の5。仕様書 §10 の申告調整。交際費の入力があるときだけ使うが、未入力を0円とみなす場合はその前提を結果へ表示する",
+          "value_keys": [
+            "entertainment_expense_fixed_deduction_limit",
+            "entertainment_expense_dining_deductible_rate",
+            "entertainment_expense_per_person_exclusion"
+          ]
+        },
+        {
+          "_basis": "仕様書 §12。詳細モードで「消費税も含めて比較する」をONにすると②消費税エンジンを呼ぶ。既定はOFFなので任意だが、ONのときは②のマスターが揃っていないと比較できない。入力型設計書 §11-7 で「②が blocked のとき①全体を止めず、消費税だけ除外項目に落として partial とする」と決めた",
+          "value_keys": [
+            "consumption_tax_rate_standard",
+            "consumption_tax_rate_reduced",
+            "consumption_tax_rate_old_transitional",
+            "taxable_sales_exemption_threshold",
+            "simplified_taxation_ceiling",
+            "simplified_deemed_purchase_rates",
+            "invoice_transition_deduction_rate",
+            "invoice_counterparty_annual_cap",
+            "small_business_special_deduction"
+          ]
+        }
+      ]
+    },
+    "shohizei": {
+      "_label": "消費税",
+      "required": [
+        {
+          "_basis": "入力型設計書 §8-2『sales[].taxable[].band』。売上税額を出す主要計算に必要。",
+          "value_keys": [
+            "consumption_tax_rate_standard",
+            "consumption_tax_rate_reduced",
+            "consumption_tax_rate_old_transitional"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-2『eligibility.basePeriod.taxableSales』。免税事業者かどうかの主要判定に必要。",
+          "value_keys": [
+            "taxable_sales_exemption_threshold"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "_basis": "入力型設計書 §8-2『eligibility.basePeriod.taxableSales』『simplified.categorySelectedByUser』。簡易課税を選ぶ場合だけ使う。",
+          "value_keys": [
+            "simplified_taxation_ceiling",
+            "simplified_deemed_purchase_rates"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-2『purchases[].taxableWithoutInvoice』。インボイスの無い仕入れがある場合だけ使う。",
+          "value_keys": [
+            "invoice_transition_deduction_rate",
+            "invoice_counterparty_annual_cap"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-2『eligibility.invoiceRegistration.becameTaxableByRegistration』。2割特例の適用を判定する場合だけ使う。",
+          "value_keys": [
+            "small_business_special_deduction"
+          ]
+        }
+      ]
+    },
+    "sozoku": {
+      "_label": "相続税",
+      "required": [
+        {
+          "_basis": "入力型設計書 §8-3『heirs（法定相続人の数）』『（課税遺産総額）』。基礎控除と相続税総額の主要計算に必要。",
+          "value_keys": [
+            "inheritance_basic_deduction",
+            "inheritance_tax_brackets"
+          ]
+        },
+        {
+          "_basis": "仕様書 §28-1 の11〜13（法定相続分に応ずる各取得金額に税率を適用して相続税の総額を出す）。これが無いと相続税の総額が計算できない。入力型設計書 §8-5 で「③配偶者の税額軽減の両方が止まる」と記載した項目",
+          "value_keys": [
+            "statutory_heir_rank",
+            "statutory_share_by_combination",
+            "statutory_share_equal_division"
+          ]
+        },
+        {
+          "_basis": "相続税法15条2項・3項。基礎控除（3,000万＋600万×人数）と保険金・退職金の非課税限度額、相続税の総額がすべて法定相続人の数に依存する。1人誤ると基礎控除だけで600万円ずれる",
+          "value_keys": [
+            "statutory_heir_count_renunciation_rule",
+            "statutory_heir_count_adopted_limit",
+            "statutory_heir_count_deemed_real_child"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "_basis": "入力型設計書 §8-3『assets.lifeInsurance』『assets.retirementAllowance』。該当財産がある場合だけ使う。",
+          "value_keys": [
+            "life_insurance_exemption",
+            "retirement_allowance_exemption"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-3『heirs[].relation』『division.spouseAcquisitionAmount』。該当する相続人・分割入力がある場合だけ使う。",
+          "value_keys": [
+            "inheritance_two_tenths_surcharge",
+            "spouse_tax_relief_threshold"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-3『heirs[].ageAtInheritance』『heirs[].disability』『heirs[].previousInheritanceWithin10Years』。各税額控除の事実がある場合だけ使う。",
+          "value_keys": [
+            "inheritance_minor_credit",
+            "inheritance_disability_credit",
+            "inheritance_successive_credit"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-3『assets.giftAddback[].giftedOn』。生前贈与加算の入力がある場合だけ使う。",
+          "value_keys": [
+            "inheritance_gift_addback_period",
+            "inheritance_gift_addback_extra_deduction"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-3『smallResidentialLand』。小規模宅地等の特例を入力した場合だけ使う。",
+          "value_keys": [
+            "small_residential_land_category",
+            "small_residential_land_area_limit_rule"
+          ]
+        },
+        {
+          "_basis": "民法901条。代襲相続人がいる場合だけ使う。仕様書 §25 は代襲相続を詳細入力または専門相談へ誘導するとしている",
+          "value_keys": [
+            "statutory_share_substitution"
+          ]
+        },
+        {
+          "_basis": "仕様書 §26 の財産入力『相続時精算課税適用財産』、§28-1 の5（課税価格への加算）。該当財産がある場合だけ使う",
+          "value_keys": [
+            "settlement_taxation_eligibility",
+            "settlement_taxation_basic_deduction",
+            "settlement_taxation_special_deduction",
+            "settlement_taxation_gift_tax_rate",
+            "settlement_taxation_addback_rule"
+          ]
+        },
+        {
+          "_basis": "相続税法20条の2。国外財産がある場合だけ使う。仕様書 §68-1 は③の国外・非居住を専門判定へ送るとしている",
+          "value_keys": [
+            "inheritance_foreign_tax_credit"
+          ]
+        }
+      ]
+    },
+    "yakuin_hoshu": {
+      "_label": "役員報酬",
+      "required": [
+        {
+          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1『corporate.officerCompensation』。役員個人の給与所得を出す主要計算に必要。",
+          "value_keys": [
+            "salary_income_deduction_table",
+            "salary_income_after_deduction_appendix5",
+            "basic_deduction_table",
+            "income_tax_brackets",
+            "reconstruction_income_surtax",
+            "income_tax_highearner_surcharge"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1『residentTaxBasis / individual.jurisdiction』。役員個人の住民税額と非課税判定に必要。",
+          "value_keys": [
+            "resident_tax_income_rate",
+            "resident_tax_per_capita_municipal",
+            "resident_tax_per_capita_prefectural",
+            "forest_environment_tax",
+            "resident_tax_basic_deduction_table",
+            "resident_tax_adjustment_deduction_rate",
+            "resident_tax_adjustment_difference",
+            "resident_tax_exemption_attribute",
+            "resident_tax_per_capita_exemption_base",
+            "resident_tax_per_capita_exemption_addition",
+            "resident_tax_per_capita_exemption_flat"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4『法人税・地方税の全項目』と §8-1 の法人税・法人地方税行。会社側の税負担を出す主要計算に必要。",
+          "value_keys": [
+            "corporate_tax_sme_brackets",
+            "corporate_tax_ordinary_rate",
+            "local_corporate_tax_rate",
+            "corporate_inhabitant_income_rate_prefectural",
+            "corporate_inhabitant_income_rate_municipal",
+            "corporate_inhabitant_per_capita",
+            "enterprise_tax_income_brackets",
+            "special_enterprise_tax_rate"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4『社会保険』と §8-1『officerCompensation / healthInsurer』。役員と会社の社会保険負担を出す主要計算に必要。",
+          "value_keys": [
+            "health_insurance_standard_remuneration_grades",
+            "employees_pension_standard_remuneration_grades",
+            "health_insurance_rate_total",
+            "nursing_care_insurance_rate_total",
+            "employees_pension_rate_employee",
+            "employees_pension_rate_employer",
+            "employees_pension_rate_total",
+            "health_insurance_bonus_cap",
+            "employees_pension_bonus_cap",
+            "child_support_levy_rate",
+            "child_rearing_support_rate"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4 が参照する §8-1『（全体）』。対象年と期間の解釈に必要。",
+          "value_keys": [
+            "supported_tax_year",
+            "tax_period_basis",
+            "era_definition"
+          ]
+        },
+        {
+          "_basis": "仕様書 §38。探索した候補が定期同額給与の要件を満たすかを判定する。「期限が未登録の間は改定を伴う候補を blocked とする」と明示されており、判定規則が無いと探索が成立しない",
+          "value_keys": [
+            "officer_compensation_ordinary_revision_deadline",
+            "officer_compensation_revision_reason",
+            "officer_compensation_net_amount_rule"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1『deductions（人的控除の事実）』。該当する人的事実がある場合だけ使う。",
+          "value_keys": [
+            "income_deduction_spouse",
+            "income_deduction_spouse_special",
+            "income_deduction_dependent",
+            "income_deduction_specific_relative_special",
+            "income_deduction_disability",
+            "income_deduction_widow",
+            "income_deduction_single_parent",
+            "income_deduction_working_student",
+            "resident_tax_deduction_spouse",
+            "resident_tax_deduction_spouse_special",
+            "resident_tax_deduction_dependent",
+            "resident_tax_deduction_specific_relative_special",
+            "resident_tax_deduction_disability",
+            "resident_tax_deduction_widow",
+            "resident_tax_deduction_single_parent",
+            "resident_tax_deduction_working_student"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1 の保険料・医療費控除行。該当する控除入力がある場合だけ使う。",
+          "value_keys": [
+            "life_insurance_deduction_new",
+            "life_insurance_deduction_old",
+            "earthquake_insurance_deduction",
+            "medical_expense_deduction_floor",
+            "medical_expense_deduction_cap",
+            "self_medication_deduction_floor",
+            "self_medication_deduction_cap"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-4『社会保険』と §8-1『corporate.employeeCount』。従業員を含む入力がある場合だけ使う。",
+          "value_keys": [
+            "employment_insurance_rate_employee",
+            "employment_insurance_rate_employer_benefit",
+            "employment_insurance_rate_employer_two_businesses"
+          ]
+        },
+        {
+          "_basis": "仕様書 §10 の所得控除。雑損失の入力があるときだけ使う。所得控除のうち雑損控除だけが最初に適用される",
+          "value_keys": [
+            "casualty_loss_income_floor_rate",
+            "casualty_loss_disaster_expense_floor",
+            "casualty_loss_scope",
+            "casualty_loss_carryforward_years"
+          ]
+        },
+        {
+          "_basis": "所得税法78条・地方税法37条の2・314条の7・附則7条の2。寄附（ふるさと納税を含む）の入力があるときだけ使う",
+          "value_keys": [
+            "donation_deduction_floor",
+            "donation_deduction_income_cap_rate",
+            "donation_basic_credit_rate",
+            "furusato_special_credit_rate_table",
+            "furusato_special_credit_allocation",
+            "furusato_special_credit_cap_rate",
+            "furusato_onestop_credit_rate_table"
+          ]
+        },
+        {
+          "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
+          "value_keys": [
+            "resident_tax_housing_loan_credit_limit",
+            "resident_tax_housing_loan_credit_applicable_years"
+          ]
+        }
+      ]
+    }
+  }
+}
