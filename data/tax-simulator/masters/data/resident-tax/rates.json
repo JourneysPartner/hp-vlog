@@ -361,6 +361,167 @@
         "as_of_date": "2026-08-23",
         "legal_status": "expired",
         "data_review_status": "approved"
+      },
+      {
+        "record_id": "RT-BD-R7-TIER1",
+        "value_key": "resident_tax_basic_deduction_table",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-27",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": null,
+        "component": "basic_deduction",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "430000"
+        },
+        "_note": "令和7年分以後の所得（令和8年度以後の賦課）。所得税の令和7年・8年改正（58万＋特例上乗せ／62万＋加算）は住民税の基礎控除に及んでおらず、43万円のまま。e-Govの現行条文（2026-08-27取得）で確認した",
+        "source_document_id": "EGOV-CHIHOUZEI",
+        "source_locator": "地方税法34条2項1号・314条の2第2項1号（前年の合計所得金額が二千四百万円以下である場合 四十三万円）",
+        "source_hash": null,
+        "as_of_date": "2026-08-27",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "RT-BD-R7-TIER2",
+        "value_key": "resident_tax_basic_deduction_table",
+        "tax_year": null,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-27",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": null,
+        "component": "basic_deduction",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "24500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "290000"
+        },
+        "_note": "令和7年分以後の所得（令和8年度以後の賦課）。所得税の令和7年・8年改正（58万＋特例上乗せ／62万＋加算）は住民税の基礎控除に及んでおらず、43万円のまま。e-Govの現行条文（2026-08-27取得）で確認した",
+        "source_document_id": "EGOV-CHIHOUZEI",
+        "source_locator": "地方税法34条2項2号・314条の2第2項2号（二千四百五十万円以下 二十九万円）",
+        "source_hash": null,
+        "as_of_date": "2026-08-27",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "RT-BD-R7-TIER3",
+        "value_key": "resident_tax_basic_deduction_table",
+        "tax_year": null,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-27",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": null,
+        "component": "basic_deduction",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "24500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "25000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "150000"
+        },
+        "_note": "令和7年分以後の所得（令和8年度以後の賦課）。所得税の令和7年・8年改正（58万＋特例上乗せ／62万＋加算）は住民税の基礎控除に及んでおらず、43万円のまま。e-Govの現行条文（2026-08-27取得）で確認した",
+        "source_document_id": "EGOV-CHIHOUZEI",
+        "source_locator": "地方税法34条2項3号・314条の2第2項3号（二千五百万円以下 十五万円）",
+        "source_hash": null,
+        "as_of_date": "2026-08-27",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
+      {
+        "record_id": "RT-BD-R7-TIER4",
+        "value_key": "resident_tax_basic_deduction_table",
+        "tax_year": null,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": null,
+        "verified_at": "2026-08-27",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-01-01",
+        "effective_to": null,
+        "component": "basic_deduction",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "25000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "_note": "令和7年分以後の所得（令和8年度以後の賦課）。所得税の令和7年・8年改正（58万＋特例上乗せ／62万＋加算）は住民税の基礎控除に及んでおらず、43万円のまま。e-Govの現行条文（2026-08-27取得）で確認した",
+        "source_document_id": "EGOV-CHIHOUZEI",
+        "source_locator": "地方税法34条2項柱書・314条の2第2項柱書（二千五百万円以下である所得割の納税義務者に限る＝2,500万円超は基礎控除なし）",
+        "source_hash": null,
+        "as_of_date": "2026-08-27",
+        "legal_status": "effective",
+        "data_review_status": "approved"
       }
     ],
     "_r7_r8_note": "R7/R8/R9以後の住民税基礎控除額は所得税の改正に連動して変更される見込み。地方税法改正の確認が必要 → blocked とする",
