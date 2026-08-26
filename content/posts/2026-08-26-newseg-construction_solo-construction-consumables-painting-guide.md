@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "塗料・シンナー・刷毛などは使い切った分だけが経費。年末に在庫が残れば棚卸資産として計上し、翌年の経費に繰り越すのが原則です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-26T15:57:36.215+09:00"
+publish_at: "2026-08-27T11:28:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-26T00:05:52.154Z"
-updated_at: "2026-08-26T00:08:47.701Z"
+updated_at: "2026-08-26T15:57:36.215+09:00"
+publish_slot: "morning"
 ---
 現場で使いかけの塗料缶が何本か残っている。年末の帳簿整理の際に「これ、どう処理すればいいんだろう」と手が止まる1人親方の方は少なくありません。
 
