@@ -347,6 +347,13 @@ type HealthInsurerInput =
 // 持分・取得割合は独自の { num: number; den: number } を作らず Rate を使う
 type Share = Rate;   // { num: bigint; den: bigint }
 
+// ---- 面積 -----------------------------------------------------------------
+
+// §3-3 の Exact と同じ形。分数のまま保持し、限度面積の調整計算
+// （200/330・200/400 の按分）を正確に行う。詳細は §11-4
+type Area     = { unit: "SQM"; num: bigint; den: bigint };
+type AreaWire = { unit: "SQM"; num: Decimal; den: Decimal };  // 外部形式
+
 // ---- 専門判定 -------------------------------------------------------------
 
 type SpecialistChecks = Partial<Record<string, TriState>>;
@@ -375,9 +382,9 @@ interface HojinnariInput {
         corporatePeriodInput: ShohizeiInput;    // 法人の課税期間
       };
   // 法人成り年は個人と法人で課税期間が別々に立つため、②の入力も2本必要になる。
-  // ①の simulate が ②を呼ぶときは、CalculationContext を課税期間ごとに組み直す
-  // （§13-1「受け側は calculationContext 内の…期間の一致を検証する」）。
-  // 呼び出し規則は §11-7 で未決。
+  // ①の simulate が ②の simulate を直接呼ぶ（Handoff は経由しない）。
+  // 各課税期間の CalculationContext は①が派生させ、マスタースナップショットは
+  // 元のコンテキストのものをそのまま引き継ぐ。規則は §11-7
 
   setupAndMaintenanceCosts?: CorporateCostInput; // §11 未入力時は比較対象外。金額を仮定しない
   specialistChecks: SpecialistChecks;           // §68-1
@@ -780,7 +787,7 @@ type RealEstateInput =
   | {
       kind: "screening_land";            // 路線価×面積。LEVEL 1 専用
       roadsideValuePerSqm: Money;
-      areaSqm: string;                   // 十進文字列。number を使わない（§3-3）
+      areaSqm: Area;                     // 分数で保持（§11-4）
       isMultiplierArea?: TriState;       // 倍率地域なら直接入力へ切り替える
       hasLeaseholdOrRented?: TriState;   // 借地権・貸家建付地なら専門判定
       ownershipShare?: Share;
@@ -819,8 +826,8 @@ type SmallResidentialLandCategory =
 interface SmallResidentialLandInput {
   realEstateIndex: number;                 // EstateInput.realEstate の添字
   category: SmallResidentialLandCategory;
-  areaSqm: string;
-  intendedAppliedAreaSqm?: string;
+  areaSqm: Area;
+  intendedAppliedAreaSqm?: Area;
   acquirerHeirId: string;
   acquirerRelation: "spouse" | "cohabiting_relative" | "separate_household_relative" | "other";
   useAtInheritance?: string;               // 相続開始直前の利用状況
@@ -1047,7 +1054,7 @@ interface ModeCInput {
 - `LocalDate` が日付として不正
 - `DateRange.from > to`
 - `Rate.den <= 0`
-- `PeriodSegment[]` の期間が重なる、対象期間を覆わない、順序が逆転している
+- `PeriodSegment[]` の期間が重なる、時系列に並んでいない、各要素の `from > to`（**対象期間を覆うかは `validate` では見ない**。§11-5 のとおりコンテキストが要るため `simulate` の担当）
 - 判別可能ユニオンの `kind` が値集合外
 - `LifeInsurancePremiumInput` で `generation="old"` かつ `category="nursing_medical"`（旧契約に介護医療保険料区分は存在しない）
 - `DeductionOverride` の片側だけの入力
@@ -1059,6 +1066,9 @@ interface ModeCInput {
 
 | 条件 | 根拠 |
 | --- | --- |
+| `PeriodSegment[]` が対象期間を覆わない（理由コード `period_gap`） | §11-5 |
+| `PeriodSegment[]` が対象期間からはみ出す（理由コード `period_out_of_range`） | §11-5 |
+| 課税期間の短縮特例があり②用の `consumptionTaxPeriod` を派生できない | §11-7・§21 |
 | `IncomeItem.category="unknown"` または `taxationMethod="unknown"` | §10 |
 | `IndividualBusinessTaxCategory="unknown"` | §2-7・個人事業税マスターの `_not_taxable_note` |
 | `individual.jurisdiction.municipalityCode` 未設定で住民税を計算 | §3-2 の粒度表 |
@@ -1109,7 +1119,9 @@ interface ModeCInput {
 
 ---
 
-## 11. 仕様書との差分・未決事項
+## 11. 仕様書との差分・決着した論点
+
+初版では未決事項として挙げた7件。**2026-08-26 時点ですべて決着している**（一覧は §12）。判断の理由を残すため、経緯ごと記載する。
 
 本書を書く過程で、仕様書の記述だけでは決まらなかった点。レビューの対象とする。
 
@@ -1164,13 +1176,50 @@ interface ModeCInput {
 
 桁数の違う値が混ざると、文字列一致の照合が黙って0件を返す。外部資料から取り込むときは桁数を確認し、6桁のものは検査数字を落としてから使う。国保の市町村別料率マスターは5桁で登録済み。
 
-### 11-4. 面積を文字列で持つ理由
+### 11-4. 面積は `Area` 型を新設し、分数で保持する（決着済み・2026-08-26）
 
-`areaSqm` を `number` ではなく十進文字列にした。§3-3 が「外部形式にJavaScriptの `number` と指数表記を使わない」としており、`330.58` のような小数を扱うため。ただし §3-3 の型体系には面積に相当する型が無い（`Money` と `Rate` だけ）。`Decimal` 型を面積へ流用してよいか、面積専用の型を足すべきかが未決。
+初版は `areaSqm` を十進文字列（`Decimal`）にしていた。**これは誤りだった。** §3-3 の `Decimal` は「外部形式（保存・受け渡し・PDF・フィクスチャ）専用の型」と明記されており、メモリ内の入力フィールドへ流用するとその線引きが崩れる。
 
-### 11-5. `PeriodSegment[]` の被覆条件を誰が持つか
+**決定**: `Area` 型を新設し、§3-3 の `Exact`（丸め前の中間金額を有理数のまま保持する型）と同じ形にする。
 
-「重ならず、隙間なく対象期間を覆う」という不変条件を `validate` で検査するとしたが、対象期間は `CalculationContext` 側にある。`validate(input: unknown)` は §7-1 の署名上 `CalculationContext` を受け取らない。したがって `validate` は「重なりが無いこと」までしか検査できず、「対象期間を覆うこと」は `simulate` の入口で検査することになる。署名を変えずに済ませるなら、後者を `simulate` のプログラム不変条件ではなく `blocked` として扱う必要がある（§7-1 は不変条件違反を例外、ユーザー起因を `blocked` としており、この検査は後者に当たる）。
+```ts
+type Area     = { unit: "SQM"; num: bigint; den: bigint };   // 面積。分数のまま保持
+type AreaWire = { unit: "SQM"; num: Decimal; den: Decimal }; // 外部形式
+```
+
+面積を分数で持つ理由は、金額と同じく**正確な計算に参加するから**である。
+
+- §27 の一次スクリーニングで `路線価 × 面積` を計算する
+- §31 の小規模宅地等の特例で限度面積と比較する
+- 複数の宅地等がある場合の限度面積の調整計算は分数になる（特定居住用 × 200/330 ＋ 特定事業用 × 200/400 ＋ 貸付事業用 ≦ 200）
+
+浮動小数を使えば §3-3 の「IEEE 754の浮動小数を税額計算に直接使わない」に触れる。固定の桁数（0.01㎡単位の整数など）にすると、桁数の取り決めを知らない実装が100倍・100分の1を取り違える。分数なら単位の取り決めが要らない。
+
+**マスターとの整合。** `small_residential_land_category` の `area_limit_sqm` は `330` / `400` / `200` という整数で登録されている。法令が平方メートル単位の整数で定めているためで、`{ num: 330, den: 1 }` として読めばよい。マスター側の変更は不要。
+
+UIは利用者が入力した `330.58` を `{ unit: "SQM", num: 33058n, den: 100n }` へ変換する。変換は §3-3 が定める境界関数と同じ考え方で1箇所に閉じる。
+
+**仕様書 §3-3 への反映は保留する。** 本書は §1-2 のとおり入力型の定義を担うため `Area` をここで定義するが、計算エンジン側でも同じ型を使うなら §3-3 の型体系へ加えるのが筋である。仕様書本体の改訂時にまとめて提案する。
+
+### 11-5. 被覆はコンテキストを見られる `simulate` が検査する（決着済み・2026-08-26）
+
+`PeriodSegment[]` に課したい不変条件は2種類あり、**必要な情報が違う**。
+
+| 検査 | 必要な情報 | 担当 | 結果 |
+| --- | --- | --- | --- |
+| 期間が重ならない | 入力だけ | `validate` | `ok: false` |
+| 期間の前後が逆でない（`from ≤ to`） | 入力だけ | `validate` | `ok: false` |
+| 配列が時系列に並んでいる | 入力だけ | `validate` | `ok: false` |
+| **対象期間を隙間なく覆う** | `CalculationContext` | `simulate` | `blocked` |
+| **対象期間からはみ出さない** | `CalculationContext` | `simulate` | `blocked` |
+
+`validate(input: unknown)` は §7-1 の署名上 `CalculationContext` を受け取らないため、対象期間を知りようがない。署名は変えない。
+
+**被覆の不足を例外にしない。** §7-1 は「想定される入力不足・適用外・未承認マスターを例外として投げず、型付き警告と `resultStatus` で返す。プログラム不変条件違反だけを例外とし」と定めている。期間に隙間があるのは「その期間の売上や経費をまだ入力していない」ということであり、利用者が解消できる入力不足に当たる。したがって `blocked` とし、§5 の判定順（`blocked` → 追加質問 → 範囲 → `partial`）に載せる。
+
+**はみ出しも `blocked` とする。** 対象期間の外に期間が置かれているのは、利用者が期間を取り違えたか、コンテキストの選び方が違うということで、いずれも利用者側で直せる。理由コードは隙間と分ける（`period_gap` と `period_out_of_range`）。両者を同じ扱いにすると、追加質問の出し分けができない。
+
+**例外にするのは1つだけ。** `masters.snapshotId` / `snapshotHash` と `context.masterSnapshotId` / `masterSnapshotHash` の不一致は、§7-1 が明示的に「呼び出し側の組立て誤りであり、ユーザーが解消できない」として例外と定めている。期間の検査はこれに当たらない。
 
 ### 11-6. 2割特例の適用対象期間は登録済み。ただし期間軸が他と違う
 
@@ -1198,7 +1247,7 @@ interface ModeCInput {
 
 ### 11-7. ①が②を呼ぶときの `CalculationContext` の組み立て
 
-§12 は「ONの場合は②消費税エンジンを呼び出す」とするだけで、呼び出し規約を定めていない。次が未決。
+§12 は「ONの場合は②消費税エンジンを呼び出す」とするだけで、呼び出し規約を定めていなかった。初版で挙げた未決点は次の3つ。
 
 - ①の `CalculationContext` は `consumptionTaxPeriod` を1つしか持てない。法人成り年は個人の課税期間と法人の課税期間が両方立つため、②を2回呼ぶことになる。その2回分の `CalculationContext` を誰が組み立てるか。
 - §13-1 は画面間の受け渡しを `Handoff` に限定しているが、①の内部から②のエンジンを呼ぶのは画面間の受け渡しではない。`Handoff` を経由すべきか、`SimulatorService.simulate` を直接呼んでよいか。
@@ -1206,19 +1255,66 @@ interface ModeCInput {
 
 結論カード（§6）には、消費税を含めない比較である旨を併記する。§12 の「消費税：比較対象外」の表示をそのまま使う。
 
-残りの2点（`CalculationContext` を誰が組み立てるか、`Handoff` を経由するか）は未決。
+**残りの2点も決着した（2026-08-26）。**
+
+#### `Handoff` は経由しない
+
+①の `simulate` から②の `simulate` を直接呼ぶ。理由は3つある。
+
+- **`Handoff` は画面間の受け渡しのための型である。** §13-1 は「画面間の値渡しを自由形式にしない」ために設けられており、「受け渡しは同意なしにサーバーを経由せず、**ブラウザ内の明示的な遷移**で行う」と書かれている。①の内部から②を呼ぶのは遷移ではない
+- **写すものが違う。** `Handoff` は送信元が算出した結果を受け側の入力欄へ写すためのもので、`fields` は「受け側の入力スキーマ上のパス」を指す。①→②は結果を写すのではなく、①がすでに持っている入力から②の入力を組み立てる
+- **`blocked` の扱いが逆になる。** §13-1 は「`sourceResultStatus: "blocked"` の結果を `Handoff` の材料にしない」と定めるが、内部呼び出しでは②の結果が `blocked` でも①が扱いを決める（消費税だけ除外して `partial`）。`Handoff` の規則をそのまま当てると、この決定と矛盾する
+
+`simulate` は §7-1 により純粋関数なので、①の `simulate` が②の `simulate` を呼ぶのは関数の合成にすぎない。ネットワークも時刻取得も伴わないため、決定性は保たれる。
+
+#### `CalculationContext` は①の `simulate` が派生させる
+
+②を呼ぶための `CalculationContext` は、①が受け取ったコンテキストから作る。UIに2つ組み立てさせない。
+
+派生の規則は次のとおり。
+
+| 派生先 | `consumptionTaxPeriod` | 根拠 |
+| --- | --- | --- |
+| 個人事業期間 | `incomeTaxYear` の暦年（1月1日〜12月31日）を、個人事業の廃止日で切ったもの | §3-2「個人の `consumptionTaxPeriod` は `incomeTaxYear` の暦年に含まれる」 |
+| 法人事業年度 | `fiscalPeriod` をそのまま | §3-2「法人の `consumptionTaxPeriod` は `fiscalPeriod` に含まれる」 |
+
+派生したコンテキストは、元のコンテキストから次をそのまま引き継ぐ。
+
+- `masterSnapshotId` / `masterSnapshotHash` — **必ず同じ値を使う。** 別のスナップショットで②を計算すると、§48 の「公開済みスナップショットは不変」と §64 の回帰テストが成り立たなくなる
+- `asOfDate`（根拠確認日）と `calculatedAt`（実行時刻）
+- `jurisdiction`（消費税は国税なので `country` だけで足りるが、コンテキストの一貫性のため引き継ぐ）
+
+**UIに組み立てさせない理由。** UIが2つのコンテキストを渡す形にすると、それらは実質的に入力の一部になり、元のコンテキストとの整合を別途検証しなければならない。§3-2 は「これらを満たさない組合せは計算関数の入口で拒否し、後段で辻褄を合わせない」としており、検証すべき組合せを増やさない方が規定に沿う。派生なら真実の源が1つで、派生規則そのものをテストできる。
+
+**派生できない場合は `blocked` とする。** 課税期間の短縮特例がある場合、`consumptionTaxPeriod` は `fiscalPeriod` を分割した複数の期間になり、①の持つ情報からは決まらない。§21 が課税期間短縮を初期版の対象外としているため、該当する入力があれば消費税を含めた比較を `blocked` とし、§11-7 の決定に従って消費税だけを除外項目へ落とす。
 
 ---
 
 ## 12. 次のアクション
 
-2026-08-25 に §11-1・§11-3・§11-7（一部）が決着し、着手順も決まった。
+**§11 の未決事項はすべて決着した（2026-08-26）。**
 
-1. **§8-5 の未登録マスターの作成**（着手中）。相続税シミュレーターを止めている3件（法定相続分・養子の算入制限・相続時精算課税）を先に埋める
-2. §52-3 の公開ゲートを §8 の依存表で絞り込む
-3. §11-6 のマスター修正（`applies_to_period_start_to` の設定）
-4. JSON Schema の作成と TypeScript 型生成の整備（§10-1）
-5. 残る未決事項（§11-2 の使い分け基準、§11-4 の面積の型、§11-5 の被覆条件の検査場所、§11-7 の残り2点）
+| 項目 | 決着日 | 決定 |
+| --- | --- | --- |
+| 11-1 自治体を2つ持つか | 08-25 | 持たない。違う場合は法人の地方税を標準税率概算にして `partial` |
+| 11-2 簡易／詳細の分け方 | 08-25 | トップレベルは `precision` の1フィールド。入力の意味が違う箇所だけユニオン |
+| 11-3 収入金額を受けるか | 08-25 | 受けない。所得金額のみ |
+| 11-4 面積の型 | 08-26 | `Area` 型を新設し分数で保持 |
+| 11-5 被覆条件の検査場所 | 08-26 | `simulate` が検査し `blocked` を返す。`validate` はコンテキスト非依存の検査だけ |
+| 11-6 2割特例の期間軸 | 08-26 | `period_match_rule: "taxable_period_intersects"` を追加 |
+| 11-7 ①→②の呼び出し規約 | 08-26 | `Handoff` を経由せず直接呼ぶ。コンテキストは①が派生させる |
+
+済んだ作業。
+
+- §8-5 の未登録マスター10件をすべて作成（08-25）
+- §52-3 の公開ゲートを §8 の依存表で絞り込み（08-26）
+- 仕様書 §3-2 の市区町村コードの桁数と §15 の2割特例の記述を訂正（08-26）
+
+残る作業。
+
+1. **JSON Schema の作成と TypeScript 型生成の整備（§10-1）。** 型の形が確定したので着手できる。`Money` / `Exact` / `Rate` / `Area` の `bigint` はJSON Schemaで表せないため、`Wire` 型を検証の対象とし、相互変換を境界関数1箇所に閉じる
+2. §11-4 の `Area` を仕様書 §3-3 の型体系へ加えることの提案（仕様書本体の改訂時）
+3. 計算エンジンの実装
 
 ---
 
