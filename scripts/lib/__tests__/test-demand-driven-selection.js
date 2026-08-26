@@ -47,12 +47,17 @@ const candidateData = JSON.parse(fs.readFileSync(
   path.join(ROOT, 'data', 'nta-shitsugi-topics-candidate.json'),
   'utf8',
 ));
-const adopted = candidateData.candidates.filter(candidate => candidate.adopted === true);
+// 2026-08-26 の LLM 全件選別後は、接続対象が「手動採用276件」から
+// 「選別で adopt になった候補」に変わった（isConnectable）。
+const { isConnectable } = require(path.join(ROOT, 'scripts/lib/shitsugi-topics'));
+const adopted = candidateData.candidates.filter(isConnectable);
 const topics = expandShitsugiTopics({ logger: null, filterRelevance: false });
 
 console.log('\n=== R6-1: 質疑応答候補の変換 ===');
-assert(adopted.length === 276, '採用済み候補は276件');
-assert(topics.length === adopted.length, '採用済み候補をすべて変換できる');
+assert(adopted.length >= 500, `接続対象は選別 adopt の候補（実際 ${adopted.length} 件）`);
+assert(candidateData.candidates.every(c => c.llm_triage && c.llm_triage.decision), '全982件が LLM 選別済み');
+assert(topics.length >= adopted.length - 5 && topics.length <= adopted.length,
+  `接続対象のほぼ全件を変換できる（変換 ${topics.length} / 対象 ${adopted.length}）`);
 assert(new Set(topics.map(topic => topic.slug)).size === topics.length, 'slug が一意');
 assert(topics.every(topic => /^shitsugi-[a-z]+-[a-z0-9_-]+-[a-z0-9_-]+$/i.test(topic.slug)),
   'slug が質疑応答専用形式');
@@ -63,7 +68,7 @@ assert(topics.every(topic => topic.title === '' && topic.pair_group === undefine
 assert(topics.every(topic => topic.demand_evidence && topic.demand_evidence.kind === 'nta-shitsugi'),
   '需要の証拠が選定メタデータに入る');
 
-const adoptedBySlug = new Map(adopted.map(candidate => [
+const adoptedBySlug = new Map(candidateData.candidates.map(candidate => [
   `shitsugi-${candidate.tax_category_code}-${candidate.section}-${candidate.id}`,
   candidate,
 ]));

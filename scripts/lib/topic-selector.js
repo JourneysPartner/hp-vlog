@@ -140,30 +140,43 @@ function explainPick(topic, scored) {
   };
 }
 
-function enforceShitsugiDailyLimit(picks, scored) {
+function demandKindOf(topic = {}) {
+  return (topic.demand_evidence && topic.demand_evidence.kind) || null;
+}
+
+// 需要の証拠の「種類」ごとに1日最大1件（質疑応答・検索需要とも同じ流儀）。
+// 同じ種類が2件になったら、優先度の低い方を別種の次点へ差し替える。
+function enforceDemandKindDailyLimit(picks, scored) {
   const limited = picks.slice();
-  const shitsugiIndexes = limited
-    .map((topic, index) => ({ topic, index }))
-    .filter(item => isShitsugiTopic(item.topic));
-  if (shitsugiIndexes.length <= 1) return limited;
-
-  shitsugiIndexes.sort((a, b) => {
-    const aEntry = scored.find(s => s.topic === a.topic);
-    const bEntry = scored.find(s => s.topic === b.topic);
-    return ((bEntry && bEntry.priority) || 0) - ((aEntry && aEntry.priority) || 0);
-  });
-  const keep = shitsugiIndexes[0].topic;
-  const replaceIndex = limited.findIndex(topic => topic !== keep && isShitsugiTopic(topic));
-  const remaining = limited.filter((_, index) => index !== replaceIndex);
-  const replacement = scored.find(entry => {
-    if (isShitsugiTopic(entry.topic) || remaining.includes(entry.topic)) return false;
-    return remaining.every(topic => pairSim(topic, entry.topic) < SIM_THRESHOLD_BETWEEN_PAIR);
-  });
-
-  if (replacement) limited[replaceIndex] = replacement.topic;
-  else limited.splice(replaceIndex, 1);
+  const byKind = new Map();
+  for (const topic of limited) {
+    const kind = demandKindOf(topic);
+    if (!kind) continue;
+    if (!byKind.has(kind)) byKind.set(kind, []);
+    byKind.get(kind).push(topic);
+  }
+  for (const [kind, topics] of byKind) {
+    if (topics.length <= 1) continue;
+    topics.sort((x, y) => {
+      const xe = scored.find(s => s.topic === x);
+      const ye = scored.find(s => s.topic === y);
+      return ((ye && ye.priority) || 0) - ((xe && xe.priority) || 0);
+    });
+    const keep = topics[0];
+    const replaceIndex = limited.findIndex(topic => topic !== keep && demandKindOf(topic) === kind);
+    const remaining = limited.filter((_, index) => index !== replaceIndex);
+    const replacement = scored.find(entry => {
+      if (demandKindOf(entry.topic) === kind || remaining.includes(entry.topic)) return false;
+      return remaining.every(topic => pairSim(topic, entry.topic) < SIM_THRESHOLD_BETWEEN_PAIR);
+    });
+    if (replacement) limited[replaceIndex] = replacement.topic;
+    else limited.splice(replaceIndex, 1);
+  }
   return limited;
 }
+
+// 後方互換: 既存テスト・既存コードは旧名を参照している
+const enforceShitsugiDailyLimit = enforceDemandKindDailyLimit;
 
 /**
  * scored リストから、anchor と "役割が逆かつ類似度が低い" 候補を探す。
@@ -559,14 +572,15 @@ function selectDailyTopics(topics, options = {}) {
     }
   }
 
-  // 8. 質疑応答事例は1日最大1件。低優先度側を非質疑応答の次点へ差し替える。
-  const beforeLimit = picks.filter(isShitsugiTopic).length;
-  const limitedPicks = enforceShitsugiDailyLimit(picks, scored);
-  if (beforeLimit > 1) {
+  // 8. 需要の証拠の種類ごとに1日最大1件（質疑応答・検索需要とも同じ流儀）。
+  const kindsBefore = picks.map(demandKindOf).filter(Boolean);
+  const hadDuplicateKind = new Set(kindsBefore).size < kindsBefore.length;
+  const limitedPicks = enforceDemandKindDailyLimit(picks, scored);
+  if (hadDuplicateKind) {
     explanation.warnings = (explanation.warnings || []).concat([
       limitedPicks.length === picks.length
-        ? '質疑応答由来が2件になったため、低優先度側を非質疑応答の次点へ差し替え'
-        : '質疑応答由来が2件になり代替候補がないため、低優先度側を取り下げ',
+        ? '同じ需要の証拠が2件になったため、低優先度側を別種の次点へ差し替え'
+        : '同じ需要の証拠が2件になり代替候補がないため、低優先度側を取り下げ',
     ]);
   }
   picks.splice(0, picks.length, ...limitedPicks);
@@ -590,6 +604,8 @@ module.exports = {
   priorityBreakdown,
   rankBySelectionPriority,
   enforceShitsugiDailyLimit,
+  enforceDemandKindDailyLimit,
+  demandKindOf,
   isShitsugiTopic,
   SIM_THRESHOLD_VS_CORPUS,
   SIM_THRESHOLD_BETWEEN_PAIR,

@@ -859,7 +859,7 @@ function getAllTopics() {
     console.log(`[topic-pool] curated と slug トークン重なりが高い expanded を ${droppedBySlug} 件除外`);
   }
 
-  return [...curated, ...expanded, ...SHITSUGI_TOPICS].map(topic => {
+  return [...curated, ...expanded, ...SHITSUGI_TOPICS, ...SUGGEST_TOPICS].map(topic => {
     const source = resolveSourceForTopic(topic);
     return {
       ...topic,
@@ -891,7 +891,21 @@ try {
   console.warn(`[topic-pool] 質疑応答由来の候補を読み込めません（従来プールで続行）: ${error.message}`);
 }
 
+let SUGGEST_TOPICS = [];
+let SUGGEST_TOPIC_STATS = { total: 0, included: 0, invalid: 0, disabled: false };
+try {
+  const { expandSuggestTopics, getLastSuggestStats } = require('./lib/suggest-topics');
+  SUGGEST_TOPICS = expandSuggestTopics();
+  SUGGEST_TOPIC_STATS = getLastSuggestStats();
+} catch (error) {
+  console.warn(`[topic-pool] 検索需要由来の候補を読み込めません（従来プールで続行）: ${error.message}`);
+}
+
 const ALL_TOPICS = getAllTopics();
+
+function getSuggestTopicStats() {
+  return { ...SUGGEST_TOPIC_STATS };
+}
 
 function getShitsugiTopicStats() {
   return { ...SHITSUGI_TOPIC_STATS };
@@ -902,4 +916,5 @@ module.exports = {
   CURATED_TOPICS,
   getAllTopics,
   getShitsugiTopicStats,
+  getSuggestTopicStats,
 };

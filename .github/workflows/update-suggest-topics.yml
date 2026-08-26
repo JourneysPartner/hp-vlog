@@ -1,0 +1,109 @@
+name: Update Suggest Topics
+
+# 検索サジェストの取得と候補づくり（段階3改）。
+# 週1回（月曜 JST 02:00）＋手動実行。結果は suggest/topics-* ブランチの PR として出し、
+# 人の検収を経てマージする。自動マージはしない。
+# 取得は種語1件につき1クエリ・1.6秒間隔（約50クエリ/週）に抑える。
+
+on:
+  schedule:
+    - cron: '0 17 * * 0'   # 日曜 17:00 UTC = 月曜 JST 02:00
+  workflow_dispatch:
+    inputs:
+      skip_fetch:
+        description: '取得を飛ばしてキャッシュから選別だけやり直す場合は true'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: update-suggest-topics
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fetch suggests and select topics
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_SUGGEST_MODEL: ${{ vars.LLM_SUGGEST_MODEL }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.skip_fetch }}" = "true" ]; then ARGS="--skip-fetch"; fi
+          node scripts/update-suggest-topics.js $ARGS
+
+      - name: Create PR with new topics
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add data/search-suggest data/search-suggest-topics.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "::notice::新しい候補なし。PR は作成しません"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          STAMP=$(date -u +%Y%m%d-%H%M)
+          BRANCH="suggest/topics-${STAMP}"
+          git checkout -b "$BRANCH"
+          git commit -m "suggest: 検索サジェスト由来の記事候補 (${STAMP})"
+          git push origin "$BRANCH"
+
+          SUMMARY=$(node -e "
+            let d = { topics: [] };
+            try { d = require('./data/search-suggest-topics.json'); } catch (e) {}
+            const ts = d.topics || [];
+            const per = {};
+            ts.forEach(t => { per[t.persona] = (per[t.persona] || 0) + 1; });
+            console.log('| 指標 | 値 |');
+            console.log('|---|---|');
+            console.log('| 候補総数（累計） | ' + ts.length + ' |');
+            console.log('| 読者想定の内訳 | ' + Object.entries(per).map(([k,v]) => k + ':' + v).join(' / ') + ' |');
+            console.log('');
+            console.log('### 新しい候補の例（最新5件）');
+            ts.slice(-5).forEach(t => {
+              console.log('- **' + t.primary_question + '**');
+              console.log('  - 裏づけの検索語: ' + t.phrases.slice(0, 4).join(' / '));
+            });
+          ")
+
+          PR_BODY=$(cat <<PREOF
+          ## 検索サジェスト由来の記事候補
+
+          実際に Google で打ち込まれている検索語から起こした候補です。
+
+          ${SUMMARY}
+
+          ### 検収の観点（マージ前に確認）
+          - 問いが顧客層の実際の悩みになっているか
+          - 裏づけの検索語と問いが対応しているか
+          - 税務と無関係な語が紛れ込んでいないか
+
+          マージすると日次生成の候補プールに接続されます（1日最大1件）。
+          出典は生成時に既存の出典解決が割り当て、確定しない場合は出典ガードが止めます。
+          記事1本ごとの公開前の手動承認は変わりません。
+          PREOF
+          )
+
+          if PR_URL=$(gh pr create \
+            --title "検索サジェスト由来の記事候補 (${STAMP})" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" 2>&1); then
+            echo "::notice::PR を作成しました: ${PR_URL}"
+          else
+            echo "::error::PR の作成に失敗しました: ${PR_URL}"
+            exit 1
+          fi
