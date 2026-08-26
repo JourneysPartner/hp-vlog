@@ -314,6 +314,113 @@
       "_master_dependency": [
         "small_business_special_deduction"
       ]
+    },
+    {
+      "case_id": "GC-IT-FULL-SALARY",
+      "target_module": "income_tax_engine",
+      "kind": "table_derived",
+      "description": "令和7年分・給与収入700万円、単身、社会保険料控除100万円の給与所得から納付所得税までの全工程",
+      "source": {
+        "document_id": "NTA-TA-1410+SPECIAL-TAX-MEASURES-41-16-2+NTA-TA-2260+RECONSTRUCTION-FINANCE-ACT-13",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm",
+        "locator": "No.1410 給与所得控除表、措法41条の16の2 基礎控除、No.2260 速算表、復興財確法13条 2.1%",
+        "law_version": "令和7年分",
+        "retrieved_at": "2026-08-26",
+        "usage": "公表された表・税率・端数規則を接続して導出"
+      },
+      "related_sources": [
+        {
+          "document_id": "EGOV-SPECIAL-TAX-MEASURES",
+          "url": "https://laws.e-gov.go.jp/api/1/lawdata/332AC0000000026",
+          "usage": "措法41条の16の2の基礎控除63万円"
+        },
+        {
+          "document_id": "NTA-TA-2260",
+          "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm",
+          "usage": "所得税速算表"
+        },
+        {
+          "document_id": "EGOV-RECONSTRUCTION-FINANCE-ACT",
+          "url": "https://laws.e-gov.go.jp/law/423AC0000000117",
+          "usage": "復興特別所得税率2.1%"
+        }
+      ],
+      "inputs": {
+        "tax_year": 2025,
+        "salary_revenue": "7000000",
+        "social_insurance_deduction": "1000000",
+        "household": "single"
+      },
+      "expected": {
+        "salary_income_deduction": "1800000",
+        "salary_income": "5200000",
+        "total_income": "5200000",
+        "social_insurance_deduction": "1000000",
+        "basic_deduction": "630000",
+        "taxable_total_income": "3570000",
+        "calculated_income_tax": "286500",
+        "reconstruction_income_tax": "6016",
+        "total_income_tax": "292516",
+        "payable_income_tax": "292500"
+      },
+      "_master_dependency": [
+        "salary_income_deduction_table",
+        "basic_deduction_table",
+        "income_tax_brackets",
+        "reconstruction_income_surtax"
+      ]
+    },
+    {
+      "case_id": "GC-IT-APPENDIX5-500",
+      "target_module": "salary_income",
+      "kind": "table_derived",
+      "description": "令和7年分・給与収入500万円を別表第五の帯 [5,000,000, 5,004,000) へ当てた給与所得",
+      "source": {
+        "document_id": "EGOV-INCOME-TAX-APDX5",
+        "url": "https://laws.e-gov.go.jp/api/1/lawdata/340AC0000000033",
+        "locator": "所得税法別表第五 [5,000,000円以上5,004,000円未満]",
+        "law_version": "令和7年分",
+        "retrieved_at": "2026-08-26",
+        "usage": "別表第五の帯と給与所得控除後の金額のみ"
+      },
+      "inputs": {
+        "tax_year": 2025,
+        "salary_revenue": "5000000"
+      },
+      "expected": {
+        "salary_income": "3560000"
+      },
+      "_master_dependency": [
+        "salary_income_after_deduction_appendix5",
+        "salary_income_deduction_table"
+      ],
+      "_fixture_dependency": "masters/fixtures/appendix5-r7-golden.json"
+    },
+    {
+      "case_id": "GC-IT-SPOUSE-38",
+      "target_module": "income_deduction_spouse",
+      "kind": "table_derived",
+      "description": "本人の合計所得520万円、68歳の配偶者の合計所得40万円の場合の一般配偶者控除",
+      "source": {
+        "document_id": "NTA-TA-1191",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "locator": "配偶者控除の金額 本人900万円以下・一般の控除対象配偶者",
+        "law_version": "令和7年分",
+        "retrieved_at": "2026-08-26",
+        "usage": "本人所得区分・配偶者年齢区分・控除額のみ"
+      },
+      "inputs": {
+        "tax_year": 2025,
+        "taxpayer_total_income": "5200000",
+        "spouse_age_at_year_end": 68,
+        "spouse_total_income": "400000"
+      },
+      "expected": {
+        "spouse_deduction": "380000"
+      },
+      "_master_dependency": [
+        "income_deduction_spouse"
+      ]
     }
   ]
 }
