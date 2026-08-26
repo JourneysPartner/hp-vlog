@@ -53,6 +53,16 @@ function roundHalfUp(value, unit) {
   return (value.num < 0n ? -quotient : quotient) * unit;
 }
 
+function roundHalfDown(value, unit) {
+  // 絶対値で判定してから符号を戻す。ちょうど2分の1は切り捨てる。
+  const divisor = value.den * unit;
+  const magnitude = value.num < 0n ? -value.num : value.num;
+  let quotient = magnitude / divisor;
+  const remainder = magnitude % divisor;
+  if (remainder * 2n > divisor) quotient += 1n;
+  return (value.num < 0n ? -quotient : quotient) * unit;
+}
+
 function applyRounding(value, roundingRuleId) {
   const checked = exact(value);
   if (roundingRuleId === null || roundingRuleId === undefined) {
@@ -85,6 +95,9 @@ function applyRounding(value, roundingRuleId) {
   }
   if (rule.direction === 'half_up') {
     return { unit: 'JPY', value: roundHalfUp(checked, unit) };
+  }
+  if (rule.direction === 'half_down') {
+    return { unit: 'JPY', value: roundHalfDown(checked, unit) };
   }
   throw new Error(`端数規則${roundingRuleId}のdirectionが未対応です: ${rule.direction}`);
 }
