@@ -1062,6 +1062,74 @@
       ]
     },
     {
+      "case_id": "GC-SO-LEVEL2-FULL",
+      "target_module": "sozoku_service",
+      "kind": "table_derived",
+      "description": "配偶者と実子2人、小規模宅地等・配偶者軽減を適用する相続税サービス全工程",
+      "source": {
+        "document_id": "NTA-TA-4124+4152+4155+4158",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "locator": "特定居住用宅地等（330㎡・80%）、基礎控除、相続税速算表、配偶者の税額軽減",
+        "law_version": "令和7年4月1日現在法令等",
+        "retrieved_at": "2026-08-28",
+        "usage": "作業指示で指定された入力・手計算期待値を固定"
+      },
+      "inputs": {
+        "inheritance_open_date": "2025-06-01",
+        "heirs": [
+          { "id": "spouse", "relation": "spouse" },
+          { "id": "child-1", "relation": "child" },
+          { "id": "child-2", "relation": "child" }
+        ],
+        "cash": "60000000",
+        "securities": "20000000",
+        "building_appraised": "10000000",
+        "land_appraised": "50000000",
+        "land_area_sqm": "200",
+        "small_residential_land_category": "specified_residential",
+        "small_residential_land_acquirer": "spouse",
+        "division_shares": {
+          "spouse": { "num": "1", "den": "2" },
+          "child-1": { "num": "1", "den": "4" },
+          "child-2": { "num": "1", "den": "4" }
+        }
+      },
+      "expected": {
+        "heir_count_for_tax": 3,
+        "basic_deduction": "48000000",
+        "small_residential_land_reduction": "40000000",
+        "taxable_price_before_special_rule": "140000000",
+        "taxable_price_total": "100000000",
+        "spouse_taxable_price": "50000000",
+        "child_taxable_price_each": "25000000",
+        "taxable_estate": "52000000",
+        "spouse_statutory_share_amount": "26000000",
+        "child_statutory_share_amount_each": "13000000",
+        "total_inheritance_tax": "6300000",
+        "spouse_allocated_tax": "3150000",
+        "child_allocated_tax_each": "1575000",
+        "spouse_tax_relief": "3150000",
+        "spouse_final_tax": "0",
+        "child_final_tax_each": "1575000",
+        "final_tax_total": "3150000",
+        "filing_need": "required_for_special_rule"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示の表をそのまま固定する。",
+      "_additional_sources": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm"
+      ],
+      "_master_dependency": [
+        "small_residential_land_category",
+        "small_residential_land_area_limit_rule",
+        "inheritance_basic_deduction",
+        "statutory_share_by_combination",
+        "inheritance_tax_brackets",
+        "spouse_tax_relief_threshold"
+      ]
+    },
+    {
       "case_id": "GC-CT-3WARI-R9",
       "target_module": "consumption_tax_san_wari",
       "kind": "table_derived",
