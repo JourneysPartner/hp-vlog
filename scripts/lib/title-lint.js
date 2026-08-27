@@ -31,6 +31,22 @@ const SOFT_WARN_PATTERNS = [
   /(？|\?).{0,2}(？|\?)/,  // 連続する疑問符
 ];
 
+// 正当な対比ペア（両方そろって初めて中和する）。
+// 制度名を並べて比べるのは記事の主題そのもので、同語反復ではない。
+// 2026-08-27: 「2割特例／3割特例」の対比が "割特例" の重複として弾かれ、
+// タイトルが2回とも不採用になって仮置きのまま出た。
+const CONTRAST_PAIRS = [
+  ['課税事業者', '免税事業者'],
+  ['2割特例', '3割特例'],
+  ['２割特例', '３割特例'],
+  ['本則課税', '簡易課税'],
+  ['一般課税', '簡易課税'],
+  ['白色申告', '青色申告'],
+  ['所得控除', '税額控除'],
+  ['給与所得', '事業所得'],
+  ['相続時精算課税', '暦年課税'],
+];
+
 const MAX_LEN_FAIL = 80;
 const MAX_LEN_WARN = 70;
 const MIN_LEN_WARN = 16;
@@ -86,8 +102,10 @@ function lintTitle(title, ctx = {}) {
   // なので、両方が揃っているときに限り走査対象から除去して中和する
   // （片方だけの重複は従来どおり検知する）。
   let scanTitle = title;
-  if (/課税事業者/.test(scanTitle) && /免税事業者/.test(scanTitle)) {
-    scanTitle = scanTitle.replace(/課税事業者/g, '').replace(/免税事業者/g, '');
+  for (const pair of CONTRAST_PAIRS) {
+    if (pair.every(term => scanTitle.includes(term))) {
+      for (const term of pair) scanTitle = scanTitle.split(term).join('');
+    }
   }
   const kanjiKataOnly = scanTitle.replace(/[^一-鿿ァ-ヶ]/g, '');
   const ngramCount = new Map();
@@ -142,5 +160,6 @@ module.exports = {
   lintTitle,
   lintAll,
   HARD_FAIL_PATTERNS,
+  CONTRAST_PAIRS,
   SOFT_WARN_PATTERNS,
 };
