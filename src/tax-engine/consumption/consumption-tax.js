@@ -26,7 +26,9 @@ const { inputMoney, masterRate } = require('../income/helpers.js');
 const BASE_ROUNDING_RULE_ID = 'R-TRUNC-1000-BASE';
 const STAGE_ROUNDING_RULE_ID = 'R-TRUNC-1-CT-STAGE';
 const FINAL_ROUNDING_RULE_ID = 'R-TRUNC-100-TAX';
-const SUPPORTED_METHODS = Object.freeze(['general', 'simplified', 'two_wari']);
+const SUPPORTED_METHODS = Object.freeze(['general', 'simplified', 'two_wari', 'san_wari']);
+// compareMethods の既定3方式は既存契約を維持する。3割特例は呼出側の適用可否判定後に指定する。
+const DEFAULT_COMPARISON_METHODS = Object.freeze(['general', 'simplified', 'two_wari']);
 
 function zeroMoney() {
   return money({ unit: 'JPY', value: 0n });
@@ -558,6 +560,45 @@ function calculateTwoWari(input, taxablePeriod, salesTax, reasons) {
   });
 }
 
+function applicabilityConditionsMatch(record, input) {
+  const conditions = record.applicability_conditions;
+  if (!Array.isArray(conditions) || conditions.length === 0) return false;
+  const entityType = input.taxpayerType ?? input.entityType;
+  return conditions.every(condition =>
+    condition.subject === 'entity_type' && condition.operator === 'eq' &&
+    entityType === condition.value);
+}
+
+function sanWariRecord(input, taxablePeriod, reasons) {
+  const records = masters.find('small_business_special_deduction', {
+    periodIntersects: taxablePeriod,
+  }).filter(record => applicabilityConditionsMatch(record, input));
+  if (records.length !== 1) {
+    addReason(reasons, 'CT_SAN_WARI_CONDITIONS_OR_PERIOD_OUT_OF_SCOPE',
+      '課税期間または事業者区分が3割特例の要件に合いません');
+    return null;
+  }
+  return records[0];
+}
+
+function calculateSanWari(input, taxablePeriod, salesTax, reasons) {
+  const specialRecord = sanWariRecord(input, taxablePeriod, reasons);
+  if (!specialRecord || reasons.length > 0) return blockedResult('san_wari', reasons);
+  const specialDeductionBeforeRounding = multiplyRateByMoney(
+    masterRate(specialRecord.special_deduction_rate), salesTax.nationalTaxTotal
+  );
+  const specialDeduction = applyRounding(
+    specialDeductionBeforeRounding, specialRecord.rounding_rule_id
+  );
+  return finalize('san_wari', taxablePeriod, salesTax, specialDeduction, {
+    specialRecordId: specialRecord.record_id,
+    specialDeductionRate: masterRate(specialRecord.special_deduction_rate),
+    resultingBurdenRate: masterRate(specialRecord.resulting_burden_rate),
+    specialDeductionBeforeRounding,
+    specialDeduction,
+  });
+}
+
 function calculate(input, options = {}) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
     throw new TypeError('input はオブジェクトで指定してください');
@@ -577,7 +618,10 @@ function calculate(input, options = {}) {
     if (method === 'simplified') {
       return calculateSimplified(input, options, taxablePeriod, salesTax, reasons);
     }
-    return calculateTwoWari(input, taxablePeriod, salesTax, reasons);
+    if (method === 'two_wari') {
+      return calculateTwoWari(input, taxablePeriod, salesTax, reasons);
+    }
+    return calculateSanWari(input, taxablePeriod, salesTax, reasons);
   } catch (error) {
     if (!['CT_MASTER_UNAVAILABLE', 'CT_MASTER_AMBIGUOUS'].includes(error.code)) throw error;
     return blockedResult(method, [{ code: error.code, message: error.message }]);
@@ -610,7 +654,7 @@ function calculateTwoWariFromSalesTax(salesTaxAfterReturns, taxablePeriod) {
 }
 
 function compareMethods(input, options = {}) {
-  const requested = options.methods || input.availableMethods || SUPPORTED_METHODS;
+  const requested = options.methods || input.availableMethods || DEFAULT_COMPARISON_METHODS;
   if (!Array.isArray(requested) || requested.length === 0) {
     throw new TypeError('methods は1件以上の方式名の配列で指定してください');
   }
