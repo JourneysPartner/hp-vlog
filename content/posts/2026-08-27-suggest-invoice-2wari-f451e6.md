@@ -1,5 +1,5 @@
 ---
-title: "[要レビュー] suggest-invoice-2wari-f451e6"
+title: "インボイス登録で課税事業者になったら知っておきたい2割特例・3割特例の違いと適用期間"
 slug: "suggest-invoice-2wari-f451e6"
 category: "消費税"
 primary_persona: "general_individual_proprietor"
@@ -35,7 +35,7 @@ lead_value_score: 5
 tax_risk_score: 3
 recommendation: "revise"
 review_warning: "タイトル: 生成時に確定できず仮置きのままです（要修正）"
-summary: "インボイス登録を機に課税事業者になった個人事業者は、2割特例で令和8年分まで売上税額の2割を納付。法人は対象外。令和9〜10年分は新設の3割特例へ移行する。"
+summary: "インボイス登録を機に課税事業者となった個人事業者・法人は、令和8年9月30日を含む課税期間まで2割特例を活用できる。個人事業者は令和8年分が最後となり、令和9年分・令和10年分は個人事業者のみ3割特例へ移行する（法人は3割特例の対象外）。"
 review_status: "draft"
 review_comment: ""
 approved_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-27T00:05:57.869Z"
-updated_at: "2026-08-27T00:09:09.757Z"
+updated_at: "2026-08-27T06:35:23.077Z"
 ---
 インボイス登録したら消費税の計算がどうなるか、よく分からないまま申告が近づいてきた——そういう状況に置かれているフリーランスや個人事業者の方は少なくありません。
 
