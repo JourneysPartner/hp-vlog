@@ -908,12 +908,20 @@ interface ModeBInput {
   //      支給計画を指定せずに単一の必要報酬額を断定しない」
   assumedBonusPlan?: PredeterminedBonus[];
   searchStep: "10000" | "50000";
+  profitBeforeOfficerCompensation?: Money;  // 法人側も合成する場合の役員報酬控除前利益（下記注）
 }
 
 interface ModeCInput {
   plan: CompensationPlan;    // 単一の月額ではなく支給計画で受ける（§38・§43）
+  profitBeforeOfficerCompensation?: Money;  // 法人側も合成する場合の役員報酬控除前利益（下記注）
 }
 ```
+
+注（2026-08-27 追加）: `profitBeforeOfficerCompensation` は当初 MODE A だけが持っていたが、
+MODE B・C も法人側を合成するため同じ値を要する。CalculationContext は環境・前提の入れ物であり
+入力データを流さない（§3-2）ので、入力型の側へ追加した。型としては省略可
+（省略時は個人側だけの順算＝§44 の表示例）だが、④第1版のサービスは省略を
+`blocked`（`YH_PROFIT_BEFORE_COMPENSATION_REQUIRED`）とし、個人側だけの順算は将来版で対応する。
 
 ---
 
