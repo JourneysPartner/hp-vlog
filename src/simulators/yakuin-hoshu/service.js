@@ -728,4 +728,5 @@ module.exports = Object.freeze({
   validate,
   simulate,
   calculateForward,
+  planReasons,
 });
