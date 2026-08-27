@@ -7,21 +7,31 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { money } = require('../common/money.js');
 
-const MASTER_DATA_DIR = path.join(
+const MASTER_ROOT_DIR = path.join(
   __dirname,
   '..',
   '..',
   '..',
   'data',
   'tax-simulator',
-  'masters',
-  'data'
+  'masters'
 );
+const MASTER_DATA_DIR = path.join(MASTER_ROOT_DIR, 'data');
+const DEPENDENCIES_FILE = path.join(MASTER_ROOT_DIR, 'simulator-dependencies.json');
 const DATE_PATTERN = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
 const MONEY_PATTERN = /^-?[0-9]+$/;
 const EMPTY_RESULT = Object.freeze([]);
+
+/**
+ * v1では公式計算例ケースIDをマスターに保持していないため、§50-1-18(c)を完全には
+ * 満たさない。追跡結果ではverificationModeを単一一次資料＋代替統制とし、
+ * officialExampleCaseIdsを空配列で明示する。この仮置きを結果の前提にも必ず載せる。
+ */
+const ALTERNATIVE_CONTROL_ASSUMPTION =
+  '使用マスターの代替統制には公式様式・公的計算例のケースIDが未登録です（v1の明示的な逸脱）。';
 
 function deepFreeze(value) {
   if (value === null || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -39,6 +49,50 @@ function listJsonFiles(directory) {
   return files.sort();
 }
 
+function listFiles(directory) {
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...listFiles(target));
+    else if (entry.isFile()) files.push(target);
+  }
+  return files.sort();
+}
+
+function normalizedSnapshotPath(filePath) {
+  return filePath.replaceAll('\\', '/');
+}
+
+/**
+ * 相対パスと生バイト列を長さ付きで連結し、列挙順に依存しないSHA-256を返す。
+ * テストから実ファイルを書き換えず決定性を確認できるよう、入力列を引数に取る。
+ */
+function computeSnapshotHash(files) {
+  if (!Array.isArray(files)) throw new TypeError('filesは配列で指定してください');
+  const normalized = files.map((file, index) => {
+    if (file === null || typeof file !== 'object' || Array.isArray(file)) {
+      throw new TypeError(`files[${index}]はオブジェクトで指定してください`);
+    }
+    if (typeof file.path !== 'string' || file.path.length === 0) {
+      throw new TypeError(`files[${index}].pathは空でない文字列で指定してください`);
+    }
+    const content = Buffer.isBuffer(file.content)
+      ? file.content
+      : Buffer.from(file.content, 'utf8');
+    return { path: normalizedSnapshotPath(file.path), content };
+  }).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+
+  const hash = crypto.createHash('sha256');
+  for (const file of normalized) {
+    const pathBytes = Buffer.from(file.path, 'utf8');
+    hash.update(Buffer.from(`${pathBytes.length}:`, 'utf8'));
+    hash.update(pathBytes);
+    hash.update(Buffer.from(`:${file.content.length}:`, 'utf8'));
+    hash.update(file.content);
+  }
+  return hash.digest('hex');
+}
+
 function collectRecords(node, records) {
   if (node === null || typeof node !== 'object') return;
   if (typeof node.value_key === 'string') records.push(node);
@@ -47,11 +101,16 @@ function collectRecords(node, records) {
 
 const documents = [];
 const recordsByValueKey = new Map();
+let legalStatusAsOf = null;
 for (const file of listJsonFiles(MASTER_DATA_DIR)) {
   const document = JSON.parse(fs.readFileSync(file, 'utf8'));
   const records = [];
   collectRecords(document, records);
   for (const record of records) {
+    if (typeof record.as_of_date === 'string' &&
+        (legalStatusAsOf === null || record.as_of_date > legalStatusAsOf)) {
+      legalStatusAsOf = record.as_of_date;
+    }
     const indexed = recordsByValueKey.get(record.value_key) || [];
     indexed.push(record);
     recordsByValueKey.set(record.value_key, indexed);
@@ -60,6 +119,74 @@ for (const file of listJsonFiles(MASTER_DATA_DIR)) {
 }
 deepFreeze(documents);
 for (const records of recordsByValueKey.values()) Object.freeze(records);
+
+const snapshotFiles = [
+  ...listFiles(MASTER_DATA_DIR),
+  DEPENDENCIES_FILE,
+].map(file => ({
+  path: normalizedSnapshotPath(path.relative(MASTER_ROOT_DIR, file)),
+  content: fs.readFileSync(file),
+}));
+const snapshotHash = computeSnapshotHash(snapshotFiles);
+// v1のlegalStatusAsOfは、全マスターレコードのas_of_dateの最大値と定義する。
+const snapshotInfo = Object.freeze({
+  snapshotId: `tax-masters-${snapshotHash.slice(0, 16)}`,
+  snapshotHash,
+  legalStatusAsOf,
+});
+let activeRecordTracking = null;
+
+function getSnapshotInfo() {
+  return snapshotInfo;
+}
+
+function beginRecordTracking() {
+  if (activeRecordTracking !== null) {
+    throw new Error('使用マスターレコードの追跡は多重に開始できません');
+  }
+  activeRecordTracking = new Map();
+  return Object.freeze({});
+}
+
+function trackedRecordReference(record) {
+  const sourceIds = typeof record.source_document_id === 'string'
+    ? [record.source_document_id]
+    : [];
+  return deepFreeze({
+    masterName: record.master_name,
+    recordId: record.record_id,
+    reviewStatus: record.data_review_status,
+    sourceIds,
+    legalStatus: record.legal_status,
+    verificationMode: 'single_primary_with_alternative_controls',
+    alternativeControlRefs: {
+      crossReferenceLocators: typeof record.source_locator === 'string'
+        ? [record.source_locator]
+        : [],
+      officialExampleCaseIds: [],
+      approvedBy: record.verified_by,
+      approvedAt: record.verified_at,
+    },
+  });
+}
+
+function trackRecords(records) {
+  if (activeRecordTracking === null) return;
+  for (const record of records) {
+    const reference = trackedRecordReference(record);
+    const key = `${reference.masterName}\u0000${reference.recordId}`;
+    if (!activeRecordTracking.has(key)) activeRecordTracking.set(key, reference);
+  }
+}
+
+function endRecordTracking() {
+  if (activeRecordTracking === null) {
+    throw new Error('使用マスターレコードの追跡が開始されていません');
+  }
+  const tracked = Object.freeze([...activeRecordTracking.values()]);
+  activeRecordTracking = null;
+  return tracked;
+}
 
 function assertObject(value, name) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -132,7 +259,7 @@ function matchesCriterion(record, criterion) {
     criterion.to >= record.effective_from && criterion.from <= effectiveTo;
 }
 
-function find(valueKey, criterion) {
+function findRecords(valueKey, criterion) {
   if (typeof valueKey !== 'string' || valueKey.length === 0) {
     throw new TypeError('valueKeyは空でない文字列で指定してください');
   }
@@ -142,6 +269,12 @@ function find(valueKey, criterion) {
   const approved = indexed.filter(record =>
     record.data_review_status === 'approved' && matchesCriterion(record, normalized));
   return approved.length === 0 ? EMPTY_RESULT : Object.freeze(approved);
+}
+
+function find(valueKey, criterion) {
+  const records = findRecords(valueKey, criterion);
+  trackRecords(records);
+  return records;
 }
 
 function masterMoneyValue(value, fieldName) {
@@ -155,7 +288,7 @@ function masterMoneyValue(value, fieldName) {
 function findBracket(valueKey, amount, criterion) {
   const checkedAmount = money(amount);
   const matches = [];
-  for (const record of find(valueKey, criterion)) {
+  for (const record of findRecords(valueKey, criterion)) {
     const lowerKeys = Object.keys(record).filter(key => key.endsWith('_lower_inclusive'));
     if (lowerKeys.length === 0) continue;
     if (lowerKeys.length !== 1) {
@@ -175,7 +308,17 @@ function findBracket(valueKey, amount, criterion) {
   if (matches.length > 1) {
     throw new Error(`段階表${valueKey}で金額に該当する承認済みレコードが重複しています`);
   }
-  return matches[0] || null;
+  const matched = matches[0] || null;
+  if (matched !== null) trackRecords([matched]);
+  return matched;
 }
 
-module.exports = Object.freeze({ find, findBracket });
+module.exports = Object.freeze({
+  find,
+  findBracket,
+  getSnapshotInfo,
+  beginRecordTracking,
+  endRecordTracking,
+  computeSnapshotHash,
+  ALTERNATIVE_CONTROL_ASSUMPTION,
+});
