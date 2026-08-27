@@ -26,6 +26,18 @@
 
 const { detectDenyIntent } = require('./denylist');
 
+// 本文の修正を求めていることを示す語。これらを含むコメントは、
+// frontmatter しか触らない title_only には振り分けない。
+const BODY_EDIT_PATTERNS = [
+  /本文/,
+  /事実(?:誤認|関係|と異な)/,
+  /(?:誤り|間違[いっ]|正しくな|不正確)/,
+  /(?:記述|説明|文章|段落|箇所)[\s\S]{0,20}?(?:修正|直し|訂正|削除|変更)/,
+  /(?:表|一覧|リスト)[\s\S]{0,20}?(?:修正|直し|訂正|追加)/,
+  /(?:章|節|見出し)[\s\S]{0,20}?(?:追加|削除|差し替)/,
+  /出典/,
+];
+
 // パターン定義（上から優先度順に評価）
 const RULES = [
   {
@@ -51,6 +63,13 @@ const RULES = [
   {
     type: 'title_only',
     scope: 'frontmatter',
+    // title_only は本文をまったく触らない。そのため、コメントが本文の修正も
+    // 求めている場合は適用してはいけない。
+    // 2026-08-27: 「タイトルを付けてください」＋「本文に事実誤認があります」の
+    // コメントが冒頭のタイトル指示だけで title_only と分類され、frontmatter だけ
+    // 更新されて本文の誤り（2割特例の対象者）が残ったまま完了扱いになった。
+    // 2026-08-16 に table_fix で起きた事故と同じ構造。
+    notPatterns: BODY_EDIT_PATTERNS,
     patterns: [
       // 「タイトルだけ」「タイトルのみ」
       /タイトル(?:だけ|のみ)/,
@@ -182,6 +201,8 @@ function classifyRevision(comment) {
 
   // 1. ルール順にマッチ判定
   for (const rule of RULES) {
+    // notPatterns に当たるコメントは、このルールでは扱えない（次のルールへ）
+    if (rule.notPatterns && rule.notPatterns.some(re => re.test(text))) continue;
     for (const re of rule.patterns) {
       if (re.test(text)) {
         return {
@@ -220,6 +241,7 @@ function classifyRevision(comment) {
 }
 
 module.exports = {
+  BODY_EDIT_PATTERNS,
   classifyRevision,
   extractSectionHint,
   RULES,

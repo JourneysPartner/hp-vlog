@@ -185,5 +185,39 @@ console.log('\n=== Test 13: 事実誤認は table_fix より優先 ===');
   }
 }
 
+// ── 本文も直す指示は title_only にしない（2026-08-27）──────────
+// 「タイトルを付けてください」＋「本文に事実誤認があります」のコメントが、
+// 冒頭のタイトル指示だけで title_only と分類され、frontmatter だけ更新されて
+// 本文の誤り（2割特例の対象者）が残ったまま完了扱いになった。
+// title_only は本文をまったく触らないので、本文修正の指示があれば使えない。
+console.log('');
+console.log('=== 本文修正を含むコメントは title_only にしない ===');
+{
+  const bodyEdits = [
+    'タイトルを変更し、本文の事実誤認も直してください',
+    'タイトルを付けてください。あと出典が間違っています',
+    'タイトルを修正してください。また、対象者の記述が誤りです',
+    'タイトルを直して。比較表の該当行も修正してください',
+    'タイトルを付け直してください。本文の説明を訂正すること',
+  ];
+  for (const c of bodyEdits) {
+    const r = classifyRevision(c);
+    assert(r.type !== 'title_only' && r.scope !== 'frontmatter',
+      `本文も直す指示は title_only にしない: ${c.slice(0, 24)}… → ${r.type}`);
+  }
+
+  // タイトル/要約だけの指示は従来どおり title_only のまま
+  const titleOnly = [
+    'タイトルだけ変更してください',
+    'タイトルが硬いので自然にしてください',
+    '要約を直してください',
+    'タイトルのみ付け直してください',
+  ];
+  for (const c of titleOnly) {
+    const r = classifyRevision(c);
+    assert(r.type === 'title_only' && r.scope === 'frontmatter',
+      `タイトル/要約だけの指示は従来どおり: ${c} → ${r.type}`);
+  }
+}
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
