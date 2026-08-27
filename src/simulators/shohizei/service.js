@@ -217,6 +217,15 @@ function validate(wireInput) {
   return validateInput('shohizei', wireInput);
 }
 
+/**
+ * 別シミュレーターの追跡セッション内から呼ぶための内部入口。
+ * 呼出元がマスターレコード追跡の開始・終了を一元管理する。
+ */
+function calculateWithoutRecordTracking(input, context, masters) {
+  assertSnapshotMatch(context, masters);
+  return calculate(input, context);
+}
+
 function simulate(input, context, masters) {
   assertSnapshotMatch(context, masters);
   snapshot.beginRecordTracking();
@@ -248,4 +257,4 @@ function simulate(input, context, masters) {
   });
 }
 
-module.exports = Object.freeze({ validate, simulate });
+module.exports = Object.freeze({ validate, simulate, calculateWithoutRecordTracking });
