@@ -983,6 +983,7 @@ MODE B・C も法人側を合成するため同じ値を要する。CalculationC
 | `simplified.categorySelectedByUser` | `simplified_deemed_purchase_rates` |
 | `purchases[].taxableWithoutInvoice` | `invoice_transition_deduction_rate`, `invoice_counterparty_annual_cap` |
 | `eligibility.invoiceRegistration.becameTaxableByRegistration` | `small_business_special_deduction`（2割特例） |
+| `sales[].taxable[].band`（課税売上高の合計） | `full_deduction_taxable_sales_cap`（一般課税の全額控除判定。§8-7） |
 
 ### 8-3. ③ 相続税
 
@@ -1047,6 +1048,16 @@ MODE B・C も法人側を合成するため同じ値を要する。CalculationC
 割り当ての判断基準は「無いと主要な結果が出せないか」。迷ったものは必須側へ倒した。止まる方が安全なためである。
 
 ④役員報酬に国民健康保険を割り当てていないのは、役員は健康保険（協会けんぽ等）の被保険者であり国保に加入しないため。
+
+### 8-7. 消費税エンジン実装中に追加したマスターの割り当て（2026-08-27）
+
+②の実装検分で全額控除の金額要件（5億円）がコードに直書きされていた誤りを是正した際、
+`full_deduction_taxable_sales_cap`（消費税法30条2項）をマスターへ追加したが、依存表への
+分類が漏れていた。公開ゲートの未分類検出が捕まえたため次のとおり割り当てる。
+
+| `value_key` | 割り当て | 区分 | 根拠 |
+| --- | --- | --- | --- |
+| `full_deduction_taxable_sales_cap` | ② | **必須** | 消費税法30条2項。一般課税の仕入税額控除で全額控除できるか（課税売上高5億円以下）の判定に常に参照する。①の消費税比較（任意）でも②連携の一部として引く |
 
 ---
 
