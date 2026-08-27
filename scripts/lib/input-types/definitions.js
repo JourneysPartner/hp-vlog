@@ -558,8 +558,14 @@ const definitions = {
     searchStep: enumeration('10000', '50000'),
   }, {
     assumedBonusPlan: array(ref('PredeterminedBonus')),
+    profitBeforeOfficerCompensation: ref('Money'),
   }),
-  ModeCInput: object({ plan: ref('CompensationPlan') }),
+  // profitBeforeOfficerCompensation は法人側も合成する場合の役員報酬控除前利益。
+  // 型としては省略可（個人側だけの順算＝§44 の表示例）だが、④第1版のサービスは
+  // 省略を blocked（YH_PROFIT_BEFORE_COMPENSATION_REQUIRED）にする。個人側だけの
+  // 順算は将来版で対応。①法人成りが④のMODE Cを部品として使うときは必須。
+  // CalculationContext へ入力データを流さないための追加（§3-2）
+  ModeCInput: object({ plan: ref('CompensationPlan') }, { profitBeforeOfficerCompensation: ref('Money') }),
 };
 
 const roots = [

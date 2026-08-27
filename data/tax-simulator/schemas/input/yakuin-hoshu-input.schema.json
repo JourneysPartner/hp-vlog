@@ -254,6 +254,9 @@
               "items": {
                 "$ref": "#/$defs/PredeterminedBonusWire"
               }
+            },
+            "profitBeforeOfficerCompensation": {
+              "$ref": "#/$defs/MoneyWire"
             }
           },
           "required": [
@@ -360,6 +363,9 @@
             },
             "plan": {
               "$ref": "#/$defs/CompensationPlanWire"
+            },
+            "profitBeforeOfficerCompensation": {
+              "$ref": "#/$defs/MoneyWire"
             }
           },
           "required": [
@@ -1022,6 +1028,9 @@
           "items": {
             "$ref": "#/$defs/PredeterminedBonusWire"
           }
+        },
+        "profitBeforeOfficerCompensation": {
+          "$ref": "#/$defs/MoneyWire"
         }
       },
       "required": [
@@ -1035,6 +1044,9 @@
       "properties": {
         "plan": {
           "$ref": "#/$defs/CompensationPlanWire"
+        },
+        "profitBeforeOfficerCompensation": {
+          "$ref": "#/$defs/MoneyWire"
         }
       },
       "required": [

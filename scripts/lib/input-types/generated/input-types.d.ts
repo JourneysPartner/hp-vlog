@@ -593,10 +593,12 @@ export type ModeBInput = {
   desiredMonthlyNetIncome: Money;
   searchStep: "10000" | "50000";
   assumedBonusPlan?: Array<PredeterminedBonus>;
+  profitBeforeOfficerCompensation?: Money;
 };
 
 export type ModeCInput = {
   plan: CompensationPlan;
+  profitBeforeOfficerCompensation?: Money;
 };
 
 // 外部形式。bigint に対応する値は Decimal で保持する。
@@ -1187,8 +1189,10 @@ export type ModeBInputWire = {
   desiredMonthlyNetIncome: MoneyWire;
   searchStep: "10000" | "50000";
   assumedBonusPlan?: Array<PredeterminedBonusWire>;
+  profitBeforeOfficerCompensation?: MoneyWire;
 };
 
 export type ModeCInputWire = {
   plan: CompensationPlanWire;
+  profitBeforeOfficerCompensation?: MoneyWire;
 };

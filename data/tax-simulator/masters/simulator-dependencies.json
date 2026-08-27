@@ -221,7 +221,8 @@
             "simplified_deemed_purchase_rates",
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap",
-            "small_business_special_deduction"
+            "small_business_special_deduction",
+            "full_deduction_taxable_sales_cap"
           ]
         }
       ]
@@ -241,6 +242,12 @@
           "_basis": "入力型設計書 §8-2『eligibility.basePeriod.taxableSales』。免税事業者かどうかの主要判定に必要。",
           "value_keys": [
             "taxable_sales_exemption_threshold"
+          ]
+        },
+        {
+          "_basis": "入力型設計書 §8-7。消費税法30条2項の全額控除の金額要件（課税売上高5億円以下）。一般課税の仕入税額控除で常に参照する。",
+          "value_keys": [
+            "full_deduction_taxable_sales_cap"
           ]
         },
         {
