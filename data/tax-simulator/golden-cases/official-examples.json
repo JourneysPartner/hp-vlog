@@ -1007,6 +1007,93 @@
       "_master_dependency": [
         "national_pension_monthly_premium"
       ]
+    },
+    {
+      "case_id": "GC-SZ-COMPARE-R7",
+      "target_module": "shohizei_service",
+      "kind": "table_derived",
+      "description": "個人・令和7年分の一般課税、簡易課税、2割特例、3割特例の適用可否と納付額比較",
+      "source": {
+        "document_id": "NTA-2WARI-TOKUREI+NTA-TA-6505+E-GOV-CONSUMPTION-TAX-ACT",
+        "url": "https://www.nta.go.jp/publication/pamph/shohi/kaisei/202304/01.htm",
+        "locator": "2割特例、消費税法28条・29条・30条・37条、地方税法72条の83",
+        "law_version": "令和7年分（2026-08-27時点）",
+        "retrieved_at": "2026-08-27",
+        "usage": "方式別の適用可否と指定された手計算期待値を固定"
+      },
+      "inputs": {
+        "taxpayer_type": "individual",
+        "taxable_period": { "from": "2025-01-01", "to": "2025-12-31" },
+        "invoice_registered": true,
+        "invoice_registered_on": "2023-10-01",
+        "became_taxable_by_registration": true,
+        "base_period_taxable_sales": "9000000",
+        "specified_period_taxable_sales": "9000000",
+        "specified_period_salary_payments": "3000000",
+        "simplified_election_filed": true,
+        "simplified_election_effective_from": "2025-01-01",
+        "simplified_business_category": "type5",
+        "standard_rate_tax_inclusive_sales": "11000000",
+        "standard_rate_tax_inclusive_purchases_with_invoice": "4400000"
+      },
+      "expected": {
+        "general": { "eligibility": "eligible", "national_tax": "468000", "local_tax": "132000", "total_tax": "600000" },
+        "simplified": { "eligibility": "eligible", "national_tax": "390000", "local_tax": "110000", "total_tax": "500000" },
+        "twenty_percent_special": { "eligibility": "eligible", "national_tax": "156000", "local_tax": "44000", "total_tax": "200000" },
+        "thirty_percent_special": { "eligibility": "ineligible", "reason": "対象課税期間でない" },
+        "recommended_method_code": "twenty_percent_special",
+        "difference_from_general": "-400000",
+        "taxable_base": "10000000",
+        "national_sales_tax": "780000",
+        "deductible_purchase_tax": "312000"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示で指定された値を固定する。",
+      "_additional_sources": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm",
+        "https://laws.e-gov.go.jp/law/363AC0000000108",
+        "https://laws.e-gov.go.jp/law/325AC0000000226"
+      ],
+      "_master_dependency": [
+        "taxable_sales_exemption_threshold",
+        "simplified_taxation_ceiling",
+        "small_business_special_deduction",
+        "consumption_tax_rate_standard",
+        "simplified_deemed_purchase_rates"
+      ]
+    },
+    {
+      "case_id": "GC-CT-3WARI-R9",
+      "target_module": "consumption_tax_san_wari",
+      "kind": "table_derived",
+      "description": "個人・令和9年分・税込課税売上1,100万円の3割特例",
+      "source": {
+        "document_id": "NTA-INVOICE-R8",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice.htm",
+        "locator": "令和8年度税制改正 3割特例、地方税法72条の83（22/78）",
+        "law_version": "令和9年分",
+        "retrieved_at": "2026-08-27",
+        "usage": "売上税額の70%控除と地方消費税を含む納付額の指定期待値を固定"
+      },
+      "inputs": {
+        "taxpayer_type": "individual",
+        "taxable_period": { "from": "2027-01-01", "to": "2027-12-31" },
+        "standard_rate_tax_inclusive_sales": "11000000"
+      },
+      "expected": {
+        "national_sales_tax": "780000",
+        "special_deduction": "546000",
+        "national_tax": "234000",
+        "local_tax": "66000",
+        "total_tax": "300000"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示で指定された値を固定する。",
+      "_additional_sources": [
+        "https://laws.e-gov.go.jp/law/325AC0000000226"
+      ],
+      "_master_dependency": [
+        "small_business_special_deduction",
+        "consumption_tax_rate_standard"
+      ]
     }
   ]
 }

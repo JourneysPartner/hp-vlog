@@ -18,6 +18,7 @@ const golden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-STEADY-
 const yakuinGolden = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-500K');
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
+const taxIncl = value => ({ basis: 'inclusive', amount: yen(value) });
 
 let passed = 0;
 let failed = 0;
@@ -74,6 +75,72 @@ function plan(monthlyAmount = 500000) {
       value: { monthlyAmount: yen(monthlyAmount) },
     }],
   };
+}
+
+function filing(kind, filed, effectiveFromPeriodStart) {
+  const row = { kind, filed };
+  if (effectiveFromPeriodStart) row.effectiveFromPeriodStart = effectiveFromPeriodStart;
+  return row;
+}
+
+function shohizeiPeriodInput({
+  taxpayerType = 'individual',
+  period = { from: '2025-01-01', to: '2025-12-31' },
+} = {}) {
+  const isCorporation = taxpayerType === 'corporation';
+  return {
+    precision: 'detailed',
+    taxpayerType,
+    eligibility: {
+      invoiceRegistration: {
+        registered: 'yes',
+        registeredOn: '2023-10-01',
+        becameTaxableByRegistration: 'yes',
+      },
+      basePeriod: isCorporation
+        ? { exists: false }
+        : { exists: true, taxableSales: yen(9000000), lengthInMonths: 12 },
+      specifiedPeriod: isCorporation
+        ? {}
+        : { taxableSales: yen(9000000), salaryPayments: yen(3000000) },
+      filings: isCorporation
+        ? [
+          filing('taxable_person_election', 'no'),
+          filing('simplified_election', 'no'),
+        ]
+        : [filing('simplified_election', 'yes', period.from)],
+    },
+    sales: [{
+      period,
+      value: {
+        kind: 'detailed',
+        taxable: [{ band: 'standard_10', amount: taxIncl(11000000) }],
+      },
+    }],
+    purchases: [{
+      period,
+      value: {
+        kind: 'detailed',
+        taxableWithInvoice: [{ band: 'standard_10', amount: taxIncl(4400000) }],
+        taxableWithoutInvoice: [],
+      },
+    }],
+    simplified: { categorySelectedByUser: true, primaryCategory: 'type5' },
+    specialistChecks: {},
+  };
+}
+
+function consumptionTaxIncludedInput() {
+  const input = goldenInput();
+  input.consumptionTax = {
+    include: true,
+    individualPeriodInput: shohizeiPeriodInput(),
+    corporatePeriodInput: shohizeiPeriodInput({
+      taxpayerType: 'corporation',
+      period: { from: '2025-04-01', to: '2026-03-31' },
+    }),
+  };
+  return input;
 }
 
 function goldenInput() {
@@ -224,18 +291,100 @@ assert(complete.warnings.some(warning => warning.level === 'info' &&
   warning.basis === '法人内部に残る資金は社長個人が自由に使える資金ではありません。'),
 '法人留保に関する指定文言をinfo警告で返す');
 
-console.log('\n=== partial と入力分岐 ===');
-const consumptionInput = goldenInput();
-consumptionInput.consumptionTax = {
-  include: true,
-  individualPeriodInput: {},
-  corporatePeriodInput: {},
-};
-const consumptionPartial = service.simulate(consumptionInput, context(), snapshotInfo);
-assert(consumptionPartial.resultStatus === 'partial' &&
-  consumptionPartial.excludedItems.some(item =>
+console.log('\n=== ②消費税サービスとの接続 ===');
+const sourceContext = context();
+const derivedIndividual = service.deriveIndividualConsumptionTaxContext(sourceContext);
+const derivedCorporate = service.deriveCorporateConsumptionTaxContext(sourceContext);
+assert(derivedIndividual.consumptionTaxPeriod.from === '2025-01-01' &&
+  derivedIndividual.consumptionTaxPeriod.to === '2025-12-31' &&
+  derivedCorporate.consumptionTaxPeriod === sourceContext.fiscalPeriod,
+'個人側は所得税年の暦年、法人側はfiscalPeriodから消費税課税期間を派生する');
+assert([
+  'masterSnapshotId', 'masterSnapshotHash', 'asOfDate', 'calculatedAt', 'jurisdiction',
+].every(key => derivedIndividual[key] === sourceContext[key]) &&
+  ['masterSnapshotId', 'masterSnapshotHash', 'asOfDate', 'calculatedAt', 'jurisdiction']
+    .every(key => derivedCorporate[key] === sourceContext[key]),
+'派生コンテキストはスナップショット・日時・jurisdictionを元の値から引き継ぐ');
+
+const consumptionConnected = service.simulate(
+  consumptionTaxIncludedInput(), context(), snapshotInfo
+);
+const connectedSole = consumptionConnected.breakdown.data.soleProprietor;
+const connectedCorporation = consumptionConnected.breakdown.data.corporation;
+assert(consumptionConnected.resultStatus === 'complete' &&
+  connectedSole.burdens.consumptionTax.value === 200000n &&
+  connectedCorporation.burdens.consumptionTax.value === 200000n,
+'個人・法人とも②の2割特例の納付額200,000円を採用してcompleteになる');
+assert(connectedSole.personalDisposableCash.value === 7531680n &&
+  connectedCorporation.corporateRetainedCash.value === 3685600n,
+'消費税を個人手取りと法人留保からだけ控除する');
+assert(consumptionConnected.breakdown.data.combinedReferenceDifference.value ===
+  (4653300n + 3685600n) - 7531680n &&
+  consumptionConnected.breakdown.data.combinedReferenceDifference.value === 807220n &&
+  consumptionConnected.breakdown.data.personalDisposableDifference.value ===
+    4653300n - 7531680n,
+'(4,653,300＋3,685,600)－7,531,680＝807,220円で、両側同額控除なら参考差額は不変');
+assert(consumptionConnected.assumptions.some(text =>
+  text.includes('2割特例') && text.includes('twenty_percent_special') &&
+  text.includes('②の判定による推奨方式')) &&
+  consumptionConnected.assumptions.some(text =>
+    text.includes('税抜経理') && text.includes('損金へ影響させず') &&
+    text.includes('控除対象外消費税額等')),
+'assumptionsに推奨方式と税抜経理・二重計上禁止の前提を明示する');
+assert(consumptionConnected.warnings.some(warning =>
+  warning.code === 'HJ_CONSUMPTION_TAX_SALES_MISMATCH' && warning.canContinue === true &&
+  warning.basis.includes('①の売上の経理方式')),
+'①の2,000万円と②の税抜換算後1,000万円が不一致なら継続可能な警告を返す');
+assert(consumptionConnected.usedMasterRecords.some(record =>
+  record.recordId === 'CT-SPECIAL-2WARI'),
+'①の単一追跡セッションで②が使用した2割特例マスターも収集する');
+
+const salesMatchedInput = consumptionTaxIncludedInput();
+for (const side of ['individualPeriodInput', 'corporatePeriodInput']) {
+  salesMatchedInput.consumptionTax[side].sales[0].value.taxable[0].amount = {
+    basis: 'exclusive', amount: yen(20000000),
+  };
+}
+const salesMatched = service.simulate(salesMatchedInput, context(), snapshotInfo);
+assert(!warningCode(salesMatched, 'HJ_CONSUMPTION_TAX_SALES_MISMATCH'),
+'②両期間の税抜課税売上が①の各売上と一致すれば不突合警告を返さない');
+
+const consumptionBlockedInput = consumptionTaxIncludedInput();
+consumptionBlockedInput.consumptionTax.individualPeriodInput.sales[0].value.exportExempt =
+  taxIncl(1100000);
+const consumptionBlocked = service.simulate(consumptionBlockedInput, context(), snapshotInfo);
+assert(consumptionBlocked.resultStatus === 'partial' &&
+  !Object.hasOwn(consumptionBlocked.breakdown.data.soleProprietor.burdens, 'consumptionTax') &&
+  !Object.hasOwn(consumptionBlocked.breakdown.data.corporation.burdens, 'consumptionTax') &&
+  consumptionBlocked.excludedItems.some(item =>
+    item.code === 'HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI') &&
+  !consumptionBlocked.excludedItems.some(item =>
     item.code === 'HJ_CONSUMPTION_TAX_SERVICE_UNAVAILABLE'),
-'消費税ONは専用理由コードの除外項目付きpartialになる');
+'②がblockedなら消費税だけを新理由コードの除外項目へ落としてpartialにする');
+
+const individualExemptInput = consumptionTaxIncludedInput();
+const exemptIndividual = individualExemptInput.consumptionTax.individualPeriodInput;
+exemptIndividual.eligibility.invoiceRegistration = { registered: 'no' };
+exemptIndividual.eligibility.basePeriod = {
+  exists: true, taxableSales: yen(8000000), lengthInMonths: 12,
+};
+exemptIndividual.eligibility.specifiedPeriod = {
+  taxableSales: yen(8000000), salaryPayments: yen(2000000),
+};
+exemptIndividual.eligibility.filings = [
+  filing('taxable_person_election', 'no'),
+  filing('simplified_election', 'no'),
+];
+const individualExempt = service.simulate(individualExemptInput, context(), snapshotInfo);
+assert(individualExempt.resultStatus === 'complete' &&
+  !Object.hasOwn(individualExempt.breakdown.data.soleProprietor.burdens, 'consumptionTax') &&
+  individualExempt.breakdown.data.corporation.burdens.consumptionTax.value === 200000n &&
+  individualExempt.breakdown.data.corporation.corporateRetainedCash.value === 3685600n &&
+  individualExempt.assumptions.some(text =>
+    text.includes('個人側は免税事業者のため消費税の納税義務なし')),
+'②で個人側が免税ならconsumptionTaxを省略し、法人側だけ控除して免税前提を表示する');
+
+console.log('\n=== partial と入力分岐 ===');
 
 const differentLocationInput = goldenInput();
 differentLocationInput.corporate.locationSameAsResidence = 'no';

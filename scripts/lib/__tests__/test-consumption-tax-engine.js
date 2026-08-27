@@ -173,6 +173,35 @@ console.log('\n=== 同じ売上入力による3方式比較 ===');
   '一般780,000円・簡易500,000円・2割200,000円の順で2割が最小');
 }
 
+console.log('\n=== GC-CT-3WARI-R9: 3割特例 ===');
+{
+  const document = JSON.parse(fs.readFileSync(path.join(
+    __dirname, '..', '..', '..', 'data', 'tax-simulator', 'golden-cases',
+    'official-examples.json'
+  ), 'utf8'));
+  const golden = document.cases.find(item => item.case_id === 'GC-CT-3WARI-R9');
+  const period = golden.inputs.taxable_period;
+  const result = engine.calculate(detailedInput({
+    period,
+    inputExtras: { taxpayerType: golden.inputs.taxpayer_type },
+  }), { method: 'san_wari' });
+  assert(result.status === 'complete' &&
+    amount(result.salesTax.nationalTaxTotal) === BigInt(golden.expected.national_sales_tax) &&
+    amount(result.specialDeduction) === BigInt(golden.expected.special_deduction) &&
+    amount(result.nationalTax) === BigInt(golden.expected.national_tax) &&
+    amount(result.localConsumptionTax.amount) === BigInt(golden.expected.local_tax) &&
+    amount(result.totalPayable) === BigInt(golden.expected.total_tax),
+  '売上税額780,000円－特別控除546,000円＋地方66,000円＝300,000円');
+
+  const corporation = engine.calculate(detailedInput({
+    period,
+    inputExtras: { taxpayerType: 'corporation' },
+  }), { method: 'san_wari' });
+  assert(corporation.status === 'blocked' && corporation.blockedReasons.some(reason =>
+    reason.code === 'CT_SAN_WARI_CONDITIONS_OR_PERIOD_OUT_OF_SCOPE'),
+  'applicability_conditions により法人は3割特例を計算しない');
+}
+
 console.log('\n=== 地方消費税は切捨て後の国税を基礎にする ===');
 {
   const result = engine.calculate(detailedInput({

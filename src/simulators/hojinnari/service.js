@@ -8,14 +8,31 @@
 const { validateInput } = require('../core/validator.js');
 const { buildSimulationResult } = require('../core/result-builder.js');
 const yakuinHoshu = require('../yakuin-hoshu/service.js');
+const shohizei = require('../shohizei/service.js');
 const income = require('../../tax-engine/income/index.js');
 const residentTax = require('../../tax-engine/resident-tax/index.js');
 const individualBusinessTax = require('../../tax-engine/business-tax/individual-business-tax.js');
 const socialInsurance = require('../../tax-engine/social-insurance/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
-const { money, addMoney } = require('../../tax-engine/common/money.js');
+const {
+  money,
+  rate,
+  moneyToExact,
+  multiplyRateByMoney,
+  multiplyRateByExact,
+  addExact,
+  addMoney,
+  compareExactToMoney,
+} = require('../../tax-engine/common/money.js');
+const { masterRate } = require('../../tax-engine/income/helpers.js');
 
 const MONTHS_IN_YEAR = 12;
+const CONSUMPTION_TAX_METHOD_LABELS = Object.freeze({
+  general: '一般課税',
+  simplified: '簡易課税',
+  twenty_percent_special: '2割特例',
+  thirty_percent_special: '3割特例',
+});
 
 function yen(value) {
   return money({ unit: 'JPY', value: BigInt(value) });
@@ -68,6 +85,20 @@ function fiscalPeriodFrom(context) {
     throw new TypeError('context.fiscalPeriod が必要です');
   }
   return context.fiscalPeriod;
+}
+
+function deriveIndividualConsumptionTaxContext(context) {
+  return {
+    ...context,
+    consumptionTaxPeriod: calendarYearPeriod(incomeYearFrom(context)),
+  };
+}
+
+function deriveCorporateConsumptionTaxContext(context) {
+  return {
+    ...context,
+    consumptionTaxPeriod: fiscalPeriodFrom(context),
+  };
 }
 
 function blockedReason(code, fieldPath, message) {
@@ -471,7 +502,225 @@ function calculateCorporation(input, context) {
   };
 }
 
-function partialItems(input) {
+function rateRecordForSalesBand(band, onDate) {
+  const valueKey = {
+    standard_10: 'consumption_tax_rate_standard',
+    reduced_8: 'consumption_tax_rate_reduced',
+  }[band];
+  if (!valueKey) return null;
+  const records = snapshot.find(valueKey, { onDate });
+  if (records.length !== 1) return null;
+  return records[0];
+}
+
+function taxExclusiveExact(taxIncl, band, onDate) {
+  if (!taxIncl || !taxIncl.amount) return null;
+  if (taxIncl.basis === 'exclusive') return moneyToExact(taxIncl.amount);
+  if (taxIncl.basis !== 'inclusive') return null;
+  const record = rateRecordForSalesBand(band, onDate);
+  if (!record) return null;
+  const combined = masterRate(record.combined_rate);
+  return multiplyRateByMoney(rate({
+    num: combined.den,
+    den: combined.den + combined.num,
+  }), taxIncl.amount);
+}
+
+function taxableSalesTotalExact(input, context) {
+  let total = moneyToExact(zeroMoney());
+  const onDate = context.consumptionTaxPeriod.to;
+  for (const segment of input.sales || []) {
+    const value = segment.value || {};
+    if (value.kind === 'detailed') {
+      for (const item of value.taxable || []) {
+        const amount = taxExclusiveExact(item.amount, item.band, onDate);
+        if (!amount) return null;
+        total = addExact(total, amount);
+      }
+      continue;
+    }
+    if (value.kind !== 'simple' || !value.taxableTotal) return null;
+    for (const [band, ratioValue] of [
+      ['standard_10', value.standardRatio],
+      ['reduced_8', value.reducedRatio],
+    ]) {
+      if (!ratioValue) return null;
+      const allocated = multiplyRateByMoney(rate({
+        num: BigInt(ratioValue.num), den: BigInt(ratioValue.den),
+      }), value.taxableTotal.amount);
+      if (value.taxableTotal.basis === 'exclusive') {
+        total = addExact(total, allocated);
+        continue;
+      }
+      if (value.taxableTotal.basis !== 'inclusive') return null;
+      const record = rateRecordForSalesBand(band, onDate);
+      if (!record) return null;
+      const combined = masterRate(record.combined_rate);
+      total = addExact(total, multiplyRateByExact(rate({
+        num: combined.den,
+        den: combined.den + combined.num,
+      }), allocated));
+    }
+  }
+  return total;
+}
+
+function scopedShohizeiWarnings(calculation, inputPath) {
+  return (calculation.warnings || []).map(item => {
+    const suffix = typeof item.fieldPath === 'string'
+      ? item.fieldPath.replace(/^\$/, '')
+      : '';
+    return {
+      ...item,
+      fieldPath: `${inputPath}${suffix}`,
+    };
+  });
+}
+
+function shohizeiOutcome(calculation) {
+  const data = calculation.breakdown && calculation.breakdown.kind === 'shohizei'
+    ? calculation.breakdown.data
+    : null;
+  if (calculation.resultStatus !== 'complete' || !data || !Array.isArray(data.methodResults)) {
+    return { kind: 'unresolved' };
+  }
+  if (data.methodResults.length === 0) return { kind: 'exempt' };
+  const methodCode = data.recommendedMethodCode;
+  const recommended = data.methodResults.find(item => item.methodCode === methodCode);
+  if (!methodCode || !recommended || recommended.eligibility !== 'eligible' ||
+      !recommended.taxPayable) {
+    return { kind: 'unresolved' };
+  }
+  return { kind: 'payable', methodCode, taxPayable: recommended.taxPayable };
+}
+
+function salesReconciliationWarning(side, shohizeiInput, shohizeiContext, hojinnariRevenue) {
+  const taxableSales = taxableSalesTotalExact(shohizeiInput, shohizeiContext);
+  if (taxableSales === null || compareExactToMoney(taxableSales, hojinnariRevenue) === 0) {
+    return null;
+  }
+  const isIndividual = side === 'individual';
+  return {
+    code: 'HJ_CONSUMPTION_TAX_SALES_MISMATCH',
+    fieldPath: isIndividual
+      ? '$.consumptionTax.individualPeriodInput.sales'
+      : '$.consumptionTax.corporatePeriodInput.sales',
+    message: `②${isIndividual ? '個人期間' : '法人期間'}入力の課税売上合計（税込入力は税抜換算後・全税率帯合算）と①の${isIndividual ? '個人事業' : '法人'}売上が一致しません。①の売上の経理方式（税込経理・税抜経理）によっては差異が出ます。`,
+  };
+}
+
+function methodLabel(methodCode) {
+  return `${CONSUMPTION_TAX_METHOD_LABELS[methodCode] || methodCode}（${methodCode}）`;
+}
+
+function applyConsumptionTax(input, context, masters, soleScenario, corporateScenario) {
+  if (input.consumptionTax.include !== true) {
+    return {
+      resolved: true,
+      soleScenario,
+      corporateScenario,
+      assumptions: [],
+      warnings: [],
+      excludedItems: [],
+    };
+  }
+
+  const individualContext = deriveIndividualConsumptionTaxContext(context);
+  const corporateContext = deriveCorporateConsumptionTaxContext(context);
+  const individualCalculation = shohizei.calculateWithoutRecordTracking(
+    input.consumptionTax.individualPeriodInput, individualContext, masters
+  );
+  const corporateCalculation = shohizei.calculateWithoutRecordTracking(
+    input.consumptionTax.corporatePeriodInput, corporateContext, masters
+  );
+  const individualOutcome = shohizeiOutcome(individualCalculation);
+  const corporateOutcome = shohizeiOutcome(corporateCalculation);
+  const warnings = [
+    ...scopedShohizeiWarnings(individualCalculation,
+      '$.consumptionTax.individualPeriodInput'),
+    ...scopedShohizeiWarnings(corporateCalculation,
+      '$.consumptionTax.corporatePeriodInput'),
+  ];
+  const individualMismatch = salesReconciliationWarning(
+    'individual', input.consumptionTax.individualPeriodInput, individualContext,
+    input.individual.business.revenue[0].value
+  );
+  const corporateMismatch = salesReconciliationWarning(
+    'corporate', input.consumptionTax.corporatePeriodInput, corporateContext,
+    input.corporate.revenue[0].value
+  );
+  if (individualMismatch) warnings.push(individualMismatch);
+  if (corporateMismatch) warnings.push(corporateMismatch);
+
+  if (individualOutcome.kind === 'unresolved' || corporateOutcome.kind === 'unresolved') {
+    return {
+      resolved: false,
+      soleScenario,
+      corporateScenario,
+      assumptions: [],
+      warnings,
+      excludedItems: [{
+        code: 'HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI',
+        label: '消費税',
+        reason: `②の判定結果（個人側=${individualCalculation.resultStatus}、法人側=${corporateCalculation.resultStatus}）がcompleteかつ推奨方式確定の条件を満たさないため、消費税を比較から除外しました`,
+        isAmountUnknown: true,
+      }],
+    };
+  }
+
+  const appliedSole = {
+    ...soleScenario,
+    burdens: { ...soleScenario.burdens },
+  };
+  const appliedCorporate = {
+    ...corporateScenario,
+    burdens: { ...corporateScenario.burdens },
+  };
+  const assumptions = [];
+  if (individualOutcome.kind === 'payable') {
+    appliedSole.burdens.consumptionTax = individualOutcome.taxPayable;
+    appliedSole.personalDisposableCash = subtractMoneyValues(
+      appliedSole.personalDisposableCash, individualOutcome.taxPayable
+    );
+  } else {
+    assumptions.push('個人側は免税事業者のため消費税の納税義務なし。');
+  }
+  if (corporateOutcome.kind === 'payable') {
+    appliedCorporate.burdens.consumptionTax = corporateOutcome.taxPayable;
+    appliedCorporate.corporateRetainedCash = subtractMoneyValues(
+      appliedCorporate.corporateRetainedCash, corporateOutcome.taxPayable
+    );
+  } else {
+    assumptions.push('法人側は免税事業者のため消費税の納税義務なし。');
+  }
+
+  const methodParts = [];
+  if (individualOutcome.kind === 'payable') {
+    methodParts.push(`個人側＝${methodLabel(individualOutcome.methodCode)}`);
+  }
+  if (corporateOutcome.kind === 'payable') {
+    methodParts.push(`法人側＝${methodLabel(corporateOutcome.methodCode)}`);
+  }
+  if (methodParts.length > 0) {
+    assumptions.push(
+      `消費税は${methodParts.join('・')}（それぞれ②の判定による推奨方式）の試算額を使用しています。`
+    );
+  }
+  assumptions.push(
+    '税抜経理を前提とし、控除対象外消費税額等は①の所得・経費へ反映せず、消費税の納付額は損金へ影響させず手取り・留保からのみ控除しています。'
+  );
+
+  return {
+    resolved: true,
+    soleScenario: appliedSole,
+    corporateScenario: appliedCorporate,
+    assumptions,
+    warnings,
+    excludedItems: [],
+  };
+}
+
+function partialItems(input, consumptionTaxResult) {
   const excludedItems = [];
   if (input.corporate.locationSameAsResidence !== 'yes') {
     excludedItems.push({
@@ -481,14 +730,7 @@ function partialItems(input) {
       isAmountUnknown: true,
     });
   }
-  if (input.consumptionTax.include === true) {
-    excludedItems.push({
-      code: 'HJ_CONSUMPTION_TAX_SERVICE_UNAVAILABLE',
-      label: '消費税',
-      reason: '消費税シミュレーターサービスが未実装のため比較から除外しました',
-      isAmountUnknown: true,
-    });
-  } else {
+  if (input.consumptionTax.include !== true) {
     excludedItems.push({
       code: 'HJ_CONSUMPTION_TAX_OUT_OF_COMPARISON',
       label: '消費税：比較対象外',
@@ -496,6 +738,7 @@ function partialItems(input) {
       isAmountUnknown: true,
     });
   }
+  excludedItems.push(...(consumptionTaxResult.excludedItems || []));
   return excludedItems;
 }
 
@@ -533,7 +776,7 @@ function blockedCalculation(reasons) {
   };
 }
 
-function calculate(input, context) {
+function calculate(input, context, masters) {
   const reasons = supportedProfileReasons(input, context);
   if (reasons.length > 0) return blockedCalculation(reasons);
 
@@ -541,25 +784,30 @@ function calculate(input, context) {
   if (soleProprietor.status === 'blocked') return blockedCalculation(soleProprietor.blockedReasons);
   const corporation = calculateCorporation(input, context);
   if (corporation.status === 'blocked') return blockedCalculation(corporation.blockedReasons);
+  const consumptionTaxResult = applyConsumptionTax(
+    input, context, masters, soleProprietor.scenario, corporation.scenario
+  );
+  const soleScenario = consumptionTaxResult.soleScenario;
+  const corporateScenario = consumptionTaxResult.corporateScenario;
 
   const personalDisposableDifference = subtractMoneyValues(
-    corporation.scenario.personalDisposableCash,
-    soleProprietor.scenario.personalDisposableCash
+    corporateScenario.personalDisposableCash,
+    soleScenario.personalDisposableCash
   );
   const corporateCombinedCash = sumMoney([
-    corporation.scenario.personalDisposableCash,
-    corporation.scenario.corporateRetainedCash,
+    corporateScenario.personalDisposableCash,
+    corporateScenario.corporateRetainedCash,
   ]);
   const combinedReferenceDifference = subtractMoneyValues(
     corporateCombinedCash,
-    soleProprietor.scenario.personalDisposableCash
+    soleScenario.personalDisposableCash
   );
   const excludedItems = [
-    ...partialItems(input),
+    ...partialItems(input, consumptionTaxResult),
     ...(corporation.excludedItems || []),
   ];
   const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
-    input.consumptionTax.include === true;
+    (input.consumptionTax.include === true && !consumptionTaxResult.resolved);
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {
@@ -569,16 +817,21 @@ function calculate(input, context) {
     breakdown: {
       kind: 'hojinnari',
       data: {
-        soleProprietor: soleProprietor.scenario,
-        corporation: corporation.scenario,
+        soleProprietor: soleScenario,
+        corporation: corporateScenario,
         personalDisposableDifference,
         combinedReferenceDifference,
       },
     },
-    assumptions: [...soleProprietor.assumptions, ...corporation.assumptions],
+    assumptions: [
+      ...soleProprietor.assumptions,
+      ...corporation.assumptions,
+      ...consumptionTaxResult.assumptions,
+    ],
     warnings: uniqueWarnings([
       ...soleProprietor.warnings,
       ...corporation.warnings,
+      ...consumptionTaxResult.warnings,
       {
         code: 'HJ_CORPORATE_RETAINED_NOT_PERSONAL',
         message: '法人内部に残る資金は社長個人が自由に使える資金ではありません。',
@@ -598,7 +851,7 @@ function simulate(input, context, masters) {
   let calculation;
   let usedMasterRecords;
   try {
-    calculation = calculate(input, context);
+    calculation = calculate(input, context, masters);
     usedMasterRecords = snapshot.endRecordTracking();
   } catch (error) {
     snapshot.endRecordTracking();
@@ -624,4 +877,9 @@ function simulate(input, context, masters) {
   });
 }
 
-module.exports = Object.freeze({ validate, simulate });
+module.exports = Object.freeze({
+  validate,
+  simulate,
+  deriveIndividualConsumptionTaxContext,
+  deriveCorporateConsumptionTaxContext,
+});
