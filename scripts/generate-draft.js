@@ -21,7 +21,7 @@ const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
-const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle } = require('./lib/draft-normalizer');
+const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
 const { restoreSourceGuardFields } = require('./lib/source-guard');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
@@ -2322,6 +2322,16 @@ async function main() {
     content = restoreSourceGuardFields(existing, content, {
       resolveSource: resolveSourceForTopic,
     });
+
+    // 仮置きだったタイトルが再生成で確定したら、生成時に付いた警告と revise 判定を戻す。
+    // 部分再生成は判定を作り直さないため、放っておくと直したのに承認できない。
+    {
+      const before = content;
+      content = clearPlaceholderTitleWarning(content);
+      if (content !== before) {
+        console.log('[regenerate] タイトルが確定したため、仮置きの警告と判定を戻しました');
+      }
+    }
 
     // 出典が弱い（domain-fallback 等）ままなら LLM 出典選定を試みる
     {

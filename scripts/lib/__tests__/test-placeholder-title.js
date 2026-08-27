@@ -111,5 +111,34 @@ console.log('=== 4. 承認・公開で止まる ===');
 
 console.log('');
 console.log('=== 結果 ===');
+console.log('');
+console.log('=== 5. タイトル確定後に判定と警告を戻す（2026-08-27）===');
+{
+  // 部分再生成でタイトルを直しても、生成時に付いた仮置きの警告と revise が
+  // frontmatter に残り、直したのに承認できない状態になった。
+  const W = N.PLACEHOLDER_TITLE_WARNING;
+  const mk = (title, warning, rec) => ['---', `title: "${title}"`,
+    `review_warning: "${warning}"`, `recommendation: "${rec}"`, '---', '', '本文'].join('\n');
+  const rec = (s) => (s.match(/^recommendation: "(.*)"$/m) || [])[1];
+  const warn = (s) => (s.match(/^review_warning: "(.*)"$/m) || [])[1];
+
+  const fixed = N.clearPlaceholderTitleWarning(mk('ちゃんとしたタイトルです', W, 'revise'));
+  assert(warn(fixed) === '' && rec(fixed) === 'publish',
+    'タイトルが確定し仮置きの警告だけなら、警告を消して判定を戻す');
+
+  const both = N.clearPlaceholderTitleWarning(mk('ちゃんとしたタイトルです', `${W} / 出典: 未確定`, 'revise'));
+  assert(warn(both) === '出典: 未確定' && rec(both) === 'revise',
+    '他の警告が残るなら判定は revise のまま（タイトルの警告だけ消す）');
+
+  const still = N.clearPlaceholderTitleWarning(mk('[要レビュー] some-slug', W, 'revise'));
+  assert(warn(still) === W && rec(still) === 'revise', 'まだ仮置きなら何も変えない');
+
+  const other = N.clearPlaceholderTitleWarning(mk('ちゃんとしたタイトルです', '出典: 未確定', 'revise'));
+  assert(warn(other) === '出典: 未確定' && rec(other) === 'revise', '無関係の警告には触らない');
+
+  assert(N.clearPlaceholderTitleWarning('') === '', '空入力でも落ちない');
+  assert(typeof N.PLACEHOLDER_TITLE_WARNING === 'string' && N.PLACEHOLDER_TITLE_WARNING.length > 0,
+    '警告文が定数として公開されている');
+}
 console.log(`PASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

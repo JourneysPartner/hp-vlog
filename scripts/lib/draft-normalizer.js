@@ -142,6 +142,9 @@ function escFm(v) {
 // 生成時にタイトルを確定できなかったときに入れる仮置き。
 // これが記事タイトルとして公開されないよう、承認/公開の各所で弾く。
 const PLACEHOLDER_TITLE_PREFIX = '[要レビュー] ';
+// 仮置きタイトルのときに review_warning へ入れる文言。
+// タイトルが確定したら、この文言と revise 判定を取り消す（clearPlaceholderTitleWarning）。
+const PLACEHOLDER_TITLE_WARNING = 'タイトル: 生成時に確定できず仮置きのままです（要修正）';
 
 function isPlaceholderTitle(title) {
   return String(title || '').trim().startsWith(PLACEHOLDER_TITLE_PREFIX);
@@ -239,7 +242,7 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   // 状態になっていた（気付かず承認していれば slug が記事タイトルとして公開された）。
   if (isPlaceholderTitle(title)) {
     recommendation = 'revise';
-    reviewWarning = [reviewWarning, 'タイトル: 生成時に確定できず仮置きのままです（要修正）']
+    reviewWarning = [reviewWarning, PLACEHOLDER_TITLE_WARNING]
       .filter(Boolean).join(' / ');
   }
   const sourceConfidence = Number.isFinite(Number(topic.source_confidence))
@@ -334,6 +337,34 @@ function normalizeGeneratedDraft(rawText, topic, opts = {}) {
   };
 }
 
+/**
+ * 部分再生成でタイトルが確定したのに、生成時に付いた仮置きの警告と
+ * revise 判定が frontmatter に残る問題を解消する。
+ *
+ * 2026-08-27: タイトルを直したのに「タイトル: 生成時に確定できず仮置きの
+ * ままです（要修正）」と recommendation=revise が残り、承認できなかった。
+ * 部分再生成は判定を作り直さないため、ここで整合をとる。
+ *
+ * 仮置きの警告だけが残っていた場合に限り取り消す。他の理由の警告は触らない。
+ * @returns {string} 整合をとった frontmatter を持つ記事全文
+ */
+function clearPlaceholderTitleWarning(raw) {
+  const text = String(raw || '');
+  const title = (text.match(/^title:\s*"(.*)"$/m) || [])[1];
+  if (title === undefined || isPlaceholderTitle(title)) return text;   // まだ仮置きなら何もしない
+
+  const warnMatch = text.match(/^review_warning:\s*"(.*)"$/m);
+  if (!warnMatch || !warnMatch[1].includes(PLACEHOLDER_TITLE_WARNING)) return text;
+
+  const rest = warnMatch[1].split(' / ').filter(w => w && w !== PLACEHOLDER_TITLE_WARNING);
+  let out = text.replace(/^review_warning:\s*".*"$/m, `review_warning: "${rest.join(' / ')}"`);
+  // 残る警告が無ければ、仮置きだけを理由にした revise を publish に戻す
+  if (rest.length === 0) {
+    out = out.replace(/^recommendation:\s*"revise"$/m, 'recommendation: "publish"');
+  }
+  return out;
+}
+
 module.exports = {
   normalizeGeneratedDraft,
   stripCodeFences,
@@ -346,5 +377,7 @@ module.exports = {
   checkLlmTitle,
   isPlaceholderTitle,
   PLACEHOLDER_TITLE_PREFIX,
+  PLACEHOLDER_TITLE_WARNING,
+  clearPlaceholderTitleWarning,
   RELATED_LINK_TEXTS,
 };
