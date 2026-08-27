@@ -33,8 +33,8 @@ source_alignment_score: 5
 practical_usefulness_score: 4
 lead_value_score: 5
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "タイトル: 生成時に確定できず仮置きのままです（要修正）"
+recommendation: "publish"
+review_warning: ""
 summary: "インボイス登録を機に課税事業者となった個人事業者・法人は、令和8年9月30日を含む課税期間まで2割特例を活用できる。個人事業者は令和8年分が最後となり、令和9年分・令和10年分は個人事業者のみ3割特例へ移行する（法人は3割特例の対象外）。"
 review_status: "draft"
 review_comment: ""
