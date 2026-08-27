@@ -20,6 +20,10 @@ function deepFreeze(value) {
 const sourceRegistryDocument = deepFreeze(JSON.parse(JSON.stringify(loadedSourceRegistryDocument)));
 
 const WARNING_MAP = Object.freeze({
+  HJ_CORPORATE_RETAINED_NOT_PERSONAL: Object.freeze({
+    level: 'info',
+    canContinue: true,
+  }),
   CT_LOCAL_TAX_STANDARD_RATES: Object.freeze({
     level: 'attention',
     userAction: '所在地の自治体税率を確認してください',
