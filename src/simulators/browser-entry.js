@@ -12,6 +12,7 @@ const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
 const { mountShohizeiApp } = require('../ui/shohizei/app.js');
+const { mountSozokuApp } = require('../ui/sozoku/app.js');
 const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
 const { createRouter } = require('../ui/router.js');
 
@@ -169,6 +170,18 @@ function mountShohizei(rootElement, options = {}) {
   });
 }
 
+/** 公開ページは未生成のまま、明示されたDOMへだけ③のアプリを起動する。 */
+function mountSozoku(rootElement, options = {}) {
+  const selectedService = options.services
+    ? (options.services.sozoku || options.services)
+    : verifiedUiService('sozoku');
+  return mountSozokuApp(rootElement, {
+    services: selectedService,
+    snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 function expectedHojinnariContext(handoff, snapshotInfo) {
   const source = handoff.calculationContext;
   const year = 2025;
@@ -247,11 +260,20 @@ function mountYakuinHoshu(rootElement, options = {}) {
   });
 }
 
-module.exports = Object.freeze({
+const publicApi = {
   verify,
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
   mountShohizei,
   mountYakuinHoshu,
+};
+// 従来APIのObject.keys契約を変えず、U5のマウント入口を直接参照可能にする。
+Object.defineProperty(publicApi, 'mountSozoku', {
+  value: mountSozoku,
+  enumerable: false,
+  writable: false,
+  configurable: false,
 });
+
+module.exports = Object.freeze(publicApi);
