@@ -1,0 +1,65 @@
+name: Check Existing Posts
+
+# 公開済み・承認済み記事の健全性を毎日検査する。
+#
+# 日次生成（daily-draft.yml）の検査は当日の生成物だけを対象にした。
+# 2026-08-28/29 に、過去に承認済みの記事1件のメタ欠落で全件検査が ERROR になり、
+# その日に生成できていた記事ごとジョブが落ちて2日連続で下書きが失われたため。
+# 既存記事の検査はこちらで独立して行い、問題があれば通知する（生成は止めない）。
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 毎日 22:00 UTC = JST 07:00
+  workflow_dispatch:
+
+concurrency:
+  group: check-existing-posts
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate all posts
+        id: validate
+        run: |
+          set +e
+          npm run validate 2>&1 | tee /tmp/validate.log
+          STATUS=${PIPESTATUS[0]}
+          set -e
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          if [ "$STATUS" != "0" ]; then
+            echo "::error::既存記事に問題があります（日次生成は止まりません）"
+            grep -E '\[ERROR\]|^content/posts/' /tmp/validate.log | head -40 || true
+          fi
+          exit 0
+
+      - name: Notify on failure
+        if: steps.validate.outputs.status != '0'
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+        run: |
+          if [ -z "$CHATWORK_API_TOKEN" ] || [ -z "$CHATWORK_ROOM_ID" ]; then
+            echo "::warning::通知設定が無いためスキップします"
+            exit 0
+          fi
+          DETAIL=$(grep -E '\[ERROR\]|^content/posts/' /tmp/validate.log | head -20 || true)
+          BODY=$(printf '[info][title]既存記事に問題があります[/title]公開済み・承認済みの記事に、記事バリデーションのエラーがあります。\n日次の記事生成は止まっていません。\n\n%s[/info]' "$DETAIL")
+          curl -sS -X POST "https://api.chatwork.com/v2/rooms/${CHATWORK_ROOM_ID}/messages" \
+            -H "X-ChatWorkToken: ${CHATWORK_API_TOKEN}" \
+            --data-urlencode "body=${BODY}" > /dev/null && echo "通知しました"
+
+      - name: Fail the job if invalid
+        if: steps.validate.outputs.status != '0'
+        run: exit 1

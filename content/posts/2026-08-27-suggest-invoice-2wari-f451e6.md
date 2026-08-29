@@ -16,7 +16,7 @@ source_confidence: 0.9
 source_guard_version: 1
 search_intent: "インボイス 2割特例 いつまで インボイス 2割特例 わかりやすく インボイス 2割特例とは インボイス 2割特例 フローチャート インボイス 2割特例 法人 インボイス 2割特例 延長 インボイス 2割特例 3割特例"
 reader_problem: "2割特例の対象者や適用期限、法人でも使えるのかが分からず、自分が利用できるか判断できない。"
-success_outcome: ""
+success_outcome: "自分が2割特例の対象かどうかと使える期限を判断でき、令和9年以降に3割特例と簡易課税のどちらへ移るかを決められる"
 primary_question: "インボイス制度の2割特例は誰がいつまで利用でき、どのような条件がある？"
 macro: "税目実務"
 cluster: "suggest-consumption_tax"
