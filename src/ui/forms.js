@@ -110,6 +110,10 @@ function createMoneyInput(options = {}) {
   input.addEventListener('compositionend', () => { composing = false; update(); });
   input.addEventListener('input', update);
   input.addEventListener('change', update);
+  if (options.value !== undefined && options.value !== null && String(options.value) !== '') {
+    input.value = String(options.value);
+    update();
+  }
 
   const children = [];
   if (options.label) children.push(el('label', { for: inputId }, options.label));
@@ -120,6 +124,10 @@ function createMoneyInput(options = {}) {
     input,
     confirmation,
     read: () => parsed,
+    set(value) {
+      input.value = value === undefined || value === null ? '' : String(value);
+      return update();
+    },
     clear() {
       input.value = '';
       parsed = error('MONEY_EMPTY');
@@ -129,10 +137,84 @@ function createMoneyInput(options = {}) {
 }
 createMoneyInput.nextId = 1;
 
+/**
+ * U1では金額欄だけが先行したため、U2の列挙選択を同じラベル・説明関連付けで作る最小部品。
+ */
+function createSelect(options = {}) {
+  const selectId = options.id || `select-input-${createSelect.nextId++}`;
+  const descriptionId = options.description ? `${selectId}-description` : null;
+  const select = el('select', {
+    id: selectId,
+    name: options.name || selectId,
+    'aria-describedby': descriptionId,
+  }, (options.options || []).map(item => el('option', {
+    value: item.value,
+    selected: String(item.value) === String(options.value ?? ''),
+  }, item.label)));
+  if (typeof options.onChange === 'function') {
+    select.addEventListener('change', () => options.onChange(select.value));
+  }
+  const children = [];
+  if (options.label) children.push(el('label', { for: selectId }, options.label));
+  if (options.description) children.push(el('p', { id: descriptionId }, options.description));
+  children.push(select);
+  return Object.freeze({
+    element: el('div', { className: 'select-input' }, children),
+    select,
+    read: () => select.value,
+    set(value) { select.value = value === undefined || value === null ? '' : String(value); },
+    clear() { select.value = ''; },
+  });
+}
+createSelect.nextId = 1;
+
+/** ラジオ選択肢をfieldset/legendで一群として公開する。 */
+function createChoiceGroup(options = {}) {
+  const groupId = options.id || `choice-input-${createChoiceGroup.nextId++}`;
+  const inputs = (options.options || []).map((item, index) => {
+    const id = `${groupId}-${index + 1}`;
+    const input = el('input', {
+      id,
+      name: options.name || groupId,
+      type: 'radio',
+      value: item.value,
+      checked: String(item.value) === String(options.value ?? ''),
+    });
+    if (typeof options.onChange === 'function') {
+      input.addEventListener('change', () => {
+        if (input.checked) options.onChange(input.value);
+      });
+    }
+    return { input, element: el('div', { className: 'choice-input__option' }, [
+      input, el('label', { for: id }, item.label),
+    ]) };
+  });
+  const descriptionId = options.description ? `${groupId}-description` : null;
+  if (descriptionId) {
+    for (const item of inputs) item.input.setAttribute('aria-describedby', descriptionId);
+  }
+  return Object.freeze({
+    element: el('fieldset', { className: 'choice-input' }, [
+      el('legend', {}, options.label || ''),
+      options.description ? el('p', { id: descriptionId }, options.description) : null,
+      inputs.map(item => item.element),
+    ]),
+    inputs: Object.freeze(inputs.map(item => item.input)),
+    read: () => {
+      const selected = inputs.find(item => item.input.checked);
+      return selected ? selected.input.value : '';
+    },
+    clear() { for (const item of inputs) item.input.checked = false; },
+  });
+}
+createChoiceGroup.nextId = 1;
+
 module.exports = Object.freeze({
   parseMoneyInput,
   formatMoneyConfirmation,
   formatDisplayMoney,
   createMoneyInput,
+  createSelect,
+  createChoiceGroup,
   MAX_MONEY_DIGITS,
 });

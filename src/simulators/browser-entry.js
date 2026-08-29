@@ -10,6 +10,7 @@ const hojinnari = require('./hojinnari/index.js');
 const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
+const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
 
 let verificationState = 'unverified';
 let verificationPromise = null;
@@ -119,13 +120,39 @@ function guardedService(service) {
   });
 }
 
+const services = Object.freeze({
+  hojinnari: guardedService(hojinnari),
+  shohizei: guardedService(shohizei),
+  sozoku: guardedService(sozoku),
+  yakuinHoshu: guardedService(yakuinHoshu),
+});
+
+/** 公開画面は未生成のまま、明示されたDOMへだけ①のアプリを起動する。 */
+function mountHojinnari(rootElement, options = {}) {
+  if (options.services) {
+    return mountHojinnariApp(rootElement, {
+      services: options.services,
+      snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+      now: options.now,
+    });
+  }
+  const verifiedService = Object.freeze({
+    validate: services.hojinnari.validate,
+    async simulate(...args) {
+      await verify();
+      return services.hojinnari.simulate(...args);
+    },
+  });
+  return mountHojinnariApp(rootElement, {
+    services: verifiedService,
+    snapshotInfo: snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 module.exports = Object.freeze({
   verify,
-  services: Object.freeze({
-    hojinnari: guardedService(hojinnari),
-    shohizei: guardedService(shohizei),
-    sozoku: guardedService(sozoku),
-    yakuinHoshu: guardedService(yakuinHoshu),
-  }),
+  services,
   snapshotInfo: snapshot.getSnapshotInfo(),
+  mountHojinnari,
 });
