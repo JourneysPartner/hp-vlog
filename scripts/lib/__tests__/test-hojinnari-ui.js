@@ -202,6 +202,21 @@ function main() {
     assert.strictEqual(typeof context.window.TaxSimulator.mountHojinnari, 'function');
   });
 
+  // 画面の選択肢値と入力型の列挙値のずれの再発防止。
+  // 実際に type3_medical という存在しない値が選択肢に紛れ込み、
+  // 3%区分を選ぶと検証エラーになるバグがあった。
+  process.stdout.write('\n=== 事業区分の全選択肢が検証を通る ===\n');
+  check('第3種・3%区分（type3_reduced）を含む全区分で validate が ok になる', () => {
+    for (const category of ['type1', 'type2', 'type3_standard', 'type3_reduced', 'not_listed']) {
+      const state = goldenState({ businessTaxCategory: category });
+      const context = buildCalculationContext(state, snapshotInfo, calculatedAt);
+      const wire = buildHojinnariInput(state, context);
+      const validation = service.validate(wire);
+      assert.strictEqual(validation.ok, true,
+        `${category}: ${JSON.stringify(validation.errors || [])}`);
+    }
+  });
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 

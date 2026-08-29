@@ -11947,7 +11947,8 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
         '0円以上の整数。全角数字・万単位も入力できます。',
         '$.individual.business.revenue[0].value.value'),
       ...moneyField('expenses', 'hj-expenses', '年間経費（円）',
-        '役員報酬を除いた事業経費。0円以上の整数で入力してください。',
+        '役員報酬を除いた事業経費。0円以上の整数で入力してください。' +
+        'ご家族に専従者給与を支払っていて、その方が法人化後に役員になる予定の場合は、その専従者給与も除いてください。',
         '$.individual.business.expenses[0].value.value'),
       el('div', {}, [checkbox, el('label', { for: checkbox.id },
         '経費に国民健康保険料・国民年金・小規模企業共済等の掛金を含めていません'), checkError]),
@@ -11961,11 +11962,14 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
         { value: 'unknown', label: 'わからない' },
       ], '$.individual.blueReturn'),
       ...selectField('businessTaxCategory', 'hj-business-tax-category', '事業の種類',
-        '個人事業税の業種区分です。', [
+        '個人事業税の業種区分です。都道府県の納税通知書でも確認できます。', [
           { value: '', label: '選択してください' },
-          { value: 'type1', label: '第1種（5%）' }, { value: 'type2', label: '第2種（4%）' },
-          { value: 'type3_standard', label: '第3種（5%）' }, { value: 'type3_medical', label: '第3種・医業等（3%）' },
-          { value: 'not_listed', label: '法定業種にない' }, { value: 'unknown', label: 'わからない' },
+          { value: 'type1', label: '物品販売（ネット販売・輸出を含む）・製造・飲食・請負・不動産貸付など【第1種・5%】' },
+          { value: 'type2', label: '畜産・水産など【第2種・4%】' },
+          { value: 'type3_standard', label: '医療・士業・コンサルタント・デザインなどの自由業【第3種・5%】' },
+          { value: 'type3_reduced', label: 'あん摩・マッサージ・はり・きゅう・柔道整復など【第3種・3%】' },
+          { value: 'not_listed', label: '上のどれにもあてはまらない（文筆業・画家・音楽家など → 個人事業税なし）' },
+          { value: 'unknown', label: 'わからない' },
         ], '$.individual.business.businessTaxCategory'),
       pageActions({ next: true }),
     ]);
