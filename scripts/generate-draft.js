@@ -22,7 +22,7 @@ const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
-const { restoreSourceGuardFields } = require('./lib/source-guard');
+const { restoreSourceGuardFields, restoreMissingSystemFields } = require('./lib/source-guard');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
 // collect-pending-drafts.js が生成前に .pending-drafts.json を書き出す。
@@ -2319,6 +2319,17 @@ async function main() {
     // LLM output must never rewrite source identity or the metadata used to
     // validate it.  Restore the complete guard tuple for every regeneration
     // path (full / section / targeted / title_only).
+    // 再生成で frontmatter の管理項目が抜け落ちることがある。
+    // 2026-08-29: 適合スコア・recommendation・分類など15項目が失われ、
+    // レビュー画面に判定が出ない記事ができた。欠けた分だけ元記事から補う。
+    {
+      const fixed = restoreMissingSystemFields(existing, content);
+      if (fixed.restored.length > 0) {
+        content = fixed.content;
+        console.warn(`[regenerate] ⚠ frontmatter の項目が欠落 → 元記事から復元: ${fixed.restored.join(', ')}`);
+      }
+    }
+
     content = restoreSourceGuardFields(existing, content, {
       resolveSource: resolveSourceForTopic,
     });

@@ -138,6 +138,52 @@ function setFrontmatterFields(raw, updates) {
   return match[1] + fm + match[3] + match[4];
 }
 
+// 再生成でLLMが frontmatter を作り直したとき、元にあった項目が丸ごと抜け落ちることがある。
+// 2026-08-29: 取得価額の記事を差し戻したところ、適合スコア・recommendation・
+// review_warning・分類（macro/cluster/customer_segment 等）の15項目が失われ、
+// レビュー画面に判定が出ない状態になった。出典項目だけを戻す仕組みでは救えなかった。
+//
+// 記事の内容（title/summary/本文）は再生成の成果なので新しい方を使い、
+// システム側が付ける管理項目だけを、欠けていれば元記事から補う。
+const SYSTEM_MANAGED_FIELDS = [
+  'slug', 'category', 'primary_persona', 'secondary_persona',
+  'article_type', 'article_role', 'related_slug', 'related_title', 'related_link_text',
+  'search_intent', 'reader_problem', 'success_outcome', 'primary_question',
+  'macro', 'cluster', 'subcluster', 'tax_domain', 'business_stage', 'life_stage',
+  'pain_point', 'procedure_stage', 'customer_segment',
+  'customer_fit_score', 'search_intent_score', 'source_alignment_score',
+  'practical_usefulness_score', 'lead_value_score', 'tax_risk_score',
+  'recommendation', 'review_warning', 'review_status', 'created_at',
+];
+
+/**
+ * 再生成後に欠けたシステム管理項目を、再生成前の値で補う。
+ * 既にある項目は触らない（再生成が意図的に更新した値を壊さない）。
+ */
+function restoreMissingSystemFields(beforeRaw, afterRaw) {
+  const FM = /^---\r?\n([\s\S]+?)\r?\n---\r?\n/;
+  const beforeMatch = String(beforeRaw || '').match(FM);
+  const afterMatch = String(afterRaw || '').match(FM);
+  if (!beforeMatch || !afterMatch) return { content: String(afterRaw || ''), restored: [] };
+
+  const beforeFm = beforeMatch[1];
+  const afterFm = afterMatch[1];
+  const restored = [];
+  const lines = [];
+  for (const key of SYSTEM_MANAGED_FIELDS) {
+    if (new RegExp('^' + key + ':\s*', 'm').test(afterFm)) continue;
+    const line = (beforeFm.match(new RegExp('^' + key + ':.*$', 'm')) || [])[0];
+    if (!line) continue;   // 元にも無い項目は補わない
+    lines.push(line);
+    restored.push(key);
+  }
+  if (lines.length === 0) return { content: String(afterRaw || ''), restored: [] };
+
+  const nlChar = afterMatch[0].includes('\r\n') ? '\r\n' : '\n';
+  const rebuilt = '---' + nlChar + afterFm + nlChar + lines.join(nlChar) + nlChar + '---' + nlChar;
+  return { content: String(afterRaw).replace(afterMatch[0], rebuilt), restored };
+}
+
 /** 再生成後、LLM出力ではなく再生成前のガード項目を正本として復元する。 */
 function restoreSourceGuardFields(beforeRaw, afterRaw, options = {}) {
   const before = parseFrontmatterMeta(beforeRaw);
@@ -163,6 +209,8 @@ function restoreSourceGuardFields(beforeRaw, afterRaw, options = {}) {
 }
 
 module.exports = {
+  restoreMissingSystemFields,
+  SYSTEM_MANAGED_FIELDS,
   SOURCE_GUARD_VERSION,
   GUARDED_SOURCE_FIELDS,
   LIVE_STATUSES,
