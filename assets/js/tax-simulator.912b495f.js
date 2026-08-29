@@ -1491,6 +1491,8 @@ const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
+const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
+const { createRouter } = require('../ui/router.js');
 
 let verificationState = 'unverified';
 let verificationPromise = null;
@@ -1614,6 +1616,8 @@ function mountHojinnari(rootElement, options = {}) {
       services: options.services,
       snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
       now: options.now,
+      handoff: options.handoff,
+      handoffExpectedContext: options.handoffExpectedContext,
     });
   }
   const verifiedService = Object.freeze({
@@ -1627,6 +1631,86 @@ function mountHojinnari(rootElement, options = {}) {
     services: verifiedService,
     snapshotInfo: snapshot.getSnapshotInfo(),
     now: options.now,
+    handoff: options.handoff,
+    handoffExpectedContext: options.handoffExpectedContext,
+  });
+}
+
+function expectedHojinnariContext(handoff, snapshotInfo) {
+  const source = handoff.calculationContext;
+  const year = 2025;
+  return {
+    ...source,
+    incomeTaxYear: year,
+    residentTaxFiscalYear: year,
+    fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
+    socialInsuranceMonths: [`${year}-04`],
+    jurisdiction: {
+      ...source.jurisdiction,
+      country: 'JP',
+      codeSystemVersion: `${year}-01`,
+      asOfForCodes: `${year}-01-01`,
+    },
+    masterSnapshotId: snapshotInfo.snapshotId,
+    masterSnapshotHash: snapshotInfo.snapshotHash,
+  };
+}
+
+function verifiedUiService(serviceName) {
+  const selected = services[serviceName];
+  return Object.freeze({
+    validate: selected.validate,
+    async simulate(...args) {
+      await verify();
+      return selected.simulate(...args);
+    },
+  });
+}
+
+/** ④を起動し、確定結果のHandoffは同じrootの①へメモリ内で渡す。 */
+function mountYakuinHoshu(rootElement, options = {}) {
+  const snapshotForUi = options.snapshotInfo || snapshot.getSnapshotInfo();
+  const suppliedServices = options.services;
+  const yakuinService = suppliedServices
+    ? (suppliedServices.yakuinHoshu || suppliedServices)
+    : verifiedUiService('yakuinHoshu');
+  const hojinnariService = suppliedServices
+    ? (suppliedServices.hojinnari || suppliedServices)
+    : verifiedUiService('hojinnari');
+  let activeApp;
+  let router = null;
+  let destroyed = false;
+
+  function defaultHandoffNavigation(handoff) {
+    if (destroyed) return;
+    const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+    router = options.router || createRouter({ windowObject: browserWindow });
+    router.navigate('hojinnari');
+    activeApp.destroy();
+    activeApp = mountHojinnariApp(rootElement, {
+      services: hojinnariService,
+      snapshotInfo: snapshotForUi,
+      now: options.now,
+      handoff,
+      handoffExpectedContext: expectedHojinnariContext(handoff, snapshotForUi),
+    });
+  }
+
+  activeApp = mountYakuinHoshuApp(rootElement, {
+    services: yakuinService,
+    snapshotInfo: snapshotForUi,
+    now: options.now,
+    onHandoff: options.onHandoff || defaultHandoffNavigation,
+  });
+
+  return Object.freeze({
+    get store() { return activeApp.store; },
+    destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      activeApp.destroy();
+      if (router && router !== options.router) router.destroy();
+    },
   });
 }
 
@@ -1635,6 +1719,7 @@ module.exports = Object.freeze({
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
+  mountYakuinHoshu,
 });
 
 },
@@ -11763,6 +11848,7 @@ const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.j
 const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
 const { resolveQuestion } = require('./question-catalog.js');
 const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
+const { acceptYakuinHoshuHandoff } = require('../yakuin-hoshu/handoff.js');
 
 const TOTAL_STEPS = 3;
 const CONDITIONAL_FORM_KEYS = new Set([
@@ -11834,7 +11920,9 @@ function cloneInitialForm() {
   return { ...INITIAL_FORM };
 }
 
-function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountHojinnariApp(rootElement, {
+  services, snapshotInfo, now, handoff, handoffExpectedContext,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -11844,8 +11932,22 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  let initialForm = cloneInitialForm();
+  let handoffNotice = null;
+  let initialScreen = 'intro';
+  let initialStep = 1;
+  if (handoff !== undefined) {
+    const received = acceptYakuinHoshuHandoff(handoff, initialForm, handoffExpectedContext);
+    initialForm = { ...received.formState };
+    handoffNotice = Object.freeze({ accepted: received.accepted, message: received.message });
+    if (received.accepted) {
+      initialScreen = 'input';
+      initialStep = 3;
+    }
+  }
   const store = createStore({
-    screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null,
+    screen: initialScreen, step: initialStep, form: initialForm, errors: [], result: null,
+    viewModel: null, handoffNotice, sourceHandoff: handoffNotice && handoffNotice.accepted ? handoff : null,
   });
   let destroyed = false;
 
@@ -12040,6 +12142,13 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
     });
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(3, '法人化の想定'), errorSummary(),
+      store.getState().handoffNotice ? el('p', {
+        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
+        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
+      }, store.getState().handoffNotice.message) : null,
+      store.getState().handoffNotice && store.getState().handoffNotice.accepted
+        ? el('p', { className: 'hojinnari-help' },
+          '引き継いだ値はメモリ内だけに保持され、リロードすると消えます。') : null,
       ...moneyField('officerCompensationMonthly', 'hj-officer-compensation', '役員報酬（月額・円）',
         '12か月同額として0円以上の整数で入力します。',
         '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value'),
@@ -12158,7 +12267,20 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
       return;
     }
     try {
-      const result = await service.simulate(validation.value, context, snapshotInfo);
+      const simulated = await service.simulate(validation.value, context, snapshotInfo);
+      const sourceHandoff = store.getState().sourceHandoff;
+      // §13-1: partialの送信元を受けた結果をcompleteへ格上げしない。
+      const result = sourceHandoff && sourceHandoff.sourceResultStatus === 'partial' &&
+          simulated.resultStatus === 'complete'
+        ? Object.freeze({
+          ...simulated,
+          resultStatus: 'partial',
+          warnings: Object.freeze([...(sourceHandoff.warnings || []), ...(simulated.warnings || [])]),
+          excludedItems: Object.freeze([
+            ...(sourceHandoff.excludedItems || []), ...(simulated.excludedItems || []),
+          ]),
+        })
+        : simulated;
       const viewModel = buildResultViewModel(result);
       store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'hojinnari', resultStatus: result.resultStatus });
@@ -12182,7 +12304,8 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
 
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+      viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
   function printResult() {
@@ -12193,6 +12316,10 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   function renderIntro() {
     return el('main', { className: 'hojinnari-no-print' }, [
       el('h1', {}, '法人成りシミュレーター'),
+      store.getState().handoffNotice ? el('p', {
+        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
+        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
+      }, store.getState().handoffNotice.message) : null,
       el('p', {}, '個人事業を法人化した場合の税・社会保険と手残りを、平年度の条件で比較します。'),
       el('div', { className: 'hojinnari-card' }, [
         el('h2', {}, 'ご利用の前に'),
@@ -12200,6 +12327,8 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
         el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。'),
       ]),
       el('p', {}, '所要時間の目安：3分程度'),
+      el('p', { className: 'hojinnari-help' },
+        '④から引き継いだ値はメモリ内だけに保持され、リロードすると消えます。'),
       el('button', { type: 'button', className: 'hojinnari-primary', onClick: () => {
         queueEvent('simulator_start', { tool: 'hojinnari' }); goToStep(1);
       } }, 'かんたん計算をはじめる'),
@@ -12317,6 +12446,7 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
       destroyed = true;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      rootElement.classList.remove('hojinnari-app');
       rootElement.replaceChildren();
     },
   });
@@ -12901,6 +13031,52 @@ module.exports = Object.freeze({
 });
 
 },
+    "src/ui/router.js": function (module, exports, require) {
+'use strict';
+
+const TOOL_PATHS = Object.freeze({
+  hojinnari: '/tools/hojinnari-simulator/',
+  shohizei: '/tools/shohizei-simulator/',
+  sozoku: '/tools/sozokuzei-simulator/',
+  yakuinHoshu: '/tools/yakuin-hoshu-simulator/',
+});
+
+function toolFromPath(pathname) {
+  return Object.keys(TOOL_PATHS).find(tool => TOOL_PATHS[tool] === pathname) || null;
+}
+
+function createRouter(options = {}) {
+  const browserWindow = options.windowObject || (typeof window === 'undefined' ? null : window);
+  if (!browserWindow || !browserWindow.history || !browserWindow.location) {
+    throw new Error('History APIを利用できない環境です');
+  }
+  const onNavigate = typeof options.onNavigate === 'function' ? options.onNavigate : () => {};
+
+  function navigate(tool, replace = false) {
+    if (!Object.hasOwn(TOOL_PATHS, tool)) throw new RangeError('未知のシミュレーターです');
+    const method = replace ? 'replaceState' : 'pushState';
+    // stateにはツール識別子だけを置き、入力値・結果・Handoffはメモリ内ストアに残す。
+    browserWindow.history[method]({ tool }, '', TOOL_PATHS[tool]);
+    onNavigate(tool);
+    return tool;
+  }
+
+  function onPopState() {
+    const tool = toolFromPath(browserWindow.location.pathname);
+    if (tool !== null) onNavigate(tool);
+  }
+
+  browserWindow.addEventListener('popstate', onPopState);
+  return Object.freeze({
+    navigate,
+    current: () => toolFromPath(browserWindow.location.pathname),
+    destroy: () => browserWindow.removeEventListener('popstate', onPopState),
+  });
+}
+
+module.exports = Object.freeze({ TOOL_PATHS, toolFromPath, createRouter });
+
+},
     "src/ui/store.js": function (module, exports, require) {
 'use strict';
 
@@ -12939,13 +13115,1168 @@ function createStore(initialState) {
 
 module.exports = Object.freeze({ createStore });
 
+},
+    "src/ui/yakuin-hoshu/app.js": function (module, exports, require) {
+'use strict';
+
+const { el } = require('../dom.js');
+const { createStore } = require('../store.js');
+const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
+const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { queueEvent } = require('../analytics.js');
+const { MUNICIPALITIES, buildCalculationContext } = require('../hojinnari/context-builder.js');
+const { formatYen } = require('../hojinnari/result-view-model.js');
+const {
+  YakuinHoshuInputBuildError,
+  buildYakuinHoshuInput,
+} = require('./input-builder.js');
+const { buildYakuinHoshuResultViewModel } = require('./result-view-model.js');
+const { createYakuinHoshuHandoff } = require('./handoff.js');
+
+const TOTAL_INPUT_STEPS = 2;
+const CONDITIONAL_KEYS = new Set(['municipalityKey', 'mode', 'optimizationCriterion']);
+const INITIAL_FORM = Object.freeze({
+  incomeTaxYear: 2025,
+  mode: '',
+  profitBeforeOfficerCompensation: '',
+  capital: '',
+  municipalityKey: '',
+  otherPrefectureCode: '',
+  otherMunicipalityCode: '',
+  otherIsDesignatedCity: false,
+  ageAtYearEnd: '',
+  searchLowerBound: '',
+  searchUpperBound: '',
+  searchStep: '10000',
+  optimizationCriterion: 'max_total_retained',
+  minPersonalNetIncome: '',
+  minCorporateRetained: '',
+  desiredMonthlyNetIncome: '',
+  monthlyCompensation: '',
+});
+
+const FIELD_IDS = Object.freeze({
+  '$.mode': 'yh-mode',
+  '$.profitBeforeOfficerCompensation.value': 'yh-profit',
+  '$.capital.value': 'yh-capital',
+  '$.officer.ageAtYearEnd': 'yh-age',
+  '$.calculationContext.jurisdiction': 'yh-municipality',
+  '$.previousMonthlyAmount.value': 'yh-search-low',
+  '$.searchUpperBound.value': 'yh-search-high',
+  '$.searchStep': 'yh-search-step',
+  '$.optimizationCriterion': 'yh-criterion',
+  '$.constraints.minPersonalNetIncome.value': 'yh-min-personal',
+  '$.constraints.minCorporateRetained.value': 'yh-min-corporate',
+  '$.desiredMonthlyNetIncome.value': 'yh-desired-net',
+  '$.plan.monthlySegments[0].value.monthlyAmount.value': 'yh-monthly-compensation',
+});
+
+const STYLE_TEXT = `
+.yakuin-hoshu-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
+.yakuin-hoshu-app h1,.yakuin-hoshu-app h2,.yakuin-hoshu-app h3{color:#0B2045}
+.yh-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
+.yh-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.yh-mode-card{width:100%;height:100%;text-align:left}
+.yh-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.yh-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.yakuin-hoshu-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}
+.yakuin-hoshu-app button.yh-primary{background:#E85320;border-color:#E85320;color:#fff}.yakuin-hoshu-app button[disabled]{opacity:.65}
+.yakuin-hoshu-app input,.yakuin-hoshu-app select{display:block;box-sizing:border-box;width:100%;max-width:34rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}
+.yakuin-hoshu-app input[type=checkbox],.yakuin-hoshu-app input[type=radio]{display:inline-block;width:auto;min-height:auto;margin-right:8px}
+.yakuin-hoshu-app fieldset{border:1px solid #E3E8F0;border-radius:8px;margin:16px 0;padding:12px}.yakuin-hoshu-app legend{font-weight:700}
+.yh-progress{font-weight:700}.yh-help{color:#55607a}.yh-error{color:#9b1c1c;font-weight:700}.yh-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}
+.yh-table-wrap{overflow-x:auto}.yakuin-hoshu-app table{border-collapse:collapse;width:100%;min-width:760px}.yakuin-hoshu-app th,.yakuin-hoshu-app td{border:1px solid #E3E8F0;padding:10px;text-align:right}.yakuin-hoshu-app th:first-child,.yakuin-hoshu-app td:first-child{text-align:left}.yh-level{font-weight:700}
+.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:720px){.yh-mode-grid{grid-template-columns:1fr}}@media(max-width:480px){.yakuin-hoshu-app{padding:12px}.yh-card{padding:16px}.yh-actions{display:block}.yh-actions button{width:100%;margin:5px 0}}
+@media print{.yh-no-print{display:none!important}.yakuin-hoshu-app{max-width:none;padding:0}.yh-card{box-shadow:none;break-inside:avoid}@page{margin:15mm}}
+`;
+
+function cloneInitialForm() { return { ...INITIAL_FORM }; }
+function nextTask() { return new Promise(resolve => setTimeout(resolve, 0)); }
+
+function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHandoff } = {}) {
+  if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
+    throw new TypeError('マウント先のDOM要素が必要です');
+  }
+  const service = services && services.yakuinHoshu ? services.yakuinHoshu : services;
+  if (!service || typeof service.validate !== 'function' || typeof service.simulate !== 'function') {
+    throw new TypeError('yakuin_hoshuサービスが必要です');
+  }
+  const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  const store = createStore({
+    screen: 'mode', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    viewModel: null, canCancel: false,
+  });
+  let destroyed = false;
+  let calculationToken = 0;
+  rootElement.classList.add('yakuin-hoshu-app');
+  queueEvent('simulator_view', { tool: 'yakuinHoshu' });
+
+  function updateForm(key, value) {
+    store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
+  }
+
+  function setErrors(errors) { store.setState(state => ({ ...state, errors })); }
+  function localError(fieldPath, message, code = 'YH_UI_INPUT_REQUIRED') {
+    return { code, fieldPath, message };
+  }
+  function errorFor(path) { return store.getState().errors.find(item => item.fieldPath === path); }
+
+  function addControlError(control, path) {
+    const found = errorFor(path);
+    if (!found) return null;
+    const id = `${control.id || FIELD_IDS[path] || 'yh-field'}-error`;
+    control.setAttribute('aria-invalid', 'true');
+    control.setAttribute('aria-describedby', [control.getAttribute('aria-describedby'), id]
+      .filter(Boolean).join(' '));
+    return el('p', { id, className: 'yh-error' }, found.message);
+  }
+
+  function errorSummary() {
+    const errors = store.getState().errors;
+    if (errors.length === 0) return null;
+    return el('div', { className: 'yh-error-summary', tabindex: '-1' }, [
+      el('h2', {}, '入力内容を確認してください'),
+      el('ul', {}, errors.map(item => {
+        const target = FIELD_IDS[item.fieldPath];
+        return el('li', {}, target ? el('a', { href: `#${target}` }, item.message) : item.message);
+      })),
+    ]);
+  }
+
+  function moneyField(key, id, label, description, path) {
+    const field = createMoneyInput({ id, label, description, value: store.getState().form[key] });
+    field.input.addEventListener('input', () => {
+      const parsed = field.read();
+      updateForm(key, parsed.ok ? parsed.value : field.input.value);
+    });
+    return [field.element, addControlError(field.input, path)];
+  }
+
+  function selectField(key, id, label, description, options, path) {
+    const field = createSelect({
+      id, label, description, options, value: store.getState().form[key],
+      onChange: value => {
+        updateForm(key, value);
+        if (CONDITIONAL_KEYS.has(key)) render();
+      },
+    });
+    return [field.element, addControlError(field.select, path)];
+  }
+
+  function stepHeader(step, title) {
+    return [
+      el('p', { className: 'yh-progress', role: 'status',
+        'aria-label': `${TOTAL_INPUT_STEPS}ステップ中${step}番目` },
+      `STEP ${step} / ${TOTAL_INPUT_STEPS}`),
+      el('h1', {}, title),
+    ];
+  }
+
+  function selectMode(mode) {
+    updateForm('mode', mode);
+    queueEvent('simulator_mode', { tool: 'yakuinHoshu', mode });
+    queueEvent('simulator_start', { tool: 'yakuinHoshu' });
+    store.setState(state => ({ ...state, screen: 'input', step: 1, errors: [] }));
+  }
+
+  function renderMode() {
+    const cards = [
+      ['A', '最適な役員報酬を探す（MODE A）', '探索範囲と基準を指定して比較します。'],
+      ['B', '欲しい手取りから逆算（MODE B）', '希望する手取り月額から必要報酬を探します。'],
+      ['C', '役員報酬から手取り計算（MODE C）', '報酬月額から個人と法人の手残りを順算します。'],
+    ];
+    return el('main', { className: 'yh-no-print' }, [
+      el('h1', {}, '役員報酬シミュレーター'),
+      el('p', {}, '計算したい内容を選んでください。'),
+      el('div', { className: 'yh-card' }, [
+        el('h2', {}, 'ご利用の前に'),
+        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
+        el('p', {}, '入力と計算はブラウザ内で完結します。共用端末・画面共有・印刷物の管理にご注意ください。'),
+      ]),
+      el('div', { className: 'yh-mode-grid', id: 'yh-mode' }, cards.map(([mode, title, help]) =>
+        el('button', { type: 'button', className: 'yh-card yh-mode-card', onClick: () => selectMode(mode) }, [
+          el('strong', {}, title), el('span', {}, help),
+        ]))),
+    ]);
+  }
+
+  function pageActions({ previous, next, calculate } = {}) {
+    return el('div', { className: 'yh-actions yh-no-print' }, [
+      previous ? el('button', { type: 'button', onClick: previous }, '戻る') : null,
+      next ? el('button', { type: 'button', className: 'yh-primary', onClick: nextStep }, '次へ') : null,
+      calculate ? el('button', { type: 'button', className: 'yh-primary', onClick: calculateNow }, '計算する') : null,
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+    ]);
+  }
+
+  function renderCommonInput() {
+    const form = store.getState().form;
+    const age = el('input', { id: 'yh-age', type: 'text', inputmode: 'numeric', autocomplete: 'off',
+      value: form.ageAtYearEnd, onInput: event => updateForm('ageAtYearEnd', event.currentTarget.value),
+      'aria-describedby': 'yh-age-description' });
+    return el('main', { className: 'yh-no-print' }, [
+      ...stepHeader(1, '共通の条件'), errorSummary(),
+      el('p', {}, `選択中：MODE ${form.mode}`),
+      ...moneyField('profitBeforeOfficerCompensation', 'yh-profit', '役員報酬控除前利益（年額・円）',
+        '会計上の税引前当期純利益から役員報酬と会社負担社会保険料を除いた金額。申告調整前・繰越欠損金控除前です。',
+        '$.profitBeforeOfficerCompensation.value'),
+      ...moneyField('capital', 'yh-capital', '資本金（円）',
+        '1,000万円以上は消費税・住民税均等割に影響します。', '$.capital.value'),
+      ...selectField('municipalityKey', 'yh-municipality', '会社の所在市区町村',
+        '役員の住所地も同じ自治体である場合だけ計算できます。', [
+          { value: '', label: '選択してください' },
+          ...MUNICIPALITIES.map(item => ({ value: item.key, label: item.label })),
+          { value: 'other', label: 'その他（団体コードを入力）' },
+        ], '$.calculationContext.jurisdiction'),
+      form.municipalityKey === 'other' ? el('div', { className: 'yh-card' }, [
+        el('label', { for: 'yh-other-prefecture' }, '都道府県コード（2桁）'),
+        el('input', { id: 'yh-other-prefecture', value: form.otherPrefectureCode, inputmode: 'numeric',
+          onInput: event => updateForm('otherPrefectureCode', event.currentTarget.value) }),
+        el('label', { for: 'yh-other-municipality' }, '市区町村コード（5桁）'),
+        el('input', { id: 'yh-other-municipality', value: form.otherMunicipalityCode, inputmode: 'numeric',
+          onInput: event => updateForm('otherMunicipalityCode', event.currentTarget.value) }),
+        el('div', {}, [el('input', { id: 'yh-other-designated', type: 'checkbox',
+          checked: form.otherIsDesignatedCity,
+          onChange: event => updateForm('otherIsDesignatedCity', event.currentTarget.checked) }),
+        el('label', { for: 'yh-other-designated' }, '政令指定都市に該当する')]),
+      ]) : null,
+      el('label', { for: age.id }, '役員の年齢（年末時点）'),
+      el('p', { id: 'yh-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
+      addControlError(age, '$.officer.ageAtYearEnd'),
+      el('div', { className: 'yh-card' }, [
+        el('h2', {}, '固定している前提'),
+        el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、単身、賞与なし、期中改定なし、12か月同額です。'),
+        el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
+      ]),
+      pageActions({ previous: () => store.setState(state => ({ ...state, screen: 'mode', errors: [] })), next: true }),
+    ]);
+  }
+
+  function renderModeInput() {
+    const form = store.getState().form;
+    const mode = form.mode;
+    const content = [];
+    if (mode === 'A') {
+      const criterion = createChoiceGroup({
+        id: 'yh-criterion', label: '最適化基準', value: form.optimizationCriterion,
+        options: [
+          { value: 'min_burden', label: '基準A：税金＋社会保険負担が最小' },
+          { value: 'max_total_retained', label: '基準B：法人＋個人の手残り最大' },
+          { value: 'max_corporate_with_floor', label: '基準C：個人手取りを確保しつつ会社に最も多く残す' },
+        ],
+        onChange: value => { updateForm('optimizationCriterion', value); render(); },
+      });
+      content.push(
+        ...moneyField('searchLowerBound', 'yh-search-low', '現在の月額または探索下限（円）',
+          '刻みの整数倍で入力してください。', '$.previousMonthlyAmount.value'),
+        ...moneyField('searchUpperBound', 'yh-search-high', '探索上限（円）',
+          '探索下限以上で、刻みの整数倍を入力してください。', '$.searchUpperBound.value'),
+        ...selectField('searchStep', 'yh-search-step', '探索の刻み', '', [
+          { value: '10000', label: '1万円' }, { value: '50000', label: '5万円' },
+        ], '$.searchStep'), criterion.element,
+        addControlError(criterion.inputs[0], '$.optimizationCriterion'),
+      );
+      if (form.optimizationCriterion === 'max_corporate_with_floor') content.push(
+        ...moneyField('minPersonalNetIncome', 'yh-min-personal', '最低限確保したい個人手取り（月額・円）',
+          'サービスの第1版契約に従い、入力した月額をそのまま制約へ使います。',
+          '$.constraints.minPersonalNetIncome.value'),
+        ...moneyField('minCorporateRetained', 'yh-min-corporate', '会社に最低残したい額（年額・円）',
+          '0円以上の整数で入力してください。', '$.constraints.minCorporateRetained.value'));
+    } else if (mode === 'B') {
+      content.push(
+        ...moneyField('desiredMonthlyNetIncome', 'yh-desired-net', '希望手取り月額（円）',
+          '0円以上の整数で入力してください。', '$.desiredMonthlyNetIncome.value'),
+        ...selectField('searchStep', 'yh-search-step', '探索の刻み', '', [
+          { value: '10000', label: '1万円' }, { value: '50000', label: '5万円' },
+        ], '$.searchStep'));
+    } else {
+      content.push(...moneyField('monthlyCompensation', 'yh-monthly-compensation', '役員報酬月額（円）',
+        '賞与なし・12か月同額として入力します。',
+        '$.plan.monthlySegments[0].value.monthlyAmount.value'));
+    }
+    return el('main', { className: 'yh-no-print' }, [
+      ...stepHeader(2, `MODE ${mode} の条件`), errorSummary(), content,
+      pageActions({ previous: () => goToStep(1), calculate: true }),
+    ]);
+  }
+
+  function validateStep(step) {
+    const form = store.getState().form;
+    const errors = [];
+    const requireMoney = (value, path, label) => {
+      if (!parseMoneyInput(String(value)).ok) errors.push(localError(path, `${label}を円単位で入力してください`));
+    };
+    if (step === 1) {
+      requireMoney(form.profitBeforeOfficerCompensation, '$.profitBeforeOfficerCompensation.value', '役員報酬控除前利益');
+      requireMoney(form.capital, '$.capital.value', '資本金');
+      if (!form.municipalityKey) errors.push(localError('$.calculationContext.jurisdiction', '会社の所在市区町村を選択してください'));
+      if (form.municipalityKey === 'other' &&
+          (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
+        errors.push(localError('$.calculationContext.jurisdiction', '都道府県コード2桁と市区町村コード5桁を入力してください'));
+      }
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '役員の年齢を整数で入力してください'));
+    } else if (form.mode === 'A') {
+      requireMoney(form.searchLowerBound, '$.previousMonthlyAmount.value', '探索下限');
+      requireMoney(form.searchUpperBound, '$.searchUpperBound.value', '探索上限');
+      if (form.optimizationCriterion === 'max_corporate_with_floor') {
+        requireMoney(form.minPersonalNetIncome, '$.constraints.minPersonalNetIncome.value', '最低個人手取り');
+        requireMoney(form.minCorporateRetained, '$.constraints.minCorporateRetained.value', '最低法人留保');
+      }
+    } else if (form.mode === 'B') {
+      requireMoney(form.desiredMonthlyNetIncome, '$.desiredMonthlyNetIncome.value', '希望手取り月額');
+    } else {
+      requireMoney(form.monthlyCompensation,
+        '$.plan.monthlySegments[0].value.monthlyAmount.value', '役員報酬月額');
+    }
+    setErrors(errors);
+    if (errors.length > 0) announceAlert('入力内容に確認が必要な項目があります');
+    return errors.length === 0;
+  }
+
+  function goToStep(step) {
+    if (step < 1 || step > TOTAL_INPUT_STEPS) return;
+    store.setState(state => ({ ...state, screen: 'input', step, errors: [] }));
+  }
+  function nextStep() { if (validateStep(1)) goToStep(2); }
+  function validationErrors(validation) {
+    return (validation.errors || []).map(item => ({
+      code: item.code || 'YH_SERVICE_VALIDATION_ERROR', fieldPath: item.fieldPath,
+      message: item.message || '入力内容を確認してください',
+    }));
+  }
+
+  async function calculateNow() {
+    if (!validateStep(2)) return;
+    const token = ++calculationToken;
+    store.setState(state => ({ ...state, screen: 'calculating', errors: [], result: null,
+      viewModel: null, canCancel: true }));
+    await announceStatus('計算中です。実行前は中止できます');
+    await nextTask();
+    if (token !== calculationToken) return;
+    store.setState(state => ({ ...state, canCancel: false }));
+    let context;
+    let wire;
+    try {
+      context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
+      wire = buildYakuinHoshuInput(store.getState().form, context);
+    } catch (error) {
+      const errors = error instanceof YakuinHoshuInputBuildError
+        ? [...error.errors] : [localError('$.calculationContext.jurisdiction', error.message)];
+      store.setState(state => ({ ...state, screen: 'input', step: 2, errors }));
+      await announceAlert('入力内容に確認が必要な項目があります');
+      return;
+    }
+    const validation = service.validate(wire);
+    if (!validation.ok) {
+      store.setState(state => ({ ...state, screen: 'input', step: 2,
+        errors: validationErrors(validation) }));
+      await announceAlert('入力内容に確認が必要な項目があります');
+      return;
+    }
+    try {
+      const result = await service.simulate(validation.value, context, snapshotInfo);
+      const viewModel = buildYakuinHoshuResultViewModel(result, {
+        mode: store.getState().form.mode,
+        optimizationCriterion: store.getState().form.optimizationCriterion,
+      });
+      store.setState(state => ({ ...state,
+        screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+      queueEvent('simulator_complete', { tool: 'yakuinHoshu', resultStatus: result.resultStatus });
+      if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
+      else {
+        const heading = rootElement.querySelector('#yh-result-heading');
+        if (heading) await focusResultHeading(heading);
+      }
+    } catch (_error) {
+      store.setState(state => ({ ...state, screen: 'input', step: 2, errors: [localError(
+        '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')] }));
+      await announceAlert('計算を完了できませんでした');
+    }
+  }
+
+  async function cancelCalculation() {
+    if (!store.getState().canCancel) return;
+    calculationToken++;
+    store.setState(state => ({ ...state, screen: 'input', step: 2, canCancel: false }));
+    await announceStatus('計算を中止しました');
+  }
+
+  function resetState() {
+    calculationToken++;
+    store.setState({ screen: 'mode', step: 1, form: cloneInitialForm(), errors: [],
+      result: null, viewModel: null, canCancel: false });
+  }
+  function clearAll() {
+    const accepted = !browserWindow || typeof browserWindow.confirm !== 'function' ||
+      browserWindow.confirm('入力と試算結果をすべてクリアしますか？');
+    if (accepted) resetState();
+  }
+  function printResult() {
+    queueEvent('simulator_cta_click', { tool: 'yakuinHoshu' });
+    if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
+  }
+  function handoffToHojinnari() {
+    try {
+      const handoff = createYakuinHoshuHandoff(store.getState().result);
+      queueEvent('simulator_cta_click', { tool: 'yakuinHoshu' });
+      if (typeof onHandoff !== 'function') throw new Error('法人成りシミュレーターへの遷移先がありません');
+      onHandoff(handoff);
+    } catch (error) {
+      announceAlert(error.message);
+    }
+  }
+
+  function definitionList(items) {
+    return el('dl', {}, items.flatMap(([term, description]) => [el('dt', {}, term), el('dd', {}, description)]));
+  }
+  function renderWarningsAndGrounds(viewModel) {
+    return [
+      el('section', {}, [el('h2', {}, '警告'), el('ul', {}, viewModel.warnings.map(warning =>
+        el('li', {}, [el('span', { className: 'yh-level' }, warning.level ? `[${warning.level}] ` : ''),
+          warning.message || warning.basis || warning.code])))]),
+      el('details', {}, [el('summary', {}, '前提をすべて表示'),
+        el('ul', {}, viewModel.assumptions.map(text => el('li', {}, text)))]),
+      el('section', { className: 'yh-card' }, [el('h2', {}, '根拠'), definitionList([
+        ['計算版', viewModel.grounds.calculationVersion],
+        ['マスタースナップショットID', viewModel.grounds.masterSnapshotId],
+        ['法令基準日', viewModel.grounds.legalStatusAsOf],
+      ]), el('h3', {}, '出典'), el('ul', {}, viewModel.grounds.sources.map(source =>
+        el('li', {}, source.url ? el('a', { href: source.url, rel: 'noreferrer' },
+          `${source.authority}：${source.title}`) : source.title)))]),
+    ];
+  }
+  function resultActions(viewModel) {
+    return el('div', { className: 'yh-actions yh-no-print' }, [
+      viewModel.handoffAvailable ? el('button', { type: 'button', className: 'yh-primary',
+        onClick: handoffToHojinnari }, 'この報酬額で法人成りの損得を比較する →') : null,
+      el('button', { type: 'button', onClick: () => goToStep(2) }, '入力を修正する'),
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+      el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
+    ]);
+  }
+
+  function renderModeC(viewModel) {
+    const rowList = rows => el('dl', {}, rows.flatMap(row => [
+      el('dt', {}, row.label), el('dd', {}, row.display),
+    ]));
+    return [
+      el('section', { className: 'yh-card yh-conclusion' }, [el('h2', {}, '個人側（年額）'),
+        rowList(viewModel.personalRows)]),
+      el('section', { className: 'yh-card' }, [el('h2', {}, '法人側（年額）'),
+        rowList(viewModel.corporateRows)]),
+      el('section', { className: 'yh-card' }, [el('h2', {}, '法人＋個人手残り'),
+        el('p', {}, formatYen(viewModel.combinedCash))]),
+    ];
+  }
+  function candidateTable(rows) {
+    return el('div', { className: 'yh-table-wrap' }, el('table', {}, [
+      el('thead', {}, el('tr', {}, ['月額', '法人＋個人手残り', '個人手取り', '会社留保', '税負担', '社会保険負担']
+        .map(label => el('th', { scope: 'col' }, label)))),
+      el('tbody', {}, rows.map(row => el('tr', {}, [
+        el('th', { scope: 'row' }, row.monthlyCompensation.display),
+        el('td', {}, row.combinedCash.display), el('td', {}, row.personalNetCash.display),
+        el('td', {}, row.corporateRetainedCash.display), el('td', {}, row.taxBurden.display),
+        el('td', {}, row.socialInsuranceBurden.display),
+      ]))),
+    ]));
+  }
+  function renderModeA(viewModel) {
+    return [
+      el('section', { className: 'yh-card yh-conclusion' }, [el('h2', {}, '結論'),
+        el('p', {}, viewModel.conclusion.text), el('p', {}, `選択基準：${viewModel.criterion.label}`),
+        viewModel.criterionNotice ? el('p', {}, viewModel.criterionNotice) : null,
+        el('p', {}, viewModel.optimizationDisclaimer)]),
+      el('section', {}, [el('h2', {}, '候補表'), el('p', {}, viewModel.rowSelectionDescription),
+        candidateTable(viewModel.defaultCandidateRows),
+        el('details', {}, [el('summary', {}, `全候補を表示（${viewModel.allCandidateRows.length}件）`),
+          candidateTable(viewModel.allCandidateRows)])]),
+    ];
+  }
+  function renderModeB(viewModel) {
+    if (viewModel.isRange) return [el('section', { className: 'yh-card yh-conclusion' }, [
+      el('h2', {}, '逆算結果'), el('p', {}, viewModel.conclusion),
+      el('p', {}, `探索範囲：${viewModel.range.display}`), el('p', {}, viewModel.forwardVerificationNotice),
+    ])];
+    return [el('section', { className: 'yh-card yh-conclusion' }, [
+      el('h2', {}, '逆算結果'), definitionList([
+        ['必要役員報酬', `約${formatYen(viewModel.requiredMonthlyCompensation)}/月`],
+        ['会社負担社会保険（年額）', formatYen(viewModel.employerSocialInsuranceAnnual)],
+        ['会社年間総コスト', formatYen(viewModel.companyAnnualTotalCost)],
+      ]), el('p', {}, viewModel.forwardVerificationNotice),
+    ])];
+  }
+  function renderBlocked(viewModel) {
+    return el('main', {}, [
+      el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
+      viewModel.constraintNotice ? el('p', { className: 'yh-error' }, viewModel.constraintNotice) : null,
+      ...viewModel.alerts.map(alert => el('section', { className: 'yh-card' }, [
+        el('h2', {}, alert.code), el('p', {}, alert.message),
+      ])),
+      resultActions(viewModel),
+    ]);
+  }
+  function renderResult(viewModel) {
+    const modeContent = viewModel.mode === 'A' ? renderModeA(viewModel)
+      : viewModel.mode === 'B' ? renderModeB(viewModel) : renderModeC(viewModel);
+    return el('main', {}, [
+      el('p', { className: 'yh-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
+      el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
+      modeContent, renderWarningsAndGrounds(viewModel), resultActions(viewModel),
+    ]);
+  }
+
+  function render() {
+    if (destroyed) return;
+    const state = store.getState();
+    let content;
+    if (state.screen === 'mode') content = renderMode();
+    else if (state.screen === 'input') content = state.step === 1 ? renderCommonInput() : renderModeInput();
+    else if (state.screen === 'calculating') content = el('main', { className: 'yh-no-print' }, [
+      el('h1', {}, '計算中'), el('p', {}, '候補を順算して試算しています。'),
+      el('button', { type: 'button', disabled: !state.canCancel,
+        'aria-disabled': state.canCancel ? 'false' : 'true', onClick: cancelCalculation },
+      state.canCancel ? '計算を中止' : '計算を実行しています'),
+    ]);
+    else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
+    else content = renderResult(state.viewModel);
+    rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
+    const summary = rootElement.querySelector('.yh-error-summary');
+    if (summary) summary.focus();
+  }
+
+  const unsubscribe = store.subscribe((state, previous) => {
+    if (state.screen !== previous.screen || state.step !== previous.step ||
+        state.errors !== previous.errors || state.result !== previous.result ||
+        state.viewModel !== previous.viewModel || state.canCancel !== previous.canCancel) render();
+  });
+  const pageshowHandler = event => { if (event.persisted) resetState(); };
+  if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
+  render();
+  return Object.freeze({
+    store,
+    destroy() {
+      destroyed = true;
+      calculationToken++;
+      unsubscribe();
+      if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      rootElement.classList.remove('yakuin-hoshu-app');
+      rootElement.replaceChildren();
+    },
+  });
+}
+
+module.exports = Object.freeze({ mountYakuinHoshuApp, INITIAL_FORM });
+
+},
+    "src/ui/yakuin-hoshu/handoff.js": function (module, exports, require) {
+'use strict';
+
+const HANDOFF_SCHEMA_VERSION = 'yakuin-hoshu-to-hojinnari-1.0';
+const PLAN_KIND = 'constant_monthly_12';
+const STANDARD_REMUNERATION_DECISION_KIND = 'regular';
+const HANDOFF_PATHS = Object.freeze({
+  monthlyCompensation: '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount',
+  fiscalPeriodFrom: '$.corporate.officerCompensation.monthlySegments[0].period.from',
+  fiscalPeriodTo: '$.corporate.officerCompensation.monthlySegments[0].period.to',
+  appointedOn: '$.corporate.officerCompensation.appointedOn',
+  revision: '$.corporate.officerCompensation.revision',
+  standardRemunerationDecisionKind: '$.corporate.officerCompensation.standardRemunerationDecisionKind',
+  bonusPlan: '$.corporate.officerCompensation.bonusPlan',
+  planKind: '$.corporate.officerCompensation.planKind',
+  healthInsurerKind: '$.corporate.healthInsurer.kind',
+  healthInsurerPrefectureCode: '$.corporate.healthInsurer.prefectureCode',
+});
+
+/**
+ * @typedef {{path:string, label:string, value:{unit:'JPY',value:bigint}|string}} HandoffField
+ * @typedef {{
+ *   handoffSchemaVersion:string,
+ *   sourceSimulator:'yakuin_hoshu',
+ *   sourceResultStatus:'complete'|'partial',
+ *   calculationContext:object,
+ *   inputSchemaVersion:string,
+ *   calculationVersion:string,
+ *   fields:ReadonlyArray<HandoffField>,
+ *   warnings:ReadonlyArray<object>,
+ *   excludedItems:ReadonlyArray<object>
+ * }} YakuinHoshuHandoff
+ */
+
+function field(path, label, value) {
+  return Object.freeze({ path, label, value });
+}
+
+function candidateForHandoff(result) {
+  const data = result.breakdown && result.breakdown.data;
+  if (!data || !data.selectedPlanId || !Array.isArray(data.candidates)) return null;
+  return data.candidates.find(candidate => candidate.planId === data.selectedPlanId) || null;
+}
+
+function createYakuinHoshuHandoff(result) {
+  if (!result || result.simulatorType !== 'yakuin_hoshu') {
+    throw new TypeError('yakuin_hoshuのSimulationResultを指定してください');
+  }
+  if (result.resultStatus === 'blocked') {
+    throw new RangeError('blocked結果からHandoffは作成できません');
+  }
+  const context = result.calculationContext;
+  const candidate = candidateForHandoff(result);
+  if (!candidate) throw new RangeError('確定した報酬月額がない結果からHandoffは作成できません');
+  if (!context || !context.fiscalPeriod || !context.jurisdiction) {
+    throw new TypeError('Handoffに必要なCalculationContextがありません');
+  }
+  return Object.freeze({
+    handoffSchemaVersion: HANDOFF_SCHEMA_VERSION,
+    sourceSimulator: 'yakuin_hoshu',
+    sourceResultStatus: result.resultStatus,
+    calculationContext: context,
+    inputSchemaVersion: result.inputSchemaVersion,
+    calculationVersion: result.calculationVersion,
+    fields: Object.freeze([
+      field(HANDOFF_PATHS.monthlyCompensation, '役員報酬月額', candidate.monthlyCompensation),
+      field(HANDOFF_PATHS.fiscalPeriodFrom, '事業年度開始日', context.fiscalPeriod.from),
+      field(HANDOFF_PATHS.fiscalPeriodTo, '事業年度終了日', context.fiscalPeriod.to),
+      field(HANDOFF_PATHS.appointedOn, '役員就任日', context.fiscalPeriod.from),
+      field(HANDOFF_PATHS.revision, '報酬改定', 'none'),
+      field(HANDOFF_PATHS.standardRemunerationDecisionKind,
+        '標準報酬の決定方法', STANDARD_REMUNERATION_DECISION_KIND),
+      field(HANDOFF_PATHS.bonusPlan, '賞与の有無', 'none'),
+      field(HANDOFF_PATHS.planKind, '支給計画の種別', PLAN_KIND),
+      field(HANDOFF_PATHS.healthInsurerKind, '健康保険者', 'kyokai_kenpo'),
+      field(HANDOFF_PATHS.healthInsurerPrefectureCode,
+        '健康保険の都道府県コード', context.jurisdiction.prefectureCode),
+    ]),
+    warnings: Object.freeze([...(result.warnings || [])]),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+  });
+}
+
+function samePeriod(left, right) {
+  return Boolean(left && right && left.from === right.from && left.to === right.to);
+}
+
+function sameJurisdiction(left, right) {
+  const keys = [
+    'country', 'codeSystemVersion', 'asOfForCodes', 'prefectureCode',
+    'municipalityCode', 'isDesignatedCity',
+  ];
+  return Boolean(left && right && keys.every(key => left[key] === right[key]));
+}
+
+function fieldValue(handoff, path) {
+  const found = handoff.fields.find(item => item.path === path);
+  return found && found.value;
+}
+
+function reject(formState, reason) {
+  return Object.freeze({
+    accepted: false,
+    reason,
+    message: '条件が変わったため引き継げませんでした。もう一度④で計算してください',
+    formState: Object.freeze({ ...formState }),
+  });
+}
+
+function acceptYakuinHoshuHandoff(handoff, formState, expectedContext) {
+  if (!formState || typeof formState !== 'object') throw new TypeError('①のフォーム状態が必要です');
+  if (!expectedContext || !expectedContext.fiscalPeriod || !expectedContext.jurisdiction) {
+    throw new TypeError('①のCalculationContextが必要です');
+  }
+  if (!handoff || handoff.handoffSchemaVersion !== HANDOFF_SCHEMA_VERSION ||
+      handoff.sourceSimulator !== 'yakuin_hoshu' || handoff.sourceResultStatus === 'blocked' ||
+      !Array.isArray(handoff.fields)) return reject(formState, 'handoff_contract_mismatch');
+  const context = handoff.calculationContext;
+  if (!context || context.masterSnapshotId !== expectedContext.masterSnapshotId) {
+    return reject(formState, 'master_snapshot_id_mismatch');
+  }
+  if (context.masterSnapshotHash !== expectedContext.masterSnapshotHash) {
+    return reject(formState, 'master_snapshot_hash_mismatch');
+  }
+  if (!samePeriod(context.fiscalPeriod, expectedContext.fiscalPeriod)) {
+    return reject(formState, 'fiscal_period_mismatch');
+  }
+  if (!sameJurisdiction(context.jurisdiction, expectedContext.jurisdiction)) {
+    return reject(formState, 'jurisdiction_mismatch');
+  }
+  if (fieldValue(handoff, HANDOFF_PATHS.healthInsurerKind) !== 'kyokai_kenpo' ||
+      fieldValue(handoff, HANDOFF_PATHS.healthInsurerPrefectureCode) !==
+        expectedContext.jurisdiction.prefectureCode) {
+    return reject(formState, 'health_insurer_mismatch');
+  }
+  if (fieldValue(handoff, HANDOFF_PATHS.fiscalPeriodFrom) !== expectedContext.fiscalPeriod.from ||
+      fieldValue(handoff, HANDOFF_PATHS.fiscalPeriodTo) !== expectedContext.fiscalPeriod.to) {
+    return reject(formState, 'handoff_period_fields_mismatch');
+  }
+  if (fieldValue(handoff, HANDOFF_PATHS.standardRemunerationDecisionKind) !==
+        STANDARD_REMUNERATION_DECISION_KIND ||
+      fieldValue(handoff, HANDOFF_PATHS.bonusPlan) !== 'none' ||
+      fieldValue(handoff, HANDOFF_PATHS.planKind) !== PLAN_KIND ||
+      fieldValue(handoff, HANDOFF_PATHS.revision) !== 'none') {
+    return reject(formState, 'compensation_plan_mismatch');
+  }
+  const monthly = fieldValue(handoff, HANDOFF_PATHS.monthlyCompensation);
+  if (!monthly || monthly.unit !== 'JPY' || typeof monthly.value !== 'bigint') {
+    return reject(formState, 'monthly_compensation_invalid');
+  }
+  return Object.freeze({
+    accepted: true,
+    reason: null,
+    message: '④の結果から引き継ぎました',
+    formState: Object.freeze({
+      ...formState,
+      officerCompensationMonthly: monthly.value.toString(10),
+    }),
+    sourceResultStatus: handoff.sourceResultStatus,
+  });
+}
+
+module.exports = Object.freeze({
+  HANDOFF_SCHEMA_VERSION,
+  HANDOFF_PATHS,
+  createYakuinHoshuHandoff,
+  acceptYakuinHoshuHandoff,
+});
+
+},
+    "src/ui/yakuin-hoshu/input-builder.js": function (module, exports, require) {
+'use strict';
+
+class YakuinHoshuInputBuildError extends Error {
+  constructor(errors) {
+    super(errors.map(item => item.message).join('\n'));
+    this.name = 'YakuinHoshuInputBuildError';
+    this.errors = Object.freeze(errors.map(item => Object.freeze({ ...item })));
+    this.code = this.errors[0] && this.errors[0].code;
+  }
+}
+
+const MODES = Object.freeze(['A', 'B', 'C']);
+const SEARCH_STEPS = Object.freeze(['10000', '50000']);
+const CRITERIA = Object.freeze([
+  'min_burden',
+  'max_total_retained',
+  'max_corporate_with_floor',
+]);
+
+function issue(code, fieldPath, message) {
+  return { code, fieldPath, message };
+}
+
+function money(value, fieldPath, errors) {
+  const text = typeof value === 'bigint' ? value.toString(10) : String(value ?? '');
+  if (!/^\d+$/.test(text)) {
+    errors.push(issue('YH_UI_MONEY_REQUIRED', fieldPath, '金額を円単位の整数で入力してください'));
+    return { unit: 'JPY', value: '0' };
+  }
+  return { unit: 'JPY', value: text };
+}
+
+function requireEnum(value, allowed, fieldPath, label, errors) {
+  if (!allowed.includes(value)) {
+    errors.push(issue('YH_UI_SELECTION_REQUIRED', fieldPath, `${label}を選択してください`));
+  }
+}
+
+function commonInput(formState, context, errors) {
+  const age = Number(formState.ageAtYearEnd);
+  if (!Number.isInteger(age) || age < 0) {
+    errors.push(issue('YH_UI_AGE_REQUIRED', '$.officer.ageAtYearEnd',
+      '役員の年齢を0以上の整数で入力してください'));
+  }
+  return {
+    precision: 'detailed',
+    officerResidenceSameAsCompany: 'yes',
+    capital: money(formState.capital, '$.capital.value', errors),
+    employeeCount: 0,
+    healthInsurer: {
+      kind: 'kyokai_kenpo',
+      prefectureCode: context.jurisdiction.prefectureCode,
+    },
+    officer: { ageAtYearEnd: Number.isInteger(age) ? age : 0 },
+    specialistChecks: {},
+    appointedOn: context.fiscalPeriod.from,
+    standardRemunerationDecisionKind: 'regular',
+  };
+}
+
+function buildModeA(formState, errors) {
+  requireEnum(formState.searchStep, SEARCH_STEPS, '$.searchStep', '探索の刻み', errors);
+  requireEnum(formState.optimizationCriterion, CRITERIA,
+    '$.optimizationCriterion', '最適化基準', errors);
+  const input = {
+    profitBeforeOfficerCompensation: money(formState.profitBeforeOfficerCompensation,
+      '$.profitBeforeOfficerCompensation.value', errors),
+    // サービスと入力スキーマが探索下限として受ける第1版のフィールド。
+    previousMonthlyAmount: money(formState.searchLowerBound,
+      '$.previousMonthlyAmount.value', errors),
+    searchUpperBound: money(formState.searchUpperBound,
+      '$.searchUpperBound.value', errors),
+    searchStep: formState.searchStep,
+    optimizationCriterion: formState.optimizationCriterion,
+  };
+  if (formState.optimizationCriterion === 'max_corporate_with_floor') {
+    input.constraints = {
+      // 名前は年額にも読めるが、④サービスの契約どおりUIの月額値を変換せず渡す。
+      minPersonalNetIncome: money(formState.minPersonalNetIncome,
+        '$.constraints.minPersonalNetIncome.value', errors),
+      minCorporateRetained: money(formState.minCorporateRetained,
+        '$.constraints.minCorporateRetained.value', errors),
+    };
+  }
+  return input;
+}
+
+function buildModeB(formState, errors) {
+  requireEnum(formState.searchStep, SEARCH_STEPS, '$.searchStep', '探索の刻み', errors);
+  return {
+    desiredMonthlyNetIncome: money(formState.desiredMonthlyNetIncome,
+      '$.desiredMonthlyNetIncome.value', errors),
+    searchStep: formState.searchStep,
+    profitBeforeOfficerCompensation: money(formState.profitBeforeOfficerCompensation,
+      '$.profitBeforeOfficerCompensation.value', errors),
+  };
+}
+
+function buildModeC(formState, context, errors) {
+  return {
+    profitBeforeOfficerCompensation: money(formState.profitBeforeOfficerCompensation,
+      '$.profitBeforeOfficerCompensation.value', errors),
+    plan: {
+      monthlySegments: [{
+        period: { ...context.fiscalPeriod },
+        value: {
+          monthlyAmount: money(formState.monthlyCompensation,
+            '$.plan.monthlySegments[0].value.monthlyAmount.value', errors),
+        },
+      }],
+    },
+  };
+}
+
+function buildYakuinHoshuInput(formState, context) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  if (!context || !context.fiscalPeriod || !context.jurisdiction) {
+    throw new TypeError('CalculationContextが必要です');
+  }
+  const errors = [];
+  requireEnum(formState.mode, MODES, '$.mode', '計算モード', errors);
+  const input = {
+    mode: formState.mode,
+    ...commonInput(formState, context, errors),
+  };
+  if (formState.mode === 'A') Object.assign(input, buildModeA(formState, errors));
+  if (formState.mode === 'B') Object.assign(input, buildModeB(formState, errors));
+  if (formState.mode === 'C') Object.assign(input, buildModeC(formState, context, errors));
+  if (errors.length > 0) throw new YakuinHoshuInputBuildError(errors);
+  return input;
+}
+
+module.exports = Object.freeze({
+  MODES,
+  SEARCH_STEPS,
+  CRITERIA,
+  YakuinHoshuInputBuildError,
+  buildYakuinHoshuInput,
+});
+
+},
+    "src/ui/yakuin-hoshu/result-view-model.js": function (module, exports, require) {
+'use strict';
+
+const { formatYen } = require('../hojinnari/result-view-model.js');
+
+const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+const CRITERION_PRESENTATION = Object.freeze({
+  min_burden: Object.freeze({
+    code: 'A',
+    label: '税金＋社会保険負担が最小',
+    outcome: '税金＋社会保険負担が最小',
+  }),
+  max_total_retained: Object.freeze({
+    code: 'B',
+    label: '法人＋個人の手残り最大',
+    outcome: '法人＋個人の年間手残りが最大',
+    assumption: '法人留保と個人可処分所得を同価値とみなす仮定です。',
+  }),
+  max_corporate_with_floor: Object.freeze({
+    code: 'C',
+    label: '個人手取りを確保しつつ会社に最も多く残す',
+    outcome: '個人手取りの制約を満たしつつ会社に残る額が最大',
+  }),
+});
+const OPTIMIZATION_DISCLAIMER =
+  '税・社会保険上の数値比較であり、会社の資金繰りや生活費、将来の年金額等まで含めた「最適」を意味するものではありません。';
+const ROW_SELECTION_DESCRIPTION =
+  '既定表示は、最良点とその前後1刻み、探索の上下限、法人＋個人手残り・個人手取り・会社留保の符号が変わる点、手残り順位の転換点（隣接候補との増減方向が変わる点）です。';
+
+function moneyValue(value) {
+  if (!value || value.unit !== 'JPY' || typeof value.value !== 'bigint') {
+    throw new TypeError('MoneyはJPYのbigintで指定してください');
+  }
+  return value.value;
+}
+
+function money(value) {
+  return Object.freeze({ unit: 'JPY', value });
+}
+
+function sumMoney(values) {
+  return money(values.reduce((total, value) => total + moneyValue(value), 0n));
+}
+
+function amountCell(value) {
+  if (value === undefined) return Object.freeze({ kind: 'omitted', display: '―' });
+  return Object.freeze({ kind: 'amount', amount: value, exactYen: moneyValue(value), display: formatYen(value) });
+}
+
+function sortedWarnings(warnings) {
+  return Object.freeze([...(warnings || [])].sort((left, right) =>
+    (WARNING_ORDER[left.level] ?? 99) - (WARNING_ORDER[right.level] ?? 99)));
+}
+
+function grounds(result) {
+  const context = result.calculationContext || {};
+  return Object.freeze({
+    calculationVersion: result.calculationVersion,
+    inputSchemaVersion: result.inputSchemaVersion,
+    masterSnapshotId: context.masterSnapshotId,
+    masterSnapshotHash: context.masterSnapshotHash,
+    legalStatusAsOf: context.asOfDate,
+    sources: Object.freeze([...(result.sources || [])]),
+  });
+}
+
+function common(result, mode) {
+  return {
+    mode,
+    resultStatus: result.resultStatus,
+    periodLabel: result.periodLabel,
+    heading: `${result.resultStatus === 'blocked' ? '試算停止' : '試算結果'}（${result.periodLabel}・${result.resultStatus}）`,
+    warnings: sortedWarnings(result.warnings),
+    assumptions: Object.freeze([...(result.assumptions || [])]),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+    grounds: grounds(result),
+  };
+}
+
+function selectedCandidate(result, allowProvisional = false) {
+  const data = result.breakdown && result.breakdown.data;
+  if (!data || !Array.isArray(data.candidates)) return null;
+  const planId = data.selectedPlanId || (allowProvisional ? data.provisionalPlanId : undefined);
+  if (!planId) return null;
+  return data.candidates.find(candidate => candidate.planId === planId) || null;
+}
+
+function modeCViewModel(result) {
+  const candidate = selectedCandidate(result);
+  if (!candidate) throw new TypeError('MODE Cの選択候補がありません');
+  return Object.freeze({
+    ...common(result, 'C'),
+    monthlyCompensation: candidate.monthlyCompensation,
+    personalRows: Object.freeze([
+      ['gross', '額面（年額）', candidate.annualCompensation, false],
+      ['social_insurance', '社会保険', candidate.socialInsuranceEmployee, true],
+      ['income_tax', '所得税', candidate.incomeTax, true],
+      ['resident_tax', '住民税', candidate.residentTax, true],
+      ['personal_net_cash', '個人手取り', candidate.personalNetCash, false],
+    ].map(([code, label, value, deduction]) => Object.freeze({
+      code, label, deduction, ...amountCell(value),
+      display: `${deduction ? '▲' : ''}${formatYen(value)}`,
+    }))),
+    corporateRows: Object.freeze([
+      ['annual_compensation', '役員報酬', candidate.annualCompensation, false],
+      ['employer_social_insurance', '会社負担社会保険', candidate.socialInsuranceEmployer, true],
+      ['corporate_income', '法人所得', candidate.corporateIncome, false],
+      ['corporate_taxes', '法人税等', candidate.corporateTaxes, true],
+      ['corporate_retained_cash', '税引後利益', candidate.corporateRetainedCash, false],
+    ].map(([code, label, value, deduction]) => Object.freeze({
+      code, label, deduction, ...amountCell(value),
+      display: `${deduction ? '▲' : ''}${formatYen(value)}`,
+    }))),
+    combinedCash: candidate.combinedCash,
+    handoffAvailable: result.resultStatus !== 'blocked',
+  });
+}
+
+function candidateRow(candidate) {
+  const taxBurden = sumMoney([candidate.incomeTax, candidate.residentTax, candidate.corporateTaxes]);
+  const socialInsuranceBurden = sumMoney([
+    candidate.socialInsuranceEmployee,
+    candidate.socialInsuranceEmployer,
+  ]);
+  return Object.freeze({
+    planId: candidate.planId,
+    monthlyCompensation: amountCell(candidate.monthlyCompensation),
+    combinedCash: amountCell(candidate.combinedCash),
+    personalNetCash: amountCell(candidate.personalNetCash),
+    corporateRetainedCash: amountCell(candidate.corporateRetainedCash),
+    taxBurden: amountCell(taxBurden),
+    socialInsuranceBurden: amountCell(socialInsuranceBurden),
+  });
+}
+
+function addSignBoundaries(indexes, candidates, field) {
+  for (let index = 1; index < candidates.length; index++) {
+    const previous = moneyValue(candidates[index - 1][field]);
+    const current = moneyValue(candidates[index][field]);
+    if ((previous < 0n && current >= 0n) || (previous >= 0n && current < 0n)) {
+      indexes.add(index - 1);
+      indexes.add(index);
+    }
+  }
+}
+
+function addDirectionBoundaries(indexes, candidates) {
+  for (let index = 1; index < candidates.length - 1; index++) {
+    const previous = moneyValue(candidates[index - 1].combinedCash);
+    const current = moneyValue(candidates[index].combinedCash);
+    const next = moneyValue(candidates[index + 1].combinedCash);
+    const leftDirection = current === previous ? 0 : current > previous ? 1 : -1;
+    const rightDirection = next === current ? 0 : next > current ? 1 : -1;
+    if (leftDirection !== rightDirection) indexes.add(index);
+  }
+}
+
+function selectDefaultCandidates(candidates, selectedPlanId) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return Object.freeze([]);
+  const indexes = new Set([0, candidates.length - 1]);
+  const selectedIndex = candidates.findIndex(candidate => candidate.planId === selectedPlanId);
+  if (selectedIndex >= 0) {
+    indexes.add(selectedIndex);
+    if (selectedIndex > 0) indexes.add(selectedIndex - 1);
+    if (selectedIndex + 1 < candidates.length) indexes.add(selectedIndex + 1);
+  }
+  for (const field of ['combinedCash', 'personalNetCash', 'corporateRetainedCash']) {
+    addSignBoundaries(indexes, candidates, field);
+  }
+  addDirectionBoundaries(indexes, candidates);
+  return Object.freeze([...indexes].sort((left, right) => left - right)
+    .map(index => candidates[index]));
+}
+
+function criterionFromInput(criterion) {
+  const presentation = CRITERION_PRESENTATION[criterion];
+  if (!presentation) throw new TypeError('MODE Aの最適化基準が不明です');
+  return presentation;
+}
+
+function modeAViewModel(result, options) {
+  const data = result.breakdown.data;
+  const criterion = criterionFromInput(options.optimizationCriterion);
+  const nearUpperBound = data.nearUpperBound === true;
+  const selected = selectedCandidate(result, true);
+  const selectedPlanId = data.selectedPlanId || data.provisionalPlanId;
+  const conclusion = nearUpperBound
+    ? Object.freeze({
+      amount: undefined,
+      text: '探索上限の付近に最良点があります。上限を広げると結果が変わる可能性があるため、最適とは断定できません。',
+      isProvisional: true,
+    })
+    : Object.freeze({
+      amount: selected.monthlyCompensation,
+      text: `今回の条件では、月額役員報酬 ${formatYen(selected.monthlyCompensation)}前後で${criterion.outcome}となる試算です。`,
+      isProvisional: false,
+    });
+  const defaults = selectDefaultCandidates(data.candidates, selectedPlanId);
+  return Object.freeze({
+    ...common(result, 'A'),
+    criterion,
+    criterionNotice: criterion.assumption,
+    conclusion,
+    optimizationDisclaimer: OPTIMIZATION_DISCLAIMER,
+    nearUpperBound,
+    rowSelectionDescription: ROW_SELECTION_DESCRIPTION,
+    defaultCandidateRows: Object.freeze(defaults.map(candidateRow)),
+    allCandidateRows: Object.freeze(data.candidates.map(candidateRow)),
+    handoffAvailable: !nearUpperBound && Boolean(data.selectedPlanId),
+  });
+}
+
+function modeBViewModel(result) {
+  const base = common(result, 'B');
+  if (result.summary.range) {
+    return Object.freeze({
+      ...base,
+      isRange: true,
+      range: Object.freeze({
+        low: result.summary.range.low,
+        high: result.summary.range.high,
+        display: `${formatYen(result.summary.range.low)}〜${formatYen(result.summary.range.high)}`,
+      }),
+      conclusion: '希望手取りを満たす単一の報酬額は探索範囲内にないため、探索範囲として表示します。',
+      forwardVerificationNotice: '各候補は順算関数で検証しています。',
+      handoffAvailable: false,
+    });
+  }
+  const candidate = selectedCandidate(result);
+  if (!candidate) throw new TypeError('MODE Bの選択候補がありません');
+  return Object.freeze({
+    ...base,
+    isRange: false,
+    requiredMonthlyCompensation: result.summary.amount,
+    employerSocialInsuranceAnnual: candidate.socialInsuranceEmployer,
+    companyAnnualTotalCost: sumMoney([
+      candidate.annualCompensation,
+      candidate.socialInsuranceEmployer,
+    ]),
+    forwardVerificationNotice: result.breakdown.data.inverseVerifiedByForwardCalculation
+      ? '必要報酬は順算で再検証済みです。'
+      : '各候補は順算関数で検証しています。',
+    handoffAvailable: true,
+  });
+}
+
+function blockedViewModel(result, mode) {
+  const noCandidate = (result.warnings || []).some(warning =>
+    warning.code === 'YH_NO_CANDIDATE_MEETS_CONSTRAINTS');
+  return Object.freeze({
+    ...common(result, mode),
+    alerts: Object.freeze((result.warnings || []).map(warning => Object.freeze({
+      code: warning.code,
+      fieldPath: warning.fieldPath,
+      message: warning.message,
+    }))),
+    constraintNotice: noCandidate
+      ? '入力した制約を満たす候補がありません。最低個人手取りまたは最低法人留保の制約を緩和して再計算してください。'
+      : undefined,
+    handoffAvailable: false,
+  });
+}
+
+function buildYakuinHoshuResultViewModel(result, options = {}) {
+  if (!result || result.simulatorType !== 'yakuin_hoshu') {
+    throw new TypeError('yakuin_hoshuのSimulationResultを指定してください');
+  }
+  const mode = options.mode;
+  if (!['A', 'B', 'C'].includes(mode)) throw new TypeError('表示対象のmodeが必要です');
+  if (result.resultStatus === 'blocked') return blockedViewModel(result, mode);
+  if (!result.breakdown || result.breakdown.kind !== 'yakuin_hoshu') {
+    throw new TypeError('結果表示に必要な役員報酬内訳がありません');
+  }
+  if (mode === 'A') return modeAViewModel(result, options);
+  if (mode === 'B') return modeBViewModel(result);
+  return modeCViewModel(result);
+}
+
+module.exports = Object.freeze({
+  CRITERION_PRESENTATION,
+  OPTIMIZATION_DISCLAIMER,
+  ROW_SELECTION_DESCRIPTION,
+  amountCell,
+  sumMoney,
+  selectDefaultCandidates,
+  buildYakuinHoshuResultViewModel,
+});
+
 }
   };
   var dependencies = {
     "data/tax-simulator/masters/sources/source-registry.json": {},
     "scripts/lib/input-types/definitions.js": {},
     "scripts/lib/input-types/wire-converters.js": {},
-    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
+    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","../ui/router.js":"src/ui/router.js","../ui/yakuin-hoshu/app.js":"src/ui/yakuin-hoshu/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
     "src/simulators/core/result-builder.js": {"../../../data/tax-simulator/masters/sources/source-registry.json":"data/tax-simulator/masters/sources/source-registry.json","../../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./versions.js":"src/simulators/core/versions.js"},
     "src/simulators/core/validator.js": {"../../../scripts/lib/input-types/definitions.js":"scripts/lib/input-types/definitions.js","../../../scripts/lib/input-types/wire-converters.js":"scripts/lib/input-types/wire-converters.js"},
     "src/simulators/core/versions.js": {},
@@ -12987,12 +14318,17 @@ module.exports = Object.freeze({ createStore });
     "src/ui/analytics.js": {},
     "src/ui/dom.js": {},
     "src/ui/forms.js": {"./dom.js":"src/ui/dom.js"},
-    "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
+    "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","../yakuin-hoshu/handoff.js":"src/ui/yakuin-hoshu/handoff.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
     "src/ui/hojinnari/context-builder.js": {},
     "src/ui/hojinnari/input-builder.js": {},
     "src/ui/hojinnari/question-catalog.js": {},
     "src/ui/hojinnari/result-view-model.js": {"./question-catalog.js":"src/ui/hojinnari/question-catalog.js"},
-    "src/ui/store.js": {}
+    "src/ui/router.js": {},
+    "src/ui/store.js": {},
+    "src/ui/yakuin-hoshu/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../hojinnari/context-builder.js":"src/ui/hojinnari/context-builder.js","../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js","../store.js":"src/ui/store.js","./handoff.js":"src/ui/yakuin-hoshu/handoff.js","./input-builder.js":"src/ui/yakuin-hoshu/input-builder.js","./result-view-model.js":"src/ui/yakuin-hoshu/result-view-model.js"},
+    "src/ui/yakuin-hoshu/handoff.js": {},
+    "src/ui/yakuin-hoshu/input-builder.js": {},
+    "src/ui/yakuin-hoshu/result-view-model.js": {"../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js"}
   };
   var cache = Object.create(null);
   function load(id) {
