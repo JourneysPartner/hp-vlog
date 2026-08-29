@@ -1492,6 +1492,7 @@ const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
 const { mountShohizeiApp } = require('../ui/shohizei/app.js');
+const { mountSozokuApp } = require('../ui/sozoku/app.js');
 const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
 const { createRouter } = require('../ui/router.js');
 
@@ -1649,6 +1650,18 @@ function mountShohizei(rootElement, options = {}) {
   });
 }
 
+/** 公開ページは未生成のまま、明示されたDOMへだけ③のアプリを起動する。 */
+function mountSozoku(rootElement, options = {}) {
+  const selectedService = options.services
+    ? (options.services.sozoku || options.services)
+    : verifiedUiService('sozoku');
+  return mountSozokuApp(rootElement, {
+    services: selectedService,
+    snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 function expectedHojinnariContext(handoff, snapshotInfo) {
   const source = handoff.calculationContext;
   const year = 2025;
@@ -1727,14 +1740,23 @@ function mountYakuinHoshu(rootElement, options = {}) {
   });
 }
 
-module.exports = Object.freeze({
+const publicApi = {
   verify,
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
   mountShohizei,
   mountYakuinHoshu,
+};
+// 従来APIのObject.keys契約を変えず、U5のマウント入口を直接参照可能にする。
+Object.defineProperty(publicApi, 'mountSozoku', {
+  value: mountSozoku,
+  enumerable: false,
+  writable: false,
+  configurable: false,
 });
+
+module.exports = Object.freeze(publicApi);
 
 },
     "src/simulators/core/result-builder.js": function (module, exports, require) {
@@ -14160,6 +14182,1228 @@ module.exports = Object.freeze({
 });
 
 },
+    "src/ui/sozoku/app.js": function (module, exports, require) {
+'use strict';
+
+const { el } = require('../dom.js');
+const { createStore } = require('../store.js');
+const { createMoneyInput, createSelect } = require('../forms.js');
+const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { queueEvent } = require('../analytics.js');
+const {
+  SozokuInputBuildError,
+  buildSozokuInputWithMeta,
+  buildSozokuCalculationContext,
+} = require('./input-builder.js');
+const { buildSozokuResultViewModel, formatYen } = require('./result-view-model.js');
+
+const TOTAL_STEPS = 3;
+const YES_NO = Object.freeze([
+  { value: '', label: '選択してください' },
+  { value: 'yes', label: 'はい' },
+  { value: 'no', label: 'いいえ' },
+]);
+const TRI_STATE = Object.freeze([
+  ...YES_NO,
+  { value: 'unknown', label: 'わからない' },
+]);
+const INITIAL_FORM = Object.freeze({
+  level: 1,
+  hasSpouse: '',
+  childCount: '0',
+  adoptedChildCount: '0',
+  parentCount: '0',
+  siblingCount: '0',
+  deceasedDescendant: '',
+  renunciation: '',
+  specialOrStepchildAdoption: '',
+  overseasResident: '',
+  cash: '',
+  securities: '',
+  businessAssets: '',
+  otherAssets: '',
+  realEstate: Object.freeze([]),
+  lifeInsurance: Object.freeze([]),
+  retirementAllowance: Object.freeze([]),
+  debts: Object.freeze([]),
+  hasGiftAddback: '',
+  hasSettlementTaxationGifts: '',
+  divisionMode: 'statutory',
+  divisionStatus: 'yes',
+  dividedAfterFilingDeadline: 'no',
+  divisionShares: Object.freeze({}),
+  smallResidentialLand: null,
+});
+
+const STATIC_FIELD_IDS = Object.freeze({
+  '$.hasSpouse': 'so-spouse',
+  '$.childCount': 'so-child-count',
+  '$.adoptedChildCount': 'so-adopted-count',
+  '$.parentCount': 'so-parent-count',
+  '$.siblingCount': 'so-sibling-count',
+  '$.heirSpecialistChecks': 'so-deceased-check',
+  '$.assets.cash.value': 'so-cash',
+  '$.assets.securities.value': 'so-securities',
+  '$.assets.businessAssets.value': 'so-business-assets',
+  '$.assets.otherAssets.value': 'so-other-assets',
+  '$.assets.gifts': 'so-gift-addback',
+  '$.division': 'so-division-mode',
+  '$.division.acquisitions': 'so-division-shares',
+  '$.smallResidentialLand[0].areaSqm': 'so-small-land-area',
+});
+
+const STYLE_TEXT = `
+.sozoku-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}.sozoku-app h1,.sozoku-app h2,.sozoku-app h3{color:#0B2045}.sozoku-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}.sozoku-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.sozoku-warning{border:2px solid #9b1c1c;padding:16px}.sozoku-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.sozoku-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.sozoku-app button.sozoku-primary{background:#E85320;border-color:#E85320;color:#fff}.sozoku-app input,.sozoku-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.sozoku-app input[type=radio]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.sozoku-progress{font-weight:700}.sozoku-help{color:#55607a}.sozoku-error{color:#9b1c1c;font-weight:700}.sozoku-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.sozoku-row{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.sozoku-table-wrap{overflow-x:auto}.sozoku-app table{border-collapse:collapse;width:100%;min-width:680px}.sozoku-app th,.sozoku-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.sozoku-app td{text-align:right}.sozoku-level{font-weight:700}.sozoku-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}@media(max-width:480px){.sozoku-app{padding:12px}.sozoku-card{padding:16px}.sozoku-actions{display:block}.sozoku-actions button{width:100%;margin:5px 0}.sozoku-app table{min-width:0}.sozoku-app thead{position:absolute;width:1px;height:1px;overflow:hidden}.sozoku-app tr,.sozoku-app td,.sozoku-app th{display:block;text-align:left}}@media print{.sozoku-no-print{display:none!important}.sozoku-app{max-width:none;padding:0}.sozoku-card{box-shadow:none;break-inside:avoid}.sozoku-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
+`;
+
+function cloneInitialForm() {
+  return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [], divisionShares: {} };
+}
+
+function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
+  if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
+    throw new TypeError('マウント先のDOM要素が必要です');
+  }
+  const service = services && services.sozoku ? services.sozoku : services;
+  if (!service || typeof service.validate !== 'function' || typeof service.simulate !== 'function') {
+    throw new TypeError('sozokuサービスが必要です');
+  }
+  const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    viewModel: null, buildMeta: null });
+  let nextRowId = 1;
+  let destroyed = false;
+  rootElement.classList.add('sozoku-app');
+  queueEvent('simulator_view', { tool: 'sozoku' });
+
+  function updateForm(key, value, rerender = false) {
+    store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
+    if (rerender) render();
+  }
+  function dynamicFieldId(path) {
+    const match = /^\$\.assets\.realEstate\[(\d+)\](.*)$/.exec(path);
+    if (match) return `so-real-estate-${match[1]}${match[2].includes('area') ? '-area' :
+      match[2].includes('roadside') ? '-roadside' : '-value'}`;
+    const debt = /^\$\.debts\[(\d+)\](.*)$/.exec(path);
+    if (debt) return `so-debt-${debt[1]}${debt[2].includes('bearer') ? '-bearer' : '-amount'}`;
+    const benefit = /^\$\.assets\.(lifeInsurance|retirementAllowance)\[(\d+)\](.*)$/.exec(path);
+    if (benefit) return `so-${benefit[1]}-${benefit[2]}${benefit[3].includes('beneficiary') ? '-beneficiary' : '-amount'}`;
+    const division = /^\$\.division\.acquisitions\[(\d+)\]/.exec(path);
+    return division ? `so-division-${division[1]}` : STATIC_FIELD_IDS[path];
+  }
+  function errorFor(path) { return store.getState().errors.find(item => item.fieldPath === path); }
+  function addControlError(control, path) {
+    const found = errorFor(path);
+    if (!found) return null;
+    const id = `${control.id || dynamicFieldId(path) || 'so-field'}-error`;
+    control.setAttribute('aria-invalid', 'true');
+    control.setAttribute('aria-describedby', [control.getAttribute('aria-describedby'), id].filter(Boolean).join(' '));
+    return el('p', { id, className: 'sozoku-error' }, found.message);
+  }
+  function errorSummary() {
+    const errors = store.getState().errors;
+    if (errors.length === 0) return null;
+    return el('div', { className: 'sozoku-error-summary', tabindex: '-1' }, [
+      el('h2', {}, '入力内容を確認してください'),
+      el('ul', {}, errors.map(item => {
+        const id = dynamicFieldId(item.fieldPath);
+        return el('li', {}, id ? el('a', { href: `#${id}` }, item.message) : item.message);
+      })),
+    ]);
+  }
+  function selectField(key, id, label, description, options, path, rerender = false) {
+    const field = createSelect({ id, label, description, options, value: store.getState().form[key],
+      onChange: value => updateForm(key, value, rerender) });
+    return [field.element, addControlError(field.select, path)];
+  }
+  function moneyField(key, id, label, path, description = '0円以上の整数。全角数字・万単位も入力できます。') {
+    const field = createMoneyInput({ id, label, description, value: store.getState().form[key] });
+    field.input.addEventListener('input', () => {
+      const parsed = field.read();
+      updateForm(key, parsed.ok ? parsed.value : field.input.value);
+    });
+    return [field.element, addControlError(field.input, path)];
+  }
+  function nestedMoney(rowKey, index, property, id, label, path, description) {
+    const row = store.getState().form[rowKey][index];
+    const field = createMoneyInput({ id, label, description: description || '0円以上の整数。', value: row[property] });
+    field.input.addEventListener('input', () => {
+      const parsed = field.read();
+      updateRow(rowKey, index, property, parsed.ok ? parsed.value : field.input.value);
+    });
+    return [field.element, addControlError(field.input, path)];
+  }
+  function nestedSelect(rowKey, index, property, id, label, options, path, rerender = false, description = '') {
+    const row = store.getState().form[rowKey][index];
+    const field = createSelect({ id, label, description, options, value: row[property], onChange: value => {
+      updateRow(rowKey, index, property, value);
+      if (rerender) render();
+    } });
+    return [field.element, addControlError(field.select, path)];
+  }
+  function updateRow(key, index, property, value) {
+    const rows = store.getState().form[key].map((row, rowIndex) => rowIndex === index ? { ...row, [property]: value } : row);
+    updateForm(key, rows);
+  }
+  function addRow(key, row) {
+    updateForm(key, [...store.getState().form[key], { uiId: nextRowId++, ...row }], true);
+  }
+  function removeRow(key, index, addButtonId, removePrefix) {
+    const rows = store.getState().form[key].filter((_, rowIndex) => rowIndex !== index);
+    updateForm(key, rows, true);
+    const focusId = index > 0 ? `${removePrefix}-${index - 1}-remove` : addButtonId;
+    setTimeout(() => { const target = rootElement.querySelector(`#${focusId}`); if (target) target.focus(); }, 0);
+  }
+  function stepHeader(step, title) {
+    return [el('p', { className: 'sozoku-progress', role: 'status', 'aria-label': `${TOTAL_STEPS}ステップ中${step}番目` },
+      `STEP ${step} / ${TOTAL_STEPS}`), el('h1', {}, title)];
+  }
+  function actionBar(nodes) { return el('div', { className: 'sozoku-actions sozoku-no-print' }, nodes); }
+  function countInput(key, id, label, path) {
+    const input = el('input', { id, type: 'text', inputmode: 'numeric', value: store.getState().form[key],
+      onInput: event => updateForm(key, event.currentTarget.value, true) });
+    return [el('label', { for: id }, label), input, addControlError(input, path)];
+  }
+
+  function renderIntro() {
+    return el('main', { className: 'sozoku-no-print' }, [
+      el('h1', {}, '相続税「かかる？いくら？」シミュレーター'),
+      el('p', {}, 'あなたの場合、相続税申告が必要か1分で簡易診断します。'),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, 'ご利用の前に'),
+        el('p', {}, '本ツールは一般的な前提による試算で、申告や個別の税務判断には使用できません。'),
+        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
+      el('p', {}, '相続開始日は第1版では2025年中として計算します。'),
+      el('button', { type: 'button', className: 'sozoku-primary', onClick: () => {
+        queueEvent('simulator_start', { tool: 'sozoku' }); goToStep(1);
+      } }, 'かんたん計算をはじめる'),
+    ]);
+  }
+
+  function renderStep1() {
+    const form = store.getState().form;
+    const totalChildren = Number(form.childCount || 0) + Number(form.adoptedChildCount || 0);
+    return el('main', { className: 'sozoku-no-print' }, [
+      ...stepHeader(1, '相続人'), errorSummary(),
+      ...selectField('hasSpouse', 'so-spouse', '配偶者はいますか', '', YES_NO, '$.hasSpouse'),
+      ...countInput('childCount', 'so-child-count', 'お子さまの人数（実子）', '$.childCount'),
+      ...countInput('adoptedChildCount', 'so-adopted-count', '養子の人数', '$.adoptedChildCount'),
+      totalChildren === 0 ? countInput('parentCount', 'so-parent-count', 'ご両親・祖父母でご存命の方の人数', '$.parentCount') : null,
+      totalChildren === 0 && Number(form.parentCount || 0) === 0
+        ? countInput('siblingCount', 'so-sibling-count', '兄弟姉妹の人数', '$.siblingCount') : null,
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '該当の確認'),
+        el('p', { className: 'sozoku-help' }, '「はい」または「わからない」の場合は、専門判定をご案内します。'),
+        ...selectField('deceasedDescendant', 'so-deceased-check', '子や兄弟姉妹で亡くなっている方がいる（代襲）', '', TRI_STATE, '$.heirSpecialistChecks'),
+        ...selectField('renunciation', 'so-renunciation-check', '相続放棄をした・する予定の方がいる', '', TRI_STATE, '$.heirSpecialistChecks'),
+        ...selectField('specialOrStepchildAdoption', 'so-adoption-check', '特別養子・配偶者の連れ子養子がいる', '', TRI_STATE, '$.heirSpecialistChecks'),
+        ...selectField('overseasResident', 'so-overseas-check', '海外在住の方がいる', '', TRI_STATE, '$.heirSpecialistChecks'),
+      ]),
+      el('p', { className: 'sozoku-help' }, '未成年または障害のある相続人がいる場合、実際の税額はこの試算より少なくなることがあります。'),
+      actionBar([el('button', { type: 'button', className: 'sozoku-primary', onClick: () => goToStep(2) }, '次へ'),
+        el('button', { type: 'button', onClick: clearAll }, '入力をクリア')]),
+    ]);
+  }
+
+  function renderRealEstateRows() {
+    const rows = store.getState().form.realEstate;
+    return [rows.map((row, index) => {
+      const path = `$.assets.realEstate[${index}]`;
+      return el('section', { className: 'sozoku-row' }, [
+        el('h3', {}, `不動産 ${index + 1}`),
+        ...nestedSelect('realEstate', index, 'category', `so-real-estate-${index}-category`, '種類', [
+          { value: 'land', label: '土地' }, { value: 'building', label: '建物' },
+        ], `${path}.category`, true),
+        ...nestedSelect('realEstate', index, 'appraisalKnown', `so-real-estate-${index}-known`, '相続税評価額が分かりますか', YES_NO, `${path}.kind`, true),
+        row.appraisalKnown === 'yes'
+          ? nestedMoney('realEstate', index, 'appraisedValue', `so-real-estate-${index}-value`, '相続税評価（円）', `${path}.value.value`)
+          : row.category === 'land' ? [
+            nestedMoney('realEstate', index, 'roadsideValuePerSqm', `so-real-estate-${index}-roadside`, '路線価（1㎡あたり・円）', `${path}.roadsideValuePerSqm.value`),
+            el('label', { for: `so-real-estate-${index}-area` }, '面積（㎡、小数第1位まで）'),
+            el('input', { id: `so-real-estate-${index}-area`, type: 'text', inputmode: 'decimal', value: row.areaSqm,
+              onInput: event => updateRow('realEstate', index, 'areaSqm', event.currentTarget.value) }),
+            el('p', { className: 'sozoku-warning' }, '実際の相続税評価額とは異なる場合があります。'),
+          ] : nestedMoney('realEstate', index, 'fixedAssetTaxValue', `so-real-estate-${index}-value`, '固定資産税評価額（円）', `${path}.fixedAssetTaxValue.value`),
+        el('button', { id: `so-real-estate-${index}-remove`, type: 'button', onClick: () =>
+          removeRow('realEstate', index, 'so-real-estate-add', 'so-real-estate') }, 'この不動産を削除'),
+      ]);
+    }), rows.length < 4 ? el('button', { id: 'so-real-estate-add', type: 'button', onClick: () =>
+      addRow('realEstate', { category: 'land', appraisalKnown: 'yes', appraisedValue: '', roadsideValuePerSqm: '', areaSqm: '', fixedAssetTaxValue: '' }) }, '不動産を追加') : null];
+  }
+
+  function heirOptions(includeNonHeir = false) {
+    let heirs = [];
+    try { heirs = buildSozokuInputWithMeta({ ...store.getState().form, level: 1, cash: '0', securities: '0',
+      businessAssets: '0', otherAssets: '0', realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [],
+      hasGiftAddback: 'no', hasSettlementTaxationGifts: 'no', divisionMode: 'statutory',
+      divisionStatus: 'yes', dividedAfterFilingDeadline: 'no', smallResidentialLand: null }).wire.heirs; }
+    catch (_error) { /* STEP1エラーは送信時に表示 */ }
+    const labels = heirs.map((item, index) => ({ value: item.id, label: item.relation === 'spouse' ? '配偶者' :
+      item.relation === 'child' ? `お子さま${index}` : item.relation === 'adopted_child' ? `養子${index}` : `相続人${index + 1}` }));
+    return [{ value: '', label: '選択してください' }, ...labels,
+      ...(includeNonHeir ? [{ value: 'non_heir', label: '相続人以外' }] : [])];
+  }
+  function renderBenefitRows(key, title, addId) {
+    const rows = store.getState().form[key];
+    return el('section', { className: 'sozoku-card' }, [el('h2', {}, title),
+      el('p', { className: 'sozoku-help' }, '相続人が受け取る分には非課税枠（500万円×法定相続人の数）があります。'),
+      rows.map((row, index) => el('div', { className: 'sozoku-row' }, [
+        ...nestedSelect(key, index, 'beneficiaryHeirId', `so-${key}-${index}-beneficiary`, '受取人', heirOptions(true), `$.assets.${key}[${index}].beneficiaryHeirId`),
+        ...nestedMoney(key, index, 'amount', `so-${key}-${index}-amount`, '金額（円）', `$.assets.${key}[${index}].amount.value`),
+        el('button', { id: `so-${key}-${index}-remove`, type: 'button', onClick: () => removeRow(key, index, addId, `so-${key}`) }, 'この行を削除'),
+      ])),
+      el('button', { id: addId, type: 'button', onClick: () => addRow(key, { beneficiaryHeirId: '', amount: '' }) }, `${title}を追加`),
+    ]);
+  }
+  function renderDebtRows() {
+    const rows = store.getState().form.debts;
+    return el('section', { className: 'sozoku-card' }, [el('h2', {}, '債務・葬式費用'),
+      rows.map((row, index) => el('div', { className: 'sozoku-row' }, [
+        ...nestedSelect('debts', index, 'kind', `so-debt-${index}-kind`, '種類', [
+          { value: 'loan', label: '借入金' }, { value: 'unpaid', label: '未払金' },
+          { value: 'funeral', label: '葬式費用' }, { value: 'other', label: 'その他' },
+        ], `$.debts[${index}].kind`),
+        ...nestedMoney('debts', index, 'amount', `so-debt-${index}-amount`, '金額（円）', `$.debts[${index}].amount.value`),
+        ...nestedSelect('debts', index, 'bearerHeirId', `so-debt-${index}-bearer`, '負担する人', heirOptions(), `$.debts[${index}].bearerHeirId`),
+        el('button', { id: `so-debt-${index}-remove`, type: 'button', onClick: () => removeRow('debts', index, 'so-debt-add', 'so-debt') }, 'この行を削除'),
+      ])),
+      el('button', { id: 'so-debt-add', type: 'button', onClick: () => addRow('debts', { kind: 'loan', amount: '', bearerHeirId: '' }) }, '債務・葬式費用を追加'),
+    ]);
+  }
+
+  function renderStep2() {
+    return el('main', { className: 'sozoku-no-print' }, [
+      ...stepHeader(2, '財産と債務'), errorSummary(),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '財産'),
+        moneyField('cash', 'so-cash', '現預金（円）', '$.assets.cash.value'),
+        moneyField('securities', 'so-securities', '有価証券（円）', '$.assets.securities.value'),
+        moneyField('businessAssets', 'so-business-assets', '事業用資産（円）', '$.assets.businessAssets.value'),
+        moneyField('otherAssets', 'so-other-assets', 'その他財産（円）', '$.assets.otherAssets.value'),
+      ]),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '不動産（最大4件）'), renderRealEstateRows()]),
+      renderBenefitRows('lifeInsurance', '死亡保険金', 'so-lifeInsurance-add'),
+      renderBenefitRows('retirementAllowance', '死亡退職金', 'so-retirementAllowance-add'),
+      renderDebtRows(),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '贈与の確認'),
+        ...selectField('hasGiftAddback', 'so-gift-addback', '7年以内の生前贈与加算の対象財産がありますか', '', TRI_STATE, '$.assets.gifts'),
+        ...selectField('hasSettlementTaxationGifts', 'so-settlement-gifts', '相続時精算課税の適用財産がありますか', '', TRI_STATE, '$.assets.gifts'),
+      ]),
+      actionBar([el('button', { type: 'button', onClick: () => goToStep(1) }, '戻る'),
+        el('button', { type: 'button', className: 'sozoku-primary', onClick: () => calculate(1) }, '申告要否を診断'),
+        el('button', { type: 'button', onClick: clearAll }, '入力をクリア')]),
+    ]);
+  }
+
+  function renderStep3() {
+    const form = store.getState().form;
+    let heirs = [];
+    try { heirs = buildSozokuInputWithMeta({ ...form, level: 2, divisionMode: 'statutory', smallResidentialLand: null }).wire.heirs; }
+    catch (_error) { /* 計算時に表示 */ }
+    const directLands = form.realEstate.map((row, index) => ({ row, index })).filter(item =>
+      item.row.category === 'land' && item.row.appraisalKnown === 'yes');
+    const small = form.smallResidentialLand || {};
+    const setSmall = (key, value) => updateForm('smallResidentialLand', { ...small, [key]: value }, true);
+    return el('main', { className: 'sozoku-no-print' }, [
+      ...stepHeader(3, '分割と特例'), errorSummary(),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '財産の分割'),
+        ...selectField('divisionMode', 'so-division-mode', '計算に使う取得割合', '', [
+          { value: 'statutory', label: '法定相続分で計算（仮）' },
+          { value: 'specified', label: '割合を指定' },
+        ], '$.division', true),
+        form.divisionMode === 'statutory' ? el('p', { className: 'sozoku-help' }, '分割未確定のため法定相続分で仮計算します。') :
+          el('div', { id: 'so-division-shares' }, heirs.map((heir, index) => {
+            const id = `so-division-${index}`;
+            const input = el('input', { id, type: 'text', inputmode: 'numeric', value: form.divisionShares[heir.id] ?? '',
+              onInput: event => updateForm('divisionShares', { ...store.getState().form.divisionShares, [heir.id]: event.currentTarget.value }) });
+            return el('div', {}, [el('label', { for: id }, `${heir.relation === 'spouse' ? '配偶者' : `相続人${index + 1}`}の取得割合（%）`),
+              input, addControlError(input, `$.division.acquisitions[${index}].share`)]);
+          })),
+        ...selectField('divisionStatus', 'so-division-status', '申告期限までに分割済みの見込みですか', '', TRI_STATE, '$.division.isDivided'),
+        ...selectField('dividedAfterFilingDeadline', 'so-late-division', '分割は申告期限後になる見込みですか', '', TRI_STATE, '$.division.dividedAfterFilingDeadline'),
+        form.divisionStatus !== 'yes' || form.dividedAfterFilingDeadline !== 'no'
+          ? el('p', { className: 'sozoku-warning' }, '未分割または申告期限後の分割では、配偶者の税額軽減を使わず計算します。') : null,
+      ]),
+      directLands.length > 0 ? el('section', { className: 'sozoku-card' }, [el('h2', {}, '小規模宅地等（特定居住用）'),
+        createSelect({ id: 'so-small-land-use', label: '特例の可能性を試算しますか', options: YES_NO,
+          value: small.apply || 'no', onChange: value => setSmall('apply', value) }).element,
+        small.apply === 'yes' ? [
+          createSelect({ id: 'so-small-land-index', label: '対象の土地', options: [{ value: '', label: '選択してください' },
+            ...directLands.map(item => ({ value: String(item.index), label: `土地 ${item.index + 1}` }))], value: small.realEstateIndex,
+            onChange: value => setSmall('realEstateIndex', value) }).element,
+          el('label', { for: 'so-small-land-area' }, '対象土地の面積（㎡、小数第1位まで）'),
+          el('input', { id: 'so-small-land-area', type: 'text', inputmode: 'decimal', value: small.areaSqm || '',
+            onInput: event => updateForm('smallResidentialLand', { ...store.getState().form.smallResidentialLand, areaSqm: event.currentTarget.value }) }),
+          createSelect({ id: 'so-small-land-acquirer', label: '取得する人', options: heirOptions(), value: small.acquirerHeirId,
+            onChange: value => setSmall('acquirerHeirId', value) }).element,
+          createSelect({ id: 'so-small-land-relation', label: '取得者の要件', options: [
+            { value: '', label: '選択してください' }, { value: 'spouse', label: '配偶者' },
+            { value: 'cohabiting_relative', label: '同居の親族' }, { value: 'other', label: 'その他' },
+          ], value: small.acquirerRelation, onChange: value => setSmall('acquirerRelation', value) }).element,
+          small.acquirerRelation === 'cohabiting_relative' ? [
+            createSelect({ id: 'so-small-land-reside', label: '取得者は居住を継続する見込みですか', options: TRI_STATE,
+              value: small.acquirerResidesAndOwns, onChange: value => setSmall('acquirerResidesAndOwns', value) }).element,
+            createSelect({ id: 'so-small-land-hold', label: '申告期限まで保有する見込みですか', options: TRI_STATE,
+              value: small.willHoldUntilFilingDeadline, onChange: value => setSmall('willHoldUntilFilingDeadline', value) }).element,
+          ] : null,
+          small.acquirerRelation === 'other' ? el('p', { className: 'sozoku-help' }, '要件が揃わないため特例を適用せず計算し、適用できる可能性を注記します。') : null,
+        ] : null,
+      ]) : null,
+      actionBar([el('button', { type: 'button', onClick: () => goToStep(2) }, '戻る'),
+        el('button', { type: 'button', className: 'sozoku-primary', onClick: () => calculate(2) }, '税額まで計算'),
+        el('button', { type: 'button', onClick: clearAll }, '入力をクリア')]),
+    ]);
+  }
+
+  function validationErrors(validation) {
+    return (validation.errors || []).map(item => ({ code: item.code || 'SOZOKU_SERVICE_VALIDATION_ERROR',
+      fieldPath: item.fieldPath, message: item.message || '入力内容を確認してください' }));
+  }
+  function setBuildErrors(error, fallbackStep) {
+    const errors = error instanceof SozokuInputBuildError ? [...error.errors] : [{
+      code: 'SOZOKU_UI_BUILD_ERROR', fieldPath: '$', message: error.message,
+    }];
+    store.setState(state => ({ ...state, screen: 'input', step: fallbackStep, errors }));
+    announceAlert('入力内容に確認が必要な項目があります');
+  }
+  function goToStep(step) { store.setState(state => ({ ...state, screen: 'input', step, errors: [] })); }
+  async function calculate(level) {
+    let built; let context;
+    try {
+      const form = { ...store.getState().form, level };
+      built = buildSozokuInputWithMeta(form);
+      context = buildSozokuCalculationContext(snapshotInfo, nowProvider());
+    } catch (error) { setBuildErrors(error, level === 1 ? 2 : 3); return; }
+    const validation = service.validate(built.wire);
+    if (!validation.ok) {
+      store.setState(state => ({ ...state, errors: validationErrors(validation) }));
+      await announceAlert('入力内容に確認が必要な項目があります'); return;
+    }
+    store.setState(state => ({ ...state, screen: 'calculating', errors: [], result: null, viewModel: null, buildMeta: built }));
+    await announceStatus(level === 1 ? '申告要否を判定しています' : '相続税を計算しています');
+    try {
+      const result = await service.simulate(validation.value, context, snapshotInfo);
+      showResult(result, built);
+    } catch (error) { setBuildErrors(error, level === 1 ? 2 : 3); }
+  }
+  function showResult(result, built) {
+    const small = store.getState().form.smallResidentialLand;
+    const viewModel = buildSozokuResultViewModel(result, {
+      smallResidentialLandPossibility: built.smallResidentialLandPossibility,
+      smallResidentialLandArea: small && small.areaSqm ? `${small.areaSqm}㎡` : undefined,
+    });
+    store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+    queueEvent('simulator_complete', { tool: 'sozoku', resultStatus: result.resultStatus });
+    if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
+    else { const heading = rootElement.querySelector('#so-result-heading'); if (heading) focusResultHeading(heading); }
+  }
+  function continueToLevel2() {
+    const screeningIndex = store.getState().form.realEstate.findIndex(row => row.appraisalKnown !== 'yes');
+    if (screeningIndex >= 0) {
+      store.setState(state => ({ ...state, screen: 'input', step: 2, errors: [issue(
+        'SOZOKU_LEVEL2_DIRECT_APPRAISAL_REQUIRED', `$.assets.realEstate[${screeningIndex}]`,
+        '税額まで計算するには、この不動産の相続税評価額を直接入力してください')]}));
+      announceAlert('不動産の直接評価額が必要です');
+      setTimeout(() => { const field = rootElement.querySelector(`#so-real-estate-${screeningIndex}-known`); if (field) field.focus(); }, 0);
+      return;
+    }
+    queueEvent('simulator_mode', { tool: 'sozoku', mode: 'level2' });
+    goToStep(3);
+  }
+  function resetState() { store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null, buildMeta: null }); }
+  function clearAll() {
+    if (browserWindow && typeof browserWindow.confirm === 'function' && !browserWindow.confirm('入力と試算結果をすべてクリアしますか？')) return;
+    resetState();
+  }
+  function printResult() { queueEvent('simulator_cta_click', { tool: 'sozoku' }); if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print(); }
+  function definitionList(items) { return el('dl', {}, items.flatMap(([term, value]) => [el('dt', {}, term), el('dd', {}, value)])); }
+  function commonResultSections(viewModel) {
+    return [
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '警告'), el('ul', {}, viewModel.warnings.map(warning => el('li', {}, [
+        el('span', { className: 'sozoku-level' }, `[${warning.level}] `), warning.basis || warning.code,
+        warning.userAction ? ` 対応：${warning.userAction}` : '',
+      ])))]),
+      el('details', {}, [el('summary', {}, '前提をすべて表示'), el('ul', {}, viewModel.assumptions.map(text => el('li', {}, text)))]),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '計算範囲'),
+        el('p', {}, `計算済み ${viewModel.calculationRange.calculatedCount} / 対象 ${viewModel.calculationRange.targetCount} 項目`),
+        el('ul', {}, viewModel.calculationRange.excluded.map(item => el('li', {}, `${item.label}：LEVEL 1では計算対象外`)))]),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, '根拠'), definitionList([
+        ['計算版', viewModel.grounds.calculationVersion], ['マスタースナップショットID', viewModel.grounds.masterSnapshotId], ['法令基準日', viewModel.grounds.legalStatusAsOf],
+      ]), el('h3', {}, '出典'), el('ul', {}, viewModel.grounds.sources.map(source => el('li', {}, source.url
+        ? el('a', { href: source.url, rel: 'noreferrer' }, `${source.authority}：${source.title}`) : source.title)))]),
+    ];
+  }
+  function resultActions(level) {
+    return actionBar([el('button', { type: 'button', onClick: () => goToStep(level === 1 ? 2 : 3) }, '入力を修正する'),
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+      el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存')]);
+  }
+  function renderBlocked(viewModel) {
+    return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
+      ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
+        alert.resolutionType === 'consultation' ? el('p', { className: 'sozoku-placeholder' }, '個別相談（公開準備中）') : null])),
+      ...commonResultSections({ ...viewModel, calculationRange: { calculatedCount: 0, targetCount: 6, excluded: [] } }), resultActions(1)]);
+  }
+  function renderResult(viewModel) {
+    return el('main', {}, [
+      el('p', { className: 'sozoku-help' }, 'この印刷物は申告に使用できません。利用後は「入力をクリア」を実行してください。'),
+      el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
+      el('section', { className: 'sozoku-card sozoku-conclusion' }, [el('h2', {}, '申告要否の試算'), el('p', {}, viewModel.conclusion.text)]),
+      el('section', { className: 'sozoku-card' }, [el('h2', {}, viewModel.level === 1 ? '簡易診断の金額' : '相続税の試算'),
+        definitionList([['課税価格の合計', viewModel.taxablePriceTotal.display], ['基礎控除', viewModel.basicDeduction.display],
+          ...(viewModel.level === 2 ? [['相続税の総額', viewModel.totalInheritanceTax.display], ['納付税額の合計', viewModel.totalPayableTax.display]] : [])]),
+        viewModel.screeningWarning ? el('p', { className: 'sozoku-warning' }, viewModel.screeningWarning) : null,
+        viewModel.defaultDivisionAssumption ? el('p', { className: 'sozoku-help' }, viewModel.defaultDivisionAssumption) : null,
+      ]),
+      viewModel.level === 2 ? [
+        el('section', { className: 'sozoku-card' }, [el('h2', {}, '相続人ごとの試算'), el('div', { className: 'sozoku-table-wrap' }, el('table', {}, [
+          el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '相続人'), el('th', { scope: 'col' }, '取得財産（課税価格）'), el('th', { scope: 'col' }, '算出税額'), el('th', { scope: 'col' }, '控除'), el('th', { scope: 'col' }, '納付税額')])),
+          el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [el('th', { scope: 'row' }, row.label), el('td', {}, row.acquiredAmount.display), el('td', {}, row.taxBeforeCredits.display), el('td', {}, row.credits.display), el('td', {}, row.finalTax.display)]))),
+        ]))]),
+        viewModel.spouseRelief ? el('section', { className: 'sozoku-card' }, [el('h2', {}, '配偶者の税額軽減'), definitionList([
+          ['適用前税額', viewModel.spouseRelief.before.display], ['適用後税額', viewModel.spouseRelief.after.display], ['軽減額', viewModel.spouseRelief.reduction.display],
+        ]), viewModel.undividedWarning ? el('p', { className: 'sozoku-warning' }, viewModel.undividedWarning) : null]) : null,
+        viewModel.smallResidentialLand.applied || viewModel.smallResidentialLand.possibility ? el('section', { className: 'sozoku-card' }, [el('h2', {}, '小規模宅地等'),
+          viewModel.smallResidentialLand.applied ? definitionList([['減額額', viewModel.smallResidentialLand.reduction.display], ['適用面積', viewModel.smallResidentialLand.appliedArea || '入力面積']])
+            : el('p', {}, '特例を適用せず計算しました。適用できる可能性があります（要件の確認は専門家へご相談ください）。')]) : null,
+      ] : el('button', { type: 'button', className: 'sozoku-primary sozoku-no-print', onClick: continueToLevel2 }, 'もっと詳しく（税額まで計算）'),
+      ...commonResultSections(viewModel), el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      resultActions(viewModel.level), el('p', { className: 'sozoku-placeholder sozoku-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
+    ]);
+  }
+  function render() {
+    if (destroyed) return;
+    const state = store.getState();
+    let content;
+    if (state.screen === 'intro') content = renderIntro();
+    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    else if (state.screen === 'calculating') content = el('main', { className: 'sozoku-no-print' }, [el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'), el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です')]);
+    else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
+    else content = renderResult(state.viewModel);
+    rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
+    const summary = rootElement.querySelector('.sozoku-error-summary'); if (summary) summary.focus();
+  }
+  const unsubscribe = store.subscribe((state, previous) => {
+    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors || state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+  });
+  const pageshowHandler = event => { if (event.persisted) resetState(); };
+  if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
+  render();
+  return Object.freeze({ store, destroy() { destroyed = true; unsubscribe(); if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler); rootElement.classList.remove('sozoku-app'); rootElement.replaceChildren(); } });
+}
+
+function issue(code, fieldPath, message) { return { code, fieldPath, message }; }
+
+module.exports = Object.freeze({ mountSozokuApp, INITIAL_FORM });
+
+},
+    "src/ui/sozoku/heirs-builder.js": function (module, exports, require) {
+'use strict';
+
+class SozokuHeirsBuildError extends Error {
+  constructor(errors) {
+    super(errors.map(item => item.message).join('\n'));
+    this.name = 'SozokuHeirsBuildError';
+    this.errors = Object.freeze(errors.map(item => Object.freeze({ ...item })));
+    this.code = this.errors[0] && this.errors[0].code;
+  }
+}
+
+function issue(code, fieldPath, message) {
+  return Object.freeze({ code, fieldPath, message });
+}
+
+function selectedYesOrUnknown(value) {
+  return value === true || value === 'yes' || value === 'unknown' ||
+    value === '該当' || value === '不明' || value === 'ある' || value === 'わからない';
+}
+
+function nonNegativeCount(value, fieldPath, label, errors) {
+  const text = value === undefined || value === null || value === '' ? '0' : String(value);
+  if (!/^\d+$/.test(text) || !Number.isSafeInteger(Number(text))) {
+    errors.push(issue('SOZOKU_UI_HEIR_COUNT_INVALID', fieldPath,
+      `${label}は0人以上の整数で入力してください`));
+    return 0;
+  }
+  return Number(text);
+}
+
+function specialistCheckEntries(formState) {
+  const checks = {
+    deceasedDescendant: formState.deceasedDescendant ?? formState.hasDeceasedChildOrSibling,
+    renunciation: formState.renunciation ?? formState.hasRenunciation,
+    specialOrStepchildAdoption: formState.specialOrStepchildAdoption ??
+      formState.hasSpecialOrStepchildAdoption,
+    overseasResident: formState.overseasResident ?? formState.hasOverseasResident,
+    ...(formState.heirSpecialistChecks || {}),
+  };
+  if (formState.specialistCheck !== undefined) checks.summary = formState.specialistCheck;
+  if (formState.heirComplexity !== undefined) checks.summary = formState.heirComplexity;
+  return Object.entries(checks);
+}
+
+function heir(id, relation) {
+  return Object.freeze({
+    id,
+    relation,
+    isAlive: true,
+    residencyStatus: 'domestic_resident',
+  });
+}
+
+/** STEP 1の回答から、税法判定を含まない単純な相続人配列を組み立てる。 */
+function buildHeirs(formState) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('相続人の回答はオブジェクトで指定してください');
+  }
+  const errors = [];
+  const specialist = specialistCheckEntries(formState)
+    .filter(([, value]) => selectedYesOrUnknown(value));
+  if (specialist.length > 0) {
+    errors.push(issue('SOZOKU_UI_SPECIALIST_REVIEW_REQUIRED', '$.heirSpecialistChecks',
+      '代襲相続・相続放棄・特別養子等・海外居住の確認が必要なため、この簡易試算では判定できません。専門家へご相談ください'));
+  }
+
+  const spouseValue = formState.hasSpouse ?? formState.spouse;
+  if (![true, false, 'yes', 'no'].includes(spouseValue)) {
+    errors.push(issue('SOZOKU_UI_SPOUSE_SELECTION_REQUIRED', '$.hasSpouse',
+      '配偶者の有無を選択してください'));
+  }
+  const childCount = nonNegativeCount(
+    formState.childCount ?? formState.naturalChildCount ?? formState.children,
+    '$.childCount', '実子の人数', errors
+  );
+  const adoptedChildCount = nonNegativeCount(
+    formState.adoptedChildCount ?? formState.adoptedChildren,
+    '$.adoptedChildCount', '養子の人数', errors
+  );
+  const totalChildren = childCount + adoptedChildCount;
+  const parentCount = totalChildren === 0 ? nonNegativeCount(
+    formState.parentCount ?? formState.parents,
+    '$.parentCount', 'ご両親・祖父母の人数', errors
+  ) : 0;
+  const siblingCount = totalChildren === 0 && parentCount === 0 ? nonNegativeCount(
+    formState.siblingCount ?? formState.siblings,
+    '$.siblingCount', '兄弟姉妹の人数', errors
+  ) : 0;
+
+  if (errors.length > 0) throw new SozokuHeirsBuildError(errors);
+
+  const result = [];
+  if (spouseValue === true || spouseValue === 'yes') result.push(heir('spouse', 'spouse'));
+  for (let index = 1; index <= childCount; index++) result.push(heir(`child-${index}`, 'child'));
+  for (let index = 1; index <= adoptedChildCount; index++) {
+    result.push(heir(`adopted-child-${index}`, 'adopted_child'));
+  }
+  for (let index = 1; index <= parentCount; index++) result.push(heir(`parent-${index}`, 'parent'));
+  for (let index = 1; index <= siblingCount; index++) {
+    result.push(heir(`sibling-${index}`, 'sibling_full'));
+  }
+  return Object.freeze(result);
+}
+
+module.exports = Object.freeze({
+  SozokuHeirsBuildError,
+  buildHeirs,
+  buildSozokuHeirs: buildHeirs,
+});
+
+},
+    "src/ui/sozoku/input-builder.js": function (module, exports, require) {
+'use strict';
+
+const { parseMoneyInput } = require('../forms.js');
+const { SozokuHeirsBuildError, buildHeirs } = require('./heirs-builder.js');
+
+class SozokuInputBuildError extends Error {
+  constructor(errors) {
+    super(errors.map(item => item.message).join('\n'));
+    this.name = 'SozokuInputBuildError';
+    this.errors = Object.freeze(errors.map(item => Object.freeze({ ...item })));
+    this.code = this.errors[0] && this.errors[0].code;
+  }
+}
+
+function issue(code, fieldPath, message) {
+  return { code, fieldPath, message };
+}
+
+function money(value, fieldPath, errors, optional = false) {
+  if (optional && (value === undefined || value === null || value === '')) return undefined;
+  const parsed = parseMoneyInput(String(value ?? ''));
+  if (!parsed.ok) {
+    errors.push(issue('SOZOKU_UI_MONEY_REQUIRED', fieldPath,
+      '金額を0円以上の整数で入力してください'));
+    return { unit: 'JPY', value: '0' };
+  }
+  return { unit: 'JPY', value: parsed.value };
+}
+
+function optionalAssetMoney(value, fieldPath, errors) {
+  return money(value === undefined || value === null || value === '' ? '0' : value,
+    fieldPath, errors);
+}
+
+function normalizeAreaText(value) {
+  return String(value ?? '').replace(/[０-９]/g,
+    digit => String('０１２３４５６７８９'.indexOf(digit)))
+    .replace('．', '.').trim();
+}
+
+function area(value, fieldPath, errors) {
+  const text = normalizeAreaText(value);
+  if (!/^(?:\d+|\d+\.\d)$/.test(text)) {
+    errors.push(issue('SOZOKU_UI_AREA_INVALID', fieldPath,
+      '面積は0より大きい整数または小数第1位までで入力してください'));
+    return { unit: 'SQM', num: '0', den: '1' };
+  }
+  const [whole, decimal] = text.split('.');
+  const num = decimal === undefined ? BigInt(whole) : BigInt(whole) * 10n + BigInt(decimal);
+  if (num <= 0n) {
+    errors.push(issue('SOZOKU_UI_AREA_INVALID', fieldPath,
+      '面積は0より大きい値で入力してください'));
+  }
+  return { unit: 'SQM', num: num.toString(10), den: decimal === undefined ? '1' : '10' };
+}
+
+function triState(value, fieldPath, errors, label, defaultValue) {
+  if (value === undefined && defaultValue !== undefined) return defaultValue;
+  if (!['yes', 'no', 'unknown'].includes(value)) {
+    errors.push(issue('SOZOKU_UI_SELECTION_REQUIRED', fieldPath, `${label}を選択してください`));
+    return 'unknown';
+  }
+  return value;
+}
+
+function realEstateRows(formState, level, errors) {
+  return (formState.realEstate || formState.realEstates || []).map((row, index) => {
+    const path = `$.assets.realEstate[${index}]`;
+    const category = row.category || row.type;
+    if (!['land', 'building'].includes(category)) {
+      errors.push(issue('SOZOKU_UI_REAL_ESTATE_CATEGORY_REQUIRED', `${path}.category`,
+        '不動産の種類を土地または建物から選択してください'));
+    }
+    const known = row.appraisalKnown ?? row.appraised ??
+      (row.kind === 'appraised' ? 'yes' : row.kind && row.kind.startsWith('screening_') ? 'no' : undefined);
+    if (!['yes', 'no', true, false].includes(known)) {
+      errors.push(issue('SOZOKU_UI_APPRAISAL_SELECTION_REQUIRED', `${path}.kind`,
+        '相続税評価額が分かるか選択してください'));
+    }
+    const directlyAppraised = known === 'yes' || known === true;
+    if (level === 2 && !directlyAppraised) {
+      errors.push(issue('SOZOKU_LEVEL2_DIRECT_APPRAISAL_REQUIRED', path,
+        'LEVEL 2では不動産の相続税評価額を直接入力してください'));
+    }
+    if (directlyAppraised) {
+      return {
+        kind: 'appraised',
+        category: ['land', 'building'].includes(category) ? category : 'land',
+        value: money(row.appraisedValue ?? row.value, `${path}.value.value`, errors),
+      };
+    }
+    if (category === 'building') {
+      return {
+        kind: 'screening_building',
+        fixedAssetTaxValue: money(row.fixedAssetTaxValue ?? row.value,
+          `${path}.fixedAssetTaxValue.value`, errors),
+      };
+    }
+    return {
+      kind: 'screening_land',
+      roadsideValuePerSqm: money(row.roadsideValuePerSqm ?? row.roadsideValue,
+        `${path}.roadsideValuePerSqm.value`, errors),
+      areaSqm: area(row.areaSqm ?? row.area, `${path}.areaSqm`, errors),
+      isMultiplierArea: triState(row.isMultiplierArea, `${path}.isMultiplierArea`, errors,
+        '倍率地域への該当', 'no'),
+      hasLeaseholdOrRented: triState(row.hasLeaseholdOrRented,
+        `${path}.hasLeaseholdOrRented`, errors, '借地・貸家・貸地への該当', 'no'),
+    };
+  });
+}
+
+function beneficiaryRows(rows, inputPath, heirs, errors) {
+  const ids = new Set(heirs.map(item => item.id));
+  return (rows || []).map((row, index) => {
+    const path = `${inputPath}[${index}]`;
+    const selected = row.beneficiaryHeirId ?? row.beneficiary ?? row.recipient;
+    const isHeir = row.isHeir !== undefined ? Boolean(row.isHeir) :
+      selected !== 'non_heir' && selected !== 'other' && selected !== 'non-heir';
+    const result = { isHeir, amount: money(row.amount, `${path}.amount.value`, errors) };
+    if (isHeir) {
+      if (!ids.has(selected)) errors.push(issue('SOZOKU_BENEFICIARY_HEIR_REQUIRED',
+        `${path}.beneficiaryHeirId`, '受取人となる相続人を選択してください'));
+      else result.beneficiaryHeirId = selected;
+    }
+    return result;
+  });
+}
+
+function debtRows(rows, heirs, errors) {
+  const ids = new Set(heirs.map(item => item.id));
+  return (rows || []).map((row, index) => {
+    const path = `$.debts[${index}]`;
+    const kind = ['loan', 'unpaid', 'funeral', 'other'].includes(row.kind) ? row.kind : 'other';
+    const bearerHeirId = row.bearerHeirId ?? row.bearer;
+    if (!ids.has(bearerHeirId)) errors.push(issue('SOZOKU_DEBT_BEARER_REQUIRED',
+      `${path}.bearerHeirId`, '債務・葬式費用を実際に負担する相続人を選択してください'));
+    return {
+      kind,
+      amount: money(row.amount, `${path}.amount.value`, errors),
+      ...(ids.has(bearerHeirId) ? { bearerHeirId } : {}),
+    };
+  });
+}
+
+function division(formState, heirs, errors) {
+  const mode = formState.divisionMode || formState.divisionKind || 'statutory';
+  if (mode === 'statutory' || mode === 'legal' || mode === 'default') {
+    const isUndivided = ['no', 'unknown'].includes(formState.isDivided ?? formState.divisionStatus);
+    const isLate = ['yes', 'unknown'].includes(formState.dividedAfterFilingDeadline);
+    if (isUndivided || isLate) {
+      errors.push(issue('SOZOKU_UI_DIVISION_PERCENT_REQUIRED_FOR_UNDIVIDED', '$.division',
+        '未分割または申告期限後の分割見込みで軽減なしの税額を計算するには、現在の取得見込み割合を指定してください'));
+    }
+    return undefined;
+  }
+  if (mode !== 'specified') {
+    errors.push(issue('SOZOKU_UI_DIVISION_MODE_REQUIRED', '$.division',
+      '分割方法を選択してください'));
+    return undefined;
+  }
+  const source = formState.divisionShares || formState.acquisitions || {};
+  const values = Array.isArray(source) ? source : heirs.map(item => ({
+    heirId: item.id,
+    percent: source[item.id],
+  }));
+  let total = 0n;
+  const acquisitions = values.map((row, index) => {
+    const heirId = row.heirId;
+    const text = String(row.percent ?? row.sharePercent ?? row.value ?? '');
+    if (!/^\d+$/.test(text)) {
+      errors.push(issue('SOZOKU_UI_DIVISION_PERCENT_INVALID',
+        `$.division.acquisitions[${index}].share`, '取得割合は0〜100の整数で入力してください'));
+    } else total += BigInt(text);
+    return { heirId, share: { num: /^\d+$/.test(text) ? text : '0', den: '100' } };
+  });
+  if (total !== 100n) errors.push(issue('SOZOKU_DIVISION_SHARE_TOTAL_INVALID',
+    '$.division.acquisitions', `取得割合の合計を100%にしてください（現在 ${total}%）`));
+  return {
+    isDivided: triState(formState.isDivided ?? formState.divisionStatus,
+      '$.division.isDivided', errors, '未分割かどうか', 'yes'),
+    acquisitions,
+    ...(formState.dividedAfterFilingDeadline !== undefined ? {
+      dividedAfterFilingDeadline: triState(formState.dividedAfterFilingDeadline,
+        '$.division.dividedAfterFilingDeadline', errors, '申告期限後の分割見込み'),
+    } : {}),
+  };
+}
+
+function smallLand(formState, realEstate, heirs, errors) {
+  const state = formState.smallResidentialLand;
+  if (!state || state.enabled === false || state.apply === 'no' || state.use === 'no') {
+    return { entries: undefined, possible: false };
+  }
+  const requested = state.enabled === true || state.apply === 'yes' || state.use === 'yes' ||
+    state.realEstateIndex !== undefined;
+  if (!requested) return { entries: undefined, possible: false };
+  const index = Number(state.realEstateIndex ?? state.landIndex);
+  const estate = Number.isInteger(index) ? realEstate[index] : undefined;
+  const acquirerHeirId = state.acquirerHeirId ?? state.acquirer;
+  const acquirer = heirs.find(item => item.id === acquirerHeirId);
+  const relation = state.acquirerRelation || (acquirer && acquirer.relation === 'spouse'
+    ? 'spouse' : state.isCohabitingRelative === 'yes' ? 'cohabiting_relative' : 'other');
+  const spouseHolds = relation === 'spouse' && acquirer && acquirer.relation === 'spouse';
+  const cohabitingHolds = relation === 'cohabiting_relative' &&
+    state.acquirerResidesAndOwns === 'yes' && state.willHoldUntilFilingDeadline === 'yes';
+  const eligible = estate && estate.kind === 'appraised' && estate.category === 'land' &&
+    acquirer && (spouseHolds || cohabitingHolds);
+  if (!eligible) return { entries: undefined, possible: true };
+  const entry = {
+    realEstateIndex: index,
+    category: 'specified_residential',
+    areaSqm: area(state.areaSqm ?? state.area, '$.smallResidentialLand[0].areaSqm', errors),
+    acquirerHeirId,
+    acquirerRelation: relation,
+  };
+  if (state.intendedAppliedAreaSqm !== undefined && state.intendedAppliedAreaSqm !== '') {
+    entry.intendedAppliedAreaSqm = area(state.intendedAppliedAreaSqm,
+      '$.smallResidentialLand[0].intendedAppliedAreaSqm', errors);
+  }
+  if (relation === 'cohabiting_relative') {
+    entry.acquirerResidesAndOwns = state.acquirerResidesAndOwns;
+    entry.willHoldUntilFilingDeadline = state.willHoldUntilFilingDeadline;
+  }
+  return { entries: [entry], possible: false };
+}
+
+function yesOrUnknown(value) {
+  return value === true || value === 'yes' || value === 'unknown' || value === 'ある' || value === '不明';
+}
+
+function buildSozokuInputWithMeta(formState) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  const errors = [];
+  let heirs;
+  try {
+    heirs = Array.isArray(formState.heirs) ? formState.heirs.map(item => ({ ...item })) : buildHeirs(formState);
+  } catch (error) {
+    if (error instanceof SozokuHeirsBuildError) errors.push(...error.errors);
+    else throw error;
+    heirs = [];
+  }
+  const level = Number(formState.level || 1);
+  if (![1, 2].includes(level)) errors.push(issue('SOZOKU_UI_LEVEL_INVALID', '$.level',
+    '計算レベルは1または2で指定してください'));
+  if (yesOrUnknown(formState.hasGiftAddback ?? formState.giftAddbackStatus) ||
+      yesOrUnknown(formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus)) {
+    errors.push(issue('SOZOKU_UI_GIFT_SPECIALIST_REVIEW_REQUIRED', '$.assets.gifts',
+      '生前贈与加算または相続時精算課税の確認が必要なため、この簡易試算では判定できません。専門家へご相談ください'));
+  }
+
+  const realEstate = realEstateRows(formState, level, errors);
+  const assets = {
+    cash: optionalAssetMoney(formState.cash, '$.assets.cash.value', errors),
+    securities: optionalAssetMoney(formState.securities, '$.assets.securities.value', errors),
+    businessAssets: optionalAssetMoney(formState.businessAssets, '$.assets.businessAssets.value', errors),
+    otherAssets: optionalAssetMoney(formState.otherAssets, '$.assets.otherAssets.value', errors),
+  };
+  if (realEstate.length > 0) assets.realEstate = realEstate;
+  const lifeInsurance = beneficiaryRows(formState.lifeInsurance,
+    '$.assets.lifeInsurance', heirs, errors);
+  const retirementAllowance = beneficiaryRows(formState.retirementAllowance,
+    '$.assets.retirementAllowance', heirs, errors);
+  if (lifeInsurance.length > 0) assets.lifeInsurance = lifeInsurance;
+  if (retirementAllowance.length > 0) assets.retirementAllowance = retirementAllowance;
+  const selectedDivision = division(formState, heirs, errors);
+  const selectedSmallLand = smallLand(formState, realEstate, heirs, errors);
+
+  const wire = {
+    level: [1, 2].includes(level) ? level : 1,
+    precision: level === 1 ? 'simple' : 'detailed',
+    decedent: { residencyStatus: 'domestic_resident' },
+    heirs,
+    assets,
+    debts: debtRows(formState.debts, heirs, errors),
+    specialistChecks: {},
+    ...(selectedDivision ? { division: selectedDivision } : {}),
+    ...(selectedSmallLand.entries ? { smallResidentialLand: selectedSmallLand.entries } : {}),
+  };
+  if (errors.length > 0) throw new SozokuInputBuildError(errors);
+  return Object.freeze({
+    wire: Object.freeze(wire),
+    smallResidentialLandPossibility: selectedSmallLand.possible,
+  });
+}
+
+function buildSozokuInput(formState) {
+  return buildSozokuInputWithMeta(formState).wire;
+}
+
+function buildSozokuCalculationContext(snapshotInfo, calculatedAt = new Date().toISOString()) {
+  if (!snapshotInfo || typeof snapshotInfo !== 'object') {
+    throw new TypeError('マスタースナップショット情報が必要です');
+  }
+  return Object.freeze({
+    asOfDate: String(calculatedAt).slice(0, 10),
+    calculatedAt,
+    inheritanceOpenDate: '2025-06-30',
+    jurisdiction: Object.freeze({ country: 'JP' }),
+    masterSnapshotId: snapshotInfo.snapshotId,
+    masterSnapshotHash: snapshotInfo.snapshotHash,
+  });
+}
+
+module.exports = Object.freeze({
+  SozokuInputBuildError,
+  buildSozokuInput,
+  buildSozokuInputWithMeta,
+  buildSozokuInputResult: buildSozokuInputWithMeta,
+  buildSozokuCalculationContext,
+  areaToWire: area,
+});
+
+},
+    "src/ui/sozoku/question-catalog.js": function (module, exports, require) {
+'use strict';
+
+const RESOLUTION_TYPES = Object.freeze({
+  INPUT: 'input',
+  APPRAISAL: 'appraisal',
+  CONSULTATION: 'consultation',
+  INFORMATION: 'information',
+});
+
+function entry(heading, description, resolutionType = RESOLUTION_TYPES.CONSULTATION, fieldPath) {
+  return Object.freeze({ heading, description, resolutionType, fieldPath });
+}
+
+const INPUT = RESOLUTION_TYPES.INPUT;
+const APPRAISAL = RESOLUTION_TYPES.APPRAISAL;
+const CONSULTATION = RESOLUTION_TYPES.CONSULTATION;
+const INFORMATION = RESOLUTION_TYPES.INFORMATION;
+const DEFINITIONS = {
+  IHT_ADOPTED_SURCHARGE_ASSUMPTION: ['養子の税額加算を確認してください', '養子の税法上の取扱いに前提が含まれます。', CONSULTATION],
+  IHT_ADOPTION_ANTI_ABUSE_NOT_ASSESSED: ['養子の判定が必要です', '養子の税法上の算入制限は個別確認が必要です。', CONSULTATION],
+  IHT_ADOPTION_FACTS_REQUIRED: ['養子の状況を確認してください', '特別養子や配偶者の連れ子養子等は専門判定が必要です。', CONSULTATION],
+  IHT_DIRECT_APPRAISAL_REQUIRED: ['不動産の評価額が必要です', '税額計算には相続税評価額を直接入力してください。', APPRAISAL],
+  IHT_DISABILITY_AGE_REQUIRED: ['障害者控除の確認が必要です', '障害者控除は第1版UIの対象外です。', CONSULTATION],
+  IHT_DISABILITY_CREDIT_OVERFLOW_NOT_TRANSFERRED: ['障害者控除の控除不足があります', '扶養義務者への控除不足額の移転は対応範囲外です。', CONSULTATION],
+  IHT_DISQUALIFICATION_EXCLUSION_UNSUPPORTED: ['相続欠格・廃除の確認が必要です', 'この条件は簡易試算の対応範囲外です。', CONSULTATION],
+  IHT_DISQUALIFICATION_STATUS_UNKNOWN: ['相続欠格・廃除を確認してください', '状況が不明なため専門確認が必要です。', CONSULTATION],
+  IHT_ENGINE_BLOCKED: ['相続税を計算できません', '入力条件では相続税計算を完了できませんでした。', CONSULTATION],
+  IHT_FOREIGN_PROPERTY: ['国外財産の確認が必要です', '国外財産は第1版の対応範囲外です。', CONSULTATION],
+  IHT_FOREIGN_TAX_CREDIT_UNSUPPORTED: ['外国税額控除の確認が必要です', '外国税額控除は第1版の対応範囲外です。', CONSULTATION],
+  IHT_GIFT_ADDBACK_UNSUPPORTED: ['生前贈与の確認が必要です', '生前贈与加算がある場合は専門家へご相談ください。', CONSULTATION],
+  IHT_HEIRS_REQUIRED: ['相続人を入力してください', '法定相続人を確定できる回答が必要です。', INPUT, '$.heirs'],
+  IHT_INPUT_REQUIRED: ['入力内容を確認してください', '相続税計算に必要な入力が不足しています。', INPUT],
+  IHT_MASTER_UNAVAILABLE: ['計算根拠を確認できません', '必要な承認済み税務マスターが利用できません。', INFORMATION],
+  IHT_MINOR_AGE_REQUIRED: ['未成年者控除の確認が必要です', '未成年者控除は第1版UIの対象外です。', CONSULTATION],
+  IHT_MINOR_CREDIT_OVERFLOW_NOT_TRANSFERRED: ['未成年者控除の控除不足があります', '扶養義務者への控除不足額の移転は対応範囲外です。', CONSULTATION],
+  IHT_MULTIPLE_SPOUSES: ['配偶者の入力を確認してください', '配偶者を1人に確定できないため計算できません。', CONSULTATION],
+  IHT_NO_STATUTORY_HEIR: ['法定相続人を確定できません', '入力を確認するか、専門家へご相談ください。', CONSULTATION],
+  IHT_NON_RESIDENT: ['海外居住の確認が必要です', '被相続人または相続人が海外居住の場合は専門家へご相談ください。', CONSULTATION],
+  IHT_ON_DATE_REQUIRED: ['相続開始日を確認できません', '2025年中の相続開始として計算します。', INPUT],
+  IHT_RENOUNCER_ACQUIRED_PROPERTY: ['相続放棄の判定が必要です', '相続放棄者が取得した財産は個別判定が必要です。', CONSULTATION],
+  IHT_RENUNCIATION_STATUS_UNKNOWN: ['相続放棄の状況を確認してください', '状況が不明なため専門確認が必要です。', CONSULTATION],
+  IHT_SETTLEMENT_TAXATION_UNSUPPORTED: ['相続時精算課税の確認が必要です', '相続時精算課税の適用財産がある場合は専門家へご相談ください。', CONSULTATION],
+  IHT_SMALL_RESIDENTIAL_LAND_UNSUPPORTED: ['小規模宅地等の確認が必要です', '第1版で対応する特定居住用宅地等以外は専門判定が必要です。', CONSULTATION],
+  IHT_SPOUSE_RELIEF_NOT_APPLIED_UNDIVIDED: ['未分割のため配偶者の税額軽減なしで計算しました', '未分割では配偶者の税額軽減を適用できません。', INFORMATION],
+  IHT_SUBSTITUTED_SUCCESSION_UNSUPPORTED: ['代襲相続の確認が必要です', '代襲相続は第1版の対応範囲外です。', CONSULTATION],
+  IHT_SUCCESSIVE_INHERITANCE_CREDIT_UNSUPPORTED: ['相次相続控除の確認が必要です', '相次相続控除は第1版の対応範囲外です。', CONSULTATION],
+  SOZOKU_BENEFICIARY_HEIR_REQUIRED: ['受取人を選択してください', '相続人が受け取る保険金・退職金は、受取人となる相続人を指定してください。', INPUT],
+  SOZOKU_DEBT_BEARER_REQUIRED: ['債務の負担者を選択してください', '債務・葬式費用を実際に負担する相続人を指定してください。', INPUT],
+  SOZOKU_DEBT_BEARER_UNKNOWN: ['債務の負担者を確認してください', '選択した負担者が相続人入力にありません。', INPUT],
+  SOZOKU_DIVISION_HEIR_DUPLICATE: ['取得割合の重複を解消してください', '同じ相続人の割合が複数入力されています。', INPUT],
+  SOZOKU_DIVISION_HEIR_UNKNOWN: ['取得者を確認してください', '取得割合の相続人が相続人入力にありません。', INPUT],
+  SOZOKU_DIVISION_SHARE_INVALID: ['取得割合を確認してください', '取得割合は0%以上で入力してください。', INPUT],
+  SOZOKU_DIVISION_SHARE_TOTAL_INVALID: ['取得割合の合計を100%にしてください', 'すべての相続人の取得割合を合計して100%にしてください。', INPUT],
+  SOZOKU_HEIR_ID_DUPLICATE: ['相続人の入力を確認してください', '相続人を識別できないため計算できません。', INPUT],
+  SOZOKU_LEASEHOLD_RENTED_REQUIRES_APPRAISAL: ['借地・貸家等の評価が必要です', '借地権・貸家建付地等は評価額の直接入力または専門判定が必要です。', APPRAISAL],
+  SOZOKU_LEVEL2_DIRECT_APPRAISAL_REQUIRED: ['相続税評価額を入力してください', 'LEVEL 2では路線価×面積等の概算を使わず、不動産の相続税評価額を直接入力してください。', APPRAISAL],
+  SOZOKU_LEVEL3_UNSUPPORTED: ['LEVEL 3は対応準備中です', '二次相続の比較は第1版の対象外です。', CONSULTATION],
+  SOZOKU_MULTIPLIER_AREA_REQUIRES_APPRAISAL: ['倍率地域の評価が必要です', '倍率地域は評価額の直接入力または専門判定が必要です。', APPRAISAL],
+  SOZOKU_OWNERSHIP_SHARE_CONFIRMATION_REQUIRED: ['共有持分反映済みの評価額が必要です', '持分を反映した相続税評価額を直接入力してください。', APPRAISAL],
+  SOZOKU_REAL_ESTATE_AREA_INVALID: ['土地面積を確認してください', '土地面積は0より大きい値で入力してください。', INPUT],
+  SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE: ['不動産は概算評価です', '路線価×面積等の概算は実際の相続税評価額と異なる場合があります。', INFORMATION],
+  SOZOKU_SECONDARY_INHERITANCE_UNSUPPORTED: ['二次相続は対応準備中です', '二次相続の入力は第1版の対象外です。', CONSULTATION],
+  SOZOKU_SMALL_RESIDENTIAL_LAND_SIMPLIFIED_APPLIED: ['小規模宅地等を簡易適用しました', '確認済みの入力に基づく簡易判定です。最終的な適用可否は申告前に確認してください。', INFORMATION],
+  SOZOKU_SMALL_RESIDENTIAL_LAND_SPECIALIST_REVIEW: ['小規模宅地等を適用せず計算しました', '適用できる可能性があります。要件の確認は専門家へご相談ください。', CONSULTATION],
+  SOZOKU_SPECIALIST_CHECK_REQUIRED: ['個別の専門判定が必要です', '代襲相続・放棄・国外財産等の条件は専門家へご相談ください。', CONSULTATION],
+  SOZOKU_SPOUSE_ACQUISITION_MISMATCH: ['配偶者の取得額を確認してください', '配偶者の取得額と取得割合からの算出額が一致しません。', INPUT],
+  SOZOKU_SPOUSE_RELIEF_NOT_APPLIED_LATE_DIVISION: ['申告期限後の分割のため軽減なしで計算しました', '申告期限後の分割または時期不明のため、配偶者の税額軽減を適用していません。', INFORMATION],
+};
+
+const QUESTION_CATALOG = Object.freeze(Object.fromEntries(Object.entries(DEFINITIONS)
+  .map(([code, value]) => [code, entry(value[0], value[1], value[2], value[3])])));
+const SPEC_REASON_CODES = Object.freeze(Object.keys(QUESTION_CATALOG));
+
+function resolveQuestion(reason) {
+  const value = typeof reason === 'string' ? { code: reason } : (reason || {});
+  const code = value.code || 'UNKNOWN';
+  const catalogEntry = QUESTION_CATALOG[code];
+  if (catalogEntry) return Object.freeze({ code, ...catalogEntry, isFallback: false });
+  return Object.freeze({
+    code,
+    heading: 'この条件は個別の確認が必要です',
+    description: value.message || value.basis || '計算を続行できない条件があります。',
+    resolutionType: CONSULTATION,
+    isFallback: true,
+  });
+}
+
+module.exports = Object.freeze({
+  RESOLUTION_TYPES,
+  QUESTION_CATALOG,
+  SPEC_REASON_CODES,
+  resolveQuestion,
+});
+
+},
+    "src/ui/sozoku/result-view-model.js": function (module, exports, require) {
+'use strict';
+
+const { resolveQuestion } = require('./question-catalog.js');
+
+const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+const FILING_NEED_TEXT = Object.freeze({
+  not_required: '正味遺産額が基礎控除以下のため、原則として相続税申告は不要の試算です',
+  possibly_required: '基礎控除を超えるため、相続税申告が必要となる可能性があります',
+  required_for_special_rule: '特例の利用により税額は下がりますが、特例の適用には申告が必要です（税額0円でも申告不要にはなりません）',
+});
+const RANGE_CATALOG = Object.freeze([
+  Object.freeze({ code: 'filing_need', label: '申告要否' }),
+  Object.freeze({ code: 'taxable_price', label: '課税価格' }),
+  Object.freeze({ code: 'basic_deduction', label: '基礎控除' }),
+  Object.freeze({ code: 'inheritance_tax_total', label: '相続税の総額' }),
+  Object.freeze({ code: 'spouse_relief', label: '配偶者の税額軽減' }),
+  Object.freeze({ code: 'small_residential_land', label: '小規模宅地等' }),
+]);
+
+function moneyValue(value) {
+  if (!value || value.unit !== 'JPY' || typeof value.value !== 'bigint') {
+    throw new TypeError('MoneyはJPYのbigintで指定してください');
+  }
+  return value.value;
+}
+
+function money(value) { return Object.freeze({ unit: 'JPY', value }); }
+
+function formatYen(value) {
+  const amount = moneyValue(value);
+  const sign = amount < 0n ? '▲' : '';
+  const digits = (amount < 0n ? -amount : amount).toString(10);
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}円`;
+}
+
+function amount(value) {
+  return Object.freeze({ value, exactYen: moneyValue(value), display: formatYen(value) });
+}
+
+function sortedWarnings(warnings) {
+  return Object.freeze([...(warnings || [])].sort((left, right) =>
+    (WARNING_ORDER[left.level] ?? 99) - (WARNING_ORDER[right.level] ?? 99)));
+}
+
+function grounds(result) {
+  const context = result.calculationContext || {};
+  return Object.freeze({
+    calculationVersion: result.calculationVersion,
+    masterSnapshotId: context.masterSnapshotId,
+    legalStatusAsOf: context.asOfDate,
+    sources: Object.freeze([...(result.sources || [])]),
+  });
+}
+
+function common(result) {
+  return {
+    resultStatus: result.resultStatus,
+    periodLabel: result.periodLabel,
+    warnings: sortedWarnings(result.warnings),
+    assumptions: Object.freeze([...(result.assumptions || [])]),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+    grounds: grounds(result),
+  };
+}
+
+function heirLabel(heirId, index, labels) {
+  if (labels && labels[heirId]) return labels[heirId];
+  if (heirId === 'spouse') return '配偶者';
+  let match = /^child-(\d+)$/.exec(heirId);
+  if (match) return `お子さま${match[1]}`;
+  match = /^adopted-child-(\d+)$/.exec(heirId);
+  if (match) return `養子${match[1]}`;
+  match = /^parent-(\d+)$/.exec(heirId);
+  if (match) return `ご両親・祖父母${match[1]}`;
+  match = /^sibling-(\d+)$/.exec(heirId);
+  if (match) return `兄弟姉妹${match[1]}`;
+  return `相続人${index + 1}`;
+}
+
+function hasWarning(result, code) {
+  return (result.warnings || []).some(item => item.code === code);
+}
+
+function calculationRange(level, result) {
+  const excluded = level === 1
+    ? RANGE_CATALOG.filter(item => ['inheritance_tax_total', 'spouse_relief'].includes(item.code))
+    : [];
+  return Object.freeze({
+    calculatedCount: RANGE_CATALOG.length - excluded.length,
+    targetCount: RANGE_CATALOG.length,
+    excluded: Object.freeze(excluded),
+    catalog: RANGE_CATALOG,
+    screeningEstimateUsed: hasWarning(result, 'SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE'),
+  });
+}
+
+function buildBlockedViewModel(result) {
+  return Object.freeze({
+    ...common(result),
+    heading: `試算停止（${result.periodLabel}・blocked）`,
+    alerts: Object.freeze((result.warnings || []).map(resolveQuestion)),
+  });
+}
+
+function buildSozokuResultViewModel(result, options = {}) {
+  if (!result || result.simulatorType !== 'sozoku') {
+    throw new TypeError('sozokuのSimulationResultを指定してください');
+  }
+  if (result.resultStatus === 'blocked') return buildBlockedViewModel(result);
+  if (!result.breakdown || result.breakdown.kind !== 'sozoku') {
+    throw new TypeError('結果表示に必要なsozoku内訳がありません');
+  }
+  const data = result.breakdown.data;
+  const filingText = FILING_NEED_TEXT[data.filingNeed];
+  if (!filingText) throw new RangeError('filingNeedが値集合外です');
+  const level = data.allocations && data.allocations.length > 0 ? 2 : 1;
+  const base = {
+    ...common(result),
+    level,
+    heading: `試算結果（LEVEL ${level}・${result.periodLabel}・${result.resultStatus}）`,
+    filingNeed: data.filingNeed,
+    conclusion: Object.freeze({ code: data.filingNeed, text: filingText }),
+    taxablePriceTotal: amount(data.taxablePriceTotal),
+    basicDeduction: amount(data.basicDeduction),
+    screeningEstimateUsed: hasWarning(result, 'SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE'),
+    screeningWarning: hasWarning(result, 'SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE')
+      ? '不動産に路線価×面積等の概算を含みます。実際の相続税評価額とは異なる場合があります。'
+      : undefined,
+    calculationRange: calculationRange(level, result),
+    defaultDivisionAssumption: (result.assumptions || []).find(text =>
+      text.includes('法定相続分で仮計算')),
+    smallResidentialLandPossibility: Boolean(options.smallResidentialLandPossibility) ||
+      hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SPECIALIST_REVIEW'),
+  };
+  if (level === 1) return Object.freeze(base);
+
+  const allocationRows = Object.freeze(data.allocations.map((row, index) => Object.freeze({
+    heirId: row.heirId,
+    label: heirLabel(row.heirId, index, options.heirLabels),
+    acquiredAmount: amount(row.acquiredAmount),
+    taxBeforeCredits: amount(row.allocatedTaxBeforeCredits),
+    credits: amount(row.credits),
+    finalTax: amount(row.finalTax),
+  })));
+  const spouse = allocationRows.find(row => row.heirId === 'spouse');
+  const payable = result.summary && result.summary.amount
+    ? result.summary.amount
+    : money(allocationRows.reduce((total, row) => total + row.finalTax.exactYen, 0n));
+  const smallLandApplied = hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SIMPLIFIED_APPLIED');
+  const derivedReduction = moneyValue(data.grossEstate) - moneyValue(data.nonTaxableAmounts) -
+    moneyValue(data.deductibleDebtsAndFuneralCosts) - moneyValue(data.taxablePriceTotal);
+  return Object.freeze({
+    ...base,
+    totalInheritanceTax: amount(data.totalInheritanceTax),
+    totalPayableTax: amount(payable),
+    allocations: allocationRows,
+    spouseRelief: spouse ? Object.freeze({
+      before: spouse.taxBeforeCredits,
+      after: spouse.finalTax,
+      reduction: spouse.credits,
+      applied: spouse.credits.exactYen > 0n,
+    }) : undefined,
+    smallResidentialLand: Object.freeze({
+      applied: smallLandApplied,
+      reduction: amount(money(smallLandApplied && derivedReduction > 0n ? derivedReduction : 0n)),
+      appliedArea: options.smallResidentialLandArea,
+      possibility: base.smallResidentialLandPossibility,
+    }),
+    undividedWarning: hasWarning(result, 'IHT_SPOUSE_RELIEF_NOT_APPLIED_UNDIVIDED') ||
+      hasWarning(result, 'SOZOKU_SPOUSE_RELIEF_NOT_APPLIED_LATE_DIVISION')
+      ? '未分割または申告期限後の分割のため、配偶者の税額軽減なしで計算しています。'
+      : undefined,
+  });
+}
+
+module.exports = Object.freeze({
+  FILING_NEED_TEXT,
+  RANGE_CATALOG,
+  formatYen,
+  buildSozokuResultViewModel,
+  buildResultViewModel: buildSozokuResultViewModel,
+});
+
+},
     "src/ui/store.js": function (module, exports, require) {
 'use strict';
 
@@ -15359,7 +16603,7 @@ module.exports = Object.freeze({
     "data/tax-simulator/masters/sources/source-registry.json": {},
     "scripts/lib/input-types/definitions.js": {},
     "scripts/lib/input-types/wire-converters.js": {},
-    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","../ui/router.js":"src/ui/router.js","../ui/shohizei/app.js":"src/ui/shohizei/app.js","../ui/yakuin-hoshu/app.js":"src/ui/yakuin-hoshu/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
+    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","../ui/router.js":"src/ui/router.js","../ui/shohizei/app.js":"src/ui/shohizei/app.js","../ui/sozoku/app.js":"src/ui/sozoku/app.js","../ui/yakuin-hoshu/app.js":"src/ui/yakuin-hoshu/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
     "src/simulators/core/result-builder.js": {"../../../data/tax-simulator/masters/sources/source-registry.json":"data/tax-simulator/masters/sources/source-registry.json","../../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./versions.js":"src/simulators/core/versions.js"},
     "src/simulators/core/validator.js": {"../../../scripts/lib/input-types/definitions.js":"scripts/lib/input-types/definitions.js","../../../scripts/lib/input-types/wire-converters.js":"scripts/lib/input-types/wire-converters.js"},
     "src/simulators/core/versions.js": {},
@@ -15413,6 +16657,11 @@ module.exports = Object.freeze({
     "src/ui/shohizei/input-builder.js": {"./context-builder.js":"src/ui/shohizei/context-builder.js"},
     "src/ui/shohizei/question-catalog.js": {},
     "src/ui/shohizei/result-view-model.js": {"./question-catalog.js":"src/ui/shohizei/question-catalog.js"},
+    "src/ui/sozoku/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./input-builder.js":"src/ui/sozoku/input-builder.js","./result-view-model.js":"src/ui/sozoku/result-view-model.js"},
+    "src/ui/sozoku/heirs-builder.js": {},
+    "src/ui/sozoku/input-builder.js": {"../forms.js":"src/ui/forms.js","./heirs-builder.js":"src/ui/sozoku/heirs-builder.js"},
+    "src/ui/sozoku/question-catalog.js": {},
+    "src/ui/sozoku/result-view-model.js": {"./question-catalog.js":"src/ui/sozoku/question-catalog.js"},
     "src/ui/store.js": {},
     "src/ui/yakuin-hoshu/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../hojinnari/context-builder.js":"src/ui/hojinnari/context-builder.js","../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js","../store.js":"src/ui/store.js","./handoff.js":"src/ui/yakuin-hoshu/handoff.js","./input-builder.js":"src/ui/yakuin-hoshu/input-builder.js","./result-view-model.js":"src/ui/yakuin-hoshu/result-view-model.js"},
     "src/ui/yakuin-hoshu/handoff.js": {},
