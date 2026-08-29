@@ -69,6 +69,10 @@ function toPoolTopic(t) {
     search_intent: t.phrases.join(' '),
     reader_problem: t.reader_problem,
     primary_question: t.primary_question,
+    // success_outcome は記事バリデーションの必須項目（未設定だと承認後に ERROR）。
+    // 選別時に用意されていればそれを使い、無ければ読者の問いから組み立てる。
+    success_outcome: t.success_outcome
+      || `${String(t.primary_question || '').replace(/[？?]$/, '')}がわかり、自分のケースで判断できる`,
     demand_evidence: {
       kind: 'search-suggest',
       score: scoreForPhrases(t.phrases.length),

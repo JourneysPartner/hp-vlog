@@ -98,8 +98,23 @@ jobs:
           ENABLE_LLM_SOURCE_SELECT: ${{ vars.ENABLE_LLM_SOURCE_SELECT }}
           LLM_SOURCE_SELECT_MODEL: ${{ vars.LLM_SOURCE_SELECT_MODEL || 'gpt-5.6-luna' }}
 
-      - name: Validate
-        run: npm run validate
+      # 生成した記事だけを検査する。
+      # 2026-08-28/29: 過去に承認済みの記事1件のメタ欠落で全件検査が ERROR になり、
+      # その日に生成できていた記事ごとジョブが落ちて2日連続で下書きが失われた。
+      # 当日の成果を過去記事の問題で捨てないよう、対象を当日の生成物に限定する
+      # （既存記事の健全性は check-existing-posts.yml が毎日別に検査する）。
+      - name: Validate generated drafts
+        run: |
+          FILE1='${{ steps.draft.outputs.filename1 }}'
+          FILE2='${{ steps.draft.outputs.filename2 }}'
+          TARGETS=''
+          if [ -n "$FILE1" ]; then TARGETS="$TARGETS content/posts/$FILE1"; fi
+          if [ -n "$FILE2" ]; then TARGETS="$TARGETS content/posts/$FILE2"; fi
+          if [ -z "$TARGETS" ]; then
+            echo '::notice::生成された記事がないため検査をスキップします'
+            exit 0
+          fi
+          node scripts/validate.js $TARGETS
 
       - name: Build (smoke test)
         run: npm run build

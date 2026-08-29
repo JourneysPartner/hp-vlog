@@ -107,6 +107,9 @@ function toTopic(candidate, sourceEntry) {
       .join(' '),
     reader_problem: question,
     primary_question: question,
+    // success_outcome は記事バリデーションの必須項目。空だと承認後に main で
+    // ERROR になり、翌日以降の日次生成がバリデーションごと落ちる（2026-08-28/29）。
+    success_outcome: `${candidate.shitsugi_title}について、国税庁の質疑応答事例に沿って自分のケースの取扱いを判断できる`,
     demand_evidence: {
       kind: 'nta-shitsugi',
       score: candidate.score,

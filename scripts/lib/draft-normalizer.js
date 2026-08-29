@@ -231,6 +231,14 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
     summary = `${title}について、判断のポイントと実務上の注意点を整理します。`;
   }
 
+  // success_outcome は記事バリデーションの必須項目。トピック側で用意されていない
+  // 場合でも空にしない（空のまま承認されると、以後 main の validate が毎回 ERROR に
+  // なり、翌日以降の日次生成がバリデーションごと落ちる。2026-08-28/29 に発生）。
+  const successOutcome = topic.success_outcome
+    || (topic.primary_question
+      ? `${String(topic.primary_question).replace(/[？?]\s*$/, '')}がわかり、自分のケースで判断できる`
+      : `${title}について、自分のケースでどう扱うか判断できる`);
+
   // 適合スコア（顧客カテゴリ関連性・出典一致等）をレビュー画面用に付与する。
   // 生成時に code 側で算出し、レビュアーが判断材料として見られるようにする。
   const fit = evaluateTopicFit({ ...topic, article_type: articleType });
@@ -266,7 +274,7 @@ source_confidence: ${sourceConfidence}
 source_guard_version: 1
 search_intent: "${escFm(topic.search_intent || '')}"
 reader_problem: "${escFm(topic.reader_problem || '')}"
-success_outcome: "${escFm(topic.success_outcome || '')}"
+success_outcome: "${escFm(successOutcome)}"
 primary_question: "${escFm(topic.primary_question || '')}"
 macro: "${escFm(topic.macro || '')}"
 cluster: "${escFm(topic.cluster || '')}"
