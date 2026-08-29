@@ -1491,6 +1491,7 @@ const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
+const { mountShohizeiApp } = require('../ui/shohizei/app.js');
 const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
 const { createRouter } = require('../ui/router.js');
 
@@ -1636,6 +1637,18 @@ function mountHojinnari(rootElement, options = {}) {
   });
 }
 
+/** 公開ページは未生成のまま、明示されたDOMへだけ②のアプリを起動する。 */
+function mountShohizei(rootElement, options = {}) {
+  const selectedService = options.services
+    ? (options.services.shohizei || options.services)
+    : verifiedUiService('shohizei');
+  return mountShohizeiApp(rootElement, {
+    services: selectedService,
+    snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 function expectedHojinnariContext(handoff, snapshotInfo) {
   const source = handoff.calculationContext;
   const year = 2025;
@@ -1719,6 +1732,7 @@ module.exports = Object.freeze({
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
+  mountShohizei,
   mountYakuinHoshu,
 });
 
@@ -11573,6 +11587,30 @@ module.exports = Object.freeze({
 });
 
 },
+    "src/ui/context-builder.js": function (module, exports, require) {
+'use strict';
+
+/** UI共通のCalculationContextメタデータを組み立てる。 */
+function buildContextMetadata(snapshotInfo, calculatedAt) {
+  if (!snapshotInfo || typeof snapshotInfo.snapshotId !== 'string' ||
+      typeof snapshotInfo.snapshotHash !== 'string' ||
+      typeof snapshotInfo.legalStatusAsOf !== 'string') {
+    throw new TypeError('snapshotInfoにsnapshotId・snapshotHash・legalStatusAsOfが必要です');
+  }
+  if (typeof calculatedAt !== 'string' || calculatedAt.length === 0) {
+    throw new TypeError('calculatedAtは呼び出し側で取得した日時文字列で指定してください');
+  }
+  return {
+    asOfDate: snapshotInfo.legalStatusAsOf,
+    calculatedAt,
+    masterSnapshotId: snapshotInfo.snapshotId,
+    masterSnapshotHash: snapshotInfo.snapshotHash,
+  };
+}
+
+module.exports = Object.freeze({ buildContextMetadata });
+
+},
     "src/ui/dom.js": function (module, exports, require) {
 'use strict';
 
@@ -12458,6 +12496,8 @@ module.exports = Object.freeze({ mountHojinnariApp, INITIAL_FORM });
     "src/ui/hojinnari/context-builder.js": function (module, exports, require) {
 'use strict';
 
+const { buildContextMetadata } = require('../context-builder.js');
+
 const SUPPORTED_YEAR = 2025;
 
 const MUNICIPALITIES = Object.freeze([
@@ -12472,14 +12512,6 @@ const MUNICIPALITIES = Object.freeze([
 const MUNICIPALITY_BY_KEY = Object.freeze(Object.fromEntries(
   MUNICIPALITIES.map(municipality => [municipality.key, municipality])
 ));
-
-function assertSnapshotInfo(snapshotInfo) {
-  if (!snapshotInfo || typeof snapshotInfo.snapshotId !== 'string' ||
-      typeof snapshotInfo.snapshotHash !== 'string' ||
-      typeof snapshotInfo.legalStatusAsOf !== 'string') {
-    throw new TypeError('snapshotInfoにsnapshotId・snapshotHash・legalStatusAsOfが必要です');
-  }
-}
 
 function jurisdictionFor(formState) {
   const selected = MUNICIPALITY_BY_KEY[formState.municipalityKey];
@@ -12504,10 +12536,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   if (!formState || typeof formState !== 'object') {
     throw new TypeError('フォーム状態はオブジェクトで指定してください');
   }
-  assertSnapshotInfo(snapshotInfo);
-  if (typeof calculatedAt !== 'string' || calculatedAt.length === 0) {
-    throw new TypeError('calculatedAtは呼び出し側で取得した日時文字列で指定してください');
-  }
+  const metadata = buildContextMetadata(snapshotInfo, calculatedAt);
   const year = formState.incomeTaxYear === undefined
     ? SUPPORTED_YEAR
     : Number(formState.incomeTaxYear);
@@ -12515,8 +12544,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   const municipality = jurisdictionFor(formState);
 
   return {
-    asOfDate: snapshotInfo.legalStatusAsOf,
-    calculatedAt,
+    ...metadata,
     incomeTaxYear: year,
     residentTaxFiscalYear: year,
     fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
@@ -12530,8 +12558,6 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
       municipalityCode: municipality.municipalityCode,
       isDesignatedCity: municipality.isDesignatedCity,
     },
-    masterSnapshotId: snapshotInfo.snapshotId,
-    masterSnapshotHash: snapshotInfo.snapshotHash,
   };
 }
 
@@ -13075,6 +13101,1063 @@ function createRouter(options = {}) {
 }
 
 module.exports = Object.freeze({ TOOL_PATHS, toolFromPath, createRouter });
+
+},
+    "src/ui/shohizei/app.js": function (module, exports, require) {
+'use strict';
+
+const { el } = require('../dom.js');
+const { createStore } = require('../store.js');
+const { createMoneyInput, createSelect, parseMoneyInput } = require('../forms.js');
+const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { queueEvent } = require('../analytics.js');
+const { buildCalculationContext } = require('./context-builder.js');
+const { ShohizeiInputBuildError, buildShohizeiInput } = require('./input-builder.js');
+const { buildResultViewModel } = require('./result-view-model.js');
+
+const TOTAL_STEPS = 2;
+const TRI_STATE_OPTIONS = Object.freeze([
+  { value: '', label: '選択してください' },
+  { value: 'yes', label: 'はい・該当する' },
+  { value: 'no', label: 'いいえ・該当しない' },
+  { value: 'unknown', label: 'わからない' },
+]);
+const BASIS_OPTIONS = Object.freeze([
+  { value: 'inclusive', label: '税込' },
+  { value: 'exclusive', label: '税抜' },
+]);
+const INITIAL_FORM = Object.freeze({
+  consumptionTaxYear: 2025,
+  taxpayerType: '',
+  invoiceRegistered: '',
+  invoiceRegisteredOn: '',
+  becameTaxableByRegistration: '',
+  basePeriodExists: true,
+  basePeriodTaxableSales: '',
+  basePeriodLengthInMonths: '12',
+  specifiedPeriodTaxableSales: '',
+  specifiedPeriodSalaryPayments: '',
+  simplifiedElectionStatus: '',
+  simplifiedElectionEffectiveYear: '2025',
+  taxablePersonElectionStatus: '',
+  taxablePersonElectionEffectiveYear: '2025',
+  isNewlyEstablished: '',
+  isSpecifiedNewlyEstablished: '',
+  inheritance: '',
+  merger: '',
+  corporateSplit: '',
+  highValueAssetAcquisition: '',
+  adjustableFixedAssetAcquisition: '',
+  taxablePeriodShortened: '',
+  reverseCharge: '',
+  specificTaxablePurchase: '',
+  complexTaxableSalesRatio: '',
+  salesStandard10: '', salesStandard10Basis: 'inclusive',
+  salesReduced8: '', salesReduced8Basis: 'inclusive',
+  salesExportExempt: '', salesExportExemptBasis: 'inclusive',
+  purchasesWithInvoiceStandard10: '', purchasesWithInvoiceStandard10Basis: 'inclusive',
+  purchasesWithInvoiceReduced8: '', purchasesWithInvoiceReduced8Basis: 'inclusive',
+  hasPurchasesWithoutInvoice: '',
+  purchasesWithoutInvoiceBand: 'standard_10',
+  purchasesWithoutInvoice: '', purchasesWithoutInvoiceBasis: 'inclusive',
+  purchasesWithoutInvoiceAnnualTotal: '',
+  purchasesWithoutInvoiceRecords: '',
+  simplifiedCategory: '',
+});
+
+const FIELD_IDS = Object.freeze({
+  '$.taxpayerType': 'sz-taxpayer-type',
+  '$.eligibility.invoiceRegistration.registered': 'sz-invoice-registered',
+  '$.eligibility.invoiceRegistration.registeredOn': 'sz-invoice-date',
+  '$.eligibility.invoiceRegistration.becameTaxableByRegistration': 'sz-became-taxable',
+  '$.eligibility.basePeriod.taxableSales.value': 'sz-base-sales',
+  '$.eligibility.basePeriod.lengthInMonths': 'sz-base-months',
+  '$.eligibility.specifiedPeriod.taxableSales.value': 'sz-specified-sales',
+  '$.eligibility.specifiedPeriod.salaryPayments.value': 'sz-specified-salary',
+  '$.eligibility.filings.simplified_election': 'sz-simplified-election',
+  '$.eligibility.filings.taxable_person_election': 'sz-taxable-election',
+  '$.eligibility.newCompany.isNewlyEstablished': 'sz-new-company',
+  '$.eligibility.newCompany.isSpecifiedNewlyEstablished': 'sz-specified-new-company',
+  '$.eligibility.events.inheritance': 'sz-inheritance',
+  '$.eligibility.events.merger': 'sz-merger',
+  '$.eligibility.events.corporateSplit': 'sz-corporate-split',
+  '$.eligibility.events.highValueAssetAcquisition': 'sz-high-value-asset',
+  '$.eligibility.events.adjustableFixedAssetAcquisition': 'sz-adjustable-asset',
+  '$.eligibility.taxablePeriodShortened': 'sz-shortened',
+  '$.specialistChecks.reverseCharge': 'sz-reverse-charge',
+  '$.specialistChecks.specificTaxablePurchase': 'sz-specific-purchase',
+  '$.specialistChecks.complexTaxableSalesRatio': 'sz-complex-ratio',
+  '$.sales[0].value.taxable[0].amount.amount.value': 'sz-sales-10',
+  '$.sales[0].value.taxable[1].amount.amount.value': 'sz-sales-8',
+  '$.sales[0].value.exportExempt.amount.value': 'sz-sales-export',
+  '$.purchases[0].value.taxableWithInvoice[0].amount.amount.value': 'sz-purchases-10',
+  '$.purchases[0].value.taxableWithInvoice[1].amount.amount.value': 'sz-purchases-8',
+  '$.purchases[0].value.taxableWithoutInvoice': 'sz-without-invoice',
+  '$.purchases[0].value.taxableWithoutInvoice[0].amount.amount.value': 'sz-without-invoice-amount',
+  '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal.amount.value': 'sz-without-invoice-total',
+  '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords': 'sz-without-invoice-records',
+  '$.simplified.primaryCategory': 'sz-simplified-category',
+});
+
+const STYLE_TEXT = `
+.shohizei-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
+.shohizei-app h1,.shohizei-app h2,.shohizei-app h3{color:#0B2045}.shohizei-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
+.shohizei-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.shohizei-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.shohizei-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.shohizei-app button.shohizei-primary{background:#E85320;border-color:#E85320;color:#fff}
+.shohizei-app input,.shohizei-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.shohizei-app input[type=checkbox]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.shohizei-tax-field{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.shohizei-tax-field .select-input select{max-width:12rem}
+.shohizei-progress{font-weight:700}.shohizei-help{color:#55607a}.shohizei-error{color:#9b1c1c;font-weight:700}.shohizei-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.shohizei-status{font-size:1.2rem;font-weight:700}.shohizei-table-wrap{overflow-x:auto}.shohizei-app table{border-collapse:collapse;width:100%;min-width:520px}.shohizei-app th,.shohizei-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.shohizei-app td:last-child{text-align:right}.shohizei-level{font-weight:700}.shohizei-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:480px){.shohizei-app{padding:12px}.shohizei-card{padding:16px}.shohizei-actions{display:block}.shohizei-actions button{width:100%;margin:5px 0}.shohizei-app table{min-width:0}}
+@media print{.shohizei-no-print{display:none!important}.shohizei-app{max-width:none;padding:0}.shohizei-card{box-shadow:none;break-inside:avoid}.shohizei-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
+`;
+
+function cloneInitialForm() { return { ...INITIAL_FORM }; }
+
+function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
+  if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
+    throw new TypeError('マウント先のDOM要素が必要です');
+  }
+  const service = services && services.shohizei ? services.shohizei : services;
+  if (!service || typeof service.validate !== 'function' || typeof service.simulate !== 'function') {
+    throw new TypeError('shohizeiサービスが必要です');
+  }
+  const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  let destroyed = false;
+  rootElement.classList.add('shohizei-app');
+  queueEvent('simulator_view', { tool: 'shohizei' });
+
+  function updateForm(key, value) {
+    store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
+  }
+  function errorFor(path) { return store.getState().errors.find(item => item.fieldPath === path); }
+  function addControlError(control, path) {
+    const found = errorFor(path);
+    if (!found) return null;
+    const id = `${control.id || FIELD_IDS[path] || 'sz-field'}-error`;
+    control.setAttribute('aria-invalid', 'true');
+    control.setAttribute('aria-describedby', [control.getAttribute('aria-describedby'), id].filter(Boolean).join(' '));
+    return el('p', { id, className: 'shohizei-error' }, found.message);
+  }
+  function errorSummary() {
+    const errors = store.getState().errors;
+    if (errors.length === 0) return null;
+    return el('div', { className: 'shohizei-error-summary', tabindex: '-1' }, [
+      el('h2', {}, '入力内容を確認してください'),
+      el('ul', {}, errors.map(item => el('li', {}, FIELD_IDS[item.fieldPath]
+        ? el('a', { href: `#${FIELD_IDS[item.fieldPath]}` }, item.message) : item.message))),
+    ]);
+  }
+  function selectField(key, id, label, description, options, path, rerender = false) {
+    const field = createSelect({ id, label, description, options, value: store.getState().form[key], onChange: value => {
+      updateForm(key, value);
+      if (rerender) render();
+    } });
+    return [field.element, addControlError(field.select, path)];
+  }
+  function moneyField(key, id, label, description, path, afterInput) {
+    const field = createMoneyInput({ id, label, description, value: store.getState().form[key] });
+    field.input.addEventListener('input', () => {
+      const parsed = field.read();
+      updateForm(key, parsed.ok ? parsed.value : field.input.value);
+      if (afterInput) afterInput(parsed, field);
+    });
+    return { nodes: [field.element, addControlError(field.input, path)], field };
+  }
+  function taxField(key, basisKey, id, label, path, afterInput) {
+    const amount = moneyField(key, id, `${label}（円）`, '0円以上の整数。全角数字・万単位も入力できます。', `${path}.amount.value`, afterInput);
+    const basis = createSelect({ id: `${id}-basis`, label: `${label}の入力区分`, options: BASIS_OPTIONS,
+      value: store.getState().form[basisKey], onChange: value => updateForm(basisKey, value) });
+    return el('div', { className: 'shohizei-tax-field' }, [amount.nodes, basis.element,
+      addControlError(basis.select, `${path}.basis`)]);
+  }
+  function stepHeader(step, title) {
+    return [el('p', { className: 'shohizei-progress', role: 'status', 'aria-label': `2ステップ中${step}番目` },
+      `STEP ${step} / ${TOTAL_STEPS}`), el('h1', {}, title)];
+  }
+  function actions({ previous, next, calculate } = {}) {
+    return el('div', { className: 'shohizei-actions shohizei-no-print' }, [
+      previous ? el('button', { type: 'button', onClick: () => goToStep(1) }, '戻る') : null,
+      next ? el('button', { type: 'button', className: 'shohizei-primary', onClick: probeLiability }, '次へ') : null,
+      calculate ? el('button', { type: 'button', className: 'shohizei-primary', onClick: calculateNow }, '計算する') : null,
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+    ]);
+  }
+  function checkGroup(title, rows) {
+    return el('section', { className: 'shohizei-card' }, [el('h2', {}, title), rows]);
+  }
+
+  function renderStep1() {
+    const form = store.getState().form;
+    const baseExists = el('input', { id: 'sz-base-exists', type: 'checkbox', checked: !form.basePeriodExists,
+      onChange: event => { updateForm('basePeriodExists', !event.currentTarget.checked); render(); } });
+    const invoiceDate = el('input', { id: 'sz-invoice-date', type: 'date', value: form.invoiceRegisteredOn,
+      onInput: event => updateForm('invoiceRegisteredOn', event.currentTarget.value) });
+    return el('main', { className: 'shohizei-no-print' }, [
+      ...stepHeader(1, '事業者の状況'), errorSummary(),
+      el('p', {}, '課税期間：2025年1月1日〜12月31日（第1版固定）'),
+      ...selectField('taxpayerType', 'sz-taxpayer-type', '事業者の区分', '3割特例の判定に影響します。', [
+        { value: '', label: '選択してください' }, { value: 'individual', label: '個人事業者' }, { value: 'corporation', label: '法人' },
+      ], '$.taxpayerType', true),
+      form.taxpayerType === 'corporation' ? el('p', { className: 'shohizei-help' },
+        '事業年度が暦年と異なる法人は対応準備中です。') : null,
+      ...selectField('invoiceRegistered', 'sz-invoice-registered', 'インボイス登録', '', TRI_STATE_OPTIONS,
+        '$.eligibility.invoiceRegistration.registered', true),
+      form.invoiceRegistered === 'yes' ? el('div', { className: 'shohizei-card' }, [
+        el('label', { for: 'sz-invoice-date' }, 'インボイス登録日（任意）'),
+        invoiceDate,
+        addControlError(invoiceDate, '$.eligibility.invoiceRegistration.registeredOn'),
+        ...selectField('becameTaxableByRegistration', 'sz-became-taxable',
+          '登録を機に免税事業者から課税事業者になりましたか', '', TRI_STATE_OPTIONS,
+          '$.eligibility.invoiceRegistration.becameTaxableByRegistration'),
+      ]) : null,
+      el('div', {}, [baseExists, el('label', { for: baseExists.id }, '基準期間がない（開業2年以内など）')]),
+      form.basePeriodExists ? moneyField('basePeriodTaxableSales', 'sz-base-sales',
+        '基準期間（前々年）の課税売上高（円）', '0円以上の整数。',
+        '$.eligibility.basePeriod.taxableSales.value').nodes : null,
+      form.basePeriodExists && form.taxpayerType === 'corporation' ? [
+        el('label', { for: 'sz-base-months' }, '基準期間の月数'),
+        el('input', { id: 'sz-base-months', type: 'text', inputmode: 'numeric', value: form.basePeriodLengthInMonths,
+          onInput: event => updateForm('basePeriodLengthInMonths', event.currentTarget.value) }),
+        el('p', { className: 'shohizei-help' }, '12か月以外は12か月換算して判定します。'),
+      ] : null,
+      moneyField('specifiedPeriodTaxableSales', 'sz-specified-sales', '特定期間（前年上半期）の課税売上高（円）',
+        '課税売上高または給与等支払額のどちらかが免税点以下なら免税側の判定になります。',
+        '$.eligibility.specifiedPeriod.taxableSales.value').nodes,
+      moneyField('specifiedPeriodSalaryPayments', 'sz-specified-salary', '特定期間（前年上半期）の給与等支払額（円）',
+        '0円以上の整数。', '$.eligibility.specifiedPeriod.salaryPayments.value').nodes,
+      ...selectField('simplifiedElectionStatus', 'sz-simplified-election', '簡易課税選択届出書', '', TRI_STATE_OPTIONS,
+        '$.eligibility.filings.simplified_election', true),
+      form.simplifiedElectionStatus === 'yes' ? [
+        el('label', { for: 'sz-simplified-year' }, '簡易課税選択届出書の効力開始年'),
+        el('input', { id: 'sz-simplified-year', type: 'text', inputmode: 'numeric', value: form.simplifiedElectionEffectiveYear,
+          onInput: event => updateForm('simplifiedElectionEffectiveYear', event.currentTarget.value) }),
+      ] : null,
+      ...selectField('taxablePersonElectionStatus', 'sz-taxable-election', '課税事業者選択届出書',
+        '提出済みの場合、2割特例の適用可否は専門判定になります。', TRI_STATE_OPTIONS,
+        '$.eligibility.filings.taxable_person_election', true),
+      form.taxablePersonElectionStatus === 'yes' ? [
+        el('label', { for: 'sz-taxable-year' }, '課税事業者選択届出書の効力開始年'),
+        el('input', { id: 'sz-taxable-year', type: 'text', inputmode: 'numeric', value: form.taxablePersonElectionEffectiveYear,
+          onInput: event => updateForm('taxablePersonElectionEffectiveYear', event.currentTarget.value) }),
+      ] : null,
+      checkGroup('該当の確認', [
+        el('p', { className: 'shohizei-help' }, '「該当する」「わからない」の条件は、専門判定または対応範囲外として案内します。'),
+        ...selectField('isNewlyEstablished', 'sz-new-company', '新設法人（資本金1,000万円以上等）', '', TRI_STATE_OPTIONS, '$.eligibility.newCompany.isNewlyEstablished'),
+        ...selectField('isSpecifiedNewlyEstablished', 'sz-specified-new-company', '特定新設法人', '', TRI_STATE_OPTIONS, '$.eligibility.newCompany.isSpecifiedNewlyEstablished'),
+        ...selectField('inheritance', 'sz-inheritance', '相続', '', TRI_STATE_OPTIONS, '$.eligibility.events.inheritance'),
+        ...selectField('merger', 'sz-merger', '合併', '', TRI_STATE_OPTIONS, '$.eligibility.events.merger'),
+        ...selectField('corporateSplit', 'sz-corporate-split', '会社分割', '', TRI_STATE_OPTIONS, '$.eligibility.events.corporateSplit'),
+        ...selectField('highValueAssetAcquisition', 'sz-high-value-asset', '高額特定資産の取得', '', TRI_STATE_OPTIONS, '$.eligibility.events.highValueAssetAcquisition'),
+        ...selectField('adjustableFixedAssetAcquisition', 'sz-adjustable-asset', '調整対象固定資産の取得', '', TRI_STATE_OPTIONS, '$.eligibility.events.adjustableFixedAssetAcquisition'),
+        ...selectField('taxablePeriodShortened', 'sz-shortened', '課税期間の短縮', '', TRI_STATE_OPTIONS, '$.eligibility.taxablePeriodShortened'),
+        ...selectField('reverseCharge', 'sz-reverse-charge', 'リバースチャージ', '', TRI_STATE_OPTIONS, '$.specialistChecks.reverseCharge'),
+        ...selectField('specificTaxablePurchase', 'sz-specific-purchase', '特定課税仕入れ', '', TRI_STATE_OPTIONS, '$.specialistChecks.specificTaxablePurchase'),
+        ...selectField('complexTaxableSalesRatio', 'sz-complex-ratio', '複雑な課税売上割合', '', TRI_STATE_OPTIONS, '$.specialistChecks.complexTaxableSalesRatio'),
+      ]),
+      actions({ next: true }),
+    ]);
+  }
+
+  function renderStep2() {
+    const form = store.getState().form;
+    const exportWarning = el('p', { id: 'sz-export-warning', className: 'shohizei-error' },
+      parseMoneyInput(String(form.salesExportExempt)).ok && BigInt(parseMoneyInput(String(form.salesExportExempt)).value) > 0n
+        ? '一般課税の確定額を出せません（対応準備中）' : '');
+    return el('main', { className: 'shohizei-no-print' }, [
+      ...stepHeader(2, '売上と仕入'), errorSummary(),
+      el('p', {}, '税込・税抜は金額欄ごとに選択してください。'),
+      el('section', { className: 'shohizei-card' }, [
+        el('h2', {}, '売上'),
+        taxField('salesStandard10', 'salesStandard10Basis', 'sz-sales-10', '10%対象の課税売上', '$.sales[0].value.taxable[0].amount'),
+        taxField('salesReduced8', 'salesReduced8Basis', 'sz-sales-8', '8%（軽減税率）対象の課税売上', '$.sales[0].value.taxable[1].amount'),
+        taxField('salesExportExempt', 'salesExportExemptBasis', 'sz-sales-export', '輸出免税売上', '$.sales[0].value.exportExempt',
+          parsed => { exportWarning.textContent = parsed.ok && BigInt(parsed.value) > 0n
+            ? '一般課税の確定額を出せません（対応準備中）' : ''; }),
+        exportWarning,
+      ]),
+      el('section', { className: 'shohizei-card' }, [
+        el('h2', {}, '仕入'),
+        taxField('purchasesWithInvoiceStandard10', 'purchasesWithInvoiceStandard10Basis', 'sz-purchases-10',
+          'インボイスあり課税仕入（10%）', '$.purchases[0].value.taxableWithInvoice[0].amount'),
+        taxField('purchasesWithInvoiceReduced8', 'purchasesWithInvoiceReduced8Basis', 'sz-purchases-8',
+          'インボイスあり課税仕入（8%）', '$.purchases[0].value.taxableWithInvoice[1].amount'),
+        ...selectField('hasPurchasesWithoutInvoice', 'sz-without-invoice',
+          'インボイスなし（免税事業者等から）の課税仕入',
+          '判定できない場合は一般課税の確定額を表示できません。', [
+            { value: '', label: '選択してください' }, { value: 'no', label: 'ない' }, { value: 'yes', label: 'ある' },
+          ], '$.purchases[0].value.taxableWithoutInvoice', true),
+        form.hasPurchasesWithoutInvoice === 'yes' ? el('div', { className: 'shohizei-tax-field' }, [
+          ...selectField('purchasesWithoutInvoiceBand', 'sz-without-invoice-band', '税率区分', '', [
+            { value: 'standard_10', label: '10%' }, { value: 'reduced_8', label: '8%（軽減税率）' },
+          ], '$.purchases[0].value.taxableWithoutInvoice[0].band'),
+          taxField('purchasesWithoutInvoice', 'purchasesWithoutInvoiceBasis', 'sz-without-invoice-amount',
+            'インボイスなし課税仕入', '$.purchases[0].value.taxableWithoutInvoice[0].amount'),
+          moneyField('purchasesWithoutInvoiceAnnualTotal', 'sz-without-invoice-total',
+            'その相手先からの年間仕入合計（税込・円）', '相手先別上限の判定に使います。',
+            '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal.amount.value').nodes,
+          ...selectField('purchasesWithoutInvoiceRecords', 'sz-without-invoice-records',
+            '帳簿と請求書の保存要件を満たしますか', '', TRI_STATE_OPTIONS,
+            '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords'),
+        ]) : null,
+      ]),
+      form.simplifiedElectionStatus === 'yes' ? el('section', { className: 'shohizei-card' }, [
+        el('h2', {}, '簡易課税の事業区分'),
+        ...selectField('simplifiedCategory', 'sz-simplified-category', '主な事業区分（ご自身で選択）', '', [
+          { value: '', label: '選択してください' },
+          { value: 'type1', label: '卸売業【第1種・みなし仕入率90%】' },
+          { value: 'type2', label: '小売業（仕入れた物をそのまま売る。ネット物販含む）【第2種・80%】' },
+          { value: 'type3', label: '製造業・建設業【第3種・70%】' },
+          { value: 'type4', label: '飲食店業など【第4種・60%】' },
+          { value: 'type5', label: 'サービス業・コンサルタントなど【第5種・50%】' },
+          { value: 'type6', label: '不動産業【第6種・40%】' },
+          { value: 'unclassifiable', label: '複数の事業・わからない → 専門判定' },
+        ], '$.simplified.primaryCategory'),
+        el('p', { className: 'shohizei-help' }, '事業区分は自動推定しません。複数事業の特例計算は対応準備中です。'),
+      ]) : null,
+      actions({ previous: true, calculate: true }),
+    ]);
+  }
+
+  function validationErrors(validation) {
+    return (validation.errors || []).map(item => ({ code: item.code || 'SZ_SERVICE_VALIDATION_ERROR',
+      fieldPath: item.fieldPath, message: item.message || '入力内容を確認してください' }));
+  }
+  function setBuildErrors(error, fallbackStep) {
+    const errors = error instanceof ShohizeiInputBuildError ? [...error.errors] : [{
+      code: 'SZ_UI_BUILD_ERROR', fieldPath: '$.calculationContext', message: error.message,
+    }];
+    store.setState(state => ({ ...state, screen: 'input', step: fallbackStep, errors }));
+    announceAlert('入力内容に確認が必要な項目があります');
+  }
+  function goToStep(step) {
+    store.setState(state => ({ ...state, screen: 'input', step, errors: [] }));
+  }
+  async function probeLiability() {
+    let context; let wire;
+    try {
+      context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
+      wire = buildShohizeiInput(store.getState().form, { emptyTransactions: true });
+    } catch (error) { setBuildErrors(error, 1); return; }
+    const validation = service.validate(wire);
+    if (!validation.ok) {
+      store.setState(state => ({ ...state, errors: validationErrors(validation) }));
+      await announceAlert('入力内容に確認が必要な項目があります'); return;
+    }
+    store.setState(state => ({ ...state, screen: 'calculating', errors: [], result: null, viewModel: null }));
+    await announceStatus('納税義務を判定しています');
+    try {
+      const result = await service.simulate(validation.value, context, snapshotInfo);
+      const exempt = result.resultStatus === 'complete' && result.breakdown &&
+        result.breakdown.kind === 'shohizei' && result.breakdown.data.methodResults.length === 0;
+      if (exempt) { showResult(result); return; }
+      if ((result.applicableMethods || []).length > 0) { goToStep(2); return; }
+      showResult(result);
+    } catch (error) { setBuildErrors(error, 1); }
+  }
+  async function calculateNow() {
+    let context; let wire;
+    try {
+      context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
+      wire = buildShohizeiInput(store.getState().form);
+    } catch (error) { setBuildErrors(error, 2); return; }
+    const validation = service.validate(wire);
+    if (!validation.ok) {
+      store.setState(state => ({ ...state, errors: validationErrors(validation) }));
+      await announceAlert('入力内容に確認が必要な項目があります'); return;
+    }
+    store.setState(state => ({ ...state, screen: 'calculating', errors: [], result: null, viewModel: null }));
+    await announceStatus('計算中です');
+    try { showResult(await service.simulate(validation.value, context, snapshotInfo)); }
+    catch (error) { setBuildErrors(error, 2); }
+  }
+  function showResult(result) {
+    const viewModel = buildResultViewModel(result);
+    store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+    queueEvent('simulator_complete', { tool: 'shohizei', resultStatus: result.resultStatus });
+    if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
+    else {
+      const heading = rootElement.querySelector('#sz-result-heading');
+      if (heading) focusResultHeading(heading);
+    }
+  }
+  function resetState() {
+    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  }
+  function clearAll() {
+    if (browserWindow && typeof browserWindow.confirm === 'function' &&
+        !browserWindow.confirm('入力と試算結果をすべてクリアしますか？')) return;
+    resetState();
+  }
+  function printResult() {
+    queueEvent('simulator_cta_click', { tool: 'shohizei' });
+    if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
+  }
+  function renderIntro() {
+    return el('main', { className: 'shohizei-no-print' }, [
+      el('h1', {}, '消費税シミュレーター'),
+      el('p', {}, '利用できる方式をまず判定してから、納税額を並べて比較します。'),
+      el('div', { className: 'shohizei-card' }, [el('h2', {}, 'ご利用の前に'),
+        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
+        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
+      el('p', {}, '所要時間の目安：3分程度'),
+      el('button', { type: 'button', className: 'shohizei-primary', onClick: () => {
+        queueEvent('simulator_start', { tool: 'shohizei' }); goToStep(1);
+      } }, 'かんたん計算をはじめる'),
+    ]);
+  }
+  function definitionList(items) {
+    return el('dl', {}, items.flatMap(([term, value]) => [el('dt', {}, term), el('dd', {}, value)]));
+  }
+  function eligibilitySection(viewModel) {
+    if (viewModel.eligibilityRows.length === 0) return null;
+    return el('section', { className: 'shohizei-card' }, [el('h2', {}, '利用できる方式'),
+      el('ul', {}, viewModel.eligibilityRows.map(row => el('li', {}, [
+        el('span', { className: 'shohizei-status' }, `${row.symbol} ${row.methodName}`), `：${row.reason}`,
+      ])))]);
+  }
+  function commonResultSections(viewModel) {
+    return [
+      el('section', {}, [el('h2', {}, '警告'), el('ul', {}, viewModel.warnings.map(warning =>
+        el('li', {}, [el('span', { className: 'shohizei-level' }, `[${warning.level}] `),
+          warning.basis || warning.code, warning.userAction ? ` 対応：${warning.userAction}` : ''])))]),
+      el('details', {}, [el('summary', {}, '前提をすべて表示'),
+        el('ul', {}, viewModel.assumptions.map(text => el('li', {}, text)))]),
+      el('section', { className: 'shohizei-card' }, [el('h2', {}, '計算範囲・除外項目'),
+        el('p', {}, `計算済み ${viewModel.calculationRange.calculatedCount} / 対象 ${viewModel.calculationRange.targetCount} 方式`),
+        el('ul', {}, viewModel.excludedItems.map(item => el('li', {}, `${item.label}：${item.reason}`)))]),
+      el('section', { className: 'shohizei-card' }, [el('h2', {}, '根拠'), definitionList([
+        ['計算版', viewModel.grounds.calculationVersion], ['マスタースナップショットID', viewModel.grounds.masterSnapshotId],
+        ['法令基準日', viewModel.grounds.legalStatusAsOf],
+      ]), el('h3', {}, '出典'), el('ul', {}, viewModel.grounds.sources.map(source => el('li', {},
+        source.url ? el('a', { href: source.url, rel: 'noreferrer' }, `${source.authority}：${source.title}`) : source.title)))]),
+    ];
+  }
+  function resultActions() {
+    return el('div', { className: 'shohizei-actions shohizei-no-print' }, [
+      el('button', { type: 'button', onClick: () => goToStep(1) }, '入力を修正する'),
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+      el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
+    ]);
+  }
+  function renderBlocked(viewModel) {
+    return el('main', {}, [
+      el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      eligibilitySection(viewModel),
+      ...viewModel.alerts.map(alert => el('section', { className: 'shohizei-card', role: 'alert' }, [
+        el('h2', {}, alert.heading), el('p', {}, alert.description),
+        alert.resolutionType === 'consultation' ? el('p', { className: 'shohizei-placeholder' }, '個別相談（公開準備中）') : null,
+      ])),
+      viewModel.differenceFromGeneral ? el('p', {}, viewModel.differenceFromGeneral.reason) : null,
+      ...commonResultSections(viewModel), resultActions(),
+    ]);
+  }
+  function renderResult(viewModel) {
+    return el('main', {}, [
+      el('p', { className: 'shohizei-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
+      el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      viewModel.isExempt ? el('section', { className: 'shohizei-card shohizei-conclusion' }, [
+        el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),
+      ]) : [
+        eligibilitySection(viewModel),
+        el('section', { className: 'shohizei-card' }, [el('h2', {}, '納税額の比較'),
+          el('div', { className: 'shohizei-table-wrap' }, el('table', {}, [
+            el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '方式'), el('th', { scope: 'col' }, '納税額')])),
+            el('tbody', {}, viewModel.comparisonRows.map(row => el('tr', {}, [
+              el('th', { scope: 'row' }, row.methodName), el('td', {}, row.display),
+            ]))),
+          ]))]),
+        el('section', { className: 'shohizei-card shohizei-conclusion' }, [el('h2', {}, '結論'),
+          viewModel.conclusion ? el('p', {}, viewModel.conclusion) : el('p', {}, '比較できる方式がありません。'),
+          viewModel.differenceFromGeneral.available
+            ? el('p', {}, `一般課税との差額：${viewModel.differenceFromGeneral.display}`)
+            : el('p', {}, viewModel.differenceFromGeneral.reason),
+          viewModel.simplifiedFilingGuidance ? el('p', {}, viewModel.simplifiedFilingNotice) : null,
+        ]),
+      ],
+      ...commonResultSections(viewModel),
+      el('p', { className: 'shohizei-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      resultActions(), el('p', { className: 'shohizei-placeholder shohizei-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
+    ]);
+  }
+  function render() {
+    if (destroyed) return;
+    const state = store.getState();
+    let content;
+    if (state.screen === 'intro') content = renderIntro();
+    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : renderStep2();
+    else if (state.screen === 'calculating') content = el('main', { className: 'shohizei-no-print' }, [
+      el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
+      el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
+    ]);
+    else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
+    else content = renderResult(state.viewModel);
+    rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
+    const summary = rootElement.querySelector('.shohizei-error-summary');
+    if (summary) summary.focus();
+  }
+  const unsubscribe = store.subscribe((state, previous) => {
+    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors ||
+        state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+  });
+  const pageshowHandler = event => { if (event.persisted) resetState(); };
+  if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
+  render();
+  return Object.freeze({ store, destroy() {
+    destroyed = true; unsubscribe();
+    if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+    rootElement.classList.remove('shohizei-app'); rootElement.replaceChildren();
+  } });
+}
+
+module.exports = Object.freeze({ mountShohizeiApp, INITIAL_FORM });
+
+},
+    "src/ui/shohizei/context-builder.js": function (module, exports, require) {
+'use strict';
+
+const { buildContextMetadata } = require('../context-builder.js');
+
+const SUPPORTED_YEAR = 2025;
+const CONSUMPTION_TAX_PERIOD = Object.freeze({
+  from: '2025-01-01',
+  to: '2025-12-31',
+});
+
+function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  const year = formState.consumptionTaxYear === undefined
+    ? SUPPORTED_YEAR
+    : Number(formState.consumptionTaxYear);
+  if (year !== SUPPORTED_YEAR) throw new RangeError('第1版の課税期間は2025年だけです');
+  return {
+    ...buildContextMetadata(snapshotInfo, calculatedAt),
+    consumptionTaxPeriod: { ...CONSUMPTION_TAX_PERIOD },
+    jurisdiction: { country: 'JP' },
+  };
+}
+
+module.exports = Object.freeze({
+  SUPPORTED_YEAR,
+  CONSUMPTION_TAX_PERIOD,
+  buildCalculationContext,
+});
+
+},
+    "src/ui/shohizei/input-builder.js": function (module, exports, require) {
+'use strict';
+
+const { CONSUMPTION_TAX_PERIOD } = require('./context-builder.js');
+
+class ShohizeiInputBuildError extends Error {
+  constructor(errors) {
+    super(errors.map(item => item.message).join('\n'));
+    this.name = 'ShohizeiInputBuildError';
+    this.errors = Object.freeze(errors.map(item => Object.freeze({ ...item })));
+    this.code = this.errors[0] && this.errors[0].code;
+  }
+}
+
+function issue(code, fieldPath, message) {
+  return { code, fieldPath, message };
+}
+
+function money(value, fieldPath, errors) {
+  const text = typeof value === 'bigint' ? value.toString(10) : String(value ?? '');
+  if (!/^\d+$/.test(text)) {
+    errors.push(issue('SZ_UI_MONEY_REQUIRED', fieldPath, '金額を円単位で入力してください'));
+    return { unit: 'JPY', value: '0' };
+  }
+  return { unit: 'JPY', value: text };
+}
+
+function taxIncl(value, basis, fieldPath, errors) {
+  if (!['inclusive', 'exclusive'].includes(basis)) {
+    errors.push(issue('SZ_UI_TAX_BASIS_REQUIRED', `${fieldPath}.basis`,
+      '税込または税抜を選択してください'));
+  }
+  return {
+    basis: ['inclusive', 'exclusive'].includes(basis) ? basis : 'inclusive',
+    amount: money(value, `${fieldPath}.amount.value`, errors),
+  };
+}
+
+function triState(value, fieldPath, errors, label) {
+  if (!['yes', 'no', 'unknown'].includes(value)) {
+    errors.push(issue('SZ_UI_SELECTION_REQUIRED', fieldPath, `${label}を選択してください`));
+    return 'unknown';
+  }
+  return value;
+}
+
+// specialistChecksは「専門確認が必要か」のフラグなので、わからないも確認要として送る。
+function specialistCheck(value, fieldPath, errors, label) {
+  const selected = triState(value, fieldPath, errors, label);
+  return selected === 'unknown' ? 'yes' : selected;
+}
+
+function optionalDate(value, fieldPath, errors) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const text = String(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    errors.push(issue('SZ_UI_DATE_INVALID', fieldPath, '日付をYYYY-MM-DDで入力してください'));
+    return undefined;
+  }
+  return text;
+}
+
+function filing(kind, status, effectiveYear, fieldPath, errors) {
+  const filed = triState(status, fieldPath, errors, '届出状況');
+  const result = { kind, filed };
+  if (filed === 'yes') {
+    const year = String(effectiveYear ?? '');
+    if (!/^\d{4}$/.test(year)) {
+      errors.push(issue('SZ_UI_EFFECTIVE_YEAR_REQUIRED', fieldPath,
+        '届出の効力開始年を4桁で入力してください'));
+    } else {
+      result.effectiveFromPeriodStart = `${year}-01-01`;
+    }
+  }
+  return result;
+}
+
+function eligibility(formState, errors) {
+  const registered = triState(formState.invoiceRegistered,
+    '$.eligibility.invoiceRegistration.registered', errors, 'インボイス登録状況');
+  const invoiceRegistration = { registered };
+  if (registered === 'yes') {
+    const registeredOn = optionalDate(formState.invoiceRegisteredOn,
+      '$.eligibility.invoiceRegistration.registeredOn', errors);
+    if (registeredOn) invoiceRegistration.registeredOn = registeredOn;
+    invoiceRegistration.becameTaxableByRegistration = triState(
+      formState.becameTaxableByRegistration,
+      '$.eligibility.invoiceRegistration.becameTaxableByRegistration', errors,
+      '登録を機に課税事業者になったか');
+  }
+
+  const basePeriod = { exists: formState.basePeriodExists !== false };
+  if (basePeriod.exists) {
+    basePeriod.taxableSales = money(formState.basePeriodTaxableSales,
+      '$.eligibility.basePeriod.taxableSales.value', errors);
+    if (formState.taxpayerType === 'corporation') {
+      const months = Number(formState.basePeriodLengthInMonths);
+      if (!Number.isInteger(months) || months <= 0) {
+        errors.push(issue('SZ_BASE_PERIOD_LENGTH_REQUIRED',
+          '$.eligibility.basePeriod.lengthInMonths', '法人は基準期間の月数を入力してください'));
+      } else basePeriod.lengthInMonths = months;
+    }
+  }
+
+  return {
+    invoiceRegistration,
+    basePeriod,
+    specifiedPeriod: {
+      taxableSales: money(formState.specifiedPeriodTaxableSales,
+        '$.eligibility.specifiedPeriod.taxableSales.value', errors),
+      salaryPayments: money(formState.specifiedPeriodSalaryPayments,
+        '$.eligibility.specifiedPeriod.salaryPayments.value', errors),
+    },
+    filings: [
+      filing('simplified_election', formState.simplifiedElectionStatus,
+        formState.simplifiedElectionEffectiveYear, '$.eligibility.filings.simplified_election', errors),
+      filing('taxable_person_election', formState.taxablePersonElectionStatus,
+        formState.taxablePersonElectionEffectiveYear, '$.eligibility.filings.taxable_person_election', errors),
+    ],
+    newCompany: {
+      isNewlyEstablished: triState(formState.isNewlyEstablished,
+        '$.eligibility.newCompany.isNewlyEstablished', errors, '新設法人への該当'),
+      isSpecifiedNewlyEstablished: triState(formState.isSpecifiedNewlyEstablished,
+        '$.eligibility.newCompany.isSpecifiedNewlyEstablished', errors, '特定新設法人への該当'),
+    },
+    events: {
+      inheritance: triState(formState.inheritance,
+        '$.eligibility.events.inheritance', errors, '相続への該当'),
+      merger: triState(formState.merger,
+        '$.eligibility.events.merger', errors, '合併への該当'),
+      corporateSplit: triState(formState.corporateSplit,
+        '$.eligibility.events.corporateSplit', errors, '会社分割への該当'),
+      highValueAssetAcquisition: triState(formState.highValueAssetAcquisition,
+        '$.eligibility.events.highValueAssetAcquisition', errors, '高額特定資産の取得への該当'),
+      adjustableFixedAssetAcquisition: triState(formState.adjustableFixedAssetAcquisition,
+        '$.eligibility.events.adjustableFixedAssetAcquisition', errors, '調整対象固定資産の取得への該当'),
+    },
+    taxablePeriodShortened: triState(formState.taxablePeriodShortened,
+      '$.eligibility.taxablePeriodShortened', errors, '課税期間短縮への該当'),
+  };
+}
+
+function transactions(formState, errors) {
+  const salesValue = {
+    kind: 'detailed',
+    taxable: [
+      { band: 'standard_10', amount: taxIncl(formState.salesStandard10,
+        formState.salesStandard10Basis, '$.sales[0].value.taxable[0].amount', errors) },
+      { band: 'reduced_8', amount: taxIncl(formState.salesReduced8,
+        formState.salesReduced8Basis, '$.sales[0].value.taxable[1].amount', errors) },
+    ],
+    exportExempt: taxIncl(formState.salesExportExempt,
+      formState.salesExportExemptBasis, '$.sales[0].value.exportExempt', errors),
+  };
+  const purchaseValue = {
+    kind: 'detailed',
+    taxableWithInvoice: [
+      { band: 'standard_10', amount: taxIncl(formState.purchasesWithInvoiceStandard10,
+        formState.purchasesWithInvoiceStandard10Basis,
+        '$.purchases[0].value.taxableWithInvoice[0].amount', errors) },
+      { band: 'reduced_8', amount: taxIncl(formState.purchasesWithInvoiceReduced8,
+        formState.purchasesWithInvoiceReduced8Basis,
+        '$.purchases[0].value.taxableWithInvoice[1].amount', errors) },
+    ],
+    taxableWithoutInvoice: [],
+  };
+  if (formState.hasPurchasesWithoutInvoice === 'yes') {
+    purchaseValue.taxableWithoutInvoice.push({
+      band: formState.purchasesWithoutInvoiceBand || 'standard_10',
+      amount: taxIncl(formState.purchasesWithoutInvoice,
+        formState.purchasesWithoutInvoiceBasis,
+        '$.purchases[0].value.taxableWithoutInvoice[0].amount', errors),
+      counterpartyAnnualTotal: taxIncl(formState.purchasesWithoutInvoiceAnnualTotal,
+        'inclusive', '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal', errors),
+      hasRequiredRecords: triState(formState.purchasesWithoutInvoiceRecords,
+        '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords', errors,
+        '帳簿と請求書の保存状況'),
+    });
+  } else if (formState.hasPurchasesWithoutInvoice !== 'no') {
+    errors.push(issue('SZ_UI_SELECTION_REQUIRED', '$.purchases[0].value.taxableWithoutInvoice',
+      'インボイスなし仕入の有無を選択してください'));
+  }
+  return {
+    sales: [{ period: { ...CONSUMPTION_TAX_PERIOD }, value: salesValue }],
+    purchases: [{ period: { ...CONSUMPTION_TAX_PERIOD }, value: purchaseValue }],
+  };
+}
+
+function buildShohizeiInput(formState, options = {}) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  const errors = [];
+  if (!['individual', 'corporation'].includes(formState.taxpayerType)) {
+    errors.push(issue('SZ_UI_TAXPAYER_TYPE_REQUIRED', '$.taxpayerType',
+      '事業者の区分を選択してください'));
+  }
+  const input = {
+    precision: 'simple',
+    taxpayerType: ['individual', 'corporation'].includes(formState.taxpayerType)
+      ? formState.taxpayerType : 'individual',
+    eligibility: eligibility(formState, errors),
+    sales: [],
+    purchases: [],
+    specialistChecks: {
+      reverseCharge: specialistCheck(formState.reverseCharge,
+        '$.specialistChecks.reverseCharge', errors, 'リバースチャージへの該当'),
+      specificTaxablePurchase: specialistCheck(formState.specificTaxablePurchase,
+        '$.specialistChecks.specificTaxablePurchase', errors, '特定課税仕入れへの該当'),
+      complexTaxableSalesRatio: specialistCheck(formState.complexTaxableSalesRatio,
+        '$.specialistChecks.complexTaxableSalesRatio', errors, '複雑な課税売上割合への該当'),
+    },
+  };
+  if (!options.emptyTransactions) Object.assign(input, transactions(formState, errors));
+  if (formState.simplifiedElectionStatus === 'yes') {
+    input.simplified = { categorySelectedByUser: true };
+    if (formState.simplifiedCategory) input.simplified.primaryCategory = formState.simplifiedCategory;
+    else if (!options.emptyTransactions) errors.push(issue('SZ_UI_SIMPLIFIED_CATEGORY_REQUIRED',
+      '$.simplified.primaryCategory', '簡易課税の事業区分を選択してください'));
+  }
+  if (errors.length > 0) throw new ShohizeiInputBuildError(errors);
+  return input;
+}
+
+module.exports = Object.freeze({
+  ShohizeiInputBuildError,
+  buildShohizeiInput,
+});
+
+},
+    "src/ui/shohizei/question-catalog.js": function (module, exports, require) {
+'use strict';
+
+const RESOLUTION_TYPES = Object.freeze({
+  INPUT: 'input',
+  CONFIRMATION: 'confirmation',
+  CONSULTATION: 'consultation',
+  INFORMATION: 'information',
+});
+
+function entry(heading, description, resolutionType = RESOLUTION_TYPES.CONFIRMATION, fieldPath) {
+  return Object.freeze({ heading, description, resolutionType, fieldPath });
+}
+
+const DEFINITIONS = {
+  SZ_BASE_PERIOD_LENGTH_REQUIRED: ['基準期間の月数を確認してください', '法人は基準期間の月数を入力してください。', 'input'],
+  SZ_BASE_PERIOD_REQUIRED: ['基準期間を確認してください', '基準期間の有無と課税売上高を入力してください。', 'input'],
+  SZ_BASE_PERIOD_TAXABLE_SALES_REQUIRED: ['基準期間の売上を確認してください', '基準期間の課税売上高を入力してください。', 'input'],
+  SZ_BECAME_TAXABLE_BY_REGISTRATION_UNKNOWN: ['インボイス登録時の状況を確認してください', 'インボイス登録を機に免税事業者から課税事業者になったか入力してください。', 'input'],
+  SZ_ENGINE_BLOCKED: ['税額を確定できません', '入力条件では税額計算を完了できませんでした。', 'consultation'],
+  SZ_EXEMPTION_THRESHOLD_MASTER_BLOCKED: ['免税点を確認できません', '免税点の承認済みマスターを一意に選べません。', 'consultation'],
+  SZ_EXPORT_REFUND_FUTURE_EXTENSION: ['輸出免税売上は対応準備中です', '輸出免税を含む還付計算は将来拡張です。', 'information'],
+  SZ_GENERAL_TAXABLE_PERSON: ['一般課税を利用できます', '課税事業者のため一般課税を利用できます。', 'information'],
+  SZ_INVOICE_REGISTRATION_STATUS_REQUIRED: ['インボイス登録を確認してください', 'インボイス登録の有無を選択してください。', 'input'],
+  SZ_NEW_COMPANY_EXEMPTION_UNSUPPORTED: ['新設法人の判定は専門確認が必要です', '新設法人・特定新設法人に関する特殊な免税点判定は専門確認が必要です。', 'consultation'],
+  SZ_NOT_TAXABLE_BY_INVOICE_REGISTRATION: ['特例の対象外です', 'インボイス登録を機に免税事業者から課税事業者になった場合に該当しません。', 'information'],
+  SZ_SEGMENT_OUTSIDE_TAXABLE_PERIOD: ['入力期間を確認してください', '売上・仕入の期間を課税期間の内側に収めてください。', 'input'],
+  SZ_SIMPLIFIED_BASE_PERIOD_OVER_CEILING: ['簡易課税の対象外です', '基準期間の課税売上高が簡易課税の適用上限を超えています。', 'information'],
+  SZ_SIMPLIFIED_CEILING_MASTER_BLOCKED: ['簡易課税上限を確認できません', '簡易課税上限の承認済みマスターを一意に選べません。', 'consultation'],
+  SZ_SIMPLIFIED_ELECTION_CANCEL_STATUS_UNKNOWN: ['不適用届出を確認してください', '簡易課税制度選択不適用届出書の状況と効力発生日を確認してください。', 'input'],
+  SZ_SIMPLIFIED_ELECTION_CANCELLED: ['簡易課税の対象外です', '簡易課税制度選択不適用届出書の効力がこの課税期間に及びます。', 'information'],
+  SZ_SIMPLIFIED_ELECTION_NOT_EFFECTIVE: ['簡易課税の対象外です', '簡易課税選択届出書の効力がこの課税期間の開始時点で生じていません。', 'information'],
+  SZ_SIMPLIFIED_ELECTION_NOT_FILED: ['簡易課税の届出が未提出です', '簡易課税選択届出書が未提出です。', 'information'],
+  SZ_SIMPLIFIED_ELECTION_STATUS_UNKNOWN: ['簡易課税の届出を確認してください', '簡易課税選択届出書の提出状況と効力発生日を確認してください。', 'input'],
+  SZ_SIMPLIFIED_REQUIREMENTS_MET: ['簡易課税を利用できます', '基準期間の売上要件と簡易課税選択届出を確認しました。', 'information'],
+  SZ_SPECIAL_BASE_PERIOD_OVER_THRESHOLD: ['特例の対象外です', '基準期間の課税売上高が免税点を超えるため特例の対象外です。', 'information'],
+  SZ_SPECIAL_EVENT_UNSUPPORTED: ['専門判定が必要です', '相続・合併・会社分割・高額な資産の取得等に該当する可能性があるため専門確認が必要です。', 'consultation'],
+  SZ_SPECIALIST_CHECK_UNSUPPORTED: ['専門判定が必要です', 'この条件はシミュレーターの対応範囲外です。', 'consultation'],
+  SZ_SPECIFIED_PERIOD_SALARY_PAYMENTS_REQUIRED: ['特定期間の給与を確認してください', '特定期間の給与等支払額を入力してください。', 'input'],
+  SZ_SPECIFIED_PERIOD_TAXABLE_SALES_REQUIRED: ['特定期間の売上を確認してください', '特定期間の課税売上高を入力してください。', 'input'],
+  SZ_TAXABLE_PERIOD_SHORTENED_UNSUPPORTED: ['課税期間短縮は専門判定です', '課税期間の短縮は第1版の対象外です。', 'consultation'],
+  SZ_TAXABLE_PERSON_ELECTION_EFFECTIVE_DATE_REQUIRED: ['課税事業者選択届出を確認してください', '課税事業者選択届出書の効力が生じる課税期間を入力してください。', 'input'],
+  SZ_TAXABLE_PERSON_ELECTION_SPECIALIST_CHECK: ['特例の専門判定が必要です', '課税事業者選択届出書提出者の特例適用可否は個別確認が必要です。', 'consultation'],
+  SZ_TAXABLE_PERSON_ELECTION_STATUS_REQUIRED: ['課税事業者選択届出を確認してください', '課税事業者選択届出書の提出状況を入力してください。', 'input'],
+  SZ_THREE_WARI_CORPORATION_INELIGIBLE: ['3割特例の対象外です', '法人のため3割特例の対象外です。', 'information'],
+  SZ_THREE_WARI_PERIOD_OUT_OF_SCOPE: ['3割特例の対象外です', '対象課税期間ではありません。', 'information'],
+  SZ_THREE_WARI_REQUIREMENTS_MET: ['3割特例を利用できます', '3割特例の適用要件を確認しました。', 'information'],
+  SZ_TWO_WARI_PERIOD_OUT_OF_SCOPE: ['2割特例の対象外です', '対象課税期間ではありません。', 'information'],
+  SZ_TWO_WARI_REQUIREMENTS_MET: ['2割特例を利用できます', '2割特例の適用要件を確認しました。', 'information'],
+};
+
+const QUESTION_CATALOG = Object.freeze(Object.fromEntries(Object.entries(DEFINITIONS)
+  .map(([code, values]) => [code, entry(values[0], values[1], values[2], values[3])])));
+const SPEC_REASON_CODES = Object.freeze(Object.keys(QUESTION_CATALOG));
+
+function resolveQuestion(reason) {
+  const value = typeof reason === 'string' ? { code: reason } : (reason || {});
+  const code = value.code || 'UNKNOWN';
+  const catalogEntry = QUESTION_CATALOG[code];
+  if (catalogEntry) return Object.freeze({ code, ...catalogEntry, isFallback: false });
+  return Object.freeze({
+    code,
+    heading: 'この条件は個別の確認が必要です',
+    description: value.message || value.basis || '計算を続行できない条件があります。',
+    resolutionType: RESOLUTION_TYPES.CONSULTATION,
+    isFallback: true,
+  });
+}
+
+module.exports = Object.freeze({
+  RESOLUTION_TYPES,
+  QUESTION_CATALOG,
+  SPEC_REASON_CODES,
+  resolveQuestion,
+});
+
+},
+    "src/ui/shohizei/result-view-model.js": function (module, exports, require) {
+'use strict';
+
+const { resolveQuestion } = require('./question-catalog.js');
+
+const METHOD_LABELS = Object.freeze({
+  general: '一般課税',
+  simplified: '簡易課税',
+  twenty_percent_special: '2割特例',
+  thirty_percent_special: '3割特例',
+});
+const STATUS_SYMBOLS = Object.freeze({
+  eligible: '○',
+  ineligible: '×',
+  unknown: '？',
+  blocked: '—',
+});
+const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+
+function moneyValue(value) {
+  if (!value || value.unit !== 'JPY' || typeof value.value !== 'bigint') {
+    throw new TypeError('MoneyはJPYのbigintで指定してください');
+  }
+  return value.value;
+}
+
+function formatYen(value) {
+  const amount = moneyValue(value);
+  const sign = amount < 0n ? '▲' : '';
+  const absolute = (amount < 0n ? -amount : amount).toString(10);
+  return `${sign}${absolute.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}円`;
+}
+
+function warningForCode(result, code) {
+  const warning = (result.warnings || []).find(item => item.code === code);
+  return warning ? { code, message: warning.basis } : { code };
+}
+
+function reasonText(result, row) {
+  const codes = row.reasonCodes || [];
+  if (codes.length === 0) return row.eligibility === 'eligible' ? '利用可能です。' : '理由を確認できません。';
+  return codes.map(code => resolveQuestion(warningForCode(result, code)).description).join(' ');
+}
+
+function eligibilityRows(result, methodResults) {
+  return Object.freeze(methodResults.map(row => Object.freeze({
+    methodCode: row.methodCode,
+    methodName: METHOD_LABELS[row.methodCode] || row.methodCode,
+    status: row.eligibility,
+    symbol: STATUS_SYMBOLS[row.eligibility] || '—',
+    reasonCodes: Object.freeze([...(row.reasonCodes || [])]),
+    reason: reasonText(result, row),
+  })));
+}
+
+function comparisonRows(methodResults) {
+  return Object.freeze(methodResults
+    .filter(row => row.eligibility === 'eligible' && row.taxPayable !== undefined)
+    .map(row => Object.freeze({
+      methodCode: row.methodCode,
+      methodName: METHOD_LABELS[row.methodCode] || row.methodCode,
+      amount: row.taxPayable,
+      exactYen: moneyValue(row.taxPayable),
+      display: formatYen(row.taxPayable),
+    }))
+    .sort((left, right) => left.exactYen < right.exactYen ? -1 :
+      left.exactYen > right.exactYen ? 1 : 0));
+}
+
+function generalDifference(result, methodResults, recommendedCode) {
+  const general = methodResults.find(row => row.methodCode === 'general');
+  const recommended = methodResults.find(row => row.methodCode === recommendedCode);
+  if (!general || general.eligibility !== 'eligible' || general.taxPayable === undefined) {
+    return Object.freeze({
+      available: false,
+      reason: general
+        ? `一般課税の確定額を出せないため、差額を表示しません。${reasonText(result, general)}`
+        : '一般課税の確定額がないため、差額を表示しません。',
+    });
+  }
+  if (!recommended || recommended.eligibility !== 'eligible' || recommended.taxPayable === undefined) {
+    return Object.freeze({ available: false, reason: '比較できる推奨方式がないため、差額を表示しません。' });
+  }
+  const difference = moneyValue(recommended.taxPayable) - moneyValue(general.taxPayable);
+  return Object.freeze({
+    available: true,
+    amount: Object.freeze({ unit: 'JPY', value: difference }),
+    display: formatYen({ unit: 'JPY', value: difference }),
+  });
+}
+
+function sortedWarnings(warnings) {
+  return Object.freeze([...(warnings || [])].sort((left, right) =>
+    (WARNING_ORDER[left.level] ?? 99) - (WARNING_ORDER[right.level] ?? 99)));
+}
+
+function grounds(result) {
+  const context = result.calculationContext || {};
+  return Object.freeze({
+    calculationVersion: result.calculationVersion,
+    masterSnapshotId: context.masterSnapshotId,
+    legalStatusAsOf: context.asOfDate,
+    sources: Object.freeze([...(result.sources || [])]),
+  });
+}
+
+function common(result) {
+  return {
+    resultStatus: result.resultStatus,
+    periodLabel: result.periodLabel,
+    warnings: sortedWarnings(result.warnings),
+    assumptions: Object.freeze([...(result.assumptions || [])]),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+    grounds: grounds(result),
+  };
+}
+
+function buildBlockedViewModel(result) {
+  const methodResults = (result.applicableMethods || []).map(row => ({
+    methodCode: row.methodCode,
+    eligibility: row.status,
+    reasonCodes: row.reasonCodes || [],
+  }));
+  const rows = eligibilityRows(result, methodResults);
+  const general = methodResults.find(row => row.methodCode === 'general');
+  return Object.freeze({
+    ...common(result),
+    heading: `試算停止（${result.periodLabel}・blocked）`,
+    isExempt: false,
+    eligibilityRows: rows,
+    comparisonRows: Object.freeze([]),
+    differenceFromGeneral: Object.freeze({
+      available: false,
+      reason: general
+        ? `一般課税の確定額を出せないため、差額を表示しません。${reasonText(result, general)}`
+        : '比較を完了できないため、一般課税との差額を表示しません。',
+    }),
+    simplifiedFilingGuidance: false,
+    calculationRange: Object.freeze({
+      calculatedCount: 0,
+      targetCount: rows.length,
+      excluded: rows,
+    }),
+    alerts: Object.freeze((result.warnings || []).map(item => resolveQuestion({
+      code: item.code, message: item.basis,
+    }))),
+  });
+}
+
+function buildResultViewModel(result) {
+  if (!result || result.simulatorType !== 'shohizei') {
+    throw new TypeError('shohizeiのSimulationResultを指定してください');
+  }
+  if (result.resultStatus === 'blocked' && !result.breakdown) return buildBlockedViewModel(result);
+  if (!result.breakdown || result.breakdown.kind !== 'shohizei') {
+    throw new TypeError('結果表示に必要なshohizei内訳がありません');
+  }
+  const methodResults = result.breakdown.data.methodResults || [];
+  if (result.resultStatus === 'complete' && methodResults.length === 0) {
+    return Object.freeze({
+      ...common(result),
+      heading: `試算結果（${result.periodLabel}・complete）`,
+      isExempt: true,
+      exemptTitle: '納税義務なし（免税事業者）',
+      exemptNotice: '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
+      eligibilityRows: Object.freeze([]),
+      comparisonRows: Object.freeze([]),
+      calculationRange: Object.freeze({ calculatedCount: 0, targetCount: 0, excluded: Object.freeze([]) }),
+      simplifiedFilingGuidance: false,
+    });
+  }
+
+  const rows = eligibilityRows(result, methodResults);
+  const comparisons = comparisonRows(methodResults);
+  const recommendedCode = result.breakdown.data.recommendedMethodCode;
+  const recommendedName = METHOD_LABELS[recommendedCode];
+  const simplified = methodResults.find(row => row.methodCode === 'simplified');
+  return Object.freeze({
+    ...common(result),
+    heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
+    isExempt: false,
+    isPartial: result.resultStatus === 'partial',
+    eligibilityRows: rows,
+    comparisonRows: comparisons,
+    recommendedMethodCode: recommendedCode,
+    conclusion: recommendedName
+      ? `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
+      : undefined,
+    differenceFromGeneral: generalDifference(result, methodResults, recommendedCode),
+    simplifiedFilingGuidance: Boolean(simplified && simplified.eligibility === 'ineligible' &&
+      (simplified.reasonCodes || []).includes('SZ_SIMPLIFIED_ELECTION_NOT_FILED')),
+    simplifiedFilingNotice: '選択届出書を提出すると簡易課税を選べる可能性があります（提出期限は原則、適用したい課税期間の開始前日まで）',
+    calculationRange: Object.freeze({
+      calculatedCount: comparisons.length,
+      targetCount: rows.length,
+      excluded: Object.freeze(rows.filter(row => row.status !== 'eligible')),
+    }),
+  });
+}
+
+module.exports = Object.freeze({
+  METHOD_LABELS,
+  STATUS_SYMBOLS,
+  formatYen,
+  buildResultViewModel,
+});
 
 },
     "src/ui/store.js": function (module, exports, require) {
@@ -14276,7 +15359,7 @@ module.exports = Object.freeze({
     "data/tax-simulator/masters/sources/source-registry.json": {},
     "scripts/lib/input-types/definitions.js": {},
     "scripts/lib/input-types/wire-converters.js": {},
-    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","../ui/router.js":"src/ui/router.js","../ui/yakuin-hoshu/app.js":"src/ui/yakuin-hoshu/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
+    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","../ui/router.js":"src/ui/router.js","../ui/shohizei/app.js":"src/ui/shohizei/app.js","../ui/yakuin-hoshu/app.js":"src/ui/yakuin-hoshu/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
     "src/simulators/core/result-builder.js": {"../../../data/tax-simulator/masters/sources/source-registry.json":"data/tax-simulator/masters/sources/source-registry.json","../../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./versions.js":"src/simulators/core/versions.js"},
     "src/simulators/core/validator.js": {"../../../scripts/lib/input-types/definitions.js":"scripts/lib/input-types/definitions.js","../../../scripts/lib/input-types/wire-converters.js":"scripts/lib/input-types/wire-converters.js"},
     "src/simulators/core/versions.js": {},
@@ -14316,14 +15399,20 @@ module.exports = Object.freeze({
     "src/tax-engine/social-insurance/standard-remuneration.js": {"../masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./helpers.js":"src/tax-engine/social-insurance/helpers.js"},
     "src/ui/a11y.js": {},
     "src/ui/analytics.js": {},
+    "src/ui/context-builder.js": {},
     "src/ui/dom.js": {},
     "src/ui/forms.js": {"./dom.js":"src/ui/dom.js"},
     "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","../yakuin-hoshu/handoff.js":"src/ui/yakuin-hoshu/handoff.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
-    "src/ui/hojinnari/context-builder.js": {},
+    "src/ui/hojinnari/context-builder.js": {"../context-builder.js":"src/ui/context-builder.js"},
     "src/ui/hojinnari/input-builder.js": {},
     "src/ui/hojinnari/question-catalog.js": {},
     "src/ui/hojinnari/result-view-model.js": {"./question-catalog.js":"src/ui/hojinnari/question-catalog.js"},
     "src/ui/router.js": {},
+    "src/ui/shohizei/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./context-builder.js":"src/ui/shohizei/context-builder.js","./input-builder.js":"src/ui/shohizei/input-builder.js","./result-view-model.js":"src/ui/shohizei/result-view-model.js"},
+    "src/ui/shohizei/context-builder.js": {"../context-builder.js":"src/ui/context-builder.js"},
+    "src/ui/shohizei/input-builder.js": {"./context-builder.js":"src/ui/shohizei/context-builder.js"},
+    "src/ui/shohizei/question-catalog.js": {},
+    "src/ui/shohizei/result-view-model.js": {"./question-catalog.js":"src/ui/shohizei/question-catalog.js"},
     "src/ui/store.js": {},
     "src/ui/yakuin-hoshu/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../hojinnari/context-builder.js":"src/ui/hojinnari/context-builder.js","../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js","../store.js":"src/ui/store.js","./handoff.js":"src/ui/yakuin-hoshu/handoff.js","./input-builder.js":"src/ui/yakuin-hoshu/input-builder.js","./result-view-model.js":"src/ui/yakuin-hoshu/result-view-model.js"},
     "src/ui/yakuin-hoshu/handoff.js": {},

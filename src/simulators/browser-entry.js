@@ -11,6 +11,7 @@ const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
+const { mountShohizeiApp } = require('../ui/shohizei/app.js');
 const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
 const { createRouter } = require('../ui/router.js');
 
@@ -156,6 +157,18 @@ function mountHojinnari(rootElement, options = {}) {
   });
 }
 
+/** 公開ページは未生成のまま、明示されたDOMへだけ②のアプリを起動する。 */
+function mountShohizei(rootElement, options = {}) {
+  const selectedService = options.services
+    ? (options.services.shohizei || options.services)
+    : verifiedUiService('shohizei');
+  return mountShohizeiApp(rootElement, {
+    services: selectedService,
+    snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 function expectedHojinnariContext(handoff, snapshotInfo) {
   const source = handoff.calculationContext;
   const year = 2025;
@@ -239,5 +252,6 @@ module.exports = Object.freeze({
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
+  mountShohizei,
   mountYakuinHoshu,
 });
