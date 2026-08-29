@@ -66,7 +66,10 @@ function collectDependencyGraph(entryFile, overrides = new Map()) {
     const id = moduleId(filePath);
     if (modules.has(id)) return;
     const extension = path.extname(filePath);
-    const source = overrides.has(id) ? overrides.get(id) : fs.readFileSync(filePath, 'utf8');
+    // checkout 環境（autocrlf）でソースの改行が CRLF になっても contenthash が
+    // 揺れないよう、バンドルへ埋め込む前に LF へ正規化する（決定性の担保）
+    const rawSource = overrides.has(id) ? overrides.get(id) : fs.readFileSync(filePath, 'utf8');
+    const source = rawSource.replaceAll('\r\n', '\n');
     if (extension === '.json') JSON.parse(source);
     const requests = extension === '.js' ? extractRequires(source, id) : [];
     const dependencies = {};
