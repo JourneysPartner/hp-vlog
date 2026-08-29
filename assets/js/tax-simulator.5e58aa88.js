@@ -1490,6 +1490,7 @@ const hojinnari = require('./hojinnari/index.js');
 const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
+const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
 
 let verificationState = 'unverified';
 let verificationPromise = null;
@@ -1599,15 +1600,41 @@ function guardedService(service) {
   });
 }
 
+const services = Object.freeze({
+  hojinnari: guardedService(hojinnari),
+  shohizei: guardedService(shohizei),
+  sozoku: guardedService(sozoku),
+  yakuinHoshu: guardedService(yakuinHoshu),
+});
+
+/** 公開画面は未生成のまま、明示されたDOMへだけ①のアプリを起動する。 */
+function mountHojinnari(rootElement, options = {}) {
+  if (options.services) {
+    return mountHojinnariApp(rootElement, {
+      services: options.services,
+      snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
+      now: options.now,
+    });
+  }
+  const verifiedService = Object.freeze({
+    validate: services.hojinnari.validate,
+    async simulate(...args) {
+      await verify();
+      return services.hojinnari.simulate(...args);
+    },
+  });
+  return mountHojinnariApp(rootElement, {
+    services: verifiedService,
+    snapshotInfo: snapshot.getSnapshotInfo(),
+    now: options.now,
+  });
+}
+
 module.exports = Object.freeze({
   verify,
-  services: Object.freeze({
-    hojinnari: guardedService(hojinnari),
-    shohizei: guardedService(shohizei),
-    sozoku: guardedService(sozoku),
-    yakuinHoshu: guardedService(yakuinHoshu),
-  }),
+  services,
   snapshotInfo: snapshot.getSnapshotInfo(),
+  mountHojinnari,
 });
 
 },
@@ -11331,13 +11358,1590 @@ module.exports = {
   determineStandardRemuneration,
 };
 
+},
+    "src/ui/a11y.js": function (module, exports, require) {
+'use strict';
+
+let statusRegion = null;
+let alertRegion = null;
+let alertPending = false;
+
+function nextFrame(action) {
+  const schedule = typeof requestAnimationFrame === 'function'
+    ? requestAnimationFrame
+    : callback => setTimeout(callback, 16);
+  return new Promise(resolve => schedule(() => {
+    action();
+    resolve();
+  }));
+}
+
+function liveRegion(role) {
+  if (typeof document === 'undefined') throw new Error('DOMを利用できない環境です');
+  const current = role === 'status' ? statusRegion : alertRegion;
+  if (current && current.isConnected) return current;
+  const region = document.createElement('div');
+  region.setAttribute('role', role);
+  region.setAttribute('aria-live', role === 'alert' ? 'assertive' : 'polite');
+  region.setAttribute('aria-atomic', 'true');
+  region.className = 'simulator-live-region';
+  document.body.appendChild(region);
+  if (role === 'status') statusRegion = region;
+  else alertRegion = region;
+  return region;
+}
+
+function announceStatus(text) {
+  const region = liveRegion('status');
+  return nextFrame(() => { region.textContent = String(text); }).then(() => region);
+}
+
+function announceAlert(text) {
+  const region = liveRegion('alert');
+  // 同一イベントループ内を1操作とし、alertの多重発火を抑止する。
+  if (alertPending) return Promise.resolve(region);
+  alertPending = true;
+  return nextFrame(() => { region.textContent = String(text); }).then(() => {
+    alertPending = false;
+    return region;
+  });
+}
+
+function focusResultHeading(element) {
+  if (!element || typeof element.focus !== 'function') {
+    return Promise.reject(new TypeError('結果見出しの要素を指定してください'));
+  }
+  if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
+  // 通知挿入とは必ず別描画にするため、フォーカスは2フレーム後へ送る。
+  return nextFrame(() => {}).then(() => nextFrame(() => element.focus()));
+}
+
+module.exports = Object.freeze({ announceStatus, announceAlert, focusResultHeading });
+
+},
+    "src/ui/analytics.js": function (module, exports, require) {
+'use strict';
+
+const ALLOWED_EVENTS = Object.freeze([
+  'simulator_view',
+  'simulator_start',
+  'simulator_complete',
+  'simulator_mode',
+  'simulator_cta_click',
+]);
+const TOOLS = Object.freeze(['hojinnari', 'shohizei', 'sozoku', 'yakuinHoshu']);
+const MODES = Object.freeze(['simple', 'detailed', 'A', 'B', 'C', 'level1', 'level2']);
+const RESULT_STATUSES = Object.freeze(['complete', 'partial', 'blocked']);
+const queue = [];
+
+const EVENT_SHAPES = Object.freeze({
+  simulator_view: Object.freeze({ required: ['tool'], allowed: ['tool'] }),
+  simulator_start: Object.freeze({ required: ['tool'], allowed: ['tool'] }),
+  simulator_complete: Object.freeze({ required: ['tool', 'resultStatus'], allowed: ['tool', 'resultStatus'] }),
+  simulator_mode: Object.freeze({ required: ['tool', 'mode'], allowed: ['tool', 'mode'] }),
+  simulator_cta_click: Object.freeze({ required: ['tool'], allowed: ['tool'] }),
+});
+
+function assertEnum(value, allowed, name) {
+  if (!allowed.includes(value)) throw new RangeError(`${name}が許可リスト外です`);
+}
+
+function queueEvent(eventName, payload) {
+  if (!ALLOWED_EVENTS.includes(eventName)) throw new RangeError('許可されていないAnalyticsイベントです');
+  if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new TypeError('Analyticsペイロードはオブジェクトで指定してください');
+  }
+  const shape = EVENT_SHAPES[eventName];
+  const keys = Object.keys(payload);
+  if (shape.required.some(key => !keys.includes(key)) || keys.some(key => !shape.allowed.includes(key))) {
+    throw new TypeError(`${eventName}のAnalyticsペイロード項目が許可リストと一致しません`);
+  }
+  assertEnum(payload.tool, TOOLS, 'tool');
+  if (Object.hasOwn(payload, 'mode')) assertEnum(payload.mode, MODES, 'mode');
+  if (Object.hasOwn(payload, 'resultStatus')) {
+    assertEnum(payload.resultStatus, RESULT_STATUSES, 'resultStatus');
+  }
+  const event = Object.freeze({ eventName, payload: Object.freeze({ ...payload }) });
+  queue.push(event);
+  return event;
+}
+
+function simulatorView(tool) { return queueEvent('simulator_view', { tool }); }
+function simulatorStart(tool) { return queueEvent('simulator_start', { tool }); }
+function simulatorComplete(tool, resultStatus) {
+  return queueEvent('simulator_complete', { tool, resultStatus });
+}
+function simulatorMode(tool, mode) { return queueEvent('simulator_mode', { tool, mode }); }
+function simulatorCtaClick(tool) { return queueEvent('simulator_cta_click', { tool }); }
+function getQueuedEvents() { return Object.freeze([...queue]); }
+function clearQueue() { queue.length = 0; }
+
+module.exports = Object.freeze({
+  queueEvent,
+  simulatorView,
+  simulatorStart,
+  simulatorComplete,
+  simulatorMode,
+  simulatorCtaClick,
+  getQueuedEvents,
+  clearQueue,
+});
+
+},
+    "src/ui/dom.js": function (module, exports, require) {
+'use strict';
+
+/** 安全なDOM生成の最小入口。文字列は必ずtextContentとして追加する。 */
+function el(tag, attrs = {}, children = []) {
+  if (typeof document === 'undefined') throw new Error('DOMを利用できない環境です');
+  const element = document.createElement(tag);
+
+  for (const [name, value] of Object.entries(attrs || {})) {
+    if (value === null || value === undefined || value === false) continue;
+    if (name === 'className') {
+      element.className = String(value);
+    } else if (name === 'textContent') {
+      element.textContent = String(value);
+    } else if (name.startsWith('on') && typeof value === 'function') {
+      element.addEventListener(name.slice(2).toLowerCase(), value);
+    } else if (value === true) {
+      element.setAttribute(name, '');
+    } else {
+      element.setAttribute(name, String(value));
+    }
+  }
+
+  const values = Array.isArray(children) ? children : [children];
+  for (const child of values.flat(Infinity)) {
+    if (child === null || child === undefined || child === false) continue;
+    if (typeof child === 'string' || typeof child === 'number' || typeof child === 'bigint') {
+      const text = document.createTextNode('');
+      text.textContent = String(child);
+      element.appendChild(text);
+    } else {
+      element.appendChild(child);
+    }
+  }
+  return element;
+}
+
+module.exports = Object.freeze({ el });
+
+},
+    "src/ui/forms.js": function (module, exports, require) {
+'use strict';
+
+const { el } = require('./dom.js');
+
+// 税制上の上限ではなく、巨大入力による資源消費を防ぐWire表現上の上限。
+const MAX_MONEY_DIGITS = 30;
+const MONEY_WIRE_PATTERN = /^-?[0-9]+$/;
+const FULL_WIDTH_DIGITS = '０１２３４５６７８９';
+
+function error(code) {
+  return Object.freeze({ ok: false, code });
+}
+
+function normalizeMoneyText(text) {
+  return String(text).replace(/[０-９]/g, digit => String(FULL_WIDTH_DIGITS.indexOf(digit)))
+    .replaceAll('，', ',')
+    .replaceAll('．', '.')
+    .replaceAll('－', '-')
+    .replaceAll('−', '-')
+    .replace(/[\s\u3000]/g, '')
+    .replace(/円$/, '');
+}
+
+function parseMoneyInput(text) {
+  if (typeof text !== 'string') return error('MONEY_INVALID_TYPE');
+  let normalized = normalizeMoneyText(text);
+  if (normalized.length === 0) return error('MONEY_EMPTY');
+  if (normalized.startsWith('-')) return error('MONEY_NEGATIVE');
+  if (normalized.includes('.')) return error('MONEY_FRACTIONAL_YEN');
+
+  let multiplier = 1n;
+  if (normalized.endsWith('億')) {
+    multiplier = 100000000n;
+    normalized = normalized.slice(0, -1);
+  } else if (normalized.endsWith('万')) {
+    multiplier = 10000n;
+    normalized = normalized.slice(0, -1);
+  }
+  if (normalized.includes('万') || normalized.includes('億')) return error('MONEY_INVALID_FORMAT');
+  if (!/^(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)$/.test(normalized)) {
+    return error('MONEY_INVALID_FORMAT');
+  }
+
+  const digits = normalized.replaceAll(',', '').replace(/^0+(?=[0-9])/, '');
+  const value = (BigInt(digits) * multiplier).toString(10);
+  if (value.length > MAX_MONEY_DIGITS) return error('MONEY_OVERFLOW');
+  return Object.freeze({ ok: true, value });
+}
+
+function assertMoneyWire(wire) {
+  if (typeof wire !== 'string' || !MONEY_WIRE_PATTERN.test(wire)) {
+    throw new TypeError('金額は指数表記・桁区切り・小数点を含まないWire文字列で指定してください');
+  }
+  return BigInt(wire);
+}
+
+function formatDisplayMoney(wire) {
+  const value = assertMoneyWire(wire);
+  const sign = value < 0n ? '-' : '';
+  const digits = (value < 0n ? -value : value).toString(10);
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+}
+
+function formatJapaneseUnit(value) {
+  if (value !== 0n && value % 100000000n === 0n) {
+    return `${(value / 100000000n).toLocaleString('ja-JP')}億円`;
+  }
+  if (value !== 0n && value % 10000n === 0n) {
+    return `${(value / 10000n).toLocaleString('ja-JP')}万円`;
+  }
+  return null;
+}
+
+function formatMoneyConfirmation(wire) {
+  const value = assertMoneyWire(wire);
+  const unit = formatJapaneseUnit(value);
+  const yen = `${formatDisplayMoney(wire)}円`;
+  return unit === null ? yen : `${yen}（${unit}）`;
+}
+
+/**
+ * 金額欄と確認表示を一体で作る。入力文字列自体は変更せず、IME確定後だけ解釈を更新する。
+ */
+function createMoneyInput(options = {}) {
+  const inputId = options.id || `money-input-${createMoneyInput.nextId++}`;
+  const confirmationId = `${inputId}-confirmation`;
+  const descriptionId = options.description ? `${inputId}-description` : null;
+  const describedBy = [descriptionId, confirmationId].filter(Boolean).join(' ');
+  const input = el('input', {
+    id: inputId,
+    name: options.name || inputId,
+    type: 'text',
+    inputmode: 'numeric',
+    autocomplete: 'off',
+    'aria-describedby': describedBy,
+  });
+  const confirmation = el('p', { id: confirmationId, 'aria-live': 'off' }, '');
+  let composing = false;
+  let parsed = error('MONEY_EMPTY');
+
+  function update() {
+    if (composing) return parsed;
+    parsed = parseMoneyInput(input.value);
+    confirmation.textContent = parsed.ok ? formatMoneyConfirmation(parsed.value) : '';
+    if (typeof options.onChange === 'function') options.onChange(parsed);
+    return parsed;
+  }
+
+  input.addEventListener('compositionstart', () => { composing = true; });
+  input.addEventListener('compositionend', () => { composing = false; update(); });
+  input.addEventListener('input', update);
+  input.addEventListener('change', update);
+  if (options.value !== undefined && options.value !== null && String(options.value) !== '') {
+    input.value = String(options.value);
+    update();
+  }
+
+  const children = [];
+  if (options.label) children.push(el('label', { for: inputId }, options.label));
+  if (options.description) children.push(el('p', { id: descriptionId }, options.description));
+  children.push(input, confirmation);
+  return Object.freeze({
+    element: el('div', { className: 'money-input' }, children),
+    input,
+    confirmation,
+    read: () => parsed,
+    set(value) {
+      input.value = value === undefined || value === null ? '' : String(value);
+      return update();
+    },
+    clear() {
+      input.value = '';
+      parsed = error('MONEY_EMPTY');
+      confirmation.textContent = '';
+    },
+  });
+}
+createMoneyInput.nextId = 1;
+
+/**
+ * U1では金額欄だけが先行したため、U2の列挙選択を同じラベル・説明関連付けで作る最小部品。
+ */
+function createSelect(options = {}) {
+  const selectId = options.id || `select-input-${createSelect.nextId++}`;
+  const descriptionId = options.description ? `${selectId}-description` : null;
+  const select = el('select', {
+    id: selectId,
+    name: options.name || selectId,
+    'aria-describedby': descriptionId,
+  }, (options.options || []).map(item => el('option', {
+    value: item.value,
+    selected: String(item.value) === String(options.value ?? ''),
+  }, item.label)));
+  if (typeof options.onChange === 'function') {
+    select.addEventListener('change', () => options.onChange(select.value));
+  }
+  const children = [];
+  if (options.label) children.push(el('label', { for: selectId }, options.label));
+  if (options.description) children.push(el('p', { id: descriptionId }, options.description));
+  children.push(select);
+  return Object.freeze({
+    element: el('div', { className: 'select-input' }, children),
+    select,
+    read: () => select.value,
+    set(value) { select.value = value === undefined || value === null ? '' : String(value); },
+    clear() { select.value = ''; },
+  });
+}
+createSelect.nextId = 1;
+
+/** ラジオ選択肢をfieldset/legendで一群として公開する。 */
+function createChoiceGroup(options = {}) {
+  const groupId = options.id || `choice-input-${createChoiceGroup.nextId++}`;
+  const inputs = (options.options || []).map((item, index) => {
+    const id = `${groupId}-${index + 1}`;
+    const input = el('input', {
+      id,
+      name: options.name || groupId,
+      type: 'radio',
+      value: item.value,
+      checked: String(item.value) === String(options.value ?? ''),
+    });
+    if (typeof options.onChange === 'function') {
+      input.addEventListener('change', () => {
+        if (input.checked) options.onChange(input.value);
+      });
+    }
+    return { input, element: el('div', { className: 'choice-input__option' }, [
+      input, el('label', { for: id }, item.label),
+    ]) };
+  });
+  const descriptionId = options.description ? `${groupId}-description` : null;
+  if (descriptionId) {
+    for (const item of inputs) item.input.setAttribute('aria-describedby', descriptionId);
+  }
+  return Object.freeze({
+    element: el('fieldset', { className: 'choice-input' }, [
+      el('legend', {}, options.label || ''),
+      options.description ? el('p', { id: descriptionId }, options.description) : null,
+      inputs.map(item => item.element),
+    ]),
+    inputs: Object.freeze(inputs.map(item => item.input)),
+    read: () => {
+      const selected = inputs.find(item => item.input.checked);
+      return selected ? selected.input.value : '';
+    },
+    clear() { for (const item of inputs) item.input.checked = false; },
+  });
+}
+createChoiceGroup.nextId = 1;
+
+module.exports = Object.freeze({
+  parseMoneyInput,
+  formatMoneyConfirmation,
+  formatDisplayMoney,
+  createMoneyInput,
+  createSelect,
+  createChoiceGroup,
+  MAX_MONEY_DIGITS,
+});
+
+},
+    "src/ui/hojinnari/app.js": function (module, exports, require) {
+'use strict';
+
+const { el } = require('../dom.js');
+const { createStore } = require('../store.js');
+const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
+const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { queueEvent } = require('../analytics.js');
+const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.js');
+const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
+const { resolveQuestion } = require('./question-catalog.js');
+const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
+
+const TOTAL_STEPS = 3;
+const CONDITIONAL_FORM_KEYS = new Set([
+  'municipalityKey', 'nationalHealthInsuranceKind', 'nationalPensionKind',
+  'locationSameAsResidence',
+]);
+const INITIAL_FORM = Object.freeze({
+  incomeTaxYear: 2025,
+  revenue: '',
+  expenses: '',
+  expensesConfirmed: false,
+  blueReturn: '',
+  businessTaxCategory: '',
+  ageAtYearEnd: '',
+  municipalityKey: '',
+  otherPrefectureCode: '',
+  otherMunicipalityCode: '',
+  nationalHealthInsuranceKind: '',
+  nationalHealthInsuranceActual: '',
+  nationalPensionKind: '',
+  nationalPensionActual: '',
+  officerCompensationMonthly: '',
+  capital: '',
+  locationSameAsResidence: '',
+  corporateSameAsIndividual: true,
+  corporateRevenue: '',
+  corporateExpenses: '',
+});
+
+const FIELD_IDS = Object.freeze({
+  '$.individual.business.revenue[0].value.value': 'hj-revenue',
+  '$.individual.business.expenses[0].value.value': 'hj-expenses',
+  '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid': 'hj-expenses-confirmed',
+  '$.individual.blueReturn': 'hj-blue-return',
+  '$.individual.blueReturn.status': 'hj-blue-return',
+  '$.individual.blueReturn.specialDeductionCategory': 'hj-blue-return',
+  '$.individual.business.businessTaxCategory': 'hj-business-tax-category',
+  '$.individual.self.ageAtYearEnd': 'hj-age',
+  '$.individual.nationalHealthInsurance': 'hj-nhi-kind',
+  '$.individual.nationalHealthInsurance.annualAmount.value': 'hj-nhi-actual',
+  '$.individual.nationalPension': 'hj-pension-kind',
+  '$.individual.nationalPension.annualAmount.value': 'hj-pension-actual',
+  '$.corporate.capital.value': 'hj-capital',
+  '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value': 'hj-officer-compensation',
+  '$.corporate.locationSameAsResidence': 'hj-location',
+  '$.corporate.revenue[0].value.value': 'hj-corporate-revenue',
+  '$.corporate.expenses[0].value.value': 'hj-corporate-expenses',
+});
+
+const STYLE_TEXT = `
+.hojinnari-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
+.hojinnari-app h1,.hojinnari-app h2,.hojinnari-app h3{color:#0B2045}
+.hojinnari-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
+.hojinnari-conclusion{background:#FDF0EA;border-left:6px solid #E85320}
+.hojinnari-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.hojinnari-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}
+.hojinnari-app button.hojinnari-primary{background:#E85320;border-color:#E85320;color:#fff}
+.hojinnari-app input,.hojinnari-app select{display:block;box-sizing:border-box;width:100%;max-width:34rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}
+.hojinnari-app input[type=checkbox],.hojinnari-app input[type=radio]{display:inline-block;width:auto;min-height:auto;margin-right:8px}
+.hojinnari-app fieldset{border:1px solid #E3E8F0;border-radius:8px;margin:16px 0;padding:12px}.hojinnari-app legend{font-weight:700}
+.hojinnari-progress{font-weight:700}.hojinnari-help{color:#55607a}.hojinnari-error{color:#9b1c1c;font-weight:700}.hojinnari-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}
+.hojinnari-table-wrap{overflow-x:auto}.hojinnari-app table{border-collapse:collapse;width:100%;min-width:620px}.hojinnari-app th,.hojinnari-app td{border:1px solid #E3E8F0;padding:10px;text-align:right}.hojinnari-app th:first-child,.hojinnari-app td:first-child{text-align:left}.hojinnari-app thead th:nth-child(2){background:#F5F7FA}.hojinnari-app thead th:nth-child(3){background:#FDF0EA}
+.hojinnari-level{font-weight:700}.hojinnari-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:480px){.hojinnari-app{padding:12px}.hojinnari-card{padding:16px}.hojinnari-actions{display:block}.hojinnari-actions button{width:100%;margin:5px 0}}
+@media print{.hojinnari-no-print{display:none!important}.hojinnari-app{max-width:none;padding:0}.hojinnari-print{display:block;color:#000}.hojinnari-card{box-shadow:none;break-inside:avoid}.hojinnari-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
+`;
+
+function cloneInitialForm() {
+  return { ...INITIAL_FORM };
+}
+
+function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
+  if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
+    throw new TypeError('マウント先のDOM要素が必要です');
+  }
+  const service = services && services.hojinnari ? services.hojinnari : services;
+  if (!service || typeof service.validate !== 'function' || typeof service.simulate !== 'function') {
+    throw new TypeError('hojinnariサービスが必要です');
+  }
+  const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  const store = createStore({
+    screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null,
+  });
+  let destroyed = false;
+
+  rootElement.classList.add('hojinnari-app');
+  rootElement.appendChild(el('style', { textContent: STYLE_TEXT }));
+  queueEvent('simulator_view', { tool: 'hojinnari' });
+
+  function updateForm(key, value) {
+    store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
+  }
+
+  function setErrors(errors) {
+    store.setState(state => ({ ...state, errors }));
+  }
+
+  function errorFor(path) {
+    return store.getState().errors.find(item => item.fieldPath === path);
+  }
+
+  function addControlError(control, path) {
+    const found = errorFor(path);
+    if (!found) return null;
+    const id = `${control.id || FIELD_IDS[path] || 'hj-field'}-error`;
+    control.setAttribute('aria-invalid', 'true');
+    const describedBy = [control.getAttribute('aria-describedby'), id].filter(Boolean).join(' ');
+    control.setAttribute('aria-describedby', describedBy);
+    return el('p', { id, className: 'hojinnari-error' }, found.message);
+  }
+
+  function errorSummary() {
+    const errors = store.getState().errors;
+    if (errors.length === 0) return null;
+    const summary = el('div', { className: 'hojinnari-error-summary', tabindex: '-1' }, [
+      el('h2', {}, '入力内容を確認してください'),
+      el('ul', {}, errors.map(item => {
+        const target = FIELD_IDS[item.fieldPath];
+        return el('li', {}, target
+          ? el('a', { href: `#${target}` }, item.message)
+          : item.message);
+      })),
+    ]);
+    return summary;
+  }
+
+  function moneyField(key, id, label, description, path) {
+    const field = createMoneyInput({
+      id, label, description, value: store.getState().form[key],
+    });
+    field.input.addEventListener('input', () => {
+      const parsed = field.read();
+      updateForm(key, parsed.ok ? parsed.value : field.input.value);
+    });
+    return [field.element, addControlError(field.input, path)];
+  }
+
+  function selectField(key, id, label, description, options, path) {
+    const field = createSelect({
+      id, label, description, options, value: store.getState().form[key],
+      onChange: value => {
+        updateForm(key, value);
+        if (CONDITIONAL_FORM_KEYS.has(key)) render();
+      },
+    });
+    return [field.element, addControlError(field.select, path)];
+  }
+
+  function pageActions({ previous, next, calculate } = {}) {
+    return el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
+      previous ? el('button', { type: 'button', onClick: () => goToStep(store.getState().step - 1) }, '戻る') : null,
+      next ? el('button', { type: 'button', className: 'hojinnari-primary', onClick: nextStep }, '次へ') : null,
+      calculate ? el('button', { type: 'button', className: 'hojinnari-primary', onClick: calculateNow }, '計算する') : null,
+      el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+    ]);
+  }
+
+  function stepHeader(step, title) {
+    return [
+      el('p', {
+        className: 'hojinnari-progress',
+        role: 'status',
+        'aria-label': `3ステップ中${step}番目`,
+      }, `STEP ${step} / ${TOTAL_STEPS}`),
+      el('h1', {}, title),
+    ];
+  }
+
+  function renderStep1() {
+    const form = store.getState().form;
+    const checkbox = el('input', {
+      id: 'hj-expenses-confirmed', type: 'checkbox', checked: form.expensesConfirmed,
+      onChange: event => updateForm('expensesConfirmed', event.currentTarget.checked),
+    });
+    const checkError = addControlError(checkbox,
+      '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid');
+    return el('main', { className: 'hojinnari-no-print' }, [
+      ...stepHeader(1, '事業の状況'), errorSummary(),
+      el('p', {}, '計算対象年：2025年（令和7年分）'),
+      ...moneyField('revenue', 'hj-revenue', '年間売上高（円）',
+        '0円以上の整数。全角数字・万単位も入力できます。',
+        '$.individual.business.revenue[0].value.value'),
+      ...moneyField('expenses', 'hj-expenses', '年間経費（円）',
+        '役員報酬を除いた事業経費。0円以上の整数で入力してください。',
+        '$.individual.business.expenses[0].value.value'),
+      el('div', {}, [checkbox, el('label', { for: checkbox.id },
+        '経費に国民健康保険料・国民年金・小規模企業共済等の掛金を含めていません'), checkError]),
+      ...selectField('blueReturn', 'hj-blue-return', '青色申告', '', [
+        { value: '', label: '選択してください' },
+        { value: 'e_tax_650k', label: '65万円控除（e-Tax）' },
+        { value: 'bookkeeping_550k', label: '55万円控除' },
+        { value: 'simple_100k', label: '10万円控除' },
+        { value: 'none', label: '青色だが控除なし' },
+        { value: 'white', label: '白色申告' },
+        { value: 'unknown', label: 'わからない' },
+      ], '$.individual.blueReturn'),
+      ...selectField('businessTaxCategory', 'hj-business-tax-category', '事業の種類',
+        '個人事業税の業種区分です。', [
+          { value: '', label: '選択してください' },
+          { value: 'type1', label: '第1種（5%）' }, { value: 'type2', label: '第2種（4%）' },
+          { value: 'type3_standard', label: '第3種（5%）' }, { value: 'type3_medical', label: '第3種・医業等（3%）' },
+          { value: 'not_listed', label: '法定業種にない' }, { value: 'unknown', label: 'わからない' },
+        ], '$.individual.business.businessTaxCategory'),
+      pageActions({ next: true }),
+    ]);
+  }
+
+  function renderStep2() {
+    const form = store.getState().form;
+    const age = el('input', {
+      id: 'hj-age', type: 'text', inputmode: 'numeric', autocomplete: 'off', value: form.ageAtYearEnd,
+      onInput: event => updateForm('ageAtYearEnd', event.currentTarget.value),
+      'aria-describedby': 'hj-age-description',
+    });
+    return el('main', { className: 'hojinnari-no-print' }, [
+      ...stepHeader(2, 'あなたの状況'), errorSummary(),
+      el('label', { for: age.id }, '年末時点の年齢'),
+      el('p', { id: 'hj-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
+      addControlError(age, '$.individual.self.ageAtYearEnd'),
+      ...selectField('municipalityKey', 'hj-municipality', 'お住まいの市区町村',
+        '国民健康保険料を概算できる登録自治体です。', [
+          { value: '', label: '選択してください' },
+          ...MUNICIPALITIES.map(item => ({ value: item.key, label: item.label })),
+          { value: 'other', label: 'その他' },
+        ], '$.calculationContext.jurisdiction'),
+      form.municipalityKey === 'other' ? el('div', { className: 'hojinnari-card' }, [
+        el('p', {}, 'その他の自治体は国保実額に加え、計算用の団体コードが必要です。'),
+        el('label', { for: 'hj-other-prefecture' }, '都道府県コード（2桁）'),
+        el('input', { id: 'hj-other-prefecture', value: form.otherPrefectureCode, inputmode: 'numeric',
+          onInput: event => updateForm('otherPrefectureCode', event.currentTarget.value) }),
+        el('label', { for: 'hj-other-municipality' }, '市区町村コード（5桁）'),
+        el('input', { id: 'hj-other-municipality', value: form.otherMunicipalityCode, inputmode: 'numeric',
+          onInput: event => updateForm('otherMunicipalityCode', event.currentTarget.value) }),
+      ]) : null,
+      ...selectField('nationalHealthInsuranceKind', 'hj-nhi-kind', '国民健康保険料', '', [
+        { value: '', label: '選択してください' },
+        { value: 'actual', label: '実額を入力する' },
+        { value: 'estimate', label: '選んだ自治体の料率で概算する' },
+      ], '$.individual.nationalHealthInsurance'),
+      form.nationalHealthInsuranceKind === 'estimate'
+        ? el('p', { className: 'hojinnari-help' }, '自治体の登録年度料率による概算です。') : null,
+      form.nationalHealthInsuranceKind === 'actual'
+        ? moneyField('nationalHealthInsuranceActual', 'hj-nhi-actual', '国保の年間実額（円）',
+          '0円以上の整数。', '$.individual.nationalHealthInsurance.annualAmount.value') : null,
+      ...selectField('nationalPensionKind', 'hj-pension-kind', '国民年金', '', [
+        { value: '', label: '選択してください' },
+        { value: 'standard', label: '通常どおり納付（12か月）' },
+        { value: 'actual', label: '実額を入力する' },
+        { value: 'exempted', label: '免除を受けている' },
+      ], '$.individual.nationalPension'),
+      form.nationalPensionKind === 'actual'
+        ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
+          '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
+      el('p', { className: 'hojinnari-help' },
+        '配偶者・扶養控除などは現在対応準備中です。単身の方向けの試算です。'),
+      pageActions({ previous: true, next: true }),
+    ]);
+  }
+
+  function renderStep3() {
+    const form = store.getState().form;
+    const sameChoice = createChoiceGroup({
+      id: 'hj-corporate-same', label: '法人側の売上・経費',
+      options: [{ value: 'same', label: '個人事業と同じ' }, { value: 'different', label: '変更する' }],
+      value: form.corporateSameAsIndividual ? 'same' : 'different',
+      onChange: value => {
+        updateForm('corporateSameAsIndividual', value === 'same');
+        render();
+      },
+    });
+    return el('main', { className: 'hojinnari-no-print' }, [
+      ...stepHeader(3, '法人化の想定'), errorSummary(),
+      ...moneyField('officerCompensationMonthly', 'hj-officer-compensation', '役員報酬（月額・円）',
+        '12か月同額として0円以上の整数で入力します。',
+        '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value'),
+      el('p', { className: 'hojinnari-placeholder' }, '役員報酬の最適化シミュレーター（公開準備中）'),
+      ...moneyField('capital', 'hj-capital', '資本金（円）',
+        '1,000万円以上は消費税・住民税均等割に影響します。', '$.corporate.capital.value'),
+      ...selectField('locationSameAsResidence', 'hj-location', '法人の所在地', '', [
+        { value: '', label: '選択してください' },
+        { value: 'yes', label: '自宅住所と同じ' }, { value: 'no', label: '違う・未定' },
+      ], '$.corporate.locationSameAsResidence'),
+      form.locationSameAsResidence === 'no'
+        ? el('p', { className: 'hojinnari-help' }, '所在地固有の税率を除外するため、結果はpartial（一部概算）になります。') : null,
+      sameChoice.element,
+      !form.corporateSameAsIndividual ? [
+        ...moneyField('corporateRevenue', 'hj-corporate-revenue', '法人側の年間売上（円）',
+          '事業年度は1/1〜12/31です。', '$.corporate.revenue[0].value.value'),
+        ...moneyField('corporateExpenses', 'hj-corporate-expenses', '法人側の年間経費（円）',
+          '事業年度は1/1〜12/31です。', '$.corporate.expenses[0].value.value'),
+      ] : el('p', {}, '法人側の売上・経費は個人事業と同じ。事業年度は1/1〜12/31です。'),
+      el('p', { className: 'hojinnari-help' }, '従業員数は0人（役員のみ）。従業員を雇っている場合は対応準備中です。'),
+      el('p', { className: 'hojinnari-help' }, '健康保険は選択した都道府県の協会けんぽを使います。消費税は比較対象外です。'),
+      pageActions({ previous: true, calculate: true }),
+    ]);
+  }
+
+  function localError(fieldPath, message, code = 'HJ_UI_INPUT_REQUIRED') {
+    return { code, fieldPath, message };
+  }
+
+  function validateStep(step) {
+    const form = store.getState().form;
+    const errors = [];
+    const requireMoney = (value, path, label) => {
+      if (!parseMoneyInput(String(value)).ok) errors.push(localError(path, `${label}を円単位で入力してください`));
+    };
+    if (step === 1) {
+      requireMoney(form.revenue, '$.individual.business.revenue[0].value.value', '年間売上高');
+      requireMoney(form.expenses, '$.individual.business.expenses[0].value.value', '年間経費');
+      if (!form.expensesConfirmed) errors.push(localError(
+        '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid',
+        '経費に社会保険料等を含めていないことの確認が必要です',
+        'HJ_EXPENSES_EXCLUSION_CONFIRMATION_REQUIRED'));
+      if (!form.blueReturn || form.blueReturn === 'unknown') errors.push(localError('$.individual.blueReturn', resolveQuestion('HJ_BLUE_RETURN_STATUS_UNKNOWN').description));
+      if (!form.businessTaxCategory || form.businessTaxCategory === 'unknown') errors.push(localError('$.individual.business.businessTaxCategory', resolveQuestion('HJ_BUSINESS_TAX_CATEGORY_UNKNOWN').description));
+    } else if (step === 2) {
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を整数で入力してください'));
+      if (!form.municipalityKey) errors.push(localError('$.calculationContext.jurisdiction', 'お住まいの市区町村を選択してください'));
+      if (form.municipalityKey === 'other' &&
+          (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
+        errors.push(localError('$.calculationContext.jurisdiction',
+          'その他の自治体は都道府県コード2桁と市区町村コード5桁を入力してください'));
+      }
+      if (!form.nationalHealthInsuranceKind) errors.push(localError('$.individual.nationalHealthInsurance', '国民健康保険料の入力方法を選択してください'));
+      if (form.municipalityKey === 'other' && form.nationalHealthInsuranceKind !== 'actual') errors.push(localError(
+        '$.individual.nationalHealthInsurance', resolveQuestion('HJ_UI_NHI_ACTUAL_REQUIRED_FOR_OTHER_MUNICIPALITY').description,
+        'HJ_UI_NHI_ACTUAL_REQUIRED_FOR_OTHER_MUNICIPALITY'));
+      if (form.nationalHealthInsuranceKind === 'actual') requireMoney(form.nationalHealthInsuranceActual,
+        '$.individual.nationalHealthInsurance.annualAmount.value', '国保の年間実額');
+      if (!form.nationalPensionKind) errors.push(localError('$.individual.nationalPension', '国民年金の納付状況を選択してください'));
+      if (form.nationalPensionKind === 'actual') requireMoney(form.nationalPensionActual,
+        '$.individual.nationalPension.annualAmount.value', '国民年金の年間実額');
+    } else {
+      requireMoney(form.officerCompensationMonthly,
+        '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value', '役員報酬');
+      requireMoney(form.capital, '$.corporate.capital.value', '資本金');
+      if (!form.locationSameAsResidence) errors.push(localError('$.corporate.locationSameAsResidence', '法人の所在地を選択してください'));
+      if (!form.corporateSameAsIndividual) {
+        requireMoney(form.corporateRevenue, '$.corporate.revenue[0].value.value', '法人側の年間売上');
+        requireMoney(form.corporateExpenses, '$.corporate.expenses[0].value.value', '法人側の年間経費');
+      }
+    }
+    setErrors(errors);
+    if (errors.length > 0) announceAlert('入力内容に確認が必要な項目があります');
+    return errors.length === 0;
+  }
+
+  function goToStep(step) {
+    if (step < 1 || step > TOTAL_STEPS) return;
+    store.setState(state => ({ ...state, screen: 'input', step, errors: [] }));
+  }
+
+  function nextStep() {
+    const step = store.getState().step;
+    if (validateStep(step)) goToStep(step + 1);
+  }
+
+  function validationErrors(validation) {
+    return (validation.errors || []).map(item => ({
+      code: item.code || 'HJ_SERVICE_VALIDATION_ERROR',
+      fieldPath: item.fieldPath,
+      message: item.message || '入力内容を確認してください',
+    }));
+  }
+
+  async function calculateNow() {
+    if (!validateStep(3)) return;
+    store.setState(state => ({ ...state, screen: 'calculating', errors: [], result: null, viewModel: null }));
+    await announceStatus('計算中です');
+    let context;
+    let wire;
+    try {
+      context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
+      wire = buildHojinnariInput(store.getState().form, context);
+    } catch (error) {
+      const errors = error instanceof HojinnariInputBuildError
+        ? [...error.errors]
+        : [localError('$.calculationContext.jurisdiction', error.message)];
+      store.setState(state => ({ ...state, screen: 'input', step: Math.min(state.step, 3), errors }));
+      await announceAlert('入力内容に確認が必要な項目があります');
+      return;
+    }
+    const validation = service.validate(wire);
+    if (!validation.ok) {
+      store.setState(state => ({ ...state, screen: 'input', step: 3, errors: validationErrors(validation) }));
+      await announceAlert('入力内容に確認が必要な項目があります');
+      return;
+    }
+    try {
+      const result = await service.simulate(validation.value, context, snapshotInfo);
+      const viewModel = buildResultViewModel(result);
+      store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+      queueEvent('simulator_complete', { tool: 'hojinnari', resultStatus: result.resultStatus });
+      if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
+      else {
+        const heading = rootElement.querySelector('#hj-result-heading');
+        if (heading) await focusResultHeading(heading);
+      }
+    } catch (_error) {
+      store.setState(state => ({ ...state, screen: 'input', step: 3, errors: [localError(
+        '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')]}));
+      await announceAlert('計算を完了できませんでした');
+    }
+  }
+
+  function clearAll() {
+    const accepted = !browserWindow || typeof browserWindow.confirm !== 'function' ||
+      browserWindow.confirm('入力と試算結果をすべてクリアしますか？');
+    if (!accepted) return;
+    resetState();
+  }
+
+  function resetState() {
+    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  }
+
+  function printResult() {
+    queueEvent('simulator_cta_click', { tool: 'hojinnari' });
+    if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
+  }
+
+  function renderIntro() {
+    return el('main', { className: 'hojinnari-no-print' }, [
+      el('h1', {}, '法人成りシミュレーター'),
+      el('p', {}, '個人事業を法人化した場合の税・社会保険と手残りを、平年度の条件で比較します。'),
+      el('div', { className: 'hojinnari-card' }, [
+        el('h2', {}, 'ご利用の前に'),
+        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
+        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。'),
+      ]),
+      el('p', {}, '所要時間の目安：3分程度'),
+      el('button', { type: 'button', className: 'hojinnari-primary', onClick: () => {
+        queueEvent('simulator_start', { tool: 'hojinnari' }); goToStep(1);
+      } }, 'かんたん計算をはじめる'),
+    ]);
+  }
+
+  function definitionList(items) {
+    return el('dl', {}, items.flatMap(([term, description]) => [el('dt', {}, term), el('dd', {}, description)]));
+  }
+
+  function renderBlocked(viewModel) {
+    return el('main', {}, [
+      el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
+      ...viewModel.alerts.map(alert => el('section', { className: 'hojinnari-card' }, [
+        el('h2', {}, alert.heading), el('p', {}, alert.description),
+        alert.resolutionType === 'consultation'
+          ? el('p', { className: 'hojinnari-placeholder' }, '個別相談（公開準備中）') : null,
+        alert.fieldPath && FIELD_IDS[alert.fieldPath]
+          ? el('button', { type: 'button', onClick: () => goToStep(alert.fieldPath.includes('business') || alert.fieldPath.includes('blueReturn') ? 1 : 2) }, '該当の入力を修正') : null,
+      ])),
+      pageActions({ previous: true }),
+    ]);
+  }
+
+  function renderResult(viewModel) {
+    const range = viewModel.calculationRange;
+    return el('main', {}, [
+      el('div', { className: 'hojinnari-print' }, [
+        el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
+        el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
+        viewModel.isPartial ? el('p', { className: 'hojinnari-error' }, viewModel.partialNotice) : null,
+        el('section', { className: 'hojinnari-card hojinnari-conclusion' }, [
+          el('h2', {}, '結論'), el('p', {}, viewModel.conclusion.text),
+          el('p', {}, `正確な参考差額：${formatSignedYen({ unit: 'JPY', value: viewModel.conclusion.exactAmount })}`),
+          definitionList([
+            ['個人事業の手取り', formatYen(viewModel.pairedFigures.solePersonalDisposableCash)],
+            ['法人化後に個人が使える資金', formatYen(viewModel.pairedFigures.corporationPersonalDisposableCash)],
+            ['法人に残る資金', formatYen(viewModel.pairedFigures.corporateRetainedCash)],
+            ['税・社会保険の合計負担（個人事業 / 法人化）',
+              `${formatYen(viewModel.pairedFigures.taxAndInsuranceBurden.soleProprietor)} / ${formatYen(viewModel.pairedFigures.taxAndInsuranceBurden.corporation)}`],
+          ]),
+          el('p', {}, viewModel.corporateRetainedWarning),
+          viewModel.setupAndMaintenanceCostsNotice ? el('p', {}, viewModel.setupAndMaintenanceCostsNotice) : null,
+        ]),
+        el('section', {}, [el('h2', {}, '比較表'), el('div', { className: 'hojinnari-table-wrap' }, el('table', {}, [
+          el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '項目'), el('th', { scope: 'col' }, '個人事業'), el('th', { scope: 'col' }, '法人化')])),
+          el('tbody', {}, viewModel.comparisonRows.map(row => el('tr', {}, [
+            el('th', { scope: 'row' }, [row.label, row.note ? el('small', {}, `（${row.note}）`) : null]),
+            el('td', {}, row.soleProprietor.display), el('td', {}, row.corporation.display),
+          ]))),
+        ]))]),
+        el('section', { className: 'hojinnari-card' }, [
+          el('h2', {}, '消費税・除外項目'), el('p', {}, viewModel.consumptionTaxBadge),
+          el('ul', {}, viewModel.excludedItems.map(item => el('li', {}, `${item.label}：${item.reason}`))),
+        ]),
+        el('section', { className: 'hojinnari-card' }, [
+          el('h2', {}, '計算範囲'), el('p', {}, `計算済み ${range.calculatedCount} / 対象 ${range.targetCount} 項目`),
+          definitionList([
+            ['直接入力', range.directInput.map(item => item.label).join('、') || 'なし'],
+            ['制度既定値', range.defaults.map(item => item.label).join('、') || 'なし'],
+            ['概算', range.estimates.map(item => item.label).join('、') || 'なし'],
+            ['除外', range.excluded.map(item => item.label).join('、') || 'なし'],
+          ]),
+        ]),
+        el('section', {}, [el('h2', {}, '警告'), el('ul', {}, viewModel.warnings.map(warning =>
+          el('li', {}, [el('span', { className: 'hojinnari-level' }, `[${warning.level}] `), warning.basis || warning.code,
+            warning.userAction ? ` 対応：${warning.userAction}` : ''])))]),
+        el('details', {}, [el('summary', {}, '前提をすべて表示'), el('ul', {}, viewModel.assumptions.map(text => el('li', {}, text)))]),
+        el('section', { className: 'hojinnari-card' }, [el('h2', {}, '根拠'), definitionList([
+          ['計算版', viewModel.grounds.calculationVersion], ['マスタースナップショットID', viewModel.grounds.masterSnapshotId],
+          ['法令基準日', viewModel.grounds.legalStatusAsOf],
+        ]), el('h3', {}, '出典'), el('ul', {}, viewModel.grounds.sources.map(source =>
+          el('li', {}, source.url ? el('a', { href: source.url, rel: 'noreferrer' }, `${source.authority}：${source.title}`) : source.title)))]),
+        el('p', { className: 'hojinnari-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      ]),
+      el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
+        el('button', { type: 'button', onClick: () => goToStep(1) }, '入力を修正する'),
+        el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
+        el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
+      ]),
+      el('p', { className: 'hojinnari-placeholder hojinnari-no-print' }, '役員報酬の最適化（公開準備中）'),
+      el('p', { className: 'hojinnari-placeholder hojinnari-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
+    ]);
+  }
+
+  function render() {
+    if (destroyed) return;
+    const state = store.getState();
+    let content;
+    if (state.screen === 'intro') content = renderIntro();
+    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    else if (state.screen === 'calculating') content = el('main', { className: 'hojinnari-no-print' }, [
+      el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
+      el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
+    ]);
+    else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
+    else content = renderResult(state.viewModel);
+    rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
+    const summary = rootElement.querySelector('.hojinnari-error-summary');
+    if (summary) summary.focus();
+  }
+
+  const unsubscribe = store.subscribe((state, previous) => {
+    if (state.screen !== previous.screen || state.step !== previous.step ||
+        state.errors !== previous.errors || state.result !== previous.result ||
+        state.viewModel !== previous.viewModel) render();
+  });
+  const pageshowHandler = event => { if (event.persisted) resetState(); };
+  if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
+  render();
+
+  return Object.freeze({
+    store,
+    destroy() {
+      destroyed = true;
+      unsubscribe();
+      if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      rootElement.replaceChildren();
+    },
+  });
+}
+
+module.exports = Object.freeze({ mountHojinnariApp, INITIAL_FORM });
+
+},
+    "src/ui/hojinnari/context-builder.js": function (module, exports, require) {
+'use strict';
+
+const SUPPORTED_YEAR = 2025;
+
+const MUNICIPALITIES = Object.freeze([
+  Object.freeze({ key: 'shibuya', label: '渋谷区', municipalityCode: '13113', prefectureCode: '13', isDesignatedCity: false }),
+  Object.freeze({ key: 'yokohama', label: '横浜市', municipalityCode: '14100', prefectureCode: '14', isDesignatedCity: true }),
+  Object.freeze({ key: 'nagoya', label: '名古屋市', municipalityCode: '23100', prefectureCode: '23', isDesignatedCity: true }),
+  Object.freeze({ key: 'osaka', label: '大阪市', municipalityCode: '27100', prefectureCode: '27', isDesignatedCity: true }),
+  Object.freeze({ key: 'fukuoka', label: '福岡市', municipalityCode: '40130', prefectureCode: '40', isDesignatedCity: true }),
+  Object.freeze({ key: 'sapporo', label: '札幌市', municipalityCode: '01100', prefectureCode: '01', isDesignatedCity: true }),
+]);
+
+const MUNICIPALITY_BY_KEY = Object.freeze(Object.fromEntries(
+  MUNICIPALITIES.map(municipality => [municipality.key, municipality])
+));
+
+function assertSnapshotInfo(snapshotInfo) {
+  if (!snapshotInfo || typeof snapshotInfo.snapshotId !== 'string' ||
+      typeof snapshotInfo.snapshotHash !== 'string' ||
+      typeof snapshotInfo.legalStatusAsOf !== 'string') {
+    throw new TypeError('snapshotInfoにsnapshotId・snapshotHash・legalStatusAsOfが必要です');
+  }
+}
+
+function jurisdictionFor(formState) {
+  const selected = MUNICIPALITY_BY_KEY[formState.municipalityKey];
+  if (selected) return selected;
+
+  // 「その他」は国保実額を使う場合のみ、呼び出し側が団体コードを渡せる。
+  if (formState.municipalityKey === 'other' &&
+      /^\d{2}$/.test(formState.otherPrefectureCode || '') &&
+      /^\d{5}$/.test(formState.otherMunicipalityCode || '')) {
+    return Object.freeze({
+      key: 'other',
+      label: 'その他',
+      prefectureCode: formState.otherPrefectureCode,
+      municipalityCode: formState.otherMunicipalityCode,
+      isDesignatedCity: formState.otherIsDesignatedCity === true,
+    });
+  }
+  throw new RangeError('対応する市区町村を選択してください');
+}
+
+function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  assertSnapshotInfo(snapshotInfo);
+  if (typeof calculatedAt !== 'string' || calculatedAt.length === 0) {
+    throw new TypeError('calculatedAtは呼び出し側で取得した日時文字列で指定してください');
+  }
+  const year = formState.incomeTaxYear === undefined
+    ? SUPPORTED_YEAR
+    : Number(formState.incomeTaxYear);
+  if (year !== SUPPORTED_YEAR) throw new RangeError('第1版の計算対象年は2025年だけです');
+  const municipality = jurisdictionFor(formState);
+
+  return {
+    asOfDate: snapshotInfo.legalStatusAsOf,
+    calculatedAt,
+    incomeTaxYear: year,
+    residentTaxFiscalYear: year,
+    fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
+    // 協会けんぽの年間計算に使う、当年度の登録済み料率の参照月。
+    socialInsuranceMonths: [`${year}-04`],
+    jurisdiction: {
+      country: 'JP',
+      codeSystemVersion: `${year}-01`,
+      asOfForCodes: `${year}-01-01`,
+      prefectureCode: municipality.prefectureCode,
+      municipalityCode: municipality.municipalityCode,
+      isDesignatedCity: municipality.isDesignatedCity,
+    },
+    masterSnapshotId: snapshotInfo.snapshotId,
+    masterSnapshotHash: snapshotInfo.snapshotHash,
+  };
+}
+
+module.exports = Object.freeze({
+  SUPPORTED_YEAR,
+  MUNICIPALITIES,
+  buildCalculationContext,
+});
+
+},
+    "src/ui/hojinnari/input-builder.js": function (module, exports, require) {
+'use strict';
+
+const YEAR_PERIOD = Object.freeze({ from: '2025-01-01', to: '2025-12-31' });
+
+class HojinnariInputBuildError extends Error {
+  constructor(errors) {
+    super(errors.map(item => item.message).join('\n'));
+    this.name = 'HojinnariInputBuildError';
+    this.errors = Object.freeze(errors.map(item => Object.freeze({ ...item })));
+    this.code = this.errors[0] && this.errors[0].code;
+  }
+}
+
+function issue(code, fieldPath, message) {
+  return { code, fieldPath, message };
+}
+
+function money(value, fieldPath, errors) {
+  const text = typeof value === 'bigint' ? value.toString(10) : String(value ?? '');
+  if (!/^\d+$/.test(text)) {
+    errors.push(issue('HJ_UI_MONEY_REQUIRED', fieldPath, '金額を円単位で入力してください'));
+    return { unit: 'JPY', value: '0' };
+  }
+  return { unit: 'JPY', value: text };
+}
+
+function segment(value, period, fieldPath, errors) {
+  return { period: { ...period }, value: money(value, fieldPath, errors) };
+}
+
+function blueReturn(value) {
+  if (value === 'white') return { status: 'white' };
+  if (value === 'unknown' || value === undefined || value === '') return { status: 'unknown' };
+  const allowed = ['e_tax_650k', 'bookkeeping_550k', 'simple_100k', 'none'];
+  return allowed.includes(value)
+    ? { status: 'blue', specialDeductionCategory: value }
+    : { status: 'unknown' };
+}
+
+function nationalHealthInsurance(formState, errors) {
+  const kind = formState.nationalHealthInsuranceKind;
+  if (formState.municipalityKey === 'other' && kind !== 'actual') {
+    errors.push(issue(
+      'HJ_UI_NHI_ACTUAL_REQUIRED_FOR_OTHER_MUNICIPALITY',
+      '$.individual.nationalHealthInsurance',
+      'お住まいの自治体の料率は未登録のため、実際の年間保険料の入力をお願いします'
+    ));
+  }
+  if (kind === 'actual') {
+    return {
+      kind: 'actual',
+      annualAmount: money(formState.nationalHealthInsuranceActual,
+        '$.individual.nationalHealthInsurance.annualAmount.value', errors),
+    };
+  }
+  if (kind === 'estimate' || kind === 'estimate_accepted') return { kind: 'estimate_accepted' };
+  return { kind: 'unknown' };
+}
+
+function nationalPension(formState, errors) {
+  if (formState.nationalPensionKind === 'actual') {
+    return {
+      kind: 'actual',
+      annualAmount: money(formState.nationalPensionActual,
+        '$.individual.nationalPension.annualAmount.value', errors),
+    };
+  }
+  if (formState.nationalPensionKind === 'standard') return { kind: 'standard', months: 12 };
+  if (formState.nationalPensionKind === 'exempted') return { kind: 'exempted' };
+  return { kind: 'unknown' };
+}
+
+function buildHojinnariInput(formState, context) {
+  if (!formState || typeof formState !== 'object') {
+    throw new TypeError('フォーム状態はオブジェクトで指定してください');
+  }
+  if (!context || !context.fiscalPeriod || !context.jurisdiction) {
+    throw new TypeError('CalculationContextが必要です');
+  }
+  const errors = [];
+  if (formState.expensesConfirmed !== true &&
+      formState.expensesExcludeSocialInsuranceAndMutualAid !== 'yes') {
+    errors.push(issue(
+      'HJ_EXPENSES_EXCLUSION_CONFIRMATION_REQUIRED',
+      '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid',
+      '経費に国民健康保険料・国民年金・小規模企業共済等の掛金を含めていないことを確認してください'
+    ));
+  }
+
+  const individualRevenue = formState.revenue;
+  const individualExpenses = formState.expenses;
+  const corporateSame = formState.corporateSameAsIndividual !== false;
+  const corporateRevenue = corporateSame ? individualRevenue : formState.corporateRevenue;
+  const corporateExpenses = corporateSame ? individualExpenses : formState.corporateExpenses;
+  const age = Number(formState.ageAtYearEnd);
+  if (!Number.isInteger(age) || age < 0) {
+    errors.push(issue('HJ_SELF_AGE_REQUIRED', '$.individual.self.ageAtYearEnd',
+      '年末時点の年齢を整数で入力してください'));
+  }
+
+  const input = {
+    precision: 'simple',
+    comparisonBasis: 'steady_state',
+    individual: {
+      business: {
+        revenue: [segment(individualRevenue, YEAR_PERIOD,
+          '$.individual.business.revenue[0].value.value', errors)],
+        expenses: [segment(individualExpenses, YEAR_PERIOD,
+          '$.individual.business.expenses[0].value.value', errors)],
+        periodFacts: {},
+        expensesExcludeSocialInsuranceAndMutualAid: formState.expensesConfirmed === true ||
+          formState.expensesExcludeSocialInsuranceAndMutualAid === 'yes' ? 'yes' : 'no',
+        businessTaxCategory: formState.businessTaxCategory,
+      },
+      blueReturn: blueReturn(formState.blueReturn),
+      self: { ageAtYearEnd: Number.isInteger(age) ? age : 0, disability: 'none' },
+      residentTaxBasis: 'steady_state',
+      nationalHealthInsurance: nationalHealthInsurance(formState, errors),
+      nationalPension: nationalPension(formState, errors),
+    },
+    corporate: {
+      locationSameAsResidence: formState.locationSameAsResidence,
+      capital: money(formState.capital, '$.corporate.capital.value', errors),
+      employeeCount: 0,
+      spouseOfficer: { isOfficer: false },
+      officerCompensation: {
+        monthlySegments: [{
+          period: { ...context.fiscalPeriod },
+          value: {
+            monthlyAmount: money(formState.officerCompensationMonthly,
+              '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value', errors),
+          },
+        }],
+      },
+      healthInsurer: {
+        kind: 'kyokai_kenpo',
+        prefectureCode: context.jurisdiction.prefectureCode,
+      },
+      revenue: [segment(corporateRevenue, context.fiscalPeriod,
+        '$.corporate.revenue[0].value.value', errors)],
+      expenses: [segment(corporateExpenses, context.fiscalPeriod,
+        '$.corporate.expenses[0].value.value', errors)],
+    },
+    consumptionTax: { include: false },
+    specialistChecks: {},
+  };
+
+  if (errors.length > 0) throw new HojinnariInputBuildError(errors);
+  return input;
+}
+
+module.exports = Object.freeze({
+  HojinnariInputBuildError,
+  buildHojinnariInput,
+});
+
+},
+    "src/ui/hojinnari/question-catalog.js": function (module, exports, require) {
+'use strict';
+
+const RESOLUTION_TYPES = Object.freeze({
+  REDISPLAY_SELECTION: 'redisplay_selection',
+  ACTUAL_AMOUNT: 'actual_amount',
+  CONSULTATION: 'consultation',
+});
+
+function entry(heading, description, resolutionType, fieldPath) {
+  return Object.freeze({ heading, description, resolutionType, fieldPath });
+}
+
+const BLUE_RETURN = entry(
+  '青色申告の控除区分を確認してください',
+  '青色申告の控除区分が確認できないため計算を止めました。確定申告書の控えの「青色申告特別控除額」をご確認ください',
+  RESOLUTION_TYPES.REDISPLAY_SELECTION,
+  '$.individual.blueReturn'
+);
+const BUSINESS_TAX = entry(
+  '個人事業税の業種区分を確認してください',
+  '個人事業税の業種区分が確認できないため計算を止めました。都道府県税事務所の納税通知書で確認できます',
+  RESOLUTION_TYPES.REDISPLAY_SELECTION,
+  '$.individual.business.businessTaxCategory'
+);
+const NHI_SELECTION = entry(
+  '国民健康保険料の入力方法を選んでください',
+  '実額を入力するか、登録済み自治体の料率で概算するかを選択してください',
+  RESOLUTION_TYPES.REDISPLAY_SELECTION,
+  '$.individual.nationalHealthInsurance'
+);
+const PENSION_SELECTION = entry(
+  '国民年金の納付状況を選んでください',
+  '通常どおり納付、実額入力、免除のいずれかを選択してください',
+  RESOLUTION_TYPES.REDISPLAY_SELECTION,
+  '$.individual.nationalPension'
+);
+const NHI_ACTUAL = entry(
+  '国民健康保険料の実額が必要です',
+  'お住まいの自治体の料率は未登録のため、実際の年間保険料の入力をお願いします',
+  RESOLUTION_TYPES.ACTUAL_AMOUNT,
+  '$.individual.nationalHealthInsurance.annualAmount'
+);
+const LOSS = entry(
+  '赤字事業の比較は対応準備中です',
+  '事業所得が赤字となるため、このシミュレーターでは比較できません（損益通算は対応準備中）',
+  RESOLUTION_TYPES.CONSULTATION
+);
+const UNSUPPORTED = entry(
+  '対応範囲外の条件です',
+  'この条件はシミュレーターの対応範囲外です',
+  RESOLUTION_TYPES.CONSULTATION
+);
+
+const QUESTION_CATALOG = Object.freeze({
+  HJ_BLUE_RETURN_STATUS_UNKNOWN: BLUE_RETURN,
+  HJ_BLUE_RETURN_DEDUCTION_CATEGORY_REQUIRED: BLUE_RETURN,
+  HJ_BUSINESS_TAX_CATEGORY_REQUIRED: BUSINESS_TAX,
+  HJ_BUSINESS_TAX_CATEGORY_UNKNOWN: BUSINESS_TAX,
+  HJ_NHI_SELECTION_REQUIRED: NHI_SELECTION,
+  HJ_NATIONAL_PENSION_SELECTION_REQUIRED: PENSION_SELECTION,
+  HJ_NHI_NHI_MUNICIPAL_RATE_NOT_REGISTERED: NHI_ACTUAL,
+  HJ_UI_NHI_ACTUAL_REQUIRED_FOR_OTHER_MUNICIPALITY: NHI_ACTUAL,
+  IT_BUSINESS_LOSS_OFFSET_UNSUPPORTED: LOSS,
+  HJ_INCOME_TAX_IT_BUSINESS_LOSS_OFFSET_UNSUPPORTED: LOSS,
+  HJ_SPECIALIST_PROFILE_UNSUPPORTED: UNSUPPORTED,
+});
+
+const SPEC_REASON_CODES = Object.freeze([
+  'HJ_BLUE_RETURN_STATUS_UNKNOWN',
+  'HJ_BLUE_RETURN_DEDUCTION_CATEGORY_REQUIRED',
+  'HJ_BUSINESS_TAX_CATEGORY_REQUIRED',
+  'HJ_BUSINESS_TAX_CATEGORY_UNKNOWN',
+  'HJ_NHI_SELECTION_REQUIRED',
+  'HJ_NATIONAL_PENSION_SELECTION_REQUIRED',
+  'HJ_NHI_NHI_MUNICIPAL_RATE_NOT_REGISTERED',
+  'IT_BUSINESS_LOSS_OFFSET_UNSUPPORTED',
+  'HJ_SPECIALIST_PROFILE_UNSUPPORTED',
+]);
+
+function resolveQuestion(reason) {
+  const value = typeof reason === 'string' ? { code: reason } : (reason || {});
+  const code = value.code || 'UNKNOWN';
+  const catalogEntry = QUESTION_CATALOG[code];
+  if (catalogEntry) return Object.freeze({ code, ...catalogEntry, isFallback: false });
+  const original = value.message || value.basis || '計算を続行できない条件があります';
+  return Object.freeze({
+    code,
+    heading: 'この条件は個別の確認が必要です',
+    description: original,
+    resolutionType: RESOLUTION_TYPES.CONSULTATION,
+    isFallback: true,
+  });
+}
+
+module.exports = Object.freeze({
+  RESOLUTION_TYPES,
+  QUESTION_CATALOG,
+  SPEC_REASON_CODES,
+  resolveQuestion,
+});
+
+},
+    "src/ui/hojinnari/result-view-model.js": function (module, exports, require) {
+'use strict';
+
+const { resolveQuestion } = require('./question-catalog.js');
+
+const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+const RANGE_CATALOG = Object.freeze([
+  Object.freeze({ code: 'income_tax', label: '所得税' }),
+  Object.freeze({ code: 'reconstruction_income_tax', label: '復興特別所得税' }),
+  Object.freeze({ code: 'resident_tax', label: '住民税' }),
+  Object.freeze({ code: 'sole_proprietor_enterprise_tax', label: '個人事業税' }),
+  Object.freeze({ code: 'national_health_insurance', label: '国民健康保険料' }),
+  Object.freeze({ code: 'national_pension', label: '国民年金' }),
+  Object.freeze({ code: 'corporate_tax', label: '法人税' }),
+  Object.freeze({ code: 'local_corporate_tax', label: '地方法人税' }),
+  Object.freeze({ code: 'corporate_resident_tax', label: '法人住民税' }),
+  Object.freeze({ code: 'corporate_enterprise_tax', label: '法人事業税等' }),
+  Object.freeze({ code: 'social_insurance', label: '社会保険' }),
+  Object.freeze({ code: 'consumption_tax', label: '消費税' }),
+]);
+
+function moneyValue(money) {
+  if (!money || money.unit !== 'JPY' || typeof money.value !== 'bigint') {
+    throw new TypeError('MoneyはJPYのbigintで指定してください');
+  }
+  return money.value;
+}
+
+function money(value) {
+  return Object.freeze({ unit: 'JPY', value });
+}
+
+function formatYen(moneyObject) {
+  const value = moneyValue(moneyObject);
+  const sign = value < 0n ? '▲' : '';
+  const digits = (value < 0n ? -value : value).toString(10);
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}円`;
+}
+
+function formatSignedYen(moneyObject) {
+  const value = moneyValue(moneyObject);
+  const prefix = value > 0n ? '＋' : value < 0n ? '▲' : '';
+  const absolute = money(value < 0n ? -value : value);
+  return `${prefix}${formatYen(absolute)}`;
+}
+
+function formatApproxManYen(valueOrMoney) {
+  const value = typeof valueOrMoney === 'bigint' ? valueOrMoney : moneyValue(valueOrMoney);
+  const absolute = value < 0n ? -value : value;
+  const rounded = (absolute + 5000n) / 10000n;
+  return `約${rounded.toLocaleString('ja-JP')}万円`;
+}
+
+function amountCell(value) {
+  if (value === undefined) return Object.freeze({ kind: 'omitted', display: '―' });
+  return Object.freeze({ kind: 'amount', amount: value, exactYen: moneyValue(value), display: formatYen(value) });
+}
+
+function sumMoney(values) {
+  return money(values.reduce((total, item) => total + moneyValue(item), 0n));
+}
+
+function burdenTotal(scenario, excludeEmployer) {
+  const entries = Object.entries(scenario.burdens || {}).filter(([key, value]) =>
+    value !== undefined && (!excludeEmployer || key !== 'socialInsuranceEmployer'));
+  return sumMoney(entries.map(([, value]) => value));
+}
+
+function conclusion(summaryAmount) {
+  const exactAmount = moneyValue(summaryAmount);
+  const approximate = formatApproxManYen(exactAmount);
+  if (exactAmount > 0n) {
+    return Object.freeze({
+      direction: 'corporation', exactAmount, approximate,
+      text: `本シミュレーションの入力条件では、法人化した場合のほうが年間 ${approximate} 手残りが増える試算となりました。`,
+    });
+  }
+  if (exactAmount < 0n) {
+    return Object.freeze({
+      direction: 'sole_proprietor', exactAmount, approximate,
+      text: `本シミュレーションの入力条件では、個人事業のままのほうが年間 ${approximate} 手残りが増える試算となりました。`,
+    });
+  }
+  return Object.freeze({
+    direction: 'nearly_equal', exactAmount, approximate,
+    text: '本シミュレーションの入力条件では、法人化後と個人事業の手残りはほぼ同等となる試算でした。',
+  });
+}
+
+function comparisonRows(data) {
+  const sole = data.soleProprietor;
+  const corporation = data.corporation;
+  // 帰属の異なる2つのサービス出力は、税計算をせず表示用合計だけを作る。
+  const corporationCombined = sumMoney([
+    corporation.personalDisposableCash,
+    corporation.corporateRetainedCash,
+  ]);
+  return Object.freeze([
+    ['income_tax', '所得税', sole.burdens.incomeTax, corporation.burdens.incomeTax],
+    ['resident_tax', '住民税', sole.burdens.residentTax, corporation.burdens.residentTax],
+    ['sole_proprietor_enterprise_tax', '個人事業税', sole.burdens.soleProprietorEnterpriseTax, undefined],
+    ['corporate_taxes', '法人税等', undefined, corporation.burdens.corporateTaxes],
+    ['social_insurance_employee', '本人社会保険', sole.burdens.socialInsuranceEmployee, corporation.burdens.socialInsuranceEmployee],
+    ['social_insurance_employer', '会社社会保険', undefined, corporation.burdens.socialInsuranceEmployer],
+    ['personal_disposable_cash', '個人手取り', sole.personalDisposableCash, corporation.personalDisposableCash],
+    ['corporate_retained_cash', '法人税引後利益', undefined, corporation.corporateRetainedCash],
+    ['combined_cash', '法人＋個人手残り', sole.personalDisposableCash, corporationCombined],
+  ].map(([code, label, soleValue, corporateValue]) => Object.freeze({
+    code,
+    label,
+    soleProprietor: amountCell(soleValue),
+    corporation: amountCell(corporateValue),
+    isEmployerSocialInsuranceDetailOnly: code === 'social_insurance_employer',
+    note: code === 'social_insurance_employer'
+      ? '内訳表示のみ。法人税引後利益へ反映済みのため合計へ再加算しません。'
+      : undefined,
+  })));
+}
+
+function calculationRange(result) {
+  const consumptionExcluded = (result.excludedItems || []).some(item =>
+    item.code === 'HJ_CONSUMPTION_TAX_OUT_OF_COMPARISON');
+  const isNhiEstimate = (result.assumptions || []).some(text =>
+    text.includes('国民健康保険料を概算'));
+  const isNhiActual = (result.assumptions || []).some(text =>
+    text.includes('国民健康保険料は入力された年間実額'));
+  const directInput = [];
+  const defaults = [];
+  const estimates = [];
+  const excluded = [];
+  for (const item of RANGE_CATALOG) {
+    if (item.code === 'consumption_tax' && consumptionExcluded) excluded.push(item);
+    else if (item.code === 'national_health_insurance' && isNhiEstimate) estimates.push(item);
+    else if (item.code === 'national_health_insurance' && isNhiActual) directInput.push(item);
+    else defaults.push(item);
+  }
+  return Object.freeze({
+    calculatedCount: RANGE_CATALOG.length - excluded.length,
+    targetCount: RANGE_CATALOG.length,
+    directInput: Object.freeze(directInput),
+    defaults: Object.freeze(defaults),
+    estimates: Object.freeze(estimates),
+    excluded: Object.freeze(excluded),
+    catalog: RANGE_CATALOG,
+  });
+}
+
+function sortedWarnings(warnings) {
+  return Object.freeze([...(warnings || [])].sort((left, right) =>
+    (WARNING_ORDER[left.level] ?? 99) - (WARNING_ORDER[right.level] ?? 99)));
+}
+
+function grounds(result) {
+  const context = result.calculationContext || {};
+  return Object.freeze({
+    calculationVersion: result.calculationVersion,
+    masterSnapshotId: context.masterSnapshotId,
+    legalStatusAsOf: context.asOfDate,
+    sources: Object.freeze([...(result.sources || [])]),
+  });
+}
+
+function buildBlockedViewModel(result) {
+  const alerts = Object.freeze((result.warnings || []).map(resolveQuestion));
+  return Object.freeze({
+    resultStatus: 'blocked',
+    periodLabel: result.periodLabel,
+    heading: `試算停止（${result.periodLabel}・blocked）`,
+    alerts,
+    assumptions: Object.freeze([...(result.assumptions || [])]),
+    warnings: sortedWarnings(result.warnings),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+    grounds: grounds(result),
+  });
+}
+
+function buildResultViewModel(result) {
+  if (!result || result.simulatorType !== 'hojinnari') {
+    throw new TypeError('hojinnariのSimulationResultを指定してください');
+  }
+  if (result.resultStatus === 'blocked') return buildBlockedViewModel(result);
+  if (!result.breakdown || result.breakdown.kind !== 'hojinnari' || !result.summary.amount) {
+    throw new TypeError('結果表示に必要なhojinnari内訳がありません');
+  }
+  const data = result.breakdown.data;
+  const soleBurden = burdenTotal(data.soleProprietor, false);
+  const corporationBurden = burdenTotal(data.corporation, true);
+  const partial = result.resultStatus === 'partial';
+  return Object.freeze({
+    resultStatus: result.resultStatus,
+    periodLabel: result.periodLabel,
+    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${result.resultStatus}）`,
+    isPartial: partial,
+    partialNotice: partial ? '概算の前提が含まれます' : undefined,
+    conclusion: conclusion(result.summary.amount),
+    comparisonRows: comparisonRows(data),
+    pairedFigures: Object.freeze({
+      solePersonalDisposableCash: data.soleProprietor.personalDisposableCash,
+      corporationPersonalDisposableCash: data.corporation.personalDisposableCash,
+      corporateRetainedCash: data.corporation.corporateRetainedCash,
+      taxAndInsuranceBurden: Object.freeze({
+        soleProprietor: soleBurden,
+        corporation: corporationBurden,
+        employerSocialInsuranceExcludedFromCorporationTotal: true,
+      }),
+    }),
+    corporateRetainedWarning: '法人内部に残る資金は社長個人が自由に使える資金ではありません。',
+    setupAndMaintenanceCostsNotice: data.corporation.setupAndMaintenanceCosts === undefined
+      ? '法人設立・維持費用（登記・税理士報酬等）は含まれていません'
+      : undefined,
+    consumptionTaxBadge: '消費税：比較対象外',
+    calculationRange: calculationRange(result),
+    warnings: sortedWarnings(result.warnings),
+    assumptions: Object.freeze([...(result.assumptions || [])]),
+    excludedItems: Object.freeze([...(result.excludedItems || [])]),
+    grounds: grounds(result),
+  });
+}
+
+module.exports = Object.freeze({
+  RANGE_CATALOG,
+  formatYen,
+  formatSignedYen,
+  formatApproxManYen,
+  buildResultViewModel,
+});
+
+},
+    "src/ui/store.js": function (module, exports, require) {
+'use strict';
+
+/** 永続化を行わない、プロセスメモリ内だけの状態コンテナ。 */
+function createStore(initialState) {
+  let state = initialState;
+  const subscribers = new Set();
+
+  function getState() {
+    return state;
+  }
+
+  function setState(nextState) {
+    const resolved = typeof nextState === 'function' ? nextState(state) : nextState;
+    if (Object.is(resolved, state)) return state;
+    const previous = state;
+    state = resolved;
+    for (const subscriber of [...subscribers]) subscriber(state, previous);
+    return state;
+  }
+
+  function subscribe(subscriber) {
+    if (typeof subscriber !== 'function') throw new TypeError('subscriberは関数で指定してください');
+    subscribers.add(subscriber);
+    return function unsubscribe() {
+      subscribers.delete(subscriber);
+    };
+  }
+
+  function clear(nextState = undefined) {
+    return setState(nextState);
+  }
+
+  return Object.freeze({ getState, setState, subscribe, clear });
+}
+
+module.exports = Object.freeze({ createStore });
+
 }
   };
   var dependencies = {
     "data/tax-simulator/masters/sources/source-registry.json": {},
     "scripts/lib/input-types/definitions.js": {},
     "scripts/lib/input-types/wire-converters.js": {},
-    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
+    "src/simulators/browser-entry.js": {"../tax-engine/masters/data-source.js":"src/tax-engine/masters/data-source.js","../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","../ui/hojinnari/app.js":"src/ui/hojinnari/app.js","./hojinnari/index.js":"src/simulators/hojinnari/index.js","./shohizei/index.js":"src/simulators/shohizei/index.js","./sozoku/index.js":"src/simulators/sozoku/index.js","./yakuin-hoshu/index.js":"src/simulators/yakuin-hoshu/index.js"},
     "src/simulators/core/result-builder.js": {"../../../data/tax-simulator/masters/sources/source-registry.json":"data/tax-simulator/masters/sources/source-registry.json","../../tax-engine/masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./versions.js":"src/simulators/core/versions.js"},
     "src/simulators/core/validator.js": {"../../../scripts/lib/input-types/definitions.js":"scripts/lib/input-types/definitions.js","../../../scripts/lib/input-types/wire-converters.js":"scripts/lib/input-types/wire-converters.js"},
     "src/simulators/core/versions.js": {},
@@ -11374,7 +12978,17 @@ module.exports = {
     "src/tax-engine/social-insurance/monthly-premium.js": {"./helpers.js":"src/tax-engine/social-insurance/helpers.js","./standard-remuneration.js":"src/tax-engine/social-insurance/standard-remuneration.js"},
     "src/tax-engine/social-insurance/national-pension.js": {"../common/money.js":"src/tax-engine/common/money.js","../common/rounding.js":"src/tax-engine/common/rounding.js","../masters/snapshot.js":"src/tax-engine/masters/snapshot.js"},
     "src/tax-engine/social-insurance/nhi-premium.js": {"../common/money.js":"src/tax-engine/common/money.js","../common/rounding.js":"src/tax-engine/common/rounding.js","../masters/snapshot.js":"src/tax-engine/masters/snapshot.js"},
-    "src/tax-engine/social-insurance/standard-remuneration.js": {"../masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./helpers.js":"src/tax-engine/social-insurance/helpers.js"}
+    "src/tax-engine/social-insurance/standard-remuneration.js": {"../masters/snapshot.js":"src/tax-engine/masters/snapshot.js","./helpers.js":"src/tax-engine/social-insurance/helpers.js"},
+    "src/ui/a11y.js": {},
+    "src/ui/analytics.js": {},
+    "src/ui/dom.js": {},
+    "src/ui/forms.js": {"./dom.js":"src/ui/dom.js"},
+    "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
+    "src/ui/hojinnari/context-builder.js": {},
+    "src/ui/hojinnari/input-builder.js": {},
+    "src/ui/hojinnari/question-catalog.js": {},
+    "src/ui/hojinnari/result-view-model.js": {"./question-catalog.js":"src/ui/hojinnari/question-catalog.js"},
+    "src/ui/store.js": {}
   };
   var cache = Object.create(null);
   function load(id) {
