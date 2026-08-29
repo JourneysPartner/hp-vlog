@@ -5,24 +5,10 @@
  * 引数はExactだけなので、確定済みMoneyを再度丸める二重丸めはできない。
  */
 
-const fs = require('fs');
-const path = require('path');
 const { exact } = require('./money.js');
+const dataSource = require('../masters/data-source.js');
 
-const RULES_FILE = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'data',
-  'tax-simulator',
-  'masters',
-  'data',
-  'rounding-rules',
-  'rules.json'
-);
-
-const ruleDocument = JSON.parse(fs.readFileSync(RULES_FILE, 'utf8'));
+const ruleDocument = JSON.parse(dataSource.getRoundingRulesContent());
 const rulesById = new Map();
 for (const rule of ruleDocument.rules) {
   if (rulesById.has(rule.rounding_rule_id)) {
