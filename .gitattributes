@@ -1,2 +1,3 @@
 data/tax-simulator/schemas/input/*.json  text eol=lf
 scripts/lib/input-types/generated/**     text eol=lf
+data/tax-simulator/masters/** text eol=lf

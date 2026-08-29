@@ -6,6 +6,14 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# シミュレーターだけを既存の記事・管理画面から分離した厳格な送信先制限。
+[[headers]]
+  for = "/tools/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'; manifest-src 'none'; require-trusted-types-for 'script'; trusted-types 'none'"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), web-share=(), xr-spatial-tracking=()"
+
 # ── Netlify Scheduled Functions ────────────────────────────────────────
 # GitHub Actions の schedule は数時間遅延するため、Netlify 側で時刻トリガーを管理する。
 # 各関数は GitHub Actions の workflow_dispatch を叩いて起動する。

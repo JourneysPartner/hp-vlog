@@ -5,22 +5,8 @@
  * JSONはモジュールのロード時だけ読み、以後のfind/findBracketはメモリ内だけを検索する。
  */
 
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
 const { money } = require('../common/money.js');
-
-const MASTER_ROOT_DIR = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'data',
-  'tax-simulator',
-  'masters'
-);
-const MASTER_DATA_DIR = path.join(MASTER_ROOT_DIR, 'data');
-const DEPENDENCIES_FILE = path.join(MASTER_ROOT_DIR, 'simulator-dependencies.json');
+const dataSource = require('./data-source.js');
 const DATE_PATTERN = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
 const MONEY_PATTERN = /^-?[0-9]+$/;
 const EMPTY_RESULT = Object.freeze([]);
@@ -39,58 +25,8 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
-function listJsonFiles(directory) {
-  const files = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...listJsonFiles(target));
-    else if (entry.isFile() && entry.name.endsWith('.json')) files.push(target);
-  }
-  return files.sort();
-}
-
-function listFiles(directory) {
-  const files = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...listFiles(target));
-    else if (entry.isFile()) files.push(target);
-  }
-  return files.sort();
-}
-
-function normalizedSnapshotPath(filePath) {
-  return filePath.replaceAll('\\', '/');
-}
-
-/**
- * 相対パスと生バイト列を長さ付きで連結し、列挙順に依存しないSHA-256を返す。
- * テストから実ファイルを書き換えず決定性を確認できるよう、入力列を引数に取る。
- */
 function computeSnapshotHash(files) {
-  if (!Array.isArray(files)) throw new TypeError('filesは配列で指定してください');
-  const normalized = files.map((file, index) => {
-    if (file === null || typeof file !== 'object' || Array.isArray(file)) {
-      throw new TypeError(`files[${index}]はオブジェクトで指定してください`);
-    }
-    if (typeof file.path !== 'string' || file.path.length === 0) {
-      throw new TypeError(`files[${index}].pathは空でない文字列で指定してください`);
-    }
-    const content = Buffer.isBuffer(file.content)
-      ? file.content
-      : Buffer.from(file.content, 'utf8');
-    return { path: normalizedSnapshotPath(file.path), content };
-  }).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
-
-  const hash = crypto.createHash('sha256');
-  for (const file of normalized) {
-    const pathBytes = Buffer.from(file.path, 'utf8');
-    hash.update(Buffer.from(`${pathBytes.length}:`, 'utf8'));
-    hash.update(pathBytes);
-    hash.update(Buffer.from(`:${file.content.length}:`, 'utf8'));
-    hash.update(file.content);
-  }
-  return hash.digest('hex');
+  return dataSource.computeSnapshotHash(files);
 }
 
 function collectRecords(node, records) {
@@ -102,8 +38,8 @@ function collectRecords(node, records) {
 const documents = [];
 const recordsByValueKey = new Map();
 let legalStatusAsOf = null;
-for (const file of listJsonFiles(MASTER_DATA_DIR)) {
-  const document = JSON.parse(fs.readFileSync(file, 'utf8'));
+for (const file of dataSource.getMasterDocuments()) {
+  const document = JSON.parse(file.content);
   const records = [];
   collectRecords(document, records);
   for (const record of records) {
@@ -120,19 +56,19 @@ for (const file of listJsonFiles(MASTER_DATA_DIR)) {
 deepFreeze(documents);
 for (const records of recordsByValueKey.values()) Object.freeze(records);
 
-const snapshotFiles = [
-  ...listFiles(MASTER_DATA_DIR),
-  DEPENDENCIES_FILE,
-].map(file => ({
-  path: normalizedSnapshotPath(path.relative(MASTER_ROOT_DIR, file)),
-  content: fs.readFileSync(file),
-}));
-const snapshotHash = computeSnapshotHash(snapshotFiles);
+const bundledSnapshotInfo = dataSource.getBundledSnapshotInfo();
+const snapshotHash = bundledSnapshotInfo === null
+  ? computeSnapshotHash(dataSource.getSnapshotFiles())
+  : bundledSnapshotInfo.snapshotHash;
 // v1のlegalStatusAsOfは、全マスターレコードのas_of_dateの最大値と定義する。
 const snapshotInfo = Object.freeze({
-  snapshotId: `tax-masters-${snapshotHash.slice(0, 16)}`,
+  snapshotId: bundledSnapshotInfo === null
+    ? `tax-masters-${snapshotHash.slice(0, 16)}`
+    : bundledSnapshotInfo.snapshotId,
   snapshotHash,
-  legalStatusAsOf,
+  legalStatusAsOf: bundledSnapshotInfo === null
+    ? legalStatusAsOf
+    : bundledSnapshotInfo.legalStatusAsOf,
 });
 let activeRecordTracking = null;
 
