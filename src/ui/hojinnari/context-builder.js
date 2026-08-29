@@ -1,5 +1,7 @@
 'use strict';
 
+const { buildContextMetadata } = require('../context-builder.js');
+
 const SUPPORTED_YEAR = 2025;
 
 const MUNICIPALITIES = Object.freeze([
@@ -14,14 +16,6 @@ const MUNICIPALITIES = Object.freeze([
 const MUNICIPALITY_BY_KEY = Object.freeze(Object.fromEntries(
   MUNICIPALITIES.map(municipality => [municipality.key, municipality])
 ));
-
-function assertSnapshotInfo(snapshotInfo) {
-  if (!snapshotInfo || typeof snapshotInfo.snapshotId !== 'string' ||
-      typeof snapshotInfo.snapshotHash !== 'string' ||
-      typeof snapshotInfo.legalStatusAsOf !== 'string') {
-    throw new TypeError('snapshotInfoにsnapshotId・snapshotHash・legalStatusAsOfが必要です');
-  }
-}
 
 function jurisdictionFor(formState) {
   const selected = MUNICIPALITY_BY_KEY[formState.municipalityKey];
@@ -46,10 +40,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   if (!formState || typeof formState !== 'object') {
     throw new TypeError('フォーム状態はオブジェクトで指定してください');
   }
-  assertSnapshotInfo(snapshotInfo);
-  if (typeof calculatedAt !== 'string' || calculatedAt.length === 0) {
-    throw new TypeError('calculatedAtは呼び出し側で取得した日時文字列で指定してください');
-  }
+  const metadata = buildContextMetadata(snapshotInfo, calculatedAt);
   const year = formState.incomeTaxYear === undefined
     ? SUPPORTED_YEAR
     : Number(formState.incomeTaxYear);
@@ -57,8 +48,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   const municipality = jurisdictionFor(formState);
 
   return {
-    asOfDate: snapshotInfo.legalStatusAsOf,
-    calculatedAt,
+    ...metadata,
     incomeTaxYear: year,
     residentTaxFiscalYear: year,
     fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
@@ -72,8 +62,6 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
       municipalityCode: municipality.municipalityCode,
       isDesignatedCity: municipality.isDesignatedCity,
     },
-    masterSnapshotId: snapshotInfo.snapshotId,
-    masterSnapshotHash: snapshotInfo.snapshotHash,
   };
 }
 
