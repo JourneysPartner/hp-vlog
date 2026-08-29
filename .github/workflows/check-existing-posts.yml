@@ -12,6 +12,10 @@ on:
     - cron: '0 22 * * *'   # 毎日 22:00 UTC = JST 07:00
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read      # gh run list で日次生成の実行状況を確認するため
+
 concurrency:
   group: check-existing-posts
   cancel-in-progress: false
@@ -29,6 +33,39 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      # 日次生成が「そもそも動かなかった」場合を拾う。
+      # 失敗した場合は daily-draft.yml 側が通知するが、スケジューラが起動しない、
+      # 起動したが記録が残らない、といったケースはそれでは検知できない。
+      # 直近24時間に成功した生成があるかを朝の点検で確かめる。
+      - name: Check daily draft ran
+        id: draftrun
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SINCE=$(date -u -d '25 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          COUNT=$(gh run list --workflow=daily-draft.yml --limit 10 \
+            --json createdAt,conclusion \
+            --jq "[.[] | select(.createdAt > \"$SINCE\") | select(.conclusion == \"success\")] | length")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" = "0" ]; then
+            echo '::error::直近24時間に成功した記事生成がありません'
+          else
+            echo "直近24時間の成功した生成: ${COUNT} 件"
+          fi
+
+      - name: Notify if no draft was generated
+        if: steps.draftrun.outputs.count == '0'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/workflows/daily-draft.yml"
+          node scripts/notify.js \
+            --event daily_draft_failed \
+            --title "$(TZ=Asia/Tokyo date +%Y-%m-%d) の記事生成" \
+            --comment '直近24時間に成功した記事生成がありません（実行されていない可能性があります）。' \
+            --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
 
       - name: Validate all posts
         id: validate
@@ -60,6 +97,6 @@ jobs:
             -H "X-ChatWorkToken: ${CHATWORK_API_TOKEN}" \
             --data-urlencode "body=${BODY}" > /dev/null && echo "通知しました"
 
-      - name: Fail the job if invalid
-        if: steps.validate.outputs.status != '0'
+      - name: Fail the job if something is wrong
+        if: steps.validate.outputs.status != '0' || steps.draftrun.outputs.count == '0'
         run: exit 1

@@ -96,6 +96,24 @@ function buildMessage(event, data) {
       };
     }
 
+    // 日次の記事生成そのものが失敗したとき。
+    // 2026-08-28/29: 生成は成功していたのにバリデーションでジョブが落ち、
+    // 下書きが作られないまま2日気づかれなかった。失敗を必ず知らせる。
+    case 'daily_draft_failed': {
+      const { comment, prUrl } = data;
+      return {
+        subject: '【ブログ】本日の記事生成に失敗しました',
+        body: [
+          '本日の記事生成が失敗し、下書きが作られていません。',
+          '',
+          comment ? `■ 状況: ${comment}` : '',
+          prUrl ? `■ 実行ログ: ${prUrl}` : '',
+          '',
+          '放置すると記事が作られない日が続きます。ログを確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     case 'revised': {
       const { title, filename, comment, reviewUrl } = data;
       const lines = [

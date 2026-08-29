@@ -353,3 +353,22 @@ jobs:
             --article-role "${{ steps.prep.outputs.article_role2 }}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
+
+      # ── 失敗したら必ず知らせる ──────────────────────────────────
+      # 2026-08-28/29: 記事の生成自体は成功していたのに、その後の
+      # バリデーションでジョブが落ちて下書きが作られず、2日間気づかれなかった。
+      # どの段階で落ちても通知が飛ぶよう、ジョブ全体の失敗を拾う。
+      - name: Notify on failure
+        if: failure()
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DATE='${{ steps.prep.outputs.date }}'
+          [ -z "$DATE" ] && DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          node scripts/notify.js \
+            --event daily_draft_failed \
+            --title "$DATE の記事生成" \
+            --comment 'GitHub Actions のジョブが失敗しました。下書きは作られていません。' \
+            --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'

@@ -37,5 +37,34 @@ console.log('\n=== Test: regenerate_not_applied（自動反映失敗）===');
   assert(m.body.includes('https://x/review?file=a&ref=b'), 'レビューURL（ref付き）を含む');
 }
 
+// ── 日次生成の失敗を必ず知らせる（2026-08-28/29）──────────────
+// 記事の生成自体は成功していたのにバリデーションでジョブが落ち、下書きが
+// 作られないまま2日間気づかれなかった。失敗も未実行も通知で拾えるようにした。
+console.log('');
+console.log('=== 日次生成の失敗通知 ===');
+{
+  const m = buildMessage('daily_draft_failed', {
+    title: '2026-08-29 の記事生成',
+    comment: 'GitHub Actions のジョブが失敗しました。下書きは作られていません。',
+    prUrl: 'https://github.com/owner/repo/actions/runs/123',
+  });
+  assert(/失敗/.test(m.subject), '件名で失敗と分かる');
+  assert(/下書きが作られていません/.test(m.body), '下書きが無いことが本文で分かる');
+  assert(m.body.includes('actions/runs/123'), '実行ログへの導線がある');
+  assert(/確認してください/.test(m.body), '次に何をすべきかが書かれている');
+
+  // 実行されなかった場合（朝の点検から）も同じ形式で送れる
+  const notRun = buildMessage('daily_draft_failed', {
+    title: '2026-08-30 の記事生成',
+    comment: '直近24時間に成功した記事生成がありません（実行されていない可能性があります）。',
+    prUrl: 'https://github.com/owner/repo/actions/workflows/daily-draft.yml',
+  });
+  assert(/実行されていない可能性/.test(notRun.body), '未実行のケースも同じ形式で通知できる');
+
+  // 任意項目が無くても壊れない
+  const bare = buildMessage('daily_draft_failed', { title: 'x' });
+  assert(bare.subject && bare.body && !/undefined/.test(bare.body),
+    '状況やログURLが無くても本文が壊れない');
+}
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
