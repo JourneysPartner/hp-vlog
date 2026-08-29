@@ -11,10 +11,30 @@ related_title: ""
 related_link_text: "具体的な事例で確認するにはこちら"
 source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5400.htm"
 source_title: "国税庁タックスアンサー No.5400 減価償却資産の取得価額に含めないことができる付随費用"
+source_provenance: "curated"
+source_confidence: 1
+source_guard_version: 1
 search_intent: "配送費・据付費・登録費用等の取得価額算入判定をしたい"
 reader_problem: "取得価額に含めるべき項目の判別が不安"
 success_outcome: "取得価額の付随費用判定が項目別にできる"
 primary_question: "固定資産の取得価額に何を含めるべき？"
+macro: "税目実務"
+cluster: "deepdive-beauty-salon-owner"
+subcluster: "bookkeeping-expenses-acquisition-cost-inclusion"
+tax_domain: "bookkeeping_expenses"
+business_stage: ""
+life_stage: ""
+pain_point: "acquisition-cost-inclusion"
+procedure_stage: ""
+customer_segment: "beauty_salon"
+customer_fit_score: 5
+search_intent_score: 4
+source_alignment_score: 5
+practical_usefulness_score: 5
+lead_value_score: 3
+tax_risk_score: 3
+recommendation: "publish"
+review_warning: ""
 summary: "固定資産の取得価額は購入代価＋直接費用が原則。配送費・据付費は算入必須。登録免許税等は法人は任意除外可、個人は資産種類により扱いが異なる。"
 review_status: "draft"
 review_comment: ""
@@ -25,11 +45,6 @@ pr_number: ""
 preview_url: ""
 created_at: "2026-08-29T06:22:36.330Z"
 updated_at: "2026-08-29T07:18:10.618Z"
-source_provenance: "curated"
-source_confidence: 1
-source_guard_version: 1
-pain_point: "acquisition-cost-inclusion"
-tax_domain: "bookkeeping_expenses"
 ---
 
 スチーマーやフェイシャルベッド、脱毛機器を購入したとき、請求書に本体代金のほかに「配送料」「据付工事費」「登録手数料」などが並んでいて、どこまでを固定資産の金額（取得価額）に含めればいいのか迷った経験はないでしょうか。
