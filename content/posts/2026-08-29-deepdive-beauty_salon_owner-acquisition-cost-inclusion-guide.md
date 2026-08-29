@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "固定資産の取得価額は購入代価＋直接費用が原則。配送費・据付費は算入必須。登録免許税等は法人は任意除外可、個人は資産種類により扱いが異なる。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-29T16:41:39.038+09:00"
+publish_at: "2026-08-30T11:30:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-29T06:22:36.330Z"
-updated_at: "2026-08-29T07:18:10.618Z"
+updated_at: "2026-08-29T16:41:39.038+09:00"
+publish_slot: "morning"
 ---
 
 スチーマーやフェイシャルベッド、脱毛機器を購入したとき、請求書に本体代金のほかに「配送料」「据付工事費」「登録手数料」などが並んでいて、どこまでを固定資産の金額（取得価額）に含めればいいのか迷った経験はないでしょうか。
