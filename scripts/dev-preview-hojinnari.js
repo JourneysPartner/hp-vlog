@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * 公開ページを作らず、OS一時ディレクトリへだけ①の確認用HTMLとバンドルを書き出す。
+ * 公開ページを作らず、OS一時ディレクトリへだけ①④共通の確認用HTMLとバンドルを書き出す。
  */
 
 const fs = require('fs');
@@ -11,7 +11,7 @@ const { build } = require('./build-simulator-bundle.js');
 
 function createPreview() {
   const built = build();
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hojinnari-preview-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'tax-simulators-preview-'));
   const bundleName = 'tax-simulator.js';
   fs.writeFileSync(path.join(directory, bundleName), built.bundle, 'utf8');
   const html = `<!doctype html>
@@ -20,12 +20,41 @@ function createPreview() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>法人成りシミュレーター 開発プレビュー</title>
+  <title>税務シミュレーター①④ 開発プレビュー</title>
+  <style>
+    .preview-toolbar{position:sticky;top:0;z-index:10;display:flex;gap:8px;padding:12px;background:#F5F7FA;border-bottom:1px solid #E3E8F0}
+    .preview-toolbar button{min-height:44px;padding:8px 16px}.preview-status{margin-left:auto;align-self:center}
+  </style>
 </head>
 <body>
-  <div id="hojinnari-app"></div>
+  <nav class="preview-toolbar" aria-label="プレビューする画面">
+    <button type="button" id="preview-hojinnari">① 法人成り</button>
+    <button type="button" id="preview-yakuin">④ 役員報酬</button>
+    <span class="preview-status" id="preview-status" role="status"></span>
+  </nav>
+  <div id="simulator-app"></div>
   <script src="./${bundleName}"></script>
-  <script>TaxSimulator.mountHojinnari(document.getElementById('hojinnari-app'));</script>
+  <script>
+    (function () {
+      var root = document.getElementById('simulator-app');
+      var status = document.getElementById('preview-status');
+      var active = null;
+      var previewRouter = {
+        navigate: function (tool) { status.textContent = tool === 'hojinnari' ? '④から①へ遷移しました' : ''; },
+        destroy: function () {}
+      };
+      function mount(tool) {
+        if (active) active.destroy();
+        status.textContent = tool === 'hojinnari' ? '①を表示中' : '④を表示中';
+        active = tool === 'hojinnari'
+          ? TaxSimulator.mountHojinnari(root)
+          : TaxSimulator.mountYakuinHoshu(root, { router: previewRouter });
+      }
+      document.getElementById('preview-hojinnari').addEventListener('click', function () { mount('hojinnari'); });
+      document.getElementById('preview-yakuin').addEventListener('click', function () { mount('yakuinHoshu'); });
+      mount('yakuinHoshu');
+    })();
+  </script>
 </body>
 </html>
 `;

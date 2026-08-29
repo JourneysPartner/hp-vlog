@@ -124,9 +124,9 @@ async function main() {
 
   process.stdout.write('\n=== ブラウザ公開API・実行時検証 ===\n');
   const unverified = evaluateBundle(first.bundle);
-  await check('公開名前空間は検証・サービス・スナップショット・①マウントだけを持つ', async () => {
+  await check('公開名前空間は検証・サービス・スナップショット・①④マウントだけを持つ', async () => {
     assert.deepStrictEqual(Object.keys(unverified).sort(),
-      ['mountHojinnari', 'services', 'snapshotInfo', 'verify']);
+      ['mountHojinnari', 'mountYakuinHoshu', 'services', 'snapshotInfo', 'verify']);
   });
   await check('検証前のsimulateを理由コード付き例外で拒否する', async () => {
     assert.throws(

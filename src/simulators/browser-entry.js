@@ -11,6 +11,8 @@ const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
+const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
+const { createRouter } = require('../ui/router.js');
 
 let verificationState = 'unverified';
 let verificationPromise = null;
@@ -134,6 +136,8 @@ function mountHojinnari(rootElement, options = {}) {
       services: options.services,
       snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
       now: options.now,
+      handoff: options.handoff,
+      handoffExpectedContext: options.handoffExpectedContext,
     });
   }
   const verifiedService = Object.freeze({
@@ -147,6 +151,86 @@ function mountHojinnari(rootElement, options = {}) {
     services: verifiedService,
     snapshotInfo: snapshot.getSnapshotInfo(),
     now: options.now,
+    handoff: options.handoff,
+    handoffExpectedContext: options.handoffExpectedContext,
+  });
+}
+
+function expectedHojinnariContext(handoff, snapshotInfo) {
+  const source = handoff.calculationContext;
+  const year = 2025;
+  return {
+    ...source,
+    incomeTaxYear: year,
+    residentTaxFiscalYear: year,
+    fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
+    socialInsuranceMonths: [`${year}-04`],
+    jurisdiction: {
+      ...source.jurisdiction,
+      country: 'JP',
+      codeSystemVersion: `${year}-01`,
+      asOfForCodes: `${year}-01-01`,
+    },
+    masterSnapshotId: snapshotInfo.snapshotId,
+    masterSnapshotHash: snapshotInfo.snapshotHash,
+  };
+}
+
+function verifiedUiService(serviceName) {
+  const selected = services[serviceName];
+  return Object.freeze({
+    validate: selected.validate,
+    async simulate(...args) {
+      await verify();
+      return selected.simulate(...args);
+    },
+  });
+}
+
+/** ④を起動し、確定結果のHandoffは同じrootの①へメモリ内で渡す。 */
+function mountYakuinHoshu(rootElement, options = {}) {
+  const snapshotForUi = options.snapshotInfo || snapshot.getSnapshotInfo();
+  const suppliedServices = options.services;
+  const yakuinService = suppliedServices
+    ? (suppliedServices.yakuinHoshu || suppliedServices)
+    : verifiedUiService('yakuinHoshu');
+  const hojinnariService = suppliedServices
+    ? (suppliedServices.hojinnari || suppliedServices)
+    : verifiedUiService('hojinnari');
+  let activeApp;
+  let router = null;
+  let destroyed = false;
+
+  function defaultHandoffNavigation(handoff) {
+    if (destroyed) return;
+    const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+    router = options.router || createRouter({ windowObject: browserWindow });
+    router.navigate('hojinnari');
+    activeApp.destroy();
+    activeApp = mountHojinnariApp(rootElement, {
+      services: hojinnariService,
+      snapshotInfo: snapshotForUi,
+      now: options.now,
+      handoff,
+      handoffExpectedContext: expectedHojinnariContext(handoff, snapshotForUi),
+    });
+  }
+
+  activeApp = mountYakuinHoshuApp(rootElement, {
+    services: yakuinService,
+    snapshotInfo: snapshotForUi,
+    now: options.now,
+    onHandoff: options.onHandoff || defaultHandoffNavigation,
+  });
+
+  return Object.freeze({
+    get store() { return activeApp.store; },
+    destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      activeApp.destroy();
+      if (router && router !== options.router) router.destroy();
+    },
   });
 }
 
@@ -155,4 +239,5 @@ module.exports = Object.freeze({
   services,
   snapshotInfo: snapshot.getSnapshotInfo(),
   mountHojinnari,
+  mountYakuinHoshu,
 });

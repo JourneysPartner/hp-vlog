@@ -9,6 +9,7 @@ const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.j
 const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
 const { resolveQuestion } = require('./question-catalog.js');
 const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
+const { acceptYakuinHoshuHandoff } = require('../yakuin-hoshu/handoff.js');
 
 const TOTAL_STEPS = 3;
 const CONDITIONAL_FORM_KEYS = new Set([
@@ -80,7 +81,9 @@ function cloneInitialForm() {
   return { ...INITIAL_FORM };
 }
 
-function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountHojinnariApp(rootElement, {
+  services, snapshotInfo, now, handoff, handoffExpectedContext,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -90,8 +93,22 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
+  let initialForm = cloneInitialForm();
+  let handoffNotice = null;
+  let initialScreen = 'intro';
+  let initialStep = 1;
+  if (handoff !== undefined) {
+    const received = acceptYakuinHoshuHandoff(handoff, initialForm, handoffExpectedContext);
+    initialForm = { ...received.formState };
+    handoffNotice = Object.freeze({ accepted: received.accepted, message: received.message });
+    if (received.accepted) {
+      initialScreen = 'input';
+      initialStep = 3;
+    }
+  }
   const store = createStore({
-    screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null,
+    screen: initialScreen, step: initialStep, form: initialForm, errors: [], result: null,
+    viewModel: null, handoffNotice, sourceHandoff: handoffNotice && handoffNotice.accepted ? handoff : null,
   });
   let destroyed = false;
 
@@ -286,6 +303,13 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
     });
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(3, '法人化の想定'), errorSummary(),
+      store.getState().handoffNotice ? el('p', {
+        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
+        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
+      }, store.getState().handoffNotice.message) : null,
+      store.getState().handoffNotice && store.getState().handoffNotice.accepted
+        ? el('p', { className: 'hojinnari-help' },
+          '引き継いだ値はメモリ内だけに保持され、リロードすると消えます。') : null,
       ...moneyField('officerCompensationMonthly', 'hj-officer-compensation', '役員報酬（月額・円）',
         '12か月同額として0円以上の整数で入力します。',
         '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value'),
@@ -404,7 +428,20 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
       return;
     }
     try {
-      const result = await service.simulate(validation.value, context, snapshotInfo);
+      const simulated = await service.simulate(validation.value, context, snapshotInfo);
+      const sourceHandoff = store.getState().sourceHandoff;
+      // §13-1: partialの送信元を受けた結果をcompleteへ格上げしない。
+      const result = sourceHandoff && sourceHandoff.sourceResultStatus === 'partial' &&
+          simulated.resultStatus === 'complete'
+        ? Object.freeze({
+          ...simulated,
+          resultStatus: 'partial',
+          warnings: Object.freeze([...(sourceHandoff.warnings || []), ...(simulated.warnings || [])]),
+          excludedItems: Object.freeze([
+            ...(sourceHandoff.excludedItems || []), ...(simulated.excludedItems || []),
+          ]),
+        })
+        : simulated;
       const viewModel = buildResultViewModel(result);
       store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'hojinnari', resultStatus: result.resultStatus });
@@ -428,7 +465,8 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
 
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+      viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
   function printResult() {
@@ -439,6 +477,10 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
   function renderIntro() {
     return el('main', { className: 'hojinnari-no-print' }, [
       el('h1', {}, '法人成りシミュレーター'),
+      store.getState().handoffNotice ? el('p', {
+        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
+        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
+      }, store.getState().handoffNotice.message) : null,
       el('p', {}, '個人事業を法人化した場合の税・社会保険と手残りを、平年度の条件で比較します。'),
       el('div', { className: 'hojinnari-card' }, [
         el('h2', {}, 'ご利用の前に'),
@@ -446,6 +488,8 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
         el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。'),
       ]),
       el('p', {}, '所要時間の目安：3分程度'),
+      el('p', { className: 'hojinnari-help' },
+        '④から引き継いだ値はメモリ内だけに保持され、リロードすると消えます。'),
       el('button', { type: 'button', className: 'hojinnari-primary', onClick: () => {
         queueEvent('simulator_start', { tool: 'hojinnari' }); goToStep(1);
       } }, 'かんたん計算をはじめる'),
@@ -563,6 +607,7 @@ function mountHojinnariApp(rootElement, { services, snapshotInfo, now } = {}) {
       destroyed = true;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      rootElement.classList.remove('hojinnari-app');
       rootElement.replaceChildren();
     },
   });
