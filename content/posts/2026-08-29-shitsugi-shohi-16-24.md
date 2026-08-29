@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "所有権移転外ファイナンス・リース取引を分割控除中に解約した場合、残存リース料は解約日の属する課税期間にまとめて仕入税額控除できる。ただし減額がある場合は事由ごとに取扱いが異なる。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-29T16:12:26.361+09:00"
+publish_at: "2026-08-30T17:08:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-29T06:25:40.112Z"
-updated_at: "2026-08-29T06:25:40.112Z"
+updated_at: "2026-08-29T16:12:26.361+09:00"
+publish_slot: "evening"
 ---
 
 倉庫用の棚や搬送設備をリースで調達し、毎月のリース料を支払うたびに仕入税額控除（分割控除）を行ってきた——EC事業者にとって珍しくない経営判断です。ところが事業の縮小や設備の老朽化・陳腐化などで途中解約となったとき、残った将来分のリース料（残存リース料）の消費税をどう処理するか、迷う方が少なくありません。
