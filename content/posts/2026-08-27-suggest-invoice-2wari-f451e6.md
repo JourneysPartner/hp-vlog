@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "インボイス登録を機に課税事業者となった個人事業者・法人は、令和8年9月30日を含む課税期間まで2割特例を活用できる。個人事業者は令和8年分が最後となり、令和9年分・令和10年分は個人事業者のみ3割特例へ移行する（法人は3割特例の対象外）。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-27T17:04:07.956+09:00"
 publish_at: "2026-08-28T11:49:00.000+09:00"
-published_at: ""
+published_at: "2026-08-29T18:01:00.582+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-27T00:05:57.869Z"
-updated_at: "2026-08-27T17:04:07.956+09:00"
+updated_at: "2026-08-29T18:01:00.582+09:00"
 publish_slot: "morning"
 ---
 インボイス登録したら消費税の計算がどうなるか、よく分からないまま申告が近づいてきた——そういう状況に置かれているフリーランスや個人事業者の方は少なくありません。

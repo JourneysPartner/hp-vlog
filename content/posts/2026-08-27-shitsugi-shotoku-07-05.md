@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "事業所得が赤字でも、事業を営んでいる実態があれば55万円の青色申告特別控除が適用される。国税庁の質疑応答事例で明確に示されており、10万円控除にとどまる必要はない。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-27T16:59:18.233+09:00"
 publish_at: "2026-08-28T17:50:00.000+09:00"
-published_at: ""
+published_at: "2026-08-29T18:01:00.582+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-27T00:09:09.774Z"
-updated_at: "2026-08-27T16:59:18.233+09:00"
+updated_at: "2026-08-29T18:01:00.582+09:00"
 publish_slot: "evening"
 ---
 
