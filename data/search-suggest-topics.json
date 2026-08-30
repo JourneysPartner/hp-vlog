@@ -911,7 +911,271 @@
       "primary_question": "住宅取得のための贈与税非課税制度を利用するには、どのような要件と必要書類がある？",
       "reader_problem": "住宅購入資金を親から贈与してもらいたいが、非課税特例の適用条件や申告時の必要書類を確認したい。",
       "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-furima-mercari-b5aca3",
+      "seed_id": "furima-mercari",
+      "phrases": [
+        "メルカリ 売上 税金 不用品",
+        "メルカリ 売上 税金 グッズ"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "メルカリで不用品やグッズを売った利益に税金はかかる？",
+      "reader_problem": "自宅の不用品や趣味のグッズをメルカリで売ったが、課税される販売と非課税扱いになる不用品処分の違いが分からない。",
+      "selected_at": "2026-08-30T19:36:00.356Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-fd204c",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 帳簿",
+        "せどり 確定申告 レシート ない"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの確定申告で帳簿やレシートがない場合、経費をどのように証明すればよい？",
+      "reader_problem": "せどりの仕入れや発送費を記録したいが、レシートを紛失したり電子明細しかなかったりする場合の帳簿の付け方に悩んでいる。",
+      "selected_at": "2026-08-30T19:36:00.356Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-43958b",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 雑所得"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "せどりの所得は雑所得と事業所得のどちらで確定申告すべき？",
+      "reader_problem": "せどりを継続的に行っているが、雑所得と事業所得のどちらに分類されるのか、青色申告を選べるのか判断できない。",
+      "selected_at": "2026-08-30T19:36:00.356Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-e85afb",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 バレない 知恵袋",
+        "せどり 確定申告 バレない",
+        "せどり 確定申告 バレる"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの利益を確定申告しないと税務署に把握される？",
+      "reader_problem": "フリマアプリなどを使ったせどりの売上が税務署に把握される仕組みや、無申告によるペナルティを知りたい。",
+      "selected_at": "2026-08-30T19:36:00.356Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-da51ae",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 確定申告 いくらから",
+        "インフルエンサー 副業 確定申告"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "副業インフルエンサーの収入はいくらから確定申告が必要になる？",
+      "reader_problem": "本業の給与がある状態でインフルエンサー収入を得ているが、申告が必要になる基準が分からない。",
+      "selected_at": "2026-08-30T19:36:27.551Z"
+    },
+    {
+      "slug": "suggest-kensetsu-hitori-a789c5",
+      "seed_id": "kensetsu-hitori",
+      "phrases": [
+        "一人親方 確定申告してない",
+        "一人親方 確定申告してない 知恵袋"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "case_study",
+      "primary_question": "一人親方が確定申告をしていなかった場合、どのように期限後申告や納税を進める？",
+      "reader_problem": "申告をしていないことに気づいたが、延滞税や無申告加算税を含めて何から対応すべきか分からない。",
+      "selected_at": "2026-08-30T19:36:27.551Z"
+    },
+    {
+      "slug": "suggest-kensetsu-invoice-ba051a",
+      "seed_id": "kensetsu-invoice",
+      "phrases": [
+        "一人親方 インボイス 登録方法"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "basic_explainer",
+      "primary_question": "一人親方がインボイス発行事業者に登録する方法と必要な手続きは？",
+      "reader_problem": "インボイス登録を決めたものの、申請書の提出先や登録後に必要な対応が分からない。",
+      "selected_at": "2026-08-30T19:36:27.551Z"
+    },
+    {
+      "slug": "suggest-kensetsu-invoice-7b07c5",
+      "seed_id": "kensetsu-invoice",
+      "phrases": [
+        "一人親方 インボイス 消費税",
+        "一人親方 インボイス 確定申告",
+        "一人親方 インボイス 簡易課税"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "インボイス登録した一人親方の消費税申告は、簡易課税を選ぶべき？",
+      "reader_problem": "登録後に消費税の申告が必要になったが、一般課税と簡易課税のどちらが有利か分からない。",
+      "selected_at": "2026-08-30T19:36:27.551Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-579dc6",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金 払い方",
+        "フリーランス 税金 いつ払う"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "フリーランスが納める税金には何があり、いつどのように支払いますか？",
+      "reader_problem": "所得税や住民税などの納付時期と支払い方法を把握できていない。",
+      "selected_at": "2026-08-30T19:36:51.746Z"
+    },
+    {
+      "slug": "suggest-kojin-yotei-e3fb17",
+      "seed_id": "kojin-yotei",
+      "phrases": [
+        "予定納税 払えない 法人"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "法人が予定納税を払えない場合、どのような対応が必要ですか？",
+      "reader_problem": "法人税の予定納税資金を用意できず、納付猶予や延滞による影響を確認したい。",
+      "selected_at": "2026-08-30T19:36:51.746Z"
+    },
+    {
+      "slug": "suggest-houjin-yakuin-ef3ca0",
+      "seed_id": "houjin-yakuin",
+      "phrases": [
+        "役員報酬 決め方 取締役会",
+        "役員報酬 決め方 会社法",
+        "役員報酬 決め方 議事録"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "役員報酬を決めるときに必要な会社法上の手続きや議事録には何がありますか？",
+      "reader_problem": "役員報酬を損金にするための決定時期や株主総会・取締役会の手続きが不明確である。",
+      "selected_at": "2026-08-30T19:36:51.746Z"
+    },
+    {
+      "slug": "suggest-houjin-ka-6e04da",
+      "seed_id": "houjin-ka",
+      "phrases": [
+        "法人化 タイミング 月",
+        "法人化 タイミング 売上",
+        "法人化 タイミング 利益",
+        "法人化 タイミング 何月",
+        "法人化 タイミング 所得",
+        "個人事業主 法人化 タイミング"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "個人事業主は売上・利益・所得がいくらになった時期に法人化すべきですか？",
+      "reader_problem": "法人化による節税効果や設立コストを比較しても、自分に適したタイミングを判断できない。",
+      "selected_at": "2026-08-30T19:36:51.746Z"
+    },
+    {
+      "slug": "suggest-houjin-kessan-ad7631",
+      "seed_id": "houjin-kessan",
+      "phrases": [
+        "決算賞与 損金算入",
+        "決算賞与 損金算入 要件",
+        "決算賞与 損金算入時期",
+        "決算賞与 損金要件"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "決算賞与を法人税の損金に算入するには、どの要件と時期を満たす必要がありますか？",
+      "reader_problem": "決算賞与を支給して節税したいが、支給時期や従業員への通知などの要件を満たせるか分からない。",
+      "selected_at": "2026-08-30T19:36:51.746Z"
+    },
+    {
+      "slug": "suggest-invoice-2wari-50745a",
+      "seed_id": "invoice-2wari",
+      "phrases": [
+        "インボイス 2割特例とは",
+        "インボイス 2割特例 わかりやすく",
+        "インボイス 2割特例 計算 シュミレーション",
+        "インボイス 2割特例 フローチャート"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "インボイス制度の2割特例は誰が利用でき、消費税額をどのように計算しますか？",
+      "reader_problem": "インボイス登録によって課税事業者になったものの、2割特例の対象者や納税額の計算方法が分からない。",
+      "selected_at": "2026-08-30T19:37:11.831Z"
+    },
+    {
+      "slug": "suggest-invoice-menzei-aa4055",
+      "seed_id": "invoice-menzei",
+      "phrases": [
+        "免税事業者 インボイス 経過措置",
+        "免税事業者 インボイス 特例",
+        "免税事業者 インボイス番号なし",
+        "免税事業者 インボイス登録なし"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "免税事業者がインボイス登録をしない場合、取引先の仕入税額控除や経過措置はどうなりますか？",
+      "reader_problem": "登録しないことで取引先の消費税控除に影響し、取引条件の見直しや取引停止につながらないか不安を感じている。",
+      "selected_at": "2026-08-30T19:37:11.831Z"
+    },
+    {
+      "slug": "suggest-invoice-menzei-092ebf",
+      "seed_id": "invoice-menzei",
+      "phrases": [
+        "免税事業者 インボイス 簡易課税",
+        "免税事業者 インボイス 特例"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "comparison_decision",
+      "primary_question": "免税事業者がインボイス登録する場合、簡易課税を選択できますか？",
+      "reader_problem": "インボイス登録後の消費税計算を簡単にしたいが、簡易課税の適用条件や届出期限が分からない。",
+      "selected_at": "2026-08-30T19:37:11.831Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-4dead8",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 確定申告 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "生前贈与を受けた場合、贈与税の確定申告はどのように行うのか。",
+      "reader_problem": "贈与税の申告が必要なケースや、申告書の提出時期・手続きがわからない。",
+      "selected_at": "2026-08-30T19:37:27.807Z"
     }
   ],
-  "updated_at": "2026-08-26T10:07:36.756Z"
+  "updated_at": "2026-08-30T19:37:27.807Z"
 }
