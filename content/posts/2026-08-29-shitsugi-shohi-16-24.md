@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "所有権移転外ファイナンス・リース取引を分割控除中に解約した場合、残存リース料は解約日の属する課税期間にまとめて仕入税額控除できる。ただし減額がある場合は事由ごとに取扱いが異なる。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-29T16:12:26.361+09:00"
 publish_at: "2026-08-30T17:08:00.000+09:00"
-published_at: ""
+published_at: "2026-08-30T18:01:03.873+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-29T06:25:40.112Z"
-updated_at: "2026-08-29T16:12:26.361+09:00"
+updated_at: "2026-08-30T18:01:03.873+09:00"
 publish_slot: "evening"
 ---
 
