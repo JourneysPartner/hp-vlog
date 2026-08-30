@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "固定資産の取得価額は購入代価＋直接費用が原則。配送費・据付費は算入必須。登録免許税等は法人は任意除外可、個人は資産種類により扱いが異なる。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-29T16:41:39.038+09:00"
 publish_at: "2026-08-30T11:30:00.000+09:00"
-published_at: ""
+published_at: "2026-08-30T12:00:58.672+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-29T06:22:36.330Z"
-updated_at: "2026-08-29T16:41:39.038+09:00"
+updated_at: "2026-08-30T12:00:58.672+09:00"
 publish_slot: "morning"
 ---
 
