@@ -8,6 +8,7 @@ const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-lin
 const { agencyLinksForTopic } = require('./lib/official-sources');
 const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getMacroSlug } =
   require('./lib/blog-taxonomy');
+const { generateSimulatorPublishing } = require('./lib/publish-prep');
 
 // 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
 // renderer 拡張を一度だけ適用する（marked は module singleton）。
@@ -613,6 +614,12 @@ function main() {
 
   writeAnalyticsPageMap(posts);
 
+  // 全ツールOFFでも、停止判定用statusと訂正履歴は常に更新する。
+  console.log('[build] シミュレーター公開ファイルを生成しています...');
+  const simulatorPublishing = generateSimulatorPublishing();
+  console.log(`[build]   → tools/simulator-status.json（公開 ${simulatorPublishing.enabledTypes.length} 件）`);
+  console.log('[build]   → tools/corrections/index.html');
+
   console.log('[build] 完了');
 }
 
@@ -641,4 +648,6 @@ function writePaginatedListing({
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = Object.freeze({ main, buildStaticPages, generatePost, buildListPageHtml });

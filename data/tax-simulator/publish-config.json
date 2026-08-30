@@ -1,0 +1,30 @@
+{
+  "hojinnari": {
+    "enabled": false,
+    "indexable": false,
+    "firstPublishedOn": null,
+    "lastLegalReviewOn": null,
+    "lastContentUpdateOn": null
+  },
+  "shohizei": {
+    "enabled": false,
+    "indexable": false,
+    "firstPublishedOn": null,
+    "lastLegalReviewOn": null,
+    "lastContentUpdateOn": null
+  },
+  "sozoku": {
+    "enabled": false,
+    "indexable": false,
+    "firstPublishedOn": null,
+    "lastLegalReviewOn": null,
+    "lastContentUpdateOn": null
+  },
+  "yakuin_hoshu": {
+    "enabled": false,
+    "indexable": false,
+    "firstPublishedOn": null,
+    "lastLegalReviewOn": null,
+    "lastContentUpdateOn": null
+  }
+}
