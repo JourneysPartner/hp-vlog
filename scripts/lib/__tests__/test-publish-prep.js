@@ -8,6 +8,7 @@ const path = require('path');
 const {
   TOOL_DEFINITIONS,
   generateSimulatorPublishing,
+  validatePublishConfig,
 } = require('../publish-prep');
 const { evaluateRuntimeGate } = require('../../../src/ui/simulator-runtime-gate');
 
@@ -48,10 +49,24 @@ try {
   const defaultConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
 
-  process.stdout.write('\n=== 既定OFF・停止判定ファイル ===\n');
-  check('コミット対象のpublish-configは全ツールenabled=false', () => {
-    assert(SIMULATOR_TYPES.every(type => defaultConfig[type].enabled === false));
+  process.stdout.write('\n=== 公開設定の不変条件・停止判定ファイル ===\n');
+  // 公開承認（2026-08-31）以降、実configのenabledは公開状態を表す。
+  // テストは状態を固定せず、「enabledなら監修3日付が揃っている」不変条件を検査する。
+  check('コミット対象のpublish-configが検証を通り、enabledのツールは監修3日付を持つ', () => {
+    validatePublishConfig(defaultConfig);
+    for (const type of SIMULATOR_TYPES) {
+      if (defaultConfig[type].enabled) {
+        assert(typeof defaultConfig[type].firstPublishedOn === 'string');
+        assert(typeof defaultConfig[type].lastLegalReviewOn === 'string');
+        assert(typeof defaultConfig[type].lastContentUpdateOn === 'string');
+      }
+    }
   });
+  // 以降の「全ツールOFF」の挙動テストは合成configで行う（実configの状態に依存しない）
+  const allOffConfig = Object.fromEntries(SIMULATOR_TYPES.map(type => [type, {
+    enabled: false, indexable: false,
+    firstPublishedOn: null, lastLegalReviewOn: null, lastContentUpdateOn: null,
+  }]));
 
   const representativeFiles = [
     path.join(tempRoot, 'index.html'),
@@ -64,9 +79,10 @@ try {
 
   const generated = generateSimulatorPublishing({
     outputRoot: tempRoot,
+    config: allOffConfig,
     now: new Date('2026-08-30T00:00:00.000Z'),
   });
-  check('既定OFFでは4ツールのページを生成しない', () => {
+  check('全ツールOFFの設定では4ツールのページを生成しない', () => {
     for (const definition of Object.values(TOOL_DEFINITIONS)) {
       assert(!fs.existsSync(path.join(tempRoot, 'tools', definition.slug, 'index.html')));
     }
