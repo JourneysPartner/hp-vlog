@@ -3,7 +3,8 @@
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const {
   SozokuInputBuildError,
@@ -75,7 +76,9 @@ function cloneInitialForm() {
   return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [], divisionShares: {} };
 }
 
-function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountSozokuApp(rootElement, {
+  services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -85,12 +88,17 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null,
     viewModel: null, buildMeta: null });
   let nextRowId = 1;
   let destroyed = false;
   rootElement.classList.add('sozoku-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'sozoku' });
+  queueEvent('simulator_start', { tool: 'sozoku' });
 
   function updateForm(key, value, rerender = false) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -181,25 +189,13 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     return [el('label', { for: id }, label), input, addControlError(input, path)];
   }
 
-  function renderIntro() {
-    return el('main', { className: 'sozoku-no-print' }, [
-      el('h1', {}, '相続税「かかる？いくら？」シミュレーター'),
-      el('p', {}, 'あなたの場合、相続税申告が必要か1分で簡易診断します。'),
-      el('section', { className: 'sozoku-card' }, [el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
-      el('p', {}, '相続開始日は第1版では2025年中として計算します。'),
-      el('button', { type: 'button', className: 'sozoku-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'sozoku' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
-  }
-
   function renderStep1() {
     const form = store.getState().form;
     const totalChildren = Number(form.childCount || 0) + Number(form.adoptedChildCount || 0);
     return el('main', { className: 'sozoku-no-print' }, [
       ...stepHeader(1, '相続人'), errorSummary(),
+      el('p', { className: 'sozoku-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       ...selectField('hasSpouse', 'so-spouse', '配偶者はいますか', '', YES_NO, '$.hasSpouse'),
       ...countInput('childCount', 'so-child-count', 'お子さまの人数（実子）', '$.childCount'),
       ...countInput('adoptedChildCount', 'so-adopted-count', '養子の人数', '$.adoptedChildCount'),
@@ -408,7 +404,6 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
     queueEvent('simulator_complete', { tool: 'sozoku', resultStatus: result.resultStatus });
     if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
-    else { const heading = rootElement.querySelector('#so-result-heading'); if (heading) focusResultHeading(heading); }
   }
   function continueToLevel2() {
     const screeningIndex = store.getState().form.realEstate.findIndex(row => row.appraisalKnown !== 'yes');
@@ -423,7 +418,7 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     queueEvent('simulator_mode', { tool: 'sozoku', mode: 'level2' });
     goToStep(3);
   }
-  function resetState() { store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null, buildMeta: null }); }
+  function resetState() { store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null, buildMeta: null }); }
   function clearAll() {
     if (browserWindow && typeof browserWindow.confirm === 'function' && !browserWindow.confirm('入力と試算結果をすべてクリアしますか？')) return;
     resetState();
@@ -484,25 +479,25 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
       resultActions(viewModel.level), el('p', { className: 'sozoku-placeholder sozoku-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
     else if (state.screen === 'calculating') content = el('main', { className: 'sozoku-no-print' }, [el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'), el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です')]);
     else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
     else content = renderResult(state.viewModel);
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.sozoku-error-summary'); if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
   const unsubscribe = store.subscribe((state, previous) => {
-    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors || state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors || state.result !== previous.result || state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
   render();
-  return Object.freeze({ store, destroy() { destroyed = true; unsubscribe(); if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler); rootElement.classList.remove('sozoku-app'); rootElement.replaceChildren(); } });
+  return Object.freeze({ store, destroy() { destroyed = true; unsubscribe(); if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler); pageView.destroy(); rootElement.classList.remove('sozoku-app'); rootElement.replaceChildren(); } });
 }
 
 function issue(code, fieldPath, message) { return { code, fieldPath, message }; }

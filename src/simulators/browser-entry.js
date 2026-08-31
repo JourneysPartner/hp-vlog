@@ -140,6 +140,9 @@ function mountHojinnari(rootElement, options = {}) {
       now: options.now,
       handoff: options.handoff,
       handoffExpectedContext: options.handoffExpectedContext,
+      scrollToAppTop: options.scrollToAppTop,
+      focusHeading: options.focusHeading,
+      introElement: options.introElement,
     });
   }
   const verifiedService = Object.freeze({
@@ -155,6 +158,9 @@ function mountHojinnari(rootElement, options = {}) {
     now: options.now,
     handoff: options.handoff,
     handoffExpectedContext: options.handoffExpectedContext,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -167,6 +173,9 @@ function mountShohizei(rootElement, options = {}) {
     services: selectedService,
     snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
     now: options.now,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -179,6 +188,9 @@ function mountSozoku(rootElement, options = {}) {
     services: selectedService,
     snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
     now: options.now,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -239,6 +251,9 @@ function mountYakuinHoshu(rootElement, options = {}) {
       now: options.now,
       handoff,
       handoffExpectedContext: expectedHojinnariContext(handoff, snapshotForUi),
+      scrollToAppTop: options.scrollToAppTop,
+      focusHeading: options.focusHeading,
+      introElement: options.introElement,
     });
   }
 
@@ -247,6 +262,9 @@ function mountYakuinHoshu(rootElement, options = {}) {
     snapshotInfo: snapshotForUi,
     now: options.now,
     onHandoff: options.onHandoff || defaultHandoffNavigation,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 
   return Object.freeze({

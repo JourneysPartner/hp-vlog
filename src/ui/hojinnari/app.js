@@ -3,7 +3,8 @@
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.js');
 const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
@@ -83,6 +84,7 @@ function cloneInitialForm() {
 
 function mountHojinnariApp(rootElement, {
   services, snapshotInfo, now, handoff, handoffExpectedContext,
+  scrollToAppTop, focusHeading, introElement,
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -95,26 +97,29 @@ function mountHojinnariApp(rootElement, {
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
   let initialForm = cloneInitialForm();
   let handoffNotice = null;
-  let initialScreen = 'intro';
   let initialStep = 1;
   if (handoff !== undefined) {
     const received = acceptYakuinHoshuHandoff(handoff, initialForm, handoffExpectedContext);
     initialForm = { ...received.formState };
     handoffNotice = Object.freeze({ accepted: received.accepted, message: received.message });
     if (received.accepted) {
-      initialScreen = 'input';
       initialStep = 3;
     }
   }
   const store = createStore({
-    screen: initialScreen, step: initialStep, form: initialForm, errors: [], result: null,
+    screen: 'input', step: initialStep, form: initialForm, errors: [], result: null,
     viewModel: null, handoffNotice, sourceHandoff: handoffNotice && handoffNotice.accepted ? handoff : null,
   });
   let destroyed = false;
 
   rootElement.classList.add('hojinnari-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   rootElement.appendChild(el('style', { textContent: STYLE_TEXT }));
   queueEvent('simulator_view', { tool: 'hojinnari' });
+  queueEvent('simulator_start', { tool: 'hojinnari' });
 
   function updateForm(key, value) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -205,6 +210,11 @@ function mountHojinnariApp(rootElement, {
       '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid');
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(1, '事業の状況'), errorSummary(),
+      el('p', { className: 'hojinnari-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
+      store.getState().handoffNotice && !store.getState().handoffNotice.accepted
+        ? el('p', { className: 'hojinnari-error', role: 'alert' }, store.getState().handoffNotice.message)
+        : null,
       el('p', {}, '計算対象年：2025年（令和7年分）'),
       ...moneyField('revenue', 'hj-revenue', '年間売上高（円）',
         '0円以上の整数。全角数字・万単位も入力できます。',
@@ -446,10 +456,6 @@ function mountHojinnariApp(rootElement, {
       store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'hojinnari', resultStatus: result.resultStatus });
       if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
-      else {
-        const heading = rootElement.querySelector('#hj-result-heading');
-        if (heading) await focusResultHeading(heading);
-      }
     } catch (_error) {
       store.setState(state => ({ ...state, screen: 'input', step: 3, errors: [localError(
         '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')]}));
@@ -465,35 +471,13 @@ function mountHojinnariApp(rootElement, {
   }
 
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null,
       viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
   function printResult() {
     queueEvent('simulator_cta_click', { tool: 'hojinnari' });
     if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
-  }
-
-  function renderIntro() {
-    return el('main', { className: 'hojinnari-no-print' }, [
-      el('h1', {}, '法人成りシミュレーター'),
-      store.getState().handoffNotice ? el('p', {
-        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
-        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
-      }, store.getState().handoffNotice.message) : null,
-      el('p', {}, '個人事業を法人化した場合の税・社会保険と手残りを、平年度の条件で比較します。'),
-      el('div', { className: 'hojinnari-card' }, [
-        el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。'),
-      ]),
-      el('p', {}, '所要時間の目安：3分程度'),
-      el('p', { className: 'hojinnari-help' },
-        '④から引き継いだ値はメモリ内だけに保持され、リロードすると消えます。'),
-      el('button', { type: 'button', className: 'hojinnari-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'hojinnari' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
   }
 
   function definitionList(items) {
@@ -575,12 +559,11 @@ function mountHojinnariApp(rootElement, {
     ]);
   }
 
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
     else if (state.screen === 'calculating') content = el('main', { className: 'hojinnari-no-print' }, [
       el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
       el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
@@ -590,12 +573,13 @@ function mountHojinnariApp(rootElement, {
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.hojinnari-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step ||
         state.errors !== previous.errors || state.result !== previous.result ||
-        state.viewModel !== previous.viewModel) render();
+        state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -607,6 +591,7 @@ function mountHojinnariApp(rootElement, {
       destroyed = true;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      pageView.destroy();
       rootElement.classList.remove('hojinnari-app');
       rootElement.replaceChildren();
     },

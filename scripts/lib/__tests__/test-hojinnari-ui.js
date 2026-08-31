@@ -25,6 +25,8 @@ const {
   formatApproxManYen,
   buildResultViewModel,
 } = require('../../../src/ui/hojinnari/result-view-model.js');
+const { mountHojinnariApp } = require('../../../src/ui/hojinnari/app.js');
+const { withFakeDocument } = require('./helpers/fake-dom.js');
 
 const snapshotInfo = snapshot.getSnapshotInfo();
 const calculatedAt = '2026-08-29T12:00:00+09:00';
@@ -81,6 +83,31 @@ function moneySnapshot(result) {
 }
 
 function main() {
+  process.stdout.write('\n=== 初期画面・ページ遷移 ===\n');
+  check('マウント直後はSTEP 1で、遷移時に先頭スクロール後フォーカスしintroを圧縮・復元する', () => {
+    withFakeDocument(({ root, intro }) => {
+      const calls = [];
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+        introElement: intro,
+        scrollToAppTop() { calls.push('scroll'); },
+        focusHeading() { calls.push('focus'); },
+      });
+      assert.deepStrictEqual({ screen: app.store.getState().screen, step: app.store.getState().step },
+        { screen: 'input', step: 1 });
+      assert(root.textContent.includes('入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'));
+      assert(!root.textContent.includes('ご利用の前に'));
+      assert(!intro.classList.contains('simulator-intro--compact'));
+      app.store.setState(state => ({ ...state, step: 2 }));
+      assert.deepStrictEqual(calls, ['scroll', 'focus']);
+      assert(intro.classList.contains('simulator-intro--compact'));
+      app.store.setState(state => ({ ...state, step: 1 }));
+      assert.deepStrictEqual(calls, ['scroll', 'focus', 'scroll', 'focus']);
+      assert(!intro.classList.contains('simulator-intro--compact'));
+      app.destroy();
+    });
+  });
+
   process.stdout.write('\n=== ゴールデン統合・結果表示 ===\n');
   const complete = run(goldenState());
   check('input-builder → validate → simulate がGC-HJ-STEADY-1200になる', () => {

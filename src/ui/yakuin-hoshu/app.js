@@ -3,7 +3,8 @@
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { MUNICIPALITIES, buildCalculationContext } = require('../hojinnari/context-builder.js');
 const { formatYen } = require('../hojinnari/result-view-model.js');
@@ -73,7 +74,9 @@ const STYLE_TEXT = `
 function cloneInitialForm() { return { ...INITIAL_FORM }; }
 function nextTask() { return new Promise(resolve => setTimeout(resolve, 0)); }
 
-function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHandoff } = {}) {
+function mountYakuinHoshuApp(rootElement, {
+  services, snapshotInfo, now, onHandoff, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -90,6 +93,10 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
   let destroyed = false;
   let calculationToken = 0;
   rootElement.classList.add('yakuin-hoshu-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'mode',
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'yakuinHoshu' });
 
   function updateForm(key, value) {
@@ -168,12 +175,9 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     ];
     return el('main', { className: 'yh-no-print' }, [
       el('h1', {}, '役員報酬シミュレーター'),
+      el('p', { className: 'yh-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       el('p', {}, '計算したい内容を選んでください。'),
-      el('div', { className: 'yh-card' }, [
-        el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はブラウザ内で完結します。共用端末・画面共有・印刷物の管理にご注意ください。'),
-      ]),
       el('div', { className: 'yh-mode-grid', id: 'yh-mode' }, cards.map(([mode, title, help]) =>
         el('button', { type: 'button', className: 'yh-card yh-mode-card', onClick: () => selectMode(mode) }, [
           el('strong', {}, title), el('span', {}, help),
@@ -364,10 +368,6 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
         screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'yakuinHoshu', resultStatus: result.resultStatus });
       if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
-      else {
-        const heading = rootElement.querySelector('#yh-result-heading');
-        if (heading) await focusResultHeading(heading);
-      }
     } catch (_error) {
       store.setState(state => ({ ...state, screen: 'input', step: 2, errors: [localError(
         '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')] }));
@@ -506,7 +506,7 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     ]);
   }
 
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
@@ -523,12 +523,13 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.yh-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step ||
         state.errors !== previous.errors || state.result !== previous.result ||
-        state.viewModel !== previous.viewModel || state.canCancel !== previous.canCancel) render();
+        state.viewModel !== previous.viewModel || state.canCancel !== previous.canCancel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -540,6 +541,7 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
       calculationToken++;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      pageView.destroy();
       rootElement.classList.remove('yakuin-hoshu-app');
       rootElement.replaceChildren();
     },

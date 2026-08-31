@@ -1620,6 +1620,9 @@ function mountHojinnari(rootElement, options = {}) {
       now: options.now,
       handoff: options.handoff,
       handoffExpectedContext: options.handoffExpectedContext,
+      scrollToAppTop: options.scrollToAppTop,
+      focusHeading: options.focusHeading,
+      introElement: options.introElement,
     });
   }
   const verifiedService = Object.freeze({
@@ -1635,6 +1638,9 @@ function mountHojinnari(rootElement, options = {}) {
     now: options.now,
     handoff: options.handoff,
     handoffExpectedContext: options.handoffExpectedContext,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -1647,6 +1653,9 @@ function mountShohizei(rootElement, options = {}) {
     services: selectedService,
     snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
     now: options.now,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -1659,6 +1668,9 @@ function mountSozoku(rootElement, options = {}) {
     services: selectedService,
     snapshotInfo: options.snapshotInfo || snapshot.getSnapshotInfo(),
     now: options.now,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 }
 
@@ -1719,6 +1731,9 @@ function mountYakuinHoshu(rootElement, options = {}) {
       now: options.now,
       handoff,
       handoffExpectedContext: expectedHojinnariContext(handoff, snapshotForUi),
+      scrollToAppTop: options.scrollToAppTop,
+      focusHeading: options.focusHeading,
+      introElement: options.introElement,
     });
   }
 
@@ -1727,6 +1742,9 @@ function mountYakuinHoshu(rootElement, options = {}) {
     snapshotInfo: snapshotForUi,
     now: options.now,
     onHandoff: options.onHandoff || defaultHandoffNavigation,
+    scrollToAppTop: options.scrollToAppTop,
+    focusHeading: options.focusHeading,
+    introElement: options.introElement,
   });
 
   return Object.freeze({
@@ -11534,7 +11552,9 @@ function focusResultHeading(element) {
   }
   if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
   // 通知挿入とは必ず別描画にするため、フォーカスは2フレーム後へ送る。
-  return nextFrame(() => {}).then(() => nextFrame(() => element.focus()));
+  return nextFrame(() => {}).then(() => nextFrame(() => {
+    if (element.isConnected !== false) element.focus({ preventScroll: true });
+  }));
 }
 
 module.exports = Object.freeze({ announceStatus, announceAlert, focusResultHeading });
@@ -11902,7 +11922,8 @@ module.exports = Object.freeze({
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.js');
 const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
@@ -11982,6 +12003,7 @@ function cloneInitialForm() {
 
 function mountHojinnariApp(rootElement, {
   services, snapshotInfo, now, handoff, handoffExpectedContext,
+  scrollToAppTop, focusHeading, introElement,
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -11994,26 +12016,29 @@ function mountHojinnariApp(rootElement, {
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
   let initialForm = cloneInitialForm();
   let handoffNotice = null;
-  let initialScreen = 'intro';
   let initialStep = 1;
   if (handoff !== undefined) {
     const received = acceptYakuinHoshuHandoff(handoff, initialForm, handoffExpectedContext);
     initialForm = { ...received.formState };
     handoffNotice = Object.freeze({ accepted: received.accepted, message: received.message });
     if (received.accepted) {
-      initialScreen = 'input';
       initialStep = 3;
     }
   }
   const store = createStore({
-    screen: initialScreen, step: initialStep, form: initialForm, errors: [], result: null,
+    screen: 'input', step: initialStep, form: initialForm, errors: [], result: null,
     viewModel: null, handoffNotice, sourceHandoff: handoffNotice && handoffNotice.accepted ? handoff : null,
   });
   let destroyed = false;
 
   rootElement.classList.add('hojinnari-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   rootElement.appendChild(el('style', { textContent: STYLE_TEXT }));
   queueEvent('simulator_view', { tool: 'hojinnari' });
+  queueEvent('simulator_start', { tool: 'hojinnari' });
 
   function updateForm(key, value) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -12104,6 +12129,11 @@ function mountHojinnariApp(rootElement, {
       '$.individual.business.expensesExcludeSocialInsuranceAndMutualAid');
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(1, '事業の状況'), errorSummary(),
+      el('p', { className: 'hojinnari-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
+      store.getState().handoffNotice && !store.getState().handoffNotice.accepted
+        ? el('p', { className: 'hojinnari-error', role: 'alert' }, store.getState().handoffNotice.message)
+        : null,
       el('p', {}, '計算対象年：2025年（令和7年分）'),
       ...moneyField('revenue', 'hj-revenue', '年間売上高（円）',
         '0円以上の整数。全角数字・万単位も入力できます。',
@@ -12345,10 +12375,6 @@ function mountHojinnariApp(rootElement, {
       store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'hojinnari', resultStatus: result.resultStatus });
       if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
-      else {
-        const heading = rootElement.querySelector('#hj-result-heading');
-        if (heading) await focusResultHeading(heading);
-      }
     } catch (_error) {
       store.setState(state => ({ ...state, screen: 'input', step: 3, errors: [localError(
         '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')]}));
@@ -12364,35 +12390,13 @@ function mountHojinnariApp(rootElement, {
   }
 
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null,
       viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
   function printResult() {
     queueEvent('simulator_cta_click', { tool: 'hojinnari' });
     if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
-  }
-
-  function renderIntro() {
-    return el('main', { className: 'hojinnari-no-print' }, [
-      el('h1', {}, '法人成りシミュレーター'),
-      store.getState().handoffNotice ? el('p', {
-        className: store.getState().handoffNotice.accepted ? 'hojinnari-card' : 'hojinnari-error',
-        role: store.getState().handoffNotice.accepted ? 'status' : 'alert',
-      }, store.getState().handoffNotice.message) : null,
-      el('p', {}, '個人事業を法人化した場合の税・社会保険と手残りを、平年度の条件で比較します。'),
-      el('div', { className: 'hojinnari-card' }, [
-        el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。'),
-      ]),
-      el('p', {}, '所要時間の目安：3分程度'),
-      el('p', { className: 'hojinnari-help' },
-        '④から引き継いだ値はメモリ内だけに保持され、リロードすると消えます。'),
-      el('button', { type: 'button', className: 'hojinnari-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'hojinnari' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
   }
 
   function definitionList(items) {
@@ -12474,12 +12478,11 @@ function mountHojinnariApp(rootElement, {
     ]);
   }
 
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
     else if (state.screen === 'calculating') content = el('main', { className: 'hojinnari-no-print' }, [
       el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
       el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
@@ -12489,12 +12492,13 @@ function mountHojinnariApp(rootElement, {
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.hojinnari-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step ||
         state.errors !== previous.errors || state.result !== previous.result ||
-        state.viewModel !== previous.viewModel) render();
+        state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -12506,6 +12510,7 @@ function mountHojinnariApp(rootElement, {
       destroyed = true;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      pageView.destroy();
       rootElement.classList.remove('hojinnari-app');
       rootElement.replaceChildren();
     },
@@ -13131,7 +13136,8 @@ module.exports = Object.freeze({ TOOL_PATHS, toolFromPath, createRouter });
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { buildCalculationContext } = require('./context-builder.js');
 const { ShohizeiInputBuildError, buildShohizeiInput } = require('./input-builder.js');
@@ -13233,7 +13239,9 @@ const STYLE_TEXT = `
 
 function cloneInitialForm() { return { ...INITIAL_FORM }; }
 
-function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountShohizeiApp(rootElement, {
+  services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -13243,10 +13251,15 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
   let destroyed = false;
   rootElement.classList.add('shohizei-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'shohizei' });
+  queueEvent('simulator_start', { tool: 'shohizei' });
 
   function updateForm(key, value) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -13316,6 +13329,8 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
       onInput: event => updateForm('invoiceRegisteredOn', event.currentTarget.value) });
     return el('main', { className: 'shohizei-no-print' }, [
       ...stepHeader(1, '事業者の状況'), errorSummary(),
+      el('p', { className: 'shohizei-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       el('p', {}, '課税期間：2025年1月1日〜12月31日（第1版固定）'),
       ...selectField('taxpayerType', 'sz-taxpayer-type', '事業者の区分', '3割特例の判定に影響します。', [
         { value: '', label: '選択してください' }, { value: 'individual', label: '個人事業者' }, { value: 'corporation', label: '法人' },
@@ -13497,13 +13512,9 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
     store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
     queueEvent('simulator_complete', { tool: 'shohizei', resultStatus: result.resultStatus });
     if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
-    else {
-      const heading = rootElement.querySelector('#sz-result-heading');
-      if (heading) focusResultHeading(heading);
-    }
   }
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
   }
   function clearAll() {
     if (browserWindow && typeof browserWindow.confirm === 'function' &&
@@ -13513,19 +13524,6 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   function printResult() {
     queueEvent('simulator_cta_click', { tool: 'shohizei' });
     if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
-  }
-  function renderIntro() {
-    return el('main', { className: 'shohizei-no-print' }, [
-      el('h1', {}, '消費税シミュレーター'),
-      el('p', {}, '利用できる方式をまず判定してから、納税額を並べて比較します。'),
-      el('div', { className: 'shohizei-card' }, [el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
-      el('p', {}, '所要時間の目安：3分程度'),
-      el('button', { type: 'button', className: 'shohizei-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'shohizei' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
   }
   function definitionList(items) {
     return el('dl', {}, items.flatMap(([term, value]) => [el('dt', {}, term), el('dd', {}, value)]));
@@ -13601,12 +13599,11 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
       resultActions(), el('p', { className: 'shohizei-placeholder shohizei-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : renderStep2();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : renderStep2();
     else if (state.screen === 'calculating') content = el('main', { className: 'shohizei-no-print' }, [
       el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
       el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
@@ -13616,10 +13613,11 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.shohizei-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors ||
-        state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+        state.result !== previous.result || state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -13627,6 +13625,7 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   return Object.freeze({ store, destroy() {
     destroyed = true; unsubscribe();
     if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+    pageView.destroy();
     rootElement.classList.remove('shohizei-app'); rootElement.replaceChildren();
   } });
 }
@@ -14182,13 +14181,71 @@ module.exports = Object.freeze({
 });
 
 },
+    "src/ui/simulator-page-view.js": function (module, exports, require) {
+'use strict';
+
+const { focusResultHeading } = require('./a11y.js');
+
+const COMPACT_CLASS = 'simulator-intro--compact';
+
+function defaultScrollToAppTop(rootElement) {
+  const documentObject = rootElement && rootElement.ownerDocument;
+  const windowObject = documentObject && documentObject.defaultView;
+  if (!windowObject || typeof windowObject.scrollTo !== 'function' ||
+      typeof rootElement.getBoundingClientRect !== 'function') return;
+  const top = rootElement.getBoundingClientRect().top + (windowObject.scrollY || 0);
+  windowObject.scrollTo({ top, behavior: 'auto' });
+}
+
+function viewChanged(state, previous) {
+  return Boolean(previous) && (state.screen !== previous.screen || state.step !== previous.step);
+}
+
+function createSimulatorPageView(rootElement, {
+  isFirstView,
+  scrollToAppTop = defaultScrollToAppTop,
+  focusHeading = focusResultHeading,
+  introElement,
+} = {}) {
+  if (typeof isFirstView !== 'function') throw new TypeError('最初の画面の判定関数が必要です');
+  const documentObject = rootElement && rootElement.ownerDocument;
+  const intro = introElement || (documentObject && typeof documentObject.querySelector === 'function'
+    ? documentObject.querySelector('.simulator-intro') : null);
+
+  function afterRender(state, previous) {
+    if (intro && intro.classList) intro.classList.toggle(COMPACT_CLASS, !isFirstView(state));
+    if (!viewChanged(state, previous) || (state.errors && state.errors.length > 0)) return;
+
+    // フォーカスによるブラウザの自動スクロールを抑え、必ずアプリ先頭→見出しの順にする。
+    scrollToAppTop(rootElement);
+    const heading = typeof rootElement.querySelector === 'function'
+      ? rootElement.querySelector('main h1') : null;
+    if (heading) void focusHeading(heading);
+  }
+
+  function destroy() {
+    if (intro && intro.classList) intro.classList.remove(COMPACT_CLASS);
+  }
+
+  return Object.freeze({ afterRender, destroy });
+}
+
+module.exports = Object.freeze({
+  COMPACT_CLASS,
+  createSimulatorPageView,
+  defaultScrollToAppTop,
+  viewChanged,
+});
+
+},
     "src/ui/sozoku/app.js": function (module, exports, require) {
 'use strict';
 
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const {
   SozokuInputBuildError,
@@ -14260,7 +14317,9 @@ function cloneInitialForm() {
   return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [], divisionShares: {} };
 }
 
-function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountSozokuApp(rootElement, {
+  services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -14270,12 +14329,17 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null,
+  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null,
     viewModel: null, buildMeta: null });
   let nextRowId = 1;
   let destroyed = false;
   rootElement.classList.add('sozoku-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'sozoku' });
+  queueEvent('simulator_start', { tool: 'sozoku' });
 
   function updateForm(key, value, rerender = false) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -14366,25 +14430,13 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     return [el('label', { for: id }, label), input, addControlError(input, path)];
   }
 
-  function renderIntro() {
-    return el('main', { className: 'sozoku-no-print' }, [
-      el('h1', {}, '相続税「かかる？いくら？」シミュレーター'),
-      el('p', {}, 'あなたの場合、相続税申告が必要か1分で簡易診断します。'),
-      el('section', { className: 'sozoku-card' }, [el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
-      el('p', {}, '相続開始日は第1版では2025年中として計算します。'),
-      el('button', { type: 'button', className: 'sozoku-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'sozoku' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
-  }
-
   function renderStep1() {
     const form = store.getState().form;
     const totalChildren = Number(form.childCount || 0) + Number(form.adoptedChildCount || 0);
     return el('main', { className: 'sozoku-no-print' }, [
       ...stepHeader(1, '相続人'), errorSummary(),
+      el('p', { className: 'sozoku-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       ...selectField('hasSpouse', 'so-spouse', '配偶者はいますか', '', YES_NO, '$.hasSpouse'),
       ...countInput('childCount', 'so-child-count', 'お子さまの人数（実子）', '$.childCount'),
       ...countInput('adoptedChildCount', 'so-adopted-count', '養子の人数', '$.adoptedChildCount'),
@@ -14593,7 +14645,6 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
     queueEvent('simulator_complete', { tool: 'sozoku', resultStatus: result.resultStatus });
     if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
-    else { const heading = rootElement.querySelector('#so-result-heading'); if (heading) focusResultHeading(heading); }
   }
   function continueToLevel2() {
     const screeningIndex = store.getState().form.realEstate.findIndex(row => row.appraisalKnown !== 'yes');
@@ -14608,7 +14659,7 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
     queueEvent('simulator_mode', { tool: 'sozoku', mode: 'level2' });
     goToStep(3);
   }
-  function resetState() { store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null, buildMeta: null }); }
+  function resetState() { store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null, buildMeta: null }); }
   function clearAll() {
     if (browserWindow && typeof browserWindow.confirm === 'function' && !browserWindow.confirm('入力と試算結果をすべてクリアしますか？')) return;
     resetState();
@@ -14669,25 +14720,25 @@ function mountSozokuApp(rootElement, { services, snapshotInfo, now } = {}) {
       resultActions(viewModel.level), el('p', { className: 'sozoku-placeholder sozoku-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : state.step === 2 ? renderStep2() : renderStep3();
     else if (state.screen === 'calculating') content = el('main', { className: 'sozoku-no-print' }, [el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'), el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です')]);
     else if (state.screen === 'blocked') content = renderBlocked(state.viewModel);
     else content = renderResult(state.viewModel);
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.sozoku-error-summary'); if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
   const unsubscribe = store.subscribe((state, previous) => {
-    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors || state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+    if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors || state.result !== previous.result || state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
   render();
-  return Object.freeze({ store, destroy() { destroyed = true; unsubscribe(); if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler); rootElement.classList.remove('sozoku-app'); rootElement.replaceChildren(); } });
+  return Object.freeze({ store, destroy() { destroyed = true; unsubscribe(); if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler); pageView.destroy(); rootElement.classList.remove('sozoku-app'); rootElement.replaceChildren(); } });
 }
 
 function issue(code, fieldPath, message) { return { code, fieldPath, message }; }
@@ -15449,7 +15500,8 @@ module.exports = Object.freeze({ createStore });
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { MUNICIPALITIES, buildCalculationContext } = require('../hojinnari/context-builder.js');
 const { formatYen } = require('../hojinnari/result-view-model.js');
@@ -15519,7 +15571,9 @@ const STYLE_TEXT = `
 function cloneInitialForm() { return { ...INITIAL_FORM }; }
 function nextTask() { return new Promise(resolve => setTimeout(resolve, 0)); }
 
-function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHandoff } = {}) {
+function mountYakuinHoshuApp(rootElement, {
+  services, snapshotInfo, now, onHandoff, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -15536,6 +15590,10 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
   let destroyed = false;
   let calculationToken = 0;
   rootElement.classList.add('yakuin-hoshu-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'mode',
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'yakuinHoshu' });
 
   function updateForm(key, value) {
@@ -15614,12 +15672,9 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     ];
     return el('main', { className: 'yh-no-print' }, [
       el('h1', {}, '役員報酬シミュレーター'),
+      el('p', { className: 'yh-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       el('p', {}, '計算したい内容を選んでください。'),
-      el('div', { className: 'yh-card' }, [
-        el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はブラウザ内で完結します。共用端末・画面共有・印刷物の管理にご注意ください。'),
-      ]),
       el('div', { className: 'yh-mode-grid', id: 'yh-mode' }, cards.map(([mode, title, help]) =>
         el('button', { type: 'button', className: 'yh-card yh-mode-card', onClick: () => selectMode(mode) }, [
           el('strong', {}, title), el('span', {}, help),
@@ -15810,10 +15865,6 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
         screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
       queueEvent('simulator_complete', { tool: 'yakuinHoshu', resultStatus: result.resultStatus });
       if (result.resultStatus === 'blocked') await announceAlert('条件を確認できないため計算を停止しました');
-      else {
-        const heading = rootElement.querySelector('#yh-result-heading');
-        if (heading) await focusResultHeading(heading);
-      }
     } catch (_error) {
       store.setState(state => ({ ...state, screen: 'input', step: 2, errors: [localError(
         '$.calculationContext', '計算を完了できませんでした。入力内容とマスターの検証状態をご確認ください')] }));
@@ -15952,7 +16003,7 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     ]);
   }
 
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
@@ -15969,12 +16020,13 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.yh-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step ||
         state.errors !== previous.errors || state.result !== previous.result ||
-        state.viewModel !== previous.viewModel || state.canCancel !== previous.canCancel) render();
+        state.viewModel !== previous.viewModel || state.canCancel !== previous.canCancel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -15986,6 +16038,7 @@ function mountYakuinHoshuApp(rootElement, { services, snapshotInfo, now, onHando
       calculationToken++;
       unsubscribe();
       if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+      pageView.destroy();
       rootElement.classList.remove('yakuin-hoshu-app');
       rootElement.replaceChildren();
     },
@@ -16646,24 +16699,25 @@ module.exports = Object.freeze({
     "src/ui/context-builder.js": {},
     "src/ui/dom.js": {},
     "src/ui/forms.js": {"./dom.js":"src/ui/dom.js"},
-    "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","../yakuin-hoshu/handoff.js":"src/ui/yakuin-hoshu/handoff.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
+    "src/ui/hojinnari/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../simulator-page-view.js":"src/ui/simulator-page-view.js","../store.js":"src/ui/store.js","../yakuin-hoshu/handoff.js":"src/ui/yakuin-hoshu/handoff.js","./context-builder.js":"src/ui/hojinnari/context-builder.js","./input-builder.js":"src/ui/hojinnari/input-builder.js","./question-catalog.js":"src/ui/hojinnari/question-catalog.js","./result-view-model.js":"src/ui/hojinnari/result-view-model.js"},
     "src/ui/hojinnari/context-builder.js": {"../context-builder.js":"src/ui/context-builder.js"},
     "src/ui/hojinnari/input-builder.js": {},
     "src/ui/hojinnari/question-catalog.js": {},
     "src/ui/hojinnari/result-view-model.js": {"./question-catalog.js":"src/ui/hojinnari/question-catalog.js"},
     "src/ui/router.js": {},
-    "src/ui/shohizei/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./context-builder.js":"src/ui/shohizei/context-builder.js","./input-builder.js":"src/ui/shohizei/input-builder.js","./result-view-model.js":"src/ui/shohizei/result-view-model.js"},
+    "src/ui/shohizei/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../simulator-page-view.js":"src/ui/simulator-page-view.js","../store.js":"src/ui/store.js","./context-builder.js":"src/ui/shohizei/context-builder.js","./input-builder.js":"src/ui/shohizei/input-builder.js","./result-view-model.js":"src/ui/shohizei/result-view-model.js"},
     "src/ui/shohizei/context-builder.js": {"../context-builder.js":"src/ui/context-builder.js"},
     "src/ui/shohizei/input-builder.js": {"./context-builder.js":"src/ui/shohizei/context-builder.js"},
     "src/ui/shohizei/question-catalog.js": {},
     "src/ui/shohizei/result-view-model.js": {"./question-catalog.js":"src/ui/shohizei/question-catalog.js"},
-    "src/ui/sozoku/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../store.js":"src/ui/store.js","./input-builder.js":"src/ui/sozoku/input-builder.js","./result-view-model.js":"src/ui/sozoku/result-view-model.js"},
+    "src/ui/simulator-page-view.js": {"./a11y.js":"src/ui/a11y.js"},
+    "src/ui/sozoku/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../simulator-page-view.js":"src/ui/simulator-page-view.js","../store.js":"src/ui/store.js","./input-builder.js":"src/ui/sozoku/input-builder.js","./result-view-model.js":"src/ui/sozoku/result-view-model.js"},
     "src/ui/sozoku/heirs-builder.js": {},
     "src/ui/sozoku/input-builder.js": {"../forms.js":"src/ui/forms.js","./heirs-builder.js":"src/ui/sozoku/heirs-builder.js"},
     "src/ui/sozoku/question-catalog.js": {},
     "src/ui/sozoku/result-view-model.js": {"./question-catalog.js":"src/ui/sozoku/question-catalog.js"},
     "src/ui/store.js": {},
-    "src/ui/yakuin-hoshu/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../hojinnari/context-builder.js":"src/ui/hojinnari/context-builder.js","../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js","../store.js":"src/ui/store.js","./handoff.js":"src/ui/yakuin-hoshu/handoff.js","./input-builder.js":"src/ui/yakuin-hoshu/input-builder.js","./result-view-model.js":"src/ui/yakuin-hoshu/result-view-model.js"},
+    "src/ui/yakuin-hoshu/app.js": {"../a11y.js":"src/ui/a11y.js","../analytics.js":"src/ui/analytics.js","../dom.js":"src/ui/dom.js","../forms.js":"src/ui/forms.js","../hojinnari/context-builder.js":"src/ui/hojinnari/context-builder.js","../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js","../simulator-page-view.js":"src/ui/simulator-page-view.js","../store.js":"src/ui/store.js","./handoff.js":"src/ui/yakuin-hoshu/handoff.js","./input-builder.js":"src/ui/yakuin-hoshu/input-builder.js","./result-view-model.js":"src/ui/yakuin-hoshu/result-view-model.js"},
     "src/ui/yakuin-hoshu/handoff.js": {},
     "src/ui/yakuin-hoshu/input-builder.js": {},
     "src/ui/yakuin-hoshu/result-view-model.js": {"../hojinnari/result-view-model.js":"src/ui/hojinnari/result-view-model.js"}
