@@ -36,15 +36,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "合名・合資会社が債務超過の状態で無限責任社員が死亡した場合、持分に応じた会社の債務超過額を被相続人の債務として相続税法第13条の債務控除の対象にできると国税庁が明示しています。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-08-31T16:06:21.715+09:00"
+publish_at: "2026-09-01T11:18:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-31T00:05:55.832Z"
-updated_at: "2026-08-31T00:05:55.832Z"
+updated_at: "2026-08-31T16:06:21.715+09:00"
+publish_slot: "morning"
 ---
 
 父が合名会社の社員だった。会社には多額の借入があり、会社の財産だけでは返しきれない状態だ。その父が亡くなった場合、この「会社が抱えきれない債務」は相続税の計算でどう扱われるのか——そう悩む方は少なくありません。
