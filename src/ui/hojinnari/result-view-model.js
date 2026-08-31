@@ -3,6 +3,12 @@
 const { resolveQuestion } = require('./question-catalog.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+const RESULT_STATUS_LABELS = Object.freeze({
+  complete: '計算完了',
+  partial: '一部概算',
+  blocked: '停止',
+});
+const NEARLY_EQUAL_THRESHOLD_YEN = 10000n;
 const RANGE_CATALOG = Object.freeze([
   Object.freeze({ code: 'income_tax', label: '所得税' }),
   Object.freeze({ code: 'reconstruction_income_tax', label: '復興特別所得税' }),
@@ -65,6 +71,111 @@ function burdenTotal(scenario, excludeEmployer) {
   return sumMoney(entries.map(([, value]) => value));
 }
 
+function subtractMoney(left, right) {
+  return money(moneyValue(left) - moneyValue(right));
+}
+
+function amountDirection(value) {
+  const exactYen = moneyValue(value);
+  return exactYen > 0n ? 'positive' : exactYen < 0n ? 'negative' : 'neutral';
+}
+
+function verdict(referenceDifference) {
+  const exactYen = moneyValue(referenceDifference);
+  const absolute = exactYen < 0n ? -exactYen : exactYen;
+  if (absolute < NEARLY_EQUAL_THRESHOLD_YEN) {
+    return Object.freeze({
+      direction: 'nearly_equal',
+      bannerText: 'ほぼ同等の試算',
+      emphasisText: 'ほぼ同等',
+      suffixText: 'の試算',
+      comment: 'ほぼ同等',
+    });
+  }
+  if (exactYen > 0n) {
+    return Object.freeze({
+      direction: 'corporation',
+      bannerText: '法人化が有利の試算',
+      emphasisText: '法人化が有利',
+      suffixText: 'の試算',
+      comment: '法人化有利',
+    });
+  }
+  return Object.freeze({
+    direction: 'sole_proprietor',
+    bannerText: '個人事業が有利の試算',
+    emphasisText: '個人事業が有利',
+    suffixText: 'の試算',
+    comment: '個人事業有利',
+  });
+}
+
+function burdenComment(label, difference) {
+  const exactYen = moneyValue(difference);
+  if (exactYen > 0n) return `${label}の負担減`;
+  if (exactYen < 0n) return `${label}の負担増`;
+  return `${label}の負担は同額`;
+}
+
+function verdictSummary(data) {
+  const sole = data.soleProprietor.burdens;
+  const corporation = data.corporation.burdens;
+  const referenceDifference = data.combinedReferenceDifference;
+  const taxSole = sumMoney([sole.incomeTax, sole.residentTax, sole.soleProprietorEnterpriseTax]);
+  const taxCorporation = sumMoney([
+    corporation.incomeTax, corporation.residentTax, corporation.corporateTaxes,
+  ]);
+  const socialInsuranceSole = sumMoney([sole.socialInsuranceEmployee]);
+  const socialInsuranceCorporation = sumMoney([
+    corporation.socialInsuranceEmployee, corporation.socialInsuranceEmployer,
+  ]);
+  const totalSole = sumMoney([taxSole, socialInsuranceSole]);
+  const totalCorporation = sumMoney([taxCorporation, socialInsuranceCorporation]);
+  const totalDifference = subtractMoney(totalSole, totalCorporation);
+
+  if (moneyValue(totalDifference) !== moneyValue(referenceDifference)) {
+    throw new Error(
+      `判定サマリーの計の差引がcombinedReferenceDifferenceと一致しません: ` +
+      `${moneyValue(totalDifference)} !== ${moneyValue(referenceDifference)}`
+    );
+  }
+
+  const summaryVerdict = verdict(referenceDifference);
+  const row = (code, label, soleAmount, corporationAmount, comment, isTotal = false) => {
+    const difference = subtractMoney(soleAmount, corporationAmount);
+    return Object.freeze({
+      code,
+      label,
+      soleProprietor: amountCell(soleAmount),
+      corporation: amountCell(corporationAmount),
+      difference: Object.freeze({
+        ...amountCell(difference),
+        direction: amountDirection(difference),
+      }),
+      comment,
+      isTotal,
+    });
+  };
+  return Object.freeze({
+    verdict: summaryVerdict,
+    benefit: Object.freeze({
+      label: '法人化メリット（＋なら法人化が有利）',
+      amount: referenceDifference,
+      exactYen: moneyValue(referenceDifference),
+      display: formatYen(referenceDifference),
+      direction: amountDirection(referenceDifference),
+    }),
+    rows: Object.freeze([
+      row('tax', '税金', taxSole, taxCorporation,
+        burdenComment('税金', subtractMoney(taxSole, taxCorporation))),
+      row('social_insurance', '社会保険', socialInsuranceSole, socialInsuranceCorporation,
+        burdenComment('社会保険', subtractMoney(socialInsuranceSole, socialInsuranceCorporation))),
+      row('total', '計', totalSole, totalCorporation, summaryVerdict.comment, true),
+    ]),
+    note: '※法人側の社会保険は役員本人負担と会社負担の両方を含みます（会社負担は法人の経費として法人税等の計算に反映済み）。下の比較表の合計行とは集計の視点が異なります。',
+  });
+}
+
 function conclusion(summaryAmount) {
   const exactAmount = moneyValue(summaryAmount);
   const approximate = formatApproxManYen(exactAmount);
@@ -98,7 +209,7 @@ function comparisonRows(data) {
     ['income_tax', '所得税', sole.burdens.incomeTax, corporation.burdens.incomeTax],
     ['resident_tax', '住民税', sole.burdens.residentTax, corporation.burdens.residentTax],
     ['sole_proprietor_enterprise_tax', '個人事業税', sole.burdens.soleProprietorEnterpriseTax, undefined],
-    ['corporate_taxes', '法人税等', undefined, corporation.burdens.corporateTaxes],
+    ['corporate_taxes', '法人税等（法人税・地方法人税・法人住民税・法人事業税・特別法人事業税の合計）', undefined, corporation.burdens.corporateTaxes],
     ['social_insurance_employee', '本人社会保険', sole.burdens.socialInsuranceEmployee, corporation.burdens.socialInsuranceEmployee],
     ['social_insurance_employer', '会社社会保険', undefined, corporation.burdens.socialInsuranceEmployer],
     ['personal_disposable_cash', '個人手取り', sole.personalDisposableCash, corporation.personalDisposableCash],
@@ -164,7 +275,8 @@ function buildBlockedViewModel(result) {
   return Object.freeze({
     resultStatus: 'blocked',
     periodLabel: result.periodLabel,
-    heading: `試算停止（${result.periodLabel}・blocked）`,
+    resultStatusLabel: RESULT_STATUS_LABELS.blocked,
+    heading: `試算停止（${result.periodLabel}・${RESULT_STATUS_LABELS.blocked}）`,
     alerts,
     assumptions: Object.freeze([...(result.assumptions || [])]),
     warnings: sortedWarnings(result.warnings),
@@ -185,13 +297,17 @@ function buildResultViewModel(result) {
   const soleBurden = burdenTotal(data.soleProprietor, false);
   const corporationBurden = burdenTotal(data.corporation, true);
   const partial = result.resultStatus === 'partial';
+  const resultStatusLabel = RESULT_STATUS_LABELS[result.resultStatus];
+  if (!resultStatusLabel) throw new TypeError(`未知の結果状態です: ${result.resultStatus}`);
   return Object.freeze({
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
-    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${result.resultStatus}）`,
+    resultStatusLabel,
+    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${resultStatusLabel}）`,
     isPartial: partial,
     partialNotice: partial ? '概算の前提が含まれます' : undefined,
     conclusion: conclusion(result.summary.amount),
+    verdictSummary: verdictSummary(data),
     comparisonRows: comparisonRows(data),
     pairedFigures: Object.freeze({
       solePersonalDisposableCash: data.soleProprietor.personalDisposableCash,
