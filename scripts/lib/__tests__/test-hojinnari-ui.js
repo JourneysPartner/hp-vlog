@@ -117,6 +117,36 @@ function main() {
     assert.strictEqual(complete.viewModel.conclusion.approximate, '約81万円');
     assert(complete.viewModel.conclusion.text.includes('法人化した場合のほうが'));
   });
+  check('判定サマリーはゴールデンの税金・社会保険・計を会社負担込みで表示する', () => {
+    const summary = complete.viewModel.verdictSummary;
+    assert.strictEqual(summary.verdict.bannerText, '法人化が有利の試算');
+    assert.strictEqual(summary.benefit.exactYen, 807220n);
+    assert.strictEqual(summary.benefit.display, '807,220円');
+    assert.deepStrictEqual(summary.rows.map(row => ({
+      code: row.code,
+      soleProprietor: row.soleProprietor.exactYen,
+      corporation: row.corporation.exactYen,
+      difference: row.difference.exactYen,
+      display: row.difference.display,
+      comment: row.comment,
+    })), [
+      {
+        code: 'tax', soleProprietor: 3098200n, corporation: 1746900n,
+        difference: 1351300n, display: '1,351,300円', comment: '税金の負担減',
+      },
+      {
+        code: 'social_insurance', soleProprietor: 1170120n, corporation: 1714200n,
+        difference: -544080n, display: '▲544,080円', comment: '社会保険の負担増',
+      },
+      {
+        code: 'total', soleProprietor: 4268320n, corporation: 3461100n,
+        difference: 807220n, display: '807,220円', comment: '法人化有利',
+      },
+    ]);
+    assert.strictEqual(summary.rows[2].difference.exactYen,
+      complete.result.breakdown.data.combinedReferenceDifference.value);
+    assert(summary.note.includes('役員本人負担と会社負担の両方'));
+  });
   check('比較表9行の個人・法人値がゴールデンと一致する', () => {
     const rows = complete.viewModel.comparisonRows;
     assert.strictEqual(rows.length, 9);
@@ -143,6 +173,36 @@ function main() {
     assert(row.note.includes('再加算しません'));
     assert.strictEqual(complete.viewModel.pairedFigures.taxAndInsuranceBurden.corporation.value, 2593200n);
   });
+  check('法人税等の行ラベルに5税目の内訳を明示する', () => {
+    const label = complete.viewModel.comparisonRows
+      .find(row => row.code === 'corporate_taxes').label;
+    for (const taxName of ['法人税', '地方法人税', '法人住民税', '法人事業税', '特別法人事業税']) {
+      assert(label.includes(taxName), taxName);
+    }
+  });
+  check('結果見出しと結果状態は英語列挙値を出さず日本語で示す', () => {
+    assert(complete.viewModel.heading.includes('計算完了'));
+    assert(!complete.viewModel.heading.includes('complete'));
+    assert.strictEqual(complete.viewModel.resultStatusLabel, '計算完了');
+  });
+  check('結果DOMは見出し直下・結論カード前に横スクロール可能な判定表を描画する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({
+        ...state, screen: 'result', result: complete.result, viewModel: complete.viewModel,
+      }));
+      const text = root.textContent;
+      assert(text.indexOf(complete.viewModel.heading) < text.indexOf('法人化が有利の試算'));
+      assert(text.indexOf('法人化が有利の試算') < text.indexOf('結論'));
+      const table = root.querySelector('.hojinnari-summary-table');
+      assert(table);
+      assert(table.parentNode.classList.contains('hojinnari-table-wrap'));
+      assert(text.includes('①個人事業②法人成り①−②差引コメント'));
+      app.destroy();
+    });
+  });
   check('計算範囲は11/12・概算は国保・根拠はsnapshotIdを持つ', () => {
     const range = complete.viewModel.calculationRange;
     assert.strictEqual(range.calculatedCount, 11);
@@ -159,11 +219,57 @@ function main() {
     assert(reverse.result.summary.amount.value < 0n);
     assert(reverse.viewModel.conclusion.text.includes('個人事業のままのほうが'));
     assert(!/(絶対|必ず)/.test(reverse.viewModel.conclusion.text));
+    assert.strictEqual(reverse.viewModel.verdictSummary.verdict.bannerText, '個人事業が有利の試算');
+    const total = reverse.viewModel.verdictSummary.rows.find(row => row.code === 'total');
+    assert(total.difference.exactYen < 0n);
+    assert(total.difference.display.startsWith('▲'));
+    assert.strictEqual(total.comment, '個人事業有利');
+  });
+  check('差の絶対値が1万円未満なら「ほぼ同等の試算」と判定する', () => {
+    const sourceData = complete.result.breakdown.data;
+    const targetDifference = 9999n;
+    const currentDifference = complete.viewModel.verdictSummary.rows[2].difference.exactYen;
+    const adjustedEmployerValue = sourceData.corporation.burdens.socialInsuranceEmployer.value +
+      currentDifference - targetDifference;
+    const adjustedData = {
+      ...sourceData,
+      corporation: {
+        ...sourceData.corporation,
+        burdens: {
+          ...sourceData.corporation.burdens,
+          socialInsuranceEmployer: { unit: 'JPY', value: adjustedEmployerValue },
+        },
+      },
+      combinedReferenceDifference: { unit: 'JPY', value: targetDifference },
+    };
+    const adjustedResult = {
+      ...complete.result,
+      summary: { ...complete.result.summary, amount: adjustedData.combinedReferenceDifference },
+      breakdown: { ...complete.result.breakdown, data: adjustedData },
+    };
+    const summary = buildResultViewModel(adjustedResult).verdictSummary;
+    assert.strictEqual(summary.verdict.bannerText, 'ほぼ同等の試算');
+    assert.strictEqual(summary.rows[2].comment, 'ほぼ同等');
+  });
+  check('計の差引がcombinedReferenceDifferenceと不一致ならビューモデル生成を拒否する', () => {
+    const inconsistentResult = {
+      ...complete.result,
+      breakdown: {
+        ...complete.result.breakdown,
+        data: {
+          ...complete.result.breakdown.data,
+          combinedReferenceDifference: { unit: 'JPY', value: 807219n },
+        },
+      },
+    };
+    assert.throws(() => buildResultViewModel(inconsistentResult),
+      /計の差引がcombinedReferenceDifferenceと一致しません/);
   });
   check('法人所在地noはpartial・除外を返し、completeと数値が同一', () => {
     const partial = run(goldenState({ locationSameAsResidence: 'no' }));
     assert.strictEqual(partial.viewModel.isPartial, true);
     assert.strictEqual(partial.viewModel.partialNotice, '概算の前提が含まれます');
+    assert(partial.viewModel.heading.includes('一部概算'));
     assert(partial.viewModel.excludedItems.some(item =>
       item.code === 'HJ_CORPORATE_LOCATION_LOCAL_RATES_EXCLUDED'));
     assert.deepStrictEqual(moneySnapshot(partial.result), moneySnapshot(complete.result));
@@ -171,6 +277,8 @@ function main() {
   check('businessTaxCategory unknownはカタログ文言のalert用データになる', () => {
     const blocked = run(goldenState({ businessTaxCategory: 'unknown' }));
     assert.strictEqual(blocked.result.resultStatus, 'blocked');
+    assert(blocked.viewModel.heading.includes('停止'));
+    assert(!blocked.viewModel.heading.includes('blocked'));
     assert(blocked.viewModel.alerts.some(item =>
       item.code === 'HJ_BUSINESS_TAX_CATEGORY_UNKNOWN' &&
       item.description.includes('個人事業税の業種区分')));

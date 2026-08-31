@@ -11984,6 +11984,13 @@ const STYLE_TEXT = `
 .hojinnari-app h1,.hojinnari-app h2,.hojinnari-app h3{color:#0B2045}
 .hojinnari-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
 .hojinnari-conclusion{background:#FDF0EA;border-left:6px solid #E85320}
+.hojinnari-verdict-summary{margin:16px 0 24px;border:1px solid #E3E8F0;border-radius:12px;background:#fff;overflow:hidden;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
+.hojinnari-verdict-banner{margin:0;padding:18px 24px;background:#0B2045;color:#fff;font-size:clamp(1.35rem,3vw,1.75rem);font-weight:700;text-align:center}
+.hojinnari-verdict-emphasis{color:#E85320}.hojinnari-benefit{display:flex;justify-content:center;align-items:baseline;gap:12px;margin:0;padding:16px 24px;font-weight:700}
+.hojinnari-benefit-amount{font-size:1.35rem}.hojinnari-amount-positive{color:#C64312;font-weight:700}.hojinnari-amount-negative{color:#9b1c1c;font-weight:700}
+.hojinnari-verdict-table-wrap{margin:0 24px}.hojinnari-summary-table{min-width:780px}.hojinnari-app .hojinnari-summary-table thead th{background:#0B2045;color:#fff;text-align:center}
+.hojinnari-app .hojinnari-summary-table th:first-child,.hojinnari-app .hojinnari-summary-table td:first-child{text-align:left}.hojinnari-app .hojinnari-summary-table th:last-child,.hojinnari-app .hojinnari-summary-table td:last-child{text-align:left}
+.hojinnari-summary-total th,.hojinnari-summary-total td{background:#FDF0EA;font-weight:700}.hojinnari-verdict-note{margin:0;padding:14px 24px 18px;color:#55607a;font-size:.9rem}
 .hojinnari-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
 .hojinnari-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}
 .hojinnari-app button.hojinnari-primary{background:#E85320;border-color:#E85320;color:#fff}
@@ -11993,8 +12000,8 @@ const STYLE_TEXT = `
 .hojinnari-progress{font-weight:700}.hojinnari-help{color:#55607a}.hojinnari-error{color:#9b1c1c;font-weight:700}.hojinnari-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}
 .hojinnari-table-wrap{overflow-x:auto}.hojinnari-app table{border-collapse:collapse;width:100%;min-width:620px}.hojinnari-app th,.hojinnari-app td{border:1px solid #E3E8F0;padding:10px;text-align:right}.hojinnari-app th:first-child,.hojinnari-app td:first-child{text-align:left}.hojinnari-app thead th:nth-child(2){background:#F5F7FA}.hojinnari-app thead th:nth-child(3){background:#FDF0EA}
 .hojinnari-level{font-weight:700}.hojinnari-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media(max-width:480px){.hojinnari-app{padding:12px}.hojinnari-card{padding:16px}.hojinnari-actions{display:block}.hojinnari-actions button{width:100%;margin:5px 0}}
-@media print{.hojinnari-no-print{display:none!important}.hojinnari-app{max-width:none;padding:0}.hojinnari-print{display:block;color:#000}.hojinnari-card{box-shadow:none;break-inside:avoid}.hojinnari-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
+@media(max-width:480px){.hojinnari-app{padding:12px}.hojinnari-card{padding:16px}.hojinnari-actions{display:block}.hojinnari-actions button{width:100%;margin:5px 0}.hojinnari-benefit{display:block;padding:14px 16px}.hojinnari-benefit-amount{display:block}.hojinnari-verdict-table-wrap{margin:0}.hojinnari-verdict-note{padding:12px 16px 16px}}
+@media print{.hojinnari-no-print{display:none!important}.hojinnari-app{max-width:none;padding:0}.hojinnari-print{display:block;color:#000}.hojinnari-card,.hojinnari-verdict-summary{box-shadow:none;break-inside:avoid}.hojinnari-verdict-table-wrap{overflow:visible;margin:0}.hojinnari-summary-table{min-width:0;font-size:9pt}.hojinnari-verdict-banner{-webkit-print-color-adjust:exact;print-color-adjust:exact}.hojinnari-summary-total th,.hojinnari-summary-total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}.hojinnari-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
 
 function cloneInitialForm() {
@@ -12419,10 +12426,42 @@ function mountHojinnariApp(rootElement, {
 
   function renderResult(viewModel) {
     const range = viewModel.calculationRange;
+    const summary = viewModel.verdictSummary;
     return el('main', {}, [
       el('div', { className: 'hojinnari-print' }, [
         el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
         el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
+        el('section', { className: 'hojinnari-verdict-summary', 'aria-label': '判定サマリー' }, [
+          el('p', { className: 'hojinnari-verdict-banner' }, [
+            el('span', { className: 'hojinnari-verdict-emphasis' }, summary.verdict.emphasisText),
+            summary.verdict.suffixText,
+          ]),
+          el('p', { className: 'hojinnari-benefit' }, [
+            el('span', {}, summary.benefit.label),
+            el('span', {
+              className: `hojinnari-benefit-amount hojinnari-amount-${summary.benefit.direction}`,
+            }, summary.benefit.display),
+          ]),
+          el('div', { className: 'hojinnari-table-wrap hojinnari-verdict-table-wrap' }, el('table', { className: 'hojinnari-summary-table' }, [
+            el('thead', {}, el('tr', {}, [
+              el('th', { scope: 'col' }, '項目'),
+              el('th', { scope: 'col' }, '①個人事業'),
+              el('th', { scope: 'col' }, '②法人成り'),
+              el('th', { scope: 'col' }, '①−②差引'),
+              el('th', { scope: 'col' }, 'コメント'),
+            ])),
+            el('tbody', {}, summary.rows.map(row => el('tr', {
+              className: row.isTotal ? 'hojinnari-summary-total' : undefined,
+            }, [
+              el('th', { scope: 'row' }, row.label),
+              el('td', {}, row.soleProprietor.display),
+              el('td', {}, row.corporation.display),
+              el('td', { className: `hojinnari-amount-${row.difference.direction}` }, row.difference.display),
+              el('td', {}, row.comment),
+            ]))),
+          ])),
+          el('p', { className: 'hojinnari-verdict-note' }, summary.note),
+        ]),
         viewModel.isPartial ? el('p', { className: 'hojinnari-error' }, viewModel.partialNotice) : null,
         el('section', { className: 'hojinnari-card hojinnari-conclusion' }, [
           el('h2', {}, '結論'), el('p', {}, viewModel.conclusion.text),
@@ -12466,7 +12505,7 @@ function mountHojinnariApp(rootElement, {
           ['法令基準日', viewModel.grounds.legalStatusAsOf],
         ]), el('h3', {}, '出典'), el('ul', {}, viewModel.grounds.sources.map(source =>
           el('li', {}, source.url ? el('a', { href: source.url, rel: 'noreferrer' }, `${source.authority}：${source.title}`) : source.title)))]),
-        el('p', { className: 'hojinnari-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+        el('p', { className: 'hojinnari-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       ]),
       el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
         el('button', { type: 'button', onClick: () => goToStep(1) }, '入力を修正する'),
@@ -12862,6 +12901,12 @@ module.exports = Object.freeze({
 const { resolveQuestion } = require('./question-catalog.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
+const RESULT_STATUS_LABELS = Object.freeze({
+  complete: '計算完了',
+  partial: '一部概算',
+  blocked: '停止',
+});
+const NEARLY_EQUAL_THRESHOLD_YEN = 10000n;
 const RANGE_CATALOG = Object.freeze([
   Object.freeze({ code: 'income_tax', label: '所得税' }),
   Object.freeze({ code: 'reconstruction_income_tax', label: '復興特別所得税' }),
@@ -12924,6 +12969,111 @@ function burdenTotal(scenario, excludeEmployer) {
   return sumMoney(entries.map(([, value]) => value));
 }
 
+function subtractMoney(left, right) {
+  return money(moneyValue(left) - moneyValue(right));
+}
+
+function amountDirection(value) {
+  const exactYen = moneyValue(value);
+  return exactYen > 0n ? 'positive' : exactYen < 0n ? 'negative' : 'neutral';
+}
+
+function verdict(referenceDifference) {
+  const exactYen = moneyValue(referenceDifference);
+  const absolute = exactYen < 0n ? -exactYen : exactYen;
+  if (absolute < NEARLY_EQUAL_THRESHOLD_YEN) {
+    return Object.freeze({
+      direction: 'nearly_equal',
+      bannerText: 'ほぼ同等の試算',
+      emphasisText: 'ほぼ同等',
+      suffixText: 'の試算',
+      comment: 'ほぼ同等',
+    });
+  }
+  if (exactYen > 0n) {
+    return Object.freeze({
+      direction: 'corporation',
+      bannerText: '法人化が有利の試算',
+      emphasisText: '法人化が有利',
+      suffixText: 'の試算',
+      comment: '法人化有利',
+    });
+  }
+  return Object.freeze({
+    direction: 'sole_proprietor',
+    bannerText: '個人事業が有利の試算',
+    emphasisText: '個人事業が有利',
+    suffixText: 'の試算',
+    comment: '個人事業有利',
+  });
+}
+
+function burdenComment(label, difference) {
+  const exactYen = moneyValue(difference);
+  if (exactYen > 0n) return `${label}の負担減`;
+  if (exactYen < 0n) return `${label}の負担増`;
+  return `${label}の負担は同額`;
+}
+
+function verdictSummary(data) {
+  const sole = data.soleProprietor.burdens;
+  const corporation = data.corporation.burdens;
+  const referenceDifference = data.combinedReferenceDifference;
+  const taxSole = sumMoney([sole.incomeTax, sole.residentTax, sole.soleProprietorEnterpriseTax]);
+  const taxCorporation = sumMoney([
+    corporation.incomeTax, corporation.residentTax, corporation.corporateTaxes,
+  ]);
+  const socialInsuranceSole = sumMoney([sole.socialInsuranceEmployee]);
+  const socialInsuranceCorporation = sumMoney([
+    corporation.socialInsuranceEmployee, corporation.socialInsuranceEmployer,
+  ]);
+  const totalSole = sumMoney([taxSole, socialInsuranceSole]);
+  const totalCorporation = sumMoney([taxCorporation, socialInsuranceCorporation]);
+  const totalDifference = subtractMoney(totalSole, totalCorporation);
+
+  if (moneyValue(totalDifference) !== moneyValue(referenceDifference)) {
+    throw new Error(
+      `判定サマリーの計の差引がcombinedReferenceDifferenceと一致しません: ` +
+      `${moneyValue(totalDifference)} !== ${moneyValue(referenceDifference)}`
+    );
+  }
+
+  const summaryVerdict = verdict(referenceDifference);
+  const row = (code, label, soleAmount, corporationAmount, comment, isTotal = false) => {
+    const difference = subtractMoney(soleAmount, corporationAmount);
+    return Object.freeze({
+      code,
+      label,
+      soleProprietor: amountCell(soleAmount),
+      corporation: amountCell(corporationAmount),
+      difference: Object.freeze({
+        ...amountCell(difference),
+        direction: amountDirection(difference),
+      }),
+      comment,
+      isTotal,
+    });
+  };
+  return Object.freeze({
+    verdict: summaryVerdict,
+    benefit: Object.freeze({
+      label: '法人化メリット（＋なら法人化が有利）',
+      amount: referenceDifference,
+      exactYen: moneyValue(referenceDifference),
+      display: formatYen(referenceDifference),
+      direction: amountDirection(referenceDifference),
+    }),
+    rows: Object.freeze([
+      row('tax', '税金', taxSole, taxCorporation,
+        burdenComment('税金', subtractMoney(taxSole, taxCorporation))),
+      row('social_insurance', '社会保険', socialInsuranceSole, socialInsuranceCorporation,
+        burdenComment('社会保険', subtractMoney(socialInsuranceSole, socialInsuranceCorporation))),
+      row('total', '計', totalSole, totalCorporation, summaryVerdict.comment, true),
+    ]),
+    note: '※法人側の社会保険は役員本人負担と会社負担の両方を含みます（会社負担は法人の経費として法人税等の計算に反映済み）。下の比較表の合計行とは集計の視点が異なります。',
+  });
+}
+
 function conclusion(summaryAmount) {
   const exactAmount = moneyValue(summaryAmount);
   const approximate = formatApproxManYen(exactAmount);
@@ -12957,7 +13107,7 @@ function comparisonRows(data) {
     ['income_tax', '所得税', sole.burdens.incomeTax, corporation.burdens.incomeTax],
     ['resident_tax', '住民税', sole.burdens.residentTax, corporation.burdens.residentTax],
     ['sole_proprietor_enterprise_tax', '個人事業税', sole.burdens.soleProprietorEnterpriseTax, undefined],
-    ['corporate_taxes', '法人税等', undefined, corporation.burdens.corporateTaxes],
+    ['corporate_taxes', '法人税等（法人税・地方法人税・法人住民税・法人事業税・特別法人事業税の合計）', undefined, corporation.burdens.corporateTaxes],
     ['social_insurance_employee', '本人社会保険', sole.burdens.socialInsuranceEmployee, corporation.burdens.socialInsuranceEmployee],
     ['social_insurance_employer', '会社社会保険', undefined, corporation.burdens.socialInsuranceEmployer],
     ['personal_disposable_cash', '個人手取り', sole.personalDisposableCash, corporation.personalDisposableCash],
@@ -13023,7 +13173,8 @@ function buildBlockedViewModel(result) {
   return Object.freeze({
     resultStatus: 'blocked',
     periodLabel: result.periodLabel,
-    heading: `試算停止（${result.periodLabel}・blocked）`,
+    resultStatusLabel: RESULT_STATUS_LABELS.blocked,
+    heading: `試算停止（${result.periodLabel}・${RESULT_STATUS_LABELS.blocked}）`,
     alerts,
     assumptions: Object.freeze([...(result.assumptions || [])]),
     warnings: sortedWarnings(result.warnings),
@@ -13044,13 +13195,17 @@ function buildResultViewModel(result) {
   const soleBurden = burdenTotal(data.soleProprietor, false);
   const corporationBurden = burdenTotal(data.corporation, true);
   const partial = result.resultStatus === 'partial';
+  const resultStatusLabel = RESULT_STATUS_LABELS[result.resultStatus];
+  if (!resultStatusLabel) throw new TypeError(`未知の結果状態です: ${result.resultStatus}`);
   return Object.freeze({
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
-    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${result.resultStatus}）`,
+    resultStatusLabel,
+    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${resultStatusLabel}）`,
     isPartial: partial,
     partialNotice: partial ? '概算の前提が含まれます' : undefined,
     conclusion: conclusion(result.summary.amount),
+    verdictSummary: verdictSummary(data),
     comparisonRows: comparisonRows(data),
     pairedFigures: Object.freeze({
       solePersonalDisposableCash: data.soleProprietor.personalDisposableCash,

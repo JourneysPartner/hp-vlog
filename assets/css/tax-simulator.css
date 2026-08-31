@@ -26,8 +26,16 @@
 .tax-simulator-page .simulator-supervision dd{margin:0}
 .tax-simulator-page .simulator-stop{border-left:6px solid #9b1c1c}
 .tax-simulator-page .simulator-stop-category{font-weight:700;color:#9b1c1c}
+.tax-simulator-page .hojinnari-verdict-summary{border-color:#e3e8f0}
+.tax-simulator-page .hojinnari-verdict-banner,.tax-simulator-page .hojinnari-summary-table thead th{background:#0b2045;color:#fff}
+.tax-simulator-page .hojinnari-verdict-emphasis{color:#e85320}
+.tax-simulator-page .hojinnari-amount-positive{color:#c64312}
+.tax-simulator-page .hojinnari-amount-negative{color:#9b1c1c}
+.tax-simulator-page .hojinnari-summary-total th,.tax-simulator-page .hojinnari-summary-total td{background:#fdf0ea}
+.tax-simulator-page .hojinnari-verdict-table-wrap{overflow-x:auto}
 .tax-simulator-page .tool-page-footer{padding:24px 0;background:#0b2045;color:#fff}
 .tax-simulator-page .tool-page-footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px}
 .tax-simulator-page .tool-page-footer a{color:#fff}
 @media(max-width:767px){.tax-simulator-page .tool-page-header-inner{align-items:flex-start;flex-direction:column;gap:10px}.tax-simulator-page .tool-page-nav{width:100%;flex-wrap:wrap;justify-content:flex-start;gap:8px 16px}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:auto}.tax-simulator-page .simulator-intro{padding:40px 0 24px}.tax-simulator-page .simulator-intro.simulator-intro--compact{padding:16px 0 12px}.tax-simulator-page .simulator-info-grid{grid-template-columns:1fr}.tax-simulator-page .simulator-supervision dl{grid-template-columns:1fr;gap:2px}.tax-simulator-page .simulator-supervision dd{margin-bottom:10px}}
 @media(max-width:520px){.tax-simulator-page .tool-page-nav a:nth-child(3){display:none}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:0}}
+@media print{.tax-simulator-page .hojinnari-verdict-summary{break-inside:avoid}.tax-simulator-page .hojinnari-verdict-table-wrap{overflow:visible}.tax-simulator-page .hojinnari-verdict-banner,.tax-simulator-page .hojinnari-summary-table thead th,.tax-simulator-page .hojinnari-summary-total th,.tax-simulator-page .hojinnari-summary-total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
