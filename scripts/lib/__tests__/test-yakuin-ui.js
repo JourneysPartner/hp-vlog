@@ -20,6 +20,8 @@ const {
   createYakuinHoshuHandoff,
   acceptYakuinHoshuHandoff,
 } = require('../../../src/ui/yakuin-hoshu/handoff.js');
+const { mountYakuinHoshuApp } = require('../../../src/ui/yakuin-hoshu/app.js');
+const { withFakeDocument } = require('./helpers/fake-dom.js');
 
 const snapshotInfo = snapshot.getSnapshotInfo();
 const calculatedAt = '2026-08-29T12:00:00+09:00';
@@ -71,6 +73,30 @@ function rowAmount(rows, code) {
 }
 
 function main() {
+  process.stdout.write('\n=== 初期画面・ページ遷移 ===\n');
+  check('マウント直後はモード選択で、遷移時に先頭スクロール後フォーカスしintroを圧縮・復元する', () => {
+    withFakeDocument(({ root, intro }) => {
+      const calls = [];
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+        introElement: intro,
+        scrollToAppTop() { calls.push('scroll'); },
+        focusHeading() { calls.push('focus'); },
+      });
+      assert.strictEqual(app.store.getState().screen, 'mode');
+      assert(root.textContent.includes('入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'));
+      assert(!root.textContent.includes('ご利用の前に'));
+      assert(!intro.classList.contains('simulator-intro--compact'));
+      app.store.setState(state => ({ ...state, screen: 'input', step: 1 }));
+      assert.deepStrictEqual(calls, ['scroll', 'focus']);
+      assert(intro.classList.contains('simulator-intro--compact'));
+      app.store.setState(state => ({ ...state, screen: 'mode' }));
+      assert.deepStrictEqual(calls, ['scroll', 'focus', 'scroll', 'focus']);
+      assert(!intro.classList.contains('simulator-intro--compact'));
+      app.destroy();
+    });
+  });
+
   process.stdout.write('\n=== MODE C: ゴールデン統合 ===\n');
   const modeC = run(baseState());
   check('組立→validate→simulate→表示が④ゴールデン値と一致する', () => {

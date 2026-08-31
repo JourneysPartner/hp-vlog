@@ -134,6 +134,23 @@ try {
     assert(!html.includes('input-secret-value'));
     assert(!html.includes('9876543212345'));
   });
+  check('4ツールは専用ヘッダ・簡素なフッタを持ち、共通ナビと固定CTAを含まない', () => {
+    for (const definition of Object.values(TOOL_DEFINITIONS)) {
+      const html = fs.readFileSync(path.join(tempRoot, 'tools', definition.slug, 'index.html'), 'utf8');
+      assert(html.includes('class="tool-page-header"'));
+      assert(html.includes('<a class="tool-page-brand" href="/">毛利順活税理士事務所</a>'));
+      assert(html.includes('<a href="/">ホーム</a>'));
+      assert(html.includes('<a href="/blog/">税務コラム</a>'));
+      assert(html.includes('<a href="/contact.html">お問い合わせ</a>'));
+      assert(html.includes('<a class="tool-page-cta" href="/contact.html">無料相談する</a>'));
+      assert(html.includes('class="tool-page-footer"'));
+      assert(!html.includes('id="header"'));
+      assert(!html.includes('navbar-toggler'));
+      assert(!html.includes('navbar-nav'));
+      assert(!html.includes('mobile-cta-bar'));
+      assert(!html.includes('btn-header-cta'));
+    }
+  });
   check('indexable=trueならnoindexメタを出さない', () => {
     generateSimulatorPublishing({
       outputRoot: tempRoot,

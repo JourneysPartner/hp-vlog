@@ -1,9 +1,18 @@
 .tax-simulator-page{background:#f5f7fa;color:#22293a}
-.tax-simulator-page #header{background:#fff}
 .tax-simulator-page .simulator-page-container{width:min(100% - 32px,1080px);margin-inline:auto}
+.tax-simulator-page .tool-page-header{position:static;background:#0b2045;color:#fff}
+.tax-simulator-page .tool-page-header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:72px;padding-block:12px}
+.tax-simulator-page .tool-page-brand{color:#fff;font-size:1.1rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.tax-simulator-page .tool-page-nav{display:flex;align-items:center;justify-content:flex-end;gap:20px}
+.tax-simulator-page .tool-page-nav a{color:#fff;font-weight:600;text-decoration:none;white-space:nowrap}
+.tax-simulator-page .tool-page-nav a:hover,.tax-simulator-page .tool-page-nav a:focus-visible{text-decoration:underline}
+.tax-simulator-page .tool-page-nav .tool-page-cta{display:inline-flex;align-items:center;min-height:44px;padding:8px 18px;border-radius:8px;background:#e85320;color:#fff}
 .tax-simulator-page .simulator-intro{padding:64px 0 32px;background:#fff;border-bottom:1px solid #e3e8f0}
 .tax-simulator-page .simulator-intro h1{margin:20px 0 14px;color:#0b2045;font-size:clamp(2rem,5vw,3.2rem)}
 .tax-simulator-page .simulator-lead{max-width:52rem;margin:0;color:#55607a;font-size:1.05rem;line-height:1.9}
+.tax-simulator-page .simulator-intro.simulator-intro--compact{padding:20px 0 16px}
+.tax-simulator-page .simulator-intro.simulator-intro--compact h1{margin:10px 0 0;font-size:clamp(1.35rem,3vw,1.75rem);line-height:1.4}
+.tax-simulator-page .simulator-intro.simulator-intro--compact .simulator-lead{display:none}
 .tax-simulator-page .simulator-breadcrumb{display:flex;gap:10px;color:#55607a;font-size:.9rem}
 .tax-simulator-page .simulator-shell{padding:32px 0}
 .tax-simulator-page .simulator-static-info{padding:16px 0 72px}
@@ -17,4 +26,8 @@
 .tax-simulator-page .simulator-supervision dd{margin:0}
 .tax-simulator-page .simulator-stop{border-left:6px solid #9b1c1c}
 .tax-simulator-page .simulator-stop-category{font-weight:700;color:#9b1c1c}
-@media(max-width:767px){.tax-simulator-page .simulator-intro{padding:40px 0 24px}.tax-simulator-page .simulator-info-grid{grid-template-columns:1fr}.tax-simulator-page .simulator-supervision dl{grid-template-columns:1fr;gap:2px}.tax-simulator-page .simulator-supervision dd{margin-bottom:10px}.tax-simulator-page #header .navbar-toggler{display:none}.tax-simulator-page #header .navbar-collapse{display:block}.tax-simulator-page #header .navbar-nav,.tax-simulator-page #header .btn-header-cta{display:none}}
+.tax-simulator-page .tool-page-footer{padding:24px 0;background:#0b2045;color:#fff}
+.tax-simulator-page .tool-page-footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px}
+.tax-simulator-page .tool-page-footer a{color:#fff}
+@media(max-width:767px){.tax-simulator-page .tool-page-header-inner{align-items:flex-start;flex-direction:column;gap:10px}.tax-simulator-page .tool-page-nav{width:100%;flex-wrap:wrap;justify-content:flex-start;gap:8px 16px}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:auto}.tax-simulator-page .simulator-intro{padding:40px 0 24px}.tax-simulator-page .simulator-intro.simulator-intro--compact{padding:16px 0 12px}.tax-simulator-page .simulator-info-grid{grid-template-columns:1fr}.tax-simulator-page .simulator-supervision dl{grid-template-columns:1fr;gap:2px}.tax-simulator-page .simulator-supervision dd{margin-bottom:10px}}
+@media(max-width:520px){.tax-simulator-page .tool-page-nav a:nth-child(3){display:none}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:0}}

@@ -51,7 +51,9 @@ function focusResultHeading(element) {
   }
   if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
   // 通知挿入とは必ず別描画にするため、フォーカスは2フレーム後へ送る。
-  return nextFrame(() => {}).then(() => nextFrame(() => element.focus()));
+  return nextFrame(() => {}).then(() => nextFrame(() => {
+    if (element.isConnected !== false) element.focus({ preventScroll: true });
+  }));
 }
 
 module.exports = Object.freeze({ announceStatus, announceAlert, focusResultHeading });

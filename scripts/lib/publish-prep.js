@@ -155,7 +155,7 @@ function sha384(bytes) {
   return `sha384-${crypto.createHash('sha384').update(bytes).digest('base64')}`;
 }
 
-function renderToolPage({ simulatorType, config, manifest, bootIntegrity, template, header, footer }) {
+function renderToolPage({ simulatorType, config, manifest, bootIntegrity, template }) {
   const definition = TOOL_DEFINITIONS[simulatorType];
   const canonical = `https://mori-zeirishi.net/tools/${definition.slug}/`;
   const structuredData = JSON.stringify({
@@ -171,8 +171,6 @@ function renderToolPage({ simulatorType, config, manifest, bootIntegrity, templa
     isAccessibleForFree: true,
   });
   return render(template, {
-    HEADER: header,
-    FOOTER: footer,
     PAGE_TITLE: escapeHtml(definition.name),
     META_DESCRIPTION: escapeHtml(definition.description),
     DESCRIPTION: escapeHtml(definition.description),
@@ -234,8 +232,6 @@ function generateSimulatorPublishing(options = {}) {
       manifest,
       bootIntegrity,
       template: toolTemplate,
-      header,
-      footer,
     }), 'utf8');
   }
 

@@ -3,7 +3,8 @@
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
 const { createMoneyInput, createSelect, parseMoneyInput } = require('../forms.js');
-const { announceStatus, announceAlert, focusResultHeading } = require('../a11y.js');
+const { announceStatus, announceAlert } = require('../a11y.js');
+const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const { buildCalculationContext } = require('./context-builder.js');
 const { ShohizeiInputBuildError, buildShohizeiInput } = require('./input-builder.js');
@@ -105,7 +106,9 @@ const STYLE_TEXT = `
 
 function cloneInitialForm() { return { ...INITIAL_FORM }; }
 
-function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
+function mountShohizeiApp(rootElement, {
+  services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
+} = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
   }
@@ -115,10 +118,15 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  const store = createStore({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
   let destroyed = false;
   rootElement.classList.add('shohizei-app');
+  const pageView = createSimulatorPageView(rootElement, {
+    isFirstView: state => state.screen === 'input' && state.step === 1,
+    scrollToAppTop, focusHeading, introElement,
+  });
   queueEvent('simulator_view', { tool: 'shohizei' });
+  queueEvent('simulator_start', { tool: 'shohizei' });
 
   function updateForm(key, value) {
     store.setState(state => ({ ...state, form: { ...state.form, [key]: value } }));
@@ -188,6 +196,8 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
       onInput: event => updateForm('invoiceRegisteredOn', event.currentTarget.value) });
     return el('main', { className: 'shohizei-no-print' }, [
       ...stepHeader(1, '事業者の状況'), errorSummary(),
+      el('p', { className: 'shohizei-help' },
+        '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
       el('p', {}, '課税期間：2025年1月1日〜12月31日（第1版固定）'),
       ...selectField('taxpayerType', 'sz-taxpayer-type', '事業者の区分', '3割特例の判定に影響します。', [
         { value: '', label: '選択してください' }, { value: 'individual', label: '個人事業者' }, { value: 'corporation', label: '法人' },
@@ -369,13 +379,9 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
     store.setState(state => ({ ...state, screen: result.resultStatus === 'blocked' ? 'blocked' : 'result', result, viewModel }));
     queueEvent('simulator_complete', { tool: 'shohizei', resultStatus: result.resultStatus });
     if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
-    else {
-      const heading = rootElement.querySelector('#sz-result-heading');
-      if (heading) focusResultHeading(heading);
-    }
   }
   function resetState() {
-    store.setState({ screen: 'intro', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
   }
   function clearAll() {
     if (browserWindow && typeof browserWindow.confirm === 'function' &&
@@ -385,19 +391,6 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   function printResult() {
     queueEvent('simulator_cta_click', { tool: 'shohizei' });
     if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
-  }
-  function renderIntro() {
-    return el('main', { className: 'shohizei-no-print' }, [
-      el('h1', {}, '消費税シミュレーター'),
-      el('p', {}, '利用できる方式をまず判定してから、納税額を並べて比較します。'),
-      el('div', { className: 'shohizei-card' }, [el('h2', {}, 'ご利用の前に'),
-        el('p', {}, '本ツールは一般的な前提による試算で、申告・届出や個別の税務判断には使用できません。'),
-        el('p', {}, '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。共用端末・画面共有・印刷物の管理にご注意ください。')]),
-      el('p', {}, '所要時間の目安：3分程度'),
-      el('button', { type: 'button', className: 'shohizei-primary', onClick: () => {
-        queueEvent('simulator_start', { tool: 'shohizei' }); goToStep(1);
-      } }, 'かんたん計算をはじめる'),
-    ]);
   }
   function definitionList(items) {
     return el('dl', {}, items.flatMap(([term, value]) => [el('dt', {}, term), el('dd', {}, value)]));
@@ -473,12 +466,11 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
       resultActions(), el('p', { className: 'shohizei-placeholder shohizei-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }
-  function render() {
+  function render(previous) {
     if (destroyed) return;
     const state = store.getState();
     let content;
-    if (state.screen === 'intro') content = renderIntro();
-    else if (state.screen === 'input') content = state.step === 1 ? renderStep1() : renderStep2();
+    if (state.screen === 'input') content = state.step === 1 ? renderStep1() : renderStep2();
     else if (state.screen === 'calculating') content = el('main', { className: 'shohizei-no-print' }, [
       el('h1', {}, '計算中'), el('p', {}, '税務マスターを使って試算しています。'),
       el('button', { type: 'button', disabled: true, 'aria-disabled': 'true' }, '計算中です'),
@@ -488,10 +480,11 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
     rootElement.replaceChildren(el('style', { textContent: STYLE_TEXT }), content);
     const summary = rootElement.querySelector('.shohizei-error-summary');
     if (summary) summary.focus();
+    pageView.afterRender(state, previous);
   }
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.screen !== previous.screen || state.step !== previous.step || state.errors !== previous.errors ||
-        state.result !== previous.result || state.viewModel !== previous.viewModel) render();
+        state.result !== previous.result || state.viewModel !== previous.viewModel) render(previous);
   });
   const pageshowHandler = event => { if (event.persisted) resetState(); };
   if (browserWindow) browserWindow.addEventListener('pageshow', pageshowHandler);
@@ -499,6 +492,7 @@ function mountShohizeiApp(rootElement, { services, snapshotInfo, now } = {}) {
   return Object.freeze({ store, destroy() {
     destroyed = true; unsubscribe();
     if (browserWindow) browserWindow.removeEventListener('pageshow', pageshowHandler);
+    pageView.destroy();
     rootElement.classList.remove('shohizei-app'); rootElement.replaceChildren();
   } });
 }
