@@ -13,7 +13,12 @@ function createPreview() {
   const built = build();
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'tax-simulators-preview-'));
   const bundleName = 'tax-simulator.js';
+  const bootName = 'tax-simulator-boot.js';
   fs.writeFileSync(path.join(directory, bundleName), built.bundle, 'utf8');
+  fs.copyFileSync(
+    path.join(__dirname, '..', 'src', 'ui', 'simulator-runtime-gate.js'),
+    path.join(directory, bootName)
+  );
   const html = `<!doctype html>
 <html lang="ja">
 <head>
@@ -36,26 +41,49 @@ function createPreview() {
   </nav>
   <div id="simulator-app"></div>
   <script src="./${bundleName}"></script>
+  <script src="./${bootName}" data-manual-boot></script>
   <script>
     (function () {
       var root = document.getElementById('simulator-app');
       var status = document.getElementById('preview-status');
       var active = null;
+      var mountRequest = 0;
+      var devStatusOverride = {
+        snapshotId: TaxSimulator.snapshotInfo.snapshotId,
+        tools: {
+          hojinnari: { enabled: true }, shohizei: { enabled: true },
+          sozoku: { enabled: true }, yakuin_hoshu: { enabled: true }
+        }
+      };
       var previewRouter = {
         navigate: function (tool) { status.textContent = tool === 'hojinnari' ? '④から①へ遷移しました' : ''; },
         destroy: function () {}
       };
       function mount(tool) {
+        var simulatorType = tool === 'yakuinHoshu' ? 'yakuin_hoshu' : tool;
+        var decision = TaxSimulatorRuntimeGate.evaluateRuntimeGate({
+          simulatorType: simulatorType,
+          expectedSnapshotId: TaxSimulator.snapshotInfo.snapshotId,
+          devStatusOverride: devStatusOverride
+        });
+        if (!decision.allowed) throw new Error('開発プレビューの停止ゲートを通過できません');
         if (active) active.destroy();
+        active = null;
+        var request = ++mountRequest;
         status.textContent = tool === 'hojinnari' ? '①を表示中' :
           tool === 'shohizei' ? '②を表示中' : tool === 'sozoku' ? '③を表示中' : '④を表示中';
-        active = tool === 'hojinnari'
-          ? TaxSimulator.mountHojinnari(root)
-          : tool === 'shohizei'
-            ? TaxSimulator.mountShohizei(root)
-            : tool === 'sozoku'
-              ? TaxSimulator.mountSozoku(root)
-              : TaxSimulator.mountYakuinHoshu(root, { router: previewRouter });
+        TaxSimulator.verify().then(function () {
+          if (request !== mountRequest) return;
+          active = tool === 'hojinnari'
+            ? TaxSimulator.mountHojinnari(root)
+            : tool === 'shohizei'
+              ? TaxSimulator.mountShohizei(root)
+              : tool === 'sozoku'
+                ? TaxSimulator.mountSozoku(root)
+                : TaxSimulator.mountYakuinHoshu(root, { router: previewRouter });
+        }).catch(function () {
+          status.textContent = 'マスター検証に失敗しました';
+        });
       }
       document.getElementById('preview-hojinnari').addEventListener('click', function () { mount('hojinnari'); });
       document.getElementById('preview-yakuin').addEventListener('click', function () { mount('yakuinHoshu'); });

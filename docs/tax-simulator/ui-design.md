@@ -146,3 +146,21 @@ Tax Engine → Tax Master（実装済み・変更しない）
 - **依存ゼロの自前バンドラ**: サプライチェーンリスクの排除（§57-2）と、この規模（エンジン＋サービス約450KB・マスター約1.3MB、gzip後合計約3〜400KB想定）ならツール不要と判断。遅延読み込みはツールページのみなのでサイト本体に影響しない
 - **1バンドル4ページ**: §57-1 の「同一SPAランタイム」と §8-1 の固定URLの両立。財務データをURLへ載せずに画面間受け渡しできる唯一の素直な構成
 - **フレームワーク不採用**: 依存ゼロ方針の一貫。§61-1 の細かなフォーカス・通知制御は素のDOMの方が確実に制御できる
+
+## 12. 公開・停止の運用手順
+
+### 公開
+
+1. 税理士による計算基準・表示文言・第1版対象外項目の確認を完了し、`publish-config.json` の3日付を確定する。
+2. `masters:validate`、`masters:test`、対象ツールの `masters:gate`、`input-types:check`、`simulator:bundle`、`build`を順に実行する。
+3. 対象ツールの `enabled` を `true` にしてページ生成を有効化する。検索公開は別段階とし、承認済み本番URLだけ `indexable` を `true` にする。
+4. デプロイ後、canonical、noindex、監修表示、免責、JSON-LD、SRI、`simulator-status.json` のsnapshotIdを本番で確認する。
+
+### 緊急停止
+
+1. 停止対象ツールの `enabled` を `false` にする。誤った結果を表示していた場合は `indexable` も `false` にし、訂正履歴へ影響した計算バージョン、マスタースナップショットID、影響期間、再計算の要否を記載する。
+2. `npm run build` を実行し、`simulator-status.json` で対象ツールが無効になったことを確認してデプロイする。
+3. NetlifyのCDNキャッシュを無効化（Purge cache）し、ページHTMLと `simulator-status.json` の再検証を促す。ブラウザ側は `cache: no-store` でstatusを取得し、前回値では続行しない。
+4. 本番URLを新しいブラウザセッションで開き、計算UIが描画されず、停止理由の区分と相談窓口が表示されることを確認する。既存のService Workerがある場合は対象パスをキャッシュ・navigation preloadから除外する。
+
+再開時は旧マスターを自動で戻さず、最後に承認済みで対象期間が一致するsnapshotIdを明示的に選び、公開手順を最初から実施する。

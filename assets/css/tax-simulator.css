@@ -1,0 +1,20 @@
+.tax-simulator-page{background:#f5f7fa;color:#22293a}
+.tax-simulator-page #header{background:#fff}
+.tax-simulator-page .simulator-page-container{width:min(100% - 32px,1080px);margin-inline:auto}
+.tax-simulator-page .simulator-intro{padding:64px 0 32px;background:#fff;border-bottom:1px solid #e3e8f0}
+.tax-simulator-page .simulator-intro h1{margin:20px 0 14px;color:#0b2045;font-size:clamp(2rem,5vw,3.2rem)}
+.tax-simulator-page .simulator-lead{max-width:52rem;margin:0;color:#55607a;font-size:1.05rem;line-height:1.9}
+.tax-simulator-page .simulator-breadcrumb{display:flex;gap:10px;color:#55607a;font-size:.9rem}
+.tax-simulator-page .simulator-shell{padding:32px 0}
+.tax-simulator-page .simulator-static-info{padding:16px 0 72px}
+.tax-simulator-page .simulator-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.tax-simulator-page .simulator-info-card,.tax-simulator-page .simulator-stop{background:#fff;border:1px solid #e3e8f0;border-radius:12px;padding:24px;margin:0 0 24px;line-height:1.8;box-shadow:0 2px 8px rgba(11,32,69,.08)}
+.tax-simulator-page .simulator-info-card h2,.tax-simulator-page .simulator-stop h2{color:#0b2045;font-size:1.35rem}
+.tax-simulator-page .simulator-info-card h3{color:#0b2045;font-size:1.05rem;margin-top:24px}
+.tax-simulator-page .simulator-info-card li+li{margin-top:8px}
+.tax-simulator-page .simulator-supervision dl{display:grid;grid-template-columns:max-content 1fr;gap:10px 18px}
+.tax-simulator-page .simulator-supervision dt{font-weight:700;color:#0b2045}
+.tax-simulator-page .simulator-supervision dd{margin:0}
+.tax-simulator-page .simulator-stop{border-left:6px solid #9b1c1c}
+.tax-simulator-page .simulator-stop-category{font-weight:700;color:#9b1c1c}
+@media(max-width:767px){.tax-simulator-page .simulator-intro{padding:40px 0 24px}.tax-simulator-page .simulator-info-grid{grid-template-columns:1fr}.tax-simulator-page .simulator-supervision dl{grid-template-columns:1fr;gap:2px}.tax-simulator-page .simulator-supervision dd{margin-bottom:10px}.tax-simulator-page #header .navbar-toggler{display:none}.tax-simulator-page #header .navbar-collapse{display:block}.tax-simulator-page #header .navbar-nav,.tax-simulator-page #header .btn-header-cta{display:none}}
