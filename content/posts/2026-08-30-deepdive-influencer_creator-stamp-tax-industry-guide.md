@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "出典: 出典は消費税のページです（記事の税目: bookkeeping_expenses）。個人事業者向けの記述として妥当か確認してください"
 summary: "企業案件の業務委託契約書やPR費用の領収書に印紙が必要かどうか、課税文書の判定基準と金額別の税額、消費税の区分記載による印紙税の節税ポイントを解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-30T16:51:36.183+09:00"
 publish_at: "2026-08-31T11:33:00.000+09:00"
-published_at: ""
+published_at: "2026-08-31T12:01:02.365+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-30T00:05:52.654Z"
-updated_at: "2026-08-30T16:51:36.183+09:00"
+updated_at: "2026-08-31T12:01:02.365+09:00"
 publish_slot: "morning"
 ---
 企業からPR案件の依頼が来て、業務委託契約書を取り交わすことになった。担当者から「収入印紙を貼ってください」と言われたものの、そもそも印紙が必要な書類なのか、いくらの印紙を貼ればいいのか、よく分からないまま文具店に走った——そんな経験をしたクリエイターは少なくないはずです。
