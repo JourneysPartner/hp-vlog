@@ -53,7 +53,14 @@ function commonInput(formState, context, errors) {
       kind: 'kyokai_kenpo',
       prefectureCode: context.jurisdiction.prefectureCode,
     },
-    officer: { ageAtYearEnd: Number.isInteger(age) ? age : 0 },
+    officer: {
+      ageAtYearEnd: Number.isInteger(age) ? age : 0,
+      disability: formState.selfDisability || 'none',
+    },
+    deductions: {
+      smallEnterpriseMutualAid: money(formState.smallEnterpriseMutualAid ?? '0',
+        '$.deductions.smallEnterpriseMutualAid.value', errors),
+    },
     specialistChecks: {},
     appointedOn: context.fiscalPeriod.from,
     standardRemunerationDecisionKind: 'regular',

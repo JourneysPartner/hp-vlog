@@ -126,6 +126,15 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('YH_NON_RESIDENT_UNSUPPORTED', '$.officer.isNonResident',
       '非居住者は第1版の対象外です'));
   }
+  if (input.deductions && Object.keys(input.deductions)
+    .some(key => key !== 'smallEnterpriseMutualAid')) {
+    reasons.push(blockedReason('YH_DEDUCTIONS_UNSUPPORTED', '$.deductions',
+      '生命保険料控除等の各種控除は第1弾の対象外です'));
+  }
+  if (input.taxCredits !== undefined) {
+    reasons.push(blockedReason('YH_TAX_CREDITS_UNSUPPORTED', '$.taxCredits',
+      '住宅ローン控除等の税額控除は第1弾の対象外です'));
+  }
   if (input.officerResidenceSameAsCompany !== 'yes') {
     reasons.push(blockedReason('YH_RESIDENCE_JURISDICTION_UNCONFIRMED',
       '$.officerResidenceSameAsCompany', '役員住所と法人所在地が同一であることを確認してください'));
@@ -344,6 +353,8 @@ function calculateForward(input, context, monthlyAmount) {
     incomeTax: incomeTaxResult.payableIncomeTax,
     residentTax: residentTaxResult.annualTaxTotal,
     residentTaxTaxableIncome: residentTaxResult.taxableTotalIncome,
+    residentTaxOrderedIncomeDeductions: residentTaxResult.orderedIncomeDeductions,
+    residentTaxTotalIncomeDeductions: residentTaxResult.totalIncomeDeductions,
     residentTaxAdjustmentDeduction: yen(
       residentTaxResult.municipalAdjustmentDeduction.value +
         residentTaxResult.prefecturalAdjustmentDeduction.value
@@ -492,6 +503,7 @@ function baseAssumptions(context) {
     `所得税は${incomeYear}年分、社会保険は${premiumMonth}分の料率・等級を12か月同額として使用しています。暦年と社会保険年度（保険年度）がずれる場合があります。`,
     '国内普通法人・常勤役員1名・事業年度開始時に決めた12か月同額の定期給与を前提としています。',
     '申告調整と繰越欠損金はなく、法人地方税は既存法人税エンジンの標準税率で計算しています。',
+    '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
   ];
 }
 

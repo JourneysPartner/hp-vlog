@@ -822,6 +822,15 @@
         "establishedOn": {
           "$ref": "#/$defs/LocalDateWire"
         },
+        "deductions": {
+          "type": "object",
+          "properties": {
+            "smallEnterpriseMutualAid": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "additionalProperties": false
+        },
         "spouseOfficer": {
           "type": "object",
           "properties": {

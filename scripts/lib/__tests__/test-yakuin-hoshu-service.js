@@ -18,6 +18,9 @@ const golden = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-
 const familyGolden = goldenDocument.cases.find(
   item => item.case_id === 'GC-YH-SPOUSE-DEP-500K'
 );
+const deductionGolden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-YH-DISABILITY-KYOSAI-500K'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 
@@ -240,6 +243,65 @@ assert(spouseSpecialRows.get('spouse') === 0n &&
   spouseSpecialRows.get('spouseSpecial') === 380000n,
 '配偶者所得95万円は配偶者控除0円・配偶者特別控除38万円になる');
 
+console.log('\n=== MODE C: GC-YH-DISABILITY-KYOSAI-500K ===');
+const deductionModeC = service.simulate(modeCInput(500000, {
+  officer: { ageAtYearEnd: 45, disability: 'general' },
+  spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) },
+  dependents: [
+    { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+    { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+  ],
+  deductions: { smallEnterpriseMutualAid: yen(276000) },
+}), context(), snapshotInfo);
+const deductionCandidate = candidateOf(deductionModeC);
+const deductionExpected = deductionGolden.expected;
+for (const [actualField, expectedField] of Object.entries({
+  salaryIncome: 'salary_income',
+  totalIncomeDeductions: 'income_tax_total_deductions',
+  incomeTaxTaxableIncome: 'income_tax_taxable_income',
+  incomeTax: 'income_tax',
+  residentTaxAdjustmentDeduction: 'resident_tax_adjustment_deduction',
+  residentTax: 'resident_tax',
+  personalNetCash: 'personal_net_cash',
+  socialInsuranceEmployer: 'social_insurance_employer',
+  corporateIncome: 'corporate_income',
+  corporateTaxes: 'corporate_taxes_total',
+  corporateRetainedCash: 'corporate_retained_cash',
+  combinedCash: 'combined_cash',
+})) {
+  assert(deductionCandidate[actualField].value === BigInt(deductionExpected[expectedField]),
+    `障害・掛金ケースの${actualField}が指定期待値${deductionExpected[expectedField]}円と一致する`);
+}
+const deductionRows = new Map(deductionCandidate.orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+assert(deductionRows.get('socialInsurance') === 894000n &&
+  deductionRows.get('spouse') === 380000n && deductionRows.get('dependents') === 1010000n &&
+  deductionRows.get('disability') === 270000n &&
+  deductionRows.get('smallEnterpriseMutualAid') === 276000n &&
+  deductionRows.get('basic') === 680000n,
+'所得控除計351万円の社保・配偶者・扶養・障害者・掛金・基礎の内訳が一致する');
+assert(6000000n - 894000n - 43300n - 127000n === deductionCandidate.personalNetCash.value &&
+  deductionCandidate.combinedCash.value ===
+    deductionCandidate.personalNetCash.value + deductionCandidate.corporateRetainedCash.value,
+'掛金を手取りから差し引かず、個人手取りと法人留保の合計が8,785,400円になる');
+assert(deductionModeC.assumptions.some(text => text.includes('掛金そのものは支出として差し引いていません')),
+'掛金そのものを支出控除しない前提を表示する');
+
+const cohabitingSpouse = service.simulate(modeCInput(500000, {
+  officer: { ageAtYearEnd: 45, disability: 'none' },
+  spouse: {
+    exists: true, ageAtYearEnd: 40, totalIncome: yen(0), disability: 'special_cohabiting',
+  },
+}), context(), snapshotInfo);
+const cohabitingCandidate = candidateOf(cohabitingSpouse);
+const cohabitingIncomeRows = new Map(cohabitingCandidate.orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+const cohabitingResidentRows = new Map(cohabitingCandidate.residentTaxOrderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+assert(cohabitingIncomeRows.get('disability') === 750000n &&
+  cohabitingResidentRows.get('disability') === 530000n,
+'配偶者の特別（同居）を所得税75万円・住民税53万円として両エンジンへ渡す');
+
 console.log('\n=== SimulationResult の共通契約 ===');
 assert(modeC.simulatorType === 'yakuin_hoshu' && modeC.resultStatus === 'complete' &&
   modeC.comparisonBasis === 'steady_state',
@@ -322,6 +384,18 @@ const blockedCases = [
   [modeCInput(500000, {
     healthInsurer: { kind: 'kenpo_kumiai', insurerCode: 'TEST' },
   }), 'YH_HEALTH_INSURER_UNSUPPORTED', '健保組合'],
+  [modeCInput(500000, {
+    deductions: { lifeInsurance: [] },
+  }), 'YH_DEDUCTIONS_UNSUPPORTED', '生命保険料控除'],
+  [modeCInput(500000, {
+    deductions: { earthquakeInsurance: [] },
+  }), 'YH_DEDUCTIONS_UNSUPPORTED', '地震保険料控除'],
+  [modeCInput(500000, {
+    deductions: { donations: [] },
+  }), 'YH_DEDUCTIONS_UNSUPPORTED', '寄附金控除'],
+  [modeCInput(500000, {
+    taxCredits: { housingLoan: yen(1) },
+  }), 'YH_TAX_CREDITS_UNSUPPORTED', '住宅ローン控除'],
 ];
 for (const [input, code, label] of blockedCases) {
   const result = service.simulate(input, context(), snapshotInfo);
@@ -345,6 +419,13 @@ const familyValidation = service.validate(familyWire);
 assert(familyValidation.ok && familyValidation.value.spouse.totalIncome.value === 0n &&
   familyValidation.value.dependents[0].ageAtYearEnd === 20,
 '④Wireのspouse/dependentsを検証して計算用入力へ通す');
+const deductionWire = modeCWire();
+deductionWire.deductions = { smallEnterpriseMutualAid: wireMoney(276000) };
+assert(service.validate(deductionWire).ok,
+'④Wireのdeductionsは小規模企業共済等掛金控除だけを受け付ける');
+deductionWire.deductions.lifeInsurance = [];
+assert(!service.validate(deductionWire).ok,
+'④Wireの生命保険料控除等は型段階でも引き続き拒否する');
 familyWire.spouse.unknownProperty = true;
 assert(!service.validate(familyWire).ok,
 '④Wireのspouse内の未知プロパティは引き続き拒否する');

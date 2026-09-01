@@ -459,6 +459,7 @@ interface HojinnariCorporateInput {
 
   capital: Money;
   employeeCount?: number;
+  deductions?: { smallEnterpriseMutualAid?: Money }; // 法人化後の本人掛金。個人側から引き継がない
   establishedOn?: LocalDate;     // 設立予定日
   // 事業年度は CalculationContext.fiscalPeriod を使う。入力型に重複して持たない
 
@@ -875,7 +876,7 @@ interface YakuinHoshuCommonInput {
   spouse?: SpouseFacts;
   dependents?: DependentFacts[];
   otherIncomes?: IncomeItem[];
-  deductions?: PersonalDeductionFacts;
+  deductions?: { smallEnterpriseMutualAid?: Money }; // 第1弾はこの控除だけ
   taxCredits?: { housingLoan?: Money; other?: { code: string; amount: Money }[] };
 
   appointedOn?: LocalDate;
