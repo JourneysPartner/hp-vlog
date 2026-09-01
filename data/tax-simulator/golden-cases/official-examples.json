@@ -740,7 +740,9 @@
         "municipality_code": "13113",
         "tax_year": 2026,
         "previous_year_total_income": "5000000",
-        "insured_ages": [39]
+        "insured_ages": [
+          39
+        ]
       },
       "expected": {
         "assessment_base": "4570000",
@@ -791,6 +793,149 @@
       "_master_dependency": [
         "individual_business_tax_rate",
         "individual_business_tax_owner_deduction"
+      ]
+    },
+    {
+      "case_id": "GC-YH-SPOUSE-DEP-500K",
+      "target_module": "yakuin_hoshu_service",
+      "kind": "table_derived",
+      "description": "渋谷区・45歳・配偶者と16〜18歳・19〜22歳の扶養親族各1人・令和7年・役員報酬月額50万円の合成計算",
+      "source": {
+        "document_id": "NTA-SALARY+NTA-PERSONAL-DEDUCTIONS+SOUMU-RESIDENT-TAX+KYOKAI-KENPO+NTA-CORPORATE",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "locator": "配偶者控除・扶養控除、給与所得、所得税、住民税、協会けんぽ・厚生年金、法人課税の各承認済みマスターを接続",
+        "law_version": "令和7年分・令和7年度",
+        "retrieved_at": "2026-09-01",
+        "usage": "人的控除を含む役員報酬サービスの合成順序を固定"
+      },
+      "inputs": {
+        "mode": "C",
+        "income_tax_year": 2025,
+        "resident_tax_fiscal_year": 2025,
+        "fiscal_period_from": "2025-04-01",
+        "fiscal_period_to": "2026-03-31",
+        "premium_month": "2025-04",
+        "municipality_code": "13113",
+        "prefecture_code": "13",
+        "age": 45,
+        "spouse_total_income": "0",
+        "spouse_age_at_year_end": 40,
+        "dependent_ages": [
+          20,
+          17
+        ],
+        "profit_before_officer_compensation": "12000000",
+        "monthly_compensation": "500000",
+        "capital": "3000000"
+      },
+      "expected": {
+        "salary_income": "4360000",
+        "health_insurance_employee": "345000",
+        "employees_pension_employee": "549000",
+        "social_insurance_employee": "894000",
+        "income_tax_spouse_deduction": "380000",
+        "income_tax_dependent_deduction": "1010000",
+        "income_tax_basic_deduction": "680000",
+        "income_tax_total_deductions": "2964000",
+        "income_tax_taxable_income": "1396000",
+        "income_tax": "71200",
+        "resident_tax_adjustment_deduction": "16500",
+        "resident_tax": "181000",
+        "personal_net_cash": "4853800",
+        "health_insurance_employer": "345000",
+        "employees_pension_employer": "549000",
+        "child_support_levy_employer": "21600",
+        "social_insurance_employer": "915600",
+        "corporate_income": "5084400",
+        "corporate_tax": "762600",
+        "local_corporate_tax": "78400",
+        "inhabitant_tax_prefectural_income_levy": "7600",
+        "inhabitant_tax_municipal_income_levy": "45700",
+        "inhabitant_tax_per_capita_total": "70000",
+        "enterprise_tax": "197400",
+        "special_enterprise_tax": "73000",
+        "corporate_taxes_total": "1234700",
+        "corporate_retained_cash": "3849700",
+        "combined_cash": "8703500"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示の手計算期待値をそのまま固定する。45歳の介護保険料率1.59%を含む。",
+      "_master_dependency": [
+        "income_deduction_spouse",
+        "income_deduction_dependent",
+        "salary_income_after_deduction_appendix5",
+        "basic_deduction_table",
+        "health_insurance_rate_total",
+        "long_term_care_rate_total",
+        "employees_pension_rate_total",
+        "corporate_tax_sme_brackets"
+      ]
+    },
+    {
+      "case_id": "GC-HJ-SPOUSE-DEP",
+      "target_module": "hojinnari_service",
+      "kind": "table_derived",
+      "description": "渋谷区・45歳・同じ家族構成で個人事業と法人成りを比較し、高所得の個人側では配偶者控除が消えるケース",
+      "source": {
+        "document_id": "NTA-BUSINESS+NTA-PERSONAL-DEDUCTIONS+NHI-SHIBUYA+SOUMU-IBT+GC-YH-SPOUSE-DEP-500K",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "locator": "配偶者控除の本人所得制限、扶養控除とGC-YH-SPOUSE-DEP-500Kの合成",
+        "law_version": "令和7年分・令和8年度国保料率",
+        "retrieved_at": "2026-09-01",
+        "usage": "同じ家族構成を比較の両側へ対称に反映することを固定"
+      },
+      "inputs": {
+        "comparison_basis": "steady_state",
+        "income_tax_year": 2025,
+        "resident_tax_fiscal_year": 2025,
+        "municipality_code": "13113",
+        "age": 45,
+        "spouse_total_income": "0",
+        "dependent_ages": [
+          20,
+          17
+        ],
+        "individual_revenue": "20000000",
+        "individual_expenses": "8000000",
+        "blue_return_special_deduction_category": "e_tax_650k",
+        "business_tax_category": "type3_standard",
+        "national_pension_months": 12,
+        "corporate_revenue": "20000000",
+        "corporate_expenses": "8000000",
+        "capital": "3000000",
+        "monthly_compensation": "500000"
+      },
+      "expected": {
+        "sole_spouse_deduction": "0",
+        "sole_dependent_deduction": "1010000",
+        "sole_income_tax_taxable_income": "8419000",
+        "sole_income_tax": "1327600",
+        "sole_resident_tax_adjustment_deduction": "2500",
+        "sole_resident_tax": "882300",
+        "sole_proprietor_enterprise_tax": "455000",
+        "national_health_insurance": "1130000",
+        "national_pension": "210120",
+        "sole_personal_disposable_cash": "7994980",
+        "corporation_spouse_deduction": "380000",
+        "corporation_dependent_deduction": "1010000",
+        "corporation_income_tax": "71200",
+        "corporation_resident_tax": "181000",
+        "corporation_social_insurance_employee": "894000",
+        "corporation_social_insurance_employer": "915600",
+        "corporate_taxes": "1234700",
+        "corporation_personal_disposable_cash": "4853800",
+        "corporate_retained_cash": "3849700",
+        "corporation_combined_cash": "8703500",
+        "combined_reference_difference": "708520"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示の手計算期待値をそのまま固定する。本人所得1,135万円の個人側は配偶者控除0円、給与所得436万円の法人化側は38万円。",
+      "_master_dependency": [
+        "income_deduction_spouse",
+        "income_deduction_dependent",
+        "blue_return_special_deduction",
+        "national_health_insurance_municipal_rate",
+        "national_pension_monthly_premium",
+        "individual_business_tax_rate",
+        "corporate_tax_sme_brackets"
       ]
     },
     {
@@ -1023,7 +1168,10 @@
       },
       "inputs": {
         "taxpayer_type": "individual",
-        "taxable_period": { "from": "2025-01-01", "to": "2025-12-31" },
+        "taxable_period": {
+          "from": "2025-01-01",
+          "to": "2025-12-31"
+        },
         "invoice_registered": true,
         "invoice_registered_on": "2023-10-01",
         "became_taxable_by_registration": true,
@@ -1037,10 +1185,28 @@
         "standard_rate_tax_inclusive_purchases_with_invoice": "4400000"
       },
       "expected": {
-        "general": { "eligibility": "eligible", "national_tax": "468000", "local_tax": "132000", "total_tax": "600000" },
-        "simplified": { "eligibility": "eligible", "national_tax": "390000", "local_tax": "110000", "total_tax": "500000" },
-        "twenty_percent_special": { "eligibility": "eligible", "national_tax": "156000", "local_tax": "44000", "total_tax": "200000" },
-        "thirty_percent_special": { "eligibility": "ineligible", "reason": "対象課税期間でない" },
+        "general": {
+          "eligibility": "eligible",
+          "national_tax": "468000",
+          "local_tax": "132000",
+          "total_tax": "600000"
+        },
+        "simplified": {
+          "eligibility": "eligible",
+          "national_tax": "390000",
+          "local_tax": "110000",
+          "total_tax": "500000"
+        },
+        "twenty_percent_special": {
+          "eligibility": "eligible",
+          "national_tax": "156000",
+          "local_tax": "44000",
+          "total_tax": "200000"
+        },
+        "thirty_percent_special": {
+          "eligibility": "ineligible",
+          "reason": "対象課税期間でない"
+        },
         "recommended_method_code": "twenty_percent_special",
         "difference_from_general": "-400000",
         "taxable_base": "10000000",
@@ -1077,9 +1243,18 @@
       "inputs": {
         "inheritance_open_date": "2025-06-01",
         "heirs": [
-          { "id": "spouse", "relation": "spouse" },
-          { "id": "child-1", "relation": "child" },
-          { "id": "child-2", "relation": "child" }
+          {
+            "id": "spouse",
+            "relation": "spouse"
+          },
+          {
+            "id": "child-1",
+            "relation": "child"
+          },
+          {
+            "id": "child-2",
+            "relation": "child"
+          }
         ],
         "cash": "60000000",
         "securities": "20000000",
@@ -1089,9 +1264,18 @@
         "small_residential_land_category": "specified_residential",
         "small_residential_land_acquirer": "spouse",
         "division_shares": {
-          "spouse": { "num": "1", "den": "2" },
-          "child-1": { "num": "1", "den": "4" },
-          "child-2": { "num": "1", "den": "4" }
+          "spouse": {
+            "num": "1",
+            "den": "2"
+          },
+          "child-1": {
+            "num": "1",
+            "den": "4"
+          },
+          "child-2": {
+            "num": "1",
+            "den": "4"
+          }
         }
       },
       "expected": {
@@ -1144,7 +1328,10 @@
       },
       "inputs": {
         "taxpayer_type": "individual",
-        "taxable_period": { "from": "2027-01-01", "to": "2027-12-31" },
+        "taxable_period": {
+          "from": "2027-01-01",
+          "to": "2027-12-31"
+        },
         "standard_rate_tax_inclusive_sales": "11000000"
       },
       "expected": {

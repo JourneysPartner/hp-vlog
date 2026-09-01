@@ -203,21 +203,13 @@ function supportedProfileReasons(input, context) {
   }
 
   const comparisonDistortion =
-    '法人化側の役員個人計算が単身プロフィールだけに対応しており、片側だけに所得・控除を反映すると比較が歪むため、第1版では計算できません';
+    '法人化側と個人事業側の両方へ同じ条件を反映できず比較が歪むため、第1版では計算できません';
   if (Array.isArray(individual.otherIncomes) && individual.otherIncomes.length > 0) {
     reasons.push(blockedReason('HJ_OTHER_INCOMES_UNSUPPORTED', '$.individual.otherIncomes',
       comparisonDistortion));
   }
   if (hasEntries(individual.deductions)) {
     reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.individual.deductions',
-      comparisonDistortion));
-  }
-  if (individual.spouse !== undefined) {
-    reasons.push(blockedReason('HJ_SPOUSE_UNSUPPORTED', '$.individual.spouse',
-      comparisonDistortion));
-  }
-  if (Array.isArray(individual.dependents) && individual.dependents.length > 0) {
-    reasons.push(blockedReason('HJ_DEPENDENTS_UNSUPPORTED', '$.individual.dependents',
       comparisonDistortion));
   }
   if (individual.taxCredits !== undefined) {
@@ -376,6 +368,8 @@ function individualEngineInput(individual, nationalHealthInsurance, nationalPens
       },
     },
     self: individual.self,
+    spouse: individual.spouse,
+    dependents: individual.dependents || [],
   };
 }
 
@@ -427,7 +421,18 @@ function calculateSoleProprietor(input, context) {
   );
   return {
     status: 'complete',
-    scenario: { scenario: 'sole_proprietor', personalDisposableCash, burdens },
+    scenario: {
+      scenario: 'sole_proprietor',
+      personalDisposableCash,
+      burdens,
+      orderedIncomeDeductions: incomeTaxResult.orderedIncomeDeductions,
+      totalIncomeDeductions: incomeTaxResult.totalIncomeDeductions,
+      incomeTaxTaxableIncome: incomeTaxResult.taxableTotalIncome,
+      residentTaxAdjustmentDeduction: yen(
+        residentTaxResult.municipalAdjustmentDeduction.value +
+          residentTaxResult.prefecturalAdjustmentDeduction.value
+      ),
+    },
     assumptions: [
       ...(nhi.assumptions || []),
       ...(pension.assumptions || []),
@@ -456,6 +461,8 @@ function calculateCorporation(input, context) {
     employeeCount: corporate.employeeCount ?? 0,
     healthInsurer: corporate.healthInsurer,
     officer: input.individual.self,
+    spouse: input.individual.spouse,
+    dependents: input.individual.dependents || [],
     specialistChecks: {},
     profitBeforeOfficerCompensation,
     plan: corporate.officerCompensation,
@@ -483,6 +490,10 @@ function calculateCorporation(input, context) {
       socialInsuranceEmployer: candidate.socialInsuranceEmployer,
       corporateTaxes: candidate.corporateTaxes,
     },
+    orderedIncomeDeductions: candidate.orderedIncomeDeductions,
+    totalIncomeDeductions: candidate.totalIncomeDeductions,
+    incomeTaxTaxableIncome: candidate.incomeTaxTaxableIncome,
+    residentTaxAdjustmentDeduction: candidate.residentTaxAdjustmentDeduction,
   };
   const costs = input.setupAndMaintenanceCosts;
   if (costs && ['annualAccountingFee', 'annualLaborConsultantFee', 'otherAnnualCost']
@@ -746,6 +757,7 @@ function baseAssumptions(input, context) {
   const assumptions = [
     '平年度比較です。同じ所得・役員報酬が続く定常状態を前提としています。',
     '個人側の国保・国民年金は必要経費へ含めず、社会保険料控除だけに反映しています。',
+    '配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）は含めていません。法人化後の被扶養者・第3号被保険者の扱いの差も未反映です。',
   ];
   const adjustments = input.corporate.taxAdjustments;
   if (!adjustments || !Array.isArray(adjustments.items) ||

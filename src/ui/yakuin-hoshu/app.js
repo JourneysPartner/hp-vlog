@@ -14,9 +14,10 @@ const {
 } = require('./input-builder.js');
 const { buildYakuinHoshuResultViewModel } = require('./result-view-model.js');
 const { createYakuinHoshuHandoff } = require('./handoff.js');
+const { DEPENDENT_BANDS, dependentCount } = require('../family-input.js');
 
 const TOTAL_INPUT_STEPS = 2;
-const CONDITIONAL_KEYS = new Set(['municipalityKey', 'mode', 'optimizationCriterion']);
+const CONDITIONAL_KEYS = new Set(['municipalityKey', 'mode', 'optimizationCriterion', 'spouseExists']);
 const INITIAL_FORM = Object.freeze({
   incomeTaxYear: 2025,
   mode: '',
@@ -27,6 +28,14 @@ const INITIAL_FORM = Object.freeze({
   otherMunicipalityCode: '',
   otherIsDesignatedCity: false,
   ageAtYearEnd: '',
+  spouseExists: 'no',
+  spouseTotalIncome: '',
+  spouseAge70OrOver: false,
+  dependents16To18: '0',
+  dependents19To22: '0',
+  dependents23To69: '0',
+  dependents70PlusCohabiting: '0',
+  dependents70PlusSeparate: '0',
   searchLowerBound: '',
   searchUpperBound: '',
   searchStep: '10000',
@@ -42,6 +51,12 @@ const FIELD_IDS = Object.freeze({
   '$.profitBeforeOfficerCompensation.value': 'yh-profit',
   '$.capital.value': 'yh-capital',
   '$.officer.ageAtYearEnd': 'yh-age',
+  '$.spouse.totalIncome.value': 'yh-spouse-income',
+  '$.dependents.dependents16To18': 'yh-dependents-16-18',
+  '$.dependents.dependents19To22': 'yh-dependents-19-22',
+  '$.dependents.dependents23To69': 'yh-dependents-23-69',
+  '$.dependents.dependents70PlusCohabiting': 'yh-dependents-70-cohabiting',
+  '$.dependents.dependents70PlusSeparate': 'yh-dependents-70-separate',
   '$.calculationContext.jurisdiction': 'yh-municipality',
   '$.previousMonthlyAmount.value': 'yh-search-low',
   '$.searchUpperBound.value': 'yh-search-high',
@@ -151,6 +166,59 @@ function mountYakuinHoshuApp(rootElement, {
     return [field.element, addControlError(field.select, path)];
   }
 
+  function familyFields() {
+    const form = store.getState().form;
+    const spouse = [
+      ...selectField('spouseExists', 'yh-spouse-exists', '配偶者はいますか', '', [
+        { value: 'no', label: 'いいえ' },
+        { value: 'yes', label: 'はい' },
+      ], '$.spouse'),
+    ];
+    if (form.spouseExists === 'yes') {
+      spouse.push(
+        ...moneyField('spouseTotalIncome', 'yh-spouse-income', '配偶者の合計所得金額',
+          '収入が給与だけなら、年収から55万円を引いた金額が目安です。収入がなければ0円',
+          '$.spouse.totalIncome.value'),
+        el('div', {}, [
+          el('input', {
+            id: 'yh-spouse-elderly', type: 'checkbox', checked: form.spouseAge70OrOver,
+            onChange: event => updateForm('spouseAge70OrOver', event.currentTarget.checked),
+          }),
+          el('label', { for: 'yh-spouse-elderly' }, '70歳以上'),
+        ])
+      );
+    }
+    const dependentInputs = DEPENDENT_BANDS.map(band => {
+      const idSuffix = {
+        dependents16To18: '16-18',
+        dependents19To22: '19-22',
+        dependents23To69: '23-69',
+        dependents70PlusCohabiting: '70-cohabiting',
+        dependents70PlusSeparate: '70-separate',
+      }[band.key];
+      const path = `$.dependents.${band.key}`;
+      const input = el('input', {
+        id: `yh-dependents-${idSuffix}`, type: 'number', min: '0', step: '1', inputmode: 'numeric',
+        value: form[band.key],
+        onInput: event => updateForm(band.key, event.currentTarget.value),
+      });
+      return el('div', {}, [
+        el('label', { for: input.id }, band.label),
+        input,
+        addControlError(input, path),
+      ]);
+    });
+    return [
+      el('fieldset', {}, [el('legend', {}, '配偶者'), spouse]),
+      el('fieldset', {}, [
+        el('legend', {}, '扶養親族の人数'),
+        dependentInputs,
+        el('p', { className: 'yh-help' },
+          '16歳未満のお子さまは扶養控除の対象外のため入力不要です'),
+      ]),
+    ];
+  }
+
   function stepHeader(step, title) {
     return [
       el('p', { className: 'yh-progress', role: 'status',
@@ -228,9 +296,11 @@ function mountYakuinHoshuApp(rootElement, {
       el('label', { for: age.id }, '役員の年齢（年末時点）'),
       el('p', { id: 'yh-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.officer.ageAtYearEnd'),
+      ...familyFields(),
       el('div', { className: 'yh-card' }, [
         el('h2', {}, '固定している前提'),
-        el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、単身、賞与なし、期中改定なし、12か月同額です。'),
+        el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。'),
+        el('p', {}, '生命保険料控除・医療費控除などは対応準備中です'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),
       pageActions({ previous: () => store.setState(state => ({ ...state, screen: 'mode', errors: [] })), next: true }),
@@ -300,6 +370,12 @@ function mountYakuinHoshuApp(rootElement, {
         errors.push(localError('$.calculationContext.jurisdiction', '都道府県コード2桁と市区町村コード5桁を入力してください'));
       }
       if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '役員の年齢を整数で入力してください'));
+      if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
+        '$.spouse.totalIncome.value', '配偶者の合計所得金額');
+      for (const band of DEPENDENT_BANDS) {
+        if (dependentCount(form[band.key]) === null) errors.push(localError(
+          `$.dependents.${band.key}`, `${band.label}の人数を0以上の整数で入力してください`));
+      }
     } else if (form.mode === 'A') {
       requireMoney(form.searchLowerBound, '$.previousMonthlyAmount.value', '探索下限');
       requireMoney(form.searchUpperBound, '$.searchUpperBound.value', '探索上限');
@@ -502,7 +578,21 @@ function mountYakuinHoshuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'yh-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
-      modeContent, renderWarningsAndGrounds(viewModel), resultActions(viewModel),
+      modeContent,
+      viewModel.incomeDeductionRows.length > 0 ? el('details', { className: 'yh-card' }, [
+        el('summary', {}, '結果の詳細'),
+        el('h2', {}, '所得控除の内訳'),
+        el('div', { className: 'yh-table-wrap' }, el('table', {}, [
+          el('thead', {}, el('tr', {}, [
+            el('th', { scope: 'col' }, '所得控除'),
+            el('th', { scope: 'col' }, '金額'),
+          ])),
+          el('tbody', {}, viewModel.incomeDeductionRows.map(row => el('tr', {}, [
+            el('th', { scope: 'row' }, row.label), el('td', {}, row.display),
+          ]))),
+        ])),
+      ]) : null,
+      renderWarningsAndGrounds(viewModel), resultActions(viewModel),
     ]);
   }
 

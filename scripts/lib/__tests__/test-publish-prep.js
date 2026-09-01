@@ -133,6 +133,15 @@ try {
     assert(!html.includes('sendBeacon'));
     assert(!html.includes('input-secret-value'));
     assert(!html.includes('9876543212345'));
+    assert(html.includes('配偶者控除・扶養控除には対応'));
+    assert(html.includes('配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）'));
+  });
+  check('④の含めない項目は人的控除を除外せず、配偶者・扶養対応を明示する', () => {
+    const definition = TOOL_DEFINITIONS.yakuin_hoshu;
+    assert(definition.excludedItems.includes(
+      '生命保険料控除等の各種控除（配偶者控除・扶養控除には対応）'
+    ));
+    assert(!definition.excludedItems.some(item => item === '配偶者・扶養等の人的控除'));
   });
   check('4ツールは専用ヘッダ・簡素なフッタを持ち、共通ナビと固定CTAを含まない', () => {
     for (const definition of Object.values(TOOL_DEFINITIONS)) {

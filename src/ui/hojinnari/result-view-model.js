@@ -1,5 +1,7 @@
 'use strict';
 
+const { incomeDeductionRows } = require('../income-deduction-view.js');
+
 const { resolveQuestion } = require('./question-catalog.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
@@ -227,6 +229,20 @@ function comparisonRows(data) {
   })));
 }
 
+function incomeDeductionComparisonRows(data) {
+  const soleRows = incomeDeductionRows(data.soleProprietor.orderedIncomeDeductions);
+  const corporationByCode = new Map(
+    incomeDeductionRows(data.corporation.orderedIncomeDeductions).map(row => [row.code, row])
+  );
+  return Object.freeze(soleRows.map(row => Object.freeze({
+    calculationOrder: row.calculationOrder,
+    code: row.code,
+    label: row.label,
+    soleProprietor: amountCell(row.amount),
+    corporation: amountCell(corporationByCode.get(row.code).amount),
+  })));
+}
+
 function calculationRange(result) {
   const consumptionExcluded = (result.excludedItems || []).some(item =>
     item.code === 'HJ_CONSUMPTION_TAX_OUT_OF_COMPARISON');
@@ -309,6 +325,7 @@ function buildResultViewModel(result) {
     conclusion: conclusion(result.summary.amount),
     verdictSummary: verdictSummary(data),
     comparisonRows: comparisonRows(data),
+    incomeDeductionRows: incomeDeductionComparisonRows(data),
     pairedFigures: Object.freeze({
       solePersonalDisposableCash: data.soleProprietor.personalDisposableCash,
       corporationPersonalDisposableCash: data.corporation.personalDisposableCash,

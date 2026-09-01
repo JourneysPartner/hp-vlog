@@ -1,5 +1,7 @@
 'use strict';
 
+const { appendFamilyFacts } = require('../family-input.js');
+
 const YEAR_PERIOD = Object.freeze({ from: '2025-01-01', to: '2025-12-31' });
 
 class HojinnariInputBuildError extends Error {
@@ -144,6 +146,15 @@ function buildHojinnariInput(formState, context) {
     consumptionTax: { include: false },
     specialistChecks: {},
   };
+
+  appendFamilyFacts(input.individual, formState, {
+    money,
+    errors,
+    issue,
+    spousePath: '$.individual.spouse',
+    dependentsPath: '$.individual.dependents',
+    codePrefix: 'HJ_UI',
+  });
 
   if (errors.length > 0) throw new HojinnariInputBuildError(errors);
   return input;

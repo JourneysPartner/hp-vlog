@@ -116,6 +116,42 @@ function main() {
     assert.strictEqual(complete.viewModel.conclusion.exactAmount, 807220n);
     assert.strictEqual(complete.viewModel.conclusion.approximate, '約81万円');
     assert(complete.viewModel.conclusion.text.includes('法人化した場合のほうが'));
+    assert.strictEqual(Object.hasOwn(complete.wire.individual, 'spouse'), false);
+    assert.strictEqual(Object.hasOwn(complete.wire.individual, 'dependents'), false);
+  });
+  const family = run(goldenState({
+    ageAtYearEnd: '45', spouseExists: 'yes', spouseTotalIncome: '0',
+    dependents16To18: '1', dependents19To22: '1',
+  }));
+  check('①Wireの家族入力を組み立て、結果詳細で個人・法人化の配偶者控除差を表示する', () => {
+    assert.strictEqual(family.wire.individual.spouse.totalIncome.value, '0');
+    assert.deepStrictEqual(family.wire.individual.dependents.map(item => item.ageAtYearEnd), [17, 20]);
+    const rows = new Map(family.viewModel.incomeDeductionRows.map(row => [row.code, row]));
+    assert.strictEqual(rows.get('spouse').soleProprietor.exactYen, 0n);
+    assert.strictEqual(rows.get('spouse').corporation.exactYen, 380000n);
+    assert.strictEqual(rows.get('dependents').soleProprietor.exactYen, 1010000n);
+    assert.strictEqual(rows.get('dependents').corporation.exactYen, 1010000n);
+  });
+  check('STEP2に家族欄と新注記を表示し、単身向け注記を撤去する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, step: 2,
+        form: { ...state.form, spouseExists: 'yes' } }));
+      assert(root.textContent.includes('配偶者はいますか'));
+      assert(root.textContent.includes('年収から55万円を引いた金額'));
+      assert(root.textContent.includes('70歳以上・同居の親等'));
+      assert(root.textContent.includes('16歳未満のお子さまは扶養控除の対象外'));
+      assert(root.textContent.includes('生命保険料控除・医療費控除などは対応準備中です'));
+      assert(!root.textContent.includes('単身の方向け'));
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: family.result, viewModel: family.viewModel }));
+      assert(root.textContent.includes('所得控除の内訳'));
+      assert(root.textContent.includes('配偶者控除'));
+      assert(root.textContent.includes('扶養控除'));
+      app.destroy();
+    });
   });
   check('判定サマリーはゴールデンの税金・社会保険・計を会社負担込みで表示する', () => {
     const summary = complete.viewModel.verdictSummary;

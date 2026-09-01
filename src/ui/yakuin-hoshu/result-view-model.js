@@ -1,6 +1,7 @@
 'use strict';
 
 const { formatYen } = require('../hojinnari/result-view-model.js');
+const { incomeDeductionRows } = require('../income-deduction-view.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
 const CRITERION_PRESENTATION = Object.freeze({
@@ -111,6 +112,8 @@ function modeCViewModel(result) {
       display: `${deduction ? '▲' : ''}${formatYen(value)}`,
     }))),
     combinedCash: candidate.combinedCash,
+    incomeDeductionRows: incomeDeductionRows(candidate.orderedIncomeDeductions)
+      .map(row => Object.freeze({ ...row, ...amountCell(row.amount) })),
     handoffAvailable: result.resultStatus !== 'blocked',
   });
 }
@@ -205,6 +208,8 @@ function modeAViewModel(result, options) {
     rowSelectionDescription: ROW_SELECTION_DESCRIPTION,
     defaultCandidateRows: Object.freeze(defaults.map(candidateRow)),
     allCandidateRows: Object.freeze(data.candidates.map(candidateRow)),
+    incomeDeductionRows: incomeDeductionRows(selected.orderedIncomeDeductions)
+      .map(row => Object.freeze({ ...row, ...amountCell(row.amount) })),
     handoffAvailable: !nearUpperBound && Boolean(data.selectedPlanId),
   });
 }
@@ -223,6 +228,7 @@ function modeBViewModel(result) {
       conclusion: '希望手取りを満たす単一の報酬額は探索範囲内にないため、探索範囲として表示します。',
       forwardVerificationNotice: '各候補は順算関数で検証しています。',
       handoffAvailable: false,
+      incomeDeductionRows: Object.freeze([]),
     });
   }
   const candidate = selectedCandidate(result);
@@ -236,6 +242,8 @@ function modeBViewModel(result) {
       candidate.annualCompensation,
       candidate.socialInsuranceEmployer,
     ]),
+    incomeDeductionRows: incomeDeductionRows(candidate.orderedIncomeDeductions)
+      .map(row => Object.freeze({ ...row, ...amountCell(row.amount) })),
     forwardVerificationNotice: result.breakdown.data.inverseVerifiedByForwardCalculation
       ? '必要報酬は順算で再検証済みです。'
       : '各候補は順算関数で検証しています。',
