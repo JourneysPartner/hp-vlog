@@ -1,0 +1,16 @@
+{
+  "id": "44",
+  "type": "qa",
+  "source_key": "invoice",
+  "source_label": "インボイス制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "invoice_system",
+  "q_no": "問44",
+  "title": "問44 特急料金・入場料金",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/44.pdf",
+  "body": "（特急料金・入場料金） 問 44 特急列車に乗車するために支払う特急料金や駅構内に入場するために支払う入場料は、 公共交通機関特例の対象になりますか。【令和５年 10 月改訂】 【答】 適格請求書の交付義務が免除される公共交通機関特例の対象となるのは、３万円未満の公共 交通機関による旅客の運送です（消令70の９②一）。 ご質問の特急料金、急行料金及び寝台料金は、旅客の運送に直接的に附帯する対価として、 公共交通機関特例の対象となります。 他方、入場料金や手回品料金は、旅客の運送に直接的に附帯する対価ではありませんので、 公共交通機関特例の対象となりません（基通１－８－13）。",
+  "char_count_body": 291,
+  "fetched_at": "2026-09-01T07:31:27.937Z",
+  "digest": false
+}

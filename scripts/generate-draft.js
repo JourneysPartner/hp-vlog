@@ -97,6 +97,28 @@ async function enrichTaxTerms(topic) {
 
 // 出典が「人の確認が必要」な状態か。承認時と同じ判定を使う。
 // 判定に失敗した場合は、出典の決め方が弱いかどうかだけで判断する。
+// 記事の企画メタから、国税庁 Q&A を引くための語を組み立てて原文を添える。
+// 語は「読者の場面のことば」と「税務の概念のことば」の両方を渡す。
+// カタログが未取得でも空文字が返るだけで、生成は止まらない。
+function buildQaBlockForTopic(topic) {
+  try {
+    const { buildQaBlock } = require('./lib/nta-qa');
+    const keywords = [
+      topic.tax_terms, topic.pain_point, topic.primary_question,
+      topic.reader_problem, topic.search_intent, topic.title,
+    ].filter(Boolean).join(' ').split(/[\s、。？?・／/]+/).filter(w => w.length >= 2);
+    const block = buildQaBlock(keywords, { taxDomain: topic.tax_domain, maxDocs: 3 });
+    if (block) {
+      const nos = (block.match(/【[^】]+】/g) || []).join(' ');
+      console.log(`[source] 国税庁Q&Aの原文を添付: ${nos} (${block.length} 文字)`);
+    }
+    return block;
+  } catch (error) {
+    console.warn(`[source] Q&Aの参照に失敗（添付なしで続行）: ${error.message}`);
+    return '';
+  }
+}
+
 function isSourceUnconfirmed(topic) {
   if (!topic || !topic.source_url) return false;
   try {
@@ -918,7 +940,14 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     console.log(`[source] 参考資料を添付: ${pages.map(p => p.label).join(' / ')}`);
   }
 
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock + refPagesBlock;
+  // 国税庁 Q&A の原文。制度の細かい要件や例外は、タックスアンサーより
+  // Q&A に詳しく書かれていることがある。
+  // 2026-09-01: インボイス登録の取消しの記事が、届出書の期限（15日前）と
+  // 経過措置による2年縛りを外した。どちらも Q&A にしか載っておらず、
+  // カタログに入っていなかったため照合できなかった。
+  const qaBlock = buildQaBlockForTopic(topic);
+
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock + refPagesBlock + qaBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
@@ -1630,6 +1659,9 @@ ${rules.join(RULE_SEP)}`
   const sourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
+  // 差し戻し再生成にも Q&A の原文を渡す。事実誤認の差し戻しは targeted に
+  // 振り分けられるため、原文が最も必要になるのがこの経路になる。
+  const qaBlock = buildQaBlockForTopic(topicLike);
 
   // 近年の改正論点。通常生成と同じものを再生成にも渡す。
   // 事実誤認の差し戻しは targeted に振り分けられるため、
@@ -1664,7 +1696,7 @@ ${rules.join(RULE_SEP)}`
   }
 
   return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions,
-    combined: `${sourceBody}${nonTax}${refPages}${provisions}${changesBlock}${rulesBlock}` };
+    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${provisions}${changesBlock}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────

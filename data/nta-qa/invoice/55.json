@@ -1,0 +1,16 @@
+{
+  "id": "55",
+  "type": "qa",
+  "source_key": "invoice",
+  "source_label": "インボイス制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "invoice_system",
+  "q_no": "問55",
+  "title": "問55 屋号による記載",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/55.pdf",
+  "body": "（屋号による記載） 問 55 適格請求書に記載する名称は屋号も認められますか。【令和５年 10 月改訂】 【答】 適格請求書に記載する名称については、例えば、電話番号を記載するなどし、適格請求書を 交付する事業者を特定することができれば、屋号や省略した名称などの記載でも差し支えあり ません。",
+  "char_count_body": 146,
+  "fetched_at": "2026-09-01T07:31:48.888Z",
+  "digest": false
+}

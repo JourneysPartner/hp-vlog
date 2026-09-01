@@ -1,0 +1,85 @@
+name: Refresh NTA QA Catalog
+
+# 国税庁のQ&A・事例集（PDF）を取り直してカタログを更新する。
+# 月1回（毎月10日 JST 02:00）＋手動。改訂があれば PR を作成（自動マージなし）。
+#
+# Q&A は「【令和8年4月改訂】」のように随時改訂される。取り込んだまま放置すると、
+# 古い内容を根拠に記事が書かれる。タックスアンサーのカタログと同じ考え方で
+# 定期的に取り直す。
+
+on:
+  schedule:
+    - cron: '0 17 9 * *'   # 毎月9日 17:00 UTC = 10日 JST 02:00
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '対象を絞る場合（例: invoice）'
+        required: false
+        default: ''
+
+concurrency:
+  group: refresh-nta-qa
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils   # pdftotext
+
+      - name: Crawl
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.only }}" ]; then ARGS="--only ${{ github.event.inputs.only }}"; fi
+          node scripts/crawl-nta-qa.js $ARGS
+
+      - name: Create PR if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # fetched_at は毎回変わるので、本文が変わったものだけを対象にする
+          CHANGED=$(git diff --numstat -- data/nta-qa \
+            | awk '$1 > 1 || $2 > 1 {print $3}' | head -20)
+          if [ -z "$CHANGED" ]; then
+            echo "::notice::内容の変更なし。PR は作成しません"
+            git checkout -- data/nta-qa || true
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          STAMP=$(date -u +%Y%m%d)
+          BRANCH="nta-qa/${STAMP}"
+          git checkout -b "$BRANCH"
+          git add data/nta-qa
+          git commit -m "chore: 国税庁Q&Aカタログを更新 (${STAMP})"
+          git push origin "$BRANCH"
+
+          SUMMARY=$(node -e "
+            const idx = require('./data/nta-qa/index.json');
+            console.log('| 指標 | 値 |');
+            console.log('|---|---|');
+            console.log('| 件数 | ' + idx.total_count + ' |');
+            console.log('| 本文の総量 | ' + idx.entries.reduce((s, e) => s + (e.char_count_body || 0), 0).toLocaleString() + '文字 |');
+          ")
+
+          gh pr create --base main --head "$BRANCH" \
+            --title "国税庁Q&Aカタログを更新 (${STAMP})" \
+            --body "$(printf '国税庁のQ&A・事例集を取り直しました。内容が変わった資料があります。\n\n%s\n\n### 検収の観点\n- 改訂された問の内容が妥当か（【令和○年○月改訂】の記載を確認）\n- 既存記事の根拠が変わっていないか\n\nマージすると、以後の記事生成でこの原文が参照されます。' "$SUMMARY")" \
+            || echo "::error::PR の作成に失敗しました"
