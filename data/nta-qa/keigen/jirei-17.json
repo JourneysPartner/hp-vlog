@@ -1,0 +1,16 @@
+{
+  "id": "jirei-17",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問17",
+  "digest": false,
+  "title": "問17 酒類の原料となる食品の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（酒類の原料となる食品の販売） 問17 日本酒を製造するための米の販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいい、酒税法に規定する酒類は、ここ でいう「食品」から除かれています。 他方、日本酒を製造するための原材料の米は、酒類ではないので、「食品」から除かれず、 人の飲用又は食用に供されるものであることから、その販売は軽減税率の適用対象となり ます（消法２①九の二、別表１一、基通５－９－１）。",
+  "char_count_body": 238,
+  "fetched_at": "2026-09-01T08:27:39.458Z"
+}

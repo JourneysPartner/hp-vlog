@@ -1,0 +1,16 @@
+{
+  "id": "jirei-15",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問15",
+  "digest": false,
+  "title": "問15 ノンアルコールビール、甘酒の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（ノンアルコールビール、甘酒の販売） 問15 ノンアルコールビールや甘酒（アルコール分が一度未満のものに限ります。）の販売は、 軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 ノンアルコールビールや甘酒など酒税法に規定する酒類に該当しない飲料については、 軽減税率の適用対象である「飲食料品」に該当し、その販売は軽減税率の適用対象となりま す（消法２①九の二、別表１一、酒税法２①）。 -5-",
+  "char_count_body": 206,
+  "fetched_at": "2026-09-01T08:27:39.521Z"
+}

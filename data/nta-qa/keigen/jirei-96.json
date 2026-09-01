@@ -1,0 +1,16 @@
+{
+  "id": "jirei-96",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問96",
+  "digest": false,
+  "title": "問96 合理的な割合が不明な小売事業者等",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（合理的な割合が不明な小売事業者等） 問96 当社は、小売業を営んでおり、食玩を販売しています。その食玩に含まれる食品に係る 部分の価額に占める割合が不明ですが、仕入れの際に仕入先が適用した税率を適用して 販売することも認められますか。 【答】 ご質問のように、小売業や卸売業等を営む事業者が、一体資産に該当する商品を仕入れて 販売する場合において、販売する対価の額（税抜き）が１万円以下であれば、その課税仕入 れのときに仕入先が適用した税率をそのまま適用して差し支えありません。 - 51 - Ⅴ 「新聞の譲渡」の範囲等",
+  "char_count_body": 261,
+  "fetched_at": "2026-09-01T08:27:39.500Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "jirei-29",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問29",
+  "digest": false,
+  "title": "問29 お菓子用の包装紙の仕入れ",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（お菓子用の包装紙の仕入れ） 問29 当社は、お菓子の製造卸売業を営んでいます。当社では、製造したお菓子を個別包装し、 12 個ずつ箱詰めにして、販売していますが、お菓子の製造に必要な資材（原材料）であ る個別包装の包装紙の仕入れは、軽減税率の適用対象となりますか。【平成 29 年１月追 加】【令和５年 10 月改訂】 【答】 お菓子を包装するための包装紙は「飲食料品」に該当せず、その販売は軽減税率の適用 対象となりません。 したがって、ご質問の包装紙の仕入れは、軽減税率の適用対象となりません（消法２① 九の二、別表１一）。",
+  "char_count_body": 265,
+  "fetched_at": "2026-09-01T08:27:39.463Z"
+}

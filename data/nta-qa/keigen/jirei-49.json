@@ -1,0 +1,16 @@
+{
+  "id": "jirei-49",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問49",
+  "digest": false,
+  "title": "問49 社員食堂での飲食料品の提供",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（社員食堂での飲食料品の提供） 問49 社員食堂で提供する食事は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 軽減税率の適用対象とならない「食事の提供」とは、飲食設備のある場所において飲食料 品を飲食させる役務の提供をいいます。 会社内や事業所内に設けられた社員食堂で提供する食事も、その食堂において、社員や職 員に、飲食料品を飲食させる役務の提供を行うものであることから、「食事の提供」に該当 し、軽減税率の適用対象となりません（消法２①九の二、別表１一イ、基通５－９－９）。",
+  "char_count_body": 251,
+  "fetched_at": "2026-09-01T08:27:39.475Z"
+}

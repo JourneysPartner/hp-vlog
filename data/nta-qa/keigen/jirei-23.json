@@ -1,0 +1,16 @@
+{
+  "id": "jirei-23",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問23",
+  "digest": false,
+  "title": "問23 栄養ドリンクの販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（栄養ドリンクの販売） 問23 栄養ドリンク（医薬部外品）の販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 「医薬品、医療機器等の品質、有効性及び安全性の確保等に関する法律」に規定する「医 薬品」、「医薬部外品」及び「再生医療等製品」（以下「医薬品等」といいます。）は、「食品」 に該当しません。したがって、医薬品等に該当する栄養ドリンクの販売は軽減税率の適用対 象となりません（消法２①九の二、別表１一）。 なお、医薬品等に該当しない栄養ドリンクは、「食品」に該当し、その販売は軽減税率の 適用対象となります。",
+  "char_count_body": 270,
+  "fetched_at": "2026-09-01T08:27:39.461Z"
+}

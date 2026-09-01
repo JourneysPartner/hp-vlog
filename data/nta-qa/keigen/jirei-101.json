@@ -1,0 +1,16 @@
+{
+  "id": "jirei-101",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問101",
+  "digest": false,
+  "title": "問101 電子版の新聞",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（電子版の新聞） 問101 インターネットを通じて配信する電子版の新聞は、軽減税率の適用対象となります か。【令和５年 10 月改訂】 【答】 軽減税率の適用対象となる「新聞の譲渡」とは、一定の題号を用い、政治、経済、社会、 文化等に関する一般社会的事実を掲載する新聞（１週に２回以上発行する新聞に限ります。） の定期購読契約に基づく譲渡をいいます（消法２①九の二、別表１二）。 他方、インターネットを通じて配信する電子版の新聞は、電気通信回線を介して行われる 役務の提供である「電気通信利用役務の提供」に該当し、「新聞の譲渡」に該当しないこと から、軽減税率の適用対象となりません（消法２①八の三）。",
+  "char_count_body": 301,
+  "fetched_at": "2026-09-01T08:27:39.505Z"
+}

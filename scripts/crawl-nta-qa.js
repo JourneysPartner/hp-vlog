@@ -85,6 +85,56 @@ const SOURCES = {
     indexUrl: `${HOST}/law/joho-zeikaishaku/sonota/jirei/07scan/index.htm`,
     linkPattern: /07scan\/[^/]+\.htm$/,
   },
+
+  // 消費税の軽減税率。8%か10%かの判断は事例ごとに分かれ、
+  // タックスアンサーには一般論しかない。小売店・飲食業の読者に直結する。
+  // まとめPDF1本に多数の問が入っているので、問ごとに分割して保存する。
+  keigen: {
+    label: '消費税の軽減税率制度に関するQ&A',
+    tax_category: '消費税',
+    tax_category_code: 'shohi',
+    tax_domain: 'consumption_tax',
+    split: true,
+    docs: [
+      {
+        id: 'gaiyo',
+        title: '消費税の軽減税率制度に関するQ&A（制度概要編）',
+        url: `${HOST}/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf`,
+      },
+      {
+        id: 'jirei',
+        title: '消費税の軽減税率制度に関するQ&A（個別事例編）',
+        url: `${HOST}/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf`,
+      },
+    ],
+  },
+
+  // 国境を越えた役務の提供とプラットフォーム課税。
+  // 電子書籍・オンライン講座・広告など、EC・コンテンツ販売の読者に関わる。
+  // 2026-08-16: プラットフォーム課税の対象（国外事業者限定）を誤った記事が出ている。
+  cross_border: {
+    label: '国境を越えた役務の提供に係る消費税',
+    tax_category: '消費税',
+    tax_category_code: 'shohi',
+    tax_domain: 'overseas_transactions',
+    docs: [
+      {
+        id: 'kokunai',
+        title: '国境を越えた役務の提供に係る消費税の課税の見直し等について（国内事業者の皆さまへ）',
+        url: `${HOST}/publication/pamph/pdf/cross-kokunai.pdf`,
+      },
+      {
+        id: 'platform_kokugai',
+        title: '消費税のプラットフォーム課税に関するQ&A（国外事業者用）',
+        url: `${HOST}/publication/pamph/shohi/kazei/pdf/0024004-028_02-1.pdf`,
+      },
+      {
+        id: 'platform_jigyosha',
+        title: '消費税のプラットフォーム課税に関するQ&A（プラットフォーム事業者用）',
+        url: `${HOST}/publication/pamph/shohi/kazei/pdf/0024004-028_02-2.pdf`,
+      },
+    ],
+  },
 };
 
 // ── HTTP ────────────────────────────────────────────────────
@@ -196,6 +246,43 @@ function parseQaText(raw) {
   return { title, qNo, body: flat };
 }
 
+/**
+ * まとめPDF（1本に多数の問が入っている資料）を問ごとに切り分ける。
+ *
+ * 軽減税率の個別事例編は約10万字あり、1件として保存すると本文の上限（1,800字）で
+ * 冒頭しか渡らず役に立たない。「（見出し）問N …」の区切りで分割する。
+ *
+ * 先頭には目次が付いており、そこにも同じ「（見出し）問N」が並ぶ。目次側は
+ * ページ番号の点線（……）で終わるので、本文が極端に短い塊は目次として捨てる。
+ */
+function splitByQuestion(text) {
+  const flat = String(text || '').replace(/\s+/g, ' ').trim();
+  const re = /（([^（）]{2,60})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/g;
+  const marks = [...flat.matchAll(re)];
+  if (marks.length < 5) return [];   // 分割対象ではない
+
+  const out = [];
+  const seen = new Set();
+  for (let i = 0; i < marks.length; i++) {
+    const start = marks[i].index;
+    const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
+    const body = flat.slice(start, end).trim();
+    const qNo = marks[i][2].replace(/\s/g, '');
+    // 目次の行はページ番号の点線で終わり、本文が無い
+    if (body.length < 120) continue;
+    if (/…{3,}|\.{6,}\s*\d+$/.test(body)) continue;
+    // 同じ問が目次と本文で2回出る。長い方（本文）を採る
+    const prev = seen.has(qNo) ? out.find(o => o.qNo === qNo) : null;
+    if (prev) {
+      if (body.length > prev.body.length) { prev.body = body; prev.title = `${qNo} ${marks[i][1]}`; }
+      continue;
+    }
+    seen.add(qNo);
+    out.push({ qNo, title: `${qNo} ${marks[i][1]}`, body });
+  }
+  return out;
+}
+
 // ── 保存 ────────────────────────────────────────────────────
 function saveEntry(sourceKey, source, doc, parsed, url) {
   const dir = path.join(OUT_DIR, sourceKey);
@@ -278,9 +365,19 @@ async function crawlSource(sourceKey, source, options = {}) {
     try {
       const buf = await fetchBuffer(doc.url);
       const text = source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf);
-      const parsed = parseQaText(text);
-      if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
-      saved.push(saveEntry(sourceKey, source, doc, parsed, doc.url));
+      // まとめPDF は問ごとに分ける。分けないと本文の上限で冒頭しか渡らない。
+      const parts = source.split ? splitByQuestion(text) : [];
+      if (parts.length > 0) {
+        for (const part of parts) {
+          const sub = { id: `${doc.id}-${part.qNo.replace(/[^0-9]/g, '')}`, title: part.title };
+          saved.push(saveEntry(sourceKey, source, sub, part, doc.url));
+        }
+        log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
+      } else {
+        const parsed = parseQaText(text);
+        if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
+        saved.push(saveEntry(sourceKey, source, doc, parsed, doc.url));
+      }
     } catch (error) {
       failed++;
       warn(`[nta-qa] ${doc.id} を取得できません: ${error.message}`);
@@ -330,4 +427,4 @@ if (require.main === module) {
   main().catch(e => { console.error('[nta-qa] 失敗:', e.message); process.exit(1); });
 }
 
-module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, crawlSource, OUT_DIR, INDEX_PATH };
+module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, crawlSource, OUT_DIR, INDEX_PATH };

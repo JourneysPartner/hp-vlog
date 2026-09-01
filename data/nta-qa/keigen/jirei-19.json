@@ -1,0 +1,16 @@
+{
+  "id": "jirei-19",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問19",
+  "digest": false,
+  "title": "問19 「金箔」の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（「金箔」の販売） 問19 当社では、食品添加物の金箔を販売していますが、軽減税率の適用対象となりますか。 【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますので、食品衛生法に規定する 「添加物」として販売される金箔は、「食品」に該当し、その販売は軽減税率の適用対象と なります（消法２①九の二、別表１一、基通５－９－１）。 -6-",
+  "char_count_body": 186,
+  "fetched_at": "2026-09-01T08:27:39.458Z"
+}
