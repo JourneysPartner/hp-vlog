@@ -155,6 +155,46 @@ const SOURCES = {
       },
     ],
   },
+
+  // 相続税・贈与税。令和5年度改正で暦年課税の加算期間が3年から7年に延び、
+  // 相続時精算課税に年110万円の基礎控除ができた。改正直後で判断が固まっておらず、
+  // タックスアンサーには結論しか載っていない。具体的な計算例は質疑応答事例にある。
+  // 相続は問い合わせにつながりやすく、読者の関心も高い。
+  sozoku: {
+    label: '相続税及び贈与税等に関する質疑応答事例（令和5年度税制改正関係）',
+    tax_category: '相続税・贈与税',
+    tax_category_code: 'sozoku',
+    tax_domain: 'inheritance_tax',
+    splitBy: 'paren',
+    docs: [
+      {
+        id: 'r5kaisei',
+        title: '相続税及び贈与税等に関する質疑応答事例（令和5年度税制改正関係）',
+        url: `${HOST}/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf`,
+      },
+    ],
+  },
+
+  // 相続税・贈与税の改正のあらましと、教育資金の一括贈与の非課税制度。
+  // どちらも問と答の形ではないので分割しない（1件の資料として保存する）。
+  sozoku_pamph: {
+    label: '相続税・贈与税のパンフレット',
+    tax_category: '相続税・贈与税',
+    tax_category_code: 'sozoku',
+    tax_domain: 'inheritance_tax',
+    docs: [
+      {
+        id: 'kaisei_r5',
+        title: '相続税及び贈与税の税制改正のあらまし（令和5年度）',
+        url: `${HOST}/publication/pamph/pdf/0023006-004.pdf`,
+      },
+      {
+        id: 'kyoiku_shikin',
+        title: '祖父母などから教育資金の一括贈与を受けた場合の贈与税の非課税制度のあらまし',
+        url: `${HOST}/publication/pamph/sozoku-zoyo/201304/pdf/0023004-114_02.pdf`,
+      },
+    ],
+  },
 };
 
 // ── HTTP ────────────────────────────────────────────────────
@@ -342,6 +382,51 @@ function splitByNumberedHeading(text) {
   return out;
 }
 
+/**
+ * 括弧つき問番号形式のまとめPDFを問ごとに切り分ける。
+ *
+ * 相続税の質疑応答事例は「（問２－４）相続時精算課税に係る贈与により…
+ * 【照会要旨】…【回答要旨】…」の形で、問番号が括弧に入り見出しが続く。
+ *
+ * 先頭は目次で、同じ「（問N）見出し」がページ番号つきで並ぶ。
+ * 本文は【照会要旨】か【回答要旨】を含むので、それで目次と区別する。
+ */
+function splitByParenQuestion(text) {
+  const flat = String(text || '').replace(/\s+/g, ' ').trim();
+  // 見出しに括弧が入ることがある（例: …の計算（相続の開始前３年以内に…））ので、
+  // 括弧を除外せず「【」「（問）」「点線」「次の（問N）」の手前までを見出しとする。
+  const re = /（問\s?([\d０-９]+(?:[－-][\d０-９]+)?)\s?）\s*(.{4,90}?)(?=\s*【|\s*（問）|\s*\.{3,}|\s*（問\s?[\d０-９]|$)/g;
+  const marks = [...flat.matchAll(re)];
+  if (marks.length < 3) return [];
+
+  const out = [];
+  const seen = new Map();
+  for (let i = 0; i < marks.length; i++) {
+    const start = marks[i].index;
+    const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
+    const body = flat.slice(start, end).trim();
+    const no = `問${marks[i][1].replace(/－/g, '-')}`;
+    // 本文は照会要旨・回答要旨を含む。目次はページ番号の点線で終わる。
+    // 本文は「（問）…（答）」または「【照会要旨】…【回答要旨】」を含む。
+    // 目次にはどちらも無く、ページ番号の点線で終わる。
+    if (!/（答）|【回答要旨】|【回答】/.test(body)) continue;
+    if (body.length < 150) continue;
+    const title = marks[i][2].replace(/\.{3,}.*$/, '').trim();
+    const prev = seen.get(no);
+    if (prev) {
+      if (body.length > prev.body.length) {
+        prev.body = body;
+        prev.title = `${no} ${title}`;
+      }
+      continue;
+    }
+    const rec = { qNo: no, title: `${no} ${title}`, body };
+    seen.set(no, rec);
+    out.push(rec);
+  }
+  return out;
+}
+
 // ── 保存 ────────────────────────────────────────────────────
 function saveEntry(sourceKey, source, doc, parsed, url) {
   const dir = path.join(OUT_DIR, sourceKey);
@@ -429,7 +514,9 @@ async function crawlSource(sourceKey, source, options = {}) {
       //   question … 「（見出し）問N …」（軽減税率）
       //   numbered … 「１－１ 見出し 問 … 答 …」（暗号資産）
       const splitBy = source.splitBy || (source.split ? 'question' : null);
+      //   paren    … 「（問N-N）見出し （問）… （答）…」（相続税）
       const parts = splitBy === 'numbered' ? splitByNumberedHeading(text)
+        : splitBy === 'paren' ? splitByParenQuestion(text)
         : splitBy === 'question' ? splitByQuestion(text) : [];
       if (parts.length > 0) {
         for (const part of parts) {
@@ -495,4 +582,4 @@ if (require.main === module) {
   main().catch(e => { console.error('[nta-qa] 失敗:', e.message); process.exit(1); });
 }
 
-module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, splitByNumberedHeading, crawlSource, OUT_DIR, INDEX_PATH };
+module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, splitByNumberedHeading, splitByParenQuestion, crawlSource, OUT_DIR, INDEX_PATH };

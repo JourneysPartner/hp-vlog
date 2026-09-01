@@ -27,8 +27,8 @@ const N = qa.normalize;
 console.log('=== 1. カタログが取り込まれている ===');
 {
   const stats = qa.catalogStats();
-  assert(stats.total >= 365, `Q&Aが取り込まれている（${stats.total}件）`);
-  assert(stats.chars > 530000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
+  assert(stats.total >= 380, `Q&Aが取り込まれている（${stats.total}件）`);
+  assert(stats.chars > 565000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
   // 2026-09-01: インボイスに加えて電子帳簿保存法（電子取引・スキャナ保存）を追加。
   // インボイスはPDF、電帳法はHTMLで公開されており、取得の形式が違う。
   assert(stats.bySource.invoice >= 170, 'インボイスQ&Aが入っている');
@@ -41,6 +41,10 @@ console.log('=== 1. カタログが取り込まれている ===');
   // 2026-09-01: 所得税（暗号資産）を追加。売却・交換・マイニング・ステーキングの
   // 具体的な計算と判定は、タックスアンサーには載っていない。
   assert(stats.bySource.kasou >= 45, '暗号資産FAQが節ごとに入っている');
+  // 2026-09-01: 相続税・贈与税を追加。令和5年度改正で暦年課税の加算期間が
+  // 3年から7年に延び、相続時精算課税に年110万円の基礎控除ができた。
+  assert(stats.bySource.sozoku >= 13, '相続税の質疑応答事例が問ごとに入っている');
+  assert(stats.bySource.sozoku_pamph >= 2, '相続税・贈与税のパンフレットが入っている');
   const entries = qa.loadIndex();
   assert(entries.every(e => e.url && /^https:\/\/www\.nta\.go\.jp\//.test(e.url)),
     'すべて国税庁のURLを持つ');
@@ -244,6 +248,50 @@ console.log('=== 9. 資料ごとに違う分け方に対応している ===');
   const shutoku = qa.findQaByKeywords(['移動平均法', '総平均法', '暗号資産の取得価額'],
     { taxDomain: 'income_tax', maxDocs: 2 });
   assert(shutoku.length > 0, '取得価額の計算方法が引ける');
+}
+
+console.log('');
+console.log('=== 10. 相続税（括弧つき問番号形式）===');
+{
+  // 相続税の質疑応答事例は「（問２－４）見出し （問）… （答）…」の形。
+  // 軽減税率（（見出し）問N）とも暗号資産（１－１ 見出し）とも違う3つ目の形式。
+  const { splitByParenQuestion } = require(path.join(ROOT, 'scripts/crawl-nta-qa'));
+
+  const sozoku = qa.loadIndex().filter(e => e.source_key === 'sozoku');
+  assert(sozoku.length >= 13, `相続税が問ごとに分かれている（${sozoku.length}件）`);
+  assert(sozoku.every(e => /^問/.test(e.q_no || '')), 'すべてに問番号が付いている');
+  assert(sozoku.every(e => e.char_count_body >= 150), '目次だけの断片が混ざっていない');
+
+  // 見出しに括弧が入る問も取りこぼさない
+  //（例: 「…の計算（相続の開始前３年以内に取得した財産以外の財産がある場合）」）
+  const nested = sozoku.find(e => /（/.test(e.title.replace(/^問[^ ]+ /, '')));
+  assert(!!nested, '見出しに括弧が入る問も取り込めている');
+
+  // 実務の判断が引ける
+  const kasan = qa.findQaByKeywords(['加算対象贈与財産', '相続開始前7年', '暦年課税'],
+    { taxDomain: 'inheritance_tax', maxDocs: 2 });
+  assert(kasan.length > 0 && /加算/.test(kasan[0].title),
+    '生前贈与加算（7年）の計算例が引ける');
+
+  const seisan = qa.findQaByKeywords(['相続時精算課税', '基礎控除'],
+    { taxDomain: 'inheritance_tax', maxDocs: 2 });
+  assert(seisan.length > 0 && /相続時精算課税/.test(seisan[0].title),
+    '相続時精算課税の取扱いが引ける');
+
+  const kyoiku = qa.findQaByKeywords(['教育資金', '一括贈与', '非課税'],
+    { taxDomain: 'inheritance_tax', maxDocs: 2 });
+  assert(kyoiku.length > 0 && /教育資金/.test(kyoiku[0].title),
+    '教育資金の一括贈与が引ける');
+
+  // 分割できない資料（パンフレット）は1件として保存されている
+  const pamph = qa.loadIndex().filter(e => e.source_key === 'sozoku_pamph');
+  assert(pamph.length === 2 && pamph.every(e => e.char_count_body > 3000),
+    '問と答の形でない資料は分割せず1件として保存する');
+
+  // 4つの形式がすべて別々に動く
+  assert(typeof splitByParenQuestion === 'function', '括弧つき問番号の分割がある');
+  assert(splitByParenQuestion('短い文') === undefined || splitByParenQuestion('短い文').length === 0,
+    '対象でない文字列は分割しない');
 }
 
 console.log('=== 結果 ===');
