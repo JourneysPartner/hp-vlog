@@ -135,6 +135,26 @@ const SOURCES = {
       },
     ],
   },
+
+  // 暗号資産の税務。売却・交換・マイニング・ステーキングなど、
+  // タックスアンサーには載っていない具体的な計算と判定が並ぶ。
+  // クリエイター・EC・投資をする個人事業主の読者に関わる。
+  // 「（見出し）問N」ではなく「１－１ 見出し 問 … 答 …」の形式なので
+  // splitBy: 'numbered' で分割する。
+  kasou: {
+    label: '暗号資産等に関する税務上の取扱いについて（FAQ）',
+    tax_category: '所得税',
+    tax_category_code: 'shotoku',
+    tax_domain: 'income_tax',
+    splitBy: 'numbered',
+    docs: [
+      {
+        id: 'faq',
+        title: '暗号資産等に関する税務上の取扱いについて（情報）',
+        url: `${HOST}/publication/pamph/pdf/0025012-067.pdf`,
+      },
+    ],
+  },
 };
 
 // ── HTTP ────────────────────────────────────────────────────
@@ -283,6 +303,45 @@ function splitByQuestion(text) {
   return out;
 }
 
+/**
+ * 番号見出し形式のまとめPDFを節ごとに切り分ける。
+ *
+ * 暗号資産のFAQは「１－１ 暗号資産を売却した場合〔令和○年更新〕 問 … 答 …」の形で、
+ * 軽減税率のような「（見出し）問N」ではない。約14万字あるため分割しないと使えない。
+ *
+ * 先頭は目次で、同じ番号見出しがページ番号つきで並ぶ。
+ * 本文は「問」と「答」の両方を含むので、それで目次と区別する。
+ */
+function splitByNumberedHeading(text) {
+  const flat = String(text || '').replace(/\s+/g, ' ').trim();
+  const re = /([\d０-９]+(?:[－-][\d０-９]+){1,2})\s+([^0-9０-９\s][^【】]{2,50}?)(?=〔|\s+問\s)/g;
+  const marks = [...flat.matchAll(re)];
+  if (marks.length < 5) return [];
+
+  const out = [];
+  const seen = new Map();
+  for (let i = 0; i < marks.length; i++) {
+    const start = marks[i].index;
+    const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
+    const body = flat.slice(start, end).trim();
+    const no = marks[i][1].replace(/－/g, '-');
+    if (!/問/.test(body) || !/答/.test(body)) continue;   // 目次には答が無い
+    if (body.length < 150) continue;
+    const prev = seen.get(no);
+    if (prev) {
+      if (body.length > prev.body.length) {
+        prev.body = body;
+        prev.title = `${no} ${marks[i][2].trim()}`;
+      }
+      continue;
+    }
+    const rec = { qNo: no, title: `${no} ${marks[i][2].trim()}`, body };
+    seen.set(no, rec);
+    out.push(rec);
+  }
+  return out;
+}
+
 // ── 保存 ────────────────────────────────────────────────────
 function saveEntry(sourceKey, source, doc, parsed, url) {
   const dir = path.join(OUT_DIR, sourceKey);
@@ -366,10 +425,19 @@ async function crawlSource(sourceKey, source, options = {}) {
       const buf = await fetchBuffer(doc.url);
       const text = source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf);
       // まとめPDF は問ごとに分ける。分けないと本文の上限で冒頭しか渡らない。
-      const parts = source.split ? splitByQuestion(text) : [];
+      // まとめPDF の分け方は資料によって違う。
+      //   question … 「（見出し）問N …」（軽減税率）
+      //   numbered … 「１－１ 見出し 問 … 答 …」（暗号資産）
+      const splitBy = source.splitBy || (source.split ? 'question' : null);
+      const parts = splitBy === 'numbered' ? splitByNumberedHeading(text)
+        : splitBy === 'question' ? splitByQuestion(text) : [];
       if (parts.length > 0) {
         for (const part of parts) {
-          const sub = { id: `${doc.id}-${part.qNo.replace(/[^0-9]/g, '')}`, title: part.title };
+          // ファイル名にするので、全角番号は半角へ、区切りはハイフンに揃える
+          const slugNo = part.qNo
+            .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+            .replace(/[^0-9-]/g, '');
+          const sub = { id: `${doc.id}-${slugNo}`, title: part.title };
           saved.push(saveEntry(sourceKey, source, sub, part, doc.url));
         }
         log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
@@ -427,4 +495,4 @@ if (require.main === module) {
   main().catch(e => { console.error('[nta-qa] 失敗:', e.message); process.exit(1); });
 }
 
-module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, crawlSource, OUT_DIR, INDEX_PATH };
+module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, splitByNumberedHeading, crawlSource, OUT_DIR, INDEX_PATH };

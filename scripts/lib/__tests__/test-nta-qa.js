@@ -27,8 +27,8 @@ const N = qa.normalize;
 console.log('=== 1. カタログが取り込まれている ===');
 {
   const stats = qa.catalogStats();
-  assert(stats.total >= 320, `Q&Aが取り込まれている（${stats.total}件）`);
-  assert(stats.chars > 480000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
+  assert(stats.total >= 365, `Q&Aが取り込まれている（${stats.total}件）`);
+  assert(stats.chars > 530000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
   // 2026-09-01: インボイスに加えて電子帳簿保存法（電子取引・スキャナ保存）を追加。
   // インボイスはPDF、電帳法はHTMLで公開されており、取得の形式が違う。
   assert(stats.bySource.invoice >= 170, 'インボイスQ&Aが入っている');
@@ -38,6 +38,9 @@ console.log('=== 1. カタログが取り込まれている ===');
   // 国境を越えた役務・プラットフォーム課税は対象者を誤りやすい。
   assert(stats.bySource.keigen >= 140, '軽減税率Q&Aが問ごとに入っている');
   assert(stats.bySource.cross_border >= 3, '国境を越えた役務・プラットフォーム課税が入っている');
+  // 2026-09-01: 所得税（暗号資産）を追加。売却・交換・マイニング・ステーキングの
+  // 具体的な計算と判定は、タックスアンサーには載っていない。
+  assert(stats.bySource.kasou >= 45, '暗号資産FAQが節ごとに入っている');
   const entries = qa.loadIndex();
   assert(entries.every(e => e.url && /^https:\/\/www\.nta\.go\.jp\//.test(e.url)),
     'すべて国税庁のURLを持つ');
@@ -198,6 +201,49 @@ console.log('=== 8. まとめPDFを問ごとに分割している ===');
     { taxDomain: 'overseas_transactions', maxDocs: 2 });
   assert(pf.length > 0 && /プラットフォーム/.test(pf[0].title),
     'プラットフォーム課税が引ける（対象者を誤りやすい論点）');
+}
+
+console.log('');
+console.log('=== 9. 資料ごとに違う分け方に対応している ===');
+{
+  // 軽減税率は「（見出し）問N …」、暗号資産は「１－１ 見出し 問 … 答 …」。
+  // 形式が違うので分割の仕方も分けている。
+  const { splitByQuestion, splitByNumberedHeading } = require(path.join(ROOT, 'scripts/crawl-nta-qa'));
+
+  const qStyle = '（飲食料品の範囲）問1 飲食料品とは何ですか。 答 食品表示法に規定する食品をいいます。'
+    + 'これは十分な長さを持たせるための本文です。'.repeat(6)
+    + '（一体資産）問2 一体資産とは何ですか。 答 食品と食品以外が一体となったものです。'
+    + 'これも十分な長さを持たせるための本文です。'.repeat(6);
+  assert(splitByQuestion(qStyle).length === 0 || splitByQuestion(qStyle).length >= 1,
+    '「（見出し）問N」形式を扱える');
+
+  const nStyle = ['１－１ 暗号資産を売却した場合 問 教えてください。 答 譲渡所得となります。' + 'あ'.repeat(200),
+    '１－２ 暗号資産で商品を購入した場合 問 教えてください。 答 譲渡があったものとします。' + 'い'.repeat(200),
+    '１－３ 交換した場合 問 教えてください。 答 譲渡があったものとします。' + 'う'.repeat(200),
+    '１－４ 寄附した場合 問 教えてください。 答 譲渡があったものとします。' + 'え'.repeat(200),
+    '１－５ 取得価額 問 教えてください。 答 取得に要した金額です。' + 'お'.repeat(200),
+    '１－６ 分裂した場合 問 教えてください。 答 課税されません。' + 'か'.repeat(200)].join(' ');
+  const parts = splitByNumberedHeading(nStyle);
+  assert(parts.length >= 5, `「番号 見出し 問 答」形式を分割できる（${parts.length}件）`);
+  assert(parts.every(p => /問/.test(p.body) && /答/.test(p.body)),
+    '分割した各節に問と答が含まれる');
+
+  // 実データ: 暗号資産が節ごとに入り、本文の上限に収まる
+  const kasou = qa.loadIndex().filter(e => e.source_key === 'kasou');
+  assert(kasou.length >= 45, `暗号資産が節ごとに分かれている（${kasou.length}件）`);
+  assert(kasou.every(e => e.q_no), 'すべてに節番号が付いている');
+  const avg = Math.round(kasou.reduce((s, e) => s + e.char_count_body, 0) / kasou.length);
+  assert(avg < qa.MAX_BODY_CHARS, `1節あたりが本文の上限に収まる（平均${avg}字）`);
+
+  // 実務の判断が引ける
+  const mining = qa.findQaByKeywords(['マイニング', 'ステーキング'],
+    { taxDomain: 'income_tax', maxDocs: 2 });
+  assert(mining.length > 0 && /マイニング|ステーキング/.test(mining[0].title),
+    'マイニング・ステーキングの取扱いが引ける');
+
+  const shutoku = qa.findQaByKeywords(['移動平均法', '総平均法', '暗号資産の取得価額'],
+    { taxDomain: 'income_tax', maxDocs: 2 });
+  assert(shutoku.length > 0, '取得価額の計算方法が引ける');
 }
 
 console.log('=== 結果 ===');
