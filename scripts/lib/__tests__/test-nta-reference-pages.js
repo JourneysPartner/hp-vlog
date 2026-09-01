@@ -36,10 +36,18 @@ const TAXANSWER = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.ht
 // ── 1. 該当トピックで参考資料が見つかる ────────────────────────
 console.log('\n=== Test 1: トピック判定 ===');
 {
+  // 2026-09-01: インボイスの参考資料は2件になった
+  //   invoice_tax_reform_2026      令和8年度税制改正（2割特例の終了・3割特例の新設）
+  //   invoice_registration_cancel  登録の取消しと免税事業者に戻れる時期
+  // どちらもインボイスの記事で必要になるため、両方出るのが正しい。
   const pages = ref.findReferencePages(INVOICE);
-  assert(pages.length === 1, `インボイス記事 → 1件（実: ${pages.length}）`);
-  assert(pages[0].url === REF_URL, 'URL が令和8年度税制改正特集');
-  assert(pages[0].verified_at === '2026-08-18', '原文確認日が記録されている');
+  assert(pages.length === 2, `インボイス記事 → 2件（実: ${pages.length}）`);
+  const reform = pages.find(p => p.url === REF_URL);
+  assert(!!reform, 'URL が令和8年度税制改正特集のものが含まれる');
+  assert(reform.verified_at === '2026-08-18', '原文確認日が記録されている');
+  const cancel = pages.find(p => p.key === 'invoice_registration_cancel');
+  assert(!!cancel && cancel.verified_at === '2026-09-01',
+    '登録の取消しの資料も含まれ、原文確認日が記録されている');
 
   // 無関係なトピックには出さない
   assert(ref.findReferencePages({ pain_point: 'social-insurance-misconception', title: '扶養' }).length === 0,
@@ -136,8 +144,8 @@ console.log('=== Test 6: 少額減価償却資産の特例 ===');
 
   // インボイスの記事には減価償却の資料を出さない（相互に混ざらない）
   const inv = ref.findReferencePages({ tax_domain: 'invoice_system', title: 'インボイス登録すべき？' });
-  assert(inv.length === 1 && inv[0].key === 'invoice_tax_reform_2026',
-    'インボイス記事には invoice のエントリだけ');
+  assert(inv.every(p => p.key.startsWith('invoice_')),
+    'インボイス記事には invoice のエントリだけ（減価償却等は混ざらない）');
   assert(ref.findReferencePages({ tax_domain: 'income_tax', pain_point: 'social-insurance-misconception', title: '扶養' }).length === 0,
     '社会保険記事には出さない');
 
