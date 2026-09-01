@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "generated_at": "2026-08-01T16:33:23.258Z",
-  "total_count": 2222,
+  "generated_at": "2026-09-01T18:43:16.017Z",
+  "total_count": 2223,
   "by_type": {
     "shitsugi": 1550,
-    "taxanswer": 672
+    "taxanswer": 673
   },
   "by_category": {
     "gensen": {
@@ -28,9 +28,9 @@
       "total": 326
     },
     "shohi": {
-      "taxanswer": 114,
+      "taxanswer": 115,
       "shitsugi": 273,
-      "total": 387
+      "total": 388
     },
     "shotoku": {
       "taxanswer": 206,
@@ -24166,10 +24166,10 @@
       "title": "宅地の評価単位",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4603.htm",
       "file_path": "taxanswer/hyoka/4603.json",
-      "char_count_body": 1513,
+      "char_count_body": 1465,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:10.609Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:31.481Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4604",
@@ -24180,10 +24180,10 @@
       "title": "路線価方式による宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm",
       "file_path": "taxanswer/hyoka/4604.json",
-      "char_count_body": 1415,
+      "char_count_body": 1357,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:11.610Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:33.480Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4605",
@@ -24194,10 +24194,10 @@
       "title": "地区の異なる2以上の路線に接する宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4605.htm",
       "file_path": "taxanswer/hyoka/4605.json",
-      "char_count_body": 600,
+      "char_count_body": 549,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:12.610Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:35.479Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4606",
@@ -24208,10 +24208,10 @@
       "title": "倍率方式による土地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
       "file_path": "taxanswer/hyoka/4606.json",
-      "char_count_body": 710,
+      "char_count_body": 652,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:13.611Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:37.480Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4607",
@@ -24222,10 +24222,10 @@
       "title": "特定路線価の設定の申出",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4607.htm",
       "file_path": "taxanswer/hyoka/4607.json",
-      "char_count_body": 523,
+      "char_count_body": 464,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:14.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:39.479Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4609",
@@ -24236,10 +24236,10 @@
       "title": "地積規模の大きな宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
       "file_path": "taxanswer/hyoka/4609.json",
-      "char_count_body": 2416,
+      "char_count_body": 2386,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:15.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:41.480Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:04 GMT"
     },
     {
       "id": "4611",
@@ -24250,10 +24250,10 @@
       "title": "借地権の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4611.htm",
       "file_path": "taxanswer/hyoka/4611.json",
-      "char_count_body": 1750,
+      "char_count_body": 1687,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:16.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:43.480Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4612",
@@ -24264,10 +24264,10 @@
       "title": "一般定期借地権の目的となっている宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4612.htm",
       "file_path": "taxanswer/hyoka/4612.json",
-      "char_count_body": 981,
+      "char_count_body": 922,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:17.613Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:45.480Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4613",
@@ -24278,10 +24278,10 @@
       "title": "貸宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4613.htm",
       "file_path": "taxanswer/hyoka/4613.json",
-      "char_count_body": 2452,
+      "char_count_body": 2368,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:18.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:47.481Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4614",
@@ -24292,10 +24292,10 @@
       "title": "貸家建付地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4614.htm",
       "file_path": "taxanswer/hyoka/4614.json",
-      "char_count_body": 1540,
+      "char_count_body": 1474,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:19.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:49.483Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4617",
@@ -24306,10 +24306,10 @@
       "title": "利用価値が著しく低下している宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4617.htm",
       "file_path": "taxanswer/hyoka/4617.json",
-      "char_count_body": 765,
+      "char_count_body": 718,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:20.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:51.484Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4620",
@@ -24320,10 +24320,10 @@
       "title": "無道路地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4620.htm",
       "file_path": "taxanswer/hyoka/4620.json",
-      "char_count_body": 1134,
+      "char_count_body": 1080,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:21.613Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:53.484Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4621",
@@ -24334,10 +24334,10 @@
       "title": "私道に沿接する宅地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4621.htm",
       "file_path": "taxanswer/hyoka/4621.json",
-      "char_count_body": 766,
+      "char_count_body": 708,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:22.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:55.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4622",
@@ -24348,10 +24348,10 @@
       "title": "私道の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm",
       "file_path": "taxanswer/hyoka/4622.json",
-      "char_count_body": 936,
+      "char_count_body": 878,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:23.612Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:57.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4623",
@@ -24362,10 +24362,10 @@
       "title": "農地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4623.htm",
       "file_path": "taxanswer/hyoka/4623.json",
-      "char_count_body": 1273,
+      "char_count_body": 1215,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:24.611Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT"
+      "fetched_at": "2026-09-01T18:12:59.486Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4626",
@@ -24376,10 +24376,10 @@
       "title": "生産緑地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4626.htm",
       "file_path": "taxanswer/hyoka/4626.json",
-      "char_count_body": 1393,
+      "char_count_body": 1365,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:25.611Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:01.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4627",
@@ -24390,10 +24390,10 @@
       "title": "貸駐車場として利用している土地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4627.htm",
       "file_path": "taxanswer/hyoka/4627.json",
-      "char_count_body": 1591,
+      "char_count_body": 1568,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:26.611Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:03.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4628",
@@ -24404,10 +24404,10 @@
       "title": "市街化調整区域内の雑種地の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4628.htm",
       "file_path": "taxanswer/hyoka/4628.json",
-      "char_count_body": 991,
+      "char_count_body": 944,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:27.611Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:05.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4629",
@@ -24418,10 +24418,10 @@
       "title": "建築中の家屋の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4629.htm",
       "file_path": "taxanswer/hyoka/4629.json",
-      "char_count_body": 539,
+      "char_count_body": 494,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:28.610Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:07.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4632",
@@ -24432,10 +24432,10 @@
       "title": "上場株式の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4632.htm",
       "file_path": "taxanswer/hyoka/4632.json",
-      "char_count_body": 700,
+      "char_count_body": 645,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:29.609Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:09.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4635",
@@ -24446,10 +24446,10 @@
       "title": "気配相場等のある株式の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4635.htm",
       "file_path": "taxanswer/hyoka/4635.json",
-      "char_count_body": 910,
+      "char_count_body": 855,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:30.610Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:11.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:03 GMT"
     },
     {
       "id": "4638",
@@ -24460,10 +24460,10 @@
       "title": "取引相場のない株式の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
       "file_path": "taxanswer/hyoka/4638.json",
-      "char_count_body": 1800,
+      "char_count_body": 1738,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:31.610Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:13.485Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4641",
@@ -24474,10 +24474,10 @@
       "title": "利付公社債・割引発行の公社債の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4641.htm",
       "file_path": "taxanswer/hyoka/4641.json",
-      "char_count_body": 1684,
+      "char_count_body": 1822,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:32.609Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:15.486Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4644",
@@ -24488,10 +24488,10 @@
       "title": "貸付信託・証券投資信託の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4644.htm",
       "file_path": "taxanswer/hyoka/4644.json",
-      "char_count_body": 1509,
+      "char_count_body": 1460,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:33.608Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:17.486Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4647",
@@ -24502,10 +24502,10 @@
       "title": "ゴルフ会員権の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4647.htm",
       "file_path": "taxanswer/hyoka/4647.json",
-      "char_count_body": 1133,
+      "char_count_body": 1076,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:34.607Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:19.486Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4660",
@@ -24516,10 +24516,10 @@
       "title": "生命保険契約に関する権利の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4660.htm",
       "file_path": "taxanswer/hyoka/4660.json",
-      "char_count_body": 705,
+      "char_count_body": 659,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:35.606Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:21.488Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4665",
@@ -24530,10 +24530,10 @@
       "title": "外貨（現金）の邦貨換算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4665.htm",
       "file_path": "taxanswer/hyoka/4665.json",
-      "char_count_body": 678,
+      "char_count_body": 630,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:36.606Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:23.488Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4666",
@@ -24544,10 +24544,10 @@
       "title": "配偶者居住権等の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4666.htm",
       "file_path": "taxanswer/hyoka/4666.json",
-      "char_count_body": 1089,
+      "char_count_body": 1101,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:37.606Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:13:25.487Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4667",
@@ -24558,10 +24558,10 @@
       "title": "居住用の区分所有財産の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4667.htm",
       "file_path": "taxanswer/hyoka/4667.json",
-      "char_count_body": 4288,
+      "char_count_body": 4374,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:55:38.605Z",
-      "last_modified": "Fri, 06 Feb 2026 08:30:11 GMT"
+      "fetched_at": "2026-09-01T18:13:27.486Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "3102",
@@ -26963,13 +26963,13 @@
       "type": "taxanswer",
       "tax_category": "消費税",
       "tax_category_code": "shohi",
-      "title": "やむを得ない事情により課税事業者選択届出書等の提出が間に合わなかった場合",
+      "title": "やむを得ない事情により課税事業者選択届出書の提出が間に合わなかった場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
       "file_path": "taxanswer/shohi/6630.json",
-      "char_count_body": 1127,
+      "char_count_body": 1116,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:59:08.626Z",
-      "last_modified": "Mon, 29 Sep 2025 08:30:10 GMT"
+      "fetched_at": "2026-09-01T18:16:58.509Z",
+      "last_modified": "Tue, 25 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "6631",
@@ -26994,10 +26994,24 @@
       "title": "災害等により簡易課税制度の適用を受ける(受けることをやめる)必要が生じた場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6632.htm",
       "file_path": "taxanswer/shohi/6632.json",
-      "char_count_body": 809,
+      "char_count_body": 908,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:59:09.625Z",
-      "last_modified": "Mon, 29 Sep 2025 08:30:10 GMT"
+      "fetched_at": "2026-09-01T18:17:00.510Z",
+      "last_modified": "Tue, 25 Aug 2026 05:00:02 GMT"
+    },
+    {
+      "id": "6633",
+      "section": null,
+      "type": "taxanswer",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "title": "やむを得ない事情により簡易課税制度選択届出書の提出が間に合わなかった場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6633.htm",
+      "file_path": "taxanswer/shohi/6633.json",
+      "char_count_body": 1121,
+      "deleted": false,
+      "fetched_at": "2026-09-01T18:17:03.512Z",
+      "last_modified": "Tue, 25 Aug 2026 05:00:01 GMT"
     },
     {
       "id": "6635",
@@ -28520,10 +28534,10 @@
       "title": "譲渡した株式等の取得費",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1464.htm",
       "file_path": "taxanswer/shotoku/1464.json",
-      "char_count_body": 2552,
+      "char_count_body": 2534,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:49:43.592Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:18 GMT"
+      "fetched_at": "2026-09-01T18:07:00.415Z",
+      "last_modified": "Fri, 28 Aug 2026 01:00:06 GMT"
     },
     {
       "id": "1465",
@@ -28870,10 +28884,10 @@
       "title": "特定投資株式の取得に要した金額の控除等の特例（エンジェル税制）",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1530.htm",
       "file_path": "taxanswer/shotoku/1530.json",
-      "char_count_body": 6621,
+      "char_count_body": 7368,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:01.592Z",
-      "last_modified": "Mon, 20 Oct 2025 05:00:15 GMT"
+      "fetched_at": "2026-09-01T18:07:20.415Z",
+      "last_modified": "Fri, 28 Aug 2026 01:00:06 GMT"
     },
     {
       "id": "1531",
@@ -29052,10 +29066,10 @@
       "title": "エンジェル税制の概要等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1544.htm",
       "file_path": "taxanswer/shotoku/1544.json",
-      "char_count_body": 4265,
+      "char_count_body": 4688,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:50:00.592Z",
-      "last_modified": "Mon, 20 Oct 2025 05:00:22 GMT"
+      "fetched_at": "2026-09-01T18:07:18.414Z",
+      "last_modified": "Fri, 28 Aug 2026 01:00:05 GMT"
     },
     {
       "id": "1545",
@@ -29304,10 +29318,10 @@
       "title": "災害減免法による所得税の軽減免除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1902.htm",
       "file_path": "taxanswer/shotoku/1902.json",
-      "char_count_body": 2441,
+      "char_count_body": 2383,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:49:03.591Z",
-      "last_modified": "Mon, 29 Sep 2025 08:30:10 GMT"
+      "fetched_at": "2026-09-01T18:06:19.408Z",
+      "last_modified": "Tue, 25 Aug 2026 05:00:01 GMT"
     },
     {
       "id": "1903",
@@ -30760,10 +30774,10 @@
       "title": "土地家屋の評価",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm",
       "file_path": "taxanswer/sozoku/4602.json",
-      "char_count_body": 1971,
+      "char_count_body": 1904,
       "deleted": false,
-      "fetched_at": "2026-06-21T13:54:02.609Z",
-      "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT"
+      "fetched_at": "2026-09-01T18:11:22.487Z",
+      "last_modified": "Mon, 10 Aug 2026 05:00:02 GMT"
     },
     {
       "id": "4402",
