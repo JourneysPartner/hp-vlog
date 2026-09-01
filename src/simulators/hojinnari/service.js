@@ -109,6 +109,11 @@ function hasEntries(value) {
   return value && typeof value === 'object' && Object.keys(value).length > 0;
 }
 
+function hasUnsupportedDeductions(value) {
+  return hasEntries(value) && Object.keys(value)
+    .some(key => key !== 'smallEnterpriseMutualAid');
+}
+
 function isOneSegmentFor(segments, period) {
   return Array.isArray(segments) && segments.length === 1 && segments[0].period &&
     segments[0].period.from === period.from && segments[0].period.to === period.to;
@@ -208,7 +213,7 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_OTHER_INCOMES_UNSUPPORTED', '$.individual.otherIncomes',
       comparisonDistortion));
   }
-  if (hasEntries(individual.deductions)) {
+  if (hasUnsupportedDeductions(individual.deductions)) {
     reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.individual.deductions',
       comparisonDistortion));
   }
@@ -219,11 +224,6 @@ function supportedProfileReasons(input, context) {
   if (!individual.self || !Number.isInteger(individual.self.ageAtYearEnd)) {
     reasons.push(blockedReason('HJ_SELF_AGE_REQUIRED', '$.individual.self.ageAtYearEnd',
       '税・社会保険の計算には本人の年末年齢が必要です'));
-  }
-  if (individual.self && individual.self.disability !== undefined &&
-      individual.self.disability !== 'none') {
-    reasons.push(blockedReason('HJ_DISABILITY_UNSUPPORTED', '$.individual.self.disability',
-      '障害者控除を伴う比較は第1版の対象外です'));
   }
   if (individual.self && individual.self.isNonResident === true) {
     reasons.push(blockedReason('HJ_NON_RESIDENT_UNSUPPORTED', '$.individual.self.isNonResident',
@@ -241,6 +241,10 @@ function supportedProfileReasons(input, context) {
   if ((corporate.employeeCount ?? 0) > 0) {
     reasons.push(blockedReason('HJ_EMPLOYEES_UNSUPPORTED', '$.corporate.employeeCount',
       '従業員がいる法人は第1版の対象外です'));
+  }
+  if (hasUnsupportedDeductions(corporate.deductions)) {
+    reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.corporate.deductions',
+      comparisonDistortion));
   }
   if (corporate.spouseOfficer && corporate.spouseOfficer.isOfficer === true) {
     reasons.push(blockedReason('HJ_SPOUSE_OFFICER_UNSUPPORTED', '$.corporate.spouseOfficer',
@@ -361,6 +365,7 @@ function individualEngineInput(individual, nationalHealthInsurance, nationalPens
       blueReturnTier: blueReturnTier(individual.blueReturn),
     },
     deductions: {
+      ...(individual.deductions || {}),
       socialInsurance: {
         kind: 'itemized',
         nationalHealthInsurance,
@@ -463,6 +468,7 @@ function calculateCorporation(input, context) {
     officer: input.individual.self,
     spouse: input.individual.spouse,
     dependents: input.individual.dependents || [],
+    deductions: corporate.deductions,
     specialistChecks: {},
     profitBeforeOfficerCompensation,
     plan: corporate.officerCompensation,
@@ -758,6 +764,7 @@ function baseAssumptions(input, context) {
     '平年度比較です。同じ所得・役員報酬が続く定常状態を前提としています。',
     '個人側の国保・国民年金は必要経費へ含めず、社会保険料控除だけに反映しています。',
     '配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）は含めていません。法人化後の被扶養者・第3号被保険者の扱いの差も未反映です。',
+    '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
   ];
   const adjustments = input.corporate.taxAdjustments;
   if (!adjustments || !Array.isArray(adjustments.items) ||

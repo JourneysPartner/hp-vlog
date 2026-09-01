@@ -10,6 +10,7 @@ const snapshot = require('../../../src/tax-engine/masters/snapshot.js');
 const builder = require('../../build-simulator-bundle.js');
 const { buildCalculationContext } = require('../../../src/ui/hojinnari/context-builder.js');
 const {
+  YakuinHoshuInputBuildError,
   buildYakuinHoshuInput,
 } = require('../../../src/ui/yakuin-hoshu/input-builder.js');
 const {
@@ -126,7 +127,7 @@ function main() {
   }));
   check('配偶者と扶養5区分を代表年齢・親族関係・同居区分へ変換してWireへ載せる', () => {
     assert.deepStrictEqual(familyModeC.wire.spouse, {
-      exists: true, totalIncome: { unit: 'JPY', value: '0' }, ageAtYearEnd: 71,
+      exists: true, totalIncome: { unit: 'JPY', value: '0' }, disability: 'none', ageAtYearEnd: 71,
     });
     const deductionRows = new Map(
       familyModeC.viewModel.incomeDeductionRows.map(row => [row.code, row.exactYen])
@@ -142,6 +143,40 @@ function main() {
       { age: 71, relation: 'parent', livesTogether: true },
       { age: 71, relation: 'parent', livesTogether: false },
     ]);
+  });
+  check('障害者区分と掛金をWireへ組み立て、一般障害者27万円・掛金27.6万円を反映する', () => {
+    const deduction = run(baseState({
+      ageAtYearEnd: '45', selfDisability: 'general',
+      spouseExists: 'yes', spouseTotalIncome: '0', spouseDisability: 'none',
+      dependents16To18: '1', dependents19To22: '1',
+      smallEnterpriseMutualAid: '276000',
+    }));
+    assert.strictEqual(deduction.wire.officer.disability, 'general');
+    assert.strictEqual(deduction.wire.deductions.smallEnterpriseMutualAid.value, '276000');
+    const rows = new Map(deduction.viewModel.incomeDeductionRows
+      .map(row => [row.code, row.exactYen]));
+    assert.strictEqual(rows.get('disability'), 270000n);
+    assert.strictEqual(rows.get('smallEnterpriseMutualAid'), 276000n);
+    assert.strictEqual(deduction.viewModel.combinedCash.value, 8785400n);
+  });
+  check('扶養障害者は同居特別を同居扶養から先に割り当てる', () => {
+    const allocated = run(baseState({
+      dependents16To18: '1', dependents70PlusSeparate: '1',
+      dependentDisabilityGeneral: '1', dependentDisabilitySpecialCohabiting: '1',
+    }));
+    assert.strictEqual(allocated.wire.dependents[0].disability, 'special_cohabiting');
+    assert.strictEqual(allocated.wire.dependents[1].disability, 'general');
+  });
+  check('同居特別が同居扶養を超える場合と障害合計が扶養合計を超える場合は組立エラー', () => {
+    const context = buildCalculationContext(baseState(), snapshotInfo, calculatedAt);
+    assert.throws(() => buildYakuinHoshuInput(baseState({
+      dependents70PlusSeparate: '1', dependentDisabilitySpecialCohabiting: '1',
+    }), context), error => error instanceof YakuinHoshuInputBuildError && error.errors.some(item =>
+      item.code === 'YH_UI_COHABITING_SPECIAL_DISABILITY_EXCEEDS_COHABITING_DEPENDENTS'));
+    assert.throws(() => buildYakuinHoshuInput(baseState({
+      dependents16To18: '1', dependentDisabilityGeneral: '1', dependentDisabilitySpecial: '1',
+    }), context), error => error instanceof YakuinHoshuInputBuildError && error.errors.some(item =>
+      item.code === 'YH_UI_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS'));
   });
   // 画面経路で配偶者の合計所得が失われる誤り（0円化）は、配偶者控除38万と
   // 配特満額38万が同額のため所得0や95万の帯では見えない。金額が変わる帯
@@ -169,7 +204,11 @@ function main() {
       assert(root.textContent.includes('年収から55万円を引いた金額'));
       assert(root.textContent.includes('19〜22歳（特定扶養）'));
       assert(root.textContent.includes('16歳未満のお子さまは扶養控除の対象外'));
-      assert(root.textContent.includes('生命保険料控除・医療費控除などは対応準備中です'));
+      assert(root.textContent.includes('本人の障害者区分'));
+      assert(root.textContent.includes('うち障害のある方'));
+      assert(root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
+      assert(root.textContent.includes('小規模企業共済・iDeCoの掛金（年額）'));
+      assert(root.textContent.includes('生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'));
       assert(!root.textContent.includes('単身'));
       app.store.setState(state => ({ ...state, screen: 'result',
         result: familyModeC.result, viewModel: familyModeC.viewModel }));

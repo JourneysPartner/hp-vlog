@@ -132,6 +132,25 @@ function main() {
     assert.strictEqual(rows.get('dependents').soleProprietor.exactYen, 1010000n);
     assert.strictEqual(rows.get('dependents').corporation.exactYen, 1010000n);
   });
+  check('①の現在掛金と法人化後掛金を別々のWireと控除へ反映する', () => {
+    const deduction = run(goldenState({
+      ageAtYearEnd: '45', selfDisability: 'general',
+      spouseExists: 'yes', spouseTotalIncome: '0',
+      dependents16To18: '1', dependents19To22: '1',
+      individualSmallEnterpriseMutualAid: '840000',
+      corporateSmallEnterpriseMutualAid: '276000',
+    }));
+    assert.strictEqual(deduction.wire.individual.deductions.smallEnterpriseMutualAid.value,
+      '840000');
+    assert.strictEqual(deduction.wire.corporate.deductions.smallEnterpriseMutualAid.value,
+      '276000');
+    const rows = new Map(deduction.viewModel.incomeDeductionRows.map(row => [row.code, row]));
+    assert.strictEqual(rows.get('disability').soleProprietor.exactYen, 270000n);
+    assert.strictEqual(rows.get('disability').corporation.exactYen, 270000n);
+    assert.strictEqual(rows.get('smallEnterpriseMutualAid').soleProprietor.exactYen, 840000n);
+    assert.strictEqual(rows.get('smallEnterpriseMutualAid').corporation.exactYen, 276000n);
+    assert.strictEqual(deduction.result.summary.amount.value, 419820n);
+  });
   check('STEP2に家族欄と新注記を表示し、単身向け注記を撤去する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
@@ -143,13 +162,29 @@ function main() {
       assert(root.textContent.includes('年収から55万円を引いた金額'));
       assert(root.textContent.includes('70歳以上・同居の親等'));
       assert(root.textContent.includes('16歳未満のお子さまは扶養控除の対象外'));
-      assert(root.textContent.includes('生命保険料控除・医療費控除などは対応準備中です'));
+      assert(root.textContent.includes('本人の障害者区分'));
+      assert(root.textContent.includes('うち障害のある方'));
+      assert(root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
+      assert(root.textContent.includes('小規模企業共済・iDeCoの掛金（年額・現在）'));
+      assert(root.textContent.includes('生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'));
       assert(!root.textContent.includes('単身の方向け'));
       app.store.setState(state => ({ ...state, screen: 'result',
         result: family.result, viewModel: family.viewModel }));
       assert(root.textContent.includes('所得控除の内訳'));
       assert(root.textContent.includes('配偶者控除'));
       assert(root.textContent.includes('扶養控除'));
+      app.destroy();
+    });
+  });
+  check('STEP3に法人化後掛金を別欄で表示し、役員上限と共済継続を説明する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, step: 3 }));
+      assert(root.textContent.includes('法人化後の掛金予定（年額）'));
+      assert(root.textContent.includes('月23,000円（年276,000円）'));
+      assert(root.textContent.includes('小規模法人の役員であれば継続できます'));
       app.destroy();
     });
   });

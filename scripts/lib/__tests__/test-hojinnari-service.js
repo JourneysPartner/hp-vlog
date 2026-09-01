@@ -20,6 +20,12 @@ const familyGolden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-S
 const familyYakuinGolden = goldenDocument.cases.find(
   item => item.case_id === 'GC-YH-SPOUSE-DEP-500K'
 );
+const deductionGolden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-HJ-DISABILITY-KYOSAI'
+);
+const deductionYakuinGolden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-YH-DISABILITY-KYOSAI-500K'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 const taxIncl = value => ({ basis: 'inclusive', amount: yen(value) });
@@ -541,6 +547,88 @@ const allBandsDeduction = allBands.breakdown.data.soleProprietor.orderedIncomeDe
 assert(allBandsDeduction === 2450000n,
 '扶養5区分各1人は38＋63＋38＋58＋48＝245万円（19〜22歳は代表年齢20歳）');
 
+console.log('\n=== GC-HJ-DISABILITY-KYOSAI ===');
+const deductionInput = goldenInput();
+deductionInput.individual.self = { ageAtYearEnd: 45, disability: 'general' };
+deductionInput.individual.spouse = { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) };
+deductionInput.individual.dependents = [
+  { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+  { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+];
+deductionInput.individual.deductions = { smallEnterpriseMutualAid: yen(840000) };
+deductionInput.corporate.deductions = { smallEnterpriseMutualAid: yen(276000) };
+const deductionResult = service.simulate(deductionInput, context(), snapshotInfo);
+const deductionSole = deductionResult.breakdown.data.soleProprietor;
+const deductionCorporation = deductionResult.breakdown.data.corporation;
+const deductionExpected = deductionGolden.expected;
+const deductionSoleRows = new Map(deductionSole.orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+const deductionCorporationRows = new Map(deductionCorporation.orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+assert(deductionSole.totalIncomeDeductions.value ===
+    BigInt(deductionExpected.sole_income_tax_total_deductions) &&
+  deductionSoleRows.get('socialInsurance') === 1340120n &&
+  deductionSoleRows.get('spouse') === 0n && deductionSoleRows.get('dependents') === 1010000n &&
+  deductionSoleRows.get('disability') === 270000n &&
+  deductionSoleRows.get('smallEnterpriseMutualAid') === 840000n &&
+  deductionSoleRows.get('basic') === 580000n,
+'個人側の所得控除計4,040,120円と6内訳が指定期待値に一致する');
+assert(deductionCorporation.totalIncomeDeductions.value ===
+    BigInt(deductionExpected.corporation_income_tax_total_deductions) &&
+  deductionCorporationRows.get('disability') === 270000n &&
+  deductionCorporationRows.get('smallEnterpriseMutualAid') === 276000n,
+'法人化側には本人一般障害27万円と法人化後掛金27.6万円だけを反映する');
+assert(deductionSoleRows.get('smallEnterpriseMutualAid') !==
+    deductionCorporationRows.get('smallEnterpriseMutualAid') &&
+  deductionCorporationRows.get('smallEnterpriseMutualAid') !== 840000n,
+'個人側84万円を法人化後へ流用しない対称性破りを検知する');
+assert(deductionSole.incomeTaxTaxableIncome.value ===
+    BigInt(deductionExpected.sole_income_tax_taxable_income) &&
+  deductionSole.burdens.incomeTax.value === BigInt(deductionExpected.sole_income_tax) &&
+  deductionSole.residentTaxAdjustmentDeduction.value ===
+    BigInt(deductionExpected.sole_resident_tax_adjustment_deduction) &&
+  deductionSole.burdens.residentTax.value === BigInt(deductionExpected.sole_resident_tax) &&
+  deductionSole.burdens.soleProprietorEnterpriseTax.value ===
+    BigInt(deductionExpected.sole_proprietor_enterprise_tax) &&
+  deductionSole.personalDisposableCash.value ===
+    BigInt(deductionExpected.sole_personal_disposable_cash),
+'障害・掛金ケースの個人側全指定項目がゴールデン期待値と一致する');
+assert(deductionCorporation.incomeTaxTaxableIncome.value ===
+    BigInt(deductionExpected.corporation_income_tax_taxable_income) &&
+  deductionCorporation.burdens.incomeTax.value ===
+    BigInt(deductionExpected.corporation_income_tax) &&
+  deductionCorporation.residentTaxAdjustmentDeduction.value ===
+    BigInt(deductionExpected.corporation_resident_tax_adjustment_deduction) &&
+  deductionCorporation.burdens.residentTax.value ===
+    BigInt(deductionExpected.corporation_resident_tax) &&
+  deductionCorporation.burdens.socialInsuranceEmployee.value ===
+    BigInt(deductionExpected.corporation_social_insurance_employee) &&
+  deductionCorporation.burdens.socialInsuranceEmployer.value ===
+    BigInt(deductionExpected.corporation_social_insurance_employer) &&
+  deductionCorporation.burdens.corporateTaxes.value === BigInt(deductionExpected.corporate_taxes) &&
+  deductionCorporation.personalDisposableCash.value ===
+    BigInt(deductionExpected.corporation_personal_disposable_cash) &&
+  deductionCorporation.corporateRetainedCash.value ===
+    BigInt(deductionExpected.corporate_retained_cash),
+'障害・掛金ケースの法人化側全指定項目がゴールデン期待値と一致する');
+assert(deductionCorporation.personalDisposableCash.value ===
+    BigInt(deductionYakuinGolden.expected.personal_net_cash) &&
+  deductionCorporation.corporateRetainedCash.value ===
+    BigInt(deductionYakuinGolden.expected.corporate_retained_cash) &&
+  deductionResult.breakdown.data.combinedReferenceDifference.value ===
+    BigInt(deductionExpected.combined_reference_difference),
+'法人化側が④障害・掛金ゴールデンと全項目一致し、差額が＋419,820円になる');
+assert(12000000n - (1067000n + 772300n + 455000n + 1340120n) ===
+    deductionSole.personalDisposableCash.value,
+'個人 12,000,000−(1,067,000＋772,300＋455,000＋1,340,120)＝8,365,580');
+assert(12000000n - (43300n + 127000n + 894000n + 1234700n) - 915600n ===
+    deductionCorporation.personalDisposableCash.value +
+      deductionCorporation.corporateRetainedCash.value,
+'法人化 12,000,000−(43,300＋127,000＋894,000＋1,234,700)−915,600＝8,785,400');
+assert(deductionResult.assumptions.some(text =>
+  text.includes('掛金そのものは支出として差し引いていません')),
+'①でも掛金そのものを支出控除しない前提を表示する');
+
 console.log('\n=== 対応範囲外のblocked ===');
 const blockedCases = [
   ['HJ_BLUE_RETURN_STATUS_UNKNOWN', '青色申告区分unknown', input => {
@@ -558,7 +646,7 @@ const blockedCases = [
     }];
   }],
   ['HJ_DEDUCTIONS_UNSUPPORTED', '所得控除入力', input => {
-    input.individual.deductions = { smallEnterpriseMutualAid: yen(1) };
+    input.individual.deductions = { lifeInsurance: [] };
   }],
   ['HJ_TAX_CREDITS_UNSUPPORTED', '税額控除入力', input => {
     input.individual.taxCredits = { housingLoan: yen(1) };
@@ -595,9 +683,6 @@ const blockedCases = [
   }],
   ['HJ_SELF_AGE_REQUIRED', '年齢未入力', input => {
     delete input.individual.self.ageAtYearEnd;
-  }],
-  ['HJ_DISABILITY_UNSUPPORTED', '障害者控除あり', input => {
-    input.individual.self.disability = 'general';
   }],
   ['HJ_NON_RESIDENT_UNSUPPORTED', '非居住者', input => {
     input.individual.self.isNonResident = true;

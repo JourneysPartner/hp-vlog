@@ -251,6 +251,7 @@ const definitions = {
   }, {
     employeeCount: integer,
     establishedOn: ref('LocalDate'),
+    deductions: object({}, { smallEnterpriseMutualAid: ref('Money') }),
     spouseOfficer: object({ isOfficer: boolean }, {
       compensation: ref('CompensationPlan'),
       facts: ref('PersonFacts'),
@@ -531,7 +532,7 @@ const definitions = {
     spouse: ref('SpouseFacts'),
     dependents: array(ref('DependentFacts')),
     otherIncomes: array(ref('IncomeItem')),
-    deductions: ref('PersonalDeductionFacts'),
+    deductions: object({}, { smallEnterpriseMutualAid: ref('Money') }),
     taxCredits: object({}, {
       housingLoan: ref('Money'),
       other: array(object({ code: string, amount: ref('Money') })),

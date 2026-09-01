@@ -46,6 +46,16 @@ function dependentCount(value) {
   return Number.isSafeInteger(count) ? count : null;
 }
 
+const DISABILITY_FIELDS = Object.freeze([
+  Object.freeze({ key: 'dependentDisabilityGeneral', label: '一般障害者', category: 'general' }),
+  Object.freeze({ key: 'dependentDisabilitySpecial', label: '特別障害者', category: 'special' }),
+  Object.freeze({
+    key: 'dependentDisabilitySpecialCohabiting',
+    label: '特別障害者（同居）',
+    category: 'special_cohabiting',
+  }),
+]);
+
 function appendFamilyFacts(target, formState, {
   money,
   errors,
@@ -59,6 +69,7 @@ function appendFamilyFacts(target, formState, {
       exists: true,
       totalIncome: money(formState.spouseTotalIncome,
         `${spousePath}.totalIncome.value`, errors),
+      disability: formState.spouseDisability || 'none',
       ...(formState.spouseAge70OrOver === true ? { ageAtYearEnd: 71 } : {}),
     };
   }
@@ -84,12 +95,58 @@ function appendFamilyFacts(target, formState, {
       });
     }
   }
+
+  const disabilityCounts = new Map();
+  for (const field of DISABILITY_FIELDS) {
+    const count = dependentCount(formState[field.key]);
+    if (count === null) {
+      errors.push(issue(
+        `${codePrefix}_DEPENDENT_DISABILITY_COUNT_INVALID`,
+        `${dependentsPath}.${field.key}`,
+        `うち${field.label}の人数を0以上の整数で入力してください`
+      ));
+      disabilityCounts.set(field.category, 0);
+    } else {
+      disabilityCounts.set(field.category, count);
+    }
+  }
+  const cohabitingSpecial = disabilityCounts.get('special_cohabiting');
+  const cohabitingDependents = dependents.filter(dependent => dependent.livesTogether === true);
+  if (cohabitingSpecial > cohabitingDependents.length) {
+    errors.push(issue(
+      `${codePrefix}_COHABITING_SPECIAL_DISABILITY_EXCEEDS_COHABITING_DEPENDENTS`,
+      `${dependentsPath}.dependentDisabilitySpecialCohabiting`,
+      '特別障害者（同居）の人数は同居している扶養親族の人数以下にしてください'
+    ));
+  }
+  const disabilityTotal = [...disabilityCounts.values()].reduce((sum, count) => sum + count, 0);
+  if (disabilityTotal > dependents.length) {
+    errors.push(issue(
+      `${codePrefix}_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS`,
+      `${dependentsPath}.dependentDisabilityGeneral`,
+      '障害のある方の合計人数は扶養親族の合計人数以下にしてください'
+    ));
+  }
+
+  const assigned = new Set();
+  for (const dependent of cohabitingDependents.slice(0, cohabitingSpecial)) {
+    dependent.disability = 'special_cohabiting';
+    assigned.add(dependent);
+  }
+  const remaining = dependents.filter(dependent => !assigned.has(dependent));
+  let offset = 0;
+  for (const category of ['special', 'general']) {
+    const count = disabilityCounts.get(category);
+    for (const dependent of remaining.slice(offset, offset + count)) dependent.disability = category;
+    offset += count;
+  }
   if (dependents.length > 0) target.dependents = dependents;
   return target;
 }
 
 module.exports = Object.freeze({
   DEPENDENT_BANDS,
+  DISABILITY_FIELDS,
   dependentCount,
   appendFamilyFacts,
 });

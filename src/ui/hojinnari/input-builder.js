@@ -115,7 +115,14 @@ function buildHojinnariInput(formState, context) {
         businessTaxCategory: formState.businessTaxCategory,
       },
       blueReturn: blueReturn(formState.blueReturn),
-      self: { ageAtYearEnd: Number.isInteger(age) ? age : 0, disability: 'none' },
+      self: {
+        ageAtYearEnd: Number.isInteger(age) ? age : 0,
+        disability: formState.selfDisability || 'none',
+      },
+      deductions: {
+        smallEnterpriseMutualAid: money(formState.individualSmallEnterpriseMutualAid ?? '0',
+          '$.individual.deductions.smallEnterpriseMutualAid.value', errors),
+      },
       residentTaxBasis: 'steady_state',
       nationalHealthInsurance: nationalHealthInsurance(formState, errors),
       nationalPension: nationalPension(formState, errors),
@@ -124,6 +131,10 @@ function buildHojinnariInput(formState, context) {
       locationSameAsResidence: formState.locationSameAsResidence,
       capital: money(formState.capital, '$.corporate.capital.value', errors),
       employeeCount: 0,
+      deductions: {
+        smallEnterpriseMutualAid: money(formState.corporateSmallEnterpriseMutualAid ?? '0',
+          '$.corporate.deductions.smallEnterpriseMutualAid.value', errors),
+      },
       spouseOfficer: { isOfficer: false },
       officerCompensation: {
         monthlySegments: [{

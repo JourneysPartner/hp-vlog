@@ -1027,6 +1027,7 @@ const definitions = {
   }, {
     employeeCount: integer,
     establishedOn: ref('LocalDate'),
+    deductions: object({}, { smallEnterpriseMutualAid: ref('Money') }),
     spouseOfficer: object({ isOfficer: boolean }, {
       compensation: ref('CompensationPlan'),
       facts: ref('PersonFacts'),
@@ -1307,7 +1308,7 @@ const definitions = {
     spouse: ref('SpouseFacts'),
     dependents: array(ref('DependentFacts')),
     otherIncomes: array(ref('IncomeItem')),
-    deductions: ref('PersonalDeductionFacts'),
+    deductions: object({}, { smallEnterpriseMutualAid: ref('Money') }),
     taxCredits: object({}, {
       housingLoan: ref('Money'),
       other: array(object({ code: string, amount: ref('Money') })),
@@ -2572,6 +2573,11 @@ function hasEntries(value) {
   return value && typeof value === 'object' && Object.keys(value).length > 0;
 }
 
+function hasUnsupportedDeductions(value) {
+  return hasEntries(value) && Object.keys(value)
+    .some(key => key !== 'smallEnterpriseMutualAid');
+}
+
 function isOneSegmentFor(segments, period) {
   return Array.isArray(segments) && segments.length === 1 && segments[0].period &&
     segments[0].period.from === period.from && segments[0].period.to === period.to;
@@ -2671,7 +2677,7 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_OTHER_INCOMES_UNSUPPORTED', '$.individual.otherIncomes',
       comparisonDistortion));
   }
-  if (hasEntries(individual.deductions)) {
+  if (hasUnsupportedDeductions(individual.deductions)) {
     reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.individual.deductions',
       comparisonDistortion));
   }
@@ -2682,11 +2688,6 @@ function supportedProfileReasons(input, context) {
   if (!individual.self || !Number.isInteger(individual.self.ageAtYearEnd)) {
     reasons.push(blockedReason('HJ_SELF_AGE_REQUIRED', '$.individual.self.ageAtYearEnd',
       '税・社会保険の計算には本人の年末年齢が必要です'));
-  }
-  if (individual.self && individual.self.disability !== undefined &&
-      individual.self.disability !== 'none') {
-    reasons.push(blockedReason('HJ_DISABILITY_UNSUPPORTED', '$.individual.self.disability',
-      '障害者控除を伴う比較は第1版の対象外です'));
   }
   if (individual.self && individual.self.isNonResident === true) {
     reasons.push(blockedReason('HJ_NON_RESIDENT_UNSUPPORTED', '$.individual.self.isNonResident',
@@ -2704,6 +2705,10 @@ function supportedProfileReasons(input, context) {
   if ((corporate.employeeCount ?? 0) > 0) {
     reasons.push(blockedReason('HJ_EMPLOYEES_UNSUPPORTED', '$.corporate.employeeCount',
       '従業員がいる法人は第1版の対象外です'));
+  }
+  if (hasUnsupportedDeductions(corporate.deductions)) {
+    reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.corporate.deductions',
+      comparisonDistortion));
   }
   if (corporate.spouseOfficer && corporate.spouseOfficer.isOfficer === true) {
     reasons.push(blockedReason('HJ_SPOUSE_OFFICER_UNSUPPORTED', '$.corporate.spouseOfficer',
@@ -2824,6 +2829,7 @@ function individualEngineInput(individual, nationalHealthInsurance, nationalPens
       blueReturnTier: blueReturnTier(individual.blueReturn),
     },
     deductions: {
+      ...(individual.deductions || {}),
       socialInsurance: {
         kind: 'itemized',
         nationalHealthInsurance,
@@ -2926,6 +2932,7 @@ function calculateCorporation(input, context) {
     officer: input.individual.self,
     spouse: input.individual.spouse,
     dependents: input.individual.dependents || [],
+    deductions: corporate.deductions,
     specialistChecks: {},
     profitBeforeOfficerCompensation,
     plan: corporate.officerCompensation,
@@ -3221,6 +3228,7 @@ function baseAssumptions(input, context) {
     '平年度比較です。同じ所得・役員報酬が続く定常状態を前提としています。',
     '個人側の国保・国民年金は必要経費へ含めず、社会保険料控除だけに反映しています。',
     '配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）は含めていません。法人化後の被扶養者・第3号被保険者の扱いの差も未反映です。',
+    '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
   ];
   const adjustments = input.corporate.taxAdjustments;
   if (!adjustments || !Array.isArray(adjustments.items) ||
@@ -4977,6 +4985,15 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('YH_NON_RESIDENT_UNSUPPORTED', '$.officer.isNonResident',
       '非居住者は第1版の対象外です'));
   }
+  if (input.deductions && Object.keys(input.deductions)
+    .some(key => key !== 'smallEnterpriseMutualAid')) {
+    reasons.push(blockedReason('YH_DEDUCTIONS_UNSUPPORTED', '$.deductions',
+      '生命保険料控除等の各種控除は第1弾の対象外です'));
+  }
+  if (input.taxCredits !== undefined) {
+    reasons.push(blockedReason('YH_TAX_CREDITS_UNSUPPORTED', '$.taxCredits',
+      '住宅ローン控除等の税額控除は第1弾の対象外です'));
+  }
   if (input.officerResidenceSameAsCompany !== 'yes') {
     reasons.push(blockedReason('YH_RESIDENCE_JURISDICTION_UNCONFIRMED',
       '$.officerResidenceSameAsCompany', '役員住所と法人所在地が同一であることを確認してください'));
@@ -5195,6 +5212,8 @@ function calculateForward(input, context, monthlyAmount) {
     incomeTax: incomeTaxResult.payableIncomeTax,
     residentTax: residentTaxResult.annualTaxTotal,
     residentTaxTaxableIncome: residentTaxResult.taxableTotalIncome,
+    residentTaxOrderedIncomeDeductions: residentTaxResult.orderedIncomeDeductions,
+    residentTaxTotalIncomeDeductions: residentTaxResult.totalIncomeDeductions,
     residentTaxAdjustmentDeduction: yen(
       residentTaxResult.municipalAdjustmentDeduction.value +
         residentTaxResult.prefecturalAdjustmentDeduction.value
@@ -5343,6 +5362,7 @@ function baseAssumptions(context) {
     `所得税は${incomeYear}年分、社会保険は${premiumMonth}分の料率・等級を12か月同額として使用しています。暦年と社会保険年度（保険年度）がずれる場合があります。`,
     '国内普通法人・常勤役員1名・事業年度開始時に決めた12か月同額の定期給与を前提としています。',
     '申告調整と繰越欠損金はなく、法人地方税は既存法人税エンジンの標準税率で計算しています。',
+    '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
   ];
 }
 
@@ -11756,6 +11776,16 @@ function dependentCount(value) {
   return Number.isSafeInteger(count) ? count : null;
 }
 
+const DISABILITY_FIELDS = Object.freeze([
+  Object.freeze({ key: 'dependentDisabilityGeneral', label: '一般障害者', category: 'general' }),
+  Object.freeze({ key: 'dependentDisabilitySpecial', label: '特別障害者', category: 'special' }),
+  Object.freeze({
+    key: 'dependentDisabilitySpecialCohabiting',
+    label: '特別障害者（同居）',
+    category: 'special_cohabiting',
+  }),
+]);
+
 function appendFamilyFacts(target, formState, {
   money,
   errors,
@@ -11769,6 +11799,7 @@ function appendFamilyFacts(target, formState, {
       exists: true,
       totalIncome: money(formState.spouseTotalIncome,
         `${spousePath}.totalIncome.value`, errors),
+      disability: formState.spouseDisability || 'none',
       ...(formState.spouseAge70OrOver === true ? { ageAtYearEnd: 71 } : {}),
     };
   }
@@ -11794,12 +11825,58 @@ function appendFamilyFacts(target, formState, {
       });
     }
   }
+
+  const disabilityCounts = new Map();
+  for (const field of DISABILITY_FIELDS) {
+    const count = dependentCount(formState[field.key]);
+    if (count === null) {
+      errors.push(issue(
+        `${codePrefix}_DEPENDENT_DISABILITY_COUNT_INVALID`,
+        `${dependentsPath}.${field.key}`,
+        `うち${field.label}の人数を0以上の整数で入力してください`
+      ));
+      disabilityCounts.set(field.category, 0);
+    } else {
+      disabilityCounts.set(field.category, count);
+    }
+  }
+  const cohabitingSpecial = disabilityCounts.get('special_cohabiting');
+  const cohabitingDependents = dependents.filter(dependent => dependent.livesTogether === true);
+  if (cohabitingSpecial > cohabitingDependents.length) {
+    errors.push(issue(
+      `${codePrefix}_COHABITING_SPECIAL_DISABILITY_EXCEEDS_COHABITING_DEPENDENTS`,
+      `${dependentsPath}.dependentDisabilitySpecialCohabiting`,
+      '特別障害者（同居）の人数は同居している扶養親族の人数以下にしてください'
+    ));
+  }
+  const disabilityTotal = [...disabilityCounts.values()].reduce((sum, count) => sum + count, 0);
+  if (disabilityTotal > dependents.length) {
+    errors.push(issue(
+      `${codePrefix}_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS`,
+      `${dependentsPath}.dependentDisabilityGeneral`,
+      '障害のある方の合計人数は扶養親族の合計人数以下にしてください'
+    ));
+  }
+
+  const assigned = new Set();
+  for (const dependent of cohabitingDependents.slice(0, cohabitingSpecial)) {
+    dependent.disability = 'special_cohabiting';
+    assigned.add(dependent);
+  }
+  const remaining = dependents.filter(dependent => !assigned.has(dependent));
+  let offset = 0;
+  for (const category of ['special', 'general']) {
+    const count = disabilityCounts.get(category);
+    for (const dependent of remaining.slice(offset, offset + count)) dependent.disability = category;
+    offset += count;
+  }
   if (dependents.length > 0) target.dependents = dependents;
   return target;
 }
 
 module.exports = Object.freeze({
   DEPENDENT_BANDS,
+  DISABILITY_FIELDS,
   dependentCount,
   appendFamilyFacts,
 });
@@ -12042,7 +12119,7 @@ const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-build
 const { resolveQuestion } = require('./question-catalog.js');
 const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
 const { acceptYakuinHoshuHandoff } = require('../yakuin-hoshu/handoff.js');
-const { DEPENDENT_BANDS, dependentCount } = require('../family-input.js');
+const { DEPENDENT_BANDS, DISABILITY_FIELDS, dependentCount } = require('../family-input.js');
 
 const TOTAL_STEPS = 3;
 const CONDITIONAL_FORM_KEYS = new Set([
@@ -12057,14 +12134,20 @@ const INITIAL_FORM = Object.freeze({
   blueReturn: '',
   businessTaxCategory: '',
   ageAtYearEnd: '',
+  selfDisability: 'none',
   spouseExists: 'no',
   spouseTotalIncome: '',
   spouseAge70OrOver: false,
+  spouseDisability: 'none',
   dependents16To18: '0',
   dependents19To22: '0',
   dependents23To69: '0',
   dependents70PlusCohabiting: '0',
   dependents70PlusSeparate: '0',
+  dependentDisabilityGeneral: '0',
+  dependentDisabilitySpecial: '0',
+  dependentDisabilitySpecialCohabiting: '0',
+  individualSmallEnterpriseMutualAid: '0',
   municipalityKey: '',
   otherPrefectureCode: '',
   otherMunicipalityCode: '',
@@ -12073,6 +12156,7 @@ const INITIAL_FORM = Object.freeze({
   nationalPensionKind: '',
   nationalPensionActual: '',
   officerCompensationMonthly: '',
+  corporateSmallEnterpriseMutualAid: '0',
   capital: '',
   locationSameAsResidence: '',
   corporateSameAsIndividual: true,
@@ -12089,18 +12173,25 @@ const FIELD_IDS = Object.freeze({
   '$.individual.blueReturn.specialDeductionCategory': 'hj-blue-return',
   '$.individual.business.businessTaxCategory': 'hj-business-tax-category',
   '$.individual.self.ageAtYearEnd': 'hj-age',
+  '$.individual.self.disability': 'hj-self-disability',
   '$.individual.spouse.totalIncome.value': 'hj-spouse-income',
+  '$.individual.spouse.disability': 'hj-spouse-disability',
   '$.individual.dependents.dependents16To18': 'hj-dependents-16-18',
   '$.individual.dependents.dependents19To22': 'hj-dependents-19-22',
   '$.individual.dependents.dependents23To69': 'hj-dependents-23-69',
   '$.individual.dependents.dependents70PlusCohabiting': 'hj-dependents-70-cohabiting',
   '$.individual.dependents.dependents70PlusSeparate': 'hj-dependents-70-separate',
+  '$.individual.dependents.dependentDisabilityGeneral': 'hj-disability-general',
+  '$.individual.dependents.dependentDisabilitySpecial': 'hj-disability-special',
+  '$.individual.dependents.dependentDisabilitySpecialCohabiting': 'hj-disability-cohabiting',
+  '$.individual.deductions.smallEnterpriseMutualAid.value': 'hj-mutual-aid-current',
   '$.individual.nationalHealthInsurance': 'hj-nhi-kind',
   '$.individual.nationalHealthInsurance.annualAmount.value': 'hj-nhi-actual',
   '$.individual.nationalPension': 'hj-pension-kind',
   '$.individual.nationalPension.annualAmount.value': 'hj-pension-actual',
   '$.corporate.capital.value': 'hj-capital',
   '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value': 'hj-officer-compensation',
+  '$.corporate.deductions.smallEnterpriseMutualAid.value': 'hj-mutual-aid-corporate',
   '$.corporate.locationSameAsResidence': 'hj-location',
   '$.corporate.revenue[0].value.value': 'hj-corporate-revenue',
   '$.corporate.expenses[0].value.value': 'hj-corporate-expenses',
@@ -12252,7 +12343,13 @@ function mountHojinnariApp(rootElement, {
             onChange: event => updateForm('spouseAge70OrOver', event.currentTarget.checked),
           }),
           el('label', { for: 'hj-spouse-elderly' }, '70歳以上'),
-        ])
+        ]),
+        ...selectField('spouseDisability', 'hj-spouse-disability', '配偶者の障害者区分', '', [
+          { value: 'none', label: '対象外' },
+          { value: 'general', label: '一般障害者' },
+          { value: 'special', label: '特別障害者' },
+          { value: 'special_cohabiting', label: '特別障害者（同居）' },
+        ], '$.individual.spouse.disability')
       );
     }
     const dependentInputs = DEPENDENT_BANDS.map(band => {
@@ -12275,6 +12372,19 @@ function mountHojinnariApp(rootElement, {
         addControlError(input, path),
       ]);
     });
+    const disabilityInputs = DISABILITY_FIELDS.map((field, index) => {
+      const ids = ['general', 'special', 'cohabiting'];
+      const path = `$.individual.dependents.${field.key}`;
+      const input = el('input', {
+        id: `hj-disability-${ids[index]}`, type: 'number', min: '0', step: '1',
+        inputmode: 'numeric', value: form[field.key],
+        onInput: event => updateForm(field.key, event.currentTarget.value),
+      });
+      return el('div', {}, [
+        el('label', { for: input.id }, `${field.label}（人）`), input,
+        addControlError(input, path),
+      ]);
+    });
     return [
       el('fieldset', {}, [el('legend', {}, '配偶者'), spouse]),
       el('fieldset', {}, [
@@ -12282,6 +12392,10 @@ function mountHojinnariApp(rootElement, {
         dependentInputs,
         el('p', { className: 'hojinnari-help' },
           '16歳未満のお子さまは扶養控除の対象外のため入力不要です'),
+        el('h3', {}, 'うち障害のある方'),
+        disabilityInputs,
+        el('p', { className: 'hojinnari-help' },
+          '16歳未満の扶養親族に係る障害者控除は第1弾の対象外です'),
       ]),
     ];
   }
@@ -12366,7 +12480,16 @@ function mountHojinnariApp(rootElement, {
       el('label', { for: age.id }, '年末時点の年齢'),
       el('p', { id: 'hj-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.individual.self.ageAtYearEnd'),
+      ...selectField('selfDisability', 'hj-self-disability', '本人の障害者区分', '', [
+        { value: 'none', label: '対象外' },
+        { value: 'general', label: '一般障害者' },
+        { value: 'special', label: '特別障害者' },
+      ], '$.individual.self.disability'),
       ...familyFields(),
+      ...moneyField('individualSmallEnterpriseMutualAid', 'hj-mutual-aid-current',
+        '小規模企業共済・iDeCoの掛金（年額・現在）',
+        '掛金がなければ0円。税負担の軽減効果だけに反映します。',
+        '$.individual.deductions.smallEnterpriseMutualAid.value'),
       ...selectField('municipalityKey', 'hj-municipality', 'お住まいの市区町村',
         '国民健康保険料を概算できる登録自治体です。', [
           { value: '', label: '選択してください' },
@@ -12402,7 +12525,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '生命保険料控除・医療費控除などは対応準備中です'),
+        '生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'),
       pageActions({ previous: true, next: true }),
     ]);
   }
@@ -12430,6 +12553,10 @@ function mountHojinnariApp(rootElement, {
       ...moneyField('officerCompensationMonthly', 'hj-officer-compensation', '役員報酬（月額・円）',
         '12か月同額として0円以上の整数で入力します。',
         '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value'),
+      ...moneyField('corporateSmallEnterpriseMutualAid', 'hj-mutual-aid-corporate',
+        '法人化後の掛金予定（年額）',
+        'iDeCoは会社役員になると上限が月23,000円（年276,000円）に変わります。小規模企業共済は小規模法人の役員であれば継続できます',
+        '$.corporate.deductions.smallEnterpriseMutualAid.value'),
       el('p', { className: 'hojinnari-placeholder' }, '役員報酬の最適化シミュレーター（公開準備中）'),
       ...moneyField('capital', 'hj-capital', '資本金（円）',
         '1,000万円以上は消費税・住民税均等割に影響します。', '$.corporate.capital.value'),
@@ -12479,6 +12606,14 @@ function mountHojinnariApp(rootElement, {
         if (dependentCount(form[band.key]) === null) errors.push(localError(
           `$.individual.dependents.${band.key}`, `${band.label}の人数を0以上の整数で入力してください`));
       }
+      for (const field of DISABILITY_FIELDS) {
+        if (dependentCount(form[field.key]) === null) errors.push(localError(
+          `$.individual.dependents.${field.key}`,
+          `うち${field.label}の人数を0以上の整数で入力してください`));
+      }
+      requireMoney(form.individualSmallEnterpriseMutualAid,
+        '$.individual.deductions.smallEnterpriseMutualAid.value',
+        '小規模企業共済・iDeCoの掛金（年額・現在）');
       if (!form.municipalityKey) errors.push(localError('$.calculationContext.jurisdiction', 'お住まいの市区町村を選択してください'));
       if (form.municipalityKey === 'other' &&
           (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
@@ -12497,6 +12632,8 @@ function mountHojinnariApp(rootElement, {
     } else {
       requireMoney(form.officerCompensationMonthly,
         '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value', '役員報酬');
+      requireMoney(form.corporateSmallEnterpriseMutualAid,
+        '$.corporate.deductions.smallEnterpriseMutualAid.value', '法人化後の掛金予定');
       requireMoney(form.capital, '$.corporate.capital.value', '資本金');
       if (!form.locationSameAsResidence) errors.push(localError('$.corporate.locationSameAsResidence', '法人の所在地を選択してください'));
       if (!form.corporateSameAsIndividual) {
@@ -12955,7 +13092,14 @@ function buildHojinnariInput(formState, context) {
         businessTaxCategory: formState.businessTaxCategory,
       },
       blueReturn: blueReturn(formState.blueReturn),
-      self: { ageAtYearEnd: Number.isInteger(age) ? age : 0, disability: 'none' },
+      self: {
+        ageAtYearEnd: Number.isInteger(age) ? age : 0,
+        disability: formState.selfDisability || 'none',
+      },
+      deductions: {
+        smallEnterpriseMutualAid: money(formState.individualSmallEnterpriseMutualAid ?? '0',
+          '$.individual.deductions.smallEnterpriseMutualAid.value', errors),
+      },
       residentTaxBasis: 'steady_state',
       nationalHealthInsurance: nationalHealthInsurance(formState, errors),
       nationalPension: nationalPension(formState, errors),
@@ -12964,6 +13108,10 @@ function buildHojinnariInput(formState, context) {
       locationSameAsResidence: formState.locationSameAsResidence,
       capital: money(formState.capital, '$.corporate.capital.value', errors),
       employeeCount: 0,
+      deductions: {
+        smallEnterpriseMutualAid: money(formState.corporateSmallEnterpriseMutualAid ?? '0',
+          '$.corporate.deductions.smallEnterpriseMutualAid.value', errors),
+      },
       spouseOfficer: { isOfficer: false },
       officerCompensation: {
         monthlySegments: [{
@@ -15929,7 +16077,7 @@ const {
 } = require('./input-builder.js');
 const { buildYakuinHoshuResultViewModel } = require('./result-view-model.js');
 const { createYakuinHoshuHandoff } = require('./handoff.js');
-const { DEPENDENT_BANDS, dependentCount } = require('../family-input.js');
+const { DEPENDENT_BANDS, DISABILITY_FIELDS, dependentCount } = require('../family-input.js');
 
 const TOTAL_INPUT_STEPS = 2;
 const CONDITIONAL_KEYS = new Set(['municipalityKey', 'mode', 'optimizationCriterion', 'spouseExists']);
@@ -15943,14 +16091,20 @@ const INITIAL_FORM = Object.freeze({
   otherMunicipalityCode: '',
   otherIsDesignatedCity: false,
   ageAtYearEnd: '',
+  selfDisability: 'none',
   spouseExists: 'no',
   spouseTotalIncome: '',
   spouseAge70OrOver: false,
+  spouseDisability: 'none',
   dependents16To18: '0',
   dependents19To22: '0',
   dependents23To69: '0',
   dependents70PlusCohabiting: '0',
   dependents70PlusSeparate: '0',
+  dependentDisabilityGeneral: '0',
+  dependentDisabilitySpecial: '0',
+  dependentDisabilitySpecialCohabiting: '0',
+  smallEnterpriseMutualAid: '0',
   searchLowerBound: '',
   searchUpperBound: '',
   searchStep: '10000',
@@ -15966,12 +16120,18 @@ const FIELD_IDS = Object.freeze({
   '$.profitBeforeOfficerCompensation.value': 'yh-profit',
   '$.capital.value': 'yh-capital',
   '$.officer.ageAtYearEnd': 'yh-age',
+  '$.officer.disability': 'yh-self-disability',
   '$.spouse.totalIncome.value': 'yh-spouse-income',
+  '$.spouse.disability': 'yh-spouse-disability',
   '$.dependents.dependents16To18': 'yh-dependents-16-18',
   '$.dependents.dependents19To22': 'yh-dependents-19-22',
   '$.dependents.dependents23To69': 'yh-dependents-23-69',
   '$.dependents.dependents70PlusCohabiting': 'yh-dependents-70-cohabiting',
   '$.dependents.dependents70PlusSeparate': 'yh-dependents-70-separate',
+  '$.dependents.dependentDisabilityGeneral': 'yh-disability-general',
+  '$.dependents.dependentDisabilitySpecial': 'yh-disability-special',
+  '$.dependents.dependentDisabilitySpecialCohabiting': 'yh-disability-cohabiting',
+  '$.deductions.smallEnterpriseMutualAid.value': 'yh-mutual-aid',
   '$.calculationContext.jurisdiction': 'yh-municipality',
   '$.previousMonthlyAmount.value': 'yh-search-low',
   '$.searchUpperBound.value': 'yh-search-high',
@@ -16100,7 +16260,13 @@ function mountYakuinHoshuApp(rootElement, {
             onChange: event => updateForm('spouseAge70OrOver', event.currentTarget.checked),
           }),
           el('label', { for: 'yh-spouse-elderly' }, '70歳以上'),
-        ])
+        ]),
+        ...selectField('spouseDisability', 'yh-spouse-disability', '配偶者の障害者区分', '', [
+          { value: 'none', label: '対象外' },
+          { value: 'general', label: '一般障害者' },
+          { value: 'special', label: '特別障害者' },
+          { value: 'special_cohabiting', label: '特別障害者（同居）' },
+        ], '$.spouse.disability')
       );
     }
     const dependentInputs = DEPENDENT_BANDS.map(band => {
@@ -16123,6 +16289,17 @@ function mountYakuinHoshuApp(rootElement, {
         addControlError(input, path),
       ]);
     });
+    const disabilityInputs = DISABILITY_FIELDS.map((field, index) => {
+      const ids = ['general', 'special', 'cohabiting'];
+      const path = `$.dependents.${field.key}`;
+      const input = el('input', {
+        id: `yh-disability-${ids[index]}`, type: 'number', min: '0', step: '1',
+        inputmode: 'numeric', value: form[field.key],
+        onInput: event => updateForm(field.key, event.currentTarget.value),
+      });
+      return el('div', {}, [el('label', { for: input.id }, `${field.label}（人）`), input,
+        addControlError(input, path)]);
+    });
     return [
       el('fieldset', {}, [el('legend', {}, '配偶者'), spouse]),
       el('fieldset', {}, [
@@ -16130,6 +16307,10 @@ function mountYakuinHoshuApp(rootElement, {
         dependentInputs,
         el('p', { className: 'yh-help' },
           '16歳未満のお子さまは扶養控除の対象外のため入力不要です'),
+        el('h3', {}, 'うち障害のある方'),
+        disabilityInputs,
+        el('p', { className: 'yh-help' },
+          '16歳未満の扶養親族に係る障害者控除は第1弾の対象外です'),
       ]),
     ];
   }
@@ -16211,11 +16392,20 @@ function mountYakuinHoshuApp(rootElement, {
       el('label', { for: age.id }, '役員の年齢（年末時点）'),
       el('p', { id: 'yh-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.officer.ageAtYearEnd'),
+      ...selectField('selfDisability', 'yh-self-disability', '本人の障害者区分', '', [
+        { value: 'none', label: '対象外' },
+        { value: 'general', label: '一般障害者' },
+        { value: 'special', label: '特別障害者' },
+      ], '$.officer.disability'),
       ...familyFields(),
+      ...moneyField('smallEnterpriseMutualAid', 'yh-mutual-aid',
+        '小規模企業共済・iDeCoの掛金（年額）',
+        '掛金がなければ0円。税負担の軽減効果だけに反映します。',
+        '$.deductions.smallEnterpriseMutualAid.value'),
       el('div', { className: 'yh-card' }, [
         el('h2', {}, '固定している前提'),
         el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。'),
-        el('p', {}, '生命保険料控除・医療費控除などは対応準備中です'),
+        el('p', {}, '生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),
       pageActions({ previous: () => store.setState(state => ({ ...state, screen: 'mode', errors: [] })), next: true }),
@@ -16291,6 +16481,12 @@ function mountYakuinHoshuApp(rootElement, {
         if (dependentCount(form[band.key]) === null) errors.push(localError(
           `$.dependents.${band.key}`, `${band.label}の人数を0以上の整数で入力してください`));
       }
+      for (const field of DISABILITY_FIELDS) {
+        if (dependentCount(form[field.key]) === null) errors.push(localError(
+          `$.dependents.${field.key}`, `うち${field.label}の人数を0以上の整数で入力してください`));
+      }
+      requireMoney(form.smallEnterpriseMutualAid,
+        '$.deductions.smallEnterpriseMutualAid.value', '小規模企業共済・iDeCoの掛金');
     } else if (form.mode === 'A') {
       requireMoney(form.searchLowerBound, '$.previousMonthlyAmount.value', '探索下限');
       requireMoney(form.searchUpperBound, '$.searchUpperBound.value', '探索上限');
@@ -16782,7 +16978,14 @@ function commonInput(formState, context, errors) {
       kind: 'kyokai_kenpo',
       prefectureCode: context.jurisdiction.prefectureCode,
     },
-    officer: { ageAtYearEnd: Number.isInteger(age) ? age : 0 },
+    officer: {
+      ageAtYearEnd: Number.isInteger(age) ? age : 0,
+      disability: formState.selfDisability || 'none',
+    },
+    deductions: {
+      smallEnterpriseMutualAid: money(formState.smallEnterpriseMutualAid ?? '0',
+        '$.deductions.smallEnterpriseMutualAid.value', errors),
+    },
     specialistChecks: {},
     appointedOn: context.fiscalPeriod.from,
     standardRemunerationDecisionKind: 'regular',

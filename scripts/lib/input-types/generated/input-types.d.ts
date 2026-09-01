@@ -266,6 +266,9 @@ export type HojinnariCorporateInput = {
   expenses: Array<PeriodSegment<Money>>;
   employeeCount?: number;
   establishedOn?: LocalDate;
+  deductions?: {
+      smallEnterpriseMutualAid?: Money;
+    };
   spouseOfficer?: {
       isOfficer: boolean;
       compensation?: CompensationPlan;
@@ -563,7 +566,9 @@ export type YakuinHoshuCommonInput = {
   spouse?: SpouseFacts;
   dependents?: Array<DependentFacts>;
   otherIncomes?: Array<IncomeItem>;
-  deductions?: PersonalDeductionFacts;
+  deductions?: {
+      smallEnterpriseMutualAid?: Money;
+    };
   taxCredits?: {
       housingLoan?: Money;
       other?: Array<{
@@ -862,6 +867,9 @@ export type HojinnariCorporateInputWire = {
   expenses: Array<PeriodSegmentWire<MoneyWire>>;
   employeeCount?: number;
   establishedOn?: LocalDateWire;
+  deductions?: {
+      smallEnterpriseMutualAid?: MoneyWire;
+    };
   spouseOfficer?: {
       isOfficer: boolean;
       compensation?: CompensationPlanWire;
@@ -1159,7 +1167,9 @@ export type YakuinHoshuCommonInputWire = {
   spouse?: SpouseFactsWire;
   dependents?: Array<DependentFactsWire>;
   otherIncomes?: Array<IncomeItemWire>;
-  deductions?: PersonalDeductionFactsWire;
+  deductions?: {
+      smallEnterpriseMutualAid?: MoneyWire;
+    };
   taxCredits?: {
       housingLoan?: MoneyWire;
       other?: Array<{
