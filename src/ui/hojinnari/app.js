@@ -11,11 +11,12 @@ const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-build
 const { resolveQuestion } = require('./question-catalog.js');
 const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
 const { acceptYakuinHoshuHandoff } = require('../yakuin-hoshu/handoff.js');
+const { DEPENDENT_BANDS, dependentCount } = require('../family-input.js');
 
 const TOTAL_STEPS = 3;
 const CONDITIONAL_FORM_KEYS = new Set([
   'municipalityKey', 'nationalHealthInsuranceKind', 'nationalPensionKind',
-  'locationSameAsResidence',
+  'locationSameAsResidence', 'spouseExists',
 ]);
 const INITIAL_FORM = Object.freeze({
   incomeTaxYear: 2025,
@@ -25,6 +26,14 @@ const INITIAL_FORM = Object.freeze({
   blueReturn: '',
   businessTaxCategory: '',
   ageAtYearEnd: '',
+  spouseExists: 'no',
+  spouseTotalIncome: '',
+  spouseAge70OrOver: false,
+  dependents16To18: '0',
+  dependents19To22: '0',
+  dependents23To69: '0',
+  dependents70PlusCohabiting: '0',
+  dependents70PlusSeparate: '0',
   municipalityKey: '',
   otherPrefectureCode: '',
   otherMunicipalityCode: '',
@@ -49,6 +58,12 @@ const FIELD_IDS = Object.freeze({
   '$.individual.blueReturn.specialDeductionCategory': 'hj-blue-return',
   '$.individual.business.businessTaxCategory': 'hj-business-tax-category',
   '$.individual.self.ageAtYearEnd': 'hj-age',
+  '$.individual.spouse.totalIncome.value': 'hj-spouse-income',
+  '$.individual.dependents.dependents16To18': 'hj-dependents-16-18',
+  '$.individual.dependents.dependents19To22': 'hj-dependents-19-22',
+  '$.individual.dependents.dependents23To69': 'hj-dependents-23-69',
+  '$.individual.dependents.dependents70PlusCohabiting': 'hj-dependents-70-cohabiting',
+  '$.individual.dependents.dependents70PlusSeparate': 'hj-dependents-70-separate',
   '$.individual.nationalHealthInsurance': 'hj-nhi-kind',
   '$.individual.nationalHealthInsurance.annualAmount.value': 'hj-nhi-actual',
   '$.individual.nationalPension': 'hj-pension-kind',
@@ -187,6 +202,59 @@ function mountHojinnariApp(rootElement, {
     return [field.element, addControlError(field.select, path)];
   }
 
+  function familyFields() {
+    const form = store.getState().form;
+    const spouse = [
+      ...selectField('spouseExists', 'hj-spouse-exists', '配偶者はいますか', '', [
+        { value: 'no', label: 'いいえ' },
+        { value: 'yes', label: 'はい' },
+      ], '$.individual.spouse'),
+    ];
+    if (form.spouseExists === 'yes') {
+      spouse.push(
+        ...moneyField('spouseTotalIncome', 'hj-spouse-income', '配偶者の合計所得金額',
+          '収入が給与だけなら、年収から55万円を引いた金額が目安です。収入がなければ0円',
+          '$.individual.spouse.totalIncome.value'),
+        el('div', {}, [
+          el('input', {
+            id: 'hj-spouse-elderly', type: 'checkbox', checked: form.spouseAge70OrOver,
+            onChange: event => updateForm('spouseAge70OrOver', event.currentTarget.checked),
+          }),
+          el('label', { for: 'hj-spouse-elderly' }, '70歳以上'),
+        ])
+      );
+    }
+    const dependentInputs = DEPENDENT_BANDS.map(band => {
+      const idSuffix = {
+        dependents16To18: '16-18',
+        dependents19To22: '19-22',
+        dependents23To69: '23-69',
+        dependents70PlusCohabiting: '70-cohabiting',
+        dependents70PlusSeparate: '70-separate',
+      }[band.key];
+      const path = `$.individual.dependents.${band.key}`;
+      const input = el('input', {
+        id: `hj-dependents-${idSuffix}`, type: 'number', min: '0', step: '1', inputmode: 'numeric',
+        value: form[band.key],
+        onInput: event => updateForm(band.key, event.currentTarget.value),
+      });
+      return el('div', {}, [
+        el('label', { for: input.id }, band.label),
+        input,
+        addControlError(input, path),
+      ]);
+    });
+    return [
+      el('fieldset', {}, [el('legend', {}, '配偶者'), spouse]),
+      el('fieldset', {}, [
+        el('legend', {}, '扶養親族の人数'),
+        dependentInputs,
+        el('p', { className: 'hojinnari-help' },
+          '16歳未満のお子さまは扶養控除の対象外のため入力不要です'),
+      ]),
+    ];
+  }
+
   function pageActions({ previous, next, calculate } = {}) {
     return el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
       previous ? el('button', { type: 'button', onClick: () => goToStep(store.getState().step - 1) }, '戻る') : null,
@@ -267,6 +335,7 @@ function mountHojinnariApp(rootElement, {
       el('label', { for: age.id }, '年末時点の年齢'),
       el('p', { id: 'hj-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.individual.self.ageAtYearEnd'),
+      ...familyFields(),
       ...selectField('municipalityKey', 'hj-municipality', 'お住まいの市区町村',
         '国民健康保険料を概算できる登録自治体です。', [
           { value: '', label: '選択してください' },
@@ -302,7 +371,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '配偶者・扶養控除などは現在対応準備中です。単身の方向けの試算です。'),
+        '生命保険料控除・医療費控除などは対応準備中です'),
       pageActions({ previous: true, next: true }),
     ]);
   }
@@ -373,6 +442,12 @@ function mountHojinnariApp(rootElement, {
       if (!form.businessTaxCategory || form.businessTaxCategory === 'unknown') errors.push(localError('$.individual.business.businessTaxCategory', resolveQuestion('HJ_BUSINESS_TAX_CATEGORY_UNKNOWN').description));
     } else if (step === 2) {
       if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を整数で入力してください'));
+      if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
+        '$.individual.spouse.totalIncome.value', '配偶者の合計所得金額');
+      for (const band of DEPENDENT_BANDS) {
+        if (dependentCount(form[band.key]) === null) errors.push(localError(
+          `$.individual.dependents.${band.key}`, `${band.label}の人数を0以上の整数で入力してください`));
+      }
       if (!form.municipalityKey) errors.push(localError('$.calculationContext.jurisdiction', 'お住まいの市区町村を選択してください'));
       if (form.municipalityKey === 'other' &&
           (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
@@ -564,6 +639,22 @@ function mountHojinnariApp(rootElement, {
             el('td', {}, row.soleProprietor.display), el('td', {}, row.corporation.display),
           ]))),
         ]))]),
+        el('details', { className: 'hojinnari-card' }, [
+          el('summary', {}, '結果の詳細'),
+          el('h2', {}, '所得控除の内訳'),
+          el('div', { className: 'hojinnari-table-wrap' }, el('table', {}, [
+            el('thead', {}, el('tr', {}, [
+              el('th', { scope: 'col' }, '所得控除'),
+              el('th', { scope: 'col' }, '個人事業'),
+              el('th', { scope: 'col' }, '法人化'),
+            ])),
+            el('tbody', {}, viewModel.incomeDeductionRows.map(row => el('tr', {}, [
+              el('th', { scope: 'row' }, row.label),
+              el('td', {}, row.soleProprietor.display),
+              el('td', {}, row.corporation.display),
+            ]))),
+          ])),
+        ]),
         el('section', { className: 'hojinnari-card' }, [
           el('h2', {}, '消費税・除外項目'), el('p', {}, viewModel.consumptionTaxBadge),
           el('ul', {}, viewModel.excludedItems.map(item => el('li', {}, `${item.label}：${item.reason}`))),

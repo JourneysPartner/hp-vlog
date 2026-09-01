@@ -115,6 +115,69 @@ function main() {
     assert.deepStrictEqual(modeC.wire.specialistChecks, {});
     assert.strictEqual(modeC.wire.plan.monthlySegments.length, 1);
     assert.deepStrictEqual(modeC.wire.plan.monthlySegments[0].period, modeC.context.fiscalPeriod);
+    assert.strictEqual(Object.hasOwn(modeC.wire, 'spouse'), false);
+    assert.strictEqual(Object.hasOwn(modeC.wire, 'dependents'), false);
+  });
+  const familyModeC = run(baseState({
+    ageAtYearEnd: '45', spouseExists: 'yes', spouseTotalIncome: '0',
+    spouseAge70OrOver: true,
+    dependents16To18: '1', dependents19To22: '1', dependents23To69: '1',
+    dependents70PlusCohabiting: '1', dependents70PlusSeparate: '1',
+  }));
+  check('配偶者と扶養5区分を代表年齢・親族関係・同居区分へ変換してWireへ載せる', () => {
+    assert.deepStrictEqual(familyModeC.wire.spouse, {
+      exists: true, totalIncome: { unit: 'JPY', value: '0' }, ageAtYearEnd: 71,
+    });
+    const deductionRows = new Map(
+      familyModeC.viewModel.incomeDeductionRows.map(row => [row.code, row.exactYen])
+    );
+    assert.strictEqual(deductionRows.get('spouse'), 480000n);
+    assert.strictEqual(deductionRows.get('dependents'), 2450000n);
+    assert.deepStrictEqual(familyModeC.wire.dependents.map(item => ({
+      age: item.ageAtYearEnd, relation: item.relation, livesTogether: item.livesTogether,
+    })), [
+      { age: 17, relation: 'child', livesTogether: true },
+      { age: 20, relation: 'child', livesTogether: true },
+      { age: 40, relation: 'child', livesTogether: true },
+      { age: 71, relation: 'parent', livesTogether: true },
+      { age: 71, relation: 'parent', livesTogether: false },
+    ]);
+  });
+  // 画面経路で配偶者の合計所得が失われる誤り（0円化）は、配偶者控除38万と
+  // 配特満額38万が同額のため所得0や95万の帯では見えない。金額が変わる帯
+  // （所得105万円→配偶者特別控除へ切替・控除額も38万から減る）で固定する
+  check('配偶者所得105万円は画面経路でも配偶者特別控除へ切り替わる', () => {
+    const special = run(baseState({
+      ageAtYearEnd: '45', spouseExists: 'yes', spouseTotalIncome: '1050000',
+    }));
+    assert.strictEqual(special.wire.spouse.totalIncome.value, '1050000');
+    const rows = new Map(
+      special.viewModel.incomeDeductionRows.map(row => [row.code, row.exactYen])
+    );
+    assert.strictEqual(rows.get('spouse'), 0n);
+    assert(rows.get('spouseSpecial') > 0n && rows.get('spouseSpecial') < 380000n,
+      '配偶者特別控除が38万円未満の段階額になる');
+  });
+  check('共通入力に家族欄・説明・対応準備中注記を表示し、結果詳細にも人的控除を表示する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'input', step: 1,
+        form: { ...state.form, mode: 'C', spouseExists: 'yes' } }));
+      assert(root.textContent.includes('配偶者はいますか'));
+      assert(root.textContent.includes('年収から55万円を引いた金額'));
+      assert(root.textContent.includes('19〜22歳（特定扶養）'));
+      assert(root.textContent.includes('16歳未満のお子さまは扶養控除の対象外'));
+      assert(root.textContent.includes('生命保険料控除・医療費控除などは対応準備中です'));
+      assert(!root.textContent.includes('単身'));
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: familyModeC.result, viewModel: familyModeC.viewModel }));
+      assert(root.textContent.includes('所得控除の内訳'));
+      assert(root.textContent.includes('配偶者控除'));
+      assert(root.textContent.includes('扶養控除'));
+      app.destroy();
+    });
   });
 
   process.stdout.write('\n=== MODE A: 探索・候補表 ===\n');

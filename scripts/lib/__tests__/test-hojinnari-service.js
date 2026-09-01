@@ -16,6 +16,10 @@ const goldenDocument = JSON.parse(fs.readFileSync(path.join(
 ), 'utf8'));
 const golden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-STEADY-1200');
 const yakuinGolden = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-500K');
+const familyGolden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-SPOUSE-DEP');
+const familyYakuinGolden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-YH-SPOUSE-DEP-500K'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 const taxIncl = value => ({ basis: 'inclusive', amount: yen(value) });
@@ -450,6 +454,93 @@ assert(withCosts.breakdown.data.corporation.setupAndMaintenanceCosts.value === 4
   withCosts.assumptions.some(text => text.includes('設立一時費用は平年度比較に含めていません')),
 '年間維持費を合算し、設立一時費用を含めない前提を表示する');
 
+console.log('\n=== GC-HJ-SPOUSE-DEP ===');
+const familyInput = goldenInput();
+familyInput.individual.self.ageAtYearEnd = 45;
+familyInput.individual.spouse = { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) };
+familyInput.individual.dependents = [
+  { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+  { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+];
+const familyResult = service.simulate(familyInput, context(), snapshotInfo);
+const familySole = familyResult.breakdown.data.soleProprietor;
+const familyCorporation = familyResult.breakdown.data.corporation;
+const familyExpected = familyGolden.expected;
+const familySoleDeductions = new Map(
+  familySole.orderedIncomeDeductions.map(row => [row.code, row.amount.value])
+);
+const familyCorporationDeductions = new Map(
+  familyCorporation.orderedIncomeDeductions.map(row => [row.code, row.amount.value])
+);
+assert(familySoleDeductions.get('spouse') === BigInt(familyExpected.sole_spouse_deduction) &&
+  familyCorporationDeductions.get('spouse') ===
+    BigInt(familyExpected.corporation_spouse_deduction),
+'同じ配偶者を個人側と④へ渡し、配偶者控除を個人0円・法人化38万円で固定する');
+assert(familySoleDeductions.get('dependents') ===
+    BigInt(familyExpected.sole_dependent_deduction) &&
+  familyCorporationDeductions.get('dependents') ===
+    BigInt(familyExpected.corporation_dependent_deduction),
+'同じ扶養親族を個人側と法人化側へ渡し、扶養控除101万円で固定する');
+assert(familySole.incomeTaxTaxableIncome.value ===
+    BigInt(familyExpected.sole_income_tax_taxable_income) &&
+  familySole.burdens.incomeTax.value === BigInt(familyExpected.sole_income_tax) &&
+  familySole.residentTaxAdjustmentDeduction.value ===
+    BigInt(familyExpected.sole_resident_tax_adjustment_deduction) &&
+  familySole.burdens.residentTax.value === BigInt(familyExpected.sole_resident_tax) &&
+  familySole.burdens.soleProprietorEnterpriseTax.value ===
+    BigInt(familyExpected.sole_proprietor_enterprise_tax) &&
+  familySole.burdens.socialInsuranceEmployee.value === 1340120n &&
+  familySole.personalDisposableCash.value ===
+    BigInt(familyExpected.sole_personal_disposable_cash),
+'家族ケースの個人側全指定項目がゴールデン期待値と一致する');
+assert(familyCorporation.personalDisposableCash.value ===
+    BigInt(familyExpected.corporation_personal_disposable_cash) &&
+  familyCorporation.corporateRetainedCash.value ===
+    BigInt(familyExpected.corporate_retained_cash) &&
+  familyCorporation.burdens.incomeTax.value ===
+    BigInt(familyExpected.corporation_income_tax) &&
+  familyCorporation.burdens.residentTax.value ===
+    BigInt(familyExpected.corporation_resident_tax) &&
+  familyCorporation.burdens.socialInsuranceEmployee.value ===
+    BigInt(familyExpected.corporation_social_insurance_employee) &&
+  familyCorporation.burdens.socialInsuranceEmployer.value ===
+    BigInt(familyExpected.corporation_social_insurance_employer) &&
+  familyCorporation.burdens.corporateTaxes.value === BigInt(familyExpected.corporate_taxes),
+'家族ケースの法人化側が④家族ゴールデンの全主要項目と一致する');
+assert(familyCorporation.personalDisposableCash.value ===
+    BigInt(familyYakuinGolden.expected.personal_net_cash) &&
+  familyCorporation.corporateRetainedCash.value ===
+    BigInt(familyYakuinGolden.expected.corporate_retained_cash) &&
+  familyResult.breakdown.data.combinedReferenceDifference.value ===
+    BigInt(familyExpected.combined_reference_difference),
+'法人化側が④ゴールデンと一致し、差額が＋708,520円になる');
+assert(12000000n - (1327600n + 882300n + 455000n + 1340120n) ===
+    familySole.personalDisposableCash.value,
+'個人 12,000,000−(1,327,600＋882,300＋455,000＋1,340,120)＝7,994,980');
+assert(12000000n - (71200n + 181000n + 894000n + 1234700n) - 915600n ===
+    familyCorporation.personalDisposableCash.value + familyCorporation.corporateRetainedCash.value,
+'法人化 12,000,000−(71,200＋181,000＋894,000＋1,234,700)−915,600＝8,703,500');
+assert(familyResult.assumptions.some(text =>
+  text.includes('配偶者・扶養親族ご自身の国民健康保険料') &&
+  text.includes('第3号被保険者')),
+'配偶者・扶養親族ご自身の世帯社会保険料と法人化後の差を未反映と明示する');
+
+const allBandsInput = goldenInput();
+allBandsInput.individual.dependents = [
+  { id: 'age-17', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+  { id: 'age-20', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+  { id: 'age-40', ageAtYearEnd: 40, relation: 'child', totalIncome: yen(0) },
+  { id: 'age-71-cohabiting', ageAtYearEnd: 71, relation: 'parent', livesTogether: true,
+    totalIncome: yen(0) },
+  { id: 'age-71-separate', ageAtYearEnd: 71, relation: 'parent', livesTogether: false,
+    totalIncome: yen(0) },
+];
+const allBands = service.simulate(allBandsInput, context(), snapshotInfo);
+const allBandsDeduction = allBands.breakdown.data.soleProprietor.orderedIncomeDeductions
+  .find(row => row.code === 'dependents').amount.value;
+assert(allBandsDeduction === 2450000n,
+'扶養5区分各1人は38＋63＋38＋58＋48＝245万円（19〜22歳は代表年齢20歳）');
+
 console.log('\n=== 対応範囲外のblocked ===');
 const blockedCases = [
   ['HJ_BLUE_RETURN_STATUS_UNKNOWN', '青色申告区分unknown', input => {
@@ -460,12 +551,6 @@ const blockedCases = [
   }],
   ['HJ_BUSINESS_TAX_CATEGORY_UNKNOWN', '個人事業税区分unknown', input => {
     input.individual.business.businessTaxCategory = 'unknown';
-  }],
-  ['HJ_SPOUSE_UNSUPPORTED', '配偶者入力', input => {
-    input.individual.spouse = { exists: true };
-  }],
-  ['HJ_DEPENDENTS_UNSUPPORTED', '扶養入力', input => {
-    input.individual.dependents = [{ id: 'child-1', relation: 'child' }];
   }],
   ['HJ_OTHER_INCOMES_UNSUPPORTED', 'その他所得入力', input => {
     input.individual.otherIncomes = [{

@@ -15,6 +15,9 @@ const goldenDocument = JSON.parse(fs.readFileSync(path.join(
   REPO_ROOT, 'data', 'tax-simulator', 'golden-cases', 'official-examples.json'
 ), 'utf8'));
 const golden = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-500K');
+const familyGolden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-YH-SPOUSE-DEP-500K'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 
@@ -175,6 +178,68 @@ assert(Object.entries({
 assert(candidate.corporateIncome.value === 12000000n - 6000000n - 867900n,
 '会社負担社会保険867,900円を法人所得から控除している');
 
+console.log('\n=== MODE C: GC-YH-SPOUSE-DEP-500K ===');
+const familyModeC = service.simulate(modeCInput(500000, {
+  officer: { ageAtYearEnd: 45 },
+  spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) },
+  dependents: [
+    { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+    { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+  ],
+}), context(), snapshotInfo);
+const familyCandidate = candidateOf(familyModeC);
+const familyExpected = familyGolden.expected;
+const familyFields = {
+  salaryIncome: 'salary_income',
+  totalIncomeDeductions: 'income_tax_total_deductions',
+  incomeTaxTaxableIncome: 'income_tax_taxable_income',
+  socialInsuranceEmployee: 'social_insurance_employee',
+  incomeTax: 'income_tax',
+  residentTaxAdjustmentDeduction: 'resident_tax_adjustment_deduction',
+  residentTax: 'resident_tax',
+  personalNetCash: 'personal_net_cash',
+  socialInsuranceEmployer: 'social_insurance_employer',
+  corporateIncome: 'corporate_income',
+  corporateTaxes: 'corporate_taxes_total',
+  corporateRetainedCash: 'corporate_retained_cash',
+  combinedCash: 'combined_cash',
+};
+for (const [actualField, expectedField] of Object.entries(familyFields)) {
+  assert(familyCandidate[actualField].value === BigInt(familyExpected[expectedField]),
+    `家族ケースの${actualField}が指定期待値${familyExpected[expectedField]}円と一致する`);
+}
+const familyDeductions = new Map(
+  familyCandidate.orderedIncomeDeductions.map(row => [row.code, row.amount.value])
+);
+assert(familyDeductions.get('socialInsurance') === 894000n &&
+  familyDeductions.get('spouse') === 380000n &&
+  familyDeductions.get('dependents') === 1010000n &&
+  familyDeductions.get('basic') === 680000n,
+'所得控除計296.4万円の社保・配偶者・扶養・基礎の内訳が一致する');
+assert(Object.entries({
+  corporateTax: 'corporate_tax',
+  localCorporateTax: 'local_corporate_tax',
+  prefecturalInhabitantIncomeLevy: 'inhabitant_tax_prefectural_income_levy',
+  municipalInhabitantIncomeLevy: 'inhabitant_tax_municipal_income_levy',
+  inhabitantPerCapitaLevy: 'inhabitant_tax_per_capita_total',
+  enterpriseTax: 'enterprise_tax',
+  specialEnterpriseTax: 'special_enterprise_tax',
+}).every(([actualField, expectedField]) =>
+  familyCandidate.corporateTaxDetails[actualField].value === BigInt(familyExpected[expectedField])),
+'家族ケースの法人税等7内訳が指定期待値と一致する');
+
+// 手計算確認: 令和7年分マスターは配偶者所得95万円以下・本人所得900万円以下を
+// 配偶者特別控除38万円の帯としている（95万1円から36万円）。
+const spouseSpecial = service.simulate(modeCInput(500000, {
+  officer: { ageAtYearEnd: 45 },
+  spouse: { exists: true, totalIncome: yen(950000) },
+}), context(), snapshotInfo);
+const spouseSpecialRows = new Map(candidateOf(spouseSpecial).orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+assert(spouseSpecialRows.get('spouse') === 0n &&
+  spouseSpecialRows.get('spouseSpecial') === 380000n,
+'配偶者所得95万円は配偶者控除0円・配偶者特別控除38万円になる');
+
 console.log('\n=== SimulationResult の共通契約 ===');
 assert(modeC.simulatorType === 'yakuin_hoshu' && modeC.resultStatus === 'complete' &&
   modeC.comparisonBasis === 'steady_state',
@@ -270,6 +335,19 @@ console.log('\n=== validate: Wire入力 ===');
 const validWire = service.validate(modeCWire());
 assert(validWire.ok && typeof validWire.value.capital.value === 'bigint',
 '正しいWire入力をcore validatorで計算用Moneyへ変換する');
+const familyWire = modeCWire();
+familyWire.spouse = { exists: true, totalIncome: wireMoney(0) };
+familyWire.dependents = [{
+  id: 'specific-1', ageAtYearEnd: 20, relation: 'child', livesTogether: true,
+  totalIncome: wireMoney(0),
+}];
+const familyValidation = service.validate(familyWire);
+assert(familyValidation.ok && familyValidation.value.spouse.totalIncome.value === 0n &&
+  familyValidation.value.dependents[0].ageAtYearEnd === 20,
+'④Wireのspouse/dependentsを検証して計算用入力へ通す');
+familyWire.spouse.unknownProperty = true;
+assert(!service.validate(familyWire).ok,
+'④Wireのspouse内の未知プロパティは引き続き拒否する');
 const invalidWire = modeCWire();
 invalidWire.capital.value = '1e3';
 const invalidResult = service.validate(invalidWire);

@@ -335,6 +335,8 @@ function calculateForward(input, context, monthlyAmount) {
     deductibleStatus: 'eligible',
     salaryIncome: incomeTaxResult.salary.salaryIncome,
     incomeTaxBasicDeduction: incomeTaxResult.incomeDeductions.basic,
+    orderedIncomeDeductions: incomeTaxResult.orderedIncomeDeductions,
+    totalIncomeDeductions: incomeTaxResult.totalIncomeDeductions,
     incomeTaxTaxableIncome: incomeTaxResult.taxableTotalIncome,
     socialInsuranceEmployee: insurance.employeeAnnual,
     healthInsuranceEmployee: insurance.healthEmployeeAnnual,

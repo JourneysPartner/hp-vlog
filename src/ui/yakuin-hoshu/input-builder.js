@@ -1,5 +1,7 @@
 'use strict';
 
+const { appendFamilyFacts } = require('../family-input.js');
+
 class YakuinHoshuInputBuildError extends Error {
   constructor(errors) {
     super(errors.map(item => item.message).join('\n'));
@@ -42,7 +44,7 @@ function commonInput(formState, context, errors) {
     errors.push(issue('YH_UI_AGE_REQUIRED', '$.officer.ageAtYearEnd',
       '役員の年齢を0以上の整数で入力してください'));
   }
-  return {
+  const input = {
     precision: 'detailed',
     officerResidenceSameAsCompany: 'yes',
     capital: money(formState.capital, '$.capital.value', errors),
@@ -56,6 +58,14 @@ function commonInput(formState, context, errors) {
     appointedOn: context.fiscalPeriod.from,
     standardRemunerationDecisionKind: 'regular',
   };
+  return appendFamilyFacts(input, formState, {
+    money,
+    errors,
+    issue,
+    spousePath: '$.spouse',
+    dependentsPath: '$.dependents',
+    codePrefix: 'YH_UI',
+  });
 }
 
 function buildModeA(formState, errors) {
