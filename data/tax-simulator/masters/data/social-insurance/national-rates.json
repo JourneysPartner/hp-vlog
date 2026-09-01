@@ -100,8 +100,43 @@
 
   "nursing_care_rate": {
     "_comment": "介護保険料率（40歳以上65歳未満の第2号被保険者に上乗せ）。全国一律・年度改定。",
-    "_r7_note": "令和7年度の率は出典を確認できていないため登録していない。過去年度の計算が要るときに取得する。",
+    "_r7_note": "令和7年度（令和7年3月分から1.59%）は2026-09-01に協会けんぽ公式ページで確認して登録済み。",
     "records": [
+      {
+        "record_id": "SI-NURSING-R7",
+        "value_key": "nursing_care_insurance_rate_total",
+        "tax_year": 2025,
+        "rounding_rule_id": "R-SHARE-REMAINDER",
+        "promulgated_at": null,
+        "verified_at": "2026-09-01",
+        "verified_by": "毛利順活税理士事務所",
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "social_insurance_master",
+        "tax_or_insurance_type": "nursing_care_insurance",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2025-03-01",
+        "effective_to": "2026-02-28",
+        "rate_category": "total_rate",
+        "rate": {
+          "num": "159",
+          "den": "10000"
+        },
+        "fixed_amount": null,
+        "applies_to": "40歳以上65歳未満の被保険者（介護保険第2号被保険者）。健康保険料率に上乗せ。労使折半",
+        "_period_basis": "令和7年3月分（4月納付分）から適用",
+        "calculation_order": 1,
+        "source_document_id": "KYOKAI-KENPO-NURSING",
+        "source_locator": "協会けんぽの介護保険料率について（令和7年3月分から 一般被保険者 1.59%・全国一律）",
+        "source_hash": null,
+        "as_of_date": "2026-09-01",
+        "legal_status": "effective",
+        "data_review_status": "approved"
+      },
       {
         "record_id": "SI-NURSING-R8",
         "value_key": "nursing_care_insurance_rate_total",

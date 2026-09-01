@@ -101,10 +101,15 @@ console.log('\n=== 社会保険: 月額保険料・blocked ===');
     '410,000円では区分別丸めとの差が出るため、合算1回丸めを固定する');
   assert(r8.childSupportLevy.employee.value === 0n && exactYen(r8.childSupportLevy.employer, 1476),
     '子ども・子育て拠出金0.36%は本人負担0・全額事業主負担になる');
+  // R7介護保険料率（1.59%）は2026-09-01に登録済み。R7の介護該当者は計算でき、
+  // 未登録年度（R6以前）の安全動作（隠さずblocked）はそのまま検査する
   const r7Care = monthly({ premiumMonth: '2025-05', age: 40 });
-  assert(r7Care.status === 'blocked' && r7Care.blockedReasons.some(
+  assert(r7Care.status === 'complete',
+    '介護該当者のR7月は登録済み料率1.59%で計算できる');
+  const r6Care = monthly({ premiumMonth: '2025-02', age: 40 });
+  assert(r6Care.status === 'blocked' && r6Care.blockedReasons.some(
     reason => reason.code === 'SI_NURSING_CARE_RATE_MISSING'
-  ), '介護該当者のR7月は料率未登録を隠さず理由コード付きblockedにする');
+  ), '介護該当者の未登録年度（R6以前）は料率未登録を隠さず理由コード付きblockedにする');
   const society = monthly({ insurerType: 'health_insurance_society' });
   const noPrefecture = monthly({ prefectureCode: undefined, prefecture: undefined });
   assert(society.status === 'blocked' && society.blockedReasons.some(
