@@ -27,8 +27,13 @@ const N = qa.normalize;
 console.log('=== 1. カタログが取り込まれている ===');
 {
   const stats = qa.catalogStats();
-  assert(stats.total >= 170, `Q&Aが取り込まれている（${stats.total}件）`);
-  assert(stats.chars > 200000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
+  assert(stats.total >= 175, `Q&Aが取り込まれている（${stats.total}件）`);
+  assert(stats.chars > 300000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
+  // 2026-09-01: インボイスに加えて電子帳簿保存法（電子取引・スキャナ保存）を追加。
+  // インボイスはPDF、電帳法はHTMLで公開されており、取得の形式が違う。
+  assert(stats.bySource.invoice >= 170, 'インボイスQ&Aが入っている');
+  assert(stats.bySource.denshi_torihiki >= 2, '電帳法【電子取引関係】が入っている');
+  assert(stats.bySource.denshi_scan >= 4, '電帳法【スキャナ保存関係】が入っている');
   const entries = qa.loadIndex();
   assert(entries.every(e => e.url && /^https:\/\/www\.nta\.go\.jp\//.test(e.url)),
     'すべて国税庁のURLを持つ');
@@ -123,6 +128,33 @@ console.log('=== 6. 安全に動く ===');
 }
 
 console.log('');
+console.log('');
+console.log('=== 7. 分野をまたいでも税目で絞り込める ===');
+{
+  // 電帳法（HTML由来）が入ったことで、インボイスの記事に電帳法の問が
+  // 混ざらないこと、その逆も起きないことを確認する。
+  const invoice = qa.findQaByKeywords(['登録の取りやめ', '免税事業者'],
+    { taxDomain: 'invoice_system', maxDocs: 3 });
+  assert(invoice.length > 0 && invoice.every(q => /インボイス/.test(q.source_label)),
+    'インボイスの記事にはインボイスQ&Aだけが出る');
+
+  const denshi = qa.findQaByKeywords(['電子取引', '電磁的記録', 'スキャナ保存'],
+    { taxDomain: 'bookkeeping_expenses', maxDocs: 3 });
+  assert(denshi.length > 0 && denshi.every(q => /電子帳簿保存法/.test(q.source_label)),
+    '電子帳簿の記事には電帳法の一問一答だけが出る');
+
+  // HTML由来でも題名（問番号）を取得できている
+  const entries = qa.loadIndex().filter(e => e.source_key.startsWith('denshi_'));
+  assert(entries.length >= 6, '電帳法の資料が取り込まれている');
+  assert(entries.every(e => e.q_no), 'HTML由来でも問番号を取得できている');
+  assert(entries.every(e => e.char_count_body > 1000), 'HTML由来でも本文が取れている');
+
+  // ナビゲーションが混ざっていない（本文は問から始まる）
+  const first = JSON.parse(fs.readFileSync(path.join(qa.QA_DIR, entries[0].file_path), 'utf8'));
+  assert(/^問/.test(first.body), '本文がパンくずではなく問から始まる');
+  assert(!/サイトマップ|このページの先頭へ/.test(first.body), 'フッタが混ざっていない');
+}
+
 console.log('=== 結果 ===');
 console.log(`PASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

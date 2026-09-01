@@ -64,6 +64,27 @@ const SOURCES = {
       },
     ],
   },
+
+  // 電子帳簿保存法の一問一答。PDFではなくHTMLページで公開されている。
+  // 1ページに複数の問がまとまっているため、問ごとには分けずページ単位で保存する。
+  denshi_torihiki: {
+    label: '電子帳簿保存法一問一答【電子取引関係】',
+    tax_category: '帳簿・経費',
+    tax_category_code: 'chobo',
+    tax_domain: 'bookkeeping_expenses',
+    format: 'html',
+    indexUrl: `${HOST}/law/joho-zeikaishaku/sonota/jirei/07denshi/index.htm`,
+    linkPattern: /07denshi\/[^/]+\.htm$/,
+  },
+  denshi_scan: {
+    label: '電子帳簿保存法一問一答【スキャナ保存関係】',
+    tax_category: '帳簿・経費',
+    tax_category_code: 'chobo',
+    tax_domain: 'bookkeeping_expenses',
+    format: 'html',
+    indexUrl: `${HOST}/law/joho-zeikaishaku/sonota/jirei/07scan/index.htm`,
+    linkPattern: /07scan\/[^/]+\.htm$/,
+  },
 };
 
 // ── HTTP ────────────────────────────────────────────────────
@@ -131,6 +152,25 @@ function pdfToText(buf) {
   }
 }
 
+/** HTMLページから本文テキストを取り出す（電子帳簿保存法の一問一答はHTMLで公開されている） */
+function htmlToText(html) {
+  let text = String(html || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#\d+;/g, ' ')
+    .replace(/&[a-z]+;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // 本文は最初の「問○」から始まる。手前のパンくず・ページ見出しは落とす。
+  const first = text.search(/問\s?[\d０-９]/);
+  if (first > 0) text = text.slice(first);
+  // 末尾はサイト共通のフッタ（関連リンク・サイトマップ等）。そこで切る。
+  const tail = text.search(/(?:関連情報|関連リンク|サイトマップ|お問い合わせ先|このページの先頭へ)/);
+  if (tail > 200) text = text.slice(0, tail);
+  return text.trim();
+}
+
 /** 抽出テキストを整形し、題名（問）と本文に分ける */
 function parseQaText(raw) {
   const text = String(raw || '').replace(/\r\n/g, '\n').replace(/[ \t　]+/g, ' ').trim();
@@ -140,7 +180,16 @@ function parseQaText(raw) {
   // 「（見出し） 問12 …」の形が基本。ただし章の先頭のファイルは
   // 「Ⅰ 適格請求書等保存方式の概要 （見出し） 問1 …」のように章見出しが前に付く。
   // 先頭から探すのではなく、最初の「（見出し）＋問番号」の組を拾う。
+  // PDF は「（見出し） 問12 …」。HTML は「問1 電子取引の制度は…」のように
+  // 見出しの括弧が無く、問文がそのまま続く。両方に対応する。
   const headed = flat.match(/（([^（）]{2,60})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/);
+  if (!headed) {
+    const plain = flat.match(/^(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)\s*([^。]{4,60})/);
+    if (plain) {
+      const no = plain[1].replace(/\s/g, '');
+      return { title: `${no} ${plain[2].trim()}`, qNo: no, body: flat };
+    }
+  }
   const title = headed ? `${headed[2].replace(/\s/g, '')} ${headed[1]}` : null;
   const qNo = headed ? headed[2].replace(/\s/g, '') : null;
 
@@ -204,13 +253,17 @@ async function crawlSource(sourceKey, source, options = {}) {
   if (source.indexUrl) {
     const html = decodeHtml(await fetchBuffer(source.indexUrl));
     const seen = new Set();
-    for (const m of html.matchAll(/href="([^"]+\.pdf)"/g)) {
+    // href はアンカー付き（…/01.htm#a001）のことがあるので # の手前まで拾う。
+    const ext = source.format === 'html' ? 'htm' : 'pdf';
+    const linkRe = new RegExp(`href="([^"#]+\\.${ext})`, 'g');
+    for (const m of html.matchAll(linkRe)) {
       const href = m[1];
+      if (/index\.(?:htm|pdf)$/.test(href)) continue;   // 目次自身は対象外
       if (source.linkPattern && !source.linkPattern.test(href)) continue;
       const url = new URL(href, source.indexUrl).toString();
       if (seen.has(url)) continue;
       seen.add(url);
-      targets.push({ id: path.basename(href, '.pdf'), url, title: null });
+      targets.push({ id: path.basename(href, `.${ext}`), url, title: null });
     }
     log(`[nta-qa] ${source.label}: 目次から ${targets.length} 件`);
   }
@@ -224,7 +277,8 @@ async function crawlSource(sourceKey, source, options = {}) {
     const doc = list[i];
     try {
       const buf = await fetchBuffer(doc.url);
-      const parsed = parseQaText(pdfToText(buf));
+      const text = source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf);
+      const parsed = parseQaText(text);
       if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
       saved.push(saveEntry(sourceKey, source, doc, parsed, doc.url));
     } catch (error) {
@@ -245,10 +299,12 @@ async function main() {
   const limitArg = args.indexOf('--limit');
   const limit = limitArg >= 0 ? parseInt(args[limitArg + 1], 10) : null;
 
-  ensurePdftotext();
+  // PDF を含む対象があるときだけ pdftotext を要求する
+  const keysToRun = only ? [only] : Object.keys(SOURCES);
+  if (keysToRun.some(k => SOURCES[k] && SOURCES[k].format !== 'html')) ensurePdftotext();
 
   const index = loadIndex();
-  const keys = only ? [only] : Object.keys(SOURCES);
+  const keys = keysToRun;
   for (const key of keys) {
     const source = SOURCES[key];
     if (!source) { console.error(`[nta-qa] 未知の対象: ${key}`); process.exit(1); }
@@ -274,4 +330,4 @@ if (require.main === module) {
   main().catch(e => { console.error('[nta-qa] 失敗:', e.message); process.exit(1); });
 }
 
-module.exports = { SOURCES, parseQaText, pdfToText, crawlSource, OUT_DIR, INDEX_PATH };
+module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, crawlSource, OUT_DIR, INDEX_PATH };
