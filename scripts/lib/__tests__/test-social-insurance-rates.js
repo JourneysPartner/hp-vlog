@@ -100,7 +100,13 @@ console.log('\n=== Test 5: 全国一律の各料率・保険料額 ===');
   const find = (k) => allNational.filter(r => r.value_key === k);
   const yen = (r) => BigInt(r.fixed_amount.value);
 
-  assert(val(find('nursing_care_insurance_rate_total')[0]) === 0.0162, '介護保険料率 R8 = 1.62%');
+  // 介護保険料率は2年度分（R7を2026-09-01に協会けんぽ公式で確認して追加）。年度で引く
+  const nursingByYear = Object.fromEntries(
+    find('nursing_care_insurance_rate_total').map(r => [r.tax_year, val(r)])
+  );
+  assert(Object.keys(nursingByYear).length === 2, '介護保険料率が2年度分');
+  assert(nursingByYear[2025] === 0.0159, '介護保険料率 R7 = 1.59%');
+  assert(nursingByYear[2026] === 0.0162, '介護保険料率 R8 = 1.62%');
   assert(val(find('child_rearing_support_rate')[0]) === 0.0023, '子ども・子育て支援金 R8 = 0.23%');
   assert(val(find('child_support_levy_rate')[0]) === 0.0036, '子ども・子育て拠出金 = 0.36%');
 
