@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "相続税は基礎控除（3,000万円＋600万円×法定相続人数）を超えた場合にかかる。相続人が子1人なら3,600万円、配偶者＋子2人なら4,800万円が非課税ライン。土地や家には小規模宅地等の特例で評価額を最大80%減額できる場合がある。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-08-31T16:13:28.223+09:00"
 publish_at: "2026-09-01T17:15:00.000+09:00"
-published_at: ""
+published_at: "2026-09-01T18:01:05.035+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-08-31T00:07:08.963Z"
-updated_at: "2026-08-31T16:13:28.223+09:00"
+updated_at: "2026-09-01T18:01:05.035+09:00"
 publish_slot: "evening"
 ---
 
