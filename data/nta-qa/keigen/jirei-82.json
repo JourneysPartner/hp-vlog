@@ -1,0 +1,16 @@
+{
+  "id": "jirei-82",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問82",
+  "digest": false,
+  "title": "問82 病院食",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（病院食） 問82 病院食は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 健康保険法等の規定に基づく入院時食事療養費に係る病院食の提供は非課税とされてい ることから、消費税は課されません（消法６①、別表２六、消令 14）。 なお、患者の自己選択により、特別メニューの食事の提供を受けている場合に支払う特別 の料金については、非課税となりません。また、病室等で役務を伴う飲食料品の提供を行う ものですので、「飲食料品の譲渡」に該当せず、軽減税率の適用対象となりません（消法２ ①九の二、別表１一ロ）。",
+  "char_count_body": 261,
+  "fetched_at": "2026-09-01T08:27:39.527Z"
+}

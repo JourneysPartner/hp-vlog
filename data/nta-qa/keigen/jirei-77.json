@@ -1,0 +1,16 @@
+{
+  "id": "jirei-77",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問77",
+  "digest": false,
+  "title": "問77 出前の適用税率",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（出前の適用税率） 問77 そばの出前、宅配ピザの配達は、軽減税率の適用対象となりますか。【令和５年 10 月改 訂】 【答】 そばの出前、宅配ピザの配達は、顧客の指定した場所まで単に飲食料品を届けるだけであ るため、「飲食料品の譲渡」に該当し、軽減税率の適用対象となります（消法２①九の二、 別表１一）。 （注） 顧客の指定した場所まで単に飲食料品を届けることは、「食事の提供」には該当せ ず、また、いわゆる「ケータリング、出張料理」にも該当しません。",
+  "char_count_body": 227,
+  "fetched_at": "2026-09-01T08:27:39.490Z"
+}

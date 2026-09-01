@@ -1,0 +1,16 @@
+{
+  "id": "jirei-40",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問40",
+  "digest": false,
+  "title": "問40 食品の加工",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（食品の加工） 問40 当社は、取引先からコーヒーの生豆の支給を受け、焙煎等の加工を行っています。当社 の行う加工は、軽減税率の適用対象となりますか。【平成 30 年１月追加】【令和５年 10 月 改訂】 【答】 「飲食料品の譲渡」には、軽減税率が適用されます。 他方、ご質問のコーヒーの生豆の加工は、役務の提供に該当しますので、軽減税率の適用 対象となりません（消法２①九の二、別表１一）。 - 15 -",
+  "char_count_body": 203,
+  "fetched_at": "2026-09-01T08:27:39.471Z"
+}

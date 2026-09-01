@@ -1,0 +1,16 @@
+{
+  "id": "jirei-46",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問46",
+  "digest": false,
+  "title": "問46 輸入される飲食料品",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（輸入される飲食料品） 問46 輸入される飲食料品は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 保税地域から引き取られる課税貨物のうち、「飲食料品」に該当するものについては、軽 減税率が適用されます（消法２①十一の二、別表１の２）。 なお、課税貨物が「飲食料品」に該当するかどうかは、輸入の際に、人の飲用又は食用に 供されるものとして輸入されるかどうかにより判定されます。",
+  "char_count_body": 199,
+  "fetched_at": "2026-09-01T08:27:39.525Z"
+}

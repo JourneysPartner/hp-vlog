@@ -1,0 +1,16 @@
+{
+  "id": "jirei-62",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問62",
+  "digest": false,
+  "title": "問62 飲食店のレジ前の菓子等の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（飲食店のレジ前の菓子等の販売） 問62 飲食店のレジ前にある菓子の販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 軽減税率の適用対象とならない「食事の提供」とは、飲食設備のある場所において飲食料 品を飲食させる役務の提供をいいます（消法２①九の二、別表１一イ、基通５－９－９）。 ご質問のように飲食店のレジ前にある菓子の販売は、単に飲食料品を販売しているもの と考えられることから、飲食料品を飲食させる役務の提供に該当せず、「飲食料品の譲渡」 に該当し、軽減税率の適用対象となります。",
+  "char_count_body": 257,
+  "fetched_at": "2026-09-01T08:27:39.483Z"
+}

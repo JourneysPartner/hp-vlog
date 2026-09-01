@@ -1,0 +1,16 @@
+{
+  "id": "jirei-76",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問76",
+  "digest": false,
+  "title": "問76 家事代行",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（家事代行） 問76 当社は、お客様の自宅に伺って料理代行サービス（食材持込）を行っておりますが、こ のサービスは、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 軽減税率の適用対象となる「飲食料品の譲渡」には、「相手方が指定した場所において行 う加熱、調理又は給仕等の役務を伴う飲食料品の提供」（いわゆる「ケータリング、出張料 理」）は含まれないこととされています（消法２①九の二、別表１一ロ、基通５－９－11）。 ご質問のように、顧客の自宅で料理を行い、飲食料品を提供するサービスは、いわゆる「ケ ータリング、出張料理」に該当しますので、軽減税率の適用対象となりません。",
+  "char_count_body": 297,
+  "fetched_at": "2026-09-01T08:27:39.527Z"
+}

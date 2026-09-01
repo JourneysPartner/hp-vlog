@@ -27,13 +27,17 @@ const N = qa.normalize;
 console.log('=== 1. カタログが取り込まれている ===');
 {
   const stats = qa.catalogStats();
-  assert(stats.total >= 175, `Q&Aが取り込まれている（${stats.total}件）`);
-  assert(stats.chars > 300000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
+  assert(stats.total >= 320, `Q&Aが取り込まれている（${stats.total}件）`);
+  assert(stats.chars > 480000, `本文の総量（${stats.chars.toLocaleString()}文字）`);
   // 2026-09-01: インボイスに加えて電子帳簿保存法（電子取引・スキャナ保存）を追加。
   // インボイスはPDF、電帳法はHTMLで公開されており、取得の形式が違う。
   assert(stats.bySource.invoice >= 170, 'インボイスQ&Aが入っている');
   assert(stats.bySource.denshi_torihiki >= 2, '電帳法【電子取引関係】が入っている');
   assert(stats.bySource.denshi_scan >= 4, '電帳法【スキャナ保存関係】が入っている');
+  // 2026-09-01: 消費税を追加。軽減税率は判断が事例ごとに分かれ、
+  // 国境を越えた役務・プラットフォーム課税は対象者を誤りやすい。
+  assert(stats.bySource.keigen >= 140, '軽減税率Q&Aが問ごとに入っている');
+  assert(stats.bySource.cross_border >= 3, '国境を越えた役務・プラットフォーム課税が入っている');
   const entries = qa.loadIndex();
   assert(entries.every(e => e.url && /^https:\/\/www\.nta\.go\.jp\//.test(e.url)),
     'すべて国税庁のURLを持つ');
@@ -71,9 +75,20 @@ console.log('=== 3. 全角・空白の揺れを吸収する ===');
 console.log('');
 console.log('=== 4. 絞り込みに効く語だけを使う ===');
 {
-  // 半数以上に出る語しか無ければ結果を返さない（「登録」は93/173件＝希少度0.62）
-  const common = qa.findQaByKeywords(['登録'], { maxDocs: 3 });
-  assert(common.length === 0, 'ありふれた語（登録）だけでは絞り込まない');
+  // 半数以上に出る語は捨てる。どの語がありふれているかは収録範囲で変わるため、
+  // 固定の語ではなく「実際に半数以上に出ている語」を選んで確かめる。
+  // 2026-09-01: 消費税を追加して323件になり、インボイスだけだった頃は
+  // ありふれていた「登録」（93/173件）が有効な語（102/323件）に変わった。
+  {
+    const entries = qa.loadIndex();
+    const bodies = entries.map(e =>
+      qa.normalize(JSON.parse(fs.readFileSync(path.join(qa.QA_DIR, e.file_path), 'utf8')).body));
+    const commonTerm = ['消費税', '課税', '事業者', '場合']
+      .find(t => bodies.filter(b => b.includes(qa.normalize(t))).length > entries.length / 2);
+    assert(!!commonTerm, '半数以上に出る語が存在する（前提の確認）');
+    assert(qa.findQaByKeywords([commonTerm], { maxDocs: 3 }).length === 0,
+      `ありふれた語（${commonTerm}）だけでは絞り込まない`);
+  }
 
   // 長すぎる断片（文をそのまま切ったもの）は使わない
   const longFragment = qa.findQaByKeywords(['インボイス登録をやめるにはどのような手続きが必要で'], { maxDocs: 3 });
@@ -153,6 +168,36 @@ console.log('=== 7. 分野をまたいでも税目で絞り込める ===');
   const first = JSON.parse(fs.readFileSync(path.join(qa.QA_DIR, entries[0].file_path), 'utf8'));
   assert(/^問/.test(first.body), '本文がパンくずではなく問から始まる');
   assert(!/サイトマップ|このページの先頭へ/.test(first.body), 'フッタが混ざっていない');
+}
+
+console.log('');
+console.log('=== 8. まとめPDFを問ごとに分割している ===');
+{
+  // 軽減税率の個別事例編は約10万字。1件のまま保存すると本文の上限（1,800字）で
+  // 冒頭しか渡らず役に立たない。「（見出し）問N …」で分割している。
+  const keigen = qa.loadIndex().filter(e => e.source_key === 'keigen');
+  assert(keigen.length >= 140, `軽減税率が問ごとに分かれている（${keigen.length}件）`);
+  assert(keigen.every(e => e.q_no), 'すべてに問番号が付いている');
+  const avg = Math.round(keigen.reduce((s, e) => s + e.char_count_body, 0) / keigen.length);
+  assert(avg < qa.MAX_BODY_CHARS, `1問あたりが本文の上限に収まる（平均${avg}字）`);
+  assert(keigen.every(e => e.char_count_body >= 120), '目次だけの断片が混ざっていない');
+
+  // 実務の判断が引けること
+  const gaishoku = qa.findQaByKeywords(['持ち帰り', '外食', '飲食設備'],
+    { taxDomain: 'consumption_tax', maxDocs: 2 });
+  assert(gaishoku.length > 0 && /持ち帰り|外食/.test(gaishoku[0].title),
+    'テイクアウトと外食の判断が引ける');
+
+  const ittai = qa.findQaByKeywords(['一体資産', '食品と食品以外'],
+    { taxDomain: 'consumption_tax', maxDocs: 2 });
+  assert(ittai.length > 0 && /一体資産|食品と食品以外/.test(ittai[0].title),
+    '一体資産の判断が引ける');
+
+  // プラットフォーム課税は overseas_transactions として引ける
+  const pf = qa.findQaByKeywords(['プラットフォーム課税', '特定プラットフォーム事業者'],
+    { taxDomain: 'overseas_transactions', maxDocs: 2 });
+  assert(pf.length > 0 && /プラットフォーム/.test(pf[0].title),
+    'プラットフォーム課税が引ける（対象者を誤りやすい論点）');
 }
 
 console.log('=== 結果 ===');

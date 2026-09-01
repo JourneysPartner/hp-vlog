@@ -1,0 +1,16 @@
+{
+  "id": "jirei-32",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問32",
+  "digest": false,
+  "title": "問32 果物狩り、潮干狩り、釣り堀",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（果物狩り、潮干狩り、釣り堀） 問32 いちご狩りや梨狩りなどのいわゆる味覚狩りの入園料は、軽減税率の適用対象となり ますか。 【答】 果樹園での果物狩りの入園料は、顧客に果物を収穫させ、収穫した果物をその場で飲食さ せるといった役務の提供に該当しますので、「飲食料品の譲渡」に該当せず、軽減税率の適 用対象となりません。 なお、収穫した果物について別途対価を徴している場合のその果物の販売は、「飲食料品 の譲渡」に該当し、軽減税率の適用対象となります。 また、潮干狩りや釣り堀等についても、同様の取扱いになります。",
+  "char_count_body": 258,
+  "fetched_at": "2026-09-01T08:27:39.465Z"
+}

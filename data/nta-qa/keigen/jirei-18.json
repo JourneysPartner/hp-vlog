@@ -1,0 +1,16 @@
+{
+  "id": "jirei-18",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問18",
+  "digest": false,
+  "title": "問18 「添加物」の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（「添加物」の販売） 問18 食品の製造において使用する「添加物」の販売は、軽減税率の適用対象となりますか。 【令和５年 10 月改訂】 【答】 食品の製造・加工等の過程において添加される食品衛生法に規定する「添加物」は、「食 品」に該当し、その販売は軽減税率の適用対象となります（消法２①九の二、別表１一、食 品衛生法４②、基通５－９－１）。 【参考】 ○ 食品衛生法第４条第２項 この法律で添加物とは、食品の製造の過程において又は食品の加工若しくは保存の目 的で、食品に添加、混和、浸潤その他の方法によつて使用する物をいう。",
+  "char_count_body": 264,
+  "fetched_at": "2026-09-01T08:27:39.522Z"
+}

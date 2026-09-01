@@ -1,0 +1,16 @@
+{
+  "id": "gaiyo-14",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問14",
+  "digest": false,
+  "title": "問14 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+  "body": "（仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記） 問 14 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」及び「税率ごと に合計した課税資産の譲渡等の対価の額」の記載がなかったのですが、これらが記載さ れた請求書等の再交付を受けなければ仕入税額控除を行うことができないのでしょう か。【令和５年 10 月改訂】··················································· 16",
+  "char_count_body": 241,
+  "fetched_at": "2026-09-01T08:27:37.660Z"
+}

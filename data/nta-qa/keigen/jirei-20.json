@@ -1,0 +1,16 @@
+{
+  "id": "jirei-20",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問20",
+  "digest": false,
+  "title": "問20 食用、清掃用の重曹の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（食用、清掃用の重曹の販売） 問20 当社では、重曹を食用及び清掃用に使用することができるものとして販売しています。 販売に当たり、食品添加物として、食品表示法に規定する表示をしています。この重曹の 販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますので、人の飲用又は食用に供 されるものである食品添加物として販売される重曹は、「食品」に該当し、その販売は軽減 税率の適用対象となります（消法２①九の二、別表１一、基通５－９－１）。",
+  "char_count_body": 256,
+  "fetched_at": "2026-09-01T08:27:39.459Z"
+}

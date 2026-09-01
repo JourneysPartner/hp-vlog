@@ -1,0 +1,16 @@
+{
+  "id": "jirei-24",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問24",
+  "digest": false,
+  "title": "問24 健康食品、美容食品等の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（健康食品、美容食品等の販売） 問24 特定保健用食品、栄養機能食品、健康食品、美容食品などの販売は、それぞれ軽減税率 の適用対象となりますか。【令和５年 10 月改訂】 【答】 人の飲用又は食用に供される特定保健用食品、栄養機能食品は、医薬品等に該当しません ので、「食品」に該当し、また、人の飲用又は食用に供されるいわゆる健康食品、美容食品 も、医薬品等に該当しないものであれば、「食品」に該当しますので、それらの販売は軽減 税率の適用対象となります（消法２①九の二、別表１一）。",
+  "char_count_body": 242,
+  "fetched_at": "2026-09-01T08:27:39.522Z"
+}

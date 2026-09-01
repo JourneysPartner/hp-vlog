@@ -1,0 +1,16 @@
+{
+  "id": "jirei-39",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問39",
+  "digest": false,
+  "title": "問39 飲食料品の譲渡に要する送料",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（飲食料品の譲渡に要する送料） 問39 飲食料品の譲渡に要する送料については、軽減税率の適用対象となりますか。【令和５ 年 10 月改訂】 【答】 飲食料品の譲渡に要する送料は、飲食料品の譲渡の対価ではありませんので、軽減税率の 適用対象となりません。 なお、例えば、「送料込み商品」の販売など、別途送料を求めない場合、その商品が「飲 食料品」に該当するのであれば、軽減税率の適用対象となります（消法２①九の二、別表１ 一）。",
+  "char_count_body": 213,
+  "fetched_at": "2026-09-01T08:27:39.470Z"
+}
