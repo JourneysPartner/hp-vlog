@@ -27,6 +27,12 @@ const {
 const { masterRate } = require('../../tax-engine/income/helpers.js');
 
 const MONTHS_IN_YEAR = 12;
+const SUPPORTED_DEDUCTION_KEYS = new Set([
+  'smallEnterpriseMutualAid',
+  'lifeInsurance',
+  'earthquakeInsurance',
+  'donations',
+]);
 const CONSUMPTION_TAX_METHOD_LABELS = Object.freeze({
   general: '一般課税',
   simplified: '簡易課税',
@@ -110,8 +116,19 @@ function hasEntries(value) {
 }
 
 function hasUnsupportedDeductions(value) {
-  return hasEntries(value) && Object.keys(value)
-    .some(key => key !== 'smallEnterpriseMutualAid');
+  if (!hasEntries(value)) return false;
+  if (Object.keys(value).some(key => !SUPPORTED_DEDUCTION_KEYS.has(key))) return true;
+  return (value.donations || []).some(item => item.kind !== 'furusato');
+}
+
+function hasUnsupportedTaxCredits(value) {
+  if (!hasEntries(value)) return false;
+  return Object.keys(value).some(key => key !== 'housingLoan') ||
+    (Array.isArray(value.other) && value.other.length > 0);
+}
+
+function hasUnsupportedCorporateDeductions(value) {
+  return hasEntries(value) && Object.keys(value).some(key => key !== 'smallEnterpriseMutualAid');
 }
 
 function isOneSegmentFor(segments, period) {
@@ -217,7 +234,7 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.individual.deductions',
       comparisonDistortion));
   }
-  if (individual.taxCredits !== undefined) {
+  if (hasUnsupportedTaxCredits(individual.taxCredits)) {
     reasons.push(blockedReason('HJ_TAX_CREDITS_UNSUPPORTED', '$.individual.taxCredits',
       comparisonDistortion));
   }
@@ -242,7 +259,7 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_EMPLOYEES_UNSUPPORTED', '$.corporate.employeeCount',
       '従業員がいる法人は第1版の対象外です'));
   }
-  if (hasUnsupportedDeductions(corporate.deductions)) {
+  if (hasUnsupportedCorporateDeductions(corporate.deductions)) {
     reasons.push(blockedReason('HJ_DEDUCTIONS_UNSUPPORTED', '$.corporate.deductions',
       comparisonDistortion));
   }
@@ -375,6 +392,7 @@ function individualEngineInput(individual, nationalHealthInsurance, nationalPens
     self: individual.self,
     spouse: individual.spouse,
     dependents: individual.dependents || [],
+    taxCredits: individual.taxCredits,
   };
 }
 
@@ -393,7 +411,13 @@ function calculateSoleProprietor(input, context) {
   });
   blocked = engineBlockedReasons(incomeTaxResult, 'INCOME_TAX', '$.individual');
   if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
-  const residentTaxResult = residentTax.calculate(engineInput, {
+  const residentTaxResult = residentTax.calculate({
+    ...engineInput,
+    incomeTaxTaxableTotalIncome: incomeTaxResult.taxableTotalIncome,
+    unappliedHousingLoanCredit: yen(
+      incomeTaxResult.housingLoanCredit.value - incomeTaxResult.appliedHousingLoanCredit.value
+    ),
+  }, {
     incomeYear: incomeYearFrom(context),
     residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYearFrom(context),
     jurisdiction: context.jurisdiction,
@@ -433,10 +457,19 @@ function calculateSoleProprietor(input, context) {
       orderedIncomeDeductions: incomeTaxResult.orderedIncomeDeductions,
       totalIncomeDeductions: incomeTaxResult.totalIncomeDeductions,
       incomeTaxTaxableIncome: incomeTaxResult.taxableTotalIncome,
+      incomeTaxCalculatedAmount: incomeTaxResult.calculatedIncomeTax,
+      housingLoanCredit: incomeTaxResult.housingLoanCredit,
+      appliedHousingLoanCredit: incomeTaxResult.appliedHousingLoanCredit,
+      residentTaxTotalIncomeDeductions: residentTaxResult.totalIncomeDeductions,
+      residentTaxTaxableIncome: residentTaxResult.taxableTotalIncome,
       residentTaxAdjustmentDeduction: yen(
         residentTaxResult.municipalAdjustmentDeduction.value +
           residentTaxResult.prefecturalAdjustmentDeduction.value
       ),
+      residentTaxPrefecturalIncomeLevy: residentTaxResult.prefecturalIncomeLevy,
+      residentTaxMunicipalIncomeLevy: residentTaxResult.municipalIncomeLevy,
+      residentTaxDonationCredit: residentTaxResult.donationCredit,
+      residentTaxHousingLoanCredit: residentTaxResult.housingLoanCredit,
     },
     assumptions: [
       ...(nhi.assumptions || []),
@@ -468,7 +501,13 @@ function calculateCorporation(input, context) {
     officer: input.individual.self,
     spouse: input.individual.spouse,
     dependents: input.individual.dependents || [],
-    deductions: corporate.deductions,
+    deductions: {
+      ...(corporate.deductions || {}),
+      lifeInsurance: (input.individual.deductions || {}).lifeInsurance,
+      earthquakeInsurance: (input.individual.deductions || {}).earthquakeInsurance,
+      donations: (input.individual.deductions || {}).donations,
+    },
+    taxCredits: input.individual.taxCredits,
     specialistChecks: {},
     profitBeforeOfficerCompensation,
     plan: corporate.officerCompensation,
@@ -499,7 +538,16 @@ function calculateCorporation(input, context) {
     orderedIncomeDeductions: candidate.orderedIncomeDeductions,
     totalIncomeDeductions: candidate.totalIncomeDeductions,
     incomeTaxTaxableIncome: candidate.incomeTaxTaxableIncome,
+    incomeTaxCalculatedAmount: candidate.incomeTaxCalculatedAmount,
+    housingLoanCredit: candidate.housingLoanCredit,
+    appliedHousingLoanCredit: candidate.appliedHousingLoanCredit,
+    residentTaxTotalIncomeDeductions: candidate.residentTaxTotalIncomeDeductions,
+    residentTaxTaxableIncome: candidate.residentTaxTaxableIncome,
     residentTaxAdjustmentDeduction: candidate.residentTaxAdjustmentDeduction,
+    residentTaxPrefecturalIncomeLevy: candidate.residentTaxPrefecturalIncomeLevy,
+    residentTaxMunicipalIncomeLevy: candidate.residentTaxMunicipalIncomeLevy,
+    residentTaxDonationCredit: candidate.residentTaxDonationCredit,
+    residentTaxHousingLoanCredit: candidate.residentTaxHousingLoanCredit,
   };
   const costs = input.setupAndMaintenanceCosts;
   if (costs && ['annualAccountingFee', 'annualLaborConsultantFee', 'otherAnnualCost']
@@ -765,6 +813,7 @@ function baseAssumptions(input, context) {
     '個人側の国保・国民年金は必要経費へ含めず、社会保険料控除だけに反映しています。',
     '配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）は含めていません。法人化後の被扶養者・第3号被保険者の扱いの差も未反映です。',
     '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
+    'ふるさと納税は確定申告を前提に計算し、ワンストップ特例は使用していません。',
   ];
   const adjustments = input.corporate.taxAdjustments;
   if (!adjustments || !Array.isArray(adjustments.items) ||

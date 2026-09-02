@@ -15,6 +15,7 @@ const {
   masterRate,
   sumMoney,
   minMoney,
+  maxMoney,
   floorMoneyAtZero,
   floorExactAtZero,
   findRange,
@@ -24,9 +25,11 @@ const {
   addMoney,
   subtractMoney,
   applyRounding,
+  calculateTierAmount,
 } = require('../income/helpers.js');
 
 const LOCAL_TAX_ROUNDING_RULE_ID = 'R-TRUNC-100-LOCAL-TAX';
+const LIFE_CATEGORIES = Object.freeze(['life', 'nursing_medical', 'annuity']);
 
 function addReason(reasons, code, message, itemIndex) {
   if (reasons.some(reason => reason.code === code && reason.itemIndex === itemIndex)) return;
@@ -401,10 +404,89 @@ function calculateDependentRows(dependents, searchCriterion) {
   return { rows, blockedReasons };
 }
 
-function insuranceInputPresent(items) {
-  return Array.isArray(items) && items.some(item =>
-    inputMoney(item.annualPremium, 'annualPremium').value > 0n
-  );
+function premiumTotal(premiums, generation, category) {
+  return sumMoney(premiums.filter(item =>
+    item.generation === generation && item.category === category
+  ).map(item => inputMoney(item.annualPremium, 'lifeInsurance.annualPremium')));
+}
+
+function tierDeduction(valueKey, premium, searchCriterion, predicate = () => true) {
+  const records = masters.find(valueKey, searchCriterion).filter(predicate);
+  const record = findRange(records, premium, 'premium_lower_inclusive');
+  if (!record) throw new Error(`住民税の保険料控除表に該当行がありません: ${valueKey}`);
+  return calculateTierAmount(premium, record);
+}
+
+function fixedTierCap(valueKey, searchCriterion) {
+  const caps = masters.find(valueKey, searchCriterion)
+    .filter(record => record.deduction_type === 'fixed')
+    .map(record => masterMoney(record.fixed_amount));
+  if (caps.length === 0) throw new Error(`住民税の保険料控除上限を取得できません: ${valueKey}`);
+  return caps.reduce((highest, amount) => maxMoney(highest, amount));
+}
+
+function calculateLifeInsuranceDeduction(premiums = [], searchCriterion) {
+  if (premiums.some(item => item.generation === 'old' && item.category === 'nursing_medical')) {
+    throw new RangeError('旧契約に介護医療保険料区分はありません');
+  }
+  const newValueKey = 'resident_tax_life_insurance_deduction_new';
+  const oldValueKey = 'resident_tax_life_insurance_deduction_old';
+  const newCategoryCap = fixedTierCap(newValueKey, searchCriterion);
+  const overallCap = masterMoney(requiredRecord(
+    'resident_tax_life_insurance_total_cap', searchCriterion
+  ).fixed_amount);
+  const rows = LIFE_CATEGORIES.map(category => {
+    const newPremium = premiumTotal(premiums, 'new', category);
+    const oldPremium = category === 'nursing_medical'
+      ? zeroMoney()
+      : premiumTotal(premiums, 'old', category);
+    const newDeduction = tierDeduction(newValueKey, newPremium, searchCriterion);
+    const oldDeduction = category === 'nursing_medical'
+      ? zeroMoney()
+      : tierDeduction(oldValueKey, oldPremium, searchCriterion);
+    const combinedUnderNewCap = minMoney(addMoney(newDeduction, oldDeduction), newCategoryCap);
+    return {
+      category,
+      newPremium,
+      oldPremium,
+      newDeduction,
+      oldDeduction,
+      amount: maxMoney(oldDeduction, combinedUnderNewCap),
+    };
+  });
+  return {
+    rows,
+    overallCap,
+    amount: minMoney(sumMoney(rows.map(row => row.amount)), overallCap),
+  };
+}
+
+function calculateEarthquakeInsuranceDeduction(premiums = [], searchCriterion) {
+  const normalized = premiums.map(item => ({
+    category: item.category === 'old_long_term'
+      ? 'long_term_casualty_insurance'
+      : 'earthquake_insurance',
+    annualPremium: inputMoney(item.annualPremium, 'earthquakeInsurance.annualPremium'),
+  }));
+  const rows = ['earthquake_insurance', 'long_term_casualty_insurance'].map(category => {
+    const premium = sumMoney(normalized.filter(item => item.category === category)
+      .map(item => item.annualPremium));
+    const amount = tierDeduction(
+      'resident_tax_earthquake_insurance_deduction',
+      premium,
+      searchCriterion,
+      record => record.deduction_category === category
+    );
+    return { category, premium, amount };
+  });
+  const overallCap = masterMoney(requiredRecord(
+    'resident_tax_earthquake_insurance_total_cap', searchCriterion
+  ).fixed_amount);
+  return {
+    rows,
+    overallCap,
+    amount: minMoney(sumMoney(rows.map(row => row.amount)), overallCap),
+  };
 }
 
 function calculateResidentDeductions(input, totalIncome, searchCriterion) {
@@ -451,34 +533,19 @@ function calculateResidentDeductions(input, totalIncome, searchCriterion) {
     ).deduction_amount)
     : zeroMoney();
 
-  const lifePresent = insuranceInputPresent(deductions.lifeInsurance);
-  const earthquakePresent = insuranceInputPresent(deductions.earthquakeInsurance);
-  if (lifePresent) {
-    warnings.push({
-      code: 'RT_LIFE_INSURANCE_DEDUCTION_UNREGISTERED',
-      message: '住民税側の生命保険料控除表が未登録のため、当該控除は反映していません',
-    });
-    assumptions.push({
-      code: 'RT_LIFE_INSURANCE_DEDUCTION_EXCLUDED',
-      message: '生命保険料控除は所得税の控除額で代用せず、住民税マスター登録まで計算対象外としました',
-    });
-  }
-  if (earthquakePresent) {
-    warnings.push({
-      code: 'RT_EARTHQUAKE_INSURANCE_DEDUCTION_UNREGISTERED',
-      message: '住民税側の地震保険料控除表が未登録のため、当該控除は反映していません',
-    });
-    assumptions.push({
-      code: 'RT_EARTHQUAKE_INSURANCE_DEDUCTION_EXCLUDED',
-      message: '地震保険料控除は所得税の控除額で代用せず、住民税マスター登録まで計算対象外としました',
-    });
-  }
-
+  const lifeInsurance = calculateLifeInsuranceDeduction(
+    deductions.lifeInsurance || [], searchCriterion
+  );
+  const earthquakeInsurance = calculateEarthquakeInsuranceDeduction(
+    deductions.earthquakeInsurance || [], searchCriterion
+  );
   const ordered = [
     ['socialInsurance', socialInsuranceAmount(deductions.socialInsurance)],
     ['smallEnterpriseMutualAid', inputMoney(
       deductions.smallEnterpriseMutualAid, 'smallEnterpriseMutualAid'
     )],
+    ['lifeInsurance', lifeInsurance.amount],
+    ['earthquakeInsurance', earthquakeInsurance.amount],
     ['widowOrSingleParent', widowOrSingleParent],
     ['workingStudent', workingStudent],
     ['disability', sumMoney(disabilityRows.map(row => row.amount))],
@@ -494,17 +561,15 @@ function calculateResidentDeductions(input, totalIncome, searchCriterion) {
     status: 'complete',
     warnings,
     assumptions,
-    deductions: {
-      ...Object.fromEntries(ordered),
-      lifeInsurance: lifePresent ? null : zeroMoney(),
-      earthquakeInsurance: earthquakePresent ? null : zeroMoney(),
-    },
+    deductions: Object.fromEntries(ordered),
     orderedDeductions: ordered.map(([code, amount], index) =>
       ({ calculationOrder: index + 1, code, amount })),
     totalDeduction: sumMoney(ordered.map(([, amount]) => amount)),
     spouseRow,
     dependentRows: dependentResult.rows,
     disabilityRows,
+    lifeInsuranceRows: lifeInsurance.rows,
+    earthquakeInsuranceRows: earthquakeInsurance.rows,
     familyStatus,
     workingStudentApplied: workingStudent.value > 0n,
   };
@@ -562,6 +627,126 @@ function designatedRecord(valueKey, searchCriterion, isDesignatedCity) {
   );
 }
 
+function applyMasterRate(amount, rateValue, roundingRuleId = 'R-TRUNC-1-YEN') {
+  return applyRounding(
+    multiplyRateByMoney(masterRate(rateValue), amount),
+    roundingRuleId
+  );
+}
+
+function furusatoSpecialRate(searchCriterion, basis) {
+  const records = masters.find('furusato_special_credit_rate_table', searchCriterion);
+  if (basis.value < 0n) {
+    const negative = records.find(record => record.rate);
+    if (!negative) throw new Error('ふるさと納税の特例控除率を取得できません');
+    return { rate: negative.rate, masterRecordId: negative.record_id };
+  }
+  const table = records.find(record => Array.isArray(record.bands));
+  if (!table) throw new Error('ふるさと納税の特例控除率表を取得できません');
+  const band = table.bands.find(item => {
+    const lower = item.lower_exclusive ? masterMoney(item.lower_exclusive) : null;
+    const upper = item.upper_inclusive ? masterMoney(item.upper_inclusive) : null;
+    return (lower === null || basis.value > lower.value) &&
+      (upper === null || basis.value <= upper.value);
+  });
+  if (!band) throw new Error('ふるさと納税の特例控除率表に該当帯がありません');
+  return { rate: band.rate, masterRecordId: table.record_id };
+}
+
+function calculateFurusatoCredit(input, totalIncome, taxableTotalIncome,
+  personalDeductionDifference, incomeLevyAfterAdjustment, searchCriterion, isDesignatedCity) {
+  const donations = ((input.deductions || {}).donations || []).filter(item =>
+    !item.kind || item.kind === 'furusato'
+  );
+  const totalDonations = sumMoney(donations.map(item =>
+    inputMoney(item.amount === undefined ? item : item.amount, 'donations.amount')
+  ));
+  const floorRecord = requiredRecord('donation_deduction_floor', searchCriterion,
+    record => record.tax_or_insurance_type === 'resident_tax');
+  const incomeCapRecord = requiredRecord('donation_deduction_income_cap_rate', searchCriterion,
+    record => record.tax_or_insurance_type === 'resident_tax');
+  const donationIncomeCap = applyMasterRate(
+    totalIncome, incomeCapRecord.rate, incomeCapRecord.rounding_rule_id
+  );
+  const eligibleDonation = minMoney(totalDonations, donationIncomeCap);
+  const targetAmount = floorMoneyAtZero(subtractMoney(
+    eligibleDonation, masterMoney(floorRecord.threshold_amount)
+  ));
+  const basicRateRecord = designatedRecord(
+    'donation_basic_credit_rate', searchCriterion, isDesignatedCity
+  );
+  const prefecturalBasic = applyMasterRate(
+    targetAmount, basicRateRecord.prefectural_rate, basicRateRecord.rounding_rule_id
+  );
+  const municipalBasic = applyMasterRate(
+    targetAmount, basicRateRecord.municipal_rate, basicRateRecord.rounding_rule_id
+  );
+  const basis = subtractMoney(taxableTotalIncome, personalDeductionDifference);
+  const specialRate = furusatoSpecialRate(searchCriterion, basis);
+  const specialBeforeCap = applyMasterRate(targetAmount, specialRate.rate);
+  const capRecord = requiredRecord('furusato_special_credit_cap_rate', searchCriterion);
+  const specialCap = applyMasterRate(
+    incomeLevyAfterAdjustment, capRecord.rate, capRecord.rounding_rule_id
+  );
+  const special = minMoney(specialBeforeCap, specialCap);
+  const allocationRecord = designatedRecord(
+    'furusato_special_credit_allocation', searchCriterion, isDesignatedCity
+  );
+  const prefecturalSpecial = applyMasterRate(
+    special, allocationRecord.prefectural_share, allocationRecord.rounding_rule_id
+  );
+  const municipalSpecial = applyMasterRate(
+    special, allocationRecord.municipal_share, allocationRecord.rounding_rule_id
+  );
+  return {
+    totalDonations,
+    donationIncomeCap,
+    targetAmount,
+    basis,
+    specialRate: masterRate(specialRate.rate),
+    specialRateMasterRecordId: specialRate.masterRecordId,
+    basic: addMoney(prefecturalBasic, municipalBasic),
+    prefecturalBasic,
+    municipalBasic,
+    specialBeforeCap,
+    specialCap,
+    special,
+    prefecturalSpecial,
+    municipalSpecial,
+    capReached: specialBeforeCap.value > specialCap.value,
+  };
+}
+
+function calculateHousingLoanCredit(input, taxableIncomeTax, searchCriterion, isDesignatedCity) {
+  const unapplied = inputMoney(
+    input.unappliedHousingLoanCredit ??
+      (input.residentTaxCredits && input.residentTaxCredits.unappliedHousingLoanCredit),
+    'unappliedHousingLoanCredit'
+  );
+  if (unapplied.value < 0n) throw new RangeError('所得税で控除しきれなかった住宅ローン控除額は0円以上です');
+  if (unapplied.value > 0n && taxableIncomeTax === undefined) {
+    throw new TypeError('住宅ローンの住民税控除には所得税の課税総所得金額等が必要です');
+  }
+  const record = requiredRecord('resident_tax_housing_loan_credit_limit', searchCriterion,
+    item => item.acquisition_category === 'ordinary' &&
+      conditionValue(item, 'is_designated_city') === isDesignatedCity);
+  const incomeTaxBase = inputMoney(taxableIncomeTax, 'incomeTaxTaxableTotalIncome');
+  const incomeBasedLimit = applyMasterRate(
+    incomeTaxBase, record.combined_limit_rate, record.rounding_rule_id
+  );
+  const statutoryLimit = masterMoney(record.combined_limit_amount);
+  const limit = minMoney(incomeBasedLimit, statutoryLimit);
+  const amount = minMoney(unapplied, limit);
+  const prefectural = applyMasterRate(amount, record.prefectural_share, record.rounding_rule_id);
+  const municipal = applyMasterRate(amount, record.municipal_share, record.rounding_rule_id);
+  return { unapplied, incomeTaxBase, incomeBasedLimit, statutoryLimit, limit, amount,
+    prefectural, municipal, masterRecordId: record.record_id };
+}
+
+function subtractCredit(base, credit) {
+  return floorMoneyAtZero(subtractMoney(base, minMoney(base, credit)));
+}
+
 function zeroTaxResult(base) {
   const zero = zeroMoney();
   return {
@@ -574,6 +759,10 @@ function zeroTaxResult(base) {
     prefecturalIncomeLevyBeforeAdjustment: zero,
     municipalAdjustmentDeduction: zero,
     prefecturalAdjustmentDeduction: zero,
+    municipalIncomeLevyAfterAdjustment: zero,
+    prefecturalIncomeLevyAfterAdjustment: zero,
+    donationCredit: null,
+    housingLoanCredit: null,
     municipalIncomeLevy: zero,
     prefecturalIncomeLevy: zero,
     municipalPerCapitaLevy: zero,
@@ -687,13 +876,50 @@ function calculate(input, options = {}) {
     const prefecturalAdjustmentExact = multiplyRateByMoney(
       prefecturalAdjustmentRate, adjustmentBase
     );
-    const municipalIncomeLevy = applyRounding(
+    const municipalIncomeLevyAfterAdjustment = applyRounding(
       floorExactAtZero(subtractExact(municipalGrossExact, municipalAdjustmentExact)),
-      LOCAL_TAX_ROUNDING_RULE_ID
+      'R-NONE'
+    );
+    const prefecturalIncomeLevyAfterAdjustment = applyRounding(
+      floorExactAtZero(subtractExact(prefecturalGrossExact, prefecturalAdjustmentExact)),
+      'R-NONE'
+    );
+    const incomeLevyAfterAdjustment = addMoney(
+      municipalIncomeLevyAfterAdjustment, prefecturalIncomeLevyAfterAdjustment
+    );
+    const isDesignatedCity = jurisdictionOf(input, options).isDesignatedCity;
+    const donationCredit = calculateFurusatoCredit(
+      input,
+      incomeResult.totalIncome,
+      taxableTotalIncome,
+      difference.amount,
+      incomeLevyAfterAdjustment,
+      criteria.levy,
+      isDesignatedCity
+    );
+    let municipalAfterCredits = subtractCredit(
+      municipalIncomeLevyAfterAdjustment, donationCredit.municipalBasic
+    );
+    let prefecturalAfterCredits = subtractCredit(
+      prefecturalIncomeLevyAfterAdjustment, donationCredit.prefecturalBasic
+    );
+    municipalAfterCredits = subtractCredit(municipalAfterCredits, donationCredit.municipalSpecial);
+    prefecturalAfterCredits = subtractCredit(prefecturalAfterCredits, donationCredit.prefecturalSpecial);
+
+    const incomeTaxTaxableTotalIncome = input.incomeTaxTaxableTotalIncome ??
+      (input.residentTaxCredits && input.residentTaxCredits.incomeTaxTaxableTotalIncome);
+    const housingLoanCredit = calculateHousingLoanCredit(
+      input, incomeTaxTaxableTotalIncome, criteria.levy, isDesignatedCity
+    );
+    municipalAfterCredits = subtractCredit(municipalAfterCredits, housingLoanCredit.municipal);
+    prefecturalAfterCredits = subtractCredit(prefecturalAfterCredits, housingLoanCredit.prefectural);
+
+    // 所得割の100円未満切捨ては、調整・寄附・住宅ローンの全控除を適用した後に行う。
+    const municipalIncomeLevy = applyRounding(
+      moneyToExact(municipalAfterCredits), LOCAL_TAX_ROUNDING_RULE_ID
     );
     const prefecturalIncomeLevy = applyRounding(
-      floorExactAtZero(subtractExact(prefecturalGrossExact, prefecturalAdjustmentExact)),
-      LOCAL_TAX_ROUNDING_RULE_ID
+      moneyToExact(prefecturalAfterCredits), LOCAL_TAX_ROUNDING_RULE_ID
     );
     const municipalPerCapitaLevy = masterMoney(requiredRecord(
       'resident_tax_per_capita_municipal', criteria.levy
@@ -713,8 +939,22 @@ function calculate(input, options = {}) {
     return {
       status: 'complete',
       blockedReasons: [],
-      warnings: [...deductionResult.warnings, ...difference.warnings],
-      assumptions: [...assumptions, ...deductionResult.assumptions],
+      warnings: [
+        ...deductionResult.warnings,
+        ...difference.warnings,
+        ...(donationCredit.capReached ? [{
+          code: 'RT_FURUSATO_SPECIAL_CREDIT_CAP_REACHED',
+          message: 'ふるさと納税の特例控除が所得割額の上限に達したため、自己負担額が2,000円を超えます',
+        }] : []),
+      ],
+      assumptions: [
+        ...assumptions,
+        ...deductionResult.assumptions,
+        ...(donationCredit.totalDonations.value > 0n ? [{
+          code: 'RT_FURUSATO_FINAL_RETURN_ASSUMED',
+          message: 'ふるさと納税は確定申告を前提に計算し、ワンストップ特例は使用していません',
+        }] : []),
+      ],
       ...incomeResult,
       exemption,
       incomeDeductions: deductionResult.deductions,
@@ -724,6 +964,8 @@ function calculate(input, options = {}) {
         spouse: deductionResult.spouseRow,
         dependents: deductionResult.dependentRows,
         disabilities: deductionResult.disabilityRows,
+        lifeInsurance: deductionResult.lifeInsuranceRows,
+        earthquakeInsurance: deductionResult.earthquakeInsuranceRows,
       },
       taxableTotalIncomeBeforeRounding: taxableBeforeRounding,
       taxableTotalIncome,
@@ -734,6 +976,10 @@ function calculate(input, options = {}) {
       prefecturalIncomeLevyBeforeAdjustment: applyRounding(prefecturalGrossExact, 'R-NONE'),
       municipalAdjustmentDeduction: applyRounding(municipalAdjustmentExact, 'R-NONE'),
       prefecturalAdjustmentDeduction: applyRounding(prefecturalAdjustmentExact, 'R-NONE'),
+      municipalIncomeLevyAfterAdjustment,
+      prefecturalIncomeLevyAfterAdjustment,
+      donationCredit,
+      housingLoanCredit,
       municipalIncomeLevy,
       prefecturalIncomeLevy,
       municipalPerCapitaLevy,
@@ -761,4 +1007,8 @@ module.exports = {
   calculate,
   preflightBlockedReasons,
   calculateExemption,
+  calculateLifeInsuranceDeduction,
+  calculateEarthquakeInsuranceDeduction,
+  calculateFurusatoCredit,
+  calculateHousingLoanCredit,
 };

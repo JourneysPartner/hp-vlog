@@ -159,6 +159,40 @@ function main() {
     assert.strictEqual(rows.get('smallEnterpriseMutualAid'), 276000n);
     assert.strictEqual(deduction.viewModel.combinedCash.value, 8785400n);
   });
+  check('控除第2弾をWireへ組み立て、④ゴールデン8,889,100円を画面経路で再現する', () => {
+    const deduction2 = run(baseState({
+      ageAtYearEnd: '45', selfDisability: 'general',
+      spouseExists: 'yes', spouseTotalIncome: '0',
+      dependents16To18: '1', dependents19To22: '1',
+      smallEnterpriseMutualAid: '276000',
+      lifeInsuranceNewLife: '120000',
+      lifeInsuranceNewNursingMedical: '80000',
+      earthquakeInsurancePremium: '50000',
+      furusatoDonation: '20000',
+      housingLoanCredit: '100000',
+    }));
+    assert.strictEqual(deduction2.wire.deductions.lifeInsurance.length, 5);
+    assert.strictEqual(deduction2.wire.deductions.lifeInsurance[0].annualPremium.value, '120000');
+    assert.strictEqual(deduction2.wire.deductions.earthquakeInsurance[0].annualPremium.value, '50000');
+    assert.deepStrictEqual(deduction2.wire.deductions.donations,
+      [{ kind: 'furusato', amount: { unit: 'JPY', value: '20000' } }]);
+    assert.strictEqual(deduction2.wire.taxCredits.housingLoan.value, '100000');
+    assert.strictEqual(deduction2.result.breakdown.data.candidates[0].combinedCash.value, 8889100n);
+  });
+  check('ふるさと納税52,000円の上限到達警告を表示用データへ渡す', () => {
+    const overCap = run(baseState({
+      ageAtYearEnd: '45', selfDisability: 'general',
+      spouseExists: 'yes', spouseTotalIncome: '0',
+      dependents16To18: '1', dependents19To22: '1',
+      smallEnterpriseMutualAid: '276000',
+      lifeInsuranceNewLife: '120000', lifeInsuranceNewNursingMedical: '80000',
+      earthquakeInsurancePremium: '50000', furusatoDonation: '52000',
+      housingLoanCredit: '100000',
+    }));
+    assert(overCap.viewModel.warnings.some(warning =>
+      warning.code === 'RT_FURUSATO_SPECIAL_CREDIT_CAP_REACHED' &&
+      warning.basis.includes('自己負担額が2,000円を超えます')));
+  });
   check('扶養障害者は同居特別を同居扶養から先に割り当てる', () => {
     const allocated = run(baseState({
       dependents16To18: '1', dependents70PlusSeparate: '1',
@@ -208,7 +242,11 @@ function main() {
       assert(root.textContent.includes('うち障害のある方'));
       assert(root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
       assert(root.textContent.includes('小規模企業共済・iDeCoの掛金（年額）'));
-      assert(root.textContent.includes('生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'));
+      assert(root.textContent.includes('新契約：一般生命保険料（年額）'));
+      assert(root.textContent.includes('ふるさと納税の年間寄附額'));
+      assert(root.textContent.includes('源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'));
+      assert(root.textContent.includes('医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません'));
+      assert(root.textContent.includes('ワンストップ特例は使用せず'));
       assert(!root.textContent.includes('単身'));
       app.store.setState(state => ({ ...state, screen: 'result',
         result: familyModeC.result, viewModel: familyModeC.viewModel }));

@@ -1,6 +1,7 @@
 'use strict';
 
 const { appendFamilyFacts } = require('../family-input.js');
+const { appendPhase2Deductions } = require('../phase2-deduction-input.js');
 
 const YEAR_PERIOD = Object.freeze({ from: '2025-01-01', to: '2025-12-31' });
 
@@ -166,6 +167,9 @@ function buildHojinnariInput(formState, context) {
     dependentsPath: '$.individual.dependents',
     codePrefix: 'HJ_UI',
   });
+  appendPhase2Deductions(
+    input.individual, formState, money, errors, '$.individual'
+  );
 
   if (errors.length > 0) throw new HojinnariInputBuildError(errors);
   return input;

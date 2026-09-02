@@ -153,6 +153,63 @@ console.log('\n=== 住民税エンジン: 100円未満切捨て ===');
     '市930→900円・県620→600円（それぞれで100円未満切捨て）');
 }
 
+console.log('\n=== GC-YH-DEDUCTIONS2-500K: 住民税単体 ===');
+{
+  const deductionInput = donation => ({
+    previousYearTotalIncome: yen(4360000),
+    self: { disability: 'general' },
+    spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) },
+    dependents: [
+      { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+      { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+    ],
+    deductions: {
+      socialInsurance: { kind: 'total', annualTotal: yen(894000) },
+      smallEnterpriseMutualAid: yen(276000),
+      lifeInsurance: [
+        { generation: 'new', category: 'life', annualPremium: yen(120000) },
+        { generation: 'new', category: 'nursing_medical', annualPremium: yen(80000) },
+      ],
+      earthquakeInsurance: [{ category: 'earthquake', annualPremium: yen(50000) }],
+      donations: [{ kind: 'furusato', amount: yen(donation) }],
+    },
+    incomeTaxTaxableTotalIncome: yen(702000),
+    unappliedHousingLoanCredit: yen(64900),
+  });
+  const result = calc(deductionInput(20000));
+  assert(result.incomeDeductions.lifeInsurance.value === 56000n &&
+    result.incomeDeductions.earthquakeInsurance.value === 25000n,
+  '住民税の生保5.6万円・地震2.5万円をマスター表から計算する');
+  assert(result.taxableTotalIncome.value === 1309000n &&
+    result.municipalAdjustmentDeduction.value + result.prefecturalAdjustmentDeduction.value === 17000n,
+  '課税所得130.9万円・調整控除1.7万円になる');
+  assert(result.donationCredit.basis.value === 969000n &&
+    result.donationCredit.specialRate.num * 100n / result.donationCredit.specialRate.den === 85n,
+  '特例控除率は人的控除差後96.9万円の条文表85%帯を使う');
+  assert(result.donationCredit.prefecturalBasic.value === 720n &&
+    result.donationCredit.municipalBasic.value === 1080n &&
+    result.donationCredit.prefecturalSpecial.value === 6120n &&
+    result.donationCredit.municipalSpecial.value === 9180n,
+  '寄附金税額控除を基本720/1,080円・特例6,120/9,180円へ按分する');
+  assert(result.housingLoanCredit.incomeBasedLimit.value === 35100n &&
+    result.housingLoanCredit.amount.value === 35100n &&
+    result.housingLoanCredit.prefectural.value === 14040n &&
+    result.housingLoanCredit.municipal.value === 21060n,
+  '住宅ローン控除は所得税課税所得×5%の35,100円で頭打ちにして按分する');
+  assert(result.prefecturalIncomeLevy.value === 24600n &&
+    result.municipalIncomeLevy.value === 37000n && result.annualTaxTotal.value === 66600n,
+  '全控除後に100円未満を切り捨て、県24,600円・区37,000円・年税66,600円になる');
+
+  const overCap = calc(deductionInput(52000));
+  assert(overCap.donationCredit.specialBeforeCap.value === 42500n &&
+    overCap.donationCredit.special.value === 22780n && overCap.donationCredit.capReached,
+  '寄附52,000円では特例控除42,500円を上限22,780円で止める');
+  assert(overCap.warnings.some(warning =>
+    warning.code === 'RT_FURUSATO_SPECIAL_CREDIT_CAP_REACHED' &&
+    warning.message.includes('自己負担額が2,000円を超えます')),
+  '上限到達時に自己負担が2,000円を超える警告を返す');
+}
+
 console.log('\n=== 住民税エンジン: blocked ===');
 {
   const r = rt.calculate({ previousYearTotalIncome: yen(5000000), deductions: {} },

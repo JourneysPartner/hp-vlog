@@ -42,6 +42,15 @@ const INITIAL_FORM = Object.freeze({
   dependentDisabilitySpecial: '0',
   dependentDisabilitySpecialCohabiting: '0',
   smallEnterpriseMutualAid: '0',
+  lifeInsuranceNewLife: '0',
+  lifeInsuranceNewNursingMedical: '0',
+  lifeInsuranceNewAnnuity: '0',
+  lifeInsuranceOldLife: '0',
+  lifeInsuranceOldAnnuity: '0',
+  earthquakeInsurancePremium: '0',
+  oldLongTermInsurancePremium: '0',
+  furusatoDonation: '0',
+  housingLoanCredit: '0',
   searchLowerBound: '',
   searchUpperBound: '',
   searchStep: '10000',
@@ -69,6 +78,15 @@ const FIELD_IDS = Object.freeze({
   '$.dependents.dependentDisabilitySpecial': 'yh-disability-special',
   '$.dependents.dependentDisabilitySpecialCohabiting': 'yh-disability-cohabiting',
   '$.deductions.smallEnterpriseMutualAid.value': 'yh-mutual-aid',
+  '$.deductions.lifeInsurance[0].annualPremium.value': 'yh-life-new-life',
+  '$.deductions.lifeInsurance[1].annualPremium.value': 'yh-life-new-medical',
+  '$.deductions.lifeInsurance[2].annualPremium.value': 'yh-life-new-annuity',
+  '$.deductions.lifeInsurance[3].annualPremium.value': 'yh-life-old-life',
+  '$.deductions.lifeInsurance[4].annualPremium.value': 'yh-life-old-annuity',
+  '$.deductions.earthquakeInsurance[0].annualPremium.value': 'yh-earthquake-premium',
+  '$.deductions.earthquakeInsurance[1].annualPremium.value': 'yh-old-long-term-premium',
+  '$.deductions.donations[0].amount.value': 'yh-furusato-donation',
+  '$.taxCredits.housingLoan.value': 'yh-housing-loan-credit',
   '$.calculationContext.jurisdiction': 'yh-municipality',
   '$.previousMonthlyAmount.value': 'yh-search-low',
   '$.searchUpperBound.value': 'yh-search-high',
@@ -252,6 +270,31 @@ function mountYakuinHoshuApp(rootElement, {
     ];
   }
 
+  function phase2DeductionFields() {
+    return el('div', { className: 'yh-card' }, [
+      el('h2', {}, '保険料・ふるさと納税・住宅ローンの控除'),
+      ...moneyField('lifeInsuranceNewLife', 'yh-life-new-life',
+        '新契約：一般生命保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceNewNursingMedical', 'yh-life-new-medical',
+        '新契約：介護医療保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceNewAnnuity', 'yh-life-new-annuity',
+        '新契約：個人年金保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceOldLife', 'yh-life-old-life',
+        '旧契約：一般生命保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceOldAnnuity', 'yh-life-old-annuity',
+        '旧契約：個人年金保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('earthquakeInsurancePremium', 'yh-earthquake-premium',
+        '地震保険料（年額）', '控除証明書の地震保険料。なければ0円。'),
+      ...moneyField('oldLongTermInsurancePremium', 'yh-old-long-term-premium',
+        '旧長期損害保険料（年額）', '経過措置の対象額。なければ0円。'),
+      ...moneyField('furusatoDonation', 'yh-furusato-donation',
+        'ふるさと納税の年間寄附額', '確定申告を前提に計算します。ワンストップ特例は使用しません。'),
+      ...moneyField('housingLoanCredit', 'yh-housing-loan-credit',
+        'その年分の住宅ローン控除額',
+        '源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'),
+    ]);
+  }
+
   function stepHeader(step, title) {
     return [
       el('p', { className: 'yh-progress', role: 'status',
@@ -339,10 +382,12 @@ function mountYakuinHoshuApp(rootElement, {
         '小規模企業共済・iDeCoの掛金（年額）',
         '掛金がなければ0円。税負担の軽減効果だけに反映します。',
         '$.deductions.smallEnterpriseMutualAid.value'),
+      phase2DeductionFields(),
       el('div', { className: 'yh-card' }, [
         el('h2', {}, '固定している前提'),
         el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。'),
-        el('p', {}, '生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'),
+        el('p', {}, '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。'),
+        el('p', {}, 'ワンストップ特例は使用せず、確定申告を前提に計算します。'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),
       pageActions({ previous: () => store.setState(state => ({ ...state, screen: 'mode', errors: [] })), next: true }),
