@@ -77,18 +77,36 @@ function commonInput(formState, context, errors) {
   return appendPhase2Deductions(input, formState, money, errors, '$');
 }
 
+/**
+ * 探索上限が空欄のときの既定値。役員報酬は利益（報酬控除前）を超えて出せないため、
+ * 利益÷12を刻みで切り捨てた月額を上限とする（MODE B でサービスが使う導出と同じ）。
+ * 税額の計算ではなく入力の既定値の導出（§38「既定上限は入力の既定値として明示」）。
+ */
+function defaultUpperBound(profitWire, searchStep) {
+  const profit = BigInt(profitWire.value);
+  const step = BigInt(searchStep);
+  const derived = (profit / 12n / step) * step;
+  return { unit: 'JPY', value: derived.toString(10) };
+}
+
 function buildModeA(formState, errors) {
   requireEnum(formState.searchStep, SEARCH_STEPS, '$.searchStep', '探索の刻み', errors);
   requireEnum(formState.optimizationCriterion, CRITERIA,
     '$.optimizationCriterion', '最適化基準', errors);
+  const profit = money(formState.profitBeforeOfficerCompensation,
+    '$.profitBeforeOfficerCompensation.value', errors);
+  const upperBoundText = String(formState.searchUpperBound ?? '').trim();
+  const searchUpperBound = upperBoundText === ''
+    ? (SEARCH_STEPS.includes(formState.searchStep)
+      ? defaultUpperBound(profit, formState.searchStep)
+      : money('', '$.searchUpperBound.value', errors))
+    : money(formState.searchUpperBound, '$.searchUpperBound.value', errors);
   const input = {
-    profitBeforeOfficerCompensation: money(formState.profitBeforeOfficerCompensation,
-      '$.profitBeforeOfficerCompensation.value', errors),
+    profitBeforeOfficerCompensation: profit,
     // サービスと入力スキーマが探索下限として受ける第1版のフィールド。
     previousMonthlyAmount: money(formState.searchLowerBound,
       '$.previousMonthlyAmount.value', errors),
-    searchUpperBound: money(formState.searchUpperBound,
-      '$.searchUpperBound.value', errors),
+    searchUpperBound,
     searchStep: formState.searchStep,
     optimizationCriterion: formState.optimizationCriterion,
   };
