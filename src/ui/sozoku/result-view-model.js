@@ -120,6 +120,11 @@ function buildSozokuResultViewModel(result, options = {}) {
     heading: `試算結果（LEVEL ${level}・${result.periodLabel}・${result.resultStatus}）`,
     filingNeed: data.filingNeed,
     conclusion: Object.freeze({ code: data.filingNeed, text: filingText }),
+    keyResult: Object.freeze({
+      label: '申告要否',
+      qualifier: 'この試算では',
+      value: filingText,
+    }),
     taxablePriceTotal: amount(data.taxablePriceTotal),
     basicDeduction: amount(data.basicDeduction),
     screeningEstimateUsed: hasWarning(result, 'SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE'),
@@ -153,6 +158,13 @@ function buildSozokuResultViewModel(result, options = {}) {
     ...base,
     totalInheritanceTax: amount(data.totalInheritanceTax),
     totalPayableTax: amount(payable),
+    keyResult: Object.freeze({
+      label: '納付税額の合計',
+      qualifier: 'この試算では',
+      amount: payable,
+      exactYen: moneyValue(payable),
+      display: formatYen(payable),
+    }),
     allocations: allocationRows,
     spouseRelief: spouse ? Object.freeze({
       before: spouse.taxBeforeCredits,

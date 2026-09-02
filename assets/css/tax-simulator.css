@@ -26,6 +26,13 @@
 .tax-simulator-page .simulator-supervision dd{margin:0}
 .tax-simulator-page .simulator-stop{border-left:6px solid #9b1c1c}
 .tax-simulator-page .simulator-stop-category{font-weight:700;color:#9b1c1c}
+.tax-simulator-page .simulator-key-result{margin:16px 0 24px;padding:22px 24px;border:1px solid #e3e8f0;border-left:6px solid #c64312;border-radius:12px;background:#fff;color:#0b2045;box-shadow:0 2px 8px rgba(11,32,69,.08)}
+.tax-simulator-page .simulator-key-result-label{margin:0 0 8px;color:#0b2045;font-size:1.1rem;font-weight:700}
+.tax-simulator-page .simulator-key-result-qualifier{font-size:.9em;font-weight:600}
+.tax-simulator-page .simulator-key-result-value{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35em 1em;margin:0;color:#0b2045;font-size:clamp(1.55rem,4vw,2.35rem);font-weight:800;line-height:1.35}
+.tax-simulator-page .simulator-key-result-amount{color:#c64312;font-size:1.12em;font-weight:800}
+.tax-simulator-page .hojinnari-verdict-summary.simulator-key-result{padding:0;border-left:1px solid #e3e8f0}
+.tax-simulator-page .hojinnari-benefit-amount.simulator-key-result-amount{font-size:clamp(1.65rem,4vw,2rem)}
 .tax-simulator-page .hojinnari-verdict-summary{border-color:#e3e8f0}
 .tax-simulator-page .hojinnari-verdict-banner,.tax-simulator-page .hojinnari-summary-table thead th{background:#0b2045;color:#fff}
 .tax-simulator-page .hojinnari-verdict-emphasis{color:#e85320}
@@ -38,4 +45,4 @@
 .tax-simulator-page .tool-page-footer a{color:#fff}
 @media(max-width:767px){.tax-simulator-page .tool-page-header-inner{align-items:flex-start;flex-direction:column;gap:10px}.tax-simulator-page .tool-page-nav{width:100%;flex-wrap:wrap;justify-content:flex-start;gap:8px 16px}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:auto}.tax-simulator-page .simulator-intro{padding:40px 0 24px}.tax-simulator-page .simulator-intro.simulator-intro--compact{padding:16px 0 12px}.tax-simulator-page .simulator-info-grid{grid-template-columns:1fr}.tax-simulator-page .simulator-supervision dl{grid-template-columns:1fr;gap:2px}.tax-simulator-page .simulator-supervision dd{margin-bottom:10px}}
 @media(max-width:520px){.tax-simulator-page .tool-page-nav a:nth-child(3){display:none}.tax-simulator-page .tool-page-nav .tool-page-cta{margin-left:0}}
-@media print{.tax-simulator-page .hojinnari-verdict-summary{break-inside:avoid}.tax-simulator-page .hojinnari-verdict-table-wrap{overflow:visible}.tax-simulator-page .hojinnari-verdict-banner,.tax-simulator-page .hojinnari-summary-table thead th,.tax-simulator-page .hojinnari-summary-total th,.tax-simulator-page .hojinnari-summary-total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media print{.tax-simulator-page .simulator-key-result{break-inside:avoid;box-shadow:none}.tax-simulator-page .simulator-key-result-amount{-webkit-print-color-adjust:exact;print-color-adjust:exact}.tax-simulator-page .hojinnari-verdict-summary{break-inside:avoid}.tax-simulator-page .hojinnari-verdict-table-wrap{overflow:visible}.tax-simulator-page .hojinnari-verdict-banner,.tax-simulator-page .hojinnari-summary-table thead th,.tax-simulator-page .hojinnari-summary-total th,.tax-simulator-page .hojinnari-summary-total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}

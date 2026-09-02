@@ -426,6 +426,19 @@ function mountShohizeiApp(rootElement, {
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
     ]);
   }
+  function keyResultSection(keyResult) {
+    if (!keyResult) return null;
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, [
+        keyResult.value ? el('span', {}, keyResult.value) : null,
+        keyResult.amount ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display) : null,
+      ]),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
@@ -442,6 +455,7 @@ function mountShohizeiApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'shohizei-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       viewModel.isExempt ? el('section', { className: 'shohizei-card shohizei-conclusion' }, [
         el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),
       ]) : [

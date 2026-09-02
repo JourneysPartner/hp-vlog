@@ -179,6 +179,11 @@ function main() {
       });
       app.store.setState(state => ({ ...state, step: 2,
         form: { ...state.form, spouseExists: 'yes' } }));
+      const age = root.querySelector('#hj-age');
+      const ageLabel = age.parentNode.children.find(node =>
+        node.tagName === 'LABEL' && node.getAttribute('for') === 'hj-age');
+      assert.strictEqual(ageLabel.textContent, '年齢を入力してください');
+      assert(root.textContent.includes('介護保険（40〜64歳）・厚生年金の判定に使います。'));
       assert(root.textContent.includes('配偶者はいますか'));
       assert(root.textContent.includes('年収から55万円を引いた金額'));
       assert(root.textContent.includes('70歳以上・同居の親等'));
@@ -295,6 +300,8 @@ function main() {
       const table = root.querySelector('.hojinnari-summary-table');
       assert(table);
       assert(table.parentNode.classList.contains('hojinnari-table-wrap'));
+      assert(root.querySelector('.simulator-key-result'));
+      assert.strictEqual(root.querySelector('.simulator-key-result-amount').textContent, '807,220円');
       assert(text.includes('①個人事業②法人成り①−②差引コメント'));
       app.destroy();
     });
@@ -402,6 +409,11 @@ function main() {
     assert.throws(() => buildHojinnariInput(goldenState({ expensesConfirmed: false }), context),
       error => error instanceof HojinnariInputBuildError &&
         error.errors.some(item => item.code === 'HJ_EXPENSES_EXCLUSION_CONFIRMATION_REQUIRED'));
+  });
+  check('年齢未入力は統一文言の組立エラーになる', () => {
+    assert.throws(() => buildHojinnariInput(goldenState({ ageAtYearEnd: '' }), complete.context), error =>
+      error instanceof HojinnariInputBuildError && error.errors.some(item =>
+        item.code === 'HJ_SELF_AGE_REQUIRED' && item.message === '年齢を入力してください（0以上の整数）'));
   });
   check('その他自治体＋国保概算は実額必須理由コードで組立拒否になる', () => {
     const context = buildCalculationContext(goldenState(), snapshotInfo, calculatedAt);

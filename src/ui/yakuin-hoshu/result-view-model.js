@@ -90,6 +90,13 @@ function modeCViewModel(result) {
   if (!candidate) throw new TypeError('MODE Cの選択候補がありません');
   return Object.freeze({
     ...common(result, 'C'),
+    keyResult: Object.freeze({
+      label: '法人＋個人の手残り（年間）',
+      qualifier: 'この試算では',
+      amount: candidate.combinedCash,
+      exactYen: moneyValue(candidate.combinedCash),
+      display: formatYen(candidate.combinedCash),
+    }),
     monthlyCompensation: candidate.monthlyCompensation,
     personalRows: Object.freeze([
       ['gross', '額面（年額）', candidate.annualCompensation, false],
@@ -197,10 +204,27 @@ function modeAViewModel(result, options) {
       text: `今回の条件では、月額役員報酬 ${formatYen(selected.monthlyCompensation)}前後で${criterion.outcome}となる試算です。`,
       isProvisional: false,
     });
+  const keyResult = nearUpperBound
+    ? Object.freeze({
+      label: '最適な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: undefined,
+      display: conclusion.text,
+      isProvisional: true,
+    })
+    : Object.freeze({
+      label: '最適な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: selected.monthlyCompensation,
+      exactYen: moneyValue(selected.monthlyCompensation),
+      display: `${formatYen(selected.monthlyCompensation)}前後`,
+      isProvisional: false,
+    });
   const defaults = selectDefaultCandidates(data.candidates, selectedPlanId);
   return Object.freeze({
     ...common(result, 'A'),
     criterion,
+    keyResult,
     criterionNotice: criterion.assumption,
     conclusion,
     optimizationDisclaimer: OPTIMIZATION_DISCLAIMER,
@@ -217,13 +241,20 @@ function modeAViewModel(result, options) {
 function modeBViewModel(result) {
   const base = common(result, 'B');
   if (result.summary.range) {
+    const display = `${formatYen(result.summary.range.low)}〜${formatYen(result.summary.range.high)}`;
     return Object.freeze({
       ...base,
+      keyResult: Object.freeze({
+        label: '必要な役員報酬（月額）',
+        qualifier: 'この試算では',
+        range: Object.freeze({ low: result.summary.range.low, high: result.summary.range.high }),
+        display,
+      }),
       isRange: true,
       range: Object.freeze({
         low: result.summary.range.low,
         high: result.summary.range.high,
-        display: `${formatYen(result.summary.range.low)}〜${formatYen(result.summary.range.high)}`,
+        display,
       }),
       conclusion: '希望手取りを満たす単一の報酬額は探索範囲内にないため、探索範囲として表示します。',
       forwardVerificationNotice: '各候補は順算関数で検証しています。',
@@ -235,6 +266,13 @@ function modeBViewModel(result) {
   if (!candidate) throw new TypeError('MODE Bの選択候補がありません');
   return Object.freeze({
     ...base,
+    keyResult: Object.freeze({
+      label: '必要な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: result.summary.amount,
+      exactYen: moneyValue(result.summary.amount),
+      display: `約${formatYen(result.summary.amount)}`,
+    }),
     isRange: false,
     requiredMonthlyCompensation: result.summary.amount,
     employerSocialInsuranceAnnual: candidate.socialInsuranceEmployer,

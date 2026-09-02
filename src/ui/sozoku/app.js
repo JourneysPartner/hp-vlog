@@ -446,6 +446,17 @@ function mountSozokuApp(rootElement, {
       el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存')]);
   }
+  function keyResultSection(keyResult) {
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, keyResult.amount
+        ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display)
+        : keyResult.value),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -456,6 +467,7 @@ function mountSozokuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'sozoku-help' }, 'この印刷物は申告に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       el('section', { className: 'sozoku-card sozoku-conclusion' }, [el('h2', {}, '申告要否の試算'), el('p', {}, viewModel.conclusion.text)]),
       el('section', { className: 'sozoku-card' }, [el('h2', {}, viewModel.level === 1 ? '簡易診断の金額' : '相続税の試算'),
         definitionList([['課税価格の合計', viewModel.taxablePriceTotal.display], ['基礎控除', viewModel.basicDeduction.display],

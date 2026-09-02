@@ -162,6 +162,11 @@ function buildResultViewModel(result) {
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
       exemptNotice: '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
+      keyResult: Object.freeze({
+        label: '納税義務の判定',
+        qualifier: 'この試算では',
+        value: '納税義務なし（免税事業者）',
+      }),
       eligibilityRows: Object.freeze([]),
       comparisonRows: Object.freeze([]),
       calculationRange: Object.freeze({ calculatedCount: 0, targetCount: 0, excluded: Object.freeze([]) }),
@@ -173,6 +178,7 @@ function buildResultViewModel(result) {
   const comparisons = comparisonRows(methodResults);
   const recommendedCode = result.breakdown.data.recommendedMethodCode;
   const recommendedName = METHOD_LABELS[recommendedCode];
+  const recommended = comparisons.find(row => row.methodCode === recommendedCode);
   const simplified = methodResults.find(row => row.methodCode === 'simplified');
   return Object.freeze({
     ...common(result),
@@ -182,6 +188,14 @@ function buildResultViewModel(result) {
     eligibilityRows: rows,
     comparisonRows: comparisons,
     recommendedMethodCode: recommendedCode,
+    keyResult: recommendedName && recommended ? Object.freeze({
+      label: '最も納税額が少ない方式',
+      qualifier: 'この試算では',
+      value: recommendedName,
+      amount: recommended.amount,
+      exactYen: recommended.exactYen,
+      display: recommended.display,
+    }) : undefined,
     conclusion: recommendedName
       ? `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
       : undefined,
