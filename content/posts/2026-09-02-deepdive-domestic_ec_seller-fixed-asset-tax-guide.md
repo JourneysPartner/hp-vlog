@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "事業用の固定資産税・償却資産税は必要経費に算入できます。対象資産・申告期限（毎年1月末）・必要経費に計上するタイミングの原則と選択肢を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-02T15:54:11.478+09:00"
+publish_at: "2026-09-03T11:35:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-02T00:05:47.835Z"
-updated_at: "2026-09-02T00:08:40.416Z"
+updated_at: "2026-09-02T15:54:11.478+09:00"
+publish_slot: "morning"
 ---
 倉庫として使っている建物、EC販売で使う撮影機材やパソコン——こうした事業用の資産にも「固定資産税」や「償却資産税」がかかることは知っていても、「どこに申告するのか」「いつ経費にしていいのか」が分からないまま、毎年の決算で手が止まる事業者は少なくありません。
 
