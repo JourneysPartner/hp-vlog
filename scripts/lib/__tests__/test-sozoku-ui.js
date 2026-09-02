@@ -292,6 +292,22 @@ function main() {
     assert.strictEqual(typeof context.window.TaxSimulator.mountSozoku, 'function');
   });
 
+  // 検分（2026-09-02）で発見: 「該当の確認」がすべて「いいえ」の普通の養子が
+  // adoptionFacts 未設定のためエンジンで blocked になっていた。UI組立が確認済みの
+  // 事実（すべて該当なし）を明示して渡し、算入制限（実子あり→養子算入）が効くことを固定する。
+  check('普通の養子（特別養子・連れ子・代襲なし）が計算でき、法定相続人3人になる', () => {
+    const withAdopted = run(baseState({
+      childCount: '1', adoptedChildCount: '1',
+      divisionShares: { spouse: '50', 'child-1': '25', 'adopted-child-1': '25' },
+      smallResidentialLand: undefined,
+      realEstate: [], cash: '90000000', securities: '0',
+    }));
+    assert.strictEqual(withAdopted.result.resultStatus, 'complete');
+    assert.strictEqual(
+      withAdopted.result.breakdown.data.basicDeduction.value, 48000000n
+    );
+  });
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 

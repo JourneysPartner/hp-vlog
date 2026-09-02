@@ -93,7 +93,17 @@ function buildHeirs(formState) {
   if (spouseValue === true || spouseValue === 'yes') result.push(heir('spouse', 'spouse'));
   for (let index = 1; index <= childCount; index++) result.push(heir(`child-${index}`, 'child'));
   for (let index = 1; index <= adoptedChildCount; index++) {
-    result.push(heir(`adopted-child-${index}`, 'adopted_child'));
+    // 「該当の確認」で特別養子・連れ子養子・代襲が「いいえ」のときだけここへ来る
+    // （はい/不明は上で専門相談へ誘導済み）。エンジンの相法15条3項の実子みなし判定
+    // には養子の事実3点が必要なので、確認済みの「すべて該当なし」を明示して渡す。
+    result.push({
+      ...heir(`adopted-child-${index}`, 'adopted_child'),
+      adoptionFacts: {
+        isSpecialAdoption: false,
+        isStepChildOfSpouse: false,
+        isSubstituteForDescendant: false,
+      },
+    });
   }
   for (let index = 1; index <= parentCount; index++) result.push(heir(`parent-${index}`, 'parent'));
   for (let index = 1; index <= siblingCount; index++) {
