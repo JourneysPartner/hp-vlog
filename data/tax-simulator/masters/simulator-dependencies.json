@@ -199,6 +199,11 @@
           "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
           "value_keys": [
             "resident_tax_housing_loan_credit_limit",
+            "resident_tax_life_insurance_deduction_new",
+            "resident_tax_life_insurance_deduction_old",
+            "resident_tax_life_insurance_total_cap",
+            "resident_tax_earthquake_insurance_deduction",
+            "resident_tax_earthquake_insurance_total_cap",
             "resident_tax_housing_loan_credit_applicable_years"
           ]
         },
@@ -521,6 +526,11 @@
           "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
           "value_keys": [
             "resident_tax_housing_loan_credit_limit",
+            "resident_tax_life_insurance_deduction_new",
+            "resident_tax_life_insurance_deduction_old",
+            "resident_tax_life_insurance_total_cap",
+            "resident_tax_earthquake_insurance_deduction",
+            "resident_tax_earthquake_insurance_total_cap",
             "resident_tax_housing_loan_credit_applicable_years"
           ]
         }

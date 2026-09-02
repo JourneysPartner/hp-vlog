@@ -1,0 +1,643 @@
+{
+  "$schema": "../master-record.schema.json",
+  "_comment": "住民税（個人道府県民税・市町村民税）の生命保険料控除・地震保険料控除の計算表。全国一律の法定値。",
+  "_difference_from_income_tax": "所得税と控除表・上限が異なる（生保: 区分上限2.8万/3.5万・合計7万。地震: 5万以下でも2分の1・上限2.5万）。所得税の控除額で代用してはいけない。",
+  "_combined_rule": "生保の新旧併用時は区分ごとに新契約の上限（28,000円）まで、合計は70,000円まで。地震と旧長期の併用は合計25,000円まで（いずれも所得税と同じ併用規則・上限額のみ異なる）。",
+  "records": [
+    {
+      "record_id": "RTID-LIFE-NEW-T1",
+      "value_key": "resident_tax_life_insurance_deduction_new",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_new",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "12000"
+      },
+      "deduction_type": "full_amount",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": null,
+      "_formula": "支払保険料の全額",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-NEW-T2",
+      "value_key": "resident_tax_life_insurance_deduction_new",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_new",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "12001"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "32000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "2"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "6000"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/2＋6,000円",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-NEW-T3",
+      "value_key": "resident_tax_life_insurance_deduction_new",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_new",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "32001"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "56000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "4"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "14000"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/4＋14,000円",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-NEW-T4",
+      "value_key": "resident_tax_life_insurance_deduction_new",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_new",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "56001"
+      },
+      "premium_upper_inclusive": null,
+      "deduction_type": "fixed",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "28000"
+      },
+      "_formula": "一律28,000円（区分ごとの上限）",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-OLD-T1",
+      "value_key": "resident_tax_life_insurance_deduction_old",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_old",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "15000"
+      },
+      "deduction_type": "full_amount",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": null,
+      "_formula": "支払保険料の全額",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-OLD-T2",
+      "value_key": "resident_tax_life_insurance_deduction_old",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_old",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "15001"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "40000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "2"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "7500"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/2＋7,500円",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-OLD-T3",
+      "value_key": "resident_tax_life_insurance_deduction_old",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_old",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "40001"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "70000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "4"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "17500"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/4＋17,500円",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-OLD-T4",
+      "value_key": "resident_tax_life_insurance_deduction_old",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_old",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "70001"
+      },
+      "premium_upper_inclusive": null,
+      "deduction_type": "fixed",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "35000"
+      },
+      "_formula": "一律35,000円（区分ごとの上限）",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-LIFE-TOTAL-CAP",
+      "value_key": "resident_tax_life_insurance_total_cap",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "life_insurance_total",
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "70000"
+      },
+      "_formula": "一般・介護医療・個人年金の合計適用限度額70,000円。区分上限（2.8万×3＝8.4万）の単純合算と一致しないため独立レコードとする",
+      "source_locator": "地方税法34条1項5号・314条の2第1項5号（生命保険料控除。新契約・旧契約の区分別計算表）"
+    },
+    {
+      "record_id": "RTID-EQ-T1",
+      "value_key": "resident_tax_earthquake_insurance_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "earthquake_insurance",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "50000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "2"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/2（所得税と異なり5万円以下でも半額）",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    },
+    {
+      "record_id": "RTID-EQ-T2",
+      "value_key": "resident_tax_earthquake_insurance_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "earthquake_insurance",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "50001"
+      },
+      "premium_upper_inclusive": null,
+      "deduction_type": "fixed",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "25000"
+      },
+      "_formula": "一律25,000円（上限）",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    },
+    {
+      "record_id": "RTID-EQ-LONG-T1",
+      "value_key": "resident_tax_earthquake_insurance_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "long_term_casualty_insurance",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "5000"
+      },
+      "deduction_type": "full_amount",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": null,
+      "_formula": "支払保険料の全額",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    },
+    {
+      "record_id": "RTID-EQ-LONG-T2",
+      "value_key": "resident_tax_earthquake_insurance_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "long_term_casualty_insurance",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "5001"
+      },
+      "premium_upper_inclusive": {
+        "unit": "JPY",
+        "value": "15000"
+      },
+      "deduction_type": "formula",
+      "rate": {
+        "num": "1",
+        "den": "2"
+      },
+      "rate_addition": {
+        "unit": "JPY",
+        "value": "2500"
+      },
+      "fixed_amount": null,
+      "_formula": "支払保険料×1/2＋2,500円",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    },
+    {
+      "record_id": "RTID-EQ-LONG-T3",
+      "value_key": "resident_tax_earthquake_insurance_deduction",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "long_term_casualty_insurance",
+      "premium_lower_inclusive": {
+        "unit": "JPY",
+        "value": "15001"
+      },
+      "premium_upper_inclusive": null,
+      "deduction_type": "fixed",
+      "rate": null,
+      "rate_addition": null,
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "10000"
+      },
+      "_formula": "一律10,000円（旧長期損害保険の上限）",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    },
+    {
+      "record_id": "RTID-EQ-TOTAL-CAP",
+      "value_key": "resident_tax_earthquake_insurance_total_cap",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-TRUNC-1-YEN",
+      "promulgated_at": null,
+      "verified_at": "2026-09-02",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "master_name": "resident_tax_master",
+      "tax_or_insurance_type": "resident_tax",
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "effective_from": "2013-01-01",
+      "effective_to": null,
+      "source_document_id": "EGOV-CHIHOUZEI",
+      "source_hash": null,
+      "as_of_date": "2026-09-02",
+      "legal_status": "effective",
+      "data_review_status": "approved",
+      "deduction_category": "earthquake_insurance_total",
+      "fixed_amount": {
+        "unit": "JPY",
+        "value": "25000"
+      },
+      "_formula": "地震保険と旧長期損害保険を併用する場合の合計上限25,000円",
+      "source_locator": "地方税法34条1項5号の2・314条の2第1項5号の2（地震保険料控除）"
+    }
+  ]
+}

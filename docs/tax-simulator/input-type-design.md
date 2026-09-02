@@ -876,7 +876,7 @@ interface YakuinHoshuCommonInput {
   spouse?: SpouseFacts;
   dependents?: DependentFacts[];
   otherIncomes?: IncomeItem[];
-  deductions?: { smallEnterpriseMutualAid?: Money }; // 第1弾はこの控除だけ
+  deductions?: PersonalDeductionFacts; // 医療費・雑損・ふるさと納税以外の寄附はサービスで blocked
   taxCredits?: { housingLoan?: Money; other?: { code: string; amount: Money }[] };
 
   appointedOn?: LocalDate;
@@ -1012,8 +1012,6 @@ MODE B・C も法人側を合成するため同じ値を要する。CalculationC
 
 | 入力フィールド | 必要なマスター | 現状 |
 | --- | --- | --- |
-| `deductions.donations`（ふるさと納税） | 寄附金控除・住民税の寄附金税額控除（特例控除の上限） | 未登録 |
-| `taxCredits.housingLoan` | 住宅借入金等特別控除 | 未登録 |
 | `deductions.casualtyLoss` | 雑損控除の計算式 | 未登録 |
 | `nationalHealthInsurance.kind="estimate_accepted"` | 国民健康保険料の概算根拠 | 未登録 |
 | `taxAdjustments.items[].code="entertainment"` | 交際費等の損金不算入（定額控除限度額） | 未登録 |
@@ -1059,6 +1057,14 @@ MODE B・C も法人側を合成するため同じ値を要する。CalculationC
 | `value_key` | 割り当て | 区分 | 根拠 |
 | --- | --- | --- | --- |
 | `full_deduction_taxable_sales_cap` | ② | **必須** | 消費税法30条2項。一般課税の仕入税額控除で全額控除できるか（課税売上高5億円以下）の判定に常に参照する。①の消費税比較（任意）でも②連携の一部として引く |
+
+### 8-8. 控除第2弾で追加したマスターの割り当て（2026-09-02）
+
+住民税側の生命保険料控除・地震保険料控除の計算表と合計上限を登録した（所得税と表・上限が異なるため独立レコード。地方税法34条・314条の2）。生保の合計適用限度額7万円は区分上限×3（8.4万円）と一致しないため明示レコードとする。
+
+| `value_key` | 割り当て | 区分 | 根拠 |
+| --- | --- | --- | --- |
+| `resident_tax_life_insurance_deduction_new` / `_old` / `_total_cap`・`resident_tax_earthquake_insurance_deduction` / `_total_cap` | ①④ | 任意 | 生保・地震の入力があるときだけ。住宅ローン（`resident_tax_housing_loan_credit_*`）と同じブロックへ分類 |
 
 ---
 
