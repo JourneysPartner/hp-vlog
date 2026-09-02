@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "周波数移行で既存機能の維持のみを目的としたPOSレジのソフトウェア修正費用は修繕費に該当し、資本的支出とはならない。国税庁の質疑応答事例が根拠。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-01T16:05:54.876+09:00"
 publish_at: "2026-09-02T17:50:00.000+09:00"
-published_at: ""
+published_at: "2026-09-02T18:01:04.209+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-01T00:08:55.076Z"
-updated_at: "2026-09-01T16:05:54.876+09:00"
+updated_at: "2026-09-02T18:01:04.209+09:00"
 publish_slot: "evening"
 ---
 電波法の改正に伴う終了促進措置によって、自社のPOSレジシステムで使用していた電波の周波数帯を移行しなければならなくなった——そんな場面に直面した小売業者が、処理に迷うのが「ソフトウェアのプログラム修正費用をどう計上するか」という問題です。
