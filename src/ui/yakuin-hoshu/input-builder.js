@@ -1,6 +1,7 @@
 'use strict';
 
 const { appendFamilyFacts } = require('../family-input.js');
+const { appendPhase2Deductions } = require('../phase2-deduction-input.js');
 
 class YakuinHoshuInputBuildError extends Error {
   constructor(errors) {
@@ -65,7 +66,7 @@ function commonInput(formState, context, errors) {
     appointedOn: context.fiscalPeriod.from,
     standardRemunerationDecisionKind: 'regular',
   };
-  return appendFamilyFacts(input, formState, {
+  appendFamilyFacts(input, formState, {
     money,
     errors,
     issue,
@@ -73,6 +74,7 @@ function commonInput(formState, context, errors) {
     dependentsPath: '$.dependents',
     codePrefix: 'YH_UI',
   });
+  return appendPhase2Deductions(input, formState, money, errors, '$');
 }
 
 function buildModeA(formState, errors) {

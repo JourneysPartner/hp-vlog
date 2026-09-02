@@ -40,6 +40,15 @@ const INITIAL_FORM = Object.freeze({
   dependentDisabilitySpecial: '0',
   dependentDisabilitySpecialCohabiting: '0',
   individualSmallEnterpriseMutualAid: '0',
+  lifeInsuranceNewLife: '0',
+  lifeInsuranceNewNursingMedical: '0',
+  lifeInsuranceNewAnnuity: '0',
+  lifeInsuranceOldLife: '0',
+  lifeInsuranceOldAnnuity: '0',
+  earthquakeInsurancePremium: '0',
+  oldLongTermInsurancePremium: '0',
+  furusatoDonation: '0',
+  housingLoanCredit: '0',
   municipalityKey: '',
   otherPrefectureCode: '',
   otherMunicipalityCode: '',
@@ -77,6 +86,15 @@ const FIELD_IDS = Object.freeze({
   '$.individual.dependents.dependentDisabilitySpecial': 'hj-disability-special',
   '$.individual.dependents.dependentDisabilitySpecialCohabiting': 'hj-disability-cohabiting',
   '$.individual.deductions.smallEnterpriseMutualAid.value': 'hj-mutual-aid-current',
+  '$.individual.deductions.lifeInsurance[0].annualPremium.value': 'hj-life-new-life',
+  '$.individual.deductions.lifeInsurance[1].annualPremium.value': 'hj-life-new-medical',
+  '$.individual.deductions.lifeInsurance[2].annualPremium.value': 'hj-life-new-annuity',
+  '$.individual.deductions.lifeInsurance[3].annualPremium.value': 'hj-life-old-life',
+  '$.individual.deductions.lifeInsurance[4].annualPremium.value': 'hj-life-old-annuity',
+  '$.individual.deductions.earthquakeInsurance[0].annualPremium.value': 'hj-earthquake-premium',
+  '$.individual.deductions.earthquakeInsurance[1].annualPremium.value': 'hj-old-long-term-premium',
+  '$.individual.deductions.donations[0].amount.value': 'hj-furusato-donation',
+  '$.individual.taxCredits.housingLoan.value': 'hj-housing-loan-credit',
   '$.individual.nationalHealthInsurance': 'hj-nhi-kind',
   '$.individual.nationalHealthInsurance.annualAmount.value': 'hj-nhi-actual',
   '$.individual.nationalPension': 'hj-pension-kind',
@@ -292,6 +310,33 @@ function mountHojinnariApp(rootElement, {
     ];
   }
 
+  function phase2DeductionFields() {
+    return el('div', { className: 'hojinnari-card' }, [
+      el('h2', {}, '保険料・ふるさと納税・住宅ローンの控除'),
+      el('p', { className: 'hojinnari-help' },
+        '以下は本人の同じ事実を、個人事業と法人化後の役員給与の両側へ反映します。'),
+      ...moneyField('lifeInsuranceNewLife', 'hj-life-new-life',
+        '新契約：一般生命保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceNewNursingMedical', 'hj-life-new-medical',
+        '新契約：介護医療保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceNewAnnuity', 'hj-life-new-annuity',
+        '新契約：個人年金保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceOldLife', 'hj-life-old-life',
+        '旧契約：一般生命保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('lifeInsuranceOldAnnuity', 'hj-life-old-annuity',
+        '旧契約：個人年金保険料（年額）', '控除証明書の年間払込保険料。なければ0円。'),
+      ...moneyField('earthquakeInsurancePremium', 'hj-earthquake-premium',
+        '地震保険料（年額）', '控除証明書の地震保険料。なければ0円。'),
+      ...moneyField('oldLongTermInsurancePremium', 'hj-old-long-term-premium',
+        '旧長期損害保険料（年額）', '経過措置の対象額。なければ0円。'),
+      ...moneyField('furusatoDonation', 'hj-furusato-donation',
+        'ふるさと納税の年間寄附額', '確定申告を前提に計算します。ワンストップ特例は使用しません。'),
+      ...moneyField('housingLoanCredit', 'hj-housing-loan-credit',
+        'その年分の住宅ローン控除額',
+        '源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'),
+    ]);
+  }
+
   function pageActions({ previous, next, calculate } = {}) {
     return el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
       previous ? el('button', { type: 'button', onClick: () => goToStep(store.getState().step - 1) }, '戻る') : null,
@@ -382,6 +427,7 @@ function mountHojinnariApp(rootElement, {
         '小規模企業共済・iDeCoの掛金（年額・現在）',
         '掛金がなければ0円。税負担の軽減効果だけに反映します。',
         '$.individual.deductions.smallEnterpriseMutualAid.value'),
+      phase2DeductionFields(),
       ...selectField('municipalityKey', 'hj-municipality', 'お住まいの市区町村',
         '国民健康保険料を概算できる登録自治体です。', [
           { value: '', label: '選択してください' },
@@ -417,7 +463,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'),
+        '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
       pageActions({ previous: true, next: true }),
     ]);
   }

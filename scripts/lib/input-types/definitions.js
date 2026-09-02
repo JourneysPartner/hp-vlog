@@ -532,7 +532,7 @@ const definitions = {
     spouse: ref('SpouseFacts'),
     dependents: array(ref('DependentFacts')),
     otherIncomes: array(ref('IncomeItem')),
-    deductions: object({}, { smallEnterpriseMutualAid: ref('Money') }),
+    deductions: ref('PersonalDeductionFacts'),
     taxCredits: object({}, {
       housingLoan: ref('Money'),
       other: array(object({ code: string, amount: ref('Money') })),

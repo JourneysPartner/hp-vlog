@@ -21,6 +21,9 @@ const familyGolden = goldenDocument.cases.find(
 const deductionGolden = goldenDocument.cases.find(
   item => item.case_id === 'GC-YH-DISABILITY-KYOSAI-500K'
 );
+const deduction2Golden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-YH-DEDUCTIONS2-500K'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 
@@ -302,6 +305,88 @@ assert(cohabitingIncomeRows.get('disability') === 750000n &&
   cohabitingResidentRows.get('disability') === 530000n,
 '配偶者の特別（同居）を所得税75万円・住民税53万円として両エンジンへ渡す');
 
+console.log('\n=== MODE C: GC-YH-DEDUCTIONS2-500K ===');
+const phase2Deductions = {
+  smallEnterpriseMutualAid: yen(276000),
+  lifeInsurance: [
+    { generation: 'new', category: 'life', annualPremium: yen(120000) },
+    { generation: 'new', category: 'nursing_medical', annualPremium: yen(80000) },
+  ],
+  earthquakeInsurance: [{ category: 'earthquake', annualPremium: yen(50000) }],
+  donations: [{ kind: 'furusato', amount: yen(20000) }],
+};
+const deduction2Result = service.simulate(modeCInput(500000, {
+  officer: { ageAtYearEnd: 45, disability: 'general' },
+  spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) },
+  dependents: [
+    { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+    { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+  ],
+  deductions: phase2Deductions,
+  taxCredits: { housingLoan: yen(100000) },
+}), context(), snapshotInfo);
+const deduction2Candidate = candidateOf(deduction2Result);
+const deduction2Expected = deduction2Golden.expected;
+for (const [actualField, expectedField] of Object.entries({
+  totalIncomeDeductions: 'income_tax_total_deductions',
+  incomeTaxTaxableIncome: 'income_tax_taxable_income',
+  incomeTaxCalculatedAmount: 'income_tax_calculated_amount',
+  incomeTax: 'income_tax',
+  residentTaxTaxableIncome: 'resident_tax_taxable_income',
+  residentTaxAdjustmentDeduction: 'resident_tax_adjustment_deduction',
+  residentTaxPrefecturalIncomeLevy: 'resident_tax_prefectural_income_levy',
+  residentTaxMunicipalIncomeLevy: 'resident_tax_municipal_income_levy',
+  residentTax: 'resident_tax',
+  personalNetCash: 'personal_net_cash',
+  corporateTaxes: 'corporate_taxes_total',
+  corporateRetainedCash: 'corporate_retained_cash',
+  combinedCash: 'combined_cash',
+})) {
+  assert(deduction2Candidate[actualField].value === BigInt(deduction2Expected[expectedField]),
+    `控除第2弾の${actualField}が指定期待値${deduction2Expected[expectedField]}円と一致する`);
+}
+const deduction2Rows = new Map(deduction2Candidate.orderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+const deduction2ResidentRows = new Map(deduction2Candidate.residentTaxOrderedIncomeDeductions
+  .map(row => [row.code, row.amount.value]));
+assert(deduction2Rows.get('lifeInsurance') + deduction2Rows.get('earthquakeInsurance') === 130000n &&
+  deduction2Rows.get('donations') === 18000n,
+'所得税の生保・地震13万円、寄附金1.8万円を固定する');
+assert(deduction2ResidentRows.get('lifeInsurance') +
+  deduction2ResidentRows.get('earthquakeInsurance') === 81000n,
+'住民税の生保・地震控除8.1万円を固定する');
+assert(deduction2Candidate.housingLoanCredit.value -
+  deduction2Candidate.appliedHousingLoanCredit.value === 64900n &&
+  deduction2Candidate.residentTaxHousingLoanCredit.amount.value === 35100n,
+'所得税で引き切れない64,900円を住民税へ渡し、5%基数35,100円で止める');
+assert(deduction2Candidate.residentTaxDonationCredit.specialRate.num === 17n &&
+  deduction2Candidate.residentTaxDonationCredit.specialRate.den === 20n &&
+  deduction2Candidate.residentTaxDonationCredit.special.value === 15300n,
+'特例控除率は条文表の85%を使い15,300円にする');
+assert(6000000n - 894000n - 0n - 66600n === deduction2Candidate.personalNetCash.value &&
+  deduction2Candidate.combinedCash.value === 8889100n,
+'法人化側の恒等式と手残り8,889,100円を固定する');
+assert(deduction2Result.assumptions.some(text => text.includes('ワンストップ特例は使用していません')),
+'④のassumptionsに確定申告前提・ワンストップ不使用を明示する');
+
+const overCapInput = modeCInput(500000, {
+  officer: { ageAtYearEnd: 45, disability: 'general' },
+  spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) },
+  dependents: [
+    { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+    { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+  ],
+  deductions: {
+    ...phase2Deductions,
+    donations: [{ kind: 'furusato', amount: yen(52000) }],
+  },
+  taxCredits: { housingLoan: yen(100000) },
+});
+const overCap = service.simulate(overCapInput, context(), snapshotInfo);
+assert(candidateOf(overCap).residentTaxDonationCredit.special.value === 22780n &&
+  overCap.warnings.some(warning => warning.code === 'RT_FURUSATO_SPECIAL_CREDIT_CAP_REACHED'),
+'寄附52,000円は特例22,780円で頭打ちになり警告を表示する');
+
 console.log('\n=== SimulationResult の共通契約 ===');
 assert(modeC.simulatorType === 'yakuin_hoshu' && modeC.resultStatus === 'complete' &&
   modeC.comparisonBasis === 'steady_state',
@@ -385,17 +470,14 @@ const blockedCases = [
     healthInsurer: { kind: 'kenpo_kumiai', insurerCode: 'TEST' },
   }), 'YH_HEALTH_INSURER_UNSUPPORTED', '健保組合'],
   [modeCInput(500000, {
-    deductions: { lifeInsurance: [] },
-  }), 'YH_DEDUCTIONS_UNSUPPORTED', '生命保険料控除'],
+    deductions: { medical: { mode: 'medical', paidAmount: yen(1) } },
+  }), 'YH_DEDUCTIONS_UNSUPPORTED', '医療費控除'],
   [modeCInput(500000, {
-    deductions: { earthquakeInsurance: [] },
-  }), 'YH_DEDUCTIONS_UNSUPPORTED', '地震保険料控除'],
+    deductions: { donations: [{ kind: 'other', amount: yen(1) }] },
+  }), 'YH_DEDUCTIONS_UNSUPPORTED', 'ふるさと納税以外の寄附金控除'],
   [modeCInput(500000, {
-    deductions: { donations: [] },
-  }), 'YH_DEDUCTIONS_UNSUPPORTED', '寄附金控除'],
-  [modeCInput(500000, {
-    taxCredits: { housingLoan: yen(1) },
-  }), 'YH_TAX_CREDITS_UNSUPPORTED', '住宅ローン控除'],
+    taxCredits: { other: [{ code: 'other', amount: yen(1) }] },
+  }), 'YH_TAX_CREDITS_UNSUPPORTED', 'その他税額控除'],
 ];
 for (const [input, code, label] of blockedCases) {
   const result = service.simulate(input, context(), snapshotInfo);
@@ -422,10 +504,17 @@ assert(familyValidation.ok && familyValidation.value.spouse.totalIncome.value ==
 const deductionWire = modeCWire();
 deductionWire.deductions = { smallEnterpriseMutualAid: wireMoney(276000) };
 assert(service.validate(deductionWire).ok,
-'④Wireのdeductionsは小規模企業共済等掛金控除だけを受け付ける');
-deductionWire.deductions.lifeInsurance = [];
-assert(!service.validate(deductionWire).ok,
-'④Wireの生命保険料控除等は型段階でも引き続き拒否する');
+  '④Wireのdeductionsは小規模企業共済等掛金控除を受け付ける');
+deductionWire.deductions.lifeInsurance = [{
+  generation: 'new', category: 'life', annualPremium: wireMoney(120000),
+}];
+deductionWire.deductions.earthquakeInsurance = [{
+  category: 'earthquake', annualPremium: wireMoney(50000),
+}];
+deductionWire.deductions.donations = [{ kind: 'furusato', amount: wireMoney(20000) }];
+deductionWire.taxCredits = { housingLoan: wireMoney(100000) };
+assert(service.validate(deductionWire).ok,
+  '④Wireの生保・地震・ふるさと納税・住宅ローン控除を型段階で受け付ける');
 familyWire.spouse.unknownProperty = true;
 assert(!service.validate(familyWire).ok,
 '④Wireのspouse内の未知プロパティは引き続き拒否する');

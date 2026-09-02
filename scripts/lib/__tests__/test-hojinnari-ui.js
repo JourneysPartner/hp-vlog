@@ -151,6 +151,27 @@ function main() {
     assert.strictEqual(rows.get('smallEnterpriseMutualAid').corporation.exactYen, 276000n);
     assert.strictEqual(deduction.result.summary.amount.value, 419820n);
   });
+  check('控除第2弾の同じ本人事実をWireへ載せ、①ゴールデン差額364,620円を再現する', () => {
+    const deduction2 = run(goldenState({
+      ageAtYearEnd: '45', selfDisability: 'general',
+      spouseExists: 'yes', spouseTotalIncome: '0',
+      dependents16To18: '1', dependents19To22: '1',
+      individualSmallEnterpriseMutualAid: '840000',
+      corporateSmallEnterpriseMutualAid: '276000',
+      lifeInsuranceNewLife: '120000',
+      lifeInsuranceNewNursingMedical: '80000',
+      earthquakeInsurancePremium: '50000',
+      furusatoDonation: '20000',
+      housingLoanCredit: '100000',
+    }));
+    assert.strictEqual(deduction2.wire.individual.deductions.lifeInsurance[0].annualPremium.value,
+      '120000');
+    assert.strictEqual(deduction2.wire.individual.deductions.donations[0].kind, 'furusato');
+    assert.strictEqual(deduction2.wire.individual.taxCredits.housingLoan.value, '100000');
+    assert.strictEqual(deduction2.result.summary.amount.value, 364620n);
+    assert.strictEqual(deduction2.result.breakdown.data.corporation.residentTaxHousingLoanCredit.amount.value,
+      35100n);
+  });
   check('STEP2に家族欄と新注記を表示し、単身向け注記を撤去する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
@@ -166,7 +187,11 @@ function main() {
       assert(root.textContent.includes('うち障害のある方'));
       assert(root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
       assert(root.textContent.includes('小規模企業共済・iDeCoの掛金（年額・現在）'));
-      assert(root.textContent.includes('生命保険料控除・地震保険料控除・寄附金控除・住宅ローン控除などは対応準備中です'));
+      assert(root.textContent.includes('新契約：一般生命保険料（年額）'));
+      assert(root.textContent.includes('ふるさと納税の年間寄附額'));
+      assert(root.textContent.includes('源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'));
+      assert(root.textContent.includes('医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません'));
+      assert(root.textContent.includes('ワンストップ特例は使用せず'));
       assert(!root.textContent.includes('単身の方向け'));
       app.store.setState(state => ({ ...state, screen: 'result',
         result: family.result, viewModel: family.viewModel }));

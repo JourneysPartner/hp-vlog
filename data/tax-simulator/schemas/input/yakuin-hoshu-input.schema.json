@@ -53,13 +53,7 @@
               }
             },
             "deductions": {
-              "type": "object",
-              "properties": {
-                "smallEnterpriseMutualAid": {
-                  "$ref": "#/$defs/MoneyWire"
-                }
-              },
-              "additionalProperties": false
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
             },
             "taxCredits": {
               "type": "object",
@@ -203,13 +197,7 @@
               }
             },
             "deductions": {
-              "type": "object",
-              "properties": {
-                "smallEnterpriseMutualAid": {
-                  "$ref": "#/$defs/MoneyWire"
-                }
-              },
-              "additionalProperties": false
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
             },
             "taxCredits": {
               "type": "object",
@@ -330,13 +318,7 @@
               }
             },
             "deductions": {
-              "type": "object",
-              "properties": {
-                "smallEnterpriseMutualAid": {
-                  "$ref": "#/$defs/MoneyWire"
-                }
-              },
-              "additionalProperties": false
+              "$ref": "#/$defs/PersonalDeductionFactsWire"
             },
             "taxCredits": {
               "type": "object",
@@ -443,13 +425,7 @@
           }
         },
         "deductions": {
-          "type": "object",
-          "properties": {
-            "smallEnterpriseMutualAid": {
-              "$ref": "#/$defs/MoneyWire"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/PersonalDeductionFactsWire"
         },
         "taxCredits": {
           "type": "object",
@@ -741,6 +717,217 @@
         "separate_retirement",
         "unknown"
       ]
+    },
+    "PersonalDeductionFactsWire": {
+      "type": "object",
+      "properties": {
+        "socialInsurance": {
+          "$ref": "#/$defs/SocialInsuranceDeductionInputWire"
+        },
+        "smallEnterpriseMutualAid": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "lifeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LifeInsurancePremiumInputWire"
+          }
+        },
+        "earthquakeInsurance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EarthquakeInsurancePremiumInputWire"
+          }
+        },
+        "medical": {
+          "$ref": "#/$defs/MedicalExpenseInputWire"
+        },
+        "donations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DonationInputWire"
+          }
+        },
+        "casualtyLoss": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "isWorkingStudent": {
+          "type": "boolean"
+        },
+        "widowOrSingleParent": {
+          "enum": [
+            "none",
+            "widow",
+            "single_parent"
+          ]
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeductionOverrideWire"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SocialInsuranceDeductionInputWire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "total"
+            },
+            "annualTotal": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind",
+            "annualTotal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "itemized"
+            },
+            "nationalHealthInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPension": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "nationalPensionFund": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "employeeShareOfSocialInsurance": {
+              "$ref": "#/$defs/MoneyWire"
+            },
+            "other": {
+              "$ref": "#/$defs/MoneyWire"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "LifeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "$ref": "#/$defs/LifeInsuranceContractGenerationWire"
+        },
+        "category": {
+          "enum": [
+            "life",
+            "nursing_medical",
+            "annuity"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "generation",
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "LifeInsuranceContractGenerationWire": {
+      "enum": [
+        "new",
+        "old"
+      ]
+    },
+    "EarthquakeInsurancePremiumInputWire": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "earthquake",
+            "old_long_term"
+          ]
+        },
+        "annualPremium": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "category",
+        "annualPremium"
+      ],
+      "additionalProperties": false
+    },
+    "MedicalExpenseInputWire": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "medical",
+            "self_medication"
+          ]
+        },
+        "paidAmount": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "insuranceReimbursement": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "mode",
+        "paidAmount"
+      ],
+      "additionalProperties": false
+    },
+    "DonationInputWire": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "furusato",
+            "designated",
+            "political",
+            "other"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/MoneyWire"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "additionalProperties": false
+    },
+    "DeductionOverrideWire": {
+      "type": "object",
+      "properties": {
+        "forIncomeTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "forResidentTax": {
+          "$ref": "#/$defs/MoneyWire"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "forIncomeTax",
+        "forResidentTax",
+        "reason"
+      ],
+      "additionalProperties": false
     },
     "LocalDateWire": {
       "type": "string",

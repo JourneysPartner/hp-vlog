@@ -26,6 +26,9 @@ const deductionGolden = goldenDocument.cases.find(
 const deductionYakuinGolden = goldenDocument.cases.find(
   item => item.case_id === 'GC-YH-DISABILITY-KYOSAI-500K'
 );
+const deduction2Golden = goldenDocument.cases.find(
+  item => item.case_id === 'GC-HJ-DEDUCTIONS2'
+);
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 const taxIncl = value => ({ basis: 'inclusive', amount: yen(value) });
@@ -629,6 +632,72 @@ assert(deductionResult.assumptions.some(text =>
   text.includes('掛金そのものは支出として差し引いていません')),
 '①でも掛金そのものを支出控除しない前提を表示する');
 
+console.log('\n=== GC-HJ-DEDUCTIONS2 ===');
+const deduction2Input = goldenInput();
+deduction2Input.individual.self = { ageAtYearEnd: 45, disability: 'general' };
+deduction2Input.individual.spouse = { exists: true, ageAtYearEnd: 40, totalIncome: yen(0) };
+deduction2Input.individual.dependents = [
+  { id: 'specific-1', ageAtYearEnd: 20, relation: 'child', totalIncome: yen(0) },
+  { id: 'general-1', ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) },
+];
+deduction2Input.individual.deductions = {
+  smallEnterpriseMutualAid: yen(840000),
+  lifeInsurance: [
+    { generation: 'new', category: 'life', annualPremium: yen(120000) },
+    { generation: 'new', category: 'nursing_medical', annualPremium: yen(80000) },
+  ],
+  earthquakeInsurance: [{ category: 'earthquake', annualPremium: yen(50000) }],
+  donations: [{ kind: 'furusato', amount: yen(20000) }],
+};
+deduction2Input.individual.taxCredits = { housingLoan: yen(100000) };
+deduction2Input.corporate.deductions = { smallEnterpriseMutualAid: yen(276000) };
+const deduction2Result = service.simulate(deduction2Input, context(), snapshotInfo);
+const deduction2Sole = deduction2Result.breakdown.data.soleProprietor;
+const deduction2Corporation = deduction2Result.breakdown.data.corporation;
+const deduction2Expected = deduction2Golden.expected;
+for (const [actualField, expectedField] of Object.entries({
+  totalIncomeDeductions: 'sole_income_tax_total_deductions',
+  incomeTaxTaxableIncome: 'sole_income_tax_taxable_income',
+  incomeTaxCalculatedAmount: 'sole_income_tax_calculated_amount',
+  residentTaxTotalIncomeDeductions: 'sole_resident_tax_total_deductions',
+  residentTaxTaxableIncome: 'sole_resident_tax_taxable_income',
+  residentTaxAdjustmentDeduction: 'sole_resident_tax_adjustment_deduction',
+  residentTaxPrefecturalIncomeLevy: 'sole_resident_tax_prefectural_income_levy',
+  residentTaxMunicipalIncomeLevy: 'sole_resident_tax_municipal_income_levy',
+  personalDisposableCash: 'sole_personal_disposable_cash',
+})) {
+  assert(deduction2Sole[actualField].value === BigInt(deduction2Expected[expectedField]),
+    `控除第2弾の個人側${actualField}が指定期待値${deduction2Expected[expectedField]}円と一致する`);
+}
+assert(deduction2Sole.burdens.incomeTax.value === BigInt(deduction2Expected.sole_income_tax) &&
+  deduction2Sole.burdens.residentTax.value === BigInt(deduction2Expected.sole_resident_tax),
+'控除第2弾の個人側所得税930,100円・住民税750,300円を固定する');
+assert(deduction2Sole.residentTaxDonationCredit.basis.value === 7328000n &&
+  deduction2Sole.residentTaxDonationCredit.specialRate.num === 67n &&
+  deduction2Sole.residentTaxDonationCredit.specialRate.den === 100n &&
+  deduction2Sole.residentTaxDonationCredit.special.value === 12060n,
+'個人側の特例控除は条文表67%帯で12,060円にする');
+assert(deduction2Sole.appliedHousingLoanCredit.value === 100000n &&
+  deduction2Sole.residentTaxHousingLoanCredit.amount.value === 0n,
+'個人側は住宅ローン控除10万円を所得税で引き切り住民税へ回さない');
+assert(deduction2Corporation.burdens.incomeTax.value === 0n &&
+  deduction2Corporation.burdens.residentTax.value === 66600n &&
+  deduction2Corporation.residentTaxHousingLoanCredit.amount.value === 35100n &&
+  deduction2Corporation.personalDisposableCash.value +
+    deduction2Corporation.corporateRetainedCash.value === 8889100n,
+'法人化側は④控除第2弾と一致し、住民税ローン控除35,100円・手残り8,889,100円になる');
+assert(deduction2Result.breakdown.data.combinedReferenceDifference.value === 364620n,
+'①の差額を＋364,620円で固定する');
+assert(12000000n - (930100n + 750300n + 455000n + 1340120n) ===
+  deduction2Sole.personalDisposableCash.value,
+'個人 12,000,000−(930,100＋750,300＋455,000＋1,340,120)＝8,524,480');
+assert(12000000n - (0n + 66600n + 894000n + 1234700n) - 915600n ===
+  deduction2Corporation.personalDisposableCash.value +
+    deduction2Corporation.corporateRetainedCash.value,
+'法人化 12,000,000−(0＋66,600＋894,000＋1,234,700)−915,600＝8,889,100');
+assert(deduction2Result.assumptions.some(text => text.includes('ワンストップ特例は使用していません')),
+'①のassumptionsに確定申告前提・ワンストップ不使用を明示する');
+
 console.log('\n=== 対応範囲外のblocked ===');
 const blockedCases = [
   ['HJ_BLUE_RETURN_STATUS_UNKNOWN', '青色申告区分unknown', input => {
@@ -645,11 +714,11 @@ const blockedCases = [
       category: 'business', taxationMethod: 'aggregate', amount: yen(1),
     }];
   }],
-  ['HJ_DEDUCTIONS_UNSUPPORTED', '所得控除入力', input => {
-    input.individual.deductions = { lifeInsurance: [] };
+  ['HJ_DEDUCTIONS_UNSUPPORTED', '医療費控除入力', input => {
+    input.individual.deductions = { medical: { mode: 'medical', paidAmount: yen(1) } };
   }],
-  ['HJ_TAX_CREDITS_UNSUPPORTED', '税額控除入力', input => {
-    input.individual.taxCredits = { housingLoan: yen(1) };
+  ['HJ_TAX_CREDITS_UNSUPPORTED', 'その他税額控除入力', input => {
+    input.individual.taxCredits = { other: [{ code: 'other', amount: yen(1) }] };
   }],
   ['HJ_EMPLOYEES_UNSUPPORTED', '従業員1人', input => {
     input.corporate.employeeCount = 1;

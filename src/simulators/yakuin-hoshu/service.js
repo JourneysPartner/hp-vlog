@@ -29,6 +29,12 @@ const OBJECTIVE_BY_CRITERION = Object.freeze({
   max_total_retained: 'maximize_combined_cash',
   max_corporate_with_floor: 'maximize_corporate_cash_with_personal_floor',
 });
+const SUPPORTED_DEDUCTION_KEYS = new Set([
+  'smallEnterpriseMutualAid',
+  'lifeInsurance',
+  'earthquakeInsurance',
+  'donations',
+]);
 
 function yen(value) {
   return money({ unit: 'JPY', value: BigInt(value) });
@@ -109,6 +115,18 @@ function blockedReason(code, fieldPath, message) {
   return { code, fieldPath, message };
 }
 
+function hasUnsupportedDeductions(deductions) {
+  if (!deductions) return false;
+  if (Object.keys(deductions).some(key => !SUPPORTED_DEDUCTION_KEYS.has(key))) return true;
+  return (deductions.donations || []).some(item => item.kind !== 'furusato');
+}
+
+function hasUnsupportedTaxCredits(taxCredits) {
+  if (!taxCredits) return false;
+  return Object.keys(taxCredits).some(key => key !== 'housingLoan') ||
+    (Array.isArray(taxCredits.other) && taxCredits.other.length > 0);
+}
+
 function supportedProfileReasons(input, context) {
   const reasons = [];
   if (input.healthInsurer.kind !== 'kyokai_kenpo') {
@@ -126,12 +144,11 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('YH_NON_RESIDENT_UNSUPPORTED', '$.officer.isNonResident',
       '非居住者は第1版の対象外です'));
   }
-  if (input.deductions && Object.keys(input.deductions)
-    .some(key => key !== 'smallEnterpriseMutualAid')) {
+  if (hasUnsupportedDeductions(input.deductions)) {
     reasons.push(blockedReason('YH_DEDUCTIONS_UNSUPPORTED', '$.deductions',
       '生命保険料控除等の各種控除は第1弾の対象外です'));
   }
-  if (input.taxCredits !== undefined) {
+  if (hasUnsupportedTaxCredits(input.taxCredits)) {
     reasons.push(blockedReason('YH_TAX_CREDITS_UNSUPPORTED', '$.taxCredits',
       '住宅ローン控除等の税額控除は第1弾の対象外です'));
   }
@@ -284,7 +301,13 @@ function calculateForward(input, context, monthlyAmount) {
   blocked.push(...engineBlockedReasons(incomeTaxResult, 'IT', '$'));
   if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
 
-  const residentTaxResult = residentTax.calculate(individualInput, {
+  const residentTaxResult = residentTax.calculate({
+    ...individualInput,
+    incomeTaxTaxableTotalIncome: incomeTaxResult.taxableTotalIncome,
+    unappliedHousingLoanCredit: yen(
+      incomeTaxResult.housingLoanCredit.value - incomeTaxResult.appliedHousingLoanCredit.value
+    ),
+  }, {
     incomeYear,
     residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYear,
     jurisdiction: context.jurisdiction,
@@ -347,11 +370,16 @@ function calculateForward(input, context, monthlyAmount) {
     orderedIncomeDeductions: incomeTaxResult.orderedIncomeDeductions,
     totalIncomeDeductions: incomeTaxResult.totalIncomeDeductions,
     incomeTaxTaxableIncome: incomeTaxResult.taxableTotalIncome,
+    incomeTaxCalculatedAmount: incomeTaxResult.calculatedIncomeTax,
+    housingLoanCredit: incomeTaxResult.housingLoanCredit,
+    appliedHousingLoanCredit: incomeTaxResult.appliedHousingLoanCredit,
     socialInsuranceEmployee: insurance.employeeAnnual,
     healthInsuranceEmployee: insurance.healthEmployeeAnnual,
     employeesPensionEmployee: insurance.pensionEmployeeAnnual,
     incomeTax: incomeTaxResult.payableIncomeTax,
     residentTax: residentTaxResult.annualTaxTotal,
+    residentTaxPrefecturalIncomeLevy: residentTaxResult.prefecturalIncomeLevy,
+    residentTaxMunicipalIncomeLevy: residentTaxResult.municipalIncomeLevy,
     residentTaxTaxableIncome: residentTaxResult.taxableTotalIncome,
     residentTaxOrderedIncomeDeductions: residentTaxResult.orderedIncomeDeductions,
     residentTaxTotalIncomeDeductions: residentTaxResult.totalIncomeDeductions,
@@ -359,6 +387,8 @@ function calculateForward(input, context, monthlyAmount) {
       residentTaxResult.municipalAdjustmentDeduction.value +
         residentTaxResult.prefecturalAdjustmentDeduction.value
     ),
+    residentTaxDonationCredit: residentTaxResult.donationCredit,
+    residentTaxHousingLoanCredit: residentTaxResult.housingLoanCredit,
     socialInsuranceEmployer: displayMoney(insurance.employerAnnualExact),
     socialInsuranceEmployerExact: insurance.employerAnnualExact,
     healthInsuranceEmployerExact: insurance.healthEmployerAnnualExact,
@@ -504,6 +534,7 @@ function baseAssumptions(context) {
     '国内普通法人・常勤役員1名・事業年度開始時に決めた12か月同額の定期給与を前提としています。',
     '申告調整と繰越欠損金はなく、法人地方税は既存法人税エンジンの標準税率で計算しています。',
     '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
+    'ふるさと納税は確定申告を前提に計算し、ワンストップ特例は使用していません。',
   ];
 }
 
@@ -728,7 +759,7 @@ function simulate(input, context, masters) {
     resultStatus: calculation.resultStatus,
     summary: calculation.summary,
     breakdown: calculation.breakdown,
-    assumptions: [...baseAssumptions(context), ...(calculation.assumptions || [])],
+    assumptions: uniqueMessages([...baseAssumptions(context), ...(calculation.assumptions || [])]),
     warnings: calculation.warnings,
     masters,
     calculationContext: context,

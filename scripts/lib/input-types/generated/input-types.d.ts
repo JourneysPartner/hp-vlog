@@ -566,9 +566,7 @@ export type YakuinHoshuCommonInput = {
   spouse?: SpouseFacts;
   dependents?: Array<DependentFacts>;
   otherIncomes?: Array<IncomeItem>;
-  deductions?: {
-      smallEnterpriseMutualAid?: Money;
-    };
+  deductions?: PersonalDeductionFacts;
   taxCredits?: {
       housingLoan?: Money;
       other?: Array<{
@@ -1167,9 +1165,7 @@ export type YakuinHoshuCommonInputWire = {
   spouse?: SpouseFactsWire;
   dependents?: Array<DependentFactsWire>;
   otherIncomes?: Array<IncomeItemWire>;
-  deductions?: {
-      smallEnterpriseMutualAid?: MoneyWire;
-    };
+  deductions?: PersonalDeductionFactsWire;
   taxCredits?: {
       housingLoan?: MoneyWire;
       other?: Array<{
