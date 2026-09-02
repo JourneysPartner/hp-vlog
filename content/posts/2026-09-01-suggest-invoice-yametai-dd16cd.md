@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "インボイス登録の取り消しは税務署への届出が必要。個人事業者が翌年1月1日から免税に戻るには12月17日までの提出が必須で、土日祝でも延長なし。免税復帰できるかは登録経路と登録日によって異なる。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-01T18:44:28.049+09:00"
 publish_at: "2026-09-02T11:05:00.000+09:00"
-published_at: ""
+published_at: "2026-09-02T12:01:00.604+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-01T00:05:55.295Z"
-updated_at: "2026-09-01T18:44:28.049+09:00"
+updated_at: "2026-09-02T12:01:00.604+09:00"
 publish_slot: "morning"
 ---
 「消費税を納めるようになって手取りが減った」「帳簿の手間が増えすぎた」——インボイス登録後にそう感じ、「もう取り消したい」と考えている個人事業者の方は少なくありません。
