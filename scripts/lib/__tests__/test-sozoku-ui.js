@@ -144,6 +144,9 @@ function main() {
     assert.strictEqual(full.viewModel.totalInheritanceTax.exactYen, 6300000n);
     assert.strictEqual(full.viewModel.spouseRelief.reduction.exactYen, 3150000n);
     assert.strictEqual(full.viewModel.totalPayableTax.exactYen, 3150000n);
+    assert.strictEqual(full.viewModel.keyResult.label, '納付税額の合計');
+    assert.strictEqual(full.viewModel.keyResult.exactYen, 3150000n);
+    assert.strictEqual(full.viewModel.keyResult.display, '3,150,000円');
     assert.strictEqual(full.viewModel.allocations.find(row => row.heirId === 'spouse').finalTax.exactYen, 0n);
     assert.strictEqual(full.viewModel.smallResidentialLand.reduction.exactYen, 40000000n);
   });
@@ -158,6 +161,20 @@ function main() {
     assert.deepStrictEqual(full.viewModel.allocations[0].taxBeforeCredits.exactYen, 3150000n);
     assert.deepStrictEqual(full.viewModel.allocations[0].credits.exactYen, 3150000n);
   });
+  check('LEVEL 2は結果見出し直下に納付税額合計の主役ブロックを描画する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountSozokuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: full.result, viewModel: full.viewModel }));
+      const block = root.querySelector('.simulator-key-result');
+      assert(block);
+      assert(block.textContent.includes('納付税額の合計（この試算では）'));
+      assert(block.textContent.includes('3,150,000円'));
+      app.destroy();
+    });
+  });
 
   process.stdout.write('\n=== LEVEL 1・申告要否の核心 ===\n');
   check('路線価20万円×150㎡＋現預金2,000万円はpossibly_requiredと概算警告', () => {
@@ -168,9 +185,22 @@ function main() {
       divisionMode: 'statutory', smallResidentialLand: null,
     }));
     assert.strictEqual(level1.viewModel.filingNeed, 'possibly_required');
+    assert.strictEqual(level1.viewModel.keyResult.label, '申告要否');
+    assert.strictEqual(level1.viewModel.keyResult.value, level1.viewModel.conclusion.text);
     assert.strictEqual(level1.viewModel.taxablePriceTotal.exactYen, 50000000n);
     assert.strictEqual(level1.viewModel.screeningEstimateUsed, true);
     assert(level1.viewModel.screeningWarning.includes('実際の相続税評価額'));
+    withFakeDocument(({ root }) => {
+      const app = mountSozokuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: level1.result, viewModel: level1.viewModel }));
+      const block = root.querySelector('.simulator-key-result');
+      assert(block);
+      assert(block.textContent.includes(level1.viewModel.conclusion.text));
+      app.destroy();
+    });
   });
   check('現預金4,000万円のみはnot_required', () => {
     const level1 = run(baseState({ level: 1, cash: '40000000', securities: '0', businessAssets: '0', otherAssets: '0',

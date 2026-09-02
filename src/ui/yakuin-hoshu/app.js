@@ -369,7 +369,7 @@ function mountYakuinHoshuApp(rootElement, {
           onChange: event => updateForm('otherIsDesignatedCity', event.currentTarget.checked) }),
         el('label', { for: 'yh-other-designated' }, '政令指定都市に該当する')]),
       ]) : null,
-      el('label', { for: age.id }, '役員の年齢（年末時点）'),
+      el('label', { for: age.id }, '年齢を入力してください'),
       el('p', { id: 'yh-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.officer.ageAtYearEnd'),
       ...selectField('selfDisability', 'yh-self-disability', '本人の障害者区分', '', [
@@ -458,7 +458,7 @@ function mountYakuinHoshuApp(rootElement, {
           (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
         errors.push(localError('$.calculationContext.jurisdiction', '都道府県コード2桁と市区町村コード5桁を入力してください'));
       }
-      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '役員の年齢を整数で入力してください'));
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '年齢を入力してください（0以上の整数）'));
       if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
         '$.spouse.totalIncome.value', '配偶者の合計所得金額');
       for (const band of DEPENDENT_BANDS) {
@@ -606,6 +606,17 @@ function mountYakuinHoshuApp(rootElement, {
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
     ]);
   }
+  function keyResultSection(keyResult) {
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, keyResult.amount || keyResult.range
+        ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display)
+        : keyResult.display),
+    ]);
+  }
 
   function renderModeC(viewModel) {
     const rowList = rows => el('dl', {}, rows.flatMap(row => [
@@ -673,6 +684,7 @@ function mountYakuinHoshuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'yh-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       modeContent,
       viewModel.incomeDeductionRows.length > 0 ? el('details', { className: 'yh-card' }, [
         el('summary', {}, '結果の詳細'),

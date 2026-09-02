@@ -95,10 +95,11 @@ function buildHojinnariInput(formState, context) {
   const corporateSame = formState.corporateSameAsIndividual !== false;
   const corporateRevenue = corporateSame ? individualRevenue : formState.corporateRevenue;
   const corporateExpenses = corporateSame ? individualExpenses : formState.corporateExpenses;
-  const age = Number(formState.ageAtYearEnd);
-  if (!Number.isInteger(age) || age < 0) {
+  const ageText = String(formState.ageAtYearEnd ?? '');
+  const age = Number(ageText);
+  if (!/^\d+$/.test(ageText) || !Number.isInteger(age) || age < 0) {
     errors.push(issue('HJ_SELF_AGE_REQUIRED', '$.individual.self.ageAtYearEnd',
-      '年末時点の年齢を整数で入力してください'));
+      '年齢を入力してください（0以上の整数）'));
   }
 
   const input = {

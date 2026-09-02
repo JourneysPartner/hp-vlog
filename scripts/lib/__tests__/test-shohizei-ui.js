@@ -150,8 +150,26 @@ function main() {
   });
   check('結論と一般課税との差額が指定文言・▲400,000円になる', () => {
     assert(complete.viewModel.conclusion.includes('2割特例'));
+    assert.strictEqual(complete.viewModel.keyResult.label, '最も納税額が少ない方式');
+    assert.strictEqual(complete.viewModel.keyResult.value, '2割特例');
+    assert.strictEqual(complete.viewModel.keyResult.exactYen, 200000n);
+    assert.strictEqual(complete.viewModel.keyResult.display, '200,000円');
     assert.strictEqual(complete.viewModel.differenceFromGeneral.display, '▲400,000円');
     assert(!/(絶対|必ず)/.test(complete.viewModel.conclusion));
+  });
+  check('結果見出し直下に推奨方式と納付額の主役ブロックを描画する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: complete.result, viewModel: complete.viewModel }));
+      const block = root.querySelector('.simulator-key-result');
+      assert(block);
+      assert(block.textContent.includes('最も納税額が少ない方式（この試算では）'));
+      assert(block.textContent.includes('2割特例200,000円'));
+      app.destroy();
+    });
   });
 
   process.stdout.write('\n=== 免税・届出・専門判定 ===\n');
@@ -165,8 +183,19 @@ function main() {
     }), { emptyTransactions: true });
     assert.strictEqual(exempt.viewModel.isExempt, true);
     assert.strictEqual(exempt.viewModel.comparisonRows.length, 0);
+    assert.strictEqual(exempt.viewModel.keyResult.value, '納税義務なし（免税事業者）');
     assert(exempt.viewModel.exemptNotice.includes('納税義務がない'));
     assert(exempt.viewModel.exemptNotice.includes('登録済みとして再計算'));
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: exempt.result, viewModel: exempt.viewModel }));
+      assert(root.querySelector('.simulator-key-result').textContent
+        .includes('納税義務なし（免税事業者）'));
+      app.destroy();
+    });
   });
   check('簡易課税の届出未提出で届出案内フラグが立つ', () => {
     const noFiling = run(baseState({

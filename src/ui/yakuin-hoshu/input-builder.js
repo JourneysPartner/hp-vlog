@@ -40,10 +40,11 @@ function requireEnum(value, allowed, fieldPath, label, errors) {
 }
 
 function commonInput(formState, context, errors) {
-  const age = Number(formState.ageAtYearEnd);
-  if (!Number.isInteger(age) || age < 0) {
+  const ageText = String(formState.ageAtYearEnd ?? '');
+  const age = Number(ageText);
+  if (!/^\d+$/.test(ageText) || !Number.isInteger(age) || age < 0) {
     errors.push(issue('YH_UI_AGE_REQUIRED', '$.officer.ageAtYearEnd',
-      '役員の年齢を0以上の整数で入力してください'));
+      '年齢を入力してください（0以上の整数）'));
   }
   const input = {
     precision: 'detailed',

@@ -414,7 +414,7 @@ function mountHojinnariApp(rootElement, {
     });
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(2, 'あなたの状況'), errorSummary(),
-      el('label', { for: age.id }, '年末時点の年齢'),
+      el('label', { for: age.id }, '年齢を入力してください'),
       el('p', { id: 'hj-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.individual.self.ageAtYearEnd'),
       ...selectField('selfDisability', 'hj-self-disability', '本人の障害者区分', '', [
@@ -537,7 +537,7 @@ function mountHojinnariApp(rootElement, {
       if (!form.blueReturn || form.blueReturn === 'unknown') errors.push(localError('$.individual.blueReturn', resolveQuestion('HJ_BLUE_RETURN_STATUS_UNKNOWN').description));
       if (!form.businessTaxCategory || form.businessTaxCategory === 'unknown') errors.push(localError('$.individual.business.businessTaxCategory', resolveQuestion('HJ_BUSINESS_TAX_CATEGORY_UNKNOWN').description));
     } else if (step === 2) {
-      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を整数で入力してください'));
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を入力してください（0以上の整数）'));
       if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
         '$.individual.spouse.totalIncome.value', '配偶者の合計所得金額');
       for (const band of DEPENDENT_BANDS) {
@@ -693,7 +693,7 @@ function mountHojinnariApp(rootElement, {
       el('div', { className: 'hojinnari-print' }, [
         el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
         el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
-        el('section', { className: 'hojinnari-verdict-summary', 'aria-label': '判定サマリー' }, [
+        el('section', { className: 'hojinnari-verdict-summary simulator-key-result', 'aria-label': '判定サマリー' }, [
           el('p', { className: 'hojinnari-verdict-banner' }, [
             el('span', { className: 'hojinnari-verdict-emphasis' }, summary.verdict.emphasisText),
             summary.verdict.suffixText,
@@ -701,7 +701,7 @@ function mountHojinnariApp(rootElement, {
           el('p', { className: 'hojinnari-benefit' }, [
             el('span', {}, summary.benefit.label),
             el('span', {
-              className: `hojinnari-benefit-amount hojinnari-amount-${summary.benefit.direction}`,
+              className: `hojinnari-benefit-amount simulator-key-result-amount hojinnari-amount-${summary.benefit.direction}`,
             }, summary.benefit.display),
           ]),
           el('div', { className: 'hojinnari-table-wrap hojinnari-verdict-table-wrap' }, el('table', { className: 'hojinnari-summary-table' }, [

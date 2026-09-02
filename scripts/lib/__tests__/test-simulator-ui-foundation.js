@@ -186,6 +186,14 @@ async function main() {
       tool: 'hojinnari', amount: '1000000',
     }), /許可リスト/);
   });
+  await check('主役数値の共通CSSは文字ラベル・数値強調・印刷表示を備える', async () => {
+    const css = fs.readFileSync(path.join(REPO_ROOT, 'assets', 'css', 'tax-simulator.css'), 'utf8');
+    assert(css.includes('.simulator-key-result-label'));
+    assert(css.includes('.simulator-key-result-value'));
+    assert(css.includes('.simulator-key-result-amount{color:#c64312'));
+    assert(css.includes('.hojinnari-benefit-amount.simulator-key-result-amount{font-size:clamp(1.65rem'));
+    assert(/@media print\{[^}]*\.tax-simulator-page \.simulator-key-result\{break-inside:avoid/.test(css));
+  });
 
   // スナップショットIDはマスターの生バイト列から決まるため、改行コードが
   // 環境（autocrlf の有無）で揺れると ID が環境依存になる。.gitattributes で

@@ -12852,7 +12852,7 @@ function mountHojinnariApp(rootElement, {
     });
     return el('main', { className: 'hojinnari-no-print' }, [
       ...stepHeader(2, 'あなたの状況'), errorSummary(),
-      el('label', { for: age.id }, '年末時点の年齢'),
+      el('label', { for: age.id }, '年齢を入力してください'),
       el('p', { id: 'hj-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.individual.self.ageAtYearEnd'),
       ...selectField('selfDisability', 'hj-self-disability', '本人の障害者区分', '', [
@@ -12975,7 +12975,7 @@ function mountHojinnariApp(rootElement, {
       if (!form.blueReturn || form.blueReturn === 'unknown') errors.push(localError('$.individual.blueReturn', resolveQuestion('HJ_BLUE_RETURN_STATUS_UNKNOWN').description));
       if (!form.businessTaxCategory || form.businessTaxCategory === 'unknown') errors.push(localError('$.individual.business.businessTaxCategory', resolveQuestion('HJ_BUSINESS_TAX_CATEGORY_UNKNOWN').description));
     } else if (step === 2) {
-      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を整数で入力してください'));
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.individual.self.ageAtYearEnd', '年齢を入力してください（0以上の整数）'));
       if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
         '$.individual.spouse.totalIncome.value', '配偶者の合計所得金額');
       for (const band of DEPENDENT_BANDS) {
@@ -13131,7 +13131,7 @@ function mountHojinnariApp(rootElement, {
       el('div', { className: 'hojinnari-print' }, [
         el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
         el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
-        el('section', { className: 'hojinnari-verdict-summary', 'aria-label': '判定サマリー' }, [
+        el('section', { className: 'hojinnari-verdict-summary simulator-key-result', 'aria-label': '判定サマリー' }, [
           el('p', { className: 'hojinnari-verdict-banner' }, [
             el('span', { className: 'hojinnari-verdict-emphasis' }, summary.verdict.emphasisText),
             summary.verdict.suffixText,
@@ -13139,7 +13139,7 @@ function mountHojinnariApp(rootElement, {
           el('p', { className: 'hojinnari-benefit' }, [
             el('span', {}, summary.benefit.label),
             el('span', {
-              className: `hojinnari-benefit-amount hojinnari-amount-${summary.benefit.direction}`,
+              className: `hojinnari-benefit-amount simulator-key-result-amount hojinnari-amount-${summary.benefit.direction}`,
             }, summary.benefit.display),
           ]),
           el('div', { className: 'hojinnari-table-wrap hojinnari-verdict-table-wrap' }, el('table', { className: 'hojinnari-summary-table' }, [
@@ -13448,10 +13448,11 @@ function buildHojinnariInput(formState, context) {
   const corporateSame = formState.corporateSameAsIndividual !== false;
   const corporateRevenue = corporateSame ? individualRevenue : formState.corporateRevenue;
   const corporateExpenses = corporateSame ? individualExpenses : formState.corporateExpenses;
-  const age = Number(formState.ageAtYearEnd);
-  if (!Number.isInteger(age) || age < 0) {
+  const ageText = String(formState.ageAtYearEnd ?? '');
+  const age = Number(ageText);
+  if (!/^\d+$/.test(ageText) || !Number.isInteger(age) || age < 0) {
     errors.push(issue('HJ_SELF_AGE_REQUIRED', '$.individual.self.ageAtYearEnd',
-      '年末時点の年齢を整数で入力してください'));
+      '年齢を入力してください（0以上の整数）'));
   }
 
   const input = {
@@ -14564,6 +14565,19 @@ function mountShohizeiApp(rootElement, {
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
     ]);
   }
+  function keyResultSection(keyResult) {
+    if (!keyResult) return null;
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, [
+        keyResult.value ? el('span', {}, keyResult.value) : null,
+        keyResult.amount ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display) : null,
+      ]),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
@@ -14580,6 +14594,7 @@ function mountShohizeiApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'shohizei-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       viewModel.isExempt ? el('section', { className: 'shohizei-card shohizei-conclusion' }, [
         el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),
       ]) : [
@@ -15143,6 +15158,11 @@ function buildResultViewModel(result) {
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
       exemptNotice: '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
+      keyResult: Object.freeze({
+        label: '納税義務の判定',
+        qualifier: 'この試算では',
+        value: '納税義務なし（免税事業者）',
+      }),
       eligibilityRows: Object.freeze([]),
       comparisonRows: Object.freeze([]),
       calculationRange: Object.freeze({ calculatedCount: 0, targetCount: 0, excluded: Object.freeze([]) }),
@@ -15154,6 +15174,7 @@ function buildResultViewModel(result) {
   const comparisons = comparisonRows(methodResults);
   const recommendedCode = result.breakdown.data.recommendedMethodCode;
   const recommendedName = METHOD_LABELS[recommendedCode];
+  const recommended = comparisons.find(row => row.methodCode === recommendedCode);
   const simplified = methodResults.find(row => row.methodCode === 'simplified');
   return Object.freeze({
     ...common(result),
@@ -15163,6 +15184,14 @@ function buildResultViewModel(result) {
     eligibilityRows: rows,
     comparisonRows: comparisons,
     recommendedMethodCode: recommendedCode,
+    keyResult: recommendedName && recommended ? Object.freeze({
+      label: '最も納税額が少ない方式',
+      qualifier: 'この試算では',
+      value: recommendedName,
+      amount: recommended.amount,
+      exactYen: recommended.exactYen,
+      display: recommended.display,
+    }) : undefined,
     conclusion: recommendedName
       ? `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
       : undefined,
@@ -15692,6 +15721,17 @@ function mountSozokuApp(rootElement, {
       el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存')]);
   }
+  function keyResultSection(keyResult) {
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, keyResult.amount
+        ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display)
+        : keyResult.value),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -15702,6 +15742,7 @@ function mountSozokuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'sozoku-help' }, 'この印刷物は申告に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       el('section', { className: 'sozoku-card sozoku-conclusion' }, [el('h2', {}, '申告要否の試算'), el('p', {}, viewModel.conclusion.text)]),
       el('section', { className: 'sozoku-card' }, [el('h2', {}, viewModel.level === 1 ? '簡易診断の金額' : '相続税の試算'),
         definitionList([['課税価格の合計', viewModel.taxablePriceTotal.display], ['基礎控除', viewModel.basicDeduction.display],
@@ -16408,6 +16449,11 @@ function buildSozokuResultViewModel(result, options = {}) {
     heading: `試算結果（LEVEL ${level}・${result.periodLabel}・${result.resultStatus}）`,
     filingNeed: data.filingNeed,
     conclusion: Object.freeze({ code: data.filingNeed, text: filingText }),
+    keyResult: Object.freeze({
+      label: '申告要否',
+      qualifier: 'この試算では',
+      value: filingText,
+    }),
     taxablePriceTotal: amount(data.taxablePriceTotal),
     basicDeduction: amount(data.basicDeduction),
     screeningEstimateUsed: hasWarning(result, 'SOZOKU_SCREENING_REAL_ESTATE_ESTIMATE'),
@@ -16441,6 +16487,13 @@ function buildSozokuResultViewModel(result, options = {}) {
     ...base,
     totalInheritanceTax: amount(data.totalInheritanceTax),
     totalPayableTax: amount(payable),
+    keyResult: Object.freeze({
+      label: '納付税額の合計',
+      qualifier: 'この試算では',
+      amount: payable,
+      exactYen: moneyValue(payable),
+      display: formatYen(payable),
+    }),
     allocations: allocationRows,
     spouseRelief: spouse ? Object.freeze({
       before: spouse.taxBeforeCredits,
@@ -16881,7 +16934,7 @@ function mountYakuinHoshuApp(rootElement, {
           onChange: event => updateForm('otherIsDesignatedCity', event.currentTarget.checked) }),
         el('label', { for: 'yh-other-designated' }, '政令指定都市に該当する')]),
       ]) : null,
-      el('label', { for: age.id }, '役員の年齢（年末時点）'),
+      el('label', { for: age.id }, '年齢を入力してください'),
       el('p', { id: 'yh-age-description' }, '介護保険（40〜64歳）・厚生年金の判定に使います。'), age,
       addControlError(age, '$.officer.ageAtYearEnd'),
       ...selectField('selfDisability', 'yh-self-disability', '本人の障害者区分', '', [
@@ -16970,7 +17023,7 @@ function mountYakuinHoshuApp(rootElement, {
           (!/^\d{2}$/.test(form.otherPrefectureCode) || !/^\d{5}$/.test(form.otherMunicipalityCode))) {
         errors.push(localError('$.calculationContext.jurisdiction', '都道府県コード2桁と市区町村コード5桁を入力してください'));
       }
-      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '役員の年齢を整数で入力してください'));
+      if (!/^\d+$/.test(String(form.ageAtYearEnd))) errors.push(localError('$.officer.ageAtYearEnd', '年齢を入力してください（0以上の整数）'));
       if (form.spouseExists === 'yes') requireMoney(form.spouseTotalIncome,
         '$.spouse.totalIncome.value', '配偶者の合計所得金額');
       for (const band of DEPENDENT_BANDS) {
@@ -17118,6 +17171,17 @@ function mountYakuinHoshuApp(rootElement, {
       el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),
     ]);
   }
+  function keyResultSection(keyResult) {
+    return el('section', { className: 'simulator-key-result', 'aria-label': keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, keyResult.amount || keyResult.range
+        ? el('span', { className: 'simulator-key-result-amount' }, keyResult.display)
+        : keyResult.display),
+    ]);
+  }
 
   function renderModeC(viewModel) {
     const rowList = rows => el('dl', {}, rows.flatMap(row => [
@@ -17185,6 +17249,7 @@ function mountYakuinHoshuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'yh-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
+      keyResultSection(viewModel.keyResult),
       modeContent,
       viewModel.incomeDeductionRows.length > 0 ? el('details', { className: 'yh-card' }, [
         el('summary', {}, '結果の詳細'),
@@ -17461,10 +17526,11 @@ function requireEnum(value, allowed, fieldPath, label, errors) {
 }
 
 function commonInput(formState, context, errors) {
-  const age = Number(formState.ageAtYearEnd);
-  if (!Number.isInteger(age) || age < 0) {
+  const ageText = String(formState.ageAtYearEnd ?? '');
+  const age = Number(ageText);
+  if (!/^\d+$/.test(ageText) || !Number.isInteger(age) || age < 0) {
     errors.push(issue('YH_UI_AGE_REQUIRED', '$.officer.ageAtYearEnd',
-      '役員の年齢を0以上の整数で入力してください'));
+      '年齢を入力してください（0以上の整数）'));
   }
   const input = {
     precision: 'detailed',
@@ -17692,6 +17758,13 @@ function modeCViewModel(result) {
   if (!candidate) throw new TypeError('MODE Cの選択候補がありません');
   return Object.freeze({
     ...common(result, 'C'),
+    keyResult: Object.freeze({
+      label: '法人＋個人の手残り（年間）',
+      qualifier: 'この試算では',
+      amount: candidate.combinedCash,
+      exactYen: moneyValue(candidate.combinedCash),
+      display: formatYen(candidate.combinedCash),
+    }),
     monthlyCompensation: candidate.monthlyCompensation,
     personalRows: Object.freeze([
       ['gross', '額面（年額）', candidate.annualCompensation, false],
@@ -17799,10 +17872,27 @@ function modeAViewModel(result, options) {
       text: `今回の条件では、月額役員報酬 ${formatYen(selected.monthlyCompensation)}前後で${criterion.outcome}となる試算です。`,
       isProvisional: false,
     });
+  const keyResult = nearUpperBound
+    ? Object.freeze({
+      label: '最適な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: undefined,
+      display: conclusion.text,
+      isProvisional: true,
+    })
+    : Object.freeze({
+      label: '最適な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: selected.monthlyCompensation,
+      exactYen: moneyValue(selected.monthlyCompensation),
+      display: `${formatYen(selected.monthlyCompensation)}前後`,
+      isProvisional: false,
+    });
   const defaults = selectDefaultCandidates(data.candidates, selectedPlanId);
   return Object.freeze({
     ...common(result, 'A'),
     criterion,
+    keyResult,
     criterionNotice: criterion.assumption,
     conclusion,
     optimizationDisclaimer: OPTIMIZATION_DISCLAIMER,
@@ -17819,13 +17909,20 @@ function modeAViewModel(result, options) {
 function modeBViewModel(result) {
   const base = common(result, 'B');
   if (result.summary.range) {
+    const display = `${formatYen(result.summary.range.low)}〜${formatYen(result.summary.range.high)}`;
     return Object.freeze({
       ...base,
+      keyResult: Object.freeze({
+        label: '必要な役員報酬（月額）',
+        qualifier: 'この試算では',
+        range: Object.freeze({ low: result.summary.range.low, high: result.summary.range.high }),
+        display,
+      }),
       isRange: true,
       range: Object.freeze({
         low: result.summary.range.low,
         high: result.summary.range.high,
-        display: `${formatYen(result.summary.range.low)}〜${formatYen(result.summary.range.high)}`,
+        display,
       }),
       conclusion: '希望手取りを満たす単一の報酬額は探索範囲内にないため、探索範囲として表示します。',
       forwardVerificationNotice: '各候補は順算関数で検証しています。',
@@ -17837,6 +17934,13 @@ function modeBViewModel(result) {
   if (!candidate) throw new TypeError('MODE Bの選択候補がありません');
   return Object.freeze({
     ...base,
+    keyResult: Object.freeze({
+      label: '必要な役員報酬（月額）',
+      qualifier: 'この試算では',
+      amount: result.summary.amount,
+      exactYen: moneyValue(result.summary.amount),
+      display: `約${formatYen(result.summary.amount)}`,
+    }),
     isRange: false,
     requiredMonthlyCompensation: result.summary.amount,
     employerSocialInsuranceAnnual: candidate.socialInsuranceEmployer,

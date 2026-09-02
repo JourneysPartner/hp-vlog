@@ -108,6 +108,8 @@ function main() {
     assert.strictEqual(rowAmount(modeC.viewModel.personalRows, 'resident_tax'), 310700n);
     assert.strictEqual(rowAmount(modeC.viewModel.corporateRows, 'corporate_retained_cash'), 3885600n);
     assert.strictEqual(modeC.viewModel.combinedCash.value, 8538900n);
+    assert.strictEqual(modeC.viewModel.keyResult.label, '法人＋個人の手残り（年間）');
+    assert.strictEqual(modeC.viewModel.keyResult.exactYen, 8538900n);
   });
   check('12か月同額・協会けんぽ・従業員0等の固定契約をWireへ載せる', () => {
     assert.strictEqual(modeC.wire.officerResidenceSameAsCompany, 'yes');
@@ -234,6 +236,11 @@ function main() {
       });
       app.store.setState(state => ({ ...state, screen: 'input', step: 1,
         form: { ...state.form, mode: 'C', spouseExists: 'yes' } }));
+      const age = root.querySelector('#yh-age');
+      const ageLabel = age.parentNode.children.find(node =>
+        node.tagName === 'LABEL' && node.getAttribute('for') === 'yh-age');
+      assert.strictEqual(ageLabel.textContent, '年齢を入力してください');
+      assert(root.textContent.includes('介護保険（40〜64歳）・厚生年金の判定に使います。'));
       assert(root.textContent.includes('配偶者はいますか'));
       assert(root.textContent.includes('年収から55万円を引いた金額'));
       assert(root.textContent.includes('19〜22歳（特定扶養）'));
@@ -265,6 +272,8 @@ function main() {
       candidate.planId === modeA.result.breakdown.data.selectedPlanId);
     const single = run(baseState({ monthlyCompensation: selected.monthlyCompensation.value.toString() }));
     assert.strictEqual(selected.combinedCash.value, single.viewModel.combinedCash.value);
+    assert.strictEqual(modeA.viewModel.keyResult.label, '最適な役員報酬（月額）');
+    assert.strictEqual(modeA.viewModel.keyResult.exactYen, selected.monthlyCompensation.value);
   });
   check('基準Bの同価値仮定を結論付近へ明示する', () => {
     assert(modeA.viewModel.criterionNotice.includes('同価値'));
@@ -289,8 +298,22 @@ function main() {
   check('上限付近は金額を断定せず可能性の文言を表示する', () => {
     assert.strictEqual(upper.viewModel.nearUpperBound, true);
     assert.strictEqual(upper.viewModel.conclusion.amount, undefined);
+    assert.strictEqual(upper.viewModel.keyResult.amount, undefined);
+    assert.strictEqual(upper.viewModel.keyResult.exactYen, undefined);
+    assert.strictEqual(upper.viewModel.keyResult.display, upper.viewModel.conclusion.text);
     assert(upper.viewModel.conclusion.text.includes('上限を広げると結果が変わる可能性'));
     assert(!upper.viewModel.handoffAvailable);
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: upper.result, viewModel: upper.viewModel }));
+      assert.strictEqual(root.querySelector('.simulator-key-result-amount'), null);
+      assert(root.querySelector('.simulator-key-result').textContent
+        .includes('最適とは断定できません'));
+      app.destroy();
+    });
   });
   check('基準Cの最低個人手取りは月額入力を年額変換せずWireへ載せる', () => {
     const state = baseState({ mode: 'A', optimizationCriterion: 'max_corporate_with_floor' });
@@ -315,6 +338,8 @@ function main() {
     assert.strictEqual(modeB.viewModel.requiredMonthlyCompensation.value, 500000n);
     assert.strictEqual(modeB.viewModel.employerSocialInsuranceAnnual.value, 867900n);
     assert.strictEqual(modeB.viewModel.companyAnnualTotalCost.value, 6000000n + 867900n);
+    assert.strictEqual(modeB.viewModel.keyResult.label, '必要な役員報酬（月額）');
+    assert.strictEqual(modeB.viewModel.keyResult.exactYen, 500000n);
     assert(modeB.viewModel.forwardVerificationNotice.includes('順算で再検証済み'));
     assert(modeB.elapsedMilliseconds < 3000, `${modeB.elapsedMilliseconds}ms`);
   });
@@ -322,8 +347,44 @@ function main() {
     const range = run(baseState({ mode: 'B', desiredMonthlyNetIncome: '9999999' }));
     assert.strictEqual(range.result.resultStatus, 'partial');
     assert.strictEqual(range.viewModel.isRange, true);
+    assert.strictEqual(range.viewModel.keyResult.display, range.viewModel.range.display);
+    assert.deepStrictEqual(range.viewModel.keyResult.range, {
+      low: range.viewModel.range.low, high: range.viewModel.range.high,
+    });
     assert(range.viewModel.conclusion.includes('探索範囲として表示'));
     assert.strictEqual(range.viewModel.requiredMonthlyCompensation, undefined);
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: range.result, viewModel: range.viewModel }));
+      assert.strictEqual(root.querySelector('.simulator-key-result-amount').textContent,
+        range.viewModel.range.display);
+      app.destroy();
+    });
+  });
+  check('年齢未入力は統一文言の組立エラーになる', () => {
+    const context = buildCalculationContext(baseState(), snapshotInfo, calculatedAt);
+    assert.throws(() => buildYakuinHoshuInput(baseState({ ageAtYearEnd: '' }), context), error =>
+      error instanceof YakuinHoshuInputBuildError && error.errors.some(item =>
+        item.code === 'YH_UI_AGE_REQUIRED' && item.message === '年齢を入力してください（0以上の整数）'));
+  });
+  check('MODE A/B/Cの結果見出し直下に主役数値ブロックを描画する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      for (const current of [modeA, modeB, modeC]) {
+        app.store.setState(state => ({ ...state, screen: 'result',
+          result: current.result, viewModel: current.viewModel }));
+        const block = root.querySelector('.simulator-key-result');
+        assert(block);
+        assert(block.textContent.includes('この試算では'));
+        assert(block.textContent.includes(current.viewModel.keyResult.display));
+      }
+      app.destroy();
+    });
   });
 
   process.stdout.write('\n=== ④→① Handoff ===\n');
