@@ -384,6 +384,26 @@ function main() {
     assert.strictEqual(typeof context.window.TaxSimulator.mountYakuinHoshu, 'function');
   });
 
+  // 実機フィードバック（2026-09-02）: MODE A の探索上限に何を入れればよいか
+  // わからない。空欄可にし、空欄なら利益÷12を刻みで切り捨てた月額を上限として
+  // 導出する（MODE B でサービスが使う導出と同じ・§38 の「既定上限は入力の既定値」）。
+  process.stdout.write('\n=== MODE A: 探索上限の空欄既定 ===\n');
+  check('上限空欄なら利益÷12（刻み丸め）を上限として探索が完了する', () => {
+    const derived = run(baseState({ mode: 'A', searchUpperBound: '' }));
+    assert.strictEqual(derived.wire.searchUpperBound.value, '1000000');
+    assert.strictEqual(derived.result.resultStatus, 'complete');
+    assert.strictEqual(derived.result.breakdown.data.candidates.length, 61);
+  });
+  check('割り切れない利益は刻みで切り捨てた上限になる（1,000万・5万刻み→80万）', () => {
+    const derived = run(baseState({
+      mode: 'A', searchUpperBound: '',
+      profitBeforeOfficerCompensation: '10000000', searchStep: '50000',
+      searchLowerBound: '400000',
+    }));
+    assert.strictEqual(derived.wire.searchUpperBound.value, '800000');
+    assert.strictEqual(derived.result.resultStatus, 'complete');
+  });
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 

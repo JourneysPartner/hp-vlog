@@ -409,10 +409,12 @@ function mountYakuinHoshuApp(rootElement, {
         onChange: value => { updateForm('optimizationCriterion', value); render(); },
       });
       content.push(
-        ...moneyField('searchLowerBound', 'yh-search-low', '現在の月額または探索下限（円）',
-          '刻みの整数倍で入力してください。', '$.previousMonthlyAmount.value'),
-        ...moneyField('searchUpperBound', 'yh-search-high', '探索上限（円）',
-          '探索下限以上で、刻みの整数倍を入力してください。', '$.searchUpperBound.value'),
+        ...moneyField('searchLowerBound', 'yh-search-low', 'いくらから探すか（月額・円）',
+          'いまの役員報酬の月額を入れてください（例：250,000）。決まっていなければ、ここから探したいという下限の月額。刻み（1万円/5万円）で割り切れる金額にしてください。',
+          '$.previousMonthlyAmount.value'),
+        ...moneyField('searchUpperBound', 'yh-search-high', 'いくらまで探すか（月額・円）※空欄可',
+          '探す範囲の上限の月額（例：600,000）。空欄のまま計算すると、利益÷12（刻みで丸めた額）を上限として探します。',
+          '$.searchUpperBound.value'),
         ...selectField('searchStep', 'yh-search-step', '探索の刻み', '', [
           { value: '10000', label: '1万円' }, { value: '50000', label: '5万円' },
         ], '$.searchStep'), criterion.element,
@@ -470,8 +472,8 @@ function mountYakuinHoshuApp(rootElement, {
       requireMoney(form.smallEnterpriseMutualAid,
         '$.deductions.smallEnterpriseMutualAid.value', '小規模企業共済・iDeCoの掛金');
     } else if (form.mode === 'A') {
-      requireMoney(form.searchLowerBound, '$.previousMonthlyAmount.value', '探索下限');
-      requireMoney(form.searchUpperBound, '$.searchUpperBound.value', '探索上限');
+      requireMoney(form.searchLowerBound, '$.previousMonthlyAmount.value', 'いくらから探すか（月額）');
+      // 上限は空欄可（空欄なら利益÷12を刻みで丸めた額を上限にする。input-builder が導出）
       if (form.optimizationCriterion === 'max_corporate_with_floor') {
         requireMoney(form.minPersonalNetIncome, '$.constraints.minPersonalNetIncome.value', '最低個人手取り');
         requireMoney(form.minCorporateRetained, '$.constraints.minCorporateRetained.value', '最低法人留保');
