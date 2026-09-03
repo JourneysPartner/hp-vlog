@@ -43,6 +43,7 @@ const INITIAL_FORM = Object.freeze({
   retirementAllowance: Object.freeze([]),
   debts: Object.freeze([]),
   hasGiftAddback: '',
+  giftAddback: Object.freeze([]),
   hasSettlementTaxationGifts: '',
   divisionMode: 'statutory',
   divisionStatus: 'yes',
@@ -62,7 +63,8 @@ const STATIC_FIELD_IDS = Object.freeze({
   '$.assets.securities.value': 'so-securities',
   '$.assets.businessAssets.value': 'so-business-assets',
   '$.assets.otherAssets.value': 'so-other-assets',
-  '$.assets.gifts': 'so-gift-addback',
+  '$.assets.giftAddback': 'so-gift-addback',
+  '$.assets.settlementTaxationGifts': 'so-settlement-gifts',
   '$.division': 'so-division-mode',
   '$.division.acquisitions': 'so-division-shares',
   '$.smallResidentialLand[0].areaSqm': 'so-small-land-area',
@@ -73,7 +75,8 @@ const STYLE_TEXT = `
 `;
 
 function cloneInitialForm() {
-  return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [], divisionShares: {} };
+  return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [],
+    giftAddback: [], divisionShares: {} };
 }
 
 function mountSozokuApp(rootElement, {
@@ -112,6 +115,9 @@ function mountSozokuApp(rootElement, {
     if (debt) return `so-debt-${debt[1]}${debt[2].includes('bearer') ? '-bearer' : '-amount'}`;
     const benefit = /^\$\.assets\.(lifeInsurance|retirementAllowance)\[(\d+)\](.*)$/.exec(path);
     if (benefit) return `so-${benefit[1]}-${benefit[2]}${benefit[3].includes('beneficiary') ? '-beneficiary' : '-amount'}`;
+    const gift = /^\$\.assets\.giftAddback\[(\d+)\](.*)$/.exec(path);
+    if (gift) return `so-gift-${gift[1]}${gift[2].includes('giftedOn') ? '-date' :
+      gift[2].includes('recipient') ? '-recipient' : gift[2].includes('giftTaxPaid') ? '-tax' : '-amount'}`;
     const division = /^\$\.division\.acquisitions\[(\d+)\]/.exec(path);
     return division ? `so-division-${division[1]}` : STATIC_FIELD_IDS[path];
   }
@@ -281,6 +287,35 @@ function mountSozokuApp(rootElement, {
     ]);
   }
 
+  function renderGiftRows() {
+    const rows = store.getState().form.giftAddback;
+    return el('div', { id: 'so-gift-rows' }, [
+      rows.map((row, index) => {
+        const path = `$.assets.giftAddback[${index}]`;
+        const dateInput = el('input', {
+          id: `so-gift-${index}-date`, type: 'date', value: row.giftedOn || '',
+          onInput: event => updateRow('giftAddback', index, 'giftedOn', event.currentTarget.value),
+        });
+        return el('section', { className: 'sozoku-row' }, [
+          el('h3', {}, `生前贈与 ${index + 1}`),
+          el('label', { for: `so-gift-${index}-date` }, '贈与日'), dateInput,
+          addControlError(dateInput, `${path}.giftedOn`),
+          ...nestedSelect('giftAddback', index, 'recipientHeirId', `so-gift-${index}-recipient`,
+            '受贈者', heirOptions(), `${path}.recipientHeirId`),
+          ...nestedMoney('giftAddback', index, 'amount', `so-gift-${index}-amount`,
+            '贈与時の価額（円）', `${path}.amount.value`),
+          ...nestedMoney('giftAddback', index, 'giftTaxPaid', `so-gift-${index}-tax`,
+            '納付した贈与税額（任意・円）', `${path}.giftTaxPaid.value`, '空欄にできます。'),
+          el('button', { id: `so-gift-${index}-remove`, type: 'button', onClick: () =>
+            removeRow('giftAddback', index, 'so-gift-add', 'so-gift') }, 'この贈与を削除'),
+        ]);
+      }),
+      el('button', { id: 'so-gift-add', type: 'button', onClick: () => addRow('giftAddback', {
+        giftedOn: '', recipientHeirId: '', amount: '', giftTaxPaid: '',
+      }) }, '生前贈与を追加'),
+    ]);
+  }
+
   function renderStep2() {
     return el('main', { className: 'sozoku-no-print' }, [
       ...stepHeader(2, '財産と債務'), errorSummary(),
@@ -295,8 +330,15 @@ function mountSozokuApp(rootElement, {
       renderBenefitRows('retirementAllowance', '死亡退職金', 'so-retirementAllowance-add'),
       renderDebtRows(),
       el('section', { className: 'sozoku-card' }, [el('h2', {}, '贈与の確認'),
-        ...selectField('hasGiftAddback', 'so-gift-addback', '7年以内の生前贈与加算の対象財産がありますか', '', TRI_STATE, '$.assets.gifts'),
-        ...selectField('hasSettlementTaxationGifts', 'so-settlement-gifts', '相続時精算課税の適用財産がありますか', '', TRI_STATE, '$.assets.gifts'),
+        ...selectField('hasGiftAddback', 'so-gift-addback',
+          '相続人が受けた生前贈与はありますか（相続開始前7年以内）', '', TRI_STATE,
+          '$.assets.giftAddback', true),
+        el('p', { className: 'sozoku-help' },
+          '受贈者は相続人から選択してください。相続や遺贈で財産を取得しない人への贈与は含めません。贈与税の配偶者控除を受けた居住用財産の贈与分は金額に含めないでください。相続時精算課税を選んだ贈与は下の別の質問で回答してください。'),
+        store.getState().form.hasGiftAddback === 'yes' ? renderGiftRows() : null,
+        ...selectField('hasSettlementTaxationGifts', 'so-settlement-gifts',
+          '相続時精算課税の適用財産がありますか', '', TRI_STATE,
+          '$.assets.settlementTaxationGifts'),
       ]),
       actionBar([el('button', { type: 'button', onClick: () => goToStep(1) }, '戻る'),
         el('button', { type: 'button', className: 'sozoku-primary', onClick: () => calculate(1) }, '申告要否を診断'),
@@ -457,6 +499,24 @@ function mountSozokuApp(rootElement, {
         : keyResult.value),
     ]);
   }
+  function giftAddbackSection(viewModel) {
+    if (!viewModel.giftAddback || viewModel.giftAddback.gifts.length === 0) return null;
+    return el('section', { className: 'sozoku-card' }, [
+      el('h2', {}, '生前贈与加算の内訳'),
+      definitionList([
+        ['加算対象期間の開始日', viewModel.giftAddback.periodStartDate],
+        ['生前贈与の加算額合計', viewModel.giftAddback.totalAddback.display],
+        ['延長期間の100万円控除適用額', viewModel.giftAddback.totalExtraDeduction.display],
+      ]),
+      el('ul', {}, viewModel.giftAddback.gifts.map(gift => el('li', {},
+        `${gift.giftedOn}・${gift.recipientLabel}・${gift.amount.display}：${gift.statusText}`))),
+      el('h3', {}, '受贈者ごとの加算・贈与税額控除'),
+      el('ul', {}, viewModel.giftAddback.perRecipient.filter(row =>
+        row.addbackAmount.exactYen > 0n || row.extraDeductionApplied.exactYen > 0n ||
+          row.giftTaxCreditApplied.exactYen > 0n).map(row => el('li', {},
+        `${row.recipientLabel}：延長期間控除 ${row.extraDeductionApplied.display}、加算 ${row.addbackAmount.display}、贈与税額控除 ${row.giftTaxCreditApplied.display}`))),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -475,10 +535,18 @@ function mountSozokuApp(rootElement, {
         viewModel.screeningWarning ? el('p', { className: 'sozoku-warning' }, viewModel.screeningWarning) : null,
         viewModel.defaultDivisionAssumption ? el('p', { className: 'sozoku-help' }, viewModel.defaultDivisionAssumption) : null,
       ]),
+      giftAddbackSection(viewModel),
       viewModel.level === 2 ? [
         el('section', { className: 'sozoku-card' }, [el('h2', {}, '相続人ごとの試算'), el('div', { className: 'sozoku-table-wrap' }, el('table', {}, [
           el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '相続人'), el('th', { scope: 'col' }, '取得財産（課税価格）'), el('th', { scope: 'col' }, '算出税額'), el('th', { scope: 'col' }, '控除'), el('th', { scope: 'col' }, '納付税額')])),
-          el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [el('th', { scope: 'row' }, row.label), el('td', {}, row.acquiredAmount.display), el('td', {}, row.taxBeforeCredits.display), el('td', {}, row.credits.display), el('td', {}, row.finalTax.display)]))),
+          el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [
+            el('th', { scope: 'row' }, row.label), el('td', {}, row.acquiredAmount.display),
+            el('td', {}, row.taxBeforeCredits.display),
+            el('td', {}, [row.credits.display,
+              row.creditDetails.giftTax.exactYen > 0n
+                ? el('small', {}, `（うち贈与税額控除 ${row.creditDetails.giftTax.display}）`) : null]),
+            el('td', {}, row.finalTax.display),
+          ]))),
         ]))]),
         viewModel.spouseRelief ? el('section', { className: 'sozoku-card' }, [el('h2', {}, '配偶者の税額軽減'), definitionList([
           ['適用前税額', viewModel.spouseRelief.before.display], ['適用後税額', viewModel.spouseRelief.after.display], ['軽減額', viewModel.spouseRelief.reduction.display],

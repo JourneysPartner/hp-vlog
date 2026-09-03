@@ -4229,10 +4229,6 @@ function supportedProfileReasons(input) {
     reasons.push(blockedReason('SOZOKU_SECONDARY_INHERITANCE_UNSUPPORTED',
       '$.secondaryInheritance', '二次相続の入力は第1版の対応範囲外です'));
   }
-  if (Array.isArray(input.assets.giftAddback) && input.assets.giftAddback.length > 0) {
-    reasons.push(blockedReason('IHT_GIFT_ADDBACK_UNSUPPORTED', '$.assets.giftAddback',
-      '生前贈与加算は相続税エンジン第1版の対象外です'));
-  }
   if (input.assets.settlementTaxationGifts !== undefined) {
     reasons.push(blockedReason('IHT_SETTLEMENT_TAXATION_UNSUPPORTED',
       '$.assets.settlementTaxationGifts', '相続時精算課税適用財産は相続税エンジン第1版の対象外です'));
@@ -4553,7 +4549,7 @@ function addAmount(person, field, amount) {
   person[field] = addMoney(person[field] || zeroMoney(), amount);
 }
 
-function buildEnginePeople(input, ordinaryById) {
+function buildEnginePeople(input, ordinaryById, shares) {
   const reasons = [];
   const people = input.heirs.map(copyHeir);
   const byId = new Map(people.map(person => [person.id, person]));
@@ -4562,6 +4558,10 @@ function buildEnginePeople(input, ordinaryById) {
       '相続人IDは重複しない値を指定してください'));
   }
   for (const person of people) addAmount(person, 'ordinaryAssets', ordinaryById.get(person.id) || zeroMoney());
+  for (const row of shares || []) {
+    const person = byId.get(row.heirId);
+    if (person) person.divisionShare = rate(row.share);
+  }
 
   function beneficiaryRows(rows, field, inputPath) {
     for (let index = 0; index < rows.length; index++) {
@@ -4714,6 +4714,12 @@ function allocationsFromEngine(result) {
     acquiredAmount: row.taxablePrice,
     allocatedTaxBeforeCredits: exactToYen(addExact(row.allocatedTax, row.surcharge)),
     credits: exactToYen(totalCredits(row)),
+    creditDetails: {
+      giftTax: exactToYen(row.credits.giftTax || zeroExact()),
+      spouseRelief: exactToYen(row.credits.spouseRelief || zeroExact()),
+      minor: exactToYen(row.credits.minor || zeroExact()),
+      disability: exactToYen(row.credits.disability || zeroExact()),
+    },
     finalTax: row.payable,
   }));
 }
@@ -4753,8 +4759,8 @@ function calculate(input, context) {
     }
   }
 
-  const finalPeople = buildEnginePeople(input, ordinaryAfterById);
-  const beforePeople = buildEnginePeople(input, ordinaryBeforeById);
+  const finalPeople = buildEnginePeople(input, ordinaryAfterById, selectedShares.shares);
+  const beforePeople = buildEnginePeople(input, ordinaryBeforeById, selectedShares.shares);
   if (finalPeople.reasons.length > 0 || beforePeople.reasons.length > 0) {
     return blockedCalculation(uniqueWarnings([...finalPeople.reasons, ...beforePeople.reasons]));
   }
@@ -4765,8 +4771,15 @@ function calculate(input, context) {
   const debts = deductibleTotal(input);
 
   if (input.level === 1) {
-    const before = taxablePricesForLevel1(beforePeople.people, input.heirs, onDate);
-    const after = taxablePricesForLevel1(finalPeople.people, input.heirs, onDate);
+    const engineInput = people => ({
+      people,
+      decedent: input.decedent,
+      giftAddback: input.assets.giftAddback || [],
+      isDivided: 'yes',
+      applySpouseRelief: false,
+    });
+    const before = inheritanceTax.calculate(engineInput(beforePeople.people), { onDate });
+    const after = inheritanceTax.calculate(engineInput(finalPeople.people), { onDate });
     if (before.status !== 'complete') return blockedCalculation(engineBlockedReasons(before));
     if (after.status !== 'complete') return blockedCalculation(engineBlockedReasons(after));
     const exceedsBasic = before.totalTaxablePrice.value > before.basicDeduction.value;
@@ -4786,12 +4799,15 @@ function calculate(input, context) {
         kind: 'sozoku',
         data: {
           grossEstate,
-          nonTaxableAmounts: after.nonTaxableAmounts,
+          nonTaxableAmounts: exactToYen(sumExact(after.perHeir.map(row => addExact(
+            row.lifeInsuranceExemption, row.retirementAllowanceExemption
+          )))),
           deductibleDebtsAndFuneralCosts: debts,
           taxablePriceTotal: after.totalTaxablePrice,
           basicDeduction: after.basicDeduction,
           filingNeed,
           allocations: [],
+          giftAddback: after.giftAddback,
         },
       },
       assumptions,
@@ -4810,6 +4826,7 @@ function calculate(input, context) {
     decedent: input.decedent,
     isDivided: 'yes',
     applySpouseRelief: false,
+    giftAddback: input.assets.giftAddback || [],
   }, { onDate });
   if (beforeResult.status !== 'complete') {
     return blockedCalculation(engineBlockedReasons(beforeResult));
@@ -4819,6 +4836,7 @@ function calculate(input, context) {
     decedent: input.decedent,
     isDivided: dividedForRelief ? 'yes' : 'no',
     applySpouseRelief: true,
+    giftAddback: input.assets.giftAddback || [],
   }, { onDate });
   if (finalResult.status !== 'complete') {
     return blockedCalculation(engineBlockedReasons(finalResult));
@@ -4866,6 +4884,7 @@ function calculate(input, context) {
         totalInheritanceTax: finalResult.totalTax,
         filingNeed,
         allocations: allocationsFromEngine(finalResult),
+        giftAddback: finalResult.giftAddback,
       },
     },
     assumptions,
@@ -8905,6 +8924,52 @@ function minMoney(left, right) {
   return compareExact(moneyToExact(left), moneyToExact(right)) <= 0 ? left : right;
 }
 
+function validLocalDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1) return false;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return day <= daysInMonth;
+}
+
+/** 民法143条2項の暦の応当日。応当日がない場合はその月の末日。 */
+function calendarYearsBefore(localDate, years) {
+  if (!validLocalDate(localDate) || !Number.isInteger(years) || years < 0) return null;
+  const [yearText, monthText, dayText] = localDate.split('-');
+  const year = Number(yearText) - years;
+  const month = Number(monthText);
+  const day = Math.min(Number(dayText), new Date(Date.UTC(year, month, 0)).getUTCDate());
+  return `${String(year).padStart(4, '0')}-${monthText}-${String(day).padStart(2, '0')}`;
+}
+
+function previousLocalDate(localDate) {
+  if (!validLocalDate(localDate)) return null;
+  const [year, month, day] = localDate.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function standardGiftAddbackYears(periodRecord) {
+  let current = periodRecord;
+  let shortest = null;
+  // 「相続開始前3年以内」の基礎部分も期間マスターの過去レコードから導く。
+  // 経過措置・7年化後も、税法定数をコードへ直接置かない。
+  while (current) {
+    if (Number.isInteger(current.years_before_death) && current.years_before_death > 0) {
+      shortest = shortest === null
+        ? current.years_before_death : Math.min(shortest, current.years_before_death);
+    }
+    const priorDate = previousLocalDate(current.effective_from);
+    current = priorDate
+      ? masterRecord('inheritance_gift_addback_period', priorDate) : null;
+  }
+  return shortest;
+}
+
 function floorExactAtZero(value) {
   return compareExact(value, zeroExact()) < 0 ? zeroExact() : exact(value);
 }
@@ -9311,10 +9376,6 @@ function unsupportedInputReasons(input, people, amountRows) {
   }
 
   const assets = input.assets || {};
-  if ((Array.isArray(input.giftAddback) && input.giftAddback.length > 0) ||
-      (Array.isArray(assets.giftAddback) && assets.giftAddback.length > 0)) {
-    addReason(reasons, 'IHT_GIFT_ADDBACK_UNSUPPORTED', '生前贈与加算は第1版では計算できません');
-  }
   const settlement = input.settlementTaxationGifts || assets.settlementTaxationGifts;
   if (settlement !== undefined && isPositive(inputMoney(settlement, 'settlementTaxationGifts'))) {
     addReason(reasons, 'IHT_SETTLEMENT_TAXATION_UNSUPPORTED', '相続時精算課税適用財産は第1版では計算できません');
@@ -9374,6 +9435,153 @@ function applyCredit(currentTax, entitlement, warnings, warningCode, message, pe
     addWarning(warnings, warningCode, message, personId);
   }
   return { remaining: zeroExact(), applied };
+}
+
+function giftAddbackInputs(input) {
+  const assets = input.assets || {};
+  return Array.isArray(input.giftAddback) ? input.giftAddback :
+    Array.isArray(assets.giftAddback) ? assets.giftAddback : [];
+}
+
+function calculateGiftAddback(input, people, actualHeirIds, onDate, warnings) {
+  const gifts = giftAddbackInputs(input);
+  const empty = {
+    periodRuleId: null,
+    periodStartDate: null,
+    threeYearStartDate: null,
+    totalAddback: zeroMoney(),
+    totalExtraDeduction: zeroMoney(),
+    gifts: [],
+    perRecipient: [],
+  };
+  if (gifts.length === 0) return { status: 'complete', ...empty };
+
+  const periodRecord = masterRecord('inheritance_gift_addback_period', onDate);
+  if (!periodRecord) {
+    return {
+      status: 'blocked',
+      blockedReasons: [{
+        code: 'IHT_MASTER_UNAVAILABLE',
+        message: '生前贈与加算の対象期間に必要な承認済みマスターが利用できません',
+      }],
+    };
+  }
+  const standardYears = standardGiftAddbackYears(periodRecord);
+  const threeYearStartDate = calendarYearsBefore(onDate, standardYears);
+  const periodStartDate = periodRecord.period_method === 'fixed_start_to_death'
+    ? periodRecord.fixed_start_date
+    : calendarYearsBefore(onDate, periodRecord.years_before_death);
+  if (!threeYearStartDate || !periodStartDate) {
+    return {
+      status: 'blocked',
+      blockedReasons: [{ code: 'IHT_MASTER_UNAVAILABLE', message: '生前贈与加算期間を確定できません' }],
+    };
+  }
+
+  const peopleById = new Map(people.map(person => [person.id, person]));
+  const reasons = [];
+  const details = gifts.map((gift, index) => {
+    const recipient = peopleById.get(gift.recipientHeirId);
+    if (!recipient || !actualHeirIds.has(gift.recipientHeirId)) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_RECIPIENT_INVALID',
+        `生前贈与${index + 1}の受贈者は既存の相続人から指定してください`, gift.recipientHeirId);
+    }
+    if (!validLocalDate(gift.giftedOn)) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_DATE_INVALID',
+        `生前贈与${index + 1}の贈与日を有効な日付で指定してください`);
+    }
+    const amount = inputMoney(gift.amount, `giftAddback[${index}].amount`);
+    const giftTaxPaid = inputMoney(gift.giftTaxPaid, `giftAddback[${index}].giftTaxPaid`);
+    if (amount.value < 0n || giftTaxPaid.value < 0n) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_AMOUNT_INVALID',
+        `生前贈与${index + 1}の金額は0円以上で指定してください`);
+    }
+    const withinPeriod = validLocalDate(gift.giftedOn) &&
+      gift.giftedOn >= periodStartDate && gift.giftedOn <= onDate;
+    const periodClassification = !withinPeriod ? 'outside_period' :
+      gift.giftedOn >= threeYearStartDate ? 'within_three_years' : 'extended_period';
+    return {
+      index,
+      giftedOn: gift.giftedOn,
+      recipientHeirId: gift.recipientHeirId,
+      amount,
+      giftTaxPaid,
+      isInAddbackPeriod: withinPeriod,
+      periodClassification,
+      extraDeductionApplied: zeroMoney(),
+      addbackAmount: withinPeriod ? amount : zeroMoney(),
+    };
+  });
+  if (reasons.length > 0) return { status: 'blocked', blockedReasons: reasons };
+
+  const hasExtendedGifts = details.some(gift => gift.periodClassification === 'extended_period');
+  let deductionLimit = zeroMoney();
+  if (hasExtendedGifts) {
+    const deductionRecord = masterRecord('inheritance_gift_addback_extra_deduction', onDate);
+    if (!deductionRecord) {
+      return {
+        status: 'blocked',
+        blockedReasons: [{
+          code: 'IHT_MASTER_UNAVAILABLE',
+          message: '生前贈与加算の延長期間控除に必要な承認済みマスターが利用できません',
+        }],
+      };
+    }
+    deductionLimit = masterMoney(deductionRecord.threshold_amount);
+  }
+
+  // マスターの「延長部分の合計に対して総額100万円」は、相法19条1項の
+  // 「その者の相続税の課税価格に加算」の枠内を指すため、受贈者ごとに1枠を適用する。
+  // 贈与ごとの明細化では入力順に枠を充当するが、受贈者別の最終加算額は順序に依存しない。
+  const remainingDeductionByRecipient = new Map();
+  for (const detail of details) {
+    if (detail.periodClassification !== 'extended_period') continue;
+    const remaining = remainingDeductionByRecipient.has(detail.recipientHeirId)
+      ? remainingDeductionByRecipient.get(detail.recipientHeirId) : deductionLimit;
+    const applied = minMoney(detail.amount, remaining);
+    detail.extraDeductionApplied = applied;
+    detail.addbackAmount = subtractMoney(detail.amount, applied);
+    remainingDeductionByRecipient.set(detail.recipientHeirId, subtractMoney(remaining, applied));
+  }
+
+  const perRecipient = [];
+  for (const person of people) {
+    if (!actualHeirIds.has(person.id)) continue;
+    const recipientGifts = details.filter(gift => gift.recipientHeirId === person.id);
+    const addbackAmount = sumMoney(recipientGifts.map(gift => gift.addbackAmount));
+    const extraDeductionApplied = sumMoney(recipientGifts.map(gift => gift.extraDeductionApplied));
+    const giftTaxPaid = sumMoney(recipientGifts.filter(gift => gift.isInAddbackPeriod)
+      .map(gift => gift.giftTaxPaid));
+    const personAmounts = amountsFor(person);
+    const acquiredBeforeAddback = sumMoney([
+      personAmounts.ordinaryAssets,
+      personAmounts.lifeInsurance,
+      personAmounts.retirementAllowance,
+    ]);
+    if (addbackAmount.value > 0n &&
+        ((person.divisionShare && person.divisionShare.num === 0n) ||
+          acquiredBeforeAddback.value === 0n)) {
+      addWarning(warnings, 'IHT_GIFT_ADDBACK_ZERO_SHARE',
+        '分割割合0%または取得財産0円の相続人への贈与を、安全側として課税価格に加算しました', person.id);
+    }
+    perRecipient.push({
+      recipientHeirId: person.id,
+      addbackAmount,
+      extraDeductionApplied,
+      giftTaxPaid,
+      giftTaxCreditApplied: zeroMoney(),
+    });
+  }
+  return {
+    status: 'complete',
+    periodRuleId: periodRecord.record_id,
+    periodStartDate,
+    threeYearStartDate,
+    totalAddback: sumMoney(perRecipient.map(row => row.addbackAmount)),
+    totalExtraDeduction: sumMoney(perRecipient.map(row => row.extraDeductionApplied)),
+    gifts: details,
+    perRecipient,
+  };
 }
 
 function spouseReliefExact(totalTax, totalTaxablePrice, spouseTaxablePrice, spouseShare, threshold) {
@@ -9459,6 +9667,14 @@ function calculate(input, { onDate } = {}) {
     ...actualLegal.spouses.map(person => person.id),
     ...actualLegal.bloodRelatives.map(person => person.id),
   ]);
+  const giftAddback = calculateGiftAddback(input, people, actualHeirIds, onDate, warnings);
+  if (giftAddback.status === 'blocked') {
+    return blockedResult(giftAddback.blockedReasons, warnings, heirCountForTax);
+  }
+  const giftAddbackById = new Map(giftAddback.perRecipient.map(item =>
+    [item.recipientHeirId, item.addbackAmount]));
+  const giftTaxPaidById = new Map(giftAddback.perRecipient.map(item =>
+    [item.recipientHeirId, item.giftTaxPaid]));
   const insuranceLimit = limitFromPerHeir(insuranceRecord, heirCountForTax);
   const retirementLimit = limitFromPerHeir(retirementRecord, heirCountForTax);
   const insuranceExemption = allocateNonTaxableAmount(
@@ -9480,7 +9696,8 @@ function calculate(input, { onDate } = {}) {
   const insuranceById = new Map(insuranceExemption.allocations.map(item => [item.id, item.amount]));
   const retirementById = new Map(retirementExemption.allocations.map(item => [item.id, item.amount]));
 
-  // §28-1 段階1、2、4、7。段階3・5・6は対応外入力を上で blocked にしている。
+  // §28-1 段階1、2、4、6、7。段階6の生前贈与は控除後の正味額へ加え、
+  // その後に段階7の各人1,000円未満切捨てを行う。
   const perPersonBase = amountRows.map(row => {
     const grossAcquisition = sumMoney([
       row.amounts.ordinaryAssets,
@@ -9492,8 +9709,9 @@ function calculate(input, { onDate } = {}) {
       retirementById.get(row.person.id)
     );
     const deductions = sumMoney([row.amounts.debts, row.amounts.funeralExpenses]);
-    const beforeBaseRounding = floorExactAtZero(
-      subtractExact(afterExemptions, moneyToExact(deductions))
+    const beforeBaseRounding = addExact(
+      floorExactAtZero(subtractExact(afterExemptions, moneyToExact(deductions))),
+      moneyToExact(giftAddbackById.get(row.person.id) || zeroMoney())
     );
     const taxablePrice = applyRounding(beforeBaseRounding, BASE_ROUNDING_RULE_ID);
     return {
@@ -9502,6 +9720,7 @@ function calculate(input, { onDate } = {}) {
       grossAcquisition,
       lifeInsuranceExemption: insuranceById.get(row.person.id),
       retirementAllowanceExemption: retirementById.get(row.person.id),
+      giftAddback: giftAddbackById.get(row.person.id) || zeroMoney(),
       taxablePrice,
     };
   });
@@ -9523,6 +9742,7 @@ function calculate(input, { onDate } = {}) {
       totalTaxablePrice,
       taxableEstate,
       totalTax: zeroMoney(),
+      giftAddback,
       allocationInvariant: { allocatedTaxTotal: zeroExact(), totalTax: zeroExact(), holds: true },
       perHeir: perPersonBase.map(row => ({
         id: row.person.id,
@@ -9532,7 +9752,7 @@ function calculate(input, { onDate } = {}) {
         retirementAllowanceExemption: row.retirementAllowanceExemption,
         allocatedTax: zeroExact(),
         surcharge: zeroExact(),
-        credits: { spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() },
+        credits: { giftTax: zeroExact(), spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() },
         payable: zeroMoney(),
       })),
     };
@@ -9578,7 +9798,7 @@ function calculate(input, { onDate } = {}) {
       );
   }
 
-  // §28-1 段階17。配偶者軽減→未成年者控除→障害者控除の順。
+  // §28-1 段階17。贈与税額控除→配偶者軽減→未成年者控除→障害者控除の順。
   const spouse = actualLegal.spouses[0];
   let spouseRelief = zeroExact();
   if (spouse && input.applySpouseRelief !== false) {
@@ -9606,11 +9826,22 @@ function calculate(input, { onDate } = {}) {
   }
 
   const perHeir = allocatedRows.map(row => {
-    const credits = { spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() };
+    const credits = {
+      giftTax: zeroExact(), spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact(),
+    };
     let currentTax = addExact(row.allocatedTax, row.surcharge);
+    const giftTaxEntitlement = giftTaxPaidById.get(row.person.id) || zeroMoney();
+    if (giftTaxEntitlement.value > 0n) {
+      const giftTaxApplied = compareExact(currentTax, moneyToExact(giftTaxEntitlement)) >= 0
+        ? moneyToExact(giftTaxEntitlement) : floorExactAtZero(currentTax);
+      credits.giftTax = giftTaxApplied;
+      currentTax = floorExactAtZero(subtractExact(currentTax, giftTaxApplied));
+    }
     if (spouse && row.person.id === spouse.id) {
-      credits.spouseRelief = spouseRelief;
-      currentTax = floorExactAtZero(subtractExact(currentTax, spouseRelief));
+      const appliedSpouseRelief = compareExact(currentTax, spouseRelief) >= 0
+        ? spouseRelief : floorExactAtZero(currentTax);
+      credits.spouseRelief = appliedSpouseRelief;
+      currentTax = floorExactAtZero(subtractExact(currentTax, appliedSpouseRelief));
     }
 
     if (actualHeirIds.has(row.person.id) && Number.isInteger(row.person.ageAtInheritance) &&
@@ -9678,6 +9909,17 @@ function calculate(input, { onDate } = {}) {
       holds: true,
     },
     perHeir,
+    giftAddback: {
+      ...giftAddback,
+      perRecipient: giftAddback.perRecipient.map(recipient => {
+        const row = perHeir.find(item => item.id === recipient.recipientHeirId);
+        return {
+          ...recipient,
+          giftTaxCreditApplied: row
+            ? applyRounding(row.credits.giftTax, NO_ROUNDING_RULE_ID) : zeroMoney(),
+        };
+      }),
+    },
   };
 }
 
@@ -9686,6 +9928,7 @@ module.exports = {
   calculateHeirCount,
   allocateNonTaxableAmount,
   calculateTaxTotalFromTaxableEstate,
+  calendarYearsBefore,
 };
 
 },
@@ -15404,6 +15647,7 @@ const INITIAL_FORM = Object.freeze({
   retirementAllowance: Object.freeze([]),
   debts: Object.freeze([]),
   hasGiftAddback: '',
+  giftAddback: Object.freeze([]),
   hasSettlementTaxationGifts: '',
   divisionMode: 'statutory',
   divisionStatus: 'yes',
@@ -15423,7 +15667,8 @@ const STATIC_FIELD_IDS = Object.freeze({
   '$.assets.securities.value': 'so-securities',
   '$.assets.businessAssets.value': 'so-business-assets',
   '$.assets.otherAssets.value': 'so-other-assets',
-  '$.assets.gifts': 'so-gift-addback',
+  '$.assets.giftAddback': 'so-gift-addback',
+  '$.assets.settlementTaxationGifts': 'so-settlement-gifts',
   '$.division': 'so-division-mode',
   '$.division.acquisitions': 'so-division-shares',
   '$.smallResidentialLand[0].areaSqm': 'so-small-land-area',
@@ -15434,7 +15679,8 @@ const STYLE_TEXT = `
 `;
 
 function cloneInitialForm() {
-  return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [], divisionShares: {} };
+  return { ...INITIAL_FORM, realEstate: [], lifeInsurance: [], retirementAllowance: [], debts: [],
+    giftAddback: [], divisionShares: {} };
 }
 
 function mountSozokuApp(rootElement, {
@@ -15473,6 +15719,9 @@ function mountSozokuApp(rootElement, {
     if (debt) return `so-debt-${debt[1]}${debt[2].includes('bearer') ? '-bearer' : '-amount'}`;
     const benefit = /^\$\.assets\.(lifeInsurance|retirementAllowance)\[(\d+)\](.*)$/.exec(path);
     if (benefit) return `so-${benefit[1]}-${benefit[2]}${benefit[3].includes('beneficiary') ? '-beneficiary' : '-amount'}`;
+    const gift = /^\$\.assets\.giftAddback\[(\d+)\](.*)$/.exec(path);
+    if (gift) return `so-gift-${gift[1]}${gift[2].includes('giftedOn') ? '-date' :
+      gift[2].includes('recipient') ? '-recipient' : gift[2].includes('giftTaxPaid') ? '-tax' : '-amount'}`;
     const division = /^\$\.division\.acquisitions\[(\d+)\]/.exec(path);
     return division ? `so-division-${division[1]}` : STATIC_FIELD_IDS[path];
   }
@@ -15642,6 +15891,35 @@ function mountSozokuApp(rootElement, {
     ]);
   }
 
+  function renderGiftRows() {
+    const rows = store.getState().form.giftAddback;
+    return el('div', { id: 'so-gift-rows' }, [
+      rows.map((row, index) => {
+        const path = `$.assets.giftAddback[${index}]`;
+        const dateInput = el('input', {
+          id: `so-gift-${index}-date`, type: 'date', value: row.giftedOn || '',
+          onInput: event => updateRow('giftAddback', index, 'giftedOn', event.currentTarget.value),
+        });
+        return el('section', { className: 'sozoku-row' }, [
+          el('h3', {}, `生前贈与 ${index + 1}`),
+          el('label', { for: `so-gift-${index}-date` }, '贈与日'), dateInput,
+          addControlError(dateInput, `${path}.giftedOn`),
+          ...nestedSelect('giftAddback', index, 'recipientHeirId', `so-gift-${index}-recipient`,
+            '受贈者', heirOptions(), `${path}.recipientHeirId`),
+          ...nestedMoney('giftAddback', index, 'amount', `so-gift-${index}-amount`,
+            '贈与時の価額（円）', `${path}.amount.value`),
+          ...nestedMoney('giftAddback', index, 'giftTaxPaid', `so-gift-${index}-tax`,
+            '納付した贈与税額（任意・円）', `${path}.giftTaxPaid.value`, '空欄にできます。'),
+          el('button', { id: `so-gift-${index}-remove`, type: 'button', onClick: () =>
+            removeRow('giftAddback', index, 'so-gift-add', 'so-gift') }, 'この贈与を削除'),
+        ]);
+      }),
+      el('button', { id: 'so-gift-add', type: 'button', onClick: () => addRow('giftAddback', {
+        giftedOn: '', recipientHeirId: '', amount: '', giftTaxPaid: '',
+      }) }, '生前贈与を追加'),
+    ]);
+  }
+
   function renderStep2() {
     return el('main', { className: 'sozoku-no-print' }, [
       ...stepHeader(2, '財産と債務'), errorSummary(),
@@ -15656,8 +15934,15 @@ function mountSozokuApp(rootElement, {
       renderBenefitRows('retirementAllowance', '死亡退職金', 'so-retirementAllowance-add'),
       renderDebtRows(),
       el('section', { className: 'sozoku-card' }, [el('h2', {}, '贈与の確認'),
-        ...selectField('hasGiftAddback', 'so-gift-addback', '7年以内の生前贈与加算の対象財産がありますか', '', TRI_STATE, '$.assets.gifts'),
-        ...selectField('hasSettlementTaxationGifts', 'so-settlement-gifts', '相続時精算課税の適用財産がありますか', '', TRI_STATE, '$.assets.gifts'),
+        ...selectField('hasGiftAddback', 'so-gift-addback',
+          '相続人が受けた生前贈与はありますか（相続開始前7年以内）', '', TRI_STATE,
+          '$.assets.giftAddback', true),
+        el('p', { className: 'sozoku-help' },
+          '受贈者は相続人から選択してください。相続や遺贈で財産を取得しない人への贈与は含めません。贈与税の配偶者控除を受けた居住用財産の贈与分は金額に含めないでください。相続時精算課税を選んだ贈与は下の別の質問で回答してください。'),
+        store.getState().form.hasGiftAddback === 'yes' ? renderGiftRows() : null,
+        ...selectField('hasSettlementTaxationGifts', 'so-settlement-gifts',
+          '相続時精算課税の適用財産がありますか', '', TRI_STATE,
+          '$.assets.settlementTaxationGifts'),
       ]),
       actionBar([el('button', { type: 'button', onClick: () => goToStep(1) }, '戻る'),
         el('button', { type: 'button', className: 'sozoku-primary', onClick: () => calculate(1) }, '申告要否を診断'),
@@ -15818,6 +16103,24 @@ function mountSozokuApp(rootElement, {
         : keyResult.value),
     ]);
   }
+  function giftAddbackSection(viewModel) {
+    if (!viewModel.giftAddback || viewModel.giftAddback.gifts.length === 0) return null;
+    return el('section', { className: 'sozoku-card' }, [
+      el('h2', {}, '生前贈与加算の内訳'),
+      definitionList([
+        ['加算対象期間の開始日', viewModel.giftAddback.periodStartDate],
+        ['生前贈与の加算額合計', viewModel.giftAddback.totalAddback.display],
+        ['延長期間の100万円控除適用額', viewModel.giftAddback.totalExtraDeduction.display],
+      ]),
+      el('ul', {}, viewModel.giftAddback.gifts.map(gift => el('li', {},
+        `${gift.giftedOn}・${gift.recipientLabel}・${gift.amount.display}：${gift.statusText}`))),
+      el('h3', {}, '受贈者ごとの加算・贈与税額控除'),
+      el('ul', {}, viewModel.giftAddback.perRecipient.filter(row =>
+        row.addbackAmount.exactYen > 0n || row.extraDeductionApplied.exactYen > 0n ||
+          row.giftTaxCreditApplied.exactYen > 0n).map(row => el('li', {},
+        `${row.recipientLabel}：延長期間控除 ${row.extraDeductionApplied.display}、加算 ${row.addbackAmount.display}、贈与税額控除 ${row.giftTaxCreditApplied.display}`))),
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -15836,10 +16139,18 @@ function mountSozokuApp(rootElement, {
         viewModel.screeningWarning ? el('p', { className: 'sozoku-warning' }, viewModel.screeningWarning) : null,
         viewModel.defaultDivisionAssumption ? el('p', { className: 'sozoku-help' }, viewModel.defaultDivisionAssumption) : null,
       ]),
+      giftAddbackSection(viewModel),
       viewModel.level === 2 ? [
         el('section', { className: 'sozoku-card' }, [el('h2', {}, '相続人ごとの試算'), el('div', { className: 'sozoku-table-wrap' }, el('table', {}, [
           el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '相続人'), el('th', { scope: 'col' }, '取得財産（課税価格）'), el('th', { scope: 'col' }, '算出税額'), el('th', { scope: 'col' }, '控除'), el('th', { scope: 'col' }, '納付税額')])),
-          el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [el('th', { scope: 'row' }, row.label), el('td', {}, row.acquiredAmount.display), el('td', {}, row.taxBeforeCredits.display), el('td', {}, row.credits.display), el('td', {}, row.finalTax.display)]))),
+          el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [
+            el('th', { scope: 'row' }, row.label), el('td', {}, row.acquiredAmount.display),
+            el('td', {}, row.taxBeforeCredits.display),
+            el('td', {}, [row.credits.display,
+              row.creditDetails.giftTax.exactYen > 0n
+                ? el('small', {}, `（うち贈与税額控除 ${row.creditDetails.giftTax.display}）`) : null]),
+            el('td', {}, row.finalTax.display),
+          ]))),
         ]))]),
         viewModel.spouseRelief ? el('section', { className: 'sozoku-card' }, [el('h2', {}, '配偶者の税額軽減'), definitionList([
           ['適用前税額', viewModel.spouseRelief.before.display], ['適用後税額', viewModel.spouseRelief.after.display], ['軽減額', viewModel.spouseRelief.reduction.display],
@@ -16145,6 +16456,41 @@ function debtRows(rows, heirs, errors) {
   });
 }
 
+function validLocalDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  return month >= 1 && month <= 12 && day >= 1 &&
+    day <= new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function giftAddbackRows(rows, heirs, errors) {
+  const ids = new Set(heirs.map(item => item.id));
+  return (rows || []).map((row, index) => {
+    const path = `$.assets.giftAddback[${index}]`;
+    const giftedOn = String(row.giftedOn || row.date || '');
+    const recipientHeirId = row.recipientHeirId || row.recipient;
+    if (!validLocalDate(giftedOn)) {
+      errors.push(issue('SOZOKU_UI_GIFT_DATE_REQUIRED', `${path}.giftedOn`,
+        '贈与日を入力してください'));
+    }
+    if (!ids.has(recipientHeirId)) {
+      errors.push(issue('SOZOKU_UI_GIFT_RECIPIENT_REQUIRED', `${path}.recipientHeirId`,
+        '受贈者となる相続人を選択してください'));
+    }
+    const result = {
+      giftedOn,
+      recipientHeirId: ids.has(recipientHeirId) ? recipientHeirId : '',
+      amount: money(row.amount, `${path}.amount.value`, errors),
+    };
+    const giftTaxPaid = money(row.giftTaxPaid, `${path}.giftTaxPaid.value`, errors, true);
+    if (giftTaxPaid) result.giftTaxPaid = giftTaxPaid;
+    return result;
+  });
+}
+
 function division(formState, heirs, errors) {
   const mode = formState.divisionMode || formState.divisionKind || 'statutory';
   if (mode === 'statutory' || mode === 'legal' || mode === 'default') {
@@ -16247,10 +16593,16 @@ function buildSozokuInputWithMeta(formState) {
   const level = Number(formState.level || 1);
   if (![1, 2].includes(level)) errors.push(issue('SOZOKU_UI_LEVEL_INVALID', '$.level',
     '計算レベルは1または2で指定してください'));
-  if (yesOrUnknown(formState.hasGiftAddback ?? formState.giftAddbackStatus) ||
-      yesOrUnknown(formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus)) {
-    errors.push(issue('SOZOKU_UI_GIFT_SPECIALIST_REVIEW_REQUIRED', '$.assets.gifts',
-      '生前贈与加算または相続時精算課税の確認が必要なため、この簡易試算では判定できません。専門家へご相談ください'));
+  const giftStatus = formState.hasGiftAddback ?? formState.giftAddbackStatus;
+  const settlementStatus = formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus;
+  if (giftStatus === 'unknown') {
+    errors.push(issue('SOZOKU_UI_GIFT_STATUS_REQUIRED', '$.assets.giftAddback',
+      '生前贈与の有無を確認してから入力してください'));
+  }
+  if (yesOrUnknown(settlementStatus)) {
+    errors.push(issue('SOZOKU_UI_SETTLEMENT_GIFT_SPECIALIST_REVIEW_REQUIRED',
+      '$.assets.settlementTaxationGifts',
+      '相続時精算課税を選んだ贈与はこの簡易試算の対象外です。専門家へご相談ください'));
   }
 
   const realEstate = realEstateRows(formState, level, errors);
@@ -16267,6 +16619,15 @@ function buildSozokuInputWithMeta(formState) {
     '$.assets.retirementAllowance', heirs, errors);
   if (lifeInsurance.length > 0) assets.lifeInsurance = lifeInsurance;
   if (retirementAllowance.length > 0) assets.retirementAllowance = retirementAllowance;
+  if (giftStatus === true || giftStatus === 'yes' || giftStatus === 'ある') {
+    const gifts = giftAddbackRows(formState.giftAddback, heirs, errors);
+    if (gifts.length === 0) {
+      errors.push(issue('SOZOKU_UI_GIFT_ROW_REQUIRED', '$.assets.giftAddback',
+        '生前贈与の明細を1件以上追加してください'));
+    } else {
+      assets.giftAddback = gifts;
+    }
+  }
   const selectedDivision = division(formState, heirs, errors);
   const selectedSmallLand = smallLand(formState, realEstate, heirs, errors);
 
@@ -16299,7 +16660,7 @@ function buildSozokuCalculationContext(snapshotInfo, calculatedAt = new Date().t
   return Object.freeze({
     asOfDate: String(calculatedAt).slice(0, 10),
     calculatedAt,
-    inheritanceOpenDate: '2025-06-30',
+    inheritanceOpenDate: '2026-08-29',
     jurisdiction: Object.freeze({ country: 'JP' }),
     masterSnapshotId: snapshotInfo.snapshotId,
     masterSnapshotHash: snapshotInfo.snapshotHash,
@@ -16346,7 +16707,10 @@ const DEFINITIONS = {
   IHT_ENGINE_BLOCKED: ['相続税を計算できません', '入力条件では相続税計算を完了できませんでした。', CONSULTATION],
   IHT_FOREIGN_PROPERTY: ['国外財産の確認が必要です', '国外財産は第1版の対応範囲外です。', CONSULTATION],
   IHT_FOREIGN_TAX_CREDIT_UNSUPPORTED: ['外国税額控除の確認が必要です', '外国税額控除は第1版の対応範囲外です。', CONSULTATION],
-  IHT_GIFT_ADDBACK_UNSUPPORTED: ['生前贈与の確認が必要です', '生前贈与加算がある場合は専門家へご相談ください。', CONSULTATION],
+  IHT_GIFT_ADDBACK_AMOUNT_INVALID: ['生前贈与の金額を確認してください', '贈与時の価額と贈与税額は0円以上で入力してください。', INPUT],
+  IHT_GIFT_ADDBACK_DATE_INVALID: ['贈与日を確認してください', '有効な贈与日を入力してください。', INPUT],
+  IHT_GIFT_ADDBACK_RECIPIENT_INVALID: ['生前贈与の受贈者を確認してください', '受贈者は入力済みの相続人から選択してください。', INPUT],
+  IHT_GIFT_ADDBACK_ZERO_SHARE: ['取得割合0%の相続人へ生前贈与を加算しました', '税額が過大となる安全側で加算しています。財産を取得しない人は本来加算対象外のため確認してください。', INFORMATION],
   IHT_HEIRS_REQUIRED: ['相続人を入力してください', '法定相続人を確定できる回答が必要です。', INPUT, '$.heirs'],
   IHT_INPUT_REQUIRED: ['入力内容を確認してください', '相続税計算に必要な入力が不足しています。', INPUT],
   IHT_MASTER_UNAVAILABLE: ['計算根拠を確認できません', '必要な承認済み税務マスターが利用できません。', INFORMATION],
@@ -16355,7 +16719,7 @@ const DEFINITIONS = {
   IHT_MULTIPLE_SPOUSES: ['配偶者の入力を確認してください', '配偶者を1人に確定できないため計算できません。', CONSULTATION],
   IHT_NO_STATUTORY_HEIR: ['法定相続人を確定できません', '入力を確認するか、専門家へご相談ください。', CONSULTATION],
   IHT_NON_RESIDENT: ['海外居住の確認が必要です', '被相続人または相続人が海外居住の場合は専門家へご相談ください。', CONSULTATION],
-  IHT_ON_DATE_REQUIRED: ['相続開始日を確認できません', '2025年中の相続開始として計算します。', INPUT],
+  IHT_ON_DATE_REQUIRED: ['相続開始日を確認できません', '相続開始日を確認してください。', INPUT],
   IHT_RENOUNCER_ACQUIRED_PROPERTY: ['相続放棄の判定が必要です', '相続放棄者が取得した財産は個別判定が必要です。', CONSULTATION],
   IHT_RENUNCIATION_STATUS_UNKNOWN: ['相続放棄の状況を確認してください', '状況が不明なため専門確認が必要です。', CONSULTATION],
   IHT_SETTLEMENT_TAXATION_UNSUPPORTED: ['相続時精算課税の確認が必要です', '相続時精算課税の適用財産がある場合は専門家へご相談ください。', CONSULTATION],
@@ -16430,6 +16794,7 @@ const RANGE_CATALOG = Object.freeze([
   Object.freeze({ code: 'inheritance_tax_total', label: '相続税の総額' }),
   Object.freeze({ code: 'spouse_relief', label: '配偶者の税額軽減' }),
   Object.freeze({ code: 'small_residential_land', label: '小規模宅地等' }),
+  Object.freeze({ code: 'gift_addback', label: '生前贈与加算・贈与税額控除' }),
 ]);
 
 function moneyValue(value) {
@@ -16496,6 +16861,42 @@ function hasWarning(result, code) {
   return (result.warnings || []).some(item => item.code === code);
 }
 
+function giftAddbackViewModel(value) {
+  const details = value || { gifts: [], perRecipient: [], totalAddback: money(0n),
+    totalExtraDeduction: money(0n), periodStartDate: null, threeYearStartDate: null };
+  const recipientIds = details.perRecipient.map(row => row.recipientHeirId);
+  const labelFor = heirId => heirLabel(heirId, Math.max(0, recipientIds.indexOf(heirId)));
+  return Object.freeze({
+    periodStartDate: details.periodStartDate,
+    threeYearStartDate: details.threeYearStartDate,
+    totalAddback: amount(details.totalAddback),
+    totalExtraDeduction: amount(details.totalExtraDeduction),
+    gifts: Object.freeze(details.gifts.map(gift => Object.freeze({
+      giftedOn: gift.giftedOn,
+      recipientHeirId: gift.recipientHeirId,
+      recipientLabel: labelFor(gift.recipientHeirId),
+      amount: amount(gift.amount),
+      giftTaxPaid: amount(gift.giftTaxPaid),
+      addbackAmount: amount(gift.addbackAmount),
+      extraDeductionApplied: amount(gift.extraDeductionApplied),
+      isInAddbackPeriod: gift.isInAddbackPeriod,
+      periodClassification: gift.periodClassification,
+      statusText: gift.isInAddbackPeriod
+        ? gift.periodClassification === 'extended_period' && gift.extraDeductionApplied.value > 0n
+          ? `延長期間の100万円控除を${formatYen(gift.extraDeductionApplied)}適用し、${formatYen(gift.addbackAmount)}を加算`
+          : `加算対象（加算額 ${formatYen(gift.addbackAmount)}）`
+        : '期間外のため加算されません',
+    }))),
+    perRecipient: Object.freeze(details.perRecipient.map(recipient => Object.freeze({
+      recipientHeirId: recipient.recipientHeirId,
+      recipientLabel: labelFor(recipient.recipientHeirId),
+      addbackAmount: amount(recipient.addbackAmount),
+      extraDeductionApplied: amount(recipient.extraDeductionApplied),
+      giftTaxCreditApplied: amount(recipient.giftTaxCreditApplied),
+    }))),
+  });
+}
+
 function calculationRange(level, result) {
   const excluded = level === 1
     ? RANGE_CATALOG.filter(item => ['inheritance_tax_total', 'spouse_relief'].includes(item.code))
@@ -16551,6 +16952,7 @@ function buildSozokuResultViewModel(result, options = {}) {
       text.includes('法定相続分で仮計算')),
     smallResidentialLandPossibility: Boolean(options.smallResidentialLandPossibility) ||
       hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SPECIALIST_REVIEW'),
+    giftAddback: giftAddbackViewModel(data.giftAddback),
   };
   if (level === 1) return Object.freeze(base);
 
@@ -16560,6 +16962,12 @@ function buildSozokuResultViewModel(result, options = {}) {
     acquiredAmount: amount(row.acquiredAmount),
     taxBeforeCredits: amount(row.allocatedTaxBeforeCredits),
     credits: amount(row.credits),
+    creditDetails: Object.freeze({
+      giftTax: amount(row.creditDetails.giftTax),
+      spouseRelief: amount(row.creditDetails.spouseRelief),
+      minor: amount(row.creditDetails.minor),
+      disability: amount(row.creditDetails.disability),
+    }),
     finalTax: amount(row.finalTax),
   })));
   const spouse = allocationRows.find(row => row.heirId === 'spouse');
@@ -16567,8 +16975,10 @@ function buildSozokuResultViewModel(result, options = {}) {
     ? result.summary.amount
     : money(allocationRows.reduce((total, row) => total + row.finalTax.exactYen, 0n));
   const smallLandApplied = hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SIMPLIFIED_APPLIED');
-  const derivedReduction = moneyValue(data.grossEstate) - moneyValue(data.nonTaxableAmounts) -
-    moneyValue(data.deductibleDebtsAndFuneralCosts) - moneyValue(data.taxablePriceTotal);
+  const giftDetails = data.giftAddback || { totalAddback: money(0n) };
+  const derivedReduction = moneyValue(data.grossEstate) + moneyValue(giftDetails.totalAddback) -
+    moneyValue(data.nonTaxableAmounts) - moneyValue(data.deductibleDebtsAndFuneralCosts) -
+    moneyValue(data.taxablePriceTotal);
   return Object.freeze({
     ...base,
     totalInheritanceTax: amount(data.totalInheritanceTax),
@@ -16584,8 +16994,8 @@ function buildSozokuResultViewModel(result, options = {}) {
     spouseRelief: spouse ? Object.freeze({
       before: spouse.taxBeforeCredits,
       after: spouse.finalTax,
-      reduction: spouse.credits,
-      applied: spouse.credits.exactYen > 0n,
+      reduction: spouse.creditDetails.spouseRelief,
+      applied: spouse.creditDetails.spouseRelief.exactYen > 0n,
     }) : undefined,
     smallResidentialLand: Object.freeze({
       applied: smallLandApplied,

@@ -193,6 +193,47 @@ console.log('\n=== §63 公的計算例との照合 ===');
   assert(children.every(child => child.payable.value === BigInt(c.expected.child_payable_each)),
     `${c.case_id}: 子の納付税額は各675万円`);
 }
+for (const caseId of ['GC-SO-GIFT-ADDBACK-3Y', 'GC-SO-GIFT-EXTRA-100']) {
+  const c = byId.get(caseId);
+  const shares = c.inputs.division_shares;
+  const result = inheritanceEngine.calculate({
+    heirs: c.inputs.heirs.map(heir => ({
+      ...heir,
+      isAlive: true,
+      taxablePrice: inputMoney(
+        BigInt(c.inputs.cash) * BigInt(shares[heir.id].num) / BigInt(shares[heir.id].den)
+      ),
+    })),
+    giftAddback: c.inputs.gifts.map(gift => ({
+      giftedOn: gift.gifted_on,
+      recipientHeirId: gift.recipient_heir_id,
+      amount: inputMoney(gift.amount),
+      ...(gift.gift_tax_paid ? { giftTaxPaid: inputMoney(gift.gift_tax_paid) } : {}),
+    })),
+    isDivided: 'yes',
+  }, { onDate: c.inputs.inheritance_open_date });
+  assert(result.status === 'complete', `${caseId}: 生前贈与加算を含む全工程がcomplete`);
+  if (caseId === 'GC-SO-GIFT-ADDBACK-3Y') {
+    const child1 = result.perHeir.find(row => row.id === 'child-1');
+    assert(result.giftAddback.periodStartDate === c.expected.period_start_date &&
+      result.giftAddback.gifts[0].addbackAmount.value === BigInt(c.expected.included_gift_addback) &&
+      result.giftAddback.gifts[1].addbackAmount.value === BigInt(c.expected.outside_period_gift_addback),
+    `${caseId}: 3年境界で対象贈与と期間外贈与を分ける`);
+    assert(child1.credits.giftTax.num / child1.credits.giftTax.den ===
+      BigInt(c.expected.child_1_gift_tax_credit) &&
+      result.perHeir.reduce((total, row) => total + row.payable.value, 0n) ===
+        BigInt(c.expected.final_tax_total),
+    `${caseId}: 贈与税額控除後の納付合計は3,054,400円`);
+  } else {
+    const child1 = result.giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-1');
+    const child2 = result.giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-2');
+    assert(child1.addbackAmount.value === BigInt(c.expected.child_1_addback) &&
+      child2.addbackAmount.value === BigInt(c.expected.child_2_addback) &&
+      child1.extraDeductionApplied.value === BigInt(c.expected.child_1_extra_period_deduction) &&
+      child2.extraDeductionApplied.value === BigInt(c.expected.child_2_extra_period_deduction),
+    `${caseId}: 延長期間100万円控除を受贈者ごとに適用する`);
+  }
+}
 {
   const c = byId.get('GC-SID-R7-CAP');
   assert(salaryIncomeDeduction(c.inputs.salary_revenue, c.inputs.tax_year)

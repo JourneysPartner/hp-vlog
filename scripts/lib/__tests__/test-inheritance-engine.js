@@ -15,6 +15,7 @@ const {
   calculate,
   calculateHeirCount,
   calculateTaxTotalFromTaxableEstate,
+  calendarYearsBefore,
 } = require('../../../src/tax-engine/inheritance/inheritance-tax.js');
 
 const ON_DATE = '2025-06-01';
@@ -132,6 +133,66 @@ console.log('\n=== 相続税エンジン: 非課税・法定相続分・加算 =
 
 console.log('\n=== 相続税エンジン: 税額控除と端数 ===');
 {
+  assert(calendarYearsBefore('2024-02-29', 3) === '2021-02-28',
+    '応当日がないうるう日の年戻しはその月の末日に丸める');
+}
+{
+  const result = calculate({
+    heirs: [{ id: 'child', relation: 'child', isAlive: true, taxablePrice: yen(50000000) }],
+    giftAddback: [
+      { giftedOn: '2023-08-29', recipientHeirId: 'child', amount: yen(1000000) },
+      { giftedOn: '2023-08-28', recipientHeirId: 'child', amount: yen(2000000) },
+    ],
+  }, { onDate: '2026-08-29' });
+  assert(result.status === 'complete' && result.giftAddback.gifts[0].isInAddbackPeriod &&
+    !result.giftAddback.gifts[1].isInAddbackPeriod && result.giftAddback.totalAddback.value === 1000000n,
+  '3年前の応当日当日は対象、前日は期間外になる');
+}
+{
+  const result = calculate({
+    heirs: [{ id: 'child', relation: 'child', isAlive: true, taxablePrice: yen(37000000) }],
+    giftAddback: [{
+      giftedOn: '2025-01-01', recipientHeirId: 'child', amount: yen(1000000),
+      giftTaxPaid: yen(10000000),
+    }],
+  }, { onDate: '2026-08-29' });
+  assert(result.status === 'complete' && result.perHeir[0].payable.value === 0n &&
+    exactEqualsMoney(result.perHeir[0].credits.giftTax, 200000),
+  '贈与税額が算出税額を超えても0円で止め、還付額を作らない（適用額も算出税額200,000円で頭打ち）');
+}
+{
+  const result = calculate({
+    heirs: [
+      { id: 'spouse', relation: 'spouse', isAlive: true, taxablePrice: yen(50000000) },
+      { id: 'child', relation: 'child', isAlive: true, taxablePrice: yen(0),
+        divisionShare: { num: 0n, den: 1n } },
+    ],
+    giftAddback: [{ giftedOn: '2025-01-01', recipientHeirId: 'child', amount: yen(2000000) }],
+  }, { onDate: '2026-08-29' });
+  assert(result.status === 'complete' && result.perHeir.find(row => row.id === 'child').taxablePrice.value === 2000000n &&
+    result.warnings.some(warning => warning.code === 'IHT_GIFT_ADDBACK_ZERO_SHARE'),
+  '分割割合0%の相続人への贈与も警告付きで加算する');
+}
+{
+  const result = calculate({
+    heirs: [
+      { id: 'spouse', relation: 'spouse', isAlive: true, taxablePrice: yen(48500000) },
+      { id: 'child-1', relation: 'child', isAlive: true, taxablePrice: yen(24250000) },
+      { id: 'child-2', relation: 'child', isAlive: true, taxablePrice: yen(24250000) },
+    ],
+    giftAddback: [
+      { giftedOn: '2024-03-01', recipientHeirId: 'child-1', amount: yen(2000000) },
+      { giftedOn: '2026-01-15', recipientHeirId: 'child-1', amount: yen(1500000) },
+      { giftedOn: '2024-08-01', recipientHeirId: 'child-2', amount: yen(800000) },
+    ],
+  }, { onDate: '2028-06-01' });
+  const child1 = result.giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-1');
+  const child2 = result.giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-2');
+  assert(child1.addbackAmount.value === 2500000n && child2.addbackAmount.value === 0n &&
+    child1.extraDeductionApplied.value === 1000000n && child2.extraDeductionApplied.value === 800000n,
+  '経過措置の延長期間100万円控除は全体1枠でなく受贈者ごとに適用する');
+}
+{
   const result = complete({
     heirs: [{
       id: 'minor-child',
@@ -230,6 +291,15 @@ console.log('\n=== 相続税エンジン: 税額控除と端数 ===');
 console.log('\n=== 相続税エンジン: blocked 理由コード ===');
 {
   const result = calculate({
+    heirs: [{ id: 'child', relation: 'child', isAlive: true, taxablePrice: yen(10000000) }],
+    giftAddback: [{ giftedOn: '2013-01-01', recipientHeirId: 'child', amount: yen(1000000) }],
+  }, { onDate: '2014-12-31' });
+  assert(result.status === 'blocked' && result.blockedReasons.some(reason =>
+    reason.code === 'IHT_MASTER_UNAVAILABLE'),
+  '2015年より前で該当期間マスターがない相続開始日は理由コード付きblockedになる');
+}
+{
+  const result = calculate({
     heirs: [
       {
         id: 'substitute',
@@ -264,7 +334,6 @@ console.log('\n=== 相続税エンジン: blocked 理由コード ===');
         foreignTaxCredit: yen(1),
       },
     ],
-    giftAddback: [{}],
     settlementTaxationGifts: yen(1),
     hasForeignAssets: 'yes',
     smallResidentialLand: [{}],
@@ -275,7 +344,6 @@ console.log('\n=== 相続税エンジン: blocked 理由コード ===');
     'IHT_DISQUALIFICATION_EXCLUSION_UNSUPPORTED',
     'IHT_ADOPTION_FACTS_REQUIRED',
     'IHT_RENOUNCER_ACQUIRED_PROPERTY',
-    'IHT_GIFT_ADDBACK_UNSUPPORTED',
     'IHT_SETTLEMENT_TAXATION_UNSUPPORTED',
     'IHT_SUCCESSIVE_INHERITANCE_CREDIT_UNSUPPORTED',
     'IHT_FOREIGN_TAX_CREDIT_UNSUPPORTED',
