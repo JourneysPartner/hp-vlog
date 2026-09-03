@@ -26,7 +26,25 @@ const AUTHOR_IMAGE = `${BASE_URL}/assets/images/author-mori.png`;
 const ORG_NAME = '毛利順活税理士事務所';
 const ORG_DESCRIPTION = '国税局出身の税理士による、ネット販売・個人事業主・相続に強い税理士事務所。eBay輸出・越境ECの消費税還付にも対応。全国オンライン対応・初回相談無料。';
 
-function organizationSchema() {
+// 47都道府県（対応地域ページの areaServed 用。住所は出さない）
+const PREFECTURES = [
+  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県',
+  '三重県', '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県',
+  '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+  '徳島県', '香川県', '愛媛県', '高知県',
+  '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県',
+];
+
+/**
+ * @param {{ prefectures?: boolean }} options
+ *   prefectures: true なら areaServed を47都道府県の配列にする（対応地域ページ用）
+ */
+function organizationSchema(options = {}) {
+  const areaServed = options.prefectures
+    ? PREFECTURES.map(name => ({ '@type': 'AdministrativeArea', name }))
+    : { '@type': 'Country', name: 'JP' };
   return {
     '@context': 'https://schema.org',
     '@type': ['Organization', 'AccountingService'],
@@ -37,7 +55,7 @@ function organizationSchema() {
     logo: LOGO_IMAGE,
     image: OG_IMAGE,
     description: ORG_DESCRIPTION,
-    areaServed: { '@type': 'Country', name: 'JP' },
+    areaServed,
     availableLanguage: 'ja',
     openingHoursSpecification: [{
       '@type': 'OpeningHoursSpecification',
@@ -160,7 +178,7 @@ function jsonLdScripts(list) {
 }
 
 module.exports = Object.freeze({
-  BASE_URL, ORG_ID, PERSON_ID, WEBSITE_ID, OG_IMAGE, LOGO_IMAGE, AUTHOR_IMAGE,
+  BASE_URL, ORG_ID, PERSON_ID, WEBSITE_ID, OG_IMAGE, LOGO_IMAGE, AUTHOR_IMAGE, PREFECTURES,
   organizationSchema, personSchema, websiteSchema,
   breadcrumbSchema, faqSchema, articleSchema, serviceSchema,
   jsonLdScript, jsonLdScripts,

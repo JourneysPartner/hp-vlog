@@ -854,7 +854,8 @@ function buildStaticPages(posts) {
 
     // 事務所・代表の構造化データを全ページに。トップだけ WebSite も付ける。
     // パンくず・FAQ はページ内の記述から拾う。サービス専用ページには Service も付ける。
-    const schemas = [organizationSchema(), personSchema()];
+    // 対応地域ページだけ areaServed を47都道府県にする（住所は出さない）
+    const schemas = [organizationSchema({ prefectures: entry.pathname === '/area/' }), personSchema()];
     if (entry.src === 'index.html') schemas.push(websiteSchema());
     schemas.push(breadcrumbSchema(parseStaticBreadcrumb(src)));
     schemas.push(faqSchema(extractFaqFromHtml(src)));
