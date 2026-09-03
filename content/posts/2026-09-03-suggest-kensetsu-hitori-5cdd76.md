@@ -9,10 +9,10 @@ article_role: "main"
 related_slug: "general-social-insurance-misconception-reseller-marketplace-seller-growth-practice"
 related_title: ""
 related_link_text: "申告実務の注意点はこちら"
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
-source_title: "白色申告者の記帳・帳簿等保存制度"
-source_provenance: "llm-auto"
-source_confidence: 0.72
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm"
+source_title: "国税庁タックスアンサー No.2020 確定申告"
+source_provenance: "curated"
+source_confidence: 1
 source_guard_version: 1
 search_intent: "一人親方 確定申告 やり方 一人親方 確定申告してない 一人親方 確定申告 白 一人親方 確定申告 書き方 一人親方 確定申告してない 知恵袋 一人親方 確定申告 スマホ 一人親方 確定申告 必要書類 一人親方 確定申告 税理士"
 reader_problem: "確定申告の必要性や白色申告の書き方、スマホでの手続き、未申告の場合の対応が分からない。"
@@ -29,12 +29,12 @@ procedure_stage: ""
 customer_segment: "construction_solo"
 customer_fit_score: 4
 search_intent_score: 5
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: LLM選定の確信度が低い（0.72 < 0.9）"
+recommendation: "publish"
+review_warning: ""
 summary: "一人親方は所得が基礎控除額（令和8年分は104万円）を超えると確定申告が必要。請求書・領収書・源泉徴収票を揃え、白色または青色申告で申告する手順を解説します。"
 review_status: "draft"
 review_comment: ""
@@ -67,7 +67,7 @@ updated_at: "2026-09-03T00:08:37.520Z"
 
 一人親方は会社員と違い、勤務先が税金を代わりに納める「年末調整」の対象外です。自分で1年間の収入と経費を計算して税務署に申告し、所得税を納める必要があります。これが確定申告です。
 
-義務が生じる基準は、<strong>事業所得（売上から必要経費を引いた額）が基礎控除額を超えるかどうか</strong>です。<strong>令和8年分の基礎控除は104万円</strong>。年間の受注額が小さくても、経費を引いた後の所得が104万円を超えていれば申告が必要です。逆に、経費が多く所得がそれ以下に収まる年は申告義務がない場合もあります。
+義務が生じる基準は、<strong>所得（売上から必要経費を引いた額）が所得控除の合計額を超えるかどうか</strong>です（国税庁タックスアンサー No.2020「確定申告」）。その所得控除の中心になるのが基礎控除で、<strong>令和8年分は104万円</strong>。年間の受注額が小さくても、経費を引いた後の所得がこれを超えていれば申告が必要です。逆に、経費が多く所得がそれ以下に収まる年は申告義務がない場合もあります。
 
 この金額はここ数年で続けて変わっています。よく見かける「48万円」は令和6年分以前の金額で、いまの判断には使えません。令和7年分は95万円、令和8年分は104万円です。
 
