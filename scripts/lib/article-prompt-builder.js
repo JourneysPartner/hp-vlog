@@ -21,12 +21,13 @@ const {
   DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
+const { buildTaxPeriodBlock } = require('./current-tax-period');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
                                         ntaRefsBlock, lawChangesBlock, revisionHint,
                                         pairedTopic, pairedArticleType, pairedArticleRole,
-                                        conditionalRules = [] }) {
+                                        conditionalRules = [], now }) {
   // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
   // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
   const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
@@ -83,7 +84,15 @@ ${pairedTitleHint}
 4. ペア記事の参考タイトル（あれば上記）の表現とは別の動詞・別の名詞を選ぶ。`;
   }
 
-  return `═══ この記事の可変条件 ═══
+  // 「いま何年か」を最初に置く。年分で内容が変わる話（基礎控除・扶養のライン・
+  // 経過措置の期限など）は、ここを取り違えると金額まで芋づるで誤るため、
+  // 可変条件より前に読ませる。固定ルール側には日付を持たせない（毎日変われば
+  // prompt caching が毎日無効になるので、可変ブロックに置く）。
+  const taxPeriodBlock = buildTaxPeriodBlock(now).trimStart();
+
+  return `${taxPeriodBlock}
+
+═══ この記事の可変条件 ═══
 大分類: ${macro}
 ${titleHintLine}
 ターゲット読者: ${persona.label}
@@ -177,7 +186,7 @@ function buildGenerationPrompt(args) {
   }
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
-    pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules,
+    pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules, now,
   });
   const frontmatter = buildFrontmatterTemplate({
     topic, articleType, articleRole, relatedSlug, relatedTitle, relatedLinkText, now,
