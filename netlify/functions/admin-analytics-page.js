@@ -1,17 +1,45 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { requireBasicAuth } = require('./lib/admin-auth');
 const { renderAdminNav } = require('./lib/admin-nav');
+
+// サーチコンソールの週次レポート（data/search-console/report.md）。
+// netlify.toml の [functions] included_files で関数に同梱している。
+// 置かれる場所が環境で違うので候補を順に見る。無ければ「未取り込み」と出す。
+function readSearchConsoleReport() {
+  const candidates = [
+    path.resolve(__dirname, '..', '..', 'data', 'search-console', 'report.md'),
+    path.resolve(process.cwd(), 'data', 'search-console', 'report.md'),
+  ];
+  for (const p of candidates) {
+    try { return fs.readFileSync(p, 'utf8'); } catch (_) { /* 次の候補 */ }
+  }
+  return '';
+}
+
+function escapeHtmlServer(v) {
+  return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderSearchConsoleSection() {
+  const md = readSearchConsoleReport();
+  const body = md
+    ? `<pre class="gsc">${escapeHtmlServer(md)}</pre>`
+    : '<p class="notice">まだ取り込まれていません。設定手順は docs/search-console-setup.md を参照してください。</p>';
+  return `<section class="panel"><h2>検索語（サーチコンソール）</h2><p class="notice">毎週月曜に取り込む週次レポートです（直近28日）。読み取り専用。</p>${body}</section>`;
+}
 
 const HTML = `<!doctype html>
 <html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>アクセス解析｜毛利順活税理士事務所</title>
 <style>
-:root{--navy:#0b2045;--orange:#e85320;--green:#16805b;--line:#dbe3ef;--muted:#64748b}*{box-sizing:border-box}body{margin:0;background:#f6f8fc;color:#1e293b;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}.head{background:var(--navy);color:white;padding:18px 24px}.head h1{margin:0;font-size:20px}.head p{margin:5px 0 0;font-size:13px;opacity:.82}.wrap{max-width:1100px;margin:24px auto;padding:0 16px}.notice{font-size:13px;color:var(--muted);margin:0 0 16px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 3px #0f172a0d}.card{padding:14px}.card .label{font-size:12px;color:var(--muted)}.stat{display:flex;gap:13px;margin-top:8px}.stat b{font-size:24px;color:var(--navy)}.stat span{font-size:12px;color:var(--muted)}.panel{padding:18px;margin-top:18px}.tools{display:flex;justify-content:space-between;align-items:center;gap:12px}.tools h2{font-size:16px;margin:0}.tools button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;cursor:pointer}.tools button.active{background:var(--navy);color:white;border-color:var(--navy)}#chart{width:100%;min-height:230px;margin-top:14px}.legend{font-size:12px;color:var(--muted)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 12px}.pv{background:var(--orange)}.uu{background:var(--green)}ol{margin:12px 0 0;padding-left:24px}li{padding:8px 0;border-bottom:1px solid #edf1f6;display:flex;gap:12px;justify-content:space-between}li:last-child{border:0}.path{font-size:13px;color:var(--muted)}.error{color:#b42318}@media(max-width:720px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:0 12px}}
+:root{--navy:#0b2045;--orange:#e85320;--green:#16805b;--line:#dbe3ef;--muted:#64748b}*{box-sizing:border-box}body{margin:0;background:#f6f8fc;color:#1e293b;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}.head{background:var(--navy);color:white;padding:18px 24px}.head h1{margin:0;font-size:20px}.head p{margin:5px 0 0;font-size:13px;opacity:.82}.wrap{max-width:1100px;margin:24px auto;padding:0 16px}.notice{font-size:13px;color:var(--muted);margin:0 0 16px}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 3px #0f172a0d}.card{padding:14px}.card .label{font-size:12px;color:var(--muted)}.stat{display:flex;gap:13px;margin-top:8px}.stat b{font-size:24px;color:var(--navy)}.stat span{font-size:12px;color:var(--muted)}.panel{padding:18px;margin-top:18px}.tools{display:flex;justify-content:space-between;align-items:center;gap:12px}.tools h2{font-size:16px;margin:0}.tools button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;cursor:pointer}.tools button.active{background:var(--navy);color:white;border-color:var(--navy)}#chart{width:100%;min-height:230px;margin-top:14px}.legend{font-size:12px;color:var(--muted)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 12px}.pv{background:var(--orange)}.uu{background:var(--green)}ol{margin:12px 0 0;padding-left:24px}li{padding:8px 0;border-bottom:1px solid #edf1f6;display:flex;gap:12px;justify-content:space-between}li:last-child{border:0}.path{font-size:13px;color:var(--muted)}.error{color:#b42318}.gsc{white-space:pre-wrap;font-size:12.5px;line-height:1.6;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;max-height:520px;overflow:auto;margin:12px 0 0}@media(max-width:720px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:0 12px}}
 </style></head><body><header class="head"><h1>アクセス解析</h1><p>ブラウザ単位の日次ユニークによる参考値です。</p></header>${renderAdminNav('analytics')}
 <main class="wrap"><p class="notice">bot・スパムを完全には除去できません。数値は傾向把握のためにご利用ください。</p><section class="cards" id="cards">読み込み中…</section>
 <section class="panel"><div class="tools"><h2>日次推移 <span class="legend"><i class="dot uu"></i>訪問者 <i class="dot pv"></i>PV</span></h2><div id="period"><button data-days="7">7日</button><button data-days="30" class="active">30日</button><button data-days="90">90日</button></div></div><div id="chart"></div></section>
-<section class="panel"><h2>人気ページ Top 10</h2><ol id="top"></ol></section><section class="panel"><h2>問い合わせにつながったページ</h2><p class="notice">選択中の期間に、このページから問い合わせページへ進んだ回数です。</p><ol id="contact-from"></ol></section></main>
+<section class="panel"><h2>人気ページ Top 10</h2><ol id="top"></ol></section><section class="panel"><h2>問い合わせにつながったページ</h2><p class="notice">選択中の期間に、このページから問い合わせページへ進んだ回数です。</p><ol id="contact-from"></ol></section>{{SEARCH_CONSOLE}}</main>
 <script>
 (() => { let state={data:null,map:{},days:30}; const n=x=>Number(x||0).toLocaleString('ja-JP');
 function totals(rows){return rows.reduce((a,r)=>({pageviews:a.pageviews+r.pageviews,visitors:a.visitors+r.visitors}),{pageviews:0,visitors:0})}
@@ -31,6 +59,8 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' },
-    body: HTML,
+    body: HTML.replace('{{SEARCH_CONSOLE}}', renderSearchConsoleSection()),
   };
 };
+
+module.exports.renderSearchConsoleSection = renderSearchConsoleSection;

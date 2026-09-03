@@ -1,0 +1,75 @@
+name: Fetch Search Console
+
+# サーチコンソールの検索語を週次で取り込み、data/search-console/ に貯める（並行A）。
+# 毎週月曜 JST 04:00 ＋ 手動。変更があれば PR を作成（自動マージなし）。
+#
+# 必要な secret:
+#   GSC_SERVICE_ACCOUNT_JSON — サービスアカウントの鍵 JSON（設定手順は docs/search-console-setup.md）
+# 未設定の場合はスキップして正常終了する。
+#
+# 取り込んだデータは記事生成の候補選定に自動で接続しない（貯めて見られるようにするまで）。
+
+on:
+  schedule:
+    - cron: '0 19 * * 0'   # 日曜 19:00 UTC = 月曜 JST 04:00
+  workflow_dispatch:
+
+concurrency:
+  group: fetch-search-console
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Fetch from Search Console
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::notice::GSC_SERVICE_ACCOUNT_JSON が未設定のためスキップします（docs/search-console-setup.md を参照）"
+            echo "SKIP=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          node scripts/fetch-search-console.js
+          node scripts/report-search-console.js
+
+      - name: Create PR if changed
+        if: env.SKIP != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(git status --porcelain -- data/search-console)" ]; then
+            echo "::notice::変更なし。PR は作成しません"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          STAMP=$(date -u +%Y%m%d)
+          BRANCH="search-console/${STAMP}"
+          git checkout -b "$BRANCH"
+          git add data/search-console
+          git commit -m "chore: サーチコンソールの検索語を取り込み (${STAMP})"
+          git push origin "$BRANCH"
+
+          SUMMARY=$(sed -n '1,12p' data/search-console/report.md)
+          gh pr create --base main --head "$BRANCH" \
+            --title "サーチコンソールの検索語を取り込み (${STAMP})" \
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。記事の候補選定には接続していません。\n\n%s\n\n全文: data/search-console/report.md' "$SUMMARY")" \
+            || echo "::error::PR の作成に失敗しました"
