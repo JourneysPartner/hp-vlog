@@ -267,14 +267,49 @@ console.log('\n=== 保険金非課税と債務負担者 ===');
   '債務のbearerHeirId省略は質問コード付きblocked');
 }
 
+console.log('\n=== 生前贈与加算・贈与税額控除 ===');
+{
+  const input = fullInput();
+  input.assets = {
+    cash: yen(97000000),
+    giftAddback: [
+      { giftedOn: '2024-06-01', recipientHeirId: 'child-1', amount: yen(3000000), giftTaxPaid: yen(190000) },
+      { giftedOn: '2022-01-01', recipientHeirId: 'child-1', amount: yen(5000000) },
+    ],
+  };
+  delete input.smallResidentialLand;
+  const simulation = result(input, context({ inheritanceOpenDate: '2026-08-29' }));
+  const breakdown = data(simulation);
+  assert(simulation.resultStatus === 'complete' && breakdown.taxablePriceTotal.value === 100000000n &&
+    breakdown.totalInheritanceTax.value === 6300000n && simulation.summary.amount.value === 3054400n,
+  'GC-SO-GIFT-ADDBACK-3Y: 課税価格1億円・相続税総額630万円・納付合計3,054,400円');
+  assert(breakdown.giftAddback.gifts[0].addbackAmount.value === 3000000n &&
+    breakdown.giftAddback.gifts[1].addbackAmount.value === 0n &&
+    allocation(simulation, 'child-1').creditDetails.giftTax.value === 190000n,
+  '対象贈与と期間外贈与を明細に残し、子1の贈与税額控除19万円を返す');
+}
+{
+  const input = fullInput();
+  input.assets = {
+    cash: yen(97000000),
+    giftAddback: [
+      { giftedOn: '2024-03-01', recipientHeirId: 'child-1', amount: yen(2000000) },
+      { giftedOn: '2026-01-15', recipientHeirId: 'child-1', amount: yen(1500000) },
+      { giftedOn: '2024-08-01', recipientHeirId: 'child-2', amount: yen(800000) },
+    ],
+  };
+  delete input.smallResidentialLand;
+  const simulation = result(input, context({ inheritanceOpenDate: '2028-06-01' }));
+  const child1 = data(simulation).giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-1');
+  const child2 = data(simulation).giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-2');
+  assert(child1.addbackAmount.value === 2500000n && child2.addbackAmount.value === 0n &&
+    child1.extraDeductionApplied.value === 1000000n && child2.extraDeductionApplied.value === 800000n,
+  'GC-SO-GIFT-EXTRA-100: 100万円控除を受贈者ごとに適用する');
+}
+
 console.log('\n=== 第1版の対象外条件 ===');
 {
   const cases = [
-    ['IHT_GIFT_ADDBACK_UNSUPPORTED', input => {
-      input.assets.giftAddback = [{
-        giftedOn: '2024-01-01', recipientHeirId: 'child-1', amount: yen(1),
-      }];
-    }],
     ['IHT_SETTLEMENT_TAXATION_UNSUPPORTED', input => {
       input.assets.settlementTaxationGifts = yen(1);
     }],

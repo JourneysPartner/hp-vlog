@@ -62,6 +62,7 @@ function baseState(overrides = {}) {
     retirementAllowance: [],
     debts: [],
     hasGiftAddback: 'no',
+    giftAddback: [],
     hasSettlementTaxationGifts: 'no',
     divisionMode: 'specified',
     divisionStatus: 'yes',
@@ -175,6 +176,53 @@ function main() {
       app.destroy();
     });
   });
+  const giftCase = run(baseState({
+    cash: '97000000', securities: '0', businessAssets: '0', otherAssets: '0', realEstate: [],
+    smallResidentialLand: null, hasGiftAddback: 'yes',
+    giftAddback: [
+      { giftedOn: '2024-06-01', recipientHeirId: 'child-1', amount: '3000000', giftTaxPaid: '190000' },
+      { giftedOn: '2022-01-01', recipientHeirId: 'child-1', amount: '5000000', giftTaxPaid: '' },
+    ],
+  }));
+  check('贈与明細入力から納付合計3,054,400円と期間外表示まで全経路で再現する', () => {
+    assert.strictEqual(giftCase.built.wire.assets.giftAddback.length, 2);
+    assert.strictEqual(giftCase.viewModel.keyResult.exactYen, 3054400n);
+    assert.strictEqual(giftCase.viewModel.keyResult.display, '3,054,400円');
+    assert.strictEqual(giftCase.viewModel.allocations.find(row => row.heirId === 'child-1')
+      .creditDetails.giftTax.exactYen, 190000n);
+    assert.strictEqual(giftCase.viewModel.giftAddback.gifts[1].statusText,
+      '期間外のため加算されません');
+    withFakeDocument(({ root }) => {
+      const app = mountSozokuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: giftCase.result, viewModel: giftCase.viewModel }));
+      assert(root.textContent.includes('3,054,400円'));
+      assert(root.textContent.includes('期間外のため加算されません'));
+      assert(root.textContent.includes('贈与税額控除 190,000円'));
+      app.destroy();
+    });
+  });
+  check('STEP2で生前贈与を選ぶと動的明細4項目と除外案内を表示する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountSozokuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, step: 2, form: { ...state.form,
+        ...baseState({ hasGiftAddback: 'yes', giftAddback: [{
+          giftedOn: '', recipientHeirId: '', amount: '', giftTaxPaid: '',
+        }] }),
+      } }));
+      assert(root.textContent.includes('相続人が受けた生前贈与はありますか（相続開始前7年以内）'));
+      assert(root.textContent.includes('贈与税の配偶者控除を受けた居住用財産の贈与分は金額に含めないでください'));
+      assert(root.querySelector('#so-gift-0-date'));
+      assert(root.querySelector('#so-gift-0-recipient'));
+      assert(root.querySelector('#so-gift-0-amount'));
+      assert(root.querySelector('#so-gift-0-tax'));
+      app.destroy();
+    });
+  });
 
   process.stdout.write('\n=== LEVEL 1・申告要否の核心 ===\n');
   check('路線価20万円×150㎡＋現預金2,000万円はpossibly_requiredと概算警告', () => {
@@ -253,7 +301,6 @@ function main() {
     for (const state of [
       baseState({ deceasedDescendant: 'yes' }),
       baseState({ renunciation: 'unknown' }),
-      baseState({ hasGiftAddback: 'yes' }),
       baseState({ hasSettlementTaxationGifts: 'yes' }),
     ]) assert.throws(() => buildThenValidate(state), error =>
       error instanceof SozokuInputBuildError || error instanceof SozokuHeirsBuildError);
@@ -309,8 +356,8 @@ function main() {
     assert.strictEqual(fallback.isFallback, true);
     assert.strictEqual(fallback.description, '原文メッセージ');
   });
-  check('コンテキストは2025年中の代表日・国内・snapshotを持つ', () => {
-    assert.strictEqual(full.context.inheritanceOpenDate, '2025-06-30');
+  check('コンテキストは固定相続開始日2026-08-29・国内・snapshotを持つ', () => {
+    assert.strictEqual(full.context.inheritanceOpenDate, '2026-08-29');
     assert.deepStrictEqual(full.context.jurisdiction, { country: 'JP' });
     assert.strictEqual(full.context.masterSnapshotId, snapshotInfo.snapshotId);
     assert.strictEqual(full.context.calculatedAt, calculatedAt);

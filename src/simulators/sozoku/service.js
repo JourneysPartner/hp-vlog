@@ -108,10 +108,6 @@ function supportedProfileReasons(input) {
     reasons.push(blockedReason('SOZOKU_SECONDARY_INHERITANCE_UNSUPPORTED',
       '$.secondaryInheritance', '二次相続の入力は第1版の対応範囲外です'));
   }
-  if (Array.isArray(input.assets.giftAddback) && input.assets.giftAddback.length > 0) {
-    reasons.push(blockedReason('IHT_GIFT_ADDBACK_UNSUPPORTED', '$.assets.giftAddback',
-      '生前贈与加算は相続税エンジン第1版の対象外です'));
-  }
   if (input.assets.settlementTaxationGifts !== undefined) {
     reasons.push(blockedReason('IHT_SETTLEMENT_TAXATION_UNSUPPORTED',
       '$.assets.settlementTaxationGifts', '相続時精算課税適用財産は相続税エンジン第1版の対象外です'));
@@ -432,7 +428,7 @@ function addAmount(person, field, amount) {
   person[field] = addMoney(person[field] || zeroMoney(), amount);
 }
 
-function buildEnginePeople(input, ordinaryById) {
+function buildEnginePeople(input, ordinaryById, shares) {
   const reasons = [];
   const people = input.heirs.map(copyHeir);
   const byId = new Map(people.map(person => [person.id, person]));
@@ -441,6 +437,10 @@ function buildEnginePeople(input, ordinaryById) {
       '相続人IDは重複しない値を指定してください'));
   }
   for (const person of people) addAmount(person, 'ordinaryAssets', ordinaryById.get(person.id) || zeroMoney());
+  for (const row of shares || []) {
+    const person = byId.get(row.heirId);
+    if (person) person.divisionShare = rate(row.share);
+  }
 
   function beneficiaryRows(rows, field, inputPath) {
     for (let index = 0; index < rows.length; index++) {
@@ -593,6 +593,12 @@ function allocationsFromEngine(result) {
     acquiredAmount: row.taxablePrice,
     allocatedTaxBeforeCredits: exactToYen(addExact(row.allocatedTax, row.surcharge)),
     credits: exactToYen(totalCredits(row)),
+    creditDetails: {
+      giftTax: exactToYen(row.credits.giftTax || zeroExact()),
+      spouseRelief: exactToYen(row.credits.spouseRelief || zeroExact()),
+      minor: exactToYen(row.credits.minor || zeroExact()),
+      disability: exactToYen(row.credits.disability || zeroExact()),
+    },
     finalTax: row.payable,
   }));
 }
@@ -632,8 +638,8 @@ function calculate(input, context) {
     }
   }
 
-  const finalPeople = buildEnginePeople(input, ordinaryAfterById);
-  const beforePeople = buildEnginePeople(input, ordinaryBeforeById);
+  const finalPeople = buildEnginePeople(input, ordinaryAfterById, selectedShares.shares);
+  const beforePeople = buildEnginePeople(input, ordinaryBeforeById, selectedShares.shares);
   if (finalPeople.reasons.length > 0 || beforePeople.reasons.length > 0) {
     return blockedCalculation(uniqueWarnings([...finalPeople.reasons, ...beforePeople.reasons]));
   }
@@ -644,8 +650,15 @@ function calculate(input, context) {
   const debts = deductibleTotal(input);
 
   if (input.level === 1) {
-    const before = taxablePricesForLevel1(beforePeople.people, input.heirs, onDate);
-    const after = taxablePricesForLevel1(finalPeople.people, input.heirs, onDate);
+    const engineInput = people => ({
+      people,
+      decedent: input.decedent,
+      giftAddback: input.assets.giftAddback || [],
+      isDivided: 'yes',
+      applySpouseRelief: false,
+    });
+    const before = inheritanceTax.calculate(engineInput(beforePeople.people), { onDate });
+    const after = inheritanceTax.calculate(engineInput(finalPeople.people), { onDate });
     if (before.status !== 'complete') return blockedCalculation(engineBlockedReasons(before));
     if (after.status !== 'complete') return blockedCalculation(engineBlockedReasons(after));
     const exceedsBasic = before.totalTaxablePrice.value > before.basicDeduction.value;
@@ -665,12 +678,15 @@ function calculate(input, context) {
         kind: 'sozoku',
         data: {
           grossEstate,
-          nonTaxableAmounts: after.nonTaxableAmounts,
+          nonTaxableAmounts: exactToYen(sumExact(after.perHeir.map(row => addExact(
+            row.lifeInsuranceExemption, row.retirementAllowanceExemption
+          )))),
           deductibleDebtsAndFuneralCosts: debts,
           taxablePriceTotal: after.totalTaxablePrice,
           basicDeduction: after.basicDeduction,
           filingNeed,
           allocations: [],
+          giftAddback: after.giftAddback,
         },
       },
       assumptions,
@@ -689,6 +705,7 @@ function calculate(input, context) {
     decedent: input.decedent,
     isDivided: 'yes',
     applySpouseRelief: false,
+    giftAddback: input.assets.giftAddback || [],
   }, { onDate });
   if (beforeResult.status !== 'complete') {
     return blockedCalculation(engineBlockedReasons(beforeResult));
@@ -698,6 +715,7 @@ function calculate(input, context) {
     decedent: input.decedent,
     isDivided: dividedForRelief ? 'yes' : 'no',
     applySpouseRelief: true,
+    giftAddback: input.assets.giftAddback || [],
   }, { onDate });
   if (finalResult.status !== 'complete') {
     return blockedCalculation(engineBlockedReasons(finalResult));
@@ -745,6 +763,7 @@ function calculate(input, context) {
         totalInheritanceTax: finalResult.totalTax,
         filingNeed,
         allocations: allocationsFromEngine(finalResult),
+        giftAddback: finalResult.giftAddback,
       },
     },
     assumptions,

@@ -75,6 +75,52 @@ function minMoney(left, right) {
   return compareExact(moneyToExact(left), moneyToExact(right)) <= 0 ? left : right;
 }
 
+function validLocalDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1) return false;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return day <= daysInMonth;
+}
+
+/** 民法143条2項の暦の応当日。応当日がない場合はその月の末日。 */
+function calendarYearsBefore(localDate, years) {
+  if (!validLocalDate(localDate) || !Number.isInteger(years) || years < 0) return null;
+  const [yearText, monthText, dayText] = localDate.split('-');
+  const year = Number(yearText) - years;
+  const month = Number(monthText);
+  const day = Math.min(Number(dayText), new Date(Date.UTC(year, month, 0)).getUTCDate());
+  return `${String(year).padStart(4, '0')}-${monthText}-${String(day).padStart(2, '0')}`;
+}
+
+function previousLocalDate(localDate) {
+  if (!validLocalDate(localDate)) return null;
+  const [year, month, day] = localDate.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function standardGiftAddbackYears(periodRecord) {
+  let current = periodRecord;
+  let shortest = null;
+  // 「相続開始前3年以内」の基礎部分も期間マスターの過去レコードから導く。
+  // 経過措置・7年化後も、税法定数をコードへ直接置かない。
+  while (current) {
+    if (Number.isInteger(current.years_before_death) && current.years_before_death > 0) {
+      shortest = shortest === null
+        ? current.years_before_death : Math.min(shortest, current.years_before_death);
+    }
+    const priorDate = previousLocalDate(current.effective_from);
+    current = priorDate
+      ? masterRecord('inheritance_gift_addback_period', priorDate) : null;
+  }
+  return shortest;
+}
+
 function floorExactAtZero(value) {
   return compareExact(value, zeroExact()) < 0 ? zeroExact() : exact(value);
 }
@@ -481,10 +527,6 @@ function unsupportedInputReasons(input, people, amountRows) {
   }
 
   const assets = input.assets || {};
-  if ((Array.isArray(input.giftAddback) && input.giftAddback.length > 0) ||
-      (Array.isArray(assets.giftAddback) && assets.giftAddback.length > 0)) {
-    addReason(reasons, 'IHT_GIFT_ADDBACK_UNSUPPORTED', '生前贈与加算は第1版では計算できません');
-  }
   const settlement = input.settlementTaxationGifts || assets.settlementTaxationGifts;
   if (settlement !== undefined && isPositive(inputMoney(settlement, 'settlementTaxationGifts'))) {
     addReason(reasons, 'IHT_SETTLEMENT_TAXATION_UNSUPPORTED', '相続時精算課税適用財産は第1版では計算できません');
@@ -544,6 +586,153 @@ function applyCredit(currentTax, entitlement, warnings, warningCode, message, pe
     addWarning(warnings, warningCode, message, personId);
   }
   return { remaining: zeroExact(), applied };
+}
+
+function giftAddbackInputs(input) {
+  const assets = input.assets || {};
+  return Array.isArray(input.giftAddback) ? input.giftAddback :
+    Array.isArray(assets.giftAddback) ? assets.giftAddback : [];
+}
+
+function calculateGiftAddback(input, people, actualHeirIds, onDate, warnings) {
+  const gifts = giftAddbackInputs(input);
+  const empty = {
+    periodRuleId: null,
+    periodStartDate: null,
+    threeYearStartDate: null,
+    totalAddback: zeroMoney(),
+    totalExtraDeduction: zeroMoney(),
+    gifts: [],
+    perRecipient: [],
+  };
+  if (gifts.length === 0) return { status: 'complete', ...empty };
+
+  const periodRecord = masterRecord('inheritance_gift_addback_period', onDate);
+  if (!periodRecord) {
+    return {
+      status: 'blocked',
+      blockedReasons: [{
+        code: 'IHT_MASTER_UNAVAILABLE',
+        message: '生前贈与加算の対象期間に必要な承認済みマスターが利用できません',
+      }],
+    };
+  }
+  const standardYears = standardGiftAddbackYears(periodRecord);
+  const threeYearStartDate = calendarYearsBefore(onDate, standardYears);
+  const periodStartDate = periodRecord.period_method === 'fixed_start_to_death'
+    ? periodRecord.fixed_start_date
+    : calendarYearsBefore(onDate, periodRecord.years_before_death);
+  if (!threeYearStartDate || !periodStartDate) {
+    return {
+      status: 'blocked',
+      blockedReasons: [{ code: 'IHT_MASTER_UNAVAILABLE', message: '生前贈与加算期間を確定できません' }],
+    };
+  }
+
+  const peopleById = new Map(people.map(person => [person.id, person]));
+  const reasons = [];
+  const details = gifts.map((gift, index) => {
+    const recipient = peopleById.get(gift.recipientHeirId);
+    if (!recipient || !actualHeirIds.has(gift.recipientHeirId)) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_RECIPIENT_INVALID',
+        `生前贈与${index + 1}の受贈者は既存の相続人から指定してください`, gift.recipientHeirId);
+    }
+    if (!validLocalDate(gift.giftedOn)) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_DATE_INVALID',
+        `生前贈与${index + 1}の贈与日を有効な日付で指定してください`);
+    }
+    const amount = inputMoney(gift.amount, `giftAddback[${index}].amount`);
+    const giftTaxPaid = inputMoney(gift.giftTaxPaid, `giftAddback[${index}].giftTaxPaid`);
+    if (amount.value < 0n || giftTaxPaid.value < 0n) {
+      addReason(reasons, 'IHT_GIFT_ADDBACK_AMOUNT_INVALID',
+        `生前贈与${index + 1}の金額は0円以上で指定してください`);
+    }
+    const withinPeriod = validLocalDate(gift.giftedOn) &&
+      gift.giftedOn >= periodStartDate && gift.giftedOn <= onDate;
+    const periodClassification = !withinPeriod ? 'outside_period' :
+      gift.giftedOn >= threeYearStartDate ? 'within_three_years' : 'extended_period';
+    return {
+      index,
+      giftedOn: gift.giftedOn,
+      recipientHeirId: gift.recipientHeirId,
+      amount,
+      giftTaxPaid,
+      isInAddbackPeriod: withinPeriod,
+      periodClassification,
+      extraDeductionApplied: zeroMoney(),
+      addbackAmount: withinPeriod ? amount : zeroMoney(),
+    };
+  });
+  if (reasons.length > 0) return { status: 'blocked', blockedReasons: reasons };
+
+  const hasExtendedGifts = details.some(gift => gift.periodClassification === 'extended_period');
+  let deductionLimit = zeroMoney();
+  if (hasExtendedGifts) {
+    const deductionRecord = masterRecord('inheritance_gift_addback_extra_deduction', onDate);
+    if (!deductionRecord) {
+      return {
+        status: 'blocked',
+        blockedReasons: [{
+          code: 'IHT_MASTER_UNAVAILABLE',
+          message: '生前贈与加算の延長期間控除に必要な承認済みマスターが利用できません',
+        }],
+      };
+    }
+    deductionLimit = masterMoney(deductionRecord.threshold_amount);
+  }
+
+  // マスターの「延長部分の合計に対して総額100万円」は、相法19条1項の
+  // 「その者の相続税の課税価格に加算」の枠内を指すため、受贈者ごとに1枠を適用する。
+  // 贈与ごとの明細化では入力順に枠を充当するが、受贈者別の最終加算額は順序に依存しない。
+  const remainingDeductionByRecipient = new Map();
+  for (const detail of details) {
+    if (detail.periodClassification !== 'extended_period') continue;
+    const remaining = remainingDeductionByRecipient.has(detail.recipientHeirId)
+      ? remainingDeductionByRecipient.get(detail.recipientHeirId) : deductionLimit;
+    const applied = minMoney(detail.amount, remaining);
+    detail.extraDeductionApplied = applied;
+    detail.addbackAmount = subtractMoney(detail.amount, applied);
+    remainingDeductionByRecipient.set(detail.recipientHeirId, subtractMoney(remaining, applied));
+  }
+
+  const perRecipient = [];
+  for (const person of people) {
+    if (!actualHeirIds.has(person.id)) continue;
+    const recipientGifts = details.filter(gift => gift.recipientHeirId === person.id);
+    const addbackAmount = sumMoney(recipientGifts.map(gift => gift.addbackAmount));
+    const extraDeductionApplied = sumMoney(recipientGifts.map(gift => gift.extraDeductionApplied));
+    const giftTaxPaid = sumMoney(recipientGifts.filter(gift => gift.isInAddbackPeriod)
+      .map(gift => gift.giftTaxPaid));
+    const personAmounts = amountsFor(person);
+    const acquiredBeforeAddback = sumMoney([
+      personAmounts.ordinaryAssets,
+      personAmounts.lifeInsurance,
+      personAmounts.retirementAllowance,
+    ]);
+    if (addbackAmount.value > 0n &&
+        ((person.divisionShare && person.divisionShare.num === 0n) ||
+          acquiredBeforeAddback.value === 0n)) {
+      addWarning(warnings, 'IHT_GIFT_ADDBACK_ZERO_SHARE',
+        '分割割合0%または取得財産0円の相続人への贈与を、安全側として課税価格に加算しました', person.id);
+    }
+    perRecipient.push({
+      recipientHeirId: person.id,
+      addbackAmount,
+      extraDeductionApplied,
+      giftTaxPaid,
+      giftTaxCreditApplied: zeroMoney(),
+    });
+  }
+  return {
+    status: 'complete',
+    periodRuleId: periodRecord.record_id,
+    periodStartDate,
+    threeYearStartDate,
+    totalAddback: sumMoney(perRecipient.map(row => row.addbackAmount)),
+    totalExtraDeduction: sumMoney(perRecipient.map(row => row.extraDeductionApplied)),
+    gifts: details,
+    perRecipient,
+  };
 }
 
 function spouseReliefExact(totalTax, totalTaxablePrice, spouseTaxablePrice, spouseShare, threshold) {
@@ -629,6 +818,14 @@ function calculate(input, { onDate } = {}) {
     ...actualLegal.spouses.map(person => person.id),
     ...actualLegal.bloodRelatives.map(person => person.id),
   ]);
+  const giftAddback = calculateGiftAddback(input, people, actualHeirIds, onDate, warnings);
+  if (giftAddback.status === 'blocked') {
+    return blockedResult(giftAddback.blockedReasons, warnings, heirCountForTax);
+  }
+  const giftAddbackById = new Map(giftAddback.perRecipient.map(item =>
+    [item.recipientHeirId, item.addbackAmount]));
+  const giftTaxPaidById = new Map(giftAddback.perRecipient.map(item =>
+    [item.recipientHeirId, item.giftTaxPaid]));
   const insuranceLimit = limitFromPerHeir(insuranceRecord, heirCountForTax);
   const retirementLimit = limitFromPerHeir(retirementRecord, heirCountForTax);
   const insuranceExemption = allocateNonTaxableAmount(
@@ -650,7 +847,8 @@ function calculate(input, { onDate } = {}) {
   const insuranceById = new Map(insuranceExemption.allocations.map(item => [item.id, item.amount]));
   const retirementById = new Map(retirementExemption.allocations.map(item => [item.id, item.amount]));
 
-  // §28-1 段階1、2、4、7。段階3・5・6は対応外入力を上で blocked にしている。
+  // §28-1 段階1、2、4、6、7。段階6の生前贈与は控除後の正味額へ加え、
+  // その後に段階7の各人1,000円未満切捨てを行う。
   const perPersonBase = amountRows.map(row => {
     const grossAcquisition = sumMoney([
       row.amounts.ordinaryAssets,
@@ -662,8 +860,9 @@ function calculate(input, { onDate } = {}) {
       retirementById.get(row.person.id)
     );
     const deductions = sumMoney([row.amounts.debts, row.amounts.funeralExpenses]);
-    const beforeBaseRounding = floorExactAtZero(
-      subtractExact(afterExemptions, moneyToExact(deductions))
+    const beforeBaseRounding = addExact(
+      floorExactAtZero(subtractExact(afterExemptions, moneyToExact(deductions))),
+      moneyToExact(giftAddbackById.get(row.person.id) || zeroMoney())
     );
     const taxablePrice = applyRounding(beforeBaseRounding, BASE_ROUNDING_RULE_ID);
     return {
@@ -672,6 +871,7 @@ function calculate(input, { onDate } = {}) {
       grossAcquisition,
       lifeInsuranceExemption: insuranceById.get(row.person.id),
       retirementAllowanceExemption: retirementById.get(row.person.id),
+      giftAddback: giftAddbackById.get(row.person.id) || zeroMoney(),
       taxablePrice,
     };
   });
@@ -693,6 +893,7 @@ function calculate(input, { onDate } = {}) {
       totalTaxablePrice,
       taxableEstate,
       totalTax: zeroMoney(),
+      giftAddback,
       allocationInvariant: { allocatedTaxTotal: zeroExact(), totalTax: zeroExact(), holds: true },
       perHeir: perPersonBase.map(row => ({
         id: row.person.id,
@@ -702,7 +903,7 @@ function calculate(input, { onDate } = {}) {
         retirementAllowanceExemption: row.retirementAllowanceExemption,
         allocatedTax: zeroExact(),
         surcharge: zeroExact(),
-        credits: { spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() },
+        credits: { giftTax: zeroExact(), spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() },
         payable: zeroMoney(),
       })),
     };
@@ -748,7 +949,7 @@ function calculate(input, { onDate } = {}) {
       );
   }
 
-  // §28-1 段階17。配偶者軽減→未成年者控除→障害者控除の順。
+  // §28-1 段階17。贈与税額控除→配偶者軽減→未成年者控除→障害者控除の順。
   const spouse = actualLegal.spouses[0];
   let spouseRelief = zeroExact();
   if (spouse && input.applySpouseRelief !== false) {
@@ -776,11 +977,22 @@ function calculate(input, { onDate } = {}) {
   }
 
   const perHeir = allocatedRows.map(row => {
-    const credits = { spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact() };
+    const credits = {
+      giftTax: zeroExact(), spouseRelief: zeroExact(), minor: zeroExact(), disability: zeroExact(),
+    };
     let currentTax = addExact(row.allocatedTax, row.surcharge);
+    const giftTaxEntitlement = giftTaxPaidById.get(row.person.id) || zeroMoney();
+    if (giftTaxEntitlement.value > 0n) {
+      const giftTaxApplied = compareExact(currentTax, moneyToExact(giftTaxEntitlement)) >= 0
+        ? moneyToExact(giftTaxEntitlement) : floorExactAtZero(currentTax);
+      credits.giftTax = giftTaxApplied;
+      currentTax = floorExactAtZero(subtractExact(currentTax, giftTaxApplied));
+    }
     if (spouse && row.person.id === spouse.id) {
-      credits.spouseRelief = spouseRelief;
-      currentTax = floorExactAtZero(subtractExact(currentTax, spouseRelief));
+      const appliedSpouseRelief = compareExact(currentTax, spouseRelief) >= 0
+        ? spouseRelief : floorExactAtZero(currentTax);
+      credits.spouseRelief = appliedSpouseRelief;
+      currentTax = floorExactAtZero(subtractExact(currentTax, appliedSpouseRelief));
     }
 
     if (actualHeirIds.has(row.person.id) && Number.isInteger(row.person.ageAtInheritance) &&
@@ -848,6 +1060,17 @@ function calculate(input, { onDate } = {}) {
       holds: true,
     },
     perHeir,
+    giftAddback: {
+      ...giftAddback,
+      perRecipient: giftAddback.perRecipient.map(recipient => {
+        const row = perHeir.find(item => item.id === recipient.recipientHeirId);
+        return {
+          ...recipient,
+          giftTaxCreditApplied: row
+            ? applyRounding(row.credits.giftTax, NO_ROUNDING_RULE_ID) : zeroMoney(),
+        };
+      }),
+    },
   };
 }
 
@@ -856,4 +1079,5 @@ module.exports = {
   calculateHeirCount,
   allocateNonTaxableAmount,
   calculateTaxTotalFromTaxableEstate,
+  calendarYearsBefore,
 };

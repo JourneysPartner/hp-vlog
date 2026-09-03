@@ -142,6 +142,41 @@ function debtRows(rows, heirs, errors) {
   });
 }
 
+function validLocalDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  return month >= 1 && month <= 12 && day >= 1 &&
+    day <= new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function giftAddbackRows(rows, heirs, errors) {
+  const ids = new Set(heirs.map(item => item.id));
+  return (rows || []).map((row, index) => {
+    const path = `$.assets.giftAddback[${index}]`;
+    const giftedOn = String(row.giftedOn || row.date || '');
+    const recipientHeirId = row.recipientHeirId || row.recipient;
+    if (!validLocalDate(giftedOn)) {
+      errors.push(issue('SOZOKU_UI_GIFT_DATE_REQUIRED', `${path}.giftedOn`,
+        '贈与日を入力してください'));
+    }
+    if (!ids.has(recipientHeirId)) {
+      errors.push(issue('SOZOKU_UI_GIFT_RECIPIENT_REQUIRED', `${path}.recipientHeirId`,
+        '受贈者となる相続人を選択してください'));
+    }
+    const result = {
+      giftedOn,
+      recipientHeirId: ids.has(recipientHeirId) ? recipientHeirId : '',
+      amount: money(row.amount, `${path}.amount.value`, errors),
+    };
+    const giftTaxPaid = money(row.giftTaxPaid, `${path}.giftTaxPaid.value`, errors, true);
+    if (giftTaxPaid) result.giftTaxPaid = giftTaxPaid;
+    return result;
+  });
+}
+
 function division(formState, heirs, errors) {
   const mode = formState.divisionMode || formState.divisionKind || 'statutory';
   if (mode === 'statutory' || mode === 'legal' || mode === 'default') {
@@ -244,10 +279,16 @@ function buildSozokuInputWithMeta(formState) {
   const level = Number(formState.level || 1);
   if (![1, 2].includes(level)) errors.push(issue('SOZOKU_UI_LEVEL_INVALID', '$.level',
     '計算レベルは1または2で指定してください'));
-  if (yesOrUnknown(formState.hasGiftAddback ?? formState.giftAddbackStatus) ||
-      yesOrUnknown(formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus)) {
-    errors.push(issue('SOZOKU_UI_GIFT_SPECIALIST_REVIEW_REQUIRED', '$.assets.gifts',
-      '生前贈与加算または相続時精算課税の確認が必要なため、この簡易試算では判定できません。専門家へご相談ください'));
+  const giftStatus = formState.hasGiftAddback ?? formState.giftAddbackStatus;
+  const settlementStatus = formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus;
+  if (giftStatus === 'unknown') {
+    errors.push(issue('SOZOKU_UI_GIFT_STATUS_REQUIRED', '$.assets.giftAddback',
+      '生前贈与の有無を確認してから入力してください'));
+  }
+  if (yesOrUnknown(settlementStatus)) {
+    errors.push(issue('SOZOKU_UI_SETTLEMENT_GIFT_SPECIALIST_REVIEW_REQUIRED',
+      '$.assets.settlementTaxationGifts',
+      '相続時精算課税を選んだ贈与はこの簡易試算の対象外です。専門家へご相談ください'));
   }
 
   const realEstate = realEstateRows(formState, level, errors);
@@ -264,6 +305,15 @@ function buildSozokuInputWithMeta(formState) {
     '$.assets.retirementAllowance', heirs, errors);
   if (lifeInsurance.length > 0) assets.lifeInsurance = lifeInsurance;
   if (retirementAllowance.length > 0) assets.retirementAllowance = retirementAllowance;
+  if (giftStatus === true || giftStatus === 'yes' || giftStatus === 'ある') {
+    const gifts = giftAddbackRows(formState.giftAddback, heirs, errors);
+    if (gifts.length === 0) {
+      errors.push(issue('SOZOKU_UI_GIFT_ROW_REQUIRED', '$.assets.giftAddback',
+        '生前贈与の明細を1件以上追加してください'));
+    } else {
+      assets.giftAddback = gifts;
+    }
+  }
   const selectedDivision = division(formState, heirs, errors);
   const selectedSmallLand = smallLand(formState, realEstate, heirs, errors);
 
@@ -296,7 +346,7 @@ function buildSozokuCalculationContext(snapshotInfo, calculatedAt = new Date().t
   return Object.freeze({
     asOfDate: String(calculatedAt).slice(0, 10),
     calculatedAt,
-    inheritanceOpenDate: '2025-06-30',
+    inheritanceOpenDate: '2026-08-29',
     jurisdiction: Object.freeze({ country: 'JP' }),
     masterSnapshotId: snapshotInfo.snapshotId,
     masterSnapshotHash: snapshotInfo.snapshotHash,

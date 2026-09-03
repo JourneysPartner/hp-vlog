@@ -15,6 +15,7 @@ const RANGE_CATALOG = Object.freeze([
   Object.freeze({ code: 'inheritance_tax_total', label: '相続税の総額' }),
   Object.freeze({ code: 'spouse_relief', label: '配偶者の税額軽減' }),
   Object.freeze({ code: 'small_residential_land', label: '小規模宅地等' }),
+  Object.freeze({ code: 'gift_addback', label: '生前贈与加算・贈与税額控除' }),
 ]);
 
 function moneyValue(value) {
@@ -81,6 +82,42 @@ function hasWarning(result, code) {
   return (result.warnings || []).some(item => item.code === code);
 }
 
+function giftAddbackViewModel(value) {
+  const details = value || { gifts: [], perRecipient: [], totalAddback: money(0n),
+    totalExtraDeduction: money(0n), periodStartDate: null, threeYearStartDate: null };
+  const recipientIds = details.perRecipient.map(row => row.recipientHeirId);
+  const labelFor = heirId => heirLabel(heirId, Math.max(0, recipientIds.indexOf(heirId)));
+  return Object.freeze({
+    periodStartDate: details.periodStartDate,
+    threeYearStartDate: details.threeYearStartDate,
+    totalAddback: amount(details.totalAddback),
+    totalExtraDeduction: amount(details.totalExtraDeduction),
+    gifts: Object.freeze(details.gifts.map(gift => Object.freeze({
+      giftedOn: gift.giftedOn,
+      recipientHeirId: gift.recipientHeirId,
+      recipientLabel: labelFor(gift.recipientHeirId),
+      amount: amount(gift.amount),
+      giftTaxPaid: amount(gift.giftTaxPaid),
+      addbackAmount: amount(gift.addbackAmount),
+      extraDeductionApplied: amount(gift.extraDeductionApplied),
+      isInAddbackPeriod: gift.isInAddbackPeriod,
+      periodClassification: gift.periodClassification,
+      statusText: gift.isInAddbackPeriod
+        ? gift.periodClassification === 'extended_period' && gift.extraDeductionApplied.value > 0n
+          ? `延長期間の100万円控除を${formatYen(gift.extraDeductionApplied)}適用し、${formatYen(gift.addbackAmount)}を加算`
+          : `加算対象（加算額 ${formatYen(gift.addbackAmount)}）`
+        : '期間外のため加算されません',
+    }))),
+    perRecipient: Object.freeze(details.perRecipient.map(recipient => Object.freeze({
+      recipientHeirId: recipient.recipientHeirId,
+      recipientLabel: labelFor(recipient.recipientHeirId),
+      addbackAmount: amount(recipient.addbackAmount),
+      extraDeductionApplied: amount(recipient.extraDeductionApplied),
+      giftTaxCreditApplied: amount(recipient.giftTaxCreditApplied),
+    }))),
+  });
+}
+
 function calculationRange(level, result) {
   const excluded = level === 1
     ? RANGE_CATALOG.filter(item => ['inheritance_tax_total', 'spouse_relief'].includes(item.code))
@@ -136,6 +173,7 @@ function buildSozokuResultViewModel(result, options = {}) {
       text.includes('法定相続分で仮計算')),
     smallResidentialLandPossibility: Boolean(options.smallResidentialLandPossibility) ||
       hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SPECIALIST_REVIEW'),
+    giftAddback: giftAddbackViewModel(data.giftAddback),
   };
   if (level === 1) return Object.freeze(base);
 
@@ -145,6 +183,12 @@ function buildSozokuResultViewModel(result, options = {}) {
     acquiredAmount: amount(row.acquiredAmount),
     taxBeforeCredits: amount(row.allocatedTaxBeforeCredits),
     credits: amount(row.credits),
+    creditDetails: Object.freeze({
+      giftTax: amount(row.creditDetails.giftTax),
+      spouseRelief: amount(row.creditDetails.spouseRelief),
+      minor: amount(row.creditDetails.minor),
+      disability: amount(row.creditDetails.disability),
+    }),
     finalTax: amount(row.finalTax),
   })));
   const spouse = allocationRows.find(row => row.heirId === 'spouse');
@@ -152,8 +196,10 @@ function buildSozokuResultViewModel(result, options = {}) {
     ? result.summary.amount
     : money(allocationRows.reduce((total, row) => total + row.finalTax.exactYen, 0n));
   const smallLandApplied = hasWarning(result, 'SOZOKU_SMALL_RESIDENTIAL_LAND_SIMPLIFIED_APPLIED');
-  const derivedReduction = moneyValue(data.grossEstate) - moneyValue(data.nonTaxableAmounts) -
-    moneyValue(data.deductibleDebtsAndFuneralCosts) - moneyValue(data.taxablePriceTotal);
+  const giftDetails = data.giftAddback || { totalAddback: money(0n) };
+  const derivedReduction = moneyValue(data.grossEstate) + moneyValue(giftDetails.totalAddback) -
+    moneyValue(data.nonTaxableAmounts) - moneyValue(data.deductibleDebtsAndFuneralCosts) -
+    moneyValue(data.taxablePriceTotal);
   return Object.freeze({
     ...base,
     totalInheritanceTax: amount(data.totalInheritanceTax),
@@ -169,8 +215,8 @@ function buildSozokuResultViewModel(result, options = {}) {
     spouseRelief: spouse ? Object.freeze({
       before: spouse.taxBeforeCredits,
       after: spouse.finalTax,
-      reduction: spouse.credits,
-      applied: spouse.credits.exactYen > 0n,
+      reduction: spouse.creditDetails.spouseRelief,
+      applied: spouse.creditDetails.spouseRelief.exactYen > 0n,
     }) : undefined,
     smallResidentialLand: Object.freeze({
       applied: smallLandApplied,

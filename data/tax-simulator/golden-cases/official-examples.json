@@ -1710,6 +1710,115 @@
         "furusato_special_credit_rate_table",
         "resident_tax_housing_loan_credit_limit"
       ]
+    },
+    {
+      "case_id": "GC-SO-GIFT-ADDBACK-3Y",
+      "target_module": "sozoku_service",
+      "kind": "table_derived",
+      "description": "2026年相続開始の3年ルール、生前贈与加算、贈与税額控除を含む相続税全工程",
+      "source": {
+        "document_id": "IHT-ACT-19+NTA-TA-4161",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "locator": "相続税法19条・No.4161 生前贈与加算の対象期間と贈与税額控除",
+        "law_version": "令和6年改正・経過措置",
+        "retrieved_at": "2026-09-03",
+        "usage": "作業指示で指定された手計算期待値を固定"
+      },
+      "inputs": {
+        "inheritance_open_date": "2026-08-29",
+        "heirs": [
+          { "id": "spouse", "relation": "spouse" },
+          { "id": "child-1", "relation": "child" },
+          { "id": "child-2", "relation": "child" }
+        ],
+        "cash": "97000000",
+        "division_shares": {
+          "spouse": { "num": "1", "den": "2" },
+          "child-1": { "num": "1", "den": "4" },
+          "child-2": { "num": "1", "den": "4" }
+        },
+        "gifts": [
+          { "gifted_on": "2024-06-01", "recipient_heir_id": "child-1", "amount": "3000000", "gift_tax_paid": "190000" },
+          { "gifted_on": "2022-01-01", "recipient_heir_id": "child-1", "amount": "5000000" }
+        ]
+      },
+      "expected": {
+        "period_start_date": "2023-08-29",
+        "included_gift_addback": "3000000",
+        "outside_period_gift_addback": "0",
+        "extra_period_deduction": "0",
+        "spouse_taxable_price": "48500000",
+        "child_1_taxable_price": "27250000",
+        "child_2_taxable_price": "24250000",
+        "taxable_price_total": "100000000",
+        "basic_deduction": "48000000",
+        "taxable_estate": "52000000",
+        "total_inheritance_tax": "6300000",
+        "spouse_allocated_tax": "3055500",
+        "child_1_allocated_tax": "1716750",
+        "child_2_allocated_tax": "1527750",
+        "child_1_gift_tax_credit": "190000",
+        "spouse_final_tax": "0",
+        "child_1_final_tax": "1526700",
+        "child_2_final_tax": "1527700",
+        "final_tax_total": "3054400"
+      },
+      "_note": "期待値はエンジンから逆算せず、作業指示の手計算値をそのまま固定する。",
+      "_master_dependency": [
+        "inheritance_gift_addback_period",
+        "inheritance_gift_addback_extra_deduction",
+        "inheritance_basic_deduction",
+        "inheritance_tax_brackets"
+      ]
+    },
+    {
+      "case_id": "GC-SO-GIFT-EXTRA-100",
+      "target_module": "sozoku_service",
+      "kind": "table_derived",
+      "description": "2028年相続開始の経過措置と延長期間100万円控除を受贈者ごとに適用するケース",
+      "source": {
+        "document_id": "IHT-ACT-19+NTA-TA-4161",
+        "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "locator": "相続税法19条・No.4161 令和6年1月1日起点の経過措置と延長期間100万円控除",
+        "law_version": "令和6年改正・経過措置",
+        "retrieved_at": "2026-09-03",
+        "usage": "作業指示で指定された手計算期待値を固定"
+      },
+      "inputs": {
+        "inheritance_open_date": "2028-06-01",
+        "heirs": [
+          { "id": "spouse", "relation": "spouse" },
+          { "id": "child-1", "relation": "child" },
+          { "id": "child-2", "relation": "child" }
+        ],
+        "cash": "97000000",
+        "division_shares": {
+          "spouse": { "num": "1", "den": "2" },
+          "child-1": { "num": "1", "den": "4" },
+          "child-2": { "num": "1", "den": "4" }
+        },
+        "gifts": [
+          { "gifted_on": "2024-03-01", "recipient_heir_id": "child-1", "amount": "2000000" },
+          { "gifted_on": "2026-01-15", "recipient_heir_id": "child-1", "amount": "1500000" },
+          { "gifted_on": "2024-08-01", "recipient_heir_id": "child-2", "amount": "800000" }
+        ]
+      },
+      "expected": {
+        "period_start_date": "2024-01-01",
+        "three_year_start_date": "2025-06-01",
+        "child_1_extra_period_deduction": "1000000",
+        "child_2_extra_period_deduction": "800000",
+        "child_1_addback": "2500000",
+        "child_2_addback": "0",
+        "total_addback": "2500000"
+      },
+      "_note": "100万円枠は全体で1枠ではなく受贈者ごと。期待値は作業指示の手計算値をそのまま固定する。",
+      "_master_dependency": [
+        "inheritance_gift_addback_period",
+        "inheritance_gift_addback_extra_deduction",
+        "inheritance_basic_deduction",
+        "inheritance_tax_brackets"
+      ]
     }
   ]
 }
