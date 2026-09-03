@@ -131,6 +131,51 @@ function calculationRange(level, result) {
   });
 }
 
+function secondaryInheritanceViewModel(value) {
+  if (!value) return undefined;
+  const maximum = value.scenarios.reduce((largest, row) =>
+    row.combinedTaxTotal.value > largest ? row.combinedTaxTotal.value : largest, 0n);
+  const scenarios = Object.freeze(value.scenarios.map(row => Object.freeze({
+    spouseAcquisitionPercent: row.spouseAcquisitionPercent,
+    spouseAcquisitionLabel: `${row.spouseAcquisitionPercent}%`,
+    primaryPayableTotal: amount(row.primaryPayableTotal),
+    spousePrimaryPayable: amount(row.spousePrimaryPayable),
+    secondaryEstate: amount(row.secondaryEstate),
+    secondaryTaxTotal: amount(row.secondaryTaxTotal),
+    combinedTaxTotal: amount(row.combinedTaxTotal),
+    isMinimum: row.spouseAcquisitionPercent === value.minimumSpouseAcquisitionPercent,
+    barPercent: maximum === 0n ? 0 : Number(row.combinedTaxTotal.value * 10000n / maximum) / 100,
+  })));
+  let premiseNote = '現在の財産額がそのまま二次相続時まで続くと仮定した概算です。';
+  if (value.yearsUntilSecondary !== undefined) {
+    const living = value.annualLivingCost || money(0n);
+    const change = value.annualAssetChangeRate || { num: 0n, den: 100n };
+    const rateText = change.num > 0n ? `+${change.num}%` : change.num < 0n
+      ? `▲${-change.num}%` : '0%';
+    premiseNote = `現在の財産額から、二次相続まで${value.yearsUntilSecondary}年、年間生活費${formatYen(living)}、年間増減率${rateText}を逐年反映した概算です。`;
+  }
+  return Object.freeze({
+    scenarios,
+    minimumSpouseAcquisitionPercent: value.minimumSpouseAcquisitionPercent,
+    minimumCombinedTaxTotal: amount(value.minimumCombinedTaxTotal),
+    keyResult: Object.freeze({
+      label: '合計税額が最小になる配偶者の取得割合',
+      qualifier: 'この試算では',
+      value: `${value.minimumSpouseAcquisitionPercent}%`,
+      amount: value.minimumCombinedTaxTotal,
+      exactYen: value.minimumCombinedTaxTotal.value,
+      display: formatYen(value.minimumCombinedTaxTotal),
+    }),
+    notes: Object.freeze([
+      premiseNote,
+      '各割合は遺産分割の可能性・遺留分・換価性を保証しません。',
+      ...(value.successiveInheritanceCreditPossible
+        ? ['相次相続控除により二次相続税が下がる可能性があります。'] : []),
+    ]),
+    successiveInheritanceCreditPossible: value.successiveInheritanceCreditPossible,
+  });
+}
+
 function buildBlockedViewModel(result) {
   return Object.freeze({
     ...common(result),
@@ -150,7 +195,8 @@ function buildSozokuResultViewModel(result, options = {}) {
   const data = result.breakdown.data;
   const filingText = FILING_NEED_TEXT[data.filingNeed];
   if (!filingText) throw new RangeError('filingNeedが値集合外です');
-  const level = data.allocations && data.allocations.length > 0 ? 2 : 1;
+  const level = data.secondaryInheritance ? 3 :
+    data.allocations && data.allocations.length > 0 ? 2 : 1;
   const base = {
     ...common(result),
     level,
@@ -218,6 +264,7 @@ function buildSozokuResultViewModel(result, options = {}) {
       reduction: spouse.creditDetails.spouseRelief,
       applied: spouse.creditDetails.spouseRelief.exactYen > 0n,
     }) : undefined,
+    secondaryAvailable: Boolean(spouse),
     smallResidentialLand: Object.freeze({
       applied: smallLandApplied,
       reduction: amount(money(smallLandApplied && derivedReduction > 0n ? derivedReduction : 0n)),
@@ -228,6 +275,7 @@ function buildSozokuResultViewModel(result, options = {}) {
       hasWarning(result, 'SOZOKU_SPOUSE_RELIEF_NOT_APPLIED_LATE_DIVISION')
       ? '未分割または申告期限後の分割のため、配偶者の税額軽減なしで計算しています。'
       : undefined,
+    secondaryInheritance: secondaryInheritanceViewModel(data.secondaryInheritance),
   });
 }
 

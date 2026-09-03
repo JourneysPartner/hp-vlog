@@ -50,6 +50,12 @@ const INITIAL_FORM = Object.freeze({
   dividedAfterFilingDeadline: 'no',
   divisionShares: Object.freeze({}),
   smallResidentialLand: null,
+  spouseOwnAssets: '',
+  secondaryHeirCount: '',
+  secondaryHeirRelation: 'child',
+  yearsUntilSecondary: '',
+  annualLivingCost: '',
+  annualAssetChangeRate: '0',
 });
 
 const STATIC_FIELD_IDS = Object.freeze({
@@ -68,10 +74,15 @@ const STATIC_FIELD_IDS = Object.freeze({
   '$.division': 'so-division-mode',
   '$.division.acquisitions': 'so-division-shares',
   '$.smallResidentialLand[0].areaSqm': 'so-small-land-area',
+  '$.secondaryInheritance.spouseOwnAssets.value': 'so-secondary-own-assets',
+  '$.secondaryInheritance.expectedHeirs': 'so-secondary-heir-count',
+  '$.secondaryInheritance.yearsUntilSecondary': 'so-secondary-years',
+  '$.secondaryInheritance.annualLivingCost.value': 'so-secondary-living-cost',
+  '$.secondaryInheritance.annualAssetChangeRate': 'so-secondary-rate',
 });
 
 const STYLE_TEXT = `
-.sozoku-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}.sozoku-app h1,.sozoku-app h2,.sozoku-app h3{color:#0B2045}.sozoku-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}.sozoku-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.sozoku-warning{border:2px solid #9b1c1c;padding:16px}.sozoku-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.sozoku-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.sozoku-app button.sozoku-primary{background:#E85320;border-color:#E85320;color:#fff}.sozoku-app input,.sozoku-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.sozoku-app input[type=radio]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.sozoku-progress{font-weight:700}.sozoku-help{color:#55607a}.sozoku-error{color:#9b1c1c;font-weight:700}.sozoku-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.sozoku-row{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.sozoku-table-wrap{overflow-x:auto}.sozoku-app table{border-collapse:collapse;width:100%;min-width:680px}.sozoku-app th,.sozoku-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.sozoku-app td{text-align:right}.sozoku-level{font-weight:700}.sozoku-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}@media(max-width:480px){.sozoku-app{padding:12px}.sozoku-card{padding:16px}.sozoku-actions{display:block}.sozoku-actions button{width:100%;margin:5px 0}.sozoku-app table{min-width:0}.sozoku-app thead{position:absolute;width:1px;height:1px;overflow:hidden}.sozoku-app tr,.sozoku-app td,.sozoku-app th{display:block;text-align:left}}@media print{.sozoku-no-print{display:none!important}.sozoku-app{max-width:none;padding:0}.sozoku-card{box-shadow:none;break-inside:avoid}.sozoku-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
+.sozoku-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}.sozoku-app h1,.sozoku-app h2,.sozoku-app h3{color:#0B2045}.sozoku-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}.sozoku-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.sozoku-warning{border:2px solid #9b1c1c;padding:16px}.sozoku-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.sozoku-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.sozoku-app button.sozoku-primary{background:#E85320;border-color:#E85320;color:#fff}.sozoku-app input,.sozoku-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.sozoku-app input[type=radio]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.sozoku-progress{font-weight:700}.sozoku-help{color:#55607a}.sozoku-error{color:#9b1c1c;font-weight:700}.sozoku-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.sozoku-row{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.sozoku-table-wrap{overflow-x:auto}.sozoku-app table{border-collapse:collapse;width:100%;min-width:680px}.sozoku-app th,.sozoku-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.sozoku-app td{text-align:right}.sozoku-level{font-weight:700}.sozoku-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.sozoku-secondary-minimum{background:#FDF0EA;font-weight:700}.sozoku-minimum-label{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#E85320;color:#fff;font-size:.85em}.sozoku-tax-bar{height:12px;min-width:120px;background:#E3E8F0;border-radius:999px;overflow:hidden}.sozoku-tax-bar-fill{display:block;height:100%;background:#0B6E75;border-radius:999px}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}@media(max-width:480px){.sozoku-app{padding:12px}.sozoku-card{padding:16px}.sozoku-actions{display:block}.sozoku-actions button{width:100%;margin:5px 0}.sozoku-app table{min-width:0}.sozoku-app thead{position:absolute;width:1px;height:1px;overflow:hidden}.sozoku-app tr,.sozoku-app td,.sozoku-app th{display:block;text-align:left}}@media print{.sozoku-no-print{display:none!important}.sozoku-app{max-width:none;padding:0}.sozoku-card{box-shadow:none;break-inside:avoid}.sozoku-tax-bar-fill,.sozoku-secondary-minimum,.sozoku-minimum-label{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sozoku-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
 
 function cloneInitialForm() {
@@ -517,6 +528,86 @@ function mountSozokuApp(rootElement, {
         `${row.recipientLabel}：延長期間控除 ${row.extraDeductionApplied.display}、加算 ${row.addbackAmount.display}、贈与税額控除 ${row.giftTaxCreditApplied.display}`))),
     ]);
   }
+  function secondaryKeyResult(value) {
+    return el('section', { className: 'simulator-key-result', 'aria-label': value.keyResult.label }, [
+      el('p', { className: 'simulator-key-result-label' }, [
+        value.keyResult.label,
+        el('span', { className: 'simulator-key-result-qualifier' }, `（${value.keyResult.qualifier}）`),
+      ]),
+      el('p', { className: 'simulator-key-result-value' }, [
+        el('span', { className: 'simulator-key-result-amount' }, value.keyResult.value),
+        `・合計 ${value.keyResult.display}`,
+      ]),
+    ]);
+  }
+  function secondaryResult(value) {
+    return [
+      secondaryKeyResult(value),
+      el('div', { className: 'sozoku-table-wrap' }, el('table', { className: 'sozoku-secondary-table' }, [
+        el('thead', {}, el('tr', {}, [
+          el('th', { scope: 'col' }, '配偶者の取得割合'),
+          el('th', { scope: 'col' }, '一次相続税（納付合計）'),
+          el('th', { scope: 'col' }, '二次相続税（総額）'),
+          el('th', { scope: 'col' }, '合計'),
+          el('th', { scope: 'col' }, '合計税額の比較'),
+        ])),
+        el('tbody', {}, value.scenarios.map(row => el('tr', {
+          className: row.isMinimum ? 'sozoku-secondary-minimum' : '',
+        }, [
+          el('th', { scope: 'row' }, [row.spouseAcquisitionLabel,
+            row.isMinimum ? el('span', { className: 'sozoku-minimum-label' }, '最小') : null]),
+          el('td', {}, row.primaryPayableTotal.display),
+          el('td', {}, row.secondaryTaxTotal.display),
+          el('td', {}, row.combinedTaxTotal.display),
+          el('td', {}, el('div', { className: 'sozoku-tax-bar', 'aria-label': row.combinedTaxTotal.display },
+            el('span', { className: 'sozoku-tax-bar-fill', style: `width:${row.barPercent}%` }))),
+        ]))),
+      ])),
+      el('ul', { className: 'sozoku-help' }, value.notes.map(note => el('li', {}, note))),
+    ];
+  }
+  function renderSecondarySection(viewModel) {
+    if (!viewModel.secondaryAvailable) return null;
+    const form = store.getState().form;
+    const defaultCount = viewModel.allocations.filter(row => row.heirId !== 'spouse').length;
+    const countInputElement = el('input', {
+      id: 'so-secondary-heir-count', type: 'text', inputmode: 'numeric',
+      value: form.secondaryHeirCount === '' ? String(defaultCount) : form.secondaryHeirCount,
+      onInput: event => updateForm('secondaryHeirCount', event.currentTarget.value),
+    });
+    const yearsInput = el('input', {
+      id: 'so-secondary-years', type: 'text', inputmode: 'numeric', value: form.yearsUntilSecondary,
+      onInput: event => updateForm('yearsUntilSecondary', event.currentTarget.value, true),
+    });
+    const rateOptions = Array.from({ length: 11 }, (_, index) => index - 5).map(value => ({
+      value: String(value), label: value < 0 ? `▲${-value}%` : value > 0 ? `+${value}%` : '0%',
+    }));
+    return el('details', { className: 'sozoku-card sozoku-secondary', open: Boolean(viewModel.secondaryInheritance) }, [
+      el('summary', {}, '二次相続もあわせて比較する（LEVEL 3）'),
+      el('div', { className: 'sozoku-no-print' }, [
+        el('h2', {}, '二次相続の追加入力'),
+        moneyField('spouseOwnAssets', 'so-secondary-own-assets', '配偶者の固有財産（円）',
+          '$.secondaryInheritance.spouseOwnAssets.value', '配偶者名義の預貯金・不動産等の現在額（概算）。0円も入力できます。'),
+        el('label', { for: 'so-secondary-heir-count' }, '二次相続の想定相続人（人数）'),
+        countInputElement,
+        addControlError(countInputElement, '$.secondaryInheritance.expectedHeirs'),
+        ...selectField('secondaryHeirRelation', 'so-secondary-relation', '想定相続人の続柄', '', [
+          { value: 'child', label: '子' }, { value: 'other', label: '子以外（2割加算）' },
+        ], '$.secondaryInheritance.expectedHeirs'),
+        el('label', { for: 'so-secondary-years' }, '二次相続までの想定年数（任意）'),
+        yearsInput,
+        addControlError(yearsInput, '$.secondaryInheritance.yearsUntilSecondary'),
+        form.yearsUntilSecondary !== '' ? [
+          moneyField('annualLivingCost', 'so-secondary-living-cost', '年間生活費（円）',
+            '$.secondaryInheritance.annualLivingCost.value'),
+          ...selectField('annualAssetChangeRate', 'so-secondary-rate', '年間の財産増減率', '', rateOptions,
+            '$.secondaryInheritance.annualAssetChangeRate'),
+        ] : null,
+        el('button', { type: 'button', className: 'sozoku-primary', onClick: () => calculate(3) }, '二次相続を試算'),
+      ]),
+      viewModel.secondaryInheritance ? secondaryResult(viewModel.secondaryInheritance) : null,
+    ]);
+  }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -531,12 +622,12 @@ function mountSozokuApp(rootElement, {
       el('section', { className: 'sozoku-card sozoku-conclusion' }, [el('h2', {}, '申告要否の試算'), el('p', {}, viewModel.conclusion.text)]),
       el('section', { className: 'sozoku-card' }, [el('h2', {}, viewModel.level === 1 ? '簡易診断の金額' : '相続税の試算'),
         definitionList([['課税価格の合計', viewModel.taxablePriceTotal.display], ['基礎控除', viewModel.basicDeduction.display],
-          ...(viewModel.level === 2 ? [['相続税の総額', viewModel.totalInheritanceTax.display], ['納付税額の合計', viewModel.totalPayableTax.display]] : [])]),
+          ...(viewModel.level >= 2 ? [['相続税の総額', viewModel.totalInheritanceTax.display], ['納付税額の合計', viewModel.totalPayableTax.display]] : [])]),
         viewModel.screeningWarning ? el('p', { className: 'sozoku-warning' }, viewModel.screeningWarning) : null,
         viewModel.defaultDivisionAssumption ? el('p', { className: 'sozoku-help' }, viewModel.defaultDivisionAssumption) : null,
       ]),
       giftAddbackSection(viewModel),
-      viewModel.level === 2 ? [
+      viewModel.level >= 2 ? [
         el('section', { className: 'sozoku-card' }, [el('h2', {}, '相続人ごとの試算'), el('div', { className: 'sozoku-table-wrap' }, el('table', {}, [
           el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '相続人'), el('th', { scope: 'col' }, '取得財産（課税価格）'), el('th', { scope: 'col' }, '算出税額'), el('th', { scope: 'col' }, '控除'), el('th', { scope: 'col' }, '納付税額')])),
           el('tbody', {}, viewModel.allocations.map(row => el('tr', {}, [
@@ -555,7 +646,8 @@ function mountSozokuApp(rootElement, {
           viewModel.smallResidentialLand.applied ? definitionList([['減額額', viewModel.smallResidentialLand.reduction.display], ['適用面積', viewModel.smallResidentialLand.appliedArea || '入力面積']])
             : el('p', {}, '特例を適用せず計算しました。適用できる可能性があります（要件の確認は専門家へご相談ください）。')]) : null,
       ] : el('button', { type: 'button', className: 'sozoku-primary sozoku-no-print', onClick: continueToLevel2 }, 'もっと詳しく（税額まで計算）'),
-      ...commonResultSections(viewModel), el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      ...commonResultSections(viewModel), renderSecondarySection(viewModel),
+      el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
       resultActions(viewModel.level), el('p', { className: 'sozoku-placeholder sozoku-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }
