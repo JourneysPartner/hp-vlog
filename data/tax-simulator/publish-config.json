@@ -1,30 +1,30 @@
 {
   "hojinnari": {
     "enabled": true,
-    "indexable": false,
+    "indexable": true,
     "firstPublishedOn": "2026-08-31",
     "lastLegalReviewOn": "2026-08-27",
-    "lastContentUpdateOn": "2026-08-31"
+    "lastContentUpdateOn": "2026-09-03"
   },
   "shohizei": {
     "enabled": true,
-    "indexable": false,
+    "indexable": true,
     "firstPublishedOn": "2026-08-31",
     "lastLegalReviewOn": "2026-08-27",
-    "lastContentUpdateOn": "2026-08-31"
+    "lastContentUpdateOn": "2026-09-03"
   },
   "sozoku": {
     "enabled": true,
-    "indexable": false,
+    "indexable": true,
     "firstPublishedOn": "2026-08-31",
     "lastLegalReviewOn": "2026-08-27",
-    "lastContentUpdateOn": "2026-08-31"
+    "lastContentUpdateOn": "2026-09-03"
   },
   "yakuin_hoshu": {
     "enabled": true,
-    "indexable": false,
+    "indexable": true,
     "firstPublishedOn": "2026-08-31",
     "lastLegalReviewOn": "2026-08-27",
-    "lastContentUpdateOn": "2026-08-31"
+    "lastContentUpdateOn": "2026-09-03"
   }
 }
