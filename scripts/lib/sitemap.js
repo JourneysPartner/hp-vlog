@@ -51,17 +51,28 @@ function generateSitemapXml({
   posts = [],
   staticPageFiles = [],
   staticLastmod = {},
+  // 2026-09-03 段階2: サブディレクトリ出力（/services/<slug>/ など）に対応するため、
+  // ファイル名ではなくURLの一覧でも受ける。指定があればこちらを使う。
+  staticPages = null,
+  indexLastmod = '',
   publishConfig = {},
   correctionsGenerated = false,
 } = {}) {
   const paths = [];
 
-  paths.push({ pathname: '/', lastmod: datePart(staticLastmod['index.html']) });
-  const staticPaths = staticPageFiles
-    .filter(file => file.endsWith('.html') && !EXCLUDED_STATIC_PAGES.has(file))
-    .sort();
-  for (const file of staticPaths) {
-    paths.push({ pathname: `/${file}`, lastmod: datePart(staticLastmod[file]) });
+  paths.push({ pathname: '/', lastmod: datePart(indexLastmod || staticLastmod['index.html']) });
+  if (Array.isArray(staticPages)) {
+    const sorted = staticPages
+      .filter(p => p && p.pathname && p.pathname !== '/' && p.pathname !== '/404.html')
+      .sort((a, b) => a.pathname < b.pathname ? -1 : a.pathname > b.pathname ? 1 : 0);
+    for (const p of sorted) paths.push({ pathname: p.pathname, lastmod: datePart(p.lastmod) });
+  } else {
+    const staticPaths = staticPageFiles
+      .filter(file => file.endsWith('.html') && !EXCLUDED_STATIC_PAGES.has(file))
+      .sort();
+    for (const file of staticPaths) {
+      paths.push({ pathname: `/${file}`, lastmod: datePart(staticLastmod[file]) });
+    }
   }
 
   paths.push({ pathname: '/blog/' });

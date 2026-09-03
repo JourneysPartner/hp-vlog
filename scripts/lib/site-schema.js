@@ -132,6 +132,21 @@ function articleSchema({ title, description, url, datePublished, dateModified })
   };
 }
 
+/** サービス専用ページ（/services/<slug>/）。provider は事務所の @id。 */
+function serviceSchema({ name, description, url }) {
+  if (!name || !url) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name,
+    description: description || '',
+    provider: { '@id': ORG_ID },
+    areaServed: { '@type': 'Country', name: 'JP' },
+    serviceType: name,
+    url,
+  };
+}
+
 /** <script type="application/ld+json"> を作る。null は空文字。 */
 function jsonLdScript(obj) {
   if (!obj) return '';
@@ -147,6 +162,6 @@ function jsonLdScripts(list) {
 module.exports = Object.freeze({
   BASE_URL, ORG_ID, PERSON_ID, WEBSITE_ID, OG_IMAGE, LOGO_IMAGE, AUTHOR_IMAGE,
   organizationSchema, personSchema, websiteSchema,
-  breadcrumbSchema, faqSchema, articleSchema,
+  breadcrumbSchema, faqSchema, articleSchema, serviceSchema,
   jsonLdScript, jsonLdScripts,
 });

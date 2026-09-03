@@ -72,4 +72,29 @@ function extractFaq(markdown) {
     .filter(i => i.question && i.answer);
 }
 
-module.exports = Object.freeze({ extractFaq, toPlainText, FAQ_HEADING });
+/**
+ * 静的ページ（HTML）の FAQ を取り出す。
+ * サイト共通の書き方（トップ・サービスページ・料金ページ）だけを対象にする:
+ *   <details class="faq-item">
+ *     <summary><span class="faq-q">Q</span>質問文<i class="bi ... faq-toggle"></i></summary>
+ *     <div class="faq-a"><span class="faq-a-mark">A</span><p>回答</p></div>
+ *   </details>
+ * @returns {Array<{question: string, answer: string}>}
+ */
+function extractFaqFromHtml(html) {
+  const out = [];
+  const re = /<details class="faq-item">([\s\S]*?)<\/details>/g;
+  let m;
+  while ((m = re.exec(String(html || ''))) !== null) {
+    const block = m[1];
+    const s = block.match(/<summary>([\s\S]*?)<\/summary>/);
+    const a = block.match(/<div class="faq-a">([\s\S]*?)<\/div>/);
+    if (!s || !a) continue;
+    const question = toPlainText(s[1].replace(/<span class="faq-q">[\s\S]*?<\/span>/, ''));
+    const answer = toPlainText(a[1].replace(/<span class="faq-a-mark">[\s\S]*?<\/span>/, ''));
+    if (question && answer) out.push({ question, answer });
+  }
+  return out;
+}
+
+module.exports = Object.freeze({ extractFaq, extractFaqFromHtml, toPlainText, FAQ_HEADING });
