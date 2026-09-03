@@ -234,7 +234,10 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'lifetime-gift-addback':     { no: '4408', title: '国税庁タックスアンサー No.4408 贈与税の計算と税率', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm' },
   'life-insurance-exemption':  { no: '4114', title: '国税庁タックスアンサー No.4114 相続税の課税対象になる死亡保険金', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4114.htm' },
   'funeral-debt-deduction':    { no: '4129', title: '国税庁タックスアンサー No.4129 相続財産から控除できる債務', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4129.htm' },
-  'real-estate-valuation':     { no: '4602', title: '国税庁タックスアンサー No.4602 土地家屋の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4602.htm' },
+  // 2026-09-03: URL のディレクトリが hyoka だったが、このページは sozoku 配下にある。
+  // 旧 URL は HTTP 200 を返しつつ中身が「指定されたページを表示できませんでした」
+  // （約2KB のエラーページ）で、リンク切れに気づけない状態だった。
+  'real-estate-valuation':     { no: '4602', title: '国税庁タックスアンサー No.4602 土地家屋の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm' },
   'rental-property-treatment': { no: '4614', title: '国税庁タックスアンサー No.4614 貸家建付地の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4614.htm' },
   'company-shares-valuation':  { no: '4638', title: '国税庁タックスアンサー No.4638 取引相場のない株式の評価', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm' },
   'consumption-tax-judgement': { no: '6501', title: '国税庁タックスアンサー No.6501 納税義務の免除',  url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm' },
@@ -257,7 +260,8 @@ const DEFAULT_SOURCE_BY_PAIN = {
   'b2b-electronic-services':          { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
   'b2c-electronic-services':          { title: '国税庁 国境を越えた役務の提供に係る消費税の課税関係について', url: 'https://www.nta.go.jp/publication/pamph/shohi/cross/01.htm' },
   // 住宅取得等資金の贈与（贈与税。相続の申告期限などと混同しないよう明示）
-  'housing-fund-gift':                { no: '4508', title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm' },
+  // 2026-09-03: 上の 4602 と同じく、URL のディレクトリが zoyo だったが sozoku 配下にある。
+  'housing-fund-gift':                { no: '4508', title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm' },
 };
 
 // ── 新カテゴリ（Phase 4）の pain_point 別 個別出典 ─────────────────
