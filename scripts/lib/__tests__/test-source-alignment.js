@@ -78,10 +78,10 @@ r = checkSourceAlignment({ pain_point: 'small-residential-land', tax_domain: 'in
 assert(r.aligned && r.score === 5, '小規模宅地 × 小規模宅地ページ → 一致');
 r = checkSourceAlignment({ pain_point: 'housing-fund-gift', tax_domain: 'inheritance_tax', source_url: U.sozoku4508 });
 assert(r.aligned && r.score === 5, '住宅取得資金贈与 × 住宅取得資金贈与ページ（現行URL）→ 一致');
-// 旧URL（zoyo配下・実在しない）を出典にした公開済み記事が1本あるため、
-// 既存記事を書き換えずに済むよう同等として許容している。
+// 旧URL（zoyo配下）は実在しないページなので、同等扱いにはしない。
+// 公開済み記事1本が持っていた旧URLは記事側を差し替えて解消済み。
 r = checkSourceAlignment({ pain_point: 'housing-fund-gift', tax_domain: 'inheritance_tax', source_url: U.zoyo4508 });
-assert(r.aligned && r.score === 5, '住宅取得資金贈与 × 旧URL → レガシー許容で一致');
+assert(!r.aligned && r.needs_source_review, '住宅取得資金贈与 × 実在しない旧URL → 不一致のまま');
 r = checkSourceAlignment({ pain_point: 'foreign-business-consumption-tax', tax_domain: 'consumption_tax', source_url: U.cross });
 assert(r.aligned && r.score === 5, 'リバースチャージ × 国境を越えた役務ページ → 一致');
 

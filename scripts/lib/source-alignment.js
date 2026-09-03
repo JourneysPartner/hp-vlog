@@ -31,14 +31,10 @@ const LEGACY_EQUIVALENT_SOURCES = {
   '/taxes/shiraberu/taxanswer/shohi/6498.htm': new Set([
     '/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/invoice_about.htm',
   ]),
-  // 住宅取得等資金の贈与 No.4508（2026-09-03 に修正）
-  // 登録していた URL のディレクトリが zoyo だったが、実際は sozoku 配下。
-  // 旧 URL は国税庁が 404 ではなく 200 とエラーページを返すため、リンク切れに
-  // 気づけないまま公開済み記事1本（2026-04-29 の住宅取得資金贈与）が
-  // 旧 URL を出典に掲げている。既存記事は変更しない方針なので同等として許容する。
-  '/taxes/shiraberu/taxanswer/sozoku/4508.htm': new Set([
-    '/taxes/shiraberu/taxanswer/zoyo/4508.htm',
-  ]),
+  // ※ No.4508（住宅取得等資金の贈与）の旧 URL（zoyo 配下）はここに載せない。
+  //   2026-09-03 に登録URLの誤りを直した際、旧URLを出典にしていた公開済み記事は
+  //   1本だけだったので、記事側のURLも実際に差し替えた。リンク切れが読者に
+  //   見えたままになるため、同等扱いで残さず直す判断をしている。
 };
 
 function isLegacyEquivalent(expectedUrl, actualUrl) {

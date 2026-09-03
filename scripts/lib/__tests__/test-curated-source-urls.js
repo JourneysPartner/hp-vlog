@@ -126,6 +126,35 @@ console.log('=== 4. 登録内容の体裁 ===');
 }
 
 console.log('');
+console.log('=== 5. 公開済み記事の出典URLが実在する ===');
+{
+  // 登録側を直しても、すでに書かれた記事が旧URLを持っていれば読者にはリンク切れが見える。
+  // 2026-09-03: 実際に1本（2026-04-29 住宅取得資金贈与）が zoyo/4508 を掲げていた。
+  const fs = require('fs');
+  const POSTS = path.join(ROOT, 'content', 'posts');
+  const files = fs.existsSync(POSTS)
+    ? fs.readdirSync(POSTS).filter(f => f.endsWith('.md')) : [];
+  assert(files.length > 100, `記事を読める（${files.length}本）`);
+
+  const bad = [];
+  let checked = 0;
+  for (const f of files) {
+    const raw = fs.readFileSync(path.join(POSTS, f), 'utf8');
+    const m = raw.match(/^source_url:\s*(.*)$/m);
+    if (!m) continue;
+    // 値は " または ' で囲まれていることも、素のこともある
+    const url = catalog.page(m[1].trim().replace(/^["']|["']$/g, ''));
+    if (!url || !isTaxAnswer(url)) continue;   // パンフレット等は照合対象外
+    checked++;
+    if (catalog.deleted.has(url)) bad.push(`${f} → ${url}（削除済み）`);
+    else if (!catalog.alive.has(url)) bad.push(`${f} → ${url}（カタログに無い）`);
+  }
+  console.log(`  （タックスアンサーを出典にしている記事 ${checked}本を照合）`);
+  if (bad.length) bad.forEach(b => console.log(`    ${b}`));
+  assert(bad.length === 0, '実在しないタックスアンサーURLを出典にした記事が無い');
+}
+
+console.log('');
 console.log('=== 結果 ===');
 console.log(`PASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);
