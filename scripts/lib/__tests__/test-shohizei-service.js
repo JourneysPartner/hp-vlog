@@ -13,6 +13,8 @@ const goldenDocument = JSON.parse(fs.readFileSync(path.join(
   REPO_ROOT, 'data', 'tax-simulator', 'golden-cases', 'official-examples.json'
 ), 'utf8'));
 const golden = goldenDocument.cases.find(item => item.case_id === 'GC-SZ-COMPARE-R7');
+const exportMixedGolden = goldenDocument.cases.find(item => item.case_id === 'GC-CT-EXPORT-MIXED');
+const exportOnlyGolden = goldenDocument.cases.find(item => item.case_id === 'GC-CT-EXPORT-ONLY');
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 const taxIncl = value => ({ basis: 'inclusive', amount: yen(value) });
@@ -84,13 +86,29 @@ function detailedInput({
   };
 }
 
+function exportInput(goldenCase) {
+  const period = goldenCase.inputs.taxable_period;
+  const input = detailedInput({ period });
+  input.eligibility.basePeriod.taxableSales = yen(goldenCase.inputs.base_period_taxable_sales);
+  input.eligibility.filings = [filing('simplified_election', 'yes', period.from)];
+  const domesticSales = BigInt(goldenCase.inputs.standard_rate_tax_inclusive_sales);
+  input.sales[0].value.taxable = domesticSales === 0n ? [] : [{
+    band: 'standard_10', amount: taxIncl(domesticSales),
+  }];
+  input.sales[0].value.exportExempt = taxIncl(goldenCase.inputs.export_exempt_sales);
+  input.purchases[0].value.taxableWithInvoice = [{
+    band: 'standard_10',
+    amount: taxIncl(goldenCase.inputs.standard_rate_tax_inclusive_purchases_with_invoice),
+  }];
+  input.simplified.primaryCategory = `type${goldenCase.inputs.simplified_business_type}`;
+  input.specialistChecks.exportRefund = 'yes';
+  input.general = { deductionMethod: 'full', fullDeductionEligible: true };
+  return input;
+}
+
 function row(result, methodCode) {
   return result.breakdown && result.breakdown.data.methodResults
     .find(item => item.methodCode === methodCode);
-}
-
-function applicable(result, methodCode) {
-  return result.applicableMethods.find(item => item.methodCode === methodCode);
 }
 
 function hasWarning(result, code) {
@@ -172,6 +190,16 @@ console.log('\n=== 納税義務の判定 ===');
     result.breakdown.data.methodResults.length === 0 &&
     result.assumptions.some(text => text.includes('登録済みとして再入力')),
   '免税事業者はcomplete・方式行なし・再入力注記になる');
+
+  const exemptExport = exemptInput();
+  exemptExport.sales[0].value.exportExempt = taxIncl(12000000);
+  const exemptExportResult = service.simulate(exemptExport, context(), snapshotInfo);
+  assert(exemptExportResult.resultStatus === 'complete' &&
+    exemptExportResult.breakdown.data.hasExportExempt === true &&
+    exemptExportResult.assumptions.some(text =>
+      text.includes('免税事業者は仕入税額の還付を受けられません') &&
+      text.includes('登録済みとして再計算')),
+  '免税事業者×輸出売上は課税事業者としての再計算を案内する');
 
   const missingSalary = exemptInput();
   missingSalary.eligibility.specifiedPeriod.taxableSales = yen(10000001);
@@ -266,18 +294,35 @@ console.log('\n=== 全体を止める第1版対象外条件 ===');
   }
 }
 
+console.log('\n=== §20 輸出還付の方式比較 ===');
+{
+  const mixed = service.simulate(exportInput(exportMixedGolden),
+    context(exportMixedGolden.inputs.taxable_period), snapshotInfo);
+  assert(mixed.resultStatus === 'complete' &&
+    row(mixed, 'general').taxPayable.value === BigInt(exportMixedGolden.expected.general_total_payable) &&
+    row(mixed, 'general').refund.total.value === BigInt(exportMixedGolden.expected.total_refund) &&
+    row(mixed, 'simplified').taxPayable.value === BigInt(exportMixedGolden.expected.simplified_total_payable) &&
+    mixed.breakdown.data.recommendedMethodCode === exportMixedGolden.expected.recommended_method,
+  'GC-CT-EXPORT-MIXED: 一般課税600,000円還付・簡易課税40,000円納付で一般課税を推奨する');
+  assert(mixed.summary.isRefund === true && mixed.summary.amount.value === 600000n &&
+    mixed.summary.title.includes('概算還付') && mixed.excludedItems.length === 0,
+  '還付summaryは正の600,000円を持ち、輸出売上を除外項目にしない');
+  assert(row(mixed, 'general').refundExplanation.includes('控除不足額は還付') &&
+    row(mixed, 'simplified').refundExplanation.includes('還付は生じません') &&
+    row(mixed, 'twenty_percent_special').refundExplanation.includes('還付は生じません') &&
+    mixed.assumptions.some(text => text.includes('税務署の審査・還付加算金等')),
+  '方式別の還付可能性と概算還付の注意を説明する');
+
+  const exportOnly = service.simulate(exportInput(exportOnlyGolden),
+    context(exportOnlyGolden.inputs.taxable_period), snapshotInfo);
+  assert(row(exportOnly, 'general').taxPayable.value === -800000n &&
+    row(exportOnly, 'simplified').taxPayable.value === 0n &&
+    exportOnly.breakdown.data.recommendedMethodCode === 'general',
+  'GC-CT-EXPORT-ONLY: 国内課税売上0でも一般課税800,000円還付まで計算する');
+}
+
 console.log('\n=== エンジンの第1版制約を方式行へ引き継ぐ ===');
 {
-  const period = { from: '2027-01-01', to: '2027-12-31' };
-  const exported = detailedInput({ period, taxpayerType: 'corporation' });
-  exported.eligibility.filings = [filing('simplified_election', 'no')];
-  exported.sales[0].value.exportExempt = taxIncl(1100000);
-  const exportResult = service.simulate(exported, context(period), snapshotInfo);
-  assert(exportResult.resultStatus === 'blocked' &&
-    applicable(exportResult, 'general').status === 'blocked' &&
-    applicable(exportResult, 'general').reasonCodes.includes('CT_EXPORT_REFUND_UNSUPPORTED') &&
-    exportResult.excludedItems.some(item => item.code === 'SZ_EXPORT_REFUND_FUTURE_EXTENSION'),
-  '輸出免税は一般課税行をblockedへ落とし、将来拡張のExcludedItemを返す');
 
   const simple = detailedInput();
   simple.purchases[0].value = {

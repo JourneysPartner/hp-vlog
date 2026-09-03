@@ -677,6 +677,91 @@
       ]
     },
     {
+      "case_id": "GC-CT-EXPORT-MIXED",
+      "target_module": "consumption_tax_export_refund",
+      "kind": "table_derived",
+      "description": "輸出免税売上1,200万円・国内税込課税売上220万円・税込課税仕入880万円の一般課税還付と簡易課税比較",
+      "source": {
+        "document_id": "REVIEWED-SPEC-20+E-GOV-CONSUMPTION-TAX-ACT",
+        "url": "https://laws.e-gov.go.jp/law/363AC0000000108",
+        "locator": "確定仕様書§20、消費税法30条（仕入税額控除・課税売上割合）および地方税法72条の83（22/78）",
+        "law_version": "確定仕様書レビュー済み（2026-09-03）",
+        "retrieved_at": "2026-09-03",
+        "usage": "作業指示で固定された手計算値をそのまま登録"
+      },
+      "inputs": {
+        "taxable_period": {
+          "from": "2026-01-01",
+          "to": "2026-12-31"
+        },
+        "base_period_taxable_sales": "30000000",
+        "standard_rate_tax_inclusive_sales": "2200000",
+        "export_exempt_sales": "12000000",
+        "standard_rate_tax_inclusive_purchases_with_invoice": "8800000",
+        "simplified_business_type": 2
+      },
+      "expected": {
+        "taxable_base": "2000000",
+        "national_sales_tax": "156000",
+        "deductible_purchase_tax": "624000",
+        "national_refund": "468000",
+        "local_refund": "132000",
+        "total_refund": "600000",
+        "general_total_payable": "-600000",
+        "simplified_national_tax": "31200",
+        "simplified_local_tax": "8800",
+        "simplified_total_payable": "40000",
+        "taxable_sales_for_full_deduction_cap": "14000000",
+        "recommended_method": "general"
+      },
+      "_master_dependency": [
+        "consumption_tax_rate_standard",
+        "simplified_deemed_purchase_rates",
+        "full_deduction_taxable_sales_cap"
+      ]
+    },
+    {
+      "case_id": "GC-CT-EXPORT-ONLY",
+      "target_module": "consumption_tax_export_refund",
+      "kind": "table_derived",
+      "description": "国内課税売上0円・輸出免税売上1,200万円・税込課税仕入880万円の輸出専業セラーの一般課税還付",
+      "source": {
+        "document_id": "REVIEWED-SPEC-20+E-GOV-CONSUMPTION-TAX-ACT",
+        "url": "https://laws.e-gov.go.jp/law/363AC0000000108",
+        "locator": "確定仕様書§20、消費税法30条（仕入税額控除・課税売上割合）および地方税法72条の83（22/78）",
+        "law_version": "確定仕様書レビュー済み（2026-09-03）",
+        "retrieved_at": "2026-09-03",
+        "usage": "作業指示で固定された手計算値をそのまま登録"
+      },
+      "inputs": {
+        "taxable_period": {
+          "from": "2026-01-01",
+          "to": "2026-12-31"
+        },
+        "base_period_taxable_sales": "30000000",
+        "standard_rate_tax_inclusive_sales": "0",
+        "export_exempt_sales": "12000000",
+        "standard_rate_tax_inclusive_purchases_with_invoice": "8800000",
+        "simplified_business_type": 2
+      },
+      "expected": {
+        "taxable_base": "0",
+        "national_sales_tax": "0",
+        "deductible_purchase_tax": "624000",
+        "national_refund": "624000",
+        "local_refund": "176000",
+        "total_refund": "800000",
+        "general_total_payable": "-800000",
+        "simplified_total_payable": "0",
+        "recommended_method": "general"
+      },
+      "_master_dependency": [
+        "consumption_tax_rate_standard",
+        "simplified_deemed_purchase_rates",
+        "full_deduction_taxable_sales_cap"
+      ]
+    },
+    {
       "case_id": "GC-CORP-FULL-600",
       "target_module": "corporate_tax",
       "kind": "table_derived",

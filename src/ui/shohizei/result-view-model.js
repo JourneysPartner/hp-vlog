@@ -30,6 +30,12 @@ function formatYen(value) {
   return `${sign}${absolute.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}円`;
 }
 
+function formatTaxOutcome(value) {
+  const amount = moneyValue(value);
+  if (amount >= 0n) return formatYen(value);
+  return `還付 ${formatYen({ unit: 'JPY', value: -amount })}`;
+}
+
 function warningForCode(result, code) {
   const warning = (result.warnings || []).find(item => item.code === code);
   return warning ? { code, message: warning.basis } : { code };
@@ -49,6 +55,7 @@ function eligibilityRows(result, methodResults) {
     symbol: STATUS_SYMBOLS[row.eligibility] || '—',
     reasonCodes: Object.freeze([...(row.reasonCodes || [])]),
     reason: reasonText(result, row),
+    refundExplanation: row.refundExplanation,
   })));
 }
 
@@ -60,7 +67,9 @@ function comparisonRows(methodResults) {
       methodName: METHOD_LABELS[row.methodCode] || row.methodCode,
       amount: row.taxPayable,
       exactYen: moneyValue(row.taxPayable),
-      display: formatYen(row.taxPayable),
+      isRefund: moneyValue(row.taxPayable) < 0n,
+      display: formatTaxOutcome(row.taxPayable),
+      refundExplanation: row.refundExplanation,
     }))
     .sort((left, right) => left.exactYen < right.exactYen ? -1 :
       left.exactYen > right.exactYen ? 1 : 0));
@@ -156,12 +165,15 @@ function buildResultViewModel(result) {
   }
   const methodResults = result.breakdown.data.methodResults || [];
   if (result.resultStatus === 'complete' && methodResults.length === 0) {
+    const hasExportExempt = result.breakdown.data.hasExportExempt === true;
     return Object.freeze({
       ...common(result),
       heading: `試算結果（${result.periodLabel}・complete）`,
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
-      exemptNotice: '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
+      exemptNotice: hasExportExempt
+        ? '免税事業者は仕入税額の還付を受けられません。課税事業者を選択（インボイス登録等）した場合の還付可能性は、登録済みとして再計算してください'
+        : '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
       keyResult: Object.freeze({
         label: '納税義務の判定',
         qualifier: 'この試算では',
@@ -180,6 +192,8 @@ function buildResultViewModel(result) {
   const recommendedName = METHOD_LABELS[recommendedCode];
   const recommended = comparisons.find(row => row.methodCode === recommendedCode);
   const simplified = methodResults.find(row => row.methodCode === 'simplified');
+  const isRefund = Boolean(recommended && recommended.isRefund);
+  const keyAmount = isRefund ? result.summary.amount : recommended && recommended.amount;
   return Object.freeze({
     ...common(result),
     heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
@@ -189,15 +203,17 @@ function buildResultViewModel(result) {
     comparisonRows: comparisons,
     recommendedMethodCode: recommendedCode,
     keyResult: recommendedName && recommended ? Object.freeze({
-      label: '最も納税額が少ない方式',
+      label: isRefund ? '概算還付額' : '最も納税額が少ない方式',
       qualifier: 'この試算では',
-      value: recommendedName,
-      amount: recommended.amount,
-      exactYen: recommended.exactYen,
-      display: recommended.display,
+      value: isRefund ? undefined : recommendedName,
+      amount: keyAmount,
+      exactYen: moneyValue(keyAmount),
+      display: formatYen(keyAmount),
     }) : undefined,
     conclusion: recommendedName
-      ? `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
+      ? isRefund
+        ? result.summary.title
+        : `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
       : undefined,
     differenceFromGeneral: generalDifference(result, methodResults, recommendedCode),
     simplifiedFilingGuidance: Boolean(simplified && simplified.eligibility === 'ineligible' &&
@@ -215,5 +231,6 @@ module.exports = Object.freeze({
   METHOD_LABELS,
   STATUS_SYMBOLS,
   formatYen,
+  formatTaxOutcome,
   buildResultViewModel,
 });

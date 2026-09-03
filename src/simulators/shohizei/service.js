@@ -6,7 +6,7 @@ const { validateInput } = require('../core/validator.js');
 const { buildSimulationResult } = require('../core/result-builder.js');
 const consumptionTax = require('../../tax-engine/consumption/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
-const { money, addMoney } = require('../../tax-engine/common/money.js');
+const { money } = require('../../tax-engine/common/money.js');
 const eligibility = require('./eligibility.js');
 
 const ENGINE_METHOD = Object.freeze({
@@ -14,6 +14,13 @@ const ENGINE_METHOD = Object.freeze({
   simplified: 'simplified',
   twenty_percent_special: 'two_wari',
   thirty_percent_special: 'san_wari',
+});
+
+const REFUND_EXPLANATIONS = Object.freeze({
+  general: '実額の仕入税額控除のため、控除不足額は還付の対象になります。',
+  simplified: 'みなし仕入率で売上税額から控除額を算出するため、還付は生じません。',
+  twenty_percent_special: '売上税額の2割を納付する方式のため、還付は生じません。',
+  thirty_percent_special: '売上税額の3割を納付する方式のため、還付は生じません。',
 });
 
 function assertSnapshotMatch(context, masters) {
@@ -53,25 +60,11 @@ function warningsForMethods(methods) {
   return warnings;
 }
 
-function exportExcludedItem(input) {
-  const amounts = [];
-  for (const segment of input.sales || []) {
-    const value = segment.value || {};
-    if (value.exportExempt && value.exportExempt.amount &&
-        value.exportExempt.amount.value > 0n) {
-      amounts.push(value.exportExempt.amount);
-    }
-  }
-  if (amounts.length === 0) return null;
-  const total = amounts.reduce((sum, amount) => addMoney(sum, amount),
-    money({ unit: 'JPY', value: 0n }));
-  return {
-    code: 'SZ_EXPORT_REFUND_FUTURE_EXTENSION',
-    label: '輸出免税売上・還付可能性',
-    reason: '輸出免税を含む還付計算は将来拡張です。第1版では納付額へ0円として含めません。',
-    amount: total,
-    isAmountUnknown: false,
-  };
+function hasExportExempt(input) {
+  return (input.sales || []).some(segment => {
+    const exportExempt = segment.value && segment.value.exportExempt;
+    return exportExempt && exportExempt.amount && exportExempt.amount.value > 0n;
+  });
 }
 
 function blockedCalculation(reasons, excludedItems = []) {
@@ -85,18 +78,22 @@ function blockedCalculation(reasons, excludedItems = []) {
   };
 }
 
-function exemptCalculation(period, assessment) {
+function exemptCalculation(input, period, assessment) {
+  const exportExempt = hasExportExempt(input);
   return {
     resultStatus: 'complete',
     summary: { title: '納税義務なし（免税事業者）' },
     breakdown: {
       kind: 'shohizei',
-      data: { period, methodResults: [] },
+      data: { period, methodResults: [], hasExportExempt: exportExempt },
     },
     applicableMethods: [],
     assumptions: [
       ...(assessment.assumptions || []),
       'インボイス登録した場合の試算は、登録済みとして再入力してください。',
+      ...(exportExempt ? [
+        '免税事業者は仕入税額の還付を受けられません。課税事業者を選択（インボイス登録等）した場合の還付可能性は、登録済みとして再計算してください。',
+      ] : []),
     ],
     warnings: [],
     excludedItems: [],
@@ -122,6 +119,7 @@ function compareCalculation(input, period, assessment) {
         methodCode,
         eligibility: methodEligibility.status,
         reasonCodes: [...methodEligibility.reasonCodes],
+        refundExplanation: REFUND_EXPLANATIONS[methodCode],
       });
       continue;
     }
@@ -132,7 +130,12 @@ function compareCalculation(input, period, assessment) {
     });
     if (result.status !== 'complete') {
       const reasonCodes = engineReasons(result);
-      methodResults.push({ methodCode, eligibility: 'blocked', reasonCodes });
+      methodResults.push({
+        methodCode,
+        eligibility: 'blocked',
+        reasonCodes,
+        refundExplanation: REFUND_EXPLANATIONS[methodCode],
+      });
       for (const blockedReason of result.blockedReasons || []) {
         warnings.push(warning(blockedReason.code || 'SZ_ENGINE_BLOCKED',
           `$.${methodCode}`, blockedReason.message || '税額計算を完了できませんでした。'));
@@ -140,12 +143,15 @@ function compareCalculation(input, period, assessment) {
       continue;
     }
 
-    methodResults.push({
+    const methodResult = {
       methodCode,
       eligibility: 'eligible',
       taxPayable: result.totalPayable,
       reasonCodes: [...methodEligibility.reasonCodes],
-    });
+      refundExplanation: REFUND_EXPLANATIONS[methodCode],
+    };
+    if (result.refund) methodResult.refund = result.refund;
+    methodResults.push(methodResult);
     calculations.set(methodCode, result);
     assumptions.push(...(result.assumptions || [])
       .filter(item => item.code !== 'CT_METHOD_ELIGIBILITY_PROVIDED_BY_CALLER'));
@@ -163,7 +169,13 @@ function compareCalculation(input, period, assessment) {
   const data = { period, methodResults };
   if (recommended) data.recommendedMethodCode = recommended.methodCode;
   const summary = recommended
-    ? { title: `${recommended.methodCode}が最も納付額の少ない試算です`, amount: recommended.taxPayable }
+    ? recommended.taxPayable.value < 0n
+      ? {
+          title: '一般課税で概算還付が見込める試算です',
+          amount: money({ unit: 'JPY', value: -recommended.taxPayable.value }),
+          isRefund: true,
+        }
+      : { title: `${recommended.methodCode}が最も納付額の少ない試算です`, amount: recommended.taxPayable }
     : { title: '消費税の比較を完了できませんでした' };
   const general = methodResults.find(row => row.methodCode === 'general' &&
     row.eligibility === 'eligible' && calculations.has('general'));
@@ -173,8 +185,6 @@ function compareCalculation(input, period, assessment) {
     });
   }
 
-  const exportItem = exportExcludedItem(input);
-  const excludedItems = exportItem ? [exportItem] : [];
   return {
     resultStatus,
     summary,
@@ -188,27 +198,26 @@ function compareCalculation(input, period, assessment) {
     assumptions: uniqueMessages([
       ...assumptions,
       '適用可否は §15 の判定によります（届出期限の個別判定は行っていません）。',
+      '還付額は概算です。実際の還付申告では税務署の審査・還付加算金等があり、金額・時期が異なる場合があります。',
     ]),
     warnings,
-    excludedItems,
+    excludedItems: [],
   };
 }
 
 function calculate(input, context) {
   const period = taxablePeriodFrom(context);
-  const exportItem = exportExcludedItem(input);
   const blockers = eligibility.globalBlockers(input, period);
   if (blockers.length > 0) {
-    return blockedCalculation(blockers, exportItem ? [exportItem] : []);
+    return blockedCalculation(blockers);
   }
 
   const assessment = eligibility.evaluateEligibility(input, period);
   if (assessment.liability.status === 'blocked') {
-    return blockedCalculation(assessment.liability.reasons,
-      exportItem ? [exportItem] : []);
+    return blockedCalculation(assessment.liability.reasons);
   }
   if (assessment.liability.status === 'exempt') {
-    return exemptCalculation(period, assessment);
+    return exemptCalculation(input, period, assessment);
   }
   return compareCalculation(input, period, assessment);
 }

@@ -34,6 +34,15 @@ check('category 消費税は②消費税CTAへリンクする', () => {
   assert(html.includes('あなたの場合の消費税を試算してみる'));
 });
 
+check('category外でも本文の簡易課税2回で②CTAを挿入する', () => {
+  const html = generateSimulatorCta({
+    title: '納税方式の届出手続き',
+    category: '帳簿・経費',
+    _body: '簡易課税を検討します。簡易課税には事前の届出が必要です。',
+  }, config());
+  assert(html.includes('href="/tools/shohizei-simulator/"'));
+});
+
 check('タイトルの法人成りが本文の消費税条件より優先される', () => {
   const html = generateSimulatorCta({
     title: '法人成りを考える',
@@ -55,12 +64,13 @@ check('本文の役員報酬が2回なら④CTAを挿入する', () => {
   assert(html.includes('役員報酬をいくらにするのがよいか試算してみる'));
 });
 
-check('輸出と還付を含むタイトルでは②だけを除外する', () => {
+check('輸出と還付を含む消費税記事にも②CTAを付与する', () => {
   const html = generateSimulatorCta({ title: '輸出取引の消費税還付', category: '消費税', _body: 'インボイス。インボイス。' }, config());
-  assert.strictEqual(html, '');
+  assert(html.includes('href="/tools/shohizei-simulator/"'));
+  assert(html.includes('消費税シミュレーター'));
 });
 
-check('輸出還付の②除外後も③の判定は継続する', () => {
+check('相続カテゴリは輸出還付を含むタイトルでも③を判定する', () => {
   const html = generateSimulatorCta({ title: '輸出取引の還付と遺産', category: '相続', _body: '' }, config());
   assert(html.includes('href="/tools/sozokuzei-simulator/"'));
 });

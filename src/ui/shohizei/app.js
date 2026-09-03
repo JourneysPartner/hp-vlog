@@ -2,7 +2,7 @@
 
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
-const { createMoneyInput, createSelect, parseMoneyInput } = require('../forms.js');
+const { createMoneyInput, createSelect } = require('../forms.js');
 const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
@@ -99,7 +99,7 @@ const STYLE_TEXT = `
 .shohizei-app h1,.shohizei-app h2,.shohizei-app h3{color:#0B2045}.shohizei-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
 .shohizei-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.shohizei-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.shohizei-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.shohizei-app button.shohizei-primary{background:#E85320;border-color:#E85320;color:#fff}
 .shohizei-app input,.shohizei-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.shohizei-app input[type=checkbox]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.shohizei-tax-field{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.shohizei-tax-field .select-input select{max-width:12rem}
-.shohizei-progress{font-weight:700}.shohizei-help{color:#55607a}.shohizei-error{color:#9b1c1c;font-weight:700}.shohizei-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.shohizei-status{font-size:1.2rem;font-weight:700}.shohizei-table-wrap{overflow-x:auto}.shohizei-app table{border-collapse:collapse;width:100%;min-width:520px}.shohizei-app th,.shohizei-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.shohizei-app td:last-child{text-align:right}.shohizei-level{font-weight:700}.shohizei-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.shohizei-progress{font-weight:700}.shohizei-help{color:#55607a}.shohizei-error{color:#9b1c1c;font-weight:700}.shohizei-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.shohizei-status{font-size:1.2rem;font-weight:700}.shohizei-table-wrap{overflow-x:auto}.shohizei-app table{border-collapse:collapse;width:100%;min-width:520px}.shohizei-app th,.shohizei-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.shohizei-app td.shohizei-amount{text-align:right}.shohizei-level{font-weight:700}.shohizei-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:480px){.shohizei-app{padding:12px}.shohizei-card{padding:16px}.shohizei-actions{display:block}.shohizei-actions button{width:100%;margin:5px 0}.shohizei-app table{min-width:0}}
 @media print{.shohizei-no-print{display:none!important}.shohizei-app{max-width:none;padding:0}.shohizei-card{box-shadow:none;break-inside:avoid}.shohizei-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
@@ -216,7 +216,7 @@ function mountShohizeiApp(rootElement, {
       ]) : null,
       el('div', {}, [baseExists, el('label', { for: baseExists.id }, '基準期間がない（開業2年以内など）')]),
       form.basePeriodExists ? moneyField('basePeriodTaxableSales', 'sz-base-sales',
-        '基準期間（前々年）の課税売上高（円）', '0円以上の整数。',
+        '基準期間（前々年）の課税売上高（円）', '輸出免税売上も含めた金額を、0円以上の整数で入力してください。',
         '$.eligibility.basePeriod.taxableSales.value').nodes : null,
       form.basePeriodExists && form.taxpayerType === 'corporation' ? [
         el('label', { for: 'sz-base-months' }, '基準期間の月数'),
@@ -264,9 +264,6 @@ function mountShohizeiApp(rootElement, {
 
   function renderStep2() {
     const form = store.getState().form;
-    const exportWarning = el('p', { id: 'sz-export-warning', className: 'shohizei-error' },
-      parseMoneyInput(String(form.salesExportExempt)).ok && BigInt(parseMoneyInput(String(form.salesExportExempt)).value) > 0n
-        ? '一般課税の確定額を出せません（対応準備中）' : '');
     return el('main', { className: 'shohizei-no-print' }, [
       ...stepHeader(2, '売上と仕入'), errorSummary(),
       el('p', {}, '税込・税抜は金額欄ごとに選択してください。'),
@@ -274,10 +271,9 @@ function mountShohizeiApp(rootElement, {
         el('h2', {}, '売上'),
         taxField('salesStandard10', 'salesStandard10Basis', 'sz-sales-10', '10%対象の課税売上', '$.sales[0].value.taxable[0].amount'),
         taxField('salesReduced8', 'salesReduced8Basis', 'sz-sales-8', '8%（軽減税率）対象の課税売上', '$.sales[0].value.taxable[1].amount'),
-        taxField('salesExportExempt', 'salesExportExemptBasis', 'sz-sales-export', '輸出免税売上', '$.sales[0].value.exportExempt',
-          parsed => { exportWarning.textContent = parsed.ok && BigInt(parsed.value) > 0n
-            ? '一般課税の確定額を出せません（対応準備中）' : ''; }),
-        exportWarning,
+        taxField('salesExportExempt', 'salesExportExemptBasis', 'sz-sales-export', '輸出免税売上', '$.sales[0].value.exportExempt'),
+        el('p', { className: 'shohizei-help' },
+          '国内から商品を発送して海外へ販売した売上（eBay輸出など）。国外で完結する取引（不課税）は含めません'),
       ]),
       el('section', { className: 'shohizei-card' }, [
         el('h2', {}, '仕入'),
@@ -460,11 +456,13 @@ function mountShohizeiApp(rootElement, {
         el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),
       ]) : [
         eligibilitySection(viewModel),
-        el('section', { className: 'shohizei-card' }, [el('h2', {}, '納税額の比較'),
+        el('section', { className: 'shohizei-card' }, [el('h2', {}, '納付・還付額の比較'),
           el('div', { className: 'shohizei-table-wrap' }, el('table', {}, [
-            el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '方式'), el('th', { scope: 'col' }, '納税額')])),
+            el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '方式'),
+              el('th', { scope: 'col' }, '試算額'), el('th', { scope: 'col' }, '還付可能性')])),
             el('tbody', {}, viewModel.comparisonRows.map(row => el('tr', {}, [
-              el('th', { scope: 'row' }, row.methodName), el('td', {}, row.display),
+              el('th', { scope: 'row' }, row.methodName), el('td', { className: 'shohizei-amount' }, row.display),
+              el('td', {}, row.refundExplanation),
             ]))),
           ]))]),
         el('section', { className: 'shohizei-card shohizei-conclusion' }, [el('h2', {}, '結論'),

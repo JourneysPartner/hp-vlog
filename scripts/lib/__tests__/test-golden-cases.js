@@ -226,6 +226,57 @@ console.log('\n=== §63 公的計算例との照合 ===');
   assert(r.nationalTax.value === BigInt(c.expected.tax_payable),
     `${c.case_id}: 納付税額 14万円`);
 }
+for (const caseId of ['GC-CT-EXPORT-MIXED', 'GC-CT-EXPORT-ONLY']) {
+  const c = byId.get(caseId);
+  const period = c.inputs.taxable_period;
+  const domesticSales = BigInt(c.inputs.standard_rate_tax_inclusive_sales);
+  const input = {
+    taxablePeriod: period,
+    sales: [{
+      period,
+      value: {
+        kind: 'detailed',
+        taxable: domesticSales === 0n ? [] : [{
+          band: 'standard_10',
+          amount: { basis: 'inclusive', amount: inputMoney(domesticSales) },
+        }],
+        exportExempt: {
+          basis: 'inclusive', amount: inputMoney(c.inputs.export_exempt_sales),
+        },
+      },
+    }],
+    purchases: [{
+      period,
+      value: {
+        kind: 'detailed',
+        taxableWithInvoice: [{
+          band: 'standard_10',
+          amount: {
+            basis: 'inclusive',
+            amount: inputMoney(c.inputs.standard_rate_tax_inclusive_purchases_with_invoice),
+          },
+        }],
+        taxableWithoutInvoice: [],
+      },
+    }],
+    simplified: {
+      categorySelectedByUser: true,
+      primaryCategory: `type${c.inputs.simplified_business_type}`,
+    },
+    general: { deductionMethod: 'full', fullDeductionEligible: true },
+    specialistChecks: {},
+  };
+  const general = consumptionTaxEngine.calculate(input, { method: 'general' });
+  const simplified = consumptionTaxEngine.calculate(input, { method: 'simplified' });
+  assert(general.status === 'complete' &&
+    general.refund.nationalTax.value === BigInt(c.expected.national_refund) &&
+    general.refund.localConsumptionTax.value === BigInt(c.expected.local_refund) &&
+    general.refund.total.value === BigInt(c.expected.total_refund) &&
+    general.totalPayable.value === BigInt(c.expected.general_total_payable),
+  `${caseId}: 登録済み手計算値どおりの輸出還付になる`);
+  assert(simplified.totalPayable.value === BigInt(c.expected.simplified_total_payable),
+    `${caseId}: 簡易課税は登録済み手計算値どおり還付なしとなる`);
+}
 {
   const c = byId.get('GC-CORP-FULL-600');
   const result = corporateTaxEngine.calculate({

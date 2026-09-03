@@ -77,6 +77,105 @@ console.log('\n=== ゴールデンケース: 一般課税・簡易課税 ===');
   'GC-CT-GENERAL-FULL: 国税312,000円＋地方88,000円＝400,000円');
 }
 
+console.log('\n=== §20 輸出免税売上・還付ゴールデンケース ===');
+{
+  const document = JSON.parse(fs.readFileSync(path.join(
+    __dirname, '..', '..', '..', 'data', 'tax-simulator', 'golden-cases',
+    'official-examples.json'
+  ), 'utf8'));
+  const byId = new Map(document.cases.map(item => [item.case_id, item]));
+  for (const caseId of ['GC-CT-EXPORT-MIXED', 'GC-CT-EXPORT-ONLY']) {
+    const golden = byId.get(caseId);
+    const input = detailedInput({
+      period: golden.inputs.taxable_period,
+      sales: BigInt(golden.inputs.standard_rate_tax_inclusive_sales) === 0n ? [] : [{
+        band: 'standard_10',
+        amount: taxIncl(golden.inputs.standard_rate_tax_inclusive_sales),
+      }],
+      withInvoice: [{
+        band: 'standard_10',
+        amount: taxIncl(golden.inputs.standard_rate_tax_inclusive_purchases_with_invoice),
+      }],
+      simplified: {
+        categorySelectedByUser: true,
+        primaryCategory: `type${golden.inputs.simplified_business_type}`,
+      },
+      salesExtras: { exportExempt: taxIncl(golden.inputs.export_exempt_sales) },
+      inputExtras: {
+        specialistChecks: { exportRefund: 'yes' },
+        general: { deductionMethod: 'full', fullDeductionEligible: true },
+      },
+    });
+    const general = engine.calculate(input, { method: 'general' });
+    const simplified = engine.calculate(input, { method: 'simplified' });
+    const twoWari = engine.calculate(input, { method: 'two_wari' });
+    assert(general.status === 'complete' &&
+      amount(general.salesTax.taxableBaseTotal) === BigInt(golden.expected.taxable_base) &&
+      amount(general.salesTax.nationalTaxTotal) === BigInt(golden.expected.national_sales_tax) &&
+      amount(general.purchaseTax.deductibleTaxTotal) === BigInt(golden.expected.deductible_purchase_tax) &&
+      amount(general.refund.nationalTax) === BigInt(golden.expected.national_refund) &&
+      amount(general.refund.localConsumptionTax) === BigInt(golden.expected.local_refund) &&
+      amount(general.refund.total) === BigInt(golden.expected.total_refund) &&
+      amount(general.totalPayable) === BigInt(golden.expected.general_total_payable),
+    `${caseId}: 一般課税の国税・地方税・合計還付が手計算値に一致する`);
+    assert(simplified.status === 'complete' &&
+      amount(simplified.totalPayable) === BigInt(golden.expected.simplified_total_payable) &&
+      !Object.hasOwn(simplified, 'refund'),
+    `${caseId}: 簡易課税は輸出売上を課税標準へ入れず還付を生じない`);
+    assert(twoWari.status === 'complete' && amount(twoWari.totalPayable) >= 0n &&
+      !Object.hasOwn(twoWari, 'refund'),
+    `${caseId}: 2割特例は輸出売上があってもblockedにせず還付を生じない`);
+    const comparison = engine.compareMethods(input, { methods: ['general', 'simplified'] });
+    assert(comparison.minimum.method === golden.expected.recommended_method,
+      `${caseId}: 負値の還付を含む比較で一般課税を推奨する`);
+  }
+}
+{
+  const period = { from: '2027-01-01', to: '2027-12-31' };
+  const threeWari = engine.calculate(detailedInput({
+    period,
+    sales: [{ band: 'standard_10', amount: taxIncl(2200000) }],
+    salesExtras: { exportExempt: taxIncl(12000000) },
+    inputExtras: {
+      taxpayerType: 'individual',
+      specialistChecks: { exportRefund: 'yes' },
+    },
+  }), { method: 'san_wari' });
+  assert(threeWari.status === 'complete' && amount(threeWari.totalPayable) === 60000n &&
+    !Object.hasOwn(threeWari, 'refund'),
+  '3割特例は輸出売上を課税標準へ入れず60,000円納付・還付なしとする');
+}
+
+console.log('\n=== 輸出還付の端数処理と5億円判定 ===');
+{
+  const period = { from: '2026-01-01', to: '2026-12-31' };
+  const result = engine.calculate(detailedInput({
+    period,
+    sales: [{ band: 'standard_10', amount: taxIncl(2200000) }],
+    withInvoice: [{ band: 'standard_10', amount: taxIncl(8800050) }],
+    salesExtras: { exportExempt: taxIncl(12000000) },
+    inputExtras: { general: { deductionMethod: 'full', fullDeductionEligible: true } },
+  }), { method: 'general' });
+  assert(amount(result.purchaseTax.deductibleTaxTotal) === 624003n &&
+    amount(result.refund.nationalTax) === 468003n,
+  '還付国税468,003円に100円未満切捨てを適用しない');
+  assert(amount(result.refund.localConsumptionTax) === 132000n &&
+    result.calculationOrder.includes('local_refund_from_positive_national_refund_rounded_to_1_yen'),
+  '正の還付国税×22/78を円未満切捨てして地方還付132,000円とする');
+}
+{
+  const period = { from: '2026-01-01', to: '2026-12-31' };
+  const blocked = engine.calculate(detailedInput({
+    period,
+    sales: [{ band: 'standard_10', amount: taxIncl(22000000) }],
+    salesExtras: { exportExempt: taxIncl(490000000, 'exclusive') },
+    inputExtras: { general: { deductionMethod: 'full', fullDeductionEligible: true } },
+  }), { method: 'general' });
+  assert(blocked.status === 'blocked' && blocked.blockedReasons.some(reason =>
+    reason.code === 'CT_GENERAL_TAXABLE_SALES_OVER_500M'),
+  '国内税抜2,000万円＋輸出4.9億円＝5.1億円として全額控除capをblockedにする');
+}
+
 console.log('\n=== 税率別計算と課税標準の1,000円未満切捨て ===');
 {
   const result = engine.calculate(detailedInput({

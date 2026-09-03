@@ -53,13 +53,6 @@ function selectSimulatorCta(post, publishConfig) {
   if (!post || !publishConfig) return null;
 
   for (const definition of CTA_DEFINITIONS) {
-    if (definition.simulatorType === 'shohizei') {
-      const title = String(post.title || '');
-      // 残課題②「輸出還付」がシミュレーターに実装されたら、この除外を解除する。
-      // 現状は輸出免税売上を含む還付計算に未対応のため、消費税CTAだけを飛ばす。
-      if (title.includes('輸出') && title.includes('還付')) continue;
-    }
-
     if (!matchesDefinition(post, definition)) continue;
 
     // 内容上の先勝ち判定を確定してから公開ゲートを適用する。
