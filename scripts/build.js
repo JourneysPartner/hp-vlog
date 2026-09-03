@@ -8,7 +8,9 @@ const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-lin
 const { agencyLinksForTopic } = require('./lib/official-sources');
 const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getMacroSlug } =
   require('./lib/blog-taxonomy');
-const { generateSimulatorPublishing } = require('./lib/publish-prep');
+const { generateSimulatorPublishing, validatePublishConfig } = require('./lib/publish-prep');
+const { generateSimulatorCta } = require('./lib/simulator-cta');
+const { generateRobotsTxt, generateSitemapXml } = require('./lib/sitemap');
 
 // 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
 // renderer 拡張を一度だけ適用する（marked は module singleton）。
@@ -22,6 +24,7 @@ const TEMPLATES    = path.join(ROOT, 'templates');
 const PARTIALS     = path.join(TEMPLATES, 'partials');
 const PAGES_DIR    = path.join(TEMPLATES, 'pages');
 const BLOG_OUT     = path.join(ROOT, 'blog');
+const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-config.json');
 
 const ANALYTICS_BEACON = `
 <script>
@@ -371,7 +374,7 @@ function buildRelatedArticleHtml(post, postsMap) {
 }
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
-function generatePost(post, tpl, postsMap) {
+function generatePost(post, tpl, postsMap, publishConfig) {
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
   // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
@@ -421,6 +424,7 @@ function generatePost(post, tpl, postsMap) {
   });
 
   const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap);
+  const simulatorCtaHtml = generateSimulatorCta(post, publishConfig);
 
   return render(tpl, {
     TITLE:            escHtml(post.title),
@@ -432,6 +436,7 @@ function generatePost(post, tpl, postsMap) {
     PUBLISH_AT_ISO:   publishDateISO,
     UPDATED_AT_ISO:   updatedDateISO,
     BODY:             htmlBody,
+    SIMULATOR_CTA_HTML: simulatorCtaHtml,
     SOURCE_URL:       escAttr(post.source_url || ''),
     SOURCE_TITLE:     escHtml(post.source_title || post.source_url || ''),
     STRUCTURED_DATA:  structuredData,
@@ -478,11 +483,16 @@ function renderLatestPostsHtml(posts, n = 3) {
   return latest.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n');
 }
 
+function listStaticPageFiles() {
+  if (!fs.existsSync(PAGES_DIR)) return [];
+  return fs.readdirSync(PAGES_DIR).filter(file => file.endsWith('.html')).sort();
+}
+
 // ── 静的ページ生成 ──────────────────────────────────────────────
 function buildStaticPages(posts) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
-  const pages = fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html'));
+  const pages = listStaticPageFiles();
   console.log(`[build] 静的ページ: ${pages.length} 件`);
 
   const latestPostsHtml = renderLatestPostsHtml(posts || []);
@@ -521,6 +531,9 @@ function writeAnalyticsPageMap(posts) {
 // ── エントリポイント ────────────────────────────────────────────
 function main() {
   const posts = loadPublishedPosts();
+  const publishConfig = validatePublishConfig(JSON.parse(
+    fs.readFileSync(PUBLISH_CONFIG_PATH, 'utf8')
+  ));
   console.log(`[build] 公開済み記事: ${posts.length} 件`);
 
   // 1. 静的ページ生成（テンプレートにパーシャルと最新記事を注入してルートへ出力）
@@ -550,7 +563,7 @@ function main() {
     }
     const dir = path.join(BLOG_OUT, post.slug);
     fs.mkdirSync(dir, { recursive: true });
-    const html = generatePost(post, postTpl, postsMap);
+    const html = generatePost(post, postTpl, postsMap, publishConfig);
     fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
     console.log(`[build]   → blog/${post.slug}/index.html`);
   }
@@ -616,9 +629,20 @@ function main() {
 
   // 全ツールOFFでも、停止判定用statusと訂正履歴は常に更新する。
   console.log('[build] シミュレーター公開ファイルを生成しています...');
-  const simulatorPublishing = generateSimulatorPublishing();
+  const simulatorPublishing = generateSimulatorPublishing({ config: publishConfig });
   console.log(`[build]   → tools/simulator-status.json（公開 ${simulatorPublishing.enabledTypes.length} 件）`);
   console.log('[build]   → tools/corrections/index.html');
+
+  // サイトマップは、上で実際に生成した固定ページ・記事・公開ツールだけを収録する。
+  const sitemapXml = generateSitemapXml({
+    posts,
+    staticPageFiles: listStaticPageFiles(),
+    publishConfig,
+    correctionsGenerated: fs.existsSync(path.join(ROOT, 'tools', 'corrections', 'index.html')),
+  });
+  fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapXml, 'utf8');
+  fs.writeFileSync(path.join(ROOT, 'robots.txt'), generateRobotsTxt(), 'utf8');
+  console.log('[build]   → sitemap.xml / robots.txt');
 
   console.log('[build] 完了');
 }
