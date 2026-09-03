@@ -123,10 +123,12 @@ function calculateIndividualBusinessTax(input, options = {}) {
     '個人事業税の事業主控除'
   );
   const annualOwnerDeduction = masterMoney(ownerRecord.deduction_amount);
-  const ownerDeduction = multiplyRateByMoney(
-    rate({ num: BigInt(values.businessMonths), den: 12n }),
-    annualOwnerDeduction
+  const ownerDeductionBeforeRounding = multiplyRateByMoney(
+    rate({ num: BigInt(values.businessMonths), den: 12n }), annualOwnerDeduction
   );
+  const ownerDeductionRounded = applyRounding(ownerDeductionBeforeRounding, 'R-TRUNC-1-YEN');
+  // ownerDeduction は既存 API の Exact 契約を維持する。端数処理後なので分母は常に 1。
+  const ownerDeduction = moneyToExact(ownerDeductionRounded);
 
   const rateRecord = one(
     masters.find('individual_business_tax_rate', criterion),
@@ -149,7 +151,9 @@ function calculateIndividualBusinessTax(input, options = {}) {
     businessIncome: values.businessIncome,
     businessMonths: values.businessMonths,
     annualOwnerDeduction,
+    ownerDeductionBeforeRounding,
     ownerDeduction,
+    ownerDeductionRounded,
     taxableBaseBeforeRounding,
     taxableBase,
     rate: masterRate(rateRecord.rate),

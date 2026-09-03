@@ -68,7 +68,12 @@ function nationalPension(formState, errors) {
         '$.individual.nationalPension.annualAmount.value', errors),
     };
   }
-  if (formState.nationalPensionKind === 'standard') return { kind: 'standard', months: 12 };
+  if (formState.nationalPensionKind === 'standard') {
+    const months = formState.comparisonBasis === 'transition_year' && formState.establishedOn
+      ? Number(formState.establishedOn.slice(5, 7)) - 1
+      : 12;
+    return { kind: 'standard', months };
+  }
   if (formState.nationalPensionKind === 'exempted') return { kind: 'exempted' };
   return { kind: 'unknown' };
 }
@@ -81,6 +86,23 @@ function buildHojinnariInput(formState, context) {
     throw new TypeError('CalculationContextが必要です');
   }
   const errors = [];
+  const isTransition = formState.comparisonBasis === 'transition_year';
+  const year = Number(formState.incomeTaxYear || 2025);
+  const establishedOn = formState.establishedOn;
+  let individualPeriod = YEAR_PERIOD;
+  let corporatePeriod = context.fiscalPeriod;
+  if (isTransition) {
+    const establishedDate = new Date(`${establishedOn}T00:00:00Z`);
+    if (!establishedOn || Number.isNaN(establishedDate.getTime()) ||
+        establishedOn <= `${year}-01-01` || establishedOn > `${year}-12-31`) {
+      errors.push(issue('HJ_ESTABLISHED_DATE_INVALID', '$.corporate.establishedOn',
+        `法人設立日は${year}年1月2日から12月31日までで入力してください`));
+    } else {
+      establishedDate.setUTCDate(establishedDate.getUTCDate() - 1);
+      individualPeriod = { from: `${year}-01-01`, to: establishedDate.toISOString().slice(0, 10) };
+      corporatePeriod = { from: establishedOn, to: `${year}-12-31` };
+    }
+  }
   if (formState.expensesConfirmed !== true &&
       formState.expensesExcludeSocialInsuranceAndMutualAid !== 'yes') {
     errors.push(issue(
@@ -92,7 +114,7 @@ function buildHojinnariInput(formState, context) {
 
   const individualRevenue = formState.revenue;
   const individualExpenses = formState.expenses;
-  const corporateSame = formState.corporateSameAsIndividual !== false;
+  const corporateSame = !isTransition && formState.corporateSameAsIndividual !== false;
   const corporateRevenue = corporateSame ? individualRevenue : formState.corporateRevenue;
   const corporateExpenses = corporateSame ? individualExpenses : formState.corporateExpenses;
   const ageText = String(formState.ageAtYearEnd ?? '');
@@ -104,14 +126,14 @@ function buildHojinnariInput(formState, context) {
 
   const input = {
     precision: 'simple',
-    comparisonBasis: 'steady_state',
+    comparisonBasis: isTransition ? 'transition_year' : 'steady_state',
     individual: {
       business: {
-        revenue: [segment(individualRevenue, YEAR_PERIOD,
+        revenue: [segment(individualRevenue, individualPeriod,
           '$.individual.business.revenue[0].value.value', errors)],
-        expenses: [segment(individualExpenses, YEAR_PERIOD,
+        expenses: [segment(individualExpenses, individualPeriod,
           '$.individual.business.expenses[0].value.value', errors)],
-        periodFacts: {},
+        periodFacts: isTransition ? { closedOn: individualPeriod.to } : {},
         expensesExcludeSocialInsuranceAndMutualAid: formState.expensesConfirmed === true ||
           formState.expensesExcludeSocialInsuranceAndMutualAid === 'yes' ? 'yes' : 'no',
         businessTaxCategory: formState.businessTaxCategory,
@@ -130,6 +152,7 @@ function buildHojinnariInput(formState, context) {
       nationalPension: nationalPension(formState, errors),
     },
     corporate: {
+      ...(isTransition ? { establishedOn } : {}),
       locationSameAsResidence: formState.locationSameAsResidence,
       capital: money(formState.capital, '$.corporate.capital.value', errors),
       employeeCount: 0,
@@ -140,7 +163,7 @@ function buildHojinnariInput(formState, context) {
       spouseOfficer: { isOfficer: false },
       officerCompensation: {
         monthlySegments: [{
-          period: { ...context.fiscalPeriod },
+          period: { ...corporatePeriod },
           value: {
             monthlyAmount: money(formState.officerCompensationMonthly,
               '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value', errors),
@@ -151,9 +174,9 @@ function buildHojinnariInput(formState, context) {
         kind: 'kyokai_kenpo',
         prefectureCode: context.jurisdiction.prefectureCode,
       },
-      revenue: [segment(corporateRevenue, context.fiscalPeriod,
+      revenue: [segment(corporateRevenue, corporatePeriod,
         '$.corporate.revenue[0].value.value', errors)],
-      expenses: [segment(corporateExpenses, context.fiscalPeriod,
+      expenses: [segment(corporateExpenses, corporatePeriod,
         '$.corporate.expenses[0].value.value', errors)],
     },
     consumptionTax: { include: false },

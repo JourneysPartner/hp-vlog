@@ -29,6 +29,7 @@ const {
 const NATIONAL_TAX_ROUNDING_RULE_ID = 'R-TRUNC-100-TAX';
 const LOCAL_TAX_ROUNDING_RULE_ID = 'R-TRUNC-100-LOCAL-TAX';
 const NO_ROUNDING_RULE_ID = 'R-NONE';
+const MONTHS_IN_YEAR = 12;
 
 // 入力型設計書の列挙と同じ集合。欠けた回答を0円扱いにする場合の検知にも使う。
 const ADJUSTMENT_CODES = Object.freeze([
@@ -130,6 +131,19 @@ function normalizeFiscalPeriod(input, options) {
   return null;
 }
 
+function completedCalendarMonths(from, to) {
+  const start = parseLocalDate(from, 'fiscalPeriod.from');
+  const endExclusive = parseLocalDate(to, 'fiscalPeriod.to');
+  endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+  let months = (endExclusive.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+    endExclusive.getUTCMonth() - start.getUTCMonth();
+  const anniversary = new Date(Date.UTC(
+    start.getUTCFullYear(), start.getUTCMonth() + months, start.getUTCDate()
+  ));
+  if (anniversary > endExclusive) months -= 1;
+  return Math.max(1, months);
+}
+
 function isPresentUnsupported(value) {
   if (value === undefined || value === null || value === false || value === 'no') return false;
   if (value && value.unit === 'JPY') return inputMoney(value).value !== 0n;
@@ -146,7 +160,11 @@ function preflightBlockedReasons(input, options = {}) {
   const period = normalizeFiscalPeriod(input, options);
   if (!period || !period.from) {
     addReason(reasons, 'CT_FISCAL_PERIOD_REQUIRED', '事業年度または事業年度開始日と月数が必要です');
-  } else if (!period.isTwelveMonths) {
+  } else if (input.comparisonBasis === 'transition_year' &&
+      (!period.to || period.to >= endOfTwelveMonthPeriod(period.from))) {
+    addReason(reasons, 'CT_TRANSITION_FISCAL_PERIOD_UNSUPPORTED',
+      '移行年度比較には12か月未満の事業年度開始日・終了日が必要です');
+  } else if (!period.isTwelveMonths && input.comparisonBasis !== 'transition_year') {
     addReason(reasons, 'CT_SHORT_FISCAL_PERIOD_UNSUPPORTED',
       '12か月未満を含む12か月以外の事業年度は第1版の対象外です');
   }
@@ -175,8 +193,8 @@ function preflightBlockedReasons(input, options = {}) {
       (input.entityType && !['ordinary', 'domestic_ordinary'].includes(input.entityType))) {
     addReason(reasons, 'CT_ENTITY_TYPE_UNSUPPORTED', '国内普通法人以外は第1版の対象外です');
   }
-  if (input.comparisonBasis && input.comparisonBasis !== 'steady_state') {
-    addReason(reasons, 'CT_TRANSITION_YEAR_UNSUPPORTED', '移行年度比較は第1版の対象外です');
+  if (input.comparisonBasis && !['steady_state', 'transition_year'].includes(input.comparisonBasis)) {
+    addReason(reasons, 'CT_COMPARISON_BASIS_UNSUPPORTED', '未対応の比較基準です');
   }
   if (isPresentUnsupported(input.taxCredits) || isPresentUnsupported(input.corporateTaxCredits)) {
     addReason(reasons, 'CT_TAX_CREDITS_UNSUPPORTED', '法人税の税額控除は第1版の対象外です');
@@ -672,7 +690,30 @@ function calculate(input, options = {}) {
       multiplyRateByMoney(masterRate(prefecturalRateRecord.rate), corporateTaxLevyBase),
       LOCAL_TAX_ROUNDING_RULE_ID
     );
-    const perCapita = perCapitaAmounts(perCapitaRecord, capital, employeeCount);
+    const annualPerCapita = perCapitaAmounts(perCapitaRecord, capital, employeeCount);
+    let perCapita = annualPerCapita;
+    let perCapitaProrationMonths = MONTHS_IN_YEAR;
+    if (input.comparisonBasis === 'transition_year') {
+      const prorationRecord = requiredRecord(
+        'corporate_inhabitant_per_capita_proration', criterion
+      );
+      perCapitaProrationMonths = completedCalendarMonths(fiscalPeriod.from, fiscalPeriod.to);
+      const prorationRate = {
+        num: BigInt(perCapitaProrationMonths),
+        den: BigInt(MONTHS_IN_YEAR),
+      };
+      perCapita = {
+        municipal: applyRounding(
+          multiplyRateByMoney(prorationRate, annualPerCapita.municipal),
+          prorationRecord.rounding_rule_id
+        ),
+        prefectural: applyRounding(
+          multiplyRateByMoney(prorationRate, annualPerCapita.prefectural),
+          prorationRecord.rounding_rule_id
+        ),
+        record: annualPerCapita.record,
+      };
+    }
     const incomeLevyTotal = sumMoney([municipalIncomeLevy, prefecturalIncomeLevy]);
     const perCapitaLevyTotal = sumMoney([perCapita.municipal, perCapita.prefectural]);
     const corporateInhabitantTax = sumMoney([incomeLevyTotal, perCapitaLevyTotal]);
@@ -724,10 +765,19 @@ function calculate(input, options = {}) {
     }, {
       code: 'CT_INHABITANT_TAX_BASE_BEFORE_CREDITS',
       message: '法人住民税の法人税割は、税額控除前の算出法人税額を1,000円未満切り捨てた額を課税標準としています',
-    }, {
+    }, input.comparisonBasis === 'transition_year' ? {
+      code: 'CT_TRANSITION_YEAR_ENTERPRISE_TAX_TIMING',
+      message: '法人事業税・特別法人事業税は初事業年度の損金へ算入せず、移行年度比較の当期税額として表示しています',
+    } : {
       code: 'CT_STEADY_STATE_ENTERPRISE_TAX_TIMING',
       message: '法人事業税・特別法人事業税は当期の損金へ算入せず、平年度比較の当期税額として表示しています',
     });
+    if (input.comparisonBasis === 'transition_year') {
+      assumptions.push({
+        code: 'CT_PER_CAPITA_PRORATED',
+        message: `法人住民税均等割は都道府県分・市町村分をそれぞれ${perCapitaProrationMonths}か月分へ月割し、各100円未満を切り捨てています`,
+      });
+    }
 
     const knownTaxTotal = sumMoney([
       corporateTax,
@@ -741,7 +791,7 @@ function calculate(input, options = {}) {
       status,
       resultStatus: status,
       supportedProfileVersion: 'corporate-sme-v1',
-      comparisonBasis: 'steady_state',
+      comparisonBasis: input.comparisonBasis || 'steady_state',
       localTaxRateSource: {
         standardRate: 'registered',
         excessRate: 'missing',
@@ -783,6 +833,9 @@ function calculate(input, options = {}) {
         prefecturalPerCapitaLevy: perCapita.prefectural,
         municipalPerCapitaLevy: perCapita.municipal,
         perCapitaLevyTotal,
+        annualPrefecturalPerCapitaLevy: annualPerCapita.prefectural,
+        annualMunicipalPerCapitaLevy: annualPerCapita.municipal,
+        perCapitaProrationMonths,
         amount: corporateInhabitantTax,
       },
       enterpriseTax: enterpriseTax === null ? null : {

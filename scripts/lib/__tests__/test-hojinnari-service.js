@@ -15,6 +15,7 @@ const goldenDocument = JSON.parse(fs.readFileSync(path.join(
   REPO_ROOT, 'data', 'tax-simulator', 'golden-cases', 'official-examples.json'
 ), 'utf8'));
 const golden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-STEADY-1200');
+const transitionGolden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-TRANSITION');
 const yakuinGolden = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-500K');
 const familyGolden = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-SPOUSE-DEP');
 const familyYakuinGolden = goldenDocument.cases.find(
@@ -253,6 +254,110 @@ assert(complete.breakdown.data.personalDisposableDifference.value ===
     BigInt(expected.combined_reference_difference) &&
   complete.summary.amount.value === BigInt(expected.combined_reference_difference),
 '個人手取り差・参考差額・summaryがゴールデンと一致する');
+
+console.log('\n=== GC-HJ-TRANSITION ===');
+const transition = service.simulate(
+  transitionInput(), transitionContext(), snapshotInfo
+);
+const transitionExpected = transitionGolden.expected;
+const transitionSole = transition.breakdown.data.soleProprietor;
+const transitionCorporation = transition.breakdown.data.corporation;
+assert(transition.resultStatus === 'complete' &&
+  transition.comparisonBasis === 'transition_year' &&
+  transition.periodLabel === '2025年分（移行年度）',
+'移行年度をcomplete・transition_yearとして返す');
+assert(transition.transitionPeriods.individual.from === '2025-01-01' &&
+  transition.transitionPeriods.individual.to === '2025-06-30' &&
+  transition.transitionPeriods.corporate.from === '2025-07-01' &&
+  transition.transitionPeriods.corporate.to === '2025-12-31' &&
+  transition.transitionPeriods.fiscalYearEndAssumption === '12月決算',
+'個人期間・法人期間・12月決算仮定を結果へ含める');
+assert(transitionCorporation.businessIncome.value ===
+    BigInt(transitionExpected.transition_business_income) &&
+  transitionCorporation.salaryIncome.value ===
+    BigInt(transitionExpected.transition_salary_income) &&
+  transitionCorporation.totalIncome.value ===
+    BigInt(transitionExpected.transition_total_income),
+'個人期間の事業所得と6か月分役員報酬の給与所得を同一暦年で合算する');
+assert(transitionCorporation.nationalPension.value ===
+    BigInt(transitionExpected.transition_national_pension) &&
+  transitionCorporation.nationalHealthInsuranceFullYear.value ===
+    BigInt(transitionExpected.transition_national_health_insurance_full_year) &&
+  transitionCorporation.nationalHealthInsurance.value ===
+    BigInt(transitionExpected.transition_national_health_insurance) &&
+  transitionCorporation.employeeSocialInsurance.value ===
+    BigInt(transitionExpected.transition_social_insurance_employee),
+'国民年金・国保年額の成分上限後月割・本人社保が指定値になる');
+assert(transitionCorporation.nationalHealthInsuranceDetails.assessmentBase.value ===
+    BigInt(transitionExpected.transition_nhi_assessment_base) &&
+  transitionCorporation.nationalHealthInsuranceDetails.components.medical.amount.value ===
+    BigInt(transitionExpected.transition_nhi_medical_full_year) &&
+  transitionCorporation.nationalHealthInsuranceDetails.components.elderly_support.amount.value ===
+    BigInt(transitionExpected.transition_nhi_support_full_year) &&
+  transitionCorporation.nationalHealthInsuranceDetails.components.child_rearing_support.amount.value ===
+    BigInt(transitionExpected.transition_nhi_child_support_full_year) &&
+  transitionCorporation.nationalHealthInsuranceDetails.components.nursing_care.amount.value ===
+    BigInt(transitionExpected.transition_nhi_nursing_full_year),
+'国保は賦課基礎492万円で4成分を年額計算・各上限適用してから総額を月割する');
+assert(transitionCorporation.burdens.incomeTax.value ===
+    BigInt(transitionExpected.transition_income_tax) &&
+  transitionCorporation.burdens.residentTax.value ===
+    BigInt(transitionExpected.transition_resident_tax) &&
+  transitionCorporation.burdens.soleProprietorEnterpriseTax.value ===
+    BigInt(transitionExpected.transition_individual_business_tax) &&
+  transitionCorporation.personalDisposableCash.value ===
+    BigInt(transitionExpected.transition_personal_disposable_cash),
+'移行年の個人税と個人手取りがゴールデンに一致する');
+assert(transitionCorporation.burdens.socialInsuranceEmployer.value ===
+    BigInt(transitionExpected.transition_social_insurance_employer) &&
+  transitionCorporation.corporateIncome.value ===
+    BigInt(transitionExpected.transition_corporate_income) &&
+  transitionCorporation.corporateTaxableIncome.value ===
+    BigInt(transitionExpected.transition_corporate_taxable_income),
+'子ども・子育て拠出金込み会社社保と法人所得を固定する');
+assert(transitionCorporation.corporateTaxDetails.corporateTax.value ===
+    BigInt(transitionExpected.transition_corporate_tax) &&
+  transitionCorporation.corporateTaxDetails.localCorporateTax.value ===
+    BigInt(transitionExpected.transition_local_corporate_tax) &&
+  transitionCorporation.corporateTaxDetails.inhabitantPerCapitaLevy.value ===
+    BigInt(transitionExpected.transition_inhabitant_per_capita_levy) &&
+  transitionCorporation.burdens.corporateTaxes.value ===
+    BigInt(transitionExpected.transition_corporate_taxes) &&
+  transitionCorporation.corporateRetainedCash.value ===
+    BigInt(transitionExpected.transition_corporate_retained_cash),
+'法人税等・月割均等割・法人税引後利益がゴールデンに一致する');
+assert(transitionSole.personalDisposableCash.value ===
+    BigInt(transitionExpected.sole_personal_disposable_cash) &&
+  transition.summary.amount.value ===
+    BigInt(transitionExpected.combined_reference_difference) &&
+  transitionCorporation.personalDisposableCash.value +
+    transitionCorporation.corporateRetainedCash.value ===
+    BigInt(transitionExpected.transition_combined_cash),
+'個人のままの手取りと移行年差額＋792,278円が一致する');
+assert(transition.assumptions.some(text => text.includes('給与所得を含みません')) &&
+  transition.assumptions.some(text => text.includes('賦課年度や納付時期')) &&
+  transition.assumptions.some(text => text.includes('12月31日まで（12月決算）')),
+'国保賦課基礎・納付時期のずれ・12月決算を前提へ明示する');
+
+const transitionBoundary = service.simulate(
+  transitionInput('2025-07-15'), transitionContext('2025-07-15'), snapshotInfo
+);
+assert(transitionBoundary.breakdown.data.corporation.burdens
+  .soleProprietorEnterpriseTax.value === 215400n &&
+  transitionBoundary.breakdown.data.corporation.businessTaxOwnerDeduction.value === 1691666n,
+'7月15日設立は個人事業月数を7へ切り上げて事業主控除1,691,666円を使う');
+assert(transitionBoundary.breakdown.data.corporation.corporateTaxDetails
+  .inhabitantPerCapitaLevy.value === 29100n,
+'7月15日設立は均等割月数を5へ切り捨てて29,100円にする');
+
+const transitionConsumptionTax = transitionInput();
+transitionConsumptionTax.consumptionTax = consumptionTaxIncludedInput().consumptionTax;
+const transitionConsumptionBlocked = service.simulate(
+  transitionConsumptionTax, transitionContext(), snapshotInfo
+);
+assert(transitionConsumptionBlocked.resultStatus === 'blocked' &&
+  warningCode(transitionConsumptionBlocked, 'HJ_TRANSITION_YEAR_CONSUMPTION_TAX_UNSUPPORTED'),
+'移行年度の消費税include:trueは理由コード付きblockedにする');
 
 console.log('\n=== ④ GC-YH-MODE-C-500K との相互検証 ===');
 const yh = yakuinGolden.expected;
@@ -667,6 +772,35 @@ for (const [actualField, expectedField] of Object.entries({
   assert(deduction2Sole[actualField].value === BigInt(deduction2Expected[expectedField]),
     `控除第2弾の個人側${actualField}が指定期待値${deduction2Expected[expectedField]}円と一致する`);
 }
+
+function transitionInput(establishedOn = '2025-07-01') {
+  const established = new Date(`${establishedOn}T00:00:00Z`);
+  established.setUTCDate(established.getUTCDate() - 1);
+  const individualTo = established.toISOString().slice(0, 10);
+  const corporatePeriod = { from: establishedOn, to: '2025-12-31' };
+  const input = goldenInput();
+  input.precision = 'simple';
+  input.comparisonBasis = 'transition_year';
+  input.individual.business.revenue = [periodSegment('2025-01-01', individualTo, 9000000)];
+  input.individual.business.expenses = [periodSegment('2025-01-01', individualTo, 3000000)];
+  input.individual.business.periodFacts = { closedOn: individualTo };
+  input.individual.self.ageAtYearEnd = 45;
+  input.individual.nationalPension = {
+    kind: 'standard', months: Number(establishedOn.slice(5, 7)) - 1,
+  };
+  input.corporate.establishedOn = establishedOn;
+  input.corporate.capital = yen(1000000);
+  input.corporate.officerCompensation = {
+    monthlySegments: [{ period: corporatePeriod, value: { monthlyAmount: yen(500000) } }],
+  };
+  input.corporate.revenue = [periodSegment(establishedOn, '2025-12-31', 9000000)];
+  input.corporate.expenses = [periodSegment(establishedOn, '2025-12-31', 3000000)];
+  return input;
+}
+
+function transitionContext(establishedOn = '2025-07-01') {
+  return context({ fiscalPeriod: { from: establishedOn, to: '2025-12-31' } });
+}
 assert(deduction2Sole.burdens.incomeTax.value === BigInt(deduction2Expected.sole_income_tax) &&
   deduction2Sole.burdens.residentTax.value === BigInt(deduction2Expected.sole_resident_tax),
 '控除第2弾の個人側所得税930,100円・住民税750,300円を固定する');
@@ -738,9 +872,6 @@ const blockedCases = [
     input.corporate.taxAdjustments = {
       items: [{ code: 'entertainment', applies: 'unknown' }],
     };
-  }],
-  ['HJ_TRANSITION_YEAR_UNSUPPORTED', 'transition_year', input => {
-    input.comparisonBasis = 'transition_year';
   }],
   ['HJ_ACTUAL_RESIDENT_TAX_BASIS_UNSUPPORTED', '住民税actual_year', input => {
     input.individual.residentTaxBasis = 'actual_year';

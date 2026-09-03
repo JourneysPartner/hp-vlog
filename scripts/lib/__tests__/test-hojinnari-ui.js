@@ -58,6 +58,21 @@ function goldenState(overrides = {}) {
   };
 }
 
+function transitionState(overrides = {}) {
+  return goldenState({
+    comparisonBasis: 'transition_year',
+    establishedOn: '2025-07-01',
+    revenue: '9000000',
+    expenses: '3000000',
+    ageAtYearEnd: '45',
+    capital: '1000000',
+    corporateSameAsIndividual: false,
+    corporateRevenue: '9000000',
+    corporateExpenses: '3000000',
+    ...overrides,
+  });
+}
+
 function run(formState) {
   const context = buildCalculationContext(formState, snapshotInfo, calculatedAt);
   const wire = buildHojinnariInput(formState, context);
@@ -110,6 +125,7 @@ function main() {
 
   process.stdout.write('\n=== ゴールデン統合・結果表示 ===\n');
   const complete = run(goldenState());
+  const transition = run(transitionState());
   check('input-builder → validate → simulate がGC-HJ-STEADY-1200になる', () => {
     assert.strictEqual(complete.result.resultStatus, 'complete');
     assert.strictEqual(complete.result.summary.amount.value, 807220n);
@@ -150,6 +166,55 @@ function main() {
     assert.strictEqual(rows.get('smallEnterpriseMutualAid').soleProprietor.exactYen, 840000n);
     assert.strictEqual(rows.get('smallEnterpriseMutualAid').corporation.exactYen, 276000n);
     assert.strictEqual(deduction.result.summary.amount.value, 419820n);
+  });
+  check('モード選択から移行年度の追加入力4点を表示する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      assert(root.textContent.includes('平年度で比較（毎年の定常状態）'));
+      assert(root.textContent.includes('法人成りする年で比較（年の途中で法人化）'));
+      const transitionRadio = root.querySelector('#hj-comparison-basis-2');
+      transitionRadio.checked = true;
+      transitionRadio.listeners.get('change')();
+      assert(root.querySelector('#hj-established-on'));
+      assert(root.textContent.includes('個人期間の売上'));
+      assert(root.textContent.includes('個人期間の経費'));
+      app.store.setState(state => ({ ...state, step: 3,
+        form: { ...state.form, comparisonBasis: 'transition_year' } }));
+      assert(root.textContent.includes('法人期間の売上'));
+      assert(root.textContent.includes('法人期間の経費'));
+      assert(root.textContent.includes('法人設立月から12月まで毎月同額'));
+      app.destroy();
+    });
+  });
+  check('移行年度Wire・判定バナー・期間注記・9行比較表・平年度導線を統合する', () => {
+    assert.strictEqual(transition.wire.comparisonBasis, 'transition_year');
+    assert.strictEqual(transition.wire.individual.business.periodFacts.closedOn, '2025-06-30');
+    assert.strictEqual(transition.wire.corporate.establishedOn, '2025-07-01');
+    assert.strictEqual(transition.context.fiscalPeriod.from, '2025-07-01');
+    assert.strictEqual(transition.result.summary.amount.value, 792278n);
+    assert.strictEqual(transition.viewModel.verdictSummary.benefit.display, '＋792,278円');
+    assert.strictEqual(transition.viewModel.comparisonRows.length, 9);
+    assert.strictEqual(transition.viewModel.comparisonRows.find(row =>
+      row.code === 'sole_proprietor_enterprise_tax').corporation.exactYen, 227500n);
+    assert(transition.viewModel.transitionPeriodNote.includes('2025-01-01〜2025-06-30'));
+    assert(transition.viewModel.transitionPeriodNote.includes('2025-07-01〜2025-12-31'));
+    assert(transition.viewModel.transitionPeriodNote.includes('12月決算'));
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: transition.result, viewModel: transition.viewModel }));
+      assert.strictEqual(root.querySelector('.simulator-key-result-amount').textContent,
+        '＋792,278円');
+      assert(root.textContent.includes('個人期間 2025-01-01〜2025-06-30'));
+      assert(root.textContent.includes('法人期間 2025-07-01〜2025-12-31'));
+      assert(root.textContent.includes('平年度（毎年）の比較は平年度モードで'));
+      assert(root.textContent.includes('①個人のまま②この年に法人化'));
+      app.destroy();
+    });
   });
   check('控除第2弾の同じ本人事実をWireへ載せ、①ゴールデン差額364,620円を再現する', () => {
     const deduction2 = run(goldenState({

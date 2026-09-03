@@ -263,6 +263,9 @@ function buildSimulationResult(options) {
   if (Object.hasOwn(options, 'applicableMethods')) {
     result.applicableMethods = options.applicableMethods;
   }
+  if (Object.hasOwn(options, 'transitionPeriods')) {
+    result.transitionPeriods = options.transitionPeriods;
+  }
   return result;
 }
 

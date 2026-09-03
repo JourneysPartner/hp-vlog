@@ -16,10 +16,12 @@ const { DEPENDENT_BANDS, DISABILITY_FIELDS, dependentCount } = require('../famil
 const TOTAL_STEPS = 3;
 const CONDITIONAL_FORM_KEYS = new Set([
   'municipalityKey', 'nationalHealthInsuranceKind', 'nationalPensionKind',
-  'locationSameAsResidence', 'spouseExists',
+  'locationSameAsResidence', 'spouseExists', 'comparisonBasis',
 ]);
 const INITIAL_FORM = Object.freeze({
   incomeTaxYear: 2025,
+  comparisonBasis: 'steady_state',
+  establishedOn: '',
   revenue: '',
   expenses: '',
   expensesConfirmed: false,
@@ -100,6 +102,7 @@ const FIELD_IDS = Object.freeze({
   '$.individual.nationalPension': 'hj-pension-kind',
   '$.individual.nationalPension.annualAmount.value': 'hj-pension-actual',
   '$.corporate.capital.value': 'hj-capital',
+  '$.corporate.establishedOn': 'hj-established-on',
   '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value': 'hj-officer-compensation',
   '$.corporate.deductions.smallEnterpriseMutualAid.value': 'hj-mutual-aid-corporate',
   '$.corporate.locationSameAsResidence': 'hj-location',
@@ -359,6 +362,24 @@ function mountHojinnariApp(rootElement, {
 
   function renderStep1() {
     const form = store.getState().form;
+    const isTransition = form.comparisonBasis === 'transition_year';
+    const modeChoice = createChoiceGroup({
+      id: 'hj-comparison-basis', label: '比較モード',
+      options: [
+        { value: 'steady_state', label: '平年度で比較（毎年の定常状態）' },
+        { value: 'transition_year', label: '法人成りする年で比較（年の途中で法人化）' },
+      ],
+      value: form.comparisonBasis,
+      onChange: value => {
+        updateForm('comparisonBasis', value);
+        render();
+      },
+    });
+    const establishedOn = isTransition ? el('input', {
+      id: 'hj-established-on', type: 'date', value: form.establishedOn,
+      min: '2025-01-02', max: '2025-12-31',
+      onInput: event => updateForm('establishedOn', event.currentTarget.value),
+    }) : null;
     const checkbox = el('input', {
       id: 'hj-expenses-confirmed', type: 'checkbox', checked: form.expensesConfirmed,
       onChange: event => updateForm('expensesConfirmed', event.currentTarget.checked),
@@ -369,15 +390,29 @@ function mountHojinnariApp(rootElement, {
       ...stepHeader(1, '事業の状況'), errorSummary(),
       el('p', { className: 'hojinnari-help' },
         '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
+      modeChoice.element,
+      isTransition ? el('div', {}, [
+        el('label', { for: establishedOn.id }, '法人設立日'),
+        el('p', { className: 'hojinnari-help' },
+          '個人事業は設立日の前日に廃業し、法人は12月決算と仮定します。'),
+        establishedOn,
+        addControlError(establishedOn, '$.corporate.establishedOn'),
+      ]) : null,
       store.getState().handoffNotice && !store.getState().handoffNotice.accepted
         ? el('p', { className: 'hojinnari-error', role: 'alert' }, store.getState().handoffNotice.message)
         : null,
       el('p', {}, '計算対象年：2025年（令和7年分）'),
-      ...moneyField('revenue', 'hj-revenue', '年間売上高（円）',
-        '0円以上の整数。全角数字・万単位も入力できます。',
+      ...moneyField('revenue', 'hj-revenue', isTransition
+        ? '個人期間の売上（円）' : '年間売上高（円）',
+        isTransition
+          ? '1月1日から法人設立日前日までの実額。年額から月割せず入力してください。'
+          : '0円以上の整数。全角数字・万単位も入力できます。',
         '$.individual.business.revenue[0].value.value'),
-      ...moneyField('expenses', 'hj-expenses', '年間経費（円）',
-        '役員報酬を除いた事業経費。0円以上の整数で入力してください。' +
+      ...moneyField('expenses', 'hj-expenses', isTransition
+        ? '個人期間の経費（円）' : '年間経費（円）',
+        (isTransition
+          ? '1月1日から法人設立日前日までの実額。年額から月割せず入力してください。'
+          : '役員報酬を除いた事業経費。0円以上の整数で入力してください。') +
         'ご家族に専従者給与を支払っていて、その方が法人化後に役員になる予定の場合は、その専従者給与も除いてください。',
         '$.individual.business.expenses[0].value.value'),
       el('div', {}, [checkbox, el('label', { for: checkbox.id },
@@ -470,6 +505,7 @@ function mountHojinnariApp(rootElement, {
 
   function renderStep3() {
     const form = store.getState().form;
+    const isTransition = form.comparisonBasis === 'transition_year';
     const sameChoice = createChoiceGroup({
       id: 'hj-corporate-same', label: '法人側の売上・経費',
       options: [{ value: 'same', label: '個人事業と同じ' }, { value: 'different', label: '変更する' }],
@@ -489,7 +525,9 @@ function mountHojinnariApp(rootElement, {
         ? el('p', { className: 'hojinnari-help' },
           '引き継いだ値はメモリ内だけに保持され、リロードすると消えます。') : null,
       ...moneyField('officerCompensationMonthly', 'hj-officer-compensation', '役員報酬（月額・円）',
-        '12か月同額として0円以上の整数で入力します。',
+        isTransition
+          ? '法人設立月から12月まで毎月同額を支給する前提です。'
+          : '12か月同額として0円以上の整数で入力します。',
         '$.corporate.officerCompensation.monthlySegments[0].value.monthlyAmount.value'),
       ...moneyField('corporateSmallEnterpriseMutualAid', 'hj-mutual-aid-corporate',
         '法人化後の掛金予定（年額）',
@@ -504,12 +542,18 @@ function mountHojinnariApp(rootElement, {
       ], '$.corporate.locationSameAsResidence'),
       form.locationSameAsResidence === 'no'
         ? el('p', { className: 'hojinnari-help' }, '所在地固有の税率を除外するため、結果はpartial（一部概算）になります。') : null,
-      sameChoice.element,
-      !form.corporateSameAsIndividual ? [
-        ...moneyField('corporateRevenue', 'hj-corporate-revenue', '法人側の年間売上（円）',
-          '事業年度は1/1〜12/31です。', '$.corporate.revenue[0].value.value'),
-        ...moneyField('corporateExpenses', 'hj-corporate-expenses', '法人側の年間経費（円）',
-          '事業年度は1/1〜12/31です。', '$.corporate.expenses[0].value.value'),
+      isTransition ? null : sameChoice.element,
+      isTransition || !form.corporateSameAsIndividual ? [
+        ...moneyField('corporateRevenue', 'hj-corporate-revenue', isTransition
+          ? '法人期間の売上（円）' : '法人側の年間売上（円）',
+          isTransition
+            ? '法人設立日から12月31日までの実額。年額から月割せず入力してください。'
+            : '事業年度は1/1〜12/31です。', '$.corporate.revenue[0].value.value'),
+        ...moneyField('corporateExpenses', 'hj-corporate-expenses', isTransition
+          ? '法人期間の経費（円）' : '法人側の年間経費（円）',
+          isTransition
+            ? '役員報酬を除く、法人設立日から12月31日までの実額です。'
+            : '事業年度は1/1〜12/31です。', '$.corporate.expenses[0].value.value'),
       ] : el('p', {}, '法人側の売上・経費は個人事業と同じ。事業年度は1/1〜12/31です。'),
       el('p', { className: 'hojinnari-help' }, '従業員数は0人（役員のみ）。従業員を雇っている場合は対応準備中です。'),
       el('p', { className: 'hojinnari-help' }, '健康保険は選択した都道府県の協会けんぽを使います。消費税は比較対象外です。'),
@@ -528,6 +572,13 @@ function mountHojinnariApp(rootElement, {
       if (!parseMoneyInput(String(value)).ok) errors.push(localError(path, `${label}を円単位で入力してください`));
     };
     if (step === 1) {
+      if (form.comparisonBasis === 'transition_year' &&
+          (!/^2025-\d{2}-\d{2}$/.test(form.establishedOn) ||
+           form.establishedOn < '2025-01-02' || form.establishedOn > '2025-12-31')) {
+        errors.push(localError('$.corporate.establishedOn',
+          '法人設立日は2025年1月2日から12月31日までで入力してください',
+          'HJ_ESTABLISHED_DATE_INVALID'));
+      }
       requireMoney(form.revenue, '$.individual.business.revenue[0].value.value', '年間売上高');
       requireMoney(form.expenses, '$.individual.business.expenses[0].value.value', '年間経費');
       if (!form.expensesConfirmed) errors.push(localError(
@@ -574,7 +625,7 @@ function mountHojinnariApp(rootElement, {
         '$.corporate.deductions.smallEnterpriseMutualAid.value', '法人化後の掛金予定');
       requireMoney(form.capital, '$.corporate.capital.value', '資本金');
       if (!form.locationSameAsResidence) errors.push(localError('$.corporate.locationSameAsResidence', '法人の所在地を選択してください'));
-      if (!form.corporateSameAsIndividual) {
+      if (form.comparisonBasis === 'transition_year' || !form.corporateSameAsIndividual) {
         requireMoney(form.corporateRevenue, '$.corporate.revenue[0].value.value', '法人側の年間売上');
         requireMoney(form.corporateExpenses, '$.corporate.expenses[0].value.value', '法人側の年間経費');
       }
@@ -663,6 +714,14 @@ function mountHojinnariApp(rootElement, {
       viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
+  function switchToSteadyState() {
+    store.setState(state => ({
+      ...state,
+      screen: 'input', step: 1, errors: [], result: null, viewModel: null,
+      form: { ...state.form, comparisonBasis: 'steady_state', establishedOn: '' },
+    }));
+  }
+
   function printResult() {
     queueEvent('simulator_cta_click', { tool: 'hojinnari' });
     if (browserWindow && typeof browserWindow.print === 'function') browserWindow.print();
@@ -707,8 +766,10 @@ function mountHojinnariApp(rootElement, {
           el('div', { className: 'hojinnari-table-wrap hojinnari-verdict-table-wrap' }, el('table', { className: 'hojinnari-summary-table' }, [
             el('thead', {}, el('tr', {}, [
               el('th', { scope: 'col' }, '項目'),
-              el('th', { scope: 'col' }, '①個人事業'),
-              el('th', { scope: 'col' }, '②法人成り'),
+              el('th', { scope: 'col' }, viewModel.isTransition
+                ? '①個人のまま' : '①個人事業'),
+              el('th', { scope: 'col' }, viewModel.isTransition
+                ? '②この年に法人化' : '②法人成り'),
               el('th', { scope: 'col' }, '①−②差引'),
               el('th', { scope: 'col' }, 'コメント'),
             ])),
@@ -738,8 +799,14 @@ function mountHojinnariApp(rootElement, {
           el('p', {}, viewModel.corporateRetainedWarning),
           viewModel.setupAndMaintenanceCostsNotice ? el('p', {}, viewModel.setupAndMaintenanceCostsNotice) : null,
         ]),
-        el('section', {}, [el('h2', {}, '比較表'), el('div', { className: 'hojinnari-table-wrap' }, el('table', {}, [
-          el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '項目'), el('th', { scope: 'col' }, '個人事業'), el('th', { scope: 'col' }, '法人化')])),
+        el('section', {}, [el('h2', {}, '比較表'),
+          viewModel.transitionPeriodNote
+            ? el('p', { className: 'hojinnari-card hojinnari-period-note' }, viewModel.transitionPeriodNote)
+            : null,
+          el('div', { className: 'hojinnari-table-wrap' }, el('table', {}, [
+          el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '項目'),
+            el('th', { scope: 'col' }, viewModel.columnLabels.soleProprietor),
+            el('th', { scope: 'col' }, viewModel.columnLabels.corporation)])),
           el('tbody', {}, viewModel.comparisonRows.map(row => el('tr', {}, [
             el('th', { scope: 'row' }, [row.label, row.note ? el('small', {}, `（${row.note}）`) : null]),
             el('td', {}, row.soleProprietor.display), el('td', {}, row.corporation.display),
@@ -786,6 +853,10 @@ function mountHojinnariApp(rootElement, {
         el('p', { className: 'hojinnari-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       ]),
       el('div', { className: 'hojinnari-actions hojinnari-no-print' }, [
+        viewModel.isTransition
+          ? el('button', { type: 'button', onClick: switchToSteadyState },
+            '平年度（毎年）の比較は平年度モードで')
+          : null,
         el('button', { type: 'button', onClick: () => goToStep(1) }, '入力を修正する'),
         el('button', { type: 'button', onClick: clearAll }, '入力をクリア'),
         el('button', { type: 'button', onClick: printResult }, '結果を印刷 / PDF保存'),

@@ -119,13 +119,14 @@ function burdenComment(label, difference) {
   return `${label}の負担は同額`;
 }
 
-function verdictSummary(data) {
+function verdictSummary(data, isTransition) {
   const sole = data.soleProprietor.burdens;
   const corporation = data.corporation.burdens;
   const referenceDifference = data.combinedReferenceDifference;
   const taxSole = sumMoney([sole.incomeTax, sole.residentTax, sole.soleProprietorEnterpriseTax]);
   const taxCorporation = sumMoney([
     corporation.incomeTax, corporation.residentTax, corporation.corporateTaxes,
+    corporation.soleProprietorEnterpriseTax || money(0n),
   ]);
   const socialInsuranceSole = sumMoney([sole.socialInsuranceEmployee]);
   const socialInsuranceCorporation = sumMoney([
@@ -159,12 +160,26 @@ function verdictSummary(data) {
     });
   };
   return Object.freeze({
-    verdict: summaryVerdict,
+    verdict: isTransition ? Object.freeze({
+      ...summaryVerdict,
+      bannerText: summaryVerdict.direction === 'corporation'
+        ? 'この年に法人化すると手残りが増える試算'
+        : summaryVerdict.direction === 'sole_proprietor'
+          ? 'この年は個人のままのほうが手残りが増える試算'
+          : 'この年の手残りはほぼ同等の試算',
+      emphasisText: summaryVerdict.direction === 'corporation'
+        ? 'この年に法人化すると'
+        : summaryVerdict.direction === 'sole_proprietor' ? 'この年は個人のまま' : 'ほぼ同等',
+      suffixText: summaryVerdict.direction === 'nearly_equal'
+        ? 'の試算' : '手残りが増える試算',
+    }) : summaryVerdict,
     benefit: Object.freeze({
-      label: '法人化メリット（＋なら法人化が有利）',
+      label: isTransition
+        ? 'この年に法人化する場合の手残り差額'
+        : '法人化メリット（＋なら法人化が有利）',
       amount: referenceDifference,
       exactYen: moneyValue(referenceDifference),
-      display: formatYen(referenceDifference),
+      display: isTransition ? formatSignedYen(referenceDifference) : formatYen(referenceDifference),
       direction: amountDirection(referenceDifference),
     }),
     rows: Object.freeze([
@@ -178,19 +193,23 @@ function verdictSummary(data) {
   });
 }
 
-function conclusion(summaryAmount) {
+function conclusion(summaryAmount, isTransition) {
   const exactAmount = moneyValue(summaryAmount);
   const approximate = formatApproxManYen(exactAmount);
   if (exactAmount > 0n) {
     return Object.freeze({
       direction: 'corporation', exactAmount, approximate,
-      text: `本シミュレーションの入力条件では、法人化した場合のほうが年間 ${approximate} 手残りが増える試算となりました。`,
+      text: isTransition
+        ? `本シミュレーションの入力条件では、この年に法人化した場合のほうが、個人のままの場合より ${approximate} 手残りが増える試算となりました。`
+        : `本シミュレーションの入力条件では、法人化した場合のほうが年間 ${approximate} 手残りが増える試算となりました。`,
     });
   }
   if (exactAmount < 0n) {
     return Object.freeze({
       direction: 'sole_proprietor', exactAmount, approximate,
-      text: `本シミュレーションの入力条件では、個人事業のままのほうが年間 ${approximate} 手残りが増える試算となりました。`,
+      text: isTransition
+        ? `本シミュレーションの入力条件では、この年は個人のままのほうが ${approximate} 手残りが増える試算となりました。`
+        : `本シミュレーションの入力条件では、個人事業のままのほうが年間 ${approximate} 手残りが増える試算となりました。`,
     });
   }
   return Object.freeze({
@@ -210,7 +229,8 @@ function comparisonRows(data) {
   return Object.freeze([
     ['income_tax', '所得税', sole.burdens.incomeTax, corporation.burdens.incomeTax],
     ['resident_tax', '住民税', sole.burdens.residentTax, corporation.burdens.residentTax],
-    ['sole_proprietor_enterprise_tax', '個人事業税', sole.burdens.soleProprietorEnterpriseTax, undefined],
+    ['sole_proprietor_enterprise_tax', '個人事業税', sole.burdens.soleProprietorEnterpriseTax,
+      corporation.burdens.soleProprietorEnterpriseTax],
     ['corporate_taxes', '法人税等（法人税・地方法人税・法人住民税・法人事業税・特別法人事業税の合計）', undefined, corporation.burdens.corporateTaxes],
     ['social_insurance_employee', '本人社会保険', sole.burdens.socialInsuranceEmployee, corporation.burdens.socialInsuranceEmployee],
     ['social_insurance_employer', '会社社会保険', undefined, corporation.burdens.socialInsuranceEmployer],
@@ -310,6 +330,7 @@ function buildResultViewModel(result) {
     throw new TypeError('結果表示に必要なhojinnari内訳がありません');
   }
   const data = result.breakdown.data;
+  const isTransition = result.comparisonBasis === 'transition_year';
   const soleBurden = burdenTotal(data.soleProprietor, false);
   const corporationBurden = burdenTotal(data.corporation, true);
   const partial = result.resultStatus === 'partial';
@@ -319,13 +340,21 @@ function buildResultViewModel(result) {
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
     resultStatusLabel,
-    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・平年度比較・${resultStatusLabel}）`,
+    heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・${isTransition ? '移行年度比較' : '平年度比較'}・${resultStatusLabel}）`,
     isPartial: partial,
     partialNotice: partial ? '概算の前提が含まれます' : undefined,
-    conclusion: conclusion(result.summary.amount),
-    verdictSummary: verdictSummary(data),
+    conclusion: conclusion(result.summary.amount, isTransition),
+    verdictSummary: verdictSummary(data, isTransition),
     comparisonRows: comparisonRows(data),
     incomeDeductionRows: incomeDeductionComparisonRows(data),
+    isTransition,
+    columnLabels: Object.freeze(isTransition
+      ? { soleProprietor: '個人のまま', corporation: 'この年に法人化' }
+      : { soleProprietor: '個人事業', corporation: '法人化' }),
+    transitionPeriodNote: isTransition && data.transitionPeriods
+      ? `個人期間 ${data.transitionPeriods.individual.from}〜${data.transitionPeriods.individual.to} ／ ` +
+        `法人期間 ${data.transitionPeriods.corporate.from}〜${data.transitionPeriods.corporate.to}（12月決算を仮定）`
+      : undefined,
     pairedFigures: Object.freeze({
       solePersonalDisposableCash: data.soleProprietor.personalDisposableCash,
       corporationPersonalDisposableCash: data.corporation.personalDisposableCash,

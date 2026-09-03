@@ -13,6 +13,7 @@ const income = require('../../tax-engine/income/index.js');
 const residentTax = require('../../tax-engine/resident-tax/index.js');
 const individualBusinessTax = require('../../tax-engine/business-tax/individual-business-tax.js');
 const socialInsurance = require('../../tax-engine/social-insurance/index.js');
+const corporateTax = require('../../tax-engine/corporate/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
 const {
   money,
@@ -22,9 +23,11 @@ const {
   multiplyRateByExact,
   addExact,
   addMoney,
+  subtractExact,
   compareExactToMoney,
 } = require('../../tax-engine/common/money.js');
 const { masterRate } = require('../../tax-engine/income/helpers.js');
+const { applyRounding } = require('../../tax-engine/common/rounding.js');
 
 const MONTHS_IN_YEAR = 12;
 const SUPPORTED_DEDUCTION_KEYS = new Set([
@@ -121,6 +124,69 @@ function hasUnsupportedDeductions(value) {
   return (value.donations || []).some(item => item.kind !== 'furusato');
 }
 
+function sumExact(values) {
+  return values.reduce((total, value) => addExact(total, value), moneyToExact(zeroMoney()));
+}
+
+function scaleExact(value, multiplier) {
+  return multiplyRateByExact({ num: BigInt(multiplier), den: 1n }, value);
+}
+
+function displayMoney(value) {
+  return applyRounding(value, 'R-TRUNC-1-YEN');
+}
+
+function parseLocalDate(value, fieldName) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new TypeError(`${fieldName} はYYYY-MM-DDで指定してください`);
+  }
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day) {
+    throw new RangeError(`${fieldName} は実在する日付で指定してください`);
+  }
+  return date;
+}
+
+function formatLocalDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function previousDay(value) {
+  const date = parseLocalDate(value, 'corporate.establishedOn');
+  date.setUTCDate(date.getUTCDate() - 1);
+  return formatLocalDate(date);
+}
+
+function transitionPeriods(input, context) {
+  const year = incomeYearFrom(context);
+  const establishedOn = input.corporate && input.corporate.establishedOn;
+  const established = parseLocalDate(establishedOn, 'corporate.establishedOn');
+  if (established.getUTCFullYear() !== year || establishedOn === `${year}-01-01`) {
+    throw new RangeError(`corporate.establishedOn は${year}年1月2日から12月31日までで指定してください`);
+  }
+  return {
+    individual: { from: `${year}-01-01`, to: previousDay(establishedOn) },
+    corporate: { from: establishedOn, to: `${year}-12-31` },
+  };
+}
+
+function individualBusinessMonths(period) {
+  const from = parseLocalDate(period.from, 'individualPeriod.from');
+  const to = parseLocalDate(period.to, 'individualPeriod.to');
+  return (to.getUTCFullYear() - from.getUTCFullYear()) * 12 +
+    to.getUTCMonth() - from.getUTCMonth() + 1;
+}
+
+function corporatePaymentMonths(establishedOn) {
+  return 12 - parseLocalDate(establishedOn, 'corporate.establishedOn').getUTCMonth();
+}
+
+function individualInsuranceMonths(establishedOn) {
+  return parseLocalDate(establishedOn, 'corporate.establishedOn').getUTCMonth();
+}
+
 function hasUnsupportedTaxCredits(value) {
   if (!hasEntries(value)) return false;
   return Object.keys(value).some(key => key !== 'housingLoan') ||
@@ -160,33 +226,57 @@ function supportedProfileReasons(input, context) {
   const incomeYear = incomeYearFrom(context);
   const calendarPeriod = calendarYearPeriod(incomeYear);
   const fiscalPeriod = fiscalPeriodFrom(context);
+  const isTransition = input.comparisonBasis === 'transition_year';
+  let periods = null;
 
-  if (input.comparisonBasis === 'transition_year') {
-    reasons.push(blockedReason('HJ_TRANSITION_YEAR_UNSUPPORTED', '$.comparisonBasis',
-      '第1版は平年度比較だけに対応しています'));
+  if (isTransition) {
+    if (input.consumptionTax && input.consumptionTax.include === true) {
+      reasons.push(blockedReason(
+        'HJ_TRANSITION_YEAR_CONSUMPTION_TAX_UNSUPPORTED', '$.consumptionTax.include',
+        '移行年度は個人・法人の2つの課税期間が必要なため、消費税連携はv2の対象です'
+      ));
+    }
+    try {
+      periods = transitionPeriods(input, context);
+      if (fiscalPeriod.from !== periods.corporate.from ||
+          fiscalPeriod.to !== periods.corporate.to) {
+        reasons.push(blockedReason('HJ_TRANSITION_FISCAL_PERIOD_MISMATCH',
+          '$.calculationContext.fiscalPeriod',
+          '移行年度の法人事業年度は法人設立日から12月31日までにしてください'));
+      }
+    } catch (error) {
+      reasons.push(blockedReason('HJ_ESTABLISHED_DATE_INVALID', '$.corporate.establishedOn',
+        error.message));
+    }
   }
   if (individual.residentTaxBasis === 'actual_year') {
     reasons.push(blockedReason('HJ_ACTUAL_RESIDENT_TAX_BASIS_UNSUPPORTED',
       '$.individual.residentTaxBasis', '第1版は住民税の平年度比較だけに対応しています'));
   }
-  if (!isTwelveMonthPeriod(fiscalPeriod)) {
+  if (!isTransition && !isTwelveMonthPeriod(fiscalPeriod)) {
     reasons.push(blockedReason('HJ_CORPORATE_TWELVE_MONTH_PERIOD_REQUIRED',
       '$.calculationContext.fiscalPeriod', '第1版は12か月の法人事業年度だけに対応しています'));
   }
-  if (!isOneSegmentFor(business.revenue, calendarPeriod)) {
+  const individualPeriod = periods ? periods.individual : calendarPeriod;
+  if (!isOneSegmentFor(business.revenue, individualPeriod)) {
     reasons.push(blockedReason('HJ_INDIVIDUAL_REVENUE_FULL_YEAR_REQUIRED',
       '$.individual.business.revenue',
-      `${incomeYear}年の暦年全体を覆う売上1セグメントを入力してください`));
+      `${individualPeriod.from}〜${individualPeriod.to}を覆う売上1セグメントを入力してください`));
   }
-  if (!isOneSegmentFor(business.expenses, calendarPeriod)) {
+  if (!isOneSegmentFor(business.expenses, individualPeriod)) {
     reasons.push(blockedReason('HJ_INDIVIDUAL_EXPENSES_FULL_YEAR_REQUIRED',
       '$.individual.business.expenses',
-      `${incomeYear}年の暦年全体を覆う経費1セグメントを入力してください`));
+      `${individualPeriod.from}〜${individualPeriod.to}を覆う経費1セグメントを入力してください`));
   }
-  if (business.periodFacts &&
-      (business.periodFacts.openedOn !== undefined || business.periodFacts.closedOn !== undefined)) {
+  if ((!isTransition && business.periodFacts &&
+      (business.periodFacts.openedOn !== undefined || business.periodFacts.closedOn !== undefined)) ||
+      (isTransition && periods && (!business.periodFacts ||
+       business.periodFacts.openedOn !== undefined ||
+       business.periodFacts.closedOn !== periods.individual.to))) {
     reasons.push(blockedReason('HJ_BUSINESS_OPEN_CLOSE_DATE_UNSUPPORTED',
-      '$.individual.business.periodFacts', '第1版は開廃業のない通年営業だけに対応しています'));
+       '$.individual.business.periodFacts', isTransition
+         ? '移行年度は法人設立日の前日を個人事業の廃業日として入力してください'
+         : '第1版は開廃業のない通年営業だけに対応しています'));
   }
   if (business.expensesExcludeSocialInsuranceAndMutualAid !== 'yes') {
     reasons.push(blockedReason('HJ_EXPENSES_EXCLUSION_CONFIRMATION_REQUIRED',
@@ -219,9 +309,12 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_NATIONAL_PENSION_SELECTION_REQUIRED',
       '$.individual.nationalPension', '国民年金保険料の実額・標準額・免除のいずれかを選択してください'));
   } else if (individual.nationalPension.kind === 'standard' &&
-      individual.nationalPension.months !== MONTHS_IN_YEAR) {
+      individual.nationalPension.months !== (isTransition && periods
+        ? individualInsuranceMonths(periods.corporate.from) : MONTHS_IN_YEAR)) {
     reasons.push(blockedReason('HJ_NATIONAL_PENSION_FULL_YEAR_REQUIRED',
-      '$.individual.nationalPension.months', '第1版の標準保険料計算は12か月分だけに対応しています'));
+       '$.individual.nationalPension.months', isTransition
+         ? '移行年度の国民年金月数は法人設立月の前月までとして指定してください'
+         : '第1版の標準保険料計算は12か月分だけに対応しています'));
   }
 
   const comparisonDistortion =
@@ -271,10 +364,19 @@ function supportedProfileReasons(input, context) {
     reasons.push(blockedReason('HJ_HEALTH_INSURER_UNSUPPORTED', '$.corporate.healthInsurer',
       '第1版は協会けんぽだけに対応しています'));
   }
-  reasons.push(...translatePlanReasons(
-    yakuinHoshu.planReasons(corporate.officerCompensation, context,
-      '$.corporate.officerCompensation')
-  ));
+  if (isTransition) {
+    if (!corporate.officerCompensation ||
+        !isOneSegmentFor(corporate.officerCompensation.monthlySegments, fiscalPeriod)) {
+      reasons.push(blockedReason('HJ_CONSTANT_MONTHLY_PLAN_REQUIRED',
+        '$.corporate.officerCompensation.monthlySegments',
+        '移行年度は設立日から12月31日まで同額の役員報酬を入力してください'));
+    }
+  } else {
+    reasons.push(...translatePlanReasons(
+      yakuinHoshu.planReasons(corporate.officerCompensation, context,
+        '$.corporate.officerCompensation')
+    ));
+  }
   if (corporate.lossCarryforward && Array.isArray(corporate.lossCarryforward.losses) &&
       corporate.lossCarryforward.losses.length > 0) {
     reasons.push(blockedReason('HJ_LOSS_CARRYFORWARD_UNSUPPORTED',
@@ -312,16 +414,26 @@ function blueReturnTier(blueReturn) {
 }
 
 function calculateNationalHealthInsurance(individual, context) {
+  const transitionMonths = arguments[2] && arguments[2].months;
+  const transitionBusiness = arguments[2] && arguments[2].business;
   const selection = individual.nationalHealthInsurance;
   if (selection.kind === 'actual') {
+    const annualPremium = transitionMonths === undefined
+      ? selection.annualAmount
+      : applyRounding(multiplyRateByMoney({
+        num: BigInt(transitionMonths), den: BigInt(MONTHS_IN_YEAR),
+      }, selection.annualAmount), 'R-TRUNC-1-YEN');
     return {
       status: 'complete',
-      annualPremium: selection.annualAmount,
-      assumptions: ['国民健康保険料は入力された年間実額を使用しています。'],
+      annualPremium,
+      fullYearPremium: selection.annualAmount,
+      assumptions: [transitionMonths === undefined
+        ? '国民健康保険料は入力された年間実額を使用しています。'
+        : `国民健康保険料は入力された年間実額を${transitionMonths}か月分へ月割しています。`],
       warnings: [],
     };
   }
-  const business = individual.business;
+  const business = transitionBusiness || individual.business;
   const preliminaryIncome = income.business.calculate({
     revenue: business.revenue[0].value,
     expenses: business.expenses[0].value,
@@ -335,6 +447,24 @@ function calculateNationalHealthInsurance(individual, context) {
     previousYearTotalIncome: preliminaryIncome.businessIncome,
     insuredAges: [individual.self.ageAtYearEnd],
   });
+  if (result.status === 'complete' && transitionMonths !== undefined) {
+    const fullYearPremium = result.annualPremium;
+    const proratedPremium = applyRounding(multiplyRateByMoney({
+      num: BigInt(transitionMonths), den: BigInt(MONTHS_IN_YEAR),
+    }, fullYearPremium), 'R-TRUNC-1-YEN');
+    return {
+      ...result,
+      annualPremium: proratedPremium,
+      fullYearPremium,
+      prorationMonths: transitionMonths,
+      assumptions: [
+        `国民健康保険料は個人期間の事業所得（給与所得を含みません）から基礎控除43万円を引いた賦課基礎で成分ごとの年額・上限を計算し、合計額を${transitionMonths}か月分へ月割して円未満を切り捨てています。`,
+        '国民健康保険料は概算です。実際は賦課年度と前年所得基準のずれ、資格取得・喪失日、自治体の軽減判定などにより異なります。',
+        ...uniqueMessages(result.notes),
+      ],
+      warnings: result.notes || [],
+    };
+  }
   return {
     ...result,
     assumptions: [
@@ -346,12 +476,20 @@ function calculateNationalHealthInsurance(individual, context) {
 }
 
 function calculateNationalPension(individual, context) {
+  const transitionMonths = arguments[2] && arguments[2].months;
   const selection = individual.nationalPension;
   if (selection.kind === 'actual') {
+    const annualPremium = transitionMonths === undefined
+      ? selection.annualAmount
+      : applyRounding(multiplyRateByMoney({
+        num: BigInt(transitionMonths), den: BigInt(MONTHS_IN_YEAR),
+      }, selection.annualAmount), 'R-TRUNC-1-YEN');
     return {
       status: 'complete',
-      annualPremium: selection.annualAmount,
-      assumptions: ['国民年金保険料は入力された年間実額を使用しています。'],
+      annualPremium,
+      assumptions: [transitionMonths === undefined
+        ? '国民年金保険料は入力された年間実額を使用しています。'
+        : `国民年金保険料は入力された年間実額を${transitionMonths}か月分へ月割しています。`],
     };
   }
   if (selection.kind === 'exempted') {
@@ -359,6 +497,12 @@ function calculateNationalPension(individual, context) {
       status: 'complete',
       annualPremium: zeroMoney(),
       assumptions: ['国民年金は免除を選択しているため、保険料を0円として計算しています。'],
+    };
+  }
+  if (selection.kind === 'standard' && selection.months === 0) {
+    return {
+      status: 'complete', annualPremium: zeroMoney(),
+      assumptions: ['法人設立月から厚生年金へ加入するため、個人期間の国民年金は0か月です。'],
     };
   }
   const result = socialInsurance.calculateNationalPension({
@@ -374,7 +518,7 @@ function calculateNationalPension(individual, context) {
   };
 }
 
-function individualEngineInput(individual, nationalHealthInsurance, nationalPension) {
+function individualEngineInput(individual, nationalHealthInsurance, nationalPension, options = {}) {
   return {
     business: {
       revenue: individual.business.revenue[0].value,
@@ -387,8 +531,10 @@ function individualEngineInput(individual, nationalHealthInsurance, nationalPens
         kind: 'itemized',
         nationalHealthInsurance,
         nationalPension,
+        employeeShareOfSocialInsurance: options.employeeSocialInsurance,
       },
     },
+    salaryRevenue: options.salaryRevenue,
     self: individual.self,
     spouse: individual.spouse,
     dependents: individual.dependents || [],
@@ -564,6 +710,186 @@ function calculateCorporation(input, context) {
     assumptions: forward.assumptions || [],
     warnings: forward.warnings || [],
     excludedItems: forward.excludedItems || [],
+  };
+}
+
+function calculateTransitionCorporation(input, context, periods) {
+  const individual = input.individual;
+  const corporate = input.corporate;
+  const monthlyAmount = corporate.officerCompensation.monthlySegments[0].value.monthlyAmount;
+  const paymentMonths = corporatePaymentMonths(corporate.establishedOn);
+  const insuranceMonths = individualInsuranceMonths(corporate.establishedOn);
+  const annualCompensation = yen(monthlyAmount.value * BigInt(paymentMonths));
+  const premiumMonth = (context.socialInsuranceMonths || [])[0];
+  const premium = socialInsurance.calculateMonthlyPremium({
+    premiumMonth,
+    prefectureCode: corporate.healthInsurer.prefectureCode,
+    insurerType: 'kyokai_kenpo',
+    age: individual.self.ageAtYearEnd,
+    monthlyRemuneration: monthlyAmount,
+  });
+  let blocked = engineBlockedReasons(premium, 'SOCIAL_INSURANCE', '$.corporate.healthInsurer');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+
+  const employeeSocialInsurance = yen((premium.healthInsurance.employee.value +
+    premium.employeesPension.employee.value) * BigInt(paymentMonths));
+  const employerSocialInsuranceExact = scaleExact(sumExact([
+    premium.healthInsurance.employer,
+    premium.employeesPension.employer,
+    premium.childSupportLevy.employer,
+  ]), paymentMonths);
+  const employerSocialInsurance = displayMoney(employerSocialInsuranceExact);
+
+  const nhi = calculateNationalHealthInsurance(individual, context, {
+    business: individual.business, months: insuranceMonths,
+  });
+  blocked = engineBlockedReasons(nhi, 'NHI', '$.individual.nationalHealthInsurance');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+  const pension = calculateNationalPension(individual, context, { months: insuranceMonths });
+  blocked = engineBlockedReasons(pension, 'NATIONAL_PENSION', '$.individual.nationalPension');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+
+  const engineInput = individualEngineInput(
+    individual, nhi.annualPremium, pension.annualPremium,
+    { employeeSocialInsurance, salaryRevenue: annualCompensation }
+  );
+  const incomeTaxResult = income.incomeTax.calculate(engineInput, {
+    taxYear: incomeYearFrom(context),
+  });
+  blocked = engineBlockedReasons(incomeTaxResult, 'INCOME_TAX', '$.individual');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+  const residentTaxResult = residentTax.calculate({
+    ...engineInput,
+    incomeTaxTaxableTotalIncome: incomeTaxResult.taxableTotalIncome,
+    unappliedHousingLoanCredit: yen(
+      incomeTaxResult.housingLoanCredit.value - incomeTaxResult.appliedHousingLoanCredit.value
+    ),
+  }, {
+    incomeYear: incomeYearFrom(context),
+    residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYearFrom(context),
+    jurisdiction: context.jurisdiction,
+  });
+  blocked = engineBlockedReasons(residentTaxResult, 'RESIDENT_TAX', '$.individual');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+  const businessTaxResult = individualBusinessTax.calculate({
+    businessCategory: individual.business.businessTaxCategory,
+    businessIncome: incomeTaxResult.business.incomeBeforeBlueDeduction,
+    businessMonths: individualBusinessMonths(periods.individual),
+  }, { onDate: `${incomeYearFrom(context)}-12-31` });
+  blocked = engineBlockedReasons(businessTaxResult, 'BUSINESS_TAX',
+    '$.individual.business.businessTaxCategory');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+
+  const personalSocialInsurance = sumMoney([
+    nhi.annualPremium, pension.annualPremium, employeeSocialInsurance,
+  ]);
+  const personalDisposableCash = subtractMoneyValues(
+    addMoney(subtractMoneyValues(
+      individual.business.revenue[0].value, individual.business.expenses[0].value
+    ), annualCompensation),
+    incomeTaxResult.payableIncomeTax, residentTaxResult.annualTaxTotal,
+    businessTaxResult.taxAmount, personalSocialInsurance
+  );
+
+  const corporateIncomeExact = subtractExact(subtractExact(
+    moneyToExact(subtractMoneyValues(
+      corporate.revenue[0].value, corporate.expenses[0].value
+    )), moneyToExact(annualCompensation)
+  ), employerSocialInsuranceExact);
+  const corporateIncome = displayMoney(corporateIncomeExact);
+  const taxResult = corporateTax.calculate({
+    entityType: 'domestic_ordinary',
+    comparisonBasis: 'transition_year',
+    capital: corporate.capital,
+    employeeCount: corporate.employeeCount ?? 0,
+    accountingProfitBeforeTax: corporateIncome,
+    fiscalPeriod: periods.corporate,
+    enterpriseTaxReducedRateEligible: true,
+    taxAdjustments: { items: [], treatUnansweredAsZero: true },
+  });
+  blocked = engineBlockedReasons(taxResult, 'CORPORATE_TAX', '$.corporate');
+  if (blocked.length > 0) return { status: 'blocked', blockedReasons: blocked };
+  const corporateRetainedCash = displayMoney(subtractExact(
+    corporateIncomeExact, moneyToExact(taxResult.totalTax)
+  ));
+
+  return {
+    status: 'complete',
+    scenario: {
+      scenario: 'corporation',
+      personalDisposableCash,
+      corporateRetainedCash,
+      burdens: {
+        incomeTax: incomeTaxResult.payableIncomeTax,
+        residentTax: residentTaxResult.annualTaxTotal,
+        soleProprietorEnterpriseTax: businessTaxResult.taxAmount,
+        socialInsuranceEmployee: personalSocialInsurance,
+        socialInsuranceEmployer: employerSocialInsurance,
+        corporateTaxes: taxResult.totalTax,
+      },
+      businessIncome: incomeTaxResult.business.businessIncome,
+      salaryIncome: incomeTaxResult.salary.salaryIncome,
+      totalIncome: incomeTaxResult.totalIncome,
+      nationalHealthInsurance: nhi.annualPremium,
+      nationalHealthInsuranceFullYear: nhi.fullYearPremium || nhi.annualPremium,
+      nationalHealthInsuranceDetails: {
+        assessmentBase: nhi.assessmentBase,
+        components: nhi.components,
+      },
+      nationalPension: pension.annualPremium,
+      employeeSocialInsurance,
+      officerCompensation: annualCompensation,
+      corporateIncome,
+      corporateTaxableIncome: taxResult.taxableIncome,
+      businessTaxOwnerDeduction: businessTaxResult.ownerDeductionRounded,
+      corporateTaxDetails: {
+        corporateTax: taxResult.corporateTax.amount,
+        localCorporateTax: taxResult.localCorporateTax.amount,
+        prefecturalInhabitantIncomeLevy:
+          taxResult.corporateInhabitantTax.prefecturalIncomeLevy,
+        municipalInhabitantIncomeLevy:
+          taxResult.corporateInhabitantTax.municipalIncomeLevy,
+        inhabitantPerCapitaLevy:
+          taxResult.corporateInhabitantTax.perCapitaLevyTotal,
+        enterpriseTax: taxResult.enterpriseTax.amount,
+        specialEnterpriseTax: taxResult.specialEnterpriseTax.amount,
+      },
+      orderedIncomeDeductions: incomeTaxResult.orderedIncomeDeductions,
+      totalIncomeDeductions: incomeTaxResult.totalIncomeDeductions,
+      incomeTaxTaxableIncome: incomeTaxResult.taxableTotalIncome,
+      incomeTaxCalculatedAmount: incomeTaxResult.calculatedIncomeTax,
+      housingLoanCredit: incomeTaxResult.housingLoanCredit,
+      appliedHousingLoanCredit: incomeTaxResult.appliedHousingLoanCredit,
+      residentTaxTotalIncomeDeductions: residentTaxResult.totalIncomeDeductions,
+      residentTaxTaxableIncome: residentTaxResult.taxableTotalIncome,
+      residentTaxAdjustmentDeduction: yen(
+        residentTaxResult.municipalAdjustmentDeduction.value +
+          residentTaxResult.prefecturalAdjustmentDeduction.value
+      ),
+      residentTaxPrefecturalIncomeLevy: residentTaxResult.prefecturalIncomeLevy,
+      residentTaxMunicipalIncomeLevy: residentTaxResult.municipalIncomeLevy,
+      residentTaxDonationCredit: residentTaxResult.donationCredit,
+      residentTaxHousingLoanCredit: residentTaxResult.housingLoanCredit,
+    },
+    assumptions: [
+      ...(nhi.assumptions || []),
+      ...(pension.assumptions || []),
+      ...uniqueMessages(residentTaxResult.assumptions),
+      ...uniqueMessages(businessTaxResult.notes),
+      ...uniqueMessages(taxResult.assumptions),
+      `役員報酬は法人設立月から12月まで${paymentMonths}か月、同額を支給する前提です。`,
+      '会社負担社会保険には子ども・子育て拠出金を含めています。',
+      '個人事業税は必要経費に算入していません。',
+      '所得税は復興特別所得税を含む納付額であり、復興特別所得税を別建てにしていません。',
+    ],
+    warnings: [
+      ...(nhi.warnings || []),
+      ...(incomeTaxResult.warnings || []),
+      ...(residentTaxResult.warnings || []),
+      ...(businessTaxResult.notes || []),
+      ...(taxResult.warnings || []),
+    ],
+    excludedItems: taxResult.excludedItems || [],
   };
 }
 
@@ -808,8 +1134,11 @@ function partialItems(input, consumptionTaxResult) {
 }
 
 function baseAssumptions(input, context) {
+  const isTransition = input.comparisonBasis === 'transition_year';
   const assumptions = [
-    '平年度比較です。同じ所得・役員報酬が続く定常状態を前提としています。',
+    isTransition
+      ? '移行年度比較です。個人期間と法人期間を合わせた同一暦年の経済活動を比較しています。'
+      : '平年度比較です。同じ所得・役員報酬が続く定常状態を前提としています。',
     '個人側の国保・国民年金は必要経費へ含めず、社会保険料控除だけに反映しています。',
     '配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）は含めていません。法人化後の被扶養者・第3号被保険者の扱いの差も未反映です。',
     '小規模企業共済・iDeCoの掛金そのものは支出として差し引いていません（積み立てた資産はご本人に残るため）。税負担の軽減効果だけを反映しています',
@@ -820,13 +1149,21 @@ function baseAssumptions(input, context) {
       adjustments.items.every(item => item.applies === 'no')) {
     assumptions.push('申告調整はないものとして計算しています。');
   }
-  if (input.setupAndMaintenanceCosts &&
+  if (!isTransition && input.setupAndMaintenanceCosts &&
       input.setupAndMaintenanceCosts.incorporationCost !== undefined) {
     assumptions.push('設立一時費用は平年度比較に含めていません。');
   }
-  assumptions.push(
-    `所得税は${incomeYearFrom(context)}年分、法人側の社会保険は事業年度の料率・等級を使用しています。暦年と保険年度がずれる場合があります。`
+  assumptions.push(isTransition
+    ? `所得税・住民税・国保は${incomeYearFrom(context)}年の所得に帰属させています。住民税・国保の実際の賦課年度や納付時期はずれます。予定納税・中間納付などの納付時期は税額とは別レイヤーのため反映していません。`
+    : `所得税は${incomeYearFrom(context)}年分、法人側の社会保険は事業年度の料率・等級を使用しています。暦年と保険年度がずれる場合があります。`
   );
+  if (isTransition) {
+    assumptions.push(
+      '個人事業は法人設立日の前日に廃業し、法人の初事業年度は設立日から12月31日まで（12月決算）と仮定しています。',
+      '個人期間・法人期間の売上と経費は入力された実額を使い、年額から月割していません。',
+      '平年度（毎年の定常状態）の比較は平年度モードで確認してください。'
+    );
+  }
   return assumptions;
 }
 
@@ -844,9 +1181,87 @@ function blockedCalculation(reasons) {
   };
 }
 
+function calculateTransitionYear(input, context) {
+  const periods = transitionPeriods(input, context);
+  const fullYearIndividual = {
+    ...input.individual,
+    business: {
+      ...input.individual.business,
+      revenue: [{ period: calendarYearPeriod(incomeYearFrom(context)), value: addMoney(
+        input.individual.business.revenue[0].value, input.corporate.revenue[0].value
+      ) }],
+      expenses: [{ period: calendarYearPeriod(incomeYearFrom(context)), value: addMoney(
+        input.individual.business.expenses[0].value, input.corporate.expenses[0].value
+      ) }],
+      periodFacts: {},
+    },
+    nationalPension: input.individual.nationalPension.kind === 'standard'
+      ? { ...input.individual.nationalPension, months: MONTHS_IN_YEAR }
+      : input.individual.nationalPension,
+  };
+  const soleProprietor = calculateSoleProprietor({
+    ...input, comparisonBasis: 'steady_state', individual: fullYearIndividual,
+  }, context);
+  if (soleProprietor.status === 'blocked') return blockedCalculation(soleProprietor.blockedReasons);
+  const corporation = calculateTransitionCorporation(input, context, periods);
+  if (corporation.status === 'blocked') return blockedCalculation(corporation.blockedReasons);
+
+  const soleScenario = soleProprietor.scenario;
+  const corporateScenario = corporation.scenario;
+  const personalDisposableDifference = subtractMoneyValues(
+    corporateScenario.personalDisposableCash, soleScenario.personalDisposableCash
+  );
+  const corporateCombinedCash = sumMoney([
+    corporateScenario.personalDisposableCash, corporateScenario.corporateRetainedCash,
+  ]);
+  const combinedReferenceDifference = subtractMoneyValues(
+    corporateCombinedCash, soleScenario.personalDisposableCash
+  );
+  const consumptionTaxResult = { resolved: true, excludedItems: [] };
+  const excludedItems = [
+    ...partialItems(input, consumptionTaxResult),
+    ...(corporation.excludedItems || []),
+  ];
+  const isPartial = input.corporate.locationSameAsResidence !== 'yes';
+  return {
+    resultStatus: isPartial ? 'partial' : 'complete',
+    summary: {
+      title: '移行年の法人＋個人手残りによる参考差額',
+      amount: combinedReferenceDifference,
+    },
+    breakdown: {
+      kind: 'hojinnari',
+      data: {
+        soleProprietor: soleScenario,
+        corporation: corporateScenario,
+        personalDisposableDifference,
+        combinedReferenceDifference,
+        transitionPeriods: {
+          individual: periods.individual,
+          corporate: periods.corporate,
+          fiscalYearEndAssumption: '12月決算',
+        },
+      },
+    },
+    assumptions: [...soleProprietor.assumptions, ...corporation.assumptions],
+    warnings: uniqueWarnings([
+      ...soleProprietor.warnings,
+      ...corporation.warnings,
+      {
+        code: 'HJ_CORPORATE_RETAINED_NOT_PERSONAL',
+        message: '法人内部に残る資金は社長個人が自由に使える資金ではありません。',
+      },
+    ]),
+    excludedItems,
+  };
+}
+
 function calculate(input, context, masters) {
   const reasons = supportedProfileReasons(input, context);
   if (reasons.length > 0) return blockedCalculation(reasons);
+  if (input.comparisonBasis === 'transition_year') {
+    return calculateTransitionYear(input, context);
+  }
 
   const soleProprietor = calculateSoleProprietor(input, context);
   if (soleProprietor.status === 'blocked') return blockedCalculation(soleProprietor.blockedReasons);
@@ -927,7 +1342,9 @@ function simulate(input, context, masters) {
   }
   return buildSimulationResult({
     simulatorType: 'hojinnari',
-    periodLabel: `${incomeYearFrom(context)}年分（平年度）`,
+    periodLabel: input.comparisonBasis === 'transition_year'
+      ? `${incomeYearFrom(context)}年分（移行年度）`
+      : `${incomeYearFrom(context)}年分（平年度）`,
     comparisonBasis: input.comparisonBasis,
     resultStatus: calculation.resultStatus,
     summary: calculation.summary,
@@ -942,6 +1359,10 @@ function simulate(input, context, masters) {
     usedMasterRecords,
     precision: input.precision,
     excludedItems: calculation.excludedItems,
+    ...(calculation.breakdown && calculation.breakdown.data &&
+      calculation.breakdown.data.transitionPeriods
+      ? { transitionPeriods: calculation.breakdown.data.transitionPeriods }
+      : {}),
   });
 }
 

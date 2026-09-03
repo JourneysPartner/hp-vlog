@@ -46,12 +46,22 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
     : Number(formState.incomeTaxYear);
   if (year !== SUPPORTED_YEAR) throw new RangeError('第1版の計算対象年は2025年だけです');
   const municipality = jurisdictionFor(formState);
+  const isTransition = formState.comparisonBasis === 'transition_year';
+  const establishedOn = formState.establishedOn;
+  if (isTransition && (typeof establishedOn !== 'string' ||
+      !new RegExp(`^${year}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$`).test(establishedOn) ||
+      establishedOn === `${year}-01-01` || Number.isNaN(Date.parse(`${establishedOn}T00:00:00Z`)))) {
+    throw new RangeError(`法人設立日は${year}年1月2日から12月31日までで入力してください`);
+  }
 
   return {
     ...metadata,
     incomeTaxYear: year,
     residentTaxFiscalYear: year,
-    fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
+    fiscalPeriod: {
+      from: isTransition ? establishedOn : `${year}-01-01`,
+      to: `${year}-12-31`,
+    },
     // 協会けんぽの年間計算に使う、当年度の登録済み料率の参照月。
     socialInsuranceMonths: [`${year}-04`],
     jurisdiction: {
