@@ -637,3 +637,38 @@
   color: var(--color-primary, #2563eb);
   font-weight: 500;
 }
+
+/* ── Tax Simulator CTA ── */
+.blog-simulator-cta {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  background: #f7f9fc;
+  border: 1px solid #dce3ed;
+  border-left: 4px solid #e8924c;
+  border-radius: 8px;
+}
+.blog-simulator-cta-prompt {
+  margin: 0 0 0.75rem;
+  color: #0b2045;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.blog-simulator-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0b2045;
+  font-weight: 700;
+  text-decoration-color: #e8924c;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25rem;
+}
+.blog-simulator-cta-link:hover,
+.blog-simulator-cta-link:focus-visible {
+  color: #e06f20;
+}
+.blog-simulator-cta-note {
+  margin: 0.75rem 0 0;
+  color: #667085;
+  font-size: 0.8rem;
+}
