@@ -67,6 +67,25 @@ const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
 const HEAD_COMMON_TPL = fs.readFileSync(path.join(PARTIALS, 'head-common.html'), 'utf8');
 // 記事末尾の執筆者欄。全記事に同じものを付ける（記事本文は変更しない）。
 const AUTHOR_BOX_HTML = fs.readFileSync(path.join(PARTIALS, 'author-box.html'), 'utf8');
+// アイコンの SVG スプライト（使っている名前だけ。scripts/tools/build-icon-sprite.js で生成）。
+// Bootstrap Icons の CSS を CDN から読むのをやめ、<i class="bi bi-xxx"> の中に <svg><use> を入れる。
+const ICON_SPRITE_PATH = path.join(PARTIALS, 'icons.svg');
+const ICON_SPRITE_HTML = fs.existsSync(ICON_SPRITE_PATH) ? fs.readFileSync(ICON_SPRITE_PATH, 'utf8') : '';
+const ICON_NAMES = new Set([...ICON_SPRITE_HTML.matchAll(/id="bi-([a-z0-9-]+)"/g)].map(m => m[1]));
+const missingIcons = new Set();
+
+// 生成した HTML の <i class="bi bi-xxx ..."></i> を、スプライト参照の <svg> 入りにする。
+// <i> の外側は残す（既存 CSS の `.xxx i { font-size, color }` がそのまま効くように）。
+function inlineIcons(html) {
+  if (!ICON_SPRITE_HTML) return html;
+  let out = String(html).replace(/(<i class="bi bi-([a-z0-9-]+)(?:[^"]*)"[^>]*>)<\/i>/g, (m, open, name) => {
+    if (!ICON_NAMES.has(name)) { missingIcons.add(name); return m; }
+    return `${open}<svg><use href="#bi-${name}"/></svg></i>`;
+  });
+  // スプライト本体を <body> の直後に1回だけ入れる
+  if (!out.includes('class="icon-sprite"')) out = out.replace('<body>', `<body>\n${ICON_SPRITE_HTML}`);
+  return out;
+}
 
 // ── テンプレート読み込み ─────────────────────────────────────────
 function readTemplate(name) {
@@ -154,7 +173,7 @@ function renderArticleCard(p, { headingLevel = 'h2' } = {}) {
   const label = p.category || '記事';
   const H = headingLevel;
   return `
-    <article class="blog-card category--${slug}" data-aos="fade-up">
+    <article class="blog-card category--${slug}">
       <a href="/blog/${escAttr(p.slug)}/" class="blog-card-link">
         <div class="blog-card-body">
           <div class="blog-card-meta">
@@ -709,7 +728,7 @@ function renderHeadCommon(entry, src) {
 function renderLatestPostCard(p, delay) {
   const date = formatDate(p.publish_at);
   return `
-      <div class="col-md-4" data-aos="fade-up" data-aos-delay="${delay}">
+      <div class="col-md-4">
         <article class="post-card">
           <a href="/blog/${escAttr(p.slug)}/" class="post-card-link">
             <div class="post-card-meta">
@@ -879,7 +898,7 @@ function buildStaticPages(posts) {
 
     const outPath = path.join(ROOT, entry.out);
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, html, 'utf8');
+    fs.writeFileSync(outPath, inlineIcons(html), 'utf8');
     console.log(`[build]   → ${entry.out.replace(/\\/g, '/')}`);
   }
 }
@@ -949,7 +968,7 @@ function main() {
     const dir = path.join(BLOG_OUT, post.slug);
     fs.mkdirSync(dir, { recursive: true });
     const html = generatePost(post, postTpl, postsMap, publishConfig);
-    fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
+    fs.writeFileSync(path.join(dir, 'index.html'), inlineIcons(html), 'utf8');
     console.log(`[build]   → blog/${post.slug}/index.html`);
   }
 
@@ -998,7 +1017,7 @@ function main() {
       STRUCTURED_DATA: jsonLdScripts([organizationSchema(), personSchema(), breadcrumbSchema(crumbs)]),
     });
     fs.mkdirSync(path.join(BLOG_OUT, 'macro'), { recursive: true });
-    fs.writeFileSync(path.join(BLOG_OUT, 'macro', 'index.html'), html, 'utf8');
+    fs.writeFileSync(path.join(BLOG_OUT, 'macro', 'index.html'), inlineIcons(html), 'utf8');
     console.log('[build]   → blog/macro/index.html');
   }
 
@@ -1063,6 +1082,9 @@ function main() {
   console.log('[build]   → sitemap.xml / robots.txt');
 
   console.log(`[build] FAQ の構造化データ: ${buildStats.faqPosts} 件 ／ 執筆者欄: ${buildStats.authorBoxPosts} 件`);
+  if (missingIcons.size > 0) {
+    console.warn(`[build] ⚠ スプライトに無いアイコン ${missingIcons.size} 種（node scripts/tools/build-icon-sprite.js で追加）: ${[...missingIcons].join(', ')}`);
+  }
   console.log('[build] 完了');
 }
 
@@ -1086,7 +1108,7 @@ function writePaginatedListing({
       writeDir = path.join(outDir, 'page', String(currentPage));
     }
     fs.mkdirSync(writeDir, { recursive: true });
-    fs.writeFileSync(path.join(writeDir, 'index.html'), html, 'utf8');
+    fs.writeFileSync(path.join(writeDir, 'index.html'), inlineIcons(html), 'utf8');
     const relDir = path.relative(ROOT, writeDir).replace(/\\/g, '/');
     console.log(`[build]   → ${relDir}/index.html (${pages[i].length} 件)`);
   }

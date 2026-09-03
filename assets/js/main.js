@@ -39,16 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ── 3. AOS Initialize ──
-  if (typeof AOS !== 'undefined') {
-    AOS.init({
-      duration: 600,
-      easing: 'ease-out-cubic',
-      once: true,
-      offset: 60,
-      disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    });
-  }
+  // ── 3. （スクロールアニメーションは 2026-09-03 に廃止。JS 無しでも全文が見える状態を優先）──
 
   // ── 4. Counter Animation ──
   const counters = document.querySelectorAll('[data-count]');
