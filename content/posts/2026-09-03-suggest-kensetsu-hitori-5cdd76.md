@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "一人親方は所得が基礎控除額（令和8年分は104万円）を超えると確定申告が必要。請求書・領収書・源泉徴収票を揃え、白色または青色申告で申告する手順を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-03T16:57:38.831+09:00"
+publish_at: "2026-09-04T11:51:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-03T00:05:47.809Z"
-updated_at: "2026-09-03T00:08:37.520Z"
+updated_at: "2026-09-03T16:57:38.831+09:00"
+publish_slot: "morning"
 ---
 現場の仕事が一段落して、「そういえば確定申告、どうすればいいんだろう」と手が止まる方は少なくありません。
 
