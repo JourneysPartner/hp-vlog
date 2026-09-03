@@ -18,6 +18,7 @@ const {
   addExact,
   subtractExact,
   addMoney,
+  subtractMoney,
   compareExactToMoney,
 } = require('../common/money.js');
 const { applyRounding } = require('../common/rounding.js');
@@ -26,6 +27,7 @@ const { inputMoney, masterRate } = require('../income/helpers.js');
 const BASE_ROUNDING_RULE_ID = 'R-TRUNC-1000-BASE';
 const STAGE_ROUNDING_RULE_ID = 'R-TRUNC-1-CT-STAGE';
 const FINAL_ROUNDING_RULE_ID = 'R-TRUNC-100-TAX';
+const REFUND_LOCAL_ROUNDING_RULE_ID = 'R-TRUNC-1-YEN';
 const SUPPORTED_METHODS = Object.freeze(['general', 'simplified', 'two_wari', 'san_wari']);
 // compareMethods の既定3方式は既存契約を維持する。3割特例は呼出側の適用可否判定後に指定する。
 const DEFAULT_COMPARISON_METHODS = Object.freeze(['general', 'simplified', 'two_wari']);
@@ -158,6 +160,7 @@ function hasPositiveTaxIncl(value) {
 
 function salesEntries(input, reasons) {
   const entries = [];
+  const exportExemptAmounts = [];
   for (let segmentIndex = 0; segmentIndex < (input.sales || []).length; segmentIndex++) {
     const segment = input.sales[segmentIndex];
     normalizePeriod(segment.period, `sales[${segmentIndex}].period`);
@@ -165,9 +168,10 @@ function salesEntries(input, reasons) {
     if (!value || !['simple', 'detailed'].includes(value.kind)) {
       throw new TypeError(`sales[${segmentIndex}].value.kind が不正です`);
     }
-    if (hasPositiveTaxIncl(value.exportExempt)) {
-      addReason(reasons, 'CT_EXPORT_REFUND_UNSUPPORTED',
-        '輸出免税売上を含む還付計算は第1版では計算できません');
+    if (value.exportExempt !== undefined && value.exportExempt !== null) {
+      const exportExempt = normalizeTaxIncl(value.exportExempt, 'sales.exportExempt');
+      // 輸出免税売上は0%課税のため課税標準・売上税額へ入れず、課税売上高判定用に別枠で保持する。
+      exportExemptAmounts.push(exportExempt.amount);
     }
     if (value.kind === 'detailed') {
       if ((value.returnsAndDiscounts || []).some(item => hasPositiveTaxIncl(item.amount))) {
@@ -213,14 +217,15 @@ function salesEntries(input, reasons) {
       amountExact: multiplyRateByMoney(reducedRatio, total.amount),
     });
   }
-  if (entries.length === 0) {
+  const exportExemptTotal = sumMoney(exportExemptAmounts);
+  if (entries.length === 0 && exportExemptTotal.value === 0n) {
     addReason(reasons, 'CT_TAXABLE_SALES_REQUIRED', '税率別の課税売上を入力してください');
   }
-  return entries;
+  return { taxableEntries: entries, exportExemptTotal };
 }
 
 function calculateSalesTax(input, taxablePeriod, reasons) {
-  const entries = salesEntries(input, reasons);
+  const { taxableEntries: entries, exportExemptTotal } = salesEntries(input, reasons);
   const bands = [];
   for (const band of ['standard_10', 'reduced_8']) {
     const rateRecord = rateRecordForBand(band, taxablePeriod.to);
@@ -247,6 +252,7 @@ function calculateSalesTax(input, taxablePeriod, reasons) {
     bands,
     taxableBaseTotal: sumMoney(bands.map(item => item.taxableBase)),
     nationalTaxTotal: sumMoney(bands.map(item => item.nationalTax)),
+    exportExemptTotal,
   };
 }
 
@@ -368,8 +374,62 @@ function finalize(method, taxablePeriod, salesTax, credit, details = {}) {
   const nationalTaxBeforeFinalRounding = subtractExact(
     moneyToExact(salesTax.nationalTaxTotal), moneyToExact(credit)
   );
-  const nationalTax = applyRounding(nationalTaxBeforeFinalRounding, FINAL_ROUNDING_RULE_ID);
   const localRate = localBurdenRate(taxablePeriod.to);
+  if (nationalTaxBeforeFinalRounding.num < 0n) {
+    // 控除不足還付税額は確定済みの仕入税額－売上税額を1円単位のまま使う。
+    // 国税通則法119条1項の100円未満切捨ては「納付すべき税額」のみが対象で、還付金には適用しない。
+    const nationalRefund = subtractMoney(credit, salesTax.nationalTaxTotal);
+    // 負数のBigInt除算の丸め方向に依存しないよう、正の還付額で円未満を切り捨ててから符号を反転する。
+    const localRefundBeforeRounding = multiplyRateByMoney(localRate, nationalRefund);
+    const localRefund = applyRounding(
+      localRefundBeforeRounding, REFUND_LOCAL_ROUNDING_RULE_ID
+    );
+    const totalRefund = addMoney(nationalRefund, localRefund);
+    const nationalTax = money({ unit: 'JPY', value: -nationalRefund.value });
+    const localTax = money({ unit: 'JPY', value: -localRefund.value });
+    const totalPayable = money({ unit: 'JPY', value: -totalRefund.value });
+    return {
+      status: 'complete',
+      resultStatus: 'complete',
+      supportedProfileVersion: 'consumption-tax-domestic-v1',
+      method,
+      taxablePeriod,
+      blockedReasons: [],
+      excludedItems: [],
+      assumptions: [{
+        code: 'CT_METHOD_ELIGIBILITY_PROVIDED_BY_CALLER',
+        message: '方式の適用可否は呼出側で判定済みとして税額だけを計算しています',
+      }],
+      warnings: [],
+      salesTax,
+      credit,
+      nationalTaxBeforeFinalRounding,
+      nationalTax,
+      localConsumptionTax: {
+        baseNationalTax: nationalTax,
+        rate: localRate,
+        beforeRounding: multiplyRateByMoney(localRate, nationalTax),
+        amount: localTax,
+      },
+      refund: {
+        nationalTax: nationalRefund,
+        localConsumptionTax: localRefund,
+        total: totalRefund,
+        localConsumptionTaxBeforeRounding: localRefundBeforeRounding,
+      },
+      totalPayable,
+      calculationOrder: Object.freeze([
+        'taxable_base_by_rate',
+        'national_sales_tax_by_rate',
+        'deductible_purchase_tax',
+        'national_refund_without_100_yen_truncation',
+        'local_refund_from_positive_national_refund_rounded_to_1_yen',
+        'refund_amount_sign_reversal',
+      ]),
+      ...details,
+    };
+  }
+  const nationalTax = applyRounding(nationalTaxBeforeFinalRounding, FINAL_ROUNDING_RULE_ID);
   // 地方消費税の基礎は、必ず100円未満切捨て後の国税とする。
   const localTaxBeforeRounding = multiplyRateByMoney(localRate, nationalTax);
   const localTax = applyRounding(localTaxBeforeRounding, FINAL_ROUNDING_RULE_ID);
@@ -421,10 +481,6 @@ function commonBlockedReasons(input, options, method) {
       '課税期間の短縮は第1版では計算できません');
   }
   const checks = input.specialistChecks || {};
-  if (checks.exportRefund === 'yes') {
-    addReason(reasons, 'CT_EXPORT_REFUND_UNSUPPORTED',
-      '輸出還付の詳細計算は第1版では計算できません');
-  }
   if (checks.badDebt === 'yes') {
     addReason(reasons, 'CT_BAD_DEBTS_UNSUPPORTED', '貸倒れは第1版では計算できません');
   }
@@ -454,6 +510,11 @@ function commonBlockedReasons(input, options, method) {
 function calculateGeneral(input, taxablePeriod, salesTax, reasons) {
   const salesBaseBeforeRounding = sumExact(salesTax.bands.map(item =>
     item.taxableBaseBeforeRounding));
+  // 輸出免税売上は課税売上高へ額面のまま加算する。免税売上に税は含まれないため、
+  // 入力basisがinclusive/exclusiveのいずれでも同額として扱う。
+  const taxableSalesForFullDeductionCap = addExact(
+    salesBaseBeforeRounding, moneyToExact(salesTax.exportExemptTotal)
+  );
   // 全額控除の金額要件（消費税法30条2項）。5億円はマスターから引く（§3-1）。
   const fullDeductionCap = requiredRecord('full_deduction_taxable_sales_cap',
     { onDate: taxablePeriod.to });
@@ -461,7 +522,7 @@ function calculateGeneral(input, taxablePeriod, salesTax, reasons) {
     unit: fullDeductionCap.threshold_amount.unit,
     value: BigInt(fullDeductionCap.threshold_amount.value),
   });
-  if (compareExactToMoney(salesBaseBeforeRounding, fullDeductionCapAmount) > 0) {
+  if (compareExactToMoney(taxableSalesForFullDeductionCap, fullDeductionCapAmount) > 0) {
     addReason(reasons, 'CT_GENERAL_TAXABLE_SALES_OVER_500M',
       '課税売上高5億円超は全額控除の対象外となるため第1版では計算できません');
   }

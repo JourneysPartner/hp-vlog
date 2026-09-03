@@ -3471,6 +3471,8 @@ function periodInside(segment, taxablePeriod) {
 function globalBlockers(input, taxablePeriod) {
   const reasons = [];
   for (const [key, value] of Object.entries(input.specialistChecks || {})) {
+    // 輸出還付は§20対応済み。旧入力にフラグが残っていても全体を止めない。
+    if (key === 'exportRefund') continue;
     if (value === 'yes') {
       reasons.push(reason('SZ_SPECIALIST_CHECK_UNSUPPORTED', `$.specialistChecks.${key}`,
         'このシミュレーターだけでは正確な判定ができない可能性があります。'));
@@ -3847,7 +3849,7 @@ const { validateInput } = require('../core/validator.js');
 const { buildSimulationResult } = require('../core/result-builder.js');
 const consumptionTax = require('../../tax-engine/consumption/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
-const { money, addMoney } = require('../../tax-engine/common/money.js');
+const { money } = require('../../tax-engine/common/money.js');
 const eligibility = require('./eligibility.js');
 
 const ENGINE_METHOD = Object.freeze({
@@ -3855,6 +3857,13 @@ const ENGINE_METHOD = Object.freeze({
   simplified: 'simplified',
   twenty_percent_special: 'two_wari',
   thirty_percent_special: 'san_wari',
+});
+
+const REFUND_EXPLANATIONS = Object.freeze({
+  general: '実額の仕入税額控除のため、控除不足額は還付の対象になります。',
+  simplified: 'みなし仕入率で売上税額から控除額を算出するため、還付は生じません。',
+  twenty_percent_special: '売上税額の2割を納付する方式のため、還付は生じません。',
+  thirty_percent_special: '売上税額の3割を納付する方式のため、還付は生じません。',
 });
 
 function assertSnapshotMatch(context, masters) {
@@ -3894,25 +3903,11 @@ function warningsForMethods(methods) {
   return warnings;
 }
 
-function exportExcludedItem(input) {
-  const amounts = [];
-  for (const segment of input.sales || []) {
-    const value = segment.value || {};
-    if (value.exportExempt && value.exportExempt.amount &&
-        value.exportExempt.amount.value > 0n) {
-      amounts.push(value.exportExempt.amount);
-    }
-  }
-  if (amounts.length === 0) return null;
-  const total = amounts.reduce((sum, amount) => addMoney(sum, amount),
-    money({ unit: 'JPY', value: 0n }));
-  return {
-    code: 'SZ_EXPORT_REFUND_FUTURE_EXTENSION',
-    label: '輸出免税売上・還付可能性',
-    reason: '輸出免税を含む還付計算は将来拡張です。第1版では納付額へ0円として含めません。',
-    amount: total,
-    isAmountUnknown: false,
-  };
+function hasExportExempt(input) {
+  return (input.sales || []).some(segment => {
+    const exportExempt = segment.value && segment.value.exportExempt;
+    return exportExempt && exportExempt.amount && exportExempt.amount.value > 0n;
+  });
 }
 
 function blockedCalculation(reasons, excludedItems = []) {
@@ -3926,18 +3921,22 @@ function blockedCalculation(reasons, excludedItems = []) {
   };
 }
 
-function exemptCalculation(period, assessment) {
+function exemptCalculation(input, period, assessment) {
+  const exportExempt = hasExportExempt(input);
   return {
     resultStatus: 'complete',
     summary: { title: '納税義務なし（免税事業者）' },
     breakdown: {
       kind: 'shohizei',
-      data: { period, methodResults: [] },
+      data: { period, methodResults: [], hasExportExempt: exportExempt },
     },
     applicableMethods: [],
     assumptions: [
       ...(assessment.assumptions || []),
       'インボイス登録した場合の試算は、登録済みとして再入力してください。',
+      ...(exportExempt ? [
+        '免税事業者は仕入税額の還付を受けられません。課税事業者を選択（インボイス登録等）した場合の還付可能性は、登録済みとして再計算してください。',
+      ] : []),
     ],
     warnings: [],
     excludedItems: [],
@@ -3963,6 +3962,7 @@ function compareCalculation(input, period, assessment) {
         methodCode,
         eligibility: methodEligibility.status,
         reasonCodes: [...methodEligibility.reasonCodes],
+        refundExplanation: REFUND_EXPLANATIONS[methodCode],
       });
       continue;
     }
@@ -3973,7 +3973,12 @@ function compareCalculation(input, period, assessment) {
     });
     if (result.status !== 'complete') {
       const reasonCodes = engineReasons(result);
-      methodResults.push({ methodCode, eligibility: 'blocked', reasonCodes });
+      methodResults.push({
+        methodCode,
+        eligibility: 'blocked',
+        reasonCodes,
+        refundExplanation: REFUND_EXPLANATIONS[methodCode],
+      });
       for (const blockedReason of result.blockedReasons || []) {
         warnings.push(warning(blockedReason.code || 'SZ_ENGINE_BLOCKED',
           `$.${methodCode}`, blockedReason.message || '税額計算を完了できませんでした。'));
@@ -3981,12 +3986,15 @@ function compareCalculation(input, period, assessment) {
       continue;
     }
 
-    methodResults.push({
+    const methodResult = {
       methodCode,
       eligibility: 'eligible',
       taxPayable: result.totalPayable,
       reasonCodes: [...methodEligibility.reasonCodes],
-    });
+      refundExplanation: REFUND_EXPLANATIONS[methodCode],
+    };
+    if (result.refund) methodResult.refund = result.refund;
+    methodResults.push(methodResult);
     calculations.set(methodCode, result);
     assumptions.push(...(result.assumptions || [])
       .filter(item => item.code !== 'CT_METHOD_ELIGIBILITY_PROVIDED_BY_CALLER'));
@@ -4004,7 +4012,13 @@ function compareCalculation(input, period, assessment) {
   const data = { period, methodResults };
   if (recommended) data.recommendedMethodCode = recommended.methodCode;
   const summary = recommended
-    ? { title: `${recommended.methodCode}が最も納付額の少ない試算です`, amount: recommended.taxPayable }
+    ? recommended.taxPayable.value < 0n
+      ? {
+          title: '一般課税で概算還付が見込める試算です',
+          amount: money({ unit: 'JPY', value: -recommended.taxPayable.value }),
+          isRefund: true,
+        }
+      : { title: `${recommended.methodCode}が最も納付額の少ない試算です`, amount: recommended.taxPayable }
     : { title: '消費税の比較を完了できませんでした' };
   const general = methodResults.find(row => row.methodCode === 'general' &&
     row.eligibility === 'eligible' && calculations.has('general'));
@@ -4014,8 +4028,6 @@ function compareCalculation(input, period, assessment) {
     });
   }
 
-  const exportItem = exportExcludedItem(input);
-  const excludedItems = exportItem ? [exportItem] : [];
   return {
     resultStatus,
     summary,
@@ -4029,27 +4041,26 @@ function compareCalculation(input, period, assessment) {
     assumptions: uniqueMessages([
       ...assumptions,
       '適用可否は §15 の判定によります（届出期限の個別判定は行っていません）。',
+      '還付額は概算です。実際の還付申告では税務署の審査・還付加算金等があり、金額・時期が異なる場合があります。',
     ]),
     warnings,
-    excludedItems,
+    excludedItems: [],
   };
 }
 
 function calculate(input, context) {
   const period = taxablePeriodFrom(context);
-  const exportItem = exportExcludedItem(input);
   const blockers = eligibility.globalBlockers(input, period);
   if (blockers.length > 0) {
-    return blockedCalculation(blockers, exportItem ? [exportItem] : []);
+    return blockedCalculation(blockers);
   }
 
   const assessment = eligibility.evaluateEligibility(input, period);
   if (assessment.liability.status === 'blocked') {
-    return blockedCalculation(assessment.liability.reasons,
-      exportItem ? [exportItem] : []);
+    return blockedCalculation(assessment.liability.reasons);
   }
   if (assessment.liability.status === 'exempt') {
-    return exemptCalculation(period, assessment);
+    return exemptCalculation(input, period, assessment);
   }
   return compareCalculation(input, period, assessment);
 }
@@ -6155,6 +6166,7 @@ const {
   addExact,
   subtractExact,
   addMoney,
+  subtractMoney,
   compareExactToMoney,
 } = require('../common/money.js');
 const { applyRounding } = require('../common/rounding.js');
@@ -6163,6 +6175,7 @@ const { inputMoney, masterRate } = require('../income/helpers.js');
 const BASE_ROUNDING_RULE_ID = 'R-TRUNC-1000-BASE';
 const STAGE_ROUNDING_RULE_ID = 'R-TRUNC-1-CT-STAGE';
 const FINAL_ROUNDING_RULE_ID = 'R-TRUNC-100-TAX';
+const REFUND_LOCAL_ROUNDING_RULE_ID = 'R-TRUNC-1-YEN';
 const SUPPORTED_METHODS = Object.freeze(['general', 'simplified', 'two_wari', 'san_wari']);
 // compareMethods の既定3方式は既存契約を維持する。3割特例は呼出側の適用可否判定後に指定する。
 const DEFAULT_COMPARISON_METHODS = Object.freeze(['general', 'simplified', 'two_wari']);
@@ -6295,6 +6308,7 @@ function hasPositiveTaxIncl(value) {
 
 function salesEntries(input, reasons) {
   const entries = [];
+  const exportExemptAmounts = [];
   for (let segmentIndex = 0; segmentIndex < (input.sales || []).length; segmentIndex++) {
     const segment = input.sales[segmentIndex];
     normalizePeriod(segment.period, `sales[${segmentIndex}].period`);
@@ -6302,9 +6316,10 @@ function salesEntries(input, reasons) {
     if (!value || !['simple', 'detailed'].includes(value.kind)) {
       throw new TypeError(`sales[${segmentIndex}].value.kind が不正です`);
     }
-    if (hasPositiveTaxIncl(value.exportExempt)) {
-      addReason(reasons, 'CT_EXPORT_REFUND_UNSUPPORTED',
-        '輸出免税売上を含む還付計算は第1版では計算できません');
+    if (value.exportExempt !== undefined && value.exportExempt !== null) {
+      const exportExempt = normalizeTaxIncl(value.exportExempt, 'sales.exportExempt');
+      // 輸出免税売上は0%課税のため課税標準・売上税額へ入れず、課税売上高判定用に別枠で保持する。
+      exportExemptAmounts.push(exportExempt.amount);
     }
     if (value.kind === 'detailed') {
       if ((value.returnsAndDiscounts || []).some(item => hasPositiveTaxIncl(item.amount))) {
@@ -6350,14 +6365,15 @@ function salesEntries(input, reasons) {
       amountExact: multiplyRateByMoney(reducedRatio, total.amount),
     });
   }
-  if (entries.length === 0) {
+  const exportExemptTotal = sumMoney(exportExemptAmounts);
+  if (entries.length === 0 && exportExemptTotal.value === 0n) {
     addReason(reasons, 'CT_TAXABLE_SALES_REQUIRED', '税率別の課税売上を入力してください');
   }
-  return entries;
+  return { taxableEntries: entries, exportExemptTotal };
 }
 
 function calculateSalesTax(input, taxablePeriod, reasons) {
-  const entries = salesEntries(input, reasons);
+  const { taxableEntries: entries, exportExemptTotal } = salesEntries(input, reasons);
   const bands = [];
   for (const band of ['standard_10', 'reduced_8']) {
     const rateRecord = rateRecordForBand(band, taxablePeriod.to);
@@ -6384,6 +6400,7 @@ function calculateSalesTax(input, taxablePeriod, reasons) {
     bands,
     taxableBaseTotal: sumMoney(bands.map(item => item.taxableBase)),
     nationalTaxTotal: sumMoney(bands.map(item => item.nationalTax)),
+    exportExemptTotal,
   };
 }
 
@@ -6505,8 +6522,62 @@ function finalize(method, taxablePeriod, salesTax, credit, details = {}) {
   const nationalTaxBeforeFinalRounding = subtractExact(
     moneyToExact(salesTax.nationalTaxTotal), moneyToExact(credit)
   );
-  const nationalTax = applyRounding(nationalTaxBeforeFinalRounding, FINAL_ROUNDING_RULE_ID);
   const localRate = localBurdenRate(taxablePeriod.to);
+  if (nationalTaxBeforeFinalRounding.num < 0n) {
+    // 控除不足還付税額は確定済みの仕入税額－売上税額を1円単位のまま使う。
+    // 国税通則法119条1項の100円未満切捨ては「納付すべき税額」のみが対象で、還付金には適用しない。
+    const nationalRefund = subtractMoney(credit, salesTax.nationalTaxTotal);
+    // 負数のBigInt除算の丸め方向に依存しないよう、正の還付額で円未満を切り捨ててから符号を反転する。
+    const localRefundBeforeRounding = multiplyRateByMoney(localRate, nationalRefund);
+    const localRefund = applyRounding(
+      localRefundBeforeRounding, REFUND_LOCAL_ROUNDING_RULE_ID
+    );
+    const totalRefund = addMoney(nationalRefund, localRefund);
+    const nationalTax = money({ unit: 'JPY', value: -nationalRefund.value });
+    const localTax = money({ unit: 'JPY', value: -localRefund.value });
+    const totalPayable = money({ unit: 'JPY', value: -totalRefund.value });
+    return {
+      status: 'complete',
+      resultStatus: 'complete',
+      supportedProfileVersion: 'consumption-tax-domestic-v1',
+      method,
+      taxablePeriod,
+      blockedReasons: [],
+      excludedItems: [],
+      assumptions: [{
+        code: 'CT_METHOD_ELIGIBILITY_PROVIDED_BY_CALLER',
+        message: '方式の適用可否は呼出側で判定済みとして税額だけを計算しています',
+      }],
+      warnings: [],
+      salesTax,
+      credit,
+      nationalTaxBeforeFinalRounding,
+      nationalTax,
+      localConsumptionTax: {
+        baseNationalTax: nationalTax,
+        rate: localRate,
+        beforeRounding: multiplyRateByMoney(localRate, nationalTax),
+        amount: localTax,
+      },
+      refund: {
+        nationalTax: nationalRefund,
+        localConsumptionTax: localRefund,
+        total: totalRefund,
+        localConsumptionTaxBeforeRounding: localRefundBeforeRounding,
+      },
+      totalPayable,
+      calculationOrder: Object.freeze([
+        'taxable_base_by_rate',
+        'national_sales_tax_by_rate',
+        'deductible_purchase_tax',
+        'national_refund_without_100_yen_truncation',
+        'local_refund_from_positive_national_refund_rounded_to_1_yen',
+        'refund_amount_sign_reversal',
+      ]),
+      ...details,
+    };
+  }
+  const nationalTax = applyRounding(nationalTaxBeforeFinalRounding, FINAL_ROUNDING_RULE_ID);
   // 地方消費税の基礎は、必ず100円未満切捨て後の国税とする。
   const localTaxBeforeRounding = multiplyRateByMoney(localRate, nationalTax);
   const localTax = applyRounding(localTaxBeforeRounding, FINAL_ROUNDING_RULE_ID);
@@ -6558,10 +6629,6 @@ function commonBlockedReasons(input, options, method) {
       '課税期間の短縮は第1版では計算できません');
   }
   const checks = input.specialistChecks || {};
-  if (checks.exportRefund === 'yes') {
-    addReason(reasons, 'CT_EXPORT_REFUND_UNSUPPORTED',
-      '輸出還付の詳細計算は第1版では計算できません');
-  }
   if (checks.badDebt === 'yes') {
     addReason(reasons, 'CT_BAD_DEBTS_UNSUPPORTED', '貸倒れは第1版では計算できません');
   }
@@ -6591,6 +6658,11 @@ function commonBlockedReasons(input, options, method) {
 function calculateGeneral(input, taxablePeriod, salesTax, reasons) {
   const salesBaseBeforeRounding = sumExact(salesTax.bands.map(item =>
     item.taxableBaseBeforeRounding));
+  // 輸出免税売上は課税売上高へ額面のまま加算する。免税売上に税は含まれないため、
+  // 入力basisがinclusive/exclusiveのいずれでも同額として扱う。
+  const taxableSalesForFullDeductionCap = addExact(
+    salesBaseBeforeRounding, moneyToExact(salesTax.exportExemptTotal)
+  );
   // 全額控除の金額要件（消費税法30条2項）。5億円はマスターから引く（§3-1）。
   const fullDeductionCap = requiredRecord('full_deduction_taxable_sales_cap',
     { onDate: taxablePeriod.to });
@@ -6598,7 +6670,7 @@ function calculateGeneral(input, taxablePeriod, salesTax, reasons) {
     unit: fullDeductionCap.threshold_amount.unit,
     value: BigInt(fullDeductionCap.threshold_amount.value),
   });
-  if (compareExactToMoney(salesBaseBeforeRounding, fullDeductionCapAmount) > 0) {
+  if (compareExactToMoney(taxableSalesForFullDeductionCap, fullDeductionCapAmount) > 0) {
     addReason(reasons, 'CT_GENERAL_TAXABLE_SALES_OVER_500M',
       '課税売上高5億円超は全額控除の対象外となるため第1版では計算できません');
   }
@@ -14141,7 +14213,7 @@ module.exports = Object.freeze({ TOOL_PATHS, toolFromPath, createRouter });
 
 const { el } = require('../dom.js');
 const { createStore } = require('../store.js');
-const { createMoneyInput, createSelect, parseMoneyInput } = require('../forms.js');
+const { createMoneyInput, createSelect } = require('../forms.js');
 const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
@@ -14238,7 +14310,7 @@ const STYLE_TEXT = `
 .shohizei-app h1,.shohizei-app h2,.shohizei-app h3{color:#0B2045}.shohizei-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
 .shohizei-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.shohizei-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.shohizei-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.shohizei-app button.shohizei-primary{background:#E85320;border-color:#E85320;color:#fff}
 .shohizei-app input,.shohizei-app select{display:block;box-sizing:border-box;width:100%;max-width:38rem;min-height:44px;margin:6px 0 16px;padding:8px;border:1px solid #55607a;border-radius:8px;font:inherit}.shohizei-app input[type=checkbox]{display:inline-block;width:auto;min-height:auto;margin-right:8px}.shohizei-tax-field{border:1px solid #E3E8F0;border-radius:8px;padding:16px;margin:12px 0}.shohizei-tax-field .select-input select{max-width:12rem}
-.shohizei-progress{font-weight:700}.shohizei-help{color:#55607a}.shohizei-error{color:#9b1c1c;font-weight:700}.shohizei-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.shohizei-status{font-size:1.2rem;font-weight:700}.shohizei-table-wrap{overflow-x:auto}.shohizei-app table{border-collapse:collapse;width:100%;min-width:520px}.shohizei-app th,.shohizei-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.shohizei-app td:last-child{text-align:right}.shohizei-level{font-weight:700}.shohizei-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.shohizei-progress{font-weight:700}.shohizei-help{color:#55607a}.shohizei-error{color:#9b1c1c;font-weight:700}.shohizei-error-summary{border:2px solid #9b1c1c;padding:16px;margin:16px 0}.shohizei-status{font-size:1.2rem;font-weight:700}.shohizei-table-wrap{overflow-x:auto}.shohizei-app table{border-collapse:collapse;width:100%;min-width:520px}.shohizei-app th,.shohizei-app td{border:1px solid #E3E8F0;padding:10px;text-align:left}.shohizei-app td.shohizei-amount{text-align:right}.shohizei-level{font-weight:700}.shohizei-placeholder{border:1px dashed #55607a;padding:12px;color:#55607a}.simulator-live-region{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:480px){.shohizei-app{padding:12px}.shohizei-card{padding:16px}.shohizei-actions{display:block}.shohizei-actions button{width:100%;margin:5px 0}.shohizei-app table{min-width:0}}
 @media print{.shohizei-no-print{display:none!important}.shohizei-app{max-width:none;padding:0}.shohizei-card{box-shadow:none;break-inside:avoid}.shohizei-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
@@ -14355,7 +14427,7 @@ function mountShohizeiApp(rootElement, {
       ]) : null,
       el('div', {}, [baseExists, el('label', { for: baseExists.id }, '基準期間がない（開業2年以内など）')]),
       form.basePeriodExists ? moneyField('basePeriodTaxableSales', 'sz-base-sales',
-        '基準期間（前々年）の課税売上高（円）', '0円以上の整数。',
+        '基準期間（前々年）の課税売上高（円）', '輸出免税売上も含めた金額を、0円以上の整数で入力してください。',
         '$.eligibility.basePeriod.taxableSales.value').nodes : null,
       form.basePeriodExists && form.taxpayerType === 'corporation' ? [
         el('label', { for: 'sz-base-months' }, '基準期間の月数'),
@@ -14403,9 +14475,6 @@ function mountShohizeiApp(rootElement, {
 
   function renderStep2() {
     const form = store.getState().form;
-    const exportWarning = el('p', { id: 'sz-export-warning', className: 'shohizei-error' },
-      parseMoneyInput(String(form.salesExportExempt)).ok && BigInt(parseMoneyInput(String(form.salesExportExempt)).value) > 0n
-        ? '一般課税の確定額を出せません（対応準備中）' : '');
     return el('main', { className: 'shohizei-no-print' }, [
       ...stepHeader(2, '売上と仕入'), errorSummary(),
       el('p', {}, '税込・税抜は金額欄ごとに選択してください。'),
@@ -14413,10 +14482,9 @@ function mountShohizeiApp(rootElement, {
         el('h2', {}, '売上'),
         taxField('salesStandard10', 'salesStandard10Basis', 'sz-sales-10', '10%対象の課税売上', '$.sales[0].value.taxable[0].amount'),
         taxField('salesReduced8', 'salesReduced8Basis', 'sz-sales-8', '8%（軽減税率）対象の課税売上', '$.sales[0].value.taxable[1].amount'),
-        taxField('salesExportExempt', 'salesExportExemptBasis', 'sz-sales-export', '輸出免税売上', '$.sales[0].value.exportExempt',
-          parsed => { exportWarning.textContent = parsed.ok && BigInt(parsed.value) > 0n
-            ? '一般課税の確定額を出せません（対応準備中）' : ''; }),
-        exportWarning,
+        taxField('salesExportExempt', 'salesExportExemptBasis', 'sz-sales-export', '輸出免税売上', '$.sales[0].value.exportExempt'),
+        el('p', { className: 'shohizei-help' },
+          '国内から商品を発送して海外へ販売した売上（eBay輸出など）。国外で完結する取引（不課税）は含めません'),
       ]),
       el('section', { className: 'shohizei-card' }, [
         el('h2', {}, '仕入'),
@@ -14599,11 +14667,13 @@ function mountShohizeiApp(rootElement, {
         el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),
       ]) : [
         eligibilitySection(viewModel),
-        el('section', { className: 'shohizei-card' }, [el('h2', {}, '納税額の比較'),
+        el('section', { className: 'shohizei-card' }, [el('h2', {}, '納付・還付額の比較'),
           el('div', { className: 'shohizei-table-wrap' }, el('table', {}, [
-            el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '方式'), el('th', { scope: 'col' }, '納税額')])),
+            el('thead', {}, el('tr', {}, [el('th', { scope: 'col' }, '方式'),
+              el('th', { scope: 'col' }, '試算額'), el('th', { scope: 'col' }, '還付可能性')])),
             el('tbody', {}, viewModel.comparisonRows.map(row => el('tr', {}, [
-              el('th', { scope: 'row' }, row.methodName), el('td', {}, row.display),
+              el('th', { scope: 'row' }, row.methodName), el('td', { className: 'shohizei-amount' }, row.display),
+              el('td', {}, row.refundExplanation),
             ]))),
           ]))]),
         el('section', { className: 'shohizei-card shohizei-conclusion' }, [el('h2', {}, '結論'),
@@ -14937,7 +15007,6 @@ const DEFINITIONS = {
   SZ_BECAME_TAXABLE_BY_REGISTRATION_UNKNOWN: ['インボイス登録時の状況を確認してください', 'インボイス登録を機に免税事業者から課税事業者になったか入力してください。', 'input'],
   SZ_ENGINE_BLOCKED: ['税額を確定できません', '入力条件では税額計算を完了できませんでした。', 'consultation'],
   SZ_EXEMPTION_THRESHOLD_MASTER_BLOCKED: ['免税点を確認できません', '免税点の承認済みマスターを一意に選べません。', 'consultation'],
-  SZ_EXPORT_REFUND_FUTURE_EXTENSION: ['輸出免税売上は対応準備中です', '輸出免税を含む還付計算は将来拡張です。', 'information'],
   SZ_GENERAL_TAXABLE_PERSON: ['一般課税を利用できます', '課税事業者のため一般課税を利用できます。', 'information'],
   SZ_INVOICE_REGISTRATION_STATUS_REQUIRED: ['インボイス登録を確認してください', 'インボイス登録の有無を選択してください。', 'input'],
   SZ_NEW_COMPANY_EXEMPTION_UNSUPPORTED: ['新設法人の判定は専門確認が必要です', '新設法人・特定新設法人に関する特殊な免税点判定は専門確認が必要です。', 'consultation'],
@@ -15026,6 +15095,12 @@ function formatYen(value) {
   return `${sign}${absolute.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}円`;
 }
 
+function formatTaxOutcome(value) {
+  const amount = moneyValue(value);
+  if (amount >= 0n) return formatYen(value);
+  return `還付 ${formatYen({ unit: 'JPY', value: -amount })}`;
+}
+
 function warningForCode(result, code) {
   const warning = (result.warnings || []).find(item => item.code === code);
   return warning ? { code, message: warning.basis } : { code };
@@ -15045,6 +15120,7 @@ function eligibilityRows(result, methodResults) {
     symbol: STATUS_SYMBOLS[row.eligibility] || '—',
     reasonCodes: Object.freeze([...(row.reasonCodes || [])]),
     reason: reasonText(result, row),
+    refundExplanation: row.refundExplanation,
   })));
 }
 
@@ -15056,7 +15132,9 @@ function comparisonRows(methodResults) {
       methodName: METHOD_LABELS[row.methodCode] || row.methodCode,
       amount: row.taxPayable,
       exactYen: moneyValue(row.taxPayable),
-      display: formatYen(row.taxPayable),
+      isRefund: moneyValue(row.taxPayable) < 0n,
+      display: formatTaxOutcome(row.taxPayable),
+      refundExplanation: row.refundExplanation,
     }))
     .sort((left, right) => left.exactYen < right.exactYen ? -1 :
       left.exactYen > right.exactYen ? 1 : 0));
@@ -15152,12 +15230,15 @@ function buildResultViewModel(result) {
   }
   const methodResults = result.breakdown.data.methodResults || [];
   if (result.resultStatus === 'complete' && methodResults.length === 0) {
+    const hasExportExempt = result.breakdown.data.hasExportExempt === true;
     return Object.freeze({
       ...common(result),
       heading: `試算結果（${result.periodLabel}・complete）`,
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
-      exemptNotice: '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
+      exemptNotice: hasExportExempt
+        ? '免税事業者は仕入税額の還付を受けられません。課税事業者を選択（インボイス登録等）した場合の還付可能性は、登録済みとして再計算してください'
+        : '基準期間・特定期間の状況から、納税義務がない（免税事業者）試算です。インボイス登録した場合の比較は、登録済みとして再計算してください',
       keyResult: Object.freeze({
         label: '納税義務の判定',
         qualifier: 'この試算では',
@@ -15176,6 +15257,8 @@ function buildResultViewModel(result) {
   const recommendedName = METHOD_LABELS[recommendedCode];
   const recommended = comparisons.find(row => row.methodCode === recommendedCode);
   const simplified = methodResults.find(row => row.methodCode === 'simplified');
+  const isRefund = Boolean(recommended && recommended.isRefund);
+  const keyAmount = isRefund ? result.summary.amount : recommended && recommended.amount;
   return Object.freeze({
     ...common(result),
     heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
@@ -15185,15 +15268,17 @@ function buildResultViewModel(result) {
     comparisonRows: comparisons,
     recommendedMethodCode: recommendedCode,
     keyResult: recommendedName && recommended ? Object.freeze({
-      label: '最も納税額が少ない方式',
+      label: isRefund ? '概算還付額' : '最も納税額が少ない方式',
       qualifier: 'この試算では',
-      value: recommendedName,
-      amount: recommended.amount,
-      exactYen: recommended.exactYen,
-      display: recommended.display,
+      value: isRefund ? undefined : recommendedName,
+      amount: keyAmount,
+      exactYen: moneyValue(keyAmount),
+      display: formatYen(keyAmount),
     }) : undefined,
     conclusion: recommendedName
-      ? `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
+      ? isRefund
+        ? result.summary.title
+        : `今回の入力条件では、${recommendedName}が最も納税額の少ない試算となりました。`
       : undefined,
     differenceFromGeneral: generalDifference(result, methodResults, recommendedCode),
     simplifiedFilingGuidance: Boolean(simplified && simplified.eligibility === 'ineligible' &&
@@ -15211,6 +15296,7 @@ module.exports = Object.freeze({
   METHOD_LABELS,
   STATUS_SYMBOLS,
   formatYen,
+  formatTaxOutcome,
   buildResultViewModel,
 });
 

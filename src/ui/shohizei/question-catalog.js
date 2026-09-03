@@ -18,7 +18,6 @@ const DEFINITIONS = {
   SZ_BECAME_TAXABLE_BY_REGISTRATION_UNKNOWN: ['インボイス登録時の状況を確認してください', 'インボイス登録を機に免税事業者から課税事業者になったか入力してください。', 'input'],
   SZ_ENGINE_BLOCKED: ['税額を確定できません', '入力条件では税額計算を完了できませんでした。', 'consultation'],
   SZ_EXEMPTION_THRESHOLD_MASTER_BLOCKED: ['免税点を確認できません', '免税点の承認済みマスターを一意に選べません。', 'consultation'],
-  SZ_EXPORT_REFUND_FUTURE_EXTENSION: ['輸出免税売上は対応準備中です', '輸出免税を含む還付計算は将来拡張です。', 'information'],
   SZ_GENERAL_TAXABLE_PERSON: ['一般課税を利用できます', '課税事業者のため一般課税を利用できます。', 'information'],
   SZ_INVOICE_REGISTRATION_STATUS_REQUIRED: ['インボイス登録を確認してください', 'インボイス登録の有無を選択してください。', 'input'],
   SZ_NEW_COMPANY_EXEMPTION_UNSUPPORTED: ['新設法人の判定は専門確認が必要です', '新設法人・特定新設法人に関する特殊な免税点判定は専門確認が必要です。', 'consultation'],

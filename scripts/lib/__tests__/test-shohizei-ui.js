@@ -3,6 +3,8 @@
 /** ②消費税シミュレーターUI（U4）のDOM非依存受け入れテスト。 */
 
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const vm = require('vm');
 const { webcrypto } = require('crypto');
 const service = require('../../../src/simulators/shohizei/index.js');
@@ -21,6 +23,12 @@ const { withFakeDocument } = require('./helpers/fake-dom.js');
 
 const snapshotInfo = snapshot.getSnapshotInfo();
 const calculatedAt = '2026-08-29T12:00:00+09:00';
+const goldenDocument = JSON.parse(fs.readFileSync(path.join(
+  __dirname, '..', '..', '..', 'data', 'tax-simulator', 'golden-cases',
+  'official-examples.json'
+), 'utf8'));
+const exportMixedGolden = goldenDocument.cases.find(item =>
+  item.case_id === 'GC-CT-EXPORT-MIXED');
 let passed = 0;
 
 function check(label, action) {
@@ -80,6 +88,19 @@ function baseState(overrides = {}) {
 function run(formState, options) {
   const context = buildCalculationContext(formState, snapshotInfo, calculatedAt);
   const wire = buildShohizeiInput(formState, options);
+  const validation = service.validate(wire);
+  assert.strictEqual(validation.ok, true, JSON.stringify(validation.errors || []));
+  const result = service.simulate(validation.value, context, snapshotInfo);
+  return { context, wire, result, viewModel: buildResultViewModel(result) };
+}
+
+function runAtPeriod(formState, period) {
+  const context = {
+    ...buildCalculationContext(formState, snapshotInfo, calculatedAt),
+    consumptionTaxPeriod: { ...period },
+  };
+  const wire = buildShohizeiInput(formState);
+  for (const segment of [...wire.sales, ...wire.purchases]) segment.period = { ...period };
   const validation = service.validate(wire);
   assert.strictEqual(validation.ok, true, JSON.stringify(validation.errors || []));
   const result = service.simulate(validation.value, context, snapshotInfo);
@@ -197,6 +218,19 @@ function main() {
       app.destroy();
     });
   });
+  check('免税事業者×輸出売上は還付不可と課税事業者での再計算を案内する', () => {
+    const exemptExport = run(baseState({
+      invoiceRegistered: 'no', becameTaxableByRegistration: '',
+      basePeriodTaxableSales: '8000000',
+      specifiedPeriodTaxableSales: '8000000', specifiedPeriodSalaryPayments: '2000000',
+      simplifiedElectionStatus: 'no', simplifiedElectionEffectiveYear: '', simplifiedCategory: '',
+      salesStandard10: '0', salesExportExempt: '12000000',
+      purchasesWithInvoiceStandard10: '8800000',
+    }));
+    assert.strictEqual(exemptExport.viewModel.isExempt, true);
+    assert(exemptExport.viewModel.exemptNotice.includes('免税事業者は仕入税額の還付を受けられません'));
+    assert(exemptExport.viewModel.exemptNotice.includes('登録済みとして再計算'));
+  });
   check('簡易課税の届出未提出で届出案内フラグが立つ', () => {
     const noFiling = run(baseState({
       simplifiedElectionStatus: 'no', simplifiedElectionEffectiveYear: '', simplifiedCategory: '',
@@ -224,13 +258,57 @@ function main() {
   });
 
   process.stdout.write('\n=== 輸出・税込税抜・インボイスなし仕入 ===\n');
-  check('輸出売上は一般課税を確定せず、除外項目へ明示する', () => {
-    const exported = run(baseState({ salesExportExempt: '1000000' }));
-    const general = method(exported.viewModel, 'general');
-    assert.strictEqual(general.status, 'blocked');
-    assert.strictEqual(exported.viewModel.differenceFromGeneral.available, false);
-    assert(exported.viewModel.differenceFromGeneral.reason.includes('差額を表示しません'));
-    assert(exported.viewModel.excludedItems.some(item => item.code === 'SZ_EXPORT_REFUND_FUTURE_EXTENSION'));
+  const exported = runAtPeriod(baseState({
+    basePeriodTaxableSales: exportMixedGolden.inputs.base_period_taxable_sales,
+    simplifiedElectionEffectiveYear: '2026',
+    salesStandard10: exportMixedGolden.inputs.standard_rate_tax_inclusive_sales,
+    salesExportExempt: exportMixedGolden.inputs.export_exempt_sales,
+    purchasesWithInvoiceStandard10:
+      exportMixedGolden.inputs.standard_rate_tax_inclusive_purchases_with_invoice,
+    simplifiedCategory: `type${exportMixedGolden.inputs.simplified_business_type}`,
+  }), exportMixedGolden.inputs.taxable_period);
+  check('GC-CT-EXPORT-MIXEDの主役数値を概算還付額600,000円として表示する', () => {
+    const general = exported.viewModel.comparisonRows.find(row => row.methodCode === 'general');
+    const simplified = exported.viewModel.comparisonRows.find(row => row.methodCode === 'simplified');
+    assert.strictEqual(exported.result.periodLabel, '2026-01-01～2026-12-31');
+    assert.strictEqual(general.exactYen,
+      BigInt(exportMixedGolden.expected.general_total_payable));
+    assert.strictEqual(general.display, '還付 600,000円');
+    assert.strictEqual(simplified.exactYen,
+      BigInt(exportMixedGolden.expected.simplified_total_payable));
+    assert.strictEqual(simplified.display, '40,000円');
+    assert.strictEqual(exported.viewModel.recommendedMethodCode, 'general');
+    assert.strictEqual(exported.viewModel.keyResult.label, '概算還付額');
+    assert.strictEqual(exported.viewModel.keyResult.exactYen,
+      BigInt(exportMixedGolden.expected.total_refund));
+    assert.strictEqual(exported.viewModel.keyResult.display, '600,000円');
+    assert.strictEqual(exported.viewModel.excludedItems.length, 0);
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: exported.result, viewModel: exported.viewModel }));
+      const block = root.querySelector('.simulator-key-result');
+      assert(block.textContent.includes('概算還付額（この試算では）'));
+      assert(block.textContent.includes('600,000円'));
+      assert(root.textContent.includes('実額の仕入税額控除のため、控除不足額は還付の対象'));
+      assert(simplified.refundExplanation.includes(
+        'みなし仕入率で売上税額から控除額を算出するため、還付は生じません'));
+      app.destroy();
+    });
+  });
+  check('輸出欄と基準期間欄に§20の区別・算入ヘルプを表示する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      assert(root.textContent.includes('輸出免税売上も含めた金額'));
+      app.store.setState(state => ({ ...state, step: 2 }));
+      assert(root.textContent.includes('国内から商品を発送して海外へ販売した売上（eBay輸出など）'));
+      assert(root.textContent.includes('国外で完結する取引（不課税）は含めません'));
+      app.destroy();
+    });
   });
   check('税抜1,000万円と税込1,100万円で一般課税の納付額が一致する', () => {
     const exclusive = run(baseState({ salesStandard10: '10000000', salesStandard10Basis: 'exclusive' }));

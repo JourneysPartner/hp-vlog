@@ -362,18 +362,16 @@ const salesMatched = service.simulate(salesMatchedInput, context(), snapshotInfo
 assert(!warningCode(salesMatched, 'HJ_CONSUMPTION_TAX_SALES_MISMATCH'),
 '②両期間の税抜課税売上が①の各売上と一致すれば不突合警告を返さない');
 
-const consumptionBlockedInput = consumptionTaxIncludedInput();
-consumptionBlockedInput.consumptionTax.individualPeriodInput.sales[0].value.exportExempt =
+const consumptionExportInput = consumptionTaxIncludedInput();
+consumptionExportInput.consumptionTax.individualPeriodInput.sales[0].value.exportExempt =
   taxIncl(1100000);
-const consumptionBlocked = service.simulate(consumptionBlockedInput, context(), snapshotInfo);
-assert(consumptionBlocked.resultStatus === 'partial' &&
-  !Object.hasOwn(consumptionBlocked.breakdown.data.soleProprietor.burdens, 'consumptionTax') &&
-  !Object.hasOwn(consumptionBlocked.breakdown.data.corporation.burdens, 'consumptionTax') &&
-  consumptionBlocked.excludedItems.some(item =>
-    item.code === 'HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI') &&
-  !consumptionBlocked.excludedItems.some(item =>
-    item.code === 'HJ_CONSUMPTION_TAX_SERVICE_UNAVAILABLE'),
-'②がblockedなら消費税だけを新理由コードの除外項目へ落としてpartialにする');
+const consumptionExport = service.simulate(consumptionExportInput, context(), snapshotInfo);
+assert(consumptionExport.resultStatus === 'complete' &&
+  consumptionExport.breakdown.data.soleProprietor.burdens.consumptionTax.value === 200000n &&
+  consumptionExport.breakdown.data.corporation.burdens.consumptionTax.value === 200000n &&
+  !consumptionExport.excludedItems.some(item =>
+    item.code === 'HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI'),
+'②の輸出免税売上対応後は消費税を除外せず、両側の推奨納付額を反映する');
 
 const individualExemptInput = consumptionTaxIncludedInput();
 const exemptIndividual = individualExemptInput.consumptionTax.individualPeriodInput;

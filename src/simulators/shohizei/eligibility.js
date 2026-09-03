@@ -51,6 +51,8 @@ function periodInside(segment, taxablePeriod) {
 function globalBlockers(input, taxablePeriod) {
   const reasons = [];
   for (const [key, value] of Object.entries(input.specialistChecks || {})) {
+    // 輸出還付は§20対応済み。旧入力にフラグが残っていても全体を止めない。
+    if (key === 'exportRefund') continue;
     if (value === 'yes') {
       reasons.push(reason('SZ_SPECIALIST_CHECK_UNSUPPORTED', `$.specialistChecks.${key}`,
         'このシミュレーターだけでは正確な判定ができない可能性があります。'));
