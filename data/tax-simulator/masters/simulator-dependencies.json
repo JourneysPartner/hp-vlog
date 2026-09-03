@@ -55,6 +55,7 @@
             "corporate_inhabitant_income_rate_prefectural",
             "corporate_inhabitant_income_rate_municipal",
             "corporate_inhabitant_per_capita",
+            "corporate_inhabitant_per_capita_proration",
             "enterprise_tax_income_brackets",
             "special_enterprise_tax_rate"
           ]
@@ -422,6 +423,7 @@
             "corporate_inhabitant_income_rate_prefectural",
             "corporate_inhabitant_income_rate_municipal",
             "corporate_inhabitant_per_capita",
+            "corporate_inhabitant_per_capita_proration",
             "enterprise_tax_income_brackets",
             "special_enterprise_tax_rate"
           ]

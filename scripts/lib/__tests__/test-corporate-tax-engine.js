@@ -100,6 +100,35 @@ console.log('\n=== 赤字でも均等割 ===');
     amount(result.totalTax) === 70000n, '課税所得0でも均等割70,000円を返す');
 }
 
+console.log('\n=== 移行年度の均等割月割 ===');
+{
+  const result = engine.calculate(baseInput(2542200, {
+    comparisonBasis: 'transition_year',
+    capital: yen(1000000),
+    employeeCount: 0,
+    fiscalPeriod: { from: '2025-07-01', to: '2025-12-31' },
+  }));
+  assert(result.status === 'complete' && result.comparisonBasis === 'transition_year',
+    '6か月の初事業年度をtransition_yearとして計算する');
+  assert(amount(result.corporateInhabitantTax.prefecturalPerCapitaLevy) === 10000n &&
+    amount(result.corporateInhabitantTax.municipalPerCapitaLevy) === 25000n &&
+    amount(result.corporateInhabitantTax.perCapitaLevyTotal) === 35000n,
+  '都2万円・区5万円を別々に6/12月割して合計35,000円');
+}
+{
+  const result = engine.calculate(baseInput(2542200, {
+    comparisonBasis: 'transition_year',
+    capital: yen(1000000),
+    employeeCount: 0,
+    fiscalPeriod: { from: '2025-07-15', to: '2025-12-31' },
+  }));
+  assert(result.corporateInhabitantTax.perCapitaProrationMonths === 5 &&
+    amount(result.corporateInhabitantTax.prefecturalPerCapitaLevy) === 8300n &&
+    amount(result.corporateInhabitantTax.municipalPerCapitaLevy) === 20800n &&
+    amount(result.corporateInhabitantTax.perCapitaLevyTotal) === 29100n,
+  '7月15日設立は端数月を切り捨て、5か月・都8,300円＋区20,800円＝29,100円');
+}
+
 console.log('\n=== 繰越欠損金: 国税と地方税を混同しない ===');
 {
   const result = engine.calculate(baseInput(6000000, {
