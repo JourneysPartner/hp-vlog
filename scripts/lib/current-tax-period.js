@@ -122,6 +122,16 @@ function buildTaxPeriodBlock(now) {
 <strong>令和${p.currentTaxYearReiwa}年分を主軸</strong>にして書くこと。
 過去の年分に触れるときは「すでに申告が終わった年分」と分かるように書く。
 
+【ただし、年分そのものを説明しない】
+読者は自分がいつの話をしているか分かっています。年分は
+「令和${p.currentTaxYearReiwa}年分は〜です」と<strong>さらっと書くだけ</strong>にしてください。
+  ❌「いま働いている分は令和${p.currentTaxYearReiwa}年分（申告は令和${p.currentFilingYearReiwa}年2月〜3月）にあたり、〜」
+  ❌「いま稼いでいる分は令和${p.currentTaxYearReiwa}年分にあたります。判定は〜で行います」
+  ✓「令和${p.currentTaxYearReiwa}年分の基礎控除は104万円です」
+  ✓ 表の見出しは「令和${p.currentTaxYearReiwa}年分」だけでよい
+    （「令和${p.currentTaxYearReiwa}年分＝いま働いている分」のような言い添えは不要）
+年分の説明に字数を使うと、読みたい中身が後ろに追いやられて堅苦しくなります。
+
 【よくある事故】
 - 令和${p.previousTaxYearReiwa}年分を「現在」として書いてしまう
 - すでに適用が始まっている令和${p.currentTaxYearReiwa}年分の制度を
