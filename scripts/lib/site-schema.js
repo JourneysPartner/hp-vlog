@@ -47,8 +47,9 @@ function organizationSchema() {
     }],
     founder: { '@id': PERSON_ID },
     knowsAbout: ['税務', '所得税', '消費税', 'インボイス制度', '相続税', '税務調査', 'eBay輸出', '越境EC', 'ネット販売', '記帳代行'],
-    // 税理士会名簿・SNS などのURLは裏付けが要るので空のまま（毛利が後で追加）
-    sameAs: [],
+    // 事務所の公式アカウント。追跡用の引数（?igsh= など）は付けない。
+    // 税理士会名簿などは裏付けが来たら足す（2026-09-03 毛利より Instagram のみ）
+    sameAs: ['https://www.instagram.com/guardian_tax_ac/'],
   };
 }
 

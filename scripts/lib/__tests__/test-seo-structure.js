@@ -67,7 +67,8 @@ for (const page of STATIC) {
   assert(hasType(ld, 'WebSite'), 'index.html: WebSite の構造化データ');
   const org = ld.find(o => Array.isArray(o['@type']) && o['@type'].includes('Organization'));
   assert(org && !org.address, '事務所の構造化データに住所が無い（決定事項）');
-  assert(org && Array.isArray(org.sameAs) && org.sameAs.length === 0, 'sameAs は空（裏付けの無い値を作らない）');
+  assert(org && Array.isArray(org.sameAs) && org.sameAs.length === 1
+    && org.sameAs[0] === 'https://www.instagram.com/guardian_tax_ac/', 'sameAs は毛利から受け取った Instagram の URL だけ（追跡用の引数なし）');
   assert(!jsonLd(read('about.html')).some(o => o['@type'] === 'WebSite'), 'WebSite はトップだけ');
 }
 
