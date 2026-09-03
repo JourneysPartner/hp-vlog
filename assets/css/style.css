@@ -1694,3 +1694,9 @@ select.form-control-custom { cursor: pointer; }
 @media (max-width: 991.98px) {
   .navbar .dropdown-menu { border: 0; box-shadow: none; padding-left: 12px; }
 }
+
+/* ── 27. 料金の目安表（料金ページ第2版）── */
+.pricing-table th[scope="row"] { white-space: nowrap; color: var(--color-secondary); }
+.pricing-table td small { color: var(--color-text-muted); font-size: 0.82rem; }
+.pricing-table td strong { color: var(--color-secondary); }
+@media (max-width: 575.98px) { .pricing-table th[scope="row"] { white-space: normal; } }

@@ -75,13 +75,21 @@ for (const slug of SERVICES) {
 }
 
 console.log('');
-console.log('=== 3. 料金ページ（第1版は金額なし）===');
+console.log('=== 3. 料金ページ（第2版: 毛利確定の目安表）===');
 {
   const html = read('pricing/index.html');
-  const body = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   assert(/<h1[^>]*>料金の考え方<\/h1>/.test(html), 'H1 が「料金の考え方」');
-  assert(!/[0-9０-９,]+\s*(円|万円)/.test(body), '金額表記（円・万円）が無い');
-  assert(html.includes('<!-- PRICE_TABLE:'), '金額追記用のコメントがある');
+  // 2026-09-03 に毛利が確定した金額。ここを変えるときは毛利の確認を取る
+  const confirmed = ['月額 10,000円〜', '年額 50,000円〜', '月額 15,000円〜', '年額 100,000円〜', '月額 4,000円〜',
+    '50,000円〜', '98,000円〜', '還付額の 5%〜', '最低 50,000円', '遺産総額の 0.5%〜1.0%', '最低 200,000円',
+    '立会い 50,000円／日', '設立サポート 50,000円〜'];
+  const missing = confirmed.filter(s => !html.includes(s));
+  assert(missing.length === 0, `確定した金額がすべて載る${missing.length ? '（無い: ' + missing.join(', ') + '）' : ''}`);
+  assert(html.includes('料金の目安') && html.includes('pricing-table'), '目安表の節がある');
+  assert(!/見本|仮の数字|PRICE_TABLE/.test(html), '見本の表示や追記用コメントが残っていない');
+  assert(html.includes('表示はすべて税込です'), '税込表示の断りがある');
+  assert(html.includes('記帳・試算表の報告（頻度は契約内容による）'), '顧問の含まれるものが毛利指示の文言');
+  assert(html.includes('可能です。※ご契約内容による。'), '解約FAQが毛利指示の文言');
   assert(html.includes('<link rel="canonical" href="https://mori-zeirishi.net/pricing/">'), 'canonical が /pricing/');
   const ld = jsonLd(html);
   assert(hasType(ld, 'FAQPage') && hasType(ld, 'BreadcrumbList'), 'FAQ とパンくずの構造化データ');
