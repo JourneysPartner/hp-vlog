@@ -1604,3 +1604,70 @@ select.form-control-custom { cursor: pointer; }
   .hero-stats { grid-template-columns: 1fr 1fr; }
   .hero-stats .hero-stat-box:last-child { grid-column: 1 / -1; }
 }
+
+/* ── 23. 執筆者欄（記事末尾・段階1 R5）── */
+.author-box {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 2.5rem 0 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+.author-box-photo { flex: 0 0 auto; }
+.author-box-photo img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 3px solid #fff;
+  box-shadow: var(--shadow-sm);
+}
+.author-box-body { min-width: 0; }
+.author-box-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.author-box-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  line-height: 1.4;
+}
+.author-box-title {
+  display: inline-block;
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-left: 8px;
+}
+.author-box-text {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin: 8px 0 10px;
+  line-height: 1.8;
+}
+.author-box-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 0.85rem;
+}
+.author-box-links a {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.author-box-links a:hover { text-decoration: underline; }
+@media (max-width: 575.98px) {
+  .author-box { flex-direction: column; align-items: center; text-align: center; }
+  .author-box-links { justify-content: center; }
+}

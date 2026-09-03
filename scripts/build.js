@@ -10,7 +10,17 @@ const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getM
   require('./lib/blog-taxonomy');
 const { generateSimulatorPublishing, validatePublishConfig } = require('./lib/publish-prep');
 const { generateSimulatorCta } = require('./lib/simulator-cta');
-const { generateRobotsTxt, generateSitemapXml } = require('./lib/sitemap');
+const { generateRobotsTxt, generateSitemapXml, EXCLUDED_STATIC_PAGES } = require('./lib/sitemap');
+const {
+  BASE_URL, organizationSchema, personSchema, websiteSchema,
+  breadcrumbSchema, faqSchema, articleSchema, jsonLdScripts,
+} = require('./lib/site-schema');
+const { extractFaq } = require('./lib/faq-extractor');
+const { assignHubMacro, hubMacroOf } = require('./lib/hub-membership');
+const { execFileSync } = require('child_process');
+
+// ビルドログ用（R11: FAQ を出した記事数・執筆者欄を付けた記事数・業種の振り分け）
+const buildStats = { faqPosts: 0, authorBoxPosts: 0 };
 
 // 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
 // renderer 拡張を一度だけ適用する（marked は module singleton）。
@@ -49,6 +59,10 @@ const ANALYTICS_BEACON = `
 // ── 共通パーシャル読み込み ──────────────────────────────────────
 const HEADER_HTML = fs.readFileSync(path.join(PARTIALS, 'header.html'), 'utf8');
 const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
+// <head> の共通部分（canonical / OG）。ページごとの値は buildStaticPages で埋める。
+const HEAD_COMMON_TPL = fs.readFileSync(path.join(PARTIALS, 'head-common.html'), 'utf8');
+// 記事末尾の執筆者欄。全記事に同じものを付ける（記事本文は変更しない）。
+const AUTHOR_BOX_HTML = fs.readFileSync(path.join(PARTIALS, 'author-box.html'), 'utf8');
 
 // ── テンプレート読み込み ─────────────────────────────────────────
 function readTemplate(name) {
@@ -59,7 +73,8 @@ function readTemplate(name) {
 function injectPartials(html) {
   return html
     .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
-    .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML);
+    .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML)
+    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML);
 }
 
 function injectAnalyticsBeacon(html) {
@@ -161,7 +176,9 @@ function renderMacroPills(allPosts, { activeSlug = null, allRoot = false, active
   const macroCounts = new Map();
   const catCounts   = new Map();
   for (const p of allPosts) {
-    if (p.macro)    macroCounts.set(p.macro,    (macroCounts.get(p.macro) || 0) + 1);
+    // 業種の件数は「業種ページに載る記事」と一致させる（ペルソナ由来の所属を使う）
+    const hub = hubMacroOf(p);
+    if (hub)        macroCounts.set(hub,        (macroCounts.get(hub) || 0) + 1);
     if (p.category) catCounts.set(p.category,   (catCounts.get(p.category) || 0) + 1);
   }
 
@@ -337,6 +354,16 @@ function buildListPageHtml({
   const grid     = renderListGrid(pagePosts);
   const pg       = renderPagination(currentPage, totalPages, basePath);
   const canonical = vars.CANONICAL || pageUrl(basePath, currentPage);
+
+  // パンくず: ホーム › 税務コラム › {見出し}（/blog/ 自体は2段）
+  const crumbs = [{ name: 'ホーム', url: '/' }, { name: '税務コラム', url: '/blog/' }];
+  if (basePath !== '/blog/') crumbs.push({ name: stripTags(vars.PAGE_HEADING), url: basePath });
+  const structured = jsonLdScripts([
+    organizationSchema(),
+    personSchema(),
+    breadcrumbSchema(crumbs),
+  ]);
+
   return render(tpl, {
     PAGE_TITLE:        vars.PAGE_TITLE,
     PAGE_HEADING:      vars.PAGE_HEADING,
@@ -349,6 +376,8 @@ function buildListPageHtml({
     SIDEBAR_HTML:      sidebar,
     POSTS_HTML:        grid,
     PAGINATION_HTML:   pg,
+    BREADCRUMB_HTML:   breadcrumbHtml(crumbs),
+    STRUCTURED_DATA:   structured,
   });
 }
 
@@ -405,23 +434,35 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     ? `<span>更新日：${updatedDate}</span>`
     : '';
 
-  const structuredData = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
+  const postUrl = `${BASE_URL}/blog/${post.slug}/`;
+
+  // 記事の構造化データ。publisher / author は事務所・代表の @id を参照する。
+  const structuredData = JSON.stringify(articleSchema({
+    title: post.title,
     description: post.summary || '',
+    url: postUrl,
     datePublished: publishDateISO,
     dateModified: updatedDateISO,
-    author: {
-      '@type': 'Person',
-      name: '毛利順活',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: '毛利順活税理士事務所',
-      url: 'https://mori-zeirishi.net',
-    },
-  });
+  })).replace(/</g, '\\u003c');
+
+  // パンくず: ホーム › 税務コラム › {カテゴリ} › {記事}。
+  // カテゴリが一覧の定義に無い（例: 法人税）ときはカテゴリ段を省く。
+  const catMeta = getCategoryMeta(post.category);
+  const crumbs = [{ name: 'ホーム', url: '/' }, { name: '税務コラム', url: '/blog/' }];
+  if (catMeta) crumbs.push({ name: catMeta.ja, url: `/blog/category/${catMeta.slug}/` });
+  crumbs.push({ name: post.title, url: `/blog/${post.slug}/` });
+
+  // FAQ（「## よくある質問」節がある記事だけ）
+  const faq = extractFaq(post._body);
+  if (faq.length > 0) buildStats.faqPosts++;
+  buildStats.authorBoxPosts++;
+
+  const extraStructuredData = jsonLdScripts([
+    organizationSchema(),
+    personSchema(),
+    breadcrumbSchema(crumbs),
+    faqSchema(faq),
+  ]);
 
   const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap);
   const simulatorCtaHtml = generateSimulatorCta(post, publishConfig);
@@ -440,6 +481,8 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     SOURCE_URL:       escAttr(post.source_url || ''),
     SOURCE_TITLE:     escHtml(post.source_title || post.source_url || ''),
     STRUCTURED_DATA:  structuredData,
+    EXTRA_STRUCTURED_DATA: extraStructuredData,
+    BREADCRUMB_HTML:  breadcrumbHtml(crumbs),
     RELATED_ARTICLE_HTML: relatedArticleHtml,
   });
 }
@@ -454,6 +497,55 @@ function escHtml(str) {
 }
 function escAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function stripTags(str) {
+  return String(str || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// ── パンくず（表示用）────────────────────────────────────────────
+// style.css の .breadcrumb-custom（濃色背景向け）をそのまま使う。
+// 最後の要素は現在ページなのでリンクにしない。
+function breadcrumbHtml(items) {
+  const list = (items || []).filter(i => i && i.name);
+  if (list.length === 0) return '';
+  const parts = list.map((item, i) => {
+    const last = i === list.length - 1;
+    return last
+      ? `<span aria-current="page">${escHtml(item.name)}</span>`
+      : `<a href="${escAttr(item.url)}">${escHtml(item.name)}</a>`;
+  });
+  return `<nav class="breadcrumb-custom" aria-label="パンくず">${parts.join('<span class="sep">›</span>')}</nav>`;
+}
+
+// ── 静的ページの最終更新日（sitemap の lastmod 用）──────────────
+// git の最終コミット日を使う。取れない環境（浅いクローンなど）では空にして省略する。
+function gitLastCommitDate(relPath) {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', relPath], {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : '';
+  } catch (_error) {
+    return '';
+  }
+}
+
+// ── 静的ページの <head> 共通部分 ─────────────────────────────────
+// canonical / OG をページごとの値で埋める。404 は検索対象外なので canonical を出さない。
+function renderHeadCommon(page, src) {
+  const titleMatch = src.match(/<title>([\s\S]*?)<\/title>/i);
+  const descMatch  = src.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  const canonicalPath = page === 'index.html' ? '/' : `/${page}`;
+  let head = render(HEAD_COMMON_TPL, {
+    CANONICAL_PATH:  canonicalPath,
+    OG_TYPE:         'website',
+    OG_TITLE:        titleMatch ? titleMatch[1].trim() : '毛利順活税理士事務所',
+    OG_DESCRIPTION:  descMatch ? descMatch[1] : '',
+  });
+  if (page === '404.html') {
+    head = head.split('\n').filter(line => !/rel="canonical"/.test(line)).join('\n');
+  }
+  return head.trim();
 }
 
 // ── トップページ用: 最新記事カード（style.css の .post-card を使用）──
@@ -499,8 +591,16 @@ function buildStaticPages(posts) {
 
   for (const page of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
+
+    // 事務所・代表の構造化データを全ページに。トップだけ WebSite も付ける。
+    const schemas = [organizationSchema(), personSchema()];
+    if (page === 'index.html') schemas.push(websiteSchema());
+    const structured = `  ${jsonLdScripts(schemas)}\n</head>`;
+
     const html = injectAnalyticsBeacon(injectPartials(src))
-      .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml);
+      .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(page, src))
+      .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml)
+      .replace('</head>', structured);
     fs.writeFileSync(path.join(ROOT, page), html, 'utf8');
     console.log(`[build]   → ${page}`);
   }
@@ -509,7 +609,8 @@ function buildStaticPages(posts) {
 function writeAnalyticsPageMap(posts) {
   const map = {};
   if (fs.existsSync(PAGES_DIR)) {
-    for (const page of fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html'))) {
+    // 404 は計測対象にしない（検索対象外・存在しないURLへのアクセス）
+    for (const page of fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html') && f !== '404.html')) {
       const raw = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
       const match = raw.match(/<title>([\s\S]*?)<\/title>/i);
       const title = match ? match[1].trim().replace(/｜毛利順活税理士事務所$/, '') : page;
@@ -522,7 +623,7 @@ function writeAnalyticsPageMap(posts) {
     if (posts.some(post => post.category === category.ja)) map[`/blog/category/${category.slug}/`] = `${category.ja}の記事一覧`;
   }
   for (const macro of MACROS) {
-    if (posts.some(post => post.macro === macro.ja)) map[`/blog/macro/${macro.slug}/`] = `${macro.ja}向けの記事`;
+    if (posts.some(post => hubMacroOf(post) === macro.ja)) map[`/blog/macro/${macro.slug}/`] = `${macro.ja}向けの記事`;
   }
   fs.writeFileSync(path.join(ROOT, 'analytics-page-map.json'), `${JSON.stringify(map, null, 2)}\n`, 'utf8');
   console.log(`[build]   → analytics-page-map.json (${Object.keys(map).length} 件)`);
@@ -535,6 +636,11 @@ function main() {
     fs.readFileSync(PUBLISH_CONFIG_PATH, 'utf8')
   ));
   console.log(`[build] 公開済み記事: ${posts.length} 件`);
+
+  // 業種ハブへの所属を決める（frontmatter は変更しない。ペルソナ→業種で全記事を振り分ける）
+  const hubCounts = assignHubMacro(posts);
+  const hubSummary = [...hubCounts.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}:${v}`).join(', ');
+  console.log(`[build] 業種ハブへの振り分け: ${posts.length} 件（${hubSummary}）`);
 
   // 1. 静的ページ生成（テンプレートにパーシャルと最新記事を注入してルートへ出力）
   console.log('[build] 静的ページを生成しています...');
@@ -606,7 +712,7 @@ function main() {
 
   // マクロ（業種）別ページ
   for (const m of MACROS) {
-    const filtered = posts.filter(p => p.macro === m.ja);
+    const filtered = posts.filter(p => hubMacroOf(p) === m.ja);
     if (filtered.length === 0) continue;
     writePaginatedListing({
       tpl: listTpl,
@@ -634,9 +740,18 @@ function main() {
   console.log('[build]   → tools/corrections/index.html');
 
   // サイトマップは、上で実際に生成した固定ページ・記事・公開ツールだけを収録する。
+  // 静的ページの lastmod は git の最終コミット日（取れなければ省略）。
+  const staticPageFiles = listStaticPageFiles();
+  const staticLastmod = {};
+  for (const file of staticPageFiles) {
+    if (EXCLUDED_STATIC_PAGES.has(file) && file !== 'index.html') continue;
+    const d = gitLastCommitDate(`templates/pages/${file}`);
+    if (d) staticLastmod[file] = d;
+  }
   const sitemapXml = generateSitemapXml({
     posts,
-    staticPageFiles: listStaticPageFiles(),
+    staticPageFiles,
+    staticLastmod,
     publishConfig,
     correctionsGenerated: fs.existsSync(path.join(ROOT, 'tools', 'corrections', 'index.html')),
   });
@@ -644,6 +759,7 @@ function main() {
   fs.writeFileSync(path.join(ROOT, 'robots.txt'), generateRobotsTxt(), 'utf8');
   console.log('[build]   → sitemap.xml / robots.txt');
 
+  console.log(`[build] FAQ の構造化データ: ${buildStats.faqPosts} 件 ／ 執筆者欄: ${buildStats.authorBoxPosts} 件`);
   console.log('[build] 完了');
 }
 

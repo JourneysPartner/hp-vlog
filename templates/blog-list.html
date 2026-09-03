@@ -7,6 +7,14 @@
   <title>{{PAGE_TITLE}}</title>
   <meta name="description" content="{{META_DESCRIPTION}}">
   <link rel="canonical" href="https://mori-zeirishi.net{{CANONICAL_URL}}">
+  <meta property="og:site_name" content="毛利順活税理士事務所">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{PAGE_TITLE}}">
+  <meta property="og:description" content="{{META_DESCRIPTION}}">
+  <meta property="og:url" content="https://mori-zeirishi.net{{CANONICAL_URL}}">
+  <meta property="og:image" content="https://mori-zeirishi.net/assets/images/og-default.png">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Old+Mincho:wght@700;900&display=swap" rel="stylesheet">
@@ -15,6 +23,7 @@
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="stylesheet" href="/assets/css/blog.css">
+  {{STRUCTURED_DATA}}
 </head>
 <body>
 
@@ -26,6 +35,7 @@
     <span class="section-label">{{SECTION_LABEL}}</span>
     <h1 class="page-hero-title">{{PAGE_HEADING}}</h1>
     <p class="page-hero-lead">{{PAGE_LEAD}}</p>
+    {{BREADCRUMB_HTML}}
   </div>
 </section>
 
