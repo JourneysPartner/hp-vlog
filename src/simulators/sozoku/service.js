@@ -100,14 +100,6 @@ function uniqueWarnings(items) {
 
 function supportedProfileReasons(input) {
   const reasons = [];
-  if (input.level === 3) {
-    reasons.push(blockedReason('SOZOKU_LEVEL3_UNSUPPORTED', '$.level',
-      'LEVEL 3（二次相続）は第1版の対応範囲外です'));
-  }
-  if (input.secondaryInheritance !== undefined) {
-    reasons.push(blockedReason('SOZOKU_SECONDARY_INHERITANCE_UNSUPPORTED',
-      '$.secondaryInheritance', '二次相続の入力は第1版の対応範囲外です'));
-  }
   if (input.assets.settlementTaxationGifts !== undefined) {
     reasons.push(blockedReason('IHT_SETTLEMENT_TAXATION_UNSUPPORTED',
       '$.assets.settlementTaxationGifts', '相続時精算課税適用財産は相続税エンジン第1版の対象外です'));
@@ -139,7 +131,7 @@ function supportedProfileReasons(input) {
         `${path}.ownershipShare`,
         '共有持分適用前後の評価額を判別できません。持分反映済みの評価額を入力してください'));
     }
-    if (input.level === 2 && item.kind !== 'appraised') {
+    if (input.level >= 2 && item.kind !== 'appraised') {
       reasons.push(blockedReason('SOZOKU_LEVEL2_DIRECT_APPRAISAL_REQUIRED', path,
         'LEVEL 2では不動産の相続税評価額を直接入力してください'));
     }
@@ -613,7 +605,7 @@ function blockedCalculation(reasons) {
   };
 }
 
-function calculate(input, context) {
+function calculatePrimary(input, context) {
   const onDate = inheritanceOpenDateFrom(context);
   const blockers = supportedProfileReasons(input);
   if (blockers.length > 0) return blockedCalculation(blockers);
@@ -772,8 +764,193 @@ function calculate(input, context) {
   };
 }
 
+/**
+ * 配偶者の二次相続時点の財産を組成する純関数。
+ * 金額・率はすべて厳密値のまま扱い、経年仮定は各年ごとに1円未満を切り捨てる。
+ */
+function composeSecondaryEstate({
+  spouseOwnAssets,
+  spouseAcquiredAmount,
+  spousePrimaryTax,
+  yearsUntilSecondary = 0,
+  annualLivingCost = zeroMoney(),
+  annualAssetChangeRate = rate({ num: 0n, den: 1n }),
+}) {
+  let estate = addMoney(spouseOwnAssets, spouseAcquiredAmount);
+  estate = subtractMoney(estate, spousePrimaryTax);
+  if (estate.value < 0n) estate = zeroMoney();
+
+  const years = yearsUntilSecondary || 0;
+  const change = rate(annualAssetChangeRate);
+  const factor = rate({ num: change.den + change.num, den: change.den });
+  for (let year = 0; year < years; year++) {
+    const afterLivingCost = subtractMoney(estate, annualLivingCost || zeroMoney());
+    if (afterLivingCost.value <= 0n) {
+      estate = zeroMoney();
+      break;
+    }
+    estate = applyRounding(multiplyRateByMoney(factor, afterLivingCost), ONE_YEN_ROUNDING);
+    if (estate.value < 0n) {
+      estate = zeroMoney();
+      break;
+    }
+  }
+  return estate;
+}
+
+function secondaryDivisionShares(input, onDate, spouseId, percent) {
+  const legal = legalShares(input.heirs, onDate);
+  if (legal.blockedReasons) return legal;
+  const others = legal.shares.filter(row => row.heirId !== spouseId);
+  if (others.length === 0 && percent !== 100) {
+    return { blockedReasons: [blockedReason('IHT_NO_STATUTORY_HEIR', '$.heirs',
+      '配偶者以外の法定相続人がいないため取得割合を走査できません')] };
+  }
+  const remaining = BigInt(100 - percent);
+  const otherTotal = others.reduce((total, row) => addRates(total, rate(row.share)),
+    rate({ num: 0n, den: 1n }));
+  const shares = [{ heirId: spouseId, share: rate({ num: BigInt(percent), den: 100n }) }];
+  for (const row of others) {
+    const legalShare = rate(row.share);
+    shares.push({
+      heirId: row.heirId,
+      share: rate({
+        num: remaining * legalShare.num * otherTotal.den,
+        den: 100n * legalShare.den * otherTotal.num,
+      }),
+    });
+  }
+  return { shares };
+}
+
+function secondaryTax(estate, expectedHeirs, onDate) {
+  const count = expectedHeirs.length;
+  const quotient = estate.value / BigInt(count);
+  const remainder = estate.value - quotient * BigInt(count);
+  const people = expectedHeirs.map((heir, index) => ({
+    id: heir.id || `secondary-heir-${index + 1}`,
+    relation: heir.relation === 'child' ? 'child' : 'sibling_full',
+    isAlive: true,
+    residencyStatus: 'domestic_resident',
+    ordinaryAssets: yen(quotient + (index === 0 ? remainder : 0n)),
+    divisionShare: rate({ num: 1n, den: BigInt(count) }),
+  }));
+  const result = inheritanceTax.calculate({
+    people,
+    decedent: {},
+    isDivided: 'yes',
+    applySpouseRelief: false,
+    giftAddback: [],
+  }, { onDate });
+  if (result.status !== 'complete') return { blockedReasons: engineBlockedReasons(result) };
+  return { tax: totalPayable(result), engineResult: result };
+}
+
+function calculateSecondaryInheritance(input, context, primaryCalculation) {
+  const onDate = inheritanceOpenDateFrom(context);
+  const secondary = input.secondaryInheritance;
+  const spouse = input.heirs.find(heir => heir.relation === 'spouse');
+  if (!spouse || primaryCalculation.resultStatus !== 'complete') return null;
+  if (secondary.expectedHeirs.length === 0) {
+    return { blockedReasons: [blockedReason('SOZOKU_SECONDARY_HEIRS_REQUIRED',
+      '$.secondaryInheritance.expectedHeirs', '二次相続の想定相続人を1人以上指定してください')] };
+  }
+
+  const scenarios = [];
+  for (let percent = 0; percent <= 100; percent += 10) {
+    const selected = secondaryDivisionShares(input, onDate, spouse.id, percent);
+    if (selected.blockedReasons) return { blockedReasons: selected.blockedReasons };
+    const scenarioInput = {
+      ...input,
+      level: 2,
+      division: {
+        isDivided: 'yes',
+        dividedAfterFilingDeadline: 'no',
+        acquisitions: selected.shares,
+      },
+    };
+    delete scenarioInput.secondaryInheritance;
+    const primary = calculatePrimary(scenarioInput, context);
+    if (primary.resultStatus !== 'complete') return { blockedReasons: primary.warnings };
+
+    const primaryPayable = primary.summary.amount;
+    const spouseAllocation = primary.breakdown.data.allocations.find(row => row.heirId === spouse.id);
+    const spousePrimaryTax = spouseAllocation ? spouseAllocation.finalTax : zeroMoney();
+    const spouseAcquiredAmount = applyRounding(multiplyRateByMoney(
+      rate({ num: BigInt(percent), den: 100n }),
+      primary.breakdown.data.taxablePriceTotal
+    ), ONE_YEN_ROUNDING);
+    const secondaryEstate = composeSecondaryEstate({
+      spouseOwnAssets: secondary.spouseOwnAssets,
+      spouseAcquiredAmount,
+      spousePrimaryTax,
+      yearsUntilSecondary: secondary.yearsUntilSecondary,
+      annualLivingCost: secondary.annualLivingCost,
+      annualAssetChangeRate: secondary.annualAssetChangeRate,
+    });
+    const calculatedSecondary = secondaryTax(secondaryEstate, secondary.expectedHeirs, onDate);
+    if (calculatedSecondary.blockedReasons) return calculatedSecondary;
+    scenarios.push({
+      spouseAcquisitionPercent: percent,
+      spouseAcquisitionRatio: rate({ num: BigInt(percent), den: 100n }),
+      primaryPayableTotal: primaryPayable,
+      spousePrimaryPayable: spousePrimaryTax,
+      spouseAcquiredAmount,
+      secondaryEstate,
+      secondaryTaxTotal: calculatedSecondary.tax,
+      combinedTaxTotal: addMoney(primaryPayable, calculatedSecondary.tax),
+    });
+  }
+  const minimum = scenarios.reduce((best, scenario) =>
+    scenario.combinedTaxTotal.value < best.combinedTaxTotal.value ? scenario : best);
+  return {
+    scenarios,
+    minimumSpouseAcquisitionPercent: minimum.spouseAcquisitionPercent,
+    minimumCombinedTaxTotal: minimum.combinedTaxTotal,
+    successiveInheritanceCreditPossible: scenarios.some(row => row.spousePrimaryPayable.value > 0n) &&
+      (secondary.yearsUntilSecondary === undefined || secondary.yearsUntilSecondary <= 10),
+    yearsUntilSecondary: secondary.yearsUntilSecondary,
+    annualLivingCost: secondary.annualLivingCost,
+    annualAssetChangeRate: secondary.annualAssetChangeRate,
+  };
+}
+
+function calculate(input, context) {
+  const primary = calculatePrimary(input, context);
+  if (!input.secondaryInheritance || input.level === 1 || primary.resultStatus !== 'complete') {
+    return primary;
+  }
+  const secondary = calculateSecondaryInheritance(input, context, primary);
+  if (secondary && secondary.blockedReasons) return blockedCalculation(secondary.blockedReasons);
+  if (!secondary) return primary;
+  return {
+    ...primary,
+    breakdown: {
+      ...primary.breakdown,
+      data: { ...primary.breakdown.data, secondaryInheritance: secondary },
+    },
+    assumptions: [...new Set([
+      ...primary.assumptions,
+      '二次相続の走査では、実際の分割状況にかかわらず分割済みとして配偶者の税額軽減を適用しています',
+      '二次相続では配偶者の税額軽減・保険非課税・小規模宅地等・生前贈与加算・各種控除を適用していません',
+      '相次相続控除はこの試算に適用していません',
+    ])],
+  };
+}
+
 function validate(wireInput) {
-  return validateInput('sozoku', wireInput);
+  const validation = validateInput('sozoku', wireInput);
+  if (!validation.ok) return validation;
+  if (validation.value.secondaryInheritance &&
+      validation.value.secondaryInheritance.expectedHeirs.length === 0) {
+    return {
+      ok: false,
+      errors: [warning('SOZOKU_SECONDARY_HEIRS_REQUIRED',
+        '$.secondaryInheritance.expectedHeirs', '二次相続の想定相続人を1人以上指定してください')],
+      normalizationSuggestions: [],
+    };
+  }
+  return validation;
 }
 
 function simulate(input, context, masters) {
@@ -805,4 +982,4 @@ function simulate(input, context, masters) {
   });
 }
 
-module.exports = Object.freeze({ validate, simulate });
+module.exports = Object.freeze({ validate, simulate, composeSecondaryEstate });

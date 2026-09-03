@@ -78,7 +78,7 @@ function realEstateRows(formState, level, errors) {
         '相続税評価額が分かるか選択してください'));
     }
     const directlyAppraised = known === 'yes' || known === true;
-    if (level === 2 && !directlyAppraised) {
+    if (level >= 2 && !directlyAppraised) {
       errors.push(issue('SOZOKU_LEVEL2_DIRECT_APPRAISAL_REQUIRED', path,
         'LEVEL 2では不動産の相続税評価額を直接入力してください'));
     }
@@ -263,6 +263,59 @@ function yesOrUnknown(value) {
   return value === true || value === 'yes' || value === 'unknown' || value === 'ある' || value === '不明';
 }
 
+function secondaryInheritance(formState, heirs, errors) {
+  const enteredCount = String(formState.secondaryHeirCount ?? '').trim();
+  const countText = enteredCount === ''
+    ? String(heirs.filter(heir => heir.relation !== 'spouse').length)
+    : enteredCount;
+  if (!/^\d+$/.test(countText) || BigInt(countText) === 0n || BigInt(countText) > 100n) {
+    errors.push(issue('SOZOKU_SECONDARY_HEIRS_REQUIRED',
+      '$.secondaryInheritance.expectedHeirs', '二次相続の想定相続人を1人以上で入力してください'));
+  }
+  const count = /^\d+$/.test(countText) && BigInt(countText) > 0n && BigInt(countText) <= 100n
+    ? Number(countText) : 0;
+  const relationCategory = formState.secondaryHeirRelation || 'child';
+  if (!['child', 'other'].includes(relationCategory)) {
+    errors.push(issue('SOZOKU_SECONDARY_RELATION_REQUIRED',
+      '$.secondaryInheritance.expectedHeirs', '二次相続の想定相続人の続柄を選択してください'));
+  }
+  const yearsText = String(formState.yearsUntilSecondary ?? '').trim();
+  let years;
+  if (yearsText !== '') {
+    if (!/^\d+$/.test(yearsText) || Number(yearsText) > 100) {
+      errors.push(issue('SOZOKU_SECONDARY_YEARS_INVALID',
+        '$.secondaryInheritance.yearsUntilSecondary', '二次相続までの想定年数を0以上の整数で入力してください'));
+    } else years = Number(yearsText);
+  }
+  const rateText = String(formState.annualAssetChangeRate ?? '0');
+  if (!/^-?[0-5]$/.test(rateText)) {
+    errors.push(issue('SOZOKU_SECONDARY_RATE_INVALID',
+      '$.secondaryInheritance.annualAssetChangeRate', '年間の財産増減率を▲5%〜+5%から選択してください'));
+  }
+  const result = {
+    spouseOwnAssets: money(formState.spouseOwnAssets,
+      '$.secondaryInheritance.spouseOwnAssets.value', errors),
+    spouseAcquisitionRatios: Array.from({ length: 11 }, (_, index) => ({
+      num: String(index * 10), den: '100',
+    })),
+    expectedHeirs: Array.from({ length: count }, (_, index) => ({
+      id: `secondary-heir-${index + 1}`,
+      relation: relationCategory === 'child' ? 'child' : 'sibling_full',
+      isAlive: true,
+      residencyStatus: 'domestic_resident',
+    })),
+  };
+  if (years !== undefined) {
+    result.yearsUntilSecondary = years;
+    result.annualLivingCost = optionalAssetMoney(formState.annualLivingCost,
+      '$.secondaryInheritance.annualLivingCost.value', errors);
+    result.annualAssetChangeRate = {
+      num: /^-?[0-5]$/.test(rateText) ? rateText : '0', den: '100',
+    };
+  }
+  return result;
+}
+
 function buildSozokuInputWithMeta(formState) {
   if (!formState || typeof formState !== 'object') {
     throw new TypeError('フォーム状態はオブジェクトで指定してください');
@@ -277,8 +330,8 @@ function buildSozokuInputWithMeta(formState) {
     heirs = [];
   }
   const level = Number(formState.level || 1);
-  if (![1, 2].includes(level)) errors.push(issue('SOZOKU_UI_LEVEL_INVALID', '$.level',
-    '計算レベルは1または2で指定してください'));
+  if (![1, 2, 3].includes(level)) errors.push(issue('SOZOKU_UI_LEVEL_INVALID', '$.level',
+    '計算レベルは1〜3で指定してください'));
   const giftStatus = formState.hasGiftAddback ?? formState.giftAddbackStatus;
   const settlementStatus = formState.hasSettlementTaxationGifts ?? formState.settlementTaxationStatus;
   if (giftStatus === 'unknown') {
@@ -318,7 +371,7 @@ function buildSozokuInputWithMeta(formState) {
   const selectedSmallLand = smallLand(formState, realEstate, heirs, errors);
 
   const wire = {
-    level: [1, 2].includes(level) ? level : 1,
+    level: [1, 2, 3].includes(level) ? level : 1,
     precision: level === 1 ? 'simple' : 'detailed',
     decedent: { residencyStatus: 'domestic_resident' },
     heirs,
@@ -327,6 +380,7 @@ function buildSozokuInputWithMeta(formState) {
     specialistChecks: {},
     ...(selectedDivision ? { division: selectedDivision } : {}),
     ...(selectedSmallLand.entries ? { smallResidentialLand: selectedSmallLand.entries } : {}),
+    ...(level === 3 ? { secondaryInheritance: secondaryInheritance(formState, heirs, errors) } : {}),
   };
   if (errors.length > 0) throw new SozokuInputBuildError(errors);
   return Object.freeze({

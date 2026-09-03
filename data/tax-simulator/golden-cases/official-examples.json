@@ -1819,6 +1819,58 @@
         "inheritance_basic_deduction",
         "inheritance_tax_brackets"
       ]
+    },
+    {
+      "case_id": "GC-SO-SECONDARY-SCAN",
+      "target_module": "sozoku_service",
+      "kind": "table_derived",
+      "description": "遺産1億円・配偶者と子2人について、配偶者取得割合11点の一次・二次相続税を比較するケース",
+      "source": {
+        "document_id": "FINAL-SPEC-32-34+SOZOKU-UI-8-5",
+        "url": "docs/tax-simulator/sozoku-ui-spec.md#8-5-ゴールデンケース手計算済み実装時に登録",
+        "locator": "確定仕様書§32〜§34・相続税UI設計書8-5",
+        "law_version": "税理士承認済み確定仕様",
+        "retrieved_at": "2026-09-03",
+        "usage": "作業指示で指定された手計算期待値を固定"
+      },
+      "inputs": {
+        "inheritance_open_date": "2026-08-29",
+        "estate_cash": "100000000",
+        "heirs": [
+          { "id": "spouse", "relation": "spouse" },
+          { "id": "child-1", "relation": "child" },
+          { "id": "child-2", "relation": "child" }
+        ],
+        "spouse_own_assets": "30000000",
+        "expected_secondary_heir_count": 2,
+        "expected_secondary_heir_relation": "child"
+      },
+      "expected": {
+        "scenario_count": 11,
+        "minimum_spouse_acquisition_percent": 10,
+        "minimum_combined_tax": "5670000",
+        "percent_0": { "primary_tax": "6300000", "secondary_estate": "30000000", "secondary_tax": "0", "combined_tax": "6300000" },
+        "percent_10": { "primary_tax": "5670000", "secondary_estate": "40000000", "secondary_tax": "0", "combined_tax": "5670000" },
+        "percent_20": { "primary_tax": "5040000", "secondary_estate": "50000000", "secondary_tax": "800000", "combined_tax": "5840000" },
+        "percent_30": { "primary_tax": "4410000", "secondary_estate": "60000000", "secondary_tax": "1800000", "combined_tax": "6210000" },
+        "percent_40": { "primary_tax": "3780000", "secondary_estate": "70000000", "secondary_tax": "3200000", "combined_tax": "6980000" },
+        "percent_50": { "primary_tax": "3150000", "secondary_estate": "80000000", "secondary_tax": "4700000", "combined_tax": "7850000" },
+        "percent_60": { "primary_tax": "2520000", "secondary_estate": "90000000", "secondary_tax": "6200000", "combined_tax": "8720000" },
+        "percent_70": { "primary_tax": "1890000", "secondary_estate": "100000000", "secondary_tax": "7700000", "combined_tax": "9590000" },
+        "percent_80": { "primary_tax": "1260000", "secondary_estate": "110000000", "secondary_tax": "9600000", "combined_tax": "10860000" },
+        "percent_90": { "primary_tax": "630000", "secondary_estate": "120000000", "secondary_tax": "11600000", "combined_tax": "12230000" },
+        "percent_100": { "primary_tax": "0", "secondary_estate": "130000000", "secondary_tax": "13600000", "combined_tax": "13600000" },
+        "composition_with_primary_tax": "374680000",
+        "ten_year_estate": "56669263"
+      },
+      "_note": "期待値はエンジンから逆算せず、確定仕様書§32〜§34と設計書8-5の手計算値をそのまま固定する。",
+      "_master_dependency": [
+        "inheritance_basic_deduction",
+        "inheritance_tax_brackets",
+        "inheritance_two_tenths_surcharge",
+        "spouse_tax_relief_threshold",
+        "statutory_share_by_combination"
+      ]
     }
   ]
 }

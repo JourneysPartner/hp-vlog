@@ -12,6 +12,7 @@ const goldenDocument = JSON.parse(fs.readFileSync(path.join(
   REPO_ROOT, 'data', 'tax-simulator', 'golden-cases', 'official-examples.json'
 ), 'utf8'));
 const golden = goldenDocument.cases.find(item => item.case_id === 'GC-SO-LEVEL2-FULL');
+const secondaryGolden = goldenDocument.cases.find(item => item.case_id === 'GC-SO-SECONDARY-SCAN');
 const snapshotInfo = masterSnapshot.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 const area = value => ({ unit: 'SQM', num: BigInt(value), den: 1n });
@@ -313,12 +314,6 @@ console.log('\n=== 第1版の対象外条件 ===');
     ['IHT_SETTLEMENT_TAXATION_UNSUPPORTED', input => {
       input.assets.settlementTaxationGifts = yen(1);
     }],
-    ['SOZOKU_SECONDARY_INHERITANCE_UNSUPPORTED', input => {
-      input.secondaryInheritance = {
-        spouseOwnAssets: yen(1), spouseAcquisitionRatios: [], expectedHeirs: [],
-      };
-    }],
-    ['SOZOKU_LEVEL3_UNSUPPORTED', input => { input.level = 3; }],
     ['IHT_NON_RESIDENT', input => { input.heirs[0].residencyStatus = 'non_resident'; }],
     ['SOZOKU_SPECIALIST_CHECK_REQUIRED', input => { input.specialistChecks.nomineeDeposit = 'yes'; }],
     ['SOZOKU_OWNERSHIP_SHARE_CONFIRMATION_REQUIRED', input => {
@@ -341,6 +336,76 @@ console.log('\n=== 第1版の対象外条件 ===');
   }
 }
 
+console.log('\n=== GC-SO-SECONDARY-SCAN ===');
+{
+  const input = fullInput();
+  input.level = 3;
+  input.assets = { cash: yen(secondaryGolden.inputs.estate_cash) };
+  delete input.smallResidentialLand;
+  input.secondaryInheritance = {
+    spouseOwnAssets: yen(secondaryGolden.inputs.spouse_own_assets),
+    spouseAcquisitionRatios: Array.from({ length: 11 }, (_, index) => ({
+      num: BigInt(index * 10), den: 100n,
+    })),
+    expectedHeirs: [1, 2].map(index => ({
+      id: `secondary-heir-${index}`, relation: 'child', isAlive: true,
+      residencyStatus: 'domestic_resident',
+    })),
+  };
+  const simulation = result(input);
+  const secondary = data(simulation).secondaryInheritance;
+  const scenario = percent => secondary.scenarios.find(row =>
+    row.spouseAcquisitionPercent === percent);
+  const expectedPercents = Array.from({ length: 11 }, (_, index) => index * 10);
+  for (const percent of expectedPercents) {
+    const actual = scenario(percent);
+    const expected = secondaryGolden.expected[`percent_${percent}`];
+    assert(actual && expected &&
+      actual.primaryPayableTotal.value === BigInt(expected.primary_tax) &&
+      actual.secondaryEstate.value === BigInt(expected.secondary_estate) &&
+      actual.secondaryTaxTotal.value === BigInt(expected.secondary_tax) &&
+      actual.combinedTaxTotal.value === BigInt(expected.combined_tax),
+    `X=${percent}%の一次・二次財産・二次税・合計が手計算値と一致する`);
+  }
+  assert(secondary.scenarios.length === secondaryGolden.expected.scenario_count &&
+    secondary.scenarios.every(row => row.combinedTaxTotal.value ===
+      row.primaryPayableTotal.value + row.secondaryTaxTotal.value),
+  '11行すべてで合計税額が一次＋二次と一致する');
+  assert(secondary.minimumSpouseAcquisitionPercent ===
+    secondaryGolden.expected.minimum_spouse_acquisition_percent &&
+    secondary.minimumCombinedTaxTotal.value === BigInt(secondaryGolden.expected.minimum_combined_tax),
+  '最小行選定は配偶者取得割合10%・5,670,000円（最大行を選ぶ実装では失敗）');
+  assert(simulation.assumptions.some(text => text.includes('分割済み') && text.includes('配偶者の税額軽減')),
+    '実入力が未分割でも走査では分割済みとして軽減を適用する前提を明示する');
+}
+
+console.log('\n=== 二次相続財産の組成 ===');
+{
+  const composed = service.composeSecondaryEstate({
+    spouseOwnAssets: yen(30000000), spouseAcquiredAmount: yen(400000000),
+    spousePrimaryTax: yen(55320000),
+  });
+  assert(composed.value === BigInt(secondaryGolden.expected.composition_with_primary_tax),
+    '一次納付税額55,320,000円を控除して374,680,000円を組成する');
+}
+{
+  const composed = service.composeSecondaryEstate({
+    spouseOwnAssets: yen(80000000), spouseAcquiredAmount: yen(0), spousePrimaryTax: yen(0),
+    yearsUntilSecondary: 10, annualLivingCost: yen(3000000),
+    annualAssetChangeRate: { num: 1n, den: 100n },
+  });
+  assert(composed.value === BigInt(secondaryGolden.expected.ten_year_estate),
+    '10年・+1%・生活費300万円を逐年切捨てして56,669,263円にする');
+}
+{
+  const composed = service.composeSecondaryEstate({
+    spouseOwnAssets: yen(5000000), spouseAcquiredAmount: yen(0), spousePrimaryTax: yen(0),
+    yearsUntilSecondary: 3, annualLivingCost: yen(3000000),
+    annualAssetChangeRate: { num: 1n, den: 100n },
+  });
+  assert(composed.value === 0n, '生活費控除で途中から負になる財産は0円を下限にする');
+}
+
 console.log('\n=== validate とスナップショット ===');
 {
   const minimalWire = toWire({
@@ -360,6 +425,16 @@ console.log('\n=== validate とスナップショット ===');
   minimalWire.assets.cash.value = '1e3';
   assert(!service.validate(minimalWire).ok,
     'Moneyの指数表記1e3をok:falseにする');
+}
+{
+  const input = fullInput();
+  input.level = 3;
+  input.secondaryInheritance = {
+    spouseOwnAssets: yen(0), spouseAcquisitionRatios: [], expectedHeirs: [],
+  };
+  const invalid = service.validate(toWire(input));
+  assert(!invalid.ok && invalid.errors.some(item => item.code === 'SOZOKU_SECONDARY_HEIRS_REQUIRED'),
+    '二次相続の想定相続人0人はvalidateで入力エラーにする');
 }
 {
   const mismatched = { ...snapshotInfo, snapshotHash: 'not-the-current-snapshot' };

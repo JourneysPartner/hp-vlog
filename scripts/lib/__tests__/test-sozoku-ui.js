@@ -28,6 +28,10 @@ const {
 const { mountSozokuApp } = require('../../../src/ui/sozoku/app.js');
 const { withFakeDocument } = require('./helpers/fake-dom.js');
 
+const goldenDocument = JSON.parse(fs.readFileSync(path.join(
+  __dirname, '..', '..', '..', 'data', 'tax-simulator', 'golden-cases', 'official-examples.json'
+), 'utf8'));
+const secondaryGolden = goldenDocument.cases.find(item => item.case_id === 'GC-SO-SECONDARY-SCAN');
 const snapshotInfo = snapshot.getSnapshotInfo();
 const calculatedAt = '2026-08-29T12:00:00+09:00';
 let passed = 0;
@@ -220,6 +224,55 @@ function main() {
       assert(root.querySelector('#so-gift-0-recipient'));
       assert(root.querySelector('#so-gift-0-amount'));
       assert(root.querySelector('#so-gift-0-tax'));
+      app.destroy();
+    });
+  });
+
+  process.stdout.write('\n=== LEVEL 3 二次相続 ===\n');
+  const secondary = run(baseState({
+    level: 3,
+    cash: secondaryGolden.inputs.estate_cash,
+    securities: '0',
+    realEstate: [],
+    smallResidentialLand: null,
+    spouseOwnAssets: secondaryGolden.inputs.spouse_own_assets,
+    secondaryHeirCount: '',
+    secondaryHeirRelation: secondaryGolden.inputs.expected_secondary_heir_relation,
+    yearsUntilSecondary: '',
+  }));
+  check('既定人数を一次相続人から自動設定し、0%〜100%の11点をWireへ組み立てる', () => {
+    assert.strictEqual(secondary.built.wire.secondaryInheritance.expectedHeirs.length, 2);
+    assert.deepStrictEqual(
+      secondary.built.wire.secondaryInheritance.spouseAcquisitionRatios.map(row => row.num),
+      Array.from({ length: 11 }, (_, index) => String(index * 10))
+    );
+  });
+  check('主役表示と最小行は10%・5,670,000円になる（最大行を選ぶ実装では失敗）', () => {
+    assert.strictEqual(secondary.viewModel.level, 3);
+    assert.strictEqual(secondary.viewModel.secondaryInheritance.keyResult.value, '10%');
+    assert.strictEqual(secondary.viewModel.secondaryInheritance.keyResult.exactYen, 5670000n);
+    assert.strictEqual(secondary.viewModel.secondaryInheritance.scenarios.length, 11);
+    assert.deepStrictEqual(
+      secondary.viewModel.secondaryInheritance.scenarios.filter(row => row.isMinimum)
+        .map(row => row.spouseAcquisitionPercent),
+      [10]
+    );
+  });
+  check('LEVEL 3結果に11行の比較表・CSSバー・最小ラベル・必須注記を描画する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountSozokuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'result',
+        result: secondary.result, viewModel: secondary.viewModel }));
+      const table = root.querySelector('.sozoku-secondary-table');
+      const minimum = root.querySelector('.sozoku-secondary-minimum');
+      assert(table && minimum && root.querySelector('.sozoku-tax-bar-fill'));
+      assert(minimum.textContent.includes('10%') && minimum.textContent.includes('最小') &&
+        minimum.textContent.includes('5,670,000円'));
+      assert(table.textContent.includes('13,600,000円'));
+      assert(root.textContent.includes('現在の財産額がそのまま二次相続時まで続くと仮定した概算です。'));
+      assert(root.textContent.includes('各割合は遺産分割の可能性・遺留分・換価性を保証しません。'));
       app.destroy();
     });
   });
