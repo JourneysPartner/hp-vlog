@@ -1,0 +1,13 @@
+{
+  "_note": "業種別の柱ページ（/blog/macro/<slug>/）の「まず読む記事」。featured に記事の slug を最大3つ。空なら customer_fit_score と lead_value_score の合計が高い順（同点は新しい順）で自動選定する。",
+  "retail": { "featured": [] },
+  "salon": { "featured": [] },
+  "influencer": { "featured": [] },
+  "youtube": { "featured": [] },
+  "content": { "featured": [] },
+  "construction": { "featured": [] },
+  "retail-store": { "featured": [] },
+  "wholesale": { "featured": [] },
+  "inheritance": { "featured": [] },
+  "general": { "featured": [] }
+}

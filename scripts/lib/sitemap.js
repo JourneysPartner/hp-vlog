@@ -41,7 +41,9 @@ function generatedTaxonomyPaths(posts) {
     .filter(macro => posts.some(post => hubMacroOfPost(post) === macro.ja))
     .map(macro => `/blog/macro/${macro.slug}/`)
     .sort();
-  return [...categories, ...macros];
+  // 業種別ガイドの入口（/blog/macro/）は業種ページが1つでもあれば出す
+  const hubIndex = macros.length > 0 ? ['/blog/macro/'] : [];
+  return [...categories, ...hubIndex, ...macros];
 }
 
 // 検索対象にしない静的ページ（404 は netlify.toml が /404.html を指すために生成するだけ）
