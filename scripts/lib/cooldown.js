@@ -1,15 +1,22 @@
 'use strict';
 
 /**
- * cluster / subcluster / slug 単位の cooldown 判定。
+ * 論点（subcluster / pain_point）と slug 単位の cooldown 判定。
  *
  * ルール:
- *   - 同じ subcluster: デフォルト 90 日 cooldown（強）
- *   - 同じ cluster:    デフォルト 45 日 cooldown（中）
  *   - 同じ slug:        無期限（永久に再出力しない）
- *   - 同じ persona×category 組み合わせ: 21 日 cooldown（弱）
+ *   - 同じ subcluster:  30 日 cooldown（トピック側 `cooldown_days` で上書き可）
+ *   - 同じ pain_point:  30 日 cooldown（読者の悩みが同じものを短期間で連発しない）
  *
- * トピック側で `cooldown_days` を明示指定している場合はそちらを優先する。
+ * cluster / persona×category では判定しない（2026-09-04 廃止）:
+ *   cluster は「税目・シナリオ群」レベルの粗いラベルで、中身は全く別の論点である。
+ *   例えば cluster 'shitsugi-shotoku' の 173 件は国税庁 質疑応答事例 173 個＝別々の
+ *   法令論点だが、cluster cooldown はこれを 1 テーマとみなし、1 本出すと残り 172 論点を
+ *   14 日間まとめて止めていた。persona×category（例 inheritance_client×相続 = 453 件・
+ *   論点 453 種）も同様。結果、2026-09-04 の日次生成は候補が 8 件まで削られ、
+ *   本命記事 1 本しか作れず補強記事が生成されなかった。
+ *   論点の重複は subcluster（1,618 種）/ pain_point（803 種）/ checkTopicIdentity（180 日）
+ *   /類似度フィルタで見て、大分類の偏りは category-balance（直近7日60%上限）で見る。
  */
 
 const { postReferenceDate } = require('./site-corpus');
@@ -21,22 +28,20 @@ const { deriveSegment } = require('./customer-relevance');
 //     切り口を変えても同じ「自分は課税事業者？」という読者ニーズなので重複扱いにする。
 const IDENTITY_COOLDOWN_DAYS = 180;
 
-// cooldown 日数（短縮版）
-//   - 同 slug は永久ブロック（変更なし）
-//   - subcluster / cluster / persona×category は短縮し、候補が必要以上に減らないようにする
-//   - 同 slug の永久ブロック + similarity / time-limited / denylist が十分なフィルタになっているため、
-//     ここでは「近すぎるテーマの連発を防ぐ」程度の短い間隔で十分
+// cooldown 日数
+//   - 同 slug は永久ブロック
+//   - subcluster / pain_point は「同じ論点・同じ悩みの連発」を防ぐ実単位
+//   - cluster / persona×category は粗すぎて別論点を巻き添えにするため使わない（上のコメント参照）
 const DEFAULT_COOLDOWN = {
-  slug:           Infinity,  // 同 slug は永久 NG
-  subcluster:     30,        // 旧: 90日 → 短縮
-  cluster:        14,        // 旧: 45日 → 短縮
-  personaCategory: 7,        // 旧: 21日 → 短縮
+  slug:       Infinity,  // 同 slug は永久 NG
+  subcluster: 30,
+  painPoint:  30,
 };
 
 /**
  * 指定 topic が cooldown 期間中かどうか判定する。
  *
- * @param {Object} candidate  - 候補 topic（cluster, subcluster, persona, category, slug, cooldown_days）
+ * @param {Object} candidate  - 候補 topic（slug, subcluster, pain_point, cooldown_days）
  * @param {Array}  corpus     - 既存記事（site-corpus.readAllPostsSorted() の結果）
  * @param {Date}   now        - 現在時刻
  * @returns {Object|null}  cooldown ヒット時の理由オブジェクト、それ以外は null
@@ -60,7 +65,7 @@ function checkCooldown(candidate, corpus, now = new Date()) {
       };
     }
 
-    // 2. 同 subcluster → 90日（カスタム指定があればそれを優先）
+    // 2. 同 subcluster → 30日（カスタム指定があればそれを優先）
     const subclusterCooldown = customSubclusterDays != null
       ? customSubclusterDays
       : DEFAULT_COOLDOWN.subcluster;
@@ -76,31 +81,18 @@ function checkCooldown(candidate, corpus, now = new Date()) {
       };
     }
 
-    // 3. 同 cluster → 45日
-    if (candidate.cluster && post.cluster &&
-        candidate.cluster === post.cluster &&
-        diffDays < DEFAULT_COOLDOWN.cluster) {
+    // 3. 同 pain_point → 30日
+    //    checkTopicIdentity は customer_segment × pain_point を 180 日見るが、
+    //    こちらは segment をまたいで「同じ悩み」が短期間に並ぶのを防ぐ。
+    if (candidate.pain_point && post.pain_point &&
+        candidate.pain_point === post.pain_point &&
+        diffDays < DEFAULT_COOLDOWN.painPoint) {
       return {
-        level: 'cluster',
-        reason: `cluster '${candidate.cluster}' は ${DEFAULT_COOLDOWN.cluster} 日 cooldown`,
+        level: 'painPoint',
+        reason: `pain_point '${candidate.pain_point}' は ${DEFAULT_COOLDOWN.painPoint} 日 cooldown`,
         post: post.slug,
         days: diffDays,
-        cooldownDays: DEFAULT_COOLDOWN.cluster,
-      };
-    }
-
-    // 4. 同 persona × category → 21日（弱い目安）
-    if (candidate.persona && post.primary_persona &&
-        candidate.persona === post.primary_persona &&
-        candidate.category && post.category &&
-        candidate.category === post.category &&
-        diffDays < DEFAULT_COOLDOWN.personaCategory) {
-      return {
-        level: 'personaCategory',
-        reason: `persona×category 同一は ${DEFAULT_COOLDOWN.personaCategory} 日 cooldown`,
-        post: post.slug,
-        days: diffDays,
-        cooldownDays: DEFAULT_COOLDOWN.personaCategory,
+        cooldownDays: DEFAULT_COOLDOWN.painPoint,
       };
     }
   }

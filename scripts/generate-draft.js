@@ -570,7 +570,7 @@ function getRecentRevisionComments(limit = 3) {
 //
 // selectDailyTopics() は以下を行う:
 //   1. 既存slug除外（site-corpus全体）
-//   2. cooldown フィルタ（subcluster 90日 / cluster 45日 / persona×category 21日）
+//   2. cooldown フィルタ（subcluster 30日 / pain_point 30日 / 同slug 永久）
 //   3. 類似度フィルタ（slug/title/intent をJaccardで計算、閾値0.55）
 //   4. カテゴリ偏り是正（直近7日で大分類が60%超ならハードブロック）
 //   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
@@ -602,7 +602,8 @@ async function pickPair(dateStr) {
       const parts = p.priority_breakdown || {};
       console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role}) ` +
         `priority=${p.priority} [demand=${parts.demand || 0} season=${parts.season || 0} ` +
-        `lead=${parts.lead || 0} balance=${parts.balance || 0}]`);
+        `lead=${parts.lead || 0} balance=${parts.balance || 0} ` +
+        `cluster連投減点=${parts.cluster_recent || 0}]`);
       console.log(`[select] ${p.reason}`);
     }
   }
