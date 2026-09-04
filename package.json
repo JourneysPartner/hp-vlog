@@ -29,5 +29,8 @@
     "jsonwebtoken": "^9.0.3",
     "marked": "^9.1.6",
     "openai": "^4.71.0"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }

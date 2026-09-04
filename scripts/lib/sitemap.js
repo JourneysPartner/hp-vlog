@@ -26,32 +26,43 @@ function urlEntry(pathname, lastmod) {
   return lines.join('\n');
 }
 
+// 業種ページの所属は、ビルド側が付けた _hubMacro（ペルソナ由来）を優先する。
+// frontmatter の macro が空の記事もハブに載るようにするため（2026-09-03）。
+function hubMacroOfPost(post) {
+  return post._hubMacro || post.macro;
+}
+
 function generatedTaxonomyPaths(posts) {
   const categories = CATEGORIES
     .filter(category => posts.some(post => post.category === category.ja))
     .map(category => `/blog/category/${category.slug}/`)
     .sort();
   const macros = MACROS
-    .filter(macro => posts.some(post => post.macro === macro.ja))
+    .filter(macro => posts.some(post => hubMacroOfPost(post) === macro.ja))
     .map(macro => `/blog/macro/${macro.slug}/`)
     .sort();
   return [...categories, ...macros];
 }
 
+// 検索対象にしない静的ページ（404 は netlify.toml が /404.html を指すために生成するだけ）
+const EXCLUDED_STATIC_PAGES = new Set(['index.html', '404.html']);
+
 function generateSitemapXml({
   posts = [],
   staticPageFiles = [],
+  staticLastmod = {},
   publishConfig = {},
   correctionsGenerated = false,
 } = {}) {
   const paths = [];
 
-  paths.push({ pathname: '/' });
+  paths.push({ pathname: '/', lastmod: datePart(staticLastmod['index.html']) });
   const staticPaths = staticPageFiles
-    .filter(file => file.endsWith('.html') && file !== 'index.html')
-    .map(file => `/${file}`)
+    .filter(file => file.endsWith('.html') && !EXCLUDED_STATIC_PAGES.has(file))
     .sort();
-  for (const pathname of staticPaths) paths.push({ pathname });
+  for (const file of staticPaths) {
+    paths.push({ pathname: `/${file}`, lastmod: datePart(staticLastmod[file]) });
+  }
 
   paths.push({ pathname: '/blog/' });
   for (const pathname of generatedTaxonomyPaths(posts)) paths.push({ pathname });
@@ -97,6 +108,7 @@ function generateRobotsTxt() {
 
 module.exports = Object.freeze({
   BASE_URL,
+  EXCLUDED_STATIC_PAGES,
   escapeXml,
   generateRobotsTxt,
   generateSitemapXml,

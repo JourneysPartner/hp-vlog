@@ -672,3 +672,9 @@
   color: #667085;
   font-size: 0.8rem;
 }
+
+/* ── パンくず（記事ヒーロー・一覧ヒーロー。段階1 R3）──
+   style.css の .breadcrumb-custom は濃色背景向けの色なので、余白だけ調整する。 */
+.blog-post-hero .breadcrumb-custom { margin: 0 0 14px; }
+.page-hero .breadcrumb-custom { margin-top: 14px; }
+.breadcrumb-custom [aria-current="page"] { color: rgba(255,255,255,0.85); }
