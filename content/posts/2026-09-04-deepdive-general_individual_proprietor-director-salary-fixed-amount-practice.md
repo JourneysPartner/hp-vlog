@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "出典: 出典は法人税のページです（記事の税目: income_tax）。個人事業者向けの記述として妥当か確認してください"
 summary: "役員報酬を損金算入するには、定期同額給与または事前確定届出給与の要件を満たす必要があります。改定できる時期・届出期限・変更が認められる条件をケース別に解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-04T19:30:03.584+09:00"
+publish_at: "2026-09-05T17:55:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-04T10:20:00.203Z"
-updated_at: "2026-09-04T10:20:00.203Z"
+updated_at: "2026-09-04T19:30:03.584+09:00"
+publish_slot: "evening"
 ---
 
 法人を設立したばかりで、自分への報酬をどう決めればいいか迷っている——そういった場面でよく耳にするのが「役員報酬は自由に変えてはいけない」という話です。では、なぜ自由に変えられないのか、どう設計すれば損金として認められるのか、具体的なルールはあまり知られていません。
