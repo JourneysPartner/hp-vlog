@@ -23,3 +23,8 @@ deno.lock
 
 # 未マージ下書きの重複検知コーパス（collect-pending-drafts.js が生成する一時ファイル）
 /.pending-drafts.json
+
+# 段階2で増えたサブディレクトリ出力（templates/pages/services/*.html, pricing.html, area.html がソース）
+/services/
+/pricing/
+/area/

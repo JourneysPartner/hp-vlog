@@ -1671,3 +1671,32 @@ select.form-control-custom { cursor: pointer; }
   .author-box { flex-direction: column; align-items: center; text-align: center; }
   .author-box-links { justify-content: center; }
 }
+
+/* ── 24. ヘッダーの取扱業務ドロップダウン（段階2 R5）── */
+.navbar .dropdown-menu {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  padding: 8px 0;
+  min-width: 240px;
+}
+.navbar .dropdown-item {
+  font-size: 0.92rem;
+  padding: 8px 18px;
+  color: var(--color-text);
+}
+.navbar .dropdown-item:hover,
+.navbar .dropdown-item:focus {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+.navbar .dropdown-toggle::after { margin-left: 6px; }
+@media (max-width: 991.98px) {
+  .navbar .dropdown-menu { border: 0; box-shadow: none; padding-left: 12px; }
+}
+
+/* ── 27. 料金の目安表（料金ページ第2版）── */
+.pricing-table th[scope="row"] { white-space: nowrap; color: var(--color-secondary); }
+.pricing-table td small { color: var(--color-text-muted); font-size: 0.82rem; }
+.pricing-table td strong { color: var(--color-secondary); }
+@media (max-width: 575.98px) { .pricing-table th[scope="row"] { white-space: normal; } }

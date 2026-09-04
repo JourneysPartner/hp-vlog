@@ -13,9 +13,9 @@ const { generateSimulatorCta } = require('./lib/simulator-cta');
 const { generateRobotsTxt, generateSitemapXml, EXCLUDED_STATIC_PAGES } = require('./lib/sitemap');
 const {
   BASE_URL, organizationSchema, personSchema, websiteSchema,
-  breadcrumbSchema, faqSchema, articleSchema, jsonLdScripts,
+  breadcrumbSchema, faqSchema, articleSchema, serviceSchema, jsonLdScripts,
 } = require('./lib/site-schema');
-const { extractFaq } = require('./lib/faq-extractor');
+const { extractFaq, extractFaqFromHtml } = require('./lib/faq-extractor');
 const { assignHubMacro, hubMacroOf } = require('./lib/hub-membership');
 const { execFileSync } = require('child_process');
 
@@ -532,17 +532,16 @@ function gitLastCommitDate(relPath) {
 
 // ── 静的ページの <head> 共通部分 ─────────────────────────────────
 // canonical / OG をページごとの値で埋める。404 は検索対象外なので canonical を出さない。
-function renderHeadCommon(page, src) {
+function renderHeadCommon(entry, src) {
   const titleMatch = src.match(/<title>([\s\S]*?)<\/title>/i);
   const descMatch  = src.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
-  const canonicalPath = page === 'index.html' ? '/' : `/${page}`;
   let head = render(HEAD_COMMON_TPL, {
-    CANONICAL_PATH:  canonicalPath,
+    CANONICAL_PATH:  entry.pathname,
     OG_TYPE:         'website',
     OG_TITLE:        titleMatch ? titleMatch[1].trim() : '毛利順活税理士事務所',
     OG_DESCRIPTION:  descMatch ? descMatch[1] : '',
   });
-  if (page === '404.html') {
+  if (entry.src === '404.html') {
     head = head.split('\n').filter(line => !/rel="canonical"/.test(line)).join('\n');
   }
   return head.trim();
@@ -575,47 +574,164 @@ function renderLatestPostsHtml(posts, n = 3) {
   return latest.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n');
 }
 
-function listStaticPageFiles() {
+// ── 静的ページの一覧 ─────────────────────────────────────────────
+// 出力先の規則（2026-09-03 段階2）:
+//   templates/pages/<name>.html        → /<name>.html        （従来。既存URLを壊さない）
+//   templates/pages/<dir>/<name>.html  → /<dir>/<name>/       （例: /services/ebay-export/）
+//   DIR_OUTPUT_PAGES に載る直下のファイル → /<name>/            （例: /pricing/ /area/）
+// templates/pages/tools/ はシミュレーター用で対象外（publish-prep が扱う）。
+const DIR_OUTPUT_PAGES = new Set(['pricing.html', 'area.html']);
+const EXCLUDED_PAGE_DIRS = new Set(['tools']);
+
+function listStaticPages() {
   if (!fs.existsSync(PAGES_DIR)) return [];
-  return fs.readdirSync(PAGES_DIR).filter(file => file.endsWith('.html')).sort();
+  const entries = [];
+  for (const name of fs.readdirSync(PAGES_DIR).sort()) {
+    const full = path.join(PAGES_DIR, name);
+    const stat = fs.statSync(full);
+    if (stat.isFile() && name.endsWith('.html')) {
+      const base = name.replace(/\.html$/, '');
+      if (DIR_OUTPUT_PAGES.has(name)) {
+        entries.push({ src: name, out: path.join(base, 'index.html'), pathname: `/${base}/` });
+      } else {
+        entries.push({ src: name, out: name, pathname: name === 'index.html' ? '/' : `/${name}` });
+      }
+    } else if (stat.isDirectory() && !EXCLUDED_PAGE_DIRS.has(name)) {
+      for (const sub of fs.readdirSync(full).filter(f => f.endsWith('.html')).sort()) {
+        const base = sub.replace(/\.html$/, '');
+        entries.push({ src: `${name}/${sub}`, out: path.join(name, base, 'index.html'), pathname: `/${name}/${base}/` });
+      }
+    }
+  }
+  return entries;
+}
+
+// 従来の呼び出し互換（直下の *.html だけ）
+function listStaticPageFiles() {
+  return listStaticPages().filter(e => !e.src.includes('/')).map(e => e.src);
+}
+
+// ── 静的ページ内の記述から拾うもの ──────────────────────────────
+// パンくず（<div class="breadcrumb-custom">…</div>）を読み、BreadcrumbList の材料にする。
+function parseStaticBreadcrumb(src) {
+  const m = String(src || '').match(/<div class="breadcrumb-custom">([\s\S]*?)<\/div>/);
+  if (!m) return [];
+  const inner = m[1];
+  const items = [];
+  const linkRe = /<a href="([^"]*)">([\s\S]*?)<\/a>/g;
+  let lm;
+  let lastIndex = 0;
+  while ((lm = linkRe.exec(inner)) !== null) {
+    items.push({ name: stripTags(lm[2]), url: lm[1] });
+    lastIndex = linkRe.lastIndex;
+  }
+  const tail = stripTags(inner.slice(lastIndex).replace(/<span class="sep">[\s\S]*?<\/span>/g, ' '));
+  if (tail) items.push({ name: tail });
+  return items;
+}
+
+// 関連記事の条件（<meta name="x-related-posts" content="...">）。
+//   tax_domain=a,b;persona=x;pain=p;keyword=語1,語2   … どれか1つでも当たれば対象
+function parseRelatedSpec(src) {
+  const m = String(src || '').match(/<meta name="x-related-posts" content="([^"]*)">/);
+  if (!m) return null;
+  const spec = { tax_domain: [], persona: [], pain: [], keyword: [] };
+  for (const part of m[1].split(';')) {
+    const [key, value] = part.split('=').map(s => (s || '').trim());
+    if (!key || !value || !(key in spec)) continue;
+    spec[key] = value.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return spec;
+}
+
+function selectRelatedPosts(posts, spec, n = 3) {
+  if (!spec) return [];
+  // 当たり方に強弱を付ける。題名・検索意図に語がある記事を先に、本文だけの記事は後に。
+  //   3: tax_domain / persona / pain の一致、または題名・検索意図に語がある
+  //   2: 要約に語がある
+  //   1: 本文に語がある
+  const score = (p) => {
+    if (spec.tax_domain.includes(p.tax_domain)) return 3;
+    if (spec.persona.includes(p.primary_persona)) return 3;
+    if (spec.pain.includes(p.pain_point)) return 3;
+    if (spec.keyword.length === 0) return 0;
+    const strong = `${p.title || ''} ${p.search_intent || ''}`;
+    if (spec.keyword.some(k => strong.includes(k))) return 3;
+    if (spec.keyword.some(k => String(p.summary || '').includes(k))) return 2;
+    if (spec.keyword.some(k => String(p._body || '').includes(k))) return 1;
+    return 0;
+  };
+  // posts は公開日の降順に並んでいる（同点なら新しい順のまま）
+  return posts
+    .map((p, i) => ({ p, s: score(p), i }))
+    .filter(x => x.s > 0)
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .slice(0, n)
+    .map(x => x.p);
+}
+
+function renderRelatedPostsHtml(posts, spec) {
+  const picked = selectRelatedPosts(posts, spec, 3);
+  if (picked.length === 0) {
+    return `<div class="col-12 text-center"><p style="color:var(--color-text-muted);">記事は準備中です。</p></div>`;
+  }
+  return picked.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n');
 }
 
 // ── 静的ページ生成 ──────────────────────────────────────────────
 function buildStaticPages(posts) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
-  const pages = listStaticPageFiles();
+  const pages = listStaticPages();
   console.log(`[build] 静的ページ: ${pages.length} 件`);
 
   const latestPostsHtml = renderLatestPostsHtml(posts || []);
 
-  for (const page of pages) {
-    const src = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
+  for (const entry of pages) {
+    const src = fs.readFileSync(path.join(PAGES_DIR, entry.src), 'utf8');
+    const titleMatch = src.match(/<title>([\s\S]*?)<\/title>/i);
+    const descMatch  = src.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+    const h1Match    = src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    const pageUrlAbs = `${BASE_URL}${entry.pathname}`;
 
     // 事務所・代表の構造化データを全ページに。トップだけ WebSite も付ける。
+    // パンくず・FAQ はページ内の記述から拾う。サービス専用ページには Service も付ける。
     const schemas = [organizationSchema(), personSchema()];
-    if (page === 'index.html') schemas.push(websiteSchema());
+    if (entry.src === 'index.html') schemas.push(websiteSchema());
+    schemas.push(breadcrumbSchema(parseStaticBreadcrumb(src)));
+    schemas.push(faqSchema(extractFaqFromHtml(src)));
+    if (entry.pathname.startsWith('/services/')) {
+      schemas.push(serviceSchema({
+        name: h1Match ? stripTags(h1Match[1]) : (titleMatch ? titleMatch[1].trim() : ''),
+        description: descMatch ? descMatch[1] : '',
+        url: pageUrlAbs,
+      }));
+    }
     const structured = `  ${jsonLdScripts(schemas)}\n</head>`;
 
+    const relatedSpec = parseRelatedSpec(src);
     const html = injectAnalyticsBeacon(injectPartials(src))
-      .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(page, src))
+      .replace(/\s*<meta name="x-related-posts" content="[^"]*">/, '')
+      .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(entry, src))
       .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml)
+      .replace(/\{\{RELATED_POSTS_HTML\}\}/g, () => renderRelatedPostsHtml(posts || [], relatedSpec))
       .replace('</head>', structured);
-    fs.writeFileSync(path.join(ROOT, page), html, 'utf8');
-    console.log(`[build]   → ${page}`);
+
+    const outPath = path.join(ROOT, entry.out);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, html, 'utf8');
+    console.log(`[build]   → ${entry.out.replace(/\\/g, '/')}`);
   }
 }
 
 function writeAnalyticsPageMap(posts) {
   const map = {};
-  if (fs.existsSync(PAGES_DIR)) {
-    // 404 は計測対象にしない（検索対象外・存在しないURLへのアクセス）
-    for (const page of fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.html') && f !== '404.html')) {
-      const raw = fs.readFileSync(path.join(PAGES_DIR, page), 'utf8');
-      const match = raw.match(/<title>([\s\S]*?)<\/title>/i);
-      const title = match ? match[1].trim().replace(/｜毛利順活税理士事務所$/, '') : page;
-      map[page === 'index.html' ? '/' : `/${page}`] = title;
-    }
+  // 404 は計測対象にしない（検索対象外・存在しないURLへのアクセス）
+  for (const entry of listStaticPages().filter(e => e.src !== '404.html')) {
+    const raw = fs.readFileSync(path.join(PAGES_DIR, entry.src), 'utf8');
+    const match = raw.match(/<title>([\s\S]*?)<\/title>/i);
+    const title = match ? match[1].trim().replace(/｜毛利順活税理士事務所$/, '') : entry.src;
+    map[entry.pathname] = title;
   }
   map['/blog/'] = '税務コラム';
   for (const post of posts) if (post.slug) map[`/blog/${post.slug}/`] = post.title || post.slug;
@@ -741,17 +857,14 @@ function main() {
 
   // サイトマップは、上で実際に生成した固定ページ・記事・公開ツールだけを収録する。
   // 静的ページの lastmod は git の最終コミット日（取れなければ省略）。
-  const staticPageFiles = listStaticPageFiles();
-  const staticLastmod = {};
-  for (const file of staticPageFiles) {
-    if (EXCLUDED_STATIC_PAGES.has(file) && file !== 'index.html') continue;
-    const d = gitLastCommitDate(`templates/pages/${file}`);
-    if (d) staticLastmod[file] = d;
-  }
+  const allStatic = listStaticPages();
+  const staticPages = allStatic
+    .filter(e => e.src !== '404.html' && e.src !== 'index.html')
+    .map(e => ({ pathname: e.pathname, lastmod: gitLastCommitDate(`templates/pages/${e.src}`) }));
   const sitemapXml = generateSitemapXml({
     posts,
-    staticPageFiles,
-    staticLastmod,
+    staticPages,
+    indexLastmod: gitLastCommitDate('templates/pages/index.html'),
     publishConfig,
     correctionsGenerated: fs.existsSync(path.join(ROOT, 'tools', 'corrections', 'index.html')),
   });

@@ -33,6 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (href === '/blog/' && currentPath.startsWith('/blog')) {
       link.classList.add('active');
     }
+    // 取扱業務: /services/… と /pricing/ は「取扱業務」をアクティブにする
+    else if (href === '/services.html' && (currentPath.startsWith('/services/') || currentPath.startsWith('/pricing'))) {
+      link.classList.add('active');
+    }
   });
 
   // ── 3. AOS Initialize ──
