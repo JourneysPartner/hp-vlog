@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "役員報酬は定期同額給与として期首から3か月以内に決定し、法人税・所得税・社会保険のバランスを試算したうえで金額を設定することが税務上の適正処理の基本です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-04T15:05:18.507+09:00"
+publish_at: "2026-09-05T11:53:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-04T00:13:00.034Z"
-updated_at: "2026-09-04T00:16:01.030Z"
+updated_at: "2026-09-04T15:05:18.507+09:00"
+publish_slot: "morning"
 ---
 会社を設立したばかり、あるいは決算期を迎えるたびに「役員報酬をいくらにすればいいのか」と悩む経営者は少なくありません。高すぎれば法人税の節税になるが個人の所得税・社会保険料が増える。低すぎれば法人税の負担が重くなり、役員個人の手取りも減る。さらに「決め方を間違えると損金に算入できない」という税務上のルールまで絡んできます。
 
