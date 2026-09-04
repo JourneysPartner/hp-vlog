@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "フリマ・転売の売上が増えると、配偶者の扶養から外れるかどうかが問題になります。税の扶養（配偶者控除）と社会保険の被扶養者は判定基準・所管・手続き先がそれぞれ異なります。それぞれの判定ラインと実務上の確認手順を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-03T14:21:52.581+09:00"
 publish_at: "2026-09-04T17:54:00.000+09:00"
-published_at: ""
+published_at: "2026-09-04T18:01:41.101+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-03T00:08:37.538Z"
-updated_at: "2026-09-03T14:21:52.581+09:00"
+updated_at: "2026-09-04T18:01:41.101+09:00"
 publish_slot: "evening"
 ---
 メルカリやヤフオクの副業が軌道に乗ってきた、あるいはせどりを本業に近い規模で続けている——そういったタイミングで「そろそろ配偶者の扶養から外れてしまうかも」と不安になる方は少なくありません。
