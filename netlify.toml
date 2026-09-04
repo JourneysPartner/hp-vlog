@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# 管理画面の関数からサーチコンソールの週次レポート（data/search-console/report.md）を読めるようにする
+[functions]
+  included_files = ["data/search-console/**"]
+
 # シミュレーターだけを既存の記事・管理画面から分離した厳格な送信先制限。
 [[headers]]
   for = "/tools/*"
