@@ -4,16 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-site-verification" content="Aqkr8xTRxzIMrViW2Krzs81SPOUoI_Hm9mk2OIW7pII" />
-  <title>{{TITLE}}｜毛利順活税理士事務所</title>
+  <title>{{PAGE_TITLE}}</title>
   <meta name="description" content="{{META_DESCRIPTION}}">
-  <link rel="canonical" href="https://mori-zeirishi.net/blog/{{SLUG}}/">
-  <meta property="og:title" content="{{TITLE}}｜毛利順活税理士事務所">
-  <meta property="og:description" content="{{META_DESCRIPTION}}">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://mori-zeirishi.net/blog/{{SLUG}}/">
-  <meta property="article:published_time" content="{{PUBLISH_AT_ISO}}">
-  <meta property="article:modified_time" content="{{UPDATED_AT_ISO}}">
+  <link rel="canonical" href="https://mori-zeirishi.net{{CANONICAL_URL}}">
   <meta property="og:site_name" content="毛利順活税理士事務所">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{PAGE_TITLE}}">
+  <meta property="og:description" content="{{META_DESCRIPTION}}">
+  <meta property="og:url" content="https://mori-zeirishi.net{{CANONICAL_URL}}">
   <meta property="og:image" content="https://mori-zeirishi.net/assets/images/og-default.png">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary_large_image">
@@ -25,54 +23,75 @@
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="stylesheet" href="/assets/css/blog.css">
-  <script type="application/ld+json">{{STRUCTURED_DATA}}</script>
-  {{EXTRA_STRUCTURED_DATA}}
+  {{STRUCTURED_DATA}}
 </head>
 <body>
 
 {{HEADER}}
 
-<!-- ========== POST HERO ========== -->
-<section class="blog-post-hero">
-  <div class="container" data-aos="fade-up">
+<!-- ========== PAGE HERO ========== -->
+<section class="page-hero">
+  <div class="container text-center" data-aos="fade-up">
+    <span class="section-label">{{SECTION_LABEL}}</span>
+    <h1 class="page-hero-title">{{PAGE_HEADING}}</h1>
+    <p class="page-hero-lead">{{PAGE_LEAD}}</p>
     {{BREADCRUMB_HTML}}
-    <div class="blog-post-meta">
-      <span class="blog-card-category">{{CATEGORY}}</span>
-      <time datetime="{{PUBLISH_AT_ISO}}">{{PUBLISH_DATE}}</time>
-      {{UPDATED_DATE_HTML}}
-    </div>
-    <h1 class="blog-post-title">{{TITLE}}</h1>
-    <p class="blog-post-summary">{{META_DESCRIPTION}}</p>
   </div>
 </section>
 
-<!-- ========== ARTICLE ========== -->
-<main class="container">
-  <div class="blog-article">
-    <a href="/blog/" class="blog-back-link">
-      <i class="bi bi-arrow-left"></i> 税務コラム一覧へ戻る
-    </a>
+<!-- ========== MACRO PILLS ========== -->
+<section class="blog-pills-wrap">
+  <div class="container">
+    {{PILLS_HTML}}
+  </div>
+</section>
 
-    <article>
-      {{BODY}}
-      {{SIMULATOR_CTA_HTML}}
-    </article>
-
-    {{AUTHOR_BOX_HTML}}
-
-    <div class="blog-disclaimer">
-      <strong>免責事項</strong>
-      本記事は情報提供を目的として作成しており、個別の税務アドバイスではありません。実際の税務判断・手続きについては、税理士等の専門家にご相談ください。税制は改正される場合があり、記事の内容が最新状況と異なることがあります。個別事情によって結論が異なる場合がありますので、必ずご自身の状況に合わせてご確認ください。
+<!-- ========== HUB: 論点・まず読む記事・サービス・FAQ ========== -->
+<section class="section-py bg-white hub-section">
+  <div class="container">
+    <div class="hub-block">
+      <h2 class="hub-heading"><i class="bi bi-list-check"></i> この業種でよくある税務の論点</h2>
+      <ul class="hub-points">
+        {{HUB_POINTS_HTML}}
+      </ul>
     </div>
 
-    <p class="blog-source">
-      参考：<a href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">{{SOURCE_TITLE}}</a>
-    </p>
+    <div class="hub-block">
+      <h2 class="hub-heading"><i class="bi bi-bookmark-star"></i> まず読む記事</h2>
+      <div class="row g-4">
+        {{HUB_FEATURED_HTML}}
+      </div>
+    </div>
 
-    {{RELATED_ARTICLE_HTML}}
-    {{HUB_LINKS_HTML}}
+    <div class="hub-block">
+      <h2 class="hub-heading"><i class="bi bi-briefcase"></i> 関連するサービス</h2>
+      <div class="row g-4">
+        {{HUB_SERVICES_HTML}}
+      </div>
+    </div>
+
+    <div class="hub-block">
+      <h2 class="hub-heading"><i class="bi bi-question-circle"></i> よくある質問</h2>
+      <div class="faq-wrap hub-faq">
+        {{HUB_FAQ_HTML}}
+      </div>
+    </div>
   </div>
-</main>
+</section>
+
+<!-- ========== BLOG LIST + SIDEBAR ========== -->
+<section class="section-py bg-gray">
+  <div class="container">
+    <h2 class="hub-heading mb-4"><i class="bi bi-journal-text"></i> 記事一覧</h2>
+    <div class="blog-layout">
+      <div class="blog-main">
+        {{POSTS_HTML}}
+        {{PAGINATION_HTML}}
+      </div>
+      {{SIDEBAR_HTML}}
+    </div>
+  </div>
+</section>
 
 <!-- ========== CTA ========== -->
 <section class="cta-section">

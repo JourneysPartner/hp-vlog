@@ -17,6 +17,8 @@ const {
 } = require('./lib/site-schema');
 const { extractFaq, extractFaqFromHtml } = require('./lib/faq-extractor');
 const { assignHubMacro, hubMacroOf } = require('./lib/hub-membership');
+const { HUB_CONTENT } = require('./lib/hub-content');
+const { serviceForPost, serviceInfo } = require('./lib/service-links');
 const { execFileSync } = require('child_process');
 
 // ビルドログ用（R11: FAQ を出した記事数・執筆者欄を付けた記事数・業種の振り分け）
@@ -35,6 +37,8 @@ const PARTIALS     = path.join(TEMPLATES, 'partials');
 const PAGES_DIR    = path.join(TEMPLATES, 'pages');
 const BLOG_OUT     = path.join(ROOT, 'blog');
 const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-config.json');
+// 業種別の柱ページの「まず読む記事」（毛利が後から埋める。空なら自動選定）
+const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
 
 const ANALYTICS_BEACON = `
 <script>
@@ -239,7 +243,7 @@ function pickRecommended(allPosts, n = 4) {
   return pool.slice(0, n);
 }
 
-function renderSidebar(allPosts, { activeCategorySlug = null } = {}) {
+function renderSidebar(allPosts, { activeCategorySlug = null, activeMacroSlug = null } = {}) {
   const counts = new Map();
   for (const p of allPosts) {
     if (!p.category) continue;
@@ -286,7 +290,156 @@ function renderSidebar(allPosts, { activeCategorySlug = null } = {}) {
       <h2 class="blog-side-heading"><i class="bi bi-folder"></i> カテゴリーから探す</h2>
       <ul class="blog-side-cat-list">${catItems}</ul>
     </section>
+
+    <section class="blog-side-block">
+      <h2 class="blog-side-heading"><i class="bi bi-people"></i> 業種別ガイド</h2>
+      <ul class="blog-side-cat-list">${renderHubSideItems(allPosts, activeMacroSlug)}</ul>
+    </section>
   </aside>`;
+}
+
+// ── 業種別ガイド（サイドバー・トップ・一覧ページ）───────────────
+function hubCountsOf(allPosts) {
+  const counts = new Map();
+  for (const p of allPosts) {
+    const hub = hubMacroOf(p);
+    if (hub) counts.set(hub, (counts.get(hub) || 0) + 1);
+  }
+  return counts;
+}
+
+function renderHubSideItems(allPosts, activeMacroSlug = null) {
+  const counts = hubCountsOf(allPosts);
+  return MACROS.map(m => {
+    const cnt = counts.get(m.ja) || 0;
+    if (cnt === 0) return '';
+    const active = m.slug === activeMacroSlug ? 'is-active' : '';
+    return `
+    <li class="blog-side-cat-item ${active}">
+      <a href="/blog/macro/${m.slug}/" class="blog-side-cat-link">
+        <span class="blog-side-cat-dot" aria-hidden="true" style="background:var(--color-secondary);"></span>
+        <span class="blog-side-cat-name">${escHtml(m.ja)}</span>
+        <span class="blog-side-cat-count">${cnt}</span>
+      </a>
+    </li>`;
+  }).filter(Boolean).join('\n');
+}
+
+// トップページ・記事一覧の「業種別ガイド」（10枚のリンク）
+function renderHubGuideHtml(allPosts) {
+  const counts = hubCountsOf(allPosts);
+  return MACROS.map(m => {
+    const cnt = counts.get(m.ja) || 0;
+    if (cnt === 0) return '';
+    const hub = HUB_CONTENT[m.slug] || {};
+    return `
+      <div class="col-6 col-md-4 col-lg-3">
+        <a href="/blog/macro/${m.slug}/" class="hub-guide-link">
+          <i class="bi ${m.icon}"></i>
+          <span class="hub-guide-name">${escHtml(m.ja)}</span>
+          <span class="hub-guide-sub">${escHtml(hub.tagline || '')}</span>
+          <span class="hub-guide-count">${cnt}本</span>
+        </a>
+      </div>`;
+  }).filter(Boolean).join('\n');
+}
+
+// /blog/macro/ の一覧カード
+function renderHubIndexCardsHtml(allPosts) {
+  const counts = hubCountsOf(allPosts);
+  return MACROS.map(m => {
+    const cnt = counts.get(m.ja) || 0;
+    if (cnt === 0) return '';
+    const hub = HUB_CONTENT[m.slug] || {};
+    return `
+      <div class="col-md-6 col-lg-4">
+        <a href="/blog/macro/${m.slug}/" class="service-card hub-index-card">
+          <div class="service-icon"><i class="bi ${m.icon}"></i></div>
+          <div class="service-title">${escHtml(hub.h1 || `${m.ja}の税務ガイド`)}</div>
+          <p class="service-desc">${escHtml(hub.tagline || '')}</p>
+          <span class="service-link">記事 ${cnt}本を見る <i class="bi bi-arrow-right"></i></span>
+        </a>
+      </div>`;
+  }).filter(Boolean).join('\n');
+}
+
+// ── 業種別の柱ページ（1ページ目）の各節 ──────────────────────────
+function loadHubConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(HUB_CONFIG_PATH, 'utf8'));
+  } catch (_error) {
+    return {};
+  }
+}
+
+// 「まず読む記事」: hub-config.json の指定 → 無ければ点数の高い順（同点は新しい順）
+function pickFeaturedPosts(hubPosts, featuredSlugs = [], n = 3) {
+  const bySlug = new Map(hubPosts.map(p => [p.slug, p]));
+  const picked = [];
+  for (const slug of featuredSlugs || []) {
+    const p = bySlug.get(slug);
+    if (p && !picked.includes(p)) picked.push(p);
+    if (picked.length >= n) return picked;
+  }
+  const score = (p) => (Number(p.customer_fit_score) || 0) + (Number(p.lead_value_score) || 0);
+  const rest = hubPosts
+    .map((p, i) => ({ p, s: score(p), i }))
+    .filter(x => !picked.includes(x.p))
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .map(x => x.p);
+  return picked.concat(rest).slice(0, n);
+}
+
+function renderHubPointsHtml(hub) {
+  return (hub.points || []).map(t => `<li><i class="bi bi-check2-circle"></i>${escHtml(t)}</li>`).join('\n        ');
+}
+
+function renderHubFeaturedHtml(posts) {
+  if (posts.length === 0) return `<div class="col-12"><p style="color:var(--color-text-muted);">記事は準備中です。</p></div>`;
+  return posts.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n');
+}
+
+function renderHubServicesHtml(hub) {
+  return (hub.services || []).map(slug => {
+    const s = serviceInfo(slug);
+    if (!s) return '';
+    return `
+      <div class="col-md-6">
+        <a href="${s.url}" class="service-card hub-service-card">
+          <div class="service-icon"><i class="bi ${s.icon}"></i></div>
+          <div class="service-title">${escHtml(s.name)}</div>
+          <p class="service-desc">${escHtml(s.description)}</p>
+          <span class="service-link">このサービスを見る <i class="bi bi-arrow-right"></i></span>
+        </a>
+      </div>`;
+  }).join('\n');
+}
+
+function renderHubFaqHtml(hub) {
+  return (hub.faq || []).map(q => `
+      <details class="faq-item">
+        <summary><span class="faq-q">Q</span>${escHtml(q.question)}<i class="bi bi-chevron-down faq-toggle"></i></summary>
+        <div class="faq-a"><span class="faq-a-mark">A</span><p>${escHtml(q.answer)}</p></div>
+      </details>`).join('\n');
+}
+
+// ── 記事の末尾: 業種ハブとサービスへのリンク（本文の外に付ける）──
+function buildHubLinksHtml(post) {
+  const macroJa = hubMacroOf(post);
+  const macro = getMacroMeta(macroJa);
+  const service = serviceForPost(post);
+  const hubLink = macro
+    ? `<a class="blog-hub-link" href="/blog/macro/${macro.slug}/"><i class="bi bi-collection"></i> ${escHtml(macroJa)}の記事をもっと読む</a>`
+    : '';
+  const serviceLink = service
+    ? `<a class="blog-hub-link blog-hub-link--service" href="${service.url}"><i class="bi bi-briefcase"></i> ${escHtml(service.short)}について相談する</a>`
+    : '';
+  if (!hubLink && !serviceLink) return '';
+  return `
+    <div class="blog-hub-links">
+      ${hubLink}
+      ${serviceLink}
+    </div>`;
 }
 
 // ── ページネーション ─────────────────────────────────────────
@@ -350,7 +503,7 @@ function buildListPageHtml({
   const pills    = renderMacroPills(allPosts, {
     activeSlug: activeMacroSlug, allRoot, activeCategorySlug,
   });
-  const sidebar  = renderSidebar(allPosts, { activeCategorySlug });
+  const sidebar  = renderSidebar(allPosts, { activeCategorySlug, activeMacroSlug });
   const grid     = renderListGrid(pagePosts);
   const pg       = renderPagination(currentPage, totalPages, basePath);
   const canonical = vars.CANONICAL || pageUrl(basePath, currentPage);
@@ -358,10 +511,13 @@ function buildListPageHtml({
   // パンくず: ホーム › 税務コラム › {見出し}（/blog/ 自体は2段）
   const crumbs = [{ name: 'ホーム', url: '/' }, { name: '税務コラム', url: '/blog/' }];
   if (basePath !== '/blog/') crumbs.push({ name: stripTags(vars.PAGE_HEADING), url: basePath });
+  // 業種別の柱ページ（1ページ目）は FAQ の構造化データも出す
+  const hubFaq = currentPage === 1 && vars.HUB ? faqSchema(vars.HUB.faq) : null;
   const structured = jsonLdScripts([
     organizationSchema(),
     personSchema(),
     breadcrumbSchema(crumbs),
+    hubFaq,
   ]);
 
   return render(tpl, {
@@ -378,6 +534,7 @@ function buildListPageHtml({
     PAGINATION_HTML:   pg,
     BREADCRUMB_HTML:   breadcrumbHtml(crumbs),
     STRUCTURED_DATA:   structured,
+    ...(vars.EXTRA || {}),
   });
 }
 
@@ -484,6 +641,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     EXTRA_STRUCTURED_DATA: extraStructuredData,
     BREADCRUMB_HTML:  breadcrumbHtml(crumbs),
     RELATED_ARTICLE_HTML: relatedArticleHtml,
+    HUB_LINKS_HTML:   buildHubLinksHtml(post),
   });
 }
 
@@ -714,6 +872,7 @@ function buildStaticPages(posts) {
       .replace(/\s*<meta name="x-related-posts" content="[^"]*">/, '')
       .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(entry, src))
       .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml)
+      .replace(/\{\{HUB_GUIDE_HTML\}\}/g, () => renderHubGuideHtml(posts || []))
       .replace(/\{\{RELATED_POSTS_HTML\}\}/g, () => renderRelatedPostsHtml(posts || [], relatedSpec))
       .replace('</head>', structured);
 
@@ -734,6 +893,7 @@ function writeAnalyticsPageMap(posts) {
     map[entry.pathname] = title;
   }
   map['/blog/'] = '税務コラム';
+  map['/blog/macro/'] = '業種別ガイド';
   for (const post of posts) if (post.slug) map[`/blog/${post.slug}/`] = post.title || post.slug;
   for (const category of CATEGORIES) {
     if (posts.some(post => post.category === category.ja)) map[`/blog/category/${category.slug}/`] = `${category.ja}の記事一覧`;
@@ -770,6 +930,8 @@ function main() {
   // テンプレート読み込み → パーシャル注入
   const listTpl = injectAnalyticsBeacon(injectPartials(readTemplate('blog-list.html')));
   const postTpl = injectAnalyticsBeacon(injectPartials(readTemplate('blog-post.html')));
+  const hubTpl  = injectAnalyticsBeacon(injectPartials(readTemplate('blog-hub.html')));
+  const hubIndexTpl = injectAnalyticsBeacon(injectPartials(readTemplate('blog-hub-index.html')));
 
   // slug → post のマップ（関連記事リンク用）
   const postsMap = new Map();
@@ -826,23 +988,50 @@ function main() {
     });
   }
 
-  // マクロ（業種）別ページ
+  // 業種別ガイドの入口 /blog/macro/
+  {
+    const crumbs = [{ name: 'ホーム', url: '/' }, { name: '税務コラム', url: '/blog/' }, { name: '業種別ガイド', url: '/blog/macro/' }];
+    const html = render(hubIndexTpl, {
+      HUB_CARDS_HTML:  renderHubIndexCardsHtml(posts),
+      BREADCRUMB_HTML: breadcrumbHtml(crumbs),
+      STRUCTURED_DATA: jsonLdScripts([organizationSchema(), personSchema(), breadcrumbSchema(crumbs)]),
+    });
+    fs.mkdirSync(path.join(BLOG_OUT, 'macro'), { recursive: true });
+    fs.writeFileSync(path.join(BLOG_OUT, 'macro', 'index.html'), html, 'utf8');
+    console.log('[build]   → blog/macro/index.html');
+  }
+
+  // マクロ（業種）別ページ。1ページ目は柱ページ（論点・まず読む記事・サービス・FAQ）、
+  // 2ページ目以降は従来の一覧。文章は scripts/lib/hub-content.js、指定記事は data/hub-config.json。
+  const hubConfig = loadHubConfig();
   for (const m of MACROS) {
     const filtered = posts.filter(p => hubMacroOf(p) === m.ja);
     if (filtered.length === 0) continue;
+    const hub = HUB_CONTENT[m.slug];
+    const featured = hub ? pickFeaturedPosts(filtered, (hubConfig[m.slug] || {}).featured || [], 3) : [];
+    const heading = hub ? hub.h1 : `${m.ja}向けの記事`;
+    const lead    = hub ? hub.lead : `${m.ja}に関わる方への実務情報をまとめています。`;
     writePaginatedListing({
       tpl: listTpl,
+      firstPageTpl: hub ? hubTpl : null,
       allPosts: posts,
       targetPosts: filtered,
       basePath: `/blog/macro/${m.slug}/`,
       outDir: path.join(BLOG_OUT, 'macro', m.slug),
       activeMacroSlug: m.slug,
       vars: {
-        PAGE_TITLE:       `${m.ja}向け税務記事一覧｜税務コラム`,
-        PAGE_HEADING:     `${m.ja}向けの記事`,
-        PAGE_LEAD:        `${m.ja}に関わる方への実務情報をまとめています。`,
-        META_DESCRIPTION: `${m.ja}向けの税務実務情報の一覧。毛利順活税理士事務所の税務コラム。`,
-        SECTION_LABEL:    'Industry',
+        PAGE_TITLE:       `${heading}｜税務コラム`,
+        PAGE_HEADING:     heading,
+        PAGE_LEAD:        lead,
+        META_DESCRIPTION: lead.length > 120 ? `${lead.slice(0, 117)}…` : lead,
+        SECTION_LABEL:    'Industry Guide',
+        HUB:              hub || null,
+        EXTRA: hub ? {
+          HUB_POINTS_HTML:   renderHubPointsHtml(hub),
+          HUB_FEATURED_HTML: renderHubFeaturedHtml(featured),
+          HUB_SERVICES_HTML: renderHubServicesHtml(hub),
+          HUB_FAQ_HTML:      renderHubFaqHtml(hub),
+        } : {},
       },
     });
   }
@@ -878,14 +1067,15 @@ function main() {
 
 // ── ページネーション付き一覧書き出し ────────────────────────────
 function writePaginatedListing({
-  tpl, allPosts, targetPosts, basePath, outDir, vars,
+  tpl, firstPageTpl = null, allPosts, targetPosts, basePath, outDir, vars,
   activeCategorySlug = null, activeMacroSlug = null,
 }) {
   const pages = paginate(targetPosts, POSTS_PER_PAGE);
   for (let i = 0; i < pages.length; i++) {
     const currentPage = i + 1;
     const html = buildListPageHtml({
-      tpl, allPosts, pagePosts: pages[i], currentPage, totalPages: pages.length,
+      tpl: currentPage === 1 && firstPageTpl ? firstPageTpl : tpl,
+      allPosts, pagePosts: pages[i], currentPage, totalPages: pages.length,
       basePath, vars, activeCategorySlug, activeMacroSlug,
     });
     let writeDir;
@@ -903,4 +1093,4 @@ function writePaginatedListing({
 
 if (require.main === module) main();
 
-module.exports = Object.freeze({ main, buildStaticPages, generatePost, buildListPageHtml });
+module.exports = Object.freeze({ main, buildStaticPages, generatePost, buildListPageHtml, pickFeaturedPosts, selectRelatedPosts });

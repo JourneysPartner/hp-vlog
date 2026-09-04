@@ -173,7 +173,10 @@ console.log('=== 7. sitemap / 計測ページ表 ===');
   const xml = read('sitemap.xml');
   const { MACROS } = require(path.join(ROOT, 'scripts/lib/blog-taxonomy'));
   assert(!xml.includes('/404.html'), 'sitemap に 404 が無い');
-  const hubDirs = fs.existsSync(path.join(ROOT, 'blog', 'macro')) ? fs.readdirSync(path.join(ROOT, 'blog', 'macro')) : [];
+  // blog/macro/ 直下には入口ページ（index.html）もあるので、ディレクトリだけを業種ページとして数える
+  const hubDirs = fs.existsSync(path.join(ROOT, 'blog', 'macro'))
+    ? fs.readdirSync(path.join(ROOT, 'blog', 'macro')).filter(d => fs.statSync(path.join(ROOT, 'blog', 'macro', d)).isDirectory())
+    : [];
   assert(hubDirs.length >= 9, `業種ページが生成される（${hubDirs.length}種）`);
   assert(hubDirs.every(slug => xml.includes(`<loc>https://mori-zeirishi.net/blog/macro/${slug}/</loc>`)), '生成した業種ページがすべて sitemap にある');
   assert(hubDirs.includes('general'), '一般事業者のハブがある（macro 空の記事の受け皿）');

@@ -678,3 +678,65 @@
 .blog-post-hero .breadcrumb-custom { margin: 0 0 14px; }
 .page-hero .breadcrumb-custom { margin-top: 14px; }
 .breadcrumb-custom [aria-current="page"] { color: rgba(255,255,255,0.85); }
+
+/* ── 業種別の柱ページ（段階3 R1）── */
+.hub-section .hub-block { margin-bottom: 3rem; }
+.hub-section .hub-block:last-child { margin-bottom: 0; }
+.hub-heading {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.hub-heading i { color: var(--color-primary); }
+.hub-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+.hub-points li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  line-height: 1.7;
+}
+.hub-points li i { color: var(--color-primary); flex-shrink: 0; margin-top: 0.2rem; }
+.hub-faq { max-width: none; }
+a.hub-service-card, a.hub-index-card { text-decoration: none; color: inherit; }
+a.hub-service-card:hover .service-link, a.hub-index-card:hover .service-link { text-decoration: underline; }
+
+/* ── 記事末尾: 業種ハブとサービスへのリンク（段階3 R5）── */
+.blog-hub-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.blog-hub-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--color-secondary);
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.blog-hub-link i { color: var(--color-primary); font-size: 1.2rem; }
+.blog-hub-link:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); color: var(--color-secondary); }
+.blog-hub-link--service { background: var(--color-primary-light); border-color: transparent; }
+@media (max-width: 575.98px) { .blog-hub-links { grid-template-columns: 1fr; } }
