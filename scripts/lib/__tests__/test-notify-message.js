@@ -66,5 +66,31 @@ console.log('=== 日次生成の失敗通知 ===');
   assert(bare.subject && bare.body && !/undefined/.test(bare.body),
     '状況やログURLが無くても本文が壊れない');
 }
+// ── 2本揃わなかった日を知らせる（2026-09-04）──────────────────
+// cooldown が候補を削りすぎて本命記事1本しか作れなかったが、ジョブは成功で
+// 終わるため「補強記事が無い」ことに誰も気づけなかった。
+console.log('');
+console.log('=== 下書きが1本だけの日の通知 ===');
+{
+  const m = buildMessage('daily_draft_partial', {
+    title: '2026-09-04 の記事生成',
+    comment: '同じ需要の証拠が2件になり代替候補がないため、低優先度側を取り下げ',
+    prUrl: 'https://github.com/owner/repo/actions/runs/456',
+  });
+  assert(/1本だけ|補強記事なし/.test(m.subject), '件名で2本揃わなかったと分かる');
+  assert(/2本揃いませんでした/.test(m.body), '本文で状況が分かる');
+  assert(/低優先度側を取り下げ/.test(m.body), '選定側の理由がそのまま載る');
+  assert(m.body.includes('actions/runs/456'), '実行ログへの導線がある');
+  assert(/レビューは通常どおり/.test(m.body), '生成できた1本は普通に扱えると分かる');
+
+  // 失敗通知とは別物であること（1本は作られている）
+  assert(!/下書きが作られていません/.test(m.body), '失敗通知と混同されない');
+
+  // 理由やログURLが取れなくても壊れない
+  const bare = buildMessage('daily_draft_partial', {});
+  assert(bare.subject && bare.body && !/undefined/.test(bare.body),
+    '理由やログURLが無くても本文が壊れない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

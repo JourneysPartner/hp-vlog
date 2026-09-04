@@ -10,7 +10,7 @@
  *   - 直近 7 / 14 / 30 日で macro 別の出現比率を集計
  *   - 当該 macro の比率が「均等分布」を超える場合、超過分に応じたペナルティ
  *   - ハードキャップ:
- *       直近 7 日で macro が全体の 60% を超えていたら、その macro はその日 NG（候補があれば差し替え）
+ *       直近 7 日で macro が全体の 30% を超えていたら、その macro はその日 NG（候補があれば差し替え）
  *       直近 14 日で macro が全体の 50% を超えていたら、強いペナルティ
  *
  * 大分類の数を N とすると、均等比率は 1/N。
@@ -19,8 +19,14 @@
 const { ALL_MACROS } = require('./cluster-taxonomy');
 const { readPostsWithinDays, postReferenceDate } = require('./site-corpus');
 
+// 2026-09-04: 7日ハードキャップを 60% → 30% に。
+//   cluster / persona×category の cooldown を廃止（cooldown.js 冒頭を参照）したことで、
+//   それが副次的に担っていた「大分類が偏らない」効果が失われ、シミュレーションでは
+//   相続贈与が 14 日中 61% を占めた。偏り是正は本来こちらの担当なので、緩すぎた
+//   上限（大分類 11 種に対し 60% ＝ 均等 9% の 6.6 倍）を締める。
+//   ブロックされた大分類の候補が全滅した場合は applyBalance 側でブロック解除される。
 const WINDOWS = [
-  { days: 7,  weight: 1.0, hardCap: 0.60 },  // 直近1週: 出しすぎはハードブロック
+  { days: 7,  weight: 1.0, hardCap: 0.30 },  // 直近1週: 出しすぎはハードブロック
   { days: 14, weight: 0.7, hardCap: null  },  // 直近2週: スコアペナルティ
   { days: 30, weight: 0.4, hardCap: null  },  // 直近1月: 弱いペナルティ
 ];

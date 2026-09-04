@@ -354,6 +354,26 @@ jobs:
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
 
+      # ── 2本揃わなかった日を知らせる ──────────────────────────────
+      # 2026-09-04: cooldown が候補を削りすぎて本命記事1本しか作れなかったが、
+      # ジョブは成功で終わるため誰も気づけなかった。失敗でなくても知らせる。
+      - name: Notify partial draft (1 article only)
+        if: steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 == ''
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+          # 理由の文字列は shell に直接展開せず環境変数で渡す（引用符が混ざっても壊れないように）
+          SINGLE_REASON: ${{ steps.draft.outputs.single_reason }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          REASON="$SINGLE_REASON"
+          [ -z "$REASON" ] && REASON='選定条件で候補が絞られ、2本目が作れませんでした。'
+          node scripts/notify.js \
+            --event daily_draft_partial \
+            --title "${{ steps.prep.outputs.date }} の記事生成" \
+            --comment "$REASON" \
+            --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
+
       # ── 失敗したら必ず知らせる ──────────────────────────────────
       # 2026-08-28/29: 記事の生成自体は成功していたのに、その後の
       # バリデーションでジョブが落ちて下書きが作られず、2日間気づかれなかった。

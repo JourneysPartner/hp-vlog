@@ -10,7 +10,7 @@
  *   1. cluster / subcluster / tax_domain を全候補に解決
  *   2. 既存記事コーパス読み込み（site-corpus）
  *   3. 既存 slug を除外
- *   4. cooldown を適用（subcluster / cluster / persona×category）
+ *   4. cooldown を適用（subcluster / pain_point / 同slug）
  *   5. 類似度フィルタ: 既存記事との類似度が高すぎるものを除外
  *   6. カテゴリ偏り是正: balance スコアでハードブロック・スコアリング
  *   7. ペアリング: 同 pair_group 内、または異 cluster の本命+補強で組む
@@ -22,7 +22,7 @@
  */
 
 const { resolveCluster, resolveTaxDomain, MACRO } = require('./cluster-taxonomy');
-const { readAllPostsSorted } = require('./site-corpus');
+const { readAllPostsSorted, postReferenceDate } = require('./site-corpus');
 const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
@@ -74,7 +74,45 @@ function isShitsugiTopic(topic = {}) {
   return topic.demand_evidence && topic.demand_evidence.kind === 'nta-shitsugi';
 }
 
-function priorityBreakdown(topic, now) {
+// ── cluster の「散らし」（2026-09-04 導入）────────────────────────
+//
+// cluster / persona×category の cooldown は粗すぎて別論点まで巻き添えに止めるため
+// 廃止した（cooldown.js 冒頭を参照）。ただしあれは副次的に「同じ cluster が
+// 何日も続かない」という散らしの役目も果たしていた。そこをブロックではなく
+// スコアの減点で置き換える。候補は減らないので枯渇はしない。
+//
+//   直近 CLUSTER_RECENCY_DAYS 日以内に同じ cluster を出していたら、
+//   新しいほど大きく priority を下げる（当日 -1.5 → 14日前 -0）。
+//   需要の証拠（最大 +3）の方が重いので、飛び抜けて強い候補は依然として勝てる。
+const CLUSTER_RECENCY_DAYS = 14;
+const CLUSTER_RECENCY_WEIGHT = 1.5;
+
+/**
+ * cluster ごとに「何日前に最後に出したか」を集計する。
+ * @returns {Map<string, number>} cluster → 経過日数（直近 CLUSTER_RECENCY_DAYS 日以内のみ）
+ */
+function buildClusterRecency(corpus, now = new Date()) {
+  const lastSeen = new Map();
+  for (const post of corpus) {
+    if (!post || !post.cluster) continue;
+    const postDate = postReferenceDate(post);
+    if (isNaN(postDate)) continue;
+    const diffDays = Math.floor((now - postDate) / (24 * 60 * 60 * 1000));
+    if (diffDays < 0 || diffDays >= CLUSTER_RECENCY_DAYS) continue;
+    const prev = lastSeen.get(post.cluster);
+    if (prev == null || diffDays < prev) lastSeen.set(post.cluster, diffDays);
+  }
+  return lastSeen;
+}
+
+function clusterRecencyPenalty(topic, clusterRecency) {
+  if (!clusterRecency || !topic || !topic.cluster) return 0;
+  const days = clusterRecency.get(topic.cluster);
+  if (days == null) return 0;
+  return (1 - days / CLUSTER_RECENCY_DAYS) * CLUSTER_RECENCY_WEIGHT;
+}
+
+function priorityBreakdown(topic, now, clusterRecency = null) {
   // 需要の証拠に点数（質疑応答候補の自動採点 0〜100）がある場合はそれを反映し、
   // 高得点の候補から先に使われるようにする。点数の無い証拠は従来どおり 1。
   // 例: 91点→0.91×3=2.73、72点→0.72×3=2.16。いずれも季節ブースト(2)を上回るので
@@ -90,20 +128,22 @@ function priorityBreakdown(topic, now) {
   // 問い合わせ実績: 実際に問い合わせページへの遷移を生んだ記事と同じ・近い論点なら 1。
   // 重みは季節と同じ 2（実測の転換実績は時宜と同等以上に重い）。需要の証拠（×3）は超えない。
   const inquiry = inquirySignalFor(topic);
+  const clusterRecent = clusterRecencyPenalty(topic, clusterRecency);
   return {
     demand,
     season,
     lead,
     inquiry,
-    priority: demand * 3 + season * 2 + inquiry * 2 + lead,
+    clusterRecent,
+    priority: demand * 3 + season * 2 + inquiry * 2 + lead - clusterRecent,
     seasonLabels: seasonEntries.map(entry => entry.label),
   };
 }
 
-function rankBySelectionPriority(scored, now) {
+function rankBySelectionPriority(scored, now, clusterRecency = null) {
   return scored
     .map(entry => {
-      const priorityParts = priorityBreakdown(entry.topic, now);
+      const priorityParts = priorityBreakdown(entry.topic, now, clusterRecency);
       return { ...entry, priority: priorityParts.priority, priorityParts };
     })
     .sort((a, b) => {
@@ -139,6 +179,7 @@ function explainPick(topic, scored) {
       demand: parts.demand || 0,
       season: parts.season || 0,
       inquiry: parts.inquiry || 0,
+      cluster_recent: Number((parts.clusterRecent || 0).toFixed(3)),
       lead: Number((parts.lead || 0).toFixed(3)),
       balance: Number(((entry && entry.balance) || 0).toFixed(3)),
     },
@@ -527,7 +568,8 @@ function selectDailyTopics(topics, options = {}) {
   }
 
   // 需要の証拠 > 季節 > 問い合わせ近接度で並べ、同点時だけ balance を使う。
-  scored = rankBySelectionPriority(scored, now);
+  // 直近で出した cluster は減点して散らす（ブロックではないので候補は減らない）。
+  scored = rankBySelectionPriority(scored, now, buildClusterRecency(corpus, now));
   explanation.topCandidates = scored.slice(0, 8).map(s => ({
     slug: s.topic.slug,
     macro: s.topic.macro,
@@ -610,6 +652,8 @@ module.exports = {
   buildBestPair,
   priorityBreakdown,
   rankBySelectionPriority,
+  buildClusterRecency,
+  CLUSTER_RECENCY_DAYS,
   enforceShitsugiDailyLimit,
   enforceDemandKindDailyLimit,
   demandKindOf,
