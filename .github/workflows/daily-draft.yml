@@ -365,6 +365,13 @@ jobs:
           # 理由の文字列は shell に直接展開せず環境変数で渡す（引用符が混ざっても壊れないように）
           SINGLE_REASON: ${{ steps.draft.outputs.single_reason }}
         run: |
+          # force_slug 指定の手動実行は「1本だけ」が意図した結果なので通知しない。
+          # ここで止めないと『候補が絞られて2本目が作れませんでした』という
+          # 事実と違う理由が通知されてしまう。
+          if [ -n "${{ github.event.inputs.force_slug }}" ]; then
+            echo '::notice::force_slug 指定の手動実行のため、2本揃わない通知はスキップします'
+            exit 0
+          fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           REASON="$SINGLE_REASON"
           [ -z "$REASON" ] && REASON='選定条件で候補が絞られ、2本目が作れませんでした。'
