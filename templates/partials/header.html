@@ -15,7 +15,9 @@
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
           <li class="nav-item"><a class="nav-link" href="/">ホーム</a></li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="/services.html" role="button" data-bs-toggle="dropdown" aria-expanded="false">取扱業務</a>
+            <!-- PC: 押すと一覧が開く。スマホ: 一覧は出さず /services.html へそのまま移動する（2026-09-04 目視反映） -->
+            <a class="nav-link dropdown-toggle d-none d-lg-block" href="/services.html" role="button" data-bs-toggle="dropdown" aria-expanded="false">取扱業務</a>
+            <a class="nav-link d-lg-none" href="/services.html">取扱業務</a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/services.html">取扱業務一覧</a></li>
               <li><hr class="dropdown-divider"></li>
@@ -36,7 +38,7 @@
           <li class="nav-item"><a class="nav-link" href="/blog/macro/">業種別ガイド</a></li>
           <li class="nav-item"><a class="nav-link" href="/contact.html">お問い合わせ</a></li>
         </ul>
-        <a href="/contact.html" class="btn-header-cta ms-lg-3"><i class="bi bi-envelope"></i>無料相談する</a>
+        <a href="/contact.html" class="btn-header-cta"><i class="bi bi-envelope"></i>無料相談する</a>
       </div>
     </nav>
   </div>

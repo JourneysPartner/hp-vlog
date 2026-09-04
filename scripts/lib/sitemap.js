@@ -46,8 +46,9 @@ function generatedTaxonomyPaths(posts) {
   return [...categories, ...hubIndex, ...macros];
 }
 
-// 検索対象にしない静的ページ（404 は netlify.toml が /404.html を指すために生成するだけ）
-const EXCLUDED_STATIC_PAGES = new Set(['index.html', '404.html']);
+// 検索対象にしない静的ページ（404 は netlify.toml が /404.html を指すために生成するだけ。
+// contact-thanks はフォーム送信後にだけ表示する完了画面）
+const EXCLUDED_STATIC_PAGES = new Set(['index.html', '404.html', 'contact-thanks.html']);
 
 function generateSitemapXml({
   posts = [],
@@ -65,7 +66,7 @@ function generateSitemapXml({
   paths.push({ pathname: '/', lastmod: datePart(indexLastmod || staticLastmod['index.html']) });
   if (Array.isArray(staticPages)) {
     const sorted = staticPages
-      .filter(p => p && p.pathname && p.pathname !== '/' && p.pathname !== '/404.html')
+      .filter(p => p && p.pathname && p.pathname !== '/' && !EXCLUDED_STATIC_PAGES.has(p.pathname.replace(/^\//, '')))
       .sort((a, b) => a.pathname < b.pathname ? -1 : a.pathname > b.pathname ? 1 : 0);
     for (const p of sorted) paths.push({ pathname: p.pathname, lastmod: datePart(p.lastmod) });
   } else {

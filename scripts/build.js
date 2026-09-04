@@ -708,7 +708,8 @@ function gitLastCommitDate(relPath) {
 }
 
 // ── 静的ページの <head> 共通部分 ─────────────────────────────────
-// canonical / OG をページごとの値で埋める。404 は検索対象外なので canonical を出さない。
+// canonical / OG をページごとの値で埋める。404 と送信完了は検索対象外なので canonical を出さない。
+const NO_CANONICAL_PAGES = new Set(['404.html', 'contact-thanks.html']);
 function renderHeadCommon(entry, src) {
   const titleMatch = src.match(/<title>([\s\S]*?)<\/title>/i);
   const descMatch  = src.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
@@ -718,7 +719,7 @@ function renderHeadCommon(entry, src) {
     OG_TITLE:        titleMatch ? titleMatch[1].trim() : '毛利順活税理士事務所',
     OG_DESCRIPTION:  descMatch ? descMatch[1] : '',
   });
-  if (entry.src === '404.html') {
+  if (NO_CANONICAL_PAGES.has(entry.src)) {
     head = head.split('\n').filter(line => !/rel="canonical"/.test(line)).join('\n');
   }
   return head.trim();
