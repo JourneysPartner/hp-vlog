@@ -155,6 +155,55 @@ console.log('=== 5. 公開済み記事の出典URLが実在する ===');
 }
 
 console.log('');
+console.log('=== 6. 番号一覧表（REFS）と題材一覧（topic-pool）のURLが国税庁カタログと一致する ===');
+{
+  // 2026-09-04: 登録済み出典（節2）は直したのに、本文の「No.4508」を自動リンクする
+  // 番号一覧表（REFS）と題材一覧の source_url が zoyo/4508 のまま残り、本番の記事1本で
+  // 古いリンクが復活していた。番号ごとに国税庁カタログの URL と突き合わせる。
+  const fs = require('fs');
+  const { REFS, resolveNtaUrlByNumber } = require(path.join(ROOT, 'scripts/lib/tax-authority-refs'));
+  const idx = require(path.join(ROOT, 'data/nta-sources/index.json'));
+  const list = Array.isArray(idx) ? idx : (idx.entries || idx.items || []);
+  const urlByNo = {};
+  for (const e of list) {
+    if (e && e.type === 'taxanswer' && e.deleted !== true && e.id && e.url) urlByNo[String(e.id)] = catalog.page(e.url);
+  }
+  assert(Object.keys(urlByNo).length > 500, `カタログのタックスアンサーを番号で引ける（${Object.keys(urlByNo).length}件）`);
+
+  const refsBad = [];
+  let refsChecked = 0;
+  for (const [topic, arr] of Object.entries(REFS)) {
+    for (const r of arr) {
+      const no = String(r.no || '');
+      const url = catalog.page(r.url);
+      if (!urlByNo[no] || !isTaxAnswer(url)) continue;
+      refsChecked++;
+      if (urlByNo[no] !== url) refsBad.push(`${topic}/No.${no}: ${url} → 正: ${urlByNo[no]}`);
+    }
+  }
+  if (refsBad.length) refsBad.forEach(b => console.log(`    ${b}`));
+  assert(refsChecked > 20 && refsBad.length === 0, `番号一覧表（REFS）のURLがカタログと一致（${refsChecked}件を照合）`);
+
+  const poolSrc = fs.readFileSync(path.join(ROOT, 'scripts/topic-pool.js'), 'utf8');
+  const re = /https:\/\/www\.nta\.go\.jp\/taxes\/shiraberu\/taxanswer\/([a-z]+)\/(\d{4})\.htm/g;
+  const poolBad = [];
+  let poolChecked = 0, m;
+  while ((m = re.exec(poolSrc)) !== null) {
+    if (!urlByNo[m[2]]) continue;
+    poolChecked++;
+    if (urlByNo[m[2]] !== m[0]) poolBad.push(`No.${m[2]}: ${m[1]} → 正: ${urlByNo[m[2]]}`);
+  }
+  if (poolBad.length) poolBad.forEach(b => console.log(`    ${b}`));
+  assert(poolChecked > 30 && poolBad.length === 0, `題材一覧（topic-pool）のURLがカタログと一致（${poolChecked}件を照合）`);
+
+  // 本文の「No.XXXX」自動リンクは、人手の一覧表よりカタログを優先して解決する
+  const r4508 = resolveNtaUrlByNumber('4508');
+  const r4602 = resolveNtaUrlByNumber('4602');
+  assert(r4508 && /\/sozoku\/4508\.htm$/.test(r4508.url) && r4508.fromCatalog === true, 'No.4508 の自動リンクは sozoku 配下（カタログ由来）');
+  assert(r4602 && /\/sozoku\/4602\.htm$/.test(r4602.url) && r4602.fromCatalog === true, 'No.4602 の自動リンクは sozoku 配下（カタログ由来。番号レンジ推定の hyoka ではない）');
+}
+
+console.log('');
 console.log('=== 結果 ===');
 console.log(`PASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

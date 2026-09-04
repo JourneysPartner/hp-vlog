@@ -53,11 +53,13 @@ console.log('\n=== Test 3: 接頭辞なし No.XXXX だけでも検出 ===');
 // ── 4. カタログ未収録だがレンジ推定可 ──────────────────────────
 console.log('\n=== Test 4: 未収録番号はレンジ推定でリンク化 ===');
 {
-  // 1350 はカタログにある。1100 はカタログ未登録だが 1xxx → shotoku
-  const src = 'No.1100 についても確認しましょう。';
+  // 1350 はカタログにある。1001 は国税庁カタログにも REFS にも無いが 1xxx → shotoku
+  // （2026-09-04: 番号解決が国税庁カタログ優先になり、以前使っていた 1100 は
+  //   カタログ収録済みで「推定」にならなくなったため、未収録の番号に変更）
+  const src = 'No.1001 についても確認しましょう。';
   let missed = null;
   const { markdown, stats } = linkCitations(src, { onMiss: (info) => { missed = info; } });
-  assert(/\[No\.1100\]\(https:\/\/www\.nta\.go\.jp\/taxes\/shiraberu\/taxanswer\/shotoku\/1100\.htm\)/.test(markdown),
+  assert(/\[No\.1001\]\(https:\/\/www\.nta\.go\.jp\/taxes\/shiraberu\/taxanswer\/shotoku\/1001\.htm\)/.test(markdown),
     '1xxx → shotoku に推定リンク');
   assert(stats.guessed === 1 && stats.fromCatalog === 0, 'guessed=1');
   assert(missed === null, 'リンク化できたので onMiss は呼ばれない');
