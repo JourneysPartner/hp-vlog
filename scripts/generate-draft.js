@@ -575,6 +575,9 @@ function getRecentRevisionComments(limit = 3) {
 //   4. カテゴリ偏り是正（直近7日で大分類が60%超ならハードブロック）
 //   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
 //   6. 同日2本の最終類似度チェック
+// 選定で 2 本揃わなかったときの理由（通知に載せる）。pickPair が毎回上書きする。
+let lastSelectionWarnings = [];
+
 async function pickPair(dateStr) {
   const pendingDrafts = loadPendingDraftCorpus();
   const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: pendingDrafts });
@@ -594,6 +597,7 @@ async function pickPair(dateStr) {
       console.log(`[generate] 直近14日 macro比率: ${r14}`);
     }
   }
+  lastSelectionWarnings = (explanation.warnings || []).slice();
   if (explanation.warnings) {
     for (const w of explanation.warnings) console.warn(`[generate] ⚠ ${w}`);
   }
@@ -2540,6 +2544,14 @@ async function main() {
       fs.appendFileSync(ghOutput, `filename2=${results[1].filename}\n`);
       fs.appendFileSync(ghOutput, `slug2=${results[1].slug}\n`);
       fs.appendFileSync(ghOutput, `model2=${results[1].model}\n`);
+    }
+
+    // 2本揃わなかった日は理由も渡す（ワークフローが通知に載せる）。
+    // ジョブは成功で終わるため、これが無いと「補強記事が無い」ことに気づけない。
+    if (results.length < 2) {
+      const reason = lastSelectionWarnings.join(' / ').replace(/[\r\n]+/g, ' ').trim()
+        || '選定を通過した候補が1件だけでした';
+      fs.appendFileSync(ghOutput, `single_reason=${reason}\n`);
     }
 
     // カンマ区切りリスト（通知・コミット用）

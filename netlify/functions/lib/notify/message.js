@@ -114,6 +114,25 @@ function buildMessage(event, data) {
       };
     }
 
+    // 2026-09-04: cooldown が候補を削りすぎて本命記事1本しか作れず、
+    // ジョブは成功扱いだったため「補強記事が無い」ことに誰も気づけなかった。
+    // 2本揃わなかった日は、失敗でなくても必ず知らせる。
+    case 'daily_draft_partial': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【ブログ】本日は下書きが1本だけです（補強記事なし）',
+        body: [
+          `${title || '本日の記事生成'}は完了しましたが、下書きが2本揃いませんでした。`,
+          '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `■ 実行ログ: ${prUrl}` : '',
+          '',
+          '生成された記事のレビューは通常どおり進められます。',
+          '同じ日が続く場合は、選定条件で候補が枯れていないかログを確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     case 'revised': {
       const { title, filename, comment, reviewUrl } = data;
       const lines = [
