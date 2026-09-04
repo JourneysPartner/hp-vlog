@@ -103,6 +103,8 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   margin: 0 auto;
   line-height: 2;
 }
+/* 1文で長めのリード（強みの節など）を PC で1行に収める */
+.section-lead--wide { max-width: 820px; }
 
 .divider-orange {
   width: 48px;
@@ -252,6 +254,7 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   border-radius: var(--radius-sm);
   transition: var(--transition);
   position: relative;
+  white-space: nowrap; /* 「ホー／ム」のような途中改行をさせない */
 }
 #header .nav-link::after {
   content: '';
@@ -292,6 +295,25 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(232,83,32,0.45);
   color: #fff;
+}
+
+/* PC幅の段階調整（2026-09-04 目視反映）:
+   メニュー7項目＋ボタンを、画面幅ごとに文字と余白を詰めて必ず1行に収める。
+   目安: 992〜1199px（内側 936px）で約 890px、1200〜1399px（内側 1116px）で約 1020px。 */
+@media (min-width: 992px) {
+  #header .btn-header-cta { margin-left: 16px; }
+}
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  #header .navbar-brand .logo-text { font-size: 1.02rem; }
+  #header .navbar-brand .logo-sub  { font-size: 0.54rem; }
+  #header .nav-link { font-size: 0.84rem; padding: 6px 7px; }
+  #header .nav-link::after { left: 7px; right: 7px; }
+  #header .btn-header-cta { padding: 9px 16px; font-size: 0.84rem; margin-left: 8px; }
+}
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  #header .nav-link { font-size: 0.9rem; padding: 6px 10px; }
+  #header .nav-link::after { left: 10px; right: 10px; }
+  #header .btn-header-cta { padding: 10px 20px; font-size: 0.9rem; }
 }
 
 /* Hamburger */
@@ -1175,6 +1197,21 @@ ul { list-style: none; padding-left: 0; margin: 0; }
   white-space: nowrap;
 }
 .about-table td { color: var(--color-text-muted); }
+
+/* 代表メッセージの署名: 途中で折り返さない（スマホでは画面幅に合わせて少し縮める） */
+.about-signature {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+@media (max-width: 575.98px) {
+  .about-signature { font-size: clamp(0.82rem, 4.4vw, 1.1rem); }
+  /* 事務所概要の表: 見出し列と余白を詰めて、事務所名・代表者が値の列に1行で収まるようにする */
+  .about-table th, .about-table td { padding: 14px 12px; font-size: 0.95rem; }
+  .about-table th { width: auto; }
+}
 
 /* ── 17. Services Page ── */
 .service-detail-card {
