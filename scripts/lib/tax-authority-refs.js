@@ -57,7 +57,7 @@ const REFS = {
     { no: '4158', title: '配偶者の税額の軽減',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm' },
     { no: '4205', title: '相続税の申告と納税',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm' },
     { no: '4408', title: '贈与税の計算と税率',               url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm' },
-    { no: '4508', title: '直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm' },
+    { no: '4508', title: '直系尊属から住宅取得等資金の贈与を受けた場合の非課税', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm' },
     { no: '4103', title: '相続時精算課税の選択',             url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm' },
   ],
 
@@ -481,11 +481,30 @@ const NTA_URL_PREFIX_RULES = [
   { match: /^54\d\d$/, section: 'hojin' },
 ];
 
+// 2026-09-04: 国税庁から月次で取り込んでいるカタログ（data/nta-sources/index.json）を
+// 最優先にする。人手で書いた REFS は 4508 を zoyo 配下と取り違えたまま本文の
+// 「No.4508」を自動リンクしていた（記事1本で発覚）。カタログは実際に取得した
+// URL なので、番号が載っていれば必ずそちらを使い、REFS は未収録の番号だけ補う。
+function loadNtaCatalogIndex() {
+  const out = {};
+  try {
+    const raw = require('../../data/nta-sources/index.json');
+    const list = Array.isArray(raw) ? raw : (raw.entries || raw.items || []);
+    for (const e of list) {
+      if (!e || e.type !== 'taxanswer' || e.deleted === true) continue;
+      const no = String(e.id || '');
+      if (!/^\d{4}$/.test(no) || !e.url) continue;
+      out[no] = { url: e.url, title: e.title, fromCatalog: true };
+    }
+  } catch (_) { /* カタログ未取得の環境では REFS だけで動く */ }
+  return out;
+}
+
 function buildCatalogIndex() {
-  const idx = {};  // number(string) → { url, title, section }
+  const idx = loadNtaCatalogIndex();  // number(string) → { url, title }
   for (const list of Object.values(REFS)) {
     for (const r of list) {
-      if (r.no && r.url) idx[r.no] = { url: r.url, title: r.title, fromCatalog: true };
+      if (r.no && r.url && !idx[r.no]) idx[r.no] = { url: r.url, title: r.title, fromCatalog: true };
     }
   }
   return idx;

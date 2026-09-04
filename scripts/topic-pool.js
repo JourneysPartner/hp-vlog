@@ -613,7 +613,7 @@ const TOPICS = [
     article_type: 'misconception_fix', pair_group: 'inheritance-gifts',
     title: '親から子への住宅資金贈与で非課税になる条件｜贈与税の特例を活用する方法',
     slug: 'housing-fund-gift-tax-exemption',
-    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4508.htm',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm',
     source_title: '国税庁タックスアンサー No.4508 直系尊属から住宅取得等資金の贈与を受けた場合の非課税',
     hint: '省エネ住宅1000万円・一般住宅500万円の非課税枠・適用条件',
     search_intent: '住宅資金贈与の非課税特例の条件と金額を知りたい',
