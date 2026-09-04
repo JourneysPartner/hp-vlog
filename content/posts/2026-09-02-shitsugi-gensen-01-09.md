@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "建設業で日雇労働者を常態的に雇い入れている場合、常雇が10人未満でも日雇を含めて常時10人以上になると源泉所得税の納期の特例は適用できません。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-02T15:57:22.095+09:00"
 publish_at: "2026-09-03T17:45:00.000+09:00"
-published_at: ""
+published_at: "2026-09-04T12:02:39.881+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-02T00:08:40.433Z"
-updated_at: "2026-09-02T15:57:22.095+09:00"
+updated_at: "2026-09-04T12:02:39.881+09:00"
 publish_slot: "evening"
 ---
 常雇の従業員は8人だから納期の特例が使えると思っていたら、実は日雇労働者まで含めてカウントしなければならなかった——建設業を営む個人事業主の方から、こうした相談が少なくありません。
