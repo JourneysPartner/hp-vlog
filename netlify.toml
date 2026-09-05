@@ -2,6 +2,8 @@
   command = "npm install && npm run build"
   publish = "."
   functions = "netlify/functions"
+  # 下書きの試しビルド・表示に影響しない変更を飛ばす。元に戻すには次の1行を消す。
+  ignore = "node scripts/netlify-ignore-build.js"
 
 [build.environment]
   NODE_VERSION = "20"
