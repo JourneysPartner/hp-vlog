@@ -553,6 +553,16 @@ async function main() {
 
   // PDF を含む対象があるときだけ pdftotext を要求する
   const keysToRun = only ? [only] : Object.keys(SOURCES);
+  // scope（適用条件）が未定義の資料は、生成時にどの記事にも添付されない。
+  // 追加した資料に scope を書き忘れていたら、ここで気づけるようにする。
+  {
+    const { sourceKeysWithoutScope } = require('./lib/nta-qa-sources');
+    const missing = sourceKeysWithoutScope(Object.keys(SOURCES));
+    if (missing.length > 0) {
+      console.warn(`[nta-qa] ⚠ scope 未定義の資料があります（生成時に添付されません）: ${missing.join(', ')}`
+        + ' → scripts/lib/nta-qa-sources.js に追加してください');
+    }
+  }
   if (keysToRun.some(k => SOURCES[k] && SOURCES[k].format !== 'html')) ensurePdftotext();
 
   const index = loadIndex();

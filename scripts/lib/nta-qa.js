@@ -32,6 +32,8 @@ const DEFAULT_MAX_DOCS = 3;
 let _cache;
 
 /** 全角・半角と空白の揺れを吸収する。PDFの抽出結果は「２年」「1,000 万円」のように混在する。 */
+const qaSources = require('./nta-qa-sources');
+
 function normalize(text) {
   return String(text || '').normalize('NFKC').replace(/\s+/g, '');
 }
@@ -109,9 +111,21 @@ function findQaByKeywords(keywords, options = {}) {
     ? options.maxDocs : DEFAULT_MAX_DOCS;
   const taxDomain = options.taxDomain || null;
 
+  // 資料レベルの絞り込み（2026-09-06）:
+  //   税目が同じでも主題が違う資料は候補にしない。income_tax の資料は暗号資産 FAQ
+  //   だけなので、これが無いと所得税の記事すべてに暗号資産 FAQ が付く。
+  //   記事の企画メタに資料の主題語（nta-qa-sources.SCOPES）が無ければその資料は外す。
+  //   scope 未定義の資料はどの記事にも付かない（安全側）。
+  const scopeText = options.scopeText != null
+    ? options.scopeText
+    : (Array.isArray(keywords) ? keywords : [keywords]).join('|');
+  const eligible = qaSources.eligibleSourceKeys(scopeText);
+  if (eligible.size === 0) return [];
+
   const scored = [];
   for (const entry of loadIndex()) {
     if (taxDomain && entry.tax_domain !== taxDomain) continue;
+    if (!eligible.has(entry.source_key)) continue;
     const body = readBody(entry);
     if (!body) continue;
     const haystack = normalize(`${entry.title} ${body}`);
@@ -125,9 +139,12 @@ function findQaByKeywords(keywords, options = {}) {
     const heading = normalize(entry.title).replace(normalize(entry.source_label), '');
     const titleHits = terms.filter(t => heading.includes(t))
       .reduce((sum, t) => sum + rarityOf(t), 0);
+    // 5 文字以上の具体的な語（「2年を経過する日」「取消しを求める旨の届出書」等）が本文に
+    // 当たっていれば、見出しに無くても論点を扱っている可能性が高い。
+    const strongBodyHit = matched.some(t => t.length >= 5);
     scored.push({
       id: entry.id, q_no: entry.q_no, title: entry.title, url: entry.url,
-      source_label: entry.source_label, body, hits, titleHits,
+      source_label: entry.source_label, body, hits, titleHits, strongBodyHit,
       // 総集編（多く寄せられるご質問・事例集）は多数の問をまとめた資料で、
       // どんな語にも当たりやすい。個別の問を優先し、これは後ろに回す。
       digest: entry.digest === true,
@@ -145,7 +162,14 @@ function findQaByKeywords(keywords, options = {}) {
     || (b.titleHits - a.titleHits)
     || (b.hits - a.hits)
     || (a.length - b.length));
-  return scored.slice(0, maxDocs);
+  // 文書レベルの下限（2026-09-06）:
+  //   見出しに検索語が 1 つも当たらない問は、本文のありふれた語で拾われただけの
+  //   可能性が高い（土地の譲渡に「暗号資産取引で損失が生じた場合」が付いたときは
+  //   3 問とも titleHits=0 だった）。資料が合っていても、こういう弱い一致は渡さない。
+  //   ただし 5 文字以上の具体的な語が本文に当たっているものは、見出しに無くても残す
+  //   （資料レベルの絞り込みを通っている前提なので、これは弱い一致ではない）。
+  const floored = scored.filter(s => s.titleHits > 0 || s.strongBodyHit);
+  return floored.slice(0, maxDocs);
 }
 
 /** 本文を上限まで切り詰める。切ったことが分かるようにする。 */
