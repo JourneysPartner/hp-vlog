@@ -911,7 +911,209 @@
       "primary_question": "住宅取得のための贈与税非課税制度を利用するには、どのような要件と必要書類がある？",
       "reader_problem": "住宅購入資金を親から贈与してもらいたいが、非課税特例の適用条件や申告時の必要書類を確認したい。",
       "selected_at": "2026-08-26T10:07:36.756Z"
+    },
+    {
+      "slug": "suggest-furima-mercari-b5aca3",
+      "seed_id": "furima-mercari",
+      "phrases": [
+        "メルカリ 売上 税金 不用品",
+        "メルカリ 売上 税金 グッズ"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "メルカリで不用品や購入したグッズを売った場合、売上に税金はかかるのか？",
+      "reader_problem": "生活用動産の処分と、利益目的で仕入れた商品の販売との税務上の違いが分からない。",
+      "selected_at": "2026-09-06T18:45:57.742Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-5c3749",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 やり方",
+        "せどり 確定申告 バレない 知恵袋",
+        "せどり 確定申告 バレない"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの利益はどのように確定申告し、申告しない場合に税務署へ把握される可能性はあるのか？",
+      "reader_problem": "せどりの申告手順が分からず、申告漏れや無申告が発覚するリスクを心配している。",
+      "selected_at": "2026-09-06T18:45:57.742Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-fd204c",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 帳簿",
+        "せどり 確定申告 書き方",
+        "せどり 確定申告 経費",
+        "せどり 確定申告 レシート ない"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "せどりの確定申告では、売上・仕入れ・経費をどのように帳簿へ記載し、レシートがない支出をどう処理するのか？",
+      "reader_problem": "大量の商品取引を記帳する方法や、送料・販売手数料などの経費の証拠書類が不足した場合の処理に困っている。",
+      "selected_at": "2026-09-06T18:45:57.743Z"
+    },
+    {
+      "slug": "suggest-furima-sedori-43958b",
+      "seed_id": "furima-sedori",
+      "phrases": [
+        "せどり 確定申告 雑所得"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "せどりの所得は雑所得として申告すべきか、それとも事業所得として申告できるのか？",
+      "reader_problem": "せどりを継続的に行っている場合の所得区分と、青色申告の可否を判断できない。",
+      "selected_at": "2026-09-06T18:45:57.743Z"
+    },
+    {
+      "slug": "suggest-creator-influencer-da51ae",
+      "seed_id": "creator-influencer",
+      "phrases": [
+        "インフルエンサー 確定申告 いくらから",
+        "インフルエンサー 副業 確定申告"
+      ],
+      "persona": "influencer_creator",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "インフルエンサーの収入はいくらから確定申告が必要になるのか？",
+      "reader_problem": "本業の給与がある状態で副業として得たインフルエンサー収入について、申告が必要な金額が分からない。",
+      "selected_at": "2026-09-06T18:46:30.998Z"
+    },
+    {
+      "slug": "suggest-kensetsu-hitori-a789c5",
+      "seed_id": "kensetsu-hitori",
+      "phrases": [
+        "一人親方 確定申告してない",
+        "一人親方 確定申告してない 知恵袋"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "一人親方が確定申告をしていない場合、どのように対応すればよいのか？",
+      "reader_problem": "過去に申告していない一人親方が、期限後申告や追加の納税、加算税などの対応をどうすべきか分からない。",
+      "selected_at": "2026-09-06T18:46:30.998Z"
+    },
+    {
+      "slug": "suggest-kojin-aoiro-f9e5a1",
+      "seed_id": "kojin-aoiro",
+      "phrases": [
+        "青色申告 メリット 法人"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "comparison_decision",
+      "primary_question": "法人が青色申告をするメリットと、適用を受けるための要件は何ですか？",
+      "reader_problem": "法人の青色申告による税務上のメリットや申請期限を確認したい。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-579dc6",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金 払い方"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "フリーランスの税金はいつ、どのような方法で支払いますか？",
+      "reader_problem": "所得税や住民税などの納付時期と支払い方法が分からない。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-kojin-yotei-e3fb17",
+      "seed_id": "kojin-yotei",
+      "phrases": [
+        "予定納税 払えない 法人"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "法人税の予定納税を払えない場合、どのような対処が必要ですか？",
+      "reader_problem": "法人税の中間納付が難しい場合の手続きや延滞リスクを確認したい。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-houjin-yakuin-ef3ca0",
+      "seed_id": "houjin-yakuin",
+      "phrases": [
+        "役員報酬 決め方 取締役会",
+        "役員報酬 決め方 議事録"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "役員報酬を決定する際に必要な決議や議事録には何を記載しますか？",
+      "reader_problem": "役員報酬を損金算入するための決定手続きや証拠書類が分からない。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-houjin-ka-6e04da",
+      "seed_id": "houjin-ka",
+      "phrases": [
+        "法人化 タイミング 月",
+        "法人化 タイミング 利益",
+        "法人化 タイミング 売上",
+        "法人化 タイミング 何月",
+        "法人化 タイミング 所得",
+        "個人事業主 法人化 タイミング",
+        "飲食店 法人化 タイミング",
+        "仮想通貨 法人化 タイミング",
+        "不動産投資 法人化 タイミング"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "個人事業主は利益・売上・所得がいくら、または何月の時点で法人化するのが有利ですか？",
+      "reader_problem": "法人化による税負担や社会保険、設立費用を比較して最適なタイミングを判断したい。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-houjin-kessan-ad7631",
+      "seed_id": "houjin-kessan",
+      "phrases": [
+        "決算賞与 損金算入",
+        "決算賞与 損金算入 要件",
+        "決算賞与 損金算入時期",
+        "決算賞与 損金要件"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "法人税",
+      "article_type": "basic_explainer",
+      "primary_question": "法人が支給する決算賞与を損金算入するための要件と時期は何ですか？",
+      "reader_problem": "決算賞与を支給した場合に、いつの事業年度の損金にできるのか分からない。",
+      "selected_at": "2026-09-06T18:47:04.462Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-4dead8",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 確定申告 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "生前贈与を受けた場合の贈与税の申告はどのように行うのか？",
+      "reader_problem": "生前贈与を受けた後に確定申告が必要なのか、申告時期や手続きが分からない。",
+      "selected_at": "2026-09-06T18:47:49.037Z"
     }
   ],
-  "updated_at": "2026-08-26T10:07:36.756Z"
+  "updated_at": "2026-09-06T18:47:49.037Z"
 }
