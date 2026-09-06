@@ -18,5 +18,19 @@
   "byte_size": 5158,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1426-6450805e40748\""
+  "etag": "\"1426-6450805e40748\"",
+  "figures_checked_at": "2026-09-06T09:14:26.125Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/01/img/03_01.gif",
+      "alt": "物納申請中に相続税の減額更正があったことにより生じた過誤納金に対する譲渡所得の課税の図",
+      "width": "548",
+      "height": "213",
+      "file": "data/nta-sources/images/shitsugi/joto/01/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4412,
+      "sha256": "d044f4880295b4a0d7e687900cdc67c6bfb3fa4edc46721e5645be1ff28a192f",
+      "page_html_hash": "d56eddb55ca62d42d7aaa6bec95aa3f7d8ccaeba4cc3e042e44b98bcf095941a"
+    }
+  ]
 }

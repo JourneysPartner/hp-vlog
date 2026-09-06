@@ -18,5 +18,52 @@
   "byte_size": 5778,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1692-645080647a348\""
+  "etag": "\"1692-645080647a348\"",
+  "figures_checked_at": "2026-09-06T09:08:54.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/11_01.gif",
+      "alt": "宅地の評価単位（不合理分割2）の図",
+      "width": "487",
+      "height": "234",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3698,
+      "sha256": "195a12e4c55ac39c13d6206e071459861bcc2da3a20e85930c7733e7b068438c",
+      "page_html_hash": "b25e825c97ab80a9f896687a48b33482a9b8eaff1619e744c4bbc74392364bcf"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/11_02.gif",
+      "alt": "",
+      "width": "557",
+      "height": "54",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/11/11_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2053,
+      "sha256": "e15b45028d18becdd5ece5dc074a10391ef8247f92ff27b7ca80ede1f8633ed8",
+      "page_html_hash": "b25e825c97ab80a9f896687a48b33482a9b8eaff1619e744c4bbc74392364bcf"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/11_03.gif",
+      "alt": "",
+      "width": "539",
+      "height": "51",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/11/11_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2010,
+      "sha256": "997e35565d0c6584315e6f64134699fce79fd6d84a6caa9f04074dce36983a5b",
+      "page_html_hash": "b25e825c97ab80a9f896687a48b33482a9b8eaff1619e744c4bbc74392364bcf"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/11_04.gif",
+      "alt": "",
+      "width": "327",
+      "height": "55",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/11/11_04.gif",
+      "media_type": "image/gif",
+      "bytes": 960,
+      "sha256": "d9b3e45a66e921b574195b0dcb9cead5d6d65dfe53f19c262a612437083123fe",
+      "page_html_hash": "b25e825c97ab80a9f896687a48b33482a9b8eaff1619e744c4bbc74392364bcf"
+    }
+  ]
 }

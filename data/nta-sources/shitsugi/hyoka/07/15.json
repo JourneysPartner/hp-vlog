@@ -18,5 +18,30 @@
   "byte_size": 10408,
   "encoding": "shift_jis",
   "last_modified": "Fri, 03 Jul 2026 01:00:18 GMT",
-  "etag": "\"28a8-655aa72c24700\""
+  "etag": "\"28a8-655aa72c24700\"",
+  "figures_checked_at": "2026-09-06T09:12:54.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/img/15_01.gif",
+      "alt": "評価明細書第４表の１の記載例",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/07/15/15_01.gif",
+      "media_type": "image/gif",
+      "bytes": 127209,
+      "sha256": "950c00c2be6291eef3070282d6a583ec456831f87c487c05254e081ac5ff8cd1",
+      "page_html_hash": "4520b37cb04a0a7ebf61829b1b211741ddb696cf4cfd755399efe5b60b98b7a0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/img/15_02.gif",
+      "alt": "評価明細書第４表の１の該当欄を記載",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/07/15/15_02.gif",
+      "media_type": "image/gif",
+      "bytes": 42479,
+      "sha256": "5d2bb51036df608ec07e6ae5823d3268f832183f426ec0e10b4a54acaa376913",
+      "page_html_hash": "4520b37cb04a0a7ebf61829b1b211741ddb696cf4cfd755399efe5b60b98b7a0"
+    }
+  ]
 }

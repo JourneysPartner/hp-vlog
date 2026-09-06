@@ -18,5 +18,19 @@
   "byte_size": 10529,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:33 GMT",
-  "etag": "\"2921-645080a31dd98\""
+  "etag": "\"2921-645080a31dd98\"",
+  "figures_checked_at": "2026-09-06T09:02:57.166Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/08/img/07_01.gif",
+      "alt": "特定施設の敷地の用に供される土地等の総面積&times;その法人の専有部分の床面積/特定施設の専有部分の総床面積",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/08/07/07_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2326,
+      "sha256": "0c453b5a971cf1943b0d907fe5532820fc628ddfebf25aa804ccf30a70b6f31b",
+      "page_html_hash": "e048880706b8a5ac55619972387363d36601acb0abce8efd7f6819462e284625"
+    }
+  ]
 }

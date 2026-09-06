@@ -18,5 +18,19 @@
   "byte_size": 5565,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:20 GMT",
-  "etag": "\"15bd-6450805d86aa0\""
+  "etag": "\"15bd-6450805d86aa0\"",
+  "figures_checked_at": "2026-09-06T09:14:47.132Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/03/img/08_01.gif",
+      "alt": "隣接する土地に共有建物を建築する場合の借地権利金の図",
+      "width": "314",
+      "height": "107",
+      "file": "data/nta-sources/images/shitsugi/joto/03/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1230,
+      "sha256": "c93c6b5acfda0d0fe61a63b870f8c869b59996b48dba6f664e1dc563485cddc2",
+      "page_html_hash": "1bc694b68283e81cae412c7f2317ae7e2a4553531d71a2572648da3364f23650"
+    }
+  ]
 }

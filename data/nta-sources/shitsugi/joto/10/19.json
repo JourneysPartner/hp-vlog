@@ -18,5 +18,19 @@
   "byte_size": 5098,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:18 GMT",
-  "etag": "\"13ea-6450805b6b1d0\""
+  "etag": "\"13ea-6450805b6b1d0\"",
+  "figures_checked_at": "2026-09-06T09:15:49.122Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/10/img/19_01.gif",
+      "alt": "建物の交換に伴い相互に借地権を設定し合った場合の図",
+      "width": "545",
+      "height": "159",
+      "file": "data/nta-sources/images/shitsugi/joto/10/19/19_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2740,
+      "sha256": "b8b9231ef88b7fe7d76070791fef2f6644edfc1eb78e2c63135dd4a8b4f82202",
+      "page_html_hash": "ea165aa70cf522456393b83db427c6ec75051a30d3f2dd91b8fd72e996dfcd45"
+    }
+  ]
 }

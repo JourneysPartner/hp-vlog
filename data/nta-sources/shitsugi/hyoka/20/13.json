@@ -18,5 +18,52 @@
   "byte_size": 4906,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"132a-6450805e6fd18\""
+  "etag": "\"132a-6450805e6fd18\"",
+  "figures_checked_at": "2026-09-06T09:14:12.136Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/13_01.gif",
+      "alt": "普通住宅地図",
+      "width": "540",
+      "height": "350",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/13/13_01.gif",
+      "media_type": "image/gif",
+      "bytes": 11160,
+      "sha256": "a07bfe01b360ee6de153d65437a902ccacf3ad4497655f6337b1a6f8df0247aa",
+      "page_html_hash": "36edd14754282f339dec7206f5bfe8d5b6771e2ddeca07d30bf69b1188fd3238"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/13_02_01.gif",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/13/13_02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1929,
+      "sha256": "89ae615ff36f1ae554a7166e5c5af745b211856f7afebc176e01290b6b899ea8",
+      "page_html_hash": "36edd14754282f339dec7206f5bfe8d5b6771e2ddeca07d30bf69b1188fd3238"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/13_02_02.gif",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/13/13_02_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1950,
+      "sha256": "1aa8dc6a6e2a158a53a28c3fc3a3fd5c3b744aca7f624faaa0fe6d90baf68a6d",
+      "page_html_hash": "36edd14754282f339dec7206f5bfe8d5b6771e2ddeca07d30bf69b1188fd3238"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/13_03.gif",
+      "alt": "規模格差補正率の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/13/13_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1194,
+      "sha256": "32c868face3fab3ed021c8c65704a36aa18d02a39b406576a7d52d23fae07591",
+      "page_html_hash": "36edd14754282f339dec7206f5bfe8d5b6771e2ddeca07d30bf69b1188fd3238"
+    }
+  ]
 }

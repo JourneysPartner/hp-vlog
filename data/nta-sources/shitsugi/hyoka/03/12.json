@@ -18,5 +18,30 @@
   "byte_size": 4752,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1290-64508063f1bb0\""
+  "etag": "\"1290-64508063f1bb0\"",
+  "figures_checked_at": "2026-09-06T09:09:37.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/12_01.gif",
+      "alt": "屈折路に面する不整形地の想定整形地のとり方の図Ａ、Ｂ",
+      "width": "585",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/12/12_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2800,
+      "sha256": "72a66d57fa9e4c619cd5d38f342ca3985169f5bcd7d9fbe4799727ec517fb0f2",
+      "page_html_hash": "12e5781991b3977ce8c4085c02d5bd11ca5be3d18b1f850dd287372e1f19540c"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/12_02.gif",
+      "alt": "屈折路に面する不整形地の想定整形地のとり方の図Ｃ",
+      "width": "306",
+      "height": "171",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/12/12_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1421,
+      "sha256": "31e2b72d20e20481fcef91582fb7613d6f334693080d816e21e388e358eefba3",
+      "page_html_hash": "12e5781991b3977ce8c4085c02d5bd11ca5be3d18b1f850dd287372e1f19540c"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 6310,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"18a6-6450809d7d6b8\""
+  "etag": "\"18a6-6450809d7d6b8\"",
+  "figures_checked_at": "2026-09-06T09:05:51.159Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/27/img/04_01.gif",
+      "alt": "貨物の運送の用に供される自動車で輸送の効率化等に資するものとして財務省令で定めるものに限る（租税特別措置法第42条の6第1項第3号）。　財務省で定めるものとは、道路運送車両法施行規則別表第1（以下「車両法省令別表第1」といいます。）に規定する普通自動車で貨物の運送の用に供されるもののうち車両総重量が3.5トン以上のものとする（租税特別措置法施行規則第20条の2の3第4項）。",
+      "width": "487",
+      "height": "123",
+      "file": "data/nta-sources/images/shitsugi/hojin/27/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6051,
+      "sha256": "ad8bc9b1064005490c0d74f1607d9df1e2c87efdad0277c54a4e282dba4fe6f1",
+      "page_html_hash": "d5794539aa33a558c9cd0244b889ee0fa13073471cbaa8f3552357aed937d29d"
+    }
+  ]
 }

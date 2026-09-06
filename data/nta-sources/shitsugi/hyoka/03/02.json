@@ -18,5 +18,41 @@
   "byte_size": 5191,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1447-64508064541e8\""
+  "etag": "\"1447-64508064541e8\"",
+  "figures_checked_at": "2026-09-06T09:09:06.135Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/02_01.gif",
+      "alt": "正面路線の判定(2)の図",
+      "width": "490",
+      "height": "263",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 10752,
+      "sha256": "a96684601c618e6a70930f3d39808b897d9894acba5286e8a45ebdd979f74ef0",
+      "page_html_hash": "fd25fbd204d61b1897f095ecde7dc466db7634d23774a976f151402d4849b93d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/02_02.gif",
+      "alt": "正面路線の判定(2)計算例1",
+      "width": "565",
+      "height": "206",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/02/02_02.gif",
+      "media_type": "image/gif",
+      "bytes": 4472,
+      "sha256": "50e943aa2c6a9ad06fe30b34d76e4d071169c58c07f3edde15c057a2db052216",
+      "page_html_hash": "fd25fbd204d61b1897f095ecde7dc466db7634d23774a976f151402d4849b93d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/02_03.gif",
+      "alt": "正面路線の判定(2)計算例2",
+      "width": "575",
+      "height": "261",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/02/02_03.gif",
+      "media_type": "image/gif",
+      "bytes": 6529,
+      "sha256": "7632a39f0b7685009d6553cc8cd307a6ec4819a61f3702aa94f04f326466958e",
+      "page_html_hash": "fd25fbd204d61b1897f095ecde7dc466db7634d23774a976f151402d4849b93d"
+    }
+  ]
 }

@@ -18,5 +18,30 @@
   "byte_size": 5444,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"1544-6450809dea100\""
+  "etag": "\"1544-6450809dea100\"",
+  "figures_checked_at": "2026-09-06T09:05:33.153Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/24/img/04_01.gif",
+      "alt": "第1法の中間予定税額の算式",
+      "width": "590",
+      "height": "530",
+      "file": "data/nta-sources/images/shitsugi/hojin/24/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 12427,
+      "sha256": "0c41ae0bb08d5ccd01ffbc33ae037fa0a69185f639d7e8a6d67e37ab23d16919",
+      "page_html_hash": "5db3b67baed06b4457be03501e719dd392483cf5ab576e2d04816fb24dfc7c19"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/24/img/04_02.gif",
+      "alt": "第2法の中間予定税額の算式",
+      "width": "477",
+      "height": "103",
+      "file": "data/nta-sources/images/shitsugi/hojin/24/04/04_02.gif",
+      "media_type": "image/gif",
+      "bytes": 10274,
+      "sha256": "4bdfd2c5e49b5653746e4874127d1884695df1bc1ff068a40421febe1fd9b7f2",
+      "page_html_hash": "5db3b67baed06b4457be03501e719dd392483cf5ab576e2d04816fb24dfc7c19"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 6714,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"1a3a-6450809d90380\""
+  "etag": "\"1a3a-6450809d90380\"",
+  "figures_checked_at": "2026-09-06T09:05:48.159Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/27/img/02_01.gif",
+      "alt": "中小企業者等が機械等を取得した場合の特別償却の対象となる中小企業者の範囲の図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/27/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 34192,
+      "sha256": "6701fd5ab172444ff18fc14864386e7a8808138ca27edbc733964057e4b0c294",
+      "page_html_hash": "93927e0bae8fc084329e489d06b9d36024f9e9b560d95115d0e93873737adb86"
+    }
+  ]
 }

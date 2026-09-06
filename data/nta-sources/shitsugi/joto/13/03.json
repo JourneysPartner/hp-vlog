@@ -18,5 +18,41 @@
   "byte_size": 6094,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT",
-  "etag": "\"17ce-6450805ab4fc0\""
+  "etag": "\"17ce-6450805ab4fc0\"",
+  "figures_checked_at": "2026-09-06T09:16:08.122Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/03_01.gif",
+      "alt": "ケース1の図",
+      "width": "567",
+      "height": "180",
+      "file": "data/nta-sources/images/shitsugi/joto/13/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3601,
+      "sha256": "5995b36d6ad6201dba31d66f33dec15ee1d7892de37007a3219eda6191f3f93d",
+      "page_html_hash": "b4009d78c80be2a9147777a2ab62c764107c0adc426caff58094d28b5940b40f"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/03_02.gif",
+      "alt": "ケース2の図",
+      "width": "569",
+      "height": "180",
+      "file": "data/nta-sources/images/shitsugi/joto/13/03/03_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3763,
+      "sha256": "9edd8a33403d6f5df909c1df2bb25b0581c65f1d0317d90a1730706acbcd3696",
+      "page_html_hash": "b4009d78c80be2a9147777a2ab62c764107c0adc426caff58094d28b5940b40f"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/03_03.gif",
+      "alt": "ケース3の図",
+      "width": "569",
+      "height": "179",
+      "file": "data/nta-sources/images/shitsugi/joto/13/03/03_03.gif",
+      "media_type": "image/gif",
+      "bytes": 3237,
+      "sha256": "2dc6badb7c68bd7ef4385ce8d2b7b143e57ea93a4f397b287401fa2a901fd59e",
+      "page_html_hash": "b4009d78c80be2a9147777a2ab62c764107c0adc426caff58094d28b5940b40f"
+    }
+  ]
 }

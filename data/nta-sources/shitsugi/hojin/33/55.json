@@ -18,5 +18,19 @@
   "byte_size": 16501,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"4075-6450809a6c050\""
+  "etag": "\"4075-6450809a6c050\"",
+  "figures_checked_at": "2026-09-06T09:07:59.151Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/55.png",
+      "alt": "S社の欠損金額と特定引継資産に係る特定資産譲渡等損失額の状況（イメージ）の図",
+      "width": "100%",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/55/55.png",
+      "media_type": "image/png",
+      "bytes": 39852,
+      "sha256": "47b202eaca9762411a1b7aee9e73353ef9537249f95d7d96ecc5d1a2256383e6",
+      "page_html_hash": "91f9bd47e6559be239c4ca7a531f8a6b65fc618cb8e7d3aa3725f8aabfe4e838"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5779,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT",
-  "etag": "\"1693-6450809c67d50\""
+  "etag": "\"1693-6450809c67d50\"",
+  "figures_checked_at": "2026-09-06T09:06:25.152Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/2-1.gif",
+      "alt": "資本関係がグループ内で完結している場合の保有関係についての図",
+      "width": "488",
+      "height": "191",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/01/2-1.gif",
+      "media_type": "image/gif",
+      "bytes": 2933,
+      "sha256": "5c390df8cef30aff561ff030be64a1acc59a6086a47cd055cff51f895c91cafb",
+      "page_html_hash": "89b4f922b71dbeae7cf3220026888c6a818d6d103da2a8244e952c0982724bc4"
+    }
+  ]
 }

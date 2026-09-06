@@ -18,5 +18,30 @@
   "byte_size": 5291,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"14ab-6450806213f28\""
+  "etag": "\"14ab-6450806213f28\"",
+  "figures_checked_at": "2026-09-06T09:11:47.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/31_01.gif",
+      "alt": "特別高圧架空電線の架設を目的とする地役権が設定されている宅地の図",
+      "width": "584",
+      "height": "294",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/31/31_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6180,
+      "sha256": "f5b8d9c0362cce61e176f96170451ce06682d7222427c41f118b9b2a1c1a95db",
+      "page_html_hash": "573b49e41a937b8ecbb3041309ccd81ddf6d7cc1bbf3530b787cafda094eacb4"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/31_02.gif",
+      "alt": "地役権の割合を30%とした場合の、区分地上権に準ずる地役権の価額の計算例",
+      "width": "559",
+      "height": "278",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/31/31_02.gif",
+      "media_type": "image/gif",
+      "bytes": 7591,
+      "sha256": "17fca1525dfc2350f50f15f3b70e7c0e390b62581950bc84cc397f30f1ac051c",
+      "page_html_hash": "573b49e41a937b8ecbb3041309ccd81ddf6d7cc1bbf3530b787cafda094eacb4"
+    }
+  ]
 }

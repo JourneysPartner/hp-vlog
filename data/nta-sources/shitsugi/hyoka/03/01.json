@@ -18,5 +18,19 @@
   "byte_size": 5461,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1555-645080645de28\""
+  "etag": "\"1555-645080645de28\"",
+  "figures_checked_at": "2026-09-06T09:09:04.137Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/01_01.gif",
+      "alt": "正面路線の判定(1)の図",
+      "width": "336",
+      "height": "217",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4983,
+      "sha256": "c8cffdf91eaf769571fa4b83f240c092a8efe10457efe5bd71aa5ffbe3f0eadd",
+      "page_html_hash": "5b6b92462121db40df1901547c1d22b44421ca06c5c29ca520b3cfeab8e05326"
+    }
+  ]
 }

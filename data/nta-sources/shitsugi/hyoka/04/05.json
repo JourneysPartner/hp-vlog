@@ -18,5 +18,19 @@
   "byte_size": 4980,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1374-645080630db40\""
+  "etag": "\"1374-645080630db40\"",
+  "figures_checked_at": "2026-09-06T09:11:07.157Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/05_01.gif",
+      "alt": "私道の用に供されている宅地の評価の図",
+      "width": "360",
+      "height": "187",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1448,
+      "sha256": "387f11ef198eeaf8db8d90e9c4d33642f750faf7cdd9fd5b078c430e82302492",
+      "page_html_hash": "b6061ca9e4366c9b35076e9a0ead4074eddbac629c88ffffe2746f78ebaed32d"
+    }
+  ]
 }

@@ -18,5 +18,30 @@
   "byte_size": 5224,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:34 GMT",
-  "etag": "\"1468-645080a418568\""
+  "etag": "\"1468-645080a418568\"",
+  "figures_checked_at": "2026-09-06T09:02:22.169Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/10_02.gif",
+      "alt": "減価償却資産の耐用年数等に関する省令の表",
+      "width": "545",
+      "height": "338",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/10/10_02.gif",
+      "media_type": "image/gif",
+      "bytes": 12196,
+      "sha256": "f42dcddd4d6eb0edc6bab46ccfe140025c77aa941cd2abb9440b7f0861e14708",
+      "page_html_hash": "bbd885698fae4e7cab0e7b1eedf9d893dc5bfab7c4e8f3f884c2a90d43e770cb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/10_01.gif",
+      "alt": "別表第一　機械及び装置以外の有形減価償却資産の耐用年数表",
+      "width": "587",
+      "height": "595",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 12662,
+      "sha256": "9b7f2952776be5b8bc51d334a28b0d2acc67c70ddced63be520d4fcb8557c7a4",
+      "page_html_hash": "bbd885698fae4e7cab0e7b1eedf9d893dc5bfab7c4e8f3f884c2a90d43e770cb"
+    }
+  ]
 }

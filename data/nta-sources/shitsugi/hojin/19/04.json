@@ -18,5 +18,19 @@
   "byte_size": 7034,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:29 GMT",
-  "etag": "\"1b7a-6450809f902e8\""
+  "etag": "\"1b7a-6450809f902e8\"",
+  "figures_checked_at": "2026-09-06T09:04:38.170Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/19/img/04_01.gif",
+      "alt": "構成員が被災した場合",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/19/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 15280,
+      "sha256": "bb3b6d4d8ae8d1b9045a0ea476e82eae9212daac04058c13920a2c767869a72f",
+      "page_html_hash": "e08a353345d9e1c00550cd41b92c053af0d3cf73c432853555aaa3ba454ed2b9"
+    }
+  ]
 }

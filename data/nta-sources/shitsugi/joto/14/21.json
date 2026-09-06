@@ -18,5 +18,30 @@
   "byte_size": 5981,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT",
-  "etag": "\"175d-6450805927090\""
+  "etag": "\"175d-6450805927090\"",
+  "figures_checked_at": "2026-09-06T09:16:56.118Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/21_01.gif",
+      "alt": "一の効用を有する一組の資産の図",
+      "width": "243",
+      "height": "146",
+      "file": "data/nta-sources/images/shitsugi/joto/14/21/21_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1516,
+      "sha256": "2051fd918467a131c101999caa6b095d75ef1533007f70084aa26246be441f37",
+      "page_html_hash": "db0fe2f65dc4a061aba780532b8444c0f2614a57ea773c5cba458564ff007aa6"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/21_02.gif",
+      "alt": "譲渡資産と代替資産の例の図",
+      "width": "477",
+      "height": "103",
+      "file": "data/nta-sources/images/shitsugi/joto/14/21/21_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2761,
+      "sha256": "7d2e9df31a0217c2e066fa8f93c6d5661d5b33b6457941d1baa606ff2d8cedf0",
+      "page_html_hash": "db0fe2f65dc4a061aba780532b8444c0f2614a57ea773c5cba458564ff007aa6"
+    }
+  ]
 }

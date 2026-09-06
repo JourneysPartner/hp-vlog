@@ -18,5 +18,30 @@
   "byte_size": 6748,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:34 GMT",
-  "etag": "\"1a5c-645080a4a7e48\""
+  "etag": "\"1a5c-645080a4a7e48\"",
+  "figures_checked_at": "2026-09-06T09:01:59.176Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/13_01.gif",
+      "alt": "PFI事業の概要図",
+      "width": "600",
+      "height": "233",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/13/13_01.gif",
+      "media_type": "image/gif",
+      "bytes": 8397,
+      "sha256": "189ce9a1bec04bc5e821571a3c6195397e8ed3e00a0f78cc16d2c68c464b3696",
+      "page_html_hash": "f66f8419327e94b33bdb5cc72e30ca6b05dc6325655e35a0cb49569e9820341c"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/13_02.gif",
+      "alt": "償却計算の表",
+      "width": "584",
+      "height": "260",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/13/13_02.gif",
+      "media_type": "image/gif",
+      "bytes": 5954,
+      "sha256": "29faabf944ac761aa087dc52449d28699265b7e557a79b4046eabe15338d4715",
+      "page_html_hash": "f66f8419327e94b33bdb5cc72e30ca6b05dc6325655e35a0cb49569e9820341c"
+    }
+  ]
 }

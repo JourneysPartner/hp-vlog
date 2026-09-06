@@ -18,5 +18,52 @@
   "byte_size": 5103,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"13ef-64508063e96e0\""
+  "etag": "\"13ef-64508063e96e0\"",
+  "figures_checked_at": "2026-09-06T09:09:40.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/13_01.gif",
+      "alt": "不整形地の図",
+      "width": "468",
+      "height": "288",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/13/13_01.gif",
+      "media_type": "image/gif",
+      "bytes": 12700,
+      "sha256": "07c192ec399ba1ce97f4f1ed050f20c507fe3bbafb0ae091832ea87b384b0de5",
+      "page_html_hash": "3bfd94fc6c91d7f3dbd5f02f15fa530542c220c1efb858c003b8651280475cae"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/13_02.gif",
+      "alt": "不整形地を整形地に区分して行った価額の計算例",
+      "width": "505",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/13/13_02.gif",
+      "media_type": "image/gif",
+      "bytes": 5225,
+      "sha256": "911705688cf7134be1c8d03ed031470cb43cd36971e6b6e58551f776a175d5dd",
+      "page_html_hash": "3bfd94fc6c91d7f3dbd5f02f15fa530542c220c1efb858c003b8651280475cae"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/13_03.gif",
+      "alt": "不整形地補正率の計算例",
+      "width": "505",
+      "height": "116",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/13/13_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2403,
+      "sha256": "af7bc57d1f9650a33c3a5dc77f453ba3ffcd9430e05354a504f1553002c32b4f",
+      "page_html_hash": "3bfd94fc6c91d7f3dbd5f02f15fa530542c220c1efb858c003b8651280475cae"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/13_04.gif",
+      "alt": "評価額の計算例",
+      "width": "367",
+      "height": "38",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/13/13_04.gif",
+      "media_type": "image/gif",
+      "bytes": 944,
+      "sha256": "9c0549c9351da171734f75649d1a6798dd476a3b4e64b53acb91d2341968a0bb",
+      "page_html_hash": "3bfd94fc6c91d7f3dbd5f02f15fa530542c220c1efb858c003b8651280475cae"
+    }
+  ]
 }

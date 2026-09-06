@@ -18,5 +18,52 @@
   "byte_size": 7109,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1bc5-64508063b89a0\""
+  "etag": "\"1bc5-64508063b89a0\"",
+  "figures_checked_at": "2026-09-06T09:10:03.145Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/18_01.gif",
+      "alt": "不整形地の図",
+      "width": "457",
+      "height": "320",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/18/18_01.gif",
+      "media_type": "image/gif",
+      "bytes": 11270,
+      "sha256": "9090d8ea78d09ea3f593ecf250c79bb5303b04e7e9a6fb840f0aabc8b48682b0",
+      "page_html_hash": "044b53522080424f0b2c57aa292bdbe467895130172aa632b6a3b1d5b2fc8e48"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/18_03.gif",
+      "alt": "甲、丙土地を合わせて評価した価額の算式",
+      "width": "450",
+      "height": "60",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/18/18_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2397,
+      "sha256": "715cbe137aabb3e722c90d19197081b9473a722b9c38fa70fe4e67712a19a21d",
+      "page_html_hash": "044b53522080424f0b2c57aa292bdbe467895130172aa632b6a3b1d5b2fc8e48"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/18_04.gif",
+      "alt": "乙、丙土地を合わせた土地の奥行価格補正後の価額の算式",
+      "width": "450",
+      "height": "60",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/18/18_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2087,
+      "sha256": "10070191a802006b59013edc47d0be8d44e5ecb49e1da51697f4941bf0502ffb",
+      "page_html_hash": "044b53522080424f0b2c57aa292bdbe467895130172aa632b6a3b1d5b2fc8e48"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/18_05.gif",
+      "alt": "丙土地の奥行価格補正後の価額の算式",
+      "width": "450",
+      "height": "55",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/18/18_05.gif",
+      "media_type": "image/gif",
+      "bytes": 2066,
+      "sha256": "52666c650d7a221c0a9c4131d926b3a5cc2a8b07ab4175d1c4e1096c3c880889",
+      "page_html_hash": "044b53522080424f0b2c57aa292bdbe467895130172aa632b6a3b1d5b2fc8e48"
+    }
+  ]
 }

@@ -18,5 +18,52 @@
   "byte_size": 6338,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"18c2-645080637fb78\""
+  "etag": "\"18c2-645080637fb78\"",
+  "figures_checked_at": "2026-09-06T09:10:29.140Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/24_01.gif",
+      "alt": "不整形地の図",
+      "width": "325",
+      "height": "208",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/24/24_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3454,
+      "sha256": "0dadf8a4a0252808a9b2627d49668054aa9c0917026f7129fdea0304809c76fb",
+      "page_html_hash": "cbf502a60a120525d49bbdfe211e406fea8190b369a4abe59bf7f585ec01f9d1"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/24_03.gif",
+      "alt": "正面路線に対応する奥行距離の算式",
+      "width": "430",
+      "height": "45",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/24/24_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1980,
+      "sha256": "ccbaa56c1d0c1c7d26ddf083ab07af8906fb573cf02a39c48419af7a643adafa",
+      "page_html_hash": "cbf502a60a120525d49bbdfe211e406fea8190b369a4abe59bf7f585ec01f9d1"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/24_04.gif",
+      "alt": "正面路線に対応する奥行距離価額補正後の価額の算式",
+      "width": "370",
+      "height": "75",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/24/24_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2262,
+      "sha256": "f54d4643d1623f39d4256db93c2d48b27d34e684ee6c52c9360aa4b281562522",
+      "page_html_hash": "cbf502a60a120525d49bbdfe211e406fea8190b369a4abe59bf7f585ec01f9d1"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/24_05.gif",
+      "alt": "側方路線影響加算を行う場合の奥行距離の算式",
+      "width": "450",
+      "height": "55",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/24/24_05.gif",
+      "media_type": "image/gif",
+      "bytes": 1995,
+      "sha256": "ebe6f6b641801a3f2900e436c7f230b6ed0972146dc571679870a3b0ed782cd4",
+      "page_html_hash": "cbf502a60a120525d49bbdfe211e406fea8190b369a4abe59bf7f585ec01f9d1"
+    }
+  ]
 }

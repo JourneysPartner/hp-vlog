@@ -18,5 +18,19 @@
   "byte_size": 7584,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"1da0-6450809b03248\""
+  "etag": "\"1da0-6450809b03248\"",
+  "figures_checked_at": "2026-09-06T09:07:29.152Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/39_01.gif",
+      "alt": "譲渡損益の図",
+      "width": "600",
+      "height": "376",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/39/39_01.gif",
+      "media_type": "image/gif",
+      "bytes": 24325,
+      "sha256": "662bf899799a6277e7ac3a2d1fffbdfbfba4cf18244cf7bfb8ce424a307b204b",
+      "page_html_hash": "ad8fe0924907c294aab9fba72226b3347c36f295ba7327ef3137d6b29f1fcb06"
+    }
+  ]
 }

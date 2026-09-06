@@ -18,5 +18,19 @@
   "byte_size": 5425,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1531-6450805e52858\""
+  "etag": "\"1531-6450805e52858\"",
+  "figures_checked_at": "2026-09-06T09:14:23.128Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/01/img/01_01.gif",
+      "alt": "財産、土地建物、15,000万円、債務、21,000万円（銀行・農協借入16,000万円、金融業者5,000万円）",
+      "width": "447",
+      "height": "44",
+      "file": "data/nta-sources/images/shitsugi/joto/01/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1187,
+      "sha256": "15a8c60fd24ed374bfd3654444d1493bd8cada1f89e0904ee0ddcb55218b7240",
+      "page_html_hash": "d6efa9d00e4412a0fef2304da11e1c2403dd6dde175997574295efb9ed76cb6d"
+    }
+  ]
 }

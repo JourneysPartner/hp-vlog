@@ -18,5 +18,41 @@
   "byte_size": 4860,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"12fc-64508063a5508\""
+  "etag": "\"12fc-64508063a5508\"",
+  "figures_checked_at": "2026-09-06T09:10:13.144Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/20_01.gif",
+      "alt": "がけ地等を有する宅地の図",
+      "width": "565",
+      "height": "361",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/20/20_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4954,
+      "sha256": "7cc41fb7b16e0ddcad2f8aa4739177f3d6698678be55df382c98755ee0431921",
+      "page_html_hash": "c9608e210101bf3f75447f4c960ce8873f677bd52550ac491333215579ce483b"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/20_02.gif",
+      "alt": "総地積に対するかげ地部分の割合の計算例",
+      "width": "355",
+      "height": "95",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/20/20_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1891,
+      "sha256": "f35e71a49a6d2e8d5c74929444a209a75dcb3e97e532f017f736e70721852f00",
+      "page_html_hash": "c9608e210101bf3f75447f4c960ce8873f677bd52550ac491333215579ce483b"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/20_03.gif",
+      "alt": "評価額の計算例",
+      "width": "517",
+      "height": "58",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/20/20_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1554,
+      "sha256": "c62a9ec643ceff340ae57dbba5c18f25910b95fa4e5b7e52824d05492a9549be",
+      "page_html_hash": "c9608e210101bf3f75447f4c960ce8873f677bd52550ac491333215579ce483b"
+    }
+  ]
 }

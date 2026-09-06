@@ -18,5 +18,41 @@
   "byte_size": 6143,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:35 GMT",
-  "etag": "\"17ff-645080a4eef00\""
+  "etag": "\"17ff-645080a4eef00\"",
+  "figures_checked_at": "2026-09-06T09:01:48.173Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/06_01.gif",
+      "alt": "減価償却資産を事業の用に供した後に購入代価の値引きがあった場合の図",
+      "width": "544",
+      "height": "201",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/06/06_01.gif",
+      "media_type": "image/gif",
+      "bytes": 32232,
+      "sha256": "6309f26ab023d4e2d439700c401f14f4b5e01bc5abc018cb1ebba74de85437c0",
+      "page_html_hash": "7f69ed73ef5568552f36284527ce3066091c030c96738ed799e4e813c7d4fdb1"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/06_02.gif",
+      "alt": "取得価額調整のための算式",
+      "width": "340",
+      "height": "75",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/06/06_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1666,
+      "sha256": "c85fed319062edfc45a7f5d416b96ca98b98a882503d1bc18c6317139f9b0300",
+      "page_html_hash": "7f69ed73ef5568552f36284527ce3066091c030c96738ed799e4e813c7d4fdb1"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/06_03.gif",
+      "alt": "取得価額調整のための計算例",
+      "width": "433",
+      "height": "46",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/06/06_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1999,
+      "sha256": "7cc1daad5f4b69be60a74309c617be0d41151d3419b6a94cf36f45cefedae1b3",
+      "page_html_hash": "7f69ed73ef5568552f36284527ce3066091c030c96738ed799e4e813c7d4fdb1"
+    }
+  ]
 }

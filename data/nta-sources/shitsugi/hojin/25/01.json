@@ -18,5 +18,19 @@
   "byte_size": 5195,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"144b-6450809dd60b0\""
+  "etag": "\"144b-6450809dd60b0\"",
+  "figures_checked_at": "2026-09-06T09:05:37.155Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/25/img/01_01.gif",
+      "alt": "配当権利落後の売却株式に係る受取配当金等の設例図",
+      "width": "483",
+      "height": "160",
+      "file": "data/nta-sources/images/shitsugi/hojin/25/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 5662,
+      "sha256": "9b9cab8b226413f409a9d678cf414d6bcc48faf65c58b268b127d72c091e2cbb",
+      "page_html_hash": "5d9e75cba3354c93eb89569703eb12751ebbbcbf9760bed5033e5d5c20a9a6d8"
+    }
+  ]
 }

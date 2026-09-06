@@ -18,5 +18,30 @@
   "byte_size": 8889,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT",
-  "etag": "\"22b9-64508058178d0\""
+  "etag": "\"22b9-64508058178d0\"",
+  "figures_checked_at": "2026-09-06T09:17:27.123Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/47_1.gif",
+      "alt": "特掲事業の施設と特掲事業以外の施設が併設される場合の事例1の図",
+      "width": "342",
+      "height": "140",
+      "file": "data/nta-sources/images/shitsugi/joto/14/47/47_1.gif",
+      "media_type": "image/gif",
+      "bytes": 1569,
+      "sha256": "c85302e5fdbe85dbb3899104be9364d8cb94e4c781974540b6cf6981aa20ac45",
+      "page_html_hash": "214a785ee7697b9a83e3ea872eb441c28ab19f84278821e9c502745a23a688e4"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/47_2.gif",
+      "alt": "特掲事業の施設と特掲事業以外の施設が併設される場合の事例2の図",
+      "width": "342",
+      "height": "198",
+      "file": "data/nta-sources/images/shitsugi/joto/14/47/47_2.gif",
+      "media_type": "image/gif",
+      "bytes": 1814,
+      "sha256": "fc55c5cb9c86754fa255edc558477c2ef230f82b67073a1206897ae43a2513ff",
+      "page_html_hash": "214a785ee7697b9a83e3ea872eb441c28ab19f84278821e9c502745a23a688e4"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5192,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:12 GMT",
-  "etag": "\"1448-6450808edebe8\""
+  "etag": "\"1448-6450808edebe8\"",
+  "figures_checked_at": "2026-09-06T09:01:09.170Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/06/img/52_01.gif",
+      "alt": "日米租税条約における短期滞在者免税を適用する場合の183日以下の判定のイメージ図",
+      "width": "550",
+      "height": "183",
+      "file": "data/nta-sources/images/shitsugi/gensen/06/52/52_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4937,
+      "sha256": "63114f6a6a7d252269e79177ec7630a6a0407886bd2a31118b8d421fb83ff957",
+      "page_html_hash": "a03c73ee700c57548bf40dd47e4b25cc57061d05b40a0a7d5f16506c158e9dbf"
+    }
+  ]
 }

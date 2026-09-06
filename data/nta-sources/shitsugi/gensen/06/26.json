@@ -18,5 +18,19 @@
   "byte_size": 6250,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:12 GMT",
-  "etag": "\"186a-6450808fa9a00\""
+  "etag": "\"186a-6450808fa9a00\"",
+  "figures_checked_at": "2026-09-06T09:00:47.175Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/06/img/26_01.gif",
+      "alt": "輸入取立手形のユーザンス金利の流れの図",
+      "width": "403",
+      "height": "133",
+      "file": "data/nta-sources/images/shitsugi/gensen/06/26/26_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2736,
+      "sha256": "df8e09b7dbb9ebd0c65c84bef942db9d0a4a9873979aa24191c8dc53e26ce2f4",
+      "page_html_hash": "2d531149e3c1638d6dfb64ee9e1375fc09f729226bc3606dd22bc6488e3814d4"
+    }
+  ]
 }

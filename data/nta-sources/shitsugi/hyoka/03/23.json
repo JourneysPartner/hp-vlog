@@ -18,5 +18,52 @@
   "byte_size": 6015,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"177f-645080638a370\""
+  "etag": "\"177f-645080638a370\"",
+  "figures_checked_at": "2026-09-06T09:10:24.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/23_01.gif",
+      "alt": "宅地が2以上の地区にまたがる場合の画地調整の図1",
+      "width": "438",
+      "height": "229",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/23/23_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3418,
+      "sha256": "bc639399d4d95d6ee38e5a5942d7133db7fa0319803cbeb50f1061a641aa762c",
+      "page_html_hash": "6733c52e1fd4a218a3227f0109e1308bb9056457e9e8451c39ce5c865981fed2"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/23_02.gif",
+      "alt": "宅地が2以上の地区にまたがる場合の画地調整の計算例1",
+      "width": "492",
+      "height": "81",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/23/23_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3002,
+      "sha256": "77f8dfac88c376fba12a72c1acb40aac081eb998624b175573793024161de83a",
+      "page_html_hash": "6733c52e1fd4a218a3227f0109e1308bb9056457e9e8451c39ce5c865981fed2"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/23_03.gif",
+      "alt": "不整形地補正率を乗ずる計算例",
+      "width": "540",
+      "height": "157",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/23/23_03.gif",
+      "media_type": "image/gif",
+      "bytes": 4156,
+      "sha256": "a33c7d5760343f133cf9b3928ce9074fa01654f3cff9ecce5a370b324bd30f4d",
+      "page_html_hash": "6733c52e1fd4a218a3227f0109e1308bb9056457e9e8451c39ce5c865981fed2"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/23_04.gif",
+      "alt": "宅地が2以上の地区にまたがる場合の画地調整の図2",
+      "width": "512",
+      "height": "301",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/23/23_04.gif",
+      "media_type": "image/gif",
+      "bytes": 3953,
+      "sha256": "3ae785f0665d5e9ed03b09a93f3a4c4a9cf1058de6f8697a07b4d3c5c4713320",
+      "page_html_hash": "6733c52e1fd4a218a3227f0109e1308bb9056457e9e8451c39ce5c865981fed2"
+    }
+  ]
 }

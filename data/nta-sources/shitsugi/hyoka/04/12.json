@@ -18,5 +18,30 @@
   "byte_size": 7058,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"1b92-64508062c8db0\""
+  "etag": "\"1b92-64508062c8db0\"",
+  "figures_checked_at": "2026-09-06T09:11:18.156Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/12_01.gif",
+      "alt": "（貸家の価額＝自用の家屋の価額－自用の家屋の価額&times;借家権割合&times;賃貸割合）（貸家建付地の価額＝自用地としての価額－自用地としての価額&times;借地権割合&times;借地権割合&times;賃貸割合）",
+      "width": "441",
+      "height": "130",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/12/12_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3268,
+      "sha256": "c82c1dc7a9464488df09481678157b8f408ef25d27ff4c873b4573544d8641d9",
+      "page_html_hash": "3afce28d12b422f8d1f6791c34c9914e76a5a5dfb2efe3545676c4252aeb5ac3"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/12_02.gif",
+      "alt": "賃貸割合＝Aのうち課税時期において賃貸されている各独立部分の床面積の合計（B）&divide;その貸家の各独立部分の床面積の合計（A）",
+      "width": "550",
+      "height": "68",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/12/12_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2357,
+      "sha256": "df933c1613cb2ba1999add14d897df33275cde0c2892f1827970e3de4008a34a",
+      "page_html_hash": "3afce28d12b422f8d1f6791c34c9914e76a5a5dfb2efe3545676c4252aeb5ac3"
+    }
+  ]
 }

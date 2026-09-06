@@ -18,5 +18,30 @@
   "byte_size": 5585,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"15d1-645080626b598\""
+  "etag": "\"15d1-645080626b598\"",
+  "figures_checked_at": "2026-09-06T09:11:31.149Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/22_01.gif",
+      "alt": "(事例1)市街地農地等の図",
+      "width": "347",
+      "height": "227",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/22/22_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2408,
+      "sha256": "8aad9db491a80159d218a9a897d5158ecfb8f0e3da11ec9ad5f8815825a7a89f",
+      "page_html_hash": "ec4aadd18dc34e359b06a19481160cd8bea498e76ae16e4f30f8d77ed5f168a7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/22_02.gif",
+      "alt": "(事例2)市街地的形態を形成している地域における宅地と状況が類似する雑種地の図",
+      "width": "398",
+      "height": "154",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/22/22_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1672,
+      "sha256": "d3deae0d9a014a38d3f204a69c120997a308b2ede79837848fa076159214225a",
+      "page_html_hash": "ec4aadd18dc34e359b06a19481160cd8bea498e76ae16e4f30f8d77ed5f168a7"
+    }
+  ]
 }

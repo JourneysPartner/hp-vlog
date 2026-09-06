@@ -18,5 +18,19 @@
   "byte_size": 5504,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT",
-  "etag": "\"1580-6450809c6fa50\""
+  "etag": "\"1580-6450809c6fa50\"",
+  "figures_checked_at": "2026-09-06T09:06:23.152Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/32/img/01_01.gif",
+      "alt": "確定申告書の提出期限の延長特例法人に係る無申告加算税の例",
+      "width": "561",
+      "height": "113",
+      "file": "data/nta-sources/images/shitsugi/hojin/32/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3466,
+      "sha256": "53fde469985b2d28b611799fd11deb837e77bd14135839e564227ac041a2d787",
+      "page_html_hash": "1435df83355a27ba468b4cbe37fe7bba8a5f153945df601c221fe4db284d67e5"
+    }
+  ]
 }

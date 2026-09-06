@@ -18,5 +18,19 @@
   "byte_size": 4603,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"11fb-64508064b0678\""
+  "etag": "\"11fb-64508064b0678\"",
+  "figures_checked_at": "2026-09-06T09:08:40.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/05_01.gif",
+      "alt": "宅地の評価単位（貸宅地）の図",
+      "width": "339",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2417,
+      "sha256": "8c03e1e14f796c9538340942e9f4d9ce59da7360ed652c343d86bf62a344a8df",
+      "page_html_hash": "759741812c318ff7e6b0b64d35603231530ff801181dc1294df10e7ec7dd2bd8"
+    }
+  ]
 }

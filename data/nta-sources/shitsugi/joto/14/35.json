@@ -18,5 +18,19 @@
   "byte_size": 5476,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT",
-  "etag": "\"1564-645080589aa78\""
+  "etag": "\"1564-645080589aa78\"",
+  "figures_checked_at": "2026-09-06T09:17:13.119Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/35_01.gif",
+      "alt": "振替えることができるとした場合の申告",
+      "width": "449",
+      "height": "127",
+      "file": "data/nta-sources/images/shitsugi/joto/14/35/35_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3580,
+      "sha256": "2977e8923fae8742f4c4db70760db83830cb5ee74bec4ce901d128daad9e026e",
+      "page_html_hash": "864cf947eed4d660b19f9fcfb8c45ff3f779048ec236c190f76c80c61f0a855e"
+    }
+  ]
 }

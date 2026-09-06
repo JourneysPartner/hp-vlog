@@ -18,5 +18,30 @@
   "byte_size": 6938,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:29 GMT",
-  "etag": "\"1b1a-6450809f46738\""
+  "etag": "\"1b1a-6450809f46738\"",
+  "figures_checked_at": "2026-09-06T09:04:51.160Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/20/img/08_01.gif",
+      "alt": "（事例1）帳簿価額が2,300万円の場合の図",
+      "width": "502",
+      "height": "248",
+      "file": "data/nta-sources/images/shitsugi/hojin/20/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 8148,
+      "sha256": "c86a9a2c4501af4f9db93712269eff0dc997cd6a8f601fb399140d05232b6a5f",
+      "page_html_hash": "a512d94fd96e1e63473e190a4a697a202a2917a6c170e2c758226cc8e7da8ef8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/20/img/08_02.gif",
+      "alt": "（事例2）帳簿価額が1,800万円の場合の図",
+      "width": "502",
+      "height": "219",
+      "file": "data/nta-sources/images/shitsugi/hojin/20/08/08_02.gif",
+      "media_type": "image/gif",
+      "bytes": 7857,
+      "sha256": "7182684023d40fe92f31b438a37dbb372bb14f06e7bdf14d573e7cfbf6870b46",
+      "page_html_hash": "a512d94fd96e1e63473e190a4a697a202a2917a6c170e2c758226cc8e7da8ef8"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 7679,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT",
-  "etag": "\"1dff-6450805a33d58\""
+  "etag": "\"1dff-6450805a33d58\"",
+  "figures_checked_at": "2026-09-06T09:16:25.125Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/15_01.gif",
+      "alt": "属建築物がある場合の建築面積及び施行地区面積の要件判定(10号)の図",
+      "width": "434",
+      "height": "175",
+      "file": "data/nta-sources/images/shitsugi/joto/13/15/15_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2842,
+      "sha256": "d813a1eeafc20e1656ec5edd1f9144570e6d6da90704b2123732def417de3e72",
+      "page_html_hash": "4081ea3fd62319b784107f89c0c1fc554731492482f2bc2e1af066e4f2aec3ee"
+    }
+  ]
 }

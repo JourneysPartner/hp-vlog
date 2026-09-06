@@ -18,5 +18,19 @@
   "byte_size": 6000,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT",
-  "etag": "\"1770-64508060b7cd8\""
+  "etag": "\"1770-64508060b7cd8\"",
+  "figures_checked_at": "2026-09-06T09:12:44.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/07/img/d.gif",
+      "alt": "D",
+      "width": "16",
+      "height": "16",
+      "file": "data/nta-sources/images/shitsugi/hyoka/07/10/d.gif",
+      "media_type": "image/gif",
+      "bytes": 13196,
+      "sha256": "aaf1f73b971fa47100ce85199d191e13861b228a96671220c5aafcd6d07c7b83",
+      "page_html_hash": "41d42e38bc6e20762f1bc203d8cdf281671942aa2b2ebd8ae4f4e14b98ade467"
+    }
+  ]
 }

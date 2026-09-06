@@ -18,5 +18,19 @@
   "byte_size": 5235,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT",
-  "etag": "\"1473-64508059c9a20\""
+  "etag": "\"1473-64508059c9a20\"",
+  "figures_checked_at": "2026-09-06T09:16:38.124Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/05_01.gif",
+      "alt": "建物の一部を取り壊し、残存部分の建物の切取り面を補修した場合の図",
+      "width": "402",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/joto/14/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2918,
+      "sha256": "cecaa7e400b2276953a95d4a5897983ace6460a70bb3899dbb8d01fc9646139d",
+      "page_html_hash": "643e10b8e43a6add59d38ff0a49e1b8a3fd7d71b8a06985508220c98a1eedbe8"
+    }
+  ]
 }

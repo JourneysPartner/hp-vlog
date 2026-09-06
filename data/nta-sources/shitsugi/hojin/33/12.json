@@ -18,5 +18,19 @@
   "byte_size": 6372,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"18e4-6450809be7a88\""
+  "etag": "\"18e4-6450809be7a88\"",
+  "figures_checked_at": "2026-09-06T09:06:43.157Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/12-1.gif",
+      "alt": "特定役員の引継状況説明図",
+      "width": "630",
+      "height": "241",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/12/12-1.gif",
+      "media_type": "image/gif",
+      "bytes": 7130,
+      "sha256": "350b6ff6c2a50407d247fe0615e55c18ef1cb568d41210b3258448e4a7544d6e",
+      "page_html_hash": "d1e309563bacf3160bb86b77e01ae5c5bd41d3df6f3432e55fce2dd3f7b6db9c"
+    }
+  ]
 }

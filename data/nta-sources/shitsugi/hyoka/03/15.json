@@ -18,5 +18,52 @@
   "byte_size": 5597,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"15dd-64508063d6a18\""
+  "etag": "\"15dd-64508063d6a18\"",
+  "figures_checked_at": "2026-09-06T09:09:48.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/15_01.gif",
+      "alt": "不整形地の図",
+      "width": "555",
+      "height": "246",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/15/15_01.gif",
+      "media_type": "image/gif",
+      "bytes": 13434,
+      "sha256": "18e9a19f97d83eed5a6bb94dcdcbdbc3d1fc6870b2a28821e313f2acee0550d3",
+      "page_html_hash": "2309ba287a76a585865077bdea8ab81b2f1daf153872997e24486e3be2401de3"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/15_02.gif",
+      "alt": "近似整形地の奥行価格補正後の1平方メートル当たりの価額の計算例",
+      "width": "298",
+      "height": "50",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/15/15_02.gif",
+      "media_type": "image/gif",
+      "bytes": 948,
+      "sha256": "24dc1a928745fab96d2d14e10764d724a50f8e55eca88ca38fcc92ae77bdb424",
+      "page_html_hash": "2309ba287a76a585865077bdea8ab81b2f1daf153872997e24486e3be2401de3"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/15_03.gif",
+      "alt": "不整形地補正率の計算例",
+      "width": "513",
+      "height": "98",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/15/15_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2207,
+      "sha256": "755366e1af5c418e7430abd6b5696cb182fba2de336a81e680514fb3422165ab",
+      "page_html_hash": "2309ba287a76a585865077bdea8ab81b2f1daf153872997e24486e3be2401de3"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/15_04.gif",
+      "alt": "評価額の計算例",
+      "width": "494",
+      "height": "32",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/15/15_04.gif",
+      "media_type": "image/gif",
+      "bytes": 1095,
+      "sha256": "d7faa148adb274aecc2fcccf44212f7e67223f08438d9afd7c3545edf3ef2579",
+      "page_html_hash": "2309ba287a76a585865077bdea8ab81b2f1daf153872997e24486e3be2401de3"
+    }
+  ]
 }

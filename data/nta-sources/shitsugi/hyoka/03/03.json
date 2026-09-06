@@ -18,5 +18,30 @@
   "byte_size": 4917,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1335-645080644a990\""
+  "etag": "\"1335-645080644a990\"",
+  "figures_checked_at": "2026-09-06T09:09:10.135Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/03_01.gif",
+      "alt": "地区の異なる2以上の路線に接する宅地の図",
+      "width": "515",
+      "height": "242",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4320,
+      "sha256": "ef18415ddbcc7951392c47474e7a309df1ea37f0437c99de4f4c74b2a69da7ac",
+      "page_html_hash": "4ecef3675f2a185856e4b962ae3e59240c711579868d379ae06d49067bebf810"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/03_02.gif",
+      "alt": "地区の異なる2以上の路線に接する宅地の計算例",
+      "width": "563",
+      "height": "83",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/03/03_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3505,
+      "sha256": "1048a9484ffe8874dbdc0d9f02f3ed4fb028ece8f04a97097ba46da6aed0e16d",
+      "page_html_hash": "4ecef3675f2a185856e4b962ae3e59240c711579868d379ae06d49067bebf810"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5125,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:31 GMT",
-  "etag": "\"1405-645080a0f4df0\""
+  "etag": "\"1405-645080a0f4df0\"",
+  "figures_checked_at": "2026-09-06T09:04:00.166Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/14/img/02_01.gif",
+      "alt": "代替テキスト変更　法人税法基本通達９－６－１（３）ロに準ずる場合、行政期間又は金融機関その他の第３者のあっせんによる当事業者間の協議により締結された契約でその内容が次に準ずるものにより切り捨てられることとなった部分の金額（債権者集会の協議決定で合理的な基準により債務者の負債整理を定めているもの）、法人税基本通達９－６－１（４）に該当する場合、債務者の債務超過状態が相当期間継続し、その金銭債権の弁済を受けることができないと認められる場合において、その債務者に対し書面（特定調停において調停調書）により明らかにされた債権放棄額",
+      "width": "549",
+      "height": "287",
+      "file": "data/nta-sources/images/shitsugi/hojin/14/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 8207,
+      "sha256": "79c0adf16f49944e27dbb9a87e0aca07e14274a02d69b00c8738c3554b1974d9",
+      "page_html_hash": "247906c605f84c67de5e381860d75bf0fc1b1106620fb294a44f0acfa8f74aa8"
+    }
+  ]
 }

@@ -18,5 +18,52 @@
   "byte_size": 6044,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"179c-64508061aea10\""
+  "etag": "\"179c-64508061aea10\"",
+  "figures_checked_at": "2026-09-06T09:12:02.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/41-1.gif",
+      "alt": "",
+      "width": "597",
+      "height": "292",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/41/41-1.gif",
+      "media_type": "image/gif",
+      "bytes": 6185,
+      "sha256": "101c34884ac71016801e103b3e0e91a1d77b82f096121756283efc2e5bd6ada9",
+      "page_html_hash": "932eb601db8511d92697069ebd13d3b1a3443672534beada3183023ee2844dfe"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/41-2.gif",
+      "alt": "(400,000円（正面路線価）&times;1.00（奥行価格補正率）＋250,000円（側方路線価）&times;0.99（奥行価格補正率）&times;0.03（側方路線影響加算率）&times;450平方メートル＝183,341,250円",
+      "width": "595",
+      "height": "59",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/41/41-2.gif",
+      "media_type": "image/gif",
+      "bytes": 2359,
+      "sha256": "f61954f83c1d352c844cfc83557cc51011e52ea35083024ade997846ccf31e3a",
+      "page_html_hash": "932eb601db8511d92697069ebd13d3b1a3443672534beada3183023ee2844dfe"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/41-3.gif",
+      "alt": "183,341,250円（A、B一体の価額）&times;(200平方メートル&divide;(250平方メートル＋200平方メートル))&times;(1－0.6（借地権割合）)＝32,594,000円",
+      "width": "595",
+      "height": "59",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/41/41-3.gif",
+      "media_type": "image/gif",
+      "bytes": 1858,
+      "sha256": "6a912c9e55fbab51eb543594bfefbf64358646b7e6c6507255f231aab0405656",
+      "page_html_hash": "932eb601db8511d92697069ebd13d3b1a3443672534beada3183023ee2844dfe"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/41-4.gif",
+      "alt": "183,341,250円（A、B一体の価額）&times;(250平方メートル&divide;(250平方メートル＋200平方メートル))&times;(1－0.05（借地権割合）)＝96,763,437円",
+      "width": "595",
+      "height": "59",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/41/41-4.gif",
+      "media_type": "image/gif",
+      "bytes": 1879,
+      "sha256": "c9aaf6f2333bb64b3d8ad75570b477ced6796f3b88713ee41c30442ff730f947",
+      "page_html_hash": "932eb601db8511d92697069ebd13d3b1a3443672534beada3183023ee2844dfe"
+    }
+  ]
 }

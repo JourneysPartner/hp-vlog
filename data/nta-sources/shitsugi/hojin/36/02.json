@@ -18,5 +18,19 @@
   "byte_size": 7623,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT",
-  "etag": "\"1dc7-64508099fbb70\""
+  "etag": "\"1dc7-64508099fbb70\"",
+  "figures_checked_at": "2026-09-06T09:08:13.153Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/36/img/02_01.gif",
+      "alt": "時価評価損益の図",
+      "width": "800",
+      "height": "77",
+      "file": "data/nta-sources/images/shitsugi/hojin/36/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 8896,
+      "sha256": "0b9e4151a5efc14e2dbb32f8673fdd17371ebafc3bfb2d0d8ffe1c67cf951224",
+      "page_html_hash": "579425ab8660593f0caeacb11db0ce52e09cd486d962e598aeb35278d6478eb3"
+    }
+  ]
 }

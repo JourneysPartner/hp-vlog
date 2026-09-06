@@ -18,5 +18,19 @@
   "byte_size": 5181,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:31 GMT",
-  "etag": "\"143d-645080a1b11a8\""
+  "etag": "\"143d-645080a1b11a8\"",
+  "figures_checked_at": "2026-09-06T09:03:38.169Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/13/img/11_01.gif",
+      "alt": "債務超過である子会社が行う支援等についての経済合理性の図",
+      "width": "550",
+      "height": "170",
+      "file": "data/nta-sources/images/shitsugi/hojin/13/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 13026,
+      "sha256": "08c69c1c70797801943da03b2435ff7b2d03dce342c4fb08d37db38765915856",
+      "page_html_hash": "6956f401c73b01aa2604c545dc0347308d497f321a751ede162fc9c7a0094c18"
+    }
+  ]
 }

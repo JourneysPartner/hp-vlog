@@ -18,5 +18,19 @@
   "byte_size": 8074,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:35 GMT",
-  "etag": "\"1f8a-645080a55e828\""
+  "etag": "\"1f8a-645080a55e828\"",
+  "figures_checked_at": "2026-09-06T09:01:33.169Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/01/img/06_01.gif",
+      "alt": "本件債権譲渡のイメージ",
+      "width": "700",
+      "height": "428",
+      "file": "data/nta-sources/images/shitsugi/hojin/01/06/06_01.gif",
+      "media_type": "image/gif",
+      "bytes": 22721,
+      "sha256": "0c94c256bfcbab0e776612eef6ab272ce886784279a35a3f75d88cbf2d5a40f5",
+      "page_html_hash": "df002f84dbd6eea8e1280560379425090108f8c9415ca7146423b20ae3e233d3"
+    }
+  ]
 }

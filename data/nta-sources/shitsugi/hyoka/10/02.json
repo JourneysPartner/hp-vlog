@@ -18,5 +18,30 @@
   "byte_size": 5936,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:23 GMT",
-  "etag": "\"1730-64508060268a0\""
+  "etag": "\"1730-64508060268a0\"",
+  "figures_checked_at": "2026-09-06T09:13:07.134Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/10/img/02_01.gif",
+      "alt": "S1+S2方式の概念図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/10/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6591,
+      "sha256": "0e8820f7530a049a6c0a19b03168639d148f9432100e09c7df4c8802eff64e0a",
+      "page_html_hash": "5ffa61b80af637407af85b213974fc45a98152fc38c3435ec9c1331744e9b719"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/10/img/02_02.gif",
+      "alt": "受取配当金収受割合の算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/10/02/02_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3025,
+      "sha256": "e0fa3a4b7a83d7b3d34458c68c21aa7793811b4b47daf6c97cb77f236d07bdf7",
+      "page_html_hash": "5ffa61b80af637407af85b213974fc45a98152fc38c3435ec9c1331744e9b719"
+    }
+  ]
 }

@@ -18,5 +18,41 @@
   "byte_size": 5537,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"15a1-64508062db2a8\""
+  "etag": "\"15a1-64508062db2a8\"",
+  "figures_checked_at": "2026-09-06T09:11:13.158Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/10_01.gif",
+      "alt": "階層別利用率の図",
+      "width": "315",
+      "height": "319",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 5562,
+      "sha256": "4952344e244a0aaa40ea477af757c23162c5935594f024525a45961d13a16839",
+      "page_html_hash": "c595a843d63151dab80159a6b1d4ffb1aada0d81414b27e810a060a044be3f8d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/10_02.gif",
+      "alt": "区分地上権の目的となっている宅地の評価の計算例1",
+      "width": "507",
+      "height": "96",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/10/10_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3071,
+      "sha256": "3e4e2a7d8a9a1ef1459fe0aaf9a92dfc172fed87e916a3579e6a1947c95f0cf6",
+      "page_html_hash": "c595a843d63151dab80159a6b1d4ffb1aada0d81414b27e810a060a044be3f8d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/10_03.gif",
+      "alt": "区分地上権の目的となっている宅地の評価の計算例2",
+      "width": "331",
+      "height": "64",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/10/10_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1154,
+      "sha256": "4e49007a05416b25bdeabacec883f08fadb82eb579f4ffd7d1219e575394ca49",
+      "page_html_hash": "c595a843d63151dab80159a6b1d4ffb1aada0d81414b27e810a060a044be3f8d"
+    }
+  ]
 }

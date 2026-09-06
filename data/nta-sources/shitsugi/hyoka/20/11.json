@@ -18,5 +18,52 @@
   "byte_size": 5768,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1688-6450805e854d8\""
+  "etag": "\"1688-6450805e854d8\"",
+  "figures_checked_at": "2026-09-06T09:14:02.138Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/11_01.gif",
+      "alt": "説明図",
+      "width": "650",
+      "height": "450",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 9301,
+      "sha256": "328b1bac2d7d31ce654da11416ba0aeee54fbe38a78d0933336ef0b839616423",
+      "page_html_hash": "303ee49427fb53407d940df0983a1e2d9666903e0744a7b28b93c10c02094d79"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/11_02.gif",
+      "alt": "規模格差補正率の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/11/11_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1696,
+      "sha256": "b8ee40067bee5aedcf32a3ec3eee656e467fd19646ce8d05dac0b240c0a3c6c5",
+      "page_html_hash": "303ee49427fb53407d940df0983a1e2d9666903e0744a7b28b93c10c02094d79"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/11_03.gif",
+      "alt": "評価額の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/11/11_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2638,
+      "sha256": "2a8a9cc5ed12886b1f2397dc3dbe4968ed4a901cc7c8ea97742b7341efed44b9",
+      "page_html_hash": "303ee49427fb53407d940df0983a1e2d9666903e0744a7b28b93c10c02094d79"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/11_04.gif",
+      "alt": "加重平均の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/11/11_04.gif",
+      "media_type": "image/gif",
+      "bytes": 1821,
+      "sha256": "cce3d73a5dabf03767a1f1574103961ba0e89154e91dae160c3c896074d207c2",
+      "page_html_hash": "303ee49427fb53407d940df0983a1e2d9666903e0744a7b28b93c10c02094d79"
+    }
+  ]
 }

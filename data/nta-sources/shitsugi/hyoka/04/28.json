@@ -18,5 +18,52 @@
   "byte_size": 6899,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"1af3-6450806231bb8\""
+  "etag": "\"1af3-6450806231bb8\"",
+  "figures_checked_at": "2026-09-06T09:11:39.145Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/28_01.gif",
+      "alt": "容積率の異なる2以上の地域にわたる宅地の図1",
+      "width": "506",
+      "height": "144",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/28/28_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3304,
+      "sha256": "356031e4c974d56809acecb9512843d56c24e93ef5d97cd8d6c56fcd5f1eb0d3",
+      "page_html_hash": "4f7b4eb42991c043d5efb3f03a8c86d548e1691cc323e2379a7ff503c2fcb2cb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/28_02.gif",
+      "alt": "容積率の異なる2以上の地域にわたる宅地の図2",
+      "width": "567",
+      "height": "155",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/28/28_02.gif",
+      "media_type": "image/gif",
+      "bytes": 4845,
+      "sha256": "aec6036a7c40943daa4c8a0bd01a3a2ffd79c7779366dae9273e05cd16d932db",
+      "page_html_hash": "4f7b4eb42991c043d5efb3f03a8c86d548e1691cc323e2379a7ff503c2fcb2cb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/28_03.gif",
+      "alt": "容積率の格差に基づく減額率の算式",
+      "width": "566",
+      "height": "162",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/28/28_03.gif",
+      "media_type": "image/gif",
+      "bytes": 4328,
+      "sha256": "896acf89c0e4c5d47e204b588074e6d2cf0d525ef83ffb218ee74f4463d8ddfd",
+      "page_html_hash": "4f7b4eb42991c043d5efb3f03a8c86d548e1691cc323e2379a7ff503c2fcb2cb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/28_04.gif",
+      "alt": "容積率の異なる2以上の地域にわたる宅地の図3",
+      "width": "535",
+      "height": "254",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/28/28_04.gif",
+      "media_type": "image/gif",
+      "bytes": 5364,
+      "sha256": "d56c9cab992532e3c1a14ea73967a5e0d79f32b0712a30fc8946a384e7c4de01",
+      "page_html_hash": "4f7b4eb42991c043d5efb3f03a8c86d548e1691cc323e2379a7ff503c2fcb2cb"
+    }
+  ]
 }

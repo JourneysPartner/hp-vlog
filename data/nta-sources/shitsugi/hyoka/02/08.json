@@ -18,5 +18,30 @@
   "byte_size": 4910,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"132e-64508064958c8\""
+  "etag": "\"132e-64508064958c8\"",
+  "figures_checked_at": "2026-09-06T09:08:46.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/08_01.gif",
+      "alt": "宅地の評価単位（自用地と借地権）の図",
+      "width": "320",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2050,
+      "sha256": "acf9764b59f31068576774382dc6963c2acdd6788d6380372c6e08a32d86e89b",
+      "page_html_hash": "dc604a4d3bca312520acbf99f5ce1123aa2792d8cc13da95d56b651501e0e6af"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/08_02.gif",
+      "alt": "土地及び借地権の価額を求める評価式の図",
+      "width": "543",
+      "height": "149",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/08/08_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3963,
+      "sha256": "89274baf631817412428c9686f9087f94ac5c3fffc866e61da844dc2c3fb2bec",
+      "page_html_hash": "dc604a4d3bca312520acbf99f5ce1123aa2792d8cc13da95d56b651501e0e6af"
+    }
+  ]
 }

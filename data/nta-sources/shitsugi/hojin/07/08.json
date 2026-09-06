@@ -18,5 +18,19 @@
   "byte_size": 5375,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:33 GMT",
-  "etag": "\"14ff-645080a37e878\""
+  "etag": "\"14ff-645080a37e878\"",
+  "figures_checked_at": "2026-09-06T09:02:42.165Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/08_01.gif",
+      "alt": "底地同士を交換する場合の図（一部文言を削除する）",
+      "width": "480",
+      "height": "207",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3104,
+      "sha256": "bcce10119effc39f5b1f8164cd2e3180f0738b041ccda83f78dbd10a03844f4e",
+      "page_html_hash": "abdfee174cd370fc50e33a9fc3c6f3227d1cccab1f5475ebd7b1b41a13d769b9"
+    }
+  ]
 }

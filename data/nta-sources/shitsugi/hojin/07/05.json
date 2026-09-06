@@ -18,5 +18,19 @@
   "byte_size": 5319,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:33 GMT",
-  "etag": "\"14c7-645080a39c508\""
+  "etag": "\"14c7-645080a39c508\"",
+  "figures_checked_at": "2026-09-06T09:02:38.164Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/05_01.gif",
+      "alt": "保険差益の圧縮記帳と特定資産の買換えによる圧縮記帳との関係の図",
+      "width": "419",
+      "height": "256",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 9800,
+      "sha256": "b97331384aac420154f521bd1f2f235d7b1e16a3eb521190fdf72894833f5751",
+      "page_html_hash": "f5288eedf0a0f5f978df0ff49b92d535ad7f0df523ed21c748a49760aa259e58"
+    }
+  ]
 }

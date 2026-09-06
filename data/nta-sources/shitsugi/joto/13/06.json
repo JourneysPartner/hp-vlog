@@ -18,5 +18,19 @@
   "byte_size": 6018,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:17 GMT",
-  "etag": "\"1782-6450805a96b60\""
+  "etag": "\"1782-6450805a96b60\"",
+  "figures_checked_at": "2026-09-06T09:16:14.124Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/06_01.gif",
+      "alt": "所有地の一部を譲渡しその譲受人と共同してマンションを建築する場合(15号)の図",
+      "width": "580",
+      "height": "196",
+      "file": "data/nta-sources/images/shitsugi/joto/13/06/06_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2315,
+      "sha256": "00c10aff93614006d9f9b2a0fa999c91c3a7272885ae4d915511e5fc67d53fb5",
+      "page_html_hash": "c62ccae16410b1c9d3eb6a091abcad0b6d893f5a1fc86526cff223e3d66fb8a8"
+    }
+  ]
 }

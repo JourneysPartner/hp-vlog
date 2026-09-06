@@ -18,5 +18,19 @@
   "byte_size": 8587,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"218b-6450809af8e38\""
+  "etag": "\"218b-6450809af8e38\"",
+  "figures_checked_at": "2026-09-06T09:07:31.150Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/40_01.gif",
+      "alt": "本件におけるイメージ図",
+      "width": "750",
+      "height": "361",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/40/40_01.gif",
+      "media_type": "image/gif",
+      "bytes": 17066,
+      "sha256": "9cda9d25794ecd568c09973121a3c3681620aedfa0cdfa10b77fdf41daac64a0",
+      "page_html_hash": "71242bd1664175f4a11c0465f8ea46648d2c888211ab81121ca8614b1a442997"
+    }
+  ]
 }

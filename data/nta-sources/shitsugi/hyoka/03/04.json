@@ -18,5 +18,30 @@
   "byte_size": 4977,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1371-645080643fdb0\""
+  "etag": "\"1371-645080643fdb0\"",
+  "figures_checked_at": "2026-09-06T09:09:13.136Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/04_01.gif",
+      "alt": "間口が狭小である宅地の図",
+      "width": "444",
+      "height": "175",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2289,
+      "sha256": "ae6511c8883cec043674b9e11a1922e633182bc64d734a967b5a6ec2d5315002",
+      "page_html_hash": "84c861e7c8dc0e99f03c583a1c6c933921a9189db672bf8654f22fc287b9c0f9"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/04_02.gif",
+      "alt": "側方路線影響加算又は二方路線影響加算と間口狭小補正との関係の計算方法",
+      "width": "586",
+      "height": "66",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/04/04_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3285,
+      "sha256": "ec9688412c2f3e18dff4c6f54c9f33127f86a9869b25ff255ba40405215707dd",
+      "page_html_hash": "84c861e7c8dc0e99f03c583a1c6c933921a9189db672bf8654f22fc287b9c0f9"
+    }
+  ]
 }

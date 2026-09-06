@@ -18,5 +18,19 @@
   "byte_size": 5969,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"1751-64508061c9f90\""
+  "etag": "\"1751-64508061c9f90\"",
+  "figures_checked_at": "2026-09-06T09:11:57.145Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/38-1.gif",
+      "alt": "しんしゃく割合表図",
+      "width": "613",
+      "height": "422",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/38/38-1.gif",
+      "media_type": "image/gif",
+      "bytes": 9502,
+      "sha256": "e48ef8b7aeec6f27802c1f0b04e81a58f8c9b72ad50cdb85bed1edacd2c0b123",
+      "page_html_hash": "a8b4cf0c6ee462b947f102e3c99d66a8839f7ea97af2c2f36855d835271f4255"
+    }
+  ]
 }
