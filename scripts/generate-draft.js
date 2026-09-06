@@ -103,11 +103,13 @@ async function enrichTaxTerms(topic) {
 function buildQaBlockForTopic(topic) {
   try {
     const { buildQaBlock } = require('./lib/nta-qa');
-    const keywords = [
+    const metaText = [
       topic.tax_terms, topic.pain_point, topic.primary_question,
       topic.reader_problem, topic.search_intent, topic.title,
-    ].filter(Boolean).join(' ').split(/[\s、。？?・／/]+/).filter(w => w.length >= 2);
-    const block = buildQaBlock(keywords, { taxDomain: topic.tax_domain, maxDocs: 3 });
+    ].filter(Boolean).join(' ');
+    const keywords = metaText.split(/[\s、。？?・／/]+/).filter(w => w.length >= 2);
+    // scopeText: 資料の主題語が記事の企画メタに含まれるかの判定用（切り出し前の全文）
+    const block = buildQaBlock(keywords, { taxDomain: topic.tax_domain, maxDocs: 3, scopeText: metaText });
     if (block) {
       const nos = (block.match(/【[^】]+】/g) || []).join(' ');
       console.log(`[source] 国税庁Q&Aの原文を添付: ${nos} (${block.length} 文字)`);

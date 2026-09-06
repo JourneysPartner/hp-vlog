@@ -75,7 +75,9 @@ console.log('=== 3. 全角・空白の揺れを吸収する ===');
   // PDF の抽出結果は「２年」「1,000 万円」のように全角と空白が混ざる
   assert(N('２年を経過する日') === N('2年を経過する日'), '全角数字を吸収する');
   assert(N('1,000 万円') === N('1,000万円'), 'PDF由来の空白を吸収する');
-  const found = qa.findQaByKeywords(['２年を経過する日'], { maxDocs: 5 });
+  // 2026-09-06: 資料レベルの絞り込み（scope）が入り、記事メタに資料の主題語が無いと
+  // その資料は候補にならない。ここはインボイスQ&Aの語の揺れを見る試験なので、主題語を添える。
+  const found = qa.findQaByKeywords(['２年を経過する日'], { maxDocs: 5, scopeText: 'インボイス ２年を経過する日' });
   assert(found.length > 0, '全角で検索しても当たる');
 }
 
@@ -101,7 +103,7 @@ console.log('=== 4. 絞り込みに効く語だけを使う ===');
   const longFragment = qa.findQaByKeywords(['インボイス登録をやめるにはどのような手続きが必要で'], { maxDocs: 3 });
   assert(longFragment.length === 0, '長すぎる断片は語として使わない');
 
-  const useful = qa.findQaByKeywords(['登録の取りやめ', '取消しを求める旨の届出書'], { maxDocs: 3 });
+  const useful = qa.findQaByKeywords(['登録の取りやめ', '取消しを求める旨の届出書'], { maxDocs: 3, scopeText: 'インボイス 登録の取りやめ 取消しを求める旨の届出書' });
   assert(useful.length > 0, '制度の用語では当たる');
 }
 
