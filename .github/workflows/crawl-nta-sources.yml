@@ -138,7 +138,11 @@ jobs:
           MODE: ${{ steps.mode.outputs.mode }}
         run: |
           DATE=$(date -u +%Y-%m-%d)
-          BRANCH="chore/nta-crawl-${DATE}"
+          # ブランチ名に run_id を付ける。日付だけだと同じ日に 2 回走らせたとき
+          # 既存ブランチと衝突して push が non-fast-forward で失敗し、その回の
+          # 取り込み結果がまるごと失われる（2026-09-06 の backfill 2回目で発生）。
+          # backfill-figures は分割実行が前提なので、同日複数回を許す必要がある。
+          BRANCH="chore/nta-crawl-${DATE}-${GITHUB_RUN_ID}"
           git checkout -b "$BRANCH"
           git add data/nta-sources/
 
