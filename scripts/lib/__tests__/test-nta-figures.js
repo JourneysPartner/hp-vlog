@@ -103,5 +103,15 @@ assert(plainAn.messages[0].content.length === 1 && plainAn.messages[0].content[0
 assert(typeof toOpenAIMessages({ staticSystem: 'S', dynamicSystem: 'D', user: 'U' })[1].content === 'string',
   '図が無ければ OpenAI の content は従来どおり文字列');
 
+console.log('');
+console.log('=== 差し戻し再生成でも図が渡ること（generateSimple 用の共用部品）===');
+
+const { buildAnthropicUserContent } = require(path.join(ROOT, 'scripts/lib/article-prompt-builder'));
+const withFig = buildAnthropicUserContent('U', [{ media_type: 'image/gif', data: 'AAAA', alt: 'a', url: PAGE, sourceTitle: 'T' }]);
+assert(withFig.map(b => b.type).join(',') === 'text,image,text',
+  '共用部品は 説明テキスト → 画像 → 本指示 の順に組む');
+assert(buildAnthropicUserContent('U', []).length === 1 && buildAnthropicUserContent('U').length === 1,
+  '図が無ければテキスト 1 ブロック（figures 未指定でも壊れない）');
+
 console.log(`\n結果: ${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

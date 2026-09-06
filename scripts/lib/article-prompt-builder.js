@@ -217,6 +217,24 @@ function figureLabel(f) {
   return `次の画像は、根拠として渡している主出典「${f.sourceTitle || '出典'}」（${f.url || ''}）に掲載されている図です${alt}。この図に書かれている数値・続柄・関係だけを設例に使ってください。`;
 }
 
+/**
+ * Anthropic の user メッセージ本体を組む。図があれば 説明テキスト → 画像 → 本指示 の順。
+ * 日次生成（toAnthropicRequest）と差し戻し再生成（content-model.generateSimple）で共用する。
+ * 図が無ければテキスト 1 ブロック（従来どおり）。
+ */
+function buildAnthropicUserContent(user, figures) {
+  const content = [];
+  for (const f of figures || []) {
+    content.push({ type: 'text', text: figureLabel(f) });
+    content.push({
+      type: 'image',
+      source: { type: 'base64', media_type: f.media_type, data: f.data },
+    });
+  }
+  content.push({ type: 'text', text: user });
+  return content;
+}
+
 // ── provider 別メッセージ変換 ──────────────────────────────────
 /**
  * OpenAI Chat Completions 形式に変換。
@@ -250,15 +268,7 @@ function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { mo
       : { type: 'text', text: staticSystem },
     { type: 'text', text: dynamicSystem },
   ];
-  const content = [];
-  for (const f of figures || []) {
-    content.push({ type: 'text', text: figureLabel(f) });
-    content.push({
-      type: 'image',
-      source: { type: 'base64', media_type: f.media_type, data: f.data },
-    });
-  }
-  content.push({ type: 'text', text: user });
+  const content = buildAnthropicUserContent(user, figures);
   return {
     model,
     max_tokens: maxTokens || 4096,
@@ -273,5 +283,6 @@ module.exports = {
   buildFrontmatterTemplate,
   toOpenAIMessages,
   toAnthropicRequest,
+  buildAnthropicUserContent,
   STATIC_RULES,
 };

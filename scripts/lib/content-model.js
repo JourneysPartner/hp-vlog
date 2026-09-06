@@ -130,20 +130,24 @@ async function generateContent(promptIR, opts = {}) {
  * シンプルな { system, user } 形式（部分修正プロンプト用）を呼ぶ。
  * provider は本文生成と同じ。Anthropic でも cache は付けない（短いため）。
  */
-async function generateSimple({ system, user }, opts = {}) {
+// figures: 出典の図（nta-source-body.loadSourceFigures の戻り）。差し戻し再生成でも
+// 図を見られるように受け取る（2026-09-06、日次生成だけに入れていた穴を塞ぐ）。
+async function generateSimple({ system, user, figures }, opts = {}) {
   const provider = resolveProvider();
   const model = resolveModel(provider, opts.model);
-  const promptIR = { staticSystem: system, dynamicSystem: '', user };
+  // openai fallback 側は toOpenAIMessages が figures を data URL で載せる
+  const promptIR = { staticSystem: system, dynamicSystem: '', user, figures: figures || [] };
   // デフォルト 4096：本文相当の出力長を呼び出し側が忘れても安全側に倒す。
   // 短い JSON 等を返す呼び出しは opts.maxTokens で明示的に絞ること。
   const maxTokens = opts.maxTokens || 4096;
   if (provider === 'anthropic') {
     try {
+      const { buildAnthropicUserContent } = require('./article-prompt-builder');
       const req = {
         model,
         max_tokens: maxTokens,
         system: [{ type: 'text', text: system }],
-        messages: [{ role: 'user', content: user }],
+        messages: [{ role: 'user', content: buildAnthropicUserContent(user, figures) }],
       };
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
