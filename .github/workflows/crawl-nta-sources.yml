@@ -21,6 +21,12 @@ on:
         options:
           - 'incremental'
           - 'full'
+          - 'backfill-figures'
+      max_pages:
+        description: '処理件数の上限（backfill-figures を分割実行したいときに指定。空なら全件）'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -47,10 +53,18 @@ jobs:
         id: mode
         run: |
           MODE='${{ github.event.inputs.mode || 'incremental' }}'
+          MAX='${{ github.event.inputs.max_pages }}'
+          LIMIT=''
+          [ -n "$MAX" ] && LIMIT="--max-pages $MAX"
           if [ "$MODE" = "full" ]; then
-            echo "args=" >> "$GITHUB_OUTPUT"
+            echo "args=$LIMIT" >> "$GITHUB_OUTPUT"
+          elif [ "$MODE" = "backfill-figures" ]; then
+            # 図（画像）の取り込みを既存レコードへ後追いで入れるモード。
+            # 通常の incremental は html_hash が変わらないページを HEAD で
+            # スキップするため、これを使わないと既存レコードに図が付かない。
+            echo "args=--backfill-figures $LIMIT" >> "$GITHUB_OUTPUT"
           else
-            echo "args=--incremental" >> "$GITHUB_OUTPUT"
+            echo "args=--incremental $LIMIT" >> "$GITHUB_OUTPUT"
           fi
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "Mode: $MODE"

@@ -43,6 +43,20 @@ function parseShitsugiUrl(url) {
 }
 
 /**
+ * 出典URLに対応するカタログのファイルパスを返す。
+ *
+ * 本文（loadSourceBody）と図（loadSourceFigures）は必ずこの1つの写像を通す。
+ * 別経路で探すと、本文と図が違う出典のものになりうるため。
+ */
+function resolveSourceFile(url) {
+  const taxanswer = parseTaxanswerUrl(url);
+  if (taxanswer) return path.join(TAXANSWER_DIR, taxanswer.section, `${taxanswer.no}.json`);
+  const shitsugi = parseShitsugiUrl(url);
+  if (shitsugi) return path.join(SHITSUGI_DIR, shitsugi.category, shitsugi.section, `${shitsugi.id}.json`);
+  return null;
+}
+
+/**
  * 出典URLに対応する本文を返す。
  * @returns {{no:string, title:string, url:string, body:string, truncated:boolean}|null}
  */
@@ -53,9 +67,8 @@ function loadSourceBody(url, options = {}) {
   const shitsugi = parseShitsugiUrl(url);
   if (!taxanswer && !shitsugi) return null;   // カタログ収録対象外（パンフレット等）
 
-  const file = taxanswer
-    ? path.join(TAXANSWER_DIR, taxanswer.section, `${taxanswer.no}.json`)
-    : path.join(SHITSUGI_DIR, shitsugi.category, shitsugi.section, `${shitsugi.id}.json`);
+  const file = resolveSourceFile(url);
+  if (!file) return null;
   try {
     if (!fs.existsSync(file)) return null;
     const entry = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -134,13 +147,48 @@ function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
 4. 本文に書かれていない論点に触れる必要がある場合は、出典を引かずに
    「一般に」「実務上」等の表現に留め、その旨が分かるように書く。
 5. 本文と自分の記憶が食い違う場合は<strong>必ず本文を優先</strong>する。
+6. 出典ページに図（画像）がある事例では、要点が図にしか書かれていないことがある。
+   図が渡されていない場合、図に書かれているはずの数値・続柄・関係を推測して書かない。
+   <strong>説明のための設例であっても、出典に無い数値を自分で作ってはならない</strong>
+   （2026-09-06、議決権割合を創作して結論まで誤った事故が実際に起きている）。
 
 ${sections}`;
+}
+
+/**
+ * 主出典（記事が根拠として掲げる出典）の図だけを読み出す。
+ *
+ * 参考出典の図は返さない。プロンプトには主出典と参考出典の本文が同時に載るため、
+ * 双方の図を並べるとモデルがどちらの図か区別できず、設例を取り違える。
+ *
+ * @returns {{figures:Array, hasFigures:boolean, title:string, url:string}}
+ */
+function loadSourceFigures(topic = {}) {
+  const empty = { figures: [], hasFigures: false, title: '', url: topic.source_url || '' };
+  const file = resolveSourceFile(topic.source_url);
+  if (!file) return empty;
+  let entry;
+  try {
+    if (!fs.existsSync(file)) return empty;
+    entry = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (_error) {
+    return empty;
+  }
+  if (!entry || entry.deleted === true) return empty;
+  const ntaFigures = require('./nta-figures');
+  return {
+    figures: ntaFigures.loadFiguresForEntry(entry),
+    hasFigures: ntaFigures.hasFigures(entry),
+    title: entry.title || '',
+    url: topic.source_url || '',
+  };
 }
 
 module.exports = {
   loadSourceBody,
   buildSourceBodyBlock,
+  loadSourceFigures,
+  resolveSourceFile,
   parseTaxanswerUrl,
   parseShitsugiUrl,
   DEFAULT_MAX_CHARS,

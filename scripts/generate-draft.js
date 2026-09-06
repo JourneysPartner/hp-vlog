@@ -9,7 +9,7 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats } = require('./topic-pool');
 const { selectDailyTopics, demandKindOf } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
-const { buildSourceBodyBlock } = require('./lib/nta-source-body');
+const { buildSourceBodyBlock, loadSourceFigures } = require('./lib/nta-source-body');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { checkCitations, buildProvisionBlock } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
@@ -572,7 +572,7 @@ function getRecentRevisionComments(limit = 3) {
 //   1. 既存slug除外（site-corpus全体）
 //   2. cooldown フィルタ（subcluster 30日 / pain_point 30日 / 同slug 永久）
 //   3. 類似度フィルタ（slug/title/intent をJaccardで計算、閾値0.55）
-//   4. カテゴリ偏り是正（直近7日で大分類が60%超ならハードブロック）
+//   4. カテゴリ偏り是正（直近7日で大分類が30%超ならハードブロック）
 //   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
 //   6. 同日2本の最終類似度チェック
 // 選定で 2 本揃わなかったときの理由（通知に載せる）。pickPair が毎回上書きする。
@@ -928,6 +928,23 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     console.log(`[source] 出典本文なし（カタログ外）→ タイトル/URLのみ: ${topic.source_url}`);
   }
 
+  // 出典の「図」（画像）。本文に数値が無く図にだけ書かれている事例があるため、
+  // 主出典に図があれば画像そのものをモデルに渡す（2026-09-06 の事故対応）。
+  // 図は主出典のものだけ。参考出典の図は渡さない（どちらの図か区別できなくなる）。
+  const figureInfo = sourceUnconfirmed
+    ? { figures: [], hasFigures: false, title: '' }
+    : loadSourceFigures(topic);
+  const sourceFigures = figureInfo.figures;
+  for (const f of sourceFigures) f.sourceTitle = figureInfo.title;
+  if (sourceFigures.length > 0) {
+    console.log(`[source] 出典の図を添付: ${sourceFigures.length} 枚（${figureInfo.title}）`);
+  }
+  // 図はあるのに渡せなかった場合（ページ更新でハッシュ不一致・ファイル欠落など）は、
+  // 図に書かれている内容を推測させない。ここを塞がないと数値が創作される。
+  const figureGuardBlock = (figureInfo.hasFigures && sourceFigures.length === 0)
+    ? '\n\n═══ 出典の図について ═══\nこの出典には図（画像）が含まれていますが、その画像は渡せていません。\n図に書かれている数値・続柄・関係を推測して書かないでください。\n設例の数値を自分で作ることも禁止です。図に依存する説明が必要な場合は、\n具体的な数値を出さずに判定の考え方だけを説明してください。'
+    : '';
+
   // 税以外の論点（社会保険等）に触れるテーマは、所管官庁の出典を併せて渡す。
   // 国税庁のタックスアンサーは税以外を扱っていないため、これが無いと
   // 記事の主題が裏付けのないまま書かれる（2026-08-17 の社会保険記事）。
@@ -952,7 +969,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // カタログに入っていなかったため照合できなかった。
   const qaBlock = buildQaBlockForTopic(topic);
 
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + nonTaxBlock + refPagesBlock + qaBlock;
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
@@ -1225,6 +1242,7 @@ updated_at: "${now}"
     // ペア記事情報: タイトル主題の重複防止のため、相手記事の役割・中心疑問を渡す
     pairedTopic, pairedArticleType: pairedTopic && pairedTopic.article_type,
     pairedArticleRole: pairedTopic && pairedTopic.article_role,
+    sourceFigures,
   });
   // 出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
   // プロンプトでの字数指示は努力目標で超過を防ぎきれないが、max_tokens は
