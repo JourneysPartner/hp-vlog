@@ -16,15 +16,15 @@ reader_problem: "甲社は同族株主のいない会社ですが、その株主
 success_outcome: "同族株主がいない会社の株主の議決権割合の判定について、国税庁の質疑応答事例に沿って自分のケースの取扱いを判断できる"
 primary_question: "甲社は同族株主のいない会社ですが、その株主であるA及びその親族が所有する甲社の株式数に応じた議決権割合は図のとおりであり、他の株主にこれらの者の同族関係者はいません。 Aが死亡し、甲社株式をAの配偶者Bが相続したときには、その株式はどのように評価することとなりますか。"
 summary: "同族株主がいない甲社でAが死亡しBが株式を相続した場合、CはBの同族関係者に当たらずBのグループ合計4.5％（15％未満）となり、配当還元方式で評価する。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-06T17:56:19.924+09:00"
+publish_at: "2026-09-07T17:43:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-06T00:08:51.270Z"
-updated_at: "2026-09-06T08:23:40.263Z"
+updated_at: "2026-09-06T17:56:19.924+09:00"
 macro: "相続贈与"
 cluster: "shitsugi-hyoka"
 subcluster: "shitsugi-hyoka-05-03"
@@ -45,6 +45,7 @@ review_warning: ""
 source_provenance: "explicit"
 source_confidence: 1
 source_guard_version: 1
+publish_slot: "evening"
 ---
 
 同族株主がいない会社の株式を相続した場合、<strong>誰が株式を取得するか</strong>によって評価方法が変わります。配偶者が取得するのか、子が取得するのかで、「配当還元方式」と「原則的評価方式」のどちらが適用されるかが異なるケースがあります。
