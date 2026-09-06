@@ -921,8 +921,11 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // 主出典＋参考1件の全文を渡し、記憶ではなく本文を根拠にさせる。
   const sourceBodyBlock = sourceUnconfirmed ? '' : buildSourceBodyBlock(topic, ntaRefs, { maxRefs: 1 });
   if (sourceBodyBlock) {
-    const nos = (sourceBodyBlock.match(/No\.(\d{4})/g) || []).join(', ');
-    console.log(`[source] 出典本文をプロンプトに添付: ${nos} (${sourceBodyBlock.length} 文字)`);
+    // 【主出典】/【参考】の行をそのまま出す。以前は No.4桁 だけ拾っていたため、
+    // 質疑応答事例が主出典のときは参考のタックスアンサーしか表示されなかった。
+    const labels = (sourceBodyBlock.match(/【(?:主出典|参考)】[^\n]*/g) || [])
+      .map(l => l.replace(/国税庁\s*/, '').slice(0, 70));
+    console.log(`[source] 出典本文をプロンプトに添付: ${labels.join(' ／ ')} (${sourceBodyBlock.length} 文字)`);
   } else if (topic.source_url) {
     // パンフレット等カタログ外の出典。従来どおりタイトル+URLのみで生成する。
     console.log(`[source] 出典本文なし（カタログ外）→ タイトル/URLのみ: ${topic.source_url}`);
@@ -1686,6 +1689,21 @@ ${rules.join(RULE_SEP)}`
   // 振り分けられるため、原文が最も必要になるのがこの経路になる。
   const qaBlock = buildQaBlockForTopic(topicLike);
 
+  // 出典の図（画像）。日次生成と同じ部品で主出典の図だけを読む。
+  // 差し戻し再生成にこれが無かったため、図つき出典の記事を差し戻すと図を見ないまま
+  // 書き直していた（#572 の書き直しはコメントに図の数値を書き写して通した）。
+  const figureInfo = loadSourceFigures(topicLike);
+  const figures = figureInfo.figures;
+  for (const f of figures) f.sourceTitle = figureInfo.title;
+  if (figures.length) console.log(`[regenerate] 出典の図を添付: ${figures.length} 枚（${figureInfo.title}）`);
+  const figureGuard = (figureInfo.hasFigures && figures.length === 0)
+    ? `
+
+═══ 出典の図について ═══
+この出典には図（画像）が含まれていますが、その画像は渡せていません。
+図に書かれている数値・続柄・関係を推測して書かないでください。設例の数値を自分で作ることも禁止です。`
+    : '';
+
   // 近年の改正論点。通常生成と同じものを再生成にも渡す。
   // 事実誤認の差し戻しは targeted に振り分けられるため、
   // 改正情報が最も必要な場面がこの経路になる。
@@ -1718,8 +1736,8 @@ ${rules.join(RULE_SEP)}`
     }
   }
 
-  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions,
-    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${provisions}${changesBlock}${rulesBlock}` };
+  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures,
+    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${changesBlock}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
@@ -1737,7 +1755,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
     ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
     : '- source_url / source_title は空文字のまま出力してください';
 
-  const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions } =
+  const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions, figures: regenFigures } =
     buildRegenSourceBlocks(meta, existingBody);
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
@@ -1873,12 +1891,14 @@ updated_at: "${now}"
   // 出力枠: 元本文を全文渡すようになったため、入力が長くなっても出力枠は
   // 受入上限どおり確保する。ここを絞ると本文が途中で切れる。
   const regenResult = await contentModel.generateSimple(
-    { system: systemPrompt, user: userPrompt }, { maxTokens: maxTokensFor(articleType) });
+    { system: systemPrompt, user: userPrompt, figures: regenFigures }, { maxTokens: maxTokensFor(articleType) });
   const raw = regenResult.text || '';
   if (regenResult.usage) {
     const u = regenResult.usage;
-    console.log(`[regenerate] full: 入力 ${u.input_tokens ?? u.prompt_tokens ?? '?'} / ` +
-      `出力 ${u.output_tokens ?? u.completion_tokens ?? '?'} token`);
+    // 実際に応答した provider/model を出す。以前は呼び出し前に OPENAI_MODEL の名前を
+    // 表示していて、Claude で生成していても「gpt-5.4」と見えた（2026-09-06 に誤解を招いた）。
+    console.log(`[regenerate] full: provider=${regenResult.provider} model=${regenResult.model} ` +
+      `入力 ${u.input_tokens ?? u.prompt_tokens ?? '?'} / 出力 ${u.output_tokens ?? u.completion_tokens ?? '?'} token`);
   }
   return postProcess(stripWrappingFence(raw));
 }
@@ -1898,8 +1918,8 @@ function logRawOutput(label, raw) {
 // ── シンプルな system/user プロンプトでモデルを呼ぶ（部分再生成用）──
 // 本文に直結する部分修正（section / targeted / title_only）は品質維持のため
 // content-model（本文 provider = Sonnet 4.6、失敗時 OpenAI gpt-5.4 fallback）を使う。
-async function callSimpleOpenAI({ system, user }, maxTokens) {
-  const result = await contentModel.generateSimple({ system, user }, { maxTokens });
+async function callSimpleOpenAI({ system, user, figures }, maxTokens) {
+  const result = await contentModel.generateSimple({ system, user, figures }, { maxTokens });
   return (result.text || '').trim();
 }
 
@@ -2011,13 +2031,13 @@ async function enforceTitleBannedPhrases(content, comment) {
 async function regenerateSection(existingContent, comment, classification) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
-  const { combined: srcBlock } = buildRegenSourceBlocks(meta, body);
+  const { combined: srcBlock, figures: srcFigures } = buildRegenSourceBlocks(meta, body);
 
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification, srcBlock);
     // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
-    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
+    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -2036,7 +2056,7 @@ async function regenerateSection(existingContent, comment, classification) {
     return regenerateTargeted(existingContent, comment);
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
-  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user }, 4096));
+  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -2073,9 +2093,9 @@ async function regenerateTargeted(existingContent, comment) {
   const origLen = body.trim().length;
 
   // 1 回目: 通常プロンプト
-  const { combined: srcBlock } = buildRegenSourceBlocks(meta, body);
+  const { combined: srcBlock, figures: srcFigures } = buildRegenSourceBlocks(meta, body);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
-  let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000);
+  let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000);
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
@@ -2086,7 +2106,7 @@ async function regenerateTargeted(existingContent, comment) {
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
-    raw = await callSimpleOpenAI({ system: p2.system, user: p2.user }, 12000);
+    raw = await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000);
     revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted リトライ');
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
@@ -2348,7 +2368,7 @@ async function main() {
       console.log('[regenerate] targeted: 指摘箇所のみ最小修正');
     } else {
       // full: 全文再生成（従来）
-      console.log(`[regenerate] full: 全文再生成（${modelId}）...`);
+      console.log(`[regenerate] full: 全文再生成（本文 provider=${contentModel.resolveProvider()}、失敗時 OpenAI fallback）...`);
       content = await regenerateWithOpenAI(existing, comment, modelId);
     }
 
@@ -2452,6 +2472,15 @@ async function main() {
       if (!t) { console.error(`[generate] --force-slug: slug "${slug}" がトピックプールに見つかりません`); process.exit(1); }
       return t;
     });
+    // --force-slug は選定（既存 slug 除外・cooldown・重複判定）を通らない。
+    // 公開済みや未マージ下書きと同じ slug を指定すると、同じ記事がもう1本立つので止める。
+    const taken = getExistingSlugs();
+    for (const p of loadPendingDraftCorpus()) if (p && p.slug) taken.add(p.slug);
+    const dup = pair.filter(t => taken.has(t.slug)).map(t => t.slug);
+    if (dup.length) {
+      console.error(`[generate] --force-slug: 既に記事がある slug です（公開済みか未マージ下書き）: ${dup.join(', ')}`);
+      process.exit(1);
+    }
     console.log(`[generate] --force-slug: ${pair.map(t => t.slug).join(', ')}`);
   } else {
     pair = await pickPair(dateStr);
