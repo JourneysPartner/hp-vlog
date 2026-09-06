@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "同じ食品でも、店内飲食なら10%・持ち帰りなら8%と税率が変わります。判定の基準は「顧客が提供を受けた時点でどちらを選んだか」です。意思確認の方法と帳簿の区分記載も解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-06T17:03:51.105+09:00"
+publish_at: "2026-09-07T11:12:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-06T00:05:47.870Z"
-updated_at: "2026-09-06T07:58:20.998Z"
+updated_at: "2026-09-06T17:03:51.105+09:00"
+publish_slot: "morning"
 ---
 弁当やホットスナックを売っているとき、「ここで食べますか？」と聞かれてもいないのにイートインスペースに座って食べる人がいる——そんな場面で税率をどう処理すればよいのか、悩んだことはないでしょうか。
 
