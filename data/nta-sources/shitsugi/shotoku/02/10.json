@@ -18,5 +18,19 @@
   "byte_size": 7304,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:07 GMT",
-  "etag": "\"1c88-6450808a847c8\""
+  "etag": "\"1c88-6450808a847c8\"",
+  "figures_checked_at": "2026-09-06T09:45:32.721Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/img/10_01.gif",
+      "alt": "既払保険料&times;減額部分の保険金額&divide;減額前の保険金額",
+      "width": "261",
+      "height": "69",
+      "file": "data/nta-sources/images/shitsugi/shotoku/02/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1141,
+      "sha256": "bd6b34661af4f7946df4195b782183ad2425682d79de7481b5dfc91a40466b05",
+      "page_html_hash": "5c2a9e5696502ebe366cc64f43713d40b2d6c46aa384c770e47b42f379ea1231"
+    }
+  ]
 }

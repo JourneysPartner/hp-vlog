@@ -18,5 +18,41 @@
   "byte_size": 7870,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:59 GMT",
-  "etag": "\"1ebe-64508082fc820\""
+  "etag": "\"1ebe-64508082fc820\"",
+  "figures_checked_at": "2026-09-06T09:48:41.732Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/17_02.gif",
+      "alt": "１家屋のうち居住の用に供している部分、120平方メートル+20平方メートル&times;（120平方メートル&divide;（120平方メートル+60平方メートル））＝133.34平方メートル、２敷地の用に供されている土地の居住の用に供している部分、240平方メートル+40平方メートル&times;（133.34平方メートル&divide;200平方メートル)＝266.67平方メートル",
+      "width": "396",
+      "height": "122",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/17/17_02.gif",
+      "media_type": "image/gif",
+      "bytes": 5180,
+      "sha256": "36c2c023a11c69c8fdf33d32c3d73eca84e5fc66060d630d626025d7f2c17b03",
+      "page_html_hash": "df383720a217a7cd3496643ac2c784f324ee37679c2f23d5ca5fd21fc124c798"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/17_03.gif",
+      "alt": "その家屋のうちその居住の用に専ら供する部分の床面積（Ａ）+その家屋のうちその居住の用と居住の用以外の用とに併用する部分の床面積（Ｂ）&times;（（Ａ）&divide;（（Ａ）+居住の用以外の用に供する部分の床面積））",
+      "width": "424",
+      "height": "63",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/17/17_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2537,
+      "sha256": "7d8bb6aab3b09b451be80d52eee2ea9032928d61b76ea59e2072cc9e84085822",
+      "page_html_hash": "df383720a217a7cd3496643ac2c784f324ee37679c2f23d5ca5fd21fc124c798"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/17_04.gif",
+      "alt": "その土地等のうちその居住の用に専ら供する部分の面積+その土地等のうちその居住の用と居住の用以外の用とに併用する部分の面積&times;（その土地の床面積のうち（１）の算式により計算した面積&divide;その家屋の床面積）",
+      "width": "424",
+      "height": "63",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/17/17_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2689,
+      "sha256": "6c8d417b467849f0813f476cf37a18a19d3d89fefecdbb65891294505e01c13a",
+      "page_html_hash": "df383720a217a7cd3496643ac2c784f324ee37679c2f23d5ca5fd21fc124c798"
+    }
+  ]
 }

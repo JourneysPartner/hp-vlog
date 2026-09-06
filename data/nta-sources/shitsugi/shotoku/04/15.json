@@ -18,5 +18,19 @@
   "byte_size": 5949,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:04 GMT",
-  "etag": "\"173d-64508087c2300\""
+  "etag": "\"173d-64508087c2300\"",
+  "figures_checked_at": "2026-09-06T09:46:40.736Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/img/09-2.gif",
+      "alt": "減価償却費の計算表",
+      "width": "645",
+      "height": "206",
+      "file": "data/nta-sources/images/shitsugi/shotoku/04/15/09-2.gif",
+      "media_type": "image/gif",
+      "bytes": 27528,
+      "sha256": "0359053ae49c9700ac057334df25fb319a434ac00442cc3fcd96157740847edf",
+      "page_html_hash": "e7bd6395ba5fa0e9f257324cf55cba94977c7eeb75982e60edb35c4a27501fe2"
+    }
+  ]
 }

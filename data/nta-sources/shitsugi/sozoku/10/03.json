@@ -18,5 +18,19 @@
   "byte_size": 5536,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT",
-  "etag": "\"15a0-64508052917d0\""
+  "etag": "\"15a0-64508052917d0\"",
+  "figures_checked_at": "2026-09-06T09:50:40.720Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/img/03_01.gif",
+      "alt": "共有家屋(貸家)の敷地の用に供されていた宅地等についての小規模宅地等の特例の選択の図",
+      "width": "186",
+      "height": "144",
+      "file": "data/nta-sources/images/shitsugi/sozoku/10/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1393,
+      "sha256": "bd79b1d1b6119ec646669d22bbd44b816c2b57f3254393f5e9b0787a403ea8d0",
+      "page_html_hash": "ab8230ca385f0105c4f099daeb06229edd6d954d3d0dc91b5665625b22d84fde"
+    }
+  ]
 }

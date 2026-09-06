@@ -18,5 +18,19 @@
   "byte_size": 5966,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT",
-  "etag": "\"174e-64508055a7c58\""
+  "etag": "\"174e-64508055a7c58\"",
+  "figures_checked_at": "2026-09-06T09:39:12.708Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/19/img/05_01.gif",
+      "alt": "租税特別措置法第37条第2項に規定する買換取得資産である土地の面積制限の図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/joto/19/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 7846,
+      "sha256": "b6855c7e3d0fe207cd32a541c398fe798ff244cf6bc8c1e1f28c8814667c93e9",
+      "page_html_hash": "a4161f7a3c8480a9eeca04da3d068f55e8c6c9293425e74235f40edfac71569f"
+    }
+  ]
 }

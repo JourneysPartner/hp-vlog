@@ -18,5 +18,19 @@
   "byte_size": 6733,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:59 GMT",
-  "etag": "\"1a4d-645080826cb58\""
+  "etag": "\"1a4d-645080826cb58\"",
+  "figures_checked_at": "2026-09-06T09:49:01.736Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/32.gif",
+      "alt": "新築の日前2年以内に取得した土地等の先行取得に係る借入金(家屋に抵当権の設定がない借入金)の図",
+      "width": "498",
+      "height": "308",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/32/32.gif",
+      "media_type": "image/gif",
+      "bytes": 21976,
+      "sha256": "6397be3517f087b42b90ab4eb4da3422c1f0e1cc8cf88b02c79fe2c335a8ef95",
+      "page_html_hash": "b56d8c3f861f7f61c0fa467e0f096f6f2cbd2323fcd1e6970bdfdf3a4f3e7d3b"
+    }
+  ]
 }

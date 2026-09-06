@@ -18,5 +18,19 @@
   "byte_size": 5861,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:06 GMT",
-  "etag": "\"16e5-64508089705d0\""
+  "etag": "\"16e5-64508089705d0\"",
+  "figures_checked_at": "2026-09-06T09:45:59.725Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/img/37sanshiki.gif",
+      "alt": "一時所得の金額イコール（A　その年中の一時所得に係る総収入金額）マイナス（B　その収入を得るために支出した金額の合計額（注1））マイナス50万円（注2）",
+      "width": "564",
+      "height": "110",
+      "file": "data/nta-sources/images/shitsugi/shotoku/02/37/37sanshiki.gif",
+      "media_type": "image/gif",
+      "bytes": 2667,
+      "sha256": "117ae6905e590468a58328c1c9c529b04e71d1fc1b0dadeb39a5452907765aba",
+      "page_html_hash": "3b38a0215723ee049ec767c117111374f7ed1ec0c92724189c0dd77c29a6399c"
+    }
+  ]
 }

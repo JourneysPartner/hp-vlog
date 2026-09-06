@@ -18,5 +18,19 @@
   "byte_size": 4749,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT",
-  "etag": "\"128d-64508053116b0\""
+  "etag": "\"128d-64508053116b0\"",
+  "figures_checked_at": "2026-09-06T09:50:22.716Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/06/img/05_01.gif",
+      "alt": "代襲相続権の有無(2)の図",
+      "width": "179",
+      "height": "130",
+      "file": "data/nta-sources/images/shitsugi/sozoku/06/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 616,
+      "sha256": "11fc245824260a0b750e14eabf9666f604d540d5ba7b899460e1871129f850e8",
+      "page_html_hash": "ba41454298631d012e1b158f3eb111828e1ac61ab9b2dc4ebea2a3c6833a0ff1"
+    }
+  ]
 }

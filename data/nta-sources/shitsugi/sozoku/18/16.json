@@ -18,5 +18,19 @@
   "byte_size": 5043,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:05 GMT",
-  "etag": "\"13b3-6450804fc3788\""
+  "etag": "\"13b3-6450804fc3788\"",
+  "figures_checked_at": "2026-09-06T09:51:50.728Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/18/img/22.gif",
+      "alt": "市民菜園として貸し付けている農地の図",
+      "width": "490",
+      "height": "387",
+      "file": "data/nta-sources/images/shitsugi/sozoku/18/16/22.gif",
+      "media_type": "image/gif",
+      "bytes": 4244,
+      "sha256": "856f7ab1caa7566821c81834d920d6f25f7c2491a7d888cc5164054e9da0d091",
+      "page_html_hash": "726bed7a4c5ed737e34da653ecea2ad3773e9a9125385b057ea44fe08ef7f69c"
+    }
+  ]
 }

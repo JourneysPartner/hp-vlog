@@ -18,5 +18,30 @@
   "byte_size": 6020,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT",
-  "etag": "\"1784-6450805254f10\""
+  "etag": "\"1784-6450805254f10\"",
+  "figures_checked_at": "2026-09-06T09:50:49.725Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/img/12_01.gif",
+      "alt": "被相続人の共有する土地が被相続人等の居住の用と貸家の敷地の用に供されていた場合の小規模宅地等の特例の図",
+      "width": "528",
+      "height": "116",
+      "file": "data/nta-sources/images/shitsugi/sozoku/10/12/12_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3177,
+      "sha256": "ab01fbd09434712aef92f05a76466dc5a8d6e2135bd5c6685b90757ad08812b7",
+      "page_html_hash": "37e96ecdf7254bb3eba4ef842712bda5715e336fe93b938ba895286c75adbb6b"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/img/12_02.gif",
+      "alt": "甲の共有部分に相当する240平方メートルの利用状況、Ａ建物の敷地部分　160平方メートル＝300平方メートル&times;80/100&times;200平方メートル/（200平方メートル+100平方メートル）Ｂ建物の敷地部分　80平方メートル＝300平方メートル&times;80/100&times;100平方メートル/（200平方メートル+100平方メートル）",
+      "width": "384",
+      "height": "123",
+      "file": "data/nta-sources/images/shitsugi/sozoku/10/12/12_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2461,
+      "sha256": "c22d6edb59a41ed0975a1151331f503204afa6f5cfdaaef5e51e64ca16fcfde5",
+      "page_html_hash": "37e96ecdf7254bb3eba4ef842712bda5715e336fe93b938ba895286c75adbb6b"
+    }
+  ]
 }

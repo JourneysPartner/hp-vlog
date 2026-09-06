@@ -18,5 +18,19 @@
   "byte_size": 5670,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT",
-  "etag": "\"1626-645080572e270\""
+  "etag": "\"1626-645080572e270\"",
+  "figures_checked_at": "2026-09-06T09:38:27.709Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/16/img/14_01.gif",
+      "alt": "非居住者が有する土地の収用等に伴う対償地の取得の図",
+      "width": "481",
+      "height": "204",
+      "file": "data/nta-sources/images/shitsugi/joto/16/14/14_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3987,
+      "sha256": "4055222f8ceb338901eb4c0e504009a6f3d42bf3b314ea30d859f49d2868e529",
+      "page_html_hash": "c7986f507daefce972ed13115b1b220561566418ec82f52ee2c54eb3ad5b0fe5"
+    }
+  ]
 }

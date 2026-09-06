@@ -18,5 +18,19 @@
   "byte_size": 6146,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:40 GMT",
-  "etag": "\"1802-64508070c4ef0\""
+  "etag": "\"1802-64508070c4ef0\"",
+  "figures_checked_at": "2026-09-06T09:41:14.710Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/06/img/07.gif",
+      "alt": "リース会計基準に関する計算書",
+      "width": "650",
+      "height": "1008",
+      "file": "data/nta-sources/images/shitsugi/shohi/06/07/07.gif",
+      "media_type": "image/gif",
+      "bytes": 269311,
+      "sha256": "ca5364a09133400c93a1f785c89adc4eddf7b3120e0b6e1705f5bd7b2bb46a58",
+      "page_html_hash": "748d2ae861a753d6ffe4d54be1be0f879d4bbd7a67a50e02fee23c1ff57af68f"
+    }
+  ]
 }

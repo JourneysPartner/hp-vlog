@@ -18,5 +18,30 @@
   "byte_size": 6083,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:59 GMT",
-  "etag": "\"17c3-64508082cca80\""
+  "etag": "\"17c3-64508082cca80\"",
+  "figures_checked_at": "2026-09-06T09:48:49.735Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/22_01.gif",
+      "alt": "家屋の新築に係る借入金の算式",
+      "width": "441",
+      "height": "135",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/22/22_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3830,
+      "sha256": "8c2958ad3b6310d7fb8f95b354147b70110759eb879f3eb6565c0d831223df2f",
+      "page_html_hash": "a07599ff06da3aefd2e1b490ae876dada5c61aa085e969ab123d3512f6f359bf"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/22_02.gif",
+      "alt": "土地の購入に係る借入金の算式",
+      "width": "458",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/22/22_02.gif",
+      "media_type": "image/gif",
+      "bytes": 4436,
+      "sha256": "b71cd3eeb8a575988e35a1d17cc1a20217a3e6f85ea68311f49b980a49bba329",
+      "page_html_hash": "a07599ff06da3aefd2e1b490ae876dada5c61aa085e969ab123d3512f6f359bf"
+    }
+  ]
 }

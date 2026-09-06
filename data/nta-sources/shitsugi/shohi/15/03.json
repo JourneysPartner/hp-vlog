@@ -18,5 +18,19 @@
   "byte_size": 5274,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:38 GMT",
-  "etag": "\"149a-6450806eb0380\""
+  "etag": "\"149a-6450806eb0380\"",
+  "figures_checked_at": "2026-09-06T09:42:11.726Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/15/img/03_01.gif",
+      "alt": "課税資産の譲渡等に該当しない売掛債権の取得に係る貸倒れの図",
+      "width": "408",
+      "height": "228",
+      "file": "data/nta-sources/images/shitsugi/shohi/15/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 12201,
+      "sha256": "3b9d93e7cedd7a63500bb833ea7331ad27ea93a8ea0b5fc6eb1c0966d0c302b4",
+      "page_html_hash": "c2c372de1b3491d86a3c85e7b7d3b17fcb05724bc2d41a5543083f1c0bc89d03"
+    }
+  ]
 }

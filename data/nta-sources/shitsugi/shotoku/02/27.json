@@ -18,5 +18,19 @@
   "byte_size": 5868,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:06 GMT",
-  "etag": "\"16ec-64508089de3a0\""
+  "etag": "\"16ec-64508089de3a0\"",
+  "figures_checked_at": "2026-09-06T09:45:48.722Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/img/utiwake.gif",
+      "alt": "所得の内訳（当初申告）の図",
+      "width": "440",
+      "height": "213",
+      "file": "data/nta-sources/images/shitsugi/shotoku/02/27/utiwake.gif",
+      "media_type": "image/gif",
+      "bytes": 2969,
+      "sha256": "3f36559120fbaf47c0d703b3ad8a6cc45a2f74d47105dc255f4391c0e123fd6e",
+      "page_html_hash": "fff99f97eaefd78fd5990bd3750a8228ff61f5d0d50587354fb4f208c2596443"
+    }
+  ]
 }

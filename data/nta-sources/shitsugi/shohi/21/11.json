@@ -18,5 +18,30 @@
   "byte_size": 9492,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:33 GMT",
-  "etag": "\"2514-6450806a7cc78\""
+  "etag": "\"2514-6450806a7cc78\"",
+  "figures_checked_at": "2026-09-06T09:44:08.732Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/11_01.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/11/11_01.png",
+      "media_type": "image/png",
+      "bytes": 5136,
+      "sha256": "942230e42a7426d8233c2ab3f72abc26d187a5667bfa5ba9db9e2cada9974a06",
+      "page_html_hash": "bc3da3ab5e92f7deb7a28c8132a85d832ddc45db3da13aabedde5b7baa1eefd9"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/11_02.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/11/11_02.png",
+      "media_type": "image/png",
+      "bytes": 5155,
+      "sha256": "f3f36f5d039523c8e84aebe7daa149be9cbb2c644e8c5208b48e6b626cdefe6e",
+      "page_html_hash": "bc3da3ab5e92f7deb7a28c8132a85d832ddc45db3da13aabedde5b7baa1eefd9"
+    }
+  ]
 }

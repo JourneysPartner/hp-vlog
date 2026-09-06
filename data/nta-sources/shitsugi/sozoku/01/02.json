@@ -18,5 +18,19 @@
   "byte_size": 5088,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:10 GMT",
-  "etag": "\"13e0-6450805436e00\""
+  "etag": "\"13e0-6450805436e00\"",
+  "figures_checked_at": "2026-09-06T09:49:45.724Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/01/img/02_01.gif",
+      "alt": "家附の継子を説明する図",
+      "width": "379",
+      "height": "55",
+      "file": "data/nta-sources/images/shitsugi/sozoku/01/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1075,
+      "sha256": "ce3cb8e62cbd222a4c76442a39638827858e604870f1fa119b4d149c7880b57f",
+      "page_html_hash": "6b8be69f86db0ffe9f8884a327bd33fdc516ab94b9bdb5d385c234506e33965b"
+    }
+  ]
 }

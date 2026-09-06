@@ -18,5 +18,19 @@
   "byte_size": 5047,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:58 GMT",
-  "etag": "\"13b7-64508081b6d30\""
+  "etag": "\"13b7-64508081b6d30\"",
+  "figures_checked_at": "2026-09-06T09:49:24.726Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/06/img/47.gif",
+      "alt": "説明図",
+      "width": "560",
+      "height": "105",
+      "file": "data/nta-sources/images/shitsugi/shotoku/06/51/47.gif",
+      "media_type": "image/gif",
+      "bytes": 2390,
+      "sha256": "2dd97902b27bf56ef9ac2ebb45f77ffd4b31375918ebad9bcc11bc99f584fa62",
+      "page_html_hash": "66e2e87faaf82c99d19e353d55809a38b32c0926476795723f7758149ada3116"
+    }
+  ]
 }

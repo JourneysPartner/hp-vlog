@@ -18,5 +18,19 @@
   "byte_size": 4872,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:38 GMT",
-  "etag": "\"1308-6450806f16450\""
+  "etag": "\"1308-6450806f16450\"",
+  "figures_checked_at": "2026-09-06T09:42:00.726Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/14/img/02_01.gif",
+      "alt": "取得有価証券の時価&times;建物（時価）&divide;（土地（時価）+建物（時価））",
+      "width": "433",
+      "height": "88",
+      "file": "data/nta-sources/images/shitsugi/shohi/14/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6884,
+      "sha256": "da04cc510fe0e1d55b4976330991f96f661e24b9b61753d56c367b156cd3bfe2",
+      "page_html_hash": "f5b6b5ce38228d51550849add192db444eeef98ce3a2046b0952edfa3bfbb11d"
+    }
+  ]
 }

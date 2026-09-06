@@ -18,5 +18,19 @@
   "byte_size": 4711,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT",
-  "etag": "\"1267-645080515a358\""
+  "etag": "\"1267-645080515a358\"",
+  "figures_checked_at": "2026-09-06T09:51:21.732Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/16/img/03_01.gif",
+      "alt": "贈与税の配偶者控除の対象となる居住用不動産の範囲(1)の例図",
+      "width": "276",
+      "height": "133",
+      "file": "data/nta-sources/images/shitsugi/sozoku/16/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1548,
+      "sha256": "2dbb938a115fab44cc11499f6700f167e80ecc1d563c66fe9bf955e5c6bad1b2",
+      "page_html_hash": "f080d8ac1bfb7aa32a04474dca6711257b8645f48f7c16fc6f370726fecc1fc0"
+    }
+  ]
 }
