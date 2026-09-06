@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "平成25年1月1日以降に相続・遺贈・贈与で取得した預貯金の評価では、「源泉徴収されるべき所得税の額」に復興特別所得税を含めて控除額を計算する。令和19年12月31日まで適用される。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-05T15:55:33.878+09:00"
 publish_at: "2026-09-06T17:10:00.000+09:00"
-published_at: ""
+published_at: "2026-09-06T18:00:52.555+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-05T00:09:03.629Z"
-updated_at: "2026-09-05T15:55:33.878+09:00"
+updated_at: "2026-09-06T18:00:52.555+09:00"
 publish_slot: "evening"
 ---
 
