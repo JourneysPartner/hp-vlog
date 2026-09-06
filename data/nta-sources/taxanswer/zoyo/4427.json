@@ -22,5 +22,19 @@
   "byte_size": 12768,
   "encoding": "utf-8",
   "last_modified": "Mon, 29 Sep 2025 08:30:14 GMT",
-  "etag": "\"31e0-63fec71cb1bc0\""
+  "etag": "\"31e0-63fec71cb1bc0\"",
+  "figures_checked_at": "2026-09-06T10:06:23.727Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/img/4427.png",
+      "alt": "信託の設定等により贈与税の課税関係が生じるケース（例）",
+      "width": "100%",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/zoyo/4427/4427.png",
+      "media_type": "image/png",
+      "bytes": 403537,
+      "sha256": "05ff174d68cb1a76d24246109c41550bc247ca0f15a2c71d0ec121c4f8e978ec",
+      "page_html_hash": "9b9a668101a2e68f72f37f747ff16584c80b45f821beb14608ba1870c9080cfc"
+    }
+  ]
 }

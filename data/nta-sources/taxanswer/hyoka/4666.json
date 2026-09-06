@@ -20,9 +20,56 @@
   "char_count_body": 1089,
   "fetched_at": "2026-06-21T13:55:37.606Z",
   "last_checked_at": "2026-08-01T16:03:29.994Z",
-  "html_hash": "4e7f2b45fd0ef026894522acc82f917f1f7735a1c1e938f2994b85bf6f46c165",
+  "html_hash": "e0bb26da26d7a0edd687f6828dbc5079c2dedb951c351e5d6e48aa1d0d81a835",
   "byte_size": 18624,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:25 GMT",
-  "etag": "\"48c0-641b4d77ba7e0\""
+  "etag": "\"48c0-641b4d77ba7e0\"",
+  "figures_checked_at": "2026-09-06T09:57:41.412Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4666_01.gif",
+      "alt": "居住建物の相続税評価額(注)マイナス居住建物の相続税評価額(注)カケル耐用年数マイナス経過年数マイナス存続年数ワル耐用年数マイナス経過年数カケル存続年数に応じた法定利率による複利現価率の計算式",
+      "width": "520",
+      "height": "50",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4666/4666_01.gif",
+      "media_type": "image/gif",
+      "bytes": 10955,
+      "sha256": "91fc2d3ad5135ad23b85cc80beda0154cfa5f509ae46e902fa08c01c34952070",
+      "page_html_hash": "e0bb26da26d7a0edd687f6828dbc5079c2dedb951c351e5d6e48aa1d0d81a835"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4666_02.gif",
+      "alt": "居住建物が賃貸の用に供されておらず、かつ、共用でないものとした場合の相続税評価額カケル賃貸の用に供されている部分以外の部分の床面積ワル居住建物の床面積カケル被相続人が有していた持分割合の計算式",
+      "width": "455",
+      "height": "50",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4666/4666_02.gif",
+      "media_type": "image/gif",
+      "bytes": 23465,
+      "sha256": "76acaa9bf3ffa410a33620b545d03492af76bb9344d9981f32ba849c63b12486",
+      "page_html_hash": "e0bb26da26d7a0edd687f6828dbc5079c2dedb951c351e5d6e48aa1d0d81a835"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4666_04.gif",
+      "alt": "居住建物の敷地の用に供される土地の相続税評価額(注)マイナス居住建物の敷地の用に供される土地の相続税評価額(注)カケル存続年数に応じた法定利率による複利現価率の金の計算式",
+      "width": "455",
+      "height": "50",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4666/4666_04.gif",
+      "media_type": "image/gif",
+      "bytes": 18973,
+      "sha256": "69191cea60333cd43d5d5fe6131d6605834f7dff27344eb3536a0984c14c3f9c",
+      "page_html_hash": "e0bb26da26d7a0edd687f6828dbc5079c2dedb951c351e5d6e48aa1d0d81a835"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4666_05.gif",
+      "alt": "居住建物が賃貸の用に供されておらず、かつ土地が共有でないものとした場合の相続税評価額カケル居住建物の賃貸の用に供されている部分以外の部分の床面積ワル居住建物の床面積カケル被相続人が有していた居住建物の敷地の持分割合と当該建物の持分割合のうちいずれか低い割合の計算式",
+      "width": "455",
+      "height": "50",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4666/4666_05.gif",
+      "media_type": "image/gif",
+      "bytes": 32578,
+      "sha256": "f6d07b573fd5f9a3d662bdce52b7119c41eda2467b3a51c5ccadf25043d7a8f7",
+      "page_html_hash": "e0bb26da26d7a0edd687f6828dbc5079c2dedb951c351e5d6e48aa1d0d81a835"
+    }
+  ]
 }

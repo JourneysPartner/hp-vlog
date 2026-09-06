@@ -20,9 +20,45 @@
   "char_count_body": 4288,
   "fetched_at": "2026-06-21T13:55:38.605Z",
   "last_checked_at": "2026-08-01T16:03:30.995Z",
-  "html_hash": "6c1c0cee914c4e6c8e19ccfc2c781e36f2d945bdd9e4c7e6ffb97c0cf2fdca76",
+  "html_hash": "bb6920fe37709ba39ac3840adc39cfe86fa5b14387cb3d65b756cb633629a97e",
   "byte_size": 29843,
   "encoding": "utf-8",
   "last_modified": "Fri, 06 Feb 2026 08:30:11 GMT",
-  "etag": "\"7493-64a2399030270\""
+  "etag": "\"7493-64a2399030270\"",
+  "figures_checked_at": "2026-09-06T09:57:46.412Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4667_02.png",
+      "alt": "課税明細書（固定資産税）の例",
+      "width": "100%",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4667/4667_02.png",
+      "media_type": "image/png",
+      "bytes": 32200,
+      "sha256": "5134b7ab8b5566a9c1bac26750f907d4ec4591e405dcfb9409db00acea6d422c",
+      "page_html_hash": "bb6920fe37709ba39ac3840adc39cfe86fa5b14387cb3d65b756cb633629a97e"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4667_03.png",
+      "alt": "登記事項証明書の例",
+      "width": "70%",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4667/4667_03.png",
+      "media_type": "image/png",
+      "bytes": 16402,
+      "sha256": "19bd14afaedfeb78d56250a89011cac3e833ebd3e1f77f43f5233fe134931cab",
+      "page_html_hash": "bb6920fe37709ba39ac3840adc39cfe86fa5b14387cb3d65b756cb633629a97e"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4667_04.png",
+      "alt": "登記事項証明書の例",
+      "width": "70%",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4667/4667_04.png",
+      "media_type": "image/png",
+      "bytes": 49668,
+      "sha256": "cf96dc7759470ca0ea372be84cc268225c17561693b74542a49ecd0bd02adc9c",
+      "page_html_hash": "bb6920fe37709ba39ac3840adc39cfe86fa5b14387cb3d65b756cb633629a97e"
+    }
+  ]
 }

@@ -26,5 +26,52 @@
   "byte_size": 26213,
   "encoding": "utf-8",
   "last_modified": "Mon, 02 Feb 2026 01:00:01 GMT",
-  "etag": "\"6665-649ccd7be35b8\""
+  "etag": "\"6665-649ccd7be35b8\"",
+  "figures_checked_at": "2026-09-06T10:05:38.731Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/img/4103_4161_01.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/sozoku/4161/4103_4161_01.png",
+      "media_type": "image/png",
+      "bytes": 3627,
+      "sha256": "0dbd4d9c2e6fe256b175080b0733a53f48d597d42ef01fb9fef2a523f87844ab",
+      "page_html_hash": "c02e9c4ff6810a9012479ce70f60bd9b0ec1865efc66e5c03cdb928d78ea92d7"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/img/4161_02.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/sozoku/4161/4161_02.png",
+      "media_type": "image/png",
+      "bytes": 61898,
+      "sha256": "84c2324f6a100259c5f24efb1fd86d3fe6fe20df6f67de569a2d0d7d0f3e1ad5",
+      "page_html_hash": "c02e9c4ff6810a9012479ce70f60bd9b0ec1865efc66e5c03cdb928d78ea92d7"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/img/4161_03.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/sozoku/4161/4161_03.png",
+      "media_type": "image/png",
+      "bytes": 71557,
+      "sha256": "628947340646091ec576abee36189c83435ecf6976f34f0c2377ef87dbf5c917",
+      "page_html_hash": "c02e9c4ff6810a9012479ce70f60bd9b0ec1865efc66e5c03cdb928d78ea92d7"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/img/4161_04.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/sozoku/4161/4161_04.png",
+      "media_type": "image/png",
+      "bytes": 71961,
+      "sha256": "620f9a69c80ba7add103743b291e10b436341302bb0a638b10dd0ebb0ede8f64",
+      "page_html_hash": "c02e9c4ff6810a9012479ce70f60bd9b0ec1865efc66e5c03cdb928d78ea92d7"
+    }
+  ]
 }

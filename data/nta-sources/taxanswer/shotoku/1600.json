@@ -26,5 +26,52 @@
   "byte_size": 19780,
   "encoding": "utf-8",
   "last_modified": "Mon, 20 Oct 2025 05:00:22 GMT",
-  "etag": "\"4d44-6418ff5e91570\""
+  "etag": "\"4d44-6418ff5e91570\"",
+  "figures_checked_at": "2026-09-06T10:03:47.726Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1600_01.png",
+      "alt": "図1",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1600/1600_01.png",
+      "media_type": "image/png",
+      "bytes": 104673,
+      "sha256": "5e9d6d5062d33ddcbbb7c7229161d8fc4ee2e96ca05e4f76ab54dac94af356b2",
+      "page_html_hash": "bef235a5c81323ecb26440ff6156508a89f8b07c9c7aecffdc2ec731ca910523"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1600_02.png",
+      "alt": "図2",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1600/1600_02.png",
+      "media_type": "image/png",
+      "bytes": 104300,
+      "sha256": "af1785a71d7fed9aabcb12f264b8141026723c8de1a58adb3069169fa501a096",
+      "page_html_hash": "bef235a5c81323ecb26440ff6156508a89f8b07c9c7aecffdc2ec731ca910523"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1600_03.png",
+      "alt": "図3",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1600/1600_03.png",
+      "media_type": "image/png",
+      "bytes": 103947,
+      "sha256": "ed4dc4cdf0bc5bf74b10a2fa4e5243631c569ae6d0c0f5494034b1dd6f99f8ed",
+      "page_html_hash": "bef235a5c81323ecb26440ff6156508a89f8b07c9c7aecffdc2ec731ca910523"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1600_04.png",
+      "alt": "図4",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1600/1600_04.png",
+      "media_type": "image/png",
+      "bytes": 79165,
+      "sha256": "0457612a1bc4a63cecaf1af9ea915fb83bd052a8c583e02b7662c3b7a795a072",
+      "page_html_hash": "bef235a5c81323ecb26440ff6156508a89f8b07c9c7aecffdc2ec731ca910523"
+    }
+  ]
 }

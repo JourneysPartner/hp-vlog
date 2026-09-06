@@ -25,5 +25,19 @@
   "byte_size": 20681,
   "encoding": "utf-8",
   "last_modified": "Wed, 24 Jun 2026 01:00:12 GMT",
-  "etag": "\"50c9-654f565d37308\""
+  "etag": "\"50c9-654f565d37308\"",
+  "figures_checked_at": "2026-09-06T10:02:29.724Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1266_01.gif",
+      "alt": "［その年中に支払った公益社団法人等に対する一定の要件を満たす寄付金の額の合計額－2千円］X40％＝（公益社団法人等寄付金特別控除額）［100円未満の端数切り捨て］",
+      "width": "540",
+      "height": "83",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1266/1266_01.gif",
+      "media_type": "image/gif",
+      "bytes": 12838,
+      "sha256": "9026e0a72772cbd12e31d524d7e35c0a4b973807b64a3de1bd974207172f2701",
+      "page_html_hash": "516425526069fc34d5c40271a431153edff76d6a8862a0d5ac743394f1ccc717"
+    }
+  ]
 }

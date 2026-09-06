@@ -27,5 +27,19 @@
   "byte_size": 21702,
   "encoding": "utf-8",
   "last_modified": "Tue, 21 Oct 2025 01:00:05 GMT",
-  "etag": "\"54c6-641a0b874a180\""
+  "etag": "\"54c6-641a0b874a180\"",
+  "figures_checked_at": "2026-09-06T10:01:21.722Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1129.gif",
+      "alt": "セルフメディケーション税制　共通識別マーク",
+      "width": "113",
+      "height": "52",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1129/1129.gif",
+      "media_type": "image/gif",
+      "bytes": 6943,
+      "sha256": "74d8b4409f06224c407f723291224fb827baed8ea0444f3c6dbcf1a31ac1fc9f",
+      "page_html_hash": "6bfc0a8afeb758e403dd143efc51599da9c6e7bcac82621bc3ebc1a08b343bf6"
+    }
+  ]
 }

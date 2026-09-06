@@ -26,5 +26,19 @@
   "byte_size": 32357,
   "encoding": "utf-8",
   "last_modified": "Mon, 29 Sep 2025 08:30:02 GMT",
-  "etag": "\"7e65-63fec7116d750\""
+  "etag": "\"7e65-63fec7116d750\"",
+  "figures_checked_at": "2026-09-06T09:58:23.412Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/joto/img/3306.jpg",
+      "alt": "【事例】被相続人居住用家屋及び被相続人居住用家屋の敷地等の範囲",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/joto/3306/3306.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 65336,
+      "sha256": "b4e95e9658fa8001ec1a797a72b11a5ef6ef670d0c09f01f86c59079042585c8",
+      "page_html_hash": "560886e90e40d3414e532adb359a8ea951a862dae1bd34332fd0d1a6445ebe12"
+    }
+  ]
 }

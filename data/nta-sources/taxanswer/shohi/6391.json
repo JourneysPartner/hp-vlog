@@ -22,5 +22,30 @@
   "byte_size": 15706,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:08 GMT",
-  "etag": "\"3d5a-641b4d67887f0\""
+  "etag": "\"3d5a-641b4d67887f0\"",
+  "figures_checked_at": "2026-09-06T10:00:03.702Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6391_01.jpg",
+      "alt": "仕入税額 = 請求書等に記載された消費税額等のうち課税仕入れに係る部分の金額の合計額 * (78/100)",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6391/6391_01.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 15741,
+      "sha256": "f4fd29686335cae0e8ece340ac7726f178e62e4b6921608065c7a56e2c8baca9",
+      "page_html_hash": "db908bb5dfc4f8d512986afe762909854ba4c88ff1a444ff7d8266994edfc1e3"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6391_02.jpg",
+      "alt": "仕入税額={標準税率の対象となる税込仕入額*(7.8/110)}+{軽減税率の対象となる税込仕入額*(6.24/108)}",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6391/6391_02.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 19005,
+      "sha256": "40c6e5690fea277e995c41b1754e2ff61334c95c4748b3bceb17d2e42f55c248",
+      "page_html_hash": "db908bb5dfc4f8d512986afe762909854ba4c88ff1a444ff7d8266994edfc1e3"
+    }
+  ]
 }

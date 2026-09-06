@@ -24,5 +24,52 @@
   "byte_size": 21031,
   "encoding": "utf-8",
   "last_modified": "Mon, 20 Oct 2025 05:00:21 GMT",
-  "etag": "\"5227-6418ff5e521b8\""
+  "etag": "\"5227-6418ff5e521b8\"",
+  "figures_checked_at": "2026-09-06T10:03:55.724Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1620-1.gif",
+      "alt": "課税・非課税部分の振り分け説明図",
+      "width": "647",
+      "height": "296",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1620/1620-1.gif",
+      "media_type": "image/gif",
+      "bytes": 10729,
+      "sha256": "4cf3312bb247392f089c3f2f43b49ba2004ad7d99d8164420197c533625cb7cd",
+      "page_html_hash": "ddc4b02d3a70fadc4bf016e5bac1c37511a3bc5e034d5ac86295e919386cec2d"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1620-2.gif",
+      "alt": "支払期間10年の確定年金を相続した方の支払年数5年目の所得金額の計算のイメージ(年100万円定額払い、保険料総額200万円の場合)",
+      "width": "581",
+      "height": "213",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1620/1620-2.gif",
+      "media_type": "image/gif",
+      "bytes": 4083,
+      "sha256": "fe6360ece8da7881dc8710bfa8a51ff6f2264c0c0c0ef4f72f458572e28a5de6",
+      "page_html_hash": "ddc4b02d3a70fadc4bf016e5bac1c37511a3bc5e034d5ac86295e919386cec2d"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1620-3.gif",
+      "alt": "算式 課税部分1課税単位当たりの金額=課税部分(※1)÷課税単位数(※2) 各年分の総収入金額(課税部分)=1課税単位当たりの金額×経過年数",
+      "width": "600",
+      "height": "109",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1620/1620-3.gif",
+      "media_type": "image/gif",
+      "bytes": 2587,
+      "sha256": "d16b40bb3676be69a2a142ce35a52fbcaea25eaa0f66361a0040af77eb099e06",
+      "page_html_hash": "ddc4b02d3a70fadc4bf016e5bac1c37511a3bc5e034d5ac86295e919386cec2d"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1620-4.gif",
+      "alt": "課税・非課税部分の振り分け説明図",
+      "width": "529",
+      "height": "359",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1620/1620-4.gif",
+      "media_type": "image/gif",
+      "bytes": 8523,
+      "sha256": "8915a245a7c2e1dbc314d3e1763b53c9885e1a8d77e520b29af3c460f1407466",
+      "page_html_hash": "ddc4b02d3a70fadc4bf016e5bac1c37511a3bc5e034d5ac86295e919386cec2d"
+    }
+  ]
 }

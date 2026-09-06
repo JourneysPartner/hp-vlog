@@ -23,5 +23,52 @@
   "byte_size": 19709,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:08 GMT",
-  "etag": "\"4cfd-641b4d67fb7c8\""
+  "etag": "\"4cfd-641b4d67fb7c8\"",
+  "figures_checked_at": "2026-09-06T09:59:48.419Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6351_02.png",
+      "alt": "原則（割戻し計算）",
+      "width": "600px",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6351/6351_02.png",
+      "media_type": "image/png",
+      "bytes": 1003276,
+      "sha256": "39c703a0a1b7db2df55e0aa17e949a39268f7d523a0b4e65573c31d521853b60",
+      "page_html_hash": "2c23ca74bf840a813949b26f4bc1836ba46ebe30e0052b679098c871180cc295"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6351_03.png",
+      "alt": "特例（積上げ計算）",
+      "width": "600px",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6351/6351_03.png",
+      "media_type": "image/png",
+      "bytes": 401120,
+      "sha256": "446cfd4e1dc29f40b974326a667b8f8e8fbd6840acfc2e0525fca9956ca70484",
+      "page_html_hash": "2c23ca74bf840a813949b26f4bc1836ba46ebe30e0052b679098c871180cc295"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6351_04.png",
+      "alt": "原則（積上げ計算）",
+      "width": "600px",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6351/6351_04.png",
+      "media_type": "image/png",
+      "bytes": 811817,
+      "sha256": "fddee85749644d361201ffa919187ce818a303383aeb3e8edef1b5cc81b0b2ac",
+      "page_html_hash": "2c23ca74bf840a813949b26f4bc1836ba46ebe30e0052b679098c871180cc295"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6351_05.png",
+      "alt": "特例（割戻し計算）",
+      "width": "600px",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6351/6351_05.png",
+      "media_type": "image/png",
+      "bytes": 1010086,
+      "sha256": "d7ec70fa2f3887e54a868f4628737e21b121ad62bbae7dc78e09d9516ed88b27",
+      "page_html_hash": "2c23ca74bf840a813949b26f4bc1836ba46ebe30e0052b679098c871180cc295"
+    }
+  ]
 }

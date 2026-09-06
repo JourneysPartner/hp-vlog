@@ -24,5 +24,19 @@
   "byte_size": 15716,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:21 GMT",
-  "etag": "\"3d64-641b4d73f1410\""
+  "etag": "\"3d64-641b4d73f1410\"",
+  "figures_checked_at": "2026-09-06T09:58:15.410Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/joto/img/3261.jpg",
+      "alt": "原価率の詳細",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/joto/3261/3261.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 22241,
+      "sha256": "ea34b15908fc879209031bd5df42c77fc940fce6ea806ec78be9332112b406d9",
+      "page_html_hash": "b6cb40b3c2debcf0765f17dc0261a214faddbea66c4f6fcff7aabcb7c4850b06"
+    }
+  ]
 }

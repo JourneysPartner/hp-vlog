@@ -19,9 +19,23 @@
   "char_count_body": 936,
   "fetched_at": "2026-06-21T13:55:23.612Z",
   "last_checked_at": "2026-08-01T16:03:15.988Z",
-  "html_hash": "5991df5f600c4dafb246ddb9b17b55739dfd3cd5f5273991486072aa7defce92",
+  "html_hash": "9a21e736f8f82fe0e03e3669f1bc2d7fbfe31897a61e20fc3c7b232ad241ca17",
   "byte_size": 14311,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT",
-  "etag": "\"37e7-641b4d7860c08\""
+  "etag": "\"37e7-641b4d7860c08\"",
+  "figures_checked_at": "2026-09-06T09:57:26.419Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4622.png",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4622/4622.png",
+      "media_type": "image/png",
+      "bytes": 11687,
+      "sha256": "b3915f723bc6cc0a1b3c1499681b3190bbe5b4dd6f6c38f832b2aff29b4329f8",
+      "page_html_hash": "9a21e736f8f82fe0e03e3669f1bc2d7fbfe31897a61e20fc3c7b232ad241ca17"
+    }
+  ]
 }

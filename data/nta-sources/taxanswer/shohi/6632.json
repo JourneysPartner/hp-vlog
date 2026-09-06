@@ -19,9 +19,10 @@
   "char_count_body": 809,
   "fetched_at": "2026-06-21T13:59:09.625Z",
   "last_checked_at": "2026-08-01T16:07:02.040Z",
-  "html_hash": "d85d6f848e2a94d94751fe9bf2f2ce14d617d290a7b7fe27a0252b1ac87dbb27",
+  "html_hash": "b9488b0a8277461c5279ff9b1df7b0ba7672ae3f8d9c02972b492e6f61ba1efd",
   "byte_size": 13855,
   "encoding": "utf-8",
   "last_modified": "Mon, 29 Sep 2025 08:30:10 GMT",
-  "etag": "\"361f-63fec718e0320\""
+  "etag": "\"361f-63fec718e0320\"",
+  "figures_checked_at": "2026-09-06T10:00:55.706Z"
 }

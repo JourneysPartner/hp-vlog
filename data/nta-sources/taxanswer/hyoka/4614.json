@@ -20,9 +20,23 @@
   "char_count_body": 1540,
   "fetched_at": "2026-06-21T13:55:19.612Z",
   "last_checked_at": "2026-08-01T16:03:11.986Z",
-  "html_hash": "a4e01ddd574097bf8836972f7f129b5039ebb7c0eebfb03ec54fb1b01aba8e01",
+  "html_hash": "937fae43d59116741fa012987f013ac1951a96b43a42564f3312ca8df65ad024",
   "byte_size": 16662,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT",
-  "etag": "\"4116-641b4d788f620\""
+  "etag": "\"4116-641b4d788f620\"",
+  "figures_checked_at": "2026-09-06T09:57:15.418Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4614.png",
+      "alt": "賃貸割合＝Aのうちの課税時期において賃貸されている各独立部分の床面積の合計÷当該家屋の各独立部分の床面積の合計（A）の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4614/4614.png",
+      "media_type": "image/png",
+      "bytes": 5303,
+      "sha256": "d3cdb6d389ec51eca6d506522298cd97b69671f38d5176f7930c2c4b9bdd4d35",
+      "page_html_hash": "937fae43d59116741fa012987f013ac1951a96b43a42564f3312ca8df65ad024"
+    }
+  ]
 }
