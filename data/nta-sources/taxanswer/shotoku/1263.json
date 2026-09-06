@@ -25,5 +25,19 @@
   "byte_size": 18175,
   "encoding": "utf-8",
   "last_modified": "Tue, 21 Oct 2025 01:00:14 GMT",
-  "etag": "\"46ff-641a0b8fea970\""
+  "etag": "\"46ff-641a0b8fea970\"",
+  "figures_checked_at": "2026-09-06T10:02:27.724Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1263.gif",
+      "alt": "（特別控除額の計算） （その年中に支払った認定NPO法人等寄附金の額の合計額（注2）－2千円（注3））X40％＝認定NPO法人等に対する寄附金特別控除額（注4）（100円未満の端数切り捨て）",
+      "width": "578",
+      "height": "118",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1263/1263.gif",
+      "media_type": "image/gif",
+      "bytes": 3923,
+      "sha256": "a68af550300f640b18ebe6afded4c1a19286bc483b22ab69e3a7cd9f87a524b5",
+      "page_html_hash": "3d22f74adf5e211a49d3a511a5d94ad67cbfe6d7ae6548c32bb4e05b170d405c"
+    }
+  ]
 }

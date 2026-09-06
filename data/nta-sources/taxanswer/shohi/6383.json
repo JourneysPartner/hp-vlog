@@ -23,5 +23,30 @@
   "byte_size": 14075,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:08 GMT",
-  "etag": "\"36fb-641b4d6794370\""
+  "etag": "\"36fb-641b4d6794370\"",
+  "figures_checked_at": "2026-09-06T10:00:00.701Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6383_01.jpg",
+      "alt": "売上税額={標準税率の対象となる税込売上額*(7.8/110)}+{軽減税率の対象となる税込売上額*(6.24/108)}",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6383/6383_01.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 18501,
+      "sha256": "bd92c05c977c0ffe0e858a92c947a5c72fc8e5686a346e7cf8744812451bc9c9",
+      "page_html_hash": "9901b9b6417277dc9f792d5396adb08361bb80af25e24e31ad8626e20ab39713"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/img/6383_02.jpg",
+      "alt": "売上税額=適格請求書等に記載した消費税額等の合計額*(78/100)",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shohi/6383/6383_02.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 12511,
+      "sha256": "4cf5b67885331d7d74631e7636d9e68e6c6b13ba3ecfb73d91d9c02c4c780061",
+      "page_html_hash": "9901b9b6417277dc9f792d5396adb08361bb80af25e24e31ad8626e20ab39713"
+    }
+  ]
 }

@@ -29,5 +29,19 @@
   "byte_size": 49155,
   "encoding": "utf-8",
   "last_modified": "Thu, 06 Nov 2025 01:00:03 GMT",
-  "etag": "\"c003-642e295c8d528\""
+  "etag": "\"c003-642e295c8d528\"",
+  "figures_checked_at": "2026-09-06T10:02:03.723Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1213.png",
+      "alt": "令和３年度税制改正後の住宅ローン控除の概要",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1215/1213.png",
+      "media_type": "image/png",
+      "bytes": 56891,
+      "sha256": "8a3b9a6bb1a566dcfbc2fb876a86b6e290de2ec651ccb23626d9404ebeed2dfc",
+      "page_html_hash": "9b2dff37b68614529477018c2c11f7f0cc37869306bfa21fccf6a7f933a3bfda"
+    }
+  ]
 }

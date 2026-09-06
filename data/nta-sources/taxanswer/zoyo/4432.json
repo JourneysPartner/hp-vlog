@@ -22,5 +22,19 @@
   "byte_size": 15319,
   "encoding": "utf-8",
   "last_modified": "Mon, 29 Sep 2025 08:30:14 GMT",
-  "etag": "\"3bd7-63fec71c971f8\""
+  "etag": "\"3bd7-63fec71c971f8\"",
+  "figures_checked_at": "2026-09-06T10:06:26.727Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4432_hyo.png",
+      "alt": "課税対象となる財産の範囲の表",
+      "width": "639",
+      "height": "258",
+      "file": "data/nta-sources/images/taxanswer/zoyo/4432/4432_hyo.png",
+      "media_type": "image/png",
+      "bytes": 18493,
+      "sha256": "4513c3553f040f2f36505d8b8de94ca08f6aac6ecd8f9d8403f9d701b9858119",
+      "page_html_hash": "a44981caf10153b525eb5baa6dc4cc18c46b448be9e4f0e398c1debacadbde83"
+    }
+  ]
 }

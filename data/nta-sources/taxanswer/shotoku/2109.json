@@ -25,5 +25,30 @@
   "byte_size": 22756,
   "encoding": "utf-8",
   "last_modified": "Mon, 20 Oct 2025 05:00:08 GMT",
-  "etag": "\"58e4-6418ff516f090\""
+  "etag": "\"58e4-6418ff516f090\"",
+  "figures_checked_at": "2026-09-06T10:04:51.727Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/2109.gif",
+      "alt": "(その資産の取得価額)ー(業務の用に供されていなかった期間(※1)につき、耐用年数の1.5 倍に相当する年数(※2)で、旧定額法に準じて計算した減価の額)=(その資産の業務の用に供した日における未償却残高)",
+      "width": "600",
+      "height": "59",
+      "file": "data/nta-sources/images/taxanswer/shotoku/2109/2109.gif",
+      "media_type": "image/gif",
+      "bytes": 3335,
+      "sha256": "9b5862b7643c069e7a6f50d14f1e10284a2516efc5494c30a2a184dffcee3f8a",
+      "page_html_hash": "a521cfa0dd8fc3e7bf208ed44a3774b8b20c57ff2fb5983809d82109903ee476"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/2109_2.gif",
+      "alt": "((注)2で計算したその資産の取得価額)-(左の金額を基礎とし、昭和28 年1月1日から業務の用に供した日の前日までの期間(※1)につき、その耐用年数の1.5 倍に相当する年数(※2)で旧定額法に準じて計算した減価の額)=(業務の用に供した日における未償却残高相当額)",
+      "width": "600",
+      "height": "64",
+      "file": "data/nta-sources/images/taxanswer/shotoku/2109/2109_2.gif",
+      "media_type": "image/gif",
+      "bytes": 3585,
+      "sha256": "5e8643e5c61e2e6b56a29f58a4704ce3128f3db106f402ef9bcfb7ff304feb39",
+      "page_html_hash": "a521cfa0dd8fc3e7bf208ed44a3774b8b20c57ff2fb5983809d82109903ee476"
+    }
+  ]
 }

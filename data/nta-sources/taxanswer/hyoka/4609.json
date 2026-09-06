@@ -18,9 +18,34 @@
   "char_count_body": 2416,
   "fetched_at": "2026-06-21T13:55:15.612Z",
   "last_checked_at": "2026-08-01T16:03:07.985Z",
-  "html_hash": "f0da49fba194fc228b2e7d7d4ffb101a72b7a03ac0de5b7df782bf84303d13d8",
+  "html_hash": "27ab486fd2e785dc2bef8d7d987897c61997b9f48f3faf1e2dca525aba85693e",
   "byte_size": 23240,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT",
-  "etag": "\"5ac8-641b4d78c2688\""
+  "etag": "\"5ac8-641b4d78c2688\"",
+  "figures_checked_at": "2026-09-06T09:57:09.417Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4609-01.gif",
+      "alt": "評価額＝路線価×奥行価格補正率×不整形地補正率などの各種画地補正率×規模格差補正率×地積(平方メートル)",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4609/4609-01.gif",
+      "media_type": "image/gif",
+      "bytes": 9760,
+      "sha256": "e41feaaaea4d9ca8087f4dd91600b66196e5da06d8cdd7d0ca56ec765e89e8f6",
+      "page_html_hash": "27ab486fd2e785dc2bef8d7d987897c61997b9f48f3faf1e2dca525aba85693e"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4609-02.gif",
+      "alt": "規模格差補正率＝（ 丸A×丸B×丸C ）÷地積規模の大きな宅地の地積（丸A）×0.8",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4609/4609-02.gif",
+      "media_type": "image/gif",
+      "bytes": 7681,
+      "sha256": "bc757c753b19faf40fbfb9686edb7b628bda48178338af35cee0198b38704eff",
+      "page_html_hash": "27ab486fd2e785dc2bef8d7d987897c61997b9f48f3faf1e2dca525aba85693e"
+    }
+  ]
 }

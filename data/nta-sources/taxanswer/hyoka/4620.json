@@ -19,9 +19,56 @@
   "char_count_body": 1134,
   "fetched_at": "2026-06-21T13:55:21.613Z",
   "last_checked_at": "2026-08-01T16:03:13.988Z",
-  "html_hash": "f2e71f84542e0e13e0ce98bb9761911ad0300343b23048c4b26598f0b8cb44fc",
+  "html_hash": "c6ebea3fe3d9b1113c83151cb15acd8ecf87411fb9c37b0b3f48e39126506504",
   "byte_size": 15363,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:26 GMT",
-  "etag": "\"3c03-641b4d7878308\""
+  "etag": "\"3c03-641b4d7878308\"",
+  "figures_checked_at": "2026-09-06T09:57:18.418Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4620_01.png",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4620/4620_01.png",
+      "media_type": "image/png",
+      "bytes": 32309,
+      "sha256": "563331c46708f4589fd2649ee594b4a9d058c275a365f586246d0c28e6f50746",
+      "page_html_hash": "c6ebea3fe3d9b1113c83151cb15acd8ecf87411fb9c37b0b3f48e39126506504"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4620_02.png",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4620/4620_02.png",
+      "media_type": "image/png",
+      "bytes": 11480,
+      "sha256": "68a9769f109dda9e2e61e9466fe3a658c9e05ffa142286bb839a0be5936af489",
+      "page_html_hash": "c6ebea3fe3d9b1113c83151cb15acd8ecf87411fb9c37b0b3f48e39126506504"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4620_03.png",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4620/4620_03.png",
+      "media_type": "image/png",
+      "bytes": 10979,
+      "sha256": "f7745da26c6dc8915d683d6296e81228a4a4faea70ce7b1dbf73a9b3033784f3",
+      "page_html_hash": "c6ebea3fe3d9b1113c83151cb15acd8ecf87411fb9c37b0b3f48e39126506504"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/img/4620_04.png",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/hyoka/4620/4620_04.png",
+      "media_type": "image/png",
+      "bytes": 9036,
+      "sha256": "e1b79a36777bdb98045419b38067b2ee684d9c71b076d3ab7cf6e5db218debd4",
+      "page_html_hash": "c6ebea3fe3d9b1113c83151cb15acd8ecf87411fb9c37b0b3f48e39126506504"
+    }
+  ]
 }

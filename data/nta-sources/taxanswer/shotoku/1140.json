@@ -26,5 +26,19 @@
   "byte_size": 23855,
   "encoding": "utf-8",
   "last_modified": "Mon, 20 Oct 2025 05:00:12 GMT",
-  "etag": "\"5d2f-6418ff55783d0\""
+  "etag": "\"5d2f-6418ff55783d0\"",
+  "figures_checked_at": "2026-09-06T10:01:29.724Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1140.jpg",
+      "alt": "生命保険料控除の説明の図",
+      "width": "",
+      "height": "379",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1140/1140.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 144960,
+      "sha256": "de9e8872854271f51954a7f2dd99533d4625584ef7a6b5864972cc28f8374e02",
+      "page_html_hash": "1abfc44b626dde02a9437aed0984b2d731fe902ceaf910f892540b20247a4423"
+    }
+  ]
 }

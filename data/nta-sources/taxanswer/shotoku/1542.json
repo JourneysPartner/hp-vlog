@@ -22,5 +22,19 @@
   "byte_size": 17721,
   "encoding": "utf-8",
   "last_modified": "Wed, 22 Oct 2025 01:00:17 GMT",
-  "etag": "\"4539-641b4d7016ae8\""
+  "etag": "\"4539-641b4d7016ae8\"",
+  "figures_checked_at": "2026-09-06T10:03:40.727Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/img/1542.gif",
+      "alt": "図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/taxanswer/shotoku/1542/1542.gif",
+      "media_type": "image/gif",
+      "bytes": 33563,
+      "sha256": "b54452e125b3cd575f3a30a66aa968af4ffffcc3a2bf73eca0016d75c4c1a1f9",
+      "page_html_hash": "cb0856e1f80ed16cfffffdf82aab572a1d53c95e1f0821e4a60c0594d694eeff"
+    }
+  ]
 }
