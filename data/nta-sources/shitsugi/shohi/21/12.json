@@ -18,5 +18,52 @@
   "byte_size": 8139,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:33 GMT",
-  "etag": "\"1fcb-6450806a71cb0\""
+  "etag": "\"1fcb-6450806a71cb0\"",
+  "figures_checked_at": "2026-09-06T09:44:11.733Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/12_01.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/12/12_01.png",
+      "media_type": "image/png",
+      "bytes": 2120,
+      "sha256": "4003305f6d5df781624ac84a807fc3ed484c42f9ea3eb0ab8d7ce64145c46b9f",
+      "page_html_hash": "4559e0849b387d9297606526dae2cff63bf8b190f86375ffda55a51c557b6bd7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/12_02.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/12/12_02.png",
+      "media_type": "image/png",
+      "bytes": 10820,
+      "sha256": "5043cfbf32b39a5067a4a662ef7ebea0fad4f1a8bacfde90f03af57c40789ce8",
+      "page_html_hash": "4559e0849b387d9297606526dae2cff63bf8b190f86375ffda55a51c557b6bd7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/12_03.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/12/12_03.png",
+      "media_type": "image/png",
+      "bytes": 3128,
+      "sha256": "2b7d1c140607950eb8360b84e511def4e489c8d0860273fe9ead4f77a4fdadcd",
+      "page_html_hash": "4559e0849b387d9297606526dae2cff63bf8b190f86375ffda55a51c557b6bd7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/12_04.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/12/12_04.png",
+      "media_type": "image/png",
+      "bytes": 4340,
+      "sha256": "112b8da2343b5d498f1059eecf5d374437a8f02167ffa985c9189b1977d6c3de",
+      "page_html_hash": "4559e0849b387d9297606526dae2cff63bf8b190f86375ffda55a51c557b6bd7"
+    }
+  ]
 }

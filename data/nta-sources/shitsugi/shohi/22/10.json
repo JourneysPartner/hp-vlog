@@ -18,5 +18,52 @@
   "byte_size": 7823,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:33 GMT",
-  "etag": "\"1e8f-6450806a071a8\""
+  "etag": "\"1e8f-6450806a071a8\"",
+  "figures_checked_at": "2026-09-06T09:44:26.733Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/22/img/10_01.gif",
+      "alt": "個人事業者及び事業年度が1年の法人",
+      "width": "602",
+      "height": "75",
+      "file": "data/nta-sources/images/shitsugi/shohi/22/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2919,
+      "sha256": "08d0f2de5f0c66516dc0760e2ebb69863fe04df428c0bca87faa554a1640ae5d",
+      "page_html_hash": "4d954abe773978988727f209ae28fbd0926d5dbda261dc9ac8a40f203c816d7a"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/22/img/10_02.gif",
+      "alt": "法人の設立1期目が8か月以上の場合",
+      "width": "554",
+      "height": "91",
+      "file": "data/nta-sources/images/shitsugi/shohi/22/10/10_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3016,
+      "sha256": "0871df21d3b101393f41e11608572e56b2e2428ab107c64881eacfbecc40669f",
+      "page_html_hash": "4d954abe773978988727f209ae28fbd0926d5dbda261dc9ac8a40f203c816d7a"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/22/img/10_03.gif",
+      "alt": "月の途中で設立した法人で前事業年度（7か月半）の決算期末が月の末日の場合",
+      "width": "554",
+      "height": "127",
+      "file": "data/nta-sources/images/shitsugi/shohi/22/10/10_03.gif",
+      "media_type": "image/gif",
+      "bytes": 3705,
+      "sha256": "73eef52b030d04ce355fb854ffad1dfd1946e912a31bb378a558debc7fced7d6",
+      "page_html_hash": "4d954abe773978988727f209ae28fbd0926d5dbda261dc9ac8a40f203c816d7a"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/22/img/10_04.gif",
+      "alt": "法人の設立1期目が7か月の場合",
+      "width": "508",
+      "height": "91",
+      "file": "data/nta-sources/images/shitsugi/shohi/22/10/10_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2681,
+      "sha256": "2ad08de87fa4cbd10c7e6fa0e3d39d75fca32f00995649b155a0c06e3a76168f",
+      "page_html_hash": "4d954abe773978988727f209ae28fbd0926d5dbda261dc9ac8a40f203c816d7a"
+    }
+  ]
 }

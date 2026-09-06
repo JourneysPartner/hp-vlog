@@ -18,5 +18,19 @@
   "byte_size": 4802,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:08 GMT",
-  "etag": "\"12c2-645080529a470\""
+  "etag": "\"12c2-645080529a470\"",
+  "figures_checked_at": "2026-09-06T09:50:38.720Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/img/02_01.gif",
+      "alt": "小規模宅地等の特例の対象となる私道の図",
+      "width": "247",
+      "height": "159",
+      "file": "data/nta-sources/images/shitsugi/sozoku/10/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1091,
+      "sha256": "c93a99bf5fcaae0fbed81dc2ab578df529adcb9b609d48d19877419fa18463d9",
+      "page_html_hash": "ade142bc63086a5abacd162f609ebd7268d0368f2bfb38626f5633311ed23fb1"
+    }
+  ]
 }

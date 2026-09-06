@@ -18,5 +18,30 @@
   "byte_size": 7801,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:39 GMT",
-  "etag": "\"1e79-6450806fa8c10\""
+  "etag": "\"1e79-6450806fa8c10\"",
+  "figures_checked_at": "2026-09-06T09:41:43.721Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/11/img/05_01.gif",
+      "alt": "国際航空運送に係る航空機乗務員の役務提供等の取扱い（１）の図",
+      "width": "405",
+      "height": "37",
+      "file": "data/nta-sources/images/shitsugi/shohi/11/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 805,
+      "sha256": "57549f55a75ab2ee898e6ae8ace4553f1f28993fb3e38dcf27964a65fae68e51",
+      "page_html_hash": "766412d6e534bf04eb2a3a8b66082af0f756bfc9e99514eca295b2f0f5e29645"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/11/img/05_02.gif",
+      "alt": "国際航空運送に係る航空機乗務員の役務提供等の取扱い（２）の図",
+      "width": "405",
+      "height": "36",
+      "file": "data/nta-sources/images/shitsugi/shohi/11/05/05_02.gif",
+      "media_type": "image/gif",
+      "bytes": 806,
+      "sha256": "31563e75587e33485794290c39535178d5d8fcec236c5ce3c73a84b720bdd3d9",
+      "page_html_hash": "766412d6e534bf04eb2a3a8b66082af0f756bfc9e99514eca295b2f0f5e29645"
+    }
+  ]
 }

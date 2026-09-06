@@ -18,5 +18,19 @@
   "byte_size": 5651,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:43 GMT",
-  "etag": "\"1613-6450807365c90\""
+  "etag": "\"1613-6450807365c90\"",
+  "figures_checked_at": "2026-09-06T09:40:01.713Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/02/img/05_01.gif",
+      "alt": "取引概要図",
+      "width": "501",
+      "height": "340",
+      "file": "data/nta-sources/images/shitsugi/shohi/02/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 17591,
+      "sha256": "80e81c455fe4c375fb7d04eb2b7088cf5be522e05144bb6c62498c30474b000e",
+      "page_html_hash": "707d1c13e3f4e4b20f4c3982dfefb0b11b8af672ea7a8f7e8d0e484bbefcec40"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5021,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:07 GMT",
-  "etag": "\"139d-6450808aaff18\""
+  "etag": "\"139d-6450808aaff18\"",
+  "figures_checked_at": "2026-09-06T09:45:26.727Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/02/images/sansiki2.GIF",
+      "alt": "その年に支払を受ける年金の額&times;保険料等の総額Ｃ&divide;（年金支払い総額Ａ+死亡保険金Ｂ）",
+      "width": "496",
+      "height": "76",
+      "file": "data/nta-sources/images/shitsugi/shotoku/02/05/sansiki2.GIF",
+      "media_type": "image/gif",
+      "bytes": 2578,
+      "sha256": "21a4e7932f1162247527caba7881ef3cdd00e8b7dcfc820caa9337640e4cc827",
+      "page_html_hash": "419fa4c8a1d5514f310336907178efa5116de55d49d8df4591f9f996fa633b30"
+    }
+  ]
 }

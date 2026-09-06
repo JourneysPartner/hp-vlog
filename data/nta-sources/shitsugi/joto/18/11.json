@@ -18,5 +18,19 @@
   "byte_size": 4945,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT",
-  "etag": "\"1351-6450805669218\""
+  "etag": "\"1351-6450805669218\"",
+  "figures_checked_at": "2026-09-06T09:38:48.704Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/18/img/11_01.gif",
+      "alt": "家屋の所有期間が異なる場合における居住用財産の軽減税率の特例の適用範囲の図",
+      "width": "241",
+      "height": "201",
+      "file": "data/nta-sources/images/shitsugi/joto/18/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1467,
+      "sha256": "409e2718a2b37639745e67776ec44ad477b6e51df7486b34d2f824182cd1c712",
+      "page_html_hash": "e41361541120c3e0a7d69613e3483aecad37e4e09d2a8f65f97cf2a5ad3ebf3c"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 6639,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:38 GMT",
-  "etag": "\"19ef-6450806f42758\""
+  "etag": "\"19ef-6450806f42758\"",
+  "figures_checked_at": "2026-09-06T09:41:55.726Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/12/img/12-7.gif",
+      "alt": "コンセッション事業",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/12/07/12-7.gif",
+      "media_type": "image/gif",
+      "bytes": 12903,
+      "sha256": "b10937e3f1fa12545436da43108cb78841c2a047555efbd71417fdb56c3f2ca9",
+      "page_html_hash": "f14fa163156a6f3ea8b639ee2a98441490eacb6793241b98a0a7802e5f5ccd28"
+    }
+  ]
 }

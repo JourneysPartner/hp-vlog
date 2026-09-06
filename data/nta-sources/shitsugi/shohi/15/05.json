@@ -18,5 +18,30 @@
   "byte_size": 8058,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:38 GMT",
-  "etag": "\"1f7a-6450806e9b390\""
+  "etag": "\"1f7a-6450806e9b390\"",
+  "figures_checked_at": "2026-09-06T09:42:14.728Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/15/img/05_01.gif",
+      "alt": "別紙1　新聞を使ったメーカークーポンの流れ",
+      "width": "478",
+      "height": "692",
+      "file": "data/nta-sources/images/shitsugi/shohi/15/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 25690,
+      "sha256": "74244ec56c919b54c1a112ce5b64cec002b44328893ef395b87a8de60e1397f2",
+      "page_html_hash": "0101e02e607ea3edf98e8df28faf90190fe7992ea119e7293f2a834c962d0364"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/15/img/05_02.gif",
+      "alt": "別紙2　メーカークーポンに係る金銭の流れ",
+      "width": "474",
+      "height": "543",
+      "file": "data/nta-sources/images/shitsugi/shohi/15/05/05_02.gif",
+      "media_type": "image/gif",
+      "bytes": 23373,
+      "sha256": "28b2ae0db241b41769811878632a81a1b0ef090de86839c7fca044bf3eb5235f",
+      "page_html_hash": "0101e02e607ea3edf98e8df28faf90190fe7992ea119e7293f2a834c962d0364"
+    }
+  ]
 }

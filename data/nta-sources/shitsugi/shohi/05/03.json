@@ -18,5 +18,19 @@
   "byte_size": 5019,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:40 GMT",
-  "etag": "\"139b-645080712d6d0\""
+  "etag": "\"139b-645080712d6d0\"",
+  "figures_checked_at": "2026-09-06T09:41:01.711Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/05/img/03_01.gif",
+      "alt": "貸ビル建設期間中に借主が支払う地代相当額の図",
+      "width": "457",
+      "height": "128",
+      "file": "data/nta-sources/images/shitsugi/shohi/05/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 5988,
+      "sha256": "859fb1d5caba888eab521b13531dee9b7192d204e0e166ca62bb665dd4d33e4d",
+      "page_html_hash": "b35c1092ae9f3ece8b192ffbf184debe4854b540ab4c72d64691dc82a74ab11f"
+    }
+  ]
 }

@@ -18,5 +18,30 @@
   "byte_size": 5659,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT",
-  "etag": "\"161b-6450805323f90\""
+  "etag": "\"161b-6450805323f90\"",
+  "figures_checked_at": "2026-09-06T09:50:17.714Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/06/img/03_01.gif",
+      "alt": "ケース1相続人関係図",
+      "width": "480",
+      "height": "176",
+      "file": "data/nta-sources/images/shitsugi/sozoku/06/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2506,
+      "sha256": "cd74413280860c5c7b7ed5630bad789925ac0e5eba518dc2239d16f3ef4b2a23",
+      "page_html_hash": "b3d401d88694c01196be630174dfb0f705ff52538cf5c635c5b6682b885daabe"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/06/img/03_02.gif",
+      "alt": "ケース2相続人関係図",
+      "width": "539",
+      "height": "191",
+      "file": "data/nta-sources/images/shitsugi/sozoku/06/03/03_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2472,
+      "sha256": "2c3ae154eef4d25ecc985b8e45b430b8fb0384ff2b218edcc8c6bb971f8ea8e4",
+      "page_html_hash": "b3d401d88694c01196be630174dfb0f705ff52538cf5c635c5b6682b885daabe"
+    }
+  ]
 }

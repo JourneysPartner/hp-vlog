@@ -18,5 +18,19 @@
   "byte_size": 5164,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT",
-  "etag": "\"142c-6450805655998\""
+  "etag": "\"142c-6450805655998\"",
+  "figures_checked_at": "2026-09-06T09:38:51.705Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/18/img/13_01.gif",
+      "alt": "租税特別措置法第36条の2第1項に規定する買換資産の範囲の図",
+      "width": "522",
+      "height": "240",
+      "file": "data/nta-sources/images/shitsugi/joto/18/13/13_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3316,
+      "sha256": "879d7162aaeef9c59061514740d30c6bd9a823551ea0a6cbdd176beab59611bd",
+      "page_html_hash": "33aff2a9b525eb20e9a11729ee18c3084224bdbc21991d00d4458df4d21bbce4"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 4931,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:13 GMT",
-  "etag": "\"1343-64508056935e0\""
+  "etag": "\"1343-64508056935e0\"",
+  "figures_checked_at": "2026-09-06T09:38:43.702Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/18/img/07_01.gif",
+      "alt": "共有で所有している家屋とその敷地を譲渡した場合の図",
+      "width": "421",
+      "height": "202",
+      "file": "data/nta-sources/images/shitsugi/joto/18/07/07_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1870,
+      "sha256": "65ade6d618c07ecd0c445d2c011716847564d4012819589f9c7cfedd1ad20b26",
+      "page_html_hash": "55bed8d420c5e0b8702ea4c8da6e5466ae5e3d8dedfc334dcd55f611df22c03c"
+    }
+  ]
 }

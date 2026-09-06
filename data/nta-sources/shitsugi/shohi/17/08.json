@@ -18,5 +18,19 @@
   "byte_size": 7125,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:36 GMT",
-  "etag": "\"1bd5-6450806d5a6c0\""
+  "etag": "\"1bd5-6450806d5a6c0\"",
+  "figures_checked_at": "2026-09-06T09:42:52.731Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/17/img/08_01.gif",
+      "alt": "借入有価証券を譲渡した場合における譲渡対価の額（5%）の課税売上割合の計算における分母への算入時期の図",
+      "width": "519",
+      "height": "208",
+      "file": "data/nta-sources/images/shitsugi/shohi/17/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4039,
+      "sha256": "020c8504edd3f6535a97f73d52c40a3a29051c309a596b455a763f8aed04ec5b",
+      "page_html_hash": "24424517803bfe65247dee1eeb5838624fca44eafd1dd08811a6818f3e6b6d50"
+    }
+  ]
 }

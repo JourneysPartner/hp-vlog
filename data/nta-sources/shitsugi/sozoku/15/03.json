@@ -18,5 +18,19 @@
   "byte_size": 4820,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:07 GMT",
-  "etag": "\"12d4-645080517d9c0\""
+  "etag": "\"12d4-645080517d9c0\"",
+  "figures_checked_at": "2026-09-06T09:51:16.732Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/15/img/03_01.gif",
+      "alt": "居住用財産5000万円。金銭500万円",
+      "width": "431",
+      "height": "79",
+      "file": "data/nta-sources/images/shitsugi/sozoku/15/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 943,
+      "sha256": "faf9db080fb23f52baec576b96e28d449084912e2eac7874919ac164baa81eea",
+      "page_html_hash": "4d35fb9946f573ef55dcba1a8bacfe1efc9d375bfde00090c1bd5047fa5ac44e"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5308,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:12 GMT",
-  "etag": "\"14bc-64508055cbe78\""
+  "etag": "\"14bc-64508055cbe78\"",
+  "figures_checked_at": "2026-09-06T09:39:06.707Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/18/img/28_01.gif",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/joto/18/28/28_01.gif",
+      "media_type": "image/gif",
+      "bytes": 24680,
+      "sha256": "31d8198b5be9795b5f836dcc3029a7a0b9fa99b9e641dc079df35af1096fc164",
+      "page_html_hash": "06ecddd522f17b057ce4ac949523251fb25811e737d4e71ff22fd7d8f5137f2e"
+    }
+  ]
 }

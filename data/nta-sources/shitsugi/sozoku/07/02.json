@@ -18,5 +18,19 @@
   "byte_size": 5440,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:09 GMT",
-  "etag": "\"1540-64508052f70d0\""
+  "etag": "\"1540-64508052f70d0\"",
+  "figures_checked_at": "2026-09-06T09:50:27.718Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/07/img/02_01.gif",
+      "alt": "相続人関係図",
+      "width": "388",
+      "height": "122",
+      "file": "data/nta-sources/images/shitsugi/sozoku/07/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1074,
+      "sha256": "74a8147df7ac4a86ab51945af9514fd4c91e1cb39e1c4619048faf00f01e4cd0",
+      "page_html_hash": "b1c5f67e36b4ec04362b3dbe86eb60e66bc866a739b8afb2b2a5de164c87415b"
+    }
+  ]
 }

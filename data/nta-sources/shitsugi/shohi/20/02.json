@@ -18,5 +18,19 @@
   "byte_size": 6180,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:35 GMT",
-  "etag": "\"1824-6450806ba3b38\""
+  "etag": "\"1824-6450806ba3b38\"",
+  "figures_checked_at": "2026-09-06T09:43:41.720Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/20/img/02_01.gif",
+      "alt": "簡易課税の事業区分判定表の図",
+      "width": "650",
+      "height": "754",
+      "file": "data/nta-sources/images/shitsugi/shohi/20/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 92567,
+      "sha256": "0f6aa084df431631719f48f6a67845935b30f162c009aaadfcd4e3f64dc8b09a",
+      "page_html_hash": "5d8d521480991a3a88fb5730a17613a1fae69aaec17c61a71ed15b1a8e732a11"
+    }
+  ]
 }

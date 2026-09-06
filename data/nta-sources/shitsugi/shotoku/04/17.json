@@ -18,5 +18,19 @@
   "byte_size": 7335,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:04 GMT",
-  "etag": "\"1ca7-64508087afe08\""
+  "etag": "\"1ca7-64508087afe08\"",
+  "figures_checked_at": "2026-09-06T09:46:43.737Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/img/11.gif",
+      "alt": "（30,000,000円-(30,000,000円&times;10％））&times;0.031&times;13年＝10,881,000円",
+      "width": "580",
+      "height": "72",
+      "file": "data/nta-sources/images/shitsugi/shotoku/04/17/11.gif",
+      "media_type": "image/gif",
+      "bytes": 9038,
+      "sha256": "c8095e922ea6f656395075faeb04911617d4a95e3cec6b2f77f1527b5e8397ce",
+      "page_html_hash": "92d753f25a85cfc551f9d2940d8c4786bc060a7e19a345e8031d44c0acedd4b1"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 6666,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:34 GMT",
-  "etag": "\"1a0a-6450806aca2c0\""
+  "etag": "\"1a0a-6450806aca2c0\"",
+  "figures_checked_at": "2026-09-06T09:44:00.729Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/21/img/4-1.gif",
+      "alt": "説明図",
+      "width": "608",
+      "height": "188",
+      "file": "data/nta-sources/images/shitsugi/shohi/21/04/4-1.gif",
+      "media_type": "image/gif",
+      "bytes": 8441,
+      "sha256": "6b8fd59a8f7308cc3d42316d9f11cae5b98941e17bf1dff35599f91f7ed88955",
+      "page_html_hash": "aa3f4471c01e8230fea96ba378b74e9e201f033af15f7877964af4529d84433f"
+    }
+  ]
 }

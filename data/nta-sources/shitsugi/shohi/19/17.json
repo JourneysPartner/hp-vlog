@@ -18,5 +18,19 @@
   "byte_size": 5097,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:35 GMT",
-  "etag": "\"13e9-6450806bffbe0\""
+  "etag": "\"13e9-6450806bffbe0\"",
+  "figures_checked_at": "2026-09-06T09:43:30.722Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/shohi/19/img/17_1.gif",
+      "alt": "外債運用をしている投資信託の信託報酬、投資顧問料の取扱い",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/shohi/19/17/17_1.gif",
+      "media_type": "image/gif",
+      "bytes": 10131,
+      "sha256": "87597d2d5e3570565641fd929a9fb63de204cd6d7cf04d60f1ef013eb4710b46",
+      "page_html_hash": "516ba576953bca67cd92bc4b93082bbaec679902adbc4e9d16cc308d6430f0fe"
+    }
+  ]
 }

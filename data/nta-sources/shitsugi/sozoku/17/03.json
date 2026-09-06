@@ -18,5 +18,19 @@
   "byte_size": 5439,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:06 GMT",
-  "etag": "\"153f-6450805090cb0\""
+  "etag": "\"153f-6450805090cb0\"",
+  "figures_checked_at": "2026-09-06T09:51:29.732Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/17/img/03_01.gif",
+      "alt": "保証金の額に相当する金額（Ａ）-（保証金返済原資に相当する金額1＋毎月の支払利息の額の総額2）",
+      "width": "512",
+      "height": "119",
+      "file": "data/nta-sources/images/shitsugi/sozoku/17/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6015,
+      "sha256": "e5dd08b9e7ac9a79324858be25bd3a8648d6533cee9ed19e07619b3cc69cdc22",
+      "page_html_hash": "da2d9156d84f6ee976b972933f9e8b364f7f3faa6de4827a6026247556fb4e49"
+    }
+  ]
 }
