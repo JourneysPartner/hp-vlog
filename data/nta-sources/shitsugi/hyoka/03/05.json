@@ -18,5 +18,30 @@
   "byte_size": 5501,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"157d-6450806436558\""
+  "etag": "\"157d-6450806436558\"",
+  "figures_checked_at": "2026-09-06T09:09:16.137Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/05_01.gif",
+      "alt": "側方路線に宅地の一部が接している場合の図",
+      "width": "560",
+      "height": "276",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 7594,
+      "sha256": "4bde432720483a7c177bf0e88d4064d06e12174df7f074ddd3ebf158348c9ec0",
+      "page_html_hash": "98ed1c91d84f4e89cf9aa46bd439b5d913e8c08b0952cee48fd02a84304b67e0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/05_02.gif",
+      "alt": "側方路線に宅地の一部が接している場合の計算例",
+      "width": "564",
+      "height": "177",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/05/05_02.gif",
+      "media_type": "image/gif",
+      "bytes": 3940,
+      "sha256": "f5bd4cbad76d2d890135d535393ebf62eeb24f040c2fa9166650645d4a729e00",
+      "page_html_hash": "98ed1c91d84f4e89cf9aa46bd439b5d913e8c08b0952cee48fd02a84304b67e0"
+    }
+  ]
 }

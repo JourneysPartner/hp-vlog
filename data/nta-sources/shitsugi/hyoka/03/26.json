@@ -18,5 +18,30 @@
   "byte_size": 5460,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1554-645080636c6e0\""
+  "etag": "\"1554-645080636c6e0\"",
+  "figures_checked_at": "2026-09-06T09:10:37.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/26_01.gif",
+      "alt": "特定路線化を設定した場合の図1",
+      "width": "471",
+      "height": "202",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/26/26_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2475,
+      "sha256": "f0acc176d6cbdee21a4fa05459cf0d78219fd8f918bfb29d8232dc5c9b38918e",
+      "page_html_hash": "04d0c9033aeebf09846e8a49d57b0288156033da6fc1cbdb58c786fe00885fee"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/26_02.gif",
+      "alt": "特定路線化を設定した場合の図2",
+      "width": "510",
+      "height": "230",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/26/26_02.gif",
+      "media_type": "image/gif",
+      "bytes": 8048,
+      "sha256": "3f4c42a26630d034f9fd43e92cedaf30155e219871c6c84ffb5736c8b7661cc6",
+      "page_html_hash": "04d0c9033aeebf09846e8a49d57b0288156033da6fc1cbdb58c786fe00885fee"
+    }
+  ]
 }

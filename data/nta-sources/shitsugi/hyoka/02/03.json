@@ -18,5 +18,19 @@
   "byte_size": 5427,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1533-64508064c2b70\""
+  "etag": "\"1533-64508064c2b70\"",
+  "figures_checked_at": "2026-09-06T09:08:36.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/03_01.gif",
+      "alt": "宅地の評価単位（自用地と自用地以外の宅地が連接している場合）の図",
+      "width": "549",
+      "height": "169",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 16168,
+      "sha256": "363099c3fc82393f6c1e9f8d88779a540fc2c353bf2df23c1f59c82aef6a71d0",
+      "page_html_hash": "4d8f98c0cee38d4bbc34f22042126bde597344492a8c62d0461f0fcc3717c911"
+    }
+  ]
 }

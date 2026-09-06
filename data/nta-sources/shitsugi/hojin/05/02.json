@@ -18,5 +18,41 @@
   "byte_size": 6542,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:34 GMT",
-  "etag": "\"198e-645080a462500\""
+  "etag": "\"198e-645080a462500\"",
+  "figures_checked_at": "2026-09-06T09:02:08.172Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/02_01.gif",
+      "alt": "減価償却資産の耐用年数等に関する省令第３条第１項第２号による見積耐用年数&times;取得後の用途に適用される法定耐用年数&divide;取得前の用途に適用される法定耐用年数　貸車、倉庫、喫茶室の法定耐用年数は、それぞれ20年、31年、31年ですから、倉庫、喫茶室のいずれに転用した場合にも、６年（20年&times;（20&divide;100）&times;（31&divide;20））とすることができます。",
+      "width": "537",
+      "height": "188",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3848,
+      "sha256": "8066cc92d3d5294f78e734f21f6832ada8354c6698c48ea522824fb1b3a3c4fe",
+      "page_html_hash": "6edbeee4e0c56ab9029b825955796754e93e372890cda739dda822cb2e5dda7d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/02_05.gif",
+      "alt": "中古資産の取得金額（改良費の額を含む。）&divide;〔（中古資産の取得金額（改良費の額を含まない。））&divide;（減価償却資産の耐用年数等に関する省令第３条第１項第２号による見積耐用年数）＋（改良費の額）&divide;（中古資産の法定耐用年数）〕",
+      "width": "630",
+      "height": "97",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/02/02_05.gif",
+      "media_type": "image/gif",
+      "bytes": 2707,
+      "sha256": "1f21a1efef95cabe867dd18e8659eac28297ff242d7e63090b041d5f564eea29",
+      "page_html_hash": "6edbeee4e0c56ab9029b825955796754e93e372890cda739dda822cb2e5dda7d"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/02_03.gif",
+      "alt": "別表第一　機械及び装置以外の有形減価償却資産の耐用年数表",
+      "width": "586",
+      "height": "377",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/02/02_03.gif",
+      "media_type": "image/gif",
+      "bytes": 8038,
+      "sha256": "2c7daa167f91154a93e39754802dbf438468191051d8871f186e56ac00bbdfc8",
+      "page_html_hash": "6edbeee4e0c56ab9029b825955796754e93e372890cda739dda822cb2e5dda7d"
+    }
+  ]
 }

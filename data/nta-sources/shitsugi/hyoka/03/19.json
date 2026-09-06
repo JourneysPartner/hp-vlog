@@ -18,5 +18,52 @@
   "byte_size": 7515,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1d5b-64508063ae590\""
+  "etag": "\"1d5b-64508063ae590\"",
+  "figures_checked_at": "2026-09-06T09:10:08.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/19_01.gif",
+      "alt": "間口距離が短く接道義務を満たしていない宅地の図",
+      "width": "520",
+      "height": "285",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/19/19_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3564,
+      "sha256": "fd1f4c9f38b6e5ef14feaeb9af2084b1e1d1660267f66b27bdd32846cc1d8cff",
+      "page_html_hash": "608c0e14b290db9e8c7d7923915524ac6fab0e6a0f8638a2a460b0a1e8037ce0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/19_02.gif",
+      "alt": "評価対象地と前面宅地を合わせた土地の奥行価格補正後の価額の計算例",
+      "width": "473",
+      "height": "53",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/19/19_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1266,
+      "sha256": "e5b1f81471300f07bc8c21a26199ae9e3945d67247c805dca68e51622768136d",
+      "page_html_hash": "608c0e14b290db9e8c7d7923915524ac6fab0e6a0f8638a2a460b0a1e8037ce0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/19_03.gif",
+      "alt": "前面宅地の奥行価格補正後の価額の計算例",
+      "width": "464",
+      "height": "48",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/19/19_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1326,
+      "sha256": "8ccb2e88040f69681cd36eef94a9d77890c1643859d2fe8a6a45ed35350f1310",
+      "page_html_hash": "608c0e14b290db9e8c7d7923915524ac6fab0e6a0f8638a2a460b0a1e8037ce0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/19_04.gif",
+      "alt": "奥行価格補正後の価額計算例の図",
+      "width": "391",
+      "height": "38",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/19/19_04.gif",
+      "media_type": "image/gif",
+      "bytes": 1116,
+      "sha256": "5b3a99401a74aeed2660234f9d3c3d46e4c532bd5467515359dadfdd8c8d3013",
+      "page_html_hash": "608c0e14b290db9e8c7d7923915524ac6fab0e6a0f8638a2a460b0a1e8037ce0"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 7740,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"1e3c-6450809aa5260\""
+  "etag": "\"1e3c-6450809aa5260\"",
+  "figures_checked_at": "2026-09-06T09:07:48.145Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/50_01.gif",
+      "alt": "図｜株式売渡請求",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/50/50_01.gif",
+      "media_type": "image/gif",
+      "bytes": 11520,
+      "sha256": "51e5f62af23a3c7038c105d9561c92ce9b595ab2c88fdef169a728e3b2da8969",
+      "page_html_hash": "d6958411ecc2ea3d48aa03cbf133e0e821219bd3fb21bc7c82cdc31c9d94aab5"
+    }
+  ]
 }

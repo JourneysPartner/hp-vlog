@@ -18,5 +18,19 @@
   "byte_size": 7108,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"1bc4-6450806107648\""
+  "etag": "\"1bc4-6450806107648\"",
+  "figures_checked_at": "2026-09-06T09:12:29.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/06/img/02_01.gif",
+      "alt": "参考～派遣労働者の雇用関係等と従業員数基準の判定の表",
+      "width": "566",
+      "height": "147",
+      "file": "data/nta-sources/images/shitsugi/hyoka/06/02/02_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4954,
+      "sha256": "12fff2f446487adb97d016abfc8c9be88faf617c5f0c6655b0a8d9c11f52a7d2",
+      "page_html_hash": "0cc5e4cd8d3d46d6ed67591bd6e5db26bd8c1be403f8e6bb30c21a836c8113f1"
+    }
+  ]
 }

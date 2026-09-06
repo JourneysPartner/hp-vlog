@@ -18,5 +18,52 @@
   "byte_size": 5100,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"13ec-6450805e5b8e0\""
+  "etag": "\"13ec-6450805e5b8e0\"",
+  "figures_checked_at": "2026-09-06T09:14:18.132Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/15_01.gif",
+      "alt": "図",
+      "width": "520",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/15/15_01.gif",
+      "media_type": "image/gif",
+      "bytes": 10864,
+      "sha256": "0d3a0f60b45957ff93bcc7cb355d2e0fc4b0a729854aa06ac182891b34141afc",
+      "page_html_hash": "b84434f8f3d8c34989ef9482f54df7ae371e720412a54e570640ccf15bbd9fc9"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/15_02.gif",
+      "alt": "標準的な1平方メートル当たりの価額の計算式",
+      "width": "520",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/15/15_02.gif",
+      "media_type": "image/gif",
+      "bytes": 6589,
+      "sha256": "f626d68c790c65106c3afc96e1ed7bbb8cfec69ecc8aa93086a8ef3a37412a2d",
+      "page_html_hash": "b84434f8f3d8c34989ef9482f54df7ae371e720412a54e570640ccf15bbd9fc9"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/15_05.gif",
+      "alt": "規模格差補正率の数式（小数点以下第2位未満切捨て）",
+      "width": "320",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/15/15_05.gif",
+      "media_type": "image/gif",
+      "bytes": 2063,
+      "sha256": "35862bf5a32f7451488c8ce9cee73f42b0f06f157b72daad3c34d478cb9d8188",
+      "page_html_hash": "b84434f8f3d8c34989ef9482f54df7ae371e720412a54e570640ccf15bbd9fc9"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/15_03.gif",
+      "alt": "規模格差補正率計算式",
+      "width": "520",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/15/15_03.gif",
+      "media_type": "image/gif",
+      "bytes": 6529,
+      "sha256": "f5a556d60ac990074d8bbc2375951a77dba1c34e896d3c6cc97ba87945fcece0",
+      "page_html_hash": "b84434f8f3d8c34989ef9482f54df7ae371e720412a54e570640ccf15bbd9fc9"
+    }
+  ]
 }

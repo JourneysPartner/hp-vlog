@@ -18,5 +18,52 @@
   "byte_size": 5908,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1714-6450805e7a510\""
+  "etag": "\"1714-6450805e7a510\"",
+  "figures_checked_at": "2026-09-06T09:14:07.137Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/12_01.gif",
+      "alt": "説明図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/12/12_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2442,
+      "sha256": "44f5c74362e740f41a4318b0444e062d522f39d4f3d0efd63681f080a108df13",
+      "page_html_hash": "26bce0f54e67935234be49d8b755b724257d02094bb62b9f8822a55bbdb73bec"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/12_02.gif",
+      "alt": "標準的な1平方メートル当たりの価額の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/12/12_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1572,
+      "sha256": "41bb7659699ac9320765184fc847535573eb2a4a1de5d26e2fa8c1356d873b66",
+      "page_html_hash": "26bce0f54e67935234be49d8b755b724257d02094bb62b9f8822a55bbdb73bec"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/12_03.gif",
+      "alt": "規模格差補正率計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/12/12_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1687,
+      "sha256": "2fe5895f83fb1dc4ef716914853cb05c65fdf0a21317717c0e65b20c5bbae912",
+      "page_html_hash": "26bce0f54e67935234be49d8b755b724257d02094bb62b9f8822a55bbdb73bec"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/12_04.gif",
+      "alt": "評価額の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/12/12_04.gif",
+      "media_type": "image/gif",
+      "bytes": 3124,
+      "sha256": "0185baf12811fefc2e84ff7d69ebd20931f9f7da1582ee0278c9a08e02052e38",
+      "page_html_hash": "26bce0f54e67935234be49d8b755b724257d02094bb62b9f8822a55bbdb73bec"
+    }
+  ]
 }

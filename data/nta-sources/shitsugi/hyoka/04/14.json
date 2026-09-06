@@ -18,5 +18,19 @@
   "byte_size": 3033,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"bd9-64508062b7858\""
+  "etag": "\"bd9-64508062b7858\"",
+  "figures_checked_at": "2026-09-06T09:11:22.153Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/14_01.gif",
+      "alt": "農地の評価上の分類の図",
+      "width": "100%",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/14/14_01.gif",
+      "media_type": "image/gif",
+      "bytes": 14986,
+      "sha256": "48a1c94b7d22f8953da0c9b48257903167ba54fce31d7fef035df06ff21ed95e",
+      "page_html_hash": "d2aded65be77aa1c4bdf7839fddab0666cdec05a88782efafcdd0b5b57651fce"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5130,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:30 GMT",
-  "etag": "\"140a-645080a099900\""
+  "etag": "\"140a-645080a099900\"",
+  "figures_checked_at": "2026-09-06T09:04:10.170Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/14/img/11_01.gif",
+      "alt": "弁済期限の延長等、原則として、課税上の問題は生じない。将来の利率の減免又は利息の棚上げ、利率の減免が行われた場合であっても、受贈益と支払利益が両建てとなり、課税上の問題は生じない。利息の棚上げがあっても、発生する利息は損金の額に算入する。返済額の減額（元本又は未収利息等の全部又は一部の放棄）、債務免除益として益金の額に算入する。法人税法第59条第２項（（会社更生等による債務免除等があった場合の欠損金の損金算入））の規定の適用はあるか。",
+      "width": "580",
+      "height": "300",
+      "file": "data/nta-sources/images/shitsugi/hojin/14/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 10194,
+      "sha256": "ad6e4277c406fcd90ff0932baf529e793ae46474dfecc14fffb626bdb85b2105",
+      "page_html_hash": "770d1fc365574c5742e3861228f5a33b40ee959954eb55122d371fe392e267d3"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 6583,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"19b7-6450809bb9c28\""
+  "etag": "\"19b7-6450809bb9c28\"",
+  "figures_checked_at": "2026-09-06T09:06:49.159Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/17-1.gif",
+      "alt": "保有関係の説明図",
+      "width": "644",
+      "height": "187",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/17/17-1.gif",
+      "media_type": "image/gif",
+      "bytes": 7646,
+      "sha256": "f413b9b80715c2f2b139d67c721bdd4f1dcee438cebbd98174502843bda9a208",
+      "page_html_hash": "dde52a9d5da87d3884bd9fbb1bc050fd4dd4717e5fea0b60b9321a1bb0a1e4e8"
+    }
+  ]
 }

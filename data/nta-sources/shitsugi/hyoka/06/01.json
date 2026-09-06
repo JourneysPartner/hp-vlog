@@ -18,5 +18,19 @@
   "byte_size": 5462,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"1556-645080610ff00\""
+  "etag": "\"1556-645080610ff00\"",
+  "figures_checked_at": "2026-09-06T09:12:27.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/06/img/01_01.gif",
+      "alt": "事業年度を変更している場合の「直前期末以前1年間における取引金額計算の図",
+      "width": "500",
+      "height": "187",
+      "file": "data/nta-sources/images/shitsugi/hyoka/06/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3595,
+      "sha256": "00e103fbaf2f31f3fae4dd43a19e24daa66ee04899d6e4868befa9ed692d2afa",
+      "page_html_hash": "494bc5ff67105f6ebfb551c21242ae33db68ad2ceb0131f48294ce09d9f41644"
+    }
+  ]
 }

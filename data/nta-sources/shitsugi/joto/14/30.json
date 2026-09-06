@@ -18,5 +18,19 @@
   "byte_size": 4967,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT",
-  "etag": "\"1367-64508058cf638\""
+  "etag": "\"1367-64508058cf638\"",
+  "figures_checked_at": "2026-09-06T09:17:07.114Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/30_01.gif",
+      "alt": "私道になっていた土地が残地として買収された場合の図",
+      "width": "205",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/joto/14/30/30_01.gif",
+      "media_type": "image/gif",
+      "bytes": 922,
+      "sha256": "fd430e01e2f97911605a0ae48f1f92ae9cd0029b32957bc1f93b684dcc30a3ed",
+      "page_html_hash": "18c3aedcbf648a7fb32b06d4d68d81e1a51d551a1a1e2130ec3ceb8d5b1ed8f3"
+    }
+  ]
 }

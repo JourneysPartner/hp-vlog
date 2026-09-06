@@ -18,5 +18,30 @@
   "byte_size": 4589,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"11ed-645080640fc28\""
+  "etag": "\"11ed-645080640fc28\"",
+  "figures_checked_at": "2026-09-06T09:09:27.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/09_01.gif",
+      "alt": "間口が狭い宅地の図",
+      "width": "495",
+      "height": "166",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/09/09_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3877,
+      "sha256": "9cb8ded53d1aea1f6322519b109493ac9abcea8e0012024dd529e1e19f107201",
+      "page_html_hash": "8e0353267e6f02fe0a2ab0a5bd316be5085fb5aee64918105ec0a82786e441a8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/09_02.gif",
+      "alt": "間口が狭い宅地の表",
+      "width": "576",
+      "height": "264",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/09/09_02.gif",
+      "media_type": "image/gif",
+      "bytes": 6129,
+      "sha256": "4763064e40d8106ad316a9e15eb16ace261528c62f525b5a0743b7ec234de90c",
+      "page_html_hash": "8e0353267e6f02fe0a2ab0a5bd316be5085fb5aee64918105ec0a82786e441a8"
+    }
+  ]
 }

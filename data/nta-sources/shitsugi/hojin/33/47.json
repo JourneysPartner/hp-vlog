@@ -18,5 +18,19 @@
   "byte_size": 6457,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"1939-6450809ac3e90\""
+  "etag": "\"1939-6450809ac3e90\"",
+  "figures_checked_at": "2026-09-06T09:07:41.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/47_01.gif",
+      "alt": "被合併法人の従業者が合併法人以外の法人の業務に従事する場合の従業者引継要件",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/47/47_01.gif",
+      "media_type": "image/gif",
+      "bytes": 15081,
+      "sha256": "2ab89ff31ee1bbb4c24a809c2e103b7c0d0eec7ad1176efbe6b2bf88c4a386df",
+      "page_html_hash": "f180b2843ea15fcc217b0d31016ad259a9ea690dd9d87da2375c63bdeb9a27e3"
+    }
+  ]
 }

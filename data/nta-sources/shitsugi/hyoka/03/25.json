@@ -18,5 +18,30 @@
   "byte_size": 4491,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"118b-6450806375f38\""
+  "etag": "\"118b-6450806375f38\"",
+  "figures_checked_at": "2026-09-06T09:10:34.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/25_01.gif",
+      "alt": "不整形地の図",
+      "width": "416",
+      "height": "216",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/25/25_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2656,
+      "sha256": "7822e6a5990992794122afb200fbde9307b33e7108a5f53ff2db8d54fc5e4ba0",
+      "page_html_hash": "dd92a225335cd1be8d937b5dde0561eee5f440fb0923e076f4266bd0e6171feb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/25_02.gif",
+      "alt": "二方路線影響加算額の計算例",
+      "width": "529",
+      "height": "35",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/25/25_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1590,
+      "sha256": "a321d3ebc46d0abc67eb15b5f674a70756973107f7e0725706e3fa3618307d4a",
+      "page_html_hash": "dd92a225335cd1be8d937b5dde0561eee5f440fb0923e076f4266bd0e6171feb"
+    }
+  ]
 }

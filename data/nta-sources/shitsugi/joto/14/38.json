@@ -18,5 +18,19 @@
   "byte_size": 4964,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:15 GMT",
-  "etag": "\"1364-645080587b678\""
+  "etag": "\"1364-645080587b678\"",
+  "figures_checked_at": "2026-09-06T09:17:17.121Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/38_01.gif",
+      "alt": "譲渡資産、墓地600万円、墓石100万円、代替資産、墓地300万円、墓石400万円",
+      "width": "230",
+      "height": "60",
+      "file": "data/nta-sources/images/shitsugi/joto/14/38/38_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1710,
+      "sha256": "b9017497f0fd00df733639f918846355688a0ed9f7b7dd8a476bad31633c1baf",
+      "page_html_hash": "9fd2666fbc1b51b1756c1bd8614ec260d87f208b31d7fa2a230d5b251c589a6d"
+    }
+  ]
 }

@@ -18,5 +18,19 @@
   "byte_size": 5132,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"140c-645080648d010\""
+  "etag": "\"140c-645080648d010\"",
+  "figures_checked_at": "2026-09-06T09:08:49.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/09_01.gif",
+      "alt": "宅地の評価単位（地目の異なる土地が一体として利用されている場合2）の図",
+      "width": "557",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/09/09_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4481,
+      "sha256": "56b9b221cfa170d6a3031da516bd5e78d53f4212a1c3f706ba1c5b8ea4b17f97",
+      "page_html_hash": "242cbe9e1d7f153a75f938012716ddea41da7f4e760588164fc045c9727c20d4"
+    }
+  ]
 }

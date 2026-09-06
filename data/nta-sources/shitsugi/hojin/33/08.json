@@ -18,5 +18,19 @@
   "byte_size": 6377,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"18e9-6450809c0e3b8\""
+  "etag": "\"18e9-6450809c0e3b8\"",
+  "figures_checked_at": "2026-09-06T09:06:36.154Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/33-8-1.gif",
+      "alt": "分割後に分割法人が解散することが予定されている場合における適格要件の判定について（共同事業要件）の図",
+      "width": "529",
+      "height": "155",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/08/33-8-1.gif",
+      "media_type": "image/gif",
+      "bytes": 2846,
+      "sha256": "329274291ff917c5509bdcc83042ae41b812f1408d25d07214d9b988aa9df34e",
+      "page_html_hash": "ddb718e6a1acd30ad44cdc556b912a1b49d23811cbaecbe910eea95fdee9a28a"
+    }
+  ]
 }

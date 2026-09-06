@@ -18,5 +18,19 @@
   "byte_size": 5071,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT",
-  "etag": "\"13cf-6450805a3e550\""
+  "etag": "\"13cf-6450805a3e550\"",
+  "figures_checked_at": "2026-09-06T09:16:23.125Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/13/img/14_01.gif",
+      "alt": "附属建築物がある場合の建築面積及び施行地区面積の要件判定(10号)の図",
+      "width": "528",
+      "height": "152",
+      "file": "data/nta-sources/images/shitsugi/joto/13/14/14_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2910,
+      "sha256": "eb830961dc1ed941d49aed43dc979e2587f136c3e2805673b3ed4eeb73726ff8",
+      "page_html_hash": "c5930e0440cc9268569fbdd94aca81b1ec19f980444eb14ecf404e61a629ae37"
+    }
+  ]
 }

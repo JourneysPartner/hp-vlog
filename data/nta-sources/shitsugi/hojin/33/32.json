@@ -18,5 +18,30 @@
   "byte_size": 6967,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"1b37-6450809b32048\""
+  "etag": "\"1b37-6450809b32048\"",
+  "figures_checked_at": "2026-09-06T09:07:17.156Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/32_01.gif",
+      "alt": "いわゆる「三角合併」において端数調整金の交付を受けた被合併法人の株主における課税関係について",
+      "width": "670",
+      "height": "363",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/32/32_01.gif",
+      "media_type": "image/gif",
+      "bytes": 14362,
+      "sha256": "bb5203c0217b9cf8ea02113fa75bae888a99144e74e631c8cc4287640927115f",
+      "page_html_hash": "e78595857193dc0669b491fe289f398523279fa0e0f7b6d323f3f840f623d280"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/32_02.gif",
+      "alt": "譲渡損益の計算",
+      "width": "337",
+      "height": "75",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/32/32_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2209,
+      "sha256": "6192a82287f9af16158f77c6d7d91df11d14c04cc04c89c673fd16bf13356393",
+      "page_html_hash": "e78595857193dc0669b491fe289f398523279fa0e0f7b6d323f3f840f623d280"
+    }
+  ]
 }

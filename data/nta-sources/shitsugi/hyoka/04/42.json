@@ -18,5 +18,52 @@
   "byte_size": 6005,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"1775-64508061a6540\""
+  "etag": "\"1775-64508061a6540\"",
+  "figures_checked_at": "2026-09-06T09:12:07.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/42-1.gif",
+      "alt": "建物の建築制限概念図",
+      "width": "235",
+      "height": "199",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/42/42-1.gif",
+      "media_type": "image/gif",
+      "bytes": 3937,
+      "sha256": "5f3880dc2739092e9b81f8f2de15ffc9c45964ed233aaf6e4e179277404d24eb",
+      "page_html_hash": "bf437d690481445d00bff848465a344756ed14790362ce0c726cf7f3e70dc662"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/42-2.gif",
+      "alt": "5,000万円（自用地価額）&times;0.3（区分地上権に準ずる地役権の割合）＝1,500万円・・・丸2",
+      "width": "419",
+      "height": "65",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/42/42-2.gif",
+      "media_type": "image/gif",
+      "bytes": 1053,
+      "sha256": "6bd6488f78552a27fada486e63f7ff94d31e34b03f2a0f4eaf5326a823cff46a",
+      "page_html_hash": "bf437d690481445d00bff848465a344756ed14790362ce0c726cf7f3e70dc662"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/42-3.gif",
+      "alt": "5,000万円（自用地価額）&times;0.6（借地権割合）&times;(1－0.3)（区分地上権に準ずる地役権の割合）＝2,100万円・・・丸3",
+      "width": "454",
+      "height": "63",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/42/42-3.gif",
+      "media_type": "image/gif",
+      "bytes": 1266,
+      "sha256": "b39fe7f49af49697d0d405330e46a21a4accdd96799985418f107f637d20a25d",
+      "page_html_hash": "bf437d690481445d00bff848465a344756ed14790362ce0c726cf7f3e70dc662"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/42-4.gif",
+      "alt": "5,000万円（丸1）－1,500万円（丸2）－2,100万円（丸3）＝1,400万円",
+      "width": "454",
+      "height": "63",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/42/42-4.gif",
+      "media_type": "image/gif",
+      "bytes": 862,
+      "sha256": "c20975023f306ea2c6112a9a88d65eaf13c19e75ee6cb9dcb27c4fb8f0b69123",
+      "page_html_hash": "bf437d690481445d00bff848465a344756ed14790362ce0c726cf7f3e70dc662"
+    }
+  ]
 }

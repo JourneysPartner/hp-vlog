@@ -18,5 +18,19 @@
   "byte_size": 8977,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"2311-6450809b4d9b0\""
+  "etag": "\"2311-6450809b4d9b0\"",
+  "figures_checked_at": "2026-09-06T09:07:10.159Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/29_01.gif",
+      "alt": "分割対価資産が交付されない分割型分割",
+      "width": "387",
+      "height": "249",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/29/29_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4415,
+      "sha256": "4c8c370745d4e6522598d01813d835330d70107b13b42b49eb57422cde8e8963",
+      "page_html_hash": "633ea5de7456d0d2b66ab8dd58e1a025e0f2f314976de3952daa04aefb6e59ea"
+    }
+  ]
 }

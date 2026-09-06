@@ -18,5 +18,41 @@
   "byte_size": 5372,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"14fc-645080633a618\""
+  "etag": "\"14fc-645080633a618\"",
+  "figures_checked_at": "2026-09-06T09:10:57.154Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/31.gif",
+      "alt": "正面路線に2以上の路線価が付されている宅地の図",
+      "width": "424",
+      "height": "236",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/31/31.gif",
+      "media_type": "image/gif",
+      "bytes": 2966,
+      "sha256": "89697da3735ff1324a4c27a5b6124d60fa9c877a679115a4efa25f7f56e50a3b",
+      "page_html_hash": "b776f17128031e61219c9973a9effc12a3640add6922f87fe818397c64234c1c"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/31-2.gif",
+      "alt": "（700,000円&times;15メートル＋790,000円&times;5メートル）&divide;（15メートル＋5メートル）＝722,500円（正面路線価）",
+      "width": "530",
+      "height": "70",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/31/31-2.gif",
+      "media_type": "image/gif",
+      "bytes": 1153,
+      "sha256": "b53c64fe882996292c7029ab31c4292db13a4822a434706abe2ecf7349d3bffb",
+      "page_html_hash": "b776f17128031e61219c9973a9effc12a3640add6922f87fe818397c64234c1c"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/31-3.gif",
+      "alt": "722,500円（正面路線価）&times;1.00（奥行価格補正率）&times;400平方メートル（地積）＝289,000,000円（宅地の評価額）",
+      "width": "530",
+      "height": "62",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/31/31-3.gif",
+      "media_type": "image/gif",
+      "bytes": 1253,
+      "sha256": "e29ad35a70d5ae3d35fea1f8a67160389b9ddce6d52d05dedcbf00ec6c9fe87e",
+      "page_html_hash": "b776f17128031e61219c9973a9effc12a3640add6922f87fe818397c64234c1c"
+    }
+  ]
 }

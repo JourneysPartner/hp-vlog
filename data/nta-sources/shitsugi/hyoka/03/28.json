@@ -18,5 +18,52 @@
   "byte_size": 6754,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1a62-64508063576f0\""
+  "etag": "\"1a62-64508063576f0\"",
+  "figures_checked_at": "2026-09-06T09:10:45.151Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/28_01.gif",
+      "alt": "側方路線影響加算又は二方路線影響加算の方法（三方路線に面する場合）の図",
+      "width": "485",
+      "height": "189",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/28/28_01.gif",
+      "media_type": "image/gif",
+      "bytes": 9851,
+      "sha256": "538a22f306169e5a595a755bcfd14d4d1f000d25617401ca488b2e64facd2449",
+      "page_html_hash": "cfdad39b8aa5b369f6c6721a04782bd62aded9497b0fccf52682b390b1857aa0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/28_02.gif",
+      "alt": "路線影響加算額と二方路線影響加算額の算式",
+      "width": "442",
+      "height": "99",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/28/28_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2939,
+      "sha256": "5f4507e69064eec6ffb2bdb5fc3cc283e8bc4d12645eb80cd44309639679896d",
+      "page_html_hash": "cfdad39b8aa5b369f6c6721a04782bd62aded9497b0fccf52682b390b1857aa0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/28_03.gif",
+      "alt": "側方路線影響加算又は二方路線影響加算の方法（三方路線に面する場合）の計算例1",
+      "width": "552",
+      "height": "230",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/28/28_03.gif",
+      "media_type": "image/gif",
+      "bytes": 6639,
+      "sha256": "39770f4303edc5331df13f2cf748ce3a1aacbac90806119405d96ac0e8a5f5ed",
+      "page_html_hash": "cfdad39b8aa5b369f6c6721a04782bd62aded9497b0fccf52682b390b1857aa0"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/28_06.gif",
+      "alt": "側方路線影響加算又は二方路線影響加算の方法（三方路線に面する場合）の計算例2",
+      "width": "519",
+      "height": "330",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/28/28_06.gif",
+      "media_type": "image/gif",
+      "bytes": 5557,
+      "sha256": "2de52c3f7cb36f69d10bed08d431c9ead65d7ab12984cfbeb3930916700cd5a4",
+      "page_html_hash": "cfdad39b8aa5b369f6c6721a04782bd62aded9497b0fccf52682b390b1857aa0"
+    }
+  ]
 }

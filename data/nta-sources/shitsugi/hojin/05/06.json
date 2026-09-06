@@ -18,5 +18,19 @@
   "byte_size": 4874,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:34 GMT",
-  "etag": "\"130a-645080a43e2e0\""
+  "etag": "\"130a-645080a43e2e0\"",
+  "figures_checked_at": "2026-09-06T09:02:16.171Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/05/img/06_01.gif",
+      "alt": "人工芝の構造図",
+      "width": "556",
+      "height": "200",
+      "file": "data/nta-sources/images/shitsugi/hojin/05/06/06_01.gif",
+      "media_type": "image/gif",
+      "bytes": 15475,
+      "sha256": "0516230436540d5515df113425e4fa1d01321d545227468b2f8c3c17133150f5",
+      "page_html_hash": "d6c107feb32a42c360d45755aae7b64147e656e36aefe37b792958f5f129a741"
+    }
+  ]
 }

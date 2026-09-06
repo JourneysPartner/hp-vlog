@@ -18,5 +18,41 @@
   "byte_size": 6185,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT",
-  "etag": "\"1829-6450805c84da0\""
+  "etag": "\"1829-6450805c84da0\"",
+  "figures_checked_at": "2026-09-06T09:15:15.133Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/03_01.gif",
+      "alt": "預託金制のゴルフ会員権が分割された場合の取得価額等の事例1の図",
+      "width": "494",
+      "height": "156",
+      "file": "data/nta-sources/images/shitsugi/joto/07/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2605,
+      "sha256": "cca256165db6c4c338054329a3a76b087d74b0a9d1fb3ac631af607c2ca6c03c",
+      "page_html_hash": "38a8eb6f3ea67fec5e41deb276abb7fda281221b162620b82c72c74d15026251"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/03_02.gif",
+      "alt": "事例1における分割後の会員権の取得価額の計算例の図",
+      "width": "485",
+      "height": "99",
+      "file": "data/nta-sources/images/shitsugi/joto/07/03/03_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1894,
+      "sha256": "20ae0dbf5cba6085bb9ecb9e6b460840c622936909a2c013125f120697ba3ae7",
+      "page_html_hash": "38a8eb6f3ea67fec5e41deb276abb7fda281221b162620b82c72c74d15026251"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/03_03.gif",
+      "alt": "事例2における分割後の会員権の取得費の計算例の図",
+      "width": "452",
+      "height": "33",
+      "file": "data/nta-sources/images/shitsugi/joto/07/03/03_03.gif",
+      "media_type": "image/gif",
+      "bytes": 804,
+      "sha256": "cf5561d66e54266d3f17c09d426b18af4e6246afc3993523fccae556f615016d",
+      "page_html_hash": "38a8eb6f3ea67fec5e41deb276abb7fda281221b162620b82c72c74d15026251"
+    }
+  ]
 }

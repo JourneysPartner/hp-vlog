@@ -18,5 +18,19 @@
   "byte_size": 9694,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"25de-6450809ae51d0\""
+  "etag": "\"25de-6450809ae51d0\"",
+  "figures_checked_at": "2026-09-06T09:07:35.148Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/43_01.gif",
+      "alt": "独立して事業を行うための分割に係る適格要件（非支配要件）の判定についての取引関係図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/43/43_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6452,
+      "sha256": "121c038cdb667e0ed49e98879f0401f7a6fcc0bd9d6020c28081d7d92c2292ce",
+      "page_html_hash": "cf498aa49c6941b900451248c640058298d529c6216e1c27bc5fee06e46fd177"
+    }
+  ]
 }

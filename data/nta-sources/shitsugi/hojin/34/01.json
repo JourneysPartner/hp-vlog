@@ -18,5 +18,19 @@
   "byte_size": 8654,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:23 GMT",
-  "etag": "\"21ce-6450809a178c0\""
+  "etag": "\"21ce-6450809a178c0\"",
+  "figures_checked_at": "2026-09-06T09:08:09.152Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/34/img/01_1.gif",
+      "alt": "残余財産がないと見込まれるとき",
+      "width": "620",
+      "height": "219",
+      "file": "data/nta-sources/images/shitsugi/hojin/34/01/01_1.gif",
+      "media_type": "image/gif",
+      "bytes": 7567,
+      "sha256": "73df49644dd05ca6ad1cc1da2bbd48631ce75dac3ff2c37bd38e92abd092c4ee",
+      "page_html_hash": "492b3904780e8a9e157b532e455ebc6b2d9530097bad4c998761ef560e4c58ac"
+    }
+  ]
 }

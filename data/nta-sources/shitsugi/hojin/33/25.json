@@ -18,5 +18,30 @@
   "byte_size": 9191,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"23e7-6450809b72f58\""
+  "etag": "\"23e7-6450809b72f58\"",
+  "figures_checked_at": "2026-09-06T09:07:01.160Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/25_01.gif",
+      "alt": "三角合併の図",
+      "width": "592",
+      "height": "319",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/25/25_01.gif",
+      "media_type": "image/gif",
+      "bytes": 11106,
+      "sha256": "cfb04a6b3e39367b046cad599a0fedef883345186eda45dea814dc7c567909c4",
+      "page_html_hash": "4a75b5be33f1dcaabbfd0085aa41e221dfa46b104950fa9238a7f74fa5529061"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/25_02.gif",
+      "alt": "三角合併の図",
+      "width": "600",
+      "height": "230",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/25/25_02.gif",
+      "media_type": "image/gif",
+      "bytes": 4502,
+      "sha256": "f948cbd49f1e367c386e8facc83516bf4cf9074cad29f1eb59a9661736001aa9",
+      "page_html_hash": "4a75b5be33f1dcaabbfd0085aa41e221dfa46b104950fa9238a7f74fa5529061"
+    }
+  ]
 }

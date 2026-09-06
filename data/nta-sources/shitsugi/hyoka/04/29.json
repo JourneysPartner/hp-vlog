@@ -18,5 +18,19 @@
   "byte_size": 4881,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:25 GMT",
-  "etag": "\"1311-64508062273c0\""
+  "etag": "\"1311-64508062273c0\"",
+  "figures_checked_at": "2026-09-06T09:11:44.142Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/29_01.gif",
+      "alt": "その土地の固定資産税評価額の算式",
+      "width": "493",
+      "height": "33",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/29/29_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1491,
+      "sha256": "175b61c72b4776e4824edcf41715f2300793d1ca008eedbd57a64e4cd5b5b58c",
+      "page_html_hash": "d049827da3948aada35f9a78a3178a29f93eb7ef70d465a881c41b758e989ceb"
+    }
+  ]
 }

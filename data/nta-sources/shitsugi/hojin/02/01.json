@@ -18,5 +18,19 @@
   "byte_size": 5624,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:35 GMT",
-  "etag": "\"15f8-645080a54daa0\""
+  "etag": "\"15f8-645080a54daa0\"",
+  "figures_checked_at": "2026-09-06T09:01:36.169Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/02/img/01_01.gif",
+      "alt": "短期の損害保険契約に係る保険料を分割で支払った場合の税務上の取扱いの図",
+      "width": "547",
+      "height": "111",
+      "file": "data/nta-sources/images/shitsugi/hojin/02/01/01_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2764,
+      "sha256": "8839e16faa7d5d8385986f318b44c9e57d56ea1b38468b5fcdfbb48ebbc7165c",
+      "page_html_hash": "5c41f57b3d4aa7d815bedfa70f4060932cabde3382aa528a91602d1777a5feff"
+    }
+  ]
 }

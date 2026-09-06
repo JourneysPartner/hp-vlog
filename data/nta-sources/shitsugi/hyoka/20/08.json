@@ -18,5 +18,41 @@
   "byte_size": 4844,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"12ec-6450805ea0288\""
+  "etag": "\"12ec-6450805ea0288\"",
+  "figures_checked_at": "2026-09-06T09:13:49.140Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/08_01.gif",
+      "alt": "普通住宅地図",
+      "width": "380",
+      "height": "190",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6499,
+      "sha256": "2b31d0cbd4978fdd59b43685ee0eea8bcff8a3ad2986b143a982c7d651d48d6b",
+      "page_html_hash": "88dff482498deba328d7d8ebe1ac71eff4590a06dfd9f655975d225d1f1bb16f"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/08_02.gif",
+      "alt": "規模格差補正率の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/08/08_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1628,
+      "sha256": "6b987865b9d579c2ffce35ecff464d0f5e1a7b4fea6da7d5d83ed1a2cac6f5d4",
+      "page_html_hash": "88dff482498deba328d7d8ebe1ac71eff4590a06dfd9f655975d225d1f1bb16f"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/08_03.gif",
+      "alt": "評価額の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/08/08_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2365,
+      "sha256": "4610a8f24d03518c6051bf0a38266481d10bdada870948e62c1a4d026201e9c9",
+      "page_html_hash": "88dff482498deba328d7d8ebe1ac71eff4590a06dfd9f655975d225d1f1bb16f"
+    }
+  ]
 }

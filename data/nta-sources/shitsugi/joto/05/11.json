@@ -18,5 +18,19 @@
   "byte_size": 5224,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT",
-  "etag": "\"1468-6450805d03510\""
+  "etag": "\"1468-6450805d03510\"",
+  "figures_checked_at": "2026-09-06T09:15:01.137Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/05/img/11_01.gif",
+      "alt": "一括して購入した土地の一部を譲渡した場合の取得費の図",
+      "width": "413",
+      "height": "244",
+      "file": "data/nta-sources/images/shitsugi/joto/05/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1768,
+      "sha256": "136f3a1f44a6e5bab4791fcc12b5b3e108d9f06ed9802d1c45944b6ab4d14934",
+      "page_html_hash": "07d7c94285adf9efe6e89ad00fa362a18ae955864937e213ebd69792e10879e9"
+    }
+  ]
 }

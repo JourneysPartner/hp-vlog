@@ -18,5 +18,41 @@
   "byte_size": 5463,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1557-6450805e979d0\""
+  "etag": "\"1557-6450805e979d0\"",
+  "figures_checked_at": "2026-09-06T09:13:53.139Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/09_01.gif",
+      "alt": "説明図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/09/09_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4301,
+      "sha256": "68cf1f384654d32546b34ed17672a7864306cf9bb8d69e482c01492962a010f1",
+      "page_html_hash": "9c72eee38483cf2c74e16e150f92f04fd3162e05a2fb632d3c642b96c9bf6ca6"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/09_02.gif",
+      "alt": "規模格差補正率の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/09/09_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1718,
+      "sha256": "359d7376d76d2be75e381a6147104246ed70cbafc7d50b9d48bc1fa1281424e6",
+      "page_html_hash": "9c72eee38483cf2c74e16e150f92f04fd3162e05a2fb632d3c642b96c9bf6ca6"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/09_03.gif",
+      "alt": "評価額の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/09/09_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2383,
+      "sha256": "89eb54aba3fe9989198b8ddb03c0a70290bd262b23021d3cc11d84181e583d4f",
+      "page_html_hash": "9c72eee38483cf2c74e16e150f92f04fd3162e05a2fb632d3c642b96c9bf6ca6"
+    }
+  ]
 }

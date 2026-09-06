@@ -18,5 +18,41 @@
   "byte_size": 5127,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1407-6450806392840\""
+  "etag": "\"1407-6450806392840\"",
+  "figures_checked_at": "2026-09-06T09:10:20.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/22_01.gif",
+      "alt": "がけ地を有する宅地の図",
+      "width": "489",
+      "height": "216",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/22/22_01.gif",
+      "media_type": "image/gif",
+      "bytes": 5530,
+      "sha256": "63a77ef10413fe1d74718c9677e2f520d54b36b03178743ecc3ff35826c34c66",
+      "page_html_hash": "6e434b1f275636939e23b279d40548a1a603d7a1299cad5f958ba97b7ff40b53"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/22_02.gif",
+      "alt": "総地積に対するがけ地部分の割合の計算例",
+      "width": "525",
+      "height": "87",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/22/22_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1355,
+      "sha256": "39b1be0b36b615097bfd9791b7d27a14188ec1a3c78f2733b5934016aeb611a8",
+      "page_html_hash": "6e434b1f275636939e23b279d40548a1a603d7a1299cad5f958ba97b7ff40b53"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/22_03.gif",
+      "alt": "加重平均による地積補正率の計算例",
+      "width": "541",
+      "height": "93",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/22/22_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2260,
+      "sha256": "9bcb3d454a872174e5ccebade42b9b90af80c9c1642f15fc11e1d6262265a252",
+      "page_html_hash": "6e434b1f275636939e23b279d40548a1a603d7a1299cad5f958ba97b7ff40b53"
+    }
+  ]
 }

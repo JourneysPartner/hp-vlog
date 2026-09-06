@@ -18,5 +18,19 @@
   "byte_size": 4729,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:14 GMT",
-  "etag": "\"1279-6450805801940\""
+  "etag": "\"1279-6450805801940\"",
+  "figures_checked_at": "2026-09-06T09:17:31.124Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/49_01.gif",
+      "alt": "公共事業の一般的なケースにおける用地買収の流れの図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/joto/14/49/49_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4487,
+      "sha256": "05656b913d130277f4594b6efc28f5024c38229656509bc89ae454d468e3034b",
+      "page_html_hash": "c3bd29ed4106b8b13c73941669e32556761b7905e39bd371aa02d55d8872c43f"
+    }
+  ]
 }

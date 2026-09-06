@@ -18,5 +18,19 @@
   "byte_size": 5512,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:30 GMT",
-  "etag": "\"1588-645080a046110\""
+  "etag": "\"1588-645080a046110\"",
+  "figures_checked_at": "2026-09-06T09:04:18.170Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/15/img/04_01.gif",
+      "alt": "１従業員（約15,000人）シャープペンシルと携帯用計算機（購入金額3,000円）、２元従業員（約3,000人）掛時計（購入金額10,000円）、３関連会社等取引先社員（約25,000人）シャープペンシルと携帯用計算機（従業員と同じです。）（購入金学区3,000円）",
+      "width": "561",
+      "height": "160",
+      "file": "data/nta-sources/images/shitsugi/hojin/15/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4767,
+      "sha256": "034e991ff1d77dc3013946fc5ea5206afdeff74cc3e7843df029462aa2f46ed9",
+      "page_html_hash": "922f81bb308480bb1232fde1f1f8b8e3ed6cab0fb8aa5949275105faa47274a6"
+    }
+  ]
 }

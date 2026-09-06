@@ -18,5 +18,19 @@
   "byte_size": 9113,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:26 GMT",
-  "etag": "\"2399-6450809c26a58\""
+  "etag": "\"2399-6450809c26a58\"",
+  "figures_checked_at": "2026-09-06T09:06:31.153Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/33-6-1.gif",
+      "alt": "分割後に分割承継法人が上場する場合の株式継続保有要件についての図",
+      "width": "484",
+      "height": "194",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/06/33-6-1.gif",
+      "media_type": "image/gif",
+      "bytes": 2534,
+      "sha256": "fb11e0d6b8451527e83f850e537d9ecc6aa02972544b438cb61988403fb8a9c7",
+      "page_html_hash": "0b102be6f21ba6b6f25d2a52007f5c52fd7c467d7e41b54b964e5857bb4327d6"
+    }
+  ]
 }

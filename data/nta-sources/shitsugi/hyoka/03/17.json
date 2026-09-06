@@ -18,5 +18,52 @@
   "byte_size": 5615,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"15ef-64508063c3d50\""
+  "etag": "\"15ef-64508063c3d50\"",
+  "figures_checked_at": "2026-09-06T09:09:58.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/17_01.gif",
+      "alt": "不整形地の図",
+      "width": "373",
+      "height": "259",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/17/17_01.gif",
+      "media_type": "image/gif",
+      "bytes": 7753,
+      "sha256": "478521f316ab365f1be03876b2d9fe59f6bde93c6cd8ee158a90890b60aae7c9",
+      "page_html_hash": "ea94acfd1fcbb008a5da6428da0518f097457bd5549f6fcb11571287981470c8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/17_03.gif",
+      "alt": "甲土地の評価額の算式",
+      "width": "",
+      "height": "58",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/17/17_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2091,
+      "sha256": "5dfc217de4e076e0075231bfd56b052d5cd61c491d5eed884c2d181258f49b2a",
+      "page_html_hash": "ea94acfd1fcbb008a5da6428da0518f097457bd5549f6fcb11571287981470c8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/17_04.gif",
+      "alt": "乙土地の評価額の算式",
+      "width": "",
+      "height": "60",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/17/17_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2039,
+      "sha256": "e20e5b22de927a8e4f3cd1cc315729cba08399cf1aad96459481a226690fefd9",
+      "page_html_hash": "ea94acfd1fcbb008a5da6428da0518f097457bd5549f6fcb11571287981470c8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/17_05.gif",
+      "alt": "評価額の算式",
+      "width": "340",
+      "height": "53",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/17/17_05.gif",
+      "media_type": "image/gif",
+      "bytes": 1921,
+      "sha256": "8a8a465415a74e567711f9c80ad01fa7748c73ab5a9f1fd082512cdd95f2d742",
+      "page_html_hash": "ea94acfd1fcbb008a5da6428da0518f097457bd5549f6fcb11571287981470c8"
+    }
+  ]
 }

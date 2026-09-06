@@ -18,5 +18,30 @@
   "byte_size": 5913,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1719-6450806482fe8\""
+  "etag": "\"1719-6450806482fe8\"",
+  "figures_checked_at": "2026-09-06T09:08:51.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/10_01.gif",
+      "alt": "宅地の評価単位（不合理分割1）の図1",
+      "width": "369",
+      "height": "251",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2603,
+      "sha256": "6079eb66e957da0d6dd5c8e7df9b43125aeeb2bd3b450956246a3c23d162a075",
+      "page_html_hash": "a5f1dda45215efe9f5915038cb059359273135f5596c24c3737eae7d9e2d3d79"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/10_02.gif",
+      "alt": "宅地の評価単位（不合理分割1）の図2",
+      "width": "415",
+      "height": "115",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/10/10_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1575,
+      "sha256": "45f761b995fa767b8c5df4c425a90c46bcb6317de56a5d9d2d7ee853c61f8bd7",
+      "page_html_hash": "a5f1dda45215efe9f5915038cb059359273135f5596c24c3737eae7d9e2d3d79"
+    }
+  ]
 }

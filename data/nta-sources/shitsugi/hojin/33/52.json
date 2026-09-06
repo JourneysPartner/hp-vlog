@@ -18,5 +18,30 @@
   "byte_size": 8453,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"2105-6450809a8df48\""
+  "etag": "\"2105-6450809a8df48\"",
+  "figures_checked_at": "2026-09-06T09:07:52.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/52_01.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/52/52_01.png",
+      "media_type": "image/png",
+      "bytes": 26963,
+      "sha256": "2c01055aeb645dde0219187dbb06e18ef1f9c28446405bbfe64216bfd19a5088",
+      "page_html_hash": "dde2e9db57e15ba802a546b12bb5726b35c3f41fa16aa648a13585c1ffa14b69"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/52_02.png",
+      "alt": "",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/52/52_02.png",
+      "media_type": "image/png",
+      "bytes": 10155,
+      "sha256": "0f65292e8e5025d3775acd5d6fd8747f6735ccaea7af2c4602770b93624b1a73",
+      "page_html_hash": "dde2e9db57e15ba802a546b12bb5726b35c3f41fa16aa648a13585c1ffa14b69"
+    }
+  ]
 }

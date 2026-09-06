@@ -18,5 +18,30 @@
   "byte_size": 4916,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1334-6450806467e50\""
+  "etag": "\"1334-6450806467e50\"",
+  "figures_checked_at": "2026-09-06T09:09:01.138Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/13_01.gif",
+      "alt": "宅地の評価単位（共同ビルの敷地）の図",
+      "width": "290",
+      "height": "209",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/13/13_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2496,
+      "sha256": "41132f7a68aaf37d7138016438db0ba36272ac11d99843a46f65681ed045068e",
+      "page_html_hash": "556e1d470259c83cf13a185eebd997dfc2c210f91f973028293486b7fb960a2c"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/02/img/13_02.gif",
+      "alt": "価額の比の算式",
+      "width": "480",
+      "height": "47",
+      "file": "data/nta-sources/images/shitsugi/hyoka/02/13/13_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2108,
+      "sha256": "0ab30d35bac5f44b1dda74befe289fc517448677ddfce827346c71aac2909575",
+      "page_html_hash": "556e1d470259c83cf13a185eebd997dfc2c210f91f973028293486b7fb960a2c"
+    }
+  ]
 }

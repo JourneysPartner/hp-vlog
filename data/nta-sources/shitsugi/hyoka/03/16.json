@@ -18,5 +18,52 @@
   "byte_size": 7302,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"1c86-64508063cc608\""
+  "etag": "\"1c86-64508063cc608\"",
+  "figures_checked_at": "2026-09-06T09:09:53.147Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/16_01.gif",
+      "alt": "不整形地の図",
+      "width": "524",
+      "height": "259",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/16/16_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6304,
+      "sha256": "852919b6d557cc3e69f42a8df68399c16f286d3ee8f262db69517ad6cc71feab",
+      "page_html_hash": "c627460485f52e34c5645f9d3a6cd90486466bd3f55958508de4ce6a227d85c7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/16_03.gif",
+      "alt": "近似整形地(丸1)と隣接する整形地(丸2)を合わせた全体の整形地の奥行価格補正後の価額の算式",
+      "width": "450",
+      "height": "60",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/16/16_03.gif",
+      "media_type": "image/gif",
+      "bytes": 2425,
+      "sha256": "c0901b09afefe5ede04c59fb67ab792dbbd6486be5bb9908f9b0e7587850dd13",
+      "page_html_hash": "c627460485f52e34c5645f9d3a6cd90486466bd3f55958508de4ce6a227d85c7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/16_04.gif",
+      "alt": "隣接する整形地(丸2)の奥行価格補正後の価額の算式",
+      "width": "450",
+      "height": "70",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/16/16_04.gif",
+      "media_type": "image/gif",
+      "bytes": 2311,
+      "sha256": "2922d7220ce48d5f29f7ca5ebf325ea52ec36b465a2f7b8cb91e1f06cb95ce27",
+      "page_html_hash": "c627460485f52e34c5645f9d3a6cd90486466bd3f55958508de4ce6a227d85c7"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/16_05.gif",
+      "alt": "1の価額から2の価額を控除して求めた近似整形地(丸1)の奥行価格補正後の価額の算式",
+      "width": "360",
+      "height": "50",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/16/16_05.gif",
+      "media_type": "image/gif",
+      "bytes": 2121,
+      "sha256": "023c88352e5faa01ce587a91954d47e11c18a38a4d277ca083577763996b50a2",
+      "page_html_hash": "c627460485f52e34c5645f9d3a6cd90486466bd3f55958508de4ce6a227d85c7"
+    }
+  ]
 }

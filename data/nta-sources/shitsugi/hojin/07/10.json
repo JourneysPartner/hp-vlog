@@ -18,5 +18,41 @@
   "byte_size": 9344,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:33 GMT",
-  "etag": "\"2480-645080a36b3e0\""
+  "etag": "\"2480-645080a36b3e0\"",
+  "figures_checked_at": "2026-09-06T09:02:46.165Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/10_01.gif",
+      "alt": "複数の土地と複数の土地とを交換した場合の圧縮記帳の図1",
+      "width": "447",
+      "height": "337",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 4918,
+      "sha256": "5d5ead3c80b75d8285f3f0d5776452e235d2ea9dc0699c94f04227284209abde",
+      "page_html_hash": "4230c05967ee446c7520b8bf3d795bf4c4fc042e0c7bb100a5fcacdc833fa9af"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/10_02.gif",
+      "alt": "複数の土地と複数の土地とを交換した場合の圧縮記帳の図2",
+      "width": "553",
+      "height": "288",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/10/10_02.gif",
+      "media_type": "image/gif",
+      "bytes": 7665,
+      "sha256": "ffefc2a33f7b1eb6f3b2d1914c79a2935fdc5084114ad13706227fa5140625bd",
+      "page_html_hash": "4230c05967ee446c7520b8bf3d795bf4c4fc042e0c7bb100a5fcacdc833fa9af"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/10_03.gif",
+      "alt": "圧縮限度額（譲渡益）＝Cb土地及びD土地の時価の合計額（250億円）－B土地の簿価（21億円）＝229億円　Cb土地の圧縮後の簿価　58億円－229億円&times;58億円&divide;250億円＝4億8,720万円　D土地の圧縮後の簿価　192億円－229億円&times;192億円&divide;250億円＝16億1,280万円",
+      "width": "579",
+      "height": "193",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/10/10_03.gif",
+      "media_type": "image/gif",
+      "bytes": 3681,
+      "sha256": "ae419d2b4ebb7e589bfa3f328b1bb7c9e7322cd0536991972e50c365c1fd513d",
+      "page_html_hash": "4230c05967ee446c7520b8bf3d795bf4c4fc042e0c7bb100a5fcacdc833fa9af"
+    }
+  ]
 }

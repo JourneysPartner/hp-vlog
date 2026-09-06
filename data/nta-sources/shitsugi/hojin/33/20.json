@@ -18,5 +18,19 @@
   "byte_size": 11445,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"2cb5-6450809b9cb50\""
+  "etag": "\"2cb5-6450809b9cb50\"",
+  "figures_checked_at": "2026-09-06T09:06:53.160Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/20_01.gif",
+      "alt": "吸収合併",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/20/20_01.gif",
+      "media_type": "image/gif",
+      "bytes": 17684,
+      "sha256": "b46e1f2c1ff414c8591b6bfeceec825ad71663a969814082f9d1a59f7f9b7698",
+      "page_html_hash": "23389509f1d9f6ddba445ffb4ce6921c4bf1656476d824d4cbd4ad9dbfc3d0ad"
+    }
+  ]
 }

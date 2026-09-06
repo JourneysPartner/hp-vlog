@@ -18,5 +18,52 @@
   "byte_size": 5116,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"13fc-64508063fbbd8\""
+  "etag": "\"13fc-64508063fbbd8\"",
+  "figures_checked_at": "2026-09-06T09:09:32.142Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/11_01.gif",
+      "alt": "不整形地の奥行距離の求め方の図1",
+      "width": "403",
+      "height": "159",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/11/11_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1551,
+      "sha256": "61cbbdebf865502d41149a2088d04be1578b8b8ca16f9255bc5ade6523a62863",
+      "page_html_hash": "f042abe2dd42f129ce6df6d24f0ef34241da9175113b89e72a71aeb3a6d187a4"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/11_02.gif",
+      "alt": "不整形地の奥行距離の求め方の図2",
+      "width": "439",
+      "height": "198",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/11/11_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1964,
+      "sha256": "930eef7e9032d09ae0615ba96ca025bcb97dcc2d28f000f056535bbd9ba6525b",
+      "page_html_hash": "f042abe2dd42f129ce6df6d24f0ef34241da9175113b89e72a71aeb3a6d187a4"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/11_03.gif",
+      "alt": "不整形地の奥行距離の求め方の図3",
+      "width": "478",
+      "height": "156",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/11/11_03.gif",
+      "media_type": "image/gif",
+      "bytes": 3432,
+      "sha256": "6dc1839d7f4613515a665fbcf09ef21f60e34fb0ff1114be2282164bcac132f9",
+      "page_html_hash": "f042abe2dd42f129ce6df6d24f0ef34241da9175113b89e72a71aeb3a6d187a4"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/11_04.gif",
+      "alt": "不整形地の奥行距離の求め方の図4",
+      "width": "602",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/11/11_04.gif",
+      "media_type": "image/gif",
+      "bytes": 3204,
+      "sha256": "c59d5d1f28233e8be918f6ad92abda3a71833b529b77121cfd8241fabc474a61",
+      "page_html_hash": "f042abe2dd42f129ce6df6d24f0ef34241da9175113b89e72a71aeb3a6d187a4"
+    }
+  ]
 }

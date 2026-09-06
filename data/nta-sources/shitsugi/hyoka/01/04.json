@@ -18,5 +18,19 @@
   "byte_size": 5575,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:28 GMT",
-  "etag": "\"15c7-6450806501b40\""
+  "etag": "\"15c7-6450806501b40\"",
+  "figures_checked_at": "2026-09-06T09:08:28.148Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/01/img/04_01.gif",
+      "alt": "地目の異なる土地が一体として利用されている場合の図",
+      "width": "568",
+      "height": "193",
+      "file": "data/nta-sources/images/shitsugi/hyoka/01/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2917,
+      "sha256": "aa33c238947929cad2ff6add5aed3a315577c52ab5036f6c857194fe6ef77328",
+      "page_html_hash": "17e17e4373439c904d2dc168efdb7bcd68bd3c456a97a548d9f47ce0fab96719"
+    }
+  ]
 }

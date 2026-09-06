@@ -18,5 +18,30 @@
   "byte_size": 4683,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:26 GMT",
-  "etag": "\"124b-645080639c480\""
+  "etag": "\"124b-645080639c480\"",
+  "figures_checked_at": "2026-09-06T09:10:17.143Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/21_01.gif",
+      "alt": "がけ地等を有する宅地の図",
+      "width": "566",
+      "height": "247",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/21/21_01.gif",
+      "media_type": "image/gif",
+      "bytes": 6518,
+      "sha256": "92765cee57e522386c9228030d3e851d19425ab88cc4d7687b587a040d71530b",
+      "page_html_hash": "112d8423de6ff65826b9e515bd82fff7af45a5697cef7e1c35703ddf9ce705f8"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/21_02.gif",
+      "alt": "がけ地等を有する宅地の計算例",
+      "width": "561",
+      "height": "142",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/21/21_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2743,
+      "sha256": "d56e4e78e490345289cf4ba647ae2b2a83a5a2ae841651b7de30502feb82889c",
+      "page_html_hash": "112d8423de6ff65826b9e515bd82fff7af45a5697cef7e1c35703ddf9ce705f8"
+    }
+  ]
 }

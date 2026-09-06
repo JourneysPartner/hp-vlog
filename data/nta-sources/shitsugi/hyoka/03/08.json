@@ -18,5 +18,19 @@
   "byte_size": 4377,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1119-645080641a420\""
+  "etag": "\"1119-645080641a420\"",
+  "figures_checked_at": "2026-09-06T09:09:25.140Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/08_01.gif",
+      "alt": "宅地の間口距離の図",
+      "width": "483",
+      "height": "197",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/08/08_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2214,
+      "sha256": "75c83476a6d9e157ca584239211d11222126f64ca74a6ad66adc73da3a44e2f1",
+      "page_html_hash": "b28a40720ea4605c898e1a3739ed33b71d0bd8a6a17b9239dc2250e843e7a158"
+    }
+  ]
 }

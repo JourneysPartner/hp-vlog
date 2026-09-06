@@ -18,5 +18,19 @@
   "byte_size": 5545,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:11 GMT",
-  "etag": "\"15a9-6450808ea7148\""
+  "etag": "\"15a9-6450808ea7148\"",
+  "figures_checked_at": "2026-09-06T09:01:15.165Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/06/img/49_01.gif",
+      "alt": "短期滞在者免税適用関係図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/gensen/06/61/49_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2227,
+      "sha256": "109762ad151c86e233f76b3c110e58763cdefb4467140d4df9a278163e97ceae",
+      "page_html_hash": "2a2be0f2c976c129f1597e2bb4928159296fcde8e3a17a27f3cba82c89047843"
+    }
+  ]
 }

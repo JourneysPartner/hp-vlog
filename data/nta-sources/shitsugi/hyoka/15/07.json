@@ -18,5 +18,19 @@
   "byte_size": 6897,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:22 GMT",
-  "etag": "\"1af1-6450805fa0430\""
+  "etag": "\"1af1-6450805fa0430\"",
+  "figures_checked_at": "2026-09-06T09:13:23.139Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/15/img/07-1.gif",
+      "alt": "EB債の一般的な仕組み",
+      "width": "454",
+      "height": "284",
+      "file": "data/nta-sources/images/shitsugi/hyoka/15/07/07-1.gif",
+      "media_type": "image/gif",
+      "bytes": 2794,
+      "sha256": "cd9bd94be6089e95a0d8de6e5cb1a7909f2e45979bc5701f2696dafad245fa72",
+      "page_html_hash": "5d3eac5a8843c98bb6236f536492515567ab94962e73f6abb270b495719948e6"
+    }
+  ]
 }

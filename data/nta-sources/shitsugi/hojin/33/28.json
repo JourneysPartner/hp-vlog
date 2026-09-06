@@ -18,5 +18,19 @@
   "byte_size": 6629,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:25 GMT",
-  "etag": "\"19e5-6450809b55e80\""
+  "etag": "\"19e5-6450809b55e80\"",
+  "figures_checked_at": "2026-09-06T09:07:08.160Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/28_01.gif",
+      "alt": "同一の者による完全支配関係",
+      "width": "582",
+      "height": "261",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/28/28_01.gif",
+      "media_type": "image/gif",
+      "bytes": 21154,
+      "sha256": "b8d1a0c302c3e4fd954eff5d5257f9f8474fe3a640c52bcb24389be957ca1d66",
+      "page_html_hash": "8bfa7f6edac0d5498bee49ccc941727934b5ba0416f560b6f504461c0998629f"
+    }
+  ]
 }

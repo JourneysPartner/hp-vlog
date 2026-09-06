@@ -18,5 +18,19 @@
   "byte_size": 7691,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:34 GMT",
-  "etag": "\"1e0b-645080a49edc0\""
+  "etag": "\"1e0b-645080a49edc0\"",
+  "figures_checked_at": "2026-09-06T09:02:02.175Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/04/img/14_01.gif",
+      "alt": "POSレジシステムのイメージ図",
+      "width": "600",
+      "height": "245",
+      "file": "data/nta-sources/images/shitsugi/hojin/04/14/14_01.gif",
+      "media_type": "image/gif",
+      "bytes": 8654,
+      "sha256": "1c10f4a5e81395ebdbcf41399150fa276a4c1064d9b0a3cca96ee986852a2d4e",
+      "page_html_hash": "9e211546452131c2129112c2f424518da4c27f8757a4d859805657ae81898d71"
+    }
+  ]
 }

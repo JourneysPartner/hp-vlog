@@ -18,5 +18,19 @@
   "byte_size": 8232,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"2028-6450809d58110\""
+  "etag": "\"2028-6450809d58110\"",
+  "figures_checked_at": "2026-09-06T09:05:56.158Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/27/img/10_01.gif",
+      "alt": "分類番号の例 秋田400 あ 82-42",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/27/10/10_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3028,
+      "sha256": "634de8d0913da2f7e0e0da1cb9d5a9108fbbab1e0cd9314196d1164312c2fcf1",
+      "page_html_hash": "04ed9461574a0044dcfe73fbd0891efd7d5581b61d3b09bfaf14eb7e6dd09114"
+    }
+  ]
 }

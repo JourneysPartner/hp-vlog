@@ -18,5 +18,19 @@
   "byte_size": 4913,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:27 GMT",
-  "etag": "\"1331-6450806422cd8\""
+  "etag": "\"1331-6450806422cd8\"",
+  "figures_checked_at": "2026-09-06T09:09:23.140Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/03/img/07_01.gif",
+      "alt": "路線価の高い路線の影響を受ける度合いが著しく少ない場合の図",
+      "width": "481",
+      "height": "287",
+      "file": "data/nta-sources/images/shitsugi/hyoka/03/07/07_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2780,
+      "sha256": "1ad198d126db0007e983391260bd2a934426946b850baedf3b99f75ff8d773a6",
+      "page_html_hash": "a5db5ed5fd9adcff1c01e2179006512077b5471b50ad9362cce24801bdd611cc"
+    }
+  ]
 }

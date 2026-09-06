@@ -18,5 +18,19 @@
   "byte_size": 11435,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:27 GMT",
-  "etag": "\"2cab-6450809dc2448\""
+  "etag": "\"2cab-6450809dc2448\"",
+  "figures_checked_at": "2026-09-06T09:05:40.157Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/26/img/03_01.gif",
+      "alt": "売買とされるPFI事業について（賃貸借の目的となる資産の引渡しを令和７年３月31日以前に行った場合）（法人税の取扱い）の概要図",
+      "width": "550",
+      "height": "238",
+      "file": "data/nta-sources/images/shitsugi/hojin/26/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 7165,
+      "sha256": "be755efe7a461da3b5d6e623897da458f68f4df21e8db02fe295e9395d94cabb",
+      "page_html_hash": "1b475b93e19fe2e68c2a7d89e698aeabca507be9870d05b8359045c4dbd5add8"
+    }
+  ]
 }

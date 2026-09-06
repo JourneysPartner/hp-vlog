@@ -18,5 +18,19 @@
   "byte_size": 9805,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"264d-6450809a3eda8\""
+  "etag": "\"264d-6450809a3eda8\"",
+  "figures_checked_at": "2026-09-06T09:08:04.151Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/59_01.gif",
+      "alt": "資本関係図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/59/59_01.gif",
+      "media_type": "image/gif",
+      "bytes": 28070,
+      "sha256": "0b3e1feef799fc73a5152442ce4a2caf8cebff68a7a43f9a42cad54b04bb7629",
+      "page_html_hash": "971c275cd9e78b06adc769b4ff166de1125d8dc8c1eb13b1bedc7eca59643aa8"
+    }
+  ]
 }

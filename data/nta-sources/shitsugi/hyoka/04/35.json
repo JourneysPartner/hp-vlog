@@ -18,5 +18,19 @@
   "byte_size": 5726,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:24 GMT",
-  "etag": "\"165e-64508061e87d8\""
+  "etag": "\"165e-64508061e87d8\"",
+  "figures_checked_at": "2026-09-06T09:11:53.142Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/04/img/35_01.gif",
+      "alt": "容積率の異なる2以上の地域にわたる宅地の一部が都市計画道路予定地の区域内となる宅地の評価の説明図",
+      "width": "613",
+      "height": "228",
+      "file": "data/nta-sources/images/shitsugi/hyoka/04/35/35_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3397,
+      "sha256": "9089bcce78afa59ebcf72c02859f6bba7a169df6498f8363ebf6e7cb4cdcc3ee",
+      "page_html_hash": "a3929805141543ed298f8eb1e259deb78b381a6ff965d6cc1571a41fa8b264b0"
+    }
+  ]
 }

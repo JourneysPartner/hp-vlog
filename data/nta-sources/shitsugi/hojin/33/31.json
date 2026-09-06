@@ -18,5 +18,30 @@
   "byte_size": 10196,
   "encoding": "shift_jis",
   "last_modified": "Thu, 15 Jan 2026 01:00:01 GMT",
-  "etag": "\"27d4-64862be932c58\""
+  "etag": "\"27d4-64862be932c58\"",
+  "figures_checked_at": "2026-09-06T09:07:14.158Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/31_01.gif",
+      "alt": "資本金等の額から減算する金額（減資資本金額）＝A&times;B/C",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/31/31_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1940,
+      "sha256": "3223ec2a6005e80daf6805a12ca6d004e3ffaf2e65b59fafc37580e2c47f01b3",
+      "page_html_hash": "7bd86d2d0f46443be8ed32d935a232635ebdcb633c7543afe83ba1abf5c7672a"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/31_02.gif",
+      "alt": "利益積立金額から減算する金額＝D－減資資本金額※",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/31/31_02.gif",
+      "media_type": "image/gif",
+      "bytes": 1781,
+      "sha256": "3c49d1ee9e8296ad948ed4c81c02030066cdb5c34e7ef26b2aef4bbe34e30cd9",
+      "page_html_hash": "7bd86d2d0f46443be8ed32d935a232635ebdcb633c7543afe83ba1abf5c7672a"
+    }
+  ]
 }

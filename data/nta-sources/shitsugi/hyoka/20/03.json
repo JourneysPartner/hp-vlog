@@ -18,5 +18,30 @@
   "byte_size": 4937,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:21 GMT",
-  "etag": "\"1349-6450805ecc590\""
+  "etag": "\"1349-6450805ecc590\"",
+  "figures_checked_at": "2026-09-06T09:13:42.141Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/03_01.gif",
+      "alt": "指定容積率の計算式",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/03/03_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1825,
+      "sha256": "45a28d3c5af897e3fde773728ab228bc37a87d1764b2896dd0a40c15576afca4",
+      "page_html_hash": "2bcc582c267b2028ed5082555ef9622bdcde9afe1b3c97b91b64eac04722fdbb"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/20/img/03_02.gif",
+      "alt": "指定容積率の図",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hyoka/20/03/03_02.gif",
+      "media_type": "image/gif",
+      "bytes": 5344,
+      "sha256": "4d1e2ab798496dc7edbe8c4b13ffdd98fc26feed0f392bf24098ca5b2d91a644",
+      "page_html_hash": "2bcc582c267b2028ed5082555ef9622bdcde9afe1b3c97b91b64eac04722fdbb"
+    }
+  ]
 }

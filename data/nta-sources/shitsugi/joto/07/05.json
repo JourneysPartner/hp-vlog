@@ -18,5 +18,41 @@
   "byte_size": 6875,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:19 GMT",
-  "etag": "\"1adb-6450805c71908\""
+  "etag": "\"1adb-6450805c71908\"",
+  "figures_checked_at": "2026-09-06T09:15:20.133Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/05_01.gif",
+      "alt": "(事例1)ゴルフ会員権の取得費の計算式",
+      "width": "472",
+      "height": "54",
+      "file": "data/nta-sources/images/shitsugi/joto/07/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 1971,
+      "sha256": "715e1bb6bf74fb14110ee9c0692b565b3c6b15643859c0ec13f83b11c967b12b",
+      "page_html_hash": "2ffca014095858f831b72d8350bb31a5f515d066954d2f2fc2333455b744ea55"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/05_02.gif",
+      "alt": "(事例2)ゴルフ会員権の取得費の計算式1",
+      "width": "469",
+      "height": "92",
+      "file": "data/nta-sources/images/shitsugi/joto/07/05/05_02.gif",
+      "media_type": "image/gif",
+      "bytes": 2538,
+      "sha256": "3f3540f6f82ac7ac0a62b5a4e9565e308741f3eb70b9f34c161fa69b49aacb7e",
+      "page_html_hash": "2ffca014095858f831b72d8350bb31a5f515d066954d2f2fc2333455b744ea55"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/07/img/05_03.gif",
+      "alt": "(事例2)ゴルフ会員権の取得費の計算式2",
+      "width": "383",
+      "height": "59",
+      "file": "data/nta-sources/images/shitsugi/joto/07/05/05_03.gif",
+      "media_type": "image/gif",
+      "bytes": 1351,
+      "sha256": "9e197c371507dc085729da8bf9b8272fd53c0db22500de9072763c4aaefda48c",
+      "page_html_hash": "2ffca014095858f831b72d8350bb31a5f515d066954d2f2fc2333455b744ea55"
+    }
+  ]
 }

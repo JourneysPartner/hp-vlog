@@ -18,5 +18,19 @@
   "byte_size": 5716,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:30:16 GMT",
-  "etag": "\"1654-645080599b008\""
+  "etag": "\"1654-645080599b008\"",
+  "figures_checked_at": "2026-09-06T09:16:43.121Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/joto/14/img/09_01.gif",
+      "alt": "A・Bの処理（仕訳）の図",
+      "width": "529",
+      "height": "244",
+      "file": "data/nta-sources/images/shitsugi/joto/14/09/09_01.gif",
+      "media_type": "image/gif",
+      "bytes": 5405,
+      "sha256": "b5f8066df492cc906130df8f1f3048a29ce2799754d9ba3d8094e572d8ed2399",
+      "page_html_hash": "df15b82ce40ec649b90f03582ad7ca0516650f1a924f7375e2de5ed4fdbae126"
+    }
+  ]
 }

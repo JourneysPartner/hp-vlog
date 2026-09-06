@@ -18,5 +18,19 @@
   "byte_size": 10441,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:35 GMT",
-  "etag": "\"28c9-645080a570d20\""
+  "etag": "\"28c9-645080a570d20\"",
+  "figures_checked_at": "2026-09-06T09:01:30.169Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/01/img/04_01.gif",
+      "alt": "リボルビング方式の割賦販売のしくみ図",
+      "width": "570",
+      "height": "321",
+      "file": "data/nta-sources/images/shitsugi/hojin/01/04/04_01.gif",
+      "media_type": "image/gif",
+      "bytes": 10678,
+      "sha256": "5a447ac1af73a961ff474b566815d9dd56032573e073ef36ab3dad7890bb083a",
+      "page_html_hash": "00c7bc59399c2ed17832a0a484fb7d532f5df75545d1c12964e954ba543da829"
+    }
+  ]
 }

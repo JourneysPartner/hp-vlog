@@ -18,5 +18,19 @@
   "byte_size": 5684,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:33 GMT",
-  "etag": "\"1634-645080a374468\""
+  "etag": "\"1634-645080a374468\"",
+  "figures_checked_at": "2026-09-06T09:02:44.165Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/07/img/09_01.gif",
+      "alt": "借地権と底地との交換に伴う圧縮記帳の図",
+      "width": "510",
+      "height": "173",
+      "file": "data/nta-sources/images/shitsugi/hojin/07/09/09_01.gif",
+      "media_type": "image/gif",
+      "bytes": 3313,
+      "sha256": "7d6c09a0f5ca0a7cbea22a12f9841dad90a84f4d2488c5d1e75891e6ed021315",
+      "page_html_hash": "bd8e31f163ab805c0dd0b7b7f25c76392024f47be751e4591cf7f31f49ca6341"
+    }
+  ]
 }

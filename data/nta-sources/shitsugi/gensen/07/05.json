@@ -18,5 +18,19 @@
   "byte_size": 6832,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:11 GMT",
-  "etag": "\"1ab0-6450808e38f90\""
+  "etag": "\"1ab0-6450808e38f90\"",
+  "figures_checked_at": "2026-09-06T09:01:24.168Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/07/img/05_01.gif",
+      "alt": "控除額＝その年において規約に基づいて支給される年金の金額（剰余金を除く。）&times;その年金が支給される起因となった加入者が負担した金額/規約において定められている年金の年額（剰余金を除く。）&times;その受給権者に係る支給開始日における余命年数",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/gensen/07/05/05_01.gif",
+      "media_type": "image/gif",
+      "bytes": 2368,
+      "sha256": "c1335648a0400ea261bd4de2ce7669f79b8321087785c28d94b0013814495539",
+      "page_html_hash": "599a324cae1fe63b614e310dbc556d66cb919c137128580c0d1e04c693286697"
+    }
+  ]
 }

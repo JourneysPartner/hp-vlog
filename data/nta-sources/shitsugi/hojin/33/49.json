@@ -18,5 +18,19 @@
   "byte_size": 10335,
   "encoding": "shift_jis",
   "last_modified": "Wed, 03 Dec 2025 08:31:24 GMT",
-  "etag": "\"285f-6450809ab0610\""
+  "etag": "\"285f-6450809ab0610\"",
+  "figures_checked_at": "2026-09-06T09:07:46.146Z",
+  "images": [
+    {
+      "url": "https://www.nta.go.jp/law/shitsugi/hojin/33/img/49_01.png",
+      "alt": "図｜本件株式交換",
+      "width": "",
+      "height": "",
+      "file": "data/nta-sources/images/shitsugi/hojin/33/49/49_01.png",
+      "media_type": "image/png",
+      "bytes": 5257,
+      "sha256": "4cca95797cf05fbc95205c0a41ead483a9b6106b31e0332a258ce78f89bc89b7",
+      "page_html_hash": "f5433ab84e5a9ad3cfbb9b0837435b747115d89de231f84d941d3894958785c1"
+    }
+  ]
 }
