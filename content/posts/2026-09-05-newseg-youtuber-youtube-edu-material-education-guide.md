@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "解説系YouTuberの書籍・教材・取材費は、動画テーマとの関連性と使途の記録があれば経費になる。個人的な学習との切り分けが判断の核心で、目的・内容・金額を帳簿に残すことが重要。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-05T15:01:33.211+09:00"
 publish_at: "2026-09-06T11:14:00.000+09:00"
-published_at: ""
+published_at: "2026-09-06T12:01:31.693+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-05T00:05:43.272Z"
-updated_at: "2026-09-05T15:01:33.211+09:00"
+updated_at: "2026-09-06T12:01:31.693+09:00"
 publish_slot: "morning"
 ---
 解説動画を作るために買った書籍、オンライン講座の受講料、現地取材のための交通費——これらを経費として計上したいが、本当に大丈夫なのか確信が持てない、という声はよく聞きます。
