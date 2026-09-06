@@ -31,8 +31,27 @@ const shitsugiParser   = require(path.join(ROOT, 'scripts/lib/nta-parsers/shitsu
 const shitsugiIndex    = require(path.join(ROOT, 'scripts/lib/nta-index/shitsugi-index'));
 const store            = require(path.join(ROOT, 'scripts/lib/nta-store'));
 const indexBuilder     = require(path.join(ROOT, 'scripts/lib/nta-index-builder'));
+const figures          = require(path.join(ROOT, 'scripts/lib/nta-figures'));
 
 // ── 引数パーサ ─────────────────────────────────────────────────
+// ページに図（画像）があれば取得して entry.images に載せる。
+// 図は「そのページの HTML に実在する img」だけを対象にし、URL を規則から
+// 組み立てない（同じ img ディレクトリに別事例の図が同居しているため）。
+// 取得に失敗しても本文の取り込みは止めない。
+async function attachFigures(stored, html, url, rl, verbose) {
+  try {
+    const refs = figures.extractFigureRefs(html, url);
+    if (refs.length === 0) return stored;
+    const images = await figures.fetchAndStoreFigures(refs, stored, stored.html_hash, { rateLimiter: rl });
+    if (images.length === 0) return stored;
+    if (verbose) console.log(`  [figures] ${url} の図 ${images.length} 枚を保存`);
+    return { ...stored, images };
+  } catch (e) {
+    console.warn(`[figures] 取り込みに失敗（本文は保存します）: ${url} — ${e.message}`);
+    return stored;
+  }
+}
+
 function parseArgs(argv) {
   const args = {
     type: 'all',
@@ -44,10 +63,12 @@ function parseArgs(argv) {
     probe: null,
     rebuildIndex: false,
     skipIndex: false,
+    backfillFigures: false,
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     switch (a) {
+      case '--backfill-figures': args.backfillFigures = true; break;
       case '--type':         args.type = argv[++i]; break;
       case '--category':     args.category = argv[++i]; break;
       case '--incremental':  args.incremental = true; break;
@@ -82,6 +103,7 @@ Options:
   --probe <url>       1 ページだけ fetch して表示
   --rebuild-index     crawl をスキップして index.json / meta.json だけ再生成
   --skip-index        crawl 後の index/meta 自動生成をスキップ
+  --backfill-figures    既存レコードに図（画像）を後追いで取り込む（images 未取得のものだけ）
   -h, --help          このヘルプ
 `);
 }
@@ -255,7 +277,8 @@ async function crawlTaxAnswer(args) {
         last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
         etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
-      store.saveTaxAnswerEntry(stored);
+      const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
+      store.saveTaxAnswerEntry(withFigures);
       results.fetched++;
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${parsed.title.slice(0, 30)}`);
@@ -354,7 +377,8 @@ async function crawlShitsugi(args) {
         last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
         etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
-      store.saveShitsugiEntry(stored);
+      const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
+      store.saveShitsugiEntry(withFigures);
       results.fetched++;
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.section}/${entry.id} ${parsed.title.slice(0, 30)}`);
@@ -425,6 +449,64 @@ async function crawlAll(args) {
   }
 }
 
+// ── 既存レコードへの図のバックフィル ────────────────────────────
+//
+// 通常の incremental crawl は html_hash が変わらないページを HEAD だけで
+// スキップするため、図の取り込みを後から入れても既存レコードには一生付かない。
+// このモードは images も figures_checked_at も持たないレコードだけを対象に、
+// ページを取り直して図を保存する。図が無いページには figures_checked_at を
+// 記録し、次回以降は再取得しない（1,550件を何度も舐めないため）。
+async function backfillFigures(args) {
+  // data/nta-sources 配下の出典レコードを走査する（images 配下は対象外）
+  const fsMod = require('fs');
+  const walk = (dir, acc) => {
+    for (const name of fsMod.readdirSync(dir)) {
+      const full = path.join(dir, name);
+      const st = fsMod.statSync(full);
+      if (st.isDirectory()) {
+        if (name === 'images') continue;
+        walk(full, acc);
+      } else if (name.endsWith('.json') && name !== 'index.json' && name !== 'meta.json' && name !== 'token-df.json') {
+        acc.push(full);
+      }
+    }
+    return acc;
+  };
+  const targets = [];
+  for (const file of walk(store.NTA_SOURCES_DIR, [])) {
+    const entry = store.readJson(file);
+    if (!entry || entry.deleted === true || !entry.url) continue;
+    if (Array.isArray(entry.images) || entry.figures_checked_at) continue;
+    targets.push({ file, entry });
+  }
+  const limit = Number.isFinite(args.maxPages) ? Math.min(targets.length, args.maxPages) : targets.length;
+  console.log(`[backfill] 図が未確認のレコード ${targets.length} 件のうち ${limit} 件を処理します（1 req/sec）`);
+  if (args.dryRun) return;
+
+  const rl = new crawler.RateLimiter(1000);
+  let withFig = 0, without = 0, errors = 0;
+  for (let i = 0; i < limit; i++) {
+    const { file, entry } = targets[i];
+    await rl.wait();
+    const r = await crawler.fetchPage(entry.url);
+    if (!r.ok) {
+      errors++;
+      if (args.verbose) console.warn(`  [error] ${entry.url}: ${r.reason}`);
+      continue;
+    }
+    // ページが変わっていれば html_hash も更新しておく（図との整合のため）
+    const base = { ...entry, html_hash: r.htmlHash, figures_checked_at: r.fetchedAt };
+    const updated = await attachFigures(base, r.html, entry.url, rl, args.verbose);
+    store.writeJsonAtomic(file, updated);
+    if (Array.isArray(updated.images) && updated.images.length > 0) withFig++;
+    else without++;
+    if (args.verbose || (i + 1) % 50 === 0) {
+      console.log(`  [${i + 1}/${limit}] 図あり ${withFig} / 図なし ${without} / エラー ${errors}`);
+    }
+  }
+  console.log(`[backfill] 完了: 図あり ${withFig} 件 / 図なし ${without} 件 / エラー ${errors} 件`);
+}
+
 // ── main ───────────────────────────────────────────────────────
 async function main() {
   const args = parseArgs(process.argv);
@@ -440,6 +522,11 @@ async function main() {
     indexBuilder.saveIndex(indexData);
     console.log(`[rebuild] 完了: ${indexData.total_count} エントリ`);
     console.log(`          by_type: ${JSON.stringify(indexData.by_type)}`);
+    return;
+  }
+
+  if (args.backfillFigures) {
+    await backfillFigures(args);
     return;
   }
 

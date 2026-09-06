@@ -207,7 +207,14 @@ ${frontmatter}
 
 （Markdown本文 ${WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK}）`;
 
-  return { staticSystem, dynamicSystem, user };
+  return { staticSystem, dynamicSystem, user, figures: args.sourceFigures || [] };
+}
+
+// 図には必ず「どの出典の図か」を添えて渡す。主出典の図しか渡さない設計だが、
+// ラベルが無いとモデルが本文中の別の出典の図と取り違えうるため明示する。
+function figureLabel(f) {
+  const alt = f.alt ? `（図の説明: ${f.alt}）` : '';
+  return `次の画像は、根拠として渡している主出典「${f.sourceTitle || '出典'}」（${f.url || ''}）に掲載されている図です${alt}。この図に書かれている数値・続柄・関係だけを設例に使ってください。`;
 }
 
 // ── provider 別メッセージ変換 ──────────────────────────────────
@@ -215,11 +222,18 @@ ${frontmatter}
  * OpenAI Chat Completions 形式に変換。
  * 固定ルールと可変指示を 1 つの system にまとめる（OpenAI は明示キャッシュAPIが別途のため統合）。
  */
-function toOpenAIMessages({ staticSystem, dynamicSystem, user }) {
-  return [
-    { role: 'system', content: `${staticSystem}\n\n${dynamicSystem}` },
-    { role: 'user',   content: user },
-  ];
+function toOpenAIMessages({ staticSystem, dynamicSystem, user, figures }) {
+  const system = { role: 'system', content: `${staticSystem}\n\n${dynamicSystem}` };
+  if (!figures || figures.length === 0) {
+    return [system, { role: 'user', content: user }];
+  }
+  const parts = [];
+  for (const f of figures) {
+    parts.push({ type: 'text', text: figureLabel(f) });
+    parts.push({ type: 'image_url', image_url: { url: `data:${f.media_type};base64,${f.data}` } });
+  }
+  parts.push({ type: 'text', text: user });
+  return [system, { role: 'user', content: parts }];
 }
 
 /**
@@ -229,18 +243,27 @@ function toOpenAIMessages({ staticSystem, dynamicSystem, user }) {
  *   [ { type:'text', text: STATIC_RULES, cache_control:{type:'ephemeral'} },
  *     { type:'text', text: dynamicSystem } ]
  */
-function toAnthropicRequest({ staticSystem, dynamicSystem, user }, { model, maxTokens, useCache }) {
+function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { model, maxTokens, useCache }) {
   const systemBlocks = [
     useCache
       ? { type: 'text', text: staticSystem, cache_control: { type: 'ephemeral' } }
       : { type: 'text', text: staticSystem },
     { type: 'text', text: dynamicSystem },
   ];
+  const content = [];
+  for (const f of figures || []) {
+    content.push({ type: 'text', text: figureLabel(f) });
+    content.push({
+      type: 'image',
+      source: { type: 'base64', media_type: f.media_type, data: f.data },
+    });
+  }
+  content.push({ type: 'text', text: user });
   return {
     model,
     max_tokens: maxTokens || 4096,
     system: systemBlocks,
-    messages: [{ role: 'user', content: user }],
+    messages: [{ role: 'user', content }],
   };
 }
 
