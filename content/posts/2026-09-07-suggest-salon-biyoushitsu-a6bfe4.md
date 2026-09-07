@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "美容室の経費は「業務上の支出」であることが必須条件。材料費・家賃・広告費など主要支出の勘定科目の分け方と、自宅兼用・プライベート混在ケースの按分ルールを解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-07T17:06:56.414+09:00"
+publish_at: "2026-09-08T11:40:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-07T00:05:51.994Z"
-updated_at: "2026-09-07T00:09:08.240Z"
+updated_at: "2026-09-07T17:06:56.414+09:00"
+publish_slot: "morning"
 ---
 確定申告の時期が近づくと、「このシャンプー剤は消耗品費でいいのか」「Instagram広告の費用はどの科目に入れる？」と手が止まるオーナーさんは少なくありません。
 
