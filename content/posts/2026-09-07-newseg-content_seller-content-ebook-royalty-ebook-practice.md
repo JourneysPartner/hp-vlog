@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "KindleやnoteなどのプラットフォームからKindleの印税・PDF教材の売上を受け取る場合、収入の計上時期は「入金日」ではなく「権利が確定した日」。所得区分・仕訳・経費の扱いを具体例で解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-07T17:27:54.310+09:00"
+publish_at: "2026-09-08T17:49:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-07T00:09:08.257Z"
-updated_at: "2026-09-07T00:11:18.599Z"
+updated_at: "2026-09-07T17:27:54.310+09:00"
+publish_slot: "evening"
 ---
 Kindleの印税が先月分まとめて振り込まれた、noteのPDF教材の売上はいつ帳簿に載せればいい、プラットフォームの手数料は経費として引いていいのか——コンテンツ販売を始めて最初の確定申告が近づくと、こうした疑問が一気に押し寄せてくることがあります。
 
