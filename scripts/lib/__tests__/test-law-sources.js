@@ -74,7 +74,8 @@ assert(law.getArticle('minpo', '9999') === null, '存在しない条は null');
 
 console.log('');
 console.log('=== 対応表が指す条と機関ページが実在する ===');
-const allRefs = { ...law.STAGE_REFS, ...law.LIFE_STAGE_REFS };
+const allRefs = { ...law.STAGE_REFS, ...law.PAIN_REFS, ...law.LIFE_STAGE_REFS };
+assert(Object.keys(law.LIFE_STAGE_REFS).length === 9, '相続の9つの時期すべてに根拠がある');
 for (const [stage, ref] of Object.entries(allRefs)) {
   const missing = [];
   for (const [key, nums] of ref.laws) for (const n of nums) if (!law.getArticle(key, n)) missing.push(`${key}:${n}`);
@@ -132,6 +133,30 @@ const notCatalogued = sa.checkSourceAlignment({ source_url: 'https://laws.e-gov.
 assert(notCatalogued.needs_source_review === true, 'カタログ未収録の法令 URL は従来どおり確認が要る');
 const { isOfficialDomain } = require(path.join(ROOT, 'scripts/lib/official-sources'));
 assert(isOfficialDomain(primary.url), 'e-Gov は公的ドメインとして扱う');
+
+console.log('');
+console.log('=== 選定時の適合判定: 法令に根拠がある段階は「出典未確定」で保留しない ===');
+const { evaluateTopicFit } = require(path.join(ROOT, 'scripts/lib/customer-relevance'));
+const gridTopic = {
+  slug: 'inheritance-after-filing-rental-property-amendment-needed-guide',
+  persona: 'inheritance_client', category: '相続', tax_domain: 'inheritance_tax', macro: '相続贈与',
+  cluster: 'inheritance', subcluster: 'after-filing-amendment-return', customer_segment: 'inheritance_gift',
+  life_stage: 'after-filing', procedure_stage: 'amendment-return', pain_point: '',
+  article_type: 'basic_explainer',
+  search_intent: '相続税の申告後に賃貸物件の評価誤りが分かったとき、修正申告が必要かを整理したい',
+  reader_problem: '申告後に評価の誤りに気づいたが、修正申告・更正の請求のどちらが必要か分からない',
+  primary_question: '相続税の申告後に賃貸物件の評価誤りが分かったら修正申告は必要？',
+  source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm',
+  source_title: '国税庁タックスアンサー No.4152 相続税の計算',
+  source_provenance: 'domain-fallback', source_confidence: 0,
+};
+const fitLaw = evaluateTopicFit(gridTopic);
+assert(fitLaw.decision !== 'revise' || !/出典/.test(fitLaw.reason || ''),
+  `根拠条文（相続税法31・32条）がある段階は出典未確定を理由に revise にしない（decision=${fitLaw.decision}）`);
+assert(/法令カタログに根拠条文あり/.test(fitLaw.source_alignment_reason || ''), '理由に法令カタログの根拠が示される');
+const fitNoLaw = evaluateTopicFit({ ...gridTopic, procedure_stage: 'quasi-final-return', life_stage: '' });
+assert(fitNoLaw.decision === 'revise' && /出典/.test(fitNoLaw.reason || ''),
+  '根拠条文の無い段階は従来どおり出典未確定で revise');
 
 console.log(`\n結果: ${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

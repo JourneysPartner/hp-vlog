@@ -129,14 +129,51 @@ const STAGE_REFS = {
   'amendment-return': { laws: [['sozokuzei', ['31', '32']]], pages: [] },
 };
 
-// life_stage だけで決まる根拠（procedure_stage が無い候補向け）
-const LIFE_STAGE_REFS = {
-  // 生前準備: 遺言の方式（960・968）、遺留分（1042）
-  'pre-planning':       { laws: [['minpo', ['960', '968', '1042']]], pages: [] },
-  'critical-immediate': { laws: [['koseki', ['86', '87']], ['minpo', ['882', '915']]], pages: ['moj_shibou_todoke', 'nenkin_shibou'] },
-  'within-7days':       { laws: [['koseki', ['86', '87']], ['minpo', ['882', '915']]], pages: ['moj_shibou_todoke', 'nenkin_shibou'] },
+// 論点（pain_point）で決まる根拠。procedure_stage を持たない深掘り論点はこちらで引く。
+// 先頭の条が主出典の候補になる（国税庁出典が未確定のときだけ差し替わる）。
+// 出典が domain-fallback で入っている論点（family-dispute / heir-confirmation / bank-frozen /
+// what-first / amendment-needed 等）を優先して埋めた。
+const PAIN_REFS = {
+  // 逝去直後に何をするか: 死亡届・火葬許可・相続開始・熟慮期間
+  'what-first':            { laws: [['koseki', ['86', '87']], ['bochi', ['5']], ['minpo', ['882', '915']]], pages: ['moj_shibou_todoke', 'nenkin_shibou', 'nenkin_jukyu_shibou'] },
+  // 相続人の確定: 子・直系尊属・兄弟姉妹・配偶者、戸籍の交付
+  'heir-confirmation':     { laws: [['minpo', ['887', '889', '890', '900']], ['koseki', ['10', '10_2']]], pages: ['moj_koseki', 'houmukyoku_houtei'] },
+  // 口座凍結: 相続財産の共有、遺産分割前の処分、預貯金の仮払い
+  'bank-frozen':           { laws: [['minpo', ['909_2', '898', '899', '906_2']]], pages: ['houmukyoku_houtei'] },
+  // 家族の争い: 遺産分割の基準・協議・審判、法定相続分、遺留分
+  'family-dispute':        { laws: [['minpo', ['906', '907', '900', '1042']]], pages: ['moj_fudosan_souzoku'] },
+  // 事業承継: 誰が承継するかは遺産分割（税制は措置法で国税庁出典）
+  'business-succession':   { laws: [['minpo', ['906', '907', '902']]], pages: [] },
+  // 名義預金: 課税財産の範囲、相続の一般的効力
+  'name-deposits-concern': { laws: [['sozokuzei', ['2']], ['minpo', ['896']]], pages: [] },
+  // 申告後の誤り: 修正申告・更正の請求
+  'amendment-needed':      { laws: [['sozokuzei', ['31', '32']]], pages: [] },
+  // 空き家: 相続登記の義務、遺産分割
+  'vacant-house-handling': { laws: [['fudosan_toki', ['76_2', '76_3']], ['minpo', ['906', '907']]], pages: ['moj_souzoku_touki'] },
+  'real-estate-registration-pain': { laws: [['fudosan_toki', ['63', '76_2', '76_3', '164']]], pages: ['moj_souzoku_touki', 'moj_souzoku_touki_qa', 'moj_souzokunin_shinkoku', 'houmukyoku_houtei'] },
+  // 以下は curated の出典を持つ論点。主出典は差し替わらず、条文を原文として添えるだけ。
+  'deadline-pressure':     { laws: [['sozokuzei', ['27', '33']], ['minpo', ['915']]], pages: [] },
+  'funeral-debt-deduction': { laws: [['sozokuzei', ['13', '14']]], pages: [] },
+  'spouse-reduction':      { laws: [['sozokuzei', ['19_2']]], pages: [] },
+  'tax-applicable-or-not': { laws: [['sozokuzei', ['15']]], pages: [] },
+  'life-insurance-exemption': { laws: [['sozokuzei', ['3', '12']]], pages: [] },
+  'lifetime-gift-addback': { laws: [['sozokuzei', ['19', '21_9']]], pages: [] },
+  'second-inheritance-loss': { laws: [['sozokuzei', ['19_2']], ['minpo', ['1028']]], pages: [] },
+  'real-estate-valuation': { laws: [['sozokuzei', ['22']]], pages: [] },
 };
 
+// life_stage だけで決まる根拠（procedure_stage も pain_point も無い候補向け）
+const LIFE_STAGE_REFS = {
+  'pre-planning':       { laws: [['minpo', ['960', '968', '1042']]], pages: [] },   // 遺言・遺留分
+  'cognitive-decline':  { laws: [['minpo', ['960', '968']]], pages: [] },           // 遺言の方式
+  'critical-immediate': { laws: [['koseki', ['86', '87']], ['minpo', ['882', '915']]], pages: ['moj_shibou_todoke', 'nenkin_shibou'] },
+  'within-7days':       { laws: [['koseki', ['86', '87']], ['minpo', ['882', '915']]], pages: ['moj_shibou_todoke', 'nenkin_shibou'] },
+  'within-4months':     { laws: [['minpo', ['915']], ['sozokuzei', ['27']]], pages: [] },   // 熟慮期間・申告
+  'within-10months':    { laws: [['sozokuzei', ['27', '33']], ['minpo', ['906', '907']]], pages: [] },
+  'after-filing':       { laws: [['sozokuzei', ['31', '32']]], pages: [] },          // 修正申告・更正の請求
+  'second-inheritance': { laws: [['sozokuzei', ['19_2']], ['minpo', ['1028']]], pages: [] },
+  'multi-year-review':  { laws: [['sozokuzei', ['31', '32']]], pages: [] },
+};
 // ── 読み出し ─────────────────────────────────────────────────
 const _cache = new Map();
 function loadLaw(key) {
@@ -209,9 +246,11 @@ function findLawCitations(body) {
 
 /** 段階から渡すべき根拠を引く（条文の実体と機関ページ） */
 function refsForTopic(topic = {}) {
-  const stage = topic.procedure_stage && STAGE_REFS[topic.procedure_stage];
-  const life = !stage && topic.life_stage && LIFE_STAGE_REFS[topic.life_stage];
-  const src = stage || life;
+  // 手続き段階 → 論点 → 時期 の順で、最初に見つかった対応表を使う
+  const src = (topic.procedure_stage && STAGE_REFS[topic.procedure_stage])
+    || (topic.pain_point && PAIN_REFS[topic.pain_point])
+    || (topic.life_stage && LIFE_STAGE_REFS[topic.life_stage])
+    || null;
   if (!src) return { articles: [], pages: [] };
   const articles = [];
   for (const [key, nums] of src.laws) {
@@ -305,7 +344,7 @@ function primarySourceFor(topic = {}) {
 }
 
 module.exports = {
-  LAWS, AGENCY_PAGES, STAGE_REFS, LIFE_STAGE_REFS, LAW_DIR, EGOV_API, LAW_PAGE_BASE,
+  LAWS, AGENCY_PAGES, STAGE_REFS, PAIN_REFS, LIFE_STAGE_REFS, LAW_DIR, EGOV_API, LAW_PAGE_BASE,
   loadLaw, getArticle, findLawCitations, refsForTopic, articlesForCitations,
   buildLawProvisionBlock, buildAgencyPagesBlock, lawPageUrl, primarySourceFor,
   normalizeArticleNum, kanjiToArabic, articleLabel, resetCacheForTest,
