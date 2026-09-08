@@ -27,6 +27,7 @@ const OFFICIAL_DOMAINS = [
   'chusho.meti.go.jp',  // 中小企業庁
   'meti.go.jp',         // 経済産業省
   'moj.go.jp',          // 法務省
+  'e-gov.go.jp',        // e-Gov 法令検索（laws.e-gov.go.jp。法令カタログの出典 URL）
 ];
 
 function isOfficialDomain(url) {

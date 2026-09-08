@@ -397,7 +397,27 @@ function evaluateTopicFit(topic = {}) {
   const search_intent_score = scoreSearchIntent(topic);
 
   // source_alignment_score（出典一致ゲート。主論点と主出典が一致しているか）
-  const sa = checkSourceAlignment(topic);
+  let sa = checkSourceAlignment(topic);
+  // 2026-09-08: 国税庁の出典が未確定でも、手続き段階に法令カタログの根拠条文があれば
+  // 生成時にその条文（e-Gov）が主出典に据わる（generate-draft の差し替え）。
+  // 選定時にこれを revise 扱いにすると、相続の手続き記事が毎回「出典未確定」で
+  // 保留になる（test-quality-gate が日によって落ちていた原因）。根拠があるものは通す。
+  // 対象は「出典が仮置き（domain-fallback 等）で未解決」の候補だけ。人が指定した出典が
+  // 論点と食い違う hard/soft 不一致は、根拠条文があっても従来どおり reject / revise にする。
+  const WEAK_PROVENANCE = new Set(['domain-fallback', 'ultimate', 'auto', 'unknown', '']);
+  const unresolved = WEAK_PROVENANCE.has(String(topic.source_provenance || ''))
+    || (topic.source_provenance === 'llm-auto' && !(Number(topic.source_confidence) >= 0.9));
+  // 未解決の出典は severity=soft で返るので soft は通す。hard（論点と明確に食い違う出典）だけ除外。
+  if (sa.needs_source_review === true && unresolved && sa.severity !== 'hard') {
+    try {
+      const { primarySourceFor } = require('./law-sources');
+      const lawPrimary = primarySourceFor(topic);
+      if (lawPrimary) {
+        sa = { ...sa, aligned: true, score: 4, severity: 'ok', needs_source_review: false,
+          reason: `法令カタログに根拠条文あり（生成時に ${lawPrimary.title} を主出典に差し替え）` };
+      }
+    } catch (_error) { /* 法令カタログが無い環境では従来どおり */ }
+  }
   const source_alignment_score = sa.score;
 
   const practical_usefulness_score = natural ? scorePractical(topic) : 2;
