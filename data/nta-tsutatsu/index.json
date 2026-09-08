@@ -8,7 +8,7 @@
     "section_pages": 257,
     "provision_count": 1310,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:22:41.900Z"
+    "fetched_at": "2026-09-08T19:27:09.747Z"
   },
   {
     "circular": "shohi",
@@ -19,7 +19,7 @@
     "section_pages": 100,
     "provision_count": 645,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:18:04.606Z"
+    "fetched_at": "2026-09-08T19:21:37.297Z"
   },
   {
     "circular": "shotoku",
@@ -30,7 +30,7 @@
     "section_pages": 134,
     "provision_count": 1202,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:16:14.705Z"
+    "fetched_at": "2026-09-08T19:19:27.438Z"
   },
   {
     "circular": "sozoku",
@@ -41,6 +41,6 @@
     "section_pages": 35,
     "provision_count": 439,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:23:19.727Z"
+    "fetched_at": "2026-09-08T19:27:57.976Z"
   }
 ]
