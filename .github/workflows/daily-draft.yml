@@ -381,6 +381,26 @@ jobs:
             --comment "$REASON" \
             --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
 
+      # ── 下書きが 0 本だった日を知らせる ─────────────────────────
+      # 2026-09-08: 生成後の重複判定で全件を取り下げると 0 本になる。ジョブは成功で
+      # 終わり、prep が skipped=true になるため他の通知に乗らない。
+      - name: Notify no draft (0 articles)
+        if: steps.prep.outputs.skipped == 'true' && steps.draft.outcome == 'success'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+          SINGLE_REASON: ${{ steps.draft.outputs.single_reason }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          REASON="$SINGLE_REASON"
+          [ -z "$REASON" ] && REASON='選定候補が無かったか、生成後の判定で全件を取り下げました。'
+          node scripts/notify.js \
+            --event daily_draft_none \
+            --title "$DATE の記事生成" \
+            --comment "$REASON" \
+            --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
+
       # ── 失敗したら必ず知らせる ──────────────────────────────────
       # 2026-08-28/29: 記事の生成自体は成功していたのに、その後の
       # バリデーションでジョブが落ちて下書きが作られず、2日間気づかれなかった。

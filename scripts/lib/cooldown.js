@@ -120,6 +120,25 @@ function filterByCooldown(topics, corpus, now = new Date()) {
   return { passed, blocked };
 }
 
+// 相続の life_stage を「読者の問い」が同じになる大区分にまとめる。
+// 生前（準備）／逝去後（手続き）／申告後（見直し）の 3 つ。
+// 逝去後の 4 段階（危篤・逝去直後／7日以内／4ヶ月以内／10ヶ月以内）は、同じ手続きなら
+// 読者にとって同じ記事。scenario-axes.LIFE_STAGES の id と対応させる。
+const LIFE_STAGE_PHASE = {
+  'pre-planning':       'before-death',
+  'cognitive-decline':  'before-death',
+  'critical-immediate': 'after-death',
+  'within-7days':       'after-death',
+  'within-4months':     'after-death',
+  'within-10months':    'after-death',
+  'after-filing':       'after-filing',
+  'second-inheritance': 'after-filing',
+  'multi-year-review':  'after-filing',
+};
+function lifeStagePhase(lifeStage) {
+  return LIFE_STAGE_PHASE[lifeStage] || null;
+}
+
 /**
  * 意味的な同一テーマ（customer_segment × pain_point）が既出かどうかを判定する。
  *
@@ -139,13 +158,34 @@ function checkTopicIdentity(candidate, corpus, now = new Date(), windowDays = ID
   // （life_stage / subcluster で表現されるテーマ）は subcluster を代替キーにする。
   // 代替キーは candidate 側で決めた同じフィールドを post 側でも参照するため、
   // pain と subcluster が名前空間を跨いで誤マッチすることはない。
-  const keyField = candidate.pain_point ? 'pain_point' : 'subcluster';
-  const key = candidate[keyField];
+  // 2026-09-08: pain_point が空のシナリオ論点（相続の life_stage × procedure_stage 格子）は
+  // subcluster の文字列で照合していたため、ラベルが違えば別論点扱いになり、
+  // 「亡くなった後に最初に何をするか」が critical-immediate / within-7days / within-4months と
+  // 名前を変えて繰り返し生成された（9/8 の本命記事が 4/18・8/13・8/22 と重複）。
+  // procedure_stage を持つ候補は「時期の大区分 × 手続き」を鍵にし、格子の隣のセルを同一視する。
+  const identityKeyOf = (t) => {
+    if (t.pain_point) return { field: 'pain_point', key: t.pain_point };
+    const phase = lifeStagePhase(t.life_stage);
+    if (phase && t.procedure_stage) return { field: 'stage', key: `${phase}:${t.procedure_stage}` };
+    return { field: 'subcluster', key: t.subcluster };
+  };
+  const { field: keyField, key } = identityKeyOf(candidate);
   // segment / キーが取れない候補は対象外（curated topic など既存挙動を壊さない）
   if (!seg || !key) return null;
 
+  // 既存記事側は「候補が使う鍵」で読む。候補が段階を持たない（curated 等）なら
+  // 従来どおり subcluster で照合し、既存記事に段階があっても無視する。
+  const postKeyFor = (post) => {
+    if (keyField === 'pain_point') return post.pain_point;
+    if (keyField === 'stage') {
+      const phase = lifeStagePhase(post.life_stage);
+      return (phase && post.procedure_stage) ? `${phase}:${post.procedure_stage}` : '';
+    }
+    return post.subcluster;
+  };
   for (const post of corpus) {
-    if (!post[keyField] || post[keyField] !== key) continue;
+    const postKey = postKeyFor(post);
+    if (!postKey || postKey !== key) continue;
     if (deriveSegment(post).customer_segment !== seg) continue;
     const postDate = postReferenceDate(post);
     if (isNaN(postDate)) continue;
@@ -184,5 +224,6 @@ module.exports = {
   checkCooldown,
   filterByCooldown,
   checkTopicIdentity,
+  lifeStagePhase,
   filterByTopicIdentity,
 };
