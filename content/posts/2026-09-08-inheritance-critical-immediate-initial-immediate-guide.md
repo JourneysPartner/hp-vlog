@@ -36,7 +36,7 @@ tax_risk_score: 4
 recommendation: "revise"
 review_warning: "出典: LLM選定の確信度が低い（0.55 < 0.9）"
 summary: "逝去直後は死亡診断書の取得・死亡届の提出から始まり、相続税の申告期限は逝去から10か月以内。まず相続人の確定と財産の洗い出しを早期に進めることが重要です。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-08T00:05:52.646Z"
-updated_at: "2026-09-08T00:08:37.443Z"
+updated_at: "2026-09-08T16:34:22.958+09:00"
 ---
 家族が危篤になったとき、あるいは亡くなった直後——気持ちの整理もつかないなか、「何から手をつければいいのか」と途方に暮れる方は少なくありません。
 
