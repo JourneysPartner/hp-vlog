@@ -168,6 +168,18 @@ function result(values) {
   };
 }
 
+// e-Gov の法令ページで、かつ法令カタログ（law-sources.LAWS）に収録済みの法令か。
+// 収録外の法令 URL は「公的だが未確認」として従来の判定に流す。
+function isLawCatalogUrl(url) {
+  try {
+    const { LAWS, LAW_PAGE_BASE } = require('./law-sources');
+    const u = String(url || '');
+    if (!u.startsWith(LAW_PAGE_BASE)) return false;
+    const id = u.slice(LAW_PAGE_BASE.length).split(/[#?/]/)[0];
+    return Object.values(LAWS).some(l => l.law_id === id);
+  } catch (_error) { return false; }
+}
+
 function checkSourceAlignment(topic = {}) {
   const url = topic.source_url || '';
   const pain = topic.pain_point || topic.pain || '';
@@ -176,6 +188,14 @@ function checkSourceAlignment(topic = {}) {
 
   if (!url) {
     return result({ score: 2, expectedTitle: expected ? expected.title : '', reason: '出典が未設定', provenance });
+  }
+
+  // 法令カタログ（e-Gov）の条文を主出典にした記事（2026-09-08）。
+  // 逝去直後の手続きなど国税庁に該当ページが無い論点は、民法・戸籍法等の条文が根拠になる。
+  // URL がカタログ収録の法令ページであれば、その条文自体を正本として扱う（人の確認は不要）。
+  if (isLawCatalogUrl(url)) {
+    return result({ aligned: true, score: 5, severity: 'ok', expectedTitle: topic.source_title || '',
+      reason: '', needs_source_review: false, provenance: provenance === 'unknown' ? 'law-catalog' : provenance });
   }
 
   // 汎用fallbackや自動候補は、URLが偶然既定値と一致しても承認しない。

@@ -1,0 +1,82 @@
+name: Crawl Law Sources
+
+run-name: >-
+  Crawl Law Sources [${{ github.event_name }}]
+
+# 法令カタログ（data/law-sources/）を e-Gov 法令API から更新する。
+#   - 自動：毎月 2 日 JST 00:00（UTC 15:00・国税庁の月次クロールの翌日）
+#   - 手動：workflow_dispatch
+#   - 変更があれば main へ PR 化（main 直 push はしない）
+# 相続法・戸籍法・不動産登記法は改正が続いているため、条文の「今の姿」を保つ。
+on:
+  schedule:
+    - cron: '0 15 2 * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '対象の法令キー（カンマ区切り。空なら全件）'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run crawl
+        run: |
+          set -o pipefail
+          ARGS=""
+          if [ -n "${{ github.event.inputs.only }}" ]; then ARGS="--only ${{ github.event.inputs.only }}"; fi
+          node scripts/crawl-law-sources.js --verbose $ARGS 2>&1 | tee /tmp/law-crawl.log
+
+      - name: Verify catalog
+        run: node scripts/lib/__tests__/test-law-sources.js
+
+      - name: Create PR if changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add data/law-sources/
+          if git diff --cached --quiet; then
+            echo "::notice::法令カタログに変更はありません"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          DATE=$(date -u +%Y-%m-%d)
+          # 同日複数回でも衝突しないよう run_id を付ける（crawl-nta-sources.yml と同じ）
+          BRANCH="chore/law-crawl-${DATE}-${GITHUB_RUN_ID}"
+          git checkout -b "$BRANCH"
+          git commit -m "chore(law): 法令カタログを更新 (${DATE})"
+          git push origin "$BRANCH"
+          SUMMARY=$(grep -E '^\[law\] .+条' /tmp/law-crawl.log | sed 's/^\[law\] /- /' || true)
+          PR_BODY=$(cat <<PREOF
+          ## 法令カタログの更新（${DATE}）
+
+          e-Gov 法令API から取得した条文の更新です。改正施行日が変わった法令があれば、
+          関連する記事の記述（期限・要件）が現行法と合っているかを確認してください。
+
+          ${SUMMARY}
+
+          > 自動生成。内容は data/law-sources/ の差分を確認してください。
+          PREOF
+          )
+          gh pr create --title "chore(law): 法令カタログを更新 (${DATE})" --body "$PR_BODY" --base main --head "$BRANCH"

@@ -10,6 +10,7 @@ const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats } = require('./topic
 const { selectDailyTopics, demandKindOf } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock, loadSourceFigures } = require('./lib/nta-source-body');
+const lawSources = require('./lib/law-sources');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { checkCitations, buildProvisionBlock } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
@@ -381,6 +382,15 @@ function selfCheckContent(content, articleType, slug) {
     }
   } catch (e) {
     console.warn(`[self-check] 通達の照合に失敗（${e.message}）→ 照合をスキップ`);
+  }
+  // 法令の条番号も同様に照合する（民法第915条 等）。カタログに無い条は捏造の疑い。
+  try {
+    const bad = lawSources.findLawCitations(body).filter(c => !c.found);
+    if (bad.length > 0) {
+      warnings.push(`法令の条番号がカタログに無い: ${[...new Set(bad.map(c => c.matched))].join(', ')} — 条番号が正しいか確認してください`);
+    }
+  } catch (e) {
+    console.warn(`[self-check] 法令の照合に失敗（${e.message}）→ 照合をスキップ`);
   }
 
   const h2Count = (body.match(/^## /gm) || []).length;
@@ -900,6 +910,19 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // その本文がプロンプトに添付された結果、記事の冒頭が総論の言い回しで書かれた。
   // 承認は出典ガードが正しく止めたが、本文の中身は既に汚染されていた。
   // 確定していない出典は、参考として渡すことはしても根拠としては名指しさせない。
+  // 国税庁に該当ページが無い論点（逝去直後の手続き等）は、法令カタログの条文を主出典に据える。
+  // 2026-09-08 の本命記事は No.4205 を確信度0.55で選ぶしかなく「要修正」になった。
+  // 手続き段階に根拠条文があり、かつ国税庁出典が未確定のときだけ差し替える。
+  if (isSourceUnconfirmed(topic)) {
+    const lawPrimary = lawSources.primarySourceFor(topic);
+    if (lawPrimary) {
+      console.log(`[source] 国税庁出典が未確定 → 法令を主出典に: ${lawPrimary.title}（${lawPrimary.url}）`);
+      topic.source_url = lawPrimary.url;
+      topic.source_title = lawPrimary.title;
+      topic.source_provenance = lawPrimary.provenance;
+      topic.source_confidence = lawPrimary.confidence;
+    }
+  }
   const sourceUnconfirmed = isSourceUnconfirmed(topic);
   if (sourceUnconfirmed) {
     console.log(`[source] 出典が未確定のため根拠としては渡さない: ${topic.source_url}`);
@@ -974,7 +997,13 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // カタログに入っていなかったため照合できなかった。
   const qaBlock = buildQaBlockForTopic(topic);
 
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock;
+  // 法令の原文（民法・戸籍法・不動産登記法等）と手続き機関のページ。相続の手続き段階から引く。
+  const lawRefs = lawSources.refsForTopic(topic);
+  const lawBlock = lawSources.buildLawProvisionBlock(lawRefs.articles) + lawSources.buildAgencyPagesBlock(lawRefs.pages);
+  if (lawRefs.articles.length || lawRefs.pages.length) {
+    console.log(`[source] 法令の原文を添付: ${lawRefs.articles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、') || 'なし'} ／ 機関ページ ${lawRefs.pages.length} 件`);
+  }
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
@@ -1666,6 +1695,8 @@ function buildRegenSourceBlocks(meta = {}, body = '') {
     primary_question: meta.primary_question, summary: meta.summary,
     subcluster: meta.subcluster,
     source_url: meta.source_url, source_title: meta.source_title,
+    // 法令の根拠（相続の手続き段階）を引くのに使う
+    procedure_stage: meta.procedure_stage, life_stage: meta.life_stage,
   };
   // 論点別ルール（CONDITIONAL_RULES）。通常生成と full 経路は builder 経由で
   // dynamicSystem に載るが、targeted / section 経路は builder を通らないため
@@ -1738,8 +1769,25 @@ ${rules.join(RULE_SEP)}`
     }
   }
 
-  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures,
-    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${changesBlock}${rulesBlock}` };
+  // 法令の原文: 段階の根拠条文と、本文が実際に引いている条（民法第915条 等）を合わせて渡す。
+  // 差し戻しで「条文と合っているか」を確かめられるようにする。カタログに無い条番号は警告。
+  let lawBlock = '';
+  try {
+    const lawRefs = lawSources.refsForTopic(topicLike);
+    const cited = lawSources.findLawCitations(body || '');
+    const unknownLaw = cited.filter(c => !c.found);
+    if (unknownLaw.length) console.warn(`[regenerate] ⚠ カタログに無い法令の条番号: ${unknownLaw.map(c => c.matched).join(', ')}`);
+    const seenArt = new Set();
+    const lawArticles = [...lawRefs.articles, ...lawSources.articlesForCitations(cited)]
+      .filter(a => !seenArt.has(a.key + ':' + a.num) && seenArt.add(a.key + ':' + a.num));
+    lawBlock = lawSources.buildLawProvisionBlock(lawArticles) + lawSources.buildAgencyPagesBlock(lawRefs.pages);
+    if (lawArticles.length) console.log(`[regenerate] 法令の原文を添付: ${lawArticles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、')}`);
+  } catch (e) {
+    console.warn(`[regenerate] 法令の添付に失敗（続行）: ${e.message}`);
+  }
+
+  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures, lawBlock,
+    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${lawBlock}${changesBlock}${rulesBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
