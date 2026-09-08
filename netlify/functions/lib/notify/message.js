@@ -133,6 +133,24 @@ function buildMessage(event, data) {
       };
     }
 
+    // 2026-09-08: 生成後の重複判定で全件を取り下げると下書きが 0 本になる。
+    // ジョブは成功で終わるため、失敗通知にも「1本だけ」通知にも乗らない。別事象として知らせる。
+    case 'daily_draft_none': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【ブログ】本日は下書きが作られませんでした',
+        body: [
+          `${title || '本日の記事生成'}は完了しましたが、下書きは 0 本です。`,
+          '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `■ 実行ログ: ${prUrl}` : '',
+          '',
+          '生成自体は失敗していません。重複の取り下げが理由なら対応は不要です。',
+          '同じ日が続く場合は、候補が枯れていないかログを確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     case 'revised': {
       const { title, filename, comment, reviewUrl } = data;
       const lines = [

@@ -678,6 +678,32 @@ async function pickPair(dateStr) {
   return picks;
 }
 
+// ── 生成後の重複判定 ─────────────────────────────────────────
+// 生成物の frontmatter（title / summary）と本文の見出しで既存記事と照合する。
+// 同じ実行で先に生成した記事は content/posts に書かれているので、コーパスから除く。
+async function checkGeneratedArticle(content, topic, sameRunSlugs = []) {
+  try {
+    const { checkGeneratedDuplicateWithAI } = require('./lib/ai-dedup');
+    const { readAllPostsSorted } = require('./lib/site-corpus');
+    const { meta, body } = parseFrontmatter(content);
+    const headings = body.split(/\r?\n/).filter(l => l.startsWith('## ')).map(l => l.slice(3).trim());
+    const exclude = new Set([topic.slug, ...sameRunSlugs]);
+    const corpus = readAllPostsSorted().concat(loadPendingDraftCorpus()).filter(p => p && p.slug && !exclude.has(p.slug));
+    const article = {
+      slug: topic.slug, title: meta.title || '', summary: meta.summary || '', headings,
+      persona: topic.persona, category: topic.category, pain_point: topic.pain_point || '',
+      article_type: topic.article_type || '',
+    };
+    const r = await checkGeneratedDuplicateWithAI(article, corpus);
+    if (r.skipped) console.log('[generate] 生成後の重複判定: スキップ（aux未有効 or エラー）');
+    else console.log(`[generate] 生成後の重複判定: ${r.duplicate ? '重複 → ' + r.similar_to : '重複なし'}`);
+    return r;
+  } catch (e) {
+    console.warn(`[generate] 生成後の重複判定に失敗（記事はそのまま通す）: ${e.message}`);
+    return { duplicate: false, skipped: true };
+  }
+}
+
 // ── JST の今日の日付文字列 (YYYY-MM-DD) ─────────────────────────
 function getTodayJST() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
@@ -2574,6 +2600,19 @@ async function main() {
 
     selfCheckContent(content, topic.article_type || 'basic_explainer', topic.slug);
 
+    // 生成後の重複判定（2026-09-08）。選定時の判定は企画メタしか見られず、
+    // 記事が企画より広がって既存記事と同じになるのを止められなかった
+    // （9/8 の本命記事: 企画は「逝去直後の初動」、記事は「10か月の全体像」→ 4/18・8/22 と重複）。
+    // 生成物のタイトル・要約・見出しで照合し、重複ならファイルを消して取り下げる。
+    const dup = await checkGeneratedArticle(content, topic, results.map(r => r.slug));
+    if (dup.duplicate) {
+      fs.unlinkSync(filepath);
+      const why = `生成後の重複判定: ${topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
+      console.warn(`[generate] ⚠ ${why}`);
+      lastSelectionWarnings.push(why);
+      continue;
+    }
+
     results.push({ filename, slug: topic.slug, model: usedModel });
   }
 
@@ -2583,10 +2622,12 @@ async function main() {
     fs.appendFileSync(ghOutput, `date=${dateStr}\n`);
     fs.appendFileSync(ghOutput, `count=${results.length}\n`);
 
-    // 1本目
-    fs.appendFileSync(ghOutput, `filename1=${results[0].filename}\n`);
-    fs.appendFileSync(ghOutput, `slug1=${results[0].slug}\n`);
-    fs.appendFileSync(ghOutput, `model1=${results[0].model}\n`);
+    // 1本目（0 本の日は書かない。以前は results[0] を参照して例外で落ちていた）
+    if (results[0]) {
+      fs.appendFileSync(ghOutput, `filename1=${results[0].filename}\n`);
+      fs.appendFileSync(ghOutput, `slug1=${results[0].slug}\n`);
+      fs.appendFileSync(ghOutput, `model1=${results[0].model}\n`);
+    }
 
     // 2本目（ある場合）
     if (results.length >= 2) {
