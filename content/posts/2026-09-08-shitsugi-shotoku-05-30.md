@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "相続財産を申告期限までに国等へ贈与し租税特別措置法第70条の相続税非課税を受けた場合でも、所得税の寄附金控除の対象となります。ただし、措法第40条第1項の譲渡所得非課税も同時に適用する場合、寄附金控除の対象額はその財産の取得価額（被相続人から引き継いだ取得価額）とされます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-08T16:40:15.205+09:00"
 publish_at: "2026-09-09T17:46:00.000+09:00"
-published_at: ""
+published_at: "2026-09-09T18:00:52.286+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-08T00:08:37.463Z"
-updated_at: "2026-09-08T16:40:15.205+09:00"
+updated_at: "2026-09-09T18:00:52.286+09:00"
 publish_slot: "evening"
 ---
 
