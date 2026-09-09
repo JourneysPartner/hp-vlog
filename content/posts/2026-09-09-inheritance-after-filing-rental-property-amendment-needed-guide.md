@@ -36,15 +36,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "相続税申告後に賃貸不動産の評価額・特例適用に誤りや変動が生じた場合、修正申告（税額が増える）か更正の請求（税額が減る）かを判断し、所定の期限内に対応する必要があります。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-09T17:09:44.813+09:00"
+publish_at: "2026-09-10T11:34:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-09T00:05:51.375Z"
-updated_at: "2026-09-09T00:09:01.639Z"
+updated_at: "2026-09-09T17:09:44.813+09:00"
+publish_slot: "morning"
 ---
 相続税の申告を終えてひと息ついた後に、「実はアパートの評価額が違っていたかもしれない」「貸付用の土地に小規模宅地等の特例を使いそびれた」「申告後に遺産分割がまとまり、特例が使えるようになった」——こうした気づきを持って税理士や税務署に相談される方は少なくありません。
 
