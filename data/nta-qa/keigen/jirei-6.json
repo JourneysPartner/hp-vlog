@@ -1,0 +1,16 @@
+{
+  "id": "jirei-6",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問６",
+  "digest": false,
+  "title": "問６ もみの販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（もみの販売） 問６ もみの販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますので、人の飲用又は食用に供 されるもみは、「食品」に該当し、その販売は軽減税率の適用対象となります（消法２①九 の二、別表１一、基通５－９－１）。 なお、人の飲用又は食用に供されるものではない「種もみ」として販売されるもみは、 「食 品」に該当せず、その販売は軽減税率の適用対象となりません。",
+  "char_count_body": 225,
+  "fetched_at": "2026-09-09T19:41:31.435Z"
+}

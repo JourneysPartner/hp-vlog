@@ -14,8 +14,8 @@
       "title": "国境を越えた役務の提供に係る消費税の課税の見直し等について（国内事業者の皆さまへ）",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/cross-kokunai.pdf",
       "file_path": "cross_border/kokunai.json",
-      "char_count_body": 11868,
-      "fetched_at": "2026-09-01T08:27:40.389Z"
+      "char_count_body": 12061,
+      "fetched_at": "2026-09-09T19:41:31.793Z"
     },
     {
       "id": "platform_jigyosha",
@@ -30,8 +30,8 @@
       "title": "消費税のプラットフォーム課税に関するQ&A（プラットフォーム事業者用）",
       "url": "https://www.nta.go.jp/publication/pamph/shohi/kazei/pdf/0024004-028_02-2.pdf",
       "file_path": "cross_border/platform_jigyosha.json",
-      "char_count_body": 27545,
-      "fetched_at": "2026-09-01T08:27:43.397Z"
+      "char_count_body": 27618,
+      "fetched_at": "2026-09-09T19:41:35.517Z"
     },
     {
       "id": "platform_kokugai",
@@ -46,8 +46,8 @@
       "title": "消費税のプラットフォーム課税に関するQ&A（国外事業者用）",
       "url": "https://www.nta.go.jp/publication/pamph/shohi/kazei/pdf/0024004-028_02-1.pdf",
       "file_path": "cross_border/platform_kokugai.json",
-      "char_count_body": 15367,
-      "fetched_at": "2026-09-01T08:27:41.806Z"
+      "char_count_body": 15415,
+      "fetched_at": "2026-09-09T19:41:34.057Z"
     },
     {
       "id": "01",
@@ -63,7 +63,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/01.htm",
       "file_path": "denshi_scan/01.json",
       "char_count_body": 9127,
-      "fetched_at": "2026-09-01T08:13:25.680Z"
+      "fetched_at": "2026-09-09T19:41:23.368Z"
     },
     {
       "id": "02",
@@ -79,7 +79,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/02.htm",
       "file_path": "denshi_scan/02.json",
       "char_count_body": 40389,
-      "fetched_at": "2026-09-01T08:13:27.036Z"
+      "fetched_at": "2026-09-09T19:41:24.854Z"
     },
     {
       "id": "03",
@@ -95,7 +95,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/03.htm",
       "file_path": "denshi_scan/03.json",
       "char_count_body": 3010,
-      "fetched_at": "2026-09-01T08:13:28.305Z"
+      "fetched_at": "2026-09-09T19:41:26.211Z"
     },
     {
       "id": "04",
@@ -111,7 +111,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/04.htm",
       "file_path": "denshi_scan/04.json",
       "char_count_body": 8511,
-      "fetched_at": "2026-09-01T08:13:29.637Z"
+      "fetched_at": "2026-09-09T19:41:28.079Z"
     },
     {
       "id": "01",
@@ -127,7 +127,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07denshi/01.htm",
       "file_path": "denshi_torihiki/01.json",
       "char_count_body": 3942,
-      "fetched_at": "2026-09-01T08:13:24.036Z"
+      "fetched_at": "2026-09-09T19:41:20.549Z"
     },
     {
       "id": "02",
@@ -143,7 +143,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07denshi/02.htm",
       "file_path": "denshi_torihiki/02.json",
       "char_count_body": 12595,
-      "fetched_at": "2026-09-01T08:13:25.426Z"
+      "fetched_at": "2026-09-09T19:41:22.299Z"
     },
     {
       "id": "01",
@@ -158,8 +158,8 @@
       "title": "問１ 適格請求書等保存方式の概要",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/01.pdf",
       "file_path": "invoice/01.json",
-      "char_count_body": 3697,
-      "fetched_at": "2026-09-01T08:09:09.131Z"
+      "char_count_body": 3720,
+      "fetched_at": "2026-09-09T19:36:07.182Z"
     },
     {
       "id": "02",
@@ -174,8 +174,8 @@
       "title": "問２ 登録の手続",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02.pdf",
       "file_path": "invoice/02.json",
-      "char_count_body": 2358,
-      "fetched_at": "2026-09-01T08:09:10.508Z"
+      "char_count_body": 2370,
+      "fetched_at": "2026-09-09T19:36:09.290Z"
     },
     {
       "id": "03",
@@ -190,8 +190,8 @@
       "title": "問３ 登録通知",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03.pdf",
       "file_path": "invoice/03.json",
-      "char_count_body": 421,
-      "fetched_at": "2026-09-01T08:09:11.826Z"
+      "char_count_body": 422,
+      "fetched_at": "2026-09-09T19:36:10.706Z"
     },
     {
       "id": "04",
@@ -206,8 +206,8 @@
       "title": "問４ 登録申請から登録通知までの期間及び自らの登録番号の確認方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/04.pdf",
       "file_path": "invoice/04.json",
-      "char_count_body": 1108,
-      "fetched_at": "2026-09-01T08:09:13.369Z"
+      "char_count_body": 1110,
+      "fetched_at": "2026-09-09T19:36:12.136Z"
     },
     {
       "id": "05",
@@ -222,8 +222,8 @@
       "title": "問５ 登録の効力",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/05.pdf",
       "file_path": "invoice/05.json",
-      "char_count_body": 449,
-      "fetched_at": "2026-09-01T08:09:15.238Z"
+      "char_count_body": 453,
+      "fetched_at": "2026-09-09T19:36:14.356Z"
     },
     {
       "id": "06",
@@ -238,8 +238,8 @@
       "title": "問６ 課税期間の中途での登録",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/06.pdf",
       "file_path": "invoice/06.json",
-      "char_count_body": 298,
-      "fetched_at": "2026-09-01T08:09:16.889Z"
+      "char_count_body": 299,
+      "fetched_at": "2026-09-09T19:36:15.895Z"
     },
     {
       "id": "07",
@@ -254,8 +254,8 @@
       "title": "問７ 免税事業者が令和５年 10 月１日から令和 11 年９月 30 日までの日の属する課税期間中に登録を 受ける場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/07.pdf",
       "file_path": "invoice/07.json",
-      "char_count_body": 1089,
-      "fetched_at": "2026-09-01T08:09:18.338Z"
+      "char_count_body": 1093,
+      "fetched_at": "2026-09-09T19:36:17.838Z"
     },
     {
       "id": "08",
@@ -270,8 +270,8 @@
       "title": "インボイス制度に関するQ&A 08",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08.pdf",
       "file_path": "invoice/08.json",
-      "char_count_body": 1254,
-      "fetched_at": "2026-09-01T08:09:19.753Z"
+      "char_count_body": 1258,
+      "fetched_at": "2026-09-09T19:36:19.521Z"
     },
     {
       "id": "08-2",
@@ -286,8 +286,8 @@
       "title": "問８－２ 課税期間の中途から課税事業者となった場合の基準期間における課税売上高",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08-2.pdf",
       "file_path": "invoice/08-2.json",
-      "char_count_body": 622,
-      "fetched_at": "2026-09-01T08:09:21.180Z"
+      "char_count_body": 625,
+      "fetched_at": "2026-09-09T19:36:21.222Z"
     },
     {
       "id": "09",
@@ -302,8 +302,8 @@
       "title": "問９ 簡易課税制度を選択する場合の手続等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/09.pdf",
       "file_path": "invoice/09.json",
-      "char_count_body": 1177,
-      "fetched_at": "2026-09-01T08:09:22.607Z"
+      "char_count_body": 1181,
+      "fetched_at": "2026-09-09T19:36:22.785Z"
     },
     {
       "id": "10",
@@ -318,8 +318,8 @@
       "title": "問10 登録の任意性",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/10.pdf",
       "file_path": "invoice/10.json",
-      "char_count_body": 580,
-      "fetched_at": "2026-09-01T08:09:24.154Z"
+      "char_count_body": 585,
+      "fetched_at": "2026-09-09T19:36:24.994Z"
     },
     {
       "id": "100",
@@ -334,8 +334,8 @@
       "title": "問100 郵便切手類又は物品切手等により課税仕入れを行った場合における課税仕入れの時期",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/100.pdf",
       "file_path": "invoice/100.json",
-      "char_count_body": 1142,
-      "fetched_at": "2026-09-01T08:12:09.772Z"
+      "char_count_body": 1147,
+      "fetched_at": "2026-09-09T19:39:48.623Z"
     },
     {
       "id": "101",
@@ -350,8 +350,8 @@
       "title": "問101 物品切手等により課税仕入れを行った場合における課税仕入れに係る支払対価の額",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/101.pdf",
       "file_path": "invoice/101.json",
-      "char_count_body": 900,
-      "fetched_at": "2026-09-01T08:12:11.108Z"
+      "char_count_body": 904,
+      "fetched_at": "2026-09-09T19:39:50.313Z"
     },
     {
       "id": "101-2",
@@ -366,8 +366,8 @@
       "title": "問101－２ 物品切手等を割引・割増価格により購入した場合の仕入控除税額の算出",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/101-2.pdf",
       "file_path": "invoice/101-2.json",
-      "char_count_body": 1729,
-      "fetched_at": "2026-09-01T08:12:12.453Z"
+      "char_count_body": 1734,
+      "fetched_at": "2026-09-09T19:39:52.247Z"
     },
     {
       "id": "102",
@@ -382,8 +382,8 @@
       "title": "問102 提供を受けた適格請求書に係る電磁的記録の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/102.pdf",
       "file_path": "invoice/102.json",
-      "char_count_body": 1835,
-      "fetched_at": "2026-09-01T08:12:13.893Z"
+      "char_count_body": 1843,
+      "fetched_at": "2026-09-09T19:39:53.653Z"
     },
     {
       "id": "102-2",
@@ -398,8 +398,8 @@
       "title": "問102－２ 適格請求書の記載事項に係る電磁的記録の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/102-2.pdf",
       "file_path": "invoice/102-2.json",
-      "char_count_body": 1715,
-      "fetched_at": "2026-09-01T08:12:15.348Z"
+      "char_count_body": 1719,
+      "fetched_at": "2026-09-09T19:39:55.055Z"
     },
     {
       "id": "103",
@@ -414,8 +414,8 @@
       "title": "問103 高速道路利用料金に係る適格簡易請求書の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103.pdf",
       "file_path": "invoice/103.json",
-      "char_count_body": 1898,
-      "fetched_at": "2026-09-01T08:12:16.751Z"
+      "char_count_body": 1904,
+      "fetched_at": "2026-09-09T19:39:57.140Z"
     },
     {
       "id": "103-2",
@@ -430,8 +430,8 @@
       "title": "問103－２ 金融機関の入出金手数料や振込手数料に係る適格請求書の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-2.pdf",
       "file_path": "invoice/103-2.json",
-      "char_count_body": 1580,
-      "fetched_at": "2026-09-01T08:12:18.088Z"
+      "char_count_body": 1593,
+      "fetched_at": "2026-09-09T19:39:59.192Z"
     },
     {
       "id": "103-3",
@@ -446,8 +446,8 @@
       "title": "問103－３ 電気通信利用役務の提供と適格請求書の保存",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-3.pdf",
       "file_path": "invoice/103-3.json",
-      "char_count_body": 1370,
-      "fetched_at": "2026-09-01T08:12:19.427Z"
+      "char_count_body": 1380,
+      "fetched_at": "2026-09-09T19:40:01.128Z"
     },
     {
       "id": "103-4",
@@ -462,8 +462,8 @@
       "title": "問103－４ プラットフォーム課税の対象となる取引に係る適格請求書等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-4.pdf",
       "file_path": "invoice/103-4.json",
-      "char_count_body": 1131,
-      "fetched_at": "2026-09-01T08:12:20.818Z"
+      "char_count_body": 1136,
+      "fetched_at": "2026-09-09T19:40:02.624Z"
     },
     {
       "id": "104",
@@ -478,8 +478,8 @@
       "title": "問104 帳簿のみの保存で仕入税額控除が認められる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/104.pdf",
       "file_path": "invoice/104.json",
-      "char_count_body": 955,
-      "fetched_at": "2026-09-01T08:12:22.150Z"
+      "char_count_body": 966,
+      "fetched_at": "2026-09-09T19:40:04.560Z"
     },
     {
       "id": "105",
@@ -494,8 +494,8 @@
       "title": "問105 公共交通機関による旅客の運送",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/105.pdf",
       "file_path": "invoice/105.json",
-      "char_count_body": 542,
-      "fetched_at": "2026-09-01T08:12:23.639Z"
+      "char_count_body": 546,
+      "fetched_at": "2026-09-09T19:40:06.759Z"
     },
     {
       "id": "106",
@@ -510,8 +510,8 @@
       "title": "問106 古物商等の古物の買取り等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106.pdf",
       "file_path": "invoice/106.json",
-      "char_count_body": 2801,
-      "fetched_at": "2026-09-01T08:12:25.077Z"
+      "char_count_body": 2815,
+      "fetched_at": "2026-09-09T19:40:08.587Z"
     },
     {
       "id": "106-2",
@@ -526,8 +526,8 @@
       "title": "問106－２ フリマアプリ等により商品を仕入れた場合の仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106-2.pdf",
       "file_path": "invoice/106-2.json",
-      "char_count_body": 3504,
-      "fetched_at": "2026-09-01T08:12:26.872Z"
+      "char_count_body": 3518,
+      "fetched_at": "2026-09-09T19:40:10.665Z"
     },
     {
       "id": "106-3",
@@ -542,8 +542,8 @@
       "title": "問106－３ 返信用封筒に貼付した郵便切手に係る仕入税額控除の適用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106-3.pdf",
       "file_path": "invoice/106-3.json",
-      "char_count_body": 677,
-      "fetched_at": "2026-09-01T08:12:28.215Z"
+      "char_count_body": 678,
+      "fetched_at": "2026-09-09T19:40:12.083Z"
     },
     {
       "id": "107",
@@ -558,8 +558,8 @@
       "title": "問107 出張旅費、宿泊費、日当等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107.pdf",
       "file_path": "invoice/107.json",
-      "char_count_body": 897,
-      "fetched_at": "2026-09-01T08:12:29.788Z"
+      "char_count_body": 902,
+      "fetched_at": "2026-09-09T19:40:14.154Z"
     },
     {
       "id": "107-2",
@@ -574,8 +574,8 @@
       "title": "問107－２ 実費精算の出張旅費等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107-2.pdf",
       "file_path": "invoice/107-2.json",
-      "char_count_body": 832,
-      "fetched_at": "2026-09-01T08:12:31.350Z"
+      "char_count_body": 834,
+      "fetched_at": "2026-09-09T19:40:16.363Z"
     },
     {
       "id": "107-3",
@@ -590,8 +590,8 @@
       "title": "問107－３ 派遣社員等や内定者等へ支払った出張旅費等の仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107-3.pdf",
       "file_path": "invoice/107-3.json",
-      "char_count_body": 1804,
-      "fetched_at": "2026-09-01T08:12:32.744Z"
+      "char_count_body": 1818,
+      "fetched_at": "2026-09-09T19:40:18.414Z"
     },
     {
       "id": "108",
@@ -606,8 +606,8 @@
       "title": "問108 通勤手当",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/108.pdf",
       "file_path": "invoice/108.json",
-      "char_count_body": 461,
-      "fetched_at": "2026-09-01T08:12:34.298Z"
+      "char_count_body": 462,
+      "fetched_at": "2026-09-09T19:40:20.361Z"
     },
     {
       "id": "108-2",
@@ -622,8 +622,8 @@
       "title": "問108－２ クレジットカードにより決済されるタクシーチケットに係る回収特例の適用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/108-2.pdf",
       "file_path": "invoice/108-2.json",
-      "char_count_body": 993,
-      "fetched_at": "2026-09-01T08:12:35.634Z"
+      "char_count_body": 997,
+      "fetched_at": "2026-09-09T19:40:22.330Z"
     },
     {
       "id": "109",
@@ -638,8 +638,8 @@
       "title": "問109 適格請求書等保存方式における帳簿に記載が必要な事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/109.pdf",
       "file_path": "invoice/109.json",
-      "char_count_body": 1712,
-      "fetched_at": "2026-09-01T08:12:37.222Z"
+      "char_count_body": 1718,
+      "fetched_at": "2026-09-09T19:40:23.863Z"
     },
     {
       "id": "11",
@@ -654,8 +654,8 @@
       "title": "問11 新たに設立された法人等の登録時期の特例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/11.pdf",
       "file_path": "invoice/11.json",
-      "char_count_body": 1832,
-      "fetched_at": "2026-09-01T08:09:25.545Z"
+      "char_count_body": 1840,
+      "fetched_at": "2026-09-09T19:36:26.561Z"
     },
     {
       "id": "110",
@@ -670,8 +670,8 @@
       "title": "問110 帳簿のみの保存で仕入税額控除が認められる場合の帳簿への一定の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/110.pdf",
       "file_path": "invoice/110.json",
-      "char_count_body": 2368,
-      "fetched_at": "2026-09-01T08:12:38.614Z"
+      "char_count_body": 2382,
+      "fetched_at": "2026-09-09T19:40:25.922Z"
     },
     {
       "id": "110-2",
@@ -686,8 +686,8 @@
       "title": "問110－２ 自動販売機特例又は回収特例における３万円未満の判定単位",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/110-2.pdf",
       "file_path": "invoice/110-2.json",
-      "char_count_body": 772,
-      "fetched_at": "2026-09-01T08:12:39.974Z"
+      "char_count_body": 776,
+      "fetched_at": "2026-09-09T19:40:27.336Z"
     },
     {
       "id": "111",
@@ -702,8 +702,8 @@
       "title": "問111 一定規模以下の事業者に対する事務負担の軽減措置",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/111.pdf",
       "file_path": "invoice/111.json",
-      "char_count_body": 824,
-      "fetched_at": "2026-09-01T08:12:41.427Z"
+      "char_count_body": 826,
+      "fetched_at": "2026-09-09T19:40:29.554Z"
     },
     {
       "id": "112",
@@ -718,8 +718,8 @@
       "title": "問112 一定規模以下の事業者に対する事務負担の軽減措置における１万円未満の判定単位",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/112.pdf",
       "file_path": "invoice/112.json",
-      "char_count_body": 964,
-      "fetched_at": "2026-09-01T08:12:42.878Z"
+      "char_count_body": 966,
+      "fetched_at": "2026-09-09T19:40:31.496Z"
     },
     {
       "id": "113",
@@ -734,8 +734,8 @@
       "title": "問113 免税事業者等からの仕入れに係る経過措置",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113.pdf",
       "file_path": "invoice/113.json",
-      "char_count_body": 1919,
-      "fetched_at": "2026-09-01T08:12:44.289Z"
+      "char_count_body": 1929,
+      "fetched_at": "2026-09-09T19:40:33.448Z"
     },
     {
       "id": "113-2",
@@ -750,8 +750,8 @@
       "title": "問113－２ 適格請求書発行事業者からの課税仕入れに係る経過措置の適用等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-2.pdf",
       "file_path": "invoice/113-2.json",
-      "char_count_body": 493,
-      "fetched_at": "2026-09-01T08:12:45.623Z"
+      "char_count_body": 494,
+      "fetched_at": "2026-09-09T19:40:35.371Z"
     },
     {
       "id": "113-3",
@@ -766,8 +766,8 @@
       "title": "問113－３ 令和８年 10 月１日前後の取引に係る免税事業者等からの仕入れに係る経過措置の適用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-3.pdf",
       "file_path": "invoice/113-3.json",
-      "char_count_body": 970,
-      "fetched_at": "2026-09-01T08:12:47.047Z"
+      "char_count_body": 973,
+      "fetched_at": "2026-09-09T19:40:37.040Z"
     },
     {
       "id": "113-4",
@@ -782,8 +782,8 @@
       "title": "問113－４ 短期前払費用に係る免税事業者等からの仕入れに係る経過措置の適用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-4.pdf",
       "file_path": "invoice/113-4.json",
-      "char_count_body": 1311,
-      "fetched_at": "2026-09-01T08:12:48.498Z"
+      "char_count_body": 1318,
+      "fetched_at": "2026-09-09T19:40:38.462Z"
     },
     {
       "id": "114",
@@ -798,8 +798,8 @@
       "title": "問114 小規模事業者に係る税額控除に関する経過措置〈２割特例〉",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114.pdf",
       "file_path": "invoice/114.json",
-      "char_count_body": 985,
-      "fetched_at": "2026-09-01T08:12:49.912Z"
+      "char_count_body": 990,
+      "fetched_at": "2026-09-09T19:40:39.869Z"
     },
     {
       "id": "114-2",
@@ -814,8 +814,8 @@
       "title": "問114－２ 小規模個人事業者に係る税額控除に関する経過措置〈３割特例〉",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114-2.pdf",
       "file_path": "invoice/114-2.json",
-      "char_count_body": 1058,
-      "fetched_at": "2026-09-01T08:12:51.310Z"
+      "char_count_body": 1059,
+      "fetched_at": "2026-09-09T19:40:41.590Z"
     },
     {
       "id": "115",
@@ -830,8 +830,8 @@
       "title": "問115 ２割特例の適用ができない課税期間①",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/115.pdf",
       "file_path": "invoice/115.json",
-      "char_count_body": 1844,
-      "fetched_at": "2026-09-01T08:12:52.671Z"
+      "char_count_body": 1849,
+      "fetched_at": "2026-09-09T19:40:43.160Z"
     },
     {
       "id": "115-2",
@@ -846,8 +846,8 @@
       "title": "問115－２ ３割特例の適用ができない課税期間",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/115-2.pdf",
       "file_path": "invoice/115-2.json",
-      "char_count_body": 1535,
-      "fetched_at": "2026-09-01T08:12:54.041Z"
+      "char_count_body": 1541,
+      "fetched_at": "2026-09-09T19:40:45.084Z"
     },
     {
       "id": "116",
@@ -862,8 +862,8 @@
       "title": "問116 ２割特例の適用ができない課税期間②",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/116.pdf",
       "file_path": "invoice/116.json",
-      "char_count_body": 1408,
-      "fetched_at": "2026-09-01T08:12:55.400Z"
+      "char_count_body": 1417,
+      "fetched_at": "2026-09-09T19:40:46.635Z"
     },
     {
       "id": "116-2",
@@ -878,8 +878,8 @@
       "title": "問116－２ 課税選択届出書を提出しても２割特例の適用ができる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/116-2.pdf",
       "file_path": "invoice/116-2.json",
-      "char_count_body": 1010,
-      "fetched_at": "2026-09-01T08:12:56.746Z"
+      "char_count_body": 1013,
+      "fetched_at": "2026-09-09T19:40:48.581Z"
     },
     {
       "id": "117",
@@ -894,8 +894,8 @@
       "title": "問117 ２割特例や３割特例を適用した課税期間後の簡易課税制度の選択",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117.pdf",
       "file_path": "invoice/117.json",
-      "char_count_body": 1685,
-      "fetched_at": "2026-09-01T08:12:58.208Z"
+      "char_count_body": 1686,
+      "fetched_at": "2026-09-09T19:40:50.541Z"
     },
     {
       "id": "117-2",
@@ -910,8 +910,8 @@
       "title": "問117－２ ２割特例を適用するよりも簡易課税制度を適用した方が納付税額が少なくなる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117-2.pdf",
       "file_path": "invoice/117-2.json",
-      "char_count_body": 2055,
-      "fetched_at": "2026-09-01T08:12:59.577Z"
+      "char_count_body": 2061,
+      "fetched_at": "2026-09-09T19:40:52.352Z"
     },
     {
       "id": "117-3",
@@ -926,8 +926,8 @@
       "title": "問117－３ ３割特例を適用するよりも簡易課税制度を適用した方が納付税額が少なくなる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117-3.pdf",
       "file_path": "invoice/117-3.json",
-      "char_count_body": 1764,
-      "fetched_at": "2026-09-01T08:13:00.953Z"
+      "char_count_body": 1767,
+      "fetched_at": "2026-09-09T19:40:53.761Z"
     },
     {
       "id": "118",
@@ -942,8 +942,8 @@
       "title": "問118 適格請求書等保存方式の下での税額計算の概要",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/118.pdf",
       "file_path": "invoice/118.json",
-      "char_count_body": 2157,
-      "fetched_at": "2026-09-01T08:13:02.405Z"
+      "char_count_body": 2172,
+      "fetched_at": "2026-09-09T19:40:55.323Z"
     },
     {
       "id": "119",
@@ -958,8 +958,8 @@
       "title": "問119 売上税額の計算方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/119.pdf",
       "file_path": "invoice/119.json",
-      "char_count_body": 601,
-      "fetched_at": "2026-09-01T08:13:03.943Z"
+      "char_count_body": 606,
+      "fetched_at": "2026-09-09T19:40:56.708Z"
     },
     {
       "id": "12",
@@ -974,8 +974,8 @@
       "title": "問12 登録の拒否",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/12.pdf",
       "file_path": "invoice/12.json",
-      "char_count_body": 808,
-      "fetched_at": "2026-09-01T08:09:26.933Z"
+      "char_count_body": 812,
+      "fetched_at": "2026-09-09T19:36:28.133Z"
     },
     {
       "id": "120",
@@ -990,8 +990,8 @@
       "title": "問120 売上税額の積上げ計算における適格請求書の交付の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/120.pdf",
       "file_path": "invoice/120.json",
-      "char_count_body": 662,
-      "fetched_at": "2026-09-01T08:13:05.445Z"
+      "char_count_body": 666,
+      "fetched_at": "2026-09-09T19:40:58.666Z"
     },
     {
       "id": "121",
@@ -1006,8 +1006,8 @@
       "title": "問121 仕入明細書を受領した場合における売上税額の積上げ計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/121.pdf",
       "file_path": "invoice/121.json",
-      "char_count_body": 926,
-      "fetched_at": "2026-09-01T08:13:06.938Z"
+      "char_count_body": 930,
+      "fetched_at": "2026-09-09T19:41:00.610Z"
     },
     {
       "id": "122",
@@ -1022,8 +1022,8 @@
       "title": "問122 媒介者交付特例における精算書による売上税額の積上げ計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/122.pdf",
       "file_path": "invoice/122.json",
-      "char_count_body": 688,
-      "fetched_at": "2026-09-01T08:13:08.376Z"
+      "char_count_body": 693,
+      "fetched_at": "2026-09-09T19:41:02.821Z"
     },
     {
       "id": "123",
@@ -1038,8 +1038,8 @@
       "title": "問123 委託販売等の手数料に係る委託者の売上税額の計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/123.pdf",
       "file_path": "invoice/123.json",
-      "char_count_body": 637,
-      "fetched_at": "2026-09-01T08:13:09.787Z"
+      "char_count_body": 639,
+      "fetched_at": "2026-09-09T19:41:05.031Z"
     },
     {
       "id": "124",
@@ -1054,8 +1054,8 @@
       "title": "問124 委託販売等の手数料に係る受託者の売上税額等の計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/124.pdf",
       "file_path": "invoice/124.json",
-      "char_count_body": 607,
-      "fetched_at": "2026-09-01T08:13:11.229Z"
+      "char_count_body": 610,
+      "fetched_at": "2026-09-09T19:41:07.249Z"
     },
     {
       "id": "125",
@@ -1070,8 +1070,8 @@
       "title": "問125 課税期間をまたぐ適格請求書による売上税額の計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/125.pdf",
       "file_path": "invoice/125.json",
-      "char_count_body": 1253,
-      "fetched_at": "2026-09-01T08:13:12.757Z"
+      "char_count_body": 1258,
+      "fetched_at": "2026-09-09T19:41:08.793Z"
     },
     {
       "id": "126",
@@ -1086,8 +1086,8 @@
       "title": "問126 仕入税額の計算方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/126.pdf",
       "file_path": "invoice/126.json",
-      "char_count_body": 1194,
-      "fetched_at": "2026-09-01T08:13:14.248Z"
+      "char_count_body": 1199,
+      "fetched_at": "2026-09-09T19:41:10.196Z"
     },
     {
       "id": "127",
@@ -1102,8 +1102,8 @@
       "title": "問127 外貨建取引における仕入税額の計算方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/127.pdf",
       "file_path": "invoice/127.json",
-      "char_count_body": 1451,
-      "fetched_at": "2026-09-01T08:13:15.829Z"
+      "char_count_body": 1455,
+      "fetched_at": "2026-09-09T19:41:12.402Z"
     },
     {
       "id": "128",
@@ -1118,8 +1118,8 @@
       "title": "問128 適格請求書などの請求書等に記載された消費税額による仕入税額の積上げ計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/128.pdf",
       "file_path": "invoice/128.json",
-      "char_count_body": 1077,
-      "fetched_at": "2026-09-01T08:13:17.172Z"
+      "char_count_body": 1080,
+      "fetched_at": "2026-09-09T19:41:13.808Z"
     },
     {
       "id": "129",
@@ -1134,8 +1134,8 @@
       "title": "問129 課税期間をまたぐ適格請求書による仕入税額の計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/129.pdf",
       "file_path": "invoice/129.json",
-      "char_count_body": 1131,
-      "fetched_at": "2026-09-01T08:13:18.740Z"
+      "char_count_body": 1137,
+      "fetched_at": "2026-09-09T19:41:15.483Z"
     },
     {
       "id": "13",
@@ -1150,8 +1150,8 @@
       "title": "問13 登録の取りやめ",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/13.pdf",
       "file_path": "invoice/13.json",
-      "char_count_body": 1710,
-      "fetched_at": "2026-09-01T08:09:28.328Z"
+      "char_count_body": 1717,
+      "fetched_at": "2026-09-09T19:36:29.567Z"
     },
     {
       "id": "13-2",
@@ -1166,8 +1166,8 @@
       "title": "問13－２ 登録に係る経過措置により課税事業者となる期間における再登録",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/13-2.pdf",
       "file_path": "invoice/13-2.json",
-      "char_count_body": 1410,
-      "fetched_at": "2026-09-01T08:09:29.720Z"
+      "char_count_body": 1414,
+      "fetched_at": "2026-09-09T19:36:31.497Z"
     },
     {
       "id": "130",
@@ -1182,8 +1182,8 @@
       "title": "問130 免税事業者等からの課税仕入れに係る経過措置を適用する場合の税額計算",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/130.pdf",
       "file_path": "invoice/130.json",
-      "char_count_body": 1809,
-      "fetched_at": "2026-09-01T08:13:20.085Z"
+      "char_count_body": 1823,
+      "fetched_at": "2026-09-09T19:41:16.880Z"
     },
     {
       "id": "14",
@@ -1198,8 +1198,8 @@
       "title": "問14 事業の廃止や法人の合併による消滅があった場合の手続",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/14.pdf",
       "file_path": "invoice/14.json",
-      "char_count_body": 432,
-      "fetched_at": "2026-09-01T08:09:31.158Z"
+      "char_count_body": 438,
+      "fetched_at": "2026-09-09T19:36:33.691Z"
     },
     {
       "id": "14-2",
@@ -1214,8 +1214,8 @@
       "title": "問14－２ 地方公営企業法適用の特別会計に移行する際の適格請求書発行事業者の登録",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/14-2.pdf",
       "file_path": "invoice/14-2.json",
-      "char_count_body": 1117,
-      "fetched_at": "2026-09-01T08:09:32.667Z"
+      "char_count_body": 1120,
+      "fetched_at": "2026-09-09T19:36:35.619Z"
     },
     {
       "id": "15",
@@ -1230,8 +1230,8 @@
       "title": "問15 相続",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/15.pdf",
       "file_path": "invoice/15.json",
-      "char_count_body": 1009,
-      "fetched_at": "2026-09-01T08:09:34.025Z"
+      "char_count_body": 1013,
+      "fetched_at": "2026-09-09T19:36:37.576Z"
     },
     {
       "id": "16",
@@ -1246,8 +1246,8 @@
       "title": "問16 登録の取消し",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/16.pdf",
       "file_path": "invoice/16.json",
-      "char_count_body": 873,
-      "fetched_at": "2026-09-01T08:09:35.538Z"
+      "char_count_body": 875,
+      "fetched_at": "2026-09-09T19:36:39.122Z"
     },
     {
       "id": "17",
@@ -1262,8 +1262,8 @@
       "title": "問17 適格請求書発行事業者が免税事業者となる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/17.pdf",
       "file_path": "invoice/17.json",
-      "char_count_body": 325,
-      "fetched_at": "2026-09-01T08:09:37.105Z"
+      "char_count_body": 326,
+      "fetched_at": "2026-09-09T19:36:40.817Z"
     },
     {
       "id": "17-2",
@@ -1278,8 +1278,8 @@
       "title": "問17－２ 適格請求書発行事業者における課税事業者届出書の提出",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/17-2.pdf",
       "file_path": "invoice/17-2.json",
-      "char_count_body": 590,
-      "fetched_at": "2026-09-01T08:09:38.421Z"
+      "char_count_body": 596,
+      "fetched_at": "2026-09-09T19:36:42.780Z"
     },
     {
       "id": "18",
@@ -1294,8 +1294,8 @@
       "title": "問18 登録番号の構成",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/18.pdf",
       "file_path": "invoice/18.json",
-      "char_count_body": 335,
-      "fetched_at": "2026-09-01T08:09:39.925Z"
+      "char_count_body": 336,
+      "fetched_at": "2026-09-09T19:36:44.199Z"
     },
     {
       "id": "19",
@@ -1310,8 +1310,8 @@
       "title": "問19 適格請求書発行事業者の情報の公表方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/19.pdf",
       "file_path": "invoice/19.json",
-      "char_count_body": 1428,
-      "fetched_at": "2026-09-01T08:09:41.474Z"
+      "char_count_body": 1441,
+      "fetched_at": "2026-09-09T19:36:46.150Z"
     },
     {
       "id": "20",
@@ -1326,8 +1326,8 @@
       "title": "問20 適格請求書発行事業者公表サイト",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/20.pdf",
       "file_path": "invoice/20.json",
-      "char_count_body": 485,
-      "fetched_at": "2026-09-01T08:09:42.937Z"
+      "char_count_body": 488,
+      "fetched_at": "2026-09-09T19:36:47.837Z"
     },
     {
       "id": "21",
@@ -1342,8 +1342,8 @@
       "title": "問21 登録番号の効率的な確認方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/21.pdf",
       "file_path": "invoice/21.json",
-      "char_count_body": 667,
-      "fetched_at": "2026-09-01T08:09:44.471Z"
+      "char_count_body": 669,
+      "fetched_at": "2026-09-09T19:36:50.072Z"
     },
     {
       "id": "21-2",
@@ -1358,8 +1358,8 @@
       "title": "問21－２ 適格請求書発行事業者公表サイトの検索結果とレシート表記が異なる場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/21-2.pdf",
       "file_path": "invoice/21-2.json",
-      "char_count_body": 1728,
-      "fetched_at": "2026-09-01T08:09:45.915Z"
+      "char_count_body": 1735,
+      "fetched_at": "2026-09-09T19:36:51.508Z"
     },
     {
       "id": "22",
@@ -1374,8 +1374,8 @@
       "title": "問22 適格請求書発行事業者の公表情報の変更等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/22.pdf",
       "file_path": "invoice/22.json",
-      "char_count_body": 1427,
-      "fetched_at": "2026-09-01T08:09:47.502Z"
+      "char_count_body": 1432,
+      "fetched_at": "2026-09-09T19:36:53.447Z"
     },
     {
       "id": "23",
@@ -1390,8 +1390,8 @@
       "title": "問23 適格請求書発行事業者の適格請求書の交付義務",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/23.pdf",
       "file_path": "invoice/23.json",
-      "char_count_body": 858,
-      "fetched_at": "2026-09-01T08:09:49.121Z"
+      "char_count_body": 864,
+      "fetched_at": "2026-09-09T19:36:55.389Z"
     },
     {
       "id": "24",
@@ -1406,8 +1406,8 @@
       "title": "問24 適格簡易請求書の交付ができる事業",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24.pdf",
       "file_path": "invoice/24.json",
-      "char_count_body": 776,
-      "fetched_at": "2026-09-01T08:09:50.688Z"
+      "char_count_body": 781,
+      "fetched_at": "2026-09-09T19:36:57.573Z"
     },
     {
       "id": "24-2",
@@ -1422,8 +1422,8 @@
       "title": "問24－２ 適格簡易請求書を交付することができる事業の具体例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-2.pdf",
       "file_path": "invoice/24-2.json",
-      "char_count_body": 1112,
-      "fetched_at": "2026-09-01T08:09:52.205Z"
+      "char_count_body": 1114,
+      "fetched_at": "2026-09-09T19:36:59.756Z"
     },
     {
       "id": "24-3",
@@ -1438,8 +1438,8 @@
       "title": "問24－３ 消費者に限定した取引についての適格請求書の交付義務",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-3.pdf",
       "file_path": "invoice/24-3.json",
-      "char_count_body": 521,
-      "fetched_at": "2026-09-01T08:09:53.795Z"
+      "char_count_body": 524,
+      "fetched_at": "2026-09-09T19:37:01.693Z"
     },
     {
       "id": "24-4",
@@ -1454,8 +1454,8 @@
       "title": "問24－４ 適格請求書の交付に当たっての金銭的負担",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-4.pdf",
       "file_path": "invoice/24-4.json",
-      "char_count_body": 1262,
-      "fetched_at": "2026-09-01T08:09:55.217Z"
+      "char_count_body": 1264,
+      "fetched_at": "2026-09-09T19:37:03.540Z"
     },
     {
       "id": "24-5",
@@ -1470,8 +1470,8 @@
       "title": "問24－５ 適格請求書の交付に当たっての期間制限",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-5.pdf",
       "file_path": "invoice/24-5.json",
-      "char_count_body": 866,
-      "fetched_at": "2026-09-01T08:09:57.020Z"
+      "char_count_body": 871,
+      "fetched_at": "2026-09-09T19:37:05.503Z"
     },
     {
       "id": "25",
@@ -1486,8 +1486,8 @@
       "title": "問25 適格請求書の様式",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/25.pdf",
       "file_path": "invoice/25.json",
-      "char_count_body": 625,
-      "fetched_at": "2026-09-01T08:09:58.860Z"
+      "char_count_body": 628,
+      "fetched_at": "2026-09-09T19:37:07.728Z"
     },
     {
       "id": "26",
@@ -1502,8 +1502,8 @@
       "title": "問26 手書きの領収書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/26.pdf",
       "file_path": "invoice/26.json",
-      "char_count_body": 452,
-      "fetched_at": "2026-09-01T08:10:00.434Z"
+      "char_count_body": 453,
+      "fetched_at": "2026-09-09T19:37:09.423Z"
     },
     {
       "id": "26-2",
@@ -1518,8 +1518,8 @@
       "title": "問26－２ 免税事業者の交付する請求書等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/26-2.pdf",
       "file_path": "invoice/26-2.json",
-      "char_count_body": 1127,
-      "fetched_at": "2026-09-01T08:10:01.789Z"
+      "char_count_body": 1128,
+      "fetched_at": "2026-09-09T19:37:11.390Z"
     },
     {
       "id": "27",
@@ -1534,8 +1534,8 @@
       "title": "問27 適格返還請求書の交付義務",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/27.pdf",
       "file_path": "invoice/27.json",
-      "char_count_body": 770,
-      "fetched_at": "2026-09-01T08:10:03.253Z"
+      "char_count_body": 775,
+      "fetched_at": "2026-09-09T19:37:13.092Z"
     },
     {
       "id": "28",
@@ -1550,8 +1550,8 @@
       "title": "問28 少額な対価返還等に係る適格返還請求書の交付義務免除に係る１万円未満の判定単位",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/28.pdf",
       "file_path": "invoice/28.json",
-      "char_count_body": 856,
-      "fetched_at": "2026-09-01T08:10:04.722Z"
+      "char_count_body": 859,
+      "fetched_at": "2026-09-09T19:37:14.504Z"
     },
     {
       "id": "29",
@@ -1566,8 +1566,8 @@
       "title": "問29 売手が負担する振込手数料相当額",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/29.pdf",
       "file_path": "invoice/29.json",
-      "char_count_body": 2742,
-      "fetched_at": "2026-09-01T08:10:06.145Z"
+      "char_count_body": 2747,
+      "fetched_at": "2026-09-09T19:37:15.947Z"
     },
     {
       "id": "30",
@@ -1582,8 +1582,8 @@
       "title": "問30 売手が負担する振込手数料相当額に係る経理処理の変更",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/30.pdf",
       "file_path": "invoice/30.json",
-      "char_count_body": 999,
-      "fetched_at": "2026-09-01T08:10:07.652Z"
+      "char_count_body": 1001,
+      "fetched_at": "2026-09-09T19:37:17.888Z"
     },
     {
       "id": "31",
@@ -1598,8 +1598,8 @@
       "title": "問31 適格請求書に係る電磁的記録による提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/31.pdf",
       "file_path": "invoice/31.json",
-      "char_count_body": 672,
-      "fetched_at": "2026-09-01T08:10:09.225Z"
+      "char_count_body": 677,
+      "fetched_at": "2026-09-09T19:37:19.308Z"
     },
     {
       "id": "32",
@@ -1614,8 +1614,8 @@
       "title": "問32 交付した適格請求書に誤りがあった場合の対応",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/32.pdf",
       "file_path": "invoice/32.json",
-      "char_count_body": 539,
-      "fetched_at": "2026-09-01T08:10:10.735Z"
+      "char_count_body": 540,
+      "fetched_at": "2026-09-09T19:37:21.260Z"
     },
     {
       "id": "33",
@@ -1630,8 +1630,8 @@
       "title": "問33 修正した適格請求書の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/33.pdf",
       "file_path": "invoice/33.json",
-      "char_count_body": 1048,
-      "fetched_at": "2026-09-01T08:10:12.292Z"
+      "char_count_body": 1053,
+      "fetched_at": "2026-09-09T19:37:22.941Z"
     },
     {
       "id": "34",
@@ -1646,8 +1646,8 @@
       "title": "問34 継続した取引における修正した適格請求書等の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/34.pdf",
       "file_path": "invoice/34.json",
-      "char_count_body": 1562,
-      "fetched_at": "2026-09-01T08:10:14.210Z"
+      "char_count_body": 1565,
+      "fetched_at": "2026-09-09T19:37:24.895Z"
     },
     {
       "id": "35",
@@ -1662,8 +1662,8 @@
       "title": "問35 値増金に係る適格請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/35.pdf",
       "file_path": "invoice/35.json",
-      "char_count_body": 760,
-      "fetched_at": "2026-09-01T08:10:15.781Z"
+      "char_count_body": 763,
+      "fetched_at": "2026-09-09T19:37:26.429Z"
     },
     {
       "id": "36",
@@ -1678,8 +1678,8 @@
       "title": "問36 登録日から登録の通知を受けるまでの間の取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/36.pdf",
       "file_path": "invoice/36.json",
-      "char_count_body": 874,
-      "fetched_at": "2026-09-01T08:10:17.479Z"
+      "char_count_body": 875,
+      "fetched_at": "2026-09-09T19:37:27.831Z"
     },
     {
       "id": "37",
@@ -1694,8 +1694,8 @@
       "title": "問37 小売店を経営する新設法人における登録の通知を受けるまでの間の適格簡易請求書の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/37.pdf",
       "file_path": "invoice/37.json",
-      "char_count_body": 1891,
-      "fetched_at": "2026-09-01T08:10:19.164Z"
+      "char_count_body": 1894,
+      "fetched_at": "2026-09-09T19:37:29.913Z"
     },
     {
       "id": "38",
@@ -1710,8 +1710,8 @@
       "title": "問38 令和５年10月１日前後の取引に係る適用関係",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/38.pdf",
       "file_path": "invoice/38.json",
-      "char_count_body": 1713,
-      "fetched_at": "2026-09-01T08:10:20.710Z"
+      "char_count_body": 1719,
+      "fetched_at": "2026-09-09T19:37:32.144Z"
     },
     {
       "id": "39",
@@ -1726,8 +1726,8 @@
       "title": "問39 対価を前受けした場合の適格請求書の交付時期",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/39.pdf",
       "file_path": "invoice/39.json",
-      "char_count_body": 563,
-      "fetched_at": "2026-09-01T08:10:22.296Z"
+      "char_count_body": 564,
+      "fetched_at": "2026-09-09T19:37:33.582Z"
     },
     {
       "id": "40",
@@ -1742,8 +1742,8 @@
       "title": "問40 資産の譲渡等の時期の特例と適格請求書の交付義務",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/40.pdf",
       "file_path": "invoice/40.json",
-      "char_count_body": 1630,
-      "fetched_at": "2026-09-01T08:10:23.675Z"
+      "char_count_body": 1639,
+      "fetched_at": "2026-09-09T19:37:35.256Z"
     },
     {
       "id": "41",
@@ -1758,8 +1758,8 @@
       "title": "問41 適格請求書の交付義務が免除される取引",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/41.pdf",
       "file_path": "invoice/41.json",
-      "char_count_body": 553,
-      "fetched_at": "2026-09-01T08:10:25.251Z"
+      "char_count_body": 557,
+      "fetched_at": "2026-09-09T19:37:36.985Z"
     },
     {
       "id": "42",
@@ -1774,8 +1774,8 @@
       "title": "問42 公共交通機関特例の対象",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/42.pdf",
       "file_path": "invoice/42.json",
-      "char_count_body": 508,
-      "fetched_at": "2026-09-01T08:10:26.615Z"
+      "char_count_body": 513,
+      "fetched_at": "2026-09-09T19:37:38.924Z"
     },
     {
       "id": "43",
@@ -1790,8 +1790,8 @@
       "title": "問43 公共交通機関特例の３万円未満の判定単位",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/43.pdf",
       "file_path": "invoice/43.json",
-      "char_count_body": 351,
-      "fetched_at": "2026-09-01T08:10:28.029Z"
+      "char_count_body": 353,
+      "fetched_at": "2026-09-09T19:37:40.615Z"
     },
     {
       "id": "44",
@@ -1806,8 +1806,8 @@
       "title": "問44 特急料金・入場料金",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/44.pdf",
       "file_path": "invoice/44.json",
-      "char_count_body": 291,
-      "fetched_at": "2026-09-01T08:10:29.628Z"
+      "char_count_body": 293,
+      "fetched_at": "2026-09-09T19:37:42.800Z"
     },
     {
       "id": "45",
@@ -1822,8 +1822,8 @@
       "title": "問45 卸売市場を通じた委託販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/45.pdf",
       "file_path": "invoice/45.json",
-      "char_count_body": 1496,
-      "fetched_at": "2026-09-01T08:10:31.368Z"
+      "char_count_body": 1500,
+      "fetched_at": "2026-09-09T19:37:45.148Z"
     },
     {
       "id": "46",
@@ -1838,8 +1838,8 @@
       "title": "問46 農協等を通じた委託販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/46.pdf",
       "file_path": "invoice/46.json",
-      "char_count_body": 1117,
-      "fetched_at": "2026-09-01T08:10:33.039Z"
+      "char_count_body": 1121,
+      "fetched_at": "2026-09-09T19:37:47.248Z"
     },
     {
       "id": "47",
@@ -1854,8 +1854,8 @@
       "title": "問47 自動販売機及び自動サービス機の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/47.pdf",
       "file_path": "invoice/47.json",
-      "char_count_body": 672,
-      "fetched_at": "2026-09-01T08:10:34.581Z"
+      "char_count_body": 675,
+      "fetched_at": "2026-09-09T19:37:49.194Z"
     },
     {
       "id": "48",
@@ -1870,8 +1870,8 @@
       "title": "問48 媒介者交付特例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/48.pdf",
       "file_path": "invoice/48.json",
-      "char_count_body": 2995,
-      "fetched_at": "2026-09-01T08:10:36.266Z"
+      "char_count_body": 3007,
+      "fetched_at": "2026-09-09T19:37:50.738Z"
     },
     {
       "id": "49",
@@ -1886,8 +1886,8 @@
       "title": "問49 複数の委託者から委託を受けた場合の媒介者交付特例の適用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49.pdf",
       "file_path": "invoice/49.json",
-      "char_count_body": 2710,
-      "fetched_at": "2026-09-01T08:10:37.827Z"
+      "char_count_body": 2715,
+      "fetched_at": "2026-09-09T19:37:52.186Z"
     },
     {
       "id": "49-2",
@@ -1902,8 +1902,8 @@
       "title": "問49－２ 適格請求書を再交付する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49-2.pdf",
       "file_path": "invoice/49-2.json",
-      "char_count_body": 1725,
-      "fetched_at": "2026-09-01T08:10:39.206Z"
+      "char_count_body": 1729,
+      "fetched_at": "2026-09-09T19:37:54.000Z"
     },
     {
       "id": "49-3",
@@ -1918,8 +1918,8 @@
       "title": "問49－３ 予約サイトで事前決済した宿泊予約者に対する適格簡易請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49-3.pdf",
       "file_path": "invoice/49-3.json",
-      "char_count_body": 1589,
-      "fetched_at": "2026-09-01T08:10:40.578Z"
+      "char_count_body": 1597,
+      "fetched_at": "2026-09-09T19:37:55.558Z"
     },
     {
       "id": "50",
@@ -1934,8 +1934,8 @@
       "title": "問50 任意組合等に係る事業の適格請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/50.pdf",
       "file_path": "invoice/50.json",
-      "char_count_body": 996,
-      "fetched_at": "2026-09-01T08:10:41.908Z"
+      "char_count_body": 999,
+      "fetched_at": "2026-09-09T19:37:56.956Z"
     },
     {
       "id": "50-2",
@@ -1950,8 +1950,8 @@
       "title": "問50－２ 任意組合の組合員のうち事業の損益の配賦を受けない者の取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/50-2.pdf",
       "file_path": "invoice/50-2.json",
-      "char_count_body": 1088,
-      "fetched_at": "2026-09-01T08:10:43.273Z"
+      "char_count_body": 1090,
+      "fetched_at": "2026-09-09T19:37:58.359Z"
     },
     {
       "id": "51",
@@ -1966,8 +1966,8 @@
       "title": "問51 任意組合等に係る事業の適格請求書交付に当たっての各種届出書の提出方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/51.pdf",
       "file_path": "invoice/51.json",
-      "char_count_body": 1656,
-      "fetched_at": "2026-09-01T08:10:44.670Z"
+      "char_count_body": 1668,
+      "fetched_at": "2026-09-09T19:38:00.297Z"
     },
     {
       "id": "52",
@@ -1982,8 +1982,8 @@
       "title": "問52 適格請求書発行事業者とそれ以外の事業者の共有資産の譲渡等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/52.pdf",
       "file_path": "invoice/52.json",
-      "char_count_body": 349,
-      "fetched_at": "2026-09-01T08:10:46.133Z"
+      "char_count_body": 351,
+      "fetched_at": "2026-09-09T19:38:01.706Z"
     },
     {
       "id": "53",
@@ -1998,8 +1998,8 @@
       "title": "問53 ごみ袋等に係る適格請求書の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/53.pdf",
       "file_path": "invoice/53.json",
-      "char_count_body": 1426,
-      "fetched_at": "2026-09-01T08:10:47.610Z"
+      "char_count_body": 1432,
+      "fetched_at": "2026-09-09T19:38:03.659Z"
     },
     {
       "id": "54",
@@ -2014,8 +2014,8 @@
       "title": "問54 適格請求書に記載が必要な事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/54.pdf",
       "file_path": "invoice/54.json",
-      "char_count_body": 2507,
-      "fetched_at": "2026-09-01T08:10:49.019Z"
+      "char_count_body": 2510,
+      "fetched_at": "2026-09-09T19:38:05.216Z"
     },
     {
       "id": "55",
@@ -2031,7 +2031,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/55.pdf",
       "file_path": "invoice/55.json",
       "char_count_body": 146,
-      "fetched_at": "2026-09-01T08:10:50.510Z"
+      "fetched_at": "2026-09-09T19:38:07.437Z"
     },
     {
       "id": "56",
@@ -2046,8 +2046,8 @@
       "title": "問56 記号、番号による適格請求書発行事業者の氏名又は名称及び登録番号の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/56.pdf",
       "file_path": "invoice/56.json",
-      "char_count_body": 522,
-      "fetched_at": "2026-09-01T08:10:52.022Z"
+      "char_count_body": 526,
+      "fetched_at": "2026-09-09T19:38:09.644Z"
     },
     {
       "id": "57",
@@ -2062,8 +2062,8 @@
       "title": "問57 適格請求書に記載する消費税額等の端数処理",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/57.pdf",
       "file_path": "invoice/57.json",
-      "char_count_body": 1641,
-      "fetched_at": "2026-09-01T08:10:53.647Z"
+      "char_count_body": 1642,
+      "fetched_at": "2026-09-09T19:38:11.341Z"
     },
     {
       "id": "58",
@@ -2078,8 +2078,8 @@
       "title": "問58 適格簡易請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/58.pdf",
       "file_path": "invoice/58.json",
-      "char_count_body": 2873,
-      "fetched_at": "2026-09-01T08:10:55.033Z"
+      "char_count_body": 2887,
+      "fetched_at": "2026-09-09T19:38:13.438Z"
     },
     {
       "id": "58-2",
@@ -2094,8 +2094,8 @@
       "title": "問58－２ 手書きの領収書による適格簡易請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/58-2.pdf",
       "file_path": "invoice/58-2.json",
-      "char_count_body": 1520,
-      "fetched_at": "2026-09-01T08:10:56.586Z"
+      "char_count_body": 1529,
+      "fetched_at": "2026-09-09T19:38:15.652Z"
     },
     {
       "id": "59",
@@ -2110,8 +2110,8 @@
       "title": "問59 税抜価額と税込価額が混在する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/59.pdf",
       "file_path": "invoice/59.json",
-      "char_count_body": 1362,
-      "fetched_at": "2026-09-01T08:10:58.030Z"
+      "char_count_body": 1369,
+      "fetched_at": "2026-09-09T19:38:17.056Z"
     },
     {
       "id": "60",
@@ -2126,8 +2126,8 @@
       "title": "問60 適格返還請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/60.pdf",
       "file_path": "invoice/60.json",
-      "char_count_body": 977,
-      "fetched_at": "2026-09-01T08:10:59.909Z"
+      "char_count_body": 978,
+      "fetched_at": "2026-09-09T19:38:19.237Z"
     },
     {
       "id": "61",
@@ -2142,8 +2142,8 @@
       "title": "問61 売上げに係る対価の返還等の基となった課税資産の譲渡等を行った年月日の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/61.pdf",
       "file_path": "invoice/61.json",
-      "char_count_body": 876,
-      "fetched_at": "2026-09-01T08:11:01.377Z"
+      "char_count_body": 880,
+      "fetched_at": "2026-09-09T19:38:21.456Z"
     },
     {
       "id": "62",
@@ -2158,8 +2158,8 @@
       "title": "問62 適格請求書と適格返還請求書を一の書類で交付する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/62.pdf",
       "file_path": "invoice/62.json",
-      "char_count_body": 1991,
-      "fetched_at": "2026-09-01T08:11:02.897Z"
+      "char_count_body": 1993,
+      "fetched_at": "2026-09-09T19:38:23.647Z"
     },
     {
       "id": "63",
@@ -2174,8 +2174,8 @@
       "title": "問63 販売奨励金等の請求書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/63.pdf",
       "file_path": "invoice/63.json",
-      "char_count_body": 1351,
-      "fetched_at": "2026-09-01T08:11:04.377Z"
+      "char_count_body": 1355,
+      "fetched_at": "2026-09-09T19:38:25.840Z"
     },
     {
       "id": "64",
@@ -2190,8 +2190,8 @@
       "title": "問64 適格請求書に係る電磁的記録の内容",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/64.pdf",
       "file_path": "invoice/64.json",
-      "char_count_body": 615,
-      "fetched_at": "2026-09-01T08:11:05.855Z"
+      "char_count_body": 619,
+      "fetched_at": "2026-09-09T19:38:27.469Z"
     },
     {
       "id": "65",
@@ -2206,8 +2206,8 @@
       "title": "問65 一定期間の取引をまとめた請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/65.pdf",
       "file_path": "invoice/65.json",
-      "char_count_body": 2327,
-      "fetched_at": "2026-09-01T08:11:07.408Z"
+      "char_count_body": 2415,
+      "fetched_at": "2026-09-09T19:38:29.406Z"
     },
     {
       "id": "66",
@@ -2222,8 +2222,8 @@
       "title": "問66 複数の契約に係る適格請求書の交付の可否",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/66.pdf",
       "file_path": "invoice/66.json",
-      "char_count_body": 1295,
-      "fetched_at": "2026-09-01T08:11:08.825Z"
+      "char_count_body": 1296,
+      "fetched_at": "2026-09-09T19:38:30.812Z"
     },
     {
       "id": "67",
@@ -2238,8 +2238,8 @@
       "title": "問67 複数書類で適格請求書の記載事項を満たす場合の消費税額等の端数処理",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/67.pdf",
       "file_path": "invoice/67.json",
-      "char_count_body": 1489,
-      "fetched_at": "2026-09-01T08:11:10.313Z"
+      "char_count_body": 1531,
+      "fetched_at": "2026-09-09T19:38:33.004Z"
     },
     {
       "id": "68",
@@ -2254,8 +2254,8 @@
       "title": "問68 外貨建取引における適格請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/68.pdf",
       "file_path": "invoice/68.json",
-      "char_count_body": 2166,
-      "fetched_at": "2026-09-01T08:11:11.761Z"
+      "char_count_body": 2172,
+      "fetched_at": "2026-09-09T19:38:35.230Z"
     },
     {
       "id": "69",
@@ -2270,8 +2270,8 @@
       "title": "問69 一括値引きがある場合の適格簡易請求書の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/69.pdf",
       "file_path": "invoice/69.json",
-      "char_count_body": 2276,
-      "fetched_at": "2026-09-01T08:11:13.260Z"
+      "char_count_body": 2283,
+      "fetched_at": "2026-09-09T19:38:37.457Z"
     },
     {
       "id": "70",
@@ -2286,8 +2286,8 @@
       "title": "問70 端数値引きがある場合の適格請求書の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/70.pdf",
       "file_path": "invoice/70.json",
-      "char_count_body": 3475,
-      "fetched_at": "2026-09-01T08:11:14.780Z"
+      "char_count_body": 3486,
+      "fetched_at": "2026-09-09T19:38:39.533Z"
     },
     {
       "id": "71",
@@ -2302,8 +2302,8 @@
       "title": "問71 物品切手等を値引販売した場合の適格請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/71.pdf",
       "file_path": "invoice/71.json",
-      "char_count_body": 857,
-      "fetched_at": "2026-09-01T08:11:16.200Z"
+      "char_count_body": 861,
+      "fetched_at": "2026-09-09T19:38:41.731Z"
     },
     {
       "id": "72",
@@ -2318,8 +2318,8 @@
       "title": "問72 書面と電磁的記録による適格請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/72.pdf",
       "file_path": "invoice/72.json",
-      "char_count_body": 1400,
-      "fetched_at": "2026-09-01T08:11:17.710Z"
+      "char_count_body": 1407,
+      "fetched_at": "2026-09-09T19:38:43.933Z"
     },
     {
       "id": "72-2",
@@ -2334,8 +2334,8 @@
       "title": "問72－２ 適格請求書の記載事項のインターネットでの公表",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/72-2.pdf",
       "file_path": "invoice/72-2.json",
-      "char_count_body": 1311,
-      "fetched_at": "2026-09-01T08:11:19.129Z"
+      "char_count_body": 1321,
+      "fetched_at": "2026-09-09T19:38:45.373Z"
     },
     {
       "id": "73",
@@ -2350,8 +2350,8 @@
       "title": "問73 軽減対象課税資産の譲渡等である旨の記載方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/73.pdf",
       "file_path": "invoice/73.json",
-      "char_count_body": 1492,
-      "fetched_at": "2026-09-01T08:11:20.558Z"
+      "char_count_body": 1495,
+      "fetched_at": "2026-09-09T19:38:46.907Z"
     },
     {
       "id": "74",
@@ -2366,8 +2366,8 @@
       "title": "問74 軽減税率の適用対象となる商品がない場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/74.pdf",
       "file_path": "invoice/74.json",
-      "char_count_body": 1080,
-      "fetched_at": "2026-09-01T08:11:21.940Z"
+      "char_count_body": 1085,
+      "fetched_at": "2026-09-09T19:38:48.861Z"
     },
     {
       "id": "75",
@@ -2382,8 +2382,8 @@
       "title": "問75 任意組合が交付する適格請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/75.pdf",
       "file_path": "invoice/75.json",
-      "char_count_body": 519,
-      "fetched_at": "2026-09-01T08:11:23.417Z"
+      "char_count_body": 524,
+      "fetched_at": "2026-09-09T19:38:51.061Z"
     },
     {
       "id": "76",
@@ -2398,8 +2398,8 @@
       "title": "問76 令和５年９月30日以前の請求書への登録番号の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/76.pdf",
       "file_path": "invoice/76.json",
-      "char_count_body": 1115,
-      "fetched_at": "2026-09-01T08:11:24.802Z"
+      "char_count_body": 1116,
+      "fetched_at": "2026-09-09T19:38:52.739Z"
     },
     {
       "id": "77",
@@ -2414,8 +2414,8 @@
       "title": "問77 登録日である令和５年 10 月１日をまたぐ請求書の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77.pdf",
       "file_path": "invoice/77.json",
-      "char_count_body": 1760,
-      "fetched_at": "2026-09-01T08:11:26.376Z"
+      "char_count_body": 1765,
+      "fetched_at": "2026-09-09T19:38:54.930Z"
     },
     {
       "id": "77-2",
@@ -2430,8 +2430,8 @@
       "title": "問77－２ 月の中途で適格請求書発行事業者となった場合の適格請求書等の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77-2.pdf",
       "file_path": "invoice/77-2.json",
-      "char_count_body": 2431,
-      "fetched_at": "2026-09-01T08:11:27.826Z"
+      "char_count_body": 2440,
+      "fetched_at": "2026-09-09T19:38:56.762Z"
     },
     {
       "id": "77-3",
@@ -2446,8 +2446,8 @@
       "title": "問77－３ 複数年をまたぐ取引に係る適格請求書の交付",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77-3.pdf",
       "file_path": "invoice/77-3.json",
-      "char_count_body": 1980,
-      "fetched_at": "2026-09-01T08:11:29.171Z"
+      "char_count_body": 1991,
+      "fetched_at": "2026-09-09T19:38:58.186Z"
     },
     {
       "id": "78",
@@ -2462,8 +2462,8 @@
       "title": "問78 適格請求書等の写しの範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/78.pdf",
       "file_path": "invoice/78.json",
-      "char_count_body": 548,
-      "fetched_at": "2026-09-01T08:11:30.609Z"
+      "char_count_body": 551,
+      "fetched_at": "2026-09-09T19:38:59.710Z"
     },
     {
       "id": "79",
@@ -2478,8 +2478,8 @@
       "title": "問79 適格請求書の写しの保存期間等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/79.pdf",
       "file_path": "invoice/79.json",
-      "char_count_body": 325,
-      "fetched_at": "2026-09-01T08:11:32.086Z"
+      "char_count_body": 326,
+      "fetched_at": "2026-09-09T19:39:01.648Z"
     },
     {
       "id": "80",
@@ -2494,8 +2494,8 @@
       "title": "問80 適格請求書の写しの電磁的記録による保存",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/80.pdf",
       "file_path": "invoice/80.json",
-      "char_count_body": 1038,
-      "fetched_at": "2026-09-01T08:11:33.522Z"
+      "char_count_body": 1042,
+      "fetched_at": "2026-09-09T19:39:03.616Z"
     },
     {
       "id": "81",
@@ -2510,8 +2510,8 @@
       "title": "問81 適格請求書に係る電磁的記録を提供した場合の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/81.pdf",
       "file_path": "invoice/81.json",
-      "char_count_body": 2014,
-      "fetched_at": "2026-09-01T08:11:34.954Z"
+      "char_count_body": 2023,
+      "fetched_at": "2026-09-09T19:39:05.017Z"
     },
     {
       "id": "82",
@@ -2526,8 +2526,8 @@
       "title": "問82 提供した適格請求書に係る電磁的記録の保存方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/82.pdf",
       "file_path": "invoice/82.json",
-      "char_count_body": 1416,
-      "fetched_at": "2026-09-01T08:11:36.333Z"
+      "char_count_body": 1420,
+      "fetched_at": "2026-09-09T19:39:07.101Z"
     },
     {
       "id": "83",
@@ -2542,8 +2542,8 @@
       "title": "問83 提供した適格請求書に係る電磁的記録の保存形式",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/83.pdf",
       "file_path": "invoice/83.json",
-      "char_count_body": 821,
-      "fetched_at": "2026-09-01T08:11:37.787Z"
+      "char_count_body": 824,
+      "fetched_at": "2026-09-09T19:39:08.511Z"
     },
     {
       "id": "84",
@@ -2558,8 +2558,8 @@
       "title": "問84 仕入税額控除の要件",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/84.pdf",
       "file_path": "invoice/84.json",
-      "char_count_body": 1544,
-      "fetched_at": "2026-09-01T08:11:39.126Z"
+      "char_count_body": 1555,
+      "fetched_at": "2026-09-09T19:39:09.934Z"
     },
     {
       "id": "85",
@@ -2574,8 +2574,8 @@
       "title": "問85 提供された適格請求書に係る電磁的記録の書面による保存",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/85.pdf",
       "file_path": "invoice/85.json",
-      "char_count_body": 989,
-      "fetched_at": "2026-09-01T08:11:40.544Z"
+      "char_count_body": 997,
+      "fetched_at": "2026-09-09T19:39:11.868Z"
     },
     {
       "id": "86",
@@ -2590,8 +2590,8 @@
       "title": "問86 仕入明細書の相手方への確認",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/86.pdf",
       "file_path": "invoice/86.json",
-      "char_count_body": 1813,
-      "fetched_at": "2026-09-01T08:11:41.875Z"
+      "char_count_body": 1815,
+      "fetched_at": "2026-09-09T19:39:13.554Z"
     },
     {
       "id": "87",
@@ -2606,8 +2606,8 @@
       "title": "問87 仕入明細書等の記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/87.pdf",
       "file_path": "invoice/87.json",
-      "char_count_body": 1512,
-      "fetched_at": "2026-09-01T08:11:43.256Z"
+      "char_count_body": 1517,
+      "fetched_at": "2026-09-09T19:39:14.957Z"
     },
     {
       "id": "88",
@@ -2622,8 +2622,8 @@
       "title": "問88 書面と電磁的記録を合わせた仕入明細書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/88.pdf",
       "file_path": "invoice/88.json",
-      "char_count_body": 1685,
-      "fetched_at": "2026-09-01T08:11:44.590Z"
+      "char_count_body": 1702,
+      "fetched_at": "2026-09-09T19:39:17.008Z"
     },
     {
       "id": "89",
@@ -2638,8 +2638,8 @@
       "title": "問89 仕入明細書に記載する課税仕入れに係る支払対価の額",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/89.pdf",
       "file_path": "invoice/89.json",
-      "char_count_body": 587,
-      "fetched_at": "2026-09-01T08:11:46.128Z"
+      "char_count_body": 589,
+      "fetched_at": "2026-09-09T19:39:19.211Z"
     },
     {
       "id": "90",
@@ -2654,8 +2654,8 @@
       "title": "問90 仕入明細書において対価の返還等について記載した場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/90.pdf",
       "file_path": "invoice/90.json",
-      "char_count_body": 2627,
-      "fetched_at": "2026-09-01T08:11:47.774Z"
+      "char_count_body": 2635,
+      "fetched_at": "2026-09-09T19:39:21.408Z"
     },
     {
       "id": "91",
@@ -2670,8 +2670,8 @@
       "title": "問91 適格請求書と仕入明細書を一の書類で交付する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/91.pdf",
       "file_path": "invoice/91.json",
-      "char_count_body": 1593,
-      "fetched_at": "2026-09-01T08:11:49.288Z"
+      "char_count_body": 1595,
+      "fetched_at": "2026-09-09T19:39:23.617Z"
     },
     {
       "id": "92",
@@ -2686,8 +2686,8 @@
       "title": "問92 交付を受けた適格請求書に誤りがあった場合の対応",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/92.pdf",
       "file_path": "invoice/92.json",
-      "char_count_body": 1449,
-      "fetched_at": "2026-09-01T08:11:50.766Z"
+      "char_count_body": 1452,
+      "fetched_at": "2026-09-09T19:39:25.839Z"
     },
     {
       "id": "93",
@@ -2702,8 +2702,8 @@
       "title": "問93 任意組合の構成員が保存しなければならない請求書等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/93.pdf",
       "file_path": "invoice/93.json",
-      "char_count_body": 1129,
-      "fetched_at": "2026-09-01T08:11:52.106Z"
+      "char_count_body": 1132,
+      "fetched_at": "2026-09-09T19:39:27.255Z"
     },
     {
       "id": "93-2",
@@ -2718,8 +2718,8 @@
       "title": "問93－２ 任意組合の構成員が帳簿へ記載すべき課税仕入れの相手方の氏名又は名称",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/93-2.pdf",
       "file_path": "invoice/93-2.json",
-      "char_count_body": 1094,
-      "fetched_at": "2026-09-01T08:11:53.566Z"
+      "char_count_body": 1096,
+      "fetched_at": "2026-09-09T19:39:28.951Z"
     },
     {
       "id": "94",
@@ -2734,8 +2734,8 @@
       "title": "問94 立替金",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94.pdf",
       "file_path": "invoice/94.json",
-      "char_count_body": 3433,
-      "fetched_at": "2026-09-01T08:11:54.979Z"
+      "char_count_body": 3438,
+      "fetched_at": "2026-09-09T19:39:31.033Z"
     },
     {
       "id": "94-2",
@@ -2750,8 +2750,8 @@
       "title": "問94－２ 従業員が立替払をした際に受領した適格簡易請求書での仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-2.pdf",
       "file_path": "invoice/94-2.json",
-      "char_count_body": 701,
-      "fetched_at": "2026-09-01T08:11:56.424Z"
+      "char_count_body": 703,
+      "fetched_at": "2026-09-09T19:39:32.975Z"
     },
     {
       "id": "94-3",
@@ -2766,8 +2766,8 @@
       "title": "問94－３ セミナー参加費に係る適格請求書の交付方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-3.pdf",
       "file_path": "invoice/94-3.json",
-      "char_count_body": 1903,
-      "fetched_at": "2026-09-01T08:11:57.994Z"
+      "char_count_body": 1908,
+      "fetched_at": "2026-09-09T19:39:34.501Z"
     },
     {
       "id": "94-4",
@@ -2782,8 +2782,8 @@
       "title": "問94－４ 社員食堂での会社負担分に係る仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-4.pdf",
       "file_path": "invoice/94-4.json",
-      "char_count_body": 1147,
-      "fetched_at": "2026-09-01T08:11:59.603Z"
+      "char_count_body": 1149,
+      "fetched_at": "2026-09-09T19:39:36.036Z"
     },
     {
       "id": "95",
@@ -2798,8 +2798,8 @@
       "title": "問95 口座振替・口座振込による家賃の支払",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/95.pdf",
       "file_path": "invoice/95.json",
-      "char_count_body": 1192,
-      "fetched_at": "2026-09-01T08:12:01.149Z"
+      "char_count_body": 1194,
+      "fetched_at": "2026-09-09T19:39:37.453Z"
     },
     {
       "id": "96",
@@ -2814,8 +2814,8 @@
       "title": "問96 見積額が記載された適格請求書の保存等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/96.pdf",
       "file_path": "invoice/96.json",
-      "char_count_body": 1146,
-      "fetched_at": "2026-09-01T08:12:02.589Z"
+      "char_count_body": 1149,
+      "fetched_at": "2026-09-09T19:39:38.856Z"
     },
     {
       "id": "97",
@@ -2830,8 +2830,8 @@
       "title": "問97 出来高検収書の保存による仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/97.pdf",
       "file_path": "invoice/97.json",
-      "char_count_body": 1169,
-      "fetched_at": "2026-09-01T08:12:04.013Z"
+      "char_count_body": 1173,
+      "fetched_at": "2026-09-09T19:39:40.274Z"
     },
     {
       "id": "98",
@@ -2846,8 +2846,8 @@
       "title": "問98 短期前払費用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/98.pdf",
       "file_path": "invoice/98.json",
-      "char_count_body": 1060,
-      "fetched_at": "2026-09-01T08:12:05.446Z"
+      "char_count_body": 1065,
+      "fetched_at": "2026-09-09T19:39:42.501Z"
     },
     {
       "id": "98-2",
@@ -2862,8 +2862,8 @@
       "title": "問98－２ 現金主義を適用する事業者における仕入税額控除のタイミング",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/98-2.pdf",
       "file_path": "invoice/98-2.json",
-      "char_count_body": 846,
-      "fetched_at": "2026-09-01T08:12:06.812Z"
+      "char_count_body": 849,
+      "fetched_at": "2026-09-09T19:39:44.437Z"
     },
     {
       "id": "99",
@@ -2879,7 +2879,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/99.pdf",
       "file_path": "invoice/99.json",
       "char_count_body": 1169,
-      "fetched_at": "2026-09-01T08:12:08.263Z"
+      "fetched_at": "2026-09-09T19:39:46.399Z"
     },
     {
       "id": "faq",
@@ -2894,8 +2894,8 @@
       "title": "インボイス制度に関するQ&A（多く寄せられるご質問）",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0521-1334-faq.pdf",
       "file_path": "invoice/faq.json",
-      "char_count_body": 34920,
-      "fetched_at": "2026-09-01T08:13:22.275Z"
+      "char_count_body": 34936,
+      "fetched_at": "2026-09-09T19:41:18.675Z"
     },
     {
       "id": "jireishu",
@@ -2910,8 +2910,8 @@
       "title": "インボイス制度において事業者が注意すべき事例集",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0023007-071.pdf",
       "file_path": "invoice/jireishu.json",
-      "char_count_body": 5119,
-      "fetched_at": "2026-09-01T08:13:23.888Z"
+      "char_count_body": 5101,
+      "fetched_at": "2026-09-09T19:41:20.225Z"
     },
     {
       "id": "faq-1-1",
@@ -2926,8 +2926,8 @@
       "title": "１-１ 暗号資産を売却した場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-1.json",
-      "char_count_body": 545,
-      "fetched_at": "2026-09-01T09:06:57.455Z"
+      "char_count_body": 548,
+      "fetched_at": "2026-09-09T19:41:35.811Z"
     },
     {
       "id": "faq-1-2",
@@ -2942,8 +2942,8 @@
       "title": "１-２ 暗号資産で商品を購入した場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-2.json",
-      "char_count_body": 645,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "char_count_body": 646,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-3",
@@ -2958,8 +2958,8 @@
       "title": "１-３ 暗号資産同士の交換を行った場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-3.json",
-      "char_count_body": 716,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "char_count_body": 717,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-4",
@@ -2974,8 +2974,8 @@
       "title": "１-４ 暗号資産による寄附を行った場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-4.json",
-      "char_count_body": 2061,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "char_count_body": 2062,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-5",
@@ -2990,8 +2990,8 @@
       "title": "１-５ 暗号資産の取得価額",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-5.json",
-      "char_count_body": 1245,
-      "fetched_at": "2026-09-01T09:06:57.466Z"
+      "char_count_body": 1207,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-6",
@@ -3007,7 +3007,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-6.json",
       "char_count_body": 552,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-7",
@@ -3022,8 +3022,8 @@
       "title": "１-７ マイニング、ステーキング、レンディングなどにより暗号資産を取得した場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-7.json",
-      "char_count_body": 412,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "char_count_body": 416,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-1-8",
@@ -3039,7 +3039,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-8.json",
       "char_count_body": 669,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-1",
@@ -3054,8 +3054,8 @@
       "title": "２-１ 暗号資産取引による所得の総収入金額の収入すべき時期",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-1.json",
-      "char_count_body": 418,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "char_count_body": 420,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-10",
@@ -3070,8 +3070,8 @@
       "title": "２-10 暗号資産を低額（無償）譲渡等した場合の取扱い",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-10.json",
-      "char_count_body": 1570,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "char_count_body": 1573,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-11",
@@ -3087,7 +3087,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-11.json",
       "char_count_body": 318,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-12",
@@ -3103,7 +3103,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-12.json",
       "char_count_body": 374,
-      "fetched_at": "2026-09-01T09:06:57.472Z"
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-13",
@@ -3118,8 +3118,8 @@
       "title": "２-13 暗号資産の信用取引",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-13.json",
-      "char_count_body": 781,
-      "fetched_at": "2026-09-01T09:06:57.472Z"
+      "char_count_body": 782,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-2",
@@ -3135,7 +3135,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-2.json",
       "char_count_body": 477,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-3",
@@ -3150,8 +3150,8 @@
       "title": "２-３ 暗号資産の必要経費",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-3.json",
-      "char_count_body": 827,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "char_count_body": 828,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-4",
@@ -3166,8 +3166,8 @@
       "title": "２-４ 暗号資産の譲渡原価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-4.json",
-      "char_count_body": 2998,
-      "fetched_at": "2026-09-01T09:06:57.469Z"
+      "char_count_body": 3012,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-5",
@@ -3182,8 +3182,8 @@
       "title": "２-５ 暗号資産の評価方法の届出",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-5.json",
-      "char_count_body": 911,
-      "fetched_at": "2026-09-01T09:06:57.469Z"
+      "char_count_body": 912,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-6",
@@ -3198,8 +3198,8 @@
       "title": "２-６ 暗号資産の評価方法の変更手続",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-6.json",
-      "char_count_body": 1161,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "char_count_body": 1164,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-7",
@@ -3214,8 +3214,8 @@
       "title": "２-７ 暗号資産の取得価額や売却価額が分からない場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-7.json",
-      "char_count_body": 982,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "char_count_body": 983,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-8",
@@ -3230,8 +3230,8 @@
       "title": "２-８ 年間取引報告書を活用した暗号資産の所得金額の計算",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-8.json",
-      "char_count_body": 1181,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "char_count_body": 1182,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-2-9",
@@ -3246,8 +3246,8 @@
       "title": "２-９ 年間取引報告書の記載内容",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-9.json",
-      "char_count_body": 1105,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "char_count_body": 1118,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-3-1",
@@ -3262,8 +3262,8 @@
       "title": "３-１ 暗号資産関係 ３－１－１ 暗号資産の譲渡損益の計上時期",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1.json",
-      "char_count_body": 417,
-      "fetched_at": "2026-09-01T09:06:57.473Z"
+      "char_count_body": 418,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-3-1-10",
@@ -3279,7 +3279,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-10.json",
       "char_count_body": 1323,
-      "fetched_at": "2026-09-01T09:06:57.476Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-11",
@@ -3294,8 +3294,8 @@
       "title": "３-１-11 特定譲渡制限付暗号資産に該当する暗号資産",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-11.json",
-      "char_count_body": 2145,
-      "fetched_at": "2026-09-01T09:06:57.477Z"
+      "char_count_body": 2148,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-12",
@@ -3310,8 +3310,8 @@
       "title": "３-１-12 暗号資産信用取引を行った場合",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-12.json",
-      "char_count_body": 1137,
-      "fetched_at": "2026-09-01T09:06:57.477Z"
+      "char_count_body": 1142,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-13",
@@ -3327,7 +3327,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-13.json",
       "char_count_body": 591,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-14",
@@ -3342,8 +3342,8 @@
       "title": "３-１-14 暗号資産信用取引に係るみなし決済損益額",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-14.json",
-      "char_count_body": 559,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "char_count_body": 561,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-2",
@@ -3358,8 +3358,8 @@
       "title": "３-１-２ 暗号資産の譲渡原価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-2.json",
-      "char_count_body": 2311,
-      "fetched_at": "2026-09-01T09:06:57.473Z"
+      "char_count_body": 2318,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-3-1-3",
@@ -3374,8 +3374,8 @@
       "title": "３-１-３ 暗号資産の期末時価評価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-3.json",
-      "char_count_body": 1064,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "char_count_body": 1066,
+      "fetched_at": "2026-09-09T19:41:35.812Z"
     },
     {
       "id": "faq-3-1-4",
@@ -3391,7 +3391,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-4.json",
       "char_count_body": 1286,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-5",
@@ -3406,8 +3406,8 @@
       "title": "３-１-５ ＤＥＸにおいて取引される暗号資産",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-5.json",
-      "char_count_body": 1518,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "char_count_body": 1519,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-6",
@@ -3422,8 +3422,8 @@
       "title": "３-１-６ ステーキングのためロックアップした暗号資産の期末時価評価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-6.json",
-      "char_count_body": 1192,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "char_count_body": 1194,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-7",
@@ -3438,8 +3438,8 @@
       "title": "３-１-７ 貸付けをした暗号資産の期末時価評価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-7.json",
-      "char_count_body": 1109,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "char_count_body": 1111,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-8",
@@ -3454,8 +3454,8 @@
       "title": "３-１-８ 借入れをした暗号資産の期末時価評価",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-8.json",
-      "char_count_body": 1285,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "char_count_body": 1287,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-1-9",
@@ -3471,7 +3471,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-9.json",
       "char_count_body": 1688,
-      "fetched_at": "2026-09-01T09:06:57.476Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-2",
@@ -3487,7 +3487,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2.json",
       "char_count_body": 644,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-2-2",
@@ -3503,7 +3503,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-2.json",
       "char_count_body": 431,
-      "fetched_at": "2026-09-01T09:06:57.479Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-2-3",
@@ -3519,7 +3519,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-3.json",
       "char_count_body": 821,
-      "fetched_at": "2026-09-01T09:06:57.479Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-3-2-4",
@@ -3534,8 +3534,8 @@
       "title": "３-２-４ 外貨建電子決済手段の期末時の課税関係",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-4.json",
-      "char_count_body": 618,
-      "fetched_at": "2026-09-01T09:06:57.480Z"
+      "char_count_body": 619,
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-4-1",
@@ -3551,7 +3551,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-4-1.json",
       "char_count_body": 563,
-      "fetched_at": "2026-09-01T09:06:57.480Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-4-2",
@@ -3567,7 +3567,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-4-2.json",
       "char_count_body": 914,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-09-09T19:41:35.813Z"
     },
     {
       "id": "faq-5-1",
@@ -3583,7 +3583,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-5-1.json",
       "char_count_body": 583,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
       "id": "faq-6-1",
@@ -3599,7 +3599,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-6-1.json",
       "char_count_body": 1024,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
       "id": "faq-6-2",
@@ -3615,7 +3615,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-6-2.json",
       "char_count_body": 776,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
       "id": "faq-7-1",
@@ -3631,7 +3631,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-1.json",
       "char_count_body": 427,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
       "id": "faq-7-2",
@@ -3646,8 +3646,8 @@
       "title": "７-２ 財産債務調書への暗号資産の価額の記載方法",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-2.json",
-      "char_count_body": 1095,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "char_count_body": 1096,
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
       "id": "faq-7-3",
@@ -3662,91 +3662,11 @@
       "title": "７-３ 国外財産調書への記載の要否",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-3.json",
-      "char_count_body": 454,
-      "fetched_at": "2026-09-01T09:06:57.483Z"
+      "char_count_body": 455,
+      "fetched_at": "2026-09-09T19:41:35.814Z"
     },
     {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問２",
-      "digest": false,
-      "title": "問２ 「飲食料品」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 1698,
-      "fetched_at": "2026-09-01T08:27:37.655Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問４",
-      "digest": false,
-      "title": "問４ 「一の資産の価格のみが提示されているもの」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 640,
-      "fetched_at": "2026-09-01T08:27:37.656Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問５",
-      "digest": false,
-      "title": "問５ 飲食料品を譲渡する際の包装材料等の取扱い",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 755,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問６",
-      "digest": false,
-      "title": "問６ 軽減税率が適用される「新聞の譲渡」とは",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 1156,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問９",
-      "digest": false,
-      "title": "問９ 持ち帰り販売の取扱い",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 2038,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
+      "id": "gaiyo-1",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -3755,27 +3675,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問１",
       "digest": false,
-      "title": "問１ 「軽減税率制度」の概要",
+      "title": "問１  「軽減税率制度」の概要",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 1410,
-      "fetched_at": "2026-09-01T08:27:37.664Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問３",
-      "digest": false,
-      "title": "問３ 「一体資産」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 438,
-      "fetched_at": "2026-09-01T08:27:37.664Z"
+      "file_path": "keigen/gaiyo-1.json",
+      "char_count_body": 1422,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-1",
@@ -3790,8 +3694,8 @@
       "title": "問1 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-1.json",
-      "char_count_body": 780,
-      "fetched_at": "2026-09-01T08:27:37.665Z"
+      "char_count_body": 784,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-11",
@@ -3806,8 +3710,8 @@
       "title": "問11 適用税率の判定時期",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-11.json",
-      "char_count_body": 739,
-      "fetched_at": "2026-09-01T08:27:37.658Z"
+      "char_count_body": 740,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
       "id": "gaiyo-12",
@@ -3822,8 +3726,8 @@
       "title": "問12 区分記載請求書等保存方式における帳簿及び請求書等に記載されるべき事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-12.json",
-      "char_count_body": 1523,
-      "fetched_at": "2026-09-01T08:27:37.658Z"
+      "char_count_body": 1529,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
       "id": "gaiyo-13",
@@ -3835,11 +3739,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問13",
       "digest": false,
-      "title": "問13 「軽減対象資産の譲渡等である旨」の記載",
+      "title": "問13  「軽減対象資産の譲渡等である旨」の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-13.json",
-      "char_count_body": 1316,
-      "fetched_at": "2026-09-01T08:27:37.659Z"
+      "char_count_body": 1319,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-14",
@@ -3854,8 +3758,8 @@
       "title": "問14 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-14.json",
-      "char_count_body": 241,
-      "fetched_at": "2026-09-01T08:27:37.660Z"
+      "char_count_body": 243,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-15",
@@ -3870,8 +3774,8 @@
       "title": "問15 免税事業者からの課税仕入れの取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-15.json",
-      "char_count_body": 138,
-      "fetched_at": "2026-09-01T08:27:37.660Z"
+      "char_count_body": 139,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-16",
@@ -3886,40 +3790,8 @@
       "title": "問16 令和元年 10 月以降の税額計算方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-16.json",
-      "char_count_body": 1194,
-      "fetched_at": "2026-09-01T08:27:37.661Z"
-    },
-    {
-      "id": "gaiyo-17",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問17",
-      "digest": false,
-      "title": "問17 売上税額の計算の特例の概要",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-17.json",
-      "char_count_body": 1422,
-      "fetched_at": "2026-09-01T08:27:37.666Z"
-    },
-    {
-      "id": "gaiyo-18",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問18",
-      "digest": false,
-      "title": "問18 仕入税額の計算の特例の概要",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-18.json",
-      "char_count_body": 1125,
-      "fetched_at": "2026-09-01T08:27:37.666Z"
+      "char_count_body": 3750,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-19",
@@ -3934,8 +3806,24 @@
       "title": "問19 税額計算の特例の適用関係",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-19.json",
-      "char_count_body": 604,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "char_count_body": 613,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
+    },
+    {
+      "id": "gaiyo-2",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問２",
+      "digest": false,
+      "title": "問２  「飲食料品」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-2.json",
+      "char_count_body": 1712,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
       "id": "gaiyo-20",
@@ -3950,8 +3838,8 @@
       "title": "問20 税額計算の特例を用いた税額計算の方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-20.json",
-      "char_count_body": 2220,
-      "fetched_at": "2026-09-01T08:27:37.667Z"
+      "char_count_body": 2222,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-21",
@@ -3966,8 +3854,8 @@
       "title": "問21 簡易課税制度を適用していない場合の売上税額の計算の特例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-21.json",
-      "char_count_body": 454,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "char_count_body": 456,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-22",
@@ -3982,8 +3870,8 @@
       "title": "問22 簡易課税制度を適用している場合の売上税額の計算の特例",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-22.json",
-      "char_count_body": 585,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "char_count_body": 593,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
       "id": "gaiyo-23",
@@ -3995,30 +3883,14 @@
       "tax_domain": "consumption_tax",
       "q_no": "問23",
       "digest": false,
-      "title": "問23 「軽減売上割合の特例」と「小売等軽減売上割合の特例」の適用関係",
+      "title": "問23  「軽減売上割合の特例」と「小売等軽減売上割合の特例」の適用関係",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-23.json",
-      "char_count_body": 822,
-      "fetched_at": "2026-09-01T08:27:37.663Z"
+      "char_count_body": 825,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問１",
-      "digest": false,
-      "title": "問１ 「飲食料品」の範囲",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 923,
-      "fetched_at": "2026-09-01T08:27:39.453Z"
-    },
-    {
-      "id": "jirei-",
+      "id": "gaiyo-3",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4027,14 +3899,14 @@
       "tax_domain": "consumption_tax",
       "q_no": "問３",
       "digest": false,
-      "title": "問３ 水産物の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 245,
-      "fetched_at": "2026-09-01T08:27:39.453Z"
+      "title": "問３  「一体資産」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-3.json",
+      "char_count_body": 441,
+      "fetched_at": "2026-09-09T19:41:29.080Z"
     },
     {
-      "id": "jirei-",
+      "id": "gaiyo-4",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4043,46 +3915,14 @@
       "tax_domain": "consumption_tax",
       "q_no": "問４",
       "digest": false,
-      "title": "問４ 家畜の飼料、ペットフードの販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 195,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
+      "title": "問４  「一の資産の価格のみが提示されているもの」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-4.json",
+      "char_count_body": 647,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問７",
-      "digest": false,
-      "title": "問７ 苗木、種子の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 267,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問２",
-      "digest": false,
-      "title": "問２ 生きた畜産物の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 277,
-      "fetched_at": "2026-09-01T08:27:39.519Z"
-    },
-    {
-      "id": "jirei-",
+      "id": "gaiyo-5",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4091,14 +3931,14 @@
       "tax_domain": "consumption_tax",
       "q_no": "問５",
       "digest": false,
-      "title": "問５ コーヒーの生豆の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 195,
-      "fetched_at": "2026-09-01T08:27:39.519Z"
+      "title": "問５ 飲食料品を譲渡する際の包装材料等の取扱い",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-5.json",
+      "char_count_body": 757,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
-      "id": "jirei-",
+      "id": "gaiyo-6",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4107,30 +3947,14 @@
       "tax_domain": "consumption_tax",
       "q_no": "問６",
       "digest": false,
-      "title": "問６ もみの販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 224,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
+      "title": "問６ 軽減税率が適用される「新聞の譲渡」とは",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-6.json",
+      "char_count_body": 1176,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
     },
     {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問８",
-      "digest": false,
-      "title": "問８ 水の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 316,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
-    },
-    {
-      "id": "jirei-",
+      "id": "gaiyo-9",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4139,11 +3963,43 @@
       "tax_domain": "consumption_tax",
       "q_no": "問９",
       "digest": false,
-      "title": "問９ 氷の販売",
+      "title": "問９ 持ち帰り販売の取扱い",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-9.json",
+      "char_count_body": 2052,
+      "fetched_at": "2026-09-09T19:41:29.079Z"
+    },
+    {
+      "id": "jirei-1",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問１",
+      "digest": false,
+      "title": "問１  「飲食料品」の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 262,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
+      "file_path": "keigen/jirei-1.json",
+      "char_count_body": 933,
+      "fetched_at": "2026-09-09T19:41:31.418Z"
+    },
+    {
+      "id": "jirei-1",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問1",
+      "digest": false,
+      "title": "問1  「軽減対象資産の譲渡等に係るものである旨」の帳簿への記載方法",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-1.json",
+      "char_count_body": 198,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-10",
@@ -4158,8 +4014,8 @@
       "title": "問10 ウォーターサーバーのレンタル及びウォーターサーバー用の水の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-10.json",
-      "char_count_body": 406,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
+      "char_count_body": 414,
+      "fetched_at": "2026-09-09T19:41:31.418Z"
     },
     {
       "id": "jirei-100",
@@ -4174,8 +4030,8 @@
       "title": "問100 ホテルに対して販売する新聞",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-100.json",
-      "char_count_body": 884,
-      "fetched_at": "2026-09-01T08:27:39.504Z"
+      "char_count_body": 286,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-101",
@@ -4190,8 +4046,8 @@
       "title": "問101 電子版の新聞",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-101.json",
-      "char_count_body": 301,
-      "fetched_at": "2026-09-01T08:27:39.505Z"
+      "char_count_body": 305,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-102",
@@ -4206,8 +4062,8 @@
       "title": "問102 紙の新聞と電子版の新聞のセット販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-102.json",
-      "char_count_body": 743,
-      "fetched_at": "2026-09-01T08:27:39.506Z"
+      "char_count_body": 750,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-103",
@@ -4222,8 +4078,8 @@
       "title": "問103 課税資産の譲渡等の内容の記載の程度",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-103.json",
-      "char_count_body": 551,
-      "fetched_at": "2026-09-01T08:27:39.529Z"
+      "char_count_body": 2405,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-104",
@@ -4238,8 +4094,8 @@
       "title": "問104 多数の商品登録が行えないレジにより発行するレシートに係る課税資産の譲渡等の内容の記 載の程度",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-104.json",
-      "char_count_body": 1839,
-      "fetched_at": "2026-09-01T08:27:39.507Z"
+      "char_count_body": 418,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-105",
@@ -4254,8 +4110,8 @@
       "title": "問105 一定期間分の取引のまとめ記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-105.json",
-      "char_count_body": 930,
-      "fetched_at": "2026-09-01T08:27:39.508Z"
+      "char_count_body": 936,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-106",
@@ -4270,8 +4126,8 @@
       "title": "問106 小規模小売事業者が交付する請求書等に係る記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-106.json",
-      "char_count_body": 971,
-      "fetched_at": "2026-09-01T08:27:39.509Z"
+      "char_count_body": 976,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-107",
@@ -4286,8 +4142,8 @@
       "title": "問107 レシートに係る記載内容",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-107.json",
-      "char_count_body": 1332,
-      "fetched_at": "2026-09-01T08:27:39.510Z"
+      "char_count_body": 2406,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-108",
@@ -4302,8 +4158,8 @@
       "title": "問108 税抜対価の額と消費税額を記載する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-108.json",
-      "char_count_body": 1049,
-      "fetched_at": "2026-09-01T08:27:39.511Z"
+      "char_count_body": 203,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-109",
@@ -4319,7 +4175,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-109.json",
       "char_count_body": 1222,
-      "fetched_at": "2026-09-01T08:27:39.512Z"
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-11",
@@ -4334,8 +4190,8 @@
       "title": "問11 賞味期限切れの食品の廃棄",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-11.json",
-      "char_count_body": 215,
-      "fetched_at": "2026-09-01T08:27:39.455Z"
+      "char_count_body": 217,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-110",
@@ -4350,8 +4206,8 @@
       "title": "問110 主に事業者との取引を行う事業者が交付する請求書に係る記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-110.json",
-      "char_count_body": 1318,
-      "fetched_at": "2026-09-01T08:27:39.512Z"
+      "char_count_body": 1324,
+      "fetched_at": "2026-09-09T19:41:31.431Z"
     },
     {
       "id": "jirei-111",
@@ -4366,8 +4222,8 @@
       "title": "問111 免税事業者が発行する請求書に係る記載事項",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-111.json",
-      "char_count_body": 1278,
-      "fetched_at": "2026-09-01T08:27:39.513Z"
+      "char_count_body": 1291,
+      "fetched_at": "2026-09-09T19:41:31.431Z"
     },
     {
       "id": "jirei-112",
@@ -4382,8 +4238,8 @@
       "title": "問112 商品の全てが軽減税率の適用対象である場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-112.json",
-      "char_count_body": 537,
-      "fetched_at": "2026-09-01T08:27:39.514Z"
+      "char_count_body": 540,
+      "fetched_at": "2026-09-09T19:41:31.431Z"
     },
     {
       "id": "jirei-113",
@@ -4398,8 +4254,8 @@
       "title": "問113 軽減税率の適用対象となる商品がない場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-113.json",
-      "char_count_body": 724,
-      "fetched_at": "2026-09-01T08:27:39.514Z"
+      "char_count_body": 729,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-114",
@@ -4414,8 +4270,8 @@
       "title": "問114 税率ごとに分けて交付する請求書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-114.json",
-      "char_count_body": 800,
-      "fetched_at": "2026-09-01T08:27:39.515Z"
+      "char_count_body": 4045,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-115",
@@ -4430,8 +4286,8 @@
       "title": "問115 相手方の確認を受けた仕入明細書等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-115.json",
-      "char_count_body": 1181,
-      "fetched_at": "2026-09-01T08:27:39.515Z"
+      "char_count_body": 289,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-116",
@@ -4446,8 +4302,8 @@
       "title": "問116 旧税率対象が混在する請求書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-116.json",
-      "char_count_body": 2049,
-      "fetched_at": "2026-09-01T08:27:39.516Z"
+      "char_count_body": 294,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-117",
@@ -4462,8 +4318,8 @@
       "title": "問117 年間契約の区分記載請求書",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-117.json",
-      "char_count_body": 1015,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "char_count_body": 2956,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-118",
@@ -4478,8 +4334,8 @@
       "title": "問118 一括値引がある場合のレシートの記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-118.json",
-      "char_count_body": 1930,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "char_count_body": 216,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-119",
@@ -4494,8 +4350,8 @@
       "title": "問119 売上げに係る対価の返還等がある場合の請求書の記載",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-119.json",
-      "char_count_body": 1446,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "char_count_body": 7838,
+      "fetched_at": "2026-09-09T19:41:31.432Z"
     },
     {
       "id": "jirei-12",
@@ -4510,24 +4366,8 @@
       "title": "問12 お酒の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-12.json",
-      "char_count_body": 360,
-      "fetched_at": "2026-09-01T08:27:39.521Z"
-    },
-    {
-      "id": "jirei-120",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問120",
-      "digest": false,
-      "title": "問120 「軽減対象資産の譲渡等に係るものである旨」の帳簿への記載方法",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-120.json",
-      "char_count_body": 1540,
-      "fetched_at": "2026-09-01T08:27:39.518Z"
+      "char_count_body": 362,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-121",
@@ -4542,8 +4382,8 @@
       "title": "問121 価格表示の方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-121.json",
-      "char_count_body": 4827,
-      "fetched_at": "2026-09-01T08:27:39.518Z"
+      "char_count_body": 130,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-13",
@@ -4555,11 +4395,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問13",
       "digest": false,
-      "title": "問13 「食品」の原材料となる酒類の販売",
+      "title": "問13  「食品」の原材料となる酒類の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-13.json",
-      "char_count_body": 182,
-      "fetched_at": "2026-09-01T08:27:39.456Z"
+      "char_count_body": 184,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-14",
@@ -4574,8 +4414,8 @@
       "title": "問14 みりん、料理酒、調味料の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-14.json",
-      "char_count_body": 311,
-      "fetched_at": "2026-09-01T08:27:39.456Z"
+      "char_count_body": 312,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-15",
@@ -4590,8 +4430,8 @@
       "title": "問15 ノンアルコールビール、甘酒の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-15.json",
-      "char_count_body": 206,
-      "fetched_at": "2026-09-01T08:27:39.521Z"
+      "char_count_body": 208,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-16",
@@ -4606,8 +4446,8 @@
       "title": "問16 酒類を原料とした菓子の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-16.json",
-      "char_count_body": 180,
-      "fetched_at": "2026-09-01T08:27:39.457Z"
+      "char_count_body": 182,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-17",
@@ -4622,8 +4462,8 @@
       "title": "問17 酒類の原料となる食品の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-17.json",
-      "char_count_body": 238,
-      "fetched_at": "2026-09-01T08:27:39.458Z"
+      "char_count_body": 241,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-18",
@@ -4635,11 +4475,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問18",
       "digest": false,
-      "title": "問18 「添加物」の販売",
+      "title": "問18  「添加物」の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-18.json",
-      "char_count_body": 264,
-      "fetched_at": "2026-09-01T08:27:39.522Z"
+      "char_count_body": 265,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-19",
@@ -4651,11 +4491,27 @@
       "tax_domain": "consumption_tax",
       "q_no": "問19",
       "digest": false,
-      "title": "問19 「金箔」の販売",
+      "title": "問19  「金箔」の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-19.json",
-      "char_count_body": 186,
-      "fetched_at": "2026-09-01T08:27:39.458Z"
+      "char_count_body": 448,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
+    },
+    {
+      "id": "jirei-2",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問２",
+      "digest": false,
+      "title": "問２ 生きた畜産物の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-2.json",
+      "char_count_body": 277,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-20",
@@ -4670,8 +4526,8 @@
       "title": "問20 食用、清掃用の重曹の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-20.json",
-      "char_count_body": 256,
-      "fetched_at": "2026-09-01T08:27:39.459Z"
+      "char_count_body": 149,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-21",
@@ -4686,8 +4542,8 @@
       "title": "問21 化粧品メーカーへの「添加物」の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-21.json",
-      "char_count_body": 350,
-      "fetched_at": "2026-09-01T08:27:39.460Z"
+      "char_count_body": 353,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-22",
@@ -4702,8 +4558,8 @@
       "title": "問22 炭酸ガスの販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-22.json",
-      "char_count_body": 504,
-      "fetched_at": "2026-09-01T08:27:39.460Z"
+      "char_count_body": 784,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-23",
@@ -4718,8 +4574,8 @@
       "title": "問23 栄養ドリンクの販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-23.json",
-      "char_count_body": 270,
-      "fetched_at": "2026-09-01T08:27:39.461Z"
+      "char_count_body": 131,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-24",
@@ -4734,8 +4590,8 @@
       "title": "問24 健康食品、美容食品等の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-24.json",
-      "char_count_body": 242,
-      "fetched_at": "2026-09-01T08:27:39.522Z"
+      "char_count_body": 245,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-25",
@@ -4750,8 +4606,8 @@
       "title": "問25 飲食料品を販売する際に使用される容器",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-25.json",
-      "char_count_body": 557,
-      "fetched_at": "2026-09-01T08:27:39.461Z"
+      "char_count_body": 561,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-26",
@@ -4766,8 +4622,8 @@
       "title": "問26 キャラクターを印刷したお菓子の缶箱等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-26.json",
-      "char_count_body": 639,
-      "fetched_at": "2026-09-01T08:27:39.462Z"
+      "char_count_body": 642,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-27",
@@ -4782,8 +4638,8 @@
       "title": "問27 桐の箱の容器",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-27.json",
-      "char_count_body": 524,
-      "fetched_at": "2026-09-01T08:27:39.523Z"
+      "char_count_body": 528,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-28",
@@ -4798,8 +4654,8 @@
       "title": "問28 割り箸を付帯した弁当、ストローを付帯した飲料等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-28.json",
-      "char_count_body": 407,
-      "fetched_at": "2026-09-01T08:27:39.462Z"
+      "char_count_body": 408,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-29",
@@ -4814,8 +4670,24 @@
       "title": "問29 お菓子用の包装紙の仕入れ",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-29.json",
-      "char_count_body": 265,
-      "fetched_at": "2026-09-01T08:27:39.463Z"
+      "char_count_body": 267,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
+    },
+    {
+      "id": "jirei-3",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問３",
+      "digest": false,
+      "title": "問３ 水産物の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-3.json",
+      "char_count_body": 248,
+      "fetched_at": "2026-09-09T19:41:31.418Z"
     },
     {
       "id": "jirei-3",
@@ -4830,8 +4702,8 @@
       "title": "問3 通信販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-3.json",
-      "char_count_body": 484,
-      "fetched_at": "2026-09-01T08:27:39.466Z"
+      "char_count_body": 1141,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-30",
@@ -4846,8 +4718,8 @@
       "title": "問30 飲用後に回収される空びん",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-30.json",
-      "char_count_body": 1130,
-      "fetched_at": "2026-09-01T08:27:39.464Z"
+      "char_count_body": 1137,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-31",
@@ -4862,8 +4734,8 @@
       "title": "問31 保冷剤を付けた洋菓子の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-31.json",
-      "char_count_body": 320,
-      "fetched_at": "2026-09-01T08:27:39.464Z"
+      "char_count_body": 322,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-32",
@@ -4878,8 +4750,8 @@
       "title": "問32 果物狩り、潮干狩り、釣り堀",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-32.json",
-      "char_count_body": 258,
-      "fetched_at": "2026-09-01T08:27:39.465Z"
+      "char_count_body": 259,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-33",
@@ -4894,8 +4766,8 @@
       "title": "問33 自動販売機",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-33.json",
-      "char_count_body": 212,
-      "fetched_at": "2026-09-01T08:27:39.523Z"
+      "char_count_body": 250,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-35",
@@ -4910,8 +4782,8 @@
       "title": "問35 カタログギフトの販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-35.json",
-      "char_count_body": 649,
-      "fetched_at": "2026-09-01T08:27:39.467Z"
+      "char_count_body": 272,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-36",
@@ -4926,8 +4798,8 @@
       "title": "問36 飲食料品のお土産付きのパック旅行",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-36.json",
-      "char_count_body": 385,
-      "fetched_at": "2026-09-01T08:27:39.468Z"
+      "char_count_body": 386,
+      "fetched_at": "2026-09-09T19:41:31.419Z"
     },
     {
       "id": "jirei-37",
@@ -4942,8 +4814,8 @@
       "title": "問37 日当等の取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-37.json",
-      "char_count_body": 626,
-      "fetched_at": "2026-09-01T08:27:39.524Z"
+      "char_count_body": 628,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-38",
@@ -4958,8 +4830,8 @@
       "title": "問38 レストランへの食材の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-38.json",
-      "char_count_body": 309,
-      "fetched_at": "2026-09-01T08:27:39.469Z"
+      "char_count_body": 311,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-39",
@@ -4974,8 +4846,24 @@
       "title": "問39 飲食料品の譲渡に要する送料",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-39.json",
-      "char_count_body": 213,
-      "fetched_at": "2026-09-01T08:27:39.470Z"
+      "char_count_body": 215,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
+    },
+    {
+      "id": "jirei-4",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問４",
+      "digest": false,
+      "title": "問４ 家畜の飼料、ペットフードの販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-4.json",
+      "char_count_body": 198,
+      "fetched_at": "2026-09-09T19:41:31.418Z"
     },
     {
       "id": "jirei-4",
@@ -4990,8 +4878,8 @@
       "title": "問4 販売奨励金",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-4.json",
-      "char_count_body": 731,
-      "fetched_at": "2026-09-01T08:27:39.524Z"
+      "char_count_body": 736,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-40",
@@ -5006,8 +4894,8 @@
       "title": "問40 食品の加工",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-40.json",
-      "char_count_body": 203,
-      "fetched_at": "2026-09-01T08:27:39.471Z"
+      "char_count_body": 547,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-41",
@@ -5022,8 +4910,8 @@
       "title": "問41 製作物供給契約による飲食料品の譲渡等の取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-41.json",
-      "char_count_body": 1016,
-      "fetched_at": "2026-09-01T08:27:39.472Z"
+      "char_count_body": 1020,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-42",
@@ -5038,8 +4926,8 @@
       "title": "問42 販売奨励金",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-42.json",
-      "char_count_body": 133,
-      "fetched_at": "2026-09-01T08:27:39.472Z"
+      "char_count_body": 134,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-43",
@@ -5054,8 +4942,8 @@
       "title": "問43 自動販売機の手数料",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-43.json",
-      "char_count_body": 661,
-      "fetched_at": "2026-09-01T08:27:39.473Z"
+      "char_count_body": 665,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-45",
@@ -5070,8 +4958,8 @@
       "title": "問45 委託販売手数料の取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-45.json",
-      "char_count_body": 1438,
-      "fetched_at": "2026-09-01T08:27:39.473Z"
+      "char_count_body": 1440,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-46",
@@ -5086,8 +4974,8 @@
       "title": "問46 輸入される飲食料品",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-46.json",
-      "char_count_body": 199,
-      "fetched_at": "2026-09-01T08:27:39.525Z"
+      "char_count_body": 201,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-47",
@@ -5102,8 +4990,8 @@
       "title": "問47 輸入された飲食料品のその後の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-47.json",
-      "char_count_body": 417,
-      "fetched_at": "2026-09-01T08:27:39.474Z"
+      "char_count_body": 420,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-48",
@@ -5118,8 +5006,8 @@
       "title": "問48 レストランへ販売する食材の輸入",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-48.json",
-      "char_count_body": 401,
-      "fetched_at": "2026-09-01T08:27:39.474Z"
+      "char_count_body": 657,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-49",
@@ -5134,8 +5022,24 @@
       "title": "問49 社員食堂での飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-49.json",
-      "char_count_body": 251,
-      "fetched_at": "2026-09-01T08:27:39.475Z"
+      "char_count_body": 142,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
+    },
+    {
+      "id": "jirei-5",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問５",
+      "digest": false,
+      "title": "問５ コーヒーの生豆の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-5.json",
+      "char_count_body": 198,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-50",
@@ -5150,8 +5054,8 @@
       "title": "問50 セルフサービスの飲食店",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-50.json",
-      "char_count_body": 229,
-      "fetched_at": "2026-09-01T08:27:39.475Z"
+      "char_count_body": 231,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-51",
@@ -5166,8 +5070,8 @@
       "title": "問51 屋台等での飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-51.json",
-      "char_count_body": 770,
-      "fetched_at": "2026-09-01T08:27:39.476Z"
+      "char_count_body": 1484,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-52",
@@ -5182,8 +5086,8 @@
       "title": "問52 コンビニエンスストアのイートインスペースでの飲食",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-52.json",
-      "char_count_body": 707,
-      "fetched_at": "2026-09-01T08:27:39.476Z"
+      "char_count_body": 222,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-53",
@@ -5198,8 +5102,8 @@
       "title": "問53 スーパーマーケットの休憩スペース等での飲食",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-53.json",
-      "char_count_body": 1209,
-      "fetched_at": "2026-09-01T08:27:39.477Z"
+      "char_count_body": 3032,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-54",
@@ -5214,8 +5118,8 @@
       "title": "問54 従業員専用のバックヤードで飲食する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-54.json",
-      "char_count_body": 810,
-      "fetched_at": "2026-09-01T08:27:39.477Z"
+      "char_count_body": 202,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-55",
@@ -5230,8 +5134,8 @@
       "title": "問55 飲食可能な場所を明示した場合の意思確認の方法",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-55.json",
-      "char_count_body": 997,
-      "fetched_at": "2026-09-01T08:27:39.478Z"
+      "char_count_body": 287,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-56",
@@ -5246,8 +5150,8 @@
       "title": "問56 イートインスペースで飲食される物の限定",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-56.json",
-      "char_count_body": 892,
-      "fetched_at": "2026-09-01T08:27:39.479Z"
+      "char_count_body": 895,
+      "fetched_at": "2026-09-09T19:41:31.425Z"
     },
     {
       "id": "jirei-57",
@@ -5262,8 +5166,8 @@
       "title": "問57 コーヒーチケットの取扱い",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-57.json",
-      "char_count_body": 810,
-      "fetched_at": "2026-09-01T08:27:39.479Z"
+      "char_count_body": 1220,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-58",
@@ -5278,8 +5182,8 @@
       "title": "問58 ファストフードのテイクアウト",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-58.json",
-      "char_count_body": 402,
-      "fetched_at": "2026-09-01T08:27:39.480Z"
+      "char_count_body": 130,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-59",
@@ -5294,8 +5198,24 @@
       "title": "問59 飲食店で残りを持ち帰る場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-59.json",
-      "char_count_body": 368,
-      "fetched_at": "2026-09-01T08:27:39.480Z"
+      "char_count_body": 371,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
+    },
+    {
+      "id": "jirei-6",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問６",
+      "digest": false,
+      "title": "問６ もみの販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-6.json",
+      "char_count_body": 225,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-60",
@@ -5310,8 +5230,8 @@
       "title": "問60 セット商品のうち一部を店内飲食する場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-60.json",
-      "char_count_body": 444,
-      "fetched_at": "2026-09-01T08:27:39.481Z"
+      "char_count_body": 446,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-61",
@@ -5326,8 +5246,8 @@
       "title": "問61 回転寿司店でパック詰めした寿司を持ち帰る場合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-61.json",
-      "char_count_body": 464,
-      "fetched_at": "2026-09-01T08:27:39.482Z"
+      "char_count_body": 469,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-62",
@@ -5342,8 +5262,8 @@
       "title": "問62 飲食店のレジ前の菓子等の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-62.json",
-      "char_count_body": 257,
-      "fetched_at": "2026-09-01T08:27:39.483Z"
+      "char_count_body": 259,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-63",
@@ -5358,8 +5278,8 @@
       "title": "問63 飲食店で提供する缶飲料、ペットボトル飲料",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-63.json",
-      "char_count_body": 320,
-      "fetched_at": "2026-09-01T08:27:39.484Z"
+      "char_count_body": 322,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-64",
@@ -5374,8 +5294,8 @@
       "title": "問64 立食形式の飲食店",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-64.json",
-      "char_count_body": 352,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "char_count_body": 355,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-65",
@@ -5391,7 +5311,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-65.json",
       "char_count_body": 494,
-      "fetched_at": "2026-09-01T08:27:39.485Z"
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-66",
@@ -5406,8 +5326,8 @@
       "title": "問66 公園のベンチでの飲食",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-66.json",
-      "char_count_body": 433,
-      "fetched_at": "2026-09-01T08:27:39.486Z"
+      "char_count_body": 436,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-67",
@@ -5422,8 +5342,8 @@
       "title": "問67 合意等の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-67.json",
-      "char_count_body": 570,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "char_count_body": 572,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-68",
@@ -5438,8 +5358,8 @@
       "title": "問68 遊園地の売店",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-68.json",
-      "char_count_body": 998,
-      "fetched_at": "2026-09-01T08:27:39.487Z"
+      "char_count_body": 1558,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
     },
     {
       "id": "jirei-69",
@@ -5454,8 +5374,24 @@
       "title": "問69 旅客列車の食堂車での食事、移動ワゴン販売の飲食料品の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-69.json",
-      "char_count_body": 552,
-      "fetched_at": "2026-09-01T08:27:39.487Z"
+      "char_count_body": 183,
+      "fetched_at": "2026-09-09T19:41:31.428Z"
+    },
+    {
+      "id": "jirei-7",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問７",
+      "digest": false,
+      "title": "問７ 苗木、種子の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-7.json",
+      "char_count_body": 270,
+      "fetched_at": "2026-09-09T19:41:31.418Z"
     },
     {
       "id": "jirei-70",
@@ -5470,8 +5406,8 @@
       "title": "問70 カラオケボックスでの飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-70.json",
-      "char_count_body": 253,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "char_count_body": 255,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-71",
@@ -5486,8 +5422,8 @@
       "title": "問71 映画館の売店での飲食料品の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-71.json",
-      "char_count_body": 587,
-      "fetched_at": "2026-09-01T08:27:39.488Z"
+      "char_count_body": 591,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-72",
@@ -5502,8 +5438,8 @@
       "title": "問72 旅館、ホテル等宿泊施設における飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-72.json",
-      "char_count_body": 540,
-      "fetched_at": "2026-09-01T08:27:39.488Z"
+      "char_count_body": 542,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-73",
@@ -5518,8 +5454,8 @@
       "title": "問73 ホテル等の客室に備え付けられた冷蔵庫内の飲料等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-73.json",
-      "char_count_body": 301,
-      "fetched_at": "2026-09-01T08:27:39.489Z"
+      "char_count_body": 303,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-74",
@@ -5534,8 +5470,8 @@
       "title": "問74 バーベキュー施設での飲食等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-74.json",
-      "char_count_body": 498,
-      "fetched_at": "2026-09-01T08:27:39.489Z"
+      "char_count_body": 500,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-75",
@@ -5547,11 +5483,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問75",
       "digest": false,
-      "title": "問75 「ケータリング」や「出張料理」",
+      "title": "問75  「ケータリング」や「出張料理」 ",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-75.json",
-      "char_count_body": 1890,
-      "fetched_at": "2026-09-01T08:27:39.490Z"
+      "char_count_body": 1896,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-76",
@@ -5567,7 +5503,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-76.json",
       "char_count_body": 297,
-      "fetched_at": "2026-09-01T08:27:39.527Z"
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-77",
@@ -5582,8 +5518,8 @@
       "title": "問77 出前の適用税率",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-77.json",
-      "char_count_body": 227,
-      "fetched_at": "2026-09-01T08:27:39.490Z"
+      "char_count_body": 230,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-78",
@@ -5598,8 +5534,8 @@
       "title": "問78 社内会議室への飲食料品の配達",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-78.json",
-      "char_count_body": 329,
-      "fetched_at": "2026-09-01T08:27:39.491Z"
+      "char_count_body": 331,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-79",
@@ -5614,8 +5550,8 @@
       "title": "問79 配達先での飲食料品の取り分け",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-79.json",
-      "char_count_body": 480,
-      "fetched_at": "2026-09-01T08:27:39.492Z"
+      "char_count_body": 487,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-8",
@@ -5630,8 +5566,40 @@
       "title": "問8 有料老人ホームの飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-8.json",
-      "char_count_body": 2169,
-      "fetched_at": "2026-09-01T08:27:39.492Z"
+      "char_count_body": 2171,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
+    },
+    {
+      "id": "jirei-8",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問８",
+      "digest": false,
+      "title": "問８ 水の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-8.json",
+      "char_count_body": 321,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
+    },
+    {
+      "id": "jirei-80",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問80",
+      "digest": false,
+      "title": "問80 有料老人ホームの飲食料品の提供",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-80.json",
+      "char_count_body": 171,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-82",
@@ -5646,8 +5614,8 @@
       "title": "問82 病院食",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-82.json",
-      "char_count_body": 261,
-      "fetched_at": "2026-09-01T08:27:39.527Z"
+      "char_count_body": 262,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-83",
@@ -5662,24 +5630,8 @@
       "title": "問83 飲食料品の提供に係る委託",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-83.json",
-      "char_count_body": 437,
-      "fetched_at": "2026-09-01T08:27:39.528Z"
-    },
-    {
-      "id": "jirei-84",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問84",
-      "digest": false,
-      "title": "問84 食玩",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-84.json",
-      "char_count_body": 388,
-      "fetched_at": "2026-09-01T08:27:39.528Z"
+      "char_count_body": 831,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "jirei-85",
@@ -5694,8 +5646,8 @@
       "title": "問85 高価な容器に盛り付けられた洋菓子",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-85.json",
-      "char_count_body": 571,
-      "fetched_at": "2026-09-01T08:27:39.493Z"
+      "char_count_body": 573,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-86",
@@ -5710,8 +5662,8 @@
       "title": "問86 食品と食品以外の資産で構成された福袋",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-86.json",
-      "char_count_body": 404,
-      "fetched_at": "2026-09-01T08:27:39.493Z"
+      "char_count_body": 406,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-87",
@@ -5726,8 +5678,8 @@
       "title": "問87 食品と食品以外の資産が選択可能である場合の一体資産該当性",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-87.json",
-      "char_count_body": 834,
-      "fetched_at": "2026-09-01T08:27:39.494Z"
+      "char_count_body": 836,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-88",
@@ -5742,8 +5694,8 @@
       "title": "問88 食品と非売品のおもちゃの一括譲渡",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-88.json",
-      "char_count_body": 645,
-      "fetched_at": "2026-09-01T08:27:39.495Z"
+      "char_count_body": 647,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-89",
@@ -5758,8 +5710,24 @@
       "title": "問89 販促品付きペットボトル飲料",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-89.json",
-      "char_count_body": 612,
-      "fetched_at": "2026-09-01T08:27:39.495Z"
+      "char_count_body": 1549,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
+    },
+    {
+      "id": "jirei-9",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問９",
+      "digest": false,
+      "title": "問９ 氷の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-9.json",
+      "char_count_body": 265,
+      "fetched_at": "2026-09-09T19:41:31.435Z"
     },
     {
       "id": "jirei-90",
@@ -5774,8 +5742,8 @@
       "title": "問90 特定の飲食料品を購入した際にレジで配付される販促品",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-90.json",
-      "char_count_body": 928,
-      "fetched_at": "2026-09-01T08:27:39.496Z"
+      "char_count_body": 392,
+      "fetched_at": "2026-09-09T19:41:31.429Z"
     },
     {
       "id": "jirei-91",
@@ -5791,7 +5759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-91.json",
       "char_count_body": 434,
-      "fetched_at": "2026-09-01T08:27:39.496Z"
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-92",
@@ -5806,8 +5774,8 @@
       "title": "問92 一体資産に含まれる食品に係る部分の割合として合理的な方法により計算した割合",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-92.json",
-      "char_count_body": 937,
-      "fetched_at": "2026-09-01T08:27:39.497Z"
+      "char_count_body": 2801,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-93",
@@ -5822,8 +5790,8 @@
       "title": "問93 食品と酒類のセット販売時の一括値引",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-93.json",
-      "char_count_body": 993,
-      "fetched_at": "2026-09-01T08:27:39.498Z"
+      "char_count_body": 130,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-94",
@@ -5838,8 +5806,8 @@
       "title": "問94 食品と食品以外の資産の仕入れに共通して要した付随費用",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-94.json",
-      "char_count_body": 861,
-      "fetched_at": "2026-09-01T08:27:39.498Z"
+      "char_count_body": 327,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-95",
@@ -5854,8 +5822,8 @@
       "title": "問95 一体資産に含まれる食品に係る部分の割合の売価による判定",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-95.json",
-      "char_count_body": 1051,
-      "fetched_at": "2026-09-01T08:27:39.499Z"
+      "char_count_body": 1315,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-96",
@@ -5870,8 +5838,8 @@
       "title": "問96 合理的な割合が不明な小売事業者等",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-96.json",
-      "char_count_body": 261,
-      "fetched_at": "2026-09-01T08:27:39.500Z"
+      "char_count_body": 185,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-97",
@@ -5886,8 +5854,8 @@
       "title": "問97 いわゆるスポーツ新聞や業界紙の販売",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-97.json",
-      "char_count_body": 265,
-      "fetched_at": "2026-09-01T08:27:39.501Z"
+      "char_count_body": 266,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-98",
@@ -5899,11 +5867,11 @@
       "tax_domain": "consumption_tax",
       "q_no": "問98",
       "digest": false,
-      "title": "問98 「定期購読契約」に基づく新聞の範囲",
+      "title": "問98  「定期購読契約」に基づく新聞の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-98.json",
-      "char_count_body": 253,
-      "fetched_at": "2026-09-01T08:27:39.502Z"
+      "char_count_body": 306,
+      "fetched_at": "2026-09-09T19:41:31.430Z"
     },
     {
       "id": "jirei-99",
@@ -5918,8 +5886,8 @@
       "title": "問99 １週に２回以上発行する新聞",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-99.json",
-      "char_count_body": 331,
-      "fetched_at": "2026-09-01T08:27:39.503Z"
+      "char_count_body": 1221,
+      "fetched_at": "2026-09-09T19:41:31.437Z"
     },
     {
       "id": "kaisei_r5",
@@ -5934,8 +5902,8 @@
       "title": "相続税及び贈与税の税制改正のあらまし（令和5年度）",
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0023006-004.pdf",
       "file_path": "sozoku_pamph/kaisei_r5.json",
-      "char_count_body": 4987,
-      "fetched_at": "2026-09-01T09:49:54.134Z"
+      "char_count_body": 5101,
+      "fetched_at": "2026-09-09T19:41:37.311Z"
     },
     {
       "id": "kyoiku_shikin",
@@ -5950,8 +5918,8 @@
       "title": "祖父母などから教育資金の一括贈与を受けた場合の贈与税の非課税制度のあらまし",
       "url": "https://www.nta.go.jp/publication/pamph/sozoku-zoyo/201304/pdf/0023004-114_02.pdf",
       "file_path": "sozoku_pamph/kyoiku_shikin.json",
-      "char_count_body": 6554,
-      "fetched_at": "2026-09-01T09:49:56.817Z"
+      "char_count_body": 6724,
+      "fetched_at": "2026-09-09T19:41:38.800Z"
     },
     {
       "id": "r5kaisei-1-1",
@@ -5966,8 +5934,8 @@
       "title": "問１-１ 加算対象贈与財産に係る相続税の課税価格に加算される金額及び暦年課税分の贈与税 額控除の計算（相続の開始前３年以内に取得した財産以外の財産がある場合）",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-1-1.json",
-      "char_count_body": 3309,
-      "fetched_at": "2026-09-01T09:49:52.492Z"
+      "char_count_body": 3321,
+      "fetched_at": "2026-09-09T19:41:36.900Z"
     },
     {
       "id": "r5kaisei-1-2",
@@ -5982,8 +5950,8 @@
       "title": "問１-２ 相続時精算課税適用者が特定贈与者から暦年課税及び相続時精算課税に係る贈与を受 けていた場合の相続税の課税価格に加算される金額",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-1-2.json",
-      "char_count_body": 1589,
-      "fetched_at": "2026-09-01T09:49:52.499Z"
+      "char_count_body": 1593,
+      "fetched_at": "2026-09-09T19:41:36.900Z"
     },
     {
       "id": "r5kaisei-2-1",
@@ -5998,8 +5966,8 @@
       "title": "問２-１ 相続時精算課税選択届出書を単独で提出した後に贈与税の期限後申告書を提出する場 合の相続時精算課税の適用の可否",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-1.json",
-      "char_count_body": 1163,
-      "fetched_at": "2026-09-01T09:49:52.500Z"
+      "char_count_body": 1167,
+      "fetched_at": "2026-09-09T19:41:36.900Z"
     },
     {
       "id": "r5kaisei-2-2",
@@ -6014,8 +5982,8 @@
       "title": "問２-２ 相続時精算課税に係る贈与により取得した財産について申告漏れ等が判明し修正申告 を行う場合の特別控除の適用",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-2.json",
-      "char_count_body": 2030,
-      "fetched_at": "2026-09-01T09:49:52.501Z"
+      "char_count_body": 2038,
+      "fetched_at": "2026-09-09T19:41:36.900Z"
     },
     {
       "id": "r5kaisei-2-3",
@@ -6030,8 +5998,8 @@
       "title": "問２-３ 特定贈与者が贈与をした年の中途に死亡した場合の相続税及び贈与税の課税価格に加 算等される贈与財産の価額（２人以上の特定贈与者からの贈与があった場合）",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-3.json",
-      "char_count_body": 1195,
-      "fetched_at": "2026-09-01T09:49:52.502Z"
+      "char_count_body": 1197,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-2-4",
@@ -6046,8 +6014,8 @@
       "title": "問２-４ 相続時精算課税に係る贈与により取得した財産について贈与税の除斥期間経過後に評 価誤り等が判明した場合の相続税の課税価格に加算される金額",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-4.json",
-      "char_count_body": 1096,
-      "fetched_at": "2026-09-01T09:49:52.503Z"
+      "char_count_body": 1099,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-2-5",
@@ -6062,8 +6030,8 @@
       "title": "問２-５ 特定贈与者の死亡以前に相続時精算課税適用者が死亡した場合の相続税の課税価格に 加算される金額",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-5.json",
-      "char_count_body": 1820,
-      "fetched_at": "2026-09-01T09:49:52.503Z"
+      "char_count_body": 1825,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-3-1",
@@ -6078,8 +6046,8 @@
       "title": "問３-１ 相続開始の年に相続時精算課税に係る贈与により取得した国外財産がある場合の相続 税の外国税額控除の金額",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-3-1.json",
-      "char_count_body": 1810,
-      "fetched_at": "2026-09-01T09:49:52.504Z"
+      "char_count_body": 1818,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-4-1",
@@ -6094,8 +6062,8 @@
       "title": "問４-１ 複数の特定贈与者から相続時精算課税に係る贈与により取得した非上場株式等に係る 猶予税額の計算（令和６年１月１日以後の贈与の場合）",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-1.json",
-      "char_count_body": 2355,
-      "fetched_at": "2026-09-01T09:49:52.504Z"
+      "char_count_body": 2362,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-4-2",
@@ -6110,8 +6078,8 @@
       "title": "問４-２ 贈与税の納税猶予の適用を受けている非上場株式等が相続時精算課税の適用を受ける ものである場合の相続税の課税価格に加算される金額の計算（令和６年１月１日以後の 贈与の場合）",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-2.json",
-      "char_count_body": 2318,
-      "fetched_at": "2026-09-01T09:49:52.505Z"
+      "char_count_body": 2322,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-4-3",
@@ -6126,8 +6094,8 @@
       "title": "問４-３ 相続時精算課税に係る贈与により取得した特定計画対象山林がある場合の相続税の申 告書の記載方法",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-3.json",
-      "char_count_body": 2972,
-      "fetched_at": "2026-09-01T09:49:52.505Z"
+      "char_count_body": 2984,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-5-1",
@@ -6142,8 +6110,8 @@
       "title": "問５-１ 無申告加算税（高額無申告加重措置）関係",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-5-1.json",
-      "char_count_body": 1584,
-      "fetched_at": "2026-09-01T09:49:52.506Z"
+      "char_count_body": 1591,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     },
     {
       "id": "r5kaisei-5-2",
@@ -6158,19 +6126,19 @@
       "title": "問５-２ 無申告加算税（連年無申告に対する加重措置）関係",
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-5-2.json",
-      "char_count_body": 1730,
-      "fetched_at": "2026-09-01T09:49:52.506Z"
+      "char_count_body": 1739,
+      "fetched_at": "2026-09-09T19:41:36.901Z"
     }
   ],
-  "generated_at": "2026-09-01T09:49:56.833Z",
-  "total_count": 385,
+  "generated_at": "2026-09-09T19:41:38.807Z",
+  "total_count": 383,
   "by_source": {
     "cross_border": 3,
     "denshi_scan": 4,
     "denshi_torihiki": 2,
     "invoice": 173,
     "kasou": 47,
-    "keigen": 141,
+    "keigen": 139,
     "sozoku_pamph": 2,
     "sozoku": 13
   }

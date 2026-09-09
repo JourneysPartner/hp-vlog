@@ -1,0 +1,16 @@
+{
+  "id": "jirei-7",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問７",
+  "digest": false,
+  "title": "問７ 苗木、種子の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（苗木、種子の販売） 問７ 果物の苗木及びその種子の販売は、軽減税率の適用対象となりますか。 【令和５年 10 月 改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますので、果物の苗木など栽培用 として販売される植物及びその種子は、 「食品」に該当せず、その販売は軽減税率の適用対 象となりません（消法２①九の二、別表１一、基通５－９－１） 。 なお、種子であっても、おやつや製菓の材料用など、人の飲用又は食用に供されるものと して販売されるかぼちゃの種などは、「食品」に該当し、その販売は軽減税率の適用対象と なります。",
+  "char_count_body": 270,
+  "fetched_at": "2026-09-09T19:41:31.418Z"
+}

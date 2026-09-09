@@ -1,0 +1,16 @@
+{
+  "id": "jirei-1",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問1",
+  "digest": false,
+  "title": "問1  「軽減対象資産の譲渡等に係るものである旨」の帳簿への記載方法",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（ 「軽減対象資産の譲渡等に係るものである旨」の帳簿への記載方法） 問1 2 0 区分記載請求書等保存方式において保存が必要となる帳簿に記載する「軽減対象資産 の譲渡等に係るものである旨」は、どのように記載したらよいですか。 【平成 29 年１月追加】 ························································79 目次－22 Ⅶ 価格表示",
+  "char_count_body": 198,
+  "fetched_at": "2026-09-09T19:41:31.432Z"
+}
