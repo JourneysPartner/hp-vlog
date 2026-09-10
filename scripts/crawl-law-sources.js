@@ -148,8 +148,21 @@ async function main() {
     }
   }
   if (!args.dryRun && index.length) {
-    fs.writeFileSync(path.join(LAW_DIR, 'index.json'), JSON.stringify({ generated_at: new Date().toISOString(), laws: index }, null, 1) + '\n');
-    console.log(`[law] index.json を更新（${index.length} 法令）`);
+    // --only で一部だけ取得したときに、他の法令を index から消さない。
+    // 2026-09-10: --only sozeki_hou,sozeki_rei で実行したら index が 2 件になり、
+    // 既に取得済みの民法・戸籍法などがカタログ一覧から消えた。
+    const indexPath = path.join(LAW_DIR, 'index.json');
+    const byKey = new Map();
+    try {
+      const prev = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+      for (const e of prev.laws || []) if (e && e.key) byKey.set(e.key, e);
+    } catch (_e) { /* 初回は既存 index が無い */ }
+    for (const e of index) byKey.set(e.key, e);
+    // 並びは LAWS の定義順に揃える（差分を安定させる）
+    const ordered = Object.keys(LAWS).filter(k => byKey.has(k)).map(k => byKey.get(k));
+    for (const [k, e] of byKey) if (!Object.prototype.hasOwnProperty.call(LAWS, k)) ordered.push(e);
+    fs.writeFileSync(indexPath, JSON.stringify({ generated_at: new Date().toISOString(), laws: ordered }, null, 1) + '\n');
+    console.log(`[law] index.json を更新（今回 ${index.length} 法令 / 合計 ${ordered.length} 法令）`);
   }
 }
 

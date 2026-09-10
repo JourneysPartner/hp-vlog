@@ -61,6 +61,43 @@ const LAWS = {
     law_id: '323AC0000000048', title: '墓地、埋葬等に関する法律', short: '墓地埋葬法',
     elms: ['MainProvision'],
   },
+  // 租税特別措置法（2026-09-10 追加）
+  //   タックスアンサーは要約なので、条文の要件が落ちることがある。実例:
+  //   No.5265 の「計算方法」欄は 50% 特例の対象を「飲食費」とだけ書いており、
+  //   措法61条の4第6項が求める「その旨につき財務省令で定めるところにより
+  //   明らかにされているもの（＝帳簿書類に接待飲食費である旨の記載）」が抜けている。
+  //   これをそのまま記事にすると要件を1つ落とした記事になる（2026-09-10 に発生）。
+  //   本則は巨大なので、ブログが実際に引く条だけを articles で絞って持つ。
+  sozeki_hou: {
+    law_id: '332AC0000000026', title: '租税特別措置法', short: '租税特別措置法',
+    aliases: ['租税特別措置法', '措法'],
+    // 第2章 所得税法の特例 / 第3章 法人税法の特例 / 第4章 相続税法の特例
+    elms: ['MainProvision-Chapter_2', 'MainProvision-Chapter_3', 'MainProvision-Chapter_4'],
+    articles: [
+      '9_7',    // 相続財産に係る株式を発行会社に譲渡した場合のみなし配当課税の特例
+      '25_2',   // 青色申告特別控除
+      '28_2',   // 中小企業者の少額減価償却資産の必要経費算入の特例（個人）
+      '35',     // 居住用財産の譲渡所得の特別控除
+      '39',     // 相続財産に係る譲渡所得の課税の特例（取得費加算）
+      '40',     // 国等に対して財産を寄附した場合の譲渡所得等の非課税
+      '61_4',   // 交際費等の損金不算入
+      '67_5',   // 中小企業者等の少額減価償却資産の損金算入の特例（法人）
+      '69_4',   // 小規模宅地等についての相続税の課税価格の計算の特例
+      '70',     // 国等に対して相続財産を贈与した場合等の相続税の非課税
+      '70_2',   // 直系尊属から住宅取得等資金の贈与を受けた場合の非課税
+      '70_2_2', // 直系尊属から教育資金の一括贈与を受けた場合の非課税
+      '70_3',   // 住宅取得等資金の贈与を受けた場合の相続時精算課税の特例
+    ],
+  },
+  sozeki_rei: {
+    law_id: '332CO0000000043', title: '租税特別措置法施行令', short: '租税特別措置法施行令',
+    aliases: ['租税特別措置法施行令', '措令'],
+    elms: ['MainProvision-Chapter_3'],
+    articles: [
+      '37_5',   // 交際費等の範囲（1人1万円の基準はここ）
+      '39_28',  // 中小企業者等の少額減価償却資産の損金算入の特例
+    ],
+  },
 };
 
 // ── 手続き機関の公式ページ ────────────────────────────────────
@@ -160,6 +197,13 @@ const PAIN_REFS = {
   'lifetime-gift-addback': { laws: [['sozokuzei', ['19', '21_9']]], pages: [] },
   'second-inheritance-loss': { laws: [['sozokuzei', ['19_2']], ['minpo', ['1028']]], pages: [] },
   'real-estate-valuation': { laws: [['sozokuzei', ['22']]], pages: [] },
+  // 交際費（2026-09-10 追加）。措法61条の4と措令37条の5をセットで渡す。
+  // 1人1万円の基準は政令、50%特例の帳簿記載要件は法の第6項にあり、
+  // タックスアンサーの要約だけでは要件が落ちる。
+  'entertainment-expense-deduction': { laws: [['sozeki_hou', ['61_4']], ['sozeki_rei', ['37_5']]], pages: [] },
+  'expense-golf-entertainment':      { laws: [['sozeki_hou', ['61_4']], ['sozeki_rei', ['37_5']]], pages: [] },
+  // 小規模宅地等の特例は措法69条の4が本体
+  'small-residential-land':          { laws: [['sozeki_hou', ['69_4']]], pages: [] },
 };
 
 // life_stage だけで決まる根拠（procedure_stage も pain_point も無い候補向け）
@@ -227,7 +271,11 @@ function getArticle(key, num) {
 
 /** 記事本文から法令の引用（民法第915条 / 民法915条 / 民法909条の2 等）を抜き、カタログと照合する */
 function findLawCitations(body) {
-  const shorts = Object.entries(LAWS).map(([key, l]) => [key, l.short]).sort((a, b) => b[1].length - a[1].length);
+  // 記事は「租税特別措置法第61条の4」とも「措法61条の4」とも書く。aliases で両方拾う。
+  // 長い名前から先に当てる（「租税特別措置法施行令」を「租税特別措置法」より先に判定する）。
+  const shorts = Object.entries(LAWS)
+    .flatMap(([key, l]) => (l.aliases || [l.short]).map(a => [key, a]))
+    .sort((a, b) => b[1].length - a[1].length);
   const alt = shorts.map(([, s]) => s).join('|');
   const re = new RegExp('(' + alt + ')(?:第)?([0-9０-９〇零一二三四五六七八九十百千]+)条(?:の([0-9０-９〇零一二三四五六七八九十]+))?', 'g');
   const found = [];

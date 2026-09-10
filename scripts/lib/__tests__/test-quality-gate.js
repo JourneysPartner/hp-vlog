@@ -109,14 +109,17 @@ const dry = selectDailyTopics(TOPICS, { now: new Date() });
 // 出典未解決の需要つき候補（設計どおりの状態）だけであることを確認する。
 assert(dry.picks.every(p => evaluateTopicFit(p).decision !== 'reject'),
   `dry-run の picks に reject が無い（${dry.picks.length} 本）`);
+// 2026-09-10: 以前はここで「需要の証拠（demand_evidence）を持つこと」も条件にしていたが、
+// 出典が仮置きなのは質疑応答・サジェスト候補だけではない。シナリオ展開の候補
+// （deepdive-* 等）も domain-fallback のままプールに入り、出典は生成時に解決される。
+// そのためシナリオ候補が選ばれた日にこの判定が落ちていた。
+// パイプラインが実際に保証しているのは source_hold（出典だけが保留理由なら生成対象に残す）
+// なので、その契約でそのまま判定する。人が確定した出典（explicit / curated）で revise に
+// なっているものは source_hold にならないため、従来どおり検出できる。
 assert(dry.picks.every(p => {
   const fit = evaluateTopicFit(p);
-  if (fit.decision === 'approve') return true;
-  // 選定段階では汎用の出典が仮置きされる（domain-fallback 等）。人が確定した出典
-  // （explicit / curated）で revise になっているなら本当の問題なので許容しない。
-  const weak = ['domain-fallback', 'ultimate', 'auto', 'unknown', undefined];
-  return !!p.demand_evidence && weak.includes(p.source_provenance);
-}), 'approve でない pick は出典が仮置きの需要つき候補だけ');
+  return fit.decision === 'approve' || fit.source_hold === true;
+}), 'approve でない pick は、出典だけが保留理由（source_hold）のものだけ');
 const dryQ = (dry.explanation.steps || []).find(s => s.step === 'filter-quality-fit');
 assert(dryQ && dryQ.blocked >= 0 && dryQ.remaining >= 0, 'dry-run に filter-quality-fit ステップが残る');
 

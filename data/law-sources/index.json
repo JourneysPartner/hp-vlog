@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-08T08:28:51.058Z",
+ "generated_at": "2026-09-10T09:30:20.495Z",
  "laws": [
   {
    "key": "minpo",
@@ -70,6 +70,26 @@
    "amendment_enforcement_date": "2025-06-01",
    "law_revision_id": "323AC0000000048_20250601_504AC0000000068",
    "fetched_at": "2026-09-08T08:28:51.056Z"
+  },
+  {
+   "key": "sozeki_hou",
+   "law_id": "332AC0000000026",
+   "title": "租税特別措置法",
+   "law_num": "昭和三十二年法律第二十六号",
+   "article_count": 13,
+   "amendment_enforcement_date": "2026-08-12",
+   "law_revision_id": "332AC0000000026_20260812_508AC0000000064",
+   "fetched_at": "2026-09-10T09:30:18.677Z"
+  },
+  {
+   "key": "sozeki_rei",
+   "law_id": "332CO0000000043",
+   "title": "租税特別措置法施行令",
+   "law_num": "昭和三十二年政令第四十三号",
+   "article_count": 2,
+   "amendment_enforcement_date": "2026-07-31",
+   "law_revision_id": "332CO0000000043_20260731_508CO0000000098",
+   "fetched_at": "2026-09-10T09:30:20.493Z"
   }
  ]
 }
