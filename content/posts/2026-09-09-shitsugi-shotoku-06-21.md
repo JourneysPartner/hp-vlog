@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "親から贈与を受けた住宅取得資金に非課税・相続時精算課税特例を適用すると、住宅ローン控除の対象借入金は取得対価から贈与額を差し引いた残額が上限になる。事例では2,000万円の借入のうち1,400万円のみが対象となる。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-09T17:14:33.148+09:00"
 publish_at: "2026-09-10T17:17:00.000+09:00"
-published_at: ""
+published_at: "2026-09-10T18:00:57.416+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-09T00:09:03.926Z"
-updated_at: "2026-09-09T17:14:33.148+09:00"
+updated_at: "2026-09-10T18:00:57.416+09:00"
 publish_slot: "evening"
 ---
 
