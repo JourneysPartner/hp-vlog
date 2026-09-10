@@ -1,0 +1,16 @@
+{
+  "id": "jirei-2",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問２",
+  "digest": false,
+  "title": "問２ 生きた畜産物の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（生きた畜産物の販売） 問２ 当社は、畜産業として肉用牛を販売していますが、生きている牛の販売は、軽減税率の 適用対象となりますか。【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますが、肉用牛、食用豚、食鳥等 の生きた家畜は、その販売の時点において、人の飲用又は食用に供されるものではないた め、「食品」に該当せず、その販売は軽減税率の適用対象となりません（消法２①九の二、 別表１一、基通５－９－１）。 なお、これらの家畜の枝肉は、人の飲用又は食用に供されるものであり、その販売は軽減 税率の適用対象となります。",
+  "char_count_body": 277,
+  "fetched_at": "2026-09-09T19:41:31.435Z"
+}
