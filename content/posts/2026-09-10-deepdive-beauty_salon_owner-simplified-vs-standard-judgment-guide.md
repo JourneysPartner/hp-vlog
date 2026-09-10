@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "美容サロンは簡易課税の第5種（みなし仕入率50%）が適用される。課税仕入れの実際の割合が50%を下回るなら簡易課税が有利になる一方、大型設備投資があれば原則課税で還付を受けられる場合もある。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-10T16:10:18.594+09:00"
+publish_at: "2026-09-11T11:16:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-10T00:05:57.577Z"
-updated_at: "2026-09-10T00:09:11.577Z"
+updated_at: "2026-09-10T16:10:18.594+09:00"
+publish_slot: "morning"
 ---
 インボイス登録をしてから初めて消費税の申告が近づいてきたとき、「結局、うちのサロンは簡易課税と原則課税のどちらを選べばいいのか」と悩む方は少なくありません。
 
