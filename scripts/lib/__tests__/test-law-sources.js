@@ -158,5 +158,69 @@ const fitNoLaw = evaluateTopicFit({ ...gridTopic, procedure_stage: 'quasi-final-
 assert(fitNoLaw.decision === 'revise' && /出典/.test(fitNoLaw.reason || ''),
   '根拠条文の無い段階は従来どおり出典未確定で revise');
 
+console.log('');
+console.log('=== 租税特別措置法: タックスアンサーの要約で落ちる要件が条文で拾えること ===');
+
+// 2026-09-10: 交際費の記事で、タックスアンサー No.5265 の「計算方法」欄が
+// 50% 特例の対象を「飲食費」とだけ書いており、条文が求める帳簿記載要件が落ちた。
+// 条文をカタログに持ち、原文をプロンプトに渡せることを固定する。
+const a614 = law.getArticle('sozeki_hou', '61_4');
+assert(a614 && a614.caption === '交際費等の損金不算入', '措法61条の4が引ける');
+assert(a614 && /その旨につき財務省令で定めるところにより明らかにされているもの/.test(a614.text),
+  '50%特例の対象（接待飲食費）の帳簿記載要件が条文に含まれる');
+assert(a614 && /財務省令で定める書類を保存している場合に限り/.test(a614.text),
+  '1人1万円以下の除外に必要な書類保存要件（8項）が条文に含まれる');
+
+const a375 = law.getArticle('sozeki_rei', '37_5');
+assert(a375 && /一万円/.test(a375.text), '措令37条の5に1人1万円の基準がある');
+assert(a375 && (a375.text.match(/通常要する費用/g) || []).length === 3,
+  '措令37条の5第2項の3項目とも「通常要する費用」で限定されている');
+
+for (const n of ['25_2', '28_2', '39', '40', '67_5', '69_4', '70', '70_2_2']) {
+  assert(!!law.getArticle('sozeki_hou', n), `措法第${law.articleLabel(n)}がカタログにある`);
+}
+
+console.log('');
+console.log('=== 略称でも正式名称でも引用を照合できる ===');
+
+const citeMap = (text) => Object.fromEntries(law.findLawCitations(text).map(c => [`${c.key}:${c.num}`, c.found]));
+assert(citeMap('措法61条の4により')['sozeki_hou:61_4'] === true, '略称「措法61条の4」を拾う');
+assert(citeMap('租税特別措置法第61条の4により')['sozeki_hou:61_4'] === true, '正式名称「租税特別措置法第61条の4」を拾う');
+assert(citeMap('措令37条の5')['sozeki_rei:37_5'] === true, '略称「措令37条の5」を拾う');
+// 「租税特別措置法施行令」を「租税特別措置法」より先に判定しないと、施行令の条が法の条として誤判定される
+const full = citeMap('租税特別措置法施行令第37条の5');
+assert(full['sozeki_rei:37_5'] === true && full['sozeki_hou:37_5'] === undefined,
+  '「租税特別措置法施行令」は施行令として判定される（法と取り違えない）');
+assert(citeMap('措法99条の9')['sozeki_hou:99_9'] === false, 'カタログに無い措法の条番号は found=false（捏造検出）');
+
+console.log('');
+console.log('=== 交際費の論点から条文が渡ること ===');
+
+const ent = law.refsForTopic({ pain_point: 'entertainment-expense-deduction' });
+assert(ent.articles.some(a => a.key === 'sozeki_hou' && a.num === '61_4')
+  && ent.articles.some(a => a.key === 'sozeki_rei' && a.num === '37_5'),
+  '交際費の論点には措法61条の4と措令37条の5がセットで付く');
+assert(law.refsForTopic({ pain_point: 'expense-golf-entertainment' }).articles.length === 2,
+  'ゴルフ接待の論点にも同じ根拠が付く');
+assert(law.refsForTopic({ pain_point: 'small-residential-land' }).articles.some(a => a.num === '69_4'),
+  '小規模宅地等の論点には措法69条の4が付く');
+
+// 交際費の出典は curated（No.5265）なので、法令への主出典差し替えは起きない
+const saEnt = require(path.join(ROOT, 'scripts/lib/source-alignment')).checkSourceAlignment({
+  source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5265.htm',
+  source_provenance: 'curated', source_confidence: 1,
+  tax_domain: 'bookkeeping_expenses', pain_point: 'entertainment-expense-deduction',
+});
+assert(saEnt.needs_source_review === false,
+  '人が確定した出典がある論点は、法令が根拠にあっても主出典を差し替えない');
+
+console.log('');
+console.log('=== index.json は一部だけ取得しても他の法令を落とさない ===');
+const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/law-sources/index.json'), 'utf8'));
+const idxKeys = (idx.laws || []).map(l => l.key);
+for (const key of Object.keys(law.LAWS)) {
+  assert(idxKeys.includes(key), `index.json に ${key} が載っている`);
+}
+
 console.log(`\n結果: ${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
