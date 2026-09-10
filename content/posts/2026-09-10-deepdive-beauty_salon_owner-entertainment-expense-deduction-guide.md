@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "交際費等は原則全額損金不算入ですが、中小法人は年800万円全額算入特例か接待飲食費50%算入特例を選択できます。除外費用の要件と特例の選び方を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-10T18:35:33.293+09:00"
+publish_at: "2026-09-11T17:46:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-10T00:09:14.014Z"
-updated_at: "2026-09-10T07:50:54.252Z"
+updated_at: "2026-09-10T18:35:33.293+09:00"
+publish_slot: "evening"
 ---
 取引先への接待や業者との会食、スタッフの慰安旅行——美容サロンを法人で運営していると、こうした支出が交際費として積み上がることは珍しくありません。決算が近づいてから「交際費が多くなったけど、税務上どこまで経費になるの？」と焦る方も多いはずです。
 
