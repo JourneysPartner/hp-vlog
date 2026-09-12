@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "国外事業者からの特定課税仕入れ（リバースチャージ）の支払対価は、納税義務判定の基準期間における課税売上高に含まれない。消費税の申告・納税を行っていても、判定上は「仕入れ」であり「売上」ではないため。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルの「国外事業者への支払いは翌期の課税売上高に入る？」を「国外事業者への支払いは課税売上高に入る？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-12T00:05:57.701Z"
-updated_at: "2026-09-12T00:08:14.445Z"
+updated_at: "2026-09-12T15:06:12.609+09:00"
 ---
 国外のプラットフォームや広告配信サービスを利用している法人が、ある年度に「特定課税仕入れ」としてリバースチャージ方式で消費税を申告・納税したとき、ふと気になるのが翌々期の納税義務の問題です。
 
