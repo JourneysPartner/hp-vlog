@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "テンプレ・素材販売の収入は、現金を受け取った日ではなく「売れた（権利が確定した）日」が計上タイミング。ライセンス料は使用許諾の形態ごとに計上時期が異なるため、販売形態に合わせた処理が必要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-12T16:02:23.011+09:00"
+publish_at: "2026-09-13T11:12:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-12T00:08:16.624Z"
-updated_at: "2026-09-12T00:11:07.325Z"
+updated_at: "2026-09-12T16:02:23.011+09:00"
+publish_slot: "morning"
 ---
 Canvaテンプレートや商用フリー素材を販売しているけれど、確定申告のときに「これって売上に入れるのはいつ？」「ライセンス料と素材の売上は別に区分すべき？」と手が止まった経験はないでしょうか。
 
