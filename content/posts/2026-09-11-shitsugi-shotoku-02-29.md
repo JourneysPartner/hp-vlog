@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "こども保険の教育資金（16〜19歳）と満期保険金（20歳）は、毎年定額で受け取る継続的な給付のため、一時所得ではなく雑所得に該当します。各受取額から対応する払込保険料を差し引いた金額が雑所得の金額です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-11T20:36:20.548+09:00"
 publish_at: "2026-09-12T17:21:00.000+09:00"
-published_at: ""
+published_at: "2026-09-12T18:00:51.738+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-11T00:08:43.872Z"
-updated_at: "2026-09-11T20:36:20.548+09:00"
+updated_at: "2026-09-12T18:00:51.738+09:00"
 publish_slot: "evening"
 ---
 子どもの将来のために加入したこども保険から、いよいよ教育資金が振り込まれ始めた——。そのとき「これって確定申告が必要？」「一時所得として申告すればいいの？」と手が止まる方は少なくありません。
