@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "店舗改装による休業で課税期間中の売上がゼロの場合、課税売上割合は0%（95%未満）として扱われ、消費税法第30条第2項が適用される。改装工事の仕入税額控除は個別対応方式または一括比例配分方式で計算し、消費税の還付申告が可能です。"
-review_status: "draft"
-review_comment: ""
+review_status: "needs_revision"
+review_comment: "タイトルを「店舗改装で休業中に売上ゼロ——課税売上割合が0%になった場合の仕入税額控除はどう計算する？」→「店舗改装で休業中に売上ゼロ——売上が無い場合でも消費税の還付は受けれる？」に変更して。"
 approved_at: ""
 publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-13T00:08:54.377Z"
-updated_at: "2026-09-13T00:11:16.136Z"
+updated_at: "2026-09-13T17:25:13.296+09:00"
 ---
 店舗の大規模改装に踏み切り、工事期間中は完全に休業——そんな状況で課税期間が終わったとき、消費税の申告書を前に手が止まる方は少なくありません。
 
