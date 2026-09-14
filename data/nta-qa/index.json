@@ -3666,87 +3666,7 @@
       "fetched_at": "2026-09-01T09:06:57.483Z"
     },
     {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問２",
-      "digest": false,
-      "title": "問２ 「飲食料品」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 1698,
-      "fetched_at": "2026-09-01T08:27:37.655Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問４",
-      "digest": false,
-      "title": "問４ 「一の資産の価格のみが提示されているもの」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 640,
-      "fetched_at": "2026-09-01T08:27:37.656Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問５",
-      "digest": false,
-      "title": "問５ 飲食料品を譲渡する際の包装材料等の取扱い",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 755,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問６",
-      "digest": false,
-      "title": "問６ 軽減税率が適用される「新聞の譲渡」とは",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 1156,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問９",
-      "digest": false,
-      "title": "問９ 持ち帰り販売の取扱い",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 2038,
-      "fetched_at": "2026-09-01T08:27:37.657Z"
-    },
-    {
-      "id": "gaiyo-",
+      "id": "gaiyo-1",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -3757,25 +3677,9 @@
       "digest": false,
       "title": "問１ 「軽減税率制度」の概要",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
+      "file_path": "keigen/gaiyo-1.json",
       "char_count_body": 1410,
-      "fetched_at": "2026-09-01T08:27:37.664Z"
-    },
-    {
-      "id": "gaiyo-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問３",
-      "digest": false,
-      "title": "問３ 「一体資産」の意義",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-.json",
-      "char_count_body": 438,
-      "fetched_at": "2026-09-01T08:27:37.664Z"
+      "fetched_at": "2026-09-14T15:18:19.527Z"
     },
     {
       "id": "gaiyo-1",
@@ -3791,7 +3695,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-1.json",
       "char_count_body": 780,
-      "fetched_at": "2026-09-01T08:27:37.665Z"
+      "fetched_at": "2026-09-14T15:18:19.531Z"
     },
     {
       "id": "gaiyo-11",
@@ -3807,7 +3711,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-11.json",
       "char_count_body": 739,
-      "fetched_at": "2026-09-01T08:27:37.658Z"
+      "fetched_at": "2026-09-14T15:18:19.530Z"
     },
     {
       "id": "gaiyo-12",
@@ -3823,7 +3727,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-12.json",
       "char_count_body": 1523,
-      "fetched_at": "2026-09-01T08:27:37.658Z"
+      "fetched_at": "2026-09-14T15:18:19.531Z"
     },
     {
       "id": "gaiyo-13",
@@ -3839,39 +3743,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-13.json",
       "char_count_body": 1316,
-      "fetched_at": "2026-09-01T08:27:37.659Z"
-    },
-    {
-      "id": "gaiyo-14",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問14",
-      "digest": false,
-      "title": "問14 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-14.json",
-      "char_count_body": 241,
-      "fetched_at": "2026-09-01T08:27:37.660Z"
-    },
-    {
-      "id": "gaiyo-15",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問15",
-      "digest": false,
-      "title": "問15 免税事業者からの課税仕入れの取扱い",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-15.json",
-      "char_count_body": 138,
-      "fetched_at": "2026-09-01T08:27:37.660Z"
+      "fetched_at": "2026-09-14T15:18:19.531Z"
     },
     {
       "id": "gaiyo-16",
@@ -3887,7 +3759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-16.json",
       "char_count_body": 1194,
-      "fetched_at": "2026-09-01T08:27:37.661Z"
+      "fetched_at": "2026-09-14T15:18:19.532Z"
     },
     {
       "id": "gaiyo-17",
@@ -3903,7 +3775,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-17.json",
       "char_count_body": 1422,
-      "fetched_at": "2026-09-01T08:27:37.666Z"
+      "fetched_at": "2026-09-14T15:18:19.532Z"
     },
     {
       "id": "gaiyo-18",
@@ -3919,7 +3791,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-18.json",
       "char_count_body": 1125,
-      "fetched_at": "2026-09-01T08:27:37.666Z"
+      "fetched_at": "2026-09-14T15:18:19.532Z"
     },
     {
       "id": "gaiyo-19",
@@ -3935,7 +3807,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-19.json",
       "char_count_body": 604,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "fetched_at": "2026-09-14T15:18:19.532Z"
+    },
+    {
+      "id": "gaiyo-2",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問２",
+      "digest": false,
+      "title": "問２ 「飲食料品」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-2.json",
+      "char_count_body": 1698,
+      "fetched_at": "2026-09-14T15:18:19.528Z"
     },
     {
       "id": "gaiyo-20",
@@ -3951,7 +3839,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-20.json",
       "char_count_body": 2220,
-      "fetched_at": "2026-09-01T08:27:37.667Z"
+      "fetched_at": "2026-09-14T15:18:19.532Z"
     },
     {
       "id": "gaiyo-21",
@@ -3967,7 +3855,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-21.json",
       "char_count_body": 454,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "fetched_at": "2026-09-14T15:18:19.533Z"
     },
     {
       "id": "gaiyo-22",
@@ -3983,7 +3871,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-22.json",
       "char_count_body": 585,
-      "fetched_at": "2026-09-01T08:27:37.662Z"
+      "fetched_at": "2026-09-14T15:18:19.533Z"
     },
     {
       "id": "gaiyo-23",
@@ -3998,11 +3886,91 @@
       "title": "問23 「軽減売上割合の特例」と「小売等軽減売上割合の特例」の適用関係",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-23.json",
-      "char_count_body": 822,
-      "fetched_at": "2026-09-01T08:27:37.663Z"
+      "char_count_body": 399,
+      "fetched_at": "2026-09-14T15:18:19.533Z"
     },
     {
-      "id": "jirei-",
+      "id": "gaiyo-3",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問３",
+      "digest": false,
+      "title": "問３ 「一体資産」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-3.json",
+      "char_count_body": 438,
+      "fetched_at": "2026-09-14T15:18:19.529Z"
+    },
+    {
+      "id": "gaiyo-4",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問４",
+      "digest": false,
+      "title": "問４ 「一の資産の価格のみが提示されているもの」の意義",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-4.json",
+      "char_count_body": 640,
+      "fetched_at": "2026-09-14T15:18:19.529Z"
+    },
+    {
+      "id": "gaiyo-5",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問５",
+      "digest": false,
+      "title": "問５ 飲食料品を譲渡する際の包装材料等の取扱い",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-5.json",
+      "char_count_body": 755,
+      "fetched_at": "2026-09-14T15:18:19.529Z"
+    },
+    {
+      "id": "gaiyo-6",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問６",
+      "digest": false,
+      "title": "問６ 軽減税率が適用される「新聞の譲渡」とは",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-6.json",
+      "char_count_body": 1156,
+      "fetched_at": "2026-09-14T15:18:19.530Z"
+    },
+    {
+      "id": "gaiyo-9",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問９",
+      "digest": false,
+      "title": "問９ 持ち帰り販売の取扱い",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-9.json",
+      "char_count_body": 2038,
+      "fetched_at": "2026-09-14T15:18:19.530Z"
+    },
+    {
+      "id": "jirei-1",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
@@ -4013,137 +3981,9 @@
       "digest": false,
       "title": "問１ 「飲食料品」の範囲",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
+      "file_path": "keigen/jirei-1.json",
       "char_count_body": 923,
-      "fetched_at": "2026-09-01T08:27:39.453Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問３",
-      "digest": false,
-      "title": "問３ 水産物の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 245,
-      "fetched_at": "2026-09-01T08:27:39.453Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問４",
-      "digest": false,
-      "title": "問４ 家畜の飼料、ペットフードの販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 195,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問７",
-      "digest": false,
-      "title": "問７ 苗木、種子の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 267,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問２",
-      "digest": false,
-      "title": "問２ 生きた畜産物の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 277,
-      "fetched_at": "2026-09-01T08:27:39.519Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問５",
-      "digest": false,
-      "title": "問５ コーヒーの生豆の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 195,
-      "fetched_at": "2026-09-01T08:27:39.519Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問６",
-      "digest": false,
-      "title": "問６ もみの販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 224,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問８",
-      "digest": false,
-      "title": "問８ 水の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 316,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
-    },
-    {
-      "id": "jirei-",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問９",
-      "digest": false,
-      "title": "問９ 氷の販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-.json",
-      "char_count_body": 262,
-      "fetched_at": "2026-09-01T08:27:39.520Z"
+      "fetched_at": "2026-09-14T15:18:21.022Z"
     },
     {
       "id": "jirei-10",
@@ -4159,7 +3999,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-10.json",
       "char_count_body": 406,
-      "fetched_at": "2026-09-01T08:27:39.454Z"
+      "fetched_at": "2026-09-14T15:18:21.025Z"
     },
     {
       "id": "jirei-100",
@@ -4175,7 +4015,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-100.json",
       "char_count_body": 884,
-      "fetched_at": "2026-09-01T08:27:39.504Z"
+      "fetched_at": "2026-09-14T15:18:21.044Z"
     },
     {
       "id": "jirei-101",
@@ -4191,7 +4031,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-101.json",
       "char_count_body": 301,
-      "fetched_at": "2026-09-01T08:27:39.505Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-102",
@@ -4207,7 +4047,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-102.json",
       "char_count_body": 743,
-      "fetched_at": "2026-09-01T08:27:39.506Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-103",
@@ -4223,7 +4063,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-103.json",
       "char_count_body": 551,
-      "fetched_at": "2026-09-01T08:27:39.529Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-104",
@@ -4239,7 +4079,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-104.json",
       "char_count_body": 1839,
-      "fetched_at": "2026-09-01T08:27:39.507Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-105",
@@ -4255,7 +4095,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-105.json",
       "char_count_body": 930,
-      "fetched_at": "2026-09-01T08:27:39.508Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-106",
@@ -4271,7 +4111,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-106.json",
       "char_count_body": 971,
-      "fetched_at": "2026-09-01T08:27:39.509Z"
+      "fetched_at": "2026-09-14T15:18:21.045Z"
     },
     {
       "id": "jirei-107",
@@ -4287,7 +4127,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-107.json",
       "char_count_body": 1332,
-      "fetched_at": "2026-09-01T08:27:39.510Z"
+      "fetched_at": "2026-09-14T15:18:21.046Z"
     },
     {
       "id": "jirei-108",
@@ -4303,7 +4143,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-108.json",
       "char_count_body": 1049,
-      "fetched_at": "2026-09-01T08:27:39.511Z"
+      "fetched_at": "2026-09-14T15:18:21.046Z"
     },
     {
       "id": "jirei-109",
@@ -4319,7 +4159,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-109.json",
       "char_count_body": 1222,
-      "fetched_at": "2026-09-01T08:27:39.512Z"
+      "fetched_at": "2026-09-14T15:18:21.046Z"
     },
     {
       "id": "jirei-11",
@@ -4335,7 +4175,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-11.json",
       "char_count_body": 215,
-      "fetched_at": "2026-09-01T08:27:39.455Z"
+      "fetched_at": "2026-09-14T15:18:21.025Z"
     },
     {
       "id": "jirei-110",
@@ -4351,7 +4191,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-110.json",
       "char_count_body": 1318,
-      "fetched_at": "2026-09-01T08:27:39.512Z"
+      "fetched_at": "2026-09-14T15:18:21.046Z"
     },
     {
       "id": "jirei-111",
@@ -4367,7 +4207,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-111.json",
       "char_count_body": 1278,
-      "fetched_at": "2026-09-01T08:27:39.513Z"
+      "fetched_at": "2026-09-14T15:18:21.046Z"
     },
     {
       "id": "jirei-112",
@@ -4383,7 +4223,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-112.json",
       "char_count_body": 537,
-      "fetched_at": "2026-09-01T08:27:39.514Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-113",
@@ -4399,7 +4239,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-113.json",
       "char_count_body": 724,
-      "fetched_at": "2026-09-01T08:27:39.514Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-114",
@@ -4415,7 +4255,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-114.json",
       "char_count_body": 800,
-      "fetched_at": "2026-09-01T08:27:39.515Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-115",
@@ -4431,7 +4271,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-115.json",
       "char_count_body": 1181,
-      "fetched_at": "2026-09-01T08:27:39.515Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-116",
@@ -4447,7 +4287,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-116.json",
       "char_count_body": 2049,
-      "fetched_at": "2026-09-01T08:27:39.516Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-117",
@@ -4463,7 +4303,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-117.json",
       "char_count_body": 1015,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "fetched_at": "2026-09-14T15:18:21.047Z"
     },
     {
       "id": "jirei-118",
@@ -4479,7 +4319,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-118.json",
       "char_count_body": 1930,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "fetched_at": "2026-09-14T15:18:21.048Z"
     },
     {
       "id": "jirei-119",
@@ -4495,7 +4335,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-119.json",
       "char_count_body": 1446,
-      "fetched_at": "2026-09-01T08:27:39.517Z"
+      "fetched_at": "2026-09-14T15:18:21.048Z"
     },
     {
       "id": "jirei-12",
@@ -4511,7 +4351,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-12.json",
       "char_count_body": 360,
-      "fetched_at": "2026-09-01T08:27:39.521Z"
+      "fetched_at": "2026-09-14T15:18:21.025Z"
     },
     {
       "id": "jirei-120",
@@ -4527,7 +4367,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-120.json",
       "char_count_body": 1540,
-      "fetched_at": "2026-09-01T08:27:39.518Z"
+      "fetched_at": "2026-09-14T15:18:21.048Z"
     },
     {
       "id": "jirei-121",
@@ -4543,7 +4383,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-121.json",
       "char_count_body": 4827,
-      "fetched_at": "2026-09-01T08:27:39.518Z"
+      "fetched_at": "2026-09-14T15:18:21.048Z"
     },
     {
       "id": "jirei-13",
@@ -4559,7 +4399,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-13.json",
       "char_count_body": 182,
-      "fetched_at": "2026-09-01T08:27:39.456Z"
+      "fetched_at": "2026-09-14T15:18:21.026Z"
     },
     {
       "id": "jirei-14",
@@ -4575,7 +4415,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-14.json",
       "char_count_body": 311,
-      "fetched_at": "2026-09-01T08:27:39.456Z"
+      "fetched_at": "2026-09-14T15:18:21.026Z"
     },
     {
       "id": "jirei-15",
@@ -4591,7 +4431,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-15.json",
       "char_count_body": 206,
-      "fetched_at": "2026-09-01T08:27:39.521Z"
+      "fetched_at": "2026-09-14T15:18:21.026Z"
     },
     {
       "id": "jirei-16",
@@ -4607,7 +4447,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-16.json",
       "char_count_body": 180,
-      "fetched_at": "2026-09-01T08:27:39.457Z"
+      "fetched_at": "2026-09-14T15:18:21.026Z"
     },
     {
       "id": "jirei-17",
@@ -4623,7 +4463,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-17.json",
       "char_count_body": 238,
-      "fetched_at": "2026-09-01T08:27:39.458Z"
+      "fetched_at": "2026-09-14T15:18:21.026Z"
     },
     {
       "id": "jirei-18",
@@ -4639,7 +4479,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-18.json",
       "char_count_body": 264,
-      "fetched_at": "2026-09-01T08:27:39.522Z"
+      "fetched_at": "2026-09-14T15:18:21.027Z"
     },
     {
       "id": "jirei-19",
@@ -4655,7 +4495,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-19.json",
       "char_count_body": 186,
-      "fetched_at": "2026-09-01T08:27:39.458Z"
+      "fetched_at": "2026-09-14T15:18:21.027Z"
+    },
+    {
+      "id": "jirei-2",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問２",
+      "digest": false,
+      "title": "問２ 生きた畜産物の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-2.json",
+      "char_count_body": 277,
+      "fetched_at": "2026-09-14T15:18:21.022Z"
     },
     {
       "id": "jirei-20",
@@ -4671,7 +4527,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-20.json",
       "char_count_body": 256,
-      "fetched_at": "2026-09-01T08:27:39.459Z"
+      "fetched_at": "2026-09-14T15:18:21.027Z"
     },
     {
       "id": "jirei-21",
@@ -4687,7 +4543,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-21.json",
       "char_count_body": 350,
-      "fetched_at": "2026-09-01T08:27:39.460Z"
+      "fetched_at": "2026-09-14T15:18:21.027Z"
     },
     {
       "id": "jirei-22",
@@ -4703,7 +4559,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-22.json",
       "char_count_body": 504,
-      "fetched_at": "2026-09-01T08:27:39.460Z"
+      "fetched_at": "2026-09-14T15:18:21.028Z"
     },
     {
       "id": "jirei-23",
@@ -4719,7 +4575,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-23.json",
       "char_count_body": 270,
-      "fetched_at": "2026-09-01T08:27:39.461Z"
+      "fetched_at": "2026-09-14T15:18:21.028Z"
     },
     {
       "id": "jirei-24",
@@ -4735,7 +4591,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-24.json",
       "char_count_body": 242,
-      "fetched_at": "2026-09-01T08:27:39.522Z"
+      "fetched_at": "2026-09-14T15:18:21.028Z"
     },
     {
       "id": "jirei-25",
@@ -4751,7 +4607,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-25.json",
       "char_count_body": 557,
-      "fetched_at": "2026-09-01T08:27:39.461Z"
+      "fetched_at": "2026-09-14T15:18:21.028Z"
     },
     {
       "id": "jirei-26",
@@ -4767,7 +4623,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-26.json",
       "char_count_body": 639,
-      "fetched_at": "2026-09-01T08:27:39.462Z"
+      "fetched_at": "2026-09-14T15:18:21.029Z"
     },
     {
       "id": "jirei-27",
@@ -4783,7 +4639,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-27.json",
       "char_count_body": 524,
-      "fetched_at": "2026-09-01T08:27:39.523Z"
+      "fetched_at": "2026-09-14T15:18:21.029Z"
     },
     {
       "id": "jirei-28",
@@ -4799,7 +4655,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-28.json",
       "char_count_body": 407,
-      "fetched_at": "2026-09-01T08:27:39.462Z"
+      "fetched_at": "2026-09-14T15:18:21.029Z"
     },
     {
       "id": "jirei-29",
@@ -4815,7 +4671,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-29.json",
       "char_count_body": 265,
-      "fetched_at": "2026-09-01T08:27:39.463Z"
+      "fetched_at": "2026-09-14T15:18:21.029Z"
+    },
+    {
+      "id": "jirei-3",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問３",
+      "digest": false,
+      "title": "問３ 水産物の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-3.json",
+      "char_count_body": 245,
+      "fetched_at": "2026-09-14T15:18:21.023Z"
     },
     {
       "id": "jirei-3",
@@ -4831,7 +4703,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-3.json",
       "char_count_body": 484,
-      "fetched_at": "2026-09-01T08:27:39.466Z"
+      "fetched_at": "2026-09-14T15:18:21.030Z"
     },
     {
       "id": "jirei-30",
@@ -4847,7 +4719,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-30.json",
       "char_count_body": 1130,
-      "fetched_at": "2026-09-01T08:27:39.464Z"
+      "fetched_at": "2026-09-14T15:18:21.029Z"
     },
     {
       "id": "jirei-31",
@@ -4863,7 +4735,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-31.json",
       "char_count_body": 320,
-      "fetched_at": "2026-09-01T08:27:39.464Z"
+      "fetched_at": "2026-09-14T15:18:21.030Z"
     },
     {
       "id": "jirei-32",
@@ -4879,7 +4751,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-32.json",
       "char_count_body": 258,
-      "fetched_at": "2026-09-01T08:27:39.465Z"
+      "fetched_at": "2026-09-14T15:18:21.030Z"
     },
     {
       "id": "jirei-33",
@@ -4895,7 +4767,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-33.json",
       "char_count_body": 212,
-      "fetched_at": "2026-09-01T08:27:39.523Z"
+      "fetched_at": "2026-09-14T15:18:21.030Z"
     },
     {
       "id": "jirei-35",
@@ -4911,7 +4783,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-35.json",
       "char_count_body": 649,
-      "fetched_at": "2026-09-01T08:27:39.467Z"
+      "fetched_at": "2026-09-14T15:18:21.031Z"
     },
     {
       "id": "jirei-36",
@@ -4927,7 +4799,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-36.json",
       "char_count_body": 385,
-      "fetched_at": "2026-09-01T08:27:39.468Z"
+      "fetched_at": "2026-09-14T15:18:21.031Z"
     },
     {
       "id": "jirei-37",
@@ -4943,7 +4815,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-37.json",
       "char_count_body": 626,
-      "fetched_at": "2026-09-01T08:27:39.524Z"
+      "fetched_at": "2026-09-14T15:18:21.031Z"
     },
     {
       "id": "jirei-38",
@@ -4959,7 +4831,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-38.json",
       "char_count_body": 309,
-      "fetched_at": "2026-09-01T08:27:39.469Z"
+      "fetched_at": "2026-09-14T15:18:21.031Z"
     },
     {
       "id": "jirei-39",
@@ -4975,7 +4847,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-39.json",
       "char_count_body": 213,
-      "fetched_at": "2026-09-01T08:27:39.470Z"
+      "fetched_at": "2026-09-14T15:18:21.031Z"
     },
     {
       "id": "jirei-4",
@@ -4994,6 +4866,22 @@
       "fetched_at": "2026-09-01T08:27:39.524Z"
     },
     {
+      "id": "jirei-4",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問4",
+      "digest": false,
+      "title": "問4 販売奨励金",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-4.json",
+      "char_count_body": 731,
+      "fetched_at": "2026-09-14T15:18:21.032Z"
+    },
+    {
       "id": "jirei-40",
       "type": "qa",
       "source_key": "keigen",
@@ -5007,7 +4895,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-40.json",
       "char_count_body": 203,
-      "fetched_at": "2026-09-01T08:27:39.471Z"
+      "fetched_at": "2026-09-14T15:18:21.032Z"
     },
     {
       "id": "jirei-41",
@@ -5023,23 +4911,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-41.json",
       "char_count_body": 1016,
-      "fetched_at": "2026-09-01T08:27:39.472Z"
-    },
-    {
-      "id": "jirei-42",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問42",
-      "digest": false,
-      "title": "問42 販売奨励金",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-42.json",
-      "char_count_body": 133,
-      "fetched_at": "2026-09-01T08:27:39.472Z"
+      "fetched_at": "2026-09-14T15:18:21.032Z"
     },
     {
       "id": "jirei-43",
@@ -5055,7 +4927,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-43.json",
       "char_count_body": 661,
-      "fetched_at": "2026-09-01T08:27:39.473Z"
+      "fetched_at": "2026-09-14T15:18:21.032Z"
     },
     {
       "id": "jirei-45",
@@ -5071,7 +4943,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-45.json",
       "char_count_body": 1438,
-      "fetched_at": "2026-09-01T08:27:39.473Z"
+      "fetched_at": "2026-09-14T15:18:21.032Z"
     },
     {
       "id": "jirei-46",
@@ -5087,7 +4959,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-46.json",
       "char_count_body": 199,
-      "fetched_at": "2026-09-01T08:27:39.525Z"
+      "fetched_at": "2026-09-14T15:18:21.033Z"
     },
     {
       "id": "jirei-47",
@@ -5103,7 +4975,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-47.json",
       "char_count_body": 417,
-      "fetched_at": "2026-09-01T08:27:39.474Z"
+      "fetched_at": "2026-09-14T15:18:21.033Z"
     },
     {
       "id": "jirei-48",
@@ -5119,7 +4991,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-48.json",
       "char_count_body": 401,
-      "fetched_at": "2026-09-01T08:27:39.474Z"
+      "fetched_at": "2026-09-14T15:18:21.033Z"
     },
     {
       "id": "jirei-49",
@@ -5135,7 +5007,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-49.json",
       "char_count_body": 251,
-      "fetched_at": "2026-09-01T08:27:39.475Z"
+      "fetched_at": "2026-09-14T15:18:21.033Z"
+    },
+    {
+      "id": "jirei-5",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問５",
+      "digest": false,
+      "title": "問５ コーヒーの生豆の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-5.json",
+      "char_count_body": 195,
+      "fetched_at": "2026-09-14T15:18:21.024Z"
     },
     {
       "id": "jirei-50",
@@ -5151,7 +5039,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-50.json",
       "char_count_body": 229,
-      "fetched_at": "2026-09-01T08:27:39.475Z"
+      "fetched_at": "2026-09-14T15:18:21.033Z"
     },
     {
       "id": "jirei-51",
@@ -5167,7 +5055,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-51.json",
       "char_count_body": 770,
-      "fetched_at": "2026-09-01T08:27:39.476Z"
+      "fetched_at": "2026-09-14T15:18:21.034Z"
     },
     {
       "id": "jirei-52",
@@ -5183,7 +5071,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-52.json",
       "char_count_body": 707,
-      "fetched_at": "2026-09-01T08:27:39.476Z"
+      "fetched_at": "2026-09-14T15:18:21.034Z"
     },
     {
       "id": "jirei-53",
@@ -5199,7 +5087,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-53.json",
       "char_count_body": 1209,
-      "fetched_at": "2026-09-01T08:27:39.477Z"
+      "fetched_at": "2026-09-14T15:18:21.034Z"
     },
     {
       "id": "jirei-54",
@@ -5215,7 +5103,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-54.json",
       "char_count_body": 810,
-      "fetched_at": "2026-09-01T08:27:39.477Z"
+      "fetched_at": "2026-09-14T15:18:21.034Z"
     },
     {
       "id": "jirei-55",
@@ -5231,7 +5119,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-55.json",
       "char_count_body": 997,
-      "fetched_at": "2026-09-01T08:27:39.478Z"
+      "fetched_at": "2026-09-14T15:18:21.034Z"
     },
     {
       "id": "jirei-56",
@@ -5247,7 +5135,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-56.json",
       "char_count_body": 892,
-      "fetched_at": "2026-09-01T08:27:39.479Z"
+      "fetched_at": "2026-09-14T15:18:21.035Z"
     },
     {
       "id": "jirei-57",
@@ -5263,7 +5151,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-57.json",
       "char_count_body": 810,
-      "fetched_at": "2026-09-01T08:27:39.479Z"
+      "fetched_at": "2026-09-14T15:18:21.035Z"
     },
     {
       "id": "jirei-58",
@@ -5279,7 +5167,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-58.json",
       "char_count_body": 402,
-      "fetched_at": "2026-09-01T08:27:39.480Z"
+      "fetched_at": "2026-09-14T15:18:21.035Z"
     },
     {
       "id": "jirei-59",
@@ -5295,7 +5183,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-59.json",
       "char_count_body": 368,
-      "fetched_at": "2026-09-01T08:27:39.480Z"
+      "fetched_at": "2026-09-14T15:18:21.035Z"
+    },
+    {
+      "id": "jirei-6",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問６",
+      "digest": false,
+      "title": "問６ もみの販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-6.json",
+      "char_count_body": 224,
+      "fetched_at": "2026-09-14T15:18:21.024Z"
     },
     {
       "id": "jirei-60",
@@ -5311,7 +5215,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-60.json",
       "char_count_body": 444,
-      "fetched_at": "2026-09-01T08:27:39.481Z"
+      "fetched_at": "2026-09-14T15:18:21.035Z"
     },
     {
       "id": "jirei-61",
@@ -5327,7 +5231,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-61.json",
       "char_count_body": 464,
-      "fetched_at": "2026-09-01T08:27:39.482Z"
+      "fetched_at": "2026-09-14T15:18:21.036Z"
     },
     {
       "id": "jirei-62",
@@ -5343,7 +5247,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-62.json",
       "char_count_body": 257,
-      "fetched_at": "2026-09-01T08:27:39.483Z"
+      "fetched_at": "2026-09-14T15:18:21.036Z"
     },
     {
       "id": "jirei-63",
@@ -5359,7 +5263,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-63.json",
       "char_count_body": 320,
-      "fetched_at": "2026-09-01T08:27:39.484Z"
+      "fetched_at": "2026-09-14T15:18:21.036Z"
     },
     {
       "id": "jirei-64",
@@ -5375,7 +5279,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-64.json",
       "char_count_body": 352,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "fetched_at": "2026-09-14T15:18:21.037Z"
     },
     {
       "id": "jirei-65",
@@ -5391,7 +5295,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-65.json",
       "char_count_body": 494,
-      "fetched_at": "2026-09-01T08:27:39.485Z"
+      "fetched_at": "2026-09-14T15:18:21.037Z"
     },
     {
       "id": "jirei-66",
@@ -5407,7 +5311,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-66.json",
       "char_count_body": 433,
-      "fetched_at": "2026-09-01T08:27:39.486Z"
+      "fetched_at": "2026-09-14T15:18:21.037Z"
     },
     {
       "id": "jirei-67",
@@ -5423,7 +5327,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-67.json",
       "char_count_body": 570,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "fetched_at": "2026-09-14T15:18:21.037Z"
     },
     {
       "id": "jirei-68",
@@ -5439,7 +5343,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-68.json",
       "char_count_body": 998,
-      "fetched_at": "2026-09-01T08:27:39.487Z"
+      "fetched_at": "2026-09-14T15:18:21.038Z"
     },
     {
       "id": "jirei-69",
@@ -5455,7 +5359,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-69.json",
       "char_count_body": 552,
-      "fetched_at": "2026-09-01T08:27:39.487Z"
+      "fetched_at": "2026-09-14T15:18:21.038Z"
+    },
+    {
+      "id": "jirei-7",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問７",
+      "digest": false,
+      "title": "問７ 苗木、種子の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-7.json",
+      "char_count_body": 267,
+      "fetched_at": "2026-09-14T15:18:21.024Z"
     },
     {
       "id": "jirei-70",
@@ -5471,7 +5391,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-70.json",
       "char_count_body": 253,
-      "fetched_at": "2026-09-01T08:27:39.526Z"
+      "fetched_at": "2026-09-14T15:18:21.038Z"
     },
     {
       "id": "jirei-71",
@@ -5487,7 +5407,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-71.json",
       "char_count_body": 587,
-      "fetched_at": "2026-09-01T08:27:39.488Z"
+      "fetched_at": "2026-09-14T15:18:21.038Z"
     },
     {
       "id": "jirei-72",
@@ -5503,7 +5423,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-72.json",
       "char_count_body": 540,
-      "fetched_at": "2026-09-01T08:27:39.488Z"
+      "fetched_at": "2026-09-14T15:18:21.039Z"
     },
     {
       "id": "jirei-73",
@@ -5519,7 +5439,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-73.json",
       "char_count_body": 301,
-      "fetched_at": "2026-09-01T08:27:39.489Z"
+      "fetched_at": "2026-09-14T15:18:21.039Z"
     },
     {
       "id": "jirei-74",
@@ -5535,7 +5455,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-74.json",
       "char_count_body": 498,
-      "fetched_at": "2026-09-01T08:27:39.489Z"
+      "fetched_at": "2026-09-14T15:18:21.039Z"
     },
     {
       "id": "jirei-75",
@@ -5551,7 +5471,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-75.json",
       "char_count_body": 1890,
-      "fetched_at": "2026-09-01T08:27:39.490Z"
+      "fetched_at": "2026-09-14T15:18:21.040Z"
     },
     {
       "id": "jirei-76",
@@ -5567,7 +5487,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-76.json",
       "char_count_body": 297,
-      "fetched_at": "2026-09-01T08:27:39.527Z"
+      "fetched_at": "2026-09-14T15:18:21.040Z"
     },
     {
       "id": "jirei-77",
@@ -5583,7 +5503,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-77.json",
       "char_count_body": 227,
-      "fetched_at": "2026-09-01T08:27:39.490Z"
+      "fetched_at": "2026-09-14T15:18:21.040Z"
     },
     {
       "id": "jirei-78",
@@ -5599,7 +5519,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-78.json",
       "char_count_body": 329,
-      "fetched_at": "2026-09-01T08:27:39.491Z"
+      "fetched_at": "2026-09-14T15:18:21.040Z"
     },
     {
       "id": "jirei-79",
@@ -5615,7 +5535,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-79.json",
       "char_count_body": 480,
-      "fetched_at": "2026-09-01T08:27:39.492Z"
+      "fetched_at": "2026-09-14T15:18:21.041Z"
     },
     {
       "id": "jirei-8",
@@ -5634,6 +5554,22 @@
       "fetched_at": "2026-09-01T08:27:39.492Z"
     },
     {
+      "id": "jirei-8",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問8",
+      "digest": false,
+      "title": "問8 有料老人ホームの飲食料品の提供",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-8.json",
+      "char_count_body": 2169,
+      "fetched_at": "2026-09-14T15:18:21.041Z"
+    },
+    {
       "id": "jirei-82",
       "type": "qa",
       "source_key": "keigen",
@@ -5647,7 +5583,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-82.json",
       "char_count_body": 261,
-      "fetched_at": "2026-09-01T08:27:39.527Z"
+      "fetched_at": "2026-09-14T15:18:21.041Z"
     },
     {
       "id": "jirei-83",
@@ -5663,7 +5599,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-83.json",
       "char_count_body": 437,
-      "fetched_at": "2026-09-01T08:27:39.528Z"
+      "fetched_at": "2026-09-14T15:18:21.041Z"
     },
     {
       "id": "jirei-84",
@@ -5679,7 +5615,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-84.json",
       "char_count_body": 388,
-      "fetched_at": "2026-09-01T08:27:39.528Z"
+      "fetched_at": "2026-09-14T15:18:21.041Z"
     },
     {
       "id": "jirei-85",
@@ -5695,7 +5631,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-85.json",
       "char_count_body": 571,
-      "fetched_at": "2026-09-01T08:27:39.493Z"
+      "fetched_at": "2026-09-14T15:18:21.041Z"
     },
     {
       "id": "jirei-86",
@@ -5711,7 +5647,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-86.json",
       "char_count_body": 404,
-      "fetched_at": "2026-09-01T08:27:39.493Z"
+      "fetched_at": "2026-09-14T15:18:21.042Z"
     },
     {
       "id": "jirei-87",
@@ -5727,7 +5663,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-87.json",
       "char_count_body": 834,
-      "fetched_at": "2026-09-01T08:27:39.494Z"
+      "fetched_at": "2026-09-14T15:18:21.042Z"
     },
     {
       "id": "jirei-88",
@@ -5743,7 +5679,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-88.json",
       "char_count_body": 645,
-      "fetched_at": "2026-09-01T08:27:39.495Z"
+      "fetched_at": "2026-09-14T15:18:21.042Z"
     },
     {
       "id": "jirei-89",
@@ -5759,7 +5695,23 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-89.json",
       "char_count_body": 612,
-      "fetched_at": "2026-09-01T08:27:39.495Z"
+      "fetched_at": "2026-09-14T15:18:21.042Z"
+    },
+    {
+      "id": "jirei-9",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問９",
+      "digest": false,
+      "title": "問９ 氷の販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-9.json",
+      "char_count_body": 262,
+      "fetched_at": "2026-09-14T15:18:21.025Z"
     },
     {
       "id": "jirei-90",
@@ -5775,7 +5727,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-90.json",
       "char_count_body": 928,
-      "fetched_at": "2026-09-01T08:27:39.496Z"
+      "fetched_at": "2026-09-14T15:18:21.042Z"
     },
     {
       "id": "jirei-91",
@@ -5791,7 +5743,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-91.json",
       "char_count_body": 434,
-      "fetched_at": "2026-09-01T08:27:39.496Z"
+      "fetched_at": "2026-09-14T15:18:21.043Z"
     },
     {
       "id": "jirei-92",
@@ -5807,7 +5759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-92.json",
       "char_count_body": 937,
-      "fetched_at": "2026-09-01T08:27:39.497Z"
+      "fetched_at": "2026-09-14T15:18:21.043Z"
     },
     {
       "id": "jirei-93",
@@ -5823,7 +5775,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-93.json",
       "char_count_body": 993,
-      "fetched_at": "2026-09-01T08:27:39.498Z"
+      "fetched_at": "2026-09-14T15:18:21.043Z"
     },
     {
       "id": "jirei-94",
@@ -5839,7 +5791,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-94.json",
       "char_count_body": 861,
-      "fetched_at": "2026-09-01T08:27:39.498Z"
+      "fetched_at": "2026-09-14T15:18:21.043Z"
     },
     {
       "id": "jirei-95",
@@ -5855,7 +5807,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-95.json",
       "char_count_body": 1051,
-      "fetched_at": "2026-09-01T08:27:39.499Z"
+      "fetched_at": "2026-09-14T15:18:21.043Z"
     },
     {
       "id": "jirei-96",
@@ -5871,7 +5823,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-96.json",
       "char_count_body": 261,
-      "fetched_at": "2026-09-01T08:27:39.500Z"
+      "fetched_at": "2026-09-14T15:18:21.044Z"
     },
     {
       "id": "jirei-97",
@@ -5887,7 +5839,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-97.json",
       "char_count_body": 265,
-      "fetched_at": "2026-09-01T08:27:39.501Z"
+      "fetched_at": "2026-09-14T15:18:21.044Z"
     },
     {
       "id": "jirei-98",
@@ -5903,7 +5855,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-98.json",
       "char_count_body": 253,
-      "fetched_at": "2026-09-01T08:27:39.502Z"
+      "fetched_at": "2026-09-14T15:18:21.044Z"
     },
     {
       "id": "jirei-99",
@@ -5919,7 +5871,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-99.json",
       "char_count_body": 331,
-      "fetched_at": "2026-09-01T08:27:39.503Z"
+      "fetched_at": "2026-09-14T15:18:21.044Z"
     },
     {
       "id": "kaisei_r5",
@@ -6162,15 +6114,15 @@
       "fetched_at": "2026-09-01T09:49:52.506Z"
     }
   ],
-  "generated_at": "2026-09-01T09:49:56.833Z",
-  "total_count": 385,
+  "generated_at": "2026-09-14T15:18:21.056Z",
+  "total_count": 382,
   "by_source": {
     "cross_border": 3,
     "denshi_scan": 4,
     "denshi_torihiki": 2,
     "invoice": 173,
     "kasou": 47,
-    "keigen": 141,
+    "keigen": 138,
     "sozoku_pamph": 2,
     "sozoku": 13
   }
