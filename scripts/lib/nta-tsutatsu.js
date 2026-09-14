@@ -56,10 +56,14 @@ function loadCatalog() {
 function findProvision(no, circular) {
   const key = normalizeProvisionNo(no);
   if (!key) return null;
+  // 「36-40～43」のような条文範囲は、引用されている左端の通達を従来どおり引く。
+  // 「181～223共-6」の左端は単独の 181 なので、181-6 等へは寄せない。
+  const rangeStart = key.match(/^(.+?)[～〜~]/)?.[1];
   const cat = loadCatalog();
   const targets = circular ? [circular] : Object.keys(cat);
   for (const c of targets) {
-    const p = cat[c] && cat[c].provisions[key];
+    const provisions = cat[c] && cat[c].provisions;
+    const p = provisions && (provisions[key] || (rangeStart && provisions[rangeStart]));
     if (p) return { ...p, circular: c, label: cat[c].label, short: cat[c].short };
   }
   return null;
@@ -70,13 +74,16 @@ function isKnownProvision(no, circular) {
   return findProvision(no, circular) !== null;
 }
 
-// 本文から通達の引用を拾う。「所基通37-14」「消費税法基本通達6-4-5」など。
 // 本文から通達の引用を拾う。「所基通37-14」「消費税法基本通達6-4-5」
 // 「相基通1の3・1の4共-1」など。相続税は「・」「共」を含む。
+const PROVISION_ELEMENT = '[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?)*共?';
+const PROVISION_RANGE_ELEMENT = `${PROVISION_ELEMENT}(?:[～〜~]${PROVISION_ELEMENT})?`;
+const PROVISION_NO_PATTERN = `${PROVISION_RANGE_ELEMENT}(?:[-－‐‑–—―−]${PROVISION_RANGE_ELEMENT}){1,3}`;
 const CITATION_RE = new RegExp(
-  `(${Object.keys(SHORT_TO_CIRCULAR).join('|')})\\s*([0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?)*共?(?:[-－‐‑–—―−][0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?)*共?){1,3})`,
+  `(${Object.keys(SHORT_TO_CIRCULAR).join('|')})\\s*(${PROVISION_NO_PATTERN})`,
   'g',
 );
+const CONTINUATION_RE = new RegExp(`^\\s*、\\s*(${PROVISION_NO_PATTERN})`);
 
 /**
  * 本文中の通達引用を洗い出し、カタログに無いものを返す。
@@ -86,15 +93,28 @@ function checkCitations(body) {
   const s = String(body || '');
   const citations = [];
   const unknown = [];
+  const addCitation = (matched, circular, rawNo) => {
+    const no = normalizeProvisionNo(rawNo);
+    const found = findProvision(no, circular);
+    const item = { matched, circular, no, found: !!found };
+    citations.push(item);
+    if (!found) unknown.push(item);
+  };
   CITATION_RE.lastIndex = 0;
   let m;
   while ((m = CITATION_RE.exec(s)) !== null) {
     const circular = SHORT_TO_CIRCULAR[m[1]];
-    const no = normalizeProvisionNo(m[2]);
-    const found = findProvision(no, circular);
-    const item = { matched: m[0], circular, no, found: !!found };
-    citations.push(item);
-    if (!found) unknown.push(item);
+    addCitation(m[0], circular, m[2]);
+
+    // 読点を越えて無条件に探すと後続の法令条文まで通達扱いになるため、直後の番号だけを引き継ぐ。
+    let continuationAt = CITATION_RE.lastIndex;
+    for (;;) {
+      const next = s.slice(continuationAt).match(CONTINUATION_RE);
+      if (!next) break;
+      addCitation(`${m[1]}${next[1]}`, circular, next[1]);
+      continuationAt += next[0].length;
+    }
+    CITATION_RE.lastIndex = continuationAt;
   }
   return { citations, unknown };
 }

@@ -9,10 +9,11 @@ const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats } = require('./topic-pool');
 const { selectDailyTopics, demandKindOf } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
-const { buildSourceBodyBlock, loadSourceFigures } = require('./lib/nta-source-body');
+const { buildSourceBodyBlock, findTsutatsuFromSourceKankei,
+  buildTsutatsuBlockFromSourceKankei, loadSourceFigures } = require('./lib/nta-source-body');
 const lawSources = require('./lib/law-sources');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
-const { checkCitations, buildProvisionBlock } = require('./lib/nta-tsutatsu');
+const { checkCitations, buildProvisionBlock, findProvision } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
   findUnappliedReferencePages, formatReferencePages } = require('./lib/nta-reference-pages');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
@@ -1029,7 +1030,18 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   if (lawRefs.articles.length || lawRefs.pages.length) {
     console.log(`[source] 法令の原文を添付: ${lawRefs.articles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、') || 'なし'} ／ 機関ページ ${lawRefs.pages.length} 件`);
   }
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock;
+
+  // 通達だけで決まる実務論点を記憶で補わせないため、原典の関係法令欄を橋渡しする。
+  const tsutatsuBlock = buildTsutatsuBlockFromSourceKankei(topic);
+  if (tsutatsuBlock) {
+    const refs = findTsutatsuFromSourceKankei(topic);
+    const labels = refs.map(c => {
+      const provision = findProvision(c.no, c.circular);
+      return provision ? provision.short + c.no : c.matched;
+    });
+    console.log(`[source] 通達の原文を添付: ${labels.join('、')}`);
+  }
+  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock + tsutatsuBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
