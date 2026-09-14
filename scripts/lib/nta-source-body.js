@@ -20,6 +20,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { checkCitations, buildProvisionBlock } = require('./nta-tsutatsu');
 
 const ROOT = path.join(__dirname, '..', '..');
 const TAXANSWER_DIR = path.join(ROOT, 'data', 'nta-sources', 'taxanswer');
@@ -29,6 +30,7 @@ const SHITSUGI_DIR = path.join(ROOT, 'data', 'nta-sources', 'shitsugi');
 // プロンプトが膨らんで主要論点が埋もれる。制度の要件は本文前半に
 // まとまっているため、先頭から切り出す。
 const DEFAULT_MAX_CHARS = 4000;
+const MAX_KANKEI_TSUTATSU = 3;
 
 /** URL から taxanswer のセクションと番号を取り出す */
 function parseTaxanswerUrl(url) {
@@ -155,6 +157,29 @@ function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
 ${sections}`;
 }
 
+/** 出典の「関係法令」欄から、カタログで解決できる通達だけを引く。 */
+function findTsutatsuFromSourceKankei(topic = {}) {
+  try {
+    const file = resolveSourceFile(topic.source_url);
+    if (!file || !fs.existsSync(file)) return [];
+    const entry = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!entry || entry.deleted === true) return [];
+    const text = String(entry.kankei_hourei || '');
+    if (!text) return [];
+    // 他法の通達が多い事例でもプロンプトを圧迫しないよう、実在する先頭3件に限る。
+    return checkCitations(text).citations.filter(c => c.found).slice(0, MAX_KANKEI_TSUTATSU);
+  } catch (_error) {
+    return [];   // カタログ障害で日次生成そのものを止めない
+  }
+}
+
+/** 出典の「関係法令」欄を橋渡しした通達原文ブロック。 */
+function buildTsutatsuBlockFromSourceKankei(topic = {}) {
+  const refs = findTsutatsuFromSourceKankei(topic)
+    .map(c => ({ no: c.no, circular: c.circular }));
+  return buildProvisionBlock(refs);
+}
+
 /**
  * 主出典（記事が根拠として掲げる出典）の図だけを読み出す。
  *
@@ -187,6 +212,8 @@ function loadSourceFigures(topic = {}) {
 module.exports = {
   loadSourceBody,
   buildSourceBodyBlock,
+  findTsutatsuFromSourceKankei,
+  buildTsutatsuBlockFromSourceKankei,
   loadSourceFigures,
   resolveSourceFile,
   parseTaxanswerUrl,
