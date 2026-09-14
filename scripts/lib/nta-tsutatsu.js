@@ -61,10 +61,22 @@ function findProvision(no, circular) {
   const rangeStart = key.match(/^(.+?)[～〜~]/)?.[1];
   const cat = loadCatalog();
   const targets = circular ? [circular] : Object.keys(cat);
+
+  // 完全一致を全通達で探す。circular 省略時も、別の通達にある左端の一致を
+  // 完全一致より先に返さない。
   for (const c of targets) {
     const provisions = cat[c] && cat[c].provisions;
-    const p = provisions && (provisions[key] || (rangeStart && provisions[rangeStart]));
+    const p = provisions && provisions[key];
     if (p) return { ...p, circular: c, label: cat[c].label, short: cat[c].short };
+  }
+
+  // 完全一致がどの通達にも無い場合だけ、条文範囲の左端を探す。
+  if (rangeStart) {
+    for (const c of targets) {
+      const provisions = cat[c] && cat[c].provisions;
+      const p = provisions && provisions[rangeStart];
+      if (p) return { ...p, circular: c, label: cat[c].label, short: cat[c].short };
+    }
   }
   return null;
 }
