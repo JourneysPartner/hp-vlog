@@ -316,5 +316,9 @@
     "no": "6165",
     "title": "国税庁タックスアンサー No.6165 前受金や前払金などがあるとき",
     "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6165.htm"
+  },
+  "travel-expense-input-tax": {
+    "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6459.htm",
+    "title": "出張旅費、宿泊費、日当、通勤手当などの取扱い"
   }
 }
