@@ -29,6 +29,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const os = require('os');
+const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
@@ -459,6 +460,94 @@ function getStaleSplitFileNames(source, writtenFileNames, existingFileNames, opt
     .sort();
 }
 
+/** 分割した問の、ASCII だけからなる安定した id を作る。 */
+function buildEntryId(docId, qNo) {
+  const compact = String(qNo || '').replace(/\s/g, '');
+  const hasWideDigit = /[０-９]/.test(compact);
+  // 軽減税率資料では単独の全角問番号が、別の節の半角問番号と重なる。
+  // w (wide) は PDF の組版に由来するため読み順に左右されず、半角の既存 id も保てる。
+  // 暗号資産・相続の階層番号は従来どおり正規化だけを行い、既存 id を変更しない。
+  const wideMarker = hasWideDigit && /^問[0-9０-９]+$/.test(compact) ? 'w' : '';
+  const slugNo = compact
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/－/g, '-')
+    .replace(/[^0-9-]/g, '');
+  return `${docId}-${slugNo}${wideMarker}`;
+}
+
+/**
+ * 分割結果すべてに id を付け、全角・半角以外の衝突も安定した形で解消する。
+ * 衝突時に素の id を残す問は内容のソートで決めるため、入力順には依存しない。
+ */
+function resolveEntryIds(docId, parts, options = {}) {
+  const warn = typeof options.warn === 'function' ? options.warn : console.warn;
+  const pending = (parts || []).map((part, index) => {
+    const fingerprint = JSON.stringify([
+      String(part.qNo || ''),
+      String(part.title || ''),
+      String(part.body || ''),
+    ]);
+    return {
+      part,
+      index,
+      baseId: buildEntryId(docId, part.qNo),
+      fingerprint,
+      hash: crypto.createHash('sha256').update(fingerprint).digest('hex'),
+      id: null,
+    };
+  });
+  const groups = new Map();
+  for (const entry of pending) {
+    if (!groups.has(entry.baseId)) groups.set(entry.baseId, []);
+    groups.get(entry.baseId).push(entry);
+  }
+
+  for (const [baseId, group] of groups) {
+    if (group.length === 1) {
+      group[0].id = baseId;
+      continue;
+    }
+
+    const sorted = [...group].sort((a, b) => {
+      if (a.fingerprint < b.fingerprint) return -1;
+      if (a.fingerprint > b.fingerprint) return 1;
+      return a.index - b.index;
+    });
+    const used = new Set([baseId]);
+    sorted[0].id = baseId;
+    for (let i = 1; i < sorted.length; i++) {
+      const entry = sorted[i];
+      const suffix = entry.hash.slice(0, 8);
+      let id = `${baseId}-${suffix}`;
+      let ordinal = 2;
+      while (used.has(id)) id = `${baseId}-${suffix}-${ordinal++}`;
+      entry.id = id;
+      used.add(id);
+    }
+
+    warn(`[warn] ファイル名が衝突しました: ${baseId}\n`
+      + sorted.map(entry => `       ${entry.part.title || entry.part.qNo || '(表題なし)'} → ${entry.id}`).join('\n'));
+  }
+
+  return pending.map(entry => ({ ...entry.part, id: entry.id }));
+}
+
+/** index には同じファイルを一度だけ入れる（先に来たエントリを残す）。 */
+function dedupeIndexEntries(entries, options = {}) {
+  const warn = typeof options.warn === 'function' ? options.warn : console.warn;
+  const seen = new Set();
+  const unique = [];
+  for (const entry of (entries || [])) {
+    if (seen.has(entry.file_path)) {
+      warn(`[warn] index の重複した file_path を除外しました: ${entry.file_path}`);
+      continue;
+    }
+    seen.add(entry.file_path);
+    unique.push(entry);
+  }
+  return unique;
+}
+
 function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
   const dir = path.join(OUT_DIR, sourceKey);
   fs.mkdirSync(dir, { recursive: true });
@@ -572,12 +661,8 @@ async function crawlSource(sourceKey, source, options = {}) {
         : splitBy === 'paren' ? splitByParenQuestion(text)
         : splitBy === 'question' ? splitByQuestion(text) : [];
       if (parts.length > 0) {
-        for (const part of parts) {
-          // ファイル名にするので、全角番号は半角へ、区切りはハイフンに揃える
-          const slugNo = part.qNo
-            .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
-            .replace(/[^0-9-]/g, '');
-          const sub = { id: `${doc.id}-${slugNo}`, title: part.title };
+        for (const part of resolveEntryIds(doc.id, parts, { warn })) {
+          const sub = { id: part.id, title: part.title };
           save(sub, part, doc.url);
         }
         log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
@@ -659,6 +744,7 @@ async function main() {
       });
     }
   }
+  index.entries = dedupeIndexEntries(index.entries, { warn: console.warn });
   index.entries.sort((a, b) => (a.source_key + a.id).localeCompare(b.source_key + b.id));
   writeIndex(index);
   if (skippedUpdates > 0) {
@@ -683,6 +769,9 @@ module.exports = {
   splitByParenQuestion,
   shouldSkipBodyUpdate,
   getStaleSplitFileNames,
+  buildEntryId,
+  resolveEntryIds,
+  dedupeIndexEntries,
   crawlSource,
   OUT_DIR,
   INDEX_PATH,
