@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10T09:30:20.495Z",
+ "generated_at": "2026-09-14T05:30:09.168Z",
  "laws": [
   {
    "key": "minpo",
@@ -76,10 +76,10 @@
    "law_id": "332AC0000000026",
    "title": "租税特別措置法",
    "law_num": "昭和三十二年法律第二十六号",
-   "article_count": 13,
+   "article_count": 17,
    "amendment_enforcement_date": "2026-08-12",
    "law_revision_id": "332AC0000000026_20260812_508AC0000000064",
-   "fetched_at": "2026-09-10T09:30:18.677Z"
+   "fetched_at": "2026-09-14T05:30:09.163Z"
   },
   {
    "key": "sozeki_rei",
