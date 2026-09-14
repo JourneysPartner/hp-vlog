@@ -87,6 +87,13 @@ const LAWS = {
       '70_2',   // 直系尊属から住宅取得等資金の贈与を受けた場合の非課税
       '70_2_2', // 直系尊属から教育資金の一括贈与を受けた場合の非課税
       '70_3',   // 住宅取得等資金の贈与を受けた場合の相続時精算課税の特例
+      // 農地等の納税猶予（2026-09-14 追加）。貸付農地の記事で、条文が渡らないまま
+      // 要件を書いたため、条文が明記している除外（特定市街化区域農地等）と
+      // 対象（採草放牧地・準農地）が落ちた。
+      '70_4',   // 農地等を贈与した場合の贈与税の納税猶予及び免除
+      '70_4_2', // 贈与税の納税猶予を適用している場合の特定貸付けの特例
+      '70_5',   // 農地等の贈与者が死亡した場合の相続税の課税の特例
+      '70_6',   // 農地等についての相続税の納税猶予及び免除等
     ],
   },
   sozeki_rei: {
@@ -293,13 +300,42 @@ function findLawCitations(body) {
 }
 
 /** 段階から渡すべき根拠を引く（条文の実体と機関ページ） */
+// 質疑応答事例 1 件あたりに渡す条文の上限。関係法令欄には他法の条も並ぶため、
+// 全部入れるとプロンプトが膨らむ。カタログにある順に先頭から採る。
+const MAX_KANKEI_ARTICLES = 4;
+
+/**
+ * 出典（質疑応答事例）の「関係法令」欄から条文を引く。
+ *
+ * 質疑応答事例由来のトピックは pain_point が事例ごとに固有なので、手続き段階・論点・
+ * 時期のどの対応表にも載らず、条文が 1 件も渡らない（2026-09-14 の貸付農地の記事で判明）。
+ * 一方で原典には「租税特別措置法第70条の4第1項」のような関係法令が必ず書かれている。
+ * これを橋渡しにすれば、対応表を手で増やさなくても条文原文を渡せる。
+ * カタログに無い法令（所得税法・消費税法など）は解決されないので、収録を増やせば自然に効く。
+ */
+function articlesFromSourceKankei(topic = {}) {
+  try {
+    const { resolveSourceFile } = require('./nta-source-body');
+    const file = resolveSourceFile(topic.source_url);
+    if (!file || !fs.existsSync(file)) return [];
+    const entry = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!entry || entry.deleted === true) return [];
+    const text = String(entry.kankei_hourei || '');
+    if (!text) return [];
+    return articlesForCitations(findLawCitations(text)).slice(0, MAX_KANKEI_ARTICLES);
+  } catch (_error) {
+    return [];   // カタログ障害時は条文なしで従来どおり生成する
+  }
+}
+
 function refsForTopic(topic = {}) {
   // 手続き段階 → 論点 → 時期 の順で、最初に見つかった対応表を使う
   const src = (topic.procedure_stage && STAGE_REFS[topic.procedure_stage])
     || (topic.pain_point && PAIN_REFS[topic.pain_point])
     || (topic.life_stage && LIFE_STAGE_REFS[topic.life_stage])
     || null;
-  if (!src) return { articles: [], pages: [] };
+  // 対応表に載らないトピック（質疑応答事例由来など）は、原典の関係法令欄から引く
+  if (!src) return { articles: articlesFromSourceKankei(topic), pages: [] };
   const articles = [];
   for (const [key, nums] of src.laws) {
     const law = loadLaw(key) || {};

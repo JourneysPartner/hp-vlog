@@ -222,5 +222,47 @@ for (const key of Object.keys(law.LAWS)) {
   assert(idxKeys.includes(key), `index.json に ${key} が載っている`);
 }
 
+console.log('');
+console.log('=== 質疑応答事例は、原典の関係法令欄から条文を引く ===');
+
+// 2026-09-14: 貸付農地の記事（質疑応答事例 sozoku/18/26）は pain_point が事例ごとに固有で
+// 手続き段階・論点・時期のどの対応表にも載らず、条文が1件も渡らなかった。その結果、
+// 条文が明記している除外（特定市街化区域農地等）と対象（採草放牧地・準農地）が記事から落ちた。
+// 原典の関係法令欄（租税特別措置法第70条の4第1項）を橋渡しにする。
+const nouchi = { source_url: 'https://www.nta.go.jp/law/shitsugi/sozoku/18/26.htm', pain_point: 'shitsugi-sozoku-18-26', tax_domain: 'inheritance_tax' };
+const nouchiRefs = law.refsForTopic(nouchi);
+assert(nouchiRefs.articles.some(a => a.key === 'sozeki_hou' && a.num === '70_4'),
+  '関係法令欄から措法70条の4が引かれる');
+const nouchiText = nouchiRefs.articles.map(a => a.text).join('');
+assert(/特定市街化区域農地等/.test(nouchiText), '記事から落ちていた除外規定（特定市街化区域農地等）が条文に含まれる');
+assert(/採草放牧地/.test(nouchiText) && /準農地/.test(nouchiText), '記事から落ちていた対象（採草放牧地・準農地）が条文に含まれる');
+
+for (const n of ['70_4', '70_4_2', '70_5', '70_6']) {
+  assert(!!law.getArticle('sozeki_hou', n), `農地等の納税猶予: 措法第${law.articleLabel(n)}がカタログにある`);
+}
+assert(law.getArticle('sozeki_hou', '70_4_2').caption.includes('特定貸付け'),
+  '措法70条の4の2は特定貸付けの特例（贈与後に貸し付けても猶予が続く論点）');
+
+// 対応表に載るトピックは従来どおり対応表が優先される（関係法令欄に引きずられない）
+const staged = law.refsForTopic({ procedure_stage: 'initial-immediate', source_url: 'https://www.nta.go.jp/law/shitsugi/sozoku/18/26.htm' });
+assert(staged.articles.some(a => a.key === 'koseki' && a.num === '86'),
+  '手続き段階の対応表があるトピックは、そちらが優先される');
+// 出典が無い・カタログ外のトピックは静かに空を返す
+assert(law.refsForTopic({ source_url: 'https://example.com/x.htm' }).articles.length === 0, 'カタログ外の出典は条文なし');
+assert(law.refsForTopic({}).articles.length === 0, '出典が無ければ条文なし');
+
+console.log('');
+console.log('=== 国税庁Q&Aの適用条件: 語が広すぎて誤爆しないこと ===');
+const qaSrc = require(path.join(ROOT, 'scripts/lib/nta-qa-sources'));
+const nouchiMeta = '貸付農地がある場合の贈与税の納税猶予の適用 農地等の生前一括贈与に該当するかどうかを判定する場合 貸付農地は一括贈与の対象から外せる';
+assert(!qaSrc.eligibleSourceKeys(nouchiMeta).has('sozoku_pamph'),
+  '農地の生前一括贈与の記事に、教育資金のパンフレットを添付しない');
+assert(qaSrc.eligibleSourceKeys('祖父母から教育資金の一括贈与を受けた場合の贈与税の非課税制度').has('sozoku_pamph'),
+  '教育資金の一括贈与の記事には従来どおり添付する');
+assert(qaSrc.eligibleSourceKeys('生前贈与加算が3年から7年に延びた 暦年課税').has('sozoku_pamph'),
+  '生前贈与加算の記事にも従来どおり添付する');
+assert(!qaSrc.eligibleSourceKeys('令和8年度税制改正の概要と事業者への影響').has('sozoku_pamph'),
+  '一般の税制改正の記事には添付しない（税制改正という語だけでは当てない）');
+
 console.log(`\n結果: ${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
