@@ -36,15 +36,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "贈与税の納税猶予を受けるには農地の全部を一括贈与する必要があるが、他人に貸し付けている農地は「贈与者の農業の用に供している農地」に該当しないため、一括贈与する必要はない。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-14T16:28:50.759+09:00"
+publish_at: "2026-09-15T17:49:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-14T00:08:38.901Z"
-updated_at: "2026-09-14T00:08:38.901Z"
+updated_at: "2026-09-14T16:28:50.759+09:00"
+publish_slot: "evening"
 ---
 
 農地を子どもに生前贈与することで、将来の相続税対策を考えている農家の方は少なくありません。ただし、贈与税の納税猶予の特例を使うには「農地の全部を一括贈与する」という条件があります。
