@@ -48,19 +48,16 @@ jobs:
           if [ -n "${{ github.event.inputs.only }}" ]; then ARGS="--only ${{ github.event.inputs.only }}"; fi
           node scripts/crawl-nta-qa.js $ARGS
 
+      - name: Check for changes
+        id: changes
+        run: |
+          node scripts/has-substantive-change.js data/nta-qa >> "$GITHUB_OUTPUT"
+
       - name: Create PR if changed
+        if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # fetched_at は毎回変わるので、本文が変わったものだけを対象にする
-          CHANGED=$(git diff --numstat -- data/nta-qa \
-            | awk '$1 > 1 || $2 > 1 {print $3}' | head -20)
-          if [ -z "$CHANGED" ]; then
-            echo "::notice::内容の変更なし。PR は作成しません"
-            git checkout -- data/nta-qa || true
-            exit 0
-          fi
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
