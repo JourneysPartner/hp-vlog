@@ -51,17 +51,20 @@ console.log('');
 console.log('=== 範囲表記は検出するが別の通達へ解決しない ===');
 for (const wave of ['～', '〜', '~']) {
   const no = `181${wave}223共-6`;
+  const normalizedNo = '181～223共-6';
   const range = T.checkCitations(`所得税基本通達${no}`);
-  assert(range.citations.length === 1 && range.citations[0].no === no
-    && range.citations[0].found === false && range.unknown.length === 1
-    && range.unknown[0] === range.citations[0],
-  `範囲記号「${wave}」を1件検出し、未解決としてunknownに入れる`);
-  assert(T.findProvision(no, 'shotoku') === null,
-    `範囲記号「${wave}」を181-6へすり替えずnullを返す`);
+  const resolved = T.findProvision(no, 'shotoku');
+  assert(range.citations.length === 1 && range.citations[0].no === normalizedNo
+    && range.citations[0].found === !!resolved
+    && (resolved ? range.unknown.length === 0
+      : range.unknown.length === 1 && range.unknown[0] === range.citations[0]),
+  `範囲記号「${wave}」を1件検出し、U+FF5Eへ正規化して照合する`);
+  assert(resolved === null || resolved.no === normalizedNo,
+    `範囲記号「${wave}」を181-6へすり替えない`);
 }
 const otherCommonRange = T.findProvision('183～193共-1', 'shotoku');
-assert(otherCommonRange === null,
-  '別の共通範囲183～193共-1も183-1へすり替えずnullを返す');
+assert(otherCommonRange === null || otherCommonRange.no === '183～193共-1',
+  '別の共通範囲183～193共-1も183-1へすり替えない');
 
 const shotokuRangeStart = T.findProvision('36-40～43', 'shotoku');
 assert(!!shotokuRangeStart && shotokuRangeStart.no === '36-40',
@@ -148,8 +151,12 @@ const unresolvedRange = withMockedRecord(stableLawOnly,
     refs: source.findTsutatsuFromSourceKankei(stableLawOnly),
     block: source.buildTsutatsuBlockFromSourceKankei(stableLawOnly),
   }));
-assert(unresolvedRange.refs.length === 0 && unresolvedRange.block === '',
-  '未解決の範囲表記を181-6由来の通達として橋渡ししない');
+const catalogCommonRange = T.findProvision('181～223共-6', 'shotoku');
+assert(catalogCommonRange
+  ? unresolvedRange.refs.length === 1 && unresolvedRange.refs[0].no === '181～223共-6'
+    && unresolvedRange.block.includes(catalogCommonRange.body)
+  : unresolvedRange.refs.length === 0 && unresolvedRange.block === '',
+  '共通範囲は未収録なら混ぜず、収録後は自身だけを橋渡しする');
 
 const broken = withMockedRecord(stableLawOnly, '{',
   () => source.buildTsutatsuBlockFromSourceKankei(stableLawOnly));

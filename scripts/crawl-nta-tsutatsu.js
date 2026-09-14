@@ -99,6 +99,12 @@ async function crawlCircular(key, def, limit) {
       for (const p of parsed.provisions) {
         provisions.push({ ...p, section: parsed.sectionTitle });
       }
+      if (parsed.skipped.length > 0) {
+        const example = parsed.skipped[0];
+        console.warn(`  [warn] 条番号として読めない見出しを ${parsed.skipped.length} 件飛ばしました`);
+        console.warn(`         ${url}`);
+        console.warn(`         例: ${example.no} ${example.title}`);
+      }
       done++;
       if (done % 20 === 0) console.log(`  ${done}/${urls.length} …`);
     } catch (e) {

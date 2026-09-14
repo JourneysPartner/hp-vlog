@@ -32,6 +32,12 @@ console.log('\n=== Test 1: 条番号の正規化 ===');
   assert(P.normalizeProvisionNo('６－４－５') === '6-4-5', '全角数字を半角に');
   assert(P.normalizeProvisionNo(' 37-13　') === '37-13', '前後の空白を落とす');
   assert(P.normalizeProvisionNo(null) === '', 'null は空文字');
+  assert(P.normalizeProvisionNo('181〜223共－6') === '181～223共-6',
+    '波ダッシュを全角チルダに寄せる');
+  assert(P.normalizeProvisionNo('181~223共-6') === '181～223共-6',
+    '半角チルダを全角チルダに寄せる');
+  assert(P.normalizeProvisionNo('１８１～２２３共－６') === '181～223共-6',
+    '範囲形でも全角数字とハイフンを正規化する');
 
   assert(P.looksLikeProvisionNo('6-4-5'), '6-4-5 は条番号');
   assert(P.looksLikeProvisionNo('37-14の2'), '37-14の2 は条番号');
@@ -49,6 +55,24 @@ console.log('\n=== Test 1: 条番号の正規化 ===');
   assert(P.looksLikeProvisionNo('1の3・1の4共-1'), '「・」と「共」を含む番号');
   assert(P.looksLikeProvisionNo('2・2の2共-1'), '「・」を含む番号');
   assert(!P.looksLikeProvisionNo(''), '空文字は条番号ではない');
+
+  const commonRanges = ['181～223共-6', '23～35共-2', '183～193共-1', '194～198共-1'];
+  for (const no of commonRanges) {
+    assert(P.looksLikeProvisionNo(no), `${no} は共通関係の条番号`);
+  }
+  const invalidCommonRanges = ['181～223共', '～223共-6', '181～～223共-6', '181～223～300共-6'];
+  for (const no of invalidCommonRanges) {
+    assert(!P.looksLikeProvisionNo(no), `${no} は条番号ではない`);
+  }
+
+  // 正規表現の変更で、既存の税目ごとの番号形式を落とさない。
+  const existingForms = [
+    '37-13', '6-4-5', '37-14の2', '12の5-1-1',
+    '1の3・1の4共-1', '36・37共-1', '194・195-1',
+  ];
+  for (const no of existingForms) {
+    assert(P.looksLikeProvisionNo(no), `${no} は従来どおり条番号`);
+  }
 }
 
 // ── 2. ページ解析 ──────────────────────────────────────────────
@@ -65,6 +89,7 @@ console.log('\n=== Test 2: ページ解析 ===');
   ].join('\n');
   const r1 = P.parseTsutatsuPage(shohi, { url: 'u', circular: 'shohi' });
   assert(r1.provisions.length === 2, `2条を抽出（実: ${r1.provisions.length}）`);
+  assert(r1.skipped.length === 0, '全条番号を読めたページの skipped は空');
   assert(r1.provisions[0].no === '6-4-5', '条番号を正規化して取る');
   assert(/物品切手等の発行/.test(r1.provisions[0].title), '見出しを取る');
   assert(/資産の譲渡等の対価に該当しない/.test(r1.provisions[0].body), '本文を取る');
@@ -80,9 +105,28 @@ console.log('\n=== Test 2: ページ解析 ===');
   assert(r2.provisions.length === 1, '分割された条番号でも抽出できる');
   assert(r2.provisions[0].no === '37-13', `strong 2つを連結（実: ${r2.provisions[0].no}）`);
 
+  // 共通関係（条番号が範囲形）
+  const common = [
+    '<h1>法第181条から第223条まで（源泉徴収）共通関係</h1>',
+    '<h2>（支払の意義）</h2>',
+    '<p class="indent1"><strong>181～223共－1 </strong>法第4編《源泉徴収》に規定する「支払の際」…</p>',
+  ].join('\n');
+  const r3 = P.parseTsutatsuPage(common, { url: 'u', circular: 'shotoku' });
+  assert(r3.provisions.length === 1, '共通関係の条文を抽出できる');
+  assert(r3.provisions[0].no === '181～223共-1',
+    `共通関係の条番号を正規化して取る（実: ${r3.provisions[0].no}）`);
+  assert(r3.provisions[0].title === '（支払の意義）', '共通関係の見出しを取る');
+  assert(/法第4編《源泉徴収》/.test(r3.provisions[0].body), '共通関係の本文を取る');
+  assert(!/181～223共/.test(r3.provisions[0].body), '共通関係の本文に条番号が残らない');
+  assert(r3.skipped.length === 0, '共通関係を読めたページの skipped は空');
+
   // 条番号らしくない見出しは拾わない
   const noise = '<h2>（参考）</h2><p><strong>参考</strong>これは条文ではありません。</p>';
-  assert(P.parseTsutatsuPage(noise, {}).provisions.length === 0, '条番号でないものは拾わない');
+  const r4 = P.parseTsutatsuPage(noise, {});
+  assert(r4.provisions.length === 0, '条番号でないものは拾わない');
+  assert(r4.skipped.length === 1, '条番号でないブロックを skipped に記録する');
+  assert(r4.skipped[0].no === '参考', 'skipped に読めなかった番号を記録する');
+  assert(r4.skipped[0].title === '（参考）', 'skipped に見出しを記録する');
 }
 
 // ── 3. カタログの中身 ──────────────────────────────────────────
@@ -112,6 +156,16 @@ console.log('\n=== Test 3: カタログ ===');
 
   assert(T.findProvision('37-14の2') !== null, '「の2」形式も引ける');
   assert(T.findProvision('99-99-99') === null, '存在しない番号は null');
+
+  const rangeStart = T.findProvision('36-40～43', 'shotoku');
+  assert(rangeStart && rangeStart.no === '36-40', '条文範囲は左端の通達を引ける');
+  const direct = T.findProvision('181-6', 'shotoku');
+  assert(direct && direct.no === '181-6', '所基通181-6 は完全一致で引ける');
+  const commonRange = T.findProvision('181～223共-6', 'shotoku');
+  assert(commonRange === null || commonRange.no === '181～223共-6',
+    '共通関係は未収録なら null、収録後は自身を引く');
+  assert(!commonRange || commonRange.no !== '181-6',
+    '所基通181～223共-6 を181-6へすり替えない');
 }
 
 // ── 4. 引用の照合 ──────────────────────────────────────────────
@@ -261,6 +315,9 @@ console.log('=== Test 9: 品質 ===');
       `${e.label}: 本文が極端に短い条文が2%以下（${noBody}/${ps.length}）`);
     assert(ps.every(x => x.url && x.url.startsWith(NTA_PREFIX)),
       `${e.label}: すべての条文に国税庁の URL が付いている`);
+    const rejectedNos = ps.filter(x => !P.looksLikeProvisionNo(x.no)).map(x => x.no);
+    assert(rejectedNos.length === 0,
+      `${e.label}: 既存の全条番号を解析できる（${ps.length} 条）`);
   }
   assert(total > 3000, `カタログ全体で十分な条文数（${total} 条）`);
 }

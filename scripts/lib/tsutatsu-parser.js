@@ -22,6 +22,7 @@ const DASHES = /[－‐‑‒–—―−]/g;
 function normalizeProvisionNo(raw) {
   return String(raw || '')
     .replace(DASHES, '-')
+    .replace(/[〜~]/g, '～')
     .replace(/[\s　]/g, '')
     .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
     .trim();
@@ -53,7 +54,10 @@ function stripTags(html) {
 //   7-6の2-1   節番号に「の」
 // 2026-08-21: 末尾の「の」しか許していなかったため、リース取引の条文を
 // 9条まるごと取りこぼしていた。各要素に「のN」を許す形に直す。
-const PROVISION_NO_RE = /^\d{1,3}(?:の\d{1,2})?(?:・\d{1,3}(?:の\d{1,2})?)*共?(?:-\d{1,3}(?:の\d{1,2})?(?:・\d{1,3}(?:の\d{1,2})?)*共?){1,3}$/;
+// 「181～223共-6」のような共通関係は、範囲全体の外側に「共」が付く。
+const PROVISION_NO_ATOM = String.raw`\d{1,3}(?:の\d{1,2})?(?:・\d{1,3}(?:の\d{1,2})?)*`;
+const PROVISION_NO_ELEMENT = `${PROVISION_NO_ATOM}(?:～${PROVISION_NO_ATOM})?共?`;
+const PROVISION_NO_RE = new RegExp(`^${PROVISION_NO_ELEMENT}(?:-${PROVISION_NO_ELEMENT}){1,3}$`);
 function looksLikeProvisionNo(s) {
   return PROVISION_NO_RE.test(normalizeProvisionNo(s));
 }
@@ -63,13 +67,14 @@ function looksLikeProvisionNo(s) {
  *
  * @param {string} html   Shift_JIS からデコード済みの HTML
  * @param {Object} [opts] { url, circular }
- * @returns {{sectionTitle: string, provisions: Array<{no,title,body,url,circular}>}}
+ * @returns {{sectionTitle: string, provisions: Array<{no,title,body,url,circular}>, skipped: Array<{no,title}>}}
  */
 function parseTsutatsuPage(html, opts = {}) {
   const src = String(html || '');
   const sectionTitle = stripTags((src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1] || '');
 
   const provisions = [];
+  const skipped = [];
   // <h2>見出し</h2> と、それに続く本文ブロックを順に拾う
   const blocks = src.split(/<h2[^>]*>/).slice(1);
   for (const block of blocks) {
@@ -95,7 +100,10 @@ function parseTsutatsuPage(html, opts = {}) {
     if (strongs.length === 0) continue;
 
     const no = normalizeProvisionNo(strongs.join(''));
-    if (!looksLikeProvisionNo(no)) continue;
+    if (!looksLikeProvisionNo(no)) {
+      skipped.push({ no, title });
+      continue;
+    }
 
     // 条番号の後ろから、次の <h2> までを本文とする
     const bodyHtml = head + rest.slice(pMatch[0].length);
@@ -111,7 +119,7 @@ function parseTsutatsuPage(html, opts = {}) {
     });
   }
 
-  return { sectionTitle, provisions };
+  return { sectionTitle, provisions, skipped };
 }
 
 /** 目次ページから節ページの URL を集める */
