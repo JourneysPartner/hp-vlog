@@ -36,15 +36,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "印税・版権収入は原則として事業所得または雑所得に区分され、支払者が所得税を源泉徴収したうえで支払います。受け取る側は確定申告で源泉徴収税額を精算し、正しい所得区分で申告する必要があります。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-13T17:13:13.280+09:00"
 publish_at: "2026-09-14T11:13:00.000+09:00"
-published_at: ""
+published_at: "2026-09-14T12:00:58.567+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-13T00:05:44.520Z"
-updated_at: "2026-09-13T17:13:13.280+09:00"
+updated_at: "2026-09-14T12:00:58.567+09:00"
 publish_slot: "morning"
 ---
 書籍の印税が入金されたとき、振込額が想定より少ない——そう気づいて明細を確認すると「源泉所得税」の控除欄がある。あるいは楽曲の著作権使用料が入ったが、どの所得として確定申告に書けばいいのか分からない。こうした疑問を抱えるクリエイターは少なくありません。
