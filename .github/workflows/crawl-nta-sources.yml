@@ -112,20 +112,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet data/nta-sources/ 2>/dev/null; then
-            # untracked file（初回 crawl 時）も検知
-            if git status --porcelain data/nta-sources/ | grep -q .; then
-              echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-          fi
+          node scripts/has-substantive-change.js data/nta-sources >> "$GITHUB_OUTPUT"
 
       - name: Create PR if changes
         id: pr
-        if: steps.changes.outputs.has_changes == 'true'
+        if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FETCHED: ${{ steps.meta.outputs.fetched }}
@@ -205,7 +196,7 @@ jobs:
           ERRORS: ${{ steps.meta.outputs.errors }}
           DURATION: ${{ steps.meta.outputs.duration }}
           ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
-          HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
+          HAS_CHANGES: ${{ steps.changes.outputs.changed }}
           PR_URL: ${{ steps.pr.outputs.pr_url }}
           JOB_STATUS: ${{ job.status }}
         run: |
@@ -221,7 +212,7 @@ jobs:
           if [ "$HAS_CHANGES" = "true" ]; then
             CHANGE_LINE="■ 変更あり → PR: ${PR_URL}"
           else
-            CHANGE_LINE="■ 変更なし（差分なし）"
+            CHANGE_LINE="■ 変更なし（時刻のみ更新のため PR は作成しません）"
           fi
           # エラー率と削除件数の警告
           WARN_LINE=""
@@ -270,7 +261,11 @@ jobs:
             echo "| total processed | ${{ steps.meta.outputs.total }} |"
             echo "| duration | ${{ steps.meta.outputs.duration }}s |"
             echo "| error rate | ${{ steps.meta.outputs.error_rate }}% |"
-            echo "| has_changes | ${{ steps.changes.outputs.has_changes }} |"
+            echo "| changed | ${{ steps.changes.outputs.changed }} |"
+            if [ "${{ steps.changes.outputs.changed }}" != "true" ]; then
+              echo ""
+              echo "■ 変更なし（時刻のみ更新のため PR は作成しません）"
+            fi
             if [ -n "${{ steps.pr.outputs.pr_url }}" ]; then
               echo "| PR | ${{ steps.pr.outputs.pr_url }} |"
             fi

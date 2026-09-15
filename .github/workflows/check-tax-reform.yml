@@ -49,18 +49,12 @@ jobs:
         run: node scripts/check-tax-reform-outline.js --year "${{ steps.year.outputs.year }}" --update
 
       - name: Detect snapshot change
-        id: diff
+        id: changes
         run: |
-          if git diff --quiet -- data/tax-reform-outline.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "スナップショットに変更なし"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "スナップショットに変更あり"
-          fi
+          node scripts/has-substantive-change.js data/tax-reform-outline.json >> "$GITHUB_OUTPUT"
 
       - name: Open PR for snapshot change
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

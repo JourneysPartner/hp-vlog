@@ -56,19 +56,17 @@ jobs:
             console.log('遷移元ページ: ' + n + ' 件');
           "
 
-      - name: Create PR if changed
+      - name: Check for changes
+        id: changes
         if: env.SKIP != 'true'
+        run: |
+          node scripts/has-substantive-change.js data/contact-transitions.json >> "$GITHUB_OUTPUT"
+
+      - name: Create PR if changed
+        if: env.SKIP != 'true' && steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- data/contact-transitions.json && [ -f data/contact-transitions.json ]; then
-            CHANGED=$(git status --porcelain -- data/contact-transitions.json)
-            if [ -z "$CHANGED" ]; then
-              echo "::notice::変更なし。PR は作成しません"
-              exit 0
-            fi
-          fi
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -76,10 +74,6 @@ jobs:
           BRANCH="transitions/${STAMP}"
           git checkout -b "$BRANCH"
           git add data/contact-transitions.json
-          if git diff --cached --quiet; then
-            echo "::notice::変更なし。PR は作成しません"
-            exit 0
-          fi
           git commit -m "chore: 問い合わせ遷移の実測を更新 (${STAMP})"
           git push origin "$BRANCH"
 
