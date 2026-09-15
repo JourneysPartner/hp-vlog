@@ -36,15 +36,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "申告期限延長の特例法人が期限後申告した場合、無申告加算税の計算基礎は期限後申告書に記載された法人税額（100）そのもの。期限内に見込納付した額（80）を控除した20ではなく、控除前の100が対象となる。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-15T16:12:39.589+09:00"
+publish_at: "2026-09-16T17:19:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-15T00:08:42.191Z"
-updated_at: "2026-09-15T00:10:54.008Z"
+updated_at: "2026-09-15T16:12:39.589+09:00"
+publish_slot: "evening"
 ---
 申告期限の延長特例を受けている法人が、なんらかの事情で期限後申告になってしまった——そのとき、頭を悩ませるのが無申告加算税の計算です。「期限内に見込納付（仮払い）をしているのだから、その分を差し引いた残額に加算税がかかるはず」と考えるのは自然な発想ですが、国税庁の質疑応答事例はそれとは異なる取扱いを示しています。
 
