@@ -36,6 +36,15 @@ const OUT_DIR = path.join(ROOT, 'data', 'nta-qa');
 const INDEX_PATH = path.join(OUT_DIR, 'index.json');
 const FETCH_DELAY_MS = 1200;
 const HOST = 'https://www.nta.go.jp';
+const DOT_LEADER_RE = /[·・．.…]{6,}/;
+
+function looksLikeTableOfContents(body) {
+  return DOT_LEADER_RE.test(String(body || ''));
+}
+
+function hasAnswerLikeContent(body) {
+  return /【答】|（答）|【回答要旨】|【回答】|(?:^|\s)答(?=\s|[：:]|$)/.test(String(body || ''));
+}
 
 // ── 取得対象 ─────────────────────────────────────────────────
 // indexUrl: PDFリンクを拾う目次ページ（linkPattern に一致するリンクを対象にする）
@@ -312,8 +321,8 @@ function parseQaText(raw) {
  * 軽減税率の個別事例編は約10万字あり、1件として保存すると本文の上限（1,800字）で
  * 冒頭しか渡らず役に立たない。「（見出し）問N …」の区切りで分割する。
  *
- * 先頭には目次が付いており、そこにも同じ「（見出し）問N」が並ぶ。目次側は
- * ページ番号の点線（……）で終わるので、本文が極端に短い塊は目次として捨てる。
+ * 先頭には目次が付いており、そこにも同じ「（見出し）問N」が並ぶ。本文にだけある
+ * 「【答】」と長さ、ページ番号の点線で目次を除外する。
  */
 function splitByQuestion(text) {
   const flat = String(text || '').replace(/\s+/g, ' ').trim();
@@ -322,23 +331,25 @@ function splitByQuestion(text) {
   if (marks.length < 5) return [];   // 分割対象ではない
 
   const out = [];
-  const seen = new Set();
+  const seen = new Map();
   for (let i = 0; i < marks.length; i++) {
     const start = marks[i].index;
     const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
     const body = flat.slice(start, end).trim();
     const qNo = marks[i][2].replace(/\s/g, '');
-    // 目次の行はページ番号の点線で終わり、本文が無い
-    if (body.length < 120) continue;
-    if (/…{3,}|\.{6,}\s*\d+$/.test(body)) continue;
+    // 本文は「【答】」を含む。目次には答が無く、ページ番号の点線がある。
+    if (!/【答】/.test(body)) continue;
+    if (body.length < 150) continue;
+    if (looksLikeTableOfContents(body)) continue;
     // 同じ問が目次と本文で2回出る。長い方（本文）を採る
-    const prev = seen.has(qNo) ? out.find(o => o.qNo === qNo) : null;
+    const prev = seen.get(qNo);
     if (prev) {
       if (body.length > prev.body.length) { prev.body = body; prev.title = `${qNo} ${marks[i][1]}`; }
       continue;
     }
-    seen.add(qNo);
-    out.push({ qNo, title: `${qNo} ${marks[i][1]}`, body });
+    const rec = { qNo, title: `${qNo} ${marks[i][1]}`, body };
+    seen.set(qNo, rec);
+    out.push(rec);
   }
   return out;
 }
@@ -367,6 +378,7 @@ function splitByNumberedHeading(text) {
     const no = marks[i][1].replace(/－/g, '-');
     if (!/問/.test(body) || !/答/.test(body)) continue;   // 目次には答が無い
     if (body.length < 150) continue;
+    if (looksLikeTableOfContents(body)) continue;
     const prev = seen.get(no);
     if (prev) {
       if (body.length > prev.body.length) {
@@ -411,6 +423,7 @@ function splitByParenQuestion(text) {
     // 目次にはどちらも無く、ページ番号の点線で終わる。
     if (!/（答）|【回答要旨】|【回答】/.test(body)) continue;
     if (body.length < 150) continue;
+    if (looksLikeTableOfContents(body)) continue;
     const title = marks[i][2].replace(/\.{3,}.*$/, '').trim();
     const prev = seen.get(no);
     if (prev) {
@@ -428,11 +441,30 @@ function splitByParenQuestion(text) {
 }
 
 // ── 保存 ────────────────────────────────────────────────────
-function saveEntry(sourceKey, source, doc, parsed, url) {
+function shouldSkipBodyUpdate(existingRecord, newRecord) {
+  if (!existingRecord || typeof existingRecord.body !== 'string') return false;
+  if (!newRecord || typeof newRecord.body !== 'string') return false;
+  if (!hasAnswerLikeContent(existingRecord.body) || looksLikeTableOfContents(existingRecord.body)) {
+    return false;
+  }
+  return existingRecord.body.length >= 300
+    && newRecord.body.length < existingRecord.body.length * 0.5;
+}
+
+function getStaleSplitFileNames(source, writtenFileNames, existingFileNames, options = {}) {
+  if (!source || (!source.split && !source.splitBy) || options.limitSpecified) return [];
+  const written = new Set(writtenFileNames || []);
+  return [...new Set(existingFileNames || [])]
+    .filter(name => /\.json$/i.test(name) && !written.has(name))
+    .sort();
+}
+
+function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
   const dir = path.join(OUT_DIR, sourceKey);
   fs.mkdirSync(dir, { recursive: true });
   const file = `${doc.id}.json`;
   const relative = path.join(sourceKey, file).replace(/\\/g, '/');
+  const filePath = path.join(OUT_DIR, relative);
   const title = doc.title || parsed.title || `${source.label} ${doc.id}`;
   const record = {
     id: doc.id,
@@ -450,7 +482,20 @@ function saveEntry(sourceKey, source, doc, parsed, url) {
     char_count_body: parsed.body.length,
     fetched_at: new Date().toISOString(),
   };
-  fs.writeFileSync(path.join(OUT_DIR, relative), JSON.stringify(record, null, 2) + '\n', 'utf8');
+  let existingRecord = null;
+  try { existingRecord = JSON.parse(fs.readFileSync(filePath, 'utf8')); }
+  catch (_) { /* 新規ファイル、または既存ファイルを読み取れない場合は通常どおり保存する */ }
+
+  if (shouldSkipBodyUpdate(existingRecord, record)) {
+    const warn = typeof options.warn === 'function' ? options.warn : console.warn;
+    const displayPath = path.relative(ROOT, filePath).replace(/\\/g, '/');
+    warn(`[warn] 本文が大幅に短くなるため更新を見送りました\n`
+      + `       ${displayPath}  ${existingRecord.body.length}字 → ${record.body.length}字\n`
+      + '       PDF のテキスト抽出が目次を拾った可能性があります');
+    return { relative, record: existingRecord, skipped: true };
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
   return { relative, record };
 }
 
@@ -472,6 +517,7 @@ function writeIndex(index) {
 
 // ── 本体 ────────────────────────────────────────────────────
 async function crawlSource(sourceKey, source, options = {}) {
+  const limitSpecified = options.limit !== undefined && options.limit !== null;
   const limit = Number.isInteger(options.limit) && options.limit > 0 ? options.limit : null;
   const delayMs = options.delayMs === undefined ? FETCH_DELAY_MS : options.delayMs;
   const logger = options.logger === undefined ? console : options.logger;
@@ -503,6 +549,13 @@ async function crawlSource(sourceKey, source, options = {}) {
   const list = limit ? targets.slice(0, limit) : targets;
   const saved = [];
   let failed = 0;
+  let skippedUpdates = 0;
+
+  const save = (doc, parsed, url) => {
+    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn });
+    if (result.skipped) skippedUpdates++;
+    saved.push(result);
+  };
 
   for (let i = 0; i < list.length; i++) {
     const doc = list[i];
@@ -525,13 +578,13 @@ async function crawlSource(sourceKey, source, options = {}) {
             .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
             .replace(/[^0-9-]/g, '');
           const sub = { id: `${doc.id}-${slugNo}`, title: part.title };
-          saved.push(saveEntry(sourceKey, source, sub, part, doc.url));
+          save(sub, part, doc.url);
         }
         log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
       } else {
         const parsed = parseQaText(text);
         if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
-        saved.push(saveEntry(sourceKey, source, doc, parsed, doc.url));
+        save(doc, parsed, doc.url);
       }
     } catch (error) {
       failed++;
@@ -541,8 +594,28 @@ async function crawlSource(sourceKey, source, options = {}) {
     if ((i + 1) % 20 === 0) log(`[nta-qa] ${i + 1}/${list.length}`);
   }
 
-  log(`[nta-qa] ${source.label}: ${saved.length} 件保存${failed ? `（失敗 ${failed} 件）` : ''}`);
-  return { saved, failed };
+  const sourceDir = path.join(OUT_DIR, sourceKey);
+  const existingFileNames = fs.existsSync(sourceDir)
+    ? fs.readdirSync(sourceDir, { withFileTypes: true })
+      .filter(entry => entry.isFile())
+      .map(entry => entry.name)
+    : [];
+  const writtenFileNames = saved.map(result => path.basename(result.relative));
+  const staleFileNames = getStaleSplitFileNames(
+    source,
+    writtenFileNames,
+    existingFileNames,
+    { limitSpecified },
+  );
+  for (const fileName of staleFileNames) fs.unlinkSync(path.join(sourceDir, fileName));
+  if (staleFileNames.length > 0) {
+    log(`[nta-qa] ${sourceKey}: 取り込めなくなった ${staleFileNames.length} 件を削除しました\n`
+      + `         ${staleFileNames.join(', ')}`);
+  }
+
+  log(`[nta-qa] ${source.label}: ${saved.length} 件保存${failed ? `（失敗 ${failed} 件）` : ''}`
+    + `${skippedUpdates ? `（本文短縮による更新見送り ${skippedUpdates} 件）` : ''}`);
+  return { saved, failed, skippedUpdates };
 }
 
 async function main() {
@@ -567,10 +640,13 @@ async function main() {
 
   const index = loadIndex();
   const keys = keysToRun;
+  let skippedUpdates = 0;
   for (const key of keys) {
     const source = SOURCES[key];
     if (!source) { console.error(`[nta-qa] 未知の対象: ${key}`); process.exit(1); }
-    const { saved } = await crawlSource(key, source, { limit });
+    const result = await crawlSource(key, source, { limit });
+    const { saved } = result;
+    skippedUpdates += result.skippedUpdates;
     // --only でも他の対象を消さないよう、同じ source_key の分だけ入れ替える
     index.entries = index.entries.filter(e => e.source_key !== key);
     for (const s of saved) {
@@ -585,6 +661,9 @@ async function main() {
   }
   index.entries.sort((a, b) => (a.source_key + a.id).localeCompare(b.source_key + b.id));
   writeIndex(index);
+  if (skippedUpdates > 0) {
+    console.warn(`[warn] 本文が大幅に短くなるため ${skippedUpdates} 件の更新を見送りました`);
+  }
   console.log(`[nta-qa] 完了: 合計 ${index.entries.length} 件 → ${path.relative(ROOT, INDEX_PATH)}`);
 }
 
@@ -592,4 +671,19 @@ if (require.main === module) {
   main().catch(e => { console.error('[nta-qa] 失敗:', e.message); process.exit(1); });
 }
 
-module.exports = { SOURCES, parseQaText, pdfToText, htmlToText, splitByQuestion, splitByNumberedHeading, splitByParenQuestion, crawlSource, OUT_DIR, INDEX_PATH };
+module.exports = {
+  SOURCES,
+  parseQaText,
+  pdfToText,
+  htmlToText,
+  looksLikeTableOfContents,
+  hasAnswerLikeContent,
+  splitByQuestion,
+  splitByNumberedHeading,
+  splitByParenQuestion,
+  shouldSkipBodyUpdate,
+  getStaleSplitFileNames,
+  crawlSource,
+  OUT_DIR,
+  INDEX_PATH,
+};
