@@ -1,0 +1,16 @@
+{
+  "id": "jirei-8w",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問８",
+  "digest": false,
+  "title": "問８ 水の販売",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+  "body": "（水の販売） 問８ 水の販売は、軽減税率の適用対象となりますか。【令和５年 10 月改訂】 【答】 「食品」とは、人の飲用又は食用に供されるものをいいますので、人の飲用又は食用に供 されるものであるいわゆるミネラルウォーターなどの飲料水は、「食品」に該当し、その販 売は軽減税率の適用対象となります。 他方、水道水は、炊事や飲用のための「食品」としての水と、風呂、洗濯といった飲食用 以外の生活用水として供給されるものとが混然一体となって提供されており、例えば、水道 水をペットボトルに入れて、人の飲用に供される「食品」として販売する場合を除き、軽減 税率の適用対象となりません（消法２①九の二、別表１一、基通５－９－１）。 -3-",
+  "char_count_body": 316,
+  "fetched_at": "2026-09-14T16:12:57.983Z"
+}

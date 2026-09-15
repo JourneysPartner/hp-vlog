@@ -16,6 +16,9 @@ const {
   splitByParenQuestion,
   shouldSkipBodyUpdate,
   getStaleSplitFileNames,
+  buildEntryId,
+  resolveEntryIds,
+  dedupeIndexEntries,
 } = require(path.join(ROOT, 'scripts/crawl-nta-qa'));
 
 let passed = 0, failed = 0;
@@ -37,6 +40,71 @@ function splitKeigenWith(candidate) {
     keigenBody(903),
     keigenBody(904),
   ].join(' '));
+}
+
+const silentWarnings = { warn() {} };
+
+console.log('=== 分割エントリの id ===');
+assert(buildEntryId('jirei', '問4') === 'jirei-4',
+  '半角の問4は従来どおり jirei-4');
+assert(buildEntryId('jirei', '問４') === 'jirei-4w',
+  '全角の問４には wide の印を付ける');
+assert(buildEntryId('jirei', '問12') === 'jirei-12',
+  '半角の問12は従来どおり jirei-12');
+assert(buildEntryId('jirei', '問1-1') === 'jirei-1-1',
+  '半角の階層番号はハイフンを残す');
+assert(buildEntryId('gaiyo', '問１') !== 'gaiyo-1',
+  '全角の問１は半角の id と区別する');
+assert(/^[\x00-\x7F]+$/.test(buildEntryId('jirei', '問４')),
+  '全角問番号から作る id も ASCII だけになる');
+
+{
+  const parts = [
+    { qNo: '問３', title: '問３ 水産物の販売', body: '水産物の回答' },
+    { qNo: '問3', title: '問3 通信販売', body: '通信販売の回答' },
+  ];
+  const forward = resolveEntryIds('jirei', parts, silentWarnings);
+  const reverse = resolveEntryIds('jirei', [...parts].reverse(), silentWarnings);
+  const byQNo = entries => entries.map(entry => [entry.qNo, entry.id])
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  assert(new Set(forward.map(entry => entry.id)).size === 2,
+    '実データ形の全角・半角の問に別々の id を付ける');
+  assert(forward.find(entry => entry.qNo === '問3').id === 'jirei-3',
+    'resolveEntryIds でも半角の問3は jirei-3 のまま');
+  assert(JSON.stringify(byQNo(forward)) === JSON.stringify(byQNo(reverse)),
+    '全角・半角の qNo → id 対応は入力順に依存しない');
+}
+
+{
+  const parts = [
+    { qNo: '問12', title: '問12 一つ目の問', body: '一つ目の回答' },
+    { qNo: '問12', title: '問12 二つ目の問', body: '二つ目の回答' },
+  ];
+  const forward = resolveEntryIds('jirei', parts, silentWarnings);
+  const reverse = resolveEntryIds('jirei', [...parts].reverse(), silentWarnings);
+  const byTitle = entries => entries.map(entry => [entry.title, entry.id])
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  assert(forward.length === 2 && new Set(forward.map(entry => entry.id)).size === 2,
+    '同じ qNo の衝突でも両方を異なる id で残す');
+  assert(JSON.stringify(byTitle(forward)) === JSON.stringify(byTitle(reverse)),
+    '同じ qNo の衝突解消も入力順に依存しない');
+}
+
+assert(buildEntryId('faq', '１－１') === 'faq-1-1',
+  '暗号資産の番号は従来の id のまま');
+assert(buildEntryId('r5kaisei', '問１-１') === 'r5kaisei-1-1',
+  '相続の階層問番号は従来の id のまま');
+
+console.log('\n=== index の file_path 重複除外 ===');
+{
+  const first = { id: 'first', file_path: 'keigen/jirei-4.json' };
+  const duplicate = { id: 'second', file_path: 'keigen/jirei-4.json' };
+  const other = { id: 'other', file_path: 'keigen/jirei-4w.json' };
+  const deduped = dedupeIndexEntries([first, duplicate], silentWarnings);
+  assert(deduped.length === 1, '同じ file_path は index に1件だけ残す');
+  assert(deduped[0] === first, '同じ file_path では先に来たエントリを残す');
+  assert(dedupeIndexEntries([first, other], silentWarnings).length === 2,
+    '別の file_path なら index に両方残す');
 }
 
 console.log('=== 目次の点線判定 ===');
