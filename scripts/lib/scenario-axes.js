@@ -23,7 +23,7 @@ const BUSINESS_STAGES = [
 // ── 人生イベントステージ（相続贈与）
 const LIFE_STAGES = [
   { id: 'pre-planning',         label: '生前準備期',                   order: 1 },
-  { id: 'cognitive-decline',    label: '認知機能低下が気になる時期', order: 2 },
+  { id: 'cognitive-decline',    label: '判断能力の低下が気になる時期', order: 2 },
   { id: 'critical-immediate',   label: '危篤・逝去直後',             order: 3 },
   { id: 'within-7days',         label: '7日以内（葬儀直後）',        order: 4 },
   { id: 'within-4months',       label: '4ヶ月以内（準確定申告期限）', order: 5 },
