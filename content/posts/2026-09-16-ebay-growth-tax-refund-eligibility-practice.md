@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBay輸出は輸出免税のため売上に消費税がかからない一方、仕入れやeBay手数料に含まれる消費税は仕入税額控除できる。課税事業者（原則課税）でなければ還付を受けられないため、まず事業者区分の確認が実務の起点となる。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-16T00:08:55.164Z"
-updated_at: "2026-09-16T00:11:22.083Z"
+updated_at: "2026-09-16T16:10:25.641+09:00"
 ---
 確定申告の時期が近づくたびに「自分は消費税の還付を受けられるのか」「そもそも何を準備すればいいのか」と手が止まるeBayセラーは少なくありません。売上に消費税がかからないのに、仕入れの消費税は払っている——この構造が頭では分かっていても、実際の申告でどう動けばいいかが見えにくいのが実態です。
 
