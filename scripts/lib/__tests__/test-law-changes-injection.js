@@ -179,7 +179,7 @@ console.log('=== Test 7: 令和8年度税制改正の登録 ===');
 
   // 教育資金の一括贈与は期限つき
   const edu = byKey.r8_education_fund_gift_end;
-  assert(edu.valid_to === '2026-03-31', '教育資金は valid_to が設定されている');
+  assert(edu.valid_to === '2027-03-31', '教育資金は制度終了(2026-03-31)の1年後まで警告を維持');
   assert(edu.tax_domain === 'inheritance_tax', '税目は相続税');
 
   // 実際にトピックへ届くこと
