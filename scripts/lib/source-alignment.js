@@ -111,6 +111,28 @@ function taxCategoryNote(topic, entry) {
   return `出典は${entry.tax_category}のページです（記事の税目: ${topic.tax_domain}）。個人事業者向けの記述として妥当か確認してください`;
 }
 
+/** 補助出典は承認条件に加えず、弱い論点を人が特定できる注意書きだけを返す。 */
+function supplementConfidenceNote(topic = {}) {
+  const supplements = Array.isArray(topic.source_supplements)
+    ? topic.source_supplements
+    : [2, 3, 4].map(n => ({
+      url: topic[`source_${n}_url`],
+      title: topic[`source_${n}_title`],
+      term: topic[`source_${n}_term`],
+      confidence: topic[`source_${n}_confidence`],
+    })).filter(source => source.url);
+  const weak = supplements.filter((source) => {
+    const confidence = Number(source.confidence);
+    return Number.isFinite(confidence) && confidence < LLM_AUTO_MIN_CONFIDENCE;
+  });
+  if (weak.length === 0) return '';
+  const labels = weak.map((source) => {
+    const label = source.term || source.title || source.url;
+    return `${label}（${Number(source.confidence)}）`;
+  });
+  return `補助出典の確信度が低い論点: ${labels.join('、')}`;
+}
+
 function expectedSourceFor(topic = {}) {
   const painId = topic.pain_point || topic.pain || '';
   const provenance = topic.source_provenance || 'unknown';
@@ -211,9 +233,10 @@ function checkSourceAlignment(topic = {}) {
 
   // llm-auto は候補リストからの選定であり、カタログ収録・未削除・高確信度を
   // 満たしたものだけがここに来る。現在のURL自体を正本とする。
-  // 税目が記事と食い違う場合だけ、ブロックしない注意書きを添える。
+  // 税目の食い違いと弱い補助出典は、承認を止めず注意書きだけを添える。
   if (provenance === 'llm-auto') {
-    const note = taxCategoryNote(topic, catalogEntry);
+    const note = [taxCategoryNote(topic, catalogEntry), supplementConfidenceNote(topic)]
+      .filter(Boolean).join(' / ');
     return result({
       aligned: true, score: note ? 4 : 5, severity: 'ok',
       expectedTitle: expected.title, reason: note,
@@ -270,4 +293,5 @@ function checkSourceAlignment(topic = {}) {
 module.exports = {
   LLM_AUTO_MIN_CONFIDENCE,
   evaluateLlmAutoSource,
-  taxCategoryNote, sourceFamily, sourcePage, expectedSourceFor, checkSourceAlignment };
+  taxCategoryNote, supplementConfidenceNote,
+  sourceFamily, sourcePage, expectedSourceFor, checkSourceAlignment };
