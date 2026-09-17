@@ -36,7 +36,7 @@ tax_risk_score: 3
 recommendation: "revise"
 review_warning: "出典: LLM選定の確信度が低い（0.72 < 0.9）"
 summary: "エステの回数券は「受け取った日」ではなく「施術を提供した日」が売上の計上日です。受け取り時は前受金に振り替え、施術ごとに売上へ振り替える仕訳を習慣にしましょう。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -44,7 +44,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-17T00:08:54.590Z"
-updated_at: "2026-09-17T00:10:41.111Z"
+updated_at: "2026-09-17T14:34:08.888+09:00"
 ---
 回数券を販売したとき、レジで現金を受け取った瞬間に「売上」として記帳していませんか？その処理、所得税の計算では誤りになる可能性があります。
 
