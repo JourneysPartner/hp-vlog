@@ -36,15 +36,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "贈与税は年間110万円まで基礎控除があり非課税。受贈者ひとりあたりの枠で、複数人から受け取っても合算される。教育・住宅・結婚・子育て資金の非課税特例も別枠で使える。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-16T17:04:36.057+09:00"
 publish_at: "2026-09-17T11:20:00.000+09:00"
-published_at: ""
+published_at: "2026-09-17T12:00:52.111+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-16T00:05:47.288Z"
-updated_at: "2026-09-16T17:04:36.057+09:00"
+updated_at: "2026-09-17T12:00:52.111+09:00"
 publish_slot: "morning"
 ---
 親から子へまとまったお金を渡したい、孫の教育費を援助したい——そう考えたとき、真っ先に頭をよぎるのが「贈与税はかかるの？」という疑問です。
