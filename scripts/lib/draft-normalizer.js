@@ -255,6 +255,20 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
   }
   const sourceConfidence = Number.isFinite(Number(topic.source_confidence))
     ? Number(topic.source_confidence) : 0;
+  const sourceSupplementLines = Array.isArray(topic.source_supplements)
+    ? topic.source_supplements.slice(0, 3).flatMap((source, index) => {
+      const n = index + 2;
+      const confidence = Number.isFinite(Number(source.confidence)) ? Number(source.confidence) : 0;
+      return [
+        `source_${n}_url: "${escFm(source.url || '')}"`,
+        `source_${n}_title: "${escFm(source.title || '')}"`,
+        `source_${n}_term: "${escFm(source.term || '')}"`,
+        `source_${n}_confidence: ${confidence}`,
+      ];
+    })
+    : [];
+  const sourceSupplementFm = sourceSupplementLines.length > 0
+    ? `\n${sourceSupplementLines.join('\n')}` : '';
 
   return `---
 title: "${escFm(title)}"
@@ -271,7 +285,8 @@ source_url: "${escFm(topic.source_url || '')}"
 source_title: "${escFm(topic.source_title || '')}"
 source_provenance: "${escFm(topic.source_provenance || 'unknown')}"
 source_confidence: ${sourceConfidence}
-source_guard_version: 1
+source_term: "${escFm(topic.source_term || '')}"
+source_guard_version: 1${sourceSupplementFm}
 search_intent: "${escFm(topic.search_intent || '')}"
 reader_problem: "${escFm(topic.reader_problem || '')}"
 success_outcome: "${escFm(successOutcome)}"

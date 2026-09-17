@@ -578,14 +578,25 @@ function buildRelatedArticleHtml(post, postsMap) {
     </div>`;
 }
 
+function buildSourcesHtml(post) {
+  const sources = [{ url: post.source_url || '', title: post.source_title || post.source_url || '' }];
+  for (const n of [2, 3, 4]) {
+    const url = post[`source_${n}_url`];
+    if (!url) continue;
+    sources.push({ url, title: post[`source_${n}_title`] || url });
+  }
+  const links = sources.map(source =>
+    `<a href="${escAttr(source.url)}" target="_blank" rel="noopener noreferrer">${escHtml(source.title)}</a>`);
+  return `参考：${links.join('、')}`;
+}
+
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap, publishConfig) {
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
   // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
   // その記事に適用された非税出典（official-sources.js）へリンクする。
-  // frontmatter の source_url はテンプレートが1件しか表示しないため、
-  // これが無いと読者は社会保険側の出典に辿れない。
+  // 本文側のリンクも残すことで、複数出典を持たない既存記事の導線を変えない。
   const { markdown: linkedBody, stats } = linkCitations(post._body, {
     agencyLinks: agencyLinksForTopic(post),
     onMiss: ({ no, matched }) => {
@@ -654,8 +665,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     UPDATED_AT_ISO:   updatedDateISO,
     BODY:             htmlBody,
     SIMULATOR_CTA_HTML: simulatorCtaHtml,
-    SOURCE_URL:       escAttr(post.source_url || ''),
-    SOURCE_TITLE:     escHtml(post.source_title || post.source_url || ''),
+    SOURCES_HTML:     buildSourcesHtml(post),
     STRUCTURED_DATA:  structuredData,
     EXTRA_STRUCTURED_DATA: extraStructuredData,
     BREADCRUMB_HTML:  breadcrumbHtml(crumbs),

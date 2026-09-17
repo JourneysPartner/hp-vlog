@@ -9,7 +9,11 @@ const GUARDED_SOURCE_FIELDS = Object.freeze([
   'source_title',
   'source_provenance',
   'source_confidence',
+  'source_term',
   'source_guard_version',
+  'source_2_url', 'source_2_title', 'source_2_term', 'source_2_confidence',
+  'source_3_url', 'source_3_title', 'source_3_term', 'source_3_confidence',
+  'source_4_url', 'source_4_title', 'source_4_term', 'source_4_confidence',
   'pain_point',
   'tax_domain',
 ]);
@@ -85,6 +89,19 @@ function evaluateSourceGuard(meta = {}, options = {}) {
     // 必ずブロックされる（2026-08-20 に発生）。GUARDED_SOURCE_FIELDS に
     // 含まれている項目は漏れなく渡すこと。
     source_confidence: meta.source_confidence,
+    source_term: meta.source_term || '',
+    source_2_url: meta.source_2_url || '',
+    source_2_title: meta.source_2_title || '',
+    source_2_term: meta.source_2_term || '',
+    source_2_confidence: meta.source_2_confidence,
+    source_3_url: meta.source_3_url || '',
+    source_3_title: meta.source_3_title || '',
+    source_3_term: meta.source_3_term || '',
+    source_3_confidence: meta.source_3_confidence,
+    source_4_url: meta.source_4_url || '',
+    source_4_title: meta.source_4_title || '',
+    source_4_term: meta.source_4_term || '',
+    source_4_confidence: meta.source_4_confidence,
     pain_point: meta.pain_point || '',
     tax_domain: meta.tax_domain || '',
   });
@@ -148,6 +165,10 @@ function setFrontmatterFields(raw, updates) {
 const SYSTEM_MANAGED_FIELDS = [
   'slug', 'category', 'primary_persona', 'secondary_persona',
   'article_type', 'article_role', 'related_slug', 'related_title', 'related_link_text',
+  'source_term',
+  'source_2_url', 'source_2_title', 'source_2_term', 'source_2_confidence',
+  'source_3_url', 'source_3_title', 'source_3_term', 'source_3_confidence',
+  'source_4_url', 'source_4_title', 'source_4_term', 'source_4_confidence',
   'search_intent', 'reader_problem', 'success_outcome', 'primary_question',
   'macro', 'cluster', 'subcluster', 'tax_domain', 'business_stage', 'life_stage',
   'pain_point', 'procedure_stage', 'customer_segment',
@@ -201,6 +222,17 @@ function restoreSourceGuardFields(beforeRaw, afterRaw, options = {}) {
     pain_point: before.pain_point || '',
     tax_domain: before.tax_domain || '',
   };
+  // 既存記事には連番キーが無いため、元記事に存在した項目だけを復元する。
+  for (const key of [
+    'source_term',
+    'source_2_url', 'source_2_title', 'source_2_term', 'source_2_confidence',
+    'source_3_url', 'source_3_title', 'source_3_term', 'source_3_confidence',
+    'source_4_url', 'source_4_title', 'source_4_term', 'source_4_confidence',
+  ]) {
+    if (!Object.prototype.hasOwnProperty.call(before, key)) continue;
+    const value = key.endsWith('_confidence') ? Number(before[key]) : before[key];
+    updates[key] = Number.isNaN(value) ? 0 : value;
+  }
   if (updates.source_provenance === 'explicit' && before.source_provenance !== 'explicit') {
     updates.source_provenance = 'unknown';
     updates.source_confidence = 0;

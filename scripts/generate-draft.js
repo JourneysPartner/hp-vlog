@@ -58,7 +58,36 @@ async function enrichSourceWithLLM(topic) {
   if (!LLM_SOURCE_WEAK_PROVENANCE.has(topic.source_provenance)) return;
   try {
     const { resolveSourceWithLLM, makeOpenAILuna } = require('./lib/llm-source-selector');
-    const picked = await resolveSourceWithLLM(topic, { callLLM: makeOpenAILuna() });
+    const callLLM = makeOpenAILuna();
+    const terms = String(topic.tax_terms || '').trim().split(/\s+/).filter(Boolean);
+    if (terms.length > 0) {
+      const { selectSourcesPerTerm, splitPrimaryAndSupplements } = require('./lib/topic-sources');
+      const results = await selectSourcesPerTerm(
+        topic,
+        terms,
+        narrowedTopic => resolveSourceWithLLM(narrowedTopic, { callLLM }),
+      );
+      for (const picked of results) {
+        console.log(`[source] 論点別選定: ${picked.term} → No.${picked.no} ` +
+          `conf=${picked.confidence} (${picked.tier})`);
+      }
+      const { primary, supplements } = splitPrimaryAndSupplements(results);
+      if (primary) {
+        topic.source_url = primary.url;
+        topic.source_title = primary.title;
+        topic.source_provenance = 'llm-auto';
+        topic.source_confidence = primary.confidence;
+        topic.source_term = primary.term;
+        topic.source_supplements = supplements;
+        console.log(`[source] 正本: No.${primary.no} conf=${primary.confidence}` +
+          `「${primary.term}」/ 補助${supplements.length}件`);
+      } else {
+        console.log(`[source] 論点別選定: 適合候補なし（${topic.source_provenance} のまま）: ${topic.slug}`);
+      }
+      return;
+    }
+
+    const picked = await resolveSourceWithLLM(topic, { callLLM });
     if (picked) {
       const before = topic.source_provenance;
       topic.source_url = picked.url;
@@ -955,11 +984,22 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     console.log(`[source] 出典が未確定のため根拠としては渡さない: ${topic.source_url}`);
   }
 
+  const supplementalSourceLabels = Array.isArray(topic.source_supplements)
+    ? topic.source_supplements.map((source) => {
+      const urlNo = String(source.url || '').match(/\/(\d{4})\.htm(?:[?#]|$)/);
+      const no = source.no && source.no !== 'N/A' ? source.no : (urlNo && urlNo[1]);
+      return `「${source.title || source.url}」（${no ? `No.${no}` : source.url}）`;
+    }).filter(Boolean)
+    : [];
+
   const sourceInstruction = !topic.source_url
     ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください'
     : sourceUnconfirmed
       ? '- このテーマは論点に対応する出典が未確定です。特定の国税庁ページを「〜によれば」と根拠に挙げて断定しないでください。制度の一般的な説明にとどめ、断定が必要な箇所は「国税庁の公表資料をご確認ください」等の表現にしてください'
-      : `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること`;
+      : `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること` +
+        (supplementalSourceLabels.length > 0
+          ? `。補助出典: ${supplementalSourceLabels.join('、')}`
+          : '');
 
   // 国税庁タックスアンサー / 関連レファレンス（必要な場合に優先して参考にする）
   const ntaRefs = getRefsForTopic(topic, 4);
