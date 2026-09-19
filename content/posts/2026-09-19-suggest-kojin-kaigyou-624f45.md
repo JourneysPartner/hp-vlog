@@ -45,15 +45,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "開業届を出さなくても罰則はないが、青色申告特別控除（最大65万円）が受けられず、赤字の繰越や専従者給与も使えない。事業を始めたなら早めの提出が節税面で有利。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-19T20:18:26.704+09:00"
+publish_at: "2026-09-20T11:12:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-19T00:06:01.251Z"
-updated_at: "2026-09-19T00:08:23.305Z"
+updated_at: "2026-09-19T20:18:26.704+09:00"
+publish_slot: "morning"
 ---
 副業で収入が発生した、フリーランスとして仕事を始めた——そんなとき、「開業届って出さないといけないの？」「出さなかったらどうなる？」と気になりながら、後回しにしている方は少なくありません。
 
