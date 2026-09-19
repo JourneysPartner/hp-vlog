@@ -37,15 +37,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "家族が亡くなった直後は死亡届（7日以内）・火葬許可・年金停止・相続放棄の熟慮期間（3か月）など複数の手続きが重なります。優先順位と期限を整理し、相続税申告が必要かの判断まで解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-19T20:28:07.290+09:00"
+publish_at: "2026-09-20T11:08:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-18T00:05:54.592Z"
-updated_at: "2026-09-18T00:09:05.187Z"
+updated_at: "2026-09-19T20:28:07.290+09:00"
+publish_slot: "morning"
 ---
 家族が亡くなった直後、悲しむ間もなく「何をしなければならないのか」と焦る方は少なくありません。葬儀の手配が一段落したところで、手続きの多さに途方に暮れるケースもよくあります。
 
