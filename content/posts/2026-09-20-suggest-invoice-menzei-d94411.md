@@ -49,15 +49,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 適格請求書発行事業者の登録（0.88）、経過措置（80%・50%控除特例）（0.84）"
 summary: "免税事業者がインボイス登録するかどうかは、取引先が課税事業者かどうかで影響の大きさが変わる。登録しない場合は取引先の控除に影響が出るが、BtoC中心なら影響は限定的。登録すれば消費税の納税義務が生じる一方、2割特例・3割特例で負担を抑える選択肢もある。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-20T13:44:00.655+09:00"
+publish_at: "2026-09-21T11:48:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-20T00:06:35.462Z"
-updated_at: "2026-09-20T00:09:27.555Z"
+updated_at: "2026-09-20T13:44:00.655+09:00"
+publish_slot: "morning"
 ---
 取引先から「インボイスの登録番号を教えてほしい」と言われたとき、どう答えればいいか迷っていませんか。
 
