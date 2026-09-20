@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "ライブ配信専用の衣装・メイク代は経費にできるが、私服と兼用するものは「業務上直接必要と明確に区分できる部分のみ」が対象。配信専用か否かの判断基準と、勘定科目・仕訳の具体例を解説。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-19T20:20:29.509+09:00"
 publish_at: "2026-09-20T17:40:00.000+09:00"
-published_at: ""
+published_at: "2026-09-20T18:00:59.273+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-19T00:08:25.351Z"
-updated_at: "2026-09-19T20:20:29.509+09:00"
+updated_at: "2026-09-20T18:00:59.273+09:00"
 publish_slot: "evening"
 ---
 ライブ配信の直前に買ったセットアップ、カメラ映えを意識して揃えたメイク用品——これを経費として計上していいのか、確信を持てないまま申告している方は多いと思います。
