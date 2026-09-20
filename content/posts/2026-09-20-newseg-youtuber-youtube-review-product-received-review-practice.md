@@ -37,15 +37,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "企業から無料提供された商品でレビュー動画を作った場合、商品の時価相当額が収入となります。現金報酬と同じく申告が必要で、受け取り時に雑収入または事業収入として計上する仕訳が必要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-20T13:52:19.428+09:00"
+publish_at: "2026-09-21T17:05:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-20T00:09:29.747Z"
-updated_at: "2026-09-20T00:11:27.449Z"
+updated_at: "2026-09-20T13:52:19.428+09:00"
+publish_slot: "evening"
 ---
 企業から「レビュー用にどうぞ」と商品を送ってもらったとき、現金のやり取りがないから税金は関係ないと思っていませんか。ところが、こういった現物提供は税務上「収入」として扱われます。
 
