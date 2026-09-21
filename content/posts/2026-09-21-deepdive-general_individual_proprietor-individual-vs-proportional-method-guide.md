@@ -41,15 +41,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "課税売上割合が95%未満・課税売上高5億円超の場合は仕入控除の計算方式を選択する必要があります。個別対応方式は区分管理できれば控除額が増えやすく、一括比例配分方式は管理が簡便な代わりに2年間の継続適用が必要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-21T16:55:24.288+09:00"
+publish_at: "2026-09-22T11:38:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-21T00:06:07.479Z"
-updated_at: "2026-09-21T00:09:06.293Z"
+updated_at: "2026-09-21T16:55:24.288+09:00"
+publish_slot: "morning"
 ---
 消費税の確定申告を前にして「課税売上割合が95%を下回っていることに気づいたが、そこから何をすればいいのか分からない」という声は少なくありません。普段は課税売上がほとんどを占めているから問題ないと思っていたところ、不動産の賃貸収入や受取利息が増えたことで割合が変わり、急にこの論点が浮上するケースが典型です。
 
