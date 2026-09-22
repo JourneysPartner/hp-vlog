@@ -37,15 +37,16 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "同一年中に2か所から退職金を受け取り、2か所目の申告書に前の退職金額を記載しなかった場合、確定申告では精算できません。不足税額は支払者（会社）が徴収・納付して是正する必要があります。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-22T17:24:10.172+09:00"
+publish_at: "2026-09-23T17:30:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-22T00:08:53.661Z"
-updated_at: "2026-09-22T00:11:12.593Z"
+updated_at: "2026-09-22T17:24:10.172+09:00"
+publish_slot: "evening"
 ---
 同じ年に2か所から退職金を受け取り、2か所目の会社に提出した「退職所得の受給に関する申告書」に、最初の退職金の金額を書き忘れてしまった——そういう状況に気づいたとき、「あとで確定申告すれば大丈夫では？」と考える方は少なくありません。
 
