@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "契約者が妻名義でも、夫である従業員本人が保険料を実際に支払ったことを明らかにすれば、年末調整で生命保険料控除の対象にできます。ただし将来の保険金の課税関係に注意が必要です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-21T17:42:34.831+09:00"
 publish_at: "2026-09-22T17:28:00.000+09:00"
-published_at: ""
+published_at: "2026-09-22T18:01:05.647+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-21T00:09:08.479Z"
-updated_at: "2026-09-21T17:42:34.831+09:00"
+updated_at: "2026-09-22T18:01:05.647+09:00"
 publish_slot: "evening"
 ---
 年末調整の時期になると、担当者が頭を抱えることのひとつが「提出された控除証明書の名義が従業員本人ではない」ケースです。
