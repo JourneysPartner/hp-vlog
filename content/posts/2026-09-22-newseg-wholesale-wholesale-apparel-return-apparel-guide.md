@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "アパレル卸の季節返品・シーズン値引は「売上げに係る対価の返還等」として消費税を調整する必要があり、返品・値引を行った課税期間に処理します。適格返還請求書の交付義務と帳簿保存も必須です。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-22T16:51:25.861+09:00"
 publish_at: "2026-09-23T11:30:00.000+09:00"
-published_at: ""
+published_at: "2026-09-23T12:00:52.675+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-22T00:05:47.475Z"
-updated_at: "2026-09-22T16:51:25.861+09:00"
+updated_at: "2026-09-23T12:00:52.675+09:00"
 publish_slot: "morning"
 ---
 シーズンが終わるたびに小売店から大量の商品が戻ってくる。値引き交渉がまとまって売掛金を減額する。アパレル卸の現場ではよくある光景ですが、「このとき消費税はどう処理すればいいのか」と手が止まる方は少なくありません。
