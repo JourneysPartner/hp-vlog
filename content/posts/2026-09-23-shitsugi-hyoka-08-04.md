@@ -37,15 +37,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "非上場株式の純資産価額を計算するとき、会社が相続人に支払った弔慰金を負債に計上できるのは、相続税法上「退職手当金等」として課税される金額に限られる。課税されない部分は負債にならない。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-23T18:57:55.447+09:00"
+publish_at: "2026-09-24T17:23:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-23T00:05:58.430Z"
-updated_at: "2026-09-23T00:08:08.591Z"
+updated_at: "2026-09-23T18:57:55.447+09:00"
+publish_slot: "evening"
 ---
 非上場会社のオーナーが亡くなったとき、会社が遺族に弔慰金を支払うことがあります。このとき、株式を相続税評価額で計算する場面（純資産価額方式）で、「この弔慰金は会社の負債として差し引けるのか」という疑問が実務でよく出てきます。
 
