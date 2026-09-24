@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "美容サロンのセミナー代・書籍代は、業務との関連性が明確であれば必要経費に計上できます。判断基準・証明に必要な記録の残し方・よくある間違いを解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-23T18:59:29.834+09:00"
 publish_at: "2026-09-24T11:41:00.000+09:00"
-published_at: ""
+published_at: "2026-09-24T12:00:53.883+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-23T00:08:10.372Z"
-updated_at: "2026-09-23T18:59:29.834+09:00"
+updated_at: "2026-09-24T12:00:53.883+09:00"
 publish_slot: "morning"
 ---
 技術セミナーへの参加費、施術に関する専門書の購入代金——これらをレシートや領収書と一緒にファイルに挟んでいるものの、「本当に経費として落としていいのか」と迷ったまま決算を迎えているオーナーは少なくありません。
