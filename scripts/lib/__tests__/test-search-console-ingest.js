@@ -151,6 +151,33 @@ function fakeFetch({ failDomainProperty = false } = {}) {
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log('');
+  console.log('=== 鍵 JSON の貼り付け崩れに耐える／読めないときは原因が分かる ===');
+  {
+    const parse = fetcher.parseServiceAccountJson;
+    const key = { type: 'service_account', client_email: 'sa@example.iam.gserviceaccount.com', private_key: '-----BEGIN PRIVATE KEY-----\nMIIBSECRETLINE\n-----END PRIVATE KEY-----\n' };
+    const good = JSON.stringify(key, null, 2);
+    assert(parse(good).client_email === key.client_email, 'そのままの JSON を読める');
+    assert(parse('﻿  \n' + good + '\n\n').private_key === key.private_key, 'BOM と前後の空白があっても読める');
+    assert(parse('search-console-reader.json\n' + good + '\n}').client_email === key.client_email, '前後に余計な文字が混ざっても読める');
+    assert(parse(Buffer.from(good).toString('base64')).client_email === key.client_email, 'base64 で登録されていても読める');
+    const literal = good.replace(/\\n/g, '\n');
+    assert(parse(literal).private_key === key.private_key, '秘密鍵の改行が実際の改行になっていても元に戻して読める');
+
+    const fails = (raw) => { try { parse(raw); return null; } catch (e) { return e.message; } };
+    const msg = fails(good.slice(0, -1) + ']');
+    assert(msg && msg.includes('読み取れません') && msg.includes('文字数') && msg.includes('直し方'), '読めないときは長さと直し方を案内する');
+    assert(msg && !msg.includes('MIIBSECRETLINE') && !msg.includes('sa@example'), '案内文に鍵の中身を出さない');
+    assert(/OAuth/.test(fails('{"installed":{"client_id":"x"}}') || ''), 'OAuth クライアントの JSON を貼った場合はそれと分かる');
+    assert(/client_email/.test(fails('{"type":"service_account"}') || ''), '必須項目が無ければ項目名を出す');
+
+    let runError = null;
+    try {
+      await fetcher.run({ env: { GSC_SERVICE_ACCOUNT_JSON: '{"client_email": "x@y" ' }, fetchImpl: fakeFetch().fetchImpl, outRoot: tmp, log: quiet });
+    } catch (e) { runError = e; }
+    assert(runError && runError.message.includes('読み取れません'), 'run() でも API を呼ぶ前に同じ案内で止まる');
+  }
+
+  console.log('');
   console.log('=== 結果 ===');
   console.log(`PASS: ${passed} / FAIL: ${failed}`);
   process.exit(failed > 0 ? 1 : 0);
