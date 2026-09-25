@@ -37,15 +37,16 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "相続税の延納期間を15年にできる「不動産等が10分の5以上」の判定は、債務控除前の積極財産（非課税財産を除く）の価額で行います。借入金などの債務を差し引いた後の金額ではありません。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-09-25T16:04:36.597+09:00"
+publish_at: "2026-09-26T17:43:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-25T00:08:27.855Z"
-updated_at: "2026-09-25T00:08:27.855Z"
+updated_at: "2026-09-25T16:04:36.597+09:00"
+publish_slot: "evening"
 ---
 
 相続税は原則として申告期限までに一括で金銭納付しなければなりませんが、「現金がすぐに用意できない」という方のために延納制度があります。なかでも「不動産が多い遺産を相続した」ケースでは、最長15年の延納が認められる場合があります。
