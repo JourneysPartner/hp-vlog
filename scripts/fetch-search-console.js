@@ -40,9 +40,95 @@ function dateRange(now) {
   return { start: ymd(start), end: ymd(end) };
 }
 
+/**
+ * 鍵 JSON の読み取り。GitHub の Secret に貼るときに崩れやすい形（前後の空白や BOM、
+ * 前後に混ざった余計な文字、base64 で登録した場合、秘密鍵の改行が実際の改行になった場合）を
+ * 補正して読む。読めないときは、秘密を出さずに原因の見当がつく日本語で失敗させる。
+ */
+function parseServiceAccountJson(raw) {
+  if (raw && typeof raw === 'object') return validateServiceAccount(raw);
+  const text = String(raw == null ? '' : raw).replace(/^﻿/, '').trim();
+  const candidates = [text];
+  const first = text.indexOf('{');
+  if (first >= 0) {
+    // 前後に余計な文字が付いている場合: 「{」から、終わり側の「}」までを順に試す
+    let close = text.lastIndexOf('}');
+    for (let i = 0; i < 5 && close > first; i++) {
+      candidates.push(text.slice(first, close + 1));
+      close = text.lastIndexOf('}', close - 1);
+    }
+  } else if (/^[A-Za-z0-9+/=\s]+$/.test(text)) {
+    // base64 で登録された場合
+    try { candidates.push(Buffer.from(text, 'base64').toString('utf8').trim()); } catch (_) { /* 次へ */ }
+  }
+  for (const c of candidates.slice()) {
+    const fixed = escapeNewlinesInPrivateKey(c);
+    if (fixed) candidates.push(fixed);
+  }
+  let firstError = null;
+  for (const c of candidates) {
+    let parsed;
+    try { parsed = JSON.parse(c); } catch (e) { if (!firstError) firstError = e; continue; }
+    return validateServiceAccount(parsed);
+  }
+  throw new Error(describeUnreadableKey(text, firstError));
+}
+
+// 秘密鍵の中の改行が「\n」の2文字ではなく実際の改行になっている貼り付けを補正する
+function escapeNewlinesInPrivateKey(text) {
+  const begin = text.indexOf('-----BEGIN');
+  if (begin < 0) return null;
+  const end = text.indexOf('-----END', begin);
+  const quote = end >= 0 ? text.indexOf('"', end) : -1;
+  if (quote < 0) return null;
+  const body = text.slice(begin, quote);
+  if (!/[\r\n]/.test(body)) return null;
+  return text.slice(0, begin) + body.replace(/\r?\n/g, '\\n') + text.slice(quote);
+}
+
+function validateServiceAccount(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    throw new Error('鍵 JSON の中身がオブジェクトではありません。サービスアカウントの鍵ファイル（JSON）の中身をそのまま貼ってください');
+  }
+  if (obj.installed || obj.web) {
+    throw new Error('貼られているのは OAuth クライアントの JSON です。Google Cloud の「サービスアカウント」→「キー」で作った JSON 鍵を貼ってください');
+  }
+  const missing = ['client_email', 'private_key'].filter(k => typeof obj[k] !== 'string' || !obj[k]);
+  if (missing.length) {
+    throw new Error(`鍵 JSON に ${missing.join(' と ')} がありません。サービスアカウントの鍵ファイル（type が service_account の JSON）を貼ってください`);
+  }
+  return obj;
+}
+
+// 秘密の中身は出さず、長さ・形だけで原因の見当がつく説明を作る
+function describeUnreadableKey(text, error) {
+  const kind = (ch) => {
+    if (ch === undefined) return '末尾（文字が足りない）';
+    if (ch === '\n' || ch === '\r') return '改行';
+    if (/\s/.test(ch)) return '空白';
+    if (ch === '"') return '引用符';
+    if (ch === '{' || ch === '}') return '波かっこ';
+    if (/[A-Za-z0-9]/.test(ch)) return '英数字';
+    if (/[　-鿿＀-￯]/.test(ch)) return '全角文字';
+    return '記号';
+  };
+  const opens = (text.match(/{/g) || []).length;
+  const closes = (text.match(/}/g) || []).length;
+  const lines = [
+    '鍵 JSON を読み取れません。GitHub の Secret に貼った中身が壊れています。',
+    `  文字数 ${text.length}、先頭は${kind(text[0])}、末尾は${kind(text[text.length - 1])}、{ が ${opens} 個、} が ${closes} 個`,
+    `  "client_email" ${text.includes('"client_email"') ? 'あり' : '無し'} / "private_key" ${text.includes('"private_key"') ? 'あり' : '無し'}`,
+  ];
+  const m = error && /position (\d+)/.exec(error.message);
+  if (m) lines.push(`  ${m[1]} 文字目付近で崩れています（その文字は${kind(text[Number(m[1])])}）。JSON の判定: ${error.message}`);
+  else if (error) lines.push(`  JSON の判定: ${error.message}`);
+  lines.push('  直し方: 鍵ファイルをメモ帳で開き Ctrl+A → Ctrl+C で全体をコピーし、Secret の Update で中身を全部消してから貼り直してください（docs/search-console-setup.md「うまくいかないとき」）');
+  return lines.join('\n');
+}
+
 async function accessTokenFromServiceAccount(json) {
+  const creds = parseServiceAccountJson(json);
   const { JWT } = require('google-auth-library');
-  const creds = typeof json === 'string' ? JSON.parse(json) : json;
   const client = new JWT({ email: creds.client_email, key: creds.private_key, scopes: [SCOPE] });
   const res = await client.getAccessToken();
   const token = typeof res === 'string' ? res : (res && res.token);
@@ -157,4 +243,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { run, dateRange, prune, normalizeRows, OUT_ROOT, PROPERTIES };
+module.exports = { run, dateRange, prune, normalizeRows, parseServiceAccountJson, OUT_ROOT, PROPERTIES };

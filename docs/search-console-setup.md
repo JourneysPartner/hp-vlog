@@ -55,3 +55,26 @@ data/search-console/
 | `.github/workflows/fetch-search-console.yml` | 週次の実行と PR 作成 |
 | `netlify/functions/admin-analytics-page.js` | 管理画面での表示 |
 | `netlify.toml` の `[functions] included_files` | 関数から `data/search-console/` を読めるようにする設定 |
+
+## うまくいかないとき
+
+### 「鍵 JSON を読み取れません」で失敗する
+
+Secret に貼った鍵の中身が壊れています。ログには文字数と崩れている位置の目安が出ます（鍵そのものは出しません）。
+よくある原因は、コピー範囲の欠け、ファイル名や説明文が一緒に貼られた、秘密鍵の途中で改行が変わった、の3つです。
+
+1. ダウンロードした鍵ファイル（`….json`）を右クリック →「プログラムから開く」→ メモ帳
+2. Ctrl+A（全選択）→ Ctrl+C（コピー）。先頭が `{`、末尾が `}` になっていることを確認
+3. GitHub → Settings → Secrets and variables → Actions → `GSC_SERVICE_ACCOUNT_JSON` の鉛筆（Update）
+4. 入力欄の中身を全部消してから Ctrl+V → Update secret
+5. Actions →「Fetch Search Console」→ Run workflow で再実行
+
+取り込み側は、前後の空白や余計な文字、base64 での登録、秘密鍵の改行の崩れは自動で補正します。それでも読めない場合は鍵を作り直してください（サービスアカウントの「キー」→「鍵を追加」）。
+
+### 「OAuth クライアントの JSON です」で失敗する
+
+「APIとサービス」→「認証情報」で作る OAuth クライアント ID の JSON を貼っています。必要なのはサービスアカウントの鍵（`"type": "service_account"` を含む JSON）です。手順1をやり直してください。
+
+### 権限エラー（403）で失敗する
+
+サーチコンソールの「ユーザーと権限」に、鍵の `client_email` のアドレスが追加されていません。手順2をやり直してください。
