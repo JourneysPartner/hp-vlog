@@ -1,0 +1,13 @@
+{
+  "fetched_at": "2026-09-25T10:22:12.247Z",
+  "range": {
+    "start": "2026-08-26",
+    "end": "2026-09-22"
+  },
+  "property": "https://mori-zeirishi.net/",
+  "files": {
+    "queries": "20260925/queries.json",
+    "pages": "20260925/pages.json",
+    "query-page": "20260925/query-page.json"
+  }
+}
