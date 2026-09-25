@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "開業費（繰延資産）は60か月の均等償却か任意償却を選べる。任意償却を選んだ場合、60か月の償却期間を過ぎた後でも未償却残高を経費に算入でき、1年で全額計上することも複数年に分けることも可能。ただし開業費の内容と金額を証明できる記録の保存が必要。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-24T15:35:46.349+09:00"
 publish_at: "2026-09-25T17:52:00.000+09:00"
-published_at: ""
+published_at: "2026-09-25T18:00:57.929+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-24T00:08:39.860Z"
-updated_at: "2026-09-24T15:35:46.349+09:00"
+updated_at: "2026-09-25T18:00:57.929+09:00"
 publish_slot: "evening"
 ---
 開業から数年が経過して、ようやく事業が軌道に乗ってきた。そこで気になるのが「昔の開業費、まだ経費にできるのか？」という疑問です。
