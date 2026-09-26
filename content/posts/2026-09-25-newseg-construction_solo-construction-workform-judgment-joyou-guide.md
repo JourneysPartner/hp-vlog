@@ -37,15 +37,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "請負中心か常用中心かで、受け取る報酬が外注費か給与かが変わり、源泉徴収の要否・確定申告の方法も異なります。判断基準と実務上の注意点を解説します。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-25T16:00:11.148+09:00"
 publish_at: "2026-09-26T11:49:00.000+09:00"
-published_at: ""
+published_at: "2026-09-26T12:00:56.270+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-25T00:05:48.293Z"
-updated_at: "2026-09-25T16:00:11.148+09:00"
+updated_at: "2026-09-26T12:00:56.270+09:00"
 publish_slot: "morning"
 ---
 元請けや上位下請けから仕事をもらう1人親方の方から、こんな疑問をよくお聞きします。「うちは毎日同じ現場に通っているけど、外注費扱いでいいの？」「常用で入っているのに源泉徴収されたけど、これって給与なの？」
