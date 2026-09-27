@@ -120,7 +120,7 @@ assert(completeGuide && completeGuide.article_type === 'basic_explainer' && comp
 assert(completeGuide && Array.isArray(completeGuide.source_supplements)
   && completeGuide.source_supplements.some(source => source.no === '6613')
   && completeGuide.source_supplements.some(source => source.no === '6615'), '出典候補に No.6613 と申告書・添付書類ページがある');
-assert(!getExistingSlugs().has(completeGuide.slug), '中核トピックの slug はまだ記事に使われていない');
+// 完全ガイドは 2026-09-27 に生成・承認済みなので、slug が記事に使われていることはもう前提。ここでは確認しない。
 const forced = resolveForcedTopics([completeGuide.slug], TOPICS);
 assert(forced.length === 1 && forced[0].slug === completeGuide.slug, '--force-slug は類似度選定を通さず中核トピックを指定できる');
 
