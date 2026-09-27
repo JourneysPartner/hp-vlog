@@ -51,7 +51,7 @@ console.log('\n=== Test 2: 既存記事と完全一致する slug の候補は�
     const m = raw.match(/^slug:\s*"?([^"\n\r]+)"?/m);
     if (m) existingSlugs.add(m[1].trim());
   }
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   for (const p of picks) {
     assert(!existingSlugs.has(p.slug), `pick ${p.slug} は既存slugと重複していない`);
   }
@@ -59,7 +59,7 @@ console.log('\n=== Test 2: 既存記事と完全一致する slug の候補は�
 
 console.log('\n=== Test 3: 同日2本のペアは類似度 < 0.45 ===');
 {
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   if (picks.length === 2) {
     const sim = similarityScore(picks[0], { ...picks[1], primary_persona: picks[1].persona }).score;
     assert(sim < 0.45, `pair similarity = ${sim.toFixed(3)} (< 0.45)`);
@@ -75,7 +75,7 @@ console.log('\n=== Test 3b: 同日2本は main + support の役割になる ==='
   const isMain = (t) => MAIN_TYPES.has(t.article_type);
   const isSupport = (t) => !MAIN_TYPES.has(t.article_type);
 
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   if (picks.length === 2) {
     const hasMain    = picks.some(isMain);
     const hasSupport = picks.some(isSupport);
@@ -115,7 +115,7 @@ console.log('\n=== Test 3c: buildBestPair の単体検証（main+support 強制�
   assert(!MAIN.has(r2[1].article_type), '2本目が support');
 }
 
-console.log('\n=== Test 4: ハードブロック (直近7日で macro が60%超) が機能 ===');
+console.log('\n=== Test 4: macro 目標比率連動のハードブロックが機能 ===');
 {
   const ratios = computeMacroRatios(new Date());
   const r7 = ratios.ratios[7];

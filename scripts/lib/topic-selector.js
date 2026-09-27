@@ -4,7 +4,7 @@
  * テーマ選定オーケストレーター。
  *
  * 入力: topic pool（topic-pool.js の TOPICS）
- * 出力: その日に生成すべき 1〜2 本のトピック（main + support のペア）
+ * 出力: その日に生成すべき 1〜2 本のトピック（既定は main 1 本）
  *
  * 処理フロー:
  *   1. cluster / subcluster / tax_domain を全候補に解決
@@ -308,11 +308,19 @@ function buildBestPair(scored, candidatesAll) {
   return [scored[0].topic];
 }
 
+function selectByCount(scored, candidatesAll, count = 2) {
+  if (count === 1) {
+    const main = scored.find(entry => isMain(entry.topic));
+    return main ? [main.topic] : [];
+  }
+  return buildBestPair(scored, candidatesAll);
+}
+
 /**
- * メイン関数: 与えられたトピックプールから今日の 2 本を選ぶ。
+ * メイン関数: 与えられたトピックプールから今日の指定本数を選ぶ。
  *
  * @param {Array} topics - topic-pool.TOPICS
- * @param {Object} options - { explain: bool, dryRun: bool, now: Date, requireTwo: bool }
+ * @param {Object} options - { explain: bool, dryRun: bool, now: Date, count: 1|2 }
  * @returns {Object} { picks: Topic[], explanation: object }
  */
 /**
@@ -585,8 +593,9 @@ function selectDailyTopics(topics, options = {}) {
     reasons: s.balanceReasons || [],
   }));
 
-  // 6. ペアリング
-  const picks = buildBestPair(scored, candidates);
+  // 6. 1 本モードは本命だけ、2 本モードは従来どおり本命＋補強を組む。
+  const count = Number(options.count) === 1 ? 1 : 2;
+  const picks = selectByCount(scored, candidates, count);
   explanation.picks = picks.map(p => explainPick(p, scored));
 
   // 7. 同日 2 本の最終類似度チェック
@@ -650,6 +659,7 @@ module.exports = {
   selectDailyTopics,
   enrichTopic,
   buildBestPair,
+  selectByCount,
   priorityBreakdown,
   rankBySelectionPriority,
   buildClusterRecency,

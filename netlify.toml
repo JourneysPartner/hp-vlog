@@ -46,9 +46,10 @@
 # GitHub Actions の schedule は数時間遅延するため、Netlify 側で時刻トリガーを管理する。
 # 各関数は GitHub Actions の workflow_dispatch を叩いて起動する。
 
-# 毎日 JST 09:05 に daily-draft を起動 → Chatwork 記事確認通知（9時台）
+# 月・水・金の JST 09:05 に daily-draft を起動する。
+# 曜日判定を関数に重ねず cron に一元化し、手動 dispatch の経路は制限しない。
 [functions."scheduler-daily-draft"]
-  schedule = "5 0 * * *"
+  schedule = "5 0 * * 1,3,5"
 
 # 毎日 JST 12:00 に publish-scheduled を起動 → 予約記事の自動公開（morning 枠）
 # 旧 11:05 起動から後ろ倒し。publish_at は 11:05〜11:55 のジッタが入るため、

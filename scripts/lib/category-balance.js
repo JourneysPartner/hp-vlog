@@ -8,28 +8,46 @@
  *
  * 具体的には:
  *   - 直近 7 / 14 / 30 日で macro 別の出現比率を集計
- *   - 当該 macro の比率が「均等分布」を超える場合、超過分に応じたペナルティ
+ *   - 当該 macro の比率が設定された目標比率を超える場合、超過分に応じたペナルティ
  *   - ハードキャップ:
- *       直近 7 日で macro が全体の 30% を超えていたら、その macro はその日 NG（候補があれば差し替え）
- *       直近 14 日で macro が全体の 50% を超えていたら、強いペナルティ
- *
- * 大分類の数を N とすると、均等比率は 1/N。
+ *       直近 7 日で macro ごとの上限を超え、かつ 14 日の実績が 4 本以上ならその macro はその日 NG
+ *       目標比率 0 の macro は、他の候補がある限り選ばない
  */
 
 const { ALL_MACROS } = require('./cluster-taxonomy');
 const { readPostsWithinDays, postReferenceDate } = require('./site-corpus');
+const TARGET_RATIOS = Object.freeze(require('../../data/macro-target-ratios.json'));
 
-// 2026-09-04: 7日ハードキャップを 60% → 30% に。
-//   cluster / persona×category の cooldown を廃止（cooldown.js 冒頭を参照）したことで、
-//   それが副次的に担っていた「大分類が偏らない」効果が失われ、シミュレーションでは
-//   相続贈与が 14 日中 61% を占めた。偏り是正は本来こちらの担当なので、緩すぎた
-//   上限（大分類 11 種に対し 60% ＝ 均等 9% の 6.6 倍）を締める。
-//   ブロックされた大分類の候補が全滅した場合は applyBalance 側でブロック解除される。
 const WINDOWS = [
-  { days: 7,  weight: 1.0, hardCap: 0.30 },  // 直近1週: 出しすぎはハードブロック
-  { days: 14, weight: 0.7, hardCap: null  },  // 直近2週: スコアペナルティ
-  { days: 30, weight: 0.4, hardCap: null  },  // 直近1月: 弱いペナルティ
+  { days: 7,  weight: 1.0 },
+  { days: 14, weight: 0.7 },
+  { days: 30, weight: 0.4 },
 ];
+
+function validateTargetRatios(targets = TARGET_RATIOS) {
+  const unknown = Object.keys(targets).filter(macro => !ALL_MACROS.includes(macro));
+  const invalid = Object.entries(targets).filter(([, ratio]) => !Number.isFinite(ratio) || ratio < 0 || ratio > 1);
+  const total = Object.values(targets).reduce((sum, ratio) => sum + ratio, 0);
+  return {
+    valid: unknown.length === 0 && invalid.length === 0 && Math.abs(total - 1) <= 0.01,
+    unknown,
+    invalid,
+    total,
+  };
+}
+
+const targetValidation = validateTargetRatios();
+if (!targetValidation.valid) {
+  throw new Error(`macro 目標比率が不正です（合計=${targetValidation.total}, 未知=${targetValidation.unknown.join(',')}）`);
+}
+
+function targetRatioFor(macro) {
+  return Number(TARGET_RATIOS[macro]) || 0;
+}
+
+function hardCapFor(macro) {
+  return Math.min(0.9, targetRatioFor(macro) * 1.6 + 0.05);
+}
 
 /**
  * 各 window で macro 別の比率を集計する。
@@ -61,8 +79,6 @@ function computeMacroRatios(now = new Date()) {
   return { ratios, totals };
 }
 
-const FAIR_RATIO = 1 / ALL_MACROS.length;  // 均等分布
-
 /**
  * 候補トピックの macro に対する偏り補正スコアを算出する。
  *
@@ -71,7 +87,7 @@ const FAIR_RATIO = 1 / ALL_MACROS.length;  // 均等分布
  * @returns {Object} { score: -1..+1, hardBlocked: boolean, reasons: [...] }
  *   score:
  *     +1 → 大幅に未充足（積極的に選ぶべき）
- *     0  → 均等
+ *     0  → 目標どおり
  *     -1 → 大幅に出しすぎ（避けるべき）
  */
 function balanceScore(macro, ratiosResult = computeMacroRatios()) {
@@ -79,6 +95,17 @@ function balanceScore(macro, ratiosResult = computeMacroRatios()) {
   let score = 0;
   let totalWeight = 0;
   let hardBlocked = false;
+  const target = targetRatioFor(macro);
+
+  // 配分表にない macro は通常候補から外す。候補が全滅した場合は、呼び出し側の
+  // 既存フォールバックでブロックが解除されるため、元に戻す経路も保たれる。
+  if (target === 0) {
+    return {
+      score: -1,
+      hardBlocked: true,
+      reasons: [`${macro} は目標比率 0%（他の候補がある間は選定しない）`],
+    };
+  }
 
   for (const w of WINDOWS) {
     const ratio = ratiosResult.ratios[w.days][macro] || 0;
@@ -87,21 +114,22 @@ function balanceScore(macro, ratiosResult = computeMacroRatios()) {
     // 過小評価防止: total が小さい window は影響を弱める
     if (total < 2) continue;
 
-    const deviation = FAIR_RATIO - ratio;  // +ならunder, -ならover
-    const normalized = Math.max(-1, Math.min(1, deviation / FAIR_RATIO));
+    const deviation = target - ratio;  // +ならunder, -ならover
+    const normalized = Math.max(-1, Math.min(1, deviation / target));
 
     score += normalized * w.weight;
     totalWeight += w.weight;
 
-    if (w.hardCap != null && ratio > w.hardCap && total >= 3) {
+    const hardCap = hardCapFor(macro);
+    if (w.days === 7 && ratio > hardCap && ratiosResult.totals[14] >= 4) {
       hardBlocked = true;
-      reasons.push(`直近${w.days}日: ${macro} が ${(ratio * 100).toFixed(0)}% (上限${(w.hardCap * 100).toFixed(0)}%)`);
+      reasons.push(`直近${w.days}日: ${macro} が ${(ratio * 100).toFixed(0)}% (上限${(hardCap * 100).toFixed(0)}%)`);
     }
 
     if (deviation < -0.1) {
-      reasons.push(`直近${w.days}日: ${macro} 出しすぎ（${(ratio * 100).toFixed(0)}% / 均等${(FAIR_RATIO * 100).toFixed(0)}%）`);
+      reasons.push(`直近${w.days}日: ${macro} 出しすぎ（${(ratio * 100).toFixed(0)}% / 目標${(target * 100).toFixed(0)}%）`);
     } else if (deviation > 0.1) {
-      reasons.push(`直近${w.days}日: ${macro} 出し不足（${(ratio * 100).toFixed(0)}% / 均等${(FAIR_RATIO * 100).toFixed(0)}%）`);
+      reasons.push(`直近${w.days}日: ${macro} 出し不足（${(ratio * 100).toFixed(0)}% / 目標${(target * 100).toFixed(0)}%）`);
     }
   }
 
@@ -140,7 +168,10 @@ function applyBalance(candidates, ratiosResult = computeMacroRatios()) {
 
 module.exports = {
   WINDOWS,
-  FAIR_RATIO,
+  TARGET_RATIOS,
+  validateTargetRatios,
+  targetRatioFor,
+  hardCapFor,
   computeMacroRatios,
   balanceScore,
   applyBalance,
