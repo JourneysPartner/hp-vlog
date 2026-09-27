@@ -19,52 +19,111 @@
  * 失敗しても生成を止めない（空配列を書いて exit 0）。
  */
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 
 const OUT = path.join(__dirname, '..', '.pending-drafts.json');
 
-function sh(cmd) {
-  return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+function runCommand(command, args) {
+  return execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 }
 
-function collect() {
-  // draft/* のブランチ先端を取得（shallow clone でも depth=1 で取得できる）
-  try {
-    sh("git fetch origin '+refs/heads/draft/*:refs/remotes/origin/draft/*' --depth=1");
-  } catch (_) { /* リモートに draft が無い等は無視 */ }
+function loadPullRequests(run, env) {
+  if (!env.GH_TOKEN) {
+    throw new Error('GH_TOKEN が未設定です');
+  }
+  const raw = run('gh', ['pr', 'list', '--state', 'all', '--limit', '1000', '--json', 'headRefName,state,closedAt']);
+  const prs = JSON.parse(raw);
+  if (!Array.isArray(prs)) throw new Error('PR 一覧の形式が不正です');
 
-  let branches = [];
+  const byBranch = new Map();
+  for (const pr of prs) {
+    if (!pr || !pr.headRefName) continue;
+    const normalized = { ...pr, state: String(pr.state || '').toUpperCase() };
+    const current = byBranch.get(pr.headRefName);
+    // 同じ head の履歴が複数あっても、OPEN があれば必ず収集対象に残す。
+    if (!current || (normalized.state === 'OPEN' && current.state !== 'OPEN')) {
+      byBranch.set(pr.headRefName, normalized);
+    }
+  }
+  return byBranch;
+}
+
+function collect({ run = runCommand, env = process.env, warn = console.warn, log = console.log } = {}) {
+  // オブジェクトを fetch する前に、remote の枝名だけを軽量に取得する。
+  let headBranches = [];
   try {
-    branches = sh("git for-each-ref --format='%(refname:short)' refs/remotes/origin/draft/")
-      .split('\n').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean);
-  } catch (_) { branches = []; }
+    headBranches = run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/draft/*'])
+      .split(/\r?\n/)
+      .map(line => (line.match(/\srefs\/heads\/(draft\/.+)$/) || [])[1])
+      .filter(Boolean);
+  } catch (_) {
+    // ls-remote が使えない環境では、従来の remote-tracking ref を利用する。
+    try {
+      run('git', ['fetch', '--depth=1', 'origin', '+refs/heads/draft/*:refs/remotes/origin/draft/*']);
+      headBranches = run('git', ['for-each-ref', '--format=%(refname:short)', 'refs/remotes/origin/draft/'])
+        .split(/\r?\n/).map(s => s.trim().replace(/^origin\//, '')).filter(Boolean);
+    } catch (_) { headBranches = []; }
+  }
+
+  let prsByBranch = null;
+  try {
+    prsByBranch = loadPullRequests(run, env);
+  } catch (_) {
+    warn('[pending-drafts] 警告: PR 状態を取得できないため、従来どおり全 draft/* 枝を対象にします。');
+  }
+
+  const excluded = { merged: 0, closed: 0, skipped: 0 };
+  const activeHeads = headBranches.filter((headRefName) => {
+    const pr = prsByBranch && prsByBranch.get(headRefName);
+    if (pr && pr.state === 'MERGED') {
+      excluded.merged++;
+      return false;
+    }
+    if (pr && pr.state === 'CLOSED') {
+      excluded.closed++;
+      return false;
+    }
+    return true;
+  });
+
+  // OPEN と PR なしだけを取得する。PR 一覧の取得失敗時は全枝になり、従来挙動を保つ。
+  if (activeHeads.length > 0) {
+    const refspecs = activeHeads.map(head => `+refs/heads/${head}:refs/remotes/origin/${head}`);
+    try { run('git', ['fetch', '--depth=1', 'origin', ...refspecs]); }
+    catch (_) { /* 取得できた remote-tracking ref だけで継続する */ }
+  }
 
   // main に既にある記事は通常コーパスに入るので、ここでは除外対象
   let mainFiles = new Set();
   try {
     mainFiles = new Set(
-      sh('git ls-tree -r --name-only origin/main content/posts')
+      run('git', ['ls-tree', '-r', '--name-only', 'origin/main', 'content/posts'])
         .split('\n').filter(f => f.endsWith('.md'))
     );
   } catch (_) { /* origin/main 未取得時は空のまま */ }
 
   const posts = [];
   const seenSlug = new Set();
-  for (const br of branches) {
+  for (const headRefName of activeHeads) {
+    const br = `origin/${headRefName}`;
     let files = [];
     try {
-      files = sh(`git ls-tree -r --name-only ${br} content/posts`)
+      files = run('git', ['ls-tree', '-r', '--name-only', br, 'content/posts'])
         .split('\n').filter(f => f.endsWith('.md'));
     } catch (_) { continue; }
     for (const f of files) {
       if (mainFiles.has(f)) continue; // main にある＝既にコーパス
       let raw;
-      try { raw = sh(`git show ${br}:${f}`); } catch (_) { continue; }
+      try { raw = run('git', ['show', `${br}:${f}`]); } catch (_) { continue; }
       let fm;
       try { fm = matter(raw).data || {}; } catch (_) { continue; }
+      if (['skipped', 'rejected', 'merged'].includes(String(fm.review_status || '').toLowerCase())) {
+        excluded.skipped++;
+        continue;
+      }
       if (!fm.slug || seenSlug.has(fm.slug)) continue;
       seenSlug.add(fm.slug);
       // site-corpus.readAllPostsSorted() の post 形状に合わせる
@@ -97,6 +156,7 @@ function collect() {
       });
     }
   }
+  log(`[pending-drafts] 除外: merged ${excluded.merged} / closed ${excluded.closed} / skipped ${excluded.skipped}`);
   return posts;
 }
 
@@ -110,4 +170,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { collect };
+module.exports = { collect, loadPullRequests };
