@@ -8,7 +8,8 @@ const { getExistingSlugs } = require('../../generate-draft');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
-const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// Windows のチェックアウトは CRLF になる（core.autocrlf）。比較は LF に揃えて行う。
+const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/\r\n/g, '\n');
 
 const pairs = [
   {
@@ -53,7 +54,7 @@ function loadPosts() {
   return fs.readdirSync(POSTS_DIR)
     .filter(file => file.endsWith('.md'))
     .map(file => {
-      const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
+      const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8').replace(/\r\n/g, '\n');
       const parsed = matter(raw);
       return { file, raw, data: parsed.data, content: parsed.content };
     });

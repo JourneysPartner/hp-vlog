@@ -21,6 +21,7 @@ const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent 
 const { classifyRevision } = require('./lib/revision-classifier');
 const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
+const { buildReplacementOutlineBlock, formatReplacementFrontmatter } = require('./lib/replaces');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
@@ -737,20 +738,29 @@ async function pickPair(dateStr, draftCount = resolveDraftCount()) {
 // ── 生成後の重複判定 ─────────────────────────────────────────
 // 生成物の frontmatter（title / summary）と本文の見出しで既存記事と照合する。
 // 同じ実行で先に生成した記事は content/posts に書かれているので、コーパスから除く。
-async function checkGeneratedArticle(content, topic, sameRunSlugs = []) {
+async function checkGeneratedArticle(content, topic, sameRunSlugs = [], options = {}) {
   try {
     const { checkGeneratedDuplicateWithAI } = require('./lib/ai-dedup');
     const { readAllPostsSorted } = require('./lib/site-corpus');
     const { meta, body } = parseFrontmatter(content);
     const headings = body.split(/\r?\n/).filter(l => l.startsWith('## ')).map(l => l.slice(3).trim());
-    const exclude = new Set([topic.slug, ...sameRunSlugs]);
-    const corpus = readAllPostsSorted().concat(loadPendingDraftCorpus()).filter(p => p && p.slug && !exclude.has(p.slug));
+    const replaces = Array.isArray(topic.replaces) ? topic.replaces : [];
+    const exclude = new Set([topic.slug, ...sameRunSlugs, ...replaces]);
+    const sourceCorpus = Array.isArray(options.corpus)
+      ? options.corpus
+      : readAllPostsSorted().concat(loadPendingDraftCorpus());
+    const corpus = sourceCorpus.filter(p => p && p.slug && !exclude.has(p.slug));
     const article = {
       slug: topic.slug, title: meta.title || '', summary: meta.summary || '', headings,
       persona: topic.persona, category: topic.category, pain_point: topic.pain_point || '',
       article_type: topic.article_type || '',
     };
-    const r = await checkGeneratedDuplicateWithAI(article, corpus);
+    const checkImpl = options.checkImpl || checkGeneratedDuplicateWithAI;
+    const r = await checkImpl(article, corpus);
+    if (r.duplicate && replaces.includes(r.similar_to)) {
+      console.log(`[generate] 生成後の重複判定: 置き換え対象のため許容: ${r.similar_to}`);
+      return { ...r, duplicate: false, replacement_allowed: true };
+    }
     if (r.skipped) console.log('[generate] 生成後の重複判定: スキップ（aux未有効 or エラー）');
     else console.log(`[generate] 生成後の重複判定: ${r.duplicate ? '重複 → ' + r.similar_to : '重複なし'}`);
     return r;
@@ -805,7 +815,7 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"
+procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "${persona.label}向けに、${topic.category}の基本と実務上の注意点を解説します。"
 review_status: "draft"
 review_comment: "テンプレートから自動生成された下書きです。内容の加筆・修正が必要です。"
@@ -974,6 +984,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   const articleType = topic.article_type || 'basic_explainer';
   const mainTypes = new Set(['basic_explainer', 'comparison_decision']);
   const articleRole = mainTypes.has(articleType) ? 'main' : 'support';
+  const replacementOutlineBlock = buildReplacementOutlineBlock(topic, POSTS_DIR);
 
   // 安全弁: 出典が確定していない（人の確認が必要な状態）のときは、
   // そのページを「根拠」として本文に引かせない。
@@ -1231,7 +1242,7 @@ ${sourceInstruction}${ntaRefsBlock}${lawChangesBlock}
   「毛利順活税理士事務所では、初回のご相談を無料で承っております。お気軽にお問い合わせください。」
 
 ═══ 記事のヒント ═══
-${topic.hint}`;
+${topic.hint}${replacementOutlineBlock}`;
 
   const revisions = getRecentRevisionComments(3);
   let revisionHint = '';
@@ -1343,7 +1354,7 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"
+procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "（記事の結論や具体的な情報を含む自然な文章。120文字以内。「○○を解説します」のような曖昧な表現ではなく、読者が検索結果で見て「これが知りたかった」と思える内容にすること）"
 review_status: "draft"
 review_comment: ""
@@ -1370,6 +1381,7 @@ updated_at: "${now}"
     // ペア記事情報: タイトル主題の重複防止のため、相手記事の役割・中心疑問を渡す
     pairedTopic, pairedArticleType: pairedTopic && pairedTopic.article_type,
     pairedArticleRole: pairedTopic && pairedTopic.article_role,
+    replacementOutlineBlock,
     sourceFigures,
   });
   // 出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
@@ -2776,6 +2788,8 @@ if (require.main === module) {
 module.exports = {
   getExistingSlugs,
   generateFromTemplate,
+  checkGeneratedArticle,
+  parseFrontmatter,
   resolveDraftCount,
   resolveForcedTopics,
 };
