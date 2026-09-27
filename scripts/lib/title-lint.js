@@ -20,6 +20,7 @@ const HARD_FAIL_PATTERNS = [
   /基本の基本/,
   /ポイントのポイント/,
   /整理を整理/,
+  /(を解説|について|まとめ)$/,
   /\{[a-zA-Z_]+\}/,  // 未充足プレースホルダ
 ];
 
@@ -29,6 +30,7 @@ const SOFT_WARN_PATTERNS = [
   /\(.{0,40}\)\(.{0,40}\)/,
   /[ぁ-んァ-ヶ一-鿿]の[ぁ-んァ-ヶ一-鿿]+の[ぁ-んァ-ヶ一-鿿]+の[ぁ-んァ-ヶ一-鿿]+の/,  // の が 4 連続
   /(？|\?).{0,2}(？|\?)/,  // 連続する疑問符
+  /のポイント$/,
 ];
 
 // 正当な対比ペア（両方そろって初めて中和する）。
@@ -47,8 +49,8 @@ const CONTRAST_PAIRS = [
   ['相続時精算課税', '暦年課税'],
 ];
 
-const MAX_LEN_FAIL = 80;
-const MAX_LEN_WARN = 70;
+const MAX_LEN_FAIL = 60;
+const MAX_LEN_WARN = 45;
 const MIN_LEN_WARN = 16;
 
 function countChar(s, ch) {

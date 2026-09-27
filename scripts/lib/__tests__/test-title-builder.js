@@ -52,12 +52,12 @@ console.log('\n=== Test 2: 自然なタイトルは fail/warn なし ===');
 // ── 3. title-lint: 長すぎる title は fail/warn ──────────────────
 console.log('\n=== Test 3: 長さチェック ===');
 {
-  const tooLong = 'あ'.repeat(85);
+  const tooLong = 'あ'.repeat(61);
   const r = lintTitle(tooLong);
-  assert(r.fails.some(f => /長すぎ/.test(f)), '85字は fail');
-  const slightlyLong = 'あ'.repeat(73);
+  assert(r.fails.some(f => /長すぎ/.test(f)), '61字は fail');
+  const slightlyLong = 'あ'.repeat(46);
   const r2 = lintTitle(slightlyLong);
-  assert(r2.warns.some(w => /やや長い/.test(w)), '73字は warn');
+  assert(r2.warns.some(w => /やや長い/.test(w)), '46字は warn');
 }
 
 // ── 4. buildTitle: 相続 × 自宅 × 小規模宅地等 ───────────────────

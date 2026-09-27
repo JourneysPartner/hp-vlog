@@ -76,6 +76,9 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   const customerSegment = meta.customer_segment || '';
   const recommendation  = meta.recommendation || '';
   const reviewWarning   = meta.review_warning || '';
+  const targetQuery     = meta.target_query || '';
+  const secondaryQueries = meta.secondary_queries || '';
+  const intentLabel = { answer: '一問一答', decide: '判断・比較', guide: '手順・全体像' }[meta.intent_type] || meta.intent_type || '';
   const SEGMENT_LABELS = {
     ec_seller: 'EC物販', beauty_salon: '美容・サロン', creator: 'インフルエンサー',
     general_business: '一般事業者', inheritance_gift: '相続・贈与',
@@ -180,6 +183,8 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
           <tr><th>カテゴリ</th><td>${category}</td></tr>
           <tr><th>顧客カテゴリ</th><td>${SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）'}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${recLabel}</span>` : ''}</td></tr>
           <tr><th>適合スコア</th><td>${scoresHtml}<div class="text-muted" style="font-size:11px;margin-top:2px">5=良 / 3=注意 / 1-2=要改善</div></td></tr>
+          ${targetQuery ? `<tr><th>狙う検索語</th><td><strong>${targetQuery}</strong>${intentLabel ? `（型: ${intentLabel}）` : ''}${secondaryQueries ? `<div class="text-muted" style="font-size:12px;margin-top:3px">副: ${secondaryQueries}</div>` : ''}</td></tr>` : ''}
+          ${meta.article_role === 'main' ? '<tr><th>本命記事の確認</th><td>実務で実際によくある場面（出典に無い一次情報）が 1 つ以上あるか</td></tr>' : ''}
           <tr><th>要約</th><td>${summary}</td></tr>
           <tr>
             <th>出典URL</th>

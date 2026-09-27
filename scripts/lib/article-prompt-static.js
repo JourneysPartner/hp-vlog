@@ -96,6 +96,24 @@ const WORD_COUNT_RANGE = {
   case_study:          { min: 4000, max: 5500 },
 };
 
+const WORD_COUNT_RANGE_BY_INTENT = {
+  answer: { min: 2500, max: 4000 },
+  decide: { min: 4000, max: 6000 },
+  guide:  { min: 5000, max: 7000 },
+};
+
+const MAIN_ARTICLE_TYPES = new Set(['basic_explainer', 'comparison_decision']);
+
+/** 意図がある本命記事は意図別、補強記事は従来の記事タイプ別レンジを返す。 */
+function rangeFor({ articleType, intentType, articleRole } = {}) {
+  const isSupport = articleRole === 'support'
+    || (!articleRole && articleType && !MAIN_ARTICLE_TYPES.has(articleType));
+  if (!isSupport && WORD_COUNT_RANGE_BY_INTENT[intentType]) {
+    return WORD_COUNT_RANGE_BY_INTENT[intentType];
+  }
+  return WORD_COUNT_RANGE[articleType] || WORD_COUNT_RANGE.edge_case;
+}
+
 // ── 文字数指示のキャリブレーション ─────────────────────────────
 // LLM は指示した上限を一定割合で超えて出力する。2026-08-15 の実測:
 //   本命 basic_explainer : 指示上限 7,000 → 実測 7,767 (1.1096)
@@ -156,11 +174,18 @@ const FRONTMATTER_TOKENS = 700;   // 実測約600 + 余裕
 // 途中切れを防ぐ余白。これを大きくすると上限超過の余地が戻るため 5% に留める。
 const MAX_TOKENS_SAFETY = 1.05;
 
-/** 記事タイプの受入上限に相当する max_tokens を返す */
-function maxTokensFor(articleType) {
-  const range = WORD_COUNT_RANGE[articleType] || WORD_COUNT_RANGE.edge_case;
+/** 記事タイプまたは記事条件の受入上限に相当する max_tokens を返す */
+function maxTokensFor(articleTypeOrOpts) {
+  const opts = typeof articleTypeOrOpts === 'string'
+    ? { articleType: articleTypeOrOpts }
+    : (articleTypeOrOpts || {});
+  const range = rangeFor(opts);
   const bodyTokens = Math.ceil(range.max * TOKENS_PER_CHAR);
   return Math.ceil((bodyTokens + FRONTMATTER_TOKENS) * MAX_TOKENS_SAFETY / 100) * 100;
+}
+
+function wordCountGuideFor(opts) {
+  return guideTextFor(rangeFor(opts));
 }
 
 const WORD_COUNT_GUIDE = Object.fromEntries(
@@ -177,8 +202,8 @@ const WORD_COUNT_FLOOR_RATIO = 0.9;
 
 // ── 記事タイプ別の必須要素チェックリスト ────────────────────────
 const ARTICLE_TYPE_CHECKLIST = {
-  basic_explainer:     ['読者の悩みを言語化したリード文', 'この記事が答える疑問', '冒頭の結論', '制度の基本', '対象者', 'よくある誤解', '実務上の注意点', '相談が必要になる境目', 'よくある質問(FAQ)'],
-  comparison_decision: ['読者の悩みを言語化したリード文', '冒頭の結論', '比較表', '判断軸', 'どちらが向くか', '例外や注意点', '実務での選び方', 'よくある質問(FAQ)'],
+  basic_explainer:     ['読者の悩みを言語化したリード文', 'この記事が答える疑問', '冒頭の結論', '制度の基本', '対象者', 'よくある誤解', '実務上の注意点', '相談が必要になる境目', 'よくある質問(FAQ)', '実務で実際によくある場面（出典に無い一次情報）'],
+  comparison_decision: ['読者の悩みを言語化したリード文', '冒頭の結論', '比較表', '判断軸', 'どちらが向くか', '例外や注意点', '実務での選び方', 'よくある質問(FAQ)', '実務で実際によくある場面（出典に無い一次情報）'],
   edge_case:           ['読者の悩みを言語化したリード文', 'ケース設定', '条件分岐', 'どこで結論が変わるか', '確認すべき事実や証憑', '間違えやすい点', 'よくある質問(FAQ)'],
   industry_example:    ['読者の悩みを言語化したリード文', '業種特有の事情', '一般論との違い', '具体例', '実務上の注意点', 'よくある質問(FAQ)'],
   filing_practice:     ['読者の悩みを言語化したリード文', '手順ごとに分けた h2 見出し', '実務フロー', '必要書類', '保存資料', 'ミスしやすい点', '相談が必要な場面', 'よくある質問(FAQ)'],
@@ -929,8 +954,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 
 【書き始める前のチェック】
 - セクション数 × セクションあたり想定文字数 がレンジに収まるか試算する
-- 本命記事（5000〜7000文字）なら h2 セクション 8〜12 個、
-  1 セクションあたり 400〜700 文字が目安
+- 指定レンジに応じて h2 の本数を決める（7,000 字なら 8〜12 本、4,000 字なら 5〜7 本、1 本 400〜700 字）
 - frontmatter（≈ 600 tokens 相当）も出力枠を消費する点を意識する
 
 ═══ コンテンツ構成ルール ═══
@@ -1038,6 +1062,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 - 同じ形式が 3 セクション以上続いたら、別の形式を挟んで単調さを避ける
 
 ═══ タイトル自然化ルール ═══
+- 題名は 28〜45 文字。45 文字を超えない。『｜副題』を付ける場合も合計 45 文字以内。主検索語があれば先頭 15 文字以内に置く。末尾に『を解説』『について』『まとめ』を付けない（字数を使うだけで意味を足さない）
 - **税務用語起点ではなく、読者の検索語起点**にする。読者属性＋実際の取引/生活イベント
   ＋悩み＋税務論点＋結論の方向性を、検索者が実際に入力しそうな自然な日本語でまとめる
   （不自然に詰め込まない）。
@@ -1197,9 +1222,13 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 　 法人の話に暦年の年分をそのまま当てはめないこと。
 
 ═══ SEO ルール ═══
-- summary（meta description）は具体的な結論・情報を含む文にする（「○○を解説します」のような曖昧表現は禁止）
-- h2 見出しにテーマのキーワードを自然に含める
-- タイトルと内容に乖離がないこと
+- 可変条件に「狙う検索語」があるときは、主検索語の語（分かち書きした各語）を次の位置に、自然な日本語で置く:
+  ・題名: 先頭 15 文字以内
+  ・summary: 先頭 60 文字以内に主検索語の語と結論
+  ・リード文（最初の h2 まで）: 主検索語の語を含む文を 1 つ以上
+  ・h2: 少なくとも 1 本に主検索語の語。副検索語は h2 か FAQ の h3 の疑問文で拾う
+  ・同じ語を段落ごとに繰り返さない（詰め込みは逆効果）
+- summary（meta description）は具体的な結論・情報を含む文にする（「○○を解説します」のような曖昧表現は禁止）。120 文字以内
 - 記事冒頭で検索意図にすぐ答える（前置きを長くしない）
 - 1記事1検索意図。複数テーマを詰め込まない
 - 業種名・取引名・悩みを自然に含め、想定読者を明確にする
@@ -1246,8 +1275,12 @@ module.exports = {
   WORD_COUNT_GUIDE,
   WORD_COUNT_GUIDE_FALLBACK,
   WORD_COUNT_RANGE,
+  WORD_COUNT_RANGE_BY_INTENT,
   WORD_COUNT_FLOOR_RATIO,
   LENGTH_OVERSHOOT,
+  rangeFor,
+  guideTextFor,
+  wordCountGuideFor,
   maxTokensFor,
   TOKENS_PER_CHAR,
   ARTICLE_TYPE_CHECKLIST,

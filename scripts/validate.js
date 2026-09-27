@@ -12,6 +12,7 @@ const matter = require('gray-matter');
 const { evaluateSourceGuard } = require('./lib/source-guard');
 const { checkSourceAlignment } = require('./lib/source-alignment');
 const { isPlaceholderTitle } = require('./lib/draft-normalizer');
+const { tokenizeQuery } = require('./lib/target-query');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
@@ -212,6 +213,25 @@ function validateFile(filePath) {
   // 9. title 長さ
   if (fm.title && fm.title.length > 80) {
     warnings.push(`title が長すぎます（${fm.title.length}文字）: 80文字以内推奨`);
+  }
+
+  // 狙う検索語を持つ新規記事だけ、今回追加したSEO項目を検査する。
+  // 既存記事には項目が無いため、従来の80文字警告だけが適用される。
+  if (fm.target_query) {
+    const normalizedTitle = String(fm.title || '').normalize('NFKC').toLowerCase();
+    const queryTokens = tokenizeQuery(fm.target_query);
+    if (queryTokens.length > 0 && !queryTokens.some(token => normalizedTitle.includes(token))) {
+      warnings.push(`title に target_query「${fm.target_query}」の語が含まれていません`);
+    }
+    if (fm.title && fm.title.length > 45) {
+      warnings.push(`target_query がある記事の title が長すぎます（${fm.title.length}文字）: 45文字以内推奨`);
+    }
+  }
+  if (fm.intent_type && !['answer', 'decide', 'guide'].includes(fm.intent_type)) {
+    errors.push(`intent_type の値が不正: "${fm.intent_type}"`);
+  }
+  if (fm.secondary_queries !== undefined && typeof fm.secondary_queries !== 'string') {
+    errors.push('secondary_queries はカンマ区切りの文字列で指定してください');
   }
 
   // 9b. 仮置きタイトルのまま公開しない

@@ -130,6 +130,7 @@ function collect({ run = runCommand, env = process.env, warn = console.warn, log
       posts.push({
         file: path.basename(f),
         slug: fm.slug,
+        topic_id: fm.topic_id || fm.slug,
         title: fm.title || '',
         category: fm.category || '',
         primary_persona: fm.primary_persona || '',
@@ -138,6 +139,9 @@ function collect({ run = runCommand, env = process.env, warn = console.warn, log
         reader_problem: fm.reader_problem || '',
         success_outcome: fm.success_outcome || '',
         primary_question: fm.primary_question || '',
+        target_query: fm.target_query || '',
+        secondary_queries: fm.secondary_queries || '',
+        intent_type: fm.intent_type || '',
         summary: fm.summary || '',
         publish_at: fm.publish_at || '',
         published_at: fm.published_at || '',

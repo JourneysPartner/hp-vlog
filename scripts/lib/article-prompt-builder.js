@@ -17,8 +17,8 @@
  */
 
 const {
-  STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK,
-  DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries,
+  STATIC_RULES, ARTICLE_TYPE_CHECKLIST,
+  DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries, wordCountGuideFor,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 const { buildTaxPeriodBlock } = require('./current-tax-period');
@@ -32,7 +32,9 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
                                         conditionalRules = [], now }) {
   // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
   // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
-  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
+  const wordCount = wordCountGuideFor({
+    articleType, intentType: topic.intent_type, articleRole,
+  });
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
   const macro = topic.macro || '';
@@ -92,6 +94,21 @@ ${pairedTitleHint}
   // prompt caching が毎日無効になるので、可変ブロックに置く）。
   const taxPeriodBlock = buildTaxPeriodBlock(now).trimStart();
 
+  const intentLabels = { answer: '一問一答', decide: '判断・比較', guide: '手順・全体像' };
+  const intentInstructions = {
+    answer: '一問一答。リード文の1文目で答えを書く。その後に読者の場面と疑問を短く。構成は 答え → 根拠 → 例外・分岐 → 仕訳例か表 → よくある間違い → FAQ → まとめ。下限を満たすための増量はしない（指定レンジの下限は目安。答えが済んだら短くてよい）',
+    decide: '判断・比較。冒頭2文で結論の方向と、結論が分かれる条件を示す。以降は既存の構成テンプレート（判断ポイント・チェックリスト重視）',
+    guide: '手順・全体像。既存のリード文の型と構成テンプレートのまま',
+  };
+  const secondary = Array.isArray(topic.secondary_queries) ? topic.secondary_queries : [];
+  const targetQueryBlock = topic.target_query ? `
+
+═══ 狙う検索語 ═══
+主検索語: ${topic.target_query}
+副検索語: ${secondary.join(' / ')}
+意図の型: ${intentLabels[topic.intent_type] || topic.intent_type || ''}
+${intentInstructions[topic.intent_type] || ''}` : '';
+
   return `${taxPeriodBlock}
 
 ═══ この記事の可変条件 ═══
@@ -109,7 +126,7 @@ ${titleHintLine}
 読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
 読者が得られる到達点: ${topic.success_outcome || '（パーソナと痛点から推測）'}
 中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
-${pairBlock}${replacementOutlineBlock || ''}
+${targetQueryBlock}${pairBlock}${replacementOutlineBlock || ''}
 
 ═══ このタイプの必須要素チェックリスト ═══
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -126,13 +143,13 @@ ${revisionHint || ''}
 
 // ── 出力フォーマット指定（frontmatter テンプレ）────────────────
 // title はあなた（LLM）が記事内容に最も適したタイトルを生成する（Pattern C）。
-// 30〜70 文字、検索者が自然に検索する具体的な表現、`｜サブテキスト` 形式可、
+// 28〜45 文字、検索者が自然に検索する具体的な表現、`｜サブテキスト` 形式可、
 // 曖昧表現禁止、「〜の徹底解説」など中身がない煽り禁止。
 function buildFrontmatterTemplate({ topic, articleType, articleRole, relatedSlug,
                                      relatedTitle, relatedLinkText, now }) {
   return `---
-title: "（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、\`｜サブテキスト\`形式可、曖昧表現禁止）"
-slug: "${topic.slug}"
+title: "（あなたがこの記事に最も適したタイトルをここに記入。28〜45文字、検索者が自然に検索する具体的な表現、\`｜サブテキスト\`形式可、曖昧表現禁止）"
+slug: "${topic.url_slug || topic.slug}"
 category: "${topic.category || ''}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
@@ -154,7 +171,11 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
+procedure_stage: "${topic.procedure_stage || ''}"
+topic_id: "${topic.slug || ''}"
+target_query: "${topic.target_query || ''}"
+secondary_queries: "${Array.isArray(topic.secondary_queries) ? topic.secondary_queries.join(',') : ''}"
+intent_type: "${topic.intent_type || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "（記事の結論や具体的情報を含む自然な文章。120文字以内。曖昧表現禁止）"
 review_status: "draft"
 review_comment: ""
@@ -199,7 +220,7 @@ function buildGenerationPrompt(args) {
 【タイトル生成に関する重要指示】
 - title は frontmatter の placeholder ではなく、あなたが書いた本文の内容を最も的確に伝える日本語タイトルを生成して入れること
 - 検索者が実際に検索しそうな具体的な疑問形・名詞句で（例: 「〜はどうなる？」「〜の判断基準｜サブテキスト」）
-- 30〜70 文字を目安。70 文字を超えない
+- 28〜45 文字。45 文字を超えない。主検索語があれば先頭 15 文字以内に置く
 - 「徹底解説」「完全ガイド」「必読」などの中身のない煽り表現は禁止
 - 本文を書き上げた後、その内容を踏まえてタイトルを最適化すること
 
@@ -207,7 +228,7 @@ function buildGenerationPrompt(args) {
 
 ${frontmatter}
 
-（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK}）`;
+（Markdown本文 ${wordCountGuideFor({ articleType, intentType: topic.intent_type, articleRole })}）`;
 
   return { staticSystem, dynamicSystem, user, figures: args.sourceFigures || [] };
 }

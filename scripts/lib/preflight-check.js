@@ -17,6 +17,7 @@
 
 const { lintTitle } = require('./title-lint');
 const { lintTables } = require('./markdown-table-lint');
+const { lintSeo } = require('./seo-lint');
 
 function parseFrontmatter(raw) {
   const m = raw.match(/^---\r?\n([\s\S]+?)\r?\n---\r?\n([\s\S]*)$/);
@@ -71,6 +72,18 @@ function preflightCheck(raw) {
   const h2 = (body.match(/^##\s+/gm) || []).length;
   if (h2 < 1) errors.push('h2 見出しが1つもない');
   else if (h2 < 3) warnings.push(`h2 見出しが ${h2} 個（3個以上推奨）`);
+
+  // 7. 狙う検索語の配置。preflight では公開を止めず、すべて warning として返す。
+  if (meta.target_query) {
+    const seo = lintSeo({
+      title: meta.title,
+      summary: meta.summary,
+      body,
+      target_query: meta.target_query,
+      secondary_queries: meta.secondary_queries,
+    });
+    for (const issue of [...seo.fails, ...seo.warns]) warnings.push(`SEO: ${issue}`);
+  }
 
   return { ok: errors.length === 0, errors, warnings, meta };
 }
