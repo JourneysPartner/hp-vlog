@@ -49,23 +49,26 @@ jobs:
         run: |
           if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]; then
             echo "::notice::GSC_SERVICE_ACCOUNT_JSON が未設定のためスキップします（docs/search-console-setup.md を参照）"
-            echo "SKIP=true" >> "$GITHUB_ENV"
-            exit 0
-          fi
-          node scripts/fetch-search-console.js
-          if [ "${{ inputs.skip_inspection }}" != "true" ]; then
-            node scripts/inspect-index-status.js
           else
-            echo "::notice::skip_inspection=true のため URL 検査をスキップします"
+            node scripts/fetch-search-console.js
+            if [ "${{ inputs.skip_inspection }}" != "true" ]; then
+              node scripts/inspect-index-status.js
+            else
+              echo "::notice::skip_inspection=true のため URL 検査をスキップします"
+            fi
           fi
+
+      - name: Build freshness candidates and report
+        run: |
+          node scripts/build-freshness-candidates.js
           node scripts/report-search-console.js
 
       - name: Create PR if changed
-        if: env.SKIP != 'true'
+        id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$(git status --porcelain -- data/search-console)" ]; then
+          if [ -z "$(git status --porcelain -- data/search-console data/freshness)" ]; then
             echo "::notice::変更なし。PR は作成しません"
             exit 0
           fi
@@ -76,12 +79,29 @@ jobs:
           STAMP=$(date -u +%Y%m%d)
           BRANCH="search-console/${STAMP}"
           git checkout -b "$BRANCH"
-          git add data/search-console
+          git add data/search-console data/freshness
           git commit -m "chore: サーチコンソールの検索語を取り込み (${STAMP})"
           git push origin "$BRANCH"
 
-          SUMMARY=$(sed -n '1,12p' data/search-console/report.md)
-          gh pr create --base main --head "$BRANCH" \
+          if [ -f data/search-console/report.md ]; then
+            SUMMARY=$(sed -n '1,12p' data/search-console/report.md)
+          else
+            SUMMARY='サーチコンソールのレポートは未取得です。'
+          fi
+          if ! PR_URL=$(gh pr create --base main --head "$BRANCH" \
             --title "サーチコンソールの検索語を取り込み (${STAMP})" \
-            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。記事の候補選定には接続していません。\n\n%s\n\n全文: data/search-console/report.md' "$SUMMARY")" \
-            || echo "::error::PR の作成に失敗しました"
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。記事の候補選定には接続していません。\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY")"); then
+            echo "::error::PR の作成に失敗しました"
+            exit 0
+          fi
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Notify freshness candidates
+        if: steps.pr.outputs.pr_url != ''
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          node scripts/notify-freshness-candidates.js \
+            --pr-url "${{ steps.pr.outputs.pr_url }}" \
+            || echo "::warning::更新候補の通知に失敗しました（処理は継続）"

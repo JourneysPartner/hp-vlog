@@ -191,6 +191,27 @@ function buildIndexStatusSection({ current, previous = null, history = [], posts
   return lines;
 }
 
+function markdownLabel(value) {
+  return String(value || '').replace(/[\[\]]/g, '');
+}
+
+function buildFreshnessSection(candidates = []) {
+  const lines = ['## 更新候補（上位 10）', ''];
+  const top = Array.isArray(candidates) ? candidates.slice(0, 10) : [];
+  if (top.length === 0) {
+    lines.push('（該当なし）');
+    return lines;
+  }
+  for (const candidate of top) {
+    const reasons = (candidate.reasons || [])
+      .map(reason => `${reason.detail}${reason.where ? `（${reason.where}）` : ''}`)
+      .join('／');
+    lines.push(`- [${markdownLabel(candidate.title || candidate.slug)}](${candidate.url}) — スコア ${candidate.score}、表示 ${n(candidate.impressions28d)} 回`);
+    lines.push(`  - 理由: ${reasons || '理由なし'}`);
+  }
+  return lines;
+}
+
 function buildReport({
   latest,
   queries,
@@ -201,6 +222,7 @@ function buildReport({
   indexHistory = [],
   posts = [],
   pickupConfig = {},
+  freshnessCandidates = [],
 }) {
   const byImp = [...queries].sort((a, b) => b.impressions - a.impressions);
   const top30 = byImp.slice(0, 30);
@@ -270,6 +292,8 @@ function buildReport({
     pickupConfig,
   }));
   lines.push('');
+  lines.push(...buildFreshnessSection(freshnessCandidates));
+  lines.push('');
   return lines.join('\n');
 }
 
@@ -299,6 +323,14 @@ function run(options = {}) {
   const previousIndexEntry = [...indexSnapshots].reverse().find(entry => entry.dir < indexDir);
   const pickupPath = path.join(ROOT, 'data', 'pickup-posts.json');
   const pickupConfig = fs.existsSync(pickupPath) ? readJson(pickupPath) : {};
+  const freshnessPath = options.freshnessPath || path.join(outRoot, '..', 'freshness', 'candidates.json');
+  let freshnessCandidates = [];
+  try {
+    const freshness = readJson(freshnessPath);
+    freshnessCandidates = Array.isArray(freshness.candidates) ? freshness.candidates : [];
+  } catch (_) {
+    freshnessCandidates = [];
+  }
   const md = buildReport({
     latest,
     queries,
@@ -309,6 +341,7 @@ function run(options = {}) {
     indexHistory: indexSnapshots.map(entry => entry.data),
     posts: readAllPosts(),
     pickupConfig,
+    freshnessCandidates,
   });
   fs.writeFileSync(path.join(outRoot, 'report.md'), md, 'utf8');
   (options.log || console.log)(`[gsc] → data/search-console/report.md（前回: ${prevDir || 'なし'}）`);
@@ -326,4 +359,5 @@ module.exports = {
   indexCounts,
   newlyIndexed,
   buildIndexStatusSection,
+  buildFreshnessSection,
 };
