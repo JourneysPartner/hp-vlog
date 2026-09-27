@@ -68,7 +68,9 @@ const templateSlugs = Object.keys(SERVICE_PAGES);
 check('R2', templateSlugs.every((slug) => {
   const html = read(`templates/pages/services/${slug}.html`);
   const token = html.indexOf('{{SERVICE_SEGMENTS_HTML}}');
-  return token > html.indexOf('>できること</h2>') && token < html.indexOf('>進め方</h2>')
+  // 08 で「進め方」は共通部品 {{SERVICE_FLOW_HTML}} になった。どちらの形でも「進め方」の前にあることを確認する。
+  const flowIdx = html.indexOf('{{SERVICE_FLOW_HTML}}') >= 0 ? html.indexOf('{{SERVICE_FLOW_HTML}}') : html.indexOf('>進め方</h2>');
+  return token > html.indexOf('>できること</h2>') && token < flowIdx
     && (html.match(/\{\{SERVICE_SEGMENTS_HTML\}\}/g) || []).length === 1;
 }), '全サービスのテンプレートで「できること」の直後・「進め方」の前に置く');
 

@@ -1,5 +1,5 @@
 ---
-title: "ゲーム実況の配信機材は経費にできる？キャプチャボードの減価償却と少額特例を解説"
+title: "ゲーム機・配信機材は経費にできる？ゲーム実況をする個人事業主の減価償却と少額特例"
 slug: "newseg-youtuber-youtube-gaming-capture-gaming-guide"
 category: "帳簿・経費"
 primary_persona: "youtuber"
@@ -35,7 +35,7 @@ lead_value_score: 3
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "キャプチャボードや配信用PCなど10万円未満の機材は全額即時経費。10万円以上は取得価額と申告方法によって少額特例・一括償却・減価償却の3パターンに分かれる。"
+summary: "ゲーム機・キャプチャボード・配信用PCは、業務に使う分が経費。10万円未満は全額その年の経費、10万円以上は少額特例・一括償却・減価償却の3通りに分かれます。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-08-25T16:04:56.855+09:00"

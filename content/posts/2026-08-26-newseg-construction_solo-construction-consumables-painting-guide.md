@@ -1,5 +1,5 @@
 ---
-title: "塗装工の塗料・消耗品はどう経費にする？在庫が残ったときの計上方法も解説"
+title: "塗料・ペンキの勘定科目は？塗装工の消耗品費・材料費の分け方と年末在庫の処理"
 slug: "newseg-construction_solo-construction-consumables-painting-guide"
 category: "帳簿・経費"
 primary_persona: "construction_solo"
@@ -35,7 +35,7 @@ lead_value_score: 2
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "塗料・シンナー・刷毛などは使い切った分だけが経費。年末に在庫が残れば棚卸資産として計上し、翌年の経費に繰り越すのが原則です。"
+summary: "塗料・ペンキ・シンナー・刷毛の勘定科目は消耗品費か材料費か。使い切った分だけが経費で、年末に残った分は棚卸資産にして翌年へ繰り越します。仕訳例つき。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-08-26T15:57:36.215+09:00"

@@ -76,6 +76,11 @@ const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
 const HEAD_COMMON_TPL = fs.readFileSync(path.join(PARTIALS, 'head-common.html'), 'utf8');
 // 記事末尾の執筆者欄。全記事に同じものを付ける（記事本文は変更しない）。
 const AUTHOR_BOX_HTML = fs.readFileSync(path.join(PARTIALS, 'author-box.html'), 'utf8');
+// サービス専用ページで共通利用する案内。ページ側には配置用プレースホルダーだけを置く。
+const SERVICE_SHARED_DIR = path.join(PAGES_DIR, 'services', '_shared');
+const SERVICE_FLOW_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'flow.html'), 'utf8');
+const SERVICE_PRICING_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'pricing-estimate.html'), 'utf8');
+const SERVICE_OFFICE_INTRO_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'office-intro.html'), 'utf8');
 // アイコンの SVG スプライト（使っている名前だけ。scripts/tools/build-icon-sprite.js で生成）。
 // Bootstrap Icons の CSS を CDN から読むのをやめ、<i class="bi bi-xxx"> の中に <svg><use> を入れる。
 const ICON_SPRITE_PATH = path.join(PARTIALS, 'icons.svg');
@@ -106,7 +111,10 @@ function injectPartials(html) {
   return html
     .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
     .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML)
-    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML);
+    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML)
+    .replace(/\{\{SERVICE_FLOW_HTML\}\}/g, SERVICE_FLOW_HTML)
+    .replace(/\{\{SERVICE_PRICING_HTML\}\}/g, SERVICE_PRICING_HTML)
+    .replace(/\{\{SERVICE_OFFICE_INTRO_HTML\}\}/g, SERVICE_OFFICE_INTRO_HTML);
 }
 
 function injectAnalyticsBeacon(html) {
