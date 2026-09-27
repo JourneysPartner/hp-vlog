@@ -82,7 +82,7 @@ function personSchema() {
     worksFor: { '@id': ORG_ID },
     url: `${BASE_URL}/about.html`,
     image: AUTHOR_IMAGE,
-    description: '国税局での勤務経験を経て税理士として独立。ネット販売・個人事業主・相続の税務を全国オンラインで支援。',
+    description: '国税局で法人税・所得税・消費税・相続税など主要な税目を 20 年余り担当し、税理士として独立。ネット販売・個人事業主・相続の税務を全国オンラインで支援しています。',
     knowsAbout: ['所得税', '消費税', '相続税', '税務調査', 'eBay輸出', '越境EC'],
   };
 }
