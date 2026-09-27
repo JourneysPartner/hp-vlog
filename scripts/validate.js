@@ -35,7 +35,7 @@ const BANNED_PHRASES = [
 // ── review_status の許容値 ──────────────────────────────────────
 const VALID_STATUSES = [
   'draft', 'needs_review', 'needs_revision',
-  'approved', 'scheduled', 'published', 'skipped',
+  'approved', 'scheduled', 'published', 'skipped', 'merged',
 ];
 
 // ── primary_persona の許容値 ────────────────────────────────────

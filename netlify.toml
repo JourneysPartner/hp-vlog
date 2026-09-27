@@ -67,6 +67,27 @@
 
 # ── Redirects / Rewrites ──────────────────────────────────────────────
 
+# 統合した双子記事は、評価を残す本命記事へ恒久転送する。
+[[redirects]]
+  from = "/blog/affiliate-pr-incorporation-incorporation-threshold-practice/"
+  to = "/blog/affiliate-pr-incorporation-incorporation-threshold-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/affiliate-pr-growth-invoice-judgement-practice/"
+  to = "/blog/affiliate-pr-growth-invoice-judgement-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/youtube-side-business-withholding-treatment-practice/"
+  to = "/blog/youtube-side-business-withholding-treatment-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/shopify-growth-overseas-tax-uncertain-guide/"
+  to = "/blog/shopify-growth-overseas-tax-uncertain-practice/"
+  status = 301
+
 # 管理画面の入口: 認証後に /admin/articles へリダイレクト
 [[redirects]]
   from = "/admin"
