@@ -1,5 +1,5 @@
 ---
-title: "商品券・ギフトカードで支払われたとき、売上と消費税はどう処理する？仕訳例で解説"
+title: "商品券・ギフトカードの消費税はどうなる？発行・譲渡・使用時の扱いと売上計上の仕訳"
 slug: "newseg-retail_store-retail-gift-certificate-practice"
 category: "消費税"
 primary_persona: "retail_store"

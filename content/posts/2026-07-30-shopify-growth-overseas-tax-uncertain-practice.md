@@ -1,5 +1,5 @@
 ---
-title: "ShopifyでB2C海外販売した売上は消費税ゼロ？輸出免税の処理を具体例で解説"
+title: "Shopifyの海外販売と消費税｜売上は輸出免税でゼロ、仕入や手数料の控除はどうなる？具体例で解説"
 slug: "shopify-growth-overseas-tax-uncertain-practice"
 category: "消費税"
 primary_persona: "domestic_ec_seller"
@@ -35,7 +35,7 @@ lead_value_score: 2
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "Shopifyで海外の消費者に商品を販売した売上は、輸出免税として消費税がかかりません。ただし免税が認められるには帳簿・証拠書類の保存が必須で、記帳方法を間違えると仕入税額控除を取りこぼします。"
+summary: "Shopifyで海外の消費者に販売した売上は輸出免税で消費税がかかりません。ただし帳簿と証拠書類の保存が条件で、仕入や手数料の消費税を控除し損ねる記帳ミスが多い点を具体例で解説。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-07-30T17:34:36.921+09:00"
