@@ -68,6 +68,9 @@ jobs:
       # （2026-07-28 / 07-29 の準確定申告ペア重複の再発防止）。
       - name: Collect pending drafts (dedup vs unmerged drafts)
         run: node scripts/collect-pending-drafts.js
+        env:
+          # PR の状態（MERGED / CLOSED）で見送り済みの下書きを除外するために必要。無いと従来どおり全枝を対象にする
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # NOTE: 旧 "Random delay (0-50 min)" ステップは GitHub Actions minutes を
       # 大量消費（月 ≈ 625 分）するため削除した（2026-06-25）。
