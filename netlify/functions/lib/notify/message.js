@@ -286,6 +286,22 @@ function buildMessage(event, data) {
       };
     }
 
+    case 'freshness_candidates': {
+      const { summary, prUrl } = data;
+      return {
+        subject: '【ブログ】記事の更新候補があります',
+        body: [
+          '週次チェックで記事の更新候補が見つかりました。',
+          '',
+          summary || '',
+          '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          '本文や更新日はまだ変更していません。候補と理由を確認してください。',
+        ].filter((line, index, lines) => line !== '' || (index > 0 && lines[index - 1] !== '')).join('\n'),
+      };
+    }
+
     default:
       return { subject: event, body: JSON.stringify(data, null, 2) };
   }
