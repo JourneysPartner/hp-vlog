@@ -61,6 +61,10 @@ jobs:
       - name: Validate master data
         run: node scripts/validate-masters.js
 
+      # masters:test に記事の統合・内部リンク・索引状態のテストが加わり、gray-matter と marked（ビルド）を使う
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Run master tests
         run: npm run masters:test
 
