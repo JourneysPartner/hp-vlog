@@ -610,6 +610,19 @@
   margin-bottom: 0.75rem;
   color: #333;
 }
+.blog-pickup-box h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+.blog-pickup-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+.blog-pickup-list li { margin-bottom: 0.4rem; }
+.blog-pickup-list a { color: var(--color-primary, #2563eb); font-weight: 600; }
+.blog-pickup-box .blog-hub-link { margin-top: 1rem; }
 .blog-related-link {
   display: block;
   text-decoration: none;

@@ -39,6 +39,13 @@ const BLOG_OUT     = path.join(ROOT, 'blog');
 const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-config.json');
 // 業種別の柱ページの「まず読む記事」（毛利が後から埋める。空なら自動選定）
 const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
+// トップ・物販記事・物販ハブで共通利用する中核記事。slug の定義元はここだけにする。
+const PICKUP_POSTS_PATH = path.join(ROOT, 'data', 'pickup-posts.json');
+const NETSHOP_PERSONAS = new Set([
+  'ebay_export_seller',
+  'domestic_ec_seller',
+  'reseller_marketplace_seller',
+]);
 
 const ANALYTICS_BEACON = `
 <script>
@@ -391,6 +398,103 @@ function loadHubConfig() {
   }
 }
 
+function loadPickupConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(PICKUP_POSTS_PATH, 'utf8'));
+  } catch (error) {
+    console.warn(`[build] pickup-posts.json を読めないため案内枠を省略: ${error.message}`);
+    return { netshop_core: [], netshop_services: [] };
+  }
+}
+
+// loadPublishedPosts の戻り値だけを受け取り、未公開・不存在の slug は警告して除外する。
+function resolvePickupContext(posts, config = loadPickupConfig(), logger = console) {
+  const postsMap = new Map((posts || []).filter(p => p && p.slug).map(p => [p.slug, p]));
+  const corePosts = [];
+  const seenCore = new Set();
+  for (const slug of Array.isArray(config.netshop_core) ? config.netshop_core : []) {
+    if (seenCore.has(slug)) continue;
+    seenCore.add(slug);
+    const post = postsMap.get(slug);
+    if (post) corePosts.push(post);
+    else logger.warn(`[build] pickup 対象が存在しないか未公開のためスキップ: ${slug}`);
+  }
+
+  const services = [];
+  const seenServices = new Set();
+  for (const slug of Array.isArray(config.netshop_services) ? config.netshop_services : []) {
+    if (seenServices.has(slug)) continue;
+    seenServices.add(slug);
+    const service = serviceInfo(slug);
+    if (service) services.push(service);
+    else logger.warn(`[build] pickup のサービスが未定義のためスキップ: ${slug}`);
+  }
+
+  return {
+    corePosts,
+    coreSlugs: new Set(corePosts.map(p => p.slug)),
+    services,
+    allPosts: [...(posts || [])],
+  };
+}
+
+function isNetshopPost(post = {}) {
+  return hubMacroOf(post) === '物販' || NETSHOP_PERSONAS.has(post.primary_persona || post.persona || '');
+}
+
+function renderPickupPostsHtml(context) {
+  const corePosts = context && Array.isArray(context.corePosts) ? context.corePosts : [];
+  if (corePosts.length === 0) return '';
+
+  const serviceLabels = {
+    'ebay-export': 'eBay 輸出・越境 EC の税務',
+    'online-seller': 'ネット販売・せどり・フリマの税務',
+  };
+  const serviceButtons = (context.services || []).map(service =>
+    `<a href="${escAttr(service.url)}" class="btn-outline-navy">${escHtml(serviceLabels[service.slug] || service.short || service.name)} <i class="bi bi-arrow-right"></i></a>`
+  ).join('\n        ');
+
+  return `
+<section class="section-py bg-white" data-pickup-posts>
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">Start Here</span>
+      <h2 class="section-heading">ネット販売・eBay 輸出の消費税、まずここから</h2>
+      <div class="divider-orange"></div>
+      <p class="section-lead">還付の仕組みから必要書類、インボイスの影響まで。順番に読めば全体がつかめます。</p>
+    </div>
+    <div class="row g-4">
+${corePosts.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n')}
+    </div>
+    ${serviceButtons ? `<div class="text-center mt-5 d-flex flex-wrap justify-content-center gap-3">\n        ${serviceButtons}\n    </div>` : ''}
+  </div>
+</section>`;
+}
+
+function buildPickupBoxHtml(post, context) {
+  const corePosts = context && Array.isArray(context.corePosts) ? context.corePosts : [];
+  if (!isNetshopPost(post) || corePosts.length === 0) return '';
+
+  const links = corePosts
+    .filter(core => core.slug !== post.slug)
+    .slice(0, 4)
+    .map(core => `<li><a href="/blog/${escAttr(core.slug)}/">${escHtml(core.title)}</a></li>`)
+    .join('\n        ');
+  const serviceSlug = (post.primary_persona || post.persona) === 'ebay_export_seller'
+    ? 'ebay-export'
+    : 'online-seller';
+  const service = serviceInfo(serviceSlug);
+
+  return `
+    <aside class="blog-related-article blog-pickup-box" data-pickup-box>
+      <h2><i class="bi bi-collection"></i> ネット販売の消費税、基本から確認する</h2>
+      <ul class="blog-pickup-list">
+        ${links}
+      </ul>
+      ${service ? `<a class="blog-hub-link blog-hub-link--service" href="${escAttr(service.url)}"><i class="bi bi-briefcase"></i> ${escHtml(service.short)}について相談する</a>` : ''}
+    </aside>`;
+}
+
 // 「まず読む記事」: hub-config.json の指定 → 無ければ点数の高い順（同点は新しい順）
 function pickFeaturedPosts(hubPosts, featuredSlugs = [], n = 3) {
   const bySlug = new Map(hubPosts.map(p => [p.slug, p]));
@@ -558,10 +662,20 @@ function buildListPageHtml({
 }
 
 // ── 関連記事HTML生成（公開済みの場合のみ表示）─────────────────
-function buildRelatedArticleHtml(post, postsMap) {
+function buildRelatedArticleHtml(post, postsMap, pickupContext) {
   if (!post.related_slug) return '';
-  const related = postsMap.get(post.related_slug);
+  let related = postsMap.get(post.related_slug);
   if (!related) return '';
+
+  // 物販記事の案内枠と同じ中核記事を関連記事にも出さない。
+  if (isNetshopPost(post) && pickupContext && pickupContext.coreSlugs.has(related.slug)) {
+    related = pickupContext.allPosts.find(candidate =>
+      candidate.slug !== post.slug &&
+      !pickupContext.coreSlugs.has(candidate.slug) &&
+      isNetshopPost(candidate)
+    );
+    if (!related) return '';
+  }
 
   const linkText = post.related_link_text || 'あわせて読みたい';
   const title    = related.title;
@@ -591,7 +705,7 @@ function buildSourcesHtml(post) {
 }
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
-function generatePost(post, tpl, postsMap, publishConfig) {
+function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
   // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
@@ -651,7 +765,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     faqSchema(faq),
   ]);
 
-  const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap);
+  const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap, pickupContext);
   const simulatorCtaHtml = generateSimulatorCta(post, publishConfig);
 
   return render(tpl, {
@@ -670,6 +784,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     EXTRA_STRUCTURED_DATA: extraStructuredData,
     BREADCRUMB_HTML:  breadcrumbHtml(crumbs),
     RELATED_ARTICLE_HTML: relatedArticleHtml,
+    PICKUP_BOX_HTML:  buildPickupBoxHtml(post, pickupContext),
     HUB_LINKS_HTML:   buildHubLinksHtml(post),
   });
 }
@@ -867,13 +982,14 @@ function renderRelatedPostsHtml(posts, spec) {
 }
 
 // ── 静的ページ生成 ──────────────────────────────────────────────
-function buildStaticPages(posts) {
+function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || [])) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
   const pages = listStaticPages();
   console.log(`[build] 静的ページ: ${pages.length} 件`);
 
   const latestPostsHtml = renderLatestPostsHtml(posts || []);
+  const pickupPostsHtml = renderPickupPostsHtml(pickupContext);
 
   for (const entry of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, entry.src), 'utf8');
@@ -903,6 +1019,7 @@ function buildStaticPages(posts) {
       .replace(/\s*<meta name="x-related-posts" content="[^"]*">/, '')
       .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(entry, src))
       .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml)
+      .replace(/\{\{PICKUP_POSTS_HTML\}\}/g, pickupPostsHtml)
       .replace(/\{\{HUB_GUIDE_HTML\}\}/g, () => renderHubGuideHtml(posts || []))
       .replace(/\{\{RELATED_POSTS_HTML\}\}/g, () => renderRelatedPostsHtml(posts || [], relatedSpec))
       .replace('</head>', structured);
@@ -948,10 +1065,11 @@ function main() {
   const hubCounts = assignHubMacro(posts);
   const hubSummary = [...hubCounts.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}:${v}`).join(', ');
   console.log(`[build] 業種ハブへの振り分け: ${posts.length} 件（${hubSummary}）`);
+  const pickupContext = resolvePickupContext(posts);
 
   // 1. 静的ページ生成（テンプレートにパーシャルと最新記事を注入してルートへ出力）
   console.log('[build] 静的ページを生成しています...');
-  buildStaticPages(posts);
+  buildStaticPages(posts, pickupContext);
 
   // 2. ブログ記事生成
   console.log('[build] ブログ記事を生成しています...');
@@ -978,7 +1096,7 @@ function main() {
     }
     const dir = path.join(BLOG_OUT, post.slug);
     fs.mkdirSync(dir, { recursive: true });
-    const html = generatePost(post, postTpl, postsMap, publishConfig);
+    const html = generatePost(post, postTpl, postsMap, publishConfig, pickupContext);
     fs.writeFileSync(path.join(dir, 'index.html'), inlineIcons(html), 'utf8');
     console.log(`[build]   → blog/${post.slug}/index.html`);
   }
@@ -1127,4 +1245,17 @@ function writePaginatedListing({
 
 if (require.main === module) main();
 
-module.exports = Object.freeze({ main, buildStaticPages, generatePost, buildListPageHtml, pickFeaturedPosts, selectRelatedPosts });
+module.exports = Object.freeze({
+  main,
+  buildStaticPages,
+  generatePost,
+  buildListPageHtml,
+  pickFeaturedPosts,
+  selectRelatedPosts,
+  loadPickupConfig,
+  resolvePickupContext,
+  renderPickupPostsHtml,
+  buildPickupBoxHtml,
+  buildRelatedArticleHtml,
+  isNetshopPost,
+});
