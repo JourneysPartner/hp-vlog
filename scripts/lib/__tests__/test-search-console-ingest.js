@@ -128,7 +128,63 @@ function fakeFetch({ failDomainProperty = false } = {}) {
   }
 
   console.log('');
-  console.log('=== 7. 管理画面の表示 ===');
+  console.log('=== 7. 伸ばしやすい語の所在・推奨と狙った語の順位 ===');
+  {
+    const latest = { fetched_at: '2026-09-27', range: { start: '2026-08-28', end: '2026-09-24' }, property: 'x' };
+    const queries = [
+      { query: '題名語', impressions: 50, clicks: 1, ctr: 0.02, position: 12 },
+      { query: '見出し語', impressions: 40, clicks: 0, ctr: 0, position: 13 },
+      { query: '本文語', impressions: 30, clicks: 0, ctr: 0, position: 14 },
+      { query: '未配置上位', impressions: 20, clicks: 0, ctr: 0, position: 19 },
+      { query: '未配置下位', impressions: 15, clicks: 0, ctr: 0, position: 25 },
+      { query: 'サービス語', impressions: 10, clicks: 0, ctr: 0, position: 18 },
+      { query: '塗料 勘定科目', impressions: 9, clicks: 2, ctr: 0.2, position: 8.5 },
+    ];
+    const queryPages = queries.slice(0, 6).map((query, index) => ({
+      query: query.query,
+      page: index === 5
+        ? 'https://mori-zeirishi.net/services/bookkeeping/'
+        : `https://mori-zeirishi.net/blog/grow-${index + 1}/`,
+      impressions: query.impressions,
+      clicks: query.clicks,
+      ctr: query.ctr,
+      position: query.position,
+    }));
+    const postContents = new Map([
+      ['grow-1', { title: '題名語の解説', headings: [], body: '' }],
+      ['grow-2', { title: '別の題名', headings: ['見出し語の解説'], body: '' }],
+      ['grow-3', { title: '別の題名', headings: [], body: '本文語の解説です。' }],
+      ['grow-4', { title: '別の題名', headings: [], body: '該当語はありません。' }],
+      ['grow-5', { title: '別の題名', headings: [], body: '該当語はありません。' }],
+    ]);
+    const posts = [
+      { slug: 'target-hit', title: '塗料の記事', target_query: '勘定科目 塗料', review_status: 'published' },
+      { slug: 'target-miss', title: '未表示の記事', target_query: '人工代 仕訳', review_status: 'published' },
+      { slug: 'target-draft', title: '下書き', target_query: '題名語', review_status: 'draft' },
+    ];
+    const md = reporter.buildReport({ latest, queries, pages: [], queryPages, posts, postContents });
+    const growable = md.split('## 伸ばしやすい語')[1].split('## 狙った語の順位')[0];
+    assert(growable.includes('該当ページ') && growable.includes('語の所在') && growable.includes('推奨'), '伸ばしやすい語に3列を追加する');
+    assert(growable.includes('grow-1') && growable.includes('title') && growable.includes('見出しと本文の充実'), 'title なら見出しと本文の充実');
+    assert(growable.includes('grow-2') && growable.includes('h2') && growable.includes('題名の見直し'), 'h2 なら題名の見直し');
+    assert(growable.includes('grow-3') && growable.includes('本文'), '本文の所在を表示する');
+    assert(growable.includes('grow-4') && growable.includes('h2 の追加'), '無し・20位以内なら h2 の追加');
+    assert(growable.includes('grow-5') && growable.includes('新記事の候補'), '無し・20位超なら新記事の候補');
+    assert(growable.includes('サービス') && growable.includes('該当ページの文面'), '記事以外なら該当ページの文面');
+
+    const target = md.split('## 狙った語の順位')[1].split('## ページ別')[0];
+    assert(target.includes('target-hit') && target.includes('8.5') && target.includes('9') && target.includes('2'),
+      'normalizeQuery 一致で順位・表示・クリックを出す');
+    assert(target.includes('target-miss') && target.includes('表示なし'), '一致が無い狙った語は表示なし');
+
+    const unknown = reporter.buildReport({ latest, queries: queries.slice(0, 1), pages: [], queryPages: null, posts: [], postContents: new Map() });
+    const unknownGrowable = unknown.split('## 伸ばしやすい語')[1].split('## 狙った語の順位')[0];
+    assert((unknownGrowable.match(/（不明）/g) || []).length === 3, 'query-page が無い週は追加3列を（不明）にする');
+    assert(unknown.includes('## 狙った語の順位\n\n（対象の記事はまだありません）'), '対象記事0本の文言');
+  }
+
+  console.log('');
+  console.log('=== 8. 管理画面の表示 ===');
   {
     const page = require(path.join(ROOT, 'netlify/functions/admin-analytics-page'));
     const html = page.renderSearchConsoleSection();
@@ -139,15 +195,16 @@ function fakeFetch({ failDomainProperty = false } = {}) {
   }
 
   console.log('');
-  console.log('=== 8. 候補選定に接続していない ===');
+  console.log('=== 9. GSC 候補は検収用データを介して接続する ===');
   {
-    // 2026-09-27（article-seo 02）: 生成側は主検索語の裏取りにだけ GSC を読む。
-    // 候補選定（topic-pool / topic-selector）は引き続き参照しない。
-    // データが無い環境でも生成が止まらないよう、読み込みは readJsonOr のフォールバック経由に限る。
+    // 生の GSC 行を日次選定へ直結せず、週次 PR で検収する
+    // data/gsc-topics.json を介してプールに合流させる。
     const files = ['scripts/topic-pool.js', 'scripts/lib/topic-selector.js']
       .filter(f => fs.existsSync(path.join(ROOT, f)));
     const linked = files.filter(f => /search-console/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
-    assert(linked.length === 0, '候補選定側（topic-pool / topic-selector）から search-console を参照していない');
+    assert(linked.length === 0, '候補選定側から生の search-console データを直接参照しない');
+    const poolSrc = fs.readFileSync(path.join(ROOT, 'scripts/topic-pool.js'), 'utf8');
+    assert(poolSrc.includes('expandGscTopics') && poolSrc.includes('...GSC_TOPICS'), '検収後の GSC 候補をプールに合流する');
     const genSrc = fs.readFileSync(path.join(ROOT, 'scripts/generate-draft.js'), 'utf8');
     const gscReads = genSrc.match(/search-console/g) || [];
     const guarded = genSrc.includes('function loadTargetQueryInputs()')

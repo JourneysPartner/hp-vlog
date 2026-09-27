@@ -22,18 +22,16 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
-const { parseJsonLoose } = require('./lib/llm-source-selector');
-const { MACRO_BY_PERSONA } = require('./lib/shitsugi-topics');
+const { validateTopic } = require('./lib/suggest-topics');
 const {
-  validateTopic, ALLOWED_TAX_DOMAINS, ALLOWED_CATEGORIES, ALLOWED_ARTICLE_TYPES,
-} = require('./lib/suggest-topics');
+  SELECT_SYSTEM, buildSelectPrompt, selectTopicProposals,
+} = require('./lib/search-topic-selector');
 
 const ROOT = path.join(__dirname, '..');
 const SEEDS_FILE = path.join(ROOT, 'data', 'search-suggest-seeds.json');
 const RAW_FILE = path.join(ROOT, 'data', 'search-suggest', 'raw-latest.json');
 const TOPICS_FILE = path.join(ROOT, 'data', 'search-suggest-topics.json');
 const FETCH_DELAY_MS = 1600;   // 1.5秒以上の間隔（指示書の厳守事項）
-const SELECT_BATCH = 8;        // 選別は種語8件ぶんずつ
 
 // ── 1. 取得 ─────────────────────────────────────────────────────
 function defaultFetcher(term) {
@@ -94,51 +92,9 @@ async function fetchSuggests(options = {}) {
 }
 
 // ── 2. 選別（LLM）────────────────────────────────────────────────
-const SELECT_SYSTEM = [
-  'あなたは日本の税理士事務所ブログの編集長です。',
-  '実際に Google で打ち込まれている検索語の一覧から、ブログ記事の候補を作ります。',
-  '',
-  '# 当ブログの顧客層と使える persona ID',
-  Object.keys(MACRO_BY_PERSONA).join(' / '),
-  '',
-  '# 記事候補にする条件',
-  '- 税務の疑問・判断に関する検索であること（単なる用語検索・ツール検索は除く）',
-  '- 顧客層のいずれかが実際に検索する場面が想像できること',
-  '- 1つの候補は「1つの問い」に絞る。近い検索語は同じ候補にまとめてよい',
-  '',
-  '# 除外するもの',
-  '- 税務と無関係（例: 集客ノウハウ、ツールの使い方）',
-  '- 顧客層の外（大企業・金融機関・公益法人など）',
-  '- 検索語から問いが特定できないもの',
-  '',
-  '# 出力（JSON のみ。コードフェンス禁止）',
-  '{"topics": [{',
-  '  "seed_id": "<元の種語ID>",',
-  '  "phrases": ["<裏づけになった検索語>", "..."],',
-  '  "persona": "<persona ID>",',
-  `  "tax_domain": "<${[...ALLOWED_TAX_DOMAINS].join(' | ')}>",`,
-  `  "category": "<${[...ALLOWED_CATEGORIES].join(' | ')}>",`,
-  `  "article_type": "<${[...ALLOWED_ARTICLE_TYPES].join(' | ')}>",`,
-  '  "primary_question": "<読者の問い（日本語1文）>",',
-  '  "reader_problem": "<読者の悩み（日本語1文）>"',
-  '}]}',
-  '',
-  '候補にできる検索語が無ければ {"topics": []} を返す。無理に作らない。',
-].join('\n');
-
 function slugFor(seedId, primaryPhrase) {
   const hash = crypto.createHash('sha1').update(String(primaryPhrase)).digest('hex').slice(0, 6);
   return `suggest-${seedId}-${hash}`;
-}
-
-function buildSelectPrompt(batch) {
-  const lines = ['次の種語ごとの検索語一覧から、記事候補を作ってください。', ''];
-  for (const seed of batch) {
-    lines.push(`## 種語 ${seed.id}（参考 persona: ${seed.persona_hint || '無し'}）`);
-    lines.push(`検索語: ${seed.phrases.join(' / ')}`);
-    lines.push('');
-  }
-  return lines.join('\n');
 }
 
 async function selectTopics(options = {}) {
@@ -162,48 +118,30 @@ async function selectTopics(options = {}) {
   const stats = { proposed: 0, accepted: 0, invalid: 0, duplicate: 0, skippedBatches: 0 };
   const accepted = [];
 
-  for (let offset = 0; offset < seeds.length; offset += SELECT_BATCH) {
-    const batch = seeds.slice(offset, offset + SELECT_BATCH);
-    let parsed = null;
-    for (let attempt = 1; attempt <= 2 && !parsed; attempt++) {
-      try {
-        parsed = parseJsonLoose(await callLLM(SELECT_SYSTEM, buildSelectPrompt(batch)));
-        if ((!parsed || !Array.isArray(parsed.topics)) && attempt === 1) {
-          parsed = null;
-          warn('[suggest] 応答の形式が不正 → 1回だけリトライします');
-        }
-      } catch (error) {
-        warn(`[suggest] LLM 呼び出し失敗 (${attempt}回目): ${error.message}`);
-      }
-    }
-    if (!parsed || !Array.isArray(parsed.topics)) {
-      stats.skippedBatches++;
-      continue;
-    }
-
-    for (const p of parsed.topics) {
-      stats.proposed++;
-      const phrases = Array.isArray(p.phrases)
-        ? p.phrases.map(s => String(s).trim()).filter(Boolean).slice(0, 10) : [];
-      const candidate = {
-        slug: slugFor(String(p.seed_id || 'x'), phrases[0] || ''),
-        seed_id: p.seed_id,
-        phrases,
-        persona: p.persona,
-        tax_domain: p.tax_domain,
-        category: p.category,
-        article_type: p.article_type,
-        primary_question: String(p.primary_question || '').trim(),
-        reader_problem: String(p.reader_problem || '').trim(),
-        selected_at: nowFn(),
-      };
-      const problem = validateTopic(candidate);
-      if (problem) { stats.invalid++; warn(`[suggest] 提案を却下 (${problem}): ${phrases[0] || '?'}`); continue; }
-      if (known.has(candidate.slug)) { stats.duplicate++; continue; }
-      known.add(candidate.slug);
-      accepted.push(candidate);
-      stats.accepted++;
-    }
+  const selected = await selectTopicProposals(seeds, { callLLM, logger, prefix: 'suggest' });
+  stats.skippedBatches = selected.skippedBatches;
+  for (const p of selected.proposals) {
+    stats.proposed++;
+    const phrases = Array.isArray(p.phrases)
+      ? p.phrases.map(s => String(s).trim()).filter(Boolean).slice(0, 10) : [];
+    const candidate = {
+      slug: slugFor(String(p.seed_id || 'x'), phrases[0] || ''),
+      seed_id: p.seed_id,
+      phrases,
+      persona: p.persona,
+      tax_domain: p.tax_domain,
+      category: p.category,
+      article_type: p.article_type,
+      primary_question: String(p.primary_question || '').trim(),
+      reader_problem: String(p.reader_problem || '').trim(),
+      selected_at: nowFn(),
+    };
+    const problem = validateTopic(candidate);
+    if (problem) { stats.invalid++; warn(`[suggest] 提案を却下 (${problem}): ${phrases[0] || '?'}`); continue; }
+    if (known.has(candidate.slug)) { stats.duplicate++; continue; }
+    known.add(candidate.slug);
+    accepted.push(candidate);
+    stats.accepted++;
   }
 
   if (accepted.length > 0) {

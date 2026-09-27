@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 const { resolveTaxDomain } = require('./cluster-taxonomy');
+const { locateQuery } = require('./query-placement');
 
 const SITE_ORIGIN = 'https://mori-zeirishi.net';
 const SIGNAL_WEIGHTS = Object.freeze({
@@ -11,6 +12,7 @@ const SIGNAL_WEIGHTS = Object.freeze({
   tax_reform: 2,
   fiscal_year: 2,
   search_decline: 1,
+  seo_growable: 2,
 });
 const MAX_CANDIDATES = 30;
 const MAX_SOURCE_AGE_DAYS = 62;
@@ -155,7 +157,14 @@ function readSearchSnapshots(searchDir, now) {
   const dirs = fs.readdirSync(searchDir).filter(name => /^\d{8}$/.test(name)).sort().reverse();
   for (const dir of dirs) {
     const data = safeReadJson(path.join(searchDir, dir, 'pages.json'));
-    if (data && Array.isArray(data.rows)) snapshots.unshift({ dir, ...data });
+    if (data && Array.isArray(data.rows)) {
+      const queryPage = safeReadJson(path.join(searchDir, dir, 'query-page.json'));
+      snapshots.unshift({
+        dir,
+        ...data,
+        queryPageRows: queryPage && Array.isArray(queryPage.rows) ? queryPage.rows : [],
+      });
+    }
     if (snapshots.length === 4) break;
   }
   if (snapshots.length === 0) return [];
@@ -333,6 +342,60 @@ function searchDeclineReason(post, declines) {
   };
 }
 
+function compactNumber(value) {
+  const number = Number(value || 0);
+  return Number.isInteger(number) ? String(number) : number.toFixed(1).replace(/\.0$/, '');
+}
+
+function seoGrowableReasons(posts, latestSnapshot) {
+  const rows = latestSnapshot && Array.isArray(latestSnapshot.queryPageRows)
+    ? latestSnapshot.queryPageRows : [];
+  const topByQuery = new Map();
+  for (const row of rows) {
+    if (!row || !String(row.query || '').trim() || !row.page) continue;
+    const key = String(row.query).normalize('NFKC').toLowerCase().trim();
+    const current = topByQuery.get(key);
+    if (!current
+      || Number(row.impressions || 0) > Number(current.impressions || 0)
+      || (Number(row.impressions || 0) === Number(current.impressions || 0)
+        && Number(row.position || Infinity) < Number(current.position || Infinity))) {
+      topByQuery.set(key, row);
+    }
+  }
+
+  const postByUrl = new Map((posts || []).map(post => [
+    normalizeUrl(post.url || articleUrl(post.slug)), post,
+  ]));
+  const bySlug = new Map();
+  for (const row of topByQuery.values()) {
+    const impressions = Number(row.impressions || 0);
+    const position = Number(row.position || 0);
+    if (impressions < 10 || position < 11 || position > 30) continue;
+    const post = postByUrl.get(normalizeUrl(row.page));
+    if (!post) continue;
+    const body = String(post.body || '');
+    const headings = [...body.matchAll(/^##\s+(.+)$/gm)].map(match => match[1].trim());
+    const location = locateQuery(row.query, { title: post.title, headings, body });
+    if (location === 'title') continue;
+    const locationLabel = { h2: 'h2', body: '本文', none: '無し' }[location] || '無し';
+    const reason = {
+      kind: 'seo_growable',
+      detail: `「${row.query}」（表示${impressions.toLocaleString('ja-JP')}・${compactNumber(position)}位）が題名に無い（所在: ${locationLabel}）`,
+      where: '題名',
+      impressions,
+    };
+    if (!bySlug.has(post.slug)) bySlug.set(post.slug, []);
+    bySlug.get(post.slug).push(reason);
+  }
+  for (const [slug, reasons] of bySlug) {
+    bySlug.set(slug, reasons
+      .sort((a, b) => b.impressions - a.impressions || a.detail.localeCompare(b.detail, 'ja'))
+      .slice(0, 3)
+      .map(({ impressions: _impressions, ...reason }) => reason));
+  }
+  return bySlug;
+}
+
 function rankMultipliers(posts, latestImpressions, pickupSlugs) {
   const ranked = posts.map(post => ({
     slug: post.slug,
@@ -358,6 +421,9 @@ function buildCandidates(inputs, options = {}) {
   const reformItems = outlineItems(inputs.reform);
   const taxYear = currentTaxYear(now, inputs.calendar);
   const search = searchData(inputs.searchSnapshots || []);
+  const latestSearchSnapshot = (inputs.searchSnapshots || []).length
+    ? inputs.searchSnapshots[inputs.searchSnapshots.length - 1] : null;
+  const seoReasons = seoGrowableReasons(published, latestSearchSnapshot);
   const pickupSlugs = new Set(Array.isArray(inputs.pickupConfig && inputs.pickupConfig.netshop_core)
     ? inputs.pickupConfig.netshop_core : []);
   const multipliers = rankMultipliers(published, search.latest, pickupSlugs);
@@ -369,6 +435,7 @@ function buildCandidates(inputs, options = {}) {
       inputs.reform ? taxReformReason(post, reformItems, inputs.reform.year) : null,
       fiscalYearReason(post, taxYear),
       searchDeclineReason(post, search.declines),
+      ...(seoReasons.get(post.slug) || []),
     ].filter(Boolean);
     if (!reasons.length) continue;
     const baseScore = [...new Set(reasons.map(reason => reason.kind))]
@@ -432,6 +499,7 @@ module.exports = {
   fiscalMatches,
   fiscalYearReason,
   searchData,
+  seoGrowableReasons,
   rankMultipliers,
   buildCandidates,
   buildOutput,

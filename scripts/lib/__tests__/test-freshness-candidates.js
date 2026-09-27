@@ -136,7 +136,47 @@ console.log('=== 1. 4 種の信号の一致・不一致 ===');
   assert(!searchResult.some(item => item.slug === 'search-no-match'), '直近 2 回の片方が半分を超えれば不一致');
 }
 
-console.log('\n=== 2. 重み・表示順位係数・物販中核 ===');
+console.log('\n=== 2. SEO 改稿信号の一致・不一致 ===');
+{
+  const seoMain = post('seo-main', {
+    title: 'インボイスの実務',
+    body: '## レシート\n伸び語一と伸び語二、伸び語三、伸び語四を解説します。',
+  });
+  const position10 = post('position-10', { body: '## 本文\n10位語を解説します。' });
+  const position31 = post('position-31', { body: '## 本文\n31位語を解説します。' });
+  const impressions9 = post('impressions-9', { body: '## 本文\n9表示語を解説します。' });
+  const inTitle = post('in-title', { title: '題名内語の解説', body: '## 本文\n解説します。' });
+  const notTop = post('not-top', { body: '## 本文\n最多でない語を解説します。' });
+  const latest = snapshot({}, '2026-09-25');
+  latest.queryPageRows = [
+    { query: '伸び語一', page: seoMain.url, impressions: 40, position: 15 },
+    { query: '伸び語二', page: seoMain.url, impressions: 30, position: 16.2 },
+    { query: '伸び語三', page: seoMain.url, impressions: 20, position: 17 },
+    { query: '伸び語四', page: seoMain.url, impressions: 10, position: 18 },
+    { query: '10位語', page: position10.url, impressions: 20, position: 10 },
+    { query: '31位語', page: position31.url, impressions: 20, position: 31 },
+    { query: '9表示語', page: impressions9.url, impressions: 9, position: 20 },
+    { query: '題名内語', page: inTitle.url, impressions: 20, position: 20 },
+    { query: '最多でない語', page: notTop.url, impressions: 20, position: 20 },
+    { query: '最多でない語', page: 'https://mori-zeirishi.net/services/bookkeeping/', impressions: 30, position: 18 },
+  ];
+  const result = freshness.buildCandidates(inputs([
+    seoMain, position10, position31, impressions9, inTitle, notTop,
+  ], { searchSnapshots: [latest] }), { now: NOW });
+  const candidate = result.find(item => item.slug === 'seo-main');
+  const seoReasons = candidate ? candidate.reasons.filter(reason => reason.kind === 'seo_growable') : [];
+  assert(Boolean(candidate) && seoReasons.length === 3, '対象語を表示回数順で最大3件にする');
+  assert(seoReasons[0] && seoReasons[0].detail === '「伸び語一」（表示40・15位）が題名に無い（所在: 本文）'
+    && seoReasons[0].where === '題名', '理由に語・表示・順位・所在を出す');
+  assert(!result.some(item => item.slug === 'position-10'), '順位10位は対象外');
+  assert(!result.some(item => item.slug === 'position-31'), '順位31位は対象外');
+  assert(!result.some(item => item.slug === 'impressions-9'), '表示9回は対象外');
+  assert(!result.some(item => item.slug === 'in-title'), '語が題名にあれば対象外');
+  assert(!result.some(item => item.slug === 'not-top'), 'その語の表示最多ページでなければ対象外');
+  assert(freshness.SIGNAL_WEIGHTS.seo_growable === 2 && candidate.score === 2, 'seo_growable の重みは2');
+}
+
+console.log('\n=== 3. 重み・表示順位係数・物販中核 ===');
 {
   const high = post('high', { body: '## 年分\n令和7年分です。' });
   const low = post('low', { body: '## 年分\n令和7年分です。' });
@@ -167,7 +207,7 @@ console.log('\n=== 2. 重み・表示順位係数・物販中核 ===');
   assert(combined.score === 16, '4 信号の重み合計 8 × 表示 1 位の係数 2.0');
 }
 
-console.log('\n=== 3. 対象件数・公開状態 ===');
+console.log('\n=== 4. 対象件数・公開状態 ===');
 {
   const many = Array.from({ length: 35 }, (_, index) => post(`old-${String(index).padStart(2, '0')}`, {
     body: '## 過去年\n2025年分です。',
@@ -178,7 +218,7 @@ console.log('\n=== 3. 対象件数・公開状態 ===');
   assert(!result.some(item => item.slug === 'draft-old'), 'published 以外は除外する');
 }
 
-console.log('\n=== 4. 入力なし・古い入力 ===');
+console.log('\n=== 5. 入力なし・古い入力 ===');
 {
   const tmpMissing = fs.mkdtempSync(path.join(os.tmpdir(), 'freshness-missing-'));
   const missing = builder.run({ root: tmpMissing, now: NOW, log: () => {} });
@@ -208,7 +248,7 @@ console.log('\n=== 4. 入力なし・古い入力 ===');
   fs.rmSync(tmpOld, { recursive: true, force: true });
 }
 
-console.log('\n=== 5. レポートの末尾節 ===');
+console.log('\n=== 6. レポートの末尾節 ===');
 {
   const candidate = {
     slug: 'report-post', title: 'レポート記事',
@@ -225,7 +265,7 @@ console.log('\n=== 5. レポートの末尾節 ===');
   assert(markdown.indexOf('## 更新候補（上位 10）') > markdown.indexOf('## 索引の状態'), '既存の節の後、末尾に追加する');
 }
 
-console.log('\n=== 6. Chatwork 通知 ===');
+console.log('\n=== 7. Chatwork 通知 ===');
 {
   const candidate = {
     slug: 'notify-post', title: '通知記事', url: 'https://mori-zeirishi.net/blog/notify-post/',
@@ -250,12 +290,16 @@ console.log('\n=== 6. Chatwork 通知 ===');
   assert(skipped.status === 'skipped' && zeroCalls === 0, '候補 0 件なら通知しない');
 }
 
-console.log('\n=== 7. 週次ワークフロー ===');
+console.log('\n=== 8. 週次ワークフロー ===');
 {
   const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/fetch-search-console.yml'), 'utf8').replace(/\r\n/g, '\n');
   assert(workflow.indexOf('node scripts/build-freshness-candidates.js') > workflow.indexOf('node scripts/fetch-search-console.js'), '週次取り込みの後に候補を生成する');
   assert(/git add data\/search-console data\/freshness/.test(workflow), '候補を週次 PR に同乗させる');
   assert(/notify-freshness-candidates\.js/.test(workflow), 'PR 作成後に更新候補を通知する');
+  assert(workflow.indexOf('node scripts/update-gsc-topics.js') > workflow.indexOf('node scripts/report-search-console.js'),
+    '鮮度候補とレポートの後に GSC 記事候補を更新する');
+  assert(workflow.includes('data/gsc-topics.json') && workflow.includes('steps.gsc.outputs.summary'),
+    'GSC 候補と新規候補の表を週次 PR に載せる');
   const noKeyBranch = workflow.slice(workflow.indexOf('if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]'), workflow.indexOf('- name: Create PR'));
   assert(!/SKIP=true|exit 0/.test(noKeyBranch), '鍵が無い週も候補生成まで進む');
 }

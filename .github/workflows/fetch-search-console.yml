@@ -7,7 +7,7 @@ name: Fetch Search Console
 #   GSC_SERVICE_ACCOUNT_JSON — サービスアカウントの鍵 JSON（設定手順は docs/search-console-setup.md）
 # 未設定の場合はスキップして正常終了する。
 #
-# 取り込んだデータは記事生成の候補選定に自動で接続しない（貯めて見られるようにするまで）。
+# GSC 由来の記事候補はこの週次 PR で人が検収し、マージ後に生成プールへ入る。
 
 on:
   schedule:
@@ -63,12 +63,19 @@ jobs:
           node scripts/build-freshness-candidates.js
           node scripts/report-search-console.js
 
+      - name: Update GSC topics
+        id: gsc
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node scripts/update-gsc-topics.js
+
       - name: Create PR if changed
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GSC_TOPIC_SUMMARY: ${{ steps.gsc.outputs.summary }}
         run: |
-          if [ -z "$(git status --porcelain -- data/search-console data/freshness)" ]; then
+          if [ -z "$(git status --porcelain -- data/search-console data/freshness data/gsc-topics.json)" ]; then
             echo "::notice::変更なし。PR は作成しません"
             exit 0
           fi
@@ -80,6 +87,9 @@ jobs:
           BRANCH="search-console/${STAMP}"
           git checkout -b "$BRANCH"
           git add data/search-console data/freshness
+          if [ -f data/gsc-topics.json ]; then
+            git add data/gsc-topics.json
+          fi
           git commit -m "chore: サーチコンソールの検索語を取り込み (${STAMP})"
           git push origin "$BRANCH"
 
@@ -90,7 +100,7 @@ jobs:
           fi
           if ! PR_URL=$(gh pr create --base main --head "$BRANCH" \
             --title "サーチコンソールの検索語を取り込み (${STAMP})" \
-            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。記事の候補選定には接続していません。\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY")"); then
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
             echo "::error::PR の作成に失敗しました"
             exit 0
           fi
