@@ -56,6 +56,7 @@ const TOPICS = [
     article_type: 'basic_explainer', article_role: 'main', priority: 'high',
     title: 'eBay輸出の消費税還付 完全ガイド｜仕組み・条件・必要書類・申告手順',
     slug: 'ebay-export-consumption-tax-refund-complete-guide',
+    replaces: ['ebay-shouhizei-kanpu-kihon', 'ebay-export-consumption-tax-refund-guide', 'ebay-tax-refund-required-documents'],
     source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
     source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
     source_supplements: [

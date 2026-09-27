@@ -22,11 +22,13 @@ const {
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 const { buildTaxPeriodBlock } = require('./current-tax-period');
+const { formatReplacementFrontmatter } = require('./replaces');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
                                         ntaRefsBlock, lawChangesBlock, revisionHint,
                                         pairedTopic, pairedArticleType, pairedArticleRole,
+                                        replacementOutlineBlock,
                                         conditionalRules = [], now }) {
   // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
   // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
@@ -107,7 +109,7 @@ ${titleHintLine}
 読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
 読者が得られる到達点: ${topic.success_outcome || '（パーソナと痛点から推測）'}
 中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
-${pairBlock}
+${pairBlock}${replacementOutlineBlock || ''}
 
 ═══ このタイプの必須要素チェックリスト ═══
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -152,7 +154,7 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"
+procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "（記事の結論や具体的情報を含む自然な文章。120文字以内。曖昧表現禁止）"
 review_status: "draft"
 review_comment: ""
@@ -173,7 +175,7 @@ updated_at: "${now}"
 function buildGenerationPrompt(args) {
   const { topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock,
           revisionHint, relatedSlug, relatedTitle, relatedLinkText, now,
-          pairedTopic, pairedArticleType, pairedArticleRole } = args;
+          pairedTopic, pairedArticleType, pairedArticleRole, replacementOutlineBlock } = args;
 
   const staticSystem = STATIC_RULES;  // ← キャッシュ対象（固定）
   const conditionalRules = selectConditionalRules(topic);  // 該当する論点別ルールだけ
@@ -186,7 +188,7 @@ function buildGenerationPrompt(args) {
   }
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
-    pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules, now,
+    pairedTopic, pairedArticleType, pairedArticleRole, replacementOutlineBlock, conditionalRules, now,
   });
   const frontmatter = buildFrontmatterTemplate({
     topic, articleType, articleRole, relatedSlug, relatedTitle, relatedLinkText, now,

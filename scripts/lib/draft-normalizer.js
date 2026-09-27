@@ -16,6 +16,7 @@
  */
 
 const { evaluateTopicFit, recommendationForDecision } = require('./customer-relevance');
+const { formatReplacementFrontmatter } = require('./replaces');
 
 const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
 
@@ -298,7 +299,7 @@ tax_domain: "${escFm(topic.tax_domain || '')}"
 business_stage: "${escFm(topic.business_stage || '')}"
 life_stage: "${escFm(topic.life_stage || '')}"
 pain_point: "${escFm(topic.pain_point || '')}"
-procedure_stage: "${escFm(topic.procedure_stage || '')}"
+procedure_stage: "${escFm(topic.procedure_stage || '')}"${formatReplacementFrontmatter(topic.replaces)}
 customer_segment: "${escFm(fit.customer_segment)}"
 customer_fit_score: ${fit.customer_fit_score}
 search_intent_score: ${fit.search_intent_score}
