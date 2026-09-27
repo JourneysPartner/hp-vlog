@@ -22,7 +22,7 @@ const { CURATED_TOPICS, TOPICS } = require('../../topic-pool');
 const U6501 = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm';
 const U6502 = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6502.htm';
 
-assert.strictEqual(CURATED_TOPICS.length, 54);
+assert.strictEqual(CURATED_TOPICS.length, 55);
 assert(CURATED_TOPICS.every(topic => topic.source_provenance === 'explicit'));
 assert(TOPICS.every(topic => topic.source_url && topic.source_provenance),
   'every completed topic must be resolved before selection');

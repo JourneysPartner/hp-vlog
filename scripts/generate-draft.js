@@ -615,14 +615,28 @@ function getRecentRevisionComments(limit = 3) {
 //   2. cooldown フィルタ（subcluster 30日 / pain_point 30日 / 同slug 永久）
 //   3. 類似度フィルタ（slug/title/intent をJaccardで計算、閾値0.55）
 //   4. カテゴリ偏り是正（直近7日で大分類が30%超ならハードブロック）
-//   5. 本命+補強のペアリング（pair_group優先、なければ異cluster組合せ）
+//   5. 既定の 1 本モードでは本命だけ、DRAFT_COUNT=2 では本命+補強をペアリング
 //   6. 同日2本の最終類似度チェック
 // 選定で 2 本揃わなかったときの理由（通知に載せる）。pickPair が毎回上書きする。
 let lastSelectionWarnings = [];
 
-async function pickPair(dateStr) {
+function resolveDraftCount(value = process.env.DRAFT_COUNT) {
+  return String(value || '1').trim() === '2' ? 2 : 1;
+}
+
+function resolveForcedTopics(forceSlugs, topics = TOPICS) {
+  return forceSlugs.map(slug => {
+    const topic = topics.find(candidate => candidate.slug === slug);
+    if (!topic) throw new Error(`--force-slug: slug "${slug}" がトピックプールに見つかりません`);
+    return topic;
+  });
+}
+
+async function pickPair(dateStr, draftCount = resolveDraftCount()) {
   const pendingDrafts = loadPendingDraftCorpus();
-  const { picks, explanation } = selectDailyTopics(TOPICS, { now: new Date(), extraCorpus: pendingDrafts });
+  const { picks, explanation } = selectDailyTopics(TOPICS, {
+    now: new Date(), extraCorpus: pendingDrafts, count: draftCount,
+  });
   // 選定ログを表示（運用での偏り確認用）
   console.log('[generate] === topic selection ===');
   for (const step of explanation.steps) {
@@ -675,19 +689,21 @@ async function pickPair(dateStr) {
       let filtered = picks.filter(p => !blockedSlugs.has(p.slug));
       console.log(`[generate] AI重複判定で ${picks.length - filtered.length} 件除外 → 残り ${filtered.length} 件`);
 
-      // 重複除外で 2→1 / 2→0 になった場合、代替候補を補充する（1回のみ）
-      if (filtered.length < 2) {
+      // 重複除外で指定本数を下回った場合、代替候補を補充する（1回のみ）
+      if (filtered.length < draftCount) {
         const usedSlugs = new Set([...blockedSlugs, ...filtered.map(p => p.slug)]);
         const pool = TOPICS.filter(t => !usedSlugs.has(t.slug));
         if (pool.length > 0) {
-          const { picks: repicks } = selectDailyTopics(pool, { now: new Date(), extraCorpus: pendingDrafts });
+          const { picks: repicks } = selectDailyTopics(pool, {
+            now: new Date(), extraCorpus: pendingDrafts, count: draftCount,
+          });
           // 既に選ばれている需要の証拠と同じ種類は補充しない（1日1件の上限を保つ）
           const pickedKinds = new Set(filtered.map(demandKindOf).filter(Boolean));
           const candidates = repicks.filter(r => (
             !usedSlugs.has(r.slug) && !(demandKindOf(r) && pickedKinds.has(demandKindOf(r)))
           ));
           if (candidates.length > 0) {
-            const needed = 2 - filtered.length;
+            const needed = draftCount - filtered.length;
             const additions = candidates.slice(0, needed);
             const recheck = await checkDuplicatesWithAI(additions, corpus);
             const reBlocked = new Set(
@@ -2591,15 +2607,12 @@ async function main() {
   const forceSlugs = (getArg('--force-slug') || '').split(',').map(s => s.trim()).filter(Boolean);
   const forceDate = getArg('--date');
 
-  // ── 通常の新規生成モード（2本ペア生成）────────────────────────
+  // ── 通常の新規生成モード（既定1本、DRAFT_COUNT=2 で従来のペア生成）──
   const dateStr = forceDate || getTodayJST();
+  const draftCount = resolveDraftCount();
   let pair;
   if (forceSlugs.length > 0) {
-    pair = forceSlugs.map(slug => {
-      const t = TOPICS.find(t => t.slug === slug);
-      if (!t) { console.error(`[generate] --force-slug: slug "${slug}" がトピックプールに見つかりません`); process.exit(1); }
-      return t;
-    });
+    pair = resolveForcedTopics(forceSlugs);
     // --force-slug は選定（既存 slug 除外・cooldown・重複判定）を通らない。
     // 公開済みや未マージ下書きと同じ slug を指定すると、同じ記事がもう1本立つので止める。
     const taken = getExistingSlugs();
@@ -2611,8 +2624,9 @@ async function main() {
     }
     console.log(`[generate] --force-slug: ${pair.map(t => t.slug).join(', ')}`);
   } else {
-    pair = await pickPair(dateStr);
+    pair = await pickPair(dateStr, draftCount);
   }
+  const expectedCount = forceSlugs.length > 0 ? forceSlugs.length : draftCount;
 
   console.log(`[generate] 日付: ${dateStr}`);
   console.log(`[generate] 生成本数: ${pair.length}`);
@@ -2736,11 +2750,13 @@ async function main() {
       fs.appendFileSync(ghOutput, `model2=${results[1].model}\n`);
     }
 
-    // 2本揃わなかった日は理由も渡す（ワークフローが通知に載せる）。
-    // ジョブは成功で終わるため、これが無いと「補強記事が無い」ことに気づけない。
-    if (results.length < 2) {
+    // 0 本は従来どおり理由を渡す。2 本モードだけ、1 本で終わった理由も渡す。
+    // 既定の 1 本モードで 1 本できた場合は「2 本目不足」の理由を出さない。
+    if (results.length === 0 || (expectedCount === 2 && results.length < 2)) {
       const reason = lastSelectionWarnings.join(' / ').replace(/[\r\n]+/g, ' ').trim()
-        || '選定を通過した候補が1件だけでした';
+        || (results.length === 0
+          ? '選定候補が無かったか、生成後の判定で全件を取り下げました'
+          : '選定を通過した候補が1件だけでした');
       fs.appendFileSync(ghOutput, `single_reason=${reason}\n`);
     }
 
@@ -2750,7 +2766,16 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error('[generate] エラー:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error('[generate] エラー:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  getExistingSlugs,
+  generateFromTemplate,
+  resolveDraftCount,
+  resolveForcedTopics,
+};

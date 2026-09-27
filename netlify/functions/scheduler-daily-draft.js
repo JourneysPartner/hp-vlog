@@ -3,7 +3,7 @@
 /**
  * scheduler-daily-draft — Netlify Scheduled Function
  *
- * 毎日 JST 09:05 に起動し、GitHub Actions の daily-draft.yml を
+ * 月・水・金の JST 09:05 に起動し、GitHub Actions の daily-draft.yml を
  * workflow_dispatch で叩く。
  *
  * 二重起動防止:
@@ -11,7 +11,8 @@
  *   [source=scheduler-daily-draft][jst=YYYY-MM-DD] が含まれるかで判定。
  *   手動実行 (source=manual) は対象外なので、手動 → 自動の順でも自動がスキップされない。
  *
- * スケジュールは netlify.toml [functions."scheduler-daily-draft"] で定義。
+ * スケジュールと曜日は netlify.toml [functions."scheduler-daily-draft"] に一元化する。
+ * 手動実行を妨げないよう、この関数内では曜日を再判定しない。
  */
 
 const { triggerWorkflow, listWorkflowRuns } = require('./lib/github-api');

@@ -51,7 +51,8 @@ const candidateData = JSON.parse(fs.readFileSync(
 // 「選別で adopt になった候補」に変わった（isConnectable）。
 const { isConnectable } = require(path.join(ROOT, 'scripts/lib/shitsugi-topics'));
 const adopted = candidateData.candidates.filter(isConnectable);
-const topics = expandShitsugiTopics({ logger: null, filterRelevance: false });
+// ここでは全候補の変換品質を検査するため、運用 allowlist は空配列で解除する。
+const topics = expandShitsugiTopics({ logger: null, filterRelevance: false, personaAllowlist: [] });
 
 console.log('\n=== R6-1: 質疑応答候補の変換 ===');
 assert(adopted.length >= 500, `接続対象は選別 adopt の候補（実際 ${adopted.length} 件）`);
