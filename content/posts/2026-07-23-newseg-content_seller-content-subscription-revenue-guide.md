@@ -1,5 +1,5 @@
 ---
-title: "サブスク・オンラインサロン収入の確定申告はどうする？計上と経費の基本"
+title: "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期"
 slug: "newseg-content_seller-content-subscription-revenue-guide"
 category: "所得税"
 primary_persona: "content_seller"
@@ -35,7 +35,7 @@ lead_value_score: 3
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "サブスク・オンラインサロン収入は受取月ごとに計上するのが基本。所得区分・経費の範囲・収入の集計単位を正しく把握して確定申告に備えましょう。"
+summary: "オンラインサロンやサブスクの会費収入は受取月ごとに計上。勘定科目、経費にできる範囲、事業所得か雑所得かの判断を、運営者の側から整理します。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-07-23T15:39:22.119+09:00"

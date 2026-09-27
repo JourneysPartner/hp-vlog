@@ -63,7 +63,7 @@ const HUB_CONTENT = {
       { question: '源泉徴収された分はどうなりますか？', answer: '確定申告で精算します。払い過ぎていれば還付されます。' },
       { question: '衣装や美容代は経費になりますか？', answer: '仕事に直接必要な範囲で経費になります。私用と兼ねる部分は按分が必要です。' },
     ],
-    services: ['tax-return', 'bookkeeping'],
+    services: ['tax-return', 'startup'],
   },
 
   youtube: {

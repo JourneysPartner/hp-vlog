@@ -41,6 +41,8 @@ const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-co
 const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
 // トップ・物販記事・物販ハブで共通利用する中核記事。slug の定義元はここだけにする。
 const PICKUP_POSTS_PATH = path.join(ROOT, 'data', 'pickup-posts.json');
+// サービスページに表示する「対応している業種・働き方」。文言は設定側で一元管理する。
+const SERVICE_SEGMENTS_PATH = path.join(ROOT, 'data', 'service-segments.json');
 const NETSHOP_PERSONAS = new Set([
   'ebay_export_seller',
   'domestic_ec_seller',
@@ -74,6 +76,11 @@ const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
 const HEAD_COMMON_TPL = fs.readFileSync(path.join(PARTIALS, 'head-common.html'), 'utf8');
 // 記事末尾の執筆者欄。全記事に同じものを付ける（記事本文は変更しない）。
 const AUTHOR_BOX_HTML = fs.readFileSync(path.join(PARTIALS, 'author-box.html'), 'utf8');
+// サービス専用ページで共通利用する案内。ページ側には配置用プレースホルダーだけを置く。
+const SERVICE_SHARED_DIR = path.join(PAGES_DIR, 'services', '_shared');
+const SERVICE_FLOW_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'flow.html'), 'utf8');
+const SERVICE_PRICING_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'pricing-estimate.html'), 'utf8');
+const SERVICE_OFFICE_INTRO_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'office-intro.html'), 'utf8');
 // アイコンの SVG スプライト（使っている名前だけ。scripts/tools/build-icon-sprite.js で生成）。
 // Bootstrap Icons の CSS を CDN から読むのをやめ、<i class="bi bi-xxx"> の中に <svg><use> を入れる。
 const ICON_SPRITE_PATH = path.join(PARTIALS, 'icons.svg');
@@ -104,7 +111,10 @@ function injectPartials(html) {
   return html
     .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
     .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML)
-    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML);
+    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML)
+    .replace(/\{\{SERVICE_FLOW_HTML\}\}/g, SERVICE_FLOW_HTML)
+    .replace(/\{\{SERVICE_PRICING_HTML\}\}/g, SERVICE_PRICING_HTML)
+    .replace(/\{\{SERVICE_OFFICE_INTRO_HTML\}\}/g, SERVICE_OFFICE_INTRO_HTML);
 }
 
 function injectAnalyticsBeacon(html) {
@@ -804,6 +814,64 @@ function stripTags(str) {
   return String(str || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
+function loadServiceSegments(filePath = SERVICE_SEGMENTS_PATH) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+// 未知のサービスや実在しないハブは、リンク切れを作らず警告だけに留める。
+function prepareServiceSegments(config, warn = console.warn) {
+  const prepared = {};
+  for (const [serviceSlug, entries] of Object.entries(config || {})) {
+    if (serviceSlug === '_note') continue;
+    if (!serviceInfo(serviceSlug)) {
+      warn(`[build] サービス区分の設定をスキップ: 未知のサービス slug「${serviceSlug}」`);
+      continue;
+    }
+    if (!Array.isArray(entries)) {
+      warn(`[build] サービス区分の設定をスキップ: ${serviceSlug} は配列ではありません`);
+      continue;
+    }
+    prepared[serviceSlug] = entries.filter((entry) => {
+      if (!entry || typeof entry.label !== 'string' || typeof entry.blurb !== 'string') {
+        warn(`[build] サービス区分の項目をスキップ: ${serviceSlug} の label / blurb が不正です`);
+        return false;
+      }
+      if (!HUB_CONTENT[entry.hub]) {
+        warn(`[build] サービス区分の項目をスキップ: 実在しないハブ「${entry.hub || ''}」`);
+        return false;
+      }
+      return true;
+    });
+  }
+  return prepared;
+}
+
+function renderServiceSegmentsHtml(serviceSlug, config) {
+  const entries = Array.isArray(config && config[serviceSlug]) ? config[serviceSlug] : [];
+  if (entries.length === 0) return '';
+
+  const cards = entries.map(entry => `
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <h3 class="service-title">${escHtml(entry.label)}</h3>
+          <p class="service-desc">${escHtml(entry.blurb)}</p>
+          <a href="/blog/macro/${escAttr(entry.hub)}/" class="service-link">業種別ガイドを読む <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>`).join('\n');
+
+  return `<section class="section-py" aria-labelledby="service-segments-heading">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">For You</span>
+      <h2 class="section-heading" id="service-segments-heading">対応している業種・働き方</h2>
+      <div class="divider-orange"></div>
+    </div>
+    <div class="row g-4 justify-content-center">${cards}
+    </div>
+  </div>
+</section>`;
+}
+
 // ── パンくず（表示用）────────────────────────────────────────────
 // style.css の .breadcrumb-custom（濃色背景向け）をそのまま使う。
 // 最後の要素は現在ページなのでリンクにしない。
@@ -982,7 +1050,7 @@ function renderRelatedPostsHtml(posts, spec) {
 }
 
 // ── 静的ページ生成 ──────────────────────────────────────────────
-function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || [])) {
+function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || []), options = {}) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
   const pages = listStaticPages();
@@ -990,6 +1058,10 @@ function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || [
 
   const latestPostsHtml = renderLatestPostsHtml(posts || []);
   const pickupPostsHtml = renderPickupPostsHtml(pickupContext);
+  const rawServiceSegments = Object.prototype.hasOwnProperty.call(options, 'serviceSegments')
+    ? options.serviceSegments
+    : loadServiceSegments();
+  const serviceSegments = prepareServiceSegments(rawServiceSegments, options.warn || console.warn);
 
   for (const entry of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, entry.src), 'utf8');
@@ -1015,6 +1087,7 @@ function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || [
     const structured = `  ${jsonLdScripts(schemas)}\n</head>`;
 
     const relatedSpec = parseRelatedSpec(src);
+    const serviceSlug = (entry.pathname.match(/^\/services\/([^/]+)\/$/) || [])[1] || '';
     const html = injectAnalyticsBeacon(injectPartials(src))
       .replace(/\s*<meta name="x-related-posts" content="[^"]*">/, '')
       .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(entry, src))
@@ -1022,6 +1095,7 @@ function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || [
       .replace(/\{\{PICKUP_POSTS_HTML\}\}/g, pickupPostsHtml)
       .replace(/\{\{HUB_GUIDE_HTML\}\}/g, () => renderHubGuideHtml(posts || []))
       .replace(/\{\{RELATED_POSTS_HTML\}\}/g, () => renderRelatedPostsHtml(posts || [], relatedSpec))
+      .replace(/\{\{SERVICE_SEGMENTS_HTML\}\}/g, () => renderServiceSegmentsHtml(serviceSlug, serviceSegments))
       .replace('</head>', structured);
 
     const outPath = path.join(ROOT, entry.out);
@@ -1258,4 +1332,7 @@ module.exports = Object.freeze({
   buildPickupBoxHtml,
   buildRelatedArticleHtml,
   isNetshopPost,
+  loadServiceSegments,
+  prepareServiceSegments,
+  renderServiceSegmentsHtml,
 });

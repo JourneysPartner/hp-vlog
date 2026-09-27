@@ -1,5 +1,5 @@
 ---
-title: "リース料は経費にできる？売買処理・賃貸借処理の判断基準と経理の仕方"
+title: "リース料の勘定科目と経費処理｜売買処理か賃貸借処理かの判断基準（フルペイアウト・中途解約不可）"
 slug: "deepdive-general_individual_proprietor-lease-transaction-guide"
 category: "帳簿・経費"
 primary_persona: "general_individual_proprietor"

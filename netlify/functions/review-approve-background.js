@@ -1,6 +1,6 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, findApprovedArticlesForDate } = require('./lib/github-api');
+const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, deleteBranch, findApprovedArticlesForDate } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
 const { isPlaceholderTitle } = require('../../scripts/lib/draft-normalizer');
@@ -257,6 +257,11 @@ exports.handler = async (event) => {
         // mergePR 内部でも 405/409/502/503 に対し最大 4 回リトライ
         mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`);
         console.log(`[review-approve] PR #${pr.number} をマージしました`);
+
+        // 記事は main に取り込み済みなので、枝の削除失敗では公開処理を止めない。
+        // deleteBranch 側でも draft/* 以外を拒否する二重の安全弁を設けている。
+        const headBranch = pr.head && pr.head.ref ? pr.head.ref : ref;
+        await deleteBranch(headBranch);
       } catch (mergeErr) {
         mergeError = mergeErr;
         console.error(`[review-approve] PR マージ失敗: ${mergeErr.message}`);

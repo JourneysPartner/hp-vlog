@@ -322,6 +322,32 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
   throw lastError || new Error(`GitHub merge failed after ${maxAttempts} attempts`);
 }
 
+// ── マージ済みの下書きブランチを削除する ──────────────────────────────
+// 誤った枝を消さないよう、承認フローから利用できるのは draft/* だけに限定する。
+// 記事はこの時点で main に取り込み済みなので、削除失敗は公開処理を止めない。
+async function deleteBranch(branch, { fetchImpl = globalThis.fetch, headersImpl = headers, logger = console } = {}) {
+  if (typeof branch !== 'string' || !branch.startsWith('draft/')) {
+    return false;
+  }
+
+  try {
+    const encodedBranch = branch.split('/').map(encodeURIComponent).join('/');
+    const url = `${API_BASE}/repos/${REPO()}/git/refs/heads/${encodedBranch}`;
+    const h = await headersImpl();
+    const res = await fetchImpl(url, { method: 'DELETE', headers: h });
+    if (!res.ok) {
+      const text = await res.text();
+      logger.error(`[deleteBranch] ${branch} の削除に失敗しました (${res.status}): ${text}`);
+      return false;
+    }
+    logger.log(`[deleteBranch] ${branch} を削除しました`);
+    return true;
+  } catch (error) {
+    logger.error(`[deleteBranch] ${branch} の削除に失敗しました: ${error.message}`);
+    return false;
+  }
+}
+
 // ── PR をクローズする ──────────────────────────────────────────────────
 async function closePR(prNumber) {
   const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}`;
@@ -474,7 +500,7 @@ async function readjustPublishSlots(publishAtStr, excludeFilename) {
 
 module.exports = {
   getFile, putFile, updateFrontmatter, escapeYamlDoubleQuoted, nowJST,
-  findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR,
+  findPR, getPR, waitForMergeable, mergePR, deleteBranch, closePR, commentOnPR,
   triggerWorkflow, listWorkflowRuns,
   listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
 };
