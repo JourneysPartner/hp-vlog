@@ -88,7 +88,7 @@ try {
 assert(buildOk, 'pickup 設定を使ってサイトをビルドできる');
 
 console.log('\n=== 1. 設定と公開状態 ===');
-assert(context.corePosts.length === 5, '中核 5 本がすべて公開中');
+assert(context.corePosts.length === pickupConfig.netshop_core.length, '中核記事がすべて公開中');
 for (const slug of pickupConfig.netshop_core) {
   assert(Boolean(bySlug.get(slug)), `${slug}: 公開中の記事が存在する`);
 }
@@ -136,13 +136,18 @@ assert(
   '物販以外の記事は pickup 設定の有無で生成部品が変わらない'
 );
 
-const coreSlug = 'ebay-export-consumption-tax-refund-guide';
-const coreHtml = read(path.join('blog', coreSlug, 'index.html'));
-const coreBox = pickupBoxOf(coreHtml);
-const corePickupLinks = new Set(hrefsOf(coreBox).filter(href => href.startsWith('/blog/')));
-const relatedMatch = coreHtml.match(/<a href="([^"]+)" class="blog-related-link">/);
-assert(Boolean(relatedMatch) && !corePickupLinks.has(relatedMatch[1]), '物販の関連記事と中核案内のリンク先が重複しない');
-assert(!coreBox.includes(`/blog/${coreSlug}/`), '中核記事自身は案内枠から除外する');
+// 中核記事は統合で入れ替わるため、設定の全件で確認する。
+let coreWithRelated = 0;
+for (const coreSlug of pickupConfig.netshop_core) {
+  const coreHtml = read(path.join('blog', coreSlug, 'index.html'));
+  const coreBox = pickupBoxOf(coreHtml);
+  const corePickupLinks = new Set(hrefsOf(coreBox).filter(href => href.startsWith('/blog/')));
+  const relatedMatch = coreHtml.match(/<a href="([^"]+)" class="blog-related-link">/);
+  if (relatedMatch) coreWithRelated++;
+  assert(!relatedMatch || !corePickupLinks.has(relatedMatch[1]), `${coreSlug}: 物販の関連記事と中核案内のリンク先が重複しない`);
+  assert(!coreBox.includes(`/blog/${coreSlug}/`), `${coreSlug}: 中核記事自身は案内枠から除外する`);
+}
+assert(coreWithRelated > 0, '関連記事を持つ中核記事がある（重複の確認が空振りしない）');
 
 console.log('\n=== 4. 物販ハブと sitemap ===');
 const retailHub = read(path.join('blog', 'macro', 'retail', 'index.html'));
@@ -151,7 +156,18 @@ for (const slug of pickupConfig.netshop_core.slice(0, 3)) {
   assert(featured.includes(`/blog/${slug}/`), `${slug}: 物販ハブの固定枠に出る`);
 }
 const sitemapAfter = sitemapUrls(read('sitemap.xml'));
-assert(sitemapAfter.length === 308, 'sitemap.xml は 01 適用後の 308 URL のまま');
+// 件数は記事の公開・統合のたびに変わるため、載るべき記事と載せない記事で確認する。
+const sitemapSet = new Set(sitemapAfter);
+const mergedSlugs = fs.readdirSync(POSTS_DIR)
+  .filter(file => file.endsWith('.md'))
+  .map(file => matter(fs.readFileSync(path.join(POSTS_DIR, file), 'utf8')).data)
+  .filter(data => data.review_status === 'merged')
+  .map(data => data.slug);
+assert(
+  posts.every(post => sitemapSet.has(`https://mori-zeirishi.net/blog/${post.slug}/`)) &&
+  mergedSlugs.every(slug => !sitemapSet.has(`https://mori-zeirishi.net/blog/${slug}/`)),
+  'sitemap.xml に公開済み記事がすべて載り、統合済み記事は載らない'
+);
 assert(JSON.stringify(sitemapAfter) === JSON.stringify(sitemapBefore), '内部リンク変更の前後で sitemap.xml の URL 一覧が変わらない');
 
 console.log('\n=== 5. 空設定 ===');
