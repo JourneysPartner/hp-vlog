@@ -5,6 +5,9 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
+const { linkTerms, readInternalLinkTerms } = require('./lib/internal-linker');
+const { createHeadingState, applyHeadingIdRenderer, buildTocHtml } = require('./lib/heading-anchors');
+const { similarityScore } = require('./lib/topic-similarity');
 const { agencyLinksForTopic } = require('./lib/official-sources');
 const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getMacroSlug } =
   require('./lib/blog-taxonomy');
@@ -27,6 +30,8 @@ const buildStats = { faqPosts: 0, authorBoxPosts: 0 };
 // 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
 // renderer 拡張を一度だけ適用する（marked は module singleton）。
 applyExternalLinkRenderer(marked);
+const headingState = createHeadingState();
+applyHeadingIdRenderer(marked, headingState);
 
 const POSTS_PER_PAGE = 12;
 
@@ -41,6 +46,8 @@ const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-co
 const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
 // トップ・物販記事・物販ハブで共通利用する中核記事。slug の定義元はここだけにする。
 const PICKUP_POSTS_PATH = path.join(ROOT, 'data', 'pickup-posts.json');
+const INTERNAL_LINK_TERMS_PATH = path.join(ROOT, 'data', 'internal-link-terms.json');
+const internalLinkTerms = readInternalLinkTerms(INTERNAL_LINK_TERMS_PATH);
 // サービスページに表示する「対応している業種・働き方」。文言は設定側で一元管理する。
 const SERVICE_SEGMENTS_PATH = path.join(ROOT, 'data', 'service-segments.json');
 const NETSHOP_PERSONAS = new Set([
@@ -671,35 +678,98 @@ function buildListPageHtml({
   });
 }
 
-// ── 関連記事HTML生成（公開済みの場合のみ表示）─────────────────
-function buildRelatedArticleHtml(post, postsMap, pickupContext) {
-  if (!post.related_slug) return '';
-  let related = postsMap.get(post.related_slug);
-  if (!related) return '';
+// ── 関連記事HTML生成（公開済み・類似度 0.1 以上から最大 3 本）────
+function buildRelatedArticlesHtml(post, postsMap, pickupContext) {
+  const selected = [];
+  const selectedSlugs = new Set();
+  const isNetshop = isNetshopPost(post);
+  const coreSlugs = pickupContext && pickupContext.coreSlugs instanceof Set
+    ? pickupContext.coreSlugs
+    : new Set();
 
-  // 物販記事の案内枠と同じ中核記事を関連記事にも出さない。
-  if (isNetshopPost(post) && pickupContext && pickupContext.coreSlugs.has(related.slug)) {
-    related = pickupContext.allPosts.find(candidate =>
-      candidate.slug !== post.slug &&
-      !pickupContext.coreSlugs.has(candidate.slug) &&
-      isNetshopPost(candidate)
-    );
-    if (!related) return '';
+  function add(candidate, isPair = false) {
+    if (!candidate || candidate.slug === post.slug || selectedSlugs.has(candidate.slug)) return false;
+    if (!isPublished(candidate)) return false;
+    if (isNetshop && coreSlugs.has(candidate.slug)) return false;
+    selected.push({ post: candidate, isPair });
+    selectedSlugs.add(candidate.slug);
+    return true;
   }
 
-  const linkText = post.related_link_text || 'あわせて読みたい';
-  const title    = related.title;
-  const summary  = related.summary || '';
+  const pair = post.related_slug && postsMap instanceof Map ? postsMap.get(post.related_slug) : null;
+  if (pair && isPublished(pair)) {
+    if (!(isNetshop && coreSlugs.has(pair.slug))) {
+      add(pair, true);
+    } else {
+      // 物販の中核枠と重なるペアは、従来どおり別の物販記事に差し替える。
+      const replacement = (pickupContext && Array.isArray(pickupContext.allPosts)
+        ? pickupContext.allPosts
+        : [...postsMap.values()]
+      ).find(candidate =>
+        candidate && candidate.slug !== post.slug &&
+        !coreSlugs.has(candidate.slug) &&
+        isNetshopPost(candidate) &&
+        isPublished(candidate)
+      );
+      add(replacement, true);
+    }
+  }
+
+  const currentHub = hubMacroOf(post);
+  const candidates = [...(postsMap instanceof Map ? postsMap.values() : [])]
+    .filter(candidate =>
+      candidate &&
+      candidate.slug !== post.slug &&
+      !selectedSlugs.has(candidate.slug) &&
+      isPublished(candidate) &&
+      !(isNetshop && coreSlugs.has(candidate.slug))
+    )
+    .map(candidate => ({
+      post: candidate,
+      sameHub: hubMacroOf(candidate) === currentHub,
+      score: similarityScore(post, candidate).score,
+      publishedAt: new Date(candidate.publish_at).getTime() || 0,
+    }))
+    .filter(candidate => candidate.score >= 0.1)
+    .sort((a, b) =>
+      Number(b.sameHub) - Number(a.sameHub) ||
+      b.score - a.score ||
+      b.publishedAt - a.publishedAt ||
+      String(a.post.slug).localeCompare(String(b.post.slug))
+    );
+
+  for (const candidate of candidates) {
+    add(candidate.post);
+    if (selected.length >= 3) break;
+  }
+  if (selected.length === 0) return '';
+
+  const items = selected.map(({ post: related, isPair }) => {
+    const label = isPair
+      ? `<small>${escHtml(post.related_link_text || 'あわせて読みたい')}</small>`
+      : '';
+    return `
+        <div class="blog-related-item">
+          ${label}
+          <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
+            <span class="blog-related-title">${escHtml(related.title)}</span>
+            <span class="blog-related-summary">${escHtml(related.summary || '')}</span>
+            <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
+          </a>
+        </div>`;
+  }).join('');
 
   return `
     <div class="blog-related-article">
-      <h3><i class="bi bi-link-45deg"></i> ${escHtml(linkText)}</h3>
-      <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
-        <span class="blog-related-title">${escHtml(title)}</span>
-        <span class="blog-related-summary">${escHtml(summary)}</span>
-        <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
-      </a>
+      <h3><i class="bi bi-link-45deg"></i> 関連記事</h3>
+      <div class="blog-related-list">${items}
+      </div>
     </div>`;
+}
+
+// 既存の呼び出し元との互換性を保つ。
+function buildRelatedArticleHtml(post, postsMap, pickupContext) {
+  return buildRelatedArticlesHtml(post, postsMap, pickupContext);
 }
 
 function buildSourcesHtml(post) {
@@ -716,12 +786,25 @@ function buildSourcesHtml(post) {
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
+  headingState.reset();
+  const withTerms = linkTerms(post._body, {
+    terms: internalLinkTerms,
+    post,
+    postsMap,
+    isPublished,
+    hubMacroOf,
+    coreSlugs: pickupContext && pickupContext.coreSlugs instanceof Set
+      ? pickupContext.coreSlugs
+      : new Set(),
+  });
+  console.log(`[build]   ℹ ${post.slug}: 文脈リンク ${withTerms.stats.linked} 件`);
+
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
   // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
   // その記事に適用された非税出典（official-sources.js）へリンクする。
   // 本文側のリンクも残すことで、複数出典を持たない既存記事の導線を変えない。
-  const { markdown: linkedBody, stats } = linkCitations(post._body, {
+  const { markdown: linkedBody, stats } = linkCitations(withTerms.markdown, {
     agencyLinks: agencyLinksForTopic(post),
     onMiss: ({ no, matched }) => {
       console.warn(`[build]   ⚠ 出典番号がカタログ未収録: ${matched} (${post.slug}) — tax-authority-refs.js への追加を検討`);
@@ -733,9 +816,11 @@ function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
   if (stats.agenciesLinked > 0) {
     console.log(`[build]   ℹ ${post.slug}: 官庁名リンク化 ${stats.agenciesLinked} 件（${stats.agencies.join(' / ')}）`);
   }
-  const htmlBody = marked(linkedBody)
+  let htmlBody = marked(linkedBody)
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
     .replace(/<\/table>/g, '</table></div>');
+  const tocHtml = buildTocHtml(htmlBody);
+  if (tocHtml) htmlBody = htmlBody.replace(/<h2\b/, `${tocHtml}\n<h2`);
   const publishDateISO = toISO(post.publish_at);
   const updatedDateISO = toISO(post.updated_at || post.publish_at);
   const publishDate    = formatDate(post.publish_at);
@@ -1330,8 +1415,10 @@ module.exports = Object.freeze({
   resolvePickupContext,
   renderPickupPostsHtml,
   buildPickupBoxHtml,
+  buildRelatedArticlesHtml,
   buildRelatedArticleHtml,
   isNetshopPost,
+  isPublished,
   loadServiceSegments,
   prepareServiceSegments,
   renderServiceSegmentsHtml,
