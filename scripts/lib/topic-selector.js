@@ -27,6 +27,7 @@ const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
+const { prefillTargetQuery, normalizeQuery, findTargetQueryOwner } = require('./target-query');
 const {
   isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit, scoreLeadValue,
 } = require('./customer-relevance');
@@ -349,7 +350,7 @@ function selectDailyTopics(topics, options = {}) {
   explanation.steps.push({ step: 'corpus', count: corpus.length, pending: pending.length });
 
   // 2. 既存 slug 除外
-  const existingSlugs = new Set(corpus.map(p => p.slug));
+  const existingSlugs = new Set(corpus.flatMap(p => [p.slug, p.topic_id]).filter(Boolean));
   let candidates = enriched.filter(t => !existingSlugs.has(t.slug));
   explanation.steps.push({
     step: 'filter-existing-slugs',
@@ -359,6 +360,34 @@ function selectDailyTopics(topics, options = {}) {
 
   if (candidates.length === 0) {
     explanation.warnings = ['すべてのトピックが既存slugと重複（pool枯渇）'];
+    return { picks: [], explanation };
+  }
+
+  // 2.2. 検索需要由来の候補は、既存記事が同じ主検索語を持っていれば除外する。
+  // プレフィルできない候補はここでは止めず、生成前の確定後ゲートに委ねる。
+  const targetQueryBlocked = [];
+  candidates = candidates.filter(topic => {
+    const prefilled = prefillTargetQuery(topic);
+    if (!prefilled || !prefilled.target_query) return true;
+    const key = normalizeQuery(prefilled.target_query);
+    const owner = findTargetQueryOwner(key, corpus);
+    if (!owner) return true;
+    targetQueryBlocked.push({
+      slug: topic.slug,
+      target_query: prefilled.target_query,
+      owner: owner.slug,
+    });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-target-query',
+    blocked: targetQueryBlocked.length,
+    remaining: candidates.length,
+    blockedDetails: targetQueryBlocked.slice(0, 5),
+  });
+
+  if (candidates.length === 0) {
+    explanation.warnings = ['すべてのトピックが既存の狙う検索語と重複'];
     return { picks: [], explanation };
   }
 

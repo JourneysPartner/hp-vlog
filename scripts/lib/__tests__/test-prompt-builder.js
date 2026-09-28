@@ -126,5 +126,26 @@ console.log('\n=== Test 7: 出力形式が frontmatter + 本文 を指示 ===');
   assert(/コードブロック不要/.test(ir.user), 'コードブロック不要の指示');
 }
 
+console.log('\n=== Test 8: 狙う検索語とURL slugを可変ブロックへ反映 ===');
+{
+  const seoTopic = {
+    ...topic,
+    url_slug: 'paint-account-category-guide',
+    target_query: '塗料 勘定科目',
+    secondary_queries: ['塗料 仕訳', 'ペンキ 経費'],
+    intent_type: 'answer',
+  };
+  const ir = builder.buildGenerationPrompt({
+    topic: seoTopic, persona, cta: 'C', articleType: 'basic_explainer', articleRole: 'main',
+    now: '2026-09-27T00:00:00Z', relatedSlug: 'paired-url-slug',
+  });
+  assert(/═══ 狙う検索語 ═══/.test(ir.dynamicSystem), '可変ブロックに狙う検索語の節');
+  assert(/主検索語: 塗料 勘定科目/.test(ir.dynamicSystem), '主検索語を渡す');
+  assert(/意図の型: 一問一答/.test(ir.dynamicSystem), '意図の型を日本語表示');
+  assert(/slug: "paint-account-category-guide"/.test(ir.user), 'frontmatter雛形は url_slug');
+  assert(/topic_id: "test-slug"/.test(ir.user), 'frontmatter雛形は元slugをtopic_id');
+  assert(/secondary_queries: "塗料 仕訳,ペンキ 経費"/.test(ir.user), '副検索語はカンマ区切り');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

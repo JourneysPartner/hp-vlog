@@ -141,10 +141,19 @@ function fakeFetch({ failDomainProperty = false } = {}) {
   console.log('');
   console.log('=== 8. 候補選定に接続していない ===');
   {
-    const files = ['scripts/topic-pool.js', 'scripts/lib/topic-selector.js', 'scripts/generate-draft.js']
+    // 2026-09-27（article-seo 02）: 生成側は主検索語の裏取りにだけ GSC を読む。
+    // 候補選定（topic-pool / topic-selector）は引き続き参照しない。
+    // データが無い環境でも生成が止まらないよう、読み込みは readJsonOr のフォールバック経由に限る。
+    const files = ['scripts/topic-pool.js', 'scripts/lib/topic-selector.js']
       .filter(f => fs.existsSync(path.join(ROOT, f)));
     const linked = files.filter(f => /search-console/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
-    assert(linked.length === 0, '記事生成側から search-console を参照していない');
+    assert(linked.length === 0, '候補選定側（topic-pool / topic-selector）から search-console を参照していない');
+    const genSrc = fs.readFileSync(path.join(ROOT, 'scripts/generate-draft.js'), 'utf8');
+    const gscReads = genSrc.match(/search-console/g) || [];
+    const guarded = genSrc.includes('function loadTargetQueryInputs()')
+      && genSrc.includes("path.join(ROOT, 'data', 'search-console', 'latest.json')")
+      && genSrc.includes('readJsonOr(latestPath, {})');
+    assert(gscReads.length === 0 || guarded, '生成側の search-console 参照は loadTargetQueryInputs の readJsonOr（無ければ空）経由だけ');
     assert(fs.existsSync(path.join(ROOT, '.github/workflows/fetch-search-console.yml')), 'ワークフローがある');
     assert(fs.existsSync(path.join(ROOT, 'docs/search-console-setup.md')), '設定手順がある');
   }

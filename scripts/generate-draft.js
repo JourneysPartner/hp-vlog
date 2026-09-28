@@ -26,6 +26,10 @@ const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
 const { restoreSourceGuardFields, restoreMissingSystemFields } = require('./lib/source-guard');
+const {
+  resolveTargetQuery, deriveIntentType, findTargetQueryOwner,
+} = require('./lib/target-query');
+const { lintSeo } = require('./lib/seo-lint');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
 // collect-pending-drafts.js が生成前に .pending-drafts.json を書き出す。
@@ -43,6 +47,29 @@ function loadPendingDraftCorpus() {
     console.warn('[generate] .pending-drafts.json 読込失敗（無視して続行）:', e.message);
   }
   return [];
+}
+
+function readJsonOr(pathname, fallback) {
+  try {
+    if (!fs.existsSync(pathname)) return fallback;
+    return JSON.parse(fs.readFileSync(pathname, 'utf8'));
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function loadTargetQueryInputs() {
+  const suggestRaw = readJsonOr(path.join(ROOT, 'data', 'search-suggest', 'raw-latest.json'), { seeds: [] });
+  const latestPath = path.join(ROOT, 'data', 'search-console', 'latest.json');
+  const latest = readJsonOr(latestPath, {});
+  let gscQueries = [];
+  if (latest.files && typeof latest.files.queries === 'string') {
+    const queryData = readJsonOr(path.join(ROOT, 'data', 'search-console', latest.files.queries), {});
+    gscQueries = Array.isArray(queryData.rows) ? queryData.rows : [];
+  } else if (latest.files && Array.isArray(latest.files.queries)) {
+    gscQueries = latest.files.queries;
+  }
+  return { suggestRaw, gscQueries };
 }
 
 // ── トピックに必ず source_url / source_title を埋める fallback ─────
@@ -328,7 +355,7 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
 const {
   WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor, selectConditionalRules,
-  findUnappliedRules,
+  findUnappliedRules, wordCountGuideFor,
 } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
@@ -584,6 +611,8 @@ function getExistingSlugs() {
     const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
     const m = raw.match(/^slug:\s*"?([^"\n\r]+)"?/m);
     if (m) slugs.add(m[1].trim());
+    const topicId = raw.match(/^topic_id:\s*"?([^"\n\r]+)"?/m);
+    if (topicId) slugs.add(topicId[1].trim());
   }
   return slugs;
 }
@@ -745,13 +774,13 @@ async function checkGeneratedArticle(content, topic, sameRunSlugs = [], options 
     const { meta, body } = parseFrontmatter(content);
     const headings = body.split(/\r?\n/).filter(l => l.startsWith('## ')).map(l => l.slice(3).trim());
     const replaces = Array.isArray(topic.replaces) ? topic.replaces : [];
-    const exclude = new Set([topic.slug, ...sameRunSlugs, ...replaces]);
+    const exclude = new Set([topic.slug, topic.url_slug, ...sameRunSlugs, ...replaces].filter(Boolean));
     const sourceCorpus = Array.isArray(options.corpus)
       ? options.corpus
       : readAllPostsSorted().concat(loadPendingDraftCorpus());
     const corpus = sourceCorpus.filter(p => p && p.slug && !exclude.has(p.slug));
     const article = {
-      slug: topic.slug, title: meta.title || '', summary: meta.summary || '', headings,
+      slug: topic.url_slug || topic.slug, title: meta.title || '', summary: meta.summary || '', headings,
       persona: topic.persona, category: topic.category, pain_point: topic.pain_point || '',
       article_type: topic.article_type || '',
     };
@@ -788,13 +817,13 @@ function generateFromTemplate(dateStr, topic, pairedTopic) {
     ? `source_url: "${topic.source_url}"\nsource_title: "${topic.source_title}"`
     : `source_url: ""\nsource_title: ""`;
 
-  const relatedSlug      = pairedTopic ? pairedTopic.slug : '';
+  const relatedSlug      = pairedTopic ? (pairedTopic.url_slug || pairedTopic.slug) : '';
   const relatedTitle     = pairedTopic ? pairedTopic.title : '';
   const relatedLinkText  = pairedTopic ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい') : '';
 
   return `---
 title: "${topic.title}"
-slug: "${topic.slug}"
+slug: "${topic.url_slug || topic.slug}"
 category: "${topic.category}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
@@ -815,7 +844,11 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
+procedure_stage: "${topic.procedure_stage || ''}"
+topic_id: "${topic.slug || ''}"
+target_query: "${topic.target_query || ''}"
+secondary_queries: "${Array.isArray(topic.secondary_queries) ? topic.secondary_queries.join(',') : ''}"
+intent_type: "${topic.intent_type || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "${persona.label}向けに、${topic.category}の基本と実務上の注意点を解説します。"
 review_status: "draft"
 review_comment: "テンプレートから自動生成された下書きです。内容の加筆・修正が必要です。"
@@ -1130,7 +1163,9 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
+  const wordCount = wordCountGuideFor({
+    articleType, intentType: topic.intent_type, articleRole,
+  });
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 
@@ -1307,7 +1342,7 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
 
   const sourceUrl      = topic.source_url || '';
   const sourceTitle    = topic.source_title || '';
-  const relatedSlug    = pairedTopic ? pairedTopic.slug : '';
+  const relatedSlug    = pairedTopic ? (pairedTopic.url_slug || pairedTopic.slug) : '';
   const relatedTitle   = pairedTopic ? pairedTopic.title : '';
   const relatedLinkText = pairedTopic ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい') : '';
 
@@ -1332,7 +1367,7 @@ ${ARTICLE_TYPE_CHECKLIST[topic.article_type] && (topic.article_type === 'compari
 
 ---
 title: "${topic.title}"
-slug: "${topic.slug}"
+slug: "${topic.url_slug || topic.slug}"
 category: "${topic.category}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
@@ -1354,7 +1389,11 @@ tax_domain: "${topic.tax_domain || ''}"
 business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
-procedure_stage: "${topic.procedure_stage || ''}"${formatReplacementFrontmatter(topic.replaces)}
+procedure_stage: "${topic.procedure_stage || ''}"
+topic_id: "${topic.slug || ''}"
+target_query: "${topic.target_query || ''}"
+secondary_queries: "${Array.isArray(topic.secondary_queries) ? topic.secondary_queries.join(',') : ''}"
+intent_type: "${topic.intent_type || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "（記事の結論や具体的な情報を含む自然な文章。120文字以内。「○○を解説します」のような曖昧な表現ではなく、読者が検索結果で見て「これが知りたかった」と思える内容にすること）"
 review_status: "draft"
 review_comment: ""
@@ -1388,7 +1427,9 @@ updated_at: "${now}"
   // プロンプトでの字数指示は努力目標で超過を防ぎきれないが、max_tokens は
   // API 側の物理制約なので、ここを絞れば受入上限を絶対に超えられない。
   // 実測 0.874 token/文字（2026-08-15, Claude Sonnet 4.6, 日本語）。
-  const maxTokens = maxTokensFor(articleType);
+  const maxTokens = maxTokensFor({
+    articleType, intentType: topic.intent_type, articleRole,
+  });
   const result = await contentModel.generateContent(promptIR, { maxTokens });
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
@@ -1444,7 +1485,7 @@ function rawHasDisclaimer(raw) {
 // ルールが一度も渡らず、古い30万円だけの表が生成された。
 //
 // 記事を捨てるのではなく、不足していたルールと参考資料を渡して直させる。
-async function applyMissingRulesToBody(content, topic, articleType) {
+async function applyMissingRulesToBody(content, topic, articleType, intentType) {
   const { meta, body } = parseFrontmatter(content);
   const missingRules = findUnappliedRules(topic, body);
   const missingRefs  = findUnappliedReferencePages(topic, body);
@@ -1550,7 +1591,7 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
     return { content, applied: false, failed: true, names };
   }
 
-  const len = checkBodyLength(revised, articleType);
+  const len = checkBodyLength(revised, articleType, intentType);
   if (len.tooLong) {
     console.warn(`[rules] ⚠ ルール反映で上限超過（${len.produced} / ${len.max}）→ 元の本文を維持します`);
     return { content, applied: false, failed: true, names };
@@ -1576,7 +1617,9 @@ async function retryTitleOnce(body, topic) {
   const system = [
     'あなたは日本の税務ブログの編集者です。記事本文に合った日本語のタイトルを1つ作ります。',
     '制約:',
-    '- 30〜45文字程度。80文字を超えない。',
+    '- 28〜45文字。45文字を超えない。',
+    '- 主検索語が渡されたときは、その語を先頭15文字以内に置く。',
+    '- 末尾に「を解説」「について」「まとめ」を付けない。',
     '- 「徹底解説」「完全ガイド」「必読」は使わない。',
     '- 同じ名詞を繰り返さない。',
     '- 記事に書かれていないことをタイトルにしない。',
@@ -1585,6 +1628,7 @@ async function retryTitleOnce(body, topic) {
   const user = [
     `税目カテゴリ: ${topic.category || ''}`,
     `想定読者: ${topic.persona || ''}`,
+    `主検索語: ${topic.target_query || '（指定なし）'}`,
     '',
     '# 記事の見出し',
     ...heads.map(h => `- ${h}`),
@@ -1601,6 +1645,33 @@ async function retryTitleOnce(body, topic) {
     return null;
   }
   return candidate;
+}
+
+function isUsableSummary(value) {
+  const summary = String(value || '').trim();
+  return summary.length >= 10 && summary.length <= 200 && !/^（.*）$/.test(summary);
+}
+
+async function retrySummaryOnce(body, topic, currentSummary) {
+  const lead = String(body || '').split(/^##\s+/m)[0].trim().slice(0, 500);
+  const system = [
+    'あなたは日本の税務ブログの編集者です。記事本文に合った要約を1つ作ります。',
+    '制約:',
+    '- 120文字以内。',
+    '- 先頭60文字以内に主検索語の語と記事の結論を置く。',
+    '- 記事に書かれていない内容を足さない。',
+    '出力は要約の文字列のみ。前置きも引用符も付けない。',
+  ].join('\n');
+  const user = [
+    `主検索語: ${topic.target_query || ''}`,
+    `現在の要約: ${currentSummary || ''}`,
+    '',
+    '# 本文の冒頭',
+    lead,
+  ].join('\n');
+  const raw = (await callSimpleOpenAI({ system, user }, 250) || '').trim();
+  const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
+  return isUsableSummary(candidate) ? candidate : null;
 }
 
 async function generateArticle(dateStr, topic, pairedTopic) {
@@ -1630,7 +1701,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   // （article-prompt-static.js のキャリブレーション）。それでもレンジを
   // 外れることがあるため、不足/超過を具体的な字数で伝えて1回引き直す。
   const articleTypeForLen = topic.article_type || 'basic_explainer';
-  let lenCheck = checkBodyLength(normalized.content, articleTypeForLen);
+  let lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
   if (!lenCheck.ok) {
     const dir = lenCheck.tooShort ? '短い' : '長い';
     const bound = lenCheck.tooShort
@@ -1646,7 +1717,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
         : { produced: lenCheck.produced, max: lenCheck.max };
       const retryGen = await generateWithOpenAI(dateStr, topic, pairedTopic, false, hint);
       const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
-      const retryLen = checkBodyLength(retryNorm.content, articleTypeForLen);
+      const retryLen = checkBodyLength(retryNorm.content, articleTypeForLen, topic.intent_type);
       // 意図と逆方向に動いた結果は採用しない（短くしたいのに伸びた等）。
       const improved = retryNorm.bodyH2Count > 0 && (
         lenCheck.tooShort
@@ -1693,12 +1764,84 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     }
   }
 
+  // ── 狙う検索語の機械点検。題名・要約だけを各1回まで作り直す ─────
+  let seoIssues = [];
+  if (topic.target_query) {
+    let seo = lintSeo({
+      title: normalized.title,
+      summary: normalized.summary,
+      body: normalized.body,
+      target_query: topic.target_query,
+      secondary_queries: topic.secondary_queries,
+    });
+
+    if (seo.fails.some(code => code === 'title_missing_query' || code === 'title_too_long')) {
+      try {
+        const retitled = await retryTitleOnce(normalized.body, topic);
+        if (retitled) {
+          const retriedSeo = lintSeo({
+            title: retitled, summary: normalized.summary, body: normalized.body,
+            target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+          });
+          const before = seo.fails.filter(code => code.startsWith('title_')).length;
+          const after = retriedSeo.fails.filter(code => code.startsWith('title_')).length;
+          const titleCheck = checkLlmTitle(retitled, { macro: topic.macro, article_type: topic.article_type });
+          if (titleCheck.ok && after < before) {
+            normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+              now, pairedTopic, titleOverride: retitled, summaryOverride: normalized.summary,
+            });
+            seo = lintSeo({
+              title: normalized.title, summary: normalized.summary, body: normalized.body,
+              target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+            });
+            console.log(`[seo] 題名を作り直しました: "${normalized.title}"`);
+          }
+        }
+      } catch (e) {
+        console.warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
+      }
+    }
+
+    if (seo.fails.includes('summary_missing_query')) {
+      try {
+        const resummary = await retrySummaryOnce(normalized.body, topic, normalized.summary);
+        if (resummary) {
+          const retriedSeo = lintSeo({
+            title: normalized.title, summary: resummary, body: normalized.body,
+            target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+          });
+          const before = seo.fails.filter(code => code.startsWith('summary_')).length;
+          const after = retriedSeo.fails.filter(code => code.startsWith('summary_')).length;
+          if (after < before) {
+            normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+              now, pairedTopic, titleOverride: normalized.title, summaryOverride: resummary,
+            });
+            seo = lintSeo({
+              title: normalized.title, summary: normalized.summary, body: normalized.body,
+              target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+            });
+            console.log('[seo] 要約を作り直しました');
+          }
+        }
+      } catch (e) {
+        console.warn(`[seo] 要約の作り直しに失敗（${e.message}）→ 元の要約を維持`);
+      }
+    }
+
+    seoIssues = [
+      ...seo.fails.map(code => `⚠ SEO: ${code}`),
+      ...seo.warns.map(code => `⚠ SEO: ${code}`),
+    ];
+    const details = [...seo.fails, ...seo.warns].join(', ') || '問題なし';
+    console.log(`[seo] 点検: fail ${seo.fails.length} / warn ${seo.warns.length}（${details}）`);
+  }
+
   // ── 本文を見て、適用漏れの論点別ルール・参考資料を反映させる ──────
   // 文字数調整まで終わった最終形に対して行う（ここで直した内容を
   // 後続の再生成で上書きされないようにするため）。
   let ruleFix = { applied: false };
   try {
-    ruleFix = await applyMissingRulesToBody(normalized.content, topic, articleTypeForLen);
+    ruleFix = await applyMissingRulesToBody(normalized.content, topic, articleTypeForLen, topic.intent_type);
     if (ruleFix.applied) {
       normalized = { ...normalized, content: ruleFix.content };
     }
@@ -1729,9 +1872,10 @@ async function generateArticle(dateStr, topic, pairedTopic) {
 
   let content = normalized.content;
   // ルール反映で本文長が変わっている可能性があるため測り直す。
-  if (ruleFix.applied) lenCheck = checkBodyLength(normalized.content, articleTypeForLen);
+  if (ruleFix.applied) lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
 
   const warnings = [];
+  warnings.push(...seoIssues);
   // 本文に出てきた論点のルールを反映できなかった場合は、人が見て直せるように残す。
   // 記事は捨てず、警告つきでレビューに回す。
   if (ruleFix.failed) {
@@ -1764,9 +1908,11 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     const warningMsg = warnings.join(' ／ ');
     console.warn(`[self-check] ${warningMsg}`);
     // review_comment フィールドに警告を埋め込む（既存の空 review_comment を上書き）
+    const warningForFrontmatter = warningMsg
+      .replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ');
     content = content.replace(
       /^review_comment:\s*""\s*$/m,
-      `review_comment: "${warningMsg}"`,
+      `review_comment: "${warningForFrontmatter}"`,
     );
   }
 
@@ -2628,7 +2774,10 @@ async function main() {
     // --force-slug は選定（既存 slug 除外・cooldown・重複判定）を通らない。
     // 公開済みや未マージ下書きと同じ slug を指定すると、同じ記事がもう1本立つので止める。
     const taken = getExistingSlugs();
-    for (const p of loadPendingDraftCorpus()) if (p && p.slug) taken.add(p.slug);
+    for (const p of loadPendingDraftCorpus()) {
+      if (p && p.slug) taken.add(p.slug);
+      if (p && p.topic_id) taken.add(p.topic_id);
+    }
     const dup = pair.filter(t => taken.has(t.slug)).map(t => t.slug);
     if (dup.length) {
       console.error(`[generate] --force-slug: 既に記事がある slug です（公開済みか未マージ下書き）: ${dup.join(', ')}`);
@@ -2668,6 +2817,77 @@ async function main() {
     await enrichSourceWithLLM(t);
   }
 
+  // 出典の補完後、本文生成前に全トピックの主検索語とURL slugを確定する。
+  // ペア相手の related_slug に確定後のURL slugを入れるため、生成ループより先に行う。
+  const queryInputs = loadTargetQueryInputs();
+  const pendingForQuery = loadPendingDraftCorpus();
+  const { readAllPostsSorted } = require('./lib/site-corpus');
+  const targetQueryCorpus = readAllPostsSorted().concat(pendingForQuery.filter(Boolean));
+  const takenUrlSlugs = getExistingSlugs();
+  for (const post of pendingForQuery) {
+    if (post && post.slug) takenUrlSlugs.add(post.slug);
+    if (post && post.topic_id) takenUrlSlugs.add(post.topic_id);
+  }
+
+  const queryReadyPair = [];
+  for (const topic of pair) {
+    topic.topic_id = topic.slug;
+    const resolved = await resolveTargetQuery(
+      topic,
+      ({ system, user }) => callSimpleOpenAI({ system, user }, 600),
+      { ...queryInputs, existingSlugs: takenUrlSlugs },
+    );
+    topic.target_query = resolved ? resolved.target_query : '';
+    topic.secondary_queries = resolved ? resolved.secondary_queries : [];
+    topic.intent_type = resolved && resolved.intent_type
+      ? resolved.intent_type
+      : deriveIntentType(topic.primary_question || topic.title || '');
+    topic.target_query_evidence = resolved ? resolved.evidence : { suggest: [], gsc: [] };
+
+    let urlSlug = resolved && resolved.slug_words ? resolved.slug_words : topic.slug;
+    if (takenUrlSlugs.has(urlSlug)) {
+      urlSlug = topic.slug;
+    }
+    if (takenUrlSlugs.has(urlSlug)) {
+      const why = `URL slug「${urlSlug}」は既存記事・未マージ下書き・同じ実行の別記事と重複 → 取り下げ`;
+      if (forceSlugs.length > 0) {
+        console.error(`[generate] --force-slug: ${why}`);
+        process.exit(1);
+      }
+      console.warn(`[generate] ⚠ ${why}`);
+      lastSelectionWarnings.push(why);
+      continue;
+    }
+    topic.url_slug = urlSlug;
+
+    if (topic.target_query) {
+      const owner = findTargetQueryOwner(topic.target_query, targetQueryCorpus);
+      const replaces = Array.isArray(topic.replaces)
+        ? topic.replaces
+        : String(topic.replaces || '').split(',').map(v => v.trim()).filter(Boolean);
+      if (owner && !replaces.includes(owner.slug)) {
+        const why = `狙う検索語「${topic.target_query}」は ${owner.slug} が既に持っている → 取り下げ`;
+        if (forceSlugs.length > 0) {
+          console.error(`[generate] --force-slug: ${why}`);
+          process.exit(1);
+        }
+        console.warn(`[generate] ⚠ ${why}`);
+        lastSelectionWarnings.push(why);
+        continue;
+      }
+    }
+
+    takenUrlSlugs.add(topic.url_slug);
+    const evidence = topic.target_query_evidence || { suggest: [], gsc: [] };
+    console.log(`[query] 主検索語: ${topic.target_query || '（未確定）'} / ` +
+      `副: ${topic.secondary_queries.join(' / ') || '（なし）'} / 型: ${topic.intent_type} / ` +
+      `裏取り: suggest ${(evidence.suggest || []).length} 件・gsc ${(evidence.gsc || []).length} 件 / ` +
+      `slug: ${topic.url_slug}`);
+    queryReadyPair.push(topic);
+  }
+  pair = queryReadyPair;
+  console.log(`[generate] 検索語・URL slug確定後の生成本数: ${pair.length}`);
+
   // 本文生成 provider/model の表示（content-model の解決結果）
   const contentProvider = contentModel.resolveProvider();
   const contentModelId  = contentModel.resolveModel(contentProvider);
@@ -2682,7 +2902,7 @@ async function main() {
     console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
     // タイトルは LLM が本文生成と同時に決定するため、ここでは slug を識別子として表示。
     // 参考タイトル（curated TOPICS の場合のみ存在）は併記する。
-    console.log(`[generate] slug: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
+    console.log(`[generate] slug: ${topic.url_slug || topic.slug} / topic_id: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
     console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
     console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
     console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
@@ -2717,14 +2937,14 @@ async function main() {
       usedModel = 'template';
     }
 
-    const filename = `${dateStr}-${topic.slug}.md`;
+    const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
     const filepath = path.join(POSTS_DIR, filename);
 
     fs.mkdirSync(POSTS_DIR, { recursive: true });
     fs.writeFileSync(filepath, content + '\n', 'utf8');
     console.log(`[generate] 生成完了: content/posts/${filename}`);
 
-    selfCheckContent(content, topic.article_type || 'basic_explainer', topic.slug);
+    selfCheckContent(content, topic.article_type || 'basic_explainer', topic.url_slug || topic.slug);
 
     // 生成後の重複判定（2026-09-08）。選定時の判定は企画メタしか見られず、
     // 記事が企画より広がって既存記事と同じになるのを止められなかった
@@ -2733,13 +2953,13 @@ async function main() {
     const dup = await checkGeneratedArticle(content, topic, results.map(r => r.slug));
     if (dup.duplicate) {
       fs.unlinkSync(filepath);
-      const why = `生成後の重複判定: ${topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
+      const why = `生成後の重複判定: ${topic.url_slug || topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
       console.warn(`[generate] ⚠ ${why}`);
       lastSelectionWarnings.push(why);
       continue;
     }
 
-    results.push({ filename, slug: topic.slug, model: usedModel });
+    results.push({ filename, slug: topic.url_slug || topic.slug, model: usedModel });
   }
 
   // GitHub Actions 出力変数（2本分）

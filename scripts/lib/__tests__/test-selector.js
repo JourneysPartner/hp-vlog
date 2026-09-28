@@ -177,5 +177,36 @@ console.log('\n=== Test 7: tax-authority-refs が tax_domain ごとに整って�
   }
 }
 
+console.log('\n=== Test 8: filter-target-query と topic_id ===');
+{
+  const demandTopic = TOPICS.find(t => t.demand_evidence &&
+    ['search-suggest', 'gsc'].includes(t.demand_evidence.kind) &&
+    Array.isArray(t.demand_evidence.phrases) && t.demand_evidence.phrases.length > 0);
+  if (demandTopic) {
+    const target = demandTopic.demand_evidence.phrases[0];
+    const blocked = selectDailyTopics([demandTopic], {
+      now: new Date(), count: 1, extraCorpus: [{ slug: 'query-owner', target_query: target }],
+    });
+    const step = blocked.explanation.steps.find(s => s.step === 'filter-target-query');
+    assert(step && step.blocked === 1 && step.remaining === 0, '一致する target_query を持つ候補は除外');
+
+    const allowed = selectDailyTopics([demandTopic], {
+      now: new Date(), count: 1, extraCorpus: [{ slug: 'other-owner', target_query: '一致しない 検索語' }],
+    });
+    const allowedStep = allowed.explanation.steps.find(s => s.step === 'filter-target-query');
+    assert(allowedStep && allowedStep.blocked === 0 && allowedStep.remaining === 1, '不一致なら検索語ゲートを通る');
+  } else {
+    assert(false, '検索需要由来のテスト候補が存在する');
+    assert(false, '検索需要由来のテスト候補が存在する');
+  }
+
+  const topic = TOPICS[0];
+  const byTopicId = selectDailyTopics([topic], {
+    now: new Date(), count: 1, extraCorpus: [{ slug: 'different-url-slug', topic_id: topic.slug }],
+  });
+  const slugStep = byTopicId.explanation.steps.find(s => s.step === 'filter-existing-slugs');
+  assert(slugStep && slugStep.excluded === 1, 'filter-existing-slugs が topic_id でも一致');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

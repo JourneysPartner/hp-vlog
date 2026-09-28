@@ -109,10 +109,10 @@ ok(r1.produced === 4000, 'produced に実測値が入る');
 ok(r1.min === 5000, 'min に下限が入る');
 ok(r1.floor === 4500, 'floor に許容値が入る');
 
-console.log('\n=== Test 7: 未知の記事タイプは判定対象外 ===');
+console.log('\n=== Test 7: 未知の記事タイプは edge_case にフォールバック ===');
 const r2 = checkBodyLength(body(10), 'unknown_type');
-ok(r2.ok === true, '未知タイプは常に OK（既存挙動を壊さない）');
-ok(r2.min === null, '未知タイプは min=null');
+ok(r2.ok === false && r2.tooShort === true, '未知タイプも薄い本文を通さない');
+ok(r2.min === WORD_COUNT_RANGE.edge_case.min, '未知タイプは edge_case の下限');
 ok(r2.produced === 10, '未知タイプでも produced は返す');
 
 console.log('\n=== Test 8: 未知タイプのフォールバック文字数が古い値でない ===');
