@@ -89,6 +89,21 @@
   to = "/blog/shopify-growth-overseas-tax-uncertain-practice/"
   status = 301
 
+[[redirects]]
+  from = "/blog/ebay-shouhizei-kanpu-kihon/"
+  to = "/blog/ebay-export-consumption-tax-refund-complete-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/ebay-export-consumption-tax-refund-guide/"
+  to = "/blog/ebay-export-consumption-tax-refund-complete-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/ebay-tax-refund-required-documents/"
+  to = "/blog/ebay-export-consumption-tax-refund-complete-guide/"
+  status = 301
+
 # 管理画面の入口: 認証後に /admin/articles へリダイレクト
 [[redirects]]
   from = "/admin"
