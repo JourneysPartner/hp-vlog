@@ -1,9 +1,7 @@
 {
   "_note": "トップの「まず読む」枠、物販ハブの固定枠、物販記事の案内枠で使う中核記事。slug のみ。存在しない slug や未公開の slug は build が警告して飛ばす。",
   "netshop_core": [
-    "ebay-shouhizei-kanpu-kihon",
-    "ebay-export-consumption-tax-refund-guide",
-    "ebay-tax-refund-required-documents",
+    "ebay-export-consumption-tax-refund-complete-guide",
     "ebay-taxable-vs-exempt-business",
     "ebay-export-invoice-system-impact"
   ],
