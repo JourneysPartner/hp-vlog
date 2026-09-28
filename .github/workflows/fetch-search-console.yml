@@ -43,6 +43,11 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      # URL 検査（inspect-index-status.js）は sitemap.xml の URL を読む。
+      # sitemap.xml は build の生成物で git に無いため、先に作る（生成物は PR に含めない）。
+      - name: Build site (sitemap.xml)
+        run: npm run build
+
       - name: Fetch from Search Console
         env:
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
