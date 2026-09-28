@@ -46,15 +46,15 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "eBay輸出は消費税免税のため売上税額はゼロ。一方、仕入・手数料の消費税は控除できるので、課税事業者（原則課税）なら申告で還付を受けられます。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-09-27T17:29:26.725+09:00"
 publish_at: "2026-09-28T11:15:00.000+09:00"
-published_at: ""
+published_at: "2026-09-28T12:01:05.668+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-27T08:20:26.932Z"
-updated_at: "2026-09-27T17:29:26.725+09:00"
+updated_at: "2026-09-28T12:01:05.668+09:00"
 publish_slot: "morning"
 ---
 eBayで海外のバイヤーに商品を売っているのに、仕入れた商品には消費税を支払っている——そこに「還付」が生まれるという話を聞いたことがある方は多いでしょう。でも、いざ調べると「課税事業者にならないといけない」「書類が必要」「申告が複雑」と断片的な情報が並んでいて、全体像がつかみにくい。
