@@ -193,7 +193,7 @@ function demandKindOf(topic = {}) {
   return (topic.demand_evidence && topic.demand_evidence.kind) || null;
 }
 
-// 需要の証拠の「種類」ごとに1日最大1件（質疑応答・検索需要とも同じ流儀）。
+// 需要の証拠の「種類」ごとに1日最大1件（質疑応答・サジェスト・GSC とも同じ流儀）。
 // 同じ種類が2件になったら、優先度の低い方を別種の次点へ差し替える。
 function enforceDemandKindDailyLimit(picks, scored) {
   const limited = picks.slice();

@@ -6,7 +6,7 @@ const path = require('path');
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 
-const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats } = require('./topic-pool');
+const { TOPICS, getShitsugiTopicStats, getSuggestTopicStats, getGscTopicStats } = require('./topic-pool');
 const { selectDailyTopics, demandKindOf } = require('./lib/topic-selector');
 const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require('./lib/tax-authority-refs');
 const { buildSourceBodyBlock, findTsutatsuFromSourceKankei,
@@ -2815,6 +2815,12 @@ async function main() {
   // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
   for (const t of pair) {
     await enrichSourceWithLLM(t);
+  }
+  const gscStats = getGscTopicStats();
+  if (gscStats.total > 0 || gscStats.disabled) {
+    console.log(`[generate] GSC 由来の候補: ${gscStats.included}件`
+      + `${gscStats.invalid ? `（形式不正スキップ ${gscStats.invalid}件）` : ''}`
+      + `${gscStats.disabled ? '（無効化中）' : ''}`);
   }
 
   // 出典の補完後、本文生成前に全トピックの主検索語とURL slugを確定する。

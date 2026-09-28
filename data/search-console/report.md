@@ -44,28 +44,32 @@
 
 順位を上げればクリックが増えやすい語です。該当する記事・サービスページの見出しと本文を見直す候補になります。
 
-| 検索語 | 表示 | クリック | 順位 |
-|---|---|---|---|
-| アフィリエイト 法人化 | 39 | 0 | 18.4 |
-| インボイス制度 レシート | 34 | 0 | 15.4 |
-| インボイス制度 アフィリエイト | 28 | 0 | 12.8 |
-| イン ボイス 制度 レシート | 20 | 0 | 18.0 |
-| アフィリエイト インボイス | 18 | 0 | 11.9 |
-| 経費 ガソリン代 | 18 | 0 | 26.2 |
-| レジ 現金過不足 | 17 | 0 | 27.9 |
-| インボイス制度 小売 | 16 | 0 | 19.3 |
-| オンラインサロン 勘定科目 | 16 | 0 | 16.8 |
-| 特定課税仕入れ | 16 | 0 | 13.7 |
-| オンラインサロン 会費 経費 | 9 | 0 | 22.6 |
-| shopify 海外 消費税 | 8 | 0 | 16.8 |
-| オンラインサロン 税金 | 8 | 0 | 11.4 |
-| 一人親方 源泉徴収 | 8 | 0 | 16.8 |
-| アフィリエイト 法人化 メリット | 7 | 0 | 11.0 |
-| 一人親方 白色申告 帳簿 | 7 | 0 | 17.1 |
-| kindle unlimited 確定申告 領収書 | 6 | 0 | 26.0 |
-| インボイス 小売 | 6 | 0 | 23.3 |
-| レジ インボイス | 6 | 0 | 29.8 |
-| 特定課税仕入とは | 6 | 0 | 18.8 |
+| 検索語 | 表示 | クリック | 順位 | 該当ページ | 語の所在 | 推奨 |
+|---|---|---|---|---|---|---|
+| アフィリエイト 法人化 | 39 | 0 | 18.4 | affiliate-pr-incorporation-incorporation-threshold-guide | 本文 | 題名の見直し |
+| インボイス制度 レシート | 34 | 0 | 15.4 | newseg-retail_store-retail-invoice-guide | title | 見出しと本文の充実 |
+| インボイス制度 アフィリエイト | 28 | 0 | 12.8 | affiliate-pr-growth-invoice-judgement-guide | 本文 | 題名の見直し |
+| イン ボイス 制度 レシート | 20 | 0 | 18.0 | newseg-retail_store-retail-invoice-guide | title | 見出しと本文の充実 |
+| アフィリエイト インボイス | 18 | 0 | 11.9 | affiliate-pr-growth-invoice-judgement-guide | title | 見出しと本文の充実 |
+| 経費 ガソリン代 | 18 | 0 | 26.2 | newseg-construction_solo-construction-vehicle-expense-practice | title | 見出しと本文の充実 |
+| レジ 現金過不足 | 17 | 0 | 27.9 | newseg-retail_store-retail-register-sales-guide | title | 見出しと本文の充実 |
+| インボイス制度 小売 | 16 | 0 | 19.3 | newseg-retail_store-retail-invoice-guide | title | 見出しと本文の充実 |
+| オンラインサロン 勘定科目 | 16 | 0 | 16.8 | newseg-content_seller-content-subscription-revenue-guide | title | 見出しと本文の充実 |
+| 特定課税仕入れ | 16 | 0 | 13.7 | shitsugi-shohi-26-01 | title | 見出しと本文の充実 |
+| オンラインサロン 会費 経費 | 9 | 0 | 22.6 | newseg-content_seller-content-subscription-revenue-guide | 本文 | 題名の見直し |
+| shopify 海外 消費税 | 8 | 0 | 16.8 | shopify-growth-overseas-tax-uncertain-practice | title | 見出しと本文の充実 |
+| オンラインサロン 税金 | 8 | 0 | 11.4 | newseg-content_seller-content-subscription-revenue-guide | 無し | h2 の追加 |
+| 一人親方 源泉徴収 | 8 | 0 | 16.8 | newseg-construction_solo-construction-withholding-received-guide | 無し | h2 の追加 |
+| アフィリエイト 法人化 メリット | 7 | 0 | 11.0 | affiliate-pr-incorporation-incorporation-threshold-guide | 本文 | 題名の見直し |
+| 一人親方 白色申告 帳簿 | 7 | 0 | 17.1 | newseg-construction_solo-construction-bookkeeping-guide | 無し | h2 の追加 |
+| kindle unlimited 確定申告 領収書 | 6 | 0 | 26.0 | newseg-content_seller-content-ebook-royalty-ebook-practice | 無し | 新記事の候補 |
+| インボイス 小売 | 6 | 0 | 23.3 | newseg-retail_store-retail-invoice-guide | title | 見出しと本文の充実 |
+| レジ インボイス | 6 | 0 | 29.8 | newseg-retail_store-retail-invoice-guide | 本文 | 題名の見直し |
+| 特定課税仕入とは | 6 | 0 | 18.8 | shitsugi-shohi-26-01 | 無し | h2 の追加 |
+
+## 狙った語の順位
+
+（対象の記事はまだありません）
 
 ## ページ別の上位30（クリック順）
 
@@ -132,15 +136,15 @@
   - 理由: No.6551「輸出取引の免税」が 2026-06-21 に更新（出典欄）
 - [eBay輸出で課税事業者になるべき？免税事業者との違いとメリット・デメリット](https://mori-zeirishi.net/blog/ebay-taxable-vs-exempt-business/) — スコア 6、表示 0 回
   - 理由: No.6501「納税義務の免除」が 2026-06-21 に更新（出典欄）
-- [YouTubeの副業収入と源泉徴収｜自分で判断するための処理ガイド](https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/) — スコア 5.79、表示 131 回
+- [YouTubeの収入に源泉徴収はある？AdSenseは原則なし・PR案件はあり｜副業の確定申告での処理](https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/) — スコア 5.79、表示 131 回
   - 理由: No.2792「源泉徴収が必要な報酬・料金等とは」が 2026-06-21 に更新（出典欄）
 - [個人事業主の社会保険｜国民健康保険・国民年金と扶養の誤解](https://mori-zeirishi.net/blog/general-sole-proprietor-social-insurance-misconceptions/) — スコア 5、表示 0 回
   - 理由: No.1191「配偶者控除」が 2026-06-21 に更新（出典欄）／「令和6年分」を含む（## 正しい理解：税は「所得」、社保は「加入制度」で見る）
 - [X（旧Twitter）の収入は事業所得？雑所得？売上拡大期の判断基準を整理する](https://mori-zeirishi.net/blog/influencer-general-growth-income-classification-guide/) — スコア 4.89、表示 58 回
   - 理由: No.1350「事業所得の課税のしくみ(事業所得)」が 2026-06-21 に更新（出典欄）
-- [サブスク・オンラインサロン収入の確定申告はどうする？計上と経費の基本](https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/) — スコア 3.82、表示 124 回
+- [オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期](https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/) — スコア 3.82、表示 124 回
   - 理由: 「令和4年分」を含む（## 記帳と帳簿保存の義務）
 - [1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説](https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/) — スコア 3.78、表示 122 回
   - 理由: 「令和5年分」を含む（## よくある間違い：こうして記帳・保存が後手に回る）
-- [電子書籍・Kindle印税の確定申告はどうする？収入の計上時期と仕訳を具体例で解説](https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/) — スコア 3.36、表示 69 回
-  - 理由: 「令和4年分」を含む（## 所得区分の判断：事業所得か雑所得か）
+- [アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理](https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/) — スコア 3.68、表示 97 回
+  - 理由: 「アフィリエイト 法人化」（表示37・17.1位）が題名に無い（所在: 本文）（題名）

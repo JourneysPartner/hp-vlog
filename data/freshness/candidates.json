@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-27T10:13:15.690Z",
+  "generatedAt": "2026-09-27T13:45:47.295Z",
   "candidates": [
     {
       "slug": "ebay-export-consumption-tax-refund-guide",
@@ -60,7 +60,7 @@
     {
       "slug": "youtube-side-business-withholding-treatment-guide",
       "url": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/",
-      "title": "YouTubeの副業収入と源泉徴収｜自分で判断するための処理ガイド",
+      "title": "YouTubeの収入に源泉徴収はある？AdSenseは原則なし・PR案件はあり｜副業の確定申告での処理",
       "score": 5.79,
       "impressions28d": 131,
       "reasons": [
@@ -107,7 +107,7 @@
     {
       "slug": "newseg-content_seller-content-subscription-revenue-guide",
       "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/",
-      "title": "サブスク・オンラインサロン収入の確定申告はどうする？計上と経費の基本",
+      "title": "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期",
       "score": 3.82,
       "impressions28d": 124,
       "reasons": [
@@ -129,6 +129,34 @@
           "kind": "fiscal_year",
           "detail": "「令和5年分」を含む",
           "where": "## よくある間違い：こうして記帳・保存が後手に回る"
+        }
+      ]
+    },
+    {
+      "slug": "affiliate-pr-incorporation-incorporation-threshold-guide",
+      "url": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/",
+      "title": "アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理",
+      "score": 3.68,
+      "impressions28d": 97,
+      "reasons": [
+        {
+          "kind": "seo_growable",
+          "detail": "「アフィリエイト 法人化」（表示37・17.1位）が題名に無い（所在: 本文）",
+          "where": "題名"
+        }
+      ]
+    },
+    {
+      "slug": "affiliate-pr-growth-invoice-judgement-guide",
+      "url": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/",
+      "title": "ブログ・アフィリエイト収入が伸びてきたらインボイス登録は必要？判断軸を整理",
+      "score": 3.58,
+      "impressions28d": 92,
+      "reasons": [
+        {
+          "kind": "seo_growable",
+          "detail": "「インボイス制度 アフィリエイト」（表示27・11.9位）が題名に無い（所在: 本文）",
+          "where": "題名"
         }
       ]
     },
@@ -394,34 +422,6 @@
         {
           "kind": "source_updated",
           "detail": "No.6501「納税義務の免除」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
-    {
-      "slug": "deepdive-influencer_creator-b2c-electronic-services-practice",
-      "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-b2c-electronic-services-practice/",
-      "title": "海外プラットフォームのB2C消費税、自分で申告が必要なケースはどれ？",
-      "score": 3,
-      "impressions28d": 0,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
-    {
-      "slug": "deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice",
-      "url": "https://mori-zeirishi.net/blog/deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice/",
-      "title": "一括償却資産（10万円以上20万円未満）をどう処理する？ケース別の判断ポイント",
-      "score": 3,
-      "impressions28d": 0,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2210「必要経費の知識」が 2026-06-21 に更新",
           "where": "出典欄"
         }
       ]

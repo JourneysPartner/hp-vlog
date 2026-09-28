@@ -16,7 +16,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const matter = require('gray-matter');
 const { readAllPosts } = require('./lib/site-corpus');
+const { normalizeQuery } = require('./lib/target-query');
+const { locateQuery } = require('./lib/query-placement');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_ROOT = path.join(ROOT, 'data', 'search-console');
@@ -84,6 +87,87 @@ function articleSlug(url) {
   const match = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (!match || ['macro', 'category', 'page'].includes(match[1])) return '';
   return match[1];
+}
+
+function isPublishedPost(meta, now = new Date()) {
+  if (!meta || meta.review_status !== 'published') return false;
+  if (!meta.publish_at) return true;
+  const publishAt = new Date(meta.publish_at);
+  return Number.isNaN(publishAt.getTime()) || publishAt <= now;
+}
+
+/** 公開中の記事本文を1回だけ読み、slug で引ける形にする。 */
+function readPublishedPostContents(postsDir = path.join(ROOT, 'content', 'posts'), now = new Date()) {
+  const contents = new Map();
+  if (!fs.existsSync(postsDir)) return contents;
+  for (const file of fs.readdirSync(postsDir).filter(name => name.endsWith('.md')).sort()) {
+    try {
+      const parsed = matter(fs.readFileSync(path.join(postsDir, file), 'utf8'));
+      if (!parsed.data.slug || !isPublishedPost(parsed.data, now)) continue;
+      const body = String(parsed.content || '');
+      const headings = [...body.matchAll(/^##\s+(.+)$/gm)].map(match => match[1].trim());
+      contents.set(String(parsed.data.slug), {
+        title: String(parsed.data.title || ''),
+        headings,
+        body,
+      });
+    } catch (_) {
+      // 1記事が壊れていても週次レポートは継続する。
+    }
+  }
+  return contents;
+}
+
+function contentForSlug(postContents, slug) {
+  if (postContents instanceof Map) return postContents.get(slug);
+  return postContents && postContents[slug];
+}
+
+function bestImpressionPage(query, queryPages) {
+  const key = normalizeQuery(query);
+  return (Array.isArray(queryPages) ? queryPages : [])
+    .filter(row => row && normalizeQuery(row.query) === key)
+    .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0)
+      || Number(a.position || Infinity) - Number(b.position || Infinity))[0] || null;
+}
+
+function growableDetails(queryRow, queryPages, postContents) {
+  if (!Array.isArray(queryPages)) return ['（不明）', '（不明）', '（不明）'];
+  const page = bestImpressionPage(queryRow.query, queryPages);
+  if (!page) return ['（不明）', '（不明）', '（不明）'];
+  const kind = pageKind(page.page);
+  if (kind !== '記事') return [kind, '（不明）', '該当ページの文面'];
+
+  const slug = articleSlug(page.page);
+  const content = contentForSlug(postContents, slug);
+  if (!slug || !content) return [slug || '（不明）', '（不明）', '（不明）'];
+  const location = locateQuery(queryRow.query, content);
+  const locationLabel = { title: 'title', h2: 'h2', body: '本文', none: '無し' }[location];
+  let recommendation = '題名の見直し';
+  if (location === 'title') recommendation = '見出しと本文の充実';
+  else if (location === 'none') recommendation = Number(queryRow.position || 0) <= 20 ? 'h2 の追加' : '新記事の候補';
+  return [slug, locationLabel, recommendation];
+}
+
+function buildTargetQuerySection(posts, queries) {
+  const targets = (Array.isArray(posts) ? posts : [])
+    .filter(post => post && post.target_query && isPublishedPost(post));
+  const lines = ['## 狙った語の順位', ''];
+  if (targets.length === 0) {
+    lines.push('（対象の記事はまだありません）');
+    return lines;
+  }
+  const rows = targets.map(post => {
+    const key = normalizeQuery(post.target_query);
+    const hit = (Array.isArray(queries) ? queries : [])
+      .filter(row => row && normalizeQuery(row.query) === key)
+      .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))[0];
+    return hit
+      ? [post.slug, post.target_query, pos(hit.position), n(hit.impressions), n(hit.clicks)]
+      : [post.slug, post.target_query, '表示なし', '0', '0'];
+  });
+  lines.push(table(['記事', '狙った語', '順位', '表示', 'クリック'], rows));
+  return lines;
 }
 
 function newlyIndexed(current, previous) {
@@ -223,6 +307,8 @@ function buildReport({
   posts = [],
   pickupConfig = {},
   freshnessCandidates = [],
+  queryPages = null,
+  postContents = new Map(),
 }) {
   const byImp = [...queries].sort((a, b) => b.impressions - a.impressions);
   const top30 = byImp.slice(0, 30);
@@ -263,8 +349,13 @@ function buildReport({
   lines.push('順位を上げればクリックが増えやすい語です。該当する記事・サービスページの見出しと本文を見直す候補になります。');
   lines.push('');
   lines.push(growable.length
-    ? table(['検索語', '表示', 'クリック', '順位'], growable.map(q => [q.query, n(q.impressions), n(q.clicks), pos(q.position)]))
+    ? table(['検索語', '表示', 'クリック', '順位', '該当ページ', '語の所在', '推奨'], growable.map(q => [
+      q.query, n(q.impressions), n(q.clicks), pos(q.position),
+      ...growableDetails(q, queryPages, postContents),
+    ]))
     : '（該当なし）');
+  lines.push('');
+  lines.push(...buildTargetQuerySection(posts, queries));
   lines.push('');
   lines.push('## ページ別の上位30（クリック順）');
   lines.push('');
@@ -307,6 +398,11 @@ function run(options = {}) {
   const latest = readJson(latestPath);
   const queries = readJson(path.join(outRoot, latest.files.queries)).rows;
   const pages = readJson(path.join(outRoot, latest.files.pages)).rows;
+  const queryPageRel = latest.files && latest.files['query-page'];
+  const queryPagePath = typeof queryPageRel === 'string' ? path.join(outRoot, queryPageRel) : '';
+  const queryPages = Array.isArray(queryPageRel)
+    ? queryPageRel
+    : (queryPagePath && fs.existsSync(queryPagePath) ? readJson(queryPagePath).rows : null);
   const currentDir = latest.files.queries.split('/')[0];
   const prevDir = previousDir(outRoot, currentDir);
   const previousQueries = prevDir && fs.existsSync(path.join(outRoot, prevDir, 'queries.json'))
@@ -331,6 +427,8 @@ function run(options = {}) {
   } catch (_) {
     freshnessCandidates = [];
   }
+  const posts = readAllPosts();
+  const postContents = readPublishedPostContents();
   const md = buildReport({
     latest,
     queries,
@@ -339,7 +437,9 @@ function run(options = {}) {
     indexStatus,
     previousIndexStatus: previousIndexEntry ? previousIndexEntry.data : null,
     indexHistory: indexSnapshots.map(entry => entry.data),
-    posts: readAllPosts(),
+    posts,
+    queryPages,
+    postContents,
     pickupConfig,
     freshnessCandidates,
   });
@@ -360,4 +460,9 @@ module.exports = {
   newlyIndexed,
   buildIndexStatusSection,
   buildFreshnessSection,
+  articleSlug,
+  readPublishedPostContents,
+  bestImpressionPage,
+  growableDetails,
+  buildTargetQuerySection,
 };
