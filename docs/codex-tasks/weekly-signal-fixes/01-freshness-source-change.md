@@ -17,6 +17,8 @@ taxanswer と shitsugi の両方の保存処理（`action === 'fetched'` のあ�
 
 「本文が変わった」の判定は、`body` を NFKC 正規化して空白をすべて除いた文字列同士の比較。`body` が無いデータ（shitsugi の形式が違う場合）は、その形式の本文に当たる項目で同じ比較をする。法令基準日は `law_version` の文字列比較（どちらかが空なら比較しない）。
 
+ただし、**既存と今回の `html_hash` がどちらもあって同じなら、本文が違っても改訂と数えない**（国税庁のページは同じで、こちらの読み取り処理の変更で本文の取り出し方が変わっただけ。2026-06-22 の parser 修正 #209 で相続の質疑応答 3 件がこれに当たった）。
+
 比較の関数は `scripts/lib/nta-content-change.js`（新規）に置き、`detectContentChange(existing, next, fetchedAt)` が上の 3 項目を返す形にする。非 incremental（全件取り直し）でも同じ関数を通すこと。全件取り直しで内容が同じなら `content_changed_at` は動かない。
 
 ### R2 索引に載せる（`scripts/lib/nta-index-builder.js`）
@@ -36,6 +38,7 @@ index.json の各項目に `first_fetched_at`・`content_changed_at`・`content_
 - 対象: `data/nta-sources/` の taxanswer・shitsugi の保存データ全件。
 - `first_fetched_at` が無い項目は、git 履歴でそのファイルが最初に追加されたコミットの版の `fetched_at` を入れる（`git log --diff-filter=A --format=%H -- <file>` と `git show <commit>:<file>`）。履歴が取れなければ現在の `fetched_at`。
 - `fetched_at` が最初の版の `fetched_at` と違う項目（＝あとで取り直した項目。2026-09-28 時点で 8/1 の 19 件程度）は、取り直し直前の版（`git log --format=%H -- <file>` で現在の 1 つ前の版）と R1 と同じ関数で比べ、変わっていれば `content_changed_at` と `content_change_kind` を入れる。
+- 何度実行しても同じ結果になること。すでに `content_changed_at` が入っている項目も毎回計算し直し、改訂でないと分かったものは `content_changed_at`・`content_change_kind` を消す（誤った値を補正し直せるように）。
 - 書き換えたあと、既存の索引生成（crawl-nta-sources.js が index.json を作るのと同じ関数）で `index.json` を作り直す。
 - `--dry-run` は書き込まず、補正する件数と、`content_changed_at` が付く項目の一覧（id・種類・日付・kind）を表示する。
 - git の読み取り（log/show）だけを使い、git への書き込みはしない。

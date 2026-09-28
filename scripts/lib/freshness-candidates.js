@@ -214,15 +214,15 @@ function sourceReason(post, sourceByUrl) {
     .map(url => sourceByUrl.get(normalizeUrl(url)))
     .filter(Boolean)
     .filter(entry => {
-      const changed = validDate(entry.fetched_at);
+      const changed = validDate(entry.content_changed_at);
       return changed && changed > published;
     })
-    .sort((a, b) => new Date(b.fetched_at) - new Date(a.fetched_at));
+    .sort((a, b) => new Date(b.content_changed_at) - new Date(a.content_changed_at));
   if (!matches.length) return null;
   const entry = matches[0];
   return {
     kind: 'source_updated',
-    detail: `${sourceLabel(entry)}が ${formatDate(entry.fetched_at)} に更新`,
+    detail: `${sourceLabel(entry)}の本文が ${formatDate(entry.content_changed_at)} に改訂${entry.content_change_kind === 'law_version' ? `（${entry.law_version} に更新）` : ''}`,
     where: '出典欄',
   };
 }
