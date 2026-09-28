@@ -105,7 +105,7 @@ jobs:
           fi
           if ! PR_URL=$(gh pr create --base main --head "$BRANCH" \
             --title "サーチコンソールの検索語を取り込み (${STAMP})" \
-            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。採用しない候補は削除せず `"status": "rejected"` を付けてください（削除すると翌週また提案されます）。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
             echo "::error::PR の作成に失敗しました"
             exit 0
           fi

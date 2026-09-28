@@ -1,6 +1,7 @@
 'use strict';
 
 const { locateQuery } = require('../query-placement');
+const fs = require('fs');
 
 let passed = 0;
 let failed = 0;
@@ -50,6 +51,23 @@ assert(locateQuery('インボイス 制度', {
 assert(locateQuery('EBAY TAX', {
   title: 'eBay Tax Guide', headings: [], body: '',
 }) === 'title', '英字の大文字小文字を区別しない');
+
+assert(locateQuery('簡易インボイス', { title: '適格簡易請求書の書き方' }) === 'title', '正式名称を通称と同じ語として扱う');
+assert(locateQuery('別の語', { title: '別の語の解説' }, { synonyms: [] }) === 'title', '同義語を指定しない語は従来どおり');
+const originalRead = fs.readFileSync;
+const modulePath = require.resolve('../query-placement');
+try {
+  fs.readFileSync = function(file, ...args) {
+    if (String(file).endsWith('query-synonyms.json')) throw Object.assign(new Error('見つかりません'), { code: 'ENOENT' });
+    return originalRead.call(this, file, ...args);
+  };
+  delete require.cache[modulePath];
+  const withoutFile = require('../query-placement').locateQuery;
+  assert(withoutFile('簡易インボイス', { title: '簡易インボイスの説明' }) === 'title', '同義語ファイルが無くても判定する');
+} finally {
+  fs.readFileSync = originalRead;
+  delete require.cache[modulePath];
+}
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

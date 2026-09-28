@@ -56,7 +56,7 @@ function toPoolTopic(topic) {
   };
 }
 
-let lastStats = { total: 0, included: 0, invalid: 0, disabled: false };
+let lastStats = { total: 0, included: 0, invalid: 0, rejected: 0, disabled: false };
 
 function expandGscTopics(options = {}) {
   const logger = options.logger === undefined ? console : options.logger;
@@ -65,6 +65,7 @@ function expandGscTopics(options = {}) {
     total: 0,
     included: 0,
     invalid: 0,
+    rejected: 0,
     disabled: process.env.DISABLE_GSC_TOPICS === 'true',
   };
   if (stats.disabled) {
@@ -93,6 +94,10 @@ function expandGscTopics(options = {}) {
       if (logger && typeof logger.warn === 'function') {
         logger.warn(`[gsc-topics] ${(topic && topic.slug) || '不明'} をスキップ: ${problem}`);
       }
+      continue;
+    }
+    if (topic.status === 'rejected') {
+      stats.rejected++;
       continue;
     }
     out.push(toPoolTopic(topic));

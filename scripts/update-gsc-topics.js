@@ -21,6 +21,8 @@ const { articleSlug, readPublishedPostContents } = require('./report-search-cons
 const ROOT = path.join(__dirname, '..');
 const SEARCH_ROOT = path.join(ROOT, 'data', 'search-console');
 const TOPICS_FILE = path.join(ROOT, 'data', 'gsc-topics.json');
+const ARTICLE_POSITION_MIN = 30;
+const NON_ARTICLE_POSITION_MIN = 20;
 
 function readJson(file, fallback = null) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
@@ -49,8 +51,10 @@ function queryVariantMatch(left, right) {
 
 function bestRankedPage(query, queryPages) {
   const key = normalizeQuery(query);
-  return (Array.isArray(queryPages) ? queryPages : [])
-    .filter(row => row && normalizeQuery(row.query) === key && row.page)
+  const rows = (Array.isArray(queryPages) ? queryPages : [])
+    .filter(row => row && normalizeQuery(row.query) === key && row.page);
+  const exact = rows.filter(row => String(row.query).trim() === String(query).trim());
+  return (exact.length ? exact : rows)
     .sort((a, b) => {
       const aPosition = Number(a.position) > 0 ? Number(a.position) : Infinity;
       const bPosition = Number(b.position) > 0 ? Number(b.position) : Infinity;
@@ -61,6 +65,20 @@ function bestRankedPage(query, queryPages) {
 function contentForSlug(postContents, slug) {
   if (postContents instanceof Map) return postContents.get(slug);
   return postContents && postContents[slug];
+}
+
+function resolveMergedSlug(slug, posts) {
+  const bySlug = new Map((Array.isArray(posts) ? posts : []).map(post => [post.slug, post]));
+  let current = slug;
+  const visited = new Set([slug]);
+  for (let depth = 0; depth < 5; depth++) {
+    const post = bySlug.get(current);
+    if (!post || post.review_status !== 'merged' || !post.merged_into) break;
+    if (visited.has(post.merged_into)) break;
+    current = post.merged_into;
+    visited.add(current);
+  }
+  return current;
 }
 
 function isKnownPhrase(query, topics) {
@@ -108,10 +126,12 @@ function extractGscCandidates({
     const slug = articleSlug(page.page);
     let location = 'none';
     if (slug) {
-      const content = contentForSlug(postContents, slug);
+      const content = contentForSlug(postContents, resolveMergedSlug(slug, posts));
       if (content) location = locateQuery(query, content);
     }
-    if (!(position > 20 || location === 'none' || !slug)) continue;
+    if (slug) {
+      if (!(position > ARTICLE_POSITION_MIN && location !== 'title' && location !== 'h2')) continue;
+    } else if (!(position > NON_ARTICLE_POSITION_MIN)) continue;
     individuals.push({
       query,
       impressions,
@@ -307,6 +327,7 @@ module.exports = {
   queryVariantMatch,
   bestRankedPage,
   extractGscCandidates,
+  resolveMergedSlug,
   selectTopics,
   loadInputs,
   formatPrSummary,
