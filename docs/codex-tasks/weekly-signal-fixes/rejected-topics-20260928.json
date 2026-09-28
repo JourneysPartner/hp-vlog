@@ -1,0 +1,99 @@
+[
+  {
+    "slug": "gsc-c41406d6",
+    "phrases": [
+      "簡易インボイス",
+      "簡易インボイス 業種",
+      "簡易 イン ボイス"
+    ],
+    "impressions": 49,
+    "position": 46.6,
+    "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/",
+    "persona": "retail_store",
+    "tax_domain": "invoice_system",
+    "category": "インボイス",
+    "article_type": "basic_explainer",
+    "primary_question": "簡易インボイス（適格簡易請求書）はどのような業種で発行できるのか？",
+    "reader_problem": "自分の店舗や事業が簡易インボイスの対象になるのか、通常の適格請求書と何が違うのか分からない。",
+    "selected_at": "2026-09-28T11:39:44.485Z",
+    "status": "rejected",
+    "rejected_at": "2026-09-28",
+    "reject_reason": "既存の小売インボイス記事（newseg-retail_store-retail-invoice-guide）が適格簡易請求書として同じ主題を扱う。新記事ではなく既存記事の題名・見出しに通称を足して対応"
+  },
+  {
+    "slug": "gsc-e1aabbba",
+    "phrases": [
+      "インボイス レジ"
+    ],
+    "impressions": 15,
+    "position": 29.8,
+    "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/",
+    "persona": "retail_store",
+    "tax_domain": "invoice_system",
+    "category": "インボイス",
+    "article_type": "comparison_decision",
+    "primary_question": "レジから発行するレシートをインボイスとして扱うには何が必要なのか？",
+    "reader_problem": "現在のレジやレシートがインボイスの記載要件を満たしているか判断できない。",
+    "selected_at": "2026-09-28T11:39:44.485Z",
+    "status": "rejected",
+    "rejected_at": "2026-09-28",
+    "reject_reason": "既存の小売インボイス記事が本文で扱い 30 位。簡易インボイスと同じ主題"
+  },
+  {
+    "slug": "gsc-807e1a0a",
+    "phrases": [
+      "経費 ガソリン代"
+    ],
+    "impressions": 18,
+    "position": 26.2,
+    "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-vehicle-expense-practice/",
+    "persona": "general_individual_proprietor",
+    "tax_domain": "bookkeeping_expenses",
+    "category": "帳簿・経費",
+    "article_type": "comparison_decision",
+    "primary_question": "事業で使用する車のガソリン代はどこまで経費にできるのか？",
+    "reader_problem": "事業用と私用の車を共用しているため、ガソリン代を全額または一部経費にできるか迷っている。",
+    "selected_at": "2026-09-28T11:39:44.485Z",
+    "status": "rejected",
+    "rejected_at": "2026-09-28",
+    "reject_reason": "既存の一人親方の車両費記事の題名に語があり 26 位。既存記事の充実が先"
+  },
+  {
+    "slug": "gsc-84aa8f59",
+    "phrases": [
+      "youtube 源泉徴収"
+    ],
+    "impressions": 17,
+    "position": 6.5,
+    "page": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-practice/",
+    "persona": "youtuber",
+    "tax_domain": "withholding",
+    "category": "源泉徴収",
+    "article_type": "basic_explainer",
+    "primary_question": "YouTubeの収益に源泉徴収税はかかるのか？",
+    "reader_problem": "YouTubeから受け取る広告収益や報酬について、源泉徴収の有無や確定申告への反映方法が分からない。",
+    "selected_at": "2026-09-28T11:39:44.485Z",
+    "status": "rejected",
+    "rejected_at": "2026-09-28",
+    "reject_reason": "統合済みの旧 URL が 6.5 位。残した記事（youtube-side-business-withholding-treatment-guide）が題名で答えている"
+  },
+  {
+    "slug": "gsc-8629efd5",
+    "phrases": [
+      "レジ 現金過不足"
+    ],
+    "impressions": 17,
+    "position": 27.9,
+    "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-register-sales-guide/",
+    "persona": "retail_store",
+    "tax_domain": "bookkeeping_expenses",
+    "category": "帳簿・経費",
+    "article_type": "case_study",
+    "primary_question": "レジで現金過不足が発生したときは帳簿上どのように処理すればよいのか？",
+    "reader_problem": "レジの実際の現金残高と帳簿残高が合わない場合に、適切な勘定科目や処理方法が分からない。",
+    "selected_at": "2026-09-28T11:39:44.485Z",
+    "status": "rejected",
+    "rejected_at": "2026-09-28",
+    "reject_reason": "既存の小売レジ売上記事の題名に語があり 28 位。既存記事の充実が先"
+  }
+]

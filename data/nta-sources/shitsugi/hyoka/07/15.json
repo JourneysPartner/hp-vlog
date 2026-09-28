@@ -43,5 +43,8 @@
       "sha256": "5d2bb51036df608ec07e6ae5823d3268f832183f426ec0e10b4a54acaa376913",
       "page_html_hash": "4520b37cb04a0a7ebf61829b1b211741ddb696cf4cfd755399efe5b60b98b7a0"
     }
-  ]
+  ],
+  "first_fetched_at": "2026-06-21T14:15:06.053Z",
+  "content_changed_at": "2026-08-01T16:23:04.878Z",
+  "content_change_kind": "law_version"
 }

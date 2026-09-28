@@ -9,6 +9,8 @@ const U = require(path.join(ROOT, 'scripts/update-gsc-topics'));
 const G = require(path.join(ROOT, 'scripts/lib/gsc-topics'));
 const SuggestUpdate = require(path.join(ROOT, 'scripts/update-suggest-topics'));
 const { enforceDemandKindDailyLimit } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
+const { readAllPosts } = require(path.join(ROOT, 'scripts/lib/site-corpus'));
+const { readPublishedPostContents } = require(path.join(ROOT, 'scripts/report-search-console'));
 
 let passed = 0;
 let failed = 0;
@@ -53,8 +55,8 @@ function qp(query, page, impressions, position) {
     ['article-position', { title: '別の題名', headings: [], body: '順位だけを解説します。' }],
   ]);
   const queries = [
-    { query: 'インボイス制度 レシート', impressions: 30, position: 15 },
-    { query: 'イン ボイス 制度 レシート', impressions: 24, position: 16 },
+    { query: 'インボイス制度 レシート', impressions: 30, position: 35 },
+    { query: 'イン ボイス 制度 レシート', impressions: 24, position: 36 },
     { query: '順位だけ', impressions: 20, position: 25 },
     { query: 'サービス候補', impressions: 15, position: 5 },
     { query: '最上位判定', impressions: 14, position: 10 },
@@ -65,12 +67,12 @@ function qp(query, page, impressions, position) {
     { query: '記事内語', impressions: 20, position: 15 },
   ];
   const queryPages = [
-    qp('インボイス制度 レシート', 'https://mori-zeirishi.net/blog/article-a/', 30, 15),
-    qp('イン ボイス 制度 レシート', 'https://mori-zeirishi.net/blog/article-a/', 24, 16),
+    qp('インボイス制度 レシート', 'https://mori-zeirishi.net/blog/article-a/', 30, 35),
+    qp('イン ボイス 制度 レシート', 'https://mori-zeirishi.net/blog/article-a/', 24, 36),
     qp('順位だけ', 'https://mori-zeirishi.net/blog/article-position/', 20, 25),
-    qp('サービス候補', 'https://mori-zeirishi.net/services/bookkeeping/', 15, 5),
-    qp('最上位判定', 'https://mori-zeirishi.net/blog/article-a/', 100, 25),
-    qp('最上位判定', 'https://mori-zeirishi.net/services/bookkeeping/', 1, 10),
+    qp('サービス候補', 'https://mori-zeirishi.net/services/bookkeeping/', 15, 25),
+    qp('最上位判定', 'https://mori-zeirishi.net/blog/article-a/', 100, 35),
+    qp('最上位判定', 'https://mori-zeirishi.net/services/bookkeeping/', 1, 25),
     qp('対象済み', 'https://mori-zeirishi.net/blog/article-a/', 50, 25),
     qp('既出語', 'https://mori-zeirishi.net/blog/article-a/', 40, 25),
     qp('定額減税 2024', 'https://mori-zeirishi.net/blog/article-a/', 30, 25),
@@ -86,7 +88,7 @@ function qp(query, page, impressions, position) {
   const invoice = extracted.find(item => item.phrases.includes('インボイス制度 レシート'));
   assert(invoice && invoice.phrases.length === 2 && invoice.impressions === 54,
     'normalizeQuery またはトークン包含で表記ゆれを1件にまとめる');
-  assert(extracted.some(item => item.phrases.includes('順位だけ')), '最上位ページが20位超なら対象');
+  assert(!extracted.some(item => item.phrases.includes('順位だけ')), '記事25位で本文所在なら対象外');
   assert(extracted.some(item => item.phrases.includes('サービス候補')), '最上位ページが記事以外なら対象');
   assert(extracted.find(item => item.phrases.includes('最上位判定')).page.includes('/services/'),
     '最上位ページは表示回数でなく順位で決める');
@@ -95,6 +97,43 @@ function qp(query, page, impressions, position) {
   assert(!extracted.some(item => item.phrases.includes('定額減税 2024')), 'denylist に当たる語を除外');
   assert(!extracted.some(item => item.phrases.includes('表示不足')), '表示10回未満を除外');
   assert(!extracted.some(item => item.phrases.includes('記事内語')), '順位20位以内で記事内に語があれば除外');
+  const cases = [
+    ['本文35', 35, 'body', true], ['題名35', 35, 'title', false],
+    ['見出し35', 35, 'h2', false], ['本文30', 30, 'body', false],
+  ];
+  for (const [query, position, location, expected] of cases) {
+    const content = { title: location === 'title' ? query : '', headings: location === 'h2' ? [query] : [], body: location === 'body' ? query : '' };
+    const found = U.extractGscCandidates({ queries: [{ query, impressions: 20 }], queryPages: [qp(query, 'https://mori-zeirishi.net/blog/test/', 20, position)], posts: [post('test')], postContents: new Map([['test', content]]) });
+    assert(Boolean(found.length) === expected, `記事${position}位・所在${location}の境界`);
+  }
+  const mergedPosts = [post('old', { review_status: 'merged', merged_into: 'middle' }), post('middle', { review_status: 'merged', merged_into: 'final' }), post('final')];
+  const mergedQuery = 'youtube 源泉徴収';
+  const merged = U.extractGscCandidates({ queries: [{ query: mergedQuery, impressions: 17 }], queryPages: [qp(mergedQuery, 'https://mori-zeirishi.net/blog/old/', 17, 6.5)], posts: mergedPosts, postContents: new Map([['final', { title: 'youtube 源泉徴収', headings: [], body: '' }]]) });
+  assert(merged.length === 0 && U.resolveMergedSlug('old', mergedPosts) === 'final', '統合連鎖を最終公開記事までたどる');
+  const mergedAt35 = U.extractGscCandidates({ queries: [{ query: mergedQuery, impressions: 17 }], queryPages: [qp(mergedQuery, 'https://mori-zeirishi.net/blog/old/', 17, 35)], posts: mergedPosts, postContents: new Map([['final', { title: 'youtube 源泉徴収', headings: [], body: '' }]]) });
+  assert(mergedAt35.length === 0, '統合先の題名が一致すれば35位でも候補にしない');
+  const mergedBody = U.extractGscCandidates({ queries: [{ query: mergedQuery, impressions: 17 }], queryPages: [qp(mergedQuery, 'https://mori-zeirishi.net/blog/old/', 17, 35)], posts: mergedPosts, postContents: new Map([['final', { title: '', headings: [], body: mergedQuery }]]) });
+  assert(mergedBody.length === 1 && mergedBody[0].page.endsWith('/old/'), '候補には Google 上の旧 URL を残す');
+  assert(U.resolveMergedSlug('old', [post('old', { review_status: 'merged', merged_into: 'middle' }), post('middle', { review_status: 'merged', merged_into: 'old' })]) === 'middle', '統合循環で停止する');
+  const rejected = U.extractGscCandidates({ queries: [{ query: '却下語', impressions: 20 }], queryPages: [qp('却下語', 'https://mori-zeirishi.net/services/bookkeeping/', 20, 35)], existingTopics: [{ phrases: ['却下語'], status: 'rejected' }] });
+  assert(rejected.length === 0, '却下候補の語を再提案しない');
+  const realInputs = U.loadInputs();
+  const documented = new Set(['youtube 源泉徴収', 'レジ 現金過不足', '経費 ガソリン代', '確定申告 帳簿', '人工代', '簡易インボイス', 'インボイス レジ']);
+  const realCandidates = U.extractGscCandidates({
+    queries: realInputs.queries.filter(row => documented.has(row.query)),
+    queryPages: realInputs.queryPages,
+    posts: readAllPosts(),
+    postContents: readPublishedPostContents(),
+    existingTopics: [],
+    denylist: { entries: [] },
+  });
+  assert(realCandidates.length === 1 && realCandidates[0].phrases[0] === 'インボイス レジ' && realCandidates[0].position === 30.1,
+    '20260928 の指示書掲載7語はインボイス レジだけが残る');
+  const rejectedFixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/codex-tasks/weekly-signal-fixes/rejected-topics-20260928.json'), 'utf8'));
+  const actualTopics = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/gsc-topics.json'), 'utf8'));
+  assert(actualTopics.version === 1 && actualTopics.updated_at === '2026-09-28T11:39:44.485Z'
+    && rejectedFixture.length === 5 && rejectedFixture.every(expected => JSON.stringify(actualTopics.topics.find(item => item.slug === expected.slug)) === JSON.stringify(expected)),
+  '今週の却下5件を既存メタデータを変えずに記録する');
 
   console.log('\n=== 2. 偽 LLM での選別・検証・既存保持 ===');
   const retained = {
@@ -162,6 +201,8 @@ function qp(query, page, impressions, position) {
   assert(G.validateTopic({ ...accepted, article_type: '不明' }).includes('article_type'), 'article_type の許容値を検証する');
   assert(G.validateTopic({ ...accepted, phrases: [] }).includes('検索語'), 'phrases 必須を検証する');
   assert(G.validateTopic({ ...accepted, primary_question: '' }).includes('企画メタ'), '企画メタ必須を検証する');
+  fs.writeFileSync(TOPICS_FILE, JSON.stringify({ version: 1, topics: [retained, { ...accepted, status: 'rejected' }, { ...accepted, slug: 'gsc-invalid', status: 'rejected', phrases: [] }] }), 'utf8');
+  assert(G.expandGscTopics({ topicsFile: TOPICS_FILE, logger: null }).length === 1 && G.getLastGscStats().rejected === 1 && G.getLastGscStats().invalid === 1, '却下を生成から除外し、壊れた却下候補は invalid とする');
   process.env.DISABLE_GSC_TOPICS = 'true';
   assert(G.expandGscTopics({ topicsFile: TOPICS_FILE, logger: null }).length === 0, 'DISABLE_GSC_TOPICS=true で空を返す');
   delete process.env.DISABLE_GSC_TOPICS;

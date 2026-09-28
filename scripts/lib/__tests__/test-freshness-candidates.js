@@ -95,9 +95,15 @@ console.log('=== 1. 4 種の信号の一致・不一致 ===');
     id: '6551', type: 'taxanswer', title: '輸出取引の免税',
     url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
     fetched_at: '2026-09-10T00:00:00Z',
+    content_changed_at: '2026-09-10T00:00:00Z',
+    content_change_kind: 'law_version',
+    law_version: '令和8年4月1日現在法令等',
   }];
   const result = freshness.buildCandidates(inputs([matching, notMatching], { sources }), { now: NOW });
-  assert(kinds(result.find(item => item.slug === 'source-match')).includes('source_updated'), '出典 URL が一致し、取得日が公開日より後なら一致');
+  assert(kinds(result.find(item => item.slug === 'source-match')).includes('source_updated'), '出典 URL が一致し、内容改訂日が公開日より後なら一致');
+  assert(result.find(item => item.slug === 'source-match').reasons.some(reason => reason.detail === 'No.6551「輸出取引の免税」の本文が 2026-09-10 に改訂（令和8年4月1日現在法令等 に更新）' && reason.where === '出典欄'), '法令基準日の文言を表示する');
+  const fetchedOnly = freshness.buildCandidates(inputs([matching], { sources: [{ ...sources[0], content_changed_at: null }] }), { now: NOW });
+  assert(!fetchedOnly.some(item => kinds(item).includes('source_updated')), '取得日だけが新しくても出典更新としない');
   assert(!result.some(item => item.slug === 'source-no-match'), '出典 URL が違えば不一致');
 
   const reformMatch = post('reform-match', {
@@ -197,7 +203,7 @@ console.log('\n=== 3. 重み・表示順位係数・物販中核 ===');
     body: '## 改正\n適格請求書等保存方式に係る経過措置の見直し。令和7年分です。',
   });
   const combined = freshness.buildCandidates(inputs([allSignals], {
-    sources: [{ url: 'https://www.nta.go.jp/example', fetched_at: '2026-09-10T00:00:00Z' }],
+    sources: [{ url: 'https://www.nta.go.jp/example', fetched_at: '2026-09-10T00:00:00Z', content_changed_at: '2026-09-10T00:00:00Z' }],
     reform: REFORM,
     searchSnapshots: [
       snapshot({ 'all-signals': 100 }), snapshot({ 'all-signals': 80 }),

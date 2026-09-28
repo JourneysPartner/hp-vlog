@@ -67,6 +67,7 @@ function readAllPosts() {
       article_type:     fm.article_type || '',
       article_role:     fm.article_role || '',
       review_status:    fm.review_status || '',
+      merged_into:      fm.merged_into || '',
       summary:          fm.summary || '',
       search_intent:    fm.search_intent || '',
       reader_problem:   fm.reader_problem || '',
