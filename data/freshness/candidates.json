@@ -1,48 +1,6 @@
 {
-  "generatedAt": "2026-09-27T13:45:47.295Z",
+  "generatedAt": "2026-09-28T11:39:23.813Z",
   "candidates": [
-    {
-      "slug": "ebay-export-consumption-tax-refund-guide",
-      "url": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-guide/",
-      "title": "eBay輸出の消費税還付とは？仕組み・条件・申請手順をわかりやすく解説",
-      "score": 6,
-      "impressions28d": 0,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6551「輸出取引の免税」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
-    {
-      "slug": "ebay-shouhizei-kanpu-kihon",
-      "url": "https://mori-zeirishi.net/blog/ebay-shouhizei-kanpu-kihon/",
-      "title": "eBay輸出セラーが知っておくべき消費税還付の基本と手続きの流れ",
-      "score": 6,
-      "impressions28d": 0,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6551「輸出取引の免税」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
-    {
-      "slug": "ebay-tax-refund-required-documents",
-      "url": "https://mori-zeirishi.net/blog/ebay-tax-refund-required-documents/",
-      "title": "eBayセラーが消費税還付申告で必要な書類一覧と準備のコツ",
-      "score": 6,
-      "impressions28d": 0,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6551「輸出取引の免税」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
     {
       "slug": "ebay-taxable-vs-exempt-business",
       "url": "https://mori-zeirishi.net/blog/ebay-taxable-vs-exempt-business/",
@@ -62,7 +20,7 @@
       "url": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/",
       "title": "YouTubeの収入に源泉徴収はある？AdSenseは原則なし・PR案件はあり｜副業の確定申告での処理",
       "score": 5.79,
-      "impressions28d": 131,
+      "impressions28d": 130,
       "reasons": [
         {
           "kind": "source_updated",
@@ -95,7 +53,21 @@
       "url": "https://mori-zeirishi.net/blog/influencer-general-growth-income-classification-guide/",
       "title": "X（旧Twitter）の収入は事業所得？雑所得？売上拡大期の判断基準を整理する",
       "score": 4.89,
-      "impressions28d": 58,
+      "impressions28d": 57,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」が 2026-06-21 に更新",
+          "where": "出典欄"
+        }
+      ]
+    },
+    {
+      "slug": "hair-salon-pre-opening-cash-management-practice",
+      "url": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/",
+      "title": "美容室の現金売上、どう管理すればいい？実務でつまずかないための処理ポイント",
+      "score": 3.78,
+      "impressions28d": 15,
       "reasons": [
         {
           "kind": "source_updated",
@@ -108,8 +80,8 @@
       "slug": "newseg-content_seller-content-subscription-revenue-guide",
       "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/",
       "title": "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期",
-      "score": 3.82,
-      "impressions28d": 124,
+      "score": 3.76,
+      "impressions28d": 118,
       "reasons": [
         {
           "kind": "fiscal_year",
@@ -122,8 +94,8 @@
       "slug": "newseg-construction_solo-construction-bookkeeping-guide",
       "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
       "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
-      "score": 3.78,
-      "impressions28d": 122,
+      "score": 3.72,
+      "impressions28d": 115,
       "reasons": [
         {
           "kind": "fiscal_year",
@@ -136,26 +108,12 @@
       "slug": "affiliate-pr-incorporation-incorporation-threshold-guide",
       "url": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/",
       "title": "アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理",
-      "score": 3.68,
-      "impressions28d": 97,
+      "score": 3.64,
+      "impressions28d": 95,
       "reasons": [
         {
           "kind": "seo_growable",
-          "detail": "「アフィリエイト 法人化」（表示37・17.1位）が題名に無い（所在: 本文）",
-          "where": "題名"
-        }
-      ]
-    },
-    {
-      "slug": "affiliate-pr-growth-invoice-judgement-guide",
-      "url": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/",
-      "title": "ブログ・アフィリエイト収入が伸びてきたらインボイス登録は必要？判断軸を整理",
-      "score": 3.58,
-      "impressions28d": 92,
-      "reasons": [
-        {
-          "kind": "seo_growable",
-          "detail": "「インボイス制度 アフィリエイト」（表示27・11.9位）が題名に無い（所在: 本文）",
+          "detail": "「アフィリエイト 法人化」（表示35・16.8位）が題名に無い（所在: 本文）",
           "where": "題名"
         }
       ]
@@ -164,8 +122,8 @@
       "slug": "newseg-content_seller-content-ebook-royalty-ebook-practice",
       "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/",
       "title": "電子書籍・Kindle印税の確定申告はどうする？収入の計上時期と仕訳を具体例で解説",
-      "score": 3.36,
-      "impressions28d": 69,
+      "score": 3.54,
+      "impressions28d": 92,
       "reasons": [
         {
           "kind": "fiscal_year",
@@ -175,30 +133,16 @@
       ]
     },
     {
-      "slug": "hair-salon-pre-opening-cash-management-practice",
-      "url": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/",
-      "title": "美容室の現金売上、どう管理すればいい？実務でつまずかないための処理ポイント",
-      "score": 3.33,
-      "impressions28d": 8,
+      "slug": "affiliate-pr-growth-invoice-judgement-guide",
+      "url": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/",
+      "title": "ブログ・アフィリエイト収入が伸びてきたらインボイス登録は必要？判断軸を整理",
+      "score": 3.48,
+      "impressions28d": 88,
       "reasons": [
         {
-          "kind": "source_updated",
-          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」が 2026-06-21 に更新",
-          "where": "出典欄"
-        }
-      ]
-    },
-    {
-      "slug": "newseg-content_seller-content-note-revenue-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
-      "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
-      "score": 3.16,
-      "impressions28d": 51,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和7年分」を含む",
-          "where": "## まず結論"
+          "kind": "seo_growable",
+          "detail": "「インボイス制度 アフィリエイト」（表示25・11.8位）が題名に無い（所在: 本文）",
+          "where": "題名"
         }
       ]
     },
@@ -220,13 +164,27 @@
       "slug": "deepdive-influencer_creator-creator-royalty-income-guide",
       "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-creator-royalty-income-guide/",
       "title": "印税・版権収入の確定申告はどうする？所得区分と源泉徴収の扱いを解説",
-      "score": 3.08,
-      "impressions28d": 45,
+      "score": 3.12,
+      "impressions28d": 46,
       "reasons": [
         {
           "kind": "fiscal_year",
           "detail": "「令和4年分」を含む",
           "where": "## 所得区分：事業所得か雑所得か"
+        }
+      ]
+    },
+    {
+      "slug": "newseg-content_seller-content-note-revenue-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
+      "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
+      "score": 3.02,
+      "impressions28d": 44,
+      "reasons": [
+        {
+          "kind": "fiscal_year",
+          "detail": "「令和7年分」を含む",
+          "where": "## まず結論"
         }
       ]
     },
@@ -422,6 +380,48 @@
         {
           "kind": "source_updated",
           "detail": "No.6501「納税義務の免除」が 2026-06-21 に更新",
+          "where": "出典欄"
+        }
+      ]
+    },
+    {
+      "slug": "deepdive-influencer_creator-b2c-electronic-services-practice",
+      "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-b2c-electronic-services-practice/",
+      "title": "海外プラットフォームのB2C消費税、自分で申告が必要なケースはどれ？",
+      "score": 3,
+      "impressions28d": 0,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」が 2026-06-21 に更新",
+          "where": "出典欄"
+        }
+      ]
+    },
+    {
+      "slug": "deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice",
+      "url": "https://mori-zeirishi.net/blog/deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice/",
+      "title": "一括償却資産（10万円以上20万円未満）をどう処理する？ケース別の判断ポイント",
+      "score": 3,
+      "impressions28d": 0,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」が 2026-06-21 に更新",
+          "where": "出典欄"
+        }
+      ]
+    },
+    {
+      "slug": "deepdive-reseller_marketplace_seller-small-depreciation-special-guide",
+      "url": "https://mori-zeirishi.net/blog/deepdive-reseller_marketplace_seller-small-depreciation-special-guide/",
+      "title": "少額減価償却資産の特例、フリマ・転売セラーはどう使う？対象判定から上限管理まで",
+      "score": 3,
+      "impressions28d": 0,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」が 2026-06-21 に更新",
           "where": "出典欄"
         }
       ]

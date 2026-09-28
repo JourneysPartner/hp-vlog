@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "slug": "gsc-c41406d6",
+      "phrases": [
+        "簡易インボイス",
+        "簡易インボイス 業種",
+        "簡易 イン ボイス"
+      ],
+      "impressions": 49,
+      "position": 46.6,
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/",
+      "persona": "retail_store",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "basic_explainer",
+      "primary_question": "簡易インボイス（適格簡易請求書）はどのような業種で発行できるのか？",
+      "reader_problem": "自分の店舗や事業が簡易インボイスの対象になるのか、通常の適格請求書と何が違うのか分からない。",
+      "selected_at": "2026-09-28T11:39:44.485Z"
+    }
+  ],
+  "updated_at": "2026-09-28T11:39:44.485Z"
+}
