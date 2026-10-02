@@ -1,7 +1,7 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
-const { sendNotification } = require('./lib/notify');
+const githubApi = require('./lib/github-api');
+const notify = require('./lib/notify');
 const { appendEntries } = require('./lib/denylist-store');
 const { buildEntriesFromContext } = require('../../scripts/lib/denylist');
 
@@ -17,7 +17,17 @@ const { buildEntriesFromContext } = require('../../scripts/lib/denylist');
  * 3. Chatwork に見送り完了通知
  */
 
-exports.handler = async (event) => {
+async function handler(event, injected = {}) {
+  const getFile = injected.getFile || githubApi.getFile;
+  const putFile = injected.putFile || githubApi.putFile;
+  const updateFrontmatter = injected.updateFrontmatter || githubApi.updateFrontmatter;
+  const nowJST = injected.nowJST || githubApi.nowJST;
+  const findPR = injected.findPR || githubApi.findPR;
+  const closePR = injected.closePR || githubApi.closePR;
+  const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
+  const extractFmField = injected.extractFmField || githubApi.extractFmField;
+  const readjustPublishSlots = injected.readjustPublishSlots || githubApi.readjustPublishSlots;
+  const sendNotification = injected.sendNotification || notify.sendNotification;
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
@@ -74,6 +84,14 @@ exports.handler = async (event) => {
         }
       } catch (closeErr) {
         console.error(`[review-skip] PR クローズ失敗: ${closeErr.message}`);
+      }
+      if (ref.startsWith('draft/refresh-')) {
+        try {
+          await deleteBranch(ref);
+          console.log('[review-skip] 更新案ブランチを削除しました');
+        } catch (_) {
+          console.error('[review-skip] 更新案ブランチの削除に失敗しました');
+        }
       }
     }
 
@@ -133,4 +151,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: err.message }),
     };
   }
-};
+}
+
+exports.handler = event => handler(event);
+exports._handler = handler;

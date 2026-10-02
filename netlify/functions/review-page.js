@@ -4,7 +4,8 @@ const fs   = require('fs');
 const path = require('path');
 
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
-const { getFile } = require('./lib/github-api');
+const githubApi = require('./lib/github-api');
+const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -43,8 +44,35 @@ function parseFrontmatter(raw) {
 // getFile は { content, sha } を返すので content を取り出す。
 async function fetchPostFromGitHub(filename, ref) {
   const filepath = `content/posts/${filename}`;
-  const { content } = await getFile(filepath, ref || undefined);
+  const { content } = await githubApi.getFile(filepath, ref || undefined);
   return content;
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderRefreshDiff(refreshContext, marked) {
+  if (!refreshContext || !refreshContext.available) {
+    return `<div class="alert alert-warning" role="alert">${escapeHtml(refreshContext && refreshContext.message || '公開中の記事を取得できませんでした。更新案を承認できません。')}</div>`;
+  }
+  if (!refreshContext.diff.length) {
+    return '<div class="alert alert-info" role="status">変更箇所を検出できませんでした。</div>';
+  }
+  const renderSide = (paragraphs) => paragraphs.map(row => {
+    const style = row.changed ? 'background:#fff0d4;border-left:4px solid #e6851a;padding:.55rem .75rem;margin:.45rem 0' : 'padding:.55rem .75rem;margin:.45rem 0';
+    const html = marked(row.text).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+    return `<div style="${style}">${html}</div>`;
+  }).join('') || '<p class="text-muted">（段落なし）</p>';
+  return `<div class="refresh-diff-list">${refreshContext.diff.map(section => `
+    <section class="card mb-3"><div class="card-header fw-bold">${escapeHtml(section.heading)}</div>
+      <div class="card-body"><div class="row g-3">
+        <div class="col-md-6"><h4 class="h6">変更前</h4>${renderSide(section.changedParagraphs.before)}</div>
+        <div class="col-md-6"><h4 class="h6">変更後</h4>${renderSide(section.changedParagraphs.after)}</div>
+      </div></div>
+    </section>`).join('')}</div>`;
 }
 
 // ── GitHub App 認証情報が揃っているか事前チェック ────────────────────
@@ -62,7 +90,7 @@ function assertGitHubCredentials() {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd, ref) {
+function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null) {
   const title      = meta.title      || '（タイトル未設定）';
   const summary    = meta.summary    || '';
   const sourceUrl  = meta.source_url || '';
@@ -71,6 +99,18 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   const publishAt  = meta.publish_at || '';
   const status     = meta.review_status || 'needs_review';
   const category   = meta.category   || '';
+  const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
+  const approvalDisabled = isRefresh && !(refreshContext && refreshContext.available);
+  const expiredTheme = isRefresh && freshnessRefresh.isExpiredRefreshTheme(meta);
+  const refreshBanner = isRefresh ? `
+  <div class="alert alert-primary" role="status">
+    公開中の記事の更新案です。承認すると、すぐに公開中の記事へ反映されます（公開日は変わらず、更新日が付きます）。
+    <div>反映されるのは本文だけです。題名・要約・公開日・出典欄は公開中の記事のまま変わりません。</div>
+    ${meta.refresh_note ? `<div class="mt-2"><strong>更新理由:</strong> ${escapeHtml(meta.refresh_note)}</div>` : ''}
+  </div>
+  ${expiredTheme ? '<div class="alert alert-warning" role="alert">期限切れのテーマです。更新ではなく公開停止も検討してください</div>' : ''}
+  ${!meta.source_guard_version ? `<div class="alert alert-warning" role="alert">出典確認の仕組みができる前の記事です（出典: ${escapeHtml(meta.source_url || '未設定')}）。出典との食い違いが無いかを特に見てください。</div>` : ''}
+  <div class="card mb-4"><div class="card-header bg-white fw-bold">変更箇所</div><div class="card-body">${renderRefreshDiff(refreshContext, require('marked').marked)}</div></div>` : '';
 
   // ── 顧客カテゴリ・適合スコア（Phase 3b）─────────────────────────
   const customerSegment = meta.customer_segment || '';
@@ -173,6 +213,8 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
 
 <div class="container py-4">
 
+  ${refreshBanner}
+
   <!-- メタ情報カード -->
   <div class="card mb-4">
     <div class="card-body">
@@ -194,14 +236,14 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
             <th>プレビューURL</th>
             <td>${previewUrl ? `<a href="${previewUrl}" target="_blank" rel="noopener">${previewUrl} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
           </tr>
-          <tr>
+          ${isRefresh ? '' : `<tr>
             <th>公開日時（任意）</th>
             <td>
               <input type="datetime-local" id="publishAt" class="form-control form-control-sm" style="max-width:280px"
                 value="${publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : ''}">
               <small class="text-muted">未入力の場合は翌日 11:30 に自動設定されます</small>
             </td>
-          </tr>
+          </tr>`}
           <tr><th>ファイル</th><td><code>${filename}</code></td></tr>
         </tbody>
       </table>
@@ -222,7 +264,7 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       <label for="reviewComment" class="form-label fw-bold">修正コメント</label>
       <textarea id="reviewComment" class="form-control" rows="4"
         placeholder="修正してほしい内容を具体的に記入してください…"></textarea>
-      <div class="form-check mt-3">
+      ${isRefresh ? '' : `<div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="suppressTopic">
         <label class="form-check-label" for="suppressTopic">
           このテーマを<strong>今後生成しない</strong>（denylist に追加 / 再生成もスキップ）
@@ -230,7 +272,7 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       </div>
       <div class="form-text">
         コメントに「今後…書かないでください」「もう生成しないでください」等の文言があれば、自動で禁止登録されます。
-      </div>
+      </div>`}
     </div>
   </div>
 
@@ -241,8 +283,8 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
 <!-- 操作ボタン (sticky bottom) -->
 <div class="action-section">
   <div class="container d-flex flex-wrap gap-2 justify-content-center">
-    <button class="btn btn-approve btn-lg px-4" id="btnApprove" onclick="handleAction('approve')">
-      <i class="bi bi-check-circle me-1"></i>このまま公開
+    <button class="btn btn-approve btn-lg px-4" id="btnApprove" onclick="handleAction('approve')"${approvalDisabled ? ' disabled' : ''}>
+      <i class="bi bi-check-circle me-1"></i>${isRefresh ? '更新を反映する' : 'このまま公開'}
     </button>
     <button class="btn btn-revise btn-lg px-4" id="btnRevise" onclick="toggleRevise()">
       <i class="bi bi-pencil me-1"></i>差し戻し
@@ -250,15 +292,16 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
     <button class="btn btn-skip btn-lg px-4" id="btnSkip" onclick="handleAction('skip')">
       <i class="bi bi-skip-forward me-1"></i>今回は見送り
     </button>
-    <button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" onclick="handleAction('skip', true)" title="このテーマを今後生成しない設定にしたうえで見送る">
+    ${isRefresh ? '' : `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" onclick="handleAction('skip', true)" title="このテーマを今後生成しない設定にしたうえで見送る">
       <i class="bi bi-slash-circle me-1"></i>見送り＋今後このテーマを生成しない
-    </button>
+    </button>`}
   </div>
 </div>
 
 <script>
 const FILENAME = ${JSON.stringify(filename)};
 const REF = ${JSON.stringify(ref || '')};
+const IS_REFRESH = ${JSON.stringify(isRefresh)};
 const FUNC_BASE = '/.netlify/functions';
 
 function toggleRevise() {
@@ -276,7 +319,8 @@ function toggleRevise() {
 }
 
 async function handleAction(action, forceSuppress) {
-  const publishAt = document.getElementById('publishAt').value;
+  const publishInput = document.getElementById('publishAt');
+  const publishAt = publishInput ? publishInput.value : '';
   const comment   = document.getElementById('reviewComment').value;
   const resultEl  = document.getElementById('resultMsg');
   const suppressCheckbox = document.getElementById('suppressTopic');
@@ -322,7 +366,9 @@ async function handleAction(action, forceSuppress) {
         ? '\\n※このテーマは今後生成しない設定に登録しました（' + data.denylistAdded.length + ' 件）。再生成も自動でスキップされます。'
         : '';
       if (action === 'approve') {
-        resultEl.textContent = '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
+        resultEl.textContent = IS_REFRESH
+          ? '公開中の記事へ反映しています。数分後にサイトに出ます。'
+          : '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
         resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
       } else if (action === 'skip') {
@@ -396,10 +442,28 @@ exports.handler = async (event) => {
       .replace(/<table>/g, '<div class="table-wrapper"><table>')
       .replace(/<\/table>/g, '</table></div>');
 
+    let refreshContext = null;
+    if (meta.refresh_of === 'published' || ref.startsWith('draft/refresh-')) {
+      try {
+        const mainRaw = await fetchPostFromGitHub(filename, 'main');
+        const mainArticle = parseFrontmatter(mainRaw);
+        if (mainArticle.meta.review_status !== 'published') {
+          refreshContext = { available: false, message: '公開中ではなくなった記事です。更新案を承認できません。' };
+        } else {
+          refreshContext = {
+            available: true,
+            diff: freshnessRefresh.diffSections(mainArticle.body, body),
+          };
+        }
+      } catch (_) {
+        refreshContext = { available: false, message: '公開中の記事を取得できませんでした。更新案を承認できません。' };
+      }
+    }
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml, ref),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext),
     };
   } catch (err) {
     const msg = String(err && err.message || err);
@@ -440,3 +504,6 @@ exports.handler = async (event) => {
     };
   }
 };
+
+exports.renderReviewPage = renderReviewPage;
+exports.parseFrontmatter = parseFrontmatter;

@@ -6,6 +6,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const freshness = require('../freshness-candidates');
+const refreshPlan = require('../freshness-refresh');
 const builder = require('../../build-freshness-candidates');
 const reporter = require('../../report-search-console');
 const notifier = require('../../notify-freshness-candidates');
@@ -308,6 +309,70 @@ console.log('\n=== 8. 週次ワークフロー ===');
     'GSC 候補と新規候補の表を週次 PR に載せる');
   const noKeyBranch = workflow.slice(workflow.indexOf('if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]'), workflow.indexOf('- name: Create PR'));
   assert(!/SKIP=true|exit 0/.test(noKeyBranch), '鍵が無い週も候補生成まで進む');
+}
+
+console.log('\n=== 9. reviewed_at と更新案データ ===');
+{
+  const sourcePost = post('reviewed-source', {
+    file: '2026-09-01-reviewed-source.md',
+    source_urls: ['https://www.nta.go.jp/example'],
+    reviewed_at: '2026-09-12T10:00:00+09:00',
+  });
+  const sourceInputs = inputs([sourcePost], {
+    sources: [{ url: 'https://www.nta.go.jp/example', content_changed_at: '2026-09-10T00:00:00Z' }],
+  });
+  assert(freshness.buildCandidates(sourceInputs, { now: NOW }).length === 0,
+    'source_updated は出典本文の改訂日が reviewed_at 以前なら除外');
+  sourcePost.reviewed_at = '2026-09-09T10:00:00+09:00';
+  const sourceCandidate = freshness.buildCandidates(sourceInputs, { now: NOW })[0];
+  assert(sourceCandidate && sourceCandidate.file === sourcePost.file && sourceCandidate.refreshable === true,
+    '出典改訂が reviewed_at より後なら file と refreshable=true を末尾項目として付与');
+
+  const reformPost = post('reviewed-reform', {
+    reviewed_at: '2026-09-20T10:00:00+09:00',
+    body: '## 改正\n適格請求書等保存方式に係る経過措置の見直し',
+  });
+  assert(freshness.buildCandidates(inputs([reformPost], { reform: REFORM }), { now: NOW }).length === 0,
+    'tax_reform は reviewed_at の年度が改正一覧の year と同じなら除外');
+
+  const fiscalPost = post('reviewed-fiscal', {
+    reviewed_at: '2026-09-20T10:00:00+09:00',
+    body: '## 年分\n2025年分です。',
+  });
+  assert(freshness.buildCandidates(inputs([fiscalPost]), { now: NOW }).length === 0,
+    'fiscal_year は reviewed_at の年度が現在年度と同じなら除外');
+
+  const searchPost = post('reviewed-search', { reviewed_at: '2026-09-20T10:00:00+09:00' });
+  const searchSnapshots = [
+    snapshot({ 'reviewed-search': 100 }), snapshot({ 'reviewed-search': 100 }),
+    snapshot({ 'reviewed-search': 40 }), snapshot({ 'reviewed-search': 40 }),
+  ];
+  assert(freshness.buildCandidates(inputs([searchPost], { searchSnapshots }), { now: NOW }).length === 0,
+    'search_decline は reviewed_at が28日以内なら除外');
+
+  const seoPost = post('reviewed-seo', {
+    reviewed_at: '2026-09-20T10:00:00+09:00',
+    body: '## 本文\n検索語を解説します。',
+  });
+  const latest = snapshot({ 'reviewed-seo': 20 });
+  latest.queryPageRows = [{ query: '検索語', page: seoPost.url, impressions: 20, position: 15 }];
+  assert(freshness.buildCandidates(inputs([seoPost], { searchSnapshots: [latest] }), { now: NOW }).length === 0,
+    'seo_growable も reviewed_at が28日以内なら除外');
+
+  const searchOnly = post('search-only', { body: '## 本文\n中立です。' });
+  const searchOnlySnapshots = [100, 100, 40, 40].map(value => snapshot({ 'search-only': value }));
+  const candidate = freshness.buildCandidates(inputs([searchOnly], { searchSnapshots: searchOnlySnapshots }), { now: NOW })[0];
+  assert(candidate && candidate.refreshable === false,
+    '検索反応だけの候補は refreshable=false');
+  const bodyYear = post('body-year', { body: '本文に令和7年分の記述があります。' });
+  const bodyCandidate = freshness.buildCandidates(inputs([bodyYear]), { now: NOW })[0];
+  const plan = bodyCandidate && refreshPlan.buildRefreshPlan(bodyYear, bodyCandidate.reasons, { taxYear: 2026 });
+  assert(bodyCandidate && bodyCandidate.reasons.some(reason => reason.kind === 'fiscal_year' && reason.where === '本文')
+    && bodyCandidate.refreshable === Boolean(plan && plan.length),
+  '本文位置の年分理由は targeted 計画に入り、候補の refreshable と一致する');
+  const notice = freshness.buildFreshnessNotification([candidate]);
+  assert(notice.summary.endsWith('管理画面: https://mori-zeirishi.net/admin/freshness'),
+    '週次通知の末尾に更新候補の管理画面を付ける');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

@@ -157,6 +157,18 @@
   to = "/.netlify/functions/admin-save-candidates"
   status = 200
 
+# 管理画面: 公開記事の更新候補（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/freshness"
+  to = "/.netlify/functions/admin-freshness-page"
+  status = 200
+
+# 管理API: 更新案の起動・確認済み記録（HTTP Basic 認証必須）
+[[redirects]]
+  from = "/admin/api/freshness/action"
+  to = "/.netlify/functions/admin-freshness-action"
+  status = 200
+
 # アクセス解析: 公開ビーコンと Basic 認証付き管理画面/API
 [[redirects]]
   from = "/track"
