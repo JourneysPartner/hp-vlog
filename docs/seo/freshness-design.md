@@ -54,3 +54,7 @@
 4. 年度切り替えの判定を LLM に下書きさせてよい（第 3 段階で実施）。
 
 第 1 段階の指示書: `docs/codex-tasks/crawl-queue/10-freshness-p1.md`。
+
+第 2 段階の指示書: `docs/codex-tasks/crawl-queue/11-freshness-p2.md`（2026-10-01 作成）。
+
+決定（2026-10-01）: 出典確認の仕組みができる前の古い記事（`source_guard_version` 無し）も更新案の対象にする。承認時の出典チェックは公開中の記事と同じ扱いとし、レビュー画面に警告を出す。
