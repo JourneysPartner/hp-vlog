@@ -302,6 +302,98 @@ function buildMessage(event, data) {
       };
     }
 
+    case 'refresh_ready': {
+      const { title, comment, reviewUrl, prUrl } = data;
+      return {
+        subject: '【ブログ】記事の更新案ができました',
+        body: [
+          '公開中の記事の更新案を作成しました。',
+          '',
+          `■ タイトル: ${title || '（タイトル未設定）'}`,
+          comment ? `■ 理由: ${comment}` : '',
+          reviewUrl ? `▶ レビュー画面: ${reviewUrl}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'レビュー画面で変更箇所を確認してください。承認すると公開中の記事に反映されます。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_no_change': {
+      return {
+        subject: '【ブログ】更新候補を確認しました（変更なし）',
+        body: [
+          'AI が見た範囲では直す所がありませんでした。問題なければ管理画面で「確認済み」を押してください。',
+          '',
+          '管理画面: https://mori-zeirishi.net/admin/freshness',
+        ].join('\n'),
+      };
+    }
+
+    case 'refresh_failed': {
+      const { title, comment } = data;
+      return {
+        subject: '【ブログ】記事の更新案を作成できませんでした',
+        body: [
+          '記事の更新案を作成できませんでした。',
+          '',
+          title ? `■ タイトル: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          '',
+          '内容を確認し、必要に応じて管理画面から再実行してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_approve_failed': {
+      const { title, comment } = data;
+      return {
+        subject: '【ブログ】更新案を反映できませんでした',
+        body: [
+          '更新案を反映できませんでした。',
+          '',
+          title ? `■ タイトル: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          '',
+          '一時的な失敗なら、レビュー画面から承認し直してください。',
+          '記事が変わった・反映する変更が無いなどで承認できない場合は、レビュー画面で「今回は見送り」にしてから、管理画面で更新案を作り直してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_processed': {
+      const { title, kind } = data;
+      return {
+        subject: '【ブログ】更新案は処理済みです',
+        body: [
+          ...(kind === 'applied'
+            ? ['この更新案は、すでに公開中の記事に反映済みです。']
+            : [
+              '更新案のブランチを読み取れず、開いているPRも確認できませんでした。',
+              'すでに処理済みか、取り下げられている可能性があります。',
+            ]),
+          '',
+          `■ タイトル: ${title || '更新案'}`,
+        ].join('\n'),
+      };
+    }
+
+    case 'refresh_published': {
+      const { title, publicUrl, reason } = data;
+      return {
+        subject: '【ブログ】公開中の記事を更新しました',
+        body: [
+          '承認された更新案を公開中の記事に反映しました。',
+          '',
+          `■ タイトル: ${title || '（タイトル未設定）'}`,
+          reason ? `■ 更新理由: ${reason}` : '',
+          publicUrl ? `▶ 記事URL: ${publicUrl}` : '',
+          '',
+          '公開日はそのままにし、更新日を記録しました。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     default:
       return { subject: event, body: JSON.stringify(data, null, 2) };
   }

@@ -1,9 +1,10 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, findPR, waitForMergeable, mergePR, deleteBranch, findApprovedArticlesForDate } = require('./lib/github-api');
-const { sendNotification } = require('./lib/notify');
+const githubApi = require('./lib/github-api');
+const notify = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
 const { isPlaceholderTitle } = require('../../scripts/lib/draft-normalizer');
+const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
 
 function approvalSourceGuard(content) {
   return evaluateSourceGuard(parseFrontmatterMeta(content), { stage: 'approve' });
@@ -76,20 +77,306 @@ function decidePublishSlot(role, hasMorning, hasEvening) {
 
 exports.decidePublishSlot = decidePublishSlot;
 
-exports.handler = async (event) => {
+function splitArticle(raw) {
+  const match = String(raw || '').match(/^(---\r?\n[\s\S]+?\r?\n---\r?\n)([\s\S]*)$/);
+  if (!match) throw new Error('frontmatter が見つかりません');
+  return { frontmatter: match[1], body: match[2] };
+}
+
+function mainStatus(raw) {
+  return parseFrontmatterMeta(raw).review_status || '';
+}
+
+function refreshQualityFailure(raw, filename) {
+  const meta = parseFrontmatterMeta(raw);
+  const title = meta.title || filename;
+  const guard = evaluateSourceGuard(meta, { stage: 'approve' });
+  if (guard.blocked) return { title, reason: (guard.reasons || []).join(' / '), event: 'source_blocked' };
+  if (meta.title && isPlaceholderTitle(meta.title)) {
+    return { title, reason: 'タイトルが仮置きのままです（記事に合ったタイトルを付けてください）' };
+  }
+
+  if (meta.recommendation) {
+    const score = key => {
+      const number = Number.parseInt(meta[key], 10);
+      return Number.isNaN(number) ? null : number;
+    };
+    const reasons = [];
+    if (meta.recommendation === 'reject') reasons.push('recommendation が reject です');
+    if (meta.recommendation === 'revise') reasons.push('recommendation が revise です');
+    const fit = score('customer_fit_score');
+    const intent = score('search_intent_score');
+    const alignment = guard.alignment && typeof guard.alignment.score === 'number'
+      ? guard.alignment.score
+      : score('source_alignment_score');
+    if (fit != null && fit <= 3) reasons.push(`顧客適合スコアが低い (${fit}/5)`);
+    if (intent != null && intent <= 3) reasons.push(`検索意図スコアが低い (${intent}/5)`);
+    if (alignment != null && alignment <= 3) reasons.push(`出典一致スコアが低い (${alignment}/5)`);
+    if (reasons.length) return { title, reason: reasons.join(' / ') };
+  }
+  return null;
+}
+
+function refreshBodyOnMain(mainRaw, branchRaw) {
+  const main = splitArticle(mainRaw);
+  const branch = splitArticle(branchRaw);
+  const newline = main.frontmatter.includes('\r\n') ? '\r\n' : '\n';
+  const body = branch.body.replace(/\r\n|\r|\n/g, '\n').replace(/\n/g, newline);
+  return { content: main.frontmatter + body, mainBody: main.body, branchBody: body };
+}
+
+function updateRefreshDates(raw, now) {
+  const match = String(raw || '').match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
+  if (!match) throw new Error('frontmatter が見つかりません');
+  const newline = match[1].includes('\r\n') ? '\r\n' : '\n';
+  const updates = { updated_at: now, reviewed_at: now };
+  const found = new Set();
+  const lines = match[2].split(/(?<=\n)/).map(chunk => {
+    const ending = chunk.endsWith('\r\n') ? '\r\n' : (chunk.endsWith('\n') ? '\n' : '');
+    const line = ending ? chunk.slice(0, -ending.length) : chunk;
+    const field = line.match(/^((updated_at|reviewed_at):[ \t]*).*$/);
+    if (!field) return chunk;
+    found.add(field[2]);
+    return `${field[1]}"${updates[field[2]]}"${ending}`;
+  });
+  let frontmatterLines = lines.join('');
+  for (const [key, value] of Object.entries(updates)) {
+    if (found.has(key)) continue;
+    if (frontmatterLines && !frontmatterLines.endsWith('\n')) frontmatterLines += newline;
+    frontmatterLines += `${key}: "${value}"`;
+    found.add(key);
+  }
+  return match[1] + frontmatterLines + match[3] + match[4];
+}
+
+function sameRefreshBody(left, right) {
+  return String(left || '').normalize('NFKC').replace(/\s+/g, '')
+    === String(right || '').normalize('NFKC').replace(/\s+/g, '');
+}
+
+function isShaConflict(error) {
+  return /\b409\b|sha|conflict/i.test(String(error && error.message || ''));
+}
+
+async function handleRefreshApproval({
+  filename, filepath, ref, branchFile, getFile, putFile, updateFrontmatter,
+  nowJST, findPR, closePR, deleteBranch, sendNotification,
+}) {
+  let title = filename;
+  const notifyFailure = async reason => {
+    try { await sendNotification('refresh_approve_failed', { title, comment: reason }); }
+    catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
+  };
+
+  let branchMeta;
+  let branchParts;
+  try {
+    branchMeta = parseFrontmatterMeta(branchFile.content);
+    branchParts = splitArticle(branchFile.content);
+  } catch (_) {
+    await notifyFailure('更新案のファイルを読み取れませんでした。');
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案のファイルを読み取れませんでした。' }) };
+  }
+
+  let mainFile;
+  try {
+    mainFile = await getFile(filepath, 'main');
+  } catch (error) {
+    if (/\b404\b|not found/i.test(String(error && error.message || ''))) {
+      await notifyFailure('公開中の記事が見つかりません。');
+      return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '公開中の記事が見つかりません。' }) };
+    }
+    throw error;
+  }
+  title = parseFrontmatterMeta(mainFile.content).title || filename;
+
+  const finishAlreadyApplied = async () => {
+    let existingPR = null;
+    try { existingPR = await findPR(ref); }
+    catch (_) { console.error('[review-approve] 処理済み更新案のPR確認に失敗しました'); }
+    if (existingPR) {
+      try { await closePR(existingPR.number); }
+      catch (_) { console.error('[review-approve] 処理済み更新案PRのクローズに失敗しました'); }
+    }
+    try { await deleteBranch(existingPR && existingPR.head && existingPR.head.ref || ref); }
+    catch (_) { console.error('[review-approve] 処理済み更新案ブランチの削除に失敗しました'); }
+    try { await sendNotification('refresh_processed', { title, kind: 'applied' }); }
+    catch (_) { console.error('[review-approve] 更新案の処理済み通知送信に失敗しました'); }
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'この更新案はすでに反映済みです。', action: 'refresh_approve', filename, processed: true }),
+    };
+  };
+
+  const prepareMain = raw => {
+    if (mainStatus(raw) !== 'published') return { error: '公開中ではなくなった記事です。' };
+    const mainMeta = parseFrontmatterMeta(raw);
+    if (!mainMeta.slug || ref !== `draft/refresh-${mainMeta.slug}`) {
+      return { error: '更新案の枝と記事が一致しません。' };
+    }
+    if (!/^[a-f0-9]{64}$/.test(String(branchMeta.refresh_base_hash || ''))) {
+      return { error: '更新案の作成時の情報がありません。管理画面から作り直してください。' };
+    }
+    const next = refreshBodyOnMain(raw, branchFile.content);
+    const mainHash = freshnessRefresh.refreshBaseHash(next.mainBody);
+    if (sameRefreshBody(next.mainBody, next.branchBody)) {
+      return mainHash === branchMeta.refresh_base_hash ? { noChange: true } : { processed: true };
+    }
+    if (mainHash !== branchMeta.refresh_base_hash) {
+      return { error: '更新案の作成後に公開中の記事が変わりました。管理画面から更新案を作り直してください。' };
+    }
+    const quality = refreshQualityFailure(raw, filename);
+    if (quality) return { error: quality.reason };
+    const now = nowJST();
+    return { content: updateRefreshDates(next.content, now), now };
+  };
+
+  let target = prepareMain(mainFile.content);
+  if (target.processed) return finishAlreadyApplied();
+  if (target.error) {
+    await notifyFailure(target.error);
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: target.error }) };
+  }
+  if (target.noChange) {
+    try { await sendNotification('refresh_approve_failed', { title, comment: '反映する変更がありません。' }); }
+    catch (_) { console.error('[review-approve] 更新案の通知送信に失敗しました'); }
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: '反映する変更がありません。', action: 'refresh_approve', filename, noChange: true }) };
+  }
+
+  let pr;
+  try { pr = await findPR(ref); }
+  catch (_) {
+    await notifyFailure('更新案のPRを確認できませんでした。');
+    return { statusCode: 503, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案のPRを確認できませんでした。' }) };
+  }
+  if (!pr) {
+    await notifyFailure('更新案のPRが見つかりません。');
+    return { statusCode: 409, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案のPRが見つかりません。' }) };
+  }
+
+  const commitMessage = `refresh: ${title} (#${pr.number})`;
+  try {
+    await putFile(filepath, target.content, mainFile.sha, commitMessage, 'main');
+  } catch (error) {
+    if (!isShaConflict(error)) throw error;
+    mainFile = await getFile(filepath, 'main');
+    title = parseFrontmatterMeta(mainFile.content).title || filename;
+    target = prepareMain(mainFile.content);
+    if (target.processed) return finishAlreadyApplied();
+    if (target.error) {
+      await notifyFailure(target.error);
+      return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: target.error }) };
+    }
+    if (target.noChange) {
+      try { await sendNotification('refresh_approve_failed', { title, comment: '反映する変更がありません。' }); }
+      catch (_) { console.error('[review-approve] 更新案の通知送信に失敗しました'); }
+      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: '反映する変更がありません。', action: 'refresh_approve', filename, noChange: true }) };
+    }
+    try {
+      await putFile(filepath, target.content, mainFile.sha, `refresh: ${title} (#${pr.number})`, 'main');
+    } catch (_) {
+      await notifyFailure('公開中の記事への反映に失敗しました。更新案の枝は残しています。');
+      return { statusCode: 502, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '公開中の記事への反映に失敗しました。' }) };
+    }
+  }
+
+  try { await closePR(pr.number); }
+  catch (_) { console.error('[review-approve] 更新案PRのクローズに失敗しました'); }
+  try { await deleteBranch(pr.head && pr.head.ref ? pr.head.ref : ref); }
+  catch (_) { console.error('[review-approve] 更新案ブランチの削除に失敗しました'); }
+
+  const mainMeta = parseFrontmatterMeta(mainFile.content);
+  const publicUrl = mainMeta.slug ? `https://mori-zeirishi.net/blog/${mainMeta.slug}/` : '';
+  try {
+    await sendNotification('refresh_published', {
+      title,
+      publicUrl,
+      reason: branchMeta.refresh_note || '',
+    });
+  } catch (_) { console.error('[review-approve] 更新反映通知の送信に失敗しました'); }
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `更新案を反映しました: ${title}`, action: 'refresh_approve', filename, merged: true }),
+  };
+}
+
+async function handler(event, injected = {}) {
+  const getFile = injected.getFile || githubApi.getFile;
+  const putFile = injected.putFile || githubApi.putFile;
+  const updateFrontmatter = injected.updateFrontmatter || githubApi.updateFrontmatter;
+  const nowJST = injected.nowJST || githubApi.nowJST;
+  const findPR = injected.findPR || githubApi.findPR;
+  const closePR = injected.closePR || githubApi.closePR;
+  const waitForMergeable = injected.waitForMergeable || githubApi.waitForMergeable;
+  const mergePR = injected.mergePR || githubApi.mergePR;
+  const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
+  const findApprovedArticlesForDate = injected.findApprovedArticlesForDate || githubApi.findApprovedArticlesForDate;
+  const sendNotification = injected.sendNotification || notify.sendNotification;
+  let refreshRequest = false;
+  let refreshFilename = '';
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
   try {
     const { filename, publish_at, ref } = JSON.parse(event.body || '{}');
+    refreshRequest = typeof ref === 'string' && ref.startsWith('draft/refresh-');
+    refreshFilename = filename || '';
 
     if (!filename) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
     }
 
     const filepath = `content/posts/${filename}`;
-    const { content, sha } = await getFile(filepath, ref || undefined);
+    let branchFile;
+    try {
+      branchFile = await getFile(filepath, ref || undefined);
+    } catch (error) {
+      if (refreshRequest) {
+        let pr;
+        try { pr = ref ? await findPR(ref) : null; }
+        catch (_) {
+          try { await sendNotification('refresh_approve_failed', { title: filename, comment: '更新案の状態を確認できませんでした。' }); }
+          catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
+          return { statusCode: 503, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案の状態を確認できませんでした。' }) };
+        }
+        if (!pr) {
+          try { await sendNotification('refresh_processed', { title: filename }); }
+          catch (_) { console.error('[review-approve] 更新案の処理済み通知送信に失敗しました'); }
+          return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'この更新案は処理済みか、取り下げられています。', processed: true }) };
+        }
+        try { await sendNotification('refresh_approve_failed', { title: filename, comment: '更新案のファイルを読み取れませんでした。' }); }
+        catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
+        return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案のファイルを読み取れませんでした。' }) };
+      }
+      throw error;
+    }
+    const content = branchFile.content;
+    const sha = branchFile.sha;
+    const branchMeta = parseFrontmatterMeta(content);
+    const isRefresh = refreshRequest || branchMeta.refresh_of === 'published';
+    refreshRequest = isRefresh;
+    if (isRefresh) {
+      if (!ref) {
+        try { await sendNotification('refresh_approve_failed', { title: filename, comment: '更新案の承認には ref が必要です。' }); }
+        catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
+        return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案の承認には ref が必要です。' }) };
+      }
+      return await handleRefreshApproval({ filename, filepath, ref, branchFile, getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, deleteBranch, sendNotification });
+    }
+
+    if (ref) {
+      try {
+        const currentMain = await getFile(filepath, 'main');
+        if (mainStatus(currentMain.content) === 'published') {
+          return { statusCode: 409, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '公開済みの記事は通常の承認経路で変更できません。' }) };
+        }
+      } catch (error) {
+        if (!/\b404\b|not found/i.test(String(error && error.message || ''))) throw error;
+      }
+    }
 
     const sourceGuard = approvalSourceGuard(content);
     if (sourceGuard.blocked) {
@@ -117,7 +404,6 @@ exports.handler = async (event) => {
 
     // frontmatter から記事情報を抽出
     const fmTitle    = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
-    const fmSlug     = (content.match(/^slug:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmCategory = (content.match(/^category:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmPersona  = (content.match(/^primary_persona:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
     const fmRole     = (content.match(/^article_role:\s*"?([^"\n\r]+)"?/m) || [])[1] || 'main';
@@ -324,6 +610,16 @@ exports.handler = async (event) => {
       }),
     };
   } catch (err) {
+    if (refreshRequest) {
+      try { await sendNotification('refresh_approve_failed', { title: refreshFilename || '更新案', comment: '更新案の承認処理に失敗しました。' }); }
+      catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
+      console.error('[review-approve] 更新案の承認処理に失敗しました');
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: '更新案の承認処理に失敗しました。' }),
+      };
+    }
     console.error('[review-approve] Error:', err);
     return {
       statusCode: 500,
@@ -332,3 +628,6 @@ exports.handler = async (event) => {
     };
   }
 };
+
+exports.handler = event => handler(event);
+exports._handler = handler;

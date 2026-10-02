@@ -5,6 +5,7 @@ const path = require('path');
 const matter = require('gray-matter');
 const { resolveTaxDomain } = require('./cluster-taxonomy');
 const { locateQuery } = require('./query-placement');
+const { buildRefreshPlan } = require('./freshness-refresh');
 
 const SITE_ORIGIN = 'https://mori-zeirishi.net';
 const SIGNAL_WEIGHTS = Object.freeze({
@@ -207,6 +208,8 @@ function sourceLabel(entry) {
 function sourceReason(post, sourceByUrl) {
   const published = articleDate(post);
   if (!published) return null;
+  const reviewedAt = validDate(post.reviewed_at);
+  const baseline = reviewedAt && reviewedAt > published ? reviewedAt : published;
   const sourceUrls = Array.isArray(post.source_urls)
     ? post.source_urls
     : [post.source_url, ...supplementalUrls(post)].filter(Boolean);
@@ -215,7 +218,7 @@ function sourceReason(post, sourceByUrl) {
     .filter(Boolean)
     .filter(entry => {
       const changed = validDate(entry.content_changed_at);
-      return changed && changed > published;
+      return changed && changed > baseline;
     })
     .sort((a, b) => new Date(b.content_changed_at) - new Date(a.content_changed_at));
   if (!matches.length) return null;
@@ -430,13 +433,29 @@ function buildCandidates(inputs, options = {}) {
 
   const candidates = [];
   for (const post of published) {
+    const reviewedAt = validDate(post.reviewed_at);
     const reasons = [
       sourceReason(post, sourceByUrl),
       inputs.reform ? taxReformReason(post, reformItems, inputs.reform.year) : null,
       fiscalYearReason(post, taxYear),
       searchDeclineReason(post, search.declines),
       ...(seoReasons.get(post.slug) || []),
-    ].filter(Boolean);
+    ].filter(Boolean).filter(reason => {
+      if (!reviewedAt) return true;
+      if (reason.kind === 'tax_reform') {
+        const reviewedTaxYear = currentTaxYear(reviewedAt, inputs.calendar);
+        return !reviewedTaxYear || Number(reviewedTaxYear) !== Number(inputs.reform && inputs.reform.year);
+      }
+      if (reason.kind === 'fiscal_year') {
+        const reviewedTaxYear = currentTaxYear(reviewedAt, inputs.calendar);
+        return !reviewedTaxYear || !taxYear || Number(reviewedTaxYear) !== Number(taxYear);
+      }
+      if (reason.kind === 'search_decline' || reason.kind === 'seo_growable') {
+        const ageDays = (now.getTime() - reviewedAt.getTime()) / (24 * 60 * 60 * 1000);
+        return ageDays < 0 || ageDays > 28;
+      }
+      return true;
+    });
     if (!reasons.length) continue;
     const baseScore = [...new Set(reasons.map(reason => reason.kind))]
       .reduce((sum, kind) => sum + (SIGNAL_WEIGHTS[kind] || 0), 0);
@@ -448,6 +467,8 @@ function buildCandidates(inputs, options = {}) {
       score: Number((baseScore * multiplier).toFixed(2)),
       impressions28d: Number(search.latest.get(normalizeUrl(post.url || articleUrl(post.slug))) || 0),
       reasons,
+      file: String(post.file || ''),
+      refreshable: buildRefreshPlan(post, reasons, { taxYear }).length > 0,
     });
   }
 
@@ -475,7 +496,7 @@ function buildFreshnessNotification(candidates, prUrl = '') {
   return {
     event: 'freshness_candidates',
     title: `記事の更新候補 ${candidates.length} 件`,
-    summary: lines.join('\n\n'),
+    summary: `${lines.join('\n\n')}\n\n管理画面: https://mori-zeirishi.net/admin/freshness`,
     prUrl,
   };
 }

@@ -2,6 +2,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { writeGithubOutputs } = require('./lib/github-output');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
@@ -26,6 +27,8 @@ const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
 const { restoreSourceGuardFields, restoreMissingSystemFields } = require('./lib/source-guard');
+const freshnessRefresh = require('./lib/freshness-refresh');
+const freshnessCandidates = require('./lib/freshness-candidates');
 const {
   resolveTargetQuery, deriveIntentType, findTargetQueryOwner,
 } = require('./lib/target-query');
@@ -2330,7 +2333,7 @@ async function enforceTitleBannedPhrases(content, comment) {
 }
 
 // ── 部分再生成: section（対象セクションのみ差し替え／追加）──────
-async function regenerateSection(existingContent, comment, classification) {
+async function regenerateSection(existingContent, comment, classification, { preserveTitle = false } = {}) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
   const { combined: srcBlock, figures: srcFigures } = buildRegenSourceBlocks(meta, body);
@@ -2355,7 +2358,7 @@ async function regenerateSection(existingContent, comment, classification) {
   if (idx < 0) {
     // 対象が特定できない → targeted にフォールバック（全文最小修正）
     console.warn('[regenerate] 対象セクション特定不可 → targeted にフォールバック');
-    return regenerateTargeted(existingContent, comment);
+    return regenerateTargeted(existingContent, comment, { preserveTitle: preserveTitle || Boolean(classification && classification.preserveTitle) });
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
   const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
@@ -2390,7 +2393,7 @@ function sanitizeRevisedBody(originalBody, revisedBody, label) {
   return revisedBody;
 }
 
-async function regenerateTargeted(existingContent, comment) {
+async function regenerateTargeted(existingContent, comment, { preserveTitle = false } = {}) {
   const { body, meta } = parseFrontmatter(existingContent);
   const origLen = body.trim().length;
 
@@ -2430,7 +2433,7 @@ async function regenerateTargeted(existingContent, comment) {
     return rebuildWithBodyAndWarning(existingContent, body, comment + warnNote);
   }
   let result = rebuildWithBody(existingContent, revised);
-  result = await maybeUpdateTitleForTargeted(result, comment, meta);
+  if (!preserveTitle) result = await maybeUpdateTitleForTargeted(result, comment, meta);
   return result;
 }
 
@@ -2537,10 +2540,61 @@ function rebuildWithBody(existingContent, newBody) {
 }
 
 // ── CLI 引数ヘルパー ────────────────────────────────────────────────
-function getArg(name) {
-  const args = process.argv.slice(2);
+function getArg(name, args = process.argv.slice(2)) {
   const idx = args.indexOf(name);
   return idx !== -1 && args[idx + 1] ? args[idx + 1] : null;
+}
+
+function writeRefreshOutputs({ result, reason, diffFile }) {
+  const outputPath = process.env.GITHUB_OUTPUT;
+  if (!outputPath) return;
+  const rows = { refresh_result: result, refresh_reason: reason };
+  if (diffFile) rows.refresh_diff_file = diffFile;
+  writeGithubOutputs(outputPath, rows);
+}
+
+async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
+  const filename = dependencies.filename || getArg('--filename', args);
+  const reasonsFile = dependencies.reasonsFile || getArg('--reasons-file', args);
+  if (!filename || !/^[\w-]+\.md$/.test(filename) || !reasonsFile) {
+    throw new Error('--refresh では --filename と --reasons-file が必要です');
+  }
+  const filepath = path.join(POSTS_DIR, filename);
+  if (!fs.existsSync(filepath)) throw new Error(`記事ファイルが見つかりません: ${filename}`);
+  const content = fs.readFileSync(filepath, 'utf8');
+  const reasonsData = JSON.parse(fs.readFileSync(reasonsFile, 'utf8'));
+  const reasons = Array.isArray(reasonsData) ? reasonsData : reasonsData.reasons;
+  if (!Array.isArray(reasons)) throw new Error('理由一覧が不正です');
+  const calendar = readJsonOr(path.join(ROOT, 'data', 'tax-calendar.json'), null);
+  const taxYear = freshnessCandidates.currentTaxYear(new Date(), calendar);
+  let result;
+  try {
+    result = await freshnessRefresh.runRefresh({
+      content,
+      reasons,
+      taxYear,
+      regenerateSection: dependencies.regenerateSection || regenerateSection,
+      regenerateTargeted: dependencies.regenerateTargeted || regenerateTargeted,
+      findInternalProcessWords: dependencies.findInternalProcessWords,
+      now: dependencies.now || new Date(),
+    });
+  } catch (_) {
+    // LLM / 出典処理の例外文に認証情報が含まれる可能性があるため、出力へは詳細を載せない。
+    result = { status: 'failed', reason: '再生成処理に失敗しました。' };
+  }
+
+  if (result.status === 'changed') {
+    fs.writeFileSync(filepath, result.content, 'utf8');
+    const os = require('os');
+    const diffFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), `refresh-diff-${process.pid}-${Date.now()}.json`);
+    fs.writeFileSync(diffFile, JSON.stringify(result.diff, null, 2), 'utf8');
+    console.log(`[refresh] 更新案を作成しました: ${filename}`);
+    writeRefreshOutputs({ result: 'changed', reason: result.reason, diffFile });
+  } else {
+    console.log(`[refresh] ${result.status === 'no_change' ? '変更なし' : '失敗'}: ${result.reason}`);
+    writeRefreshOutputs({ result: result.status, reason: result.reason });
+  }
+  return result;
 }
 
 // ── エントリポイント ─────────────────────────────────────────────
@@ -2579,6 +2633,13 @@ async function main() {
     return;
   }
 
+  // ── 公開記事の更新案 ─────────────────────────────────────────
+  // 通常の差し戻し処理には入らず、理由ごとの部分再生成を行う。
+  if (args.includes('--refresh')) {
+    await runRefreshMode(args);
+    return;
+  }
+
   // ── 再生成モード ──────────────────────────────────────────────
   if (args.includes('--regenerate')) {
     const filename = getArg('--filename');
@@ -2606,43 +2667,43 @@ async function main() {
     //   3. コメント自体が「今後このテーマは生成しない」と明示している
     //      （review-revise 側で denylist 登録するが、念のためここでも再判定）
     const { meta: existingMeta } = parseFrontmatter(existing);
-    const topicSnapshot = {
-      slug:           existingMeta.slug,
-      title:          existingMeta.title,
-      cluster:        existingMeta.cluster,
-      subcluster:     existingMeta.subcluster,
-      category:       existingMeta.category,
-      primary_persona: existingMeta.primary_persona,
-      primary_question: existingMeta.primary_question,
-      search_intent:  existingMeta.search_intent,
-      reader_problem: existingMeta.reader_problem,
-      historical_only: existingMeta.historical_only === 'true',
-      valid_to:       existingMeta.valid_to,
-    };
-    const denyHit = findMatchingEntry(topicSnapshot, loadDenylist(), new Date());
-    const timeLimited = isTimeLimitedExpired(topicSnapshot, new Date());
-    const commentDeny = detectDenyIntent(comment);
-    if (denyHit || timeLimited.expired || commentDeny) {
-      const reasons = [];
-      if (denyHit) reasons.push(`denylist[${denyHit.type}=${denyHit.value}]`);
-      if (timeLimited.expired) reasons.push(`time_limited[${timeLimited.reason}]`);
-      if (commentDeny) reasons.push('コメントで明示的に「今後このテーマは生成しない」指示');
-      console.error(`[regenerate] テーマ禁止のため再生成を中止: ${reasons.join(' / ')}`);
-      console.error('[regenerate] frontmatter の review_status を needs_revision のまま残し、再生成スキップを報告します。');
+    const isRefreshRegeneration = freshnessRefresh.isRefreshArticle(existingMeta);
+    if (freshnessRefresh.shouldCheckRegenerateDenylist(existingMeta)) {
+      const topicSnapshot = {
+        slug:           existingMeta.slug,
+        title:          existingMeta.title,
+        cluster:        existingMeta.cluster,
+        subcluster:     existingMeta.subcluster,
+        category:       existingMeta.category,
+        primary_persona: existingMeta.primary_persona,
+        primary_question: existingMeta.primary_question,
+        search_intent:  existingMeta.search_intent,
+        reader_problem: existingMeta.reader_problem,
+        historical_only: existingMeta.historical_only === 'true',
+        valid_to:       existingMeta.valid_to,
+      };
+      const denyHit = findMatchingEntry(topicSnapshot, loadDenylist(), new Date());
+      const timeLimited = isTimeLimitedExpired(topicSnapshot, new Date());
+      const commentDeny = detectDenyIntent(comment);
+      if (denyHit || timeLimited.expired || commentDeny) {
+        const reasons = [];
+        if (denyHit) reasons.push(`denylist[${denyHit.type}=${denyHit.value}]`);
+        if (timeLimited.expired) reasons.push(`time_limited[${timeLimited.reason}]`);
+        if (commentDeny) reasons.push('コメントで明示的に「今後このテーマは生成しない」指示');
+        console.error(`[regenerate] テーマ禁止のため再生成を中止: ${reasons.join(' / ')}`);
+        console.error('[regenerate] frontmatter の review_status を needs_revision のまま残し、再生成スキップを報告します。');
 
-      // 既存ファイルは触らず、GitHub Actions の outputs にスキップ理由を出力
-      const ghOutput = process.env.GITHUB_OUTPUT;
-      if (ghOutput) {
-        fs.appendFileSync(ghOutput, `regenerate_skipped=true\n`);
-        fs.appendFileSync(ghOutput, `regenerate_skip_reason=${reasons.join('; ')}\n`);
+        // 既存ファイルは触らず、GitHub Actions の outputs にスキップ理由を出力
+        const ghOutput = process.env.GITHUB_OUTPUT;
+        if (ghOutput) {
+          writeGithubOutputs(ghOutput, {
+            regenerate_skipped: 'true',
+            regenerate_skip_reason: reasons.join('; '),
+          });
+        }
+        // 非ゼロ終了で「スキップ」を表現（CIから検知しやすく）
+        process.exit(2);
       }
-      // 非ゼロ終了で「スキップ」を表現（CIから検知しやすく）
-      process.exit(2);
-    }
-
-    if (!process.env.OPENAI_API_KEY && (process.env.CONTENT_MODEL_PROVIDER || 'openai') === 'openai') {
-      console.error('[regenerate] OPENAI_API_KEY が必要です');
-      process.exit(1);
     }
 
     // ── 差し戻しコメントを分類し、再生成範囲を決める（部分再生成）──
@@ -2651,12 +2712,36 @@ async function main() {
 
     // ENABLE_PARTIAL_REVISE=false で従来の全文再生成に固定可能
     const partialEnabled = (process.env.ENABLE_PARTIAL_REVISE || 'true').toLowerCase() !== 'false';
-    const scope = partialEnabled ? classification.scope : 'full';
+    const scope = isRefreshRegeneration
+      ? (classification.scope === 'frontmatter' || classification.scope === 'title_only'
+        ? 'frontmatter'
+        : (!partialEnabled || classification.scope === 'full' ? 'targeted' : classification.scope))
+      : (partialEnabled ? classification.scope : 'full');
+
+    if (!isRefreshRegeneration || scope !== 'frontmatter') {
+      if (!process.env.OPENAI_API_KEY && (process.env.CONTENT_MODEL_PROVIDER || 'openai') === 'openai') {
+        console.error('[regenerate] OPENAI_API_KEY が必要です');
+        process.exit(1);
+      }
+    }
 
     let content;
     const modelId = MODEL_STANDARD;
 
-    if (scope === 'frontmatter') {
+    if (isRefreshRegeneration) {
+      const refreshResult = await freshnessRefresh.regenerateRefreshDraft({
+        existing,
+        comment,
+        classification,
+        partialEnabled,
+        regenerateSection,
+        regenerateTargeted,
+      });
+      content = refreshResult.content;
+      console.log(refreshResult.warning
+        ? '[regenerate] 更新案を自動反映できなかったため、手動確認の警告を記録しました'
+        : `[regenerate] 更新案を ${refreshResult.scope} で再生成しました`);
+    } else if (scope === 'frontmatter') {
       // title_only: 本文を保ったまま title/summary だけ調整（最も安価）
       content = await regenerateTitleOnly(existing, comment);
       console.log('[regenerate] title_only: 本文を保持し frontmatter のみ更新');
@@ -2674,6 +2759,7 @@ async function main() {
       content = await regenerateWithOpenAI(existing, comment, modelId);
     }
 
+    if (!isRefreshRegeneration) {
     // ── frontmatter 欠落の救済 ────────────────────────────────────
     // full_regenerate は LLM 出力をそのまま使うため、LLM が frontmatter を
     // 出し忘れると後続の restoreSourceGuardFields が例外を投げ、ジョブごと
@@ -2710,7 +2796,6 @@ async function main() {
     content = restoreSourceGuardFields(existing, content, {
       resolveSource: resolveSourceForTopic,
     });
-
     // 仮置きだったタイトルが再生成で確定したら、生成時に付いた警告と revise 判定を戻す。
     // 部分再生成は判定を作り直さないため、放っておくと直したのに承認できない。
     {
@@ -2746,14 +2831,14 @@ async function main() {
         }
       }
     }
+    }
 
-    fs.writeFileSync(filepath, content + '\n', 'utf8');
+    fs.writeFileSync(filepath, isRefreshRegeneration ? content : content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
 
     const ghOut = process.env.GITHUB_OUTPUT;
     if (ghOut) {
-      fs.appendFileSync(ghOut, `revision_type=${classification.type}\n`);
-      fs.appendFileSync(ghOut, `revision_scope=${scope}\n`);
+      writeGithubOutputs(ghOut, { revision_type: classification.type, revision_scope: scope });
     }
 
     const { meta: regenMeta } = parseFrontmatter(content);
@@ -2971,21 +3056,20 @@ async function main() {
   // GitHub Actions 出力変数（2本分）
   const ghOutput = process.env.GITHUB_OUTPUT;
   if (ghOutput) {
-    fs.appendFileSync(ghOutput, `date=${dateStr}\n`);
-    fs.appendFileSync(ghOutput, `count=${results.length}\n`);
+    const outputs = { date: dateStr, count: results.length };
 
     // 1本目（0 本の日は書かない。以前は results[0] を参照して例外で落ちていた）
     if (results[0]) {
-      fs.appendFileSync(ghOutput, `filename1=${results[0].filename}\n`);
-      fs.appendFileSync(ghOutput, `slug1=${results[0].slug}\n`);
-      fs.appendFileSync(ghOutput, `model1=${results[0].model}\n`);
+      outputs.filename1 = results[0].filename;
+      outputs.slug1 = results[0].slug;
+      outputs.model1 = results[0].model;
     }
 
     // 2本目（ある場合）
     if (results.length >= 2) {
-      fs.appendFileSync(ghOutput, `filename2=${results[1].filename}\n`);
-      fs.appendFileSync(ghOutput, `slug2=${results[1].slug}\n`);
-      fs.appendFileSync(ghOutput, `model2=${results[1].model}\n`);
+      outputs.filename2 = results[1].filename;
+      outputs.slug2 = results[1].slug;
+      outputs.model2 = results[1].model;
     }
 
     // 0 本は従来どおり理由を渡す。2 本モードだけ、1 本で終わった理由も渡す。
@@ -2995,12 +3079,13 @@ async function main() {
         || (results.length === 0
           ? '選定候補が無かったか、生成後の判定で全件を取り下げました'
           : '選定を通過した候補が1件だけでした');
-      fs.appendFileSync(ghOutput, `single_reason=${reason}\n`);
+      outputs.single_reason = reason;
     }
 
     // カンマ区切りリスト（通知・コミット用）
-    fs.appendFileSync(ghOutput, `filenames=${results.map(r => r.filename).join(',')}\n`);
-    fs.appendFileSync(ghOutput, `slugs=${results.map(r => r.slug).join(',')}\n`);
+    outputs.filenames = results.map(r => r.filename).join(',');
+    outputs.slugs = results.map(r => r.slug).join(',');
+    writeGithubOutputs(ghOutput, outputs);
   }
 }
 
@@ -3018,4 +3103,5 @@ module.exports = {
   parseFrontmatter,
   resolveDraftCount,
   resolveForcedTopics,
+  runRefreshMode,
 };

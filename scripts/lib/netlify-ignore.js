@@ -55,6 +55,25 @@ function isNonPublishedArticle(file, base, head, git) {
   return true;
 }
 
+function withoutReviewedAt(content) {
+  const match = String(content || '').match(/^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n)([\s\S]*)$/);
+  if (!match) return null;
+  const nl = match[1].includes('\r\n') ? '\r\n' : '\n';
+  const frontmatter = match[2].split(/\r?\n/).filter(line => !/^\s*reviewed_at\s*:/.test(line)).join(nl);
+  return match[1] + frontmatter + match[3] + match[4];
+}
+
+function isOnlyReviewedAtChange(file, base, head, git) {
+  if (!file.startsWith('content/posts/') || !file.endsWith('.md')) return false;
+  const oldContent = git.show(base, file);
+  const newContent = git.show(head, file);
+  if (oldContent === null || newContent === null) return false;
+  if (parseReviewStatus(oldContent) !== 'published' || parseReviewStatus(newContent) !== 'published') return false;
+  const withoutOldReviewedAt = withoutReviewedAt(oldContent);
+  const withoutNewReviewedAt = withoutReviewedAt(newContent);
+  return withoutOldReviewedAt !== null && withoutOldReviewedAt === withoutNewReviewedAt;
+}
+
 function decide({ env, git }) {
   const commitRef = env.COMMIT_REF;
   const cachedCommitRef = env.CACHED_COMMIT_REF;
@@ -99,6 +118,7 @@ function decide({ env, git }) {
   for (const file of changedFiles) {
     if (isIgnoredLocation(file)) continue;
     if (isNonPublishedArticle(file, cachedCommitRef, commitRef, git)) continue;
+    if (isOnlyReviewedAtChange(file, cachedCommitRef, commitRef, git)) continue;
     affectingFiles.push(file);
   }
 

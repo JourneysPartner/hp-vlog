@@ -61,6 +61,10 @@ function article(status, quoted = false) {
   return `---\ntitle: test\nreview_status: ${value}\n---\n本文\n`;
 }
 
+function publishedArticle(reviewedAt = '', body = '本文\n') {
+  return `---\ntitle: test\nreview_status: "published"\nupdated_at: "2026-01-01"\n${reviewedAt ? `reviewed_at: "${reviewedAt}"\n` : ''}---\n${body}`;
+}
+
 function check(label, actual, skip, reason) {
   assert(actual.skip === skip && actual.reason === reason, label);
 }
@@ -174,6 +178,34 @@ console.log('=== Netlify ビルド要否判定 ===');
   const git = fakeGit({ files: ['data/hub-config.json'] });
   const actual = decide({ env: env(), git });
   assert(!actual.skip && actual.reason === '表示に影響する変更あり（data/hub-config.json）', '19. data/hub-config.json だけ → ビルド');
+}
+
+{
+  const file = 'content/posts/reviewed-at.md';
+  const git = fakeGit({ files: [file], contents: {
+    [`old-sha:${file}`]: publishedArticle('', '本文\n'),
+    [`new-sha:${file}`]: publishedArticle('2026-10-01T10:00:00+09:00', '本文\n'),
+  } });
+  assert(decide({ env: env(), git }).skip, '20. 公開中の記事の reviewed_at だけ → ビルドを飛ばす');
+}
+
+{
+  const file = 'content/posts/reviewed-and-body.md';
+  const git = fakeGit({ files: [file], contents: {
+    [`old-sha:${file}`]: publishedArticle('', '本文\n'),
+    [`new-sha:${file}`]: publishedArticle('2026-10-01T10:00:00+09:00', '変更された本文\n'),
+  } });
+  const actual = decide({ env: env(), git });
+  assert(!actual.skip && actual.reason.includes(file), '21. reviewed_at と本文の両方が変わったらビルド');
+}
+
+{
+  const file = 'content/posts/reviewed-draft.md';
+  const git = fakeGit({ files: [file], contents: {
+    [`old-sha:${file}`]: article('draft'),
+    [`new-sha:${file}`]: article('draft'),
+  } });
+  assert(decide({ env: env(), git }).skip, '22. 下書きの記事は今までどおりビルドを飛ばす');
 }
 
 console.log('');
