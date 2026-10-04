@@ -1,0 +1,635 @@
+{
+  "property": "https://mori-zeirishi.net/",
+  "range": {
+    "start": "2026-09-04",
+    "end": "2026-10-01"
+  },
+  "dimensions": [
+    "page"
+  ],
+  "rows": [
+    {
+      "clicks": 15,
+      "impressions": 52,
+      "ctr": 0.28846153846153844,
+      "position": 4.0576923076923075,
+      "page": "https://mori-zeirishi.net/"
+    },
+    {
+      "clicks": 5,
+      "impressions": 58,
+      "ctr": 0.08620689655172414,
+      "position": 16.655172413793103,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-labor-cost-guide/"
+    },
+    {
+      "clicks": 4,
+      "impressions": 147,
+      "ctr": 0.027210884353741496,
+      "position": 5.605442176870748,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 4,
+      "impressions": 83,
+      "ctr": 0.04819277108433735,
+      "position": 7.469879518072289,
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 4,
+      "impressions": 109,
+      "ctr": 0.03669724770642202,
+      "position": 7.697247706422019,
+      "page": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-food-loss-food-guide/"
+    },
+    {
+      "clicks": 4,
+      "impressions": 8,
+      "ctr": 0.5,
+      "position": 11.625,
+      "page": "https://mori-zeirishi.net/contact.html"
+    },
+    {
+      "clicks": 3,
+      "impressions": 136,
+      "ctr": 0.022058823529411766,
+      "position": 8.514705882352942,
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 3,
+      "impressions": 61,
+      "ctr": 0.04918032786885246,
+      "position": 5.918032786885246,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-material-cost-practice/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 59,
+      "ctr": 0.03389830508474576,
+      "position": 10.491525423728813,
+      "page": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 6,
+      "ctr": 0.3333333333333333,
+      "position": 7.166666666666667,
+      "page": "https://mori-zeirishi.net/blog/amazon-just-opened-incorporation-threshold-guide/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 32,
+      "ctr": 0.0625,
+      "position": 7.375,
+      "page": "https://mori-zeirishi.net/blog/amazon-just-opened-incorporation-threshold-practice/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 31,
+      "ctr": 0.06451612903225806,
+      "position": 5.870967741935484,
+      "page": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-reseller-marketplace-seller-growth-practice/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 42,
+      "ctr": 0.047619047619047616,
+      "position": 6.738095238095238,
+      "page": "https://mori-zeirishi.net/blog/influencer-general-growth-income-classification-guide/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 16,
+      "ctr": 0.125,
+      "position": 7,
+      "page": "https://mori-zeirishi.net/blog/influencer-general-growth-recognition-timing-practice/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 92,
+      "ctr": 0.021739130434782608,
+      "position": 7.608695652173913,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 26,
+      "ctr": 0.07692307692307693,
+      "position": 4.846153846153847,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-refund-handling-guide/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 64,
+      "ctr": 0.03125,
+      "position": 8.25,
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-return-handling-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 66,
+      "ctr": 0.015151515151515152,
+      "position": 9.06060606060606,
+      "page": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 83,
+      "ctr": 0.012048192771084338,
+      "position": 12.096385542168674,
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 48,
+      "ctr": 0.020833333333333332,
+      "position": 8.6875,
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-lease-transaction-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 11,
+      "ctr": 0.09090909090909091,
+      "position": 9.545454545454545,
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 36,
+      "ctr": 0.027777777777777776,
+      "position": 6.75,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-invoice-practice/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 296,
+      "ctr": 0.0033783783783783786,
+      "position": 14.050675675675675,
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 124,
+      "ctr": 0.008064516129032258,
+      "position": 8.435483870967742,
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-register-sales-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 59,
+      "ctr": 0.01694915254237288,
+      "position": 11.59322033898305,
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 83,
+      "ctr": 0.012048192771084338,
+      "position": 6.048192771084337,
+      "page": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 18,
+      "ctr": 0.05555555555555555,
+      "position": 6.333333333333333,
+      "page": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-practice/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 5,
+      "ctr": 0.2,
+      "position": 7.2,
+      "page": "https://mori-zeirishi.net/voice"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 5.916666666666667,
+      "page": "https://mori-zeirishi.net/about"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 3.8333333333333335,
+      "page": "https://mori-zeirishi.net/about.html"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 6.666666666666667,
+      "page": "https://mori-zeirishi.net/area/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 7.555555555555555,
+      "page": "https://mori-zeirishi.net/blog/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 3.6666666666666665,
+      "page": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 7,
+      "page": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 7.5,
+      "page": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-platform-fee-treatment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 17,
+      "ctr": 0,
+      "position": 9.352941176470589,
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-entertainment-expense-deduction-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 21,
+      "ctr": 0,
+      "position": 21.19047619047619,
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-fixed-asset-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 50,
+      "ctr": 0,
+      "position": 8.120000000000001,
+      "page": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-creator-royalty-income-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 6.75,
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 6.4,
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 23,
+      "ctr": 0,
+      "position": 7.260869565217392,
+      "page": "https://mori-zeirishi.net/blog/ebay-growth-expense-grayzone-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 3.857142857142857,
+      "page": "https://mori-zeirishi.net/blog/ebay-growth-expense-grayzone-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 31,
+      "ctr": 0,
+      "position": 6.741935483870968,
+      "page": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 21,
+      "ctr": 0,
+      "position": 7.190476190476191,
+      "page": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "page": "https://mori-zeirishi.net/blog/ebay-shouhizei-kanpu-kihon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 6.333333333333333,
+      "page": "https://mori-zeirishi.net/blog/ebay-tax-refund-required-documents/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4,
+      "page": "https://mori-zeirishi.net/blog/ebay-taxable-vs-exempt-business/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 6.4,
+      "page": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 18,
+      "ctr": 0,
+      "position": 5.666666666666667,
+      "page": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 17,
+      "ctr": 0,
+      "position": 6.0588235294117645,
+      "page": "https://mori-zeirishi.net/blog/influencer-general-growth-recognition-timing-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 7,
+      "page": "https://mori-zeirishi.net/blog/inheritance-after-filing-rental-property-amendment-needed-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 3.3333333333333335,
+      "page": "https://mori-zeirishi.net/blog/macro/construction/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 10,
+      "page": "https://mori-zeirishi.net/blog/macro/influencer/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 7.75,
+      "page": "https://mori-zeirishi.net/blog/macro/retail/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 10,
+      "page": "https://mori-zeirishi.net/blog/macro/salon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 9.5,
+      "page": "https://mori-zeirishi.net/blog/macro/youtube/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 86,
+      "ctr": 0,
+      "position": 11.80232558139535,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 11,
+      "ctr": 0,
+      "position": 5.7272727272727275,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-qualification-cost-electrical-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 4.5,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-tools-expense-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 46,
+      "ctr": 0,
+      "position": 9.804347826086957,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-vehicle-expense-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 5,
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-withholding-received-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 6.2,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-course-bundle-course-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 34,
+      "ctr": 0,
+      "position": 4.5,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-license-revenue-template-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 29,
+      "ctr": 0,
+      "position": 13.137931034482758,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-membership-tiers-membership-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 21.2,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 7.2,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-online-course-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 7.2,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-platform-fee-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 65,
+      "ctr": 0,
+      "position": 11.538461538461538,
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 34,
+      "ctr": 0,
+      "position": 5.911764705882353,
+      "page": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-consignment-general-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 33,
+      "ctr": 0,
+      "position": 6.96969696969697,
+      "page": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-edu-material-education-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 19,
+      "ctr": 0,
+      "position": 8.368421052631579,
+      "page": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-gaming-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 30,
+      "ctr": 0,
+      "position": 4.733333333333333,
+      "page": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-live-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 6.25,
+      "page": "https://mori-zeirishi.net/blog/shitsugi-hyoka-15-16/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11,
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shotoku-06-21/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 5.333333333333333,
+      "page": "https://mori-zeirishi.net/blog/shopify-growth-overseas-tax-uncertain-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 43,
+      "ctr": 0,
+      "position": 5.255813953488372,
+      "page": "https://mori-zeirishi.net/blog/shopify-growth-overseas-tax-uncertain-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 8.333333333333332,
+      "page": "https://mori-zeirishi.net/blog/shopify-incorporation-inventory-balance-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 21,
+      "ctr": 0,
+      "position": 5.666666666666667,
+      "page": "https://mori-zeirishi.net/blog/shopify-incorporation-inventory-balance-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 19,
+      "ctr": 0,
+      "position": 5.578947368421052,
+      "page": "https://mori-zeirishi.net/blog/yahoo-auction-side-business-inventory-balance-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 6.5,
+      "page": "https://mori-zeirishi.net/blog/yahoo-auction-side-business-inventory-balance-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7,
+      "page": "https://mori-zeirishi.net/pricing/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 1.75,
+      "page": "https://mori-zeirishi.net/services"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 75.57142857142857,
+      "page": "https://mori-zeirishi.net/services/bookkeeping/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 27,
+      "page": "https://mori-zeirishi.net/services/ebay-export/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "page": "https://mori-zeirishi.net/services/inheritance/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 62.25,
+      "page": "https://mori-zeirishi.net/services/startup/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 5.5,
+      "page": "https://mori-zeirishi.net/services/tax-audit/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7,
+      "page": "https://mori-zeirishi.net/tools/shohizei-simulator/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 14,
+      "ctr": 0,
+      "position": 62.57142857142857,
+      "page": "https://mori-zeirishi.net/tools/yakuin-hoshu-simulator/"
+    }
+  ]
+}
