@@ -1,5 +1,5 @@
 ---
-title: "土地 相続税 計算方法｜路線価から納付額までの4ステップ"
+title: "土地の相続税の計算方法｜路線価での評価から特例・納付額まで4ステップで解説"
 slug: "land-inheritance-tax-calculation-method"
 category: "相続"
 primary_persona: "inheritance_client"
@@ -61,7 +61,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-05T00:06:02.564Z"
-updated_at: "2026-10-05T00:09:07.973Z"
+updated_at: "2026-10-05T04:51:39.227Z"
 ---
 親が亡くなり、自宅の土地や建物を相続することになった——そんな場面で、多くの方が最初に戸惑うのが「いったいいくら相続税がかかるのか」という点です。
 
