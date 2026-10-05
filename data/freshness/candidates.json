@@ -1,59 +1,11 @@
 {
-  "generatedAt": "2026-10-01T15:35:38.256Z",
+  "generatedAt": "2026-10-04T22:24:37.402Z",
   "candidates": [
-    {
-      "slug": "newseg-content_seller-content-subscription-revenue-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/",
-      "title": "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期",
-      "score": 3.76,
-      "impressions28d": 118,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和4年分」を含む",
-          "where": "## 記帳と帳簿保存の義務"
-        }
-      ],
-      "file": "2026-07-23-newseg-content_seller-content-subscription-revenue-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "newseg-construction_solo-construction-bookkeeping-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
-      "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
-      "score": 3.72,
-      "impressions28d": 115,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和5年分」を含む",
-          "where": "## よくある間違い：こうして記帳・保存が後手に回る"
-        }
-      ],
-      "file": "2026-08-19-newseg-construction_solo-construction-bookkeeping-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "affiliate-pr-incorporation-incorporation-threshold-guide",
-      "url": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/",
-      "title": "アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理",
-      "score": 3.64,
-      "impressions28d": 95,
-      "reasons": [
-        {
-          "kind": "seo_growable",
-          "detail": "「アフィリエイト 法人化」（表示35・16.8位）が題名に無い（所在: 本文）",
-          "where": "題名"
-        }
-      ],
-      "file": "2026-06-29-affiliate-pr-incorporation-incorporation-threshold-guide.md",
-      "refreshable": false
-    },
     {
       "slug": "newseg-content_seller-content-ebook-royalty-ebook-practice",
       "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/",
       "title": "電子書籍・Kindle印税の確定申告はどうする？収入の計上時期と仕訳を具体例で解説",
-      "score": 3.54,
+      "score": 3.84,
       "impressions28d": 92,
       "reasons": [
         {
@@ -66,15 +18,31 @@
       "refreshable": true
     },
     {
+      "slug": "newseg-construction_solo-construction-bookkeeping-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
+      "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
+      "score": 3.8,
+      "impressions28d": 86,
+      "reasons": [
+        {
+          "kind": "fiscal_year",
+          "detail": "「令和5年分」を含む",
+          "where": "## よくある間違い：こうして記帳・保存が後手に回る"
+        }
+      ],
+      "file": "2026-08-19-newseg-construction_solo-construction-bookkeeping-guide.md",
+      "refreshable": true
+    },
+    {
       "slug": "affiliate-pr-growth-invoice-judgement-guide",
       "url": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/",
       "title": "ブログ・アフィリエイト収入が伸びてきたらインボイス登録は必要？判断軸を整理",
-      "score": 3.48,
-      "impressions28d": 88,
+      "score": 3.66,
+      "impressions28d": 66,
       "reasons": [
         {
           "kind": "seo_growable",
-          "detail": "「インボイス制度 アフィリエイト」（表示25・11.8位）が題名に無い（所在: 本文）",
+          "detail": "「インボイス制度 アフィリエイト」（表示13・11.7位）が題名に無い（所在: 本文）",
           "where": "題名"
         }
       ],
@@ -82,11 +50,43 @@
       "refreshable": false
     },
     {
+      "slug": "newseg-content_seller-content-subscription-revenue-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/",
+      "title": "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期",
+      "score": 3.64,
+      "impressions28d": 65,
+      "reasons": [
+        {
+          "kind": "fiscal_year",
+          "detail": "「令和4年分」を含む",
+          "where": "## 記帳と帳簿保存の義務"
+        }
+      ],
+      "file": "2026-07-23-newseg-content_seller-content-subscription-revenue-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "affiliate-pr-incorporation-incorporation-threshold-guide",
+      "url": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/",
+      "title": "アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理",
+      "score": 3.54,
+      "impressions28d": 59,
+      "reasons": [
+        {
+          "kind": "seo_growable",
+          "detail": "「アフィリエイト 法人化」（表示20・14.9位）が題名に無い（所在: 本文）",
+          "where": "題名"
+        }
+      ],
+      "file": "2026-06-29-affiliate-pr-incorporation-incorporation-threshold-guide.md",
+      "refreshable": false
+    },
+    {
       "slug": "deepdive-influencer_creator-creator-royalty-income-guide",
       "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-creator-royalty-income-guide/",
       "title": "印税・版権収入の確定申告はどうする？所得区分と源泉徴収の扱いを解説",
-      "score": 3.12,
-      "impressions28d": 46,
+      "score": 3.44,
+      "impressions28d": 50,
       "reasons": [
         {
           "kind": "fiscal_year",
@@ -98,26 +98,10 @@
       "refreshable": true
     },
     {
-      "slug": "newseg-content_seller-content-note-revenue-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
-      "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
-      "score": 3.02,
-      "impressions28d": 44,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和7年分」を含む",
-          "where": "## まず結論"
-        }
-      ],
-      "file": "2026-07-07-newseg-content_seller-content-note-revenue-guide.md",
-      "refreshable": true
-    },
-    {
       "slug": "general-social-insurance-misconception-reseller-marketplace-seller-growth-practice",
       "url": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-reseller-marketplace-seller-growth-practice/",
       "title": "社会保険の扶養と税の扶養はどう違う？フリマ・転売セラーの実務処理を解説",
-      "score": 2.92,
+      "score": 3.06,
       "impressions28d": 31,
       "reasons": [
         {
@@ -127,6 +111,22 @@
         }
       ],
       "file": "2026-09-03-general-social-insurance-misconception-reseller-marketplace-seller-growth-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-note-revenue-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
+      "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
+      "score": 2.3,
+      "impressions28d": 5,
+      "reasons": [
+        {
+          "kind": "fiscal_year",
+          "detail": "「令和7年分」を含む",
+          "where": "## まず結論"
+        }
+      ],
+      "file": "2026-07-07-newseg-content_seller-content-note-revenue-guide.md",
       "refreshable": true
     },
     {
