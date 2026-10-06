@@ -53,15 +53,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 財産評価基本通達（0.78）"
 summary: "土地の相続税は「路線価×補正率×面積」で評価額を算出し、建物は固定資産税評価額をそのまま使う。基礎控除や小規模宅地等の特例を適用して最終的な納付額を計算する手順を解説。"
-review_status: "approved"
+review_status: "published"
 review_comment: ""
 approved_at: "2026-10-05T14:42:59.043+09:00"
 publish_at: "2026-10-06T11:37:00.000+09:00"
-published_at: ""
+published_at: "2026-10-06T12:01:04.460+09:00"
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-05T00:06:02.564Z"
-updated_at: "2026-10-05T14:42:59.043+09:00"
+updated_at: "2026-10-06T12:01:04.460+09:00"
 publish_slot: "morning"
 ---
 親が亡くなり、自宅の土地や建物を相続することになった——そんな場面で、多くの方が最初に戸惑うのが「いったいいくら相続税がかかるのか」という点です。
