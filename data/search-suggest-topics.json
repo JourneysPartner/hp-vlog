@@ -1227,7 +1227,113 @@
       "primary_question": "贈与税の非課税制度にはどのような種類があり、財産や贈与の目的に応じてどれを選べばよいのか？",
       "reader_problem": "110万円の基礎控除や住宅取得資金の特例など制度が複数あり、自分に適した非課税制度を判断できない。",
       "selected_at": "2026-09-13T19:09:05.986Z"
+    },
+    {
+      "slug": "suggest-creator-youtuber-cd2dd0",
+      "seed_id": "creator-youtuber",
+      "phrases": [
+        "youtuber 税金 払い方",
+        "youtuber 税金 いくら"
+      ],
+      "persona": "youtuber",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "Youtuberの所得にかかる税金はいくらで、どのように納めればよいですか？",
+      "reader_problem": "収入が増えたYoutuberが、税額の目安や納税方法、確定申告の必要性を知りたい。",
+      "selected_at": "2026-09-20T19:13:10.536Z"
+    },
+    {
+      "slug": "suggest-creator-youtuber-8c08ca",
+      "seed_id": "creator-youtuber",
+      "phrases": [
+        "youtuber 税金払ってない"
+      ],
+      "persona": "youtuber",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "Youtuberが税金を払わず確定申告もしなかった場合、どのようなペナルティがありますか？",
+      "reader_problem": "申告や納税をしていない場合に、延滞税や加算税などが発生するのか不安を感じている。",
+      "selected_at": "2026-09-20T19:13:10.536Z"
+    },
+    {
+      "slug": "suggest-invoice-2wari-ad320e",
+      "seed_id": "invoice-2wari",
+      "phrases": [
+        "インボイス 2割特例 終わったら",
+        "インボイス 2割特例 延長",
+        "インボイス 2割特例 3割特例"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "2割特例が終了した後は、どの消費税の計算方法や特例を選べばよいのか？",
+      "reader_problem": "2割特例の終了後に本則課税と簡易課税のどちらを選ぶべきか、延長や別の特例があるのか知りたい。",
+      "selected_at": "2026-09-20T19:14:02.064Z"
+    },
+    {
+      "slug": "suggest-invoice-2wari-12f824",
+      "seed_id": "invoice-2wari",
+      "phrases": [
+        "インボイス 2割特例 法人"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "法人がインボイス登録した場合、2割特例を利用できる条件と計算方法は？",
+      "reader_problem": "法人でも2割特例を使えるのか、資本金や課税事業者になった経緯による適用条件が分からない。",
+      "selected_at": "2026-09-20T19:14:02.064Z"
+    },
+    {
+      "slug": "suggest-invoice-menzei-aa4055",
+      "seed_id": "invoice-menzei",
+      "phrases": [
+        "免税事業者 インボイス 経過措置",
+        "免税事業者 インボイス 特例",
+        "免税事業者 インボイス 請求書",
+        "免税事業者 インボイス 消費税"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "invoice_system",
+      "category": "インボイス",
+      "article_type": "basic_explainer",
+      "primary_question": "インボイス未登録の免税事業者は、請求書をどう発行し、取引先の仕入税額控除に関する経過措置はどう適用されるのか？",
+      "reader_problem": "インボイス番号がない状態で請求書を発行してよいのか、消費税の表示や取引先への影響が分からない。",
+      "selected_at": "2026-09-20T19:14:02.064Z"
+    },
+    {
+      "slug": "suggest-gensen-houshu-0fb820",
+      "seed_id": "gensen-houshu",
+      "phrases": [
+        "報酬 源泉徴収 計算 消費税",
+        "報酬 源泉徴収 計算 手取り",
+        "報酬 料金 源泉徴収 計算"
+      ],
+      "persona": "general_corporation",
+      "tax_domain": "withholding",
+      "category": "源泉徴収",
+      "article_type": "comparison_decision",
+      "primary_question": "報酬の源泉徴収は、消費税込みの金額と税抜きの金額のどちらを基準に計算するのか？",
+      "reader_problem": "請求書の報酬額に消費税が含まれている場合、源泉徴収額と相手の手取り額をどう計算すべきか迷っている。",
+      "selected_at": "2026-09-20T19:14:02.064Z"
+    },
+    {
+      "slug": "suggest-zouyo-seizen-4dead8",
+      "seed_id": "zouyo-seizen",
+      "phrases": [
+        "生前贈与 確定申告 やり方"
+      ],
+      "persona": "inheritance_client",
+      "tax_domain": "inheritance_tax",
+      "category": "相続",
+      "article_type": "basic_explainer",
+      "primary_question": "生前贈与を受けた場合、贈与税の申告は必要なのか、必要な場合はどのように手続きするのか？",
+      "reader_problem": "生前贈与を受けたものの、確定申告や贈与税申告が必要か分からず、申告方法や期限を確認したい。",
+      "selected_at": "2026-09-20T19:14:18.837Z"
     }
   ],
-  "updated_at": "2026-09-13T19:09:05.986Z"
+  "updated_at": "2026-09-20T19:14:18.837Z"
 }
