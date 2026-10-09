@@ -1,0 +1,165 @@
+{
+  "fetched_at": "2026-10-09",
+  "note": "国税庁のページをそのまま保存（Shift_JIS のバイト列）。各通達の目次 1 ページと本文 2 ページ",
+  "circulars": [
+    {
+      "key": "hyoka",
+      "title": "財産評価基本通達",
+      "abbr": [
+        "評基通"
+      ],
+      "tax_domain": "相続税・贈与税",
+      "format": "番号は <p class=\"indent1\"><strong>11　</strong>本文</p>（番号の後ろに全角空白）。見出しは直前の <h2>（評価の方式）</h2>。枝番は「20－7」（全角ハイフン）。「10　削除（…）」の行もある。旧 URL kihon/sisan/hyoka/01.htm は HTTP 200 のまま「指定されたページを表示できませんでした」を返すので、題名でエラーページを検知して取り込みを失敗させること",
+      "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/01.htm",
+      "encoding": "shift_jis",
+      "files": [
+        {
+          "kind": "index",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/01.htm",
+          "file": "tsutatsu/kihon__sisan__hyoka_new__01.htm",
+          "bytes": 36608
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/01/01.htm",
+          "file": "tsutatsu/kihon__sisan__hyoka_new__01__01.htm",
+          "bytes": 8124
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/02/02.htm",
+          "file": "tsutatsu/kihon__sisan__hyoka_new__02__02.htm",
+          "bytes": 9138
+        }
+      ]
+    },
+    {
+      "key": "sochi_sozoku",
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて",
+      "abbr": [
+        "措通"
+      ],
+      "tax_domain": "相続税・贈与税",
+      "sozeki_chapter": "MainProvision-Chapter_4（措法69〜70の13）",
+      "format": "番号は <strong>69の4-1</strong>（半角ハイフン）、「69の4-1の2」のような枝番あり。1 ページに 1 条分（69の4 は 57 項目）",
+      "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/01.htm",
+      "encoding": "shift_jis",
+      "files": [
+        {
+          "kind": "index",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/01.htm",
+          "file": "tsutatsu/kobetsu__sozoku__sochiho__080708__01.htm",
+          "bytes": 178001
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+          "file": "tsutatsu/kobetsu__sozoku__sochiho__080708__69_4__01.htm",
+          "bytes": 63623
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_2/02.htm",
+          "file": "tsutatsu/kobetsu__sozoku__sochiho__080708__70_2__02.htm",
+          "bytes": 65995
+        }
+      ]
+    },
+    {
+      "key": "sochi_shotoku",
+      "title": "租税特別措置法に係る所得税の取扱いについて",
+      "abbr": [
+        "措通"
+      ],
+      "tax_domain": "所得税",
+      "sozeki_chapter": "MainProvision-Chapter_2（措法3〜42の3）のうち、譲渡所得関係（sochi_joto）以外",
+      "format": "番号は <strong>28の2-1</strong>&emsp;本文。28の2-2 は令和8年改正後の「40万円未満」（照合の根拠として重要な最新の値）",
+      "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/01.htm",
+      "encoding": "shift_jis",
+      "files": [
+        {
+          "kind": "index",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/01.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__801226__sinkoku__01.htm",
+          "bytes": 77279
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/25/01.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__801226__sinkoku__57__25__01.htm",
+          "bytes": 8606
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/28/02.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__801226__sinkoku__57__28__02.htm",
+          "bytes": 8109
+        }
+      ]
+    },
+    {
+      "key": "sochi_joto",
+      "title": "租税特別措置法（山林所得・譲渡所得関係）の取扱いについて",
+      "abbr": [
+        "措通"
+      ],
+      "tax_domain": "所得税（譲渡所得）",
+      "sozeki_chapter": "MainProvision-Chapter_2 のうち措法30〜40の3 付近（山林・譲渡）",
+      "format": "番号は <strong>35-3 </strong>本文（番号の後ろに半角空白が strong の中に入ることがある）",
+      "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/01.htm",
+      "encoding": "shift_jis",
+      "files": [
+        {
+          "kind": "index",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/01.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__710826__sanrin__sanjyou__01.htm",
+          "bytes": 76992
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/soti35/01.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__710826__sanrin__sanjyou__soti35__01.htm",
+          "bytes": 49145
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/soti31/01.htm",
+          "file": "tsutatsu/kobetsu__shotoku__sochiho__710826__sanrin__sanjyou__soti31__01.htm",
+          "bytes": 12500
+        }
+      ]
+    },
+    {
+      "key": "sochi_hojin",
+      "title": "租税特別措置法関係通達（法人税編）",
+      "abbr": [
+        "措通"
+      ],
+      "tax_domain": "法人税",
+      "sozeki_chapter": "MainProvision-Chapter_3（措法42の3の2〜68の6）",
+      "format": "番号は <strong>67の5－1</strong>&emsp;本文（全角ハイフン）。15_67_5.htm には国税庁のページ自体に同じ番号「67の5－1の2」が 2 つある（内容は別）。片方を黙って上書きしないこと",
+      "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/01.htm",
+      "encoding": "shift_jis",
+      "files": [
+        {
+          "kind": "index",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/01.htm",
+          "file": "tsutatsu/kobetsu__hojin__sochiho__750214__01.htm",
+          "bytes": 25693
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/08/08_61_4a.htm",
+          "file": "tsutatsu/kobetsu__hojin__sochiho__750214__08__08_61_4a.htm",
+          "bytes": 30781
+        },
+        {
+          "kind": "body",
+          "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/15/15_67_5.htm",
+          "file": "tsutatsu/kobetsu__hojin__sochiho__750214__15__15_67_5.htm",
+          "bytes": 9371
+        }
+      ]
+    }
+  ]
+}

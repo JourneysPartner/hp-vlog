@@ -40,7 +40,8 @@
 | 01 | `01-materials.md` | 補助出典の本文・関係法令の連鎖・汎用主出典の補強 | 1 回目 |
 | 02 | `02-writing-rules.md` | 資料に無い要件・金額・期限を書かない規則、期限の書き方 | 1 回目 |
 | 03 | `03-fact-check-gate.md` | 公開前の照合（抜き出し → 根拠検索 → 判定 → 修正 → 再照合 → 承認ゲート → レビュー画面） | 1 回目 |
-| 04 | `04-catalog-coverage.md` | 主要税法と施行令・措置法関係通達をカタログに追加 | 2 回目 |
+| 03b | `03b-review-fixes.md` | 01〜03 のレビュー指摘（Critical 1・High 2・Medium 4・Low）の修正 | 2 回目 |
+| 04 | `04-catalog-coverage.md` | 主要税法と施行令・措置法関係通達をカタログに追加（資料は `fixtures/`） | 2 回目 |
 | 05 | `05-published-audit.md` | 公開済み記事の一括照合（修正はしない、一覧を作るだけ） | 2 回目 |
 
 作業ブランチは `fix/fact-grounding`（`fix/draft-supply` の上に積む。`generate-draft.js` の同じ箇所を触るため）。
