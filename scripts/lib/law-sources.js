@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { LAW_SCOPE_RULE } = require('./grounding-rules');
 
 const ROOT = path.join(__dirname, '..', '..');
 const LAW_DIR = path.join(ROOT, 'data', 'law-sources');
@@ -380,6 +381,7 @@ function buildLawProvisionBlock(articles, options = {}) {
 ═══ 法令の原文（条文はこれだけを根拠にする。ここに無い条番号を書かない）═══
 以下は e-Gov 法令検索から取得した現行条文です。期限・順位・要件は条文どおりに書き、
 条番号を引くときはここにある条だけを引いてください。
+${LAW_SCOPE_RULE}
 
 ${sections}`;
 }

@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const { normalizeProvisionNo } = require('./tsutatsu-parser');
+const { LAW_SCOPE_RULE } = require('./grounding-rules');
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data', 'nta-tsutatsu');
 
@@ -149,6 +150,7 @@ function buildProvisionBlock(refs) {
 
 ═══ 法令解釈通達の原文 ═══
 記事が触れている論点に対応する通達の原文です。
+${LAW_SCOPE_RULE}
 
 ${body}
 
