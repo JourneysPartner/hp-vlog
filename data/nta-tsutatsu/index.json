@@ -8,7 +8,7 @@
     "section_pages": 257,
     "provision_count": 1310,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:22:41.900Z"
+    "fetched_at": "2026-10-08T21:13:10.572Z"
   },
   {
     "circular": "shohi",
@@ -17,9 +17,9 @@
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01.htm",
     "file": "shohi.json",
     "section_pages": 100,
-    "provision_count": 645,
+    "provision_count": 646,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:18:04.606Z"
+    "fetched_at": "2026-10-08T21:07:39.778Z"
   },
   {
     "circular": "shotoku",
@@ -28,9 +28,9 @@
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
     "file": "shotoku.json",
     "section_pages": 134,
-    "provision_count": 1234,
+    "provision_count": 1236,
     "errors": 0,
-    "fetched_at": "2026-09-14T09:43:54.428Z"
+    "fetched_at": "2026-10-08T21:05:28.515Z"
   },
   {
     "circular": "sozoku",
@@ -41,6 +41,6 @@
     "section_pages": 35,
     "provision_count": 439,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:23:19.727Z"
+    "fetched_at": "2026-10-08T21:13:57.144Z"
   }
 ]
