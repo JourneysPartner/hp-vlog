@@ -27,6 +27,7 @@ const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
 const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
+const { loadWithdrawnTopics, findWithdrawnTopic } = require('./withdrawn-topics');
 const { prefillTargetQuery, normalizeQuery, findTargetQueryOwner } = require('./target-query');
 const {
   isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit, scoreLeadValue,
@@ -429,6 +430,20 @@ function selectDailyTopics(topics, options = {}) {
     blocked: denylistExcluded.length,
     remaining: candidates.length,
     blockedDetails: denylistExcluded.slice(0, 5),
+  });
+
+  // 2.75. 取り下げ記録のある題材は通常の選定に戻さない。
+  const withdrawn = options.withdrawn === undefined ? loadWithdrawnTopics() : options.withdrawn;
+  const withdrawnExcluded = [];
+  candidates = candidates.filter(topic => {
+    const hit = findWithdrawnTopic(topic, withdrawn);
+    if (!hit) return true;
+    withdrawnExcluded.push({ slug: topic.slug, stage: hit.stage, date: hit.date });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-withdrawn', blocked: withdrawnExcluded.length,
+    remaining: candidates.length, blockedDetails: withdrawnExcluded.slice(0, 5),
   });
 
   // 2.8. 顧客カテゴリ関連性ゲート（安全装置・必ず効く）

@@ -33,6 +33,7 @@ const {
   resolveTargetQuery, deriveIntentType, findTargetQueryOwner,
 } = require('./lib/target-query');
 const { lintSeo } = require('./lib/seo-lint');
+const { createWithdrawalRecorder, findWithdrawnQuery } = require('./lib/withdrawn-topics');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
 // collect-pending-drafts.js が生成前に .pending-drafts.json を書き出す。
@@ -665,41 +666,14 @@ function resolveForcedTopics(forceSlugs, topics = TOPICS) {
   });
 }
 
-async function pickPair(dateStr, draftCount = resolveDraftCount()) {
-  const pendingDrafts = loadPendingDraftCorpus();
-  const { picks, explanation } = selectDailyTopics(TOPICS, {
-    now: new Date(), extraCorpus: pendingDrafts, count: draftCount,
+async function pickPair(dateStr, draftCount = resolveDraftCount(), options = {}) {
+  const pendingDrafts = options.pendingDrafts || loadPendingDraftCorpus();
+  const topics = options.topics || TOPICS;
+  const select = options.select || selectDailyTopics;
+  const { picks, explanation } = select(topics, {
+    now: new Date(), extraCorpus: pendingDrafts, count: draftCount, withdrawn: options.recorder?.entries,
   });
-  // 選定ログを表示（運用での偏り確認用）
-  console.log('[generate] === topic selection ===');
-  for (const step of explanation.steps) {
-    console.log(`[generate] ${step.step}:`, JSON.stringify({
-      remaining: step.remaining, blocked: step.blocked,
-    }));
-  }
-  if (explanation.macroRatios14 || (explanation.steps.find(s => s.macroRatios14))) {
-    const ratios = explanation.steps.find(s => s.macroRatios14);
-    if (ratios) {
-      const r14 = Object.entries(ratios.macroRatios14)
-        .map(([k, v]) => `${k}:${(v * 100).toFixed(0)}%`)
-        .join(' ');
-      console.log(`[generate] 直近14日 macro比率: ${r14}`);
-    }
-  }
-  lastSelectionWarnings = (explanation.warnings || []).slice();
-  if (explanation.warnings) {
-    for (const w of explanation.warnings) console.warn(`[generate] ⚠ ${w}`);
-  }
-  if (explanation.picks) {
-    for (const p of explanation.picks) {
-      const parts = p.priority_breakdown || {};
-      console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role}) ` +
-        `priority=${p.priority} [demand=${parts.demand || 0} season=${parts.season || 0} ` +
-        `lead=${parts.lead || 0} balance=${parts.balance || 0} ` +
-        `cluster連投減点=${parts.cluster_recent || 0}]`);
-      console.log(`[select] ${p.reason}`);
-    }
-  }
+  logTopicSelection(explanation);
   if (picks.length === 0) {
     // 【重要】ランダムフォールバックはしない。関連性ゲート等で候補が空になった場合、
     // 不適合な記事を作らないために「その日は生成しない」を選ぶ（空を返す）。
@@ -710,13 +684,16 @@ async function pickPair(dateStr, draftCount = resolveDraftCount()) {
   // AI重複判定（Haiku による意味的重複チェック）
   const { readAllPostsSorted } = require('./lib/site-corpus');
   const { checkDuplicatesWithAI } = require('./lib/ai-dedup');
-  const corpus = readAllPostsSorted().concat(pendingDrafts.filter(p => p && p.slug));
-  const aiResult = await checkDuplicatesWithAI(picks, corpus);
+  const corpus = options.corpus || readAllPostsSorted().concat(pendingDrafts.filter(p => p && p.slug));
+  const checkAI = options.checkAI || checkDuplicatesWithAI;
+  const aiResult = await checkAI(picks, corpus);
   if (!aiResult.skipped) {
     const blocked = aiResult.results.filter(r => r.duplicate);
     if (blocked.length > 0) {
       for (const b of blocked) {
         console.warn(`[generate] AI重複判定: ${b.slug} → 重複(${b.similar_to}): ${b.reason}`);
+        const topic = picks.find(p => p.slug === b.slug);
+        if (topic) options.recorder?.record(topic, 'select-dedup', b);
       }
       const blockedSlugs = new Set(blocked.map(b => b.slug));
       let filtered = picks.filter(p => !blockedSlugs.has(p.slug));
@@ -725,10 +702,10 @@ async function pickPair(dateStr, draftCount = resolveDraftCount()) {
       // 重複除外で指定本数を下回った場合、代替候補を補充する（1回のみ）
       if (filtered.length < draftCount) {
         const usedSlugs = new Set([...blockedSlugs, ...filtered.map(p => p.slug)]);
-        const pool = TOPICS.filter(t => !usedSlugs.has(t.slug));
+        const pool = topics.filter(t => !usedSlugs.has(t.slug));
         if (pool.length > 0) {
-          const { picks: repicks } = selectDailyTopics(pool, {
-            now: new Date(), extraCorpus: pendingDrafts, count: draftCount,
+          const { picks: repicks } = select(pool, {
+            now: new Date(), extraCorpus: pendingDrafts, count: draftCount, withdrawn: options.recorder?.entries,
           });
           // 既に選ばれている需要の証拠と同じ種類は補充しない（1日1件の上限を保つ）
           const pickedKinds = new Set(filtered.map(demandKindOf).filter(Boolean));
@@ -738,12 +715,14 @@ async function pickPair(dateStr, draftCount = resolveDraftCount()) {
           if (candidates.length > 0) {
             const needed = draftCount - filtered.length;
             const additions = candidates.slice(0, needed);
-            const recheck = await checkDuplicatesWithAI(additions, corpus);
+            const recheck = await checkAI(additions, corpus);
             const reBlocked = new Set(
               (!recheck.skipped ? recheck.results.filter(r => r.duplicate).map(r => r.slug) : [])
             );
             for (const a of additions) {
               if (reBlocked.has(a.slug)) {
+                const detail = recheck.results.find(r => r.slug === a.slug);
+                options.recorder?.record(a, 'select-dedup', detail);
                 console.log(`[generate] 補充候補も重複: ${a.slug} → スキップ`);
               } else {
                 filtered.push(a);
@@ -2598,6 +2577,318 @@ async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
 }
 
 // ── エントリポイント ─────────────────────────────────────────────
+function resolvePositiveLimit(value, fallback) {
+  const text = String(value || '').trim();
+  const number = Number(text);
+  return /^\d+$/.test(text) && Number.isSafeInteger(number) && number > 0 ? number : fallback;
+}
+
+// 1 本が確定するまでだけ再選定する。取り下げた候補は同じ実行でも再利用しない。
+async function runSingleDraft(dateStr, options = {}) {
+  const env = options.env || process.env;
+  const maxCandidates = resolvePositiveLimit(env.DRAFT_MAX_CANDIDATES, 5);
+  const maxGenerations = resolvePositiveLimit(env.DRAFT_MAX_GENERATIONS, 2);
+  const recorder = options.recorder || createWithdrawalRecorder(options);
+  const pending = options.pendingDrafts || loadPendingDraftCorpus();
+  const corpus = options.corpus || require('./lib/site-corpus').readAllPostsSorted().concat(pending.filter(p => p && p.slug));
+  const select = options.select || selectDailyTopics;
+  const checkAI = options.checkAI || require('./lib/ai-dedup').checkDuplicatesWithAI;
+  const context = options.context || createQueryContext();
+  const tried = new Set();
+  const attempts = [];
+  let generations = 0;
+  let ending = '';
+  const finishAttempt = (topic, result) => {
+    attempts.push(`${tried.size}) ${topic.slug} → ${result}`);
+    console.log(`[generate] 試行 ${tried.size}/${maxCandidates}: ${topic.slug} → ${result}`);
+  };
+  while (tried.size < maxCandidates) {
+    const pool = (options.topics || TOPICS).filter(topic => !tried.has(topic.slug));
+    const { picks, explanation } = select(pool, {
+      now: options.now || new Date(), extraCorpus: pending, count: 1, withdrawn: recorder.entries,
+    });
+    logTopicSelection(explanation);
+    // 確定する記事は最大 1 本なので demandKindOf の種類ごとの 1 日 1 件も保つ。
+    const topic = picks[0];
+    if (!topic) { ending = '候補が尽きたため本日は生成しません'; break; }
+    tried.add(topic.slug);
+    const ai = await checkAI([topic], corpus);
+    const duplicate = !ai.skipped && ai.results.find(result => result.slug === topic.slug && result.duplicate);
+    if (duplicate) {
+      console.warn(`[generate] AI重複判定: ${topic.slug} → 重複(${duplicate.similar_to}): ${duplicate.reason}`);
+      console.log('[generate] AI重複判定で 1 件除外 → 残り 0 件');
+      recorder.record(topic, 'select-dedup', duplicate);
+      finishAttempt(topic, `選定時に重複（相手 ${duplicate.similar_to || '不明'}）`);
+      continue;
+    }
+    console.log(ai.skipped ? '[generate] AI重複判定: スキップ（aux未有効 or エラー）' : '[generate] AI重複判定: 重複なし');
+    await prepareSources([topic], options);
+    const before = recorder.additions.length;
+    const ready = await prepareQueries([topic], { ...options, context, recorder, checkWithdrawnQuery: true });
+    if (!ready.length) {
+      const entry = recorder.additions[before];
+      finishAttempt(topic, entry ? `${entry.stage}（${entry.reason}）` : '検索語・URL slug の判定で取り下げ');
+      continue;
+    }
+    if (generations >= maxGenerations) {
+      finishAttempt(topic, '本文生成の上限のため本文を作成せず');
+      ending = `本文生成の上限 ${maxGenerations} 回に達したため本日は生成しません`;
+      break;
+    }
+    // 既存 generateArticle を呼ぶ候補の数を数える。
+    // 関数内の形式・文字数補正の再生成は従来の処理を保つ。
+    generations++;
+    const results = await generateTopics(ready, dateStr, { ...options, recorder });
+    if (results.length) {
+      finishAttempt(topic, '下書き 1 本を確定');
+      return { results, attempts, generations, reason: '', candidates: tried.size };
+    }
+    const entry = recorder.additions[before];
+    finishAttempt(topic, `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
+  }
+  if (!ending) ending = `候補の確認上限 ${maxCandidates} 件に達したため本日は生成しません`;
+  const reason = [...(attempts.join(' / ') + ' / ' + ending).replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
+  return { results: [], attempts, generations, reason, candidates: tried.size };
+}
+
+function logTopicSelection(explanation) {
+  // 選定ログを表示（運用での偏り確認用）
+  console.log('[generate] === topic selection ===');
+  for (const step of explanation.steps) {
+    console.log(`[generate] ${step.step}:`, JSON.stringify({
+      remaining: step.remaining, blocked: step.blocked,
+    }));
+  }
+  if (explanation.macroRatios14 || (explanation.steps.find(s => s.macroRatios14))) {
+    const ratios = explanation.steps.find(s => s.macroRatios14);
+    if (ratios) {
+      const r14 = Object.entries(ratios.macroRatios14)
+        .map(([k, v]) => `${k}:${(v * 100).toFixed(0)}%`)
+        .join(' ');
+      console.log(`[generate] 直近14日 macro比率: ${r14}`);
+    }
+  }
+  lastSelectionWarnings = (explanation.warnings || []).slice();
+  if (explanation.warnings) {
+    for (const w of explanation.warnings) console.warn(`[generate] ⚠ ${w}`);
+  }
+  if (explanation.picks) {
+    for (const p of explanation.picks) {
+      const parts = p.priority_breakdown || {};
+      console.log(`[generate] picked: ${p.slug} (${p.macro}/${p.cluster}, ${p.persona}, ${p.article_role}) ` +
+        `priority=${p.priority} [demand=${parts.demand || 0} season=${parts.season || 0} ` +
+        `lead=${parts.lead || 0} balance=${parts.balance || 0} ` +
+        `cluster連投減点=${parts.cluster_recent || 0}]`);
+      console.log(`[select] ${p.reason}`);
+    }
+  }
+}
+
+async function prepareSources(pair, options = {}) {
+  // 各トピックに source_url / source_title が必ず付くよう fallback を適用
+  pair.forEach(options.ensureSource || ensureSourceOnTopic);
+
+  // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
+  // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
+  for (const t of pair) {
+    if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
+    const before = t.source_url;
+    await (options.enrichTaxTerms || enrichTaxTerms)(t);
+    if (!t.tax_terms) continue;
+    (options.ensureSource || ensureSourceOnTopic)(t);
+    if (t.source_url !== before) {
+      console.log(`[source] 論点語で探し直し: ${t.source_provenance} → ${t.source_title}`);
+    }
+  }
+
+  // 出典が domain-fallback/ultimate（＝的確な出典が見つからず汎用に倒れた）場合、
+  // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で
+  // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
+  for (const t of pair) {
+    await (options.enrichSource || enrichSourceWithLLM)(t);
+  }
+  const gscStats = getGscTopicStats();
+  if (gscStats.total > 0 || gscStats.disabled) {
+    console.log(`[generate] GSC 由来の候補: ${gscStats.included}件`
+      + `${gscStats.invalid ? `（形式不正スキップ ${gscStats.invalid}件）` : ''}`
+      + `${gscStats.disabled ? '（無効化中）' : ''}`);
+  }
+
+}
+
+function createQueryContext() {
+  const queryInputs = loadTargetQueryInputs();
+  const pendingForQuery = loadPendingDraftCorpus();
+  const { readAllPostsSorted } = require('./lib/site-corpus');
+  const targetQueryCorpus = readAllPostsSorted().concat(pendingForQuery.filter(Boolean));
+  const takenUrlSlugs = getExistingSlugs();
+  for (const post of pendingForQuery) {
+    if (post && post.slug) takenUrlSlugs.add(post.slug);
+    if (post && post.topic_id) takenUrlSlugs.add(post.topic_id);
+  }
+
+  return { queryInputs, targetQueryCorpus, takenUrlSlugs };
+}
+
+async function prepareQueries(pair, options = {}) {
+  // 出典の補完後、本文生成前に全トピックの主検索語とURL slugを確定する。
+  // ペア相手の related_slug に確定後のURL slugを入れるため、生成ループより先に行う。
+  const { queryInputs, targetQueryCorpus, takenUrlSlugs } = options.context || createQueryContext();
+
+  const queryReadyPair = [];
+  for (const topic of pair) {
+    topic.topic_id = topic.slug;
+    const resolved = await (options.resolveQuery || resolveTargetQuery)(
+      topic,
+      ({ system, user }) => callSimpleOpenAI({ system, user }, 600),
+      { ...queryInputs, existingSlugs: takenUrlSlugs },
+    );
+    topic.target_query = resolved ? resolved.target_query : '';
+    topic.secondary_queries = resolved ? resolved.secondary_queries : [];
+    topic.intent_type = resolved && resolved.intent_type
+      ? resolved.intent_type
+      : deriveIntentType(topic.primary_question || topic.title || '');
+    topic.target_query_evidence = resolved ? resolved.evidence : { suggest: [], gsc: [] };
+
+    let urlSlug = resolved && resolved.slug_words ? resolved.slug_words : topic.slug;
+    if (takenUrlSlugs.has(urlSlug)) {
+      urlSlug = topic.slug;
+    }
+    if (takenUrlSlugs.has(urlSlug)) {
+      const why = `URL slug「${urlSlug}」は既存記事・未マージ下書き・同じ実行の別記事と重複 → 取り下げ`;
+      if (options.force) {
+        console.error(`[generate] --force-slug: ${why}`);
+        process.exit(1);
+      }
+      console.warn(`[generate] ⚠ ${why}`);
+      lastSelectionWarnings.push(why);
+      options.recorder?.record(topic, 'url-slug-taken', { reason: why, url_slug: urlSlug });
+      continue;
+    }
+    topic.url_slug = urlSlug;
+
+    if (topic.target_query) {
+      const owner = findTargetQueryOwner(topic.target_query, targetQueryCorpus);
+      const replaces = Array.isArray(topic.replaces)
+        ? topic.replaces
+        : String(topic.replaces || '').split(',').map(v => v.trim()).filter(Boolean);
+      if (owner && !replaces.includes(owner.slug)) {
+        const why = `狙う検索語「${topic.target_query}」は ${owner.slug} が既に持っている → 取り下げ`;
+        if (options.force) {
+          console.error(`[generate] --force-slug: ${why}`);
+          process.exit(1);
+        }
+        console.warn(`[generate] ⚠ ${why}`);
+        lastSelectionWarnings.push(why);
+        options.recorder?.record(topic, 'target-query-owned', { reason: why, similar_to: owner.slug });
+        continue;
+      }
+    }
+
+    // 手動指定は従来どおり取り下げ記録を無視する。
+    const withdrawnQuery = options.checkWithdrawnQuery && !options.force && findWithdrawnQuery(topic.target_query, options.recorder?.entries || []);
+    if (withdrawnQuery) {
+      const why = '狙う検索語「' + topic.target_query + '」は取り下げ記録と同じ → 取り下げ';
+      console.warn('[generate] ⚠ ' + why);
+      lastSelectionWarnings.push(why);
+      options.recorder.record(topic, 'target-query-withdrawn', { reason: why, similar_to: withdrawnQuery.topic_id });
+      continue;
+    }
+    takenUrlSlugs.add(topic.url_slug);
+    const evidence = topic.target_query_evidence || { suggest: [], gsc: [] };
+    console.log(`[query] 主検索語: ${topic.target_query || '（未確定）'} / ` +
+      `副: ${topic.secondary_queries.join(' / ') || '（なし）'} / 型: ${topic.intent_type} / ` +
+      `裏取り: suggest ${(evidence.suggest || []).length} 件・gsc ${(evidence.gsc || []).length} 件 / ` +
+      `slug: ${topic.url_slug}`);
+    queryReadyPair.push(topic);
+  }
+  pair = queryReadyPair;
+  console.log(`[generate] 検索語・URL slug確定後の生成本数: ${pair.length}`);
+
+  return pair;
+}
+
+async function generateTopics(pair, dateStr, options = {}) {
+  const results = [];
+  const postsDir = options.postsDir || POSTS_DIR;
+  // 本文生成 provider/model の表示（content-model の解決結果）
+  const contentProvider = contentModel.resolveProvider();
+  const contentModelId  = contentModel.resolveModel(contentProvider);
+  const hasContentKey = contentProvider === 'anthropic'
+    ? !!process.env.ANTHROPIC_API_KEY
+    : !!process.env.OPENAI_API_KEY;
+
+  for (let i = 0; i < pair.length; i++) {
+    const topic = pair[i];
+    const pairedTopic = pair.length === 2 ? pair[1 - i] : null;
+
+    console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
+    // タイトルは LLM が本文生成と同時に決定するため、ここでは slug を識別子として表示。
+    // 参考タイトル（curated TOPICS の場合のみ存在）は併記する。
+    console.log(`[generate] slug: ${topic.url_slug || topic.slug} / topic_id: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
+    console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
+    console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
+    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
+    if (pairedTopic) {
+      console.log(`[generate] ペア記事: ${pairedTopic.title}`);
+    }
+
+    const revisionComments = getRecentRevisionComments(3);
+    if (i === 0 && revisionComments.length > 0) {
+      console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
+    }
+
+    let content, usedModel = contentModelId;
+
+    if (options.generateArticle || hasContentKey || process.env.OPENAI_API_KEY) {
+      try {
+        const art = await (options.generateArticle || generateArticle)(dateStr, topic, pairedTopic);
+        content = art.content;
+        usedModel = art.model || contentModelId;
+        // content-model 内で provider=anthropic から openai に fallback した場合はここで明示
+        if (contentProvider === 'anthropic' && art.provider === 'openai') {
+          console.warn(`[generate] ⚠ Anthropic 失敗のため OpenAI fallback で生成（model=${art.model}）`);
+        }
+      } catch (err) {
+        console.warn(`[generate] 本文生成 API 失敗: ${err.message} → テンプレートにフォールバック`);
+        content = generateFromTemplate(dateStr, topic, pairedTopic);
+        usedModel = 'template';
+      }
+    } else {
+      console.log('[generate] APIキー未設定（ANTHROPIC_API_KEY / OPENAI_API_KEY）→ テンプレートで生成します');
+      content = generateFromTemplate(dateStr, topic, pairedTopic);
+      usedModel = 'template';
+    }
+
+    const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
+    const filepath = path.join(postsDir, filename);
+
+    fs.mkdirSync(postsDir, { recursive: true });
+    fs.writeFileSync(filepath, content + '\n', 'utf8');
+    console.log(`[generate] 生成完了: content/posts/${filename}`);
+
+    (options.selfCheck || selfCheckContent)(content, topic.article_type || 'basic_explainer', topic.url_slug || topic.slug);
+
+    // 生成後の重複判定（2026-09-08）。選定時の判定は企画メタしか見られず、
+    // 記事が企画より広がって既存記事と同じになるのを止められなかった
+    // （9/8 の本命記事: 企画は「逝去直後の初動」、記事は「10か月の全体像」→ 4/18・8/22 と重複）。
+    // 生成物のタイトル・要約・見出しで照合し、重複ならファイルを消して取り下げる。
+    const dup = await (options.checkGenerated || checkGeneratedArticle)(content, topic, results.map(r => r.slug));
+    if (dup.duplicate) {
+      fs.unlinkSync(filepath);
+      const why = `生成後の重複判定: ${topic.url_slug || topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
+      console.warn(`[generate] ⚠ ${why}`);
+      lastSelectionWarnings.push(why);
+      options.recorder?.record(topic, 'postgen-dedup', { reason: dup.reason || why, similar_to: dup.similar_to });
+      continue;
+    }
+
+    results.push({ filename, slug: topic.url_slug || topic.slug, model: usedModel });
+  }
+
+  return results;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const shitsugiStats = getShitsugiTopicStats();
@@ -2853,7 +3144,9 @@ async function main() {
   // ── 通常の新規生成モード（既定1本、DRAFT_COUNT=2 で従来のペア生成）──
   const dateStr = forceDate || getTodayJST();
   const draftCount = resolveDraftCount();
-  let pair;
+  let pair = [];
+  let singleRun;
+  const recorder = createWithdrawalRecorder({ force: forceSlugs.length > 0 });
   if (forceSlugs.length > 0) {
     pair = resolveForcedTopics(forceSlugs);
     // --force-slug は選定（既存 slug 除外・cooldown・重複判定）を通らない。
@@ -2870,188 +3163,23 @@ async function main() {
     }
     console.log(`[generate] --force-slug: ${pair.map(t => t.slug).join(', ')}`);
   } else {
-    pair = await pickPair(dateStr, draftCount);
+    if (draftCount === 1) {
+      singleRun = await runSingleDraft(dateStr, { recorder });
+      lastSelectionWarnings = singleRun.results.length ? [] : [singleRun.reason];
+    } else {
+      pair = await pickPair(dateStr, draftCount, { recorder });
+    }
   }
   const expectedCount = forceSlugs.length > 0 ? forceSlugs.length : draftCount;
 
   console.log(`[generate] 日付: ${dateStr}`);
-  console.log(`[generate] 生成本数: ${pair.length}`);
+  console.log(`[generate] 生成本数: ${singleRun ? singleRun.results.length : pair.length}`);
 
-  const results = [];
-
-  // 各トピックに source_url / source_title が必ず付くよう fallback を適用
-  pair.forEach(ensureSourceOnTopic);
-
-  // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
-  // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
-  for (const t of pair) {
-    if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
-    const before = t.source_url;
-    await enrichTaxTerms(t);
-    if (!t.tax_terms) continue;
-    ensureSourceOnTopic(t);
-    if (t.source_url !== before) {
-      console.log(`[source] 論点語で探し直し: ${t.source_provenance} → ${t.source_title}`);
-    }
-  }
-
-  // 出典が domain-fallback/ultimate（＝的確な出典が見つからず汎用に倒れた）場合、
-  // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で
-  // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
-  for (const t of pair) {
-    await enrichSourceWithLLM(t);
-  }
-  const gscStats = getGscTopicStats();
-  if (gscStats.total > 0 || gscStats.disabled) {
-    console.log(`[generate] GSC 由来の候補: ${gscStats.included}件`
-      + `${gscStats.invalid ? `（形式不正スキップ ${gscStats.invalid}件）` : ''}`
-      + `${gscStats.disabled ? '（無効化中）' : ''}`);
-  }
-
-  // 出典の補完後、本文生成前に全トピックの主検索語とURL slugを確定する。
-  // ペア相手の related_slug に確定後のURL slugを入れるため、生成ループより先に行う。
-  const queryInputs = loadTargetQueryInputs();
-  const pendingForQuery = loadPendingDraftCorpus();
-  const { readAllPostsSorted } = require('./lib/site-corpus');
-  const targetQueryCorpus = readAllPostsSorted().concat(pendingForQuery.filter(Boolean));
-  const takenUrlSlugs = getExistingSlugs();
-  for (const post of pendingForQuery) {
-    if (post && post.slug) takenUrlSlugs.add(post.slug);
-    if (post && post.topic_id) takenUrlSlugs.add(post.topic_id);
-  }
-
-  const queryReadyPair = [];
-  for (const topic of pair) {
-    topic.topic_id = topic.slug;
-    const resolved = await resolveTargetQuery(
-      topic,
-      ({ system, user }) => callSimpleOpenAI({ system, user }, 600),
-      { ...queryInputs, existingSlugs: takenUrlSlugs },
-    );
-    topic.target_query = resolved ? resolved.target_query : '';
-    topic.secondary_queries = resolved ? resolved.secondary_queries : [];
-    topic.intent_type = resolved && resolved.intent_type
-      ? resolved.intent_type
-      : deriveIntentType(topic.primary_question || topic.title || '');
-    topic.target_query_evidence = resolved ? resolved.evidence : { suggest: [], gsc: [] };
-
-    let urlSlug = resolved && resolved.slug_words ? resolved.slug_words : topic.slug;
-    if (takenUrlSlugs.has(urlSlug)) {
-      urlSlug = topic.slug;
-    }
-    if (takenUrlSlugs.has(urlSlug)) {
-      const why = `URL slug「${urlSlug}」は既存記事・未マージ下書き・同じ実行の別記事と重複 → 取り下げ`;
-      if (forceSlugs.length > 0) {
-        console.error(`[generate] --force-slug: ${why}`);
-        process.exit(1);
-      }
-      console.warn(`[generate] ⚠ ${why}`);
-      lastSelectionWarnings.push(why);
-      continue;
-    }
-    topic.url_slug = urlSlug;
-
-    if (topic.target_query) {
-      const owner = findTargetQueryOwner(topic.target_query, targetQueryCorpus);
-      const replaces = Array.isArray(topic.replaces)
-        ? topic.replaces
-        : String(topic.replaces || '').split(',').map(v => v.trim()).filter(Boolean);
-      if (owner && !replaces.includes(owner.slug)) {
-        const why = `狙う検索語「${topic.target_query}」は ${owner.slug} が既に持っている → 取り下げ`;
-        if (forceSlugs.length > 0) {
-          console.error(`[generate] --force-slug: ${why}`);
-          process.exit(1);
-        }
-        console.warn(`[generate] ⚠ ${why}`);
-        lastSelectionWarnings.push(why);
-        continue;
-      }
-    }
-
-    takenUrlSlugs.add(topic.url_slug);
-    const evidence = topic.target_query_evidence || { suggest: [], gsc: [] };
-    console.log(`[query] 主検索語: ${topic.target_query || '（未確定）'} / ` +
-      `副: ${topic.secondary_queries.join(' / ') || '（なし）'} / 型: ${topic.intent_type} / ` +
-      `裏取り: suggest ${(evidence.suggest || []).length} 件・gsc ${(evidence.gsc || []).length} 件 / ` +
-      `slug: ${topic.url_slug}`);
-    queryReadyPair.push(topic);
-  }
-  pair = queryReadyPair;
-  console.log(`[generate] 検索語・URL slug確定後の生成本数: ${pair.length}`);
-
-  // 本文生成 provider/model の表示（content-model の解決結果）
-  const contentProvider = contentModel.resolveProvider();
-  const contentModelId  = contentModel.resolveModel(contentProvider);
-  const hasContentKey = contentProvider === 'anthropic'
-    ? !!process.env.ANTHROPIC_API_KEY
-    : !!process.env.OPENAI_API_KEY;
-
-  for (let i = 0; i < pair.length; i++) {
-    const topic = pair[i];
-    const pairedTopic = pair.length === 2 ? pair[1 - i] : null;
-
-    console.log(`[generate] ── 記事 ${i + 1}/${pair.length} ──`);
-    // タイトルは LLM が本文生成と同時に決定するため、ここでは slug を識別子として表示。
-    // 参考タイトル（curated TOPICS の場合のみ存在）は併記する。
-    console.log(`[generate] slug: ${topic.url_slug || topic.slug} / topic_id: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
-    console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
-    console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
-    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
-    if (pairedTopic) {
-      console.log(`[generate] ペア記事: ${pairedTopic.title}`);
-    }
-
-    const revisionComments = getRecentRevisionComments(3);
-    if (i === 0 && revisionComments.length > 0) {
-      console.log(`[generate] 差し戻しコメント ${revisionComments.length} 件を改善ヒントとして使用`);
-    }
-
-    let content, usedModel = contentModelId;
-
-    if (hasContentKey || process.env.OPENAI_API_KEY) {
-      try {
-        const art = await generateArticle(dateStr, topic, pairedTopic);
-        content = art.content;
-        usedModel = art.model || contentModelId;
-        // content-model 内で provider=anthropic から openai に fallback した場合はここで明示
-        if (contentProvider === 'anthropic' && art.provider === 'openai') {
-          console.warn(`[generate] ⚠ Anthropic 失敗のため OpenAI fallback で生成（model=${art.model}）`);
-        }
-      } catch (err) {
-        console.warn(`[generate] 本文生成 API 失敗: ${err.message} → テンプレートにフォールバック`);
-        content = generateFromTemplate(dateStr, topic, pairedTopic);
-        usedModel = 'template';
-      }
-    } else {
-      console.log('[generate] APIキー未設定（ANTHROPIC_API_KEY / OPENAI_API_KEY）→ テンプレートで生成します');
-      content = generateFromTemplate(dateStr, topic, pairedTopic);
-      usedModel = 'template';
-    }
-
-    const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
-    const filepath = path.join(POSTS_DIR, filename);
-
-    fs.mkdirSync(POSTS_DIR, { recursive: true });
-    fs.writeFileSync(filepath, content + '\n', 'utf8');
-    console.log(`[generate] 生成完了: content/posts/${filename}`);
-
-    selfCheckContent(content, topic.article_type || 'basic_explainer', topic.url_slug || topic.slug);
-
-    // 生成後の重複判定（2026-09-08）。選定時の判定は企画メタしか見られず、
-    // 記事が企画より広がって既存記事と同じになるのを止められなかった
-    // （9/8 の本命記事: 企画は「逝去直後の初動」、記事は「10か月の全体像」→ 4/18・8/22 と重複）。
-    // 生成物のタイトル・要約・見出しで照合し、重複ならファイルを消して取り下げる。
-    const dup = await checkGeneratedArticle(content, topic, results.map(r => r.slug));
-    if (dup.duplicate) {
-      fs.unlinkSync(filepath);
-      const why = `生成後の重複判定: ${topic.url_slug || topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
-      console.warn(`[generate] ⚠ ${why}`);
-      lastSelectionWarnings.push(why);
-      continue;
-    }
-
-    results.push({ filename, slug: topic.url_slug || topic.slug, model: usedModel });
-  }
+  const results = singleRun ? singleRun.results : await (async () => {
+    await prepareSources(pair);
+    pair = await prepareQueries(pair, { force: forceSlugs.length > 0, recorder });
+    return generateTopics(pair, dateStr, { recorder });
+  })();
 
   // GitHub Actions 出力変数（2本分）
   const ghOutput = process.env.GITHUB_OUTPUT;
@@ -3102,6 +3230,11 @@ module.exports = {
   checkGeneratedArticle,
   parseFrontmatter,
   resolveDraftCount,
+  pickPair,
+  runSingleDraft,
+  resolvePositiveLimit,
+  prepareQueries,
+  generateTopics,
   resolveForcedTopics,
   runRefreshMode,
 };

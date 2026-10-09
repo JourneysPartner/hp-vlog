@@ -3,6 +3,7 @@
 const SUPPORTED_CONTEXTS = new Set(['production', 'deploy-preview', 'branch-deploy']);
 const IGNORED_PREFIXES = ['docs/', '.github/', 'scripts/lib/__tests__/', '.claude/', '.codex/'];
 const IGNORED_ROOT_FILES = new Set(['README.md', 'CLAUDE.md', 'AGENTS.md']);
+const IGNORED_FILES = new Set(['data/withdrawn-topics.json']);
 
 function result(skip, reason) {
   return { skip, reason };
@@ -36,7 +37,7 @@ function parseReviewStatus(content) {
 }
 
 function isIgnoredLocation(file) {
-  return IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)) || IGNORED_ROOT_FILES.has(file);
+  return IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)) || IGNORED_ROOT_FILES.has(file) || IGNORED_FILES.has(file);
 }
 
 function isNonPublishedArticle(file, base, head, git) {
