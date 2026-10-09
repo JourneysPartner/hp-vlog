@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "last_crawl_started_at": "2026-08-01T15:55:44.897Z",
-  "last_crawl_finished_at": "2026-08-01T16:33:23.267Z",
-  "last_crawl_duration_seconds": 2258,
+  "last_crawl_started_at": "2026-10-01T20:02:27.395Z",
+  "last_crawl_finished_at": "2026-10-01T20:50:13.506Z",
+  "last_crawl_duration_seconds": 2866,
   "crawl_results": {
-    "fetched": 19,
-    "skipped": 2203,
+    "fetched": 535,
+    "skipped": 1691,
     "deleted": 0,
     "errors_count": 11
   },
   "by_type": {
     "shitsugi": 1550,
-    "taxanswer": 672
+    "taxanswer": 677
   },
-  "total_entries_processed": 2222,
+  "total_entries_processed": 2226,
   "errors_sample": [
     {
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4512.htm",
