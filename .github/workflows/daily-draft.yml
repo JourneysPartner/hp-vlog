@@ -438,11 +438,11 @@ jobs:
         run: |
           # 記事の枝と通知の処理を終えてから、今回の取り下げ記録だけを main に残す。
           if [ ! -f /tmp/withdrawn-new.json ]; then exit 0; fi
-          if ! node -e 'const a = require("/tmp/withdrawn-new.json"); process.exit(Array.isArray(a) && a.length ? 0 : 1)'; then exit 0; fi
-          if ! git fetch origin main || ! git checkout -B withdrawn-record origin/main; then
-            echo '::warning::取り下げ記録用の main への切り替えに失敗しました'
+          if ! cat /tmp/withdrawn-new.json; then
+            echo '::warning::今回の取り下げ記録をログに表示できませんでした'
             exit 0
           fi
+          if ! node -e 'const a = require("/tmp/withdrawn-new.json"); process.exit(Array.isArray(a) && a.length ? 0 : 1)'; then exit 0; fi
           if ! git config user.name "github-actions[bot]" || ! git config user.email "github-actions[bot]@users.noreply.github.com"; then
             echo '::warning::取り下げ記録のコミット設定に失敗しました'
             exit 0
@@ -453,21 +453,17 @@ jobs:
             if git diff --cached --quiet -- data/withdrawn-topics.json; then return 0; fi
             git commit -m "chore(draft): 取り下げた題材を記録 ($(TZ=Asia/Tokyo date +%Y-%m-%d))" -- data/withdrawn-topics.json
           }
-          if ! record_and_commit; then
-            echo '::warning::取り下げ記録の追記・コミットに失敗しました'
-            exit 0
-          fi
-          # 最初の push と、競合時の最大 3 回の再試行。
+          # 毎回最新 main に追記し直す。最初の試行と最大 3 回の再試行。
           for attempt in 0 1 2 3; do
-            if git push origin HEAD:main; then exit 0; fi
-            if [ "$attempt" = "3" ]; then break; fi
-            if ! git pull --rebase origin main; then
-              # JSON の追記が競合した場合は最新 main に同じ追記関数で再適用する。
-              if ! git rebase --abort || ! git fetch origin main || ! git checkout -B withdrawn-record origin/main || ! record_and_commit; then
-                echo '::warning::取り下げ記録の再適用に失敗しました'
-                exit 0
-              fi
+            if ! git fetch origin main || ! git checkout -B withdrawn-record origin/main; then
+              echo '::warning::取り下げ記録用の main への切り替えに失敗しました'
+              continue
             fi
+            if ! record_and_commit; then
+              echo '::warning::取り下げ記録の追記・コミットに失敗しました'
+              continue
+            fi
+            if git push origin HEAD:main; then exit 0; fi
           done
           echo '::warning::取り下げ記録を main に保存できませんでした'
           exit 0

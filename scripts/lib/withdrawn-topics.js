@@ -5,15 +5,28 @@ const path = require('path');
 const DEFAULT_PATH = path.join(__dirname, '..', '..', 'data', 'withdrawn-topics.json');
 const COMMENT = '日次生成で取り下げた題材。通常の選定では二度と選ばない。項目を消せば選定に戻る。';
 
-function loadWithdrawnTopics(file = DEFAULT_PATH, warn = console.warn) {
-  if (!fs.existsSync(file)) return { version: 1, comment: COMMENT, entries: [] };
+// 追記時は既存記録を失わないよう、存在しない場合だけ空として扱う。
+function readWithdrawnTopics(file) {
+  let source;
   try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (!data || !Array.isArray(data.entries)) throw new Error('entries が配列ではありません');
-    return data;
+    source = fs.readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return { version: 1, comment: COMMENT, entries: [] };
+    throw error;
+  }
+  const data = JSON.parse(source);
+  if (!data || !Array.isArray(data.entries)) throw new Error('entries が配列ではありません');
+  return data;
+}
+
+function loadWithdrawnTopics(file = DEFAULT_PATH, warn = console.warn) {
+  try {
+    return readWithdrawnTopics(file);
   } catch (_) {
     // JSON の中身や環境変数は警告に含めない。
-    warn('[withdrawn] 記録を読み込めないため空として扱います');
+    warn(process.env.GITHUB_ACTIONS === 'true'
+      ? '::warning::取り下げ記録が読めないため、記録による除外をせずに選定します'
+      : '[withdrawn] 記録を読み込めないため空として扱います');
     return { version: 1, comment: COMMENT, entries: [] };
   }
 }
@@ -31,7 +44,7 @@ function appendEntries(existing, additions) {
 }
 
 function appendWithdrawnTopics(additions, file = DEFAULT_PATH) {
-  const data = loadWithdrawnTopics(file);
+  const data = readWithdrawnTopics(file);
   const entries = appendEntries(data.entries, additions);
   if (entries.length !== data.entries.length) {
     fs.mkdirSync(path.dirname(file), { recursive: true });

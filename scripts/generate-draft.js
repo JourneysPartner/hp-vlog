@@ -2598,6 +2598,7 @@ async function runSingleDraft(dateStr, options = {}) {
   const attempts = [];
   let generations = 0;
   let ending = '';
+  let selectionWarnings = [];
   const finishAttempt = (topic, result) => {
     attempts.push(`${tried.size}) ${topic.slug} → ${result}`);
     console.log(`[generate] 試行 ${tried.size}/${maxCandidates}: ${topic.slug} → ${result}`);
@@ -2608,6 +2609,7 @@ async function runSingleDraft(dateStr, options = {}) {
       now: options.now || new Date(), extraCorpus: pending, count: 1, withdrawn: recorder.entries,
     });
     logTopicSelection(explanation);
+    selectionWarnings = (explanation.warnings || []).slice();
     // 確定する記事は最大 1 本なので demandKindOf の種類ごとの 1 日 1 件も保つ。
     const topic = picks[0];
     if (!topic) { ending = '候補が尽きたため本日は生成しません'; break; }
@@ -2647,7 +2649,7 @@ async function runSingleDraft(dateStr, options = {}) {
     finishAttempt(topic, `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
   }
   if (!ending) ending = `候補の確認上限 ${maxCandidates} 件に達したため本日は生成しません`;
-  const reason = [...(attempts.join(' / ') + ' / ' + ending).replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
+  const reason = [...[...attempts, ...selectionWarnings, ending].join(' / ').replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
   return { results: [], attempts, generations, reason, candidates: tried.size };
 }
 

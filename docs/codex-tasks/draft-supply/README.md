@@ -62,6 +62,7 @@
 ## 元に戻す方法
 
 - 01: `data/withdrawn-topics.json` の項目を消せば、その題材は選定に戻る。`DRAFT_MAX_CANDIDATES=1` と `DRAFT_MAX_GENERATIONS=1` で従来に近い「1 件だけ試す」動きになる。ワークフローの記録ステップを消せば main への記録は止まる。
+- 未マージ下書きとの重複で外れた題材は、その下書きを見送っても選定に戻らない。戻したいときは `data/withdrawn-topics.json` の該当項目を手で消す。
 - 02: `check-existing-posts.yml` の「Check daily draft ran」を元の 25 時間判定に戻す。
 - 03: テストファイルを戻す（ただし鮮度更新済みの記事があるので失敗に戻る）。
 

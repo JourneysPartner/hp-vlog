@@ -172,9 +172,32 @@ for (const expected of EXPECTED) {
 }
 
 console.log('\n=== 3. 偽データで変更検出を確認 ===');
+const fixturePassed = passed, fixtureFailed = failed;
 const clone = parsed => ({ data: { ...parsed.data }, content: parsed.content });
-const ordinary = EXPECTED[0];
-const base = clone(parsedByFile.get(ordinary.file));
+function chooseOrdinaryArticle(expectedArticles, articles) {
+  const expected = expectedArticles.find(item => !isFreshnessUpdated(articles.get(item.file).data));
+  if (expected) return { expected, parsed: clone(articles.get(expected.file)) };
+  // 対象がすべて更新された後も、未更新記事の変更検出を偽データで確かめる。
+  const file = 'fixture-ordinary.md';
+  const parsed = { data: { slug: 'fixture-ordinary', updated_at: '2026-09-01', source_url: 'https://example.com/source', published_at: '2026-09-01' }, content: '偽の未更新本文' };
+  return { parsed, expected: { file, updated_at: parsed.data.updated_at,
+    fullHash: stableHash(parsed, file, false), freshHash: stableHash(parsed, file, true) } };
+}
+const { expected: ordinary, parsed: base } = chooseOrdinaryArticle(EXPECTED, parsedByFile);
+assert(!isFreshnessUpdated(base.data) && checkStableArticle(base, ordinary).stableOk, '未更新記事を探し、無ければ偽の未更新記事を使う');
+const sampleFiles = new Map(['first.md', 'second.md'].map(file => [file, clone(base)]));
+sampleFiles.get('first.md').data.updated_at = sampleFiles.get('first.md').data.reviewed_at = '2026-10-05T09:00:00+09:00';
+assert(chooseOrdinaryArticle([{ file: 'first.md' }, { file: 'second.md' }], sampleFiles).expected.file === 'second.md', '先頭記事が更新済みなら後ろの未更新記事を選ぶ');
+sampleFiles.get('second.md').data.updated_at = sampleFiles.get('second.md').data.reviewed_at = '2026-10-05T09:00:00+09:00';
+const synthetic = chooseOrdinaryArticle([{ file: 'first.md' }, { file: 'second.md' }], sampleFiles);
+assert(!isFreshnessUpdated(synthetic.parsed.data) && checkStableArticle(synthetic.parsed, synthetic.expected).stableOk, '全記事が更新済みでも偽の未更新記事で検証できる');
+const syntheticChanged = clone(synthetic.parsed);
+syntheticChanged.content += '変';
+assert(!checkStableArticle(syntheticChanged, synthetic.expected).stableOk, '全記事更新後の偽記事でも本文 1 文字の変更を検出');
+const syntheticFresh = clone(synthetic.parsed);
+syntheticFresh.data.updated_at = syntheticFresh.data.reviewed_at = '2026-10-05T09:00:00+09:00';
+syntheticFresh.content += '更新本文';
+assert(checkStableArticle(syntheticFresh, synthetic.expected).stableOk && checkStableArticle(syntheticFresh, synthetic.expected).updatedOk, '全記事更新後の偽記事でも鮮度更新を許容');
 const changed = clone(base);
 changed.content += '変';
 assert(!checkStableArticle(changed, ordinary).stableOk, '未更新記事の本文 1 文字の変更は失敗');
@@ -198,6 +221,7 @@ assert(!isFreshnessUpdated({ updated_at: '不正', reviewed_at: '不正' }), '�
 const oldUpdate = clone(fresh);
 const sameDateExpected = { ...ordinary, updated_at: oldUpdate.data.updated_at };
 assert(!checkStableArticle(oldUpdate, sameDateExpected).updatedOk, '鮮度更新の更新日は基準より新しい必要がある');
+console.log(`F5: PASS: ${passed - fixturePassed} / FAIL: ${failed - fixtureFailed}`);
 
 console.log('');
 console.log('=== 結果 ===');

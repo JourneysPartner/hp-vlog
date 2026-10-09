@@ -23,6 +23,15 @@ const entry = { topic_id: 'a', stage: 'select-dedup', date: '2026-10-09', reason
 const dataFile = path.join(tmp, 'data.json');
 const out = path.join(tmp, 'new.json');
 const writeData = entries => fs.writeFileSync(dataFile, JSON.stringify({ version: 1, comment: '既存コメント', entries }, null, 2) + '\n');
+const cloneData = data => JSON.parse(JSON.stringify(data));
+function matchesInitialEntries(data, expected) {
+  const fields = ['topic_id', 'stage', 'date', 'similar_to', 'url_slug', 'target_query', 'reason', 'run_url'];
+  return expected.every((entry, index) => data.entries[index]
+    && fields.every(field => data.entries[index][field] === entry[field]));
+}
+function throws(fn) {
+  try { fn(); return false; } catch (_) { return true; }
+}
 
 // テスト中の LLM とファイル出力は、偽の関数と一時ディレクトリに限定する。
 function fixture(config = {}) {
@@ -35,7 +44,7 @@ function fixture(config = {}) {
     postsDir: path.join(tmp, `posts-${Math.random().toString(36).slice(2)}`),
     select(pool, selectionOptions) {
       const available = pool.filter(topic => !findWithdrawnTopic(topic, selectionOptions.withdrawn));
-      return { picks: available.slice(0, selectionOptions.count), explanation: { steps: [], warnings: [] } };
+      return { picks: available.slice(0, selectionOptions.count), explanation: { steps: [], warnings: config.selectionWarnings || [] } };
     },
     async checkAI(picks) {
       calls.ai.push(...picks.map(topic => topic.slug));
@@ -69,6 +78,32 @@ async function main() {
   fs.writeFileSync(dataFile, '{壊れた JSON');
   const warnings = [];
   assert(loadWithdrawnTopics(dataFile, text => warnings.push(text)).entries.length === 0 && warnings.length === 1, '壊れた JSON は警告して空');
+  const actions = process.env.GITHUB_ACTIONS;
+  try {
+    process.env.GITHUB_ACTIONS = 'true';
+    for (const [label, source] of [['壊れた JSON', '{壊れた JSON'], ['entries が配列でない JSON', '{"version":1,"entries":{}}']]) {
+      fs.writeFileSync(dataFile, source);
+      assert(throws(() => appendWithdrawnTopics([entry], dataFile)) && read(dataFile) === source, label + ' への追記は例外で原文を保持', 'F2');
+      fs.writeFileSync(out, JSON.stringify([entry]));
+      assert(throws(() => recordWithdrawnFile(out, dataFile)) && read(dataFile) === source, label + ' は追記スクリプトでも原文を保持', 'F2');
+      const localBroken = (await quiet(() => createWithdrawalRecorder({ file: dataFile, env: {}, now }))).result;
+      assert(throws(() => localBroken.record({ slug: 'new' }, 'select-dedup')) && read(dataFile) === source, label + ' は手元実行でも原文を保持', 'F2');
+      const messages = [];
+      const fallback = loadWithdrawnTopics(dataFile, text => messages.push(text));
+      const selection = selectDailyTopics(TOPICS, { now: new Date('2026-10-09T00:05:00Z'), count: 1, withdrawn: fallback });
+      assert(fallback.entries.length === 0 && selection.picks.length === 1
+        && messages.join() === '::warning::取り下げ記録が読めないため、記録による除外をせずに選定します', label + ' は Actions の警告付きで空として選定を続行', 'F2');
+    }
+  } finally {
+    if (actions === undefined) delete process.env.GITHUB_ACTIONS;
+    else process.env.GITHUB_ACTIONS = actions;
+  }
+  const unreadable = path.join(tmp, 'unreadable');
+  fs.mkdirSync(unreadable);
+  assert(throws(() => appendWithdrawnTopics([entry], unreadable)) && fs.statSync(unreadable).isDirectory(), '読み込めないパスへの追記は例外で書かない', 'F2');
+  const newFile = path.join(tmp, 'missing', 'data.json');
+  appendWithdrawnTopics([entry], newFile);
+  assert(loadWithdrawnTopics(newFile).entries[0].topic_id === 'a', '記録ファイルが無ければ新規作成', 'F2');
   writeData([entry]);
   appendWithdrawnTopics([entry, { ...entry, topic_id: 'b' }, { ...entry, topic_id: 'b' }], dataFile);
   const added = loadWithdrawnTopics(dataFile);
@@ -121,6 +156,7 @@ async function main() {
   const cap = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
   assert(cap.results.length === 0 && cap.generations === 2 && f.calls.body.length === 2 && f.calls.ai.length === 3 && cap.reason.includes('本文生成の上限 2 回'), '本文生成 2 回で停止し 3 件目は本文を作らない', 'R3');
   assert(cap.attempts.length === 3 && !/[\r\n]/.test(cap.reason) && [...cap.reason].length <= 600, '0 本の理由に各候補の結果・改行無し・600 文字以内', 'R3');
+  assert(cap.reason === cap.attempts.join(' / ') + ' / 本文生成の上限 2 回に達したため本日は生成しません', '試行がある場合の理由の文面を保つ', 'F4');
   f = fixture({ selectDuplicates: ['a', 'b', 'c', 'd', 'e', 'f'] });
   const candidates = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
   assert(candidates.results.length === 0 && f.calls.ai.length === 5 && f.calls.body.length === 0 && candidates.attempts.length === 5 && candidates.reason.includes('確認上限 5 件'), '候補 5 件で停止し全 5 件の理由を残す', 'R3');
@@ -133,6 +169,22 @@ async function main() {
   f = fixture({ slugs: [] });
   const exhausted = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
   assert(exhausted.results.length === 0 && f.calls.ai.length === 0 && exhausted.reason.includes('候補が尽きた'), '候補枯渇は代替生成せず終了', 'R3');
+  assert(exhausted.reason === '候補が尽きたため本日は生成しません', '試行 0 件・警告無しの理由は区切りで始めない', 'F4');
+  f = fixture({ slugs: [], selectionWarnings: ['関連性ゲートで全候補を除外\n対象を確認してください'] });
+  const gated = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
+  assert(gated.candidates === 0 && !gated.reason.startsWith('/') && gated.reason.includes('関連性ゲートで全候補を除外 対象を確認してください') && !/[\r\n]/.test(gated.reason), '初回選定 0 件の理由に選定側の警告を含める', 'F4');
+  f = fixture({ slugs: [], selectionWarnings: ['警'.repeat(650)] });
+  const longWarning = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
+  assert([...longWarning.reason].length === 600 && !longWarning.reason.startsWith('/'), '選定警告を含めても理由は 600 文字以内', 'F4');
+  f = fixture({ slugs: ['a'], selectDuplicates: ['a'] });
+  const selectOnce = f.options.select;
+  f.options.select = (pool, options) => {
+    const selected = selectOnce(pool, options);
+    selected.explanation.warnings = [pool.length ? '前の選定警告' : '最後の選定警告'];
+    return selected;
+  };
+  const lastWarning = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
+  assert(lastWarning.candidates === 1 && lastWarning.reason.includes('最後の選定警告') && !lastWarning.reason.includes('前の選定警告'), '最後に呼んだ選定の警告だけを理由に残す', 'F4');
   f = fixture({ taken: ['url-a', 'a'] });
   const collision = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
   assert(collision.results[0].slug === 'url-b' && f.recorder.additions[0].stage === 'url-slug-taken' && f.calls.body.length === 1, 'URL slug 衝突は記録して次へ', 'R3');
@@ -179,7 +231,20 @@ async function main() {
   const doc = read(path.join(ROOT, 'docs/codex-tasks/draft-supply/01-withdrawn-and-retry.md'));
   const rows = doc.split(/\r?\n/).filter(line => line.startsWith('| suggest-')).map(line => line.split('|').slice(1, -1).map(value => value.trim()));
   const expectedSeed = rows.map(([topic_id, stage, date, run, similar_to, url_slug, target_query, reason]) => ({ topic_id, stage, similar_to, reason, url_slug, target_query, date, run_url: `https://github.com/JourneysPartner/hp-vlog/actions/runs/${run}` }));
-  assert(seed.entries.length === 8 && JSON.stringify(seed.entries) === JSON.stringify(expectedSeed), '初期 8 件が指示書の表どおり');
+  assert(matchesInitialEntries(seed, expectedSeed), '先頭 8 件が指示書の表どおり（総件数は固定しない）', 'F1');
+  const ninth = cloneData(seed);
+  ninth.entries = ninth.entries.slice(0, 8).concat({ ...entry, topic_id: '偽の9件目' });
+  assert(matchesInitialEntries(ninth, expectedSeed), '偽の 9 件目を足しても初期記録の検査は通る', 'F1');
+  const missingSeed = cloneData(seed);
+  missingSeed.entries = missingSeed.entries.slice(0, 7);
+  assert(!matchesInitialEntries(missingSeed, expectedSeed), '初期記録が欠けていれば検査は落ちる', 'F1');
+  for (let index = 0; index < 8; index++) {
+    for (const field of ['topic_id', 'stage', 'date', 'similar_to', 'url_slug', 'target_query']) {
+      const changedSeed = cloneData(seed);
+      changedSeed.entries[index][field] += '変更';
+      assert(!matchesInitialEntries(changedSeed, expectedSeed), `初期 ${index + 1} 件目の ${field} の変更を検出`, 'F1');
+    }
+  }
   const actual = selectDailyTopics(TOPICS, { now: selectionNow, count: 1 });
   const step = actual.explanation.steps.find(item => item.step === 'filter-withdrawn');
   assert(step.blocked > 0 && actual.picks.length === 1 && actual.picks.every(topic => !findWithdrawnTopic(topic, seed)), '実プールの取り下げ topic_id を外し別の 1 件を選定', 'R2');
@@ -187,7 +252,13 @@ async function main() {
   const workflow = read(path.join(ROOT, '.github/workflows/daily-draft.yml'));
   assert(workflow.includes('WITHDRAWN_OUT: /tmp/withdrawn-new.json') && /- name: Record withdrawn topics on main\s+if: always\(\)/.test(workflow), '生成失敗時も最後のステップに取り下げ記録を渡す', 'R5');
   const recordStep = workflow.slice(workflow.indexOf('      - name: Record withdrawn topics on main'));
-  assert(recordStep.includes('git add -- data/withdrawn-topics.json') && recordStep.includes('git push origin HEAD:main') && recordStep.includes('for attempt in 0 1 2 3') && recordStep.includes('git pull --rebase origin main'), '記録ファイルだけを追加し push と最大 3 回の再試行', 'R5');
+  assert(recordStep.includes('git add -- data/withdrawn-topics.json') && recordStep.includes('git push origin HEAD:main') && recordStep.includes('for attempt in 0 1 2 3'), '記録ファイルだけを追加し push と最大 3 回の再試行', 'R5');
+  const retryLoop = recordStep.slice(recordStep.indexOf('for attempt in 0 1 2 3'), recordStep.indexOf('\n          done'));
+  assert(/git fetch origin main[\s\S]*git checkout -B withdrawn-record origin\/main[\s\S]*record_and_commit[\s\S]*git push origin HEAD:main/.test(retryLoop), '全試行で最新 main への切り替え・再追記・push の順を保つ', 'F3');
+  assert((retryLoop.match(/continue/g) || []).length === 2 && !/git (?:pull|rebase)/.test(recordStep), '切り替え・追記失敗も次の試行へ進み pull と rebase は使わない', 'F3');
+  const logIndex = recordStep.indexOf('cat /tmp/withdrawn-new.json');
+  assert(logIndex !== -1 && logIndex < recordStep.indexOf('if ! node -e') && logIndex < recordStep.indexOf('git fetch origin main'), '保存前に今回の記録をログに出す', 'F3');
+  assert(/done\s+echo '::warning::取り下げ記録を main に保存できませんでした'\s+exit 0/.test(recordStep), '最大 4 回の失敗後は警告付きで成功終了', 'F3');
   assert(!/git (?:reset --hard|clean)/.test(recordStep) && recordStep.includes('::warning::') && recordStep.trim().endsWith('exit 0'), '作業ツリーを消す操作なし・失敗は警告で終了', 'R5');
 }
 
