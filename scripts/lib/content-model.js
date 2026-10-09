@@ -112,12 +112,18 @@ async function callAnthropic(promptIR, { model, maxTokens }) {
  * @returns {Object} { text, usage, provider, model }
  */
 async function generateContent(promptIR, opts = {}) {
-  const provider = resolveProvider();
+  // 事実照合は本文生成と独立した設定を使い、失敗時のモデル変更を行わない。
+  const provider = opts.provider || resolveProvider();
+  if (!['anthropic', 'openai'].includes(provider)) throw new Error('未対応のモデル提供元です');
+  if (opts.fallback === false && !process.env[provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY']) {
+    throw new Error('モデルの認証情報が未設定です');
+  }
   const model = resolveModel(provider, opts.model);
   if (provider === 'anthropic') {
     try {
       return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens });
     } catch (e) {
+      if (opts.fallback === false) throw new Error('照合モデルの呼び出しに失敗しました');
       console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
       const oaModel = resolveModel('openai', null);
       return await callOpenAI(promptIR, { model: oaModel, maxTokens: opts.maxTokens });

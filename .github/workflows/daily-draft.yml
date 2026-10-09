@@ -96,6 +96,16 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_FAIL_OPEN: ${{ vars.FACT_CHECK_FAIL_OPEN }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+          SOURCE_BODY_MAX_CHARS_PER_PAGE: ${{ vars.SOURCE_BODY_MAX_CHARS_PER_PAGE }}
+          SOURCE_BODY_MAX_CHARS_TOTAL: ${{ vars.SOURCE_BODY_MAX_CHARS_TOTAL }}
+          LAW_CHAIN_MAX_ARTICLES: ${{ vars.LAW_CHAIN_MAX_ARTICLES }}
+          LAW_CHAIN_MAX_CHARS: ${{ vars.LAW_CHAIN_MAX_CHARS }}
+          GENERIC_SOURCE_MIN_POSTS: ${{ vars.GENERIC_SOURCE_MIN_POSTS }}
           # prompt caching フラグ（Variables 推奨。Secret 側にしかない場合の後方互換で両参照）
           CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
           # 周辺作業: Haiku 4.5 またはルールベース
@@ -177,6 +187,11 @@ jobs:
             PERSONA=$(grep '^primary_persona:' "$TMPFILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
             CATEGORY=$(grep '^category:' "$TMPFILE" | head -1 | sed 's/^category: *"//;s/"$//')
             SLUG=$(grep '^slug:' "$TMPFILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+            # 照合記録も退避し、各記事の枝へ1対1で載せる。
+            if [ -f "data/fact-check/${SLUG}.json" ]; then
+              cp "data/fact-check/${SLUG}.json" "/tmp/fact-check${IDX}.json"
+              rm "data/fact-check/${SLUG}.json"
+            fi
             ARTICLE_TYPE=$(grep '^article_type:' "$TMPFILE" | head -1 | sed 's/^article_type: *"//;s/"$//')
             ARTICLE_ROLE=$(grep '^article_role:' "$TMPFILE" | head -1 | sed 's/^article_role: *"//;s/"$//')
 
@@ -212,6 +227,11 @@ jobs:
           git checkout -b "$BRANCH"
           cp /tmp/article1.md "content/posts/${BASENAME}"
           git add "content/posts/${BASENAME}"
+          if [ -f /tmp/fact-check1.json ]; then
+            mkdir -p data/fact-check
+            cp /tmp/fact-check1.json "data/fact-check/${SLUG}.json"
+            git add "data/fact-check/${SLUG}.json"
+          fi
           git commit -m "draft: ${TITLE}"
           git push origin "$BRANCH"
 
@@ -280,6 +300,11 @@ jobs:
           git checkout -b "$BRANCH"
           cp /tmp/article2.md "content/posts/${BASENAME}"
           git add "content/posts/${BASENAME}"
+          if [ -f /tmp/fact-check2.json ]; then
+            mkdir -p data/fact-check
+            cp /tmp/fact-check2.json "data/fact-check/${SLUG}.json"
+            git add "data/fact-check/${SLUG}.json"
+          fi
           git commit -m "draft: ${TITLE}"
           git push origin "$BRANCH"
 

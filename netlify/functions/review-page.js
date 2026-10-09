@@ -54,6 +54,35 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+function renderFactCheck(meta, record) {
+  const labels = { ok: '照合済み', revise: '要修正', not_run: '未実施' };
+  const status = meta.fact_check_status || record?.status || '';
+  const refs = item => (item.evidence || []).map(e => {
+    const url = /^https:\/\//.test(e.url || '') ? e.url : '';
+    return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}<blockquote>${escapeHtml(e.text || '')}</blockquote></div>`;
+  }).join('');
+  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${escapeHtml(c.before || c.sentence)}</div><div><strong>後:</strong> ${escapeHtml(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
+  const remaining = record?.remaining || [];
+  const contradictions = remaining.filter(c => c.status === '食い違い' || c.status === '期限の書き漏れ');
+  return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
+    <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(labels[status] || '照合の記録なし')}${status ? `（${escapeHtml(status)}）` : ''}</p>
+    <p>${escapeHtml(meta.fact_check_summary || record?.summary || '')}</p>
+    ${record ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
+    <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
+    <h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${escapeHtml(c.sentence)}<div>${escapeHtml(c.correct || c.status)}</div>${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
+    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}` : '<p>照合の記録なし</p>'}
+    </div></div>`;
+}
+
+async function fetchFactCheck(slug, ref) {
+  if (!/^[a-z0-9][a-z0-9_-]*$/i.test(slug || '')) return null;
+  try {
+    const { content } = await githubApi.getFile(`data/fact-check/${slug}.json`, ref || undefined);
+    const record = JSON.parse(content);
+    return record && record.version === 1 && record.slug === slug ? record : null;
+  } catch (_) { return null; }
+}
+
 function renderRefreshDiff(refreshContext, marked) {
   if (!refreshContext || !refreshContext.available) {
     return `<div class="alert alert-warning" role="alert">${escapeHtml(refreshContext && refreshContext.message || '公開中の記事を取得できませんでした。更新案を承認できません。')}</div>`;
@@ -90,7 +119,7 @@ function assertGitHubCredentials() {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null) {
+function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null) {
   const title      = meta.title      || '（タイトル未設定）';
   const summary    = meta.summary    || '';
   const sourceUrl  = meta.source_url || '';
@@ -214,6 +243,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null) {
 <div class="container py-4">
 
   ${refreshBanner}
+  ${renderFactCheck(meta, factRecord)}
 
   <!-- メタ情報カード -->
   <div class="card mb-4">
@@ -463,7 +493,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref)),
     };
   } catch (err) {
     const msg = String(err && err.message || err);
@@ -507,3 +537,5 @@ exports.handler = async (event) => {
 
 exports.renderReviewPage = renderReviewPage;
 exports.parseFrontmatter = parseFrontmatter;
+exports.renderFactCheck = renderFactCheck;
+exports.fetchFactCheck = fetchFactCheck;

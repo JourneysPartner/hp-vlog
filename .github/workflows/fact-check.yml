@@ -1,0 +1,49 @@
+name: 記事の事実照合
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 照合する記事の枝名
+        required: true
+        default: main
+      article_file:
+        description: 記事ファイル（content/posts/からのパス）
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  fact-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: mainの照合コードとカタログを使う
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- scripts/ package.json package-lock.json data/nta-sources/ data/nta-tsutatsu/ data/law-sources/ data/generic-source-pages.json
+      - run: npm ci
+      - name: 本文は変更せず照合する
+        env:
+          ARTICLE_FILE: ${{ inputs.article_file }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+        run: node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD
+      - name: 照合記録を保存する
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact-check-record
+          path: data/fact-check/*.json
+          if-no-files-found: warn

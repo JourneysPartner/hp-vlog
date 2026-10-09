@@ -42,7 +42,7 @@ function throws(fn) {
 function fixture(config = {}) {
   const recorder = createWithdrawalRecorder({ file: dataFile, withdrawn: config.withdrawn || [], env: { WITHDRAWN_OUT: out }, now });
   const topics = (config.slugs || ['a', 'b', 'c', 'd', 'e', 'f']).map(slug => ({ slug, persona: 'general_individual_proprietor', category: '所得税', article_type: 'basic_explainer', demand_evidence: { kind: 'suggest' } }));
-  const calls = { ai: [], query: [], body: [], source: [], self: [], post: [] };
+  const calls = { ai: [], query: [], body: [], source: [], self: [], post: [], fact: [] };
   const options = {
     topics, recorder, env: config.env || {}, pendingDrafts: [], corpus: [], now,
     context: { queryInputs: {}, targetQueryCorpus: config.corpus || [], takenUrlSlugs: new Set(config.taken || []) },
@@ -65,6 +65,10 @@ function fixture(config = {}) {
     },
     selfCheck(content, type, slug) { calls.self.push(slug); },
     async checkGenerated(content, topic) { calls.post.push(topic.slug); return { duplicate: (config.postDuplicates || []).includes(topic.slug), similar_to: '既存生成記事', reason: '生成後の重複理由' }; },
+    async factCheck(content) {
+      calls.fact.push(content.match(/^slug: (.+)$/m)[1]);
+      return { content, record: { status: 'ok', summary: '偽の照合結果' } };
+    },
   };
   return { recorder, calls, options };
 }
@@ -155,7 +159,7 @@ async function main() {
   assert(retry.result.results.length === 1 && retry.result.results[0].slug === 'url-c' && retry.result.candidates === 3, '選定重複 → 生成後重複 → 3 件目で下書き', 'R3');
   assert(f.recorder.additions.map(item => item.stage).join() === 'select-dedup,postgen-dedup' && f.calls.body.length === 2, '取り下げ 2 件・本文生成 2 回', 'R3');
   assert(!fs.existsSync(path.join(f.options.postsDir, '2026-10-09-url-b.md')) && fs.existsSync(path.join(f.options.postsDir, '2026-10-09-url-c.md')), '重複ファイルを削除し確定した 1 本だけを残す', 'R3');
-  assert(f.calls.self.length === 2 && f.calls.post.length === 2 && f.calls.source.join() === 'b,c', '選定通過後に出典補完・自己点検・生成後判定', 'R3');
+  assert(f.calls.self.length === 2 && f.calls.post.length === 2 && f.calls.source.join() === 'b,c' && f.calls.fact.join() === 'url-c', '選定通過後に出典補完・自己点検・生成後判定、残した記事だけ照合', 'R3');
   assert(retry.logs.filter(line => line.includes('[generate] 試行 ')).length === 3 && retry.logs.some(line => line.includes('=== topic selection ===')), '候補ごとのログと既存選定ログを残す', 'R3');
   f = fixture({ postDuplicates: ['a', 'b', 'c'] });
   const cap = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;

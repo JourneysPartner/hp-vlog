@@ -13,6 +13,9 @@ const { getRefsForTopic, formatRefsForPrompt, resolveSourceForTopic } = require(
 const { buildSourceBodyBlock, findTsutatsuFromSourceKankei,
   buildTsutatsuBlockFromSourceKankei, loadSourceFigures } = require('./lib/nta-source-body');
 const lawSources = require('./lib/law-sources');
+const materials = require('./lib/materials-bundle');
+const factCheck = require('./lib/fact-check');
+const { SOURCE_UNCONFIRMED_RULE } = require('./lib/grounding-rules');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { checkCitations, buildProvisionBlock, findProvision } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
@@ -156,6 +159,19 @@ async function enrichTaxTerms(topic) {
   } catch (e) {
     console.warn(`[source] 論点語の特定に失敗（従来どおり続行）: ${e.message}`);
   }
+}
+
+async function resolveGenericSupplement(topic) {
+  if (process.env.ENABLE_LLM_SOURCE_SELECT === 'true' && process.env.OPENAI_API_KEY) {
+    const { resolveSourceWithLLM, makeOpenAILuna } = require('./lib/llm-source-selector');
+    try {
+      return await resolveSourceWithLLM({ ...topic, source_url: '', source_title: '', source_provenance: '' }, { callLLM: makeOpenAILuna() });
+    } catch (_) {
+      throw new Error('補助出典の選定を実施できませんでした');
+    }
+  }
+  const picked = resolveSourceForTopic({ ...topic, source_url: '', source_provenance: '' });
+  return picked && !LLM_SOURCE_WEAK_PROVENANCE.has(picked.provenance) ? picked : null;
 }
 
 // 出典が「人の確認が必要」な状態か。承認時と同じ判定を使う。
@@ -1035,9 +1051,9 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     : [];
 
   const sourceInstruction = !topic.source_url
-    ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください'
+    ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください' + SOURCE_UNCONFIRMED_RULE
     : sourceUnconfirmed
-      ? '- このテーマは論点に対応する出典が未確定です。特定の国税庁ページを「〜によれば」と根拠に挙げて断定しないでください。制度の一般的な説明にとどめ、断定が必要な箇所は「国税庁の公表資料をご確認ください」等の表現にしてください'
+      ? SOURCE_UNCONFIRMED_RULE
       : `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること` +
         (supplementalSourceLabels.length > 0
           ? `。補助出典: ${supplementalSourceLabels.join('、')}`
@@ -1053,7 +1069,8 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // タイトルとURLだけを渡していた頃は、LLM が出典を読まずに記憶で書き、
   // 読んでいない文書を引用する事故が続いた（2026-08-16 に判明）。
   // 主出典＋参考1件の全文を渡し、記憶ではなく本文を根拠にさせる。
-  const sourceBodyBlock = sourceUnconfirmed ? '' : buildSourceBodyBlock(topic, ntaRefs, { maxRefs: 1 });
+  const materialBundle = sourceUnconfirmed ? null : materials.buildMaterialsBundle(topic, ntaRefs);
+  const sourceBodyBlock = materialBundle ? materialBundle.sourceBody : '';
   if (sourceBodyBlock) {
     // 【主出典】/【参考】の行をそのまま出す。以前は No.4桁 だけ拾っていたため、
     // 質疑応答事例が主出典のときは参考のタックスアンサーしか表示されなかった。
@@ -1109,12 +1126,14 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // 法令の原文（民法・戸籍法・不動産登記法等）と手続き機関のページ。相続の手続き段階から引く。
   const lawRefs = lawSources.refsForTopic(topic);
   const lawBlock = lawSources.buildLawProvisionBlock(lawRefs.articles) + lawSources.buildAgencyPagesBlock(lawRefs.pages);
+  topic.source_bundle = [...new Set([...(topic.source_bundle || '').split(';').filter(Boolean),
+    ...lawRefs.articles.map(a => `${lawSources.LAWS[a.key].short}${lawSources.articleLabel(a.num)}`)])].slice(0, 20).join(';');
   if (lawRefs.articles.length || lawRefs.pages.length) {
     console.log(`[source] 法令の原文を添付: ${lawRefs.articles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、') || 'なし'} ／ 機関ページ ${lawRefs.pages.length} 件`);
   }
 
   // 通達だけで決まる実務論点を記憶で補わせないため、原典の関係法令欄を橋渡しする。
-  const tsutatsuBlock = buildTsutatsuBlockFromSourceKankei(topic);
+  const tsutatsuBlock = (materialBundle ? materialBundle.chainBlock : '') + buildTsutatsuBlockFromSourceKankei(topic);
   if (tsutatsuBlock) {
     const refs = findTsutatsuFromSourceKankei(topic);
     const labels = refs.map(c => {
@@ -1921,7 +1940,7 @@ function parseFrontmatter(raw) {
 // 渡していなかった頃は、差し戻しても LLM が記憶で書き直すため
 // 同じ誤りが残り続けた（2026-08-14〜17 に4件）。
 // full / section / targeted のどの経路でも同じブロックを使う。
-function buildRegenSourceBlocks(meta = {}, body = '') {
+async function buildRegenSourceBlocks(meta = {}, body = '', options = {}) {
   const topicLike = {
     slug: meta.slug, title: meta.title, category: meta.category,
     tax_domain: meta.tax_domain, pain_point: meta.pain_point,
@@ -1931,7 +1950,13 @@ function buildRegenSourceBlocks(meta = {}, body = '') {
     source_url: meta.source_url, source_title: meta.source_title,
     // 法令の根拠（相続の手続き段階）を引くのに使う
     procedure_stage: meta.procedure_stage, life_stage: meta.life_stage,
+    ...materials.topicFromMeta(meta),
   };
+  await materials.supplementGenericSource(topicLike, { enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
+    resolveSource: options.resolveSupplement || resolveGenericSupplement });
+  const materialBundle = materials.buildMaterialsBundle(topicLike);
+  Object.assign(meta, { source_bundle: materialBundle.sourceBundle, tax_terms: topicLike.tax_terms,
+    materials_warning: topicLike.materials_warning });
   // 論点別ルール（CONDITIONAL_RULES）。通常生成と full 経路は builder 経由で
   // dynamicSystem に載るが、targeted / section 経路は builder を通らないため
   // 載っていなかった。事実誤認の差し戻しは targeted に振り分けられるので、
@@ -1949,7 +1974,7 @@ ${rules.join(RULE_SEP)}`
     : '';
   if (rules.length) console.log(`[regenerate] 論点別ルールを適用: ${rules.length} 件`);
 
-  const sourceBody = buildSourceBodyBlock(topicLike, getRefsForTopic(topicLike, 4), { maxRefs: 1 });
+  const sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE) + materialBundle.chainBlock;
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
   // 差し戻し再生成にも Q&A の原文を渡す。事実誤認の差し戻しは targeted に
@@ -1997,6 +2022,8 @@ ${rules.join(RULE_SEP)}`
     const cited = checkCitations(body);
     const known = cited.citations.filter(c => c.found);
     provisions = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
+    meta.source_bundle = [...new Set([...(meta.source_bundle || '').split(';').filter(Boolean),
+      ...known.map(c => `${findProvision(c.no, c.circular).short}${c.no}`)])].slice(0, 20).join(';');
     if (known.length) console.log(`[regenerate] 通達の原文を添付: ${known.map(c => c.matched).join(', ')}`);
     if (cited.unknown.length) {
       console.warn(`[regenerate] ⚠ カタログに無い通達番号: ${cited.unknown.map(u => u.matched).join(', ')}`);
@@ -2015,6 +2042,8 @@ ${rules.join(RULE_SEP)}`
     const lawArticles = [...lawRefs.articles, ...lawSources.articlesForCitations(cited)]
       .filter(a => !seenArt.has(a.key + ':' + a.num) && seenArt.add(a.key + ':' + a.num));
     lawBlock = lawSources.buildLawProvisionBlock(lawArticles) + lawSources.buildAgencyPagesBlock(lawRefs.pages);
+    meta.source_bundle = [...new Set([...(meta.source_bundle || '').split(';').filter(Boolean),
+      ...lawArticles.map(a => `${lawSources.LAWS[a.key].short}${lawSources.articleLabel(a.num)}`)])].slice(0, 20).join(';');
     if (lawArticles.length) console.log(`[regenerate] 法令の原文を添付: ${lawArticles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、')}`);
   } catch (e) {
     console.warn(`[regenerate] 法令の添付に失敗（続行）: ${e.message}`);
@@ -2040,7 +2069,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
     : '- source_url / source_title は空文字のまま出力してください';
 
   const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions, figures: regenFigures } =
-    buildRegenSourceBlocks(meta, existingBody);
+    await buildRegenSourceBlocks(meta, existingBody);
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
@@ -2184,7 +2213,8 @@ updated_at: "${now}"
     console.log(`[regenerate] full: provider=${regenResult.provider} model=${regenResult.model} ` +
       `入力 ${u.input_tokens ?? u.prompt_tokens ?? '?'} / 出力 ${u.output_tokens ?? u.completion_tokens ?? '?'} token`);
   }
-  return postProcess(stripWrappingFence(raw));
+  const output = postProcess(stripWrappingFence(raw));
+  return recordMaterialMetadata(/^---\r?\n/.test(output) ? output : rebuildWithBody(existingContent, output), meta);
 }
 
 // 差し戻し再生成が失敗したとき、LLM が実際に何を返したのかをログに残す。
@@ -2315,7 +2345,8 @@ async function enforceTitleBannedPhrases(content, comment) {
 async function regenerateSection(existingContent, comment, classification, { preserveTitle = false } = {}) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
-  const { combined: srcBlock, figures: srcFigures } = buildRegenSourceBlocks(meta, body);
+  const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
+  existingContent = recordMaterialMetadata(existingContent, meta);
 
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
@@ -2377,7 +2408,8 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
   const origLen = body.trim().length;
 
   // 1 回目: 通常プロンプト
-  const { combined: srcBlock, figures: srcFigures } = buildRegenSourceBlocks(meta, body);
+  const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
+  existingContent = recordMaterialMetadata(existingContent, meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
   let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000);
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
@@ -2532,13 +2564,51 @@ function writeRefreshOutputs({ result, reason, diffFile }) {
   writeGithubOutputs(outputPath, rows);
 }
 
+function recordMaterialMetadata(content, meta) {
+  const updates = { source_bundle: meta.source_bundle || '', tax_terms: meta.tax_terms || '' };
+  if (meta.materials_warning) {
+    const { meta: current } = parseFrontmatter(content);
+    updates.review_warning = [current.review_warning, meta.materials_warning].filter(Boolean).join(' / ');
+  }
+  return factCheck.updateMeta(content, updates);
+}
+
+async function runFactCheckForArticle(content, options = {}) {
+  const { meta, body } = parseFrontmatter(content);
+  const oldUnknown = new Set(checkCitations(body).unknown.map(c => c.matched));
+  const oldLawUnknown = new Set(lawSources.findLawCitations(body).filter(c => !c.found).map(c => c.matched));
+  const oldMissing = new Set(findUnappliedRules(meta, body).map(r => r.key));
+  const oldBanned = new Set(bannedPhrasesLib.detectBannedInBody(body).map(h => h.match));
+  const validateRepair = revised => !checkBodyLength(revised, meta.article_type || 'basic_explainer', meta.intent_type).tooLong &&
+    checkCitations(revised).unknown.every(c => oldUnknown.has(c.matched)) &&
+    lawSources.findLawCitations(revised).filter(c => !c.found).every(c => oldLawUnknown.has(c.matched)) &&
+    findUnappliedRules(meta, revised).every(r => oldMissing.has(r.key)) &&
+    bannedPhrasesLib.detectBannedInBody(revised).every(h => oldBanned.has(h.match));
+  try {
+    const result = await (options.factCheck || factCheck.checkArticle)(content, { ...options, validateRepair });
+    console.log(`[fact-check] ${meta.slug}: ${result.record.status} / ${result.record.summary}`);
+    return result.content;
+  } catch (_) {
+    // 記録の保存に失敗した場合も、記事を未照合として止める。例外の詳細は出さない。
+    const result = await factCheck.checkFacts(body, { ...options, enabled: false });
+    result.record.summary = '照合または照合記録の保存を実施できませんでした';
+    return factCheck.applyFactResult(content, result, options);
+  }
+}
+
+async function finalizeRegeneration(existing, content, classification, options = {}) {
+  content = factCheck.inheritFactMetadata(existing, content);
+  if (classification?.scope === 'frontmatter' || classification?.type === 'title_only') return content;
+  return runFactCheckForArticle(content, options);
+}
+
 async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
   const filename = dependencies.filename || getArg('--filename', args);
   const reasonsFile = dependencies.reasonsFile || getArg('--reasons-file', args);
   if (!filename || !/^[\w-]+\.md$/.test(filename) || !reasonsFile) {
     throw new Error('--refresh では --filename と --reasons-file が必要です');
   }
-  const filepath = path.join(POSTS_DIR, filename);
+  const filepath = path.join(dependencies.postsDir || POSTS_DIR, filename);
   if (!fs.existsSync(filepath)) throw new Error(`記事ファイルが見つかりません: ${filename}`);
   const content = fs.readFileSync(filepath, 'utf8');
   const reasonsData = JSON.parse(fs.readFileSync(reasonsFile, 'utf8'));
@@ -2563,6 +2633,8 @@ async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
   }
 
   if (result.status === 'changed') {
+    result.content = await finalizeRegeneration(content, result.content, { scope: 'body' }, dependencies);
+    result.diff = freshnessRefresh.diffSections(parseFrontmatter(content).body, parseFrontmatter(result.content).body);
     fs.writeFileSync(filepath, result.content, 'utf8');
     const os = require('os');
     const diffFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), `refresh-diff-${process.pid}-${Date.now()}.json`);
@@ -2690,10 +2762,18 @@ async function prepareSources(pair, options = {}) {
   // 各トピックに source_url / source_title が必ず付くよう fallback を適用
   pair.forEach(options.ensureSource || ensureSourceOnTopic);
 
+  const generic = new Set();
+  for (const topic of pair) {
+    if (await materials.supplementGenericSource(topic, {
+      enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
+      resolveSource: options.resolveSupplement || resolveGenericSupplement,
+    })) generic.add(topic);
+  }
+
   // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
   // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
   for (const t of pair) {
-    if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
+    if (generic.has(t) || (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto')) continue;
     const before = t.source_url;
     await (options.enrichTaxTerms || enrichTaxTerms)(t);
     if (!t.tax_terms) continue;
@@ -2707,6 +2787,7 @@ async function prepareSources(pair, options = {}) {
   // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で
   // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
   for (const t of pair) {
+    if (generic.has(t)) continue;
     await (options.enrichSource || enrichSourceWithLLM)(t);
   }
   const gscStats = getGscTopicStats();
@@ -2883,6 +2964,16 @@ async function generateTopics(pair, dateStr, options = {}) {
       lastSelectionWarnings.push(why);
       options.recorder?.record(topic, 'postgen-dedup', { reason: dup.reason || why, similar_to: dup.similar_to });
       continue;
+    }
+
+    // 題名・論点別ルールの確定後、取り下げない記事だけに照合の費用をかける。
+    const beforeFactBody = parseFrontmatter(content).body;
+    content = await runFactCheckForArticle(content, { ...options,
+      recordDir: options.recordDir || (postsDir !== POSTS_DIR ? path.join(postsDir, '.fact-check') : undefined) });
+    fs.writeFileSync(filepath, content + '\n', 'utf8');
+    // 本文を修正した場合だけ再点検する。管理項目の追加だけなら既存の点検で足りる。
+    if (parseFrontmatter(content).body !== beforeFactBody) {
+      (options.selfCheck || selfCheckContent)(content, topic.article_type || 'basic_explainer', topic.url_slug || topic.slug);
     }
 
     results.push({ filename, slug: topic.url_slug || topic.slug, model: usedModel });
@@ -3102,7 +3193,7 @@ async function main() {
     // 出典が弱い（domain-fallback 等）ままなら LLM 出典選定を試みる
     {
       const { meta: srcMeta } = parseFrontmatter(content);
-      if (LLM_SOURCE_WEAK_PROVENANCE.has(srcMeta.source_provenance)) {
+      if (LLM_SOURCE_WEAK_PROVENANCE.has(srcMeta.source_provenance) && !materials.isGenericSource(srcMeta)) {
         const topicLike = {
           slug: srcMeta.slug, title: srcMeta.title,
           persona: srcMeta.primary_persona || srcMeta.persona,
@@ -3126,6 +3217,7 @@ async function main() {
     }
     }
 
+    content = await finalizeRegeneration(existing, content, classification);
     fs.writeFileSync(filepath, isRefreshRegeneration ? content : content + '\n', 'utf8');
     console.log(`[regenerate] 再生成完了: content/posts/${filename}`);
 
@@ -3239,4 +3331,8 @@ module.exports = {
   generateTopics,
   resolveForcedTopics,
   runRefreshMode,
+  prepareSources,
+  buildRegenSourceBlocks,
+  finalizeRegeneration,
+  runFactCheckForArticle,
 };
