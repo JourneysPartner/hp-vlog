@@ -24,10 +24,15 @@ const dataFile = path.join(tmp, 'data.json');
 const out = path.join(tmp, 'new.json');
 const writeData = entries => fs.writeFileSync(dataFile, JSON.stringify({ version: 1, comment: '既存コメント', entries }, null, 2) + '\n');
 const cloneData = data => JSON.parse(JSON.stringify(data));
+// 初期記録は手で消してよい（README「元に戻す方法」）。残っている初期記録の中身だけを表と比べる。
 function matchesInitialEntries(data, expected) {
-  const fields = ['topic_id', 'stage', 'date', 'similar_to', 'url_slug', 'target_query', 'reason', 'run_url'];
-  return expected.every((entry, index) => data.entries[index]
-    && fields.every(field => data.entries[index][field] === entry[field]));
+  const fields = ['similar_to', 'url_slug', 'target_query', 'reason', 'run_url'];
+  const keyOf = item => [item.topic_id, item.stage, item.date].join('\u0000');
+  const byKey = new Map(data.entries.map(item => [keyOf(item), item]));
+  return expected.every(entry => {
+    const found = byKey.get(keyOf(entry));
+    return !found || fields.every(field => found[field] === entry[field]);
+  });
 }
 function throws(fn) {
   try { fn(); return false; } catch (_) { return true; }
@@ -231,23 +236,31 @@ async function main() {
   const doc = read(path.join(ROOT, 'docs/codex-tasks/draft-supply/01-withdrawn-and-retry.md'));
   const rows = doc.split(/\r?\n/).filter(line => line.startsWith('| suggest-')).map(line => line.split('|').slice(1, -1).map(value => value.trim()));
   const expectedSeed = rows.map(([topic_id, stage, date, run, similar_to, url_slug, target_query, reason]) => ({ topic_id, stage, similar_to, reason, url_slug, target_query, date, run_url: `https://github.com/JourneysPartner/hp-vlog/actions/runs/${run}` }));
-  assert(matchesInitialEntries(seed, expectedSeed), '先頭 8 件が指示書の表どおり（総件数は固定しない）', 'F1');
+  assert(expectedSeed.length === 8 && matchesInitialEntries(seed, expectedSeed), '残っている初期記録が指示書の表どおり（総件数は固定しない）', 'F1');
   const ninth = cloneData(seed);
-  ninth.entries = ninth.entries.slice(0, 8).concat({ ...entry, topic_id: '偽の9件目' });
-  assert(matchesInitialEntries(ninth, expectedSeed), '偽の 9 件目を足しても初期記録の検査は通る', 'F1');
-  const missingSeed = cloneData(seed);
-  missingSeed.entries = missingSeed.entries.slice(0, 7);
-  assert(!matchesInitialEntries(missingSeed, expectedSeed), '初期記録が欠けていれば検査は落ちる', 'F1');
+  ninth.entries = ninth.entries.concat({ ...entry, topic_id: '偽の9件目' });
+  assert(matchesInitialEntries(ninth, expectedSeed), '偽の項目を足しても初期記録の検査は通る', 'F1');
+  const removedSeed = cloneData(seed);
+  removedSeed.entries = removedSeed.entries.filter(item => item.topic_id !== expectedSeed[0].topic_id);
+  assert(matchesInitialEntries(removedSeed, expectedSeed), '初期記録を手で消しても検査は通る（README の元に戻す方法）', 'F1');
   for (let index = 0; index < 8; index++) {
-    for (const field of ['topic_id', 'stage', 'date', 'similar_to', 'url_slug', 'target_query']) {
+    const at = seed.entries.findIndex(item => item.topic_id === expectedSeed[index].topic_id && item.stage === expectedSeed[index].stage && item.date === expectedSeed[index].date);
+    if (at === -1) continue;
+    for (const field of ['similar_to', 'url_slug', 'target_query']) {
       const changedSeed = cloneData(seed);
-      changedSeed.entries[index][field] += '変更';
+      changedSeed.entries[at][field] += '変更';
       assert(!matchesInitialEntries(changedSeed, expectedSeed), `初期 ${index + 1} 件目の ${field} の変更を検出`, 'F1');
     }
   }
-  const actual = selectDailyTopics(TOPICS, { now: selectionNow, count: 1 });
+  // 実データの候補一覧は週次の検索語更新で変わる。記録済みの題材が一覧に残っているかには頼らず、
+  // 記録なしで選ばれる 1 件を記録に足して、その 1 件が外れて別の 1 件になることを確かめる。
+  const baseline = selectDailyTopics(TOPICS, { now: selectionNow, count: 1, withdrawn: seed });
+  const baselinePick = baseline.picks[0];
+  const extended = { ...seed, entries: seed.entries.concat({ ...entry, topic_id: baselinePick.slug }) };
+  const actual = selectDailyTopics(TOPICS, { now: selectionNow, count: 1, withdrawn: extended });
   const step = actual.explanation.steps.find(item => item.step === 'filter-withdrawn');
-  assert(step.blocked > 0 && actual.picks.length === 1 && actual.picks.every(topic => !findWithdrawnTopic(topic, seed)), '実プールの取り下げ topic_id を外し別の 1 件を選定', 'R2');
+  const baselineStep = baseline.explanation.steps.find(item => item.step === 'filter-withdrawn');
+  assert(baseline.picks.length === 1 && step.blocked === baselineStep.blocked + 1 && actual.picks.length === 1 && actual.picks.every(topic => topic.slug !== baselinePick.slug && !findWithdrawnTopic(topic, extended)), '実プールで取り下げ記録のある題材を外し別の 1 件を選定', 'R2');
   console.log('実データ: ' + JSON.stringify({ blocked: step.blocked, topic_ids: step.blockedDetails.map(item => item.slug), selected: actual.picks.map(topic => topic.slug) }));
   const workflow = read(path.join(ROOT, '.github/workflows/daily-draft.yml'));
   assert(workflow.includes('WITHDRAWN_OUT: /tmp/withdrawn-new.json') && /- name: Record withdrawn topics on main\s+if: always\(\)/.test(workflow), '生成失敗時も最後のステップに取り下げ記録を渡す', 'R5');
