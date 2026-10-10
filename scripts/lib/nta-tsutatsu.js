@@ -142,9 +142,9 @@ function isKnownProvision(no, circular) {
 
 // 本文から通達の引用を拾う。「所基通37-14」「消費税法基本通達6-4-5」
 // 「相基通1の3・1の4共-1」など。相続税は「・」「共」を含む。
-const PROVISION_ELEMENT = '[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*)*共?(?:[（(][0-9０-９]+[）)])?';
+const PROVISION_ELEMENT = '[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*)*共?';
 const PROVISION_RANGE_ELEMENT = `${PROVISION_ELEMENT}(?:[～〜~]${PROVISION_ELEMENT})?`;
-const PROVISION_NO_PATTERN = `${PROVISION_RANGE_ELEMENT}(?:[-－‐‑–—―−]${PROVISION_RANGE_ELEMENT}){1,3}`;
+const PROVISION_NO_PATTERN = `${PROVISION_RANGE_ELEMENT}(?:[（(][0-9０-９]+[）)])?(?:[-－‐‑–—―−]${PROVISION_RANGE_ELEMENT}){1,3}`;
 const CITATION_RE = new RegExp(
   `(${Object.keys(SHORT_TO_CIRCULAR).sort((a,b) => b.length-a.length).join('|')})\\s*(${PROVISION_NO_PATTERN}|[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*)`,
   'g',

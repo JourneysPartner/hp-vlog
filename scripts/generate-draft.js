@@ -1952,13 +1952,14 @@ async function buildRegenSourceBlocks(meta = {}, body = '', options = {}) {
     procedure_stage: meta.procedure_stage, life_stage: meta.life_stage,
     ...materials.topicFromMeta(meta),
   };
-  await prepareSources([topicLike], { ...options, ensureInitial: false });
+  // 再生成の本文は元記事の主出典で直す。汎用ページだけ補助資料を足す。
+  await materials.supplementGenericSource(topicLike, {
+    enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
+    resolveSource: options.resolveSupplement || resolveGenericSupplement,
+  });
   const materialBundle = materials.buildMaterialsBundle(topicLike);
   Object.assign(meta, { source_bundle: materialBundle.sourceBundle, tax_terms: topicLike.tax_terms,
     materials_warning: topicLike.materials_warning });
-  for (const key of ['source_url', 'source_title', 'source_provenance', 'source_confidence']) {
-    if (topicLike[key] !== undefined) meta[key] = topicLike[key];
-  }
   // 論点別ルール（CONDITIONAL_RULES）。通常生成と full 経路は builder 経由で
   // dynamicSystem に載るが、targeted / section 経路は builder を通らないため
   // 載っていなかった。事実誤認の差し戻しは targeted に振り分けられるので、
@@ -2611,7 +2612,7 @@ async function runFactCheckForArticle(content, options = {}) {
 async function finalizeRegeneration(existing, content, classification, options = {}) {
   content = factCheck.inheritFactMetadata(existing, content);
   content = clearPlaceholderTitleWarning(content);
-  const normalize = raw => parseFrontmatter(raw).body.replace(/\r\n/g, '\n').replace(/[\t ]+$/gm, '').replace(/\n+$/, '');
+  const normalize = raw => factCheck.normalizeBody(parseFrontmatter(raw).body);
   if (normalize(existing) === normalize(content)) return content;
   return runFactCheckForArticle(content, options);
 }
@@ -2632,7 +2633,7 @@ async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
   const audit = dependencies.factAudit || auditLib.readLatestAudits(dependencies.auditDir)[parseFrontmatter(content).meta.slug];
   const auditReason = auditLib.auditReason({ body: require('gray-matter')(content).content }, audit);
   reasons = reasons.filter(reason => reason.kind !== 'fact_mismatch');
-  if (auditReason) reasons.push(auditReason);
+  if (auditReason) reasons.push({ ...auditReason, audit });
   const calendar = readJsonOr(path.join(ROOT, 'data', 'tax-calendar.json'), null);
   const taxYear = freshnessCandidates.currentTaxYear(new Date(), calendar);
   let result;
@@ -2783,7 +2784,7 @@ async function prepareSources(pair, options = {}) {
 
   // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
   // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
-  for (const t of pair) {
+  if (options.ensureInitial !== false) for (const t of pair) {
     if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
     const before = t.source_url;
     await (options.enrichTaxTerms || enrichTaxTerms)(t);
@@ -3194,16 +3195,6 @@ async function main() {
     content = restoreSourceGuardFields(existing, content, {
       resolveSource: resolveSourceForTopic,
     });
-    // 仮置きだったタイトルが再生成で確定したら、生成時に付いた警告と revise 判定を戻す。
-    // 部分再生成は判定を作り直さないため、放っておくと直したのに承認できない。
-    {
-      const before = content;
-      content = clearPlaceholderTitleWarning(factCheck.inheritFactMetadata(existing, content));
-      if (content !== before) {
-        console.log('[regenerate] タイトルが確定したため、仮置きの警告と判定を戻しました');
-      }
-    }
-
     // 出典が弱い（domain-fallback 等）ままなら LLM 出典選定を試みる
     {
       const { meta: srcMeta } = parseFrontmatter(content);
@@ -3218,7 +3209,7 @@ async function main() {
           source_provenance: srcMeta.source_provenance,
           source_url: srcMeta.source_url, source_title: srcMeta.source_title,
         };
-        await prepareSources([topicLike]);
+        await prepareSources([topicLike], { ensureInitial: false });
         if (topicLike.source_provenance !== srcMeta.source_provenance) {
           content = content
             .replace(/^(source_url:\s*).*$/m, `$1"${topicLike.source_url}"`)
@@ -3334,6 +3325,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  main,
   getExistingSlugs,
   generateFromTemplate,
   checkGeneratedArticle,

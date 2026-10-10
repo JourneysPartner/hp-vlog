@@ -396,7 +396,9 @@ function clearPlaceholderTitleWarning(raw) {
   let out = text.replace(/^review_warning:\s*".*"$/m, `review_warning: "${rest.join(' / ')}"`);
   // 残る警告が無ければ、仮置きだけを理由にした revise を publish に戻す
   const factBlocking = /^fact_check_blocking:\s*"?true"?\s*$/m.test(text) || /^fact_check_status:\s*"?revise"?\s*$/m.test(text);
-  if (rest.filter(w => !w.startsWith('【事実の照合】')).length === 0 && !factBlocking) {
+  const otherWarnings = warnMatch[1].replace(require('./fact-check').WARNING_RE, '')
+    .split(' / ').filter(w => w.trim() && w !== PLACEHOLDER_TITLE_WARNING);
+  if (otherWarnings.length === 0 && !factBlocking) {
     out = out.replace(/^recommendation:\s*"revise"$/m, 'recommendation: "publish"');
     out = out.replace(/^fact_check_prev_recommendation:\s*"revise"$/m, 'fact_check_prev_recommendation: "publish"');
   }

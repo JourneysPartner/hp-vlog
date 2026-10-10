@@ -12,7 +12,8 @@ function readLatestAudits(dir = AUDIT_DIR) {
       if (Object.hasOwn(latest, slug)) continue;
       try {
         const record = JSON.parse(fs.readFileSync(path.join(dir, date, name), 'utf8'));
-        latest[slug] = record.version === 1 && record.slug === slug ? record : null;
+        latest[slug] = record.version === 1 && record.slug === slug ? { ...record,
+          audit_path: path.relative(path.join(__dirname, '../..'), path.join(dir, date, name)).replace(/\\/g, '/') } : null;
       } catch (_) { latest[slug] = null; }
     }
   }
@@ -23,7 +24,10 @@ function auditReason(post, record) {
   if (!record || record.status === 'not_run' || record.body_sha256 !== bodyHash(post.body)) return null;
   const findings = auditFindings(record).filter(c => c.status === '食い違い');
   if (!findings.length) return null;
-  return { kind: 'fact_mismatch', detail: `事実の照合で食い違い ${findings.length} 件`, where: '本文', audit: record };
+  return { kind: 'fact_mismatch', detail: `事実の照合で食い違い ${findings.length} 件`, where: '本文', audit: {
+    mismatch_count: findings.length, checked_at: record.checked_at || '', body_sha256: record.body_sha256,
+    record_path: record.audit_path || `data/fact-check/audit/${String(record.checked_at || '').slice(0, 10)}/${record.slug || post.slug}.json`,
+  } };
 }
 function auditInstructions(record) {
   return auditFindings(record).map(c => {

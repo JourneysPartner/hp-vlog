@@ -24,7 +24,10 @@ function config(options = {}) {
     timeoutMs: positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000) };
 }
 
-function bodyHash(body) { return createHash('sha256').update(String(body).replace(/\r\n/g, '\n')).digest('hex'); }
+function normalizeBody(body) {
+  return String(body).replace(/\r\n?/g, '\n').replace(/[^\S\n]+$/gm, '').trimEnd();
+}
+function bodyHash(body) { return createHash('sha256').update(normalizeBody(body)).digest('hex'); }
 
 /** 原文は表に一度だけ保存し、判定と修正からはIDで参照する。 */
 function compactRecord(record) {
@@ -66,19 +69,37 @@ function actualSentence(body, sentence) {
 }
 
 function normalizedNumbers(text) {
-  const normalized = normalizedQuote(text).replace(/[〇零一二三四五六七八九十百千万億]+/g, value => {
+  const normalized = normalizedQuote(text).replace(/(令和|平成|昭和)元年/g, '$11年');
+  const numbers = [];
+  const tokens = /[0-9〇零一二三四五六七八九十百千万億]+(?:,[0-9]{3})*(?:\.[0-9]+)?(?:[万億][0-9〇零一二三四五六七八九十百千万億]*(?:,[0-9]{3})*(?:\.[0-9]+)?)*/g;
+  for (const match of normalized.matchAll(tokens)) {
+    const value = match[0];
+    const prefix = normalized.slice(0, match.index);
+    const suffix = normalized.slice(match.index + value.length);
+    // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
+    if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第)$/.test(prefix) &&
+      !/^(?:年|月|日|円|万|億|%|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
     const digits = '〇一二三四五六七八九';
-    if (!/[十百千万億]/.test(value)) return [...value].map(c => c === '零' ? 0 : digits.indexOf(c)).join('');
-    let total = 0, section = 0, num = 0;
-    for (const c of value) {
+    let total = 0, section = 0, num = 0, hasNumber = false, hasSection = false;
+    // アラビア数字・漢数字と万・億をまとめ、同じ金額を一つの数にする。
+    for (const c of value.match(/[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|[〇零一二三四五六七八九]+|[十百千万億]/g) || []) {
       const unit = { 十: 10, 百: 100, 千: 1000, 万: 10000, 億: 100000000 }[c];
-      if (!unit) num = c === '零' ? 0 : digits.indexOf(c);
-      else if (unit < 10000) { section += (num || 1) * unit; num = 0; }
-      else { total += (section + num || 1) * unit; section = num = 0; }
+      if (!unit) {
+        num = /[0-9]/.test(c) ? Number(c.replace(/,/g, '')) : Number([...c].map(d => d === '零' ? 0 : digits.indexOf(d)).join(''));
+        hasNumber = true;
+      } else if (unit < 10000) {
+        section += (hasNumber ? num : 1) * unit;
+        num = 0; hasNumber = false; hasSection = true;
+      } else {
+        total += (hasNumber || hasSection ? section + num : 1) * unit;
+        section = num = 0; hasNumber = hasSection = false;
+      }
     }
-    return String(total + section + num);
-  }).replace(/(令和|平成)元年/g, '$11年');
-  return normalized.match(/\d+(?:[.,]\d+)*/g) || [];
+    const number = total + section + num;
+    // 桁数が大きく正確に揃えられない数は、丸めて一致させない。
+    numbers.push(Number.isFinite(number) && Math.abs(number) <= Number.MAX_SAFE_INTEGER ? String(number) : value);
+  }
+  return numbers;
 }
 
 function sufficientQuote(claim, result, ref, status) {
@@ -87,7 +108,7 @@ function sufficientQuote(claim, result, ref, status) {
   const wholeSentence = sentenceRows(ref.text).some(s => normalizedQuote(s.trim()) === quote && /。$/.test(s.trim()) && quote !== '。');
   if (quote.length < 15 && !wholeSentence) return false;
   if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
-    const numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim + claim.sentence : result.correct);
+    const numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : result.correct);
     const quoted = normalizedNumbers(result.quote);
     if (!numbers.length || !numbers.every(n => quoted.includes(n))) return false;
   }
@@ -414,4 +435,4 @@ function inheritFactMetadata(original, regenerated) {
 
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
   applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
-  bodyHash, compactRecord, evidenceRefs, normalizedNumbers };
+  normalizeBody, bodyHash, compactRecord, evidenceRefs, normalizedNumbers, WARNING_RE };

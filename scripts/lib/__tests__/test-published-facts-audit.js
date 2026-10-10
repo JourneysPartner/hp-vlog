@@ -88,7 +88,8 @@ async function main() {
     const result = candidates.buildCandidates({ ...base, factAudits: { a: record } });
     assert.equal(result[0].score, Math.max(...Object.values(candidates.SIGNAL_WEIGHTS)));
     assert.equal(result[0].reasons[0].detail, '事実の照合で食い違い 1 件'); assert.equal(result[0].refreshable, true);
-    const plan = refresh.buildRefreshPlan(p, result[0].reasons);
+    assert.equal(result[0].reasons[0].audit.claims, undefined);
+    const plan = refresh.buildRefreshPlan(p, [{ ...result[0].reasons[0], audit: record }]);
     assert.match(plan[0].instruction, /令和9年3月31日/);
     assert.deepEqual(candidates.buildCandidates({ ...base, factAudits: {} }), candidates.buildCandidates(base));
   });

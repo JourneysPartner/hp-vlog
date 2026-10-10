@@ -6,6 +6,7 @@ const path = require('path');
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
+const { bodyHash, evidenceRefs } = require('../../scripts/lib/fact-check');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -56,10 +57,10 @@ function escapeHtml(value) {
 
 function renderFactCheck(meta, record, body) {
   const labels = { ok: '照合済み', revise: '要修正', not_run: '未実施' };
-  const stale = record?.stale || (body !== undefined && record && !record.read_error && record.body_sha256 !== require('../../scripts/lib/fact-check').bodyHash(body));
+  const stale = record?.stale || (body !== undefined && record && !record.read_error && record.body_sha256 !== bodyHash(body));
   const unreadable = record?.read_error;
   const status = stale || unreadable ? 'not_run' : meta.fact_check_status || record?.status || '';
-  const refs = item => require('../../scripts/lib/fact-check').evidenceRefs(record || {}, item).map(e => {
+  const refs = item => evidenceRefs(record || {}, item).map(e => {
     const url = /^https:\/\//.test(e.url || '') ? e.url : '';
     return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}<blockquote>${escapeHtml(e.text || '')}</blockquote></div>`;
   }).join('');
@@ -82,7 +83,7 @@ async function fetchFactCheck(slug, ref, body) {
     const { content } = await githubApi.getFile(`data/fact-check/${slug}.json`, ref || undefined);
     const record = JSON.parse(content);
     if (!record || record.version !== 1 || record.slug !== slug) return { read_error: true };
-    if (body !== undefined && record.body_sha256 !== require('../../scripts/lib/fact-check').bodyHash(body)) return { ...record, stale: true };
+    if (body !== undefined && record.body_sha256 !== bodyHash(body)) return { ...record, stale: true };
     return record;
   } catch (error) {
     return /\b404\b|not found/i.test(String(error?.message || '')) ? null : { read_error: true };

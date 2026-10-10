@@ -446,6 +446,10 @@ function buildCandidates(inputs, options = {}) {
       auditReason(post, inputs.factAudits?.[post.slug]),
     ].filter(Boolean).filter(reason => {
       if (!reviewedAt) return true;
+      if (reason.kind === 'fact_mismatch') {
+        const auditedAt = validDate(reason.audit.checked_at);
+        return !auditedAt || reviewedAt <= auditedAt;
+      }
       if (reason.kind === 'tax_reform') {
         const reviewedTaxYear = currentTaxYear(reviewedAt, inputs.calendar);
         return !reviewedTaxYear || Number(reviewedTaxYear) !== Number(inputs.reform && inputs.reform.year);

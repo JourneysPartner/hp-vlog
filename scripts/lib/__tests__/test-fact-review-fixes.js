@@ -58,12 +58,14 @@ async function main() {
     const url = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm';
     const order = [];
     await G.buildRegenSourceBlocks(meta, '', { enrichTaxTerms: async topic => { order.push('terms'); topic.tax_terms = '贈与税 非課税'; },
-      ensureSource: topic => { order.push('refine'); Object.assign(topic, { source_url: url, source_title: '贈与税の非課税', source_provenance: 'auto', source_confidence: 0.8 }); },
-      enrichSource: async () => { order.push('select'); }, resolveSupplement: async () => { throw new Error('具体的な出典を補強しない'); },
+      ensureSource: () => { throw new Error('主出典を選び直さない'); },
+      enrichSource: async () => { throw new Error('主出典を選び直さない'); },
+      resolveSupplement: async () => { order.push('supplement'); return { url, title: '贈与税の非課税', provenance: 'auto', confidence: 0.8 }; },
     });
-    assert.deepEqual(order, ['terms', 'refine', 'select']);
+    assert.deepEqual(order, ['terms', 'supplement', 'supplement']);
     const saved = matter(G.recordMaterialMetadata(raw(sentence), meta)).data;
-    assert.equal(saved.source_url, url); assert.equal(saved.source_provenance, 'auto'); assert.equal(saved.source_confidence, 0.8);
+    assert.equal(saved.source_url, meta.source_url); assert.equal(saved.source_provenance, 'domain-fallback');
+    assert.ok(saved.source_bundle.includes(url));
   });
   await test('F4', async () => {
     const N = require('../draft-normalizer');

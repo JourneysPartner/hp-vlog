@@ -125,6 +125,7 @@ async function crawlCircular(key, def, limit) {
     try {
       const html = await fetchShiftJis(url);
       const parsed = parseTsutatsuPage(html, { url, circular: key });
+      if (!parsed.provisions.length) throw new Error('本文ページの項目が0件です');
       for (const p of parsed.provisions) {
         provisions.push({ ...p, section: parsed.sectionTitle });
       }
@@ -168,16 +169,16 @@ function provisionsByNumber(provisions, key) {
   return byNo;
 }
 
-async function main() {
+async function main({ outDir = OUT_DIR } = {}) {
   const only = getArg('--only');
   const limit = Number(getArg('--limit')) || 0;
   const targets = Object.entries(CIRCULARS).filter(([k]) => !only || k === only);
   if (targets.length === 0) throw new Error(`--only の指定が不正: ${only}`);
 
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(outDir, { recursive: true });
 
   // --only で1つだけ取得したときに、他の通達の記録を消さないよう既存を読む。
-  const indexPath = path.join(OUT_DIR, 'index.json');
+  const indexPath = path.join(outDir, 'index.json');
   let index = [];
   try {
     index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
@@ -195,7 +196,7 @@ async function main() {
     }
 
     // 本文は通達ごとに1ファイル。条番号で引ける形にする。
-    const bodyPath = path.join(OUT_DIR, `${key}.json`);
+    const bodyPath = path.join(outDir, `${key}.json`);
     const byNo = provisionsByNumber(r.provisions, key);
     fs.writeFileSync(bodyPath, `${JSON.stringify({
       circular: key,
@@ -211,7 +212,7 @@ async function main() {
       id: `tsutatsu:${key}:${no}${i ? ':' + (i + 1) : ''}`, kind: 'tsutatsu', circular: key, no, variant: i,
       title: `${def.label} ${p.title || ''}`, url: p.url, text: p.body, law_version: '',
     })));
-    fs.writeFileSync(path.join(OUT_DIR, `${key}.index.json`), JSON.stringify({ entries: searchIndex(searchEntries) }) + '\n', 'utf8');
+    fs.writeFileSync(path.join(outDir, `${key}.index.json`), JSON.stringify({ entries: searchIndex(searchEntries) }) + '\n', 'utf8');
 
     // 同じ通達の古い記録は差し替える
     index = index.filter(e => e.circular !== key);
@@ -251,4 +252,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { CIRCULARS, crawlCircular, normalizeProvisionNo, provisionsByNumber };
+module.exports = { CIRCULARS, crawlCircular, normalizeProvisionNo, provisionsByNumber, main };
