@@ -22,6 +22,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { searchIndex } = require('./lib/catalog-search-index');
 const {
   parseTsutatsuPage, parseIndexPage, normalizeProvisionNo,
 } = require('./lib/tsutatsu-parser');
@@ -61,6 +62,33 @@ const CIRCULARS = {
     index: 'https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/01.htm',
     linkKey: 'sisan',
   },
+  ...{
+    "hyoka": {
+      "label": "財産評価基本通達",
+      "short": "評基通",
+      "index": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/01.htm"
+    },
+    "sochi_sozoku": {
+      "label": "租税特別措置法（相続税法の特例関係）の取扱いについて",
+      "short": "措通",
+      "index": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/01.htm"
+    },
+    "sochi_shotoku": {
+      "label": "租税特別措置法に係る所得税の取扱いについて",
+      "short": "措通",
+      "index": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/01.htm"
+    },
+    "sochi_joto": {
+      "label": "租税特別措置法（山林所得・譲渡所得関係）の取扱いについて",
+      "short": "措通",
+      "index": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/01.htm"
+    },
+    "sochi_hojin": {
+      "label": "租税特別措置法関係通達（法人税編）",
+      "short": "措通",
+      "index": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/01.htm"
+    }
+  }
 };
 
 const SLEEP_MS = 1000;   // 1 秒 1 リクエスト
@@ -85,6 +113,7 @@ async function crawlCircular(key, def, limit) {
   console.log(`\n=== ${def.label} ===`);
   const indexHtml = await fetchShiftJis(def.index);
   let urls = parseIndexPage(indexHtml, def.linkKey || key, def.index);
+  if (!urls.length) throw new Error('通達の本文ページが見つかりません');
   if (limit) urls = urls.slice(0, limit);
   console.log(`  節ページ: ${urls.length} 件`);
 
@@ -96,6 +125,7 @@ async function crawlCircular(key, def, limit) {
     try {
       const html = await fetchShiftJis(url);
       const parsed = parseTsutatsuPage(html, { url, circular: key });
+      if (!parsed.provisions.length) throw new Error('本文ページの項目が0件です');
       for (const p of parsed.provisions) {
         provisions.push({ ...p, section: parsed.sectionTitle });
       }
@@ -122,21 +152,34 @@ async function crawlCircular(key, def, limit) {
   }
 
   console.log(`  取得: ${provisions.length} 条 / 重複 ${duplicates.length} / エラー ${errors.length}`);
-  if (errors.length) errors.slice(0, 5).forEach(e => console.warn(`    ⚠ ${e}`));
+  errors.filter((e, i) => i < 5 || e.endsWith(': 本文ページの項目が0件です'))
+    .forEach(e => console.warn(`    ⚠ ${e}`));
 
   return { key, def, urls, provisions, duplicates, errors };
 }
 
-async function main() {
+function provisionsByNumber(provisions, key) {
+  const byNo = {};
+  for (const p of provisions) {
+    const entry = { no: p.no, title: p.title, body: p.body, url: p.url, section: p.section };
+    if (key === 'hyoka' || key.startsWith('sochi_')) {
+      if (!byNo[p.no]) byNo[p.no] = entry;
+      else byNo[p.no] = [...(Array.isArray(byNo[p.no]) ? byNo[p.no] : [byNo[p.no]]), entry];
+    } else if (!byNo[p.no] || p.body.length > byNo[p.no].body.length) byNo[p.no] = entry;
+  }
+  return byNo;
+}
+
+async function main({ outDir = OUT_DIR } = {}) {
   const only = getArg('--only');
   const limit = Number(getArg('--limit')) || 0;
   const targets = Object.entries(CIRCULARS).filter(([k]) => !only || k === only);
   if (targets.length === 0) throw new Error(`--only の指定が不正: ${only}`);
 
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(outDir, { recursive: true });
 
   // --only で1つだけ取得したときに、他の通達の記録を消さないよう既存を読む。
-  const indexPath = path.join(OUT_DIR, 'index.json');
+  const indexPath = path.join(outDir, 'index.json');
   let index = [];
   try {
     index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
@@ -147,16 +190,15 @@ async function main() {
   for (const [key, def] of targets) {
     const r = await crawlCircular(key, def, limit);
     totalErrors += r.errors.length;
+    if (!r.provisions.length || r.errors.length) {
+      totalErrors += r.provisions.length ? 0 : 1;
+      console.error(`  ${key}: 取り込みが完了していないため既存のカタログを保持します`);
+      continue;
+    }
 
     // 本文は通達ごとに1ファイル。条番号で引ける形にする。
-    const bodyPath = path.join(OUT_DIR, `${key}.json`);
-    const byNo = {};
-    for (const p of r.provisions) {
-      // 同じ番号が複数あれば、本文が長いほうを残す（切れた抽出を採らない）
-      if (!byNo[p.no] || p.body.length > byNo[p.no].body.length) {
-        byNo[p.no] = { no: p.no, title: p.title, body: p.body, url: p.url, section: p.section };
-      }
-    }
+    const bodyPath = path.join(outDir, `${key}.json`);
+    const byNo = provisionsByNumber(r.provisions, key);
     fs.writeFileSync(bodyPath, `${JSON.stringify({
       circular: key,
       label: def.label,
@@ -165,7 +207,13 @@ async function main() {
       fetched_at: new Date().toISOString(),
       section_pages: r.urls.length,
       provisions: byNo,
+      ...(key === 'hyoka' || key.startsWith('sochi_') ? { duplicates: r.duplicates } : {}),
     }, null, 2)}\n`, 'utf8');
+    const searchEntries = Object.entries(byNo).flatMap(([no, entry]) => (Array.isArray(entry) ? entry : [entry]).map((p, i) => ({
+      id: `tsutatsu:${key}:${no}${i ? ':' + (i + 1) : ''}`, kind: 'tsutatsu', circular: key, no, variant: i,
+      title: `${def.label} ${p.title || ''}`, url: p.url, text: p.body, law_version: '',
+    })));
+    fs.writeFileSync(path.join(outDir, `${key}.index.json`), JSON.stringify({ entries: searchIndex(searchEntries) }) + '\n', 'utf8');
 
     // 同じ通達の古い記録は差し替える
     index = index.filter(e => e.circular !== key);
@@ -175,6 +223,7 @@ async function main() {
       short: def.short,
       index_url: def.index,
       file: `${key}.json`,
+      search_index: `${key}.index.json`,
       section_pages: r.urls.length,
       provision_count: Object.keys(byNo).length,
       errors: r.errors.length,
@@ -204,4 +253,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { CIRCULARS, crawlCircular, normalizeProvisionNo };
+module.exports = { CIRCULARS, crawlCircular, normalizeProvisionNo, provisionsByNumber, main };

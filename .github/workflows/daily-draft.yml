@@ -91,10 +91,21 @@ jobs:
           node scripts/generate-draft.js $ARGS
         env:
           DRAFT_COUNT: ${{ inputs.count || '1' }}
+          WITHDRAWN_OUT: /tmp/withdrawn-new.json
           # 本文生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_FAIL_OPEN: ${{ vars.FACT_CHECK_FAIL_OPEN }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+          SOURCE_BODY_MAX_CHARS_PER_PAGE: ${{ vars.SOURCE_BODY_MAX_CHARS_PER_PAGE }}
+          SOURCE_BODY_MAX_CHARS_TOTAL: ${{ vars.SOURCE_BODY_MAX_CHARS_TOTAL }}
+          LAW_CHAIN_MAX_ARTICLES: ${{ vars.LAW_CHAIN_MAX_ARTICLES }}
+          LAW_CHAIN_MAX_CHARS: ${{ vars.LAW_CHAIN_MAX_CHARS }}
+          GENERIC_SOURCE_MIN_POSTS: ${{ vars.GENERIC_SOURCE_MIN_POSTS }}
           # prompt caching フラグ（Variables 推奨。Secret 側にしかない場合の後方互換で両参照）
           CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
           # 周辺作業: Haiku 4.5 またはルールベース
@@ -176,6 +187,11 @@ jobs:
             PERSONA=$(grep '^primary_persona:' "$TMPFILE" | head -1 | sed 's/^primary_persona: *"//;s/"$//')
             CATEGORY=$(grep '^category:' "$TMPFILE" | head -1 | sed 's/^category: *"//;s/"$//')
             SLUG=$(grep '^slug:' "$TMPFILE" | head -1 | sed 's/^slug: *"//;s/"$//')
+            # 照合記録も退避し、各記事の枝へ1対1で載せる。
+            if [ -f "data/fact-check/${SLUG}.json" ]; then
+              cp "data/fact-check/${SLUG}.json" "/tmp/fact-check${IDX}.json"
+              rm "data/fact-check/${SLUG}.json"
+            fi
             ARTICLE_TYPE=$(grep '^article_type:' "$TMPFILE" | head -1 | sed 's/^article_type: *"//;s/"$//')
             ARTICLE_ROLE=$(grep '^article_role:' "$TMPFILE" | head -1 | sed 's/^article_role: *"//;s/"$//')
 
@@ -211,6 +227,11 @@ jobs:
           git checkout -b "$BRANCH"
           cp /tmp/article1.md "content/posts/${BASENAME}"
           git add "content/posts/${BASENAME}"
+          if [ -f /tmp/fact-check1.json ]; then
+            mkdir -p data/fact-check
+            cp /tmp/fact-check1.json "data/fact-check/${SLUG}.json"
+            git add "data/fact-check/${SLUG}.json"
+          fi
           git commit -m "draft: ${TITLE}"
           git push origin "$BRANCH"
 
@@ -279,6 +300,11 @@ jobs:
           git checkout -b "$BRANCH"
           cp /tmp/article2.md "content/posts/${BASENAME}"
           git add "content/posts/${BASENAME}"
+          if [ -f /tmp/fact-check2.json ]; then
+            mkdir -p data/fact-check
+            cp /tmp/fact-check2.json "data/fact-check/${SLUG}.json"
+            git add "data/fact-check/${SLUG}.json"
+          fi
           git commit -m "draft: ${TITLE}"
           git push origin "$BRANCH"
 
@@ -431,3 +457,38 @@ jobs:
             --title "$DATE の記事生成" \
             --comment 'GitHub Actions のジョブが失敗しました。下書きは作られていません。' \
             --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
+
+      - name: Record withdrawn topics on main
+        if: always()
+        run: |
+          # 記事の枝と通知の処理を終えてから、今回の取り下げ記録だけを main に残す。
+          if [ ! -f /tmp/withdrawn-new.json ]; then exit 0; fi
+          if ! cat /tmp/withdrawn-new.json; then
+            echo '::warning::今回の取り下げ記録をログに表示できませんでした'
+            exit 0
+          fi
+          if ! node -e 'const a = require("/tmp/withdrawn-new.json"); process.exit(Array.isArray(a) && a.length ? 0 : 1)'; then exit 0; fi
+          if ! git config user.name "github-actions[bot]" || ! git config user.email "github-actions[bot]@users.noreply.github.com"; then
+            echo '::warning::取り下げ記録のコミット設定に失敗しました'
+            exit 0
+          fi
+          record_and_commit() {
+            node scripts/record-withdrawn-topics.js /tmp/withdrawn-new.json || return 1
+            git add -- data/withdrawn-topics.json || return 1
+            if git diff --cached --quiet -- data/withdrawn-topics.json; then return 0; fi
+            git commit -m "chore(draft): 取り下げた題材を記録 ($(TZ=Asia/Tokyo date +%Y-%m-%d))" -- data/withdrawn-topics.json
+          }
+          # 毎回最新 main に追記し直す。最初の試行と最大 3 回の再試行。
+          for attempt in 0 1 2 3; do
+            if ! git fetch origin main || ! git checkout -B withdrawn-record origin/main; then
+              echo '::warning::取り下げ記録用の main への切り替えに失敗しました'
+              continue
+            fi
+            if ! record_and_commit; then
+              echo '::warning::取り下げ記録の追記・コミットに失敗しました'
+              continue
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          echo '::warning::取り下げ記録を main に保存できませんでした'
+          exit 0

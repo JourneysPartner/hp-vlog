@@ -21,15 +21,15 @@
 const fs = require('fs');
 const path = require('path');
 const { checkCitations, buildProvisionBlock } = require('./nta-tsutatsu');
+const { excerptText, positiveLimit } = require('./source-excerpt');
+const { UNSOURCED_RULE, DEADLINE_RULE } = require('./grounding-rules');
 
 const ROOT = path.join(__dirname, '..', '..');
 const TAXANSWER_DIR = path.join(ROOT, 'data', 'nta-sources', 'taxanswer');
 const SHITSUGI_DIR = path.join(ROOT, 'data', 'nta-sources', 'shitsugi');
 
-// 1出典あたりの上限。カタログ最長は約11,500字あり、そのまま入れると
-// プロンプトが膨らんで主要論点が埋もれる。制度の要件は本文前半に
-// まとまっているため、先頭から切り出す。
-const DEFAULT_MAX_CHARS = 4000;
+// 長いページは論点に合う段落を優先する。
+const DEFAULT_MAX_CHARS = 6000;
 const MAX_KANKEI_TSUTATSU = 3;
 
 /** URL から taxanswer のセクションと番号を取り出す */
@@ -85,9 +85,10 @@ function loadSourceBody(url, options = {}) {
       no: String(entry.id || (taxanswer ? taxanswer.no : shitsugi.id)),
       title: entry.title || '',
       url,
-      body: truncated ? raw.slice(0, maxChars) : raw,
+      body: truncated ? excerptText(raw, options.query || '', maxChars) : raw,
       truncated,
       kind: taxanswer ? 'taxanswer' : 'shitsugi',
+      law_version: entry.law_version || '',
     };
   } catch (_error) {
     return null;   // 破損・読込失敗はカタログ無しとして扱う
@@ -102,38 +103,60 @@ function loadSourceBody(url, options = {}) {
  * @param {Object} options       { maxRefs, maxChars }
  * @returns {string} プロンプトに連結する文字列（該当なしなら空文字）
  */
-function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
+function buildSourceBodyBundle(topic = {}, refs = [], options = {}) {
   const maxRefs = Number.isInteger(options.maxRefs) ? options.maxRefs : 1;
-  const maxChars = options.maxChars;
+  const maxChars = positiveLimit(options.maxChars ?? process.env.SOURCE_BODY_MAX_CHARS_PER_PAGE, DEFAULT_MAX_CHARS);
+  const maxTotal = positiveLimit(options.maxTotal ?? process.env.SOURCE_BODY_MAX_CHARS_TOTAL, 24000);
+  const query = [topic.tax_terms, topic.source_term, topic.title, topic.primary_question].filter(Boolean).join(' ');
+  const log = options.log || console.log;
 
   const loaded = [];
   const seen = new Set();
-
-  // ① 主出典（記事が根拠として掲げるもの）を最優先で載せる
-  const main = loadSourceBody(topic.source_url, { maxChars });
-  if (main) { loaded.push({ ...main, role: '主出典' }); seen.add(main.url); }
-
-  // ② 参考出典（主出典と重複しないもの）を maxRefs 件まで
+  const dropped = [];
+  const ordered = [];
+  let total = 0;
+  const candidates = [
+    { url: topic.source_url, title: topic.source_title, role: '主出典' },
+    ...(topic.source_supplements || []).map(r => ({ ...r, role: '補助出典' })),
+  ];
+  let refsAdded = 0;
   for (const r of refs || []) {
-    if (loaded.length >= 1 + maxRefs) break;
-    if (!r || !r.url || seen.has(r.url)) continue;
-    const b = loadSourceBody(r.url, { maxChars });
-    if (!b) continue;
-    loaded.push({ ...b, role: '参考' });
-    seen.add(b.url);
+    if (!r?.url || candidates.some(c => c.url === r.url) || refsAdded >= maxRefs) continue;
+    candidates.push({ ...r, role: '参考' });
+    refsAdded++;
+  }
+  for (const r of candidates) {
+    if (!r.url || seen.has(r.url)) continue;
+    seen.add(r.url);
+    const b = loadSourceBody(r.url, { maxChars, query });
+    if (!b) {
+      dropped.push({ ...r, reason: 'カタログに本文なし' });
+      ordered.push({ ...r, reason: 'カタログに本文なし', included: false });
+      log(`[source] 本文なし: ${r.role} ${r.url}`);
+      continue;
+    }
+    if (total + b.body.length > maxTotal) {
+      dropped.push({ ...b, role: r.role, reason: '合計予算超過' });
+      ordered.push({ ...b, role: r.role, reason: '合計予算超過', included: false });
+      log(`[source] 予算で題名のみ: ${b.kind} ${b.no} ${b.body.length}文字`);
+      continue;
+    }
+    total += b.body.length;
+    loaded.push({ ...b, role: r.role });
+    ordered.push({ ...b, role: r.role, included: true });
+    log(`[source] 資料: ${r.role} ${b.kind} ${b.no} ${b.body.length}文字 ${b.truncated ? '抜粋' : '全文'}`);
   }
 
-  if (loaded.length === 0) return '';
-
-  const sections = loaded.map(s => {
+  const sections = ordered.map(s => {
+    if (!s.included) return `【${s.role}・題名のみ】${s.title || s.url}\n${s.url}\n（${s.reason}。原文が無いため具体的な要件・金額・期限の根拠にしない）`;
     const label = s.kind === 'shitsugi'
       ? `【${s.role}】国税庁 質疑応答事例「${s.title}」`
       : `【${s.role}】国税庁タックスアンサー No.${s.no}「${s.title}」`;
-    const note = s.truncated ? '\n（※本文が長いため冒頭のみ抜粋）' : '';
+    const note = s.truncated ? '\n（※本文が長いため論点に合う段落を優先した抜粋）' : '';
     return `${label}\n${s.url}${note}\n---\n${s.body}\n---`;
   }).join('\n\n');
 
-  return `
+  const block = loaded.length ? `
 
 ═══ 出典の本文（これが唯一の根拠。記憶で補わないこと）═══
 以下は上記の出典ページの実際の本文です。記事の事実関係は、この本文に
@@ -146,15 +169,20 @@ function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
    本文の列挙に無いものを勝手に対象へ加えない（列挙は限定列挙として扱う）。
 3. 金額の上限・期間・割合などの数値は、本文に書かれた値をそのまま使う。
    本文に無い数値は書かない。
-4. 本文に書かれていない論点に触れる必要がある場合は、出典を引かずに
-   「一般に」「実務上」等の表現に留め、その旨が分かるように書く。
+4. ${UNSOURCED_RULE}
 5. 本文と自分の記憶が食い違う場合は<strong>必ず本文を優先</strong>する。
 6. 出典ページに図（画像）がある事例では、要点が図にしか書かれていないことがある。
    図が渡されていない場合、図に書かれているはずの数値・続柄・関係を推測して書かない。
    <strong>説明のための設例であっても、出典に無い数値を自分で作ってはならない</strong>
    （2026-09-06、議決権割合を創作して結論まで誤った事故が実際に起きている）。
+7. ${DEADLINE_RULE}
 
-${sections}`;
+${sections}` : '';
+  return { block, sources: loaded, dropped, totalChars: total };
+}
+
+function buildSourceBodyBlock(topic = {}, refs = [], options = {}) {
+  return buildSourceBodyBundle(topic, refs, options).block;
 }
 
 /** 出典の「関係法令」欄から、カタログで解決できる通達だけを引く。 */
@@ -174,8 +202,9 @@ function findTsutatsuFromSourceKankei(topic = {}) {
 }
 
 /** 出典の「関係法令」欄を橋渡しした通達原文ブロック。 */
-function buildTsutatsuBlockFromSourceKankei(topic = {}) {
+function buildTsutatsuBlockFromSourceKankei(topic = {}, options = {}) {
   const refs = findTsutatsuFromSourceKankei(topic)
+    .filter(c => !(options.exclude || []).some(ref => ref.circular === c.circular && ref.no === c.no))
     .map(c => ({ no: c.no, circular: c.circular }));
   return buildProvisionBlock(refs);
 }
@@ -212,6 +241,7 @@ function loadSourceFigures(topic = {}) {
 module.exports = {
   loadSourceBody,
   buildSourceBodyBlock,
+  buildSourceBodyBundle,
   findTsutatsuFromSourceKankei,
   buildTsutatsuBlockFromSourceKankei,
   loadSourceFigures,

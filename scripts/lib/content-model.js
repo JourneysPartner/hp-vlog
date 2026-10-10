@@ -48,17 +48,17 @@ function resolveModel(provider, override) {
 }
 
 // ── OpenAI 呼び出し（既存挙動）──────────────────────────────────
-async function callOpenAI(promptIR, { model, maxTokens }) {
+async function callOpenAI(promptIR, { model, maxTokens, signal, timeoutMs }) {
   const _sdk = require('openai');
   const OpenAI = _sdk.default || _sdk.OpenAI || _sdk;
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, ...(timeoutMs ? { timeout: timeoutMs } : {}) });
   const { toOpenAIMessages } = require('./article-prompt-builder');
   const messages = toOpenAIMessages(promptIR);
   const completion = await client.chat.completions.create({
     model,
     messages,
     ...(maxTokens ? { max_completion_tokens: maxTokens } : {}),
-  });
+  }, signal ? { signal } : undefined);
   const choice = completion && completion.choices && completion.choices[0];
   const text = choice && choice.message && typeof choice.message.content === 'string'
     ? choice.message.content
@@ -72,35 +72,41 @@ async function callOpenAI(promptIR, { model, maxTokens }) {
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
-async function callAnthropic(promptIR, { model, maxTokens }) {
+async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) {
   const { toAnthropicRequest } = require('./article-prompt-builder');
   const reqBody = toAnthropicRequest(promptIR, { model, maxTokens: maxTokens || 4096, useCache: useCache() });
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': ANTHROPIC_VERSION,
-    },
-    body: JSON.stringify(reqBody),
-  });
+  // 照合だけは、fetch の既定の待ち時間より長い設定を接続にも反映する。
+  const dispatcher = timeoutMs ? new (require('undici').Agent)({ headersTimeout: timeoutMs, bodyTimeout: timeoutMs }) : null;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify(reqBody),
+      ...(signal ? { signal } : {}),
+      ...(dispatcher ? { dispatcher } : {}),
+    });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    // 秘密情報は出さない（errText は Anthropic の応答のみ）
-    throw new Error(`Anthropic API ${res.status}: ${errText}`);
-  }
-  const data = await res.json();
-  const text = Array.isArray(data.content)
-    ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
-    : '';
-  // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる（秘密情報ではない）
-  const u = data.usage || {};
-  console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
-    `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
-    `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0})`);
-  return { text, usage: data.usage || null, provider: 'anthropic', model };
+    if (!res.ok) {
+      const errText = await res.text();
+      // 秘密情報は出さない（errText は Anthropic の応答のみ）
+      throw new Error(`Anthropic API ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    const text = Array.isArray(data.content)
+      ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
+      : '';
+    // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる（秘密情報ではない）
+    const u = data.usage || {};
+    console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
+      `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
+      `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0})`);
+    return { text, usage: data.usage || null, provider: 'anthropic', model };
+  } finally { if (dispatcher) await dispatcher.close(); }
 }
 
 /**
@@ -112,18 +118,25 @@ async function callAnthropic(promptIR, { model, maxTokens }) {
  * @returns {Object} { text, usage, provider, model }
  */
 async function generateContent(promptIR, opts = {}) {
-  const provider = resolveProvider();
+  // 事実照合は本文生成と独立した設定を使い、失敗時のモデル変更を行わない。
+  const provider = opts.provider || resolveProvider();
+  if (!['anthropic', 'openai'].includes(provider)) throw new Error('未対応のモデル提供元です');
+  if (opts.fallback === false && !process.env[provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY']) {
+    throw new Error('モデルの認証情報が未設定です');
+  }
   const model = resolveModel(provider, opts.model);
   if (provider === 'anthropic') {
     try {
-      return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens });
+      return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal,
+        ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : {}) });
     } catch (e) {
+      if (opts.fallback === false) throw new Error('照合モデルの呼び出しに失敗しました');
       console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
       const oaModel = resolveModel('openai', null);
       return await callOpenAI(promptIR, { model: oaModel, maxTokens: opts.maxTokens });
     }
   }
-  return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens });
+  return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, timeoutMs: opts.timeoutMs });
 }
 
 /**

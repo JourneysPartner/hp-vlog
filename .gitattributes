@@ -3,3 +3,4 @@ scripts/lib/input-types/generated/**     text eol=lf
 data/tax-simulator/masters/** text eol=lf
 assets/js/tax-simulator*.js  text eol=lf
 assets/js/tax-simulator-manifest.json  text eol=lf
+docs/codex-tasks/fact-grounding/fixtures/tsutatsu/*.htm -text

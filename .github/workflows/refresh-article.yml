@@ -90,6 +90,16 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_FAIL_OPEN: ${{ vars.FACT_CHECK_FAIL_OPEN }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+          SOURCE_BODY_MAX_CHARS_PER_PAGE: ${{ vars.SOURCE_BODY_MAX_CHARS_PER_PAGE }}
+          SOURCE_BODY_MAX_CHARS_TOTAL: ${{ vars.SOURCE_BODY_MAX_CHARS_TOTAL }}
+          LAW_CHAIN_MAX_ARTICLES: ${{ vars.LAW_CHAIN_MAX_ARTICLES }}
+          LAW_CHAIN_MAX_CHARS: ${{ vars.LAW_CHAIN_MAX_CHARS }}
+          GENERIC_SOURCE_MIN_POSTS: ${{ vars.GENERIC_SOURCE_MIN_POSTS }}
           CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
           AUX_MODEL_ENABLED: ${{ vars.AUX_MODEL_ENABLED }}
           AUX_MODEL_PROVIDER: ${{ vars.AUX_MODEL_PROVIDER }}
@@ -145,15 +155,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "content/posts/$FILE"
+          SLUG=$(node -e 'const fs=require("fs"),m=require("gray-matter"); console.log(m(fs.readFileSync(process.argv[1],"utf8")).data.slug)' "content/posts/$FILE")
+          FACTFILE="data/fact-check/$SLUG.json"
+          if [ -f "$FACTFILE" ]; then git add "$FACTFILE"; fi
           if git diff --cached --quiet; then
             echo "::error::更新案に記事の変更がありません"
             exit 1
           fi
           STAGED=$(git diff --cached --name-only)
-          if [ "$STAGED" != "content/posts/$FILE" ]; then
-            echo "::error::記事以外の変更がステージされています"
-            exit 1
-          fi
+          while IFS= read -r STAGED_FILE; do
+            if [ "$STAGED_FILE" != "content/posts/$FILE" ] && [ "$STAGED_FILE" != "$FACTFILE" ]; then
+              echo "::error::記事・照合記録以外の変更がステージされています"
+              exit 1
+            fi
+          done <<< "$STAGED"
           git commit -m "refresh: $FILE"
           git push origin "HEAD:$BRANCH"
           PR_URL=$(gh pr create --base main --head "$BRANCH" --title "【更新】$TITLE（マージしない）" --body-file "$BODY_FILE")

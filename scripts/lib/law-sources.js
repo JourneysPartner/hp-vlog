@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { LAW_SCOPE_RULE } = require('./grounding-rules');
 
 const ROOT = path.join(__dirname, '..', '..');
 const LAW_DIR = path.join(ROOT, 'data', 'law-sources');
@@ -67,43 +68,76 @@ const LAWS = {
   //   措法61条の4第6項が求める「その旨につき財務省令で定めるところにより
   //   明らかにされているもの（＝帳簿書類に接待飲食費である旨の記載）」が抜けている。
   //   これをそのまま記事にすると要件を1つ落とした記事になる（2026-09-10 に発生）。
-  //   本則は巨大なので、ブログが実際に引く条だけを articles で絞って持つ。
+  //   税務の主要法令は指定した章の全条を持つ。
+  shotokuzei_hou: {
+    law_id: "340AC0000000033", title: "所得税法", short: "所得税法",
+    aliases: ["所得税法","所法"],
+    elms: ["MainProvision"],
+  },
+  shotokuzei_rei: {
+    law_id: "340CO0000000096", title: "所得税法施行令", short: "所得税法施行令",
+    aliases: ["所得税法施行令","所令"],
+    elms: ["MainProvision"],
+  },
+  shotokuzei_ki: {
+    law_id: "340M50000040011", title: "所得税法施行規則", short: "所得税法施行規則",
+    aliases: ["所得税法施行規則","所規"],
+    elms: ["MainProvision"],
+  },
+  hojinzei_hou: {
+    law_id: "340AC0000000034", title: "法人税法", short: "法人税法",
+    aliases: ["法人税法","法法"],
+    elms: ["MainProvision"],
+  },
+  hojinzei_rei: {
+    law_id: "340CO0000000097", title: "法人税法施行令", short: "法人税法施行令",
+    aliases: ["法人税法施行令","法令"],
+    elms: ["MainProvision"],
+  },
+  hojinzei_ki: {
+    law_id: "340M50000040012", title: "法人税法施行規則", short: "法人税法施行規則",
+    aliases: ["法人税法施行規則","法規"],
+    elms: ["MainProvision"],
+  },
+  shohizei_hou: {
+    law_id: "363AC0000000108", title: "消費税法", short: "消費税法",
+    aliases: ["消費税法","消法"],
+    elms: ["MainProvision"],
+  },
+  shohizei_rei: {
+    law_id: "363CO0000000360", title: "消費税法施行令", short: "消費税法施行令",
+    aliases: ["消費税法施行令","消令"],
+    elms: ["MainProvision"],
+  },
+  shohizei_ki: {
+    law_id: "363M50000040053", title: "消費税法施行規則", short: "消費税法施行規則",
+    aliases: ["消費税法施行規則","消規"],
+    elms: ["MainProvision"],
+  },
+  sozokuzei_rei: {
+    law_id: "325CO0000000071", title: "相続税法施行令", short: "相続税法施行令",
+    aliases: ["相続税法施行令","相令"],
+    elms: ["MainProvision"],
+  },
+  tsusoku_hou: {
+    law_id: "337AC0000000066", title: "国税通則法", short: "国税通則法",
+    aliases: ["国税通則法","通則法"],
+    elms: ["MainProvision"],
+  },
+  denshi_choubo: {
+    law_id: "410AC0000000025", title: "電子計算機を使用して作成する国税関係帳簿書類の保存方法等の特例に関する法律", short: "電子帳簿保存法",
+    aliases: ["電子計算機を使用して作成する国税関係帳簿書類の保存方法等の特例に関する法律","電子帳簿保存法","電帳法"],
+    elms: ["MainProvision"],
+  },
   sozeki_hou: {
-    law_id: '332AC0000000026', title: '租税特別措置法', short: '租税特別措置法',
-    aliases: ['租税特別措置法', '措法'],
-    // 第2章 所得税法の特例 / 第3章 法人税法の特例 / 第4章 相続税法の特例
-    elms: ['MainProvision-Chapter_2', 'MainProvision-Chapter_3', 'MainProvision-Chapter_4'],
-    articles: [
-      '9_7',    // 相続財産に係る株式を発行会社に譲渡した場合のみなし配当課税の特例
-      '25_2',   // 青色申告特別控除
-      '28_2',   // 中小企業者の少額減価償却資産の必要経費算入の特例（個人）
-      '35',     // 居住用財産の譲渡所得の特別控除
-      '39',     // 相続財産に係る譲渡所得の課税の特例（取得費加算）
-      '40',     // 国等に対して財産を寄附した場合の譲渡所得等の非課税
-      '61_4',   // 交際費等の損金不算入
-      '67_5',   // 中小企業者等の少額減価償却資産の損金算入の特例（法人）
-      '69_4',   // 小規模宅地等についての相続税の課税価格の計算の特例
-      '70',     // 国等に対して相続財産を贈与した場合等の相続税の非課税
-      '70_2',   // 直系尊属から住宅取得等資金の贈与を受けた場合の非課税
-      '70_2_2', // 直系尊属から教育資金の一括贈与を受けた場合の非課税
-      '70_3',   // 住宅取得等資金の贈与を受けた場合の相続時精算課税の特例
-      // 農地等の納税猶予（2026-09-14 追加）。貸付農地の記事で、条文が渡らないまま
-      // 要件を書いたため、条文が明記している除外（特定市街化区域農地等）と
-      // 対象（採草放牧地・準農地）が落ちた。
-      '70_4',   // 農地等を贈与した場合の贈与税の納税猶予及び免除
-      '70_4_2', // 贈与税の納税猶予を適用している場合の特定貸付けの特例
-      '70_5',   // 農地等の贈与者が死亡した場合の相続税の課税の特例
-      '70_6',   // 農地等についての相続税の納税猶予及び免除等
-    ],
+    law_id: "332AC0000000026", title: "租税特別措置法", short: "租税特別措置法",
+    aliases: ["租税特別措置法","措法"],
+    elms: ["MainProvision-Chapter_2","MainProvision-Chapter_3","MainProvision-Chapter_4"],
   },
   sozeki_rei: {
-    law_id: '332CO0000000043', title: '租税特別措置法施行令', short: '租税特別措置法施行令',
-    aliases: ['租税特別措置法施行令', '措令'],
-    elms: ['MainProvision-Chapter_3'],
-    articles: [
-      '37_5',   // 交際費等の範囲（1人1万円の基準はここ）
-      '39_28',  // 中小企業者等の少額減価償却資産の損金算入の特例
-    ],
+    law_id: "332CO0000000043", title: "租税特別措置法施行令", short: "租税特別措置法施行令",
+    aliases: ["租税特別措置法施行令","措令"],
+    elms: ["MainProvision-Chapter_2","MainProvision-Chapter_3","MainProvision-Chapter_3_2"],
   },
 };
 
@@ -124,6 +158,7 @@ const AGENCY_PAGES = {
   moj_houtei_souzoku:   { agency: '法務省', title: '「法定相続情報証明制度」について', url: 'https://www.moj.go.jp/MINJI/minji05_00284.html' },
   houmukyoku_houtei:    { agency: '法務局', title: '「法定相続情報証明制度」について', url: 'https://houmukyoku.moj.go.jp/homu/page7_000013.html' },
   houmukyoku_houtei_tetsuzuki: { agency: '法務局', title: '法定相続情報証明制度の具体的な手続について', url: 'https://houmukyoku.moj.go.jp/homu/page7_000014.html' },
+
 };
 
 // ── 相続の手続き段階 → 根拠条文・手続き機関ページ ───────────────
@@ -233,9 +268,22 @@ function loadLaw(key) {
   let data = null;
   try { if (fs.existsSync(file)) data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (_e) { data = null; }
   _cache.set(key, data);
+  if (_cache.size > 3) _cache.delete(_cache.keys().next().value);
   return data;
 }
-function resetCacheForTest() { _cache.clear(); }
+const _indexes = new Map();
+function loadLawIndex(key) {
+  if (_indexes.has(key)) return _indexes.get(key);
+  const file = path.join(LAW_DIR, `${key}.index.json`);
+  const value = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+  _indexes.set(key, value);
+  return value;
+}
+function isKnownArticle(key, num) {
+  const index = loadLawIndex(key);
+  return index ? index.entries.some(a => a.no === normalizeArticleNum(num)) : !!getArticle(key, num);
+}
+function resetCacheForTest() { _cache.clear(); _indexes.clear(); }
 
 const KANJI_DIGITS = { '〇': 0, '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
 const KANJI_UNITS = { '十': 10, '百': 100, '千': 1000 };
@@ -284,17 +332,17 @@ function findLawCitations(body) {
     .flatMap(([key, l]) => (l.aliases || [l.short]).map(a => [key, a]))
     .sort((a, b) => b[1].length - a[1].length);
   const alt = shorts.map(([, s]) => s).join('|');
-  const re = new RegExp('(' + alt + ')(?:第)?([0-9０-９〇零一二三四五六七八九十百千]+)条(?:の([0-9０-９〇零一二三四五六七八九十]+))?', 'g');
+  const re = new RegExp('(' + alt + ')(?:第)?([0-9０-９〇零一二三四五六七八九十百千]+)(?:の([0-9０-９〇零一二三四五六七八九十]+))*条(?:の([0-9０-９〇零一二三四五六七八九十]+))*', 'g');
   const found = [];
   const seen = new Set();
   let m;
   while ((m = re.exec(String(body || ''))) !== null) {
     const key = shorts.find(([, s]) => s === m[1])[0];
-    const num = normalizeArticleNum(m[2] + (m[3] ? 'の' + m[3] : ''));
+    const num = normalizeArticleNum(m[0].slice(m[1].length));
     const id = `${key}:${num}`;
     if (seen.has(id)) continue;
     seen.add(id);
-    found.push({ key, law: LAWS[key].title, num, matched: m[0], found: !!getArticle(key, num) });
+    found.push({ key, law: LAWS[key].title, num, matched: m[0], found: isKnownArticle(key, num) });
   }
   return found;
 }
@@ -380,6 +428,7 @@ function buildLawProvisionBlock(articles, options = {}) {
 ═══ 法令の原文（条文はこれだけを根拠にする。ここに無い条番号を書かない）═══
 以下は e-Gov 法令検索から取得した現行条文です。期限・順位・要件は条文どおりに書き、
 条番号を引くときはここにある条だけを引いてください。
+${LAW_SCOPE_RULE}
 
 ${sections}`;
 }
@@ -429,7 +478,7 @@ function primarySourceFor(topic = {}) {
 
 module.exports = {
   LAWS, AGENCY_PAGES, STAGE_REFS, PAIN_REFS, LIFE_STAGE_REFS, LAW_DIR, EGOV_API, LAW_PAGE_BASE,
-  loadLaw, getArticle, findLawCitations, refsForTopic, articlesForCitations,
+  loadLaw, loadLawIndex, getArticle, isKnownArticle, findLawCitations, refsForTopic, articlesForCitations,
   buildLawProvisionBlock, buildAgencyPagesBlock, lawPageUrl, primarySourceFor,
   normalizeArticleNum, kanjiToArabic, articleLabel, resetCacheForTest,
 };

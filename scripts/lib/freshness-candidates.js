@@ -6,6 +6,7 @@ const matter = require('gray-matter');
 const { resolveTaxDomain } = require('./cluster-taxonomy');
 const { locateQuery } = require('./query-placement');
 const { buildRefreshPlan } = require('./freshness-refresh');
+const { readLatestAudits, auditReason } = require('./fact-audit');
 
 const SITE_ORIGIN = 'https://mori-zeirishi.net';
 const SIGNAL_WEIGHTS = Object.freeze({
@@ -14,6 +15,7 @@ const SIGNAL_WEIGHTS = Object.freeze({
   fiscal_year: 2,
   search_decline: 1,
   seo_growable: 2,
+  fact_mismatch: 3,
 });
 const MAX_CANDIDATES = 30;
 const MAX_SOURCE_AGE_DAYS = 62;
@@ -186,6 +188,7 @@ function readInputs(root, now = new Date()) {
     calendar,
     searchSnapshots: readSearchSnapshots(path.join(root, 'data', 'search-console'), now),
     pickupConfig: safeReadJson(path.join(root, 'data', 'pickup-posts.json')) || {},
+    factAudits: readLatestAudits(path.join(root, 'data/fact-check/audit')),
   };
 }
 
@@ -440,8 +443,13 @@ function buildCandidates(inputs, options = {}) {
       fiscalYearReason(post, taxYear),
       searchDeclineReason(post, search.declines),
       ...(seoReasons.get(post.slug) || []),
+      auditReason(post, inputs.factAudits?.[post.slug]),
     ].filter(Boolean).filter(reason => {
       if (!reviewedAt) return true;
+      if (reason.kind === 'fact_mismatch') {
+        const auditedAt = validDate(reason.audit.checked_at);
+        return !auditedAt || reviewedAt <= auditedAt;
+      }
       if (reason.kind === 'tax_reform') {
         const reviewedTaxYear = currentTaxYear(reviewedAt, inputs.calendar);
         return !reviewedTaxYear || Number(reviewedTaxYear) !== Number(inputs.reform && inputs.reform.year);
