@@ -156,7 +156,7 @@ function buildSourceBodyBundle(topic = {}, refs = [], options = {}) {
     return `${label}\n${s.url}${note}\n---\n${s.body}\n---`;
   }).join('\n\n');
 
-  const block = sections ? `
+  const block = loaded.length ? `
 
 ═══ 出典の本文（これが唯一の根拠。記憶で補わないこと）═══
 以下は上記の出典ページの実際の本文です。記事の事実関係は、この本文に
@@ -202,8 +202,9 @@ function findTsutatsuFromSourceKankei(topic = {}) {
 }
 
 /** 出典の「関係法令」欄を橋渡しした通達原文ブロック。 */
-function buildTsutatsuBlockFromSourceKankei(topic = {}) {
+function buildTsutatsuBlockFromSourceKankei(topic = {}, options = {}) {
   const refs = findTsutatsuFromSourceKankei(topic)
+    .filter(c => !(options.exclude || []).some(ref => ref.circular === c.circular && ref.no === c.no))
     .map(c => ({ no: c.no, circular: c.circular }));
   return buildProvisionBlock(refs);
 }

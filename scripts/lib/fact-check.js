@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createHash } = require('crypto');
+const { deflateRawSync, inflateRawSync } = require('zlib');
 const matter = require('gray-matter');
 const contentModel = require('./content-model');
 const partial = require('./partial-revise');
@@ -18,7 +20,78 @@ function config(options = {}) {
   return { provider, model: options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5',
     enabled: options.enabled ?? (process.env.FACT_CHECK_ENABLED !== 'false'),
     failOpen: options.failOpen ?? (process.env.FACT_CHECK_FAIL_OPEN === 'true'),
-    maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, 40) };
+    maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, 40),
+    timeoutMs: positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000) };
+}
+
+function bodyHash(body) { return createHash('sha256').update(String(body).replace(/\r\n/g, '\n')).digest('hex'); }
+
+/** 原文は表に一度だけ保存し、判定と修正からはIDで参照する。 */
+function compactRecord(record) {
+  const evidence = {};
+  const compact = rows => (rows || []).map(({ evidence: refs, ...row }) => {
+    const ids = (refs || []).map(ref => {
+      let id = ref.id;
+      if (evidence[id] && JSON.stringify(evidence[id]) !== JSON.stringify(ref)) id += ':' + bodyHash(JSON.stringify(ref)).slice(0, 16);
+      evidence[id] = { ...ref };
+      return id;
+    });
+    return { ...row, evidence_ids: ids };
+  });
+  const result = { ...record };
+  for (const key of ['claims', 'rechecked', 'corrections', 'remaining']) result[key] = compact(record[key]);
+  // 日本語2000文字×120件は表だけでも600KBを超える。長い原文は可逆圧縮で保持する。
+  for (const ref of Object.values(evidence)) if (Buffer.byteLength(ref.text || '') > 2500) {
+    ref.text_deflate_base64 = deflateRawSync(Buffer.from(ref.text)).toString('base64');
+    delete ref.text;
+  }
+  return { ...result, evidence };
+}
+
+function evidenceRefs(record, row) {
+  return (row.evidence || (row.evidence_ids || []).map(id => record.evidence?.[id]).filter(Boolean)).map(ref =>
+    ref.text_deflate_base64 ? { ...ref, text: inflateRawSync(Buffer.from(ref.text_deflate_base64, 'base64'), { maxOutputLength: 100000 }).toString('utf8') } : ref);
+}
+
+function normalizedClaim(text) {
+  return normalizedQuote(String(text).replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, ''));
+}
+
+function actualSentence(body, sentence) {
+  if (body.includes(sentence)) return sentence;
+  const needle = normalizedClaim(sentence);
+  if (!needle) return '';
+  // 記号を除いた一致から原文へ戻す。保存・修正にはMarkdownの原文を使う。
+  return sentenceRows(body).map(s => s.trim()).find(s => normalizedClaim(s) === needle) || '';
+}
+
+function normalizedNumbers(text) {
+  const normalized = normalizedQuote(text).replace(/[〇零一二三四五六七八九十百千万億]+/g, value => {
+    const digits = '〇一二三四五六七八九';
+    if (!/[十百千万億]/.test(value)) return [...value].map(c => c === '零' ? 0 : digits.indexOf(c)).join('');
+    let total = 0, section = 0, num = 0;
+    for (const c of value) {
+      const unit = { 十: 10, 百: 100, 千: 1000, 万: 10000, 億: 100000000 }[c];
+      if (!unit) num = c === '零' ? 0 : digits.indexOf(c);
+      else if (unit < 10000) { section += (num || 1) * unit; num = 0; }
+      else { total += (section + num || 1) * unit; section = num = 0; }
+    }
+    return String(total + section + num);
+  }).replace(/(令和|平成)元年/g, '$11年');
+  return normalized.match(/\d+(?:[.,]\d+)*/g) || [];
+}
+
+function sufficientQuote(claim, result, ref, status) {
+  const quote = normalizedQuote(result?.quote);
+  if (!quote || !ref) return false;
+  const wholeSentence = sentenceRows(ref.text).some(s => normalizedQuote(s.trim()) === quote && /。$/.test(s.trim()) && quote !== '。');
+  if (quote.length < 15 && !wholeSentence) return false;
+  if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
+    const numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim + claim.sentence : result.correct);
+    const quoted = normalizedNumbers(result.quote);
+    if (!numbers.length || !numbers.every(n => quoted.includes(n))) return false;
+  }
+  return true;
 }
 
 function parseJson(value) {
@@ -45,14 +118,20 @@ async function extractClaims(body, callLLM, options = {}) {
   }));
   if (!Array.isArray(data)) throw new Error('主張一覧が不正です');
   const seen = new Set();
-  const valid = data.filter(c => c && typeof c.sentence === 'string' && c.sentence.trim() && body.includes(c.sentence) &&
-    TYPES.includes(c.type) && typeof c.subject === 'string' && typeof c.claim === 'string' &&
-    !isScenarioAmount(c) && !seen.has(`${c.sentence}:${c.type}:${c.subject}`) && seen.add(`${c.sentence}:${c.type}:${c.subject}`));
-  if (data.length && !valid.length && data.some(c => !c || !isScenarioAmount(c))) throw new Error('本文の主張を確認できません');
+  let discarded = 0;
+  const valid = [];
+  for (const c of data) {
+    if (c && isScenarioAmount(c)) continue;
+    const sentence = c && typeof c.sentence === 'string' ? actualSentence(body, c.sentence) : '';
+    if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') { discarded++; continue; }
+    const key = `${sentence}:${c.type}:${c.subject}`;
+    if (seen.has(key)) continue;
+    seen.add(key); valid.push({ ...c, sentence });
+  }
   const max = positiveLimit(options.maxClaims, 40);
   const chosen = valid.length > max ? [...valid].sort((a, b) => TYPES.indexOf(a.type) - TYPES.indexOf(b.type)).slice(0, max) : valid;
   return { claims: chosen.map((c, i) => ({ id: `c${i + 1}`, sentence: c.sentence, heading: c.heading || '', type: c.type, subject: c.subject, claim: c.claim })),
-    dropped: Math.max(0, valid.length - chosen.length), discarded: data.length - valid.length };
+    dropped: Math.max(0, valid.length - chosen.length), discarded };
 }
 
 function sourceDate(version) {
@@ -84,10 +163,10 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const r = rows.length === 1 ? rows[0] : null;
       let status = STATUSES.includes(r?.status) ? r.status : '資料なし';
       const ref = c.evidence.find(e => (!r?.evidence_id || e.id === r.evidence_id) && normalizedQuote(r?.quote) && normalizedQuote(e.text).includes(normalizedQuote(r.quote)));
-      if (status !== '資料なし' && (!ref || (['食い違い', '期限の書き漏れ'].includes(status) && !r.correct?.trim()))) status = '資料なし';
-      // 同じ制度の期限は一度だけ扱う。2件目も裏付けありには格上げしない。
+      if (status !== '資料なし' && (!sufficientQuote(c, r, ref, status) || (['食い違い', '期限の書き漏れ'].includes(status) && !r.correct?.trim()))) status = '資料なし';
+      // 同じ制度の期限の2件目は修正対象に加えない。
       if (status === '期限の書き漏れ') {
-        if (deadlineSubjects.has(c.subject)) status = '資料なし';
+        if (deadlineSubjects.has(c.subject)) continue;
         deadlineSubjects.add(c.subject);
       }
       const date = ref && sourceDate(ref.law_version);
@@ -100,7 +179,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       });
     }
   }
-  return claims.map(c => results.get(c.id));
+  return claims.map(c => results.get(c.id)).filter(Boolean);
 }
 
 function sentenceRows(body) {
@@ -194,19 +273,32 @@ async function repairBody(body, findings, callLLM, options = {}) {
 async function checkFacts(body, options = {}) {
   const cfg = config(options);
   const record = { version: 1, status: 'not_run', model: cfg.model, provider: cfg.provider,
-    checked_at: (options.now || new Date()).toISOString(), claims: [], rechecked: [], corrections: [], dropped: 0,
+    checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (!cfg.enabled) return { body, record };
+  if (!((cfg.provider === 'anthropic' && /^claude-/.test(cfg.model)) || (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(cfg.model)))) {
+    record.summary = '照合のモデル設定が不正です';
+    return { body, record };
+  }
   const caller = options.callLLM || (async request => contentModel.generateContent({ staticSystem: request.system, dynamicSystem: '', user: request.user },
-    { provider: cfg.provider, model: cfg.model, maxTokens: request.maxTokens, fallback: false }));
+    { provider: cfg.provider, model: cfg.model, maxTokens: request.maxTokens, fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs }));
   const call = async request => {
     record.calls.push({ task: request.task, input_chars: request.system.length + request.user.length });
-    return caller(request);
+    const controller = new AbortController();
+    let timer;
+    try {
+      return await Promise.race([Promise.resolve().then(() => caller({ ...request, signal: controller.signal })),
+        new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('照合の時間切れ')); }, cfg.timeoutMs); })]);
+    } finally { clearTimeout(timer); }
   };
   const search = options.searchEvidence || searchEvidence;
   const analyze = async (text, fullBody) => {
     const extracted = await extractClaims(text, call, cfg);
     record.dropped += extracted.dropped;
+    record.discarded += extracted.discarded;
+    if (!extracted.claims.length && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
+      const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
+    }
     const evidence = Object.fromEntries(extracted.claims.map(c => [c.id, search(c, options)]));
     return judgeClaims(extracted.claims, evidence, fullBody, call, options);
   };
@@ -227,7 +319,7 @@ async function checkFacts(body, options = {}) {
           resolved: !revisedBody.includes(f.sentence) && !record.rechecked.some(c => c.status !== '裏付けあり' && c.subject === f.subject),
         }));
         // 期限追記は元の文を残せるため、再照合の結果と期限追記の有無で判定する。
-        for (const c of record.corrections) if (c.status === '期限の書き漏れ') {
+        for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
           c.resolved = changes.trim().length > 0 && record.rechecked.some(r => r.subject === c.subject && r.status === '裏付けあり');
         }
       } else record.repair_warning = repair.reason;
@@ -236,16 +328,18 @@ async function checkFacts(body, options = {}) {
     record.remaining = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり')];
     const mismatches = record.remaining.filter(c => ['食い違い', '期限の書き漏れ'].includes(c.status)).length;
     // 上限で未照合の主張、または具体を外せなかった資料なしも承認しない。
-    record.status = record.remaining.length || record.dropped ? 'revise' : 'ok';
+    record.status = record.remaining.length || record.dropped || record.discarded ? 'revise' : 'ok';
     const repaired = record.corrections.filter(c => c.resolved).length;
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
-  } catch (_) {
+    record.summary += `・捨てた主張 ${record.discarded}`;
+  } catch (error) {
     // API応答や例外に認証情報が含まれる可能性があるため、保存・表示は固定文のみ。
     record.status = 'not_run';
-    record.summary = '照合を実施できませんでした（設定・API応答・カタログを確認してください）';
+    record.summary = error.emptyClaims ? '主張を抜き出せませんでした' : '照合を実施できませんでした（設定・API応答・カタログを確認してください）';
     revisedBody = body;
     record.corrections = [];
   }
+  record.body_sha256 = bodyHash(revisedBody);
   return { body: revisedBody, record };
 }
 
@@ -254,7 +348,7 @@ function updateMeta(raw, updates, body) {
   if (!m) throw new Error('frontmatter がありません');
   let fm = m[2].replace(/\r/g, '');
   for (const [key, value] of Object.entries(updates)) {
-    const line = `${key}: ${typeof value === 'number' ? value : JSON.stringify(String(value ?? ''))}`;
+    const line = `${key}: ${['number', 'boolean'].includes(typeof value) ? value : JSON.stringify(String(value ?? ''))}`;
     const re = new RegExp(`^${key}:.*$`, 'm');
     fm = re.test(fm) ? fm.replace(re, () => line) : fm + '\n' + line;
   }
@@ -274,7 +368,7 @@ function applyFactResult(raw, result, options = {}) {
     ? `【事実の照合】${result.record.summary}${result.record.repair_warning ? ' / ' + result.record.repair_warning : ''}${stale ? ' / 注意: 根拠の基準日が古い' : ''}【/事実の照合】` : '';
   return updateMeta(raw, {
     fact_check_version: 1, fact_check_status: result.record.status, fact_check_summary: result.record.summary,
-    fact_check_model: result.record.model, fact_check_prev_recommendation: previous,
+    fact_check_model: result.record.model, fact_check_prev_recommendation: previous, fact_check_blocking: block,
     recommendation: previous === 'reject' ? 'reject' : block ? 'revise' : previous,
     review_warning: [warnings, warning].filter(Boolean).join(' / '),
   }, result.body);
@@ -289,11 +383,11 @@ async function checkArticle(raw, options = {}) {
   const { data: meta, content: body } = matter(raw);
   const slug = String(meta.slug || options.slug || '');
   const file = recordPath(slug, options.recordDir);
-  const result = await checkFacts(body, { ...meta, ...options });
+  const result = await checkFacts(body, { tax_terms: meta.tax_terms, source_bundle: meta.source_bundle, tax_domain: meta.tax_domain, ...options });
   result.record.slug = slug;
   if (options.persist !== false) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(result.record, null, 2) + '\n', 'utf8');
+    fs.writeFileSync(file, JSON.stringify(compactRecord(result.record), null, 2) + '\n', 'utf8');
   }
   return { ...result, content: applyFactResult(raw, result, options), recordFile: file };
 }
@@ -319,4 +413,5 @@ function inheritFactMetadata(original, regenerated) {
 }
 
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
-  applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata };
+  applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
+  bodyHash, compactRecord, evidenceRefs, normalizedNumbers };

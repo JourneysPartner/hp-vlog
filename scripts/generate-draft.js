@@ -1051,7 +1051,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
     : [];
 
   const sourceInstruction = !topic.source_url
-    ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください' + SOURCE_UNCONFIRMED_RULE
+    ? '- このテーマは公的URLが未指定です。source_url / source_title は空文字のまま出力してください。本文中で根拠を示す場合は「国税庁によると」等の一般的な表現に留めてください\n' + SOURCE_UNCONFIRMED_RULE
     : sourceUnconfirmed
       ? SOURCE_UNCONFIRMED_RULE
       : `- 出典として「${topic.source_title}」（${topic.source_url}）を参照すること` +
@@ -1133,7 +1133,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   }
 
   // 通達だけで決まる実務論点を記憶で補わせないため、原典の関係法令欄を橋渡しする。
-  const tsutatsuBlock = (materialBundle ? materialBundle.chainBlock : '') + buildTsutatsuBlockFromSourceKankei(topic);
+  const tsutatsuBlock = (materialBundle ? materialBundle.chainBlock : '') + buildTsutatsuBlockFromSourceKankei(topic, { exclude: materialBundle?.chain.attached || [] });
   if (tsutatsuBlock) {
     const refs = findTsutatsuFromSourceKankei(topic);
     const labels = refs.map(c => {
@@ -1952,11 +1952,13 @@ async function buildRegenSourceBlocks(meta = {}, body = '', options = {}) {
     procedure_stage: meta.procedure_stage, life_stage: meta.life_stage,
     ...materials.topicFromMeta(meta),
   };
-  await materials.supplementGenericSource(topicLike, { enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
-    resolveSource: options.resolveSupplement || resolveGenericSupplement });
+  await prepareSources([topicLike], { ...options, ensureInitial: false });
   const materialBundle = materials.buildMaterialsBundle(topicLike);
   Object.assign(meta, { source_bundle: materialBundle.sourceBundle, tax_terms: topicLike.tax_terms,
     materials_warning: topicLike.materials_warning });
+  for (const key of ['source_url', 'source_title', 'source_provenance', 'source_confidence']) {
+    if (topicLike[key] !== undefined) meta[key] = topicLike[key];
+  }
   // 論点別ルール（CONDITIONAL_RULES）。通常生成と full 経路は builder 経由で
   // dynamicSystem に載るが、targeted / section 経路は builder を通らないため
   // 載っていなかった。事実誤認の差し戻しは targeted に振り分けられるので、
@@ -2020,7 +2022,7 @@ ${rules.join(RULE_SEP)}`
   let provisions = '';
   if (body) {
     const cited = checkCitations(body);
-    const known = cited.citations.filter(c => c.found);
+    const known = cited.citations.filter(c => c.found && !materialBundle.chain.attached.some(ref => ref.circular === c.circular && ref.no === c.no));
     provisions = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
     meta.source_bundle = [...new Set([...(meta.source_bundle || '').split(';').filter(Boolean),
       ...known.map(c => `${findProvision(c.no, c.circular).short}${c.no}`)])].slice(0, 20).join(';');
@@ -2566,6 +2568,9 @@ function writeRefreshOutputs({ result, reason, diffFile }) {
 
 function recordMaterialMetadata(content, meta) {
   const updates = { source_bundle: meta.source_bundle || '', tax_terms: meta.tax_terms || '' };
+  for (const key of ['source_url', 'source_title', 'source_provenance', 'source_confidence']) {
+    if (meta[key] !== undefined) updates[key] = meta[key];
+  }
   if (meta.materials_warning) {
     const { meta: current } = parseFrontmatter(content);
     updates.review_warning = [current.review_warning, meta.materials_warning].filter(Boolean).join(' / ');
@@ -2592,13 +2597,22 @@ async function runFactCheckForArticle(content, options = {}) {
     // 記録の保存に失敗した場合も、記事を未照合として止める。例外の詳細は出さない。
     const result = await factCheck.checkFacts(body, { ...options, enabled: false });
     result.record.summary = '照合または照合記録の保存を実施できませんでした';
+    if (options.persist !== false) {
+      try {
+        const file = factCheck.recordPath(meta.slug, options.recordDir);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, JSON.stringify({ ...factCheck.compactRecord(result.record), slug: meta.slug }, null, 2) + '\n', 'utf8');
+      } catch (_) { console.warn('[fact-check] 未実施の照合記録も保存できませんでした'); }
+    }
     return factCheck.applyFactResult(content, result, options);
   }
 }
 
 async function finalizeRegeneration(existing, content, classification, options = {}) {
   content = factCheck.inheritFactMetadata(existing, content);
-  if (classification?.scope === 'frontmatter' || classification?.type === 'title_only') return content;
+  content = clearPlaceholderTitleWarning(content);
+  const normalize = raw => parseFrontmatter(raw).body.replace(/\r\n/g, '\n').replace(/[\t ]+$/gm, '').replace(/\n+$/, '');
+  if (normalize(existing) === normalize(content)) return content;
   return runFactCheckForArticle(content, options);
 }
 
@@ -2612,8 +2626,13 @@ async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
   if (!fs.existsSync(filepath)) throw new Error(`記事ファイルが見つかりません: ${filename}`);
   const content = fs.readFileSync(filepath, 'utf8');
   const reasonsData = JSON.parse(fs.readFileSync(reasonsFile, 'utf8'));
-  const reasons = Array.isArray(reasonsData) ? reasonsData : reasonsData.reasons;
+  let reasons = Array.isArray(reasonsData) ? reasonsData : reasonsData.reasons;
   if (!Array.isArray(reasons)) throw new Error('理由一覧が不正です');
+  const auditLib = require('./lib/fact-audit');
+  const audit = dependencies.factAudit || auditLib.readLatestAudits(dependencies.auditDir)[parseFrontmatter(content).meta.slug];
+  const auditReason = auditLib.auditReason({ body: require('gray-matter')(content).content }, audit);
+  reasons = reasons.filter(reason => reason.kind !== 'fact_mismatch');
+  if (auditReason) reasons.push(auditReason);
   const calendar = readJsonOr(path.join(ROOT, 'data', 'tax-calendar.json'), null);
   const taxYear = freshnessCandidates.currentTaxYear(new Date(), calendar);
   let result;
@@ -2760,20 +2779,12 @@ function logTopicSelection(explanation) {
 
 async function prepareSources(pair, options = {}) {
   // 各トピックに source_url / source_title が必ず付くよう fallback を適用
-  pair.forEach(options.ensureSource || ensureSourceOnTopic);
-
-  const generic = new Set();
-  for (const topic of pair) {
-    if (await materials.supplementGenericSource(topic, {
-      enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
-      resolveSource: options.resolveSupplement || resolveGenericSupplement,
-    })) generic.add(topic);
-  }
+  if (options.ensureInitial !== false) pair.forEach(options.ensureSource || ensureSourceOnTopic);
 
   // 出典が弱かったトピックだけ、税務の論点語を決めてから探し直す。
   // 対応表（curated）や明示指定で決まったものは、人が確認済みなので触らない。
   for (const t of pair) {
-    if (generic.has(t) || (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto')) continue;
+    if (!LLM_SOURCE_WEAK_PROVENANCE.has(t.source_provenance) && t.source_provenance !== 'auto') continue;
     const before = t.source_url;
     await (options.enrichTaxTerms || enrichTaxTerms)(t);
     if (!t.tax_terms) continue;
@@ -2787,9 +2798,12 @@ async function prepareSources(pair, options = {}) {
   // ENABLE_LLM_SOURCE_SELECT=true かつ OPENAI_API_KEY があれば LLM(GPT-5.6 Luna)で
   // カタログから的確な出典を選定する（A→C）。失敗しても生成は止めない。
   for (const t of pair) {
-    if (generic.has(t)) continue;
     await (options.enrichSource || enrichSourceWithLLM)(t);
   }
+  for (const topic of pair) await materials.supplementGenericSource(topic, {
+    enrichTaxTerms: options.enrichTaxTerms || enrichTaxTerms,
+    resolveSource: options.resolveSupplement || resolveGenericSupplement,
+  });
   const gscStats = getGscTopicStats();
   if (gscStats.total > 0 || gscStats.disabled) {
     console.log(`[generate] GSC 由来の候補: ${gscStats.included}件`
@@ -3184,7 +3198,7 @@ async function main() {
     // 部分再生成は判定を作り直さないため、放っておくと直したのに承認できない。
     {
       const before = content;
-      content = clearPlaceholderTitleWarning(content);
+      content = clearPlaceholderTitleWarning(factCheck.inheritFactMetadata(existing, content));
       if (content !== before) {
         console.log('[regenerate] タイトルが確定したため、仮置きの警告と判定を戻しました');
       }
@@ -3193,7 +3207,7 @@ async function main() {
     // 出典が弱い（domain-fallback 等）ままなら LLM 出典選定を試みる
     {
       const { meta: srcMeta } = parseFrontmatter(content);
-      if (LLM_SOURCE_WEAK_PROVENANCE.has(srcMeta.source_provenance) && !materials.isGenericSource(srcMeta)) {
+      if (LLM_SOURCE_WEAK_PROVENANCE.has(srcMeta.source_provenance)) {
         const topicLike = {
           slug: srcMeta.slug, title: srcMeta.title,
           persona: srcMeta.primary_persona || srcMeta.persona,
@@ -3204,7 +3218,7 @@ async function main() {
           source_provenance: srcMeta.source_provenance,
           source_url: srcMeta.source_url, source_title: srcMeta.source_title,
         };
-        await enrichSourceWithLLM(topicLike);
+        await prepareSources([topicLike]);
         if (topicLike.source_provenance !== srcMeta.source_provenance) {
           content = content
             .replace(/^(source_url:\s*).*$/m, `$1"${topicLike.source_url}"`)
@@ -3213,6 +3227,7 @@ async function main() {
             .replace(/^(source_confidence:\s*).*$/m, `$1${topicLike.source_confidence}`);
           console.log(`[regenerate] LLM出典選定で出典を更新: ${srcMeta.source_provenance} → ${topicLike.source_provenance}`);
         }
+        content = recordMaterialMetadata(content, topicLike);
       }
     }
     }
@@ -3333,6 +3348,7 @@ module.exports = {
   runRefreshMode,
   prepareSources,
   buildRegenSourceBlocks,
+  recordMaterialMetadata,
   finalizeRegeneration,
   runFactCheckForArticle,
 };

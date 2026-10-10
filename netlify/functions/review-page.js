@@ -54,10 +54,12 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function renderFactCheck(meta, record) {
+function renderFactCheck(meta, record, body) {
   const labels = { ok: '照合済み', revise: '要修正', not_run: '未実施' };
-  const status = meta.fact_check_status || record?.status || '';
-  const refs = item => (item.evidence || []).map(e => {
+  const stale = record?.stale || (body !== undefined && record && !record.read_error && record.body_sha256 !== require('../../scripts/lib/fact-check').bodyHash(body));
+  const unreadable = record?.read_error;
+  const status = stale || unreadable ? 'not_run' : meta.fact_check_status || record?.status || '';
+  const refs = item => require('../../scripts/lib/fact-check').evidenceRefs(record || {}, item).map(e => {
     const url = /^https:\/\//.test(e.url || '') ? e.url : '';
     return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}<blockquote>${escapeHtml(e.text || '')}</blockquote></div>`;
   }).join('');
@@ -66,21 +68,25 @@ function renderFactCheck(meta, record) {
   const contradictions = remaining.filter(c => c.status === '食い違い' || c.status === '期限の書き漏れ');
   return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
     <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(labels[status] || '照合の記録なし')}${status ? `（${escapeHtml(status)}）` : ''}</p>
-    <p>${escapeHtml(meta.fact_check_summary || record?.summary || '')}</p>
-    ${record ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
+    <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>
+    ${record && !stale && !unreadable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
     <h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${escapeHtml(c.sentence)}<div>${escapeHtml(c.correct || c.status)}</div>${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
-    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}` : '<p>照合の記録なし</p>'}
+    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
 }
 
-async function fetchFactCheck(slug, ref) {
+async function fetchFactCheck(slug, ref, body) {
   if (!/^[a-z0-9][a-z0-9_-]*$/i.test(slug || '')) return null;
   try {
     const { content } = await githubApi.getFile(`data/fact-check/${slug}.json`, ref || undefined);
     const record = JSON.parse(content);
-    return record && record.version === 1 && record.slug === slug ? record : null;
-  } catch (_) { return null; }
+    if (!record || record.version !== 1 || record.slug !== slug) return { read_error: true };
+    if (body !== undefined && record.body_sha256 !== require('../../scripts/lib/fact-check').bodyHash(body)) return { ...record, stale: true };
+    return record;
+  } catch (error) {
+    return /\b404\b|not found/i.test(String(error?.message || '')) ? null : { read_error: true };
+  }
 }
 
 function renderRefreshDiff(refreshContext, marked) {
@@ -166,7 +172,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   const recLabel = { publish: '✅ 公開推奨', revise: '⚠ 要修正（内容確認）', reject: '⛔ 非推奨（作り直し検討）' }[recommendation] || '';
   const warnBanner = (recommendation && recommendation !== 'publish')
     ? `<div style="margin-bottom:12px;padding:10px 14px;border-radius:6px;background:#fff3cd;border:1px solid #ffe69c;color:#664d03">
-        <strong>${recLabel}</strong>${reviewWarning ? `<div style="margin-top:4px;font-size:13px">理由: ${reviewWarning}</div>` : ''}
+        <strong>${recLabel}</strong>${reviewWarning ? `<div style="margin-top:4px;font-size:13px">理由: ${escapeHtml(reviewWarning)}</div>` : ''}
       </div>`
     : '';
 
@@ -493,7 +499,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref)),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body)),
     };
   } catch (err) {
     const msg = String(err && err.message || err);

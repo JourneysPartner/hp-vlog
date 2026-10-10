@@ -356,6 +356,11 @@ async function handler(event, injected = {}) {
     const content = branchFile.content;
     const sha = branchFile.sha;
     const branchMeta = parseFrontmatterMeta(content);
+    if (branchMeta.fact_check_blocking === true || String(branchMeta.fact_check_blocking) === 'true' || branchMeta.fact_check_status === 'revise') {
+      const reason = `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。差し戻して直してください`;
+      return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+    }
+    if (!Object.keys(branchMeta).some(key => key.startsWith('fact_check_'))) console.log(`[review-approve] ${filename}: 照合の記録なし`);
     const isRefresh = refreshRequest || branchMeta.refresh_of === 'published';
     refreshRequest = isRefresh;
     if (isRefresh) {

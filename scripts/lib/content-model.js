@@ -48,17 +48,17 @@ function resolveModel(provider, override) {
 }
 
 // ── OpenAI 呼び出し（既存挙動）──────────────────────────────────
-async function callOpenAI(promptIR, { model, maxTokens }) {
+async function callOpenAI(promptIR, { model, maxTokens, signal, timeoutMs }) {
   const _sdk = require('openai');
   const OpenAI = _sdk.default || _sdk.OpenAI || _sdk;
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, ...(timeoutMs ? { timeout: timeoutMs } : {}) });
   const { toOpenAIMessages } = require('./article-prompt-builder');
   const messages = toOpenAIMessages(promptIR);
   const completion = await client.chat.completions.create({
     model,
     messages,
     ...(maxTokens ? { max_completion_tokens: maxTokens } : {}),
-  });
+  }, signal ? { signal } : undefined);
   const choice = completion && completion.choices && completion.choices[0];
   const text = choice && choice.message && typeof choice.message.content === 'string'
     ? choice.message.content
@@ -72,7 +72,7 @@ async function callOpenAI(promptIR, { model, maxTokens }) {
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
-async function callAnthropic(promptIR, { model, maxTokens }) {
+async function callAnthropic(promptIR, { model, maxTokens, signal }) {
   const { toAnthropicRequest } = require('./article-prompt-builder');
   const reqBody = toAnthropicRequest(promptIR, { model, maxTokens: maxTokens || 4096, useCache: useCache() });
 
@@ -84,6 +84,7 @@ async function callAnthropic(promptIR, { model, maxTokens }) {
       'anthropic-version': ANTHROPIC_VERSION,
     },
     body: JSON.stringify(reqBody),
+    ...(signal ? { signal } : {}),
   });
 
   if (!res.ok) {
@@ -121,7 +122,7 @@ async function generateContent(promptIR, opts = {}) {
   const model = resolveModel(provider, opts.model);
   if (provider === 'anthropic') {
     try {
-      return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens });
+      return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal });
     } catch (e) {
       if (opts.fallback === false) throw new Error('照合モデルの呼び出しに失敗しました');
       console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
@@ -129,7 +130,7 @@ async function generateContent(promptIR, opts = {}) {
       return await callOpenAI(promptIR, { model: oaModel, maxTokens: opts.maxTokens });
     }
   }
-  return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens });
+  return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, timeoutMs: opts.timeoutMs });
 }
 
 /**

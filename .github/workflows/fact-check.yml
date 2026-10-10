@@ -8,7 +8,7 @@ on:
         required: true
         default: main
       article_file:
-        description: 記事ファイル（content/posts/からのパス）
+        description: 記事ファイル（リポジトリ直下からのパス。例 content/posts/2026-10-09-example.md）
         required: true
 
 permissions:

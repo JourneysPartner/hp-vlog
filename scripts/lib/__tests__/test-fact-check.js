@@ -127,8 +127,8 @@ async function main() {
     const saved = model.generateContent, requests = [];
     model.generateContent = async (prompt, opts) => { requests.push(opts); throw new Error('秘密のテスト値'); };
     try {
-      const r = await F.checkFacts(wrong, { provider: 'openai', model: 'test-model', now });
-      assert.equal(r.record.status, 'not_run'); assert.equal(requests[0].model, 'test-model');
+      const r = await F.checkFacts(wrong, { provider: 'openai', model: 'gpt-test-model', now });
+      assert.equal(r.record.status, 'not_run'); assert.equal(requests[0].model, 'gpt-test-model');
       assert.equal(requests[0].provider, 'openai'); assert.equal(requests[0].fallback, false);
       assert.ok(!JSON.stringify(r).includes('秘密のテスト値'));
     } finally { model.generateContent = saved; }
@@ -255,7 +255,7 @@ async function main() {
     const r = await approval._handler({ httpMethod: 'POST', body: JSON.stringify({ filename: '2026-10-09-fact-test.md' }) }, {
       getFile: async () => ({ content: blocked.content, sha: 'test-sha' }), putFile: async () => { writes++; }, sendNotification: async () => {},
     });
-    assert.equal(r.statusCode, 400); assert.equal(writes, 0); assert.ok(r.body.includes('recommendation が revise'));
+    assert.equal(r.statusCode, 400); assert.equal(writes, 0); assert.ok(r.body.includes('事実の照合で承認できない'));
     assert.equal(sourceGuard.evaluateSourceGuard, saved);
   });
   await test('R6', '3状態と記録なしを描画、XSSをエスケープし欄を追加', () => {
@@ -323,7 +323,7 @@ async function main() {
     const existing = (await F.checkArticle(raw(body), { enabled: false, persist: false })).content;
     for (const scope of ['targeted', 'section', 'full']) {
       let calls = 0;
-      const result = await generate.finalizeRegeneration(existing, existing, { scope }, { factCheck: async content => {
+      const result = await generate.finalizeRegeneration(existing, existing + '\n本文に説明を追加。', { scope }, { factCheck: async content => {
         calls++; assert.equal(matter(content).data.fact_check_status, 'not_run');
         return F.checkArticle(content, { persist: false, callLLM: fake().fn, searchEvidence: () => evidence, now });
       } });
