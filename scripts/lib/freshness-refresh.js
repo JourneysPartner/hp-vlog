@@ -93,6 +93,14 @@ function buildRefreshPlan(post, reasons, { taxYear } = {}) {
       instruction: `${sourceReason.detail}。添付の出典本文が最新版です。本文のうち、添付の出典本文と食い違う記述（金額・税率・期限・要件・適用範囲・年分）だけを、出典本文に合わせて直してください。食い違いの無い箇所は一字も変えないでください。食い違いが見つからなければ、本文をそのまま返してください。`,
     });
   }
+  const factReason = (reasons || []).find(reason => reason && reason.kind === 'fact_mismatch');
+  if (factReason) {
+    const instruction = `${factReason.detail}。次の照合結果を差し戻しコメントとして扱い、該当する文だけを根拠の原文に合わせて直してください。主題・構成・他の文は維持してください。\n${require('./fact-audit').auditInstructions(factReason.audit)}`;
+    // 既存の本文更新と同じ対象、または既存の3節上限でも照合の指摘を落とさない。
+    const bodyStep = plan.find(step => step.scope === 'targeted');
+    if (bodyStep) bodyStep.instruction += `\n\n${instruction}`;
+    else plan.push({ kind: factReason.kind, scope: 'targeted', reason: factReason, instruction });
+  }
   return plan;
 }
 
