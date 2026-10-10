@@ -24,7 +24,7 @@ function relationText(url) {
 }
 
 /** 略称・条を省略した関係法令欄を展開する。既存の番号照合は変更しない。 */
-function relationReferences(text) {
+function relationReferences(text, options = {}) {
   const aliases = new Map(Object.entries(laws.LAWS).flatMap(([key, def]) =>
     (def.aliases || [def.short]).map(alias => [alias, key])));
   aliases.set('相法', 'sozokuzei');
@@ -32,9 +32,9 @@ function relationReferences(text) {
   for (const alias of ['措規', '郵政民営化法', '所得税法施行令', '所得税法', '法人税法施行令', '法人税法', '消費税法施行令', '消費税法']) {
     if (!aliases.has(alias)) aliases.set(alias, null);
   }
-  const circulars = { ...tsutatsu.SHORT_TO_CIRCULAR, 措通: 'sozeki' };
+  const circulars = { ...tsutatsu.SHORT_TO_CIRCULAR };
   const names = [...aliases.keys(), ...Object.keys(circulars)].sort((a, b) => b.length - a.length);
-  const re = new RegExp(`(${names.join('|')})\\s*(?:第)?([0-9]+(?:条)?(?:の[0-9]+)*(?:[-－][0-9]+)*(?:[～〜][0-9]+)?)`, 'g');
+  const re = new RegExp(`(${names.join('|')})\\s*(?:第)?([0-9]+(?:条)?(?:の[0-9]+)*(?:\\([0-9]+\\))?(?:[-－][0-9]+(?:の[0-9]+)*)*(?:[～〜][0-9]+)?)`, 'g');
   const normalized = laws.kanjiToArabic(String(text || '').replace(/[①-⑳]/g, c => `第${c.charCodeAt(0) - 0x245f}項`).normalize('NFKC'));
   const out = [];
   const add = (alias, rawNum) => {
@@ -48,8 +48,10 @@ function relationReferences(text) {
     }
     if (circulars[alias]) {
       const no = rawNum.replace(/条/g, '').replace(/－/g, '-');
-      out.push({ kind: 'tsutatsu', circular: circulars[alias], no, label: alias + no });
+      const candidates = circulars[alias] === 'sochi' ? tsutatsu.resolveSochi(no, options) : [circulars[alias]];
+      for (const circular of candidates) out.push({ kind: 'tsutatsu', circular, no, label: alias + no });
     } else {
+      if (alias === '法令' && !rawNum.includes('条')) return;
       const num = laws.normalizeArticleNum(rawNum.split(/[～〜]/)[0]);
       out.push({ kind: 'law', key: aliases.get(alias), num, label: alias + rawNum });
     }
@@ -85,7 +87,7 @@ function buildLawChain(sources, options = {}) {
   const seen = new Set(), attached = [], unresolved = [], dropped = [];
   let total = 0;
   for (const s of sources) {
-    for (const ref of relationReferences(relationText(s.url))) {
+    for (const ref of relationReferences(relationText(s.url), options)) {
       const id = ref.kind === 'law' ? `law:${ref.key || ref.label}:${ref.num}` : `tsutatsu:${ref.circular}:${ref.no}`;
       if (seen.has(id)) continue;
       seen.add(id);

@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const { LAWS, LAW_DIR, EGOV_API } = require('./lib/law-sources');
+const { lawSearchIndex } = require('./lib/catalog-search-index');
 
 const HEADING_TAGS = new Set(['PartTitle', 'ChapterTitle', 'SectionTitle', 'SubsectionTitle', 'DivisionTitle']);
 const CONTAINER_TAGS = new Set(['Part', 'Chapter', 'Section', 'Subsection', 'Division']);
@@ -48,6 +49,7 @@ function collectArticles(root) {
   const walk = (node, headings) => {
     if (!node || typeof node !== 'object') return;
     if (Array.isArray(node)) { for (const n of node) walk(n, headings); return; }
+    if (node.tag === 'SupplProvision') return;
     if (node.tag === 'Article') {
       out.push({
         num: String((node.attr || {}).Num || ''),
@@ -139,6 +141,7 @@ async function main() {
       if (!args.dryRun) {
         fs.mkdirSync(LAW_DIR, { recursive: true });
         fs.writeFileSync(path.join(LAW_DIR, `${key}.json`), JSON.stringify(law, null, 1) + '\n');
+        fs.writeFileSync(path.join(LAW_DIR, `${key}.index.json`), JSON.stringify(lawSearchIndex(law)) + '\n');
       }
       index.push({ key, law_id: law.law_id, title: law.title, law_num: law.law_num, article_count: law.article_count,
         amendment_enforcement_date: law.amendment_enforcement_date, law_revision_id: law.law_revision_id, fetched_at: law.fetched_at });

@@ -25,6 +25,7 @@ function normalizeProvisionNo(raw) {
     .replace(/[〜~]/g, '～')
     .replace(/[\s　]/g, '')
     .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/（/g, '(').replace(/）/g, ')')
     .trim();
 }
 
@@ -71,6 +72,8 @@ function looksLikeProvisionNo(s) {
  */
 function parseTsutatsuPage(html, opts = {}) {
   const src = String(html || '');
+  assertUsablePage(src);
+  if (opts.circular === 'hyoka' || String(opts.circular).startsWith('sochi_')) return parseExtendedPage(src, opts);
   const sectionTitle = stripTags((src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1] || '');
 
   const provisions = [];
@@ -125,6 +128,19 @@ function parseTsutatsuPage(html, opts = {}) {
 /** 目次ページから節ページの URL を集める */
 function parseIndexPage(html, circularKey, baseUrl) {
   const src = String(html || '');
+  assertUsablePage(src);
+  if (circularKey === 'hyoka' || String(circularKey).startsWith('sochi_')) {
+    const base = new URL(baseUrl);
+    const directory = base.pathname.slice(0, base.pathname.lastIndexOf('/') + 1);
+    const urls = new Set();
+    for (const m of src.matchAll(/href\s*=\s*["']([^"']+)["']/gi)) {
+      const url = new URL(m[1].replace(/&amp;/g, '&'), baseUrl);
+      url.hash = ''; url.search = '';
+      const relative = url.pathname.slice(directory.length);
+      if (url.origin === base.origin && url.pathname.startsWith(directory) && /\.htm$/.test(url.pathname) && url.href !== baseUrl && !/zenbun/.test(relative) && !(circularKey === 'sochi_sozoku' && relative === '02.htm')) urls.add(url.href);
+    }
+    return [...urls];
+  }
   // 相続税は 01/01.htm#a-1_1_2_1 のようにアンカー付きで並ぶため、
   // アンカーを落として重複を潰す。
   const re = new RegExp(`href="([^"]*?/kihon/${circularKey}/[^"]*?\\.htm)(?:#[^"]*)?"`, 'g');
@@ -144,6 +160,49 @@ function parseIndexPage(html, circularKey, baseUrl) {
   return urls;
 }
 
+function assertUsablePage(html) {
+  const title = [...html.matchAll(/<(?:title|h1)[^>]*>([\s\S]*?)<\/(?:title|h1)>/gi)].map(m => stripTags(m[1])).join(' ');
+  if (/指定されたページを表示できませんでした|ページが見つかりません/.test(title)) throw new Error('国税庁のエラーページです');
+}
+
+/** 新しい通達は見出し1件に複数の番号が続くため、番号行を区切りにする。 */
+function parseExtendedPage(src, opts) {
+  const sectionTitle = stripTags((src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || '');
+  const provisions = [], skipped = [];
+  let title = '', current = null;
+  const finish = () => {
+    if (!current) return;
+    const body = stripTags(current.html.replace(/&(?:emsp|ensp);/g, ' ').replace(/&#(x[0-9a-f]+|\d+);/gi, (_, value) => String.fromCodePoint(value[0].toLowerCase() === 'x' ? parseInt(value.slice(1), 16) : Number(value))));
+    if (body) provisions.push({ no: current.no, title: current.title, body, url: opts.url || '', circular: opts.circular });
+    current = null;
+  };
+  // 本文の末尾のナビゲーションを取り込まない。
+  const cutoff = src.indexOf('<!-- InstanceEndEditable -->', src.indexOf('<h1'));
+  const content = cutoff >= 0 ? src.slice(0, cutoff) : src;
+  const matches = [...content.matchAll(/<h2\b[^>]*>[\s\S]*?<\/h2>|<p\b[^>]*>[\s\S]*?<\/p>/gi)];
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i], token = m[0];
+    if (/^<h2/i.test(token)) { finish(); title = stripTags(token); continue; }
+    const p = token.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '');
+    let head = p, strong = '';
+    for (;;) {
+      const s = head.match(/^\s*<strong[^>]*>([\s\S]*?)<\/strong>/i);
+      if (!s) break;
+      strong += stripTags(s[1]); head = head.slice(s[0].length);
+    }
+    const no = normalizeProvisionNo(strong);
+    const atom = '\\d{1,3}(?:の\\d{1,2})*(?:・\\d{1,3}(?:の\\d{1,2})*)*共?(?:\\(\\d+\\))?';
+    const valid = new RegExp(`^${atom}(?:-${atom}){${opts.circular === 'hyoka' ? '0,3' : '1,3'}}$`).test(no);
+    if (valid) {
+      finish(); current = { no, title, html: head };
+    } else if (current) current.html += token;
+    const end = m.index + token.length;
+    if (current) current.html += content.slice(end, matches[i + 1]?.index ?? end);
+  }
+  finish();
+  return { sectionTitle, provisions, skipped };
+}
+
 module.exports = {
   normalizeProvisionNo,
   looksLikeProvisionNo,
@@ -151,4 +210,5 @@ module.exports = {
   parseTsutatsuPage,
   parseIndexPage,
   PROVISION_NO_RE,
+  assertUsablePage,
 };

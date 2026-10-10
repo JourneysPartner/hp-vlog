@@ -33,20 +33,30 @@ function evidenceCatalog() {
   for (const [key, def] of Object.entries(laws.LAWS)) {
     const file = path.join(laws.LAW_DIR, `${key}.json`);
     if (!fs.existsSync(file)) continue;
+    const searchIndex = laws.loadLawIndex(key);
+    if (searchIndex) {
+      entries.push(...searchIndex.entries.map(e => ({ ...e, url: laws.lawPageUrl(key, e.no), lazy: true })));
+      continue;
+    }
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
     for (const a of data.articles || []) entries.push({ id: `law:${key}:${a.num}`, kind: 'law', key, no: a.num,
       title: `${def.title} ${a.caption || ''}`, url: laws.lawPageUrl(key, a.num), text: a.text, law_version: data.amendment_enforcement_date || '' });
   }
   const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'nta-tsutatsu', 'index.json'), 'utf8'));
   for (const item of index) {
+    const searchFile = path.join(ROOT, 'data', 'nta-tsutatsu', item.search_index || `${item.circular}.index.json`);
+    if (fs.existsSync(searchFile)) {
+      entries.push(...JSON.parse(fs.readFileSync(searchFile, 'utf8')).entries.map(e => ({ ...e, lazy: true })));
+      continue;
+    }
     const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'nta-tsutatsu', item.file), 'utf8'));
     for (const [no, p] of Object.entries(data.provisions || {})) entries.push({ id: `tsutatsu:${item.circular}:${no}`, kind: 'tsutatsu',
       circular: item.circular, no, title: `${item.label} ${p.title || ''}`, url: p.url, text: p.body, law_version: '' });
   }
   const df = new Map();
   for (const e of entries) {
-    e.titleTokens = tokenizeForMatcher(e.title);
-    e.tokens = tokenizeForMatcher(`${e.title} ${e.text}`);
+    e.titleTokens = new Set(e.titleTokens || tokenizeForMatcher(e.title));
+    e.tokens = new Set(e.tokens || tokenizeForMatcher(`${e.title} ${e.text}`));
     for (const token of e.tokens) df.set(token, (df.get(token) || 0) + 1);
   }
   catalog = { entries, df };
@@ -95,11 +105,11 @@ function searchEvidence(claim, options = {}) {
   const tokens = [...tokenizeForMatcher(query)].filter(t => !/^\d+$/.test(t));
   const direct = new Set();
   for (const c of laws.findLawCitations(query)) if (c.found) direct.add(`law:${c.key}:${c.num}`);
-  for (const c of relationReferences(query)) {
+  for (const c of relationReferences(query, options)) {
     if (c.kind === 'law' && c.key) direct.add(`law:${c.key}:${c.num}`);
     if (c.kind === 'tsutatsu') direct.add(`tsutatsu:${c.circular}:${c.no}`);
   }
-  for (const c of tsutatsu.checkCitations(query).citations) if (c.found) direct.add(`tsutatsu:${c.circular}:${c.no}`);
+  for (const c of tsutatsu.checkCitations(query, options).citations) if (c.found) for (const circular of c.candidates || [c.circular]) direct.add(`tsutatsu:${circular}:${c.no}`);
   const numbers = [...query.matchAll(/(?:No\.?|タックスアンサー|TA)\s*(\d{4})/gi)].map(m => m[1]);
   const bundle = new Set(String(options.source_bundle || '').split(';'));
   for (const ref of relationReferences([...bundle].join('、'))) {
@@ -117,14 +127,16 @@ function searchEvidence(claim, options = {}) {
     }
     // 詳細事例だけで上位が埋まらないよう、制度名を端的に説明する題名を優先する。
     if (claim.subject && e.title.includes(claim.subject)) score += 80 * claim.subject.length / e.title.length;
-    if (direct.has(e.id) || (e.kind === 'taxanswer' && numbers.includes(e.no))) score += 10000;
+    if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) score += 10000;
     if (bundle.has(e.id) || bundle.has(e.url)) score += 5;
     if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) score += 10;
     return { e, score };
   }).filter(r => r.score > 5).sort((a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id));
   return ranked.slice(0, 3).map(({ e, score }) => {
-    const { tokens: _tokens, titleTokens: _titleTokens, ...data } = e;
-    return { ...data, text: contiguousExcerpt(e.text, query, 2000, focus), score: Math.round(score * 100) / 100 };
+    const { tokens: _tokens, titleTokens: _titleTokens, lazy: _lazy, ...data } = e;
+    const text = e.lazy ? e.kind === 'law' ? laws.getArticle(e.key, e.no)?.text : tsutatsu.findProvisions(e.no, e.circular)[e.variant || 0]?.body : e.text;
+    if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
+    return { ...data, text: contiguousExcerpt(text, query, 2000, focus), score: Math.round(score * 100) / 100 };
   });
 }
 

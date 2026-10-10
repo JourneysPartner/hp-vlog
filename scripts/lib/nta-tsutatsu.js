@@ -32,7 +32,48 @@ const SHORT_TO_CIRCULAR = {
   法人税基本通達: 'hojin',
   相基通: 'sozoku',
   相続税法基本通達: 'sozoku',
+  評基通: 'hyoka',
+  財産評価基本通達: 'hyoka',
+  措通: 'sochi',
 };
+
+const SOCHI_KEYS = ['sochi_sozoku', 'sochi_shotoku', 'sochi_joto', 'sochi_hojin'];
+const _bodies = new Map();
+function readCircular(entry) {
+  if (_bodies.has(entry.circular)) return _bodies.get(entry.circular);
+  const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, entry.file), 'utf8'));
+  _bodies.set(entry.circular, data.provisions || {});
+  if (_bodies.size > 3) _bodies.delete(_bodies.keys().next().value);
+  return data.provisions || {};
+}
+
+function hasNo(entry, no) {
+  if (!entry) return false;
+  return entry.searchEntries ? entry.searchEntries.some(p => p.no === no) : !!entry.provisions?.[no];
+}
+
+function resolveSochi(no, options = {}) {
+  const normalized = normalizeProvisionNo(no), catalog = options.catalog || loadCatalog();
+  const present = SOCHI_KEYS.filter(key => hasNo(catalog[key], normalized));
+  if (present.length === 1) return present;
+  let candidates = SOCHI_KEYS;
+  const article = normalized.split('-')[0].split('・')[0].replace(/共|\(\d+\)/g, '').split('の').map(Number);
+  const compare = (a, b) => {
+    for (let i = 0; i < Math.max(a.length, b.length); i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) - (b[i] || 0);
+    return 0;
+  };
+  // fixtureで確認された措置法の章の境界（枝条まで比較する）。
+  if (compare(article, [3]) >= 0 && compare(article, [42, 3]) <= 0) candidates = ['sochi_shotoku', 'sochi_joto'];
+  else if (compare(article, [42, 3, 2]) >= 0 && compare(article, [68, 6]) <= 0) candidates = ['sochi_hojin'];
+  else if (compare(article, [69]) >= 0 && compare(article, [70, 13]) <= 0) candidates = ['sochi_sozoku'];
+  if (candidates.length === 1) return candidates;
+  const domain = String(options.tax_domain || '');
+  const byDomain = /法人|corporate/.test(domain) ? ['sochi_hojin'] : /相続|贈与|inheritance|gift/.test(domain) ? ['sochi_sozoku'] :
+    /譲渡|山林|capital_gains|joto/.test(domain) ? ['sochi_joto'] : /申告所得|business_income/.test(domain) ? ['sochi_shotoku'] :
+      /所得|income/.test(domain) ? ['sochi_shotoku', 'sochi_joto'] : [];
+  const narrowed = candidates.filter(key => byDomain.includes(key));
+  return narrowed.length ? narrowed : candidates;
+}
 
 let _catalog = null;
 
@@ -43,8 +84,9 @@ function loadCatalog() {
     const index = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'index.json'), 'utf8'));
     for (const entry of index) {
       try {
-        const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, entry.file), 'utf8'));
-        _catalog[entry.circular] = { ...entry, provisions: data.provisions || {} };
+        const searchFile = path.join(DATA_DIR, entry.search_index || `${entry.circular}.index.json`);
+        const searchEntries = fs.existsSync(searchFile) ? JSON.parse(fs.readFileSync(searchFile, 'utf8')).entries : null;
+        _catalog[entry.circular] = { ...entry, searchEntries, get provisions() { return readCircular(entry); } };
       } catch (_error) { /* 1つ読めなくても他は使う */ }
     }
   } catch (_error) {
@@ -55,31 +97,42 @@ function loadCatalog() {
 
 /** 条文を引く。circular 省略時は全通達から探す。 */
 function findProvision(no, circular) {
+  const found = findProvisions(no, circular);
+  if (found.length <= 1) return found[0] || null;
+  return { ...found[0], body: found.map(p => p.body).join('\n\n'), variants: found };
+}
+
+function findProvisions(no, circular, options = {}) {
   const key = normalizeProvisionNo(no);
-  if (!key) return null;
+  if (!key) return [];
   // 「36-40～43」のような条文範囲は、引用されている左端の通達を従来どおり引く。
   // 「181～223共-6」の左端は単独の 181 なので、181-6 等へは寄せない。
   const rangeStart = key.match(/^(.+?)[～〜~]/)?.[1];
   const cat = loadCatalog();
-  const targets = circular ? [circular] : Object.keys(cat);
+  const targets = circular === 'sochi' ? resolveSochi(key, options) : circular ? [circular] : Object.keys(cat);
 
   // 完全一致を全通達で探す。circular 省略時も、別の通達にある左端の一致を
   // 完全一致より先に返さない。
+  const found = [];
   for (const c of targets) {
-    const provisions = cat[c] && cat[c].provisions;
-    const p = provisions && provisions[key];
-    if (p) return { ...p, circular: c, label: cat[c].label, short: cat[c].short };
+    if (!hasNo(cat[c], key)) continue;
+    const p = cat[c].provisions[key];
+    const rows = (Array.isArray(p) ? p : [p]).map((p, i) => ({ ...p, ...(Array.isArray(cat[c].provisions[key]) ? { variant: i } : {}), circular: c, label: cat[c].label, short: cat[c].short }));
+    if (circular !== 'sochi') return rows;
+    found.push(...rows);
   }
+  if (found.length) return found;
 
   // 完全一致がどの通達にも無い場合だけ、条文範囲の左端を探す。
   if (rangeStart) {
     for (const c of targets) {
+      if (!hasNo(cat[c], rangeStart)) continue;
       const provisions = cat[c] && cat[c].provisions;
       const p = provisions && provisions[rangeStart];
-      if (p) return { ...p, circular: c, label: cat[c].label, short: cat[c].short };
+      if (p) return (Array.isArray(p) ? p : [p]).map(p => ({ ...p, circular: c, label: cat[c].label, short: cat[c].short }));
     }
   }
-  return null;
+  return [];
 }
 
 /** その番号がカタログに存在するか */
@@ -89,11 +142,11 @@ function isKnownProvision(no, circular) {
 
 // 本文から通達の引用を拾う。「所基通37-14」「消費税法基本通達6-4-5」
 // 「相基通1の3・1の4共-1」など。相続税は「・」「共」を含む。
-const PROVISION_ELEMENT = '[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})?)*共?';
+const PROVISION_ELEMENT = '[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*(?:・[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*)*共?(?:[（(][0-9０-９]+[）)])?';
 const PROVISION_RANGE_ELEMENT = `${PROVISION_ELEMENT}(?:[～〜~]${PROVISION_ELEMENT})?`;
 const PROVISION_NO_PATTERN = `${PROVISION_RANGE_ELEMENT}(?:[-－‐‑–—―−]${PROVISION_RANGE_ELEMENT}){1,3}`;
 const CITATION_RE = new RegExp(
-  `(${Object.keys(SHORT_TO_CIRCULAR).join('|')})\\s*(${PROVISION_NO_PATTERN})`,
+  `(${Object.keys(SHORT_TO_CIRCULAR).sort((a,b) => b.length-a.length).join('|')})\\s*(${PROVISION_NO_PATTERN}|[0-9０-９]{1,3}(?:の[0-9０-９]{1,2})*)`,
   'g',
 );
 const CONTINUATION_RE = new RegExp(`^\\s*、\\s*(${PROVISION_NO_PATTERN})`);
@@ -102,14 +155,15 @@ const CONTINUATION_RE = new RegExp(`^\\s*、\\s*(${PROVISION_NO_PATTERN})`);
  * 本文中の通達引用を洗い出し、カタログに無いものを返す。
  * @returns {{citations: Array, unknown: Array}}
  */
-function checkCitations(body) {
+function checkCitations(body, options = {}) {
   const s = String(body || '');
   const citations = [];
   const unknown = [];
   const addCitation = (matched, circular, rawNo) => {
     const no = normalizeProvisionNo(rawNo);
-    const found = findProvision(no, circular);
-    const item = { matched, circular, no, found: !!found };
+    const candidates = circular === 'sochi' ? resolveSochi(no, options) : [circular];
+    const found = candidates.some(c => hasNo(loadCatalog()[c], no)) || !!findProvision(no, circular);
+    const item = { matched, circular: candidates.length === 1 ? candidates[0] : circular, no, found: !!found, ...(circular === 'sochi' ? { candidates } : {}) };
     citations.push(item);
     if (!found) unknown.push(item);
   };
@@ -117,6 +171,7 @@ function checkCitations(body) {
   let m;
   while ((m = CITATION_RE.exec(s)) !== null) {
     const circular = SHORT_TO_CIRCULAR[m[1]];
+    if (!/[-－‐‑–—―−]/.test(m[2]) && circular !== 'hyoka') continue;
     addCitation(m[0], circular, m[2]);
 
     // 読点を越えて無条件に探すと後続の法令条文まで通達扱いになるため、直後の番号だけを引き継ぐ。
@@ -139,7 +194,7 @@ function checkCitations(body) {
 function buildProvisionBlock(refs) {
   const list = (refs || []).map(r => (typeof r === 'string' ? { no: r } : r));
   const found = list
-    .map(r => findProvision(r.no, r.circular))
+    .flatMap(r => findProvisions(r.no, r.circular))
     .filter(Boolean);
   if (found.length === 0) return '';
 
@@ -166,7 +221,7 @@ ${body}
 function catalogStats() {
   const cat = loadCatalog();
   return Object.entries(cat).map(([k, v]) => ({
-    circular: k, label: v.label, provisions: Object.keys(v.provisions).length,
+    circular: k, label: v.label, provisions: v.provision_count ?? Object.keys(v.provisions).length,
   }));
 }
 
@@ -179,4 +234,5 @@ module.exports = {
   checkCitations,
   buildProvisionBlock,
   catalogStats,
+  resolveSochi, findProvisions, SOCHI_KEYS,
 };
