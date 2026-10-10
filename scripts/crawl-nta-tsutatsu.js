@@ -152,7 +152,8 @@ async function crawlCircular(key, def, limit) {
   }
 
   console.log(`  取得: ${provisions.length} 条 / 重複 ${duplicates.length} / エラー ${errors.length}`);
-  if (errors.length) errors.slice(0, 5).forEach(e => console.warn(`    ⚠ ${e}`));
+  errors.filter((e, i) => i < 5 || e.endsWith(': 本文ページの項目が0件です'))
+    .forEach(e => console.warn(`    ⚠ ${e}`));
 
   return { key, def, urls, provisions, duplicates, errors };
 }

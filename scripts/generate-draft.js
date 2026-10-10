@@ -3218,7 +3218,7 @@ async function main() {
             .replace(/^(source_confidence:\s*).*$/m, `$1${topicLike.source_confidence}`);
           console.log(`[regenerate] LLM出典選定で出典を更新: ${srcMeta.source_provenance} → ${topicLike.source_provenance}`);
         }
-        content = recordMaterialMetadata(content, topicLike);
+        content = recordMaterialMetadata(content, { tax_terms: srcMeta.tax_terms, source_bundle: srcMeta.source_bundle, ...topicLike });
       }
     }
     }

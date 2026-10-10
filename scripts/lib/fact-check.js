@@ -68,17 +68,69 @@ function actualSentence(body, sentence) {
   return sentenceRows(body).map(s => s.trim()).find(s => normalizedClaim(s) === needle) || '';
 }
 
+function normalizedRatio(numerator, denominator, { negative = false, percentage = false } = {}) {
+  const parse = value => {
+    const parts = value.match(/[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|[〇零一二三四五六七八九]+|[十百千万億]/g) || [];
+    const precision = Math.max(0, ...parts.map(c => (c.split('.')[1] || '').length));
+    const scale = 10n ** BigInt(precision);
+    const digits = '〇一二三四五六七八九';
+    let total = 0n, section = 0n, num = 0n, hasNumber = false, hasSection = false;
+    for (const c of parts) {
+      const unit = { 十: 10n, 百: 100n, 千: 1000n, 万: 10000n, 億: 100000000n }[c];
+      if (!unit) {
+        const [integer, decimal = ''] = /[0-9]/.test(c) ? c.replace(/,/g, '').split('.')
+          : [[...c].map(d => d === '零' ? 0 : digits.indexOf(d)).join('')];
+        num = BigInt(integer + decimal.padEnd(precision, '0'));
+        hasNumber = true;
+      } else if (unit < 10000n) {
+        section += (hasNumber ? num : scale) * unit;
+        num = 0n; hasNumber = false; hasSection = true;
+      } else {
+        total += (hasNumber || hasSection ? section + num : scale) * unit;
+        section = num = 0n; hasNumber = hasSection = false;
+      }
+    }
+    return { number: total + section + num, scale };
+  };
+  // 浮動小数点へ丸めず、百分率と分数を約分した同じ割合へ揃える。
+  const n = parse(numerator), d = parse(denominator);
+  if (!d.number) return null;
+  const top = n.number * d.scale * (negative ? -1n : 1n);
+  const bottom = d.number * n.scale * (percentage ? 100n : 1n);
+  let a = top < 0n ? -top : top, b = bottom;
+  while (b) [a, b] = [b, a % b];
+  return `割合:${top / a}/${bottom / a}`;
+}
+
 function normalizedNumbers(text) {
   const normalized = normalizedQuote(text).replace(/(令和|平成|昭和)元年/g, '$11年');
   const numbers = [];
   const tokens = /[0-9〇零一二三四五六七八九十百千万億]+(?:,[0-9]{3})*(?:\.[0-9]+)?(?:[万億][0-9〇零一二三四五六七八九十百千万億]*(?:,[0-9]{3})*(?:\.[0-9]+)?)*/g;
-  for (const match of normalized.matchAll(tokens)) {
+  const matches = [...normalized.matchAll(tokens)];
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i];
     const value = match[0];
     const prefix = normalized.slice(0, match.index);
     const suffix = normalized.slice(match.index + value.length);
     // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
-    if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第)$/.test(prefix) &&
+    if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
       !/^(?:年|月|日|円|万|億|%|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
+    if (suffix.startsWith('分の') || suffix.startsWith('%')) {
+      const next = matches[i + 1];
+      const fraction = suffix.startsWith('分の');
+      const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
+      // 不完全な分数や数の断片は数字なしへ戻さず、照合不能として残す。
+      if (/[.,]$/.test(prefix) || (fraction && (!next || next.index !== match.index + value.length + 2 ||
+        (next[0] === '一' && /^(?:定|般)/.test(nextSuffix))))) return [null];
+      const ratio = normalizedRatio(fraction ? next[0] : value, fraction ? value : '100', {
+        negative: /[-−]$/.test(prefix),
+        percentage: fraction && nextSuffix.startsWith('%'),
+      });
+      if (ratio === null) return [null];
+      numbers.push(ratio);
+      if (fraction) i++;
+      continue;
+    }
     const digits = '〇一二三四五六七八九';
     let total = 0, section = 0, num = 0, hasNumber = false, hasSection = false;
     // アラビア数字・漢数字と万・億をまとめ、同じ金額を一つの数にする。
@@ -108,8 +160,15 @@ function sufficientQuote(claim, result, ref, status) {
   const wholeSentence = sentenceRows(ref.text).some(s => normalizedQuote(s.trim()) === quote && /。$/.test(s.trim()) && quote !== '。');
   if (quote.length < 15 && !wholeSentence) return false;
   if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
-    const numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : result.correct);
+    let numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : result.correct);
+    if (status === '裏付けあり') {
+      const sentenceNumbers = normalizedNumbers(claim.sentence);
+      // 要約だけで数字が書き換わった主張を通さず、要約に数字が無ければ原文を照合する。
+      if (!numbers.every(n => sentenceNumbers.includes(n))) return false;
+      if (!numbers.length) numbers = sentenceNumbers;
+    }
     const quoted = normalizedNumbers(result.quote);
+    if (numbers.includes(null) || quoted.includes(null)) return false;
     if (!numbers.length || !numbers.every(n => quoted.includes(n))) return false;
   }
   return true;
