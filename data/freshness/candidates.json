@@ -1,93 +1,18 @@
 {
-  "generatedAt": "2026-10-04T22:24:37.402Z",
+  "generatedAt": "2026-10-11T22:53:25.254Z",
   "candidates": [
-    {
-      "slug": "newseg-content_seller-content-ebook-royalty-ebook-practice",
-      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/",
-      "title": "電子書籍・Kindle印税の確定申告はどうする？収入の計上時期と仕訳を具体例で解説",
-      "score": 3.84,
-      "impressions28d": 92,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和4年分」を含む",
-          "where": "## 所得区分の判断：事業所得か雑所得か"
-        }
-      ],
-      "file": "2026-09-07-newseg-content_seller-content-ebook-royalty-ebook-practice.md",
-      "refreshable": true
-    },
-    {
-      "slug": "newseg-construction_solo-construction-bookkeeping-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
-      "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
-      "score": 3.8,
-      "impressions28d": 86,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和5年分」を含む",
-          "where": "## よくある間違い：こうして記帳・保存が後手に回る"
-        }
-      ],
-      "file": "2026-08-19-newseg-construction_solo-construction-bookkeeping-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "affiliate-pr-growth-invoice-judgement-guide",
-      "url": "https://mori-zeirishi.net/blog/affiliate-pr-growth-invoice-judgement-guide/",
-      "title": "ブログ・アフィリエイト収入が伸びてきたらインボイス登録は必要？判断軸を整理",
-      "score": 3.66,
-      "impressions28d": 66,
-      "reasons": [
-        {
-          "kind": "seo_growable",
-          "detail": "「インボイス制度 アフィリエイト」（表示13・11.7位）が題名に無い（所在: 本文）",
-          "where": "題名"
-        }
-      ],
-      "file": "2026-06-10-affiliate-pr-growth-invoice-judgement-guide.md",
-      "refreshable": false
-    },
-    {
-      "slug": "newseg-content_seller-content-subscription-revenue-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-subscription-revenue-guide/",
-      "title": "オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期",
-      "score": 3.64,
-      "impressions28d": 65,
-      "reasons": [
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和4年分」を含む",
-          "where": "## 記帳と帳簿保存の義務"
-        }
-      ],
-      "file": "2026-07-23-newseg-content_seller-content-subscription-revenue-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "affiliate-pr-incorporation-incorporation-threshold-guide",
-      "url": "https://mori-zeirishi.net/blog/affiliate-pr-incorporation-incorporation-threshold-guide/",
-      "title": "アフィリエイト・ブログ収入で法人成りすべきタイミングはいつ？判断軸と目安を整理",
-      "score": 3.54,
-      "impressions28d": 59,
-      "reasons": [
-        {
-          "kind": "seo_growable",
-          "detail": "「アフィリエイト 法人化」（表示20・14.9位）が題名に無い（所在: 本文）",
-          "where": "題名"
-        }
-      ],
-      "file": "2026-06-29-affiliate-pr-incorporation-incorporation-threshold-guide.md",
-      "refreshable": false
-    },
     {
       "slug": "deepdive-influencer_creator-creator-royalty-income-guide",
       "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-creator-royalty-income-guide/",
       "title": "印税・版権収入の確定申告はどうする？所得区分と源泉徴収の扱いを解説",
-      "score": 3.44,
-      "impressions28d": 50,
+      "score": 9.3,
+      "impressions28d": 72,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2795「原稿料や講演料等を支払ったとき」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和4年分」を含む",
@@ -101,9 +26,14 @@
       "slug": "general-social-insurance-misconception-reseller-marketplace-seller-growth-practice",
       "url": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-reseller-marketplace-seller-growth-practice/",
       "title": "社会保険の扶養と税の扶養はどう違う？フリマ・転売セラーの実務処理を解説",
-      "score": 3.06,
-      "impressions28d": 31,
+      "score": 8.5,
+      "impressions28d": 34,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1190「配偶者の所得がいくらまでなら配偶者控除が受けられるか」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和7年分」を含む",
@@ -117,41 +47,327 @@
       "slug": "newseg-content_seller-content-note-revenue-guide",
       "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
       "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
-      "score": 2.3,
-      "impressions28d": 5,
+      "score": 6.72,
+      "impressions28d": 4,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2200「収入金額とその計算」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和7年分」を含む",
           "where": "## まず結論"
+        },
+        {
+          "kind": "search_decline",
+          "detail": "表示回数が 51 → 44 → 5 → 4 と低下",
+          "where": "検索結果"
         }
       ],
       "file": "2026-07-07-newseg-content_seller-content-note-revenue-guide.md",
       "refreshable": true
     },
     {
-      "slug": "electronic-bookkeeping-law-minimum-actions",
-      "url": "https://mori-zeirishi.net/blog/electronic-bookkeeping-law-minimum-actions/",
-      "title": "電子帳簿保存法はいつから？個人事業主・小規模法人がやるべき最低限の対応",
-      "score": 2,
-      "impressions28d": 0,
+      "slug": "newseg-construction_solo-construction-bookkeeping-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
+      "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
+      "score": 6.5,
+      "impressions28d": 8,
       "reasons": [
         {
+          "kind": "source_updated",
+          "detail": "No.2080「白色申告者の記帳・帳簿等保存制度」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
+        {
           "kind": "fiscal_year",
-          "detail": "「2024年1月1日以後」を含む",
-          "where": "## 電子帳簿保存法はいつから必要か"
+          "detail": "「令和5年分」を含む",
+          "where": "## よくある間違い：こうして記帳・保存が後手に回る"
         }
       ],
-      "file": "2026-05-06-electronic-bookkeeping-law-minimum-actions.md",
+      "file": "2026-08-19-newseg-construction_solo-construction-bookkeeping-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-wholesale-wholesale-food-loss-food-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-food-loss-food-guide/",
+      "title": "食品卸の廃棄・期限切れロスはどう処理する？経費計上と在庫調整の基本",
+      "score": 6,
+      "impressions28d": 150,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-23-newseg-wholesale-wholesale-food-loss-food-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-export-consumption-tax-refund-complete-guide",
+      "url": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/",
+      "title": "eBay輸出の消費税還付｜仕組み・要件・必要書類・申告手順をまとめて解説",
+      "score": 6,
+      "impressions28d": 78,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6615「確定申告書等に添付することとなる書類」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-09-27-ebay-export-consumption-tax-refund-complete-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-taxable-vs-exempt-business",
+      "url": "https://mori-zeirishi.net/blog/ebay-taxable-vs-exempt-business/",
+      "title": "eBay輸出で課税事業者になるべき？免税事業者との違いとメリット・デメリット",
+      "score": 6,
+      "impressions28d": 12,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-05-03-ebay-taxable-vs-exempt-business.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-retail_store-retail-gift-certificate-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/",
+      "title": "商品券・ギフトカードの消費税はどうなる？発行・譲渡・使用時の扱いと売上計上の仕訳",
+      "score": 5.94,
+      "impressions28d": 149,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6229「商品券やプリペイドカードなど」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-21-newseg-retail_store-retail-gift-certificate-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide",
+      "url": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/",
+      "title": "美容室の簡易課税は第何種？みなし仕入率50%と原則課税の有利判定",
+      "score": 5.88,
+      "impressions28d": 141,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6505「簡易課税制度」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-09-10-deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-retail_store-retail-return-handling-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-return-handling-guide/",
+      "title": "小売店の返品処理、消費税はどう調整する？売上返品・仕入返品の基本",
+      "score": 5.85,
+      "impressions28d": 110,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6359「値引き、返品、割戻しなどを行った場合の税額の調整(売上げに係る対価の返還等)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-10-newseg-retail_store-retail-return-handling-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-consumables-painting-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/",
+      "title": "塗料・ペンキの勘定科目は？塗装工の消耗品費・材料費の分け方と年末在庫の処理",
+      "score": 5.73,
+      "impressions28d": 98,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-26-newseg-construction_solo-construction-consumables-painting-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-youtuber-youtube-gaming-capture-live-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-live-guide/",
+      "title": "ライブ配信者の機材費はどう処理する？取得価額別の経費・減価償却と少額特例の活用法",
+      "score": 5.68,
+      "impressions28d": 14,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2100「減価償却のあらまし」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
+        {
+          "kind": "search_decline",
+          "detail": "表示回数が 79 → 68 → 30 → 14 と低下",
+          "where": "検索結果"
+        }
+      ],
+      "file": "2026-08-25-newseg-youtuber-youtube-gaming-capture-live-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-retail_store-retail-invoice-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/",
+      "title": "簡易インボイスとは？小売店のレシートに書く6項目｜インボイス制度の実務対応",
+      "score": 5.52,
+      "impressions28d": 59,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6498「適格請求書等保存方式（インボイス制度）」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-21-newseg-retail_store-retail-invoice-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-vehicle-expense-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-vehicle-expense-practice/",
+      "title": "1人親方の車両費・ガソリン代はどこまで経費にできる？家事按分の考え方と仕訳例",
+      "score": 5.48,
+      "impressions28d": 12,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
+        {
+          "kind": "search_decline",
+          "detail": "表示回数が 95 → 93 → 46 → 12 と低下",
+          "where": "検索結果"
+        }
+      ],
+      "file": "2026-08-09-newseg-construction_solo-construction-vehicle-expense-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-retail_store-retail-register-sales-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-register-sales-guide/",
+      "title": "レジの現金過不足の仕訳と勘定科目｜小売店のレジ売上（現金・カード・電子マネー）の計上方法",
+      "score": 5.43,
+      "impressions28d": 51,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2200「収入金額とその計算」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-09-newseg-retail_store-retail-register-sales-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "amazon-just-opened-incorporation-threshold-practice",
+      "url": "https://mori-zeirishi.net/blog/amazon-just-opened-incorporation-threshold-practice/",
+      "title": "Amazon物販で法人成りするとき、実務で何をどの順番で動けばいい？",
+      "score": 5.37,
+      "impressions28d": 39,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2260「所得税の税率」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-06-30-amazon-just-opened-incorporation-threshold-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-wholesale-wholesale-consignment-general-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-consignment-general-practice/",
+      "title": "卸売業の委託販売・預け在庫、売上はいつ計上する？仕訳例で解説",
+      "score": 5.31,
+      "impressions28d": 39,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2200「収入金額とその計算」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-23-newseg-wholesale-wholesale-consignment-general-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-growth-platform-fee-treatment-guide",
+      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-guide/",
+      "title": "eBayのプラットフォーム手数料、消費税はどう処理する？インボイスと仕入税額控除",
+      "score": 5.22,
+      "impressions28d": 35,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-02-ebay-growth-platform-fee-treatment-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-license-revenue-template-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-license-revenue-template-guide/",
+      "title": "テンプレ・素材販売のライセンス収入はいつ・どう計上する？売上計上の基本ルールを解説",
+      "score": 5.16,
+      "impressions28d": 35,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2200「収入金額とその計算」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-09-12-newseg-content_seller-content-license-revenue-template-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-youtuber-youtube-edu-material-education-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-edu-material-education-guide/",
+      "title": "解説系YouTuberの書籍・教材・取材費は経費になる？事業関連性の判断ポイントを解説",
+      "score": 5.04,
+      "impressions28d": 34,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-09-05-newseg-youtuber-youtube-edu-material-education-guide.md",
       "refreshable": true
     },
     {
       "slug": "general-social-insurance-misconception-beauty-salon-owner-growth-guide",
       "url": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-beauty-salon-owner-growth-guide/",
       "title": "扶養から外れる？売上が伸びてきたサロンオーナーが確認すべき社会保険と税の違い",
-      "score": 2,
+      "score": 5,
       "impressions28d": 0,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1190「配偶者の所得がいくらまでなら配偶者控除が受けられるか」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和7年分」を含む",
@@ -165,9 +381,14 @@
       "slug": "general-social-insurance-misconception-influencer-creator-growth-guide",
       "url": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-influencer-creator-growth-guide/",
       "title": "収入が増えてきたクリエイターへ｜税の扶養と社会保険の扶養は別物？違いと判断基準を解説",
-      "score": 2,
+      "score": 5,
       "impressions28d": 0,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1190「配偶者の所得がいくらまでなら配偶者控除が受けられるか」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和7年分」を含む",
@@ -181,9 +402,14 @@
       "slug": "general-sole-proprietor-social-insurance-misconceptions",
       "url": "https://mori-zeirishi.net/blog/general-sole-proprietor-social-insurance-misconceptions/",
       "title": "個人事業主の社会保険｜国民健康保険・国民年金と扶養の誤解",
-      "score": 2,
+      "score": 5,
       "impressions28d": 0,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1191「配偶者控除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和6年分」を含む",
@@ -197,9 +423,14 @@
       "slug": "suggest-invoice-2wari-f451e6",
       "url": "https://mori-zeirishi.net/blog/suggest-invoice-2wari-f451e6/",
       "title": "インボイス登録で課税事業者になったら知っておきたい2割特例・3割特例の違いと適用期間",
-      "score": 2,
+      "score": 5,
       "impressions28d": 0,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6498「適格請求書等保存方式（インボイス制度）」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和5年分」を含む",
@@ -213,9 +444,14 @@
       "slug": "suggest-kensetsu-hitori-5cdd76",
       "url": "https://mori-zeirishi.net/blog/suggest-kensetsu-hitori-5cdd76/",
       "title": "一人親方の確定申告、何をどう準備する？必要書類と手順を解説",
-      "score": 2,
+      "score": 5,
       "impressions28d": 0,
       "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2020「確定申告」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
         {
           "kind": "fiscal_year",
           "detail": "「令和6年分」を含む",
@@ -223,6 +459,86 @@
         }
       ],
       "file": "2026-09-03-suggest-kensetsu-hitori-5cdd76.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-refund-handling-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-refund-handling-guide/",
+      "title": "コンテンツ販売で返金したときの売上・仕訳はどうする？売上取消の記帳方法を解説",
+      "score": 4.95,
+      "impressions28d": 31,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2200「収入金額とその計算」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-16-newseg-content_seller-content-refund-handling-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide",
+      "url": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide/",
+      "title": "修繕費か資本的支出か？個人事業者のための判定基準と具体例",
+      "score": 4.89,
+      "impressions28d": 29,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1379「修繕費とならないものの判定」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-20-deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-growth-platform-fee-treatment-practice",
+      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-practice/",
+      "title": "eBay手数料の消費税、仕訳と課税区分はどうする？インボイス対応の実務例",
+      "score": 4.83,
+      "impressions28d": 29,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-02-ebay-growth-platform-fee-treatment-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "hair-salon-pre-opening-cash-management-practice",
+      "url": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/",
+      "title": "美容室の現金売上、どう管理すればいい？実務でつまずかないための処理ポイント",
+      "score": 4.8,
+      "impressions28d": 27,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-05-31-hair-salon-pre-opening-cash-management-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "deepdive-domestic_ec_seller-fixed-asset-tax-guide",
+      "url": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-fixed-asset-tax-guide/",
+      "title": "事業用の固定資産税は何にかかる？必要経費への算入と償却資産申告の基本",
+      "score": 4.74,
+      "impressions28d": 26,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2215「固定資産税、登録免許税又は不動産取得税を支払った場合」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-09-02-deepdive-domestic_ec_seller-fixed-asset-tax-guide.md",
       "refreshable": true
     }
   ]
