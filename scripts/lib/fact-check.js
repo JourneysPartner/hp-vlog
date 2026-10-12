@@ -413,9 +413,13 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
   } catch (error) {
-    // API応答や例外に認証情報が含まれる可能性があるため、保存・表示は固定文のみ。
+    // 要約は固定文。原因は鍵を伏せた短い診断だけを error に残す（原因が分からないまま全部止まるのを防ぐ）。
     record.status = 'not_run';
     record.summary = error.emptyClaims ? '主張を抜き出せませんでした' : '照合を実施できませんでした（設定・API応答・カタログを確認してください）';
+    if (!error.emptyClaims) {
+      record.error = error.diagnostic || contentModel.safeDiagnostic(error);
+      console.warn(`[fact-check] 照合を実施できませんでした: ${record.error}`);
+    }
     revisedBody = body;
     record.corrections = [];
   }

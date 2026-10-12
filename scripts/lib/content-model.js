@@ -20,6 +20,42 @@ const ANTHROPIC_DEFAULT_MODEL = 'claude-sonnet-4-6';
 const OPENAI_DEFAULT_MODEL    = 'gpt-5.4';
 const ANTHROPIC_VERSION       = '2023-06-01';
 
+// 照合の失敗理由は、鍵を含まない「状態番号・エラーの種類・短い説明」だけに絞って残す。
+function redactSecrets(text) {
+  let out = String(text || '');
+  for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY]) {
+    if (key && key.length >= 8) out = out.split(key).join('[秘匿]');
+  }
+  return out
+    .replace(/sk-[A-Za-z0-9_-]{8,}/g, '[秘匿]')
+    .replace(/((?:x-api-key|api[_-]?key|authorization|bearer)["']?\s*[:=]?\s*)[^\s"',;]+/gi, '$1[秘匿]');
+}
+
+const FIXED_ERROR_MESSAGES = ['照合の時間切れ', 'モデルの認証情報が未設定です', '未対応のモデル提供元です'];
+
+function safeDiagnostic(e) {
+  const message = String((e && e.message) || e || '');
+  const http = message.match(/^Anthropic API (\d{3}):\s*([\s\S]*)$/);
+  let out;
+  if (http) {
+    let type = '', detail = '';
+    try {
+      const body = JSON.parse(http[2]);
+      type = (body.error && body.error.type) || '';
+      detail = (body.error && body.error.message) || '';
+    } catch (_) { /* 応答が JSON でなければ状態番号だけ残す */ }
+    out = `Anthropic HTTP ${http[1]}${type ? ` ${type}` : ''}${detail ? `: ${detail}` : ''}`;
+  } else if (e && typeof e.status === 'number') {
+    out = `${(e && e.name) || 'Error'} HTTP ${e.status}${e.code ? ` ${e.code}` : ''}`;
+  } else {
+    // 例外の文面は任意の内容を含みうるので残さない。こちらで決めた固定文だけは残す。
+    const cause = e && e.cause && (e.cause.code || e.cause.name);
+    const fixed = FIXED_ERROR_MESSAGES.includes(message) ? `: ${message}` : '';
+    out = `${(e && e.name) || 'Error'}${cause ? ` (${cause})` : ''}${fixed}`;
+  }
+  return redactSecrets(out).replace(/\s+/g, ' ').slice(0, 300);
+}
+
 function resolveProvider() {
   const p = (process.env.CONTENT_MODEL_PROVIDER || 'openai').toLowerCase();
   if (p === 'anthropic' && !process.env.ANTHROPIC_API_KEY) {
@@ -130,7 +166,11 @@ async function generateContent(promptIR, opts = {}) {
       return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal,
         ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : {}) });
     } catch (e) {
-      if (opts.fallback === false) throw new Error('照合モデルの呼び出しに失敗しました');
+      if (opts.fallback === false) {
+        const error = new Error('照合モデルの呼び出しに失敗しました');
+        error.diagnostic = safeDiagnostic(e);
+        throw error;
+      }
       console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
       const oaModel = resolveModel('openai', null);
       return await callOpenAI(promptIR, { model: oaModel, maxTokens: opts.maxTokens });
@@ -186,6 +226,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
 module.exports = {
   generateContent,
   generateSimple,
+  safeDiagnostic,
   resolveProvider,
   resolveModel,
   useCache,
