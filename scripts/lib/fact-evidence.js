@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const laws = require('./law-sources');
 const tsutatsu = require('./nta-tsutatsu');
-const { tokenizeForMatcher } = require('./nta-source-matcher');
+const { tokenizeForMatcher, rankSources, TAX_CATEGORY_CODES } = require('./nta-source-matcher');
 const { relationReferences } = require('./materials-bundle');
 const { resolveSourceForTopic } = require('./tax-authority-refs');
 const ROOT = path.join(__dirname, '..', '..');
@@ -143,19 +143,24 @@ function searchEvidence(claim, options = {}) {
   const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || byScore(a, b));
   const selected = [], seen = new Set();
   const add = ({ e, score }) => {
-    if (seen.has(e.id) || selected.length >= 6) return;
+    if (seen.has(e.id) || selected.length >= 7) return;
     seen.add(e.id); selected.push({ e, score });
   };
-  // 記事自身の資料（最大 3 件）と検索の上位 3 件を必ず入れ、空きがあれば残りの記事自身の資料で埋める。
-  // 資料の多い記事でも、カタログ全体の検索結果が押し出されないようにする。
+  // 記事資料の後に制度名だけの検索を足し、主張全体の上位3件も残す。
   own.slice(0, 3).forEach(add);
+  const subjectRanking = claim.subject && rankSources({ tax_domain: options.tax_domain, tax_terms: claim.subject },
+    { allCategories: !TAX_CATEGORY_CODES[options.tax_domain], limit: 1 });
+  if (subjectRanking?.errorCode) throw new Error('制度名の検索用カタログを読めませんでした');
+  const subjectTop = subjectRanking?.top1?.score > 0 && scored.find(r => r.e.url === subjectRanking.top1.url);
+  if (subjectTop) add(subjectTop);
   ranked.slice(0, 3).forEach(add);
   own.slice(3).forEach(add);
   return selected.map(({ e, score }) => {
     const { tokens: _tokens, titleTokens: _titleTokens, lazy: _lazy, ...data } = e;
     const text = e.lazy ? e.kind === 'law' ? laws.getArticle(e.key, e.no)?.text : tsutatsu.findProvisions(e.no, e.circular)[e.variant || 0]?.body : e.text;
     if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
-    return { ...data, text: contiguousExcerpt(text, query, 2000, focus), score: Math.round(score * 100) / 100 };
+    const excerpt = contiguousExcerpt(text, query, 2000, focus);
+    return { ...data, text: excerpt, text_start: text.indexOf(excerpt), score: Math.round(score * 100) / 100 };
   });
 }
 

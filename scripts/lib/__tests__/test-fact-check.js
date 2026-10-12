@@ -50,9 +50,9 @@ async function main() {
     assert.equal(result.claims.length, 1); assert.equal(result.discarded, 1);
     assert.equal(result.claims[0].sentence, wrong); assert.equal(result.claims[0].heading, '制度');
   });
-  await test('R1', '40件上限と8種類の優先順、落とした数', async () => {
+  await test('R1', '数字30件・その他10件の上限と8種類の優先順、落とした数', async () => {
     const items = Array.from({ length: 48 }, (_, i) => c(`主張${i}。`, ['番号', '適用年', '手続', '割合', '金額', '判定', '要件', '期限'][i % 8]));
-    const result = await F.extractClaims(items.map(x => x.sentence).join(''), async () => items);
+    const result = await F.extractClaims(items.map(x => x.sentence).join(''), async () => items, { maxNumericClaims: 30, maxClaims: 10 });
     assert.equal(result.claims.length, 40); assert.equal(result.dropped, 8);
     assert.equal(result.claims[0].type, '金額'); assert.equal(result.claims.at(-1).type, '判定');
   });
@@ -187,9 +187,9 @@ async function main() {
     const unchanged = fake({ revised: body });
     const r = await F.checkFacts(body, { callLLM: unchanged.fn, searchEvidence: () => [], now });
     assert.equal(r.record.status, 'revise');
-    const items = [c(correct), c('要件の主張。', '要件')];
+    const items = [c(correct), c('要件の主張。', '要件'), c('別の要件の主張。', '要件')];
     const cap = await F.checkFacts(items.map(x => x.sentence).join(''), { maxClaims: 1, repair: false, searchEvidence: () => evidence, now,
-      callLLM: async req => req.task === 'extract' ? items : [{ id: 'c1', status: '裏付けあり', quote: correct }] });
+      callLLM: async req => req.task === 'extract' ? items : JSON.parse(req.user).claims.map(row => ({ id: row.id, status: '裏付けあり', quote: correct })) });
     assert.equal(cap.record.status, 'ok'); assert.equal(cap.record.dropped, 1);
     assert.equal(cap.record.review_items.length, 1); assert.equal(cap.record.review_items[0].type, '要件');
   });

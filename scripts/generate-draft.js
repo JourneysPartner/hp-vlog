@@ -2592,7 +2592,7 @@ async function runFactCheckForArticle(content, options = {}) {
     bannedPhrasesLib.detectBannedInBody(revised).every(h => oldBanned.has(h.match));
   try {
     const result = await (options.factCheck || factCheck.checkArticle)(content, { ...options, validateRepair });
-    console.log(`[fact-check] ${meta.slug}: ${result.record.status} / ${result.record.summary}`);
+    console.log(`[fact-check] ${meta.slug}: ${result.record.status} / ${result.record.summary} / 入力 ${result.record.input_chars_total ?? 0} 字`);
     return result.content;
   } catch (_) {
     // 記録の保存に失敗した場合も、記事を未照合として止める。例外の詳細は出さない。
