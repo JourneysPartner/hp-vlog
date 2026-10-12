@@ -290,7 +290,8 @@ function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { mo
       ? { type: 'text', text: staticSystem, cache_control: { type: 'ephemeral' } }
       : { type: 'text', text: staticSystem },
     { type: 'text', text: dynamicSystem },
-  ];
+  // 空の文字ブロックは API が 400 で断る（照合は可変部分を使わない）。中身のあるブロックだけ送る。
+  ].filter(block => typeof block.text === 'string' && block.text.trim());
   const content = buildAnthropicUserContent(user, figures);
   return {
     model,

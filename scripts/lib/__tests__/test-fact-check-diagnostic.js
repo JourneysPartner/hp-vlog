@@ -79,6 +79,23 @@ async function test(name, fn) {
     } finally { global.fetch = original; }
   });
 
+  await test('照合の呼び出しは空の system ブロックを送らない（API が 400 で断るため）', async () => {
+    const original = global.fetch;
+    let sent;
+    global.fetch = async (url, init) => { sent = JSON.parse(init.body); return { ok: true, json: async () => ({ content: [{ type: 'text', text: '[]' }], usage: {} }) }; };
+    try {
+      await contentModel.generateContent({ staticSystem: '照合の指示', dynamicSystem: '', user: 'u' }, { provider: 'anthropic', model: 'claude-opus-5-5', fallback: false });
+      assert.ok(sent.system.length >= 1 && sent.system.every(b => b.text && b.text.trim()), JSON.stringify(sent.system));
+      assert.strictEqual(sent.system[0].text, '照合の指示');
+    } finally { global.fetch = original; }
+  });
+  await test('記事生成（可変部分あり）は従来どおり 2 ブロック', () => {
+    const { toAnthropicRequest } = require('../article-prompt-builder');
+    const req = toAnthropicRequest({ staticSystem: 'S', dynamicSystem: 'D', user: 'U' }, { model: 'm', maxTokens: 1, useCache: true });
+    assert.strictEqual(req.system.length, 2);
+    assert.ok(req.system[0].cache_control && !req.system[1].cache_control);
+  });
+
   console.log(`\n照合の診断: PASS ${passed} / FAIL ${failed}`);
   process.exitCode = failed ? 1 : 0;
 })();
