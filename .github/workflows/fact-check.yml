@@ -10,6 +10,15 @@ on:
       article_file:
         description: 記事ファイル（リポジトリ直下からのパス。例 content/posts/2026-10-09-example.md）
         required: true
+      code_ref:
+        description: 照合のコードとカタログを取る枝（通常は main。マージ前の確認のときだけ作業中の枝を指定）
+        required: false
+        default: main
+      repair:
+        description: 照合のあと修正と再照合まで行う（実行環境の中だけで、枝には書き込まない）
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -26,24 +35,35 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: mainの照合コードとカタログを使う
+      - name: 照合のコードとカタログを取る
+        env:
+          CODE_REF: ${{ inputs.code_ref || 'main' }}
         run: |
-          git fetch origin main --depth=1
-          git checkout origin/main -- scripts/ package.json package-lock.json data/nta-sources/ data/nta-tsutatsu/ data/law-sources/ data/generic-source-pages.json
+          git fetch origin "$CODE_REF" --depth=1
+          git checkout FETCH_HEAD -- scripts/ package.json package-lock.json data/nta-sources/ data/nta-tsutatsu/ data/law-sources/ data/generic-source-pages.json
       - run: npm ci
-      - name: 本文は変更せず照合する
+      - name: 照合する（枝には書き込まない）
         env:
           ARTICLE_FILE: ${{ inputs.article_file }}
+          REPAIR: ${{ inputs.repair }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
           FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
           FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
           FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
-        run: node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD
+        run: |
+          if [ "$REPAIR" = "true" ]; then
+            node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD --write
+          else
+            node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD
+          fi
       - name: 照合記録を保存する
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fact-check-record
-          path: data/fact-check/*.json
+          path: |
+            data/fact-check/*.json
+            ${{ inputs.article_file }}
           if-no-files-found: warn
