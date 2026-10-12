@@ -67,13 +67,17 @@ function renderFactCheck(meta, record, body) {
   const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${escapeHtml(c.before || c.sentence)}</div><div><strong>後:</strong> ${escapeHtml(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
   const remaining = record?.remaining || [];
   const contradictions = remaining.filter(c => c.status === '食い違い' || c.status === '期限の書き漏れ');
+  const reviewItems = record?.review_items || [];
   return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
     <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(labels[status] || '照合の記録なし')}${status ? `（${escapeHtml(status)}）` : ''}</p>
     <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>
     ${record && !stale && !unreadable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
     <h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${escapeHtml(c.sentence)}<div>${escapeHtml(c.correct || c.status)}</div>${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
-    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
+    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}
+    ${reviewItems.length ? `<h3 class="h6">人が確かめる箇所（資料が見つからなかった記述）</h3>
+    <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>
+    ${reviewItems.map(c => `<div class="border rounded p-3 mb-2"><div>${escapeHtml(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 見出し: ${escapeHtml(c.heading)} / 制度名: ${escapeHtml(c.subject)}</div>${refs(c)}</div>`).join('')}` : ''}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
 }
 

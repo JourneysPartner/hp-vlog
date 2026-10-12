@@ -106,7 +106,7 @@ async function run(args = process.argv.slice(2), dependencies = {}) {
       if (prior && prior.version === 1 && prior.slug === post.slug && ['ok', 'revise'].includes(prior.status) && prior.body_sha256 === F.bodyHash(post.body)) { remember(prior); skipped++; report(); continue; }
     }
     const result = await (dependencies.checkFacts || F.checkFacts)(post.body, { ...dependencies, now, repair: false,
-      tax_terms: post.tax_terms, tax_domain: post.tax_domain, source_bundle: post.source_bundle });
+      ...F.articleEvidenceOptions(post) });
     const record = F.compactRecord({ ...result.record, slug: post.slug, title: post.title, file: post.file });
     atomicWrite(file, JSON.stringify(record, null, 2) + '\n'); remember(record); report();
     log(`${post.slug}: ${record.status} — ${record.summary || ''}`);

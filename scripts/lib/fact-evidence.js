@@ -118,7 +118,8 @@ function searchEvidence(claim, options = {}) {
   }
   const mapped = resolveSourceForTopic({ pain_point: claim.subject, tax_terms: claim.subject, title: claim.subject,
     search_intent: claim.claim, tax_domain: options.tax_domain || '' });
-  const ranked = entries.map(e => {
+  const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
+  const scored = entries.map(e => {
     let score = 0;
     for (const t of tokens) {
       const rarity = Math.log(1 + entries.length / ((df.get(t) || 0) + 1));
@@ -131,8 +132,26 @@ function searchEvidence(claim, options = {}) {
     if (bundle.has(e.id) || bundle.has(e.url)) score += 5;
     if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) score += 10;
     return { e, score };
-  }).filter(r => r.score > 5).sort((a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id));
-  return ranked.slice(0, 3).map(({ e, score }) => {
+  });
+  const ranked = scored.filter(r => r.score > 5).sort(byScore);
+  const articleIds = new Set([options.source_url,
+    ...(Array.isArray(options.source_supplements) ? options.source_supplements.map(s => typeof s === 'string' ? s : s?.url) : []),
+    ...bundle].filter(Boolean));
+  const isArticle = e => articleIds.has(e.id) || articleIds.has(e.url) || (e.kind === 'tsutatsu' && articleIds.has(`tsutatsu:${e.circular}:${e.no}`));
+  const isPrimary = e => Boolean(options.source_url) && (e.id === options.source_url || e.url === options.source_url);
+  // 主出典を先頭に、記事自身の資料は主張に近い順に並べる。
+  const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || byScore(a, b));
+  const selected = [], seen = new Set();
+  const add = ({ e, score }) => {
+    if (seen.has(e.id) || selected.length >= 6) return;
+    seen.add(e.id); selected.push({ e, score });
+  };
+  // 記事自身の資料（最大 3 件）と検索の上位 3 件を必ず入れ、空きがあれば残りの記事自身の資料で埋める。
+  // 資料の多い記事でも、カタログ全体の検索結果が押し出されないようにする。
+  own.slice(0, 3).forEach(add);
+  ranked.slice(0, 3).forEach(add);
+  own.slice(3).forEach(add);
+  return selected.map(({ e, score }) => {
     const { tokens: _tokens, titleTokens: _titleTokens, lazy: _lazy, ...data } = e;
     const text = e.lazy ? e.kind === 'law' ? laws.getArticle(e.key, e.no)?.text : tsutatsu.findProvisions(e.no, e.circular)[e.variant || 0]?.body : e.text;
     if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');

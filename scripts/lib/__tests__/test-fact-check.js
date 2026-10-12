@@ -54,7 +54,7 @@ async function main() {
     const items = Array.from({ length: 48 }, (_, i) => c(`主張${i}。`, ['番号', '適用年', '手続', '割合', '金額', '判定', '要件', '期限'][i % 8]));
     const result = await F.extractClaims(items.map(x => x.sentence).join(''), async () => items);
     assert.equal(result.claims.length, 40); assert.equal(result.dropped, 8);
-    assert.equal(result.claims[0].type, '期限'); assert.equal(result.claims.at(-1).type, '適用年');
+    assert.equal(result.claims[0].type, '金額'); assert.equal(result.claims.at(-1).type, '判定');
   });
   await test('R1', '環境変数による上限', () => {
     const old = process.env.FACT_CHECK_MAX_CLAIMS;
@@ -183,14 +183,15 @@ async function main() {
       assert.equal(r.body, body); assert.equal(r.record.status, 'revise'); assert.ok(r.record.repair_warning);
     }
   });
-  await test('R4', '具体が未修正なら資料なしでも止め、上限で未照合も止める', async () => {
+  await test('R4', '数字の具体が未修正なら止め、要件だけの上限超過は一覧へ', async () => {
     const unchanged = fake({ revised: body });
     const r = await F.checkFacts(body, { callLLM: unchanged.fn, searchEvidence: () => [], now });
     assert.equal(r.record.status, 'revise');
-    const items = [c('期限の主張。'), c('要件の主張。', '要件')];
+    const items = [c(correct), c('要件の主張。', '要件')];
     const cap = await F.checkFacts(items.map(x => x.sentence).join(''), { maxClaims: 1, repair: false, searchEvidence: () => evidence, now,
       callLLM: async req => req.task === 'extract' ? items : [{ id: 'c1', status: '裏付けあり', quote: correct }] });
-    assert.equal(cap.record.status, 'revise'); assert.equal(cap.record.dropped, 1);
+    assert.equal(cap.record.status, 'ok'); assert.equal(cap.record.dropped, 1);
+    assert.equal(cap.record.review_items.length, 1); assert.equal(cap.record.review_items[0].type, '要件');
   });
   await test('R4', '修正後に別制度の主張を足した場合も再照合で止める', async () => {
     const extra = '別制度では999万円を控除します。';

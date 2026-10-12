@@ -10,7 +10,9 @@ const partial = require('./partial-revise');
 const { searchEvidence } = require('./fact-evidence');
 const { positiveLimit } = require('./source-excerpt');
 const { LAW_SCOPE_RULE } = require('./grounding-rules');
-const TYPES = ['期限', '要件', '判定', '金額', '割合', '手続', '適用年', '番号'];
+const TYPES = ['金額', '期限', '割合', '適用年', '番号', '要件', '判定', '手続'];
+const NUMERIC_TYPES = new Set(['金額', '割合', '期限', '適用年', '番号']);
+const REVIEW_TYPES = new Set(['要件', '判定', '手続']);
 const STATUSES = ['裏付けあり', '食い違い', '資料なし', '期限の書き漏れ'];
 const ROOT = path.join(__dirname, '..', '..');
 const WARNING_RE = /【事実の照合】[\s\S]*?【\/事実の照合】/g;
@@ -42,7 +44,7 @@ function compactRecord(record) {
     return { ...row, evidence_ids: ids };
   });
   const result = { ...record };
-  for (const key of ['claims', 'rechecked', 'corrections', 'remaining']) result[key] = compact(record[key]);
+  for (const key of ['claims', 'rechecked', 'corrections', 'remaining', 'review_items']) result[key] = compact(record[key]);
   // 日本語2000文字×120件は表だけでも600KBを超える。長い原文は可逆圧縮で保持する。
   for (const ref of Object.values(evidence)) if (Buffer.byteLength(ref.text || '') > 2500) {
     ref.text_deflate_base64 = deflateRawSync(Buffer.from(ref.text)).toString('base64');
@@ -176,8 +178,22 @@ function sufficientQuote(claim, result, ref, status) {
 
 function parseJson(value) {
   if (Array.isArray(value)) return value;
-  const text = typeof value === 'string' ? value : value?.text;
-  return JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+  const text = String(typeof value === 'string' ? value : value?.text || '').trim();
+  const start = text.indexOf('[');
+  if (start < 0) return JSON.parse(text);
+  // 文字列内の角括弧やエスケープを数えず、最初の配列の対応する終端まで読む。
+  let depth = 0, quoted = false, escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') quoted = false;
+    } else if (ch === '"') quoted = true;
+    else if (ch === '[') depth++;
+    else if (ch === ']' && --depth === 0) return JSON.parse(text.slice(start, i + 1));
+  }
+  return JSON.parse(text.slice(start));
 }
 
 function normalizedQuote(text) {
@@ -192,26 +208,55 @@ function isScenarioAmount(c) {
 }
 
 async function extractClaims(body, callLLM, options = {}) {
-  const data = parseJson(await callLLM({ task: 'extract', maxTokens: 12000,
-    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件（対象・条件）・金額・割合・期限（保存期間を含む）・適用年・手続（届出・申請・選択）・番号（条文・通達・タックスアンサー）・判定を対象にします。sentence は本文の原文そのまま、heading は見出し、type は上記8種類のいずれか、subject は制度名・論点名、claim は主張の1文要約です。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{id,sentence,heading,type,subject,claim}] です。',
-    user: body,
+  const read = async text => parseJson(await callLLM({ task: 'extract', maxTokens: 12000,
+    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件（対象・条件）・金額・割合・期限（保存期間を含む）・適用年・手続（届出・申請・選択）・番号（条文・通達・タックスアンサー）・判定を対象にします。sentence は本文の原文そのまま、heading は見出し、type は上記8種類のいずれか、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{id,sentence,heading,type,subject,claim}] です。',
+    user: text,
   }));
+  let data;
+  try { data = await read(body); }
+  catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    const boundaries = [...body.matchAll(/^## /gm)].map(m => m.index).filter(at => at > 0);
+    if (!boundaries.length) throw error;
+    const at = boundaries.reduce((best, next) => Math.abs(next - body.length / 2) < Math.abs(best - body.length / 2) ? next : best);
+    data = [];
+    let retryError;
+    // 各半分を一度だけ再抽出する。片方の失敗を隠して部分的な結果を通さない。
+    for (const text of [body.slice(0, at), body.slice(at)]) {
+      try {
+        const rows = await read(text);
+        if (!Array.isArray(rows)) throw new Error('主張一覧が不正です');
+        data.push(...rows);
+      } catch (err) { retryError ||= err; }
+    }
+    if (retryError) throw retryError;
+  }
   if (!Array.isArray(data)) throw new Error('主張一覧が不正です');
   const seen = new Set();
-  let discarded = 0;
+  const discardedClaims = [];
   const valid = [];
+  const fields = c => Object.fromEntries(['sentence', 'heading', 'type', 'subject', 'claim'].map(key => [key, typeof c?.[key] === 'string' ? c[key] : '']));
   for (const c of data) {
     if (c && isScenarioAmount(c)) continue;
     const sentence = c && typeof c.sentence === 'string' ? actualSentence(body, c.sentence) : '';
-    if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') { discarded++; continue; }
+    if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') {
+      discardedClaims.push({ ...fields(c), status: sentence ? '主張の形式が不正' : '本文に見つからない' });
+      continue;
+    }
     const key = `${sentence}:${c.type}:${c.subject}`;
     if (seen.has(key)) continue;
     seen.add(key); valid.push({ ...c, sentence });
   }
   const max = positiveLimit(options.maxClaims, 40);
   const chosen = valid.length > max ? [...valid].sort((a, b) => TYPES.indexOf(a.type) - TYPES.indexOf(b.type)).slice(0, max) : valid;
-  return { claims: chosen.map((c, i) => ({ id: `c${i + 1}`, sentence: c.sentence, heading: c.heading || '', type: c.type, subject: c.subject, claim: c.claim })),
-    dropped: Math.max(0, valid.length - chosen.length), discarded };
+  const kept = new Set(chosen);
+  const droppedClaims = valid.filter(c => !kept.has(c)).map(c => ({ ...fields(c), status: '上限で未照合' }));
+  return { claims: chosen.map((c, i) => ({ id: `c${i + 1}`, ...fields(c) })),
+    dropped: droppedClaims.length, discarded: discardedClaims.length, droppedClaims, discardedClaims };
+}
+
+function blockingFinding(c) {
+  return c.status !== '裏付けあり' && !(c.status === '資料なし' && REVIEW_TYPES.has(c.type));
 }
 
 function sourceDate(version) {
@@ -354,7 +399,7 @@ async function checkFacts(body, options = {}) {
   const cfg = config(options);
   const record = { version: 1, status: 'not_run', model: cfg.model, provider: cfg.provider,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
-    calls: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
+    calls: [], review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (!cfg.enabled) return { body, record };
   if (!((cfg.provider === 'anthropic' && /^claude-/.test(cfg.model)) || (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(cfg.model)))) {
     record.summary = '照合のモデル設定が不正です';
@@ -372,11 +417,21 @@ async function checkFacts(body, options = {}) {
     } finally { clearTimeout(timer); }
   };
   const search = options.searchEvidence || searchEvidence;
+  let uncheckedNumeric = 0;
+  const addReviewItem = c => {
+    if (record.review_items.some(r => r.sentence === c.sentence && r.type === c.type && r.subject === c.subject)) return;
+    // 一覧には候補の所在を残し、判定に使わない原文は重ねて保存しない。
+    record.review_items.push({ ...c, evidence: (c.evidence || []).map(({ id, title, url }) => ({ id, title, url })) });
+  };
   const analyze = async (text, fullBody) => {
     const extracted = await extractClaims(text, call, cfg);
     record.dropped += extracted.dropped;
     record.discarded += extracted.discarded;
-    if (!extracted.claims.length && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
+    for (const c of [...extracted.droppedClaims, ...extracted.discardedClaims]) {
+      if (NUMERIC_TYPES.has(c.type) || !REVIEW_TYPES.has(c.type)) uncheckedNumeric++;
+      else addReviewItem({ ...c, evidence: search(c, options) });
+    }
+    if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
     }
     const evidence = Object.fromEntries(extracted.claims.map(c => [c.id, search(c, options)]));
@@ -385,7 +440,7 @@ async function checkFacts(body, options = {}) {
   let revisedBody = body;
   try {
     record.claims = await analyze(body, body);
-    const findings = record.claims.filter(c => c.status !== '裏付けあり');
+    const findings = record.claims.filter(blockingFinding);
     if (findings.length && options.repair !== false) {
       const repair = await repairBody(body, findings, call, options);
       if (repair.accepted) {
@@ -396,7 +451,7 @@ async function checkFacts(body, options = {}) {
         record.corrections = findings.map(f => ({ ...f, before: f.sentence,
           after: pairs.get(f.sentence) || '',
           generalized: f.status === '資料なし',
-          resolved: !revisedBody.includes(f.sentence) && !record.rechecked.some(c => c.status !== '裏付けあり' && c.subject === f.subject),
+          resolved: !revisedBody.includes(f.sentence) && !record.rechecked.some(c => blockingFinding(c) && c.subject === f.subject),
         }));
         // 期限追記は元の文を残せるため、再照合の結果と期限追記の有無で判定する。
         for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
@@ -405,13 +460,16 @@ async function checkFacts(body, options = {}) {
       } else record.repair_warning = repair.reason;
     }
     const unresolved = record.claims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
-    record.remaining = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり')];
+    const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり')];
+    for (const c of pending) if (!blockingFinding(c)) addReviewItem(c);
+    record.remaining = pending.filter(blockingFinding);
     const mismatches = record.remaining.filter(c => ['食い違い', '期限の書き漏れ'].includes(c.status)).length;
-    // 上限で未照合の主張、または具体を外せなかった資料なしも承認しない。
-    record.status = record.remaining.length || record.dropped || record.discarded ? 'revise' : 'ok';
+    // 数字の未照合と、種類を問わない食い違い・期限の書き漏れは引き続き止める。
+    record.status = record.remaining.length || uncheckedNumeric ? 'revise' : 'ok';
     const repaired = record.corrections.filter(c => c.resolved).length;
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
+    record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
   } catch (error) {
     // 要約は固定文。原因は鍵を伏せた短い診断だけを error に残す（原因が分からないまま全部止まるのを防ぐ）。
     record.status = 'not_run';
@@ -467,13 +525,20 @@ async function checkArticle(raw, options = {}) {
   const { data: meta, content: body } = matter(raw);
   const slug = String(meta.slug || options.slug || '');
   const file = recordPath(slug, options.recordDir);
-  const result = await checkFacts(body, { tax_terms: meta.tax_terms, source_bundle: meta.source_bundle, tax_domain: meta.tax_domain, ...options });
+  const result = await checkFacts(body, { ...articleEvidenceOptions(meta), ...options });
   result.record.slug = slug;
   if (options.persist !== false) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(compactRecord(result.record), null, 2) + '\n', 'utf8');
   }
   return { ...result, content: applyFactResult(raw, result, options), recordFile: file };
+}
+
+/** 下書きと公開済み記事の照合に、同じ記事資料を渡す。 */
+function articleEvidenceOptions(meta) {
+  return { tax_terms: meta.tax_terms, source_bundle: meta.source_bundle, tax_domain: meta.tax_domain, source_url: meta.source_url,
+    source_supplements: [...(Array.isArray(meta.source_supplements) ? meta.source_supplements : []),
+      ...[2, 3, 4].filter(n => meta[`source_${n}_url`]).map(n => ({ url: meta[`source_${n}_url`] }))] };
 }
 
 /** 再生成モデルに照合の管理項目や既存の品質判定を書き換えさせない。 */
@@ -497,5 +562,6 @@ function inheritFactMetadata(original, regenerated) {
 }
 
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
+  articleEvidenceOptions,
   applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
   normalizeBody, bodyHash, compactRecord, evidenceRefs, normalizedNumbers, WARNING_RE };
