@@ -98,11 +98,13 @@ async function main() {
     }, { now });
     assert.ok(result.every(c => c.status === '裏付けあり'));
   });
-  await test('K3', '離れた抜粋の数字は合わせるが、境界をまたぐ架空の引用は通さない', async () => {
+  // 03g M2: 数字は引用と同じ抜粋の部分（前後 300 字）に限る。別々の抜粋に分かれた数字は合わせない
+  // （隣り合う文に分かれた正しい場合は test-fact-number-guard.js で裏付けありを確かめている）。
+  await test('K3', '離れた抜粋の数字は合わせず、境界をまたぐ架空の引用も通さない', async () => {
     const claims = [amount, claim(amount.sentence, '金額', '別制度', 'c2')];
     const refs = { c1: [ref(quote)], c2: [ref(other)] };
     const result = await F.judgeClaims(claims, refs, '', async () => claims.map(c => ({ id: c.id, status: '裏付けあり', quote, evidence_id: '資料1' })), { now });
-    assert.ok(result.every(c => c.status === '裏付けあり'));
+    assert.ok(result.every(c => c.status === '資料なし'));
     const invalid = await F.judgeClaims(claims, refs, '', async () => claims.map(c => ({ id: c.id, status: '裏付けあり', quote: quote + other, evidence_id: '資料1' })), { now });
     assert.ok(invalid.every(c => c.status === '資料なし'));
     const compact = F.compactRecord({ claims: result });

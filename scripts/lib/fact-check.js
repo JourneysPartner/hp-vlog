@@ -105,23 +105,42 @@ function normalizedRatio(numerator, denominator, { negative = false, percentage 
   return `割合:${top / a}/${bottom / a}`;
 }
 
-function normalizedNumbers(text) {
+function normalizedNumbers(text, range) {
   const normalized = normalizedQuote(text).replace(/(令和|平成|昭和)元年/g, '$11年');
   const numbers = [];
-  const tokens = /[0-9〇零一二三四五六七八九十百千万億]+(?:,[0-9]{3})*(?:\.[0-9]+)?(?:[万億][0-9〇零一二三四五六七八九十百千万億]*(?:,[0-9]{3})*(?:\.[0-9]+)?)*/g;
+  const digits = '[0-9〇零一二三四五六七八九十百千]+';
+  const dates = `(?<!分の)(?<![0-9〇零一二三四五六七八九十百千万億.,])(?:(?:(令和|平成|昭和|大正|明治)(元|${digits})年(?!間)|([0-9]{4})年(?!間))(?:(${digits})月(?:(${digits})日)?)?|(${digits})月(${digits})日)`;
+  const tokens = new RegExp(`${dates}|[0-9〇零一二三四五六七八九十百千万億]+(?:,[0-9]{3})*(?:\\.[0-9]+)?(?:[万億][0-9〇零一二三四五六七八九十百千万億]*(?:,[0-9]{3})*(?:\\.[0-9]+)?)*`, 'g');
   const matches = [...normalized.matchAll(tokens)];
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
+    if (match[1] || match[3] || match[6]) {
+      if (range && (match.index < range[0] || match.index + match[0].length > range[1])) continue;
+      // 日付は年・月・日を分けずに照合し、和暦と西暦は換算しない。
+      const read = value => value === '元' ? '1' : normalizedNumbers(`第${value}`)[0];
+      const year = match[1] ? match[1] + read(match[2]) : match[3] || '';
+      const month = match[4] || match[6], day = match[5] || match[7];
+      numbers.push(`日付:${year}${month ? '-' + read(month) : ''}${day ? '-' + read(day) : ''}`);
+      continue;
+    }
     const value = match[0];
     const prefix = normalized.slice(0, match.index);
     const suffix = normalized.slice(match.index + value.length);
+    // 範囲の端で切れた日付・金額・割合の断片を、別の数として採用しない。
+    const next = matches[i + 1];
+    const fraction = suffix.startsWith('分の');
+    const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
+    const unit = suffix.match(/^(?:円|年|月|日|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/)?.[0] || '';
+    const end = fraction && next ? next.index + next[0].length + (nextSuffix.startsWith('%') ? 1 : 0)
+      : match.index + value.length + (suffix.startsWith('%') ? 1 : unit.length);
+    if (range && (match.index < range[0] || end > range[1])) {
+      if (fraction && next && next.index === match.index + value.length + 2) i++;
+      continue;
+    }
     // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
     if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
       !/^(?:年|月|日|円|万|億|%|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
     if (suffix.startsWith('分の') || suffix.startsWith('%')) {
-      const next = matches[i + 1];
-      const fraction = suffix.startsWith('分の');
-      const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
       // 不完全な分数や数の断片は数字なしへ戻さず、照合不能として残す。
       if (/[.,]$/.test(prefix) || (fraction && (!next || next.index !== match.index + value.length + 2 ||
         (next[0] === '一' && /^(?:定|般)/.test(nextSuffix))))) return [null];
@@ -170,9 +189,30 @@ function sufficientQuote(claim, result, ref, status) {
       if (!numbers.every(n => sentenceNumbers.includes(n))) return false;
       if (!numbers.length) numbers = sentenceNumbers;
     }
-    const quoted = evidenceTexts(ref).flatMap(normalizedNumbers);
-    if (numbers.includes(null) || quoted.includes(null)) return false;
-    if (!numbers.length || !numbers.every(n => quoted.includes(n))) return false;
+    if (numbers.includes(null) || !numbers.length) return false;
+    // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
+    if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
+    // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
+    const supported = evidenceTexts(ref).some(text => {
+      let normalized = '';
+      const positions = [];
+      for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+        const part = normalizedQuote(match[0]);
+        normalized += part;
+        for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
+      }
+      for (let at = normalized.indexOf(quote); at >= 0; at = normalized.indexOf(quote, at + 1)) {
+        const start = Math.max(0, positions[at][0] - 300);
+        const end = positions[at + quote.length - 1][1] + 300;
+        const from = positions.findIndex(([begin]) => begin >= start);
+        let to = positions.length;
+        while (to > 0 && positions[to - 1][1] > end) to--;
+        const quoted = normalizedNumbers(normalized, [from, to]);
+        if (!quoted.includes(null) && numbers.every(n => quoted.includes(n))) return true;
+      }
+      return false;
+    });
+    if (!supported) return false;
   }
   return true;
 }
