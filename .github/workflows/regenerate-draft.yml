@@ -68,7 +68,7 @@ jobs:
             --filename "${{ inputs.filename }}" \
             --comment "${{ inputs.comment }}"
         env:
-          # 本文/部分再生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
+          # 本文/部分再生成: Claude Sonnet 5.5（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}

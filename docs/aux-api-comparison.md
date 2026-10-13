@@ -1,6 +1,6 @@
 # 周辺処理用 API 候補 比較レポート
 
-本文生成（Claude Sonnet 4.6）以外の「周辺処理」を、どこまで安価モデル／ルールベースに寄せるかを検討するための比較資料です。
+本文生成（Claude Sonnet 5.5）以外の「周辺処理」を、どこまで安価モデル／ルールベースに寄せるかを検討するための比較資料です。
 **この段階では周辺処理用 API を決定しません。** 候補と推奨案のみを提示します。
 
 > ⚠️ 料金・モデルID は変動します。本書の単価は一般的な水準の目安であり、**採用前に各社の最新公式料金ページで必ず確認**してください。確証が持てないものは「要確認」と記載しています。
@@ -27,7 +27,7 @@
 | validate 前の preflight | A | ✅実装済（本PR） | preflight-check.js |
 | Chatwork 通知文の整形 | A | ✅実装済 | notify/message.js |
 | 軽い校正（誤字・表記ゆれ） | C | ⏳API未決定 | （安価モデル候補） |
-| **本文生成** | **D** | content_model | content-model.js（Sonnet 4.6）|
+| **本文生成** | **D** | content_model | content-model.js（Sonnet 5.5）|
 
 - tier A: 完全ルールベース（API不要）
 - tier B: ルールベース + 必要時だけ安価モデル
@@ -53,10 +53,11 @@
 
 ### モデルID / 価格（Anthropic 公式で確認済み 2026-05）
 公式: https://platform.claude.com/docs/en/docs/about-claude/models/overview
+本文生成のモデル・料金は 2026-10-13 の移行指示に合わせて更新。
 
 | モデル | Claude API ID | alias | 価格(入/出 per 1M) |
 |---|---|---|---|
-| 本文生成（確定） | **`claude-sonnet-4-6`** | claude-sonnet-4-6 | **$3 / $15** |
+| 本文生成（確定） | **`claude-sonnet-5-5`** | claude-sonnet-5-5 | **$2 / $10** |
 | 周辺処理（確定候補） | **`claude-haiku-4-5-20251001`** | claude-haiku-4-5 | **$1 / $5** |
 
 - `claude-haiku-4-5-20251001` は **正式な pinned snapshot ID**。`claude-haiku-4-5` は同モデルへの alias。
@@ -69,12 +70,12 @@
 
 1. **まず tier A をルールベースで固める（本PRで完了）** — 周辺処理の大半はここで API ゼロ。
 2. **軽い校正（tier C）が必要になった時だけ Anthropic Haiku 系を採用**するのが第一候補。
-   - 理由: 本文 Sonnet 4.6 と**同じ Anthropic SDK / API・同じ prompt cache 機構**を流用でき、実装・運用がシンプル。日本語も強い。
+   - 理由: 本文 Sonnet 5.5 と**同じ Anthropic SDK / API・同じ prompt cache 機構**を流用でき、実装・運用がシンプル。日本語も強い。
    - 環境変数 `AUX_MODEL_PROVIDER=anthropic` / `AUX_MODEL=claude-haiku-4-5-20251001` を想定（未決定）。
 3. **title の最終自然化（tier B）** は現状 `title-builder.js`（ルールベース）で十分自然な出力。必要になれば Haiku に回す。
 4. nano/mini 系は「分類・整形だけの超軽量処理」を大量に回す場合の選択肢。現状はそこまでの量がないため優先度低。
 
-→ **結論: 周辺処理は「ルールベース優先 + 必要時のみ Haiku 系」。本文だけ Sonnet 4.6。** 最終決定は別途。
+→ **結論: 周辺処理は「ルールベース優先 + 必要時のみ Haiku 系」。本文だけ Sonnet 5.5。** 最終決定は別途。
 
 ---
 
@@ -83,7 +84,7 @@
 ```
 # 本文生成（確定方針）
 CONTENT_MODEL_PROVIDER=anthropic
-CONTENT_MODEL=claude-sonnet-4-6
+CONTENT_MODEL=claude-sonnet-5-5
 CONTENT_MODEL_USE_PROMPT_CACHE=true
 ANTHROPIC_API_KEY=...   # Netlify / Actions Secret
 
