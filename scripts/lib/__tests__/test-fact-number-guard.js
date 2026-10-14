@@ -3,6 +3,8 @@
 // 03g の回帰確認。判定の LLM はすべて偽の関数に置き換える。
 const assert = require('assert/strict');
 const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
+const direct = require('../fact-check');
+const { splitUnits } = require('../fact-units');
 const groups = { M1: { pass: 0, fail: 0 }, M2: { pass: 0, fail: 0 } };
 const now = new Date('2026-10-12T00:00:00Z');
 const ref = (text, extra = {}) => ({ id: '資料1', title: '制度の原文', url: 'https://example.jp/制度', law_version: '', text, ...extra });
@@ -13,7 +15,7 @@ async function test(group, name, fn) {
 async function judge(sentence, text, quote, options = {}) {
   const c = { id: 'c1', sentence, claim: options.claim ?? sentence, type: options.type || '期限', subject: '制度', heading: '制度' };
   // 番号は文全体を指す。300字境界の既存試験は、復元後にも使う同じ関数へ元の引用を渡す。
-  // 番号から復元して判定する経路は03i T5で別途確認する。期待する数字の扱いは変えない。
+  // 番号から復元する判定の経路も、下のM1・M2で確認する。期待する数字の扱いは変えない。
   const source = (options.refs || [ref(text)]).find(r => r.id === '資料1');
   const ranges = source?.text_ranges ? source.text_ranges.map(([a, b]) => source.text.slice(a, b)) : [source?.text || ''];
   const result = { quote, correct: options.correct || '' }, status = options.status || '裏付けあり';
@@ -22,6 +24,29 @@ async function judge(sentence, text, quote, options = {}) {
 }
 
 async function main() {
+  await test('M1', '番号から引用を復元する判定でも日付は一つの塊として照合', async () => {
+    const quote = 'この制度は令和9年3月31日までの申請が対象です。';
+    const text = `令和8年4月1日現在法令等\n${quote}`;
+    for (const [date, expected] of [['令和九年三月三十一日', '裏付けあり'], ['令和8年3月31日', '資料なし'], ['2027年3月31日', '資料なし']]) {
+      const sentence = `この制度は${date}までです。`;
+      const c = { id: 'c1', sentence, claim: sentence, type: '期限', subject: '制度', heading: '制度' };
+      const rows = await direct.judgeClaims([c], { c1: [ref(text)] }, sentence, async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '2' }],
+        { now, loadEvidenceText: r => r.text });
+      assert.equal(rows[0].status, expected);
+    }
+  });
+  await test('M2', '番号から引用を復元する判定でも前後300字の完全な数字だけを使う', async () => {
+    const quote = 'この制度の対象と申請手続について説明します。', amount = '300万円';
+    for (const before of [false, true]) for (const distance of [300, 301]) {
+      const adjacent = before ? amount + 'あ'.repeat(distance - amount.length - 1) : 'あ'.repeat(distance - amount.length - 1) + amount;
+      const text = before ? `${adjacent}\n${quote}` : `${quote}\n${adjacent}`;
+      const basis = String(splitUnits(text, { material: true }).find(u => u.text === quote).s);
+      const sentence = '上限は300万円です。', c = { id: 'c1', sentence, claim: sentence, type: '金額', subject: '制度', heading: '制度' };
+      const rows = await direct.judgeClaims([c], { c1: [ref(text)] }, sentence, async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis }],
+        { now, loadEvidenceText: r => r.text });
+      assert.equal(rows[0].status, distance === 300 ? '裏付けあり' : '資料なし');
+    }
+  });
   await test('M1', '和暦の漢数字とアラビア数字は同じ一つの日付', () => {
     assert.deepEqual(F.normalizedNumbers('令和九年三月三十一日'), ['日付:令和9-3-31']);
     assert.deepEqual(F.normalizedNumbers('令和9年3月31日'), ['日付:令和9-3-31']);

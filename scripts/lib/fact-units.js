@@ -20,6 +20,7 @@ function splitUnits(source, { material = false, ranges = [[0, source.length]] } 
     for (const line of source.slice(from, to).split(/\n/)) {
       const lineEnd = lineStart + line.length;
       const heading = /^\s*#{1,6}\s/.test(line);
+      const tableRow = !material && /^\s*\|/.test(line);
       if (heading && !material) add(lineStart, lineEnd, true, segment);
       else {
         let start = lineStart, commas = [];
@@ -34,7 +35,7 @@ function splitUnits(source, { material = false, ranges = [[0, source.length]] } 
           const ch = source[at];
           bracket(ch);
           if (!stack.length && ch === '、') commas.push(at + 1);
-          if (!stack.length && ch === '。') flush(at + 1);
+          if (!tableRow && !stack.length && ch === '。') flush(at + 1);
         }
         flush(lineEnd);
       }

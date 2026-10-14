@@ -59,7 +59,7 @@ function compactRecord(record) {
 
 function evidenceRefs(record, row) {
   return (row.evidence || (row.evidence_ids || []).map(id => record.evidence?.[id]).filter(Boolean)).map(ref =>
-    ref.text_deflate_base64 ? { ...ref, text: inflateRawSync(Buffer.from(ref.text_deflate_base64, 'base64'), { maxOutputLength: 100000 }).toString('utf8') } : ref);
+    ref.text_deflate_base64 ? { ...ref, text: inflateRawSync(Buffer.from(ref.text_deflate_base64, 'base64'), { maxOutputLength: 2000000 }).toString('utf8') } : ref);
 }
 
 function normalizedClaim(text) {
@@ -196,28 +196,35 @@ function sufficientQuote(claim, result, ref, status) {
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
     // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
-    const supported = evidenceTexts(ref).some(text => {
-      let normalized = '';
-      const positions = [];
-      for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
-        const part = normalizedQuote(match[0]);
-        normalized += part;
-        for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
-      }
-      for (let at = normalized.indexOf(quote); at >= 0; at = normalized.indexOf(quote, at + 1)) {
-        const start = Math.max(0, positions[at][0] - 300);
-        const end = positions[at + quote.length - 1][1] + 300;
-        const from = positions.findIndex(([begin]) => begin >= start);
-        let to = positions.length;
-        while (to > 0 && positions[to - 1][1] > end) to--;
-        const quoted = normalizedNumbers(normalized, [from, to]);
-        if (!quoted.includes(null) && numbers.every(n => quoted.includes(n))) return true;
-      }
-      return false;
-    });
-    if (!supported) return false;
+    if (!quoteSupportsNumbers(numbers, result, ref)) return false;
   }
   return true;
+}
+
+/** 数字の照合範囲は、原文の引用位置の前後300字に限定する。 */
+function quoteSupportsNumbers(numbers, result, ref) {
+  if (!numbers.length || numbers.includes(null)) return false;
+  const quote = normalizedQuote(result.quote);
+  if (!quote || !ref) return false;
+  return evidenceTexts(ref).some(text => {
+    let normalized = '';
+    const positions = [];
+    for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+      const part = normalizedQuote(match[0]);
+      normalized += part;
+      for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
+    }
+    for (let at = normalized.indexOf(quote); at >= 0; at = normalized.indexOf(quote, at + 1)) {
+      const start = Math.max(0, positions[at][0] - 300);
+      const end = positions[at + quote.length - 1][1] + 300;
+      const from = positions.findIndex(([begin]) => begin >= start);
+      let to = positions.length;
+      while (to > 0 && positions[to - 1][1] > end) to--;
+      const quoted = normalizedNumbers(normalized, [from, to]);
+      if (!quoted.includes(null) && numbers.every(n => quoted.includes(n))) return true;
+    }
+    return false;
+  });
 }
 
 // 型だけで数字の事実にしない。読めない数や漢数字の条文・通達番号は止める側に残す。
@@ -263,6 +270,7 @@ function isScenarioAmount(c) {
 
 async function extractClaims(body, callLLM, options = {}) {
   const units = splitUnits(body);
+  if (!units.length) return { claims: [], dropped: 0, discarded: 0, droppedClaims: [], discardedClaims: [] };
   const read = async rows => parseJson(await callLLM({ task: 'extract', maxTokens: 8000,
     system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件（対象・条件）・金額・割合・期限（保存期間を含む）・適用年・手続（届出・申請・選択）・番号（条文・通達・タックスアンサー）・判定を対象にします。s は主張を述べた本文の文の番号、type は上記8種類のいずれか、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
     user: renderUnits(rows),
@@ -294,18 +302,19 @@ async function extractClaims(body, callLLM, options = {}) {
   for (const c of data) {
     const number = unitNumber(c?.s);
     let unit = number ? units[number - 1] || null : null;
-    if (unit?.heading) unit = null;
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
       const numbers = isNumericClaim({ ...c, sentence: c.claim }) ? normalizedNumbers(c.claim) : [];
       if (numbers.length) {
         // 読めない割合が同じ原文にある場合は抽出し、後段の歯止めで止める。
         const contains = u => numbers.every(n => normalizedNumbers(u.text).includes(n));
-        if (!contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
+        if (unit.heading || !contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
       } else {
         const words = [...tokenizeForMatcher(`${c.subject || ''} ${c.claim || ''}`)];
         const overlap = u => words.filter(w => normalizedQuote(u.text).toLowerCase().includes(w)).length;
-        if (!overlap(unit)) unit = near.map(u => ({ u, score: overlap(u) })).sort((a, b) => b.score - a.score || a.u.s - b.u.s).find(p => p.score)?.u || null;
+        const best = near.map(u => ({ u, score: overlap(u) })).sort((a, b) => b.score - a.score || a.u.s - b.u.s).find(p => p.score);
+        if (unit.heading || !overlap(unit)) unit = best?.u || null;
+        else if (best && best.score >= overlap(unit) + 2) unit = best.u;
       }
     }
     const sentence = unit?.text || '';
@@ -351,15 +360,22 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     const refs = evidence[c.id] || [];
     if (!refs.length) results.set(c.id, { ...c, status: '資料なし', quote: '', correct: '', evidence: [] });
     else {
-      const key = isNumericClaim(c) ? JSON.stringify([c.subject, [...new Set(normalizedNumbers(c.sentence))].sort()]) : null;
-      if (key && numeric.has(key)) aliases.set(c.id, numeric.get(key));
-      else { queued.push(c); if (key) numeric.set(key, c.id); }
+      const numbers = normalizedNumbers(c.claim);
+      const key = isNumericClaim(c) && numbers.length && !numbers.includes(null)
+        ? JSON.stringify([c.subject, c.type, [...new Set(numbers)].sort()]) : null;
+      const representative = key && (numeric.get(key) || []).find(r => r.sentence !== c.sentence);
+      if (representative) aliases.set(c.id, representative.id);
+      else {
+        queued.push(c);
+        if (key) numeric.set(key, [...numeric.get(key) || [], c]);
+      }
     }
   }
   const units = splitUnits(body);
   const deadlineSubjects = new Set();
-  const tally = { declared: 0, rejected: 0, missing: 0, samples: [] };
+  const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
   const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。`;
+  const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]';
   const cache = options.pageCache;
   let groups;
   if (cache?.groups?.length) {
@@ -373,10 +389,10 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   } else {
     // 別の文に当てる結果も、各文の候補を資料表に含める。
     groups = pageGroups(claims.filter(c => evidence[c.id]?.length), evidence, options)
-      .map(g => ({ ...g, claims: g.claims.filter(c => !aliases.has(c.id)), staticSystem: instruction + '\n\n' + g.pack.block }));
+      .map(g => ({ ...g, claims: g.claims.filter(c => !aliases.has(c.id)), staticSystem: instruction + example + '\n\n' + g.pack.block }));
     if (cache) cache.groups = groups;
   }
-  const judgeBatch = async (batch, group, retried = false) => {
+  const judgeBatch = async (batch, group, depth = 0, keepResult = false) => {
     const known = new Set(group.pack.pages.map(p => p.id));
     const missing = Object.fromEntries(batch.map(c => [c.id, (evidence[c.id] || []).filter(e => !known.has(e.id))]));
     const extra = buildPages(batch, missing, options, group.pack.pages.length + 1);
@@ -393,7 +409,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     if (!fits) {
       if (group.fresh) throw new Error('判定の資料に主張の抜粋を収められません');
       for (const g of pageGroups(batch, evidence, options)) {
-        await judgeBatch(g.claims, { ...g, fresh: true, staticSystem: instruction + '\n\n' + g.pack.block }, retried);
+        await judgeBatch(g.claims, { ...g, fresh: true, staticSystem: instruction + example + '\n\n' + g.pack.block }, depth, keepResult);
       }
       return;
     }
@@ -402,24 +418,28 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const ret = await callLLM({ task: 'judge', maxTokens: 16000, system: group.staticSystem, staticSystem: group.staticSystem,
         user: JSON.stringify({ today: (options.now || new Date()).toISOString().slice(0, 10), body: renderUnits(units),
           ...(extra.pages.length ? { evidence: extra.block } : {}),
-          claims: batch.map(({ id, sentence, claim, type, subject }) => ({ id, s: units.find(u => !u.heading && u.text === sentence)?.s,
-            type, subject, claim, evidence_ids: (evidence[id] || []).map(e => byId.get(e.id).number) })) }),
+          claims: batch.map(({ id, sentence, claim, type, subject }) => {
+            const s = units.find(u => !u.heading && u.text === sentence)?.s;
+            return { id, ...(s ? { s } : { sentence }), type, subject, claim,
+              evidence_ids: (evidence[id] || []).map(e => byId.get(e.id).number) };
+          }) }),
       });
       if (['max_tokens', 'length'].includes(ret?.stopReason) || ret?.stop_reason === 'max_tokens') throw new SyntaxError('判定の出力が上限に達しました');
       // 答えの形が想定と違うときに原因を追えるよう、先頭だけログに残す（公開資料に基づく判定で秘密情報は含まない）。
       console.log(`[fact-check] 判定の出力（先頭）: ${String(typeof ret === 'string' ? ret : Array.isArray(ret) ? JSON.stringify(ret) : ret?.text || '').slice(0, 1500)}`);
       data = parseJson(ret);
     } catch (error) {
-      if (!(error instanceof SyntaxError) || retried || batch.length < 2) throw error;
+      if (!(error instanceof SyntaxError) || depth >= 3 || batch.length < 2) throw error;
       let retryError;
       const at = Math.ceil(batch.length / 2);
       for (const half of [batch.slice(0, at), batch.slice(at)]) {
-        try { await judgeBatch(half, group, true); } catch (err) { retryError ||= err; }
+        try { await judgeBatch(half, group, depth + 1, keepResult); } catch (err) { retryError ||= err; }
       }
       if (retryError) throw retryError;
       return;
     }
     if (!Array.isArray(data)) throw new Error('判定結果が不正です');
+    tally.total += batch.length;
     for (const c of batch) {
       const rows = data.filter(r => String(r?.id ?? '') === c.id);
       const r = rows.length === 1 ? rows[0] : null;
@@ -433,11 +453,13 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const evidenceNo = unitNumber(r?.evidence_id);
       const page = evidenceNo ? pages.find(p => p.number === evidenceNo && candidates.some(e => e.id === p.id)) : null;
       const cited = page && rangeText(page.source, page.units, r?.basis);
+      const tooMany = NUMERIC_TYPES.has(c.type) && cited && !rangeText(page.source, page.units, r?.basis, 2);
       const quote = cited?.text || '';
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
       if (status !== '資料なし') {
         const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
+          : tooMany ? '数字の主張の根拠が2文を超える'
           : !evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(quote))) ? '引用が資料に無い'
             : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
@@ -449,8 +471,10 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       } else if (!r) tally.missing++;
       // 同じ制度の期限の2件目は修正対象に加えない。
       if (status === '期限の書き漏れ') {
-        if (deadlineSubjects.has(c.subject)) continue;
-        deadlineSubjects.add(c.subject);
+        if (deadlineSubjects.has(c.subject)) {
+          if (!keepResult) continue;
+          status = '資料なし'; reason = '同じ制度の期限の書き漏れは記録済み';
+        } else deadlineSubjects.add(c.subject);
       }
       const date = ref && sourceDate(ref.law_version);
       const cutoff = new Date(options.now || new Date());
@@ -464,30 +488,38 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       });
     }
   };
+  const checkTally = () => {
+    // 個別の再判定を足す前にも確認し、最初の答えの不備を追加の成功で薄めない。
+    const judged = tally.declared + tally.missing;
+    if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= tally.total)) {
+      console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
+      const error = new Error(`判定の答えの多くが確認を通りません（落とした ${tally.rejected}/${tally.declared}・答え無し ${tally.missing}/${judged}）`);
+      error.diagnostic = error.message;
+      throw error;
+    }
+  };
   for (const group of groups) if (group.claims.length) await judgeBatch(group.claims, group);
-  // 答えの多くが確認を通らない・返らないのは、答えの形の不一致などの不具合の疑いが強い。
-  // そのまま進むと正しい数字まで資料なしとして置き換えてしまうため、照合不能として止める（fail-closed）。
-  const judged = tally.declared + tally.missing;
-  if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= queued.length)) {
-    console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
-    const error = new Error(`判定の答えの多くが確認を通りません（落とした ${tally.rejected}/${tally.declared}・答え無し ${tally.missing}/${judged}）`);
-    // 自前の文言だけなので、そのまま記録の診断に残す（API の応答や鍵は含まない）。
-    error.diagnostic = error.message;
-    throw error;
-  }
+  checkTally();
   for (const c of claims) if (aliases.has(c.id)) {
     const representative = results.get(aliases.get(c.id));
-    if (!representative) continue;
-    if (representative.status === '期限の書き漏れ') continue;
     const refs = evidence[c.id] || [];
-    const allowed = representative.status === '資料なし' || refs.some(r => r.id === representative.evidence_id);
-    const status = allowed && (representative.status === '資料なし' || sufficientQuote(c, representative,
-      representative.evidence.find(r => r.id === representative.evidence_id), representative.status)) ? representative.status : '資料なし';
-    results.set(c.id, { ...representative, ...c, status, quote: status === '資料なし' ? '' : representative.quote,
-      correct: status === '資料なし' ? '' : representative.correct, evidence_id: status === '資料なし' ? '' : representative.evidence_id,
-      s: units.find(u => !u.heading && u.text === c.sentence)?.s,
+    const ref = representative?.evidence.find(r => r.id === representative.evidence_id);
+    const usable = representative && representative.status !== '期限の書き漏れ' &&
+      (representative.status === '資料なし' || (refs.some(r => r.id === representative.evidence_id) &&
+        sufficientQuote(c, representative, ref, representative.status) && quoteSupportsNumbers(normalizedNumbers(c.claim), representative, ref)));
+    if (!usable) {
+      // 代表が不在・期限の指摘・引用の確認不合格なら、同じ資料で個別に判定し記録を残す。
+      const own = new Set(refs.map(r => r.id));
+      const group = [...groups].sort((a, b) => b.pack.pages.filter(p => own.has(p.id)).length - a.pack.pages.filter(p => own.has(p.id)).length)[0];
+      await judgeBatch([c], group, 0, true);
+      continue;
+    }
+    results.set(c.id, { ...representative, ...c, s: units.find(u => !u.heading && u.text === c.sentence)?.s,
       evidence: refs.map(r => representative.evidence.find(p => p.id === r.id) || r) });
   }
+  // 答えの多くが確認を通らない・返らないのは、答えの形の不一致などの不具合の疑いが強い。
+  // そのまま進むと正しい数字まで資料なしとして置き換えてしまうため、照合不能として止める（fail-closed）。
+  checkTally();
   return claims.map(c => results.get(c.id)).filter(Boolean);
 }
 
@@ -509,14 +541,58 @@ function changedText(before, after) {
   return changed.join('\n');
 }
 
+/** 見出しの階層と表の見出し行を含めて、差分の影響を節単位で追う。 */
+function affectedClaims(before, after, previous, extracted) {
+  const sections = text => {
+    const rows = splitUnits(text), result = [{ heading: '', context: '', rows: [], headers: [] }], parents = [];
+    for (const [i, row] of rows.entries()) {
+      if (row.heading) {
+        const level = row.text.match(/^\s*(#+)/)[1].length;
+        parents.length = level; parents[level - 1] = row.text;
+        result.push({ heading: row.text.replace(/^\s*#{1,6}\s+/, ''), context: parents.join('\n'), rows: [], headers: [] });
+      }
+      const section = result.at(-1);
+      section.rows.push(row.text);
+      if (/^\s*\|/.test(row.text) && /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/.test(rows[i + 1]?.text || '')) section.headers.push(row.text);
+    }
+    return result;
+  };
+  const oldSections = sections(before), newSections = sections(after), affected = new Set();
+  for (let i = 0; i < Math.max(oldSections.length, newSections.length); i++) {
+    if (oldSections.length !== newSections.length || oldSections[i]?.context !== newSections[i]?.context ||
+        JSON.stringify(oldSections[i]?.headers) !== JSON.stringify(newSections[i]?.headers)) affected.add(i);
+  }
+  const remaining = new Map();
+  for (const row of sentenceRows(after)) remaining.set(row, (remaining.get(row) || 0) + 1);
+  const removedDates = [];
+  for (const [i, section] of oldSections.entries()) for (const row of section.rows) {
+    const n = remaining.get(row) || 0;
+    if (n) remaining.set(row, n - 1);
+    else if (normalizedNumbers(row).some(n => typeof n === 'string' && n.startsWith('日付:')) || /まで|までの間|以後/.test(row)) {
+      affected.add(i); removedDates.push(row);
+    }
+  }
+  const locations = (c, list) => {
+    const exact = list.flatMap((s, i) => s.rows.includes(c.sentence) ? [i] : []);
+    if (exact.length) return exact;
+    const headings = list.flatMap((s, i) => s.heading === c.heading ? [i] : []);
+    return headings.length ? headings : list.map((_, i) => i); // 位置が曖昧なら再判定する。
+  };
+  const inAffected = c => locations(c, oldSections).some(i => affected.has(i)) || locations(c, newSections).some(i => affected.has(i));
+  const subjects = [...new Set([...extracted.map(c => c.subject), ...previous.filter(c =>
+    !actualSentence(after, c.sentence) || inAffected(c) || removedDates.some(row => subjectsOverlap(c.subject, row))).map(c => c.subject)])];
+  return { subjects, needsJudge: c => inAffected(c) || subjects.some(subject => subjectsOverlap(subject, c.subject)) };
+}
+
+function subjectsOverlap(a, b) {
+  const words = tokenizeForMatcher(a), other = tokenizeForMatcher(b);
+  return a === b || !words.size || !other.size || [...words].some(word => other.has(word));
+}
+
 /** 修正対象以外の原文が、同じ順番で残ることを確認する。 */
 function preservesOtherText(before, after, findings) {
-  const intervals = findings.flatMap(f => {
-    if (!f.sentence) return [];
-    const positions = [];
-    for (let start = before.indexOf(f.sentence); start >= 0; start = before.indexOf(f.sentence, start + f.sentence.length)) positions.push({ start, end: start + f.sentence.length });
-    return positions;
-  }).sort((a, b) => a.start - b.start);
+  const targets = new Set(findings.map(f => f.sentence));
+  const intervals = splitUnits(before).filter(u => !u.heading && targets.has(u.text));
   const anchors = [];
   let at = 0;
   for (const interval of intervals) {
@@ -547,7 +623,8 @@ function repairInstructions(findings) {
 }
 
 function correctionPairs(before, after, findings) {
-  const targets = [...new Set(findings.map(f => f.sentence))].map(sentence => ({ sentence, at: before.indexOf(sentence) }))
+  const units = splitUnits(before);
+  const targets = [...new Set(findings.map(f => f.sentence))].map(sentence => ({ sentence, at: units.find(u => !u.heading && u.text === sentence)?.start ?? -1 }))
     .filter(t => t.at >= 0).sort((a, b) => a.at - b.at);
   const pairs = new Map();
   let cursor = 0, previousEnd = 0;
@@ -567,13 +644,14 @@ function correctionPairs(before, after, findings) {
 }
 
 async function repairBody(body, findings, callLLM, options = {}) {
+  const units = splitUnits(body);
   const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction }) => {
-    const at = body.indexOf(sentence);
+    const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
       status, type, correct, quote, instruction };
   });
-  const ret = await callLLM({ task: 'repair', maxTokens: 4000,
+  const ret = await callLLM({ task: 'repair', maxTokens: 8000,
     system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。',
     user: JSON.stringify({ corrections }),
   });
@@ -588,7 +666,8 @@ async function repairBody(body, findings, callLLM, options = {}) {
     const rows = data.filter(r => r?.id === f.id);
     const replacement = typeof rows[0]?.replacement === 'string' ? rows[0].replacement.trim() : '';
     let reason = '';
-    if (rows.length > 1) reason = '修正のidが重複しています';
+    if (!units.some(u => !u.heading && u.text === f.sentence)) reason = '修正対象が本文の文に一致しません';
+    else if (rows.length > 1) reason = '修正のidが重複しています';
     else if (!replacement) reason = '置き換え後の文が空です';
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
@@ -610,10 +689,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     for (const f of rows) { replacements.delete(f.id); rejected.set(f.id, '同じ文の置き換えが一致しません'); }
   }
   const edits = new Map(findings.filter(f => replacements.has(f.id)).map(f => [f.sentence, replacements.get(f.id)]));
-  const intervals = [];
-  for (const [sentence, replacement] of edits) for (let at = body.indexOf(sentence); at >= 0; at = body.indexOf(sentence, at + sentence.length)) {
-    intervals.push({ at, end: at + sentence.length, replacement });
-  }
+  const intervals = units.filter(u => !u.heading && edits.has(u.text)).map(u => ({ at: u.start, end: u.end, replacement: edits.get(u.text) }));
   let revised = body;
   for (const edit of intervals.sort((a, b) => b.at - a.at)) revised = revised.slice(0, edit.at) + edit.replacement + revised.slice(edit.end);
   const stripped = partial.stripAnalysisPreamble(body, revised).body;
@@ -628,7 +704,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
 
 async function checkFacts(body, options = {}) {
   const cfg = config(options);
-  const record = { version: 1, status: 'not_run', model: cfg.model, provider: cfg.provider,
+  const record = { version: 1, logic_version: '03j', status: 'not_run', model: cfg.model, provider: cfg.provider,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (!cfg.enabled) return { body, record };
@@ -688,15 +764,17 @@ async function checkFacts(body, options = {}) {
     }
     let claims = extracted.claims, reused = [];
     if (previous) {
-      const subjects = [...new Set([...claims.map(c => c.subject), ...previous.filter(c => !fullBody.includes(c.sentence)).map(c => c.subject)])];
+      const { subjects, needsJudge } = affectedClaims(options.previousBody, fullBody, previous, claims);
+      const fullUnits = splitUnits(fullBody);
       const retained = previous.filter(c => actualSentence(fullBody, c.sentence) === c.sentence);
-      reused = retained.filter(c => !subjects.includes(c.subject));
-      const rejudged = retained.filter(c => subjects.includes(c.subject));
+      reused = retained.filter(c => !needsJudge(c));
+      const rejudged = retained.filter(needsJudge).map(c => ({ ...c,
+        heading: fullUnits.filter(u => u.heading && u.start < (fullUnits.find(u => !u.heading && u.text === c.sentence)?.start ?? 0))
+          .at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '' }));
       const seen = new Set(claims.map(c => `${c.sentence}:${c.type}:${c.subject}`));
       claims = [...claims, ...rejudged.filter(c => !seen.has(`${c.sentence}:${c.type}:${c.subject}`))];
       record.incremental = { reused: reused.length, rejudged: claims.length, subjects };
       claims = claims.map((c, i) => ({ ...c, id: `c${i + 1}` }));
-      const fullUnits = splitUnits(fullBody);
       reused = reused.map((c, i) => ({ ...c, id: `c${claims.length + i + 1}`, s: fullUnits.find(u => !u.heading && u.text === c.sentence)?.s }));
     }
     const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
@@ -815,7 +893,7 @@ async function checkArticle(raw, options = {}) {
         TYPES.includes(c.type) && STATUSES.includes(c.status) && typeof c.quote === 'string' && typeof c.correct === 'string' &&
         (Array.isArray(c.evidence) || (Array.isArray(c.evidence_ids) && c.evidence_ids.every(id => prior.evidence?.[id]))) &&
         (c.status === '資料なし' || (typeof c.evidence_id === 'string' && c.evidence_id && c.quote.trim()));
-      if (prior.version === 1 && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
+      if (prior.version === 1 && prior.logic_version === '03j' && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
           ['ok', 'revise'].includes(prior.status) && prior.model === cfg.model && prior.provider === cfg.provider &&
           Array.isArray(prior.claims) && Array.isArray(prior.rechecked) && Array.isArray(prior.corrections) &&
           prior.dropped === 0 && prior.discarded === 0 && rows.every(validRow)) {

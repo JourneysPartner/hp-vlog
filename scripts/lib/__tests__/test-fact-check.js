@@ -106,11 +106,12 @@ async function main() {
     const results = await F.judgeClaims([c()], {}, wrong, async () => { throw new Error('呼んではならない'); });
     assert.equal(results[0].status, '資料なし');
   });
-  await test('R3', '全主張をまとめ、同じ数字は1回、基準日の古さに注意', async () => {
+  await test('R3', '同じ文の21主張も一度に個別判定し、基準日の古さに注意', async () => {
     const claims = Array.from({ length: 21 }, (_, i) => ({ ...c(correct), id: `c${i}` }));
     let calls = 0;
     const results = await F.judgeClaims(claims, Object.fromEntries(claims.map(x => [x.id, [{ ...evidence[0], law_version: '令和5年4月1日現在法令等' }]])), correct,
-      async req => { calls++; const batch = readPayload(req).claims; assert.ok(batch.length <= 10); return batch.map(x => ({ id: x.id, status: '裏付けあり', quote: correct })); }, { now });
+      // 03jでは同じ文の主張は代表にせず、全21件を一度に判定する。
+      async req => { calls++; const batch = readPayload(req).claims; assert.equal(batch.length, 21); return batch.map(x => ({ id: x.id, status: '裏付けあり', quote: correct })); }, { now });
     assert.equal(calls, 1); assert.ok(results.every(r => r.warning === '注意: 根拠の基準日が古い'));
   });
   await test('R3', '空白・全角半角だけを揃えた引用が有効', async () => {
@@ -187,7 +188,8 @@ async function main() {
     const unchanged = fake({ revised: body });
     const r = await F.checkFacts(body, { callLLM: unchanged.fn, searchEvidence: () => [], now });
     assert.equal(r.record.status, 'revise');
-    const items = [c(correct), c('要件の主張。', '要件'), c('別の要件の主張。', '要件')];
+    // 03jの語の照合で別の期限文へ付け替えられないよう、要件の制度名もその文に合わせる。
+    const items = [c(correct), c('要件の主張。', '要件', { subject: '要件' }), c('別の要件の主張。', '要件', { subject: '要件' })];
     const cap = await F.checkFacts(items.map(x => x.sentence).join(''), { maxClaims: 1, repair: false, searchEvidence: () => evidence, now,
       callLLM: async req => req.task === 'extract' ? items : readPayload(req).claims.map(row => ({ id: row.id, status: '裏付けあり', quote: correct })) });
     assert.equal(cap.record.status, 'ok'); assert.equal(cap.record.dropped, 1);

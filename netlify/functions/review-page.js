@@ -6,7 +6,7 @@ const path = require('path');
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
-const { bodyHash, evidenceRefs } = require('../../scripts/lib/fact-check');
+const { bodyHash, evidenceRefs, normalizedQuote } = require('../../scripts/lib/fact-check');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -62,7 +62,8 @@ function renderFactCheck(meta, record, body) {
   const status = stale || unreadable ? 'not_run' : meta.fact_check_status || record?.status || '';
   const refs = item => evidenceRefs(record || {}, item).map(e => {
     const url = /^https:\/\//.test(e.url || '') ? e.url : '';
-    return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}<blockquote>${escapeHtml(e.text || '')}</blockquote></div>`;
+    const excerpt = !item.evidence_id || item.evidence_id === e.id ? factEvidenceExcerpt(e.text || '', item.quote || '') : '';
+    return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}${excerpt ? `<blockquote>${escapeHtml(excerpt)}</blockquote>` : ''}</div>`;
   }).join('');
   const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${escapeHtml(c.before || c.sentence)}</div><div><strong>後:</strong> ${escapeHtml(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
   const remaining = record?.remaining || [];
@@ -79,6 +80,24 @@ function renderFactCheck(meta, record, body) {
     <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>
     ${reviewItems.map(c => `<div class="border rounded p-3 mb-2"><div>${escapeHtml(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 見出し: ${escapeHtml(c.heading)} / 制度名: ${escapeHtml(c.subject)}</div>${refs(c)}</div>`).join('')}` : ''}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
+}
+
+/** 承認画面では原文全体を繰り返さず、引用の前後だけを表示する。 */
+function factEvidenceExcerpt(text, quote) {
+  const needle = normalizedQuote(quote);
+  if (!needle) return '';
+  let normalized = '';
+  const positions = [];
+  for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+    const part = normalizedQuote(match[0]);
+    normalized += part;
+    for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
+  }
+  const at = normalized.indexOf(needle);
+  if (at < 0) return '';
+  const start = Math.max(0, positions[at][0] - 300);
+  const end = Math.min(text.length, positions[at + needle.length - 1][1] + 300, start + 2000);
+  return text.slice(start, end);
 }
 
 async function fetchFactCheck(slug, ref, body) {

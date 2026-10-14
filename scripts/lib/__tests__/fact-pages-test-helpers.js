@@ -13,11 +13,11 @@ function materials(request) {
     return { number: Number(m[1]), title, url, law_version, rows, text: rows.map(u => u.text).join('\n') };
   });
 }
-function basisFor(page, quote) {
+function basisFor(page, quote, maxUnits = 4) {
   const wanted = F.normalizedQuote(quote);
   if (!wanted) return '';
   if (wanted.length < 15 && !page.rows.some(u => F.normalizedQuote(u.text) === wanted && /。$/.test(u.text))) return '';
-  for (let i = 0; i < page.rows.length; i++) for (let n = 1; n <= 4 && i + n <= page.rows.length; n++) {
+  for (let i = 0; i < page.rows.length; i++) for (let n = 1; n <= maxUnits && i + n <= page.rows.length; n++) {
     const text = page.rows.slice(i, i + n).map(u => u.text).join('\n');
     if (F.normalizedQuote(text).includes(wanted)) return n === 1 ? String(page.rows[i].s) : `${page.rows[i].s}-${page.rows[i + n - 1].s}`;
   }
@@ -27,7 +27,7 @@ function readPayload(request) {
   const data = JSON.parse(request.user);
   if (!data.claims) return data;
   const units = splitUnits(bodyText(data.body));
-  return { ...data, claims: data.claims.map(c => ({ ...c, sentence: units.find(u => u.s === c.s)?.text || '' })), evidence: materials(request).map(p => ({ ...p, id: p.number })) };
+  return { ...data, claims: data.claims.map(c => ({ ...c, sentence: units.find(u => u.s === c.s)?.text || c.sentence || '' })), evidence: materials(request).map(p => ({ ...p, id: p.number })) };
 }
 function numberedFake(fake, context = {}) {
   return async request => {
@@ -50,9 +50,11 @@ function numberedFake(fake, context = {}) {
       data = data.map(r => {
         if (r.basis !== undefined || r.status === '資料なし') return r;
         const candidates = input.claims.find(c => c.id === r.id)?.evidence_ids || [];
+        // 03jの数字の引用は2文まで。偽の応答も同じ上限で番号を返す。
+        const maxUnits = ['金額', '期限', '割合', '適用年', '番号'].includes(input.claims.find(c => c.id === r.id)?.type) ? 2 : 4;
         const idRef = context.refs?.find(e => e.id === r.evidence_id);
-        const page = pages.find(p => (!r.evidence_id ? candidates.includes(p.number) : idRef ? p.url === (idRef.url || '') && p.title === (idRef.title || '') : p.number === r.evidence_id) && basisFor(p, r.quote));
-        return { id: r.id, status: r.status, correct: r.correct || '', evidence_id: page?.number || 0, basis: page ? basisFor(page, r.quote) : '' };
+        const page = pages.find(p => (!r.evidence_id ? candidates.includes(p.number) : idRef ? p.url === (idRef.url || '') && p.title === (idRef.title || '') : p.number === r.evidence_id) && basisFor(p, r.quote, maxUnits));
+        return { id: r.id, status: r.status, correct: r.correct || '', evidence_id: page?.number || 0, basis: page ? basisFor(page, r.quote, maxUnits) : '' };
       });
     } else if (request.task === 'repair' && typeof data === 'string') {
       const corrections = JSON.parse(request.user).corrections;

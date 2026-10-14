@@ -81,7 +81,9 @@ async function realData() {
           const recorded = fixture.claims.find(f => f.type === c.type && f.subject === c.subject && f.claim === c.claim);
           const original = recorded && E.evidenceCatalog().entries.find(e => e.id === recorded.recorded_evidence_id);
           const page = original && pages.find(p => p.url === original.url && p.title === original.title);
-          const basis = page && H.basisFor(page, recorded.recorded_quote);
+          // 03jでは数字の根拠は2文まで。表せない記録の引用は資料なしとして返す。
+          const maxUnits = ['金額', '期限', '割合', '適用年', '番号'].includes(c.type) ? 2 : 4;
+          const basis = page && H.basisFor(page, recorded.recorded_quote, maxUnits);
           return { id: c.id, status: basis ? recorded.recorded_status : '資料なし', evidence_id: page?.number || 0, basis: basis || '', correct: recorded?.recorded_correct || '' };
         });
       };
@@ -288,7 +290,7 @@ async function main() {
   await test('T8', '置き換えだけ渡し、同じ文の全出現を直す・採らない条件', async () => {
     const sentence = '控除は100万円です。', body = '## 制度\n' + sentence + '\n案内。\n' + sentence, c = { ...claim(sentence, { type: '金額' }), status: '食い違い', quote: '控除は200万円です。', correct: '200万円' };
     const result = await F.repairBody(body, [c], async req => {
-      assert.equal(req.maxTokens, 4000); const p = JSON.parse(req.user); assert.equal(p.body, undefined);
+      assert.equal(req.maxTokens, 8000); const p = JSON.parse(req.user); assert.equal(p.body, undefined);
       assert.deepEqual(Object.keys(p.corrections[0]), ['id', 'sentence', 'heading', 'prev', 'next', 'status', 'type', 'correct', 'quote', 'instruction']);
       return [{ id: 'c1', replacement: '控除は200万円です。' }];
     }); assert.equal(result.body.split('200万円').length - 1, 2);
@@ -327,7 +329,8 @@ async function incrementalTests() {
   const refs = [ref('制度Aの条件と届出を確認します。制度Bの条件を満たします。')];
   const fake = calls => async req => {
     calls.push(req);
-    if (req.task === 'extract') return [...req.user.matchAll(/^\[(\d+)\] (制度([AB]).*)$/gm)].map(m => ({ s: Number(m[1]), type: '要件', subject: '制度' + m[3], claim: m[2] }));
+    // 「制度A」「制度B」は語が残らず関係が曖昧になるため、使い回しの試験には区別できる制度名を使う。
+    if (req.task === 'extract') return [...req.user.matchAll(/^\[(\d+)\] (制度([AB]).*)$/gm)].map(m => ({ s: Number(m[1]), type: '要件', subject: m[3] === 'B' ? '消費税' : '贈与税', claim: m[2] }));
     return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '1-2' }));
   };
   try {
@@ -335,7 +338,7 @@ async function incrementalTests() {
     await test('T9', '本文・記録一致の時だけ差分、同じ制度を再判定、他制度は使い回す', async () => {
       const calls = [];
       const r = await F.checkArticle(raw(after), opts({ recordDir: dir, persist: false, previousRaw: raw(before), repair: false, searchEvidence: () => refs, callLLM: fake(calls) }));
-      assert.deepEqual(r.record.incremental, { reused: 1, rejudged: 2, subjects: ['制度A'] });
+      assert.deepEqual(r.record.incremental, { reused: 1, rejudged: 2, subjects: ['贈与税'] });
       assert.equal(r.record.status, 'ok'); assert.equal(r.record.claims.length, 3);
       assert.ok(!calls[0].user.includes('制度B')); assert.equal(JSON.parse(calls.find(c => c.task === 'judge').user).claims.length, 2);
     });
@@ -354,7 +357,7 @@ async function incrementalTests() {
       const saved = fs.readFileSync(initial.recordFile, 'utf8');
       const deleted = before.replace('制度Aの条件を満たします。\n', '');
       const r = await F.checkArticle(raw(deleted), opts({ recordDir: dir, persist: false, previousRaw: raw(before), repair: false, searchEvidence: () => refs, callLLM: fake([]) }));
-      assert.deepEqual(r.record.incremental, { reused: 1, rejudged: 1, subjects: ['制度A'] });
+      assert.deepEqual(r.record.incremental, { reused: 1, rejudged: 1, subjects: ['贈与税'] });
       for (const missing of [false, true]) {
         if (missing) fs.unlinkSync(initial.recordFile); else fs.writeFileSync(initial.recordFile, '[', 'utf8');
         const calls = [];
@@ -372,7 +375,7 @@ async function incrementalTests() {
     });
     await test('T9', '使い回した食い違いも状態と承認差し止めへ反映', async () => {
       const prior = JSON.parse(fs.readFileSync(initial.recordFile, 'utf8'));
-      prior.status = 'revise'; prior.claims.find(c => c.subject === '制度B').status = '食い違い'; prior.claims.find(c => c.subject === '制度B').correct = '制度Bの条件を確認する';
+      prior.status = 'revise'; prior.claims.find(c => c.subject === '消費税').status = '食い違い'; prior.claims.find(c => c.subject === '消費税').correct = '制度Bの条件を確認する';
       fs.writeFileSync(initial.recordFile, JSON.stringify(prior), 'utf8');
       const r = await F.checkArticle(raw(after), opts({ recordDir: dir, persist: false, previousRaw: raw(before), repair: false, searchEvidence: () => refs, callLLM: fake([]) }));
       assert.equal(r.record.status, 'revise'); assert.equal(matter(r.content).data.fact_check_blocking, true); assert.equal(matter(r.content).data.recommendation, 'revise');
