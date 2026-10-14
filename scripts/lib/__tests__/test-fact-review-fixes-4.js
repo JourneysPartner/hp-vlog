@@ -60,13 +60,13 @@ async function main() {
     });
     assert.deepEqual(rows.map(c => c.status), ['裏付けあり', '食い違い']);
   });
-  await test('J1', '同じ文の同じ種類でも代表にせず、要約の数字で別の文をまとめる', async () => {
+  await test('J1', '同じ文・別の文とも代表にせず、要約の数字が同じでも全部判定する', async () => {
     const claims = [claim('控除100万円、限度200万円です。', { claim: '控除100万円' }),
       claim('控除100万円、限度200万円です。', { id: 'c2', claim: '控除100万円' }),
       claim('この控除は百万円です。', { id: 'c3', claim: '控除百万円' })];
     const rows = await judge(claims, '控除100万円、限度200万円です。', async req => {
-      assert.deepEqual(JSON.parse(req.user).claims.map(c => c.id), ['c1', 'c2']);
-      return [support('c1'), support('c2')];
+      assert.deepEqual(JSON.parse(req.user).claims.map(c => c.id), ['c1', 'c2', 'c3']);
+      return [support('c1'), support('c2'), support('c3')];
     });
     assert.equal(rows.length, 3); assert.equal(rows[2].status, '裏付けあり');
   });
@@ -77,25 +77,25 @@ async function main() {
       assert.equal(JSON.parse(req.user).claims.length, 2); return [support('c1'), support('c2')];
     });
   });
-  await test('J1', '番号の代表の引用に元の数字が無ければ個別判定へ戻す', async () => {
+  await test('J1', '番号の主張は最初から全部送り、それぞれの食い違いを記録する', async () => {
     const claims = [claim('根拠は第21条の5です。', { type: '番号', claim: '第21条の5' }),
       claim('この制度は第21条の5に規定されています。', { id: 'c2', type: '番号', claim: '第21条の5' })];
     const calls = [];
     const rows = await judge(claims, 'この制度は相続税法第21条の6に規定されています。', async req => {
       calls.push(req); return JSON.parse(req.user).claims.map(c => support(c.id, { status: '食い違い', correct: '第21条の6' }));
     });
-    assert.equal(calls.length, 2); assert.equal(calls[0].staticSystem, calls[1].staticSystem);
+    assert.equal(calls.length, 1); assert.equal(JSON.parse(calls[0].user).claims.length, 2);
     assert.deepEqual(rows.map(c => c.status), ['食い違い', '食い違い']);
   });
-  await test('J1', '番号の数字が引用から300字より離れていれば代表を当てない', async () => {
+  await test('J1', '番号の数字が同じでも2件目の資料なしを代表の結果で上書きしない', async () => {
     const claims = [claim('第21条の5が根拠です。', { type: '番号' }), claim('根拠を第21条の5としています。', { id: 'c2', type: '番号' })];
     let calls = 0;
     const rows = await judge(claims, 'この制度について原文の対象と条件を説明しています。\n' + '空'.repeat(301) + '第21条の5', async req => {
-      calls++; return JSON.parse(req.user).claims.map(c => support(c.id, calls > 1 ? { status: '資料なし' } : {}));
+      calls++; return JSON.parse(req.user).claims.map(c => support(c.id, c.id === 'c2' ? { status: '資料なし' } : {}));
     });
-    assert.equal(calls, 2); assert.equal(rows[1].status, '資料なし');
+    assert.equal(calls, 1); assert.equal(rows[1].status, '資料なし');
   });
-  await test('J2', '代表が期限の書き漏れなら残りを同じ資料で個別判定する', async () => {
+  await test('J2', '期限の書き漏れと同じ数字の主張も最初から1回に送る', async () => {
     const claims = [claim('控除は100万円です。'), claim('上限の控除額は100万円です。', { id: 'c2' })];
     const calls = [];
     const rows = await judge(claims, '控除は100万円、令和9年3月31日まで適用します。', async req => {
@@ -103,13 +103,13 @@ async function main() {
         ? { status: '期限の書き漏れ', correct: '令和9年3月31日まで' } : {}));
     });
     assert.equal(rows.length, 2); assert.equal(rows[1].status, '裏付けあり');
-    assert.equal(calls.length, 2); assert.equal(calls[0].staticSystem, calls[1].staticSystem);
+    assert.equal(calls.length, 1); assert.equal(JSON.parse(calls[0].user).claims.length, 2);
   });
-  await test('J2', '2件目の期限で代表が消えてもまとめた主張を記録する', async () => {
+  await test('J2', '2件目以降の期限も資料なしと理由を残し全主張を記録する', async () => {
     const claims = [claim('控除は100万円です。'), claim('別の控除は200万円です。', { id: 'c2' }), claim('別枠の控除額は200万円です。', { id: 'c3' })];
     const rows = await judge(claims, '控除は100万円と200万円で、令和9年3月31日までです。', async req => JSON.parse(req.user).claims.map(c =>
       support(c.id, { status: '期限の書き漏れ', correct: '令和9年3月31日まで' })));
-    assert.deepEqual(rows.map(c => c.id), ['c1', 'c3']); assert.equal(rows[1].status, '資料なし');
+    assert.deepEqual(rows.map(c => c.id), ['c1', 'c2', 'c3']); assert.ok(rows.slice(1).every(c => c.status === '資料なし'));
     assert.ok(rows[1].reject_reason); assert.equal(rows[1].type, '金額');
   });
   await test('J2', '個別の答えが無くても資料なしと理由を残し数字なら止める', async () => {
@@ -221,12 +221,12 @@ async function main() {
       }, mutate);
     });
   }
-  for (const type of ['金額', '期限', '割合', '適用年', '番号']) await test('J6', `${type}の根拠3〜4文は理由付き資料なし、2文は通す`, async () => {
+  for (const type of ['金額', '期限', '割合', '適用年', '番号']) await test('J6', `${type}の根拠3〜4文も確認を通る2文以内に絞って救う`, async () => {
     const text = '控除100万円、令和9年3月31日まで、割合10%、第21条です。\n制度の適用要件を説明しています。\n申告の手続を説明しています。\n参考の注意事項を説明しています。';
     for (const basis of ['1-2', '1-3', [1, 2, 3, 4]]) {
       const rows = await judge([claim(text.split('\n')[0], { type })], text, async () => [support('c1', { basis })]);
-      assert.equal(rows[0].status, basis === '1-2' ? '裏付けあり' : '資料なし');
-      if (basis !== '1-2') assert.equal(rows[0].reject_reason, '数字の主張の根拠が2文を超える');
+      assert.equal(rows[0].status, '裏付けあり');
+      if (basis !== '1-2') { assert.equal(rows[0].quote, text.split('\n')[0]); assert.equal(rows[0].reject_reason, undefined); }
     }
   });
   await test('J6', '要件・判定・手続の根拠は4文まで維持する', async () => {
@@ -311,11 +311,11 @@ async function main() {
     const result = await F.extractClaims('## 配偶者控除\n案内です。\n配偶者控除の申告条件を確認します。', async () => [{ s: 1, type: '要件', subject: '配偶者控除', claim: '申告条件を確認' }]);
     assert.equal(result.claims[0].s, 3);
   });
-  await test('J12', '指した文より2語以上重なる文へ付け替え、1語差では維持する', async () => {
+  await test('J12', '要約の語の重なりが0なら付け替え、制度名だけの一致では維持しない', async () => {
     const result = await F.extractClaims('制度の案内です。\n制度の配偶者控除の申告条件を確認します。', async () => [{ s: 1, type: '要件', subject: '制度', claim: '配偶者控除の申告条件を確認' }]);
     assert.equal(result.claims[0].s, 2);
     const retained = await F.extractClaims('alphaを案内します。betaを案内します。', async () => [{ s: 1, type: '要件', subject: 'alpha', claim: 'beta' }]);
-    assert.equal(retained.claims[0].s, 1);
+    assert.equal(retained.claims[0].s, 2);
   });
   await test('J2', '多くの答えが不正なら修正せず照合不能とreject_reasonを維持', async () => {
     const body = '控除は100万円です。控除は200万円です。控除は300万円です。';

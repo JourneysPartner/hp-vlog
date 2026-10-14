@@ -178,7 +178,8 @@ async function main() {
   await test('F14', async () => {
     const claims = ['c1', 'c2'].map(id => ({ ...claim(sentence, '要件'), id }));
     const r = await F.judgeClaims(claims, { c1: refs, c2: refs }, '', async () => claims.map(c => ({ id: c.id, status: '期限の書き漏れ', quote: sentence, correct: sentence })));
-    assert.equal(r.length, 1); assert.equal(r[0].status, '期限の書き漏れ');
+    assert.equal(r.length, 2); assert.equal(r[0].status, '期限の書き漏れ');
+    assert.equal(r[1].status, '資料なし'); assert.equal(r[1].reject_reason, '同じ制度の期限の書き漏れは記録済み');
   });
   await test('F15', () => {
     const page = require('../../../netlify/functions/review-page');

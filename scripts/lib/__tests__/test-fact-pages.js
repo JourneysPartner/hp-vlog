@@ -280,11 +280,11 @@ async function main() {
       : rows(() => '99')(req) }));
     assert.equal(result.record.status, 'not_run'); assert.equal(result.body, body); assert.match(result.record.error, /確認を通りません/);
   });
-  await test('T7', '同じ数字の事実だけ1回、各文に結果を当てる', async () => {
+  await test('T7', '同じ数字の事実もまとめず、各文を1回の判定に送る', async () => {
     const claims = [claim('制度の控除は100万円です。', { type: '金額' }), claim('控除は百万円です。', { id: 'c2', type: '金額' }),
       claim('制度の要件は100万円です。', { id: 'c3' }), claim('制度の判定は100万円です。', { id: 'c4', type: '判定' }), claim('制度の手続は100万円です。', { id: 'c5', type: '手続' })];
     const rows = await F.judgeClaims(claims, Object.fromEntries(claims.map(c => [c.id, [ref(claims[0].sentence)]])), claims.map(c => c.sentence).join('\n'), async req => {
-      assert.equal(JSON.parse(req.user).claims.length, 4); return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '1' }));
+      assert.equal(JSON.parse(req.user).claims.length, 5); return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '1' }));
     }, opts()); assert.equal(rows.length, 5); assert.equal(rows[1].status, '裏付けあり'); assert.equal(rows[1].sentence, claims[1].sentence);
   });
   await test('T8', '置き換えだけ渡し、同じ文の全出現を直す・採らない条件', async () => {

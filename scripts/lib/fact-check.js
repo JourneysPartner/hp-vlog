@@ -304,17 +304,19 @@ async function extractClaims(body, callLLM, options = {}) {
     let unit = number ? units[number - 1] || null : null;
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
-      const numbers = isNumericClaim({ ...c, sentence: c.claim }) ? normalizedNumbers(c.claim) : [];
-      if (numbers.length) {
+      const numbers = normalizedNumbers(c.claim);
+      const contains = u => numbers.every(n => normalizedNumbers(u.text).includes(n));
+      if (isNumericClaim({ ...c, sentence: c.claim }) && numbers.length) {
         // 読めない割合が同じ原文にある場合は抽出し、後段の歯止めで止める。
-        const contains = u => numbers.every(n => normalizedNumbers(u.text).includes(n));
         if (unit.heading || !contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
       } else {
-        const words = [...tokenizeForMatcher(`${c.subject || ''} ${c.claim || ''}`)];
+        const words = [...tokenizeForMatcher(c.claim || '')];
         const overlap = u => words.filter(w => normalizedQuote(u.text).toLowerCase().includes(w)).length;
-        const best = near.map(u => ({ u, score: overlap(u) })).sort((a, b) => b.score - a.score || a.u.s - b.u.s).find(p => p.score);
-        if (unit.heading || !overlap(unit)) unit = best?.u || null;
-        else if (best && best.score >= overlap(unit) + 2) unit = best.u;
+        if (unit.heading || !overlap(unit)) {
+          const best = near.filter(contains).map(u => ({ u, score: overlap(u) }))
+            .sort((a, b) => b.score - a.score || a.u.s - b.u.s).find(p => p.score);
+          unit = best?.u || null;
+        }
       }
     }
     const sentence = unit?.text || '';
@@ -355,26 +357,18 @@ function sourceDate(version) {
 }
 
 async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
-  const results = new Map(), queued = [], aliases = new Map(), numeric = new Map();
+  const results = new Map(), queued = [];
+  const units = splitUnits(body);
   for (const c of claims) {
     const refs = evidence[c.id] || [];
-    if (!refs.length) results.set(c.id, { ...c, status: '資料なし', quote: '', correct: '', evidence: [] });
-    else {
-      const numbers = normalizedNumbers(c.claim);
-      const key = isNumericClaim(c) && numbers.length && !numbers.includes(null)
-        ? JSON.stringify([c.subject, c.type, [...new Set(numbers)].sort()]) : null;
-      const representative = key && (numeric.get(key) || []).find(r => r.sentence !== c.sentence);
-      if (representative) aliases.set(c.id, representative.id);
-      else {
-        queued.push(c);
-        if (key) numeric.set(key, [...numeric.get(key) || [], c]);
-      }
-    }
+    if (!refs.length) results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
+      s: units.find(u => !u.heading && u.text === c.sentence)?.s,
+      status: '資料なし', quote: '', correct: '', evidence: [], evidence_id: '' });
+    else queued.push(c);
   }
-  const units = splitUnits(body);
   const deadlineSubjects = new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。`;
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]';
   const cache = options.pageCache;
   let groups;
@@ -387,12 +381,11 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       group.claims.push(c);
     }
   } else {
-    // 別の文に当てる結果も、各文の候補を資料表に含める。
-    groups = pageGroups(claims.filter(c => evidence[c.id]?.length), evidence, options)
-      .map(g => ({ ...g, claims: g.claims.filter(c => !aliases.has(c.id)), staticSystem: instruction + example + '\n\n' + g.pack.block }));
+    groups = pageGroups(queued, evidence, options)
+      .map(g => ({ ...g, staticSystem: instruction + example + '\n\n' + g.pack.block }));
     if (cache) cache.groups = groups;
   }
-  const judgeBatch = async (batch, group, depth = 0, keepResult = false) => {
+  const judgeBatch = async (batch, group, depth = 0) => {
     const known = new Set(group.pack.pages.map(p => p.id));
     const missing = Object.fromEntries(batch.map(c => [c.id, (evidence[c.id] || []).filter(e => !known.has(e.id))]));
     const extra = buildPages(batch, missing, options, group.pack.pages.length + 1);
@@ -409,7 +402,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     if (!fits) {
       if (group.fresh) throw new Error('判定の資料に主張の抜粋を収められません');
       for (const g of pageGroups(batch, evidence, options)) {
-        await judgeBatch(g.claims, { ...g, fresh: true, staticSystem: instruction + example + '\n\n' + g.pack.block }, depth, keepResult);
+        await judgeBatch(g.claims, { ...g, fresh: true, staticSystem: instruction + example + '\n\n' + g.pack.block }, depth);
       }
       return;
     }
@@ -433,7 +426,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       let retryError;
       const at = Math.ceil(batch.length / 2);
       for (const half of [batch.slice(0, at), batch.slice(at)]) {
-        try { await judgeBatch(half, group, depth + 1, keepResult); } catch (err) { retryError ||= err; }
+        try { await judgeBatch(half, group, depth + 1); } catch (err) { retryError ||= err; }
       }
       if (retryError) throw retryError;
       return;
@@ -452,8 +445,25 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const candidates = (evidence[c.id] || []).map(e => byId.get(e.id).ref);
       const evidenceNo = unitNumber(r?.evidence_id);
       const page = evidenceNo ? pages.find(p => p.number === evidenceNo && candidates.some(e => e.id === p.id)) : null;
-      const cited = page && rangeText(page.source, page.units, r?.basis);
-      const tooMany = NUMERIC_TYPES.has(c.type) && cited && !rangeText(page.source, page.units, r?.basis, 2);
+      let cited = page && rangeText(page.source, page.units, r?.basis);
+      let tooMany = NUMERIC_TYPES.has(c.type) && cited && !rangeText(page.source, page.units, r?.basis, 2);
+      if (tooMany && status !== '資料なし') {
+        // 返された範囲の前から、確認を通る連続1〜2文だけを引用に採る。
+        const selected = page.units.filter(u => u.start >= cited.start && u.end <= cited.end);
+        let rescued;
+        for (let i = 0; i < selected.length && !rescued; i++) for (const length of [1, 2]) {
+          if (i + length > selected.length) continue;
+          const candidate = rangeText(page.source, page.units, `${selected[i].s}-${selected[i + length - 1].s}`, 2);
+          const grounded = { correct: correct ?? '', quote: candidate?.text || '' };
+          const numbers = normalizedNumbers(status === '裏付けあり' ? c.claim : correct);
+          if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(c.sentence));
+          if (candidate && evidenceTexts(page.ref).some(text => normalizedQuote(text).includes(normalizedQuote(candidate.text))) &&
+              sufficientQuote(c, grounded, page.ref, status) &&
+              quoteSupportsNumbers(numbers, grounded, page.ref)) rescued = candidate;
+          if (rescued) break;
+        }
+        if (rescued) { cited = rescued; tooMany = false; }
+      }
       const quote = cited?.text || '';
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
@@ -472,7 +482,6 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       // 同じ制度の期限の2件目は修正対象に加えない。
       if (status === '期限の書き漏れ') {
         if (deadlineSubjects.has(c.subject)) {
-          if (!keepResult) continue;
           status = '資料なし'; reason = '同じ制度の期限の書き漏れは記録済み';
         } else deadlineSubjects.add(c.subject);
       }
@@ -489,7 +498,6 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     }
   };
   const checkTally = () => {
-    // 個別の再判定を足す前にも確認し、最初の答えの不備を追加の成功で薄めない。
     const judged = tally.declared + tally.missing;
     if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= tally.total)) {
       console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
@@ -499,24 +507,6 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     }
   };
   for (const group of groups) if (group.claims.length) await judgeBatch(group.claims, group);
-  checkTally();
-  for (const c of claims) if (aliases.has(c.id)) {
-    const representative = results.get(aliases.get(c.id));
-    const refs = evidence[c.id] || [];
-    const ref = representative?.evidence.find(r => r.id === representative.evidence_id);
-    const usable = representative && representative.status !== '期限の書き漏れ' &&
-      (representative.status === '資料なし' || (refs.some(r => r.id === representative.evidence_id) &&
-        sufficientQuote(c, representative, ref, representative.status) && quoteSupportsNumbers(normalizedNumbers(c.claim), representative, ref)));
-    if (!usable) {
-      // 代表が不在・期限の指摘・引用の確認不合格なら、同じ資料で個別に判定し記録を残す。
-      const own = new Set(refs.map(r => r.id));
-      const group = [...groups].sort((a, b) => b.pack.pages.filter(p => own.has(p.id)).length - a.pack.pages.filter(p => own.has(p.id)).length)[0];
-      await judgeBatch([c], group, 0, true);
-      continue;
-    }
-    results.set(c.id, { ...representative, ...c, s: units.find(u => !u.heading && u.text === c.sentence)?.s,
-      evidence: refs.map(r => representative.evidence.find(p => p.id === r.id) || r) });
-  }
   // 答えの多くが確認を通らない・返らないのは、答えの形の不一致などの不具合の疑いが強い。
   // そのまま進むと正しい数字まで資料なしとして置き換えてしまうため、照合不能として止める（fail-closed）。
   checkTally();
@@ -579,9 +569,10 @@ function affectedClaims(before, after, previous, extracted) {
     return headings.length ? headings : list.map((_, i) => i); // 位置が曖昧なら再判定する。
   };
   const inAffected = c => locations(c, oldSections).some(i => affected.has(i)) || locations(c, newSections).some(i => affected.has(i));
+  const headingChanged = c => newSections.some(s => s.rows.includes(c.sentence) && s.heading !== c.heading);
   const subjects = [...new Set([...extracted.map(c => c.subject), ...previous.filter(c =>
-    !actualSentence(after, c.sentence) || inAffected(c) || removedDates.some(row => subjectsOverlap(c.subject, row))).map(c => c.subject)])];
-  return { subjects, needsJudge: c => inAffected(c) || subjects.some(subject => subjectsOverlap(subject, c.subject)) };
+    !actualSentence(after, c.sentence) || inAffected(c) || headingChanged(c) || removedDates.some(row => subjectsOverlap(c.subject, row))).map(c => c.subject)])];
+  return { subjects, needsJudge: c => inAffected(c) || headingChanged(c) || subjects.some(subject => subjectsOverlap(subject, c.subject)) };
 }
 
 function subjectsOverlap(a, b) {
@@ -768,7 +759,7 @@ async function checkFacts(body, options = {}) {
       const fullUnits = splitUnits(fullBody);
       const retained = previous.filter(c => actualSentence(fullBody, c.sentence) === c.sentence);
       reused = retained.filter(c => !needsJudge(c));
-      const rejudged = retained.filter(needsJudge).map(c => ({ ...c,
+      const rejudged = retained.filter(needsJudge).map(c => ({ id: c.id, sentence: c.sentence, type: c.type, subject: c.subject, claim: c.claim,
         heading: fullUnits.filter(u => u.heading && u.start < (fullUnits.find(u => !u.heading && u.text === c.sentence)?.start ?? 0))
           .at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '' }));
       const seen = new Set(claims.map(c => `${c.sentence}:${c.type}:${c.subject}`));
