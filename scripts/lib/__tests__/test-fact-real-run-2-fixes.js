@@ -6,7 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const matter = require('gray-matter');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const E = require('../fact-evidence');
 const groups = {};
 let pass = 0, fail = 0;
@@ -15,8 +15,8 @@ const claim = (sentence, type = '金額', subject = '制度', id = 'c1') => ({ i
 const ref = (text, id = '資料1', extra = {}) => ({ id, title: '制度の原文', url: `https://example.jp/${id}`, law_version: '', text, ...extra });
 const options = extra => ({ enabled: true, provider: 'anthropic', model: 'claude-opus-5-5', now, persist: false, ...extra });
 const raw = body => `---\nslug: real-run-2-test\nrecommendation: publish\n---\n${body}`;
-const missing = request => JSON.parse(request.user).claims.map(c => ({ id: c.id, status: '資料なし' }));
-const supported = request => JSON.parse(request.user).claims.map(c => ({ id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: '資料1' }));
+const missing = request => readPayload(request).claims.map(c => ({ id: c.id, status: '資料なし' }));
+const supported = request => readPayload(request).claims.map(c => ({ id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: '資料1' }));
 async function test(group, name, fn) {
   groups[group] ||= { pass: 0, fail: 0 };
   try { await fn(); pass++; groups[group].pass++; console.log(`PASS ${group}: ${name}`); }
@@ -79,11 +79,11 @@ async function main() {
     const claims = Array.from({ length: 10 }, (_, i) => claim(`控除額は${i + 1}万円です。`, '金額', '制度', `c${i + 1}`));
     const evidence = Object.fromEntries(claims.map(c => [c.id, [ref(text)]]));
     await F.judgeClaims(claims, evidence, '', async request => {
-      const payload = JSON.parse(request.user);
-      assert.equal(payload.evidence.length, 1); assert.equal(request.user.split(text).length - 1, 1);
+      const payload = readPayload(request);
+      assert.equal(payload.evidence.length, 1); assert.equal(request.system.split(text).length - 1, 1);
       assert.equal(payload.claims.length, 10);
-      for (const c of payload.claims) { assert.deepEqual(c.evidence_ids, ['資料1']); assert.equal(c.evidence, undefined); }
-      assert.deepEqual(Object.keys(payload.evidence[0]), ['id', 'title', 'url', 'law_version', 'text']);
+      for (const c of payload.claims) { assert.deepEqual(c.evidence_ids, [1]); assert.equal(c.evidence, undefined); }
+      assert.equal(JSON.parse(request.user).evidence, undefined);
       assert.match(request.system, /evidence の中の、各主張の evidence_ids の資料だけ/);
       return missing(request);
     }, { now });
@@ -92,8 +92,8 @@ async function main() {
     const text = '前半の説明です。'.repeat(120) + amount.sentence + '後半の説明です。'.repeat(200);
     const claims = [claim(amount.sentence), claim(amount.sentence, '金額', '別制度', 'c2')];
     const refs = { c1: [ref(text.slice(0, 1500), '資料1', { text_start: 0 })], c2: [ref(text.slice(1000, 3000), '資料1', { text_start: 1000 })] };
-    const result = await F.judgeClaims(claims, refs, '', async request => {
-      assert.equal(JSON.parse(request.user).evidence[0].text, text.slice(0, 3000));
+    const result = await F.judgeClaims(claims, refs, amount.sentence, async request => {
+      assert.equal(F.normalizedQuote(readPayload(request).evidence[0].text), F.normalizedQuote(text.slice(0, 3000)));
       return supported(request);
     }, { now });
     assert.ok(result.every(c => c.status === '裏付けあり'));
@@ -110,15 +110,15 @@ async function main() {
     const compact = F.compactRecord({ claims: result });
     assert.deepEqual(F.evidenceRefs(compact, compact.claims[0])[0].text_ranges, result[0].evidence[0].text_ranges);
   });
-  await test('K3', '資料は4000文字まで。送らなかった原文の引用は通さない', async () => {
+  await test('K3', '6000文字以下の原文は全文を載せ、末尾の根拠も使える', async () => {
     const claims = [amount, claim(amount.sentence, '金額', '別制度', 'c2'), claim(amount.sentence, '金額', '他制度', 'c3')];
     const text = Array.from({ length: 1000 }, (_, i) => `${String(i).padStart(4, '0')}説明`).join('').slice(0, 5500) + amount.sentence;
     const refs = Object.fromEntries(claims.map((c, i) => [c.id, [ref(text.slice(i * 2000, i * 2000 + 2000), '資料1', { text_start: i * 2000 })]]));
-    const result = await F.judgeClaims(claims, refs, '', async request => {
-      assert.equal(JSON.parse(request.user).evidence[0].text.length, 4000);
+    const result = await F.judgeClaims(claims, refs, amount.sentence, async request => {
+      assert.equal(F.normalizedQuote(readPayload(request).evidence[0].text), F.normalizedQuote(text));
       return supported(request);
     }, { now });
-    assert.ok(result.every(c => c.status === '資料なし'));
+    assert.ok(result.every(c => c.status === '裏付けあり'));
   });
   await test('K3', '同じバッチでも他主張だけの候補IDは採用できない', async () => {
     const claims = [amount, claim(amount.sentence, '金額', '別制度', 'c2')];
@@ -141,14 +141,14 @@ async function main() {
     let current = 0, previous = 0, calls = 0;
     await F.judgeClaims(claims, evidence, body, async request => {
       calls++;
-      const payload = JSON.parse(request.user);
+      const payload = readPayload(request);
       current += request.system.length + request.user.length;
       const oldSystem = request.system.replace('evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。', '');
       const oldClaims = payload.claims.map(c => ({ ...claims.find(row => row.id === c.id), evidence: shared }));
       previous += oldSystem.length + JSON.stringify({ today: payload.today, body, claims: oldClaims }).length;
       return missing(request);
     }, { now });
-    assert.equal(calls, 8); assert.ok(current <= previous / 2);
+    assert.equal(calls, 1); assert.ok(current <= previous / 2);
     console.log('K3 判定の入力文字数:', JSON.stringify({ claims: 79, calls, before_03e: previous, after_03f: current, ratio: current / previous }));
   });
 
@@ -223,8 +223,9 @@ async function main() {
       : [ref('住宅取得の説明です。', primary), ...Array.from({ length: 6 }, (_, i) => ref('別の制度の説明です。', `候補${i}`))], callLLM: async request => {
       if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct, '要件', changedSubject && !request.user.includes(wrong) ? '居住要件' : '贈与税の配偶者控除')];
       if (request.task === 'repair') return body.replace(wrong, correct);
-      const c = JSON.parse(request.user).claims[0];
-      assert.ok(c.evidence_ids.includes(correctionSource.id)); assert.equal(c.evidence_ids[0], primary); assert.ok(c.evidence_ids.length <= 7);
+      const c = readPayload(request).claims[0];
+      assert.ok(c.evidence_ids.some(id => readPayload(request).evidence.find(e => e.id === id)?.url === correctionSource.url));
+      assert.equal(readPayload(request).evidence.find(e => e.id === c.evidence_ids[0]).url, ref('', primary).url); assert.ok(c.evidence_ids.length <= 7);
       return [{ id: c.id, status: c.sentence === wrong ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: correctionSource.id }];
     } }));
     assert.equal(result.record.status, 'ok'); assert.equal(result.record.corrections[0].resolved, true);
@@ -235,7 +236,7 @@ async function main() {
       callLLM: async request => {
         if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct, '要件')];
         if (request.task === 'repair') return correct;
-        assert.ok(JSON.parse(request.user).evidence[0].text.includes(correct));
+        assert.ok(readPayload(request).evidence[0].text.includes(correct));
         return [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: correctionSource.id }];
       } }));
     assert.equal(result.record.status, 'ok'); assert.equal(result.record.corrections[0].resolved, true);
@@ -257,7 +258,7 @@ async function main() {
         if (request.task === 'repair') return correct;
         return [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: correctionSource.id }];
       } }));
-      assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'extract', 'judge']);
+      assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
       assert.equal(result.record.input_chars_total, result.record.calls.reduce((sum, c) => sum + c.input_chars, 0));
       assert.equal(JSON.parse(fs.readFileSync(result.recordFile, 'utf8')).input_chars_total, result.record.input_chars_total);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }

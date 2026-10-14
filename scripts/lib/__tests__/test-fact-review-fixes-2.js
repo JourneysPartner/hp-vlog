@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const matter = require('gray-matter');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const G = require('../../generate-draft');
 const A = require('../fact-audit');
 const C = require('../freshness-candidates');
@@ -51,7 +51,7 @@ async function main() {
       postsDir: dir, generateArticle: async () => ({ content: raw(wrong), model: '偽のモデル' }),
       selfCheck: () => {}, checkGenerated: async () => ({ duplicate: false }),
       factCheck: (content, options) => F.checkArticle(content, { ...options, searchEvidence: () => [{ id: 'e1', text: correct }],
-        callLLM: async request => request.task === 'extract' ? [claim(request.user.trim())]
+        callLLM: async request => request.task === 'extract' ? [claim(bodyText(request.user).trim())]
           : request.task === 'repair' ? correct
             : [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: 'e1' }] }),
     });

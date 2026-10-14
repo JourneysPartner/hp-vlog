@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const A = require('../../audit-published-facts');
-const F = require('../fact-check');
+const { F, bodyText } = require('./fact-pages-test-helpers');
 const candidates = require('../freshness-candidates');
 const refresh = require('../freshness-refresh');
 let pass = 0, fail = 0; const groups = {};
@@ -36,8 +36,8 @@ async function main() {
         searchEvidence: () => [{ id: 'e', text, title: '国税庁', url: 'https://example.jp/' }],
         callLLM: async req => {
           calls++; if (req.task === 'repair') throw new Error('修正を呼ばない');
-          if (req.task === 'extract') return [{ id: 'c1', sentence: text, claim: text, subject: '非課税制度', type: '期限' }];
-          return [{ id: 'c1', status: '食い違い', quote: text, correct: text }];
+          if (req.task === 'extract') return [{ s: 1, claim: text, subject: '非課税制度', type: '期限' }];
+          return [{ id: 'c1', status: '食い違い', evidence_id: 1, basis: '1', correct: text }];
         } };
       const r = await A.run([], options);
       assert.equal(r.records.length, 2); assert.equal(r.records[0].claims[0].status, '食い違い');
@@ -73,7 +73,7 @@ async function main() {
     for (const p of posts) {
       const result = await F.extractClaims(p.body, async request => {
         chars += request.system.length + request.user.length;
-        return A.estimateClaims(request.user).map(sentence => ({ sentence, claim: sentence, subject: '見積もり', type: '要件' }));
+        return A.estimateClaims(bodyText(request.user)).map(sentence => ({ sentence, claim: sentence, subject: '見積もり', type: '要件' }));
       });
       claims += result.claims.length + result.dropped;
     }

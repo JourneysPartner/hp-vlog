@@ -164,4 +164,13 @@ function searchEvidence(claim, options = {}) {
   });
 }
 
-module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt };
+// 検索の候補・順番・抜粋は変えず、資料表を作るときだけ原文を読む。
+function loadEvidenceText(ref) {
+  const entry = evidenceCatalog().entries.find(e => e.id === ref.id);
+  if (!entry) return ref.text;
+  const text = entry.lazy ? entry.kind === 'law' ? laws.getArticle(entry.key, entry.no)?.text
+    : tsutatsu.findProvisions(entry.no, entry.circular)[entry.variant || 0]?.body : entry.text;
+  if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
+  return text;
+}
+module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText };

@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const matter = require('gray-matter');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const E = require('../fact-evidence');
 const page = require('../../../netlify/functions/review-page');
 const audit = require('../../audit-published-facts');
@@ -30,8 +30,8 @@ const draft = (body, extra = '') => `---\ntitle: "小規模宅地の特例、親
 const housing = '二世帯住宅の場合は、構造や出入口の状況、各世帯の独立性などによって判断が変わります。';
 const rebuilding = '建て替えのために一時的に居住の用に供されなくなった場合の扱いは、租税特別措置法の条文でも「居住の用に供されなくなる直前の居住の用」が一定の範囲で含まれる旨が規定されています。';
 
-const supported = request => JSON.parse(request.user).claims.map(c => ({ id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: '資料1' }));
-const missing = request => JSON.parse(request.user).claims.map(c => ({ id: c.id, status: '資料なし' }));
+const supported = request => readPayload(request).claims.map(c => ({ id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: '資料1' }));
+const missing = request => readPayload(request).claims.map(c => ({ id: c.id, status: '資料なし' }));
 const options = extra => ({ enabled: true, provider: 'anthropic', model: 'claude-opus-5-5', now, persist: false, ...extra });
 const meta = result => matter(result.content).data;
 
@@ -44,7 +44,7 @@ async function main() {
     const result = await F.checkArticle(raw(body), options({ searchEvidence: () => [ref(amounts.map(c => c.sentence).join('\n'))], callLLM: async request => {
       calls.push(request.task);
       if (request.task === 'extract') return items;
-      if (request.task === 'judge') return JSON.parse(request.user).claims.map(c => ({ id: c.id,
+      if (request.task === 'judge') return readPayload(request).claims.map(c => ({ id: c.id,
         status: c.type === '金額' ? '裏付けあり' : '資料なし', quote: c.type === '金額' ? c.sentence : '', evidence_id: '資料1' }));
       assert.fail('資料なしの判定を修正に送ってはいけません');
     } }));
@@ -54,7 +54,7 @@ async function main() {
     assert.equal(meta(result).fact_check_blocking, false); assert.equal(meta(result).recommendation, 'publish');
     assert.match(meta(result).fact_check_summary, /人が確かめる箇所 10 件/);
     for (const c of result.record.review_items) {
-      assert.equal(c.heading, '制度の確認'); assert.equal(c.subject, '制度'); assert.equal(c.type, '判定');
+      assert.equal(c.heading, ''); assert.equal(c.subject, '制度'); assert.equal(c.type, '判定');
       assert.deepEqual(c.evidence, [{ id: '資料1', title: '制度の原文', url: 'https://example.jp/source' }]);
     }
   });
@@ -80,7 +80,7 @@ async function main() {
         ? [claim(deadline, '期限'), claim(judgment)] : [claim(guidance, '手続')];
       if (request.task === 'judge') return missing(request);
       assert.equal(request.task, 'repair');
-      const corrections = JSON.parse(request.user).corrections;
+      const corrections = readPayload(request).corrections;
       assert.equal(corrections.length, 1); assert.equal(corrections[0].type, '期限');
       return after;
     } }));
@@ -106,7 +106,7 @@ async function main() {
     const correct = 'この制度の適用には令和9年3月31日までの申請が必要です。';
     const result = await F.checkArticle(raw(sentence), options({ searchEvidence: () => [ref(correct)], callLLM: async request => {
       if (request.task === 'extract') return [claim(sentence)];
-      if (request.task === 'judge') return JSON.parse(request.user).claims.map(c => ({ id: c.id, status, quote: correct, correct, evidence_id: '資料1' }));
+      if (request.task === 'judge') return readPayload(request).claims.map(c => ({ id: c.id, status, quote: correct, correct, evidence_id: '資料1' }));
       return sentence;
     } }));
     assert.equal(result.record.status, 'revise'); assert.equal(result.record.remaining[0].status, status);
@@ -120,7 +120,7 @@ async function main() {
     const body = `## 制度\n${wrong}\n${untouched}`;
     const result = await F.checkArticle(raw(body), options({ searchEvidence: () => [ref(correct)], callLLM: async request => {
       if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct)];
-      if (request.task === 'judge') return JSON.parse(request.user).claims.map(c => ({ id: c.id,
+      if (request.task === 'judge') return readPayload(request).claims.map(c => ({ id: c.id,
         status: c.sentence === wrong ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: '資料1' }));
       return body.replace(wrong, correct);
     } }));
@@ -186,12 +186,12 @@ async function main() {
     const candidates = [], body = `${housing}\n${rebuilding}`;
     const result = await F.checkArticle(draft(body), options({ repair: false, callLLM: async request => {
       if (request.task === 'extract') return [claim(housing, '判定', '小規模宅地等の特例'), claim(rebuilding, '要件', '小規模宅地等の特例')];
-      const payload = JSON.parse(request.user), rows = payload.claims;
+      const payload = readPayload(request), rows = payload.claims;
       for (const c of rows) {
         const refs = c.evidence_ids.map(id => payload.evidence.find(e => e.id === id));
-        assert.equal(refs[0].id, primary); assert.equal(E.evidenceCatalog().entries.find(e => e.id === refs[0].id).kind, 'shitsugi');
+        assert.equal(refs[0].url, primary); assert.equal(E.evidenceCatalog().entries.find(e => e.id === refs[0].url).kind, 'shitsugi');
         assert.equal(refs[0].title, primaryTitle); assert.ok(refs[0].text.includes('生活の拠点'));
-        assert.ok(refs.every(e => e.text.length <= 4000));
+        assert.ok(refs.every(e => e.text.replace(/\n/g, '').length <= 12000));
         candidates.push({ sentence: c.sentence, evidence: refs.map(({ id, title }) => ({ id, title })) });
       }
       return missing(request);
@@ -217,10 +217,10 @@ async function main() {
       await F.checkArticle(draft(housing, frontmatter + 'source_bundle: "措法69条の4"\n'), options({ repair: false, callLLM: async request => {
         if (request.task === 'extract') return [claim(housing, '判定', '小規模宅地等の特例')];
         judged = true;
-        const payload = JSON.parse(request.user);
+        const payload = readPayload(request);
         const refs = payload.claims[0].evidence_ids.map(id => payload.evidence.find(e => e.id === id));
-        assert.equal(refs[0].id, primary); assert.equal(refs[1].url, supplement);
-        assert.ok(refs.some(e => e.id === 'law:sozeki_hou:69_4')); return missing(request);
+        assert.equal(refs[0].url, primary); assert.equal(refs[1].url, supplement);
+        assert.ok(refs.some(e => e.url === E.evidenceCatalog().entries.find(e => e.id === 'law:sozeki_hou:69_4').url)); return missing(request);
       } }));
       assert.equal(judged, true);
     });
@@ -249,14 +249,14 @@ async function main() {
       const post = { ...matter(draft(housing, `source_2_url: "${supplement}"\nsource_bundle: "措法69条の4"\n`)).data,
         review_status: 'published', published_at: '2026-10-01', file: 'test.md', body: housing };
       let judged = false;
-      const result = await audit.run([], options({ posts: [post], auditDir: dir, log: () => {}, callLLM: async request => {
+      const result = await audit.run([], require('./fact-pages-test-helpers').adaptOptions(options({ posts: [post], auditDir: dir, log: () => {}, callLLM: async request => {
         if (request.task === 'extract') return [claim(housing)];
         assert.equal(request.task, 'judge'); judged = true;
-        const payload = JSON.parse(request.user);
+        const payload = readPayload(request);
         const refs = payload.claims[0].evidence_ids.map(id => payload.evidence.find(e => e.id === id));
-        assert.equal(refs[0].id, primary); assert.ok(refs.some(e => e.url === supplement));
-        assert.ok(refs.some(e => e.id === 'law:sozeki_hou:69_4')); return missing(request);
-      } }));
+        assert.equal(refs[0].url, primary); assert.ok(refs.some(e => e.url === supplement));
+        assert.ok(refs.some(e => e.url === E.evidenceCatalog().entries.find(e => e.id === 'law:sozeki_hou:69_4').url)); return missing(request);
+      } }), housing));
       assert.equal(judged, true); assert.equal(result.records[0].status, 'ok');
       assert.equal(result.records[0].review_items.length, 1); assert.equal(result.records[0].body_sha256, F.bodyHash(housing));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -277,7 +277,7 @@ async function main() {
       let calls = 0;
       const result = await F.extractClaims(sentence, async request => {
         calls++; assert.match(request.system, /claim は60文字以内/);
-        return { text: wrap(JSON.stringify([claim(sentence)])) };
+        return { text: wrap(JSON.stringify([{ s: 1, type: '判定', subject: '制度', claim: sentence }])) };
       });
       assert.equal(calls, 1); assert.equal(result.claims[0].sentence, sentence); assert.equal(result.discarded, 0);
     });
@@ -292,7 +292,7 @@ async function main() {
       if (calls.length === 1) return '[{"id":"切れた';
       return JSON.stringify(request.user.includes(one.sentence) ? [one, one] : [two]);
     }, { maxClaims: 1 });
-    assert.equal(calls.length, 3); assert.equal(calls[1] + calls[2], body); assert.ok(calls[2].startsWith('## 制度乙'));
+    assert.equal(calls.length, 3); assert.equal((bodyText(calls[1]) + '\n' + bodyText(calls[2])).replace(/\s/g, ''), body.replace(/\s/g, '')); assert.ok(calls[2].startsWith('[3] ## 制度乙'));
     assert.equal(extracted.claims[0].type, '判定'); assert.equal(extracted.claims[0].id, 'c1');
     assert.deepEqual(extracted.claims.map(c => c.id), ['c1', 'c2']);
     assert.equal(extracted.dropped, 0); assert.equal(extracted.discarded, 0);

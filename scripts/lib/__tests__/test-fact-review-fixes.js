@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const matter = require('gray-matter');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const G = require('../../generate-draft');
 let pass = 0, fail = 0;
 const groups = {};
@@ -17,7 +17,7 @@ const sentence = '制度の期限は令和9年3月31日です。';
 const claim = (s = sentence, type = '期限') => ({ sentence: s, type, subject: '制度', claim: s });
 const raw = body => `---\nslug: test\ntitle: "制度の確認"\nrecommendation: "publish"\n---\n${body}`;
 const refs = [{ id: 'e1', text: sentence, title: '根拠', url: 'https://example.jp/' }];
-const judge = async req => req.task === 'extract' ? [claim(req.user)] : [{ id: 'c1', status: '裏付けあり', quote: sentence }];
+const judge = async req => req.task === 'extract' ? [claim(bodyText(req.user))] : [{ id: 'c1', status: '裏付けあり', quote: sentence }];
 async function main() {
   for (const status of ['ok', 'revise', 'not_run']) await test('F1', () => {
     const meta = matter(F.applyFactResult(raw(sentence), { body: sentence, record: { status, claims: [], summary: '結果' } })).data;

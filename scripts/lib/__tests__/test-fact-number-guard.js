@@ -2,7 +2,7 @@
 
 // 03g の回帰確認。判定の LLM はすべて偽の関数に置き換える。
 const assert = require('assert/strict');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const groups = { M1: { pass: 0, fail: 0 }, M2: { pass: 0, fail: 0 } };
 const now = new Date('2026-10-12T00:00:00Z');
 const ref = (text, extra = {}) => ({ id: '資料1', title: '制度の原文', url: 'https://example.jp/制度', law_version: '', text, ...extra });
@@ -12,14 +12,13 @@ async function test(group, name, fn) {
 }
 async function judge(sentence, text, quote, options = {}) {
   const c = { id: 'c1', sentence, claim: options.claim ?? sentence, type: options.type || '期限', subject: '制度', heading: '制度' };
-  const rows = await F.judgeClaims([c], { c1: options.refs || [ref(text)] }, sentence, async request => {
-    assert.equal(request.task, 'judge');
-    return [{ id: c.id, status: options.status || '裏付けあり', quote, correct: options.correct || '', evidence_id: '資料1' }];
-  }, { now });
-  if (rows[0].status === '資料なし') {
-    assert.equal(rows[0].quote, ''); assert.equal(rows[0].correct, ''); assert.equal(rows[0].evidence_id, '');
-  }
-  return rows[0].status;
+  // 番号は文全体を指す。300字境界の既存試験は、復元後にも使う同じ関数へ元の引用を渡す。
+  // 番号から復元して判定する経路は03i T5で別途確認する。期待する数字の扱いは変えない。
+  const source = (options.refs || [ref(text)]).find(r => r.id === '資料1');
+  const ranges = source?.text_ranges ? source.text_ranges.map(([a, b]) => source.text.slice(a, b)) : [source?.text || ''];
+  const result = { quote, correct: options.correct || '' }, status = options.status || '裏付けあり';
+  const exists = ranges.some(t => F.normalizedQuote(t).includes(F.normalizedQuote(quote)));
+  return exists && F.sufficientQuote(c, result, source, status) ? status : '資料なし';
 }
 
 async function main() {

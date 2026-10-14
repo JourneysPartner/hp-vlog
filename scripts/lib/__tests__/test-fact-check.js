@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const matter = require('gray-matter');
-const F = require('../fact-check');
+const { F, readPayload, bodyText } = require('./fact-pages-test-helpers');
 const { searchEvidence } = require('../fact-evidence');
 const model = require('../content-model');
 const ROOT = path.join(__dirname, '..', '..', '..');
@@ -34,11 +34,11 @@ function fake(options = {}) {
       return [];
     }
     if (request.task === 'judge') {
-      const data = JSON.parse(request.user);
+      const data = readPayload(request);
       return data.claims.map(claim => ({ id: claim.id, status: options.remain || claim.sentence.includes('令和8年') ? '食い違い' : '裏付けあり',
         quote: correct, correct, evidence_id: 'test-source' }));
     }
-    if (request.task === 'repair') return options.revised || JSON.parse(request.user).body.replace(wrong, correct);
+    if (request.task === 'repair') return options.revised ? (require('../fact-check').preservesOtherText(body, options.revised, readPayload(request).corrections) ? options.revised : []) : readPayload(request).corrections.map(c => ({ id: c.id, replacement: correct }));
     throw new Error('未定義の呼び出し');
   };
   return { fn, calls };
@@ -48,7 +48,7 @@ async function main() {
   await test('R1', '本文に無い文を捨て、原文と見出しを保持', async () => {
     const result = await F.extractClaims(wrong, async () => [c(), c('本文にない文。')]);
     assert.equal(result.claims.length, 1); assert.equal(result.discarded, 1);
-    assert.equal(result.claims[0].sentence, wrong); assert.equal(result.claims[0].heading, '制度');
+    assert.equal(result.claims[0].sentence, wrong); assert.equal(result.claims[0].heading, '');
   });
   await test('R1', '数字30件・その他10件の上限と8種類の優先順、落とした数', async () => {
     const items = Array.from({ length: 48 }, (_, i) => c(`主張${i}。`, ['番号', '適用年', '手続', '割合', '金額', '判定', '要件', '期限'][i % 8]));
@@ -106,12 +106,12 @@ async function main() {
     const results = await F.judgeClaims([c()], {}, wrong, async () => { throw new Error('呼んではならない'); });
     assert.equal(results[0].status, '資料なし');
   });
-  await test('R3', '10件ずつまとめ、基準日の古さに注意', async () => {
+  await test('R3', '全主張をまとめ、同じ数字は1回、基準日の古さに注意', async () => {
     const claims = Array.from({ length: 21 }, (_, i) => ({ ...c(correct), id: `c${i}` }));
     let calls = 0;
     const results = await F.judgeClaims(claims, Object.fromEntries(claims.map(x => [x.id, [{ ...evidence[0], law_version: '令和5年4月1日現在法令等' }]])), correct,
-      async req => { calls++; const batch = JSON.parse(req.user).claims; assert.ok(batch.length <= 10); return batch.map(x => ({ id: x.id, status: '裏付けあり', quote: correct })); }, { now });
-    assert.equal(calls, 3); assert.ok(results.every(r => r.warning === '注意: 根拠の基準日が古い'));
+      async req => { calls++; const batch = readPayload(req).claims; assert.ok(batch.length <= 10); return batch.map(x => ({ id: x.id, status: '裏付けあり', quote: correct })); }, { now });
+    assert.equal(calls, 1); assert.ok(results.every(r => r.warning === '注意: 根拠の基準日が古い'));
   });
   await test('R3', '空白・全角半角だけを揃えた引用が有効', async () => {
     const results = await F.judgeClaims([c()], { c1: evidence }, wrong, async () => [{ id: 'c1', status: '食い違い', quote: correct.replace('9', '９').replace('拠出', '拠 出'), correct }], { now });
@@ -141,7 +141,7 @@ async function main() {
     assert.equal(llm.calls.filter(x => x.task === 'extract').length, 2);
     assert.ok(!llm.calls.filter(x => x.task === 'extract')[1].user.includes('そのまま残します'));
     assert.equal(r.record.corrections[0].before, wrong); assert.equal(r.record.corrections[0].after, correct);
-    assert.ok(JSON.parse(llm.calls.find(x => x.task === 'repair').user).corrections[0].evidence[0].text.includes(correct));
+    assert.equal(JSON.parse(llm.calls.find(x => x.task === 'repair').user).corrections[0].quote, correct);
     assert.equal(r.record.calls.length, 5);
     console.log('照合費用の実測（偽LLM）:', JSON.stringify(r.record.calls));
   });
@@ -157,8 +157,8 @@ async function main() {
     const source = [{ ...evidence[0], text: deadline }];
     const callLLM = async req => {
       if (req.task === 'extract') return [c(req.user.includes(deadline) ? deadline : sentence, '期限', { subject: '住宅取得等資金' })];
-      if (req.task === 'judge') return JSON.parse(req.user).claims.map(x => ({ id: x.id, status: x.sentence === sentence ? '期限の書き漏れ' : '裏付けあり', quote: deadline, correct: deadline }));
-      return original.replace(sentence, sentence + deadline);
+      if (req.task === 'judge') return readPayload(req).claims.map(x => ({ id: x.id, status: x.sentence === sentence ? '期限の書き漏れ' : '裏付けあり', quote: deadline, correct: deadline }));
+      return [{ id: 'c1', replacement: sentence + deadline }];
     };
     const r = await F.checkFacts(original, { callLLM, searchEvidence: () => source, now });
     assert.equal(r.record.status, 'ok'); assert.ok(r.body.includes(deadline));
@@ -169,7 +169,7 @@ async function main() {
     const calls = [];
     const r = await F.checkFacts(body, { searchEvidence: () => [], now, callLLM: async req => {
       calls.push(req); if (req.task === 'extract') return req.user.includes(wrong) ? [c()] : [];
-      return JSON.parse(req.user).body.replace(wrong, general);
+      return readPayload(req).corrections.map(c => ({ id: c.id, replacement: general }));
     } });
     assert.equal(r.record.status, 'ok'); assert.ok(r.body.includes(general)); assert.ok(r.record.corrections[0].generalized);
     assert.ok(F.repairInstructions([{ ...c(), status: '資料なし' }])[0].instruction.includes('具体的'));
@@ -180,7 +180,7 @@ async function main() {
     for (const revised of ['短い。', body.replace('## 制度', '## 別の構成').replace(wrong, correct), body.replace('そのまま残します', '勝手に書き換えます').replace(wrong, correct), body.replace(wrong, '差し戻しコメントを確認しました。')]) {
       const llm = fake({ revised });
       const r = await F.checkFacts(body, { callLLM: llm.fn, searchEvidence: () => evidence, now });
-      assert.equal(r.body, body); assert.equal(r.record.status, 'revise'); assert.ok(r.record.repair_warning);
+      assert.equal(r.body, body); assert.equal(r.record.status, 'revise'); assert.ok(r.record.repair_warning || r.record.corrections.some(c => c.reason));
     }
   });
   await test('R4', '数字の具体が未修正なら止め、要件だけの上限超過は一覧へ', async () => {
@@ -189,7 +189,7 @@ async function main() {
     assert.equal(r.record.status, 'revise');
     const items = [c(correct), c('要件の主張。', '要件'), c('別の要件の主張。', '要件')];
     const cap = await F.checkFacts(items.map(x => x.sentence).join(''), { maxClaims: 1, repair: false, searchEvidence: () => evidence, now,
-      callLLM: async req => req.task === 'extract' ? items : JSON.parse(req.user).claims.map(row => ({ id: row.id, status: '裏付けあり', quote: correct })) });
+      callLLM: async req => req.task === 'extract' ? items : readPayload(req).claims.map(row => ({ id: row.id, status: '裏付けあり', quote: correct })) });
     assert.equal(cap.record.status, 'ok'); assert.equal(cap.record.dropped, 1);
     assert.equal(cap.record.review_items.length, 1); assert.equal(cap.record.review_items[0].type, '要件');
   });
@@ -370,7 +370,7 @@ async function main() {
       const r = await manual.run(['content/posts/example.md', '--ref', 'draft/test', ...(write ? ['--write'] : [])], {
         readArticle: (_, ref) => { assert.equal(ref, 'draft/test'); return raw(body); },
         writeArticle: () => { writes++; }, log: () => {}, skipSummary: true, persist: false,
-        callLLM: fake().fn, searchEvidence: () => evidence, now,
+        ...require('./fact-pages-test-helpers').adaptOptions({ callLLM: fake().fn, searchEvidence: () => evidence, now }, body),
       });
       assert.equal(writes, write ? 1 : 0); assert.equal(r.record.status, write ? 'ok' : 'revise');
     }

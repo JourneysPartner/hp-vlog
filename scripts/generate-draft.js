@@ -2614,7 +2614,7 @@ async function finalizeRegeneration(existing, content, classification, options =
   content = clearPlaceholderTitleWarning(content);
   const normalize = raw => factCheck.normalizeBody(parseFrontmatter(raw).body);
   if (normalize(existing) === normalize(content)) return content;
-  return runFactCheckForArticle(content, options);
+  return runFactCheckForArticle(content, { ...options, previousRaw: existing });
 }
 
 async function runRefreshMode(args = process.argv.slice(2), dependencies = {}) {
