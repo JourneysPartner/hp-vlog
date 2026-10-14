@@ -358,6 +358,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   }
   const units = splitUnits(body);
   const deadlineSubjects = new Set();
+  const tally = { declared: 0, rejected: 0, missing: 0, samples: [] };
   const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。`;
   const cache = options.pageCache;
   let groups;
@@ -405,6 +406,8 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
             type, subject, claim, evidence_ids: (evidence[id] || []).map(e => byId.get(e.id).number) })) }),
       });
       if (['max_tokens', 'length'].includes(ret?.stopReason) || ret?.stop_reason === 'max_tokens') throw new SyntaxError('判定の出力が上限に達しました');
+      // 答えの形が想定と違うときに原因を追えるよう、先頭だけログに残す（公開資料に基づく判定で秘密情報は含まない）。
+      console.log(`[fact-check] 判定の出力（先頭）: ${String(typeof ret === 'string' ? ret : Array.isArray(ret) ? JSON.stringify(ret) : ret?.text || '').slice(0, 1500)}`);
       data = parseJson(ret);
     } catch (error) {
       if (!(error instanceof SyntaxError) || retried || batch.length < 2) throw error;
@@ -418,19 +421,32 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     }
     if (!Array.isArray(data)) throw new Error('判定結果が不正です');
     for (const c of batch) {
-      const rows = data.filter(r => r?.id === c.id);
+      const rows = data.filter(r => String(r?.id ?? '') === c.id);
       const r = rows.length === 1 ? rows[0] : null;
       let status = STATUSES.includes(r?.status) ? r.status : '資料なし';
-      if (r?.correct !== undefined && typeof r.correct !== 'string') status = '資料なし';
+      // 答えが無い・形が不正なものは資料なし。確認で落とした理由は記録に残す（全部落ちる不具合を見逃さないため）。
+      let reason = !r ? (rows.length > 1 ? '同じ主張の答えが複数' : '答えが無い') : !STATUSES.includes(r.status) ? '状態が不正' : '';
+      // correct は空の代わりに null で返ることがある。文字列でも空でもないものだけを不正とする。
+      const correct = typeof r?.correct === 'string' ? r.correct : r?.correct == null ? '' : null;
+      if (correct === null) { status = '資料なし'; reason ||= '正しい内容が文字列でない'; }
       const candidates = (evidence[c.id] || []).map(e => byId.get(e.id).ref);
       const evidenceNo = unitNumber(r?.evidence_id);
       const page = evidenceNo ? pages.find(p => p.number === evidenceNo && candidates.some(e => e.id === p.id)) : null;
       const cited = page && rangeText(page.source, page.units, r?.basis);
       const quote = cited?.text || '';
       const ref = page?.ref;
-      const grounded = { ...r, quote };
-      if (status !== '資料なし' && (!quote || !evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(quote))) ||
-          !sufficientQuote(c, grounded, ref, status) || (['食い違い', '期限の書き漏れ'].includes(status) && (typeof r.correct !== 'string' || !r.correct.trim())))) status = '資料なし';
+      const grounded = { ...r, correct: correct ?? '', quote };
+      if (status !== '資料なし') {
+        const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
+          : !evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(quote))) ? '引用が資料に無い'
+            : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
+              : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
+        if (rejected) { status = '資料なし'; reason = rejected; }
+      }
+      if (r && STATUSES.includes(r.status) && r.status !== '資料なし') {
+        tally.declared++;
+        if (status === '資料なし') { tally.rejected++; if (tally.samples.length < 3) tally.samples.push({ reason, row: r }); }
+      } else if (!r) tally.missing++;
       // 同じ制度の期限の2件目は修正対象に加えない。
       if (status === '期限の書き漏れ') {
         if (deadlineSubjects.has(c.subject)) continue;
@@ -441,13 +457,24 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       cutoff.setUTCMonth(cutoff.getUTCMonth() - 18);
       results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
-        status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : r.correct || '',
+        status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
+        ...(reason ? { reject_reason: reason } : {}),
         ...(status === '裏付けあり' && date && date <= cutoff ? { warning: '注意: 根拠の基準日が古い' } : {}),
       });
     }
   };
   for (const group of groups) if (group.claims.length) await judgeBatch(group.claims, group);
+  // 答えの多くが確認を通らない・返らないのは、答えの形の不一致などの不具合の疑いが強い。
+  // そのまま進むと正しい数字まで資料なしとして置き換えてしまうため、照合不能として止める（fail-closed）。
+  const judged = tally.declared + tally.missing;
+  if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= queued.length)) {
+    console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
+    const error = new Error(`判定の答えの多くが確認を通りません（落とした ${tally.rejected}/${tally.declared}・答え無し ${tally.missing}/${judged}）`);
+    // 自前の文言だけなので、そのまま記録の診断に残す（API の応答や鍵は含まない）。
+    error.diagnostic = error.message;
+    throw error;
+  }
   for (const c of claims) if (aliases.has(c.id)) {
     const representative = results.get(aliases.get(c.id));
     if (!representative) continue;

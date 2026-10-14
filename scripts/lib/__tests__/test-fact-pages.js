@@ -148,8 +148,8 @@ async function main() {
       return p.claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '2', correct: '' }));
     }, opts());
     assert.equal(rows[0].status, '裏付けあり'); assert.equal(rows[0].quote, sentence); assert.equal(rows[1].status, '資料なし');
-    // 数値の 2 は有効な番号として受け付ける（番号の形の揺れの試験を参照）。
-    for (const basis of ['0', '999', '2-6', '2-1', 0, '1,2']) {
+    // 数値の 2・連続した「1,2」は有効な番号として受け付ける（番号の形の揺れの試験を参照）。飛んだ番号は不正。
+    for (const basis of ['0', '999', '2-6', '2-1', 0, '1,3']) {
       const r = await F.judgeClaims([claims[0]], { c1: refs.c1 }, sentence, async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis }], opts());
       assert.equal(r[0].status, '資料なし');
     }
@@ -252,6 +252,31 @@ async function main() {
     const judged = await F.judgeClaims([claim(sentence)], { c1: [ref(sentence)] }, sentence,
       async () => [{ id: 'c1', status: '裏付けあり', evidence_id: '1', basis: 1 }], opts());
     assert.equal(judged[0].status, '裏付けあり'); assert.equal(judged[0].quote, sentence);
+    assert.equal(U.rangeText(source, units, [1, 2]).text, '一つ目の文です。二つ目の文です。');
+    assert.equal(U.rangeText(source, units, '1、2').text, '一つ目の文です。二つ目の文です。');
+    assert.equal(U.rangeText(source, units, [1, 3]), null);
+    for (const row of [{ evidence_id: '資料 1', correct: null }, { evidence_id: '[資料1]' }, { evidence_id: 1, basis: [1], correct: null }]) {
+      const r = await F.judgeClaims([claim(sentence)], { c1: [ref(sentence)] }, sentence,
+        async () => [{ id: 'c1', status: '裏付けあり', basis: '1', ...row }], opts());
+      assert.equal(r[0].status, '裏付けあり', JSON.stringify(row)); assert.equal(r[0].correct, '');
+    }
+  });
+  await test('T5', '答えの多くが確認を通らないときは照合不能で止め、記事を直さない', async () => {
+    const sentences = ['制度甲の条件を満たす必要があります。', '制度乙の条件を満たす必要があります。', '制度丙の条件を満たす必要があります。', '制度丁の条件を満たす必要があります。'];
+    const claims = sentences.map((s, i) => claim(s, { id: `c${i + 1}`, subject: `制度${i}` }));
+    const refFor = s => ref(s, `e${sentences.indexOf(s) + 1}`);
+    const evidence = Object.fromEntries(claims.map(c => [c.id, [refFor(c.sentence)]]));
+    const body = sentences.join('\n');
+    const rows = basis => req => JSON.parse(req.user).claims.map((c, i) => ({ id: c.id, status: '裏付けあり', evidence_id: c.evidence_ids[0], basis: basis(i) }));
+    await assert.rejects(F.judgeClaims(claims, evidence, body, async req => rows(() => '99')(req), opts()), /確認を通りません/);
+    await assert.rejects(F.judgeClaims(claims, evidence, body, async () => [], opts()), /確認を通りません/);
+    // 1 件だけ落ちる通常の場合は止めず、落とした理由を残す。
+    const one = await F.judgeClaims(claims, evidence, body, async req => rows(i => i ? '1' : '99')(req), opts());
+    assert.equal(one[0].status, '資料なし'); assert.equal(one[0].reject_reason, '根拠の文の番号が読めない・範囲外'); assert.equal(one[1].status, '裏付けあり');
+    const result = await F.checkFacts(body, opts({ searchEvidence: c => [refFor(c.sentence)], callLLM: async req => req.task === 'extract'
+      ? sentences.map((s, i) => ({ s: i + 1, type: '要件', subject: `制度${i}`, claim: s }))
+      : rows(() => '99')(req) }));
+    assert.equal(result.record.status, 'not_run'); assert.equal(result.body, body); assert.match(result.record.error, /確認を通りません/);
   });
   await test('T7', '同じ数字の事実だけ1回、各文に結果を当てる', async () => {
     const claims = [claim('制度の控除は100万円です。', { type: '金額' }), claim('控除は百万円です。', { id: 'c2', type: '金額' }),

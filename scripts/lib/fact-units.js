@@ -44,14 +44,23 @@ function splitUnits(source, { material = false, ranges = [[0, source.length]] } 
   return units;
 }
 function renderUnits(units) { return units.map(u => `[${u.s}] ${u.text}`).join('\n'); }
-// AI は番号を数値・全角・「12〜14」の形でも返すため、形だけ揃えてから範囲を確かめる。
+// AI は番号を数値・全角・「資料 3」「[12]」「12〜14」「12, 13」の形でも返すため、形だけ揃えてから範囲を確かめる。
 function unitNumber(value) {
-  const text = typeof value === 'number' ? String(value) : typeof value === 'string' ? value.normalize('NFKC').replace(/[\s[\]]/g, '') : '';
+  const text = typeof value === 'number' ? String(value)
+    : typeof value === 'string' ? value.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/^資料/, '') : '';
   return /^[1-9]\d*$/.test(text) ? Number(text) : null;
 }
+function basisText(raw) {
+  const consecutive = numbers => numbers.length && numbers.every(n => n) && numbers.every((n, i) => !i || n === numbers[i - 1] + 1)
+    ? (numbers.length === 1 ? String(numbers[0]) : `${numbers[0]}-${numbers.at(-1)}`) : '';
+  if (typeof raw === 'number') return String(raw);
+  if (Array.isArray(raw)) return consecutive(raw.map(unitNumber));
+  if (typeof raw !== 'string') return '';
+  const text = raw.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/[–—~〜ー−]/g, '-');
+  return /^[1-9]\d*(?:[,、][1-9]\d*)+$/.test(text) ? consecutive(text.split(/[,、]/).map(Number)) : text;
+}
 function rangeText(source, units, rawBasis, maxUnits = 4) {
-  const basis = typeof rawBasis === 'number' ? String(rawBasis)
-    : typeof rawBasis === 'string' ? rawBasis.normalize('NFKC').replace(/[\s[\]]/g, '').replace(/[–—~〜ー−]/g, '-') : '';
+  const basis = basisText(rawBasis);
   if (!/^[1-9]\d*(?:-[1-9]\d*)?$/.test(basis)) return null;
   const [first, last = first] = basis.split('-').map(Number);
   if (last < first || last - first >= maxUnits) return null;
