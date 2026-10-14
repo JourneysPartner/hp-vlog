@@ -98,7 +98,10 @@ console.log('\n=== Test 5: content-model provider 解決 ===');
 
   process.env.ANTHROPIC_API_KEY = 'dummy';
   assert(cm.resolveProvider() === 'anthropic', 'anthropic + キーあり → anthropic');
-  assert(cm.resolveModel('anthropic') === 'claude-sonnet-4-6', 'Anthropic 既定モデル = claude-sonnet-4-6');
+  const savedModel = process.env.CONTENT_MODEL;
+  delete process.env.CONTENT_MODEL;
+  assert(cm.resolveModel('anthropic') === 'claude-sonnet-5-5', 'Anthropic 既定モデル = claude-sonnet-5-5');
+  if (savedModel !== undefined) process.env.CONTENT_MODEL = savedModel;
   delete process.env.CONTENT_MODEL_PROVIDER;
   delete process.env.ANTHROPIC_API_KEY;
 }
@@ -145,6 +148,26 @@ console.log('\n=== Test 8: 狙う検索語とURL slugを可変ブロックへ反
   assert(/slug: "paint-account-category-guide"/.test(ir.user), 'frontmatter雛形は url_slug');
   assert(/topic_id: "test-slug"/.test(ir.user), 'frontmatter雛形は元slugをtopic_id');
   assert(/secondary_queries: "塗料 仕訳,ペンキ 経費"/.test(ir.user), '副検索語はカンマ区切り');
+}
+
+console.log('\n=== Test 9: Anthropic の追加項目は Sonnet 5.5 の完全一致だけ ===');
+{
+  const ir = { staticSystem: 'STATIC', dynamicSystem: 'DYNAMIC', user: 'USER' };
+  const req = builder.toAnthropicRequest(ir, { model: 'claude-sonnet-5-5', maxTokens: 600, useCache: true });
+  assert(JSON.stringify(req.thinking) === JSON.stringify({ type: 'between_tools' }),
+    'thinking は between_tools のみ（budget_tokens 等を足さない）');
+  assert(JSON.stringify(req.output_config) === JSON.stringify({ effort: 'high' }), 'effort は high のみ');
+  assert(req.max_tokens === 600, '指定された max_tokens を保つ');
+  assert(req.system[0].text === 'STATIC' && req.system[0].cache_control.type === 'ephemeral',
+    'Sonnet 5.5 でも静的 system と cache_control を保つ');
+  assert(req.system[1].text === 'DYNAMIC' && !req.system[1].cache_control, '可変 system はキャッシュしない');
+  assert(req.messages[0].content[0].text === 'USER', 'user の本文を保つ');
+  assert(typeof builder.anthropicModelOptions === 'function', 'モデル別オプション関数を export');
+  for (const model of ['claude-sonnet-4-6', 'claude-opus-5-5', 'claude-sonnet-5-5-preview', 'toString']) {
+    const other = builder.toAnthropicRequest(ir, { model, useCache: false });
+    assert(!('thinking' in other) && !('output_config' in other), `${model} には追加項目を送らない`);
+    assert(Object.keys(builder.anthropicModelOptions(model)).length === 0, `${model} の追加項目は空`);
+  }
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

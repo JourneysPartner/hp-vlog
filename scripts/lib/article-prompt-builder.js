@@ -9,7 +9,7 @@
  * - OpenAI:    { system: string, user: string }（従来どおり）
  * - Anthropic: { system: [{type:'text', text, cache_control}], messages: [...] }
  *              固定ルールに cache_control: { type: 'ephemeral' } を付け、
- *              Claude Sonnet 4.6 の prompt caching を効かせられる構造にする。
+ *              Claude Sonnet 5.5 の prompt caching を効かせられる構造にする。
  *
  * 可変部分（毎回変わる）:
  *   topic / title / category / persona / article_type / article_role /
@@ -259,6 +259,19 @@ function buildAnthropicUserContent(user, figures) {
 }
 
 // ── provider 別メッセージ変換 ──────────────────────────────────
+// Sonnet 5.5 は既定の thinking が max_tokens を消費するため、between_tools を指定する。
+// disabled は 400 になる。between_tools は他モデルに送れないため、完全一致で選ぶ。
+const ANTHROPIC_MODEL_OPTIONS = {
+  'claude-sonnet-5-5': {
+    thinking: { type: 'between_tools' },
+    output_config: { effort: 'high' },
+  },
+};
+
+function anthropicModelOptions(model) {
+  return Object.hasOwn(ANTHROPIC_MODEL_OPTIONS, model) ? ANTHROPIC_MODEL_OPTIONS[model] : {};
+}
+
 /**
  * OpenAI Chat Completions 形式に変換。
  * 固定ルールと可変指示を 1 つの system にまとめる（OpenAI は明示キャッシュAPIが別途のため統合）。
@@ -295,6 +308,7 @@ function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { mo
   return {
     model,
     max_tokens: maxTokens || 4096,
+    ...anthropicModelOptions(model),
     system: systemBlocks,
     messages: [{ role: 'user', content }],
   };
@@ -306,6 +320,7 @@ module.exports = {
   buildFrontmatterTemplate,
   toOpenAIMessages,
   toAnthropicRequest,
+  anthropicModelOptions,
   buildAnthropicUserContent,
   STATIC_RULES,
 };
