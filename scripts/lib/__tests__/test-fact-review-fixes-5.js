@@ -195,7 +195,9 @@ async function main() {
     const previous = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]`;
     await judge([first], first.sentence, async req => {
       const instruction = req.system.split('\n\n[資料 ')[0];
-      assert.equal(instruction.replace('（金額・期限・割合・適用年・番号の主張は連続2つまで）', ''), previous);
+      // 03k の後に Claude が足した経過措置の規則（実 AI の #644 で生前贈与加算の段階を見逃したため）も除いて比べる。
+      assert.equal(instruction.replace('（金額・期限・割合・適用年・番号の主張は連続2つまで）', '')
+        .replace('原文に適用時期による段階（経過措置）があるのに、本文がその段階を書かずに最終の数字や期間だけを述べている場合は食い違いとし、correct に段階を書いてください。', ''), previous);
       assert.equal(req.system, req.staticSystem); assert.equal(req.maxTokens, 16000);
       assert.equal(F.config().model, 'claude-opus-5-5');
       return [support('c1')];

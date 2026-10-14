@@ -327,7 +327,7 @@ async function extractClaims(body, callLLM, options = {}) {
       discardedClaims.push({ ...fields({ ...c, sentence: sentence || (typeof c?.claim === 'string' ? c.claim : '') }), status: sentence ? '主張の形式が不正' : '本文に見つからない' });
       continue;
     }
-    const key = `${sentence}:${c.type}:${c.subject}`;
+    const key = claimKey(resolved);
     if (seen.has(key)) continue;
     seen.add(key); valid.push(resolved);
   }
@@ -343,6 +343,15 @@ async function extractClaims(body, callLLM, options = {}) {
   return { claims: chosen.map((c, i) => ({ id: `c${i + 1}`, ...fields(c) })),
     dropped: droppedClaims.length, discarded: discardedClaims.length, droppedClaims, discardedClaims };
 }
+
+// 同じ文・種類・制度名でも、要約の数字が違えば別の主張（例: 48万円 と 2,400万円）。
+// 数字を見ずにまとめると、2 つ目の数字が照合されないまま消えて止まらない。
+function claimKey(c) {
+  return `${c.sentence}:${c.type}:${c.subject}:${JSON.stringify([...new Set(normalizedNumbers(c.claim).map(String))].sort())}`;
+}
+
+// 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
+const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
 
 function blockingFinding(c) {
   return c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
@@ -368,7 +377,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   }
   const deadlineSubjects = new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。`;
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。原文に適用時期による段階（経過措置）があるのに、本文がその段階を書かずに最終の数字や期間だけを述べている場合は食い違いとし、correct に段階を書いてください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]';
   const cache = options.pageCache;
   let groups;
@@ -569,7 +578,10 @@ function affectedClaims(before, after, previous, extracted) {
     return headings.length ? headings : list.map((_, i) => i); // 位置が曖昧なら再判定する。
   };
   const inAffected = c => locations(c, oldSections).some(i => affected.has(i)) || locations(c, newSections).some(i => affected.has(i));
-  const headingChanged = c => newSections.some(s => s.rows.includes(c.sentence) && s.heading !== c.heading);
+  // 直前の見出しの名前だけでなく、見出しの階層（例: 令和6年分 > 基礎控除 → 令和7年分 > 基礎控除）が変わった文も判定し直す。
+  const contexts = (list, sentence) => list.filter(s => s.rows.includes(sentence)).map(s => s.context);
+  const headingChanged = c => newSections.some(s => s.rows.includes(c.sentence) && s.heading !== c.heading) ||
+    contexts(newSections, c.sentence).some(context => !contexts(oldSections, c.sentence).includes(context));
   const subjects = [...new Set([...extracted.map(c => c.subject), ...previous.filter(c =>
     !actualSentence(after, c.sentence) || inAffected(c) || headingChanged(c) || removedDates.some(row => subjectsOverlap(c.subject, row))).map(c => c.subject)])];
   return { subjects, needsJudge: c => inAffected(c) || headingChanged(c) || subjects.some(subject => subjectsOverlap(subject, c.subject)) };
@@ -728,7 +740,7 @@ async function checkFacts(body, options = {}) {
   const pageCache = {};
   let uncheckedNumeric = 0;
   const addReviewItem = c => {
-    if (record.review_items.some(r => r.sentence === c.sentence && r.type === c.type && r.subject === c.subject)) return;
+    if (record.review_items.some(r => claimKey(r) === claimKey(c))) return;
     // 一覧には候補の所在を残し、判定に使わない原文は重ねて保存しない。
     record.review_items.push({ ...c, evidence: (c.evidence || []).map(({ id, title, url }) => ({ id, title, url })) });
   };
@@ -762,8 +774,8 @@ async function checkFacts(body, options = {}) {
       const rejudged = retained.filter(needsJudge).map(c => ({ id: c.id, sentence: c.sentence, type: c.type, subject: c.subject, claim: c.claim,
         heading: fullUnits.filter(u => u.heading && u.start < (fullUnits.find(u => !u.heading && u.text === c.sentence)?.start ?? 0))
           .at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '' }));
-      const seen = new Set(claims.map(c => `${c.sentence}:${c.type}:${c.subject}`));
-      claims = [...claims, ...rejudged.filter(c => !seen.has(`${c.sentence}:${c.type}:${c.subject}`))];
+      const seen = new Set(claims.map(claimKey));
+      claims = [...claims, ...rejudged.filter(c => !seen.has(claimKey(c)))];
       record.incremental = { reused: reused.length, rejudged: claims.length, subjects };
       claims = claims.map((c, i) => ({ ...c, id: `c${i + 1}` }));
       reused = reused.map((c, i) => ({ ...c, id: `c${claims.length + i + 1}`, s: fullUnits.find(u => !u.heading && u.text === c.sentence)?.s }));
@@ -774,7 +786,7 @@ async function checkFacts(body, options = {}) {
   let revisedBody = body;
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
-    const findings = record.claims.filter(blockingFinding);
+    const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason));
     if (findings.length && options.repair !== false) {
       const repair = await repairBody(body, findings, call, options);
       if (repair.accepted) {
@@ -892,7 +904,7 @@ async function checkArticle(raw, options = {}) {
         const effective = [...prior.claims.filter(c => !resolved.has(c.id)), ...prior.rechecked];
         const seen = new Set();
         const previousClaims = effective.filter(c => {
-          const key = `${c.sentence}:${c.type}:${c.subject}`;
+          const key = claimKey(c);
           if (seen.has(key)) return false;
           seen.add(key); return true;
         }).map(c => ({ ...c, evidence: evidenceRefs(prior, c) }));
