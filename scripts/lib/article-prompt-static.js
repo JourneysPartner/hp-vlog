@@ -4,7 +4,7 @@
  * 記事生成の「固定プロンプト」（毎回ほぼ変わらないルール群）
  *
  * 目的:
- *   - Anthropic prompt caching（Claude Sonnet 4.6）の cache 対象にできるよう、
+ *   - Anthropic prompt caching（Claude Sonnet 5.5）の cache 対象にできるよう、
  *     固定ルールを 1 箇所に集約する。
  *   - 可変部分（topic / title / persona / source_url / 差し戻しコメント等）は
  *     article-prompt-builder.js 側で組み立てる。
@@ -171,6 +171,10 @@ function guideTextFor(range) {
 //   frontmatter を約600トークンとすると 本文は 0.874 token/文字
 const TOKENS_PER_CHAR = 0.8739;
 const FRONTMATTER_TOKENS = 700;   // 実測約600 + 余裕
+// 2026-10-13 仮置き。初回の実行記録から測り直す（新トークナイザで約3割増えるため）。
+const TOKEN_ESTIMATES_BY_MODEL = {
+  'claude-sonnet-5-5': { tokensPerChar: 1.14, frontmatterTokens: 910 },
+};
 // 途中切れを防ぐ余白。これを大きくすると上限超過の余地が戻るため 5% に留める。
 const MAX_TOKENS_SAFETY = 1.05;
 
@@ -180,8 +184,17 @@ function maxTokensFor(articleTypeOrOpts) {
     ? { articleType: articleTypeOrOpts }
     : (articleTypeOrOpts || {});
   const range = rangeFor(opts);
-  const bodyTokens = Math.ceil(range.max * TOKENS_PER_CHAR);
-  return Math.ceil((bodyTokens + FRONTMATTER_TOKENS) * MAX_TOKENS_SAFETY / 100) * 100;
+  let model = opts.model;
+  if (!model) {
+    // 遅延 require で prompt builder との循環を避け、provider の解決（警告）は1回だけ行う。
+    const { resolveModel, resolveProvider } = require('./content-model');
+    model = resolveModel(resolveProvider());
+  }
+  const { tokensPerChar, frontmatterTokens } = Object.hasOwn(TOKEN_ESTIMATES_BY_MODEL, model)
+    ? TOKEN_ESTIMATES_BY_MODEL[model]
+    : { tokensPerChar: TOKENS_PER_CHAR, frontmatterTokens: FRONTMATTER_TOKENS };
+  const bodyTokens = Math.ceil(range.max * tokensPerChar);
+  return Math.ceil((bodyTokens + frontmatterTokens) * MAX_TOKENS_SAFETY / 100) * 100;
 }
 
 function wordCountGuideFor(opts) {

@@ -5,7 +5,7 @@
  *
  * 環境変数:
  *   CONTENT_MODEL_PROVIDER   'openai'（既定） | 'anthropic'
- *   CONTENT_MODEL            モデルID（未指定時は provider 既定）
+ *   CONTENT_MODEL            モデルID（未指定時は provider 既定。Anthropic は claude-sonnet-5-5）
  *   CONTENT_MODEL_USE_PROMPT_CACHE  'true' で Anthropic prompt caching を有効化（既定 true）
  *   OPENAI_API_KEY / ANTHROPIC_API_KEY  各 provider のキー
  *
@@ -16,7 +16,7 @@
  *   - APIキー・秘密情報はログに出さない
  */
 
-const ANTHROPIC_DEFAULT_MODEL = 'claude-sonnet-4-6';
+const ANTHROPIC_DEFAULT_MODEL = 'claude-sonnet-5-5';
 const OPENAI_DEFAULT_MODEL    = 'gpt-5.4';
 const ANTHROPIC_VERSION       = '2023-06-01';
 
@@ -71,9 +71,9 @@ function useCache() {
 }
 
 // provider ごとに「その provider 専用の env」からモデルを解決する。
-// 重要: OpenAI に CONTENT_MODEL（= claude-sonnet-4-6）を渡さないため、
+// 重要: OpenAI に CONTENT_MODEL（= claude-sonnet-5-5）を渡さないため、
 //       provider が openai のときは OPENAI_MODEL / gpt-5.4 のみを返す。
-//       provider が anthropic のときは CONTENT_MODEL / claude-sonnet-4-6 を返す。
+//       provider が anthropic のときは CONTENT_MODEL / claude-sonnet-5-5 を返す。
 function resolveModel(provider, override) {
   if (override) return override;
   if (provider === 'anthropic') {
@@ -104,7 +104,8 @@ async function callOpenAI(promptIR, { model, maxTokens, signal, timeoutMs }) {
   const u = completion.usage || {};
   console.log(`[content-model] provider=openai model=${model} cache=false ` +
     `usage(in=${u.prompt_tokens ?? '?'} out=${u.completion_tokens ?? '?'})`);
-  return { text, usage: completion.usage || null, provider: 'openai', model };
+  return { text, usage: completion.usage || null, provider: 'openai', model,
+    stopReason: (choice && choice.finish_reason) || null };
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
@@ -133,6 +134,9 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) 
       throw new Error(`Anthropic API ${res.status}: ${errText}`);
     }
     const data = await res.json();
+    if (data.stop_reason === 'refusal') {
+      throw new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${data.stop_details.category})` : ''));
+    }
     const text = Array.isArray(data.content)
       ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
       : '';
@@ -140,8 +144,8 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) 
     const u = data.usage || {};
     console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
       `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
-      `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0})`);
-    return { text, usage: data.usage || null, provider: 'anthropic', model };
+      `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}`);
+    return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
   } finally { if (dispatcher) await dispatcher.close(); }
 }
 
@@ -151,7 +155,7 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) 
  *
  * @param {Object} promptIR
  * @param {Object} opts { model?, maxTokens? }
- * @returns {Object} { text, usage, provider, model }
+ * @returns {Object} { text, usage, provider, model, stopReason }
  */
 async function generateContent(promptIR, opts = {}) {
   // 事実照合は本文生成と独立した設定を使い、失敗時のモデル変更を行わない。
@@ -195,10 +199,11 @@ async function generateSimple({ system, user, figures }, opts = {}) {
   const maxTokens = opts.maxTokens || 4096;
   if (provider === 'anthropic') {
     try {
-      const { buildAnthropicUserContent } = require('./article-prompt-builder');
+      const { buildAnthropicUserContent, anthropicModelOptions } = require('./article-prompt-builder');
       const req = {
         model,
         max_tokens: maxTokens,
+        ...anthropicModelOptions(model),
         system: [{ type: 'text', text: system }],
         messages: [{ role: 'user', content: buildAnthropicUserContent(user, figures) }],
       };
@@ -213,8 +218,17 @@ async function generateSimple({ system, user, figures }, opts = {}) {
       });
       if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
       const data = await res.json();
-      const text = Array.isArray(data.content) ? data.content.map(b => b.text || '').join('') : '';
-      return { text, usage: data.usage || null, provider: 'anthropic', model };
+      if (data.stop_reason === 'refusal') {
+        throw new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${data.stop_details.category})` : ''));
+      }
+      const text = Array.isArray(data.content)
+        ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
+        : '';
+      const u = data.usage || {};
+      console.log(`[content-model] provider=anthropic model=${model} cache=false ` +
+        `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
+        `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}`);
+      return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
     } catch (e) {
       console.warn(`[content-model] Anthropic(simple) 失敗（${e.message}）→ openai に fallback`);
     }
