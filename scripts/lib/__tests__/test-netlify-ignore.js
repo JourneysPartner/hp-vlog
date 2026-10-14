@@ -71,6 +71,15 @@ function check(label, actual, skip, reason) {
 
 console.log('=== Netlify ビルド要否判定 ===');
 
+assert(decide({ env: env(), git: fakeGit({ files: ['data/withdrawn-topics.json'] }) }).skip, '取り下げ記録だけならビルドしない');
+{
+  const file = 'content/posts/withdrawn-neighbour.md';
+  const git = fakeGit({ files: ['data/withdrawn-topics.json', file], contents: {
+    [`old-sha:${file}`]: article('published'), [`new-sha:${file}`]: article('published') + '変更',
+  } });
+  assert(!decide({ env: env(), git }).skip, '取り下げ記録と公開記事の変更ならビルドする');
+}
+
 {
   const git = fakeGit();
   check('1. COMMIT_REF 無し → ビルド', decide({ env: env({ COMMIT_REF: '' }), git }), false, '比較対象のコミットが無い');

@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "comment": "日次生成で取り下げた題材。通常の選定では二度と選ばない。項目を消せば選定に戻る。",
+  "entries": [
+    {
+      "topic_id": "suggest-furima-sedori-1e1ea0",
+      "stage": "select-dedup",
+      "similar_to": "reseller-profit-bookkeeping-beginners",
+      "reason": "選定時の重複判定で除外（ログに理由なし）",
+      "url_slug": "",
+      "target_query": "",
+      "date": "2026-09-28",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/36360855055"
+    },
+    {
+      "topic_id": "suggest-ec-kakutei-a57de4",
+      "stage": "select-dedup",
+      "similar_to": "",
+      "reason": "補充候補も重複（ログに理由・相手なし）",
+      "url_slug": "",
+      "target_query": "",
+      "date": "2026-09-28",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/36360855055"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-1e1ea0",
+      "stage": "postgen-dedup",
+      "similar_to": "reselling-profit-bookkeeping-beginners",
+      "reason": "せどりの帳簿記録から確定申告までの全体的な手順を扱う記事であり、論点（せどり利益計算と帳簿付けの基本）が同一",
+      "url_slug": "sedori-kakutei-shinkoku-chobo-yarikata",
+      "target_query": "せどり 確定申告 やり方",
+      "date": "2026-09-30",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/36648533889"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-1e1ea0",
+      "stage": "postgen-dedup",
+      "similar_to": "reselling-profit-bookkeeping-beginners",
+      "reason": "せどり・転売の確定申告における帳簿記録・利益計算という同じ論点",
+      "url_slug": "sedori-kakutei-shinkoku-chobo-guide",
+      "target_query": "せどり 確定申告 やり方",
+      "date": "2026-10-02",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/36944187851"
+    },
+    {
+      "topic_id": "suggest-zouyo-hikazei-351e52",
+      "stage": "select-dedup",
+      "similar_to": "suggest-zouyo-hikazei-5be58f",
+      "reason": "住宅取得のための贈与税非課税制度という同一の論点で、未承認下書き「贈与税非課税制度の種類と選び方」に包含される",
+      "url_slug": "",
+      "target_query": "",
+      "date": "2026-10-07",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/37550072199"
+    },
+    {
+      "topic_id": "suggest-souzoku-tetsuduki-4ff059",
+      "stage": "select-dedup",
+      "similar_to": "",
+      "reason": "補充候補も重複（ログに理由・相手なし）",
+      "url_slug": "",
+      "target_query": "",
+      "date": "2026-10-07",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/37550072199"
+    },
+    {
+      "topic_id": "suggest-zouyo-hikazei-351e52",
+      "stage": "select-dedup",
+      "similar_to": "suggest-zouyo-hikazei-5be58f",
+      "reason": "10/7 と同じ理由で再び除外",
+      "url_slug": "",
+      "target_query": "",
+      "date": "2026-10-09",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/37862926041"
+    },
+    {
+      "topic_id": "suggest-souzoku-tetsuduki-4ff059",
+      "stage": "postgen-dedup",
+      "similar_to": "inheritance-within-10months-inheritance-filing-guide",
+      "reason": "相続手続きの期限全般を扱う基本情報で、既存の「相続税申告を10ヶ月以内に進める」記事と論点（相続手続きの期限管理）が重複",
+      "url_slug": "inheritance-procedure-deadlines-extensions",
+      "target_query": "相続 手続き 期限",
+      "date": "2026-10-09",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/37862926041"
+    }
+  ]
+}

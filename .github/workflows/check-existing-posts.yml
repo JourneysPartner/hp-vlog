@@ -37,22 +37,14 @@ jobs:
       # 日次生成が「そもそも動かなかった」場合を拾う。
       # 失敗した場合は daily-draft.yml 側が通知するが、スケジューラが起動しない、
       # 起動したが記録が残らない、といったケースはそれでは検知できない。
-      # 直近24時間に成功した生成があるかを朝の点検で確かめる。
+      # netlify.toml の直近の生成予定（猶予 180 分）以降に成功した生成があるかを確かめる。
       - name: Check daily draft ran
         id: draftrun
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          SINCE=$(date -u -d '25 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-          COUNT=$(gh run list --workflow=daily-draft.yml --limit 10 \
-            --json createdAt,conclusion \
-            --jq "[.[] | select(.createdAt > \"$SINCE\") | select(.conclusion == \"success\")] | length")
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          if [ "$COUNT" = "0" ]; then
-            echo '::error::直近24時間に成功した記事生成がありません'
-          else
-            echo "直近24時間の成功した生成: ${COUNT} 件"
-          fi
+          gh run list --workflow=daily-draft.yml --limit 20 --json createdAt,conclusion,displayTitle > /tmp/draft-runs.json
+          node scripts/check-draft-ran.js --runs /tmp/draft-runs.json
 
       - name: Notify if no draft was generated
         if: steps.draftrun.outputs.count == '0'
@@ -64,7 +56,7 @@ jobs:
           node scripts/notify.js \
             --event daily_draft_failed \
             --title "$(TZ=Asia/Tokyo date +%Y-%m-%d) の記事生成" \
-            --comment '直近24時間に成功した記事生成がありません（実行されていない可能性があります）。' \
+            --comment '直近の生成予定（${{ steps.draftrun.outputs.expected_jst }}）の後に成功した記事生成がありません（実行されていない可能性があります）。' \
             --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
 
       - name: Validate all posts
