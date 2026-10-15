@@ -177,7 +177,7 @@ async function main() {
         requests.push(url); assert.ok([indexUrl, ...urls].includes(url));
         if (failedUrls.includes(url)) return { ok: false, status: 503 };
         const body = url === indexUrl ? urls.map(u => `<a href="${u}">本文</a>`).join('')
-          : url === validUrl ? html : '<p>前文だけで項目はありません。</p>';
+          : url === validUrl ? html : '<h2>（本文が欠けた項目）</h2><p><strong>11</strong></p>';
         return { ok: true, arrayBuffer: async () => Buffer.from('<meta charset=utf-8>' + body) };
       };
       await crawler.main({ outDir: dir });

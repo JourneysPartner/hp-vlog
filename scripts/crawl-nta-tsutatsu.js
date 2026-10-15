@@ -24,7 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const { searchIndex } = require('./lib/catalog-search-index');
 const {
-  parseTsutatsuPage, parseIndexPage, normalizeProvisionNo,
+  classifyTsutatsuPage, parseIndexPage, normalizeProvisionNo,
 } = require('./lib/tsutatsu-parser');
 
 const ROOT = path.join(__dirname, '..');
@@ -109,9 +109,9 @@ function getArg(name) {
   return i >= 0 ? process.argv[i + 1] : null;
 }
 
-async function crawlCircular(key, def, limit) {
+async function crawlCircular(key, def, limit, { fetchPage = fetchShiftJis, pause = sleep } = {}) {
   console.log(`\n=== ${def.label} ===`);
-  const indexHtml = await fetchShiftJis(def.index);
+  const indexHtml = await fetchPage(def.index);
   let urls = parseIndexPage(indexHtml, def.linkKey || key, def.index);
   if (!urls.length) throw new Error('通達の本文ページが見つかりません');
   if (limit) urls = urls.slice(0, limit);
@@ -119,13 +119,16 @@ async function crawlCircular(key, def, limit) {
 
   const provisions = [];
   const errors = [];
+  const non_provision_pages = [], missing_pages = [];
   let done = 0;
 
   for (const url of urls) {
     try {
-      const html = await fetchShiftJis(url);
-      const parsed = parseTsutatsuPage(html, { url, circular: key });
-      if (!parsed.provisions.length) throw new Error('本文ページの項目が0件です');
+      const html = await fetchPage(url);
+      const parsed = classifyTsutatsuPage(html, { url, circular: key });
+      if (parsed.type === 'unreadable') throw new Error('本文ページの項目が0件です');
+      if (parsed.type === 'missing') missing_pages.push({ url });
+      if (parsed.type === 'non_provision') non_provision_pages.push({ url, reason: parsed.reason });
       for (const p of parsed.provisions) {
         provisions.push({ ...p, section: parsed.sectionTitle });
       }
@@ -140,7 +143,12 @@ async function crawlCircular(key, def, limit) {
     } catch (e) {
       errors.push(`${url}: ${e.message}`);
     }
-    await sleep(SLEEP_MS);
+    await pause(SLEEP_MS);
+  }
+
+  // 比率と絶対数の両方で、サイト構造の変化を見逃さない。
+  if (missing_pages.length * 100 > urls.length * 3 || missing_pages.length > 10) {
+    errors.push(`リンク切れが許容範囲を超えています（${missing_pages.length}/${urls.length} ページ）`);
   }
 
   // 条番号の重複を検出（同じ番号が2箇所に出るのは解析ミスの兆候）
@@ -152,10 +160,13 @@ async function crawlCircular(key, def, limit) {
   }
 
   console.log(`  取得: ${provisions.length} 条 / 重複 ${duplicates.length} / エラー ${errors.length}`);
+  console.log(`  項目の無いページ: ${non_provision_pages.length} 件 / リンク切れ: ${missing_pages.length} 件`);
+  non_provision_pages.forEach(p => console.warn(`    項目なし: ${p.url}: ${p.reason}`));
+  missing_pages.forEach(p => console.warn(`    リンク切れ: ${p.url}`));
   errors.filter((e, i) => i < 5 || e.endsWith(': 本文ページの項目が0件です'))
     .forEach(e => console.warn(`    ⚠ ${e}`));
 
-  return { key, def, urls, provisions, duplicates, errors };
+  return { key, def, urls, provisions, duplicates, errors, non_provision_pages, missing_pages };
 }
 
 function provisionsByNumber(provisions, key) {
@@ -170,7 +181,7 @@ function provisionsByNumber(provisions, key) {
   return byNo;
 }
 
-async function main({ outDir = OUT_DIR } = {}) {
+async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
   const only = getArg('--only');
   const limit = Number(getArg('--limit')) || 0;
   const targets = Object.entries(CIRCULARS).filter(([k]) => !only || k === only);
@@ -188,7 +199,7 @@ async function main({ outDir = OUT_DIR } = {}) {
   let totalErrors = 0;
 
   for (const [key, def] of targets) {
-    const r = await crawlCircular(key, def, limit);
+    const r = await crawlCircular(key, def, limit, { fetchPage, pause });
     totalErrors += r.errors.length;
     if (!r.provisions.length || r.errors.length) {
       totalErrors += r.provisions.length ? 0 : 1;
@@ -207,6 +218,8 @@ async function main({ outDir = OUT_DIR } = {}) {
       fetched_at: new Date().toISOString(),
       section_pages: r.urls.length,
       provisions: byNo,
+      non_provision_pages: r.non_provision_pages,
+      missing_pages: r.missing_pages,
       ...(key === 'hyoka' || key.startsWith('sochi_') ? { duplicates: r.duplicates } : {}),
     }, null, 2)}\n`, 'utf8');
     const searchEntries = Object.entries(byNo).flatMap(([no, entry]) => (Array.isArray(entry) ? entry : [entry]).map((p, i) => ({

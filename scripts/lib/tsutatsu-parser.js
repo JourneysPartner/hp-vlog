@@ -10,7 +10,7 @@
  * 所得税基本通達は条番号が <strong> 2つに分かれる:
  *   <p class="indent1"><strong>37</strong><strong>－13　</strong>一の修理、…</p>
  *
- * そのため、見出しの直後の <p> から <strong> を連結して条番号を取り出す。
+ * そのため、見出しの直後の <p> から太字のタグを連結して条番号を取り出す。
  *
  * 文字コードは Shift_JIS。呼び出し側でデコードしてから渡すこと。
  */
@@ -40,6 +40,31 @@ function stripTags(html) {
     .replace(/[ \t　]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/** 番号中の文字参照を戻す。本文の従来の整形は変えない。 */
+function decodeNumberEntities(html) {
+  return html.replace(/&(?:emsp|ensp|thinsp|nbsp);/gi, ' ')
+    .replace(/&#(x[0-9a-f]+|\d+);/gi, (entity, value) => {
+      const code = /^x/i.test(value) ? parseInt(value.slice(1), 16) : Number(value);
+      return code <= 0x10FFFF ? String.fromCodePoint(code) : entity;
+    });
+}
+
+/** 段落先頭で連続する strong・span.bold・b を番号として読む。 */
+function readNumberHead(paragraph) {
+  let head = paragraph, number = '';
+  for (;;) {
+    const m = head.match(/^((?:\s|&(?:emsp|ensp|thinsp|nbsp);|&#(?:x[0-9a-f]+|\d+);)*)<(strong|span|b)\b([^>]*)>([\s\S]*?)<\/\2\s*>/i);
+    if (!m || decodeNumberEntities(m[1]).trim()) break;
+    if (m[2].toLowerCase() === 'span') {
+      const classes = m[3].match(/(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+      if (!classes || !(classes[1] || classes[2] || classes[3] || '').split(/\s+/).includes('bold')) break;
+    }
+    number += decodeNumberEntities(stripTags(m[4]));
+    head = head.slice(m[0].length);
+  }
+  return { no: normalizeProvisionNo(number), head };
 }
 
 // 条番号として妥当な形か。
@@ -90,19 +115,8 @@ function parseTsutatsuPage(html, opts = {}) {
     const pMatch = rest.match(/<p[^>]*>([\s\S]*?)<\/p>/);
     if (!pMatch) continue;
 
-    // 先頭に連続する <strong> を連結して条番号にする
-    const strongs = [];
-    const strongRe = /^\s*<strong[^>]*>([\s\S]*?)<\/strong>/;
-    let head = pMatch[1];
-    for (;;) {
-      const m = head.match(strongRe);
-      if (!m) break;
-      strongs.push(stripTags(m[1]));
-      head = head.slice(m[0].length);
-    }
-    if (strongs.length === 0) continue;
-
-    const no = normalizeProvisionNo(strongs.join(''));
+    const { no, head } = readNumberHead(pMatch[1]);
+    if (!no) continue;
     if (!looksLikeProvisionNo(no)) {
       skipped.push({ no, title });
       continue;
@@ -162,7 +176,45 @@ function parseIndexPage(html, circularKey, baseUrl) {
 
 function assertUsablePage(html) {
   const title = [...html.matchAll(/<(?:title|h1)[^>]*>([\s\S]*?)<\/(?:title|h1)>/gi)].map(m => stripTags(m[1])).join(' ');
-  if (/指定されたページを表示できませんでした|ページが見つかりません/.test(title)) throw new Error('国税庁のエラーページです');
+  if (/指定されたページを表示できませんでした|ページが見つかりません/.test(title)) {
+    const error = new Error('国税庁のエラーページです');
+    error.code = 'NTA_MISSING_PAGE';
+    throw error;
+  }
+}
+
+/** 取得できたページを分類する。通信失敗や解析の例外は呼び出し側で失敗にする。 */
+function classifyTsutatsuPage(html, opts = {}) {
+  const src = String(html || '');
+  const empty = { sectionTitle: '', provisions: [], skipped: [] };
+  try {
+    assertUsablePage(src);
+  } catch (error) {
+    if (error.code === 'NTA_MISSING_PAGE') return { ...empty, type: 'missing' };
+    throw error;
+  }
+  if (/fusoku|bessi|zenbun/i.test(opts.url || '')) {
+    return { ...empty, type: 'non_provision', reason: '附則・別紙・前文のページです' };
+  }
+  const parsed = parseTsutatsuPage(src, opts);
+  if (parsed.provisions.length) return { ...parsed, type: 'provisions' };
+  // 既存の番号判定に合う太字の行が残っていれば、読み落としとして止める。
+  // 単独の附則番号や未対応の番号形を、通達番号として新たに認めることはしない。
+  const hasNumber = [...src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+    .some(m => {
+      const { no } = readNumberHead(m[1]);
+      return looksLikeProvisionNo(no) || ((opts.circular === 'hyoka' || String(opts.circular).startsWith('sochi_'))
+        && looksLikeExtendedProvisionNo(no, opts));
+    });
+  return hasNumber ? { ...parsed, type: 'unreadable' }
+    : { ...parsed, type: 'non_provision', reason: '段落の先頭に番号らしい書式がありません' };
+}
+
+// 措置法・評価の従来の番号判定。通常用とは別のまま、分類にも共用する。
+function looksLikeExtendedProvisionNo(no, opts) {
+  const atom = '\\d{1,3}(?:の\\d{1,2})*(?:・\\d{1,3}(?:の\\d{1,2})*)*共?(?:\\(\\d+\\))?';
+  const valid = new RegExp(`^${atom}(?:-${atom}){${opts.circular === 'hyoka' ? '0,3' : '1,3'}}$`).test(no);
+  return valid;
 }
 
 /** 新しい通達は見出し1件に複数の番号が続くため、番号行を区切りにする。 */
@@ -177,23 +229,19 @@ function parseExtendedPage(src, opts) {
     current = null;
   };
   // 本文の末尾のナビゲーションを取り込まない。
-  const cutoff = src.indexOf('<!-- InstanceEndEditable -->', src.indexOf('<h1'));
+  // h1 のない旧形式でも、ヘッダー内の区切りを本文末尾と誤認しない。
+  const bodyStart = src.search(/<!--\s*InstanceBeginEditable\s+name=["']bodyArea["']\s*-->/i);
+  const contentStart = bodyStart >= 0 ? bodyStart : src.search(/<h[12]\b/i);
+  const cutoff = contentStart >= 0 ? src.indexOf('<!-- InstanceEndEditable -->', contentStart) : -1;
   const content = cutoff >= 0 ? src.slice(0, cutoff) : src;
   const matches = [...content.matchAll(/<h2\b[^>]*>[\s\S]*?<\/h2>|<p\b[^>]*>[\s\S]*?<\/p>/gi)];
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i], token = m[0];
     if (/^<h2/i.test(token)) { finish(); title = stripTags(token); continue; }
     const p = token.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '');
-    let head = p, strong = '';
-    for (;;) {
-      const s = head.match(/^\s*<strong[^>]*>([\s\S]*?)<\/strong>/i);
-      if (!s) break;
-      strong += stripTags(s[1]); head = head.slice(s[0].length);
-    }
-    const no = normalizeProvisionNo(strong);
-    const atom = '\\d{1,3}(?:の\\d{1,2})*(?:・\\d{1,3}(?:の\\d{1,2})*)*共?(?:\\(\\d+\\))?';
-    const valid = new RegExp(`^${atom}(?:-${atom}){${opts.circular === 'hyoka' ? '0,3' : '1,3'}}$`).test(no);
-    if (valid) {
+    const { no, head } = readNumberHead(p);
+    // 通常用ですでに認めている共通関係の範囲形も、同じ番号判定で補完する。
+    if (looksLikeExtendedProvisionNo(no, opts) || looksLikeProvisionNo(no)) {
       finish(); current = { no, title, html: head };
     } else if (current) current.html += token;
     const end = m.index + token.length;
@@ -211,4 +259,5 @@ module.exports = {
   parseIndexPage,
   PROVISION_NO_RE,
   assertUsablePage,
+  classifyTsutatsuPage,
 };
