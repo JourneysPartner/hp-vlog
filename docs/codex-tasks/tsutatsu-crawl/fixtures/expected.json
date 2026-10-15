@@ -1,5 +1,5 @@
 {
- "note": "2026-10-15 の Crawl NTA Tsutatsu（run 38700904221）で読めなかったページ。expected: provisions＝項目を読めるべき（min_items 以上）／missing＝国税庁のリンク切れ（エラーページ）／provisions_or_non_provision＝項目を読めるか、附則・別紙・前文・目次などの項目の無いページとして記録",
+ "note": "2026-10-15 の Crawl NTA Tsutatsu（run 38700904221）で読めなかったページ。expected: provisions＝項目を読めるべき（min_items 以上）／missing＝国税庁のリンク切れ（エラーページ）／provisions_or_non_provision＝項目を読めるか、附則・別紙・前文・目次などの項目の無いページとして記録。2026-10-15 レビュー後: (共) の 3 ページは provisions に変更",
  "pages": [
   {
    "file": "kihon__hojin__01__01_03_02.htm",
@@ -349,8 +349,9 @@
    "current_items": 0,
    "current_skipped": 0,
    "basic_parser_items": 0,
-   "expected": "provisions_or_non_provision",
-   "min_items": 0
+   "expected": "provisions",
+   "min_items": 6,
+   "note": "番号が「42の6～47(共)-1」の形。「(共)」を「共」にそろえて読む（2026-10-15 レビュー High-2）"
   },
   {
    "file": "kobetsu__hojin__sochiho__750214__01__01_42_12.htm",
@@ -414,8 +415,9 @@
    "current_items": 0,
    "current_skipped": 0,
    "basic_parser_items": 0,
-   "expected": "provisions_or_non_provision",
-   "min_items": 0
+   "expected": "provisions",
+   "min_items": 2,
+   "note": "番号が「42の6～47(共)-1」の形。「(共)」を「共」にそろえて読む（2026-10-15 レビュー High-2）"
   },
   {
    "file": "kobetsu__hojin__sochiho__750214__10__10_64.htm",
@@ -427,8 +429,9 @@
    "current_items": 0,
    "current_skipped": 0,
    "basic_parser_items": 0,
-   "expected": "provisions_or_non_provision",
-   "min_items": 0
+   "expected": "provisions",
+   "min_items": 2,
+   "note": "番号が「42の6～47(共)-1」の形。「(共)」を「共」にそろえて読む（2026-10-15 レビュー High-2）"
   },
   {
    "file": "kobetsu__hojin__sochiho__750214__13__13_66_5_2.htm",
