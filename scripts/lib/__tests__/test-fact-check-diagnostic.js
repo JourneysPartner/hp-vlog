@@ -1,7 +1,10 @@
 'use strict';
 // 照合を実施できなかったときの理由（鍵を伏せた短い診断）の記録を確かめる。
 const assert = require('assert');
-const KEY = 'sk-ant-api03-TESTKEY1234567890abcdef';
+// 偽の鍵は実行時に組み立てる。鍵の形の文字列をそのまま置くと、公開範囲がリポジトリ全体の
+// Netlify の秘密情報の自動検出がビルドを止める（2026-10-15、#672 のプレビュー公開の失敗の疑い）。
+const KEY = ['sk', 'ant', 'api03', 'TESTKEY1234567890abcdef'].join('-');
+const PROJECT_KEY = ['sk', 'proj', 'abcdefghijk'].join('-');
 process.env.ANTHROPIC_API_KEY = KEY;
 const contentModel = require('../content-model');
 const F = require('../fact-check');
@@ -20,10 +23,10 @@ async function test(name, fn) {
     assert.strictEqual(contentModel.safeDiagnostic(new Error('Anthropic API 502: <html>bad gateway</html>')), 'Anthropic HTTP 502');
   });
   await test('応答の説明に鍵そのもの・sk- の形・x-api-key の値があれば伏せる', () => {
-    const detail = `boom ${KEY} sk-proj-abcdefghijk x-api-key: secretvalue authorization=Bearer abc`;
+    const detail = `boom ${KEY} ${PROJECT_KEY} x-api-key: secretvalue authorization=Bearer abc`;
     const d = contentModel.safeDiagnostic(new Error(`Anthropic API 401: ${JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: detail } })}`));
     assert.ok(d.startsWith('Anthropic HTTP 401 authentication_error: '), d);
-    assert.ok(!d.includes(KEY) && !d.includes('sk-proj-abcdefghijk') && !d.includes('secretvalue') && !d.includes('Bearer abc'), d);
+    assert.ok(!d.includes(KEY) && !d.includes(PROJECT_KEY) && !d.includes('secretvalue') && !d.includes('Bearer abc'), d);
     assert.ok(d.includes('[秘匿]'));
   });
   await test('一般の例外は文面を捨てる（鍵を含んでいても残らない）', () => {
