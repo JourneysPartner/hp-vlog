@@ -177,14 +177,14 @@ async function main() {
         requests.push(url); assert.ok([indexUrl, ...urls].includes(url));
         if (failedUrls.includes(url)) return { ok: false, status: 503 };
         const body = url === indexUrl ? urls.map(u => `<a href="${u}">本文</a>`).join('')
-          : url === validUrl ? html : '<h2>（本文が欠けた項目）</h2><p><strong>11</strong></p>';
+          : url === validUrl ? html : '<p>前文だけで項目はありません。</p>';
         return { ok: true, arrayBuffer: async () => Buffer.from('<meta charset=utf-8>' + body) };
       };
       await crawler.main({ outDir: dir });
       assert.equal(process.exitCode, 1); assert.equal(requests.length, urls.length + 1);
       for (const url of emptyUrls) assert.equal(logs.filter(log => log.includes(url) && log.includes('本文ページの項目が0件です')).length, 1);
-      assert.equal(logs.filter(log => log.includes('HTTP 503')).length, 5);
-      assert.ok(!logs.some(log => log.includes(failedUrls[5])));
+      assert.equal(logs.filter(log => log.includes('HTTP 503')).length, 6);
+      for (const url of failedUrls) assert.equal(logs.filter(log => log.includes(url) && log.includes('取得の失敗:')).length, 1);
       for (const [file, content] of Object.entries(initial)) assert.equal(fs.readFileSync(path.join(dir, file), 'utf8'), content);
     } finally {
       global.fetch = saved.fetch; process.argv = saved.argv; process.exitCode = saved.code; console.warn = saved.warn;

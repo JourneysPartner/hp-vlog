@@ -8,6 +8,7 @@ const path = require('path');
 const crypto = require('crypto');
 const P = require('../tsutatsu-parser');
 const C = require('../../crawl-nta-tsutatsu');
+const N = require('../nta-tsutatsu');
 const ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = path.join(ROOT, 'docs/codex-tasks/tsutatsu-crawl/fixtures');
 let passed = 0, failed = 0;
@@ -19,18 +20,21 @@ async function test(label, fn) {
 
 const provision = '<h2>（試験項目）</h2><p><strong>11</strong>本文です。</p>';
 const missing = '<title>指定されたページを表示できませんでした</title>';
-const noProvision = '<h1>目次</h1><p>番号のない前文です。</p>';
+const ntaPage = content => '<html><head><title>試験の通達｜国税庁</title></head><body>'
+  + `<div class="imp-cnt-tsutatsu"><h1>試験の通達</h1>${content}</div></body></html>`;
+const noProvision = ntaPage('<p>番号のない前文です。</p>'.repeat(6));
 const noPause = async () => {};
 
-async function importCase({ total = 1, missingCount = 0, nonProvisionCount = 0, badPage, success = false }) {
+async function importCase({ total = 1, missingCount = 0, nonProvisionCount = 0, badPage, badPages = [],
+  previous = { '11': { no: '11', body: '既存の本文' } }, previousJson, lost = [], success = false }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tsutatsu-import-'));
   const saved = { argv: process.argv, code: process.exitCode, output: process.env.GITHUB_OUTPUT,
     log: console.log, warn: console.warn, error: console.error };
   const initial = {
-    'hyoka.json': '{"既存":"本文"}\n',
+    ...(previous === null ? {} : { 'hyoka.json': previousJson ?? JSON.stringify({ provisions: previous }) + '\n' }),
     'hyoka.index.json': '{"entries":[{"id":"既存"}]}\n',
-    'index.json': JSON.stringify([{ circular: 'hyoka', provision_count: 1 },
-      { circular: 'shotoku', provision_count: 123 }], null, 2) + '\n',
+    'index.json': JSON.stringify([{ circular: 'shotoku', provision_count: 123 },
+      { circular: 'hyoka', provision_count: 1 }], null, 2) + '\n',
   };
   try {
     for (const [file, text] of Object.entries(initial)) fs.writeFileSync(path.join(dir, file), text);
@@ -42,10 +46,11 @@ async function importCase({ total = 1, missingCount = 0, nonProvisionCount = 0, 
     const base = new URL('.', C.CIRCULARS.hyoka.index).href;
     const pages = Array.from({ length: total }, (_, i) => ({
       url: `${base}${i === 0 && nonProvisionCount ? 'fusoku/' : ''}test-${i}.htm`,
-      html: i < nonProvisionCount ? (i === 0 ? provision : noProvision)
+      html: i < nonProvisionCount ? noProvision
         : i < nonProvisionCount + missingCount ? missing : provision,
     }));
     if (badPage !== undefined) pages[total - 1].html = badPage;
+    badPages.forEach((html, i) => { pages[i].html = html; });
     const requests = [];
     const fetchPage = async url => {
       requests.push(url);
@@ -84,6 +89,11 @@ async function importCase({ total = 1, missingCount = 0, nonProvisionCount = 0, 
     }
     if (nonProvisionCount || missingCount) {
       assert.ok(logs.some(log => log.includes(`項目の無いページ: ${nonProvisionCount} 件 / リンク切れ: ${missingCount} 件`)));
+    }
+    for (const no of lost) assert.ok(logs.some(log => log.includes(`消えた番号: ${no}`)));
+    for (const [i, html] of badPages.entries()) {
+      const kind = html === missing ? 'リンク切れ:' : html instanceof Error ? '取得の失敗:' : '読み落とし:';
+      assert.equal(logs.filter(log => log.includes(kind) && log.includes(pages[i].url)).length, 1);
     }
   } finally {
     process.argv = saved.argv; process.exitCode = saved.code;
@@ -137,21 +147,21 @@ async function main() {
       if (no) assert.equal(result.provisions[0].body, '本文です。');
     });
   }
-  await test('T2 番号のない本文は項目なし、有効な番号を読み落としたら停止する', () => {
+  await test('T2 裏付けのある本文は項目なし、有効な番号を読み落としたら停止する', () => {
     assert.equal(P.classifyTsutatsuPage(noProvision).type, 'non_provision');
     for (const markup of ['<strong>1-2</strong>', '<b>１－２</b>', '<span class="bold">1-2</span>']) {
       assert.equal(P.classifyTsutatsuPage(`<p>${markup}</p>`).type, 'unreadable');
     }
     for (const name of ['fusoku', 'bessi', 'zenbun']) {
       const result = P.classifyTsutatsuPage(provision, { circular: 'hyoka', url: `https://www.nta.go.jp/${name}/01.htm` });
-      assert.equal(result.type, 'non_provision');
-      assert.deepEqual(result.provisions, []);
+      assert.equal(result.type, 'provisions');
+      assert.deepEqual(result.provisions.map(p => p.no), ['11']);
       assert.equal(P.classifyTsutatsuPage(missing, { url: `https://www.nta.go.jp/${name}/01.htm` }).type, 'missing');
     }
     assert.throws(() => P.parseTsutatsuPage(missing), /国税庁のエラーページです/);
     assert.throws(() => P.parseIndexPage(missing, 'hyoka', C.CIRCULARS.hyoka.index));
-    assert.equal(P.classifyTsutatsuPage('<h2>附則</h2><p><strong>1</strong>適用日です。</p>', { circular: 'shotoku' }).type, 'non_provision');
-    assert.equal(P.classifyTsutatsuPage('<h2>共通事項</h2><p><strong>64～66(共)-1</strong>本文です。</p>', { circular: 'sochi_hojin' }).type, 'non_provision');
+    assert.equal(P.classifyTsutatsuPage(ntaPage('<h2>附則</h2><p><strong>1</strong>適用日です。</p>' + '<p>適用に関する説明です。</p>'.repeat(6)), { circular: 'shotoku' }).type, 'non_provision');
+    assert.equal(P.classifyTsutatsuPage('<h2>共通事項</h2><p><strong>64～66(共)-1</strong>本文です。</p>', { circular: 'sochi_hojin' }).type, 'provisions');
   });
   await test('T2 通常用で有効な範囲形を措置法用でも取りこぼさない', () => {
     const html = '<h2>共通事項</h2><p><strong>10の3～14共-1</strong>本文です。</p>';
@@ -171,15 +181,130 @@ async function main() {
     assert.deepEqual(fallback.provisions, result.provisions);
   });
 
-  await test('T3 項目なしと3%ちょうどのリンク切れは記録して取り込む', () =>
-    importCase({ total: 100, missingCount: 3, nonProvisionCount: 2, success: true }));
-  await test('T3 リンク切れが10件ちょうど、3%以内なら取り込む', () =>
-    importCase({ total: 400, missingCount: 10, success: true }));
-  await test('T3 リンク切れが3%を超えたら既存を保持する', () =>
-    importCase({ total: 33, missingCount: 1 }));
-  await test('T3 リンク切れが3%未満なら取り込む', () =>
-    importCase({ total: 34, missingCount: 1, success: true }));
-  await test('T3 リンク切れが3%以内でも11件あれば既存を保持する', () =>
+  const unreadablePages = [
+    ['空の応答', ''],
+    ['前文だけ', '<p>前文だけで項目はありません。</p>'],
+    ['メンテナンス中', '<html><head><title>メンテナンス中</title></head><body><h1>メンテナンス中</h1>' + '確認中です。'.repeat(20) + '</body></html>'],
+    ['途中で切れたHTML', noProvision.slice(0, -20)],
+    ['本文の枠がない', '<html><head><title>通達｜国税庁</title></head><body><p>' + '本文です。'.repeat(20) + '</p></body></html>'],
+    ['短い本文', ntaPage('<p>短い本文。</p>')],
+    ['fw-boldの番号だけ', ntaPage('<p><span class="fw-bold">1－3－2</span></p>')],
+    ['emの番号だけ', ntaPage('<p><em>1－3－2</em></p>')],
+    ['divの番号だけ', ntaPage('<div>1－3－2</div>')],
+  ];
+  for (const [label, html] of unreadablePages) await test(`B1 ${label}は読み落としとして保持する`, async () => {
+    assert.equal(P.classifyTsutatsuPage(html, { circular: 'hyoka' }).type, 'unreadable');
+    await importCase({ total: 2, badPage: html });
+  });
+  await test('B1 本文の裏付けは附則URLでも省略しない', () => {
+    for (const [, html] of unreadablePages) {
+      assert.equal(P.classifyTsutatsuPage(html, { circular: 'hyoka', url: 'https://www.nta.go.jp/fusoku/01.htm' }).type, 'unreadable');
+    }
+  });
+  await test('B1 本文は50字以上を必要とし、コメントやスクリプトは数えない', () => {
+    const html = text => `<html><head><title>通達｜国税庁</title></head><body><main id="bodyArea">${text}</main></body></html>`;
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(49))).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(50))).type, 'non_provision');
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(49) + '<!--長い注記--><script>長いスクリプト</script>')).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(49)).replace('</main>', '</main><p>' + '枠外です。'.repeat(20) + '</p>')).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(50)).replace('</main>', '')).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(html('文'.repeat(50)).replace('<html>', '')).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(noProvision.replace('｜国税庁', '別サイト')).type, 'unreadable');
+    assert.equal(P.classifyTsutatsuPage(noProvision.replace('<div class="imp-cnt-tsutatsu"><h1>試験の通達</h1>', '<h1>試験の通達</h1>')).type, 'non_provision');
+    assert.equal(P.classifyTsutatsuPage(noProvision.replace('<h1>試験の通達</h1>', '<div class="page-header">試験の通達</div>').replace('imp-cnt-tsutatsu', 'content')).type, 'non_provision');
+  });
+  await test('B1 重複番号を含む項目数が減ったら保持する', () =>
+    importCase({ previous: { '11': [{ no: '11', body: '旧本文1' }, { no: '11', body: '旧本文2' }] } }));
+  await test('B1 項目数が増えても既存番号が消えたら保持して番号を記録する', () =>
+    importCase({ total: 3, previous: { '12': { no: '12', body: '旧本文' } }, lost: ['12'] }));
+  await test('B1 既存カタログが読めないときも保持する', () => importCase({ previous: false }));
+  await test('B1 既存カタログのJSONが壊れていても保持する', () => importCase({ previousJson: '{' }));
+  await test('B1 初回は既存との比較なしで取り込む', () => importCase({ previous: null, success: true }));
+
+  for (const circular of ['hojin', 'sochi_shotoku']) {
+    for (const no of ['12の5の2-1-1', '37-13の2の2']) await test(`B2 ${circular}で番号${no}だけのページは読み落とし`, () => {
+      for (const tag of ['strong', 'b', 'span class="bold"']) {
+        const html = ntaPage('<p>前文の説明です。</p>'.repeat(12) + `<h2>番号のみ</h2><p><${tag}>${no}</${tag.split(' ')[0]}></p>`);
+        assert.equal(P.classifyTsutatsuPage(html, { circular }).type, 'unreadable');
+        if (circular === 'hojin') {
+          assert.equal(P.classifyTsutatsuPage(html.replace('</p></div>', '本文です。</p></div>'), { circular }).type, 'unreadable');
+        }
+      }
+    });
+  }
+  await test('B2 数字だけは財産評価で番号候補とし、旧番号は候補にしない', () => {
+    const html = ntaPage('<p>適用の説明です。</p>'.repeat(8) + '<p><strong>１</strong></p>');
+    assert.equal(P.classifyTsutatsuPage(html, { circular: 'shotoku' }).type, 'non_provision');
+    assert.equal(P.classifyTsutatsuPage(html, { circular: 'hyoka' }).type, 'unreadable');
+    const old = html.replace('１', '旧70の3の3・70の3の4-1');
+    const result = P.classifyTsutatsuPage(old, { circular: 'sochi_sozoku' });
+    assert.equal(result.type, 'non_provision');
+    assert.match(result.reason, /旧70の3の3・70の3の4-1/);
+  });
+  await test('B2 共通番号を引用側も同じ番号で引く', () => {
+    const catalog = N.loadCatalog(), saved = catalog.sochi_hojin;
+    const no = '42の6～47共-1';
+    try {
+      catalog.sochi_hojin = { label: '試験の措置法', provisions: { [no]: { no, body: '共通事項の本文' } } };
+      for (const raw of ['42の6～47(共)-1', '４２の６～４７（共）－１']) {
+        assert.equal(P.normalizeProvisionNo(raw), no);
+        assert.equal(N.findProvision(raw, 'sochi').no, no);
+        const result = N.checkCitations(`措通${raw}、55～57の8(共)-2`);
+        assert.equal(result.citations[0].no, no);
+        assert.equal(result.citations[0].found, true);
+        assert.equal(result.citations[1].no, '55～57の8共-2');
+      }
+    } finally {
+      if (saved === undefined) delete catalog.sochi_hojin; else catalog.sochi_hojin = saved;
+    }
+  });
+  for (const circular of ['shohi', 'hyoka', 'sochi_hojin']) await test(`B4 ${circular}は最長の有効な太字までを番号にする`, () => {
+    for (const [markup, no] of [
+      ['<strong>6－4－5　</strong><b>（注）</b>', '6-4-5'],
+      ['<strong>6</strong><span class="bold">－4</span><b>－5</b><strong>（注）</strong>', '6-4-5'],
+      ['<strong>6</strong><b>（注）</b>', circular === 'hyoka' ? '6' : null],
+    ]) {
+      const parsed = P.parseTsutatsuPage(`<h2>試験項目</h2><p>${markup}本文です。</p>`, { circular });
+      assert.deepEqual(parsed.provisions.map(p => p.no), no ? [no] : []);
+      if (no) assert.equal(parsed.provisions[0].body, '（注）本文です。');
+    }
+  });
+  await test('B5 パス区切りだけで附則扱いし、有効な項目は解析する', () => {
+    const html = ntaPage('<p><strong>1-2</strong></p>' + '<p>附則の説明です。</p>'.repeat(8));
+    for (const name of ['fusoku', 'bessi', 'zenbun']) {
+      for (const suffix of ['/' + name + '/01.htm', '/' + name + '.htm']) {
+        const opts = { circular: 'shotoku', url: 'https://www.nta.go.jp' + suffix };
+        assert.equal(P.classifyTsutatsuPage(html, opts).type, 'non_provision');
+        assert.equal(P.classifyTsutatsuPage('<h2>項目</h2><p><b>1-2</b>本文です。</p>', opts).type, 'provisions');
+      }
+      for (const url of [`https://${name}.example/01.htm`, `https://www.nta.go.jp/not-${name}/01.htm`, `https://www.nta.go.jp/01.htm?name=${name}`]) {
+        assert.equal(P.classifyTsutatsuPage(html, { circular: 'shotoku', url }).type, 'unreadable');
+      }
+    }
+  });
+  await test('B6 項目なしの理由に未読番号の例を最大3件記録する', () => {
+    const html = ntaPage('<p><b>廃止された項目</b></p>' + [1, 2, 3, 4].map(n => `<p><b>旧70-3-${n}</b>廃止されました。</p>`).join('') + '<p>廃止の説明です。</p>'.repeat(8));
+    const result = P.classifyTsutatsuPage(html, { circular: 'sochi_sozoku' });
+    assert.equal(result.type, 'non_provision');
+    for (const n of [1, 2, 3]) assert.ok(result.reason.includes(`旧70-3-${n}`));
+    assert.ok(!result.reason.includes('旧70-3-4'));
+    assert.ok(!result.reason.includes('廃止された項目'));
+  });
+  await test('B7 読み落とし・取得失敗・リンク切れを6件以上でも全URL記録する', () =>
+    importCase({ total: 25, missingCount: 7, badPages: [
+      ...Array.from({ length: 6 }, () => new Error('HTTP 503')),
+      ...Array.from({ length: 6 }, () => ''), ...Array.from({ length: 7 }, () => missing),
+    ] }));
+
+  await test('B3 項目なしと15%ちょうどのリンク切れは記録して取り込む', () =>
+    importCase({ total: 20, missingCount: 3, nonProvisionCount: 2, success: true }));
+  await test('B3 リンク切れが10件ちょうど、15%以内なら取り込む', () =>
+    importCase({ total: 100, missingCount: 10, success: true }));
+  await test('B3 リンク切れが10/58なら既存を保持する', () =>
+    importCase({ total: 58, missingCount: 10 }));
+  for (const [total, missingCount] of [[58, 6], [136, 8]]) await test(`B3 リンク切れ${missingCount}/${total}を取り込む`, () =>
+    importCase({ total, missingCount, success: true }));
+  await test('B3 リンク切れが15%以内でも11件あれば既存を保持する', () =>
     importCase({ total: 400, missingCount: 11 }));
   await test('T3 読み落としが1件でもあれば既存を保持する', () =>
     importCase({ total: 2, badPage: '<h2>（本文なし）</h2><p><b>11</b></p>' }));
