@@ -161,14 +161,16 @@ function promoteSource(options = {}) {
       source_confidence: 1,
       source_guard_version: SOURCE_GUARD_VERSION,
       review_status: 'draft',
-      recommendation: recommendationForDecision(fit.decision),
+      recommendation: plan.meta.fact_check_blocking === true || String(plan.meta.fact_check_blocking) === 'true' || plan.meta.fact_check_status === 'revise'
+        ? 'revise' : recommendationForDecision(fit.decision),
       customer_fit_score: fit.customer_fit_score,
       search_intent_score: fit.search_intent_score,
       practical_usefulness_score: fit.practical_usefulness_score,
       source_alignment_score: fit.source_alignment_score,
       lead_value_score: fit.lead_value_score,
       tax_risk_score: fit.tax_risk_score,
-      review_warning: fit.reason || '',
+      review_warning: plan.meta.fact_check_blocking === true || String(plan.meta.fact_check_blocking) === 'true' || plan.meta.fact_check_status === 'revise'
+        ? [plan.meta.review_warning, fit.reason].filter(Boolean).join(' / ') : fit.reason || '',
     });
     updated = removeFrontmatterFields(updated, ['approved_at', 'publish_at', 'publish_slot']);
     writeAtomic(plan.articlePath, updated);

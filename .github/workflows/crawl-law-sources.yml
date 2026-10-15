@@ -48,7 +48,7 @@ jobs:
           node scripts/crawl-law-sources.js --verbose $ARGS 2>&1 | tee /tmp/law-crawl.log
 
       - name: Verify catalog
-        run: node scripts/lib/__tests__/test-law-sources.js
+        run: LAW_CATALOG_REQUIRE_COMPLETE=true node scripts/lib/__tests__/test-law-sources.js
 
       - name: Check for changes
         id: changes

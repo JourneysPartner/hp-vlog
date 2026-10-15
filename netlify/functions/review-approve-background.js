@@ -358,6 +358,17 @@ async function handler(event, injected = {}) {
     const branchMeta = parseFrontmatterMeta(content);
     const isRefresh = refreshRequest || branchMeta.refresh_of === 'published';
     refreshRequest = isRefresh;
+    if (branchMeta.fact_check_blocking === true || String(branchMeta.fact_check_blocking) === 'true' || branchMeta.fact_check_status === 'revise') {
+      const reason = `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。差し戻して直してください`;
+      try {
+        await sendNotification(isRefresh ? 'refresh_approve_failed' : 'quality_blocked', {
+          title: branchMeta.title || filename, filename,
+          ...(isRefresh ? { comment: reason } : { reasons: [reason] }),
+        });
+      } catch (_) { console.error('[review-approve] 事実照合の停止通知送信に失敗しました'); }
+      return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+    }
+    if (!Object.keys(branchMeta).some(key => key.startsWith('fact_check_'))) console.log(`[review-approve] ${filename}: 照合の記録なし`);
     if (isRefresh) {
       if (!ref) {
         try { await sendNotification('refresh_approve_failed', { title: filename, comment: '更新案の承認には ref が必要です。' }); }

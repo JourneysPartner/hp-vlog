@@ -43,7 +43,8 @@ jobs:
           git fetch origin main --depth=1
           git checkout origin/main -- scripts/ package.json package-lock.json \
             data/banned-phrases.json data/topic-denylist.json \
-            data/curated-source-promotions.json data/nta-sources/
+            data/curated-source-promotions.json data/nta-sources/ \
+            data/generic-source-pages.json data/nta-tsutatsu/ data/law-sources/
           # git checkout <ref> -- <path> は対象を index にもステージする。
           # そのままだと後段の `git commit` が scripts/ ごと巻き込んでコミットし、
           # ドラフトブランチに main のスクリプト差分が混入する（実際に混入していた）。
@@ -72,6 +73,16 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_FAIL_OPEN: ${{ vars.FACT_CHECK_FAIL_OPEN }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+          SOURCE_BODY_MAX_CHARS_PER_PAGE: ${{ vars.SOURCE_BODY_MAX_CHARS_PER_PAGE }}
+          SOURCE_BODY_MAX_CHARS_TOTAL: ${{ vars.SOURCE_BODY_MAX_CHARS_TOTAL }}
+          LAW_CHAIN_MAX_ARTICLES: ${{ vars.LAW_CHAIN_MAX_ARTICLES }}
+          LAW_CHAIN_MAX_CHARS: ${{ vars.LAW_CHAIN_MAX_CHARS }}
+          GENERIC_SOURCE_MIN_POSTS: ${{ vars.GENERIC_SOURCE_MIN_POSTS }}
           CONTENT_MODEL_USE_PROMPT_CACHE: ${{ vars.CONTENT_MODEL_USE_PROMPT_CACHE || secrets.CONTENT_MODEL_USE_PROMPT_CACHE }}
           # 周辺作業（分類補助・タイトル自然化等）: Haiku 4.5 またはルールベース
           AUX_MODEL_ENABLED: ${{ vars.AUX_MODEL_ENABLED }}
@@ -94,19 +105,24 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # 記事ファイルのみステージ。scripts/ など main から上書きしたものは
+          # 記事と対応する照合記録のみステージ。scripts/ など main から上書きしたものは
           # 前段で index から外してあるのでコミット対象外。
           git add "content/posts/${{ inputs.filename }}"
+          SLUG=$(node -e 'const fs=require("fs"),m=require("gray-matter"); console.log(m(fs.readFileSync(process.argv[1],"utf8")).data.slug)' "content/posts/${{ inputs.filename }}")
+          FACTFILE="data/fact-check/${SLUG}.json"
+          if [ -f "$FACTFILE" ]; then git add "$FACTFILE"; fi
           if git diff --cached --quiet; then
             echo "変更なし"
             exit 0
           fi
-          # 念のため、記事以外が混入していないか確認して落とす。
+          # 記事と対応する照合記録以外が混入していないか確認して落とす。
           STAGED=$(git diff --cached --name-only)
-          if [ "$STAGED" != "content/posts/${{ inputs.filename }}" ]; then
-            echo "::error::記事以外がステージされています:"; echo "$STAGED"
-            exit 1
-          fi
+          while IFS= read -r STAGED_FILE; do
+            if [ "$STAGED_FILE" != "content/posts/${{ inputs.filename }}" ] && [ "$STAGED_FILE" != "$FACTFILE" ]; then
+              echo "::error::記事・照合記録以外がステージされています"
+              exit 1
+            fi
+          done <<< "$STAGED"
           git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
           # レビュー画面からの差し戻し（review: revise）が実行中に同じブランチへ
           # push すると、こちらの push が rejected になり再生成結果が失われる
@@ -122,12 +138,18 @@ jobs:
             git fetch origin "${{ inputs.branch }}"
             echo "── 実行中にリモートで変わったもの ──"
             git diff --name-only HEAD "origin/${{ inputs.branch }}" || true
-            # 再生成結果を退避 → リモート先端へ移動 → 記事だけ載せ直す。
+            # 再生成結果を退避 → リモート先端へ移動 → 記事と照合記録を載せ直す。
             # rebase の -X ours/theirs は向きを間違えやすいので使わない。
             cp "$ARTICLE" "${RUNNER_TEMP}/regenerated.md"
+            if [ -f "$FACTFILE" ]; then cp "$FACTFILE" "${RUNNER_TEMP}/regenerated-fact-check.json"; fi
             git reset --hard "origin/${{ inputs.branch }}"
             cp "${RUNNER_TEMP}/regenerated.md" "$ARTICLE"
             git add "$ARTICLE"
+            if [ -f "${RUNNER_TEMP}/regenerated-fact-check.json" ]; then
+              mkdir -p data/fact-check
+              cp "${RUNNER_TEMP}/regenerated-fact-check.json" "$FACTFILE"
+              git add "$FACTFILE"
+            fi
             if git diff --cached --quiet; then
               echo "リモート側が同じ内容だった → 変更なしで終了"
               exit 0

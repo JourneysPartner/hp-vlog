@@ -1,0 +1,87 @@
+name: 公開済み記事の事実照合
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 照合する記事数
+        default: '10'
+        type: string
+      offset:
+        description: 先頭から飛ばす記事数
+        default: '0'
+        type: string
+      since:
+        description: 公開日の下限（YYYY-MM-DD、空なら全期間）
+        default: ''
+        type: string
+      dry_run:
+        description: 件数・文字数・費用の見積もりだけを出す
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: 本文を変えずに照合する
+        id: audit
+        continue-on-error: true
+        env:
+          AUDIT_LIMIT: ${{ inputs.limit }}
+          AUDIT_OFFSET: ${{ inputs.offset }}
+          AUDIT_SINCE: ${{ inputs.since }}
+          AUDIT_DRY_RUN: ${{ inputs.dry_run }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+          FACT_CHECK_TIMEOUT_MS: ${{ vars.FACT_CHECK_TIMEOUT_MS }}
+          FACT_CHECK_INPUT_USD_PER_MILLION: ${{ vars.FACT_CHECK_INPUT_USD_PER_MILLION }}
+          FACT_CHECK_OUTPUT_USD_PER_MILLION: ${{ vars.FACT_CHECK_OUTPUT_USD_PER_MILLION }}
+        run: |
+          ARGS=(--limit "$AUDIT_LIMIT" --offset "$AUDIT_OFFSET")
+          if [ -n "$AUDIT_SINCE" ]; then ARGS+=(--since "$AUDIT_SINCE"); fi
+          if [ "$AUDIT_DRY_RUN" = true ]; then ARGS+=(--dry-run); fi
+          node scripts/audit-published-facts.js "${ARGS[@]}"
+      - name: 完了した記事の結果を保存する
+        if: always() && inputs.dry_run == false
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-facts-audit
+          path: data/fact-check/audit/
+          if-no-files-found: ignore
+      - name: 結果の枝とPRを作る
+        if: always() && inputs.dry_run == false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -d data/fact-check/audit ]; then exit 0; fi
+          git add data/fact-check/audit/
+          if git diff --cached --quiet; then exit 0; fi
+          BRANCH="audit/facts-$(TZ=Asia/Tokyo date +%Y-%m-%d)-$GITHUB_RUN_ID"
+          git checkout -b "$BRANCH"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m 'audit: 公開済み記事の事実照合結果'
+          git push origin "$BRANCH"
+          REPORT=$(find data/fact-check/audit -name report.md | sort | tail -n 1)
+          head -n 12 "$REPORT" > "$RUNNER_TEMP/audit-pr.md"
+          gh pr create --base main --head "$BRANCH" --title '公開済み記事の事実照合結果' --body-file "$RUNNER_TEMP/audit-pr.md"
+      - name: 照合の未完了を報告する
+        if: always() && steps.audit.outcome == 'failure'
+        run: |
+          echo '照合を完了できなかった記事があります。保存済みの結果を確認してください。'
+          exit 1

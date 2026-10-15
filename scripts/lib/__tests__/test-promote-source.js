@@ -78,6 +78,21 @@ function options(fixture, extra = {}) {
   };
 }
 
+// F7: 出典の適合を直しても、独立した照合の差し止めは保持する。
+{
+  const f = makeFixture();
+  fs.writeFileSync(f.articlePath, require('../fact-check').updateMeta(article(), {
+    fact_check_version: 1, fact_check_status: 'revise', fact_check_blocking: true,
+    fact_check_summary: '食い違いが残っています', fact_check_model: 'claude-opus-5-5',
+  }));
+  const before = matter(fs.readFileSync(f.articlePath, 'utf8')).data;
+  promoteSource(options(f));
+  const after = matter(fs.readFileSync(f.articlePath, 'utf8')).data;
+  for (const key of Object.keys(before).filter(k => k.startsWith('fact_check_'))) assert.deepStrictEqual(after[key], before[key]);
+  assert.strictEqual(after.recommendation, 'revise');
+  console.log('PASS F7 照合の管理項目と差し止めを保持');
+}
+
 function assertUnchanged(fixture, articleBefore, mapBefore) {
   assert.strictEqual(fs.readFileSync(fixture.articlePath, 'utf8'), articleBefore);
   assert.strictEqual(fs.readFileSync(fixture.mapPath, 'utf8'), mapBefore);

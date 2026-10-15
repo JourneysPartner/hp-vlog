@@ -191,6 +191,12 @@
 
 # 404 — 静的ファイルが存在しないパスのみ発動
 [[redirects]]
+  from = "/data/fact-check/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/404.html"
   status = 404
