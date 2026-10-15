@@ -197,7 +197,7 @@ async function main() {
       const instruction = req.system.split('\n\n[資料 ')[0];
       // 03k の後に Claude が足した経過措置の規則（実 AI の #644 で生前贈与加算の段階を見逃したため）も除いて比べる。
       assert.equal(instruction.replace('（金額・期限・割合・適用年・番号の主張は連続2つまで）', '')
-        .replace('原文に適用時期による段階（経過措置）があるのに、本文がその段階を書かずに最終の数字や期間だけを述べている場合は食い違いとし、correct に段階を書いてください。', ''), previous);
+        .replace('その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。', ''), previous);
       assert.equal(req.system, req.staticSystem); assert.equal(req.maxTokens, 16000);
       assert.equal(F.config().model, 'claude-opus-5-5');
       return [support('c1')];

@@ -83,8 +83,10 @@ async function main() {
     await F.judgeClaims([{ id: 'c1', sentence, heading: '', type: '判定', subject: '生前贈与加算', claim: sentence }],
       { c1: [ref('令和8年12月31日までの相続開始は3年以内、令和13年1月1日以後は7年以内です。')] }, sentence,
       async req => { system = req.system; return [{ id: 'c1', status: '資料なし', evidence_id: null, basis: [], correct: '' }]; }, options());
-    assert.match(system, /経過措置/);
-    assert.match(system, /段階を書かずに最終の数字や期間だけを述べている場合は食い違い/);
+    // 段階でない「経過措置」の語だけで当てはめないよう、語は使わず条件を絞る（review-03k-tail の Low-A）。
+    assert.doesNotMatch(system, /経過措置/);
+    assert.match(system, /原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違い/);
+    assert.match(system, /特定の年分の値として正しく書いている場合は裏付けあり/);
   });
 
   console.log(`03k残り集計: ${JSON.stringify(groups)}`);
