@@ -236,7 +236,8 @@ form.addEventListener('submit', event => {
     const next = safeNext(form.get('next'));
     try {
       if (getStoreFn === getStore) connectLambda(event);
-      const store = getStoreFn({ name: 'review-auth', consistency: 'strong', fetch: blobsFetch });
+      // connectLambdaの接続では通常の読み込みを使い、古い記録は照合前の条件付き書き込みで止める。
+      const store = getStoreFn({ name: 'review-auth', fetch: blobsFetch });
       const ipKey = `ip/${ipHash(event)}`;
       const at = now();
       const ipRate = await readRate(store, ipKey, 900000, at);

@@ -8,10 +8,12 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
   const origin = 'https://review-blobs.example.invalid';
   const connection = {
     siteID: crypto.randomUUID(), token: crypto.randomBytes(32).toString('hex'),
-    edgeURL: origin, uncachedEdgeURL: origin,
+    edgeURL: origin,
   };
   const records = new Map();
   const etags = new Map();
+  const previous = new Map();
+  const staleReads = new Set();
   const requests = [];
   let version = 0;
   const pause = () => new Promise(resolve => setTimeout(resolve, delay));
@@ -25,13 +27,15 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
     const method = String(options.method || 'GET').toUpperCase();
     const headers = new Headers(options.headers);
     // 認証ヘッダを記録しない。条件と結果だけを検証に使う。
-    const request = { method, key, ifMatch: headers.get('if-match'), ifNoneMatch: headers.get('if-none-match') };
+    const request = { method, key, origin: url.origin, ifMatch: headers.get('if-match'), ifNoneMatch: headers.get('if-none-match') };
     requests.push(request);
     if (method === 'GET') {
-      const exists = records.has(key);
+      // 書き込みは最新の版で判定し、読み込みだけを一つ前の版にできる。
+      const entry = staleReads.has(key) ? previous.get(key) : records.has(key) ? { body: records.get(key), etag: etags.get(key) } : null;
+      const exists = !!entry;
       const status = readStatus !== 200 ? readStatus : exists ? 200 : 404;
-      const body = exists ? records.get(key) : '';
-      const responseHeaders = exists && !omitEtag ? { etag: etags.get(key), 'content-type': 'application/json' } : {};
+      const body = exists ? entry.body : '';
+      const responseHeaders = exists && !omitEtag ? { etag: entry.etag, 'content-type': 'application/json' } : {};
       request.status = status;
       await pause();
       return response(status, body, responseHeaders);
@@ -50,6 +54,7 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
       }
       assert.equal(typeof options.body, 'string');
       assert.equal(typeof JSON.parse(options.body).count, 'number');
+      previous.set(key, records.has(key) ? { body: records.get(key), etag: etags.get(key) } : null);
       records.set(key, options.body);
       etags.set(key, JSON.stringify(`version-${++version}`));
       request.status = 200;
@@ -61,7 +66,7 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
     }
     throw new Error('試験で認めていないHTTPメソッド');
   }
-  return { connection, fetch, records, etags, requests };
+  return { connection, fetch, records, etags, previous, staleReads, requests };
 }
 
 module.exports = { createBlobsHttp };

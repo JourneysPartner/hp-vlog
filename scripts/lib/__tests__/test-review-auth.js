@@ -60,7 +60,7 @@ function setup(options = {}) {
     delete: async key => { operations.push({ operation: '消す', key }); records.delete(key); etags.delete(key); },
   };
   const auth = authLib.createReviewAuth({ env, now: () => time, getStoreFn: input => {
-    assert.deepEqual(input, { name: 'review-auth', consistency: 'strong', fetch: input.fetch });
+    assert.deepEqual(input, { name: 'review-auth', fetch: input.fetch });
     assert.equal(typeof input.fetch, 'function');
     return options.realBlobs ? getStore({ ...input, ...options.realBlobs.connection }) : store;
   }, fetchFn: options.realBlobs?.fetch, sleep: async ms => { delays.push(ms); }, notify: async (...args) => { notices.push(args); }, log: entry => { logs.push(entry); },
@@ -453,7 +453,7 @@ async function main() {
 
   await testFixes();
   await testFixes2();
-  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3: PASS ${passed} / FAIL ${failed}`);
+  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3・G4: PASS ${passed} / FAIL ${failed}`);
   if (failed) process.exitCode = 1;
 }
 
@@ -722,27 +722,6 @@ async function testFixes2() {
     const successful = setup({ realBlobs: createBlobsHttp() });
     assert.equal((await successful.auth.login(successful.event())).statusCode, 303);
     assert.equal(successful.comparisons(), 1);
-    // 現行connectLambdaが作る接続にstrong用URLが無い場合も安全側で止める。
-    // 接続情報の作り方は今回の指示で変更しないため、実環境で別途確認する。
-    const lambdaHttp = createBlobsHttp();
-    const contextBefore = process.env.NETLIFY_BLOBS_CONTEXT;
-    let lambdaComparisons = 0;
-    const lambda = authLib.createReviewAuth({ env: h.env, now: h.time, fetchFn: lambdaHttp.fetch,
-      sleep: async () => {}, notify: async () => {}, log: () => {},
-      comparePassword: () => { lambdaComparisons++; return true; },
-    });
-    try {
-      const event = h.event();
-      event.headers['x-nf-site-id'] = lambdaHttp.connection.siteID;
-      event.headers['x-nf-deploy-id'] = crypto.randomUUID();
-      event.blobs = Buffer.from(JSON.stringify({ url: lambdaHttp.connection.edgeURL, token: lambdaHttp.connection.token })).toString('base64');
-      const response = await lambda.login(event);
-      assert.equal(response.statusCode, 503); assert.equal(response.headers['Set-Cookie'], undefined);
-      assert.equal(lambdaComparisons, 0); assert.equal(lambdaHttp.requests.length, 0);
-    } finally {
-      if (contextBefore === undefined) delete process.env.NETLIFY_BLOBS_CONTEXT;
-      else process.env.NETLIFY_BLOBS_CONTEXT = contextBefore;
-    }
     console.log(`  G1 実物SDK: 新規=If-None-Match:* / 既存=If-Match:保存済みETag / 同じIP200件=${counts[0]} / 異なるIP200件=${counts[1]} / PUT403・500=503、照合0回`);
   });
 
@@ -832,6 +811,89 @@ async function testFixes2() {
     assert.equal(limited.statusCode, 429); assert.equal(capped.comparisons(), 5);
     assert.match(limited.body, /しばらくしてからお試しください/);
     assert.doesNotMatch(limited.body, /もう一度お試しください/);
+  });
+
+  await test('G4', '通常の接続でログインでき、古い記録は条件付き書き込みで拒否する', async () => {
+    const wrong = '間違えた試験用のパスワード';
+    const lambdaHttp = createBlobsHttp();
+    const h = setup();
+    const contextBefore = process.env.NETLIFY_BLOBS_CONTEXT;
+    let lambdaComparisons = 0;
+    const lambda = authLib.createReviewAuth({ env: h.env, now: h.time, fetchFn: lambdaHttp.fetch,
+      sleep: async () => {}, notify: async () => {}, log: () => {},
+      comparePassword: (input, expected) => {
+        lambdaComparisons++;
+        const digest = value => crypto.createHash('sha256').update(value).digest();
+        return crypto.timingSafeEqual(digest(input), digest(expected));
+      },
+    });
+    try {
+      for (const [password, status] of [[wrong, 401], [PASSWORD, 303]]) {
+        const event = h.event(password);
+        event.headers['x-nf-site-id'] = lambdaHttp.connection.siteID;
+        event.headers['x-nf-deploy-id'] = crypto.randomUUID();
+        event.blobs = Buffer.from(JSON.stringify({ url: lambdaHttp.connection.edgeURL, token: lambdaHttp.connection.token })).toString('base64');
+        const response = await lambda.login(event);
+        assert.equal(response.statusCode, status);
+        if (status === 303) assert.ok(response.headers['Set-Cookie']);
+        else assert.equal(response.headers['Set-Cookie'], undefined);
+        const context = JSON.parse(Buffer.from(process.env.NETLIFY_BLOBS_CONTEXT, 'base64').toString('utf8'));
+        assert.deepEqual(Object.keys(context).sort(), ['deployID', 'edgeURL', 'siteID', 'token']);
+      }
+      assert.equal(lambdaComparisons, 2);
+      const reads = lambdaHttp.requests.filter(request => request.method === 'GET');
+      assert.ok(reads.length > 0);
+      assert.ok(reads.every(request => request.origin === lambdaHttp.connection.edgeURL));
+      assert.ok(lambdaHttp.requests.some(request => request.method === 'DELETE'));
+      assert.equal([...lambdaHttp.records.keys()].filter(key => key.startsWith('ip/')).length, 0);
+    } finally {
+      if (contextBefore === undefined) delete process.env.NETLIFY_BLOBS_CONTEXT;
+      else process.env.NETLIFY_BLOBS_CONTEXT = contextBefore;
+    }
+    for (const target of ['ip', 'global']) {
+      for (const blocked of [false, true]) {
+        const http = createBlobsHttp();
+        const stale = setup({ realBlobs: http });
+        const attempts = blocked ? target === 'ip' ? 5 : 30 : 2;
+        for (let i = 0; i < attempts; i++) {
+          assert.equal((await stale.auth.login(stale.event(wrong, target === 'ip' ? '192.0.2.1' : `192.0.2.${i + 1}`))).statusCode, 401);
+        }
+        const key = target === 'global' ? 'global' : [...http.records.keys()].find(name => name.startsWith('ip/'));
+        const current = http.records.get(key);
+        const previous = http.previous.get(key);
+        assert.equal(JSON.parse(previous.body).count, attempts - 1);
+        assert.equal(JSON.parse(previous.body).blockedUntil, 0);
+        assert.equal(JSON.parse(current).blockedUntil > stale.time(), blocked);
+        assert.notEqual(previous.etag, http.etags.get(key));
+        http.staleReads.add(key);
+        const before = { comparisons: stale.comparisons(), requests: http.requests.length, notices: stale.notices.length };
+        const response = await stale.auth.login(stale.event(PASSWORD, target === 'ip' ? '192.0.2.1' : '198.51.100.240'));
+        assert.equal(response.statusCode, 429);
+        assert.match(response.body, /もう一度お試しください/);
+        assert.doesNotMatch(response.body, /しばらくしてからお試しください/);
+        assert.equal(response.headers['Set-Cookie'], undefined);
+        assert.equal(stale.comparisons() - before.comparisons, 0);
+        assert.equal(stale.notices.length, before.notices);
+        assert.equal(http.records.get(key), current);
+        const requests = http.requests.slice(before.requests);
+        const write = requests.find(request => request.method === 'PUT' && request.key === key);
+        assert.ok(write); assert.equal(write.ifMatch, previous.etag); assert.equal(write.status, 412);
+        assert.ok(!requests.some(request => request.method === 'DELETE'));
+      }
+    }
+    // 新規作成前の「記録なし」を読んでも、If-None-Matchで競合して照合しない。
+    const absentHttp = createBlobsHttp();
+    const absent = setup({ realBlobs: absentHttp });
+    assert.equal((await absent.auth.login(absent.event(wrong))).statusCode, 401);
+    const ipKey = [...absentHttp.records.keys()].find(key => key.startsWith('ip/'));
+    assert.equal(absentHttp.previous.get(ipKey), null);
+    absentHttp.staleReads.add(ipKey);
+    const response = await absent.auth.login(absent.event());
+    assert.equal(response.statusCode, 429); assert.equal(absent.comparisons(), 1);
+    assert.match(response.body, /もう一度お試しください/);
+    const write = absentHttp.requests.filter(request => request.method === 'PUT').at(-1);
+    assert.equal(write.ifNoneMatch, '*'); assert.equal(write.status, 412);
+    console.log('  G4 実物SDK: uncachedEdgeURLなしで誤り401・成功303 / 読み込み先=edgeURL / 古いIP・全体記録（停止前を含む）は412→429、照合0回');
   });
 }
 
