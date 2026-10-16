@@ -1,6 +1,7 @@
 'use strict';
 
 const githubApi = require('./lib/github-api');
+const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
 const { appendEntries } = require('./lib/denylist-store');
 const { buildEntriesFromContext } = require('../../scripts/lib/denylist');
@@ -31,6 +32,9 @@ async function handler(event, injected = {}) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  const auth = reviewAuth.requireAction(event);
+  if (auth.response) return auth.response;
 
   try {
     const { filename, ref, suppress_topic } = JSON.parse(event.body || '{}');

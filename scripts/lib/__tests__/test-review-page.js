@@ -1,5 +1,7 @@
 'use strict';
 
+const { authenticatedEvent } = require('./review-auth-test-helpers');
+
 /**
  * review-page の GitHub 認証まわりのテスト。
  *   node scripts/lib/__tests__/test-review-page.js
@@ -34,10 +36,10 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
     delete process.env.GH_APP_INSTALLATION_ID;
     delete process.env.GITHUB_TOKEN;
     const fn = reload(reviewPagePath);
-    const res = await fn.handler({
+    const res = await fn.handler(authenticatedEvent({
       httpMethod: 'GET',
       queryStringParameters: { file: '__nonexistent-file__.md' },
-    });
+    }));
     assert(res.statusCode === 500, `status 500（実: ${res.statusCode}）`);
     assert(/GitHub 認証が未設定です|credentials/.test(res.body), '認証未設定メッセージを表示');
     assert(!/PRIVATE_KEY.*-----BEGIN/.test(res.body), '秘密鍵を画面に出していない');
@@ -47,10 +49,10 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
   console.log('\n=== Test 2: 不正な file パラメータ → 400 ===');
   {
     const fn = reload(reviewPagePath);
-    const res = await fn.handler({
+    const res = await fn.handler(authenticatedEvent({
       httpMethod: 'GET',
       queryStringParameters: { file: '../../etc/passwd' },
-    });
+    }));
     assert(res.statusCode === 400, `status 400（実: ${res.statusCode}）`);
   }
 
@@ -58,7 +60,7 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
   console.log('\n=== Test 3: POST → 405 ===');
   {
     const fn = reload(reviewPagePath);
-    const res = await fn.handler({ httpMethod: 'POST', queryStringParameters: {} });
+    const res = await fn.handler(authenticatedEvent({ httpMethod: 'POST', queryStringParameters: {} }));
     assert(res.statusCode === 405, `status 405（実: ${res.statusCode}）`);
   }
 
@@ -73,10 +75,10 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
       const origCwd = process.cwd();
       process.chdir(ROOT);
       const fn = reload(reviewPagePath);
-      const res = await fn.handler({
+      const res = await fn.handler(authenticatedEvent({
         httpMethod: 'GET',
         queryStringParameters: { file: md },
-      });
+      }));
       process.chdir(origCwd);
       assert(res.statusCode === 200, `status 200（実: ${res.statusCode}）`);
       assert(/レビュー|このまま公開|差し戻し|見送り/.test(res.body), 'レビューUIが含まれる');
@@ -123,10 +125,10 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
       const origCwd = process.cwd();
       process.chdir(ROOT);
       const fn = reload(reviewPagePath);
-      const res = await fn.handler({
+      const res = await fn.handler(authenticatedEvent({
         httpMethod: 'GET',
         queryStringParameters: { file: md, ref: 'draft/some-branch' },
-      });
+      }));
       process.chdir(origCwd);
       assert(res.statusCode !== 200,
         `ref 指定時はローカルを返さない（実: ${res.statusCode}）`);
@@ -152,10 +154,10 @@ function reload(p) { delete require.cache[require.resolve(p)]; return require(p)
       const origCwd = process.cwd();
       process.chdir(ROOT);
       const fn = reload(reviewPagePath);
-      const res = await fn.handler({
+      const res = await fn.handler(authenticatedEvent({
         httpMethod: 'GET',
         queryStringParameters: { file: md },
-      });
+      }));
       process.chdir(origCwd);
       assert(res.statusCode === 200,
         `ref 無しはローカルから 200（実: ${res.statusCode}）`);

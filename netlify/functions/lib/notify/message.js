@@ -17,6 +17,9 @@
 
 function buildMessage(event, data) {
   switch (event) {
+    case 'review_auth_locked':
+      return { subject: '【ブログ】レビュー画面のログインを一時停止しました', body: 'ログインの失敗回数が上限に達したため、1時間ログインを停止しました。心当たりがない場合は、認証設定とアクセス状況を確認してください。' };
+
     case 'draft_created': {
       const { title, summary, persona, category, reviewUrl, prUrl, articleType, articleRole } = data;
 

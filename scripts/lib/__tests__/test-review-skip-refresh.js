@@ -1,5 +1,7 @@
 'use strict';
 
+const { authenticatedEvent } = require('./review-auth-test-helpers');
+
 const api = require('../../../netlify/functions/lib/github-api');
 const skip = require('../../../netlify/functions/review-skip');
 
@@ -38,10 +40,10 @@ function setup({ ref, openPR = true } = {}) {
   };
   return {
     state,
-    run: () => skip._handler({
+    run: () => skip._handler(authenticatedEvent({
       httpMethod: 'POST',
       body: JSON.stringify({ filename: 'refresh-skip.md', ref }),
-    }, dependencies),
+    }), dependencies),
   };
 }
 

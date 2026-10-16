@@ -1,5 +1,7 @@
 'use strict';
 
+const { authenticatedEvent } = require('./review-auth-test-helpers');
+
 const assert = require('assert/strict');
 const fs = require('fs');
 const os = require('os');
@@ -63,7 +65,7 @@ async function main() {
     try {
       process.env.GITHUB_TOKEN = 'テスト専用の偽認証';
       github.getFile = async file => ({ content: file.startsWith('data/fact-check/') ? record : content });
-      const response = await page.handler({ httpMethod: 'GET', queryStringParameters: { file: filename, ref: 'draft/test' } });
+      const response = await page.handler(authenticatedEvent({ httpMethod: 'GET', queryStringParameters: { file: filename, ref: 'draft/test' } }));
       assert.equal(response.statusCode, 200);
       assert.match(response.body, /照合済み/); assert.match(response.body, /直した箇所/);
       assert.match(response.body, /令和8年3月31日/); assert.match(response.body, /令和9年3月31日/);
@@ -168,8 +170,8 @@ async function main() {
   for (const [refresh, status] of [[false, 'revise'], [false, 'not_run'], [true, 'revise'], [true, 'not_run']]) await test('G4', `承認停止を一度通知: 更新案=${refresh} 状態=${status}`, async () => {
     const calls = []; let writes = 0;
     const content = raw(correct, { fact_check_status: status, fact_check_blocking: true });
-    const response = await require('../../../netlify/functions/review-approve-background')._handler({ httpMethod: 'POST',
-      body: JSON.stringify({ filename: 'test.md', ...(refresh ? { ref: 'draft/refresh-test' } : {}) }) }, {
+    const response = await require('../../../netlify/functions/review-approve-background')._handler(authenticatedEvent({ httpMethod: 'POST',
+      body: JSON.stringify({ filename: 'test.md', ...(refresh ? { ref: 'draft/refresh-test' } : {}) }) }), {
       getFile: async () => ({ content }), putFile: async () => { writes++; },
       sendNotification: async (...args) => calls.push(args),
     });
@@ -179,7 +181,7 @@ async function main() {
   });
   await test('G4', '更新マーカーでも更新案通知、通知失敗でも承認停止', async () => {
     const calls = [];
-    const response = await require('../../../netlify/functions/review-approve-background')._handler({ httpMethod: 'POST', body: JSON.stringify({ filename: 'test.md' }) }, {
+    const response = await require('../../../netlify/functions/review-approve-background')._handler(authenticatedEvent({ httpMethod: 'POST', body: JSON.stringify({ filename: 'test.md' }) }), {
       getFile: async () => ({ content: raw(correct, { refresh_of: 'published', fact_check_status: 'revise' }) }),
       sendNotification: async (...args) => { calls.push(args); throw new Error('偽の通知失敗'); },
       putFile: async () => assert.fail('承認停止時は書き込まない'),
