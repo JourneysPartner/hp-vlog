@@ -55,30 +55,111 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function renderFactCheck(meta, record, body) {
+// 要点と詳細で、古い記録や読めない記録の判定を揃える。
+function factCheckState(meta, record, body) {
   const labels = { ok: '照合済み', revise: '要修正', not_run: '未実施' };
   const stale = record?.stale || (body !== undefined && record && !record.read_error && record.body_sha256 !== bodyHash(body));
   const unreadable = record?.read_error;
   const status = stale || unreadable ? 'not_run' : meta.fact_check_status || record?.status || '';
-  const refs = item => evidenceRefs(record || {}, item).map(e => {
+  return { stale, unreadable, status, label: labels[status] || '照合の記録なし', usable: record && !stale && !unreadable };
+}
+
+// 保存した文は変えず、表示時だけ指定された書式を除いてからエスケープする。
+function factSentence(value) {
+  const original = String(value == null ? '' : value);
+  const cleaned = original
+    .replace(/<\/?(?:strong|em|b|i|u|mark|span|br|a|sup|sub)(?=[\s/>])(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi, '')
+    .replace(/\*\*|__/g, '')
+    .split(/\r?\n/).map(line => {
+      const text = line.trim().replace(/^(?:[-*+]|\d+[.)])\s+/, '');
+      return /^\|.*\|$/.test(text) ? text.slice(1, -1).split('|').map(cell => cell.trim()).join(' ／ ') : text;
+    }).join('\n').trim();
+  return escapeHtml(cleaned || original);
+}
+
+function renderFactEvidence(record, item, inline = false) {
+  const refs = evidenceRefs(record || {}, item).map(e => {
     const url = /^https:\/\//.test(e.url || '') ? e.url : '';
     const excerpt = !item.evidence_id || item.evidence_id === e.id ? factEvidenceExcerpt(e.text || '', item.quote || '') : '';
-    return `<div class="small mt-2">${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}${excerpt ? `<blockquote>${escapeHtml(excerpt)}</blockquote>` : ''}</div>`;
-  }).join('');
-  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${escapeHtml(c.before || c.sentence)}</div><div><strong>後:</strong> ${escapeHtml(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
+    return {
+      link: `${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}`,
+      excerpt: excerpt ? `<blockquote>${escapeHtml(excerpt)}</blockquote>` : '',
+    };
+  });
+  if (inline) return refs.length ? `<div class="small mt-2">見た資料: ${refs.map(e => e.link).join('・')}</div>${refs.map(e => e.excerpt).join('')}` : '';
+  return refs.map(e => `<div class="small mt-2">${e.link}${e.excerpt}</div>`).join('');
+}
+
+function renderFactRemaining(record) {
   const remaining = record?.remaining || [];
   const contradictions = remaining.filter(c => c.status === '食い違い' || c.status === '期限の書き漏れ');
-  const reviewItems = record?.review_items || [];
+  return `<h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${factSentence(c.sentence)}<div>${factSentence(c.correct || c.status)}</div>${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
+    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${factSentence(c.sentence)}</p>`).join('')}</div>` : ''}`;
+}
+
+function factReviewGroups(items) {
+  const groups = new Map();
+  for (const item of items) {
+    const status = String(item.status || '');
+    if (!groups.has(status)) groups.set(status, []);
+    groups.get(status).push(item);
+  }
+  const order = ['資料なし', '上限で未照合', ...[...groups.keys()].filter(status => status !== '資料なし' && status !== '上限で未照合')];
+  return order.filter(status => groups.has(status)).map(status => ({ status, items: groups.get(status) }));
+}
+
+function factReviewCounts(items) {
+  const labels = { '資料なし': '資料が見つからなかった', '上限で未照合': '件数の上限で照合しなかった' };
+  return factReviewGroups(items).map(group => `${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)} ${group.items.length} 件`).join('・');
+}
+
+function renderFactReviewItems(items, record) {
+  if (!items.length) return '';
+  const labels = { '資料なし': '資料が見つからなかった記述', '上限で未照合': '件数の上限で照合しなかった記述' };
+  const groups = factReviewGroups(items).map(group => {
+    const headings = new Map();
+    // 位置が無い記録は元の順番を使い、同じ見出しを一度だけ表示する。
+    const ordered = group.items.map((item, index) => ({ item, position: Number.isFinite(item.s) ? item.s : index }));
+    ordered.sort((a, b) => a.position - b.position);
+    for (const { item } of ordered) {
+      const heading = String(item.heading || '');
+      if (!headings.has(heading)) headings.set(heading, []);
+      headings.get(heading).push(item);
+    }
+    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
+  }).join('');
+  return `<details><summary>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）。承認を止める理由ではありません</summary>
+    <h3 class="h6 mt-3">人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）</h3>
+    <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>${groups}</details>`;
+}
+
+function renderFactCheckSummary(meta, record, body) {
+  const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
+  const blocking = status === 'revise' || meta.fact_check_blocking === true || meta.fact_check_blocking === 'true';
+  if (!record && !blocking && status !== 'not_run') return '<p id="factCheckSummary">照合の記録なし</p>';
+  const corrections = usable ? record.corrections || [] : [];
+  const items = usable ? record.review_items || [] : [];
+  return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
+    <p><strong>状態:</strong> ${escapeHtml(label)}</p>
+    ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています</div>' : ''}
+    ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
+    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件</p>
+    ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
+    ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
+    <a href="#factCheck">詳細は本文の後ろ</a>
+    </div></div>`;
+}
+
+function renderFactCheck(meta, record, body) {
+  const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
+  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
   return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
-    <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(labels[status] || '照合の記録なし')}${status ? `（${escapeHtml(status)}）` : ''}</p>
+    <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(label)}${status ? `（${escapeHtml(status)}）` : ''}</p>
     <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>
-    ${record && !stale && !unreadable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
+    ${usable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
-    <h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${escapeHtml(c.sentence)}<div>${escapeHtml(c.correct || c.status)}</div>${refs(c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
-    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${escapeHtml(c.sentence)}</p>`).join('')}</div>` : ''}
-    ${reviewItems.length ? `<h3 class="h6">人が確かめる箇所（資料が見つからなかった記述）</h3>
-    <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>
-    ${reviewItems.map(c => `<div class="border rounded p-3 mb-2"><div>${escapeHtml(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 見出し: ${escapeHtml(c.heading)} / 制度名: ${escapeHtml(c.subject)}</div>${refs(c)}</div>`).join('')}` : ''}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
+    ${renderFactRemaining(record)}
+    ${renderFactReviewItems(record.review_items || [], record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
 }
 
@@ -273,7 +354,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 <div class="container py-4">
 
   ${refreshBanner}
-  ${renderFactCheck(meta, factRecord)}
+  ${renderFactCheckSummary(meta, factRecord)}
 
   <!-- メタ情報カード -->
   <div class="card mb-4">
@@ -317,6 +398,8 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
       ${bodyMd}
     </div>
   </div>
+
+  ${renderFactCheck(meta, factRecord)}
 
   <!-- 修正コメント入力欄 -->
   <div class="card mb-4 comment-area" id="commentCard">
@@ -568,4 +651,5 @@ exports.handler = async (event) => {
 exports.renderReviewPage = renderReviewPage;
 exports.parseFrontmatter = parseFrontmatter;
 exports.renderFactCheck = renderFactCheck;
+exports.renderFactCheckSummary = renderFactCheckSummary;
 exports.fetchFactCheck = fetchFactCheck;

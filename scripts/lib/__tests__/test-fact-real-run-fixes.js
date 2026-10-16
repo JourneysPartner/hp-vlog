@@ -351,7 +351,7 @@ async function main() {
     const record = { status: 'ok', body_sha256: F.bodyHash('本文'), review_items: [item], corrections: [], remaining: [] };
     for (const data of [record, F.compactRecord(record)]) {
       const html = page.renderFactCheck({ fact_check_status: 'ok' }, data, '本文');
-      assert.ok(html.includes('人が確かめる箇所（資料が見つからなかった記述）'));
+      assert.ok(html.includes('人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）'));
       assert.ok(html.includes('この一覧は承認を止める理由ではなく'));
       for (const escaped of ['&lt;script&gt;記述&lt;/script&gt;', '&lt;判定&gt;', '見出し&amp;&quot;', '&lt;制度&gt;', '&lt;候補&gt;']) assert.ok(html.includes(escaped), escaped);
       assert.ok(html.includes('href="https://example.jp/?a=&quot;&amp;b=1"')); assert.ok(!html.includes('javascript:'));
