@@ -24,6 +24,7 @@ function assert(cond, label) {
   else      { console.error(`  ✗ ${label}`); failed++; }
 }
 
+if (require.main === module) {
 // ── 1. 条番号の正規化 ──────────────────────────────────────────
 console.log('\n=== Test 1: 条番号の正規化 ===');
 {
@@ -295,32 +296,51 @@ console.log('=== Test 8: 相続税法基本通達 ===');
     '存在しない相続税の番号を検出する');
 }
 
-// -- 9. カタログ全体の品質 --------------------------------------------
-console.log('');
-console.log('=== Test 9: 品質 ===');
-{
+}
+
+// 小さな一時カタログでも、実際の Test 9 と同じ検査を実行する。
+function testCatalogQuality(check = assert) {
   const fs = require('fs');
+  const catalogDir = process.env.TSUTATSU_DIR || path.join(ROOT, 'data/nta-tsutatsu');
   const index = JSON.parse(fs.readFileSync(
-    path.join(ROOT, 'data/nta-tsutatsu/index.json'), 'utf8'));
+    path.join(catalogDir, 'index.json'), 'utf8'));
   const NTA_PREFIX = 'https://www.nta.go.jp/';
   let total = 0;
   for (const e of index) {
-    const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/nta-tsutatsu', e.file), 'utf8'));
-    const ps = Object.values(d.provisions);
+    const d = JSON.parse(fs.readFileSync(path.join(catalogDir, e.file), 'utf8'));
+    const ps = Object.values(d.provisions).flat();
     total += ps.length;
-    const noTitle = ps.filter(x => !x.title).length;
-    const noBody = ps.filter(x => !x.body || x.body.length < 20).length;
-    assert(noTitle === 0, `${e.label}: 見出しが空の条文が無い（${noTitle} 件）`);
-    assert(noBody <= Math.ceil(ps.length * 0.02),
-      `${e.label}: 本文が極端に短い条文が2%以下（${noBody}/${ps.length}）`);
-    assert(ps.every(x => x.url && x.url.startsWith(NTA_PREFIX)),
+    const active = ps.filter(x => {
+      const body = x.body || '';
+      // 改正の沿革を除いて短い削除表示だけを除外し、長い現行本文は検査する。
+      const deletion = /^削除/.test(body) || body.includes('により削除');
+      return !(deletion && body.replace(/[（(][^（）()]*[）)]/g, '').trim().length < 20);
+    });
+    console.log(`  ${e.label}: 削除の跡 ${ps.length - active.length} 件`);
+    const noTitle = active.filter(x => !x.title).length;
+    const noBody = active.filter(x => !x.body || x.body.length < 20).length;
+    check(noTitle === 0, `${e.label}: 見出しが空の条文が無い（${noTitle} 件）`);
+    check(noBody <= Math.ceil(active.length * 0.02),
+      `${e.label}: 本文が極端に短い条文が2%以下（${noBody}/${active.length}）`);
+    check(ps.every(x => x.url && x.url.startsWith(NTA_PREFIX)),
       `${e.label}: すべての条文に国税庁の URL が付いている`);
-    const rejectedNos = ps.filter(x => !P.looksLikeProvisionNo(x.no)).map(x => x.no);
-    assert(rejectedNos.length === 0,
+    const extended = e.circular === 'hyoka' || e.circular.startsWith('sochi_');
+    const rejectedNos = ps.filter(x => !(P.looksLikeProvisionNo(x.no)
+      || (extended && P.looksLikeExtendedProvisionNo(x.no, { circular: e.circular })))).map(x => x.no);
+    check(rejectedNos.length === 0,
       `${e.label}: 既存の全条番号を解析できる（${ps.length} 条）`);
+    const comments = ps.filter(x => /<!--|-->/.test(x.body)).length;
+    check(comments === 0, `${e.label}: 本文にコメントの印が無い（${comments} 件）`);
   }
-  assert(total > 3000, `カタログ全体で十分な条文数（${total} 条）`);
+  // 通常のカタログの件数検査は維持する。一時カタログでも0件は通さない。
+  check(total > (process.env.TSUTATSU_DIR ? 0 : 3000), `カタログ全体で十分な条文数（${total} 条）`);
 }
 
+if (require.main === module) {
+console.log('\n=== Test 9: 品質 ===');
+testCatalogQuality();
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
+}
+
+module.exports = { testCatalogQuality };
