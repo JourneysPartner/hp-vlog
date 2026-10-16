@@ -222,6 +222,18 @@ async function main() {
       assert.deepEqual(errors(), []);
       assert.ok(logs.includes('  hyoka: 削除の跡 2 件'));
       assert.ok(logs.some(log => log.includes('削除の跡 0 件')));
+      for (const prefix of ['（削除）', '(削除)']) {
+        hyoka[12].body = prefix + '（令5課資2-12）';
+        logs.length = 0;
+        assert.deepEqual(errors(), [], '括弧付きの短い削除表示は見出しが空でも通る');
+        assert.ok(logs.includes('  hyoka: 削除の跡 2 件'));
+        hyoka[12].body = prefix + '現'.repeat(30);
+        logs.length = 0;
+        const longBodyErrors = errors();
+        assert.equal(longBodyErrors.length, 1);
+        assert.match(longBodyErrors[0], /見出しが空/, '括弧付きの削除表示でも長い現行本文は検査する');
+        assert.ok(logs.includes('  hyoka: 削除の跡 1 件'));
+      }
       hyoka[12].body = '削除(' + '改正の沿革、'.repeat(30) + ')';
       assert.deepEqual(errors(), [], '長い沿革付きの削除表示も除外する');
       for (const marker of ['<!--', '-->']) {

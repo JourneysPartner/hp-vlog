@@ -313,7 +313,7 @@ function testCatalogQuality(check = assert) {
     const active = ps.filter(x => {
       const body = x.body || '';
       // 改正の沿革を除いて短い削除表示だけを除外し、長い現行本文は検査する。
-      const deletion = /^削除/.test(body) || body.includes('により削除');
+      const deletion = /^(?:削除|（削除）|\(削除\))/.test(body) || body.includes('により削除');
       return !(deletion && body.replace(/[（(][^（）()]*[）)]/g, '').trim().length < 20);
     });
     console.log(`  ${e.label}: 削除の跡 ${ps.length - active.length} 件`);
