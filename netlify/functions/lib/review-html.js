@@ -6,6 +6,7 @@ const { escapeHtml } = require('./review-auth');
 // id/name も引き継がず、本文から操作ボタンやスクリプトの参照先を差し替えさせない。
 const tags = new Set('p br hr h1 h2 h3 h4 h5 h6 ul ol li strong em b i u s del blockquote pre code table thead tbody tfoot tr th td a img div span sup sub details summary dl dt dd'.split(' '));
 const rawText = new Set('script style textarea title xmp iframe noembed noframes plaintext svg math'.split(' '));
+const voidTags = new Set(['br', 'hr', 'img']);
 
 function decodeUrl(value) {
   return value.replace(/&#(x[0-9a-f]+|[0-9]+);?/gi, (_, number) => {
@@ -18,6 +19,10 @@ function sanitizeReviewHtml(html) {
   const source = String(html || '');
   let output = '';
   let index = 0;
+  const openTags = [];
+  const closeThrough = position => {
+    while (openTags.length > position) output += `</${openTags.pop()}>`;
+  };
   while (index < source.length) {
     if (source[index] !== '<') {
       const end = source.indexOf('<', index);
@@ -43,9 +48,15 @@ function sanitizeReviewHtml(html) {
       continue;
     }
     if (!tags.has(tag)) continue;
-    if (closing) { output += `</${tag}>`; continue; }
+    if (closing) {
+      const position = openTags.lastIndexOf(tag);
+      if (position >= 0) closeThrough(position);
+      continue;
+    }
     const attrs = [];
     const seen = new Set();
+    let href = '';
+    let localImage = false;
     const attrPattern = /([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
     for (const attr of match[3].matchAll(attrPattern)) {
       const name = attr[1].toLowerCase();
@@ -55,6 +66,10 @@ function sanitizeReviewHtml(html) {
       if ((tag === 'a' && name === 'href') || (tag === 'img' && name === 'src')) {
         value = decodeUrl(value);
         if (/[\x00-\x20\x7f\\]/.test(value) || !/^(?:https?:|mailto:|#|\/)/i.test(value)) continue;
+        if (tag === 'img') {
+          if (!/^\/(?!\/)/.test(value)) continue;
+          localImage = true;
+        } else href = value;
       } else if (name === 'title' || (tag === 'img' && name === 'alt')) {
         // 文字列は下で属性用にエスケープする。
       } else if (['th', 'td'].includes(tag) && name === 'align' && /^(?:left|center|right)$/.test(value)) {
@@ -64,8 +79,13 @@ function sanitizeReviewHtml(html) {
       } else continue;
       attrs.push(`${name}="${escapeHtml(value)}"`);
     }
+    if (tag === 'img' && !localImage) continue;
+    if (tag === 'a' && href && !href.startsWith('#')) attrs.push('target="_blank"', 'rel="noopener noreferrer"');
     output += `<${tag}${attrs.length ? ' ' + attrs.join(' ') : ''}>`;
+    if (!voidTags.has(tag)) openTags.push(tag);
   }
+  // 本文の枠を抜けたり、後ろの操作欄までリンクが広がったりしないよう閉じる。
+  closeThrough(0);
   return output;
 }
 

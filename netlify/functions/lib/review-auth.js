@@ -37,8 +37,9 @@ function safeNext(value) {
   try {
     // 二重に符号化された制御文字もリダイレクトに持ち込まない。
     let decoded = value;
-    for (let i = 0; i < 3; i++) {
-      if (/[\\\x00-\x20\x7f]|\/\/|http/i.test(decoded)) return '/review';
+    for (let i = 0; i <= 3; i++) {
+      if (/[\\\x00-\x20\x7f]/.test(decoded) || decoded.startsWith('//')) return '/review';
+      if (i === 3) break;
       const next = decodeURIComponent(decoded);
       if (next === decoded) break;
       decoded = next;
@@ -51,8 +52,8 @@ function safeNext(value) {
 function pageHeaders(nonce) {
   return {
     'Content-Type': 'text/html; charset=utf-8',
-    'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'`,
-    'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer',
+    'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'`,
+    'X-Frame-Options': 'DENY', 'Referrer-Policy': 'same-origin',
     'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store',
   };
 }
@@ -69,22 +70,32 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   notify = (...args) => require('./notify').sendNotification(...args),
   log = entry => console.info(JSON.stringify(entry)),
+  comparePassword = (input, expected) => crypto.timingSafeEqual(sha256(input), sha256(expected)),
 } = {}) {
+  function sourceSecret() {
+    const source = env.REVIEW_SESSION_SECRET !== undefined ? env.REVIEW_SESSION_SECRET : env.GH_APP_PRIVATE_KEY;
+    return typeof source === 'string' && source && (env.REVIEW_SESSION_SECRET === undefined || [...source].length >= 32) ? source : null;
+  }
   function ipHash(event) {
-    const ip = header(event, 'x-nf-client-connection-ip') || (header(event, 'x-forwarded-for') || '').split(',')[0].trim();
-    return sha256(`hp-vlog review login ip v1:${ip}`).toString('hex');
+    const source = sourceSecret();
+    if (!source) return null;
+    const ip = (header(event, 'x-nf-client-connection-ip') || '').trim() || 'unknown';
+    // パスワード変更で失敗回数を消さず、セッションとも用途を分ける。
+    const key = Buffer.from(crypto.hkdfSync('sha256', source, Buffer.alloc(0), 'hp-vlog review ip v1', 32));
+    return hmac(key, ip).toString('hex');
   }
   function audit(event, reason) {
-    log({ ipHash: ipHash(event).slice(0, 8), reason, time: new Date(now()).toISOString() });
+    // 鍵が未設定のときは、IPに依存しない固定のマスクだけを残す。
+    log({ ipHash: ipHash(event)?.slice(0, 8) || '00000000', reason, time: new Date(now()).toISOString() });
   }
   function configuration(event) {
     const password = env.REVIEW_PASSWORD;
-    const source = env.REVIEW_SESSION_SECRET !== undefined ? env.REVIEW_SESSION_SECRET : env.GH_APP_PRIVATE_KEY;
+    const source = sourceSecret();
     if (typeof password !== 'string' || [...password].length < 12) {
       audit(event, 'パスワード設定の誤り');
       return { response: jsonError(503, 'レビューのパスワードが未設定です') };
     }
-    if (typeof source !== 'string' || !source || (env.REVIEW_SESSION_SECRET !== undefined && [...source].length < 32)) {
+    if (!source) {
       audit(event, '署名設定の誤り');
       return { response: jsonError(503, 'レビューの認証設定を確認してください') };
     }
@@ -179,17 +190,27 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
     if (record.blockedUntil > at) return record;
     return record.blockedUntil || at - record.start >= windowMs ? { start: at, count: 0, blockedUntil: 0, notified: false } : record;
   }
+  async function readRate(store, key, windowMs, at) {
+    const entry = await store.getWithMetadata(key, { type: 'json' });
+    if (entry === null) return { record: rateRecord(null, windowMs, at), condition: { onlyIfNew: true } };
+    if (!entry || typeof entry.etag !== 'string' || !entry.etag || !entry.data) throw new Error('失敗回数の記録が不正');
+    return { record: rateRecord(entry.data, windowMs, at), condition: { onlyIfMatch: entry.etag } };
+  }
+  function limited(next, event) {
+    audit(event, 'ログイン試行回数の上限または競合');
+    return loginPage(next, 429, 'しばらくしてからお試しください');
+  }
   async function login(event) {
-    if (event.httpMethod !== 'POST') return jsonError(405, 'Method Not Allowed');
+    if (event.httpMethod !== 'POST') return loginPage('/review', 405, 'レビュー画面からログインしてください');
     const config = configuration(event);
-    if (config.response) return config.response;
+    if (config.response) return loginPage('/review', 503, '現在ログインできません。しばらくしてからお試しください');
     if (!validOrigin(event)) {
       audit(event, 'CSRF送り元不正');
-      return jsonError(403, 'この操作は許可されていません');
+      return loginPage('/review', 403, 'レビュー画面を開き直してからログインしてください');
     }
     if ((header(event, 'content-type') || '').split(';')[0].trim().toLowerCase() !== 'application/x-www-form-urlencoded') {
       audit(event, 'CSRFログイン形式不正');
-      return jsonError(403, 'この操作は許可されていません');
+      return loginPage('/review', 403, 'レビュー画面を開き直してからログインしてください');
     }
     const form = new URLSearchParams(event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf8') : event.body || '');
     const next = safeNext(form.get('next'));
@@ -198,37 +219,38 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
       const store = getStoreFn({ name: 'review-auth', consistency: 'strong' });
       const ipKey = `ip/${ipHash(event)}`;
       const at = now();
-      const ip = rateRecord(await store.get(ipKey, { type: 'json' }), 900000, at);
-      const global = rateRecord(await store.get('global', { type: 'json' }), 3600000, at);
-      if (ip.blockedUntil > at || global.blockedUntil > at) {
-        audit(event, 'ログイン失敗回数の上限');
-        return loginPage(next, 429, 'しばらくしてからお試しください');
-      }
-      if (crypto.timingSafeEqual(sha256(form.get('password') || ''), sha256(config.password))) {
-        // 書き込みできないストアでは成功 Cookie を発行しない。
-        await store.delete(ipKey);
-        audit(event, 'ログイン成功');
-        return { statusCode: 303, headers: { 'Cache-Control': 'no-store', Location: next, 'Set-Cookie': cookie(issueSession(config.key)) }, body: '' };
-      }
+      const ipRate = await readRate(store, ipKey, 900000, at);
+      const globalRate = await readRate(store, 'global', 3600000, at);
+      const ip = ipRate.record;
+      const global = globalRate.record;
+      if (ip.blockedUntil > at || global.blockedUntil > at) return limited(next, event);
+      // 照合より先に両方の枠を確保する。競合時は再試行も照合もしない。
       ip.count++;
       global.count++;
       if (ip.count >= 5) ip.blockedUntil = at + 900000;
       const shouldNotify = global.count >= 30 && !global.notified;
       if (global.count >= 30) { global.blockedUntil = at + 3600000; global.notified = true; }
-      for (const [key, record] of [[ipKey, ip], ['global', global]]) {
-        const result = await store.setJSON(key, record);
-        if (result && result.modified === false) throw new Error('失敗回数の保存に失敗');
+      for (const [key, record, condition] of [[ipKey, ip, ipRate.condition], ['global', global, globalRate.condition]]) {
+        const result = await store.setJSON(key, record, condition);
+        if (result?.modified === false) return limited(next, event);
+        if (result?.modified !== true) throw new Error('失敗回数の保存に失敗');
       }
       if (shouldNotify) {
         try { await notify('review_auth_locked', {}); }
         catch { audit(event, '上限通知の失敗'); }
+      }
+      if (comparePassword(form.get('password') || '', config.password) === true) {
+        // 書き込みできないストアでは成功 Cookie を発行しない。
+        await store.delete(ipKey);
+        audit(event, 'ログイン成功');
+        return { statusCode: 303, headers: { 'Cache-Control': 'no-store', Location: next, 'Set-Cookie': cookie(issueSession(config.key)) }, body: '' };
       }
       audit(event, 'ログイン失敗');
       await sleep(1000);
       return loginPage(next, 401, 'パスワードが違います');
     } catch {
       audit(event, 'ログイン記録の読み書き失敗');
-      return jsonError(503, '現在ログインできません。しばらくしてからお試しください');
+      return loginPage(next, 503, '現在ログインできません。しばらくしてからお試しください');
     }
   }
   function logout(event) {

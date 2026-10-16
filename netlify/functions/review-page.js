@@ -516,6 +516,16 @@ async function handleAction(action, forceSuppress) {
   document.querySelectorAll('.action-section button').forEach(b => b.disabled = true);
 
   try {
+    if (action === 'approve') {
+      // 即時202の承認要求より先に、認証の拒否を同期の応答で確かめる。
+      const check = await fetch(FUNC_BASE + '/review-auth-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
+        body: '{}',
+      });
+      if (check.status === 401) { requireLogin(); return; }
+      if (check.status !== 204) throw new Error('承認の認証を確認できませんでした。しばらくしてからお試しください。');
+    }
     // approve のみバックグラウンド関数（最大15分）にルーティングし、
     // mergeable 待機 + マージリトライが Netlify の 10秒制限に阻まれないようにする。
     // バックグラウンド関数は 202 Accepted を即返すため、結果は Chatwork 通知で受け取る。

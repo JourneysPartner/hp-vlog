@@ -25,16 +25,42 @@ let failed = 0;
 function setup(options = {}) {
   let time = Date.now();
   const records = new Map();
+  const etags = new Map();
+  let version = 0;
+  let comparisons = 0;
+  const operations = [];
+  const pause = () => options.ioDelay ? new Promise(resolve => setTimeout(resolve, options.ioDelay)) : Promise.resolve();
   const logs = [], delays = [], notices = [];
   const env = { REVIEW_PASSWORD: PASSWORD, REVIEW_SESSION_SECRET: crypto.randomBytes(32).toString('hex'), CONTEXT: 'production', ...options.env };
   const store = {
-    get: async key => records.has(key) ? structuredClone(records.get(key)) : null,
-    setJSON: async (key, value) => { records.set(key, structuredClone(value)); return { modified: true }; },
-    delete: async key => { records.delete(key); },
+    getWithMetadata: async (key, readOptions) => {
+      assert.deepEqual(readOptions, { type: 'json' });
+      if (records.has(key) && !etags.has(key)) etags.set(key, JSON.stringify(`版${++version}`));
+      const snapshot = records.has(key) ? { data: structuredClone(records.get(key)), etag: etags.get(key), metadata: {} } : null;
+      operations.push({ operation: '読む', key });
+      await pause();
+      return snapshot;
+    },
+    setJSON: async (key, value, condition) => {
+      assert.ok(condition && (condition.onlyIfNew === true || typeof condition.onlyIfMatch === 'string'));
+      assert.equal(Object.keys(condition).length, 1);
+      await pause();
+      const modified = condition.onlyIfNew ? !records.has(key) : records.has(key) && condition.onlyIfMatch === etags.get(key);
+      operations.push({ operation: '書く', key, modified, condition });
+      if (!modified) return { modified: false };
+      records.set(key, structuredClone(value)); etags.set(key, JSON.stringify(`版${++version}`));
+      return { modified: true, etag: etags.get(key) };
+    },
+    delete: async key => { operations.push({ operation: '消す', key }); records.delete(key); etags.delete(key); },
   };
   const auth = authLib.createReviewAuth({ env, now: () => time, getStoreFn: input => {
     assert.deepEqual(input, { name: 'review-auth', consistency: 'strong' }); return store;
-  }, sleep: async ms => { delays.push(ms); }, notify: async (...args) => { notices.push(args); }, log: entry => { logs.push(entry); } });
+  }, sleep: async ms => { delays.push(ms); }, notify: async (...args) => { notices.push(args); }, log: entry => { logs.push(entry); },
+  comparePassword: (input, expected) => {
+    comparisons++; operations.push({ operation: '照合' });
+    const digest = value => crypto.createHash('sha256').update(value).digest();
+    return crypto.timingSafeEqual(digest(input), digest(expected));
+  } });
   function event(password = PASSWORD, ip = '192.0.2.1', next = '/review?file=x.md&ref=draft%2Fx') {
     return { httpMethod: 'POST', headers: { origin: ORIGIN, host: 'mori-zeirishi.net', 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-nf-client-connection-ip': ip }, body: new URLSearchParams({ password, next }).toString() };
   }
@@ -44,7 +70,7 @@ function setup(options = {}) {
     const session = auth.verifySession(value, key);
     return { httpMethod: 'POST', headers: { origin: ORIGIN, host: 'mori-zeirishi.net', 'content-type': 'application/json', cookie: `${authLib.COOKIE_NAME}=${value}`, 'x-review-token': auth.csrfToken(session, key), ...changes }, body: '{}' };
   }
-  return { auth, env, records, logs, delays, notices, store, event, signed, advance: ms => { time += ms; }, time: () => time };
+  return { auth, env, records, logs, delays, notices, store, event, signed, operations, comparisons: () => comparisons, advance: ms => { time += ms; }, time: () => time };
 }
 
 async function test(number, description, run) {
@@ -93,7 +119,7 @@ async function withActions(run) {
 }
 
 function checkPageHeaders(response) {
-  for (const [key, value] of Object.entries({ 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' })) assert.equal(response.headers[key], value);
+  for (const [key, value] of Object.entries({ 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'same-origin', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' })) assert.equal(response.headers[key], value);
   const nonce = response.headers['Content-Security-Policy'].match(/script-src 'nonce-([^']+)'/)[1];
   assert.deepEqual(response.headers, authLib.pageHeaders(nonce));
   const scripts = [...response.body.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
@@ -199,7 +225,7 @@ async function main() {
   await test(5, 'nextの外部URL・制御文字・別画面を/reviewへ置換', async () => {
     const h = setup();
     for (const next of ['https://evil.example/', '//evil.example', '/\\evil', '/review%0d%0aSet-Cookie:', '/admin',
-      '/review?x=%0d%0aSet-Cookie:', '/review?x=%250a', '/review?x=\\evil', '/review?x=https://evil.example/', '/review?x=%']) {
+      '/review?x=%0d%0aSet-Cookie:', '/review?x=%250a', '/review?x=\\evil', '/review?x=%']) {
       const response = await h.auth.login(h.event(PASSWORD, '192.0.2.1', next));
       assert.equal(response.headers.Location, '/review');
     }
@@ -224,7 +250,7 @@ async function main() {
     const cleared = setup();
     for (let i = 0; i < 4; i++) await cleared.auth.login(cleared.event('間違えた試験用のパスワード'));
     assert.equal((await cleared.auth.login(cleared.event())).statusCode, 303);
-    assert.equal(cleared.records.get('global').count, 4); assert.equal(cleared.records.size, 1);
+    assert.equal(cleared.records.get('global').count, 5); assert.equal(cleared.records.size, 1);
     for (let i = 0; i < 4; i++) assert.equal((await cleared.auth.login(cleared.event('間違えた試験用のパスワード'))).statusCode, 401);
     const global = setup();
     for (let i = 0; i < 30; i++) assert.equal((await global.auth.login(global.event('間違えた試験用のパスワード', `192.0.2.${i + 1}`))).statusCode, 401);
@@ -242,7 +268,7 @@ async function main() {
   });
 
   await test(8, 'Blobsの読取・保存・削除失敗と壊れた記録では503', async () => {
-    for (const [method, password] of [['get', PASSWORD], ['setJSON', '間違えた試験用のパスワード'], ['delete', PASSWORD]]) {
+    for (const [method, password] of [['getWithMetadata', PASSWORD], ['setJSON', '間違えた試験用のパスワード'], ['delete', PASSWORD]]) {
       const h = setup(); h.store[method] = async () => { throw new Error('試験用の障害'); };
       const response = await h.auth.login(h.event(password));
       assert.equal(response.statusCode, 503); assert.equal(response.headers['Set-Cookie'], undefined);
@@ -250,7 +276,8 @@ async function main() {
     const h = setup(); h.records.set('global', { count: '壊れた記録' });
     assert.equal((await h.auth.login(h.event())).statusCode, 503);
     const unwritten = setup(); unwritten.store.setJSON = async () => ({ modified: false });
-    assert.equal((await unwritten.auth.login(unwritten.event('間違えた試験用のパスワード'))).statusCode, 503);
+    assert.equal((await unwritten.auth.login(unwritten.event('間違えた試験用のパスワード'))).statusCode, 429);
+    assert.equal(unwritten.comparisons(), 0);
     const unopened = setup();
     const auth = authLib.createReviewAuth({ env: unopened.env, getStoreFn: () => { throw new Error('試験用の接続障害'); }, log: () => {} });
     assert.equal((await auth.login(unopened.event())).statusCode, 503);
@@ -338,7 +365,7 @@ async function main() {
     let status = 200;
     const context = vm.createContext({
       document: { getElementById: id => controls.get(id), querySelectorAll: () => [] },
-      fetch: async (url, options) => { requests.push({ url, options }); return { ok: status === 200, status, json: async () => ({}) }; },
+      fetch: async (url, options) => { requests.push({ url, options }); return { ok: status === 200, status: url.endsWith('/review-auth-check') ? 204 : status, json: async () => ({}) }; },
       confirm: () => true, location: { search: '?file=x.md', assign: value => redirects.push(value) },
       setTimeout: callback => callback(),
     });
@@ -346,8 +373,8 @@ async function main() {
     for (const id of ['btnApprove', 'btnSkip', 'btnSkipForever']) await listeners.get(id)();
     listeners.get('btnRevise')(); assert.ok(controls.get('commentCard').classList.contains('show'));
     controls.get('reviewComment').value = '試験の修正コメント'; await listeners.get('btnRevise')();
-    assert.deepEqual(requests.map(r => r.url), ['/.netlify/functions/review-approve-background', '/.netlify/functions/review-skip', '/.netlify/functions/review-skip', '/.netlify/functions/review-revise']);
-    assert.equal(JSON.parse(requests[2].options.body).suppress_topic, true);
+    assert.deepEqual(requests.map(r => r.url), ['/.netlify/functions/review-auth-check', '/.netlify/functions/review-approve-background', '/.netlify/functions/review-skip', '/.netlify/functions/review-skip', '/.netlify/functions/review-revise']);
+    assert.equal(JSON.parse(requests[3].options.body).suppress_topic, true);
     for (const request of requests) { assert.ok(request.options.headers['X-Review-Token']); assert.equal(request.options.headers['Content-Type'], 'application/json'); }
     status = 401; await listeners.get('btnSkip')();
     assert.equal(controls.get('resultMsg').textContent, 'ログインし直してください');
@@ -383,7 +410,7 @@ async function main() {
     const safe = marked('# 普通の見出し\n\n| 列 | 値 |\n|---|---|\n| 甲 | 乙 |\n\n- **太字**\n\n[普通のリンク](https://example.invalid/)');
     const html = sanitizeReviewHtml(dangerous + safe);
     assert.doesNotMatch(html, /<(?:script|style|iframe|form|input|button|textarea|select|object|embed|meta|link|base|svg|math)\b|onerror|javascript:|危険な実行|危険な見た目/);
-    for (const expected of ['<h1>', '<table>', '<ul>', '<strong>', '<a href="https://example.invalid/">']) assert.ok(html.includes(expected));
+    for (const expected of ['<h1>', '<table>', '<ul>', '<strong>', '<a href="https://example.invalid/" target="_blank" rel="noopener noreferrer">']) assert.ok(html.includes(expected));
     for (const url of ['jav&#x61;script:alert(1)', 'javascript&colon;alert(1)', 'java&#10;script:alert(1)', 'data:text/html,危険']) assert.doesNotMatch(sanitizeReviewHtml(`<a href="${url}">文</a><img src="${url}">`), /href=|src=/);
     assert.doesNotMatch(sanitizeReviewHtml('<p id="btnApprove" name="fetch" style="display:none" onclick="alert(1)">文</p>'), /id=|name=|style=|onclick=/);
     const refresh = page.renderReviewPage('x.md', { refresh_of: 'published' }, dangerous + safe, 'draft/refresh-x', { available: true, diff: [{ heading: '変更', changedParagraphs: { before: [{ text: dangerous }], after: [{ text: dangerous }] } }] });
@@ -416,8 +443,214 @@ async function main() {
     assert.match(html, /人が確かめる箇所 35 件/); assert.match(html, /資料が見つからなかった 20 件/); assert.match(html, /件数の上限で照合しなかった 15 件/);
   });
 
-  console.log(`試験1〜15: PASS ${passed} / FAIL ${failed}`);
+  await testFixes();
+  console.log(`試験01の1〜15・01bのF1〜F8: PASS ${passed} / FAIL ${failed}`);
   if (failed) process.exitCode = 1;
+}
+
+async function testFixes() {
+  await test('F1', '同サイトのフォームとsame-origin方針、ログインの各エラーはHTML', async () => {
+    const h = setup();
+    const login = h.auth.loginPage('/review?file=x.md');
+    const review = await drawAuthenticated('---\ntitle: "試験の記事"\n---\n本文');
+    for (const response of [login, review]) {
+      assert.equal(response.headers['Referrer-Policy'], 'same-origin');
+      assert.notEqual(response.headers['Referrer-Policy'], 'no-referrer');
+    }
+    assert.match(login.body, /<form method="post" action="\/review-login">/);
+    assert.equal(new URL('/review-login', ORIGIN).origin, ORIGIN);
+    const forbidden = h.event(); forbidden.headers.origin = 'null';
+    const plain = h.event(); plain.headers['content-type'] = 'text/plain';
+    const missing = setup({ env: { REVIEW_PASSWORD: undefined } });
+    const unavailable = setup(); unavailable.store.getWithMetadata = async () => { throw new Error('試験用の障害'); };
+    const limited = setup();
+    for (let i = 0; i < 5; i++) await limited.auth.login(limited.event('間違えた試験用のパスワード'));
+    for (const [response, status] of [
+      [await h.auth.login(forbidden), 403], [await h.auth.login(plain), 403],
+      [await h.auth.login({ httpMethod: 'GET' }), 405], [await missing.auth.login(missing.event()), 503],
+      [await unavailable.auth.login(unavailable.event()), 503], [await limited.auth.login(limited.event()), 429],
+    ]) {
+      assert.equal(response.statusCode, status);
+      assert.equal(response.headers['Content-Type'], 'text/html; charset=utf-8');
+      assert.match(response.body, /レビュー画面にログイン/);
+      assert.match(response.body, /action="\/review-login"/);
+      assert.equal(response.headers['Set-Cookie'], undefined);
+      assert.ok(!response.body.includes(PASSWORD));
+    }
+  });
+
+  await test('F2', '照合前の条件付き書込、同じIP200件・異なるIP200件の同時要求', async () => {
+    const wrong = '間違えた試験用のパスワード';
+    const same = setup({ ioDelay: 2 });
+    const sameResponses = await Promise.all(Array.from({ length: 200 }, () => same.auth.login(same.event(wrong))));
+    const sameCount = same.comparisons();
+    assert.ok(sameCount > 0 && sameCount <= 5);
+    assert.equal(sameResponses.filter(response => response.statusCode === 401).length, sameCount);
+    assert.equal(sameResponses.filter(response => response.statusCode === 429).length, 200 - sameCount);
+    const different = setup({ ioDelay: 2 });
+    const differentResponses = await Promise.all(Array.from({ length: 200 }, (_, i) => different.auth.login(different.event(wrong, `192.0.2.${i + 1}`))));
+    const differentCount = different.comparisons();
+    assert.ok(differentCount > 0 && differentCount <= 30);
+    assert.equal(differentResponses.filter(response => response.statusCode === 401).length, differentCount);
+    assert.equal(differentResponses.filter(response => response.statusCode === 429).length, 200 - differentCount);
+    for (const h of [same, different]) {
+      const writes = h.operations.slice(0, h.operations.findIndex(entry => entry.operation === '照合')).filter(entry => entry.operation === '書く' && entry.modified);
+      assert.ok(writes.some(entry => entry.key.startsWith('ip/')));
+      assert.ok(writes.some(entry => entry.key === 'global'));
+    }
+    // 全体の最後の枠と通知も、同時要求の後に一度だけ確保される。
+    for (let i = differentCount; i < 30; i++) assert.equal((await different.auth.login(different.event(wrong, `198.51.100.${i + 1}`))).statusCode, 401);
+    const blocked = await Promise.all(Array.from({ length: 200 }, (_, i) => different.auth.login(different.event(PASSWORD, `203.0.113.${i + 1}`))));
+    assert.ok(blocked.every(response => response.statusCode === 429));
+    assert.equal(different.comparisons(), 30); assert.equal(different.notices.length, 1);
+    for (const conflictKey of ['ip', 'global']) {
+      const h = setup();
+      const write = h.store.setJSON;
+      h.store.setJSON = async (key, ...args) => (conflictKey === 'global' ? key === 'global' : key.startsWith('ip/')) ? { modified: false } : write(key, ...args);
+      assert.equal((await h.auth.login(h.event(PASSWORD))).statusCode, 429);
+      assert.equal(h.comparisons(), 0); assert.equal(h.delays.length, 0);
+      assert.equal(h.operations.filter(entry => entry.operation === '消す').length, 0);
+    }
+    const existing = setup();
+    await existing.auth.login(existing.event(wrong)); await existing.auth.login(existing.event(wrong));
+    assert.ok(existing.operations.some(entry => entry.operation === '書く' && typeof entry.condition.onlyIfMatch === 'string'));
+    assert.ok(existing.operations.some(entry => entry.operation === '書く' && entry.condition.onlyIfNew === true));
+    for (const malformed of [undefined, {}, { modified: '成功' }]) {
+      const h = setup(); h.store.setJSON = async () => malformed;
+      assert.equal((await h.auth.login(h.event())).statusCode, 503); assert.equal(h.comparisons(), 0);
+    }
+    const noEtag = setup(); noEtag.store.getWithMetadata = async () => ({ data: {}, metadata: {} });
+    assert.equal((await noEtag.auth.login(noEtag.event())).statusCode, 503); assert.equal(noEtag.comparisons(), 0);
+    console.log(`  F2 照合回数: 同じIP200件=${sameCount} / 異なるIP200件=${differentCount}`);
+  });
+
+  await test('F3', '未閉鎖タグを本文内で閉じ、余分な閉じタグを除く', () => {
+    const dangling = '<a href="https://evil.example/">続き';
+    const clean = sanitizeReviewHtml(dangling);
+    assert.equal(clean, '<a href="https://evil.example/" target="_blank" rel="noopener noreferrer">続き</a>');
+    assert.equal((clean.match(/<a\b/g) || []).length, (clean.match(/<\/a>/g) || []).length);
+    const html = page.renderReviewPage('x.md', {}, dangling, 'draft/test');
+    assert.ok(html.includes(clean + '\n    </div>\n  </div>'));
+    assert.ok(html.indexOf('続き</a>') < html.indexOf('id="factCheck"'));
+    assert.equal(sanitizeReviewHtml('</div></div><script>危険()</script>'), '');
+    const escaped = page.renderReviewPage('x.md', {}, '</div></div><script>危険()</script>', 'draft/test');
+    assert.match(escaped, /id="articleBody">\s*<\/div>\s*<\/div>\s*<div class="card mb-4" id="factCheck">/);
+    assert.equal(sanitizeReviewHtml('<table><tr><td>'), '<table><tr><td></td></tr></table>');
+    assert.equal(sanitizeReviewHtml('<div><strong>文</div></strong>'), '<div><strong>文</strong></div>');
+    assert.equal(sanitizeReviewHtml('<br><hr><img src="/images/x.png">'), '<br><hr><img src="/images/x.png">');
+    assert.equal(sanitizeReviewHtml('<a href="#factCheck">詳細</a>'), '<a href="#factCheck">詳細</a>');
+    const fixture = path.resolve(__dirname, '../../../docs/codex-tasks/review-page-layout/fixtures/2026-10-16-gift-cash-procedure-tax-return.md');
+    // チェックボックスのinputは01でも除いていた。その他はリンクの属性だけ変わる。
+    const ordinary = marked(page.parseFrontmatter(fs.readFileSync(fixture, 'utf8')).body).replace(/<input disabled="" type="checkbox">/g, '');
+    assert.equal(sanitizeReviewHtml(ordinary).replace(/ target="_blank" rel="noopener noreferrer"/g, ''), ordinary);
+  });
+
+  await test('F4', '偽装可能な転送IPを使わず、不明・重複は同じ区分', async () => {
+    const h = setup();
+    for (let i = 0; i < 5; i++) {
+      const event = h.event('間違えた試験用のパスワード');
+      delete event.headers['x-nf-client-connection-ip'];
+      event.headers['x-forwarded-for'] = `192.0.2.${i + 1}`;
+      if (i === 1) { event.headers['x-nf-client-connection-ip'] = '192.0.2.1'; event.headers['X-Nf-Client-Connection-Ip'] = '192.0.2.2'; }
+      if (i === 2) event.multiValueHeaders = { 'x-nf-client-connection-ip': ['192.0.2.3', '192.0.2.4'] };
+      if (i === 3) event.headers['x-nf-client-connection-ip'] = '';
+      if (i === 4) event.headers['x-nf-client-connection-ip'] = '   ';
+      assert.equal((await h.auth.login(event)).statusCode, 401);
+    }
+    const event = h.event(); delete event.headers['x-nf-client-connection-ip']; event.headers['x-forwarded-for'] = '198.51.100.1';
+    assert.equal((await h.auth.login(event)).statusCode, 429);
+    assert.equal([...h.records.keys()].filter(key => key.startsWith('ip/')).length, 1);
+    assert.equal((await h.auth.login(h.event(PASSWORD, '203.0.113.1'))).statusCode, 303);
+  });
+
+  await test('F5', 'IPは別用途HKDF鍵のHMACで、パスワード変更後も同じ区分', async () => {
+    const source = crypto.randomBytes(32).toString('hex');
+    async function keyFor(env) {
+      const h = setup({ env }); await h.auth.login(h.event('間違えた試験用のパスワード'));
+      const key = [...h.records.keys()].find(key => key.startsWith('ip/'));
+      assert.equal(h.logs[0].ipHash, key.slice(3, 11));
+      return key;
+    }
+    const env = { REVIEW_SESSION_SECRET: source };
+    const first = await keyFor(env);
+    assert.equal(await keyFor(env), first);
+    assert.equal(await keyFor({ ...env, REVIEW_PASSWORD: '別の試験用のパスワードです。本番用ではありません。' }), first);
+    assert.notEqual(await keyFor({ REVIEW_SESSION_SECRET: crypto.randomBytes(32).toString('hex') }), first);
+    const ipKey = Buffer.from(crypto.hkdfSync('sha256', source, Buffer.alloc(0), 'hp-vlog review ip v1', 32));
+    assert.equal(first, 'ip/' + crypto.createHmac('sha256', ipKey).update('192.0.2.1').digest('hex'));
+    assert.equal(await keyFor({ REVIEW_SESSION_SECRET: undefined, GH_APP_PRIVATE_KEY: source }), first);
+    const h = setup({ env });
+    for (let i = 0; i < 4; i++) await h.auth.login(h.event('間違えた試験用のパスワード'));
+    h.env.REVIEW_PASSWORD += '変更後';
+    assert.equal((await h.auth.login(h.event('間違えた試験用のパスワード'))).statusCode, 401);
+    assert.equal((await h.auth.login(h.event(h.env.REVIEW_PASSWORD))).statusCode, 429);
+    assert.doesNotMatch(JSON.stringify([...h.records]) + JSON.stringify(h.logs), /192\.0\.2\.1/);
+  });
+
+  await test('F6', '外部画像はaltごと除去し、同サイトの画像だけ保持', async () => {
+    for (const src of ['https://evil.example/image.gif', 'http://evil.example/image.gif', '//evil.example/image.gif', '&#47;&#47;evil.example/image.gif', 'data:image/png,試験', 'image.gif', '/\\evil.example/image.gif']) {
+      assert.equal(sanitizeReviewHtml(`<img src="${src}" alt="外部の代替文字">`), '');
+    }
+    assert.equal(sanitizeReviewHtml('<img src="/images/a.png" alt="同サイト">'), '<img src="/images/a.png" alt="同サイト">');
+    assert.equal(sanitizeReviewHtml('<img alt="画像なし">'), '');
+    const h = setup();
+    const review = await drawAuthenticated('---\ntitle: "試験の記事"\n---\n<img src="https://evil.example/image.gif" alt="外部の代替文字">');
+    for (const response of [h.auth.loginPage('/review'), review]) assert.equal(response.headers['Content-Security-Policy'].match(/img-src ([^;]+)/)[1], "'self' data:");
+    assert.ok(!review.body.includes('外部の代替文字')); assert.ok(!review.body.includes('https://evil.example/image.gif'));
+  });
+
+  await test('F7', 'httpを含む正常な道筋を保ち、外部・制御文字などは拒否', async () => {
+    const h = setup();
+    for (const next of ['/review?file=x.md&ref=draft/http-guide', '/review?file=https-guide.md', '/review?x=https://evil.example/', '/review?file=x.md&ref=draft%2Fhttp-guide']) {
+      assert.equal(authLib.safeNext(next), next);
+      assert.equal((await h.auth.login(h.event(PASSWORD, '192.0.2.1', next))).headers.Location, next);
+    }
+    for (const next of ['https://evil.example/', '//evil.example', '/\\evil', '/review%0d%0aSet-Cookie:', '/admin', '/review?x=%25250a', '/review?x=%25255c']) assert.equal(authLib.safeNext(next), '/review');
+  });
+
+  await test('F8', '同期確認の204・401・403・503と、確認失敗時の承認送信0回', async () => {
+    const check = require('../../../netlify/functions/review-auth-check');
+    await withActions(async (_, calls) => {
+      const valid = authenticatedEvent({ httpMethod: 'POST', body: '{}' });
+      assert.equal((await check.handler(valid)).statusCode, 204);
+      for (const [headers, status] of [[{ cookie: undefined }, 401], [{ origin: 'https://evil.example' }, 403], [{ 'x-review-token': undefined }, 403], [{ 'content-type': 'text/plain' }, 403]]) assert.equal((await check.handler({ ...valid, headers: { ...valid.headers, ...headers } })).statusCode, status);
+      const before = process.env.REVIEW_PASSWORD; delete process.env.REVIEW_PASSWORD;
+      try { assert.equal((await check.handler(valid)).statusCode, 503); } finally { process.env.REVIEW_PASSWORD = before; }
+      assert.equal((await check.handler({ httpMethod: 'GET' })).statusCode, 405);
+      assert.equal(calls.length, 0);
+    });
+    const response = await drawAuthenticated('---\ntitle: "試験の記事"\n---\n本文');
+    const script = checkPageHeaders(response);
+    assert.ok(script.indexOf("fetch(FUNC_BASE + '/review-auth-check'") < script.indexOf("fetch(FUNC_BASE + endpoint"));
+    assert.ok(script.includes('check.status !== 204'));
+    for (const status of [204, 401, 403, 503, 200, 202, '通信失敗']) {
+      const requests = [], redirects = [], controls = new Map(), listeners = new Map();
+      for (const id of ['btnApprove', 'btnRevise', 'btnSkip', 'btnSkipForever', 'btnLogout', 'commentCard', 'reviewComment', 'resultMsg', 'publishAt', 'suppressTopic']) controls.set(id, { value: '', checked: false, disabled: false, addEventListener: (_, fn) => listeners.set(id, fn) });
+      const buttons = ['btnApprove', 'btnRevise', 'btnSkip'].map(id => controls.get(id));
+      vm.runInNewContext(script, {
+        document: { getElementById: id => controls.get(id), querySelectorAll: () => buttons },
+        fetch: async (url, options) => {
+          requests.push({ url, options });
+          if (url.endsWith('/review-auth-check')) { if (status === '通信失敗') throw new Error('試験用の通信障害'); return { status }; }
+          return { status: 202, ok: true };
+        },
+        confirm: () => true, location: { search: '?file=x.md', assign: value => redirects.push(value) }, setTimeout: fn => fn(),
+      });
+      await listeners.get('btnApprove')();
+      assert.equal(requests[0].url, '/.netlify/functions/review-auth-check');
+      assert.equal(requests[0].options.body, '{}'); assert.equal(requests[0].options.method, 'POST');
+      assert.equal(requests[0].options.headers['Content-Type'], 'application/json'); assert.ok(requests[0].options.headers['X-Review-Token']);
+      if (status === 204) {
+        assert.deepEqual(requests.map(request => request.url), ['/.netlify/functions/review-auth-check', '/.netlify/functions/review-approve-background']);
+        assert.deepEqual(requests[1].options.headers, requests[0].options.headers);
+        assert.match(controls.get('resultMsg').className, /success/);
+      } else {
+        assert.equal(requests.length, 1); assert.match(controls.get('resultMsg').className, /error/);
+        if (status === 401) { assert.equal(controls.get('resultMsg').textContent, 'ログインし直してください'); assert.deepEqual(redirects, ['/review?file=x.md']); }
+        else assert.ok(buttons.every(button => button.disabled === false));
+      }
+    }
+  });
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
