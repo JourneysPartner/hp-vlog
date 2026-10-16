@@ -183,8 +183,8 @@ async function main() {
       await crawler.main({ outDir: dir });
       assert.equal(process.exitCode, 1); assert.equal(requests.length, urls.length + 1);
       for (const url of emptyUrls) assert.equal(logs.filter(log => log.includes(url) && log.includes('本文ページの項目が0件です')).length, 1);
-      assert.equal(logs.filter(log => log.includes('HTTP 503')).length, 5);
-      assert.ok(!logs.some(log => log.includes(failedUrls[5])));
+      assert.equal(logs.filter(log => log.includes('HTTP 503')).length, 6);
+      for (const url of failedUrls) assert.equal(logs.filter(log => log.includes(url) && log.includes('取得の失敗:')).length, 1);
       for (const [file, content] of Object.entries(initial)) assert.equal(fs.readFileSync(path.join(dir, file), 'utf8'), content);
     } finally {
       global.fetch = saved.fetch; process.argv = saved.argv; process.exitCode = saved.code; console.warn = saved.warn;

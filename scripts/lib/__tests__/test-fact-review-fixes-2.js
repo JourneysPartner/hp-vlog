@@ -285,7 +285,8 @@ async function main() {
     const bodyPages = fixture.files.filter(f => f.kind === 'body');
     const urls = bodyPages.map(p => p.url);
     const originalHtml = new TextDecoder('shift_jis').decode(fs.readFileSync(path.join(fixtureDir, bodyPages[1].file)));
-    const broken = originalHtml.replace(/<strong[^>]*>[\s\S]*?<\/strong>/gi, '');
+    // 番号は残し、本文だけ欠落させる。番号のないページは項目なしとして扱う。
+    const broken = '<h2>（本文が欠けた項目）</h2><p><strong>11</strong></p>';
     assert.ok(parser.parseTsutatsuPage(originalHtml, { circular: 'hyoka' }).provisions.length > 0);
     assert.equal(parser.parseTsutatsuPage(broken, { circular: 'hyoka' }).provisions.length, 0);
     const entries = ['hyoka.json', 'hyoka.index.json', 'index.json'];

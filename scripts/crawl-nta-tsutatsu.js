@@ -24,7 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const { searchIndex } = require('./lib/catalog-search-index');
 const {
-  parseTsutatsuPage, parseIndexPage, normalizeProvisionNo,
+  classifyTsutatsuPage, parseIndexPage, normalizeProvisionNo,
 } = require('./lib/tsutatsu-parser');
 
 const ROOT = path.join(__dirname, '..');
@@ -109,9 +109,9 @@ function getArg(name) {
   return i >= 0 ? process.argv[i + 1] : null;
 }
 
-async function crawlCircular(key, def, limit) {
+async function crawlCircular(key, def, limit, { fetchPage = fetchShiftJis, pause = sleep } = {}) {
   console.log(`\n=== ${def.label} ===`);
-  const indexHtml = await fetchShiftJis(def.index);
+  const indexHtml = await fetchPage(def.index);
   let urls = parseIndexPage(indexHtml, def.linkKey || key, def.index);
   if (!urls.length) throw new Error('通達の本文ページが見つかりません');
   if (limit) urls = urls.slice(0, limit);
@@ -119,13 +119,21 @@ async function crawlCircular(key, def, limit) {
 
   const provisions = [];
   const errors = [];
+  const non_provision_pages = [], missing_pages = [];
+  const unreadable = [], fetchErrors = [];
   let done = 0;
 
   for (const url of urls) {
     try {
-      const html = await fetchShiftJis(url);
-      const parsed = parseTsutatsuPage(html, { url, circular: key });
-      if (!parsed.provisions.length) throw new Error('本文ページの項目が0件です');
+      const html = await fetchPage(url);
+      const parsed = classifyTsutatsuPage(html, { url, circular: key });
+      if (parsed.type === 'unreadable') {
+        const error = new Error('本文ページの項目が0件です');
+        error.code = 'TSUTATSU_UNREADABLE';
+        throw error;
+      }
+      if (parsed.type === 'missing') missing_pages.push({ url });
+      if (parsed.type === 'non_provision') non_provision_pages.push({ url, reason: parsed.reason });
       for (const p of parsed.provisions) {
         provisions.push({ ...p, section: parsed.sectionTitle });
       }
@@ -138,9 +146,15 @@ async function crawlCircular(key, def, limit) {
       done++;
       if (done % 20 === 0) console.log(`  ${done}/${urls.length} …`);
     } catch (e) {
-      errors.push(`${url}: ${e.message}`);
+      (e.code === 'TSUTATSU_UNREADABLE' ? unreadable : fetchErrors).push(`${url}: ${e.message}`);
     }
-    await sleep(SLEEP_MS);
+    await pause(SLEEP_MS);
+  }
+
+  // 比率と絶対数の両方で、サイト構造の変化を見逃さない。
+  errors.push(...unreadable, ...fetchErrors);
+  if (missing_pages.length * 100 > urls.length * 15 || missing_pages.length > 10) {
+    errors.push(`リンク切れが許容範囲を超えています（${missing_pages.length}/${urls.length} ページ）`);
   }
 
   // 条番号の重複を検出（同じ番号が2箇所に出るのは解析ミスの兆候）
@@ -152,10 +166,14 @@ async function crawlCircular(key, def, limit) {
   }
 
   console.log(`  取得: ${provisions.length} 条 / 重複 ${duplicates.length} / エラー ${errors.length}`);
-  errors.filter((e, i) => i < 5 || e.endsWith(': 本文ページの項目が0件です'))
-    .forEach(e => console.warn(`    ⚠ ${e}`));
+  console.log(`  項目の無いページ: ${non_provision_pages.length} 件 / リンク切れ: ${missing_pages.length} 件`);
+  non_provision_pages.forEach(p => console.warn(`    項目なし: ${p.url}: ${p.reason}`));
+  missing_pages.forEach(p => console.warn(`    リンク切れ: ${p.url}`));
+  unreadable.forEach(e => console.warn(`    読み落とし: ${e}`));
+  fetchErrors.forEach(e => console.warn(`    取得の失敗: ${e}`));
+  errors.slice(unreadable.length + fetchErrors.length).forEach(e => console.warn(`    ⚠ ${e}`));
 
-  return { key, def, urls, provisions, duplicates, errors };
+  return { key, def, urls, provisions, duplicates, errors, non_provision_pages, missing_pages };
 }
 
 function provisionsByNumber(provisions, key) {
@@ -170,7 +188,7 @@ function provisionsByNumber(provisions, key) {
   return byNo;
 }
 
-async function main({ outDir = OUT_DIR } = {}) {
+async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
   const only = getArg('--only');
   const limit = Number(getArg('--limit')) || 0;
   const targets = Object.entries(CIRCULARS).filter(([k]) => !only || k === only);
@@ -186,9 +204,10 @@ async function main({ outDir = OUT_DIR } = {}) {
     if (!Array.isArray(index)) index = [];
   } catch (_error) { index = []; }
   let totalErrors = 0;
+  let indexUpdated = false;
 
   for (const [key, def] of targets) {
-    const r = await crawlCircular(key, def, limit);
+    const r = await crawlCircular(key, def, limit, { fetchPage, pause });
     totalErrors += r.errors.length;
     if (!r.provisions.length || r.errors.length) {
       totalErrors += r.provisions.length ? 0 : 1;
@@ -199,6 +218,25 @@ async function main({ outDir = OUT_DIR } = {}) {
     // 本文は通達ごとに1ファイル。条番号で引ける形にする。
     const bodyPath = path.join(outDir, `${key}.json`);
     const byNo = provisionsByNumber(r.provisions, key);
+    if (fs.existsSync(bodyPath)) {
+      try {
+        const previous = JSON.parse(fs.readFileSync(bodyPath, 'utf8')).provisions;
+        if (!previous || typeof previous !== 'object' || Array.isArray(previous)) throw new Error('既存の項目を読めません');
+        // 重複番号の別項目も数え、同数の番号差し替えも止める。
+        const count = entries => Object.values(entries).reduce((sum, entry) => sum + (Array.isArray(entry) ? entry.length : 1), 0);
+        const lost = Object.keys(previous).filter(no => !Object.hasOwn(byNo, no));
+        if (count(byNo) < count(previous) || lost.length) {
+          totalErrors++;
+          console.error(`  ${key}: 項目の減少（${count(previous)} → ${count(byNo)}）のため既存のカタログを保持します`);
+          lost.forEach(no => console.error(`    消えた番号: ${no}`));
+          continue;
+        }
+      } catch (error) {
+        totalErrors++;
+        console.error(`  ${key}: 既存のカタログを確認できないため保持します: ${error.message}`);
+        continue;
+      }
+    }
     fs.writeFileSync(bodyPath, `${JSON.stringify({
       circular: key,
       label: def.label,
@@ -207,6 +245,8 @@ async function main({ outDir = OUT_DIR } = {}) {
       fetched_at: new Date().toISOString(),
       section_pages: r.urls.length,
       provisions: byNo,
+      non_provision_pages: r.non_provision_pages,
+      missing_pages: r.missing_pages,
       ...(key === 'hyoka' || key.startsWith('sochi_') ? { duplicates: r.duplicates } : {}),
     }, null, 2)}\n`, 'utf8');
     const searchEntries = Object.entries(byNo).flatMap(([no, entry]) => (Array.isArray(entry) ? entry : [entry]).map((p, i) => ({
@@ -229,11 +269,14 @@ async function main({ outDir = OUT_DIR } = {}) {
       errors: r.errors.length,
       fetched_at: new Date().toISOString(),
     });
+    indexUpdated = true;
     console.log(`  → ${path.relative(ROOT, bodyPath)}（${Object.keys(byNo).length} 条）`);
   }
 
-  index.sort((a, b) => a.circular.localeCompare(b.circular));
-  fs.writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`, 'utf8');
+  if (indexUpdated) {
+    index.sort((a, b) => a.circular.localeCompare(b.circular));
+    fs.writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`, 'utf8');
+  }
   console.log(`\n[tsutatsu] 目次: ${path.relative(ROOT, indexPath)}`);
 
   const ghOut = process.env.GITHUB_OUTPUT;
