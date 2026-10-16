@@ -67,11 +67,21 @@ function cookie(value, maxAge = TTL) {
 }
 
 function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreFn = getStore,
+  fetchFn = (...args) => globalThis.fetch(...args),
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   notify = (...args) => require('./notify').sendNotification(...args),
   log = entry => console.info(JSON.stringify(entry)),
   comparePassword = (input, expected) => crypto.timingSafeEqual(sha256(input), sha256(expected)),
 } = {}) {
+  async function blobsFetch(input, options) {
+    const response = await fetchFn(input, options);
+    const method = String(options?.method || input?.method || 'GET').toUpperCase();
+    // 導入済みSDKは条件付きPUTの失敗もmodified:trueにするため、先に止める。
+    if (method === 'PUT' && response.status !== 200 && response.status !== 412) {
+      throw new Error('ログイン記録の保存に失敗しました');
+    }
+    return response;
+  }
   function sourceSecret() {
     const source = env.REVIEW_SESSION_SECRET !== undefined ? env.REVIEW_SESSION_SECRET : env.GH_APP_PRIVATE_KEY;
     return typeof source === 'string' && source && (env.REVIEW_SESSION_SECRET === undefined || [...source].length >= 32) ? source : null;
@@ -176,7 +186,17 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
     // next 全体を符号化し、未認証の HTML にファイル名を直接載せない。
     const encodedNext = [...Buffer.from(safeNext(next))].map(byte => `%${byte.toString(16).padStart(2, '0')}`).join('');
     return { statusCode, headers: pageHeaders(nonce), body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>レビュー画面にログイン</title>
-<style>body{font-family:sans-serif;background:#f5f5f5;color:#0b2045;margin:0;padding:2rem}.box{max-width:400px;margin:4rem auto;background:white;padding:2rem;border-radius:12px}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:1rem}button{background:#0b2045;color:white;border:0;border-radius:6px}</style></head><body><main class="box"><h1>レビュー画面にログイン</h1><p role="alert">${escapeHtml(message)}</p><form method="post" action="/review-login"><label for="password">パスワード</label><input id="password" name="password" type="password" autocomplete="current-password" autofocus required><input type="hidden" name="next" value="${escapeHtml(encodedNext)}"><button type="submit">レビュー画面を開く</button></form><script nonce="${nonce}">const next = document.querySelector('input[name="next"]'); next.value = decodeURIComponent(next.value);</script></main></body></html>` };
+<style>body{font-family:sans-serif;background:#f5f5f5;color:#0b2045;margin:0;padding:2rem}.box{max-width:400px;margin:4rem auto;background:white;padding:2rem;border-radius:12px}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:1rem}button{background:#0b2045;color:white;border:0;border-radius:6px}</style></head><body><main class="box"><h1>レビュー画面にログイン</h1><p role="alert">${escapeHtml(message)}</p><form method="post" action="/review-login"><label for="password">パスワード</label><input id="password" name="password" type="password" autocomplete="current-password" autofocus required><input type="hidden" name="next" value="${escapeHtml(encodedNext)}"><button type="submit">レビュー画面を開く</button></form><script nonce="${nonce}">
+const next = document.querySelector('input[name="next"]');
+next.value = decodeURIComponent(next.value);
+const form = document.querySelector('form');
+form.addEventListener('submit', event => {
+  const button = form.querySelector('button[type="submit"]');
+  if (button.disabled) { event.preventDefault(); return; }
+  button.disabled = true;
+  button.textContent = '確認しています…';
+});
+</script></main></body></html>` };
   }
   function pageNext(event) {
     const query = new URLSearchParams(event.queryStringParameters || {}).toString();
@@ -196,9 +216,9 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
     if (!entry || typeof entry.etag !== 'string' || !entry.etag || !entry.data) throw new Error('失敗回数の記録が不正');
     return { record: rateRecord(entry.data, windowMs, at), condition: { onlyIfMatch: entry.etag } };
   }
-  function limited(next, event) {
-    audit(event, 'ログイン試行回数の上限または競合');
-    return loginPage(next, 429, 'しばらくしてからお試しください');
+  function limited(next, event, conflict = false) {
+    audit(event, conflict ? 'ログイン記録の競合' : 'ログイン試行回数の上限');
+    return loginPage(next, 429, conflict ? 'もう一度お試しください' : 'しばらくしてからお試しください');
   }
   async function login(event) {
     if (event.httpMethod !== 'POST') return loginPage('/review', 405, 'レビュー画面からログインしてください');
@@ -216,7 +236,7 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
     const next = safeNext(form.get('next'));
     try {
       if (getStoreFn === getStore) connectLambda(event);
-      const store = getStoreFn({ name: 'review-auth', consistency: 'strong' });
+      const store = getStoreFn({ name: 'review-auth', consistency: 'strong', fetch: blobsFetch });
       const ipKey = `ip/${ipHash(event)}`;
       const at = now();
       const ipRate = await readRate(store, ipKey, 900000, at);
@@ -231,8 +251,8 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
       const shouldNotify = global.count >= 30 && !global.notified;
       if (global.count >= 30) { global.blockedUntil = at + 3600000; global.notified = true; }
       for (const [key, record, condition] of [[ipKey, ip, ipRate.condition], ['global', global, globalRate.condition]]) {
-        const result = await store.setJSON(key, record, condition);
-        if (result?.modified === false) return limited(next, event);
+        const result = await store.set(key, JSON.stringify(record), condition);
+        if (result?.modified === false) return limited(next, event, true);
         if (result?.modified !== true) throw new Error('失敗回数の保存に失敗');
       }
       if (shouldNotify) {

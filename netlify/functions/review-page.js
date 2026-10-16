@@ -206,7 +206,7 @@ function renderRefreshDiff(refreshContext, marked) {
   }
   const renderSide = (paragraphs) => paragraphs.map(row => {
     const style = row.changed ? 'background:#fff0d4;border-left:4px solid #e6851a;padding:.55rem .75rem;margin:.45rem 0' : 'padding:.55rem .75rem;margin:.45rem 0';
-    const html = sanitizeReviewHtml(marked(row.text)).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+    const html = sanitizeReviewHtml(marked(row.text));
     return `<div style="${style}">${html}</div>`;
   }).join('') || '<p class="text-muted">（段落なし）</p>';
   return `<div class="refresh-diff-list">${refreshContext.diff.map(section => `
@@ -319,8 +319,8 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   .article-body blockquote { background: #fafafa; border-left: 3px solid #ccc; padding: .75rem 1rem; margin: 1rem 0; }
   .article-body ul, .article-body ol { padding-left: 1.5rem; }
   .article-body hr { margin: 1.5rem 0; }
-  .article-body .table-wrapper { overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
-  .article-body table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 480px; }
+  .article-body table, .refresh-diff-list table { display: block; width: 100%; max-width: 100%; overflow-x: auto;
+    margin: 1.5rem 0; -webkit-overflow-scrolling: touch; border-collapse: collapse; font-size: .9rem; }
   .article-body thead th { background: var(--primary-light); color: var(--primary); font-weight: 600;
     padding: .6rem .75rem; border: 1px solid #c8e6c9; text-align: left; white-space: nowrap; }
   .article-body tbody td { padding: .6rem .75rem; border: 1px solid #e0e0e0; line-height: 1.7; }
@@ -399,7 +399,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   <div class="card mb-4">
     <div class="card-header bg-white fw-bold">記事本文</div>
     <div class="card-body article-body" id="articleBody">
-      ${sanitizeReviewHtml(bodyMd).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>')}
+      ${sanitizeReviewHtml(bodyMd)}
     </div>
   </div>
 

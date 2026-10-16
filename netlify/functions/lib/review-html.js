@@ -4,9 +4,10 @@ const { escapeHtml } = require('./review-auth');
 
 // CSP に加える二重の守り。認めたタグと属性だけで HTML を組み直す。
 // id/name も引き継がず、本文から操作ボタンやスクリプトの参照先を差し替えさせない。
-const tags = new Set('p br hr h1 h2 h3 h4 h5 h6 ul ol li strong em b i u s del blockquote pre code table thead tbody tfoot tr th td a img div span sup sub details summary dl dt dd'.split(' '));
+const tags = new Set('p br hr h1 h2 h3 h4 h5 h6 ul ol li strong em b i u s del blockquote pre code table thead tbody tfoot tr th td a img span sup sub details summary dl dt dd'.split(' '));
 const rawText = new Set('script style textarea title xmp iframe noembed noframes plaintext svg math'.split(' '));
 const voidTags = new Set(['br', 'hr', 'img']);
+const closesParagraph = new Set('p ul ol li dt dd table blockquote pre h1 h2 h3 h4 h5 h6 hr dl details summary'.split(' '));
 
 function decodeUrl(value) {
   return value.replace(/&#(x[0-9a-f]+|[0-9]+);?/gi, (_, number) => {
@@ -20,8 +21,19 @@ function sanitizeReviewHtml(html) {
   let output = '';
   let index = 0;
   const openTags = [];
+  let nestedTables = 0;
   const closeThrough = position => {
-    while (openTags.length > position) output += `</${openTags.pop()}>`;
+    while (openTags.length > position) {
+      const tag = openTags.pop();
+      output += `</${tag}>`;
+      if (tag === 'table') nestedTables = 0;
+    }
+  };
+  const closePrevious = (names, boundaries = []) => {
+    for (let i = openTags.length - 1; i >= 0; i--) {
+      if (boundaries.includes(openTags[i])) return;
+      if (names.includes(openTags[i])) { closeThrough(i); return; }
+    }
   };
   while (index < source.length) {
     if (source[index] !== '<') {
@@ -48,11 +60,19 @@ function sanitizeReviewHtml(html) {
       continue;
     }
     if (!tags.has(tag)) continue;
+    if (tag === 'table') {
+      if (!closing && openTags.includes('table')) { nestedTables++; continue; }
+      if (closing && nestedTables > 0) { nestedTables--; continue; }
+    }
     if (closing) {
       const position = openTags.lastIndexOf(tag);
       if (position >= 0) closeThrough(position);
       continue;
     }
+    // ブラウザによる暗黙の閉鎖と、出力する閉じタグがずれないようにする。
+    if (closesParagraph.has(tag)) closePrevious(['p']);
+    if (tag === 'li') closePrevious(['li'], ['ul', 'ol']);
+    if (tag === 'dt' || tag === 'dd') closePrevious(['dt', 'dd'], ['dl']);
     const attrs = [];
     const seen = new Set();
     let href = '';

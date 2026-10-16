@@ -5,7 +5,12 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const envBefore = { ...process.env };
+// SDK自身の再試行待機を短くする。実装や戻り値は差し替えない。
+process.env.NODE_ENV = 'test';
 const { marked } = require('marked');
+const { getStore } = require('@netlify/blobs');
+const { createBlobsHttp } = require('./review-blobs-test-helpers');
 const authLib = require('../../../netlify/functions/lib/review-auth');
 const { sanitizeReviewHtml } = require('../../../netlify/functions/lib/review-html');
 const page = require('../../../netlify/functions/review-page');
@@ -16,7 +21,6 @@ const { authenticatedEvent } = require('./review-auth-test-helpers');
 
 const ORIGIN = 'https://mori-zeirishi.net';
 const PASSWORD = '試験用のパスワードです。本番では使いません。';
-const envBefore = { ...process.env };
 const nowBefore = Date.now;
 let passed = 0;
 let failed = 0;
@@ -41,7 +45,9 @@ function setup(options = {}) {
       await pause();
       return snapshot;
     },
-    setJSON: async (key, value, condition) => {
+    set: async (key, serialized, condition) => {
+      assert.equal(typeof serialized, 'string');
+      const value = JSON.parse(serialized);
       assert.ok(condition && (condition.onlyIfNew === true || typeof condition.onlyIfMatch === 'string'));
       assert.equal(Object.keys(condition).length, 1);
       await pause();
@@ -54,8 +60,10 @@ function setup(options = {}) {
     delete: async key => { operations.push({ operation: '消す', key }); records.delete(key); etags.delete(key); },
   };
   const auth = authLib.createReviewAuth({ env, now: () => time, getStoreFn: input => {
-    assert.deepEqual(input, { name: 'review-auth', consistency: 'strong' }); return store;
-  }, sleep: async ms => { delays.push(ms); }, notify: async (...args) => { notices.push(args); }, log: entry => { logs.push(entry); },
+    assert.deepEqual(input, { name: 'review-auth', consistency: 'strong', fetch: input.fetch });
+    assert.equal(typeof input.fetch, 'function');
+    return options.realBlobs ? getStore({ ...input, ...options.realBlobs.connection }) : store;
+  }, fetchFn: options.realBlobs?.fetch, sleep: async ms => { delays.push(ms); }, notify: async (...args) => { notices.push(args); }, log: entry => { logs.push(entry); },
   comparePassword: (input, expected) => {
     comparisons++; operations.push({ operation: '照合' });
     const digest = value => crypto.createHash('sha256').update(value).digest();
@@ -268,14 +276,14 @@ async function main() {
   });
 
   await test(8, 'Blobsの読取・保存・削除失敗と壊れた記録では503', async () => {
-    for (const [method, password] of [['getWithMetadata', PASSWORD], ['setJSON', '間違えた試験用のパスワード'], ['delete', PASSWORD]]) {
+    for (const [method, password] of [['getWithMetadata', PASSWORD], ['set', '間違えた試験用のパスワード'], ['delete', PASSWORD]]) {
       const h = setup(); h.store[method] = async () => { throw new Error('試験用の障害'); };
       const response = await h.auth.login(h.event(password));
       assert.equal(response.statusCode, 503); assert.equal(response.headers['Set-Cookie'], undefined);
     }
     const h = setup(); h.records.set('global', { count: '壊れた記録' });
     assert.equal((await h.auth.login(h.event())).statusCode, 503);
-    const unwritten = setup(); unwritten.store.setJSON = async () => ({ modified: false });
+    const unwritten = setup(); unwritten.store.set = async () => ({ modified: false });
     assert.equal((await unwritten.auth.login(unwritten.event('間違えた試験用のパスワード'))).statusCode, 429);
     assert.equal(unwritten.comparisons(), 0);
     const unopened = setup();
@@ -350,7 +358,7 @@ async function main() {
     const login = setup().auth.loginPage('/review?file=x.md');
     const loginScript = checkPageHeaders(login);
     const next = { value: login.body.match(/name="next" value="([^"]+)"/)[1] };
-    vm.runInNewContext(loginScript, { document: { querySelector: () => next } });
+    vm.runInNewContext(loginScript, { document: { querySelector: selector => selector === 'form' ? { addEventListener() {} } : next } });
     assert.equal(next.value, '/review?file=x.md');
     assert.notEqual(setup().auth.loginPage('/review').headers['Content-Security-Policy'], setup().auth.loginPage('/review').headers['Content-Security-Policy']);
     const controls = new Map();
@@ -444,7 +452,8 @@ async function main() {
   });
 
   await testFixes();
-  console.log(`試験01の1〜15・01bのF1〜F8: PASS ${passed} / FAIL ${failed}`);
+  await testFixes2();
+  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3: PASS ${passed} / FAIL ${failed}`);
   if (failed) process.exitCode = 1;
 }
 
@@ -505,8 +514,8 @@ async function testFixes() {
     assert.equal(different.comparisons(), 30); assert.equal(different.notices.length, 1);
     for (const conflictKey of ['ip', 'global']) {
       const h = setup();
-      const write = h.store.setJSON;
-      h.store.setJSON = async (key, ...args) => (conflictKey === 'global' ? key === 'global' : key.startsWith('ip/')) ? { modified: false } : write(key, ...args);
+      const write = h.store.set;
+      h.store.set = async (key, ...args) => (conflictKey === 'global' ? key === 'global' : key.startsWith('ip/')) ? { modified: false } : write(key, ...args);
       assert.equal((await h.auth.login(h.event(PASSWORD))).statusCode, 429);
       assert.equal(h.comparisons(), 0); assert.equal(h.delays.length, 0);
       assert.equal(h.operations.filter(entry => entry.operation === '消す').length, 0);
@@ -516,7 +525,7 @@ async function testFixes() {
     assert.ok(existing.operations.some(entry => entry.operation === '書く' && typeof entry.condition.onlyIfMatch === 'string'));
     assert.ok(existing.operations.some(entry => entry.operation === '書く' && entry.condition.onlyIfNew === true));
     for (const malformed of [undefined, {}, { modified: '成功' }]) {
-      const h = setup(); h.store.setJSON = async () => malformed;
+      const h = setup(); h.store.set = async () => malformed;
       assert.equal((await h.auth.login(h.event())).statusCode, 503); assert.equal(h.comparisons(), 0);
     }
     const noEtag = setup(); noEtag.store.getWithMetadata = async () => ({ data: {}, metadata: {} });
@@ -536,7 +545,7 @@ async function testFixes() {
     const escaped = page.renderReviewPage('x.md', {}, '</div></div><script>危険()</script>', 'draft/test');
     assert.match(escaped, /id="articleBody">\s*<\/div>\s*<\/div>\s*<div class="card mb-4" id="factCheck">/);
     assert.equal(sanitizeReviewHtml('<table><tr><td>'), '<table><tr><td></td></tr></table>');
-    assert.equal(sanitizeReviewHtml('<div><strong>文</div></strong>'), '<div><strong>文</strong></div>');
+    assert.equal(sanitizeReviewHtml('<div><strong>文</div></strong>'), '<strong>文</strong>');
     assert.equal(sanitizeReviewHtml('<br><hr><img src="/images/x.png">'), '<br><hr><img src="/images/x.png">');
     assert.equal(sanitizeReviewHtml('<a href="#factCheck">詳細</a>'), '<a href="#factCheck">詳細</a>');
     const fixture = path.resolve(__dirname, '../../../docs/codex-tasks/review-page-layout/fixtures/2026-10-16-gift-cash-procedure-tax-return.md');
@@ -650,6 +659,179 @@ async function testFixes() {
         else assert.ok(buttons.every(button => button.disabled === false));
       }
     }
+  });
+}
+
+async function testFixes2() {
+  await test('G1', '実物のBlobs SDKの条件ヘッダ、同時要求、HTTP失敗時の閉鎖', async () => {
+    const wrong = '間違えた試験用のパスワード';
+    const backend = createBlobsHttp();
+    const h = setup({ realBlobs: backend });
+    assert.equal((await h.auth.login(h.event(wrong))).statusCode, 401);
+    const firstWrites = backend.requests.filter(request => request.method === 'PUT');
+    assert.equal(firstWrites.length, 2);
+    assert.ok(firstWrites.every(request => request.ifNoneMatch === '*' && request.ifMatch === null && request.status === 200));
+    const previousEtags = new Map(backend.etags);
+    assert.equal((await h.auth.login(h.event(wrong))).statusCode, 401);
+    const nextWrites = backend.requests.filter(request => request.method === 'PUT').slice(2);
+    assert.equal(nextWrites.length, 2);
+    for (const request of nextWrites) {
+      assert.equal(request.ifMatch, previousEtags.get(request.key));
+      assert.equal(request.ifNoneMatch, null); assert.equal(request.status, 200);
+      assert.equal(JSON.parse(backend.records.get(request.key)).count, 2);
+    }
+    const counts = [];
+    for (const sameIp of [true, false]) {
+      const http = createBlobsHttp();
+      const concurrent = setup({ realBlobs: http });
+      const responses = await Promise.all(Array.from({ length: 200 }, (_, i) => concurrent.auth.login(concurrent.event(wrong, sameIp ? '192.0.2.1' : `192.0.2.${i + 1}`))));
+      const count = concurrent.comparisons();
+      assert.ok(count > 0 && count <= (sameIp ? 5 : 30));
+      assert.equal(responses.filter(response => response.statusCode === 401).length, count);
+      assert.equal(responses.filter(response => response.statusCode === 429).length, 200 - count);
+      assert.ok(http.requests.some(request => request.method === 'PUT' && request.status === 412));
+      assert.ok(http.requests.filter(request => request.method === 'PUT').every(request => request.ifMatch !== null || request.ifNoneMatch === '*'));
+      assert.ok(responses.every(response => !response.headers['Set-Cookie']));
+      counts.push(count);
+    }
+    // SDKがETag付きのエラーもmodified:trueにする経路を、fetchで先に止める。
+    for (const status of [201, 204, 400, 401, 403, 404, 429, 500]) {
+      for (const globalOnly of [false, true]) {
+        const http = createBlobsHttp({ writeStatus: key => !globalOnly || key === 'global' ? status : 200 });
+        const stopped = setup({ realBlobs: http });
+        const response = await stopped.auth.login(stopped.event());
+        assert.equal(response.statusCode, 503);
+        assert.equal(stopped.comparisons(), 0);
+        assert.equal(response.headers['Set-Cookie'], undefined);
+        assert.equal(stopped.notices.length, 0);
+        assert.ok(http.requests.some(request => request.method === 'PUT' && request.status === status));
+        assert.ok(!http.requests.some(request => request.method === 'DELETE'));
+      }
+    }
+    const conflict = setup({ realBlobs: createBlobsHttp({ writeStatus: 412 }) });
+    const response = await conflict.auth.login(conflict.event());
+    assert.equal(response.statusCode, 429); assert.equal(conflict.comparisons(), 0);
+    assert.match(response.body, /もう一度お試しください/);
+    const unreadable = setup({ realBlobs: createBlobsHttp({ readStatus: 403 }) });
+    assert.equal((await unreadable.auth.login(unreadable.event())).statusCode, 503);
+    assert.equal(unreadable.comparisons(), 0);
+    const noEtag = setup({ realBlobs: createBlobsHttp({ omitEtag: true }) });
+    assert.equal((await noEtag.auth.login(noEtag.event(wrong))).statusCode, 401);
+    assert.equal((await noEtag.auth.login(noEtag.event())).statusCode, 503);
+    assert.equal(noEtag.comparisons(), 1);
+    const successful = setup({ realBlobs: createBlobsHttp() });
+    assert.equal((await successful.auth.login(successful.event())).statusCode, 303);
+    assert.equal(successful.comparisons(), 1);
+    // 現行connectLambdaが作る接続にstrong用URLが無い場合も安全側で止める。
+    // 接続情報の作り方は今回の指示で変更しないため、実環境で別途確認する。
+    const lambdaHttp = createBlobsHttp();
+    const contextBefore = process.env.NETLIFY_BLOBS_CONTEXT;
+    let lambdaComparisons = 0;
+    const lambda = authLib.createReviewAuth({ env: h.env, now: h.time, fetchFn: lambdaHttp.fetch,
+      sleep: async () => {}, notify: async () => {}, log: () => {},
+      comparePassword: () => { lambdaComparisons++; return true; },
+    });
+    try {
+      const event = h.event();
+      event.headers['x-nf-site-id'] = lambdaHttp.connection.siteID;
+      event.headers['x-nf-deploy-id'] = crypto.randomUUID();
+      event.blobs = Buffer.from(JSON.stringify({ url: lambdaHttp.connection.edgeURL, token: lambdaHttp.connection.token })).toString('base64');
+      const response = await lambda.login(event);
+      assert.equal(response.statusCode, 503); assert.equal(response.headers['Set-Cookie'], undefined);
+      assert.equal(lambdaComparisons, 0); assert.equal(lambdaHttp.requests.length, 0);
+    } finally {
+      if (contextBefore === undefined) delete process.env.NETLIFY_BLOBS_CONTEXT;
+      else process.env.NETLIFY_BLOBS_CONTEXT = contextBefore;
+    }
+    console.log(`  G1 実物SDK: 新規=If-None-Match:* / 既存=If-Match:保存済みETag / 同じIP200件=${counts[0]} / 異なるIP200件=${counts[1]} / PUT403・500=503、照合0回`);
+  });
+
+  await test('G2', '暗黙の閉鎖・表の入れ子を正規化し本文カードの境界を保持', () => {
+    const examples = [
+      ['<li><div><li></div>外の文', '<li></li><li>外の文</li>'],
+      ['<table><table></table></table>外の文', '<table></table>外の文'],
+      ['<dl><dt><div><dt></div>外', '<dl><dt></dt><dt>外</dt></dl>'],
+      ['<p><table></p>外', '<p></p><table>外</table>'],
+    ];
+    for (const [input, expected] of examples) {
+      const clean = sanitizeReviewHtml(input);
+      assert.equal(clean, expected);
+      assert.doesNotMatch(clean, /<\/?div\b|<table>[^]*<table>/);
+      const html = page.renderReviewPage('x.md', {}, input, 'draft/test');
+      const bodyStart = html.indexOf('id="articleBody">');
+      const cardStart = html.lastIndexOf('<div class="card mb-4">', bodyStart);
+      const bodyEnd = html.indexOf('</div>', bodyStart);
+      const stack = [];
+      let cardEnd = -1;
+      // 依存関係を足さず、本文カード全体の開始・終了タグを文字列で照合する。
+      for (const match of html.slice(cardStart).matchAll(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/gi)) {
+        const tag = match[2].toLowerCase();
+        if (['br', 'hr', 'img', 'input'].includes(tag)) continue;
+        if (match[1]) assert.equal(stack.pop(), tag);
+        else stack.push(tag);
+        if (!stack.length) { cardEnd = cardStart + match.index + match[0].length; break; }
+      }
+      assert.ok(cardStart >= 0 && cardEnd > bodyEnd);
+      const marker = html.indexOf('外', bodyStart);
+      assert.ok(marker > bodyStart && marker < bodyEnd && marker < cardEnd);
+      assert.ok(html.slice(cardStart, cardEnd).includes(clean));
+      assert.match(html.slice(cardEnd), /id="factCheck"/);
+    }
+    assert.equal(sanitizeReviewHtml('<table>外<table>内</table>末</table>後'), '<table>外内末</table>後');
+    assert.equal(sanitizeReviewHtml('<ul><li>外<ul><li>内<li>次</ul><li>末</ul>'), '<ul><li>外<ul><li>内</li><li>次</li></ul></li><li>末</li></ul>');
+    assert.equal(sanitizeReviewHtml('<dl><dt>外<dl><dd>内<dt>次</dl><dd>末</dl>'), '<dl><dt>外<dl><dd>内</dd><dt>次</dt></dl></dt><dd>末</dd></dl>');
+    assert.equal(sanitizeReviewHtml('<dl><dt>語<dd>説明<dt>次</dl>'), '<dl><dt>語</dt><dd>説明</dd><dt>次</dt></dl>');
+    assert.equal(sanitizeReviewHtml('<p>前<p>後'), '<p>前</p><p>後</p>');
+    for (const tag of ['ul', 'ol', 'table', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'dl']) {
+      assert.ok(sanitizeReviewHtml(`<p>前<${tag}>後`).startsWith(`<p>前</p><${tag}>`));
+    }
+    const fixture = path.resolve(__dirname, '../../../docs/codex-tasks/review-page-layout/fixtures/2026-10-16-gift-cash-procedure-tax-return.md');
+    const parsed = page.parseFrontmatter(fs.readFileSync(fixture, 'utf8'));
+    const original = marked(parsed.body).replace(/<input disabled="" type="checkbox">/g, '');
+    const clean = sanitizeReviewHtml(original);
+    assert.equal(clean.replace(/ target="_blank" rel="noopener noreferrer"/g, ''), original);
+    const html = page.renderReviewPage('x.md', parsed.meta, marked(parsed.body), 'draft/test');
+    assert.ok(html.includes(clean)); assert.doesNotMatch(html, /table-wrapper/);
+    const refresh = page.renderReviewPage('x.md', { refresh_of: 'published' }, '<p>本文</p>', 'draft/test', {
+      available: true, diff: [{ heading: '表', changedParagraphs: {
+        before: [{ text: '| 列 |\n|---|\n| 前 |', changed: true }],
+        after: [{ text: '| 列 |\n|---|\n| 後 |', changed: true }],
+      } }],
+    });
+    assert.doesNotMatch(refresh, /table-wrapper/);
+    assert.equal((refresh.match(/<table>/g) || []).length, 2);
+    assert.match(refresh, /\.article-body table, \.refresh-diff-list table \{ display: block;[^}]*overflow-x: auto;[^}]*-webkit-overflow-scrolling: touch;/);
+  });
+
+  await test('G3', 'ログイン送信を一度に制限し、競合と上限の429の文言を分ける', async () => {
+    const h = setup();
+    const script = checkPageHeaders(h.auth.loginPage('/review?file=x.md'));
+    const button = { disabled: false, textContent: 'レビュー画面を開く' };
+    const next = { value: '%2freview%3ffile%3dx.md' };
+    let submit;
+    const form = {
+      addEventListener: (name, listener) => { assert.equal(name, 'submit'); submit = listener; },
+      querySelector: selector => { assert.equal(selector, 'button[type="submit"]'); return button; },
+    };
+    vm.runInNewContext(script, { document: { querySelector: selector => selector === 'form' ? form : next } });
+    assert.equal(next.value, '/review?file=x.md'); assert.equal(typeof submit, 'function');
+    let prevented = 0;
+    const event = { preventDefault: () => { prevented++; } };
+    submit(event);
+    assert.equal(button.disabled, true); assert.equal(button.textContent, '確認しています…');
+    assert.equal(prevented, 0);
+    submit(event); assert.equal(prevented, 1);
+    h.store.set = async () => ({ modified: false });
+    const conflict = await h.auth.login(h.event());
+    assert.equal(conflict.statusCode, 429); assert.equal(h.comparisons(), 0);
+    assert.match(conflict.body, /もう一度お試しください/);
+    assert.doesNotMatch(conflict.body, /しばらくしてからお試しください/);
+    const capped = setup();
+    for (let i = 0; i < 5; i++) await capped.auth.login(capped.event('間違えた試験用のパスワード'));
+    const limited = await capped.auth.login(capped.event());
+    assert.equal(limited.statusCode, 429); assert.equal(capped.comparisons(), 5);
+    assert.match(limited.body, /しばらくしてからお試しください/);
+    assert.doesNotMatch(limited.body, /もう一度お試しください/);
   });
 }
 
