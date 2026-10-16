@@ -190,11 +190,17 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
 const next = document.querySelector('input[name="next"]');
 next.value = decodeURIComponent(next.value);
 const form = document.querySelector('form');
+const button = form.querySelector('button[type="submit"]');
+const buttonLabel = button.textContent;
 form.addEventListener('submit', event => {
-  const button = form.querySelector('button[type="submit"]');
   if (button.disabled) { event.preventDefault(); return; }
   button.disabled = true;
   button.textContent = '確認しています…';
+});
+window.addEventListener('pageshow', event => {
+  if (!event.persisted) return;
+  button.disabled = false;
+  button.textContent = buttonLabel;
 });
 </script></main></body></html>` };
   }
@@ -212,13 +218,16 @@ form.addEventListener('submit', event => {
   }
   async function readRate(store, key, windowMs, at) {
     const entry = await store.getWithMetadata(key, { type: 'json' });
-    if (entry === null) return { record: rateRecord(null, windowMs, at), condition: { onlyIfNew: true } };
+    if (entry === null) {
+      const record = rateRecord(null, windowMs, at);
+      return { record, previous: JSON.stringify(record), condition: { onlyIfNew: true } };
+    }
     if (!entry || typeof entry.etag !== 'string' || !entry.etag || !entry.data) throw new Error('失敗回数の記録が不正');
-    return { record: rateRecord(entry.data, windowMs, at), condition: { onlyIfMatch: entry.etag } };
+    return { record: rateRecord(entry.data, windowMs, at), previous: JSON.stringify(entry.data), condition: { onlyIfMatch: entry.etag } };
   }
   function limited(next, event, conflict = false) {
     audit(event, conflict ? 'ログイン記録の競合' : 'ログイン試行回数の上限');
-    return loginPage(next, 429, conflict ? 'もう一度お試しください' : 'しばらくしてからお試しください');
+    return loginPage(next, 429, conflict ? '1 分ほど待ってからもう一度お試しください' : 'しばらくしてからお試しください');
   }
   async function login(event) {
     if (event.httpMethod !== 'POST') return loginPage('/review', 405, 'レビュー画面からログインしてください');
@@ -251,10 +260,20 @@ form.addEventListener('submit', event => {
       if (ip.count >= 5) ip.blockedUntil = at + 900000;
       const shouldNotify = global.count >= 30 && !global.notified;
       if (global.count >= 30) { global.blockedUntil = at + 3600000; global.notified = true; }
+      let ipEtag;
       for (const [key, record, condition] of [[ipKey, ip, ipRate.condition], ['global', global, globalRate.condition]]) {
         const result = await store.set(key, JSON.stringify(record), condition);
-        if (result?.modified === false) return limited(next, event, true);
+        if (result?.modified === false) {
+          if (key === 'global') {
+            // 自分が確保した版が残っている場合だけ戻す。他の要求の更新は上書きしない。
+            if (typeof ipEtag !== 'string' || !ipEtag) throw new Error('IP記録の版が不明');
+            const restored = await store.set(ipKey, ipRate.previous, { onlyIfMatch: ipEtag });
+            if (restored?.modified !== true && restored?.modified !== false) throw new Error('IP記録の復元に失敗');
+          }
+          return limited(next, event, true);
+        }
         if (result?.modified !== true) throw new Error('失敗回数の保存に失敗');
+        if (key === ipKey) ipEtag = result.etag;
       }
       if (shouldNotify) {
         try { await notify('review_auth_locked', {}); }

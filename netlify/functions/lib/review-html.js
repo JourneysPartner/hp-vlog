@@ -26,7 +26,7 @@ function sanitizeReviewHtml(html) {
     while (openTags.length > position) {
       const tag = openTags.pop();
       output += `</${tag}>`;
-      if (tag === 'table') nestedTables = 0;
+      if (tag === 'table') { output += '</div>'; nestedTables = 0; }
     }
   };
   const closePrevious = (names, boundaries = []) => {
@@ -101,6 +101,8 @@ function sanitizeReviewHtml(html) {
     }
     if (tag === 'img' && !localImage) continue;
     if (tag === 'a' && href && !href.startsWith('#')) attrs.push('target="_blank"', 'rel="noopener noreferrer"');
+    // 本文のdivは認めず、表の開閉と必ず対になる包みだけをここで作る。
+    if (tag === 'table') output += '<div class="table-wrapper">';
     output += `<${tag}${attrs.length ? ' ' + attrs.join(' ') : ''}>`;
     if (!voidTags.has(tag)) openTags.push(tag);
   }

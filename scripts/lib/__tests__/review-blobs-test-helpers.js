@@ -4,7 +4,7 @@ const assert = require('assert/strict');
 const crypto = require('crypto');
 
 // ストアは差し替えず、SDKが発行するHTTP要求だけを受ける。実通信は行わない。
-function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitEtag = false } = {}) {
+function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitEtag = false, beforePut } = {}) {
   const origin = 'https://review-blobs.example.invalid';
   const connection = {
     siteID: crypto.randomUUID(), token: crypto.randomBytes(32).toString('hex'),
@@ -42,7 +42,8 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
     }
     await pause();
     if (method === 'PUT') {
-      const status = typeof writeStatus === 'function' ? writeStatus(key) : writeStatus;
+      if (beforePut) await beforePut(request, options.body);
+      const status = typeof writeStatus === 'function' ? writeStatus(key, request, options.body) : writeStatus;
       if (status !== 200) {
         request.status = status;
         // ETag付きのエラーでも成功扱いにしてはいけない。
@@ -58,6 +59,7 @@ function createBlobsHttp({ delay = 2, writeStatus = 200, readStatus = 200, omitE
       records.set(key, options.body);
       etags.set(key, JSON.stringify(`version-${++version}`));
       request.status = 200;
+      request.etag = etags.get(key);
       return response(200, '', { etag: etags.get(key) });
     }
     if (method === 'DELETE') {

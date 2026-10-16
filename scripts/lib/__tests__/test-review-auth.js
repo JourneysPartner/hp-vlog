@@ -138,6 +138,11 @@ function checkPageHeaders(response) {
   return scripts[0][2];
 }
 
+// 通常のMarkdown由来HTMLでは、表を包む差だけを期待値に足す。
+function withTableWrappers(html) {
+  return html.replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+}
+
 async function drawAuthenticated(raw, record = null) {
   const savedGet = github.getFile;
   const before = process.env.GITHUB_TOKEN;
@@ -358,7 +363,10 @@ async function main() {
     const login = setup().auth.loginPage('/review?file=x.md');
     const loginScript = checkPageHeaders(login);
     const next = { value: login.body.match(/name="next" value="([^"]+)"/)[1] };
-    vm.runInNewContext(loginScript, { document: { querySelector: selector => selector === 'form' ? { addEventListener() {} } : next } });
+    vm.runInNewContext(loginScript, {
+      document: { querySelector: selector => selector === 'form' ? { addEventListener() {}, querySelector: () => ({ textContent: 'レビュー画面を開く' }) } : next },
+      window: { addEventListener() {} },
+    });
     assert.equal(next.value, '/review?file=x.md');
     assert.notEqual(setup().auth.loginPage('/review').headers['Content-Security-Policy'], setup().auth.loginPage('/review').headers['Content-Security-Policy']);
     const controls = new Map();
@@ -453,7 +461,8 @@ async function main() {
 
   await testFixes();
   await testFixes2();
-  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3・G4: PASS ${passed} / FAIL ${failed}`);
+  await testFixes3();
+  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3・G4・H1〜H3: PASS ${passed} / FAIL ${failed}`);
   if (failed) process.exitCode = 1;
 }
 
@@ -544,14 +553,14 @@ async function testFixes() {
     assert.equal(sanitizeReviewHtml('</div></div><script>危険()</script>'), '');
     const escaped = page.renderReviewPage('x.md', {}, '</div></div><script>危険()</script>', 'draft/test');
     assert.match(escaped, /id="articleBody">\s*<\/div>\s*<\/div>\s*<div class="card mb-4" id="factCheck">/);
-    assert.equal(sanitizeReviewHtml('<table><tr><td>'), '<table><tr><td></td></tr></table>');
+    assert.equal(sanitizeReviewHtml('<table><tr><td>'), '<div class="table-wrapper"><table><tr><td></td></tr></table></div>');
     assert.equal(sanitizeReviewHtml('<div><strong>文</div></strong>'), '<strong>文</strong>');
     assert.equal(sanitizeReviewHtml('<br><hr><img src="/images/x.png">'), '<br><hr><img src="/images/x.png">');
     assert.equal(sanitizeReviewHtml('<a href="#factCheck">詳細</a>'), '<a href="#factCheck">詳細</a>');
     const fixture = path.resolve(__dirname, '../../../docs/codex-tasks/review-page-layout/fixtures/2026-10-16-gift-cash-procedure-tax-return.md');
-    // チェックボックスのinputは01でも除いていた。その他はリンクの属性だけ変わる。
+    // チェックボックスのinputは01でも除いていた。リンク属性と表の包み以外は維持する。
     const ordinary = marked(page.parseFrontmatter(fs.readFileSync(fixture, 'utf8')).body).replace(/<input disabled="" type="checkbox">/g, '');
-    assert.equal(sanitizeReviewHtml(ordinary).replace(/ target="_blank" rel="noopener noreferrer"/g, ''), ordinary);
+    assert.equal(sanitizeReviewHtml(ordinary).replace(/ target="_blank" rel="noopener noreferrer"/g, ''), withTableWrappers(ordinary));
   });
 
   await test('F4', '偽装可能な転送IPを使わず、不明・重複は同じ区分', async () => {
@@ -711,7 +720,7 @@ async function testFixes2() {
     const conflict = setup({ realBlobs: createBlobsHttp({ writeStatus: 412 }) });
     const response = await conflict.auth.login(conflict.event());
     assert.equal(response.statusCode, 429); assert.equal(conflict.comparisons(), 0);
-    assert.match(response.body, /もう一度お試しください/);
+    assert.match(response.body, /1 分ほど待ってからもう一度お試しください/);
     const unreadable = setup({ realBlobs: createBlobsHttp({ readStatus: 403 }) });
     assert.equal((await unreadable.auth.login(unreadable.event())).statusCode, 503);
     assert.equal(unreadable.comparisons(), 0);
@@ -728,58 +737,75 @@ async function testFixes2() {
   await test('G2', '暗黙の閉鎖・表の入れ子を正規化し本文カードの境界を保持', () => {
     const examples = [
       ['<li><div><li></div>外の文', '<li></li><li>外の文</li>'],
-      ['<table><table></table></table>外の文', '<table></table>外の文'],
+      ['<table><table></table></table>外の文', '<div class="table-wrapper"><table></table></div>外の文'],
       ['<dl><dt><div><dt></div>外', '<dl><dt></dt><dt>外</dt></dl>'],
-      ['<p><table></p>外', '<p></p><table>外</table>'],
+      ['<p><table></p>外', '<p></p><div class="table-wrapper"><table>外</table></div>'],
+      ['<li><table><li>外の文', '<li><div class="table-wrapper"><table></table></div></li><li>外の文</li>'],
+      ['<dl><dt><table><dt>外の文', '<dl><dt><div class="table-wrapper"><table></table></div></dt><dt>外の文</dt></dl>'],
+      ['<blockquote><table><table></blockquote></table>外の文', '<blockquote><div class="table-wrapper"><table></table></div></blockquote>外の文'],
+      ['<p><a href="#factCheck">前<table><table></table></table></div>外の文', '<p><a href="#factCheck">前</a></p><div class="table-wrapper"><table></table></div>外の文'],
+      ['<div class="table-wrapper"><table><table></table></table></div>外の文', '<div class="table-wrapper"><table></table></div>外の文'],
+      ['<table><tr><td><table>内</table></td></tr></table></div>外の文', '<div class="table-wrapper"><table><tr><td>内</td></tr></table></div>外の文'],
     ];
     for (const [input, expected] of examples) {
       const clean = sanitizeReviewHtml(input);
       assert.equal(clean, expected);
-      assert.doesNotMatch(clean, /<\/?div\b|<table>[^]*<table>/);
+      const withoutWrappers = clean.replace(/<div class="table-wrapper">(<table\b[\s\S]*?<\/table>)<\/div>/g, '$1');
+      assert.doesNotMatch(withoutWrappers, /<\/?div\b|<table>[^]*<table>/);
       const html = page.renderReviewPage('x.md', {}, input, 'draft/test');
       const bodyStart = html.indexOf('id="articleBody">');
       const cardStart = html.lastIndexOf('<div class="card mb-4">', bodyStart);
-      const bodyEnd = html.indexOf('</div>', bodyStart);
+      const bodyTagStart = html.lastIndexOf('<div', bodyStart);
+      let bodyDepth = -1, bodyEnd = -1;
       const stack = [];
       let cardEnd = -1;
       // 依存関係を足さず、本文カード全体の開始・終了タグを文字列で照合する。
       for (const match of html.slice(cardStart).matchAll(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/gi)) {
         const tag = match[2].toLowerCase();
         if (['br', 'hr', 'img', 'input'].includes(tag)) continue;
-        if (match[1]) assert.equal(stack.pop(), tag);
-        else stack.push(tag);
+        if (match[1]) {
+          if (tag === 'div' && stack.length === bodyDepth) bodyEnd = cardStart + match.index;
+          assert.equal(stack.pop(), tag);
+        } else {
+          stack.push(tag);
+          if (cardStart + match.index === bodyTagStart) bodyDepth = stack.length;
+        }
         if (!stack.length) { cardEnd = cardStart + match.index + match[0].length; break; }
       }
-      assert.ok(cardStart >= 0 && cardEnd > bodyEnd);
+      assert.ok(cardStart >= 0 && bodyEnd > bodyStart && cardEnd > bodyEnd);
       const marker = html.indexOf('外', bodyStart);
       assert.ok(marker > bodyStart && marker < bodyEnd && marker < cardEnd);
       assert.ok(html.slice(cardStart, cardEnd).includes(clean));
       assert.match(html.slice(cardEnd), /id="factCheck"/);
     }
-    assert.equal(sanitizeReviewHtml('<table>外<table>内</table>末</table>後'), '<table>外内末</table>後');
+    assert.equal(sanitizeReviewHtml('<table>外<table>内</table>末</table>後'), '<div class="table-wrapper"><table>外内末</table></div>後');
     assert.equal(sanitizeReviewHtml('<ul><li>外<ul><li>内<li>次</ul><li>末</ul>'), '<ul><li>外<ul><li>内</li><li>次</li></ul></li><li>末</li></ul>');
     assert.equal(sanitizeReviewHtml('<dl><dt>外<dl><dd>内<dt>次</dl><dd>末</dl>'), '<dl><dt>外<dl><dd>内</dd><dt>次</dt></dl></dt><dd>末</dd></dl>');
     assert.equal(sanitizeReviewHtml('<dl><dt>語<dd>説明<dt>次</dl>'), '<dl><dt>語</dt><dd>説明</dd><dt>次</dt></dl>');
     assert.equal(sanitizeReviewHtml('<p>前<p>後'), '<p>前</p><p>後</p>');
     for (const tag of ['ul', 'ol', 'table', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'dl']) {
-      assert.ok(sanitizeReviewHtml(`<p>前<${tag}>後`).startsWith(`<p>前</p><${tag}>`));
+      const opening = tag === 'table' ? '<div class="table-wrapper"><table>' : `<${tag}>`;
+      assert.ok(sanitizeReviewHtml(`<p>前<${tag}>後`).startsWith(`<p>前</p>${opening}`));
     }
     const fixture = path.resolve(__dirname, '../../../docs/codex-tasks/review-page-layout/fixtures/2026-10-16-gift-cash-procedure-tax-return.md');
     const parsed = page.parseFrontmatter(fs.readFileSync(fixture, 'utf8'));
     const original = marked(parsed.body).replace(/<input disabled="" type="checkbox">/g, '');
     const clean = sanitizeReviewHtml(original);
-    assert.equal(clean.replace(/ target="_blank" rel="noopener noreferrer"/g, ''), original);
+    assert.equal(clean.replace(/ target="_blank" rel="noopener noreferrer"/g, ''), withTableWrappers(original));
     const html = page.renderReviewPage('x.md', parsed.meta, marked(parsed.body), 'draft/test');
-    assert.ok(html.includes(clean)); assert.doesNotMatch(html, /table-wrapper/);
+    assert.ok(html.includes(clean));
+    assert.equal((clean.match(/<div class="table-wrapper"><table>/g) || []).length, (clean.match(/<table>/g) || []).length);
     const refresh = page.renderReviewPage('x.md', { refresh_of: 'published' }, '<p>本文</p>', 'draft/test', {
       available: true, diff: [{ heading: '表', changedParagraphs: {
         before: [{ text: '| 列 |\n|---|\n| 前 |', changed: true }],
         after: [{ text: '| 列 |\n|---|\n| 後 |', changed: true }],
       } }],
     });
-    assert.doesNotMatch(refresh, /table-wrapper/);
+    assert.equal((refresh.match(/<div class="table-wrapper"><table>/g) || []).length, 2);
     assert.equal((refresh.match(/<table>/g) || []).length, 2);
-    assert.match(refresh, /\.article-body table, \.refresh-diff-list table \{ display: block;[^}]*overflow-x: auto;[^}]*-webkit-overflow-scrolling: touch;/);
+    assert.match(refresh, /\.article-body \.table-wrapper, \.refresh-diff-list \.table-wrapper \{[^}]*overflow-x: auto;[^}]*-webkit-overflow-scrolling: touch;/);
+    assert.match(refresh, /\.article-body table, \.refresh-diff-list table \{[^}]*width: 100%;[^}]*min-width: 480px;/);
+    assert.doesNotMatch(refresh, /\.article-body table, \.refresh-diff-list table \{[^}]*display: block/);
   });
 
   await test('G3', 'ログイン送信を一度に制限し、競合と上限の429の文言を分ける', async () => {
@@ -792,7 +818,7 @@ async function testFixes2() {
       addEventListener: (name, listener) => { assert.equal(name, 'submit'); submit = listener; },
       querySelector: selector => { assert.equal(selector, 'button[type="submit"]'); return button; },
     };
-    vm.runInNewContext(script, { document: { querySelector: selector => selector === 'form' ? form : next } });
+    vm.runInNewContext(script, { document: { querySelector: selector => selector === 'form' ? form : next }, window: { addEventListener() {} } });
     assert.equal(next.value, '/review?file=x.md'); assert.equal(typeof submit, 'function');
     let prevented = 0;
     const event = { preventDefault: () => { prevented++; } };
@@ -803,7 +829,7 @@ async function testFixes2() {
     h.store.set = async () => ({ modified: false });
     const conflict = await h.auth.login(h.event());
     assert.equal(conflict.statusCode, 429); assert.equal(h.comparisons(), 0);
-    assert.match(conflict.body, /もう一度お試しください/);
+    assert.match(conflict.body, /1 分ほど待ってからもう一度お試しください/);
     assert.doesNotMatch(conflict.body, /しばらくしてからお試しください/);
     const capped = setup();
     for (let i = 0; i < 5; i++) await capped.auth.login(capped.event('間違えた試験用のパスワード'));
@@ -869,7 +895,7 @@ async function testFixes2() {
         const before = { comparisons: stale.comparisons(), requests: http.requests.length, notices: stale.notices.length };
         const response = await stale.auth.login(stale.event(PASSWORD, target === 'ip' ? '192.0.2.1' : '198.51.100.240'));
         assert.equal(response.statusCode, 429);
-        assert.match(response.body, /もう一度お試しください/);
+        assert.match(response.body, /1 分ほど待ってからもう一度お試しください/);
         assert.doesNotMatch(response.body, /しばらくしてからお試しください/);
         assert.equal(response.headers['Set-Cookie'], undefined);
         assert.equal(stale.comparisons() - before.comparisons, 0);
@@ -890,10 +916,155 @@ async function testFixes2() {
     absentHttp.staleReads.add(ipKey);
     const response = await absent.auth.login(absent.event());
     assert.equal(response.statusCode, 429); assert.equal(absent.comparisons(), 1);
-    assert.match(response.body, /もう一度お試しください/);
+    assert.match(response.body, /1 分ほど待ってからもう一度お試しください/);
     const write = absentHttp.requests.filter(request => request.method === 'PUT').at(-1);
     assert.equal(write.ifNoneMatch, '*'); assert.equal(write.status, 412);
     console.log('  G4 実物SDK: uncachedEdgeURLなしで誤り401・成功303 / 読み込み先=edgeURL / 古いIP・全体記録（停止前を含む）は412→429、照合0回');
+  });
+}
+
+async function testFixes3() {
+  await test('H1', '全体記録の競合ではIPだけを条件付きで戻し、他の要求の更新を保つ', async () => {
+    const wrong = '間違えた試験用のパスワード';
+    async function assertConflict(h) {
+      const before = { comparisons: h.comparisons(), notices: h.notices.length, delays: h.delays.length };
+      const response = await h.auth.login(h.event());
+      assert.equal(response.statusCode, 429);
+      assert.match(response.body, /1 分ほど待ってからもう一度お試しください/);
+      assert.doesNotMatch(response.body, /しばらくしてからお試しください/);
+      assert.equal(response.headers['Set-Cookie'], undefined);
+      assert.equal(h.comparisons(), before.comparisons);
+      assert.equal(h.notices.length, before.notices); assert.equal(h.delays.length, before.delays);
+    }
+    for (const seed of ['なし', '既存', '期限切れ']) {
+      let conflict = false;
+      const http = createBlobsHttp({ writeStatus: key => conflict && key === 'global' ? 412 : 200 });
+      const h = setup({ realBlobs: http });
+      let previous = JSON.stringify({ start: h.time(), count: 0, blockedUntil: 0, notified: false });
+      if (seed !== 'なし') {
+        assert.equal((await h.auth.login(h.event(wrong))).statusCode, 401);
+        previous = http.records.get([...http.records.keys()].find(key => key.startsWith('ip/')));
+        if (seed === '期限切れ') h.advance(900001);
+      }
+      const globalBefore = http.records.get('global');
+      const requestStart = http.requests.length;
+      conflict = true;
+      await assertConflict(h);
+      const writes = http.requests.slice(requestStart).filter(request => request.method === 'PUT');
+      assert.equal(writes.length, 3);
+      assert.ok(writes[0].key.startsWith('ip/')); assert.equal(writes[0].status, 200);
+      assert.equal(writes[1].key, 'global'); assert.equal(writes[1].status, 412);
+      assert.equal(writes[2].key, writes[0].key); assert.equal(writes[2].status, 200);
+      assert.equal(writes[2].ifMatch, writes[0].etag); assert.equal(writes[2].ifNoneMatch, null);
+      assert.equal(http.records.get(writes[0].key), previous);
+      assert.equal(http.records.get('global'), globalBefore);
+      assert.ok(!http.requests.some(request => request.method === 'DELETE'));
+    }
+    let ipWrites = 0, otherBody;
+    const racingHttp = createBlobsHttp({
+      writeStatus: key => key === 'global' ? 412 : 200,
+      beforePut: async request => {
+        if (!request.key.startsWith('ip/') || ++ipWrites !== 2) return;
+        // 元の要求の復元が到着する直前に、別の要求の確保を実物SDKで完了させる。
+        const other = JSON.parse(racingHttp.records.get(request.key)); other.count++;
+        otherBody = JSON.stringify(other);
+        const store = getStore({ ...racingHttp.connection, name: 'review-auth', fetch: racingHttp.fetch });
+        const result = await store.set(request.key, otherBody, { onlyIfMatch: racingHttp.etags.get(request.key) });
+        assert.equal(result.modified, true);
+      },
+    });
+    const racing = setup({ realBlobs: racingHttp });
+    await assertConflict(racing);
+    const racingWrites = racingHttp.requests.filter(request => request.method === 'PUT' && request.key.startsWith('ip/'));
+    assert.equal(racingWrites.length, 3);
+    assert.equal(racingWrites[1].ifMatch, racingWrites[0].etag); assert.equal(racingWrites[1].status, 412);
+    assert.equal(racingWrites[2].status, 200);
+    assert.equal(racingHttp.records.get(racingWrites[0].key), otherBody);
+    assert.equal(JSON.parse(otherBody).count, 2);
+    for (const status of [403, 500]) {
+      const http = createBlobsHttp({ writeStatus: (key, _, body) => key === 'global' ? 412 : JSON.parse(body).count === 0 ? status : 200 });
+      const h = setup({ realBlobs: http });
+      const response = await h.auth.login(h.event());
+      assert.equal(response.statusCode, 503); assert.equal(h.comparisons(), 0);
+      assert.equal(response.headers['Set-Cookie'], undefined);
+      assert.ok(http.requests.some(request => request.key.startsWith('ip/') && request.status === status));
+      assert.equal(JSON.parse(http.records.get([...http.records.keys()].find(key => key.startsWith('ip/')))).count, 1);
+    }
+    const noEtagHttp = createBlobsHttp({ writeStatus: key => key === 'global' ? 412 : 200 });
+    const originalFetch = noEtagHttp.fetch;
+    noEtagHttp.fetch = async (input, options) => {
+      const response = await originalFetch(input, options);
+      if (options.method.toUpperCase() === 'PUT' && response.status === 200) response.headers.delete('etag');
+      return response;
+    };
+    const noEtag = setup({ realBlobs: noEtagHttp });
+    assert.equal((await noEtag.auth.login(noEtag.event())).statusCode, 503);
+    assert.equal(noEtag.comparisons(), 0);
+    assert.equal(noEtagHttp.requests.filter(request => request.method === 'PUT' && request.key.startsWith('ip/')).length, 1);
+    const malformed = setup();
+    const write = malformed.store.set;
+    malformed.store.set = async (key, body, condition) => key === 'global' ? { modified: false } : JSON.parse(body).count === 0 ? undefined : write(key, body, condition);
+    assert.equal((await malformed.auth.login(malformed.event())).statusCode, 503);
+    assert.equal(malformed.comparisons(), 0);
+    const repeatedHttp = createBlobsHttp();
+    const repeated = setup({ realBlobs: repeatedHttp });
+    const store = getStore({ ...repeatedHttp.connection, name: 'review-auth', fetch: repeatedHttp.fetch });
+    await store.set('global', JSON.stringify({ start: repeated.time(), count: 0, blockedUntil: 0, notified: false }), { onlyIfNew: true });
+    assert.equal((await repeated.auth.login(repeated.event(wrong))).statusCode, 401);
+    assert.equal(JSON.parse(repeatedHttp.previous.get('global').body).count, 0);
+    repeatedHttp.staleReads.add('global');
+    const ipKey = [...repeatedHttp.records.keys()].find(key => key.startsWith('ip/'));
+    const previous = repeatedHttp.records.get(ipKey);
+    for (let i = 0; i < 3; i++) {
+      await assertConflict(repeated);
+      assert.equal(repeatedHttp.records.get(ipKey), previous);
+      assert.equal(JSON.parse(previous).count, 1);
+    }
+    repeatedHttp.staleReads.clear();
+    assert.equal((await repeated.auth.login(repeated.event())).statusCode, 303);
+    assert.equal(repeated.comparisons(), 2); assert.equal(repeatedHttp.records.has(ipKey), false);
+    console.log('  H1 実物SDK: 全体412でIP復元 / 復元412では他の更新を保持 / 復元403・500は503・照合0回 / 誤り1回→全体の古い版3回でもIP件数1→成功303');
+  });
+
+  await test('H2', '除去処理だけが表を包み、幅・最小幅を公開サイトに揃える', () => {
+    const input = '<div class="table-wrapper" id="btnApprove"><table onclick="危険()"><tr><td>表</td></tr></table></div></div>';
+    const expected = '<div class="table-wrapper"><table><tr><td>表</td></tr></table></div>';
+    assert.equal(sanitizeReviewHtml(input), expected);
+    assert.equal(sanitizeReviewHtml('<div class="table-wrapper">本文</div>'), '本文');
+    assert.equal(sanitizeReviewHtml('<table><table><table>内</table></table></table>後'), '<div class="table-wrapper"><table>内</table></div>後');
+    const publicCss = fs.readFileSync(path.resolve(__dirname, '../../../assets/css/blog.css'), 'utf8');
+    const publicTable = publicCss.match(/\.blog-article table\s*\{([^}]+)\}/)[1];
+    const html = page.renderReviewPage('x.md', {}, input, 'draft/test');
+    assert.ok(html.includes(expected));
+    const reviewTable = html.match(/\.article-body table, \.refresh-diff-list table\s*\{([^}]+)\}/)[1];
+    for (const property of ['width', 'min-width', 'font-size']) {
+      const pattern = new RegExp(`(?:^|[;\\s])${property}:\\s*([^;]+);`);
+      assert.equal(reviewTable.match(pattern)[1], publicTable.match(pattern)[1]);
+    }
+    assert.doesNotMatch(reviewTable, /display:\s*block/);
+  });
+
+  await test('H3', 'bfcacheからの復帰時だけログインボタンを元に戻す', () => {
+    const script = checkPageHeaders(setup().auth.loginPage('/review'));
+    const button = { disabled: false, textContent: 'レビュー画面を開く' };
+    const next = { value: '%2freview' };
+    const listeners = new Map();
+    const form = { querySelector: () => button, addEventListener: (name, listener) => listeners.set(name, listener) };
+    vm.runInNewContext(script, {
+      document: { querySelector: selector => selector === 'form' ? form : next },
+      window: { addEventListener: (name, listener) => listeners.set(name, listener) },
+    });
+    assert.equal(typeof listeners.get('pageshow'), 'function');
+    let prevented = 0;
+    const submit = () => listeners.get('submit')({ preventDefault: () => { prevented++; } });
+    for (let i = 0; i < 2; i++) {
+      submit(); assert.equal(button.disabled, true); assert.equal(button.textContent, '確認しています…');
+      listeners.get('pageshow')({ persisted: false });
+      assert.equal(button.disabled, true); assert.equal(button.textContent, '確認しています…');
+      listeners.get('pageshow')({ persisted: true });
+      assert.equal(button.disabled, false); assert.equal(button.textContent, 'レビュー画面を開く');
+    }
+    assert.equal(prevented, 0);
   });
 }
 

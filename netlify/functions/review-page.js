@@ -319,8 +319,10 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   .article-body blockquote { background: #fafafa; border-left: 3px solid #ccc; padding: .75rem 1rem; margin: 1rem 0; }
   .article-body ul, .article-body ol { padding-left: 1.5rem; }
   .article-body hr { margin: 1.5rem 0; }
-  .article-body table, .refresh-diff-list table { display: block; width: 100%; max-width: 100%; overflow-x: auto;
-    margin: 1.5rem 0; -webkit-overflow-scrolling: touch; border-collapse: collapse; font-size: .9rem; }
+  .article-body .table-wrapper, .refresh-diff-list .table-wrapper {
+    overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
+  .article-body table, .refresh-diff-list table {
+    width: 100%; min-width: 480px; border-collapse: collapse; font-size: 0.92rem; }
   .article-body thead th { background: var(--primary-light); color: var(--primary); font-weight: 600;
     padding: .6rem .75rem; border: 1px solid #c8e6c9; text-align: left; white-space: nowrap; }
   .article-body tbody td { padding: .6rem .75rem; border: 1px solid #e0e0e0; line-height: 1.7; }
