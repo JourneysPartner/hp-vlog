@@ -11,6 +11,7 @@ const E = require('../fact-evidence');
 const U = require('../fact-units');
 const P = require('../fact-pages');
 const H = require('./fact-pages-test-helpers');
+const { LAW_SCOPE_RULE } = require('../grounding-rules');
 const groups = {};
 const now = new Date('2026-10-14T00:00:00Z');
 const root = path.resolve(__dirname, '../../..');
@@ -64,6 +65,7 @@ async function realData() {
     });
     await test('T1', `#${pr} 最後まで照合し量とキャッシュを測る`, async () => {
       const calls = [];
+      const initialEvidence = {};
       let repairing = false;
       const fake = async request => {
         calls.push(request);
@@ -87,22 +89,47 @@ async function realData() {
           return { id: c.id, status: basis ? recorded.recorded_status : '資料なし', evidence_id: page?.number || 0, basis: basis || '', correct: recorded?.recorded_correct || '' };
         });
       };
-      const result = await F.checkFacts(replayBody, opts({ ...evidenceOptions, callLLM: fake }));
+      const result = await F.checkFacts(replayBody, opts({ ...evidenceOptions, callLLM: fake, searchEvidence: (c, options) => {
+        const refs = E.searchEvidence(c, options);
+        if (!repairing) initialEvidence[c.id] = refs;
+        return refs;
+      } }));
+      const initialPack = P.pageGroups(result.record.claims, initialEvidence)[0].pack;
       const byTask = {};
       for (const c of result.record.calls) { byTask[c.task] ||= { calls: 0, input: 0, output: 0 }; byTask[c.task].calls++; byTask[c.task].input += c.input_chars; byTask[c.task].output += c.output_chars; }
       const old = {};
       let repaired = false;
       for (const c of fixture.recorded_calls) { const task = repaired && ['extract', 'judge'].includes(c.task) ? `recheck_${c.task}` : c.task; old[task] = (old[task] || 0) + c.input_chars; if (c.task === 'repair') repaired = true; }
       const initial = result.record.calls.filter(c => !c.task.startsWith('recheck_')).reduce((sum, c) => sum + c.input_chars, 0);
+      const materialByKind = Object.fromEntries(['国税庁のページ', '法令', '通達'].map(kind => [kind, { pages: 0, chars: 0 }]));
+      for (const page of initialPack.pages) {
+        const kind = page.ref.kind === 'law' ? '法令' : page.ref.kind === 'tsutatsu' ? '通達' : '国税庁のページ';
+        materialByKind[kind].pages++; materialByKind[kind].chars += page.ref.text.length;
+      }
       console.log('T1実測:', JSON.stringify({ pr, old, old_total: fixture.recorded_input_chars_total, current: byTask, initial,
-        total: result.record.input_chars_total, output_total: result.record.output_chars_total, block_chars: pack.block.length,
-        material_chars: pack.pages.reduce((sum, p) => sum + p.ref.text.length, 0), pages: pack.pages.length, supplemented_sentences: new Set(absent.map(c => c.sentence)).size, status: result.record.status }));
+        total: result.record.input_chars_total, output_total: result.record.output_chars_total, block_chars: initialPack.block.length,
+        material_chars: initialPack.pages.reduce((sum, p) => sum + p.ref.text.length, 0), pages: initialPack.pages.length, material_by_kind: materialByKind,
+        supplemented_sentences: new Set(absent.map(c => c.sentence)).size, status: result.record.status }));
       assert.notEqual(result.record.status, 'not_run');
       assert.ok(calls.some(c => c.task === 'repair'));
       const first = calls.find(c => c.task === 'judge');
       const last = calls.filter(c => c.task === 'judge').at(-1);
       assert.notEqual(first, last); assert.equal(first.staticSystem, last.staticSystem);
-      assert.ok(initial <= ({ 642: 90000, 643: 45000, 644: 110000 })[pr], `入力 ${initial} 字`);
+      // 固定部分を独立に組み立て、資料の増減によらず二重送信を検出する。
+      const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。`;
+      const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]';
+      assert.equal(first.staticSystem, instruction + example + '\n\n' + initialPack.block);
+      assert.equal(first.system, first.staticSystem);
+      const payload = JSON.parse(first.user);
+      assert.equal(payload.evidence, undefined);
+      const strings = value => typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
+      const variable = strings([first.dynamicSystem || '', payload]).join('\n');
+      for (const page of initialPack.pages) {
+        const numberedBody = page.block.slice(page.block.indexOf('\n') + 1);
+        assert.ok(!norm(variable).includes(norm(page.ref.text)), `資料 ${page.number} の本文を可変部分に重複して送らない`);
+        assert.ok(!norm(variable).includes(norm(numberedBody)), `資料 ${page.number} の番号付き本文を可変部分に重複して送らない`);
+      }
+      assert.ok(initial <= ({ 642: 100000, 643: 45000, 644: 140000 })[pr], `入力 ${initial} 字`);
     });
   }
 }
@@ -291,7 +318,8 @@ async function main() {
     const sentence = '控除は100万円です。', body = '## 制度\n' + sentence + '\n案内。\n' + sentence, c = { ...claim(sentence, { type: '金額' }), status: '食い違い', quote: '控除は200万円です。', correct: '200万円' };
     const result = await F.repairBody(body, [c], async req => {
       assert.equal(req.maxTokens, 8000); const p = JSON.parse(req.user); assert.equal(p.body, undefined);
-      assert.deepEqual(Object.keys(p.corrections[0]), ['id', 'sentence', 'heading', 'prev', 'next', 'status', 'type', 'correct', 'quote', 'instruction']);
+      assert.deepEqual(Object.keys(p.corrections[0]), ['id', 'sentence', 'heading', 'prev', 'next', 'status', 'type', 'correct', 'quote', 'instruction', 'keep']);
+      assert.deepEqual(p.corrections[0].keep, []);
       return [{ id: 'c1', replacement: '控除は200万円です。' }];
     }); assert.equal(result.body.split('200万円').length - 1, 2);
     for (const replacement of ['', '改行\n文', '## 見出し', '長'.repeat(201)]) {

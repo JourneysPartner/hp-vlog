@@ -53,7 +53,8 @@ async function main() {
     const r = M.buildMaterialsBundle({ source_url: url, source_supplements: [page('4124')] }, [], silent);
     assert.ok(r.chain.attached.some(a => a.key === 'sozeki_hou' && a.num === '69_4'));
     assert.equal(r.chain.attached.find(a => a.num === '69_4').text, laws.getArticle('sozeki_hou', '69_4').text);
-    assert.ok(r.chain.unresolved.some(a => a.key === 'sozeki_rei' && a.num === '40_2'));
+    assert.ok(!r.chain.unresolved.some(a => a.key === 'sozeki_rei' && a.num === '40_2'));
+    assert.ok([...r.chain.attached, ...r.chain.dropped].some(a => a.key === 'sozeki_rei' && a.num === '40_2'));
     console.log('実データ 法令連鎖:', JSON.stringify({ attached: r.chain.attached.map(a => ({ kind: a.kind, label: a.label, chars: a.text.length })),
       unresolved: r.chain.unresolved.map(a => a.label) }));
     assert.ok(!r.chain.unresolved.some(a => a.label === '租税特別措置法69条の4'));
