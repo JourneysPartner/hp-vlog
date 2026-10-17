@@ -297,7 +297,7 @@ function toOpenAIMessages({ staticSystem, dynamicSystem, user, figures }) {
  *   [ { type:'text', text: STATIC_RULES, cache_control:{type:'ephemeral'} },
  *     { type:'text', text: dynamicSystem } ]
  */
-function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { model, maxTokens, useCache }) {
+function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { model, maxTokens, useCache, modelOptions }) {
   const systemBlocks = [
     useCache
       ? { type: 'text', text: staticSystem, cache_control: { type: 'ephemeral' } }
@@ -309,7 +309,7 @@ function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { mo
   return {
     model,
     max_tokens: maxTokens || 4096,
-    ...anthropicModelOptions(model),
+    ...(modelOptions === undefined ? anthropicModelOptions(model) : modelOptions),
     system: systemBlocks,
     messages: [{ role: 'user', content }],
   };

@@ -19,6 +19,19 @@ on:
         type: boolean
         required: false
         default: false
+      model:
+        description: 照合モデル（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      extract_model:
+        description: 抜き出しモデル（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      batch:
+        description: 照合を Batch で頼む
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -49,7 +62,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
-          FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_MODEL: ${{ inputs.model || vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_EXTRACT_MODEL: ${{ inputs.extract_model || vars.FACT_CHECK_EXTRACT_MODEL }}
+          FACT_CHECK_EFFORT: ${{ vars.FACT_CHECK_EFFORT }}
+          FACT_CHECK_BATCH: ${{ inputs.batch }}
           FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
           FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
         run: |

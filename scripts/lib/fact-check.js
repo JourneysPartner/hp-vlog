@@ -22,7 +22,14 @@ const WARNING_RE = /【事実の照合】[\s\S]*?【\/事実の照合】/g;
 
 function config(options = {}) {
   const provider = options.provider || process.env.FACT_CHECK_PROVIDER || 'anthropic';
-  return { provider, model: options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5',
+  const model = options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5';
+  const effort = (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
+  const poll = options.batchPollSeconds ?? process.env.FACT_CHECK_BATCH_POLL_SECONDS;
+  return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort,
+    modelOptions: effort === null ? {} : { output_config: { effort } },
+    batch: provider === 'anthropic' && (options.batch ?? (process.env.FACT_CHECK_BATCH === 'true')) === true,
+    batchMaxWaitMs: positiveLimit(options.batchMaxWaitMinutes ?? process.env.FACT_CHECK_BATCH_MAX_WAIT_MINUTES, 60) * 60000,
+    batchPollMs: (poll !== undefined && poll !== '' && Number.isFinite(Number(poll)) ? Math.max(5, Number(poll)) : 30) * 1000,
     enabled: options.enabled ?? (process.env.FACT_CHECK_ENABLED !== 'false'),
     failOpen: options.failOpen ?? (process.env.FACT_CHECK_FAIL_OPEN === 'true'),
     maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, 40),
@@ -723,33 +730,59 @@ async function repairBody(body, findings, callLLM, options = {}) {
 async function checkFacts(body, options = {}) {
   const cfg = config(options);
   const record = { version: 1, logic_version: LOGIC_VERSION, status: 'not_run', model: cfg.model, provider: cfg.provider,
+    extract_model: cfg.extractModel, effort: cfg.effort, batch: cfg.batch,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (!cfg.enabled) return { body, record };
-  if (!((cfg.provider === 'anthropic' && /^claude-/.test(cfg.model)) || (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(cfg.model)))) {
+  const validModel = model => (cfg.provider === 'anthropic' && /^claude-/.test(model)) ||
+    (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(model));
+  if (!validModel(cfg.model) || !validModel(cfg.extractModel) ||
+      (cfg.effort !== null && !['low', 'medium', 'high', 'xhigh', 'max'].includes(cfg.effort))) {
     record.summary = '照合のモデル設定が不正です';
     return { body, record };
   }
+  const batch = cfg.batch ? contentModel.createBatchContext({ ...options.batchRuntime,
+    maxWaitMs: cfg.batchMaxWaitMs, pollMs: cfg.batchPollMs }) : null;
   const caller = options.callLLM || (async request => contentModel.generateContent({ staticSystem: request.task === 'extract' ? '' : request.staticSystem || request.system,
     dynamicSystem: request.task === 'extract' ? request.system : '', user: request.user },
-    { provider: cfg.provider, model: cfg.model, maxTokens: request.maxTokens, fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs }));
+    { provider: cfg.provider, model: request.model, modelOptions: cfg.modelOptions, maxTokens: request.maxTokens,
+      fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch }));
   let rechecking = false;
   const call = async request => {
-    const entry = { task: rechecking ? `recheck_${request.task}` : request.task, input_chars: request.system.length + request.user.length, output_chars: 0 };
+    const batching = batch && !batch.disabled;
+    const entry = { task: rechecking ? `recheck_${request.task}` : request.task,
+      model: request.task === 'extract' ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
+      input_chars: request.system.length + request.user.length, output_chars: 0 };
     record.calls.push(entry);
     record.input_chars_total += request.system.length + request.user.length;
     const controller = new AbortController();
+    const abort = () => controller.abort();
+    options.signal?.addEventListener('abort', abort, { once: true });
+    if (options.signal?.aborted) abort();
+    const started = batch?.now();
     let timer;
     try {
-      const ret = await Promise.race([Promise.resolve().then(() => caller({ ...request, signal: controller.signal })),
-        new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('照合の時間切れ')); }, cfg.timeoutMs); })]);
+      const ret = await Promise.race([Promise.resolve().then(() => caller({ ...request, model: entry.model, signal: controller.signal })),
+        new Promise((_, reject) => {
+          if (controller.signal.aborted) return reject(new Error('照合の時間切れ'));
+          controller.signal.addEventListener('abort', () => reject(new Error('照合の時間切れ')), { once: true });
+          timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() : 0));
+        })]);
+      for (const key of ['mode', 'wait_seconds', 'batch_error']) if (ret?.[key] !== undefined) entry[key] = ret[key];
       entry.output_chars = (Array.isArray(ret) ? JSON.stringify(ret) : typeof ret === 'string' ? ret : ret?.text || '').length;
       record.output_chars_total += entry.output_chars;
       if (ret?.usage) entry.usage = Object.fromEntries(Object.entries({ input_tokens: ret.usage.input_tokens ?? ret.usage.prompt_tokens,
         output_tokens: ret.usage.output_tokens ?? ret.usage.completion_tokens,
         cache_creation_input_tokens: ret.usage.cache_creation_input_tokens, cache_read_input_tokens: ret.usage.cache_read_input_tokens }).filter(([, v]) => v !== undefined));
       return ret;
-    } finally { clearTimeout(timer); }
+    } catch (error) {
+      for (const key of ['mode', 'wait_seconds', 'batch_error']) if (error[key] !== undefined) entry[key] = error[key];
+      throw error;
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener('abort', abort);
+      if (batching && entry.wait_seconds === undefined) entry.wait_seconds = Math.floor(Math.max(0, batch.now() - started) / 1000);
+    }
   };
   const search = options.searchEvidence || searchEvidence;
   const pageCache = {};
@@ -916,6 +949,7 @@ async function checkArticle(raw, options = {}) {
         (c.status === '資料なし' || (typeof c.evidence_id === 'string' && c.evidence_id && c.quote.trim()));
       if (prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
           ['ok', 'revise'].includes(prior.status) && prior.model === cfg.model && prior.provider === cfg.provider &&
+          (prior.extract_model ?? prior.model) === cfg.extractModel && (prior.effort ?? null) === cfg.effort &&
           Array.isArray(prior.claims) && Array.isArray(prior.rechecked) && Array.isArray(prior.corrections) &&
           prior.dropped === 0 && prior.discarded === 0 && rows.every(validRow)) {
         const resolved = new Set(prior.corrections.filter(c => c.resolved).map(c => c.id));

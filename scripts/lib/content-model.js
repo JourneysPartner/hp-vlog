@@ -109,9 +109,9 @@ async function callOpenAI(promptIR, { model, maxTokens, signal, timeoutMs }) {
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
-async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) {
+async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs, modelOptions }) {
   const { toAnthropicRequest } = require('./article-prompt-builder');
-  const reqBody = toAnthropicRequest(promptIR, { model, maxTokens: maxTokens || 4096, useCache: useCache() });
+  const reqBody = toAnthropicRequest(promptIR, { model, maxTokens: maxTokens || 4096, useCache: useCache(), modelOptions });
 
   // 照合だけは、fetch の既定の待ち時間より長い設定を接続にも反映する。
   const dispatcher = timeoutMs ? new (require('undici').Agent)({ headersTimeout: timeoutMs, bodyTimeout: timeoutMs }) : null;
@@ -134,19 +134,183 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) 
       throw new Error(`Anthropic API ${res.status}: ${errText}`);
     }
     const data = await res.json();
-    if (data.stop_reason === 'refusal') {
-      throw new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${data.stop_details.category})` : ''));
-    }
-    const text = Array.isArray(data.content)
-      ? data.content.map(b => (b.type === 'text' ? b.text : '')).join('')
-      : '';
-    // usage には cache_creation_input_tokens / cache_read_input_tokens が含まれる（秘密情報ではない）
-    const u = data.usage || {};
-    console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
-      `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
-      `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}`);
-    return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
+    return anthropicResult(data, model);
   } finally { if (dispatcher) await dispatcher.close(); }
+}
+
+// 同期と Batch は、拒否・出力上限・使用量を同じ形で呼び出し元へ返す。
+function anthropicResult(data, model, logSuffix = '') {
+  if (data.stop_reason === 'refusal') {
+    const error = new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${redactSecrets(data.stop_details.category)})` : ''));
+    error.noSyncFallback = true;
+    throw error;
+  }
+  const text = Array.isArray(data.content) ? data.content.map(b => b.type === 'text' ? b.text : '').join('') : '';
+  const u = data.usage || {};
+  console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
+    `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
+    `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}${logSuffix}`);
+  return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
+}
+
+function abortBatch(signal) {
+  if (signal?.aborted) {
+    const error = new Error('照合の時間切れ');
+    error.noSyncFallback = true;
+    throw error;
+  }
+}
+
+function batchSleep(ms, signal) {
+  return new Promise((resolve, reject) => {
+    let timer;
+    const abort = () => { clearTimeout(timer); reject(new Error('照合の時間切れ')); };
+    if (signal?.aborted) return abort();
+    signal?.addEventListener('abort', abort, { once: true });
+    timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, ms);
+  });
+}
+
+/** 記事ごとに作り、全呼び出しの待ち時間と同期への切替を共有する。時計・待ちは試験で差し替える。 */
+function createBatchContext({ maxWaitMs = 3600000, pollMs = 30000, now = Date.now, sleep = batchSleep } = {}) {
+  return { maxWaitMs, pollMs: Math.max(5000, pollMs), now, sleep, waitedMs: 0, disabled: false, sequence: 0,
+    remainingMs() { return Math.max(0, this.maxWaitMs - this.waitedMs); } };
+}
+
+function batchFailure(name) {
+  const error = new Error('Batch の結果を利用できません');
+  error.name = name;
+  return error;
+}
+
+async function callAnthropicBatch(promptIR, opts) {
+  const { model, maxTokens, modelOptions, signal, batch } = opts;
+  const { toAnthropicRequest } = require('./article-prompt-builder');
+  const params = toAnthropicRequest(promptIR, { model, maxTokens, useCache: useCache(), modelOptions });
+  const base = 'https://api.anthropic.com/v1/messages/batches';
+  const customId = `fc-${++batch.sequence}`;
+  const started = batch.now(), budget = batch.remainingMs();
+  let id, cancelPromise, accounted = false;
+  const waited = () => Math.max(0, batch.now() - started);
+  const account = () => {
+    if (!accounted) { batch.waitedMs += Math.min(budget, waited()); accounted = true; }
+  };
+  const request = async (url, method = 'GET', body, requestSignal = signal) => {
+    const res = await fetch(url, { method, headers: { 'content-type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': ANTHROPIC_VERSION },
+      ...(body ? { body: JSON.stringify(body) } : {}), ...(requestSignal ? { signal: requestSignal } : {}) });
+    if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
+    return res;
+  };
+  // 打ち切られた signal は取消に使えない。取消自体も短い独立の制限で必ず終える。
+  const cancel = () => {
+    if (!id) return Promise.resolve();
+    if (!cancelPromise) cancelPromise = (async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      try { await Promise.race([request(`${base}/${id}/cancel`, 'POST', null, controller.signal),
+        new Promise(resolve => controller.signal.addEventListener('abort', resolve, { once: true }))]); }
+      catch (_) { /* 取消失敗は元の失敗を隠さない。 */ }
+      finally { clearTimeout(timer); }
+    })();
+    return cancelPromise;
+  };
+  const onAbort = () => { void cancel(); };
+  // 確認・結果の通信そのものが止まっても、通常の予算と取消後60秒の上限を守る。
+  const bounded = async (deadline, work) => {
+    const remaining = deadline - batch.now();
+    if (remaining <= 0) return null;
+    const controller = new AbortController();
+    let timer, expired = false;
+    const abort = () => controller.abort();
+    signal?.addEventListener('abort', abort, { once: true });
+    const limit = new Promise((resolve, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        if (expired) resolve(null);
+        else reject(new Error('照合の時間切れ'));
+      }, { once: true });
+      timer = setTimeout(() => { expired = true; controller.abort(); }, remaining);
+    });
+    try {
+      if (signal?.aborted) abort();
+      return await Promise.race([limit, Promise.resolve().then(() => work(controller.signal))]);
+    } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); }
+  };
+  const result = async phaseSignal => {
+    const text = await (await request(`${base}/${id}/results`, 'GET', null, phaseSignal)).text();
+    const rows = text.split(/\r?\n/).filter(line => line.trim()).map(line => JSON.parse(line));
+    if (rows.length !== 1 || rows[0].custom_id !== customId) throw batchFailure('BatchResultError');
+    const value = rows[0].result;
+    if (value?.type !== 'succeeded') {
+      const names = { errored: 'BatchErroredError', expired: 'BatchExpiredError', canceled: 'BatchCanceledError' };
+      throw batchFailure(names[value?.type] || 'BatchResultError');
+    }
+    if (!value.message || !Array.isArray(value.message.content) || typeof value.message.stop_reason !== 'string') {
+      throw batchFailure('BatchResultError');
+    }
+    abortBatch(phaseSignal);
+    const waitSeconds = Math.floor(waited() / 1000);
+    return { ...anthropicResult(value.message, model, ` mode=batch wait_seconds=${waitSeconds} batch_id=${redactSecrets(id)}`),
+      mode: 'batch', wait_seconds: waitSeconds };
+  };
+  const poll = async (deadline, phaseSignal) => {
+    while (true) {
+      abortBatch(phaseSignal);
+      if (batch.now() >= deadline) return null;
+      const state = await (await request(`${base}/${id}`, 'GET', null, phaseSignal)).json();
+      abortBatch(phaseSignal);
+      if (state.processing_status === 'ended') return result(phaseSignal);
+      if (!['in_progress', 'canceling'].includes(state.processing_status)) throw batchFailure('BatchStatusError');
+      const remaining = deadline - batch.now();
+      if (remaining <= 0) return null;
+      await batch.sleep(Math.min(batch.pollMs, remaining), phaseSignal);
+    }
+  };
+  signal?.addEventListener('abort', onAbort, { once: true });
+  try {
+    abortBatch(signal);
+    if (budget <= 0) throw batchFailure('BatchTimeoutError');
+    const completed = await bounded(started + budget, async phaseSignal => {
+      abortBatch(phaseSignal);
+      const created = await (await request(base, 'POST', { requests: [{ custom_id: customId, params }] }, phaseSignal)).json();
+      if (typeof created.id !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(created.id)) throw batchFailure('BatchIdError');
+      id = created.id;
+      if (phaseSignal.aborted) { await cancel(); abortBatch(phaseSignal); }
+      return poll(started + budget, phaseSignal);
+    });
+    if (completed) return completed;
+    account();
+    if (!id) throw batchFailure('BatchTimeoutError');
+    // 通常の待ちの上限とは別に、取消と完了の競合を最大60秒だけ確かめる。
+    const cancelDeadline = batch.now() + 60000;
+    const raced = await bounded(cancelDeadline, async phaseSignal => { await cancel(); return poll(cancelDeadline, phaseSignal); });
+    if (raced) return raced;
+    throw batchFailure('BatchTimeoutError');
+  } catch (error) {
+    abortBatch(signal);
+    if (error.noSyncFallback) throw error;
+    batch.disabled = true;
+    const diagnostic = id ? safeDiagnostic(error).split(id).join('[batch]') : safeDiagnostic(error);
+    await cancel();
+    abortBatch(signal);
+    account();
+    const waitSeconds = Math.floor(waited() / 1000);
+    try {
+      return { ...await callAnthropic(promptIR, opts), mode: 'sync-fallback',
+        wait_seconds: waitSeconds, batch_error: diagnostic };
+    } catch (syncError) {
+      // 同期へのやり直しも失敗した場合に、やり直した理由を記録できるようにする。
+      syncError.mode = 'sync-fallback';
+      syncError.wait_seconds = waitSeconds;
+      syncError.batch_error = diagnostic;
+      throw syncError;
+    }
+  } finally {
+    account();
+    if (batch.remainingMs() <= 0) batch.disabled = true;
+    signal?.removeEventListener('abort', onAbort);
+    if (signal?.aborted) await cancel();
+  }
 }
 
 /**
@@ -154,7 +318,7 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs }) 
  * provider に応じて本文生成モデルを呼ぶ。
  *
  * @param {Object} promptIR
- * @param {Object} opts { model?, maxTokens? }
+ * @param {Object} opts { model?, maxTokens?, modelOptions?, batch? }
  * @returns {Object} { text, usage, provider, model, stopReason }
  */
 async function generateContent(promptIR, opts = {}) {
@@ -167,12 +331,14 @@ async function generateContent(promptIR, opts = {}) {
   const model = resolveModel(provider, opts.model);
   if (provider === 'anthropic') {
     try {
-      return await callAnthropic(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal,
-        ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : {}) });
+      const call = opts.batch && !opts.batch.disabled ? callAnthropicBatch : callAnthropic;
+      return await call(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, modelOptions: opts.modelOptions,
+        batch: opts.batch, ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : {}) });
     } catch (e) {
       if (opts.fallback === false) {
         const error = new Error('照合モデルの呼び出しに失敗しました');
         error.diagnostic = safeDiagnostic(e);
+        for (const key of ['mode', 'wait_seconds', 'batch_error']) if (e[key] !== undefined) error[key] = e[key];
         throw error;
       }
       console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
@@ -240,6 +406,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
 module.exports = {
   generateContent,
   generateSimple,
+  createBatchContext,
   safeDiagnostic,
   resolveProvider,
   resolveModel,
