@@ -680,11 +680,15 @@ async function repairBody(body, findings, callLLM, options = {}) {
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
-    // 具体を外す修正だけで、同じ文の裏付けのある要約に含まれる元の数字を守る。
+    // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
       const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
-      const keepNumbers = (f.keep || []).flatMap(c => normalizedNumbers(c.claim)).filter(n => originalNumbers.includes(n));
-      if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
+      const keep = f.keep || [];
+      const keepNumbers = keep.flatMap(c => normalizedNumbers(c.claim)).filter(n => originalNumbers.includes(n));
+      const removeNumbers = normalizedNumbers(f.claim).filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
+      if (originalNumbers.includes(null) && keep.length) reason = '数字を読めないため確かめられません';
+      else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
+      else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
     }
     if (reason) rejected.set(f.id, reason);
     else replacements.set(f.id, replacement);
@@ -798,8 +802,8 @@ async function checkFacts(body, options = {}) {
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
     const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
-      keep: record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり')
-        .map(({ type, subject, claim }) => ({ type, subject, claim })),
+      keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり')
+        .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
     if (findings.length && options.repair !== false) {
       const repair = await repairBody(body, findings, call, options);

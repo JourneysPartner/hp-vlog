@@ -1,6 +1,6 @@
 'use strict';
 
-// 03l の再現・回帰試験。LLM は偽の関数、保存先は一時ディレクトリに限定する。
+// 03l・03m の再現・回帰試験。LLM は偽の関数、保存先は一時ディレクトリに限定する。
 const assert = require('assert/strict');
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,7 @@ const matter = require('gray-matter');
 const F = require('../fact-check');
 const U = require('../fact-units');
 const root = path.resolve(__dirname, '../../..');
-const groups = Object.fromEntries(['L1', 'L2', 'L3'].map(k => [k, { pass: 0, fail: 0 }]));
+const groups = Object.fromEntries(['L1', 'L2', 'L3', 'M1', 'M2', 'M3'].map(k => [k, { pass: 0, fail: 0 }]));
 const now = new Date('2026-10-17T00:00:00Z');
 const options = extra => ({ now, enabled: true, provider: 'anthropic', model: 'claude-opus-5-5',
   loadEvidenceText: r => r.text, ...extra });
@@ -233,7 +233,95 @@ async function main() {
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
-  console.log('03l集計:', JSON.stringify(groups));
+  await test('M1', '#680 の20%を残して語尾だけ変え、再抽出が割合を落としても承認を止める', async () => {
+    const replacement = giftSentence.replace('かかります。', 'かかるとされます。');
+    assert.notEqual(replacement, giftSentence); assert.ok(replacement.includes('20%'));
+    const result = await giftRepair(replacement);
+    assert.equal(result.record.status, 'revise'); assert.equal(result.body, result.before);
+    const correction = result.record.corrections.find(c => c.type === '割合');
+    assert.equal(correction.reason, '資料の無い数字が残っています'); assert.equal(correction.resolved, false);
+    assert.ok(result.record.remaining.some(c => c.type === '割合')); assertBlocking(result, true);
+    assert.equal(result.calls.filter(c => c.task === 'extract').length, 1);
+  });
+  await test('M1', '#680 の110万円・2,500万円を残し20%を外した修正は引き続き採る', async () => {
+    const replacement = 'この制度を選ぶと、年110万円の基礎控除とは別に、特定贈与者ごとに累計2,500万円までの特別控除があります。';
+    const result = await giftRepair(replacement);
+    assert.equal(result.record.status, 'ok'); assert.equal(result.body, result.before.replace(giftSentence, replacement));
+    assert.equal(result.record.corrections[0].resolved, true); assertBlocking(result, false);
+  });
+  for (const rate of ['20%', '二十パーセント', '100分の20']) await test('M1', `keepが空でも同じ値の資料の無い割合を残せば却下: ${rate}`, async () => {
+    const finding = claim('資料のない税率は20%です。', { status: '資料なし', type: '割合', claim: '税率20%' });
+    const result = await F.repairBody(finding.sentence, [finding], async () => [{ id: finding.id, replacement: `税率は${rate}とされます。` }]);
+    assert.equal(result.body, finding.sentence); assert.equal(result.rejected.get(finding.id), '資料の無い数字が残っています');
+  });
+  await test('M1', '要約の数字が複数あり、その一つでも残れば却下する', async () => {
+    const finding = claim('限度は100万円で税率20%です。', { status: '資料なし' });
+    const result = await F.repairBody(finding.sentence, [finding], async () => [{ id: finding.id, replacement: '限度は100万円です。税率は国税庁で確認してください。' }]);
+    assert.equal(result.body, finding.sentence); assert.equal(result.rejected.get(finding.id), '資料の無い数字が残っています');
+  });
+  for (const summary of ['数字のない要約', '元の文にない税率30%']) await test('M1', `外すべき数字が無い要約は新しい確認の対象にしない: ${summary}`, async () => {
+    const finding = claim('資料のない税率は20%です。', { status: '資料なし', type: '割合', claim: summary });
+    const replacement = '資料のない税率は20%とされます。';
+    const result = await F.repairBody(finding.sentence, [finding], async () => [{ id: finding.id, replacement }]);
+    assert.equal(result.rejected.size, 0); assert.equal(result.body, replacement);
+  });
+  await test('M1', '同じ値のkeepを優先し、別の資料の無い数字だけを外す', async () => {
+    const finding = claim('控除は110万円で、別の限度も110万円、税率20%です。', {
+      status: '資料なし', claim: '別の限度110万円、税率20%', keep: [{ claim: '控除110万円' }],
+    });
+    const replacement = '控除は百十万円です。別の限度と税率は国税庁で確認してください。';
+    const result = await F.repairBody(finding.sentence, [finding], async () => [{ id: finding.id, replacement }]);
+    assert.equal(result.rejected.size, 0); assert.equal(result.body, replacement);
+  });
+  await test('M1', '数字が残る修正は同じ文の他の指摘も却下し、別の文の修正は採る', async () => {
+    const first = claim('控除は110万円で税率20%です。', { status: '資料なし', type: '割合', claim: '税率20%', keep: [{ claim: '控除110万円' }] });
+    const second = { ...first, id: 'c2', status: '食い違い' };
+    const other = claim('別制度の限度は200万円です。', { id: 'c3', status: '資料なし' });
+    const body = first.sentence + '\n' + other.sentence;
+    const result = await F.repairBody(body, [first, second, other], async () => [
+      { id: 'c1', replacement: '控除は110万円で税率20%とされます。' },
+      { id: 'c2', replacement: '控除は110万円で税率20%とされます。' },
+      { id: 'c3', replacement: '別制度の限度は国税庁で確認してください。' },
+    ]);
+    assert.equal(result.rejected.get('c1'), '資料の無い数字が残っています');
+    assert.equal(result.rejected.get('c2'), '同じ文の別の指摘の置き換えを採れませんでした');
+    assert.equal(result.replacements.size, 1);
+    assert.equal(result.body, first.sentence + '\n別制度の限度は国税庁で確認してください。');
+  });
+  for (const retained of [[{ claim: '控除110万円' }], [{ claim: '要件を満たす必要がある' }], []]) {
+    await test('M2', `元の文に読めない割合があるとき、keepがあれば却下し空なら従来どおり: ${JSON.stringify(retained)}`, async () => {
+      const finding = claim('要件として110万円の控除があり、割合は100分の一定です。', { status: '資料なし', type: '要件', keep: retained });
+      assert.deepEqual(F.normalizedNumbers(finding.sentence), [null]);
+      const replacement = '詳しくは国税庁の制度の案内で確認してください。';
+      const result = await F.repairBody(finding.sentence, [finding], async () => [{ id: finding.id, replacement }]);
+      assert.equal(result.accepted, true);
+      assert.equal(result.body, retained.length ? finding.sentence : replacement);
+      assert.equal(result.rejected.get(finding.id), retained.length ? '数字を読めないため確かめられません' : undefined);
+    });
+  }
+  for (const status of ['食い違い', '期限の書き漏れ']) await test('M3', `同じ文に裏付けありがある${status}でも、修正AIへ渡すkeepは空`, async () => {
+    const sentence = '控除は110万円で、税率は20%です。';
+    const amount = claim(sentence, { claim: '控除110万円' });
+    const rate = claim(sentence, { type: '割合', claim: '税率20%' });
+    const source = '制度の基礎控除は110万円で、税率は10%、適用期限は令和9年3月31日までです。';
+    let repairCalls = 0;
+    const result = await F.checkFacts(sentence, options({ searchEvidence: () => [ref(source)], callLLM: async request => {
+      if (request.task === 'extract') return extracted(request, [amount, rate]);
+      const payload = JSON.parse(request.user);
+      if (request.task === 'repair') {
+        repairCalls++; assert.equal(payload.corrections.length, 1);
+        assert.equal(payload.corrections[0].status, status); assert.deepEqual(payload.corrections[0].keep, []);
+        return payload.corrections.map(c => ({ id: c.id, replacement: c.sentence }));
+      }
+      return payload.claims.map(c => c.type === '金額' ? supported(c.id) : {
+        id: c.id, status, evidence_id: 1, basis: '1', correct: status === '食い違い' ? '税率10%' : '令和9年3月31日まで',
+      });
+    } }));
+    assert.equal(repairCalls, 1); assert.equal(result.record.claims[0].status, '裏付けあり');
+    assert.equal(result.record.corrections[0].status, status); assert.deepEqual(result.record.corrections[0].keep, []);
+    assert.equal(result.record.status, 'revise');
+  });
+  console.log('03l・03m集計:', JSON.stringify(groups));
   process.exitCode = Object.values(groups).some(g => g.fail) ? 1 : 0;
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
