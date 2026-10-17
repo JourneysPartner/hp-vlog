@@ -1,4 +1,6 @@
 'use strict';
+
+const { authenticatedEvent } = require('./review-auth-test-helpers');
 const assert = require('assert/strict');
 const fs = require('fs');
 const path = require('path');
@@ -28,7 +30,7 @@ async function main() {
     for (const refresh of [false, true]) for (const status of ['revise', 'not_run']) {
       let writes = 0;
       const content = F.updateMeta(raw(sentence), { fact_check_blocking: true, fact_check_status: status });
-      const r = await approval._handler({ httpMethod: 'POST', body: JSON.stringify({ filename: 'test.md', ...(refresh ? { ref: 'draft/refresh-test' } : {}) }) }, {
+      const r = await approval._handler(authenticatedEvent({ httpMethod: 'POST', body: JSON.stringify({ filename: 'test.md', ...(refresh ? { ref: 'draft/refresh-test' } : {}) }) }), {
         getFile: async () => ({ content, sha: 's' }), putFile: async () => { writes++; }, sendNotification: async () => {},
       });
       assert.equal(r.statusCode, 400); assert.equal(writes, 0); assert.match(r.body, /事実の照合で承認できない/);

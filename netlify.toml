@@ -121,6 +121,17 @@
   to = "/.netlify/functions/review-page"
   status = 200
 
+# レビュー画面のログイン・ログアウト
+[[redirects]]
+  from = "/review-login"
+  to = "/.netlify/functions/review-login"
+  status = 200
+
+[[redirects]]
+  from = "/review-logout"
+  to = "/.netlify/functions/review-logout"
+  status = 200
+
 # 管理画面: /admin/articles → Netlify Function（HTTP Basic 認証必須）
 [[redirects]]
   from = "/admin/articles"

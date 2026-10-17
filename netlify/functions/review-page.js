@@ -2,6 +2,9 @@
 
 const fs   = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const reviewAuth = require('./lib/review-auth');
+const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html');
 
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
@@ -203,7 +206,7 @@ function renderRefreshDiff(refreshContext, marked) {
   }
   const renderSide = (paragraphs) => paragraphs.map(row => {
     const style = row.changed ? 'background:#fff0d4;border-left:4px solid #e6851a;padding:.55rem .75rem;margin:.45rem 0' : 'padding:.55rem .75rem;margin:.45rem 0';
-    const html = marked(row.text).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+    const html = sanitizeReviewHtml(marked(row.text));
     return `<div style="${style}">${html}</div>`;
   }).join('') || '<p class="text-muted">（段落なし）</p>';
   return `<div class="refresh-diff-list">${refreshContext.diff.map(section => `
@@ -230,15 +233,16 @@ function assertGitHubCredentials() {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null) {
-  const title      = meta.title      || '（タイトル未設定）';
-  const summary    = meta.summary    || '';
+function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null, security = {}) {
+  const nonce = security.nonce || crypto.randomBytes(18).toString('base64url');
+  const title      = escapeHtml(meta.title || '（タイトル未設定）');
+  const summary    = escapeHtml(meta.summary || '');
   const sourceUrl  = meta.source_url || '';
   const sourceTitle = meta.source_title || sourceUrl;
   const previewUrl = meta.preview_url || '';
   const publishAt  = meta.publish_at || '';
   const status     = meta.review_status || 'needs_review';
-  const category   = meta.category   || '';
+  const category   = escapeHtml(meta.category || '');
   const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
   const approvalDisabled = isRefresh && !(refreshContext && refreshContext.available);
   const expiredTheme = isRefresh && freshnessRefresh.isExpiredRefreshTheme(meta);
@@ -315,8 +319,10 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   .article-body blockquote { background: #fafafa; border-left: 3px solid #ccc; padding: .75rem 1rem; margin: 1rem 0; }
   .article-body ul, .article-body ol { padding-left: 1.5rem; }
   .article-body hr { margin: 1.5rem 0; }
-  .article-body .table-wrapper { overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
-  .article-body table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 480px; }
+  .article-body .table-wrapper, .refresh-diff-list .table-wrapper {
+    overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
+  .article-body table, .refresh-diff-list table {
+    width: 100%; min-width: 480px; border-collapse: collapse; font-size: 0.92rem; }
   .article-body thead th { background: var(--primary-light); color: var(--primary); font-weight: 600;
     padding: .6rem .75rem; border: 1px solid #c8e6c9; text-align: left; white-space: nowrap; }
   .article-body tbody td { padding: .6rem .75rem; border: 1px solid #e0e0e0; line-height: 1.7; }
@@ -347,7 +353,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 <div class="review-header">
   <div class="container d-flex align-items-center justify-content-between">
     <h1><i class="bi bi-pencil-square me-2"></i>ブログ記事レビュー</h1>
-    <span class="status-badge">${statusLabel}</span>
+    <div><span class="status-badge">${escapeHtml(statusLabel)}</span> <button type="button" class="btn btn-sm btn-outline-light ms-2" id="btnLogout">ログアウト</button></div>
   </div>
 </div>
 
@@ -364,28 +370,28 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
       <table class="table table-sm meta-table mb-0">
         <tbody>
           <tr><th>カテゴリ</th><td>${category}</td></tr>
-          <tr><th>顧客カテゴリ</th><td>${SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）'}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${recLabel}</span>` : ''}</td></tr>
+          <tr><th>顧客カテゴリ</th><td>${escapeHtml(SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）')}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${escapeHtml(recLabel)}</span>` : ''}</td></tr>
           <tr><th>適合スコア</th><td>${scoresHtml}<div class="text-muted" style="font-size:11px;margin-top:2px">5=良 / 3=注意 / 1-2=要改善</div></td></tr>
-          ${targetQuery ? `<tr><th>狙う検索語</th><td><strong>${targetQuery}</strong>${intentLabel ? `（型: ${intentLabel}）` : ''}${secondaryQueries ? `<div class="text-muted" style="font-size:12px;margin-top:3px">副: ${secondaryQueries}</div>` : ''}</td></tr>` : ''}
+          ${targetQuery ? `<tr><th>狙う検索語</th><td><strong>${escapeHtml(targetQuery)}</strong>${intentLabel ? `（型: ${escapeHtml(intentLabel)}）` : ''}${secondaryQueries ? `<div class="text-muted" style="font-size:12px;margin-top:3px">副: ${escapeHtml(secondaryQueries)}</div>` : ''}</td></tr>` : ''}
           ${meta.article_role === 'main' ? '<tr><th>本命記事の確認</th><td>実務で実際によくある場面（出典に無い一次情報）が 1 つ以上あるか</td></tr>' : ''}
           <tr><th>要約</th><td>${summary}</td></tr>
           <tr>
             <th>出典URL</th>
-            <td>${sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener">${sourceTitle} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
+            <td>${sourceUrl ? httpsLink(sourceUrl, sourceTitle) : escapeHtml(sourceTitle || '（未設定）')}</td>
           </tr>
           <tr>
             <th>プレビューURL</th>
-            <td>${previewUrl ? `<a href="${previewUrl}" target="_blank" rel="noopener">${previewUrl} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
+            <td>${previewUrl ? httpsLink(previewUrl) : '（未設定）'}</td>
           </tr>
           ${isRefresh ? '' : `<tr>
             <th>公開日時（任意）</th>
             <td>
               <input type="datetime-local" id="publishAt" class="form-control form-control-sm" style="max-width:280px"
-                value="${publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : ''}">
+                value="${escapeHtml(publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : '')}">
               <small class="text-muted">未入力の場合は翌日 11:30 に自動設定されます</small>
             </td>
           </tr>`}
-          <tr><th>ファイル</th><td><code>${filename}</code></td></tr>
+          <tr><th>ファイル</th><td><code>${escapeHtml(filename)}</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -395,7 +401,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   <div class="card mb-4">
     <div class="card-header bg-white fw-bold">記事本文</div>
     <div class="card-body article-body" id="articleBody">
-      ${bodyMd}
+      ${sanitizeReviewHtml(bodyMd)}
     </div>
   </div>
 
@@ -426,26 +432,51 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 <!-- 操作ボタン (sticky bottom) -->
 <div class="action-section">
   <div class="container d-flex flex-wrap gap-2 justify-content-center">
-    <button class="btn btn-approve btn-lg px-4" id="btnApprove" onclick="handleAction('approve')"${approvalDisabled ? ' disabled' : ''}>
+    <button class="btn btn-approve btn-lg px-4" id="btnApprove"${approvalDisabled ? ' disabled' : ''}>
       <i class="bi bi-check-circle me-1"></i>${isRefresh ? '更新を反映する' : 'このまま公開'}
     </button>
-    <button class="btn btn-revise btn-lg px-4" id="btnRevise" onclick="toggleRevise()">
+    <button class="btn btn-revise btn-lg px-4" id="btnRevise">
       <i class="bi bi-pencil me-1"></i>差し戻し
     </button>
-    <button class="btn btn-skip btn-lg px-4" id="btnSkip" onclick="handleAction('skip')">
+    <button class="btn btn-skip btn-lg px-4" id="btnSkip">
       <i class="bi bi-skip-forward me-1"></i>今回は見送り
     </button>
-    ${isRefresh ? '' : `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" onclick="handleAction('skip', true)" title="このテーマを今後生成しない設定にしたうえで見送る">
+    ${isRefresh ? '' : `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" title="このテーマを今後生成しない設定にしたうえで見送る">
       <i class="bi bi-slash-circle me-1"></i>見送り＋今後このテーマを生成しない
     </button>`}
   </div>
 </div>
 
-<script>
-const FILENAME = ${JSON.stringify(filename)};
-const REF = ${JSON.stringify(ref || '')};
+<script nonce="${escapeHtml(nonce)}">
+const FILENAME = ${scriptJson(filename)};
+const REF = ${scriptJson(ref || '')};
+const REVIEW_TOKEN = ${scriptJson(security.csrfToken || '')};
 const IS_REFRESH = ${JSON.stringify(isRefresh)};
 const FUNC_BASE = '/.netlify/functions';
+let reviseReady = false;
+document.getElementById('btnApprove').addEventListener('click', () => handleAction('approve'));
+document.getElementById('btnRevise').addEventListener('click', () => reviseReady ? handleAction('revise') : toggleRevise());
+document.getElementById('btnSkip').addEventListener('click', () => handleAction('skip'));
+document.getElementById('btnSkipForever')?.addEventListener('click', () => handleAction('skip', true));
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/review-logout', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN }, body: '{}' });
+    if (res.status === 401) { requireLogin(); return; }
+    if (!res.ok) throw new Error('ログアウトできませんでした。');
+    location.assign('/review' + location.search);
+  } catch (err) {
+    const result = document.getElementById('resultMsg');
+    result.className = 'result-msg show error';
+    result.textContent = err.message;
+  }
+});
+
+function requireLogin() {
+  const result = document.getElementById('resultMsg');
+  result.className = 'result-msg show error';
+  result.textContent = 'ログインし直してください';
+  setTimeout(() => location.assign('/review' + location.search), 1200);
+}
 
 function toggleRevise() {
   const card = document.getElementById('commentCard');
@@ -456,7 +487,7 @@ function toggleRevise() {
     const btn = document.getElementById('btnRevise');
     if (btn.textContent.includes('差し戻し')) {
       btn.innerHTML = '<i class="bi bi-send me-1"></i>コメントを送信';
-      btn.onclick = function() { handleAction('revise'); };
+      reviseReady = true;
     }
   }
 }
@@ -487,13 +518,23 @@ async function handleAction(action, forceSuppress) {
   document.querySelectorAll('.action-section button').forEach(b => b.disabled = true);
 
   try {
+    if (action === 'approve') {
+      // 即時202の承認要求より先に、認証の拒否を同期の応答で確かめる。
+      const check = await fetch(FUNC_BASE + '/review-auth-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
+        body: '{}',
+      });
+      if (check.status === 401) { requireLogin(); return; }
+      if (check.status !== 204) throw new Error('承認の認証を確認できませんでした。しばらくしてからお試しください。');
+    }
     // approve のみバックグラウンド関数（最大15分）にルーティングし、
     // mergeable 待機 + マージリトライが Netlify の 10秒制限に阻まれないようにする。
     // バックグラウンド関数は 202 Accepted を即返すため、結果は Chatwork 通知で受け取る。
     const endpoint = action === 'approve' ? '/review-approve-background' : '/review-' + action;
     const res = await fetch(FUNC_BASE + endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
       body: JSON.stringify({
         filename: FILENAME, publish_at: publishAt, comment,
         ref: REF || undefined,
@@ -501,6 +542,7 @@ async function handleAction(action, forceSuppress) {
       }),
     });
 
+    if (res.status === 401) { requireLogin(); return; }
     // 202 Accepted (background function) はボディが空なので JSON 解析を試みない
     const data = res.status === 202 ? {} : await res.json().catch(() => ({}));
     if (res.ok) {
@@ -541,6 +583,14 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
+  const nonce = crypto.randomBytes(18).toString('base64url');
+  const headers = reviewAuth.pageHeaders(nonce);
+  const auth = reviewAuth.requireSession(event);
+  if (auth.response) {
+    if (auth.response.statusCode === 401) return reviewAuth.loginPage(reviewAuth.pageNext(event));
+    return { ...auth.response, headers: { ...headers, ...auth.response.headers } };
+  }
+
   const params = event.queryStringParameters || {};
   const filename = params.file;
   const ref = params.ref || '';   // draft ブランチ名（省略時は main）
@@ -548,7 +598,7 @@ exports.handler = async (event) => {
   if (!filename || !/^[\w-]+\.md$/.test(filename)) {
     return {
       statusCode: 400,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      headers,
       body: '<h1>400 Bad Request</h1><p>クエリパラメータ <code>?file=ファイル名.md</code> を指定してください。</p>',
     };
   }
@@ -581,9 +631,7 @@ exports.handler = async (event) => {
 
     // Markdown → HTML 変換（marked + GFM テーブル対応）
     const { marked } = require('marked');
-    const bodyHtml = marked(body)
-      .replace(/<table>/g, '<div class="table-wrapper"><table>')
-      .replace(/<\/table>/g, '</table></div>');
+    const bodyHtml = marked(body);
 
     let refreshContext = null;
     if (meta.refresh_of === 'published' || ref.startsWith('draft/refresh-')) {
@@ -605,13 +653,13 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body)),
+      headers,
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key) }),
     };
   } catch (err) {
     const msg = String(err && err.message || err);
     // 秘密情報をログに出さないため、token / 秘密鍵は含めない（err.message は GitHub の応答のみ）
-    console.error('[review-page] error:', msg);
+    console.error('[review-page] レビュー画面の取得に失敗しました');
 
     // rate limit (403) の場合は分かりやすいメッセージにする
     const isRateLimit = /rate limit|API rate limit exceeded|\b403\b/.test(msg);
@@ -619,7 +667,7 @@ exports.handler = async (event) => {
 
     let statusCode = 500;
     let heading = '500 Error';
-    let detail = msg;
+    let detail = 'レビュー画面を取得できませんでした。しばらくしてから再度お試しください。';
 
     if (isRateLimit) {
       statusCode = 503;
@@ -635,15 +683,15 @@ exports.handler = async (event) => {
 
     return {
       statusCode,
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers,
       body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">` +
             `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
-            `<title>${heading}</title>` +
+            `<title>${escapeHtml(heading)}</title>` +
             `<style>body{font-family:'Noto Sans JP',sans-serif;background:#f5f5f5;padding:2rem;color:#2c2c2c;}` +
             `.box{max-width:640px;margin:2rem auto;background:#fff;border-radius:12px;padding:2rem;` +
             `box-shadow:0 2px 12px rgba(0,0,0,0.08);border-left:4px solid #c62828;}` +
             `h1{font-size:1.2rem;color:#0B2045;}p{line-height:1.8;font-size:.95rem;color:#5a6572;}</style></head>` +
-            `<body><div class="box"><h1>${heading}</h1><p>${detail}</p></div></body></html>`,
+            `<body><div class="box"><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(detail)}</p></div></body></html>`,
     };
   }
 };

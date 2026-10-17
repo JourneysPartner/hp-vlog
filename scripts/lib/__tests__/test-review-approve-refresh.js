@@ -1,5 +1,7 @@
 'use strict';
 
+const { authenticatedEvent } = require('./review-auth-test-helpers');
+
 const fs = require('fs');
 const path = require('path');
 const api = require('../../../netlify/functions/lib/github-api');
@@ -97,7 +99,7 @@ function setup(branch, main, options = {}) {
 }
 
 function request({ filename = '2026-02-01-refresh-check.md', ref = 'draft/refresh-refresh-check' } = {}) {
-  return { httpMethod: 'POST', body: JSON.stringify({ filename, ref }) };
+  return authenticatedEvent({ httpMethod: 'POST', body: JSON.stringify({ filename, ref }) });
 }
 
 function frontmatterWithoutRefreshDates(raw) {

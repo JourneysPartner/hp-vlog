@@ -1,5 +1,7 @@
 'use strict';
 
+const { authenticatedEvent } = require('./review-auth-test-helpers');
+
 const assert = require('assert/strict');
 const fs = require('fs');
 const path = require('path');
@@ -255,7 +257,7 @@ async function main() {
     // 出典関門は他のテストで確認済み。ここは実在のcurated出典で承認処理に入る。
     assert.ok(!sourceGuard.evaluateSourceGuard(matter(blocked.content).data, { stage: 'approve' }).blocked);
     let writes = 0;
-    const r = await approval._handler({ httpMethod: 'POST', body: JSON.stringify({ filename: '2026-10-09-fact-test.md' }) }, {
+    const r = await approval._handler(authenticatedEvent({ httpMethod: 'POST', body: JSON.stringify({ filename: '2026-10-09-fact-test.md' }) }), {
       getFile: async () => ({ content: blocked.content, sha: 'test-sha' }), putFile: async () => { writes++; }, sendNotification: async () => {},
     });
     assert.equal(r.statusCode, 400); assert.equal(writes, 0); assert.ok(r.body.includes('事実の照合で承認できない'));

@@ -1,6 +1,7 @@
 'use strict';
 
 const githubApi = require('./lib/github-api');
+const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
 const { isPlaceholderTitle } = require('../../scripts/lib/draft-normalizer');
@@ -319,6 +320,9 @@ async function handler(event, injected = {}) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  const auth = reviewAuth.requireAction(event);
+  if (auth.response) return auth.response;
 
   try {
     const { filename, publish_at, ref } = JSON.parse(event.body || '{}');
