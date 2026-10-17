@@ -1,7 +1,19 @@
 'use strict';
 
-// 原文の位置を保持する。括弧内の句点・読点では切らない。
+// 原文の位置を保持する。括弧内・同じ行で閉じた強調内の句点・読点では切らない。
 const OPEN = { '（': '）', '(': ')', '「': '」', '『': '』', '【': '】' };
+function emphasisRanges(line) {
+  const ranges = [], tags = [];
+  let markdown = null;
+  for (const m of line.matchAll(/<(strong|b|em)\b[^>]*>|<\/(strong|b|em)\s*>|\*\*/gi)) {
+    if (m[1]) tags.push({ tag: m[1].toLowerCase(), start: m.index });
+    else if (m[2]) {
+      if (tags.at(-1)?.tag === m[2].toLowerCase()) ranges.push([tags.pop().start, m.index + m[0].length]);
+    } else if (markdown === null) markdown = m.index;
+    else { ranges.push([markdown, m.index + 2]); markdown = null; }
+  }
+  return ranges;
+}
 function splitUnits(source, { material = false, ranges = [[0, source.length]] } = {}) {
   const units = [];
   const add = (start, end, heading, segment) => {
@@ -23,6 +35,7 @@ function splitUnits(source, { material = false, ranges = [[0, source.length]] } 
       const tableRow = !material && /^\s*\|/.test(line);
       if (heading && !material) add(lineStart, lineEnd, true, segment);
       else {
+        const emphasis = emphasisRanges(line);
         let start = lineStart, commas = [];
         const flush = end => {
           if (material) while (end - start > 300) {
@@ -34,8 +47,9 @@ function splitUnits(source, { material = false, ranges = [[0, source.length]] } 
         for (let at = lineStart; at < lineEnd; at++) {
           const ch = source[at];
           bracket(ch);
-          if (!stack.length && ch === '、') commas.push(at + 1);
-          if (!tableRow && !stack.length && ch === '。') flush(at + 1);
+          const emphasized = emphasis.some(([from, to]) => at - lineStart >= from && at - lineStart < to);
+          if (!stack.length && !emphasized && ch === '、') commas.push(at + 1);
+          if (!tableRow && !stack.length && !emphasized && ch === '。') flush(at + 1);
         }
         flush(lineEnd);
       }

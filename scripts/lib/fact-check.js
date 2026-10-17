@@ -133,23 +133,25 @@ function normalizedNumbers(text, range) {
     const next = matches[i + 1];
     const fraction = suffix.startsWith('分の');
     const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
+    const percent = suffix.match(/^(?:%|パーセント)/)?.[0] || '';
+    const nextPercent = nextSuffix.match(/^(?:%|パーセント)/)?.[0] || '';
     const unit = suffix.match(/^(?:円|年|月|日|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/)?.[0] || '';
-    const end = fraction && next ? next.index + next[0].length + (nextSuffix.startsWith('%') ? 1 : 0)
-      : match.index + value.length + (suffix.startsWith('%') ? 1 : unit.length);
+    const end = fraction && next ? next.index + next[0].length + nextPercent.length
+      : match.index + value.length + (percent.length || unit.length);
     if (range && (match.index < range[0] || end > range[1])) {
       if (fraction && next && next.index === match.index + value.length + 2) i++;
       continue;
     }
     // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
     if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
-      !/^(?:年|月|日|円|万|億|%|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
-    if (suffix.startsWith('分の') || suffix.startsWith('%')) {
+      !/^(?:年|月|日|円|万|億|%|パーセント|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
+    if (fraction || percent) {
       // 不完全な分数や数の断片は数字なしへ戻さず、照合不能として残す。
       if (/[.,]$/.test(prefix) || (fraction && (!next || next.index !== match.index + value.length + 2 ||
         (next[0] === '一' && /^(?:定|般)/.test(nextSuffix))))) return [null];
       const ratio = normalizedRatio(fraction ? next[0] : value, fraction ? value : '100', {
         negative: /[-−]$/.test(prefix),
-        percentage: fraction && nextSuffix.startsWith('%'),
+        percentage: fraction && Boolean(nextPercent),
       });
       if (ratio === null) return [null];
       numbers.push(ratio);
@@ -351,7 +353,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = '03k';
+const LOGIC_VERSION = '03l';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -624,7 +626,7 @@ function repairInstructions(findings) {
     instruction: f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
       f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
-          '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える',
+          '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す',
   }));
 }
 
@@ -651,11 +653,11 @@ function correctionPairs(before, after, findings) {
 
 async function repairBody(body, findings, callLLM, options = {}) {
   const units = splitUnits(body);
-  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction }) => {
+  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction, keep = [] }) => {
     const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
-      status, type, correct, quote, instruction };
+      status, type, correct, quote, instruction, keep };
   });
   const ret = await callLLM({ task: 'repair', maxTokens: 8000,
     system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。',
@@ -678,6 +680,16 @@ async function repairBody(body, findings, callLLM, options = {}) {
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
+    // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
+    if (!reason && f.status === '資料なし') {
+      const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
+      const keep = f.keep || [];
+      const keepNumbers = keep.flatMap(c => normalizedNumbers(c.claim)).filter(n => originalNumbers.includes(n));
+      const removeNumbers = normalizedNumbers(f.claim).filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
+      if (originalNumbers.includes(null) && keep.length) reason = '数字を読めないため確かめられません';
+      else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
+      else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
+    }
     if (reason) rejected.set(f.id, reason);
     else replacements.set(f.id, replacement);
   }
@@ -789,7 +801,10 @@ async function checkFacts(body, options = {}) {
   let revisedBody = body;
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
-    const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason));
+    const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
+      keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり')
+        .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
+    }));
     if (findings.length && options.repair !== false) {
       const repair = await repairBody(body, findings, call, options);
       if (repair.accepted) {
