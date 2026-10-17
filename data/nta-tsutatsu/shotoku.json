@@ -3,7 +3,7 @@
   "label": "所得税基本通達",
   "short": "所基通",
   "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
-  "fetched_at": "2026-10-08T21:05:28.507Z",
+  "fetched_at": "2026-10-17T07:10:44.652Z",
   "section_pages": 134,
   "provisions": {
     "2-1": {
@@ -8658,5 +8658,16 @@
       "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/40/02.htm",
       "section": "法第232条（事業所得等を有する者の帳簿書類の備付け等）関係"
     }
-  }
+  },
+  "non_provision_pages": [
+    {
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/00/01.htm",
+      "reason": "段落の先頭に番号らしい書式がありません"
+    },
+    {
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/40/01.htm",
+      "reason": "段落の先頭に番号らしい書式がありません（読めなかった番号の例: 1、2、3）"
+    }
+  ],
+  "missing_pages": []
 }
