@@ -51,21 +51,22 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "生前贈与で現金を渡すときは、贈与契約書の作成と銀行振込が基本です。暦年贈与は年110万円を超えると贈与税の申告が必要になり、期限は翌年3月15日です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-10-17T16:36:20.413+09:00"
+publish_at: "2026-10-18T11:46:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-16T00:06:04.469Z"
-updated_at: "2026-10-16T00:08:01.563Z"
+updated_at: "2026-10-17T16:36:20.413+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 58 件: 裏付けあり 39・修正 1（食い違い 0・期限 0・具体を外した 1）・残った食い違い 0・未解決 0・上限で未照合 15・捨てた主張 0・人が確かめる箇所 35 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 子どもや孫に現金を渡しておきたい。ただ、いくらまでなら税金がかからないのか、契約書は要るのか、銀行振込で足りるのか——手続きの全体像が見えず、手が止まっている方は多いと思います。
 
