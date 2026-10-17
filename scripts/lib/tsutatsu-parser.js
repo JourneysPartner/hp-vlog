@@ -43,6 +43,12 @@ function stripTags(html) {
     .trim();
 }
 
+/** 本文範囲に使う型の印だけ残し、閉じていないコメントは末尾まで除く。 */
+function stripPageComments(html) {
+  return String(html || '').replace(/<!--[\s\S]*?(?:-->|$)/g, comment =>
+    /^<!--\s*Instance/.test(comment) && comment.endsWith('-->') ? comment : '');
+}
+
 /** 番号中の文字参照を戻す。本文の従来の整形は変えない。 */
 function decodeNumberEntities(html) {
   return html.replace(/&(?:emsp|ensp|thinsp|nbsp);/gi, ' ')
@@ -101,7 +107,7 @@ function looksLikeProvisionNo(s) {
  * @returns {{sectionTitle: string, provisions: Array<{no,title,body,url,circular}>, skipped: Array<{no,title}>}}
  */
 function parseTsutatsuPage(html, opts = {}) {
-  const src = String(html || '');
+  const src = stripPageComments(html);
   assertUsablePage(src);
   if (opts.circular === 'hyoka' || String(opts.circular).startsWith('sochi_')) return parseExtendedPage(src, opts);
   const sectionTitle = stripTags((src.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1] || '');
@@ -202,7 +208,7 @@ function classifyTsutatsuPage(html, opts = {}) {
   if (parsed.provisions.length) return { ...parsed, type: 'provisions' };
   if (!hasNtaBody(src)) return { ...parsed, type: 'unreadable' };
   // 形が未知の番号も読み落としとして止める。番号を受け入れる判定とは分ける。
-  const heads = [...src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+  const heads = [...stripPageComments(src).matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
     .map(m => readNumberHead(m[1]).no).filter(Boolean);
   const hasNumber = heads.some(no => /^\d/.test(no) && (opts.circular === 'hyoka' || !/^\d+$/.test(no)));
   const pathname = new URL(opts.url || '/', 'https://www.nta.go.jp').pathname;
@@ -284,6 +290,7 @@ function parseExtendedPage(src, opts) {
 module.exports = {
   normalizeProvisionNo,
   looksLikeProvisionNo,
+  looksLikeExtendedProvisionNo,
   stripTags,
   parseTsutatsuPage,
   parseIndexPage,

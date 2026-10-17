@@ -68,6 +68,7 @@ jobs:
             echo '法令解釈通達のカタログに変更を検出しました。'
             echo
             echo "- 収録条文: ${{ steps.crawl.outputs.provisions }} 条"
+            echo "コメントの中だった条（国税庁のページで画面に出ない条）を除いた件数: ${{ steps.crawl.outputs.comment_removed }} 件"
             echo
             echo '通達の改正があった可能性があります。差分を確認してください。'
             echo '記事が引用している条文が変わっていないかは、レビュー時にご確認ください。'

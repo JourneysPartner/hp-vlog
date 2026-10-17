@@ -182,7 +182,12 @@ function provisionsByNumber(provisions, key) {
     const entry = { no: p.no, title: p.title, body: p.body, url: p.url, section: p.section };
     if (key === 'hyoka' || key.startsWith('sochi_')) {
       if (!byNo[p.no]) byNo[p.no] = entry;
-      else byNo[p.no] = [...(Array.isArray(byNo[p.no]) ? byNo[p.no] : [byNo[p.no]]), entry];
+      else {
+        const entries = Array.isArray(byNo[p.no]) ? byNo[p.no] : [byNo[p.no]];
+        if (!entries.some(previous => previous.title === entry.title && previous.body === entry.body)) {
+          byNo[p.no] = [...entries, entry];
+        }
+      }
     } else if (!byNo[p.no] || p.body.length > byNo[p.no].body.length) byNo[p.no] = entry;
   }
   return byNo;
@@ -204,6 +209,7 @@ async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
     if (!Array.isArray(index)) index = [];
   } catch (_error) { index = []; }
   let totalErrors = 0;
+  let commentRemoved = 0;
   let indexUpdated = false;
 
   for (const [key, def] of targets) {
@@ -218,6 +224,7 @@ async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
     // 本文は通達ごとに1ファイル。条番号で引ける形にする。
     const bodyPath = path.join(outDir, `${key}.json`);
     const byNo = provisionsByNumber(r.provisions, key);
+    let removedComments = [];
     if (fs.existsSync(bodyPath)) {
       try {
         const previous = JSON.parse(fs.readFileSync(bodyPath, 'utf8')).provisions;
@@ -225,7 +232,16 @@ async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
         // 重複番号の別項目も数え、同数の番号差し替えも止める。
         const count = entries => Object.values(entries).reduce((sum, entry) => sum + (Array.isArray(entry) ? entry.length : 1), 0);
         const lost = Object.keys(previous).filter(no => !Object.hasOwn(byNo, no));
-        if (count(byNo) < count(previous) || lost.length) {
+        // 前の本文に印がある番号だけ、その番号で実際に減った件数を差し引く。
+        removedComments = Object.entries(previous).flatMap(([no, entry]) => {
+          const entries = Array.isArray(entry) ? entry : [entry];
+          const nextCount = Object.hasOwn(byNo, no) ? [].concat(byNo[no]).length : 0;
+          const removed = entries.length - nextCount;
+          return removed > 0 && entries.some(p => /<!--|-->/.test(p.body)) ? [{ no, removed }] : [];
+        });
+        const acceptedCount = removedComments.reduce((sum, entry) => sum + entry.removed, 0);
+        const unexpectedLost = lost.filter(no => !removedComments.some(entry => entry.no === no));
+        if (count(byNo) < count(previous) - acceptedCount || unexpectedLost.length) {
           totalErrors++;
           console.error(`  ${key}: 項目の減少（${count(previous)} → ${count(byNo)}）のため既存のカタログを保持します`);
           lost.forEach(no => console.error(`    消えた番号: ${no}`));
@@ -249,6 +265,10 @@ async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
       missing_pages: r.missing_pages,
       ...(key === 'hyoka' || key.startsWith('sochi_') ? { duplicates: r.duplicates } : {}),
     }, null, 2)}\n`, 'utf8');
+    for (const { no, removed } of removedComments) {
+      console.log(`    コメントの中だった番号: ${no}（${removed} 件）`);
+      commentRemoved += removed;
+    }
     const searchEntries = Object.entries(byNo).flatMap(([no, entry]) => (Array.isArray(entry) ? entry : [entry]).map((p, i) => ({
       id: `tsutatsu:${key}:${no}${i ? ':' + (i + 1) : ''}`, kind: 'tsutatsu', circular: key, no, variant: i,
       title: `${def.label} ${p.title || ''}`, url: p.url, text: p.body, law_version: '',
@@ -284,6 +304,7 @@ async function main({ outDir = OUT_DIR, fetchPage, pause } = {}) {
     const total = index.reduce((a, b) => a + b.provision_count, 0);
     fs.appendFileSync(ghOut, `provisions=${total}\n`);
     fs.appendFileSync(ghOut, `errors=${totalErrors}\n`);
+    fs.appendFileSync(ghOut, `comment_removed=${commentRemoved}\n`);
   }
 
   if (totalErrors > 0) process.exitCode = 1;

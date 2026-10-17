@@ -42,7 +42,12 @@ for (const c of pages.circulars) test('R2', () => {
   for (const p of c.files.filter(p => p.kind === 'body')) assert.ok(urls.includes(p.url), p.url);
   const stored = C.provisionsByNumber(entries, c.key);
   const duplicates = Object.entries(stored).filter(([, p]) => Array.isArray(p)).map(([no]) => no);
-  if (c.key === 'sochi_hojin') { assert.ok(duplicates.includes('67の5-1の2')); assert.equal(stored['67の5-1の2'].length, 2); }
+  if (c.key === 'sochi_hojin') {
+    // コメントにあった旧条文は取り込まず、現行の条文だけを残す（01c D1）。
+    assert.deepEqual(duplicates, []);
+    assert.equal(stored['67の5-1の2'].title, '（常時使用する従業員の範囲）');
+    assert.doesNotMatch(stored['67の5-1の2'].body, /<!--|-->/);
+  }
   if (c.key === 'hyoka') { assert.ok(stored['11']); assert.ok(stored['10'].body.includes('削除')); }
   if (c.key === 'sochi_sozoku') assert.ok(stored['70の2の2-1']);
   if (c.key === 'sochi_shotoku') assert.ok(stored['28の2-2'].body.includes('40万円'));

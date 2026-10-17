@@ -72,7 +72,9 @@ async function importCase({ total = 1, missingCount = 0, nonProvisionCount = 0, 
       assert.ok(catalog.non_provision_pages.every(p => p.reason));
       assert.deepEqual(Object.keys(catalog.provisions), ['11']);
       const entries = [].concat(catalog.provisions['11']);
-      assert.equal(entries.length, total - nonProvisionCount - missingCount);
+      // 同じ見出し・本文の重複は最初のURLだけを残す（01c D3）。
+      assert.equal(entries.length, 1);
+      assert.equal(entries[0].url, pages[nonProvisionCount + missingCount].url);
       assert.ok(entries.every(p => p.body === '本文です。'));
       const search = JSON.parse(fs.readFileSync(path.join(dir, 'hyoka.index.json'), 'utf8'));
       assert.equal(search.entries.length, entries.length);
@@ -117,7 +119,8 @@ async function main() {
       assert.ok(result.provisions.length >= page.min_items, `${result.provisions.length} < ${page.min_items}`);
       if (page.circular === 'hyoka' || page.circular.startsWith('sochi_')) {
         const basic = P.parseTsutatsuPage(html).provisions;
-        assert.ok(basic.length >= page.basic_parser_items);
+        // コメント内の見出しを除くと通常用では区切れない条も、実際の読取側では保持する。
+        assert.ok(result.provisions.length >= page.basic_parser_items);
         const remaining = result.provisions.map(p => p.no);
         for (const item of basic) {
           const at = remaining.indexOf(item.no);
@@ -315,18 +318,18 @@ async function main() {
   await test('T3 全ページが項目なしなら0項目なので既存を保持する', () =>
     importCase({ badPage: noProvision }));
 
-  // 修正前のパーサーで取得した04の10本文ページの結果。番号・本文・重複を含めて固定する。
+  // 04の10本文ページの結果。01cでコメントの旧本文を除いた2ページだけ更新する。
   const hashes = [
     '7f96f4ba3344829c263147a6528744ddac63fd5963441096eab16870681433d0',
     'ee66f3821d49e8e964d16dcd5be90b5134b59a3f95dcee0bb73612bede3bef0c',
     '02924f30a1be0924e600fa9c854437d15611272f12fd603e3caecdfd5d86a390',
-    'cb5b49c855321870184aa694bddef23a3462f7da192e63566821d3565d9692c3',
+    '359608f17167c5dd0c652a658788294b68aaca17766307c466cc5e6fee156ac6',
     '26986ea8e8c64c8dab7a3c60a601b1df505f470a2b278904150e4d1a703bd2d4',
     '2a6e8d88cb1eb4c233f95a13377e61755275a17d26acbed135b9959491257ae9',
     'c1dd2bec26fc1d70ff776ad6aaa6b436ae43bc3bedb47bc1b358489a83ac589d',
     'ff8d6ea6c87f31285508f51be990d40398438dff89d30ca1cd22192053e59af1',
     '5937f09086171f783964be64f4d0d8f8592631360623ba6dc6dbe9fd8e6004d1',
-    '048cb6ac1b7dbd12f77cb856b0194553be2561248d7d9c7d3c9177c67b085dfc',
+    'b20237a97a87299bd94d2057db9a18f27dae1bccefcc237a2c39133709af12dd',
   ];
   const oldDir = path.join(ROOT, 'docs/codex-tasks/fact-grounding/fixtures');
   const oldPages = JSON.parse(fs.readFileSync(path.join(oldDir, 'tsutatsu-pages.json'), 'utf8'));
@@ -336,6 +339,7 @@ async function main() {
       const html = new TextDecoder(circular.encoding).decode(fs.readFileSync(path.join(oldDir, page.file)));
       const parsed = P.parseTsutatsuPage(html, { circular: circular.key, url: page.url });
       assert.equal(crypto.createHash('sha256').update(JSON.stringify(parsed)).digest('hex'), hashes[hashIndex++]);
+      assert.ok(parsed.provisions.every(p => !/<!--|-->/.test(p.title + p.body)));
     });
   }
   const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
