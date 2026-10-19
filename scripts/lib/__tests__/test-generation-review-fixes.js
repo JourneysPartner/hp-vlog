@@ -130,12 +130,14 @@ async function main() {
     assert.equal(result.stopReason, 'max_tokens');
     assert.equal(requests[0].body.max_tokens, 16000); assert.deepEqual(timers, [300000]);
   });
-  await test('F1', '日次の再試行で途切れた場合も元の結果へ戻さない', async () => {
+  await test('F1', '日次の再試行で途切れた場合は検査済みの初回結果へ戻す', async () => {
     let calls = 0;
     CM.generateContent = async () => (++calls === 1
       ? { text: article('見出しのない文です。'), stopReason: 'end_turn' }
       : { text: '## 書類\n途中', stopReason: 'max_tokens' });
-    await assert.rejects(G.generateArticle('2026-10-19', topic()), e => e.contentBodyTruncated);
+    const result = await G.generateArticle('2026-10-19', topic());
+    assert(result.content.includes('見出しのない文です。'));
+    assert(!result.content.includes('途中'));
     assert.equal(calls, 2);
   });
   for (const slug of ['url-a', '別のslug']) await test('F2', `1候補1回答の ${slug} を重複として扱う`, async () => {
@@ -192,7 +194,7 @@ async function main() {
       assert.equal(result.results.length, 1); assert.equal(result.candidates, 2); assert.equal(result.generations, 2);
       const entry = opts.recorder.additions[0];
       assert.equal(entry.stage, 'generation-failed-candidate');
-      assert.equal(entry.expires_at, '2026-10-26T00:00:00.000Z');
+      assert.equal(entry.expires_at, '2026-10-25T15:00:00.000Z');
       assert(!logs.join('').includes(secret));
       assert(!fs.readFileSync(path.join(dir, 'attempts.json'), 'utf8').includes(secret));
     });

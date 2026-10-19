@@ -317,12 +317,15 @@ function contentCallError(cause) {
   const status = cause?.status || Number(String(cause?.message || '').match(/^Anthropic API (\d{3}):/)?.[1]);
   // 拒否・入力不備・応答形式の不備はその候補だけの失敗とする。
   error.contentModelCallFailed = status
-    ? [401, 403, 408, 429].includes(status) || status >= 500 && status <= 599
+    ? [401, 402, 403, 404, 408, 429].includes(status) || status >= 500 && status <= 599
     : ['TypeError', 'AbortError', 'TimeoutError', 'GatewayTimeoutError', 'GatewayNetworkError',
       'GatewayAbortError', 'GatewayCredentialsError'].includes(cause?.name)
       || ['ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT'].includes(cause?.code || cause?.cause?.code);
   error.contentCandidateFailed = !error.contentModelCallFailed;
-  error.diagnostic = safeDiagnostic(cause);
+  if (status) error.status = status;
+  const unreadable = !status && (['GatewayResponseError', 'SyntaxError'].includes(cause?.name)
+    || cause?.message === 'Anthropic の応答を読み取れません');
+  error.diagnostic = unreadable ? '応答を読み取れない' : safeDiagnostic(cause);
   for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY, process.env.AI_GATEWAY_API_KEY]) {
     if (key) error.diagnostic = error.diagnostic.split(key).join('[秘匿]');
   }

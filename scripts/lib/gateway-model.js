@@ -104,7 +104,8 @@ async function callGateway({ model, system, user, figures, maxTokens, task, sign
           `reasoning=${count(u.completion_tokens_details?.reasoning_tokens)} cached=${count(u.prompt_tokens_details?.cached_tokens)}) finish=${safe(choice.finish_reason)}`);
         return { text: choice.message.content,
           usage: { input_tokens: u.prompt_tokens, output_tokens: u.completion_tokens },
-          provider: 'gateway', model, stopReason: choice.finish_reason === 'length' ? 'max_tokens' : 'end_turn' };
+          provider: 'gateway', model, stopReason: choice.finish_reason === 'length' ? 'max_tokens'
+            : choice.finish_reason === 'content_filter' ? 'content_filter' : 'end_turn' };
       }
     })()]);
   } catch (error) {

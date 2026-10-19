@@ -116,7 +116,7 @@ async function main() {
   writeData([entry]);
   appendWithdrawnTopics([entry, { ...entry, topic_id: 'b' }, { ...entry, topic_id: 'b' }], dataFile);
   const added = loadWithdrawnTopics(dataFile);
-  assert(added.entries.length === 2 && JSON.stringify(added.entries[0]) === JSON.stringify(entry) && added.comment === '既存コメント', '既存の中身と順番を保持し重複は追加しない');
+  assert(added.entries.length === 2 && JSON.stringify(added.entries[0]) === JSON.stringify(entry) && added.comment.includes('generation-failed-candidate は expires_at までの一時的な除外'), '既存の中身と順番を保持し重複は追加せず説明文を更新する');
   assert(read(dataFile).endsWith('\n') && !read(dataFile).includes('\r') && read(dataFile).includes('\n  "version"'), '2 スペースと LF・末尾改行');
   const before = read(dataFile);
   fs.writeFileSync(out, '[{"topic_id":"以前の実行"}]');

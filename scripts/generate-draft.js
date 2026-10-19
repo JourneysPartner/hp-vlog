@@ -1672,8 +1672,9 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   if (normalized.bodyH2Count === 0) {
     console.warn(`[generate] 本文に h2 見出しが0個（形式異常の可能性）→ strictFormat で1回再生成`);
     try {
-      gen = await generateWithContentModel(dateStr, topic, pairedTopic, true);
-      const retryNorm = normalizeGeneratedDraft(postProcess(gen.raw), topic, { now, pairedTopic });
+      const retryGen = await generateWithContentModel(dateStr, topic, pairedTopic, true);
+      const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
+      gen = retryGen;
       if (retryNorm.bodyH2Count > 0) {
         normalized = retryNorm;
         console.log('[generate] 再生成で h2 見出しを確保しました');
@@ -1682,7 +1683,6 @@ async function generateArticle(dateStr, topic, pairedTopic) {
         normalized = retryNorm;
       }
     } catch (e) {
-      if (e.contentBodyTruncated) throw e;
       console.warn(`[generate] strictFormat 再生成失敗（${e.message}）→ 初回結果を使用`);
     }
   }
@@ -1729,7 +1729,6 @@ async function generateArticle(dateStr, topic, pairedTopic) {
         );
       }
     } catch (e) {
-      if (e.contentBodyTruncated) throw e;
       console.warn(`[generate] 文字数調整の再生成に失敗（${e.message}）→ 初回結果を使用`);
     }
   }
@@ -1877,6 +1876,12 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   const rawTailCheck = checkBodyTailComplete(gen.raw);
 
   let content = normalized.content;
+  if (ruleFix.applied && ruleFix.warning) {
+    const { meta } = parseFrontmatter(content);
+    content = factCheck.updateMeta(content, {
+      review_warning: [meta.review_warning, ruleFix.warning].filter(Boolean).join(' / '),
+    });
+  }
   // ルール反映で本文長が変わっている可能性があるため測り直す。
   if (ruleFix.applied) lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
 
@@ -2243,11 +2248,14 @@ function assertCompleteBody(result) {
   if (['max_tokens', 'length'].includes(result.stopReason)) {
     const error = new Error('本文が出力上限で途切れたため生成を中止しました');
     error.contentBodyTruncated = true;
+    error.contentCandidateFailed = true;
+    error.diagnostic = '出力上限で途切れ';
     throw error;
   }
   if (!result.text?.trim() || ['refusal', 'content_filter'].includes(result.stopReason)) {
     const error = new Error('本文生成モデルの応答を読み取れません');
     error.contentCandidateFailed = true;
+    error.diagnostic = '応答を読み取れない';
     throw error;
   }
 }
@@ -2715,6 +2723,7 @@ async function runSingleDraft(dateStr, options = {}) {
   let generations = 0;
   let ending = '';
   let stopForApiFailure = false;
+  let previousFailureStatus;
   let selectionWarnings = [];
   const finishAttempt = (topic, result) => {
     attempts.push(`${tried.size}) ${topic.slug} → ${result}`);
@@ -2735,6 +2744,7 @@ async function runSingleDraft(dateStr, options = {}) {
     const before = recorder.additions.length;
     const ready = await prepareQueries([topic], { ...options, context, recorder, checkWithdrawnQuery: true });
     if (!ready.length) {
+      previousFailureStatus = undefined;
       const entry = recorder.additions[before];
       finishAttempt(topic, entry ? `${entry.stage}（${entry.reason}）` : '検索語・URL slug の判定で取り下げ');
       continue;
@@ -2742,6 +2752,7 @@ async function runSingleDraft(dateStr, options = {}) {
     const ai = await checkPregenDuplicate(topic, corpus, checkAI);
     const duplicate = ai.duplicate;
     if (duplicate) {
+      previousFailureStatus = undefined;
       console.warn(`[generate] AI重複判定: ${topic.slug} → 重複(${duplicate.similar_to}): ${duplicate.reason}`);
       console.log('[generate] AI重複判定で 1 件除外 → 残り 0 件');
       recorder.record(topic, 'pregen-dedup', duplicate);
@@ -2759,7 +2770,11 @@ async function runSingleDraft(dateStr, options = {}) {
     generations++;
     let generationFailure;
     const results = await generateTopics(ready, dateStr, { ...options, recorder,
-      onGenerationFailure: failure => { generationFailure = failure; } });
+      onGenerationFailure: failure => {
+        generationFailure = failure;
+        if (failure.status && failure.status === previousFailureStatus) failure.apiFailure = true;
+        previousFailureStatus = failure.status;
+      } });
     if (results.length) {
       finishAttempt(topic, '下書き 1 本を確定');
       return { results, attempts, generations, reason: '', candidates: tried.size };
@@ -2773,6 +2788,7 @@ async function runSingleDraft(dateStr, options = {}) {
       }
       continue;
     }
+    previousFailureStatus = undefined;
     const entry = recorder.additions[before];
     finishAttempt(topic, `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
   }
@@ -2957,8 +2973,11 @@ async function generateTopics(pair, dateStr, options = {}) {
     const reason = `${apiFailure ? '本文生成モデルの呼び出しに失敗' : '本文生成に失敗'}（${diagnostic}）`;
     console.warn(`[generate] ${reason}`);
     lastSelectionWarnings.push(reason);
-    options.onGenerationFailure?.({ apiFailure, reason });
+    const failure = { apiFailure, reason, status: err.status };
+    options.onGenerationFailure?.(failure);
+    return failure;
   };
+  let previousFailureStatus;
 
   for (let i = 0; i < pair.length; i++) {
     const topic = pair[i];
@@ -2989,11 +3008,14 @@ async function generateTopics(pair, dateStr, options = {}) {
         usedModel = art.model || contentModelId;
 
       } catch (err) {
-        generationFailed(err, !!err.contentModelCallFailed);
-        if (err.contentModelCallFailed) break;
+        const failure = generationFailed(err, !!err.contentModelCallFailed);
+        const repeated = err.status && err.status === previousFailureStatus;
+        previousFailureStatus = err.status;
+        if (failure.apiFailure || repeated) break;
         if (err.contentCandidateFailed) options.recorder?.record(topic, 'generation-failed-candidate', { reason: '本文生成モデルが候補の生成に失敗' });
         continue;
       }
+      previousFailureStatus = undefined;
     } else {
       generationFailed(new Error('モデルの認証情報が未設定です'), true);
       break;

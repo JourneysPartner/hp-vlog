@@ -184,14 +184,17 @@ jobs:
           fi
 
       - name: Notify via Netlify
+        id: notify
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+          REGEN_EVENT: ${{ steps.fm.outputs.event }}
+          REGEN_TITLE: ${{ steps.fm.outputs.title }}
         run: |
           REVIEW_URL="https://mori-zeirishi.net/review?file=$REGEN_FILENAME&ref=$REGEN_BRANCH"
           node scripts/notify.js \
-            --event "${{ steps.fm.outputs.event }}" \
-            --title "${{ steps.fm.outputs.title }}" \
+            --event "$REGEN_EVENT" \
+            --title "$REGEN_TITLE" \
             --review-url "$REVIEW_URL" \
             --comment "$REGEN_COMMENT"
 
@@ -203,9 +206,15 @@ jobs:
           REGEN_OUTCOME: ${{ steps.regen.outcome }}
           VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
           COMMIT_PUSH_OUTCOME: ${{ steps.commit_push.outcome }}
+          EXTRACT_OUTCOME: ${{ steps.fm.outcome }}
+          NOTIFY_OUTCOME: ${{ steps.notify.outcome }}
         run: |
           STAGE="準備または通知"
           if [ "$REGEN_OUTCOME" = "failure" ]; then STAGE="本文の再生成"; fi
           if [ "$VALIDATE_OUTCOME" = "failure" ]; then STAGE="Validate"; fi
           if [ "$COMMIT_PUSH_OUTCOME" = "failure" ]; then STAGE="commit・push"; fi
-          node scripts/notify.js --event regenerate_failed --title "$REGEN_FILENAME" --comment "再生成処理に失敗しました（段階: $STAGE）。実行ログと下書きの状態を確認してください。"
+          MESSAGE="再生成処理に失敗しました（段階: $STAGE）。実行ログと下書きの状態を確認してください。"
+          if [ "$COMMIT_PUSH_OUTCOME" = "success" ] && { [ "$EXTRACT_OUTCOME" = "failure" ] || [ "$NOTIFY_OUTCOME" = "failure" ]; }; then
+            MESSAGE="完了通知に失敗（下書きは更新済み）。実行ログと下書きの状態を確認してください。"
+          fi
+          node scripts/notify.js --event regenerate_failed --title "$REGEN_FILENAME" --comment "$MESSAGE"
