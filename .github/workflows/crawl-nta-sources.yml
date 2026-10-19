@@ -51,9 +51,20 @@ jobs:
 
       - name: Determine crawl mode
         id: mode
+        env:
+          INPUT_MODE: ${{ github.event.inputs.mode || 'incremental' }}
+          INPUT_MAX_PAGES: ${{ github.event.inputs.max_pages }}
         run: |
-          MODE='${{ github.event.inputs.mode || 'incremental' }}'
-          MAX='${{ github.event.inputs.max_pages }}'
+          MODE="${INPUT_MODE}"
+          MAX="${INPUT_MAX_PAGES}"
+          if [[ "$MODE" != "incremental" && "$MODE" != "full" && "$MODE" != "backfill-figures" ]]; then
+            echo "::error::mode は incremental、full、backfill-figures のいずれかで指定してください。"
+            exit 1
+          fi
+          if [ -n "$MAX" ] && [[ ! "$MAX" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::max_pages は空、または1以上の整数で指定してください。"
+            exit 1
+          fi
           LIMIT=''
           [ -n "$MAX" ] && LIMIT="--max-pages $MAX"
           if [ "$MODE" = "full" ]; then
@@ -71,9 +82,12 @@ jobs:
 
       - name: Run crawl
         id: crawl
+        env:
+          CRAWL_ARGS: ${{ steps.mode.outputs.args }}
         run: |
           set -o pipefail
-          node scripts/crawl-nta-sources.js ${{ steps.mode.outputs.args }} 2>&1 | tee /tmp/crawl.log
+          # Determine crawl mode で R2 の形式確認を済ませた値を、従来どおり空白で分けて渡す。
+          node scripts/crawl-nta-sources.js $CRAWL_ARGS 2>&1 | tee /tmp/crawl.log
           echo "log_tail<<EOF" >> "$GITHUB_OUTPUT"
           tail -50 /tmp/crawl.log >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -246,27 +260,38 @@ jobs:
 
       - name: Emit job summary
         if: always()
+        env:
+          MODE_MODE: ${{ steps.mode.outputs.mode }}
+          META_FETCHED: ${{ steps.meta.outputs.fetched }}
+          META_SKIPPED: ${{ steps.meta.outputs.skipped }}
+          META_DELETED: ${{ steps.meta.outputs.deleted }}
+          META_ERRORS: ${{ steps.meta.outputs.errors }}
+          META_TOTAL: ${{ steps.meta.outputs.total }}
+          META_DURATION: ${{ steps.meta.outputs.duration }}
+          META_ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
+          CHANGES_CHANGED: ${{ steps.changes.outputs.changed }}
+          PR_PR_URL: ${{ steps.pr.outputs.pr_url }}
         run: |
           {
             echo "## NTA Source DB Crawl Result"
             echo ""
             echo "| Metric | Value |"
             echo "|---|---|"
-            echo "| mode | ${{ steps.mode.outputs.mode }} |"
+            echo "| mode | ${MODE_MODE} |"
             echo "| job status | ${{ job.status }} |"
-            echo "| fetched | ${{ steps.meta.outputs.fetched }} |"
-            echo "| skipped | ${{ steps.meta.outputs.skipped }} |"
-            echo "| deleted | ${{ steps.meta.outputs.deleted }} |"
-            echo "| errors | ${{ steps.meta.outputs.errors }} |"
-            echo "| total processed | ${{ steps.meta.outputs.total }} |"
-            echo "| duration | ${{ steps.meta.outputs.duration }}s |"
-            echo "| error rate | ${{ steps.meta.outputs.error_rate }}% |"
-            echo "| changed | ${{ steps.changes.outputs.changed }} |"
-            if [ "${{ steps.changes.outputs.changed }}" != "true" ]; then
+            echo "| fetched | ${META_FETCHED} |"
+            echo "| skipped | ${META_SKIPPED} |"
+            echo "| deleted | ${META_DELETED} |"
+            echo "| errors | ${META_ERRORS} |"
+            echo "| total processed | ${META_TOTAL} |"
+            echo "| duration | ${META_DURATION}s |"
+            echo "| error rate | ${META_ERROR_RATE}% |"
+            echo "| changed | ${CHANGES_CHANGED} |"
+            if [ "${CHANGES_CHANGED}" != "true" ]; then
               echo ""
               echo "■ 変更なし（時刻のみ更新のため PR は作成しません）"
             fi
-            if [ -n "${{ steps.pr.outputs.pr_url }}" ]; then
-              echo "| PR | ${{ steps.pr.outputs.pr_url }} |"
+            if [ -n "${PR_PR_URL}" ]; then
+              echo "| PR | ${PR_PR_URL} |"
             fi
           } >> "$GITHUB_STEP_SUMMARY"

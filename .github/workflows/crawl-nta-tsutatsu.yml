@@ -37,12 +37,18 @@ jobs:
 
       - name: Crawl
         id: crawl
+        env:
+          INPUT_ONLY: ${{ github.event.inputs.only }}
         run: |
-          ARGS=""
-          if [ -n "${{ github.event.inputs.only }}" ]; then
-            ARGS="--only ${{ github.event.inputs.only }}"
+          if [ -n "$INPUT_ONLY" ] && [[ ! "$INPUT_ONLY" =~ ^[A-Za-z0-9_.,:/-]+$ ]]; then
+            echo "::error::only は英数字と _ - . , : / だけで指定してください。"
+            exit 1
           fi
-          node scripts/crawl-nta-tsutatsu.js $ARGS
+          ARGS=()
+          if [ -n "$INPUT_ONLY" ]; then
+            ARGS=(--only "$INPUT_ONLY")
+          fi
+          node scripts/crawl-nta-tsutatsu.js "${ARGS[@]}"
 
       - name: Verify catalog
         run: node scripts/lib/__tests__/test-tsutatsu.js
@@ -55,6 +61,8 @@ jobs:
       - name: Open PR
         if: steps.changes.outputs.changed == 'true'
         env:
+          CRAWL_PROVISIONS: ${{ steps.crawl.outputs.provisions }}
+          CRAWL_COMMENT_REMOVED: ${{ steps.crawl.outputs.comment_removed }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="chore/nta-tsutatsu-$(date -u +%Y%m%d)"
@@ -62,13 +70,13 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add data/nta-tsutatsu
-          git commit -m "chore: 法令解釈通達のカタログを更新（${{ steps.crawl.outputs.provisions }} 条）"
+          git commit -m "chore: 法令解釈通達のカタログを更新（${CRAWL_PROVISIONS} 条）"
           git push origin "$BRANCH"
           {
             echo '法令解釈通達のカタログに変更を検出しました。'
             echo
-            echo "- 収録条文: ${{ steps.crawl.outputs.provisions }} 条"
-            echo "コメントの中だった条（国税庁のページで画面に出ない条）を除いた件数: ${{ steps.crawl.outputs.comment_removed }} 件"
+            echo "- 収録条文: ${CRAWL_PROVISIONS} 条"
+            echo "コメントの中だった条（国税庁のページで画面に出ない条）を除いた件数: ${CRAWL_COMMENT_REMOVED} 件"
             echo
             echo '通達の改正があった可能性があります。差分を確認してください。'
             echo '記事が引用している条文が変わっていないかは、レビュー時にご確認ください。'
@@ -80,11 +88,13 @@ jobs:
       - name: Notify
         if: steps.changes.outputs.changed == 'true' || steps.crawl.outputs.errors != '0'
         env:
+          CRAWL_PROVISIONS: ${{ steps.crawl.outputs.provisions }}
+          CRAWL_ERRORS: ${{ steps.crawl.outputs.errors }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
           node scripts/notify.js \
             --event "tsutatsu_catalog_updated" \
             --title "法令解釈通達のカタログを更新しました" \
-            --comment "収録 ${{ steps.crawl.outputs.provisions }} 条 / 取得エラー ${{ steps.crawl.outputs.errors }} 件" \
+            --comment "収録 ${CRAWL_PROVISIONS} 条 / 取得エラー ${CRAWL_ERRORS} 件" \
           || echo "::warning::通知に失敗しました（処理は継続）"

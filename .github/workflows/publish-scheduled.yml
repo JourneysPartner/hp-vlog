@@ -63,6 +63,8 @@ jobs:
 
       - name: Commit and push to main
         if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
+        env:
+          PROMOTE_PUBLISHED_COUNT: ${{ steps.promote.outputs.published_count }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -71,7 +73,7 @@ jobs:
             echo "差分なし。スキップします。"
             exit 0
           fi
-          COUNT="${{ steps.promote.outputs.published_count }}"
+          COUNT="${PROMOTE_PUBLISHED_COUNT}"
           git commit -m "publish: ${COUNT} 件の予約記事を公開"
           # 競合に備えて pull --rebase してから push
           git pull --rebase origin main || true
@@ -80,14 +82,18 @@ jobs:
       - name: Notify Chatwork (per article)
         if: steps.promote.outputs.published_count != '0' && steps.promote.outputs.published_count != ''
         env:
+          PROMOTE_PUBLISHED_TITLES: ${{ steps.promote.outputs.published_titles }}
+          PROMOTE_PUBLISHED_SLUGS: ${{ steps.promote.outputs.published_slugs }}
+          PROMOTE_PUBLISHED_CATEGORIES: ${{ steps.promote.outputs.published_categories }}
+          PROMOTE_PUBLISHED_PERSONAS: ${{ steps.promote.outputs.published_personas }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
           SITE_BASE_URL: https://mori-zeirishi.net
         run: |
-          IFS='|' read -r -a TITLES   <<< "${{ steps.promote.outputs.published_titles }}"
-          IFS=','  read -r -a SLUGS    <<< "${{ steps.promote.outputs.published_slugs }}"
-          IFS='|' read -r -a CATEGORIES <<< "${{ steps.promote.outputs.published_categories }}"
-          IFS=','  read -r -a PERSONAS <<< "${{ steps.promote.outputs.published_personas }}"
+          IFS='|' read -r -a TITLES   <<< "${PROMOTE_PUBLISHED_TITLES}"
+          IFS=','  read -r -a SLUGS    <<< "${PROMOTE_PUBLISHED_SLUGS}"
+          IFS='|' read -r -a CATEGORIES <<< "${PROMOTE_PUBLISHED_CATEGORIES}"
+          IFS=','  read -r -a PERSONAS <<< "${PROMOTE_PUBLISHED_PERSONAS}"
 
           for i in "${!TITLES[@]}"; do
             TITLE="${TITLES[$i]}"

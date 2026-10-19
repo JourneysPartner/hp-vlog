@@ -72,10 +72,15 @@ jobs:
         id: check
         continue-on-error: true   # 要確認があっても通知まで進める
         env:
+          INPUT_AS_OF: ${{ github.event.inputs.as_of }}
           MASTERS_DIR: data/tax-simulator/masters
           NTA_SOURCES_DIR: data/nta-sources
         run: |
-          AS_OF='${{ github.event.inputs.as_of }}'
+          AS_OF="${INPUT_AS_OF}"
+          if [ -n "$AS_OF" ] && [[ ! "$AS_OF" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "::error::as_of は空、または YYYY-MM-DD で指定してください。"
+            exit 1
+          fi
           if [ -n "$AS_OF" ]; then
             node scripts/check-master-freshness.js --as-of "$AS_OF"
           else
@@ -85,16 +90,18 @@ jobs:
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         env:
+          CHECK_REPORT: ${{ steps.check.outputs.report }}
+          GITHUB_EVENT_NUMBER: ${{ github.event.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
             echo '## マスターデータ鮮度チェック'
             echo
             echo '```'
-            echo "${{ steps.check.outputs.report }}"
+            echo "${CHECK_REPORT}"
             echo '```'
           } > /tmp/comment.md
-          gh pr comment "${{ github.event.number }}" --body-file /tmp/comment.md
+          gh pr comment "${GITHUB_EVENT_NUMBER}" --body-file /tmp/comment.md
 
       - name: Notify Chatwork
         if: github.event_name != 'pull_request' && steps.check.outputs.needs_attention != '0'
@@ -134,20 +141,27 @@ jobs:
 
       - name: Emit job summary
         if: always()
+        env:
+          CHECK_HASH_MISMATCH: ${{ steps.check.outputs.hash_mismatch }}
+          CHECK_COVERAGE_GAP: ${{ steps.check.outputs.coverage_gap }}
+          CHECK_COVERAGE_UPCOMING: ${{ steps.check.outputs.coverage_upcoming }}
+          CHECK_BLOCKED: ${{ steps.check.outputs.blocked }}
+          CHECK_NOT_APPROVED: ${{ steps.check.outputs.not_approved }}
+          CHECK_REPORT: ${{ steps.check.outputs.report }}
         run: |
           {
             echo "## Tax Simulator Masters"
             echo ""
             echo "| 項目 | 件数 |"
             echo "|---|---|"
-            echo "| 出典が更新された | ${{ steps.check.outputs.hash_mismatch }} |"
-            echo "| 対象期間のレコード無し | ${{ steps.check.outputs.coverage_gap }} |"
-            echo "| 次の期間が未登録（予告） | ${{ steps.check.outputs.coverage_upcoming }} |"
-            echo "| 確認待ち(blocked) | ${{ steps.check.outputs.blocked }} |"
-            echo "| 未承認 | ${{ steps.check.outputs.not_approved }} |"
+            echo "| 出典が更新された | ${CHECK_HASH_MISMATCH} |"
+            echo "| 対象期間のレコード無し | ${CHECK_COVERAGE_GAP} |"
+            echo "| 次の期間が未登録（予告） | ${CHECK_COVERAGE_UPCOMING} |"
+            echo "| 確認待ち(blocked) | ${CHECK_BLOCKED} |"
+            echo "| 未承認 | ${CHECK_NOT_APPROVED} |"
             echo ""
             echo '```'
-            echo "${{ steps.check.outputs.report }}"
+            echo "${CHECK_REPORT}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
