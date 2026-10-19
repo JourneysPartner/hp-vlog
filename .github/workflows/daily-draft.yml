@@ -89,8 +89,9 @@ jobs:
           RULE_POSTFIX: ${{ vars.RULE_POSTFIX }}
           RULE_FIX_MODE: ${{ vars.RULE_FIX_MODE }}
           POSTGEN_DEDUP: ${{ vars.POSTGEN_DEDUP }}
-          # 本文生成は Anthropic。失敗時は生成を取り下げる。
+          # 本文生成の提供元は変数で指定。API失敗時はその日の生成を終える。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}

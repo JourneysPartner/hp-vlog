@@ -123,7 +123,11 @@ const LENGTH_OVERSHOOT = 1.11;
 // 旧指示上限: floor100(7000 / 1.11 * 0.98) = 6100 字。
 // 10/16: 7371 / 6100 = 1.20836、10/19: 7760 / 6100 = 1.27213。
 // 2 回の大きい方で補正し、同じ LENGTH_SAFETY でさらに余白を取る。
-const LENGTH_OVERSHOOT_BY_MODEL = { 'claude-sonnet-5-5': Math.max(7371 / 6100, 7760 / 6100) };
+const LENGTH_OVERSHOOT_BY_MODEL = {
+  'claude-sonnet-5-5': Math.max(7371 / 6100, 7760 / 6100),
+  // 2026-10-19 の実測: この補正の指示で 5,308字・6,136字、いずれも1回で上限内。
+  'deepseek/deepseek-v4.1-flash-1017': 1.11,
+};
 const currentWritingModel = () => process.env.CONTENT_MODEL || 'claude-sonnet-5-5';
 // 実測は2件のみで分散が不明なため、さらに安全側へ丸める余白。
 const LENGTH_SAFETY = 0.98;

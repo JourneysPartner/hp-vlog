@@ -73,8 +73,9 @@ jobs:
             --filename "$REGEN_FILENAME" \
             --comment "$REGEN_COMMENT"
         env:
-          # 本文・部分再生成は Anthropic。失敗時は既存の失敗通知へ進む。
+          # 本文・部分再生成の提供元は変数で指定。失敗時は既存の失敗通知へ進む。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}

@@ -4,10 +4,11 @@
  * 本文生成モデルの provider 抽象化
  *
  * 環境変数:
- *   CONTENT_MODEL_PROVIDER   'anthropic'（既定）
+ *   CONTENT_MODEL_PROVIDER   'anthropic'（既定）| 'gateway'
  *   CONTENT_MODEL            モデルID（未指定時は provider 既定。Anthropic は claude-sonnet-5-5）
  *   CONTENT_MODEL_USE_PROMPT_CACHE  'true' で Anthropic prompt caching を有効化（既定 true）
  *   ANTHROPIC_API_KEY  本文生成のキー（OpenAI は事実照合の明示指定だけ）
+ *   AI_GATEWAY_API_KEY  Gateway のキー
  *
  * 重要:
  *   - Anthropic の失敗は呼び出し元へ返す（別の提供元では生成し直さない）
@@ -55,7 +56,7 @@ function safeDiagnostic(e) {
 
 function resolveProvider() {
   const p = (process.env.CONTENT_MODEL_PROVIDER || 'anthropic').toLowerCase();
-  if (p !== 'anthropic') throw new Error('未対応の本文生成提供元です');
+  if (!['anthropic', 'gateway'].includes(p)) throw new Error('未対応の本文生成提供元です');
   return p;
 }
 
@@ -67,7 +68,7 @@ function useCache() {
 // OpenAI は事実照合がモデル名を明示した場合だけ利用できる。
 function resolveModel(provider, override) {
   if (override) return override;
-  if (provider === 'anthropic') return process.env.CONTENT_MODEL || ANTHROPIC_DEFAULT_MODEL;
+  if (provider === 'anthropic' || provider === 'gateway') return process.env.CONTENT_MODEL || ANTHROPIC_DEFAULT_MODEL;
   throw new Error('事実照合のモデル名を明示してください');
 }
 
@@ -301,6 +302,17 @@ async function callAnthropicBatch(promptIR, opts) {
   }
 }
 
+// 本文のAPI失敗だけを識別する。生の例外や鍵は通知へ渡さない。
+function contentCallError(cause) {
+  const error = new Error('本文生成モデルの呼び出しに失敗しました');
+  error.contentModelCallFailed = true;
+  error.diagnostic = safeDiagnostic(cause);
+  for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY, process.env.AI_GATEWAY_API_KEY]) {
+    if (key) error.diagnostic = error.diagnostic.split(key).join('[秘匿]');
+  }
+  return error;
+}
+
 /**
  * 中間表現 promptIR = { staticSystem, dynamicSystem, user } を受け取り、
  * provider に応じて本文生成モデルを呼ぶ。
@@ -312,7 +324,15 @@ async function callAnthropicBatch(promptIR, opts) {
 async function generateContent(promptIR, opts = {}) {
   // 事実照合は本文生成と独立した設定を使い、失敗時のモデル変更を行わない。
   const provider = opts.provider || resolveProvider();
-  if (!['anthropic', 'openai'].includes(provider) || (provider === 'openai' && !(opts.provider === 'openai' && opts.model && opts.fallback === false))) throw new Error('未対応のモデル提供元です');
+  if (!['anthropic', 'openai', 'gateway'].includes(provider) || (provider === 'openai' && !(opts.provider === 'openai' && opts.model && opts.fallback === false))) throw new Error('未対応のモデル提供元です');
+  if (provider === 'gateway') {
+    try {
+      return await require('./gateway-model').callGateway({ model: resolveModel(provider, opts.model),
+        system: [promptIR.staticSystem, promptIR.dynamicSystem].filter(s => typeof s === 'string' && s.trim()).join('\n\n'),
+        user: promptIR.user, figures: promptIR.figures, maxTokens: 64000,
+        task: 'generateContent', signal: opts.signal, timeoutMs: 900000 });
+    } catch (e) { throw contentCallError(e); }
+  }
   if (opts.fallback === false && !process.env[provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY']) {
     throw new Error('モデルの認証情報が未設定です');
   }
@@ -329,7 +349,7 @@ async function generateContent(promptIR, opts = {}) {
         for (const key of ['mode', 'wait_seconds', 'batch_error']) if (e[key] !== undefined) error[key] = e[key];
         throw error;
       }
-      throw new Error('本文生成モデルの呼び出しに失敗しました');
+      throw contentCallError(e);
     }
   }
   return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, timeoutMs: opts.timeoutMs });
@@ -347,6 +367,12 @@ async function generateSimple({ system, user, figures }, opts = {}) {
   // デフォルト 4096：本文相当の出力長を呼び出し側が忘れても安全側に倒す。
   // 短い JSON 等を返す呼び出しは opts.maxTokens で明示的に絞ること。
   const maxTokens = opts.maxTokens || 4096;
+  if (provider === 'gateway') {
+    try {
+      return await require('./gateway-model').callGateway({ model, system, user, figures,
+        maxTokens: Math.max(maxTokens, 16000), task: 'generateSimple', signal: opts.signal, timeoutMs: 300000 });
+    } catch (e) { throw contentCallError(e); }
+  }
   if (provider === 'anthropic') {
     try {
       const { buildAnthropicUserContent, anthropicModelOptions } = require('./article-prompt-builder');
@@ -380,7 +406,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
         `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}`);
       return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
     } catch (e) {
-      throw new Error('本文生成モデルの呼び出しに失敗しました');
+      throw contentCallError(e);
     }
   }
   throw new Error('未対応の本文生成提供元です');

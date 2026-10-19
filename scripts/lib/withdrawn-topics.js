@@ -54,12 +54,12 @@ function appendWithdrawnTopics(additions, file = DEFAULT_PATH) {
 }
 
 function findWithdrawnTopic(topic, data) {
-  return entriesOf(data).find(entry => entry.topic_id === topic.slug) || null;
+  return entriesOf(data).find(entry => entry.stage !== 'generation-failed' && entry.topic_id === topic.slug) || null;
 }
 const normalizeQuery = query => String(query || '').replace(/[\s\u3000]+/g, ' ').trim().toLowerCase();
 function findWithdrawnQuery(query, data) {
   const key = normalizeQuery(query);
-  return key ? entriesOf(data).find(entry => normalizeQuery(entry.target_query) === key) || null : null;
+  return key ? entriesOf(data).find(entry => entry.stage !== 'generation-failed' && normalizeQuery(entry.target_query) === key) || null : null;
 }
 
 // 取り下げるたびに保存し、途中で生成が失敗してもそこまでの記録を残す。

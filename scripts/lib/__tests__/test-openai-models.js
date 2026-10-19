@@ -143,7 +143,7 @@ async function main() {
       Object.assign(process.env, saved);
     }
   });
-  await test('R6', '日次は生成失敗を記録し0本、照合も記事保存も行わない', async () => {
+  await test('R6', '日次は生成失敗を取り下げに記録せず0本、照合も記事保存も行わない', async () => {
     const G = require('../../generate-draft');
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openai-models-failure-'));
     const entries = [];
@@ -153,7 +153,7 @@ async function main() {
         generateArticle: async () => { throw new Error('秘密を含みうる例外'); },
         factCheck: async () => { throw new Error('呼ばれない'); },
       });
-      assert.equal(results.length, 0); assert.deepEqual(entries, ['generation-failed']); assert.deepEqual(fs.readdirSync(dir), []);
+      assert.equal(results.length, 0); assert.deepEqual(entries, []); assert.deepEqual(fs.readdirSync(dir), []);
       const workflow = fs.readFileSync(path.join(__dirname, '../../../.github/workflows/regenerate-draft.yml'), 'utf8');
       assert(workflow.includes('regenerate_failed'));
       assert(workflow.includes("if: failure() && steps.regen.outcome == 'failure'"));

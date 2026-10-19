@@ -11,9 +11,10 @@
  *
  * 環境変数:
  *   AUX_MODEL_ENABLED   'true' で周辺作業の API 利用を許可（既定 false = 完全ルールベース）
- *   AUX_MODEL_PROVIDER  'anthropic'（既定）| 'rule_based'
+ *   AUX_MODEL_PROVIDER  'anthropic'（既定）| 'gateway' | 'rule_based'
  *   AUX_MODEL           モデルID（既定 claude-haiku-4-5-20251001）
  *   ANTHROPIC_API_KEY
+ *   AI_GATEWAY_API_KEY
  */
 
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -40,6 +41,7 @@ function auxModel() {
 function canUseAux() {
   if (!auxEnabled()) return false;
   const p = auxProvider();
+  if (p === 'gateway') return !!process.env.AI_GATEWAY_API_KEY;
   if (p !== 'anthropic') return false;
   if (p === 'anthropic' && !process.env.ANTHROPIC_API_KEY) return false;
   return true;
@@ -49,6 +51,12 @@ function canUseAux() {
 async function callAux({ system, user, task, maxTokens = 512 }) {
   const provider = auxProvider();
   const model = auxModel();
+
+  if (provider === 'gateway') {
+    const result = await require('./gateway-model').callGateway({ model, system, user, task, maxTokens: 8000 });
+    // 考える分で上限に達した答えは、JSONが読める形でも判定に使わない。
+    return result.stopReason === 'max_tokens' ? null : result.text;
+  }
 
   if (provider === 'anthropic') {
     const res = await fetch('https://api.anthropic.com/v1/messages', {

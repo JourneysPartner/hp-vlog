@@ -1377,11 +1377,12 @@ updated_at: "${now}"
     replacementOutlineBlock,
     sourceFigures,
   });
-  // 出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
+  // Gatewayの出力枠はcontent-model側で固定し、字数からの見積もりを使わない。
+  // Anthropicの出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
   // プロンプトでの字数指示は努力目標で超過を防ぎきれないが、max_tokens は
   // 途中切れを防ぐため、受入上限の 1.15 倍まで収まる枠を確保する。
   // 実測 0.874 token/文字（2026-08-15, Claude Sonnet 4.6, 日本語）。
-  const maxTokens = maxTokensFor({
+  const maxTokens = contentModel.resolveProvider() === 'gateway' ? undefined : maxTokensFor({
     articleType, intentType: topic.intent_type, articleRole,
   });
   const result = await contentModel.generateContent(promptIR, { maxTokens });
@@ -2666,6 +2667,7 @@ async function runSingleDraft(dateStr, options = {}) {
   const attempts = [];
   let generations = 0;
   let ending = '';
+  let stopForApiFailure = false;
   let selectionWarnings = [];
   const finishAttempt = (topic, result) => {
     attempts.push(`${tried.size}) ${topic.slug} → ${result}`);
@@ -2709,16 +2711,29 @@ async function runSingleDraft(dateStr, options = {}) {
     // 既存 generateArticle を呼ぶ候補の数を数える。
     // 段落の短縮・部分修正は候補の生成回数に重複して数えない。
     generations++;
-    const results = await generateTopics(ready, dateStr, { ...options, recorder });
+    let generationFailure;
+    const results = await generateTopics(ready, dateStr, { ...options, recorder,
+      onGenerationFailure: failure => { generationFailure = failure; } });
     if (results.length) {
       finishAttempt(topic, '下書き 1 本を確定');
       return { results, attempts, generations, reason: '', candidates: tried.size };
     }
+    if (generationFailure) {
+      finishAttempt(topic, generationFailure.reason);
+      if (generationFailure.apiFailure) {
+        stopForApiFailure = true;
+        ending = '本文生成モデルの呼び出しに失敗したため本日は生成しません';
+        break;
+      }
+      continue;
+    }
     const entry = recorder.additions[before];
-    finishAttempt(topic, entry?.stage === 'generation-failed' ? '本文生成に失敗' : `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
+    finishAttempt(topic, `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
   }
   if (!ending) ending = `候補の確認上限 ${maxCandidates} 件に達したため本日は生成しません`;
-  const reason = [...[...attempts, ...selectionWarnings, ending].join(' / ').replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
+  // 先行候補の理由が長くても、API失敗の診断を通知の600文字に必ず残す。
+  const reportAttempts = stopForApiFailure ? [attempts.at(-1), ...attempts.slice(0, -1)] : attempts;
+  const reason = [...[...reportAttempts, ...selectionWarnings, ending].join(' / ').replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
   return { results: [], attempts, generations, reason, candidates: tried.size };
 }
 
@@ -2889,7 +2904,15 @@ async function generateTopics(pair, dateStr, options = {}) {
   // 本文生成 provider/model の表示（content-model の解決結果）
   const contentProvider = contentModel.resolveProvider();
   const contentModelId  = contentModel.resolveModel(contentProvider);
-  const hasContentKey = !!process.env.ANTHROPIC_API_KEY;
+  const contentKeyName = contentProvider === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'ANTHROPIC_API_KEY';
+  const hasContentKey = !!process.env[contentKeyName];
+  const generationFailed = (err, apiFailure) => {
+    const diagnostic = err.contentModelCallFailed ? err.diagnostic : contentModel.safeDiagnostic(err);
+    const reason = `${apiFailure ? '本文生成モデルの呼び出しに失敗' : '本文生成に失敗'}（${diagnostic}）`;
+    console.warn(`[generate] ${reason}`);
+    lastSelectionWarnings.push(reason);
+    options.onGenerationFailure?.({ apiFailure, reason });
+  };
 
   for (let i = 0; i < pair.length; i++) {
     const topic = pair[i];
@@ -2901,7 +2924,7 @@ async function generateTopics(pair, dateStr, options = {}) {
     console.log(`[generate] slug: ${topic.url_slug || topic.slug} / topic_id: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
     console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
     console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
-    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
+    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentProvider === 'anthropic' && contentModel.useCache()}`);
     if (pairedTopic) {
       console.log(`[generate] ペア記事: ${pairedTopic.title}`);
     }
@@ -2920,14 +2943,13 @@ async function generateTopics(pair, dateStr, options = {}) {
         usedModel = art.model || contentModelId;
 
       } catch (err) {
-        console.warn('[generate] 本文生成 API 失敗 → 本候補は生成しません');
-        options.recorder?.record(topic, 'generation-failed', { reason: '本文生成モデルの呼び出しに失敗' });
+        generationFailed(err, !!err.contentModelCallFailed);
+        if (err.contentModelCallFailed) break;
         continue;
       }
     } else {
-      console.warn('[generate] ANTHROPIC_API_KEY 未設定 → 本候補は生成しません');
-      options.recorder?.record(topic, 'generation-failed', { reason: '本文生成の認証情報が未設定' });
-      continue;
+      generationFailed(new Error('モデルの認証情報が未設定です'), true);
+      break;
     }
 
     const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
