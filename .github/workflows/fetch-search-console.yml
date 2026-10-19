@@ -50,13 +50,14 @@ jobs:
 
       - name: Fetch from Search Console
         env:
+          SKIP_INSPECTION: ${{ inputs.skip_inspection }}
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
         run: |
           if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]; then
             echo "::notice::GSC_SERVICE_ACCOUNT_JSON が未設定のためスキップします（docs/search-console-setup.md を参照）"
           else
             node scripts/fetch-search-console.js
-            if [ "${{ inputs.skip_inspection }}" != "true" ]; then
+            if [ "$SKIP_INSPECTION" != "true" ]; then
               node scripts/inspect-index-status.js
             else
               echo "::notice::skip_inspection=true のため URL 検査をスキップします"
@@ -72,6 +73,7 @@ jobs:
         id: gsc
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
         run: node scripts/update-gsc-topics.js
 
       - name: Create PR if changed

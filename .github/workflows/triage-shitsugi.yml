@@ -37,13 +37,15 @@ jobs:
 
       - name: Run triage
         env:
+          TRIAGE_FORCE: ${{ inputs.force }}
+          TRIAGE_LIMIT: ${{ inputs.limit }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LLM_TRIAGE_MODEL: ${{ vars.LLM_TRIAGE_MODEL }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
         run: |
-          ARGS=""
-          if [ "${{ github.event.inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
-          if [ -n "${{ github.event.inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"; fi
-          node scripts/triage-shitsugi-topics.js $ARGS
+          ARGS=()
+          if [ "$TRIAGE_FORCE" = "true" ]; then ARGS+=(--force); fi
+          if [ -n "$TRIAGE_LIMIT" ]; then ARGS+=(--limit "$TRIAGE_LIMIT"); fi
+          node scripts/triage-shitsugi-topics.js "${ARGS[@]}"
 
       - name: Create PR with triage results
         env:

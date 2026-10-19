@@ -291,22 +291,35 @@ async function resolveSourceWithLLM(topic, opts = {}) {
 }
 
 /**
- * 本番用の callLLM（OpenAI GPT-5.6 Luna）。
+ * 本番用の callLLM（最新の Luna。用途ごとに使用量を記録）。
  */
-function makeOpenAILuna() {
-  const model = process.env.LLM_SOURCE_SELECT_MODEL || 'gpt-5.6-luna';
+function makeOpenAILuna(task = 'source_select') {
+  const { resolveLunaModel, logOpenAIUsage } = require('./openai-models');
   const _sdk = require('openai');
   const OpenAI = _sdk.default || _sdk.OpenAI || _sdk;
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  let client;
+  try {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  } catch (_) {
+    throw new Error('OpenAI クライアントの初期化に失敗しました');
+  }
   return async (system, user) => {
-    const completion = await client.chat.completions.create({
-      model,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-      response_format: { type: 'json_object' },
-    });
+    const model = await resolveLunaModel();
+    let completion;
+    try {
+      completion = await client.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+        response_format: { type: 'json_object' },
+      });
+    } catch (_) {
+      // SDK の任意の例外文を、上位の警告・通知に渡さない。
+      throw new Error('OpenAI Luna の呼び出しに失敗しました');
+    }
+    logOpenAIUsage(model, task, completion.usage);
     return completion.choices && completion.choices[0]
       ? (completion.choices[0].message && completion.choices[0].message.content) || ''
       : '';

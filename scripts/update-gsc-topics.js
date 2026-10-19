@@ -298,8 +298,7 @@ async function run(options = {}) {
   let callLLM = options.callLLM;
   if (typeof callLLM !== 'function') {
     const { makeOpenAILuna } = require('./lib/llm-source-selector');
-    process.env.LLM_SOURCE_SELECT_MODEL = env.LLM_GSC_MODEL || env.LLM_SUGGEST_MODEL || 'gpt-5.6-luna';
-    callLLM = makeOpenAILuna();
+    callLLM = makeOpenAILuna('gsc');
   }
   const stats = await selectTopics({
     candidates, callLLM, topicsFile, logger, nowFn: options.nowFn,

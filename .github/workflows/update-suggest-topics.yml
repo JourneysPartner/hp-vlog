@@ -35,12 +35,13 @@ jobs:
 
       - name: Fetch suggests and select topics
         env:
+          SKIP_FETCH: ${{ inputs.skip_fetch }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LLM_SUGGEST_MODEL: ${{ vars.LLM_SUGGEST_MODEL }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
         run: |
-          ARGS=""
-          if [ "${{ github.event.inputs.skip_fetch }}" = "true" ]; then ARGS="--skip-fetch"; fi
-          node scripts/update-suggest-topics.js $ARGS
+          ARGS=()
+          if [ "$SKIP_FETCH" = "true" ]; then ARGS+=(--skip-fetch); fi
+          node scripts/update-suggest-topics.js "${ARGS[@]}"
 
       - name: Check for changes
         id: changes

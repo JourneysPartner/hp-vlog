@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const DEFAULT_PATH = path.join(__dirname, '..', '..', 'data', 'withdrawn-topics.json');
-const COMMENT = '日次生成で取り下げた題材。通常の選定では二度と選ばない。項目を消せば選定に戻る。';
+const COMMENT = '日次生成で取り下げた題材。通常の選定では二度と選ばない（generation-failed-candidate は expires_at までの一時的な除外）。項目を消せば選定に戻る。';
 
 // 追記時は既存記録を失わないよう、存在しない場合だけ空として扱う。
 function readWithdrawnTopics(file) {
@@ -43,23 +43,27 @@ function appendEntries(existing, additions) {
   return result;
 }
 
-function appendWithdrawnTopics(additions, file = DEFAULT_PATH) {
+function appendWithdrawnTopics(additions, file = DEFAULT_PATH, now = new Date()) {
   const data = readWithdrawnTopics(file);
-  const entries = appendEntries(data.entries, additions);
-  if (entries.length !== data.entries.length) {
+  const entries = appendEntries(data.entries, additions).filter(entry =>
+    entry.stage !== 'generation-failed-candidate' || !(Date.parse(entry.expires_at) <= new Date(now).getTime()));
+  if (JSON.stringify(entries) !== JSON.stringify(data.entries) || data.comment !== COMMENT) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify({ ...data, entries }, null, 2) + '\n', 'utf8');
+    fs.writeFileSync(file, JSON.stringify({ ...data, comment: COMMENT, entries }, null, 2) + '\n', 'utf8');
   }
   return entries;
 }
 
-function findWithdrawnTopic(topic, data) {
-  return entriesOf(data).find(entry => entry.topic_id === topic.slug) || null;
+function findWithdrawnTopic(topic, data, now = new Date()) {
+  // 取り下げは恒久除外、候補固有の生成失敗だけは期限到達時に選定へ戻す。
+  return entriesOf(data).find(entry => entry.stage !== 'generation-failed' && entry.topic_id === topic.slug
+    && (entry.stage !== 'generation-failed-candidate' || Date.parse(entry.expires_at) > new Date(now).getTime())) || null;
 }
 const normalizeQuery = query => String(query || '').replace(/[\s\u3000]+/g, ' ').trim().toLowerCase();
 function findWithdrawnQuery(query, data) {
   const key = normalizeQuery(query);
-  return key ? entriesOf(data).find(entry => normalizeQuery(entry.target_query) === key) || null : null;
+  // 候補固有の一時的な失敗で、同じ検索語を扱う別候補まで取り下げない。
+  return key ? entriesOf(data).find(entry => !['generation-failed', 'generation-failed-candidate'].includes(entry.stage) && normalizeQuery(entry.target_query) === key) || null : null;
 }
 
 // 取り下げるたびに保存し、途中で生成が失敗してもそこまでの記録を残す。
@@ -78,13 +82,16 @@ function createWithdrawalRecorder(options = {}) {
     record(topic, stage, detail = {}) {
       if (options.force) return null;
       const now = options.now || new Date();
+      const date = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
       const entry = {
         topic_id: topic.slug, stage,
+        ...(stage === 'generation-failed-candidate'
+          ? { expires_at: new Date(Date.parse(`${date}T00:00:00+09:00`) + 7 * 86400000).toISOString() } : {}),
         similar_to: detail.similar_to || '',
         reason: [...String(detail.reason || '')].slice(0, 200).join(''),
         url_slug: detail.url_slug || topic.url_slug || '',
         target_query: topic.target_query || '',
-        date: now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }),
+        date,
         run_url: env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
           ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}` : '',
       };
@@ -94,7 +101,7 @@ function createWithdrawalRecorder(options = {}) {
         fs.mkdirSync(path.dirname(env.WITHDRAWN_OUT), { recursive: true });
         fs.writeFileSync(env.WITHDRAWN_OUT, JSON.stringify(additions, null, 2) + '\n', 'utf8');
       } else {
-        appendWithdrawnTopics([entry], file);
+        appendWithdrawnTopics([entry], file, now);
       }
       return entry;
     },

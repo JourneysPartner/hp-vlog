@@ -18,7 +18,7 @@
  *   node scripts/triage-shitsugi-topics.js --force    # 全件を判定し直す
  *   node scripts/triage-shitsugi-topics.js --limit 30 # 最初の30件だけ（動作確認用）
  *
- * OPENAI_API_KEY が必要。モデルは LLM_TRIAGE_MODEL（既定 gpt-5.6-luna）。
+ * OPENAI_API_KEY が必要。モデルは共通の Luna 自動選択。
  * バッチごとにファイルへ書き戻すため、途中で落ちても再実行すれば続きから進む。
  */
 
@@ -119,7 +119,7 @@ async function runTriage(options = {}) {
   const candidateFile = options.candidateFile || CANDIDATE_FILE;
   const sourceRoot = options.sourceRoot || SOURCE_ROOT;
   const batchSize = options.batchSize || BATCH_SIZE;
-  const model = options.model || process.env.LLM_TRIAGE_MODEL || 'gpt-5.6-luna';
+  const model = options.model || '未指定（試験用）';
   const logger = options.logger === undefined ? console : options.logger;
   const nowFn = options.nowFn || (() => new Date().toISOString());
   const log = (msg) => { if (logger && typeof logger.log === 'function') logger.log(msg); };
@@ -193,9 +193,8 @@ async function main() {
     process.exit(1);
   }
   const { makeOpenAILuna } = require('./lib/llm-source-selector');
-  const model = process.env.LLM_TRIAGE_MODEL || 'gpt-5.6-luna';
-  process.env.LLM_SOURCE_SELECT_MODEL = model;   // makeOpenAILuna が読むモデル指定を選別用に合わせる
-  const callLLM = makeOpenAILuna();
+  const model = await require('./lib/openai-models').resolveLunaModel();
+  const callLLM = makeOpenAILuna('triage');
 
   const stats = await runTriage({ callLLM, force, limit, model });
   console.log(`[triage] 完了: 対象 ${stats.targeted} 件 / 判定 ${stats.judged} 件 ` +

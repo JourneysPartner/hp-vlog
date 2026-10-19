@@ -198,12 +198,12 @@ async function main() {
       ...(status ? { fact_check_version: 1, fact_check_status: status, fact_check_blocking: status === 'revise', fact_check_prev_recommendation: 'revise' } : {}) });
     const filename = '__fact-review-fixes-2__.md', target = path.join(ROOT, 'content/posts', filename);
     const oldRead = fs.readFileSync, oldWrite = fs.writeFileSync, oldExists = fs.existsSync;
-    const oldArgv = process.argv, oldOutput = process.env.GITHUB_OUTPUT, oldKey = process.env.OPENAI_API_KEY;
+    const oldArgv = process.argv, oldOutput = process.env.GITHUB_OUTPUT, oldKey = process.env.ANTHROPIC_API_KEY;
     let written = '', inheritance = 0;
     const oldInherit = F.inheritFactMetadata;
     try {
       delete process.env.GITHUB_OUTPUT;
-      process.env.OPENAI_API_KEY = 'テスト専用の偽認証';
+      process.env.ANTHROPIC_API_KEY = 'テスト専用の偽認証';
       process.argv = [process.execPath, 'generate-draft.js', '--regenerate', '--filename', filename, '--comment', 'タイトルを「制度の期限を確認する方法」に変更して。'];
       fs.existsSync = file => path.resolve(String(file)) === target || oldExists(file);
       fs.readFileSync = (file, ...args) => path.resolve(String(file)) === target ? original : oldRead(file, ...args);
@@ -220,7 +220,7 @@ async function main() {
       fs.readFileSync = oldRead; fs.writeFileSync = oldWrite; fs.existsSync = oldExists;
       F.inheritFactMetadata = oldInherit; process.argv = oldArgv;
       if (oldOutput === undefined) delete process.env.GITHUB_OUTPUT; else process.env.GITHUB_OUTPUT = oldOutput;
-      if (oldKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = oldKey;
+      if (oldKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = oldKey;
     }
   });
   await test('G5', '照合not_runで停止中とrejectは解除しない', () => {

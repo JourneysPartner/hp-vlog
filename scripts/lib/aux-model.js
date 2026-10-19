@@ -11,9 +11,10 @@
  *
  * 環境変数:
  *   AUX_MODEL_ENABLED   'true' で周辺作業の API 利用を許可（既定 false = 完全ルールベース）
- *   AUX_MODEL_PROVIDER  'anthropic'（既定）| 'openai' | 'rule_based'
+ *   AUX_MODEL_PROVIDER  'anthropic'（既定）| 'gateway' | 'rule_based'
  *   AUX_MODEL           モデルID（既定 claude-haiku-4-5-20251001）
- *   ANTHROPIC_API_KEY / OPENAI_API_KEY
+ *   ANTHROPIC_API_KEY
+ *   AI_GATEWAY_API_KEY
  */
 
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -40,9 +41,9 @@ function auxModel() {
 function canUseAux() {
   if (!auxEnabled()) return false;
   const p = auxProvider();
-  if (p === 'rule_based') return false;
+  if (p === 'gateway') return !!process.env.AI_GATEWAY_API_KEY;
+  if (p !== 'anthropic') return false;
   if (p === 'anthropic' && !process.env.ANTHROPIC_API_KEY) return false;
-  if (p === 'openai' && !process.env.OPENAI_API_KEY) return false;
   return true;
 }
 
@@ -50,6 +51,12 @@ function canUseAux() {
 async function callAux({ system, user, task, maxTokens = 512 }) {
   const provider = auxProvider();
   const model = auxModel();
+
+  if (provider === 'gateway') {
+    const result = await require('./gateway-model').callGateway({ model, system, user, task, maxTokens: 8000 });
+    // 考える分で上限に達した答えは、JSONが読める形でも判定に使わない。
+    return result.stopReason === 'max_tokens' ? null : result.text;
+  }
 
   if (provider === 'anthropic') {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -74,23 +81,7 @@ async function callAux({ system, user, task, maxTokens = 512 }) {
     return Array.isArray(data.content) ? data.content.map(b => b.text || '').join('') : '';
   }
 
-  // openai（任意の代替）
-  const _sdk = require('openai');
-  const OpenAI = _sdk.default || _sdk.OpenAI || _sdk;
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-5.4',  // OpenAI には Claude ID を渡さない
-    messages: [
-      ...(system ? [{ role: 'system', content: system }] : []),
-      { role: 'user', content: user },
-    ],
-    max_completion_tokens: maxTokens,
-  });
-  const u = completion.usage || {};
-  console.log(`[aux-model] provider=openai model=${process.env.OPENAI_MODEL || 'gpt-5.4'} task=${task} ` +
-    `usage(in=${u.prompt_tokens ?? '?'} out=${u.completion_tokens ?? '?'})`);
-  const choice = completion.choices && completion.choices[0];
-  return (choice && choice.message && choice.message.content) || '';
+  throw new Error('未対応の周辺作業提供元です');
 }
 
 /**
@@ -101,7 +92,10 @@ async function generateAux({ system, user, task, maxTokens }) {
   try {
     return await callAux({ system, user, task, maxTokens });
   } catch (e) {
-    console.warn(`[aux-model] task=${task} 失敗（${e.message}）→ ルールベース fallback`);
+    // 任意の例外文や応答本文は出さず、状態番号だけを固定文で残す。
+    const status = e?.status || Number(String(e?.message || '').match(/^Anthropic\(aux\) (\d{3}):/)?.[1]);
+    const diagnostic = Number.isInteger(status) && status >= 100 && status <= 599 ? ` HTTP ${status}` : '';
+    console.warn(`[aux-model] task=${task} 失敗${diagnostic} → ルールベース fallback`);
     return null;
   }
 }

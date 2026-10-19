@@ -25,7 +25,7 @@ const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent 
 const { classifyRevision } = require('./lib/revision-classifier');
 const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
-const { buildReplacementOutlineBlock, formatReplacementFrontmatter } = require('./lib/replaces');
+const { buildReplacementOutlineBlock, formatReplacementFrontmatter, normalizeReplacementSlugs } = require('./lib/replaces');
 const contentModel = require('./lib/content-model');
 const auxModel = require('./lib/aux-model');
 const { normalizeGeneratedDraft, checkLlmTitle, isPlaceholderTitle, clearPlaceholderTitleWarning } = require('./lib/draft-normalizer');
@@ -149,7 +149,7 @@ async function enrichTaxTerms(topic) {
   if (process.env.DISABLE_TAX_TERMS === 'true') return;
   try {
     const { resolveTaxTerms } = require('./lib/tax-terms');
-    const terms = await resolveTaxTerms(topic, ({ system, user }) => callSimpleOpenAI({ system, user }, 256));
+    const terms = await resolveTaxTerms(topic, async ({ system, user }) => (await callSimpleOpenAI({ system, user }, 256)).text);
     if (terms.length > 0) {
       topic.tax_terms = terms.join(' ');
       console.log(`[source] 税務の論点語: ${terms.join(' / ')}`);
@@ -226,10 +226,6 @@ function ensureSourceOnTopic(topic) {
   topic.source_confidence = source.confidence;
   return topic;
 }
-
-// ── モデル定義（OpenAI GPT-5.4） ───────────────────────────────
-const MODEL_STANDARD = process.env.OPENAI_MODEL || 'gpt-5.4';
-const MODEL_HIGH     = process.env.OPENAI_MODEL_HIGH || 'gpt-5.4';
 
 // ── ペルソナ定義 ─────────────────────────────────────────────────
 const PERSONAS = [
@@ -598,29 +594,7 @@ const RELATED_LINK_TEXTS = {
   case_study:          '具体的な事例で確認するにはこちら',
 };
 
-// ── モデル選択ロジック ──────────────────────────────────────────
-function resolveModel(topic) {
-  const args = process.argv.slice(2);
 
-  if (args.includes('--high-quality')) {
-    return { model: MODEL_HIGH, reason: '--high-quality フラグ' };
-  }
-
-  const modelIdx = args.indexOf('--model');
-  if (modelIdx !== -1 && args[modelIdx + 1]) {
-    return { model: args[modelIdx + 1], reason: `--model フラグ` };
-  }
-
-  if (process.env.OPENAI_MODEL) {
-    return { model: process.env.OPENAI_MODEL, reason: '環境変数 OPENAI_MODEL' };
-  }
-
-  if (topic.quality === 'high') {
-    return { model: MODEL_HIGH, reason: `テーマ quality=high（自動判定）` };
-  }
-
-  return { model: MODEL_STANDARD, reason: 'デフォルト' };
-}
 
 // ── 既存記事のスラグ一覧を取得 ──────────────────────────────────
 function getExistingSlugs() {
@@ -697,69 +671,68 @@ async function pickPair(dateStr, draftCount = resolveDraftCount(), options = {})
     return [];
   }
 
-  // AI重複判定（Haiku による意味的重複チェック）
-  const { readAllPostsSorted } = require('./lib/site-corpus');
-  const { checkDuplicatesWithAI } = require('./lib/ai-dedup');
-  const corpus = options.corpus || readAllPostsSorted().concat(pendingDrafts.filter(p => p && p.slug));
-  const checkAI = options.checkAI || checkDuplicatesWithAI;
-  const aiResult = await checkAI(picks, corpus);
-  if (!aiResult.skipped) {
-    const blocked = aiResult.results.filter(r => r.duplicate);
-    if (blocked.length > 0) {
-      for (const b of blocked) {
-        console.warn(`[generate] AI重複判定: ${b.slug} → 重複(${b.similar_to}): ${b.reason}`);
-        const topic = picks.find(p => p.slug === b.slug);
-        if (topic) options.recorder?.record(topic, 'select-dedup', b);
-      }
-      const blockedSlugs = new Set(blocked.map(b => b.slug));
-      let filtered = picks.filter(p => !blockedSlugs.has(p.slug));
-      console.log(`[generate] AI重複判定で ${picks.length - filtered.length} 件除外 → 残り ${filtered.length} 件`);
-
-      // 重複除外で指定本数を下回った場合、代替候補を補充する（1回のみ）
-      if (filtered.length < draftCount) {
-        const usedSlugs = new Set([...blockedSlugs, ...filtered.map(p => p.slug)]);
-        const pool = topics.filter(t => !usedSlugs.has(t.slug));
-        if (pool.length > 0) {
-          const { picks: repicks } = select(pool, {
-            now: new Date(), extraCorpus: pendingDrafts, count: draftCount, withdrawn: options.recorder?.entries,
-          });
-          // 既に選ばれている需要の証拠と同じ種類は補充しない（1日1件の上限を保つ）
-          const pickedKinds = new Set(filtered.map(demandKindOf).filter(Boolean));
-          const candidates = repicks.filter(r => (
-            !usedSlugs.has(r.slug) && !(demandKindOf(r) && pickedKinds.has(demandKindOf(r)))
-          ));
-          if (candidates.length > 0) {
-            const needed = draftCount - filtered.length;
-            const additions = candidates.slice(0, needed);
-            const recheck = await checkAI(additions, corpus);
-            const reBlocked = new Set(
-              (!recheck.skipped ? recheck.results.filter(r => r.duplicate).map(r => r.slug) : [])
-            );
-            for (const a of additions) {
-              if (reBlocked.has(a.slug)) {
-                const detail = recheck.results.find(r => r.slug === a.slug);
-                options.recorder?.record(a, 'select-dedup', detail);
-                console.log(`[generate] 補充候補も重複: ${a.slug} → スキップ`);
-              } else {
-                filtered.push(a);
-                console.log(`[generate] 補充: ${a.slug} (${a.article_role || 'unknown'})`);
-              }
-            }
-          }
-        }
-        if (filtered.length < picks.length) {
-          console.log(`[generate] 補充後: ${filtered.length} 件`);
-        }
-      }
-
-      return filtered;
-    }
-    console.log('[generate] AI重複判定: 重複なし');
-  } else {
-    console.log('[generate] AI重複判定: スキップ（aux未有効 or エラー）');
-  }
-
   return picks;
+}
+
+const DEDUP_WARNING = '重複確認を実施できませんでした（AI の応答を得られず）';
+async function checkPregenDuplicate(topic, corpus, check) {
+  const replacements = normalizeReplacementSlugs(topic.replaces);
+  const comparison = corpus.filter(p => p && p.slug && !replacements.includes(p.slug));
+  let result;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try { result = await check([topic], comparison); }
+    catch (_) { result = { results: [], skipped: true }; }
+    if (!result.skipped || result.disabled) break;
+    if (attempt === 0) console.warn('[generate] 生成前の重複確認に失敗 → 1 回だけ再試行します');
+  }
+  // 同じ候補オブジェクトを再利用しても、前回の警告を引き継がない。
+  topic.__dedupWarning = result.skipped && !result.disabled ? DEDUP_WARNING : '';
+  const duplicate = !result.skipped && result.results.find(r =>
+    (result.results.length === 1 || [topic.slug, topic.url_slug].filter(Boolean).includes(r.slug))
+    && r.duplicate && !replacements.includes(r.similar_to));
+  return { ...result, duplicate };
+}
+
+// 検索語・URL が確定した候補を確認する。失敗時だけ一度再試行する。
+async function checkPreparedDuplicates(topics, options = {}) {
+  const corpus = options.corpus || require('./lib/site-corpus').readAllPostsSorted().concat(loadPendingDraftCorpus());
+  const check = options.checkAI || require('./lib/ai-dedup').checkDuplicatesWithAI;
+  const ready = [];
+  for (const topic of topics) {
+    const { duplicate } = await checkPregenDuplicate(topic, corpus, check);
+    if (duplicate) {
+      const why = `生成前に重複: ${topic.slug}（相手 ${duplicate.similar_to || '不明'}）`;
+      console.warn(`[generate] ${why}`);
+      lastSelectionWarnings.push(why);
+      options.recorder?.record(topic, 'pregen-dedup', duplicate);
+    } else ready.push(topic);
+  }
+  return ready;
+}
+
+// 2 本モードは従来どおり補充を一度だけ行う。AI 判定は各候補の検索語確定後だけ。
+async function preparePairCandidates(picks, draftCount, options = {}) {
+  const context = options.context || createQueryContext();
+  const common = { ...options, context, checkWithdrawnQuery: true };
+  const prepare = async topics => {
+    await prepareSources(topics, common);
+    return checkPreparedDuplicates(await prepareQueries(topics, common), common);
+  };
+  const ready = await prepare(picks);
+  if (options.force || ready.length >= draftCount) return ready;
+  const env = options.env || process.env;
+  const remaining = resolvePositiveLimit(env.DRAFT_MAX_CANDIDATES, 5) - picks.length;
+  if (remaining <= 0) return ready;
+  const used = new Set(picks.map(t => t.slug));
+  const kinds = new Set(ready.map(demandKindOf).filter(Boolean));
+  const pool = (options.topics || TOPICS).filter(t => !used.has(t.slug));
+  const { picks: additions } = (options.select || selectDailyTopics)(pool, {
+    now: options.now || new Date(), count: draftCount, extraCorpus: options.pendingDrafts || loadPendingDraftCorpus(),
+    withdrawn: options.recorder?.entries,
+  });
+  const candidates = additions.filter(t => !used.has(t.slug) && !(demandKindOf(t) && kinds.has(demandKindOf(t))))
+    .slice(0, Math.min(draftCount - ready.length, remaining));
+  return ready.concat(await prepare(candidates));
 }
 
 // ── 生成後の重複判定 ─────────────────────────────────────────
@@ -1004,11 +977,11 @@ function extractText(completion) {
   return '';
 }
 
-// ── 本文生成（content-model 経由。Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）────
+// ── 本文生成（content-model 経由。CONTENT_MODEL / 失敗時は呼び出し元へ返す）────
 // strictFormat=true で「---開始・コードブロック禁止・h2 3個以上」を強く指示する。
 // shortfall={produced,min} を渡すと「前回は短すぎた」旨と増量方針を追加指示する
 // （本文長の下限割れリトライ用）。
-async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, shortfall) {
+async function generateWithContentModel(dateStr, topic, pairedTopic, strictFormat, shortfall) {
   const now     = new Date().toISOString();
   const persona = getPersonaForTopic(topic);
   const cta     = CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。';
@@ -1071,6 +1044,7 @@ async function generateWithOpenAI(dateStr, topic, pairedTopic, strictFormat, sho
   // 主出典＋参考1件の全文を渡し、記憶ではなく本文を根拠にさせる。
   const materialBundle = sourceUnconfirmed ? null : materials.buildMaterialsBundle(topic, ntaRefs);
   const sourceBodyBlock = materialBundle ? materialBundle.sourceBody : '';
+  topic.__rule_source_titles = (materialBundle?.pages?.sources || []).map(s => s.title).join(' ');
   if (sourceBodyBlock) {
     // 【主出典】/【参考】の行をそのまま出す。以前は No.4桁 だけ拾っていたため、
     // 質疑応答事例が主出典のときは参考のタックスアンサーしか表示されなかった。
@@ -1410,7 +1384,7 @@ updated_at: "${now}"
 （Markdown本文 ${wordCount}）`;
 
   // 本文生成は content-model 経由（CONTENT_MODEL_PROVIDER=anthropic なら
-  // Claude Sonnet 4.6 + prompt caching、失敗時は OpenAI gpt-5.4 に fallback）。
+  // CONTENT_MODEL + prompt caching、失敗時は呼び出し元へ返す）。
   // 固定ルールは article-prompt-static の STATIC_RULES（キャッシュ対象）に集約。
   // userPrompt/systemPrompt の従来文面はフォールバック互換のため温存しつつ、
   // builder の中間表現を主経路にする。
@@ -1424,17 +1398,19 @@ updated_at: "${now}"
     replacementOutlineBlock,
     sourceFigures,
   });
-  // 出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
+  // Gatewayの出力枠はcontent-model側で固定し、字数からの見積もりを使わない。
+  // Anthropicの出力枠は「受入上限の文字数に相当するトークン数」に固定する（記事タイプ別）。
   // プロンプトでの字数指示は努力目標で超過を防ぎきれないが、max_tokens は
-  // API 側の物理制約なので、ここを絞れば受入上限を絶対に超えられない。
+  // 途中切れを防ぐため、受入上限の 1.15 倍まで収まる枠を確保する。
   // 実測 0.874 token/文字（2026-08-15, Claude Sonnet 4.6, 日本語）。
-  const maxTokens = maxTokensFor({
+  const maxTokens = contentModel.resolveProvider() === 'gateway' ? undefined : maxTokensFor({
     articleType, intentType: topic.intent_type, articleRole,
   });
   const result = await contentModel.generateContent(promptIR, { maxTokens });
+  assertCompleteBody(result);
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
-  // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
+  // 出力上限に達した本文は、後処理や免責文の補完へ渡さない。
   return {
     raw: result.text || '',
     provider: result.provider,
@@ -1487,6 +1463,18 @@ function rawHasDisclaimer(raw) {
 //
 // 記事を捨てるのではなく、不足していたルールと参考資料を渡して直させる。
 async function applyMissingRulesToBody(content, topic, articleType, intentType) {
+  if (process.env.RULE_FIX_MODE === 'rewrite' && process.env.RULE_POSTFIX !== 'off') {
+    return rewriteMissingRulesToBody(content, topic, articleType, intentType);
+  }
+  const { body } = parseFrontmatter(content);
+  const result = await require('./lib/body-patches').postfixRules(body, {
+    topic, articleType, intentType,
+    cta: CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。',
+  });
+  return { ...result, content: result.applied ? rebuildWithBody(content, result.body) : content };
+}
+
+async function rewriteMissingRulesToBody(content, topic, articleType, intentType) {
   const { meta, body } = parseFrontmatter(content);
   const missingRules = findUnappliedRules(topic, body);
   const missingRefs  = findUnappliedReferencePages(topic, body);
@@ -1559,8 +1547,9 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
   const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${provisionBlock}${rulesBlock}`);
   let revised;
   try {
-    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
+    revised = postProcessBodyOnly((await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000, { kind: 'body' })).text);
   } catch (e) {
+    if (e.contentBodyTruncated) throw e;
     console.warn(`[rules] ⚠ ルール反映の再生成に失敗（${e.message}）→ 元の本文を維持します`);
     return { content, applied: false, failed: true, names };
   }
@@ -1606,8 +1595,8 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
 // 1. 本文生成（content-model）
 // 2. normalizeGeneratedDraft で frontmatter をシステム側から再構築
 // 3. 本文 h2 が0個など形式異常なら、strictFormat で1回だけ再生成
-// 4. 本文が記事タイプの下限を大きく割っていたら、増量指示つきで1回だけ再生成
-// 5. それでも満たさなければ、より長い方を採用し review_comment に警告を残す
+// 4. 超過は段落の短縮を一度だけ行い、不足は警告する（切り戻し変数あり）
+// 5. ルールの部分修正後も字数・完結性を点検し、必要な警告を残す
 // ── タイトルが確定できなかったときに、本文からタイトルだけ作り直す ─────
 // 2026-08-25: モデルがタイトルを出せず「[要レビュー] {slug}」の仮置きのまま
 // 下書きが出来た。本文は6,807文字あり完成していたので、タイトルだけ引き直せば済む。
@@ -1638,7 +1627,7 @@ async function retryTitleOnce(body, topic) {
     lead,
   ].join('\n');
 
-  const raw = (await callSimpleOpenAI({ system, user }, 200) || '').trim();
+  const raw = (await callSimpleOpenAI({ system, user }, 200)).text;
   const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
   const check = checkLlmTitle(candidate, { macro: topic.macro, article_type: topic.article_type });
   if (!check.ok) {
@@ -1670,21 +1659,22 @@ async function retrySummaryOnce(body, topic, currentSummary) {
     '# 本文の冒頭',
     lead,
   ].join('\n');
-  const raw = (await callSimpleOpenAI({ system, user }, 250) || '').trim();
+  const raw = (await callSimpleOpenAI({ system, user }, 250)).text;
   const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
   return isUsableSummary(candidate) ? candidate : null;
 }
 
 async function generateArticle(dateStr, topic, pairedTopic) {
   const now = new Date().toISOString();
-  let gen = await generateWithOpenAI(dateStr, topic, pairedTopic, false);
+  let gen = await generateWithContentModel(dateStr, topic, pairedTopic, false);
   let normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, { now, pairedTopic });
 
   if (normalized.bodyH2Count === 0) {
     console.warn(`[generate] 本文に h2 見出しが0個（形式異常の可能性）→ strictFormat で1回再生成`);
     try {
-      gen = await generateWithOpenAI(dateStr, topic, pairedTopic, true);
-      const retryNorm = normalizeGeneratedDraft(postProcess(gen.raw), topic, { now, pairedTopic });
+      const retryGen = await generateWithContentModel(dateStr, topic, pairedTopic, true);
+      const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
+      gen = retryGen;
       if (retryNorm.bodyH2Count > 0) {
         normalized = retryNorm;
         console.log('[generate] 再生成で h2 見出しを確保しました');
@@ -1697,13 +1687,14 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     }
   }
 
-  // ── 本文長チェック（レンジ外なら1回だけ再生成）────────────────
+  // ── 本文長チェック（旧動作は明示した場合だけ）────────────────
   // プロンプトの指示値は受入基準を LENGTH_OVERSHOOT で割った値
   // （article-prompt-static.js のキャリブレーション）。それでもレンジを
-  // 外れることがあるため、不足/超過を具体的な字数で伝えて1回引き直す。
+  // 外れた場合、既定は超過の短縮だけ。不足の増量・全文再生成は明示時だけ。
   const articleTypeForLen = topic.article_type || 'basic_explainer';
   let lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
-  if (!lenCheck.ok) {
+  if (!lenCheck.ok && ((lenCheck.tooLong && process.env.LENGTH_FIX_MODE === 'regenerate')
+    || (lenCheck.tooShort && process.env.LENGTH_RETRY_SHORT === 'true'))) {
     const dir = lenCheck.tooShort ? '短い' : '長い';
     const bound = lenCheck.tooShort
       ? `下限 ${lenCheck.min} 文字`
@@ -1716,7 +1707,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       const hint = lenCheck.tooShort
         ? { produced: lenCheck.produced, min: lenCheck.min }
         : { produced: lenCheck.produced, max: lenCheck.max };
-      const retryGen = await generateWithOpenAI(dateStr, topic, pairedTopic, false, hint);
+      const retryGen = await generateWithContentModel(dateStr, topic, pairedTopic, false, hint);
       const retryNorm = normalizeGeneratedDraft(postProcess(retryGen.raw), topic, { now, pairedTopic });
       const retryLen = checkBodyLength(retryNorm.content, articleTypeForLen, topic.intent_type);
       // 意図と逆方向に動いた結果は採用しない（短くしたいのに伸びた等）。
@@ -1742,6 +1733,18 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     }
   }
 
+  if (lenCheck.tooLong && process.env.LENGTH_FIX_MODE !== 'regenerate') {
+    const { body } = parseFrontmatter(normalized.content);
+    const shortened = await require('./lib/body-patches').shortenBody(body, {
+      topic, articleType: articleTypeForLen, intentType: topic.intent_type,
+      cta: CTA_MAP[topic.persona] || 'ご不明な点がございましたらお気軽にご相談ください。',
+    });
+    if (shortened) {
+      normalized = { ...normalized, content: rebuildWithBody(normalized.content, shortened), body: shortened };
+      lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
+    }
+  }
+
   // ── タイトルが仮置きに落ちていたら、本文から1回だけ作り直す ──────
   // 仮置き（[要レビュー] {slug}）のまま出すと、レビュー画面に slug が並び、
   // 承認もできない。本文は出来ているので、タイトルだけ引き直せば救える。
@@ -1750,7 +1753,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
     try {
       const retitled = await retryTitleOnce(normalized.body, topic);
       if (retitled) {
-        const renorm = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+        const renorm = normalizeGeneratedDraft(normalized.content, topic, {
           now, pairedTopic, titleOverride: retitled,
         });
         if (!isPlaceholderTitle(renorm.title)) {
@@ -1788,7 +1791,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
           const after = retriedSeo.fails.filter(code => code.startsWith('title_')).length;
           const titleCheck = checkLlmTitle(retitled, { macro: topic.macro, article_type: topic.article_type });
           if (titleCheck.ok && after < before) {
-            normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+            normalized = normalizeGeneratedDraft(normalized.content, topic, {
               now, pairedTopic, titleOverride: retitled, summaryOverride: normalized.summary,
             });
             seo = lintSeo({
@@ -1814,7 +1817,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
           const before = seo.fails.filter(code => code.startsWith('summary_')).length;
           const after = retriedSeo.fails.filter(code => code.startsWith('summary_')).length;
           if (after < before) {
-            normalized = normalizeGeneratedDraft(postProcess(gen.raw), topic, {
+            normalized = normalizeGeneratedDraft(normalized.content, topic, {
               now, pairedTopic, titleOverride: normalized.title, summaryOverride: resummary,
             });
             seo = lintSeo({
@@ -1844,9 +1847,10 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   try {
     ruleFix = await applyMissingRulesToBody(normalized.content, topic, articleTypeForLen, topic.intent_type);
     if (ruleFix.applied) {
-      normalized = { ...normalized, content: ruleFix.content };
+      normalized = { ...normalized, content: ruleFix.content, body: parseFrontmatter(ruleFix.content).body };
     }
   } catch (e) {
+    if (e.contentBodyTruncated) throw e;
     console.warn(`[rules] ⚠ ルール反映の判定に失敗（${e.message}）→ そのまま続行します`);
   }
 
@@ -1872,6 +1876,12 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   const rawTailCheck = checkBodyTailComplete(gen.raw);
 
   let content = normalized.content;
+  if (ruleFix.applied && ruleFix.warning) {
+    const { meta } = parseFrontmatter(content);
+    content = factCheck.updateMeta(content, {
+      review_warning: [meta.review_warning, ruleFix.warning].filter(Boolean).join(' / '),
+    });
+  }
   // ルール反映で本文長が変わっている可能性があるため測り直す。
   if (ruleFix.applied) lenCheck = checkBodyLength(normalized.content, articleTypeForLen, topic.intent_type);
 
@@ -1881,8 +1891,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   // 記事は捨てず、警告つきでレビューに回す。
   if (ruleFix.failed) {
     warnings.push(
-      `⚠ 本文に企画外の論点（${ruleFix.names}）があり、対応する最新ルールを自動反映できませんでした`
-      + ' — 該当箇所が現行制度に合っているか確認してください',
+      `⚠ ${ruleFix.warning || `論点別ルールが未反映: ${ruleFix.names}（該当箇所が現行の制度に合うか確認してください）`}`,
     );
   }
   if (ruleFix.applied) {
@@ -2057,7 +2066,7 @@ ${rules.join(RULE_SEP)}`
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
-async function regenerateWithOpenAI(existingContent, comment, modelId) {
+async function regenerateWithContentModel(existingContent, comment) {
   // 注: 実際の呼び出しは下部の contentModel.generateSimple に移行済み。
   // createOpenAIClient() は使わない（provider 設定を無視して OpenAI 直叩きになる）。
   const { meta, body: existingBody } = parseFrontmatter(existingContent);
@@ -2076,7 +2085,7 @@ async function regenerateWithOpenAI(existingContent, comment, modelId) {
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
-  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
+  const wordCount = wordCountGuideFor({ articleType, intentType: meta.intent_type, articleRole });
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
 
@@ -2199,7 +2208,7 @@ updated_at: "${now}"
 
 （改善した Markdown 本文 ${wordCount}）`;
 
-  // full_regenerate も content-model 経由（Sonnet 4.6 / 失敗時 OpenAI gpt-5.4）。
+  // full_regenerate も content-model 経由。失敗時は呼び出し元へ返す。
   // 差し戻し再生成は per-article 指示が多いため cache 効果は限定的だが provider 統一のため使用。
   // 本文長は生成時と同じレンジなので出力枠も同じ式で揃える
   // （差し戻し再生成だけ上限を超えられる、という抜け穴を作らない）。
@@ -2207,12 +2216,12 @@ updated_at: "${now}"
   // 出力枠: 元本文を全文渡すようになったため、入力が長くなっても出力枠は
   // 受入上限どおり確保する。ここを絞ると本文が途中で切れる。
   const regenResult = await contentModel.generateSimple(
-    { system: systemPrompt, user: userPrompt, figures: regenFigures }, { maxTokens: maxTokensFor(articleType) });
+    { system: systemPrompt, user: userPrompt, figures: regenFigures }, { maxTokens: maxTokensFor(articleType), kind: 'body' });
+  assertCompleteBody(regenResult);
   const raw = regenResult.text || '';
   if (regenResult.usage) {
     const u = regenResult.usage;
-    // 実際に応答した provider/model を出す。以前は呼び出し前に OPENAI_MODEL の名前を
-    // 表示していて、Claude で生成していても「gpt-5.4」と見えた（2026-09-06 に誤解を招いた）。
+    // 実際に応答した provider/model を記録する。
     console.log(`[regenerate] full: provider=${regenResult.provider} model=${regenResult.model} ` +
       `入力 ${u.input_tokens ?? u.prompt_tokens ?? '?'} / 出力 ${u.output_tokens ?? u.completion_tokens ?? '?'} token`);
   }
@@ -2234,10 +2243,33 @@ function logRawOutput(label, raw) {
 
 // ── シンプルな system/user プロンプトでモデルを呼ぶ（部分再生成用）──
 // 本文に直結する部分修正（section / targeted / title_only）は品質維持のため
-// content-model（本文 provider = Sonnet 4.6、失敗時 OpenAI gpt-5.4 fallback）を使う。
-async function callSimpleOpenAI({ system, user, figures }, maxTokens) {
-  const result = await contentModel.generateSimple({ system, user, figures }, { maxTokens });
-  return (result.text || '').trim();
+// content-model（本文 provider = Sonnet 4.6、失敗時は呼び出し元へ返す fallback）を使う。
+function assertCompleteBody(result) {
+  if (['max_tokens', 'length'].includes(result.stopReason)) {
+    const error = new Error('本文が出力上限で途切れたため生成を中止しました');
+    error.contentBodyTruncated = true;
+    error.contentCandidateFailed = true;
+    error.diagnostic = '出力上限で途切れ';
+    throw error;
+  }
+  if (!result.text?.trim() || ['refusal', 'content_filter'].includes(result.stopReason)) {
+    const error = new Error('本文生成モデルの応答を読み取れません');
+    error.contentCandidateFailed = true;
+    error.diagnostic = '応答を読み取れない';
+    throw error;
+  }
+}
+
+function requireContentCredentials() {
+  const keyName = contentModel.resolveProvider() === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'ANTHROPIC_API_KEY';
+  if (!process.env[keyName]) throw new Error(`${keyName} が必要です`);
+  return keyName;
+}
+
+async function callSimpleOpenAI({ system, user, figures }, maxTokens, options = {}) {
+  const result = await contentModel.generateSimple({ system, user, figures }, { maxTokens, ...options });
+  if (options.kind === 'body') assertCompleteBody(result);
+  return { ...result, text: (result.text || '').trim() };
 }
 
 // ── 部分再生成: title_only（本文を保持し title/summary だけ更新）──
@@ -2291,7 +2323,7 @@ async function regenerateTitleOnly(existingContent, comment) {
 
   // ③ 明示指定が無ければ LLM に整文してもらう（既存ロジック）。
   const { system, user } = partial.buildTitleOnlyPrompt(meta, comment);
-  const raw = await callSimpleOpenAI({ system, user }, 512);
+  const { text: raw } = await callSimpleOpenAI({ system, user }, 512);
   // JSON 抽出
   let title = meta.title, summary = meta.summary;
   try {
@@ -2355,7 +2387,7 @@ async function regenerateSection(existingContent, comment, classification, { pre
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification, srcBlock);
     // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
-    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
+    const newSection = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -2374,7 +2406,7 @@ async function regenerateSection(existingContent, comment, classification, { pre
     return regenerateTargeted(existingContent, comment, { preserveTitle: preserveTitle || Boolean(classification && classification.preserveTitle) });
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
-  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
+  const revisedRaw = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -2414,7 +2446,7 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
   const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
   existingContent = recordMaterialMetadata(existingContent, meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
-  let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000);
+  let { text: raw } = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000, { kind: 'body' });
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
@@ -2425,7 +2457,7 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
-    raw = await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000);
+    raw = (await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000, { kind: 'body' })).text;
     revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted リトライ');
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
@@ -2467,7 +2499,7 @@ async function maybeUpdateTitleForTargeted(content, comment, origMeta) {
   if (!titleRelevant && !summaryRelevant) return content;
 
   const { body, meta } = parseFrontmatter(content);
-  const raw = await callSimpleOpenAI({
+  const { text: raw } = await callSimpleOpenAI({
     system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントを踏まえて、記事のタイトルと要約（summary）を修正してください。JSON形式で返してください。',
     user: `差し戻しコメントの指摘を踏まえ、以下の記事のタイトルと要約を修正してください。
 JSON形式で {"title":"修正後タイトル","summary":"修正後要約（120文字以内）"} だけを返してください。
@@ -2690,6 +2722,8 @@ async function runSingleDraft(dateStr, options = {}) {
   const attempts = [];
   let generations = 0;
   let ending = '';
+  let stopForApiFailure = false;
+  let previousFailureStatus;
   let selectionWarnings = [];
   const finishAttempt = (topic, result) => {
     attempts.push(`${tried.size}) ${topic.slug} → ${result}`);
@@ -2706,42 +2740,62 @@ async function runSingleDraft(dateStr, options = {}) {
     const topic = picks[0];
     if (!topic) { ending = '候補が尽きたため本日は生成しません'; break; }
     tried.add(topic.slug);
-    const ai = await checkAI([topic], corpus);
-    const duplicate = !ai.skipped && ai.results.find(result => result.slug === topic.slug && result.duplicate);
-    if (duplicate) {
-      console.warn(`[generate] AI重複判定: ${topic.slug} → 重複(${duplicate.similar_to}): ${duplicate.reason}`);
-      console.log('[generate] AI重複判定で 1 件除外 → 残り 0 件');
-      recorder.record(topic, 'select-dedup', duplicate);
-      finishAttempt(topic, `選定時に重複（相手 ${duplicate.similar_to || '不明'}）`);
-      continue;
-    }
-    console.log(ai.skipped ? '[generate] AI重複判定: スキップ（aux未有効 or エラー）' : '[generate] AI重複判定: 重複なし');
     await prepareSources([topic], options);
     const before = recorder.additions.length;
     const ready = await prepareQueries([topic], { ...options, context, recorder, checkWithdrawnQuery: true });
     if (!ready.length) {
+      previousFailureStatus = undefined;
       const entry = recorder.additions[before];
       finishAttempt(topic, entry ? `${entry.stage}（${entry.reason}）` : '検索語・URL slug の判定で取り下げ');
       continue;
     }
+    const ai = await checkPregenDuplicate(topic, corpus, checkAI);
+    const duplicate = ai.duplicate;
+    if (duplicate) {
+      previousFailureStatus = undefined;
+      console.warn(`[generate] AI重複判定: ${topic.slug} → 重複(${duplicate.similar_to}): ${duplicate.reason}`);
+      console.log('[generate] AI重複判定で 1 件除外 → 残り 0 件');
+      recorder.record(topic, 'pregen-dedup', duplicate);
+      finishAttempt(topic, `生成前に重複（相手 ${duplicate.similar_to || '不明'}）`);
+      continue;
+    }
+    console.log(ai.skipped ? '[generate] AI重複判定: スキップ（aux未有効 or エラー）' : '[generate] AI重複判定: 重複なし');
     if (generations >= maxGenerations) {
       finishAttempt(topic, '本文生成の上限のため本文を作成せず');
       ending = `本文生成の上限 ${maxGenerations} 回に達したため本日は生成しません`;
       break;
     }
     // 既存 generateArticle を呼ぶ候補の数を数える。
-    // 関数内の形式・文字数補正の再生成は従来の処理を保つ。
+    // 段落の短縮・部分修正は候補の生成回数に重複して数えない。
     generations++;
-    const results = await generateTopics(ready, dateStr, { ...options, recorder });
+    let generationFailure;
+    const results = await generateTopics(ready, dateStr, { ...options, recorder,
+      onGenerationFailure: failure => {
+        generationFailure = failure;
+        if (failure.status && failure.status === previousFailureStatus) failure.apiFailure = true;
+        previousFailureStatus = failure.status;
+      } });
     if (results.length) {
       finishAttempt(topic, '下書き 1 本を確定');
       return { results, attempts, generations, reason: '', candidates: tried.size };
     }
+    if (generationFailure) {
+      finishAttempt(topic, generationFailure.reason);
+      if (generationFailure.apiFailure) {
+        stopForApiFailure = true;
+        ending = '本文生成モデルの呼び出しに失敗したため本日は生成しません';
+        break;
+      }
+      continue;
+    }
+    previousFailureStatus = undefined;
     const entry = recorder.additions[before];
     finishAttempt(topic, `生成後に重複（相手 ${entry?.similar_to || '不明'}）`);
   }
   if (!ending) ending = `候補の確認上限 ${maxCandidates} 件に達したため本日は生成しません`;
-  const reason = [...[...attempts, ...selectionWarnings, ending].join(' / ').replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
+  // 先行候補の理由が長くても、API失敗の診断を通知の600文字に必ず残す。
+  const reportAttempts = stopForApiFailure ? [attempts.at(-1), ...attempts.slice(0, -1)] : attempts;
+  const reason = [...[...reportAttempts, ...selectionWarnings, ending].join(' / ').replace(/[\r\n]+/g, ' ').trim()].slice(0, 600).join('');
   return { results: [], attempts, generations, reason, candidates: tried.size };
 }
 
@@ -2838,7 +2892,7 @@ async function prepareQueries(pair, options = {}) {
     topic.topic_id = topic.slug;
     const resolved = await (options.resolveQuery || resolveTargetQuery)(
       topic,
-      ({ system, user }) => callSimpleOpenAI({ system, user }, 600),
+      async ({ system, user }) => (await callSimpleOpenAI({ system, user }, 600)).text,
       { ...queryInputs, existingSlugs: takenUrlSlugs },
     );
     topic.target_query = resolved ? resolved.target_query : '';
@@ -2912,9 +2966,18 @@ async function generateTopics(pair, dateStr, options = {}) {
   // 本文生成 provider/model の表示（content-model の解決結果）
   const contentProvider = contentModel.resolveProvider();
   const contentModelId  = contentModel.resolveModel(contentProvider);
-  const hasContentKey = contentProvider === 'anthropic'
-    ? !!process.env.ANTHROPIC_API_KEY
-    : !!process.env.OPENAI_API_KEY;
+  const contentKeyName = contentProvider === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'ANTHROPIC_API_KEY';
+  const hasContentKey = !!process.env[contentKeyName];
+  const generationFailed = (err, apiFailure) => {
+    const diagnostic = err.diagnostic || contentModel.safeDiagnostic(err);
+    const reason = `${apiFailure ? '本文生成モデルの呼び出しに失敗' : '本文生成に失敗'}（${diagnostic}）`;
+    console.warn(`[generate] ${reason}`);
+    lastSelectionWarnings.push(reason);
+    const failure = { apiFailure, reason, status: err.status };
+    options.onGenerationFailure?.(failure);
+    return failure;
+  };
+  let previousFailureStatus;
 
   for (let i = 0; i < pair.length; i++) {
     const topic = pair[i];
@@ -2926,7 +2989,7 @@ async function generateTopics(pair, dateStr, options = {}) {
     console.log(`[generate] slug: ${topic.url_slug || topic.slug} / topic_id: ${topic.slug}${topic.title ? ` / 参考タイトル: ${topic.title}` : ''}`);
     console.log(`[generate] ペルソナ: ${topic.persona} / カテゴリ: ${topic.category}`);
     console.log(`[generate] タイプ: ${topic.article_type || 'basic_explainer'} / ペアグループ: ${topic.pair_group || 'なし'}`);
-    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentModel.useCache()}`);
+    console.log(`[generate] 本文生成: content-model 経由 provider=${contentProvider} model=${contentModelId} cache=${contentProvider === 'anthropic' && contentModel.useCache()}`);
     if (pairedTopic) {
       console.log(`[generate] ペア記事: ${pairedTopic.title}`);
     }
@@ -2938,24 +3001,31 @@ async function generateTopics(pair, dateStr, options = {}) {
 
     let content, usedModel = contentModelId;
 
-    if (options.generateArticle || hasContentKey || process.env.OPENAI_API_KEY) {
+    if (options.generateArticle || hasContentKey) {
       try {
         const art = await (options.generateArticle || generateArticle)(dateStr, topic, pairedTopic);
         content = art.content;
         usedModel = art.model || contentModelId;
-        // content-model 内で provider=anthropic から openai に fallback した場合はここで明示
-        if (contentProvider === 'anthropic' && art.provider === 'openai') {
-          console.warn(`[generate] ⚠ Anthropic 失敗のため OpenAI fallback で生成（model=${art.model}）`);
-        }
+
       } catch (err) {
-        console.warn(`[generate] 本文生成 API 失敗: ${err.message} → テンプレートにフォールバック`);
-        content = generateFromTemplate(dateStr, topic, pairedTopic);
-        usedModel = 'template';
+        const failure = generationFailed(err, !!err.contentModelCallFailed);
+        const repeated = err.status && err.status === previousFailureStatus;
+        previousFailureStatus = err.status;
+        if (failure.apiFailure || repeated) break;
+        if (err.contentCandidateFailed) options.recorder?.record(topic, 'generation-failed-candidate', { reason: '本文生成モデルが候補の生成に失敗' });
+        continue;
       }
+      previousFailureStatus = undefined;
     } else {
-      console.log('[generate] APIキー未設定（ANTHROPIC_API_KEY / OPENAI_API_KEY）→ テンプレートで生成します');
-      content = generateFromTemplate(dateStr, topic, pairedTopic);
-      usedModel = 'template';
+      generationFailed(new Error('モデルの認証情報が未設定です'), true);
+      break;
+    }
+
+    if (topic.__dedupWarning) {
+      const { meta } = parseFrontmatter(content);
+      content = factCheck.updateMeta(content, {
+        review_warning: [meta.review_warning, topic.__dedupWarning].filter(Boolean).join(' / '),
+      });
     }
 
     const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
@@ -2967,11 +3037,10 @@ async function generateTopics(pair, dateStr, options = {}) {
 
     (options.selfCheck || selfCheckContent)(content, topic.article_type || 'basic_explainer', topic.url_slug || topic.slug);
 
-    // 生成後の重複判定（2026-09-08）。選定時の判定は企画メタしか見られず、
-    // 記事が企画より広がって既存記事と同じになるのを止められなかった
-    // （9/8 の本命記事: 企画は「逝去直後の初動」、記事は「10か月の全体像」→ 4/18・8/22 と重複）。
-    // 生成物のタイトル・要約・見出しで照合し、重複ならファイルを消して取り下げる。
-    const dup = await (options.checkGenerated || checkGeneratedArticle)(content, topic, results.map(r => r.slug));
+    // 生成後の AI 重複判定は切り戻し時だけ。通常は検索語確定後の一度で済ませる。
+    const dup = (options.env || process.env).POSTGEN_DEDUP === 'true'
+      ? await (options.checkGenerated || checkGeneratedArticle)(content, topic, results.map(r => r.slug))
+      : { duplicate: false, skipped: true };
     if (dup.duplicate) {
       fs.unlinkSync(filepath);
       const why = `生成後の重複判定: ${topic.url_slug || topic.slug} は ${dup.similar_to} と重複（${dup.reason}）→ 取り下げ`;
@@ -3118,14 +3187,10 @@ async function main() {
       : (partialEnabled ? classification.scope : 'full');
 
     if (!isRefreshRegeneration || scope !== 'frontmatter') {
-      if (!process.env.OPENAI_API_KEY && (process.env.CONTENT_MODEL_PROVIDER || 'openai') === 'openai') {
-        console.error('[regenerate] OPENAI_API_KEY が必要です');
-        process.exit(1);
-      }
+      requireContentCredentials();
     }
 
     let content;
-    const modelId = MODEL_STANDARD;
 
     if (isRefreshRegeneration) {
       const refreshResult = await freshnessRefresh.regenerateRefreshDraft({
@@ -3154,8 +3219,8 @@ async function main() {
       console.log('[regenerate] targeted: 指摘箇所のみ最小修正');
     } else {
       // full: 全文再生成（従来）
-      console.log(`[regenerate] full: 全文再生成（本文 provider=${contentModel.resolveProvider()}、失敗時 OpenAI fallback）...`);
-      content = await regenerateWithOpenAI(existing, comment, modelId);
+      console.log(`[regenerate] full: 全文再生成（本文 provider=${contentModel.resolveProvider()}）...`);
+      content = await regenerateWithContentModel(existing, comment);
     }
 
     if (!isRefreshRegeneration) {
@@ -3276,8 +3341,7 @@ async function main() {
   console.log(`[generate] 生成本数: ${singleRun ? singleRun.results.length : pair.length}`);
 
   const results = singleRun ? singleRun.results : await (async () => {
-    await prepareSources(pair);
-    pair = await prepareQueries(pair, { force: forceSlugs.length > 0, recorder });
+    pair = await preparePairCandidates(pair, draftCount, { force: forceSlugs.length > 0, recorder });
     return generateTopics(pair, dateStr, { recorder });
   })();
 
@@ -3328,6 +3392,15 @@ module.exports = {
   main,
   getExistingSlugs,
   generateFromTemplate,
+  generateArticle,
+  regenerateWithContentModel,
+  regenerateSection,
+  regenerateTargeted,
+  callSimpleOpenAI,
+  requireContentCredentials,
+  applyMissingRulesToBody,
+  checkPreparedDuplicates,
+  preparePairCandidates,
   checkGeneratedArticle,
   parseFrontmatter,
   resolveDraftCount,

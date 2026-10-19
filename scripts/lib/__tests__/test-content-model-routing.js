@@ -6,8 +6,8 @@
  *
  * 重要検証:
  *   - CONTENT_MODEL_PROVIDER=anthropic → claude-sonnet-5-5（4.6 への切り戻しも維持）
- *   - OpenAI fallback には gpt-5.4 を使う（claude ID を渡さない）
- *   - ANTHROPIC_API_KEY 未設定なら openai に fallback
+ *   - 本文生成の OpenAI 経路を使わず、明示した事実照合経路だけを残す
+ *   - ANTHROPIC_API_KEY 未設定でも Anthropic のまま失敗する
  */
 
 const path = require('path');
@@ -47,8 +47,8 @@ console.log('\n=== Test 1: anthropic provider → Sonnet 4.6 ===');
   assert(cm.resolveModel('anthropic') === 'claude-sonnet-4-6', 'model=claude-sonnet-4-6');
 }
 
-// ── 2. OpenAI fallback には gpt-5.4（claude を渡さない）──────
-console.log('\n=== Test 2: OpenAI fallback は gpt-5.4 を使う ===');
+// ── 2. OpenAI は照合の明示指定のみ──────
+console.log('\n=== Test 2: OpenAI は照合の明示指定のみ ===');
 {
   clearEnv();
   process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
@@ -56,24 +56,25 @@ console.log('\n=== Test 2: OpenAI fallback は gpt-5.4 を使う ===');
   process.env.OPENAI_MODEL = 'gpt-5.4';
   process.env.ANTHROPIC_API_KEY = 'dummy';
   const cm = reload(CM);
-  const oaModel = cm.resolveModel('openai');
-  assert(oaModel === 'gpt-5.4', `openai fallback model=${oaModel}（claude を渡さない）`);
-  assert(!/claude/.test(oaModel), 'openai に claude ID を渡さない');
+  let rejected = false;
+  try { cm.resolveModel('openai'); } catch (_) { rejected = true; }
+  assert(rejected, 'OpenAI の本文モデルを暗黙に解決しない');
+  assert(cm.resolveModel('openai', 'explicit-fact-model') === 'explicit-fact-model', '照合の明示モデルは保持する');
 }
 
-// ── 3. OPENAI_MODEL 未設定でも openai は gpt-5.4 デフォルト ──
-console.log('\n=== Test 3: OPENAI_MODEL 未設定 → gpt-5.4 デフォルト ===');
+// ── 3. 本文モデルの明示指定を維持 ──
+console.log('\n=== Test 3: 本文モデルの明示指定を維持 ===');
 {
   clearEnv();
   process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
   process.env.CONTENT_MODEL = 'claude-sonnet-4-6';
   process.env.ANTHROPIC_API_KEY = 'dummy';
   const cm = reload(CM);
-  assert(cm.resolveModel('openai') === 'gpt-5.4', 'openai 既定 gpt-5.4');
+  assert(cm.resolveModel('anthropic') === 'claude-sonnet-4-6', '本文モデルは指定どおり');
 }
 
-// ── 4. ANTHROPIC_API_KEY 未設定 → openai に fallback ────────
-console.log('\n=== Test 4: ANTHROPIC_API_KEY 未設定 → openai ===');
+// ── 4. ANTHROPIC_API_KEY 未設定でも Anthropic ────────
+console.log('\n=== Test 4: ANTHROPIC_API_KEY 未設定でも Anthropic ===');
 {
   clearEnv();
   process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
@@ -81,17 +82,17 @@ console.log('\n=== Test 4: ANTHROPIC_API_KEY 未設定 → openai ===');
   process.env.OPENAI_MODEL = 'gpt-5.4';
   // ANTHROPIC_API_KEY なし
   const cm = reload(CM);
-  assert(cm.resolveProvider() === 'openai', 'キー無しは openai に fallback');
+  assert(cm.resolveProvider() === 'anthropic', 'キー無しでも本文の提供元を変更しない');
 }
 
-// ── 5. 既定（CONTENT_MODEL_PROVIDER 未設定）は openai ───────
-console.log('\n=== Test 5: 既定は openai（本番互換）===');
+// ── 5. 既定（CONTENT_MODEL_PROVIDER 未設定）は anthropic ───────
+console.log('\n=== Test 5: 既定は anthropic===');
 {
   clearEnv();
   process.env.OPENAI_MODEL = 'gpt-5.4';
   const cm = reload(CM);
-  assert(cm.resolveProvider() === 'openai', '既定 openai');
-  assert(cm.resolveModel('openai') === 'gpt-5.4', 'openai model gpt-5.4');
+  assert(cm.resolveProvider() === 'anthropic', '既定 anthropic');
+  assert(cm.resolveModel('anthropic') === 'claude-sonnet-5-5', '既定は指定された書き手');
 }
 
 // ── 6. useCache の解釈 ───────────────────────────────────────
@@ -208,23 +209,19 @@ async function testResponses() {
         reset();
         response = { stop_reason: 'refusal', content: [{ type: 'text', text: 'PRIVATE_REFUSAL_BODY' }],
           stop_details: category ? { category, explanation: 'PRIVATE_EXPLANATION' } : undefined };
-        const result = await generate({ model: 'claude-sonnet-5-5', maxTokens: 600 });
-        assert(requests.length === 1 && openaiCalls.length === 1, `${name}: refusal で OpenAI に1回切り替える`);
-        assert(result.provider === 'openai' && result.model === 'gpt-5.4' && result.text === 'FALLBACK_BODY',
-          `${name}: refusal の部分本文を捨て OpenAI の本文を返す`);
-        assert(result.stopReason === 'length', `${name}: fallback の stopReason=length`);
-        assert(openaiCalls[0].model === 'gpt-5.4' && openaiCalls[0].max_completion_tokens === 600
-          && !('thinking' in openaiCalls[0]) && !('output_config' in openaiCalls[0]),
-          `${name}: OpenAI には OpenAI モデルと元の出力上限を渡す`);
-        const error = 'Anthropic refusal' + (category ? ` (${category})` : '');
-        assert(warnings.length === 1 && warnings[0].includes(`${error}）`), `${name}: refusal の分類だけログに記録`);
-        assert(!warnings.concat(logs).join('').includes('PRIVATE_'), `${name}: refusal の本文・explanation はログに出さない`);
+        let error;
+        try { await generate({ model: 'claude-sonnet-5-5', maxTokens: 600 }); } catch (e) { error = e; }
+        assert(error instanceof Error, `${name}: refusal は失敗として返す`);
+        assert(requests.length === 1 && openaiCalls.length === 0, `${name}: refusal でも OpenAI を呼ばない`);
+        assert(!String(error).includes('PRIVATE_'), `${name}: refusal の本文・explanation を例外へ出さない`);
+        assert(!warnings.concat(logs).join('').includes('PRIVATE_'), `${name}: refusal の本文・explanation をログへ出さない`);
       }
 
       reset();
       response = { ok: false, status: 500 };
-      const fallback = await generate({ model: 'claude-sonnet-5-5', maxTokens: 600 });
-      assert(fallback.provider === 'openai' && openaiCalls.length === 1, `${name}: HTTP エラーの既存 fallback も維持`);
+      let failed = false;
+      try { await generate({ model: 'claude-sonnet-5-5', maxTokens: 600 }); } catch (_) { failed = true; }
+      assert(failed && openaiCalls.length === 0, `${name}: HTTP エラーでも OpenAI を呼ばない`);
 
       reset();
       delete response.stop_reason;
@@ -234,18 +231,21 @@ async function testResponses() {
       process.env.CONTENT_MODEL_PROVIDER = 'openai';
       process.env.CONTENT_MODEL = 'claude-sonnet-5-5';
       reset();
-      const direct = await generate({ maxTokens: 600 });
-      assert(requests.length === 0 && openaiCalls.length === 1 && direct.model === 'gpt-5.4',
-        `${name}: OpenAI provider に Claude ID を渡さない`);
-      assert(direct.stopReason === 'length', `${name}: OpenAI 直呼びでも stopReason=length`);
+      let rejected = false;
+      try { await generate({ maxTokens: 600 }); } catch (_) { rejected = true; }
+      assert(rejected && requests.length === 0 && openaiCalls.length === 0, `${name}: OpenAI の本文生成指定は拒否する`);
+      // 03n の明示指定の経路は引き続き終了理由・空応答を安全に返す。
+      const explicit = () => cm.generateContent(ir, { provider: 'openai', model: 'explicit-fact-model', fallback: false, maxTokens: 600 });
+      const direct = await explicit();
+      assert(direct.model === 'explicit-fact-model' && direct.stopReason === 'length', '照合だけは明示した OpenAI モデルを使う');
       reset();
       delete completion.choices[0].finish_reason;
-      const missingFinish = await generate();
-      assert(missingFinish.stopReason === null, `${name}: OpenAI の終了理由なしは null`);
+      const missingFinish = await explicit();
+      assert(missingFinish.stopReason === null, '照合の終了理由なしは null');
       reset();
       completion.choices = [];
-      const missingChoice = await generate();
-      assert(missingChoice.stopReason === null && missingChoice.text === '', `${name}: OpenAI の choice なしも安全に返す`);
+      const missingChoice = await explicit();
+      assert(missingChoice.stopReason === null && missingChoice.text === '', '照合の choice なしも安全に返す');
       process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
       delete process.env.CONTENT_MODEL;
     }

@@ -83,18 +83,18 @@ console.log('\n=== Test 4: useCache=false ===');
   assert(!req.system[0].cache_control, 'useCache=false なら cache_control なし');
 }
 
-// ── 5. content-model の provider 解決（既定 openai）────────────
+// ── 5. content-model の provider 解決（既定 anthropic）────────────
 console.log('\n=== Test 5: content-model provider 解決 ===');
 {
   delete process.env.CONTENT_MODEL_PROVIDER;
   delete process.env.ANTHROPIC_API_KEY;
   const cm = require(path.join(ROOT, 'scripts/lib/content-model'));
-  assert(cm.resolveProvider() === 'openai', '既定は openai（本番互換）');
+  assert(cm.resolveProvider() === 'anthropic', '既定は anthropic');
 
   process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
   delete process.env.ANTHROPIC_API_KEY;
-  // キー無しなら openai に fallback
-  assert(cm.resolveProvider() === 'openai', 'anthropic 指定でもキー無しは openai に fallback');
+  // キー無しでも提供元は維持
+  assert(cm.resolveProvider() === 'anthropic', 'anthropic はキー無しでも提供元を変更しない');
 
   process.env.ANTHROPIC_API_KEY = 'dummy';
   assert(cm.resolveProvider() === 'anthropic', 'anthropic + キーあり → anthropic');

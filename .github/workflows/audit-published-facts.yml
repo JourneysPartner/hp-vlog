@@ -45,6 +45,7 @@ jobs:
           AUDIT_DRY_RUN: ${{ inputs.dry_run }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
           FACT_CHECK_MODEL: ${{ vars.FACT_CHECK_MODEL }}
           FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
