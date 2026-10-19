@@ -108,7 +108,7 @@ jobs:
           AUX_MODEL: ${{ vars.AUX_MODEL }}
           ENABLE_PARTIAL_REVISE: ${{ vars.ENABLE_PARTIAL_REVISE }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
         run: node scripts/generate-draft.js --refresh --filename "$FILE" --reasons-file "$REASONS_FILE"
 
       - name: AIによる変更なしを通知

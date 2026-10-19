@@ -4,20 +4,17 @@
  * 本文生成モデルの provider 抽象化
  *
  * 環境変数:
- *   CONTENT_MODEL_PROVIDER   'openai'（既定） | 'anthropic'
+ *   CONTENT_MODEL_PROVIDER   'anthropic'（既定）
  *   CONTENT_MODEL            モデルID（未指定時は provider 既定。Anthropic は claude-sonnet-5-5）
  *   CONTENT_MODEL_USE_PROMPT_CACHE  'true' で Anthropic prompt caching を有効化（既定 true）
- *   OPENAI_API_KEY / ANTHROPIC_API_KEY  各 provider のキー
+ *   ANTHROPIC_API_KEY  本文生成のキー（OpenAI は事実照合の明示指定だけ）
  *
  * 重要:
- *   - 既定は openai（本番の現行挙動を壊さない）
- *   - anthropic はキー未設定なら openai に安全 fallback
- *   - 記事品質を落とさないため、fallback してもモデルは本文生成用（安価モデルに落とさない）
+ *   - Anthropic の失敗は呼び出し元へ返す（別の提供元では生成し直さない）
  *   - APIキー・秘密情報はログに出さない
  */
 
 const ANTHROPIC_DEFAULT_MODEL = 'claude-sonnet-5-5';
-const OPENAI_DEFAULT_MODEL    = 'gpt-5.4';
 const ANTHROPIC_VERSION       = '2023-06-01';
 
 // 照合の失敗理由は、鍵を含まない「状態番号・エラーの種類・短い説明」だけに絞って残す。
@@ -57,12 +54,9 @@ function safeDiagnostic(e) {
 }
 
 function resolveProvider() {
-  const p = (process.env.CONTENT_MODEL_PROVIDER || 'openai').toLowerCase();
-  if (p === 'anthropic' && !process.env.ANTHROPIC_API_KEY) {
-    console.warn('[content-model] CONTENT_MODEL_PROVIDER=anthropic だが ANTHROPIC_API_KEY 未設定 → openai に fallback');
-    return 'openai';
-  }
-  return p === 'anthropic' ? 'anthropic' : 'openai';
+  const p = (process.env.CONTENT_MODEL_PROVIDER || 'anthropic').toLowerCase();
+  if (p !== 'anthropic') throw new Error('未対応の本文生成提供元です');
+  return p;
 }
 
 function useCache() {
@@ -70,17 +64,11 @@ function useCache() {
   return v !== 'false' && v !== '0';
 }
 
-// provider ごとに「その provider 専用の env」からモデルを解決する。
-// 重要: OpenAI に CONTENT_MODEL（= claude-sonnet-5-5）を渡さないため、
-//       provider が openai のときは OPENAI_MODEL / gpt-5.4 のみを返す。
-//       provider が anthropic のときは CONTENT_MODEL / claude-sonnet-5-5 を返す。
+// OpenAI は事実照合がモデル名を明示した場合だけ利用できる。
 function resolveModel(provider, override) {
   if (override) return override;
-  if (provider === 'anthropic') {
-    return process.env.CONTENT_MODEL || ANTHROPIC_DEFAULT_MODEL;
-  }
-  // openai（本文生成 provider が openai の時、または anthropic 失敗時の fallback）
-  return process.env.OPENAI_MODEL || OPENAI_DEFAULT_MODEL;
+  if (provider === 'anthropic') return process.env.CONTENT_MODEL || ANTHROPIC_DEFAULT_MODEL;
+  throw new Error('事実照合のモデル名を明示してください');
 }
 
 // ── OpenAI 呼び出し（既存挙動）──────────────────────────────────
@@ -324,7 +312,7 @@ async function callAnthropicBatch(promptIR, opts) {
 async function generateContent(promptIR, opts = {}) {
   // 事実照合は本文生成と独立した設定を使い、失敗時のモデル変更を行わない。
   const provider = opts.provider || resolveProvider();
-  if (!['anthropic', 'openai'].includes(provider)) throw new Error('未対応のモデル提供元です');
+  if (!['anthropic', 'openai'].includes(provider) || (provider === 'openai' && !(opts.provider === 'openai' && opts.model && opts.fallback === false))) throw new Error('未対応のモデル提供元です');
   if (opts.fallback === false && !process.env[provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY']) {
     throw new Error('モデルの認証情報が未設定です');
   }
@@ -341,9 +329,7 @@ async function generateContent(promptIR, opts = {}) {
         for (const key of ['mode', 'wait_seconds', 'batch_error']) if (e[key] !== undefined) error[key] = e[key];
         throw error;
       }
-      console.warn(`[content-model] Anthropic 失敗（${e.message}）→ openai に fallback`);
-      const oaModel = resolveModel('openai', null);
-      return await callOpenAI(promptIR, { model: oaModel, maxTokens: opts.maxTokens });
+      throw new Error('本文生成モデルの呼び出しに失敗しました');
     }
   }
   return await callOpenAI(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, timeoutMs: opts.timeoutMs });
@@ -358,8 +344,6 @@ async function generateContent(promptIR, opts = {}) {
 async function generateSimple({ system, user, figures }, opts = {}) {
   const provider = resolveProvider();
   const model = resolveModel(provider, opts.model);
-  // openai fallback 側は toOpenAIMessages が figures を data URL で載せる
-  const promptIR = { staticSystem: system, dynamicSystem: '', user, figures: figures || [] };
   // デフォルト 4096：本文相当の出力長を呼び出し側が忘れても安全側に倒す。
   // 短い JSON 等を返す呼び出しは opts.maxTokens で明示的に絞ること。
   const maxTokens = opts.maxTokens || 4096;
@@ -396,11 +380,10 @@ async function generateSimple({ system, user, figures }, opts = {}) {
         `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}`);
       return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
     } catch (e) {
-      console.warn(`[content-model] Anthropic(simple) 失敗（${e.message}）→ openai に fallback`);
+      throw new Error('本文生成モデルの呼び出しに失敗しました');
     }
   }
-  // openai
-  return await callOpenAI(promptIR, { model: resolveModel('openai', null), maxTokens });
+  throw new Error('未対応の本文生成提供元です');
 }
 
 module.exports = {
@@ -412,5 +395,4 @@ module.exports = {
   resolveModel,
   useCache,
   ANTHROPIC_DEFAULT_MODEL,
-  OPENAI_DEFAULT_MODEL,
 };

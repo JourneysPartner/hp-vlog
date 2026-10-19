@@ -5,7 +5,7 @@ const path = require('path');
 const { loadWithdrawnTopics, appendWithdrawnTopics, findWithdrawnTopic, findWithdrawnQuery, createWithdrawalRecorder } = require('../withdrawn-topics');
 const { selectDailyTopics } = require('../topic-selector');
 const { TOPICS } = require('../../topic-pool');
-const { runSingleDraft, pickPair, prepareQueries, generateTopics, resolvePositiveLimit } = require('../../generate-draft');
+const { runSingleDraft, pickPair, preparePairCandidates, prepareQueries, generateTopics, resolvePositiveLimit } = require('../../generate-draft');
 const { recordWithdrawnFile } = require('../../record-withdrawn-topics');
 const ROOT = path.join(__dirname, '..', '..', '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'withdrawn-topics-'));
@@ -44,7 +44,7 @@ function fixture(config = {}) {
   const topics = (config.slugs || ['a', 'b', 'c', 'd', 'e', 'f']).map(slug => ({ slug, persona: 'general_individual_proprietor', category: '所得税', article_type: 'basic_explainer', demand_evidence: { kind: 'suggest' } }));
   const calls = { ai: [], query: [], body: [], source: [], self: [], post: [], fact: [] };
   const options = {
-    topics, recorder, env: config.env || {}, pendingDrafts: [], corpus: [], now,
+    topics, recorder, env: { ...(config.env || {}), ...(config.postDuplicates ? { POSTGEN_DEDUP: 'true' } : {}) }, pendingDrafts: [], corpus: [], now,
     context: { queryInputs: {}, targetQueryCorpus: config.corpus || [], takenUrlSlugs: new Set(config.taken || []) },
     postsDir: path.join(tmp, `posts-${Math.random().toString(36).slice(2)}`),
     select(pool, selectionOptions) {
@@ -157,9 +157,9 @@ async function main() {
   let f = fixture({ selectDuplicates: ['a'], postDuplicates: ['b'] });
   const retry = await quiet(() => runSingleDraft('2026-10-09', f.options));
   assert(retry.result.results.length === 1 && retry.result.results[0].slug === 'url-c' && retry.result.candidates === 3, '選定重複 → 生成後重複 → 3 件目で下書き', 'R3');
-  assert(f.recorder.additions.map(item => item.stage).join() === 'select-dedup,postgen-dedup' && f.calls.body.length === 2, '取り下げ 2 件・本文生成 2 回', 'R3');
+  assert(f.recorder.additions.map(item => item.stage).join() === 'pregen-dedup,postgen-dedup' && f.calls.body.length === 2, '取り下げ 2 件・本文生成 2 回', 'R3');
   assert(!fs.existsSync(path.join(f.options.postsDir, '2026-10-09-url-b.md')) && fs.existsSync(path.join(f.options.postsDir, '2026-10-09-url-c.md')), '重複ファイルを削除し確定した 1 本だけを残す', 'R3');
-  assert(f.calls.self.length === 2 && f.calls.post.length === 2 && f.calls.source.join() === 'b,c' && f.calls.fact.join() === 'url-c', '選定通過後に出典補完・自己点検・生成後判定、残した記事だけ照合', 'R3');
+  assert(f.calls.self.length === 2 && f.calls.post.length === 2 && f.calls.source.join() === 'a,b,c' && f.calls.fact.join() === 'url-c', '重複判定前に出典補完・残した記事だけ照合（生成後判定は切り戻し）', 'R3');
   assert(retry.logs.filter(line => line.includes('[generate] 試行 ')).length === 3 && retry.logs.some(line => line.includes('=== topic selection ===')), '候補ごとのログと既存選定ログを残す', 'R3');
   f = fixture({ postDuplicates: ['a', 'b', 'c'] });
   const cap = (await quiet(() => runSingleDraft('2026-10-09', f.options))).result;
@@ -214,12 +214,12 @@ async function main() {
   }
 
   f = fixture({ slugs: ['a', 'b', 'c', 'd', 'e'], selectDuplicates: ['a', 'b', 'c', 'd', 'e'] });
-  const pair = (await quiet(() => pickPair('2026-10-09', 2, f.options))).result;
+  const pair = (await quiet(async () => preparePairCandidates(await pickPair('2026-10-09', 2, f.options), 2, f.options))).result;
   assert(pair.length === 0 && f.calls.ai.join() === 'a,b,c,d' && f.recorder.additions.length === 4, '2 本モードは初回と従来の補充 1 回だけ、両方の除外を記録', 'R3');
   f = fixture({ slugs: ['a', 'b'] });
   const two = await quiet(async () => {
     const picks = await pickPair('2026-10-09', 2, f.options);
-    const ready = await prepareQueries(picks, f.options);
+    const ready = await preparePairCandidates(picks, 2, f.options);
     return generateTopics(ready, '2026-10-09', f.options);
   });
   assert(two.result.length === 2 && f.calls.body[0].paired === 'b' && f.calls.body[1].paired === 'a', '2 本モードのペア相手を保つ', 'R3');

@@ -15,7 +15,7 @@
  *   node scripts/update-suggest-topics.js               # 取得 → 選別
  *   node scripts/update-suggest-topics.js --skip-fetch  # キャッシュを使って選別だけ
  *
- * OPENAI_API_KEY が必要（選別のみ）。モデルは LLM_SUGGEST_MODEL（既定 gpt-5.6-luna）。
+ * OPENAI_API_KEY が必要（選別のみ）。モデルは共通の Luna 自動選択。
  */
 
 const fs = require('fs');
@@ -165,8 +165,7 @@ async function main() {
     process.exit(1);
   }
   const { makeOpenAILuna } = require('./lib/llm-source-selector');
-  process.env.LLM_SOURCE_SELECT_MODEL = process.env.LLM_SUGGEST_MODEL || 'gpt-5.6-luna';
-  const stats = await selectTopics({ callLLM: makeOpenAILuna() });
+  const stats = await selectTopics({ callLLM: makeOpenAILuna('suggest') });
   if (stats.proposed === 0 && stats.skippedBatches > 0) {
     console.error('[suggest] 1件も選別できませんでした');
     process.exit(1);

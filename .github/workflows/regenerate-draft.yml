@@ -22,6 +22,10 @@ permissions:
 jobs:
   regenerate:
     runs-on: ubuntu-latest
+    env:
+      REGEN_FILENAME: ${{ inputs.filename }}
+      REGEN_COMMENT: ${{ inputs.comment }}
+      REGEN_BRANCH: ${{ inputs.branch }}
 
     steps:
       - uses: actions/checkout@v4
@@ -66,10 +70,10 @@ jobs:
         run: |
           node scripts/generate-draft.js \
             --regenerate \
-            --filename "${{ inputs.filename }}" \
-            --comment "${{ inputs.comment }}"
+            --filename "$REGEN_FILENAME" \
+            --comment "$REGEN_COMMENT"
         env:
-          # 本文/部分再生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
+          # 本文・部分再生成は Anthropic。失敗時は既存の失敗通知へ進む。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
@@ -92,16 +96,16 @@ jobs:
           AUX_MODEL: ${{ vars.AUX_MODEL }}
           # 部分再生成の有効/無効
           ENABLE_PARTIAL_REVISE: ${{ vars.ENABLE_PARTIAL_REVISE }}
-          # OpenAI（fallback 用。必ず OPENAI_MODEL=gpt-5.4 を使う）
+          # OpenAI は Luna・事実照合に利用
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
 
       - name: Validate
         # 再生成したファイルだけを検証する（リポジトリ全体ではなく）。
         # ドラフトブランチには main で既に公開済みの記事が「古い未公開ステータス」の
         # スナップショットとして残っていることがあり、それらのレガシー（source_guard_version 無し）が
         # 全体 validate を ERROR にして無関係な再生成まで止めてしまうため。
-        run: node scripts/validate.js "content/posts/${{ inputs.filename }}"
+        run: node scripts/validate.js "content/posts/$REGEN_FILENAME"
 
       - name: Commit and push
         run: |
@@ -109,8 +113,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # 記事と対応する照合記録のみステージ。scripts/ など main から上書きしたものは
           # 前段で index から外してあるのでコミット対象外。
-          git add "content/posts/${{ inputs.filename }}"
-          SLUG=$(node -e 'const fs=require("fs"),m=require("gray-matter"); console.log(m(fs.readFileSync(process.argv[1],"utf8")).data.slug)' "content/posts/${{ inputs.filename }}")
+          git add "content/posts/$REGEN_FILENAME"
+          SLUG=$(node -e 'const fs=require("fs"),m=require("gray-matter"); console.log(m(fs.readFileSync(process.argv[1],"utf8")).data.slug)' "content/posts/$REGEN_FILENAME")
           FACTFILE="data/fact-check/${SLUG}.json"
           if [ -f "$FACTFILE" ]; then git add "$FACTFILE"; fi
           if git diff --cached --quiet; then
@@ -120,31 +124,31 @@ jobs:
           # 記事と対応する照合記録以外が混入していないか確認して落とす。
           STAGED=$(git diff --cached --name-only)
           while IFS= read -r STAGED_FILE; do
-            if [ "$STAGED_FILE" != "content/posts/${{ inputs.filename }}" ] && [ "$STAGED_FILE" != "$FACTFILE" ]; then
+            if [ "$STAGED_FILE" != "content/posts/$REGEN_FILENAME" ] && [ "$STAGED_FILE" != "$FACTFILE" ]; then
               echo "::error::記事・照合記録以外がステージされています"
               exit 1
             fi
           done <<< "$STAGED"
-          git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
+          git commit -m "regenerate: 差し戻し対応版を再生成 $REGEN_FILENAME"
           # レビュー画面からの差し戻し（review: revise）が実行中に同じブランチへ
           # push すると、こちらの push が rejected になり再生成結果が失われる
           # （2026-08-17 に発生。ジョブは1分以上かかるので現実的に起こる）。
           # リモート先端に載せ直してリトライする。
-          ARTICLE="content/posts/${{ inputs.filename }}"
+          ARTICLE="content/posts/$REGEN_FILENAME"
           for i in 1 2 3; do
-            if git push origin "HEAD:${{ inputs.branch }}"; then
+            if git push origin "HEAD:$REGEN_BRANCH"; then
               echo "push 成功（試行 $i）"
               exit 0
             fi
             echo "::warning::push が rejected（試行 $i）→ リモート先端に載せ直します"
-            git fetch origin "${{ inputs.branch }}"
+            git fetch origin "$REGEN_BRANCH"
             echo "── 実行中にリモートで変わったもの ──"
-            git diff --name-only HEAD "origin/${{ inputs.branch }}" || true
+            git diff --name-only HEAD "origin/$REGEN_BRANCH" || true
             # 再生成結果を退避 → リモート先端へ移動 → 記事と照合記録を載せ直す。
             # rebase の -X ours/theirs は向きを間違えやすいので使わない。
             cp "$ARTICLE" "${RUNNER_TEMP}/regenerated.md"
             if [ -f "$FACTFILE" ]; then cp "$FACTFILE" "${RUNNER_TEMP}/regenerated-fact-check.json"; fi
-            git reset --hard "origin/${{ inputs.branch }}"
+            git reset --hard "origin/$REGEN_BRANCH"
             cp "${RUNNER_TEMP}/regenerated.md" "$ARTICLE"
             git add "$ARTICLE"
             if [ -f "${RUNNER_TEMP}/regenerated-fact-check.json" ]; then
@@ -156,7 +160,7 @@ jobs:
               echo "リモート側が同じ内容だった → 変更なしで終了"
               exit 0
             fi
-            git commit -m "regenerate: 差し戻し対応版を再生成 ${{ inputs.filename }}"
+            git commit -m "regenerate: 差し戻し対応版を再生成 $REGEN_FILENAME"
           done
           echo "::error::3 回リトライしても push できませんでした。"
           exit 1
@@ -164,7 +168,7 @@ jobs:
       - name: Extract info for notification
         id: fm
         run: |
-          FILE="content/posts/${{ inputs.filename }}"
+          FILE="content/posts/$REGEN_FILENAME"
           TITLE=$(grep '^title:' "$FILE" | head -1 | sed 's/^title: *"//;s/"$//')
           echo "title=${TITLE}" >> "$GITHUB_OUTPUT"
           # 差し戻しコメントを自動反映できなかった（または一部のみ）場合、
@@ -181,9 +185,17 @@ jobs:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ inputs.filename }}&ref=${{ inputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=$REGEN_FILENAME&ref=$REGEN_BRANCH"
           node scripts/notify.js \
             --event "${{ steps.fm.outputs.event }}" \
             --title "${{ steps.fm.outputs.title }}" \
             --review-url "$REVIEW_URL" \
-            --comment "${{ inputs.comment }}"
+            --comment "$REGEN_COMMENT"
+
+      - name: 再生成の失敗を通知
+        if: failure() && steps.regen.outcome == 'failure'
+        env:
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          node scripts/notify.js --event regenerate_failed --title "$REGEN_FILENAME" --comment "記事の再生成に失敗しました。本文は更新していません。"

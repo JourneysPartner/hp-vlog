@@ -48,6 +48,10 @@ function buildCorpusSummary(corpus) {
 function buildCandidateBlock(topic, idx) {
   const lines = [`### 候補${idx + 1}`];
   lines.push(`slug: ${topic.slug}`);
+  if (topic.target_query) lines.push(`target_query: ${topic.target_query}`);
+  if (topic.secondary_queries?.length) lines.push(`secondary_queries: ${topic.secondary_queries.join(' / ')}`);
+  if (topic.url_slug) lines.push(`url_slug: ${topic.url_slug}`);
+  if (topic.phrases?.length) lines.push(`phrases: ${topic.phrases.join(' / ')}`);
   if (topic.title) lines.push(`title: ${topic.title}`);
   if (topic.search_intent) lines.push(`intent: ${topic.search_intent}`);
   if (topic.primary_question) lines.push(`question: ${topic.primary_question}`);
@@ -222,4 +226,4 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
 
 // buildCorpusSummary はテスト用にも公開する（LLM に渡す情報の欠落は
 // 重複見逃しに直結するため、内容を直接検証できるようにしておく）。
-module.exports = { checkDuplicatesWithAI, checkGeneratedDuplicateWithAI, buildCorpusSummary, buildGeneratedArticleBlock, applyDeterministicGuard };
+module.exports = { buildCandidateBlock, checkDuplicatesWithAI, checkGeneratedDuplicateWithAI, buildCorpusSummary, buildGeneratedArticleBlock, applyDeterministicGuard };

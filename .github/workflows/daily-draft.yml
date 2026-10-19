@@ -6,14 +6,6 @@ run-name: >-
 on:
   workflow_dispatch:
     inputs:
-      high_quality:
-        description: 'Opus 4.6 で高品質生成する場合は true'
-        required: false
-        default: 'false'
-        type: choice
-        options:
-          - 'false'
-          - 'true'
       count:
         description: '生成本数（通常は1、本命＋補強を確認するときだけ2）'
         required: false
@@ -51,6 +43,8 @@ concurrency:
 jobs:
   generate-draft:
     runs-on: ubuntu-latest
+    env:
+      FORCE_SLUG: ${{ inputs.force_slug }}
 
     steps:
       - uses: actions/checkout@v4
@@ -81,18 +75,21 @@ jobs:
       - name: Generate draft
         id: draft
         run: |
-          ARGS=""
-          if [ "${{ github.event.inputs.high_quality }}" = "true" ]; then
-            ARGS="--high-quality"
+          ARGS=()
+          if [ -n "$FORCE_SLUG" ]; then
+            ARGS+=(--force-slug "$FORCE_SLUG")
           fi
-          if [ -n "${{ github.event.inputs.force_slug }}" ]; then
-            ARGS="$ARGS --force-slug ${{ github.event.inputs.force_slug }}"
-          fi
-          node scripts/generate-draft.js $ARGS
+          node scripts/generate-draft.js "${ARGS[@]}"
         env:
+          FORCE_SLUG: ${{ inputs.force_slug }}
           DRAFT_COUNT: ${{ inputs.count || '1' }}
           WITHDRAWN_OUT: /tmp/withdrawn-new.json
-          # 本文生成: Claude Sonnet 4.6（anthropic）。失敗時は OpenAI(gpt-5.4) に fallback。
+          LENGTH_FIX_MODE: ${{ vars.LENGTH_FIX_MODE }}
+          LENGTH_RETRY_SHORT: ${{ vars.LENGTH_RETRY_SHORT }}
+          RULE_POSTFIX: ${{ vars.RULE_POSTFIX }}
+          RULE_FIX_MODE: ${{ vars.RULE_FIX_MODE }}
+          POSTGEN_DEDUP: ${{ vars.POSTGEN_DEDUP }}
+          # 本文生成は Anthropic。失敗時は生成を取り下げる。
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CONTENT_MODEL_PROVIDER: ${{ vars.CONTENT_MODEL_PROVIDER }}
           CONTENT_MODEL: ${{ vars.CONTENT_MODEL }}
@@ -116,14 +113,13 @@ jobs:
           AUX_MODEL_ENABLED: ${{ vars.AUX_MODEL_ENABLED }}
           AUX_MODEL_PROVIDER: ${{ vars.AUX_MODEL_PROVIDER }}
           AUX_MODEL: ${{ vars.AUX_MODEL }}
-          # OpenAI（fallback 用。必ず OPENAI_MODEL=gpt-5.4 を使う）
+          # OpenAI は Luna・事実照合に利用
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
           # LLM 出典選定（A＝Luna 選定 ＋ C＝Luna 深掘り）。
           # 有効化は Variables に ENABLE_LLM_SOURCE_SELECT=true を設定するだけ（未設定なら無効＝従来挙動）。
           # domain-fallback/ultimate に倒れた出典だけを、検証済みカタログから LLM が選び直す。
           ENABLE_LLM_SOURCE_SELECT: ${{ vars.ENABLE_LLM_SOURCE_SELECT }}
-          LLM_SOURCE_SELECT_MODEL: ${{ vars.LLM_SOURCE_SELECT_MODEL || 'gpt-5.6-luna' }}
 
       # 生成した記事だけを検査する。
       # 2026-08-28/29: 過去に承認済みの記事1件のメタ欠落で全件検査が ERROR になり、
@@ -410,7 +406,7 @@ jobs:
           # force_slug 指定の手動実行は「1本だけ」が意図した結果なので通知しない。
           # ここで止めないと『候補が絞られて2本目が作れませんでした』という
           # 事実と違う理由が通知されてしまう。
-          if [ -n "${{ github.event.inputs.force_slug }}" ]; then
+          if [ -n "$FORCE_SLUG" ]; then
             echo '::notice::force_slug 指定の手動実行のため、2本揃わない通知はスキップします'
             exit 0
           fi

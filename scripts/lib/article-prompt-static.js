@@ -118,10 +118,13 @@ function rangeFor({ articleType, intentType, articleRole } = {}) {
 // LLM は指示した上限を一定割合で超えて出力する。2026-08-15 の実測:
 //   本命 basic_explainer : 指示上限 7,000 → 実測 7,767 (1.1096)
 //   補強 edge_case       : 指示上限 5,000 → 実測 5,552 (1.1104)
-// 記事タイプが違っても比率がほぼ一致したため、一律 1.11 倍で補正する。
-// プロンプトには「受入基準 ÷ 1.11」を指示値として渡し、実出力が受入基準に
-// 収まるようにする（指示値をそのまま書くと必ず超過する）。
+// 表に無いモデルは Sonnet 4.6 の実測値を維持する。
 const LENGTH_OVERSHOOT = 1.11;
+// 旧指示上限: floor100(7000 / 1.11 * 0.98) = 6100 字。
+// 10/16: 7371 / 6100 = 1.20836、10/19: 7760 / 6100 = 1.27213。
+// 2 回の大きい方で補正し、同じ LENGTH_SAFETY でさらに余白を取る。
+const LENGTH_OVERSHOOT_BY_MODEL = { 'claude-sonnet-5-5': Math.max(7371 / 6100, 7760 / 6100) };
+const currentWritingModel = () => process.env.CONTENT_MODEL || 'claude-sonnet-5-5';
 // 実測は2件のみで分散が不明なため、さらに安全側へ丸める余白。
 const LENGTH_SAFETY = 0.98;
 
@@ -129,10 +132,11 @@ const LENGTH_SAFETY = 0.98;
 const floor100 = n => Math.floor(n / 100) * 100;
 
 /** 受入基準から、LLM に提示する指示レンジを算出する */
-function calibratedRange(range) {
+function calibratedRange(range, model = currentWritingModel()) {
+  const overshoot = Object.hasOwn(LENGTH_OVERSHOOT_BY_MODEL, model) ? LENGTH_OVERSHOOT_BY_MODEL[model] : LENGTH_OVERSHOOT;
   return {
-    min: floor100(range.min / LENGTH_OVERSHOOT),
-    max: floor100((range.max / LENGTH_OVERSHOOT) * LENGTH_SAFETY),
+    min: floor100(range.min / overshoot),
+    max: floor100((range.max / overshoot) * LENGTH_SAFETY),
   };
 }
 
@@ -155,28 +159,26 @@ function calibratedRange(range) {
 //     まとめ途中で切断され、ensureDisclaimer が免責文を付与して
 //     検出を擦り抜けた
 // → 出力枠を広げた現在も「免責文・CTA まで完結」は絶対条件のまま。
-function guideTextFor(range) {
-  const c = calibratedRange(range);
+function guideTextFor(range, model) {
+  const c = calibratedRange(range, model);
   return `${c.min}〜${c.max}文字（下限・上限とも厳守。${c.max}文字を1文字でも超えないこと。免責文・CTA まで必ず含める）`;
 }
 
-// ── 出力トークン上限（受入上限を物理的に超えられなくする）─────────
-// プロンプトでの指示（キャリブレーション）は「守らせる」努力目標であり、
-// 超過を完全には防げない。max_tokens は API 側の物理制約なので、
-// 受入上限に相当するトークン数を上限に設定すれば絶対に超えられない。
-//
+// ── 出力トークン上限（免責文・CTA の途中で切らないことを優先）─────
+// 通常の超過は段落の短縮で直す。出力枠は受入上限の 1.15 倍を確保する。
 // 2026-08-15 実測（Claude Sonnet 4.6 / 日本語）:
 //   本命 7,767文字 → 出力 7,482 token
 //   補強 5,552文字 → 出力 5,384 token
 //   frontmatter を約600トークンとすると 本文は 0.874 token/文字
 const TOKENS_PER_CHAR = 0.8739;
 const FRONTMATTER_TOKENS = 700;   // 実測約600 + 余裕
-// 2026-10-13 仮置き。初回の実行記録から測り直す（新トークナイザで約3割増えるため）。
+// frontmatter 910 を引く: 10/16 (7316-910)/7371 = 0.869082、
+// 10/19 (7793-910)/7760 = 0.886985。大きい方を採用する。
 const TOKEN_ESTIMATES_BY_MODEL = {
-  'claude-sonnet-5-5': { tokensPerChar: 1.14, frontmatterTokens: 910 },
+  'claude-sonnet-5-5': { tokensPerChar: Math.max((7316 - 910) / 7371, (7793 - 910) / 7760), frontmatterTokens: 910 },
 };
-// 途中切れを防ぐ余白。これを大きくすると上限超過の余地が戻るため 5% に留める。
-const MAX_TOKENS_SAFETY = 1.05;
+// 本文の上限の 15% 超過まで収め、frontmatter の枠も別に確保する。
+const MAX_TOKENS_SAFETY = 1.15;
 
 /** 記事タイプまたは記事条件の受入上限に相当する max_tokens を返す */
 function maxTokensFor(articleTypeOrOpts) {
@@ -193,12 +195,12 @@ function maxTokensFor(articleTypeOrOpts) {
   const { tokensPerChar, frontmatterTokens } = Object.hasOwn(TOKEN_ESTIMATES_BY_MODEL, model)
     ? TOKEN_ESTIMATES_BY_MODEL[model]
     : { tokensPerChar: TOKENS_PER_CHAR, frontmatterTokens: FRONTMATTER_TOKENS };
-  const bodyTokens = Math.ceil(range.max * tokensPerChar);
-  return Math.ceil((bodyTokens + frontmatterTokens) * MAX_TOKENS_SAFETY / 100) * 100;
+  const bodyTokens = Math.ceil(range.max * MAX_TOKENS_SAFETY * tokensPerChar);
+  return Math.ceil((bodyTokens + frontmatterTokens) / 100) * 100;
 }
 
 function wordCountGuideFor(opts) {
-  return guideTextFor(rangeFor(opts));
+  return guideTextFor(rangeFor(opts), opts?.model);
 }
 
 const WORD_COUNT_GUIDE = Object.fromEntries(
@@ -250,13 +252,25 @@ const MACRO_GUIDE = {
 // 企画メタ（と、本文ベース再判定のときは本文）を連結して語句一致を見る。
 // __body は detectRulesFromBody が一時的に載せるフィールド。
 // 生成時のトピックには存在しないので、通常の判定結果は従来どおり変わらない。
-const _kw = (topic, terms) => {
-  const text = [
-    topic.title, topic.search_intent, topic.primary_question,
-    topic.reader_problem, topic.subcluster, topic.slug, topic.pain_point,
-    topic.__body,
-  ].filter(Boolean).join(' ');
-  return terms.some(t => text.includes(t));
+// 出典本文そのものは含めず、生成前に確定している題名・論点・検索語を使う。
+const ruleMatchText = topic => [
+  topic.title, topic.search_intent, topic.primary_question, topic.reader_problem,
+  topic.subcluster, topic.slug, topic.pain_point, topic.tax_terms, topic.target_query,
+  ...(topic.secondary_queries || []), topic.source_title,
+  ...(topic.source_supplements || []).map(s => s.title),
+  ...[2, 3, 4].map(n => topic[`source_${n}_title`]),
+  ...(topic.__materialBundle?.pages?.sources || []).map(s => s.title),
+  topic.__rule_source_titles, topic.__body,
+].filter(Boolean).join(' ');
+const _kw = (topic, terms) => terms.some(t => ruleMatchText(topic).includes(t));
+// 贈与税・相続税の同名控除は所得税の所得要件の根拠にしない。
+// 混在記事の所得税側の論点は残して判定する。
+const incomeThresholdMatch = topic => {
+  const original = ruleMatchText(topic);
+  const text = original.replace(/(?:贈与税|相続税)(?:における|についての|の)?[「『\s]*(?:基礎控除|配偶者控除)/g, '');
+  const inheritance = /(?:贈与税|相続税)/.test(original) || ['inheritance_tax', 'gift_tax'].includes(topic.tax_domain) || topic.customer_segment === 'inheritance_gift';
+  if (inheritance && !/(?:所得税|住民税|扶養|合計所得金額|年収の壁|103万円の壁)/.test(text)) return false;
+  return ['扶養', '配偶者控除', '基礎控除', '103万円の壁', '年収の壁', '合計所得金額', '58万円', '62万円', '被扶養者'].some(t => text.includes(t));
 };
 
 const CONDITIONAL_RULES = {
@@ -395,7 +409,9 @@ const CONDITIONAL_RULES = {
   income_tax_bracket: {
     scope: 'tax_domain',
     match: (t) => (t.tax_domain === 'income_tax' && t.pain_point === 'incorporation-threshold')
-      || _kw(t, ['法人成り', '所得税率', '速算表', '累進税率', '税率が逆転']),
+      || _kw(t, ['法人成り', '所得税率', '税率が逆転'])
+      || (_kw(t, ['速算表', '累進税率'])
+        && ((!_kw(t, ['相続税', '贈与税']) && t.tax_domain !== 'inheritance_tax') || _kw(t, ['所得税']))),
     text: `【所得税の速算表を「万円・目安」で丸めるときの境界表記（タックスアンサー No.2260）】
 法人成りの損益分岐などで所得税率の早見表を「課税所得の目安（万円）」で示す
 ことがあるが、境界の不等号を必ず正しく書くこと:
@@ -415,7 +431,7 @@ const CONDITIONAL_RULES = {
     scope: 'topic_specific',
     match: (t) => t.tax_domain === 'invoice_system'
       || ['invoice-judgement', 'invoice-transition-80-50', 'invoice-registration'].includes(t.pain_point)
-      || _kw(t, ['インボイス', '免税事業者からの仕入', '経過措置', '2割特例']),
+      || _kw(t, ['インボイス', '免税事業者からの仕入', '2割特例']),
     text: `【インボイス制度の免税事業者からの仕入経過措置（令和8年度税制改正で延長・タックスアンサー No.6253）】
 免税事業者からの課税仕入れは、仕入税額相当額の一定割合を控除できる経過措置がある。
 令和8年度税制改正で2年延長され、2026年10月から「70%控除」の区分が新設された。次の割合・期間を取り違えないこと:
@@ -548,8 +564,7 @@ const CONDITIONAL_RULES = {
   // 令和8年分について誤りになる。タックスアンサーは未反映のまま。
   dependent_income_threshold: {
     scope: 'topic_specific',
-    match: (t) => _kw(t, ['扶養', '配偶者控除', '基礎控除', '103万円の壁', '年収の壁',
-      '合計所得金額', '58万円', '62万円', '被扶養者']),
+    match: incomeThresholdMatch,
     text: `【扶養に入れる所得ライン（令和8年度税制改正で変更）】
 国税庁のタックスアンサーは令和7年4月1日現在法令等のままで、この改正を反映していない。
 出典の数値をそのまま書き写すと令和8年分について誤りになる。
@@ -860,7 +875,7 @@ note / BASE / Udemy / App Store 等のプラットフォーム販売を扱うと
   expired_education_fund_gift: {
     scope: 'topic_specific',
     match: (t) => (t.tax_domain === 'inheritance_tax' || t.customer_segment === 'inheritance_gift')
-      && _kw(t, ['贈与', '非課税', '教育資金', '一括贈与', '祖父母', '孫']),
+      && _kw(t, ['教育資金', '教育費の一括贈与', '教育のための一括贈与']),
     text: `【教育資金の一括贈与の非課税措置は令和8年3月31日で終了した】
 この制度は令和8年度税制改正で延長されず、令和8年3月31日をもって新規の信託等ができなくなった。
 絶対に守ること:
@@ -1291,6 +1306,10 @@ module.exports = {
   WORD_COUNT_RANGE_BY_INTENT,
   WORD_COUNT_FLOOR_RATIO,
   LENGTH_OVERSHOOT,
+  LENGTH_OVERSHOOT_BY_MODEL,
+  TOKEN_ESTIMATES_BY_MODEL,
+  calibratedRange,
+  ruleMatchText,
   rangeFor,
   guideTextFor,
   wordCountGuideFor,

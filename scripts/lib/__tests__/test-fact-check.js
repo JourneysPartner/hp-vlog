@@ -295,14 +295,14 @@ async function main() {
     let selfChecks = 0;
     try {
       const topics = ['first', 'second'].map(slug => ({ slug, url_slug: slug, article_type: 'basic_explainer' }));
-      const result = await generate.generateTopics(topics, '2026-10-09', { postsDir: dir, selfCheck: () => { selfChecks++; },
+      const result = await generate.generateTopics(topics, '2026-10-09', { postsDir: dir, env: { POSTGEN_DEDUP: 'true' }, selfCheck: () => { selfChecks++; },
         generateArticle: async (_, t) => ({ content: raw(body).replace('fact-test', t.slug) }),
         checkGenerated: async (_, t) => { order.push(`dedup:${t.slug}`); return { duplicate: false }; },
         factCheck: async content => { const slug = matter(content).data.slug; order.push(`fact:${slug}`); return { content, record: { status: 'ok', summary: '照合済み' } }; },
       });
       assert.equal(result.length, 2); assert.deepEqual(order, ['dedup:first', 'fact:first', 'dedup:second', 'fact:second']);
       assert.equal(selfChecks, 2, '照合で本文を変えないときは点検を重複させない');
-      const skipped = await generate.generateTopics([topics[0]], '2026-10-09', { postsDir: dir, selfCheck: () => {},
+      const skipped = await generate.generateTopics([topics[0]], '2026-10-09', { postsDir: dir, env: { POSTGEN_DEDUP: 'true' }, selfCheck: () => {},
         generateArticle: async () => ({ content: raw(body) }), checkGenerated: async () => ({ duplicate: true, similar_to: 'existing', reason: '重複' }),
         factCheck: async () => { throw new Error('取り下げで呼んではならない'); } });
       assert.equal(skipped.length, 0);

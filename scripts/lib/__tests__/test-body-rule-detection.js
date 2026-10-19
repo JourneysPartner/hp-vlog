@@ -133,7 +133,7 @@ console.log('\n=== Test 6: 組み込み ===');
   assert(/async function applyMissingRulesToBody/.test(src), '反映関数が定義されている');
   assert(/ruleFix = await applyMissingRulesToBody\(/.test(src), 'generateArticle から呼ばれている');
   assert(/ruleFix\.failed/.test(src), '反映失敗時の分岐がある');
-  assert(/自動反映できませんでした/.test(src), '反映失敗は review_comment に残す');
+  assert(/論点別ルールが未反映:/.test(src), '反映失敗は review_comment に残す');
   assert(!/記事を破棄|discard/.test(src), '記事を破棄する実装になっていない');
 
   const builder = fs.readFileSync(path.join(ROOT, 'scripts/lib/article-prompt-builder.js'), 'utf8');
