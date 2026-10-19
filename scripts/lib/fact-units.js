@@ -84,4 +84,22 @@ function rangeText(source, units, rawBasis, maxUnits = 4) {
   const start = selected[0].start, end = selected.at(-1).end;
   return { text: source.slice(start, end), start, end };
 }
-module.exports = { splitUnits, renderUnits, rangeText, unitNumber };
+// 連続番号をまとめ、同じ資料の離れた範囲を最大2つまで扱う。重複は採らない。
+function basisRanges(raw) {
+  if (Array.isArray(raw)) raw = raw.map(unitNumber).join(',');
+  if (typeof raw === 'number') raw = String(raw);
+  if (typeof raw !== 'string') return null;
+  const parts = raw.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/[–—~〜ー−]/g, '-').split(/[,、]/);
+  const ranges = [];
+  for (const part of parts) {
+    if (!/^[1-9]\d*(?:-[1-9]\d*)?$/.test(part)) return null;
+    const [first, last = first] = part.split('-').map(Number);
+    if (!Number.isSafeInteger(first) || !Number.isSafeInteger(last) || last < first) return null;
+    const previous = ranges.at(-1);
+    if (previous && first <= previous[1]) return null;
+    if (previous && first === previous[1] + 1) previous[1] = last;
+    else ranges.push([first, last]);
+  }
+  return ranges.length <= 2 ? ranges.map(([first, last]) => `${first}-${last}`) : null;
+}
+module.exports = { splitUnits, renderUnits, rangeText, unitNumber, basisRanges };

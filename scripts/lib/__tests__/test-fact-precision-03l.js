@@ -80,12 +80,12 @@ async function main() {
       assert.deepEqual(F.normalizedNumbers(fraction, [0, fraction.length]), ['割合:1/500']);
     }
   });
-  await test('L1', '小数・負数・不完全な割合の扱いと「割」は維持する', () => {
+  await test('L1', '小数・負数・不完全な割合を維持し、「割」は割合に揃える', () => {
     assert.deepEqual(F.normalizedNumbers('2.5パーセント'), ['割合:1/40']);
     assert.deepEqual(F.normalizedNumbers('-20パーセント'), ['割合:-1/5']);
     assert.deepEqual(F.normalizedNumbers('0パーセント'), ['割合:0/1']);
     assert.deepEqual(F.normalizedNumbers('0分の20パーセント'), [null]);
-    assert.deepEqual(F.normalizedNumbers('2割'), ['2']);
+    assert.deepEqual(F.normalizedNumbers('2割'), ['割合:1/5']);
   });
 
   await test('L2', '#680 の案内への全置換を却下し、未解決として承認を止める', async () => {
@@ -214,7 +214,7 @@ async function main() {
     const rejected = await giftRepair('国税庁で確認してください。', { sentence });
     assert.equal(rejected.body, rejected.before); assert.equal(rejected.record.corrections[0].reason, '裏付けのある数字を消しています');
   });
-  await test('L3', '03lを記録し、03kの記録は差分照合で使い回さない', async () => {
+  await test('L3', '03oを記録し、03kの記録は差分照合で使い回さない', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03l-version-'));
     const sentence = '基礎控除は110万円です。', calls = [];
     const raw = `---\nslug: precision-version\nrecommendation: publish\n---\n${sentence}`;
@@ -224,12 +224,12 @@ async function main() {
     } });
     try {
       const initial = await F.checkArticle(raw, opts);
-      assert.equal(initial.record.logic_version, '03l'); assert.equal(initial.record.status, 'ok');
+      assert.equal(initial.record.logic_version, '03o'); assert.equal(initial.record.status, 'ok');
       const file = F.recordPath('precision-version', dir);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8')); prior.logic_version = '03k';
       fs.writeFileSync(file, JSON.stringify(prior)); calls.length = 0;
       const result = await F.checkArticle(raw, { ...opts, persist: false, previousRaw: raw });
-      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, '03l');
+      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, '03o');
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });

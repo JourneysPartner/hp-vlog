@@ -11,7 +11,7 @@ const { searchEvidence } = require('./fact-evidence');
 const { positiveLimit } = require('./source-excerpt');
 const { LAW_SCOPE_RULE } = require('./grounding-rules');
 const { tokenizeForMatcher } = require('./nta-source-matcher');
-const { splitUnits, renderUnits, rangeText, unitNumber } = require('./fact-units');
+const { splitUnits, renderUnits, rangeText, unitNumber, basisRanges } = require('./fact-units');
 const { buildPages, pageGroups } = require('./fact-pages');
 const TYPES = ['金額', '期限', '割合', '適用年', '番号', '要件', '判定', '手続'];
 const NUMERIC_TYPES = new Set(['金額', '割合', '期限', '適用年', '番号']);
@@ -24,11 +24,13 @@ function config(options = {}) {
   const provider = options.provider || process.env.FACT_CHECK_PROVIDER || 'anthropic';
   const model = options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5';
   const effort = (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
+  const extractEffort = (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
   const poll = options.batchPollSeconds ?? process.env.FACT_CHECK_BATCH_POLL_SECONDS;
-  return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort,
+  return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort, extractEffort,
     modelOptions: effort === null ? {} : { output_config: { effort } },
+    extractModelOptions: extractEffort === null ? {} : { output_config: { effort: extractEffort } },
     batch: provider === 'anthropic' && (options.batch ?? (process.env.FACT_CHECK_BATCH === 'true')) === true,
-    batchMaxWaitMs: positiveLimit(options.batchMaxWaitMinutes ?? process.env.FACT_CHECK_BATCH_MAX_WAIT_MINUTES, 60) * 60000,
+    batchMaxWaitMs: Math.min(180, positiveLimit(options.batchMaxWaitMinutes ?? process.env.FACT_CHECK_BATCH_MAX_WAIT_MINUTES, 60)) * 60000,
     batchPollMs: (poll !== undefined && poll !== '' && Number.isFinite(Number(poll)) ? Math.max(5, Number(poll)) : 30) * 1000,
     enabled: options.enabled ?? (process.env.FACT_CHECK_ENABLED !== 'false'),
     failOpen: options.failOpen ?? (process.env.FACT_CHECK_FAIL_OPEN === 'true'),
@@ -139,19 +141,42 @@ function normalizedNumbers(text, range) {
     // 範囲の端で切れた日付・金額・割合の断片を、別の数として採用しない。
     const next = matches[i + 1];
     const fraction = suffix.startsWith('分の');
-    const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
-    const percent = suffix.match(/^(?:%|パーセント)/)?.[0] || '';
-    const nextPercent = nextSuffix.match(/^(?:%|パーセント)/)?.[0] || '';
-    const unit = suffix.match(/^(?:円|年|月|日|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/)?.[0] || '';
-    const end = fraction && next ? next.index + next[0].length + nextPercent.length
-      : match.index + value.length + (percent.length || unit.length);
-    if (range && (match.index < range[0] || end > range[1])) {
+    // 「年数四年」などの名詞は読む。「数十」「十数」の概数は分数の分子も含めて除外する。
+    if (/(?:^|[^\p{Script=Han}]|[十百千])数$/u.test(prefix) && !/[0-9]/.test(value)) {
       if (fraction && next && next.index === match.index + value.length + 2) i++;
       continue;
     }
+    const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
+    const percent = suffix.match(/^(?:%|パーセント)/)?.[0] || '';
+    const nextPercent = nextSuffix.match(/^(?:%|パーセント)/)?.[0] || '';
+    // 中黒の列挙は最後の「割」を共有する。読点の列挙には広げない。
+    const wariTail = suffix.match(new RegExp(`^(?:・${digits})*割(?!合)(?:(${digits})分)?`));
+    const wari = wariTail;
+    const directWari = wari && suffix.startsWith('割');
+    const bu = directWari && wariTail[1];
+    const unit = suffix.match(/^(?:円|年|月|日|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/)?.[0] || '';
+    const end = fraction && next ? next.index + next[0].length + nextPercent.length
+      : match.index + value.length + (wari ? wariTail[0].length : percent.length || unit.length);
+    if (range && (match.index < range[0] || end > range[1])) {
+      if (fraction && next && next.index === match.index + value.length + 2) i++;
+      if (bu) i++;
+      continue;
+    }
     // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
-    if (!/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
+    if (!wari && !/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
       !/^(?:年|月|日|円|万|億|%|パーセント|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
+    if (wari) {
+      if (/[.,]$/.test(prefix)) return [null];
+      const negative = /[-−]$/.test(prefix);
+      const ratio = normalizedRatio(value, '10');
+      if (bu) {
+        const n = BigInt(ratio.split(':')[1].split('/')[0]), d = BigInt(ratio.split('/')[1]);
+        const b = normalizedRatio(bu, '100').split(':')[1].split('/').map(BigInt);
+        numbers.push(normalizedRatio(String(n * b[1] + b[0] * d), String(d * b[1]), { negative }));
+        i++;
+      } else numbers.push(negative ? normalizedRatio(value, '10', { negative }) : ratio);
+      continue;
+    }
     if (fraction || percent) {
       // 不完全な分数や数の断片は数字なしへ戻さず、照合不能として残す。
       if (/[.,]$/.test(prefix) || (fraction && (!next || next.index !== match.index + value.length + 2 ||
@@ -165,13 +190,13 @@ function normalizedNumbers(text, range) {
       if (fraction) i++;
       continue;
     }
-    const digits = '〇一二三四五六七八九';
+    const digitChars = '〇一二三四五六七八九';
     let total = 0, section = 0, num = 0, hasNumber = false, hasSection = false;
     // アラビア数字・漢数字と万・億をまとめ、同じ金額を一つの数にする。
     for (const c of value.match(/[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|[〇零一二三四五六七八九]+|[十百千万億]/g) || []) {
       const unit = { 十: 10, 百: 100, 千: 1000, 万: 10000, 億: 100000000 }[c];
       if (!unit) {
-        num = /[0-9]/.test(c) ? Number(c.replace(/,/g, '')) : Number([...c].map(d => d === '零' ? 0 : digits.indexOf(d)).join(''));
+        num = /[0-9]/.test(c) ? Number(c.replace(/,/g, '')) : Number([...c].map(d => d === '零' ? 0 : digitChars.indexOf(d)).join(''));
         hasNumber = true;
       } else if (unit < 10000) {
         section += (hasNumber ? num : 1) * unit;
@@ -189,10 +214,10 @@ function normalizedNumbers(text, range) {
 }
 
 function sufficientQuote(claim, result, ref, status) {
-  const quote = normalizedQuote(result?.quote);
-  if (!quote || !ref) return false;
-  const wholeSentence = evidenceTexts(ref).some(text => sentenceRows(text).some(s => normalizedQuote(s.trim()) === quote && /。$/.test(s.trim()) && quote !== '。'));
-  if (quote.length < 15 && !wholeSentence) return false;
+  const parts = quoteParts(result?.quote).map(normalizedQuote);
+  if (!parts.length || parts.length > 2 || !ref || parts.some(p => !p)) return false;
+  const wholeSentence = evidenceTexts(ref).some(text => sentenceRows(text).some(s => parts.includes(normalizedQuote(s.trim())) && /。$/.test(s.trim()) && s.trim() !== '。'));
+  if (parts.join('').length < 15 && !wholeSentence) return false;
   if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
     let numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : result.correct);
     if (status === '裏付けあり') {
@@ -201,7 +226,8 @@ function sufficientQuote(claim, result, ref, status) {
       if (!numbers.every(n => sentenceNumbers.includes(n))) return false;
       if (!numbers.length) numbers = sentenceNumbers;
     }
-    if (numbers.includes(null) || !numbers.length) return false;
+    if (numbers.includes(null)) return false;
+    if (!numbers.length) return status !== '裏付けあり' || !isNumericClaim(claim);
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
     // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
@@ -213,9 +239,10 @@ function sufficientQuote(claim, result, ref, status) {
 /** 数字の照合範囲は、原文の引用位置の前後300字に限定する。 */
 function quoteSupportsNumbers(numbers, result, ref) {
   if (!numbers.length || numbers.includes(null)) return false;
-  const quote = normalizedQuote(result.quote);
-  if (!quote || !ref) return false;
-  return evidenceTexts(ref).some(text => {
+  const parts = quoteParts(result.quote).map(normalizedQuote);
+  if (!parts.length || !ref) return false;
+  const supports = parts.map(() => []);
+  for (const [partIndex, quote] of parts.entries()) for (const text of evidenceTexts(ref)) {
     let normalized = '';
     const positions = [];
     for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
@@ -230,10 +257,24 @@ function quoteSupportsNumbers(numbers, result, ref) {
       let to = positions.length;
       while (to > 0 && positions[to - 1][1] > end) to--;
       const quoted = normalizedNumbers(normalized, [from, to]);
-      if (!quoted.includes(null) && numbers.every(n => quoted.includes(n))) return true;
+      if (quoted.includes(null)) continue;
+      // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
+      const dateDigits = '[0-9〇零一二三四五六七八九十百千]+';
+      const asOf = new RegExp(`(?:(?:令和|平成|昭和|大正|明治)(?:元|${dateDigits})|[0-9]{4})年(?:${dateDigits}月(?:${dateDigits}日)?)?現在(?:法令等)?`, 'g');
+      const dates = normalizedNumbers(quote.replace(asOf, ''));
+      supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
     }
-    return false;
-  });
+  }
+  // 同じ引用が何度も現れても、別々の出現位置の近傍を一つの引用の裏付けに混ぜない。
+  const covers = sets => numbers.every(n => sets.some(s => s.has(n)));
+  return parts.length === 1 ? supports[0].some(s => covers([s]))
+    : parts.length === 2 && supports[0].some(a => supports[1].some(b => covers([a, b])));
+}
+
+function quoteParts(quote) { return typeof quote === 'string' && quote ? quote.split('\n…\n') : []; }
+function quoteExists(quote, ref) {
+  const parts = quoteParts(quote);
+  return parts.length > 0 && parts.length <= 2 && parts.every(part => normalizedQuote(part) && evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(part))));
 }
 
 // 型だけで数字の事実にしない。読めない数や漢数字の条文・通達番号は止める側に残す。
@@ -360,7 +401,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = '03l';
+const LOGIC_VERSION = '03o';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -389,11 +430,12 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   }
   const deadlineSubjects = new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。`;
-  const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]';
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
+  const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
   const cache = options.pageCache;
+  const batching = options.batch && !options.batch.disabled;
   let groups;
-  if (cache?.groups?.length) {
+  if (!batching && cache?.groups?.length) {
     // 初回の固定部分をそのまま使い、不足するページだけを可変部分へ追加する。
     groups = cache.groups.map(g => ({ ...g, claims: [] }));
     for (const c of queued) {
@@ -404,7 +446,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   } else {
     groups = pageGroups(queued, evidence, options)
       .map(g => ({ ...g, staticSystem: instruction + example + '\n\n' + g.pack.block }));
-    if (cache) cache.groups = groups;
+    if (cache && (!batching || !cache.groups)) cache.groups = groups;
   }
   const judgeBatch = async (batch, group, depth = 0) => {
     const known = new Set(group.pack.pages.map(p => p.id));
@@ -466,32 +508,40 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const candidates = (evidence[c.id] || []).map(e => byId.get(e.id).ref);
       const evidenceNo = unitNumber(r?.evidence_id);
       const page = evidenceNo ? pages.find(p => p.number === evidenceNo && candidates.some(e => e.id === p.id)) : null;
-      let cited = page && rangeText(page.source, page.units, r?.basis);
-      let tooMany = NUMERIC_TYPES.has(c.type) && cited && !rangeText(page.source, page.units, r?.basis, 2);
+      const ranges = basisRanges(r?.basis);
+      // 2範囲では各範囲の上限を先に守る。単一範囲の3〜4文に対する従来の救済は維持する。
+      const maxUnits = ranges?.length === 2 && NUMERIC_TYPES.has(c.type) ? 2 : 4;
+      let citations = page && ranges?.map(basis => rangeText(page.source, page.units, basis, maxUnits));
+      if (citations?.some(c => !c)) citations = null;
+      const joinQuotes = parts => parts?.map(c => c.text).join('\n…\n') || '';
+      let tooMany = NUMERIC_TYPES.has(c.type) && citations && ranges.some(basis => !rangeText(page.source, page.units, basis, 2));
       if (tooMany && status !== '資料なし') {
-        // 返された範囲の前から、確認を通る連続1〜2文だけを引用に採る。
-        const selected = page.units.filter(u => u.start >= cited.start && u.end <= cited.end);
-        let rescued;
-        for (let i = 0; i < selected.length && !rescued; i++) for (const length of [1, 2]) {
-          if (i + length > selected.length) continue;
-          const candidate = rangeText(page.source, page.units, `${selected[i].s}-${selected[i + length - 1].s}`, 2);
-          const grounded = { correct: correct ?? '', quote: candidate?.text || '' };
+        // 各範囲を独立に連続1〜2文へ絞る。範囲間の隙間を引用へ取り込まない。
+        const choices = citations.map(cited => {
+          const selected = page.units.filter(u => u.start >= cited.start && u.end <= cited.end);
+          const candidates = [];
+          for (let i = 0; i < selected.length; i++) for (const length of [1, 2]) {
+            if (i + length <= selected.length) candidates.push(rangeText(page.source, page.units, `${selected[i].s}-${selected[i + length - 1].s}`, 2));
+          }
+          return candidates.filter(Boolean);
+        });
+        const combinations = choices.length === 1 ? choices[0].map(c => [c]) : choices[0].flatMap(a => choices[1].map(b => [a, b]));
+        const rescued = combinations.find(parts => {
+          const grounded = { correct: correct ?? '', quote: joinQuotes(parts) };
           const numbers = normalizedNumbers(status === '裏付けあり' ? c.claim : correct);
           if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(c.sentence));
-          if (candidate && evidenceTexts(page.ref).some(text => normalizedQuote(text).includes(normalizedQuote(candidate.text))) &&
-              sufficientQuote(c, grounded, page.ref, status) &&
-              quoteSupportsNumbers(numbers, grounded, page.ref)) rescued = candidate;
-          if (rescued) break;
-        }
-        if (rescued) { cited = rescued; tooMany = false; }
+          return quoteExists(grounded.quote, page.ref) && sufficientQuote(c, grounded, page.ref, status) &&
+            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref) : status !== '裏付けあり' || !isNumericClaim(c));
+        });
+        if (rescued) { citations = rescued; tooMany = false; }
       }
-      const quote = cited?.text || '';
+      const quote = joinQuotes(citations);
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
       if (status !== '資料なし') {
         const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
           : tooMany ? '数字の主張の根拠が2文を超える'
-          : !evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(quote))) ? '引用が資料に無い'
+          : !quoteExists(quote, ref) ? '引用が資料に無い'
             : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
         if (rejected) { status = '資料なし'; reason = rejected; }
@@ -514,6 +564,10 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
         ...(reason ? { reject_reason: reason } : {}),
+        ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
+          status: r.status, evidence: pages.find(p => p.number === evidenceNo)?.id || r.evidence_id,
+          basis: String(r.basis ?? '').slice(0, 40), quote: quote.slice(0, 200),
+        } } : {}),
         ...(status === '裏付けあり' && date && date <= cutoff ? { warning: '注意: 根拠の基準日が古い' } : {}),
       });
     }
@@ -637,7 +691,11 @@ function repairInstructions(findings) {
   }));
 }
 
-function correctionPairs(before, after, findings) {
+function correctionPairs(before, after, findings, replacements) {
+  // 実際に採用した編集を唯一の対応にする。却下・空の編集は元の文のまま。
+  if (replacements || findings.every(f => Object.hasOwn(f, 'after'))) {
+    return new Map(findings.map(f => [f.sentence, replacements ? replacements.get(f.sentence) || f.sentence : f.after || f.sentence]));
+  }
   const units = splitUnits(before);
   const targets = [...new Set(findings.map(f => f.sentence))].map(sentence => ({ sentence, at: units.find(u => !u.heading && u.text === sentence)?.start ?? -1 }))
     .filter(t => t.at >= 0).sort((a, b) => a.at - b.at);
@@ -650,7 +708,8 @@ function correctionPairs(before, after, findings) {
     const start = precedingAt < 0 ? cursor : precedingAt + preceding.length;
     const end = t.at + t.sentence.length;
     const following = before.slice(end, targets[i + 1]?.at ?? before.length).trim();
-    const followingAt = following ? after.indexOf(following, start) : after.length;
+    const nextUnit = splitUnits(after).find(u => u.start >= start && !u.heading);
+    const followingAt = following ? after.indexOf(following, start) : targets[i + 1] ? nextUnit?.end ?? start : after.length;
     pairs.set(t.sentence, after.slice(start, followingAt < 0 ? after.length : followingAt).trim());
     cursor = followingAt < 0 ? start : followingAt;
     previousEnd = end;
@@ -684,6 +743,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     if (!units.some(u => !u.heading && u.text === f.sentence)) reason = '修正対象が本文の文に一致しません';
     else if (rows.length > 1) reason = '修正のidが重複しています';
     else if (!replacement) reason = '置き換え後の文が空です';
+    else if (normalizedClaim(replacement) === normalizedClaim(f.sentence)) reason = '置き換え後の文が元の文と同じです';
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
@@ -730,14 +790,14 @@ async function repairBody(body, findings, callLLM, options = {}) {
 async function checkFacts(body, options = {}) {
   const cfg = config(options);
   const record = { version: 1, logic_version: LOGIC_VERSION, status: 'not_run', model: cfg.model, provider: cfg.provider,
-    extract_model: cfg.extractModel, effort: cfg.effort, batch: cfg.batch,
+    extract_model: cfg.extractModel, effort: cfg.effort, extract_effort: cfg.extractEffort, batch: cfg.batch,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (!cfg.enabled) return { body, record };
   const validModel = model => (cfg.provider === 'anthropic' && /^claude-/.test(model)) ||
     (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(model));
   if (!validModel(cfg.model) || !validModel(cfg.extractModel) ||
-      (cfg.effort !== null && !['low', 'medium', 'high', 'xhigh', 'max'].includes(cfg.effort))) {
+      [cfg.effort, cfg.extractEffort].some(e => e !== null && !['low', 'medium', 'high', 'xhigh', 'max'].includes(e))) {
     record.summary = '照合のモデル設定が不正です';
     return { body, record };
   }
@@ -745,7 +805,7 @@ async function checkFacts(body, options = {}) {
     maxWaitMs: cfg.batchMaxWaitMs, pollMs: cfg.batchPollMs }) : null;
   const caller = options.callLLM || (async request => contentModel.generateContent({ staticSystem: request.task === 'extract' ? '' : request.staticSystem || request.system,
     dynamicSystem: request.task === 'extract' ? request.system : '', user: request.user },
-    { provider: cfg.provider, model: request.model, modelOptions: cfg.modelOptions, maxTokens: request.maxTokens,
+    { provider: cfg.provider, model: request.model, modelOptions: request.task === 'extract' ? cfg.extractModelOptions : cfg.modelOptions, maxTokens: request.maxTokens,
       fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch }));
   let rechecking = false;
   const call = async request => {
@@ -766,7 +826,7 @@ async function checkFacts(body, options = {}) {
         new Promise((_, reject) => {
           if (controller.signal.aborted) return reject(new Error('照合の時間切れ'));
           controller.signal.addEventListener('abort', () => reject(new Error('照合の時間切れ')), { once: true });
-          timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() : 0));
+          timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() + 250000 : 0));
         })]);
       for (const key of ['mode', 'wait_seconds', 'batch_error']) if (ret?.[key] !== undefined) entry[key] = ret[key];
       entry.output_chars = (Array.isArray(ret) ? JSON.stringify(ret) : typeof ret === 'string' ? ret : ret?.text || '').length;
@@ -829,7 +889,7 @@ async function checkFacts(body, options = {}) {
       reused = reused.map((c, i) => ({ ...c, id: `c${claims.length + i + 1}`, s: fullUnits.find(u => !u.heading && u.text === c.sentence)?.s }));
     }
     const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
-    return [...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache }), ...reused];
+    return [...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache, batch }), ...reused];
   };
   let revisedBody = body;
   try {
@@ -843,10 +903,9 @@ async function checkFacts(body, options = {}) {
       if (repair.accepted) {
         revisedBody = repair.body;
         let changes = changedText(body, revisedBody);
-        const pairs = correctionPairs(body, revisedBody, findings);
-        for (const [sentence, replacement] of repair.replacements) pairs.set(sentence, replacement);
-        for (const f of findings) {
-          const replacement = pairs.get(f.sentence);
+        const pairs = correctionPairs(body, revisedBody, findings, repair.replacements);
+        for (const [sentence, replacement] of repair.replacements) {
+          const f = findings.find(f => f.sentence === sentence);
           if (replacement && replacement !== f.sentence && !changes.includes(replacement) && revisedBody.includes(replacement)) changes += `\n${f.heading ? '## ' + f.heading : ''}\n${replacement}`;
         }
         rechecking = true;
@@ -857,9 +916,10 @@ async function checkFacts(body, options = {}) {
           ...(repair.rejected.has(f.id) ? { reason: repair.rejected.get(f.id) } : {}),
           resolved: !repair.rejected.has(f.id) && !revisedBody.includes(f.sentence) && !record.rechecked.some(c => blockingFinding(c) && matchesCorrection(f, c, pairs)),
         }));
-        // 期限追記は元の文を残せるため、再照合の結果と期限追記の有無で判定する。
+        // 期限追記は元の文を残せる。解決の裏付けは自身の置き換え文に限り、止める側は広い対応を維持する。
         for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
-          c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r => matchesCorrection(c, r, pairs) && r.status === '裏付けあり') &&
+          c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r =>
+            r.status === '裏付けあり' && Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
             !record.rechecked.some(r => matchesCorrection(c, r, pairs) && blockingFinding(r));
         }
       } else record.repair_warning = repair.reason;
@@ -950,6 +1010,7 @@ async function checkArticle(raw, options = {}) {
       if (prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
           ['ok', 'revise'].includes(prior.status) && prior.model === cfg.model && prior.provider === cfg.provider &&
           (prior.extract_model ?? prior.model) === cfg.extractModel && (prior.effort ?? null) === cfg.effort &&
+          (prior.extract_effort ?? prior.effort ?? null) === cfg.extractEffort &&
           Array.isArray(prior.claims) && Array.isArray(prior.rechecked) && Array.isArray(prior.corrections) &&
           prior.dropped === 0 && prior.discarded === 0 && rows.every(validRow)) {
         const resolved = new Set(prior.corrections.filter(c => c.resolved).map(c => c.id));
@@ -963,7 +1024,7 @@ async function checkArticle(raw, options = {}) {
         const validRefs = c => c.evidence.every(ref => ref && typeof ref.id === 'string' && ref.id && typeof ref.text === 'string' &&
           (!ref.text_ranges || (Array.isArray(ref.text_ranges) && ref.text_ranges.every(range => Array.isArray(range) && range.length === 2 &&
             range.every(Number.isInteger) && range[0] >= 0 && range[1] >= range[0] && range[1] <= ref.text.length)))) &&
-          (c.status === '資料なし' || c.evidence.some(ref => ref.id === c.evidence_id && evidenceTexts(ref).some(text => normalizedQuote(text).includes(normalizedQuote(c.quote)))));
+          (c.status === '資料なし' || c.evidence.some(ref => ref.id === c.evidence_id && quoteExists(c.quote, ref)));
         if (!previousClaims.every(validRefs)) throw new Error('前回の照合記録の根拠が不正です');
         incremental = { previousBody: before.content, previousClaims };
       }
@@ -1008,4 +1069,4 @@ function inheritFactMetadata(original, regenerated) {
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
   articleEvidenceOptions,
   applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
-  normalizeBody, bodyHash, compactRecord, evidenceRefs, normalizedNumbers, sufficientQuote, correctionPairs, WARNING_RE };
+  normalizeBody, bodyHash, compactRecord, evidenceRefs, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, WARNING_RE };
