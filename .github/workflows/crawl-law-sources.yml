@@ -41,11 +41,17 @@ jobs:
         run: npm install
 
       - name: Run crawl
+        env:
+          INPUT_ONLY: ${{ github.event.inputs.only }}
         run: |
           set -o pipefail
-          ARGS=""
-          if [ -n "${{ github.event.inputs.only }}" ]; then ARGS="--only ${{ github.event.inputs.only }}"; fi
-          node scripts/crawl-law-sources.js --verbose $ARGS 2>&1 | tee /tmp/law-crawl.log
+          if [ -n "$INPUT_ONLY" ] && [[ ! "$INPUT_ONLY" =~ ^[A-Za-z0-9_.,:/-]+$ ]]; then
+            echo "::error::only は英数字と _ - . , : / だけで指定してください。"
+            exit 1
+          fi
+          ARGS=()
+          if [ -n "$INPUT_ONLY" ]; then ARGS=(--only "$INPUT_ONLY"); fi
+          node scripts/crawl-law-sources.js --verbose "${ARGS[@]}" 2>&1 | tee /tmp/law-crawl.log
 
       - name: Verify catalog
         run: LAW_CATALOG_REQUIRE_COMPLETE=true node scripts/lib/__tests__/test-law-sources.js
