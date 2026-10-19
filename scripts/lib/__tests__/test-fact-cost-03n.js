@@ -133,7 +133,7 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
       assert.equal(r.record.status, 'ok');
       assert.deepEqual(r.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
       assert.deepEqual(wire.calls.map(c => c.init.body), sent);
-      assert.equal(r.record.logic_version, '03l');
+      assert.equal(r.record.logic_version, '03o');
     } finally { CM.generateContent = saved; }
   });
   for (const effort of ['', 'medium']) await test('N1', `2 Sonnet照合の思考設定を分離、effort=${effort || '指定なし'}、書き手は維持`, async () => {
@@ -206,8 +206,10 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     const ret = await CM.generateContent(ir, { ...opts, batch });
     const { mode, wait_seconds, ...same } = ret;
     assert.deepEqual(same, sync); assert.equal(mode, 'batch'); assert.equal(wait_seconds, 30);
-    assert.equal(wire.calls.find(c => c.stage === 'create').batch.item.params.system[0].cache_control.type, 'ephemeral');
-    assert.equal(JSON.stringify(wire.calls.find(c => c.stage === 'create').params), wire.calls[0].init.body);
+    assert.equal(wire.calls.find(c => c.stage === 'create').batch.item.params.system[0].cache_control, undefined);
+    const uncached = JSON.parse(wire.calls[0].init.body);
+    for (const block of uncached.system) delete block.cache_control;
+    assert.equal(JSON.stringify(wire.calls.find(c => c.stage === 'create').params), JSON.stringify(uncached));
     wire = transport();
     const r = await F.checkFacts(RIGHT, { ...OPTIONS, batch: true, batchRuntime: fake });
     assert.equal(r.record.status, 'ok'); assert.equal(r.record.batch, true); assert.equal(wire.count('sync'), 0);
@@ -231,10 +233,10 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     const wire = transport(c => c.stage === 'status' ? response({ processing_status:
       c.task === 'extract' && c.batch.polls > 1 ? 'ended' : 'in_progress' }) : undefined);
     const r = await F.checkFacts(WRONG, { ...OPTIONS, batch: true, batchMaxWaitMinutes: 1, batchPollSeconds: 40, batchRuntime: fake });
-    assert.equal(r.record.status, 'ok'); assert.equal(wire.count('create'), 2); assert.equal(wire.count('cancel'), 1);
-    assert.deepEqual(r.record.calls.map(c => c.mode), ['batch', 'sync-fallback', 'sync', 'sync', 'sync']);
-    assert.equal(r.record.calls[0].wait_seconds, 40); assert.equal(r.record.calls[1].wait_seconds, 80);
-    assert.equal(fake.now(), 120000);
+    assert.equal(r.record.status, 'ok'); assert.equal(wire.count('create'), 1); assert.equal(wire.count('cancel'), 0);
+    assert.deepEqual(r.record.calls.map(c => c.mode), ['batch', 'sync', 'sync', 'sync', 'sync']);
+    assert.equal(r.record.calls[0].wait_seconds, 40); assert.equal(r.record.calls[1].wait_seconds, 0);
+    assert.equal(fake.now(), 40000);
   });
   await test('N3', '8 取り消し後に成功が届けば同期にやり直さない', async () => {
     const fake = clock();
@@ -312,13 +314,13 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
       assert.ok(requests.every(req => req.thinking === undefined && req.output_config === undefined));
     } finally { if (saved) require.cache[sdk] = saved; else delete require.cache[sdk]; }
   });
-  await test('N3', '12 Batch待ちの打ち切りは残り予算＋timeoutMs', async () => {
+  await test('N3', '12 Batch待ちの打ち切りは残り予算＋取消後60秒＋timeoutMs', async () => {
     const fake = clock(), wire = transport(), delays = [], saved = global.setTimeout;
     global.setTimeout = (fn, ms, ...args) => { delays.push(ms); return saved(fn, ms, ...args); };
     try {
       const r = await F.checkFacts(RIGHT, { ...OPTIONS, batch: true, batchMaxWaitMinutes: 2, timeoutMs: 5, batchRuntime: fake });
       assert.equal(r.record.status, 'ok'); assert.equal(wire.count('sync'), 0);
-      assert.deepEqual(delays, [120005, 120000, 90005, 90000]); assert.equal(fake.now(), 60000);
+      assert.deepEqual(delays, [180005, 60000, 120000, 90000, 60000, 150005, 60000, 90000, 60000, 60000]); assert.equal(fake.now(), 60000);
     } finally { global.setTimeout = saved; }
   });
   await test('N3', '12 合図が来たら確認をやめ、独立のsignalで1回取り消す', async () => {
@@ -366,7 +368,7 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     for (const name of ['daily-draft', 'regenerate-draft', 'refresh-article', 'fact-check']) {
       const text = workflow(name);
       assert.match(text, /FACT_CHECK_EXTRACT_MODEL: \$\{\{ (?:inputs\.extract_model \|\| )?vars\.FACT_CHECK_EXTRACT_MODEL \}\}/);
-      assert.match(text, /FACT_CHECK_EFFORT: \$\{\{ vars\.FACT_CHECK_EFFORT \}\}/);
+      assert.match(text, /FACT_CHECK_EFFORT: \$\{\{ (?:inputs\.effort \|\| )?vars\.FACT_CHECK_EFFORT \}\}/);
       if (name === 'daily-draft') {
         assert.ok(text.includes("FACT_CHECK_BATCH: ${{ vars.FACT_CHECK_BATCH || 'true' }}"));
         assert.ok(text.includes('FACT_CHECK_BATCH_MAX_WAIT_MINUTES: ${{ vars.FACT_CHECK_BATCH_MAX_WAIT_MINUTES }}'));

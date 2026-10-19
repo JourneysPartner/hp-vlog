@@ -27,6 +27,14 @@ on:
         description: 抜き出しモデル（空ならリポジトリ変数の設定）
         type: string
         required: false
+      effort:
+        description: 照合の effort（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      extract_effort:
+        description: 抜き出しの effort（空ならリポジトリ変数の設定）
+        type: string
+        required: false
       batch:
         description: 照合を Batch で頼む
         type: boolean
@@ -65,7 +73,8 @@ jobs:
           FACT_CHECK_PROVIDER: ${{ vars.FACT_CHECK_PROVIDER }}
           FACT_CHECK_MODEL: ${{ inputs.model || vars.FACT_CHECK_MODEL }}
           FACT_CHECK_EXTRACT_MODEL: ${{ inputs.extract_model || vars.FACT_CHECK_EXTRACT_MODEL }}
-          FACT_CHECK_EFFORT: ${{ vars.FACT_CHECK_EFFORT }}
+          FACT_CHECK_EFFORT: ${{ inputs.effort || vars.FACT_CHECK_EFFORT }}
+          FACT_CHECK_EXTRACT_EFFORT: ${{ inputs.extract_effort || vars.FACT_CHECK_EXTRACT_EFFORT }}
           FACT_CHECK_BATCH: ${{ inputs.batch }}
           FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
           FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}

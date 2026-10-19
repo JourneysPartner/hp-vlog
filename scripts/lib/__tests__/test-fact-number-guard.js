@@ -89,10 +89,10 @@ async function main() {
     const quote = 'この制度は令和9年3月31日までの申請が対象です。';
     assert.equal(await judge('この制度の適用期間は9年です。', quote, quote, { type: '適用年' }), '資料なし');
   });
-  await test('M1', '日付の粒度と元号の違いは資料なし', async () => {
+  await test('M1', '引用内の同じ年だけを認め、月日と元号の違いは資料なし', async () => {
     const quote = 'この制度は令和9年3月31日までの申請が対象です。';
     for (const date of ['令和9年', '令和9年3月', '3月31日', '平成9年3月31日']) {
-      assert.equal(await judge(`この制度は${date}までです。`, quote, quote), '資料なし');
+      assert.equal(await judge(`この制度は${date}までです。`, quote, quote), date === '令和9年' ? '裏付けあり' : '資料なし');
     }
   });
   await test('M1', 'H1の要約と本文の数字の一致を保つ', async () => {

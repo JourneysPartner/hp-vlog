@@ -184,30 +184,44 @@ function batchFailure(name) {
 async function callAnthropicBatch(promptIR, opts) {
   const { model, maxTokens, modelOptions, signal, batch } = opts;
   const { toAnthropicRequest } = require('./article-prompt-builder');
-  const params = toAnthropicRequest(promptIR, { model, maxTokens, useCache: useCache(), modelOptions });
+  const params = toAnthropicRequest(promptIR, { model, maxTokens, useCache: false, modelOptions });
   const base = 'https://api.anthropic.com/v1/messages/batches';
   const customId = `fc-${++batch.sequence}`;
-  const started = batch.now(), budget = batch.remainingMs();
-  let id, cancelPromise, accounted = false;
-  const waited = () => Math.max(0, batch.now() - started);
+  const budget = batch.remainingMs();
+  abortBatch(signal);
+  if (budget < Math.max(batch.pollMs, 60000)) {
+    batch.disabled = true;
+    return { ...await callAnthropic(promptIR, opts), mode: 'sync' };
+  }
+  let started = null;
+  let id, cancelPromise, accounted = false, cancelAttempted = false, cancelSucceeded = false;
+  const waited = () => started === null ? 0 : Math.max(0, batch.now() - started);
   const account = () => {
     if (!accounted) { batch.waitedMs += Math.min(budget, waited()); accounted = true; }
   };
   const request = async (url, method = 'GET', body, requestSignal = signal) => {
-    const res = await fetch(url, { method, headers: { 'content-type': 'application/json',
+    let res;
+    try { res = await fetch(url, { method, headers: { 'content-type': 'application/json',
       'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': ANTHROPIC_VERSION },
       ...(body ? { body: JSON.stringify(body) } : {}), ...(requestSignal ? { signal: requestSignal } : {}) });
-    if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
+    } catch (error) { error.batchTransient = true; throw error; }
+    if (!res.ok) {
+      const error = new Error(`Anthropic API ${res.status}: ${await res.text()}`);
+      error.batchTransient = res.status === 429 || res.status >= 500;
+      throw error;
+    }
     return res;
   };
   // 打ち切られた signal は取消に使えない。取消自体も短い独立の制限で必ず終える。
   const cancel = () => {
     if (!id) return Promise.resolve();
     if (!cancelPromise) cancelPromise = (async () => {
+      cancelAttempted = true;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5000);
-      try { await Promise.race([request(`${base}/${id}/cancel`, 'POST', null, controller.signal),
-        new Promise(resolve => controller.signal.addEventListener('abort', resolve, { once: true }))]); }
+      try { const response = await Promise.race([request(`${base}/${id}/cancel`, 'POST', null, controller.signal),
+        new Promise(resolve => controller.signal.addEventListener('abort', () => resolve(null), { once: true }))]);
+        cancelSucceeded = Boolean(response?.ok); }
       catch (_) { /* 取消失敗は元の失敗を隠さない。 */ }
       finally { clearTimeout(timer); }
     })();
@@ -251,13 +265,34 @@ async function callAnthropicBatch(promptIR, opts) {
     return { ...anthropicResult(value.message, model, ` mode=batch wait_seconds=${waitSeconds} batch_id=${redactSecrets(id)}`),
       mode: 'batch', wait_seconds: waitSeconds };
   };
+  // 一時的な通信失敗だけを、期限内で最大3回やり直す。作成は二重作成を避け再試行しない。
+  const retry = async (deadline, phaseSignal, work) => {
+    for (let attempt = 0; ; attempt++) {
+      abortBatch(phaseSignal);
+      try { return await work(); }
+      catch (error) {
+        abortBatch(phaseSignal);
+        if (!(error.batchTransient || error instanceof TypeError) || attempt >= 3) throw error;
+        const remaining = deadline - batch.now();
+        if (remaining <= 0) throw error;
+        await batch.sleep(Math.min(batch.pollMs, 5000, remaining), phaseSignal);
+        if (batch.now() >= deadline) throw error;
+      }
+    }
+  };
   const poll = async (deadline, phaseSignal) => {
     while (true) {
       abortBatch(phaseSignal);
       if (batch.now() >= deadline) return null;
-      const state = await (await request(`${base}/${id}`, 'GET', null, phaseSignal)).json();
+      const state = await bounded(deadline, requestSignal => retry(deadline, requestSignal,
+        async () => (await request(`${base}/${id}`, 'GET', null, requestSignal)).json()));
+      if (!state) return null;
       abortBatch(phaseSignal);
-      if (state.processing_status === 'ended') return result(phaseSignal);
+      if (state.processing_status === 'ended') {
+        // 完了済みの結果は通常の待ち予算とは別に取り直し、同期の二重課金を避ける。
+        const resultDeadline = batch.now() + 60000;
+        return bounded(resultDeadline, requestSignal => retry(resultDeadline, requestSignal, () => result(requestSignal)));
+      }
       if (!['in_progress', 'canceling'].includes(state.processing_status)) throw batchFailure('BatchStatusError');
       const remaining = deadline - batch.now();
       if (remaining <= 0) return null;
@@ -268,20 +303,24 @@ async function callAnthropicBatch(promptIR, opts) {
   try {
     abortBatch(signal);
     if (budget <= 0) throw batchFailure('BatchTimeoutError');
-    const completed = await bounded(started + budget, async phaseSignal => {
+    const created = await bounded(batch.now() + 60000, async phaseSignal => {
       abortBatch(phaseSignal);
       const created = await (await request(base, 'POST', { requests: [{ custom_id: customId, params }] }, phaseSignal)).json();
       if (typeof created.id !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(created.id)) throw batchFailure('BatchIdError');
       id = created.id;
       if (phaseSignal.aborted) { await cancel(); abortBatch(phaseSignal); }
-      return poll(started + budget, phaseSignal);
+      return created;
     });
+    started = batch.now();
+    if (!created) throw batchFailure('BatchTimeoutError');
+    const completed = await poll(started + budget, signal);
     if (completed) return completed;
     account();
     if (!id) throw batchFailure('BatchTimeoutError');
     // 通常の待ちの上限とは別に、取消と完了の競合を最大60秒だけ確かめる。
     const cancelDeadline = batch.now() + 60000;
-    const raced = await bounded(cancelDeadline, async phaseSignal => { await cancel(); return poll(cancelDeadline, phaseSignal); });
+    await cancel();
+    const raced = await poll(cancelDeadline, signal);
     if (raced) return raced;
     throw batchFailure('BatchTimeoutError');
   } catch (error) {
@@ -292,6 +331,7 @@ async function callAnthropicBatch(promptIR, opts) {
     await cancel();
     abortBatch(signal);
     account();
+    console.warn(`[content-model] Batch同期やり直し batch_id=${redactSecrets(id || '未作成')} reason=${diagnostic} cancel_attempted=${cancelAttempted} cancel_succeeded=${cancelSucceeded}`);
     const waitSeconds = Math.floor(waited() / 1000);
     try {
       return { ...await callAnthropic(promptIR, opts), mode: 'sync-fallback',

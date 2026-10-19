@@ -163,7 +163,7 @@ async function main() {
     assert.equal(await judged(correct, correct, '期限', wrong), '資料なし');
   });
   await test('G3', '漢数字は単位・元号・第の文脈でだけ読む', () => {
-    assert.deepEqual(F.normalizedNumbers('一般の一定の要件、第三項、昭和六十年、平成元年、三人、二件、六ヶ月、二割五分'), ['3', '日付:昭和60', '日付:平成1', '3', '2', '6', '2', '5']);
+    assert.deepEqual(F.normalizedNumbers('一般の一定の要件、第三項、昭和六十年、平成元年、三人、二件、六ヶ月、二割五分'), ['3', '日付:昭和60', '日付:平成1', '3', '2', '6', '割合:1/4']);
     assert.deepEqual(F.normalizedNumbers('110万円 百十万円'), ['1100000', '1100000']);
   });
 

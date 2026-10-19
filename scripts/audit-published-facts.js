@@ -70,7 +70,7 @@ function renderReport(records, { skipped = 0 } = {}) {
     const c = counts(r);
     lines.push(`## ${md(r.slug)}`, '', `${md(r.title)} — 食い違い ${c.mismatch} 件・期限の書き漏れ ${c.deadline} 件・資料なし ${c.unsupported} 件（${md(r.status)}）`, '', md(r.summary), '');
     for (const finding of (r.claims || []).filter(c => c.status !== '裏付けあり')) {
-      lines.push(`- ${md(finding.status)}: ${md(finding.sentence)}`, `  - 正しい内容: ${md(finding.correct || '資料なし')}`, `  - 根拠の抜粋: ${md(finding.quote)}`);
+      lines.push(`- ${md(finding.status)}: ${md(finding.sentence)}`, `  - 正しい内容: ${md(finding.correct || '資料なし')}`, ...F.quoteParts(finding.quote || '').map(part => `  - 根拠の抜粋: ${md(part)}`));
       for (const e of F.evidenceRefs(r, finding)) if (/^https:\/\//.test(e.url || '')) lines.push(`  - [${md(e.title || '根拠')}](${encodeURI(e.url).replace(/[()]/g, c => '%' + c.charCodeAt(0).toString(16))})`);
     }
     lines.push('');

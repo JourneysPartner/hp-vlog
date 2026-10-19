@@ -200,7 +200,7 @@ async function main() {
     const b = claim('消費税の申告を行います。', { id: 'c2', type: '手続', subject: '消費税' });
     const before = `## 贈与\n${a.sentence}\n## 消費税\n${b.sentence}`;
     await incremental(before, before.replace(a.sentence, ''), [a, b], record => {
-      assert.equal(record.logic_version, '03l'); assert.equal(record.incremental.reused, 1);
+      assert.equal(record.logic_version, '03o'); assert.equal(record.incremental.reused, 1);
     });
   });
   await test('J5', '主張に抜かれない期限の変更でも節と同制度を再判定する', async () => {
@@ -239,7 +239,7 @@ async function main() {
     await judge([claim('控除は100万円です。')], '控除は100万円です。', async req => {
       const instruction = req.system.split('\n\n[資料 ')[0];
       assert.equal(instruction.split('\n').length, 2);
-      assert.equal(instruction.split('\n').at(-1), '例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]');
+      assert.equal(instruction.split('\n').at(-1), '例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]');
       return [support('c1')];
     });
   });

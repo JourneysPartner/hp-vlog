@@ -192,7 +192,7 @@ async function main() {
   });
 
   await test('K4', '判定の指示文は指定の括弧書き1つ以外を変えず、呼び出し設定を維持する', async () => {
-    const previous = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] のJSON配列だけです。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13","correct":""}]`;
+    const previous = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力はJSON配列だけです。correct は食い違い・期限の書き漏れのときだけ書き、資料なしでは evidence_id・basis も書かないでください。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]`;
     await judge([first], first.sentence, async req => {
       const instruction = req.system.split('\n\n[資料 ')[0];
       // 03k の後に Claude が足した経過措置の規則（実 AI の #644 で生前贈与加算の段階を見逃したため）も除いて比べる。
@@ -239,11 +239,12 @@ async function main() {
       assert.equal(rows[0].reject_reason, '数字の主張の根拠が2文を超える');
     }
   });
-  await test('K4', '範囲外・非連続・5文・候補外の指定は救わない', async () => {
+  await test('K4', '2範囲を認め、範囲外・5文・候補外の指定は救わない', async () => {
     const text = '控除は100万円です。\n制度の対象者を説明します。\n申告の条件を説明します。\n原文に基づき判断します。\n申告の手続を説明します。';
     for (const extra of [{ basis: '1-5' }, { basis: '0-3' }, { basis: '1-99' }, { basis: [1, 3, 4] }, { basis: '1-3', evidence_id: 2 }]) {
       const rows = await judge([claim('控除は100万円です。')], text, async () => [support('c1', extra)]);
-      assert.equal(rows[0].status, '資料なし'); assert.ok(rows[0].reject_reason);
+      assert.equal(rows[0].status, Array.isArray(extra.basis) ? '裏付けあり' : '資料なし');
+      if (!Array.isArray(extra.basis)) assert.ok(rows[0].reject_reason);
     }
   });
   await test('K4', 'M1の日付ひとかたまりとM2の前後300字を超えて数字を拾わない', async () => {

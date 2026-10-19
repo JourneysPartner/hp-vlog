@@ -9,7 +9,7 @@ const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
-const { bodyHash, evidenceRefs, normalizedQuote } = require('../../scripts/lib/fact-check');
+const { bodyHash, evidenceRefs, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -83,10 +83,10 @@ function factSentence(value) {
 function renderFactEvidence(record, item, inline = false) {
   const refs = evidenceRefs(record || {}, item).map(e => {
     const url = /^https:\/\//.test(e.url || '') ? e.url : '';
-    const excerpt = !item.evidence_id || item.evidence_id === e.id ? factEvidenceExcerpt(e.text || '', item.quote || '') : '';
+    const excerpts = !item.evidence_id || item.evidence_id === e.id ? quoteParts(item.quote).map(quote => factEvidenceExcerpt(e.text || '', quote)).filter(Boolean) : [];
     return {
       link: `${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}`,
-      excerpt: excerpt ? `<blockquote>${escapeHtml(excerpt)}</blockquote>` : '',
+      excerpt: excerpts.map(excerpt => `<blockquote>${escapeHtml(excerpt)}</blockquote>`).join(''),
     };
   });
   if (inline) return refs.length ? `<div class="small mt-2">見た資料: ${refs.map(e => e.link).join('・')}</div>${refs.map(e => e.excerpt).join('')}` : '';
