@@ -25,7 +25,13 @@ const workflows = fs.readdirSync(WORKFLOWS).filter(name => /\.ya?ml$/.test(name)
     } });
     return { filename, source, document, scalars };
   });
-const dangerousExpression = /\$\{\{\s*(?:inputs\.|github\.event\.|steps\.[\w-]+\.outputs\.|needs\.[\w-]+\.outputs\.|github\.head_ref\b)[\s\S]*?\}\}/g;
+// 実行コードへの直接埋め込みは、信頼する値の単純な参照だけを許す。
+const allowedExpression = /^(?:github\.(?:server_url|repository|run_id|run_number|workflow)|job\.status|runner\.(?:temp|os)|(?:secrets|vars)\.[A-Z_][A-Z0-9_]*|steps\.[A-Z_][A-Z0-9_-]*\.(?:outcome|conclusion))$/i;
+
+function unapprovedExpressions(script) {
+  return [...script.matchAll(/\$\{\{([\s\S]*?)\}\}/g)]
+    .filter(match => !allowedExpression.test(match[1].trim()));
+}
 
 let passed = 0;
 let failed = 0;
@@ -40,7 +46,51 @@ function test(label, fn) {
   }
 }
 
-test('試験1: 全ワークフローの実行コードに外部値を直接埋め込まない', () => {
+test('試験1: 許可一覧は前後の空白と大文字小文字の違いを許す', () => {
+  for (const expression of [
+    'github.server_url', 'github.repository', 'github.run_id', 'github.run_number', 'github.workflow',
+    'job.status', 'runner.temp', 'runner.os', 'secrets.EXAMPLE_VALUE', 'vars.EXAMPLE_VALUE',
+    'steps.prep.outcome', 'steps.article-one.conclusion',
+  ]) {
+    for (const value of [expression, expression.toUpperCase()]) {
+      assert.deepStrictEqual(unapprovedExpressions('${{ \n' + value + '\t }}'), [], value);
+    }
+  }
+});
+
+for (const expression of [
+  'env.PREP_TITLE1',
+  "format('{0}', steps.prep.outputs.title1)",
+  'toJSON(github.event)',
+  'fromJSON(steps.x.outputs.y).z',
+  "steps.prep.outputs['title1']",
+  "github['event']['inputs']['year']",
+  'Steps.prep.outputs.title1',
+  "github.event_name == 'x' && github.event.inputs.year || ''",
+  'github.ref_name',
+]) {
+  test(`試験1: レビューで指摘された式を拒否する: ${expression}`, () => {
+    const source = 'echo "${{ ' + expression + ' }}"';
+    const findings = unapprovedExpressions(source);
+    assert.strictEqual(findings.length, 1);
+    assert.strictEqual(findings[0][1].trim(), expression);
+  });
+}
+
+test('試験1: 従来の外部値参照と、許可した参照に演算を足した式も拒否する', () => {
+  for (const expression of [
+    'inputs.title', 'github.event.inputs.year', 'steps.prep.outputs.title1',
+    'needs.build.outputs.title', 'github.head_ref', "github.run_id || 'fallback'",
+    'github.run_id + 1', 'prefix.github.repository', 'secrets.EXAMPLE_VALUE || vars.EXAMPLE_VALUE',
+    "steps.prep.outcome == 'success'",
+  ]) {
+    const findings = unapprovedExpressions('${{ github.run_id }}\n${{ ' + expression + ' }}');
+    assert.strictEqual(findings.length, 1, expression);
+    assert.strictEqual(findings[0][1].trim(), expression);
+  }
+});
+
+test('試験1: 全ワークフローの実行コードは許可一覧の式だけを使う', () => {
   const findings = [];
   const counts = {};
   let expressionCount = 0;
@@ -57,7 +107,7 @@ test('試験1: 全ワークフローの実行コードに外部値を直接埋�
           const scalar = scalars.find(value => value.value === script && !used.has(value.start));
           assert(scalar, `${filename}: 実行コードの位置を特定できません`);
           used.add(scalar.start);
-          for (const match of source.slice(scalar.start, scalar.end).matchAll(dangerousExpression)) {
+          for (const match of unapprovedExpressions(source.slice(scalar.start, scalar.end))) {
             const line = source.slice(0, scalar.start + match.index).split('\n').length;
             expressionCount++;
             if (!used.has(`line:${line}`)) {
@@ -74,7 +124,7 @@ test('試験1: 全ワークフローの実行コードに外部値を直接埋�
     console.error(findings.join('\n'));
     console.error(`検出行数: ${JSON.stringify(counts)} / 合計 ${Object.values(counts).reduce((a, b) => a + b, 0)} 行・${expressionCount} 式`);
   }
-  assert.strictEqual(findings.length, 0, `直接埋め込みが ${findings.length} か所あります`);
+  assert.strictEqual(findings.length, 0, `許可一覧にない式が ${findings.length} か所あります`);
 });
 
 // Windows の標準 bash（WSL ランチャー）より Git Bash を優先する。

@@ -91,7 +91,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           CHECK_REPORT: ${{ steps.check.outputs.report }}
-          GITHUB_EVENT_NUMBER: ${{ github.event.number }}
+          PR_NUMBER: ${{ github.event.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
@@ -101,7 +101,7 @@ jobs:
             echo "${CHECK_REPORT}"
             echo '```'
           } > /tmp/comment.md
-          gh pr comment "${GITHUB_EVENT_NUMBER}" --body-file /tmp/comment.md
+          gh pr comment "${PR_NUMBER}" --body-file /tmp/comment.md
 
       - name: Notify Chatwork
         if: github.event_name != 'pull_request' && steps.check.outputs.needs_attention != '0'
