@@ -314,13 +314,13 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
       assert.ok(requests.every(req => req.thinking === undefined && req.output_config === undefined));
     } finally { if (saved) require.cache[sdk] = saved; else delete require.cache[sdk]; }
   });
-  await test('N3', '12 Batch待ちの打ち切りは残り予算＋取消後60秒＋timeoutMs', async () => {
+  await test('N3', '12 Batch待ちの打ち切りは残り予算＋通信と取消の余裕250秒＋timeoutMs', async () => {
     const fake = clock(), wire = transport(), delays = [], saved = global.setTimeout;
     global.setTimeout = (fn, ms, ...args) => { delays.push(ms); return saved(fn, ms, ...args); };
     try {
       const r = await F.checkFacts(RIGHT, { ...OPTIONS, batch: true, batchMaxWaitMinutes: 2, timeoutMs: 5, batchRuntime: fake });
       assert.equal(r.record.status, 'ok'); assert.equal(wire.count('sync'), 0);
-      assert.deepEqual(delays, [180005, 60000, 120000, 90000, 60000, 150005, 60000, 90000, 60000, 60000]); assert.equal(fake.now(), 60000);
+      assert.deepEqual(delays, [370005, 60000, 120000, 90000, 60000, 340005, 60000, 90000, 60000, 60000]); assert.equal(fake.now(), 60000);
     } finally { global.setTimeout = saved; }
   });
   await test('N3', '12 合図が来たら確認をやめ、独立のsignalで1回取り消す', async () => {

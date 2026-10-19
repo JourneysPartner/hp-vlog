@@ -375,13 +375,13 @@ for (const cancelOK of [true, false]) test('O9', `同期やり直しの警告に
   assert.equal(warnings.length, 1); assert.match(warnings[0], /batch_id=batch-03o-1/);
   assert.ok(warnings[0].includes(`cancel_attempted=true cancel_succeeded=${cancelOK}`)); assert.ok(!warnings[0].includes(KEY));
 });
-test('O9', '待ち上限は180分、呼び出しの制限は取消後60秒を含む', async () => {
+test('O9', '待ち上限は180分、呼び出しの制限は通信と取消の余裕250秒を含む', async () => {
   process.env.FACT_CHECK_BATCH_MAX_WAIT_MINUTES = '500'; assert.equal(F.config().batchMaxWaitMs, 180 * 60000);
   const saved = global.setTimeout, delays = []; transport();
   global.setTimeout = (fn, ms, ...args) => { delays.push(ms); return saved(fn, ms, ...args); };
   try {
     const r = await F.checkFacts(RIGHT, { ...options, batch: true, batchMaxWaitMinutes: 2, timeoutMs: 1000, batchRuntime: clock(), searchEvidence: () => [ref(RIGHT)], loadEvidenceText: e => e.text });
-    assert.equal(r.record.status, 'ok'); assert.ok(delays.includes(181000));
+    assert.equal(r.record.status, 'ok'); assert.ok(delays.includes(371000));
   } finally { global.setTimeout = saved; }
 });
 test('O10', '5本のenv・監査の設定・手動の入力をenv経由で渡す', () => {

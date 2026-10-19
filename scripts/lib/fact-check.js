@@ -138,6 +138,8 @@ function normalizedNumbers(text, range) {
     const value = match[0];
     const prefix = normalized.slice(0, match.index);
     const suffix = normalized.slice(match.index + value.length);
+    // 「数十」のような概数の漢数字は読まず、「件数2割」の算用数字は読む。
+    if (/数$/.test(prefix) && !/[0-9]/.test(value)) continue;
     // 範囲の端で切れた日付・金額・割合の断片を、別の数として採用しない。
     const next = matches[i + 1];
     const fraction = suffix.startsWith('分の');
@@ -146,7 +148,7 @@ function normalizedNumbers(text, range) {
     const nextPercent = nextSuffix.match(/^(?:%|パーセント)/)?.[0] || '';
     // 中黒の列挙は最後の「割」を共有する。読点の列挙には広げない。
     const wariTail = suffix.match(new RegExp(`^(?:・${digits})*割(?!合)(?:(${digits})分)?`));
-    const wari = !/数$/.test(prefix) && wariTail;
+    const wari = wariTail;
     const directWari = wari && suffix.startsWith('割');
     const bu = directWari && wariTail[1];
     const unit = suffix.match(/^(?:円|年|月|日|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/)?.[0] || '';
@@ -222,7 +224,7 @@ function sufficientQuote(claim, result, ref, status) {
       if (!numbers.length) numbers = sentenceNumbers;
     }
     if (numbers.includes(null)) return false;
-    if (!numbers.length) return true;
+    if (!numbers.length) return status !== '裏付けあり' || !isNumericClaim(claim);
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
     // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
@@ -425,7 +427,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   }
   const deadlineSubjects = new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力はJSON配列だけです。correct は食い違い・期限の書き漏れのときだけ書き、資料なしでは evidence_id・basis も書かないでください。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
   const cache = options.pageCache;
   const batching = options.batch && !options.batch.disabled;
@@ -526,7 +528,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           const numbers = normalizedNumbers(status === '裏付けあり' ? c.claim : correct);
           if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(c.sentence));
           return quoteExists(grounded.quote, page.ref) && sufficientQuote(c, grounded, page.ref, status) &&
-            (!numbers.length || quoteSupportsNumbers(numbers, grounded, page.ref));
+            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref) : status !== '裏付けあり' || !isNumericClaim(c));
         });
         if (rescued) { citations = rescued; tooMany = false; }
       }
@@ -738,6 +740,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     if (!units.some(u => !u.heading && u.text === f.sentence)) reason = '修正対象が本文の文に一致しません';
     else if (rows.length > 1) reason = '修正のidが重複しています';
     else if (!replacement) reason = '置き換え後の文が空です';
+    else if (normalizedClaim(replacement) === normalizedClaim(f.sentence)) reason = '置き換え後の文が元の文と同じです';
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
@@ -820,7 +823,7 @@ async function checkFacts(body, options = {}) {
         new Promise((_, reject) => {
           if (controller.signal.aborted) return reject(new Error('照合の時間切れ'));
           controller.signal.addEventListener('abort', () => reject(new Error('照合の時間切れ')), { once: true });
-          timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() + 60000 : 0));
+          timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() + 250000 : 0));
         })]);
       for (const key of ['mode', 'wait_seconds', 'batch_error']) if (ret?.[key] !== undefined) entry[key] = ret[key];
       entry.output_chars = (Array.isArray(ret) ? JSON.stringify(ret) : typeof ret === 'string' ? ret : ret?.text || '').length;
@@ -910,9 +913,10 @@ async function checkFacts(body, options = {}) {
           ...(repair.rejected.has(f.id) ? { reason: repair.rejected.get(f.id) } : {}),
           resolved: !repair.rejected.has(f.id) && !revisedBody.includes(f.sentence) && !record.rechecked.some(c => blockingFinding(c) && matchesCorrection(f, c, pairs)),
         }));
-        // 期限追記は元の文を残せるため、再照合の結果と期限追記の有無で判定する。
+        // 期限追記は元の文を残せる。解決の裏付けは自身の置き換え文に限り、止める側は広い対応を維持する。
         for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
-          c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r => matchesCorrection(c, r, pairs) && r.status === '裏付けあり') &&
+          c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r =>
+            r.status === '裏付けあり' && Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
             !record.rechecked.some(r => matchesCorrection(c, r, pairs) && blockingFinding(r));
         }
       } else record.repair_warning = repair.reason;

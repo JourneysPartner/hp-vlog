@@ -137,7 +137,7 @@ function validateAnthropicContent(data) {
 }
 
 // 同期と Batch は、拒否・出力上限・使用量を同じ形で呼び出し元へ返す。
-function anthropicResult(data, model, logSuffix = '') {
+function anthropicResult(data, model, logSuffix = '', cache = useCache()) {
   if (data.stop_reason === 'refusal') {
     const error = new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${redactSecrets(data.stop_details.category)})` : ''));
     error.noSyncFallback = true;
@@ -145,7 +145,7 @@ function anthropicResult(data, model, logSuffix = '') {
   }
   const text = Array.isArray(data.content) ? data.content.map(b => b.type === 'text' ? b.text : '').join('') : '';
   const u = data.usage || {};
-  console.log(`[content-model] provider=anthropic model=${model} cache=${useCache()} ` +
+  console.log(`[content-model] provider=anthropic model=${model} cache=${cache} ` +
     `usage(in=${u.input_tokens ?? '?'} out=${u.output_tokens ?? '?'} ` +
     `cache_write=${u.cache_creation_input_tokens ?? 0} cache_read=${u.cache_read_input_tokens ?? 0}) stop=${data.stop_reason}${logSuffix}`);
   return { text, usage: data.usage || null, provider: 'anthropic', model, stopReason: data.stop_reason || null };
@@ -191,7 +191,11 @@ async function callAnthropicBatch(promptIR, opts) {
   abortBatch(signal);
   if (budget < Math.max(batch.pollMs, 60000)) {
     batch.disabled = true;
-    return { ...await callAnthropic(promptIR, opts), mode: 'sync' };
+    try { return { ...await callAnthropic(promptIR, opts), mode: 'sync', wait_seconds: 0 }; }
+    catch (error) {
+      error.mode = 'sync'; error.wait_seconds = 0;
+      throw error;
+    }
   }
   let started = null;
   let id, cancelPromise, accounted = false, cancelAttempted = false, cancelSucceeded = false;
@@ -262,7 +266,7 @@ async function callAnthropicBatch(promptIR, opts) {
     }
     abortBatch(phaseSignal);
     const waitSeconds = Math.floor(waited() / 1000);
-    return { ...anthropicResult(value.message, model, ` mode=batch wait_seconds=${waitSeconds} batch_id=${redactSecrets(id)}`),
+    return { ...anthropicResult(value.message, model, ` mode=batch wait_seconds=${waitSeconds} batch_id=${redactSecrets(id)}`, false),
       mode: 'batch', wait_seconds: waitSeconds };
   };
   // 一時的な通信失敗だけを、期限内で最大3回やり直す。作成は二重作成を避け再試行しない。
