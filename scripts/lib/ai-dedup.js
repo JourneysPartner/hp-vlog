@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateAux } = require('./aux-model');
+const { generateAux, canUseAux, auxEnabled, auxProvider } = require('./aux-model');
 
 const SYSTEM_PROMPT = `あなたは日本の税務ブログの編集者です。
 候補トピックが既存記事と内容的に重複しているか判定してください。
@@ -67,13 +67,16 @@ function buildCandidateBlock(topic, idx) {
 // 選定時（checkDuplicatesWithAI）と生成後（checkGeneratedDuplicateWithAI）で共用する。
 function applyDeterministicGuard(parsed, picks, corpus) {
   const pickBySlug = Object.create(null);
-  for (const p of picks) if (p.slug) pickBySlug[p.slug] = p;
+  for (const p of picks) {
+    if (p.slug) pickBySlug[p.slug] = p;
+    if (p.url_slug) pickBySlug[p.url_slug] = p;
+  }
   const corpusBySlug = Object.create(null);
   for (const c of corpus) if (c.slug) corpusBySlug[c.slug] = c;
 
   for (const r of parsed) {
     if (!r.duplicate || !r.similar_to) continue;
-    const cand = pickBySlug[r.slug];
+    const cand = picks.length === 1 && parsed.length === 1 ? picks[0] : pickBySlug[r.slug];
     const existing = corpusBySlug[r.similar_to];
     if (!cand || !existing) continue;
 
@@ -118,6 +121,7 @@ function applyDeterministicGuard(parsed, picks, corpus) {
  */
 async function checkDuplicatesWithAI(picks, corpus) {
   if (!picks || picks.length === 0) return { results: [], skipped: true };
+  if (!canUseAux()) return { results: [], skipped: true, disabled: !auxEnabled() || auxProvider() === 'rule_based' };
 
   const candidateBlocks = picks
     .map((t, i) => buildCandidateBlock(t, i))
@@ -151,7 +155,8 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
       return { results: [], skipped: true, parseError: true };
     }
     const parsed = JSON.parse(jsonMatch[0]);
-    if (!Array.isArray(parsed)) {
+    if (!Array.isArray(parsed) || parsed.length === 0
+      || parsed.some(r => !r || typeof r.duplicate !== 'boolean')) {
       return { results: [], skipped: true, parseError: true };
     }
 
@@ -159,7 +164,7 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
 
     return { results: parsed, skipped: false };
   } catch (e) {
-    console.warn(`[ai-dedup] JSON parse失敗: ${e.message}`);
+    console.warn('[ai-dedup] JSON応答を読み取れません');
     return { results: [], skipped: true, parseError: true };
   }
 }

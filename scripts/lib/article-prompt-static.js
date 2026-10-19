@@ -260,7 +260,7 @@ const MACRO_GUIDE = {
 const ruleMatchText = topic => [
   topic.title, topic.search_intent, topic.primary_question, topic.reader_problem,
   topic.subcluster, topic.slug, topic.pain_point, topic.tax_terms, topic.target_query,
-  ...(topic.secondary_queries || []), topic.source_title,
+  ...(Array.isArray(topic.secondary_queries) ? topic.secondary_queries : String(topic.secondary_queries || '').split(',').map(q => q.trim())), topic.source_title,
   ...(topic.source_supplements || []).map(s => s.title),
   ...[2, 3, 4].map(n => topic[`source_${n}_title`]),
   ...(topic.__materialBundle?.pages?.sources || []).map(s => s.title),
@@ -271,9 +271,10 @@ const _kw = (topic, terms) => terms.some(t => ruleMatchText(topic).includes(t));
 // 混在記事の所得税側の論点は残して判定する。
 const incomeThresholdMatch = topic => {
   const original = ruleMatchText(topic);
-  const text = original.replace(/(?:贈与税|相続税)(?:における|についての|の)?[「『\s]*(?:基礎控除|配偶者控除)/g, '');
-  const inheritance = /(?:贈与税|相続税)/.test(original) || ['inheritance_tax', 'gift_tax'].includes(topic.tax_domain) || topic.customer_segment === 'inheritance_gift';
-  if (inheritance && !/(?:所得税|住民税|扶養|合計所得金額|年収の壁|103万円の壁)/.test(text)) return false;
+  const text = original.replace(/(?:贈与税|相続税)(?:における|についての|の)?[「『\s]*(?:基礎控除|配偶者控除)/g, '')
+    .replace(/扶養義務者|配偶者控除[（(]おしどり贈与[）)]/g, '');
+  const inheritance = /贈与|相続税/.test(original) || ['inheritance_tax', 'gift_tax'].includes(topic.tax_domain) || topic.customer_segment === 'inheritance_gift';
+  if (inheritance && !/(?:所得税|住民税)(?:の|における|についての)?(?:扶養|配偶者控除|基礎控除)|扶養控除|合計所得金額|年収の壁|103万円の壁|被扶養者/.test(text)) return false;
   return ['扶養', '配偶者控除', '基礎控除', '103万円の壁', '年収の壁', '合計所得金額', '58万円', '62万円', '被扶養者'].some(t => text.includes(t));
 };
 
@@ -879,7 +880,7 @@ note / BASE / Udemy / App Store 等のプラットフォーム販売を扱うと
   expired_education_fund_gift: {
     scope: 'topic_specific',
     match: (t) => (t.tax_domain === 'inheritance_tax' || t.customer_segment === 'inheritance_gift')
-      && _kw(t, ['教育資金', '教育費の一括贈与', '教育のための一括贈与']),
+      && _kw(t, ['贈与', '非課税', '教育資金', '一括贈与', '祖父母', '孫']),
     text: `【教育資金の一括贈与の非課税措置は令和8年3月31日で終了した】
 この制度は令和8年度税制改正で延長されず、令和8年3月31日をもって新規の信託等ができなくなった。
 絶対に守ること:

@@ -156,7 +156,7 @@ async function main() {
       assert.equal(results.length, 0); assert.deepEqual(entries, []); assert.deepEqual(fs.readdirSync(dir), []);
       const workflow = fs.readFileSync(path.join(__dirname, '../../../.github/workflows/regenerate-draft.yml'), 'utf8');
       assert(workflow.includes('regenerate_failed'));
-      assert(workflow.includes("if: failure() && steps.regen.outcome == 'failure'"));
+      assert(workflow.includes('if: failure()\n'));
       const source = fs.readFileSync(path.join(__dirname, '../../generate-draft.js'), 'utf8');
       assert(source.includes('regenerateWithContentModel(existing, comment)'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }

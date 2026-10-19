@@ -53,13 +53,16 @@ function appendWithdrawnTopics(additions, file = DEFAULT_PATH) {
   return entries;
 }
 
-function findWithdrawnTopic(topic, data) {
-  return entriesOf(data).find(entry => entry.stage !== 'generation-failed' && entry.topic_id === topic.slug) || null;
+function findWithdrawnTopic(topic, data, now = new Date()) {
+  // 取り下げは恒久除外、候補固有の生成失敗だけは期限到達時に選定へ戻す。
+  return entriesOf(data).find(entry => entry.stage !== 'generation-failed' && entry.topic_id === topic.slug
+    && (entry.stage !== 'generation-failed-candidate' || Date.parse(entry.expires_at) > new Date(now).getTime())) || null;
 }
 const normalizeQuery = query => String(query || '').replace(/[\s\u3000]+/g, ' ').trim().toLowerCase();
 function findWithdrawnQuery(query, data) {
   const key = normalizeQuery(query);
-  return key ? entriesOf(data).find(entry => entry.stage !== 'generation-failed' && normalizeQuery(entry.target_query) === key) || null : null;
+  // 候補固有の一時的な失敗で、同じ検索語を扱う別候補まで取り下げない。
+  return key ? entriesOf(data).find(entry => !['generation-failed', 'generation-failed-candidate'].includes(entry.stage) && normalizeQuery(entry.target_query) === key) || null : null;
 }
 
 // 取り下げるたびに保存し、途中で生成が失敗してもそこまでの記録を残す。
@@ -80,6 +83,8 @@ function createWithdrawalRecorder(options = {}) {
       const now = options.now || new Date();
       const entry = {
         topic_id: topic.slug, stage,
+        ...(stage === 'generation-failed-candidate'
+          ? { expires_at: new Date(new Date(now).getTime() + 7 * 86400000).toISOString() } : {}),
         similar_to: detail.similar_to || '',
         reason: [...String(detail.reason || '')].slice(0, 200).join(''),
         url_slug: detail.url_slug || topic.url_slug || '',

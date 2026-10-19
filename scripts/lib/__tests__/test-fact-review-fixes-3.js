@@ -42,7 +42,7 @@ async function regenerate(provenance, updates = {}) {
   const filename = '__fact-review-fixes-3__.md', target = path.join(ROOT, 'content/posts', filename);
   const saved = { read: fs.readFileSync, write: fs.writeFileSync, exists: fs.existsSync,
     argv: process.argv, generate: model.generateContent, supplement: M.supplementGenericSource };
-  const env = { OPENAI_API_KEY: 'テスト専用の偽認証', ENABLE_LLM_SOURCE_SELECT: 'false',
+  const env = { ANTHROPIC_API_KEY: 'テスト専用の偽認証', ENABLE_LLM_SOURCE_SELECT: 'false',
     ENABLE_PARTIAL_REVISE: 'true', GITHUB_OUTPUT: undefined };
   const previousEnv = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
   let written = '', supplements = 0;

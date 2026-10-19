@@ -102,6 +102,7 @@ jobs:
           OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
 
       - name: Validate
+        id: validate
         # 再生成したファイルだけを検証する（リポジトリ全体ではなく）。
         # ドラフトブランチには main で既に公開済みの記事が「古い未公開ステータス」の
         # スナップショットとして残っていることがあり、それらのレガシー（source_guard_version 無し）が
@@ -109,6 +110,7 @@ jobs:
         run: node scripts/validate.js "content/posts/$REGEN_FILENAME"
 
       - name: Commit and push
+        id: commit_push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -194,9 +196,16 @@ jobs:
             --comment "$REGEN_COMMENT"
 
       - name: 再生成の失敗を通知
-        if: failure() && steps.regen.outcome == 'failure'
+        if: failure()
         env:
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+          REGEN_OUTCOME: ${{ steps.regen.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          COMMIT_PUSH_OUTCOME: ${{ steps.commit_push.outcome }}
         run: |
-          node scripts/notify.js --event regenerate_failed --title "$REGEN_FILENAME" --comment "記事の再生成に失敗しました。本文は更新していません。"
+          STAGE="準備または通知"
+          if [ "$REGEN_OUTCOME" = "failure" ]; then STAGE="本文の再生成"; fi
+          if [ "$VALIDATE_OUTCOME" = "failure" ]; then STAGE="Validate"; fi
+          if [ "$COMMIT_PUSH_OUTCOME" = "failure" ]; then STAGE="commit・push"; fi
+          node scripts/notify.js --event regenerate_failed --title "$REGEN_FILENAME" --comment "再生成処理に失敗しました（段階: $STAGE）。実行ログと下書きの状態を確認してください。"

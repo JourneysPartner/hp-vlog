@@ -149,7 +149,7 @@ async function enrichTaxTerms(topic) {
   if (process.env.DISABLE_TAX_TERMS === 'true') return;
   try {
     const { resolveTaxTerms } = require('./lib/tax-terms');
-    const terms = await resolveTaxTerms(topic, ({ system, user }) => callSimpleOpenAI({ system, user }, 256));
+    const terms = await resolveTaxTerms(topic, async ({ system, user }) => (await callSimpleOpenAI({ system, user }, 256)).text);
     if (terms.length > 0) {
       topic.tax_terms = terms.join(' ');
       console.log(`[source] 税務の論点語: ${terms.join(' / ')}`);
@@ -674,17 +674,38 @@ async function pickPair(dateStr, draftCount = resolveDraftCount(), options = {})
   return picks;
 }
 
-// 検索語・URL が確定した候補を一度だけ確認する。置き換え先は比較から除く。
+const DEDUP_WARNING = '重複確認を実施できませんでした（AI の応答を得られず）';
+async function checkPregenDuplicate(topic, corpus, check) {
+  const replacements = normalizeReplacementSlugs(topic.replaces);
+  const comparison = corpus.filter(p => p && p.slug && !replacements.includes(p.slug));
+  let result;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try { result = await check([topic], comparison); }
+    catch (_) { result = { results: [], skipped: true }; }
+    if (!result.skipped || result.disabled) break;
+    if (attempt === 0) console.warn('[generate] 生成前の重複確認に失敗 → 1 回だけ再試行します');
+  }
+  // 同じ候補オブジェクトを再利用しても、前回の警告を引き継がない。
+  topic.__dedupWarning = result.skipped && !result.disabled ? DEDUP_WARNING : '';
+  const duplicate = !result.skipped && result.results.find(r =>
+    (result.results.length === 1 || [topic.slug, topic.url_slug].filter(Boolean).includes(r.slug))
+    && r.duplicate && !replacements.includes(r.similar_to));
+  return { ...result, duplicate };
+}
+
+// 検索語・URL が確定した候補を確認する。失敗時だけ一度再試行する。
 async function checkPreparedDuplicates(topics, options = {}) {
   const corpus = options.corpus || require('./lib/site-corpus').readAllPostsSorted().concat(loadPendingDraftCorpus());
   const check = options.checkAI || require('./lib/ai-dedup').checkDuplicatesWithAI;
   const ready = [];
   for (const topic of topics) {
-    const replacements = normalizeReplacementSlugs(topic.replaces);
-    const result = await check([topic], corpus.filter(p => p && p.slug && !replacements.includes(p.slug)));
-    const duplicate = !result.skipped && result.results.find(r => r.slug === topic.slug && r.duplicate && !replacements.includes(r.similar_to));
-    if (duplicate) options.recorder?.record(topic, 'pregen-dedup', duplicate);
-    else ready.push(topic);
+    const { duplicate } = await checkPregenDuplicate(topic, corpus, check);
+    if (duplicate) {
+      const why = `生成前に重複: ${topic.slug}（相手 ${duplicate.similar_to || '不明'}）`;
+      console.warn(`[generate] ${why}`);
+      lastSelectionWarnings.push(why);
+      options.recorder?.record(topic, 'pregen-dedup', duplicate);
+    } else ready.push(topic);
   }
   return ready;
 }
@@ -1386,9 +1407,10 @@ updated_at: "${now}"
     articleType, intentType: topic.intent_type, articleRole,
   });
   const result = await contentModel.generateContent(promptIR, { maxTokens });
+  assertCompleteBody(result);
   // raw を返す（frontmatter 正規化は呼び出し側 generateArticle で行う）。
   // provider/model は content-model がログ出力済み。
-  // stopReason='max_tokens' なら呼び出し側で truncation 警告を出す。
+  // 出力上限に達した本文は、後処理や免責文の補完へ渡さない。
   return {
     raw: result.text || '',
     provider: result.provider,
@@ -1465,7 +1487,7 @@ async function rewriteMissingRulesToBody(content, topic, articleType, intentType
   const known = cited.citations.filter(c => c.found);
   const provisionBlock = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
 
-  if (missingRules.length === 0 && missingRefs.length === 0) {
+  if (missingRules.length === 0 && missingRefs.length === 0 && cited.citations.length === 0) {
     return { content, applied: false };
   }
 
@@ -1525,8 +1547,9 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
   const p1 = partial.buildTargetedPrompt(meta, comment, body, `${refsBlock}${provisionBlock}${rulesBlock}`);
   let revised;
   try {
-    revised = postProcessBodyOnly(await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000));
+    revised = postProcessBodyOnly((await callSimpleOpenAI({ system: p1.system, user: p1.user }, 12000, { kind: 'body' })).text);
   } catch (e) {
+    if (e.contentBodyTruncated) throw e;
     console.warn(`[rules] ⚠ ルール反映の再生成に失敗（${e.message}）→ 元の本文を維持します`);
     return { content, applied: false, failed: true, names };
   }
@@ -1604,7 +1627,7 @@ async function retryTitleOnce(body, topic) {
     lead,
   ].join('\n');
 
-  const raw = (await callSimpleOpenAI({ system, user }, 200) || '').trim();
+  const raw = (await callSimpleOpenAI({ system, user }, 200)).text;
   const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
   const check = checkLlmTitle(candidate, { macro: topic.macro, article_type: topic.article_type });
   if (!check.ok) {
@@ -1636,7 +1659,7 @@ async function retrySummaryOnce(body, topic, currentSummary) {
     '# 本文の冒頭',
     lead,
   ].join('\n');
-  const raw = (await callSimpleOpenAI({ system, user }, 250) || '').trim();
+  const raw = (await callSimpleOpenAI({ system, user }, 250)).text;
   const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
   return isUsableSummary(candidate) ? candidate : null;
 }
@@ -1659,6 +1682,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
         normalized = retryNorm;
       }
     } catch (e) {
+      if (e.contentBodyTruncated) throw e;
       console.warn(`[generate] strictFormat 再生成失敗（${e.message}）→ 初回結果を使用`);
     }
   }
@@ -1705,6 +1729,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
         );
       }
     } catch (e) {
+      if (e.contentBodyTruncated) throw e;
       console.warn(`[generate] 文字数調整の再生成に失敗（${e.message}）→ 初回結果を使用`);
     }
   }
@@ -1826,6 +1851,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       normalized = { ...normalized, content: ruleFix.content, body: parseFrontmatter(ruleFix.content).body };
     }
   } catch (e) {
+    if (e.contentBodyTruncated) throw e;
     console.warn(`[rules] ⚠ ルール反映の判定に失敗（${e.message}）→ そのまま続行します`);
   }
 
@@ -1860,7 +1886,7 @@ async function generateArticle(dateStr, topic, pairedTopic) {
   // 記事は捨てず、警告つきでレビューに回す。
   if (ruleFix.failed) {
     warnings.push(
-      `⚠ 論点別ルールが未反映: ${ruleFix.names}`,
+      `⚠ ${ruleFix.warning || `論点別ルールが未反映: ${ruleFix.names}（該当箇所が現行の制度に合うか確認してください）`}`,
     );
   }
   if (ruleFix.applied) {
@@ -2185,7 +2211,8 @@ updated_at: "${now}"
   // 出力枠: 元本文を全文渡すようになったため、入力が長くなっても出力枠は
   // 受入上限どおり確保する。ここを絞ると本文が途中で切れる。
   const regenResult = await contentModel.generateSimple(
-    { system: systemPrompt, user: userPrompt, figures: regenFigures }, { maxTokens: maxTokensFor(articleType) });
+    { system: systemPrompt, user: userPrompt, figures: regenFigures }, { maxTokens: maxTokensFor(articleType), kind: 'body' });
+  assertCompleteBody(regenResult);
   const raw = regenResult.text || '';
   if (regenResult.usage) {
     const u = regenResult.usage;
@@ -2212,9 +2239,29 @@ function logRawOutput(label, raw) {
 // ── シンプルな system/user プロンプトでモデルを呼ぶ（部分再生成用）──
 // 本文に直結する部分修正（section / targeted / title_only）は品質維持のため
 // content-model（本文 provider = Sonnet 4.6、失敗時は呼び出し元へ返す fallback）を使う。
-async function callSimpleOpenAI({ system, user, figures }, maxTokens) {
-  const result = await contentModel.generateSimple({ system, user, figures }, { maxTokens });
-  return (result.text || '').trim();
+function assertCompleteBody(result) {
+  if (['max_tokens', 'length'].includes(result.stopReason)) {
+    const error = new Error('本文が出力上限で途切れたため生成を中止しました');
+    error.contentBodyTruncated = true;
+    throw error;
+  }
+  if (!result.text?.trim() || ['refusal', 'content_filter'].includes(result.stopReason)) {
+    const error = new Error('本文生成モデルの応答を読み取れません');
+    error.contentCandidateFailed = true;
+    throw error;
+  }
+}
+
+function requireContentCredentials() {
+  const keyName = contentModel.resolveProvider() === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'ANTHROPIC_API_KEY';
+  if (!process.env[keyName]) throw new Error(`${keyName} が必要です`);
+  return keyName;
+}
+
+async function callSimpleOpenAI({ system, user, figures }, maxTokens, options = {}) {
+  const result = await contentModel.generateSimple({ system, user, figures }, { maxTokens, ...options });
+  if (options.kind === 'body') assertCompleteBody(result);
+  return { ...result, text: (result.text || '').trim() };
 }
 
 // ── 部分再生成: title_only（本文を保持し title/summary だけ更新）──
@@ -2268,7 +2315,7 @@ async function regenerateTitleOnly(existingContent, comment) {
 
   // ③ 明示指定が無ければ LLM に整文してもらう（既存ロジック）。
   const { system, user } = partial.buildTitleOnlyPrompt(meta, comment);
-  const raw = await callSimpleOpenAI({ system, user }, 512);
+  const { text: raw } = await callSimpleOpenAI({ system, user }, 512);
   // JSON 抽出
   let title = meta.title, summary = meta.summary;
   try {
@@ -2332,7 +2379,7 @@ async function regenerateSection(existingContent, comment, classification, { pre
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification, srcBlock);
     // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
-    const newSection = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
+    const newSection = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -2351,7 +2398,7 @@ async function regenerateSection(existingContent, comment, classification, { pre
     return regenerateTargeted(existingContent, comment, { preserveTitle: preserveTitle || Boolean(classification && classification.preserveTitle) });
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
-  const revisedRaw = postProcessBodyOnly(await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096));
+  const revisedRaw = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -2391,7 +2438,7 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
   const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
   existingContent = recordMaterialMetadata(existingContent, meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
-  let raw = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000);
+  let { text: raw } = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000, { kind: 'body' });
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
@@ -2402,7 +2449,7 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
     console.warn('[regenerate] より厳しいプロンプトでリトライ...');
     const prevLen = (revised || '').trim().length;
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
-    raw = await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000);
+    raw = (await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000, { kind: 'body' })).text;
     revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted リトライ');
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
@@ -2444,7 +2491,7 @@ async function maybeUpdateTitleForTargeted(content, comment, origMeta) {
   if (!titleRelevant && !summaryRelevant) return content;
 
   const { body, meta } = parseFrontmatter(content);
-  const raw = await callSimpleOpenAI({
+  const { text: raw } = await callSimpleOpenAI({
     system: 'あなたは日本の税理士事務所のブログ編集者です。差し戻しコメントを踏まえて、記事のタイトルと要約（summary）を修正してください。JSON形式で返してください。',
     user: `差し戻しコメントの指摘を踏まえ、以下の記事のタイトルと要約を修正してください。
 JSON形式で {"title":"修正後タイトル","summary":"修正後要約（120文字以内）"} だけを返してください。
@@ -2692,9 +2739,8 @@ async function runSingleDraft(dateStr, options = {}) {
       finishAttempt(topic, entry ? `${entry.stage}（${entry.reason}）` : '検索語・URL slug の判定で取り下げ');
       continue;
     }
-    const replacements = normalizeReplacementSlugs(topic.replaces);
-    const ai = await checkAI([topic], corpus.filter(p => p && p.slug && !replacements.includes(p.slug)));
-    const duplicate = !ai.skipped && ai.results.find(result => result.slug === topic.slug && result.duplicate && !replacements.includes(result.similar_to));
+    const ai = await checkPregenDuplicate(topic, corpus, checkAI);
+    const duplicate = ai.duplicate;
     if (duplicate) {
       console.warn(`[generate] AI重複判定: ${topic.slug} → 重複(${duplicate.similar_to}): ${duplicate.reason}`);
       console.log('[generate] AI重複判定で 1 件除外 → 残り 0 件');
@@ -2830,7 +2876,7 @@ async function prepareQueries(pair, options = {}) {
     topic.topic_id = topic.slug;
     const resolved = await (options.resolveQuery || resolveTargetQuery)(
       topic,
-      ({ system, user }) => callSimpleOpenAI({ system, user }, 600),
+      async ({ system, user }) => (await callSimpleOpenAI({ system, user }, 600)).text,
       { ...queryInputs, existingSlugs: takenUrlSlugs },
     );
     topic.target_query = resolved ? resolved.target_query : '';
@@ -2907,7 +2953,7 @@ async function generateTopics(pair, dateStr, options = {}) {
   const contentKeyName = contentProvider === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'ANTHROPIC_API_KEY';
   const hasContentKey = !!process.env[contentKeyName];
   const generationFailed = (err, apiFailure) => {
-    const diagnostic = err.contentModelCallFailed ? err.diagnostic : contentModel.safeDiagnostic(err);
+    const diagnostic = err.diagnostic || contentModel.safeDiagnostic(err);
     const reason = `${apiFailure ? '本文生成モデルの呼び出しに失敗' : '本文生成に失敗'}（${diagnostic}）`;
     console.warn(`[generate] ${reason}`);
     lastSelectionWarnings.push(reason);
@@ -2945,11 +2991,19 @@ async function generateTopics(pair, dateStr, options = {}) {
       } catch (err) {
         generationFailed(err, !!err.contentModelCallFailed);
         if (err.contentModelCallFailed) break;
+        if (err.contentCandidateFailed) options.recorder?.record(topic, 'generation-failed-candidate', { reason: '本文生成モデルが候補の生成に失敗' });
         continue;
       }
     } else {
       generationFailed(new Error('モデルの認証情報が未設定です'), true);
       break;
+    }
+
+    if (topic.__dedupWarning) {
+      const { meta } = parseFrontmatter(content);
+      content = factCheck.updateMeta(content, {
+        review_warning: [meta.review_warning, topic.__dedupWarning].filter(Boolean).join(' / '),
+      });
     }
 
     const filename = `${dateStr}-${topic.url_slug || topic.slug}.md`;
@@ -3111,10 +3165,7 @@ async function main() {
       : (partialEnabled ? classification.scope : 'full');
 
     if (!isRefreshRegeneration || scope !== 'frontmatter') {
-      if (!process.env.OPENAI_API_KEY && (process.env.CONTENT_MODEL_PROVIDER || 'openai') === 'openai') {
-        console.error('[regenerate] OPENAI_API_KEY が必要です');
-        process.exit(1);
-      }
+      requireContentCredentials();
     }
 
     let content;
@@ -3321,6 +3372,10 @@ module.exports = {
   generateFromTemplate,
   generateArticle,
   regenerateWithContentModel,
+  regenerateSection,
+  regenerateTargeted,
+  callSimpleOpenAI,
+  requireContentCredentials,
   applyMissingRulesToBody,
   checkPreparedDuplicates,
   preparePairCandidates,

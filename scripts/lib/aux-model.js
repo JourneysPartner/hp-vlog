@@ -92,7 +92,10 @@ async function generateAux({ system, user, task, maxTokens }) {
   try {
     return await callAux({ system, user, task, maxTokens });
   } catch (e) {
-    console.warn(`[aux-model] task=${task} 失敗 → ルールベース fallback`);
+    // 任意の例外文や応答本文は出さず、状態番号だけを固定文で残す。
+    const status = e?.status || Number(String(e?.message || '').match(/^Anthropic\(aux\) (\d{3}):/)?.[1]);
+    const diagnostic = Number.isInteger(status) && status >= 100 && status <= 599 ? ` HTTP ${status}` : '';
+    console.warn(`[aux-model] task=${task} 失敗${diagnostic} → ルールベース fallback`);
     return null;
   }
 }

@@ -98,7 +98,7 @@ async function callOpenAI(promptIR, { model, maxTokens, signal, timeoutMs }) {
 }
 
 // ── Anthropic 呼び出し（prompt caching 対応、fetch ベース）───────
-async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs, modelOptions }) {
+async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs, modelOptions, validateContent }) {
   const { toAnthropicRequest } = require('./article-prompt-builder');
   const reqBody = toAnthropicRequest(promptIR, { model, maxTokens: maxTokens || 4096, useCache: useCache(), modelOptions });
 
@@ -123,8 +123,17 @@ async function callAnthropic(promptIR, { model, maxTokens, signal, timeoutMs, mo
       throw new Error(`Anthropic API ${res.status}: ${errText}`);
     }
     const data = await res.json();
+    if (validateContent) validateAnthropicContent(data);
     return anthropicResult(data, model);
   } finally { if (dispatcher) await dispatcher.close(); }
+}
+
+function validateAnthropicContent(data) {
+  if (!data || typeof data !== 'object' || data.stop_reason !== 'refusal'
+    && (!Array.isArray(data.content) || data.content.some(b => !b || typeof b.type !== 'string' || b.type === 'text' && typeof b.text !== 'string')
+      || !data.content.some(b => b?.type === 'text' && typeof b.text === 'string' && b.text.trim()))) {
+    throw new Error('Anthropic の応答を読み取れません');
+  }
 }
 
 // 同期と Batch は、拒否・出力上限・使用量を同じ形で呼び出し元へ返す。
@@ -305,7 +314,14 @@ async function callAnthropicBatch(promptIR, opts) {
 // 本文のAPI失敗だけを識別する。生の例外や鍵は通知へ渡さない。
 function contentCallError(cause) {
   const error = new Error('本文生成モデルの呼び出しに失敗しました');
-  error.contentModelCallFailed = true;
+  const status = cause?.status || Number(String(cause?.message || '').match(/^Anthropic API (\d{3}):/)?.[1]);
+  // 拒否・入力不備・応答形式の不備はその候補だけの失敗とする。
+  error.contentModelCallFailed = status
+    ? [401, 403, 408, 429].includes(status) || status >= 500 && status <= 599
+    : ['TypeError', 'AbortError', 'TimeoutError', 'GatewayTimeoutError', 'GatewayNetworkError',
+      'GatewayAbortError', 'GatewayCredentialsError'].includes(cause?.name)
+      || ['ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT'].includes(cause?.code || cause?.cause?.code);
+  error.contentCandidateFailed = !error.contentModelCallFailed;
   error.diagnostic = safeDiagnostic(cause);
   for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY, process.env.AI_GATEWAY_API_KEY]) {
     if (key) error.diagnostic = error.diagnostic.split(key).join('[秘匿]');
@@ -341,7 +357,7 @@ async function generateContent(promptIR, opts = {}) {
     try {
       const call = opts.batch && !opts.batch.disabled ? callAnthropicBatch : callAnthropic;
       return await call(promptIR, { model, maxTokens: opts.maxTokens, signal: opts.signal, modelOptions: opts.modelOptions,
-        batch: opts.batch, ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : {}) });
+        batch: opts.batch, ...(opts.fallback === false ? { timeoutMs: opts.timeoutMs } : { validateContent: true }) });
     } catch (e) {
       if (opts.fallback === false) {
         const error = new Error('照合モデルの呼び出しに失敗しました');
@@ -370,7 +386,8 @@ async function generateSimple({ system, user, figures }, opts = {}) {
   if (provider === 'gateway') {
     try {
       return await require('./gateway-model').callGateway({ model, system, user, figures,
-        maxTokens: Math.max(maxTokens, 16000), task: 'generateSimple', signal: opts.signal, timeoutMs: 300000 });
+        maxTokens: opts.kind === 'body' ? 64000 : Math.max(maxTokens, 16000),
+        task: 'generateSimple', signal: opts.signal, timeoutMs: opts.kind === 'body' ? 900000 : 300000 });
     } catch (e) { throw contentCallError(e); }
   }
   if (provider === 'anthropic') {
@@ -394,6 +411,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
       });
       if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
       const data = await res.json();
+      validateAnthropicContent(data);
       if (data.stop_reason === 'refusal') {
         throw new Error('Anthropic refusal' + (data.stop_details?.category ? ` (${data.stop_details.category})` : ''));
       }

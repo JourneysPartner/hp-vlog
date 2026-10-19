@@ -138,7 +138,7 @@ async function main() {
     assert.equal(S.CONDITIONAL_RULES.income_tax_bracket.match({ title: '贈与税の累進税率と速算表' }), false);
     assert.equal(S.CONDITIONAL_RULES.income_tax_bracket.match({ title: '所得税の累進税率と速算表' }), true);
     assert.equal(S.CONDITIONAL_RULES.invoice_transition.match({ title: '相続税の経過措置' }), false);
-    assert.equal(S.CONDITIONAL_RULES.expired_education_fund_gift.match({ tax_domain: 'inheritance_tax', title: '贈与税の非課税' }), false);
+    assert.equal(S.CONDITIONAL_RULES.expired_education_fund_gift.match({ tax_domain: 'inheritance_tax', title: '贈与税の非課税' }), true);
     assert.equal(S.CONDITIONAL_RULES.expired_education_fund_gift.match({ tax_domain: 'inheritance_tax', title: '教育資金の贈与' }), true);
   });
   await test('R3', '論点語・検索語・主出典・補助出典の題名を生成前に使う', () => {
@@ -148,13 +148,13 @@ async function main() {
       assert(ir.dynamicSystem.includes(S.CONDITIONAL_RULES.small_depreciable_assets.text));
     }
   });
-  await test('R3', '引用だけでは部分修正も全文修正も呼ばない', async () => {
+  await test('R3', '引用だけでは既定の部分修正を呼ばず、rewrite時だけ全文修正する', async () => {
     for (const env of [{}, { RULE_FIX_MODE: 'rewrite' }]) {
       let calls = 0; const old = CM.generateSimple;
       CM.generateSimple = async () => { calls++; throw new Error('呼ばれない'); };
       try {
         await withEnv(env, () => G.applyMissingRulesToBody(article('## 根拠\n所基通37-14の取扱いです。'), { ...topic(), title: '通達の扱い' }, 'basic_explainer'));
-        assert.equal(calls, 0);
+        assert.equal(calls, env.RULE_FIX_MODE === 'rewrite' ? 1 : 0);
       } finally { CM.generateSimple = old; }
     }
   });

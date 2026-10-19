@@ -432,11 +432,11 @@ function selectDailyTopics(topics, options = {}) {
     blockedDetails: denylistExcluded.slice(0, 5),
   });
 
-  // 2.75. 取り下げ記録のある題材は通常の選定に戻さない。
+  // 2.75. 取り下げた題材と、7日間の除外期限内の生成失敗候補を除く。
   const withdrawn = options.withdrawn === undefined ? loadWithdrawnTopics() : options.withdrawn;
   const withdrawnExcluded = [];
   candidates = candidates.filter(topic => {
-    const hit = findWithdrawnTopic(topic, withdrawn);
+    const hit = findWithdrawnTopic(topic, withdrawn, now);
     if (!hit) return true;
     withdrawnExcluded.push({ slug: topic.slug, stage: hit.stage, date: hit.date });
     return false;

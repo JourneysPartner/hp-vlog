@@ -31,10 +31,12 @@ function splitParagraphs(body) {
 }
 
 const numbers = text => text.normalize('NFKC').match(/\d+(?:[.,]\d+)*/g) || [];
-function noNewNumbers(before, after) {
+function noNewNumbers(before, after, allowedText = '') {
+  const allowed = new Set(numbers(allowedText));
   const counts = new Map();
   for (const n of numbers(before)) counts.set(n, (counts.get(n) || 0) + 1);
   return numbers(after).every(n => {
+    if (allowed.has(n)) return true;
     const left = counts.get(n) || 0;
     counts.set(n, left - 1);
     return left > 0;
@@ -79,7 +81,7 @@ function applyEdits(body, units, answer, options, allowDelete) {
   const add = (id, text) => {
     const original = byId.get(id);
     if (!Number.isInteger(id) || !original || edits.has(id) || typeof text !== 'string') throw new Error('不正な部分修正');
-    if (protectedParagraph(original.text, options.cta) || !noNewNumbers(original.text, text)) throw new Error('保護対象の変更');
+    if (protectedParagraph(original.text, options.cta) || !noNewNumbers(original.text, text, options.allowedRuleText)) throw new Error('保護対象の変更');
     // 部分修正に見せかけた節の追加や全文出力も拒否する。
     if (/^\s*#{1,6}\s/m.test(text) || /\n\s*\n/.test(text)) throw new Error('段落以外の出力');
     edits.set(id, text && original.text.endsWith('\n') && !text.endsWith('\n') ? text + '\n' : text);
@@ -97,6 +99,13 @@ function applyEdits(body, units, answer, options, allowDelete) {
 }
 
 const PATCH_SYSTEM = 'あなたは税務記事の編集者です。指定された番号の部分修正だけをJSONで返してください。全文・説明は返さないでください。見出し・表の列・免責文・CTA・出典の記載を削除変更しない。数字（金額・割合・期限・条番号）を書き換えない。削除は文ごとに行い、新しい事実を足さない。';
+function extractJson(raw) {
+  const text = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const start = text.search(/[\[{]/);
+  if (start < 0) return null;
+  const end = text.lastIndexOf(text[start] === '[' ? ']' : '}');
+  try { return JSON.parse(text.slice(start, end + 1)); } catch (_) { return null; }
+}
 async function shortenBody(body, options) {
   const { generateSimple = require('./content-model').generateSimple } = options;
   const units = splitParagraphs(body);
@@ -107,7 +116,7 @@ async function shortenBody(body, options) {
       '形式: {"delete":[段落番号],"replacements":[{"id":段落番号,"text":"短くした文"}]}',
       ...units.map(p => `[${p.id}]${protectedParagraph(p.text, options.cta) ? '（変更禁止）' : ''}\n${p.text}`),
     ].join('\n\n') }, { maxTokens: 2000 });
-    return applyEdits(body, units, JSON.parse(result.text), options, true);
+    return applyEdits(body, units, extractJson(result.text), options, true);
   } catch (_) { return null; }
 }
 
@@ -140,7 +149,22 @@ async function postfixRules(body, options) {
   const refs = findUnappliedReferencePages(options.topic, body);
   const names = [...rules, ...refs].map(r => r.key);
   if (!names.length) return { body, applied: false };
-  const failure = { body, applied: false, failed: true, names: names.join(', ') };
+  const tableNames = new Set();
+  const headings = [];
+  for (const paragraph of splitParagraphs(body)) {
+    for (const match of paragraph.text.matchAll(/^(#{1,6})\s+(.+)$/gm)) {
+      headings.length = match[1].length;
+      headings[match[1].length - 1] = match[2];
+    }
+    if (!paragraph.text.includes('|')) continue;
+    // 表の列名に論点語が無くても、所属する節の見出しで確認箇所を特定する。
+    const context = [...headings, paragraph.text].join('\n');
+    for (const hit of [...detectRulesFromBody(options.topic, context), ...findReferencePagesFromBody(options.topic, context)]) {
+      tableNames.add(hit.key);
+    }
+  }
+  const warning = keys => keys.map(key => `論点別ルールが未反映: ${key}（${tableNames.has(key) ? '表の該当行' : '該当箇所'}が現行の制度に合うか確認してください）`).join(' / ');
+  const failure = { body, applied: false, failed: true, names: names.join(', '), warning: warning(names) };
   if (process.env.RULE_POSTFIX === 'off') return failure;
   const units = targetedSentences(body, options.topic, rules, refs, options.cta);
   if (!units.length) return failure;
@@ -150,8 +174,11 @@ async function postfixRules(body, options) {
       user: ['該当文だけを直す。形式: {"replacements":[{"id":文番号,"text":"置き換える文"}]}',
         ...rules.map(r => r.text), require('./nta-reference-pages').formatReferencePages(refs),
         ...units.map(p => `[${p.id}] ${p.text}`)].join('\n\n') }, { maxTokens: 2000 });
-    const revised = applyEdits(body, units, JSON.parse(result.text), options, false);
-    return revised ? { body: revised, applied: true, names: names.join(', ') } : failure;
+    const revised = applyEdits(body, units, extractJson(result.text),
+      { ...options, allowedRuleText: rules.map(r => r.text).join('\n') }, false);
+    const unmodifiedTables = names.filter(key => tableNames.has(key));
+    return revised ? { body: revised, applied: true, names: names.join(', '),
+      failed: unmodifiedTables.length > 0, warning: warning(unmodifiedTables) } : failure;
   } catch (_) { return failure; }
 }
 
