@@ -125,7 +125,7 @@
 11. O9: 残りの待ちが短いと作成を呼ばず同期／作成の通信が待ち時間の期限で切られない／状態の確認の 503 が 2 回続いても 3 回目で成功すればバッチの結果を使う／`ended` の後の結果の取得の 500 は再試行してバッチの結果を使い、同期を呼ばない／同期へのやり直しで警告の 1 行にバッチ ID と取り消しの成否が出て、鍵が出ない／`FACT_CHECK_BATCH_MAX_WAIT_MINUTES=500` が 180 分になる。
 12. O10・O8: ワークフローの env（5 本の照合の env に `FACT_CHECK_EXTRACT_EFFORT`、監査に `FACT_CHECK_EXTRACT_MODEL`・`FACT_CHECK_EFFORT`、`fact-check.yml` の入力 `effort`・`extract_effort` が env 経由で `run:` に埋め込まれていない）。
 
-既存の試験（`test-fact-*.js`・`test-fact-cost-03n.js`・`test-content-model-routing.js`・`test-env-resolution.js`・`test-review-page-fact-layout.js`・`test-published-facts-audit.js`・`test-workflow-change-detection.js` ほか）は通ったままにする。期待を変えた場合は、どの試験のどの期待をなぜ変えたかを報告する。`test-workflow-change-detection.js` の期待は変えない（ワークフローの変更を見張る試験。落ちたら変更の側を直す）。
+既存の試験（`test-fact-*.js`・`test-fact-cost-03n.js`・`test-content-model-routing.js`・`test-env-resolution.js`・`test-review-page-fact-layout.js`・`test-published-facts-audit.js`・`test-workflow-change-detection.js` ほか）は通ったままにする。期待を変えた場合は、どの試験のどの期待をなぜ変えたかを報告する。`test-workflow-change-detection.js` の期待は変えない（ワークフローの変更を見張る試験）。そのうち「記事系ワークフローは作業ツリーで変更されていない」は、O8 で `daily-draft.yml`・`regenerate-draft.yml` を変えるため、コミット前の作業ツリーでは落ちる（コミット後に Claude が流して確かめる）。
 
 ## 変更してはいけないもの
 
