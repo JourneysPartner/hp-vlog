@@ -42,6 +42,7 @@
 |---|---|---|
 | 01 | `01-one-pass-and-dedup.md` | 字数の補正・超過時の短縮・ルールの事前反映と誤反応・生成後の書き直しの撤去・重複確認を生成前の 1 回に |
 | 02 | `02-openai-models.md` | GPT の最新の Luna の自動選択・使用量のログ・GPT-5.4 の予備の撤去 |
+| 03 | `03-gateway-dedup.md` | 生成の失敗を取り下げにしない・Vercel AI Gateway の呼び出し・本文の生成を DeepSeek V4.1 Flash（1017）、重複確認を GLM-5.3 Flash に（毛利さん 10/19 決定） |
 
 作業枝は `feat/generation-cost`（`feat/fact-cost-03n`＝PR #687 の上に積む。`content-model.js` の同じ箇所を触るため）。
 
