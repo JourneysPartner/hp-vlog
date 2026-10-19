@@ -129,9 +129,12 @@ jobs:
       # 当日の成果を過去記事の問題で捨てないよう、対象を当日の生成物に限定する
       # （既存記事の健全性は check-existing-posts.yml が毎日別に検査する）。
       - name: Validate generated drafts
+        env:
+          DRAFT_FILENAME1: ${{ steps.draft.outputs.filename1 }}
+          DRAFT_FILENAME2: ${{ steps.draft.outputs.filename2 }}
         run: |
-          FILE1='${{ steps.draft.outputs.filename1 }}'
-          FILE2='${{ steps.draft.outputs.filename2 }}'
+          FILE1="${DRAFT_FILENAME1}"
+          FILE2="${DRAFT_FILENAME2}"
           TARGETS=''
           if [ -n "$FILE1" ]; then TARGETS="$TARGETS content/posts/$FILE1"; fi
           if [ -n "$FILE2" ]; then TARGETS="$TARGETS content/posts/$FILE2"; fi
@@ -151,6 +154,10 @@ jobs:
 
       - name: Prepare articles for separate PRs
         id: prep
+        env:
+          DRAFT_FILENAME1: ${{ steps.draft.outputs.filename1 }}
+          DRAFT_FILENAME2: ${{ steps.draft.outputs.filename2 }}
+          DRAFT_COUNT: ${{ steps.draft.outputs.count }}
         run: |
           DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
 
@@ -158,9 +165,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # generate-draft.js の出力から取得
-          FILE1="${{ steps.draft.outputs.filename1 }}"
-          FILE2="${{ steps.draft.outputs.filename2 }}"
-          COUNT="${{ steps.draft.outputs.count }}"
+          FILE1="${DRAFT_FILENAME1}"
+          FILE2="${DRAFT_FILENAME2}"
+          COUNT="${DRAFT_COUNT}"
 
           if [ -z "$FILE1" ]; then
             echo "新規ファイルなし。スキップします。"
@@ -216,13 +223,20 @@ jobs:
         if: steps.prep.outputs.skipped != 'true'
         id: pr1
         env:
+          PREP_DATE: ${{ steps.prep.outputs.date }}
+          PREP_SLUG1: ${{ steps.prep.outputs.slug1 }}
+          PREP_BASENAME1: ${{ steps.prep.outputs.basename1 }}
+          PREP_TITLE1: ${{ steps.prep.outputs.title1 }}
+          PREP_ARTICLE_ROLE1: ${{ steps.prep.outputs.article_role1 }}
+          PREP_TITLE2: ${{ steps.prep.outputs.title2 }}
+          PREP_ARTICLE_TYPE1: ${{ steps.prep.outputs.article_type1 }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE="${{ steps.prep.outputs.date }}"
-          SLUG="${{ steps.prep.outputs.slug1 }}"
-          BASENAME="${{ steps.prep.outputs.basename1 }}"
-          TITLE="${{ steps.prep.outputs.title1 }}"
-          ROLE="${{ steps.prep.outputs.article_role1 }}"
+          DATE="${PREP_DATE}"
+          SLUG="${PREP_SLUG1}"
+          BASENAME="${PREP_BASENAME1}"
+          TITLE="${PREP_TITLE1}"
+          ROLE="${PREP_ARTICLE_ROLE1}"
 
           BRANCH="draft/${DATE}-${SLUG}"
 
@@ -241,8 +255,8 @@ jobs:
           if [ "$ROLE" = "main" ]; then ROLE_LABEL="本命記事"; fi
 
           PAIR_INFO=""
-          if [ -n "${{ steps.prep.outputs.title2 }}" ]; then
-            PAIR_INFO="■ ペア記事: ${{ steps.prep.outputs.title2 }}"
+          if [ -n "${PREP_TITLE2}" ]; then
+            PAIR_INFO="■ ペア記事: ${PREP_TITLE2}"
           fi
 
           PR_BODY=$(cat <<PREOF
@@ -250,9 +264,9 @@ jobs:
 
           | 項目 | 内容 |
           |---|---|
-          | 記事タイプ | ${{ steps.prep.outputs.article_type1 }} |
+          | 記事タイプ | ${PREP_ARTICLE_TYPE1} |
           | 記事の役割 | ${ROLE_LABEL} |
-          ${PAIR_INFO:+| ペア記事 | ${{ steps.prep.outputs.title2 }} |}
+          ${PAIR_INFO:+| ペア記事 | ${PREP_TITLE2} |}
 
           ### レビュー手順
           1. Chatwork 通知内のレビュー画面リンクを開く
@@ -289,13 +303,20 @@ jobs:
         if: steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 != ''
         id: pr2
         env:
+          PREP_DATE: ${{ steps.prep.outputs.date }}
+          PREP_SLUG2: ${{ steps.prep.outputs.slug2 }}
+          PREP_BASENAME2: ${{ steps.prep.outputs.basename2 }}
+          PREP_TITLE2: ${{ steps.prep.outputs.title2 }}
+          PREP_ARTICLE_ROLE2: ${{ steps.prep.outputs.article_role2 }}
+          PREP_ARTICLE_TYPE2: ${{ steps.prep.outputs.article_type2 }}
+          PREP_TITLE1: ${{ steps.prep.outputs.title1 }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE="${{ steps.prep.outputs.date }}"
-          SLUG="${{ steps.prep.outputs.slug2 }}"
-          BASENAME="${{ steps.prep.outputs.basename2 }}"
-          TITLE="${{ steps.prep.outputs.title2 }}"
-          ROLE="${{ steps.prep.outputs.article_role2 }}"
+          DATE="${PREP_DATE}"
+          SLUG="${PREP_SLUG2}"
+          BASENAME="${PREP_BASENAME2}"
+          TITLE="${PREP_TITLE2}"
+          ROLE="${PREP_ARTICLE_ROLE2}"
 
           BRANCH="draft/${DATE}-${SLUG}"
 
@@ -318,9 +339,9 @@ jobs:
 
           | 項目 | 内容 |
           |---|---|
-          | 記事タイプ | ${{ steps.prep.outputs.article_type2 }} |
+          | 記事タイプ | ${PREP_ARTICLE_TYPE2} |
           | 記事の役割 | ${ROLE_LABEL} |
-          ${PAIR_INFO:+| ペア記事 | ${{ steps.prep.outputs.title1 }} |}
+          ${PAIR_INFO:+| ペア記事 | ${PREP_TITLE1} |}
 
           ### レビュー手順
           1. Chatwork 通知内のレビュー画面リンクを開く
@@ -353,44 +374,62 @@ jobs:
       - name: Notify article 1
         if: steps.prep.outputs.skipped != 'true'
         env:
+          PREP_BASENAME1: ${{ steps.prep.outputs.basename1 }}
+          PR1_BRANCH: ${{ steps.pr1.outputs.branch }}
+          PR1_PR_URL: ${{ steps.pr1.outputs.pr_url }}
+          PREP_TITLE1: ${{ steps.prep.outputs.title1 }}
+          PREP_SUMMARY1: ${{ steps.prep.outputs.summary1 }}
+          PREP_PERSONA1: ${{ steps.prep.outputs.persona1 }}
+          PREP_CATEGORY1: ${{ steps.prep.outputs.category1 }}
+          PREP_ARTICLE_TYPE1: ${{ steps.prep.outputs.article_type1 }}
+          PREP_ARTICLE_ROLE1: ${{ steps.prep.outputs.article_role1 }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.prep.outputs.basename1 }}&ref=${{ steps.pr1.outputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${PREP_BASENAME1}&ref=${PR1_BRANCH}"
 
-          PR_URL="${{ steps.pr1.outputs.pr_url }}"
+          PR_URL="${PR1_PR_URL}"
           [ -z "$PR_URL" ] && PR_URL="作成失敗（GitHub Actions のログを確認してください）"
 
           node scripts/notify.js \
             --event draft_created \
-            --title "${{ steps.prep.outputs.title1 }}" \
-            --summary "${{ steps.prep.outputs.summary1 }}" \
-            --persona "${{ steps.prep.outputs.persona1 }}" \
-            --category "${{ steps.prep.outputs.category1 }}" \
-            --article-type "${{ steps.prep.outputs.article_type1 }}" \
-            --article-role "${{ steps.prep.outputs.article_role1 }}" \
+            --title "${PREP_TITLE1}" \
+            --summary "${PREP_SUMMARY1}" \
+            --persona "${PREP_PERSONA1}" \
+            --category "${PREP_CATEGORY1}" \
+            --article-type "${PREP_ARTICLE_TYPE1}" \
+            --article-role "${PREP_ARTICLE_ROLE1}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
 
       - name: Notify article 2
         if: steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 != ''
         env:
+          PREP_BASENAME2: ${{ steps.prep.outputs.basename2 }}
+          PR2_BRANCH: ${{ steps.pr2.outputs.branch }}
+          PR2_PR_URL: ${{ steps.pr2.outputs.pr_url }}
+          PREP_TITLE2: ${{ steps.prep.outputs.title2 }}
+          PREP_SUMMARY2: ${{ steps.prep.outputs.summary2 }}
+          PREP_PERSONA2: ${{ steps.prep.outputs.persona2 }}
+          PREP_CATEGORY2: ${{ steps.prep.outputs.category2 }}
+          PREP_ARTICLE_TYPE2: ${{ steps.prep.outputs.article_type2 }}
+          PREP_ARTICLE_ROLE2: ${{ steps.prep.outputs.article_role2 }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
-          REVIEW_URL="https://mori-zeirishi.net/review?file=${{ steps.prep.outputs.basename2 }}&ref=${{ steps.pr2.outputs.branch }}"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${PREP_BASENAME2}&ref=${PR2_BRANCH}"
 
-          PR_URL="${{ steps.pr2.outputs.pr_url }}"
+          PR_URL="${PR2_PR_URL}"
           [ -z "$PR_URL" ] && PR_URL="作成失敗（GitHub Actions のログを確認してください）"
 
           node scripts/notify.js \
             --event draft_created \
-            --title "${{ steps.prep.outputs.title2 }}" \
-            --summary "${{ steps.prep.outputs.summary2 }}" \
-            --persona "${{ steps.prep.outputs.persona2 }}" \
-            --category "${{ steps.prep.outputs.category2 }}" \
-            --article-type "${{ steps.prep.outputs.article_type2 }}" \
-            --article-role "${{ steps.prep.outputs.article_role2 }}" \
+            --title "${PREP_TITLE2}" \
+            --summary "${PREP_SUMMARY2}" \
+            --persona "${PREP_PERSONA2}" \
+            --category "${PREP_CATEGORY2}" \
+            --article-type "${PREP_ARTICLE_TYPE2}" \
+            --article-role "${PREP_ARTICLE_ROLE2}" \
             --review-url "$REVIEW_URL" \
             --pr-url "$PR_URL"
 
@@ -400,6 +439,7 @@ jobs:
       - name: Notify partial draft (1 article only)
         if: inputs.count == '2' && steps.prep.outputs.skipped != 'true' && steps.prep.outputs.basename2 == ''
         env:
+          PREP_DATE: ${{ steps.prep.outputs.date }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
           # 理由の文字列は shell に直接展開せず環境変数で渡す（引用符が混ざっても壊れないように）
@@ -417,7 +457,7 @@ jobs:
           [ -z "$REASON" ] && REASON='選定条件で候補が絞られ、2本目が作れませんでした。'
           node scripts/notify.js \
             --event daily_draft_partial \
-            --title "${{ steps.prep.outputs.date }} の記事生成" \
+            --title "${PREP_DATE} の記事生成" \
             --comment "$REASON" \
             --pr-url "$RUN_URL" || echo '::warning::通知の送信に失敗しました'
 
@@ -448,11 +488,12 @@ jobs:
       - name: Notify on failure
         if: failure()
         env:
+          PREP_DATE: ${{ steps.prep.outputs.date }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          DATE='${{ steps.prep.outputs.date }}'
+          DATE="${PREP_DATE}"
           [ -z "$DATE" ] && DATE=$(TZ=Asia/Tokyo date +%Y-%m-%d)
           node scripts/notify.js \
             --event daily_draft_failed \

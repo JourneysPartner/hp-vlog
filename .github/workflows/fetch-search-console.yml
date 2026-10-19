@@ -116,9 +116,10 @@ jobs:
       - name: Notify freshness candidates
         if: steps.pr.outputs.pr_url != ''
         env:
+          PR_PR_URL: ${{ steps.pr.outputs.pr_url }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
           node scripts/notify-freshness-candidates.js \
-            --pr-url "${{ steps.pr.outputs.pr_url }}" \
+            --pr-url "${PR_PR_URL}" \
             || echo "::warning::更新候補の通知に失敗しました（処理は継続）"

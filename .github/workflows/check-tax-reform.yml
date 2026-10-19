@@ -37,8 +37,14 @@ jobs:
 
       - name: Determine year
         id: year
+        env:
+          INPUT_YEAR: ${{ github.event.inputs.year }}
         run: |
-          YEAR='${{ github.event.inputs.year }}'
+          YEAR="${INPUT_YEAR}"
+          if [ -n "$YEAR" ] && [[ ! "$YEAR" =~ ^[0-9]{4}$ ]]; then
+            echo "::error::year は空、または4桁の数字で指定してください。"
+            exit 1
+          fi
           if [ -z "$YEAR" ]; then YEAR=$(date -u +%Y); fi
           echo "year=$YEAR" >> "$GITHUB_OUTPUT"
           echo "確認する年度: $YEAR"
@@ -46,7 +52,9 @@ jobs:
       - name: Check outline
         id: check
         continue-on-error: true   # 抽出失敗でも通知まで進める
-        run: node scripts/check-tax-reform-outline.js --year "${{ steps.year.outputs.year }}" --update
+        env:
+          YEAR_YEAR: ${{ steps.year.outputs.year }}
+        run: node scripts/check-tax-reform-outline.js --year "${YEAR_YEAR}" --update
 
       - name: Detect snapshot change
         id: changes
@@ -56,14 +64,16 @@ jobs:
       - name: Open PR for snapshot change
         if: steps.changes.outputs.changed == 'true'
         env:
+          YEAR_YEAR: ${{ steps.year.outputs.year }}
+          CHECK_REPORT: ${{ steps.check.outputs.report }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BRANCH="chore/tax-reform-outline-${{ steps.year.outputs.year }}-$(date -u +%Y%m%d)"
+          BRANCH="chore/tax-reform-outline-${YEAR_YEAR}-$(date -u +%Y%m%d)"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add data/tax-reform-outline.json
-          git commit -m "chore: 税制改正の大綱スナップショットを更新（${{ steps.year.outputs.year }}年度）"
+          git commit -m "chore: 税制改正の大綱スナップショットを更新（${YEAR_YEAR}年度）"
           git push origin "$BRANCH"
           {
             echo '税制改正の大綱に変更を検出しました。'
@@ -77,28 +87,32 @@ jobs:
             echo '改正内容の要約は自動生成していません。原文を読んで登録してください。'
             echo
             echo '```'
-            echo "${{ steps.check.outputs.report }}"
+            echo "${CHECK_REPORT}"
             echo '```'
           } > /tmp/pr-body.md
           gh pr create --base main --head "$BRANCH" \
-            --title "chore: 税制改正の大綱に変更を検出（${{ steps.year.outputs.year }}年度）" \
+            --title "chore: 税制改正の大綱に変更を検出（${YEAR_YEAR}年度）" \
             --body-file /tmp/pr-body.md
 
       - name: Notify
         if: steps.check.outputs.added != '0' || steps.check.outputs.unregistered != '0' || steps.check.outputs.errors != '0'
         env:
+          YEAR_YEAR: ${{ steps.year.outputs.year }}
+          CHECK_REPORT: ${{ steps.check.outputs.report }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
           node scripts/notify.js \
             --event "tax_reform_outline_changed" \
-            --title "税制改正の大綱に未登録の項目があります（${{ steps.year.outputs.year }}年度）" \
-            --comment "${{ steps.check.outputs.report }}" \
+            --title "税制改正の大綱に未登録の項目があります（${YEAR_YEAR}年度）" \
+            --comment "${CHECK_REPORT}" \
           || echo "::warning::通知に失敗しました（処理は継続）"
 
       - name: Fail if extraction broke
         if: steps.check.outputs.errors != '0'
+        env:
+          CHECK_REPORT: ${{ steps.check.outputs.report }}
         run: |
           echo "::error::大綱の抽出に失敗しました。ページ構成が変わった可能性があります。"
-          echo "${{ steps.check.outputs.report }}"
+          echo "${CHECK_REPORT}"
           exit 1
