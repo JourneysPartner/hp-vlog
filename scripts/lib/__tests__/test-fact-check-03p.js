@@ -123,6 +123,24 @@ test('P3', '算用数字の件数・回数の割は読み、数十割・数割�
   assert.deepEqual(F.normalizedNumbers('二割五分'), ['割合:1/4']);
   assert.deepEqual(F.normalizedNumbers('7・5・3割'), ['割合:7/10', '割合:1/2', '割合:3/10']);
 });
+test('Q1', '漢字の名詞に続く数は漢数字も従来どおり読む', () => {
+  for (const [text, expected] of [
+    ['耐用年数四年', ['4']], ['滞在日数百八十三日', ['183']], ['人数二人', ['2']],
+    ['件数二件', ['2']], ['年数四年', ['4']], ['件数二割', ['割合:1/5']], ['回数三割増', ['割合:3/10']],
+  ]) assert.deepEqual(F.normalizedNumbers(text), expected, text);
+});
+test('Q1', '数十・数百・十数の概数と数割は引き続き読まない', () => {
+  for (const text of ['数十万円', '数百万円', '数十%', '数十割', '数割', '十数万円']) {
+    assert.deepEqual(F.normalizedNumbers(text), [], text);
+  }
+});
+test('Q1', '除外した分母の分子も読み飛ばし、後続の別の数と正確な分数は読む', () => {
+  for (const text of ['数十分の一', '数百分の一', '十数万分の一']) assert.deepEqual(F.normalizedNumbers(text), [], text);
+  assert.deepEqual(F.normalizedNumbers('数十分の一、件数二件'), ['2']);
+  assert.deepEqual(F.normalizedNumbers('数十分の一', [4, 5]), []);
+  assert.deepEqual(F.normalizedNumbers('件数二分の一'), ['割合:1/2']);
+  assert.deepEqual(F.normalizedNumbers('十分の一'), ['割合:1/10']);
+});
 test('P1', 'O1補足: 無関係な主張には修正元の根拠を候補へ足さない', async () => {
   const foreign = '別制度の控除は200万円です。';
   let checked = false;

@@ -138,11 +138,14 @@ function normalizedNumbers(text, range) {
     const value = match[0];
     const prefix = normalized.slice(0, match.index);
     const suffix = normalized.slice(match.index + value.length);
-    // 「数十」のような概数の漢数字は読まず、「件数2割」の算用数字は読む。
-    if (/数$/.test(prefix) && !/[0-9]/.test(value)) continue;
     // 範囲の端で切れた日付・金額・割合の断片を、別の数として採用しない。
     const next = matches[i + 1];
     const fraction = suffix.startsWith('分の');
+    // 「年数四年」などの名詞は読む。「数十」「十数」の概数は分数の分子も含めて除外する。
+    if (/(?:^|[^\p{Script=Han}]|[十百千])数$/u.test(prefix) && !/[0-9]/.test(value)) {
+      if (fraction && next && next.index === match.index + value.length + 2) i++;
+      continue;
+    }
     const nextSuffix = next ? normalized.slice(next.index + next[0].length) : '';
     const percent = suffix.match(/^(?:%|パーセント)/)?.[0] || '';
     const nextPercent = nextSuffix.match(/^(?:%|パーセント)/)?.[0] || '';
