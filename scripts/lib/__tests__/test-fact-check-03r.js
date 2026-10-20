@@ -315,7 +315,7 @@ test('R4', '抜き出しと判定のリクエストは03uの指示文とバイ�
   const c = claim('控除は120万円です。');
   const e = ref(c.sentence, '2080', { id: 'e1', title: '試験資料', url: 'https://example.jp/e1' });
   await F.extractClaims(c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '065ba2b29ab57ba7cac871a439bc1ce54cc536b7352a1625494c54d5c32180ec');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), 'a1cc8ad189922d2148f92913f766790e88153e1fded7a1628a7a02b11ab0f1e0');
     return [];
   }, options);
   await F.judgeClaims([c], { c1: [e] }, c.sentence, async req => {

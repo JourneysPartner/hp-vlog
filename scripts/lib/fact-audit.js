@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { bodyHash, evidenceRefs, quoteParts } = require('./fact-check');
+const { bodyHash, evidenceRefs, outsideCandidateClaims, quoteParts } = require('./fact-check');
 const AUDIT_DIR = path.join(__dirname, '../../data/fact-check/audit');
 function readLatestAudits(dir = AUDIT_DIR) {
   const latest = {};
@@ -20,6 +20,7 @@ function readLatestAudits(dir = AUDIT_DIR) {
   return latest;
 }
 function auditFindings(record) { return (record?.claims || []).filter(c => c.status !== '裏付けあり'); }
+function auditOutsideCandidateCount(record) { return outsideCandidateClaims(record).length; }
 function auditReason(post, record) {
   if (!record || record.status === 'not_run' || record.body_sha256 !== bodyHash(post.body)) return null;
   const findings = auditFindings(record).filter(c => c.status === '食い違い');
@@ -36,4 +37,4 @@ function auditInstructions(record) {
     return `対象の文: ${c.sentence}\n判定: ${c.status}\n原文に基づく修正内容: ${c.correct || '具体的な要件・金額・期限を外し、資料の確認を案内する'}\n根拠の抜粋: ${quotes}\n${refs.map(e => `${e.title || '根拠'} ${e.url}\n${quotes || e.text?.slice(0, 500) || ''}`).join('\n')}`;
   }).join('\n\n');
 }
-module.exports = { AUDIT_DIR, readLatestAudits, auditFindings, auditReason, auditInstructions };
+module.exports = { AUDIT_DIR, readLatestAudits, auditFindings, auditOutsideCandidateCount, auditReason, auditInstructions };

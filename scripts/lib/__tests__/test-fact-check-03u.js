@@ -115,11 +115,14 @@ const fakeJudge = (answer = {}) => async request => {
   return [{ id: 'c1', status: '裏付けあり', evidence_id: 2, basis: '1', ...answer },
     { id: 'c2', status: '資料なし' }];
 };
-const judgeOutside = (source = shared, answer = {}, extra = {}) => F.judgeClaims([a, b],
-  { c1: [own], c2: [source] }, body, fakeJudge(answer), { ...options, ...extra });
+const judgeOutside = (source = shared, answer = {}, extra = {}) => {
+  const { claimType = a.type, candidate = false, ...opts } = extra;
+  return F.judgeClaims([{ ...a, type: claimType }, b], { c1: [candidate ? { ...source, id: own.id } : own], c2: [source] },
+    body, fakeJudge({ ...answer, ...(candidate ? { evidence_id: 1 } : {}) }), { ...options, ...opts });
+};
 
 test('U3', '別主張の候補でも同じ資料表なら採り、候補末尾と記録に残す', async () => {
-  const rows = await judgeOutside(), row = rows[0];
+  const rows = await judgeOutside(shared, {}, { claimType: '判定' }), row = rows[0];
   assert.equal(row.status, '裏付けあり'); assert.equal(row.quote, a.sentence); assert.equal(row.evidence_id, shared.id);
   assert.deepEqual(row.evidence.map(e => e.id), [own.id, shared.id]); assert.equal(row.evidence_outside_candidates, true);
   assert.deepEqual(row.evidence.at(-1), rows[1].evidence[0]);
@@ -129,16 +132,17 @@ test('U3', '別主張の候補でも同じ資料表なら採り、候補末尾�
   assert.deepEqual(F.evidenceRefs(compact, compact.claims[0]), row.evidence);
 });
 
-for (const [name, source, answer, reason] of [
+for (const [name, source, answer, reason, extra = {}] of [
   ['資料表にない番号', shared, { evidence_id: 3 }, '資料の番号がこの主張の候補でない'],
-  ['そのページにない文番号と架空の引用', shared, { basis: '99', quote: a.sentence }, '根拠の文の番号が読めない・範囲外'],
+  ['そのページにない文番号と架空の引用', shared, { basis: '99', quote: a.sentence }, '根拠の文の番号が読めない・範囲外', { claimType: '判定' }],
   ['別ページだけにある引用は採らない', shared, { evidence_id: 1, basis: '1', quote: a.sentence }, '引用が短い・数字が引用の近くに無い'],
-  ['300字より離れた数字は使わない', ref('贈与税の申告については制度の条件を確認してください。\n' + '補足説明が続きます。'.repeat(40) + '\n' + a.sentence, 'shared'), {}, '引用が短い・数字が引用の近くに無い'],
-  ['短すぎる引用', ref('贈与税\n' + a.sentence, 'shared'), {}, '引用が短い・数字が引用の近くに無い'],
+  // 03vでは数字の主張の候補外資料を拒否するため、数字の歯止めは候補内の同じ原文で確かめる。
+  ['300字より離れた数字は使わない', ref('贈与税の申告については制度の条件を確認してください。\n' + '補足説明が続きます。'.repeat(40) + '\n' + a.sentence, 'shared'), {}, '引用が短い・数字が引用の近くに無い', { candidate: true }],
+  ['短すぎる引用', ref('贈与税\n' + a.sentence, 'shared'), {}, '引用が短い・数字が引用の近くに無い', { claimType: '判定' }],
   ['数字の主張の2範囲で3文の範囲を認めない', ref('年110万円の基礎控除があります。\n補足は150万円です。\n別の控除は200万円です。\n手続を確認します。\n適用条件も確認します。', 'shared'),
-    { basis: '1-3,5' }, '根拠の文の番号が読めない・範囲外'],
+    { basis: '1-3,5' }, '根拠の文の番号が読めない・範囲外', { candidate: true }],
 ]) test('U3', name, async () => {
-  const row = (await judgeOutside(source, answer))[0];
+  const row = (await judgeOutside(source, answer, extra))[0];
   assert.equal(row.status, '資料なし'); assert.equal(row.reject_reason, reason); assert.equal(row.quote, '');
   assert.equal(row.evidence_id, ''); assert.deepEqual(row.evidence.map(e => e.id), [own.id]);
   assert.equal(Object.hasOwn(row, 'evidence_outside_candidates'), false);
@@ -146,7 +150,7 @@ for (const [name, source, answer, reason] of [
 
 test('U3', '候補外ページでも引用が保存資料に実在しなければ落とす', async () => {
   const pageCache = {};
-  const rows = await F.judgeClaims([a, b], { c1: [own], c2: [shared] }, body, async request => {
+  const rows = await F.judgeClaims([{ ...a, type: '判定' }, b], { c1: [own], c2: [shared] }, body, async request => {
     // 番号から復元する引用と保存資料が食い違う場合でも、実在確認を省かない。
     const page = pageCache.groups[0].pack.pages[1];
     page.ref = { ...page.ref, text: own.text, text_ranges: [[0, own.text.length]] };
@@ -157,11 +161,11 @@ test('U3', '候補外ページでも引用が保存資料に実在しなけれ�
   assert.equal(Object.hasOwn(rows[0], 'evidence_outside_candidates'), false);
 });
 
-test('U3', '候補外ページの連続3文は従来どおり検証を通る2文以内へ絞る', async () => {
+test('U3', '候補内ページの数字の主張の連続3文は従来どおり検証を通る2文以内へ絞る', async () => {
   const source = ref(a.sentence + '\n手続の注意点を確認します。\n適用条件も確認します。', 'shared');
-  const row = (await judgeOutside(source, { basis: '1-3' }))[0];
+  const row = (await judgeOutside(source, { basis: '1-3' }, { candidate: true }))[0];
   assert.equal(row.status, '裏付けあり'); assert.equal(row.quote, a.sentence);
-  assert.equal(row.evidence_outside_candidates, true);
+  assert.equal(Object.hasOwn(row, 'evidence_outside_candidates'), false);
 });
 
 test('U3', '判定の指示文は候補を優先し、同じ資料表の別資料を認める', async () => {
@@ -193,7 +197,7 @@ function articleOptions(dir) {
   return { ...options, recordDir: dir, searchEvidence: c => [c.sentence === a.sentence ? own : shared], callLLM: async request => {
     if (request.task === 'extract') return [...request.user.matchAll(/^\[(\d+)\] (.*)$/gm)]
       .filter(m => [a.sentence, b.sentence].includes(m[2]))
-      .map(m => ({ s: +m[1], type: '金額', subject: '贈与税', claim: m[2] }));
+      .map(m => ({ s: +m[1], type: m[2] === a.sentence ? '判定' : '金額', subject: '贈与税', claim: m[2] }));
     assert.equal(request.task, 'judge');
     return JSON.parse(request.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 2, basis: c.claim === a.claim ? '1' : '2' }));
   } };

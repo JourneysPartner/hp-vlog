@@ -79,6 +79,14 @@ function evidenceRefs(record, row) {
     ref.text_deflate_base64 ? { ...ref, text: inflateRawSync(Buffer.from(ref.text_deflate_base64, 'base64'), { maxOutputLength: 2000000 }).toString('utf8') } : ref);
 }
 
+/** 再照合を優先し、修正済みや重複を除いて候補外資料の採用を表示する。承認の判定には使わない。 */
+function outsideCandidateClaims(record) {
+  const resolved = new Set((record.corrections || []).filter(c => c.resolved).map(c => c.id));
+  const rows = [...(record.claims || []).filter(c => c && !resolved.has(c.id)), ...(record.rechecked || [])];
+  return [...new Map(rows.filter(Boolean).map(c => [claimKey(c), c])).values()]
+    .filter(c => c.status === '裏付けあり' && c.evidence_outside_candidates === true);
+}
+
 function normalizedClaim(text) {
   return normalizedQuote(String(text).replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, ''));
 }
@@ -236,7 +244,7 @@ function sufficientQuote(claim, result, ref, status) {
     if (status === '裏付けあり') {
       const sentenceNumbers = normalizedNumbers(claim.sentence);
       // 要約だけで数字が書き換わった主張を通さず、要約に数字が無ければ原文を照合する。
-      if (!numbers.every(n => sentenceNumbers.includes(n))) return false;
+      if (!numbersInSentence(numbers, claim.sentence)) return false;
       if (!numbers.length) numbers = sentenceNumbers;
     }
     if (numbers.includes(null)) return false;
@@ -342,6 +350,12 @@ function withoutAsOfDates(text) {
   return text.replace(new RegExp(`(?:(?:令和|平成|昭和|大正|明治)(?:元|${digits})|[0-9]{4})年(?:${digits}月(?:${digits}日)?)?現在(?:法令等)?`, 'g'), '');
 }
 
+/** 年だけの日付は同じ文の同じ元号・年の年月日だけで補い、基準日からは補わない。 */
+function numbersInSentence(numbers, sentence) {
+  const present = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
+  return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && present.some(d => d?.startsWith(n + '-'))));
+}
+
 // 元の表記と位置を保持する。数字の読み方自体は normalizedNumbers に共通化する。
 function supportedNumberForms(text, ref, supported) {
   const positions = [];
@@ -365,7 +379,7 @@ function partialQuoteNumbers(claim, grounded, ref) {
   const checked = numberCheckClaim(claim, ref);
   const summary = normalizedNumbers(checked.claim);
   const sentence = normalizedNumbers(checked.sentence);
-  if (!summary.every(n => sentence.includes(n)) || evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return null;
+  if (!numbersInSentence(summary, checked.sentence) || evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return null;
   const numbers = summary.length ? summary : sentence;
   if (!numbers.length || numbers.includes(null)) return null;
   const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref));
@@ -383,7 +397,7 @@ async function extractClaims(body, callLLM, options = {}) {
   const units = splitUnits(body);
   if (!units.length) return { claims: [], dropped: 0, discarded: 0, droppedClaims: [], discardedClaims: [] };
   const read = async rows => parseJson(await callLLM({ task: 'extract', maxTokens: 8000,
-    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件・金額・割合・期限・適用年・手続・番号・判定を対象にします。type は次の8語のどれか1語をそのまま書いてください: 要件・金額・割合・期限・適用年・手続・番号・判定。（要件＝対象・条件、期限＝保存期間を含む、手続＝届出・申請・選択、番号＝条文・通達・タックスアンサー）s は主張を述べた本文の文の番号、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
+    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件・金額・割合・期限・適用年・手続・番号・判定を対象にします。type は次の8語のどれか1語をそのまま書いてください: 要件・金額・割合・期限・適用年・手続・番号・判定。（要件＝対象・条件、期限＝保存期間を含む、手続＝届出・申請・選択、番号＝条文・通達・タックスアンサー）。s は主張を述べた本文の文の番号、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
     user: renderUnits(rows),
   }));
   let data;
@@ -424,12 +438,7 @@ async function extractClaims(body, callLLM, options = {}) {
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
       const numbers = normalizedNumbers(c.claim);
-      const contains = u => {
-        const present = normalizedNumbers(u.text);
-        const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(u.text)));
-        // 年だけの例外は同じ文の同じ元号・年に限定し、基準日や別の文から補わない。
-        return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))));
-      };
+      const contains = u => numbersInSentence(numbers, u.text);
       if (isNumericClaim({ ...c, sentence: c.claim }) && numbers.length) {
         // 読めない割合が同じ原文にある場合は抽出し、後段の歯止めで止める。
         if (unit.heading || !contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
@@ -482,6 +491,11 @@ const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記�
 
 function blockingFinding(c) {
   return c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
+}
+
+// 候補外の兄弟制度から数字や修正内容を持ち込まない。
+function canUseOutsideEvidence(claim, status) {
+  return status === '裏付けあり' && REVIEW_TYPES.has(claim.type);
 }
 
 function sourceDate(version) {
@@ -582,7 +596,9 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       if (correct === null) { status = '資料なし'; reason ||= '正しい内容が文字列でない'; }
       const candidates = (evidence[c.id] || []).map(e => byId.get(e.id).ref);
       const evidenceNo = unitNumber(r?.evidence_id);
-      const page = evidenceNo ? pages.find(p => p.number === evidenceNo) : null;
+      const citedPage = evidenceNo ? pages.find(p => p.number === evidenceNo) : null;
+      const inCandidates = citedPage && candidates.some(e => e.id === citedPage.id);
+      const page = inCandidates || canUseOutsideEvidence(c, status) ? citedPage : null;
       const ranges = basisRanges(r?.basis);
       // 2範囲では各範囲の上限を先に守る。単一範囲の3〜4文に対する従来の救済は維持する。
       const maxUnits = ranges?.length === 2 && NUMERIC_TYPES.has(c.type) ? 2 : 4;
@@ -621,7 +637,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           : !quoteExists(quote, ref) ? '引用が資料に無い'
             : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
-        if (status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) && rejected === '引用が短い・数字が引用の近くに無い') {
+        if (inCandidates && status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) && rejected === '引用が短い・数字が引用の近くに無い') {
           const partial = partialQuoteNumbers(c, grounded, ref);
           if (partial?.forms.length) supportedNumbers = partial.forms;
         }
@@ -638,7 +654,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         } else deadlineSubjects.add(c.subject);
       }
       // 提示済み資料でも、引用と数字などの確認を通った場合だけ候補末尾へ加える。
-      const outsideCandidates = status !== '資料なし' && page && !candidates.some(e => e.id === page.id);
+      const outsideCandidates = status === '裏付けあり' && page && !inCandidates;
       if (outsideCandidates) candidates.push(page.ref);
       const date = ref && sourceDate(ref.law_version);
       const cutoff = new Date(options.now || new Date());
@@ -1038,6 +1054,8 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
+    const outsideCount = outsideCandidateClaims(record).length;
+    if (outsideCount) record.summary += `・候補の外の資料で裏付け ${outsideCount} 件`;
   } catch (error) {
     // 要約は固定文。原因は鍵を伏せた短い診断だけを error に残す（原因が分からないまま全部止まるのを防ぐ）。
     record.status = 'not_run';
@@ -1108,6 +1126,7 @@ async function checkArticle(raw, options = {}) {
       const validRow = c => c && typeof c.id === 'string' && typeof c.sentence === 'string' && c.sentence.trim() &&
         typeof c.subject === 'string' && c.subject.trim() && typeof c.claim === 'string' && typeof c.heading === 'string' &&
         TYPES.includes(c.type) && STATUSES.includes(c.status) && typeof c.quote === 'string' && typeof c.correct === 'string' &&
+        (c.evidence_outside_candidates !== true || canUseOutsideEvidence(c, c.status)) &&
         (Array.isArray(c.evidence) || (Array.isArray(c.evidence_ids) && c.evidence_ids.every(id => prior.evidence?.[id]))) &&
         (c.status === '資料なし' || (typeof c.evidence_id === 'string' && c.evidence_id && c.quote.trim()));
       if (prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
@@ -1127,7 +1146,9 @@ async function checkArticle(raw, options = {}) {
         const validRefs = c => c.evidence.every(ref => ref && typeof ref.id === 'string' && ref.id && typeof ref.text === 'string' &&
           (!ref.text_ranges || (Array.isArray(ref.text_ranges) && ref.text_ranges.every(range => Array.isArray(range) && range.length === 2 &&
             range.every(Number.isInteger) && range[0] >= 0 && range[1] >= range[0] && range[1] <= ref.text.length)))) &&
-          (c.status === '資料なし' || c.evidence.some(ref => ref.id === c.evidence_id && quoteExists(c.quote, ref)));
+          (c.status === '資料なし' || c.evidence.some(ref => ref.id === c.evidence_id && quoteExists(c.quote, ref))) &&
+          // 旧03uで候補外資料から作られ、候補に出どころが無い保持数字は再利用しない。
+          (!c.supported_numbers?.length || c.evidence.some(ref => ref.id === c.rejected_answer?.evidence));
         if (!previousClaims.every(validRefs)) throw new Error('前回の照合記録の根拠が不正です');
         incremental = { previousBody: before.content, previousClaims };
       }
@@ -1172,4 +1193,4 @@ function inheritFactMetadata(original, regenerated) {
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
   articleEvidenceOptions,
   applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
-  normalizeBody, bodyHash, compactRecord, evidenceRefs, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, WARNING_RE };
+  normalizeBody, bodyHash, compactRecord, evidenceRefs, outsideCandidateClaims, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, WARNING_RE };

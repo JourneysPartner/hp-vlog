@@ -9,7 +9,7 @@ const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
-const { bodyHash, evidenceRefs, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
+const { bodyHash, evidenceRefs, outsideCandidateClaims, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -142,15 +142,27 @@ function renderFactCheckSummary(meta, record, body) {
   if (!record && !blocking && status !== 'not_run') return '<p id="factCheckSummary">照合の記録なし</p>';
   const corrections = usable ? record.corrections || [] : [];
   const items = usable ? record.review_items || [] : [];
+  const outsideCount = usable ? outsideCandidateClaims(record).length : 0;
   return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
     <p><strong>状態:</strong> ${escapeHtml(label)}</p>
     ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています</div>' : ''}
     ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
     ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件</p>
     ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
+    ${outsideCount ? `<p>候補の外の資料で裏付け ${outsideCount} 件</p>` : ''}
     ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
     <a href="#factCheck">詳細は本文の後ろ</a>
     </div></div>`;
+}
+
+function renderFactOutsideCandidates(record) {
+  const items = outsideCandidateClaims(record);
+  if (!items.length) return '';
+  return `<details><summary>候補の外の資料で裏付け ${items.length} 件</summary>
+    <h3 class="h6 mt-3">候補の外の資料で裏付けた主張</h3>${items.map(c => {
+      const evidence = evidenceRefs(record, c).filter(e => e.id === c.evidence_id);
+      return `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${renderFactEvidence(record, { ...c, evidence }, true)}</div>`;
+    }).join('')}</details>`;
 }
 
 function renderFactCheck(meta, record, body) {
@@ -162,7 +174,8 @@ function renderFactCheck(meta, record, body) {
     ${usable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
     ${renderFactRemaining(record)}
-    ${renderFactReviewItems(record.review_items || [], record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
+    ${renderFactReviewItems(record.review_items || [], record)}
+    ${renderFactOutsideCandidates(record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
 }
 
