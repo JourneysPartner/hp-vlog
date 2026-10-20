@@ -754,12 +754,12 @@ test('01c-G1', '欠落数は記録済みだけを数え、新規の欠落は捨�
   P.resolveArticlePlan(meta, [{ id: 'ta:0001' }]);
   assert.equal(meta.materials_warning, '計画: 記録した資料のうち引けない 1 件');
 });
-test('01c-G1', 'カタログに実在する共通関係のIDは保ち、範囲の引用からは合成しない', () => {
+test('01c-G1', 'カタログに実在する共通関係のIDを保ち、範囲の引用からも引ける', () => {
   const refs = E.evidenceCatalog().entries.filter(e => e.kind === 'tsutatsu' && /[～〜~]/.test(e.no));
   assert(refs.length > 0);
   for (const ref of refs) {
     assert.equal(W.materialId(ref), ref.id); assert.equal(W.materialId(W.resolveMaterial(ref.id)), ref.id);
-    assert.equal(W.materialId({ kind: 'tsutatsu', circular: ref.circular, no: ref.no }), '');
+    assert.equal(W.materialId({ kind: 'tsutatsu', circular: ref.circular, no: ref.no }), ref.id);
   }
 });
 for (const planned of [false, true]) test('01c-G1', `注意書きの継承は${planned ? '計画ありだけ部分ごとに統合' : '計画なしなら従来の文字列全体で統合'}`, () => {
@@ -802,7 +802,7 @@ for (const [name, tax_domain, expected] of f5Examples) test('01c-G2', `F5の期�
   assert.equal(s.tax, tax_domain === 'invoice_system' ? 'consumption' : tax_domain === 'bookkeeping_expenses' ? 'income' : 'inheritance');
   console.log(`01c-F5 選択 ${JSON.stringify({ name, tax: s.tax, pages: s.materials.map(e => ({ title: e.title, id: W.materialId(e) })) })}`);
 });
-test('01c-G2', '税目決定の優先順・会社員の部分一致を避ける・質疑応答と通達は税目決定に使わない', () => {
+test('01c-G2', '税目決定の優先順・会社員の部分一致を避ける・質疑応答は税目決定に使わない', () => {
   const entry = (id, kind, title, category, scoreText = '') => ({ id, kind, title, url: `https://www.nta.go.jp/taxes/shiraberu/taxanswer/${category}/9999.htm`,
     text: `${title}。${scoreText}`, ...(kind === 'qa' ? { tax_category_code: category, material_id: id } : {}) });
   const choose = (name, tax_domain, entries) => P.findSystemMaterials([{ name }], { tax_domain }, { entries });
@@ -863,6 +863,89 @@ test('01c-G3', '確認を通った疑いの修正案も差分照合で保持し�
     assert.equal(next.record.incremental.reused, 1); assert.equal(next.record.review_items.length, 1);
     assert.deepEqual(next.record.review_items[0].stage_a_answer, first.record.review_items[0].stage_a_answer);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+const h1Examples = [
+  ['交際費', 'bookkeeping_expenses', 'income', ids => ids.length > 0 && !ids.some(id => ['ta:6463', 'ta:6917'].includes(id))],
+  ['交際費等の損金不算入', 'bookkeeping_expenses', 'corporate', ids => ids.some(id => ['law:sozeki_hou:61_4', 'ta:5265'].includes(id))],
+  ['相続税額の取得費加算の特例', 'income_tax', 'income', ids => ids.length > 0 && !ids.some(id => id.includes('/shitsugi/sozoku/'))],
+];
+for (const [name, tax_domain, tax, expected] of h1Examples) test('01d-H1', `${name}（${tax_domain}）の本物のカタログ`, () => {
+  const s = P.findSystemMaterials([{ name }], { tax_domain })[0], ids = s.materials.map(W.materialId);
+  assert.equal(s.tax, tax); assert(expected(ids), JSON.stringify(ids));
+  console.log(`01d-H1 選択 ${JSON.stringify({ name, tax: s.tax, pages: s.materials.map(e => ({ title: e.title, id: W.materialId(e) })) })}`);
+});
+test('01d-H1', '税目名の直後が額なら明示税目にせず、損金・益金・必要経費を記事税目より優先する', () => {
+  const decide = (name, tax_domain = 'invoice_system') => P.findSystemMaterials([{ name }], { tax_domain }, { entries: [] })[0].tax;
+  for (const [name, tax] of [['所得税', 'income'], ['法人税', 'corporate'], ['消費税', 'consumption'], ['相続税', 'inheritance'], ['贈与税', 'inheritance']]) {
+    const domain = tax === 'consumption' ? 'income_tax' : 'invoice_system', fallback = tax === 'consumption' ? 'income' : 'consumption';
+    assert.equal(decide(`${name}の試験特例`, domain), tax);
+    assert.equal(decide(`${name}額の試験特例`, domain), fallback);
+  }
+  for (const name of ['インボイスの特例', '適格請求書の特例']) assert.equal(decide(name, 'income_tax'), 'consumption');
+  assert.equal(decide('損金の試験特例', 'bookkeeping_expenses'), 'corporate');
+  assert.equal(decide('益金の試験特例', 'bookkeeping_expenses'), 'corporate');
+  assert.equal(decide('必要経費の試験特例', 'inheritance_tax'), 'income');
+  assert.equal(decide('所得税の損金の試験特例'), 'income');
+  assert.equal(decide('相続税の必要経費の試験特例'), 'inheritance');
+});
+test('01d-H1', '題名の当たる通達でも記事税目を確定し、他税目のTAの検索点に引かれない', () => {
+  const entries = [
+    { id: 'ta:other-tax', kind: 'taxanswer', title: '交際費', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/9999.htm', text: '交際費の扱い。' },
+    { id: 'tsutatsu:shotoku:test', kind: 'tsutatsu', circular: 'shotoku', title: '交際費の取扱い', text: '交際費の原文。' },
+  ];
+  const s = P.findSystemMaterials([{ name: '交際費' }], { tax_domain: 'bookkeeping_expenses' }, { entries })[0];
+  assert.equal(s.tax, 'income'); assert.deepEqual(s.materials.map(W.materialId), ['tsutatsu:shotoku:test']);
+});
+
+const h2Examples = [
+  ['相続人に対する書類の送達', 'income_tax', 'income', 'law:tsusoku_hou:13'],
+  [W.resolveMaterial('law:sozeki_hou:70_7_9').title.replace(/^租税特別措置法 /, ''), 'inheritance_tax', 'inheritance', 'law:sozeki_hou:70_7_9'],
+];
+for (const [name, tax_domain, tax, required] of h2Examples) test('01d-H2', `${required}を本物のカタログで選ぶ`, () => {
+  const s = P.findSystemMaterials([{ name }], { tax_domain })[0];
+  assert.equal(s.tax, tax); assert(s.materials.some(e => W.materialId(e) === required));
+  console.log(`01d-H2 選択 ${JSON.stringify({ name, tax: s.tax, pages: s.materials.map(e => ({ title: e.title, id: W.materialId(e) })) })}`);
+});
+test('01d-H2', '通則法13・5と民法951は題名の語で税目を付けず、どの記事税目でも残す', () => {
+  for (const id of ['law:tsusoku_hou:13', 'law:tsusoku_hou:5', 'law:minpo:951']) {
+    const ref = W.resolveMaterial(id); assert(ref);
+    for (const [tax_domain, tax] of [['income_tax', 'income'], ['inheritance_tax', 'inheritance'], ['invoice_system', 'consumption']]) {
+      const s = P.findSystemMaterials([{ name: ref.title }], { tax_domain }, { entries: [ref] })[0];
+      assert.equal(s.tax, tax); assert.deepEqual(s.materials.map(W.materialId), [id]);
+    }
+  }
+});
+test('01d-H2', '医療法人の持分の措法・措令12条は法人より明示された相続税・贈与税を優先する', () => {
+  const refs = E.evidenceCatalog().entries.filter(e => /^law:sozeki_(?:hou:70_7|rei:40_8)_(?:9|1[0-4])$/.test(e.id));
+  assert.equal(refs.length, 12);
+  for (const ref of refs) {
+    const s = P.findSystemMaterials([{ name: ref.title }], { tax_domain: 'inheritance_tax' }, { entries: [ref] })[0];
+    assert.equal(s.tax, 'inheritance'); assert.deepEqual(s.materials.map(W.materialId), [ref.id]);
+    const wrong = P.findSystemMaterials([{ name: '医療法人の持分' }], { tax_domain: 'income_tax' }, { entries: [ref] })[0];
+    assert.equal(wrong.tax, 'income'); assert.equal(wrong.materials.length, 0); // 税目なしとして通すこともない。
+  }
+});
+
+test('01d-H3', '実在する共通関係の本文引用を差し戻しのfact_materialsに足し、実在しない範囲は足さない', async () => {
+  const body = '## 制度\n所基通23～35共-6と所基通37-5～37-6の内容を確認します。';
+  const refs = require('../nta-tsutatsu').checkCitations(body).citations;
+  assert(refs.some(c => c.found && c.no === '23～35共-6')); assert(refs.some(c => c.found && c.no === '37-5～37-6'));
+  const meta = { ...topic(), fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_materials: 'ta:4452' };
+  await G.buildRegenSourceBlocks(meta, body, { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
+  const raw = G.recordMaterialMetadata('---\nslug: 01d-range\n---\n' + body, meta), ids = matter(raw).data.fact_materials.split(';');
+  assert(ids.includes('tsutatsu:shotoku:23～35共-6')); assert(!ids.includes('tsutatsu:shotoku:37-5～37-6'));
+  assert(ids.every(id => W.resolveMaterial(id))); assert(!String(meta.materials_warning || '').includes('引けない'));
+});
+test('01d-H3', '範囲を含む引用は候補IDの優先順とカタログの実在だけで決める', () => {
+  const good = 'tsutatsu:shotoku:23～35共-6', bad = 'tsutatsu:shotoku:37-5～37-6';
+  const quote = { circular: 'shotoku', no: '23～35共-6' };
+  assert.equal(W.materialId(quote), good);
+  assert.equal(W.materialId({ ...quote, id: good }), good);
+  assert.equal(W.materialId({ ...quote, id: bad }), '');
+  assert.equal(W.materialId({ ...quote, id: bad, material_id: good }), good);
+  assert.equal(W.materialId({ ...quote, id: good, material_id: bad }), '');
+  assert.equal(W.materialId({ circular: 'shotoku', no: '37-5～37-6' }), '');
 });
 
 (async () => {

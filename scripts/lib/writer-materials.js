@@ -31,10 +31,10 @@ function questionIdForUrl(ref) {
 
 function materialId(ref) {
   if (!ref) return '';
-  // 範囲の引用からIDを合成しない。共通関係としてカタログに実在するIDはそのまま使う。
+  // 範囲を含む引用も、共通関係としてカタログに実在するIDだけを使う。
   if ((ref.kind === 'tsutatsu' || ref.circular || /^tsutatsu:/.test(ref.material_id || ref.id || '')) &&
       /[～〜~]/.test([ref.no, ref.material_id, ref.id].filter(Boolean).join(' ')) &&
-      !evidence.evidenceCatalog().entries.some(e => e.id === (ref.material_id || ref.id))) return '';
+      !evidence.evidenceCatalog().entries.some(e => e.id === (ref.material_id || ref.id || `tsutatsu:${ref.circular}:${ref.no}`))) return '';
   if (ref.material_id) return ref.material_id;
   if (/^(?:law|tsutatsu|qa|change|ta):/.test(ref.id || '')) return ref.id;
   if (ref.kind === 'qa' || ref.source_key) {

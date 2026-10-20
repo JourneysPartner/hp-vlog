@@ -80,7 +80,10 @@ function mainText(ref, text) {
 
 function materialTax(ref) {
   const tax = ref.kind === 'qa' ? CATEGORY_TAX[ref.tax_category_code] : evidenceTax(ref);
-  if (tax || ref.kind !== 'law') return tax;
+  if (tax || ref.kind !== 'law' || !ref.key?.startsWith('sozeki_')) return tax;
+  const explicit = String(ref.title).match(/所得税|法人税|消費税|相続税|贈与税/)?.[0];
+  if (explicit) return /所得税/.test(explicit) ? 'income' : /法人税/.test(explicit) ? 'corporate'
+    : /相続税|贈与税/.test(explicit) ? 'inheritance' : 'consumption';
   return [
     ['income', /必要経費|所得税|譲渡所得|事業所得/],
     ['corporate', /損金|益金|法人/],
@@ -90,13 +93,15 @@ function materialTax(ref) {
 }
 function systemTax(name, topic, candidates) {
   const text = String(name).normalize('NFKC');
-  const explicit = text.match(/所得税|法人税|消費税|インボイス|適格請求書|相続税|贈与税/)?.[0];
+  const explicit = text.match(/(?:所得税|法人税|消費税|相続税|贈与税)(?!額)|インボイス|適格請求書/)?.[0];
   if (explicit) return /所得税/.test(explicit) ? 'income' : /法人税/.test(explicit) ? 'corporate'
     : /相続税|贈与税/.test(explicit) ? 'inheritance' : 'consumption';
+  if (/損金|益金/.test(text)) return 'corporate';
+  if (/必要経費/.test(text)) return 'income';
   const taxes = new Set((TAX_CATEGORY_CODES[topic.tax_domain] || []).map(code => CATEGORY_TAX[code]).filter(Boolean));
   const articleTax = taxes.size === 1 ? [...taxes][0] : undefined;
   const titled = candidates.filter(row => row.titleMatch && row.tax);
-  if (articleTax && titled.some(row => row.tax === articleTax && ['taxanswer', 'qa', 'law'].includes(row.ref.kind))) return articleTax;
+  if (articleTax && titled.some(row => row.tax === articleTax && ['taxanswer', 'qa', 'law', 'tsutatsu'].includes(row.ref.kind))) return articleTax;
   return titled.filter(row => ['taxanswer', 'qa'].includes(row.ref.kind))
     .sort((a, b) => b.score - a.score || a.ref.id.localeCompare(b.ref.id))[0]?.tax || articleTax;
 }
