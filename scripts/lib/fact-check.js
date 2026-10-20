@@ -82,7 +82,8 @@ function evidenceRefs(record, row) {
 /** 再照合を優先し、修正済みや重複を除いて候補外資料の採用を表示する。承認の判定には使わない。 */
 function outsideCandidateClaims(record) {
   const resolved = new Set((record.corrections || []).filter(c => c.resolved).map(c => c.id));
-  const rows = [...(record.claims || []).filter(c => c && !resolved.has(c.id)), ...(record.rechecked || [])];
+  const rewritten = new Set((record.corrections || []).filter(c => typeof c.before === 'string' && typeof c.after === 'string' && c.after).map(c => c.before));
+  const rows = [...(record.claims || []).filter(c => c && !resolved.has(c.id) && !rewritten.has(c.sentence)), ...(record.rechecked || [])];
   return [...new Map(rows.filter(Boolean).map(c => [claimKey(c), c])).values()]
     .filter(c => c.status === '裏付けあり' && c.evidence_outside_candidates === true);
 }
@@ -352,8 +353,16 @@ function withoutAsOfDates(text) {
 
 /** 年だけの日付は同じ文の同じ元号・年の年月日だけで補い、基準日からは補わない。 */
 function numbersInSentence(numbers, sentence) {
-  const present = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
-  return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && present.some(d => d?.startsWith(n + '-'))));
+  const present = normalizedNumbers(sentence);
+  const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
+  return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))));
+}
+
+/** 年だけの要約を同じ文の具体的な日付へ広げ、保持・除去する数字と本文の表記を対応付ける。 */
+function expandYearDates(numbers, sentence) {
+  const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
+  return [...new Set(numbers.flatMap(n => typeof n === 'string' && /^日付:[^-]+$/.test(n)
+    ? [n, ...dates.filter(d => d?.startsWith(n + '-'))] : [n]))];
 }
 
 // 元の表記と位置を保持する。数字の読み方自体は normalizedNumbers に共通化する。
@@ -367,11 +376,12 @@ function supportedNumberForms(text, ref, supported) {
   }
   const forms = [], citations = ownTaxAnswerCitations(normalized, ref);
   normalizedNumbers(normalized, undefined, forms);
-  return [...new Set(forms.filter(f => supported.includes(f.number) &&
+  const expanded = expandYearDates(supported, text);
+  return [...new Set(forms.filter(f => expanded.includes(f.number) &&
     !citations.some(m => f.start >= m.index && f.end <= m.index + m[0].length)).map(f =>
     text.slice(positions[f.start][0], positions[f.end - 1][1])).filter(form => {
       const numbers = normalizedNumbers(form);
-      return numbers.length && numbers.every(n => supported.includes(n));
+      return numbers.length && numbers.every(n => expanded.includes(n));
     }))];
 }
 
@@ -856,10 +866,10 @@ async function repairBody(body, findings, callLLM, options = {}) {
     if (!reason && f.status === '資料なし') {
       const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
       const keep = f.keep || [];
-      const keepNumbers = [...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))]
+      const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
         .filter(n => originalNumbers.includes(n));
       const summaryNumbers = normalizedNumbers(f.claim);
-      const removeNumbers = (f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers)
+      const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
         .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
       if (originalNumbers.includes(null) && (keep.length || f.supported_numbers?.length)) reason = '数字を読めないため確かめられません';
       else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
@@ -1004,7 +1014,7 @@ async function checkFacts(body, options = {}) {
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
     const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
-      keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり')
+      keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり' && k.evidence_outside_candidates !== true)
         .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
     if (findings.length && options.repair !== false) {

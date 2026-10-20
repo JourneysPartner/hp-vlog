@@ -216,19 +216,19 @@ for (const [name, text, source] of [
   ['基準日の年月日だけの資料', summary, ref('令和6年1月1日現在、年間110万円の基礎控除があります。')],
 ]) test('V3', name, async () => assert.equal((await datedRow(text, source)).status, '資料なし'));
 
-test('V3', '抜き出しでも違う年と基準日だけの年を対応付けない', async () => {
-  for (const [body, text] of [[dated, summary.replace('令和6年', '令和7年')], ['令和6年1月1日現在法令等\n年間110万円の基礎控除があります。', summary],
-    ['令和6年現在、年間110万円の基礎控除があります。', summary]]) {
+test('V3', '抜き出しで年の補完と基準日の完全一致を区別する', async () => {
+  for (const [body, text, kept = 0] of [[dated, summary.replace('令和6年', '令和7年')], ['令和6年1月1日現在法令等\n年間110万円の基礎控除があります。', summary],
+    ['令和6年現在、年間110万円の基礎控除があります。', summary, 1]]) {
     const r = await F.extractClaims(body, async () => [{ s: 1, type: '金額', subject: '相続時精算課税', claim: text }], options);
-    assert.equal(r.claims.length, 0); assert.equal(r.discarded, 1);
+    assert.equal(r.claims.length, kept); assert.equal(r.discarded, 1 - kept);
   }
 });
 
-test('V3', '本文に年だけの基準日しか無い場合も適用年の裏付けにしない', async () => {
+test('V3', '本文の基準日の年が完全一致なら従来どおり数字の対応を認める', async () => {
   const sentence = '令和6年現在、年間110万円の基礎控除があります。';
   const row = (await F.judgeClaims([claim(sentence, { claim: summary })], { c1: [settlement] }, sentence,
     async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: dateBasis + ',' + amountBasis }], options))[0];
-  assert.equal(row.status, '資料なし'); assert.equal(Object.hasOwn(row, 'supported_numbers'), false);
+  assert.equal(row.status, '裏付けあり'); assert.equal(Object.hasOwn(row, 'supported_numbers'), false);
 });
 
 test('V3', '年だけの要約でも候補内資料から確認できた110万円を部分的に保持する', async () => {
@@ -237,7 +237,7 @@ test('V3', '年だけの要約でも候補内資料から確認できた110万�
   const source = ref('令和6年1月1日から年間110万円の基礎控除があります。');
   const row = (await F.judgeClaims([c], { c1: [source] }, sentence,
     async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }], options))[0];
-  assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['110万円']);
+  assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['令和6年1月1日', '110万円']);
 });
 
 test('V4', '抜き出しのかっこの後を句点で区切る', async () => {
