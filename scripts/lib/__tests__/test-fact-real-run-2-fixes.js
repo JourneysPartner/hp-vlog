@@ -84,7 +84,7 @@ async function main() {
       assert.equal(payload.claims.length, 10);
       for (const c of payload.claims) { assert.deepEqual(c.evidence_ids, [1]); assert.equal(c.evidence, undefined); }
       assert.equal(JSON.parse(request.user).evidence, undefined);
-      assert.match(request.system, /evidence の中の、各主張の evidence_ids の資料だけ/);
+      assert.match(request.system, /evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。/);
       return missing(request);
     }, { now });
   });
@@ -120,11 +120,13 @@ async function main() {
     }, { now });
     assert.ok(result.every(c => c.status === '裏付けあり'));
   });
-  await test('K3', '同じバッチでも他主張だけの候補IDは採用できない', async () => {
+  await test('K3', '同じバッチでも資料表に無いIDは採用できない', async () => {
     const claims = [amount, claim(amount.sentence, '金額', '別制度', 'c2')];
     const result = await F.judgeClaims(claims, { c1: [ref('別の説明です。')], c2: [ref(`${quote}\n${other}`, '資料2')] }, '', async () =>
-      claims.map(c => ({ id: c.id, status: '裏付けあり', quote, evidence_id: '資料2' })), { now });
+      // 表内の候補外ページは03uの専用試験で確かめ、ここでは表外の番号を拒否する。
+      claims.map(c => ({ id: c.id, status: '裏付けあり', quote, evidence_id: c.id === 'c1' ? 3 : 2, basis: '1' })), { now });
     assert.equal(result[0].status, '資料なし'); assert.equal(result[1].status, '裏付けあり');
+    assert.equal(result[0].reject_reason, '資料の番号がこの主張の候補でない');
   });
   await test('K3', '離れた抜粋の数字の断片をつなぎ、原文に無い金額を作らない', async () => {
     const claims = [claim('控除額は1,000万円です。'), claim('控除額は1,000万円です。', '金額', '別制度', 'c2')];
@@ -143,7 +145,7 @@ async function main() {
       calls++;
       const payload = readPayload(request);
       current += request.system.length + request.user.length;
-      const oldSystem = request.system.replace('evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。', '');
+      const oldSystem = request.system.replace('evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。', '');
       const oldClaims = payload.claims.map(c => ({ ...claims.find(row => row.id === c.id), evidence: shared }));
       previous += oldSystem.length + JSON.stringify({ today: payload.today, body, claims: oldClaims }).length;
       return missing(request);

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const F = require('./lib/fact-check');
 const { readPosts } = require('./lib/freshness-candidates');
-const { AUDIT_DIR, readLatestAudits } = require('./lib/fact-audit');
+const { AUDIT_DIR, readLatestAudits, auditOutsideCandidateCount } = require('./lib/fact-audit');
 const ROOT = path.join(__dirname, '..');
 
 function parseArgs(args) {
@@ -58,17 +58,19 @@ const md = value => String(value || '').replace(/([\\`*_{}[\]<>|])/g, '\\$1').re
 function counts(record) {
   const rows = record.claims || [];
   return { mismatch: rows.filter(c => c.status === '食い違い').length, deadline: rows.filter(c => c.status === '期限の書き漏れ').length,
-    unsupported: rows.filter(c => c.status === '資料なし' && ['要件', '判定', '金額', '割合', '期限', '適用年', '手続', '番号'].includes(c.type)).length };
+    unsupported: rows.filter(c => c.status === '資料なし' && ['要件', '判定', '金額', '割合', '期限', '適用年', '手続', '番号'].includes(c.type)).length,
+    outside: auditOutsideCandidateCount(record) };
 }
 function renderReport(records, { skipped = 0 } = {}) {
   const ordered = [...records].sort((a, b) => counts(b).mismatch - counts(a).mismatch || a.slug.localeCompare(b.slug));
-  const total = ordered.reduce((sum, r) => { const c = counts(r); for (const k of Object.keys(sum)) sum[k] += c[k]; return sum; }, { mismatch: 0, deadline: 0, unsupported: 0 });
+  const total = ordered.reduce((sum, r) => { const c = counts(r); for (const k of Object.keys(sum)) sum[k] += c[k]; return sum; }, { mismatch: 0, deadline: 0, unsupported: 0, outside: 0 });
   const checked = ordered.filter(r => r.status !== 'not_run').length;
-  const lines = ['# 公開済み記事の事実照合', '', `食い違い ${total.mismatch} 件・期限の書き漏れ ${total.deadline} 件・資料なし ${total.unsupported} 件。`,
+  const outsideText = count => count ? `・候補の外の資料で裏付け ${count} 件` : '';
+  const lines = ['# 公開済み記事の事実照合', '', `食い違い ${total.mismatch} 件・期限の書き漏れ ${total.deadline} 件・資料なし ${total.unsupported} 件${outsideText(total.outside)}。`,
     `照合した記事 ${checked} 本・飛ばした記事 ${skipped} 本・照合できなかった記事 ${ordered.length - checked} 本。記事本文は変更していません。`, ''];
   for (const r of ordered) {
     const c = counts(r);
-    lines.push(`## ${md(r.slug)}`, '', `${md(r.title)} — 食い違い ${c.mismatch} 件・期限の書き漏れ ${c.deadline} 件・資料なし ${c.unsupported} 件（${md(r.status)}）`, '', md(r.summary), '');
+    lines.push(`## ${md(r.slug)}`, '', `${md(r.title)} — 食い違い ${c.mismatch} 件・期限の書き漏れ ${c.deadline} 件・資料なし ${c.unsupported} 件${outsideText(c.outside)}（${md(r.status)}）`, '', md(r.summary), '');
     for (const finding of (r.claims || []).filter(c => c.status !== '裏付けあり')) {
       lines.push(`- ${md(finding.status)}: ${md(finding.sentence)}`, `  - 正しい内容: ${md(finding.correct || '資料なし')}`, ...F.quoteParts(finding.quote || '').map(part => `  - 根拠の抜粋: ${md(part)}`));
       for (const e of F.evidenceRefs(r, finding)) if (/^https:\/\//.test(e.url || '')) lines.push(`  - [${md(e.title || '根拠')}](${encodeURI(e.url).replace(/[()]/g, c => '%' + c.charCodeAt(0).toString(16))})`);

@@ -126,7 +126,7 @@ async function realData() {
       const last = calls.filter(c => c.task === 'judge').at(-1);
       assert.notEqual(first, last); assert.equal(first.staticSystem, last.staticSystem);
       // 固定部分を独立に組み立て、資料の増減によらず二重送信を検出する。
-      const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
+      const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
       const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
       const strings = value => typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
       // 記録側のtaskで再照合を除き、初回判定の分割・再試行もすべて確かめる。
@@ -188,15 +188,17 @@ async function main() {
     });
     assert.equal(calls, 3); assert.deepEqual(numbers, [2, 4]); assert.equal(result.claims.length, 2);
   });
-  await test('T5', '本文とページは1回、番号の引用・候補外・範囲外・短い引用', async () => {
+  await test('T5', '本文とページは1回、番号の引用・資料表外・範囲外・短い引用', async () => {
     const sentence = '制度の条件を満たす必要があります。', claims = [claim(sentence), claim(sentence, { id: 'c2', subject: '別制度' })];
     const text = '対象です。\n' + sentence, refs = { c1: [ref(text)], c2: [ref('別の資料の説明文がここにあります。', 'e2')] };
     const rows = await F.judgeClaims(claims, refs, sentence, async req => {
       assert.equal(req.maxTokens, 16000); assert.equal((req.system.match(/\[資料 1\]/g) || []).length, 1);
       const p = JSON.parse(req.user); assert.equal(p.evidence, undefined); assert.equal(p.body, '[1] ' + sentence); assert.equal(p.claims[0].sentence, undefined);
-      return p.claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '2', correct: '' }));
+      // 03uでは同じ資料表の候補外ページを認める。表に無い番号の拒否を引き続き確かめる。
+      return p.claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: c.id === 'c1' ? 1 : 3, basis: '2', correct: '' }));
     }, opts());
     assert.equal(rows[0].status, '裏付けあり'); assert.equal(rows[0].quote, sentence); assert.equal(rows[1].status, '資料なし');
+    assert.equal(rows[1].reject_reason, '資料の番号がこの主張の候補でない');
     // 数値の 2・連続した「1,2」は有効な番号として受け付ける（番号の形の揺れの試験を参照）。飛んだ番号は不正。
     for (const basis of ['0', '999', '2-6', '2-1', 0, '1,3']) {
       const r = await F.judgeClaims([claims[0]], { c1: refs.c1 }, sentence, async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis }], opts());
