@@ -1,0 +1,2774 @@
+{
+  "version": 1,
+  "logic_version": "03l",
+  "status": "revise",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "checked_at": "2026-10-19T00:08:05.574Z",
+  "body_sha256": "806d32cf362eae38b7e62fa351a518cd87ae41a4816d9f93bcd4436d1925ad7b",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "結論から言うと、生前贈与の非課税の考え方は、1年間にもらった財産の合計が基礎控除の110万円以内かどうかが出発点です。",
+      "heading": "",
+      "type": "金額",
+      "subject": "暦年課税の基礎控除",
+      "claim": "生前贈与の非課税は1年間の受贈財産合計が基礎控除110万円以内かが出発点",
+      "s": 7,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "- 暦年課税では、1年間（1月1日〜12月31日）にもらった財産の合計から基礎控除110万円を差し引きます。",
+      "heading": "まず結論",
+      "type": "金額",
+      "subject": "暦年課税の基礎控除",
+      "claim": "暦年課税では1月1日〜12月31日の受贈財産合計から基礎控除110万円を差し引く",
+      "s": 18,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "基礎控除110万円を引いた190万円が課税の対象になります。",
+      "heading": "実際によくあるケース",
+      "type": "金額",
+      "subject": "暦年課税の課税対象額",
+      "claim": "受贈額から基礎控除110万円を引いた額が課税対象になる",
+      "s": 38,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "2. 合計から基礎控除110万円を差し引く",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "金額",
+      "subject": "暦年課税の税額計算",
+      "claim": "受贈財産の合計から基礎控除110万円を差し引く",
+      "s": 54,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "| 毎年の基礎控除 | 110万円 |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "金額",
+      "subject": "相続時精算課税の基礎控除",
+      "claim": "相続時精算課税の毎年の基礎控除は110万円",
+      "s": 70,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:21_5",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "| 特別控除 | 累計2,500万円まで |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "金額",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "相続時精算課税の特別控除は累計2,500万円まで",
+      "s": 71,
+      "status": "裏付けあり",
+      "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_12",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "- クレジットカード納付（1,000万円未満、決済手数料あり）",
+      "heading": "納税の方法",
+      "type": "金額",
+      "subject": "クレジットカード納付",
+      "claim": "クレジットカード納付は1,000万円未満で決済手数料がかかる",
+      "s": 90,
+      "status": "裏付けあり",
+      "quote": "（注1） 納付の際には、納付税額に応じた決済手数料がかかります（決済手数料は、国の収入になるものではありません。）。 （注2） 納付可能な金額は、1,000万円未満、かつ、利用するクレジットカードの決済可能額以下となります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "- スマホアプリ納付（30万円以下）",
+      "heading": "納税の方法",
+      "type": "金額",
+      "subject": "スマホアプリ納付",
+      "claim": "スマホアプリ納付は30万円以下で利用できる",
+      "s": 91,
+      "status": "裏付けあり",
+      "quote": "（4） スマホアプリ納付 e-Taxで申告等データを送信した後などに、専用サイト「国税スマートフォン決済専用サイト」を経由し、「○○Pay」といったスマホ決済アプリを使用して納付する方法です。 （注1） 納付税額が30万円以下の方が納付するための手続です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "- コンビニ納付（30万円以下）",
+      "heading": "納税の方法",
+      "type": "金額",
+      "subject": "コンビニ納付",
+      "claim": "コンビニ納付は30万円以下で利用できる",
+      "s": 92,
+      "status": "裏付けあり",
+      "quote": "（注1） 納付税額が30万円以下の方が納付するための手続です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "- 申告による納付税額が10万円を超えていること",
+      "heading": "延納という方法もある",
+      "type": "金額",
+      "subject": "贈与税の延納",
+      "claim": "延納には申告による納付税額が10万円を超えることが必要",
+      "s": 97,
+      "status": "裏付けあり",
+      "quote": "（1）延納を受けるための要件延納を受けるには、次の3つのすべてに当てはまることが必要です。 イ申告による納付税額が10万円を超えていることロ金銭で一度に納めることが難しい理由があることハ担保を提供することただし、延納税額が100万円以下で延納期間が3年以下の場合、担保は必要ありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "基礎控除110万円は、贈与を受けた人1人につき年110万円で、贈与者の人数にかかわらず共通です。",
+      "heading": "「贈与した人ごとに110万円」と思い込む",
+      "type": "金額",
+      "subject": "暦年課税の基礎控除",
+      "claim": "基礎控除は受贈者1人につき年110万円で贈与者の人数にかかわらず共通",
+      "s": 105,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "暦年課税の基礎控除110万円は、もっとも基本的な非課税の枠です。",
+      "heading": "生前贈与が非課税になるのは、110万円までだけですか？",
+      "type": "金額",
+      "subject": "暦年課税の基礎控除",
+      "claim": "暦年課税の基礎控除110万円は最も基本的な非課税枠",
+      "s": 148,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "生前贈与の非課税は、まず暦年課税の基礎控除110万円がひとつの目安です。",
+      "heading": "まとめ",
+      "type": "金額",
+      "subject": "暦年課税の基礎控除",
+      "claim": "生前贈与の非課税は暦年課税の基礎控除110万円が目安",
+      "s": 164,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "- 申告と納税の期限は、原則としてもらった年の翌年の2月1日から3月15日までです。",
+      "heading": "まず結論",
+      "type": "期限",
+      "subject": "贈与税の申告・納税期限",
+      "claim": "申告・納税期限は原則受贈年の翌年2月1日から3月15日まで",
+      "s": 22,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "| 申告・納税の期限 | 原則として、贈与を受けた年の翌年の2月1日から3月15日まで |",
+      "heading": "申告の期限と提出先",
+      "type": "期限",
+      "subject": "贈与税の申告・納税期限",
+      "claim": "申告・納税期限は原則受贈年の翌年2月1日から3月15日まで",
+      "s": 82,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "延納できる期間は5年以内で、利子税がかかります。",
+      "heading": "延納という方法もある",
+      "type": "期限",
+      "subject": "贈与税の延納",
+      "claim": "延納期間は5年以内で利子税がかかる",
+      "s": 100,
+      "status": "裏付けあり",
+      "quote": "この延納は一定の条件の下に5年以内の年賦により納税する方法です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "加算される期間は、相続の開始日によって異なります（令和8年12月31日以前の相続開始なら、相続開始前3年以内）。",
+      "heading": "生前贈与が相続財産に加算されることを知らない",
+      "type": "期限",
+      "subject": "生前贈与加算の期間",
+      "claim": "加算期間は相続開始日で異なり、令和8年12月31日以前の開始なら開始前3年以内",
+      "s": 121,
+      "status": "裏付けあり",
+      "quote": "被相続人の相続開始日加算対象期間 ～令和8年12月31日相続開始前3年以内（死亡の日から遡って3年前の日から死亡の日までの間） 令和9年1月1日～令和12年12月31日令和6年1月1日から死亡の日までの間令和13年1月1日～ 相続開始前7年以内（死亡の日から遡って7年前の日から死亡の日までの間） なお、その加算された贈与財産の価額に対応する贈与税の額は、加算された人の相続税の計算上控除されることになります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "- [ ] 申告期限（翌年の3月15日）までの日程を確認したか",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "期限",
+      "subject": "贈与税の申告期限",
+      "claim": "贈与税の申告期限は受贈年の翌年3月15日",
+      "s": 131,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "110万円を超えた場合や、相続時精算課税を選ぶ場合は、贈与を受けた年の翌年の2月1日から3月15日までに、受贈者の住所地を管轄する税務署へ申告が必要です。",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "贈与税の申告期限・提出先",
+      "claim": "110万円超や精算課税選択時は翌年2月1日〜3月15日に受贈者住所地の税務署へ申告",
+      "s": 166,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "| 税率 | 特別控除を超えた部分に一律20% |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "割合",
+      "subject": "相続時精算課税の税率",
+      "claim": "特別控除を超えた部分に一律20%の税率がかかる",
+      "s": 72,
+      "status": "裏付けあり",
+      "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "たとえば、教育資金の一括贈与の非課税措置は、令和8年3月31日で新規の適用が終了しました。",
+      "heading": "生前贈与が非課税になるのは、110万円までだけですか？",
+      "type": "適用年",
+      "subject": "教育資金一括贈与の非課税",
+      "claim": "教育資金一括贈与の非課税措置は令和8年3月31日で新規適用が終了",
+      "s": 150,
+      "status": "裏付けあり",
+      "quote": "（注1）この特例は、令和8年3月31日までとされていた適用期限が延長されずに終了することとされたため、令和8年4月1日以後については、この特例の適用を受けることはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+        "law:sozeki_hou:70_2_2",
+        "law:sozeki_rei:40_4_3",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "超えれば贈与税の申告が必要になり、相続時精算課税を選ぶ場合は金額にかかわらず届出が必要になります。",
+      "heading": "",
+      "type": "要件",
+      "subject": "贈与税の申告要否",
+      "claim": "基礎控除110万円を超えれば贈与税の申告が必要",
+      "s": 8,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "- 合計が110万円を超えた場合は、超えた部分に贈与税がかかり、申告と納税が必要です。",
+      "heading": "まず結論",
+      "type": "要件",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円を超えると超過部分に贈与税がかかり申告・納税が必要",
+      "s": 20,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "暦年課税の基礎控除110万円は、贈与を受けた人ごとにかかります。",
+      "heading": "実際によくあるケース",
+      "type": "要件",
+      "subject": "暦年課税の基礎控除",
+      "claim": "基礎控除110万円は贈与を受けた人ごとに適用される",
+      "s": 41,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "4. 合計が110万円を超えるなら、申告と納税が必要",
+      "heading": "判断ポイント：申告が必要かどうかの確認手順",
+      "type": "要件",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円を超えるなら申告と納税が必要",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "3. 残りの金額に税率をかけて税額を出す",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "要件",
+      "subject": "暦年課税の税額計算",
+      "claim": "基礎控除後の残額に税率をかけて贈与税額を算出する",
+      "s": 55,
+      "status": "裏付けあり",
+      "quote": "次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "要件",
+      "subject": "特例税率",
+      "claim": "受贈年1月1日で18歳以上の者が直系尊属から受けた贈与に特例税率を適用",
+      "s": 59,
+      "status": "食い違い",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "18歳以上とされるのは令和4年4月1日以後の贈与で、令和4年3月31日以前の贈与については20歳以上",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_2_5",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "| 一般税率（一般贈与財産用） | 兄弟間、夫婦間、親から未成年の子への贈与など、上記以外の場合 |",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "要件",
+      "subject": "一般税率",
+      "claim": "兄弟間・夫婦間・親から未成年の子への贈与など特例以外は一般税率",
+      "s": 60,
+      "status": "裏付けあり",
+      "quote": "贈与税の速算表 ＜一般贈与財産用＞（一般税率） この速算表は、「特例贈与財産用」に該当しない場合の贈与税の計算に使用します。 例えば、兄弟間の贈与、夫婦間の贈与、親から子への贈与で子が未成年者の場合などに使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "相続時精算課税は、一定の親子・祖父母と孫の間で選べる、もうひとつの課税方式です。",
+      "heading": "相続時精算課税の仕組み",
+      "type": "要件",
+      "subject": "相続時精算課税",
+      "claim": "相続時精算課税は一定の親子・祖父母と孫の間で選択できる課税方式",
+      "s": 64,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目相続税、贈与税概要相続時精算課税の制度とは、原則として60歳以上の父母または祖父母などから、18歳以上の子または孫などに対し、財産を贈与した場合において選択できる贈与税の制度です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_11_2",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "| 贈与する人 | 贈与をした年の1月1日で60歳以上の父母または祖父母など |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "要件",
+      "subject": "相続時精算課税の贈与者",
+      "claim": "贈与者は贈与年の1月1日で60歳以上の父母・祖父母など",
+      "s": 68,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物適用対象者贈与者は贈与をした年の1月1日において60歳以上の父母または祖父母など、受贈者は贈与を受けた年の1月1日において18歳以上の者のうち、贈与者の直系卑属（子や孫など）である推定相続人または孫とされています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozeki_hou:70_3"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "| 贈与を受ける人 | 贈与を受けた年の1月1日で18歳以上の、子または孫など |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "要件",
+      "subject": "相続時精算課税の受贈者",
+      "claim": "受贈者は受贈年の1月1日で18歳以上の子・孫など",
+      "s": 69,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物適用対象者贈与者は贈与をした年の1月1日において60歳以上の父母または祖父母など、受贈者は贈与を受けた年の1月1日において18歳以上の者のうち、贈与者の直系卑属（子や孫など）である推定相続人または孫とされています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "次の要件をすべて満たす必要があります。",
+      "heading": "延納という方法もある",
+      "type": "要件",
+      "subject": "贈与税の延納",
+      "claim": "延納には定められた要件をすべて満たす必要がある",
+      "s": 96,
+      "status": "裏付けあり",
+      "quote": "（1）延納を受けるための要件延納を受けるには、次の3つのすべてに当てはまることが必要です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "- 金銭で一度に納めることが難しい理由があること",
+      "heading": "延納という方法もある",
+      "type": "要件",
+      "subject": "贈与税の延納",
+      "claim": "延納には金銭で一度に納めることが困難な理由が必要",
+      "s": 98,
+      "status": "裏付けあり",
+      "quote": "イ申告による納付税額が10万円を超えていることロ金銭で一度に納めることが難しい理由があることハ担保を提供することただし、延納税額が100万円以下で延納期間が3年以下の場合、担保は必要ありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "- 担保を提供すること（延納税額が100万円以下で延納期間が3年以下の場合は不要）",
+      "heading": "延納という方法もある",
+      "type": "要件",
+      "subject": "延納の担保",
+      "claim": "延納には担保提供が必要、延納税額100万円以下かつ期間3年以下なら不要",
+      "s": 99,
+      "status": "裏付けあり",
+      "quote": "イ申告による納付税額が10万円を超えていることロ金銭で一度に納めることが難しい理由があることハ担保を提供することただし、延納税額が100万円以下で延納期間が3年以下の場合、担保は必要ありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "贈与を受けた本人が、その財産を自由に使える状態にしておく必要があります。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "要件",
+      "subject": "贈与の成立",
+      "claim": "受贈者本人が財産を自由に使える状態にしておく必要がある",
+      "s": 110,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "被相続人から相続や遺贈で財産を取得した人が、一定期間内に暦年課税による贈与を受けていた場合、その贈与財産は相続税の課税価格に加算されます。",
+      "heading": "生前贈与が相続財産に加算されることを知らない",
+      "type": "要件",
+      "subject": "生前贈与加算",
+      "claim": "相続等で取得した人が一定期間内に受けた暦年課税の贈与は相続税の課税価格に加算",
+      "s": 120,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目相続税概要相続、遺贈や相続時精算課税（注1）に係る贈与（「相続等」といいます。）によって財産を取得した人（※）が、被相続人から加算対象期間（注2）に暦年課税に係る贈与によって取得した財産があるときは、その人の相続税の課税価格にその財産の贈与時の価額を加算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "特例税率が使えるのは、父母や祖父母など直系尊属から、18歳以上の人が贈与を受けた場合です。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "要件",
+      "subject": "特例税率",
+      "claim": "特例税率は直系尊属から18歳以上の者が受けた贈与に使える",
+      "s": 160,
+      "status": "食い違い",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "18歳以上とされるのは令和4年4月1日以後の贈与で、令和4年3月31日以前の贈与については20歳以上",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozeki_hou:70_2_5",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "合計が110万円以内であれば、贈与税はかからず、原則として申告も不要です。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円以内なら贈与税はかからず原則申告も不要",
+      "s": 19,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "1年間の合計が110万円以内なので、贈与税はかからず、申告も原則不要です。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円以内なら贈与税はかからず申告も原則不要",
+      "s": 35,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "ただし、ほかの人からも贈与を受けていると合計が変わります。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の合算",
+      "claim": "他の人からも贈与を受けていると判定に使う年間合計額が変わる",
+      "s": 36,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "申告と納税が必要です。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "基礎控除を超える贈与を受けた場合は申告と納税が必要",
+      "s": 39,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "贈与した人ごとではありません。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の基礎控除",
+      "claim": "基礎控除は贈与した人ごとに適用されるものではない",
+      "s": 42,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "祖父から60万円、祖母から60万円なら、合計120万円で、110万円を超えます。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の合算",
+      "claim": "複数の贈与者からの受贈額を合計して110万円超かを判定する",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "3. 合計が110万円以内なら、贈与税はかからない",
+      "heading": "判断ポイント：申告が必要かどうかの確認手順",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円以内なら贈与税はかからない",
+      "s": 48,
+      "status": "裏付けあり",
+      "quote": "続いて、その合計額から基礎控除額110万円を差し引きます。 次に、その残りの金額に税率を乗じて税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "税率は、贈与を受けた人と贈与した人の関係で2種類に分かれます。",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "判定",
+      "subject": "贈与税の税率区分",
+      "claim": "税率は受贈者と贈与者の関係で特例税率と一般税率の2種類に分かれる",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "贈与税の速算表 ＜一般贈与財産用＞（一般税率） この速算表は、「特例贈与財産用」に該当しない場合の贈与税の計算に使用します。 例えば、兄弟間の贈与、夫婦間の贈与、親から子への贈与で子が未成年者の場合などに使用します。 基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "同じ金額でも、関係によって税額が変わります。",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "判定",
+      "subject": "贈与税の税率区分",
+      "claim": "同じ課税価格でも贈与者との関係により税額が変わる",
+      "s": 62,
+      "status": "裏付けあり",
+      "quote": "・直系尊属以外の親族（夫、夫の父や兄弟など）や他人から贈与を受けた場合 ・直系尊属から贈与を受けたが、受贈者の年齢が財産の贈与を受けた年の1月1日現在において18歳未満の子や孫の場合 （例） 贈与財産の価額が500万円の場合（「一般税率」を使用します。） 基礎控除後の課税価格 500万円 － 110万円 ＝ 390万円贈与税額の計算 390万円 × 20% － 25万円 ＝ 53万円 （2） 「特例贈与財産用」の計算例えば、財産の贈与を受けた年の1月1日現在において18歳以上の子や孫が父母または祖父母から贈与を受けた場合に、この計算方法となります。 （例） 贈与財産の価額が500万円の場合（「特例税率」を使用します。） 基礎控除後の課税価格 500万円 － 110万円 ＝ 390万円贈与税額の計算 390万円 × 15% － 10万円 ＝ 48.5万円 （3） 「一般贈与財産用」と「特例贈与財産用」の両方の計算が必要な場合例えば、財産の贈与を受けた年の1月1日現在において18歳以上の方が、配偶者と自分の両親の両方から贈与を受けた場合などに、この計算となります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_10"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "相続時精算課税は、一度選ぶと、その贈与者からの贈与は以後ずっと相続時精算課税の対象になり、暦年課税には戻せません。",
+      "heading": "相続時精算課税の仕組み",
+      "type": "判定",
+      "subject": "相続時精算課税の撤回不可",
+      "claim": "一度選ぶとその贈与者からの贈与は以後精算課税となり暦年課税に戻せない",
+      "s": 74,
+      "status": "裏付けあり",
+      "quote": "なお、この制度は贈与者（父母または祖父母など）ごとに選択できますが、一度選択すると、その選択に係る贈与者（「特定贈与者」といいます。）から贈与を受ける財産（「相続時精算課税適用財産」といいます。）については、その選択をした年分以降すべてこの制度が適用され、「暦年課税（注）」へ変更することはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "贈与者が亡くなったときは、贈与を受けた財産が相続税の計算に含まれ、納めた贈与税は相続税から差し引かれます。",
+      "heading": "相続時精算課税の仕組み",
+      "type": "判定",
+      "subject": "相続時精算課税の相続時精算",
+      "claim": "贈与者死亡時に贈与財産を相続税計算に含め、納付済贈与税を相続税から控除",
+      "s": 75,
+      "status": "裏付けあり",
+      "quote": "（2） 相続税額の計算相続時精算課税を選択した受贈者に係る相続税額は、特定贈与者が亡くなった時に、それまでに贈与を受けた相続時精算課税適用財産の価額と相続や遺贈により取得した財産の価額とを合計した金額を基に計算した相続税額から、既に納めた相続時精算課税に係る贈与税相当額を控除して算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_11_2",
+        "law:sozeki_hou:70_3_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "なお、110万円を超えない贈与でも、届出を出した後は、その贈与者との関係では暦年課税に戻れません。",
+      "heading": "相続時精算課税の仕組み",
+      "type": "判定",
+      "subject": "相続時精算課税の撤回不可",
+      "claim": "110万円以下の贈与でも届出後はその贈与者との関係で暦年課税に戻れない",
+      "s": 76,
+      "status": "裏付けあり",
+      "quote": "なお、この制度は贈与者（父母または祖父母など）ごとに選択できますが、一度選択すると、その選択に係る贈与者（「特定贈与者」といいます。）から贈与を受ける財産（「相続時精算課税適用財産」といいます。）については、その選択をした年分以降すべてこの制度が適用され、「暦年課税（注）」へ変更することはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "複数の人からもらった場合は合計して判断します。",
+      "heading": "「贈与した人ごとに110万円」と思い込む",
+      "type": "判定",
+      "subject": "暦年課税の合算",
+      "claim": "複数の人から受贈した場合は合計して判断する",
+      "s": 106,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "通帳や印鑑を親が管理し、子が自由に使えない状態では、贈与が成立していないと見られる場合があります。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "判定",
+      "subject": "名義預金",
+      "claim": "通帳・印鑑を親が管理し子が自由に使えない状態では贈与不成立とされ得る",
+      "s": 108,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "名義だけ移して実質は親が管理している預金は、相続のときに問題になりやすい点です。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "判定",
+      "subject": "名義預金",
+      "claim": "名義だけ移し実質親が管理する預金は相続時に問題になりやすい",
+      "s": 109,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14"
+      ]
+    },
+    {
+      "id": "c53",
+      "sentence": "申告期限までに申告しなかった場合や、実際の額より少なく申告した場合は、本来の税金のほかに加算税がかかります。",
+      "heading": "申告期限を過ぎてしまう",
+      "type": "判定",
+      "subject": "加算税",
+      "claim": "期限内無申告や過少申告の場合は本来の税額のほかに加算税がかかる",
+      "s": 112,
+      "status": "裏付けあり",
+      "quote": "（注）申告期限までに申告しなかった場合や実際にもらった額より少ない額で申告した場合には、本来の税金のほかに加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+        "law:tsusoku_hou:65",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2"
+      ]
+    },
+    {
+      "id": "c54",
+      "sentence": "納税が遅れれば、延滞税もかかります。",
+      "heading": "申告期限を過ぎてしまう",
+      "type": "判定",
+      "subject": "延滞税",
+      "claim": "納税が遅れると延滞税がかかる",
+      "s": 113,
+      "status": "裏付けあり",
+      "quote": "また、納税が期限に遅れた場合は、その遅れた税額に対して延滞税がかかります（詳しくは、延滞税についてをご覧ください）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c55",
+      "sentence": "相続時精算課税は、暦年課税のような年110万円の枠で贈与を続ける方法とは考え方が異なります。",
+      "heading": "相続時精算課税を、軽く選んでしまう",
+      "type": "判定",
+      "subject": "相続時精算課税",
+      "claim": "相続時精算課税は年110万円枠で贈与を続ける暦年課税とは考え方が異なる",
+      "s": 116,
+      "status": "裏付けあり",
+      "quote": "このように、相続時精算課税の制度は、贈与税・相続税を通じた課税が行われる制度です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_11_2",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c56",
+      "sentence": "一度選ぶと暦年課税に戻せず、相続時には贈与財産が相続税の計算に入ります。",
+      "heading": "相続時精算課税を、軽く選んでしまう",
+      "type": "判定",
+      "subject": "相続時精算課税",
+      "claim": "一度選ぶと暦年課税に戻せず、相続時に贈与財産が相続税計算に入る",
+      "s": 117,
+      "status": "裏付けあり",
+      "quote": "なお、この制度は贈与者（父母または祖父母など）ごとに選択できますが、一度選択すると、その選択に係る贈与者（「特定贈与者」といいます。）から贈与を受ける財産（「相続時精算課税適用財産」といいます。）については、その選択をした年分以降すべてこの制度が適用され、「暦年課税（注）」へ変更することはできません。 また、特定贈与者である父母または祖父母などが亡くなった時の相続税の計算上、相続財産の価額に相続時精算課税適用財産の贈与時の価額（令和6年1月1日以後の贈与により取得した相続時精算課税適用財産については、贈与を受けた年分ごとに、その相続時精算課税適用財産の贈与時の価額の合計額から相続時精算課税に係る基礎控除額を控除した残額）を加算して相続税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_11_2",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c57",
+      "sentence": "「贈与税がかからなかったから、相続でも無関係」とは限りません。",
+      "heading": "生前贈与が相続財産に加算されることを知らない",
+      "type": "判定",
+      "subject": "生前贈与加算",
+      "claim": "贈与税がかからなかった贈与でも相続税と無関係とは限らない",
+      "s": 122,
+      "status": "裏付けあり",
+      "quote": "加算対象期間内に贈与されたものであれば贈与税がかかったかどうかに関係なく加算します。 したがって、基礎控除額110万円以下の贈与財産や死亡した年に贈与されている財産の価額も加算することになります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "law:sozeki_hou:70_3_2"
+      ]
+    },
+    {
+      "id": "c58",
+      "sentence": "ほかにも、特定の目的に限って贈与税がかからない制度があります。",
+      "heading": "生前贈与が非課税になるのは、110万円までだけですか？",
+      "type": "判定",
+      "subject": "特定目的の非課税制度",
+      "claim": "特定の目的に限り贈与税がかからない制度がほかにもある",
+      "s": 149,
+      "status": "裏付けあり",
+      "quote": "令和8年中に受けた住宅取得等資金の贈与については500万円（省エネ等住宅は1,000万円）まで非課税とする特例があることから、父からの贈与についてこの特例を適用するものとし、また、この特例を過去に適用したことがないものとします。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4143.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm"
+      ]
+    },
+    {
+      "id": "c59",
+      "sentence": "たとえば、教育資金の一括贈与の非課税措置は、令和8年3月31日で新規の適用が終了しました。",
+      "heading": "生前贈与が非課税になるのは、110万円までだけですか？",
+      "type": "判定",
+      "subject": "教育資金一括贈与の非課税",
+      "claim": "教育資金一括贈与の非課税措置は今から新たに使える制度ではない",
+      "s": 150,
+      "status": "裏付けあり",
+      "quote": "（注1）この特例は、令和8年3月31日までとされていた適用期限が延長されずに終了することとされたため、令和8年4月1日以後については、この特例の適用を受けることはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+        "law:sozeki_hou:70_2_2",
+        "law:sozeki_rei:40_4_3",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c60",
+      "sentence": "夫の父からの贈与にも使えません。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "判定",
+      "subject": "特例税率",
+      "claim": "夫の父からの贈与には特例税率は使えない",
+      "s": 161,
+      "status": "裏付けあり",
+      "quote": "例えば、祖父から孫への贈与、父から子への贈与などに使用します（夫の父からの贈与等には使用できません。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14"
+      ]
+    },
+    {
+      "id": "c61",
+      "sentence": "夫婦間や兄弟間の贈与には、一般税率を使います。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "判定",
+      "subject": "一般税率",
+      "claim": "夫婦間や兄弟間の贈与には一般税率を使う",
+      "s": 162,
+      "status": "裏付けあり",
+      "quote": "例えば、兄弟間の贈与、夫婦間の贈与、親から子への贈与で子が未成年者の場合などに使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "law:sozokuzei:21_5"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "要件",
+      "subject": "贈与税の特例税率（特例贈与財産用）",
+      "claim": "父母・祖父母など直系尊属から贈与を受けた、その年1月1日で18歳以上の人に特例税率が適用される",
+      "s": 59,
+      "status": "裏付けあり",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_2_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "適用年",
+      "subject": "贈与税の特例税率（特例贈与財産用）",
+      "claim": "令和4年3月31日以前の贈与は、受贈者の年齢要件が20歳以上となる",
+      "s": 59,
+      "status": "裏付けあり",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_2_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "| 毎年の基礎控除 | 詳しくは国税庁のホームページで確認 |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "要件",
+      "subject": "相続時精算課税の基礎控除",
+      "claim": "相続時精算課税には毎年の基礎控除がある",
+      "s": 70,
+      "status": "裏付けあり",
+      "quote": "令和六年一月一日以後に相続税法第二十一条の九第五項に規定する相続時精算課税適用者（第三項において「相続時精算課税適用者」という。）がその年中において同条第五項に規定する特定贈与者（第三項において「特定贈与者」という。）からの贈与により取得した財産に係るその年分の贈与税については、同法第二十一条の十一の二第一項の規定にかかわらず、贈与税の課税価格から百十万円を控除する。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:70_3_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:21_5",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "特例税率が使えるのは、父母や祖父母など直系尊属から、贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が贈与を受けた場合です。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "要件",
+      "subject": "贈与税の特例税率（特例贈与財産用）",
+      "claim": "特例税率は直系尊属から贈与を受けた、その年1月1日で18歳以上の人が対象",
+      "s": 160,
+      "status": "裏付けあり",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_2_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "特例税率が使えるのは、父母や祖父母など直系尊属から、贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が贈与を受けた場合です。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "適用年",
+      "subject": "贈与税の特例税率（特例贈与財産用）",
+      "claim": "令和4年3月31日以前の贈与では、年齢要件は20歳以上",
+      "s": 160,
+      "status": "裏付けあり",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozeki_hou:70_2_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "law:sozokuzei:21_5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "特例税率が使えるのは、父母や祖父母など直系尊属から、贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が贈与を受けた場合です。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "判定",
+      "subject": "配偶者・兄弟からの贈与と特例税率",
+      "claim": "配偶者や兄弟は直系尊属でないため、その贈与には特例税率を使えない",
+      "s": 160,
+      "status": "裏付けあり",
+      "quote": "贈与税の速算表 ＜一般贈与財産用＞（一般税率） この速算表は、「特例贈与財産用」に該当しない場合の贈与税の計算に使用します。 例えば、兄弟間の贈与、夫婦間の贈与、親から子への贈与で子が未成年者の場合などに使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c5",
+      "sentence": "| 毎年の基礎控除 | 110万円 |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "金額",
+      "subject": "相続時精算課税の基礎控除",
+      "claim": "相続時精算課税の毎年の基礎控除は110万円",
+      "s": 70,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "keep": [],
+      "before": "| 毎年の基礎控除 | 110万円 |",
+      "after": "| 毎年の基礎控除 | 詳しくは国税庁のホームページで確認 |",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:21_5",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "110万円を超えた場合や、相続時精算課税を選ぶ場合は、贈与を受けた年の翌年の2月1日から3月15日までに、受贈者の住所地を管轄する税務署へ申告が必要です。",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "贈与税の申告期限・提出先",
+      "claim": "110万円超や精算課税選択時は翌年2月1日〜3月15日に受贈者住所地の税務署へ申告",
+      "s": 166,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "keep": [],
+      "before": "110万円を超えた場合や、相続時精算課税を選ぶ場合は、贈与を受けた年の翌年の2月1日から3月15日までに、受贈者の住所地を管轄する税務署へ申告が必要です。",
+      "after": "",
+      "generalized": true,
+      "reason": "資料の無い数字が残っています",
+      "resolved": false,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "law:sozokuzei:21_5"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "heading": "暦年課税の贈与税の計算",
+      "type": "要件",
+      "subject": "特例税率",
+      "claim": "受贈年1月1日で18歳以上の者が直系尊属から受けた贈与に特例税率を適用",
+      "s": 59,
+      "status": "食い違い",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "18歳以上とされるのは令和4年4月1日以後の贈与で、令和4年3月31日以前の贈与については20歳以上",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "keep": [],
+      "before": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "after": "| 特例税率（特例贈与財産用） | 贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が、父母・祖父母など直系尊属から贈与を受けた場合 |",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_2_5",
+        "law:sozeki_hou:70_3_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "特例税率が使えるのは、父母や祖父母など直系尊属から、18歳以上の人が贈与を受けた場合です。",
+      "heading": "配偶者や兄弟からの贈与は、特例税率が使えますか？",
+      "type": "要件",
+      "subject": "特例税率",
+      "claim": "特例税率は直系尊属から18歳以上の者が受けた贈与に使える",
+      "s": 160,
+      "status": "食い違い",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。 （注） 「18歳」とあるのは、令和4年3月31日以前の贈与については「20歳」となります。",
+      "correct": "18歳以上とされるのは令和4年4月1日以後の贈与で、令和4年3月31日以前の贈与については20歳以上",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "keep": [],
+      "before": "特例税率が使えるのは、父母や祖父母など直系尊属から、18歳以上の人が贈与を受けた場合です。",
+      "after": "特例税率が使えるのは、父母や祖父母など直系尊属から、贈与を受けた年の1月1日で18歳以上（令和4年3月31日以前の贈与は20歳以上）の人が贈与を受けた場合です。",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+        "law:sozeki_hou:70_3_2",
+        "law:sozeki_hou:70_2_5",
+        "law:sozokuzei:21_5"
+      ]
+    }
+  ],
+  "dropped": 20,
+  "discarded": 1,
+  "calls": [
+    {
+      "task": "extract",
+      "input_chars": 6868,
+      "output_chars": 6782,
+      "usage": {
+        "input_tokens": 6065,
+        "output_tokens": 7414,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "input_chars": 59761,
+      "output_chars": 4580,
+      "usage": {
+        "input_tokens": 11354,
+        "output_tokens": 6563,
+        "cache_creation_input_tokens": 40852,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "input_chars": 2363,
+      "output_chars": 379,
+      "usage": {
+        "input_tokens": 1930,
+        "output_tokens": 744,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "input_chars": 642,
+      "output_chars": 630,
+      "usage": {
+        "input_tokens": 591,
+        "output_tokens": 845,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "input_chars": 58122,
+      "output_chars": 445,
+      "usage": {
+        "input_tokens": 11223,
+        "output_tokens": 805,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 40852
+      }
+    }
+  ],
+  "input_chars_total": 127756,
+  "output_chars_total": 12816,
+  "review_items": [
+    {
+      "sentence": "超えれば贈与税の申告が必要になり、相続時精算課税を選ぶ場合は金額にかかわらず届出が必要になります。",
+      "heading": "",
+      "type": "手続",
+      "subject": "相続時精算課税の届出",
+      "claim": "相続時精算課税を選ぶ場合は金額にかかわらず届出が必要",
+      "s": 8,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "- 相続時精算課税を選択する場合は、最初の贈与を受けた年の翌年に、届出書を添えて申告します。",
+      "heading": "まず結論",
+      "type": "手続",
+      "subject": "相続時精算課税の届出",
+      "claim": "相続時精算課税は最初の贈与年の翌年に届出書を添えて申告する",
+      "s": 21,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "law:sozokuzei:21_5:83e4d369d0cb1489",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "sentence": "- 提出先は、財産をもらった人の住所地を管轄する税務署です。",
+      "heading": "まず結論",
+      "type": "手続",
+      "subject": "贈与税の提出先",
+      "claim": "提出先は受贈者の住所地を管轄する税務署",
+      "s": 23,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d"
+      ]
+    },
+    {
+      "sentence": "5. 相続時精算課税を選びたい場合は、金額にかかわらず届出が必要",
+      "heading": "判断ポイント：申告が必要かどうかの確認手順",
+      "type": "手続",
+      "subject": "相続時精算課税の届出",
+      "claim": "相続時精算課税を選ぶ場合は金額にかかわらず届出が必要",
+      "s": 50,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "| 手続き | 最初の贈与を受けた年の翌年に、届出書を申告書に添付して提出 |",
+      "heading": "相続時精算課税の仕組み",
+      "type": "手続",
+      "subject": "相続時精算課税の届出",
+      "claim": "最初の受贈年の翌年に届出書を申告書に添付して提出する",
+      "s": 73,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "law:sozokuzei:28",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88"
+      ]
+    },
+    {
+      "sentence": "| 提出先 | 贈与を受けた人の住所地を管轄する税務署 |",
+      "heading": "申告の期限と提出先",
+      "type": "手続",
+      "subject": "贈与税の提出先",
+      "claim": "提出先は受贈者の住所地を管轄する税務署",
+      "s": 83,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d"
+      ]
+    },
+    {
+      "sentence": "| 提出の方法 | e-Taxによる提出のほか、郵便・信書便での送付、税務署の時間外収受箱への投函 |",
+      "heading": "申告の期限と提出先",
+      "type": "手続",
+      "subject": "贈与税の提出方法",
+      "claim": "e-Tax、郵便・信書便、税務署の時間外収受箱への投函で提出できる",
+      "s": 84,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "sentence": "納税の方法は、国税庁が案内している次のものから選べます。",
+      "heading": "納税の方法",
+      "type": "手続",
+      "subject": "贈与税の納付方法",
+      "claim": "納税方法は国税庁が案内する複数の方法から選べる",
+      "s": 87,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:cad27ba0ef1b34cd"
+      ]
+    },
+    {
+      "sentence": "- ダイレクト納付（事前届出が必要）",
+      "heading": "納税の方法",
+      "type": "手続",
+      "subject": "ダイレクト納付",
+      "claim": "ダイレクト納付には事前の届出が必要",
+      "s": 88,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "- インターネットバンキングなどによる電子納税",
+      "heading": "納税の方法",
+      "type": "手続",
+      "subject": "電子納税",
+      "claim": "インターネットバンキング等による電子納税ができる",
+      "s": 89,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "sentence": "- 金融機関や税務署の窓口での現金納付",
+      "heading": "納税の方法",
+      "type": "手続",
+      "subject": "窓口納付",
+      "claim": "金融機関や税務署の窓口で現金納付できる",
+      "s": 93,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "一度に納めるのが難しい場合は、延納（年賦で分けて納める方法）を選べることがあります。",
+      "heading": "延納という方法もある",
+      "type": "手続",
+      "subject": "贈与税の延納",
+      "claim": "一度に納付が難しい場合は年賦で分けて納める延納を選べることがある",
+      "s": 95,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "sentence": "延納の申請は、納期限までに延納申請書を提出する必要があります。",
+      "heading": "延納という方法もある",
+      "type": "手続",
+      "subject": "延納申請",
+      "claim": "延納は納期限までに延納申請書を提出する必要がある",
+      "s": 101,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm:d636a1eb1d62c7ba",
+        "law:sozokuzei:40",
+        "tsutatsu:sozoku:52-3",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1"
+      ]
+    },
+    {
+      "sentence": "贈与税の申告は、財産をもらった人が行います。",
+      "heading": "贈与税の申告書は、贈与した人も出す必要がありますか？",
+      "type": "手続",
+      "subject": "贈与税の申告者",
+      "claim": "贈与税の申告は財産をもらった人が行う",
+      "s": 154,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "贈与した人が出す必要はありません。",
+      "heading": "贈与税の申告書は、贈与した人も出す必要がありますか？",
+      "type": "手続",
+      "subject": "贈与税の申告者",
+      "claim": "贈与した人が贈与税の申告書を出す必要はない",
+      "s": 155,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "国税庁の確定申告書等作成コーナーで、画面の案内に沿って金額を入力すれば、自宅で申告書を作成して提出できます。",
+      "heading": "申告書はどうやって作成すればよいですか？",
+      "type": "手続",
+      "subject": "確定申告書等作成コーナー",
+      "claim": "国税庁の作成コーナーで金額を入力し自宅で申告書を作成・提出できる",
+      "s": 157,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:cad27ba0ef1b34cd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm:d0b8ab1f56bc6c9c",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4503.htm"
+      ]
+    },
+    {
+      "sentence": "作成した申告書は、e-Taxで提出できます。",
+      "heading": "申告書はどうやって作成すればよいですか？",
+      "type": "手続",
+      "subject": "e-Tax",
+      "claim": "作成した贈与税申告書はe-Taxで提出できる",
+      "s": 158,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526",
+        "law:sozokuzei:21_5:83e4d369d0cb1489"
+      ]
+    },
+    {
+      "sentence": "1年間にもらった財産の合計が110万円以内なら、贈与税はかからず、原則として申告も不要です。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計110万円以内なら贈与税はかからず原則申告も不要",
+      "s": 165,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:0ecbb3f9dd424381",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "sentence": "申告の要否を判断するには、その年にもらった財産の合計、贈与を受けた人と贈与者の関係、財産の種類を確認します。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "贈与税の申告要否",
+      "claim": "申告要否は受贈合計、受贈者と贈与者の関係、財産の種類で判断する",
+      "s": 167,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "sentence": "名義預金のように、贈与が成立していないと見られるケースにも注意が必要です。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "名義預金",
+      "claim": "名義預金のように贈与が成立していないと見られるケースがある",
+      "s": 168,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm:9773477d73e79c0d",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "贈与を受けた本人が、その財産を自由に使える状態にしておく必要があります。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "要件",
+      "subject": "贈与の成立",
+      "claim": "受贈者本人が財産を自由に使える状態にしておく必要がある",
+      "s": 110,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "合計が110万円以内であれば、贈与税はかからず、原則として申告も不要です。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円以内なら贈与税はかからず原則申告も不要",
+      "s": 19,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:0ecbb3f9dd424381",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "1年間の合計が110万円以内なので、贈与税はかからず、申告も原則不要です。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "暦年課税の申告要否",
+      "claim": "年間合計が110万円以内なら贈与税はかからず申告も原則不要",
+      "s": 35,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:0ecbb3f9dd424381",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "通帳や印鑑を親が管理し、子が自由に使えない状態では、贈与が成立していないと見られる場合があります。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "判定",
+      "subject": "名義預金",
+      "claim": "通帳・印鑑を親が管理し子が自由に使えない状態では贈与不成立とされ得る",
+      "s": 108,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm:9773477d73e79c0d",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "名義だけ移して実質は親が管理している預金は、相続のときに問題になりやすい点です。",
+      "heading": "子名義の口座に入れただけで贈与が完了したと思う",
+      "type": "判定",
+      "subject": "名義預金",
+      "claim": "名義だけ移し実質親が管理する預金は相続時に問題になりやすい",
+      "s": 109,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm:9773477d73e79c0d",
+        "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1",
+        "law:sozokuzei:21_11_2:284b17499a15df01",
+        "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526"
+      ]
+    }
+  ],
+  "summary": "主張 61 件: 裏付けあり 52・修正 3（食い違い 2・期限 0・具体を外した 1）・残った食い違い 0・未解決 1・上限で未照合 20・捨てた主張 1・人が確かめる箇所 25 件",
+  "remaining": [
+    {
+      "id": "c19",
+      "sentence": "110万円を超えた場合や、相続時精算課税を選ぶ場合は、贈与を受けた年の翌年の2月1日から3月15日までに、受贈者の住所地を管轄する税務署へ申告が必要です。",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "贈与税の申告期限・提出先",
+      "claim": "110万円超や精算課税選択時は翌年2月1日〜3月15日に受贈者住所地の税務署へ申告",
+      "s": 166,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "law:sozokuzei:21_5"
+      ]
+    }
+  ],
+  "slug": "gift-tax-exemption-filing-guide",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "kind": "taxanswer",
+      "no": "4429",
+      "title": "贈与税の申告と納税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 49.68,
+      "text_ranges": [
+        [
+          0,
+          2466
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "kind": "taxanswer",
+      "no": "4408",
+      "title": "贈与税の計算と税率（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 187.44,
+      "text_ranges": [
+        [
+          0,
+          2315
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "kind": "taxanswer",
+      "no": "4103",
+      "title": "相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 176.04,
+      "text_ranges": [
+        [
+          0,
+          2656
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozeki_hou:70_3_2": {
+      "id": "law:sozeki_hou:70_3_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_3_2",
+      "title": "租税特別措置法 相続時精算課税に係る贈与税の基礎控除の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_3_2",
+      "text": "令和六年一月一日以後に相続税法第二十一条の九第五項に規定する相続時精算課税適用者（第三項において「相続時精算課税適用者」という。）がその年中において同条第五項に規定する特定贈与者（第三項において「特定贈与者」という。）からの贈与により取得した財産に係るその年分の贈与税については、同法第二十一条の十一の二第一項の規定にかかわらず、贈与税の課税価格から百十万円を控除する。\n２　前項の規定により控除された金額は、相続税法その他相続税又は贈与税に関する法令の規定の適用については、相続税法第二十一条の十一の二第一項の規定により控除されたものとみなす。\n３　第一項の相続時精算課税適用者に係る特定贈与者が二人以上ある場合における各特定贈与者から贈与により取得した財産に係る課税価格から控除する金額の計算については、政令で定める。",
+      "score": 243.76,
+      "text_ranges": [
+        [
+          0,
+          361
+        ]
+      ]
+    },
+    "law:sozokuzei:21_11_2": {
+      "id": "law:sozokuzei:21_11_2",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_11_2",
+      "title": "相続税法 相続時精算課税に係る贈与税の基礎控除",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_11_2",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、贈与税の課税価格から六十万円を控除する。\n２　前項の相続時精算課税適用者に係る特定贈与者が二人以上ある場合における各特定贈与者から贈与により取得した財産に係る課税価格から控除する金額の計算については、政令で定める。",
+      "score": 243.76,
+      "text_ranges": [
+        [
+          0,
+          162
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の3の3-14": {
+      "id": "tsutatsu:sochi_sozoku:70の3の3-14",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の3の3-14",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （災害承認を受けた土地又は建物の価額から控除される相続時精算課税に係る基礎控除の額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_3/05.htm",
+      "law_version": "",
+      "text": "災害承認を受けた土地又は建物を贈与により取得した年中に当該贈与をした特定贈与者以外の特定贈与者からの贈与により取得した財産がある場合において、措置法第70条の３の３第１項の規定により読み替えて適用する相続税法第21条の15第１項又は第21条の16第３項の規定の適用により当該土地又は建物の価額から控除される相続時精算課税に係る基礎控除の額は、当該年分の贈与税の申告書の提出又は更正若しくは決定がされている場合には、その申告書の提出又は更正若しくは決定に係る相続時精算課税に係る基礎控除の額となることに留意する（相続税法基本通達21の15－２の２((「第21条の11の２第１項の規定による控除」の意義))参照）。（令5課資2-21追加）\n(注) 令和５年12月31日以前に贈与により取得した土地又は建物について、措置法第70条の３の３第１項の規定の適用がある場合における相続税法第21条の15第１項又は第21条の16第３項の規定により相続税の課税価格に加算又は算入される金額については、相続時精算課税に係る基礎控除はないことに留意する。",
+      "score": 226.25,
+      "text_ranges": [
+        [
+          0,
+          467
+        ]
+      ]
+    },
+    "law:sozokuzei:21_5": {
+      "id": "law:sozokuzei:21_5",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_5",
+      "title": "相続税法 贈与税の基礎控除",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_5",
+      "text": "贈与税については、課税価格から六十万円を控除する。",
+      "score": 152.59,
+      "text_ranges": [
+        [
+          0,
+          25
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "kind": "taxanswer",
+      "no": "4161",
+      "title": "贈与財産の加算と税額控除（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 179.26,
+      "text_ranges": [
+        [
+          0,
+          2631
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "kind": "taxanswer",
+      "no": "4152",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 105.4,
+      "text_ranges": [
+        [
+          0,
+          1930
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozokuzei:21_12": {
+      "id": "law:sozokuzei:21_12",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_12",
+      "title": "相続税法 相続時精算課税に係る贈与税の特別控除",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_12",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、特定贈与者ごとの前条第一項の規定による控除後の贈与税の課税価格からそれぞれ次に掲げる金額のうちいずれか低い金額を控除する。一　二千五百万円（既にこの条の規定の適用を受けて控除した金額がある場合には、その金額の合計額を控除した残額）\n二　特定贈与者ごとの前条第一項の規定による控除後の贈与税の課税価格\n２　前項の規定は、期限内申告書に同項の規定により控除を受ける金額、既に同項の規定の適用を受けて控除した金額がある場合の控除した金額その他財務省令で定める事項の記載がある場合に限り、適用する。\n３　税務署長は、第一項の財産について前項の記載がない期限内申告書の提出があつた場合において、その記載がなかつたことについてやむを得ない事情があると認めるときは、その記載をした書類の提出があつた場合に限り、第一項の規定を適用することができる。",
+      "score": 306.58,
+      "text_ranges": [
+        [
+          0,
+          421
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "kind": "taxanswer",
+      "no": "4402",
+      "title": "贈与税がかかる場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 117.24,
+      "text_ranges": [
+        [
+          0,
+          1766
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "kind": "taxanswer",
+      "no": "4409",
+      "title": "贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 173.63,
+      "text_ranges": [
+        [
+          0,
+          2216
+        ]
+      ],
+      "text_deflate_base64": "5VjbVuJIFP2VPHavZc8i4KX7W2bNv+SUYoe7og4NqECLiNiGaWEckIgP/SdzUlXhKb8wqyqkEhBUei5ruvuNJFXn7LPPbevPzqhJi9m3dNhfZ8emzkrnvDCmx23WO3JGTX6d+kWj3bH7ucHbeV613L7pDPK8nWct4rZA+9MYaaxiIUkhlBAs8WU7Seuf0ci6Nw1+eIakiITIA2cINYQ2Qg6NHEIaiYnQ4x/vqFXhhz26n/bverap/Hh2CuFKWDBAvUSwnNER/30H4QHBouYuQgZJGskOQhlhx704czufkOxEr/guECwJNSPBdBAukRRZ/sa1/RBaCDsIY2nHQrhAAxAIkgJCFaFFC4QnL4KTBYQ6wpG4YhCNVwf8tsLKhN+MuVVyOzfCMSlOYMDSp/JOjdb7dM9EsKLI3LbJrRKSIk3+4dwfOOMMwoXb+cQ+5AUOkkFos08NCagtiUvLHx35Q2I1iObZJuu1PTu1ChAR3YngcJxFsFixSaunCF0ROOSk7SqSAzSI/F1DAxYbB4unhtQ8Z/mLSbkpQimUEPYl9hoSEEmE7lwS2XFtUt6ju8kgNVn6kHRbIL3LmBQhzjjj2RW/WjfpsK9Pq9UZnUvoVwKZeauqinVzsiZS/LBGUznfawgriF+QptNhn1ctSZywIG7pa7FYzBm8p7u7aIAytq5eBgkMTU79Z2SpB19F1E1ZUS1qnkgeWs9lRyR8mh3SfGxTQ8MMSD9CkkWSmbzfnzRyYSEZKS0SgObZOU3Xp0+ebS7J4JXzQITr2h1v5v08Tho5QYsw8PZdxEAk1erIiRYTztAw+UOWDvvO6HxSziFc8eFvSNLubVrhnbs/Azy+tjEDXPmVLvS1zSAQ3L5WeVmRnMf3oomK1mm0YqbzDCxn3JAWhQVWadFh/2kKFfdy0sj+EC0o+nZpNmaaVc0k2YvBWFopjeG4neU+QrdoyCm6Bf0vBrFBtPWlVfUSJoJKiaukinwFE+FRKahTX0qavuHZSd9ptCASiZ821KMZf6aVH3dt0GrfeVdF+mZBV23Fwycz8a1xqNAv51Dfekm9hae+lLR4zK+3Ey2xHkTeEV20rPGeXK/Bp2kkPgTXSHq26QzSbvuDHCsZ2XZdbt5K2ZNl1yPnruEbnAonsHzvU+EgXTvjBqvb/g703Sn7fvoWbL9hX6qmQ2n2Kpx3QmuZSNK08Csdl3zXavD5Z1iZRIagRfdMt22qgSgAkCzCKZLsahNqZjjWmJXxX9J0XeRnqoMOJOB57bOQw5fFbi0c6/9UFL6sUhTF1za3IhNTqjUkRQl25Ww/S4xnm/K9NalUhYopfRRzo5+TMqT2dFiqSXh1QO8PJDFdv7iikMI9OA1arY2y2hnuZU8GVfAXK5Iebtu4nVpPxHQ0ltGrWqYd9ecLRT6+pJmy+COCFBEO3dbFvBQPtbBSd5XI4PHsXGTsnITTML7S6cQqp1UReHYlUgcCKi0Q19j27JSvbzeEvo2zYzMRKNxU7odSuJ59/PQe8ezTx3skfH41twZeh4vUs4+/epEKr/PydBaFEKihnlooUF8U23ciUP8VqflqDvzrOUUpCF604WX2/ktF+T+uYv2ZKo5+/TuC8Kso2HiagCi25ZkOT81oOT1E/Y2LuVWF2kuEVNC4K8kp5VQtuER0Gf4oKuc5ybFYWiyWEFGpECGT1YcsU1f/meXVAesdxXUE6513f6on0AD5pG+Ix01BRr7DekdbMQQrgWDF/XqntbuJUfEvvglvxd/o2l8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "kind": "taxanswer",
+      "no": "4305",
+      "title": "相続時精算課税選択届出書に添付する書類（贈与税の申告期限前に受贈者が死亡した場合）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目贈与税概要贈与により財産を取得した者が、相続時精算課税の適用を受けることができる場合で、その贈与を受けた年の翌年の3月15日以前に死亡し、「相続時精算課税選択届出書」を提出していなかったときは、その者の相続人（その贈与をした者を除きます。）はその死亡したことを知った日の翌日から10か月以内に「相続時精算課税選択届出書」をその死亡した者の納税地の所轄税務署長に提出することができます。これにより、その贈与を受けた財産について相続時精算課税の適用を受けることができます。 （注） 贈与により財産を取得した者が、死亡した年の1月1日からその死亡の日までに110万円を超える財産を贈与により取得していた場合など、贈与税の申告書を提出するときは、「相続時精算課税選択届出書」は贈与税の申告書に添付して所轄税務署長へ提出する必要があります。 なお、この届出書には、次の書類を添付しなければなりません。 1 相続時精算課税選択届出書付表 2 受贈者の相続人の戸籍の謄本または抄本その他の書類で、受贈者のすべての相続人を明らかにする書類 3 受贈者の戸籍の謄本または抄本その他の書類で次の内容を証する書類イ受贈者の氏名、生年月日、死亡年月日ロ受贈者が贈与者の直系卑属である推定相続人または孫であること （注1） 相続人が2人以上いる場合には、相続人全員が「相続時精算課税選択届出書付表」に連署しなければ、相続時精算課税の適用を受けることはできません。 （注2） マイナンバー（個人番号）を記載した各種申告書、申請書、届出書等を提出する際には、マイナンバーカード等の一定の本人確認書類の提示または写しの添付が必要になります。 （注3） 上記の戸籍の謄本または抄本その他の書類は、贈与を受けた日以後に作成されたものを提出してください。 根拠法令等相法21の18、28、措法70の2の6、相令5の6、相規11、措規23の5の6、相基通21の9-2 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 185.66,
+      "text_ranges": [
+        [
+          0,
+          834
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:21の9-2": {
+      "id": "tsutatsu:sozoku:21の9-2",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "21の9-2",
+      "variant": 0,
+      "title": "相続税法基本通達 （「相続時精算課税選択届出書」の提出先等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/02/12.htm",
+      "law_version": "",
+      "text": "贈与者が贈与をした年の中途において死亡した場合又は贈与により財産を取得した者が相続時精算課税選択届出書の提出期限前に当該相続時精算課税選択届出書を提出しないで死亡した場合において、当該贈与を受けた財産について相続時精算課税の適用を受けるために提出する相続時精算課税選択届出書の提出先及び提出期限は、次に掲げる場合に応じ、それぞれに掲げるところによることに留意する。（平15課資2-1追加、平16課資2-6、平30課資2－9、令3課資2－14改正）>\n\n \n 区分\n 提出先\n 提出期限\n \n \n (1) 贈与者が贈与をした年の中途で死亡した場合\n\n（注） 相続時精算課税選択届出書に係る受贈財産については、贈与税の申告を要しないことに留意する。\n 受贈者に係る贈与税の申告書の提出期限（相続税法第28条第1項又は第2項に規定する期限）以前に当該贈与者の死亡に係る相続税の申告書の提出期限（同法第27条第1項又は第2項に規定する期限）が到来するとき\n 当該贈与者に係る相続税の納税地を所轄する税務署長\n 当該贈与者に係る相続税の申告書の提出期限\n \n \n 贈与者の死亡に係る相続税の申告書の提出期限\n\n（相続税法第27条第1項又は第2項に規定する期限）前に受贈者に係る贈与税の申告書の提出期限（同法第28条第1項又は第2項に規定する期限）が到来するとき\n 当該受贈者に係る贈与税の申告書の提出期限\n \n \n (2) 贈与により財産を取得した者が相続時精算課税選択届出書の提出期限前に当該届出書を提出しないで死亡した場合（上記(1)に該当する場合を除く。）\n 当該受贈者に係る贈与税の納税地を所轄する税務署長\n 当該受贈者に係る贈与税の申告書の提出期限",
+      "score": 233.78,
+      "text_ranges": [
+        [
+          0,
+          724
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+      "kind": "taxanswer",
+      "no": "4302",
+      "title": "贈与者が贈与した年の中途に死亡した場合の相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税、贈与税概要贈与者が贈与をした年の中途に死亡した場合に、相続時精算課税の適用を受けるときは、贈与税の申告書を提出する必要はありませんが、「相続時精算課税選択届出書」を提出する必要があります。 この場合における「相続時精算課税選択届出書」の提出期限および提出先は通常の場合とは異なり、次のイまたはロのいずれか早い日までに、贈与者の死亡に係る相続税の納税地の所轄税務署長に提出します。 イ贈与税の申告書の提出期限（通常は、贈与を受けた年の翌年の3月15日） ロ贈与者の死亡に係る相続税の申告書の提出期限（通常は、相続の開始の日の翌日から10か月を経過する日） なお、上記ロの日がこの届出書の提出期限となる場合に、贈与者の死亡に係る相続税の申告書を提出するときには、相続税の申告書にこの届出書を添付しなければなりません。 （注1） 相続税の申告書を提出する必要がない場合であっても、相続時精算課税の適用を受けるためには、提出期限までにこの届出書を贈与者の死亡に係る相続税の納税地の所轄税務署長に提出しなければなりません。 また、「相続時精算課税選択届出書」には、受贈者の戸籍の謄本または抄本その他の書類で、次の内容を証する書類を添付することとされています（贈与を受けた日以後に作成されたものを提出してください。）。 （イ） 受贈者の氏名、生年月日 （ロ） 受贈者が贈与者の直系卑属である推定相続人または孫であること （注2） マイナンバー（個人番号）を記載した各種申告書、申請書、届出書等を提出する際には、マイナンバーカード等の一定の本人確認書類の提示または写しの添付が必要になります。 根拠法令等相法21の9、28、相令5、相規11、措法70の2の6、措規23の5の6、相基通21の9-2 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 202.82,
+      "text_ranges": [
+        [
+          0,
+          766
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+      "kind": "taxanswer",
+      "no": "4510",
+      "title": "直系尊属から教育資金の一括贈与を受けた場合の非課税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目贈与税概要平成25年4月1日から令和8年3月31日までの間に、受贈者（教育資金管理契約を締結する日において30歳未満の人に限ります。）が、教育資金に充てるため、金融機関等とのその教育資金管理契約に基づき、贈与者（受贈者の直系尊属である父母や祖父母など。）から信託受益権を取得した場合、書面による贈与により取得した金銭を銀行等に預入をした場合または書面による贈与により取得した金銭等で証券会社等で有価証券を購入した場合には、その信託受益権または金銭等の価額のうち1,500万円までの金額に相当する部分の価額については、取扱金融機関の営業所等を経由して教育資金非課税申告書の提出等をすることにより、受贈者の贈与税が非課税となります。 （注1）この特例は、令和8年3月31日までとされていた適用期限が延長されずに終了することとされたため、令和8年4月1日以後については、この特例の適用を受けることはできません。ただし、令和8年3月31日までにこの特例の適用を受けた信託受益権または金銭等については、引き続きこの特例が適用されます。 （注2）教育資金管理契約の契約期間中に贈与者が死亡した場合や、教育資金管理契約が終了した場合には、それぞれ相続税または贈与税がかかることがあります。 なお、制度の詳細については、「祖父母などから教育資金の一括贈与を受けた場合の贈与税の非課税制度のあらまし」をご覧ください。 根拠法令等措法70の2の2、70の2の5、措令40の4の3、措規23の5の3、平31改正法附則79、令3改正法附則75、令3改正措令附則29、令5改正法附則51、令5改正措令附則14、平25年3月30日文部科学省告示第68号、平成25年3月30日文部科学省・厚生労働省告示第1号",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 366.21,
+      "text_ranges": [
+        [
+          0,
+          759
+        ]
+      ]
+    },
+    "law:sozeki_hou:70_2_2": {
+      "id": "law:sozeki_hou:70_2_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_2_2",
+      "title": "租税特別措置法 直系尊属から教育資金の一括贈与を受けた場合の贈与税の非課税",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_2_2",
+      "score": 376.33,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozeki_rei:40_4_3": {
+      "id": "law:sozeki_rei:40_4_3",
+      "kind": "law",
+      "key": "sozeki_rei",
+      "no": "40_4_3",
+      "title": "租税特別措置法施行令 直系尊属から教育資金の一括贈与を受けた場合の贈与税の非課税",
+      "law_version": "2026-07-31",
+      "url": "https://laws.e-gov.go.jp/law/332CO0000000043#Mp-At_40_4_3",
+      "score": 373.82,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+      "kind": "taxanswer",
+      "no": "4155",
+      "title": "相続税の税率",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 96.74,
+      "text_ranges": [
+        [
+          0,
+          1472
+        ]
+      ],
+      "text_deflate_base64": "vVdrctpIEL6KDuCtssCQ5Cxbexd6ArZA4mEeVgzeBQIGYoUhMSQxjyU/9iZpzQh+cYWtmZGEADnlVG3tPzTTz6+7vx5+d5d9VrVes/nsgt8ZOrfvvfKa3Y34tOEu+944/4fGJuvN5643Knkt6rWevK9Nb1TiA7IZgPYjs9R4kyLJI9gIVNy8zbHOZ8xYm8euV+8hqSolKdBGGCEUMVNEKCAxEKbe+wWjTa8+ZdcFpbtbGaGf3SqP4CAhmIHwEIG6y4b3JYvwHYEy4xLBRFJAkkW4Rchuhr3Nw0ck2aiKcoFAZSSmDOYB4QOSKi89blYqhQFCFmEt7VCEIWYAgSApI7QQBqxMvNwwkCwjdBAaQiVDtNDZtlsU/qjNrhb8Zs6nDYQJZoBVsu5igWAFiEj3MGS0vW22EBxWvmFrWyHlwweO15rx0r3Av3SFpOrObYR3SEwJZRbhUqCjYoWJjLUgE2ghqYmw+LjHrqcIdAsLr96TwZlI8qy98PolXhpub/vikFTZN4ENW8mEoM2pBBXotlvcrYzNw6PITRrxvpXlYV6A9+laZugw2kQCSEyVniyLI4osjBAkNXkiclMG+bQhKh8RZt/vEJpITAXE9ura9wLOcf6qRBmCUBMt0JmxioEZ+GkwsgYnWW9GhkdtYc3HtCjc1SW4xIwGKYtHeeNTEOo7hHZo/zSjoHkFAoEXO4xckwojfbfK+63Db4n3uPaoHUD9wauPgj6gm5nhPpX4rSi2u+4qDNX8ptl8pvvz6y7v2doK5cMAor31AncOQl+2wUDh5lsjVVa2Ea4R2mw+k6jWJWhOOKC/moUoX8XYjIywM2PtIDjudyJ646SC6rdKjVMz7Mzo9Csj7rrLOytRX2qz3H20HJsPU/lZVvkimeLbFb7NX+jnScxYz8REt/DEC38JQiNVhPpmMDymBVXmhCgzK3RkE1DFqRK4B9l21O9OKaBu+V17e1Njlzkxe++daAuq39sbkw1Nbt8jWHse1xP8zkgGnZAv7qfjGQ8Ik6g9li8m2XwmlC9zQYSFF8CU1gXpy/KG1Q4SHilWVIUSgDQHbD5TIIpaPQ+fmqHD/EWPRC2ErXHQ8tCTfH3KqMOD+UuKwhzad7b9AhtXECzFAXt2eY4MKo4im0BRnUu8aTvGFEx0oX90LfZBNpRISA9rGe9xFbRgZdCAVxz2d02utN5+ZE8IO5atY2h4XTtFL9gyI3dJha5agXKpncCiKIG+kODFpFLbtynWbQ2JdTS+20xbTF13FGQqcySgYjhY8ypToKy9CAfMX8rK0dUiOvdqgfzEfkSlHdpRjHWIjBUXhnNcuR+2qcVm9kK01CIM6U/Tz87Pz92nK3Z56S7v3SdT0893q5y2Wx3cbb7m1OAkT+VTQj7lH2rJGKXUiVJCOkkEp1oqRktn2exeIyk1XoUa/m0onTiQvpDS+tlePnEknzyUl0kkIvLJI/n0gXxK2r8422eQDuW1lDT2an95UFn1Ejlum2Fkw7efm4j/oH/ctYlgIHyK4yOLDZYIIzauKPYYyodXPIGpJxEbLBPyF9XFMI8rF+prt7o++NZjSCiGYMASZU3tkZNqwdMqJoBnKEFxp0jGenWWDo3JiBCs5NnrvYOmfKqcRBfwSP7XmOglpBNko6ghePFP+Meuokj55yZ88jVEGGFYL371GmywFLspkr/2j+2P0W+RQdqt/tT0s9Rr//sXHIwrwkEETOEg4TtIHDhIpf8f8wHbKtBOCddvpbhRmUSmP2ZweGfOzU74x9ZrPfFpQ09jBvQ3mIGELro8Ff4SF+6yn+L1OR/3+LSxvc2y/JX+RvsX"
+    },
+    "law:sozeki_hou:70_2_5": {
+      "id": "law:sozeki_hou:70_2_5",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_2_5",
+      "title": "租税特別措置法 直系尊属から贈与を受けた場合の贈与税の税率の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_2_5",
+      "score": 201.81,
+      "text_ranges": [
+        [
+          0,
+          1380
+        ]
+      ],
+      "text_deflate_base64": "zVdbU+JKEH73V0+PoglJABFFxBtHRdZA1gVqN1wWf0zPJXniL5yamSQEAsK6VafOCxWTvnx9+7rlk5Gwamzqcg9YeMwnYxYScWup3+YLm73whYvgy/ZYjmb8vcx/3CM4SG2EIBpbLKwg+EgtpOVo2JGNJ6R1Xr3iiyZCE+EhIqXl3EK4Qwg2jCtFKCOcIHS5B7zki8GIzV5YWFbGSQnBj1s1pA4Supwrjzk7A/Xw+yL6Nkz8gs8+KFLHoJK9CkIQdzyE70hAtkP580b2KmJ0Kfv9NF4i7joIAQuPlcdulQc3GpWjY6zqMG+QALc9I7mSUSE7ovIat551ioLobSh7FbboiMc50rroa/lOT9svi/4Jgi8qQ4Q6Uic+O9fYfO5OuXWqc9VV0VEX4V7/BiuZmpvacTbsyF5FVs6Q1tmkiXCN0I16lgyS5CcWaJ3XrKhnrb2EHkLL5JZNXdlasPCMn57q/DuZd9laaHiBSldODGk9+llCsHi7fZhuIy+5Ui8N9qqbYuUlV+re8R7d0Fa6qdia4rSxH3m7najnhDMj2vgeAMYCmzbywvnsHYhEJdCDonxmKmuqDRU2bRwt53Uk5KtD6CKBQ0adP455zcobRAKZU12MQUwaax7NABvjtJ5RBkKQMI53rhmnh/CG8IzwoJ+zqd4uI1qU23pydtrfTmFrzJXSirapw9FOue3Fj6UcFwQxfJONnvqqAJwgpZqqVgN2tJxfICEbzhQPhWS7LZXZJsK54jONYzm3jDyv/lpPsSvtCVsktJeAJma+TxBOE+4ssLKq6xqb+pu5qLl7sOlo1+BN3SI8FpLI6v8RvPVOOt9F6gYhr5YRRn9J8JqtC/S8lzhDgoSY5XAIDF4a/MEOyXXetlZJR7HI9+BvaQkI2KKjv+6r+5YZyHQDk5C44y3nVr4o68iDFFXAH6byWRmXQZOXXhAu1XKjTjokZsOXTTX37tjiaIl+p9hyBqSBlyAvtpyyc4qg6s69R6SA1OH2UDXep+v0iE3d/6bqKiOHdPPuPtgye2ktl3Nrl/29gItl0AndlvcvZ3k5byAhWePzqoXwfSf35vlScdvOm08tuG1dJhsjfl4W7VDlRW+N7E12WYrbh7hV4ws3+2TKj3Chm1r1VFGLfQRi8LR6r0jFR0pM1pK42r9lrxKTG26frZfEFncdnQRbB+6nsFXeRXssBk+R74gf1Hj8QrpEU/0Z9a4jVcKmXtmrcDaylI21uK7I8bt2qriEza6U8LDDnZa8BTZ7RnhVirreoh3GnXt1E/+asdm1LvOb9u4ivKtn5UuvTkKVdwi23hKfFDQXuB5I/TV+LGU7U1Edcbf1up9ygyqW7lfVPLuEWdjVFffl64M6vu0Jt15E5U3+DhJU4TH3IBnUqWvuMLUeC/9BZWdJuk6zvRfkmTU58SEwpK4mjXgb18WlGpXPN+DkTr9sFNvIKIoWlcOFDJqGjUyjmDshvQTWtewJD24SavnLi2oXD+nnXZXTLLhAeD28fplK0iX/pxJeJWw3Xd003PbMn4o802FKuTdAmCkQBDaGPscWxRPVj6/+QWjyj1LUBYQ3NnW0pEqZaHxsDC4S+i8="
+    },
+    "law:sozeki_hou:70_3": {
+      "id": "law:sozeki_hou:70_3",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_3",
+      "title": "租税特別措置法 特定の贈与者から住宅取得等資金の贈与を受けた場合の相続時精算課税の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_3",
+      "score": 290.33,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+      "kind": "taxanswer",
+      "no": "4211",
+      "title": "相続税の延納",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 115.78,
+      "text_ranges": [
+        [
+          0,
+          2696
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "kind": "shitsugi",
+      "no": "04",
+      "title": "暦年課税の適用を受けた贈与財産について評価誤りが判明した場合の相続税の課税価格に加算される財産の価額",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "text": "私は、×１年８月１日に甲から土地の贈与を受け、暦年課税を適用して贈与税の期限内申告書を提出しました。 その後、×４年７月１日に甲について相続が開始し、上記の贈与税の申告書に記載した土地の贈与時の価額を甲の死亡に係る相続税の課税価格に加算して相続税の期限内申告書を提出しました。 ところが、上記の贈与税について、税務署長が（増額又は減額）更正することができなくなった後になって、申告書に記載した贈与時の土地の価額に評価誤りがあったことが判明しました。 この場合、×１年分贈与税については（増額又は減額）更正されないことになりますが、他方、相続税については税務署長が更正することができる場合、評価誤りを是正した後のこの贈与時の土地の価額が相続税の課税価格に加算される財産の価額になるとして、相続税の修正申告又は更正の請求を行うことができますか。また、相続税額から控除される贈与税相当額は、課せられた贈与税相当額となることでよいでしょうか。 相続税の課税価格に加算される財産の価額とは、贈与税の期限内申告書に記載された財産の価額ではなく、当該贈与税の課税価格計算の基礎に算入される財産に係る贈与の時における価額と解されます（相法19 、相基通19－１）。したがって、当該贈与税について税務署長が更正することができなくなった後においても、当該贈与税の課税価格計算の基礎に算入される財産に係る評価誤りを是正した後の当該財産に係る贈与の時における価額が相続税の課税価格に加算される財産の価額となります。そのため、甲の死亡に係る相続税については修正申告又は更正の請求を行うことができます。 なお、この場合において相続税額から控除される贈与税相当額は、課せられた贈与税相当額となります（相法19 、相基通19－６）｡",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 223.47,
+      "text_ranges": [
+        [
+          0,
+          750
+        ]
+      ]
+    },
+    "law:sozokuzei:21_10": {
+      "id": "law:sozokuzei:21_10",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_10",
+      "title": "相続税法 相続時精算課税に係る贈与税の課税価格",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_10",
+      "text": "相続時精算課税適用者が特定贈与者からの贈与により取得した財産については、特定贈与者ごとにその年中において贈与により取得した財産の価額を合計し、それぞれの合計額をもつて、贈与税の課税価格とする。",
+      "score": 189.04,
+      "text_ranges": [
+        [
+          0,
+          96
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm",
+      "kind": "taxanswer",
+      "no": "4557",
+      "title": "親名義の建物に子供が増築したとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目贈与税、所得税概要親名義の建物に子供が増築した場合、増築部分は建物の所有者（親）の所有物となります。 贈与税の課税この場合、親が子供に対して対価を支払わないときには、親は子供から増築資金相当額の利益を受けたものとして贈与税が課税されることになります。 しかし、子供が支払った増築資金に相当する建物の持分を親から子供へ移転させて共有とすれば、贈与税は課税されません。 所得税の課税上記における親から子供への建物の持分の移転は、親から子供に対する譲渡となり、譲渡利益が生じるときは譲渡所得の課税対象になります。 この場合、共有とするための譲渡および親子間の譲渡であることから、居住用財産を譲渡した場合の特例は適用できません。 根拠法令等相法9、所法33、措法31の3、35、措令20の3、措通31の3-11、35-6、民法242 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 39.77,
+      "text_ranges": [
+        [
+          0,
+          383
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+      "kind": "taxanswer",
+      "no": "4157",
+      "title": "相続税額の2割加算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税概要相続、遺贈や相続時精算課税に係る贈与によって財産を取得した人が、被相続人の一親等の血族（代襲相続人となった孫（直系卑属）を含みます。）および配偶者以外の人である場合には、その人の相続税額にその相続税額の2割に相当する金額が加算されます。 （注1） 被相続人の養子は、一親等の法定血族であることから、相続税額の2割加算の対象とはなりません。ただし、被相続人の養子となっている被相続人の孫は、被相続人の子が相続開始前に死亡したときや相続権を失ったためその孫が代襲して相続人となっているときを除き、相続税額の2割加算の対象になります。 （注2） 相続時精算課税適用者が相続開始の時において被相続人の一親等の血族に該当しない場合であっても、相続時精算課税に係る贈与によって財産を取得した時において被相続人の一親等の血族であったときは、その財産に対応する一定の相続税額については加算の対象になりません。 相続税額の2割加算の対象になる人例えば、以下の方は相続税額の2割加算の対象になります。 （1） 被相続人から相続または遺贈により財産を取得した人で、被相続人の配偶者、父母、子ではない人（例示：被相続人の兄弟姉妹や、おい、めいとして相続人となった人） （2） 被相続人の養子として相続人となった人で、その被相続人の孫でもある人のうち、代襲相続人にはなっていない人計算方法・計算式相続税額の2割加算が行われる場合の加算金額 ＝ 各人の税額控除前の相続税額×0.2 ただし、相続時精算課税に係る贈与を受けている人で、かつ、相続開始の時までに被相続人との続柄に変更（養子縁組の解消等）がある場合は、計算が異なります。 根拠法令等相法18、21の15、21の16、相基通18-5 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 70.66,
+      "text_ranges": [
+        [
+          0,
+          757
+        ]
+      ]
+    },
+    "law:tsusoku_hou:65": {
+      "id": "law:tsusoku_hou:65",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "65",
+      "title": "国税通則法 過少申告加算税",
+      "law_version": "2026-06-24",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_65",
+      "score": 178.69,
+      "text_ranges": [
+        [
+          0,
+          3337
+        ]
+      ],
+      "text_deflate_base64": "1VprU+LMEv7ur85EUSIJIOIF0UVWVtFIVKRWCIg/ZjKZ5BN/4VRPzySTkAC+vqdOnaoty5Wkpy9PP30Zwute3Gmywwpvv7OT47A7XS2qsXkQzC8jtxa+mcnfqdliTZeaBjVM/vwcTK34tkKJS8kxJQeU3LOmTcklNczVwqLEDhtNduRTckZNm5Ieu52wZnW1qIZ44tJOJZc8rAunBgmf++FNXxxtiKN7lNxSchF2p6xRpeQFPprdiI+86L7BvCtKvJg88vaQEpsSk5o1SoaUOLotQtvMQcGXF47uNPU8VA9PCbuTcHQnBZKBUEPIJC/UIOzzNHoc84nDh/XIAP+wlyUlF9QglNxQ4unCswJd1vMp+UOJg+5lDgn8tjTZt+PbympRxRdRfng+Y4sGKG9WqVlj3U8+rPORRYnHJ04wvxSmJa7Ax47xI0o6lMzgrGE97juUuLyzZNVDSjzmEPhpjTFeZd4ADyij8FNK3ODLTDQRXh1IrxIvevoKe/Os306F66Ri6Lr1dzMOhwjOhLfFu2Yr8Ku89wc8DKdI/FDTpMSj5IGSJyEkDVBiZuC3NTMtEDW7AACT+2hY5d6FkNmLj06kf7pT9nkKfjNrMamz1xMZxONb7l2AzmYrehrjA9Qw91aLFjUMZjlZRLpgpBKUZAV/fmaV0WbsyqwwW3FnQEmjELvqOFcJgVMKQ75aVFnTxhPLQMkssBwDswG4ZVH/SSIhsBKZeASfvPBHh/2+YB+eBK7ZwgDo0UICKpQQZvkuRb8eXRnyYeC3IQmnR+zwUOjmCbuuBMhqbHBFyYF82GxFfyuUVFOKQTpQHi5GDPHEQZkn03QlNfhnNqhpwaGFz4jMKcRr4sNEsXh/KKCfMXYNDNuRQ4mNkNhFMiVu6BsiuPlUTLiyCJyWTkl6rm5J1CI8iEPTtDzV0jJfYeCY5gFrfIDe9TElLbCkPYyefgF8Dxp8+ahrnzwMLjOJCv8pNZ2EmKlhBlODGsY6fLVqtiUJU27Lwlqn2N3ybXud2bloeKxZjYZVCaAS/t4caWq2wmmXvZ6AgaQLKYpWF1FMMHXCa4e337lbg/DXkPgblLxEwwlgMeuQ8M0HKwwS3ZHwzdefZ9VB+OanxbPeY0f3iDZ+9spqZ8XEBJG1RUJKzyjlBdpkGnibaMVshfUHweA5gEKPIELQ3lQGsvqUMYI6oqOq5UPy7jY1ZJ6sFtZe4NvUMAopMyzqG/+VDk3r/SDNCtrFXCMq/IXYxVQs6UiTvmVjAgjNU22/kw+rRVXDh6flYXlfJEkn5RoViWy/Sl4whbaRHGAotAy2FOXFIOH7WeD7+Du7fg3PZ/pfeHfK/17xYV0m299qNJ7r1bLMnGh4GYFLJSXhvBAfnaiCVlgHii1KWWAbHKk5ADQq68L3M4RTEj7goME5OhkgKgSuFpae9vz5GapKZZS8BSxWGcHUc/OLvVWCzwb27TJkmkCAkJK5Boma1N9sSbeoTlXagrldxPW6evmWqmmjmbyzBHg7REcp9IzdLmt8QP/4G5hOOkeIXS0srOqJBLSaVUboK9m0GwTBzBrHlLxjKHN9Zeifiwzt6E1oboDSu4bQb4bvFltOWKO+iQpFR1NsoJp3yvT/iXowMkxkzspMJ5/Me49+u/AzndoEeh962KkB0VeEzmiX/RfkwLTlxue/peHvZ2xZAya8HLGWjRbBz9kEP5KWTvcRfiJ2FtqLQUmTl3jR/BMOFRqyilMCvGN8LFPbxMPghMYFJSeU9HSxcd/Zo/sjyCXFBTKXhBIJJ7KKi9hi3hVfPhb4cTqKz08RPblwqlC5OatyWZQPcLcLb3W7ejKjkmkDXyLqe4AQ2ShZYHazzh265AL60PQU3aldpu2/RR8SBMpXyHqodmwYEflgs0l8dMJHFn90uFsTXJw0TSJMakTH45IFQWEIUmaE8cdKyAI5QlsufCsJtxTRtDIJjIpqepNUFFEyne9OlLlmQt9WZFrspQ2i8gpYe3S/AcNCtnLmsuWnqSIYYjMEfwqXImbdDIut0cp3E/+jmJWoAZGrwcSlOpycI9KsvR6ywXk07vP2XYb21Yv5SMgeXRD71FD9g7tBVDSpBtP6rqJE8iX7VZlwRY+xyggbALkYFAqHHZOPl9y7iJ7GmcWJZs4/wNMe3e9CvVAN4lq9MNIW3CHfSoW91aINgdKaow2bsvy2K79thZUkm77z16/VohqN+6zW4dckmA8oeUgndLkddONOU/vvMLOm/bwOq03EW/B1w0aX4Mv5nZgx7+PunN8RfnUQDS9je1zyvK0a5HtQOG/CCfwFm/qcNI03g/mfYCracOIlcEjHLDkqlk08SZ8OdqFuSmGZxYFfQwmihblYX1GXJSwQSFa3bGhsXQh0SQa28weUHCZXBEnKhx1TbjkMggTIfJL+/mbINm1Yh4B+gsPlBop8sNP+ujLoKCDAEkdRw9YlFKlXo6YldxoCUegHPlB+wGnSbIVvpsCVBbEG/NTAqLXBTkU/s0PMgRxno2SXogHbi8bPcApx2fRVDx9vvwlPwnKtZEH8khs+dtxF6tyzdTWpT4o7bic1lXbaVstCoHhUifVYz+eDunDdU8JbgV9jXg+yfm15jTckrOez7m3yVjbQ30gcOSgLDgnmf9jgHEIs/rs1R9aOywjH2aJQvrSuLKdyO+hi0755Vro1aagQDPHWJWx/5Qk2vwItwkB24i9c++ZuovQdz1paFeTRjy58tu2RcaOb4RB1U5Kji8x8r0hD/OVJcoXqeWTblpWJsC8VlVaZ3gYMZzelhUj2AEWkj/sAuEjU+B+r23quxUdOdE/E71oNJfdllRfPwk0ha3xsLWfUsLk1Y96VVLIA8B6aWWSgHZ1g+BrB1IG+BGDwkN0yblEYH5OL0A2ByZSE3UKykVa0YOj2K2uz79o/NA/qjeUU51W2luytFmfQB5bck+Q69/J16i53TFr5Xbtj+S8w0H2uiGUqntlSS+pM9v/MwJIKJvhAka7CgULbxjsiLymVOy1k18fzAn20Blajq/TmPrmkH90J+U+8eahaElmIoicn7Y/Sdju37he5tLOQsqIkM3X3a7V/fLe9fgGi3zBsujUrufCSAZ6fSxQSN+7/koDLsus63JOeXIny8Ms7uoPkR/nmMD93o0OKrFOj5I9A5sakrWr0UtCVRO3eanFeMge+bPhOzv/Rt1AKJ9jva67CAI7az6whZzfrVwNaE9+WNwVY3ZePrNbJ7brVEaLns5zYuOK9P3xkYeQSmlfFSOJ1HY5JtUIJ+s0gfskl6eQS9VjFXa/9qA8K2dDsYiZHfVsMJDnP57thReQX8vsIhvkf"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4143.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4143.htm",
+      "kind": "taxanswer",
+      "no": "4143",
+      "title": "特定の一般社団法人等に対する課税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4143.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税概要特定一般社団法人等（次に掲げる要件のいずれかを満たす一般社団法人等（注1）をいいます。）の理事である者（その一般社団法人等の理事でなくなった日から5年を経過していない者を含みます。）が死亡した場合には、その特定一般社団法人等は、その死亡した理事（「被相続人」といいます。）の相続開始の時におけるその特定一般社団法人等の純資産額をその時におけるその特定一般社団法人等の同族理事（注2）の数に1を加えた数で除して計算した金額に相当する金額を、その被相続人から遺贈により取得したものと、その特定一般社団法人等を個人とそれぞれみなして、その特定一般社団法人等に相続税を課すこととされています（注3）。 1 相続開始の直前におけるその被相続人に係る同族理事の数の理事の総数のうちに占める割合が2分の1を超えること。 2 相続開始前5年以内において、その被相続人に係る同族理事の数の理事の総数のうちに占める割合が2分の1を超える期間の合計が3年以上であること。 （注1） 「一般社団法人等」とは、一般社団法人または一般財団法人（公益社団法人または公益財団法人その他一定の一般社団法人または一般財団法人を除きます。）をいいます。 （注2） 「同族理事」とは、一般社団法人等の理事のうち、被相続人またはその配偶者、三親等内の親族その他のその被相続人と相続税法施行令第34条第3項に規定する特殊の関係のある者をいいます。 （注3） その特定一般社団法人等について、相続税法第66条第4項において準用する同条第1項または第2項の規定により課された一定の贈与税および相続税の税額に相当する金額（既に控除された金額を除きます。）がある場合には、その金額は控除されます。 根拠法令等相法66の2、相令34 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 36.55,
+      "text_ranges": [
+        [
+          0,
+          765
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "kind": "taxanswer",
+      "no": "4504",
+      "title": "住宅取得等資金の贈与を受けた場合の贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 173.72,
+      "text_ranges": [
+        [
+          0,
+          1523
+        ]
+      ],
+      "text_deflate_base64": "rVfLdtpIEP0VLZNzsgBsEnsxXzJn/kXVGCPx9IswxO8TbBQzFk7geMDIZDGfUmq1tNIvzOluPVoCx2QyOyGqq6tu3VtV+t1dDOhRc4fOp9vemVH0ejess6RnljfpuosBuzf/0Oh46X+9Zlabndr+1HBnbWa1vVvi34L73KF2lXY+0mWP3Zv+pBbUDhEiMyRHtNNDOES4Zacz9vjJ6xP2bcnsnn/3jVncIICZV79A6CFc0qspPTCS49wAbN8ymN3jrqp/u8/H7rKBMPTv/vL+bItTS4Q+guX9dY1gIzEQ9hFGCHdI6tG/OtHSNEvemYEwYsZj6BjlXe9+EjomQgOJuf2uUCi4sxrd30cdvHGLW+yoFiXFAuxNs9eBHjS9M8Od3fObzwCJhZUWuzelB3dxQwcfE4fsxEKwqf1Ivzb4g/CPMHK/EyQNenPIpntIjnj2OiDsIXxC0kzv5dkPxPtbJGRz4LXQMbyJFTqmhnpzNUzUWxnfMOb3kwlWHKyY2+XCDj92OmWTBX2o068XErONOZLWPzi/iOLkV9qoN5M3Qf+APt0G1y35lwy5xAvEHRFWHYqUbhE6CFcIXR6sTrT1MIDNzDk1brz2MOgPuFeRlIqNDNPXqwgnCJZA4FzgfYGkGcAXUa6ueLPKNlnyJMNXsMiiW46pFjrGmmrAuJiyUTB0iTBMoeOx9pE0mDkXomkicP4gHIu/eGlQB2Y8Rs/roziWGHEPnDMyW+4WCeGl4a4kD5cIl+Ihd6RN2wuEUXyWYxrH0OQyhb2MqwTE1chCx3gJQDXtH5RaAGFHoSTMIw3JPM780DHiA6KmpBHUDgUxok7EjZRGoYVOS1MrlTJVnAsdk1t8UEq5PrxY3pdPbNBO+ChDammldxk2bEZmfvi33a000ljeRTqfBh+PEUb+oOZ1H3jreXqSaP84vBdFq0OxGHdGcvRSgLGwMt58vRo6Bu8d5pzan1LBcYVbgoh7CS0E0aUQs2NCXOEur70rB2EouH5Mjf2YneeCYcpLuMxBLVpqqux8MAKc1fT9b9fs5DMHcHktaMLNpE+VzYLoda43pUSr3XTVv6iLzHconHRUM5mIYjNi0zH70kIYKoyRnSG+s680gabw2kpFFzoG7RBfr4TOK0zIoxfrQygoLkxeOCkZ/+lppULoVN9swje+e7Rrb7XQOdeKO+8jF2/Ua95mRJmkrm2lMCQiVNWkhPQmlW7Fosb+W+UGdjKhh3WvT7hm1P4gGlhqnzkum5XsUasD7Kfg3VDxqiJy8MstLjfjNw5BaDE77TiLbElbOe/e0/m0GC2RfKVZZnaSoH+QbmT84DA5WOYH+V62FR81W9lxNF6Zs6dIjjlhvXFrdUq8OgEQvv8fc6CUmwPbv9jli+9230cuXtJFvuJSFIWov/+qdpWE2Pcm318WN0Gfr31s/oCk7j/WEzxygSTJq1lo5fjtTwWkCnRDHFRiiw0kmUuvrgzUeKRPvAHTTs+fGr5eLYqOmjZnpZM2pX5F97xD+Cxa954QwyUSeHWjyt+aLlW9zEXkKLvJqd9HI6m6VernBspKhmsYH0+CsTIJIm0lM0toxkB42ATNdEEHW01HjF3+JZhZIuPbaWfsV55FDH2unjUY2u5MDyoWXwLjeEpldf211gGSnsoZR58JOnh2gzem7PRfD6kO/2G3jHIkRM0x2mR4A7uae42r5HObnc68SbdURLCLhfD5Qj5tyavdxaCMYJd41O07b9L9UIh+ioct2VHL3sncu//sTbpBf4+ateJuagB2SfsX"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "kind": "taxanswer",
+      "no": "4158",
+      "title": "配偶者の税額の軽減",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税概要配偶者の税額の軽減とは、被相続人の配偶者が遺産分割や遺贈により実際に取得した正味の遺産額が、次の金額のどちらか多い金額までは配偶者に相続税はかからないという制度です。 （注） この制度の対象となる財産には、隠蔽または仮装されていた財産は含まれません。 （1） 1億6千万円 （2） 配偶者の法定相続分相当額この配偶者の税額軽減は、配偶者が遺産分割などで実際に取得した財産を基に計算されることになっています。 したがって、相続税の申告期限までに分割されていない財産は税額軽減の対象になりません。 ただし、相続税の申告書または更正の請求書に「申告期限後3年以内の分割見込書」を添付した上で、申告期限までに分割されなかった財産について申告期限から3年以内に分割したときは、税額軽減の対象になります。 なお、相続税の申告期限から3年を経過する日までに分割できないやむを得ない事情があり、税務署長の承認を受けた場合で、その事情がなくなった日の翌日から4か月以内に分割されたときも、税額軽減の対象になります。 対象者または対象物被相続人の配偶者手続き申告等の方法 （1） 税額軽減の明細を記載した相続税の申告書または更正の請求書に戸籍謄本等のほか遺言書の写しや遺産分割協議書の写しなど、配偶者の取得した財産が分かる書類を添えて提出してください。 遺産分割協議書の写しには相続人全員の印鑑証明書（遺産分割協議書に押印したもの）も添付する必要があります。 （2） 相続税の申告後に行われた遺産分割に基づいて配偶者の税額軽減を受ける場合は、分割が成立した日の翌日から4か月以内に更正の請求という手続をする必要があります。 申告先等所轄税務署根拠法令等相法19の2、32、相規1の6、16 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 101.3,
+      "text_ranges": [
+        [
+          0,
+          760
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm",
+      "kind": "taxanswer",
+      "no": "4508",
+      "title": "直系尊属から住宅取得等資金の贈与を受けた場合の非課税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 208.19,
+      "text_ranges": [
+        [
+          0,
+          3772
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm:5e1a70bec07d936d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "title": "贈与税の申告と納税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "title": "相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm:3e8b0841027d6d88": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "title": "贈与税の計算と税率（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm"
+    },
+    "law:sozeki_hou:70_3_2:5e2f66fb6490b2f1": {
+      "id": "law:sozeki_hou:70_3_2",
+      "title": "租税特別措置法 相続時精算課税に係る贈与税の基礎控除の特例",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_3_2"
+    },
+    "law:sozokuzei:21_11_2:284b17499a15df01": {
+      "id": "law:sozokuzei:21_11_2",
+      "title": "相続税法 相続時精算課税に係る贈与税の基礎控除",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_11_2"
+    },
+    "tsutatsu:sochi_sozoku:70の3の3-14:edba941c39ab2526": {
+      "id": "tsutatsu:sochi_sozoku:70の3の3-14",
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （災害承認を受けた土地又は建物の価額から控除される相続時精算課税に係る基礎控除の額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_3/05.htm"
+    },
+    "law:sozokuzei:21_5:83e4d369d0cb1489": {
+      "id": "law:sozokuzei:21_5",
+      "title": "相続税法 贈与税の基礎控除",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_5"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "title": "贈与税がかかる場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "title": "相続時精算課税選択届出書に添付する書類（贈与税の申告期限前に受贈者が死亡した場合）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm"
+    },
+    "law:sozokuzei:28": {
+      "id": "law:sozokuzei:28",
+      "title": "相続税法 贈与税の申告書",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_28"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:cad27ba0ef1b34cd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "title": "贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+      "title": "相続税の申告と納税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm:d636a1eb1d62c7ba": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+      "title": "相続税の延納",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm"
+    },
+    "law:sozokuzei:40": {
+      "id": "law:sozokuzei:40",
+      "title": "相続税法 延納申請に係る徴収猶予等",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_40"
+    },
+    "tsutatsu:sozoku:52-3": {
+      "id": "tsutatsu:sozoku:52-3",
+      "title": "相続税法基本通達 （延納申請を取り下げた場合）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/07/01.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm:d0b8ab1f56bc6c9c": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "title": "住宅取得等資金の贈与を受けた場合の贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4503.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4503.htm",
+      "title": "住宅取得等資金の贈与を受けた場合の相続時精算課税選択の特例",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4503.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:0ecbb3f9dd424381": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "title": "贈与財産の加算と税額控除（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm:9773477d73e79c0d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm",
+      "title": "親名義の建物に子供が増築したとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4557.htm"
+    }
+  }
+}
