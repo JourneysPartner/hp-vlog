@@ -46,7 +46,7 @@ test('U1', '正規の8語には読み替え記録を加えず、指示文で名�
   }
   await F.extractClaims(requirement, async request => {
     assert.ok(request.system.includes('type は次の8語のどれか1語をそのまま書いてください: 要件・金額・割合・期限・適用年・手続・番号・判定。'));
-    assert.ok(request.system.includes('（要件＝対象・条件、期限＝保存期間を含む、手続＝届出・申請・選択、番号＝条文・通達・タックスアンサー）'));
+    assert.ok(request.system.includes('要件は対象・条件、期限は保存期間を含む、手続は届出・申請・選択、番号は条文・通達・タックスアンサーのことです。'));
     assert.ok(request.system.includes('漏れなく')); assert.ok(request.system.includes('claim は60文字以内'));
     assert.ok(request.system.includes('形は [{s,type,subject,claim}]')); assert.equal(request.maxTokens, 8000);
     return [];
@@ -170,7 +170,7 @@ test('U3', '候補内ページの数字の主張の連続3文は従来どおり�
 
 test('U3', '判定の指示文は候補を優先し、同じ資料表の別資料を認める', async () => {
   await F.judgeClaims([a], { c1: [shared] }, a.sentence, async request => {
-    assert.ok(request.system.includes('各主張の evidence_ids の資料を優先して根拠にしてください。evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません'));
+    assert.ok(request.system.includes('各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください'));
     assert.ok(!request.system.includes('各主張の evidence_ids の資料だけを根拠にしてください'));
     return [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }];
   }, options);

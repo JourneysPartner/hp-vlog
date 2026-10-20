@@ -315,11 +315,11 @@ test('R4', '抜き出しと判定のリクエストは03uの指示文とバイ�
   const c = claim('控除は120万円です。');
   const e = ref(c.sentence, '2080', { id: 'e1', title: '試験資料', url: 'https://example.jp/e1' });
   await F.extractClaims(c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), 'a1cc8ad189922d2148f92913f766790e88153e1fded7a1628a7a02b11ab0f1e0');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '0368b832b9a96f28640d79fece4c7cc0745384697523147c5f9ad38f2d393b78');
     return [];
   }, options);
   await F.judgeClaims([c], { c1: [e] }, c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), 'fd8b916f42c8c6d06548109f5b9f472c6bf833b4b15a8fba7c5a7579072eefc9');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '648c1d093a68aba2cf5c4071e6a6d524aefd2f594f9c6d882619e2f922a9d844');
     return [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }];
   }, options);
 });

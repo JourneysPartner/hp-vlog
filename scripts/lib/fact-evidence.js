@@ -122,9 +122,33 @@ function contiguousExcerpt(text, query, maxChars = 2000, focus = '') {
   return searchable.slice(best.start, best.start + maxChars);
 }
 
+/** 末尾の補足だけを外し、途中のかっこと対応しないかっこは残す。 */
+function subjectWithoutTrailingParens(subject) {
+  if (typeof subject !== 'string') return subject;
+  let name = subject;
+  while (true) {
+    const text = name.trimEnd(), stack = [];
+    if (!/[）)]$/.test(text)) return name;
+    let start = -1;
+    for (let i = text.length - 1; i >= 0; i--) {
+      const ch = text[i];
+      if (ch === ')' || ch === '）') stack.push(ch === ')' ? '(' : '（');
+      else if (ch === '(' || ch === '（') {
+        if (stack.pop() !== ch) return name;
+        if (!stack.length) { start = i; break; }
+      }
+    }
+    if (start < 0) return name;
+    const next = text.slice(0, start).trimEnd();
+    if (!next) return subject;
+    name = next;
+  }
+}
+
 /** カタログ全体を検索する。LLM・ネットワークは使わない。 */
 function searchEvidence(claim, options = {}) {
   const { entries, df } = options.catalog || evidenceCatalog();
+  const subjectName = subjectWithoutTrailingParens(claim.subject);
   const rawQuery = [claim.subject, claim.claim, claim.sentence, options.tax_terms].filter(Boolean).join(' ');
   // 読者の呼び方と原文の制度用語をつなぐ。記事や出典番号に依存しない。
   const synonyms = [
@@ -166,7 +190,7 @@ function searchEvidence(claim, options = {}) {
       if (e.titleTokens.has(t)) score += rarity * (subjectTokens.has(t) ? 6 : 3);
     }
     // 詳細事例だけで上位が埋まらないよう、制度名を端的に説明する題名を優先する。
-    if (claim.subject && e.title.includes(claim.subject)) score += 80 * claim.subject.length / e.title.length;
+    if (subjectName && e.title.includes(subjectName)) score += 80 * subjectName.length / e.title.length;
     const ownScore = score;
     const tax = evidenceTax(e);
     if (articleTax && tax && tax !== articleTax && !TAX_WORDS[tax].some(word => claimText.includes(word))) score *= OTHER_TAX_SCORE;
@@ -191,7 +215,7 @@ function searchEvidence(claim, options = {}) {
   };
   // 記事資料の後に制度名だけの検索を足し、主張全体の上位3件も残す。
   own.slice(0, 3).forEach(add);
-  const subjectRanking = claim.subject && rankSources({ tax_domain: options.tax_domain, tax_terms: claim.subject },
+  const subjectRanking = subjectName && rankSources({ tax_domain: options.tax_domain, tax_terms: subjectName },
     { allCategories: !TAX_CATEGORY_CODES[options.tax_domain], limit: 1 });
   if (subjectRanking?.errorCode) throw new Error('制度名の検索用カタログを読めませんでした');
   const subjectTop = subjectRanking?.top1?.score > 0 && scored.find(r => r.e.url === subjectRanking.top1.url);

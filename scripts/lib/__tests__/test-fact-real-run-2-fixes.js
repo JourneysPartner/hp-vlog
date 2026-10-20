@@ -84,7 +84,7 @@ async function main() {
       assert.equal(payload.claims.length, 10);
       for (const c of payload.claims) { assert.deepEqual(c.evidence_ids, [1]); assert.equal(c.evidence, undefined); }
       assert.equal(JSON.parse(request.user).evidence, undefined);
-      assert.match(request.system, /evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。/);
+      assert.match(request.system, /evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。/);
       return missing(request);
     }, { now });
   });
@@ -145,7 +145,7 @@ async function main() {
       calls++;
       const payload = readPayload(request);
       current += request.system.length + request.user.length;
-      const oldSystem = request.system.replace('evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。', '');
+      const oldSystem = request.system.replace('evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。', '');
       const oldClaims = payload.claims.map(c => ({ ...claims.find(row => row.id === c.id), evidence: shared }));
       previous += oldSystem.length + JSON.stringify({ today: payload.today, body, claims: oldClaims }).length;
       return missing(request);

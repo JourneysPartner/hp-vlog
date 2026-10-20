@@ -240,9 +240,9 @@ test('V3', '年だけの要約でも候補内資料から確認できた110万�
   assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['令和6年1月1日', '110万円']);
 });
 
-test('V4', '抜き出しのかっこの後を句点で区切る', async () => {
+test('V4', '抜き出しの種類の説明の後を句点で区切る', async () => {
   await F.extractClaims(dated, async req => {
-    assert.ok(req.system.includes('条文・通達・タックスアンサー）。s は主張を述べた'));
+    assert.ok(req.system.includes('条文・通達・タックスアンサーのことです。s は主張を述べた'));
     assert.equal(req.maxTokens, 8000); return [];
   }, options);
 });
