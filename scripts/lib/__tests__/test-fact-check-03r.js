@@ -53,12 +53,13 @@ for (const [name, subject, sentence] of [
   const ids = F.searchEvidence(c, { catalog: cat, tax_domain: 'bookkeeping_expenses' }).map(e => e.id);
   assert.ok(ids.includes('law:shotokuzei_rei:102'), JSON.stringify(ids));
 });
-test('R3', '#644: 注の数字と離れた7年を同じページから補う', async () => {
+test('R3', '#644: 離れた7年は補わず、注で確かめた数字だけ保持する', async () => {
   const row = await judge(giftClaim, ref(giftSource), giftBasis);
-  assert.equal(row.status, '裏付けあり');
-  assert.equal(row.basis_added, '1');
-  assert.equal(row.basis, `1,${giftBasis}`);
-  assert.equal(row.quote, giftUnits[0].text + '\n…\n' + giftUnits.at(-1).text);
+  assert.equal(row.status, '資料なし');
+  assert.deepEqual(row.supported_numbers, ['3年', '100万円']);
+  assert.equal(Object.hasOwn(row, 'basis_added'), false);
+  assert.equal(row.quote, '');
+  assert.equal(row.rejected_answer.basis, giftBasis);
 });
 
 test('R1', '法人の語・記事税目なし・未知なら従来の順位を保つ', () => {
@@ -171,7 +172,7 @@ test('R2', 'Jaccardの境界0.9で重複を除き、7件を超えない', () => 
   assert.equal(F.searchEvidence(c, { catalog: cat, source_bundle: entries.map(e => e.id).join(';') }).length, 7);
 });
 
-test('R3', '補完した引用を差分照合・レビュー画面・公開監査で使える', async () => {
+test('R3', '保持数字を差分照合で使い回し、LLMの2範囲はレビュー・監査で表示する', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03r-'));
   const opts = { ...options, recordDir: dir, repair: false, searchEvidence: () => [ref(giftSource)],
     callLLM: async req => req.task === 'extract' ? [...req.user.matchAll(/^\[(\d+)\] (.*)$/gm)].filter(m => m[2] === giftClaim.sentence)
@@ -181,12 +182,17 @@ test('R3', '補完した引用を差分照合・レビュー画面・公開監�
     const before = raw(giftClaim.sentence), result = await F.checkArticle(before, opts);
     const next = await F.checkArticle(raw(giftClaim.sentence + '\n案内を追記します。'), { ...opts, previousRaw: before, persist: false });
     assert.equal(next.record.incremental.reused, 1);
-    assert.equal(next.record.claims[0].basis_added, '1');
+    assert.equal(next.record.claims[0].status, '資料なし');
+    assert.deepEqual(next.record.claims[0].supported_numbers, ['3年', '100万円']);
+    assert.equal(Object.hasOwn(next.record.claims[0], 'basis_added'), false);
     const page = require('../../../netlify/functions/review-page'), audit = require('../../audit-published-facts');
-    const finding = { ...result.record.claims[0], status: '食い違い' };
+    const quoted = await judge(giftClaim, ref(giftSource), `1,${giftBasis}`);
+    assert.equal(quoted.status, '裏付けあり');
+    assert.equal(quoted.quote, giftUnits[0].text + '\n…\n' + giftUnits.at(-1).text);
+    const finding = { ...quoted, status: '食い違い' };
     const record = { ...result.record, status: 'revise', claims: [finding], remaining: [finding] };
     const html = page.renderReviewPage('2026-10-20-fact-03r.md', { slug: 'fact-03r' }, '<p>本文</p>', 'main', null, record);
-    for (const part of F.quoteParts(result.record.claims[0].quote)) assert.ok(html.includes(part));
+    for (const part of F.quoteParts(quoted.quote)) assert.ok(html.includes(part));
     assert.equal((audit.renderReport([record]).match(/根拠の抜粋:/g) || []).length, 2);
     const file = F.recordPath('fact-03r', dir), prior = JSON.parse(fs.readFileSync(file, 'utf8'));
     prior.logic_version = '03o'; fs.writeFileSync(file, JSON.stringify(prior));
@@ -237,17 +243,21 @@ test('R3', '判定に見せないページ外と別資料は探さない', async
     async () => [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }], options);
   assert.equal(rows[0].status, '資料なし');
 });
-test('R3', '距離の小さい文を選び、同距離なら前の文にする', async () => {
+test('R3', '距離や同距離の並びによらず他の文を追加しない', async () => {
   const source = ['生前贈与加算は7年以内です。', ...filler, giftUnits.at(-1).text, ...filler,
     '生前贈与加算の期間は7年以内となります。'].join('\n');
   const units = U.splitUnits(source, { material: true }), basis = String(units.find(u => u.text.startsWith('（注）')).s);
   const row = await judge(giftClaim, ref(source), basis);
-  assert.equal(row.basis_added, '1');
+  assert.equal(row.status, '資料なし');
+  assert.deepEqual(row.supported_numbers, ['3年', '100万円']);
+  assert.equal(Object.hasOwn(row, 'basis_added'), false);
   const nearerSource = ['生前贈与加算は7年以内です。', ...filler, ...filler, giftUnits.at(-1).text, ...filler,
     '生前贈与加算の期間は7年以内となります。'].join('\n');
   const nearerUnits = U.splitUnits(nearerSource, { material: true });
   const nearer = await judge(giftClaim, ref(nearerSource), String(nearerUnits.find(u => u.text.startsWith('（注）')).s));
-  assert.equal(nearer.basis_added, String(nearerUnits.at(-1).s));
+  assert.equal(nearer.status, '資料なし');
+  assert.deepEqual(nearer.supported_numbers, ['3年', '100万円']);
+  assert.equal(Object.hasOwn(nearer, 'basis_added'), false);
 });
 test('R3', '補完後も要約と本文・読めない数字の確かめを省かない', async () => {
   const invented = { ...giftClaim, sentence: giftClaim.sentence.replace('7年', '8年') };
@@ -258,12 +268,11 @@ test('R3', '補完後も要約と本文・読めない数字の確かめを省�
   const badSource = '計算式は0分の1です。\n' + giftSource;
   assert.equal((await judge(giftClaim, ref(badSource), String(U.splitUnits(badSource, { material: true }).at(-1).s))).status, '資料なし');
 });
-test('R3', '補完成功を棄却数に含めず、補完できない多数の答えは止める', async () => {
+test('R3', '補完に頼る多数の答えは棄却数に含めて止める', async () => {
   const claims = Array.from({ length: 3 }, (_, i) => ({ ...giftClaim, id: `c${i + 1}` }));
   const evidence = Object.fromEntries(claims.map(c => [c.id, [ref(giftSource)]]));
   const reply = async () => claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: giftBasis }));
-  const rows = await F.judgeClaims(claims, evidence, giftClaim.sentence, reply, options);
-  assert.ok(rows.every(r => r.status === '裏付けあり'));
+  await assert.rejects(() => F.judgeClaims(claims, evidence, giftClaim.sentence, reply, options), /答えの多くが確認を通りません/);
   await assert.rejects(() => F.judgeClaims(claims.map(c => ({ ...c, subject: '住宅特例' })), evidence, giftClaim.sentence, reply, options), /答えの多くが確認を通りません/);
 });
 
@@ -360,9 +369,12 @@ test('R5', '本文フォールバック・correct・範囲を絞る救済にも�
   const noNumber = { ...c, claim: '書類の保存期間は定められています（No.2080）。', sentence: '書類の保存期間は定められています（No.2080）。' };
   assert.equal((await judge(noNumber, ref(source, '2080'), '1-3')).status, '裏付けあり');
 });
-test('R5', 'R3とR4でも根拠自身の番号だけを除く', async () => {
+test('R5', 'R4の保持数字でも根拠自身の番号だけを除く', async () => {
   const c = { ...giftClaim, claim: giftClaim.claim + '（No.4161）', sentence: giftClaim.sentence + '（No.4161）' };
-  assert.equal((await judge(c, ref(giftSource), giftBasis)).status, '裏付けあり');
+  const gift = await judge(c, ref(giftSource), giftBasis);
+  assert.equal(gift.status, '資料なし');
+  assert.deepEqual(gift.supported_numbers, ['3年', '100万円']);
+  assert.equal(Object.hasOwn(gift, 'basis_added'), false);
   const w = { ...wedding, claim: wedding.claim + '（No.4511）', sentence: wedding.sentence + '（No.4511）' };
   const row = await judge(w, weddingRef, '1');
   assert.deepEqual(row.supported_numbers, ['1,000万円']);

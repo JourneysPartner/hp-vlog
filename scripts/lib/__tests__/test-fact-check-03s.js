@@ -32,14 +32,12 @@ for (const [name, sentence] of [
   assert.equal(row.status, '資料なし', `status=${row.status}, basis_added=${row.basis_added}`);
   assert.equal(row.basis_added, undefined);
 });
-test('S1', '本物のTA4161: 正しい100万円・7年は定義の文6か8で補完する', async () => {
+test('S1', '本物のTA4161: 正しい100万円・7年も補完せず保持数字だけ残す', async () => {
   const row = await judge(claim('相続開始前3年超7年以内の贈与分は総額100万円まで加算対象外です。'), source4161, String(note4161.s));
-  assert.equal(row.status, '裏付けあり');
-  assert.ok(['6', '8'].includes(row.basis_added), `basis_added=${row.basis_added}`);
-  const added = units4161.find(u => String(u.s) === row.basis_added);
-  assert.ok(added.text.includes('加算対象期間') && added.text.includes('7年以内'));
-  assert.ok(!/具体例|根拠法令等|相基通/.test(added.text));
-  console.log(`TA4161の追加根拠: 文${row.basis_added}`);
+  assert.equal(row.status, '資料なし');
+  assert.deepEqual(row.supported_numbers, ['3年', '100万円']);
+  assert.equal(Object.hasOwn(row, 'basis_added'), false);
+  assert.equal(row.quote, ''); assert.equal(row.rejected_answer.basis, String(note4161.s));
 });
 
 const filler = Array(5).fill('中間の説明を確認しています'.repeat(15) + '。');
@@ -67,16 +65,19 @@ for (const [name, c, candidate] of [
   assert.equal(row.status, '資料なし'); assert.equal(row.basis_added, undefined);
   assert.deepEqual(row.supported_numbers, ['100万円']);
 });
-for (const candidate of ['贈与加算の対象期間は七年です。', '贈与加算の対象期間は７年です。']) test('S1', '同じ単位の漢数字・全角数字は文脈一致なら補完する', async () => {
+for (const candidate of ['贈与加算の対象期間は七年です。', '贈与加算の対象期間は７年です。']) test('S1', '同じ単位の漢数字・全角数字も別の文から補完しない', async () => {
   const row = await supplement(period, candidate);
-  assert.equal(row.status, '裏付けあり'); assert.equal(row.basis_added, '1');
+  assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['100万円']);
+  assert.equal(Object.hasOwn(row, 'basis_added'), false);
 });
 for (const [sentence, candidate] of [
   ['贈与加算の対象期間は7か月、控除は100万円です。', '贈与加算の対象期間は七ヶ月です。'],
   ['贈与加算の対象割合は20%、控除は100万円です。', '贈与加算の対象割合は20パーセントです。'],
   ['贈与加算の開始日は令和8年4月1日、控除は100万円です。', '贈与加算の開始日は令和8年4月1日です。'],
-]) test('S1', '同じ月数・割合・日付と前後の語を確かめる', async () => {
-  assert.equal((await supplement(claim(sentence), candidate)).status, '裏付けあり');
+]) test('S1', '同じ月数・割合・日付でも別の文から補完しない', async () => {
+  const row = await supplement(claim(sentence), candidate);
+  assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['100万円']);
+  assert.equal(Object.hasOwn(row, 'basis_added'), false);
 });
 for (const marker of ['計算例', '具体例', '設例', '事例', '例えば', '〔例〕', '（例）']) test('S1', `${marker}の次の文も同じ節なら探さない`, async () => {
   const row = await supplement(period, `${marker}を説明します。\n贈与加算の対象期間は7年です。`);
@@ -87,10 +88,10 @@ test('S1', '300字で切った断片の先頭の番号を節の見出しにし�
   assert.equal(row.status, '資料なし'); assert.equal(row.basis_added, undefined);
 });
 for (const boundary of ['\n\n', '\n【対象期間】\n', '\n（参考）\n', '\n《対象期間》\n', '\n1 対象期間\n', '\n(1) 対象期間\n']) {
-  test('S1', '例の節は空行・見出しで終わり、その後の定義を使える', async () => {
+  test('S1', '例の節の後に定義があっても補完しない', async () => {
     const row = await supplement(period, '具体例を説明します。' + boundary + '贈与加算の対象期間は7年です。');
-    assert.equal(row.status, '裏付けあり');
-    assert.ok(!F.quoteParts(row.quote)[0].includes('具体例'));
+    assert.equal(row.status, '資料なし'); assert.deepEqual(row.supported_numbers, ['100万円']);
+    assert.equal(Object.hasOwn(row, 'basis_added'), false); assert.equal(row.quote, '');
   });
 }
 for (const candidate of ['贈与加算の対象期間は7年です 根拠法令等 相基通19-7',
@@ -215,8 +216,8 @@ function taxRef(code, extra = {}) {
   return ref('対象確認についての取扱いです。', { id: code, no: '9999', title: '対象確認',
     url: `https://www.nta.go.jp/taxes/shiraberu/taxanswer/${code}/9999.htm`, ...extra });
 }
-test('S5', '相続の記事でも空き家・取得費加算・譲渡の資料を下げない', () => {
-  for (const word of ['空き家の3,000万円', '取得費加算', '譲渡']) {
+test('S5', '相続の記事でも空き家・取得費加算・譲渡所得の資料を下げない', () => {
+  for (const word of ['空き家の3,000万円', '取得費加算', '譲渡所得']) {
     const c = claim(`${word}の対象確認をします。`, { subject: '対象確認', type: '判定' }), cat = catalog([taxRef('joto')]);
     assert.deepEqual(F.searchEvidence(c, { catalog: cat, tax_domain: 'inheritance_tax' }), F.searchEvidence(c, { catalog: cat }));
   }

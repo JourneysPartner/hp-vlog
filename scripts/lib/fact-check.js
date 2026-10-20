@@ -363,79 +363,7 @@ function partialQuoteNumbers(claim, grounded, ref) {
   const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref));
   const missing = numbers.filter(n => !supported.includes(n));
   if (!supported.length || !missing.length) return null;
-  return { missing, text: summary.length ? checked.claim : checked.sentence,
-    forms: supportedNumberForms(summary.length ? claim.claim : claim.sentence, ref, supported) };
-}
-
-const NUMBER_CONTEXT_STOP_WORDS = new Set(['万円', '億円', '以内', '以下', '以上', '未満', 'まで', '金額']);
-function numberContextWords(text, form) {
-  return new Set([...tokenizeForMatcher(text.slice(Math.max(0, form.start - 10), form.start) + ' ' + text.slice(form.end, form.end + 6))]
-    .filter(word => !/^\d+$/.test(word) && !NUMBER_CONTEXT_STOP_WORDS.has(word)));
-}
-
-// 2か所目だけを厳しく絞る。単位なし・条文番号・通達番号・括弧の列挙は裏付けにしない。
-function numberBasisForms(text, ref) {
-  text = withoutAsOfDates(numberCheckText(text, ref));
-  const forms = [], numbers = normalizedNumbers(text, undefined, forms);
-  if (numbers.includes(null)) return [];
-  return forms.map(f => {
-    const before = text.slice(0, f.start), after = text.slice(f.end);
-    const usable = !/(?:法|令|規|通|条|項|号|の|コード|[‐\-−])$/.test(before) && !/^(?:条|項|号|の|[‐\-−])/.test(after) &&
-      !(/[（(]$/.test(before) && /^[)）]/.test(after));
-    const spelling = text.slice(f.start, f.end);
-    const values = normalizedNumbers(spelling);
-    const unit = f.number?.startsWith('日付:') ? '日付' : spelling.match(/(?:億円|万円|円|年|歳|か月|ヶ月|カ月|ケ月|箇月|月|日|%|パーセント|割(?:[0-9〇零一二三四五六七八九十百千]+分)?)$/)?.[0];
-    return { ...f, usable: usable && values.length === 1 && values[0] === f.number,
-      unit: unit?.replace(/^(?:ヶ月|カ月|ケ月|箇月)$/, 'か月').replace(/^パーセント$/, '%').replace(/^割.*$/, '割'), words: numberContextWords(text, f) };
-  });
-}
-
-// 原文が平文化されている場合も、番号付きの文頭を節の境界として扱う。
-// 範囲を調べるだけで、ここから判定に見せていない文を候補に足すことはない。
-function excludedNumberBasisRanges(source) {
-  const units = splitUnits(source, { material: true });
-  const sentenceStarts = new Set(splitUnits(source).map(u => u.start));
-  const heading = /^(?:#{1,6}\s|【[^】]+】|（参考）|《[^》]+》|[0-9０-９]+\s|[（(][0-9０-９]+[)）])/;
-  const boundaries = [...source.matchAll(/\r?\n[^\S\n]*\r?\n/g)].map(m => m.index + m[0].length);
-  // 300字で切れた断片の文頭は、平文化された見出しとはみなさない。
-  for (const u of units) if (heading.test(u.text) && sentenceStarts.has(u.start)) boundaries.push(u.start);
-  boundaries.sort((a, b) => a - b);
-  const excluded = [];
-  const lawAt = source.indexOf('根拠法令等');
-  if (lawAt >= 0) excluded.push([units.find(u => u.start <= lawAt && u.end > lawAt)?.start ?? lawAt, source.length]);
-  for (const m of source.matchAll(/計算例|具体例|設例|事例|例えば|〔例〕|（例）/g)) {
-    const u = units.find(u => u.start <= m.index && u.end > m.index);
-    if (u) excluded.push([u.start, boundaries.find(at => at >= u.end) ?? source.length]);
-  }
-  return excluded;
-}
-
-function completeNumberBasis(claim, page, ranges, citations, partial) {
-  const subject = [...tokenizeForMatcher(claim.subject)];
-  if (!subject.length) return null;
-  const required = numberBasisForms(partial.text, page.ref).filter(f => partial.missing.includes(f.number));
-  if (required.some(f => !f.usable || !f.unit) || !partial.missing.every(n => required.some(f => f.number === n))) return null;
-  const excluded = excludedNumberBasisRanges(page.source);
-  const cited = page.units.filter(u => u.start >= citations[0].start && u.end <= citations[0].end);
-  const distance = u => Math.min(...cited.map(c => Math.abs(c.s - u.s)));
-  const candidates = page.units.filter(u => {
-    if (cited.includes(u) || excluded.some(([from, to]) => u.start < to && u.end > from)) return false;
-    // 2か所目は、その文の中だけで不足する数字を全て裏付ける。基準日は数えない。
-    const forms = numberBasisForms(u.text, page.ref).filter(f => f.usable && f.unit);
-    const words = tokenizeForMatcher(u.text);
-    return required.every(wanted => forms.some(found => wanted.unit === found.unit &&
-      (wanted.number === found.number || (/^日付:[^-]+$/.test(wanted.number) && found.number.startsWith(wanted.number + '-'))) &&
-      [...wanted.words].some(word => found.words.has(word)))) &&
-      subject.some(t => words.has(t));
-  }).sort((a, b) => distance(a) - distance(b) || a.s - b.s);
-  const added = candidates[0];
-  if (!added) return null;
-  const bases = [ranges[0], String(added.s)].sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
-  const parts = bases.map(b => rangeText(page.source, page.units, b, 2));
-  if (parts.some(p => !p)) return null;
-  const quote = parts.map(p => p.text).join('\n…\n');
-  if (!quoteExists(quote, page.ref) || !sufficientQuote(claim, { quote }, page.ref, '裏付けあり')) return null;
-  return { quote, basis: bases.map(b => b.replace(/^(\d+)-\1$/, '$1')).join(','), basis_added: String(added.s) };
+  return { forms: supportedNumberForms(claim.sentence, ref, supported) };
 }
 
 function isScenarioAmount(c) {
@@ -661,22 +589,19 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         });
         if (rescued) { citations = rescued; tooMany = false; }
       }
-      let quote = joinQuotes(citations), completed = null, supportedNumbers = null;
+      const quote = joinQuotes(citations);
+      let supportedNumbers = null;
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
       if (status !== '資料なし') {
-        let rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
+        const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
           : tooMany ? '数字の主張の根拠が2文を超える'
           : !quoteExists(quote, ref) ? '引用が資料に無い'
             : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
         if (status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) && rejected === '引用が短い・数字が引用の近くに無い') {
           const partial = partialQuoteNumbers(c, grounded, ref);
-          if (partial) {
-            if (ranges.length === 1) completed = completeNumberBasis(c, page, ranges, citations, partial);
-            if (completed) { quote = completed.quote; rejected = ''; }
-            else if (partial.forms.length) supportedNumbers = partial.forms;
-          }
+          if (partial?.forms.length) supportedNumbers = partial.forms;
         }
         if (rejected) { status = '資料なし'; reason = rejected; }
       }
@@ -697,7 +622,6 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
-        ...(completed || {}),
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
         ...(reason ? { reject_reason: reason } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
@@ -1066,7 +990,7 @@ async function checkFacts(body, options = {}) {
         // 数字を残した一般化は、その置き換え自身の数字が再照合で裏付けられたときだけ解決する。
         for (const c of record.corrections) if (c.status === '資料なし' && c.supported_numbers?.length) {
           const required = c.supported_numbers.flatMap(n => normalizedNumbers(n));
-          const supported = record.rechecked.filter(r => r.status === '裏付けあり' && normalizedClaim(r.sentence) &&
+          const supported = record.rechecked.filter(r => r.status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(r.type) && normalizedClaim(r.sentence) &&
             normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))).flatMap(r => {
             const summary = normalizedNumbers(r.claim), sentence = normalizedNumbers(r.sentence);
             return summary.filter(n => n !== null && sentence.includes(n));
