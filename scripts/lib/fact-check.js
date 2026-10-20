@@ -117,9 +117,13 @@ function normalizedRatio(numerator, denominator, { negative = false, percentage 
   return `割合:${top / a}/${bottom / a}`;
 }
 
-function normalizedNumbers(text, range) {
+function normalizedNumbers(text, range, forms) {
   const normalized = normalizedQuote(text).replace(/(令和|平成|昭和)元年/g, '$11年');
   const numbers = [];
+  const add = (number, start, end) => {
+    numbers.push(number);
+    if (forms) forms.push({ number, start, end });
+  };
   const digits = '[0-9〇零一二三四五六七八九十百千]+';
   const dates = `(?<!分の)(?<![0-9〇零一二三四五六七八九十百千万億.,])(?:(?:(令和|平成|昭和|大正|明治)(元|${digits})年(?!間)|([0-9]{4})年(?!間))(?:(${digits})月(?:(${digits})日)?)?|(${digits})月(${digits})日)`;
   const tokens = new RegExp(`${dates}|[0-9〇零一二三四五六七八九十百千万億]+(?:,[0-9]{3})*(?:\\.[0-9]+)?(?:[万億][0-9〇零一二三四五六七八九十百千万億]*(?:,[0-9]{3})*(?:\\.[0-9]+)?)*`, 'g');
@@ -132,7 +136,7 @@ function normalizedNumbers(text, range) {
       const read = value => value === '元' ? '1' : normalizedNumbers(`第${value}`)[0];
       const year = match[1] ? match[1] + read(match[2]) : match[3] || '';
       const month = match[4] || match[6], day = match[5] || match[7];
-      numbers.push(`日付:${year}${month ? '-' + read(month) : ''}${day ? '-' + read(day) : ''}`);
+      add(`日付:${year}${month ? '-' + read(month) : ''}${day ? '-' + read(day) : ''}`, match.index, match.index + match[0].length);
       continue;
     }
     const value = match[0];
@@ -172,9 +176,9 @@ function normalizedNumbers(text, range) {
       if (bu) {
         const n = BigInt(ratio.split(':')[1].split('/')[0]), d = BigInt(ratio.split('/')[1]);
         const b = normalizedRatio(bu, '100').split(':')[1].split('/').map(BigInt);
-        numbers.push(normalizedRatio(String(n * b[1] + b[0] * d), String(d * b[1]), { negative }));
+        add(normalizedRatio(String(n * b[1] + b[0] * d), String(d * b[1]), { negative }), match.index - Number(negative), end);
         i++;
-      } else numbers.push(negative ? normalizedRatio(value, '10', { negative }) : ratio);
+      } else add(negative ? normalizedRatio(value, '10', { negative }) : ratio, match.index - Number(negative), end);
       continue;
     }
     if (fraction || percent) {
@@ -186,7 +190,7 @@ function normalizedNumbers(text, range) {
         percentage: fraction && Boolean(nextPercent),
       });
       if (ratio === null) return [null];
-      numbers.push(ratio);
+      add(ratio, match.index - Number(/[-−]$/.test(prefix)), end);
       if (fraction) i++;
       continue;
     }
@@ -208,7 +212,7 @@ function normalizedNumbers(text, range) {
     }
     const number = total + section + num;
     // 桁数が大きく正確に揃えられない数は、丸めて一致させない。
-    numbers.push(Number.isFinite(number) && Math.abs(number) <= Number.MAX_SAFE_INTEGER ? String(number) : value);
+    add(Number.isFinite(number) && Math.abs(number) <= Number.MAX_SAFE_INTEGER ? String(number) : value, match.index, end);
   }
   return numbers;
 }
@@ -219,7 +223,8 @@ function sufficientQuote(claim, result, ref, status) {
   const wholeSentence = evidenceTexts(ref).some(text => sentenceRows(text).some(s => parts.includes(normalizedQuote(s.trim())) && /。$/.test(s.trim()) && s.trim() !== '。'));
   if (parts.join('').length < 15 && !wholeSentence) return false;
   if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
-    let numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : result.correct);
+    claim = numberCheckClaim(claim, ref);
+    let numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : numberCheckText(result.correct, ref));
     if (status === '裏付けあり') {
       const sentenceNumbers = normalizedNumbers(claim.sentence);
       // 要約だけで数字が書き換わった主張を通さず、要約に数字が無ければ原文を照合する。
@@ -259,9 +264,7 @@ function quoteSupportsNumbers(numbers, result, ref) {
       const quoted = normalizedNumbers(normalized, [from, to]);
       if (quoted.includes(null)) continue;
       // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
-      const dateDigits = '[0-9〇零一二三四五六七八九十百千]+';
-      const asOf = new RegExp(`(?:(?:令和|平成|昭和|大正|明治)(?:元|${dateDigits})|[0-9]{4})年(?:${dateDigits}月(?:${dateDigits}日)?)?現在(?:法令等)?`, 'g');
-      const dates = normalizedNumbers(quote.replace(asOf, ''));
+      const dates = normalizedNumbers(withoutAsOfDates(quote));
       supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
     }
   }
@@ -311,6 +314,75 @@ function normalizedQuote(text) {
   // 互換文字（①→1等）は別の意味を持つため、文字幅と空白だけを揃える。
   return String(text || '').replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
     .replace(/[｡-ﾟ]+/g, s => s.normalize('NFKC')).replace(/\s+/g, '');
+}
+
+// 数字の確認だけで、根拠自身のタックスアンサー番号を除く。番号の主張は従来どおり。
+function ownTaxAnswerCitations(text, ref) {
+  if (ref?.kind !== 'taxanswer' || !/^\d{4}$/.test(String(ref.no))) return [];
+  return [...text.matchAll(/(?:No\.?|タックスアンサー(?:No\.?)?|TA)(\d{4})(?!\d)/gi)].filter(m => m[1] === String(ref.no));
+}
+function numberCheckText(text, ref) {
+  let normalized = normalizedQuote(text);
+  for (const m of ownTaxAnswerCitations(normalized, ref).reverse()) normalized = normalized.slice(0, m.index) + normalized.slice(m.index + m[0].length);
+  return normalized;
+}
+function numberCheckClaim(claim, ref) {
+  return claim.type === '番号' ? claim : { ...claim, claim: numberCheckText(claim.claim, ref), sentence: numberCheckText(claim.sentence, ref) };
+}
+function withoutAsOfDates(text) {
+  const digits = '[0-9〇零一二三四五六七八九十百千]+';
+  return text.replace(new RegExp(`(?:(?:令和|平成|昭和|大正|明治)(?:元|${digits})|[0-9]{4})年(?:${digits}月(?:${digits}日)?)?現在(?:法令等)?`, 'g'), '');
+}
+
+// 元の表記と位置を保持する。数字の読み方自体は normalizedNumbers に共通化する。
+function supportedNumberForms(text, ref, supported) {
+  const positions = [];
+  let normalized = '';
+  for (const m of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+    const part = normalizedQuote(m[0]);
+    normalized += part;
+    for (let i = 0; i < part.length; i++) positions.push([m.index, m.index + m[0].length]);
+  }
+  const forms = [], citations = ownTaxAnswerCitations(normalized, ref);
+  normalizedNumbers(normalized, undefined, forms);
+  return [...new Set(forms.filter(f => supported.includes(f.number) &&
+    !citations.some(m => f.start >= m.index && f.end <= m.index + m[0].length)).map(f =>
+    text.slice(positions[f.start][0], positions[f.end - 1][1])).filter(form =>
+    normalizedNumbers(form).every(n => supported.includes(n))))];
+}
+
+function partialQuoteNumbers(claim, grounded, ref) {
+  const checked = numberCheckClaim(claim, ref);
+  const summary = normalizedNumbers(checked.claim);
+  const numbers = summary.length ? summary : normalizedNumbers(checked.sentence);
+  if (!numbers.length || numbers.includes(null)) return null;
+  const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref));
+  const missing = numbers.filter(n => !supported.includes(n));
+  if (!supported.length || !missing.length) return null;
+  return { missing, forms: supportedNumberForms(summary.length ? claim.claim : claim.sentence, ref, supported) };
+}
+
+function completeNumberBasis(claim, page, ranges, citations, partial) {
+  const subject = [...tokenizeForMatcher(claim.subject)];
+  if (!subject.length) return null;
+  const cited = page.units.filter(u => u.start >= citations[0].start && u.end <= citations[0].end);
+  const distance = u => Math.min(...cited.map(c => Math.abs(c.s - u.s)));
+  const candidates = page.units.filter(u => !cited.includes(u) && (() => {
+    // 2か所目は、その文の中だけで不足する数字を全て裏付ける。基準日は数えない。
+    const text = withoutAsOfDates(numberCheckText(u.text, page.ref)), numbers = normalizedNumbers(text);
+    const words = tokenizeForMatcher(u.text);
+    return !numbers.includes(null) && partial.missing.every(n => numbers.includes(n) ||
+      (/^日付:[^-]+$/.test(n) && numbers.some(d => d?.startsWith(n + '-')))) &&
+      subject.some(t => words.has(t));
+  })()).sort((a, b) => distance(a) - distance(b) || a.s - b.s);
+  const added = candidates[0];
+  if (!added) return null;
+  const bases = [ranges[0], String(added.s)].sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
+  const parts = bases.map(b => rangeText(page.source, page.units, b, 2));
+  if (parts.some(p => !p)) return null;
+  const quote = parts.map(p => p.text).join('\n…\n');
+  if (!quoteExists(quote, page.ref) || !sufficientQuote(claim, { quote }, page.ref, '裏付けあり')) return null;
+  return { quote, basis: bases.map(b => b.replace(/^(\d+)-\1$/, '$1')).join(','), basis_added: String(added.s) };
 }
 
 function isScenarioAmount(c) {
@@ -401,7 +473,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = '03o';
+const LOGIC_VERSION = '03r';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -528,22 +600,31 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         const combinations = choices.length === 1 ? choices[0].map(c => [c]) : choices[0].flatMap(a => choices[1].map(b => [a, b]));
         const rescued = combinations.find(parts => {
           const grounded = { correct: correct ?? '', quote: joinQuotes(parts) };
-          const numbers = normalizedNumbers(status === '裏付けあり' ? c.claim : correct);
-          if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(c.sentence));
+          const checked = numberCheckClaim(c, page.ref);
+          const numbers = normalizedNumbers(status === '裏付けあり' ? checked.claim : c.type === '番号' ? correct : numberCheckText(correct, page.ref));
+          if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(checked.sentence));
           return quoteExists(grounded.quote, page.ref) && sufficientQuote(c, grounded, page.ref, status) &&
-            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref) : status !== '裏付けあり' || !isNumericClaim(c));
+            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref) : status !== '裏付けあり' || !isNumericClaim(checked));
         });
         if (rescued) { citations = rescued; tooMany = false; }
       }
-      const quote = joinQuotes(citations);
+      let quote = joinQuotes(citations), completed = null, supportedNumbers = null;
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
       if (status !== '資料なし') {
-        const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
+        let rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
           : tooMany ? '数字の主張の根拠が2文を超える'
           : !quoteExists(quote, ref) ? '引用が資料に無い'
             : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
+        if (status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) && rejected === '引用が短い・数字が引用の近くに無い') {
+          const partial = partialQuoteNumbers(c, grounded, ref);
+          if (partial) {
+            if (ranges.length === 1) completed = completeNumberBasis(c, page, ranges, citations, partial);
+            if (completed) { quote = completed.quote; rejected = ''; }
+            else if (partial.forms.length) supportedNumbers = partial.forms;
+          }
+        }
         if (rejected) { status = '資料なし'; reason = rejected; }
       }
       if (r && STATUSES.includes(r.status) && r.status !== '資料なし') {
@@ -563,6 +644,8 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
+        ...(completed || {}),
+        ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
         ...(reason ? { reject_reason: reason } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
           status: r.status, evidence: pages.find(p => p.number === evidenceNo)?.id || r.evidence_id,
@@ -684,10 +767,12 @@ function preservesOtherText(before, after, findings) {
 
 function repairInstructions(findings) {
   return findings.map(f => ({ ...f,
+    ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
     instruction: f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
       f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
-          '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す',
+          '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
+          (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : ''),
   }));
 }
 
@@ -719,11 +804,11 @@ function correctionPairs(before, after, findings, replacements) {
 
 async function repairBody(body, findings, callLLM, options = {}) {
   const units = splitUnits(body);
-  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction, keep = [] }) => {
+  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction, keep = [], keep_numbers }) => {
     const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
-      status, type, correct, quote, instruction, keep };
+      status, type, correct, quote, instruction, keep, ...(keep_numbers ? { keep_numbers } : {}) };
   });
   const ret = await callLLM({ task: 'repair', maxTokens: 8000,
     system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。',
@@ -751,7 +836,8 @@ async function repairBody(body, findings, callLLM, options = {}) {
     if (!reason && f.status === '資料なし') {
       const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
       const keep = f.keep || [];
-      const keepNumbers = keep.flatMap(c => normalizedNumbers(c.claim)).filter(n => originalNumbers.includes(n));
+      const keepNumbers = [...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))]
+        .filter(n => originalNumbers.includes(n));
       const removeNumbers = normalizedNumbers(f.claim).filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
       if (originalNumbers.includes(null) && keep.length) reason = '数字を読めないため確かめられません';
       else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
