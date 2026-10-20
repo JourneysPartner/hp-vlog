@@ -995,7 +995,7 @@ async function checkFacts(body, options = {}) {
       || { id: answer.evidence, title: answer.title || String(answer.evidence), url: answer.url || '' };
     addReviewItem({ ...c, status: `段Aの${answer.status}を要確認（段Bは裏付けあり）`,
       evidence: [ref], quote: '', evidence_id: '',
-      review_reason: '段Aの食い違い・期限の書き漏れは確認で落ち、段Bで裏付けあり' });
+      review_reason: '段Aは食い違い・期限の書き漏れ、段Bで裏付けあり' });
   };
   const matchesCorrection = (f, c, pairs) => f.subject === c.subject || Boolean(normalizedClaim(c.sentence) && normalizedClaim(pairs.get(f.sentence) || '').includes(normalizedClaim(c.sentence)));
   const analyze = async (text, fullBody, findings = [], pairs = new Map(), previous = null) => {
@@ -1078,8 +1078,11 @@ async function checkFacts(body, options = {}) {
     const stageB = retry.size ? await judgeStage('B', claims.filter(c => retry.has(c.id)), candidates, stageBCache) : [];
     for (const c of stageB) {
       const previous = stageA.find(a => a.id === c.id);
-      if (c.status === '裏付けあり' && ['食い違い', '期限の書き漏れ'].includes(previous?.rejected_answer?.status)) {
-        const answer = previous.rejected_answer;
+      const answer = ['食い違い', '期限の書き漏れ'].includes(previous?.status)
+        ? { status: previous.status, evidence: previous.evidence_id, quote: previous.quote.slice(0, 200),
+          correct: previous.correct.replace(/\s+/g, ' ').trim().slice(0, 200) }
+        : previous?.rejected_answer;
+      if (c.status === '裏付けあり' && ['食い違い', '期限の書き漏れ'].includes(answer?.status)) {
         const ref = [...previous.evidence, ...[...stageAEvidence.values()].flatMap(refs => refs || []),
           ...(pageCache.groups || []).flatMap(group => group.pack.pages.map(page => page.ref))]
           .find(e => e.id === answer.evidence);
@@ -1286,20 +1289,30 @@ function articleEvidenceOptions(meta) {
 function inheritFactMetadata(original, regenerated) {
   const { data: before } = matter(original);
   const { data: after } = matter(regenerated);
+  const planned = Object.hasOwn(before, 'fact_plan_status');
   const updates = Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('fact_check_')));
   for (const key of ['fact_plan_status', 'fact_plan', 'fact_plan_missing', 'fact_materials']) {
     if (before[key] !== undefined) updates[key] = before[key];
   }
-  if (before.fact_materials && after.fact_materials) updates.fact_materials = [...new Set([...String(before.fact_materials).split(';'), ...String(after.fact_materials).split(';')])].filter(Boolean).join(';');
+  if (before.fact_materials && after.fact_materials) {
+    const recorded = String(before.fact_materials).split(';');
+    const added = String(after.fact_materials).split(';').filter(id => !planned || recorded.includes(id) || resolveWriterMaterials([id]).length);
+    updates.fact_materials = [...new Set([...recorded, ...added])].filter(Boolean).join(';');
+  }
   if (before.fact_check_version) {
     const previousWarning = String(before.review_warning || '');
     const addedWarning = String(after.review_warning || '').replace(WARNING_RE, '').replace(/(?:\s*\/\s*)+$/, '').trim();
-    const addedOtherWarning = addedWarning && !previousWarning.includes(addedWarning);
+    const previousParts = previousWarning.split(' / ').filter(Boolean);
+    const addedParts = addedWarning.split(' / ').filter(Boolean);
+    const addedOtherWarning = planned
+      ? addedParts.some(part => !part.startsWith('計画:') && !previousParts.includes(part))
+      : addedWarning && !previousWarning.includes(addedWarning);
     const newBlocking = after.recommendation === 'reject' ||
       (after.recommendation === 'revise' && (before.recommendation !== 'revise' || addedOtherWarning));
     updates.recommendation = newBlocking ? after.recommendation : before.recommendation || '';
     if (newBlocking) updates.fact_check_prev_recommendation = after.recommendation;
-    updates.review_warning = [previousWarning, addedOtherWarning ? addedWarning : ''].filter(Boolean).join(' / ');
+    updates.review_warning = planned ? [...new Set([...previousParts, ...addedParts])].join(' / ')
+      : [previousWarning, addedOtherWarning ? addedWarning : ''].filter(Boolean).join(' / ');
   } else if (before.recommendation === 'revise' || before.recommendation === 'reject') {
     updates.recommendation = before.recommendation;
   }

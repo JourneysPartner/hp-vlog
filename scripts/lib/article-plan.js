@@ -79,19 +79,26 @@ function mainText(ref, text) {
 }
 
 function materialTax(ref) {
-  return ref.kind === 'qa' ? CATEGORY_TAX[ref.tax_category_code] : evidenceTax(ref);
+  const tax = ref.kind === 'qa' ? CATEGORY_TAX[ref.tax_category_code] : evidenceTax(ref);
+  if (tax || ref.kind !== 'law') return tax;
+  return [
+    ['income', /必要経費|所得税|譲渡所得|事業所得/],
+    ['corporate', /損金|益金|法人/],
+    ['inheritance', /贈与|相続/],
+    ['consumption', /消費税|仕入税額/],
+  ].find(([, pattern]) => pattern.test(ref.title))?.[0];
 }
-function systemTaxes(name, topic) {
+function systemTax(name, topic, candidates) {
   const text = String(name).normalize('NFKC');
-  const explicit = [
-    ['inheritance', /贈与|相続|遺産|遺贈|路線価|財産評価/],
-    ['income', /所得税|源泉|年末調整|譲渡所得/],
-    ['corporate', /法人|会社|役員/],
-    ['consumption', /消費税|インボイス|適格請求書|簡易課税|2割特例|3割特例/],
-  ].filter(([, pattern]) => pattern.test(text)).map(([tax]) => tax);
-  if (explicit.length) return new Set(explicit);
+  const explicit = text.match(/所得税|法人税|消費税|インボイス|適格請求書|相続税|贈与税/)?.[0];
+  if (explicit) return /所得税/.test(explicit) ? 'income' : /法人税/.test(explicit) ? 'corporate'
+    : /相続税|贈与税/.test(explicit) ? 'inheritance' : 'consumption';
   const taxes = new Set((TAX_CATEGORY_CODES[topic.tax_domain] || []).map(code => CATEGORY_TAX[code]).filter(Boolean));
-  return taxes.size === 1 ? taxes : new Set();
+  const articleTax = taxes.size === 1 ? [...taxes][0] : undefined;
+  const titled = candidates.filter(row => row.titleMatch && row.tax);
+  if (articleTax && titled.some(row => row.tax === articleTax && ['taxanswer', 'qa', 'law'].includes(row.ref.kind))) return articleTax;
+  return titled.filter(row => ['taxanswer', 'qa'].includes(row.ref.kind))
+    .sort((a, b) => b.score - a.score || a.ref.id.localeCompare(b.ref.id))[0]?.tax || articleTax;
 }
 const KIND_ORDER = { taxanswer: 0, qa: 1, shitsugi: 2, law: 3, tsutatsu: 3 };
 
@@ -110,18 +117,19 @@ function findSystemMaterials(systems, topic = {}, options = {}) {
   let chars = 0, pages = 0;
   return systems.map(system => {
     const name = String(system.name).normalize('NFKC');
-    const taxes = systemTaxes(name, topic);
     const scores = new Map(scoreEvidence({ subject: name, claim: name },
       { tax_domain: topic.tax_domain, catalog: { entries: scoredEntries, df: evidenceCatalog().df } }).scored.map(row => [row.e.material_id || row.e.id, row.score]));
-    const candidates = entries.map(ref => {
+    const related = entries.map(ref => {
       // 法令・通達は題名に当たるものだけ。本文は採用候補に限って読む。
       const title = relevantMaterial(system.name, ref, '');
       if (['law', 'tsutatsu'].includes(ref.kind) && !title.titleMatch) return null;
       const text = read(ref), related = relevantMaterial(system.name, ref, text);
       const tax = materialTax(ref);
-      if (taxes.size && tax && !taxes.has(tax)) return null;
-      return related.condition ? { ref, text, ...related, score: scores.get(ref.material_id || ref.id) || 0 } : null;
-    }).filter(Boolean).sort((a, b) => Number(b.titleMatch) - Number(a.titleMatch) ||
+      return related.condition ? { ref, text, tax, ...related, score: scores.get(ref.material_id || ref.id) || 0 } : null;
+    }).filter(Boolean);
+    const tax = systemTax(name, topic, related);
+    const candidates = related.filter(row => !tax || !row.tax || row.tax === tax)
+      .sort((a, b) => (tax ? Number(b.tax === tax) - Number(a.tax === tax) : 0) || Number(b.titleMatch) - Number(a.titleMatch) ||
       KIND_ORDER[a.ref.kind] - KIND_ORDER[b.ref.kind] || b.score - a.score || b.occurrences - a.occurrences || a.ref.id.localeCompare(b.ref.id)).slice(0, 2);
     const materials = [], omitted = [];
     for (const row of candidates) {
@@ -134,7 +142,7 @@ function findSystemMaterials(systems, topic = {}, options = {}) {
       const { tokens, titleTokens, lazy, ...ref } = row.ref;
       materials.push({ ...ref, text });
     }
-    return { ...system, materials, missing: candidates.length === 0,
+    return { ...system, tax, materials, missing: candidates.length === 0,
       ...(omitted.length ? { omitted, note: '上限で添付せず' } : {}) };
   });
 }
@@ -182,9 +190,12 @@ function appendWarnings(existing, ...warnings) {
 function resolveArticlePlan(meta, additional = []) {
   if (!enabled() || meta.fact_plan_status !== 'ok' || !meta.fact_materials) return null;
   try {
-    const ids = [...new Set([...String(meta.fact_materials).split(';'), ...materialIds(additional)])].filter(Boolean);
-    const refs = resolveWriterMaterials(ids);
-    const skipped = ids.length - refs.length;
+    const recorded = [...new Set(String(meta.fact_materials).split(';').filter(Boolean))];
+    const recordedRefs = resolveWriterMaterials(recorded);
+    const addedRefs = resolveWriterMaterials(materialIds(additional).filter(id => !recorded.includes(id)));
+    const ids = [...new Set([...recorded, ...materialIds(addedRefs)])];
+    const refs = [...recordedRefs, ...addedRefs];
+    const skipped = recorded.length - recordedRefs.length;
     if (skipped) meta.materials_warning = appendWarnings(meta.materials_warning,
       `計画: 記録した資料のうち引けない ${skipped} 件${refs.length ? '' : '（従来の資料だけで生成）'}`);
     if (!refs.length) return null;

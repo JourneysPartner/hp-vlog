@@ -701,6 +701,170 @@ for (const failPlan of [false, true]) test('01b-F12', `既定のGatewayで${fail
   });
 });
 
+test('01c-G1', '記録済みの欠落1件でも部分差し戻し2回後までpublishを保持し、照合okで戻す', async () => {
+  const wrong = '試験制度は100万円です。', correct = '試験制度は600万円です。';
+  const source = ref('01c-warning', correct), original = CM.generateSimple;
+  const t = { ...topic(), slug: '01c-warning', fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除',
+    fact_plan_missing: '資料のない制度', fact_materials: 'ta:4452;ta:0000' };
+  let raw = F.updateMeta(N.buildCanonicalFrontmatter(t, { now: now.toISOString() }) + '\n## 制度\n' + wrong,
+    { recommendation: 'publish', review_warning: '以前からの注意 / ' + P.planWarning(t) });
+  const check = content => F.checkArticle(content, { ...opts, persist: false, writer_materials: [], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req).filter(c => c.claim.includes('試験制度は'))
+      : H.readPayload(req).claims.map(c => ({ id: c.id, status: c.sentence.includes('600万円') ? '裏付けあり' : '食い違い', evidence_id: 1, basis: '1', correct })) });
+  const parts = content => String(matter(content).data.review_warning).replace(F.WARNING_RE, '').split(' / ').map(s => s.trim()).filter(Boolean);
+  await env({ CONTENT_MODEL_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: '01c-fake-key' }, async () => {
+    try {
+      raw = (await check(raw)).content;
+      let first;
+      for (const suffix of ['説明を確認します。', '申告の書類を確認します。']) {
+        CM.generateSimple = async () => ({ text: `## 制度\n${wrong}\n\n${suffix}`, provider: 'anthropic', model: 'fake', stopReason: 'end_turn' });
+        const regenerated = await G.regenerateSection(raw, '制度の補足を確認', { type: 'content', sectionHint: '制度' }, { preserveTitle: true });
+        raw = await G.finalizeRegeneration(raw, regenerated, { scope: 'section' }, { factCheck: check, persist: false });
+        assert.equal(matter(raw).data.fact_check_prev_recommendation, 'publish');
+        assert.equal(matter(raw).data.recommendation, 'revise');
+        assert.equal(parts(raw).filter(s => s === '計画: 記録した資料のうち引けない 1 件').length, 1);
+        assert.equal(parts(raw).length, new Set(parts(raw)).size);
+        if (first) assert.deepEqual(parts(raw), first); else first = parts(raw);
+      }
+      raw = (await check(F.updateMeta(raw, {}, matter(raw).content.replace(wrong, correct)))).content;
+      assert.equal(matter(raw).data.fact_check_status, 'ok'); assert.equal(matter(raw).data.recommendation, 'publish');
+      assert.deepEqual(parts(raw), first);
+    } finally { CM.generateSimple = original; }
+  });
+});
+test('01c-G1', '差し戻しの範囲引用からIDを作らず、引ける新資料だけを記録する', async () => {
+  const body = '## 制度\n所基通37-5～37-6の内容を確認します。';
+  const cited = require('../nta-tsutatsu').checkCitations(body).citations;
+  assert(cited.some(c => c.found && /[～〜~]/.test(c.no)));
+  for (const wave of ['～', '〜', '~']) {
+    assert.equal(W.materialId({ kind: 'tsutatsu', circular: 'shotoku', no: `37-5${wave}37-6` }), '');
+    assert.equal(W.materialId({ id: `tsutatsu:shotoku:37-5${wave}37-6` }), '');
+  }
+  const meta = { ...topic(), fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_materials: 'ta:4452' };
+  await G.buildRegenSourceBlocks(meta, body, { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
+  assert(!/[～〜~]/.test(meta.fact_materials));
+  assert(meta.fact_materials.split(';').every(id => W.resolveMaterial(id)));
+  assert(!String(meta.materials_warning || '').includes('引けない'));
+});
+test('01c-G1', '欠落数は記録済みだけを数え、新規の欠落は捨て、記録済みの欠落は残す', () => {
+  const meta = { fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_materials: 'ta:4452;ta:0000' };
+  P.resolveArticlePlan(meta, [W.resolveMaterial('ta:4103'), { id: 'ta:0001' }, { kind: 'tsutatsu', circular: 'shotoku', no: '37-5～37-6' }]);
+  assert.equal(meta.fact_materials, 'ta:4452;ta:0000;ta:4103');
+  assert.equal(meta.materials_warning, '計画: 記録した資料のうち引けない 1 件');
+  P.resolveArticlePlan(meta, [{ id: 'ta:0001' }]);
+  assert.equal(meta.materials_warning, '計画: 記録した資料のうち引けない 1 件');
+});
+test('01c-G1', 'カタログに実在する共通関係のIDは保ち、範囲の引用からは合成しない', () => {
+  const refs = E.evidenceCatalog().entries.filter(e => e.kind === 'tsutatsu' && /[～〜~]/.test(e.no));
+  assert(refs.length > 0);
+  for (const ref of refs) {
+    assert.equal(W.materialId(ref), ref.id); assert.equal(W.materialId(W.resolveMaterial(ref.id)), ref.id);
+    assert.equal(W.materialId({ kind: 'tsutatsu', circular: ref.circular, no: ref.no }), '');
+  }
+});
+for (const planned of [false, true]) test('01c-G1', `注意書きの継承は${planned ? '計画ありだけ部分ごとに統合' : '計画なしなら従来の文字列全体で統合'}`, () => {
+  const before = F.updateMeta('---\nslug: 01c-inherit\n---\n本文です。', { recommendation: 'revise', fact_check_version: 1,
+    fact_check_prev_recommendation: 'publish', review_warning: '既存の注意 / 別の注意', fact_materials: 'ta:4452',
+    ...(planned ? { fact_plan_status: 'ok' } : {}) });
+  const after = F.updateMeta(before, { review_warning: '既存の注意 / 別の注意 / 計画: 記録した資料のうち引けない 1 件',
+    fact_materials: 'ta:4452;ta:4103;ta:0000;tsutatsu:shotoku:37-5～37-6' });
+  const meta = matter(F.inheritFactMetadata(before, after)).data;
+  assert.equal(meta.fact_check_prev_recommendation, planned ? 'publish' : 'revise');
+  assert.equal(meta.review_warning, (planned ? '' : '既存の注意 / 別の注意 / ') + '既存の注意 / 別の注意 / 計画: 記録した資料のうち引けない 1 件');
+  assert.equal(meta.fact_materials, planned ? 'ta:4452;ta:4103' : 'ta:4452;ta:4103;ta:0000;tsutatsu:shotoku:37-5～37-6');
+});
+for (const recommendation of ['revise', 'reject']) test('01c-G1', `計画ありでも新しい品質の注意と${recommendation}は差し止める`, () => {
+  const before = F.updateMeta('---\nslug: 01c-quality\n---\n本文です。', { recommendation: 'revise', fact_check_version: 1,
+    fact_check_prev_recommendation: 'publish', fact_plan_status: 'ok', review_warning: '既存の注意' });
+  const after = F.updateMeta(before, { recommendation, review_warning: '既存の注意 / 計画: 資料の注意 / 新しい品質の注意' });
+  const meta = matter(F.inheritFactMetadata(before, after)).data;
+  assert.equal(meta.fact_check_prev_recommendation, recommendation); assert.equal(meta.recommendation, recommendation);
+  assert.equal(meta.review_warning, '既存の注意 / 計画: 資料の注意 / 新しい品質の注意');
+});
+
+const g2Examples = [
+  ['相続財産を譲渡した場合の取得費の特例', 'income_tax', 'income', ids => ids.includes('ta:3267')],
+  ['被相続人の居住用財産（空き家）を売ったときの特例', 'income_tax', 'income', ids => ids.includes('ta:3306')],
+  ['準確定申告', 'inheritance_tax', 'income', ids => ids.includes('ta:2022') && !ids.some(id => id.includes('/shitsugi/sozoku/'))],
+  ['医療費控除', 'inheritance_tax', 'income', ids => ids.some(id => ['ta:1122', 'ta:1119', 'ta:1127'].includes(id)) && !ids.includes('law:sozeki_hou:41_17')],
+  ['少額減価償却資産の特例', 'bookkeeping_expenses', 'income', ids => ids.includes('law:sozeki_hou:28_2') && !ids.some(id => ['ta:5408', 'law:sozeki_hou:67_5'].includes(id))],
+  ['棚卸資産の評価方法の届出', 'bookkeeping_expenses', 'income', ids => ids.length === 0],
+  ['贈与税の基礎控除', 'inheritance_tax', 'inheritance', ids => ids.includes('law:sozokuzei:21_5') && !ids.includes('ta:1199')],
+];
+for (const [name, tax_domain, tax, expected] of g2Examples) test('01c-G2', `${name}（${tax_domain}）の本物のカタログ`, () => {
+  const s = P.findSystemMaterials([{ name }], { tax_domain })[0], ids = s.materials.map(W.materialId);
+  assert.equal(s.tax, tax); assert(expected(ids), JSON.stringify(ids)); assert.equal(s.missing, ids.length === 0);
+  console.log(`01c-G2 選択 ${JSON.stringify({ name, tax: s.tax, pages: s.materials.map(e => ({ title: e.title, id: W.materialId(e) })) })}`);
+});
+for (const [name, tax_domain, expected] of f5Examples) test('01c-G2', `F5の期待も維持: ${name}`, () => {
+  const s = P.findSystemMaterials([{ name }], { tax_domain })[0], ids = s.materials.map(W.materialId);
+  assert(ids.length > 0); assert(expected(ids));
+  assert.equal(s.tax, tax_domain === 'invoice_system' ? 'consumption' : tax_domain === 'bookkeeping_expenses' ? 'income' : 'inheritance');
+  console.log(`01c-F5 選択 ${JSON.stringify({ name, tax: s.tax, pages: s.materials.map(e => ({ title: e.title, id: W.materialId(e) })) })}`);
+});
+test('01c-G2', '税目決定の優先順・会社員の部分一致を避ける・質疑応答と通達は税目決定に使わない', () => {
+  const entry = (id, kind, title, category, scoreText = '') => ({ id, kind, title, url: `https://www.nta.go.jp/taxes/shiraberu/taxanswer/${category}/9999.htm`,
+    text: `${title}。${scoreText}`, ...(kind === 'qa' ? { tax_category_code: category, material_id: id } : {}) });
+  const choose = (name, tax_domain, entries) => P.findSystemMaterials([{ name }], { tax_domain }, { entries });
+  assert.equal(choose('会社員の試験制度', 'income_tax', [entry('ta:employee', 'taxanswer', '会社員の試験制度', 'shotoku')])[0].tax, 'income');
+  const title = '共通試験制度', income = entry('ta:income', 'taxanswer', title, 'shotoku'), corp = entry('ta:corp', 'taxanswer', title, 'hojin');
+  assert.equal(choose(title, 'income_tax', [corp, income])[0].tax, 'income');
+  assert.equal(choose('贈与税の試験制度', 'income_tax', [entry('ta:explicit', 'taxanswer', '贈与税の試験制度', 'shotoku')])[0].tax, 'inheritance');
+  assert.equal(choose(title, 'income_tax', [entry('other', 'shitsugi', title, 'sozoku')])[0].tax, 'income');
+  assert.equal(choose(title, '', [entry('other', 'shitsugi', title, 'sozoku')])[0].tax, undefined);
+  const law = { id: 'law:shotokuzei_hou:test', key: 'shotokuzei_hou', kind: 'law', title, text: title };
+  assert.equal(choose(title, 'income_tax', [law, corp])[0].tax, 'income');
+  assert.equal(choose(title, '', [corp])[0].tax, 'corporate');
+});
+test('01c-G2', '共通法令の題名で税目を補い、税目なしは残しつつ決まった税目を先に並べる', () => {
+  const name = '試験特例', titles = ['必要経費', '所得税', '譲渡所得', '事業所得', '損金', '益金', '法人', '贈与', '相続', '消費税', '仕入税額'];
+  const entries = titles.map((word, i) => ({ id: `law:sozeki_hou:${i}`, key: 'sozeki_hou', kind: 'law', title: `${name} ${word}`, text: `${name}の条文。` }));
+  entries.unshift({ id: 'ta:unknown', kind: 'taxanswer', title: name, text: name, url: 'https://example.jp/unknown' });
+  for (const [tax_domain, explicit, tax, allowed] of [
+    ['income_tax', name, 'income', [0, 1, 2, 3]], ['income_tax', `法人税の${name}`, 'corporate', [4, 5, 6]],
+    ['income_tax', `贈与税の${name}`, 'inheritance', [7, 8]], ['income_tax', `消費税の${name}`, 'consumption', [9, 10]],
+  ]) {
+    const s = P.findSystemMaterials([{ name: explicit }], { tax_domain }, { entries })[0];
+    assert.equal(s.tax, tax); assert.equal(s.materials.length, 2);
+    assert(s.materials.every(e => allowed.some(i => e.id === `law:sozeki_hou:${i}`))); // 税目のないTAより同じ税目の条を優先する。
+  }
+});
+
+for (const status of ['食い違い', '期限の書き漏れ']) test('01c-G3', `確認を通った段Aの${status}も段Bが裏付けたら修正案と出典を人の確認欄に残す`, async () => {
+  const body = '試験制度は100万円です。', correction = status === '食い違い' ? '試験制度は200万円です。' : '試験制度の適用期限は令和9年3月31日です。';
+  const a = ref('01c-a', correction), b = ref('01c-b', body);
+  const result = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4452'], searchWriterEvidence: () => [a], searchEvidence: () => [b], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req) : req.stageB ? supported(req)
+      : [{ id: 'c1', status, evidence_id: 1, basis: '1', correct: correction }] });
+  assert.equal(result.record.status, 'ok'); assert.equal(result.record.claims[0].status, '裏付けあり'); assert.equal(result.record.claims[0].stage, 'B');
+  assert.equal(result.record.review_items.length, 1);
+  const item = result.record.review_items[0]; assert.equal(item.stage_a_answer.status, status); assert.equal(item.stage_a_answer.correct, correction);
+  assert.equal(item.stage_a_answer.evidence, a.id); assert.equal(item.stage_a_answer.url, a.url);
+  const approved = F.applyFactResult('---\nslug: 01c-advisory\nrecommendation: publish\n---\n' + body, result);
+  assert.equal(matter(approved).data.recommendation, 'publish'); assert.equal(matter(approved).data.fact_check_blocking, false);
+  const page = require('../../../netlify/functions/review-page');
+  const html = page.renderFactCheck(matter(approved).data, F.compactRecord(result.record), body);
+  assert(html.includes(`段Aの${status}を要確認`)); assert(html.includes(a.title)); assert(html.includes(a.url)); assert(html.includes(correction));
+  const altered = { ...result.record, review_items: [{ ...item, stage_a_answer: { ...item.stage_a_answer, correct: '<script>alert(1)</script>' } }] };
+  assert(!page.renderFactCheck(matter(approved).data, altered, body).includes('<script>alert(1)</script>'));
+});
+test('01c-G3', '確認を通った疑いの修正案も差分照合で保持し、表示要約は200字まで', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), '01c-review-reuse-'));
+  const body = '試験制度は100万円です。', correction = '試験制度は200万円です。' + '要件を確認します。'.repeat(25);
+  const a = ref('01c-reuse-a', correction), b = ref('01c-reuse-b', body);
+  const raw = `---\nslug: 01c-review-reuse\nfact_materials: ta:4452\nrecommendation: publish\n---\n${body}`;
+  const options = { ...opts, recordDir: dir, searchWriterEvidence: () => [a], searchEvidence: () => [b], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req) : req.stageB ? supported(req)
+      : [{ id: 'c1', status: '食い違い', evidence_id: 1, basis: '1', correct: correction }] };
+  try {
+    const first = await F.checkArticle(raw, options);
+    assert.equal(first.record.review_items[0].stage_a_answer.correct.length, 200);
+    const next = await F.checkArticle(raw, { ...options, persist: false, previousRaw: raw });
+    assert.equal(next.record.incremental.reused, 1); assert.equal(next.record.review_items.length, 1);
+    assert.deepEqual(next.record.review_items[0].stage_a_answer, first.record.review_items[0].stage_a_answer);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 (async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => { throw new Error('試験中の通信は禁止'); };
