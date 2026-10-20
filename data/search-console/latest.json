@@ -1,14 +1,14 @@
 {
-  "fetched_at": "2026-10-04T22:16:04.305Z",
+  "fetched_at": "2026-10-11T22:44:53.467Z",
   "range": {
-    "start": "2026-09-04",
-    "end": "2026-10-01"
+    "start": "2026-09-11",
+    "end": "2026-10-08"
   },
   "property": "https://mori-zeirishi.net/",
   "files": {
-    "queries": "20261004/queries.json",
-    "pages": "20261004/pages.json",
-    "query-page": "20261004/query-page.json",
-    "indexStatus": "20261004/index-status.json"
+    "queries": "20261011/queries.json",
+    "pages": "20261011/pages.json",
+    "query-page": "20261011/query-page.json",
+    "indexStatus": "20261011/index-status.json"
   }
 }
