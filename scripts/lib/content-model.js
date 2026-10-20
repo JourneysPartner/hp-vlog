@@ -455,6 +455,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
           'anthropic-version': ANTHROPIC_VERSION,
         },
         body: JSON.stringify(req),
+        ...(opts.signal ? { signal: opts.signal } : {}),
       });
       if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
       const data = await res.json();

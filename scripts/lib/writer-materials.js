@@ -10,13 +10,23 @@ const { tokenizeForMatcher } = require('./nta-source-matcher');
 
 let questions;
 function qaCatalog() {
-  if (!questions) questions = JSON.parse(fs.readFileSync(qa.INDEX_PATH, 'utf8')).entries.map(e => {
-    const body = JSON.parse(fs.readFileSync(path.join(qa.QA_DIR, e.file_path), 'utf8')).body;
-    if (typeof body !== 'string') throw new Error('Q&A の本文を読めませんでした');
-    return { ...e, id: e.url, kind: 'qa', title: `${e.source_label} ${e.title}`, text: body,
-      material_id: `qa:${e.source_key}/${e.id}` };
+  if (!questions) questions = qa.loadIndex().flatMap(e => {
+    try {
+      const body = JSON.parse(fs.readFileSync(path.join(qa.QA_DIR, e.file_path), 'utf8')).body;
+      if (typeof body !== 'string') return [];
+      return [{ ...e, id: e.url, kind: 'qa', title: `${e.source_label} ${e.title}`, text: body,
+        material_id: `qa:${e.source_key}/${e.id}` }];
+    } catch (_) { return []; } // 壊れた問だけを外し、読める資料は残す。
   });
   return questions;
+}
+function resetQaCatalogForTest() { questions = undefined; }
+
+function questionIdForUrl(ref) {
+  const url = ref.url || ref.id;
+  const matches = qa.loadIndex().filter(e => e.url === url &&
+    (!ref.id || ref.id === url || ref.id === e.id) && (!ref.source_key || ref.source_key === e.source_key));
+  return matches.length === 1 ? `qa:${matches[0].source_key}/${matches[0].id}` : '';
 }
 
 function materialId(ref) {
@@ -25,7 +35,7 @@ function materialId(ref) {
   if (/^(?:law|tsutatsu|qa|change|ta):/.test(ref.id || '')) return ref.id;
   if (ref.kind === 'qa' || ref.source_key) {
     if (ref.source_key && ref.id && !String(ref.id).startsWith('http')) return `qa:${ref.source_key}/${ref.id}`;
-    return qaCatalog().find(e => e.url === ref.url)?.material_id || '';
+    return questionIdForUrl(ref);
   }
   if (ref.kind === 'change' || (ref.key && !ref.num && !ref.no && ref.summary)) return `change:${ref.key}`;
   if (ref.kind === 'law' || (ref.key && ref.num)) return `law:${ref.key}:${ref.num || ref.no}`;
@@ -35,15 +45,14 @@ function materialId(ref) {
   if (number) return `ta:${number}`;
   const entry = evidence.evidenceCatalog().entries.find(e => e.id === url || e.url === url);
   if (entry) return entry.id;
-  const question = qa.loadIndex().find(e => e.url === url && (!ref.id || ref.id === url || ref.id === e.id));
-  return question ? `qa:${question.source_key}/${question.id}` : '';
+  return questionIdForUrl(ref);
 }
 
 function resolveMaterial(id) {
   if (typeof id !== 'string') return null;
   if (id.startsWith('change:')) {
     const change = CHANGES.find(c => `change:${c.key}` === id);
-    return change ? { id, kind: 'change', title: change.title, url: change.reference_url || change.url || '',
+    return change ? { id, kind: 'change', title: change.title, url: String(change.reference || '').match(/https?:\/\/[^\s<>「」）)]+/)?.[0] || '',
       text: [change.title, change.summary, change.reference].filter(Boolean).join('\n') } : null;
   }
   if (id.startsWith('qa:')) {
@@ -65,13 +74,18 @@ function writerMaterials(options = {}) {
   return process.env.FACT_CHECK_WRITER_MATERIALS !== 'false' && options.writerMaterials !== false && Array.isArray(options.writer_materials)
     ? [...new Set(options.writer_materials.filter(id => typeof id === 'string' && id))] : [];
 }
-function materialFingerprint(ids) {
-  return { count: ids.length, fingerprint: createHash('sha256').update([...ids].sort().join(';')).digest('hex').slice(0, 16) };
+function resolveWriterMaterials(ids) {
+  return ids.flatMap(id => {
+    try { const ref = resolveMaterial(id); return ref ? [ref] : []; } catch (_) { return []; }
+  });
+}
+function materialFingerprint(ids, resolved = resolveWriterMaterials(ids).length) {
+  return { count: ids.length, resolved, fingerprint: createHash('sha256').update([...ids].sort().join(';')).digest('hex').slice(0, 16) };
 }
 
 /** 書き手に渡した資料だけに、既存の検索と同じ点を付ける。 */
 function searchWriterEvidence(claim, options = {}) {
-  const entries = writerMaterials(options).map(resolveMaterial).filter(Boolean).map(e => ({ ...e,
+  const entries = (options.resolvedWriterMaterials || resolveWriterMaterials(writerMaterials(options))).filter(e => e.kind !== 'change').map(e => ({ ...e,
     tokens: new Set(tokenizeForMatcher(`${e.title} ${e.text}`)), titleTokens: new Set(tokenizeForMatcher(e.title)) }));
   const catalog = evidence.evidenceCatalog();
   const { scored, query, focus } = evidence.scoreEvidence(claim, { ...options,
@@ -83,4 +97,5 @@ function searchWriterEvidence(claim, options = {}) {
   });
 }
 
-module.exports = { qaCatalog, materialId, materialIds, resolveMaterial, writerMaterials, materialFingerprint, searchWriterEvidence };
+module.exports = { qaCatalog, materialId, materialIds, resolveMaterial, writerMaterials, materialFingerprint, searchWriterEvidence,
+  resolveWriterMaterials, resetQaCatalogForTest };

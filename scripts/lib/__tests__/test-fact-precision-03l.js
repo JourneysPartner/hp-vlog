@@ -214,7 +214,7 @@ async function main() {
     const rejected = await giftRepair('国税庁で確認してください。', { sentence });
     assert.equal(rejected.body, rejected.before); assert.equal(rejected.record.corrections[0].reason, '裏付けのある数字を消しています');
   });
-  await test('L3', '03uを記録し、03kの記録は差分照合で使い回さない', async () => {
+  await test('L3', 'plan1を記録し、03kの記録は差分照合で使い回さない', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03l-version-'));
     const sentence = '基礎控除は110万円です。', calls = [];
     const raw = `---\nslug: precision-version\nrecommendation: publish\n---\n${sentence}`;

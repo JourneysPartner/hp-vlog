@@ -2077,8 +2077,9 @@ ${rules.join(RULE_SEP)}`
     console.warn(`[regenerate] 法令の添付に失敗（続行）: ${e.message}`);
   }
 
-  const planBlock = articlePlan.restoreArticlePlan(meta, newMaterials);
-  const fullPlanBlock = articlePlan.restoreArticlePlan(meta, fullMaterials);
+  const restoredPlan = articlePlan.resolveArticlePlan(meta, newMaterials);
+  const planBlock = articlePlan.restoreArticlePlan(meta, newMaterials, restoredPlan);
+  const fullPlanBlock = articlePlan.restoreArticlePlan(meta, fullMaterials, restoredPlan);
   return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures, lawBlock, planBlock, fullPlanBlock,
     combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${lawBlock}${changesBlock}${rulesBlock}${planBlock}` };
 }
@@ -2625,10 +2626,11 @@ function recordMaterialMetadata(content, meta) {
   for (const key of ['source_url', 'source_title', 'source_provenance', 'source_confidence']) {
     if (meta[key] !== undefined) updates[key] = meta[key];
   }
-  const planWarning = articlePlan.enabled() ? articlePlan.planWarning(meta) : '';
-  if (meta.materials_warning || planWarning) {
+  if (meta.materials_warning) {
     const { meta: current } = parseFrontmatter(content);
-    updates.review_warning = [...new Set([current.review_warning, meta.materials_warning, planWarning].filter(Boolean))].join(' / ');
+    updates.review_warning = meta.fact_plan_status
+      ? articlePlan.appendWarnings(current.review_warning, meta.materials_warning)
+      : [...new Set([current.review_warning, meta.materials_warning].filter(Boolean))].join(' / ');
   }
   return factCheck.updateMeta(content, updates);
 }

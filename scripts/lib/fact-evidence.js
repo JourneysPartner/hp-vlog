@@ -253,4 +253,4 @@ function loadEvidenceText(ref) {
   if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
   return text;
 }
-module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText, subjectWithoutTrailingParens, scoreEvidence };
+module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText, subjectWithoutTrailingParens, scoreEvidence, evidenceTax, CATEGORY_TAX };

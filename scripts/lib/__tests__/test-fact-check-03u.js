@@ -220,7 +220,7 @@ test('U3', 'compactRecordで保存した候補外資料をvalidRefsが認め、�
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('版', 'LOGIC_VERSIONは03uで、03rの記録は差分照合で使い回さない', async () => {
+test('版', 'LOGIC_VERSIONはplan1で、03rの記録は差分照合で使い回さない', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03u-version-'));
   try {
     const opts = articleOptions(dir), before = raw(body), after = raw(body + '\n案内を追記します。');

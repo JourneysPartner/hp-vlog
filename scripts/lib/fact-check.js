@@ -8,7 +8,7 @@ const matter = require('gray-matter');
 const contentModel = require('./content-model');
 const partial = require('./partial-revise');
 const { searchEvidence } = require('./fact-evidence');
-const { writerMaterials, materialFingerprint, searchWriterEvidence, resolveMaterial, materialId } = require('./writer-materials');
+const { writerMaterials, materialFingerprint, searchWriterEvidence, resolveMaterial, materialId, resolveWriterMaterials } = require('./writer-materials');
 const { positiveLimit } = require('./source-excerpt');
 const { LAW_SCOPE_RULE } = require('./grounding-rules');
 const { tokenizeForMatcher } = require('./nta-source-matcher');
@@ -914,22 +914,26 @@ async function repairBody(body, findings, callLLM, options = {}) {
 }
 
 async function checkFacts(body, options = {}) {
-  const cfg = config(options);
-  const writerIds = writerMaterials(options);
+  const requestedWriterIds = writerMaterials(options);
+  const resolvedWriter = resolveWriterMaterials(requestedWriterIds);
+  const writerIds = resolvedWriter.length ? requestedWriterIds : [];
+  const cfg = config(requestedWriterIds.length && !writerIds.length ? { ...options, writer_materials: [] } : options);
+  const unresolvedWriter = requestedWriterIds.length - resolvedWriter.length;
+  const unresolvedSummary = unresolvedWriter ? `・書き手の資料のうち引けない ${unresolvedWriter} 件` : '';
   const record = { version: 1, logic_version: LOGIC_VERSION, status: 'not_run', model: cfg.model, provider: cfg.provider,
     extract_model: cfg.extractModel, effort: cfg.effort, extract_effort: cfg.extractEffort, batch: cfg.batch,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
+  if (requestedWriterIds.length) record.writer_materials = materialFingerprint(requestedWriterIds, resolvedWriter.length);
   if (writerIds.length) {
-    record.writer_materials = materialFingerprint(writerIds);
     record.stages = { A: { claims: 0, pages: 0, input_chars: 0 }, B: { claims: 0, pages: 0, input_chars: 0 } };
   }
-  if (!cfg.enabled) return { body, record };
+  if (!cfg.enabled) { record.summary += unresolvedSummary; return { body, record }; }
   const validModel = model => (cfg.provider === 'anthropic' && /^claude-/.test(model)) ||
     (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(model));
   if (!validModel(cfg.model) || !validModel(cfg.extractModel) ||
       [cfg.effort, cfg.extractEffort].some(e => e !== null && !['low', 'medium', 'high', 'xhigh', 'max'].includes(e))) {
-    record.summary = '照合のモデル設定が不正です';
+    record.summary = '照合のモデル設定が不正です' + unresolvedSummary;
     return { body, record };
   }
   const batch = cfg.batch ? contentModel.createBatchContext({ ...options.batchRuntime,
@@ -985,22 +989,34 @@ async function checkFacts(body, options = {}) {
     // 一覧には候補の所在を残し、判定に使わない原文は重ねて保存しない。
     record.review_items.push({ ...c, evidence: (c.evidence || []).map(({ id, title, url }) => ({ id, title, url })) });
   };
+  const addStageAReviewItem = c => {
+    const answer = c.stage_a_answer;
+    const ref = (c.evidence || []).find(e => e.id === answer.evidence)
+      || { id: answer.evidence, title: answer.title || String(answer.evidence), url: answer.url || '' };
+    addReviewItem({ ...c, status: `段Aの${answer.status}を要確認（段Bは裏付けあり）`,
+      evidence: [ref], quote: '', evidence_id: '',
+      review_reason: '段Aの食い違い・期限の書き漏れは確認で落ち、段Bで裏付けあり' });
+  };
   const matchesCorrection = (f, c, pairs) => f.subject === c.subject || Boolean(normalizedClaim(c.sentence) && normalizedClaim(pairs.get(f.sentence) || '').includes(normalizedClaim(c.sentence)));
   const analyze = async (text, fullBody, findings = [], pairs = new Map(), previous = null) => {
+    const globalCandidates = new Map();
     const candidates = c => {
+      if (writerIds.length && globalCandidates.has(c)) return globalCandidates.get(c);
       const refs = search(c, options);
       const required = findings.filter(f => f.evidence_id && matchesCorrection(f, c, pairs)).map(f => f.evidence.find(e => e.id === f.evidence_id)).filter(Boolean);
-      const pinned = new Map((writerIds.length ? [...required, ...refs.slice(0, 1)] : [...refs.slice(0, 1), ...required]).map(e => [e.id, e]));
+      const pinned = new Map((writerIds.length ? required : [...refs.slice(0, 1), ...required]).map(e => [e.id, e]));
       if (pinned.size > 7) throw new Error('修正の根拠が候補の上限を超えました');
       // 主出典の順番を保ち、修正の根拠を検索結果より先に確保する。
       for (const ref of refs) if (!pinned.has(ref.id)) pinned.set(ref.id, ref);
-      return [...pinned.values()].slice(0, 7);
+      const selected = [...pinned.values()].slice(0, 7);
+      if (writerIds.length) globalCandidates.set(c, selected);
+      return selected;
     };
     const stageACandidates = c => {
-      const refs = (options.searchWriterEvidence || searchWriterEvidence)(c, options);
+      const refs = (options.searchWriterEvidence || searchWriterEvidence)(c, { ...options, resolvedWriterMaterials: resolvedWriter });
       const required = findings.filter(f => f.evidence_id && matchesCorrection(f, c, pairs)).map(f => f.evidence.find(e => e.id === f.evidence_id)).filter(Boolean);
       const pinned = new Map(required.map(e => [e.id, e]));
-      if (pinned.size > 4) throw new Error('修正の根拠が候補の上限を超えました');
+      if (pinned.size > 4) return null; // 必須の根拠を削らず、この主張だけ段Bへ直接回す。
       for (const ref of refs) if (!pinned.has(ref.id)) pinned.set(ref.id, ref);
       return [...pinned.values()].slice(0, 4);
     };
@@ -1009,7 +1025,7 @@ async function checkFacts(body, options = {}) {
     record.discarded += extracted.discarded;
     for (const c of [...extracted.droppedClaims, ...extracted.discardedClaims]) {
       if (isNumericClaim(c) || (!NUMERIC_TYPES.has(c.type) && !REVIEW_TYPES.has(c.type))) uncheckedNumeric++;
-      else addReviewItem({ ...c, evidence: writerIds.length ? stageACandidates(c) : candidates(c) });
+      else addReviewItem({ ...c, evidence: writerIds.length ? stageACandidates(c) || candidates(c) : candidates(c) });
     }
     if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
@@ -1029,6 +1045,7 @@ async function checkFacts(body, options = {}) {
       record.incremental = { reused: reused.length, rejudged: claims.length, subjects };
       claims = claims.map((c, i) => ({ ...c, id: `c${i + 1}` }));
       reused = reused.map((c, i) => ({ ...c, id: `c${claims.length + i + 1}`, s: fullUnits.find(u => !u.heading && u.text === c.sentence)?.s }));
+      if (writerIds.length) for (const c of reused) if (c.stage_a_answer) addStageAReviewItem(c);
     }
     if (!writerIds.length) {
       const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
@@ -1049,11 +1066,27 @@ async function checkFacts(body, options = {}) {
         return result.map(c => ({ ...c, stage }));
       } finally { record.stages[stage].input_chars += record.input_chars_total - start; }
     };
-    const stageA = await judgeStage('A', claims, stageACandidates, pageCache);
-    const retry = new Set(stageA.filter(c => c.status === '資料なし').map(c => c.id));
+    const stageAEvidence = new Map(claims.map(c => [c.id, stageACandidates(c)]));
+    const directB = new Set(claims.filter(c => stageAEvidence.get(c.id) === null).map(c => c.id));
+    const stageA = await judgeStage('A', claims.filter(c => !directB.has(c.id)), c => stageAEvidence.get(c.id), pageCache);
+    const byClaimId = new Map(claims.map(c => [c.id, c]));
+    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)))).map(c => c.id)]);
     // 段Aで候補が無かった主張は判定の母数に入れず、段Bの答えだけを数える。
     for (const id of retry) answerTally.delete(id);
+    deadlineSubjects.clear();
+    for (const c of stageA) if (!retry.has(c.id) && c.status === '期限の書き漏れ') deadlineSubjects.add(c.subject);
     const stageB = retry.size ? await judgeStage('B', claims.filter(c => retry.has(c.id)), candidates, stageBCache) : [];
+    for (const c of stageB) {
+      const previous = stageA.find(a => a.id === c.id);
+      if (c.status === '裏付けあり' && ['食い違い', '期限の書き漏れ'].includes(previous?.rejected_answer?.status)) {
+        const answer = previous.rejected_answer;
+        const ref = [...previous.evidence, ...[...stageAEvidence.values()].flatMap(refs => refs || []),
+          ...(pageCache.groups || []).flatMap(group => group.pack.pages.map(page => page.ref))]
+          .find(e => e.id === answer.evidence);
+        c.stage_a_answer = { ...answer, ...(ref ? { title: ref.title, url: ref.url } : {}) };
+        addStageAReviewItem({ ...c, evidence: [...c.evidence, ...(ref ? [ref] : [])] });
+      }
+    }
     const final = new Map(stageB.map(c => [c.id, c]));
     const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
     for (const row of answerTally.values()) {
@@ -1061,7 +1094,8 @@ async function checkFacts(body, options = {}) {
       tally.samples.push(...row.samples);
     }
     checkTally(tally);
-    return [...stageA.map(c => final.get(c.id) || c), ...reused];
+    const original = new Map(stageA.map(c => [c.id, c]));
+    return [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
   };
   let revisedBody = body;
   try {
@@ -1140,7 +1174,15 @@ async function checkFacts(body, options = {}) {
     const effective = [...record.claims, ...record.rechecked];
     record.summary += `・書き手の資料で判定 ${effective.filter(c => c.stage === 'A').length} 件・全体を探した ${effective.filter(c => c.stage === 'B').length} 件`;
   }
+  record.summary += unresolvedSummary;
   return { body: revisedBody, record };
+}
+
+/** 確認を通った食い違いも、全体検索に根拠が無ければ段Bで判定し直す。 */
+function shouldUseStageB(result, globalCandidates) {
+  if (NO_REPAIR_REASONS.has(result.reject_reason)) return false;
+  return result.status === '資料なし' || (['食い違い', '期限の書き漏れ'].includes(result.status) &&
+    !globalCandidates().some(ref => ref.id === result.evidence_id));
 }
 
 function updateMeta(raw, updates, body) {

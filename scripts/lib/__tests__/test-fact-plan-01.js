@@ -66,7 +66,8 @@ test('P1', '8件上限・NFKCの重複・長さ・why・JSON文字列中の角�
 });
 test('P1', '既定の提供元・指示文・企画8項目・2000 tokens', async () => {
   const original = CM.generateSimple;
-  CM.generateSimple = async (request, options) => {
+  CM.generateSimple = async (request, { signal, ...options }) => {
+    assert(signal instanceof AbortSignal);
     assert.equal(request.system, P.PLAN_SYSTEM); assert.deepEqual(options, { maxTokens: 2000 });
     assert.equal(request.user.split('\n').length, 8); assert(request.user.includes('tax_terms: 贈与税 配偶者控除'));
     return { text: '[{"name":"配偶者控除"}]' };
@@ -105,20 +106,16 @@ test('P2', 'カタログ全体の7制度・関連条件・6000字・外れの除
   assert(examples[5].materials.some(e => W.materialId(e) === 'ta:4511'));
   assert(examples[6].materials.every(e => e.text.includes('低価法')));
 });
-test('P2', 'No.4452は関連条件を通るが本文中の制度名が多い質疑応答2件が上位（要判断）', () => {
+test('01b-F5', '贈与税の配偶者控除はNo.4452を上位2件に含む', () => {
   const ref = W.resolveMaterial('ta:4452'); const relation = P.relevantMaterial(exampleNames[3], ref, ref.text.split('関連リンク')[0]);
   assert(relation.titleMatch); assert(relation.condition);
   const rows = examples[3].materials;
-  assert.deepEqual(rows.map(e => e.id), ['https://www.nta.go.jp/law/shitsugi/sozoku/16/05.htm', 'https://www.nta.go.jp/law/shitsugi/sozoku/16/07.htm']);
-  assert(rows.every(e => P.relevantMaterial(exampleNames[3], e, e.text).occurrences > relation.occurrences));
+  assert(rows.some(e => W.materialId(e) === 'ta:4452'));
 });
-test('P2', 'No.4103は関連条件3を通るが最後の検索点でQ&Aが上位（要判断）', () => {
+test('01b-F5', '相続時精算課税制度はNo.4103を上位2件に含む', () => {
   const ref = W.resolveMaterial('ta:4103'); const relation = P.relevantMaterial(exampleNames[4], ref, ref.text.split('関連リンク')[0]);
   assert(relation.titleMatch); assert(relation.condition);
-  assert.deepEqual(examples[4].materials.map(W.materialId), ['qa:sozoku/r5kaisei-1-2', 'qa:sozoku/r5kaisei-2-1']);
-  assert(examples[4].materials.every(e => P.relevantMaterial(exampleNames[4], e, e.text).occurrences === relation.occurrences));
-  const ranking = W.searchWriterEvidence({ subject: exampleNames[4], claim: exampleNames[4] }, { writer_materials: ['ta:4103', ...examples[4].materials.map(W.materialId)] });
-  assert(ranking.find(e => W.materialId(e) === 'ta:4103').score < ranking[1].score);
+  assert(examples[4].materials.some(e => W.materialId(e) === 'ta:4103'));
 });
 test('P2', '架空の制度・本文の関連リンクだけ・法令本文だけでは採らない', () => {
   assert.equal(P.findSystemMaterials([{ name: '宇宙猫事業者免税還付制' }], {})[0].missing, true);
@@ -283,7 +280,10 @@ test('P5', '段Aの資料なしだけ段Bへ・食い違い/期限は維持・Ba
   const lines = ['制度甲は100万円です。', '制度乙は200万円です。', '制度丙は300万円です。', '制度丁は400万円です。'];
   const a = ref('a', lines.join('\n')), b = ref('b', lines.join('\n')); let aJudges = 0, bJudges = 0;
   const r = await F.checkFacts(lines.join('\n'), { ...opts, batch: true, writer_materials: ['ta:4452'],
-    searchWriterEvidence: () => [a], searchEvidence: c => { assert.equal(c.id, 'c2'); return [b]; }, loadEvidenceText: e => e.text,
+    searchWriterEvidence: () => [a], searchEvidence: c => {
+      if (['c3', 'c4'].includes(c.id)) return [a]; // 段Aで確定する食い違い・期限は全体検索にも同じ根拠を置く。
+      assert.equal(c.id, 'c2'); return [b];
+    }, loadEvidenceText: e => e.text,
     callLLM: async req => {
       if (req.task === 'extract') return extracted(req);
       if (req.stageB) { bJudges++; assert.deepEqual(H.readPayload(req).claims.map(c => c.id), ['c2']); assert.deepEqual(H.materials(req).map(p => p.url), [b.url]); return supported(req); }
@@ -378,7 +378,7 @@ for (const retry of [false, true]) test('P5', `再照合の必須根拠を段A�
   const before = '試験制度は100万円です。', after = '試験制度は200万円です。';
   const original = ref('required', after), decoy = ref('decoy', '別の制度の資料です。'); let extracts = 0;
   const r = await F.checkFacts(before, { ...opts, repair: true, writer_materials: ['ta:4452'],
-    searchWriterEvidence: () => [extracts > 1 ? decoy : original], searchEvidence: () => [decoy], loadEvidenceText: e => e.text,
+    searchWriterEvidence: () => [extracts > 1 ? decoy : original], searchEvidence: () => [original, decoy], loadEvidenceText: e => e.text,
     callLLM: async req => {
       if (req.task === 'extract') { extracts++; return extracted(req); }
       if (req.task === 'repair') return [{ id: 'c1', replacement: after }];
@@ -411,6 +411,294 @@ test('P6', '生成3本・照合5本の切替とQ&A取り出し', () => {
     if (['daily-draft', 'regenerate-draft', 'refresh-article'].includes(name)) assert(workflow.includes('FACT_PLAN_ENABLED: ${{ vars.FACT_PLAN_ENABLED }}'));
     if (name === 'fact-check') assert(workflow.split('\n').some(line => line.includes('git checkout FETCH_HEAD --') && line.includes('data/nta-qa/')));
   }
+});
+
+for (const status of ['ok', 'failed']) test('01b-F1', `${status}の計画の注意は部分差し戻し2回でも1件、照合okでpublishに戻る`, async () => {
+  const wrong = '試験制度は100万円です。', correct = '試験制度は600万円です。';
+  const source = ref('warning-guard', correct), original = CM.generateSimple;
+  const t = { ...topic(), slug: `01b-warning-${status}`, fact_plan_status: status, fact_plan: status === 'ok' ? '贈与税の配偶者控除' : '',
+    fact_plan_missing: status === 'ok' ? '資料のない制度' : '', fact_materials: status === 'ok' ? 'ta:4452' : '' };
+  const warning = P.planWarning(t);
+  let raw = F.updateMeta(N.buildCanonicalFrontmatter(t, { now: now.toISOString() }) + '\n## 制度\n' + wrong, { recommendation: 'publish' });
+  const check = content => F.checkArticle(content, { ...opts, persist: false, writer_materials: [], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extracted(req).filter(c => c.claim.includes('試験制度は'));
+      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.sentence.includes('600万円') ? '裏付けあり' : '食い違い', evidence_id: 1, basis: '1', correct }));
+    } });
+  await env({ CONTENT_MODEL_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: '01b-fake-content-key' }, async () => {
+    try {
+      raw = (await check(raw)).content;
+      assert.equal(matter(raw).data.fact_check_prev_recommendation, 'publish');
+      for (const suffix of ['説明を確認します。', '申告の書類を確認します。']) {
+        CM.generateSimple = async () => ({ text: `## 制度\n${wrong}\n\n${suffix}`, provider: 'anthropic', model: 'fake', stopReason: 'end_turn' });
+        const regenerated = await G.regenerateSection(raw, '制度の補足を確認', { type: 'content', sectionHint: '制度' }, { preserveTitle: true });
+        raw = await G.finalizeRegeneration(raw, regenerated, { scope: 'section' }, { factCheck: check, persist: false });
+        const meta = matter(raw).data;
+        assert.equal(String(meta.review_warning).split(warning).length - 1, 1);
+        assert.equal(meta.fact_check_prev_recommendation, 'publish'); assert.equal(meta.recommendation, 'revise');
+      }
+      raw = (await check(F.updateMeta(raw, {}, matter(raw).content.replace(wrong, correct)))).content;
+      assert.equal(matter(raw).data.fact_check_status, 'ok'); assert.equal(matter(raw).data.recommendation, 'publish');
+      assert.equal(String(matter(raw).data.review_warning).split(warning).length - 1, 1);
+    } finally { CM.generateSimple = original; }
+  });
+});
+test('01b-F1', '復元の解決は1回、2種類のブロックを作っても引けない資料の注意を重ねない', async () => {
+  const meta = { ...topic(), fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_materials: 'ta:4452;ta:0000' };
+  const originalResolve = P.resolveArticlePlan, originalRestore = P.restoreArticlePlan;
+  let resolutions = 0, blocks = 0, resolved;
+  P.resolveArticlePlan = (...args) => { resolutions++; resolved = originalResolve(...args); return resolved; };
+  P.restoreArticlePlan = (m, existing, plan) => { blocks++; assert.equal(plan, resolved); return originalRestore(m, existing, plan); };
+  try {
+    await G.buildRegenSourceBlocks(meta, '', { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
+    assert.equal(resolutions, 1); assert.equal(blocks, 2);
+    assert.equal(meta.materials_warning.split('記録した資料のうち引けない 1 件').length - 1, 1);
+    const raw = G.recordMaterialMetadata('---\nslug: warning-restore\n---\n確認します。', meta);
+    assert.equal(G.recordMaterialMetadata(raw, meta), raw);
+  } finally { P.resolveArticlePlan = originalResolve; P.restoreArticlePlan = originalRestore; }
+});
+
+for (const status of ['食い違い', '期限の書き漏れ']) for (const inGlobal of [false, true]) test('01b-F2', `${status}の根拠が全体候補に${inGlobal ? 'あると段Aのまま' : '無いと段Bへ'}`, async () => {
+  const body = '試験制度は100万円です。';
+  const correction = status === '食い違い' ? '試験制度は200万円です。' : '試験制度の適用期限は令和9年3月31日です。';
+  const a = ref('other-system', correction), b = ref('right-system', body); let bCalls = 0, searches = 0;
+  const result = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4452'], searchWriterEvidence: () => [a],
+    searchEvidence: () => { searches++; return inGlobal ? [a, b] : [b]; }, loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extracted(req);
+      if (req.stageB) { bCalls++; assert.deepEqual(H.materials(req).map(p => p.url), [b.url]); return supported(req); }
+      return [{ id: 'c1', status, evidence_id: 1, basis: '1', correct: correction }];
+    } });
+  assert.equal(searches, 1); assert.equal(bCalls, inGlobal ? 0 : 1);
+  assert.equal(result.record.claims[0].stage, inGlobal ? 'A' : 'B');
+  assert.equal(result.record.claims[0].status, inGlobal ? status : '裏付けあり');
+  assert.equal(result.record.status, inGlobal ? 'revise' : 'ok');
+});
+test('01b-F3', '改正情報は記録と復元に残し、段Aの候補・資料表から外す', async () => {
+  const change = `change:${CHANGES[0].key}`, ids = ['ta:4452', change];
+  assert.equal(W.resolveMaterial(change).url, CHANGES[0].reference.match(/https?:\/\/[^\s<>「」）)]+/)[0]);
+  assert(W.searchWriterEvidence({ subject: '基礎控除', claim: '基礎控除を確認します。' }, { writer_materials: ids }).every(e => e.kind !== 'change'));
+  const result = await F.checkFacts('控除の要件を確認します。', { ...opts, writer_materials: ids, searchEvidence: () => [], callLLM: async req => {
+    if (req.task === 'extract') return extracted(req, '要件');
+    assert(!req.system.includes(CHANGES[0].summary)); return H.readPayload(req).claims.map(c => ({ id: c.id, status: '資料なし' }));
+  } });
+  assert.equal(result.record.writer_materials.count, 2); assert.equal(result.record.writer_materials.resolved, 2);
+  const meta = { fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_materials: ids.join(';') };
+  assert(P.restoreArticlePlan(meta).includes(CHANGES[0].summary)); assert(meta.fact_materials.includes(change));
+});
+
+test('01b-F4', '8制度を記録資料だけで振り分け、無関係の資料はその他、欠落1件でも復元する', () => {
+  const names = ['贈与税の配偶者控除', '相続時精算課税制度', '小規模宅地等の特例', W.resolveMaterial('ta:4508').title,
+    W.resolveMaterial('ta:4510').title, W.resolveMaterial('ta:4511').title, '贈与税の基礎控除', W.resolveMaterial('ta:4161').title];
+  const ids = ['ta:4452', 'ta:4103', 'ta:4124', 'ta:4508', 'ta:4510', 'ta:4511', 'law:sozokuzei:21_5', 'ta:4161'];
+  const meta = { fact_plan_status: 'ok', fact_plan: names.join(' ／ '), tax_domain: 'inheritance_tax', fact_materials: [...ids, 'ta:1110', 'ta:0000'].join(';') };
+  const plan = P.resolveArticlePlan(meta);
+  assert.equal(plan.systems.length, 8);
+  for (let i = 0; i < names.length; i++) {
+    const system = plan.systems[i]; assert(system.materials.some(e => W.materialId(e) === ids[i]), names[i]);
+    assert(system.materials.every(e => P.relevantMaterial(system.name, e, e.text).condition));
+  }
+  assert(plan.otherMaterials.some(e => W.materialId(e) === 'ta:1110'));
+  const block = P.restoreArticlePlan(meta, [], plan); assert(block.includes('その他の資料'));
+  for (const name of names) assert(block.includes(`制度: ${name}\n`));
+  assert.equal(meta.materials_warning, '計画: 記録した資料のうち引けない 1 件');
+  assert(P.restoreArticlePlan(meta).includes('この記事で扱う制度と資料')); assert.equal(meta.materials_warning, '計画: 記録した資料のうち引けない 1 件');
+});
+test('01b-F4', '復元の長い資料は計画全体でなく各制度名の付近を抜粋する', () => {
+  const id = 'qa:invoice/114', original = W.qaCatalog().find(e => e.material_id === id), saved = original.text;
+  try {
+    original.text = '無関係な説明。'.repeat(2000) + '\n2割特例の資料です。\n' + saved;
+    const meta = { fact_plan_status: 'ok', fact_plan: '配偶者控除 ／ 2割特例', fact_materials: id };
+    const plan = P.resolveArticlePlan(meta); const system = plan.systems[1];
+    assert.equal(plan.systems[0].materials.length, 0); assert(system.materials[0].text.includes('2割特例の資料です。'));
+    assert(system.materials[0].text.length <= 6000);
+  } finally { original.text = saved; }
+});
+
+const f5Examples = [
+  [exampleNames[0], 'invoice_system', ids => ids.includes('qa:invoice/114') && !ids.some(id => ['ta:6503', 'ta:6118', 'tsutatsu:shohi:21-1-2'].includes(id))],
+  ['3割特例', 'invoice_system', ids => ids.includes('qa:invoice/114-2')],
+  ['棚卸資産の評価方法', 'bookkeeping_expenses', ids => ids.every(id => /^(law:shotokuzei_|tsutatsu:shotoku:)/.test(id))],
+  ['低価法', 'bookkeeping_expenses', ids => ids.some(id => ['tsutatsu:shotoku:47-9', 'tsutatsu:shotoku:47-11'].includes(id)) && ids.every(id => !id.startsWith('tsutatsu:hojin:'))],
+  ['贈与税の配偶者控除', 'inheritance_tax', ids => ids.includes('ta:4452')],
+  ['相続時精算課税制度', 'inheritance_tax', ids => ids.includes('ta:4103')],
+  ['贈与税の基礎控除', 'inheritance_tax', ids => !ids.includes('ta:1199')],
+  ['小規模宅地等の特例', 'inheritance_tax', ids => ids.includes('ta:4124')],
+  ['簡易課税制度', 'invoice_system', ids => ids.includes('ta:6505')],
+];
+for (const [name, tax_domain, expected] of f5Examples) test('01b-F5', `${name}（${tax_domain}）の本物のカタログ`, () => {
+  const system = P.findSystemMaterials([{ name }], { tax_domain, tax_terms: '所得税の基礎控除 法人の棚卸資産 雑損控除' })[0];
+  const ids = system.materials.map(W.materialId); assert(ids.length > 0); assert(expected(ids), JSON.stringify(ids));
+  assert(system.materials.every(e => P.relevantMaterial(name, e, e.text).condition));
+  console.log(`01b-F5 選択 ${name}: ${system.materials.map(e => `${e.title} [${W.materialId(e)}]`).join(' ／ ')}`);
+});
+test('01b-F5', '制度名の明示税目は記事税目より優先し、tax_termsを採点に混ぜない', () => {
+  const name = '贈与税の配偶者控除';
+  const plain = P.findSystemMaterials([{ name }], { tax_domain: 'invoice_system' });
+  const noisy = P.findSystemMaterials([{ name }], { tax_domain: 'invoice_system', tax_terms: 'No.1199 所得税 基礎控除 消費税' });
+  assert.deepEqual(plain, noisy); assert(plain[0].materials.some(e => W.materialId(e) === 'ta:4452'));
+});
+
+for (const count of [5, 7]) test('01b-F6', `必須根拠${count}件は再照合の段Bへ直接回し、全体を止めない`, async () => {
+  const before = Array.from({ length: count }, (_, i) => `試験制度は${100 + i}万円です。`).join('\n'), after = '試験制度は600万円です。';
+  const refs = Array.from({ length: count }, (_, i) => ref(`required-${i}`, after)), extra = ref('extra', after); let extracts = 0;
+  const result = await F.checkFacts(before, { ...opts, repair: true, writer_materials: ['ta:4452'], loadEvidenceText: e => e.text,
+    searchWriterEvidence: c => [refs[Number(c.id.slice(1)) - 1] || extra], searchEvidence: () => extracts === 1 ? refs : [extra],
+    callLLM: async req => {
+      if (req.task === 'extract') { extracts++; const rows = extracted(req); return (extracts === 1 ? rows : rows.slice(0, 1)).map(c => ({ ...c, subject: '共通制度' })); }
+      if (req.task === 'repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: after }));
+      const input = H.readPayload(req), pages = H.materials(req);
+      if (extracts > 1) {
+        assert(req.stageB); assert.equal(input.claims[0].evidence_ids.length, Math.min(7, count + 1));
+        assert.deepEqual(input.claims[0].evidence_ids.slice(0, count).map(no => pages.find(p => p.number === no).url), refs.map(e => e.url));
+      }
+      return input.claims.map(c => {
+        const page = pages.find(p => p.number === c.evidence_ids[0]);
+        return { id: c.id, status: extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: page.number, basis: '1', correct: after };
+      });
+    } });
+  assert.equal(result.record.status, 'ok'); assert(result.record.corrections.every(c => c.resolved));
+  assert.equal(result.record.rechecked[0].stage, 'B'); assert.equal(result.record.stages.A.claims, count);
+});
+test('01b-F7', '同じ制度の期限の2件目は段Bへ回さず、段Aの資料なしを保つ', async () => {
+  const body = '制度甲は贈与の対象です。\n制度甲は申告の対象です。', source = ref('deadline', '制度甲の適用期限は令和9年3月31日です。');
+  const result = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4452'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extracted(req, '要件');
+      assert(!req.stageB); return H.readPayload(req).claims.map(c => ({ id: c.id, status: '期限の書き漏れ', evidence_id: 1, basis: '1', correct: source.text }));
+    } });
+  assert.equal(result.record.claims[1].stage, 'A'); assert.equal(result.record.claims[1].status, '資料なし');
+  assert.equal(result.record.claims[1].reject_reason, '同じ制度の期限の書き漏れは記録済み');
+  assert(!result.record.calls.some(c => c.task === 'stage_b_judge'));
+});
+for (const status of ['食い違い', '期限の書き漏れ']) test('01b-F7', `確認で落ちた${status}を段Bが裏付けても、人の確認欄に根拠と種類を残す`, async () => {
+  const source = ref('suspected-source', '試験制度は100万円です。'), body = source.text;
+  const result = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4452'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req) : req.stageB ? supported(req)
+      : [{ id: 'c1', status, evidence_id: 1, basis: '1', correct: '適用する額は999万円です。' }] });
+  assert.equal(result.record.status, 'ok'); assert.equal(result.record.claims[0].stage, 'B');
+  const item = result.record.review_items[0]; assert(item); assert.equal(item.stage_a_answer.status, status);
+  assert.equal(item.stage_a_answer.evidence, source.id); assert.equal(item.stage_a_answer.url, source.url);
+  const approved = F.applyFactResult('---\nslug: advisory\nrecommendation: publish\n---\n'+body, result);
+  assert.equal(matter(approved).data.recommendation, 'publish'); assert.equal(matter(approved).data.fact_check_blocking, false);
+  const html = require('../../../netlify/functions/review-page').renderFactCheck(matter(approved).data, result.record, body);
+  assert(html.includes(`段Aの${status}を要確認（段Bは裏付けあり）`));
+  assert(html.includes(source.title)); assert(html.includes(source.url));
+});
+test('01b-F7', '差分照合で使い回した主張も段Aの疑いを確認欄に残す', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), '01b-review-reuse-')), source = ref('suspected', '試験制度は100万円です。');
+  const raw = `---\nslug: 01b-review-reuse\nfact_materials: ta:4452\nrecommendation: publish\n---\n${source.text}`;
+  const options = { ...opts, recordDir: dir, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req) : req.stageB ? supported(req)
+      : [{ id: 'c1', status: '食い違い', evidence_id: 1, basis: '1', correct: '限度額は999万円です。' }] };
+  try {
+    await F.checkArticle(raw, options);
+    const next = await F.checkArticle(raw, { ...options, persist: false, previousRaw: raw });
+    assert.equal(next.record.incremental.reused, 1); assert.equal(next.record.review_items[0].stage_a_answer.status, '食い違い');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('01b-F7', '別の主張に提示したページを引用した疑いも題名とリンクを残す', async () => {
+  const source = ref('peer-source', '試験制度は100万円です。'), decoy = ref('own-source', '別の制度の資料です。');
+  const body = source.text + '\n別制度は届出の要件を確認します。';
+  const result = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4452'], loadEvidenceText: e => e.text,
+    searchWriterEvidence: c => [c.id === 'c1' ? decoy : source], searchEvidence: () => [source],
+    callLLM: async req => {
+      if (req.task === 'extract') return extracted(req).map((c, i) => ({ ...c, type: i ? '要件' : '金額' }));
+      if (req.stageB) return supported(req, c => c.id === 'c1' ? '裏付けあり' : '資料なし');
+      return H.readPayload(req).claims.map(c => c.id === 'c1'
+        ? { id: c.id, status: '食い違い', evidence_id: H.materials(req).find(p => p.url === source.url).number, basis: '1', correct: source.text }
+        : { id: c.id, status: '資料なし' });
+    } });
+  const item = result.record.review_items.find(c => c.stage_a_answer);
+  assert(item); assert.equal(item.stage_a_answer.title, source.title); assert.equal(item.stage_a_answer.url, source.url);
+  const html = require('../../../netlify/functions/review-page').renderFactCheck({ fact_check_status: 'ok' }, F.compactRecord(result.record), body);
+  assert(html.includes(source.title)); assert(html.includes(source.url));
+});
+
+test('01b-F8', '引けた件数と欠落数を記録し、全欠落ならBatchの従来経路と同じ呼び出し', async () => {
+  const source = ref('legacy-all-missing', '試験制度は100万円です。'), calls = [];
+  const options = { ...opts, batch: true, batchRuntime: { now: () => 0 }, searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => { calls.push({ task: req.task, system: req.system, user: req.user, stageB: req.stageB }); return req.task === 'extract' ? extracted(req) : supported(req); } };
+  const old = await F.checkFacts(source.text, options), oldCalls = calls.splice(0);
+  const missing = await F.checkFacts(source.text, { ...options, writer_materials: ['ta:0000', 'qa:missing/0'] });
+  assert.deepEqual(calls, oldCalls); assert.deepEqual(missing.record.calls, old.record.calls); assert.deepEqual(missing.record.claims, old.record.claims);
+  assert(!missing.record.stages); assert.equal(missing.record.writer_materials.resolved, 0);
+  assert(missing.record.calls.every(c => c.mode === 'batch')); assert(missing.record.summary.includes('書き手の資料のうち引けない 2 件'));
+  const partial = await F.checkFacts('控除の要件を確認します。', { ...opts, writer_materials: ['ta:4452', 'ta:0000'], searchEvidence: () => [],
+    callLLM: async req => req.task === 'extract' ? extracted(req, '要件') : H.readPayload(req).claims.map(c => ({ id: c.id, status: '資料なし' })) });
+  assert.equal(partial.record.writer_materials.resolved, 1); assert(partial.record.summary.includes('書き手の資料のうち引けない 1 件'));
+});
+test('01b-F8', '壊れたQ&A1問を飛ばし、別の問で照合を続ける（dataは変更しない）', async () => {
+  const originalRead = fs.readFileSync, entry = require('../nta-qa').loadIndex().find(e => e.source_key === 'invoice' && e.id === '114');
+  const target = path.join(require('../nta-qa').QA_DIR, entry.file_path), before = W.qaCatalog().length;
+  fs.readFileSync = (file, ...args) => { if (String(file) === target) throw new Error('秘密を含む破損エラー'); return originalRead(file, ...args); };
+  W.resetQaCatalogForTest();
+  try {
+    assert.equal(W.qaCatalog().length, before - 1); assert.equal(W.resolveMaterial('qa:invoice/114'), null); assert(W.resolveMaterial('qa:invoice/115'));
+    const result = await F.checkFacts('申告の要件を確認します。', { ...opts, writer_materials: ['qa:invoice/114', 'qa:invoice/115'], searchEvidence: () => [],
+      callLLM: async req => req.task === 'extract' ? extracted(req, '要件') : H.readPayload(req).claims.map(c => ({ id: c.id, status: '資料なし' })) });
+    assert.equal(result.record.status, 'ok'); assert.equal(result.record.writer_materials.resolved, 1);
+    assert(!JSON.stringify(result.record).includes('秘密'));
+  } finally { fs.readFileSync = originalRead; W.resetQaCatalogForTest(); }
+});
+test('01b-F8', 'PDFだけのURLは単独の問に決まる場合だけ記録する', () => {
+  const unique = W.resolveMaterial('qa:invoice/114'), shared = W.resolveMaterial('qa:kasou/faq-1-1');
+  assert.equal(W.materialId({ url: unique.url }), 'qa:invoice/114');
+  assert.equal(W.materialId({ url: shared.url }), ''); assert.equal(W.materialId({ id: shared.url, url: shared.url, kind: 'qa' }), '');
+  assert.equal(W.materialId({ id: 'faq-1-1', source_key: 'kasou', url: shared.url }), 'qa:kasou/faq-1-1');
+});
+test('01b-F9', 'whyを出さず、資料のない制度名の数字・期間も具体に書かせない', () => {
+  const block = P.buildPlanBlock([{ name: '相続開始前3年以内の贈与加算', why: '控除額は12345万円で期間は99年です', materials: [], missing: true }]);
+  assert(!block.includes('12345')); assert(!block.includes('99年')); assert(!block.includes('控除額は'));
+  assert(block.includes('名前に含まれる数字・期間も書かない'));
+});
+test('01b-F10', '90秒のsignalを渡し、時間切れは固定ログ1行とfailedだけにする', async () => {
+  const original = AbortSignal.timeout, originalSimple = CM.generateSimple, originalWarn = console.warn;
+  const controller = new AbortController(), logs = []; let timeout;
+  AbortSignal.timeout = ms => { timeout = ms; return controller.signal; };
+  console.warn = (...args) => logs.push(args.join(' '));
+  CM.generateSimple = async (_, options) => { assert.equal(options.signal, controller.signal); queueMicrotask(() => controller.abort(new Error('secret-timeout-key'))); return new Promise(() => {}); };
+  try {
+    const result = await P.planSystems(topic()); assert.equal(timeout, 90000); assert.equal(result.status, 'failed');
+    assert.deepEqual(logs, ['[fact-plan] 計画を作れませんでした（従来の資料だけで生成）']); assert(!JSON.stringify(result).includes('secret'));
+  } finally { AbortSignal.timeout = original; CM.generateSimple = originalSimple; console.warn = originalWarn; }
+});
+test('01b-F10', 'Anthropicの計画にもsignalが届き、例外を固定文で伏せる', async () => {
+  const originalFetch = global.fetch, originalWarn = console.warn, logs = [];
+  console.warn = (...args) => logs.push(args.join(' '));
+  global.fetch = async (_, options) => { assert(options.signal instanceof AbortSignal); throw new Error('secret-api-key'); };
+  try {
+    await env({ CONTENT_MODEL_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'secret-api-key' }, async () => {
+      assert.equal((await P.planSystems(topic())).status, 'failed'); assert.equal(logs.length, 1); assert(!logs.join('\n').includes('secret'));
+    });
+  } finally { global.fetch = originalFetch; console.warn = originalWarn; }
+});
+test('01b-F11', '資料と後続の論点別ルールを規則1の範囲に含める', () => {
+  assert(P.buildPlanBlock([{ name: '配偶者控除', materials: [], missing: true }]).includes('添付した資料（このブロックと上の資料）と、この後の論点別ルールに書いてあることだけを書く'));
+});
+for (const failPlan of [false, true]) test('01b-F12', `既定のGatewayで${failPlan ? '計画HTTP500でも本文を生成し注意書きを残す' : '計画・本文の2回の通信と同じモデルを確かめる'}`, async () => {
+  const originalFetch = global.fetch, originalLog = console.log, originalWarn = console.warn, originalTimer = global.setTimeout;
+  const requests = [], logs = [], secret = '01b-private-gateway-key';
+  await env({ FACT_PLAN_ENABLED: undefined, CONTENT_MODEL_PROVIDER: 'gateway', CONTENT_MODEL: 'deepseek/deepseek-v4.1-flash-1017', AI_GATEWAY_API_KEY: secret }, async () => {
+    global.fetch = async (url, options) => {
+      assert.equal(url, 'https://ai-gateway.vercel.sh/v1/chat/completions'); const request = JSON.parse(options.body); requests.push(request);
+      const planning = request.messages[0].content === P.PLAN_SYSTEM;
+      if (planning && failPlan) return { ok: false, status: 500, body: { cancel: async () => {} }, text: async () => secret };
+      return { ok: true, json: async () => ({ choices: [{ message: { content: planning ? '[{"name":"贈与税の配偶者控除"}]' : fakeBody }, finish_reason: 'stop' }] }) };
+    };
+    console.log = console.warn = (...args) => logs.push(args.join(' '));
+    global.setTimeout = (fn, ms, ...args) => originalTimer(fn, [15000, 30000].includes(ms) ? 0 : ms, ...args);
+    try {
+      const t = topic(), generated = await G.generateWithContentModel('2026-10-20', t);
+      const fm = N.buildCanonicalFrontmatter(t, { now: now.toISOString() }); assert(generated.raw.includes('## 確認'));
+      assert.equal(requests.length, failPlan ? 4 : 2); assert(requests.every(r => r.model === 'deepseek/deepseek-v4.1-flash-1017'));
+      assert.equal(requests[0].max_tokens, 16000); assert.equal(requests.at(-1).max_tokens, 64000);
+      assert.equal(t.fact_plan_status, failPlan ? 'failed' : 'ok');
+      if (failPlan) { assert(fm.includes('計画を作れませんでした（従来の資料だけで生成）')); assert(!requests.at(-1).messages[0].content.includes('この記事で扱う制度と資料')); }
+      else assert(requests.at(-1).messages[0].content.includes('この記事で扱う制度と資料'));
+      assert(!logs.join('\n').includes(secret)); assert(!fm.includes(secret)); assert(!JSON.stringify(t).includes(secret));
+    } finally { global.fetch = originalFetch; console.log = originalLog; console.warn = originalWarn; global.setTimeout = originalTimer; }
+  });
 });
 
 (async () => {

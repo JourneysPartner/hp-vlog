@@ -1,9 +1,9 @@
 'use strict';
 
 const contentModel = require('./content-model');
-const { evidenceCatalog, loadEvidenceText, contiguousExcerpt, subjectWithoutTrailingParens, scoreEvidence } = require('./fact-evidence');
-const { tokenizeForMatcher } = require('./nta-source-matcher');
-const { qaCatalog, materialId, materialIds, resolveMaterial } = require('./writer-materials');
+const { evidenceCatalog, loadEvidenceText, contiguousExcerpt, subjectWithoutTrailingParens, scoreEvidence, evidenceTax, CATEGORY_TAX } = require('./fact-evidence');
+const { tokenizeForMatcher, TAX_CATEGORY_CODES } = require('./nta-source-matcher');
+const { qaCatalog, materialId, materialIds, resolveWriterMaterials } = require('./writer-materials');
 
 const PLAN_SYSTEM = '税理士事務所のブログ記事の企画です。読者の疑問に答えるために本文で説明が必要な税の制度・論点を、必要なものだけ最大8つ挙げてください。制度の正式な名前に近い名前（国税庁のタックスアンサーの題名に近い言い方）にしてください。出力は JSON 配列だけです。形は [{"name":"制度名","why":"この記事で何を説明するか（30字以内）"}]。';
 const FIELDS = ['target_query', 'primary_question', 'search_intent', 'reader_problem', 'success_outcome', 'tax_terms', 'article_type', 'persona'];
@@ -11,9 +11,22 @@ const META_FIELDS = ['fact_plan_status', 'fact_plan', 'fact_plan_missing', 'fact
 const enabled = () => process.env.FACT_PLAN_ENABLED !== 'false';
 const normalize = text => String(text || '').normalize('NFKC').toLowerCase().replace(/\s+/g, '');
 
-async function planSystems(topic, { generate = prompt => contentModel.generateSimple(prompt, { maxTokens: 2000 }) } = {}) {
+async function planSystems(topic, { generate = (prompt, options) => contentModel.generateSimple(prompt, options) } = {}) {
+  const signal = AbortSignal.timeout(90000);
+  let abort;
+  const failed = reason => {
+    console.warn('[fact-plan] 計画を作れませんでした（従来の資料だけで生成）');
+    return { status: 'failed', reason };
+  };
   try {
-    const result = await generate({ system: PLAN_SYSTEM, user: FIELDS.map(key => `${key}: ${Array.isArray(topic[key]) ? topic[key].join('、') : topic[key] || ''}`).join('\n') });
+    const result = await Promise.race([
+      new Promise((_, reject) => {
+        abort = () => reject(new Error('計画の時間切れ'));
+        if (signal.aborted) abort(); else signal.addEventListener('abort', abort, { once: true });
+      }),
+      Promise.resolve().then(() => generate({ system: PLAN_SYSTEM,
+        user: FIELDS.map(key => `${key}: ${Array.isArray(topic[key]) ? topic[key].join('、') : topic[key] || ''}`).join('\n') }, { maxTokens: 2000, signal })),
+    ]);
     const text = String(typeof result === 'string' ? result : result?.text || '');
     let rows;
     if (Array.isArray(result)) rows = result;
@@ -33,13 +46,14 @@ async function planSystems(topic, { generate = prompt => contentModel.generateSi
         }
       }
     }
-    if (!Array.isArray(rows)) return { status: 'failed', reason: '計画の答えを読めませんでした' };
+    if (!Array.isArray(rows)) return failed('計画の答えを読めませんでした');
     const seen = new Set();
     const systems = rows.filter(row => typeof row?.name === 'string').map(row => ({ name: row.name.trim(), why: typeof row.why === 'string' ? row.why.trim().slice(0, 30) : '' }))
       .filter(row => row.name.length >= 2 && row.name.length <= 40)
       .filter(row => { const key = normalize(row.name); if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, 8);
-    return systems.length ? { status: 'ok', systems } : { status: 'failed', reason: '扱う制度がありませんでした' };
-  } catch (_) { return { status: 'failed', reason: '計画を作れませんでした' }; }
+    return systems.length ? { status: 'ok', systems } : failed('扱う制度がありませんでした');
+  } catch (_) { return failed('計画を作れませんでした'); }
+  finally { signal.removeEventListener('abort', abort); }
 }
 
 // 助詞と一般語だけで無関係な題名が通らないよう、残る語が2字以上のときだけ条件3を使う。
@@ -64,6 +78,23 @@ function mainText(ref, text) {
   return at >= 0 ? text.slice(0, at) : text;
 }
 
+function materialTax(ref) {
+  return ref.kind === 'qa' ? CATEGORY_TAX[ref.tax_category_code] : evidenceTax(ref);
+}
+function systemTaxes(name, topic) {
+  const text = String(name).normalize('NFKC');
+  const explicit = [
+    ['inheritance', /贈与|相続|遺産|遺贈|路線価|財産評価/],
+    ['income', /所得税|源泉|年末調整|譲渡所得/],
+    ['corporate', /法人|会社|役員/],
+    ['consumption', /消費税|インボイス|適格請求書|簡易課税|2割特例|3割特例/],
+  ].filter(([, pattern]) => pattern.test(text)).map(([tax]) => tax);
+  if (explicit.length) return new Set(explicit);
+  const taxes = new Set((TAX_CATEGORY_CODES[topic.tax_domain] || []).map(code => CATEGORY_TAX[code]).filter(Boolean));
+  return taxes.size === 1 ? taxes : new Set();
+}
+const KIND_ORDER = { taxanswer: 0, qa: 1, shitsugi: 2, law: 3, tsutatsu: 3 };
+
 function findSystemMaterials(systems, topic = {}, options = {}) {
   const entries = options.entries || [...evidenceCatalog().entries, ...qaCatalog()];
   const scoredEntries = entries.map(e => ({ ...e, tokens: e.tokens || new Set(tokenizeForMatcher(`${e.title} ${e.text}`)),
@@ -78,20 +109,24 @@ function findSystemMaterials(systems, topic = {}, options = {}) {
   };
   let chars = 0, pages = 0;
   return systems.map(system => {
-    const scores = new Map(scoreEvidence({ subject: normalize(system.name), claim: normalize(system.name) },
-      { ...topic, catalog: { entries: scoredEntries, df: evidenceCatalog().df } }).scored.map(row => [row.e.material_id || row.e.id, row.score]));
+    const name = String(system.name).normalize('NFKC');
+    const taxes = systemTaxes(name, topic);
+    const scores = new Map(scoreEvidence({ subject: name, claim: name },
+      { tax_domain: topic.tax_domain, catalog: { entries: scoredEntries, df: evidenceCatalog().df } }).scored.map(row => [row.e.material_id || row.e.id, row.score]));
     const candidates = entries.map(ref => {
       // 法令・通達は題名に当たるものだけ。本文は採用候補に限って読む。
       const title = relevantMaterial(system.name, ref, '');
       if (['law', 'tsutatsu'].includes(ref.kind) && !title.titleMatch) return null;
       const text = read(ref), related = relevantMaterial(system.name, ref, text);
+      const tax = materialTax(ref);
+      if (taxes.size && tax && !taxes.has(tax)) return null;
       return related.condition ? { ref, text, ...related, score: scores.get(ref.material_id || ref.id) || 0 } : null;
-    }).filter(Boolean).sort((a, b) => Number(['law', 'tsutatsu'].includes(a.ref.kind)) - Number(['law', 'tsutatsu'].includes(b.ref.kind)) ||
-      Number(b.titleMatch) - Number(a.titleMatch) || b.occurrences - a.occurrences || b.score - a.score || a.ref.id.localeCompare(b.ref.id)).slice(0, 2);
+    }).filter(Boolean).sort((a, b) => Number(b.titleMatch) - Number(a.titleMatch) ||
+      KIND_ORDER[a.ref.kind] - KIND_ORDER[b.ref.kind] || b.score - a.score || b.occurrences - a.occurrences || a.ref.id.localeCompare(b.ref.id)).slice(0, 2);
     const materials = [], omitted = [];
     for (const row of candidates) {
       const id = materialId(row.ref);
-      const text = contiguousExcerpt(row.text, normalize(system.name), 6000, systemNames(system.name).main);
+      const text = contiguousExcerpt(row.text, name, 6000, systemNames(system.name).main);
       if (!attached.has(id) && (pages >= (options.maxPages ?? 18) || chars + text.length > (options.maxChars ?? 60000))) {
         omitted.push(id); continue;
       }
@@ -104,19 +139,18 @@ function findSystemMaterials(systems, topic = {}, options = {}) {
   });
 }
 
-function buildPlanBlock(systems, existing = []) {
+function buildPlanBlock(systems, existing = [], otherMaterials = []) {
   const seen = new Set(existing.map(ref => typeof ref === 'string' ? ref : materialId(ref)));
   const missing = systems.filter(s => s.missing).map(s => s.name);
-  const blocks = systems.map(system => {
-    const refs = system.materials.map(ref => {
+  const render = refs => refs.map(ref => {
       const id = materialId(ref);
       if (seen.has(id)) return `（上に掲載）${ref.title}`;
       seen.add(id);
       return `【資料】${ref.title} / ${ref.url}\n${ref.text}`;
     });
-    return [`制度: ${system.name}${system.why ? `（${system.why}）` : ''}`, ...refs, ...(system.note ? [system.note] : [])].join('\n');
-  });
-  return `\n\n═══ この記事で扱う制度と資料 ═══\n扱う制度: ${systems.map(s => s.name).join('、')}\n資料が見つからなかった制度: ${missing.length ? missing.join('、') + '（この制度は名前と「詳しくは国税庁の〇〇で確認」程度の案内までにする）' : 'なし'}\n${blocks.join('\n\n')}\n\n1. 税の要件・対象者・金額・割合・期限・適用年・届出や申請・判定の基準・条文や通達の番号は、添付した資料（このブロックと上の資料）に書いてあることだけを書く。あなたの記憶にある税制は古い可能性が高い。\n2. 「資料が見つからなかった制度」は、名前と案内までにする。\n3. 「扱う制度」に無い制度について、要件・金額・期限などの具体を書かない。`;
+  const blocks = systems.map(system => [`制度: ${system.name}`, ...render(system.materials), ...(system.note ? [system.note] : [])].join('\n'));
+  if (otherMaterials.length) blocks.push(['その他の資料', ...render(otherMaterials)].join('\n'));
+  return `\n\n═══ この記事で扱う制度と資料 ═══\n扱う制度: ${systems.map(s => s.name).join('、')}\n資料が見つからなかった制度: ${missing.length ? missing.join('、') + '（この制度は名前と「詳しくは国税庁の〇〇で確認」程度の案内までにする。名前に含まれる数字・期間も書かない）' : 'なし'}\n${blocks.join('\n\n')}\n\n1. 税の要件・対象者・金額・割合・期限・適用年・届出や申請・判定の基準・条文や通達の番号は、添付した資料（このブロックと上の資料）と、この後の論点別ルールに書いてあることだけを書く。あなたの記憶にある税制は古い可能性が高い。\n2. 「資料が見つからなかった制度」は、名前と案内までにする。\n3. 「扱う制度」に無い制度について、要件・金額・期限などの具体を書かない。`;
 }
 
 function planWarning(meta) {
@@ -141,23 +175,38 @@ async function prepareArticlePlan(topic, options = {}) {
   }
 }
 
-function restoreArticlePlan(meta, existing = []) {
-  if (!enabled() || meta.fact_plan_status !== 'ok' || !meta.fact_materials) return '';
+function appendWarnings(existing, ...warnings) {
+  return [...new Set([existing, ...warnings].filter(Boolean).flatMap(text => String(text).split(' / ')).filter(Boolean))].join(' / ');
+}
+
+function resolveArticlePlan(meta, additional = []) {
+  if (!enabled() || meta.fact_plan_status !== 'ok' || !meta.fact_materials) return null;
   try {
-    const refs = String(meta.fact_materials).split(';').filter(Boolean).map(resolveMaterial);
-    if (refs.some(ref => !ref)) throw new Error('記録した資料を読めませんでした');
-    for (const ref of refs) ref.text = contiguousExcerpt(mainText(ref, ref.text), String(meta.fact_plan || ''), 6000);
-    const missing = String(meta.fact_plan_missing || '').split(' ／ ');
+    const ids = [...new Set([...String(meta.fact_materials).split(';'), ...materialIds(additional)])].filter(Boolean);
+    const refs = resolveWriterMaterials(ids);
+    const skipped = ids.length - refs.length;
+    if (skipped) meta.materials_warning = appendWarnings(meta.materials_warning,
+      `計画: 記録した資料のうち引けない ${skipped} 件${refs.length ? '' : '（従来の資料だけで生成）'}`);
+    if (!refs.length) return null;
     const names = String(meta.fact_plan || '').split(' ／ ').filter(Boolean);
-    const systems = names.map((name, i) => ({ name, why: '', missing: missing.includes(name), materials: i === 0 ? refs : [] }));
-    const block = buildPlanBlock(systems, existing);
-    meta.fact_materials = [...new Set([...String(meta.fact_materials).split(';'), ...materialIds(existing)])].filter(Boolean).join(';');
-    return block;
+    const systems = findSystemMaterials(names.map(name => ({ name })), meta, {
+      entries: refs.filter(ref => ref.kind !== 'change'), existing: refs, loadEvidenceText: ref => ref.text,
+    });
+    const assigned = new Set(systems.flatMap(system => system.materials).map(materialId));
+    const otherMaterials = refs.filter(ref => !assigned.has(materialId(ref))).map(ref => ({ ...ref,
+      text: contiguousExcerpt(mainText(ref, ref.text), ref.title, 6000) }));
+    meta.fact_materials = ids.join(';');
+    return { systems, otherMaterials };
   } catch (_) {
-    meta.materials_warning = [meta.materials_warning, '計画の資料を復元できませんでした（従来の資料だけで生成）'].filter(Boolean).join(' / ');
-    return '';
+    meta.materials_warning = appendWarnings(meta.materials_warning, '計画の資料を復元できませんでした（従来の資料だけで生成）');
+    return null;
   }
 }
 
+function restoreArticlePlan(meta, existing = [], restored = undefined) {
+  const plan = restored === undefined ? resolveArticlePlan(meta, existing) : restored;
+  return plan ? buildPlanBlock(plan.systems, existing, plan.otherMaterials) : '';
+}
+
 module.exports = { planSystems, findSystemMaterials, relevantMaterial, buildPlanBlock, prepareArticlePlan, restoreArticlePlan,
-  planWarning, META_FIELDS, PLAN_SYSTEM, enabled };
+  resolveArticlePlan, appendWarnings, planWarning, META_FIELDS, PLAN_SYSTEM, enabled };
