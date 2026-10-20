@@ -14,6 +14,14 @@ const { tokenizeForMatcher } = require('./nta-source-matcher');
 const { splitUnits, renderUnits, rangeText, unitNumber, basisRanges } = require('./fact-units');
 const { buildPages, pageGroups } = require('./fact-pages');
 const TYPES = ['金額', '期限', '割合', '適用年', '番号', '要件', '判定', '手続'];
+// 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
+const TYPE_ALIASES = new Map([
+  ...['対象・条件', '対象', '条件', '対象者', '要件・条件'].map(label => [label, '要件']),
+  ['保存期間', '期限'],
+  ...['届出', '申請', '選択', '届出・申請・選択'].map(label => [label, '手続']),
+  ...['条文', '通達', 'タックスアンサー', '条文・通達・タックスアンサー'].map(label => [label, '番号']),
+  ['税率', '割合'],
+]);
 const NUMERIC_TYPES = new Set(['金額', '割合', '期限', '適用年', '番号']);
 const REVIEW_TYPES = new Set(['要件', '判定', '手続']);
 const STATUSES = ['裏付けあり', '食い違い', '資料なし', '期限の書き漏れ'];
@@ -375,7 +383,7 @@ async function extractClaims(body, callLLM, options = {}) {
   const units = splitUnits(body);
   if (!units.length) return { claims: [], dropped: 0, discarded: 0, droppedClaims: [], discardedClaims: [] };
   const read = async rows => parseJson(await callLLM({ task: 'extract', maxTokens: 8000,
-    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件（対象・条件）・金額・割合・期限（保存期間を含む）・適用年・手続（届出・申請・選択）・番号（条文・通達・タックスアンサー）・判定を対象にします。s は主張を述べた本文の文の番号、type は上記8種類のいずれか、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
+    system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件・金額・割合・期限・適用年・手続・番号・判定を対象にします。type は次の8語のどれか1語をそのまま書いてください: 要件・金額・割合・期限・適用年・手続・番号・判定。（要件＝対象・条件、期限＝保存期間を含む、手続＝届出・申請・選択、番号＝条文・通達・タックスアンサー）s は主張を述べた本文の文の番号、subject は制度名・論点名、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
     user: renderUnits(rows),
   }));
   let data;
@@ -401,14 +409,27 @@ async function extractClaims(body, callLLM, options = {}) {
   const seen = new Set();
   const discardedClaims = [];
   const valid = [];
-  const fields = c => ({ ...Object.fromEntries(['sentence', 'heading', 'type', 'subject', 'claim'].map(key => [key, typeof c?.[key] === 'string' ? c[key] : ''])), ...(Number.isInteger(c?.s) ? { s: c.s } : {}) });
-  for (const c of data) {
+  const fields = c => ({ ...Object.fromEntries(['sentence', 'heading', 'type', 'subject', 'claim'].map(key => [key, typeof c?.[key] === 'string' ? c[key] : ''])),
+    ...(typeof c?.type_label === 'string' ? { type_label: c.type_label } : {}), ...(Number.isInteger(c?.s) ? { s: c.s } : {}) });
+  for (const original of data) {
+    const label = typeof original?.type === 'string' ? original.type.trim()
+      .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)).replace(/[｡-ﾟ]+/g, text => text.normalize('NFKC')) : '';
+    const type = TYPES.includes(label) ? label : TYPE_ALIASES.get(label);
+    const c = { ...original, type: type || original?.type };
+    // 元の名前は LLM の別フィールドではなく、実際に読み替えた type から記録する。
+    delete c.type_label;
+    if (type && type !== original.type) c.type_label = original.type;
     const number = unitNumber(c?.s);
     let unit = number ? units[number - 1] || null : null;
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
       const numbers = normalizedNumbers(c.claim);
-      const contains = u => numbers.every(n => normalizedNumbers(u.text).includes(n));
+      const contains = u => {
+        const present = normalizedNumbers(u.text);
+        const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(u.text)));
+        // 年だけの例外は同じ文の同じ元号・年に限定し、基準日や別の文から補わない。
+        return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))));
+      };
       if (isNumericClaim({ ...c, sentence: c.claim }) && numbers.length) {
         // 読めない割合が同じ原文にある場合は抽出し、後段の歯止めで止める。
         if (unit.heading || !contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
@@ -454,7 +475,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = '03r';
+const LOGIC_VERSION = '03u';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -477,13 +498,14 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   for (const c of claims) {
     const refs = evidence[c.id] || [];
     if (!refs.length) results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
+      ...(typeof c.type_label === 'string' ? { type_label: c.type_label } : {}),
       s: units.find(u => !u.heading && u.text === c.sentence)?.s,
       status: '資料なし', quote: '', correct: '', evidence: [], evidence_id: '' });
     else queued.push(c);
   }
   const deadlineSubjects = new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
   const cache = options.pageCache;
   const batching = options.batch && !options.batch.disabled;
@@ -560,7 +582,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       if (correct === null) { status = '資料なし'; reason ||= '正しい内容が文字列でない'; }
       const candidates = (evidence[c.id] || []).map(e => byId.get(e.id).ref);
       const evidenceNo = unitNumber(r?.evidence_id);
-      const page = evidenceNo ? pages.find(p => p.number === evidenceNo && candidates.some(e => e.id === p.id)) : null;
+      const page = evidenceNo ? pages.find(p => p.number === evidenceNo) : null;
       const ranges = basisRanges(r?.basis);
       // 2範囲では各範囲の上限を先に守る。単一範囲の3〜4文に対する従来の救済は維持する。
       const maxUnits = ranges?.length === 2 && NUMERIC_TYPES.has(c.type) ? 2 : 4;
@@ -615,13 +637,18 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           status = '資料なし'; reason = '同じ制度の期限の書き漏れは記録済み';
         } else deadlineSubjects.add(c.subject);
       }
+      // 提示済み資料でも、引用と数字などの確認を通った場合だけ候補末尾へ加える。
+      const outsideCandidates = status !== '資料なし' && page && !candidates.some(e => e.id === page.id);
+      if (outsideCandidates) candidates.push(page.ref);
       const date = ref && sourceDate(ref.law_version);
       const cutoff = new Date(options.now || new Date());
       cutoff.setUTCMonth(cutoff.getUTCMonth() - 18);
       results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
+        ...(typeof c.type_label === 'string' ? { type_label: c.type_label } : {}),
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
+        ...(outsideCandidates ? { evidence_outside_candidates: true } : {}),
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
         ...(reason ? { reject_reason: reason } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
@@ -945,6 +972,7 @@ async function checkFacts(body, options = {}) {
       const retained = previous.filter(c => actualSentence(fullBody, c.sentence) === c.sentence);
       reused = retained.filter(c => !needsJudge(c));
       const rejudged = retained.filter(needsJudge).map(c => ({ id: c.id, sentence: c.sentence, type: c.type, subject: c.subject, claim: c.claim,
+        ...(typeof c.type_label === 'string' ? { type_label: c.type_label } : {}),
         heading: fullUnits.filter(u => u.heading && u.start < (fullUnits.find(u => !u.heading && u.text === c.sentence)?.start ?? 0))
           .at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '' }));
       const seen = new Set(claims.map(claimKey));

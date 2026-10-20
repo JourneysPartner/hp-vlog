@@ -198,7 +198,7 @@ test('R3', '保持数字を差分照合で使い回し、LLMの2範囲はレビ�
     prior.logic_version = '03o'; fs.writeFileSync(file, JSON.stringify(prior));
     const old = await F.checkArticle(raw(giftClaim.sentence + '\n案内を追記します。'), { ...opts, previousRaw: before, persist: false });
     assert.equal(old.record.incremental, undefined);
-    assert.equal(old.record.logic_version, '03r');
+    assert.equal(old.record.logic_version, '03u');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 const filler = Array(5).fill('中間の説明が続いています'.repeat(15) + '。');
@@ -311,15 +311,15 @@ test('R4', 'supported_numbersが無い修正リクエストは変更前とバイ
     return [];
   });
 });
-test('R4', '抜き出しと判定のリクエストも変更前とバイト単位で同じ', async () => {
+test('R4', '抜き出しと判定のリクエストは03uの指示文とバイト単位で一致', async () => {
   const c = claim('控除は120万円です。');
   const e = ref(c.sentence, '2080', { id: 'e1', title: '試験資料', url: 'https://example.jp/e1' });
   await F.extractClaims(c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '15361d9da0ed53561c371d39426129ba6702a2889291c1707eb586170420f2f5');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '065ba2b29ab57ba7cac871a439bc1ce54cc536b7352a1625494c54d5c32180ec');
     return [];
   }, options);
   await F.judgeClaims([c], { c1: [e] }, c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '5117ee595e11490c1cb4a37838f1ab023dc81a3be37e2204ff9cc25a4d5b2868');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), 'fd8b916f42c8c6d06548109f5b9f472c6bf833b4b15a8fba7c5a7579072eefc9');
     return [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }];
   }, options);
 });
@@ -385,9 +385,9 @@ test('R5', '別番号・番号の主張・法令資料・5桁の番号は除外�
   assert.equal((await judge({ ...c, type: '番号' }, ref('短', '2080'), '1')).status, '資料なし');
   assert.equal((await judge({ ...c, claim: c.claim.replace('2080', '20801'), sentence: c.sentence.replace('2080', '20801') }, ref(books, '2080'), '1')).status, '資料なし');
 });
-test('版', 'LOGIC_VERSIONは03r', async () => {
+test('版', 'LOGIC_VERSIONは03u', async () => {
   const result = await F.checkFacts('案内です。', { ...options, callLLM: async () => [], repair: false });
-  assert.equal(result.record.logic_version, '03r');
+  assert.equal(result.record.logic_version, '03u');
 });
 
 (async () => {
