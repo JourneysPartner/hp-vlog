@@ -146,7 +146,7 @@ function subjectWithoutTrailingParens(subject) {
 }
 
 /** カタログ全体を検索する。LLM・ネットワークは使わない。 */
-function searchEvidence(claim, options = {}) {
+function scoreEvidence(claim, options = {}) {
   const { entries, df } = options.catalog || evidenceCatalog();
   const subjectName = subjectWithoutTrailingParens(claim.subject);
   const rawQuery = [claim.subject, claim.claim, claim.sentence, options.tax_terms].filter(Boolean).join(' ');
@@ -181,11 +181,10 @@ function searchEvidence(claim, options = {}) {
   const articleTaxes = (TAX_CATEGORY_CODES[options.tax_domain] || []).map(code => CATEGORY_TAX[code]);
   const articleTax = options.tax_domain !== 'overseas_transactions' && articleTaxes.length && articleTaxes.every(tax => tax === articleTaxes[0]) ? articleTaxes[0] : undefined;
   const claimText = [claim.subject, claim.claim, claim.sentence].filter(Boolean).join(' ');
-  const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
   const scored = entries.map(e => {
     let score = 0;
     for (const t of tokens) {
-      const rarity = Math.log(1 + entries.length / ((df.get(t) || 0) + 1));
+      const rarity = Math.log(1 + (options.scorePopulation ?? entries.length) / ((df.get(t) || 0) + 1));
       if (e.tokens.has(t)) score += rarity * (subjectTokens.has(t) ? 2 : 1);
       if (e.titleTokens.has(t)) score += rarity * (subjectTokens.has(t) ? 6 : 3);
     }
@@ -200,6 +199,12 @@ function searchEvidence(claim, options = {}) {
     if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) bonus += 10;
     return { e, score: score + bonus, ownScore: ownScore + bonus };
   });
+  return { scored, subjectName, tokens, query, focus, bundle };
+}
+
+function searchEvidence(claim, options = {}) {
+  const { scored, subjectName, tokens, query, focus, bundle } = scoreEvidence(claim, options);
+  const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
   const ranked = scored.filter(r => r.score > 5).sort(byScore);
   const articleIds = new Set([options.source_url,
     ...(Array.isArray(options.source_supplements) ? options.source_supplements.map(s => typeof s === 'string' ? s : s?.url) : []),
@@ -248,4 +253,4 @@ function loadEvidenceText(ref) {
   if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
   return text;
 }
-module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText };
+module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText, subjectWithoutTrailingParens, scoreEvidence };

@@ -225,11 +225,11 @@ test('版', 'LOGIC_VERSIONは03uで、03rの記録は差分照合で使い回さ
   try {
     const opts = articleOptions(dir), before = raw(body), after = raw(body + '\n案内を追記します。');
     const first = await F.checkArticle(before, opts);
-    assert.equal(first.record.logic_version, '03u');
+    assert.equal(first.record.logic_version, 'plan1');
     const file = F.recordPath('fact-03u', dir), prior = JSON.parse(fs.readFileSync(file, 'utf8'));
     prior.logic_version = '03r'; fs.writeFileSync(file, JSON.stringify(prior) + '\n', 'utf8');
     const next = await F.checkArticle(after, { ...opts, previousRaw: before, persist: false });
-    assert.equal(next.record.logic_version, '03u'); assert.equal(next.record.incremental, undefined);
+    assert.equal(next.record.logic_version, 'plan1'); assert.equal(next.record.incremental, undefined);
     assert.deepEqual(next.record.calls.map(c => c.task), ['extract', 'judge']);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

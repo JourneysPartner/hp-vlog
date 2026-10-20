@@ -46,6 +46,7 @@ function reset() {
     'RULE_POSTFIX', 'WITHDRAWN_OUT', 'POSTGEN_DEDUP', 'GITHUB_OUTPUT']) delete process.env[key];
   process.env.ANTHROPIC_API_KEY = process.env.AI_GATEWAY_API_KEY = secret;
   process.env.ENABLE_LLM_SOURCE_SELECT = 'false';
+  process.env.FACT_PLAN_ENABLED = 'false'; // 本文生成の既存の呼び出しと保全条件をそのまま確かめる。
   CM.generateContent = original.generateContent;
   CM.generateSimple = original.generateSimple;
   S.CONDITIONAL_RULES.small_depreciable_assets.text = ruleText;

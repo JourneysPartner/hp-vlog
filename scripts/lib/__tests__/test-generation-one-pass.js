@@ -21,10 +21,12 @@ const topic = () => ({ slug: 'one-pass', title: '手続きで確認する書類�
 const article = body => `---\ntitle: "手続きで確認する書類と順序"\nsummary: "手続きに必要な書類と順番を確認します。"\n---\n\n${body}`;
 const body = (n = 1000) => `## 書類\n\n${'確認する書類です。'.repeat(n)}\n\n## 順序\n\n順番を確認します。\n\n## まとめ\n\n内容を確認します。\n\n${S.DISCLAIMER_TEXT}\n\nご不明な点がございましたらお気軽にご相談ください。`;
 const options = { topic: topic(), articleType: 'basic_explainer' };
-const envKeys = ['LENGTH_FIX_MODE', 'LENGTH_RETRY_SHORT', 'RULE_FIX_MODE', 'RULE_POSTFIX', 'POSTGEN_DEDUP'];
+const envKeys = ['LENGTH_FIX_MODE', 'LENGTH_RETRY_SHORT', 'RULE_FIX_MODE', 'RULE_POSTFIX', 'POSTGEN_DEDUP', 'FACT_PLAN_ENABLED'];
 async function withEnv(values, fn) {
   const saved = Object.fromEntries(envKeys.map(k => [k, process.env[k]]));
   for (const k of envKeys) delete process.env[k];
+  // 本文の短縮・補正の呼び出し回数を従来条件で確かめる。計画は専用試験で確かめる。
+  process.env.FACT_PLAN_ENABLED = 'false';
   Object.assign(process.env, values);
   try { return await fn(); } finally {
     for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
