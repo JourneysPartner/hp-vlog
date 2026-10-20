@@ -13,9 +13,10 @@ let catalog;
 // #642 の試算: 対応する根拠が候補にある主張は20→28件、既存の根拠は231/231件を維持。
 const OTHER_TAX_SCORE = 0.15;
 const TAX_WORDS = Object.freeze({
-  income: ['所得税', '所得', '確定申告', '年末調整', '源泉'],
+  income: ['所得税', '所得', '確定申告', '年末調整', '源泉', '譲渡', '取得費', '空き家'],
   corporate: ['法人', '会社', '役員', '事業年度'],
-  consumption: ['消費税', 'インボイス', '適格請求書', '仕入税額', '課税売上', '免税事業者', '課税事業者'],
+  consumption: ['消費税', 'インボイス', '適格請求書', '仕入税額', '課税売上', '免税事業者', '課税事業者',
+    '簡易課税', '納税義務', '軽減税率', '2割特例', '3割特例', '基準期間'],
   inheritance: ['相続', '贈与', '遺贈', '遺産', '財産評価', '路線価'],
 });
 const CATEGORY_TAX = Object.freeze({
@@ -153,7 +154,8 @@ function searchEvidence(claim, options = {}) {
   }
   const mapped = resolveSourceForTopic({ pain_point: claim.subject, tax_terms: claim.subject, title: claim.subject,
     search_intent: claim.claim, tax_domain: options.tax_domain || '' });
-  const articleTax = CATEGORY_TAX[TAX_CATEGORY_CODES[options.tax_domain]?.[0]];
+  const articleTaxes = (TAX_CATEGORY_CODES[options.tax_domain] || []).map(code => CATEGORY_TAX[code]);
+  const articleTax = options.tax_domain !== 'overseas_transactions' && articleTaxes.length && articleTaxes.every(tax => tax === articleTaxes[0]) ? articleTaxes[0] : undefined;
   const claimText = [claim.subject, claim.claim, claim.sentence].filter(Boolean).join(' ');
   const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
   const scored = entries.map(e => {
@@ -165,12 +167,14 @@ function searchEvidence(claim, options = {}) {
     }
     // 詳細事例だけで上位が埋まらないよう、制度名を端的に説明する題名を優先する。
     if (claim.subject && e.title.includes(claim.subject)) score += 80 * claim.subject.length / e.title.length;
+    const ownScore = score;
     const tax = evidenceTax(e);
     if (articleTax && tax && tax !== articleTax && !TAX_WORDS[tax].some(word => claimText.includes(word))) score *= OTHER_TAX_SCORE;
-    if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) score += 10000;
-    if (bundle.has(e.id) || bundle.has(e.url)) score += 5;
-    if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) score += 10;
-    return { e, score };
+    let bonus = 0;
+    if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) bonus += 10000;
+    if (bundle.has(e.id) || bundle.has(e.url)) bonus += 5;
+    if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) bonus += 10;
+    return { e, score: score + bonus, ownScore: ownScore + bonus };
   });
   const ranked = scored.filter(r => r.score > 5).sort(byScore);
   const articleIds = new Set([options.source_url,
@@ -179,7 +183,7 @@ function searchEvidence(claim, options = {}) {
   const isArticle = e => articleIds.has(e.id) || articleIds.has(e.url) || (e.kind === 'tsutatsu' && articleIds.has(`tsutatsu:${e.circular}:${e.no}`));
   const isPrimary = e => Boolean(options.source_url) && (e.id === options.source_url || e.url === options.source_url);
   // 主出典を先頭に、記事自身の資料は主張に近い順に並べる。
-  const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || byScore(a, b));
+  const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || b.ownScore - a.ownScore || a.e.id.localeCompare(b.e.id));
   const selected = [], seen = new Set();
   const add = ({ e, score }) => {
     if (seen.has(e.id) || selected.length >= 7) return;
@@ -195,7 +199,8 @@ function searchEvidence(claim, options = {}) {
   // この3枠だけを重複除外する。own・subjectTopの枠と既存の追加順は変えない。
   const diverse = [];
   for (const row of ranked) {
-    if (diverse.some(r => overlappingTokens(r.e.tokens, row.e.tokens) >= 0.9)) continue;
+    const addsQueryToken = tokens.some(t => row.e.tokens.has(t) && !diverse.some(r => r.e.tokens.has(t)));
+    if (!addsQueryToken && diverse.some(r => overlappingTokens(r.e.tokens, row.e.tokens) >= 0.9)) continue;
     diverse.push(row);
     if (diverse.length === 3) break;
   }
