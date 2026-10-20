@@ -10,6 +10,42 @@ const { resolveSourceForTopic } = require('./tax-authority-refs');
 const ROOT = path.join(__dirname, '..', '..');
 let catalog;
 
+// #642 の試算: 対応する根拠が候補にある主張は20→28件、既存の根拠は231/231件を維持。
+const OTHER_TAX_SCORE = 0.15;
+const TAX_WORDS = Object.freeze({
+  income: ['所得税', '所得', '確定申告', '年末調整', '源泉', '譲渡所得', '取得費', '空き家'],
+  corporate: ['法人', '会社', '役員', '事業年度'],
+  consumption: ['消費税', 'インボイス', '適格請求書', '仕入税額', '課税売上', '免税事業者', '課税事業者',
+    '簡易課税', '納税義務', '軽減税率', '2割特例', '3割特例', '基準期間'],
+  inheritance: ['相続', '贈与', '遺贈', '遺産', '財産評価', '路線価'],
+});
+const CATEGORY_TAX = Object.freeze({
+  __proto__: null,
+  shotoku: 'income', gensen: 'income', joto: 'income', hojin: 'corporate', shohi: 'consumption',
+  sozoku: 'inheritance', zoyo: 'inheritance', hyoka: 'inheritance',
+});
+const CIRCULAR_TAX = Object.freeze({
+  __proto__: null,
+  shotoku: 'income', sochi_shotoku: 'income', sochi_joto: 'income', hojin: 'corporate', sochi_hojin: 'corporate',
+  shohi: 'consumption', sozoku: 'inheritance', sochi_sozoku: 'inheritance', hyoka: 'inheritance',
+});
+
+function evidenceTax(e) {
+  if (e.kind === 'law') {
+    if (e.key?.startsWith('shotokuzei_')) return 'income';
+    if (e.key?.startsWith('hojinzei_')) return 'corporate';
+    if (e.key?.startsWith('shohizei_')) return 'consumption';
+    if (e.key?.startsWith('sozokuzei')) return 'inheritance';
+  } else if (e.kind === 'tsutatsu') return CIRCULAR_TAX[e.circular];
+  else return CATEGORY_TAX[e.url?.match(/\/(?:taxanswer|law\/shitsugi)\/([^/]+)\//)?.[1]];
+}
+
+function overlappingTokens(a, b) {
+  let shared = 0;
+  for (const token of a) if (b.has(token)) shared++;
+  return shared / (a.size + b.size - shared || 1);
+}
+
 function readEntries(dir, out) {
   for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, f.name);
@@ -118,6 +154,9 @@ function searchEvidence(claim, options = {}) {
   }
   const mapped = resolveSourceForTopic({ pain_point: claim.subject, tax_terms: claim.subject, title: claim.subject,
     search_intent: claim.claim, tax_domain: options.tax_domain || '' });
+  const articleTaxes = (TAX_CATEGORY_CODES[options.tax_domain] || []).map(code => CATEGORY_TAX[code]);
+  const articleTax = options.tax_domain !== 'overseas_transactions' && articleTaxes.length && articleTaxes.every(tax => tax === articleTaxes[0]) ? articleTaxes[0] : undefined;
+  const claimText = [claim.subject, claim.claim, claim.sentence].filter(Boolean).join(' ');
   const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
   const scored = entries.map(e => {
     let score = 0;
@@ -128,10 +167,14 @@ function searchEvidence(claim, options = {}) {
     }
     // 詳細事例だけで上位が埋まらないよう、制度名を端的に説明する題名を優先する。
     if (claim.subject && e.title.includes(claim.subject)) score += 80 * claim.subject.length / e.title.length;
-    if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) score += 10000;
-    if (bundle.has(e.id) || bundle.has(e.url)) score += 5;
-    if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) score += 10;
-    return { e, score };
+    const ownScore = score;
+    const tax = evidenceTax(e);
+    if (articleTax && tax && tax !== articleTax && !TAX_WORDS[tax].some(word => claimText.includes(word))) score *= OTHER_TAX_SCORE;
+    let bonus = 0;
+    if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) bonus += 10000;
+    if (bundle.has(e.id) || bundle.has(e.url)) bonus += 5;
+    if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) bonus += 10;
+    return { e, score: score + bonus, ownScore: ownScore + bonus };
   });
   const ranked = scored.filter(r => r.score > 5).sort(byScore);
   const articleIds = new Set([options.source_url,
@@ -140,7 +183,7 @@ function searchEvidence(claim, options = {}) {
   const isArticle = e => articleIds.has(e.id) || articleIds.has(e.url) || (e.kind === 'tsutatsu' && articleIds.has(`tsutatsu:${e.circular}:${e.no}`));
   const isPrimary = e => Boolean(options.source_url) && (e.id === options.source_url || e.url === options.source_url);
   // 主出典を先頭に、記事自身の資料は主張に近い順に並べる。
-  const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || byScore(a, b));
+  const own = scored.filter(r => isArticle(r.e)).sort((a, b) => isPrimary(b.e) - isPrimary(a.e) || b.ownScore - a.ownScore || a.e.id.localeCompare(b.e.id));
   const selected = [], seen = new Set();
   const add = ({ e, score }) => {
     if (seen.has(e.id) || selected.length >= 7) return;
@@ -153,7 +196,15 @@ function searchEvidence(claim, options = {}) {
   if (subjectRanking?.errorCode) throw new Error('制度名の検索用カタログを読めませんでした');
   const subjectTop = subjectRanking?.top1?.score > 0 && scored.find(r => r.e.url === subjectRanking.top1.url);
   if (subjectTop) add(subjectTop);
-  ranked.slice(0, 3).forEach(add);
+  // この3枠だけを重複除外する。own・subjectTopの枠と既存の追加順は変えない。
+  const diverse = [];
+  for (const row of ranked) {
+    const addsQueryToken = tokens.some(t => row.e.tokens.has(t) && !diverse.some(r => r.e.tokens.has(t)));
+    if (!addsQueryToken && diverse.some(r => overlappingTokens(r.e.tokens, row.e.tokens) >= 0.9)) continue;
+    diverse.push(row);
+    if (diverse.length === 3) break;
+  }
+  diverse.forEach(add);
   own.slice(3).forEach(add);
   return selected.map(({ e, score }) => {
     const { tokens: _tokens, titleTokens: _titleTokens, lazy: _lazy, ...data } = e;
