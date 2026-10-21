@@ -287,7 +287,7 @@ test('S5', '背景の再現: みなし仕入率の修正を、同じ行の変わ
         ...(extracts > 1 ? [{ s, type: '割合', subject: '建設業のみなし仕入率', claim: '売上税額に30%を掛けます。' }] : []),
       ]; }
       if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
-      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.claim.includes('30%') ? '資料なし' : extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: 1, basis: '1', correct: '建設業は第3種事業でみなし仕入率は70%です。' }));
+      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.claim.includes('30%') ? '資料なし' : extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: 1, basis: '1', correct: '建設業の売上税額から計算するみなし仕入率は第3種の70%です。' }));
     } });
   assert.equal(result.body, '## 試算\n' + fixed); assert.equal(result.record.corrections[0].resolved, true); assert.equal(result.record.status, 'ok');
 });
@@ -351,7 +351,7 @@ for (const [label, initial, changed] of [['新たな同じ数字', false, false]
         ...(initial || round > 1 ? [{ s, type: '割合', subject: 'みなし仕入率', claim: `売上税額に${round > 1 && changed ? 40 : 30}%を掛けます。` }] : []),
       ]; }
       if (req.task === 'repair' || req.task === 'retry_repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: after }));
-      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: c.claim.includes('売上税額') ? '資料なし' : round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: 'みなし仕入率70%' }));
+      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: c.claim.includes('売上税額') ? '資料なし' : round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: 'みなし仕入率70%で売上税額を計算します。' }));
     } });
   if (!initial && !changed) { assert.equal(r.record.status, 'ok'); assert.equal(r.record.corrections[0].resolved, true); assert(r.record.review_items.some(c => c.unchanged_numeric)); }
   else { assert.equal(r.record.status, 'revise'); assert(r.record.remaining.length); }
@@ -512,11 +512,11 @@ const siblingCases = [
   [['6498','6505','6351'], '2割特例', '6498', '6505'],
   [['6498','6505','6351'], '2割特例', '6498', '6351'],
 ];
-test('02b-R2','資料なしの一般化も制度名を保つ案内だけを採り、話題の無い案内は直しに回す',async()=>{
+test('02b-R2','資料なしの一般化には話題の重なりの歯止めをかけず、数字を外した案内を採る',async()=>{
   const sentence='試験制度の上限は100万円です。',tasks=[];
   const r=await F.repairBody(sentence,[{...claim('c1',sentence),status:'資料なし'}],async req=>{
     tasks.push(req.task);return[{id:'c1',replacement:req.task==='retry_repair'?'詳しくは国税庁の試験制度で確認してください。':'詳しくは国税庁で確認してください。'}];
-  },writer);assert.deepEqual(tasks,['repair','retry_repair']);assert.equal(r.body,'詳しくは国税庁の試験制度で確認してください。');assert.equal(r.rejected.size,0);
+  },writer);assert.deepEqual(tasks,['repair']);assert.equal(r.body,'詳しくは国税庁で確認してください。');assert.equal(r.rejected.size,0);
 });
 for (const [ids,subject,ownId,outsideId] of siblingCases) {
   test('02b-H1', `本文だけに制度名がある兄弟資料${outsideId}を${subject}の食い違いに使わない`, async () => {
@@ -569,7 +569,7 @@ for(const kind of ['不一致行なし','元と同じ','記号だけ','句読点
   assert.equal(r.body,original);assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].status,'裏付けあり');assert(!r.record.calls.some(c=>c.task==='repair'));
 });
 test('02b-M1','数字の桁区切りだけの誤警報では修正を呼ばず、小数点の違いは実際の条件差として直す',async()=>{
-  for(const [original,fixed,changes] of [['限度額は1,000万円です。','限度額は1000万円です。',false],['対象年齢は18歳です。','対象年齢は1.8歳です。',true]]){
+  for(const [original,fixed,changes] of [['限度額は1,000万円です。','限度額は1000万円です。',false],['対象年齢は18歳で申請書を提出します。','対象年齢は1.8歳で申請書を提出します。',true]]){
     const source=ref('m1-numeric','限度額と対象年齢',fixed);let round=0;
     const r=await F.checkFacts(original,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
       if(req.task==='extract'){round++;return extract(req,'要件','対象年齢');}
@@ -637,12 +637,12 @@ test('02b-L1','一方だけ直しの対象になる同じ文は部分採用せ�
   assert.equal(r.body,sentence+'\n別の限度額は90万円です。');assert(r.rejected.has('c1')&&r.rejected.has('c2'));
 });
 test('02b-L2','同じ制度の別の修正文に新しく入った30%を変わっていない数字として通さない',async()=>{
-  const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で売上税額に30%を掛けます。';
+  const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で計算し、売上税額に30%を掛けます。';
   const source=ref('l2','みなし仕入率と控除率','みなし仕入率は70%です。\n控除率は80%です。');let round=0;
   const r=await F.checkFacts(a+'\n'+b,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
     if(req.task==='extract'){round++;return extract(req,'割合','みなし仕入率と控除率').flatMap((c,i)=>[{...c,claim:i===0?`みなし仕入率${round===1?60:70}%`:`控除率${round===1?50:80}%`},...(round>1&&i===1?[{...c,claim:'売上税額に30%を掛けます。'}]:[])]);}
     if(req.task==='repair')return [{id:'c1',replacement:aa},{id:'c2',replacement:bb}];
-    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?'控除率80%':'みなし仕入率70%'}));
+    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?'控除率は80%で計算します。':'みなし仕入率70%で売上税額を計算します。'}));
   }});assert.equal(r.record.status,'revise');assert(r.record.remaining.some(c=>c.claim.includes('30%')&&!c.unchanged_numeric));
 });
 
@@ -669,6 +669,182 @@ for(const result of ['回復','再度不正','空配列','失敗','JSON不正','
     if(req.task==='condition_check')return condition();return supported(req);
   }});assert.equal(calls.filter(c=>c.task==='retry_extract').length,1);assert(r.record.calls.some(c=>c.task==='retry_extract'));
   assert.equal(r.record.discarded,result==='回復'?0:1);assert.equal(r.record.status,result==='回復'?'ok':'revise');
+});
+
+test('02c-H3', '段Aの範囲外4件は、聞き直しと段Bが資料なしでも歯止めに残る', async () => {
+  const source = catalogRef('ta:4508');
+  const body = ['甲','乙','丙','丁'].map(s => `${s}の省エネ等住宅の非課税限度額は1,000万円です。`).join('\n');
+  const r = await F.checkFacts(body, { ...opts, repair: true, writer_materials: ['ta:4508'],
+    searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '金額', '住宅取得等資金の贈与の非課税');
+      if (req.task === 'repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: c.sentence.replace('1,000万円', '一定の額') }));
+      return JSON.parse(req.user).claims.map(c => req.stageB || req.task === 'retry_judge' ? { id: c.id, status: '資料なし' }
+        : { id: c.id, status: '裏付けあり', evidence_id: 1, basis: '99999' });
+    } });
+  assert.equal(r.record.status, 'not_run'); assert.equal(r.body, body); assert(!r.record.calls.some(c => c.task === 'repair'));
+});
+
+for (const route of ['判定', '条件']) test('02c-N1', `4511の50歳未満を住宅資金へ持ち込まない（${route}）`, async () => {
+  const home = catalogRef('ta:4508'), family = catalogRef('ta:4511');
+  const sentence = '受贈者は18歳以上の者に限られます。', wrong = '受贈者は18歳以上50歳未満の者に限られます。';
+  const ids = ['ta:4508','ta:4510','ta:4511'];
+  const ranked = W.searchWriterEvidence(claim('c1', sentence, '要件', '直系尊属からの贈与の非課税'), { writer_materials: ids });
+  assert.equal(ranked[0].id, home.id); assert(ranked.some(e => e.id === family.id));
+  const r = await F.checkFacts(sentence, { ...opts, repair: true, writer_materials: ids, loadEvidenceText: e => W.resolveMaterial(W.materialId(e))?.text || e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '要件', '直系尊属からの贈与の非課税');
+      if (req.task === 'condition_check') return route === '条件' ? { verdict: '不一致', conditions: [{ article: '18歳以上', source: '50歳未満', match: '不一致' }], correct: wrong } : condition();
+      if (req.task === 'repair') return [{ id: 'c1', replacement: wrong }];
+      return JSON.parse(req.user).claims.map(c => req.stageB ? pageAnswer(req, c.id, home, /18歳以上/, '裏付けあり')
+        : pageAnswer(req, c.id, family, /50歳未満/, route === '条件' || c.claim === wrong ? '裏付けあり' : '食い違い', wrong));
+    } });
+  assert.equal(r.body, sentence); assert.equal(r.record.status, 'ok'); assert(!r.record.calls.some(c => c.task === 'repair'));
+  if (route === '判定') assert.equal(r.record.claims[0].stage, 'B');
+  else assert(r.record.review_items.some(c => c.status === '条件の違いを要確認'));
+});
+
+test('02c-N2', '要件だけ拾い直しても1,000万円と令和8年12月31日の未照合を消さない', async () => {
+  const source = catalogRef('ta:4508'), sentence = '省エネ等住宅は1,000万円まで、令和8年12月31日までの贈与が対象です。';
+  const r = await F.checkFacts(sentence, { ...opts, writer_materials: ['ta:4508'], searchEvidence: () => [source], loadEvidenceText: e => source.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return [{ s: 1, type: '制度説明', subject: '住宅取得等資金の贈与の非課税', claim: sentence }];
+      if (req.task === 'retry_extract') return [{ s: 1, type: '要件', subject: '住宅取得等資金の贈与の非課税', claim: '省エネ等住宅が対象です。' }];
+      if (req.task === 'condition_check') return condition();
+      return JSON.parse(req.user).claims.map(c => pageAnswer(req, c.id, source, /1,000万円/, '裏付けあり'));
+    } });
+  assert.equal(r.record.status, 'revise'); assert.equal(r.record.discarded, 1); assert.equal(r.body, sentence);
+});
+
+for (const [article, sourceText] of [['95%以上','95%未満'], ['届出書で足りる','承認申請書が必要'], ['戻れます','戻れません'], ['青色申告者は','青色申告者で届出をした者は']]) {
+  test('02c-N3', `${article}と${sourceText}の不一致を黙って捨てない`, async () => {
+    const source = catalogRef('law:shotokuzei_hou:37'), sentence = article + 'という条件です。';
+    const r = await F.checkFacts(sentence, { ...opts, writer_materials: ['law:shotokuzei_hou:37'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+      callLLM: async req => {
+        if (req.task === 'extract') return extract(req, '要件', '必要経費');
+        if (req.task === 'condition_check') return { verdict: '不一致', conditions: [{ article, source: sourceText, match: '不一致' }], correct: sourceText + 'という条件です。' };
+        return supported(req);
+      } });
+    assert(r.record.claims[0].status === '食い違い' || r.record.review_items.some(c => c.status === '条件の違いを要確認'));
+  });
+}
+
+test('02c-N5', '子を孫に直した後の金額だけの裏付けで要件の修正を確定しない', async () => {
+  const source = catalogRef('ta:4103'), amount = catalogRef('ta:2795'), sentence = '18歳以上の子が対象で、限度額は100万円です。', fixed = sentence.replace('子','孫'); let round = 0;
+  const select = c => c.type === '金額' ? [amount] : [source];
+  const r = await F.checkFacts(sentence, { ...opts, repair: true, writer_materials: ['ta:4103','ta:2795'], searchWriterEvidence: select, searchEvidence: select, loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') { round++; return extract(req, '要件', '相続時精算課税').flatMap(c => [c, { ...c, type: '金額', claim: '限度額は100万円です。' }]); }
+      if (req.task === 'condition_check') return round === 1 ? { verdict: '不一致', conditions: [{ article: '18歳以上の子', source: '18歳以上の孫', match: '不一致' }], correct: '18歳以上の孫が対象です。' } : condition();
+      if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
+      return JSON.parse(req.user).claims.map(c => round > 1 && c.type === '要件' ? { id: c.id, status: '資料なし' }
+        : pageAnswer(req, c.id, c.type === '金額' ? amount : source, c.type === '金額' ? /税額 100万円以下/ : /推定相続人/, '裏付けあり'));
+    } });
+  assert.equal(r.body, sentence); assert.equal(r.record.status, 'ok'); assert(r.record.review_items.some(c => c.status === '条件の違いを要確認'));
+});
+
+const recordedCorrections = [
+  ['売上原価', '値下げして販売した商品は、その販売価格で売上が立ち、取得価額が売上原価になります。', '必要経費に算入できるのは、総収入金額に対応する売上原価その他その総収入金額を得るために直接要した費用の額です。', 'law:shotokuzei_hou:37', /必要経費/],
+  ['棚卸資産の評価', '値が付かないと説明できる根拠がない限り認められにくい処理です。', '期末棚卸資産の評価の方法は、政令で定める方法の中から選定でき、青色申告の承認を受けていない場合は原価法によります。', 'law:shotokuzei_hou:47', /評価/],
+];
+for (const [subject, sentence, correct, id, pattern] of recordedCorrections) for (const route of ['判定','条件']) test('02c-N6', `fcr2-642の${subject}を無関係な一般論に直さない（${route}）`, async () => {
+  const source = catalogRef(id);
+  const r = await F.checkFacts(sentence, { ...opts, repair: true, writer_materials: [id], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '判定', subject);
+      if (req.task === 'condition_check') return { verdict: '不一致', conditions: [{ article: sentence, source: correct, match: '不一致' }], correct };
+      if (req.task === 'repair') return [{ id: 'c1', replacement: correct }];
+      return JSON.parse(req.user).claims.map(c => pageAnswer(req, c.id, source, pattern, route === '条件' || c.claim === correct ? '裏付けあり' : '食い違い', correct));
+    } });
+  assert.equal(r.body, sentence); assert.equal(r.record.status, 'ok'); assert(r.record.review_items.length > 0);
+  assert(!r.record.calls.some(c => c.task === 'repair'));
+  assert.equal(r.record.claims[0].status, route === '判定' ? '食い違い' : '裏付けあり');
+});
+
+for (const answer of ['候補なし','答えなし','却下','裏付けあり']) test('02c-H3', `段Bの${answer}による歯止めの引継ぎ`, async () => {
+  const source = catalogRef('ta:4508'), body = ['甲','乙','丙','丁'].map(s => `${s}の省エネ等住宅の非課税限度額は1,000万円です。`).join('\n');
+  const r = await F.checkFacts(body, { ...opts, writer_materials: ['ta:4508'], searchWriterEvidence: () => [source],
+    searchEvidence: () => answer === '候補なし' ? [] : [source], loadEvidenceText: e => e.text, callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '金額', '住宅取得等資金の贈与の非課税');
+      if (req.stageB && answer === '答えなし') return [];
+      return JSON.parse(req.user).claims.map(c => req.stageB && answer === '裏付けあり' ? pageAnswer(req,c.id,source,/1,000万円/,'裏付けあり')
+        : req.task === 'retry_judge' ? { id:c.id,status:'資料なし' } : { id:c.id,status:'裏付けあり',evidence_id:1,basis:'99999' });
+    } });
+  assert.equal(r.record.status, answer === '裏付けあり' ? 'ok' : 'not_run'); assert.equal(r.body, body);
+});
+
+test('02c-N2', '拾い直せた金額だけを消し、同じ文の期限の未照合を残す', async () => {
+  const body = '省エネ等住宅は1,000万円まで、令和8年12月31日までの贈与が対象です。';
+  const r = await F.extractClaims(body, async req => req.task === 'retry_extract' ? [{ s:1,type:'金額',subject:'住宅資金',claim:'限度額は1,000万円です。' }]
+    : ['限度額は1,000万円です。','令和8年12月31日までの贈与が対象です。'].map(claim => ({s:1,type:'制度説明',subject:'住宅資金',claim})), writer);
+  assert.equal(r.claims.length,1); assert.equal(r.discarded,1); assert(r.discardedClaims[0].claim.includes('令和8年12月31日'));
+});
+
+test('02c-H3', '段Aが資料なしでも段Bで却下された4件の歯止めを消さない', async () => {
+  const source=catalogRef('ta:4508'),body=['甲','乙','丙','丁'].map(s=>`${s}の限度額は1,000万円です。`).join('\n');
+  const r=await F.checkFacts(body,{...opts,repair:true,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,
+    callLLM:async req=>req.task==='extract'?extract(req,'金額','住宅取得等資金の贈与の非課税'):JSON.parse(req.user).claims.map(c=>
+      req.stageB && req.task!=='retry_judge'?{id:c.id,status:'裏付けあり',evidence_id:1,basis:'99999'}:{id:c.id,status:'資料なし'})});
+  assert.equal(r.record.status,'not_run');assert.equal(r.body,body);assert(!r.record.calls.some(c=>c.task==='repair'));
+});
+
+test('02c-その他', '抜き出し直しは10文ずつ3回まで・同じ文を二度送らず、上限の外を未照合に残す', async () => {
+  const body = Array.from({length:31},(_,i) => `項目${i}の対象者を確認します。`).join('\n'), calls=[];
+  const r = await F.extractClaims(body, async req => {
+    if (req.task === 'retry_extract') { calls.push(req); assert.equal(req.immediate,true); return extract(req,'要件'); }
+    return extract(req,'制度説明');
+  }, {...writer,maxClaims:80});
+  assert.equal(calls.length,3); const numbers=calls.flatMap(req => extract(req,'要件').map(c=>c.s));
+  assert(calls.every(req => extract(req).length===10)); assert.equal(new Set(numbers).size,30);
+  assert.equal(r.claims.length,30); assert.equal(r.discarded,1); assert.equal(r.discardedClaims[0].s,31);
+});
+
+test('02c-N3', '言い回しだけの不一致も一覧に残し、書き換えと差し止めには使わない', async () => {
+  const source=catalogRef('ta:4510'), sentence='必要な都度支払います。';
+  const r=await F.checkFacts(sentence,{...opts,repair:true,writer_materials:['ta:4510'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,
+    callLLM:async req=>req.task==='extract'?extract(req,'要件','教育資金'):req.task==='condition_check'?{
+      verdict:'不一致',conditions:[{article:sentence,source:'必要な都度直接支払います。',match:'不一致'}],correct:'必要な都度直接支払います。'
+    }:supported(req)});
+  assert.equal(r.body,sentence);assert.equal(r.record.status,'ok');assert.equal(r.record.review_items[0].status,'条件の違いを要確認');
+  assert(!r.record.calls.some(c=>c.task==='repair'));
+});
+
+test('02c-N7', '資料なしの対象者を「対象となる人の範囲は国税庁で確認してください。」に一般化できる', async () => {
+  const sentence='18歳以上の子が対象です。', replacement='対象となる人の範囲は国税庁で確認してください。';
+  const r=await F.repairBody(sentence,[{...claim('c1',sentence,'要件','相続時精算課税'),status:'資料なし'}],async()=>[{id:'c1',replacement}],writer);
+  assert.equal(r.body,replacement);assert.equal(r.accepted,true);assert.equal(r.rejected.size,0);
+});
+
+test('02c-N6', '置き換えにも制度名の売上原価だけが残る一般論を落とし、同じ話題の直しを採る', async () => {
+  const [subject,sentence,unrelated]=recordedCorrections[0], fixed='値下げして販売した商品は販売価格を売上に計上し、取得価額を売上原価にします。',calls=[];
+  const r=await F.repairBody(sentence,[{...claim('c1',sentence,'判定',subject),status:'食い違い',correct:fixed}],async req=>{
+    calls.push(req.task);return[{id:'c1',replacement:req.task==='retry_repair'?fixed:unrelated}];
+  },{writer_materials:['law:shotokuzei_hou:37']});
+  assert.deepEqual(calls,['repair','retry_repair']);assert.equal(r.body,fixed);assert.equal(r.rejected.size,0);
+});
+
+test('02c-N8', '注意点を誤りの例と扱わず、誤解の例だけを抽出・条件確認・修正に指定する', async () => {
+  const source=catalogRef('ta:4508'), body='## 注意点\n受贈者は18歳以上の者に限られます。', seen=[];
+  await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,
+    callLLM:async req=>{seen.push(req);return req.task==='extract'?extract(req,'要件','住宅資金'):req.task==='condition_check'?condition():supported(req);}});
+  const checks=seen.filter(req=>req.task==='condition_check');assert.equal(checks.length,1);
+  assert(checks[0].system.includes('誤りの例（『よくある誤解』『NG例』『〜と考えるのは誤り』など）'));
+  assert(!checks[0].system.includes('誤りの例・注意'));assert.equal(JSON.parse(checks[0].user).heading,'注意点');
+  await F.repairBody('受贈者は18歳以上です。',[{...claim('c1','受贈者は18歳以上です。','要件'),status:'食い違い'}],async req=>{
+    assert(req.system.includes('誤りの例（『よくある誤解』'));assert(!req.system.includes('誤りの例・注意'));return[{id:'c1',replacement:'受贈者は19歳以上です。'}];
+  },writer);
+});
+
+test('02c-その他', '計画と出典の本文がある全文・部分差し戻しのW規則は各1回、計画なしでも1回', async () => {
+  const G=require('../../generate-draft'), {WRITER_RULES}=require('../grounding-rules'), source=catalogRef('ta:4452');
+  const base={title:'贈与税の配偶者控除',tax_domain:'inheritance_tax',tax_terms:'贈与税 配偶者控除',source_url:source.url,source_title:source.title};
+  const check=text=>{for(const rule of WRITER_RULES)assert.equal(text.split(rule).length-1,1,rule);};
+  await env({FACT_PLAN_ENABLED:'true'},async()=>{
+    for(const meta of [base,{...base,fact_plan_status:'ok',fact_plan:'贈与税の配偶者控除',fact_materials:'ta:4452'}]){
+      const b=await G.buildRegenSourceBlocks(meta,'確認します。',{enrichTaxTerms:async()=>{},resolveSupplement:async()=>null});
+      check(b.combined);check(b.sourceBody+b.fullPlanBlock);
+    }
+  });
 });
 
 (async () => {

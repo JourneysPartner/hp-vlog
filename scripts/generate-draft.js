@@ -1996,7 +1996,7 @@ ${rules.join(RULE_SEP)}`
     : '';
   if (rules.length) console.log(`[regenerate] 論点別ルールを適用: ${rules.length} 件`);
 
-  const sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE + '\n' + WRITER_RULES.join('\n')) + materialBundle.chainBlock;
+  let sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE + '\n' + WRITER_RULES.join('\n')) + materialBundle.chainBlock;
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
   // 差し戻し再生成にも Q&A の原文を渡す。事実誤認の差し戻しは targeted に
@@ -2080,6 +2080,10 @@ ${rules.join(RULE_SEP)}`
   const restoredPlan = articlePlan.resolveArticlePlan(meta, newMaterials);
   const planBlock = articlePlan.restoreArticlePlan(meta, newMaterials, restoredPlan);
   const fullPlanBlock = articlePlan.restoreArticlePlan(meta, fullMaterials, restoredPlan);
+  // 全文・部分差し戻しの双方で計画が規則を持つときだけ、出典側の重複行を外す。
+  if (WRITER_RULES.every(rule => planBlock.includes(rule) && fullPlanBlock.includes(rule))) {
+    sourceBody = sourceBody.split('\n').filter(line => !WRITER_RULES.includes(line.replace(/^\d+\.\s*/, ''))).join('\n');
+  }
   return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures, lawBlock, planBlock, fullPlanBlock,
     combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${lawBlock}${changesBlock}${rulesBlock}${planBlock}` };
 }

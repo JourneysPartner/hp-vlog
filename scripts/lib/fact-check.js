@@ -489,19 +489,26 @@ async function extractClaims(body, callLLM, options = {}) {
     seen.add(key); valid.push(resolved);
   }
   if (enhanced && !options[EXTRACT_RETRIED]) {
-    const targets = new Set(discardedClaims.filter(c => c.status === '主張の形式が不正').map(c => c.s));
-    for (const s of targets) {
-      const unit = units.find(u => !u.heading && u.s === s);
-      if (!unit) continue;
+    const targets = [...new Set(discardedClaims.filter(c => c.status === '主張の形式が不正').map(c => c.s))];
+    // 同じ文は一度だけ。最大10文ずつ・3回で、失敗分と上限の外は未照合のまま残す。
+    for (let i = 0; i < Math.min(targets.length, 30); i += 10) {
+      const numbers = new Set(targets.slice(i, i + 10));
+      const selected = units.filter(u => !u.heading && numbers.has(u.s));
+      if (!selected.length) continue;
       try {
         const retry = await extractClaims(body, async request => {
-          const rows = parseJson(await callLLM({ ...request, task: 'retry_extract', immediate: true, user: renderUnits([unit]) }));
+          const rows = parseJson(await callLLM({ ...request, task: 'retry_extract', immediate: true, user: renderUnits(selected) }));
           if (!Array.isArray(rows)) throw new Error('主張一覧が不正です');
-          return rows.filter(c => unitNumber(c?.s) === s);
+          return rows.filter(c => numbers.has(unitNumber(c?.s)));
         }, { ...options, [EXTRACT_RETRIED]: true });
-        const recovered = [...retry.claims, ...retry.droppedClaims].filter(c => c.s === s);
-        if (retry.discarded || (!recovered.length && !retry.calculated_skipped)) continue;
-        for (let i = discardedClaims.length - 1; i >= 0; i--) if (discardedClaims[i].s === s && discardedClaims[i].status === '主張の形式が不正') discardedClaims.splice(i, 1);
+        const recovered = [...retry.claims, ...retry.droppedClaims].filter(c => numbers.has(c.s));
+        for (let j = discardedClaims.length - 1; j >= 0; j--) {
+          const c = discardedClaims[j], own = recovered.filter(r => r.s === c.s);
+          if (!numbers.has(c.s) || c.status !== '主張の形式が不正' || !own.length) continue;
+          const needed = normalizedNumbers(c.claim), found = own.flatMap(r => normalizedNumbers(r.claim));
+          // 文全体の数字ではなく、拾い直した要約に実際に含まれる数字だけで回復を確かめる。
+          if (!needed.includes(null) && needed.every(n => found.includes(n))) discardedClaims.splice(j, 1);
+        }
         calculatedSkipped += retry.calculated_skipped || 0;
         for (const { id, status, ...c } of recovered) if (!seen.has(claimKey(c))) { seen.add(claimKey(c)); valid.push(c); }
       } catch (_) { /* 抜き出し直せない主張は、元の未照合として残す。 */ }
@@ -534,7 +541,7 @@ const LOGIC_VERSION = 'plan2';
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
 
 function blockingFinding(c) {
-  return c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
+  return !c.correct_requires_review && c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
 }
 
 // 候補外の兄弟制度から数字や修正内容を持ち込まない。
@@ -558,7 +565,7 @@ function canUseWriterEvidence(claim, status, ref, refs) {
 
 const CALCULATED_CLAIM_RULE = '「試算」「計算例」と明記した見出し・表・文の中で、資料の数字から計算した結果の金額のうち、要約に計算式（×・÷・＝・=）があるものだけを主張から外す。割合・期限・適用年・番号は外さない。計算に使った制度の数字（税率・控除額・みなし仕入率など）は主張にする。';
 const MISCONCEPTION_EXTRACT_RULE = '「よくある誤解」「NG例」「〜と考えるのは誤り」のように、誤りの例として書かれた文は、その文が伝えたい正しい内容（例: 「〜にはならない」）をclaimにする。';
-const MISCONCEPTION_CONTEXT_RULE = '記事の文が誤りの例・注意として書かれている場合は、その文の主張は「その考えは誤り」である。直前の見出しと前後の文を踏まえて判断する。';
+const MISCONCEPTION_CONTEXT_RULE = '記事の文が誤りの例（『よくある誤解』『NG例』『〜と考えるのは誤り』など）として書かれている場合は、その文の主張は「その考えは誤り」である。直前の見出しと前後の文を踏まえて判断する。';
 function isCalculatedClaim(c) {
   return c.type === '金額' && /試算|計算例/.test(`${c.heading} ${c.sentence}`) && /[×÷＝=]/.test(c.claim);
 }
@@ -581,15 +588,36 @@ function normalizedCondition(value) {
 function substantiveCondition(row) {
   const meaning = value => normalizedCondition(value).replace(/直接|原則|など/g, '');
   if (meaning(row.article) === meaning(row.source)) return false;
-  return row.match === '不一致' && /対象|贈与者|受贈者|相続人|法人|個人|事業者|申請者|納税者|従業員|役員|本人|歳|年齢|子|孫|父母|祖父母|配偶者|続柄|直系|卑属|尊属|かつ|または|及び|又は|年|月|日|期限|金額|円|万円|回|場所|居住|住所|住宅|土地|都|道|府|県|市|区|町|村|国内|国外|海外|税務署/.test(`${row.article} ${row.source}`);
+  return row.match === '不一致' && /対象|贈与者|受贈者|相続人|法人|個人|事業者|申請者|納税者|従業員|役員|本人|歳|年齢|子|孫|父母|祖父母|配偶者|続柄|直系|卑属|尊属|かつ|または|及び|又は|年|月|日|期限|金額|円|万円|回|場所|居住|住所|住宅|土地|都|道|府|県|市|区|町|村|国内|国外|海外|税務署|以上|以下|未満|超|でき|出来|戻れ|ません|ない|届出|申請|承認|申告者|要件/.test(`${row.article} ${row.source}`);
 }
 
-async function checkConditions(claims, call, addReviewItem, options, body) {
+function canFinalizeStageA(claim, candidates) {
+  const ref = claim.evidence.find(e => e.id === claim.evidence_id);
+  if (!ref) return false;
+  if (ref.id === candidates[0]?.id) return true;
+  const relevance = e => require('./article-plan').relevantMaterial(claim.subject, e,
+    e.kind === 'taxanswer' ? (e.text || '').split('関連リンク')[0] : e.text || '').condition;
+  const match = relevance(ref);
+  // 一般的な制度名が兄弟ページの題名にも当たる条件3は、一意に結びつく場合だけ採る。
+  return match === 1 || (match === 3 && !candidates.some(e => e.id !== ref.id && [1, 3].includes(relevance(e))));
+}
+
+function sentenceWords(claim) {
+  const subject = tokenizeForMatcher(claim.subject || '');
+  return [...tokenizeForMatcher(claim.sentence)].filter(word => !subject.has(word));
+}
+
+function unrelatedCorrect(claim, correct) {
+  const words = sentenceWords(claim), after = tokenizeForMatcher(correct);
+  return words.length > 0 && words.filter(word => after.has(word)).length < words.length * 0.3;
+}
+
+async function checkConditions(claims, call, addReviewItem, options, body, stage, evidence) {
   const items = claims.filter(c => c.status === '裏付けあり' && REVIEW_TYPES.has(c.type));
   for (let i = 0; i < items.length; i += 4) await Promise.all(items.slice(i, i + 4).map(async c => {
     try {
       const ret = await call({ task: 'condition_check', immediate: true, maxTokens: 4000,
-        system: CONDITION_SYSTEM + '\n「直接」「原則」「など」のような言い回しの有無や、より詳しい書き方への言い換えは一致とする。不一致は、対象者・年齢・続柄・「かつ」と「または」・日付や期限・金額・回数・場所の違いに限る。\n' + MISCONCEPTION_CONTEXT_RULE,
+        system: CONDITION_SYSTEM + '\n「直接」「原則」「など」のような言い回しの有無や、より詳しい書き方への言い換えは一致とする。対象者・年齢・続柄・「かつ」と「または」・日付や期限・金額・回数・場所に加え、肯定と否定・範囲の向き・届出と申請や承認の違い、誤った意味になる要件の欠落も不一致とする。\n' + MISCONCEPTION_CONTEXT_RULE,
         user: JSON.stringify({ article: c.sentence, source: c.quote, ...sentenceContext(body, c.sentence) }) });
       const text = String(typeof ret === 'string' ? ret : ret?.text || '').trim();
       const data = ret?.verdict ? ret : JSON.parse(text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] || text);
@@ -600,10 +628,14 @@ async function checkConditions(claims, call, addReviewItem, options, body) {
       })) };
       if (data.verdict !== '不一致') return;
       const correct = typeof data.correct === 'string' ? data.correct.trim() : '';
-      if (!c.condition_check.conditions.some(substantiveCondition) || normalizedCondition(correct) === normalizedCondition(c.sentence)) return;
+      if (!c.condition_check.conditions.some(substantiveCondition) || normalizedCondition(correct) === normalizedCondition(c.sentence)) {
+        addReviewItem({ ...c, status: '条件の違いを要確認' }); return;
+      }
       const ref = c.evidence.find(e => e.id === c.evidence_id);
       const numbers = normalizedNumbers(numberCheckText(correct, ref));
-      const allowed = !c.evidence_outside_candidates || canUseWriterEvidence(c, '食い違い', ref, writerRefs(options));
+      const allowed = (!c.evidence_outside_candidates || canUseWriterEvidence(c, '食い違い', ref, writerRefs(options))) &&
+        (stage !== 'A' || canFinalizeStageA(c, evidence[c.id]));
+      if (correct && unrelatedCorrect(c, correct)) { addReviewItem({ ...c, status: '条件の違いを要確認', correct }); return; }
       if (allowed && correct && !numbers.includes(null) && (!numbers.length || quoteSupportsNumbers(numbers, c, ref))) {
         c.status = '食い違い'; c.correct = correct; c.condition_mismatch = true;
       } else addReviewItem({ ...c, status: '条件の違いを要確認' });
@@ -1020,10 +1052,9 @@ async function repairBody(body, findings, callLLM, options = {}) {
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
-    if (!reason && enhanced) {
-      const before = [...tokenizeForMatcher(f.sentence)], after = tokenizeForMatcher(replacement);
-      const hasSubject = [...tokenizeForMatcher(f.subject || '')].some(word => after.has(word));
-      if (!hasSubject && before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
+    if (!reason && enhanced && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
+      const before = sentenceWords(f), after = tokenizeForMatcher(replacement);
+      if (before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
     }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
@@ -1248,7 +1279,12 @@ async function checkFacts(body, options = {}) {
         const result = await judgeClaims(items, evidence, fullBody, stage === 'B' ? req => call({ ...req, stageB: true }) : call,
           { ...options, pageCache: cache, batch: stage === 'B' ? null : batch, loadEvidenceText: loadText,
             [STAGE_TALLY]: { answers: answerTally, deadlineSubjects } });
-        await checkConditions(result, call, addReviewItem, options, fullBody);
+        await checkConditions(result, call, addReviewItem, options, fullBody, stage, evidence);
+        for (const c of result) if (['食い違い', '期限の書き漏れ'].includes(c.status) &&
+            (stage !== 'A' || canFinalizeStageA(c, evidence[c.id])) && unrelatedCorrect(c, c.correct)) {
+          // 判定と引用の検証結果は保ち、話題の違う修正案だけを人へ回す。
+          c.correct_requires_review = true;
+        }
         return result.map(c => ({ ...c, stage }));
       } finally { record.stages[stage].input_chars += record.input_chars_total - start; }
     };
@@ -1256,12 +1292,17 @@ async function checkFacts(body, options = {}) {
     const directB = new Set(claims.filter(c => stageAEvidence.get(c.id) === null).map(c => c.id));
     const stageA = await judgeStage('A', claims.filter(c => !directB.has(c.id)), c => stageAEvidence.get(c.id), pageCache);
     const byClaimId = new Map(claims.map(c => [c.id, c]));
-    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)), resolvedWriter)).map(c => c.id)]);
-    // 段Aで候補が無かった主張は判定の母数に入れず、段Bの答えだけを数える。
-    for (const id of retry) answerTally.delete(id);
+    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)), resolvedWriter, stageAEvidence.get(c.id))).map(c => c.id)]);
+    const stageATally = new Map(answerTally);
     deadlineSubjects.clear();
     for (const c of stageA) if (!retry.has(c.id) && c.status === '期限の書き漏れ') deadlineSubjects.add(c.subject);
     const stageB = retry.size ? await judgeStage('B', claims.filter(c => retry.has(c.id)), candidates, stageBCache) : [];
+    // 段Bの資料なし（候補・答えなしや却下を含む）では、段Aで落ちた答えの歯止めを消さない。
+    for (const c of stageB) if (c.status === '資料なし' && stageATally.has(c.id)) {
+      const previous = stageATally.get(c.id), current = answerTally.get(c.id);
+      // 段B自身で却下・欠落した答えも数える。候補なしで行が増えなかった場合は二重に数えない。
+      if (current !== previous) answerTally.set(c.id, mergeTally(new Map([['A', previous], ['B', current]])));
+    }
     for (const c of stageB) {
       const previous = stageA.find(a => a.id === c.id);
       const answer = ['食い違い', '期限の書き漏れ'].includes(previous?.status)
@@ -1284,7 +1325,9 @@ async function checkFacts(body, options = {}) {
     }
     checkTally(tally, cfg);
     const original = new Map(stageA.map(c => [c.id, c]));
-    return [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
+    const adopted = [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
+    for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
+    return adopted;
   };
   let revisedBody = body;
   try {
@@ -1342,7 +1385,8 @@ async function checkFacts(body, options = {}) {
         // 期限追記は元の文を残せる。解決の裏付けは自身の置き換え文に限り、止める側は広い対応を維持する。
         for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
           c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r =>
-            r.status === '裏付けあり' && Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
+            r.status === '裏付けあり' && (!c.condition_mismatch || (r.type === c.type && r.subject === c.subject)) &&
+            Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
             !record.rechecked.some(r => matchesCorrection(c, r, pairs) && blocksRepair(r));
         }
         // 数字を残した一般化は、その置き換え自身の数字が再照合で裏付けられたときだけ解決する。
@@ -1423,8 +1467,9 @@ async function checkFacts(body, options = {}) {
 }
 
 /** 確認を通った食い違いも、全体検索に根拠が無ければ段Bで判定し直す。 */
-function shouldUseStageB(result, globalCandidates, refs = []) {
+function shouldUseStageB(result, globalCandidates, refs = [], stageACandidates = []) {
   if (NO_REPAIR_REASONS.has(result.reject_reason)) return false;
+  if (['食い違い', '期限の書き漏れ'].includes(result.status) && !canFinalizeStageA(result, stageACandidates)) return true;
   if (result.evidence_outside_candidates && canUseWriterEvidence(result, result.status, result.evidence.find(e => e.id === result.evidence_id), refs)) return false;
   return result.status === '資料なし' || (['食い違い', '期限の書き漏れ'].includes(result.status) &&
     !globalCandidates().some(ref => ref.id === result.evidence_id));
