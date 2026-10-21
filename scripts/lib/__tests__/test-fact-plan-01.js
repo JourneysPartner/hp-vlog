@@ -472,13 +472,7 @@ for (const status of ['食い違い', '期限の書き漏れ']) for (const inGlo
   assert.equal(searches, 1); assert.equal(bCalls, inGlobal ? 0 : 1);
   assert.equal(result.record.claims[0].stage, inGlobal ? 'A' : 'B');
   assert.equal(result.record.claims[0].status, inGlobal ? status : '裏付けあり');
-  const unrelatedDeadline = inGlobal && status === '期限の書き漏れ';
-  assert.equal(result.record.status, inGlobal && !unrelatedDeadline ? 'revise' : 'ok');
-  if (unrelatedDeadline) {
-    assert.equal(result.record.claims[0].correct_requires_review, true);
-    assert(result.record.review_items.some(c => c.status === status));
-    assert.equal(result.record.remaining.length, 0);
-  }
+  assert.equal(result.record.status, inGlobal ? 'revise' : 'ok');
 });
 test('01b-F3', '改正情報は記録と復元に残し、段Aの候補・資料表から外す', async () => {
   const change = `change:${CHANGES[0].key}`, ids = ['ta:4452', change];

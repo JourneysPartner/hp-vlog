@@ -541,7 +541,8 @@ const LOGIC_VERSION = 'plan2';
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
 
 function blockingFinding(c) {
-  return !c.correct_requires_review && c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
+  if (c.confirm?.verdict === '判断できない' && REVIEW_TYPES.has(c.type) && c.status !== '期限の書き漏れ') return false;
+  return c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
 }
 
 // 候補外の兄弟制度から数字や修正内容を持ち込まない。
@@ -554,11 +555,16 @@ function writerRefs(options) {
   return ids.length ? options.resolvedWriterMaterials || resolveWriterMaterials(ids) : [];
 }
 
+function confirmationEnabled(options) {
+  return process.env.FACT_CHECK_CONFIRM === 'true' && writerRefs(options).length > 0;
+}
+
 /** 候補外の緩和は、解決できた書き手の資料かつ制度の関連がある原文だけ。 */
-function canUseWriterEvidence(claim, status, ref, refs) {
+function canUseWriterEvidence(claim, status, ref, refs, confirming = false) {
   if (!ref || isNumericClaim(claim) || !['裏付けあり', '食い違い', '期限の書き漏れ'].includes(status)) return false;
   const own = refs.find(e => e.id === ref.id || (materialId(e) && materialId(e) === materialId(ref)));
   if (!own || own.kind === 'change') return false;
+  if (confirming) return true; // 書き換えの可否は、提示済み資料を使うOpusの独立した確かめで決める。
   const text = own.kind === 'taxanswer' ? own.text.split('関連リンク')[0] : own.text;
   return [1, 3].includes(require('./article-plan').relevantMaterial(claim.subject, own, text).condition);
 }
@@ -608,8 +614,15 @@ function sentenceWords(claim) {
 }
 
 function unrelatedCorrect(claim, correct) {
+  if (onlyNumberChange(claim.sentence, correct)) return false;
   const words = sentenceWords(claim), after = tokenizeForMatcher(correct);
   return words.length > 0 && words.filter(word => after.has(word)).length < words.length * 0.3;
+}
+
+// 数字だけの訂正は話題の変更ではない。引用と数字そのものの歯止めは別に掛ける。
+function onlyNumberChange(before, after) {
+  const mask = s => normalizedCondition(s).replace(/[+-]?\d+(?:\.\d+)?/g, '数');
+  return mask(before) === mask(after);
 }
 
 async function checkConditions(claims, call, addReviewItem, options, body, stage, evidence) {
@@ -628,13 +641,18 @@ async function checkConditions(claims, call, addReviewItem, options, body, stage
       })) };
       if (data.verdict !== '不一致') return;
       const correct = typeof data.correct === 'string' ? data.correct.trim() : '';
+      if (confirmationEnabled(options)) {
+        c.status = '食い違い'; c.correct = correct; c.condition_mismatch = true;
+        c.glm_answer = { status: '条件の不一致', evidence: c.evidence_id, basis: c.glm_answer?.basis || '', correct: contentModel.redactSecrets(correct) };
+        return;
+      }
       if (!c.condition_check.conditions.some(substantiveCondition) || normalizedCondition(correct) === normalizedCondition(c.sentence)) {
         addReviewItem({ ...c, status: '条件の違いを要確認' }); return;
       }
       const ref = c.evidence.find(e => e.id === c.evidence_id);
       const numbers = normalizedNumbers(numberCheckText(correct, ref));
       const allowed = (!c.evidence_outside_candidates || canUseWriterEvidence(c, '食い違い', ref, writerRefs(options))) &&
-        (stage !== 'A' || canFinalizeStageA(c, evidence[c.id]));
+        canFinalizeStageA(c, options.writerCandidates?.get(c.id) || evidence[c.id]);
       if (correct && unrelatedCorrect(c, correct)) { addReviewItem({ ...c, status: '条件の違いを要確認', correct }); return; }
       if (allowed && correct && !numbers.includes(null) && (!numbers.length || quoteSupportsNumbers(numbers, c, ref))) {
         c.status = '食い違い'; c.correct = correct; c.condition_mismatch = true;
@@ -664,6 +682,7 @@ function sourceDate(version) {
 
 async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   const ownWriter = writerRefs(options);
+  const confirming = confirmationEnabled(options);
   const ownTally = ownWriter.length && !options[STAGE_TALLY];
   const results = new Map(), queued = [];
   const units = splitUnits(body);
@@ -758,7 +777,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const evidenceNo = unitNumber(r?.evidence_id);
       const citedPage = evidenceNo ? pages.find(p => p.number === evidenceNo) : null;
       const inCandidates = citedPage && candidates.some(e => e.id === citedPage.id);
-      const page = inCandidates || canUseOutsideEvidence(c, status) || canUseWriterEvidence(c, status, citedPage?.ref, ownWriter) ? citedPage : null;
+      const page = inCandidates || canUseOutsideEvidence(c, status) || canUseWriterEvidence(c, status, citedPage?.ref, ownWriter, confirming) ? citedPage : null;
       const ranges = basisRanges(r?.basis);
       // 2範囲では各範囲の上限を先に守る。単一範囲の3〜4文に対する従来の救済は維持する。
       const maxUnits = ranges?.length === 2 && NUMERIC_TYPES.has(c.type) ? 2 : 4;
@@ -824,6 +843,8 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
+        ...(confirming && r ? { glm_answer: { status: STATUSES.includes(r.status) ? r.status : '資料なし', evidence: citedPage?.id || '', basis: contentModel.redactSecrets(String(r.basis ?? '')).slice(0, 80),
+          correct: contentModel.redactSecrets(correct || '').slice(0, 2000) } } : {}),
         ...(outsideCandidates ? { evidence_outside_candidates: true } : {}),
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
         ...(reason ? { reject_reason: reason } : {}),
@@ -1052,7 +1073,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
-    if (!reason && enhanced && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
+    if (!reason && enhanced && f.status === '食い違い' && !NUMERIC_TYPES.has(f.type) && !onlyNumberChange(f.sentence, replacement)) {
       const before = sentenceWords(f), after = tokenizeForMatcher(replacement);
       if (before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
     }
@@ -1121,11 +1142,73 @@ async function repairBody(body, findings, callLLM, options = {}) {
   return { body: revised, accepted: true, rejected, replacements: edits };
 }
 
+/** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。意味の判断はOpusへ任せる。 */
+async function validateConfirmation(body, finding, row, pages, options) {
+  const page = pages.find(p => p.number === unitNumber(row.evidence_id));
+  const ranges = basisRanges(row.basis);
+  const parts = page && ranges?.map(range => rangeText(page.source, page.units, range, NUMERIC_TYPES.has(finding.type) ? 2 : 4));
+  if (!parts?.length || parts.some(p => !p)) return null;
+  const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
+  const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
+  const grounded = { quote, correct: replacement };
+  if (!quoteExists(quote, ref) || !sufficientQuote(finding, grounded, ref, row.verdict === '正しい' ? '裏付けあり' : '食い違い')) return null;
+  if (row.verdict === '誤り') {
+    const numbers = normalizedNumbers(numberCheckText(replacement, ref));
+    if (!replacement || numbers.includes(null) || (numbers.length && !quoteSupportsNumbers(numbers, grounded, ref))) return null;
+    // Opusの意味判断を語の重なりで覆さず、同じrepairBodyの構造・本文保全だけを適用する。
+    const repair = await repairBody(body, [{ ...finding, status: '食い違い' }], async () => [{ id: finding.id, replacement }], { ...options, writerMaterials: false });
+    if (!repair.accepted || repair.rejected.size) return null;
+  }
+  return { verdict: row.verdict, evidence_id: ref.id, basis: ranges.join(','), quote, replacement: row.verdict === '誤り' ? replacement : '',
+    reason: contentModel.redactSecrets(String(row.reason || '')).slice(0, 300), ref };
+}
+
+async function applyConfirmations(body, findings, record, call, options, model) {
+  const answers = await require('./fact-confirm').confirmFindings(body, findings, call, options,
+    (finding, row, pages) => validateConfirmation(body, finding, row, pages, options), sentenceContext);
+  // 同じ文の一部だけを直したり、複数の置き換えを競合させたりしない。
+  const wrong = findings.filter(f => answers.get(f.id)?.verdict === '誤り');
+  for (const f of wrong) if (findings.some(other => other.sentence === f.sentence &&
+      (answers.get(other.id)?.verdict !== '誤り' || answers.get(other.id)?.replacement !== answers.get(f.id).replacement))) {
+    answers.set(f.id, { verdict: '判断できない', reason: '同じ文の確かめの答えが一致しません' });
+  }
+  const edits = findings.filter(f => answers.get(f.id)?.verdict === '誤り');
+  const repair = edits.length ? await repairBody(body, edits.map(f => ({ ...f, status: '食い違い' })),
+    async () => edits.map(f => ({ id: f.id, replacement: answers.get(f.id).replacement })), { ...options, writerMaterials: false }) : null;
+  for (const f of edits) if (!repair?.accepted || repair.rejected.has(f.id)) answers.set(f.id, { verdict: '判断できない', reason: '修正文の本文保全を確かめられませんでした' });
+  const counts = { checked: findings.length, rewritten: 0, kept: 0, unknown: 0 };
+  for (const f of findings) {
+    const c = record.claims.find(c => c.id === f.id), answer = answers.get(f.id);
+    const { ref, ...confirm } = answer;
+    c.confirm = confirm;
+    if (answer.verdict === '判断できない') { counts.unknown++; continue; }
+    c.confirmed_by = model;
+    if (!c.evidence.some(e => e.id === ref.id)) c.evidence.push(ref);
+    // 採用した確かめの引用は、段A/Bの抜粋ではなくOpusに提示した原文へ結びつける。
+    c.evidence = c.evidence.map(e => e.id === ref.id ? ref : e);
+    c.evidence_id = ref.id; c.quote = answer.quote;
+    delete c.evidence_outside_candidates;
+    if (answer.verdict === '正しい') {
+      counts.kept++; c.status = '裏付けあり'; c.evidence_id = ref.id; c.quote = answer.quote; c.correct = '';
+      for (const key of ['condition_mismatch','correct_requires_review','evidence_requires_review','rejected_answer','reject_reason','supported_numbers','evidence_outside_candidates']) delete c[key];
+    } else {
+      counts.rewritten++;
+      c.correct = answer.replacement;
+      record.corrections.push({ ...c, before: c.sentence, after: answer.replacement, resolved: true, generalized: f.status === '資料なし' });
+    }
+  }
+  record.review_items = record.review_items.filter(row => !findings.some(f => f.id === row.id));
+  record.confirm = { model, ...counts, calls: record.calls.filter(c => c.task === 'confirm').length };
+  return repair?.accepted ? repair.body : body;
+}
+
 async function checkFacts(body, options = {}) {
   const requestedWriterIds = writerMaterials(options);
   const resolvedWriter = resolveWriterMaterials(requestedWriterIds);
   const writerIds = resolvedWriter.length ? requestedWriterIds : [];
   if (requestedWriterIds.length) options = { ...options, resolvedWriterMaterials: resolvedWriter };
+  const confirming = confirmationEnabled(options);
+  const confirmModel = process.env.FACT_CHECK_CONFIRM_MODEL || 'claude-opus-5-5';
   const cfg = config(requestedWriterIds.length && !writerIds.length ? { ...options, writer_materials: [] } : options);
   const unresolvedWriter = requestedWriterIds.length - resolvedWriter.length;
   const unresolvedSummary = unresolvedWriter ? `・書き手の資料のうち引けない ${unresolvedWriter} 件` : '';
@@ -1150,7 +1233,10 @@ async function checkFacts(body, options = {}) {
   const batch = cfg.batch ? contentModel.createBatchContext({ ...options.batchRuntime,
     maxWaitMs: cfg.batchMaxWaitMs, pollMs: cfg.batchPollMs }) : null;
   const extracting = request => ['extract', 'retry_extract'].includes(request.task);
-  const caller = options.callLLM || (async request => cfg.provider === 'gateway'
+  const caller = options.callLLM || (async request => request.task === 'confirm'
+    ? contentModel.generateContent({ staticSystem: request.system, dynamicSystem: '', user: request.user },
+      { provider: 'anthropic', model: request.model, maxTokens: 8000, fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch: null })
+    : cfg.provider === 'gateway'
     ? require('./gateway-model').callGateway({ model: request.model, system: request.system, user: request.user, maxTokens: 64000,
       task: (rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs })
     : contentModel.generateContent({ staticSystem: extracting(request) ? '' : request.staticSystem || request.system,
@@ -1159,10 +1245,12 @@ async function checkFacts(body, options = {}) {
       fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch: request.stageB || request.immediate ? null : batch }));
   let rechecking = false;
   const call = async request => {
+    const isConfirm = request.task === 'confirm';
+    if (isConfirm && !/^claude-[A-Za-z0-9._-]+$/.test(confirmModel)) throw new Error('確かめのモデル設定が不正です');
     const batching = !request.stageB && !request.immediate && batch && !batch.disabled;
     const task = request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task;
     const entry = { task: rechecking ? `recheck_${task}` : task,
-      model: extracting(request) ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
+      model: isConfirm ? confirmModel : extracting(request) ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
       input_chars: request.system.length + request.user.length, output_chars: 0 };
     record.calls.push(entry);
     record.input_chars_total += request.system.length + request.user.length;
@@ -1173,13 +1261,13 @@ async function checkFacts(body, options = {}) {
     const started = batch?.now();
     let timer;
     try {
-      const ret = await Promise.race([Promise.resolve().then(() => caller({ ...request, model: entry.model, signal: controller.signal })),
+      const ret = await Promise.race([Promise.resolve().then(() => caller({ ...request, ...(isConfirm ? { provider: 'anthropic' } : {}), model: entry.model, signal: controller.signal })),
         new Promise((_, reject) => {
           if (controller.signal.aborted) return reject(new Error('照合の時間切れ'));
           controller.signal.addEventListener('abort', () => reject(new Error('照合の時間切れ')), { once: true });
           timer = setTimeout(abort, cfg.timeoutMs + (batching ? batch.remainingMs() + 250000 : 0));
         })]);
-      for (const key of ['mode', 'wait_seconds', 'batch_error']) if (ret?.[key] !== undefined) entry[key] = ret[key];
+      if (!isConfirm) for (const key of ['mode', 'wait_seconds', 'batch_error']) if (ret?.[key] !== undefined) entry[key] = ret[key];
       entry.output_chars = (Array.isArray(ret) ? JSON.stringify(ret) : typeof ret === 'string' ? ret : ret?.text || '').length;
       record.output_chars_total += entry.output_chars;
       if (ret?.usage) entry.usage = Object.fromEntries(Object.entries({ input_tokens: ret.usage.input_tokens ?? ret.usage.prompt_tokens,
@@ -1187,7 +1275,7 @@ async function checkFacts(body, options = {}) {
         cache_creation_input_tokens: ret.usage.cache_creation_input_tokens, cache_read_input_tokens: ret.usage.cache_read_input_tokens }).filter(([, v]) => cfg.provider === 'gateway' ? Number.isFinite(v) : v !== undefined));
       return ret;
     } catch (error) {
-      for (const key of ['mode', 'wait_seconds', 'batch_error']) if (error[key] !== undefined) entry[key] = error[key];
+      if (!isConfirm) for (const key of ['mode', 'wait_seconds', 'batch_error']) if (error[key] !== undefined) entry[key] = error[key];
       throw error;
     } finally {
       clearTimeout(timer);
@@ -1279,12 +1367,14 @@ async function checkFacts(body, options = {}) {
         const result = await judgeClaims(items, evidence, fullBody, stage === 'B' ? req => call({ ...req, stageB: true }) : call,
           { ...options, pageCache: cache, batch: stage === 'B' ? null : batch, loadEvidenceText: loadText,
             [STAGE_TALLY]: { answers: answerTally, deadlineSubjects } });
-        await checkConditions(result, call, addReviewItem, options, fullBody, stage, evidence);
-        for (const c of result) if (['食い違い', '期限の書き漏れ'].includes(c.status) &&
+        await checkConditions(result, call, addReviewItem, { ...options, writerCandidates: stage === 'B' ? stageAEvidence : null }, fullBody, stage, evidence);
+        for (const c of result) if (!confirming && c.status === '食い違い' && !NUMERIC_TYPES.has(c.type) &&
             (stage !== 'A' || canFinalizeStageA(c, evidence[c.id])) && unrelatedCorrect(c, c.correct)) {
-          // 判定と引用の検証結果は保ち、話題の違う修正案だけを人へ回す。
+          // 無関係な修正案は採らず、食い違いによる承認停止を維持する。
           c.correct_requires_review = true;
         }
+        if (!confirming && stage === 'B') for (const c of result) if (['食い違い', '期限の書き漏れ'].includes(c.status) &&
+            !canFinalizeStageA(c, stageAEvidence.get(c.id) || [])) c.evidence_requires_review = true;
         return result.map(c => ({ ...c, stage }));
       } finally { record.stages[stage].input_chars += record.input_chars_total - start; }
     };
@@ -1292,7 +1382,7 @@ async function checkFacts(body, options = {}) {
     const directB = new Set(claims.filter(c => stageAEvidence.get(c.id) === null).map(c => c.id));
     const stageA = await judgeStage('A', claims.filter(c => !directB.has(c.id)), c => stageAEvidence.get(c.id), pageCache);
     const byClaimId = new Map(claims.map(c => [c.id, c]));
-    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)), resolvedWriter, stageAEvidence.get(c.id))).map(c => c.id)]);
+    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)), resolvedWriter, stageAEvidence.get(c.id), confirming)).map(c => c.id)]);
     const stageATally = new Map(answerTally);
     deadlineSubjects.clear();
     for (const c of stageA) if (!retry.has(c.id) && c.status === '期限の書き漏れ') deadlineSubjects.add(c.subject);
@@ -1301,7 +1391,11 @@ async function checkFacts(body, options = {}) {
     for (const c of stageB) if (c.status === '資料なし' && stageATally.has(c.id)) {
       const previous = stageATally.get(c.id), current = answerTally.get(c.id);
       // 段B自身で却下・欠落した答えも数える。候補なしで行が増えなかった場合は二重に数えない。
-      if (current !== previous) answerTally.set(c.id, mergeTally(new Map([['A', previous], ['B', current]])));
+      if (current !== previous) {
+        const merged = mergeTally(new Map([['A', previous], ['B', current]]));
+        merged.total = Math.max(previous.total, current.total); // 同じ主張を2件とは数えない。
+        answerTally.set(c.id, merged);
+      }
     }
     for (const c of stageB) {
       const previous = stageA.find(a => a.id === c.id);
@@ -1326,7 +1420,9 @@ async function checkFacts(body, options = {}) {
     checkTally(tally, cfg);
     const original = new Map(stageA.map(c => [c.id, c]));
     const adopted = [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
-    for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
+    if (!confirming) for (const c of reused) if (c.stage === 'B' && ['食い違い', '期限の書き漏れ'].includes(c.status) &&
+        !canFinalizeStageA(c, stageACandidates(c) || [])) c.evidence_requires_review = true;
+    for (const c of adopted) if (c.correct_requires_review || c.evidence_requires_review) addReviewItem(c);
     return adopted;
   };
   let revisedBody = body;
@@ -1336,7 +1432,8 @@ async function checkFacts(body, options = {}) {
     const missingSentences = new Set(missingReview.map(c => c.sentence));
     const tooManyMissing = missingSentences.size > 8 || missingReview.length > record.claims.length * 0.2;
     const autoReview = missingSentences.size > 0 && !tooManyMissing;
-    const findings = record.claims.filter(c => (blockingFinding(c) || (autoReview && missingReview.includes(c))) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
+    const findings = record.claims.filter(c => (blockingFinding(c) || (autoReview && missingReview.includes(c))) && !NO_REPAIR_REASONS.has(c.reject_reason) &&
+      (confirming || (!c.correct_requires_review && !c.evidence_requires_review))).map(c => ({ ...c,
       keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり' && k.evidence_outside_candidates !== true)
         .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
@@ -1348,6 +1445,10 @@ async function checkFacts(body, options = {}) {
       addReviewItem({ ...c, status: '条件の違いを要確認' });
       c.status = '裏付けあり'; c.correct = ''; delete c.condition_mismatch;
     };
+    if (confirming) {
+      if (options.repair !== false) revisedBody = await applyConfirmations(body, findings, record, call, options,
+        /^claude-[A-Za-z0-9._-]+$/.test(confirmModel) ? confirmModel : '設定不正');
+    } else {
     if (findings.length && options.repair !== false) {
       let repair;
       try { repair = await repairBody(body, findings, call, options); }
@@ -1426,6 +1527,7 @@ async function checkFacts(body, options = {}) {
       reviewCondition(c);
       record.corrections = record.corrections.filter(f => !(f.id === c.id && f.condition_mismatch && !f.resolved));
     }
+    }
     const unresolved = record.claims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
     const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり' && !(writerIds.length && c.unchanged_numeric))];
     for (const c of pending) if (!blockingFinding(c)) addReviewItem(c);
@@ -1437,6 +1539,7 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
+    if (record.confirm) record.summary += `・Opus の確かめ ${record.confirm.checked} 件（書き換え ${record.confirm.rewritten}・残す ${record.confirm.kept}・判断できない ${record.confirm.unknown}）`;
     if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
     if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';
     const outsideCount = outsideCandidateClaims(record).length;
@@ -1467,10 +1570,10 @@ async function checkFacts(body, options = {}) {
 }
 
 /** 確認を通った食い違いも、全体検索に根拠が無ければ段Bで判定し直す。 */
-function shouldUseStageB(result, globalCandidates, refs = [], stageACandidates = []) {
+function shouldUseStageB(result, globalCandidates, refs = [], stageACandidates = [], confirming = false) {
   if (NO_REPAIR_REASONS.has(result.reject_reason)) return false;
-  if (['食い違い', '期限の書き漏れ'].includes(result.status) && !canFinalizeStageA(result, stageACandidates)) return true;
-  if (result.evidence_outside_candidates && canUseWriterEvidence(result, result.status, result.evidence.find(e => e.id === result.evidence_id), refs)) return false;
+  if (!confirming && ['食い違い', '期限の書き漏れ'].includes(result.status) && !canFinalizeStageA(result, stageACandidates)) return true;
+  if (result.evidence_outside_candidates && canUseWriterEvidence(result, result.status, result.evidence.find(e => e.id === result.evidence_id), refs, confirming)) return false;
   return result.status === '資料なし' || (['食い違い', '期限の書き漏れ'].includes(result.status) &&
     !globalCandidates().some(ref => ref.id === result.evidence_id));
 }
@@ -1531,7 +1634,7 @@ async function checkArticle(raw, options = {}) {
           canUseWriterEvidence(c, c.status, evidenceRefs(prior, c).find(e => e.id === c.evidence_id), resolveWriterMaterials(currentWriter))) &&
         (Array.isArray(c.evidence) || (Array.isArray(c.evidence_ids) && c.evidence_ids.every(id => prior.evidence?.[id]))) &&
         (c.status === '資料なし' || (typeof c.evidence_id === 'string' && c.evidence_id && c.quote.trim()));
-      if (writerMatches && prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
+      if (!confirmationEnabled({ ...articleEvidenceOptions(meta), ...options }) && !prior.confirm && writerMatches && prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
           ['ok', 'revise'].includes(prior.status) && prior.model === cfg.model && prior.provider === cfg.provider &&
           (prior.extract_model ?? prior.model) === cfg.extractModel && (prior.effort ?? null) === cfg.effort &&
           (prior.extract_effort ?? prior.effort ?? null) === cfg.extractEffort &&

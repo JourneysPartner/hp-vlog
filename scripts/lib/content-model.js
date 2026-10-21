@@ -483,6 +483,7 @@ module.exports = {
   generateSimple,
   createBatchContext,
   safeDiagnostic,
+  redactSecrets,
   resolveProvider,
   resolveModel,
   useCache,

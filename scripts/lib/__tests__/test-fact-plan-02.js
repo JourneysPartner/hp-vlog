@@ -289,7 +289,7 @@ test('S5', '背景の再現: みなし仕入率の修正を、同じ行の変わ
         ...(extracts > 1 ? [{ s, type: '割合', subject: '建設業のみなし仕入率', claim: '売上税額に30%を掛けます。' }] : []),
       ]; }
       if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
-      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.claim.includes('30%') ? '資料なし' : extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: 1, basis: '1', correct: '建設業の売上税額から計算するみなし仕入率は第3種の70%です。' }));
+      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.claim.includes('30%') ? '資料なし' : extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: 1, basis: '1', correct: '建設業は第3種事業でみなし仕入率は70%です。' }));
     } });
   assert.equal(result.body, '## 試算\n' + fixed); assert.equal(result.record.corrections[0].resolved, true); assert.equal(result.record.status, 'ok');
 });
@@ -353,7 +353,7 @@ for (const [label, initial, changed] of [['新たな同じ数字', false, false]
         ...(initial || round > 1 ? [{ s, type: '割合', subject: 'みなし仕入率', claim: `売上税額に${round > 1 && changed ? 40 : 30}%を掛けます。` }] : []),
       ]; }
       if (req.task === 'repair' || req.task === 'retry_repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: after }));
-      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: c.claim.includes('売上税額') ? '資料なし' : round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: 'みなし仕入率70%で売上税額を計算します。' }));
+      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: c.claim.includes('売上税額') ? '資料なし' : round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: 'みなし仕入率70%' }));
     } });
   if (!initial && !changed) { assert.equal(r.record.status, 'ok'); assert.equal(r.record.corrections[0].resolved, true); assert(r.record.review_items.some(c => c.unchanged_numeric)); }
   else { assert.equal(r.record.status, 'revise'); assert(r.record.remaining.length); }
@@ -571,7 +571,7 @@ for(const kind of ['不一致行なし','元と同じ','記号だけ','句読点
   assert.equal(r.body,original);assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].status,'裏付けあり');assert(!r.record.calls.some(c=>c.task==='repair'));
 });
 test('02b-M1','数字の桁区切りだけの誤警報では修正を呼ばず、小数点の違いは実際の条件差として直す',async()=>{
-  for(const [original,fixed,changes] of [['限度額は1,000万円です。','限度額は1000万円です。',false],['対象年齢は18歳で申請書を提出します。','対象年齢は1.8歳で申請書を提出します。',true]]){
+  for(const [original,fixed,changes] of [['限度額は1,000万円です。','限度額は1000万円です。',false],['対象年齢は18歳です。','対象年齢は1.8歳です。',true]]){
     const source=ref('m1-numeric','限度額と対象年齢',fixed);let round=0;
     const r=await F.checkFacts(original,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
       if(req.task==='extract'){round++;return extract(req,'要件','対象年齢');}
@@ -639,12 +639,12 @@ test('02b-L1','一方だけ直しの対象になる同じ文は部分採用せ�
   assert.equal(r.body,sentence+'\n別の限度額は90万円です。');assert(r.rejected.has('c1')&&r.rejected.has('c2'));
 });
 test('02b-L2','同じ制度の別の修正文に新しく入った30%を変わっていない数字として通さない',async()=>{
-  const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で計算し、売上税額に30%を掛けます。';
+  const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で売上税額に30%を掛けます。';
   const source=ref('l2','みなし仕入率と控除率','みなし仕入率は70%です。\n控除率は80%です。');let round=0;
   const r=await F.checkFacts(a+'\n'+b,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
     if(req.task==='extract'){round++;return extract(req,'割合','みなし仕入率と控除率').flatMap((c,i)=>[{...c,claim:i===0?`みなし仕入率${round===1?60:70}%`:`控除率${round===1?50:80}%`},...(round>1&&i===1?[{...c,claim:'売上税額に30%を掛けます。'}]:[])]);}
     if(req.task==='repair')return [{id:'c1',replacement:aa},{id:'c2',replacement:bb}];
-    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?'控除率は80%で計算します。':'みなし仕入率70%で売上税額を計算します。'}));
+    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?'控除率80%':'みなし仕入率70%'}));
   }});assert.equal(r.record.status,'revise');assert(r.record.remaining.some(c=>c.claim.includes('30%')&&!c.unchanged_numeric));
 });
 
@@ -758,7 +758,7 @@ for (const [subject, sentence, correct, id, pattern] of recordedCorrections) for
       if (req.task === 'repair') return [{ id: 'c1', replacement: correct }];
       return JSON.parse(req.user).claims.map(c => pageAnswer(req, c.id, source, pattern, route === '条件' || c.claim === correct ? '裏付けあり' : '食い違い', correct));
     } });
-  assert.equal(r.body, sentence); assert.equal(r.record.status, 'ok'); assert(r.record.review_items.length > 0);
+  assert.equal(r.body, sentence); assert.equal(r.record.status, route === '判定' ? 'revise' : 'ok'); assert(r.record.review_items.length > 0);
   assert(!r.record.calls.some(c => c.task === 'repair'));
   assert.equal(r.record.claims[0].status, route === '判定' ? '食い違い' : '裏付けあり');
 });
