@@ -16,7 +16,7 @@ const lawSources = require('./lib/law-sources');
 const materials = require('./lib/materials-bundle');
 const factCheck = require('./lib/fact-check');
 const articlePlan = require('./lib/article-plan');
-const { SOURCE_UNCONFIRMED_RULE } = require('./lib/grounding-rules');
+const { SOURCE_UNCONFIRMED_RULE, WRITER_RULES } = require('./lib/grounding-rules');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { checkCitations, buildProvisionBlock, findProvision } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
@@ -1996,7 +1996,7 @@ ${rules.join(RULE_SEP)}`
     : '';
   if (rules.length) console.log(`[regenerate] 論点別ルールを適用: ${rules.length} 件`);
 
-  const sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE) + materialBundle.chainBlock;
+  const sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE + '\n' + WRITER_RULES.join('\n')) + materialBundle.chainBlock;
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
   // 差し戻し再生成にも Q&A の原文を渡す。事実誤認の差し戻しは targeted に
