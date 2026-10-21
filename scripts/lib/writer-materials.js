@@ -75,7 +75,7 @@ function materialIds(refs) {
   return [...new Set(refs.map(materialId).filter(Boolean))];
 }
 function writerMaterials(options = {}) {
-  return process.env.FACT_CHECK_WRITER_MATERIALS !== 'false' && options.writerMaterials !== false && Array.isArray(options.writer_materials)
+  return process.env.FACT_CHECK_WRITER_MATERIALS === 'true' && options.writerMaterials !== false && Array.isArray(options.writer_materials)
     ? [...new Set(options.writer_materials.filter(id => typeof id === 'string' && id))] : [];
 }
 function resolveWriterMaterials(ids) {

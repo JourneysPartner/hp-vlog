@@ -958,7 +958,7 @@ test('01d-H3', '範囲を含む引用は候補IDの優先順とカタログの�
   const originalFetch = global.fetch;
   global.fetch = async () => { throw new Error('試験中の通信は禁止'); };
   try {
-    await env({ FACT_PLAN_ENABLED: undefined, FACT_CHECK_WRITER_MATERIALS: undefined, FACT_CHECK_MAX_CLAIMS: undefined }, async () => {
+    await env({ FACT_PLAN_ENABLED: undefined, FACT_CHECK_WRITER_MATERIALS: 'true', FACT_CHECK_MAX_CLAIMS: undefined }, async () => {
       for (const { group, name, fn } of cases) {
         const result = groups[group] ||= { pass: 0, fail: 0 };
         try { await fn(); result.pass++; console.log(`PASS ${group}: ${name}`); }

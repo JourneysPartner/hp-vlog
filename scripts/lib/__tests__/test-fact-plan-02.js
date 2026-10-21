@@ -847,15 +847,101 @@ test('02c-その他', '計画と出典の本文がある全文・部分差し戻
   });
 });
 
+for (const setting of [undefined, '', 'false']) test('02d-既定', `未設定・空・falseでは資料の有無で呼び出し・記録・結果を変えない（${String(setting)}）`, async () => {
+  await env({ FACT_CHECK_WRITER_MATERIALS: setting, FACT_CHECK_MAX_CLAIMS: undefined }, async () => {
+    const source=catalogRef('ta:4452');
+    for (const scenario of ['裏付けあり','食い違い','従来の修正','資料なし','確認落ち']) {
+      const body=scenario==='資料なし'?'配偶者控除の対象者を確認します。':scenario==='確認落ち'
+        ? ['甲','乙','丙'].map(s=>`${s}の控除額は2,000万円です。`).join('\n')
+        : `贈与税の配偶者控除は${scenario==='裏付けあり'?'2,000':'2,500'}万円です。`;
+      const run=async materials=>{
+        const calls=[];let round=0;
+        const result=await F.checkFacts(body,{...opts,...F.articleEvidenceOptions(materials?{fact_materials:'ta:4452'}:{}),repair:true,
+          resolvedWriterMaterials:[source],searchWriterEvidence:()=>{throw Error('既定では書き手の資料を検索しない');},
+          searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
+            calls.push(Object.fromEntries(Object.entries(req).filter(([key])=>key!=='signal')));
+            if(req.task==='extract'){round++;return extract(req,scenario==='資料なし'?'要件':'金額','贈与税の配偶者控除');}
+            if(req.task==='repair')return JSON.parse(req.user).corrections.map(c=>({id:c.id,replacement:scenario==='従来の修正'?c.sentence.replace('2,500','2,000'):c.sentence}));
+            return JSON.parse(req.user).claims.map(c=>scenario==='資料なし'?{id:c.id,status:'資料なし'}:scenario==='確認落ち'
+              ?{id:c.id,status:'裏付けあり',evidence_id:1,basis:'99999'}
+              :pageAnswer(req,c.id,source,/2,000万円/,round===1&&['食い違い','従来の修正'].includes(scenario)?'食い違い':'裏付けあり','贈与税の配偶者控除は2,000万円です。'));
+          }});
+        return {calls,...result};
+      };
+      const baseline=await run(false),withMaterials=await run(true);
+      assert.deepEqual(withMaterials,baseline,scenario);
+      assert.equal(F.config({writer_materials:['ta:4452']}).maxClaims,40);
+      for(const key of ['writer_materials','stages','calculated_skipped'])assert(!Object.hasOwn(withMaterials.record,key),key);
+      assert(!withMaterials.calls.some(c=>['retry_extract','retry_judge','condition_check','retry_repair'].includes(c.task)));
+      assert(withMaterials.record.claims.every(c=>!Object.hasOwn(c,'stage')));
+      assert.equal(withMaterials.record.status,scenario==='確認落ち'?'not_run':scenario==='食い違い'?'revise':'ok');
+      if(scenario==='資料なし'){assert.equal(withMaterials.body,body);assert.deepEqual(withMaterials.calls.map(c=>c.task),['extract','judge']);}
+      if(scenario==='従来の修正'){assert(withMaterials.body.includes('2,000万円'));assert(withMaterials.record.corrections.some(c=>c.resolved));}
+    }
+  });
+});
+
+for (const setting of [undefined, '', 'false']) test('02d-既定', `資料の記録を追加しても従来の差分照合の指紋・呼び出し・記録を変えない（${String(setting)}）`, async () => {
+  await env({FACT_CHECK_WRITER_MATERIALS:setting},async()=>{
+    const matter=require('gray-matter'),source=catalogRef('ta:4452'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'plan02d-default-'));
+    const meta={slug:'plan02d-default',source_url:source.url},body='贈与税の配偶者控除は2,000万円です。\n内容を確認します。';
+    const before=matter.stringify(body,meta),after=matter.stringify(body.replace('内容を確認','記載内容を確認'),meta);
+    try {
+      const run=async materials=>{
+        const calls=[],recordDir=path.join(dir,materials?'materials':'legacy');
+        const options={...opts,recordDir,searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
+          calls.push(Object.fromEntries(Object.entries(req).filter(([key])=>key!=='signal')));
+          return req.task==='extract'?extract(req,'金額','贈与税の配偶者控除').filter(c=>c.claim.includes('配偶者控除'))
+            :JSON.parse(req.user).claims.map(c=>pageAnswer(req,c.id,source,/2,000万円/,'裏付けあり'));
+        }};
+        await F.checkArticle(before,options);calls.length=0;
+        const raw=materials?matter.stringify(matter(after).content,{...meta,fact_plan_status:'ok',fact_plan:'贈与税の配偶者控除',fact_materials:'ta:4452'}):after;
+        const result=await F.checkArticle(raw,{...options,previousRaw:before});
+        if(materials){assert.equal(matter(result.content).data.fact_materials,'ta:4452');assert.equal(matter(result.content).data.fact_plan_status,'ok');}
+        return {calls,body:result.body,record:result.record};
+      };
+      const baseline=await run(false),withMaterials=await run(true);
+      assert.deepEqual(withMaterials,baseline);assert.equal(withMaterials.record.incremental.reused,1);
+      assert.deepEqual(withMaterials.calls.map(c=>c.task),['extract']);assert(!Object.hasOwn(withMaterials.record,'writer_materials'));
+    }finally{fs.rmSync(dir,{recursive:true,force:true});}
+  });
+});
+
+test('02d-既定','trueという文字列だけで有効になり、既定は40件・AnthropicのOpusのまま',async()=>{
+  for(const setting of [undefined,'','false','TRUE','1',' true ','true'])await env({FACT_CHECK_WRITER_MATERIALS:setting,
+    FACT_CHECK_MAX_CLAIMS:undefined,FACT_CHECK_PROVIDER:undefined,FACT_CHECK_MODEL:undefined},async()=>{
+    const options={writer_materials:['ta:4452'],resolvedWriterMaterials:[catalogRef('ta:4452')]};
+    assert.deepEqual(W.writerMaterials(options),setting==='true'?['ta:4452']:[]);
+    assert.equal(F.config(options).maxClaims,setting==='true'?80:40);
+    assert.equal(F.config(options).provider,'anthropic');assert.equal(F.config(options).model,'claude-opus-5-5');
+    assert.deepEqual(W.writerMaterials({...options,writerMaterials:false}),[]);
+  });
+});
+
+test('02d-既定','照合が既定オフでも計画・W1〜W3・前付けの資料の記録は既定で動く',async()=>{
+  await env({FACT_CHECK_WRITER_MATERIALS:undefined,FACT_PLAN_ENABLED:undefined},async()=>{
+    const P=require('../article-plan'),G=require('../../generate-draft'),matter=require('gray-matter'),{WRITER_RULES}=require('../grounding-rules');
+    const source=catalogRef('ta:4452'),topic={title:source.title,tax_domain:'inheritance_tax',tax_terms:'贈与税 配偶者控除'};
+    const block=await P.prepareArticlePlan(topic,{generate:async()=>'[{"name":"贈与税の配偶者控除"}]',references:[source]});
+    assert.equal(P.enabled(),true);assert.equal(topic.fact_plan_status,'ok');assert(topic.fact_materials.split(';').includes('ta:4452'));
+    for(const rule of WRITER_RULES)assert(block.includes(rule));
+    const raw=G.recordMaterialMetadata(matter.stringify('確認します。',{slug:'plan02d-default'}),topic),meta=matter(raw).data;
+    for(const key of P.META_FIELDS)assert.equal(meta[key],topic[key]);
+    assert.deepEqual(W.writerMaterials(F.articleEvidenceOptions(meta)),[]);
+  });
+});
+
 (async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => { throw new Error('試験中の通信は禁止'); };
   try {
-    for (const { group, name, run } of cases) {
-      const result = groups[group] ||= { pass: 0, fail: 0 };
-      try { await run(); result.pass++; console.log(`PASS ${group}: ${name}`); }
-      catch (error) { result.fail++; console.error(`FAIL ${group}: ${name}\n${error.stack}`); }
-    }
+    await env({ FACT_CHECK_WRITER_MATERIALS: 'true' }, async () => {
+      for (const { group, name, run } of cases) {
+        const result = groups[group] ||= { pass: 0, fail: 0 };
+        try { await run(); result.pass++; console.log(`PASS ${group}: ${name}`); }
+        catch (error) { result.fail++; console.error(`FAIL ${group}: ${name}\n${error.stack}`); }
+      }
+    });
   } finally { global.fetch = originalFetch; }
   const passed = Object.values(groups).reduce((n, r) => n + r.pass, 0), failed = Object.values(groups).reduce((n, r) => n + r.fail, 0);
   console.log(JSON.stringify({ passed, failed, groups })); if (failed) process.exitCode = 1;
