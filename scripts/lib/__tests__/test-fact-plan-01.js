@@ -162,8 +162,8 @@ test('P3', '出典未確定の題材でも計画し、既存の断定禁止を�
     assert.equal(t.fact_plan_status, 'ok'); assert(textPrompt(prompts[0]).includes('この記事で扱う制度と資料'));
     assert(textPrompt(prompts[0]).includes(SOURCE_UNCONFIRMED_RULE));
   }));
-test('P3/P4', '切替falseは変更前のpromptIRと前付けにバイト単位で一致', () => env({ FACT_PLAN_ENABLED: 'false' }, () => generating(topic(), '[]', ({ prompts, simple, t }) => {
-  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), '788d0a8c29123aea40f348336e7186ce44eacf53838c0d0819a6f7f4af364ff4');
+test('P3/P4', '切替falseでもW規則を含むpromptIRと従来の前付けにバイト単位で一致', () => env({ FACT_PLAN_ENABLED: 'false' }, () => generating(topic(), '[]', ({ prompts, simple, t }) => {
+  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), 'f011154dac683ddab95be613331555b19b902ba34891763c706a326e868d5880');
   assert.equal(hash(N.buildCanonicalFrontmatter(t, { now: now.toISOString() })), '97303caf7d917e593c1117b473153a1c0b12b1cdd9f75f97e39fc716f246b29a');
   assert(!Object.keys(t).some(k => k.startsWith('fact_')));
 })));
@@ -301,7 +301,7 @@ test('P5', '段Aの資料なしだけ段Bへ・食い違い/期限は維持・Ba
   assert.equal(r.record.stages.A.input_chars, r.record.calls.filter(c => c.task === 'judge').reduce((n, c) => n + c.input_chars, 0));
   assert.equal(r.record.stages.B.input_chars, r.record.calls.filter(c => c.task === 'stage_b_judge').reduce((n, c) => n + c.input_chars, 0));
   assert(r.record.stages.A.input_chars > 0 && r.record.stages.B.input_chars > 0);
-  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan1');
+  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2');
 });
 test('P5', '既定の呼び出し部でも段BだけBatchを渡さず即時で呼ぶ', async () => {
   const a = ref('default-a', '試験制度は100万円です。'), b = ref('default-b', a.text), original = CM.generateContent, calls = [];
@@ -352,7 +352,7 @@ test('P5', '従来経路から歯止めを延期する指定を渡してもfail-
     callLLM: async req => req.task === 'extract' ? extracted(req) : supported(req).map(row => ({ ...row, evidence_id: 999 })) });
   assert.equal(result.record.status, 'not_run');
 });
-test('P5', '資料なしと切替falseの呼び出し・記録は同じ（版はplan1）', async () => {
+test('P5', '資料なしと切替falseの呼び出し・記録は同じ（版はplan2）', async () => {
   const source = ref('old', '試験制度は100万円です。'); const requests = [];
   const callLLM = async req => { requests.push(JSON.stringify({ task: req.task, system: req.system, user: req.user, maxTokens: req.maxTokens, model: req.model })); return req.task === 'extract' ? extracted(req) : supported(req); };
   const options = { ...opts, callLLM, searchEvidence: () => [source], loadEvidenceText: e => e.text };

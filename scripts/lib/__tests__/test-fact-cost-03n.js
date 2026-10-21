@@ -133,7 +133,7 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
       assert.equal(r.record.status, 'ok');
       assert.deepEqual(r.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
       assert.deepEqual(wire.calls.map(c => c.init.body), sent);
-      assert.equal(r.record.logic_version, 'plan1');
+      assert.equal(r.record.logic_version, 'plan2');
     } finally { CM.generateContent = saved; }
   });
   for (const effort of ['', 'medium']) await test('N1', `2 Sonnet照合の思考設定を分離、effort=${effort || '指定なし'}、書き手は維持`, async () => {

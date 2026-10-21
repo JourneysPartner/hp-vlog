@@ -198,7 +198,7 @@ test('R3', '保持数字を差分照合で使い回し、LLMの2範囲はレビ�
     prior.logic_version = '03o'; fs.writeFileSync(file, JSON.stringify(prior));
     const old = await F.checkArticle(raw(giftClaim.sentence + '\n案内を追記します。'), { ...opts, previousRaw: before, persist: false });
     assert.equal(old.record.incremental, undefined);
-    assert.equal(old.record.logic_version, 'plan1');
+    assert.equal(old.record.logic_version, 'plan2');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 const filler = Array(5).fill('中間の説明が続いています'.repeat(15) + '。');
@@ -385,9 +385,9 @@ test('R5', '別番号・番号の主張・法令資料・5桁の番号は除外�
   assert.equal((await judge({ ...c, type: '番号' }, ref('短', '2080'), '1')).status, '資料なし');
   assert.equal((await judge({ ...c, claim: c.claim.replace('2080', '20801'), sentence: c.sentence.replace('2080', '20801') }, ref(books, '2080'), '1')).status, '資料なし');
 });
-test('版', 'LOGIC_VERSIONはplan1', async () => {
+test('版', 'LOGIC_VERSIONはplan2', async () => {
   const result = await F.checkFacts('案内です。', { ...options, callLLM: async () => [], repair: false });
-  assert.equal(result.record.logic_version, 'plan1');
+  assert.equal(result.record.logic_version, 'plan2');
 });
 
 (async () => {

@@ -115,7 +115,7 @@ for (const partial of [false, true]) test('V1', `03uの旧記録の候補外由�
         ? [...req.user.matchAll(/^\[(\d+)\] (.*)$/gm)].filter(m => m[2] !== '案内を追記します。').map(m => ({ s: +m[1], type: m[2] === peer.sentence ? '要件' : '金額',
           subject: m[2] === peer.sentence ? '教育資金' : '住宅取得等資金', claim: m[2] }))
         : JSON.parse(req.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 4, basis: educationBasis })) });
-    assert.equal(next.record.logic_version, 'plan1'); assert.equal(next.record.incremental, undefined);
+    assert.equal(next.record.logic_version, 'plan2'); assert.equal(next.record.incremental, undefined);
     assert.equal(next.record.status, 'revise'); blocked(next.record.claims[0]);
     assert.ok(next.record.calls.some(c => c.task === 'judge'));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }

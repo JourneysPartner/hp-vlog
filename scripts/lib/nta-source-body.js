@@ -22,7 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const { checkCitations, buildProvisionBlock } = require('./nta-tsutatsu');
 const { excerptText, positiveLimit } = require('./source-excerpt');
-const { UNSOURCED_RULE, DEADLINE_RULE } = require('./grounding-rules');
+const { UNSOURCED_RULE, DEADLINE_RULE, WRITER_RULES } = require('./grounding-rules');
 
 const ROOT = path.join(__dirname, '..', '..');
 const TAXANSWER_DIR = path.join(ROOT, 'data', 'nta-sources', 'taxanswer');
@@ -176,6 +176,7 @@ function buildSourceBodyBundle(topic = {}, refs = [], options = {}) {
    <strong>説明のための設例であっても、出典に無い数値を自分で作ってはならない</strong>
    （2026-09-06、議決権割合を創作して結論まで誤った事故が実際に起きている）。
 7. ${DEADLINE_RULE}
+${WRITER_RULES.map((rule, i) => `${i + 8}. ${rule}`).join('\n')}
 
 ${sections}` : '';
   return { block, sources: loaded, dropped, totalChars: total };

@@ -297,7 +297,7 @@ test('O8', '差分記録のextract_effort不一致と古い記録のeffortを確
     assert.equal(same.record.incremental.reused, 1);
     const changed = await F.checkArticle(after, { ...opts, extractEffort: 'low', previousRaw: before, persist: false });
     assert.equal(changed.record.incremental, undefined);
-    assert.equal(changed.record.logic_version, 'plan1');
+    assert.equal(changed.record.logic_version, 'plan2');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 test('O8', '省略したcorrect・資料なしの番号が従来の空欄と同じ記録になる', async () => {

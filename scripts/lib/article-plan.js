@@ -1,6 +1,7 @@
 'use strict';
 
 const contentModel = require('./content-model');
+const { WRITER_RULES } = require('./grounding-rules');
 const { evidenceCatalog, loadEvidenceText, contiguousExcerpt, subjectWithoutTrailingParens, scoreEvidence, evidenceTax, CATEGORY_TAX } = require('./fact-evidence');
 const { tokenizeForMatcher, TAX_CATEGORY_CODES } = require('./nta-source-matcher');
 const { qaCatalog, materialId, materialIds, resolveWriterMaterials } = require('./writer-materials');
@@ -163,6 +164,7 @@ function buildPlanBlock(systems, existing = [], otherMaterials = []) {
     });
   const blocks = systems.map(system => [`制度: ${system.name}`, ...render(system.materials), ...(system.note ? [system.note] : [])].join('\n'));
   if (otherMaterials.length) blocks.push(['その他の資料', ...render(otherMaterials)].join('\n'));
+  blocks.push(WRITER_RULES.join('\n'));
   return `\n\n═══ この記事で扱う制度と資料 ═══\n扱う制度: ${systems.map(s => s.name).join('、')}\n資料が見つからなかった制度: ${missing.length ? missing.join('、') + '（この制度は名前と「詳しくは国税庁の〇〇で確認」程度の案内までにする。名前に含まれる数字・期間も書かない）' : 'なし'}\n${blocks.join('\n\n')}\n\n1. 税の要件・対象者・金額・割合・期限・適用年・届出や申請・判定の基準・条文や通達の番号は、添付した資料（このブロックと上の資料）と、この後の論点別ルールに書いてあることだけを書く。あなたの記憶にある税制は古い可能性が高い。\n2. 「資料が見つからなかった制度」は、名前と案内までにする。\n3. 「扱う制度」に無い制度について、要件・金額・期限などの具体を書かない。`;
 }
 

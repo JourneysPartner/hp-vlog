@@ -1,0 +1,418 @@
+'use strict';
+
+// 02の回帰試験。通信は偽LLM・偽Gatewayだけを使い、作業ファイルはTEMPへ置く。
+const assert = require('assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const F = require('../fact-check');
+const W = require('../writer-materials');
+const H = require('./fact-pages-test-helpers');
+const cases = [], groups = {};
+const test = (group, name, run) => cases.push({ group, name, run });
+const opts = { now: new Date('2026-10-21T00:00:00Z'), provider: 'anthropic', model: 'claude-opus-5-5', enabled: true, batch: false, repair: false };
+const ref = (id, title, text) => ({ id, kind: 'taxanswer', title, url: 'https://example.jp/' + id, text });
+const extract = (req, type = '金額', subject = '試験制度') => [...req.user.matchAll(/^\[(\d+)\] (.*)$/gm)]
+  .filter(m => !m[2].startsWith('#')).map(m => ({ s: +m[1], type, subject, claim: m[2] }));
+const supported = req => H.readPayload(req).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1' }));
+const writer = { writer_materials: ['ta:4103'] };
+const condition = (verdict = '一致', correct = '') => ({ verdict, conditions: [{ article: '記事の条件', source: '根拠の条件', match: verdict }], correct });
+async function env(values, run) {
+  const saved = Object.fromEntries(Object.keys(values).map(k => [k, process.env[k]]));
+  for (const [k, v] of Object.entries(values)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  try { return await run(); } finally {
+    for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+}
+const claim = (id, text, type = '金額', subject = '試験制度') => ({ id, sentence: text, heading: '', type, subject, claim: text });
+
+test('W1〜W3', '1: 日次・全文差し戻し・更新案と計画に規則の原文が入り、切替falseでも出典の厳守6とW規則を保持', async () => {
+  const CM = require('../content-model'), G = require('../../generate-draft'), P = require('../article-plan');
+  const { WRITER_RULES } = require('../grounding-rules');
+  const source = W.resolveMaterial('ta:4452');
+  const t = { slug: 'plan02-write', title: '贈与税の配偶者控除を確認する', persona: 'test', article_type: 'basic_explainer',
+    tax_domain: 'inheritance_gift_tax', tax_terms: '贈与税 配偶者控除', source_url: source.url, source_title: source.title, source_provenance: 'curated', source_confidence: 1 };
+  const meta = { ...t, fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除', fact_plan_missing: '', fact_materials: 'ta:4452' };
+  const matter = require('gray-matter'), raw = matter.stringify('## 確認\n確認します。', meta);
+  const old = { content: CM.generateContent, simple: CM.generateSimple }; const prompts = [];
+  const capture = req => { prompts.push([req.staticSystem, req.dynamicSystem, req.system, req.user].filter(Boolean).join('\n')); return { text: raw, provider: 'anthropic', model: 'fake', stopReason: 'end_turn' }; };
+  CM.generateContent = async req => capture(req);
+  CM.generateSimple = async req => req.system === P.PLAN_SYSTEM ? { text: '[{"name":"贈与税の配偶者控除"}]' } : capture(req);
+  const hasRules = text => { for (const rule of WRITER_RULES) assert(text.includes(rule), rule); };
+  try {
+    await env({ FACT_PLAN_ENABLED: 'true' }, async () => {
+      await G.generateWithContentModel('2026-10-21', { ...t }); hasRules(prompts.pop());
+      await G.regenerateWithContentModel(raw, '確認する'); hasRules(prompts.pop());
+      const blocks = await G.buildRegenSourceBlocks(meta, '確認します。', { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
+      hasRules(blocks.combined); hasRules(P.buildPlanBlock([{ name: '贈与税の配偶者控除', materials: [source] }]));
+      // 更新案が実際に使う差し戻し経路をTEMPの公開記事で通す。
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plan02-refresh-'));
+      try {
+        const filename = '2026-10-01-plan02-write.md', reasonsFile = path.join(dir, 'reasons.json');
+        fs.writeFileSync(path.join(dir, filename), raw.replace('確認します。', '令和7年分の申告を確認します。'));
+        fs.writeFileSync(reasonsFile, JSON.stringify([{ kind: 'fiscal_year', detail: '年分', where: '## 確認' }]));
+        const revise = async input => {
+          const parsed = matter(input);
+          const b = await G.buildRegenSourceBlocks(parsed.data, parsed.content, { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
+          hasRules(b.combined); return input.replace('令和7年分', '令和8年分');
+        };
+        const r = await G.runRefreshMode([], { postsDir: dir, filename, reasonsFile, now: opts.now, factAudit: null,
+          regenerateSection: revise, regenerateTargeted: revise, factCheck: async content => ({ content, record: { status: 'ok', summary: '確認済み' } }) });
+        assert.equal(r.status, 'changed');
+      } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    });
+    await env({ FACT_PLAN_ENABLED: 'false' }, async () => {
+      await G.generateWithContentModel('2026-10-21', { ...t }); const prompt = prompts.pop();
+      hasRules(prompt); assert(!prompt.includes('═══ この記事で扱う制度と資料 ═══'));
+      assert(prompt.includes('説明のための設例であっても、出典に無い数値を自分で作ってはならない'));
+    });
+  } finally { CM.generateContent = old.content; CM.generateSimple = old.simple; }
+});
+
+test('G1', '2: 全段を偽Gatewayへ送り、64,000 tokens・900秒・使用量・即時・鍵と応答を記録しないことを確認', async () => {
+  const CM = require('../content-model'), previous = { fetch: global.fetch, log: console.log, warn: console.warn, timer: global.setTimeout, batch: CM.createBatchContext };
+  const logs = [], requests = [], timers = [], secret = 'plan02-gateway-secret', wrong = '18歳以上の直系卑属または推定相続人が対象です。';
+  const fixed = '18歳以上の直系卑属である推定相続人または孫が対象です。';
+  const source = ref('gateway-source', '相続時精算課税', fixed + '\n限度額は200万円です。\n申請書を税務署へ提出します。');
+  let round = 0;
+  console.log = console.warn = (...args) => logs.push(args.join(' '));
+  CM.createBatchContext = () => { throw new Error('GatewayでBatchを作ってはいけません'); };
+  global.setTimeout = (fn, ms, ...args) => { timers.push(ms); return previous.timer(fn, ms, ...args); };
+  global.fetch = async (url, input) => {
+    const b = JSON.parse(input.body), system = b.messages[0].content, user = b.messages[1].content;
+    requests.push({ url, body: b }); let answer;
+    if (system.startsWith('記事本文から')) {
+      round++; answer = extract({ user }, '要件', '相続時精算課税').map(c => c.claim.includes('万円') ? { ...c, type: '金額' } : c);
+    } else if (system.startsWith('記事の文が')) {
+      const pair = JSON.parse(user); answer = condition(pair.article === wrong ? '不一致' : '一致', fixed);
+    } else {
+      const p = JSON.parse(user);
+      if (p.corrections) answer = p.corrections.map(c => ({ id: c.id, replacement: c.type === '金額' ? p.previous ? '限度額は200万円です。' : c.sentence : fixed }));
+      else answer = p.claims.map(c => {
+        if (c.claim.includes('申請書') && p.claims.length > 1) return { id: c.id, status: '資料なし' };
+        return { id: c.id, status: c.type === '金額' && round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0],
+          basis: c.type === '金額' ? '2' : c.claim.includes('申請書') ? '3' : '1', correct: p.retry ? '限度額は200万円です。' : '限度額は999万円です。' };
+      });
+    }
+    return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(answer) }, finish_reason: 'stop' }], usage: { prompt_tokens: 11, completion_tokens: 22 } }) };
+  };
+  try {
+    await env({ FACT_CHECK_PROVIDER: 'gateway', FACT_CHECK_MODEL: 'zai/glm-5.3-flash', FACT_CHECK_EXTRACT_MODEL: 'zai/extract',
+      FACT_CHECK_EFFORT: 'invalid', FACT_CHECK_EXTRACT_EFFORT: 'invalid', AI_GATEWAY_API_KEY: secret }, async () => {
+      const result = await F.checkFacts([wrong, '限度額は100万円です。', '申請書を税務署へ提出します。'].join('\n'), {
+        now: opts.now, enabled: true, repair: true, batch: true, ...writer, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+      });
+      assert.equal(result.record.status, 'ok'); assert.equal(result.record.effort, null); assert.equal(result.record.extract_effort, null);
+      const tasks = result.record.calls.map(c => c.task);
+      for (const task of ['extract', 'judge', 'stage_b_judge', 'retry_judge', 'condition_check', 'repair', 'retry_repair', 'recheck_extract', 'recheck_judge', 'recheck_condition_check']) assert(tasks.includes(task), task);
+      assert(result.record.calls.every(c => c.mode === 'sync' && c.usage.input_tokens === 11 && c.usage.output_tokens === 22));
+      assert(requests.every(r => r.url === 'https://ai-gateway.vercel.sh/v1/chat/completions' && r.body.max_tokens === 64000 && !('effort' in r.body)));
+      assert(requests.some(r => r.body.model === 'zai/extract')); assert(requests.some(r => r.body.model === 'zai/glm-5.3-flash'));
+      assert(timers.length > 0 && timers.every(t => t === 900000));
+      assert(!JSON.stringify(result.record).includes(secret)); assert(!logs.join('\n').includes(secret));
+      assert(!logs.some(s => s.includes('"conditions"') || s.includes('"replacement"')));
+      for (const task of tasks) assert(logs.some(s => s.includes(`task=${task} `)), task);
+      // HTTPの本文・例外から鍵を反射させない。失敗時は承認を止める。
+      global.fetch = async () => ({ ok: false, status: 401, body: { cancel: async () => {} }, text: async () => secret });
+      const failed = await F.checkFacts('限度額は100万円です。', { now: opts.now, enabled: true });
+      assert.equal(failed.record.status, 'not_run'); assert(!JSON.stringify(failed).includes(secret)); assert(!logs.join('\n').includes(secret));
+      assert.equal(F.config({ provider: 'gateway', timeoutMs: 1000000 }).timeoutMs, 900000);
+      assert.equal(F.config({ provider: 'gateway', timeoutMs: 100 }).timeoutMs, 100);
+    });
+  } finally { global.fetch = previous.fetch; console.log = previous.log; console.warn = previous.warn; global.setTimeout = previous.timer; CM.createBatchContext = previous.batch; }
+});
+test('G1', '2: 提供者/モデルの形でないGateway設定は呼び出す前に止める', async () => {
+  for (const model of ['glm-5.3-flash', 'zai/', '/glm', 'zai/model extra']) {
+    let called = false;
+    const r = await F.checkFacts('限度額は100万円です。', { ...opts, provider: 'gateway', model, callLLM: async () => { called = true; } });
+    assert.equal(r.record.status, 'not_run'); assert.equal(r.record.summary, '照合のモデル設定が不正です'); assert.equal(called, false);
+  }
+});
+
+test('S1', '背景の再現: 所令101が主張の候補外でも、関連する書き手の資料なら食い違いを採る', async () => {
+  const real = W.resolveMaterial('law:shotokuzei_rei:101'), other = ref('other', '別制度', '別制度の原文を確認するための資料です。');
+  const claims = [
+    { id: 'c1', type: '手続', subject: '棚卸資産の評価の方法の変更手続', sentence: '変更には届出が必要です。', claim: '変更には届出が必要です。' },
+    { id: 'c2', type: '手続', subject: '棚卸資産', sentence: '別の手続です。', claim: '別の手続です。' },
+  ];
+  const result = await F.judgeClaims(claims, { c1: [other], c2: [real] }, claims.map(c => c.sentence).join('\n'), async req => [
+    { id: 'c1', status: '食い違い', evidence_id: H.materials(req).find(p => p.url === real.url).number, basis: '1', correct: '変更には承認が必要です。' },
+    { id: 'c2', status: '資料なし' },
+  ], { writer_materials: ['law:shotokuzei_rei:101'] });
+  assert.equal(result[0].status, '食い違い'); assert.equal(result[0].evidence_outside_candidates, true);
+});
+
+test('S3', '背景の再現: 受贈者の「または」を条件確認で捕捉し、修正と再照合まで行う', async () => {
+  const wrong = '18歳以上の直系卑属または推定相続人が対象です。', correct = '18歳以上の直系卑属である推定相続人または孫が対象です。';
+  const source = ref('gift', '相続時精算課税', correct); let extracts = 0;
+  const result = await F.checkFacts(wrong, { ...opts, repair: true, writer_materials: ['ta:4103'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '要件', '相続時精算課税');
+      if (req.task === 'condition_check') return { verdict: extracts++ ? '一致' : '不一致', conditions: [{ article: '直系卑属または推定相続人', source: '直系卑属である推定相続人または孫', match: '不一致' }], correct };
+      if (req.task === 'repair') return [{ id: 'c1', replacement: correct }];
+      return supported(req);
+    } });
+  assert.equal(result.body, correct); assert.equal(result.record.status, 'ok'); assert.equal(result.record.corrections[0].resolved, true);
+  assert(result.record.calls.some(c => c.task === 'condition_check'));
+});
+
+test('S1', '3: 関連しない書き手の資料・書き手以外の候補外資料の食い違いを落とし、数字の歯止めも維持', async () => {
+  const law = W.resolveMaterial('law:shotokuzei_rei:101'), gift = W.resolveMaterial('ta:4103');
+  gift.text = gift.text.split('関連リンク')[0];
+  const own = ref('candidate', '別の資料', '別の資料の本文を確認します。');
+  const c = claim('c1', '変更には届出が必要です。', '手続', '棚卸資産の評価の方法の変更手続');
+  for (const [offered, ids] of [[gift, ['ta:4103']], [law, ['ta:4103']]]) {
+    const rows = [c, { ...c, id: 'c2' }];
+    const result = await F.judgeClaims(rows, { c1: [own], c2: [offered] }, c.sentence, async req => [
+      { id: 'c1', status: '食い違い', evidence_id: H.materials(req).find(p => p.url === offered.url).number, basis: '1', correct: '変更には承認が必要です。' }, { id: 'c2', status: '資料なし' },
+    ], { writer_materials: ids, loadEvidenceText: e => e.text });
+    assert.equal(result[0].status, '資料なし'); assert.equal(result[0].reject_reason, '資料の番号がこの主張の候補でない');
+  }
+  const numeric = claim('c1', '限度額は100万円です。'); const page = ref('n', '試験制度', '限度額は200万円です。');
+  let calls = 0;
+  const invalid = await F.judgeClaims([numeric], { c1: [page] }, numeric.sentence, async () => {
+    calls++; return [{ id: 'c1', status: '食い違い', evidence_id: 1, basis: '1', correct: '限度額は999万円です。' }];
+  }, { ...writer, loadEvidenceText: e => e.text });
+  assert.equal(invalid[0].status, '資料なし'); assert.equal(calls, 2);
+});
+test('S1', '3: 所令101の候補外の食い違いが段Bで消えず修正・再照合へ進み、未修正の記録も差分照合で保つ', async () => {
+  const law = W.resolveMaterial('law:shotokuzei_rei:101'), other = ref('other', '別制度', '別の手続の説明を確認する資料です。');
+  const subject = '棚卸資産の評価の方法の変更手続', wrong = '変更には届出が必要です。', fixed = '変更には承認が必要です。';
+  const options = { ...opts, writer_materials: ['law:shotokuzei_rei:101'], loadEvidenceText: e => e.text,
+    searchWriterEvidence: c => c.subject === subject ? [other] : [law], searchEvidence: c => c.subject === subject ? [other] : [law],
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '手続').map(c => ({ ...c, subject: c.claim.includes('変更には') ? subject : '別制度' }));
+      if (req.task === 'condition_check') return condition();
+      if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
+      const pages = H.materials(req), p = JSON.parse(req.user);
+      return p.claims.map(c => ({ id: c.id, status: c.claim === wrong ? '食い違い' : '裏付けあり', evidence_id: pages.find(e => e.url === law.url)?.number || c.evidence_ids[0], basis: '1', correct: fixed }));
+    } };
+  const body = '## 評価方法\n' + wrong + '\n## 別の話\n別の手続を確認します。';
+  const repaired = await F.checkFacts(body, { ...options, repair: true });
+  assert.equal(repaired.record.status, 'ok'); assert(repaired.body.includes(fixed)); assert.equal(repaired.record.claims[0].evidence_outside_candidates, true);
+  assert.equal(repaired.record.claims[0].stage, 'A'); assert.equal(repaired.record.corrections[0].resolved, true);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plan02-incremental-'));
+  try {
+    const raw = require('gray-matter').stringify(body, { slug: 'plan02-cache', fact_materials: 'law:shotokuzei_rei:101', fact_plan_status: 'ok' });
+    const first = await F.checkArticle(raw, { ...options, recordDir: dir, persist: true });
+    const next = await F.checkArticle(first.content.replace('別の手続を確認します。', '別の説明を確認します。'), { ...options, recordDir: dir, persist: false, previousRaw: first.content });
+    assert.equal(next.record.incremental.reused, 1); assert(next.record.claims.some(c => c.sentence === wrong && c.evidence_outside_candidates));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('S1', '3: 数字の主張も関連する書き手の資料なら3状態で候補外を認め、引用の近くに無いcorrectは認めない', async () => {
+  const real = W.resolveMaterial('ta:4103'); real.text = real.text.split('関連リンク')[0];
+  const other = ref('decoy', '別の制度', '別の制度の本文を確認する資料です。');
+  for (const [status, bad] of [['裏付けあり', false], ['食い違い', false], ['期限の書き漏れ', false], ['食い違い', true]]) {
+    const c = claim('c1', status === '裏付けあり' ? '受贈者は18歳以上です。' : '受贈者は17歳以上です。', '金額', '相続時精算課税');
+    const result = await F.judgeClaims([c, { ...c, id: 'c2' }], { c1: [other], c2: [real] }, c.sentence, async req => {
+      const page = H.materials(req).find(p => p.url === real.url), row = page.rows.find(r => /18歳/.test(r.text)); assert(row);
+      return [{ id: 'c1', status, evidence_id: page.number, basis: String(row.s), correct: bad ? '受贈者は999歳以上です。' : '受贈者は18歳以上です。' }, { id: 'c2', status: '資料なし' }];
+    }, { ...writer, loadEvidenceText: e => e.text });
+    assert.equal(result[0].status, bad ? '資料なし' : status);
+    if (bad) assert.equal(result[0].reject_reason, '引用が短い・数字が引用の近くに無い');
+    else assert.equal(result[0].evidence_outside_candidates, true);
+  }
+});
+
+for (const recover of [true, false]) test('S2', `4: 数字の近傍確認で落ちた主張だけを即時に1回聞き直す（${recover ? '回復' : '再度棄却'}）`, async () => {
+  const source = ref('retry', '試験制度', '限度額は200万円です。'); const c = claim('c1', '限度額は100万円です。');
+  const requests = [];
+  const result = await F.judgeClaims([c], { c1: [source] }, c.sentence, async req => {
+    requests.push(req); if (req.task === 'retry_judge') {
+      const p = JSON.parse(req.user); assert.equal(p.retry[0].reason, '引用が短い・数字が引用の近くに無い');
+      assert(req.system.includes('[資料 1]')); assert(req.system.includes('[1] 限度額は200万円です。')); assert.equal(req.immediate, true);
+    }
+    return [{ id: 'c1', status: '食い違い', evidence_id: 1, basis: '1', correct: requests.length === 2 && recover ? '限度額は200万円です。' : '限度額は999万円です。' }];
+  }, { ...writer, loadEvidenceText: e => e.text });
+  assert.deepEqual(requests.map(r => r.task), ['judge', 'retry_judge']); assert.equal(result[0].status, recover ? '食い違い' : '資料なし');
+});
+test('S2', '4: 聞き直しは最大10件・採用後の答えだけで歯止めを数え、再棄却が多ければfail-closed', async () => {
+  const cs = Array.from({ length: 11 }, (_, i) => claim(`c${i + 1}`, `制度${i}は100万円です。`));
+  const source = ref('many', '試験制度', '限度額は200万円です。'), evidence = Object.fromEntries(cs.map(c => [c.id, [source]]));
+  const sizes = [];
+  const result = await F.judgeClaims(cs, evidence, cs.map(c => c.sentence).join('\n'), async req => {
+    const p = JSON.parse(req.user); if (req.task === 'retry_judge') sizes.push(p.claims.length);
+    return p.claims.map(c => ({ id: c.id, status: '食い違い', evidence_id: 1, basis: req.task === 'retry_judge' ? '1' : '999', correct: '限度額は200万円です。' }));
+  }, { ...writer, loadEvidenceText: e => e.text });
+  assert.deepEqual(sizes, [10, 1]); assert(result.every(c => c.status === '食い違い'));
+  await assert.rejects(F.judgeClaims(cs.slice(0, 3), evidence, cs.map(c => c.sentence).join('\n'), async req => JSON.parse(req.user).claims.map(c =>
+    ({ id: c.id, status: '食い違い', evidence_id: 1, basis: '999', correct: '限度額は200万円です。' })), { ...writer, provider: 'gateway', loadEvidenceText: e => e.text }), /多くが確認を通りません/);
+});
+
+for (const answer of ['数字不正', 'correctなし', '一致', '記載なし', '失敗', '読めない', 'JSON不正']) test('S3', `5: 条件確認の${answer}は食い違いを捏造せず、必要な条件差だけを人の一覧へ`, async () => {
+  const body = '18歳以上の子が対象です。', source = ref('condition', '相続時精算課税', '18歳以上の直系卑属である推定相続人または孫が対象です。');
+  const result = await F.checkFacts(body, { ...opts, ...writer, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '要件', '相続時精算課税');
+      if (req.task !== 'condition_check') return supported(req);
+      if (answer === '失敗') throw new Error('secret');
+      if (answer === '読めない') return '{}';
+      if (answer === 'JSON不正') return '{';
+      if (answer === '一致' || answer === '記載なし') return { text: JSON.stringify(condition(answer)) };
+      return { verdict: '不一致', correct: answer === '数字不正' ? '99歳以上の子が対象です。' : '', conditions: [{ article: '<script>子</script>', source: '推定相続人または孫', match: '不一致' }] };
+    } });
+  assert.equal(result.record.status, 'ok'); assert.equal(result.record.claims[0].status, '裏付けあり'); assert.equal(result.body, body);
+  const advisory = ['数字不正', 'correctなし'].includes(answer); assert.equal(result.record.review_items.length, advisory ? 1 : 0);
+  assert(result.record.claims[0].condition_check);
+  if (advisory) {
+    const html = require('../../../netlify/functions/review-page').renderFactCheck({ fact_check_status: 'ok' }, result.record, body);
+    assert(html.includes('条件の違い')); assert(html.includes('&lt;script&gt;子&lt;/script&gt;')); assert(!html.includes('<script>子</script>'));
+  }
+});
+test('S3', '5: 条件確認は1組ずつ・同時4組まで、記事の文と引用だけを渡す', async () => {
+  const source = ref('four', '制度', '対象者は申請書を提出します。'), body = Array.from({ length: 9 }, (_, i) => `対象者${i}は申請書を提出します。`).join('\n');
+  let active = 0, maximum = 0, calls = 0;
+  const r = await F.checkFacts(body, { ...opts, ...writer, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '手続');
+      if (req.task !== 'condition_check') return supported(req);
+      assert.deepEqual(Object.keys(JSON.parse(req.user)), ['article', 'source']);
+      active++; maximum = Math.max(maximum, active); calls++; await new Promise(resolve => setTimeout(resolve, 2)); active--;
+      return condition();
+    } });
+  assert.equal(r.record.status, 'ok'); assert.equal(calls, 9); assert.equal(maximum, 4);
+});
+
+test('S5', '背景の再現: みなし仕入率の修正を、同じ行の変わらない試算の30%で未解決にしない', async () => {
+  const row = '| 建設業 | 第4種・60% | 売上税額×30% |', fixed = '| 建設業 | 第3種・70% | 売上税額×30% |';
+  const source = ref('rate', '建設業のみなし仕入率', '建設業は第3種事業でみなし仕入率は70%です。'); let extracts = 0;
+  const result = await F.checkFacts('## 試算\n' + row, { ...opts, repair: true, writer_materials: ['ta:6509'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') { extracts++; const s = +req.user.match(/^\[(\d+)\] \|/m)[1]; return [
+        { s, type: '割合', subject: '建設業のみなし仕入率', claim: extracts === 1 ? 'みなし仕入率は60%です。' : 'みなし仕入率は70%です。' },
+        ...(extracts > 1 ? [{ s, type: '割合', subject: '建設業のみなし仕入率', claim: '売上税額に30%を掛けます。' }] : []),
+      ]; }
+      if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
+      return H.readPayload(req).claims.map(c => ({ id: c.id, status: c.claim.includes('30%') ? '資料なし' : extracts === 1 ? '食い違い' : '裏付けあり', evidence_id: 1, basis: '1', correct: '建設業は第3種事業でみなし仕入率は70%です。' }));
+    } });
+  assert.equal(result.body, '## 試算\n' + fixed); assert.equal(result.record.corrections[0].resolved, true); assert.equal(result.record.status, 'ok');
+});
+
+for (const recover of [true, false]) test('S4', `6: 資料の無い数字が残る修正だけを1回直させる（${recover ? '採用' : '元の文を保持'}）`, async () => {
+  const body = '上限は100万円です。\n他の文はそのまま残します。', f = { ...claim('c1', '上限は100万円です。'), status: '資料なし', quote: '', correct: '', evidence: [] };
+  const calls = [];
+  const r = await F.repairBody(body, [f], async req => {
+    calls.push(req.task);
+    if (req.task === 'retry_repair') {
+      assert.equal(req.immediate, true); const p = JSON.parse(req.user);
+      assert.equal(p.previous[0].replacement, '上限100万円は国税庁で確認してください。'); assert.equal(p.previous[0].reason, '資料の無い数字が残っています');
+    }
+    return [{ id: 'c1', replacement: req.task === 'retry_repair' && recover ? '詳しくは国税庁で確認してください。' : '上限100万円は国税庁で確認してください。' }];
+  }, writer);
+  assert.deepEqual(calls, ['repair', 'retry_repair']); assert.equal(r.body.includes('100万円'), !recover); assert(r.body.includes('他の文はそのまま残します。'));
+});
+test('S4', '6: 同じ文の複数指摘は同じ置き換えにまとめ、他の採用済みの修正を保持する', async () => {
+  const text = '限度額は100万円、控除額は50万円です。', other = '別の限度額は80万円です。';
+  const findings = [claim('c1', text), claim('c2', text), claim('c3', other)].map(c => ({ ...c, status: '食い違い', quote: '根拠の本文', correct: '修正' }));
+  const fixed = '限度額は200万円、控除額は60万円です。';
+  const r = await F.repairBody(text + '\n' + other, findings, async req => {
+    const p = JSON.parse(req.user);
+    if (req.task === 'retry_repair') {
+      assert.deepEqual(p.corrections.map(c => c.id), ['c1', 'c2']); assert(p.instruction.includes('同じ1つの置き換え'));
+      return p.corrections.map(c => ({ id: c.id, replacement: fixed }));
+    }
+    return [{ id: 'c1', replacement: fixed }, { id: 'c2', replacement: '控除額は60万円です。' }, { id: 'c3', replacement: '別の限度額は90万円です。' }];
+  }, writer);
+  assert.equal(r.body, fixed + '\n別の限度額は90万円です。'); assert.equal(r.rejected.size, 0);
+});
+test('S4', '6: 直しでも表の列・改行・保持する数字・長さ・元と同じ文の歯止めを再適用', async () => {
+  const examples = [
+    ['| 上限100万円 | 内容 |', '| 案内 |', '金額', []],
+    ['上限は100万円です。', '案内\n## 見出し', '金額', []],
+    ['上限100万円と控除50万円です。', '詳しくは国税庁で確認してください。', '金額', [{ claim: '控除は50万円', type: '金額' }]],
+    ['上限は100万円です。', '案内'.repeat(120), '金額', []],
+    ['上限は100万円です。', '上限は100万円です。', '金額', []],
+  ];
+  for (const [sentence, replacement, type, keep] of examples) {
+    let calls = 0; const f = { ...claim('c1', sentence, type), claim: '上限は100万円', status: '資料なし', keep };
+    const r = await F.repairBody(sentence + '\n他の文も残します。', [f], async () => { calls++; return [{ id: 'c1', replacement }]; }, writer);
+    assert.equal(calls, 2); assert.equal(r.body, sentence + '\n他の文も残します。'); assert(r.rejected.has('c1'));
+  }
+});
+test('S5', '7: 試算の計算途中の率と納税額は抽出から外し、資料の制度の数字は残す', async () => {
+  const body = '## 試算\n| みなし仕入率70% | 売上税額×30% | 納税額30万円 |';
+  const result = await F.extractClaims(body, async req => {
+    assert(req.system.includes('計算に使った制度の数字')); const s = +req.user.match(/\[(\d+)\] \|/)[1];
+    return [{ s, type: '割合', subject: '簡易課税', claim: 'みなし仕入率70%' }, { s, type: '割合', subject: '簡易課税', claim: '売上税額×30%' }, { s, type: '金額', subject: '簡易課税', claim: '納税額30万円' }];
+  }, writer);
+  assert.equal(result.claims.length, 1); assert.equal(result.claims[0].claim, 'みなし仕入率70%');
+});
+for (const [label, initial, changed] of [['新たな同じ数字', false, false], ['初回から資料なし', true, false], ['新しい数字', false, true]]) test('S5', `7: 再照合の${label}の扱いを区別する`, async () => {
+  const before = 'みなし仕入率60%で売上税額に30%を掛けます。', after = changed ? 'みなし仕入率70%で売上税額に40%を掛けます。' : 'みなし仕入率70%で売上税額に30%を掛けます。';
+  const source = ref('unchanged', 'みなし仕入率', 'みなし仕入率は70%です。'); let round = 0;
+  const r = await F.checkFacts(before, { ...opts, ...writer, repair: true, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') { round++; const s = +req.user.match(/^\[(\d+)\]/m)[1]; return [
+        { s, type: '割合', subject: 'みなし仕入率', claim: `みなし仕入率${round === 1 ? 60 : 70}%` },
+        ...(initial || round > 1 ? [{ s, type: '割合', subject: 'みなし仕入率', claim: `売上税額に${round > 1 && changed ? 40 : 30}%を掛けます。` }] : []),
+      ]; }
+      if (req.task === 'repair' || req.task === 'retry_repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: after }));
+      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: c.claim.includes('売上税額') ? '資料なし' : round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: 'みなし仕入率70%' }));
+    } });
+  if (!initial && !changed) { assert.equal(r.record.status, 'ok'); assert.equal(r.record.corrections[0].resolved, true); assert(r.record.review_items.some(c => c.unchanged_numeric)); }
+  else { assert.equal(r.record.status, 'revise'); assert(r.record.remaining.length); }
+});
+
+async function missingReview(total, missing, replacement = '詳しくは国税庁で確認してください。') {
+  const body = Array.from({ length: total }, (_, i) => `${i < missing ? '架空条件を満たせば対象' : '申請書を提出'}となります（項目${i}）。`).join('\n');
+  const source = ref('generalize', '試験制度', '申請書を提出して手続を行います。');
+  return F.checkFacts(body, { ...opts, ...writer, repair: true, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => {
+      if (req.task === 'extract') return extract(req, '要件').filter(c => !c.claim.startsWith('詳しくは'));
+      if (req.task === 'condition_check') return condition();
+      if (req.task === 'repair' || req.task === 'retry_repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement }));
+      return supported(req).map((row, i) => JSON.parse(req.user).claims[i].claim.includes('架空条件') ? { id: row.id, status: '資料なし' } : row);
+    } });
+}
+test('S6', '8: 全体の20%ちょうどの要件は具体を外し、再照合で解決する', async () => {
+  const r = await missingReview(5, 1); assert.equal(r.record.status, 'ok'); assert(!r.body.includes('架空条件'));
+  assert.equal(r.record.corrections.length, 1); assert.equal(r.record.corrections[0].generalized, true); assert.equal(r.record.corrections[0].resolved, true);
+  assert(r.record.calls.some(c => c.task === 'recheck_extract'));
+});
+for (const [total, missing, over] of [[5, 2, true], [45, 9, true], [40, 8, false]]) test('S6', `8: ${missing}/${total}文の件数・割合の歯止め（${over ? '具体を保持' : '8文まで外す'}）`, async () => {
+  const r = await missingReview(total, missing); assert.equal(r.record.status, 'ok');
+  assert.equal(r.record.summary.includes('・資料なしが多いため具体を外していません'), over);
+  assert.equal(r.record.calls.some(c => c.task === 'repair'), !over);
+  assert.equal(r.record.review_items.length, over ? missing : 0);
+});
+test('S6', '8: 具体を外す修正が採れなくても人の一覧に残し、承認を止めず、新しい数字を採らない', async () => {
+  const r = await missingReview(5, 1, '対象は99歳以上です。');
+  assert.equal(r.record.status, 'ok'); assert(r.body.includes('架空条件')); assert.equal(r.record.review_items.length, 1); assert(!r.body.includes('99歳'));
+  assert(r.record.calls.some(c => c.task === 'retry_repair'));
+});
+
+test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び出しと記録でS1〜S6を動かさない', async () => {
+  const source = ref('legacy', '試験制度', '18歳以上の子が対象です。');
+  const requests = [], run = extra => F.checkFacts(source.text, { ...opts, ...extra, searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => { requests.push({ task: req.task, system: req.system, user: req.user, maxTokens: req.maxTokens, model: req.model }); return req.task === 'extract' ? extract(req, '要件') : supported(req); } });
+  const baseline = await run({}); const calls = requests.splice(0);
+  assert.deepEqual(calls.map(c => c.task), ['extract', 'judge']); assert(!calls[0].system.includes('計算の途中の率'));
+  const disabled = await env({ FACT_CHECK_WRITER_MATERIALS: 'false' }, () => run(writer));
+  assert.deepEqual(requests.splice(0), calls); assert.deepEqual(disabled, baseline);
+  for (const extra of [{ resolvedWriterMaterials: [W.resolveMaterial('ta:4103')] }, { ...writer, writerMaterials: false, resolvedWriterMaterials: [W.resolveMaterial('ta:4103')] }]) {
+    assert.deepEqual(await run(extra), baseline); assert.deepEqual(requests.splice(0), calls);
+  }
+  const missing = await run({ writer_materials: ['ta:0000'] }); assert.deepEqual(requests.splice(0), calls);
+  assert.deepEqual(await run({ writer_materials: ['ta:0000'], resolvedWriterMaterials: [W.resolveMaterial('ta:4103')] }), missing); assert.deepEqual(requests.splice(0), calls);
+  assert.equal(missing.record.claims[0].condition_check, undefined); assert.equal(missing.record.status, baseline.record.status);
+  const f = { ...claim('c1', '上限は100万円です。'), status: '資料なし' }; let repairs = 0;
+  await F.repairBody(f.sentence, [f], async () => { repairs++; return [{ id: 'c1', replacement: f.sentence }]; }); assert.equal(repairs, 1);
+  assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
+});
+test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2');
+});
+
+(async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async () => { throw new Error('試験中の通信は禁止'); };
+  try {
+    for (const { group, name, run } of cases) {
+      const result = groups[group] ||= { pass: 0, fail: 0 };
+      try { await run(); result.pass++; console.log(`PASS ${group}: ${name}`); }
+      catch (error) { result.fail++; console.error(`FAIL ${group}: ${name}\n${error.stack}`); }
+    }
+  } finally { global.fetch = originalFetch; }
+  const passed = Object.values(groups).reduce((n, r) => n + r.pass, 0), failed = Object.values(groups).reduce((n, r) => n + r.fail, 0);
+  console.log(JSON.stringify({ passed, failed, groups })); if (failed) process.exitCode = 1;
+})();
