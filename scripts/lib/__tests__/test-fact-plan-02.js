@@ -44,7 +44,9 @@ test('W1〜W3', '1: 日次・全文差し戻し・更新案と計画に規則の
   const hasRules = text => { for (const rule of WRITER_RULES) assert(text.includes(rule), rule); };
   try {
     await env({ FACT_PLAN_ENABLED: 'true' }, async () => {
-      await G.generateWithContentModel('2026-10-21', { ...t }); hasRules(prompts.pop());
+      await G.generateWithContentModel('2026-10-21', { ...t }); const daily = prompts.pop(); hasRules(daily);
+      assert(daily.includes('═══ この記事で扱う制度と資料 ═══'));
+      for (const rule of WRITER_RULES) assert.equal(daily.split(rule).length - 1, 1, rule);
       await G.regenerateWithContentModel(raw, '確認する'); hasRules(prompts.pop());
       const blocks = await G.buildRegenSourceBlocks(meta, '確認します。', { enrichTaxTerms: async () => {}, resolveSupplement: async () => null });
       hasRules(blocks.combined); hasRules(P.buildPlanBlock([{ name: '贈与税の配偶者控除', materials: [source] }]));

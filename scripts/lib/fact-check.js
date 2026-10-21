@@ -1590,8 +1590,8 @@ function inheritFactMetadata(original, regenerated) {
   if (before.fact_check_version) {
     const previousWarning = String(before.review_warning || '');
     const addedWarning = String(after.review_warning || '').replace(WARNING_RE, '').replace(/(?:\s*\/\s*)+$/, '').trim();
-    const previousParts = previousWarning.split(' / ').filter(Boolean);
-    const addedParts = addedWarning.split(' / ').filter(Boolean);
+    const previousParts = planned ? previousWarning.split(' / ').map(part => part.trim().replace(/^(?:\s*\/\s*)+/, '')).filter(Boolean) : [];
+    const addedParts = planned ? addedWarning.split(' / ').map(part => part.trim().replace(/^(?:\s*\/\s*)+/, '')).filter(Boolean) : [];
     const addedOtherWarning = planned
       ? addedParts.some(part => !part.startsWith('計画:') && !previousParts.includes(part))
       : addedWarning && !previousWarning.includes(addedWarning);

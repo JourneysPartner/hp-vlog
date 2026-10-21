@@ -1119,7 +1119,7 @@ async function generateWithContentModel(dateStr, topic, pairedTopic, strictForma
     });
     console.log(`[source] 通達の原文を添付: ${labels.join('、')}`);
   }
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock + tsutatsuBlock;
+  let ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock + tsutatsuBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
@@ -1145,6 +1145,10 @@ async function generateWithContentModel(dateStr, topic, pairedTopic, strictForma
     references: [...ntaRefs, { url: topic.source_url }, ...(topic.source_supplements || [])], changes: lawChanges,
   }) : '';
   lawChangesBlock += planBlock + (planBlock && sourceUnconfirmed ? `\n${SOURCE_UNCONFIRMED_RULE}` : '');
+  // 差し戻しと同じく、計画がW規則を持つときは出典側の重複行を外す。
+  if (WRITER_RULES.every(rule => planBlock.includes(rule))) {
+    ntaRefsBlock = ntaRefsBlock.split('\n').filter(line => !WRITER_RULES.includes(line.replace(/^\d+\.\s*/, ''))).join('\n');
+  }
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 

@@ -738,6 +738,38 @@ test('01c-G1', '記録済みの欠落1件でも部分差し戻し2回後までpu
     } finally { CM.generateSimple = original; }
   });
 });
+test('マージ前-M1', '照合の注意だけで始まる記事も部分差し戻し3回後にpublishへ戻り、区切りが重ならない', async () => {
+  const wrong = '試験制度は100万円です。', correct = '試験制度は600万円です。';
+  const source = ref('merge-warning', correct), original = CM.generateSimple;
+  const t = { ...topic(), slug: 'merge-warning', fact_plan_status: 'ok', fact_plan: '贈与税の配偶者控除',
+    fact_plan_missing: '', fact_materials: 'ta:4452;ta:0000' };
+  let raw = F.updateMeta(N.buildCanonicalFrontmatter(t, { now: now.toISOString() }) + '\n## 制度\n' + wrong,
+    { recommendation: 'publish', review_warning: '' });
+  const check = content => F.checkArticle(content, { ...opts, persist: false, writer_materials: [], searchEvidence: () => [source], loadEvidenceText: e => e.text,
+    callLLM: async req => req.task === 'extract' ? extracted(req).filter(c => c.claim.includes('試験制度は'))
+      : H.readPayload(req).claims.map(c => ({ id: c.id, status: c.sentence.includes('600万円') ? '裏付けあり' : '食い違い', evidence_id: 1, basis: '1', correct })) });
+  await env({ CONTENT_MODEL_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'merge-fake-key' }, async () => {
+    try {
+      raw = (await check(raw)).content;
+      assert(String(matter(raw).data.review_warning).startsWith('【事実の照合】'));
+      for (const suffix of ['説明を確認します。', '申告の書類を確認します。', '添付書類を確認します。']) {
+        CM.generateSimple = async () => ({ text: `## 制度\n${wrong}\n\n${suffix}`, provider: 'anthropic', model: 'fake', stopReason: 'end_turn' });
+        const regenerated = await G.regenerateSection(raw, '制度の補足を確認', { type: 'content', sectionHint: '制度' }, { preserveTitle: true });
+        raw = await G.finalizeRegeneration(raw, regenerated, { scope: 'section' }, { factCheck: check, persist: false });
+        const meta = matter(raw).data;
+        assert.equal(meta.fact_check_prev_recommendation, 'publish');
+        assert.equal(meta.recommendation, 'revise');
+        assert(!/\/\s*\//.test(meta.review_warning), meta.review_warning);
+        assert.equal(meta.review_warning.split('計画: 記録した資料のうち引けない 1 件').length - 1, 1);
+      }
+      raw = (await check(F.updateMeta(raw, {}, matter(raw).content.replace(wrong, correct)))).content;
+      const meta = matter(raw).data;
+      assert.equal(meta.fact_check_status, 'ok'); assert.equal(meta.fact_check_prev_recommendation, 'publish');
+      assert.equal(meta.recommendation, 'publish');
+      assert.equal(meta.review_warning, '計画: 記録した資料のうち引けない 1 件');
+    } finally { CM.generateSimple = original; }
+  });
+});
 test('01c-G1', '差し戻しの範囲引用からIDを作らず、引ける新資料だけを記録する', async () => {
   const body = '## 制度\n所基通37-5～37-6の内容を確認します。';
   const cited = require('../nta-tsutatsu').checkCitations(body).citations;
