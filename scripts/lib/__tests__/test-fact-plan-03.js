@@ -991,13 +991,13 @@ test('03e-E1','速算表の行は計算の答えで控除額を補わない',asy
   const r=await calculationCase03e({sentence:'| 300万円以下 | 15%（控除10万円） |',source:rates03e,type:'割合',subject:'贈与税の税率',pattern:/200万円以下/,calculation:['200万円×15%−200万円×10%=10万円']});
   assert.equal(r.record.status,'revise');diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');
 }));
-test('03e-E1','前の文の330000円と100着から3300円を検算し、所令103の引用は残す',async()=>feature(async()=>{
+test('03e-E1','前の文の330000円と100着があっても3300円の金額計算では裏付けない',async()=>feature(async()=>{
   const source=material('law:shotokuzei_rei:103'),r=await calculationCase03e({sentence:'1着あたりに直すと3,300円になります。',claim:'1着あたりの取得価額は3,300円',prev:'仕入代金は330,000円で、仕入れた数は100着です。',source,type:'金額',subject:'売上原価',pattern:/棚卸/,calculation:['330,000円÷100=3,300円']});
-  assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert(r.record.claims[0].quote);
+  assert.equal(r.record.status,'revise');diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.claims[0].confirm.answer.evidence_id,source.id);assert(r.record.claims[0].confirm.answer.basis);
 }));
-for(const [calculation,ok]of [['(200万円×15%)-(200万円×10%)=10万円',true],['200万円×15%−200万円×10%=9.999万円',false],['1円÷3=0.33円',false]])test('03e-E1','丸めず式を読む: '+calculation,async()=>feature(async()=>{
+for(const calculation of ['(200万円×15%)-(200万円×10%)=10万円','200万円×15%−200万円×10%=9.999万円','1円÷3=0.33円'])test('03e-E1','金額の式は正誤によらず裏付けに使わない: '+calculation,async()=>feature(async()=>{
   const r=await calculationCase03e({sentence:calculation.startsWith('1円')?'1円を3人で分けると0.33円です。':'控除額は10万円です。',source:rates03e,type:'金額',subject:'贈与税の税率',pattern:/200万円以下/,calculation:[calculation]});
-  assert.equal(r.record.status,ok?'ok':'revise');if(!ok)diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');
+  assert.equal(r.record.status,'revise');diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');
 }));
 test('03e-E1','計算がない答えは従来どおり引用近傍の数字を求める',async()=>feature(async()=>{
   const r=await calculationCase03e({sentence:dateSentence03e});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
@@ -1006,17 +1006,18 @@ for(const [formula,sentence,text]of [
   ['0.1円+0.2円=0.3円','合計額は0.3円です。','計算の基礎となる金額は0.1円と0.2円です。'],
   ['2分の1×200万円=100万円','算出額は100万円です。','計算の基礎は200万円、用いる割合は50%です。'],
   ['二百万円×二割−二百万円×百分の十五=十万円','控除額は10万円です。','控除額の計算に用いるのは200万円、20%と15%です。'],
-])test('03e-E1','小数・分数・漢数字を丸めず正確に検算する: '+formula,async()=>feature(async()=>{
-  const source={...rates03e,text},r=await calculationCase03e({sentence,source,type:'金額',subject:'贈与税の税率',pattern:/計算/,calculation:[formula]});assert.equal(r.record.status,'ok');
+])test('03e-E1','小数・分数・漢数字でも金額の計算は裏付けに使わない: '+formula,async()=>feature(async()=>{
+  const source={...rates03e,text},r=await calculationCase03e({sentence,source,type:'金額',subject:'贈与税の税率',pattern:/計算/,calculation:[formula]});assert.equal(r.record.status,'revise');diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');
 }));
-test('03e-E1','誤りの修正文の計算は採り、残りの数字・引用の長さは引き続き確かめる',async()=>feature(async()=>{
-  const fixed=await calculationCase03e({sentence:'控除額は11万円です。',type:'金額',subject:'贈与税の税率',source:rates03e,pattern:/200万円以下/,verdict:'誤り',replacement:'控除額は10万円です。',calculation:['200万円×15%−200万円×10%=10万円']});assert.equal(fixed.record.status,'ok');assert(fixed.body.includes('控除額は10万円です。'));
+test('03e-E1','修正文の金額も計算で補わず、残りの数字・引用の長さを確かめる',async()=>feature(async()=>{
+  const fixed=await calculationCase03e({sentence:'控除額は11万円です。',type:'金額',subject:'贈与税の税率',source:rates03e,pattern:/200万円以下/,verdict:'誤り',replacement:'控除額は10万円です。',calculation:['200万円×15%−200万円×10%=10万円']});assert.equal(fixed.record.status,'revise');diagnostic03c(fixed.record.claims[0].confirm,'replacement_numbers');assert(fixed.body.includes('控除額は11万円です。'));assert.equal(fixed.record.corrections.length,0);
   const remaining=await calculationCase03e({sentence:'控除額は10万円、追加控除は17万円です。',type:'金額',source:rates03e,subject:'贈与税の税率',pattern:/200万円以下/,calculation:['200万円×15%−200万円×10%=10万円']});diagnostic03c(remaining.record.claims[0].confirm,'quote_insufficient');
 }));
-test('03e-E1','式を互いの前提に循環させず、最大3件と読める式だけに限る',()=>{
-  const verify=require('../fact-calculation').verifyCalculations,context={quote:'計算に使うのは2です。',article:['値は1と3です。'],target:'値は1と3です。',normalizedNumbers:F.normalizedNumbers};
-  assert.equal(verify(['1+2=3','3-2=1'],context).error,'数の出どころが無い');
-  for(const value of [[],['1=1','1=1','1=1','1=1'],[123],['1e3=1000'],['約1円=1円']])assert.equal(verify(value,context).error,'読めない');
+test('03e-E1','日付以外は数字を外さず、日付の式は最大3件・読める形だけに限る',()=>{
+  const verify=require('../fact-calculation').verifyCalculations,context={quote:'初日から15日前の日です。',sentence:dateSentence03e,target:dateSentence03e,normalizedNumbers:F.normalizedNumbers},formula='1月1日−15日=12月17日';
+  for(const value of [['1+2=3','3-2=1'],[],['1=1','1=1','1=1','1=1'],[123],['1e3=1000'],['約1円=1円']]){const result=verify(value,context);assert.equal(result.error,undefined);assert.equal(result.excluded.size,0);}
+  assert.equal(verify([formula,formula,formula],context).excluded.size,2);
+  for(const value of [[formula,formula,formula,formula],formula,['1月1日×15日=12月17日']])assert.equal(verify(value,context).error,'読めない');
 });
 test('03e-E1','検算が合っても短い引用は採らず、式の鍵も記録に出さない',async()=>feature(async()=>{
   const source={...rates03e,id:'law:test:short',text:'200万円10%15%'},r=await calculationCase03e({sentence:'控除額は10万円です。',source,type:'金額',subject:'贈与税の税率',pattern:/200/,calculation:['200万円×15%−200万円×10%=10万円']});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');
@@ -1136,8 +1137,8 @@ for(const [name,settings] of [
 test('03f-H1','引用の確認から外すのは右辺と日付の起点だけに限る',()=>{
   const verify=require('../fact-calculation').verifyCalculations,normalizedNumbers=F.normalizedNumbers;
   const money=verify(['330,000円÷100=3,300円'],{quote:'取得価額を記載します。',article:['330,000円で100着です。'],target:'1着3,300円です。',normalizedNumbers});
-  assert.deepEqual([...money.excluded],normalizedNumbers('3,300円'));
-  const date=verify(['1月1日−15日=12月17日'],{quote:'初日から起算して15日前の日です。',article:[dateSentence03e],target:dateSentence03e,normalizedNumbers});
+  assert.deepEqual([...money.excluded],[]);
+  const date=verify(['1月1日−15日=12月17日'],{quote:'初日から起算して15日前の日です。',sentence:dateSentence03e,target:dateSentence03e,normalizedNumbers});
   assert.deepEqual(new Set(date.excluded),new Set(normalizedNumbers('1月1日、12月17日')));assert(!date.excluded.has(normalizedNumbers('15日')[0]));
 });
 test('03f-M1','同じ文でも住宅資金の指摘に結婚・子育て資金の300万円は使わせない',async()=>feature(async()=>{
@@ -1194,15 +1195,15 @@ for(const [label,settings] of [
   ['③', {sentence:'基礎控除100万円を差し引くと、課税価格は400万円です。',claim:'課税価格は400万円',prev:'贈与財産の価額は500万円です。',type:'金額',subject:'贈与税の計算',source:material('ta:4408'),pattern:/基礎控除額110万円/,calculation:['500万円−100万円=400万円']}],
 ])test('03g-N1-1','要約の形の'+label+'でも同じ文の誤った前提を採らない',async()=>feature(async()=>{
   const r=await calculationCase03e(settings),answer=r.record.claims[0].confirm;
-  diagnostic03c(answer,'calculation_rejected');assert(answer.rejected.detail.includes('数の出どころが無い'));assert.equal(r.record.status,'revise');assert(r.body.includes(settings.sentence));
+  diagnostic03c(answer,label==='①'?'calculation_rejected':'quote_insufficient');assert(answer.rejected.detail.includes(label==='①'?'数の出どころが無い':'主張の数字'));assert.equal(r.record.status,'revise');assert(r.body.includes(settings.sentence));
 }));
 test('03g-N1-1','同じ文の330000円・100着だけから3300円を計算しない',async()=>feature(async()=>{
   const sentence='330,000円を100着で割ると3,300円になります。',r=await calculationCase03e({sentence,claim:'取得価額は3,300円',type:'金額',subject:'売上原価',source:material('law:shotokuzei_rei:103'),pattern:/棚卸/,calculation:['330,000円÷100=3,300円']});
-  diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');assert.equal(r.record.status,'revise');assert.equal(r.body,'## 手続と計算\n'+sentence);
+  diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert.equal(r.body,'## 手続と計算\n'+sentence);
 }));
 for(const ratio of ['20%','2割','5分の1'])test('03g-N1-2','記事の前提の割合'+ratio+'は引用なしで使わない',async()=>feature(async()=>{
   const r=await calculationCase03e({sentence:'税額は100万円です。',claim:'税額100万円',prev:'贈与額は500万円、税率は'+ratio+'です。',type:'金額',subject:'贈与税の計算',source:material('ta:4408'),pattern:/基礎控除額110万円/,calculation:['500万円×'+ratio+'=100万円']});
-  diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');assert(r.record.claims[0].confirm.rejected.detail.includes('数の出どころが無い'));assert.equal(r.record.status,'revise');
+  diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert(r.record.claims[0].confirm.rejected.detail.includes('主張の数字'));assert.equal(r.record.status,'revise');
 }));
 async function premisesCase03g({same=false,date=false,verdict='誤り',reverse=false,next=false,chain=false}={}){
   const source=material(date?'qa:invoice/13':'ta:4408'),claimById=new Map();
@@ -1222,26 +1223,26 @@ async function premisesCase03g({same=false,date=false,verdict='誤り',reverse=f
   return {r,body,claim,baseClaim};
 }
 test('03g-N1-1','③の二つの主張を110万円だけに直して400万円のままokにしない',async()=>feature(async()=>{
-  const {r,body,claim,baseClaim}=await premisesCase03g({same:true});diagnostic03c(r.record.claims.find(c=>c.claim===claim).confirm,'calculation_rejected');assert.equal(r.record.claims.find(c=>c.claim===baseClaim).confirm.answer.verdict,'誤り');assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.corrections.length,0);
+  const {r,body,claim,baseClaim}=await premisesCase03g({same:true});diagnostic03c(r.record.claims.find(c=>c.claim===claim).confirm,'quote_insufficient');assert.equal(r.record.claims.find(c=>c.claim===baseClaim).confirm.answer.verdict,'誤り');assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.corrections.length,0);
 }));
 for(const settings of [{},{reverse:true},{verdict:'判断できない'},{date:true},{next:true}])test('03g-N1-3','前後の文の未確認の数字に依存する計算を止める '+JSON.stringify(settings),async()=>feature(async()=>{
   const {r,claim,baseClaim}=await premisesCase03g(settings),dependent=r.record.claims.find(c=>c.claim===claim),premise=r.record.claims.find(c=>c.claim===baseClaim);
-  diagnostic03c(dependent.confirm,'calculation_rejected');assert(dependent.confirm.rejected.detail.includes('前提の数が確かめられていない'));assert.equal(r.record.status,'revise');assert.notEqual(premise.status,'裏付けあり');assert(!r.record.corrections.some(c=>c.id===dependent.id));
+  diagnostic03c(dependent.confirm,settings.date?'calculation_rejected':'quote_insufficient');assert(dependent.confirm.rejected.detail.includes(settings.date?'数の出どころが無い':'主張の数字'));assert.equal(r.record.status,'revise');assert.notEqual(premise.status,'裏付けあり');assert(!r.record.corrections.some(c=>c.id===dependent.id));
   assert.equal(premise.confirm.answer.verdict,settings.verdict||'誤り');
 }));
 test('03g-N1-3','未確認の前提から二段階で計算した答えも順序に依存せず採らない',async()=>feature(async()=>{
   const {r}=await premisesCase03g({chain:true,reverse:true});
-  for(const claim of ['課税価格は400万円','税額80万円']){const answer=r.record.claims.find(c=>c.claim===claim).confirm;diagnostic03c(answer,'calculation_rejected');assert(answer.rejected.detail.includes('前提の数が確かめられていない'));}
+  for(const claim of ['課税価格は400万円','税額80万円']){const answer=r.record.claims.find(c=>c.claim===claim).confirm;diagnostic03c(answer,'quote_insufficient');assert(answer.rejected.detail.includes('主張の数字'));}
   assert.equal(r.record.status,'revise');assert(!r.record.corrections.some(c=>['課税価格は400万円','税額80万円'].includes(c.claim)));
 }));
-for(const mode of ['抽出なし','GLMで裏付けあり','Opusで正しい'])test('03g-N1-3','前の文の330000円・100着が'+mode+'なら3300円はok',async()=>feature(async()=>{
+for(const mode of ['抽出なし','GLMで裏付けあり','Opusで正しい'])test('03g-N1-3','前の文の330000円・100着が'+mode+'でも3300円の計算は裏付けに使わない',async()=>feature(async()=>{
   const source=material('law:shotokuzei_rei:103'),first='仕入代金は330,000円で、仕入れた数は100着です。',sentence='1着あたりに直すと3,300円になります。',purchase={id:'law:test:purchase',kind:'law',title:'仕入れの前提',url:'https://example.test/purchase',text:first},body=first+'\n'+sentence;
   const select=c=>[c.subject==='仕入れの前提'?purchase:source];
   const r=await F.checkFacts(body,{...opts,writer_materials:['law:shotokuzei_rei:103'],searchWriterEvidence:select,searchEvidence:select,findQaByKeywords:()=>[],loadEvidenceText:e=>e.text,callLLM:async req=>{
     if(req.task==='extract')return extract(req,'金額','売上原価').flatMap((c,i)=>i?[{...c,claim:'1着あたりの取得価額は3,300円'}]:mode==='抽出なし'?[]:[{...c,subject:'仕入れの前提',claim:'仕入代金330,000円、100着'}]);
     if(req.task==='confirm')return payload(req).claims.map(c=>c.subject==='仕入れの前提'?confirmed(req,c,purchase,/330,000/,'正しい'):{...confirmed(req,c,source,/棚卸/,'正しい'),calculation:['330,000円÷100=3,300円']});
     return payload(req).claims.map(c=>c.subject==='仕入れの前提'&&mode==='GLMで裏付けあり'?judged(req,c,purchase,/330,000/,'裏付けあり'):{id:c.id,status:'資料なし'});
-  }});assert.equal(r.record.status,'ok');assert.equal(r.body,body);assert.equal(r.record.claims.find(c=>c.subject==='売上原価').confirm.verdict,'正しい');if(mode!=='抽出なし')assert.equal(r.record.claims.find(c=>c.subject==='仕入れの前提').status,'裏付けあり');
+  }});assert.equal(r.record.status,'revise');assert.equal(r.body,body);diagnostic03c(r.record.claims.find(c=>c.subject==='売上原価').confirm,'quote_insufficient');if(mode!=='抽出なし')assert.equal(r.record.claims.find(c=>c.subject==='仕入れの前提').status,'裏付けあり');
 }));
 for(const calculation of [undefined,['200万円×20%−200万円×10%=20万円']])test('03g-N2','本物のNo.4408の表でも控除20万円を通さない '+JSON.stringify(calculation),async()=>feature(async()=>{
   const r=await calculationCase03e({sentence:'| 300万円以下 | 15%（控除20万円） |',claim:'税率15%、控除20万円',type:'割合',subject:'贈与税の税率',source:material('ta:4408'),pattern:/200万円以下.*300万円以下/,calculation});
@@ -1250,6 +1251,84 @@ for(const calculation of [undefined,['200万円×20%−200万円×10%=20万円']
 test('03g-N2','本物のNo.4408に控除額まで書かれた行は計算なしでok',async()=>feature(async()=>{
   const r=await calculationCase03e({sentence:'| 300万円以下 | 15%（控除10万円） |',claim:'税率15%、控除10万円',type:'割合',subject:'贈与税の税率',source:material('ta:4408'),pattern:/200万円以下.*300万円以下/});
   assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+
+// 03h: 金額は引用で確認し、計算による数字の除外は日付だけに限る。
+async function moneyCase03h(body,specs){
+  const source=material('ta:4408'),claimById=new Map();
+  return F.checkFacts(body,{...opts,writer_materials:['ta:4408'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],findQaByKeywords:()=>[],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract'){const rows=extract(req,'金額','贈与税の計算');return specs.map(s=>({...rows.find(c=>c.claim===s.sentence),type:s.type||'金額',claim:s.claim}));}
+    if(req.task==='confirm')return payload(req).claims.map(c=>{const s=specs.find(s=>s.claim===claimById.get(c.id));return {...confirmed(req,c,source,s.pattern||/基礎控除額110万円/,s.replacement?'誤り':'正しい',s.replacement||''),...(s.calculation?{calculation:s.calculation}:{})};});
+    if(req.task==='condition_check')return agreement();
+    return payload(req).claims.map(c=>{claimById.set(c.id,c.claim);const s=specs.find(s=>s.claim===c.claim);return s.replacement?judged(req,c,source,/基礎控除額110万円/,'食い違い',s.replacement):{id:c.id,status:'資料なし'};});
+  }});
+}
+for(const calculation of [undefined,['200万円×20%−200万円×10%=20万円']])test('03h-D1','X1: 地の文の誤った控除額20万円を計算で通さない '+JSON.stringify(calculation),async()=>feature(async()=>{
+  const sentence='300万円以下の部分の税率は15%、控除額は20万円です。',r=await moneyCase03h(sentence,[{sentence,claim:'税率15%、控除額20万円',pattern:/200万円以下.*300万円以下/,calculation}]);
+  diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert.equal(r.body,sentence);
+}));
+test('03h-D1','X4b: 数字の無い要約の基礎控除を110万円に直しても500万円を正しいにしない',async()=>feature(async()=>{
+  const first='贈与財産600万円から基礎控除100万円を差し引きます。',second='課税価格は500万円です。',r=await moneyCase03h(first+'\n'+second,[{sentence:first,claim:'基礎控除を差し引く',type:'判定',replacement:first.replace('100','110')},{sentence:second,claim:'課税価格500万円',calculation:['600万円−100万円=500万円']}]);
+  const premise=r.record.claims.find(c=>c.claim==='基礎控除を差し引く'),answer=r.record.claims.find(c=>c.claim==='課税価格500万円');
+  assert.equal(premise.confirm.answer.verdict,'誤り');assert.equal(premise.confirm.verdict,'誤り');assert.equal(premise.correct,first.replace('100','110'));assert(r.body.includes(first.replace('100','110')));diagnostic03c(answer.confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert(!r.record.corrections.some(c=>c.id===answer.id));
+}));
+test('03h-D1','X3: 見出しの550万円・基礎控除100万円から450万円を正しいにしない',async()=>feature(async()=>{
+  const sentence='課税価格は450万円です。',body='## 贈与財産550万円から基礎控除100万円を引く例\n'+sentence,r=await moneyCase03h(body,[{sentence,claim:'課税価格450万円',calculation:['550万円−100万円=450万円']}]);
+  diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert.equal(r.body,body);
+}));
+for(const explicit of [false,true])test('03h-D1','X5: 100万円と450万円を互いの計算だけで裏付けない '+(explicit?'単位と550万円の前提を明示':'レビュー記載の式'),async()=>feature(async()=>{
+  const first='基礎控除は100万円です。',second='課税価格は450万円です。',body=(explicit?'## 贈与財産550万円の例\n':'')+first+'\n'+second;
+  const r=await moneyCase03h(body,[{sentence:first,claim:'基礎控除100万円',calculation:[explicit?'550万円−450万円=100万円':'550−450=100']},{sentence:second,claim:'課税価格450万円',calculation:[explicit?'550万円−100万円=450万円':'550−100=450']}]);
+  assert.equal(r.record.claims.length,2);for(const c of r.record.claims)diagnostic03c(c.confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.corrections.length,0);
+}));
+test('03h-D3','X2: 問13の同月30日を30日前の日数には使わせない',async()=>feature(async()=>{
+  const sentence='翌年1月1日から戻すなら、取消届出の期限は12月2日です。',r=await calculationCase03e({sentence,claim:'提出期限は12月2日',pattern:/同月\s*30\s*日/,calculation:['1月1日−30日=12月2日']});
+  diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');assert.equal(r.record.status,'revise');assert.equal(r.body,'## 手続と計算\n'+sentence);
+}));
+test('03h-D2','日付の起点を前の文からは取らない',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:'取消届出の期限は12月17日です。',prev:'課税期間の初日は1月1日です。',calculation:['1月1日−15日=12月17日']});
+  diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');assert.equal(r.record.status,'revise');
+}));
+const dateSource03h=text=>({id:'law:test:date',kind:'law',title:'届出の期限',url:'https://example.test/date',text});
+for(const [text,operator,ok] of [
+  ['届出は起点から15日前の日までに提出してください。','−',true],
+  ['届出は起点から１５ 日 前の日までに提出してください。','−',true],
+  ['届出は起点から十五日前の日までに提出してください。','−',true],
+  ['届出は起点から15日後の日までに提出してください。','+',true],
+  ['届出は起点から15日を経過する日までに提出してください。','+',true],
+  ['届出の例示には同月15日の日付が記載されています。','−',false],
+  ['届出の例示には115日前の日付が記載されています。','−',false],
+  ['届出は起点から15日後の日までに提出してください。','−',false],
+  ['届出は起点から15日前の日までに提出してください。','+',false],
+])test('03h-D3','日数の単位と向き: '+operator+' '+text,async()=>feature(async()=>{
+  const result=operator==='+'?'1月16日':'12月17日',sentence='1月1日から計算した提出期限は'+result+'です。',r=await calculationCase03e({sentence,source:dateSource03h(text),pattern:/届出/,calculation:['1月1日'+operator+'15日='+result]});
+  assert.equal(r.record.status,ok?'ok':'revise');if(ok)assert.equal(r.record.claims[0].confirm.verdict,'正しい');else diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');
+}));
+test('03h-D2','起点が引用にある場合はその文に無くても日付を検算する',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:'提出期限は12月17日です。',source:dateSource03h('起点の1月1日から15日前の日までに届出を行います。'),pattern:/起点/,calculation:['1月1日−15日=12月17日']});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+test('03h-D1','引用に直接ある金額は計算の正誤に影響されず、計算なしと同じに扱う',async()=>feature(async()=>{
+  const sentence='基礎控除は110万円です。',r=await calculationCase03e({sentence,source:material('ta:4408'),type:'金額',subject:'贈与税の計算',pattern:/基礎控除額110万円/,calculation:['1円÷0=110万円']});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+test('03h-D1','日付と金額の式が混ざっても日付だけを確かめる',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:dateSentence03e,calculation:['1円÷0=110万円','1月1日−15日=12月17日']});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+test('03h-D4','calculationの指示は日付だけにし、金額の例を入れない',async()=>feature(async()=>{
+  let system='';await recipientCase(req=>{system=req.system;return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));});
+  assert(system.includes('日付'));assert(system.includes('日数は引用'));assert(!system.includes('200万円×15%'));assert(!system.includes('330,000円÷100'));
+}));
+
+for(const claim of ['課税価格は400万円','課税価格'])test('03h-追加歯止め','計算なしでも110万円の引用の近くにある400万円を採らない: '+claim,async()=>feature(async()=>{
+  const sentence=claim==='課税価格'?'課税価格は400万円です。':'基礎控除100万円を差し引くと、課税価格は400万円です。',r=await moneyCase03h('贈与財産の価額は500万円です。\n'+sentence,[{sentence,claim}]);
+  const answer=r.record.claims[0].confirm;diagnostic03c(answer,'quote_insufficient');assert(answer.rejected.detail.includes('金額が引用の中にありません'));assert.equal(r.record.status,'revise');assert(r.body.includes(sentence));assert.equal(r.record.corrections.length,0);
+}));
+for(const claim of ['基礎控除110万円','基礎控除','基礎控除1,100,000円'])test('03h-追加歯止め','計算なしの金額を引用した文そのものに確認する: '+claim,async()=>feature(async()=>{
+  const sentence='基礎控除は110万円です。',r=await moneyCase03h(sentence,[{sentence,claim}]);
+  assert.equal(r.record.status,'ok');assert.equal(r.body,sentence);assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert(r.record.claims[0].confirm.quote.includes('110万円'));
+}));
+test('03h-追加歯止め','本物の速算表で控除額まで正しい金額の主張はok',async()=>feature(async()=>{
+  const sentence='| 300万円以下 | 15%（控除10万円） |',r=await moneyCase03h(sentence,[{sentence,claim:'控除10万円',pattern:/200万円以下.*300万円以下/}]);
+  assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert(r.record.claims[0].confirm.quote.includes('10万円'));
 }));
 
 (async()=>{

@@ -21,7 +21,6 @@ const JUDGE_RETRIED = Symbol('判定の聞き直し済み');
 const REPAIR_RETRIED = Symbol('修正の直し済み');
 const CONFIRM_KEEP = Symbol('確かめで正しい主張の数字を保全');
 const CALCULATION_NUMBERS = Symbol('検算を通った数字');
-const CALCULATION_PREMISES = Symbol('計算に使った文の外の前提');
 const GATEWAY_FALLBACK = Symbol('Gatewayからのやり直し済み');
 const EXTRACT_RETRIED = Symbol('抜き出し直し済み');
 // 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
@@ -1187,11 +1186,14 @@ function notStatedMeaningReason(body, finding, replacement) {
   return '';
 }
 
-/** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。 */
-function calculationContext(body,finding) {
-  const context=sentenceContext(body,finding.sentence);
-  return [context.heading,context.prev,context.next].filter(text=>text&&text!==finding.sentence);
+function confirmationAmounts(text) {
+  const normalized = normalizedQuote(text), forms = [];
+  normalizedNumbers(text, undefined, forms);
+  return forms.filter(form => /(?:円|万|億)$/.test(normalized.slice(form.start, form.end)))
+    .map(form => form.number);
 }
+
+/** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。 */
 async function validateConfirmation(body, finding, row, pages, options) {
   const reject = (code, detail) => require('./fact-confirm').rejectConfirmation({}, code, detail);
   const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
@@ -1220,12 +1222,10 @@ async function validateConfirmation(body, finding, row, pages, options) {
   const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
   const grounded = { quote, correct: replacement };
   if (!quoteExists(quote, ref)) return reject('quote_missing', '引用が資料の原文にありません');
-  let premises;
   if(!finding.sentence.trimStart().startsWith('|')&&Object.hasOwn(row,'calculation')&&row.calculation!==null&&row.calculation!==''&&(!Array.isArray(row.calculation)||row.calculation.length)){
-    const checked=require('./fact-calculation').verifyCalculations(row.calculation,{quote,article:calculationContext(body,finding),sentence:finding.sentence,target:row.verdict==='誤り'?replacement:finding.sentence,normalizedNumbers});
+    const checked=require('./fact-calculation').verifyCalculations(row.calculation,{quote,sentence:finding.sentence,target:row.verdict==='誤り'?replacement:finding.sentence,normalizedNumbers});
     if(checked.error)return reject('calculation_rejected',checked.error);
-    grounded[CALCULATION_NUMBERS]=checked.excluded;
-    premises=checked.premises;
+    if(checked.excluded.size)grounded[CALCULATION_NUMBERS]=checked.excluded;
   }
   if (row.verdict === '誤り') {
     const numbers = normalizedNumbers(numberCheckText(replacement, ref));
@@ -1234,29 +1234,20 @@ async function validateConfirmation(body, finding, row, pages, options) {
     if (numbers.includes(null) || (remaining.length && !quoteSupportsNumbers(remaining, grounded, ref))) return reject('replacement_numbers', '修正文の数字を読めないか、引用の近くにありません');
   }
   if (!sufficientQuote(finding, grounded, ref, row.verdict === '正しい' ? '裏付けあり' : '食い違い')) return reject('quote_insufficient', '引用が短いか、主張の数字が引用の近くにありません');
+  if (row.verdict === '正しい' && finding.type === '金額') {
+    // 確かめの金額だけは前後の文を使わず、Opusが指定した引用そのものに求める。
+    const summaryAmounts = confirmationAmounts(finding.claim);
+    const amounts = summaryAmounts.length ? summaryAmounts : confirmationAmounts(finding.sentence);
+    const quoted = new Set(confirmationAmounts(quote));
+    if (amounts.some(number => !quoted.has(number))) return reject('quote_insufficient', '主張の数字のうち金額が引用の中にありません');
+  }
   if (row.verdict === '誤り') {
     // Opusの意味判断を語の重なりで覆さず、同じrepairBodyの構造・本文保全だけを適用する。
     const repair = await repairBody(body, [finding.status === '資料なし' ? finding : { ...finding, status: '食い違い' }], async () => [{ id: finding.id, replacement }], { ...options, writerMaterials: false });
     if (!repair.accepted || repair.rejected.size) return reject('repair_rejected', repair.reason || repair.rejected.get(finding.id));
   }
   return { verdict: row.verdict, evidence_id: ref.id, basis: ranges.join(','), quote, replacement: row.verdict === '誤り' ? replacement : '',
-    reason: contentModel.redactSecrets(String(row.reason || '')).slice(0, 300), ref, ...(premises?.length?{[CALCULATION_PREMISES]:premises}:{}) };
-}
-
-// 全件の答えが揃ってから、否定された前提に依存する計算とその依存先を採らない。
-function rejectUnverifiedCalculationPremises(claims,answers) {
-  const {rejectConfirmation}=require('./fact-confirm');
-  let changed;
-  do {
-    changed=false;
-    for(const [id,answer] of answers){
-      if(!['正しい','誤り'].includes(answer.verdict)||!answer[CALCULATION_PREMISES]?.length)continue;
-      const unverified=answer[CALCULATION_PREMISES].some(p=>claims.some(c=>c.sentence===p.sentence&&
-        expandYearDates(normalizedNumbers(c.claim),c.sentence).includes(p.number)&&
-        (answers.has(c.id)?answers.get(c.id).verdict!=='正しい':c.status!=='裏付けあり')));
-      if(unverified){answers.set(id,rejectConfirmation(answer,'calculation_rejected','前提の数が確かめられていない'));changed=true;}
-    }
-  }while(changed);
+    reason: contentModel.redactSecrets(String(row.reason || '')).slice(0, 300), ref };
 }
 
 async function applyConfirmations(body, findings, record, call, options, model) {
@@ -1270,7 +1261,6 @@ async function applyConfirmations(body, findings, record, call, options, model) 
   const sentences = new Set(notStated.map(f => f.sentence));
   const tooManyNotStated = sentences.size > 8 || sentences.size > record.claims.length * 0.2;
   if (tooManyNotStated) for (const f of notStated) answers.set(f.id, rejectConfirmation(answers.get(f.id), 'not_stated_limit', '資料に記載の無い具体を外す文が8文または主張の2割を超えました'));
-  rejectUnverifiedCalculationPremises(record.claims,answers);
   // 同じ文の一部だけを直したり、複数の置き換えを競合させたりしない。
   const proposed = findings.filter(f => editing(answers.get(f.id))), beforeSentenceCheck = new Map(answers);
   const keepFor = f => [...(f.keep || []), ...findings.filter(other => other.sentence === f.sentence && beforeSentenceCheck.get(other.id)?.verdict === '正しい')];
@@ -1293,7 +1283,7 @@ async function applyConfirmations(body, findings, record, call, options, model) 
   record.review_items = record.review_items.filter(row => !findings.some(f => f.id === row.id));
   for (const f of findings) {
     const c = record.claims.find(c => c.id === f.id), answer = answers.get(f.id);
-    const { ref, [CALCULATION_PREMISES]: ignoredPremises, ...confirm } = answer;
+    const { ref, ...confirm } = answer;
     c.confirm = confirm;
     if (Object.hasOwn(verdicts, answer.answer?.verdict)) verdicts[answer.answer.verdict]++;
     if (answer.rejected) { counts.rejected++; rejectedCodes[answer.rejected.code] = (rejectedCodes[answer.rejected.code] || 0)+1; }
