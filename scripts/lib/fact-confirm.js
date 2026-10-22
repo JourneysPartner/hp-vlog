@@ -3,7 +3,7 @@
 // 確かめ専用の資料表。全体検索のカタログや、通常の判定の資料表は変更しない。
 const { splitUnits, renderUnits, basisRanges, unitNumber } = require('./fact-units');
 const { tokenizeForMatcher } = require('./nta-source-matcher');
-const { searchEvidence, loadEvidenceText, evidenceCatalog } = require('./fact-evidence');
+const { searchEvidence, loadEvidenceText, evidenceCatalog, subjectWithoutTrailingParens } = require('./fact-evidence');
 const { searchWriterEvidence, resolveMaterial, materialId, qaCatalog } = require('./writer-materials');
 const laws = require('./law-sources');
 const qa = require('./nta-qa');
@@ -12,6 +12,12 @@ const { redactSecrets } = require('./content-model');
 const CONFIRM_SYSTEM = '記事を書き換える前の事実確認です。各指摘を1件ずつ独立に、添付した資料だけで確かめてください。GLMの答えは参考であり、正しいとは限りません。記事の見出し・前後の文から役割を読み、よくある誤解・NG例の文は「その考えは誤り」という意味で判断してください。「注意点」の節は誤りの例とは限りません。兄弟の制度・対象者・時期を取り違えないでください。正しい文を別の一般論に置き換えないでください。資料の番号と文の番号はこの資料表で引き直してください。誤りならreplacementに元の文の位置に入る修正文を1件だけ書き、誤り以外の内容・話題・文の役割を残してください。期限の書き漏れは期限を足し、資料なしで具体を外す場合は裏付けのある内容を残してください。表の行は列数を変えず、改行・見出しを入れないでください。誤り・正しいには必ずevidence_idとbasisを付けてください。資料なしの指摘だけに使える記載なしは、見せた資料のどれにも主張の具体（数字・日付・期間・条件・様式名・判断の目安）の裏付けも否定も無いことです。似た制度・別の時期・別の対象の記載は裏付けにも否定にもなりません。見せた資料を最後まで読んでから決めてください。記載なしならreplacementに資料に無い具体だけを外した1文を書き、裏付けのある内容と数字、文の役割（誤解の例・注意・手順・試算）と話題を残してください。資料の外の知識は足さず、外すと文が成り立たないときは空にしてください。記事が自分で置いた前提から計算した数字は記載なしにせず、計算と資料の数字が合えば正しい、違えば誤り、確かめられなければ判断できないとしてください。同じ文の複数の指摘は全部をまとめて直した同じ1つのreplacementを返してください。資料で判断できなければ判断できないとしてください。出力は各指摘について [{"id":"c1","verdict":"誤り|正しい|記載なし|判断できない","evidence_id":1,"basis":"12-13","replacement":"誤り・記載なしのときだけ","reason":"短い理由"}] のJSON配列だけです。';
 
 const safeText = (value, length) => redactSecrets(typeof value === 'string' ? value : value == null ? '' : JSON.stringify(value)).slice(0, length);
+const CONFIRM_RULES = '数の主張の正しい・誤りで、資料に直接ない数字が資料の数字や記事の前提から計算で出るときだけ、calculationに「式=結果」の文字列を最大3件書いてください。使えるのは数と + − × ÷ ( )、日付 ± N日です。例: ["1月1日−15日=12月17日","200万円×15%−200万円×10%=10万円","330,000円÷100=3,300円"]。記載なしは税の制度の具体（税額・税率・控除額・限度額・期限・適用年・対象者や要件の条件・届出や申請の様式名・手続の順序）だけに使ってください。会計・計算の一般の説明（売上原価＝期首＋仕入−期末など）、言葉の意味、記事の想定読者や構成の説明は、資料になくても記載なしにせず判断できないとしてください。';
+const subjectKey = finding=>subjectWithoutTrailingParens(String(finding.subject || '')).trim();
+function sharedItems(items) {
+  return items.map(item=>({...item,pages:[...new Map(items.filter(other=>other.finding.sentence===item.finding.sentence ||
+    (subjectKey(item.finding)&&subjectKey(item.finding)===subjectKey(other.finding))).flatMap(other=>other.pages).map(page=>[page.id,page])).values()]}));
+}
 // 後段の歯止めでも最初の診断と元の答えを失わない。
 function rejectConfirmation(answer, code, detail) {
   return { ...answer, verdict: '判断できない', reason: safeText(detail, 200),
@@ -153,7 +159,7 @@ function packItems(items, normalizedNumbers) {
 /** 1回8指摘・資料30000字・最大6回。失敗や上限はその指摘だけ判断できないにする。 */
 async function confirmFindings(body, findings, call, options, validate, context, parseJson, normalizedNumbers = () => []) {
   const results = new Map(), pending = [], loaded = new Map(), metadata = new Map();
-  const packItemsFor = items => packItems(items, normalizedNumbers);
+  const packItemsFor = items => packItems(sharedItems(items), normalizedNumbers);
   const unknown = (id, code, detail) => results.set(id, rejectConfirmation({ ...metadata.get(id), ...results.get(id) }, code, detail));
   for (const finding of findings) {
     metadata.set(finding.id, { pages: [], call: null });
@@ -182,8 +188,10 @@ async function confirmFindings(body, findings, call, options, validate, context,
     const items = [...available.shift()]; let pack = packItemsFor(items);
     while (items.length < 8) {
       const ids = new Set(pack.pages.map(p => p.id));
-      const ranked = available.map((bundle,index) => ({ bundle,index,overlap:new Set(bundle.flatMap(item=>item.pages.filter(p=>ids.has(p.id)).map(p=>p.id))).size })).sort((a,b)=>b.overlap-a.overlap || a.index-b.index);
-      const next = ranked.find(row => row.overlap && items.length+row.bundle.length<=8 && packItemsFor([...items,...row.bundle]));
+      const ranked = available.map((bundle,index) => ({ bundle,index,
+        subject:bundle.some(item=>subjectKey(item.finding)&&items.some(own=>subjectKey(own.finding)===subjectKey(item.finding)))?1:0,
+        overlap:new Set(bundle.flatMap(item=>item.pages.filter(p=>ids.has(p.id)).map(p=>p.id))).size })).sort((a,b)=>b.subject-a.subject || b.overlap-a.overlap || a.index-b.index);
+      const next = ranked.find(row => (row.subject||row.overlap) && items.length+row.bundle.length<=8 && packItemsFor([...items,...row.bundle]));
       if (!next) break;
       items.push(...available.splice(next.index,1)[0]); pack = packItemsFor(items);
     }
@@ -193,13 +201,13 @@ async function confirmFindings(body, findings, call, options, validate, context,
   const run = async (jobs, retrying = false) => {
     const selected = jobs.slice(0, 6-calls), overflow = jobs.slice(6-calls), retry = [];
     for (const job of overflow) for (const {finding} of job.items) unknown(finding.id,'call_limit','確かめの呼び出しの上限を超えました');
-    for (const [index,job] of selected.entries()) for (const {finding,pages} of job.items) metadata.set(finding.id, {
+    for (const [index,job] of selected.entries()) for (const {finding,pages} of sharedItems(job.items)) metadata.set(finding.id, {
       call: calls+index+1, pages: job.pack.pages.filter(p=>pages.some(own=>own.id===p.id)).slice(0,12)
         .map(p=>({number:p.number,id:safeText(p.id,600),title:safeText(p.ref.title,600)})) });
     calls += selected.length;
     const requests = selected.map(({items,pack}) => ({ task:'confirm', immediate:!call.batch, maxTokens:16000,
-      system:CONFIRM_SYSTEM, staticSystem:CONFIRM_SYSTEM, dynamicSystem:pack.block, ...(retrying ? { retry: true } : {}),
-      user:JSON.stringify({ claims:items.map(({finding:f,pages})=>({id:f.id,type:f.type,subject:f.subject,sentence:f.sentence,
+      system:CONFIRM_SYSTEM+'\n'+CONFIRM_RULES, staticSystem:CONFIRM_SYSTEM+'\n'+CONFIRM_RULES, dynamicSystem:pack.block, ...(retrying ? { retry: true } : {}),
+      user:JSON.stringify({ claims:sharedItems(items).map(({finding:f,pages})=>({id:f.id,type:f.type,subject:f.subject,sentence:f.sentence,
           ...context(body,f.sentence),finding:f.condition_mismatch?'条件の不一致':f.status,
           glm_answer:f.glm_answer || {status:f.status,evidence:f.evidence_id,basis:'',correct:f.correct},
           evidence_ids:pack.pages.filter(p=>pages.some(e=>e.id===p.id)).map(p=>p.number)})) }) }));
@@ -224,13 +232,14 @@ async function confirmFindings(body, findings, call, options, validate, context,
         try { rows = ret?.verdict ? ret : parseJson(ret); }
         catch (_) { for (const {finding} of items) unknown(finding.id,'answer_shape','確かめのJSONを読めませんでした'); return; }
         if (!Array.isArray(rows)) rows = [rows];
-        for (const {finding,pages} of items) {
+        for (const {finding,pages} of sharedItems(items)) {
           const own = rows.filter(row=>row?.id===finding.id);
           if (own.length !== 1 || !['誤り','正しい','記載なし','判断できない'].includes(own[0].verdict)) { unknown(finding.id,'answer_shape','確かめの答えの形が不正です'); continue; }
           const row = own[0];
           const answer = { verdict:safeText(row.verdict,600), evidence:typeof row.evidence_id==='number'?row.evidence_id:safeText(row.evidence_id,600),
             evidence_id:safeText(pack.pages.find(p=>p.number===unitNumber(row.evidence_id))?.id,600),
             basis:safeText(row.basis,600),replacement:safeText(row.replacement,600),reason:safeText(row.reason,600) };
+          if(Object.hasOwn(row,'calculation'))answer.calculation=Array.isArray(row.calculation)?row.calculation.slice(0,3).map(value=>safeText(value,600)):safeText(row.calculation,600);
           metadata.set(finding.id, {...metadata.get(finding.id),answer});
           if (row.verdict === '判断できない') { results.set(finding.id,{...metadata.get(finding.id),verdict:'判断できない',reason:safeText(row.reason,300)}); continue; }
           if (typeof row.replacement === 'string' && redactSecrets(row.replacement) !== row.replacement) { unknown(finding.id,'secret','修正文に鍵の形の文字列が含まれています'); continue; }

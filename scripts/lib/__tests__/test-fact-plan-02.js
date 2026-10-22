@@ -103,7 +103,7 @@ test('G1', '2: 全段を偽Gatewayへ送り、64,000 tokens・900秒・使用量
   };
   try {
     await env({ FACT_CHECK_PROVIDER: 'gateway', FACT_CHECK_MODEL: 'zai/glm-5.3-flash', FACT_CHECK_EXTRACT_MODEL: 'zai/extract',
-      FACT_CHECK_EFFORT: 'invalid', FACT_CHECK_EXTRACT_EFFORT: 'invalid', AI_GATEWAY_API_KEY: secret }, async () => {
+      FACT_CHECK_EFFORT: undefined, FACT_CHECK_EXTRACT_EFFORT: undefined, AI_GATEWAY_API_KEY: secret }, async () => {
       const result = await F.checkFacts([wrong, '限度額は100万円です。', '申請書を税務署へ提出します。'].join('\n'), {
         now: opts.now, enabled: true, repair: true, batch: true, ...writer, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
       });
@@ -113,7 +113,7 @@ test('G1', '2: 全段を偽Gatewayへ送り、64,000 tokens・900秒・使用量
       assert(result.record.calls.every(c => c.mode === 'sync' && c.usage.input_tokens === 11 && c.usage.output_tokens === 22));
       assert(requests.every(r => r.url === 'https://ai-gateway.vercel.sh/v1/chat/completions' && r.body.max_tokens === 64000 && !('effort' in r.body)));
       assert(requests.some(r => r.body.model === 'zai/extract')); assert(requests.some(r => r.body.model === 'zai/glm-5.3-flash'));
-      assert(timers.length > 0 && timers.every(t => t === 900000));
+      assert(timers.length > 0 && timers.every(t => t === 600000));
       assert(!JSON.stringify(result.record).includes(secret)); assert(!logs.join('\n').includes(secret));
       assert(!logs.some(s => s.includes('"conditions"') || s.includes('"replacement"')));
       for (const task of tasks) assert(logs.some(s => s.includes(`task=${task} `)), task);

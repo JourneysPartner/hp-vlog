@@ -51,6 +51,18 @@ async function test(group, name, fn) {
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 
 async function main() {
+  await test('03e-E5-1', 'reasoningEffortが無ければ本文生成・補助の要求本文を変えない', async () => {
+    process.env.FACT_CHECK_EFFORT='low';process.env.FACT_CHECK_EXTRACT_EFFORT='low';
+    process.env.CONTENT_MODEL_PROVIDER='gateway';process.env.CONTENT_MODEL='test/content';
+    await CM.generateContent({staticSystem:'静的',dynamicSystem:'動的',user:'本文指示'});
+    assert.equal(requests[0].opts.body,JSON.stringify({model:'test/content',max_tokens:64000,messages:[{role:'system',content:'静的\n\n動的'},{role:'user',content:'本文指示'}]}));
+    process.env.AUX_MODEL_ENABLED='true';process.env.AUX_MODEL_PROVIDER='gateway';process.env.AUX_MODEL='test/aux';
+    await aux.generateAux({system:'補助の指示',user:'補助の入力',task:'試験'});
+    assert.equal(requests[1].opts.body,JSON.stringify({model:'test/aux',max_tokens:8000,messages:[{role:'system',content:'補助の指示'},{role:'user',content:'補助の入力'}]}));
+  });
+  await test('03e-E5-1', '明示したreasoningEffortだけをreasoningへ渡す', async () => {
+    await callGateway({...input,reasoningEffort:'low'});assert.deepEqual(requests[0].body.reasoning,{effort:'low'});
+  });
   await test('R7', '宛先・ヘッダー・図なし本文・戻り値・使用量ログ', async () => {
     const value = await callGateway(input);
     const { url, opts } = requests[0];

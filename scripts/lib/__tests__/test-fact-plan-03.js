@@ -963,6 +963,167 @@ test('03d-L2','同じ回の別の指摘の資料番号は、読めない番号�
   const answer=r.record.claims[0].confirm;diagnostic03c(answer,'page_not_offered');assert.equal(answer.answer.evidence_id,spouse.id);assert(answer.rejected.detail.includes('この指摘'));assert(!answer.rejected.detail.includes('読'));
 }));
 
+async function calculationCase03e({sentence,claim=sentence,type='期限',subject='インボイス登録の取消し',source=material('qa:invoice/13'),pattern=/15\s*日前の日/,calculation,verdict='正しい',replacement='',prev='',next=''}){
+  const body='## 手続と計算\n'+(prev?prev+'\n':'')+sentence+(next?'\n'+next:'');
+  return F.checkFacts(body,{...opts,writer_materials:['ta:6501'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],findQaByKeywords:()=>[],loadEvidenceText:e=>e.text,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,type,subject).filter(c=>c.claim===sentence).map(c=>({...c,claim}));
+    if(req.task==='confirm')return payload(req).claims.map(c=>{const proof=confirmed(req,c,source,pattern,verdict,replacement),rows=materials(req).find(p=>p.url===source.url).rows;return {...proof,...(source.id==='law:test:rates'?{basis:rows[0].s+'-'+rows[Math.min(1,rows.length-1)].s}:{}),...(calculation===undefined?{}:{calculation})};});
+    return payload(req).claims.map(c=>({id:c.id,status:'資料なし'}));
+  }});
+}
+const dateSentence03e='翌年1月1日から戻すなら、取消届出の期限は12月17日です。';
+test('03e-E1','問13と1月1日から15日前の検算で12月17日を正しいと認める',async()=>feature(async()=>{
+  const calculation=['1月1日−15日=12月17日'],r=await calculationCase03e({sentence:dateSentence03e,calculation});
+  assert.equal(r.record.status,'ok');assert.equal(r.body,'## 手続と計算\n'+dateSentence03e);assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert.deepEqual(r.record.claims[0].confirm.answer.calculation,calculation);
+}));
+for(const [calculation,sentence,detail]of [
+  ['1月1日−15日=12月20日',dateSentence03e,'計算が合わない'],
+  ['1月1日−16日=12月16日',dateSentence03e,'数の出どころが無い'],
+  ['12月17日+0日=12月17日',dateSentence03e,'数の出どころが無い'],
+  ['3月10日−15日=2月23日','3月10日から戻すなら、取消届出の期限は2月23日です。','計算が合わない'],
+  ['1月1日−15日=12月17日','翌年1月1日から戻すなら、取消届出の期限は12月20日です。','右辺が主張に無い'],
+  ['process.exit()=12月17日',dateSentence03e,'読めない'],
+])test('03e-E1',calculation+'は検算の理由を残して止める',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence,calculation:[calculation]}),answer=r.record.claims[0].confirm;diagnostic03c(answer,'calculation_rejected');assert(answer.rejected.detail.includes(detail));assert.equal(r.record.status,'revise');
+}));
+const rates03e={id:'law:test:rates',kind:'law',title:'贈与税の税率',url:'https://example.test/rates',text:'200万円以下の金額 10%\n200万円を超え300万円以下の金額 15%'};
+test('03e-E1','速算表の控除額10万円を税率から分数で検算する',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:'| 300万円以下 | 15%（控除10万円） |',source:rates03e,type:'割合',subject:'贈与税の税率',pattern:/200万円以下/,calculation:['200万円×15%−200万円×10%=10万円']});
+  assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+test('03e-E1','前の文の330000円と100着から3300円を検算し、所令103の引用は残す',async()=>feature(async()=>{
+  const source=material('law:shotokuzei_rei:103'),r=await calculationCase03e({sentence:'1着あたりに直すと3,300円になります。',claim:'1着あたりの取得価額は3,300円',prev:'仕入代金は330,000円で、仕入れた数は100着です。',source,type:'金額',subject:'売上原価',pattern:/棚卸/,calculation:['330,000円÷100=3,300円']});
+  assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert(r.record.claims[0].quote);
+}));
+for(const [calculation,ok]of [['(200万円×15%)-(200万円×10%)=10万円',true],['200万円×15%−200万円×10%=9.999万円',false],['1円÷3=0.33円',false]])test('03e-E1','丸めず式を読む: '+calculation,async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:calculation.startsWith('1円')?'1円を3人で分けると0.33円です。':'控除額は10万円です。',source:rates03e,type:'金額',subject:'贈与税の税率',pattern:/200万円以下/,calculation:[calculation]});
+  assert.equal(r.record.status,ok?'ok':'revise');if(!ok)diagnostic03c(r.record.claims[0].confirm,'calculation_rejected');
+}));
+test('03e-E1','計算がない答えは従来どおり引用近傍の数字を求める',async()=>feature(async()=>{
+  const r=await calculationCase03e({sentence:dateSentence03e});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+for(const [formula,sentence,text]of [
+  ['0.1円+0.2円=0.3円','合計額は0.3円です。','計算の基礎となる金額は0.1円と0.2円です。'],
+  ['2分の1×200万円=100万円','算出額は100万円です。','計算の基礎は200万円、用いる割合は50%です。'],
+  ['二百万円×二割−二百万円×百分の十五=十万円','控除額は10万円です。','控除額の計算に用いるのは200万円、20%と15%です。'],
+])test('03e-E1','小数・分数・漢数字を丸めず正確に検算する: '+formula,async()=>feature(async()=>{
+  const source={...rates03e,text},r=await calculationCase03e({sentence,source,type:'金額',subject:'贈与税の税率',pattern:/計算/,calculation:[formula]});assert.equal(r.record.status,'ok');
+}));
+test('03e-E1','誤りの修正文の計算は採り、残りの数字・引用の長さは引き続き確かめる',async()=>feature(async()=>{
+  const fixed=await calculationCase03e({sentence:'控除額は11万円です。',type:'金額',subject:'贈与税の税率',source:rates03e,pattern:/200万円以下/,verdict:'誤り',replacement:'控除額は10万円です。',calculation:['200万円×15%−200万円×10%=10万円']});assert.equal(fixed.record.status,'ok');assert(fixed.body.includes('控除額は10万円です。'));
+  const remaining=await calculationCase03e({sentence:'控除額は10万円、追加控除は17万円です。',type:'金額',source:rates03e,subject:'贈与税の税率',pattern:/200万円以下/,calculation:['200万円×15%−200万円×10%=10万円']});diagnostic03c(remaining.record.claims[0].confirm,'quote_insufficient');
+}));
+test('03e-E1','式を互いの前提に循環させず、最大3件と読める式だけに限る',()=>{
+  const verify=require('../fact-calculation').verifyCalculations,context={quote:'計算に使うのは2です。',article:['値は1と3です。'],target:'値は1と3です。',normalizedNumbers:F.normalizedNumbers};
+  assert.equal(verify(['1+2=3','3-2=1'],context).error,'数の出どころが無い');
+  for(const value of [[],['1=1','1=1','1=1','1=1'],[123],['1e3=1000'],['約1円=1円']])assert.equal(verify(value,context).error,'読めない');
+});
+test('03e-E1','検算が合っても短い引用は採らず、式の鍵も記録に出さない',async()=>feature(async()=>{
+  const source={...rates03e,id:'law:test:short',text:'200万円10%15%'},r=await calculationCase03e({sentence:'控除額は10万円です。',source,type:'金額',subject:'贈与税の税率',pattern:/200/,calculation:['200万円×15%−200万円×10%=10万円']});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');
+  const key='sk-test-calculation-secret123456789',secret=await calculationCase03e({sentence:dateSentence03e,calculation:['1月1日−15日=12月17日;'+key]});diagnostic03c(secret.record.claims[0].confirm,'calculation_rejected');assert(!JSON.stringify(secret).includes(key));
+}));
+
+for(const suffix of ['', '（届出の期限）','（取消し（手続））'])test('03e-E2','同じ制度'+suffix+'の問13を共有し、12月17日を検算する',async()=>feature(async()=>{
+  const home=material('ta:6501'),qa=material('qa:invoice/13'),first='登録取消届出書は戻したい課税期間の初日から起算して15日前まで。',body=first+'\n'+dateSentence03e;let shared=false;
+  const select=c=>c.claim.includes('12月17')?[home]:[home,qa];
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:6501'],searchWriterEvidence:select,searchEvidence:select,findQaByKeywords:()=>[],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'期限','インボイス登録の取消し').map((c,i)=>({...c,subject:c.subject+(i?suffix:'')}));
+    if(req.task==='confirm'){const claims=payload(req).claims,page=materials(req).find(p=>p.url===qa.url);shared=claims.length===2&&claims.every(c=>c.evidence_ids.includes(page.number));return claims.map(c=>({...confirmed(req,c,qa,/15\s*日前の日/,'正しい'),...(c.sentence.includes('12月17')?{calculation:['1月1日−15日=12月17日']}:{})}));}
+    return payload(req).claims.map(c=>({id:c.id,status:'資料なし'}));
+  }});assert(shared);assert.equal(r.record.status,'ok');assert(r.record.claims.every(c=>c.confirm.verdict==='正しい'));
+}));
+test('03e-E2','別の制度4508と4511は同じ回でも共有しない',async()=>feature(async()=>{
+  const home=material('ta:4508'),family=material('ta:4511'),common=material('ta:4452'),body='住宅取得等資金の非課税は18歳以上です。\n結婚・子育て資金の非課税は18歳以上50歳未満です。';
+  const select=c=>[c.subject==='住宅取得等資金の贈与の非課税'?home:family,common];
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508','ta:4511'],searchWriterEvidence:select,searchEvidence:select,loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','仮').map((c,i)=>({...c,subject:i?'結婚・子育て資金の一括贈与':'住宅取得等資金の贈与の非課税'}));
+    if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,family,/18歳以上50歳未満/,'正しい'));
+    return payload(req).claims.map(c=>judged(req,c,select(c)[0],/18歳以上/,'食い違い','要件を確かめる'));
+  }});diagnostic03c(r.record.claims[0].confirm,'page_not_offered');assert.equal(r.record.status,'revise');
+}));
+test('03e-E2','同じ制度を資料の重なりより先にまとめ、同じ回だけで共有する',async()=>{
+  const findings=['甲','乙','丙'].map((label,i)=>({id:'c'+i,type:'要件',subject:i===1?'別制度':'共通制度',sentence:label+'の対象者です。',claim:label,status:'食い違い'})),seen=[];
+  await CF03c.confirmFindings('',findings,async req=>{seen.push(payload(req).claims);return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));},{searchWriterEvidence:f=>[{id:f.id,kind:'law',title:f.subject,text:'対象者について説明している資料です。'}],loadEvidenceText:e=>e.text},()=>null,()=>({}),v=>v,F.normalizedNumbers);
+  assert.deepEqual(seen.map(c=>c.map(c=>c.id)),[['c0','c2'],['c1']]);assert.deepEqual(seen[0][0].evidence_ids,seen[0][1].evidence_ids);assert.equal(seen[1][0].evidence_ids.length,1);
+});
+
+for(const type of ['要件','判定','手続'])test('03e-E3','名義預金の食い違い・'+type+'に記載なしなら書き換えず人の一覧に残す',async()=>feature(async()=>{
+  const source=material('ta:4103'),body='名義預金は口座の名義人だけで相続財産かどうかを判断します。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4103'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,type,'名義預金');
+    if(req.task==='confirm')return payload(req).claims.map(c=>({id:c.id,verdict:'記載なし',replacement:'名義預金の具体を確認します。'}));
+    return payload(req).claims.map(c=>judged(req,c,source,/相続税/,'食い違い','口座の名義だけでは判断しません。'));
+  }});const c=r.record.claims[0];assert.equal(r.record.status,'ok');assert.equal(c.status,'資料なし');assert.equal(c.confirm.verdict,'記載なし');assert.equal(c.confirm.rejected.code,'not_stated_status');assert.equal(c.confirm.review,true);assert.equal(r.body,body);assert.equal(r.record.corrections.length,0);assert(r.record.review_items.some(c=>c.id===r.record.claims[0].id));
+}));
+test('03e-E4','税の具体だけを記載なしにし、会計の一般説明は判断できないと指示する',async()=>feature(async()=>{
+  let instruction='';const r=await recipientCase(req=>{instruction=req.system;return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));});
+  for(const text of ['税の制度の具体','会計・計算の一般','期首','仕入','期末','言葉の意味','想定読者','判断できない'])assert(instruction.includes(text),text);
+  assert.equal(r.record.status,'revise');assert.equal(r.body,wrongRecipient);
+}));
+test('03e-E4','売上原価の一般の式を判断できないと答えたら、弱めず人の一覧へ残す',async()=>feature(async()=>{
+  const source=material('ta:4508'),sentence='売上原価は期首棚卸高＋当期仕入高−期末棚卸高で計算します。',body=sentence+'\n'+['甲','乙','丙','丁'].map(s=>s+'受贈者は18歳以上です。').join('\n');
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税').map(c=>c.claim===sentence?{...c,type:'判定',subject:'売上原価'}:c);
+    if(req.task==='condition_check')return agreement();if(req.task==='confirm')return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));
+    return payload(req).claims.map(c=>c.subject==='売上原価'?{id:c.id,status:'資料なし'}:judged(req,c,source,/18歳以上/,'裏付けあり'));
+  }});assert.equal(r.body,body);assert.equal(r.record.status,'ok');assert.equal(r.record.corrections.length,0);assert(r.record.review_items.some(c=>c.subject==='売上原価'));
+}));
+test('03e-E3','条件の不一致への記載なしも、数字を直さず人の確認へ戻す',async()=>feature(async()=>{
+  const source=material('ta:4508'),body='受贈者は18歳以上であることが要件です。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税');
+    if(req.task==='condition_check')return {verdict:'不一致',conditions:[{article:'18歳以上',source:'50歳未満',match:'不一致'}],correct:'50歳未満'};
+    if(req.task==='confirm')return payload(req).claims.map(c=>({id:c.id,verdict:'記載なし'}));
+    return payload(req).claims.map(c=>judged(req,c,source,/18歳以上/,'裏付けあり'));
+  }});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].status,'資料なし');assert.equal(r.record.claims[0].confirm.review,true);assert.equal(r.body,body);
+}));
+
+async function gatewayCase03e(kind,run){
+  const CM=require('../content-model'),saved={fetch:global.fetch,timer:global.setTimeout,log:console.log,warn:console.warn},source=material('ta:4508'),requests=[],logs=[],batches=new Map();
+  const respond=data=>({ok:true,json:async()=>data}),bad=status=>({ok:false,status,body:{cancel:async()=>{}},text:async()=>'sk-test-gateway-response-secret123456789'});
+  const decode=b=>({system:b.system?(Array.isArray(b.system)?b.system.map(p=>p.text).join('\n'):b.system):b.messages[0].content,user:(()=>{const c=b.messages.at(-1).content;return typeof c==='string'?c:c.filter(p=>p.type==='text').map(p=>p.text).join('\n');})()});
+  const answer=b=>{const req=decode(b);if(req.system.startsWith('記事本文から'))return extract(req,'要件','住宅取得等資金の贈与の非課税');if(req.system.startsWith('記事の文が'))return agreement();return payload(req).claims.map(c=>judged(req,c,source,/18歳以上/,'裏付けあり'));};
+  const message=b=>({content:[{type:'text',text:JSON.stringify(answer(b))}],stop_reason:'end_turn',usage:{input_tokens:10,output_tokens:20}});
+  console.log=console.warn=(...a)=>logs.push(a.join(' '));global.setTimeout=(fn,ms,...args)=>saved.timer(fn,[15000,30000].includes(ms)?0:ms,...args);
+  global.fetch=async(url,init={})=>{const b=init.body?JSON.parse(init.body):null;requests.push({url,body:b,raw:init.body});
+    if(url.includes('ai-gateway')){
+      if(kind==='timeout')return new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(new TypeError('通信中止')),{once:true}));
+      if(kind==='network')throw new TypeError('通信の失敗 sk-test-gateway-response-secret123456789');
+      if(kind==='5xx')return bad(503);if(kind==='auth')return bad(401);if(kind==='unsupported')return bad(404);
+      return respond({choices:[{message:{content:JSON.stringify(answer(b))},finish_reason:'stop'}],usage:{prompt_tokens:10,completion_tokens:20}});
+    }
+    if(kind==='fallback-failed'||kind==='anthropic-failed')return bad(401);
+    if(url.endsWith('/batches')&&init.method==='POST'){const id='batch-e5-'+batches.size;batches.set(id,b.requests);return respond({id});}
+    if(url.endsWith('/results')){const id=url.split('/').at(-2);return {ok:true,text:async()=>batches.get(id).map(r=>JSON.stringify({custom_id:r.custom_id,result:{type:'succeeded',message:message(r.params)}})).join('\n')};}
+    if(url.includes('/batches/'))return respond({processing_status:'ended',results_url:url+'/results'});
+    return respond(message(b));
+  };
+  try{await env({AI_GATEWAY_API_KEY:kind==='credentials'?undefined:'test-gateway-key-12345',ANTHROPIC_API_KEY:'test-anthropic-key-12345',FACT_CHECK_MODEL:'zai/glm-5.3-flash',FACT_CHECK_EXTRACT_MODEL:'zai/glm-5.3-flash',FACT_CHECK_EFFORT:undefined,FACT_CHECK_EXTRACT_EFFORT:undefined},()=>run({requests,logs,options:{...opts,batch:true,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,batchRuntime:{now:()=>0,sleep:async()=>{}}}}));}
+  finally{global.fetch=saved.fetch;global.setTimeout=saved.timer;console.log=saved.log;console.warn=saved.warn;}
+}
+for(const effort of ['low',undefined])test('03e-E5-1','照合のGatewayでeffort='+String(effort)+'を要求と記録で確かめる',async()=>feature(()=>gatewayCase03e('ok',async({options,requests})=>env({FACT_CHECK_EFFORT:effort,FACT_CHECK_EXTRACT_EFFORT:effort},async()=>{
+  const r=await F.checkFacts('受贈者は18歳以上です。',options);assert.equal(r.record.status,'ok');assert(requests.length>1);
+  for(const req of requests){assert(req.url.includes('ai-gateway'));assert.deepEqual(req.body.reasoning,effort?{effort}:undefined);}assert.equal(r.record.effort,effort||null);assert.equal(r.record.extract_effort,effort||null);
+}))));
+for(const kind of ['timeout','5xx','network','fallback-failed'])test('03e-E5-2',kind+'なら既定のOpus・全体検索・Batchへ一度戻す',async()=>feature(()=>gatewayCase03e(kind==='fallback-failed'?'5xx':kind,async({options,requests,logs})=>{
+  if(kind==='fallback-failed'){const fetch=global.fetch;global.fetch=(url,init)=>url.includes('ai-gateway')?fetch(url,init):Promise.resolve({ok:false,status:401,text:async()=>'',body:{cancel:async()=>{}}});}
+  const r=await F.checkFacts('受贈者は18歳以上です。',{...options,...(kind==='timeout'?{timeoutMs:20}:{})});
+  assert.equal(r.record.status,kind==='fallback-failed'?'not_run':'ok');assert.equal(r.record.fallback?.from,'gateway');assert(r.record.summary.includes('・GLM の照合が終わらなかったため Opus で照合'));
+  const anthro=requests.filter(r=>r.url.includes('anthropic'));if(kind!=='fallback-failed'){assert(anthro.length);assert.equal(r.record.batch,true);assert.equal(r.record.model,'claude-opus-5-5');assert(!r.record.stages);assert(!r.record.confirm);}
+  assert.equal(requests.filter(r=>r.url.includes('ai-gateway')).length,kind==='timeout'?1:3);assert(!JSON.stringify(r.record).includes('sk-test-gateway-response-secret123456789'));assert(!logs.join('\n').includes('sk-test-gateway-response-secret123456789'));
+})));
+for(const kind of ['credentials','unsupported','auth','anthropic-failed'])test('03e-E5-2',kind+'はやり直して設定の失敗を隠さない',async()=>feature(()=>gatewayCase03e(kind,async({options,requests})=>{
+  const r=await F.checkFacts('受贈者は18歳以上です。',{...options,...(kind==='anthropic-failed'?{provider:'anthropic',model:'claude-opus-5-5',extractModel:'claude-opus-5-5'}:{})});assert.equal(r.record.status,'not_run');assert(!r.record.fallback);
+  if(kind!=='anthropic-failed')assert(!requests.some(r=>r.url.includes('anthropic')));
+})));
+test('03e-E5-3','Gatewayの上限は既定600000、設定の上限900000を保つ',()=>{
+  assert.equal(F.config({provider:'gateway'}).timeoutMs,600000);assert.equal(F.config({provider:'gateway',timeoutMs:1000000}).timeoutMs,900000);
+});
+test('03e-E5-1','不正なeffort・モデル設定は無視もやり直しもせずnot_runにする',async()=>feature(()=>gatewayCase03e('ok',async({options,requests})=>{
+  const invalidEffort=await F.checkFacts('受贈者は18歳以上です。',{...options,effort:'invalid'});assert.equal(invalidEffort.record.status,'not_run');assert(!invalidEffort.record.fallback);
+  const invalidModel=await F.checkFacts('受贈者は18歳以上です。',{...options,model:'unsupported-model'});assert.equal(invalidModel.record.status,'not_run');assert(!invalidModel.record.fallback);assert.equal(requests.length,0);
+})));
+
 (async()=>{
   const original=global.fetch;global.fetch=async()=>{throw Error('試験中の通信は禁止');};
   try{for(const {group,name,run}of cases){const result=groups[group]||=( {pass:0,fail:0} );try{await run();result.pass++;console.log(`PASS ${group}: ${name}`);}catch(error){result.fail++;console.error(`FAIL ${group}: ${name}\n${error.stack}`);}}}

@@ -33,12 +33,13 @@ function sleep(ms, signal) {
   });
 }
 
-async function callGateway({ model, system, user, figures, maxTokens, task, signal, timeoutMs = 300000 }) {
+async function callGateway({ model, system, user, figures, maxTokens, task, signal, timeoutMs = 300000, reasoningEffort }) {
   const key = process.env.AI_GATEWAY_API_KEY;
   if (!key) throw gatewayError('credentials');
   const messages = toOpenAIMessages({ staticSystem: '', dynamicSystem: '', user, figures });
   messages[0].content = system;
-  const body = JSON.stringify({ model, max_tokens: maxTokens, messages });
+  const body = JSON.stringify({ model, max_tokens: maxTokens, messages,
+    ...(reasoningEffort == null ? {} : { reasoning: { effort: reasoningEffort } }) });
   const controller = new AbortController();
   let expired = false;
   const abort = () => controller.abort();

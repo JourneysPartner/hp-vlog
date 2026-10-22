@@ -20,6 +20,8 @@ const STAGE_TALLY = Symbol('段A/Bの採用した答え');
 const JUDGE_RETRIED = Symbol('判定の聞き直し済み');
 const REPAIR_RETRIED = Symbol('修正の直し済み');
 const CONFIRM_KEEP = Symbol('確かめで正しい主張の数字を保全');
+const CALCULATION_NUMBERS = Symbol('検算を通った数字');
+const GATEWAY_FALLBACK = Symbol('Gatewayからのやり直し済み');
 const EXTRACT_RETRIED = Symbol('抜き出し直し済み');
 // 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
 const TYPE_ALIASES = new Map([
@@ -38,8 +40,8 @@ const WARNING_RE = /【事実の照合】[\s\S]*?【\/事実の照合】/g;
 function config(options = {}) {
   const provider = options.provider || process.env.FACT_CHECK_PROVIDER || 'anthropic';
   const model = options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5';
-  const effort = provider === 'gateway' ? null : (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
-  const extractEffort = provider === 'gateway' ? null : (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
+  const effort = (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
+  const extractEffort = (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
   const poll = options.batchPollSeconds ?? process.env.FACT_CHECK_BATCH_POLL_SECONDS;
   return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort, extractEffort,
     modelOptions: effort === null ? {} : { output_config: { effort } },
@@ -51,7 +53,7 @@ function config(options = {}) {
     failOpen: options.failOpen ?? (process.env.FACT_CHECK_FAIL_OPEN === 'true'),
     maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, writerMaterials(options).length ? 80 : 40),
     maxNumericClaims: positiveLimit(options.maxNumericClaims ?? process.env.FACT_CHECK_MAX_NUMERIC_CLAIMS, 120),
-    timeoutMs: provider === 'gateway' ? Math.min(900000, positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 900000))
+    timeoutMs: provider === 'gateway' ? Math.min(900000, positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000))
       : positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000) };
 }
 
@@ -257,6 +259,11 @@ function sufficientQuote(claim, result, ref, status) {
       if (!numbers.length) numbers = sentenceNumbers;
     }
     if (numbers.includes(null)) return false;
+    if (result[CALCULATION_NUMBERS]) {
+      const remaining=numbers.filter(n=>!result[CALCULATION_NUMBERS].has(n));
+      if(numbers.length&&!remaining.length)return true;
+      numbers=remaining;
+    }
     if (!numbers.length) return status !== '裏付けあり' || !isNumericClaim(claim);
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
@@ -1178,10 +1185,21 @@ function notStatedMeaningReason(body, finding, replacement) {
 }
 
 /** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。 */
+function calculationContext(body,finding) {
+  const context=sentenceContext(body,finding.sentence),rows=[finding.sentence,context.heading,context.prev,context.next];
+  if(finding.sentence.trimStart().startsWith('|')){
+    const lines=body.split('\n'),at=lines.findIndex(line=>line.trim()===finding.sentence.trim());let first=at;
+    while(first>0&&lines[first-1].trimStart().startsWith('|'))first--;
+    rows.push(...lines.slice(first,first+2),lines[at-1]||'',lines[at+1]||'');
+  }
+  return rows;
+}
 async function validateConfirmation(body, finding, row, pages, options) {
   const reject = (code, detail) => require('./fact-confirm').rejectConfirmation({}, code, detail);
   const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
   if (row.verdict === '記載なし') {
+    if(REVIEW_TYPES.has(finding.type)&&finding.status!=='期限の書き漏れ'&&(finding.status==='食い違い'||finding.condition_mismatch))
+      return {...reject('not_stated_status','税の資料に記載が無いため、人が確かめる箇所へ残します'),verdict:'記載なし',review:true};
     if (finding.status !== '資料なし' || finding.condition_mismatch) return reject('not_stated_status', '資料なし以外の指摘には記載なしを採れません');
     if (finding.sentence.trimStart().startsWith('|')) return reject('not_stated_table', '表の行では具体を外しません');
     if (!replacement) return reject('replacement_missing', '具体を外した文がありません');
@@ -1204,10 +1222,16 @@ async function validateConfirmation(body, finding, row, pages, options) {
   const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
   const grounded = { quote, correct: replacement };
   if (!quoteExists(quote, ref)) return reject('quote_missing', '引用が資料の原文にありません');
+  if(Object.hasOwn(row,'calculation')){
+    const checked=require('./fact-calculation').verifyCalculations(row.calculation,{quote,article:calculationContext(body,finding),target:row.verdict==='誤り'?replacement:finding.sentence,normalizedNumbers});
+    if(checked.error)return reject('calculation_rejected',checked.error);
+    grounded[CALCULATION_NUMBERS]=checked.excluded;
+  }
   if (row.verdict === '誤り') {
     const numbers = normalizedNumbers(numberCheckText(replacement, ref));
+    const remaining=numbers.filter(n=>!grounded[CALCULATION_NUMBERS]?.has(n));
     if (!replacement) return reject('replacement_missing', '誤りを直す文がありません');
-    if (numbers.includes(null) || (numbers.length && !quoteSupportsNumbers(numbers, grounded, ref))) return reject('replacement_numbers', '修正文の数字を読めないか、引用の近くにありません');
+    if (numbers.includes(null) || (remaining.length && !quoteSupportsNumbers(remaining, grounded, ref))) return reject('replacement_numbers', '修正文の数字を読めないか、引用の近くにありません');
   }
   if (!sufficientQuote(finding, grounded, ref, row.verdict === '正しい' ? '裏付けあり' : '食い違い')) return reject('quote_insufficient', '引用が短いか、主張の数字が引用の近くにありません');
   if (row.verdict === '誤り') {
@@ -1225,8 +1249,8 @@ async function applyConfirmations(body, findings, record, call, options, model) 
   findings=findings.map(f=>({...f,keep:[...(f.keep || []),...record.claims.filter(c=>c.sentence===f.sentence&&c.status==='裏付けあり')]}));
   const answers = await confirmFindings(body, findings, call, options,
     (finding, row, pages) => validateConfirmation(body, finding, row, pages, options), sentenceContext, parseJson, normalizedNumbers);
-  const editing = answer => ['誤り','記載なし'].includes(answer?.verdict);
-  const notStated = findings.filter(f => answers.get(f.id)?.verdict === '記載なし');
+  const editing = answer => !answer?.review&&['誤り','記載なし'].includes(answer?.verdict);
+  const notStated = findings.filter(f => answers.get(f.id)?.verdict === '記載なし'&&!answers.get(f.id).review);
   const sentences = new Set(notStated.map(f => f.sentence));
   const tooManyNotStated = sentences.size > 8 || sentences.size > record.claims.length * 0.2;
   if (tooManyNotStated) for (const f of notStated) answers.set(f.id, rejectConfirmation(answers.get(f.id), 'not_stated_limit', '資料に記載の無い具体を外す文が8文または主張の2割を超えました'));
@@ -1256,6 +1280,7 @@ async function applyConfirmations(body, findings, record, call, options, model) 
     c.confirm = confirm;
     if (Object.hasOwn(verdicts, answer.answer?.verdict)) verdicts[answer.answer.verdict]++;
     if (answer.rejected) { counts.rejected++; rejectedCodes[answer.rejected.code] = (rejectedCodes[answer.rejected.code] || 0)+1; }
+    if(answer.review){counts.unknown++;c.status='資料なし';c.correct='';delete c.condition_mismatch;record.review_items.push({...c});continue;}
     if (answer.verdict === '判断できない') {
       counts.unknown++;
       if (c.condition_mismatch) {
@@ -1329,7 +1354,8 @@ async function checkFacts(body, options = {}) {
       { provider: 'anthropic', model: request.model, maxTokens: request.maxTokens, fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch: null })
     : cfg.provider === 'gateway'
     ? require('./gateway-model').callGateway({ model: request.model, system: request.system, user: request.user, maxTokens: 64000,
-      task: (rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs })
+      task: (rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs,
+      reasoningEffort:extracting(request)?cfg.extractEffort:cfg.effort })
     : contentModel.generateContent({ staticSystem: extracting(request) ? '' : request.staticSystem || request.system,
     dynamicSystem: extracting(request) ? request.system : '', user: request.user },
     { provider: cfg.provider, model: request.model, modelOptions: extracting(request) ? cfg.extractModelOptions : cfg.modelOptions, maxTokens: request.maxTokens,
@@ -1679,6 +1705,11 @@ async function checkFacts(body, options = {}) {
     if (outsideCount) record.summary += `・候補の外の資料で裏付け ${outsideCount} 件`;
   } catch (error) {
     // 要約は固定文。原因は鍵を伏せた短い診断だけを error に残す（原因が分からないまま全部止まるのを防ぐ）。
+    const reason=error.name==='GatewayTimeoutError'||error.message==='照合の時間切れ'?'時間切れ':error.name==='GatewayNetworkError'?'通信失敗':error.name==='GatewayError'&&error.status>=500&&error.status<=599?'Gateway 5xx':'';
+    if(cfg.provider==='gateway'&&!options[GATEWAY_FALLBACK]&&!options.signal?.aborted&&reason){
+      const fallback=await checkFacts(body,{...options,provider:'anthropic',model:'claude-opus-5-5',extractModel:'claude-opus-5-5',writerMaterials:false,writer_materials:[],previousBody:undefined,previousClaims:undefined,[GATEWAY_FALLBACK]:true});
+      fallback.record.fallback={from:'gateway',reason};fallback.record.summary+='・GLM の照合が終わらなかったため Opus で照合';return fallback;
+    }
     record.status = 'not_run';
     record.summary = error.emptyClaims ? '主張を抜き出せませんでした' : '照合を実施できませんでした（設定・API応答・カタログを確認してください）';
     if (!error.emptyClaims) {
