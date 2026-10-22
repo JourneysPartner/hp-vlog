@@ -19,6 +19,7 @@ const TYPES = ['金額', '期限', '割合', '適用年', '番号', '要件', '�
 const STAGE_TALLY = Symbol('段A/Bの採用した答え');
 const JUDGE_RETRIED = Symbol('判定の聞き直し済み');
 const REPAIR_RETRIED = Symbol('修正の直し済み');
+const CONFIRM_KEEP = Symbol('確かめで正しい主張の数字を保全');
 const EXTRACT_RETRIED = Symbol('抜き出し直し済み');
 // 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
 const TYPE_ALIASES = new Map([
@@ -1080,6 +1081,13 @@ async function repairBody(body, findings, callLLM, options = {}) {
       const hasSubject = (NUMERIC_TYPES.has(f.type) || f.status === '期限の書き漏れ') && words.some(word => after.has(word));
       if (!hasSubject && before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
     }
+    // 確かめで正しいと認めた同じ文の数字は、誤りの修正でも残す。
+    if (!reason && options[CONFIRM_KEEP]) {
+      const before = normalizedNumbers(f.sentence), after = normalizedNumbers(replacement);
+      const rawKeep = (f.keep || []).flatMap(c => normalizedNumbers(c.claim));
+      const keep = expandYearDates(rawKeep, f.sentence).filter(n => before.includes(n));
+      if (rawKeep.includes(null) || !keep.every(n => after.includes(n))) reason = '裏付けのある数字を消しています';
+    }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
       const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
@@ -1147,47 +1155,79 @@ async function repairBody(body, findings, callLLM, options = {}) {
 
 /** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。意味の判断はOpusへ任せる。 */
 async function validateConfirmation(body, finding, row, pages, options) {
+  const reject = (code, detail) => require('./fact-confirm').rejectConfirmation({}, code, detail);
+  const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
+  if (row.verdict === '記載なし') {
+    if (finding.status !== '資料なし' || finding.condition_mismatch) return reject('not_stated_status', '資料なし以外の指摘には記載なしを採れません');
+    if (finding.sentence.trimStart().startsWith('|')) return reject('not_stated_table', '表の行では具体を外しません');
+    if (!replacement) return reject('replacement_missing', '具体を外した文がありません');
+    const before = normalizedNumbers(finding.sentence), after = normalizedNumbers(replacement);
+    if (before.includes(null) || after.includes(null) || after.some(n => !before.includes(n))) return reject('repair_rejected', '元の文に無い数字があるか、数字を読めません');
+    const repair = await repairBody(body, [finding], async () => [{id:finding.id,replacement}], {...options,writerMaterials:false});
+    if (!repair.accepted || repair.rejected.size) return reject('repair_rejected', repair.reason || repair.rejected.get(finding.id));
+    return {verdict:'記載なし',replacement,reason:contentModel.redactSecrets(String(row.reason || '')).slice(0,300)};
+  }
   const page = pages.find(p => p.number === unitNumber(row.evidence_id));
+  if (!page) return reject('page_not_offered', '答えの資料番号はこの指摘に見せた資料にありません');
   if (page && (row.verdict === '誤り' || REVIEW_TYPES.has(finding.type)) &&
       !canFinalizeStageA({ ...finding, evidence: [page.ref], evidence_id: page.ref.id },
-        (options.searchWriterEvidence || searchWriterEvidence)(finding, options).slice(0, 4))) return null;
+        (options.searchWriterEvidence || searchWriterEvidence)(finding, options).slice(0, 4))) return reject('rewrite_source', '書き手の資料の1位でも題名の一意な一致でもありません');
   const ranges = basisRanges(row.basis);
   const parts = page && ranges?.map(range => rangeText(page.source, page.units, range, NUMERIC_TYPES.has(finding.type) ? 2 : 4));
-  if (!parts?.length || parts.some(p => !p)) return null;
+  if (!parts?.length || parts.some(p => !p)) return reject('basis_unreadable', '文の番号を読めないか、示した抜粋の外です');
   const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
-  const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
   const grounded = { quote, correct: replacement };
-  if (!quoteExists(quote, ref) || !sufficientQuote(finding, grounded, ref, row.verdict === '正しい' ? '裏付けあり' : '食い違い')) return null;
+  if (!quoteExists(quote, ref)) return reject('quote_missing', '引用が資料の原文にありません');
   if (row.verdict === '誤り') {
     const numbers = normalizedNumbers(numberCheckText(replacement, ref));
-    if (!replacement || numbers.includes(null) || (numbers.length && !quoteSupportsNumbers(numbers, grounded, ref))) return null;
+    if (!replacement) return reject('replacement_missing', '誤りを直す文がありません');
+    if (numbers.includes(null) || (numbers.length && !quoteSupportsNumbers(numbers, grounded, ref))) return reject('replacement_numbers', '修正文の数字を読めないか、引用の近くにありません');
+  }
+  if (!sufficientQuote(finding, grounded, ref, row.verdict === '正しい' ? '裏付けあり' : '食い違い')) return reject('quote_insufficient', '引用が短いか、主張の数字が引用の近くにありません');
+  if (row.verdict === '誤り') {
     // Opusの意味判断を語の重なりで覆さず、同じrepairBodyの構造・本文保全だけを適用する。
     const repair = await repairBody(body, [finding.status === '資料なし' ? finding : { ...finding, status: '食い違い' }], async () => [{ id: finding.id, replacement }], { ...options, writerMaterials: false });
-    if (!repair.accepted || repair.rejected.size) return null;
+    if (!repair.accepted || repair.rejected.size) return reject('repair_rejected', repair.reason || repair.rejected.get(finding.id));
   }
   return { verdict: row.verdict, evidence_id: ref.id, basis: ranges.join(','), quote, replacement: row.verdict === '誤り' ? replacement : '',
     reason: contentModel.redactSecrets(String(row.reason || '')).slice(0, 300), ref };
 }
 
 async function applyConfirmations(body, findings, record, call, options, model) {
-  const answers = await require('./fact-confirm').confirmFindings(body, findings, call, options,
-    (finding, row, pages) => validateConfirmation(body, finding, row, pages, options), sentenceContext, parseJson);
+  const {confirmFindings,rejectConfirmation} = require('./fact-confirm');
+  const answers = await confirmFindings(body, findings, call, options,
+    (finding, row, pages) => validateConfirmation(body, finding, row, pages, options), sentenceContext, parseJson, normalizedNumbers);
+  const editing = answer => ['誤り','記載なし'].includes(answer?.verdict);
+  const notStated = findings.filter(f => answers.get(f.id)?.verdict === '記載なし');
+  const sentences = new Set(notStated.map(f => f.sentence));
+  const tooManyNotStated = sentences.size > 8 || sentences.size > record.claims.length * 0.2;
+  if (tooManyNotStated) for (const f of notStated) answers.set(f.id, rejectConfirmation(answers.get(f.id), 'not_stated_limit', '資料に記載の無い具体を外す文が8文または主張の2割を超えました'));
   // 同じ文の一部だけを直したり、複数の置き換えを競合させたりしない。
-  const wrong = findings.filter(f => answers.get(f.id)?.verdict === '誤り');
-  for (const f of wrong) if (findings.some(other => other.sentence === f.sentence &&
-      (answers.get(other.id)?.verdict !== '誤り' || answers.get(other.id)?.replacement !== answers.get(f.id).replacement))) {
-    answers.set(f.id, { verdict: '判断できない', reason: '同じ文の確かめの答えが一致しません' });
+  const proposed = findings.filter(f => editing(answers.get(f.id))), beforeSentenceCheck = new Map(answers);
+  const keepFor = f => [...(f.keep || []), ...findings.filter(other => other.sentence === f.sentence && beforeSentenceCheck.get(other.id)?.verdict === '正しい')];
+  for (const f of proposed) {
+    const answer = beforeSentenceCheck.get(f.id);
+    const conflict = findings.some(other => other.sentence === f.sentence && beforeSentenceCheck.get(other.id)?.verdict !== '正しい' &&
+      (!editing(beforeSentenceCheck.get(other.id)) || beforeSentenceCheck.get(other.id).replacement !== answer.replacement));
+    const kept = keepFor(f), numbers = normalizedNumbers(answer.replacement);
+    const rawKeep = kept.flatMap(c => normalizedNumbers(c.claim));
+    const keepNumbers = expandYearDates(rawKeep, f.sentence).filter(n => normalizedNumbers(f.sentence).includes(n));
+    if (conflict || rawKeep.includes(null) || !keepNumbers.every(n => numbers.includes(n)))
+      answers.set(f.id, rejectConfirmation(answer, 'same_sentence', conflict ? '同じ文の確かめの答えが一致しません' : '同じ文の正しい主張の数字を消しています'));
   }
-  const edits = findings.filter(f => answers.get(f.id)?.verdict === '誤り');
-  const repair = edits.length ? await repairBody(body, edits.map(f => f.status === '資料なし' ? f : { ...f, status: '食い違い' }),
-    async () => edits.map(f => ({ id: f.id, replacement: answers.get(f.id).replacement })), { ...options, writerMaterials: false }) : null;
-  for (const f of edits) if (!repair?.accepted || repair.rejected.has(f.id)) answers.set(f.id, { verdict: '判断できない', reason: '修正文の本文保全を確かめられませんでした' });
-  const counts = { checked: findings.length, rewritten: 0, kept: 0, unknown: 0 };
+  const edits = findings.filter(f => editing(answers.get(f.id)));
+  const repair = edits.length ? await repairBody(body, edits.map(f => ({...f,status:f.status === '資料なし' ? f.status : '食い違い',keep:keepFor(f)})),
+    async () => edits.map(f => ({ id: f.id, replacement: answers.get(f.id).replacement })), { ...options, writerMaterials: false, [CONFIRM_KEEP]:true }) : null;
+  for (const f of edits) if (!repair?.accepted || repair.rejected.has(f.id)) answers.set(f.id, rejectConfirmation(answers.get(f.id), 'repair_rejected', repair?.reason || repair?.rejected.get(f.id) || '修正文の本文保全を確かめられませんでした'));
+  const counts = { checked: findings.length, rewritten: 0, generalized:0, kept: 0, unknown: 0, rejected:0 };
+  const verdicts = {'誤り':0,'正しい':0,'記載なし':0,'判断できない':0}, rejectedCodes = {};
   record.review_items = record.review_items.filter(row => !findings.some(f => f.id === row.id));
   for (const f of findings) {
     const c = record.claims.find(c => c.id === f.id), answer = answers.get(f.id);
     const { ref, ...confirm } = answer;
     c.confirm = confirm;
+    if (Object.hasOwn(verdicts, answer.answer?.verdict)) verdicts[answer.answer.verdict]++;
+    if (answer.rejected) { counts.rejected++; rejectedCodes[answer.rejected.code] = (rejectedCodes[answer.rejected.code] || 0)+1; }
     if (answer.verdict === '判断できない') {
       counts.unknown++;
       if (c.condition_mismatch) {
@@ -1197,23 +1237,27 @@ async function applyConfirmations(body, findings, record, call, options, model) 
       continue;
     }
     c.confirmed_by = model;
-    if (!c.evidence.some(e => e.id === ref.id)) c.evidence.push(ref);
-    // 採用した確かめの引用は、段A/Bの抜粋ではなくOpusに提示した原文へ結びつける。
-    c.evidence = c.evidence.map(e => e.id === ref.id ? ref : e);
-    c.evidence_id = ref.id; c.quote = answer.quote;
+    if (ref) {
+      if (!c.evidence.some(e => e.id === ref.id)) c.evidence.push(ref);
+      // 採用した確かめの引用は、段A/Bの抜粋ではなくOpusに提示した原文へ結びつける。
+      c.evidence = c.evidence.map(e => e.id === ref.id ? ref : e);
+      c.evidence_id = ref.id; c.quote = answer.quote;
+    }
     delete c.evidence_outside_candidates;
     if (answer.verdict === '正しい') {
       counts.kept++; c.status = '裏付けあり'; c.evidence_id = ref.id; c.quote = answer.quote; c.correct = '';
       for (const key of ['condition_mismatch','correct_requires_review','evidence_requires_review','rejected_answer','reject_reason','supported_numbers','evidence_outside_candidates']) delete c[key];
     } else {
-      counts.rewritten++;
+      if (answer.verdict === '記載なし') counts.generalized++; else counts.rewritten++;
       c.correct = answer.replacement;
       record.corrections.push({ ...c, before: c.sentence, after: answer.replacement, resolved: true, generalized: f.status === '資料なし' });
     }
   }
   const calls = record.calls.filter(c => c.task === 'confirm');
-  const tokens = key => calls.every(c => Number.isFinite(c.usage?.[key])) ? calls.reduce((n,c) => n+c.usage[key], 0) : null;
-  record.confirm = { model, ...counts, calls: calls.length, batch: calls.some(c => c.mode === 'batch'),
+  const tokens = key => calls.reduce((n,c) => n+(Number.isFinite(c.usage?.[key]) ? c.usage[key] : 0), 0);
+  record.confirm = { model, ...counts, verdicts, rejected_codes:rejectedCodes, stop_reasons:calls.map(c=>c.stop_reason || null),
+    usage_complete:calls.every(c=>Number.isFinite(c.usage?.input_tokens)&&Number.isFinite(c.usage?.output_tokens)),
+    ...(tooManyNotStated ? {not_stated_limit:true} : {}), calls: calls.length, batch: calls.some(c => c.mode === 'batch'),
     input_tokens: tokens('input_tokens'), output_tokens: tokens('output_tokens'),
     cache_creation_input_tokens: tokens('cache_creation_input_tokens'), cache_read_input_tokens: tokens('cache_read_input_tokens') };
   return repair?.accepted ? repair.body : body;
@@ -1599,7 +1643,8 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
-    if (record.confirm) record.summary += `・Opus の確かめ ${record.confirm.checked} 件（書き換え ${record.confirm.rewritten}・残す ${record.confirm.kept}・判断できない ${record.confirm.unknown}）・Opus の確かめ ${record.confirm.calls} 回`;
+    if (record.confirm) record.summary += `・Opus の確かめ ${record.confirm.checked} 件（書き換え ${record.confirm.rewritten}・具体を外した ${record.confirm.generalized}・残す ${record.confirm.kept}・判断できない ${record.confirm.unknown}、うち答えを採らなかった ${record.confirm.rejected}）・${record.confirm.calls} 回`;
+    if (record.confirm?.not_stated_limit) record.summary += '・資料に記載の無い具体が多いため外していません';
     if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
     if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';
     const outsideCount = outsideCandidateClaims(record).length;

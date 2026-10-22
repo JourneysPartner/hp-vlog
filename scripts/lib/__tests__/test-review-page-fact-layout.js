@@ -134,6 +134,28 @@ async function main() {
     assert.match(mixed, /直した 1 件・資料が無く案内に変えた 1 件/);
   });
 
+  await test('03c-R2', 'Opusの記載なしで外した具体を、既存の具体を外した件数と一覧に表示する', async () => {
+    const F=require('../fact-check'),W=require('../writer-materials'),H=require('./fact-pages-test-helpers');
+    const rawSource=W.resolveMaterial('ta:4508'),source={...rawSource,text:rawSource.text.split('関連リンク')[0]},before='取消届出の期限は土日祝でも延長されない。',after='取消届出の期限は国税庁で確認してください。';
+    const markdown=before+'\n'+['甲','乙','丙','丁'].map(s=>s+'受贈者は18歳以上です。').join('\n');
+    const saved=Object.fromEntries(['FACT_CHECK_WRITER_MATERIALS','FACT_CHECK_CONFIRM'].map(k=>[k,process.env[k]]));
+    let result;
+    try{
+      process.env.FACT_CHECK_WRITER_MATERIALS='true';process.env.FACT_CHECK_CONFIRM='true';
+      result=await F.checkFacts(markdown,{enabled:true,repair:true,batch:false,provider:'gateway',model:'zai/glm-5.3-flash',writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],findQaByKeywords:()=>[],loadEvidenceText:()=>source.text,callLLM:async req=>{
+        if(req.task==='extract')return [...req.user.matchAll(/^\[(\d+)\] (.*)$/gm)].map(m=>({s:+m[1],type:'要件',subject:'住宅取得等資金の贈与の非課税',claim:m[2]}));
+        const claims=JSON.parse(req.user).claims;
+        if(req.task==='condition_check')return {verdict:'一致',conditions:[],correct:''};
+        if(req.task==='confirm')return claims.map(c=>({id:c.id,verdict:'記載なし',replacement:after}));
+        const page=H.materials(req).find(p=>p.url===source.url),unit=page.rows.find(u=>u.text.includes('18歳以上'));
+        return claims.map(c=>c.claim===before?{id:c.id,status:'資料なし'}:{id:c.id,status:'裏付けあり',evidence_id:page.number,basis:String(unit.s)});
+      }});
+    }finally{for(const [key,value]of Object.entries(saved)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+    assert.equal(result.record.status,'ok');assert.equal(result.record.corrections[0].confirm.verdict,'記載なし');
+    const html=draw({},result.record,result.body);assert.match(summary(html),/直した 0 件・資料が無く案内に変えた 1 件/);
+    const list=detail(html).split('<h3 class="h6">資料が無く案内に変えた箇所</h3>')[1];assert(list);assert(list.includes(escape(before)));assert(list.includes(escape(after)));
+  });
+
   await test(5, '食い違い・資料なし・差し止め・未実施・古い記録・読めない記録を本文前に開いて出す', async () => {
     const cases = [
       { record: makeRecord({ remaining: [{ sentence: '**誤った金額**', status: '食い違い', correct: '正しい金額', evidence: [{ title: '根拠の資料', url: 'https://example.jp/source' }] }] }), words: ['誤った金額', '正しい金額', '根拠の資料', 'https://example.jp/source'], color: 'alert-danger' },
