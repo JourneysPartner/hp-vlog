@@ -1153,7 +1153,31 @@ async function repairBody(body, findings, callLLM, options = {}) {
   return { body: revised, accepted: true, rejected, replacements: edits };
 }
 
-/** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。意味の判断はOpusへ任せる。 */
+// 記載なしだけに加える、意味を変えたり具体を残したりする答えの歯止め。
+function notStatedMeaningReason(body, finding, replacement) {
+  const normalize = text=>String(text || '').normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+  const negative = text=>/ない|ません|不要|対象外|除く/.test(normalize(text));
+  if (negative(finding.sentence)!==negative(replacement)) return '否定の向きが変わっています';
+  const context=sentenceContext(body,finding.sentence);
+  if (/よくある誤解|NG\s*(?:な)?例|(?:と考える|と思う|という考え)(?:の)?は(?:誤り|間違い)|勘違い|誤りの例|誤った例/i.test([context.heading,context.prev,finding.sentence].join('\n').normalize('NFKC')))
+    return '誤解・NG例の文では具体を外しません';
+  const subject=[...tokenizeForMatcher(finding.subject || '')], after=tokenizeForMatcher(replacement);
+  const words=subject.some(word=>word.length>=3) ? subject.filter(word=>word.length>=3) : subject;
+  if (!words.length || !words.some(word=>after.has(word))) return '制度の話題を残していません';
+  const beforeNumbers=normalizedNumbers(finding.sentence), afterNumbers=normalizedNumbers(replacement), claimNumbers=normalizedNumbers(finding.claim);
+  if (claimNumbers.length) {
+    if (claimNumbers.includes(null) || !claimNumbers.some(n=>beforeNumbers.includes(n)&&!afterNumbers.includes(n))) return '主張の数字を何も外していません';
+  } else {
+    const summary=[...tokenizeForMatcher(finding.claim || '')].filter(word=>word.length>=2&&!subject.includes(word)&&normalize(finding.sentence).includes(word));
+    if (!summary.some(word=>!after.has(word))) return '主張の具体的な語を何も外していません';
+  }
+  const keep=[...(finding.keep || []).flatMap(c=>normalizedNumbers(c.claim)),...(finding.supported_numbers || []).flatMap(n=>normalizedNumbers(n))];
+  const allowed=expandYearDates(keep,finding.sentence).filter(n=>beforeNumbers.includes(n));
+  if (keep.includes(null) || afterNumbers.some(n=>!allowed.includes(n))) return '裏付けのない数字が残っています';
+  return '';
+}
+
+/** 確かめでも引用・数字・本文の保全には従来と同じ部品を使う。 */
 async function validateConfirmation(body, finding, row, pages, options) {
   const reject = (code, detail) => require('./fact-confirm').rejectConfirmation({}, code, detail);
   const replacement = typeof row.replacement === 'string' ? row.replacement.trim() : '';
@@ -1165,10 +1189,12 @@ async function validateConfirmation(body, finding, row, pages, options) {
     if (before.includes(null) || after.includes(null) || after.some(n => !before.includes(n))) return reject('repair_rejected', '元の文に無い数字があるか、数字を読めません');
     const repair = await repairBody(body, [finding], async () => [{id:finding.id,replacement}], {...options,writerMaterials:false});
     if (!repair.accepted || repair.rejected.size) return reject('repair_rejected', repair.reason || repair.rejected.get(finding.id));
+    const meaning=notStatedMeaningReason(body,finding,replacement);
+    if (meaning) return reject('not_stated_meaning',meaning);
     return {verdict:'記載なし',replacement,reason:contentModel.redactSecrets(String(row.reason || '')).slice(0,300)};
   }
-  const page = pages.find(p => p.number === unitNumber(row.evidence_id));
-  if (!page) return reject('page_not_offered', '答えの資料番号はこの指摘に見せた資料にありません');
+  const number=unitNumber(row.evidence_id), page = pages.find(p => p.number === number);
+  if (!page) return reject('page_not_offered', number===null ? '答えの資料番号が無いか、読み取れません' : '答えの資料番号はこの指摘に見せた資料にありません');
   if (page && (row.verdict === '誤り' || REVIEW_TYPES.has(finding.type)) &&
       !canFinalizeStageA({ ...finding, evidence: [page.ref], evidence_id: page.ref.id },
         (options.searchWriterEvidence || searchWriterEvidence)(finding, options).slice(0, 4))) return reject('rewrite_source', '書き手の資料の1位でも題名の一意な一致でもありません');
@@ -1195,6 +1221,8 @@ async function validateConfirmation(body, finding, row, pages, options) {
 
 async function applyConfirmations(body, findings, record, call, options, model) {
   const {confirmFindings,rejectConfirmation} = require('./fact-confirm');
+  // GLMの裏付けありも、確かめに回らないという理由で消さない。確かめの経路だけに適用する。
+  findings=findings.map(f=>({...f,keep:[...(f.keep || []),...record.claims.filter(c=>c.sentence===f.sentence&&c.status==='裏付けあり')]}));
   const answers = await confirmFindings(body, findings, call, options,
     (finding, row, pages) => validateConfirmation(body, finding, row, pages, options), sentenceContext, parseJson, normalizedNumbers);
   const editing = answer => ['誤り','記載なし'].includes(answer?.verdict);

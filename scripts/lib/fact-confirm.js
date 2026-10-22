@@ -3,8 +3,9 @@
 // 確かめ専用の資料表。全体検索のカタログや、通常の判定の資料表は変更しない。
 const { splitUnits, renderUnits, basisRanges, unitNumber } = require('./fact-units');
 const { tokenizeForMatcher } = require('./nta-source-matcher');
-const { searchEvidence, loadEvidenceText } = require('./fact-evidence');
-const { searchWriterEvidence, resolveMaterial, materialId } = require('./writer-materials');
+const { searchEvidence, loadEvidenceText, evidenceCatalog } = require('./fact-evidence');
+const { searchWriterEvidence, resolveMaterial, materialId, qaCatalog } = require('./writer-materials');
+const laws = require('./law-sources');
 const qa = require('./nta-qa');
 const { redactSecrets } = require('./content-model');
 
@@ -17,7 +18,62 @@ function rejectConfirmation(answer, code, detail) {
     rejected: answer?.rejected || { code, detail: safeText(detail, 200) } };
 }
 
-function candidatesFor(finding, options) {
+let questionIndex;
+// 通常のQ&A検索には影響させず、確かめの資料なしだけで数字と制度名を併用する。
+function numericQuestions(finding, normalizedNumbers) {
+  const catalog = qaCatalog();
+  if (questionIndex?.catalog !== catalog) questionIndex = { catalog, frequency:new Map(), rows:catalog.map(ref=>({
+    ref, text:qa.normalize(`${ref.title} ${ref.text}`), heading:qa.normalize(ref.title).replace(qa.normalize(ref.source_label),''), numbers:new WeakMap(),
+  })) };
+  const numbers = new Set(normalizedNumbers(qa.normalize(`${finding.claim} ${finding.sentence}`)).filter(n=>n!==null));
+  if (!numbers.size) return [];
+  const eligible = require('./nta-qa-sources').eligibleSourceKeys(`${finding.subject} ${finding.sentence}`);
+  const terms = [...tokenizeForMatcher(finding.subject || '')].map(qa.normalize).filter(word=>word.length>=2).map(word=>{
+    if (!questionIndex.frequency.has(word)) questionIndex.frequency.set(word, questionIndex.rows.filter(row=>row.text.includes(word)).length);
+    const count=questionIndex.frequency.get(word);
+    return {word,rarity:count ? Math.log(catalog.length/count) : 0};
+  }).filter(term=>term.rarity>=0.7);
+  if (!eligible.size || !terms.length) return [];
+  const scored = questionIndex.rows.flatMap(row=>{
+    if (!eligible.has(row.ref.source_key)) return [];
+    const matched=terms.filter(term=>row.text.includes(term.word));
+    if (!matched.length) return [];
+    if (!row.numbers.has(normalizedNumbers)) row.numbers.set(normalizedNumbers,new Set(normalizedNumbers(row.text).filter(n=>n!==null)));
+    const hits=[...numbers].filter(n=>row.numbers.get(normalizedNumbers).has(n)).length;
+    return hits ? [{ref:row.ref,score:hits+matched.reduce((sum,term)=>sum+term.rarity,0),title:matched.filter(term=>row.heading.includes(term.word)).length}] : [];
+  });
+  return scored.sort((a,b)=>b.score-a.score || b.title-a.title || a.ref.material_id.localeCompare(b.ref.material_id)).slice(0,2)
+    .map(row=>resolveMaterial(row.ref.material_id)).filter(Boolean);
+}
+
+function delegatedDecrees(finding, refs, normalizedNumbers) {
+  const numbers = new Set(normalizedNumbers(qa.normalize(`${finding.claim} ${finding.sentence}`)).filter(n=>n!==null));
+  if (!numbers.size) return [];
+  const targets = new Map();
+  for (const ref of refs) {
+    const match=ref.id.match(/^law:(.+)_hou:(\d+(?:_\d+)*)$/);
+    if (!match) continue;
+    const key=match[1]+'_rei';
+    if (!targets.has(key)) targets.set(key,new Set());
+    targets.get(key).add(match[2]);
+  }
+  const entries=evidenceCatalog().entries, scored=[];
+  for (const [key,articles] of targets) {
+    const known = new Set(entries.filter(e=>e.kind==='law'&&e.key===key).map(e=>e.id));
+    for (const article of laws.loadLaw(key)?.articles || []) {
+      const id=`law:${key}:${article.num}`;
+      if (!known.has(id)) continue;
+      const text=qa.normalize(article.text);
+      const citations=[...text.matchAll(/法第([〇零一二三四五六七八九十百千0-9]+条(?:の[〇零一二三四五六七八九十百千0-9]+)*)(?:第[〇零一二三四五六七八九十百千0-9]+[項号])*に規定する政令で定める/g)];
+      if (!citations.some(m=>articles.has(laws.normalizeArticleNum(m[1])))) continue;
+      const hits=new Set(normalizedNumbers(text).filter(n=>numbers.has(n))).size;
+      if (hits) scored.push({id,hits});
+    }
+  }
+  return scored.sort((a,b)=>b.hits-a.hits||a.id.localeCompare(b.id)).slice(0,2).map(row=>resolveMaterial(row.id)).filter(Boolean);
+}
+
+function candidatesFor(finding, options, normalizedNumbers) {
   const own = (options.searchWriterEvidence || searchWriterEvidence)(finding, options).slice(0, 4);
   const root = finding.glm_answer?.evidence || finding.evidence_id || finding.rejected_answer?.evidence;
   const ref = (finding.evidence || []).find(e => e.id === root) || options.resolvedWriterMaterials?.find(e => e.id === root)
@@ -33,6 +89,8 @@ function candidatesFor(finding, options) {
       const resolved = resolveMaterial(materialId(question));
       if (resolved) refs.push(resolved);
     }
+    refs.push(...numericQuestions(finding, normalizedNumbers));
+    refs.push(...delegatedDecrees(finding, refs, normalizedNumbers));
   }
   return [...new Map(refs.filter(e => e.kind !== 'change').map(e => [e.id, e])).values()];
 }
@@ -55,9 +113,9 @@ function pageFor(page, findings, limit, number, normalizedNumbers) {
       ranges: root === ref.id ? basisRanges(finding.glm_answer?.basis) || [] : [],
       quotes: root === ref.id && finding.quote ? finding.quote.split('\n…\n').map(q => source.indexOf(q)).filter(at => at >= 0) : [] };
   });
-  const scores = units.map((u, i) => ({ i, score: queries.reduce((sum, query) => sum +
+  const numbers = new Set(queries.flatMap(query=>[...query.numbers]));
+  const scores = units.map((u, i) => ({ i, score: Math.min(60,[...new Set(normalizedNumbers(u.text))].filter(n=>numbers.has(n)).length*20) + queries.reduce((sum, query) => sum +
     query.words.filter(word => u.text.normalize('NFKC').toLowerCase().includes(word)).length +
-    [...new Set(normalizedNumbers(u.text))].filter(n => query.numbers.has(n)).length * 100 +
     (query.quotes.some(at => at >= u.start && at < u.end) ? 100 : query.ranges.some(range => {
       const [a,b] = range.split('-').map(Number); return u.s >= a && u.s <= b;
     }) ? 30 : 0), 0) }));
@@ -100,7 +158,7 @@ async function confirmFindings(body, findings, call, options, validate, context,
   for (const finding of findings) {
     metadata.set(finding.id, { pages: [], call: null });
     try {
-      const pages = candidatesFor(finding, options).flatMap(ref => { try {
+      const pages = candidatesFor(finding, options, normalizedNumbers).flatMap(ref => { try {
         if (!loaded.has(ref.id)) loaded.set(ref.id, loadPage(ref, options));
         return [loaded.get(ref.id)];
       } catch (_) { return []; } });
