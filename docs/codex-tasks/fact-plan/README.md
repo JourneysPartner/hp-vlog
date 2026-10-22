@@ -51,7 +51,7 @@
 |---|---|---|
 | 第 1 段階（B、`01-plan-and-writer-materials.md`・`02-glm-auto-repair.md`） | 書く前の計画・制度ごとの資料と関連の確かめ・書く段階の規則（W1〜W3）・前付けへの記録（`fact_plan*`・`fact_materials`） | **既定で動く**。照合の既定は従来どおり Anthropic（Opus） |
 | 照合の拡張（段 A/B・S1〜S6） | 書き手の資料から判定し、必要な主張だけ全体を検索。候補外の資料・聞き直し・条件確認・修正の直し・試算の数字・要件の一般化を扱う | コードには残すが**既定で止める**。`FACT_CHECK_WRITER_MATERIALS=true` のときだけ動く。新 H1・N1 の残り・新 M1 は第 2 段階で扱う（`review-02c.md`） |
-| 第 2 段階（A、`03-glm-find-opus-confirm.md`） | 抜き出し・判定は GLM。記事を書き換える・具体を外す文だけ Opus が 1 件ずつ確かめてから変更する | 枝 `feat/fact-plan-02`（`feat/fact-plan-01` の上）で既定オフのまま作り、実地で確かめてから変数で切り替える（2026-10-21 毛利さん判断）。実地 7 本（10/22）は全部 revise → 続き `03c-not-stated-and-record.md`（記載なし・答えと落とした理由の記録）。03d の実地は ok 2/6・1 本 約 17.5 円 → 続き `03e-calc-subject-glm-speed.md`（計算で出る数字・同じ制度の資料・GLM の遅さ） |
+| 第 2 段階（A、`03-glm-find-opus-confirm.md`） | 抜き出し・判定は GLM。記事を書き換える・具体を外す文だけ Opus が 1 件ずつ確かめてから変更する | 枝 `feat/fact-plan-02`（`feat/fact-plan-01` の上）で既定オフのまま作り、実地で確かめてから変数で切り替える（2026-10-21 毛利さん判断）。実地 7 本（10/22）は全部 revise → 続き `03c-not-stated-and-record.md`（記載なし・答えと落とした理由の記録）。03d の実地は ok 2/6・1 本 約 17.5 円 → 続き `03e-calc-subject-glm-speed.md`（計算で出る数字・同じ制度の資料・GLM の遅さ）。**GLM に切り替えるときは `FACT_CHECK_EFFORT`・`FACT_CHECK_EXTRACT_EFFORT` を `low`・`high`・`max` のどれかにする（Opus 用の `xhigh`・`medium` を残さない。GLM-5.3 Flash の思考の量は 3 段階）** |
 | 文ごとの資料番号 | 書き手に資料番号を付けさせ、文と資料を突き合わせる。番号の無い数字・期限の検出と、レビュー画面への根拠表示 | 従来の第 2 段案。着手時期は未定 |
 | 第 3 段 | 同じ事実の繰り返しをまとめて判定・実務の助言（「否認されるリスク」等）を事実の主張と分ける・案 2（安いモデルの並走）の見直し | 未定 |
 
