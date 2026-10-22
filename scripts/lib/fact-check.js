@@ -40,8 +40,9 @@ const WARNING_RE = /【事実の照合】[\s\S]*?【\/事実の照合】/g;
 function config(options = {}) {
   const provider = options.provider || process.env.FACT_CHECK_PROVIDER || 'anthropic';
   const model = options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5';
-  const effort = (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
-  const extractEffort = (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
+  // Gatewayから戻すときは、環境変数も含めGLM用の思考量を引き継がない。
+  const effort = options[GATEWAY_FALLBACK] ? null : (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
+  const extractEffort = options[GATEWAY_FALLBACK] ? null : (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
   const poll = options.batchPollSeconds ?? process.env.FACT_CHECK_BATCH_POLL_SECONDS;
   return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort, extractEffort,
     modelOptions: effort === null ? {} : { output_config: { effort } },
@@ -260,6 +261,7 @@ function sufficientQuote(claim, result, ref, status) {
     }
     if (numbers.includes(null)) return false;
     if (result[CALCULATION_NUMBERS]) {
+      if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
       const remaining=numbers.filter(n=>!result[CALCULATION_NUMBERS].has(n));
       if(numbers.length&&!remaining.length)return true;
       numbers=remaining;
@@ -1189,6 +1191,7 @@ function calculationContext(body,finding) {
   const context=sentenceContext(body,finding.sentence),rows=[finding.sentence,context.heading,context.prev,context.next];
   if(finding.sentence.trimStart().startsWith('|')){
     const lines=body.split('\n'),at=lines.findIndex(line=>line.trim()===finding.sentence.trim());let first=at;
+    if(at<0)return [finding.sentence];
     while(first>0&&lines[first-1].trimStart().startsWith('|'))first--;
     rows.push(...lines.slice(first,first+2),lines[at-1]||'',lines[at+1]||'');
   }
@@ -1222,7 +1225,7 @@ async function validateConfirmation(body, finding, row, pages, options) {
   const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
   const grounded = { quote, correct: replacement };
   if (!quoteExists(quote, ref)) return reject('quote_missing', '引用が資料の原文にありません');
-  if(Object.hasOwn(row,'calculation')){
+  if(Object.hasOwn(row,'calculation')&&row.calculation!==null&&row.calculation!==''&&(!Array.isArray(row.calculation)||row.calculation.length)){
     const checked=require('./fact-calculation').verifyCalculations(row.calculation,{quote,article:calculationContext(body,finding),target:row.verdict==='誤り'?replacement:finding.sentence,normalizedNumbers});
     if(checked.error)return reject('calculation_rejected',checked.error);
     grounded[CALCULATION_NUMBERS]=checked.excluded;
@@ -1708,7 +1711,9 @@ async function checkFacts(body, options = {}) {
     const reason=error.name==='GatewayTimeoutError'||error.message==='照合の時間切れ'?'時間切れ':error.name==='GatewayNetworkError'?'通信失敗':error.name==='GatewayError'&&error.status>=500&&error.status<=599?'Gateway 5xx':'';
     if(cfg.provider==='gateway'&&!options[GATEWAY_FALLBACK]&&!options.signal?.aborted&&reason){
       const fallback=await checkFacts(body,{...options,provider:'anthropic',model:'claude-opus-5-5',extractModel:'claude-opus-5-5',writerMaterials:false,writer_materials:[],previousBody:undefined,previousClaims:undefined,[GATEWAY_FALLBACK]:true});
-      fallback.record.fallback={from:'gateway',reason};fallback.record.summary+='・GLM の照合が終わらなかったため Opus で照合';return fallback;
+      const gateway_calls=record.calls.filter(c=>!/(^|_)confirm$/.test(c.task)).map(c=>({task:c.task,model:contentModel.redactSecrets(c.model),...(c.usage?{usage:{...c.usage}}:{})}));
+      fallback.record.fallback={from:'gateway',reason,gateway_calls};
+      fallback.record.summary+=fallback.record.status==='not_run'?'・GLM の照合が終わらず、Opus でのやり直しもできませんでした':'・GLM の照合が終わらなかったため Opus で照合';return fallback;
     }
     record.status = 'not_run';
     record.summary = error.emptyClaims ? '主張を抜き出せませんでした' : '照合を実施できませんでした（設定・API応答・カタログを確認してください）';

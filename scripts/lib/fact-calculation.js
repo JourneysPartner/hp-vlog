@@ -59,7 +59,7 @@ function dateEquation(left,right,normalizedNumbers){
     const result=new Date(original.getTime()+(duration[1]==='-'?-1:1)*Number(days.value.n)*86400000);
     if((end.year!==null&&result.getUTCFullYear()!==end.year)||result.getUTCMonth()+1!==end.month||result.getUTCDate()!==end.day)throw Error('計算が合わない');
   }
-  return{operands:[start.key,days.key],key:end.key};
+  return{operands:[start.key,days.key],key:end.key,origin:start.key};
 }
 
 function verifyCalculations(calculations,{quote,article,target,normalizedNumbers}){
@@ -78,8 +78,9 @@ function verifyCalculations(calculations,{quote,article,target,normalizedNumbers
   for(const checked of parsed)try{
     for(const key of checked.operands){
       if((results.has(key)&&!quoted.has(key))||(!quoted.has(key)&&!premises.has(key)))throw Error('数の出どころが無い');
-      if(premises.has(key))excluded.add(key);
     }
+    // 主張に書かれた左辺の金額・割合・日数は、検算とは別に引用で確かめる。
+    if(checked.origin)excluded.add(checked.origin);
     if(!targets.has(checked.key))throw Error('右辺が主張に無い');excluded.add(checked.key);
   }catch(error){return{error:['読めない','計算が合わない','数の出どころが無い','右辺が主張に無い'].includes(error.message)?error.message:'読めない'};}
   return{excluded};

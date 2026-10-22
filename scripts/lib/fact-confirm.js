@@ -15,7 +15,8 @@ const safeText = (value, length) => redactSecrets(typeof value === 'string' ? va
 const CONFIRM_RULES = '数の主張の正しい・誤りで、資料に直接ない数字が資料の数字や記事の前提から計算で出るときだけ、calculationに「式=結果」の文字列を最大3件書いてください。使えるのは数と + − × ÷ ( )、日付 ± N日です。例: ["1月1日−15日=12月17日","200万円×15%−200万円×10%=10万円","330,000円÷100=3,300円"]。記載なしは税の制度の具体（税額・税率・控除額・限度額・期限・適用年・対象者や要件の条件・届出や申請の様式名・手続の順序）だけに使ってください。会計・計算の一般の説明（売上原価＝期首＋仕入−期末など）、言葉の意味、記事の想定読者や構成の説明は、資料になくても記載なしにせず判断できないとしてください。';
 const subjectKey = finding=>subjectWithoutTrailingParens(String(finding.subject || '')).trim();
 function sharedItems(items) {
-  return items.map(item=>({...item,pages:[...new Map(items.filter(other=>other.finding.sentence===item.finding.sentence ||
+  // 同じ文は一緒に提示するが、使える資料の共有は同じ制度だけに限る。
+  return items.map(item=>({...item,pages:[...new Map(items.filter(other=>other===item ||
     (subjectKey(item.finding)&&subjectKey(item.finding)===subjectKey(other.finding))).flatMap(other=>other.pages).map(page=>[page.id,page])).values()]}));
 }
 // 後段の歯止めでも最初の診断と元の答えを失わない。
