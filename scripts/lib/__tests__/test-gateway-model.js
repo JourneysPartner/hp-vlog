@@ -248,6 +248,7 @@ async function main() {
     assert.equal(requests[0].body.max_tokens, 1234);
   });
   await test('R9', '日次の本文生成はGatewayの鍵だけで実行でき、提供元をログに出す', async () => {
+    process.env.FACT_PLAN_ENABLED = 'false'; // 本文生成の既存の1回呼び出しを確かめる。
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gateway-key-only-'));
     process.env.CONTENT_MODEL_PROVIDER = 'gateway'; process.env.CONTENT_MODEL = 'deepseek/deepseek-v4.1-flash-1017';
     reply = () => success('---\ntitle: "確認する書類と手続き"\nsummary: "必要な書類を確認します。"\n---\n\n## 書類\n\n' + '確認する書類です。'.repeat(550));

@@ -23,6 +23,7 @@ const {
 const bannedPhrasesLib = require('./banned-phrases');
 const { buildTaxPeriodBlock } = require('./current-tax-period');
 const { formatReplacementFrontmatter } = require('./replaces');
+const { WRITER_RULES } = require('./grounding-rules');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
@@ -45,9 +46,10 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
     ? `\n\n═══ この記事に必ず適用する論点別ルール（正確性・最優先）═══\n${conditionalRules.join('\n\n')}`
     : '';
 
-  const sourceInstruction = topic.source_url
+  const sourceInstruction = (topic.source_url
     ? `出典として「${topic.source_title || ''}」（${topic.source_url}）を参照すること`
-    : 'source_url / source_title は空文字のまま出力（本文では「国税庁によると」等の一般表現に留める）';
+    : 'source_url / source_title は空文字のまま出力（本文では「国税庁によると」等の一般表現に留める）') +
+    ([ntaRefsBlock, lawChangesBlock].some(block => block?.includes(WRITER_RULES[0])) ? '' : '\n' + WRITER_RULES.join('\n'));
 
   // 参考タイトル: curated トピックには人間が書いた title が、
   // 拡張シナリオでは空文字が入る。LLM はこれを「ヒント」として扱い、

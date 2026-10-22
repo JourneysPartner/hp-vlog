@@ -6,4 +6,10 @@ const DEADLINE_RULE = '添付資料に適用期限（「〜までの贈与」「
 const LAW_SCOPE_RULE = '条文の括弧書き・ただし書きは、その条の主語・対象に限って読むこと。別の場面（例: 建替え中）に当てはめるときは、その場面を定めた通達・施行令が添付されている場合だけにすること';
 const SOURCE_UNCONFIRMED_RULE = '- このテーマは論点に対応する出典が未確定です。特定の国税庁ページを「〜によれば」と根拠に挙げて断定しないでください。制度の一般的な説明にとどめ、断定が必要な箇所は「国税庁の公表資料をご確認ください」等の表現にしてください\n' + UNSOURCED_RULE;
 
-module.exports = { UNSOURCED_RULE, DEADLINE_RULE, LAW_SCOPE_RULE, SOURCE_UNCONFIRMED_RULE };
+const MAIN_REQUIREMENTS_RULE = '制度ごとに、資料に書かれている主な要件（対象者・主な金額・期限など）だけを書く。例外・ただし書き・付随する細かい条件・手続の細部・添付書類は書かず、「詳しい要件は国税庁の〇〇で確認」とする。';
+const NO_DERIVED_CRITERIA_RULE = '「〜なら有利」「〜を超えたら〜を選ぶ」のような判断の目安・基準は、資料に書かれているものだけを書く。資料の数字から自分で目安を作らない。比べるときは資料の数字と、その数字を使った試算だけで示す。';
+const CALCULATION_RULE = '資料の数字から計算した数字（納税額・控除後の金額・差額など）は、「試算」「計算例」と明記した見出しや表の中に、計算式が分かる形で書く。計算に使った制度の数字（税率・控除額・みなし仕入率など）は資料のとおりに書く。';
+const WRITER_RULES = [MAIN_REQUIREMENTS_RULE, NO_DERIVED_CRITERIA_RULE, CALCULATION_RULE];
+
+module.exports = { UNSOURCED_RULE, DEADLINE_RULE, LAW_SCOPE_RULE, SOURCE_UNCONFIRMED_RULE,
+  MAIN_REQUIREMENTS_RULE, NO_DERIVED_CRITERIA_RULE, CALCULATION_RULE, WRITER_RULES };

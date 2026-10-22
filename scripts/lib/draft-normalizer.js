@@ -272,6 +272,10 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic, summ
   const sourceSupplementFm = sourceSupplementLines.length > 0
     ? `\n${sourceSupplementLines.join('\n')}` : '';
   if (topic.materials_warning) reviewWarning = [reviewWarning, topic.materials_warning].filter(Boolean).join(' / ');
+  const plan = require('./article-plan');
+  const planMetadata = plan.enabled() && ['ok', 'failed'].includes(topic.fact_plan_status)
+    ? plan.META_FIELDS.map(key => `\n${key}: "${escFm(topic[key] || '')}"`).join('') : '';
+  if (planMetadata) reviewWarning = [reviewWarning, plan.planWarning(topic)].filter(Boolean).join(' / ');
 
   return `---
 title: "${escFm(title)}"
@@ -290,7 +294,7 @@ source_provenance: "${escFm(topic.source_provenance || 'unknown')}"
 source_confidence: ${sourceConfidence}
 source_term: "${escFm(topic.source_term || '')}"
 source_guard_version: 1${sourceSupplementFm}
-source_bundle: "${escFm(topic.source_bundle || '')}"
+source_bundle: "${escFm(topic.source_bundle || '')}"${planMetadata}
 tax_terms: "${escFm(topic.tax_terms || '')}"
 search_intent: "${escFm(topic.search_intent || '')}"
 reader_problem: "${escFm(topic.reader_problem || '')}"

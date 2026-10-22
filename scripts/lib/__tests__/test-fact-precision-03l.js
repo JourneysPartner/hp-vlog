@@ -214,7 +214,7 @@ async function main() {
     const rejected = await giftRepair('国税庁で確認してください。', { sentence });
     assert.equal(rejected.body, rejected.before); assert.equal(rejected.record.corrections[0].reason, '裏付けのある数字を消しています');
   });
-  await test('L3', '03uを記録し、03kの記録は差分照合で使い回さない', async () => {
+  await test('L3', 'plan2を記録し、03kの記録は差分照合で使い回さない', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03l-version-'));
     const sentence = '基礎控除は110万円です。', calls = [];
     const raw = `---\nslug: precision-version\nrecommendation: publish\n---\n${sentence}`;
@@ -224,12 +224,12 @@ async function main() {
     } });
     try {
       const initial = await F.checkArticle(raw, opts);
-      assert.equal(initial.record.logic_version, '03u'); assert.equal(initial.record.status, 'ok');
+      assert.equal(initial.record.logic_version, 'plan2'); assert.equal(initial.record.status, 'ok');
       const file = F.recordPath('precision-version', dir);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8')); prior.logic_version = '03k';
       fs.writeFileSync(file, JSON.stringify(prior)); calls.length = 0;
       const result = await F.checkArticle(raw, { ...opts, persist: false, previousRaw: raw });
-      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, '03u');
+      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2');
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });

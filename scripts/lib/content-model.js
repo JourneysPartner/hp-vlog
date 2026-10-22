@@ -21,7 +21,7 @@ const ANTHROPIC_VERSION       = '2023-06-01';
 // 照合の失敗理由は、鍵を含まない「状態番号・エラーの種類・短い説明」だけに絞って残す。
 function redactSecrets(text) {
   let out = String(text || '');
-  for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY]) {
+  for (const key of [process.env.ANTHROPIC_API_KEY, process.env.OPENAI_API_KEY, process.env.AI_GATEWAY_API_KEY]) {
     if (key && key.length >= 8) out = out.split(key).join('[秘匿]');
   }
   return out
@@ -455,6 +455,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
           'anthropic-version': ANTHROPIC_VERSION,
         },
         body: JSON.stringify(req),
+        ...(opts.signal ? { signal: opts.signal } : {}),
       });
       if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
       const data = await res.json();

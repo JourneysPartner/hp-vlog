@@ -8,12 +8,18 @@ const matter = require('gray-matter');
 const contentModel = require('./content-model');
 const partial = require('./partial-revise');
 const { searchEvidence } = require('./fact-evidence');
+const { writerMaterials, materialFingerprint, searchWriterEvidence, resolveMaterial, materialId, resolveWriterMaterials } = require('./writer-materials');
 const { positiveLimit } = require('./source-excerpt');
 const { LAW_SCOPE_RULE } = require('./grounding-rules');
 const { tokenizeForMatcher } = require('./nta-source-matcher');
 const { splitUnits, renderUnits, rangeText, unitNumber, basisRanges } = require('./fact-units');
 const { buildPages, pageGroups } = require('./fact-pages');
 const TYPES = ['金額', '期限', '割合', '適用年', '番号', '要件', '判定', '手続'];
+// 歯止めの延期は段A/Bの内部だけで許可し、通常の呼び出しから無効化させない。
+const STAGE_TALLY = Symbol('段A/Bの採用した答え');
+const JUDGE_RETRIED = Symbol('判定の聞き直し済み');
+const REPAIR_RETRIED = Symbol('修正の直し済み');
+const EXTRACT_RETRIED = Symbol('抜き出し直し済み');
 // 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
 const TYPE_ALIASES = new Map([
   ...['対象・条件', '対象', '条件', '対象者', '要件・条件'].map(label => [label, '要件']),
@@ -31,8 +37,8 @@ const WARNING_RE = /【事実の照合】[\s\S]*?【\/事実の照合】/g;
 function config(options = {}) {
   const provider = options.provider || process.env.FACT_CHECK_PROVIDER || 'anthropic';
   const model = options.model || process.env.FACT_CHECK_MODEL || 'claude-opus-5-5';
-  const effort = (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
-  const extractEffort = (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
+  const effort = provider === 'gateway' ? null : (options.effort ?? process.env.FACT_CHECK_EFFORT) || null;
+  const extractEffort = provider === 'gateway' ? null : (options.extractEffort ?? process.env.FACT_CHECK_EXTRACT_EFFORT) || effort;
   const poll = options.batchPollSeconds ?? process.env.FACT_CHECK_BATCH_POLL_SECONDS;
   return { provider, model, extractModel: options.extractModel || process.env.FACT_CHECK_EXTRACT_MODEL || model, effort, extractEffort,
     modelOptions: effort === null ? {} : { output_config: { effort } },
@@ -42,9 +48,10 @@ function config(options = {}) {
     batchPollMs: (poll !== undefined && poll !== '' && Number.isFinite(Number(poll)) ? Math.max(5, Number(poll)) : 30) * 1000,
     enabled: options.enabled ?? (process.env.FACT_CHECK_ENABLED !== 'false'),
     failOpen: options.failOpen ?? (process.env.FACT_CHECK_FAIL_OPEN === 'true'),
-    maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, 40),
+    maxClaims: positiveLimit(options.maxClaims ?? process.env.FACT_CHECK_MAX_CLAIMS, writerMaterials(options).length ? 80 : 40),
     maxNumericClaims: positiveLimit(options.maxNumericClaims ?? process.env.FACT_CHECK_MAX_NUMERIC_CLAIMS, 120),
-    timeoutMs: positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000) };
+    timeoutMs: provider === 'gateway' ? Math.min(900000, positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 900000))
+      : positiveLimit(options.timeoutMs ?? process.env.FACT_CHECK_TIMEOUT_MS, 600000) };
 }
 
 function normalizeBody(body) {
@@ -406,14 +413,19 @@ function isScenarioAmount(c) {
 async function extractClaims(body, callLLM, options = {}) {
   const units = splitUnits(body);
   if (!units.length) return { claims: [], dropped: 0, discarded: 0, droppedClaims: [], discardedClaims: [] };
-  const read = async rows => parseJson(await callLLM({ task: 'extract', maxTokens: 8000,
+  const enhanced = writerRefs(options).length > 0;
+  const read = async rows => {
+    const request = { task: 'extract', maxTokens: 8000,
     system: '記事本文から税務の事実を述べた文を漏れなく抜き出してください。出力は JSON 配列だけです。要件・金額・割合・期限・適用年・手続・番号・判定を対象にします。type は次の8語のどれか1語をそのまま書いてください: 要件・金額・割合・期限・適用年・手続・番号・判定。要件は対象・条件、期限は保存期間を含む、手続は届出・申請・選択、番号は条文・通達・タックスアンサーのことです。s は主張を述べた本文の文の番号、subject は制度名・論点名（かっこの補足を付けない）、claim は主張の1文要約です。claim は60文字以内にしてください。想定と明示された設例の金額は対象外です。ただし設例中でも税率・控除額など制度の数値は対象です。制度を説明する文には、期限を書いていなくても要件や判定の主張を作り、期限の書き漏れを判定できるようにしてください。番号だけの引用も対象です。形は [{s,type,subject,claim}] です。',
     user: renderUnits(rows),
-  }));
+    };
+    if (enhanced) request.system += '\n' + CALCULATED_CLAIM_RULE + '\n' + MISCONCEPTION_EXTRACT_RULE;
+    return parseJson(await callLLM(request));
+  };
   let data;
   try { data = await read(units); }
   catch (error) {
-    if (!(error instanceof SyntaxError)) throw error;
+    if (!(error instanceof SyntaxError) || options[EXTRACT_RETRIED]) throw error;
     const boundaries = units.filter(u => u.heading && u.start > 0).map(u => u.start);
     if (!boundaries.length) throw error;
     const at = boundaries.reduce((best, next) => Math.abs(next - body.length / 2) < Math.abs(best - body.length / 2) ? next : best);
@@ -433,6 +445,7 @@ async function extractClaims(body, callLLM, options = {}) {
   const seen = new Set();
   const discardedClaims = [];
   const valid = [];
+  let calculatedSkipped = 0;
   const fields = c => ({ ...Object.fromEntries(['sentence', 'heading', 'type', 'subject', 'claim'].map(key => [key, typeof c?.[key] === 'string' ? c[key] : ''])),
     ...(typeof c?.type_label === 'string' ? { type_label: c.type_label } : {}), ...(Number.isInteger(c?.s) ? { s: c.s } : {}) });
   for (const original of data) {
@@ -466,6 +479,7 @@ async function extractClaims(body, callLLM, options = {}) {
     const heading = unit ? units.filter(u => u.heading && u.s < unit.s).at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '' : '';
     const resolved = { ...c, sentence, heading, s: unit?.s };
     if (unit && isScenarioAmount(resolved)) continue;
+    if (unit && enhanced && isCalculatedClaim(resolved)) { calculatedSkipped++; continue; }
     if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') {
       discardedClaims.push({ ...fields({ ...c, sentence: sentence || (typeof c?.claim === 'string' ? c.claim : '') }), status: sentence ? '主張の形式が不正' : '本文に見つからない' });
       continue;
@@ -473,6 +487,32 @@ async function extractClaims(body, callLLM, options = {}) {
     const key = claimKey(resolved);
     if (seen.has(key)) continue;
     seen.add(key); valid.push(resolved);
+  }
+  if (enhanced && !options[EXTRACT_RETRIED]) {
+    const targets = [...new Set(discardedClaims.filter(c => c.status === '主張の形式が不正').map(c => c.s))];
+    // 同じ文は一度だけ。最大10文ずつ・3回で、失敗分と上限の外は未照合のまま残す。
+    for (let i = 0; i < Math.min(targets.length, 30); i += 10) {
+      const numbers = new Set(targets.slice(i, i + 10));
+      const selected = units.filter(u => !u.heading && numbers.has(u.s));
+      if (!selected.length) continue;
+      try {
+        const retry = await extractClaims(body, async request => {
+          const rows = parseJson(await callLLM({ ...request, task: 'retry_extract', immediate: true, user: renderUnits(selected) }));
+          if (!Array.isArray(rows)) throw new Error('主張一覧が不正です');
+          return rows.filter(c => numbers.has(unitNumber(c?.s)));
+        }, { ...options, [EXTRACT_RETRIED]: true });
+        const recovered = [...retry.claims, ...retry.droppedClaims].filter(c => numbers.has(c.s));
+        for (let j = discardedClaims.length - 1; j >= 0; j--) {
+          const c = discardedClaims[j], own = recovered.filter(r => r.s === c.s);
+          if (!numbers.has(c.s) || c.status !== '主張の形式が不正' || !own.length) continue;
+          const needed = normalizedNumbers(c.claim), found = own.flatMap(r => normalizedNumbers(r.claim));
+          // 文全体の数字ではなく、拾い直した要約に実際に含まれる数字だけで回復を確かめる。
+          if (!needed.includes(null) && needed.every(n => found.includes(n))) discardedClaims.splice(j, 1);
+        }
+        calculatedSkipped += retry.calculated_skipped || 0;
+        for (const { id, status, ...c } of recovered) if (!seen.has(claimKey(c))) { seen.add(claimKey(c)); valid.push(c); }
+      } catch (_) { /* 抜き出し直せない主張は、元の未照合として残す。 */ }
+    }
   }
   const max = positiveLimit(options.maxClaims, 40);
   const maxNumeric = positiveLimit(options.maxNumericClaims, 120);
@@ -484,7 +524,8 @@ async function extractClaims(body, callLLM, options = {}) {
   const kept = new Set(chosen);
   const droppedClaims = valid.filter(c => !kept.has(c)).map(c => ({ ...fields(c), status: '上限で未照合' }));
   return { claims: chosen.map((c, i) => ({ id: `c${i + 1}`, ...fields(c) })),
-    dropped: droppedClaims.length, discarded: discardedClaims.length, droppedClaims, discardedClaims };
+    dropped: droppedClaims.length, discarded: discardedClaims.length, droppedClaims, discardedClaims,
+    ...(enhanced ? { calculated_skipped: calculatedSkipped } : {}) };
 }
 
 // 同じ文・種類・制度名でも、要約の数字が違えば別の主張（例: 48万円 と 2,400万円）。
@@ -494,18 +535,123 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = '03u';
+const LOGIC_VERSION = 'plan2';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
 
 function blockingFinding(c) {
-  return c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
+  return !c.correct_requires_review && c.status !== '裏付けあり' && !(c.status === '資料なし' && (REVIEW_TYPES.has(c.type) || (NUMERIC_TYPES.has(c.type) && !isNumericClaim(c))));
 }
 
 // 候補外の兄弟制度から数字や修正内容を持ち込まない。
 function canUseOutsideEvidence(claim, status) {
   return status === '裏付けあり' && REVIEW_TYPES.has(claim.type);
+}
+
+function writerRefs(options) {
+  const ids = writerMaterials(options);
+  return ids.length ? options.resolvedWriterMaterials || resolveWriterMaterials(ids) : [];
+}
+
+/** 候補外の緩和は、解決できた書き手の資料かつ制度の関連がある原文だけ。 */
+function canUseWriterEvidence(claim, status, ref, refs) {
+  if (!ref || isNumericClaim(claim) || !['裏付けあり', '食い違い', '期限の書き漏れ'].includes(status)) return false;
+  const own = refs.find(e => e.id === ref.id || (materialId(e) && materialId(e) === materialId(ref)));
+  if (!own || own.kind === 'change') return false;
+  const text = own.kind === 'taxanswer' ? own.text.split('関連リンク')[0] : own.text;
+  return [1, 3].includes(require('./article-plan').relevantMaterial(claim.subject, own, text).condition);
+}
+
+const CALCULATED_CLAIM_RULE = '「試算」「計算例」と明記した見出し・表・文の中で、資料の数字から計算した結果の金額のうち、要約に計算式（×・÷・＝・=）があるものだけを主張から外す。割合・期限・適用年・番号は外さない。計算に使った制度の数字（税率・控除額・みなし仕入率など）は主張にする。';
+const MISCONCEPTION_EXTRACT_RULE = '「よくある誤解」「NG例」「〜と考えるのは誤り」のように、誤りの例として書かれた文は、その文が伝えたい正しい内容（例: 「〜にはならない」）をclaimにする。';
+const MISCONCEPTION_CONTEXT_RULE = '記事の文が誤りの例（『よくある誤解』『NG例』『〜と考えるのは誤り』など）として書かれている場合は、その文の主張は「その考えは誤り」である。直前の見出しと前後の文を踏まえて判断する。';
+function isCalculatedClaim(c) {
+  return c.type === '金額' && /試算|計算例/.test(`${c.heading} ${c.sentence}`) && /[×÷＝=]/.test(c.claim);
+}
+
+const CONDITION_SYSTEM = '記事の文が、根拠の文と同じ条件を述べているかを確かめます。記事の文に書かれた条件（誰が・誰に・年齢・続柄・「かつ」と「または」・日付や期限・金額・回数・場所）を1つずつ挙げ、根拠の文での書き方と比べてください。言い換えは一致としてよい。ただし、対象が広がる・狭まる、「かつ」と「または」の取り違え、対象者や条件の追加・欠落、日付・期限・金額の違いは不一致です。根拠の文に書かれていない条件は記載なしです。記事の文が根拠の文の条件の一部だけを書いていて、書いた部分が正しいなら一致です（書いていない条件があるだけでは不一致にしない）。ただし、書いていない条件のせいで記事の文が誤った意味になる場合（例: 「AかつB」が要件なのに「Aなら対象」と書く）は不一致です。不一致のときは correct に、根拠の文に合わせて記事の文を直した文（記事の文と同じ形・長さ）を書いてください。出力はJSONだけ: {"conditions":[{"article":"記事の条件","source":"根拠での書き方","match":"一致|不一致|記載なし"}],"verdict":"一致|不一致|記載なし","correct":"不一致のときだけ"}';
+
+function sentenceContext(body, sentence) {
+  const units = splitUnits(body), at = units.findIndex(u => !u.heading && u.text === sentence);
+  const previous = units.slice(0, at), next = units.slice(at + 1);
+  return { heading: previous.filter(u => u.heading).at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '',
+    prev: previous.filter(u => !u.heading).at(-1)?.text || '', next: next.find(u => !u.heading)?.text || '' };
+}
+
+function normalizedCondition(value) {
+  // 小数点・正負の符号は条件の数字の一部なので、句読点として消さない。
+  return normalizedClaim(value).replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')
+    .replace(/[、。!?「」『』（）()]/g, '').replace(/(?<!\d)[.,]|[.,](?!\d)/g, '');
+}
+
+function substantiveCondition(row) {
+  const meaning = value => normalizedCondition(value).replace(/直接|原則|など/g, '');
+  if (meaning(row.article) === meaning(row.source)) return false;
+  return row.match === '不一致' && /対象|贈与者|受贈者|相続人|法人|個人|事業者|申請者|納税者|従業員|役員|本人|歳|年齢|子|孫|父母|祖父母|配偶者|続柄|直系|卑属|尊属|かつ|または|及び|又は|年|月|日|期限|金額|円|万円|回|場所|居住|住所|住宅|土地|都|道|府|県|市|区|町|村|国内|国外|海外|税務署|以上|以下|未満|超|でき|出来|戻れ|ません|ない|届出|申請|承認|申告者|要件/.test(`${row.article} ${row.source}`);
+}
+
+function canFinalizeStageA(claim, candidates) {
+  const ref = claim.evidence.find(e => e.id === claim.evidence_id);
+  if (!ref) return false;
+  if (ref.id === candidates[0]?.id) return true;
+  const relevance = e => require('./article-plan').relevantMaterial(claim.subject, e,
+    e.kind === 'taxanswer' ? (e.text || '').split('関連リンク')[0] : e.text || '').condition;
+  const match = relevance(ref);
+  // 一般的な制度名が兄弟ページの題名にも当たる条件3は、一意に結びつく場合だけ採る。
+  return match === 1 || (match === 3 && !candidates.some(e => e.id !== ref.id && [1, 3].includes(relevance(e))));
+}
+
+function sentenceWords(claim) {
+  const subject = tokenizeForMatcher(claim.subject || '');
+  return [...tokenizeForMatcher(claim.sentence)].filter(word => !subject.has(word));
+}
+
+function unrelatedCorrect(claim, correct) {
+  const words = sentenceWords(claim), after = tokenizeForMatcher(correct);
+  return words.length > 0 && words.filter(word => after.has(word)).length < words.length * 0.3;
+}
+
+async function checkConditions(claims, call, addReviewItem, options, body, stage, evidence) {
+  const items = claims.filter(c => c.status === '裏付けあり' && REVIEW_TYPES.has(c.type));
+  for (let i = 0; i < items.length; i += 4) await Promise.all(items.slice(i, i + 4).map(async c => {
+    try {
+      const ret = await call({ task: 'condition_check', immediate: true, maxTokens: 4000,
+        system: CONDITION_SYSTEM + '\n「直接」「原則」「など」のような言い回しの有無や、より詳しい書き方への言い換えは一致とする。対象者・年齢・続柄・「かつ」と「または」・日付や期限・金額・回数・場所に加え、肯定と否定・範囲の向き・届出と申請や承認の違い、誤った意味になる要件の欠落も不一致とする。\n' + MISCONCEPTION_CONTEXT_RULE,
+        user: JSON.stringify({ article: c.sentence, source: c.quote, ...sentenceContext(body, c.sentence) }) });
+      const text = String(typeof ret === 'string' ? ret : ret?.text || '').trim();
+      const data = ret?.verdict ? ret : JSON.parse(text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] || text);
+      if (!['一致', '不一致', '記載なし'].includes(data?.verdict) || !Array.isArray(data.conditions)) throw new Error('条件確認の形が不正');
+      c.condition_check = { verdict: data.verdict, conditions: data.conditions.slice(0, 12).map(row => ({
+        article: String(row.article || '').slice(0, 160), source: String(row.source || '').slice(0, 160),
+        match: ['一致', '不一致', '記載なし'].includes(row.match) ? row.match : '記載なし',
+      })) };
+      if (data.verdict !== '不一致') return;
+      const correct = typeof data.correct === 'string' ? data.correct.trim() : '';
+      if (!c.condition_check.conditions.some(substantiveCondition) || normalizedCondition(correct) === normalizedCondition(c.sentence)) {
+        addReviewItem({ ...c, status: '条件の違いを要確認' }); return;
+      }
+      const ref = c.evidence.find(e => e.id === c.evidence_id);
+      const numbers = normalizedNumbers(numberCheckText(correct, ref));
+      const allowed = (!c.evidence_outside_candidates || canUseWriterEvidence(c, '食い違い', ref, writerRefs(options))) &&
+        (stage !== 'A' || canFinalizeStageA(c, evidence[c.id]));
+      if (correct && unrelatedCorrect(c, correct)) { addReviewItem({ ...c, status: '条件の違いを要確認', correct }); return; }
+      if (allowed && correct && !numbers.includes(null) && (!numbers.length || quoteSupportsNumbers(numbers, c, ref))) {
+        c.status = '食い違い'; c.correct = correct; c.condition_mismatch = true;
+      } else addReviewItem({ ...c, status: '条件の違いを要確認' });
+    } catch (_) { c.condition_check = { verdict: '確認できません', conditions: [] }; }
+  }));
+}
+
+/** 修正で変えていない数字だけの新たな資料なしは、その修正の失敗とは数えない。 */
+function unchangedNumericClaim(finding, claim, replacement, originals) {
+  if (claim.status !== '資料なし' || !NUMERIC_TYPES.has(claim.type)) return false;
+  if (!normalizedClaim(claim.sentence) || !normalizedClaim(replacement).includes(normalizedClaim(claim.sentence))) return false;
+  const numbers = normalizedNumbers(claim.claim), before = normalizedNumbers(finding.sentence), after = normalizedNumbers(replacement);
+  if (!numbers.length || numbers.includes(null) || !numbers.every(n => before.includes(n) && after.includes(n))) return false;
+  const prior = originals.filter(c => c.type === claim.type && c.subject === claim.subject &&
+    JSON.stringify(normalizedNumbers(c.claim)) === JSON.stringify(numbers));
+  return !prior.length || prior.every(c => c.status === '裏付けあり');
 }
 
 function sourceDate(version) {
@@ -517,6 +663,8 @@ function sourceDate(version) {
 }
 
 async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
+  const ownWriter = writerRefs(options);
+  const ownTally = ownWriter.length && !options[STAGE_TALLY];
   const results = new Map(), queued = [];
   const units = splitUnits(body);
   for (const c of claims) {
@@ -527,7 +675,8 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       status: '資料なし', quote: '', correct: '', evidence: [], evidence_id: '' });
     else queued.push(c);
   }
-  const deadlineSubjects = new Set();
+  const stageTally = options[STAGE_TALLY] || (ownTally ? { answers: new Map(), deadlineSubjects: new Set() } : null);
+  const deadlineSubjects = stageTally?.deadlineSubjects || new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
   const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
@@ -581,7 +730,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       });
       if (['max_tokens', 'length'].includes(ret?.stopReason) || ret?.stop_reason === 'max_tokens') throw new SyntaxError('判定の出力が上限に達しました');
       // 答えの形が想定と違うときに原因を追えるよう、先頭だけログに残す（公開資料に基づく判定で秘密情報は含まない）。
-      console.log(`[fact-check] 判定の出力（先頭）: ${String(typeof ret === 'string' ? ret : Array.isArray(ret) ? JSON.stringify(ret) : ret?.text || '').slice(0, 1500)}`);
+      if (!ownWriter.length && (options.provider || process.env.FACT_CHECK_PROVIDER) !== 'gateway') console.log(`[fact-check] 判定の出力（先頭）: ${String(typeof ret === 'string' ? ret : Array.isArray(ret) ? JSON.stringify(ret) : ret?.text || '').slice(0, 1500)}`);
       data = parseJson(ret);
     } catch (error) {
       if (!(error instanceof SyntaxError) || depth >= 3 || batch.length < 2) throw error;
@@ -596,6 +745,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
     if (!Array.isArray(data)) throw new Error('判定結果が不正です');
     tally.total += batch.length;
     for (const c of batch) {
+      const beforeTally = { ...tally, samples: tally.samples.length };
       const rows = data.filter(r => String(r?.id ?? '') === c.id);
       const r = rows.length === 1 ? rows[0] : null;
       let status = STATUSES.includes(r?.status) ? r.status : '資料なし';
@@ -608,7 +758,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const evidenceNo = unitNumber(r?.evidence_id);
       const citedPage = evidenceNo ? pages.find(p => p.number === evidenceNo) : null;
       const inCandidates = citedPage && candidates.some(e => e.id === citedPage.id);
-      const page = inCandidates || canUseOutsideEvidence(c, status) ? citedPage : null;
+      const page = inCandidates || canUseOutsideEvidence(c, status) || canUseWriterEvidence(c, status, citedPage?.ref, ownWriter) ? citedPage : null;
       const ranges = basisRanges(r?.basis);
       // 2範囲では各範囲の上限を先に守る。単一範囲の3〜4文に対する従来の救済は維持する。
       const maxUnits = ranges?.length === 2 && NUMERIC_TYPES.has(c.type) ? 2 : 4;
@@ -664,7 +814,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         } else deadlineSubjects.add(c.subject);
       }
       // 提示済み資料でも、引用と数字などの確認を通った場合だけ候補末尾へ加える。
-      const outsideCandidates = status === '裏付けあり' && page && !inCandidates;
+      const outsideCandidates = status !== '資料なし' && page && !inCandidates;
       if (outsideCandidates) candidates.push(page.ref);
       const date = ref && sourceDate(ref.law_version);
       const cutoff = new Date(options.now || new Date());
@@ -683,22 +833,60 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         } } : {}),
         ...(status === '裏付けあり' && date && date <= cutoff ? { warning: '注意: 根拠の基準日が古い' } : {}),
       });
+      if (stageTally) stageTally.answers.set(c.id, { total: 1,
+        declared: tally.declared - beforeTally.declared, rejected: tally.rejected - beforeTally.rejected,
+        missing: tally.missing - beforeTally.missing, samples: tally.samples.slice(beforeTally.samples) });
     }
-  };
-  const checkTally = () => {
-    const judged = tally.declared + tally.missing;
-    if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= tally.total)) {
-      console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
-      const error = new Error(`判定の答えの多くが確認を通りません（落とした ${tally.rejected}/${tally.declared}・答え無し ${tally.missing}/${judged}）`);
-      error.diagnostic = error.message;
-      throw error;
+    if (ownWriter.length && !options[JUDGE_RETRIED]) {
+      const eligible = new Set(['引用が資料に無い', '引用が短い・数字が引用の近くに無い', '根拠の文の番号が読めない・範囲外', '数字の主張の根拠が2文を超える', '正しい内容が空']);
+      const rejected = batch.filter(c => eligible.has(results.get(c.id)?.reject_reason) && results.get(c.id)?.rejected_answer);
+      const pack = { pages, block: pages.map(p => p.block).join('\n\n') };
+      for (let i = 0; i < rejected.length; i += 10) {
+        const items = rejected.slice(i, i + 10);
+        const previousTally = new Map(items.map(c => [c.id, stageTally.answers.get(c.id)]));
+        const previousDeadlines = new Set(stageTally.deadlineSubjects);
+        try {
+          const retried = await judgeClaims(items, evidence, body, req => callLLM({ ...req, task: 'retry_judge', immediate: true,
+            user: JSON.stringify({ ...JSON.parse(req.user), retry: items.map(c => ({ id: c.id, reason: results.get(c.id).reject_reason,
+              answer: data.find(r => String(r?.id ?? '') === c.id) })),
+              instruction: '前回の答えは示した理由のため採れませんでした。引用する文の番号と、correct の数字は引用の文にある数字だけで書き直してください。' }) }),
+          { ...options, [JUDGE_RETRIED]: true, [STAGE_TALLY]: stageTally, batch: null,
+            pageCache: { groups: [{ pack, staticSystem: instruction + example + '\n\n' + pack.block, claims: [] }] } });
+          for (const c of retried) {
+            if (c.status !== '資料なし') results.set(c.id, c);
+            else stageTally.answers.set(c.id, previousTally.get(c.id));
+          }
+        } catch (_) {
+          for (const [id, row] of previousTally) stageTally.answers.set(id, row);
+          stageTally.deadlineSubjects.clear();
+          for (const subject of previousDeadlines) stageTally.deadlineSubjects.add(subject);
+        } // 聞き直せなくても、元の資料なしとその歯止めを維持する。
+      }
     }
   };
   for (const group of groups) if (group.claims.length) await judgeBatch(group.claims, group);
-  // 答えの多くが確認を通らない・返らないのは、答えの形の不一致などの不具合の疑いが強い。
-  // そのまま進むと正しい数字まで資料なしとして置き換えてしまうため、照合不能として止める（fail-closed）。
-  checkTally();
+  // 段A/Bは採用した答えの合計で同じ歯止めを掛ける。従来経路はこの場で確かめる。
+  if (!stageTally) checkTally(tally, options);
+  else if (ownTally) checkTally(mergeTally(stageTally.answers), options);
   return claims.map(c => results.get(c.id)).filter(Boolean);
+}
+
+function mergeTally(answers) {
+  const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
+  for (const row of answers.values()) {
+    for (const key of ['declared', 'rejected', 'missing', 'total']) tally[key] += row[key];
+    tally.samples.push(...row.samples);
+  }
+  return tally;
+}
+function checkTally(tally, options = {}) {
+  const judged = tally.declared + tally.missing;
+  if ((tally.rejected >= 3 && tally.rejected * 2 >= tally.declared) || (tally.missing >= 3 && tally.missing * 2 >= tally.total)) {
+    if ((options.provider || process.env.FACT_CHECK_PROVIDER) !== 'gateway') console.warn(`[fact-check] 確認で落とした答えの例: ${JSON.stringify(tally.samples).slice(0, 1500)}`);
+    const error = new Error(`判定の答えの多くが確認を通りません（落とした ${tally.rejected}/${tally.declared}・答え無し ${tally.missing}/${judged}）`);
+    error.diagnostic = error.message;
+    throw error;
+  }
 }
 
 function sentenceRows(body) {
@@ -833,15 +1021,17 @@ function correctionPairs(before, after, findings, replacements) {
 }
 
 async function repairBody(body, findings, callLLM, options = {}) {
+  const enhanced = writerRefs(options).length > 0;
   const units = splitUnits(body);
-  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, correct, quote, instruction, keep = [], keep_numbers }) => {
+  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, subject, correct, quote, instruction, keep = [], keep_numbers }) => {
     const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
-      status, type, correct, quote, instruction, keep, ...(keep_numbers ? { keep_numbers } : {}) };
+      status, type, correct, quote, instruction: instruction + (enhanced && status === '食い違い' ? '。元の文の話題・役割（例・注意・手順など）は変えず、誤りの部分だけを直す' : ''),
+      keep, ...(keep_numbers ? { keep_numbers } : {}), ...(enhanced ? { subject, ...sentenceContext(body, sentence) } : {}) };
   });
   const ret = await callLLM({ task: 'repair', maxTokens: 8000,
-    system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。',
+    system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。' + (enhanced ? '\n' + MISCONCEPTION_CONTEXT_RULE : ''),
     user: JSON.stringify({ corrections }),
   });
   let data;
@@ -862,6 +1052,10 @@ async function repairBody(body, findings, callLLM, options = {}) {
     else if (/[\r\n]/.test(rows[0].replacement) || /(^|\s)#{1,6}\s/.test(replacement)) reason = '改行または見出しを含んでいます';
     else if (replacement.length > f.sentence.length * 3 && replacement.length > 200) reason = '置き換え後の文が長すぎます';
     else if (f.sentence.startsWith('|') && (replacement.match(/\|/g) || []).length !== (f.sentence.match(/\|/g) || []).length) reason = '表の列数が変わっています';
+    if (!reason && enhanced && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
+      const before = sentenceWords(f), after = tokenizeForMatcher(replacement);
+      if (before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
+    }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
       const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
@@ -874,23 +1068,45 @@ async function repairBody(body, findings, callLLM, options = {}) {
       if (originalNumbers.includes(null) && (keep.length || f.supported_numbers?.length)) reason = '数字を読めないため確かめられません';
       else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
       else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
+      else if (enhanced && REVIEW_TYPES.has(f.type) && revisedNumbers.some(n => !keepNumbers.includes(n))) reason = '資料の無い数字が残っています';
     }
     if (reason) rejected.set(f.id, reason);
     else replacements.set(f.id, replacement);
   }
-  for (const f of findings) if (rejected.has(f.id)) for (const same of findings.filter(r => r.sentence === f.sentence)) {
-    replacements.delete(same.id);
-    if (!rejected.has(same.id)) rejected.set(same.id, '同じ文の別の指摘の置き換えを採れませんでした');
+  const checkSentences = () => {
+    for (const f of findings) if (rejected.has(f.id)) for (const same of findings.filter(r => r.sentence === f.sentence)) {
+      replacements.delete(same.id);
+      if (!rejected.has(same.id)) rejected.set(same.id, '同じ文の別の指摘の置き換えを採れませんでした');
+    }
+    // 同じ文の複数の指摘から異なる置き換えが返った場合は、その文を維持する。
+    const bySentence = new Map();
+    for (const f of findings) if (replacements.has(f.id)) {
+      if (!bySentence.has(f.sentence)) bySentence.set(f.sentence, []);
+      bySentence.get(f.sentence).push(f);
+    }
+    for (const rows of bySentence.values()) if (new Set(rows.map(f => replacements.get(f.id))).size > 1) {
+      for (const f of rows) { replacements.delete(f.id); rejected.set(f.id, '同じ文の置き換えが一致しません'); }
+    }
+  };
+  checkSentences();
+  if (enhanced && !options[REPAIR_RETRIED]) {
+    const retryReasons = new Set(['置き換え後の文が元の文と同じです', '改行または見出しを含んでいます', '置き換え後の文が長すぎます', '表の列数が変わっています',
+      '裏付けのある数字を消しています', '資料の無い数字が残っています', '同じ文の別の指摘の置き換えを採れませんでした', '同じ文の置き換えが一致しません', '元の文の話題を残していません']);
+    const retry = findings.filter(f => retryReasons.has(rejected.get(f.id)));
+    if (retry.length) {
+      try {
+        const again = await repairBody(body, retry, req => callLLM({ ...req, task: 'retry_repair', immediate: true,
+          user: JSON.stringify({ ...JSON.parse(req.user), previous: retry.map(f => ({ id: f.id, replacement: data.find(r => r?.id === f.id)?.replacement || '', reason: rejected.get(f.id) })),
+            instruction: '前回の置き換えは示した理由のため採れませんでした。その指摘だけを直してください。同じ文の指摘はまとめて同じ1つの置き換えを返してください。' }) }),
+        { ...options, [REPAIR_RETRIED]: true });
+        if (again.accepted) for (const f of retry) {
+          if (again.rejected.has(f.id)) rejected.set(f.id, again.rejected.get(f.id));
+          else if (again.replacements.has(f.sentence)) { replacements.set(f.id, again.replacements.get(f.sentence)); rejected.delete(f.id); }
+        }
+      } catch (_) { /* 直しに失敗しても、採れない置き換えは元のまま残す。 */ }
+    }
   }
-  // 同じ文の複数の指摘から異なる置き換えが返った場合は、その文を維持する。
-  const bySentence = new Map();
-  for (const f of findings) if (replacements.has(f.id)) {
-    if (!bySentence.has(f.sentence)) bySentence.set(f.sentence, []);
-    bySentence.get(f.sentence).push(f);
-  }
-  for (const rows of bySentence.values()) if (new Set(rows.map(f => replacements.get(f.id))).size > 1) {
-    for (const f of rows) { replacements.delete(f.id); rejected.set(f.id, '同じ文の置き換えが一致しません'); }
-  }
+  if (enhanced) checkSentences();
   const edits = new Map(findings.filter(f => replacements.has(f.id)).map(f => [f.sentence, replacements.get(f.id)]));
   const intervals = units.filter(u => !u.heading && edits.has(u.text)).map(u => ({ at: u.start, end: u.end, replacement: edits.get(u.text) }));
   let revised = body;
@@ -906,30 +1122,47 @@ async function repairBody(body, findings, callLLM, options = {}) {
 }
 
 async function checkFacts(body, options = {}) {
-  const cfg = config(options);
+  const requestedWriterIds = writerMaterials(options);
+  const resolvedWriter = resolveWriterMaterials(requestedWriterIds);
+  const writerIds = resolvedWriter.length ? requestedWriterIds : [];
+  if (requestedWriterIds.length) options = { ...options, resolvedWriterMaterials: resolvedWriter };
+  const cfg = config(requestedWriterIds.length && !writerIds.length ? { ...options, writer_materials: [] } : options);
+  const unresolvedWriter = requestedWriterIds.length - resolvedWriter.length;
+  const unresolvedSummary = unresolvedWriter ? `・書き手の資料のうち引けない ${unresolvedWriter} 件` : '';
   const record = { version: 1, logic_version: LOGIC_VERSION, status: 'not_run', model: cfg.model, provider: cfg.provider,
     extract_model: cfg.extractModel, effort: cfg.effort, extract_effort: cfg.extractEffort, batch: cfg.batch,
     checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
-  if (!cfg.enabled) return { body, record };
+  if (requestedWriterIds.length) record.writer_materials = materialFingerprint(requestedWriterIds, resolvedWriter.length);
+  if (writerIds.length) {
+    record.stages = { A: { claims: 0, pages: 0, input_chars: 0 }, B: { claims: 0, pages: 0, input_chars: 0 } };
+    record.calculated_skipped = 0;
+  }
+  if (!cfg.enabled) { record.summary += unresolvedSummary; return { body, record }; }
   const validModel = model => (cfg.provider === 'anthropic' && /^claude-/.test(model)) ||
-    (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(model));
+    (cfg.provider === 'openai' && /^(gpt-|o[134](?:-|$))/.test(model)) ||
+    (cfg.provider === 'gateway' && /^[A-Za-z0-9._-]+\/[A-Za-z0-9._:-]+$/.test(model));
   if (!validModel(cfg.model) || !validModel(cfg.extractModel) ||
       [cfg.effort, cfg.extractEffort].some(e => e !== null && !['low', 'medium', 'high', 'xhigh', 'max'].includes(e))) {
-    record.summary = '照合のモデル設定が不正です';
+    record.summary = '照合のモデル設定が不正です' + unresolvedSummary;
     return { body, record };
   }
   const batch = cfg.batch ? contentModel.createBatchContext({ ...options.batchRuntime,
     maxWaitMs: cfg.batchMaxWaitMs, pollMs: cfg.batchPollMs }) : null;
-  const caller = options.callLLM || (async request => contentModel.generateContent({ staticSystem: request.task === 'extract' ? '' : request.staticSystem || request.system,
-    dynamicSystem: request.task === 'extract' ? request.system : '', user: request.user },
-    { provider: cfg.provider, model: request.model, modelOptions: request.task === 'extract' ? cfg.extractModelOptions : cfg.modelOptions, maxTokens: request.maxTokens,
-      fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch }));
+  const extracting = request => ['extract', 'retry_extract'].includes(request.task);
+  const caller = options.callLLM || (async request => cfg.provider === 'gateway'
+    ? require('./gateway-model').callGateway({ model: request.model, system: request.system, user: request.user, maxTokens: 64000,
+      task: (rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs })
+    : contentModel.generateContent({ staticSystem: extracting(request) ? '' : request.staticSystem || request.system,
+    dynamicSystem: extracting(request) ? request.system : '', user: request.user },
+    { provider: cfg.provider, model: request.model, modelOptions: extracting(request) ? cfg.extractModelOptions : cfg.modelOptions, maxTokens: request.maxTokens,
+      fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch: request.stageB || request.immediate ? null : batch }));
   let rechecking = false;
   const call = async request => {
-    const batching = batch && !batch.disabled;
-    const entry = { task: rechecking ? `recheck_${request.task}` : request.task,
-      model: request.task === 'extract' ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
+    const batching = !request.stageB && !request.immediate && batch && !batch.disabled;
+    const task = request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task;
+    const entry = { task: rechecking ? `recheck_${task}` : task,
+      model: extracting(request) ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
       input_chars: request.system.length + request.user.length, output_chars: 0 };
     record.calls.push(entry);
     record.input_chars_total += request.system.length + request.user.length;
@@ -951,7 +1184,7 @@ async function checkFacts(body, options = {}) {
       record.output_chars_total += entry.output_chars;
       if (ret?.usage) entry.usage = Object.fromEntries(Object.entries({ input_tokens: ret.usage.input_tokens ?? ret.usage.prompt_tokens,
         output_tokens: ret.usage.output_tokens ?? ret.usage.completion_tokens,
-        cache_creation_input_tokens: ret.usage.cache_creation_input_tokens, cache_read_input_tokens: ret.usage.cache_read_input_tokens }).filter(([, v]) => v !== undefined));
+        cache_creation_input_tokens: ret.usage.cache_creation_input_tokens, cache_read_input_tokens: ret.usage.cache_read_input_tokens }).filter(([, v]) => cfg.provider === 'gateway' ? Number.isFinite(v) : v !== undefined));
       return ret;
     } catch (error) {
       for (const key of ['mode', 'wait_seconds', 'batch_error']) if (error[key] !== undefined) entry[key] = error[key];
@@ -964,29 +1197,51 @@ async function checkFacts(body, options = {}) {
   };
   const search = options.searchEvidence || searchEvidence;
   const pageCache = {};
+  const stageBCache = {};
   let uncheckedNumeric = 0;
   const addReviewItem = c => {
     if (record.review_items.some(r => claimKey(r) === claimKey(c))) return;
     // 一覧には候補の所在を残し、判定に使わない原文は重ねて保存しない。
     record.review_items.push({ ...c, evidence: (c.evidence || []).map(({ id, title, url }) => ({ id, title, url })) });
   };
+  const addStageAReviewItem = c => {
+    const answer = c.stage_a_answer;
+    const ref = (c.evidence || []).find(e => e.id === answer.evidence)
+      || { id: answer.evidence, title: answer.title || String(answer.evidence), url: answer.url || '' };
+    addReviewItem({ ...c, status: `段Aの${answer.status}を要確認（段Bは裏付けあり）`,
+      evidence: [ref], quote: '', evidence_id: '',
+      review_reason: '段Aは食い違い・期限の書き漏れ、段Bで裏付けあり' });
+  };
   const matchesCorrection = (f, c, pairs) => f.subject === c.subject || Boolean(normalizedClaim(c.sentence) && normalizedClaim(pairs.get(f.sentence) || '').includes(normalizedClaim(c.sentence)));
   const analyze = async (text, fullBody, findings = [], pairs = new Map(), previous = null) => {
+    const globalCandidates = new Map();
     const candidates = c => {
+      if (writerIds.length && globalCandidates.has(c)) return globalCandidates.get(c);
       const refs = search(c, options);
       const required = findings.filter(f => f.evidence_id && matchesCorrection(f, c, pairs)).map(f => f.evidence.find(e => e.id === f.evidence_id)).filter(Boolean);
-      const pinned = new Map([...refs.slice(0, 1), ...required].map(e => [e.id, e]));
+      const pinned = new Map((writerIds.length ? required : [...refs.slice(0, 1), ...required]).map(e => [e.id, e]));
       if (pinned.size > 7) throw new Error('修正の根拠が候補の上限を超えました');
       // 主出典の順番を保ち、修正の根拠を検索結果より先に確保する。
       for (const ref of refs) if (!pinned.has(ref.id)) pinned.set(ref.id, ref);
-      return [...pinned.values()].slice(0, 7);
+      const selected = [...pinned.values()].slice(0, 7);
+      if (writerIds.length) globalCandidates.set(c, selected);
+      return selected;
     };
-    const extracted = await extractClaims(text, call, cfg);
+    const stageACandidates = c => {
+      const refs = (options.searchWriterEvidence || searchWriterEvidence)(c, { ...options, resolvedWriterMaterials: resolvedWriter });
+      const required = findings.filter(f => f.evidence_id && matchesCorrection(f, c, pairs)).map(f => f.evidence.find(e => e.id === f.evidence_id)).filter(Boolean);
+      const pinned = new Map(required.map(e => [e.id, e]));
+      if (pinned.size > 4) return null; // 必須の根拠を削らず、この主張だけ段Bへ直接回す。
+      for (const ref of refs) if (!pinned.has(ref.id)) pinned.set(ref.id, ref);
+      return [...pinned.values()].slice(0, 4);
+    };
+    const extracted = await extractClaims(text, call, writerIds.length ? { ...cfg, writer_materials: writerIds, resolvedWriterMaterials: resolvedWriter } : cfg);
     record.dropped += extracted.dropped;
     record.discarded += extracted.discarded;
+    if (writerIds.length) record.calculated_skipped += extracted.calculated_skipped || 0;
     for (const c of [...extracted.droppedClaims, ...extracted.discardedClaims]) {
       if (isNumericClaim(c) || (!NUMERIC_TYPES.has(c.type) && !REVIEW_TYPES.has(c.type))) uncheckedNumeric++;
-      else addReviewItem({ ...c, evidence: candidates(c) });
+      else addReviewItem({ ...c, evidence: writerIds.length ? stageACandidates(c) || candidates(c) : candidates(c) });
     }
     if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
@@ -1006,40 +1261,133 @@ async function checkFacts(body, options = {}) {
       record.incremental = { reused: reused.length, rejudged: claims.length, subjects };
       claims = claims.map((c, i) => ({ ...c, id: `c${i + 1}` }));
       reused = reused.map((c, i) => ({ ...c, id: `c${claims.length + i + 1}`, s: fullUnits.find(u => !u.heading && u.text === c.sentence)?.s }));
+      if (writerIds.length) for (const c of reused) if (c.stage_a_answer) addStageAReviewItem(c);
     }
-    const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
-    return [...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache, batch }), ...reused];
+    if (!writerIds.length) {
+      const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
+      return [...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache, batch }), ...reused];
+    }
+    const answerTally = new Map(), deadlineSubjects = new Set();
+    const loadText = options.loadEvidenceText || (ref => ['qa', 'change'].includes(ref.kind)
+      ? resolveMaterial(materialId(ref))?.text : require('./fact-evidence').loadEvidenceText(ref));
+    const judgeStage = async (stage, items, select, cache) => {
+      const evidence = Object.fromEntries(items.map(c => [c.id, select(c)]));
+      const start = record.input_chars_total;
+      record.stages[stage].claims += items.length;
+      record.stages[stage].pages += new Set(Object.values(evidence).flat().map(e => e.id)).size;
+      try {
+        const result = await judgeClaims(items, evidence, fullBody, stage === 'B' ? req => call({ ...req, stageB: true }) : call,
+          { ...options, pageCache: cache, batch: stage === 'B' ? null : batch, loadEvidenceText: loadText,
+            [STAGE_TALLY]: { answers: answerTally, deadlineSubjects } });
+        await checkConditions(result, call, addReviewItem, options, fullBody, stage, evidence);
+        for (const c of result) if (['食い違い', '期限の書き漏れ'].includes(c.status) &&
+            (stage !== 'A' || canFinalizeStageA(c, evidence[c.id])) && unrelatedCorrect(c, c.correct)) {
+          // 判定と引用の検証結果は保ち、話題の違う修正案だけを人へ回す。
+          c.correct_requires_review = true;
+        }
+        return result.map(c => ({ ...c, stage }));
+      } finally { record.stages[stage].input_chars += record.input_chars_total - start; }
+    };
+    const stageAEvidence = new Map(claims.map(c => [c.id, stageACandidates(c)]));
+    const directB = new Set(claims.filter(c => stageAEvidence.get(c.id) === null).map(c => c.id));
+    const stageA = await judgeStage('A', claims.filter(c => !directB.has(c.id)), c => stageAEvidence.get(c.id), pageCache);
+    const byClaimId = new Map(claims.map(c => [c.id, c]));
+    const retry = new Set([...directB, ...stageA.filter(c => shouldUseStageB(c, () => candidates(byClaimId.get(c.id)), resolvedWriter, stageAEvidence.get(c.id))).map(c => c.id)]);
+    const stageATally = new Map(answerTally);
+    deadlineSubjects.clear();
+    for (const c of stageA) if (!retry.has(c.id) && c.status === '期限の書き漏れ') deadlineSubjects.add(c.subject);
+    const stageB = retry.size ? await judgeStage('B', claims.filter(c => retry.has(c.id)), candidates, stageBCache) : [];
+    // 段Bの資料なし（候補・答えなしや却下を含む）では、段Aで落ちた答えの歯止めを消さない。
+    for (const c of stageB) if (c.status === '資料なし' && stageATally.has(c.id)) {
+      const previous = stageATally.get(c.id), current = answerTally.get(c.id);
+      // 段B自身で却下・欠落した答えも数える。候補なしで行が増えなかった場合は二重に数えない。
+      if (current !== previous) answerTally.set(c.id, mergeTally(new Map([['A', previous], ['B', current]])));
+    }
+    for (const c of stageB) {
+      const previous = stageA.find(a => a.id === c.id);
+      const answer = ['食い違い', '期限の書き漏れ'].includes(previous?.status)
+        ? { status: previous.status, evidence: previous.evidence_id, quote: previous.quote.slice(0, 200),
+          correct: previous.correct.replace(/\s+/g, ' ').trim().slice(0, 200) }
+        : previous?.rejected_answer;
+      if (c.status === '裏付けあり' && ['食い違い', '期限の書き漏れ'].includes(answer?.status)) {
+        const ref = [...previous.evidence, ...[...stageAEvidence.values()].flatMap(refs => refs || []),
+          ...(pageCache.groups || []).flatMap(group => group.pack.pages.map(page => page.ref))]
+          .find(e => e.id === answer.evidence);
+        c.stage_a_answer = { ...answer, ...(ref ? { title: ref.title, url: ref.url } : {}) };
+        addStageAReviewItem({ ...c, evidence: [...c.evidence, ...(ref ? [ref] : [])] });
+      }
+    }
+    const final = new Map(stageB.map(c => [c.id, c]));
+    const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
+    for (const row of answerTally.values()) {
+      for (const key of ['declared', 'rejected', 'missing', 'total']) tally[key] += row[key];
+      tally.samples.push(...row.samples);
+    }
+    checkTally(tally, cfg);
+    const original = new Map(stageA.map(c => [c.id, c]));
+    const adopted = [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
+    for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
+    return adopted;
   };
   let revisedBody = body;
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
-    const findings = record.claims.filter(c => blockingFinding(c) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
+    const missingReview = writerIds.length ? record.claims.filter(c => c.status === '資料なし' && REVIEW_TYPES.has(c.type) && !NO_REPAIR_REASONS.has(c.reject_reason)) : [];
+    const missingSentences = new Set(missingReview.map(c => c.sentence));
+    const tooManyMissing = missingSentences.size > 8 || missingReview.length > record.claims.length * 0.2;
+    const autoReview = missingSentences.size > 0 && !tooManyMissing;
+    const findings = record.claims.filter(c => (blockingFinding(c) || (autoReview && missingReview.includes(c))) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
       keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり' && k.evidence_outside_candidates !== true)
         .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
+    const onlyConditions = findings.length > 0 && findings.every(c => c.condition_mismatch);
+    const beforeRepair = { dropped: record.dropped, discarded: record.discarded, calculated: record.calculated_skipped,
+      uncheckedNumeric, review: [...record.review_items] };
+    let repairPairs = new Map();
+    const reviewCondition = c => {
+      addReviewItem({ ...c, status: '条件の違いを要確認' });
+      c.status = '裏付けあり'; c.correct = ''; delete c.condition_mismatch;
+    };
     if (findings.length && options.repair !== false) {
-      const repair = await repairBody(body, findings, call, options);
+      let repair;
+      try { repair = await repairBody(body, findings, call, options); }
+      catch (error) {
+        if (!onlyConditions) throw error;
+        repair = { accepted: false, reason: '条件確認の修正案を採れませんでした' };
+      }
       if (repair.accepted) {
         revisedBody = repair.body;
         let changes = changedText(body, revisedBody);
         const pairs = correctionPairs(body, revisedBody, findings, repair.replacements);
+        repairPairs = pairs;
         for (const [sentence, replacement] of repair.replacements) {
           const f = findings.find(f => f.sentence === sentence);
           if (replacement && replacement !== f.sentence && !changes.includes(replacement) && revisedBody.includes(replacement)) changes += `\n${f.heading ? '## ' + f.heading : ''}\n${replacement}`;
         }
         rechecking = true;
-        record.rechecked = changes.trim() ? await analyze(changes, revisedBody, findings, pairs) : [];
+        try { record.rechecked = changes.trim() ? await analyze(changes, revisedBody, findings, pairs) : []; }
+        catch (error) { if (!onlyConditions) throw error; record.rechecked = []; }
+        // 再照合の条件確認だけの誤警報は、既に通った判定を取り消さない。
+        for (const c of record.rechecked) if (c.condition_mismatch) reviewCondition(c);
+        if (writerIds.length) for (const r of record.rechecked) {
+          const f = findings.find(f => matchesCorrection(f, r, pairs) && unchangedNumericClaim(f, r, pairs.get(f.sentence) || '', record.claims));
+          if (!f) continue;
+          r.unchanged_numeric = true;
+          if (!record.claims.some(c => c.type === r.type && c.subject === r.subject && JSON.stringify(normalizedNumbers(c.claim)) === JSON.stringify(normalizedNumbers(r.claim)))) addReviewItem(r);
+        }
+        const blocksRepair = c => blockingFinding(c) && !(writerIds.length && c.unchanged_numeric);
         record.corrections = findings.map(f => ({ ...f, before: f.sentence,
           after: repair.rejected.has(f.id) ? '' : pairs.get(f.sentence) || '',
           generalized: f.status === '資料なし',
           ...(repair.rejected.has(f.id) ? { reason: repair.rejected.get(f.id) } : {}),
-          resolved: !repair.rejected.has(f.id) && !revisedBody.includes(f.sentence) && !record.rechecked.some(c => blockingFinding(c) && matchesCorrection(f, c, pairs)),
+          resolved: !repair.rejected.has(f.id) && !revisedBody.includes(f.sentence) && !record.rechecked.some(c => blocksRepair(c) && matchesCorrection(f, c, pairs)),
         }));
         // 期限追記は元の文を残せる。解決の裏付けは自身の置き換え文に限り、止める側は広い対応を維持する。
         for (const c of record.corrections) if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
           c.resolved = !repair.rejected.has(c.id) && changes.trim().length > 0 && record.rechecked.some(r =>
-            r.status === '裏付けあり' && Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
-            !record.rechecked.some(r => matchesCorrection(c, r, pairs) && blockingFinding(r));
+            r.status === '裏付けあり' && (!c.condition_mismatch || (r.type === c.type && r.subject === c.subject)) &&
+            Boolean(normalizedClaim(r.sentence)) && normalizedClaim(pairs.get(c.sentence) || '').includes(normalizedClaim(r.sentence))) &&
+            !record.rechecked.some(r => matchesCorrection(c, r, pairs) && blocksRepair(r));
         }
         // 数字を残した一般化は、その置き換え自身の数字が再照合で裏付けられたときだけ解決する。
         for (const c of record.corrections) if (c.status === '資料なし' && c.supported_numbers?.length) {
@@ -1051,10 +1399,35 @@ async function checkFacts(body, options = {}) {
           });
           c.resolved = c.resolved && required.length > 0 && !required.includes(null) && required.every(n => supported.includes(n));
         }
+        if (writerIds.length) for (const c of record.corrections) if (c.generalized && REVIEW_TYPES.has(c.type) &&
+            record.rechecked.some(r => r.status !== '裏付けあり' && matchesCorrection(c, r, pairs))) c.resolved = false;
       } else record.repair_warning = repair.reason;
     }
+    const unverifiedConditions = record.claims.filter(c => c.condition_mismatch && !record.corrections.find(f => f.id === c.id)?.resolved);
+    if (unverifiedConditions.length && onlyConditions && unverifiedConditions.length === findings.length) {
+      // 判定が裏付けた元の文へ戻す。採れなかった条件修正の再照合結果を承認判断に混ぜない。
+      revisedBody = body; record.rechecked = [];
+      record.dropped = beforeRepair.dropped; record.discarded = beforeRepair.discarded;
+      record.calculated_skipped = beforeRepair.calculated; uncheckedNumeric = beforeRepair.uncheckedNumeric;
+      record.review_items = beforeRepair.review;
+      record.corrections = [];
+      for (const c of record.claims) if (c.condition_mismatch) reviewCondition(c);
+    } else for (const c of unverifiedConditions) {
+      const replacement = repairPairs.get(c.sentence);
+      if (replacement && replacement !== c.sentence && !findings.some(f => f.sentence === c.sentence && !f.condition_mismatch)) {
+        // 置き換えが複数文でも丸ごと戻し、別の指摘で確かめた編集だけを元本文に適用する。
+        repairPairs.delete(c.sentence);
+        revisedBody = body;
+        const edits = splitUnits(body).filter(u => !u.heading && repairPairs.has(u.text));
+        for (const u of edits.sort((a,b) => b.start - a.start)) revisedBody = revisedBody.slice(0,u.start) + repairPairs.get(u.text) + revisedBody.slice(u.end);
+        record.rechecked = record.rechecked.filter(r => !normalizedClaim(replacement).includes(normalizedClaim(r.sentence)));
+        for (const f of record.corrections.filter(f => f.sentence === c.sentence)) { f.after = ''; f.resolved = false; }
+      }
+      reviewCondition(c);
+      record.corrections = record.corrections.filter(f => !(f.id === c.id && f.condition_mismatch && !f.resolved));
+    }
     const unresolved = record.claims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
-    const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり')];
+    const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり' && !(writerIds.length && c.unchanged_numeric))];
     for (const c of pending) if (!blockingFinding(c)) addReviewItem(c);
     record.remaining = pending.filter(blockingFinding);
     const mismatches = record.remaining.filter(c => ['食い違い', '期限の書き漏れ'].includes(c.status)).length;
@@ -1064,6 +1437,8 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
+    if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
+    if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';
     const outsideCount = outsideCandidateClaims(record).length;
     if (outsideCount) record.summary += `・候補の外の資料で裏付け ${outsideCount} 件`;
   } catch (error) {
@@ -1083,7 +1458,21 @@ async function checkFacts(body, options = {}) {
     record.summary += ` / ${warning}`;
     console.warn(`[fact-check] ${warning}`);
   }
+  if (writerIds.length) {
+    const effective = [...record.claims, ...record.rechecked];
+    record.summary += `・書き手の資料で判定 ${effective.filter(c => c.stage === 'A').length} 件・全体を探した ${effective.filter(c => c.stage === 'B').length} 件`;
+  }
+  record.summary += unresolvedSummary;
   return { body: revisedBody, record };
+}
+
+/** 確認を通った食い違いも、全体検索に根拠が無ければ段Bで判定し直す。 */
+function shouldUseStageB(result, globalCandidates, refs = [], stageACandidates = []) {
+  if (NO_REPAIR_REASONS.has(result.reject_reason)) return false;
+  if (['食い違い', '期限の書き漏れ'].includes(result.status) && !canFinalizeStageA(result, stageACandidates)) return true;
+  if (result.evidence_outside_candidates && canUseWriterEvidence(result, result.status, result.evidence.find(e => e.id === result.evidence_id), refs)) return false;
+  return result.status === '資料なし' || (['食い違い', '期限の書き漏れ'].includes(result.status) &&
+    !globalCandidates().some(ref => ref.id === result.evidence_id));
 }
 
 function updateMeta(raw, updates, body) {
@@ -1132,14 +1521,17 @@ async function checkArticle(raw, options = {}) {
       const before = matter(options.previousRaw);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8'));
       const cfg = config(options);
+      const currentWriter = writerMaterials({ ...articleEvidenceOptions(meta), ...options });
+      const writerMatches = JSON.stringify(prior.writer_materials || null) === JSON.stringify(currentWriter.length ? materialFingerprint(currentWriter) : null);
       const rows = [...(prior.claims || []), ...(prior.rechecked || [])];
       const validRow = c => c && typeof c.id === 'string' && typeof c.sentence === 'string' && c.sentence.trim() &&
         typeof c.subject === 'string' && c.subject.trim() && typeof c.claim === 'string' && typeof c.heading === 'string' &&
         TYPES.includes(c.type) && STATUSES.includes(c.status) && typeof c.quote === 'string' && typeof c.correct === 'string' &&
-        (c.evidence_outside_candidates !== true || canUseOutsideEvidence(c, c.status)) &&
+        (c.evidence_outside_candidates !== true || canUseOutsideEvidence(c, c.status) ||
+          canUseWriterEvidence(c, c.status, evidenceRefs(prior, c).find(e => e.id === c.evidence_id), resolveWriterMaterials(currentWriter))) &&
         (Array.isArray(c.evidence) || (Array.isArray(c.evidence_ids) && c.evidence_ids.every(id => prior.evidence?.[id]))) &&
         (c.status === '資料なし' || (typeof c.evidence_id === 'string' && c.evidence_id && c.quote.trim()));
-      if (prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
+      if (writerMatches && prior.version === 1 && prior.logic_version === LOGIC_VERSION && prior.incremental === undefined && prior.slug === slug && before.data.slug === slug && prior.body_sha256 === bodyHash(before.content) &&
           ['ok', 'revise'].includes(prior.status) && prior.model === cfg.model && prior.provider === cfg.provider &&
           (prior.extract_model ?? prior.model) === cfg.extractModel && (prior.effort ?? null) === cfg.effort &&
           (prior.extract_effort ?? prior.effort ?? null) === cfg.extractEffort &&
@@ -1177,23 +1569,38 @@ async function checkArticle(raw, options = {}) {
 function articleEvidenceOptions(meta) {
   return { tax_terms: meta.tax_terms, source_bundle: meta.source_bundle, tax_domain: meta.tax_domain, source_url: meta.source_url,
     source_supplements: [...(Array.isArray(meta.source_supplements) ? meta.source_supplements : []),
-      ...[2, 3, 4].filter(n => meta[`source_${n}_url`]).map(n => ({ url: meta[`source_${n}_url`] }))] };
+      ...[2, 3, 4].filter(n => meta[`source_${n}_url`]).map(n => ({ url: meta[`source_${n}_url`] }))],
+    ...(meta.fact_materials ? { writer_materials: String(meta.fact_materials).split(';').filter(Boolean) } : {}) };
 }
 
 /** 再生成モデルに照合の管理項目や既存の品質判定を書き換えさせない。 */
 function inheritFactMetadata(original, regenerated) {
   const { data: before } = matter(original);
   const { data: after } = matter(regenerated);
+  const planned = Object.hasOwn(before, 'fact_plan_status');
   const updates = Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('fact_check_')));
+  for (const key of ['fact_plan_status', 'fact_plan', 'fact_plan_missing', 'fact_materials']) {
+    if (before[key] !== undefined) updates[key] = before[key];
+  }
+  if (before.fact_materials && after.fact_materials) {
+    const recorded = String(before.fact_materials).split(';');
+    const added = String(after.fact_materials).split(';').filter(id => !planned || recorded.includes(id) || resolveWriterMaterials([id]).length);
+    updates.fact_materials = [...new Set([...recorded, ...added])].filter(Boolean).join(';');
+  }
   if (before.fact_check_version) {
     const previousWarning = String(before.review_warning || '');
     const addedWarning = String(after.review_warning || '').replace(WARNING_RE, '').replace(/(?:\s*\/\s*)+$/, '').trim();
-    const addedOtherWarning = addedWarning && !previousWarning.includes(addedWarning);
+    const previousParts = planned ? previousWarning.split(' / ').map(part => part.trim().replace(/^(?:\s*\/\s*)+/, '')).filter(Boolean) : [];
+    const addedParts = planned ? addedWarning.split(' / ').map(part => part.trim().replace(/^(?:\s*\/\s*)+/, '')).filter(Boolean) : [];
+    const addedOtherWarning = planned
+      ? addedParts.some(part => !part.startsWith('計画:') && !previousParts.includes(part))
+      : addedWarning && !previousWarning.includes(addedWarning);
     const newBlocking = after.recommendation === 'reject' ||
       (after.recommendation === 'revise' && (before.recommendation !== 'revise' || addedOtherWarning));
     updates.recommendation = newBlocking ? after.recommendation : before.recommendation || '';
     if (newBlocking) updates.fact_check_prev_recommendation = after.recommendation;
-    updates.review_warning = [previousWarning, addedOtherWarning ? addedWarning : ''].filter(Boolean).join(' / ');
+    updates.review_warning = planned ? [...new Set([...previousParts, ...addedParts])].join(' / ')
+      : [previousWarning, addedOtherWarning ? addedWarning : ''].filter(Boolean).join(' / ');
   } else if (before.recommendation === 'revise' || before.recommendation === 'reject') {
     updates.recommendation = before.recommendation;
   }

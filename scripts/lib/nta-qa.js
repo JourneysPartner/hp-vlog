@@ -185,6 +185,7 @@ function trimBody(body, maxChars = MAX_BODY_CHARS) {
 function buildQaBlock(keywords, options = {}) {
   const found = findQaByKeywords(keywords, options);
   if (found.length === 0) return '';
+  if (options.onMaterials) options.onMaterials(found);
   const sections = found.map((q) => {
     const { text, truncated } = trimBody(q.body, options.maxChars);
     const label = q.q_no ? `${q.source_label} ${q.q_no}` : q.source_label;

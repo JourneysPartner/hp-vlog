@@ -129,11 +129,17 @@ function renderFactReviewItems(items, record) {
       if (!headings.has(heading)) headings.set(heading, []);
       headings.get(heading).push(item);
     }
-    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
+    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
   }).join('');
   return `<details><summary>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）。承認を止める理由ではありません</summary>
     <h3 class="h6 mt-3">人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）</h3>
     <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>${groups}</details>`;
+}
+
+function renderConditionDifferences(claim) {
+  if (claim.condition_check?.verdict !== '不一致' || !Array.isArray(claim.condition_check.conditions)) return '';
+  return claim.condition_check.conditions.filter(c => c.match !== '一致').map(c =>
+    `<div class="small">条件の違い: 記事「${escapeHtml(String(c.article || '').slice(0, 160))}」 / 根拠「${escapeHtml(String(c.source || '').slice(0, 160))}」</div>`).join('');
 }
 
 function renderFactCheckSummary(meta, record, body) {

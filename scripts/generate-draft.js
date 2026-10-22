@@ -15,7 +15,8 @@ const { buildSourceBodyBlock, findTsutatsuFromSourceKankei,
 const lawSources = require('./lib/law-sources');
 const materials = require('./lib/materials-bundle');
 const factCheck = require('./lib/fact-check');
-const { SOURCE_UNCONFIRMED_RULE } = require('./lib/grounding-rules');
+const articlePlan = require('./lib/article-plan');
+const { SOURCE_UNCONFIRMED_RULE, WRITER_RULES } = require('./lib/grounding-rules');
 const { buildNonTaxSourceBlock, findNonTaxSource } = require('./lib/official-sources');
 const { checkCitations, buildProvisionBlock, findProvision } = require('./lib/nta-tsutatsu');
 const { buildReferencePagesBlock, findReferencePages,
@@ -179,7 +180,7 @@ async function resolveGenericSupplement(topic) {
 // 記事の企画メタから、国税庁 Q&A を引くための語を組み立てて原文を添える。
 // 語は「読者の場面のことば」と「税務の概念のことば」の両方を渡す。
 // カタログが未取得でも空文字が返るだけで、生成は止まらない。
-function buildQaBlockForTopic(topic) {
+function buildQaBlockForTopic(topic, attached) {
   try {
     const { buildQaBlock } = require('./lib/nta-qa');
     const metaText = [
@@ -188,7 +189,8 @@ function buildQaBlockForTopic(topic) {
     ].filter(Boolean).join(' ');
     const keywords = metaText.split(/[\s、。？?・／/]+/).filter(w => w.length >= 2);
     // scopeText: 資料の主題語が記事の企画メタに含まれるかの判定用（切り出し前の全文）
-    const block = buildQaBlock(keywords, { taxDomain: topic.tax_domain, maxDocs: 3, scopeText: metaText });
+    const block = buildQaBlock(keywords, { taxDomain: topic.tax_domain, maxDocs: 3, scopeText: metaText,
+      ...(attached ? { onMaterials: refs => attached.push(...refs) } : {}) });
     if (block) {
       const nos = (block.match(/【[^】]+】/g) || []).join(' ');
       console.log(`[source] 国税庁Q&Aの原文を添付: ${nos} (${block.length} 文字)`);
@@ -1095,7 +1097,8 @@ async function generateWithContentModel(dateStr, topic, pairedTopic, strictForma
   // 2026-09-01: インボイス登録の取消しの記事が、届出書の期限（15日前）と
   // 経過措置による2年縛りを外した。どちらも Q&A にしか載っておらず、
   // カタログに入っていなかったため照合できなかった。
-  const qaBlock = buildQaBlockForTopic(topic);
+  const qaMaterials = [];
+  const qaBlock = buildQaBlockForTopic(topic, qaMaterials);
 
   // 法令の原文（民法・戸籍法・不動産登記法等）と手続き機関のページ。相続の手続き段階から引く。
   const lawRefs = lawSources.refsForTopic(topic);
@@ -1116,7 +1119,7 @@ async function generateWithContentModel(dateStr, topic, pairedTopic, strictForma
     });
     console.log(`[source] 通達の原文を添付: ${labels.join('、')}`);
   }
-  const ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock + tsutatsuBlock;
+  let ntaRefsBlock = ntaRefsList + sourceBodyBlock + figureGuardBlock + nonTaxBlock + refPagesBlock + qaBlock + lawBlock + tsutatsuBlock;
 
   // 近年の税法改正論点（テーマが影響範囲なら参考にする。無理に書かない）
   //
@@ -1132,9 +1135,20 @@ async function generateWithContentModel(dateStr, topic, pairedTopic, strictForma
   // status が expired / historical_reference のものは返さない作りなので、
   // フラグによる二重の絞り込みは無くてよい。
   const lawChanges = getChangesForTopic(topic, 2);
-  const lawChangesBlock = lawChanges.length > 0
+  let lawChangesBlock = lawChanges.length > 0
     ? `${LAW_CHANGES_HEADING}${formatChangesForPrompt(lawChanges)}`
     : '';
+  const planBlock = articlePlan.enabled() ? await articlePlan.prepareArticlePlan(topic, {
+    existing: [...(materialBundle?.pages.sources || []), ...(materialBundle?.chain.attached || []),
+      ...qaMaterials, ...lawRefs.articles,
+      ...(tsutatsuBlock ? findTsutatsuFromSourceKankei(topic) : [])],
+    references: [...ntaRefs, { url: topic.source_url }, ...(topic.source_supplements || [])], changes: lawChanges,
+  }) : '';
+  lawChangesBlock += planBlock + (planBlock && sourceUnconfirmed ? `\n${SOURCE_UNCONFIRMED_RULE}` : '');
+  // 差し戻しと同じく、計画がW規則を持つときは出典側の重複行を外す。
+  if (WRITER_RULES.every(rule => planBlock.includes(rule))) {
+    ntaRefsBlock = ntaRefsBlock.split('\n').filter(line => !WRITER_RULES.includes(line.replace(/^\d+\.\s*/, ''))).join('\n');
+  }
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
 
@@ -1986,12 +2000,13 @@ ${rules.join(RULE_SEP)}`
     : '';
   if (rules.length) console.log(`[regenerate] 論点別ルールを適用: ${rules.length} 件`);
 
-  const sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE) + materialBundle.chainBlock;
+  let sourceBody = (materialBundle.sourceBody || SOURCE_UNCONFIRMED_RULE + '\n' + WRITER_RULES.join('\n')) + materialBundle.chainBlock;
   const nonTax = buildNonTaxSourceBlock(topicLike);
   const refPages = buildReferencePagesBlock(topicLike);
   // 差し戻し再生成にも Q&A の原文を渡す。事実誤認の差し戻しは targeted に
   // 振り分けられるため、原文が最も必要になるのがこの経路になる。
-  const qaBlock = buildQaBlockForTopic(topicLike);
+  const qaMaterials = [];
+  const qaBlock = buildQaBlockForTopic(topicLike, qaMaterials);
 
   // 出典の図（画像）。日次生成と同じ部品で主出典の図だけを読む。
   // 差し戻し再生成にこれが無かったため、図つき出典の記事を差し戻すと図を見ないまま
@@ -2030,10 +2045,14 @@ ${rules.join(RULE_SEP)}`
   // 本文が引いている通達の原文。差し戻し再生成でも、記述が原文と
   // 合っているか確かめられるようにする。
   let provisions = '';
+  const fullMaterials = [...materialBundle.pages.sources, ...materialBundle.chain.attached];
+  const newMaterials = [...fullMaterials, ...qaMaterials, ...changes];
   if (body) {
     const cited = checkCitations(body);
     const known = cited.citations.filter(c => c.found && !materialBundle.chain.attached.some(ref => ref.circular === c.circular && ref.no === c.no));
     provisions = buildProvisionBlock(known.map(c => ({ no: c.no, circular: c.circular })));
+    newMaterials.push(...known);
+    fullMaterials.push(...known);
     meta.source_bundle = [...new Set([...(meta.source_bundle || '').split(';').filter(Boolean),
       ...known.map(c => `${findProvision(c.no, c.circular).short}${c.no}`)])].slice(0, 20).join(';');
     if (known.length) console.log(`[regenerate] 通達の原文を添付: ${known.map(c => c.matched).join(', ')}`);
@@ -2054,6 +2073,7 @@ ${rules.join(RULE_SEP)}`
     const lawArticles = [...lawRefs.articles, ...lawSources.articlesForCitations(cited)]
       .filter(a => !seenArt.has(a.key + ':' + a.num) && seenArt.add(a.key + ':' + a.num));
     lawBlock = lawSources.buildLawProvisionBlock(lawArticles) + lawSources.buildAgencyPagesBlock(lawRefs.pages);
+    newMaterials.push(...lawArticles);
     meta.source_bundle = [...new Set([...(meta.source_bundle || '').split(';').filter(Boolean),
       ...lawArticles.map(a => `${lawSources.LAWS[a.key].short}${lawSources.articleLabel(a.num)}`)])].slice(0, 20).join(';');
     if (lawArticles.length) console.log(`[regenerate] 法令の原文を添付: ${lawArticles.map(a => a.law + '第' + lawSources.articleLabel(a.num)).join('、')}`);
@@ -2061,8 +2081,15 @@ ${rules.join(RULE_SEP)}`
     console.warn(`[regenerate] 法令の添付に失敗（続行）: ${e.message}`);
   }
 
-  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures, lawBlock,
-    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${lawBlock}${changesBlock}${rulesBlock}` };
+  const restoredPlan = articlePlan.resolveArticlePlan(meta, newMaterials);
+  const planBlock = articlePlan.restoreArticlePlan(meta, newMaterials, restoredPlan);
+  const fullPlanBlock = articlePlan.restoreArticlePlan(meta, fullMaterials, restoredPlan);
+  // 全文・部分差し戻しの双方で計画が規則を持つときだけ、出典側の重複行を外す。
+  if (WRITER_RULES.every(rule => planBlock.includes(rule) && fullPlanBlock.includes(rule))) {
+    sourceBody = sourceBody.split('\n').filter(line => !WRITER_RULES.includes(line.replace(/^\d+\.\s*/, ''))).join('\n');
+  }
+  return { sourceBody, nonTax, refPages, rulesBlock, changesBlock, provisions, figures, lawBlock, planBlock, fullPlanBlock,
+    combined: `${sourceBody}${nonTax}${refPages}${qaBlock}${figureGuard}${provisions}${lawBlock}${changesBlock}${rulesBlock}${planBlock}` };
 }
 
 // ── 差し戻し対応の再生成 (OpenAI API) ──────────────────────────────
@@ -2080,7 +2107,7 @@ async function regenerateWithContentModel(existingContent, comment) {
     ? `- 出典として「${meta.source_title || ''}」（${meta.source_url}）を参照すること`
     : '- source_url / source_title は空文字のまま出力してください';
 
-  const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions, figures: regenFigures } =
+  const { sourceBody: regenSourceBody, nonTax: regenNonTax, provisions: regenProvisions, figures: regenFigures, fullPlanBlock: regenPlanBlock } =
     await buildRegenSourceBlocks(meta, existingBody);
 
   const typeInstruction = ARTICLE_TYPE_INSTRUCTIONS[articleType] || '';
@@ -2122,7 +2149,7 @@ ${checklist.map((item, i) => `${i + 1}. ${item}`).join('\n')}
 タックスアンサー番号は正確に記載し、不確かな場合は番号を省略すること。
 出典の単なる言い換えや原則だけで終わることは禁止。
 ${sourceInstruction}
-${regenSourceBody}${regenNonTax}${regenProvisions}
+${regenSourceBody}${regenNonTax}${regenProvisions}${regenPlanBlock}
 
 ═══ コンテンツ構成ルール ═══
 - 結論ファースト: 冒頭で結論を1〜2文で示す
@@ -2601,12 +2628,17 @@ function writeRefreshOutputs({ result, reason, diffFile }) {
 
 function recordMaterialMetadata(content, meta) {
   const updates = { source_bundle: meta.source_bundle || '', tax_terms: meta.tax_terms || '' };
+  if (articlePlan.enabled()) for (const key of articlePlan.META_FIELDS) {
+    if (meta[key] !== undefined) updates[key] = meta[key];
+  }
   for (const key of ['source_url', 'source_title', 'source_provenance', 'source_confidence']) {
     if (meta[key] !== undefined) updates[key] = meta[key];
   }
   if (meta.materials_warning) {
     const { meta: current } = parseFrontmatter(content);
-    updates.review_warning = [current.review_warning, meta.materials_warning].filter(Boolean).join(' / ');
+    updates.review_warning = meta.fact_plan_status
+      ? articlePlan.appendWarnings(current.review_warning, meta.materials_warning)
+      : [...new Set([current.review_warning, meta.materials_warning].filter(Boolean))].join(' / ');
   }
   return factCheck.updateMeta(content, updates);
 }
@@ -3393,6 +3425,7 @@ module.exports = {
   getExistingSlugs,
   generateFromTemplate,
   generateArticle,
+  generateWithContentModel,
   regenerateWithContentModel,
   regenerateSection,
   regenerateTargeted,
