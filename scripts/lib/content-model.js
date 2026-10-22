@@ -181,16 +181,31 @@ function batchFailure(name) {
   return error;
 }
 
+const PARTIAL_BATCH = Symbol('取消時に取得できた確かめの結果');
+
+// 複数の確かめを即時へ戻す場合も、同時に送る数は3件まで。
+async function immediateBatchItems(items, opts, mode, waitSeconds, diagnostic) {
+  const results = [];
+  for (let i=0; i<items.length; i+=3) results.push(...await Promise.allSettled(items.slice(i,i+3).map(async prompt => {
+    try { return { ...await callAnthropic(prompt, opts), mode, wait_seconds: waitSeconds, ...(diagnostic ? { batch_error: diagnostic } : {}) }; }
+    catch (error) { error.mode=mode; error.wait_seconds=waitSeconds; if (diagnostic) error.batch_error=diagnostic; throw error; }
+  })));
+  return results;
+}
+
 async function callAnthropicBatch(promptIR, opts) {
   const { model, maxTokens, modelOptions, signal, batch } = opts;
   const { toAnthropicRequest } = require('./article-prompt-builder');
   const params = toAnthropicRequest(promptIR, { model, maxTokens, useCache: false, modelOptions });
   const base = 'https://api.anthropic.com/v1/messages/batches';
   const customId = `fc-${++batch.sequence}`;
+  const requests = opts.batchItems ? opts.batchItems.map((prompt,i) => ({ custom_id: `${customId}-${i+1}`,
+    params: toAnthropicRequest(prompt, { model, maxTokens, useCache: false, modelOptions }) })) : [{ custom_id: customId, params }];
   const budget = batch.remainingMs();
   abortBatch(signal);
   if (budget < Math.max(batch.pollMs, 60000)) {
     batch.disabled = true;
+    if (opts.batchItems) return immediateBatchItems(opts.batchItems, opts, 'sync', 0);
     try { return { ...await callAnthropic(promptIR, opts), mode: 'sync', wait_seconds: 0 }; }
     catch (error) {
       error.mode = 'sync'; error.wait_seconds = 0;
@@ -255,6 +270,29 @@ async function callAnthropicBatch(promptIR, opts) {
   const result = async phaseSignal => {
     const text = await (await request(`${base}/${id}/results`, 'GET', null, phaseSignal)).text();
     const rows = text.split(/\r?\n/).filter(line => line.trim()).map(line => JSON.parse(line));
+    if (opts.batchItems) {
+      if (rows.length !== requests.length || new Set(rows.map(row=>row.custom_id)).size !== requests.length ||
+          !requests.every(item=>rows.some(row=>row.custom_id===item.custom_id))) throw batchFailure('BatchResultError');
+      abortBatch(phaseSignal);
+      const waitSeconds = Math.floor(waited()/1000);
+      const outcomes = requests.map(item => {
+        try {
+          const value = rows.find(row=>row.custom_id===item.custom_id).result;
+          if (value?.type !== 'succeeded' || !value.message || !Array.isArray(value.message.content) || typeof value.message.stop_reason !== 'string') throw batchFailure('BatchResultError');
+          return { status:'fulfilled', value:{ ...anthropicResult(value.message, model,
+            ` mode=batch wait_seconds=${waitSeconds} batch_id=${redactSecrets(id)}`, false), mode:'batch', wait_seconds:waitSeconds } };
+        } catch (_) {
+          const error=batchFailure('BatchResultError'); error.mode='batch'; error.wait_seconds=waitSeconds;
+          return { status:'rejected', reason:error };
+        }
+      });
+      // 取消がすぐ完了した場合も、成功済みを重複送信せず、未完了の要求だけを即時へ戻す。
+      const unfinished = requests.flatMap((item,i) => cancelAttempted && rows.find(row=>row.custom_id===item.custom_id).result?.type === 'canceled' ? [i] : []);
+      if (unfinished.length) {
+        const error=batchFailure('BatchTimeoutError'); error[PARTIAL_BATCH]={ outcomes, unfinished }; throw error;
+      }
+      return outcomes;
+    }
     if (rows.length !== 1 || rows[0].custom_id !== customId) throw batchFailure('BatchResultError');
     const value = rows[0].result;
     if (value?.type !== 'succeeded') {
@@ -309,7 +347,7 @@ async function callAnthropicBatch(promptIR, opts) {
     if (budget <= 0) throw batchFailure('BatchTimeoutError');
     const created = await bounded(batch.now() + 60000, async phaseSignal => {
       abortBatch(phaseSignal);
-      const created = await (await request(base, 'POST', { requests: [{ custom_id: customId, params }] }, phaseSignal)).json();
+      const created = await (await request(base, 'POST', { requests }, phaseSignal)).json();
       if (typeof created.id !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(created.id)) throw batchFailure('BatchIdError');
       id = created.id;
       if (phaseSignal.aborted) { await cancel(); abortBatch(phaseSignal); }
@@ -337,6 +375,13 @@ async function callAnthropicBatch(promptIR, opts) {
     account();
     console.warn(`[content-model] Batch同期やり直し batch_id=${redactSecrets(id || '未作成')} reason=${diagnostic} cancel_attempted=${cancelAttempted} cancel_succeeded=${cancelSucceeded}`);
     const waitSeconds = Math.floor(waited() / 1000);
+    if (opts.batchItems) {
+      const partial=error[PARTIAL_BATCH];
+      if (!partial) return immediateBatchItems(opts.batchItems, opts, 'sync-fallback', waitSeconds, diagnostic);
+      const results=await immediateBatchItems(partial.unfinished.map(i=>opts.batchItems[i]), opts, 'sync-fallback', waitSeconds, diagnostic);
+      partial.unfinished.forEach((index,i)=>{ partial.outcomes[index]=results[i]; });
+      return partial.outcomes;
+    }
     try {
       return { ...await callAnthropic(promptIR, opts), mode: 'sync-fallback',
         wait_seconds: waitSeconds, batch_error: diagnostic };
@@ -353,6 +398,14 @@ async function callAnthropicBatch(promptIR, opts) {
     signal?.removeEventListener('abort', onAbort);
     if (signal?.aborted) await cancel();
   }
+}
+
+/** 確かめだけを1つのBatchへ送る。従来の1要求ずつの照合は上の単件経路のまま。 */
+async function generateBatchContent(prompts, opts = {}) {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error('モデルの認証情報が未設定です');
+  if (!Array.isArray(prompts) || !prompts.length || opts.provider !== 'anthropic' || !/^claude-[A-Za-z0-9._-]+$/.test(opts.model || '')) throw batchFailure('BatchConfigError');
+  if (!opts.batch || opts.batch.disabled) return immediateBatchItems(prompts, opts, 'sync', 0);
+  return callAnthropicBatch(prompts[0], { ...opts, batchItems: prompts });
 }
 
 // 本文のAPI失敗だけを識別する。生の例外や鍵は通知へ渡さない。
@@ -480,6 +533,7 @@ async function generateSimple({ system, user, figures }, opts = {}) {
 
 module.exports = {
   generateContent,
+  generateBatchContent,
   generateSimple,
   createBatchContext,
   safeDiagnostic,

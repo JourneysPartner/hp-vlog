@@ -407,7 +407,9 @@ test('P6', '生成3本・照合5本の切替とQ&A取り出し', () => {
   const root = path.resolve(__dirname, '../../..');
   for (const name of ['daily-draft', 'regenerate-draft', 'refresh-article', 'fact-check', 'audit-published-facts']) {
     const workflow = fs.readFileSync(path.join(root, '.github/workflows', name + '.yml'), 'utf8');
-    assert(workflow.includes('FACT_CHECK_WRITER_MATERIALS: ${{ vars.FACT_CHECK_WRITER_MATERIALS }}'));
+    assert(workflow.includes(name === 'fact-check'
+      ? "FACT_CHECK_WRITER_MATERIALS: ${{ inputs.writer_materials && 'true' || vars.FACT_CHECK_WRITER_MATERIALS }}"
+      : 'FACT_CHECK_WRITER_MATERIALS: ${{ vars.FACT_CHECK_WRITER_MATERIALS }}'));
     if (['daily-draft', 'regenerate-draft', 'refresh-article'].includes(name)) assert(workflow.includes('FACT_PLAN_ENABLED: ${{ vars.FACT_PLAN_ENABLED }}'));
     if (name === 'fact-check') assert(workflow.split('\n').some(line => line.includes('git checkout FETCH_HEAD --') && line.includes('data/nta-qa/')));
   }

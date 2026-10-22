@@ -18,8 +18,9 @@ async function env(values, run) {
 const material = id => { const r=W.resolveMaterial(id); assert(r,id); return {...r,text:r.kind==='taxanswer'?r.text.split('関連リンク')[0]:r.text}; };
 const extract = (req, type, subject) => [...req.user.matchAll(/^\[(\d+)\] (.*)$/gm)].filter(m=>!m[2].startsWith('#')).map(m=>({s:+m[1],type,subject,claim:m[2]}));
 const payload = req => JSON.parse(req.user);
+const materials = req => H.materials({ ...req, system:[req.system,req.dynamicSystem].filter(Boolean).join('\n\n') });
 const matching = (req, ref, pattern) => {
-  const page=H.materials(req).find(p=>p.url===ref.url); assert(page,ref.title);
+  const page=materials(req).find(p=>p.url===ref.url); assert(page,ref.title);
   const row=page.rows.find(r=>pattern.test(r.text)); assert(row,String(pattern));
   return {evidence_id:page.number,basis:String(row.s)};
 };
@@ -49,7 +50,7 @@ for(const verdict of ['正しい','判断できない'])test('C2・C5',`背景: 
   const r=await F.checkFacts(body,{...opts,writer_materials:['ta:6501'],searchWriterEvidence:()=>[own],searchEvidence:()=>[own],loadEvidenceText:load,callLLM:async req=>{
     if(req.task==='extract')return extract(req,'期限','インボイスの登録取消届出書');
     if(req.task==='confirm'){
-      opus++;assert(H.materials(req).some(p=>p.url===qa.url));
+      opus++;assert(materials(req).some(p=>p.url===qa.url));
       return payload(req).claims.map(c=>verdict==='正しい'?confirmed(req,c,qa,/15\s*日\s*前/,'正しい'):{id:c.id,verdict});
     }
     if(req.task==='repair')return payload(req).corrections.map(c=>({id:c.id,replacement:'登録取消届出書の期限は国税庁で確認してください。'}));
@@ -172,9 +173,9 @@ for(const failure of ['API失敗','時間切れ','JSON不正','出力上限','�
   assert(!JSON.stringify(r.record).includes('sk-fake-secret12345'));assert(!r.record.calls.some(c=>/repair|recheck/.test(c.task)));
 }));
 
-for(const type of ['要件','判定','手続'])test('C5',`判断できない${type}の食い違いは人の一覧へ残す`,async()=>feature(async()=>{
+for(const type of ['要件','判定','手続'])test('C5',`判断できない${type}の食い違いは人の一覧と承認停止へ残す`,async()=>feature(async()=>{
   const r=await spouseCase(req=>payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'})),{type});
-  assert.equal(r.body,spouseBody);assert.equal(r.record.status,'ok');assert.equal(r.record.review_items[0].confirm.verdict,'判断できない');assert.equal(r.record.remaining.length,0);
+  assert.equal(r.body,spouseBody);assert.equal(r.record.status,'revise');assert.equal(r.record.review_items[0].confirm.verdict,'判断できない');assert.equal(r.record.remaining.length,1);
 }));
 
 for(const verdict of ['誤り','正しい','判断できない'])test('C5',`条件確認の不一致もOpusの${verdict}へ渡す`,async()=>feature(async()=>{
@@ -202,26 +203,26 @@ test('C5', '要件型でも期限の書き漏れが判断できなければ止�
   assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.remaining[0].confirm.verdict,'判断できない');
 }));
 
-test('C6', '重なる候補をまとめ、1回8件・各資料3000字・合計30000字・6回を上限にする',async()=>feature(async()=>{
+test('C6', '重なる候補をまとめ、1回8件・共有資料9000字・合計30000字・6回を上限にする',async()=>feature(async()=>{
   const labels=Array.from({length:49},(_,i)=>String.fromCharCode(0x4e00+i)),body=labels.map(s=>s+spouseBody).join('\n');let calls=0;
   const r=await spouseCase(req=>{
-    calls++;const rows=payload(req).claims, pages=H.materials(req);assert(rows.length<=8);assert.equal(req.provider,'anthropic');assert.equal(req.model,'claude-opus-5-5');assert.equal(req.immediate,true);assert.equal(req.maxTokens,8000);
+    calls++;const rows=payload(req).claims, pages=materials(req);assert(rows.length<=8);assert.equal(req.provider,'anthropic');assert.equal(req.model,'claude-opus-5-5');assert.equal(req.immediate,false);assert.equal(req.maxTokens,16000);
     assert.equal(req.modelOptions,undefined);assert.equal(req.effort,undefined);assert.equal(req.batch,undefined);
-    const blocks=req.system.split(/(?=\[資料 \d+\])/).slice(1);assert(blocks.every(s=>s.trimEnd().length<=3000));assert(blocks.join('').length<=30000);assert(pages.length);
+    const blocks=req.dynamicSystem.split(/(?=\[資料 \d+\])/).slice(1);assert(blocks.every(s=>s.trimEnd().length<=Math.min(9000,3000*rows.length)));assert(blocks.join('').length<=30000);assert(pages.length);
     return rows.map(c=>({id:c.id,verdict:'判断できない'}));
   },{body,batch:true});
-  assert.equal(calls,6);assert.equal(r.record.calls.filter(c=>c.task==='confirm').length,6);assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='sync'));
+  assert.equal(calls,6);assert.equal(r.record.calls.filter(c=>c.task==='confirm').length,6);assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='batch'));
   assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.confirm.checked,49);assert.equal(r.record.confirm.unknown,49);
   assert(r.record.claims.at(-1).confirm.reason.includes('上限'));assert(r.record.summary.includes('・Opus の確かめ 49 件（書き換え 0・残す 0・判断できない 49）'));
 }));
 
-test('C6', '実際の提供元の振り分けでも確かめだけAnthropic即時・effortなし・出力8000となる',async()=>feature(async()=>{
+test('C6', '実際の提供元の振り分けでも確かめだけAnthropic即時・effortなし・出力16000となる',async()=>feature(async()=>{
   const CM=require('../content-model'),GW=require('../gateway-model'),generate=CM.generateContent,gateway=GW.callGateway,source=material('ta:4452');let confirms=0;
   try{
     GW.callGateway=async req=>req.task==='extract'?extract(req,'金額','贈与税の配偶者控除'):payload(req).claims.map(c=>judged(req,c,source,/2,000万円/,'食い違い','2,000万円'));
     CM.generateContent=async(prompts,options)=>{
-      confirms++;assert.equal(options.provider,'anthropic');assert.equal(options.model,'claude-opus-test');assert.equal(options.maxTokens,8000);assert.equal(options.batch,null);assert.equal(options.modelOptions,undefined);assert.equal(options.effort,undefined);
-      const req={system:prompts.staticSystem,user:prompts.user};return payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'誤り',spouseBody.replace('2,500','2,000')));
+      confirms++;assert.equal(options.provider,'anthropic');assert.equal(options.model,'claude-opus-test');assert.equal(options.maxTokens,16000);assert.equal(options.batch,null);assert.equal(options.modelOptions,undefined);assert.equal(options.effort,undefined);
+      const req={system:prompts.staticSystem,dynamicSystem:prompts.dynamicSystem,user:prompts.user};return payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'誤り',spouseBody.replace('2,500','2,000')));
     };
     await env({FACT_CHECK_CONFIRM_MODEL:'claude-opus-test'},async()=>{
       const r=await F.checkFacts(spouseBody,{...opts,writer_materials:['ta:4452'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load});
@@ -246,7 +247,7 @@ test('C2', '資料なしには書き手の上位4件・全体の上位3件・関
     findQaByKeywords:(words,options)=>{assert(words.some(w=>w.includes('登録取消届出書')));assert.equal(options.maxDocs,2);return qa;},callLLM:async req=>{
       if(req.task==='extract')return extract(req,'期限','インボイスの登録取消届出書');
       if(req.task==='confirm'){
-        calls++;assert.deepEqual(new Set(H.materials(req).map(p=>p.url)),new Set([...own.slice(0,4),...global.slice(0,3),...qa.slice(0,2)].map(p=>p.url)));
+        calls++;assert.deepEqual(new Set(materials(req).map(p=>p.url)),new Set([...own.slice(0,4),...global.slice(0,3),...qa.slice(0,2)].map(p=>p.url)));
         return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));
       }return payload(req).claims.map(c=>({id:c.id,status:'資料なし'}));
     }});
@@ -323,6 +324,275 @@ test('C4', '同じ呼び出しに見える別の指摘だけの資料は根拠�
   assert.equal(calls,1);assert.equal(r.body,homeBody+'\n'+spouseBody.replace('2,500','2,000'));assert.equal(r.record.status,'revise');
   assert.equal(r.record.claims[0].confirm.verdict,'判断できない');assert.equal(r.record.corrections.length,1);
 }));
+
+// レビューの再現は、記事の文・モデルの答え・出典を変えずに回帰試験へ残す。
+const wrongRecipient='受贈者は、贈与者の直系尊属であることが要件です。';
+const rightRecipient='受贈者は、贈与者の直系卑属であることが要件です。';
+async function recipientCase(opus, extra={}) {
+  const source=material('ta:4508');
+  return F.checkFacts(wrongRecipient,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,...extra,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税');
+    if(req.task==='confirm')return opus(req,source);
+    return payload(req).claims.map(c=>judged(req,c,source,/直系卑属/,'食い違い',rightRecipient));
+  }});
+}
+for(const failure of ['basis不正','呼び出し例外','判断できない','時間切れ','JSON不正','再度の出力上限'])test('03b-H1',`本物の要件の誤りはOpusの${failure}でもreviseを維持する`,async()=>feature(async()=>{
+  const r=await recipientCase((req,source)=>{
+    if(failure==='呼び出し例外')throw Error('確かめのAPI失敗');
+    if(failure==='判断できない')return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));
+    if(failure==='時間切れ')return new Promise(()=>{});
+    if(failure==='JSON不正')return '壊れたJSON';
+    if(failure==='再度の出力上限')return {text:'[',stop_reason:'max_tokens'};
+    return payload(req).claims.map(c=>({...confirmed(req,c,source,/直系卑属/,'誤り',rightRecipient),basis:'根拠の文'}));
+  },failure==='時間切れ'?{timeoutMs:25}:{});
+  assert.equal(r.body,wrongRecipient);assert.equal(r.record.claims[0].status,'食い違い');assert.equal(r.record.claims[0].confirm.verdict,'判断できない');assert.equal(r.record.status,'revise');
+}));
+
+async function scatteredHome(count, opus) {
+  const U=require('../fact-units'),source=material('ta:4508'),units=U.splitUnits(source.text,{material:true});
+  const chosen=Array.from({length:count},(_,i)=>units[i*3]);assert(chosen.every(Boolean));
+  const body=chosen.map(u=>u.text).join('\n'),sizes=[];
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税');
+    if(req.task==='confirm'){
+      sizes.push({claims:payload(req).claims.length,chars:(req.dynamicSystem||req.system).length});
+      return opus?opus(req,source):payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));
+    }
+    const page=materials(req).find(p=>p.url===source.url);assert(page);
+    return payload(req).claims.map(c=>({id:c.id,status:'食い違い',evidence_id:page.number,basis:H.basisFor(page,c.claim),correct:c.claim+'（要件を確認してください）'}));
+  }});
+  return {r,sizes,body};
+}
+for(const count of [8,12])test('03b-M1',`4508の別々の箇所${count}件を1〜2回にまとめる`,async()=>feature(async()=>{
+  const {r,sizes,body}=await scatteredHome(count);
+  console.log('03b-M1 計測 '+JSON.stringify({count,sizes}));
+  assert.equal(r.record.claims.length,count);assert(sizes.length>=1&&sizes.length<=2);assert.equal(r.body,body);assert.equal(r.record.status,'revise');
+  assert(!r.record.claims.some(c=>c.confirm?.reason.includes('上限')));
+}));
+
+test('03b-M2','兄弟4511の18歳以上50歳未満を使うOpusの誤りも書き換えずrevise',async()=>feature(async()=>{
+  const home=material('ta:4508'),family=material('ta:4511'),body='受贈者は18歳以上の者に限られます。',fixed='受贈者は18歳以上50歳未満の者に限られます。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508','ta:4510','ta:4511'],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','直系尊属からの贈与の非課税');
+    if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,family,/18歳以上50歳未満/,'誤り',fixed));
+    return payload(req).claims.map(c=>judged(req,c,family,/18歳以上50歳未満/,'食い違い',fixed));
+  }});
+  assert.equal(W.searchWriterEvidence(r.record.claims[0],{writer_materials:['ta:4508','ta:4510','ta:4511']})[0].id,home.id);
+  assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.claims[0].confirm.verdict,'判断できない');
+}));
+
+test('03b-M3','非課税限度額1200万円を申告期限の別の話題へ置き換えない',async()=>feature(async()=>{
+  const source=material('ta:4508'),body='住宅取得等資金の非課税限度額は省エネ等住宅で1,200万円です。',fixed='贈与税の申告は翌年2月1日から3月15日までに行います。';let round=0;
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract'){round++;return extract(req,round===1?'金額':'期限',round===1?'住宅取得等資金の贈与の非課税':'贈与税の申告');}
+    if(req.task==='repair'||req.task==='retry_repair')return payload(req).corrections.map(c=>({id:c.id,replacement:fixed}));
+    return payload(req).claims.map(c=>judged(req,c,source,/翌年2月1日から3月15日/,round===1?'食い違い':'裏付けあり',fixed));
+  }});
+  assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert(r.record.repair_warning||r.record.corrections.some(c=>!c.resolved));
+},'false'));
+
+async function manyRecipients(count, opus, extra={}) {
+  const source=material('ta:4508'),body=Array.from({length:count},(_,i)=>String.fromCharCode(0x4e00+i)+wrongRecipient).join('\n');
+  const glm=async req=>req.task==='extract'?extract(req,'要件','住宅取得等資金の贈与の非課税').map((c,i)=>({...c,type:['要件','判定','手続'][i%3]}))
+    :payload(req).claims.map(c=>judged(req,c,source,/直系卑属/,'食い違い',rightRecipient));
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,...extra,
+    callLLM:extra.callLLM || (async req=>req.task==='confirm'?opus(req,source):glm(req))});
+  return {r,body};
+}
+
+test('03b-H1','上限を超える要件・判定・手続の3件も承認停止に残す',async()=>feature(async()=>{
+  const {r,body}=await manyRecipients(51,req=>payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'})));
+  assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.remaining.length,51);
+  const overflow=r.record.claims.filter(c=>c.confirm.reason.includes('上限'));assert.equal(overflow.length,3);assert.deepEqual(new Set(overflow.map(c=>c.type)),new Set(['要件','判定','手続']));
+  assert.equal(r.record.confirm.calls,6);
+}));
+
+for(const type of ['要件','判定','手続'])test('03b-M2',`兄弟の根拠による${type}の正しいという答えも採らない`,async()=>feature(async()=>{
+  const family=material('ta:4511'),body='受贈者は18歳以上の者に限られます。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508','ta:4510','ta:4511'],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,type,'直系尊属からの贈与の非課税');
+    if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,family,/18歳以上50歳未満/,'正しい'));
+    return payload(req).claims.map(c=>judged(req,c,family,/18歳以上50歳未満/,'食い違い','受贈者は18歳以上50歳未満の者に限られます。'));
+  }});assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.claims[0].confirm.verdict,'判断できない');
+}));
+
+for(const type of ['金額','期限'])test('03b-M3',`${type}の修正は制度名の語か同じ話題を必要とする`,async()=>feature(async()=>{
+  const body='住宅取得等資金の非課税限度額は省エネ等住宅で1,200万円です。',fixed='贈与税の申告は翌年2月1日から3月15日までに行います。';
+  const finding={id:'c1',sentence:body,claim:body,subject:'住宅取得等資金の贈与の非課税',type,status:type==='期限'?'期限の書き漏れ':'食い違い',correct:fixed,quote:material('ta:4508').text,evidence:[]};
+  const r=await F.repairBody(body,[finding],async()=>[{id:'c1',replacement:fixed}],{writer_materials:['ta:4508']});
+  assert.equal(r.body,body);assert.equal(r.rejected.get('c1'),'元の文の話題を残していません');
+},'false'));
+
+for(const form of ['前置きと後書き','コードフェンス','JSONオブジェクト'])test('03b-L1',`${form}のある答えも既存のJSON読み取りで採る`,async()=>feature(async()=>{
+  const r=await recipientCase((req,source)=>{
+    const rows=payload(req).claims.map(c=>confirmed(req,c,source,/直系卑属/,'誤り',rightRecipient));
+    if(form==='JSONオブジェクト')return JSON.stringify(rows[0]);
+    return form==='コードフェンス'?'```json\n'+JSON.stringify(rows)+'\n```':'資料で確認しました。\n'+JSON.stringify(rows)+'\n以上です。';
+  });assert.equal(r.body,rightRecipient);assert.equal(r.record.status,'ok');assert.equal(r.record.confirm.rewritten,1);
+}));
+
+test('03b-L2','即時の資料はdynamicSystemへ置き、本文のキャッシュ書き込みを付けない',async()=>feature(async()=>{
+  const CM=require('../content-model'),GW=require('../gateway-model'),B=require('../article-prompt-builder'),generate=CM.generateContent,gateway=GW.callGateway,source=material('ta:4508');let called=0,expectedInput=0,evidenceChars=0;
+  try{
+    GW.callGateway=async req=>req.task==='extract'?extract(req,'要件','住宅取得等資金の贈与の非課税')
+      :payload(req).claims.map(c=>judged(req,c,source,/直系卑属/,'食い違い',rightRecipient));
+    CM.generateContent=async(prompts,options)=>{
+      called++;assert(!prompts.staticSystem.includes('[資料 '));assert(prompts.dynamicSystem.includes('[資料 1]'));
+      evidenceChars=prompts.dynamicSystem.length;expectedInput=prompts.staticSystem.length+evidenceChars+prompts.user.length;
+      const params=B.toAnthropicRequest(prompts,{model:options.model,maxTokens:options.maxTokens,useCache:true});
+      const docs=params.system.filter(block=>block.text.includes('[資料 '));assert(docs.length);assert(docs.every(block=>!block.cache_control));
+      const req={system:prompts.staticSystem,dynamicSystem:prompts.dynamicSystem,user:prompts.user};return payload(req).claims.map(c=>confirmed(req,c,source,/直系卑属/,'誤り',rightRecipient));
+    };
+    const r=await F.checkFacts(wrongRecipient,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load});
+    assert.equal(r.record.status,'ok');assert.equal(called,1);assert.equal(r.record.calls.at(-1).evidence_chars,evidenceChars);assert.equal(r.record.calls.at(-1).input_chars,expectedInput);
+  }finally{CM.generateContent=generate;GW.callGateway=gateway;}
+}));
+
+for(const recover of [true,false])test('03b-L3',`出力上限は半分の4件ずつへ一度だけ分ける（${recover?'回復':'再度上限'}）`,async()=>feature(async()=>{
+  const sizes=[];
+  const {r}=await scatteredHome(8,(req,source)=>{
+    const rows=payload(req).claims;sizes.push(rows.length);assert.equal(req.maxTokens,16000);
+    if(!req.retry||!recover)return {text:'[',stop_reason:'max_tokens'};
+    const page=materials(req).find(p=>p.url===source.url);return rows.map(c=>({id:c.id,verdict:'正しい',evidence_id:page.number,basis:H.basisFor(page,c.sentence)}));
+  });
+  assert.deepEqual(sizes,[8,4,4]);assert.equal(r.record.confirm.calls,3);assert.equal(r.record.status,recover?'ok':'revise');assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.retry||c.stop_reason==='max_tokens'));
+}));
+
+test('03b-L3','分割の再試行も記事全体の6回に含め、超えた分は停止へ残す',async()=>feature(async()=>{
+  const {r,body}=await manyRecipients(25,()=>({text:'[',stopReason:'max_tokens'}));
+  assert.equal(r.record.confirm.calls,6);assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.remaining.length,25);assert(r.record.claims.some(c=>c.confirm.reason.includes('上限')));
+}));
+
+for(const keep of [false,true])test('03b-L4',`資料なしの一般化で同じ文の裏付け済み2000万円を${keep?'残せば採る':'消せば落とす'}`,async()=>feature(async()=>{
+  const source=material('ta:4452'),sentence='配偶者控除は2,000万円、受贈者は18歳未満であれば対象です。',others=['甲','乙','丙','丁'].map(s=>s+'の配偶者控除は2,000万円です。'),body=[sentence,...others].join('\n');
+  const replacement=keep?'配偶者控除は2,000万円です。対象要件は国税庁で確認してください。':'贈与税の配偶者控除の要件は国税庁で確認してください。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4452'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,findQaByKeywords:()=>[],callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'金額','贈与税の配偶者控除').flatMap((c,i)=>[{...c,claim:'配偶者控除は2,000万円'},...(i===0?[{...c,type:'要件',claim:'受贈者は18歳未満であれば対象です。'}]:[])]);
+    if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'誤り',replacement));
+    return payload(req).claims.map(c=>c.type==='要件'?{id:c.id,status:'資料なし'}:judged(req,c,source,/2,000万円/,'裏付けあり'));
+  }});
+  assert.equal(r.record.status,'ok');assert.equal(r.record.corrections.length,keep?1:0);assert.equal(r.body,keep?[replacement,...others].join('\n'):body);assert.equal(r.record.claims.find(c=>c.type==='要件').confirm.verdict,keep?'誤り':'判断できない');
+}));
+
+for(const keep of [false,true])test('03b-L4',`部分的な数字の裏付けsupported_numbersも一般化で${keep?'残す':'消さない'}`,async()=>feature(async()=>{
+  const source=material('ta:4452'),body='配偶者控除は2,000万円、別の控除は1,800万円です。',replacement=keep?'配偶者控除は2,000万円です。別の控除の要件は国税庁で確認してください。':'控除額は国税庁で確認してください。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4452'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,findQaByKeywords:()=>[],callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'金額','贈与税の配偶者控除');
+    if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'誤り',replacement));
+    return payload(req).claims.map(c=>judged(req,c,source,/2,000万円/,'裏付けあり'));
+  }});assert(r.record.claims[0].supported_numbers.length);assert.equal(r.body,keep?replacement:body);assert.equal(r.record.status,keep?'ok':'revise');
+}));
+
+test('03b-L5','即時の確かめは最大3回並行し、遅い1回のほかも処理する',async()=>feature(async()=>{
+  let active=0,peak=0;
+  const {r}=await manyRecipients(25,async req=>{
+    active++;peak=Math.max(peak,active);try{await new Promise(resolve=>setTimeout(resolve,10));return payload(req).claims.map(c=>({id:c.id,verdict:'判断できない'}));}finally{active--;}
+  });assert.equal(peak,3);assert.equal(active,0);assert.equal(r.record.confirm.calls,4);assert.equal(r.record.status,'revise');
+}));
+
+// 実際のAnthropic送受信の形だけを使い、HTTP・待ち・GLMは全て試験用に差し替える。
+async function withConfirmTransport(settings, run) {
+  const GW=require('../gateway-model'),savedGateway=GW.callGateway,savedFetch=global.fetch,source=material('ta:4508');
+  const stats={batchPosts:0,sync:0,cancels:0,peak:0,active:0,requests:[],time:0},batches=new Map(),controller=new AbortController();
+  const count=settings.count??25,body=Array.from({length:count},(_,i)=>String.fromCharCode(0x4e00+i)+wrongRecipient).join('\n');
+  const key=['03b','試験の認証値','0123456789'].join('-');
+  const response=(data,status=200)=>({ok:status>=200&&status<300,status,json:async()=>data,text:async()=>typeof data==='string'?data:JSON.stringify(data)});
+  const message=params=>{
+    assert.equal(params.model,'claude-opus-5-5');assert.equal(params.max_tokens,16000);assert.equal(params.output_config,undefined);
+    const req={system:params.system.map(block=>block.text).join('\n\n'),user:params.messages[0].content.at(-1).text},rows=payload(req).claims;
+    assert(params.system.filter(block=>block.text.includes('[資料 ')).every(block=>!block.cache_control));
+    const truncated=settings.truncate&&rows.length>4;
+    return {content:[{type:'text',text:truncated?'[':JSON.stringify(rows.map(c=>confirmed(req,c,source,/直系卑属/,'誤り',c.sentence.replace('直系尊属','直系卑属'))))}],stop_reason:truncated?'max_tokens':'end_turn',
+      usage:{input_tokens:100,output_tokens:20,cache_creation_input_tokens:0,cache_read_input_tokens:0}};
+  };
+  try{
+    GW.callGateway=async req=>req.task==='extract'?extract(req,'要件','住宅取得等資金の贈与の非課税')
+      :payload(req).claims.map(c=>judged(req,c,source,/直系卑属/,'食い違い',rightRecipient));
+    global.fetch=async(url,init)=>{
+      assert(url.startsWith('https://api.anthropic.com/v1/messages'));assert.equal(init.headers['x-api-key'],key);
+      if(url.endsWith('/batches')){
+        stats.batchPosts++;const sent=JSON.parse(init.body);stats.requests.push(...sent.requests);
+        assert(sent.requests.length<=6);assert.equal(new Set(sent.requests.map(item=>item.custom_id)).size,sent.requests.length);
+        if(settings.createFail)return response({error:{type:'authentication_error',message:'key='+key}},401);
+        const id='msgbatch03b-'+stats.batchPosts;batches.set(id,{requests:sent.requests,cancelled:false});return response({id});
+      }
+      const id=url.match(/\/batches\/([^/]+)/)?.[1],batch=batches.get(id);
+      if(batch){
+        if(url.endsWith('/cancel')){batch.cancelled=true;stats.cancels++;return response({});}
+        if(url.endsWith('/results'))return response(batch.requests.map((item,i)=>({custom_id:item.custom_id,result:settings.pending&&settings.cancelEnded&&i>=(settings.finished??0)?{type:'canceled'}:settings.oneError&&i===0?{type:'errored'}:{type:'succeeded',message:message(item.params)}})).reverse().map(row=>JSON.stringify(row)).join('\n'));
+        if(settings.abort)controller.abort();
+        return response({processing_status:settings.pending?(batch.cancelled?(settings.cancelEnded?'ended':'canceling'):'in_progress'):'ended'});
+      }
+      assert(url.endsWith('/messages'));stats.sync++;stats.active++;stats.peak=Math.max(stats.peak,stats.active);
+      try{await new Promise(resolve=>setTimeout(resolve,5));return settings.syncFail?response({error:{type:'api_error',message:key}},500):response(message(JSON.parse(init.body)));}finally{stats.active--;}
+    };
+    await env({ANTHROPIC_API_KEY:key},async()=>{
+      const r=await F.checkFacts(body,{...opts,batch:settings.batch??true,batchMaxWaitMinutes:1,batchPollSeconds:5,
+        batchRuntime:{now:()=>stats.time,sleep:async(ms,signal)=>{assert(!signal?.aborted);stats.time+=ms;}},
+        signal:controller.signal,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load});
+      await new Promise(resolve=>setImmediate(resolve));assert(!JSON.stringify(r.record).includes(key));await run({r,stats,body,key});
+    });
+  }finally{GW.callGateway=savedGateway;global.fetch=savedFetch;}
+}
+
+test('03b-B1','Gatewayで探した25件の確かめ4回を1つのBatchへまとめ、逆順の結果もIDで採る',async()=>feature(()=>withConfirmTransport({},async({r,stats,body})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.requests.length,4);assert.equal(stats.sync,0);assert.equal(r.record.status,'ok');assert.equal(r.body,body.replaceAll('直系尊属','直系卑属'));
+  assert.equal(r.record.batch,false);assert.equal(r.record.confirm.batch,true);assert.equal(r.record.confirm.calls,4);assert.equal(r.record.confirm.input_tokens,400);assert.equal(r.record.confirm.output_tokens,80);
+  assert.equal(r.record.confirm.cache_creation_input_tokens,0);assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.batch&&c.mode==='batch'&&c.usage.input_tokens===100));
+  assert(r.record.summary.includes('・Opus の確かめ 4 回'));assert.equal(r.record.rechecked.length,0);
+})));
+
+test('03b-B1','手動の即時の確かめはBatchを作らず、最大3回を並行する',async()=>feature(()=>withConfirmTransport({batch:false},async({r,stats})=>{
+  assert.equal(stats.batchPosts,0);assert.equal(stats.sync,4);assert.equal(stats.peak,3);assert.equal(r.record.status,'ok');assert.equal(r.record.confirm.batch,false);
+  assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='sync'&&!c.batch));
+})));
+
+test('03b-B1','Batchの合計待ち上限を使い切れば取消を確かめてから最大3回の即時へ切り替える',async()=>feature(()=>withConfirmTransport({pending:true},async({r,stats})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.cancels,1);assert.equal(stats.sync,4);assert.equal(stats.peak,3);assert(stats.time>=60000);assert.equal(r.record.status,'ok');
+  assert.equal(r.record.confirm.batch,false);assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='sync-fallback'&&!c.batch&&c.wait_seconds>=60));
+})));
+
+test('03b-B1','Batch作成が失敗しても鍵を出さず即時へ切り替える',async()=>feature(()=>withConfirmTransport({createFail:true},async({r,stats})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.sync,4);assert.equal(r.record.status,'ok');assert.equal(r.record.confirm.calls,4);
+  assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='sync-fallback'&&c.batch_error.includes('[秘匿]')));
+})));
+
+for(const finished of [0,1])test('03b-B1',`取消が完了したBatchは成功済み${finished}要求を残し、取消済みだけ即時へ戻す`,async()=>feature(()=>withConfirmTransport({pending:true,cancelEnded:true,finished},async({r,stats})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.cancels,1);assert.equal(stats.sync,4-finished);assert.equal(r.record.status,'ok');assert.equal(r.record.confirm.calls,4);
+  assert.equal(r.record.calls.filter(c=>c.task==='confirm'&&c.mode==='batch').length,finished);assert.equal(r.record.calls.filter(c=>c.task==='confirm'&&c.mode==='sync-fallback').length,4-finished);
+  assert.equal(r.record.confirm.input_tokens,400);assert.equal(r.record.confirm.output_tokens,80);
+})));
+
+test('03b-B1','Batch内の1回だけが失敗したら、その8件だけを止めて成功した17件は採る',async()=>feature(()=>withConfirmTransport({oneError:true},async({r,stats})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.sync,0);assert.equal(r.record.status,'revise');assert.equal(r.record.corrections.length,17);assert.equal(r.record.confirm.unknown,8);
+  assert.equal(r.record.remaining.length,8);assert.equal(r.record.confirm.input_tokens,null);
+})));
+
+test('03b-B1','即時への切替も失敗した場合は実際のmodeを記録して全ての食い違いを止める',async()=>feature(()=>withConfirmTransport({createFail:true,syncFail:true},async({r,stats,body})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.sync,4);assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.remaining.length,25);
+  assert.equal(r.record.confirm.batch,false);assert(r.record.calls.filter(c=>c.task==='confirm').every(c=>c.mode==='sync-fallback'&&!c.batch));
+})));
+
+test('03b-B1','親の中断ではBatchを取り消し、即時へ戻さず食い違いを止める',async()=>feature(()=>withConfirmTransport({abort:true},async({r,stats,body})=>{
+  assert.equal(stats.batchPosts,1);assert.equal(stats.cancels,1);assert.equal(stats.sync,0);assert.equal(r.body,body);assert.equal(r.record.status,'revise');assert.equal(r.record.remaining.length,25);
+})));
+
+test('03b-B1','出力上限後の半分ずつの確かめもまとめて送り、再試行を含め3回と記録する',async()=>feature(()=>withConfirmTransport({count:8,truncate:true},async({r,stats})=>{
+  assert.equal(stats.batchPosts,2);assert.deepEqual(stats.requests.map(item=>JSON.parse(item.params.messages[0].content.at(-1).text).claims.length),[8,4,4]);
+  assert.equal(r.record.status,'ok');assert.equal(r.record.confirm.calls,3);assert.equal(r.record.calls.filter(c=>c.task==='confirm'&&c.stop_reason==='max_tokens').length,1);
+})));
+
+test('03b-入力','実地の照合の入力はboolean既定falseで、変数の上書きはenvの中だけにする',()=>{
+  const fs=require('fs'),path=require('path'),text=fs.readFileSync(path.resolve(__dirname,'../../../.github/workflows/fact-check.yml'),'utf8');
+  for(const input of ['writer_materials','confirm']){
+    const section=text.match(new RegExp('      '+input+':\\n([\\s\\S]*?)(?=\\n      [a-z_]+:|\\npermissions:)'))?.[1];assert(section,input);
+    assert(section.includes('type: boolean'));assert(section.includes('default: false'));
+  }
+  assert(text.includes("FACT_CHECK_WRITER_MATERIALS: ${{ inputs.writer_materials && 'true' || vars.FACT_CHECK_WRITER_MATERIALS }}"));
+  assert(text.includes("FACT_CHECK_CONFIRM: ${{ inputs.confirm && 'true' || vars.FACT_CHECK_CONFIRM }}"));
+  const runs=[...text.matchAll(/        run: \|\n([\s\S]*?)(?=\n      - |$)/g)].map(m=>m[1]).join('\n');
+  assert(!runs.includes('inputs.writer_materials'));assert(!runs.includes('inputs.confirm'));
+});
 
 test('C4', '正しいという答えにも引用と数字の実在を求める',async()=>feature(async()=>{
   const r=await spouseCase((req,source)=>payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'正しい')));

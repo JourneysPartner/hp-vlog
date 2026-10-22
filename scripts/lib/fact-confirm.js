@@ -28,60 +28,75 @@ function candidatesFor(finding, options) {
   return [...new Map(refs.filter(e => e.kind !== 'change').map(e => [e.id, e])).values()];
 }
 
-function pageFor(ref, finding, options) {
+function loadPage(ref, options) {
   let source = (options.loadEvidenceText || (e => e.kind === 'qa' ? resolveMaterial(materialId(e))?.text : loadEvidenceText(e)))(ref);
   if (typeof source !== 'string' || !source.trim()) throw new Error('確かめの資料を読めませんでした');
   if (ref.kind === 'taxanswer') source = source.split('関連リンク')[0];
   const units = splitUnits(source, { material: true });
-  const words = [...tokenizeForMatcher(`${finding.subject} ${finding.claim}`)];
-  const root = finding.glm_answer?.evidence || finding.evidence_id;
-  const ranges = root === ref.id ? basisRanges(finding.glm_answer?.basis) || [] : [];
-  const quoteAt = root === ref.id && finding.quote ? source.indexOf(finding.quote.split('\n…\n')[0]) : -1;
-  const scores = units.map((u, i) => ({ i, score: words.filter(word => u.text.normalize('NFKC').toLowerCase().includes(word)).length +
-    (quoteAt >= u.start && quoteAt < u.end ? 100 : ranges.some(range => { const [a,b] = range.split('-').map(Number); return u.s >= a && u.s <= b; }) ? 30 : 0) }));
-  const header = `[資料 100] ${ref.title || ''} / ${ref.url || ''} / ${ref.law_version || ''}\n`;
+  return { id: ref.id, source, ref: { ...ref, text: source, text_ranges: undefined, text_start: undefined }, units };
+}
+
+// 同じページを共有する指摘全部の語・引用を使い、まとめるたびに抜粋を選び直す。
+function pageFor(page, findings, limit, number) {
+  const { source, ref, units } = page;
+  const queries = findings.map(finding => {
+    const root = finding.glm_answer?.evidence || finding.evidence_id;
+    return { words: [...tokenizeForMatcher(`${finding.subject} ${finding.claim}`)],
+      ranges: root === ref.id ? basisRanges(finding.glm_answer?.basis) || [] : [],
+      quotes: root === ref.id && finding.quote ? finding.quote.split('\n…\n').map(q => source.indexOf(q)).filter(at => at >= 0) : [] };
+  });
+  const scores = units.map((u, i) => ({ i, score: queries.reduce((sum, query) => sum +
+    query.words.filter(word => u.text.normalize('NFKC').toLowerCase().includes(word)).length +
+    (query.quotes.some(at => at >= u.start && at < u.end) ? 100 : query.ranges.some(range => {
+      const [a,b] = range.split('-').map(Number); return u.s >= a && u.s <= b;
+    }) ? 30 : 0), 0) }));
+  const header = `[資料 ${number}] ${ref.title || ''} / ${ref.url || ''} / ${ref.law_version || ''}\n`;
   const chosen = new Map(); let length = header.length;
   for (const { i } of scores.sort((a,b) => b.score - a.score || a.i - b.i)) for (const at of [i, i-1, i+1]) {
     const u = units[at]; if (!u || chosen.has(u.s)) continue;
     const cost = renderUnits([u]).length + 6;
-    if (length + cost > 2990) continue;
+    if (length + cost > limit) continue;
     chosen.set(u.s, u); length += cost;
   }
   if (!chosen.size) throw new Error('確かめの資料が上限を超えました');
-  return { id: ref.id, source, ref: { ...ref, text: source, text_ranges: undefined, text_start: undefined }, units: [...chosen.values()] };
+  const selected = [...chosen.values()].sort((a,b) => a.s-b.s); let segment = 0;
+  const numbered = selected.map((u,j) => { if (j && u.s !== selected[j-1].s+1) segment++; return { ...u, segment }; });
+  return { ...page, number, units: numbered, block: header + numbered.map((u,j) =>
+    (j && u.segment !== numbered[j-1].segment ? '……\n' : '') + renderUnits([u])).join('\n') };
 }
 
 function packItems(items) {
   const merged = new Map();
   for (const item of items) for (const page of item.pages) {
-    if (!merged.has(page.id)) merged.set(page.id, { ...page, units: new Map() });
+    if (!merged.has(page.id)) merged.set(page.id, { page, findings: [] });
     const own = merged.get(page.id);
-    for (const unit of page.units) own.units.set(unit.s, unit);
+    own.findings.push(item.finding);
   }
-  const pages = [...merged.values()].map((page, i) => {
-    const units = [...page.units.values()].sort((a,b) => a.s-b.s); let segment = 0;
-    const numbered = units.map((u,j) => { if (j && u.s !== units[j-1].s+1) segment++; return { ...u, segment }; });
-    return { ...page, number: i+1, units: numbered,
-      block: `[資料 ${i+1}] ${page.ref.title || ''} / ${page.ref.url || ''} / ${page.ref.law_version || ''}\n` +
-        numbered.map((u,j) => (j && u.segment !== numbered[j-1].segment ? '……\n' : '') + renderUnits([u])).join('\n') };
-  });
+  const rows = [...merged.values()], caps = rows.map(row => Math.min(9000, 3000 * row.findings.length));
+  const scale = Math.min(1, (30000 - Math.max(0, rows.length-1)*2) / caps.reduce((a,b) => a+b, 0));
+  let pages;
+  try { pages = rows.map((row,i) => pageFor(row.page, row.findings, Math.floor(caps[i]*scale), i+1)); }
+  catch (_) { return null; }
   const block = pages.map(page => page.block).join('\n\n');
-  return pages.some(page => page.block.length > 3000) || block.length > 30000 ? null : { pages, block };
+  return pages.some((page,i) => page.block.length > caps[i]) || block.length > 30000 ? null : { pages, block };
 }
 
 /** 1回8指摘・資料30000字・最大6回。失敗や上限はその指摘だけ判断できないにする。 */
-async function confirmFindings(body, findings, call, options, validate, context) {
-  const results = new Map(), pending = [];
+async function confirmFindings(body, findings, call, options, validate, context, parseJson) {
+  const results = new Map(), pending = [], loaded = new Map();
   const unknown = (id, reason) => results.set(id, { verdict: '判断できない', reason });
   for (const finding of findings) {
     try {
-      const pages = candidatesFor(finding, options).flatMap(ref => { try { return [pageFor(ref, finding, options)]; } catch (_) { return []; } });
-      if (!pages.length || !packItems([{ pages }])) { unknown(finding.id, '確かめの資料を用意できませんでした'); continue; }
+      const pages = candidatesFor(finding, options).flatMap(ref => { try {
+        if (!loaded.has(ref.id)) loaded.set(ref.id, loadPage(ref, options));
+        return [loaded.get(ref.id)];
+      } catch (_) { return []; } });
+      if (!pages.length || !packItems([{ finding, pages }])) { unknown(finding.id, '確かめの資料を用意できませんでした'); continue; }
       pending.push({ finding, pages });
     } catch (_) { unknown(finding.id, '確かめの資料を用意できませんでした'); }
   }
-  let calls = 0;
-  while (pending.length && calls < 6) {
+  const groups = [];
+  while (pending.length) {
     const items = [pending.shift()]; let pack = packItems(items);
     while (items.length < 8) {
       const ids = new Set(pack.pages.map(p => p.id));
@@ -90,30 +105,55 @@ async function confirmFindings(body, findings, call, options, validate, context)
       if (!next) break;
       items.push(pending.splice(next.index,1)[0]); pack = packItems(items);
     }
-    calls++;
-    try {
-      const ret = await call({ task:'confirm', immediate:true, maxTokens:8000, system:CONFIRM_SYSTEM+'\n\n'+pack.block,
-        user:JSON.stringify({ claims:items.map(({finding:f,pages})=>({id:f.id,type:f.type,subject:f.subject,sentence:f.sentence,
+    groups.push({ items, pack });
+  }
+  let calls = 0;
+  const run = async (jobs, retrying = false) => {
+    const selected = jobs.slice(0, 6-calls), overflow = jobs.slice(6-calls), retry = [];
+    for (const job of overflow) for (const {finding} of job.items) unknown(finding.id,'確かめの呼び出しの上限を超えました');
+    calls += selected.length;
+    const requests = selected.map(({items,pack}) => ({ task:'confirm', immediate:!call.batch, maxTokens:16000,
+      system:CONFIRM_SYSTEM, staticSystem:CONFIRM_SYSTEM, dynamicSystem:pack.block, ...(retrying ? { retry: true } : {}),
+      user:JSON.stringify({ claims:items.map(({finding:f,pages})=>({id:f.id,type:f.type,subject:f.subject,sentence:f.sentence,
           ...context(body,f.sentence),finding:f.condition_mismatch?'条件の不一致':f.status,
           glm_answer:f.glm_answer || {status:f.status,evidence:f.evidence_id,basis:'',correct:f.correct},
-          evidence_ids:pack.pages.filter(p=>pages.some(e=>e.id===p.id)).map(p=>p.number)})) }) });
-      if (['max_tokens','length'].includes(ret?.stopReason) || ret?.stop_reason === 'max_tokens') throw new Error('確かめの出力が上限に達しました');
-      let rows = Array.isArray(ret) || ret?.verdict ? ret : JSON.parse(String(typeof ret === 'string' ? ret : ret?.text || '').replace(/^```(?:json)?\s*|\s*```$/g,'').trim());
-      if (!Array.isArray(rows)) rows = [rows];
-      for (const {finding,pages} of items) {
-        const own = rows.filter(row=>row?.id===finding.id);
-        if (own.length !== 1 || !['誤り','正しい','判断できない'].includes(own[0].verdict)) { unknown(finding.id,'確かめの答えの形が不正です'); continue; }
-        const row = own[0];
-        if (row.verdict === '判断できない') { unknown(finding.id,redactSecrets(String(row.reason || '')).slice(0,300)); continue; }
-        if (typeof row.replacement === 'string' && redactSecrets(row.replacement) !== row.replacement) { unknown(finding.id,'確かめの答えを採れませんでした'); continue; }
-        let result;
-        try { result = await validate(finding, row, pack.pages.filter(page=>pages.some(p=>p.id===page.id))); }
-        catch (_) { /* 他の指摘の答えは維持し、この指摘だけ不採用にする。 */ }
-        results.set(finding.id, result || {verdict:'判断できない',reason:'確かめの引用・数字・修正文を採れませんでした'});
-      }
-    } catch (_) { for (const {finding} of items) unknown(finding.id,'確かめを実施できませんでした'); }
-  }
-  for (const {finding} of pending) unknown(finding.id,'確かめの呼び出しの上限を超えました');
+          evidence_ids:pack.pages.filter(p=>pages.some(e=>e.id===p.id)).map(p=>p.number)})) }) }));
+    const consume = async (job, work) => {
+      const {items,pack} = job;
+      try {
+        const ret = await work;
+        if (['max_tokens','length'].includes(ret?.stopReason) || ret?.stop_reason === 'max_tokens') {
+          if (retrying) throw new Error('確かめの出力が再び上限に達しました');
+          const at = Math.ceil(items.length/2);
+          for (const half of [items.slice(0,at), items.slice(at)].filter(part=>part.length)) {
+            const next=packItems(half);
+            if (next) retry.push({ items:half, pack:next });
+            else for (const {finding} of half) unknown(finding.id,'確かめの資料を用意できませんでした');
+          }
+          return;
+        }
+        let rows = ret?.verdict ? ret : parseJson(ret);
+        if (!Array.isArray(rows)) rows = [rows];
+        for (const {finding,pages} of items) {
+          const own = rows.filter(row=>row?.id===finding.id);
+          if (own.length !== 1 || !['誤り','正しい','判断できない'].includes(own[0].verdict)) { unknown(finding.id,'確かめの答えの形が不正です'); continue; }
+          const row = own[0];
+          if (row.verdict === '判断できない') { unknown(finding.id,redactSecrets(String(row.reason || '')).slice(0,300)); continue; }
+          if (typeof row.replacement === 'string' && redactSecrets(row.replacement) !== row.replacement) { unknown(finding.id,'確かめの答えを採れませんでした'); continue; }
+          let result;
+          try { result = await validate(finding, row, pack.pages.filter(page=>pages.some(p=>p.id===page.id))); }
+          catch (_) { /* 他の指摘の答えは維持し、この指摘だけ不採用にする。 */ }
+          results.set(finding.id, result || {verdict:'判断できない',reason:'確かめの引用・数字・修正文を採れませんでした'});
+        }
+      } catch (_) { for (const {finding} of items) unknown(finding.id,'確かめを実施できませんでした'); }
+    };
+    if (call.batch && requests.length) {
+      const response = await call.batch(requests).catch(() => []), outcomes = Array.isArray(response) ? response : [];
+      await Promise.all(selected.map((job,i) => consume(job, outcomes[i]?.status === 'fulfilled' ? Promise.resolve(outcomes[i].value) : Promise.reject(new Error('確かめのBatch失敗')))));
+    } else for (let i=0; i<selected.length; i+=3) await Promise.all(selected.slice(i,i+3).map((job,j)=>consume(job,call(requests[i+j]))));
+    if (retry.length) await run(retry, true);
+  };
+  await run(groups);
   return results;
 }
 
