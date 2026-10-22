@@ -62,10 +62,11 @@ function dateEquation(left,right,normalizedNumbers){
   return{operands:[start.key,days.key],key:end.key,origin:start.key};
 }
 
-function verifyCalculations(calculations,{quote,article,target,normalizedNumbers}){
-  const excluded=new Set();
+function verifyCalculations(calculations,{quote,article,sentence='',target,normalizedNumbers}){
+  const excluded=new Set(),premises=[];
   if(!Array.isArray(calculations)||!calculations.length||calculations.length>3)return{error:'読めない'};
-  const quoted=new Set(normalizedNumbers(quote).filter(n=>n!==null)),premises=new Set(article.flatMap(text=>normalizedNumbers(text)).filter(n=>n!==null)),targets=new Set(normalizedNumbers(target).filter(n=>n!==null));
+  const quoted=new Set(normalizedNumbers(quote).filter(n=>n!==null)),current=new Set(normalizedNumbers(sentence).filter(n=>n!==null)),targets=new Set(normalizedNumbers(target).filter(n=>n!==null));
+  const outside=article.map(text=>({sentence:text,numbers:new Set(normalizedNumbers(text).filter(n=>n!==null))}));
   const parsed=[];
   for(const raw of calculations)try{
     if(typeof raw!=='string'||raw.length>600)throw Error('読めない');const text=clean(raw),parts=text.split('=');if(parts.length!==2||!parts.every(Boolean))throw Error('読めない');
@@ -77,13 +78,20 @@ function verifyCalculations(calculations,{quote,article,target,normalizedNumbers
   const results=new Set(parsed.map(row=>row.key));
   for(const checked of parsed)try{
     for(const key of checked.operands){
-      if((results.has(key)&&!quoted.has(key))||(!quoted.has(key)&&!premises.has(key)))throw Error('数の出どころが無い');
+      if(results.has(key)&&!quoted.has(key))throw Error('数の出どころが無い');
+      if(quoted.has(key))continue;
+      // 割合は引用が必要。日付の起点だけは、その文の仮定からも取れる。
+      if(key.startsWith('割合:'))throw Error('数の出どころが無い');
+      if(key===checked.origin&&current.has(key))continue;
+      const sources=outside.filter(row=>row.numbers.has(key));
+      if(!sources.length)throw Error('数の出どころが無い');
+      for(const source of sources)if(!premises.some(p=>p.number===key&&p.sentence===source.sentence))premises.push({number:key,sentence:source.sentence});
     }
     // 主張に書かれた左辺の金額・割合・日数は、検算とは別に引用で確かめる。
     if(checked.origin)excluded.add(checked.origin);
     if(!targets.has(checked.key))throw Error('右辺が主張に無い');excluded.add(checked.key);
   }catch(error){return{error:['読めない','計算が合わない','数の出どころが無い','右辺が主張に無い'].includes(error.message)?error.message:'読めない'};}
-  return{excluded};
+  return{excluded,premises};
 }
 
 module.exports={verifyCalculations};
