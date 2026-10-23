@@ -21,6 +21,7 @@ const JUDGE_RETRIED = Symbol('判定の聞き直し済み');
 const REPAIR_RETRIED = Symbol('修正の直し済み');
 const CONFIRM_KEEP = Symbol('確かめで正しい主張の数字を保全');
 const CALCULATION_NUMBERS = Symbol('検算を通った数字');
+const SLASH_DATES = Symbol('確かめの引用内の年の無い日付');
 const GATEWAY_FALLBACK = Symbol('Gatewayからのやり直し済み');
 const EXTRACT_RETRIED = Symbol('抜き出し直し済み');
 // 指定された言い換えだけを受け付け、説明付きの名前などへは広げない。
@@ -275,6 +276,16 @@ function sufficientQuote(claim, result, ref, status) {
   return true;
 }
 
+function confirmationSlashDates(quote) {
+  // 引用内だけで追加する読み。年・識別子・分数の一部は日付にしない。
+  const pattern = /(?<![0-9A-Za-z_.,/×*÷=+−\-の;])([0-9]{1,2})\/([0-9]{1,2})(?![0-9/=+×*÷−]|に相当|相当|を乗じ|を掛け|の割合|倍|を超え)/g;
+  const monthDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return [...normalizedQuote(quote).matchAll(pattern)].flatMap(([, month, day]) => {
+    const m = Number(month), d = Number(day);
+    return m >= 1 && m <= 12 && d >= 1 && d <= monthDays[m - 1] ? [`日付:-${m}-${d}`] : [];
+  });
+}
+
 /** 数字の照合範囲は、原文の引用位置の前後300字に限定する。 */
 function quoteSupportsNumbers(numbers, result, ref) {
   if (!numbers.length || numbers.includes(null)) return false;
@@ -299,7 +310,8 @@ function quoteSupportsNumbers(numbers, result, ref) {
       if (quoted.includes(null)) continue;
       // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
       const dates = normalizedNumbers(withoutAsOfDates(quote));
-      supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
+      const slashDates = result[SLASH_DATES] ? confirmationSlashDates(quote) : [];
+      supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || slashDates.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
     }
   }
   // 同じ引用が何度も現れても、別々の出現位置の近傍を一つの引用の裏付けに混ぜない。
@@ -1220,7 +1232,7 @@ async function validateConfirmation(body, finding, row, pages, options) {
   const parts = page && ranges?.map(range => rangeText(page.source, page.units, range, NUMERIC_TYPES.has(finding.type) ? 2 : 4));
   if (!parts?.length || parts.some(p => !p)) return reject('basis_unreadable', '文の番号を読めないか、示した抜粋の外です');
   const quote = parts.map(p => p.text).join('\n…\n'), ref = page.ref;
-  const grounded = { quote, correct: replacement };
+  const grounded = { quote, correct: replacement, [SLASH_DATES]: true };
   if (!quoteExists(quote, ref)) return reject('quote_missing', '引用が資料の原文にありません');
   if(!finding.sentence.trimStart().startsWith('|')&&Object.hasOwn(row,'calculation')&&row.calculation!==null&&row.calculation!==''&&(!Array.isArray(row.calculation)||row.calculation.length)){
     const checked=require('./fact-calculation').verifyCalculations(row.calculation,{quote,sentence:finding.sentence,target:row.verdict==='誤り'?replacement:finding.sentence,normalizedNumbers});
@@ -1278,7 +1290,7 @@ async function applyConfirmations(body, findings, record, call, options, model) 
   const repair = edits.length ? await repairBody(body, edits.map(f => ({...f,status:f.status === '資料なし' ? f.status : '食い違い',keep:keepFor(f)})),
     async () => edits.map(f => ({ id: f.id, replacement: answers.get(f.id).replacement })), { ...options, writerMaterials: false, [CONFIRM_KEEP]:true }) : null;
   for (const f of edits) if (!repair?.accepted || repair.rejected.has(f.id)) answers.set(f.id, rejectConfirmation(answers.get(f.id), 'repair_rejected', repair?.reason || repair?.rejected.get(f.id) || '修正文の本文保全を確かめられませんでした'));
-  const counts = { checked: findings.length, rewritten: 0, generalized:0, kept: 0, unknown: 0, rejected:0 };
+  const counts = { checked: findings.length, rewritten: 0, generalized:0, kept: 0, unknown: 0, rejected:0, blocked:0 };
   const verdicts = {'誤り':0,'正しい':0,'記載なし':0,'判断できない':0}, rejectedCodes = {};
   record.review_items = record.review_items.filter(row => !findings.some(f => f.id === row.id));
   for (const f of findings) {
@@ -1287,6 +1299,14 @@ async function applyConfirmations(body, findings, record, call, options, model) 
     c.confirm = confirm;
     if (Object.hasOwn(verdicts, answer.answer?.verdict)) verdicts[answer.answer.verdict]++;
     if (answer.rejected) { counts.rejected++; rejectedCodes[answer.rejected.code] = (rejectedCodes[answer.rejected.code] || 0)+1; }
+    if (answer.rejected && answer.answer?.verdict === '誤り') {
+      // 同じ文・最後の本文保全で採れなかった答えも、元の「誤り」で承認を止める。
+      counts.unknown++; counts.blocked++; c.confirm.blocked = true;
+      if (c.condition_mismatch || !['食い違い', '期限の書き漏れ'].includes(c.status)) c.correct = '';
+      if (c.status !== '期限の書き漏れ') c.status = '食い違い';
+      delete c.condition_mismatch;
+      continue;
+    }
     if(answer.review){counts.unknown++;c.status='資料なし';c.correct='';delete c.condition_mismatch;record.review_items.push({...c});continue;}
     if (answer.verdict === '判断できない') {
       counts.unknown++;
@@ -1704,7 +1724,7 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
-    if (record.confirm) record.summary += `・Opus の確かめ ${record.confirm.checked} 件（書き換え ${record.confirm.rewritten}・具体を外した ${record.confirm.generalized}・残す ${record.confirm.kept}・判断できない ${record.confirm.unknown}、うち答えを採らなかった ${record.confirm.rejected}）・${record.confirm.calls} 回`;
+    if (record.confirm) record.summary += `・Opus の確かめ ${record.confirm.checked} 件（書き換え ${record.confirm.rewritten}・具体を外した ${record.confirm.generalized}・残す ${record.confirm.kept}・判断できない ${record.confirm.unknown}、うち答えを採らなかった ${record.confirm.rejected}${record.confirm.blocked ? `・誤りとしたが採れず止めた ${record.confirm.blocked}` : ''}）・${record.confirm.calls} 回`;
     if (record.confirm?.not_stated_limit) record.summary += '・資料に記載の無い具体が多いため外していません';
     if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
     if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';

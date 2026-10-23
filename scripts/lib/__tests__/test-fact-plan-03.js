@@ -471,7 +471,7 @@ for(const keep of [false,true])test('03b-L4',`資料なしの一般化で同じ�
     if(req.task==='confirm')return payload(req).claims.map(c=>confirmed(req,c,source,/2,000万円/,'誤り',replacement));
     return payload(req).claims.map(c=>c.type==='要件'?{id:c.id,status:'資料なし'}:judged(req,c,source,/2,000万円/,'裏付けあり'));
   }});
-  assert.equal(r.record.status,'ok');assert.equal(r.record.corrections.length,keep?1:0);assert.equal(r.body,keep?[replacement,...others].join('\n'):body);assert.equal(r.record.claims.find(c=>c.type==='要件').confirm.verdict,keep?'誤り':'判断できない');
+  assert.equal(r.record.status,keep?'ok':'revise');assert.equal(r.record.corrections.length,keep?1:0);assert.equal(r.body,keep?[replacement,...others].join('\n'):body);assert.equal(r.record.claims.find(c=>c.type==='要件').confirm.verdict,keep?'誤り':'判断できない');
 }));
 
 for(const keep of [false,true])test('03b-L4',`部分的な数字の裏付けsupported_numbersも一般化で${keep?'残す':'消さない'}`,async()=>feature(async()=>{
@@ -1329,6 +1329,124 @@ for(const claim of ['基礎控除110万円','基礎控除','基礎控除1,100,00
 test('03h-追加歯止め','本物の速算表で控除額まで正しい金額の主張はok',async()=>feature(async()=>{
   const sentence='| 300万円以下 | 15%（控除10万円） |',r=await moneyCase03h(sentence,[{sentence,claim:'控除10万円',pattern:/200万円以下.*300万円以下/}]);
   assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert(r.record.claims[0].confirm.quote.includes('10万円'));
+}));
+
+// 03i: 採れなかった「誤り」は止め、引用内の年の無いスラッシュ日付だけ補う。
+async function missing03i({sentence,type='手続',subject='棚卸資産の評価方法',sources=[material('law:shotokuzei_rei:100'),material('law:shotokuzei_rei:101')],opus,extra={}}){
+  const home=material('ta:4508'),body=sentence+'\n'+['甲','乙','丙','丁'].map(label=>label+'の受贈者は18歳以上であることが要件です。').join('\n');
+  const select=c=>c.subject===subject?sources:[home];
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508','law:shotokuzei_rei:100','law:shotokuzei_rei:101'],searchWriterEvidence:select,searchEvidence:select,findQaByKeywords:()=>[],loadEvidenceText:load,...extra,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税').map((c,i)=>i?c:{...c,type,subject});
+    if(req.task==='condition_check')return agreement();
+    if(req.task==='confirm')return opus(req,sources[0]);
+    return payload(req).claims.map(c=>c.subject===subject?{id:c.id,status:'資料なし'}:judged(req,c,home,/18歳以上/,'裏付けあり'));
+  }});return {r,body};
+}
+function blocked03i(r,c,code,correct=''){
+  diagnostic03c(c.confirm,code);assert.equal(c.confirm.answer.verdict,'誤り');assert.equal(c.confirm.blocked,true);assert.equal(c.status,'食い違い');assert.equal(c.correct,correct);assert(!c.condition_mismatch);
+  assert(r.record.remaining.some(row=>row.id===c.id));assert(!r.record.review_items.some(row=>row.id===c.id));assert.equal(r.record.status,'revise');
+}
+test('03i-A','1: S6の届出だけで評価方法を変えられる誤りは所令101を採れなくても止める',async()=>feature(async()=>{
+  const sentence='3. 評価方法を変えたいときは、新たな方法を採用しようとする年の3月15日までに届出書を提出すれば、承認を受けなくても変更できます（所得税法施行令）。',law=material('law:shotokuzei_rei:101');
+  const replacement='3. 評価方法を変えたいときは、新たな方法を採用しようとする年の3月15日までに申請書を提出し、承認を受ける必要があります（所得税法施行令）。';
+  const {r,body}=await missing03i({sentence,opus:req=>payload(req).claims.map(c=>confirmed(req,c,law,/承認を受けなければならない/,'誤り',replacement))});
+  blocked03i(r,r.record.claims[0],'rewrite_source');assert.equal(r.body,body);assert.equal(r.record.confirm.blocked,1);assert.equal(r.record.confirm.unknown,1);assert(r.record.summary.includes('・誤りとしたが採れず止めた 1'));assert.equal(r.record.claims[0].confirm.answer.replacement,replacement);
+}));
+test('03i-A','2: 条件の不一致でOpusの修正文の数字を採れないときは人の一覧でなく止める',async()=>feature(async()=>{
+  const source=material('ta:4508'),body='受贈者は18歳以上の者に限られます。',replacement='受贈者は97歳以上であることが要件です。';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税');
+    if(req.task==='condition_check')return {verdict:'不一致',conditions:[{article:'18歳以上',source:'50歳未満',match:'不一致'}],correct:'受贈者は50歳未満に限る。'};
+    if(req.task==='confirm')return payload(req).claims.map(c=>{assert.equal(c.finding,'条件の不一致');return confirmed(req,c,source,/18歳以上/,'誤り',replacement);});
+    return payload(req).claims.map(c=>judged(req,c,source,/18歳以上/,'裏付けあり'));
+  }});blocked03i(r,r.record.claims[0],'replacement_numbers');assert.equal(r.body,body);assert.equal(r.record.claims[0].confirm.answer.replacement,replacement);
+}));
+test('03i-A','3: 課税仕入れが売上の半分を超える判定の資料なしで候補外の誤りを止める',async()=>feature(async()=>{
+  const sentence='逆に本則課税が有利になるのは、外注費や材料費など課税仕入れが売上の半分を超える場合です。',source=material('ta:6505');
+  const {r,body}=await missing03i({sentence,type:'判定',subject:'簡易課税と本則課税',sources:[source],opus:req=>payload(req).claims.map(c=>({id:c.id,verdict:'誤り',evidence_id:999,basis:'1',replacement:'本則課税と簡易課税の税額を比べて判断します。',reason:'売上の半分という基準だけでは決まらない'}))});
+  blocked03i(r,r.record.claims[0],'page_not_offered');assert.equal(r.body,body);
+}));
+const private03i=new Module03c(require.resolve('../fact-check'),module);private03i.filename=require.resolve('../fact-check');private03i.paths=module.paths;
+private03i._compile(fs03c.readFileSync(private03i.filename,'utf8')+'\nmodule.exports.apply03i=applyConfirmations;module.exports.blocks03i=blockingFinding;module.exports.sufficient03i=sufficientQuote;',private03i.filename);
+for(const type of ['金額','期限','割合','適用年','番号'])test('03i-A','4: 数字の無い資料なしの'+type+'も確かめへ渡った誤りは止める',async()=>feature(async()=>{
+  const source=material('ta:4508'),sentence='この制度の条件は国税庁の案内で定められます。',c={id:'c1',type,subject:'住宅取得等資金の贈与の非課税',sentence,claim:sentence,status:'資料なし',correct:'未確認の修正案',evidence:[source]},record={claims:[c],review_items:[{...c}],corrections:[],calls:[]};
+  assert.equal(private03i.exports.blocks03i(c),false);
+  const body=await private03i.exports.apply03i(sentence,[{...c}],record,async req=>{record.calls.push({task:req.task});return payload(req).claims.map(row=>({id:row.id,verdict:'誤り',evidence_id:1,basis:'不正',replacement:sentence,reason:'制度の条件が違う'}));},{searchWriterEvidence:()=>[source],searchEvidence:()=>[source],findQaByKeywords:()=>[],loadEvidenceText:load},'claude-opus-5-5');
+  assert.equal(body,sentence);diagnostic03c(c.confirm,'basis_unreadable');assert.equal(c.confirm.blocked,true);assert.equal(c.status,'食い違い');assert.equal(c.correct,'');assert.equal(private03i.exports.blocks03i(c),true);assert.equal(record.review_items.length,0);assert.equal(record.confirm.blocked,1);
+}));
+test('03i-A','5: 同じ文の一方だけ誤りを採れても両方を書き換えず止める',async()=>feature(async()=>{
+  const source=material('ta:4511'),fixed=familySentence03c.replace('令和11年','令和9年');
+  const r=await F.checkFacts(familySentence03c,{...opts,writer_materials:['ta:4511'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract'){const s=extract(req,'期限','結婚・子育て資金の一括贈与')[0].s;return [{s,type:'期限',subject:'結婚・子育て資金の一括贈与',claim:'平成27年4月1日から令和11年3月31日まで'},{s,type:'要件',subject:'結婚・子育て資金の一括贈与',claim:'受贈者は18歳以上50歳未満'}];}
+    if(req.task==='confirm')return payload(req).claims.map(c=>({...confirmed(req,c,source,c.type==='期限'?/令和9年/:/18歳以上50歳未満/,'誤り',fixed),...(c.type==='要件'?{basis:'不正'}:{})}));
+    return payload(req).claims.map(c=>judged(req,c,source,c.type==='期限'?/令和9年/:/18歳以上50歳未満/,'食い違い',c.type==='期限'?'令和9年3月31日まで':'受贈者は18歳以上50歳未満'));
+  }});assert.equal(r.body,familySentence03c);assert.equal(r.record.confirm.blocked,2);
+  for(const c of r.record.claims)blocked03i(r,c,c.type==='期限'?'same_sentence':'basis_unreadable',c.type==='期限'?'令和9年3月31日まで':'受贈者は18歳以上50歳未満');
+}));
+test('03i-A','5: 最後の本文保全で採れなかった誤りも止める',async()=>feature(async()=>{
+  let guards=0;const r=await recipientCase((req,source)=>payload(req).claims.map(c=>confirmed(req,c,source,/直系卑属/,'誤り',rightRecipient)),{validateRepair:()=>++guards===1});
+  blocked03i(r,r.record.claims[0],'repair_rejected',rightRecipient);assert.equal(guards,2);assert.equal(r.body,wrongRecipient);assert.equal(r.record.confirm.blocked,1);
+}));
+for(const mode of ['判断できない','正しい','記載なし','重複id','呼び出し失敗'])test('03i-A','6: 要件の資料なしで'+mode+'は止める扱いを増やさない',async()=>feature(async()=>{
+  const sentence='取消届出の期限は土日祝でも延長されない。',source=mode==='正しい'?{id:'law:test:short-quote',kind:'law',title:'取消届出',url:'https://example.test/short',text:'短い引用'}:material('ta:4508');
+  const {r,body}=await missing03i({sentence,type:'要件',subject:'取消届出',sources:[source],opus:req=>{
+    if(mode==='呼び出し失敗')throw Error('確かめのAPI失敗');
+    return payload(req).claims.flatMap(c=>mode==='重複id'?[{id:c.id,verdict:'誤り'},{id:c.id,verdict:'誤り'}]:mode==='判断できない'?[{id:c.id,verdict:mode}]:mode==='正しい'?[confirmed(req,c,source,/短い引用/,'正しい')]:[{id:c.id,verdict:'記載なし',replacement:'取消届出の期限は延長される場合があります。',reason:'資料に無い'}]);
+  }});assert.equal(r.record.status,'ok');assert.equal(r.body,body);assert.equal(r.record.review_items.length,1);assert(!Object.hasOwn(r.record.claims[0].confirm,'blocked'));assert.equal(r.record.confirm.blocked,0);
+  if(mode==='正しい')diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');if(mode==='記載なし')diagnostic03c(r.record.claims[0].confirm,'not_stated_meaning');if(mode==='重複id')diagnostic03c(r.record.claims[0].confirm,'answer_shape');if(mode==='呼び出し失敗')diagnostic03c(r.record.claims[0].confirm,'call_failed');
+}));
+async function slashCase03i({sentence=dateSentence03e,claim=sentence,source=material('qa:invoice/jireishu'),basis=13,verdict='正しい',replacement=''}={}){
+  const r=await F.checkFacts(sentence,{...opts,writer_materials:['ta:6501','qa:invoice/jireishu'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],findQaByKeywords:()=>[],loadEvidenceText:e=>e.text,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'期限','インボイス登録の取消し').map(c=>({...c,claim}));
+    const page=materials(req).find(p=>p.url===source.url);assert(page);assert(page.rows.some(u=>u.s===basis),'指定の文を実際に提示');
+    if(req.task==='confirm')return payload(req).claims.map(c=>({id:c.id,verdict,evidence_id:page.number,basis:String(basis),replacement,reason:'指定された引用で確認'}));
+    return payload(req).claims.map(c=>({id:c.id,status:'資料なし'}));
+  }});return r;
+}
+for(const [basis,claim]of [[13,dateSentence03e],[16,'期限は12月17日'],[16,'1月1日から取り消す場合の期限は12月17日']])test('03i-B','7: 本物の事例集の文'+basis+'で'+claim+'を満たす',async()=>feature(async()=>{
+  const r=await slashCase03i({basis,claim});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].status,'裏付けあり');assert.equal(r.record.claims[0].confirm.verdict,'正しい');assert.equal(r.record.claims[0].confirm.evidence_id,'qa:invoice/jireishu');assert.equal(r.body,dateSentence03e);
+}));
+for(const sentence of ['取消届出の期限は12月18日です。','取消届出の期限は令和8年12月17日です。'])test('03i-B','8: 本物の文13で満たせない日付 '+sentence,async()=>feature(async()=>{
+  const r=await slashCase03i({sentence});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');assert.equal(r.body,sentence);
+}));
+const slashSource03i=text=>({id:'law:test:slash-dates',kind:'law',title:'取消届出の期限',url:'https://example.test/slash-dates',text});
+for(const [text,date]of [
+  ['所得の金額に1/2を乗じた金額とします。','1月2日'],['割合を計算する式は× 1/2とされています。','1月2日'],['総数の7/10に相当する数を用いて計算します。','7月10日'],['割合を計算する式は1/2=1/8とされています。','1月2日'],
+  ['登録取消しの日を2027/12/17とする例です。','12月17日'],['登録取消しの日をX/1/1とする例です。','1月1日'],['登録取消しの日をR10/12とする例です。','10月12日'],
+])test('03i-B','8: 分数・年付きの一部を日付にしない '+text,async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'取消届出の期限は'+date+'です。',source:slashSource03i(text),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+test('03i-B','8: 引用の前後300字にだけある12/17は日付の根拠にしない',async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'取消届出の期限は12月17日です。',source:slashSource03i('取消届出の手続は国税庁の案内を確認してください。\n期限の例示は12/17までとされています。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+test('03i-B','9: 本物の文13で修正文の12月17日を確かめて書き換える',async()=>feature(async()=>{
+  const sentence='取消届出の期限は12月31日です。',replacement='取消届出の期限は12月17日です。',r=await slashCase03i({sentence,verdict:'誤り',replacement});
+  assert.equal(r.record.status,'ok');assert.equal(r.body,replacement);assert.equal(r.record.claims[0].confirm.verdict,'誤り');assert.equal(r.record.corrections.length,1);assert.equal(r.record.confirm.blocked,0);
+}));
+test('03i-B','10: 数字の一般の読み方と段Aの引用は12/17を日付にしない',async()=>feature(async()=>{
+  assert.deepEqual(F.normalizedNumbers('12/17'),['12','17']);
+  const source=material('qa:invoice/jireishu'),quote=page03c(source).units.find(u=>u.s===13).text;
+  assert.equal(private03i.exports.sufficient03i({sentence:dateSentence03e,claim:dateSentence03e,type:'期限'},{quote},source,'裏付けあり'),false);
+},'false'));
+for(const [literal,date]of [['１／２','1月2日'],['01/02','1月2日'],['2/29','2月29日'],['4/30','4月30日']])test('03i-B','日付の字幅・先頭ゼロ・月の日数: '+literal,async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'取消届出の期限は'+date+'です。',source:slashSource03i('取消届出は（'+literal+'）までに提出してください。'),basis:1});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+for(const literal of ['0/2','13/2','1/0','1/32','2/30','4/31','001/02','01/002'])test('03i-B','日付として読まない月日・桁数: '+literal,async()=>feature(async()=>{
+  const [month,day]=literal.split('/').map(Number),r=await slashCase03i({sentence:'取消届出の期限は'+month+'月'+day+'日です。',source:slashSource03i('取消届出は（'+literal+'）までに提出してください。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+for(const prefix of ['123','A','_','.',',','/','×','*','÷','=','+','−','-','の',';'])test('03i-B','直前の文字で日付にしない: '+prefix,async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'取消届出の期限は1月2日です。',source:slashSource03i('取消届出の記載例は'+prefix+' 1/2とされています。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+for(const suffix of ['999','/3','=','+','×','*','÷','−','に相当','相当','を乗じ','を掛け','の割合','倍','を超え'])test('03i-B','直後の文字で日付にしない: '+suffix,async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'取消届出の期限は1月2日です。',source:slashSource03i('取消届出の記載例は1/2 '+suffix+'とされています。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+test('03i-A','元の期限の書き漏れの状態とGLMの答えは採れない誤りでも残す',async()=>feature(async()=>{
+  const source=material('ta:4508'),body='住宅取得等資金の贈与は非課税です。',correct='令和8年12月31日まで';
+  const r=await F.checkFacts(body,{...opts,writer_materials:['ta:4508'],searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:load,callLLM:async req=>{
+    if(req.task==='extract')return extract(req,'要件','住宅取得等資金の贈与の非課税');
+    if(req.task==='confirm')return payload(req).claims.map(c=>({id:c.id,verdict:'誤り',evidence_id:999,basis:'1',replacement:'住宅取得等資金の贈与は期限内なら非課税です。',reason:'期限が必要'}));
+    return payload(req).claims.map(c=>judged(req,c,source,/令和8年12月31日/,'期限の書き漏れ',correct));
+  }});const c=r.record.claims[0];assert.equal(c.status,'期限の書き漏れ');assert.equal(c.correct,correct);assert.equal(c.confirm.blocked,true);assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.remaining.length,1);assert.equal(r.record.review_items.length,0);
 }));
 
 (async()=>{
