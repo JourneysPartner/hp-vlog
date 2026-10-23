@@ -1449,6 +1449,42 @@ test('03i-A','元の期限の書き漏れの状態とGLMの答えは採れない
   }});const c=r.record.claims[0];assert.equal(c.status,'期限の書き漏れ');assert.equal(c.correct,correct);assert.equal(c.confirm.blocked,true);assert.equal(r.record.status,'revise');assert.equal(r.body,body);assert.equal(r.record.remaining.length,1);assert.equal(r.record.review_items.length,0);
 }));
 
+// 03j: 本物の分数を日付として採らず、unknown()と再試行の「誤り」も停止を確認する。
+for(const [id,pattern,date,verdict]of [
+  ['tsutatsu:sozoku:38-2',/3\s*\/\s*12/,'3月12日','正しい'],
+  ['tsutatsu:sozoku:38-2',/3\s*\/\s*12/,'3月12日','誤り'],
+  ['tsutatsu:sozoku:16-1',/1\s*\/\s*2/,'1月2日','正しい'],
+  ['qa:keigen/gaiyo-2w',/2\s*\/\s*3/,'2月3日','正しい'],
+])test('03j-L1','L1-c: 本物の'+id+'の分数で'+date+'を'+verdict+'にしない',async()=>feature(async()=>{
+  const source=material(id),unit=page03c(source).units.find(u=>pattern.test(u.text.normalize('NFKC')));assert(unit,'本物のカタログの分数');
+  const sentence='提出期限は'+(verdict==='誤り'?'3月15日':date)+'です。',replacement=verdict==='誤り'?'提出期限は3月12日です。':'';
+  const r=await slashCase03i({sentence,source,basis:unit.s,verdict,replacement});
+  assert.equal(r.record.status,'revise');diagnostic03c(r.record.claims[0].confirm,verdict==='誤り'?'replacement_numbers':'quote_insufficient');assert.equal(r.body,sentence);assert.equal(r.record.corrections.length,0);assert.equal(r.record.claims[0].confirm.answer.verdict,verdict);assert.equal(r.record.claims[0].confirm.answer.evidence_id,id);
+  if(verdict==='誤り')assert.equal(r.record.claims[0].confirm.blocked,true);
+}));
+for(const suffix of ['&times;1/2','&divide;2','-1/4'])test('03j-L1','L1-a: 直後の'+suffix+'を分数の続きとして日付にしない',async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'提出期限は1月2日です。',source:slashSource03i('提出期限の資料には（1/2'+suffix+'）という記載があります。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+for(const word of ['×','&times;','÷','=','分の','割合','持分','相続分','按分','あん分','乗じ','掛け'])test('03j-L1','L1-b: 同じ引用部分の'+word+'があればスラッシュを日付にしない',async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'提出期限は3月12日です。',source:slashSource03i('提出期限の資料には3/12（'+word+'に関する補足）が記載されています。'),basis:1});diagnostic03c(r.record.claims[0].confirm,'quote_insufficient');assert.equal(r.record.status,'revise');
+}));
+test('03j-L1','L1-b: 分数の語が別の引用部分にあっても日付の部分は読む',async()=>feature(async()=>{
+  const source=slashSource03i('提出期限は12/17までとされています。\n添付書類は案内を確認してください。\n計算する割合は1/2とされています。'),page=page03c(source),finding={id:'c1',type:'期限',subject:'取消届出',sentence:'提出期限は12月17日です。',claim:'提出期限は12月17日',status:'資料なし',evidence:[source]};
+  const result=await private03c.exports.validate03c(finding.sentence,finding,{verdict:'正しい',evidence_id:1,basis:'1,3'},[page],{});assert.equal(result.verdict,'正しい');assert.equal(result.quote,page.units.filter(u=>u.s===1||u.s===3).map(u=>u.text).join('\n…\n'));
+}));
+test('03j-L1','L1-b: 分数の語があっても通常の12月17日の読みは残す',async()=>feature(async()=>{
+  const r=await slashCase03i({sentence:'提出期限は12月17日です。',source:slashSource03i('提出期限は12月17日までであり、持分の計算とは区別してください。'),basis:1});assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].confirm.verdict,'正しい');
+}));
+for(const mode of ['secret','exception','再試行'])test('03j-L4','unknown()・出力上限の'+mode+'で採れなかった誤りも止める',async()=>feature(async()=>{
+  let attempts=0;const key='sk-test-confirm-secret123456789';
+  const r=await recipientCase((req,source)=>{
+    attempts++;if(mode==='再試行'&&!req.retry)return {text:'[',stop_reason:'max_tokens'};
+    return payload(req).claims.map(c=>({...confirmed(req,c,source,/直系卑属/,'誤り',mode==='secret'?key:rightRecipient),...(mode==='再試行'?{basis:'不正'}:{})}));
+  },mode==='exception'?{validateRepair:()=>{throw Error('検証の試験用例外');}}:{});
+  blocked03i(r,r.record.claims[0],mode==='再試行'?'basis_unreadable':mode,rightRecipient);assert.equal(r.body,wrongRecipient);assert.equal(r.record.confirm.blocked,1);assert.equal(r.record.confirm.unknown,1);assert.equal(r.record.confirm.verdicts['誤り'],1);assert(!JSON.stringify(r.record).includes(key));
+  if(mode==='再試行'){assert.equal(attempts,2);assert.equal(r.record.confirm.calls,2);assert.equal(r.record.claims[0].confirm.call,2);assert(r.record.calls.some(c=>c.task==='confirm'&&c.retry));}else assert.equal(attempts,1);
+}));
+
 (async()=>{
   const original=global.fetch;global.fetch=async()=>{throw Error('試験中の通信は禁止');};
   try{for(const {group,name,run}of cases){const result=groups[group]||=( {pass:0,fail:0} );try{await run();result.pass++;console.log(`PASS ${group}: ${name}`);}catch(error){result.fail++;console.error(`FAIL ${group}: ${name}\n${error.stack}`);}}}

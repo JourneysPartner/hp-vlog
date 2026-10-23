@@ -278,9 +278,12 @@ function sufficientQuote(claim, result, ref, status) {
 
 function confirmationSlashDates(quote) {
   // 引用内だけで追加する読み。年・識別子・分数の一部は日付にしない。
-  const pattern = /(?<![0-9A-Za-z_.,/×*÷=+−\-の;])([0-9]{1,2})\/([0-9]{1,2})(?![0-9/=+×*÷−]|に相当|相当|を乗じ|を掛け|の割合|倍|を超え)/g;
+  const normalized = normalizedQuote(quote);
+  // 呼び出し元で分けた引用の各部分だけを見る。通常の年月日の読みは残す。
+  if (/×|&times;|÷|=|分の|割合|持分|相続分|按分|あん分|乗じ|掛け/.test(normalized)) return [];
+  const pattern = /(?<![0-9A-Za-z_.,/×*÷=+−\-の;])([0-9]{1,2})\/([0-9]{1,2})(?![0-9/=&+×*÷−\-]|に相当|相当|を乗じ|を掛け|の割合|倍|を超え)/g;
   const monthDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  return [...normalizedQuote(quote).matchAll(pattern)].flatMap(([, month, day]) => {
+  return [...normalized.matchAll(pattern)].flatMap(([, month, day]) => {
     const m = Number(month), d = Number(day);
     return m >= 1 && m <= 12 && d >= 1 && d <= monthDays[m - 1] ? [`日付:-${m}-${d}`] : [];
   });
