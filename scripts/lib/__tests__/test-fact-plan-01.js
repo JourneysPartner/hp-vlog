@@ -301,7 +301,7 @@ test('P5', '段Aの資料なしだけ段Bへ・食い違い/期限は維持・Ba
   assert.equal(r.record.stages.A.input_chars, r.record.calls.filter(c => c.task === 'judge').reduce((n, c) => n + c.input_chars, 0));
   assert.equal(r.record.stages.B.input_chars, r.record.calls.filter(c => c.task === 'stage_b_judge').reduce((n, c) => n + c.input_chars, 0));
   assert(r.record.stages.A.input_chars > 0 && r.record.stages.B.input_chars > 0);
-  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2');
+  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2-s1');
 });
 test('P5', '既定の呼び出し部でも段BだけBatchを渡さず即時で呼ぶ', async () => {
   const a = ref('default-a', '試験制度は100万円です。'), b = ref('default-b', a.text), original = CM.generateContent, calls = [];

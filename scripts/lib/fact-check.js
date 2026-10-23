@@ -535,7 +535,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2';
+const LOGIC_VERSION = 'plan2-s1';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
