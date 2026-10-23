@@ -59,21 +59,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "投げ銭は雑所得として扱われるのが一般的で、会社員なら投げ銭の所得が年20万円超、専業なら合計所得が基礎控除（令和8年分は104万円）を超えると申告が必要です。経費と住民税の扱いも整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ 論点別ルールが未反映: small_depreciable_assets（該当箇所が現行の制度に合うか確認してください） / 論点別ルールが未反映: platform_taxation（該当箇所が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-10-23T13:21:17.498+09:00"
+publish_at: "2026-10-24T11:45:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-23T00:06:41.372Z"
-updated_at: "2026-10-23T00:06:41.372Z"
+updated_at: "2026-10-23T13:21:17.498+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 50 件: 裏付けあり 47・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 2・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 投げ銭の税金はいくらから発生するのか。結論から言うと、会社員として給与を1か所から受けている場合は、投げ銭の収入から経費を引いた金額が年間20万円を超えたときが確定申告の目安です。給与のない専業配信者なら、合計所得が基礎控除（令和8年分は104万円）を超えるかどうかで判断します。
