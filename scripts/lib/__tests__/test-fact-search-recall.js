@@ -3,7 +3,7 @@
 // 基準の主張・articleEvidenceOptionsで作った検索オプションを固定。TEMPやAI・ネットワークには依存しない。
 const assert = require('assert/strict');
 const E = require('../fact-evidence');
-const { rankSources, TAX_CATEGORY_CODES } = require('../nta-source-matcher');
+const { rankSources, TAX_CATEGORY_CODES, tokenizeForMatcher } = require('../nta-source-matcher');
 
 const articleOptions = {
   "newseg-retail_store-retail-apparel-season-inventory-apparel-guide": {
@@ -457,3 +457,136 @@ assert(!E.searchEvidence(shortNumberClaim, articleOptions['solo-contractor-invoi
   .some(e => e.id === 'https://www.nta.go.jp/law/shitsugi/shohi/20/15.htm'), '短い数値だけで題名の異なる資料を足さない');
 checked++;
 console.log('fact-search-recall: ' + checked + ' 件成功（target 8件・10記事のkeep各2件・数値表記2件・短い数字1件・7件上限・主出典・direct・subjectTop）');
+
+const reviewTests = [];
+const reviewTest = (name, run) => reviewTests.push({ name, run });
+const idsFor = (claim, options) => {
+  const rows = E.searchEvidence(claim, options), ids = rows.map(e => e.id);
+  assert(rows.length <= 7, '01b: 7件上限');
+  assert.equal(new Set(ids).size, ids.length, '01b: 重複なし');
+  if (options.source_url) assert.equal(rows[0].url, options.source_url, '01b: 主出典が先頭');
+  return ids;
+};
+
+// articleOptions は cases.json の articles[slug].opts を転記したもの。
+reviewTest('01b-H1-a 誤った面積で納税猶予のページを追加しない', () => {
+  const ids = idsFor({ type: '割合', subject: '小規模宅地等の特例（特定居住用宅地等）',
+    claim: '特定居住用宅地等は400平方メートルまで80%減額',
+    sentence: '特定居住用宅地等は400平方メートルまで80%減額されます。' }, articleOptions['shitsugi-sozoku-10-05']);
+  assert(!ids.includes('https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4153.htm'), '誤った面積を持つ別制度を追加しない');
+  assert(ids.includes('https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm'), '居住用宅地の資料を残す');
+});
+reviewTest('01b-H1-b 誤った特別控除額で贈与の設例を追加しない', () => {
+  const sentence = '特定贈与者ごとに累計2,000万円まで特別控除';
+  const ids = idsFor({ type: '金額', subject: '相続時精算課税の特別控除', claim: sentence, sentence },
+    articleOptions['gift-cash-procedure-tax-return']);
+  assert(!ids.includes('https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm'), '誤った額を持つ設例を追加しない');
+  assert(ids.includes('law:sozokuzei:21_11_2'), '相続時精算課税の条文を残す');
+});
+reviewTest('01b-M2 消費税の申告に所得税の概説を追加しない', () => {
+  // 2026-07-16-deepdive-general_individual_proprietor-import-tax-refund-detail-practice.md
+  // の前付けを articleEvidenceOptions に渡した結果を転記（cases.json には未収録）。
+  const options = {
+    tax_domain: 'consumption_tax',
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm',
+    source_supplements: [],
+  };
+  const ids = idsFor({ type: '手続', subject: '消費税の確定申告',
+    claim: '確定申告の消費税申告書（一般課税）を作成する',
+    sentence: '1. 確定申告の消費税申告書（一般課税）を作成する' }, options);
+  assert(!ids.includes('https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm'), '所得税の確定申告を追加しない');
+  assert(ids.includes('law:shohizei_hou:49'), '消費税法49条を残す');
+});
+reviewTest('01b-L1 末尾に入る記事資料のために検索結果を落とさない', () => {
+  const ids = idsFor({ type: '判定', subject: '損益通算',
+    claim: '判定は経費控除後の所得で行い雑所得の赤字は給与と相殺できない',
+    sentence: '判定は入金額ではなく経費を引いた所得で行い、雑所得の赤字は給与と相殺できません。' },
+  articleOptions['tip-income-tax-threshold']);
+  assert(ids.includes('law:shotokuzei_rei:198'), '所得税法施行令198条を残す');
+  assert(ids.includes('https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1500.htm'), '雑所得の記事資料も残す');
+});
+
+function reviewCatalog(entries) {
+  entries = entries.map(e => ({ ...e, tokens: tokenizeForMatcher(e.title + ' ' + (e.text || '')),
+    titleTokens: tokenizeForMatcher(e.title) }));
+  const df = new Map();
+  for (const e of entries) for (const token of e.tokens) df.set(token, (df.get(token) || 0) + 1);
+  return { entries, df };
+}
+function slotEntries() {
+  return [
+    ...['甲', '乙', '丙'].map((word, i) => ({ id: 'search-' + i, no: String(9101 + i), kind: 'taxanswer',
+      url: 'https://example.jp/search-' + i, title: '索引主題 資料' + word, text: '資料' + word })),
+    ...['d', 'e'].map(id => ({ id, kind: 'taxanswer', url: 'https://example.jp/' + id, title: '所得税', text: '補足' + id })),
+  ];
+}
+reviewTest('01b-M1 新しい枠で法令本文や本文のない索引を選ばない', () => {
+  const claim = { type: '判定', subject: '索引主題', claim: '所得税を申告する。' };
+  for (const change of [e => ({ ...e, kind: 'law' }), e => ({ ...e, text: undefined })]) {
+    const entries = slotEntries().map(e => ['d', 'e'].includes(e.id) ? change(e) : e);
+    assert.deepEqual(idsFor(claim, { catalog: reviewCatalog(entries) }), ['search-0', 'search-1', 'search-2']);
+  }
+});
+reviewTest('01b-M3 かなだけの6字一致を加点しない', () => {
+  const claim = { type: '判定', subject: '主題', claim: 'についてはこれまでのとおり' };
+  const options = { catalog: reviewCatalog([{ id: 'kana', kind: 'taxanswer', title: '補足',
+    url: 'https://example.jp/kana', text: claim.claim }]) };
+  assert.equal(E.scoreEvidence(claim, options).scored[0].statementScore, 0);
+});
+reviewTest('01b-M3 数字の前後を主張と資料の双方で確かめる', () => {
+  const entries = [
+    { id: 'whole', text: '1200万円以上' },
+    { id: 'partial-before', text: '91200万円以上。別の条件は1200口' },
+    { id: 'partial-after', text: '12000万円以上。別の条件は1200口' },
+    ...Array.from({ length: 301 }, (_, i) => ({ id: 'filler-' + i, text: '参考資料12000' })),
+  ].map(e => ({ ...e, title: '資料', kind: 'taxanswer', url: 'https://example.jp/' + e.id }));
+  const options = { catalog: reviewCatalog(entries) };
+  const score = claim => E.scoreEvidence({ type: '要件', subject: '申告', claim }, options).scored;
+  const rows = score('1200万円以上');
+  assert(rows.find(r => r.e.id === 'whole').numericMatch, '完全な数字なら資格を持つ');
+  assert(!rows.find(r => r.e.id === 'partial-before').numericMatch, '資料の前の桁を切らない');
+  assert(!rows.find(r => r.e.id === 'partial-after').numericMatch, '資料の後の桁を切らない');
+  assert(!score('91200万円以上。別の条件は1200口').find(r => r.e.id === 'whole').numericMatch, '主張の前の桁を切らない');
+  assert(!score('12000万円以上。1200個').find(r => r.e.id === 'partial-after').numericMatch, '主張・資料の後の桁を切らない');
+  for (const type of ['金額', '割合', '期限', '適用年', '番号', '未定義']) {
+    assert(!E.scoreEvidence({ type, subject: '申告', claim: '1200万円以上' }, options).scored
+      .find(r => r.e.id === 'whole').numericMatch, '01b-H1 ' + type + ' は数字だけで資格を持たない');
+  }
+  for (const type of ['金額', '割合', '期限', '適用年', '番号']) {
+    const row = E.scoreEvidence({ type, subject: '索引主題', claim: '所得税を申告する' },
+      { catalog: reviewCatalog(slotEntries()) }).scored.find(r => r.e.id === 'd');
+    assert(row.titleMatch, '01b-H1 ' + type + ' でも題名一致は残す');
+  }
+});
+reviewTest('01b-L2 3枠目が直接引用なら本文の最上位で置き換えない', () => {
+  const claim = { type: '判定', subject: '索引主題',
+    claim: 'TA9101・TA9102・TA9103の本文を確認して所得税を申告する。' };
+  const options = { catalog: reviewCatalog(slotEntries()) };
+  const scored = E.scoreEvidence(claim, options).scored;
+  const ranked = [...scored].sort((a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id));
+  assert.deepEqual(ranked.slice(0, 3).map(r => r.e.id), ['search-0', 'search-1', 'search-2']);
+  assert(ranked[2].direct, '実際に3枠目が直接引用');
+  const top = [...scored].sort((a, b) => b.statementScore - a.statementScore)[0];
+  assert(top.titleMatch && top.e.id === 'd', '置き換え候補が本文の最上位にいる');
+  assert.deepEqual(idsFor(claim, options), ['search-0', 'search-1', 'search-2']);
+});
+reviewTest('01b-L2 本文の同点は元の検索点、次いでID順で決める', () => {
+  const claim = { type: '判定', subject: '索引主題', claim: '所得税を申告する。' };
+  const entries = slotEntries();
+  const ids = idsFor(claim, { catalog: reviewCatalog(entries) });
+  assert.deepEqual(ids, ['search-0', 'search-1', 'd'], '同点ならID順');
+  assert.deepEqual(idsFor(claim, { catalog: reviewCatalog([...entries].reverse()) }), ids, '入力順に依存しない');
+  entries.find(e => e.id === 'e').text += ' 索引主題';
+  const options = { catalog: reviewCatalog(entries) }, scored = E.scoreEvidence(claim, options).scored;
+  const d = scored.find(r => r.e.id === 'd'), e = scored.find(r => r.e.id === 'e');
+  assert.equal(d.statementScore, e.statementScore, '本文順位は同点');
+  assert(e.score > d.score, '元の検索点に差がある');
+  assert.deepEqual(idsFor(claim, options), ['search-0', 'search-1', 'e'], '同点なら元の検索点を優先');
+});
+
+let reviewPassed = 0;
+for (const { name, run } of reviewTests) {
+  try { run(); reviewPassed++; console.log('PASS ' + name); }
+  catch (error) { console.error('FAIL ' + name + ': ' + error.message); process.exitCode = 1; }
+}
+console.log('01b: PASS ' + reviewPassed + ' / FAIL ' + (reviewTests.length - reviewPassed));

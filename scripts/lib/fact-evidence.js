@@ -190,6 +190,8 @@ function scoreEvidence(claim, options = {}) {
   const statementRaw = [claim.claim, claim.sentence].filter(Boolean).join(' ');
   const statement = compactText(statementRaw);
   const statementTokens = tokenizeForMatcher(statementRaw);
+  // 数字自体を照合する型では、誤った数字を持つ別制度・設例を呼び込まない。
+  const numericEligible = ['要件', '判定', '手続'].includes(claim.type);
   let frequencies = statementFrequencies.get(entries);
   if (!frequencies) {
     frequencies = { titles: new Map(), numbers: new Map() };
@@ -202,12 +204,27 @@ function scoreEvidence(claim, options = {}) {
     }
     statementFrequencies.set(entries, frequencies);
   }
-  const rareNumbers = [...tokenizeForMatcher(phraseText(statementRaw))]
+  const normalizedStatement = phraseText(statementRaw);
+  const rareNumbers = [...tokenizeForMatcher(normalizedStatement)]
+    // 日・月などの頻出数字を資格にしないため、カタログの1%未満を目安にする。
+    // 本文ありだけを母数にする変更は、既存の検索再現率を落とすため保留。
     .filter(t => /^\d+$/.test(t) && (frequencies.numbers.get(t) || 0) < entries.length * 0.01);
   // 日・月などの頻出する数字だけでは枠を使わず、珍しい数字を含む連続した文言で照合する。
-  const phrases = new Set();
-  for (const m of statementRaw.normalize('NFKC').toLowerCase().replace(/(?<=\d),(?=\d)/g, '').matchAll(/[\p{L}\p{N}ー]{6,}/gu)) {
-    for (let i = 0; i + 6 <= m[0].length; i++) phrases.add(m[0].slice(i, i + 6));
+  const phrases = new Map();
+  for (const m of normalizedStatement.matchAll(/[\p{L}\p{N}ー]{6,}/gu)) {
+    for (let i = 0; i + 6 <= m[0].length; i++) {
+      const phrase = m[0].slice(i, i + 6);
+      if (/^[\p{Script=Hiragana}\p{Script=Katakana}ー]+$/u.test(phrase) || phrases.has(phrase)) continue;
+      const numericPatterns = [];
+      if (numericEligible) for (const number of rareNumbers) {
+        const match = new RegExp(`(?<!\\d)${number}(?!\\d)`).exec(phrase);
+        if (!match) continue;
+        // 6字の外側も含め、主張・資料の双方で数字の前後の桁を切っていないかを見る。
+        const pattern = new RegExp(`${phrase.slice(0, match.index)}(?<!\\d)${number}(?!\\d)${phrase.slice(match.index + number.length)}`, 'u');
+        if (pattern.test(normalizedStatement)) numericPatterns.push({ number, pattern });
+      }
+      phrases.set(phrase, numericPatterns);
+    }
   }
   const weights = tokens.map(t => [t, Math.log(1 + (options.scorePopulation ?? entries.length) / ((df.get(t) || 0) + 1))]);
   const scored = entries.map(e => {
@@ -229,11 +246,11 @@ function scoreEvidence(claim, options = {}) {
       const titleBonus = 80 / frequencies.titles.get(indexed.title);
       statementScore += titleBonus; titleMatch = true;
     }
-    for (const phrase of phrases) if (indexed.text.includes(phrase)) {
+    for (const [phrase, numericPatterns] of phrases) if (indexed.text.includes(phrase)) {
       statementScore += 20;
       // 短い数字だけで別制度の本文に一致する場合は、題名にも主張の語が必要。
       // 数字が一致区間の半分以上を占める場合は、その具体性を使う。
-      if (rareNumbers.some(number => phrase.includes(number) && indexed.numbers.has(number) &&
+      if (numericPatterns.some(({ number, pattern }) => indexed.numbers.has(number) && pattern.test(indexed.text) &&
           (number.length * 2 >= phrase.length || [...e.titleTokens].some(t => statementTokens.has(t))))) numericMatch = true;
     }
     const ownScore = score;
@@ -245,7 +262,9 @@ function scoreEvidence(claim, options = {}) {
     if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) bonus += 10000;
     if (bundle.has(e.id) || bundle.has(e.url)) bonus += 5;
     if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) bonus += 10;
-    return { e, score: score + bonus, ownScore: ownScore + bonus, statementScore, numericMatch, titleMatch, direct: bonus >= 10000 };
+    // 新しい枠にはTAX_WORDSの例外を使わず、記事と別税目なら資格を与えない。
+    const statementEligible = !articleTax || !tax || tax === articleTax;
+    return { e, score: score + bonus, ownScore: ownScore + bonus, statementScore, statementEligible, numericMatch, titleMatch, direct: bonus >= 10000 };
   });
   return { scored, subjectName, tokens, query, focus, bundle };
 }
@@ -284,13 +303,21 @@ function searchEvidence(claim, options = {}) {
     diverse.push(row);
     if (diverse.length === 3) break;
   }
-  const statementRanked = scored.filter(r => r.statementScore > 5).sort((a, b) => b.statementScore - a.statementScore || byScore(a, b));
+  // この枠は索引に本文を持つTA・質疑応答だけを選ぶ。法令・通達の本文は遅延読込しない。
+  const statementRanked = scored.filter(r => r.statementEligible && r.statementScore > 5 && r.e.text &&
+    ['taxanswer', 'shitsugi'].includes(r.e.kind)).sort((a, b) => b.statementScore - a.statementScore || byScore(a, b));
   const statementTop = statementRanked.find(r => (r.numericMatch || r.titleMatch) && !seen.has(r.e.id) &&
     !diverse.slice(0, 2).some(d => d.e.id === r.e.id) && addsEvidence(r, diverse.slice(0, 2)));
   if (statementTop && statementTop.statementScore === statementRanked[0].statementScore && !diverse[2]?.direct) {
     // 本文の最上位（同点を含む）だけで3枠目を置き換える。直接引用は残す。
     // 最上位が既に記事資料等にあれば、次点を無理に足して資料表を増やさない。
-    diverse.splice(2, 1, statementTop);
+    const retainedIds = new Set(seen);
+    for (const row of [...diverse, ...own.slice(3)]) {
+      if (retainedIds.size >= 7) break;
+      retainedIds.add(row.e.id);
+    }
+    // 記事資料の4件目以降など、入れ替えなくても最終7件に残るページには枠を使わない。
+    if (!retainedIds.has(statementTop.e.id)) diverse.splice(2, 1, statementTop);
   }
   diverse.forEach(add);
   own.slice(3).forEach(add);
