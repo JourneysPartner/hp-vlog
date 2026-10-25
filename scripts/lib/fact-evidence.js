@@ -190,13 +190,17 @@ function scoreEvidence(claim, options = {}) {
   const statementRaw = [claim.claim, claim.sentence].filter(Boolean).join(' ');
   const statement = compactText(statementRaw);
   const statementTokens = tokenizeForMatcher(statementRaw);
+  // 記事の税目が決まらない場合だけ、主題・tax_termsを含めず主張の文から補う。
+  const statementTaxes = articleTax ? [] : Object.keys(TAX_WORDS).filter(tax => TAX_WORDS[tax].some(word => statementRaw.includes(word)));
+  const statementTax = articleTax || (statementTaxes.length === 1 ? statementTaxes[0] : undefined);
   // 数字自体を照合する型では、誤った数字を持つ別制度・設例を呼び込まない。
   const numericEligible = ['要件', '判定', '手続'].includes(claim.type);
   let frequencies = statementFrequencies.get(entries);
   if (!frequencies) {
-    frequencies = { titles: new Map(), numbers: new Map() };
+    frequencies = { titles: new Map(), numbers: new Map(), bodyCount: 0 };
     for (const e of entries) {
       const text = phraseText(e.text), title = compactText(e.title);
+      if (text) frequencies.bodyCount++;
       const numbers = new Set(text.match(/\d+(?:\.\d+)?/g) || []);
       statementTexts.set(e, { title, text, numbers });
       frequencies.titles.set(title, (frequencies.titles.get(title) || 0) + 1);
@@ -206,9 +210,9 @@ function scoreEvidence(claim, options = {}) {
   }
   const normalizedStatement = phraseText(statementRaw);
   const rareNumbers = [...tokenizeForMatcher(normalizedStatement)]
-    // 日・月などの頻出数字を資格にしないため、カタログの1%未満を目安にする。
-    // 本文ありだけを母数にする変更は、既存の検索再現率を落とすため保留。
-    .filter(t => /^\d+$/.test(t) && (frequencies.numbers.get(t) || 0) < entries.length * 0.01);
+    // 2026-10の全13,273件の1%＝132.7ページと同じ境目にする。
+    // 法令・通達の索引は数字を数えないので母数に含めない。
+    .filter(t => /^\d+$/.test(t) && (frequencies.numbers.get(t) || 0) < frequencies.bodyCount * 0.0597);
   // 日・月などの頻出する数字だけでは枠を使わず、珍しい数字を含む連続した文言で照合する。
   const phrases = new Map();
   for (const m of normalizedStatement.matchAll(/[\p{L}\p{N}ー]{6,}/gu)) {
@@ -262,8 +266,8 @@ function scoreEvidence(claim, options = {}) {
     if (direct.has(e.id) || direct.has(`tsutatsu:${e.circular}:${e.no}`) || (e.kind === 'taxanswer' && numbers.includes(e.no))) bonus += 10000;
     if (bundle.has(e.id) || bundle.has(e.url)) bonus += 5;
     if (mapped?.url === e.url && !['domain-fallback', 'ultimate', 'unknown'].includes(mapped.provenance)) bonus += 10;
-    // 新しい枠にはTAX_WORDSの例外を使わず、記事と別税目なら資格を与えない。
-    const statementEligible = !articleTax || !tax || tax === articleTax;
+    // 新しい枠にはTAX_WORDSの例外を使わず、記事または主張と別税目なら資格を与えない。
+    const statementEligible = !statementTax || !tax || tax === statementTax;
     return { e, score: score + bonus, ownScore: ownScore + bonus, statementScore, statementEligible, numericMatch, titleMatch, direct: bonus >= 10000 };
   });
   return { scored, subjectName, tokens, query, focus, bundle };

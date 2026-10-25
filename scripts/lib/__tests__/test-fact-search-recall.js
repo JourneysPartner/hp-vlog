@@ -584,6 +584,50 @@ reviewTest('01b-L2 本文の同点は元の検索点、次いでID順で決め�
   assert.deepEqual(idsFor(claim, options), ['search-0', 'search-1', 'e'], '同点なら元の検索点を優先');
 });
 
+reviewTest('01c-M1 本文なし索引の増減で数字の132・133ページの境目を動かさない', () => {
+  const bodies = Array.from({ length: 2227 }, (_, i) => ({ id: 'body-' + i, kind: 'taxanswer',
+    title: '申告', url: 'https://example.jp/body-' + i,
+    text: i < 132 ? '22万円以上 33万円以上 40万円以上 70万円以上' : i === 132 ? '33万円以上' : '参考資料' }));
+  for (const indexCount of [0, 12046]) {
+    const indexes = Array.from({ length: indexCount }, (_, i) => ({ id: 'index-' + i,
+      kind: 'law', title: '索引', url: 'https://example.jp/index-' + i }));
+    const options = { catalog: reviewCatalog([...bodies, ...indexes]) };
+    for (const [number, eligible] of [[22, true], [40, true], [70, true], [33, false]]) {
+      const row = E.scoreEvidence({ type: '要件', subject: '申告', claim: number + '万円以上の申告が必要' }, options)
+        .scored.find(r => r.e.id === 'body-0');
+      assert.equal(row.numericMatch, eligible, number + ': 本文なし索引' + indexCount + '件');
+    }
+  }
+});
+reviewTest('01c-M2 税目なしの記事でも主張の税目から別税目の追加を防ぐ', () => {
+  // 2026-04-12-lifetime-gift-inheritance-tax-planning.md の前付けを
+  // articleEvidenceOptions に渡した結果を転記（税目の指定なし）。
+  const options = {
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm',
+    source_supplements: [],
+  };
+  const ids = idsFor({ type: '金額', subject: '相続時精算課税',
+    claim: '相続時精算課税制度にも年110万円の基礎控除',
+    sentence: '近年は、相続時精算課税制度にも年110万円の基礎控除が設けられています。' }, options);
+  assert(!ids.includes('https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm'), '所得税の基礎控除を追加しない');
+  assert(ids.includes('law:sozokuzei:21_11_2'), '相続時精算課税の基礎控除の条文を残す');
+});
+
+reviewTest('01c-M2 主張の税目が一意のときだけ補い、記事の税目を優先する', () => {
+  const catalog = reviewCatalog([
+    { id: 'income', kind: 'taxanswer', title: '資料', text: '控除額',
+      url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1000.htm' },
+    { id: 'inheritance', kind: 'taxanswer', title: '資料', text: '控除額',
+      url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/1000.htm' },
+  ]);
+  const eligible = (claim, options = {}) => E.scoreEvidence({ type: '金額', subject: '相続税', claim },
+    { catalog, ...options }).scored.filter(r => r.statementEligible).map(r => r.e.id);
+  assert.deepEqual(eligible('控除額を確認する', { tax_terms: '贈与税' }), ['income', 'inheritance'], '主題や記事全体の語からは補わない');
+  assert.deepEqual(eligible('所得税と贈与税の控除額を確認する'), ['income', 'inheritance'], '複数の税目なら限定しない');
+  assert.deepEqual(eligible('相続税と贈与税の控除額を確認する'), ['inheritance'], '同じ税目の複数の語は一意とする');
+  assert.deepEqual(eligible('贈与税の控除額を確認する', { tax_domain: 'income_tax' }), ['income'], '記事の税目があればそちらを優先する');
+});
+
 let reviewPassed = 0;
 for (const { name, run } of reviewTests) {
   try { run(); reviewPassed++; console.log('PASS ' + name); }
