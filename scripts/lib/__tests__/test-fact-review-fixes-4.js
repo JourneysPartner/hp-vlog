@@ -200,7 +200,7 @@ async function main() {
     const b = claim('消費税の申告を行います。', { id: 'c2', type: '手続', subject: '消費税' });
     const before = `## 贈与\n${a.sentence}\n## 消費税\n${b.sentence}`;
     await incremental(before, before.replace(a.sentence, ''), [a, b], record => {
-      assert.equal(record.logic_version, 'plan2'); assert.equal(record.incremental.reused, 1);
+      assert.equal(record.logic_version, 'plan2-s1'); assert.equal(record.incremental.reused, 1);
     });
   });
   await test('J5', '主張に抜かれない期限の変更でも節と同制度を再判定する', async () => {
