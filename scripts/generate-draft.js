@@ -373,7 +373,7 @@ const ARTICLE_TYPE_INSTRUCTIONS = {
 // 差し戻し全文再生成だけ短い記事を作る不整合になっていたため、import に統一。
 const {
   WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK, maxTokensFor, selectConditionalRules,
-  findUnappliedRules, wordCountGuideFor,
+  findUnappliedRules, wordCountGuideFor, READABILITY_RULES,
 } = require('./lib/article-prompt-static');
 const { checkBodyLength } = require('./lib/article-length');
 
@@ -2163,6 +2163,8 @@ ${regenSourceBody}${regenNonTax}${regenProvisions}${regenPlanBlock}
 - 読者（${persona.label}）に直接語りかける視点
 - 誇大表現・自称・権威付けは禁止
 - 断定を避け、穏当な表現を使うこと
+
+${READABILITY_RULES}
 
 ═══ 禁止事項 ═══
 - 本文中に他の記事への直接リンクは挿入しないこと
