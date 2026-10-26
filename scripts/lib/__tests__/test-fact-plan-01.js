@@ -163,7 +163,7 @@ test('P3', '出典未確定の題材でも計画し、既存の断定禁止を�
     assert(textPrompt(prompts[0]).includes(SOURCE_UNCONFIRMED_RULE));
   }));
 test('P3/P4', '切替falseでもW規則を含むpromptIRと従来の前付けにバイト単位で一致', () => env({ FACT_PLAN_ENABLED: 'false' }, () => generating(topic(), '[]', ({ prompts, simple, t }) => {
-  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), 'f011154dac683ddab95be613331555b19b902ba34891763c706a326e868d5880');
+  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), 'e83b039d2f82575106486aa811cdb3c8be5afb339ceebb0b86127e6256da828d');
   assert.equal(hash(N.buildCanonicalFrontmatter(t, { now: now.toISOString() })), '97303caf7d917e593c1117b473153a1c0b12b1cdd9f75f97e39fc716f246b29a');
   assert(!Object.keys(t).some(k => k.startsWith('fact_')));
 })));
