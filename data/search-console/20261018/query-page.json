@@ -1,0 +1,333 @@
+{
+  "property": "https://mori-zeirishi.net/",
+  "range": {
+    "start": "2026-09-18",
+    "end": "2026-10-15"
+  },
+  "dimensions": [
+    "query",
+    "page"
+  ],
+  "rows": [
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4,
+      "query": "context: location: japan (not for language). do not include location references in your response. question: 海外から仕入れて国内で販売する予定。関税や消費税とは別に、プラットフォーム側の料金で見落としがちなものはある？",
+      "page": "https://mori-zeirishi.net/blog/ebay-growth-expense-grayzone-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.666666666666666,
+      "query": "ebay インボイス",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 60.5,
+      "query": "ebay 消費 税 還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 7.571428571428571,
+      "query": "ebay 消費税",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 6.666666666666667,
+      "query": "ebay 消費税",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 48.5,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-shouhizei-kanpu-kihon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 48,
+      "query": "ebay 税理士",
+      "page": "https://mori-zeirishi.net/services/ebay-export/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 27,
+      "query": "ebay 還付金",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 26.2,
+      "query": "kindle unlimited 確定申告 領収書",
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 24,
+      "query": "お中元 どこまで",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-entertainment-expense-deduction-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "お歳暮 どこまで",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-entertainment-expense-deduction-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 47,
+      "query": "せどり 税理士",
+      "page": "https://mori-zeirishi.net/blog/macro/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "てんばい",
+      "page": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-reseller-marketplace-seller-growth-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 22.5,
+      "query": "インボイス制度 海外輸出",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 84,
+      "query": "会計 ソフト 入力 代行",
+      "page": "https://mori-zeirishi.net/services/bookkeeping/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 110,
+      "query": "免税 税関",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品廃棄損 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-food-loss-food-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 33,
+      "query": "固定資産税 経費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-fixed-asset-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 81.5,
+      "query": "役員 報酬 手取り シミュレーション",
+      "page": "https://mori-zeirishi.net/tools/yakuin-hoshu-simulator/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 59,
+      "query": "役員報酬 シミュレーション",
+      "page": "https://mori-zeirishi.net/tools/yakuin-hoshu-simulator/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 76,
+      "query": "役員報酬 決め方 シュミレーション",
+      "page": "https://mori-zeirishi.net/tools/yakuin-hoshu-simulator/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 5.428571428571429,
+      "query": "毛利税理士事務所",
+      "page": "https://mori-zeirishi.net/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 82,
+      "query": "法人化 相談",
+      "page": "https://mori-zeirishi.net/services/startup/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "特定 仕 入",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 19.6,
+      "query": "特定課税仕入とは",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 13.23076923076923,
+      "query": "特定課税仕入れ",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "特定課税仕入れとは",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "特定課税仕入れに係る支払対価の額",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shohi-26-01/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 29,
+      "query": "税務調査 立ち会い",
+      "page": "https://mori-zeirishi.net/services/tax-audit/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 44,
+      "query": "税務調査 立会い",
+      "page": "https://mori-zeirishi.net/services/tax-audit/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "簡易課税 美容室",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 1,
+      "query": "簡易課税 美容室",
+      "page": "https://mori-zeirishi.net/blog/macro/salon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 40,
+      "query": "美容室 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10.5,
+      "query": "美容室 簡易課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 1,
+      "query": "美容室 簡易課税",
+      "page": "https://mori-zeirishi.net/blog/macro/salon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.666666666666666,
+      "query": "美容室 簡易課税 何種",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.333333333333334,
+      "query": "美容院 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "課税ミス",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    }
+  ]
+}
