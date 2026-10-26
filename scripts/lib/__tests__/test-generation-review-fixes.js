@@ -228,7 +228,7 @@ async function main() {
     assert.equal(W.findWithdrawnTopic(t, [...entries, permanent], new Date('2030-01-01')), permanent);
     assert.equal(W.findWithdrawnQuery(t.target_query, [...entries, permanent]), permanent);
     const output = path.join(dir, 'out.json');
-    const runner = W.createWithdrawalRecorder({ env: { WITHDRAWN_OUT: output }, withdrawn: [], now });
+    const runner = W.createWithdrawalRecorder({ env: { WITHDRAWN_OUT: output }, withdrawn: [], now: new Date() });
     runner.record(t, 'generation-failed-candidate');
     require('../../record-withdrawn-topics').recordWithdrawnFile(output, path.join(dir, 'merged.json'));
     assert.deepEqual(W.loadWithdrawnTopics(path.join(dir, 'merged.json')).entries, runner.additions);
