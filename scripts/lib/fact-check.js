@@ -142,7 +142,7 @@ function normalizedRatio(numerator, denominator, { negative = false, percentage 
 }
 
 function normalizedNumbers(text, range, forms) {
-  const normalized = normalizedQuote(text).replace(/(令和|平成|昭和)元年/g, '$11年');
+  const normalized = normalizedNumberText(text).replace(/(令和|平成|昭和)元年/g, '$11年');
   const numbers = [];
   const add = (number, start, end) => {
     numbers.push(number);
@@ -268,7 +268,8 @@ function sufficientQuote(claim, result, ref, status) {
 /** 数字の照合範囲は、原文の引用位置の前後300字に限定する。 */
 function quoteSupportsNumbers(numbers, result, ref) {
   if (!numbers.length || numbers.includes(null)) return false;
-  const parts = quoteParts(result.quote).map(normalizedQuote);
+  const rawParts = quoteParts(result.quote);
+  const parts = rawParts.map(normalizedQuote);
   if (!parts.length || !ref) return false;
   const supports = parts.map(() => []);
   for (const [partIndex, quote] of parts.entries()) for (const text of evidenceTexts(ref)) {
@@ -279,16 +280,18 @@ function quoteSupportsNumbers(numbers, result, ref) {
       normalized += part;
       for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
     }
+    const numberPositions = [];
+    const numberText = normalizedNumberText(text, numberPositions);
     for (let at = normalized.indexOf(quote); at >= 0; at = normalized.indexOf(quote, at + 1)) {
       const start = Math.max(0, positions[at][0] - 300);
       const end = positions[at + quote.length - 1][1] + 300;
-      const from = positions.findIndex(([begin]) => begin >= start);
-      let to = positions.length;
-      while (to > 0 && positions[to - 1][1] > end) to--;
-      const quoted = normalizedNumbers(normalized, [from, to]);
+      const from = numberPositions.findIndex(([begin]) => begin >= start);
+      let to = numberPositions.length;
+      while (to > 0 && numberPositions[to - 1][1] > end) to--;
+      const quoted = normalizedNumbers(numberText, [from, to]);
       if (quoted.includes(null)) continue;
       // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
-      const dates = normalizedNumbers(withoutAsOfDates(quote));
+      const dates = normalizedNumbers(withoutAsOfDates(normalizedNumberText(rawParts[partIndex])));
       supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
     }
   }
@@ -340,13 +343,41 @@ function normalizedQuote(text) {
     .replace(/[｡-ﾟ]+/g, s => s.normalize('NFKC')).replace(/\s+/g, '');
 }
 
+/** 数字専用の正規化。NUL は数・日付・分数・「割」の列挙の意味を持たない区切り。 */
+function normalizedNumberText(text, positions) {
+  const source = String(text || '');
+  const gaps = /(?<=[0-9０-９〇零一二三四五六七八九十百千万億%％])\s+(?=[0-9０-９〇零一二三四五六七八九十百千])/g;
+  // 「５ 千万円」「800 千円」は一つの金額。漢数字の列挙や「法令184 十九」には広げない。
+  const amountGap = (at, length) => /[0-9０-９]/.test(source[at - 1]) &&
+    /^[十百千][〇零一二三四五六七八九十百千]*[万億円]/.test(source.slice(at + length));
+  if (!positions) return normalizedQuote(source.replace(gaps, (gap, at) => amountGap(at, gap.length) ? gap : '\u0000'));
+  let normalized = '', cursor = 0;
+  const append = (part, start, end) => {
+    normalized += part;
+    for (let i = 0; i < part.length; i++) positions.push([start, end]);
+  };
+  const appendRange = (start, end) => {
+    for (const m of source.slice(start, end).matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+      append(normalizedQuote(m[0]), start + m.index, start + m.index + m[0].length);
+    }
+  };
+  for (const m of source.matchAll(gaps)) {
+    if (amountGap(m.index, m[0].length)) continue;
+    appendRange(cursor, m.index);
+    append('\u0000', m.index, m.index + m[0].length);
+    cursor = m.index + m[0].length;
+  }
+  appendRange(cursor, source.length);
+  return normalized;
+}
+
 // 数字の確認だけで、根拠自身のタックスアンサー番号を除く。番号の主張は従来どおり。
 function ownTaxAnswerCitations(text, ref) {
   if (ref?.kind !== 'taxanswer' || !/^\d{4}$/.test(String(ref.no))) return [];
   return [...text.matchAll(/(?:No\.?|タックスアンサー(?:No\.?)?|TA)(\d{4})(?!\d)/gi)].filter(m => m[1] === String(ref.no));
 }
 function numberCheckText(text, ref) {
-  let normalized = normalizedQuote(text);
+  let normalized = normalizedNumberText(text);
   for (const m of ownTaxAnswerCitations(normalized, ref).reverse()) normalized = normalized.slice(0, m.index) + normalized.slice(m.index + m[0].length);
   return normalized;
 }
@@ -361,13 +392,13 @@ function withoutAsOfDates(text) {
 /** 年だけの日付は同じ文の同じ元号・年の年月日だけで補い、基準日からは補わない。 */
 function numbersInSentence(numbers, sentence) {
   const present = normalizedNumbers(sentence);
-  const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
+  const dates = normalizedNumbers(withoutAsOfDates(normalizedNumberText(sentence)));
   return numbers.every(n => present.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))));
 }
 
 /** 年だけの要約を同じ文の具体的な日付へ広げ、保持・除去する数字と本文の表記を対応付ける。 */
 function expandYearDates(numbers, sentence) {
-  const dates = normalizedNumbers(withoutAsOfDates(normalizedQuote(sentence)));
+  const dates = normalizedNumbers(withoutAsOfDates(normalizedNumberText(sentence)));
   return [...new Set(numbers.flatMap(n => typeof n === 'string' && /^日付:[^-]+$/.test(n)
     ? [n, ...dates.filter(d => d?.startsWith(n + '-'))] : [n]))];
 }
@@ -375,12 +406,7 @@ function expandYearDates(numbers, sentence) {
 // 元の表記と位置を保持する。数字の読み方自体は normalizedNumbers に共通化する。
 function supportedNumberForms(text, ref, supported) {
   const positions = [];
-  let normalized = '';
-  for (const m of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
-    const part = normalizedQuote(m[0]);
-    normalized += part;
-    for (let i = 0; i < part.length; i++) positions.push([m.index, m.index + m[0].length]);
-  }
+  const normalized = normalizedNumberText(text, positions);
   const forms = [], citations = ownTaxAnswerCitations(normalized, ref);
   normalizedNumbers(normalized, undefined, forms);
   const expanded = expandYearDates(supported, text);
@@ -410,9 +436,36 @@ function isScenarioAmount(c) {
     !/控除|税額|上限|限度|非課税|基礎|税率|制度/.test(c.sentence);
 }
 
+function tableCells(row) {
+  if (!row.startsWith('|')) return null;
+  return row.slice(1).replace(/\|\s*$/, '').split('|');
+}
+
+/** 空行や文章を越えず、区切り行の直前の見出しを同じ表のデータ行だけへ渡す。 */
+function tableClaimContext(body, units) {
+  const headers = new Map(), structural = new Set();
+  const byStart = new Map(units.map(u => [u.start, u]));
+  const separator = row => /^\|(?:\s*:?-+:?\s*\|)+\s*$/.test(row);
+  let offset = 0, previous = null, header = '';
+  for (const line of body.split('\n')) {
+    const unit = byStart.get(offset + line.length - line.trimStart().length);
+    const row = line.trim();
+    if (!row.startsWith('|')) header = '';
+    else if (separator(row)) {
+      header = previous?.text.startsWith('|') && !separator(previous.text) ? previous.text : '';
+      if (header) structural.add(previous.s);
+      if (unit) structural.add(unit.s);
+    } else if (header && unit) headers.set(unit.s, header);
+    previous = unit;
+    offset += line.length + 1;
+  }
+  return { headers, structural };
+}
+
 async function extractClaims(body, callLLM, options = {}) {
   const units = splitUnits(body);
   if (!units.length) return { claims: [], dropped: 0, discarded: 0, droppedClaims: [], discardedClaims: [] };
+  const tableContext = tableClaimContext(body, units);
   const enhanced = writerRefs(options).length > 0;
   const read = async rows => {
     const request = { task: 'extract', maxTokens: 8000,
@@ -458,6 +511,8 @@ async function extractClaims(body, callLLM, options = {}) {
     if (type && type !== original.type) c.type_label = original.type;
     const number = unitNumber(c?.s);
     let unit = number ? units[number - 1] || null : null;
+    // 表の見出し・区切りを指した要件等は、別の行の主張へ移して重複にしない。
+    if (unit && REVIEW_TYPES.has(c.type) && tableContext.structural.has(unit.s)) unit = null;
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
       const numbers = normalizedNumbers(c.claim);
@@ -467,7 +522,15 @@ async function extractClaims(body, callLLM, options = {}) {
         if (unit.heading || !contains(unit)) { const matches = near.filter(contains); unit = matches.length === 1 ? matches[0] : null; }
       } else {
         const words = [...tokenizeForMatcher(c.claim || '')];
-        const overlap = u => words.filter(w => normalizedQuote(u.text).toLowerCase().includes(w)).length;
+        const overlap = u => {
+          const count = text => words.filter(w => normalizedQuote(text).toLowerCase().includes(w)).length;
+          if (!REVIEW_TYPES.has(c.type)) return count(u.text);
+          if (tableContext.structural.has(u.s)) return 0;
+          const header = tableContext.headers.get(u.s);
+          // 表のデータ行では行の語が合っても全数字が必要。数字の無い主張には見出しを足さない。
+          if (header && numbers.length && !contains(u)) return 0;
+          return count(header && numbers.length ? header + ' ' + u.text : u.text);
+        };
         if (unit.heading || !overlap(unit)) {
           const best = near.filter(contains).map(u => ({ u, score: overlap(u) }))
             .sort((a, b) => b.score - a.score || a.u.s - b.u.s).find(p => p.score);
@@ -535,7 +598,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s1';
+const LOGIC_VERSION = 'plan2-s2';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -983,14 +1046,35 @@ function preservesOtherText(before, after, findings) {
   return headings(before) === headings(after);
 }
 
+/** 指示文と列の歯止めで、同じ保持・除去数字と行ごとの集約を使う。 */
+function repairNumberGuards(findings) {
+  const numberGuards = new Map(findings.filter(f => f.status === '資料なし').map(f => {
+    const originalNumbers = normalizedNumbers(f.sentence);
+    const keep = f.keep || [];
+    const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
+      .filter(n => originalNumbers.includes(n));
+    const summaryNumbers = normalizedNumbers(f.claim);
+    const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
+      .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
+    return [f, { originalNumbers, keepNumbers, removeNumbers }];
+  }));
+  const rowRemovals = new Map();
+  for (const [f, guard] of numberGuards) if (tableCells(f.sentence)) {
+    rowRemovals.set(f.sentence, [...new Set([...(rowRemovals.get(f.sentence) || []), ...guard.removeNumbers])]);
+  }
+  return { numberGuards, rowRemovals };
+}
+
 function repairInstructions(findings) {
+  const { rowRemovals } = repairNumberGuards(findings);
   return findings.map(f => ({ ...f,
     ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
-    instruction: f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
+    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
       f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
           '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
-          (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : ''),
+          (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : '')) +
+          (f.status === '資料なし' && rowRemovals.get(f.sentence)?.length ? '。表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す' : ''),
   }));
 }
 
@@ -1041,6 +1125,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     return { body, accepted: false, reason: '修正のJSONを読めないため、元の本文を維持しました' };
   }
   const rejected = new Map(), replacements = new Map();
+  const { numberGuards, rowRemovals } = repairNumberGuards(findings);
   for (const f of findings) {
     const rows = data.filter(r => r?.id === f.id);
     const replacement = typeof rows[0]?.replacement === 'string' ? rows[0].replacement.trim() : '';
@@ -1058,17 +1143,24 @@ async function repairBody(body, findings, callLLM, options = {}) {
     }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
-      const originalNumbers = normalizedNumbers(f.sentence), revisedNumbers = normalizedNumbers(replacement);
+      const { originalNumbers, keepNumbers, removeNumbers } = numberGuards.get(f);
+      const revisedNumbers = normalizedNumbers(replacement);
       const keep = f.keep || [];
-      const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
-        .filter(n => originalNumbers.includes(n));
-      const summaryNumbers = normalizedNumbers(f.claim);
-      const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
-        .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
-      if (originalNumbers.includes(null) && (keep.length || f.supported_numbers?.length)) reason = '数字を読めないため確かめられません';
-      else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
-      else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
-      else if (enhanced && REVIEW_TYPES.has(f.type) && revisedNumbers.some(n => !keepNumbers.includes(n))) reason = '資料の無い数字が残っています';
+      const rowRemoveNumbers = rowRemovals.get(f.sentence) || [];
+      let checkedNumbers = revisedNumbers;
+      if (rowRemoveNumbers.length) {
+        const before = tableCells(f.sentence), after = tableCells(replacement);
+        const changing = before.map(cell => normalizedNumbers(cell).some(n => rowRemoveNumbers.includes(n)));
+        if (!after || after.length !== before.length || before.some((cell, i) => !changing[i] && normalizedQuote(cell) !== normalizedQuote(after[i]))) {
+          reason = '外さない列を書き換えています';
+        } else checkedNumbers = after.flatMap((cell, i) => changing[i] ? normalizedNumbers(cell) : []);
+      }
+      if (!reason) {
+        if (originalNumbers.includes(null) && (keep.length || f.supported_numbers?.length)) reason = '数字を読めないため確かめられません';
+        else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
+        else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
+        else if (enhanced && REVIEW_TYPES.has(f.type) && checkedNumbers.some(n => !keepNumbers.includes(n))) reason = '資料の無い数字が残っています';
+      }
     }
     if (reason) rejected.set(f.id, reason);
     else replacements.set(f.id, replacement);
@@ -1091,7 +1183,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
   checkSentences();
   if (enhanced && !options[REPAIR_RETRIED]) {
     const retryReasons = new Set(['置き換え後の文が元の文と同じです', '改行または見出しを含んでいます', '置き換え後の文が長すぎます', '表の列数が変わっています',
-      '裏付けのある数字を消しています', '資料の無い数字が残っています', '同じ文の別の指摘の置き換えを採れませんでした', '同じ文の置き換えが一致しません', '元の文の話題を残していません']);
+      '裏付けのある数字を消しています', '資料の無い数字が残っています', '外さない列を書き換えています', '同じ文の別の指摘の置き換えを採れませんでした', '同じ文の置き換えが一致しません', '元の文の話題を残していません']);
     const retry = findings.filter(f => retryReasons.has(rejected.get(f.id)));
     if (retry.length) {
       try {

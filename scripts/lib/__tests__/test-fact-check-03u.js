@@ -220,16 +220,16 @@ test('U3', 'compactRecordで保存した候補外資料をvalidRefsが認め、�
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('版', 'LOGIC_VERSIONはplan2-s1で、03rの記録は差分照合で使い回さない', async () => {
+test('版', 'LOGIC_VERSIONはplan2-s2で、03rの記録は差分照合で使い回さない', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fact-03u-version-'));
   try {
     const opts = articleOptions(dir), before = raw(body), after = raw(body + '\n案内を追記します。');
     const first = await F.checkArticle(before, opts);
-    assert.equal(first.record.logic_version, 'plan2-s1');
+    assert.equal(first.record.logic_version, 'plan2-s2');
     const file = F.recordPath('fact-03u', dir), prior = JSON.parse(fs.readFileSync(file, 'utf8'));
     prior.logic_version = '03r'; fs.writeFileSync(file, JSON.stringify(prior) + '\n', 'utf8');
     const next = await F.checkArticle(after, { ...opts, previousRaw: before, persist: false });
-    assert.equal(next.record.logic_version, 'plan2-s1'); assert.equal(next.record.incremental, undefined);
+    assert.equal(next.record.logic_version, 'plan2-s2'); assert.equal(next.record.incremental, undefined);
     assert.deepEqual(next.record.calls.map(c => c.task), ['extract', 'judge']);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
