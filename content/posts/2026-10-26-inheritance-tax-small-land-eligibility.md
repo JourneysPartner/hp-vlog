@@ -47,21 +47,22 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: "計画: 資料が見つからない制度 家なき子特例・配偶者が取得した居住用財産の小規模宅地等の特例"
 summary: "小規模宅地等の特例は、自宅の敷地なら330㎡・事業用なら400㎡まで80%減額、貸付事業用は200㎡・50%。誰が取得するかで要件が変わり、同居親族は申告期限までの居住と保有の継続が条件です。判定の順序と必要書類を整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ SEO: title_query_late ／ ⚠ SEO: h2_missing_query ／ ⚠ 論点別ルールが未反映: expired_education_fund_gift（該当箇所が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-10-26T17:58:26.016+09:00"
+publish_at: "2026-10-27T11:26:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-26T00:06:00.030Z"
-updated_at: "2026-10-26T00:06:00.030Z"
+updated_at: "2026-10-26T17:58:26.016+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 54 件: 裏付けあり 52・修正 1（食い違い 1・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 6・捨てた主張 0・人が確かめる箇所 7 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 実家の敷地が広い、親が営んでいた店舗兼住宅をそのまま引き継ぐことになりそう——相続の話が出たとき、最初に気になるのが「小規模宅地等の特例を使えるのか」という点です。
