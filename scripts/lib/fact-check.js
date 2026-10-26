@@ -347,7 +347,10 @@ function normalizedQuote(text) {
 function normalizedNumberText(text, positions) {
   const source = String(text || '');
   const gaps = /(?<=[0-9０-９〇零一二三四五六七八九十百千万億%％])\s+(?=[0-9０-９〇零一二三四五六七八九十百千])/g;
-  if (!positions) return normalizedQuote(source.replace(gaps, '\u0000'));
+  // 「５ 千万円」「800 千円」は一つの金額。漢数字の列挙や「法令184 十九」には広げない。
+  const amountGap = (at, length) => /[0-9０-９]/.test(source[at - 1]) &&
+    /^[十百千][〇零一二三四五六七八九十百千]*[万億円]/.test(source.slice(at + length));
+  if (!positions) return normalizedQuote(source.replace(gaps, (gap, at) => amountGap(at, gap.length) ? gap : '\u0000'));
   let normalized = '', cursor = 0;
   const append = (part, start, end) => {
     normalized += part;
@@ -359,6 +362,7 @@ function normalizedNumberText(text, positions) {
     }
   };
   for (const m of source.matchAll(gaps)) {
+    if (amountGap(m.index, m[0].length)) continue;
     appendRange(cursor, m.index);
     append('\u0000', m.index, m.index + m[0].length);
     cursor = m.index + m[0].length;
@@ -507,6 +511,8 @@ async function extractClaims(body, callLLM, options = {}) {
     if (type && type !== original.type) c.type_label = original.type;
     const number = unitNumber(c?.s);
     let unit = number ? units[number - 1] || null : null;
+    // 表の見出し・区切りを指した要件等は、別の行の主張へ移して重複にしない。
+    if (unit && REVIEW_TYPES.has(c.type) && tableContext.structural.has(unit.s)) unit = null;
     if (unit) {
       const near = units.filter(u => !u.heading && Math.abs(u.s - unit.s) <= 2);
       const numbers = normalizedNumbers(c.claim);
@@ -521,9 +527,9 @@ async function extractClaims(body, callLLM, options = {}) {
           if (!REVIEW_TYPES.has(c.type)) return count(u.text);
           if (tableContext.structural.has(u.s)) return 0;
           const header = tableContext.headers.get(u.s);
-          const direct = count(u.text);
-          // 見出しの語だけで結び付ける場合は、要約の数字が全部その行に必要。
-          return header && (direct || contains(u)) ? count(header + ' ' + u.text) : direct;
+          // 表のデータ行では行の語が合っても全数字が必要。数字の無い主張には見出しを足さない。
+          if (header && numbers.length && !contains(u)) return 0;
+          return count(header && numbers.length ? header + ' ' + u.text : u.text);
         };
         if (unit.heading || !overlap(unit)) {
           const best = near.filter(contains).map(u => ({ u, score: overlap(u) }))
@@ -1040,7 +1046,27 @@ function preservesOtherText(before, after, findings) {
   return headings(before) === headings(after);
 }
 
+/** 指示文と列の歯止めで、同じ保持・除去数字と行ごとの集約を使う。 */
+function repairNumberGuards(findings) {
+  const numberGuards = new Map(findings.filter(f => f.status === '資料なし').map(f => {
+    const originalNumbers = normalizedNumbers(f.sentence);
+    const keep = f.keep || [];
+    const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
+      .filter(n => originalNumbers.includes(n));
+    const summaryNumbers = normalizedNumbers(f.claim);
+    const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
+      .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
+    return [f, { originalNumbers, keepNumbers, removeNumbers }];
+  }));
+  const rowRemovals = new Map();
+  for (const [f, guard] of numberGuards) if (tableCells(f.sentence)) {
+    rowRemovals.set(f.sentence, [...new Set([...(rowRemovals.get(f.sentence) || []), ...guard.removeNumbers])]);
+  }
+  return { numberGuards, rowRemovals };
+}
+
 function repairInstructions(findings) {
+  const { rowRemovals } = repairNumberGuards(findings);
   return findings.map(f => ({ ...f,
     ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
     instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
@@ -1048,7 +1074,7 @@ function repairInstructions(findings) {
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
           '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
           (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : '')) +
-          (f.status === '資料なし' && tableCells(f.sentence) ? '。表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す' : ''),
+          (f.status === '資料なし' && rowRemovals.get(f.sentence)?.length ? '。表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す' : ''),
   }));
 }
 
@@ -1099,20 +1125,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     return { body, accepted: false, reason: '修正のJSONを読めないため、元の本文を維持しました' };
   }
   const rejected = new Map(), replacements = new Map();
-  const numberGuards = new Map(findings.filter(f => f.status === '資料なし').map(f => {
-    const originalNumbers = normalizedNumbers(f.sentence);
-    const keep = f.keep || [];
-    const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
-      .filter(n => originalNumbers.includes(n));
-    const summaryNumbers = normalizedNumbers(f.claim);
-    const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
-      .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
-    return [f, { originalNumbers, keepNumbers, removeNumbers }];
-  }));
-  const rowRemovals = new Map();
-  for (const [f, guard] of numberGuards) if (tableCells(f.sentence)) {
-    rowRemovals.set(f.sentence, [...new Set([...(rowRemovals.get(f.sentence) || []), ...guard.removeNumbers])]);
-  }
+  const { numberGuards, rowRemovals } = repairNumberGuards(findings);
   for (const f of findings) {
     const rows = data.filter(r => r?.id === f.id);
     const replacement = typeof rows[0]?.replacement === 'string' ? rows[0].replacement.trim() : '';

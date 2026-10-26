@@ -45,6 +45,42 @@ for (const [text, expected] of [
   ['1 億円', ['100000000']],
 ]) test('1', `数字の読み方: ${text}`, () => assert.deepEqual(F.normalizedNumbers(text), expected));
 
+for (const [text, expected, normalized] of [
+  ['５ 千万円以下', ['50000000'], '5千万円以下'],
+  ['800 千円', ['800000'], '800千円'],
+  ['2 百万円', ['2000000'], '2百万円'],
+  ['3 十億円', ['3000000000'], '3十億円'],
+  ['法令184 十九', ['184'], '法令184\u0000十九'],
+  ['一　十億円', ['1000000000'], '一\u0000十億円'],
+  ['二 千万円', ['10000000'], '二\u0000千万円'],
+  ['5 二千万円', ['5', '20000000'], '5\u0000二千万円'],
+]) test('01b-F1', `金額の空白の例外: ${text}`, () => {
+  assert.deepEqual(F.normalizedNumbers(text), expected);
+  assert.equal(T.normalizedNumberText(text), normalized);
+  const positions = [];
+  assert.equal(T.normalizedNumberText(text, positions), normalized);
+  assert.equal(positions.length, normalized.length);
+});
+for (const gap of [' ', '　', '\n', '\t', ' \t\r\n　']) {
+  test('01b-F1', `金額の空白 ${JSON.stringify(gap)} も引用・保持表記で同じに読む`, () => {
+    const amount = `５${gap}千万円`;
+    const text = `特定期間における課税売上高が${amount}以下の場合について案内します。`;
+    const c = claim('課税売上高は5千万円以下です。', { type: '金額' });
+    assert.equal(supports(c, text, text), true);
+    assert.deepEqual(F.normalizedNumbers(T.numberCheckText(amount, ref(text))), ['50000000']);
+    assert.deepEqual(T.supportedNumberForms(amount, ref(text), ['50000000']), [amount]);
+  });
+}
+test('01b-F1', '結合する金額も原文の300字境界で切れた数は採らない', () => {
+  const amount = '800 \n千円';
+  const c = claim('消費税額は800千円です。', { type: '金額' });
+  for (const before of [false, true]) for (const distance of [300, 301]) {
+    const padding = 'あ'.repeat(distance - amount.length);
+    const text = before ? amount + padding + quote : quote + padding + amount;
+    assert.equal(supports(c, text), distance === 300);
+  }
+});
+
 for (const gap of [' ', '　', '\n', '\t', ' \t\r\n　']) {
   test('1', `空白の連なり ${JSON.stringify(gap)} と全角数字`, () => {
     assert.deepEqual(F.normalizedNumbers(`４００${gap}８０％`), ['400', '割合:4/5']);
@@ -188,10 +224,52 @@ for (const type of ['要件', '判定', '手続']) test('6', `${type}でも近�
 test('6', '表の見出し行・区切り行を結び付け先にしない', async () => {
   for (const s of [1, 2]) {
     const out = await extract(table, s, '限度面積を確認');
-    assert.ok(out.claims.length);
-    assert.equal(out.claims[0].s, 3);
+    assert.equal(out.claims.length, 0);
+    assert.equal(out.discardedClaims[0].status, '本文に見つからない');
   }
 });
+for (const type of ['要件', '判定', '手続']) {
+  test('01b-F2', `${type}: 数字の無い主張は見出しの語だけで行に結び付けない`, async () => {
+    const out = await extract(table, 6, '限度面積と減額割合が区分ごとに決まる', type);
+    assert.equal(out.claims.length, 0);
+    assert.equal(out.discardedClaims[0].status, '本文に見つからない');
+    const direct = await extract(table, 3, '特定事業用宅地等は事業の継続が要件', type);
+    assert.equal(direct.claims[0]?.s, 3);
+  });
+  test('01b-F2', `${type}: 見出し行・区切り行を指した主張は近傍へ移さない`, async () => {
+    for (const s of [1, 2]) for (const summary of ['特定事業用宅地等は事業の継続が要件', '限度面積は400㎡']) {
+      const out = await extract(table, s, summary, type);
+      assert.equal(out.claims.length, 0);
+      assert.equal(out.discardedClaims[0].status, '本文に見つからない');
+      assert.equal(out.discardedClaims[0].s, s);
+    }
+  });
+  test('01b-F2', `${type}: 見出し行の主張が行の本来の主張を重複として消さない`, async () => {
+    for (const order of [[1, 3], [3, 1]]) {
+      const out = await F.extractClaims(table, async () => order.map(s => ({
+        s, type, subject: '特定事業用宅地等', claim: '特定事業用宅地等は事業の継続が要件',
+      })), options);
+      assert.equal(out.claims.length, 1);
+      assert.equal(out.claims[0].s, 3);
+      assert.equal(out.claims[0].sentence, U.splitUnits(table)[2].text);
+      assert.equal(out.discardedClaims.length, 1);
+      assert.equal(out.discardedClaims[0].s, 1);
+      assert.equal(out.discardedClaims[0].status, '本文に見つからない');
+    }
+  });
+  test('01b-F3', `${type}: 行の語が合っても数字が一部違う主張は結び付けない`, async () => {
+    const summary = '特定居住用宅地等は330平方メートルで減額割合は50%';
+    for (const s of [4, 5, 6]) {
+      const out = await extract(table, s, summary, type);
+      assert.equal(out.claims.length, 0);
+      assert.equal(out.discardedClaims[0].status, '本文に見つからない');
+    }
+    const correct = await extract(table, 5, summary.replace('50%', '80%'), type);
+    assert.equal(correct.claims[0]?.s, 5);
+    const prose = '特定居住用宅地等は330平方メートルで減額割合は80%です。';
+    assert.equal((await extract(prose, 1, summary, type)).claims[0]?.sentence, prose);
+  });
+}
 test('6', '空行や文章や別の表を越えて見出しを使わない', async () => {
   for (const boundary of ['\n\n', '\n案内を確認します。\n', '\n\n| 区分 | 値 |\n|---|---|\n']) {
     const text = table + boundary + '| 別の区分 | 999㎡ |';
@@ -208,6 +286,27 @@ const row = '| A | 400㎡ | 80% |';
 const both = '| A | 国税庁の案内で確認 | 国税庁の案内で確認 |';
 const onlyRatio = '| A | 400㎡ | 国税庁の案内で確認 |';
 const finding = (extra = {}) => claim(row, { status: '資料なし', claim: '減額割合は80%', ...extra });
+const columnInstruction = '表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す';
+test('01b-F4', '指示文は同じ行の除去数字があるときだけ足す', () => {
+  const noNumbers = finding({ type: '要件', claim: '区分の要件がある' });
+  const supported = finding({ supported_numbers: ['80%'] });
+  const kept = finding({ keep: [{ claim: '減額割合は80%' }] });
+  const absent = finding({ claim: '減額割合は70%' });
+  for (const f of [noNumbers, supported, kept, absent]) {
+    assert.equal(F.repairInstructions([f])[0].instruction.includes(columnInstruction), false);
+  }
+  assert.equal(F.repairInstructions([finding()])[0].instruction.includes(columnInstruction), true);
+  const sameRow = F.repairInstructions([noNumbers, finding({ id: 'c2' })]);
+  assert.equal(sameRow.every(f => f.instruction.includes(columnInstruction)), true);
+  const differentRows = F.repairInstructions([noNumbers, finding({ id: 'c2', sentence: '| B | 400㎡ | 80% |' })]);
+  assert.equal(differentRows[0].instruction.includes(columnInstruction), false);
+  assert.equal(differentRows[1].instruction.includes(columnInstruction), true);
+  const prose = finding({ sentence: '面積は400㎡、減額割合は80%です。' });
+  assert.equal(F.repairInstructions([prose])[0].instruction.includes(columnInstruction), false);
+  for (const status of ['食い違い', '期限の書き漏れ']) {
+    assert.equal(F.repairInstructions([finding(), finding({ id: 'c2', status })])[1].instruction.includes(columnInstruction), false);
+  }
+});
 const repair = (body, findings, replacement, opts = {}, inspect = () => {}) => F.repairBody(body, findings, async req => {
   inspect(req);
   return findings.map(f => ({ id: f.id, replacement }));
