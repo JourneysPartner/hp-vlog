@@ -167,9 +167,9 @@ const ratiosFor = (r, total14 = 28) => ({
   ratios: { 7: { 相続贈与: r }, 14: { 相続贈与: r }, 30: { 相続贈与: r } },
   totals: { 7: 3, 14: total14, 30: 60 },
 });
-assert(balanceScore('相続贈与', ratiosFor(0.15)).hardBlocked === true,
-  '相続贈与は直近7日 15% で目標連動上限を超え、ハードブロックされる');
-assert(balanceScore('相続贈与', ratiosFor(0.15, 3)).hardBlocked === false,
+assert(balanceScore('相続贈与', ratiosFor(0.25)).hardBlocked === true,
+  '相続贈与は直近7日 25% で目標連動上限を超え、ハードブロックされる');
+assert(balanceScore('相続贈与', ratiosFor(0.25, 3)).hardBlocked === false,
   '14日実績が4本未満なら少数標本としてハードブロックしない');
 console.log(`\n結果: ${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

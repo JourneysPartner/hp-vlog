@@ -25,7 +25,7 @@ const { resolveCluster, resolveTaxDomain, MACRO } = require('./cluster-taxonomy'
 const { readAllPostsSorted, postReferenceDate } = require('./site-corpus');
 const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
-const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
+const { computeMacroRatios, applyBalance, balanceScore, computeMacroQuota, applyMacroQuota } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
 const { loadWithdrawnTopics, findWithdrawnTopic } = require('./withdrawn-topics');
 const { prefillTargetQuery, normalizeQuery, findTargetQueryOwner } = require('./target-query');
@@ -598,7 +598,19 @@ function selectDailyTopics(topics, options = {}) {
   }
 
   // 5. カテゴリ偏り是正 + balance scoring
-  const ratios = computeMacroRatios(now);
+  const quota = computeMacroQuota(now, { extraCorpus: pending });
+  const { passed: quotaPassed, blocked: quotaBlocked } = applyMacroQuota(working, quota);
+  explanation.steps.push({
+    step: 'macro-quota',
+    blocked: quotaBlocked.length,
+    remaining: quotaPassed.length,
+    blockedDetails: quotaBlocked.slice(0, 5).map(b => ({
+      slug: b.topic.slug, macro: b.macro, count: b.count, limit: b.limit, reason: b.reason,
+    })),
+  });
+  // 以降の救済・ペアリング・差し替えでも上限による除外を戻さない。
+  working = quotaPassed;
+  const ratios = computeMacroRatios(now, { extraCorpus: pending });
   const { scored: balanceScored, blocked: balanceBlocked } = applyBalance(working, ratios);
   explanation.steps.push({
     step: 'apply-balance',
@@ -615,7 +627,7 @@ function selectDailyTopics(topics, options = {}) {
     topic: t, balance: 0, balanceReasons: [], hardBlocked: false,
   }));
 
-  if (balanceScored.length === 0) {
+  if (balanceScored.length === 0 && balanceBlocked.length > 0) {
     explanation.warnings = (explanation.warnings || []).concat(['カテゴリ偏りハードブロックで全滅 → ブロック解除']);
   }
 

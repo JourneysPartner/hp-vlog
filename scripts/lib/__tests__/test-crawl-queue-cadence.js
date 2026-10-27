@@ -74,8 +74,8 @@ console.log('\n=== 3. macro 目標比率 ===');
 const validation = validateTargetRatios();
 assert(validation.valid && Math.abs(validation.total - 1) <= 0.01, '目標比率の合計は 1.0 ± 0.01');
 assert(Object.keys(TARGET_RATIOS).every(macro => ALL_MACROS.includes(macro)), '配分表に ALL_MACROS 外の名前がない');
-assert(TARGET_RATIOS['物販'] === 0.5 && TARGET_RATIOS['相続贈与'] === 0.02, '物販 50%、相続贈与 2% を既定値にする');
-assert(Math.abs(hardCapFor('物販') - 0.85) < 1e-9 && Math.abs(hardCapFor('建設') - 0.21) < 1e-9, 'macro ごとの 7 日上限を計算する');
+assert(TARGET_RATIOS['物販'] === 0.5 && TARGET_RATIOS['相続贈与'] === 0.10, '物販 50%、相続贈与 10% を既定値にする');
+assert(Math.abs(hardCapFor('物販') - 0.85) < 1e-9 && Math.abs(hardCapFor('建設') - 0.178) < 1e-9, 'macro ごとの 7 日上限を計算する');
 
 const retailRatios = {
   ratios: { 7: { '物販': 0.8 }, 14: { '物販': 0.45 }, 30: { '物販': 0.5 } },
@@ -84,10 +84,10 @@ const retailRatios = {
 assert(balanceScore('物販', retailRatios).hardBlocked === false, '物販が 14 日で 45% でもブロックしない');
 
 const inheritanceRatios = {
-  ratios: { 7: { '相続贈与': 0.15 }, 14: { '相続贈与': 0.15 }, 30: { '相続贈与': 0.1 } },
+  ratios: { 7: { '相続贈与': 0.25 }, 14: { '相続贈与': 0.25 }, 30: { '相続贈与': 0.1 } },
   totals: { 7: 3, 14: 20, 30: 30 },
 };
-assert(balanceScore('相続贈与', inheritanceRatios).hardBlocked === true, '相続贈与が 15% なら 7 日上限でブロックする');
+assert(balanceScore('相続贈与', inheritanceRatios).hardBlocked === true, '相続贈与が 25% なら 7 日上限でブロックする');
 const sparseRatios = { ...inheritanceRatios, totals: { ...inheritanceRatios.totals, 14: 3 } };
 assert(balanceScore('相続贈与', sparseRatios).hardBlocked === false, '14 日の実績が 4 本未満なら 7 日上限を適用しない');
 
