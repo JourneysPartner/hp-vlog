@@ -61,17 +61,34 @@ const ANALYTICS_BEACON = `
 (() => {
   if (location.hostname !== 'mori-zeirishi.net' || navigator.doNotTrack === '1') return;
   const data = { p: location.pathname };
-  // 問い合わせページでは、どのページから来たか（サイト内のみ）を添える。
-  // どの記事が問い合わせにつながったかを実測するため。
-  if (location.pathname === '/contact.html' && document.referrer) {
+  const isContact = p => ['/contact', '/contact.html', '/contact/'].includes(p);
+  const isThanks = p => ['/contact-thanks', '/contact-thanks.html', '/contact-thanks/'].includes(p);
+  const fromKey = 'mz_contact_from';
+  if (isContact(location.pathname)) {
+    let from;
     try {
-      const from = new URL(document.referrer);
-      if (from.hostname === location.hostname) data.r = from.pathname;
+      from = new URL(document.referrer);
+    } catch (e) {}
+    if (from && from.hostname === location.hostname) {
+      if (!isContact(from.pathname) && !isThanks(from.pathname)) {
+        data.r = from.pathname;
+        try { sessionStorage.setItem(fromKey, from.pathname); } catch (e) {}
+      }
+    } else {
+      try { sessionStorage.removeItem(fromKey); } catch (e) {}
+    }
+  } else if (isThanks(location.pathname)) {
+    try {
+      const from = sessionStorage.getItem(fromKey);
+      if (from) data.r = from;
     } catch (e) {}
   }
   const body = JSON.stringify(data);
   if (!navigator.sendBeacon('/track', body)) {
     fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+  }
+  if (isThanks(location.pathname)) {
+    try { sessionStorage.removeItem(fromKey); } catch (e) {}
   }
 })();
 </script>`;

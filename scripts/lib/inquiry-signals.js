@@ -1,9 +1,10 @@
 'use strict';
 /**
- * 問い合わせ実績の信号（段階2）
+ * 問い合わせ・送信完了実績の信号
  *
  * data/contact-transitions.json（週次エクスポート）には「どのページから
- * 問い合わせページへ進んだか」の実測が入る。ここでは遷移元の記事の
+ * 問い合わせページへ進んだか（byFrom）」と「送信完了の前にどのページを
+ * 見ていたか（submittedFrom）」の実測が入る。両方の遷移元の記事の
  * 論点（pain_point / subcluster / cluster）を引き、同じ・近い論点の候補を
  * 選定で優先するための判定を提供する。
  *
@@ -36,8 +37,9 @@ function buildSignalKeys(options = {}) {
   } catch (_) {
     return { keys: new Set(), fromCount: 0 };
   }
-  const byFrom = parsed && typeof parsed.byFrom === 'object' ? parsed.byFrom : {};
-  const slugs = new Set(Object.keys(byFrom).map(slugFromBlogPath).filter(Boolean));
+  const byFrom = parsed && parsed.byFrom && typeof parsed.byFrom === 'object' ? parsed.byFrom : {};
+  const submittedFrom = parsed && parsed.submittedFrom && typeof parsed.submittedFrom === 'object' ? parsed.submittedFrom : {};
+  const slugs = new Set([...Object.keys(byFrom), ...Object.keys(submittedFrom)].map(slugFromBlogPath).filter(Boolean));
   if (slugs.size === 0) return { keys: new Set(), fromCount: 0 };
 
   const keys = new Set();
