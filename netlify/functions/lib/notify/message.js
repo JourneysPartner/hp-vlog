@@ -13,6 +13,7 @@
  *   - published          : 公開完了（publish-scheduled が送信）
  *   - merge_failed       : PRマージ失敗
  *   - slot_readjusted    : 公開枠変更（evening→morning 繰り上げ）
+ *   - master_freshness   : 税シミュレーターのマスター鮮度の要確認
  */
 
 function buildMessage(event, data) {
@@ -301,6 +302,22 @@ function buildMessage(event, data) {
           prUrl ? `▶ Pull Request: ${prUrl}` : '',
           '',
           '本文や更新日はまだ変更していません。候補と理由を確認してください。',
+        ].filter((line, index, lines) => line !== '' || (index > 0 && lines[index - 1] !== '')).join('\n'),
+      };
+    }
+
+    case 'master_freshness': {
+      const { summary, prUrl } = data;
+      return {
+        subject: '【税シミュレーター】マスターの確認が必要です',
+        body: [
+          '税シミュレーターのマスター鮮度チェックで、確認が必要な項目が見つかりました。',
+          '',
+          summary || '',
+          '',
+          prUrl ? `▶ 実行結果（全文）: ${prUrl}` : '',
+          '',
+          'マスターの値はまだ変更していません。出典の原文を読み、見直しが要るか確認してください。',
         ].filter((line, index, lines) => line !== '' || (index > 0 && lines[index - 1] !== '')).join('\n'),
       };
     }
