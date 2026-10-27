@@ -247,6 +247,7 @@ function sufficientQuote(claim, result, ref, status, sumSupport) {
   const wholeSentence = evidenceTexts(ref).some(text => sentenceRows(text).some(s => parts.includes(normalizedQuote(s.trim())) && /。$/.test(s.trim()) && s.trim() !== '。'));
   if (parts.join('').length < 15 && !wholeSentence) return false;
   if (['期限', '金額', '割合', '適用年'].includes(claim.type)) {
+    const sumClaim = status === '裏付けあり' ? claim : null;
     claim = numberCheckClaim(claim, ref);
     let numbers = normalizedNumbers(status === '裏付けあり' ? claim.claim : numberCheckText(result.correct, ref));
     if (status === '裏付けあり') {
@@ -260,7 +261,7 @@ function sufficientQuote(claim, result, ref, status, sumSupport) {
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
     // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
-    if (!quoteSupportsNumbers(numbers, result, ref, status === '裏付けあり' ? claim : null, sumSupport)) return false;
+    if (!quoteSupportsNumbers(numbers, result, ref, sumClaim, sumSupport)) return false;
   }
   return true;
 }
@@ -293,7 +294,7 @@ function quoteSupportsNumbers(numbers, result, ref, claim = null, sumSupport) {
       // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
       const dates = normalizedNumbers(withoutAsOfDates(normalizedNumberText(rawParts[partIndex])));
       const supported = new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-')))));
-      const sums = sumNumberSupport(numbers.filter(n => !supported.has(n)), quoted, claim);
+      const sums = sumNumberSupport(numbers.filter(n => !supported.has(n)), quoted, claim, text.slice(start, end));
       for (const sum of sums) supported.add(sum.number);
       supports[partIndex].push({ numbers: supported, sums });
     }
@@ -315,10 +316,19 @@ function quoteSupportsNumbers(numbers, result, ref, claim = null, sumSupport) {
 }
 
 /** 一つの引用位置の範囲だけで、文にも現れる金額を使った二項の合計を確かめる。 */
-function sumNumberSupport(numbers, quoted, claim) {
-  if (claim?.type !== '金額' || !/合計|合わせ|併せ|あわせ|合算|足す|足し|加え|加算|上乗せ|プラス/.test(claim.sentence)) return [];
+function sumNumberSupport(numbers, quoted, claim, window) {
+  if (claim?.type !== '金額' || /[×✕＊*]|倍|につき|当たり|あたり/.test(window)) return [];
   const amount = n => typeof n === 'string' && /^\d+(?:\.\d+)?$/.test(n) && Number(n) >= 10000;
-  const sentence = normalizedNumbers(claim.sentence);
+  const positions = [], forms = [];
+  const sentence = normalizedNumbers(normalizedNumberText(claim.sentence, positions), undefined, forms);
+  const totals = new Set(forms.filter(f => {
+    const start = positions[f.start][0], end = positions[f.end - 1][1];
+    const before = claim.sentence.slice(0, start).split(/[。、，]/).at(-1);
+    const after = claim.sentence.slice(end);
+    if (/^の(?:合計|合算)/.test(after)) return true;
+    return [...before.matchAll(/合計|合算|総額|合わせて|併せて|あわせて|加えた|足した|加算した|上乗せした/g)]
+      .some(m => before.length - m.index <= 8 && !(m[0] === '合わせて' && /(?:問い|組み|打ち|照らし|申し|掛け)$/.test(before.slice(0, m.index))));
+  }).map(f => f.number));
   const parts = [...new Set(quoted.filter(amount))];
   const equalsSum = (a, b, n) => {
     // 小数も丸めて一致させず、同じ桁数の整数として足す。
@@ -327,7 +337,7 @@ function sumNumberSupport(numbers, quoted, claim) {
     return units(a) + units(b) === units(n);
   };
   const sums = [];
-  for (const n of numbers.filter(amount)) {
+  for (const n of numbers.filter(n => amount(n) && totals.has(n))) {
     let found;
     for (let i = 0; i < parts.length && !found; i++) for (let j = i + 1; j < parts.length; j++) {
       const a = parts[i], b = parts[j];
@@ -465,7 +475,7 @@ function partialQuoteNumbers(claim, grounded, ref) {
   const numbers = summary.length ? summary : sentence;
   if (!numbers.length || numbers.includes(null)) return null;
   const sums = [];
-  const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref, checked, sums));
+  const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref, claim, sums));
   const missing = numbers.filter(n => !supported.includes(n));
   if (!supported.length || !missing.length) return null;
   return { forms: supportedNumberForms(claim.sentence, ref, supported), ...(sums.length ? { sum_support: sums } : {}) };
@@ -886,7 +896,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           const numbers = normalizedNumbers(status === '裏付けあり' ? checked.claim : c.type === '番号' ? correct : numberCheckText(correct, page.ref));
           if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(checked.sentence));
           return quoteExists(grounded.quote, page.ref) && sufficientQuote(c, grounded, page.ref, status) &&
-            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref, status === '裏付けあり' ? checked : null) : status !== '裏付けあり' || !isNumericClaim(checked));
+            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref, status === '裏付けあり' ? c : null) : status !== '裏付けあり' || !isNumericClaim(checked));
         });
         if (rescued) { citations = rescued; tooMany = false; }
       }
@@ -978,18 +988,23 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
 
 /** 本文の番号は、同じ文を裏付けたタックスアンサー自身の番号だけで補う。 */
 function supportNumbersFromSiblings(claims) {
-  const taxAnswerNumbers = text => [...new Set([...normalizedQuote(text).matchAll(/(?:No\.?|タックスアンサー(?:No\.?)?|TA)(\d{4})(?!\d)/gi)].map(m => m[1]))];
+  const citation = /(?:No\.?|タックスアンサー(?:No\.?)?|TA)(\d{4})(?!\d)/gi;
+  const subject = text => String(text || '').normalize('NFKC').replace(/\s+/g, '');
+  const conflicts = new Set(['食い違い', '期限の書き漏れ']);
   return claims.map(c => {
     if (c.type !== '番号' || c.status !== '資料なし' || NO_REPAIR_REASONS.has(c.reject_reason) || !c.sentence) return c;
+    if ((c.rejected_answer && c.rejected_answer.status !== '裏付けあり') || conflicts.has(c.stage_a_status)) return c;
     const summary = normalizedQuote(c.claim);
-    if (/[0-9〇零一二三四五六七八九十百千万億]+条|通[^。]*[-−][0-9〇零一二三四五六七八九十百千万億]+/.test(summary)) return c;
-    const inClaim = taxAnswerNumbers(c.claim);
-    const numbers = inClaim.length ? inClaim : taxAnswerNumbers(c.sentence);
+    const numbers = [...new Set([...summary.matchAll(citation)].map(m => m[1]))];
     if (!numbers.length) return c;
+    const remainder = summary.replace(citation, '').replace(/国税庁|タックスアンサー/g, '');
+    if (/[0-9〇零一二三四五六七八九十百千万億兆壱壹弐貳参參肆伍陸漆柒捌玖拾佰仟萬阡]/.test(remainder)) return c;
     const matches = numbers.map(no => {
       for (const sibling of claims) {
-        if (sibling === c || sibling.sentence !== c.sentence || sibling.type === '番号' || sibling.status !== '裏付けあり') continue;
-        const ref = (sibling.evidence || []).find(e => e.id === sibling.evidence_id && e.kind === 'taxanswer' && normalizedQuote(e.no) === no);
+        if (sibling === c || sibling.sentence !== c.sentence || sibling.type === '番号' || sibling.status !== '裏付けあり' ||
+            subject(sibling.subject) !== subject(c.subject) || sibling.evidence_outside_candidates === true) continue;
+        const ref = (sibling.evidence || []).find(e => e.id === sibling.evidence_id && e.kind === 'taxanswer' && normalizedQuote(e.no) === no &&
+          (c.evidence || []).some(candidate => candidate.id === e.id));
         if (ref) return { sibling, ref };
       }
       return null;
@@ -1000,7 +1015,8 @@ function supportNumbersFromSiblings(claims) {
     const evidence = [...(c.evidence || [])];
     for (const match of matches) if (!evidence.some(e => e.id === match.ref.id)) evidence.push(match.ref);
     return { ...supported, status: '裏付けあり', evidence_id: ref.id, quote: sibling.quote, correct: '', evidence,
-      number_from_sibling: { id: sibling.id, previous_status: '資料なし', previous_reject_reason: reject_reason || '' } };
+      number_from_sibling: { id: sibling.id, sentence: sibling.sentence, type: sibling.type, subject: sibling.subject,
+        previous_status: '資料なし', previous_reject_reason: reject_reason || '' } };
   });
 }
 
@@ -1487,7 +1503,11 @@ async function checkFacts(body, options = {}) {
     }
     checkTally(tally, cfg);
     const original = new Map(stageA.map(c => [c.id, c]));
-    const adopted = [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
+    const adopted = [...claims.map(c => {
+      const previous = original.get(c.id), result = final.get(c.id) || previous;
+      const status = ['食い違い', '期限の書き漏れ'].includes(previous?.status) ? previous.status : previous?.rejected_answer?.status;
+      return result && ['食い違い', '期限の書き漏れ'].includes(status) ? { ...result, stage_a_status: status } : result;
+    }).filter(Boolean), ...reused];
     for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
     return supportNumbersFromSiblings(adopted);
   };

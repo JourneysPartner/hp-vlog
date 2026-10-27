@@ -148,8 +148,9 @@ function originalFactClaim(record, correction) {
 
 function renderGeneralizedAnswer(record, correction) {
   const original = originalFactClaim(record, correction);
+  if (!original) return '';
   const answer = original?.rejected_answer;
-  if (!answer) return `<div class="small mt-2">${escapeHtml('AI の答え: 資料なし' + (original?.reject_reason ? `（${original.reject_reason}）` : ''))}</div>`;
+  if (!answer) return `<div class="small mt-2">${escapeHtml(original.reject_reason ? `AI の答え: 記録なし（${original.reject_reason}）` : 'AI の答え: 資料なし')}</div>`;
   const ref = evidenceRefs(record, original).find(e => e.id === answer.evidence) || record.evidence?.[answer.evidence];
   const source = ref?.title || ref?.url || '';
   const message = `AI の答え: ${answer.status}${source ? `（${source}）` : ''}／機械が採らなかった理由: ${original.reject_reason || ''}`;
