@@ -5,7 +5,7 @@ const {
   COOKIE_NAME, DEFAULT_PRODUCTION_HOST, jstDate, jstMinute, hash, parseCookies,
   issueVisitorCookie, verifyVisitorCookie, cookieHeader, isProductionRequest, isBot,
   parseBeaconBody, parseBeaconPayload, markUnique, markRate, rateKey, incrementPageview, incrementTransition,
-  CONTACT_PATH, THANKS_PATH, incrementSubmission,
+  CONTACT_PATH, THANKS_PATH, incrementSubmission, incrementLine,
 } = require('./lib/analytics-store');
 
 function noContent(headers = {}) {
@@ -24,7 +24,7 @@ async function handler(event, { getStoreFn = getStore } = {}) {
 
   const payload = parseBeaconPayload(rawBody(event));
   if (!payload) return noContent();
-  const { path, ref } = payload;
+  const { path, ref, event: beaconEvent } = payload;
 
   const secret = process.env.ANALYTICS_COOKIE_SECRET;
   if (!secret) {
@@ -51,6 +51,20 @@ async function handler(event, { getStoreFn = getStore } = {}) {
     const now = new Date();
     const date = jstDate(now);
     const vidHash = hash(visitor.id);
+
+    if (beaconEvent === 'line') {
+      const minute = jstMinute(now);
+      const ratePath = 'line:' + path;
+      const rate = await markRate(store, minute, vidHash, ratePath);
+      if (!rate.modified) return noContent(setCookie ? { 'Set-Cookie': setCookie } : {});
+      ownRateMarker = rateKey(minute, vidHash, ratePath);
+      if (!await incrementLine(store, date, ref || path)) {
+        await store.delete(ownRateMarker);
+        ownRateMarker = null;
+        console.warn('[analytics] LINE CAS retries exhausted; released own rate marker');
+      }
+      return noContent(setCookie ? { 'Set-Cookie': setCookie } : {});
+    }
 
     // UU は daily に加算せず uniq マーカーの件数から管理画面で算出する。
     await markUnique(store, date, vidHash);

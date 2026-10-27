@@ -1382,12 +1382,25 @@ textarea.form-control-custom { resize: vertical; min-height: 140px; }
 select.form-control-custom { cursor: pointer; }
 
 .line-cta-box {
+  display: block;
   background: linear-gradient(135deg, #06C755 0%, #00B347 100%);
   border-radius: var(--radius-lg);
   padding: 30px 26px;
   text-align: center;
   color: #fff;
   box-shadow: 0 6px 20px rgba(6,199,85,0.25);
+  text-decoration: none;
+  cursor: pointer;
+}
+.line-cta-box:hover,
+.line-cta-box:focus-visible {
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 9px 26px rgba(6,199,85,0.35);
+}
+.line-cta-box:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 3px;
 }
 .line-cta-box h4 { font-size: 1.15rem; margin-bottom: 6px; color: #fff; }
 .line-cta-box p { font-size: 0.93rem; opacity: 0.92; margin-bottom: 16px; }
@@ -1401,7 +1414,8 @@ select.form-control-custom { cursor: pointer; }
   transition: var(--transition);
   display: inline-block;
 }
-.btn-line:hover { opacity: 0.9; transform: translateY(-2px); color: #06C755; }
+.line-cta-box:hover .btn-line,
+.line-cta-box:focus-visible .btn-line { opacity: 0.9; color: #06C755; }
 
 /* ── 19. Privacy Page ── */
 .privacy-body { max-width: 800px; margin: 0 auto; }
@@ -1603,6 +1617,8 @@ select.form-control-custom { cursor: pointer; }
 /* ── 23. Accessibility & Motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .line-cta-box:hover,
+  .line-cta-box:focus-visible { transform: none; }
 
 }
 

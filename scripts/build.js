@@ -83,13 +83,29 @@ const ANALYTICS_BEACON = `
       if (from) data.r = from;
     } catch (e) {}
   }
-  const body = JSON.stringify(data);
-  if (!navigator.sendBeacon('/track', body)) {
-    fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+  function send(data) {
+    const body = JSON.stringify(data);
+    try { if (navigator.sendBeacon('/track', body)) return; } catch (e) {}
+    try {
+      fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+    } catch (e) {}
   }
+  send(data);
   if (isThanks(location.pathname)) {
     try { sessionStorage.removeItem(fromKey); } catch (e) {}
   }
+  document.addEventListener('click', event => {
+    const target = event.target;
+    if (!target || typeof target.closest !== 'function' || !target.closest('a[data-track="line"]')) return;
+    const data = { p: location.pathname, e: 'line' };
+    if (isContact(location.pathname)) {
+      try {
+        const from = sessionStorage.getItem(fromKey);
+        if (from) data.r = from;
+      } catch (e) {}
+    }
+    send(data);
+  });
 })();
 </script>`;
 

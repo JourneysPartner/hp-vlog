@@ -132,7 +132,7 @@ const CONTACT_PATH = '/contact.html';
 const THANKS_PATH = '/contact-thanks.html';
 
 /**
- * ビーコンの本文を {path, ref} に分解する。
+ * ビーコンの本文を {path, ref, event} に分解する。
  * ref（遷移元）は、現在ページが問い合わせ・送信完了ページで、遷移元がサイト内の
  * 許可されたパス（問い合わせ・送信完了ページを除く）の場合だけ有効。それ以外は null。
  */
@@ -141,7 +141,8 @@ function parseBeaconPayload(raw) {
   let body;
   try { body = JSON.parse(raw); } catch { return null; }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
-  if (Object.keys(body).some(k => k !== 'p' && k !== 'r')) return null;
+  if (Object.keys(body).some(k => k !== 'p' && k !== 'r' && k !== 'e')) return null;
+  if (Object.hasOwn(body, 'e') && body.e !== 'line') return null;
   const path = normalizePath(body.p);
   if (!path || !isAllowedPath(path)) return null;
   let ref = null;
@@ -149,7 +150,7 @@ function parseBeaconPayload(raw) {
     const candidate = normalizePath(body.r);
     if (candidate && candidate !== CONTACT_PATH && candidate !== THANKS_PATH && isAllowedPath(candidate)) ref = candidate;
   }
-  return { path, ref };
+  return { path, ref, event: body.e || null };
 }
 
 function parseBeaconBody(raw) {
@@ -193,6 +194,7 @@ async function incrementPageview(store, date, path, { maxAttempts = 8, sleep = d
 
 function transitionKey(date) { return `transitions/${date}`; }
 function submissionKey(date) { return `submissions/${date}`; }
+function lineKey(date) { return `line/${date}`; }
 
 /**
  * 問い合わせページへの遷移を記録する（日別・遷移元パス別の回数）。
@@ -204,6 +206,10 @@ async function incrementTransition(store, date, fromPath, options = {}) {
 
 async function incrementSubmission(store, date, fromPath, options = {}) {
   return incrementFrom(store, submissionKey(date), date, fromPath, options);
+}
+
+async function incrementLine(store, date, fromPath, options = {}) {
+  return incrementFrom(store, lineKey(date), date, fromPath, options);
 }
 
 async function incrementFrom(store, key, date, fromPath, { maxAttempts = 8, sleep = defaultSleep } = {}) {
@@ -250,5 +256,6 @@ module.exports = {
   jstDate, jstMinute, dateOffset, hash, parseCookies, issueVisitorCookie, verifyVisitorCookie, cookieHeader,
   isProductionRequest, isBot, normalizePath, isAllowedPath, parseBeaconBody, parseBeaconPayload,
   CONTACT_PATH, THANKS_PATH, incrementTransition, transitionKey, incrementSubmission, submissionKey,
+  incrementLine, lineKey,
   dailyKey, uniqueKey, rateKey, markUnique, markRate, incrementPageview, countPrefix, listPrefixKeys, deleteKeys,
 };
