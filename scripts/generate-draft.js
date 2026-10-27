@@ -2553,7 +2553,7 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
   let content = preparedContent;
   let body = originalBody;
   const failed = new Map();
-  const sameBody = (before, after) => before.replace(/\s+/g, ' ').trim() === after.replace(/\s+/g, ' ').trim();
+  const sameBody = (before, after) => sanitizeBannedPhrases(before).replace(/\s+/g, ' ').trim() === after.replace(/\s+/g, ' ').trim();
   const fail = (step, reason) => {
     for (const no of step.points) failed.set(no, reason);
     console.warn(`[regenerate] ${step.kind} 指摘 ${step.points.join(',')}: 失敗（${reason}）`);
@@ -2607,7 +2607,7 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
 
   // 明示された旧文が残ったままなら、段が正常に出力されても未反映とする。
   const count = (text, old) => text.split(old).length - 1;
-  const swap = /(?:「([^」\r\n]+)」|『([^』\r\n]+)』)を[\s、，,]*(?:(?:「([^」\r\n]+)」|『([^』\r\n]+)』)(?:という内容)?に(?:直|変更|修正|訂正|置き換|書き換|差し替|改め)|(?:削除|消し|取り除))/g;
+  const swap = /(?:「([^」\r\n]+)」|『([^』\r\n]+)』)を[\s、，,]*(?:(?:「([^」\r\n]+)」|『([^』\r\n]+)』)(?:という内容)?に\s*(?:直(?!接)|変更|変え|修正|訂正|置き換|置換|書き換|書換|差し替|差替|改め|統一|し[てま]|する)|(?:削除|消し|取り除))/g;
   for (const point of split.points) {
     for (const match of point.text.matchAll(swap)) {
       const old = match[1] || match[2];
