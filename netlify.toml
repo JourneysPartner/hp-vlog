@@ -8,6 +8,12 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# 公開時に Netlify がリンクの /about.html を /about へ書き換える機能（管理画面の Pretty URLs）を止める。
+# canonical・サイトマップは .html の住所なので、書き換えるとリンク先と正規の住所が食い違い、
+# サーチコンソールで /services.html などが「検出 - インデックス未登録」のまま残る（2026-10-27）。
+[build.processing.html]
+  pretty_urls = false
+
 # 管理画面の関数からサーチコンソールの週次レポート（data/search-console/report.md）を読めるようにする
 [functions]
   included_files = ["data/search-console/**"]
