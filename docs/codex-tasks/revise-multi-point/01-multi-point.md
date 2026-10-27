@@ -20,8 +20,9 @@ README の背景を先に読むこと。試験データは `fixtures/`:
 ## R2 指摘ごとの分類と段の組み立て（`scripts/lib/partial-revise.js` に `planRevisionSteps(split, sections)` を追加・export）
 
 - 各指摘を `classifyRevision(point.text)` で分類する（前置きは分類に使わない）。
+  - 例外: `full_regenerate` の理由が `コメントが長く広範囲の修正と判断（120文字以上）` の長さの決まりだけで、`denySuppression` でなく、`RULES` のどのパターンにも当たっていない場合は、段を組むときだけ `{ type: 'factual_correction', scope: 'targeted', sectionHint: extractSectionHint(point.text), reason: '指摘が長い（複数の指摘の 1 つなので全文の最小修正）' }` として扱う。番号付きの 1 点が長いのは具体的に書かれているためで、コメント全体が長く抽象的な場合の全文再生成とは分ける。`classifyRevision` 自体や単独コメントの分類は変えない。
 - 次のどれかなら `{ fallback: true, reason }` を返し、呼び出し側は**今までどおりコメント全体を 1 つとして**処理する:
-  - どれかの指摘が `full_regenerate`（`denySuppression` を含む）
+  - どれかの指摘が、上記の長さだけの例外を除く `full_regenerate`（`denySuppression` を含む）。`RULES` の全文再生成パターン（「全体的に書き直し」など）に当たる場合は今までどおり `fallback`。
 - 段（step）の作り方:
   - `title_only` の指摘 → `title` の段（全部まとめて 1 つ）
   - `add_section` の指摘 → 1 つずつ `add_section` の段
@@ -120,17 +121,19 @@ git reset -q
 
 1. `splitRevisionPoints`: `644-comment-1.txt` → 前置き 1 行・指摘 3 つ（no 1〜3、本文が各指摘の文と一致）。`①②` の 2 点、`（1）（2）`、全角 `１．２．` も分かれる。`1.` `3.`（飛び番）・指摘 1 つ・箇条書き `・` だけ・前置きだけ、は分けない。
 2. `planRevisionSteps`（`644-before.md` の本文の章で）: 1 点目 → `section`（見出し「贈与税の非課税制度 一覧比較」）、3 点目 → `section`（R3 により h3「配偶者への居住用不動産の贈与（配偶者控除）」を含む h2「各制度の詳細と判断ポイント」）、2 点目 → `targeted`。段の順は section（一覧比較）→ section（各制度の詳細）→ targeted。各段の instruction にほかの段の指摘の文が含まれない。
-3. どれかの指摘が `full_regenerate`（例 `2. 全体的に書き直してください`）→ `fallback: true`。
+3. どれかの指摘が `full_regenerate`（例 `2. 全体的に書き直してください`）→ `fallback: true`。加えて、120 字を超える具体的な置換の指摘が長さの決まりだけで `full_regenerate` になる場合、複数指摘の計画内では R2 の例外により `targeted` になることを確かめる。単独コメントの既存分類は変えない。
 4. `removeNewInternalNotes`: `644-after-run-40484642578.md` の本文を `after`、`644-before.md` の本文を `before` として → 108 行目の「※差し戻しコメントの2・3は…」の行が取り除かれ、`contaminated: false`。`※` で始まらない「差し戻しコメントの2は対象外のため変更していません。」が段落の中に新しく現れる → `contaminated: true`。試験用に `before` に足した「税務署からの指摘で修正申告をしました。」の行（`after` にもそのまま残る）・`after` に新しく足された「税務調査で指摘を受けたら修正申告を検討します。」の行は取り除かない・混入にしない。
-5. R5 の通し（R5 の関数を `module.exports` に足し、偽の LLM で呼ぶ。`test-generation-review-fixes.js` の F1 のように `fetch` を差し替える方法に合わせる。出典ブロックが要るなら偽のものを渡せるようにしてよい）: `644-before.md`＋`644-comment-1.txt` → LLM の呼び出しが 3 回（一覧比較の章・各制度の詳細の章・全文）で、各呼び出しの入力にその段の指摘の文だけが入る。偽の LLM が指定どおり直した出力を返すと、3 つの旧の文がすべて消え、`review_comment` は空・`review_status: draft`。
+5. R5 の通し（R5 の関数を `module.exports` に足し、偽の LLM で呼ぶ。`test-generation-review-fixes.js` の F1 のように `fetch` を差し替える方法に合わせる。出典ブロックが要るなら偽のものを渡せるようにしてよい）: `644-before.md`＋`644-comment-1.txt` → 本文の LLM の呼び出しが 3 回（一覧比較の章・各制度の詳細の章・全文）で、本文の各呼び出しの入力にその段の指摘の文だけが入る。タイトル・要約の見直しは `maybeUpdateTitleForTargeted` の今の条件で別途呼び出し、その応答では本文を変えないことを確かめる。偽の LLM が指定どおり直した出力を返すと、3 つの旧の文がすべて消え、`review_comment` は空・`review_status: draft`。
 6. 5 で、偽の LLM が 1 段目の出力の末尾に「※差し戻しコメントの2・3は…変更していません。」を足して返す → その行は最終の本文に無い。
-7. 5 で、偽の LLM が全文の段（2・3 点目）で元の本文をそのまま返す → 1 点目は反映され、`review_status: needs_revision`、`review_comment` に `【自動反映は一部のみ】` と「2 点目」「3 点目」が入る。
+7. 5 で、偽の LLM が 3 点目の章の段と 2 点目の全文の段で、それぞれその段の入力をそのまま返す → 1 点目は反映され、`review_status: needs_revision`、`review_comment` に `【自動反映は一部のみ】` と「2 点目」「3 点目」が入る。
 8. `ENABLE_MULTI_POINT_REVISE=false` → 5 と同じ入力で、今までどおり 1 回の分類（`table_fix`）・1 回の LLM 呼び出しになる。
 9. 指摘 1 つの差し戻しで、`regenerateTargeted` の出力に `※差し戻しコメントは…変更していません。` の行が新しく入る → その行は取り除かれ、本文は採用される。段落の中に混入 → 元の本文のまま `【自動再生成の警告】`。
 10. ワークフロー: `regenerate-draft.yml` の上書きの行が `data/` を含み、`git checkout HEAD -- data/fact-check/` がその後・`git reset -q` の前にある。`ENABLE_MULTI_POINT_REVISE: ${{ vars.ENABLE_MULTI_POINT_REVISE }}` が「Regenerate draft」の env にある。`run:` の中に `${{` が無い（既存の試験の決まり）。
 11. R7 の実地（一時フォルダに git の枝を作る試験。シェルの `git` が使えない環境なら、この試験は理由を出して飛ばしてよい）: 「main」の枝に `scripts/x.js`（`require('../data/new.json')`）と `data/new.json`・`data/fact-check/a.json`（中身 main）を置き、「draft」の枝は古い main から作って `data/fact-check/a.json`（中身 draft）を足す → draft を取り出して R7 の手順（`origin/main` の代わりに `main`）を流すと、`node scripts/x.js` が動き、`data/fact-check/a.json` は draft の中身、`git diff --cached` は空。
 
 既存の試験（全部通すこと）: `test-revision-classifier.js`・`test-partial-revise.js`・`test-freshness-refresh.js`・`test-generation-review-fixes.js`・`test-generation-review-fixes-2.js`・`test-workflow-change-detection.js`・`test-env-resolution.js`・`test-openai-models.js`。既存の試験の期待を変える必要が出たら、変える前に最終報告に【要判断】で理由を書く（R3 の「節」・h3 で期待が変わるものは、変更してよいが一覧にする）。
+
+ただし `test-workflow-change-detection.js` は作業ツリーの未コミット変更と比べる作りのため、隔離の中では省略してよい。試験の期待は変えず、コミット後に Claude が隔離の外で実行する。
 
 ## 変更してはいけないもの
 
