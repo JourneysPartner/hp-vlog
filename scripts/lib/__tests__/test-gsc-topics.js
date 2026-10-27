@@ -9,8 +9,7 @@ const U = require(path.join(ROOT, 'scripts/update-gsc-topics'));
 const G = require(path.join(ROOT, 'scripts/lib/gsc-topics'));
 const SuggestUpdate = require(path.join(ROOT, 'scripts/update-suggest-topics'));
 const { enforceDemandKindDailyLimit } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
-const { readAllPosts } = require(path.join(ROOT, 'scripts/lib/site-corpus'));
-const { readPublishedPostContents } = require(path.join(ROOT, 'scripts/report-search-console'));
+const { locateQuery } = require(path.join(ROOT, 'scripts/lib/query-placement'));
 
 let passed = 0;
 let failed = 0;
@@ -117,21 +116,35 @@ function qp(query, page, impressions, position) {
   assert(U.resolveMergedSlug('old', [post('old', { review_status: 'merged', merged_into: 'middle' }), post('middle', { review_status: 'merged', merged_into: 'old' })]) === 'middle', '統合循環で停止する');
   const rejected = U.extractGscCandidates({ queries: [{ query: '却下語', impressions: 20 }], queryPages: [qp('却下語', 'https://mori-zeirishi.net/services/bookkeeping/', 20, 35)], existingTopics: [{ phrases: ['却下語'], status: 'rejected' }] });
   assert(rejected.length === 0, '却下候補の語を再提案しない');
-  const realInputs = U.loadInputs();
+  const fixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/codex-tasks/weekly-signal-fixes/gsc-candidates-20260928.json'), 'utf8'));
   const documented = new Set(['youtube 源泉徴収', 'レジ 現金過不足', '経費 ガソリン代', '確定申告 帳簿', '人工代', '簡易インボイス', 'インボイス レジ']);
+  assert(fixture.queries.length === 7
+    && [...documented].every(query => fixture.queries.some(row => row.query === query)),
+  '固定データは指示書掲載の7語を過不足なく含む');
+  const invoiceContent = fixture.postContents['newseg-retail_store-retail-invoice-guide'];
+  assert(locateQuery('簡易インボイス', invoiceContent) === 'title'
+    && locateQuery('簡易インボイス', invoiceContent, { synonyms: [] }) !== 'title',
+  '9/28 の記事では簡易インボイスは同義語で題名に当たる');
   const realCandidates = U.extractGscCandidates({
-    queries: realInputs.queries.filter(row => documented.has(row.query)),
-    queryPages: realInputs.queryPages,
-    posts: readAllPosts(),
-    postContents: readPublishedPostContents(),
+    queries: fixture.queries,
+    queryPages: fixture.queryPages,
+    posts: fixture.posts,
+    postContents: new Map(Object.entries(fixture.postContents)),
     existingTopics: [],
     denylist: { entries: [] },
   });
   assert(realCandidates.length === 1 && realCandidates[0].phrases[0] === 'インボイス レジ' && realCandidates[0].position === 30.1,
     '20260928 の指示書掲載7語はインボイス レジだけが残る');
+  assert(realCandidates.length === 1
+    && realCandidates[0].page === 'https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/',
+  '残る候補のページは小売店向けインボイスの記事');
   const rejectedFixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/codex-tasks/weekly-signal-fixes/rejected-topics-20260928.json'), 'utf8'));
   const actualTopics = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/gsc-topics.json'), 'utf8'));
-  assert(actualTopics.version === 1 && actualTopics.updated_at === '2026-09-28T11:39:44.485Z'
+  // 週次取り込みで候補が増えると updated_at が進むのは正しい動き。
+  // 確かめたいのは、却下5件が消えず内容も変わらないこと。
+  const updatedAt = Date.parse(actualTopics.updated_at);
+  assert(actualTopics.version === 1 && Number.isFinite(updatedAt)
+    && updatedAt >= Date.parse('2026-09-28T11:39:44.485Z')
     && rejectedFixture.length === 5 && rejectedFixture.every(expected => JSON.stringify(actualTopics.topics.find(item => item.slug === expected.slug)) === JSON.stringify(expected)),
   '今週の却下5件を既存メタデータを変えずに記録する');
 
