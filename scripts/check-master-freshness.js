@@ -360,12 +360,12 @@ function buildNotifySummary(result) {
   const revisedSources = new Map();
   for (const item of f.hashMismatch) {
     const sid = item.source_document_id;
-    if (!revisedSources.has(sid)) revisedSources.set(sid, { label: item.label, count: 0 });
+    if (!revisedSources.has(sid)) revisedSources.set(sid, { label: item.label || sid, count: 0 });
     revisedSources.get(sid).count++;
   }
 
   if (f.hashMismatch.length > 0) {
-    lines.push(`出典の改訂: ${f.hashMismatch.length} 件（出典 ${revisedSources.size} 枚）`);
+    lines.push(`出典の改訂: 出典 ${revisedSources.size} 枚（影響する記録 ${f.hashMismatch.length} 件）`);
   }
   for (const [key, label] of [
     ['coverageGap', '対象期間のレコード無し'],
@@ -379,6 +379,7 @@ function buildNotifySummary(result) {
     if (f[key].length > 0) lines.push(`${label}: ${f[key].length} 件`);
   }
   if (lines.length === 0) return '';
+  lines.unshift(`基準日: ${result.asOf}`);
 
   if (revisedSources.size > 0) {
     const sources = [...revisedSources.values()]
@@ -390,7 +391,7 @@ function buildNotifySummary(result) {
   if (f.coverageGap.length > 0) {
     lines.push('', '■ 対象期間のレコード無し');
     for (const item of f.coverageGap.slice(0, 10)) {
-      lines.push(`・${item.label}: ${item.period}（${item.state}）`);
+      lines.push(`・${item.label}: ${item.period} — ${item.state}`);
     }
     if (f.coverageGap.length > 10) lines.push(`・ほか ${f.coverageGap.length - 10} 件`);
   }
@@ -551,6 +552,7 @@ function main() {
   const ghOut = process.env.GITHUB_OUTPUT;
   if (ghOut) {
     const report = buildReport(result);
+    const notifySummary = buildNotifySummary(result);
     fs.appendFileSync(ghOut, `needs_attention=${needsAttention}\n`);
     fs.appendFileSync(ghOut, `hash_mismatch=${f.hashMismatch.length}\n`);
     fs.appendFileSync(ghOut, `coverage_gap=${f.coverageGap.length}\n`);
@@ -564,7 +566,7 @@ function main() {
       );
     }
     fs.appendFileSync(ghOut, `report<<REPORT_EOF\n${report}\nREPORT_EOF\n`);
-    fs.appendFileSync(ghOut, `notify_summary<<NOTIFY_EOF\n${buildNotifySummary(result)}\nNOTIFY_EOF\n`);
+    fs.appendFileSync(ghOut, `notify_summary<<NOTIFY_EOF\n${notifySummary}\nNOTIFY_EOF\n`);
   }
 
   // 引数なしの --gate は互換性のため従来どおり全レコードを一括判定する。

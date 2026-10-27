@@ -309,7 +309,7 @@ console.log('\n=== Test 7: 架空データでの出典照合 ===');
 // ── 8. 通知用の要約 ────────────────────────────────────────────
 console.log('\n=== Test 8: 通知用の要約 ===');
 {
-  const result = (findings = {}) => ({ findings: {
+  const result = (findings = {}) => ({ asOf: '2026-10-27', findings: {
     hashMismatch: [], coverageGap: [], coverageUpcoming: [], sourceMissing: [],
     sourceUnknown: [], hashUntracked: [], blocked: [], notApproved: [],
     ...findings,
@@ -325,27 +325,32 @@ console.log('\n=== Test 8: 通知用の要約 ===');
   });
   const summary = buildNotifySummary(sample);
   assert(summary.split('\n\n')[0] === [
-    '出典の改訂: 5 件（出典 3 枚）', '対象期間のレコード無し: 1 件',
+    '基準日: 2026-10-27', '出典の改訂: 出典 3 枚（影響する記録 5 件）', '対象期間のレコード無し: 1 件',
     '次の期間が未登録（予告）: 1 件', '出典が取得できない: 1 件',
     '台帳に無い出典: 1 件', 'source_hash 未記録: 1 件',
     '確認待ち(blocked): 1 件', '未承認: 2 件',
-  ].join('\n'), '8種類の件数が指定の順番と文面で出る');
+  ].join('\n'), '基準日と8種類の件数が指定の順番と文面で出る');
   assert(summary.split('\n\n')[1] === '■ 改訂された出典\n・出典B（3 件）\n・出典A（1 件）\n・出典C（1 件）',
     '同じ出典をまとめ、件数の降順・同数はラベルの順に並べる');
-  assert(summary.split('\n\n')[2] === '■ 対象期間のレコード無し\n・期間の出典: 2026年（blocked のみ）',
+  assert(summary.split('\n\n')[2] === '■ 対象期間のレコード無し\n・期間の出典: 2026年 — blocked のみ',
     '対象期間の内訳にラベル・期間・状態を出す');
   assert(summary.split('\n\n')[3] === '■ 出典が取得できない\n・取得できない出典',
     '取得できない出典の内訳を最後に出す');
 
   const single = buildNotifySummary(result({ hashMismatch: revised('A', '出典A') }));
-  assert(single === '出典の改訂: 1 件（出典 1 枚）\n\n■ 改訂された出典\n・出典A（1 件）',
+  assert(single === '基準日: 2026-10-27\n出典の改訂: 出典 1 枚（影響する記録 1 件）\n\n■ 改訂された出典\n・出典A（1 件）',
     '0件の件数行や内訳の見出しは出さない');
   assert(buildNotifySummary(result()) === '', 'すべて0件なら空文字を返す');
   const sameLabel = buildNotifySummary(result({
     hashMismatch: [...revised('A', '同じラベル'), ...revised('B', '同じラベル')],
   }));
-  assert(sameLabel.startsWith('出典の改訂: 2 件（出典 2 枚）'),
+  assert(sameLabel.startsWith('基準日: 2026-10-27\n出典の改訂: 出典 2 枚（影響する記録 2 件）'),
     '同じラベルでも source_document_id が異なれば別の出典として数える');
+  const noLabel = buildNotifySummary(result({
+    hashMismatch: [...revised('TA-B', undefined), ...revised('TA-A', undefined)],
+  }));
+  assert(noLabel === '基準日: 2026-10-27\n出典の改訂: 出典 2 枚（影響する記録 2 件）\n\n■ 改訂された出典\n・TA-A（1 件）\n・TA-B（1 件）',
+    'ラベルの無い出典は source_document_id で表示・並べ替えできる');
 
   const manySources = Array.from({ length: 18 }, (_, i) => revised(`S${i}`, `出典${String(i).padStart(2, '0')}`)).flat();
   const capped = buildNotifySummary(result({ hashMismatch: manySources }));
@@ -379,9 +384,11 @@ console.log('\n=== Test 8: 通知用の要約 ===');
 
   const real = check('2026-10-27');
   const realSummary = buildNotifySummary(real);
-  assert(realSummary.length <= 1500 && /^出典の改訂: /m.test(realSummary),
-    '実データにも出典の改訂行があり、1500文字以内');
-  console.log(`  - 参考: ${realSummary.split('\n')[0]} / ${realSummary.length} 文字`);
+  assert(realSummary.length <= 1500
+    && (real.findings.hashMismatch.length === 0 || /^出典の改訂: /m.test(realSummary)),
+  '実データは改訂0件または改訂行があり、1500文字以内');
+  console.log(`  - 参考: 出典の改訂: 出典 ${new Set(real.findings.hashMismatch.map(item => item.source_document_id)).size} 枚`
+    + `（影響する記録 ${real.findings.hashMismatch.length} 件） / ${realSummary.length} 文字`);
 
   // コマンド全体で既存の出力順と全文を保ち、要約だけを末尾に追加する。
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'master-notify-output-'));

@@ -46,6 +46,7 @@ on:
       - 'data/gsc-topics.json'
       - 'data/query-synonyms.json'
       - 'docs/codex-tasks/weekly-signal-fixes/*.json'
+      - '.github/workflows/check-tax-simulator-masters.yml'
 
 permissions:
   contents: read
@@ -116,14 +117,28 @@ jobs:
           gh pr comment "${PR_NUMBER}" --body-file /tmp/comment.md
 
       - name: Notify
-        if: ${{ !cancelled() && github.event_name != 'pull_request' && steps.check.outputs.needs_attention != '' && steps.check.outputs.needs_attention != '0' }}
+        if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.check.outputs.needs_attention != '' && steps.check.outputs.needs_attention != '0' }}
         env:
+          INPUT_AS_OF: ${{ github.event.inputs.as_of }}
           NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
           NOTIFY_SUMMARY: ${{ steps.check.outputs.notify_summary }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          node scripts/notify.js --event master_freshness --title "税シミュレーターのマスター鮮度チェック" --summary "$NOTIFY_SUMMARY" --pr-url "$RUN_URL" || echo "::warning::通知に失敗しました（処理は継続）"
+          if [ -n "$INPUT_AS_OF" ]; then
+            echo "::notice::基準日を指定した試行のため通知しません（基準日 ${INPUT_AS_OF}）"
+            exit 0
+          fi
+          if [ -z "$NETLIFY_NOTIFY_URL" ]; then
+            echo "::warning::通知先（vars.NETLIFY_NOTIFY_URL）が未設定のため通知できません"
+            exit 0
+          fi
+          NOTIFY_OUTPUT=$(node scripts/notify.js --event master_freshness --title "税シミュレーターのマスター鮮度チェック" --summary "$NOTIFY_SUMMARY" --pr-url "$RUN_URL" 2>&1) || true
+          printf '%s\n' "$NOTIFY_OUTPUT"
+          if [[ "$NOTIFY_OUTPUT" != *"[notify] 送信完了"* ]]; then
+            echo "::warning::通知の送信を確認できませんでした（上のログを確認）"
+          fi
+          exit 0
 
       - name: Emit job summary
         if: always()
