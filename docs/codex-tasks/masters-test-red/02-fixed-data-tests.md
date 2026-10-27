@@ -63,7 +63,7 @@
 - `queryPages`: `data/search-console/20260928/query-page.json` の `rows` から、`normalizeQuery(row.query)`（`scripts/lib/target-query.js`）が 7 語のどれかの `normalizeQuery` と等しい行を**全部そのまま**写す（最上位だけに絞らない。`bestRankedPage` の選び方も試験に残すため）。
 - `posts`: `queryPages` の各行の記事 URL（`/blog/<slug>/`）の slug と、その `merged_into` を最後までたどった slug のすべてについて、`readAllPosts()` の項目から `slug`・`review_status`・`merged_into`・`target_query` だけを写す。
 - `postContents`: `posts` の slug のうち `readPublishedPostContents()` にあるものについて、`{ title, headings, body }` をそのまま写す（slug をキーにしたオブジェクト）。
-- 記事は、このブランチの出発点（main = 98a4cdd1）の `content/posts` から写す。
+- 記事は、2026-09-28 のコミット `fd722c03`（weekly-signal-fixes 02 の実装コミット）の `content/posts` から写す。（当初は main = 98a4cdd1 から写す指示だったが、受け入れ確認で改めた。98a4cdd1 では小売インボイス記事の題名が「簡易インボイスとは？…」に変わっており、README の表の「所在 none → 同義語で title」を固定データで再現できないため。）
 
 試験の変更:
 

@@ -135,11 +135,44 @@ console.log('\n=== Test 5: 予告の発火条件 ===');
 // 国税庁が出典を改訂してハッシュが食い違うのは、人がマスターを見直す合図。
 // コードの試験では改訂件数を合否に数えない。別出典のハッシュを流用しない規則は
 // 試験7の架空データで確かめ、ここではマスター自身の形を確認する。
+// 別出典の記録へのハッシュの書き写しは、マスターどうしの比較で確かめる。
 console.log('\n=== Test 6: 実データでの回帰確認 ===');
 {
   const { check } = require(path.join(__dirname, '..', '..', 'check-master-freshness.js'));
   const ntaDir = process.env.NTA_SOURCES_DIR
     || path.join(__dirname, '..', '..', '..', 'data', 'nta-sources');
+
+  const mastersDir = process.env.MASTERS_DIR
+    || path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator', 'masters');
+  const registry = JSON.parse(fs.readFileSync(path.join(mastersDir, 'sources', 'source-registry.json'), 'utf8'));
+  const examined = [];
+  const copied = [];
+  const inspectFiles = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        inspectFiles(file);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const header = data._extraction_source;
+        if (!header || header.taxanswer_id == null || !header.html_hash) continue;
+        for (const { record } of collectRecords(data, file, [], null)) {
+          const source = (registry.sources || {})[record.source_document_id];
+          if (!source || source.kind !== 'taxanswer'
+            || String(source.taxanswer_id) === String(header.taxanswer_id)
+            || !Object.prototype.hasOwnProperty.call(record, 'source_hash')) continue;
+          examined.push(record.record_id);
+          if (record.source_hash === header.html_hash) copied.push(record.record_id);
+        }
+      }
+    }
+  };
+  inspectFiles(path.join(mastersDir, 'data'));
+  assert(examined.length > 0, `別の出典を引き自分の source_hash を持つ記録を調べた（調べた記録 ${examined.length} 件）`);
+  assert(copied.length === 0,
+    `別の出典を引く記録の source_hash に冒頭のハッシュを書き写していない（調べた記録 ${examined.length} 件）`
+    + (copied.length ? ` — ${copied.join(', ')}` : ''));
+  console.log(`  - 調べた record_id: ${examined.join(', ')}`);
 
   if (!fs.existsSync(ntaDir)) {
     console.log(`  - 国税庁ソースDBが見つからないため省略（${ntaDir}）`);
@@ -231,7 +264,15 @@ console.log('\n=== Test 7: 架空データでの出典照合 ===');
         '--as-of', '2026-08-23', '--json',
       ], { env, encoding: 'utf8' });
       if (result.error) throw result.error;
-      return { status: result.status, findings: JSON.parse(result.stdout).findings };
+      let output;
+      try {
+        output = JSON.parse(result.stdout);
+      } catch (error) {
+        const firstErrorLine = (result.stderr || '').split(/\r?\n/)[0].trim();
+        const detail = firstErrorLine || `終了コード ${result.status}`;
+        throw new Error(`子プロセスの標準出力を JSON として読めません（${detail}）: ${error.message}`);
+      }
+      return { status: result.status, findings: output.findings };
     };
     const result = run();
     const f = result.findings;
