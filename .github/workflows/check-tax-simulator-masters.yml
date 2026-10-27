@@ -33,6 +33,7 @@ on:
       - 'scripts/lib/__tests__/**'
       - 'package.json'
       - 'scripts/check-master-freshness.js'
+      - 'scripts/run-test-files.js'
       - 'scripts/validate-masters.js'
       - 'scripts/approve-records.js'
       - 'scripts/fetch-kenpo-rates.js'

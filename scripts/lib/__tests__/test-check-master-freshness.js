@@ -14,6 +14,10 @@
  */
 
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
 const {
   collectRecords,
   coversPeriod,
@@ -128,15 +132,47 @@ console.log('\n=== Test 5: 予告の発火条件 ===');
 }
 
 // ── 6. 実データに対する回帰確認 ────────────────────────────────
-// 上の単体テストは collectRecords までしか見ておらず、
-// 「ファイル冒頭のhashを別出典のレコードに流用しない」規則は check() の内部にある。
-// 実際のマスターを通して、その規則が効いていることを確かめる。
+// 国税庁が出典を改訂してハッシュが食い違うのは、人がマスターを見直す合図。
+// コードの試験では改訂件数を合否に数えない。別出典のハッシュを流用しない規則は
+// 試験7の架空データで確かめ、ここではマスター自身の形を確認する。
+// 別出典の記録へのハッシュの書き写しは、マスターどうしの比較で確かめる。
 console.log('\n=== Test 6: 実データでの回帰確認 ===');
 {
-  const fs = require('fs');
   const { check } = require(path.join(__dirname, '..', '..', 'check-master-freshness.js'));
   const ntaDir = process.env.NTA_SOURCES_DIR
     || path.join(__dirname, '..', '..', '..', 'data', 'nta-sources');
+
+  const mastersDir = process.env.MASTERS_DIR
+    || path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator', 'masters');
+  const registry = JSON.parse(fs.readFileSync(path.join(mastersDir, 'sources', 'source-registry.json'), 'utf8'));
+  const examined = [];
+  const copied = [];
+  const inspectFiles = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        inspectFiles(file);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const header = data._extraction_source;
+        if (!header || header.taxanswer_id == null || !header.html_hash) continue;
+        for (const { record } of collectRecords(data, file, [], null)) {
+          const source = (registry.sources || {})[record.source_document_id];
+          if (!source || source.kind !== 'taxanswer'
+            || String(source.taxanswer_id) === String(header.taxanswer_id)
+            || !Object.prototype.hasOwnProperty.call(record, 'source_hash')) continue;
+          examined.push(record.record_id);
+          if (record.source_hash === header.html_hash) copied.push(record.record_id);
+        }
+      }
+    }
+  };
+  inspectFiles(path.join(mastersDir, 'data'));
+  assert(examined.length > 0, `別の出典を引き自分の source_hash を持つ記録を調べた（調べた記録 ${examined.length} 件）`);
+  assert(copied.length === 0,
+    `別の出典を引く記録の source_hash に冒頭のハッシュを書き写していない（調べた記録 ${examined.length} 件）`
+    + (copied.length ? ` — ${copied.join(', ')}` : ''));
+  console.log(`  - 調べた record_id: ${examined.join(', ')}`);
 
   if (!fs.existsSync(ntaDir)) {
     console.log(`  - 国税庁ソースDBが見つからないため省略（${ntaDir}）`);
@@ -144,9 +180,7 @@ console.log('\n=== Test 6: 実データでの回帰確認 ===');
     const r = check('2026-08-23');
     const f = r.findings;
 
-    assert(f.hashMismatch.length === 0,
-      `出典ハッシュの不一致が無い（実: ${f.hashMismatch.length} 件`
-      + `${f.hashMismatch.length ? ' — ' + f.hashMismatch.map(x => x.record_id).join(', ') : ''}）`);
+    console.log(`  - 参考: 実データの出典の改訂 ${f.hashMismatch.length} 件（試験の対象外。鮮度チェックが PR のコメントと Chatwork で知らせる）`);
 
     assert(f.sourceUnknown.length === 0,
       `台帳に無い source_document_id が無い（実: ${f.sourceUnknown.length} 件`
@@ -164,6 +198,108 @@ console.log('\n=== Test 6: 実データでの回帰確認 ===');
     assert(noReason.length === 0,
       `blocked に理由が書かれている（理由なし: ${noReason.length} 件`
       + `${noReason.length ? ' — ' + noReason.map(x => x.record_id).join(', ') : ''}）`);
+  }
+}
+
+// ── 7. 架空データで出典の照合とコマンド全体を確認 ─────────────────
+console.log('\n=== Test 7: 架空データでの出典照合 ===');
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'master-freshness-'));
+  try {
+    const mastersDir = path.join(tmp, 'masters');
+    const ntaDir = path.join(tmp, 'nta-sources');
+    const h = name => crypto.createHash('sha256').update(name).digest('hex');
+    const writeJson = (file, data) => {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, JSON.stringify(data), 'utf8');
+    };
+    writeJson(path.join(mastersDir, 'simulator-dependencies.json'), {
+      simulators: Object.fromEntries(['hojinnari', 'shohizei', 'sozoku', 'yakuin_hoshu']
+        .map(name => [name, { required: [], optional: [] }])),
+    });
+    const source = (category, taxanswerId) => ({
+      kind: 'taxanswer', coverage_basis: 'none', category, taxanswer_id: taxanswerId,
+      label: `架空の出典 ${taxanswerId}`, url: `https://example.invalid/${taxanswerId}`,
+    });
+    writeJson(path.join(mastersDir, 'sources', 'source-registry.json'), {
+      sources: {
+        'TA-A': source('sozoku', '9001'),
+        'TA-B': source('sozoku', '9002'),
+        'TA-C': source('shotoku', '9003'),
+      },
+    });
+    writeJson(path.join(ntaDir, 'taxanswer/sozoku/9001.json'), {
+      html_hash: h('A-new'), law_version: '令和8年4月1日現在法令等',
+    });
+    writeJson(path.join(ntaDir, 'taxanswer/sozoku/9002.json'), { html_hash: h('B-cur') });
+    const sourceC = path.join(ntaDir, 'taxanswer/shotoku/9003.json');
+    writeJson(sourceC, { html_hash: h('C-new') });
+
+    const record = (id, sid, hash) => ({
+      record_id: id, source_document_id: sid, data_review_status: 'approved',
+      ...(hash ? { source_hash: hash } : {}),
+    });
+    writeJson(path.join(mastersDir, 'data/file-a.json'), {
+      _extraction_source: { taxanswer_id: '9001', html_hash: h('A-old') },
+      records: [
+        record('INHERIT-CHANGED', 'TA-A'),
+        record('FOREIGN-NO-HASH', 'TA-B'),
+        record('OWN-STALE', 'TA-C', h('C-old')),
+      ],
+    });
+    writeJson(path.join(mastersDir, 'data/file-b.json'), {
+      _extraction_source: { taxanswer_id: '9002', html_hash: h('B-cur') },
+      records: [
+        record('INHERIT-CURRENT', 'TA-B'),
+        record('OWN-CURRENT', 'TA-A', h('A-new')),
+        record('OWN-OVERRIDES-HEADER', 'TA-B', h('B-old')),
+      ],
+    });
+
+    const env = { ...process.env, MASTERS_DIR: mastersDir, NTA_SOURCES_DIR: ntaDir };
+    delete env.GITHUB_OUTPUT;
+    const run = () => {
+      const result = spawnSync(process.execPath, [
+        path.join(__dirname, '..', '..', 'check-master-freshness.js'),
+        '--as-of', '2026-08-23', '--json',
+      ], { env, encoding: 'utf8' });
+      if (result.error) throw result.error;
+      let output;
+      try {
+        output = JSON.parse(result.stdout);
+      } catch (error) {
+        const firstErrorLine = (result.stderr || '').split(/\r?\n/)[0].trim();
+        const detail = firstErrorLine || `終了コード ${result.status}`;
+        throw new Error(`子プロセスの標準出力を JSON として読めません（${detail}）: ${error.message}`);
+      }
+      return { status: result.status, findings: output.findings };
+    };
+    const result = run();
+    const f = result.findings;
+    const ids = entries => entries.map(entry => entry.record_id).sort();
+    assert(JSON.stringify(ids(f.hashMismatch)) === JSON.stringify([
+      'INHERIT-CHANGED', 'OWN-OVERRIDES-HEADER', 'OWN-STALE',
+    ]), '改訂・自分の控えの優先による不一致が過不足なく3件');
+    assert(JSON.stringify(ids(f.hashUntracked)) === JSON.stringify(['FOREIGN-NO-HASH']),
+      '別出典の冒頭ハッシュを流用せず未記録が過不足なく1件');
+    const changed = f.hashMismatch.find(entry => entry.record_id === 'INHERIT-CHANGED');
+    assert(changed && changed.recorded_hash === h('A-old').slice(0, 12), '記録した旧ハッシュの先頭12文字を報告する');
+    assert(changed && changed.current_hash === h('A-new').slice(0, 12), '出典の新ハッシュの先頭12文字を報告する');
+    assert(changed && changed.law_version === '令和8年4月1日現在法令等', '出典の法令基準日を報告する');
+    assert(f.sourceMissing.length === 0, '架空データの出典ファイルはすべて存在する');
+    assert(f.sourceUnknown.length === 0, '架空データの出典はすべて台帳に存在する');
+    assert(result.status === 0, '出典の改訂だけでは終了コードを失敗にしない');
+
+    fs.unlinkSync(sourceC);
+    const missing = run();
+    assert(missing.status === 1, '出典ファイルが欠けると終了コード1');
+    assert(missing.findings.sourceMissing.length === 1
+      && missing.findings.sourceMissing[0].source_document_id === 'TA-C',
+    '欠落した出典TA-Cだけを1件報告する');
+  } catch (error) {
+    assert(false, `試験7の子プロセス実行: ${error.message.split(/\r?\n/)[0]}`);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
 }
 
