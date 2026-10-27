@@ -149,15 +149,10 @@ async function main() {
     assert.equal(clean.body, next);
     assert.equal(clean.contaminated, false);
   });
-  await test('5 #644 の通し: 資料は1回、本文LLMは3回、タイトル更新でも本文を保持', async () => {
-    let bodyBeforeTitle;
+  await test('5 #644 の通し: 資料は1回、本文LLMは3回、タイトル・要約を保持', async () => {
     reply = user => {
-      if (user.includes('JSON形式で {"title"')) return JSON.stringify({
-        title: '修正後の記事タイトル', summary: '修正後の要約です。', body: '採用してはいけない本文', content: '採用してはいけない内容',
-      });
-      const revised = fixtureReply(user);
-      if (user.includes('【記事本文（現状）—')) bodyBeforeTitle = revised;
-      return revised;
+      assert(!user.includes('JSON形式で {"title"'), 'title の段がない場合は本文だけを修正する');
+      return fixtureReply(user);
     };
     let materials = 0;
     const output = await G.regenerateMultiPoint(existing, comment, fixturePlan(), {
@@ -167,7 +162,7 @@ async function main() {
     const bodyRequests = requests.filter(request => request.user.includes('【対象セクション（現状）】') || request.user.includes('【記事本文（現状）—'));
     const titleRequests = requests.filter(request => request.user.includes('JSON形式で {"title"'));
     assert.equal(bodyRequests.length, 3);
-    assert(titleRequests.length > 0, '既存条件に従ってタイトル・要約も見直す');
+    assert.equal(titleRequests.length, 0);
     assert.equal(requests.length, bodyRequests.length + titleRequests.length);
     assert(inputBody(bodyRequests[0].user).startsWith('## 贈与税の非課税制度 一覧比較'));
     assert(inputBody(bodyRequests[1].user).startsWith('## 各制度の詳細と判断ポイント'));
@@ -176,9 +171,8 @@ async function main() {
     assert.equal(meta.review_status, 'draft');
     assert.equal(meta.review_comment, '');
     assert.equal(meta.tax_terms, '試験資料');
-    assert.equal(meta.title, '修正後の記事タイトル');
-    assert.equal(meta.summary, '修正後の要約です。');
-    assert.equal(body.trim(), bodyBeforeTitle.trim(), 'タイトル・要約の応答で本文を変えない');
+    assert.equal(meta.title, G.parseFrontmatter(existing).meta.title);
+    assert.equal(meta.summary, G.parseFrontmatter(existing).meta.summary);
     for (const swap of replacements) { assert(!body.includes(swap.old)); assert(body.includes(swap.next)); }
     assert(inputBody(bodyRequests[2].user).includes(replacements[0].next));
     assert(inputBody(bodyRequests[2].user).includes(replacements[2].next));
@@ -231,9 +225,10 @@ async function main() {
   });
   await test('10 ワークフローの data 復元順・env・run の式禁止', () => {
     const workflow = fs.readFileSync(path.join(root, '.github/workflows/regenerate-draft.yml'), 'utf8');
-    const checkout = workflow.indexOf('git checkout origin/main -- scripts/ package.json package-lock.json data/');
-    const restore = workflow.indexOf('git checkout HEAD -- data/fact-check/ 2>/dev/null || true');
+    const checkout = workflow.indexOf('git checkout --no-overlay origin/main -- scripts/ data/');
+    const restore = workflow.indexOf('git checkout --no-overlay HEAD -- data/fact-check/ 2>/dev/null || true');
     assert(checkout > 0 && restore > checkout && restore < workflow.indexOf('git reset -q'));
+    assert(workflow.includes('git checkout origin/main -- package.json package-lock.json'));
     const regen = workflow.split('- name: Regenerate draft')[1].split('\n      - ')[0];
     assert(regen.includes('ENABLE_PARTIAL_REVISE: ${{ vars.ENABLE_PARTIAL_REVISE }}\n          ENABLE_MULTI_POINT_REVISE: ${{ vars.ENABLE_MULTI_POINT_REVISE }}'));
     let runIndent = null;
@@ -254,38 +249,54 @@ async function main() {
     try { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'revise-multi-point-')); }
     catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) return `OS の一時フォルダへ書けない: ${error.code}`; throw error; }
     const gitConfig = path.join(dir, 'empty-global-gitconfig');
-    const git = (...args) => {
-      const result = spawnSync('git', args, { cwd: dir, encoding: 'utf8', env: {
+    let repoDir;
+    const runGit = (args, allowFailure = false) => {
+      const result = spawnSync('git', args, { cwd: repoDir, encoding: 'utf8', env: {
         ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: gitConfig,
         GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid',
         GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid',
       } });
       if (result.error) throw result.error;
-      assert.equal(result.status, 0, `git ${args.join(' ')}: ${result.stderr}`);
+      if (!allowFailure) assert.equal(result.status, 0, `git ${args.join(' ')}: ${result.stderr}`);
       return result.stdout;
     };
+    const git = (...args) => runGit(args);
     const write = (name, value) => {
-      const file = path.join(dir, name);
+      const file = path.join(repoDir, name);
       fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, value);
     };
     try {
       fs.writeFileSync(gitConfig, '');
-      git('init', '-b', 'main');
-      write('old.txt', 'old'); git('add', '.'); git('commit', '-m', 'old');
-      git('branch', 'draft');
-      write('scripts/x.js', "console.log(require('../data/new.json').value);");
-      write('data/new.json', '{"value":"main"}'); write('data/fact-check/a.json', 'main');
-      write('package.json', '{}'); write('package-lock.json', '{}');
-      git('add', '.'); git('commit', '-m', 'main data');
-      git('checkout', 'draft'); write('data/fact-check/a.json', 'draft');
-      git('add', '.'); git('commit', '-m', 'draft record');
-      git('checkout', 'main', '--', 'scripts/', 'package.json', 'package-lock.json', 'data/');
-      git('checkout', 'HEAD', '--', 'data/fact-check/'); git('reset', '-q');
-      const result = spawnSync(process.execPath, ['scripts/x.js'], { cwd: dir, encoding: 'utf8' });
-      if (result.error) throw result.error;
-      assert.equal(result.status, 0, result.stderr); assert.equal(result.stdout.trim(), 'main');
-      assert.equal(fs.readFileSync(path.join(dir, 'data/fact-check/a.json'), 'utf8'), 'draft');
-      assert.equal(git('diff', '--cached'), '');
+      for (const hasRecord of [true, false]) {
+        repoDir = path.join(dir, hasRecord ? 'with-record' : 'without-record');
+        fs.mkdirSync(repoDir);
+        git('init', '-b', 'main');
+        write('old.txt', 'old'); write('data/deleted.json', '{"obsolete":true}');
+        write('content/posts/a.md', 'old');
+        git('add', '.'); git('commit', '-m', 'old'); git('branch', 'draft');
+        write('scripts/x.js', "console.log(require('../data/new.json').value);");
+        fs.unlinkSync(path.join(repoDir, 'data/deleted.json'));
+        write('data/new.json', '{"value":"main"}'); write('data/fact-check/a.json', 'main');
+        write('package.json', '{}'); write('package-lock.json', '{}');
+        git('add', '.'); git('commit', '-m', 'main data');
+        git('checkout', 'draft'); write('content/posts/a.md', 'draft');
+        if (hasRecord) write('data/fact-check/a.json', 'draft');
+        git('add', '.'); git('commit', '-m', 'draft record');
+        git('checkout', '--no-overlay', 'main', '--', 'scripts/', 'data/');
+        git('checkout', 'main', '--', 'package.json', 'package-lock.json');
+        runGit(['checkout', '--no-overlay', 'HEAD', '--', 'data/fact-check/'], true);
+        git('reset', '-q');
+        const result = spawnSync(process.execPath, ['scripts/x.js'], { cwd: repoDir, encoding: 'utf8' });
+        if (result.error) throw result.error;
+        assert.equal(result.status, 0, result.stderr); assert.equal(result.stdout.trim(), 'main');
+        assert.equal(fs.existsSync(path.join(repoDir, 'data/deleted.json')), false, 'main で消えたデータは残さない');
+        if (hasRecord) assert.equal(fs.readFileSync(path.join(repoDir, 'data/fact-check/a.json'), 'utf8'), 'draft');
+        assert.equal(git('diff', '--cached'), '');
+        // ワークフローと同じ記事・対応照合記録だけの add でも main の記録を混入させない。
+        write('content/posts/a.md', 'regenerated'); git('add', 'content/posts/a.md');
+        if (fs.existsSync(path.join(repoDir, 'data/fact-check/a.json'))) git('add', 'data/fact-check/a.json');
+        assert.deepEqual(git('diff', '--cached', '--name-only').trim().split(/\r?\n/), ['content/posts/a.md']);
+      }
     } catch (error) {
       if (['EPERM', 'EACCES'].includes(error.code)) return `一時 git 試験を実行できない: ${error.code === 'EPERM' ? '隔離による EPERM' : error.code}`;
       throw error;
@@ -294,6 +305,131 @@ async function main() {
       assert(resolved.startsWith(tempRoot) && path.basename(resolved).startsWith('revise-multi-point-'));
       fs.rmSync(resolved, { recursive: true, force: true });
     }
+  });
+
+  await test('F1 表の指摘は表のない h3 の親を選ばない', () => {
+    const classification = classifyRevision('表の「相続時精算課税」の行の対象者の欄を「正しい対象者」に直してください。');
+    assert.equal(classification.type, 'table_fix');
+    assert.equal(P.findTargetSectionIndex(sections, classification.sectionHint, classification.type), 3);
+    assert.equal(sections[3].heading, '贈与税の非課税制度 一覧比較');
+    const nestedTable = P.splitSections('## 詳細\n### 対象者\n|項目|内容|\n|---|---|\n|対象|説明|').sections;
+    assert.equal(P.findTargetSectionIndex(nestedTable, '対象者', 'table_fix'), 0);
+  });
+  await test('F2 節税・節約を章指定にせず、本来の節指定は維持', () => {
+    for (const text of ['「小規模企業共済」の節税効果の説明が分かりにくいので直してください',
+      '「iDeCo」の節税メリットを具体的な金額で示してください', '「経費管理」の節約効果を説明してください']) {
+      assert.equal(classifyRevision(text).type, 'factual_correction');
+    }
+    assert.equal(extractSectionHint('小規模企業共済の節税効果'), '');
+    assert.equal(extractSectionHint('経費管理の節約効果'), '');
+    assert.equal(classifyRevision('「確認事項」の節を直してください').type, 'section_only');
+  });
+  await test('F3 本文の太字・箇条書きを保ち、作業の断り書きだけ除去', () => {
+    for (const line of ['**2点目：修正申告の期限が変更されます**', '* 1点目は、申告期限の変更です']) {
+      const notes = P.removeNewInternalNotes('', line);
+      assert.equal(notes.body, line); assert.deepEqual(notes.removed, []); assert.equal(notes.contaminated, false);
+    }
+    const tax = '※税務署からご指摘を受けた場合は修正申告を検討します。';
+    const notes = P.removeNewInternalNotes('', tax);
+    assert.equal(notes.body, tax); assert.deepEqual(notes.removed, []); assert.equal(notes.contaminated, true);
+    for (const line of ['※ほかの指摘は別の段で直すため、ここでは変更していません。',
+      '※その他の箇所は変更していません。', '※変更しました。', '※触れていません。']) {
+      const cleaned = P.removeNewInternalNotes('', line);
+      assert.equal(cleaned.body, ''); assert.deepEqual(cleaned.removed, [line]); assert.equal(cleaned.contaminated, false);
+    }
+    for (const context of ['この段', '別の段', 'ほかの指摘', '他の指摘', 'ほかの箇所', '他の箇所', 'その他の箇所', 'その他の指摘']) {
+      assert.equal(P.removeNewInternalNotes('', `${context}はそのままです。`).contaminated, true);
+    }
+    assert.equal(P.removeNewInternalNotes('', '**この段は修正しました。**').contaminated, true);
+    assert.equal(P.removeNewInternalNotes('', '* ご依頼の内容を変更しました。').contaminated, true);
+  });
+  await test('F4 新文が旧文を含む置換は新文の増加で判定', async () => {
+    const old = '暦年課税の基礎控除は年110万円です', next = `${old}（受贈者1人あたり）`;
+    const source = article(`## 確認事項\n\n${old}。\n\n既存の説明：${next}。`);
+    const text = `1. 「${old}」を「${next}」に直してください\n2. 語尾を丁寧にしてください`;
+    for (const applied of [true, false]) {
+      reply = user => applied ? inputBody(user).replace(old, next) : inputBody(user).replace('既存の説明', '別の説明');
+      const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+      const { meta, body } = G.parseFrontmatter(output);
+      assert.equal(meta.review_status, applied ? 'draft' : 'needs_revision');
+      assert.equal(body.split(next).length - 1, applied ? 2 : 1);
+      if (applied) assert.equal(meta.review_comment, '');
+      else assert(meta.review_comment.includes('1 点目（指定の文が残っている）'));
+    }
+  });
+  await test('F4 追加の指摘を置換と誤認しない', async () => {
+    const old = '贈与税の配偶者控除の要件';
+    const source = article(`## 確認事項\n\n${old}。\n\n## よくある質問\n\n回答です。`);
+    const text = `1. 「${old}」を「よくある質問」に追加してください\n2. 語尾を丁寧にしてください`;
+    reply = user => inputBody(user).replace('回答です。', `回答です。${old}も確認してください。`);
+    const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+    assert.equal(G.parseFrontmatter(output).meta.review_status, 'draft');
+    assert.equal(G.parseFrontmatter(output).body.split(old).length - 1, 2);
+  });
+  await test('F5 前置きの全文書き直し・禁止意図を保持し、長さだけなら継続', () => {
+    const points = '\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください';
+    for (const preface of ['全体的に書き直してください。特に次の点です。', 'このテーマは今後書かないでください']) {
+      assert.equal(P.planRevisionSteps(splitRevisionPoints(preface + points), sections).fallback, true);
+    }
+    assert.equal(P.planRevisionSteps(splitRevisionPoints('読みやすさを確認してください。'.repeat(15) + points), sections).fallback, false);
+    const fixture = fixturePlan();
+    assert(!fixture.steps.some(step => step.kind === 'title'));
+  });
+  await test('F5 前置きのタイトル指示を最後の段で実行し、重複を統合', async () => {
+    const preface = 'タイトルも合わせて自然にしてください。';
+    const text = `${preface}\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください`;
+    const source = article('## 確認事項\n\n文章です。');
+    const plan = G.getMultiPointRevisionPlan(source, text);
+    assert.deepEqual(plan.steps.map(step => step.kind), ['targeted', 'title']);
+    reply = user => user.includes('【記事本文（現状）—') ? inputBody(user).replace('文章です。', '文章でした。')
+      : JSON.stringify({ title: '自然な記事タイトル', summary: '自然な要約です。' });
+    const output = await G.regenerateMultiPoint(source, text, plan, { sourceBlocks: sources });
+    assert.equal(G.parseFrontmatter(output).meta.title, '自然な記事タイトル');
+    assert(G.parseFrontmatter(output).body.includes('文章でした。'));
+    assert.equal(requests.length, 2); assert(requests[1].user.includes(preface));
+    const merged = P.planRevisionSteps(splitRevisionPoints(`${preface}\n1. タイトルだけ修正してください\n2. 誤字を修正してください`), sections);
+    assert.equal(merged.steps.filter(step => step.kind === 'title').length, 1);
+    assert.deepEqual(merged.steps.find(step => step.kind === 'title').points, [1]);
+  });
+  await test('F6 注記を除くと入力と同じ章は未反映として前の本文を保持', async () => {
+    const source = article('## 一つ目の章\n\n一つ目の説明です。\n\n## 二つ目の章\n\n二つ目の説明です。');
+    const text = '1. 「一つ目の章」の章を直してください\n2. 「二つ目の章」の章を直してください';
+    for (const spaces of [false, true]) {
+      reply = (user, no) => no % 2 === 1
+        ? (spaces ? inputBody(user).replace(/\n/g, ' \r\n') : inputBody(user)) + '\n\n※この段の指摘には対応していません。'
+        : inputBody(user).replace('二つ目の説明', '改善した説明');
+      requests.length = 0;
+      const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+      const { meta, body } = G.parseFrontmatter(output);
+      assert.equal(meta.review_status, 'needs_revision');
+      assert(meta.review_comment.includes('1 点目（出力が入力と同じ）'));
+      assert(body.includes('一つ目の説明です。')); assert(body.includes('改善した説明です。'));
+      assert(!body.includes('この段'));
+    }
+  });
+  await test('F6 全文の段も入力と同じなら未反映、F7 失敗理由を保持', async () => {
+    const source = article('## 確認事項\n\n最初の文章です。');
+    const text = '1. 「確認事項」の章を直してください\n2. 誤字を修正してください';
+    for (const contaminated of [false, true]) {
+      requests.length = 0;
+      reply = (user, no) => no === 1 ? inputBody(user).replace('最初の文章', '改善した文章')
+        : inputBody(user) + (contaminated ? '\n差し戻しコメントの内容は修正していません。' : '\n※その他の箇所は変更していません。');
+      const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+      const { meta, body } = G.parseFrontmatter(output);
+      assert.equal(meta.review_status, 'needs_revision'); assert(body.includes('改善した文章'));
+      assert(meta.review_comment.includes(contaminated ? '2 点目（作業の説明を本文に書いたため）' : '2 点目（出力が入力と同じ）'));
+    }
+  });
+  await test('F7 最初と異なる番号の種類は指摘内の列挙として保持', () => {
+    const text = '前置き\n1. 確認事項を直してください\n(1) 期限\n(2) 書類\n2. 語尾を直してください';
+    const result = splitRevisionPoints(text);
+    assert.deepEqual(result.points.map(point => point.no), [1, 2]);
+    assert.equal(result.points[0].text, '1. 確認事項を直してください\n(1) 期限\n(2) 書類');
+    assert.deepEqual(splitRevisionPoints('1. 一つ目\n(1) 補足\n3. 三つ目').points, []);
+  });
+  await test('F7 README は更新案にも R4 が効くことを明示', () => {
+    assert(fs.readFileSync(path.join(root, 'docs/codex-tasks/revise-multi-point/README.md'), 'utf8')
+      .includes('ただし R4（作業の注記の除去・混入の扱い）は更新案にも効く'));
   });
 
   await test('補足: 同じ章の指摘を統合し、追加・全文・タイトルを順序づける', () => {

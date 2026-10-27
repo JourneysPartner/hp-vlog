@@ -48,8 +48,9 @@ jobs:
           # scripts/ が読み込むデータは scripts/ と同じ版でないと動かない（下書きの枝が古いと
           # 後から足されたデータが無く MODULE_NOT_FOUND になる。2026-10-27 run 40483979382）。
           # data/ ごと main で上書きし、記事ごとの照合記録 data/fact-check/ だけ枝のものに戻す。
-          git checkout origin/main -- scripts/ package.json package-lock.json data/
-          git checkout HEAD -- data/fact-check/ 2>/dev/null || true
+          git checkout --no-overlay origin/main -- scripts/ data/
+          git checkout origin/main -- package.json package-lock.json
+          git checkout --no-overlay HEAD -- data/fact-check/ 2>/dev/null || true
           # git checkout <ref> -- <path> は対象を index にもステージする。
           # そのままだと後段の `git commit` が scripts/ ごと巻き込んでコミットし、
           # ドラフトブランチに main のスクリプト差分が混入する（実際に混入していた）。

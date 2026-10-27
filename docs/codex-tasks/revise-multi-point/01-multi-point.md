@@ -2,6 +2,8 @@
 
 README の背景を先に読むこと。試験データは `fixtures/`:
 
+01b の追加・変更仕様は `review-01.md` の「直すもの（01b）」を優先する。
+
 - `644-before.md` … #644 の 1 回目の差し戻し前の記事（a094e03d）
 - `644-comment-1.txt` … 1 回目の差し戻しコメント（3 点の番号付き）
 - `644-after-run-40484642578.md` … 1 回目の再生成の結果。108 行目に LLM が書き足した「※差し戻しコメントの2・3は、この対象セクション内に該当する回答文・節が含まれていないため、変更していません。」がある
@@ -83,7 +85,7 @@ LLM の出力（`after`）を入力（`before`。章の差し替えならその�
    - `add_section`: 今の `regenerateSection` の追加と同じ（まとめの前に入れる）＋ `removeNewInternalNotes`。
    - `targeted`: 今の `regenerateTargeted` と同じ手順（1 回目→短縮なら再試行、`sanitizeRevisedBody`、`removeNewInternalNotes`）。再試行後も短縮・混入なら、その段は失敗（本文はその段の入力のまま）。禁止表現の置換だけ適用する今の救済（`sanitizeBannedPhrases`）は、段が失敗したときの本文にも適用してよい。
    - `title`: 本文の段が全部終わった後に `regenerateTitleOnly(現在の内容, 前置き＋その段の指摘)`。
-   - `targeted` の段があり、どれかの段が成功したときは、最後に `maybeUpdateTitleForTargeted(結果, targeted の段の instruction, meta)` を今と同じ条件で呼ぶ（`title` の段があるときは呼ばない）。
+   - 複数指摘の経路では `maybeUpdateTitleForTargeted` を呼ばない。タイトル・要約は、前置きまたは指摘にタイトル修正の指示があり、`title` の段を組んだときだけ変更する。
    - LLM の呼び出しが例外を投げたときは今と同じく例外のまま（ジョブは失敗通知へ）。ただし `contentBodyTruncated` 以外の例外で、すでに成功した段がある場合も、例外にしてよい（途中の本文は保存しない）。
 4. 反映の確かめ: 各指摘の文から「`「旧」を（、）「新」に` / `「旧」を（、）「新」という内容に` / `「旧」を（削除|消し|取り除）`」の形の **旧** を取り出す（`「」` `『』` の両方。旧が 6 文字以上で、再生成前の本文にそのまま含まれるものだけ）。全段の後、本文の中の旧の出現回数が再生成前より減っていなければ、その指摘は「反映できなかった」（理由: 指定の文が残っている）。旧が取り出せない指摘は、段が成功していれば反映できたとみなす。
 5. 結果:
@@ -109,8 +111,9 @@ git fetch origin main --depth=1
 # scripts/ が読み込むデータは scripts/ と同じ版でないと動かない（下書きの枝が古いと
 # 後から足されたデータが無く MODULE_NOT_FOUND になる。2026-10-27 run 40483979382）。
 # data/ ごと main で上書きし、記事ごとの照合記録 data/fact-check/ だけ枝のものに戻す。
-git checkout origin/main -- scripts/ package.json package-lock.json data/
-git checkout HEAD -- data/fact-check/ 2>/dev/null || true
+git checkout --no-overlay origin/main -- scripts/ data/
+git checkout origin/main -- package.json package-lock.json
+git checkout --no-overlay HEAD -- data/fact-check/ 2>/dev/null || true
 git reset -q
 ```
 
@@ -123,13 +126,13 @@ git reset -q
 2. `planRevisionSteps`（`644-before.md` の本文の章で）: 1 点目 → `section`（見出し「贈与税の非課税制度 一覧比較」）、3 点目 → `section`（R3 により h3「配偶者への居住用不動産の贈与（配偶者控除）」を含む h2「各制度の詳細と判断ポイント」）、2 点目 → `targeted`。段の順は section（一覧比較）→ section（各制度の詳細）→ targeted。各段の instruction にほかの段の指摘の文が含まれない。
 3. どれかの指摘が `full_regenerate`（例 `2. 全体的に書き直してください`）→ `fallback: true`。加えて、120 字を超える具体的な置換の指摘が長さの決まりだけで `full_regenerate` になる場合、複数指摘の計画内では R2 の例外により `targeted` になることを確かめる。単独コメントの既存分類は変えない。
 4. `removeNewInternalNotes`: `644-after-run-40484642578.md` の本文を `after`、`644-before.md` の本文を `before` として → 108 行目の「※差し戻しコメントの2・3は…」の行が取り除かれ、`contaminated: false`。`※` で始まらない「差し戻しコメントの2は対象外のため変更していません。」が段落の中に新しく現れる → `contaminated: true`。試験用に `before` に足した「税務署からの指摘で修正申告をしました。」の行（`after` にもそのまま残る）・`after` に新しく足された「税務調査で指摘を受けたら修正申告を検討します。」の行は取り除かない・混入にしない。
-5. R5 の通し（R5 の関数を `module.exports` に足し、偽の LLM で呼ぶ。`test-generation-review-fixes.js` の F1 のように `fetch` を差し替える方法に合わせる。出典ブロックが要るなら偽のものを渡せるようにしてよい）: `644-before.md`＋`644-comment-1.txt` → 本文の LLM の呼び出しが 3 回（一覧比較の章・各制度の詳細の章・全文）で、本文の各呼び出しの入力にその段の指摘の文だけが入る。タイトル・要約の見直しは `maybeUpdateTitleForTargeted` の今の条件で別途呼び出し、その応答では本文を変えないことを確かめる。偽の LLM が指定どおり直した出力を返すと、3 つの旧の文がすべて消え、`review_comment` は空・`review_status: draft`。
+5. R5 の通し（R5 の関数を `module.exports` に足し、偽の LLM で呼ぶ。`test-generation-review-fixes.js` の F1 のように `fetch` を差し替える方法に合わせる。出典ブロックが要るなら偽のものを渡せるようにしてよい）: `644-before.md`＋`644-comment-1.txt` → 本文の LLM の呼び出しが 3 回（一覧比較の章・各制度の詳細の章・全文）で、本文の各呼び出しの入力にその段の指摘の文だけが入る。タイトル・要約の呼び出しはなく、元のタイトル・要約を保つ。偽の LLM が指定どおり直した出力を返すと、3 つの旧の文がすべて消え、`review_comment` は空・`review_status: draft`。
 6. 5 で、偽の LLM が 1 段目の出力の末尾に「※差し戻しコメントの2・3は…変更していません。」を足して返す → その行は最終の本文に無い。
 7. 5 で、偽の LLM が 3 点目の章の段と 2 点目の全文の段で、それぞれその段の入力をそのまま返す → 1 点目は反映され、`review_status: needs_revision`、`review_comment` に `【自動反映は一部のみ】` と「2 点目」「3 点目」が入る。
 8. `ENABLE_MULTI_POINT_REVISE=false` → 5 と同じ入力で、今までどおり 1 回の分類（`table_fix`）・1 回の LLM 呼び出しになる。
 9. 指摘 1 つの差し戻しで、`regenerateTargeted` の出力に `※差し戻しコメントは…変更していません。` の行が新しく入る → その行は取り除かれ、本文は採用される。段落の中に混入 → 元の本文のまま `【自動再生成の警告】`。
-10. ワークフロー: `regenerate-draft.yml` の上書きの行が `data/` を含み、`git checkout HEAD -- data/fact-check/` がその後・`git reset -q` の前にある。`ENABLE_MULTI_POINT_REVISE: ${{ vars.ENABLE_MULTI_POINT_REVISE }}` が「Regenerate draft」の env にある。`run:` の中に `${{` が無い（既存の試験の決まり）。
-11. R7 の実地（一時フォルダに git の枝を作る試験。シェルの `git` が使えない環境なら、この試験は理由を出して飛ばしてよい）: 「main」の枝に `scripts/x.js`（`require('../data/new.json')`）と `data/new.json`・`data/fact-check/a.json`（中身 main）を置き、「draft」の枝は古い main から作って `data/fact-check/a.json`（中身 draft）を足す → draft を取り出して R7 の手順（`origin/main` の代わりに `main`）を流すと、`node scripts/x.js` が動き、`data/fact-check/a.json` は draft の中身、`git diff --cached` は空。
+10. ワークフロー: `regenerate-draft.yml` の上書きの行が `git checkout --no-overlay origin/main -- scripts/ data/` で、`git checkout --no-overlay HEAD -- data/fact-check/` がその後・`git reset -q` の前にある。`package.json`・`package-lock.json` の取込みと、`ENABLE_MULTI_POINT_REVISE: ${{ vars.ENABLE_MULTI_POINT_REVISE }}` が「Regenerate draft」の env にあることも確認する。`run:` の中に `${{` が無い（既存の試験の決まり）。
+11. R7 の実地（一時フォルダに git の枝を作る試験。シェルの `git` が使えない環境なら、この試験は理由を出して飛ばしてよい）: 「main」の枝に `scripts/x.js`（`require('../data/new.json')`）と `data/new.json`・`data/fact-check/a.json`（中身 main）を置き、「draft」の枝は古い main から作って `data/fact-check/a.json`（中身 draft）を足す → draft を取り出して R7 の手順（`origin/main` の代わりに `main`）を流すと、`node scripts/x.js` が動き、`data/fact-check/a.json` は draft の中身、`git diff --cached` は空。main で消えたデータが消えること、draft に `data/fact-check/` がない場合にも main の照合記録を後段でステージしないことを併せて確かめる。
 
 既存の試験（全部通すこと）: `test-revision-classifier.js`・`test-partial-revise.js`・`test-freshness-refresh.js`・`test-generation-review-fixes.js`・`test-generation-review-fixes-2.js`・`test-workflow-change-detection.js`・`test-env-resolution.js`・`test-openai-models.js`。既存の試験の期待を変える必要が出たら、変える前に最終報告に【要判断】で理由を書く（R3 の「節」・h3 で期待が変わるものは、変更してよいが一覧にする）。
 

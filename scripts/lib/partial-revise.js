@@ -146,7 +146,10 @@ function findTargetSectionIndex(sections, sectionHint, type) {
       })));
     if (nested.length) {
       const nestedIdx = findTargetSectionIndex(nested, sectionHint, '');
-      if (nestedIdx >= 0) return nested[nestedIdx].sectionIndex;
+      if (nestedIdx >= 0) {
+        const parentIndex = nested[nestedIdx].sectionIndex;
+        if (type !== 'table_fix' || /\|.+\|/.test(sections[parentIndex].body)) return parentIndex;
+      }
     }
   }
   // intro_conclusion_fix の「まとめ/結論」系
@@ -165,6 +168,11 @@ function findTargetSectionIndex(sections, sectionHint, type) {
 function planRevisionSteps(split, sections) {
   const steps = [], sectionSteps = new Map(), classifications = [];
   let targeted, title;
+  const preface = classifyRevision(split.preface);
+  if (preface.denySuppression || (preface.type === 'full_regenerate' && preface.reason.startsWith('パターン一致:'))) {
+    return { fallback: true, reason: `前置き: ${preface.reason}`, classifications };
+  }
+  if (preface.type === 'title_only') title = { kind: 'title', points: [], texts: [], classification: preface };
   for (const point of split.points) {
     let classification = classifyRevision(point.text);
     const text = point.text.replace(/\s+/g, ' ').trim();
@@ -505,21 +513,25 @@ function findInternalProcessWords(body) {
 function removeNewInternalNotes(before, after) {
   const original = String(before || ''), revised = String(after || '');
   const oldLines = new Set(original.split(/\r?\n/).map(line => line.trim()));
-  const context = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]/;
+  const context = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]|この段|別の段|ほかの指摘|他の指摘|ほかの箇所|他の箇所|その他の箇所|その他の指摘/;
   const result = /変更|修正|反映|対応|対象外|触れ|直し|そのまま/;
-  const noteStart = /^(?:※|＊|\*|注[:：]|（※|\(※|【注)/;
+  const noteStart = /^(?:※|＊|\*(?![*\s])|注[:：]|（※|\(※|【注)/;
+  const report = /(?:変更|修正|反映|対応|直し)(?:して(?:い)?ません|しました)|対象外|触れて(?:い)?ません/;
   const removed = [], remainingWords = [], lines = [];
   let removedGap = false;
   for (const line of revised.split(/\r?\n/)) {
     const trimmed = line.trim();
-    if (!oldLines.has(trimmed) && context.test(trimmed) && result.test(trimmed)) {
-      if (noteStart.test(trimmed)) {
+    if (!oldLines.has(trimmed)) {
+      if (noteStart.test(trimmed) && report.test(trimmed)) {
         removed.push(line);
         removedGap = true;
         console.warn(`[revise] 作業の注記を除去（${line.length} 文字）: ${trimmed.slice(0, 40)}`);
         continue;
       }
-      remainingWords.push(trimmed.match(context)[0]);
+      // 太字・箇条書きの論点列挙は、作業の報告でなければ本文として保持する。
+      const articlePoint = /^(?:\*\*|\*\s+)[0-9０-９①-⑳]+点目/.test(trimmed) &&
+        !report.test(trimmed) && !context.test(trimmed.replace(/[0-9０-９①-⑳]+点目/g, ''));
+      if (!articlePoint && context.test(trimmed) && result.test(trimmed)) remainingWords.push(trimmed.match(context)[0]);
     }
     if (removedGap && !trimmed && lines.length && !lines[lines.length - 1].trim()) continue;
     lines.push(line);

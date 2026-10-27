@@ -45,7 +45,7 @@
 
 - 指摘が 1 つだけ（番号付き・箇条書きでない）の差し戻しは、**今までと同じ動き**にする（分類・プロンプト・LLM の呼び出し回数を変えない）。ただし R4（作業の説明の除去）と R3 の「節」の追加は 1 つだけの差し戻しにも効かせる。
 - 禁止意図（`detectDenyIntent`）の扱い・テーマ禁止での中止（`process.exit(2)`）は変えない。
-- 更新案（`isRefreshRegeneration`、`freshness-refresh.js` の `regenerateRefreshDraft` / `runRefresh`）の流れは変えない。
+- 更新案（`isRefreshRegeneration`、`freshness-refresh.js` の `regenerateRefreshDraft` / `runRefresh`）の流れは変えない。ただし R4（作業の注記の除去・混入の扱い）は更新案にも効く。
 - 照合（`fact-check.js`）・`finalizeRegeneration` は変えない。
 - `regenerate-draft.yml` の「記事と照合記録以外がステージされていたら落とす」確認、push の再試行、通知の切り替え（`自動再生成の警告|自動反映は一部のみ`）は変えない。
 

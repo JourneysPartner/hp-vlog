@@ -2553,7 +2553,7 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
   let content = preparedContent;
   let body = originalBody;
   const failed = new Map();
-  let successfulSteps = 0;
+  const sameBody = (before, after) => before.replace(/\s+/g, ' ').trim() === after.replace(/\s+/g, ' ').trim();
   const fail = (step, reason) => {
     for (const no of step.points) failed.set(no, reason);
     console.warn(`[regenerate] ${step.kind} 指摘 ${step.points.join(',')}: 失敗（${reason}）`);
@@ -2565,13 +2565,18 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
         .filter(Boolean).join('\n\n');
       content = await regenerateTitleOnly(rebuildWithBody(content, body), instruction);
     } else if (step.kind === 'targeted') {
-      const revised = await regenerateTargeted(rebuildWithBody(content, body), step.instruction, {
+      const inputContent = rebuildWithBody(content, body);
+      const revised = await regenerateTargeted(inputContent, step.instruction, {
         preserveTitle: true, sourceBlocks: sources, materialsRecorded: true,
       });
       const parsed = parseFrontmatter(revised);
       if (parsed.meta.review_status === 'needs_revision') {
-        fail(step, parsed.meta.review_comment.match(/LLM が ([^）]+)/)?.[1] || '本文の修正を採用できない');
+        fail(step, parsed.meta.review_comment.match(/LLM が ?([^）]+)/)?.[1] || '本文の修正を採用できない');
         body = sanitizeBannedPhrases(body);
+        continue;
+      }
+      if (sameBody(parseFrontmatter(inputContent).body, parsed.body)) {
+        fail(step, '出力が入力と同じ');
         continue;
       }
       body = parsed.body;
@@ -2587,7 +2592,8 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
       const guard = partial.isBodyShrinkageSuspicious(before, notes.body, 0.6);
       const reason = notes.contaminated ? 'LLM が作業の説明を本文に書いたため'
         : parsed.intro.trim() || parsed.sections.length !== 1 || !parsed.sections[0].body.trim()
-          ? '出力が章として読めない' : guard.suspicious ? guard.reason : '';
+          ? '出力が章として読めない' : guard.suspicious ? guard.reason
+            : step.kind === 'section' && sameBody(before, notes.body) ? '出力が入力と同じ' : '';
       if (reason) { fail(step, reason); continue; }
       if (step.kind === 'section') sections[step.sectionIndex] = parsed.sections[0];
       else {
@@ -2596,25 +2602,24 @@ async function regenerateMultiPoint(existingContent, comment, plan, { sourceBloc
       }
       body = partial.joinSections(intro, sections);
     }
-    successfulSteps++;
     console.log(`[regenerate] ${step.kind} 指摘 ${step.points.join(',')}: 成功`);
   }
 
   // 明示された旧文が残ったままなら、段が正常に出力されても未反映とする。
   const count = (text, old) => text.split(old).length - 1;
-  const swap = /(?:「([^」\r\n]+)」|『([^』\r\n]+)』)を[\s、，,]*(?:(?:「[^」\r\n]+」|『[^』\r\n]+』)(?:という内容)?に|(?:削除|消し|取り除))/g;
+  const swap = /(?:「([^」\r\n]+)」|『([^』\r\n]+)』)を[\s、，,]*(?:(?:「([^」\r\n]+)」|『([^』\r\n]+)』)(?:という内容)?に(?:直|変更|修正|訂正|置き換|書き換|差し替|改め)|(?:削除|消し|取り除))/g;
   for (const point of split.points) {
     for (const match of point.text.matchAll(swap)) {
       const old = match[1] || match[2];
-      if (old.length >= 6 && originalBody.includes(old) && count(body, old) >= count(originalBody, old)) {
+      const replacement = match[3] || match[4];
+      const unapplied = replacement?.includes(old)
+        ? count(body, replacement) <= count(originalBody, replacement)
+        : count(body, old) >= count(originalBody, old);
+      if (!failed.has(point.no) && old.length >= 6 && originalBody.includes(old) && unapplied) {
         failed.set(point.no, '指定の文が残っている');
         console.warn(`[regenerate] 指摘 ${point.no}: 指定の文が残っている`);
       }
     }
-  }
-  const targeted = plan.steps.find(step => step.kind === 'targeted');
-  if (targeted && successfulSteps && !plan.steps.some(step => step.kind === 'title')) {
-    content = await maybeUpdateTitleForTargeted(rebuildWithBody(content, body), targeted.instruction, meta);
   }
   if (!failed.size) return rebuildWithBody(content, body);
   const reasons = [...failed].sort((a, b) => a[0] - b[0]).map(([no, reason]) => `${no} 点目（${reason}）`).join('・');

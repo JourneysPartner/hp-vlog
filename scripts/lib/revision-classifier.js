@@ -161,7 +161,7 @@ const RULES = [
       // この型は「セクション名を引用で示している」= 章レベルの修正意図が明確なので、
       // factual_correction 等よりも先に section_only に振り、対象セクションだけを
       // LLM に渡す（トークン節約 + 修正対象明確化）。
-      /[「『][^」』]{2,40}[」』]\s*の?\s*(?:章|節|区分|部分|セクション|見出し|段落)/,
+      /[「『][^」』]{2,40}[」』]\s*の?\s*(?:章|節(?!税|約)|区分|部分|セクション|見出し|段落)/,
     ],
   },
 ];
@@ -176,7 +176,7 @@ function extractSectionHint(comment) {
   // 「『...』の章」「「...」の見出し」「...について」など
   const quoted = c.match(/[「『]([^」』]{2,30})[」』]/);
   if (quoted) return quoted[1];
-  const about = c.match(/([一-鿿ぁ-んァ-ヶA-Za-z0-9・]{2,20})(?:について|の章|の節|の見出し|の部分|のセクション|の説明|の表)/);
+  const about = c.match(/([一-鿿ぁ-んァ-ヶA-Za-z0-9・]{2,20})(?:について|の章|の節(?!税|約)|の見出し|の部分|のセクション|の説明|の表)/);
   if (about) return about[1];
   return '';
 }
@@ -244,19 +244,20 @@ function classifyRevision(comment) {
 function splitRevisionPoints(comment) {
   const text = String(comment || '');
   const lines = text.split(/\r?\n/);
-  const starts = [];
+  const candidates = [];
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index].trimStart();
     const numeric = line.match(/^(?:([0-9０-９]+)([.．)）、])|\(([0-9０-９]+)\)|（([0-9０-９]+)）)/);
     const circled = line.match(/^[①-⑳]/);
     if (circled) {
-      starts.push({ index, no: circled[0].charCodeAt(0) - '①'.charCodeAt(0) + 1, kind: 'circled' });
+      candidates.push({ index, no: circled[0].charCodeAt(0) - '①'.charCodeAt(0) + 1, kind: 'circled' });
     } else if (numeric) {
-      starts.push({ index, no: Number((numeric[1] || numeric[3] || numeric[4]).normalize('NFKC')),
+      candidates.push({ index, no: Number((numeric[1] || numeric[3] || numeric[4]).normalize('NFKC')),
         kind: numeric[3] || numeric[4] ? 'parentheses' : numeric[2].normalize('NFKC') });
     }
   }
-  if (starts.length < 2 || starts.some((s, i) => s.no !== i + 1 || s.kind !== starts[0].kind)) {
+  const starts = candidates.filter(s => s.kind === candidates[0].kind);
+  if (starts.length < 2 || starts.some((s, i) => s.no !== i + 1)) {
     return { preface: text.trim(), points: [] };
   }
   return {
