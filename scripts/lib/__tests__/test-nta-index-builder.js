@@ -85,7 +85,7 @@ console.log('\n=== Test 2: buildIndexEntry ===');
   assert(idx.section === null, `section=null (taxanswer)`);
   assert(idx.first_fetched_at === entry.first_fetched_at && idx.content_changed_at === entry.content_changed_at
     && idx.content_change_kind === entry.content_change_kind && idx.law_version === entry.law_version, '追加4項目を載せる');
-  assert(Object.keys(idx).slice(-4).join(',') === 'first_fetched_at,content_changed_at,content_change_kind,law_version', '既存項目の後に追加する');
+  assert(Object.keys(idx).slice(-5).join(',') === 'first_fetched_at,content_changed_at,content_change_kind,as_of_changed_at,law_version', '既存項目の後に追加する');
   // body は含まれない
   assert(!('body' in idx), `body は含まれない（軽量サマリ）`);
 }

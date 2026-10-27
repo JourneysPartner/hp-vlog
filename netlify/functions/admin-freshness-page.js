@@ -20,14 +20,21 @@ function renderPage(candidates, pullRequests) {
     const branch = `draft/refresh-${slug}`;
     const pr = prByBranch.get(branch);
     const reviewUrl = `https://mori-zeirishi.net/review?file=${encodeURIComponent(candidate.file || '')}&ref=${encodeURIComponent(branch)}`;
-    const reasons = (candidate.reasons || []).map(reason => `<li>${escapeHtml(reason.detail)}（${escapeHtml(reason.where)}）</li>`).join('');
+    const asOfOnly = (candidate.reasons || []).length > 0
+      && candidate.reasons.every(reason => reason.kind === 'source_as_of_updated');
+    const reasons = (candidate.reasons || []).map(reason => {
+      const label = reason.kind === 'source_updated' ? '内容の改訂あり'
+        : reason.kind === 'source_as_of_updated' ? '基準日の改訂あり' : '';
+      const tag = label ? `<span class="tag${reason.kind === 'source_updated' ? ' tag-content' : ''}">${escapeHtml(label)}</span> ` : '';
+      return `<li>${tag}${escapeHtml(reason.detail)}（${escapeHtml(reason.where)}）</li>`;
+    }).join('');
     const action = pr
       ? `<p class="status">更新案あり：<a href="${escapeHtml(pr.html_url || pr.url || '#')}" target="_blank" rel="noopener">Pull Request</a> · <a href="${escapeHtml(reviewUrl)}">レビュー画面</a></p>`
       : !supportedSlug
         ? '<p class="muted">slug に英小文字・数字・ハイフン・下線以外の文字があるため、この画面からの操作はできません。</p>'
         : candidate.refreshable
         ? `<button class="action" data-action="refresh" data-slug="${escapeHtml(slug)}">更新案を作る</button>`
-        : '<p class="muted">更新案を作れる理由はありません。</p>';
+        : asOfOnly ? '' : '<p class="muted">更新案を作れる理由はありません。</p>';
     const reviewedAction = supportedSlug
       ? `<button class="action secondary" data-action="reviewed" data-slug="${escapeHtml(slug)}">確認済み（変更なし）</button>`
       : '';
@@ -35,6 +42,7 @@ function renderPage(candidates, pullRequests) {
       <h2><a href="${escapeHtml(candidate.url || `https://mori-zeirishi.net/blog/${encodeURIComponent(slug)}/`)}" target="_blank" rel="noopener">${escapeHtml(candidate.title || slug)}</a></h2>
       <p>スコア ${escapeHtml(candidate.score)} · 表示回数 ${escapeHtml(candidate.impressions28d)} 回</p>
       <ul>${reasons}</ul>
+      ${asOfOnly ? `<p class="muted">${escapeHtml('内容の変更はありません。記事の記述が今も正しいか確かめて「確認済み（変更なし）」を押してください。')}</p>` : ''}
       ${action}
       ${reviewedAction}
       <p class="result" aria-live="polite"></p>
@@ -43,6 +51,7 @@ function renderPage(candidates, pullRequests) {
   return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
     <title>記事の更新候補 | 管理画面</title><style>
       body{margin:0;background:#f3f6fa;color:#10233f;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
+      .tag{display:inline-block;padding:.15rem .45rem;border-radius:4px;background:#e6edf5;color:#334963;font-size:.8rem}.tag-content{background:#334963;color:white}
       main{max-width:1040px;margin:1.5rem auto;padding:0 1rem}.candidate{background:white;border:1px solid #dbe3ef;border-radius:12px;padding:1rem 1.2rem;margin:1rem 0;box-shadow:0 2px 7px #10233f0a}
       h1{font-size:1.5rem}h2{font-size:1.08rem;margin:.2rem 0 .6rem}a{color:#17633a}.candidate p{margin:.45rem 0;color:#506078}.candidate ul{line-height:1.7;padding-left:1.4rem}.action{border:0;border-radius:7px;background:#14613a;color:white;padding:.55rem .8rem;margin:.35rem .45rem .2rem 0;cursor:pointer}.action.secondary{background:#e9eef5;color:#10233f}.action:disabled{opacity:.55;cursor:wait}.status{font-weight:600}.muted{color:#68778b}.result{min-height:1.2em}.empty{background:white;padding:1.5rem;border-radius:10px}
     </style></head><body>${renderAdminNav('freshness')}<main><h1>記事の更新候補</h1>
