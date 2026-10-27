@@ -150,10 +150,12 @@ test('3', '要約に番号が無いもの・4桁以外は採らない', () => {
   assert.equal(siblings({ claim: 'No.45081', sentence: c35.sentence.replace('4508', '45081') })[0].status, '資料なし');
 });
 test('3', '複数の番号が全部対応すれば最初の番号の根拠を採る', () => {
-  const extra = { ...c45, id: 'c46', evidence_id: ref4452.id, evidence: [ref4452], quote };
-  const [result] = F.supportNumbersFromSiblings([{ ...c35, claim: 'No.4452・No.4508', evidence: [ref4452, ref4508] }, c45, extra]);
+  const related = { ...ref4508, id: 'test:4509', no: '4509', url: 'https://example.invalid/4509' };
+  const sentence = c35.sentence.replace('No.4508', 'No.4509・4508');
+  const extra = { ...c45, id: 'c46', sentence, evidence_id: related.id, evidence: [related] };
+  const [result] = F.supportNumbersFromSiblings([{ ...c35, sentence, claim: 'No.4509・No.4508', evidence: [related, ref4508] }, { ...c45, sentence }, extra]);
   assert.equal(result.status, '裏付けあり');
-  assert.equal(result.evidence_id, ref4452.id);
+  assert.equal(result.evidence_id, related.id);
   assert.equal(result.number_from_sibling.id, 'c46');
   assert.equal(result.evidence.length, 2);
 });
@@ -323,12 +325,13 @@ for (const marker of ['×', '✕', '＊', '*', '倍', 'につき', '当たり', 
 test('F3', 'No.4452 の実際の引用範囲には掛け算の語がなく、c16 は裏付ける', () => {
   const at = ref4452.text.indexOf(quote);
   assert.ok(at >= 0);
-  assert.equal(/[×✕＊*]|倍|につき|当たり|あたり/.test(ref4452.text.slice(Math.max(0, at - 300), at + quote.length + 300)), false);
+  assert.equal(/[×✕＊*]|倍|につき|当たり|あたり|乗じ|乗ず|掛け/.test(ref4452.text.slice(Math.max(0, at - 320), at + quote.length + 320)), false);
   assert.equal(supports(c16), true);
 });
-test('F3', '掛け算の除外も同じ出現位置の前後300字だけで確かめる', () => {
+test('F3', '掛け算の印だけ同じ出現位置の前後320字で確かめる', () => {
   assert.equal(supports(c16, source(quote + '空'.repeat(299) + '×')), false);
-  assert.equal(supports(c16, source(quote + '空'.repeat(300) + '×')), true);
+  assert.equal(supports(c16, source(quote + '空'.repeat(300) + '×')), false);
+  assert.equal(supports(c16, source(quote + '空'.repeat(320) + '×')), true);
   assert.equal(supports(amountClaim('基礎控除110万円です。'), source(quote + '×')), true);
 });
 test('F3', 'partialQuoteNumbers も掛け算のある範囲では合計を残さない', () => {
@@ -351,7 +354,8 @@ test('F4', '教育資金と住宅取得等資金で番号を取り違えた文�
   assert.equal(siblings()[0].status, '裏付けあり');
 });
 test('F4', '制度名は NFKC と空白だけを揃えて一致させる', () => {
-  assert.equal(siblings({ subject: 'Ａ 制度' }, { subject: 'A　制 度' })[0].status, '裏付けあり');
+  const ref = { ...source('A制度の要件について説明します。'), id: 'test:normalized-subject', no: '4508', title: 'A制度' };
+  assert.equal(siblings({ subject: 'Ａ 制度', evidence: [ref] }, { subject: 'A　制 度', evidence_id: ref.id, evidence: [ref] })[0].status, '裏付けあり');
   assert.equal(siblings({}, { subject: c45.subject + '（別制度）' })[0].status, '資料なし');
 });
 
@@ -422,6 +426,145 @@ test('F8', '兄弟の文・種類・制度名が JSON に残り、id を振り�
   assert.equal(saved[1].subject, audit.subject);
 });
 
+for (const [law, article, sentence, formula] of [
+  ['sozokuzei', '15', '3,000万円に600万円を加えた3,600万円です。', '三千万円と六百万円'],
+  ['shotokuzei_hou', '30', '800万円に70万円を加えた870万円です。', '八百万円と七十万円'],
+]) test('G1', `${law} 第${article}条の実本文の「乗じて」を合計として採らない`, () => {
+  const text = require(`../../../data/law-sources/${law}.json`).articles.find(a => a.num === article).text;
+  assert.ok(text.includes(formula));
+  assert.ok(text.includes('乗じて'));
+  assert.equal(/[×✕＊*]/.test(text), false);
+  const q = text.split('\n').find(line => line.includes(formula));
+  assert.equal(supports(amountClaim(sentence), { ...source(text), kind: 'law' }, q), false);
+});
+for (const marker of ['乗じ', '乗ず', '掛け']) test('G1', `乗算の語「${marker}」があれば合計を補わない`, () => {
+  assert.equal(supports(c16, source(quote + marker)), false);
+});
+test('G1', '数を集める範囲の外側20字も乗算の印を確認する', () => {
+  for (const before of [false, true]) for (const padding of [300, 319, 320]) {
+    const text = before ? '×' + '空'.repeat(padding) + quote : quote + '空'.repeat(padding) + '×';
+    assert.equal(supports(c16, source(text)), padding === 320);
+  }
+  const q = '配偶者への贈与についての制度を説明します。';
+  assert.equal(supports(c16, source(q + '空'.repeat(301) + '110万円と2,000万円。'), q), false);
+});
+
+test('G2', '教育資金の制度を住宅取得等資金の No.4508 から補わない', () => {
+  const sentence = '教育資金の一括贈与（国税庁タックスアンサー No.4508）は、父母や祖父母など直系尊属からの贈与が対象です。';
+  const input = { ...c35, sentence, subject: '教育資金の一括贈与', evidence: [ref4508] };
+  const sibling = { ...c45, sentence, subject: input.subject };
+  assert.deepEqual(F.supportNumbersFromSiblings([input, sibling])[0], input);
+  assert.equal(siblings()[0].status, '裏付けあり');
+});
+test('G2', '本文に制度名があるだけでは補わず、関連リンクより前の本文で関連を確かめる', () => {
+  const relevantMaterial = require('../article-plan').relevantMaterial;
+  const subject = '教育資金の一括贈与';
+  const onlyBody = { ...ref4508, title: '贈与の一般的な手続', text: `${subject}について説明します。` };
+  assert.equal(relevantMaterial(subject, onlyBody, onlyBody.text).condition, 2);
+  assert.equal(siblings({ subject, evidence: [onlyBody] }, { subject, evidence: [onlyBody] })[0].status, '資料なし');
+  const linked = { ...ref4508, text: ref4508.text.split('関連リンク')[0] + '関連リンク' + c35.subject };
+  assert.equal(relevantMaterial(c35.subject, linked, linked.text).condition, 2);
+  assert.equal(relevantMaterial(c35.subject, linked, linked.text.split('関連リンク')[0]).condition, 3);
+  assert.equal(siblings({ evidence: [linked] }, { evidence: [linked] })[0].status, '裏付けあり');
+});
+test('G2', '条件3の資料が一意でなくても c35 を救う', () => {
+  const relevantMaterial = require('../article-plan').relevantMaterial;
+  assert.equal(relevantMaterial(c35.subject, ref4508, ref4508.text.split('関連リンク')[0]).condition, 3);
+  assert.ok(c35.evidence.some(ref => ref.id !== ref4508.id && relevantMaterial(c35.subject, ref, ref.text.split('関連リンク')[0]).condition === 3));
+  assert.equal(siblings()[0].status, '裏付けあり');
+});
+
+for (const retryStatus of ['食い違い', '期限の書き漏れ', '資料なし']) {
+  test('G3', `却下した裏付けありの聞き直し「${retryStatus}」を記録し、番号補完を判断する`, async () => {
+    const calls = [];
+    const rows = await F.judgeClaims([c35], { [c35.id]: [ref4508] }, c35.sentence, async req => {
+      calls.push(req.task);
+      return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: req.task === 'judge' ? '裏付けあり' : retryStatus,
+        evidence_id: c.evidence_ids[0], basis: '99999', correct: '国税庁タックスアンサー No.4508' }));
+    }, { ...options, writer_materials: ['ta:4508'], loadEvidenceText: () => ref4508.text });
+    assert.deepEqual(calls, ['judge', 'retry_judge']);
+    assert.equal(rows[0].status, '資料なし');
+    assert.equal(rows[0].rejected_answer.status, '裏付けあり');
+    assert.equal(rows[0].retry_status, retryStatus === '資料なし' ? undefined : retryStatus);
+    const [number] = F.supportNumbersFromSiblings([...rows, c45]);
+    assert.equal(number.status, retryStatus === '資料なし' ? '裏付けあり' : '資料なし');
+    assert.equal(JSON.parse(JSON.stringify(F.compactRecord({ claims: rows }))).claims[0].retry_status, rows[0].retry_status);
+  });
+}
+for (const retryStatus of ['食い違い', '期限の書き漏れ']) {
+  test('G3', `段Aの聞き直しで却下した「${retryStatus}」も段Bの資料なしから救わない`, async () => {
+    const body = c35.sentence, calls = [];
+    const result = await F.checkFacts(body, { ...options, repair: false, writer_materials: ['ta:4508'],
+      searchWriterEvidence: () => [ref4508], searchEvidence: () => [ref4508], loadEvidenceText: () => ref4508.text,
+      callLLM: H.numberedFake(async req => {
+        calls.push(req.stageB ? 'stage_b_' + req.task : req.task);
+        if (req.task === 'extract') return [c35, c45].map(({ sentence, type, subject, claim }) => ({ sentence, type, subject, claim }));
+        if (req.task === 'condition_check') return { verdict: '一致', conditions: [] };
+        assert.ok(['judge', 'retry_judge'].includes(req.task));
+        return JSON.parse(req.user).claims.map(c => c.type === '番号'
+          ? req.stageB ? { id: c.id, status: '資料なし' }
+            : { id: c.id, status: req.task === 'retry_judge' ? retryStatus : '裏付けあり', evidence_id: c.evidence_ids[0], basis: '99999', correct: 'No.4508' }
+          : { id: c.id, status: '裏付けあり', evidence_id: c.evidence_ids[0], basis: '1', correct: '' });
+      }) });
+    assert.ok(calls.includes('retry_judge'));
+    assert.ok(calls.includes('stage_b_judge'));
+    const number = result.record.claims.find(c => c.type === '番号');
+    assert.ok(number, result.record.summary);
+    assert.equal(number.stage, 'B');
+    assert.equal(number.stage_a_status, retryStatus);
+    assert.equal(number.status, '資料なし');
+    assert.equal(number.number_from_sibling, undefined);
+    assert.equal(result.record.status, 'revise');
+  });
+}
+
+for (const sentence of [
+  '基礎控除110万円があり、合計所得金額が2,110万円です。',
+  '基礎控除110万円を含む相続税の総額は2,110万円です。',
+  '基礎控除110万円の総額2,110万円です。',
+  '基礎控除110万円と掛けあわせて2,110万円です。',
+  '基礎控除110万円と突き合わせて2,110万円です。',
+  '基礎控除110万円と掛け併せて2,110万円です。',
+  '基礎控除110万円と2,110万円の合計所得金額です。',
+]) test('G4', `名詞や不適切な複合語「${sentence}」を合計の語にしない`, () => {
+  assert.equal(supports(amountClaim(sentence)), false);
+  assert.deepEqual(partialQuoteNumbers(amountClaim(sentence), { quote, correct: '' }, ref4452).forms, ['110万円']);
+});
+for (const word of ['合わせて', 'あわせて', '併せて']) for (const preceding of ['と', 'を', 'に', '円']) {
+  test('G4', `「${word}」の直前が「${preceding}」なら合計の語にする`, () => {
+    assert.equal(supports(amountClaim(`基礎控除110万円${preceding === '円' ? '' : preceding}${word}2,110万円です。`)), true);
+    assert.equal(supports(c16), true);
+  });
+}
+
+for (const subject of ['', '　 \t', undefined]) test('G5', '制度名を揃えると空になる主張は補わない: ' + String(subject), () => {
+  const input = { ...c35, subject };
+  assert.deepEqual(F.supportNumbersFromSiblings([input, { ...c45, subject }])[0], input);
+});
+for (const citation of ['No.4508・4510', 'No.4508、4510', 'No.4508，4510', 'Ｎｏ．４５０８・４５１０']) {
+  test('G5', `文「${citation}」に要約にない番号が残るなら補わない`, () => {
+    const sentence = c35.sentence.replace('No.4508', citation);
+    const input = { ...c35, sentence, claim: 'No.4508' };
+    assert.deepEqual(F.supportNumbersFromSiblings([input, { ...c45, sentence }])[0], input);
+  });
+}
+test('G5', '番号集合は順序・重複を除いて一致させ、候補の配列をそのまま使う', () => {
+  const related = { ...ref4508, id: 'test:4510', no: '4510', url: 'https://example.invalid/4510' };
+  const sentence = c35.sentence.replace('No.4508', 'No.4508・4510・4508');
+  const evidence = [ref4508, related];
+  const input = { ...c35, sentence, claim: 'No.4510・No.4508', evidence };
+  const sibling = { ...c45, sentence };
+  const extra = { ...sibling, id: 'c46', evidence_id: related.id, evidence: [related] };
+  const [result] = F.supportNumbersFromSiblings([input, sibling, extra]);
+  assert.equal(result.status, '裏付けあり');
+  assert.equal(result.evidence_id, related.id);
+  assert.equal(result.evidence, evidence);
+  const unmatched = { ...input, sentence: c35.sentence };
+  assert.deepEqual(F.supportNumbersFromSiblings([unmatched, c45, { ...extra, sentence: c35.sentence }])[0], unmatched);
+  assert.equal(siblings({ sentence: c35.sentence.replace('No.4508', 'No.4508・4508') },
+    { sentence: c35.sentence.replace('No.4508', 'No.4508・4508') })[0].status, '裏付けあり');
+});
+
 (async () => {
   const originalFetch = global.fetch;
   const previousWriterMode = process.env.FACT_CHECK_WRITER_MATERIALS;
@@ -438,6 +581,6 @@ test('F8', '兄弟の文・種類・制度名が JSON に残り、id を振り�
     if (previousWriterMode === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS;
     else process.env.FACT_CHECK_WRITER_MATERIALS = previousWriterMode;
   }
-  console.log(`試験1〜7・01b: PASS ${passed} / FAIL ${tests.length - passed}`);
+  console.log(`試験1〜7・01b・01c: PASS ${passed} / FAIL ${tests.length - passed}`);
   if (passed !== tests.length) process.exitCode = 1;
 })();
