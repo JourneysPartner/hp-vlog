@@ -42,7 +42,7 @@ function renderPage(candidates, pullRequests) {
       <h2><a href="${escapeHtml(candidate.url || `https://mori-zeirishi.net/blog/${encodeURIComponent(slug)}/`)}" target="_blank" rel="noopener">${escapeHtml(candidate.title || slug)}</a></h2>
       <p>スコア ${escapeHtml(candidate.score)} · 表示回数 ${escapeHtml(candidate.impressions28d)} 回</p>
       <ul>${reasons}</ul>
-      ${asOfOnly ? `<p class="muted">${escapeHtml('内容の変更はありません。記事の記述が今も正しいか確かめて「確認済み（変更なし）」を押してください。')}</p>` : ''}
+      ${asOfOnly && supportedSlug && !pr ? `<p class="muted">${escapeHtml('内容の変更はありません。記事の記述が今も正しいか確かめて「確認済み（変更なし）」を押してください。')}</p>` : ''}
       ${action}
       ${reviewedAction}
       <p class="result" aria-live="polite"></p>

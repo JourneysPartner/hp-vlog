@@ -1,21 +1,25 @@
 'use strict';
 
-function normalizedBody(entry) {
-  const value = entry && (entry.body ?? entry.body_combined);
+function normalizedText(value) {
   return value == null ? null : String(value).normalize('NFKC').replace(/\s+/gu, '');
 }
 
-function substantiveBody(entry, lawVersions = []) {
+function normalizedBody(entry) {
+  return normalizedText(entry && (entry.body ?? entry.body_combined));
+}
+
+function substantiveBody(entry) {
   let body = normalizedBody(entry);
   if (body === null) return null;
-  for (const version of lawVersions) {
-    const law = String(version || '').normalize('NFKC').replace(/\s+/gu, '');
-    if (law) body = body.split(`[${law}]`).join('').split(law).join('');
-  }
-  body = body.replace(/\[?(?:令和|平成)(?:元|\d+)年\d+月\d+日現在(?:の)?法令(?:・通達)?等\]?/gu, '');
+  body = body.replace(/^\[?(?:令和|平成)(?:元|\d+)年\d+月\d+日現在(?:の)?法令(?:・通達)?等\]?/u, '');
   const contact = body.lastIndexOf('お問い合わせ先');
-  const footer = contact >= 0 ? contact : body.indexOf('このコンテンツはお役にたちましたか');
-  return footer >= 0 ? body.slice(0, footer) : body;
+  const feedback = body.indexOf('このコンテンツはお役にたちましたか', Math.max(0, contact));
+  if (contact >= 0) return feedback > contact ? body.slice(0, contact) : body;
+  return feedback >= 0 ? body.slice(0, feedback) : body;
+}
+
+function imageHashes(entry) {
+  return JSON.stringify(Array.isArray(entry.images) ? entry.images.map(image => image && image.sha256 || null) : null);
 }
 
 function detectContentChange(existing, next, fetchedAt) {
@@ -33,15 +37,18 @@ function detectContentChange(existing, next, fetchedAt) {
       as_of_changed_at: existing.as_of_changed_at || null,
     };
   }
-  const oldLaw = String(existing.law_version || '');
-  const newLaw = String(next.law_version || '');
+  const oldLaw = normalizedText(existing.law_version) || '';
+  const newLaw = normalizedText(next.law_version) || '';
   const lawChanged = Boolean(oldLaw && newLaw && oldLaw !== newLaw);
   const oldBody = normalizedBody(existing);
   const newBody = normalizedBody(next);
   // 本文が欠ける場合は基準日だけと断定せず、未除去の本文と法令基準日の差を使う。
-  const bodyChanged = oldBody === null || newBody === null
+  const bodyChanged = (oldBody === null || newBody === null
     ? lawChanged || oldBody !== newBody
-    : substantiveBody(existing, [oldLaw, newLaw]) !== substantiveBody(next, [oldLaw, newLaw]);
+    : substantiveBody(existing) !== substantiveBody(next))
+    || normalizedText(existing.kankei_hourei) !== normalizedText(next.kankei_hourei)
+    || normalizedText(existing.title) !== normalizedText(next.title)
+    || imageHashes(existing) !== imageHashes(next);
   const kind = bodyChanged ? (lawChanged ? 'law_version' : 'body') : null;
   return {
     first_fetched_at,

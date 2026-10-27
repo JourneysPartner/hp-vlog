@@ -28,15 +28,59 @@ async function test(name, run) {
   catch (error) { failed++; console.error(`  FAIL: ${name}\n${error.stack}`); }
 }
 
+async function crawlWithFigures(type, previous, images) {
+  const filename = path.join(ROOT, 'scripts/crawl-nta-sources.js');
+  const saved = [];
+  const parsed = { id: '01', type, title: '図のある資料', tax_category_code: 'shohi', section: '02',
+    url: type === 'taxanswer' ? new2200.url : 'https://www.nta.go.jp/law/shitsugi/shohi/02/01.htm',
+    body: '本文は同じ。', law_version: new2200.law_version };
+  const target = { id: parsed.id, category: 'shohi', section: '02', url: parsed.url };
+  const save = entry => saved.push(JSON.parse(JSON.stringify(entry)));
+  const dependencies = {
+    'nta-crawler': {
+      RateLimiter: class { async wait() {} },
+      fetchPageHead: async () => ({ checkedAt: fetchedAt }),
+      decideIncrementalAction: () => ({ decision: 'fetch' }),
+      fetchPage: async () => ({ ok: true, html: '<html>図のある資料</html>', htmlHash: 'new-hash', fetchedAt }),
+    },
+    'nta-parsers/taxanswer': { parseTaxAnswerHtml: () => ({ ...parsed }) },
+    'nta-index/taxanswer-index': { fetchTaxAnswerIndex: async () => [target] },
+    'nta-parsers/shitsugi': { parseShitsugiHtml: () => ({ ...parsed, body: undefined, body_combined: parsed.body }) },
+    'nta-index/shitsugi-index': { fetchShitsugiIndex: async () => [target] },
+    'nta-store': { loadTaxAnswerEntry: () => previous, readJson: () => previous,
+      shitsugiPath: () => 'memory-only', saveTaxAnswerEntry: save, saveShitsugiEntry: save },
+    'nta-index-builder': {},
+    'nta-figures': { extractFigureRefs: () => images && images.length ? [{ url: 'https://www.nta.go.jp/figure.png' }] : [],
+      fetchAndStoreFigures: async () => images },
+    'nta-content-change': { detectContentChange },
+  };
+  const context = {
+    __dirname: path.dirname(filename),
+    require: name => {
+      if (name === 'path') return path;
+      const key = path.relative(path.join(ROOT, 'scripts/lib'), name).split(path.sep).join('/');
+      if (Object.hasOwn(dependencies, key)) return dependencies[key];
+      throw new Error(`Unexpected require: ${name}`);
+    },
+    process: { argv: ['node', filename, '--type', type, '--max-pages', '1', '--incremental', '--skip-index'],
+      exit: code => { throw new Error(`crawl exit ${code}`); } },
+    console: { log() {}, warn() {}, error() {} },
+  };
+  // 実際の CLI 経路を1回だけ実行し、終了を待つ。通信・保存はすべて偽物。
+  vm.runInNewContext(fs.readFileSync(filename, 'utf8').replace('main().catch(e => {', 'globalThis.crawlDone = main().catch(e => {'),
+    context, { filename });
+  await context.crawlDone;
+  assert.equal(saved.length, 1);
+  return saved[0];
+}
+
 async function main() {
-  await test('1. No.2200 と実データは基準日だけの改訂', () => {
+  await test('1. No.2200 の fixture は基準日だけの改訂', () => {
     const before = JSON.stringify([old2200, new2200]);
     assert.notEqual(old2200.html_hash, new2200.html_hash);
     const result = detectContentChange(old2200, new2200, fetchedAt);
     assert.deepEqual(historyOf(result), [null, null, fetchedAt]);
     assert.equal(result.first_fetched_at, old2200.first_fetched_at);
-    const current = readJson(path.join(ROOT, 'data/nta-sources/taxanswer/shotoku/2200.json'));
-    assert.deepEqual(historyOf(detectContentChange(old2200, current, fetchedAt)), [null, null, fetchedAt]);
     assert.equal(JSON.stringify([old2200, new2200]), before);
     assert.deepEqual(historyOf(detectContentChange(null, new2200, fetchedAt)), [null, null, null]);
   });
@@ -53,8 +97,8 @@ async function main() {
       content_changed_at: priorDate, content_change_kind: 'body', as_of_changed_at: '2026-08-01T00:00:00Z' };
     assert.deepEqual(historyOf(detectContentChange(previous, new2200, fetchedAt)), historyOf(previous));
     assert.equal(substantiveBody({ body: ' Ａ　Ｂ\nＣ ' }), 'ABC');
-    assert.equal(substantiveBody({ body: '[令和７年４月１日現在法令等]本文令和８年４月１日現在法令等' },
-      ['令和7年4月1日現在法令等', '令和8年4月1日現在法令等']), '本文');
+    assert.equal(substantiveBody({ body: '[令和７年４月１日現在法令等]本文令和８年４月１日現在法令等' }),
+      '本文令和8年4月1日現在法令等');
   });
 
   await test('4. 同じ基準日で本文の1文が変われば body', () => {
@@ -91,10 +135,10 @@ async function main() {
     const previous = { ...old2200, body: '本文。お問い合わせ先旧案内' };
     assert.equal(detectContentChange(previous, { ...new2200, body: '変更した本文。お問い合わせ先新案内' }, fetchedAt).content_change_kind,
       'law_version');
-    assert.equal(substantiveBody({ body: 'お問い合わせ先の説明。本文。お問い合わせ先定型文' }), 'お問い合わせ先の説明。本文。');
+    assert.equal(substantiveBody({ body: 'お問い合わせ先の説明。本文。お問い合わせ先定型文' }), 'お問い合わせ先の説明。本文。お問い合わせ先定型文');
     assert.equal(substantiveBody({ body: '本文。このコンテンツはお役にたちましたか？旧案内' }), '本文。');
     assert.equal(substantiveBody({ body: '本文。このコンテンツはお役にたちましたか？お問い合わせ先定型文' }),
-      '本文。このコンテンツはお役にたちましたか?');
+      '本文。このコンテンツはお役にたちましたか?お問い合わせ先定型文');
     for (const section of ['関連リンク', '根拠法令等', '（注）']) {
       assert.equal(detectContentChange({ body: `本文${section}旧内容` }, { body: `本文${section}新内容` }, fetchedAt).content_change_kind, 'body');
     }
@@ -252,6 +296,134 @@ async function main() {
     assert(!other.includes(guide));
     assert(other.includes('更新案を作れる理由はありません。'));
     assert(!renderPage([{ ...asof, reasons: [] }], []).includes(guide));
+  });
+
+  await test('F1. 関係法令通達と題名の変更・追加・削除は内容の改訂', () => {
+    const previous = { body_combined: '回答は同じ。', title: '題名Ａ', kankei_hourei: '所得税法第１条',
+      law_version: old2200.law_version, html_hash: 'old' };
+    const current = { ...previous, law_version: new2200.law_version, html_hash: 'new' };
+    for (const [key, value] of [['kankei_hourei', '所得税法第2条'], ['title', '題名B']]) {
+      assert.deepEqual(historyOf(detectContentChange(previous, { ...current, [key]: value }, fetchedAt)),
+        [fetchedAt, 'law_version', null]);
+      const missing = { ...previous };
+      delete missing[key];
+      assert.equal(detectContentChange(missing, current, fetchedAt).content_change_kind, 'law_version');
+      const removed = { ...current };
+      delete removed[key];
+      assert.equal(detectContentChange(previous, removed, fetchedAt).content_change_kind, 'law_version');
+      assert.equal(detectContentChange(previous, { ...previous, html_hash: 'new', [key]: value }, fetchedAt).content_change_kind, 'body');
+    }
+    assert.deepEqual(historyOf(detectContentChange(previous, { ...current, title: '題名 A', kankei_hourei: '所得税法 第1条' }, fetchedAt)),
+      [null, null, fetchedAt]);
+  });
+
+  await test('F2. 図のハッシュの並び・追加・削除を内容として比較', () => {
+    const previous = { body: '本文', law_version: old2200.law_version, html_hash: 'old', images: [{ sha256: 'a' }, { sha256: 'b' }] };
+    const current = { ...previous, law_version: new2200.law_version, html_hash: 'new' };
+    for (const images of [[{ sha256: 'c' }, { sha256: 'b' }], [{ sha256: 'b' }, { sha256: 'a' }], [{ sha256: 'a' }], []]) {
+      assert.deepEqual(historyOf(detectContentChange(previous, { ...current, images }, fetchedAt)), [fetchedAt, 'law_version', null]);
+    }
+    const noImages = { ...previous };
+    delete noImages.images;
+    const removed = { ...current };
+    delete removed.images;
+    assert.equal(detectContentChange(previous, removed, fetchedAt).content_change_kind, 'law_version');
+    assert.equal(detectContentChange(noImages, current, fetchedAt).content_change_kind, 'law_version');
+    assert.equal(detectContentChange(noImages, { ...current, images: [] }, fetchedAt).content_change_kind, 'law_version');
+    assert.deepEqual(historyOf(detectContentChange(noImages, removed, fetchedAt)), [null, null, fetchedAt]);
+    assert.deepEqual(historyOf(detectContentChange(previous, { ...current, images: [{ sha256: 'a', alt: '変更後' }, { sha256: 'b' }] }, fetchedAt)),
+      [null, null, fetchedAt]);
+  });
+
+  await test('F2. タックスアンサー・質疑応答の取り込みで図取得後に判定', async () => {
+    for (const type of ['taxanswer', 'shitsugi']) {
+      const previous = { title: '図のある資料', law_version: old2200.law_version, html_hash: 'old-hash',
+        first_fetched_at: priorDate, fetched_at: priorDate, images: [{ sha256: 'old-figure' }],
+        ...(type === 'taxanswer' ? { body: '本文は同じ。' } : { body_combined: '本文は同じ。' }) };
+      for (const images of [[{ sha256: 'new-figure' }], undefined, [{ sha256: 'old-figure' }]]) {
+        const stored = await crawlWithFigures(type, previous, images);
+        assert.deepEqual(historyOf(stored), images && images[0].sha256 === 'old-figure'
+          ? [null, null, fetchedAt] : [fetchedAt, 'law_version', null]);
+        assert.equal(stored.first_fetched_at, priorDate);
+        assert.equal(stored.fetched_at, fetchedAt);
+        assert.equal(stored.html_hash, 'new-hash');
+        assert.deepEqual(stored.images, images);
+      }
+      const initial = await crawlWithFigures(type, null, [{ sha256: 'new-figure' }]);
+      assert.deepEqual(historyOf(initial), [null, null, null]);
+    }
+  });
+
+  await test('F1・F2. 補正も題名・法令・図の変更を履歴キャッシュから判定', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'freshness-as-of-review-'));
+    try {
+      const directory = path.join(root, 'data/nta-sources/shitsugi/shohi/02');
+      fs.mkdirSync(directory, { recursive: true });
+      const previous = { body_combined: '回答', title: '題名', kankei_hourei: '第1条',
+        law_version: old2200.law_version, html_hash: 'old', images: [{ sha256: 'old-figure' }], fetched_at: priorDate };
+      const firstVersions = {};
+      const previousVersions = {};
+      const changes = { changed: { images: [{ sha256: 'new-figure' }] }, added: {}, removed: { images: undefined },
+        same: {}, title: { title: '新しい題名' }, law: { kankei_hourei: '第2条' } };
+      for (const [id, change] of Object.entries(changes)) {
+        const relative = `data/nta-sources/shitsugi/shohi/02/${id}.json`;
+        firstVersions[relative] = { fetched_at: '2026-06-21T00:00:00Z' };
+        previousVersions[relative] = id === 'added' ? { ...previous, images: undefined } : previous;
+        fs.writeFileSync(path.join(root, relative), JSON.stringify({ ...previous, ...change, id, type: 'shitsugi',
+          law_version: new2200.law_version, html_hash: 'new', fetched_at: fetchedAt }));
+      }
+      const historyFile = path.join(root, 'history.json');
+      fs.writeFileSync(historyFile, JSON.stringify({ firstVersions, previousVersions }));
+      const preview = backfill({ root, historyFile, dryRun: true });
+      assert.equal(preview.changed.filter(item => item.kind === 'law_version').length, 5);
+      assert.equal(preview.changed.filter(item => item.kind === 'as_of').length, 1);
+      assert.deepEqual(backfill({ root, historyFile }), preview);
+      for (const id of Object.keys(changes)) {
+        assert.deepEqual(historyOf(readJson(path.join(directory, `${id}.json`))), id === 'same'
+          ? [undefined, undefined, fetchedAt] : [fetchedAt, 'law_version', undefined]);
+      }
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+  });
+
+  await test('F3. 本文内の「お問い合わせ先」以降も内容として比較', () => {
+    const previous = { body: 'お問い合わせ先は所轄税務署。税率は10%', html_hash: 'old' };
+    assert.equal(detectContentChange(previous, { body: 'お問い合わせ先は所轄税務署。税率は20%', html_hash: 'new' }, fetchedAt).content_change_kind, 'body');
+    assert.equal(substantiveBody({ body: '本文。お問い合わせ先旧案内このコンテンツはお役にたちましたか？' }), '本文。');
+    assert.equal(substantiveBody({ body: 'お問い合わせ先の説明。本文。お問い合わせ先定型文このコンテンツはお役にたちましたか？' }),
+      'お問い合わせ先の説明。本文。');
+    const old = { body: '本文。お問い合わせ先旧案内このコンテンツはお役にたちましたか？', html_hash: 'old' };
+    const next = { body: '本文。お問い合わせ先新案内このコンテンツはお役にたちましたか？', html_hash: 'new' };
+    assert.deepEqual(historyOf(detectContentChange(old, next, fetchedAt)), [null, null, null]);
+  });
+
+  await test('F4. 基準日の全角半角・空白だけの差は改訂にしない', () => {
+    const previous = { body: '本文', law_version: '令和７年８月１日現在の法令・通達等', html_hash: 'old',
+      content_changed_at: priorDate, content_change_kind: 'body', as_of_changed_at: priorDate };
+    const current = { ...previous, law_version: '令和7年 8月1日 現在の法令・通達等', html_hash: 'new' };
+    assert.deepEqual(historyOf(detectContentChange(previous, current, fetchedAt)), historyOf(previous));
+    assert.equal(detectContentChange(previous, { ...current, body: '変更した本文' }, fetchedAt).content_change_kind, 'body');
+  });
+
+  await test('F5. 不完全な law_version や本文内の日付で内容の差を消さない', () => {
+    const previous = { body: '令和7年分の税率', law_version: '令和8年', html_hash: 'old' };
+    const current = { ...previous, body: '令和8年分の税率', html_hash: 'new' };
+    assert.deepEqual(historyOf(detectContentChange(previous, current, fetchedAt)), [fetchedAt, 'body', null]);
+    assert.equal(detectContentChange({ ...previous, law_version: '令和7年' }, current, fetchedAt).content_change_kind, 'law_version');
+    assert.equal(substantiveBody({ body: '本文で引用する令和8年4月1日現在法令等は残す。' }), '本文で引用する令和8年4月1日現在法令等は残す。');
+  });
+
+  await test('F6. 基準日だけの案内文は操作できるカードだけに表示', () => {
+    const candidate = { slug: 'asof', refreshable: false,
+      reasons: [{ kind: 'source_as_of_updated', detail: '基準日の改訂', where: '出典欄' }] };
+    const guide = '内容の変更はありません。記事の記述が今も正しいか確かめて「確認済み（変更なし）」を押してください。';
+    assert(renderPage([candidate], []).includes(guide));
+    const unsupported = renderPage([{ ...candidate, slug: 'bad/slug' }], []);
+    assert(!unsupported.includes(guide));
+    assert(!unsupported.includes('data-action="reviewed"'));
+    const withPr = renderPage([candidate], [{ head: { ref: 'draft/refresh-asof' }, html_url: 'https://example.invalid/pr' }]);
+    assert(!withPr.includes(guide));
+    assert(withPr.includes('更新案あり：'));
+    assert(withPr.includes('data-action="reviewed"'));
   });
 
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
