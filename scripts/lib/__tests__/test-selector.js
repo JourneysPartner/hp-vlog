@@ -51,7 +51,7 @@ console.log('\n=== Test 2: 既存記事と完全一致する slug の候補は�
     const m = raw.match(/^slug:\s*"?([^"\n\r]+)"?/m);
     if (m) existingSlugs.add(m[1].trim());
   }
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   for (const p of picks) {
     assert(!existingSlugs.has(p.slug), `pick ${p.slug} は既存slugと重複していない`);
   }
@@ -59,7 +59,7 @@ console.log('\n=== Test 2: 既存記事と完全一致する slug の候補は�
 
 console.log('\n=== Test 3: 同日2本のペアは類似度 < 0.45 ===');
 {
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   if (picks.length === 2) {
     const sim = similarityScore(picks[0], { ...picks[1], primary_persona: picks[1].persona }).score;
     assert(sim < 0.45, `pair similarity = ${sim.toFixed(3)} (< 0.45)`);
@@ -75,7 +75,7 @@ console.log('\n=== Test 3b: 同日2本は main + support の役割になる ==='
   const isMain = (t) => MAIN_TYPES.has(t.article_type);
   const isSupport = (t) => !MAIN_TYPES.has(t.article_type);
 
-  const { picks } = selectDailyTopics(TOPICS, { now: new Date() });
+  const { picks } = selectDailyTopics(TOPICS, { now: new Date(), count: 2 });
   if (picks.length === 2) {
     const hasMain    = picks.some(isMain);
     const hasSupport = picks.some(isSupport);
@@ -115,7 +115,7 @@ console.log('\n=== Test 3c: buildBestPair の単体検証（main+support 強制�
   assert(!MAIN.has(r2[1].article_type), '2本目が support');
 }
 
-console.log('\n=== Test 4: ハードブロック (直近7日で macro が60%超) が機能 ===');
+console.log('\n=== Test 4: macro 目標比率連動のハードブロックが機能 ===');
 {
   const ratios = computeMacroRatios(new Date());
   const r7 = ratios.ratios[7];
@@ -175,6 +175,37 @@ console.log('\n=== Test 7: tax-authority-refs が tax_domain ごとに整って�
     const refs = getRefsForTopic({ ...sample });
     assert(refs.length > 0, `consumption_tax の topic から refs が取得できる`);
   }
+}
+
+console.log('\n=== Test 8: filter-target-query と topic_id ===');
+{
+  const demandTopic = TOPICS.find(t => t.demand_evidence &&
+    ['search-suggest', 'gsc'].includes(t.demand_evidence.kind) &&
+    Array.isArray(t.demand_evidence.phrases) && t.demand_evidence.phrases.length > 0);
+  if (demandTopic) {
+    const target = demandTopic.demand_evidence.phrases[0];
+    const blocked = selectDailyTopics([demandTopic], {
+      now: new Date(), count: 1, extraCorpus: [{ slug: 'query-owner', target_query: target }],
+    });
+    const step = blocked.explanation.steps.find(s => s.step === 'filter-target-query');
+    assert(step && step.blocked === 1 && step.remaining === 0, '一致する target_query を持つ候補は除外');
+
+    const allowed = selectDailyTopics([demandTopic], {
+      now: new Date(), count: 1, extraCorpus: [{ slug: 'other-owner', target_query: '一致しない 検索語' }],
+    });
+    const allowedStep = allowed.explanation.steps.find(s => s.step === 'filter-target-query');
+    assert(allowedStep && allowedStep.blocked === 0 && allowedStep.remaining === 1, '不一致なら検索語ゲートを通る');
+  } else {
+    assert(false, '検索需要由来のテスト候補が存在する');
+    assert(false, '検索需要由来のテスト候補が存在する');
+  }
+
+  const topic = TOPICS[0];
+  const byTopicId = selectDailyTopics([topic], {
+    now: new Date(), count: 1, extraCorpus: [{ slug: 'different-url-slug', topic_id: topic.slug }],
+  });
+  const slugStep = byTopicId.explanation.steps.find(s => s.step === 'filter-existing-slugs');
+  assert(slugStep && slugStep.excluded === 1, 'filter-existing-slugs が topic_id でも一致');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

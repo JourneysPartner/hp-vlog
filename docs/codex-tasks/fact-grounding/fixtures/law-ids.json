@@ -1,0 +1,423 @@
+{
+  "checked_at": "2026-10-09",
+  "source": "e-Gov 法令API v2（laws?law_id= で題名・法令番号、law_data/<id>?elm=MainProvision で本則の条数・文字数・章立て）",
+  "estimated_chars_in_scope": 5183431,
+  "estimated_chars_note": "条の本文の文字数（見出し・JSON の枠を除く）。措置法と施行令は elms の章だけを条数の比で按分した概算",
+  "laws": [
+    {
+      "key": "shotokuzei_hou",
+      "law_id": "340AC0000000033",
+      "title": "所得税法",
+      "law_num": "昭和四十年法律第三十三号",
+      "aliases": [
+        "所法"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 302,
+        "chars": 260461,
+        "max_article_chars": 8739
+      }
+    },
+    {
+      "key": "shotokuzei_rei",
+      "law_id": "340CO0000000096",
+      "title": "所得税法施行令",
+      "law_num": "昭和四十年政令第九十六号",
+      "aliases": [
+        "所令"
+      ],
+      "current_amendment_enforcement_date": "2026-05-22",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 462,
+        "chars": 435157,
+        "max_article_chars": 11839
+      }
+    },
+    {
+      "key": "shotokuzei_ki",
+      "law_id": "340M50000040011",
+      "title": "所得税法施行規則",
+      "law_num": "昭和四十年大蔵省令第十一号",
+      "aliases": [
+        "所規"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 251,
+        "chars": 245383,
+        "max_article_chars": 9690
+      }
+    },
+    {
+      "key": "hojinzei_hou",
+      "law_id": "340AC0000000034",
+      "title": "法人税法",
+      "law_num": "昭和四十年法律第三十四号",
+      "aliases": [
+        "法法"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 262,
+        "chars": 332325,
+        "max_article_chars": 15761
+      }
+    },
+    {
+      "key": "hojinzei_rei",
+      "law_id": "340CO0000000097",
+      "title": "法人税法施行令",
+      "law_num": "昭和四十年政令第九十七号",
+      "aliases": [
+        "法令"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 465,
+        "chars": 745608,
+        "max_article_chars": 35724
+      },
+      "note": "別名「法令」は一般語と衝突するので、本文中の照合は「法令〇条」の形だけ（04 R1）"
+    },
+    {
+      "key": "hojinzei_ki",
+      "law_id": "340M50000040012",
+      "title": "法人税法施行規則",
+      "law_num": "昭和四十年大蔵省令第十二号",
+      "aliases": [
+        "法規"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 295,
+        "chars": 339150,
+        "max_article_chars": 27568
+      }
+    },
+    {
+      "key": "shohizei_hou",
+      "law_id": "363AC0000000108",
+      "title": "消費税法",
+      "law_num": "昭和六十三年法律第百八号",
+      "aliases": [
+        "消法"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 85,
+        "chars": 94420,
+        "max_article_chars": 5840
+      }
+    },
+    {
+      "key": "shohizei_rei",
+      "law_id": "363CO0000000360",
+      "title": "消費税法施行令",
+      "law_num": "昭和六十三年政令第三百六十号",
+      "aliases": [
+        "消令"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 127,
+        "chars": 144416,
+        "max_article_chars": 11830
+      }
+    },
+    {
+      "key": "shohizei_ki",
+      "law_id": "363M50000040053",
+      "title": "消費税法施行規則",
+      "law_num": "昭和六十三年大蔵省令第五十三号",
+      "aliases": [
+        "消規"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 71,
+        "chars": 54701,
+        "max_article_chars": 3283
+      }
+    },
+    {
+      "key": "sozokuzei_rei",
+      "law_id": "325CO0000000071",
+      "title": "相続税法施行令",
+      "law_num": "昭和二十五年政令第七十一号",
+      "aliases": [
+        "相令"
+      ],
+      "current_amendment_enforcement_date": "2026-04-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 91,
+        "chars": 61052,
+        "max_article_chars": 3210
+      }
+    },
+    {
+      "key": "tsusoku_hou",
+      "law_id": "337AC0000000066",
+      "title": "国税通則法",
+      "law_num": "昭和三十七年法律第六十六号",
+      "aliases": [
+        "通則法"
+      ],
+      "current_amendment_enforcement_date": "2026-06-24",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 194,
+        "chars": 113196,
+        "max_article_chars": 3500
+      }
+    },
+    {
+      "key": "denshi_choubo",
+      "law_id": "410AC0000000025",
+      "title": "電子計算機を使用して作成する国税関係帳簿書類の保存方法等の特例に関する法律",
+      "law_num": "平成十年法律第二十五号",
+      "aliases": [
+        "電帳法"
+      ],
+      "current_amendment_enforcement_date": "2025-04-01",
+      "status": "new",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 8,
+        "chars": 5188,
+        "max_article_chars": 2814
+      },
+      "note": "本則は章立てなし（8 条）"
+    },
+    {
+      "key": "sozeki_hou",
+      "law_id": "332AC0000000026",
+      "title": "租税特別措置法",
+      "law_num": "昭和三十二年法律第二十六号",
+      "aliases": [
+        "措法"
+      ],
+      "current_amendment_enforcement_date": "2026-10-01",
+      "status": "existing",
+      "elms": [
+        "MainProvision-Chapter_2",
+        "MainProvision-Chapter_3",
+        "MainProvision-Chapter_4"
+      ],
+      "main_provision": {
+        "articles": 496,
+        "chars": 1371317,
+        "max_article_chars": 27810
+      },
+      "chapters": [
+        {
+          "elm": "MainProvision-Chapter_1",
+          "title": "第一章　総則",
+          "count": 3,
+          "first": "1",
+          "last": "2_2"
+        },
+        {
+          "elm": "MainProvision-Chapter_2",
+          "title": "第二章　所得税法の特例",
+          "count": 199,
+          "first": "3",
+          "last": "42_3"
+        },
+        {
+          "elm": "MainProvision-Chapter_3",
+          "title": "第三章　法人税法の特例",
+          "count": 125,
+          "first": "42_3_2",
+          "last": "68_6"
+        },
+        {
+          "elm": "MainProvision-Chapter_4",
+          "title": "第四章　相続税法の特例",
+          "count": 54,
+          "first": "69",
+          "last": "70_13"
+        },
+        {
+          "elm": "MainProvision-Chapter_4_2",
+          "title": "第四章の二　地価税法の特例",
+          "count": 17,
+          "first": "71",
+          "last": "71_17"
+        },
+        {
+          "elm": "MainProvision-Chapter_5",
+          "title": "第五章　登録免許税法の特例",
+          "count": 33,
+          "first": "72",
+          "last": "84_7"
+        },
+        {
+          "elm": "MainProvision-Chapter_6",
+          "title": "第六章　消費税法等の特例",
+          "count": 59,
+          "first": "85",
+          "last": "92"
+        },
+        {
+          "elm": "MainProvision-Chapter_7",
+          "title": "第七章　利子税等の割合の特例",
+          "count": 4,
+          "first": "93",
+          "last": "96"
+        },
+        {
+          "elm": "MainProvision-Chapter_8",
+          "title": "第八章　雑則",
+          "count": 2,
+          "first": "97",
+          "last": "98"
+        }
+      ]
+    },
+    {
+      "key": "sozeki_rei",
+      "law_id": "332CO0000000043",
+      "title": "租税特別措置法施行令",
+      "law_num": "昭和三十二年政令第四十三号",
+      "aliases": [
+        "措令"
+      ],
+      "current_amendment_enforcement_date": "2026-07-31",
+      "status": "existing",
+      "elms": [
+        "MainProvision-Chapter_2",
+        "MainProvision-Chapter_3",
+        "MainProvision-Chapter_3_2"
+      ],
+      "main_provision": {
+        "articles": 526,
+        "chars": 1522653,
+        "max_article_chars": 30175
+      },
+      "note": "現行の定義は elms が Chapter_3 だけで、相続税法の特例（Chapter_3_2）を取り込んでいない",
+      "chapters": [
+        {
+          "elm": "MainProvision-Chapter_1",
+          "title": "第一章　総則",
+          "count": 2,
+          "first": "1",
+          "last": "1_2"
+        },
+        {
+          "elm": "MainProvision-Chapter_2",
+          "title": "第二章　所得税法の特例",
+          "count": 248,
+          "first": "1_3",
+          "last": "27_3"
+        },
+        {
+          "elm": "MainProvision-Chapter_3",
+          "title": "第三章　法人税法の特例",
+          "count": 127,
+          "first": "27_3_2",
+          "last": "39_37"
+        },
+        {
+          "elm": "MainProvision-Chapter_3_2",
+          "title": "第三章の二　相続税法の特例",
+          "count": 44,
+          "first": "40",
+          "last": "40_11"
+        },
+        {
+          "elm": "MainProvision-Chapter_3_3",
+          "title": "第三章の三　地価税法の特例",
+          "count": 14,
+          "first": "40_12",
+          "last": "40_25"
+        },
+        {
+          "elm": "MainProvision-Chapter_4",
+          "title": "第四章　登録免許税法の特例",
+          "count": 20,
+          "first": "41",
+          "last": "44_4"
+        },
+        {
+          "elm": "MainProvision-Chapter_5",
+          "title": "第五章　消費税法等の特例",
+          "count": 69,
+          "first": "45",
+          "last": "53"
+        },
+        {
+          "elm": "MainProvision-Chapter_6",
+          "title": "第六章　雑則",
+          "count": 2,
+          "first": "54",
+          "last": "55"
+        }
+      ]
+    },
+    {
+      "key": "sozokuzei",
+      "law_id": "325AC0000000073",
+      "title": "相続税法",
+      "law_num": "昭和二十五年法律第七十三号",
+      "aliases": [
+        "相法"
+      ],
+      "current_amendment_enforcement_date": "2026-04-01",
+      "status": "existing",
+      "elms": [
+        "MainProvision"
+      ],
+      "main_provision": {
+        "articles": 110,
+        "chars": 94386,
+        "max_article_chars": 6244
+      }
+    }
+  ]
+}

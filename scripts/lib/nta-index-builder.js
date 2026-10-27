@@ -60,6 +60,10 @@ function buildIndexEntry(entry, fileAbsPath) {
     deleted: entry.deleted === true,
     fetched_at: entry.fetched_at || null,
     last_modified: entry.last_modified || null,
+    first_fetched_at: entry.first_fetched_at || null,
+    content_changed_at: entry.content_changed_at || null,
+    content_change_kind: entry.content_change_kind || null,
+    law_version: entry.law_version || null,
   };
 }
 

@@ -46,14 +46,19 @@ jobs:
             const data = JSON.parse(fs.readFileSync('/tmp/analytics.json', 'utf8'));
             if (!data.ok) { console.error('APIエラー'); process.exit(1); }
             const out = {
-              note: 'どのページから問い合わせページへ進んだかの実測（直近90日）。週次で更新。',
+              note: 'どのページから問い合わせページへ進んだか（byFrom）と、送信完了の前にどのページを見ていたか（submittedFrom）の実測（直近90日）。週次で更新。',
               updated_at: new Date().toISOString(),
               days: 90,
               byFrom: data.contactFrom || {},
+              submittedFrom: data.submittedFrom || {},
             };
             fs.writeFileSync('data/contact-transitions.json', JSON.stringify(out, null, 2) + '\n');
-            const n = Object.keys(out.byFrom).length;
-            console.log('遷移元ページ: ' + n + ' 件');
+            const pageviews = (data.daily || []).reduce((sum, row) => sum + (row.pageviews || 0), 0);
+            console.log('直近90日の閲覧数: ' + pageviews + ' PV');
+            console.log('問い合わせページの閲覧数: ' + ((data.byPath || {})['/contact.html'] || 0) + ' PV');
+            console.log('送信完了ページの閲覧数: ' + ((data.byPath || {})['/contact-thanks.html'] || 0) + ' PV');
+            console.log('遷移元ページ: ' + Object.keys(out.byFrom).length + ' 件');
+            console.log('送信完了の遷移元ページ: ' + Object.keys(out.submittedFrom).length + ' 件');
           "
 
       - name: Check for changes

@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateAux } = require('./aux-model');
+const { generateAux, canUseAux, auxEnabled, auxProvider } = require('./aux-model');
 
 const SYSTEM_PROMPT = `あなたは日本の税務ブログの編集者です。
 候補トピックが既存記事と内容的に重複しているか判定してください。
@@ -48,6 +48,10 @@ function buildCorpusSummary(corpus) {
 function buildCandidateBlock(topic, idx) {
   const lines = [`### 候補${idx + 1}`];
   lines.push(`slug: ${topic.slug}`);
+  if (topic.target_query) lines.push(`target_query: ${topic.target_query}`);
+  if (topic.secondary_queries?.length) lines.push(`secondary_queries: ${topic.secondary_queries.join(' / ')}`);
+  if (topic.url_slug) lines.push(`url_slug: ${topic.url_slug}`);
+  if (topic.phrases?.length) lines.push(`phrases: ${topic.phrases.join(' / ')}`);
   if (topic.title) lines.push(`title: ${topic.title}`);
   if (topic.search_intent) lines.push(`intent: ${topic.search_intent}`);
   if (topic.primary_question) lines.push(`question: ${topic.primary_question}`);
@@ -63,13 +67,16 @@ function buildCandidateBlock(topic, idx) {
 // 選定時（checkDuplicatesWithAI）と生成後（checkGeneratedDuplicateWithAI）で共用する。
 function applyDeterministicGuard(parsed, picks, corpus) {
   const pickBySlug = Object.create(null);
-  for (const p of picks) if (p.slug) pickBySlug[p.slug] = p;
+  for (const p of picks) {
+    if (p.slug) pickBySlug[p.slug] = p;
+    if (p.url_slug) pickBySlug[p.url_slug] = p;
+  }
   const corpusBySlug = Object.create(null);
   for (const c of corpus) if (c.slug) corpusBySlug[c.slug] = c;
 
   for (const r of parsed) {
     if (!r.duplicate || !r.similar_to) continue;
-    const cand = pickBySlug[r.slug];
+    const cand = picks.length === 1 && parsed.length === 1 ? picks[0] : pickBySlug[r.slug];
     const existing = corpusBySlug[r.similar_to];
     if (!cand || !existing) continue;
 
@@ -114,6 +121,7 @@ function applyDeterministicGuard(parsed, picks, corpus) {
  */
 async function checkDuplicatesWithAI(picks, corpus) {
   if (!picks || picks.length === 0) return { results: [], skipped: true };
+  if (!canUseAux()) return { results: [], skipped: true, disabled: !auxEnabled() || auxProvider() === 'rule_based' };
 
   const candidateBlocks = picks
     .map((t, i) => buildCandidateBlock(t, i))
@@ -147,7 +155,8 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
       return { results: [], skipped: true, parseError: true };
     }
     const parsed = JSON.parse(jsonMatch[0]);
-    if (!Array.isArray(parsed)) {
+    if (!Array.isArray(parsed) || parsed.length === 0
+      || parsed.some(r => !r || typeof r.duplicate !== 'boolean')) {
       return { results: [], skipped: true, parseError: true };
     }
 
@@ -155,7 +164,7 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
 
     return { results: parsed, skipped: false };
   } catch (e) {
-    console.warn(`[ai-dedup] JSON parse失敗: ${e.message}`);
+    console.warn('[ai-dedup] JSON応答を読み取れません');
     return { results: [], skipped: true, parseError: true };
   }
 }
@@ -222,4 +231,4 @@ duplicateがfalseの場合、similar_toはnullにしてください。`;
 
 // buildCorpusSummary はテスト用にも公開する（LLM に渡す情報の欠落は
 // 重複見逃しに直結するため、内容を直接検証できるようにしておく）。
-module.exports = { checkDuplicatesWithAI, checkGeneratedDuplicateWithAI, buildCorpusSummary, buildGeneratedArticleBlock, applyDeterministicGuard };
+module.exports = { buildCandidateBlock, checkDuplicatesWithAI, checkGeneratedDuplicateWithAI, buildCorpusSummary, buildGeneratedArticleBlock, applyDeterministicGuard };

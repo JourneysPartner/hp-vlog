@@ -1,0 +1,709 @@
+{
+ "note": "2026-10-12 実 AI 照合 3 回目（03f 適用後）の記録から作成。下書き #642。claims は抜き出しの結果、recorded_* はそのときの判定。",
+ "pr": 642,
+ "slug": "newseg-retail_store-retail-apparel-season-inventory-apparel-guide",
+ "article_file": "articles/2026-09-26-newseg-retail_store-retail-apparel-season-inventory-apparel-guide.md",
+ "recorded_input_chars_total": 244495,
+ "recorded_calls": [
+  {
+   "task": "extract",
+   "input_chars": 5624
+  },
+  {
+   "task": "extract",
+   "input_chars": 3015
+  },
+  {
+   "task": "extract",
+   "input_chars": 3001
+  },
+  {
+   "task": "judge",
+   "input_chars": 30046
+  },
+  {
+   "task": "judge",
+   "input_chars": 30342
+  },
+  {
+   "task": "judge",
+   "input_chars": 35612
+  },
+  {
+   "task": "judge",
+   "input_chars": 32264
+  },
+  {
+   "task": "judge",
+   "input_chars": 23610
+  },
+  {
+   "task": "repair",
+   "input_chars": 53596
+  },
+  {
+   "task": "extract",
+   "input_chars": 871
+  },
+  {
+   "task": "judge",
+   "input_chars": 26514
+  }
+ ],
+ "known_errors": [
+  "c17",
+  "c37"
+ ],
+ "claims": [
+  {
+   "id": "c1",
+   "sentence": "（取得原価 − 期末時価）× 数量",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "金額",
+   "subject": "棚卸資産評価損",
+   "claim": "評価損の額は（取得原価−期末時価）×数量で計算する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c2",
+   "sentence": "新たに事業を開始した場合：その年の確定申告書の提出期限まで",
+   "heading": "個人事業主が低価法を使うための条件",
+   "type": "期限",
+   "subject": "低価法の届出",
+   "claim": "新規開業時の評価方法の届出期限はその年の確定申告書の提出期限",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c3",
+   "sentence": "国税庁タックスアンサー No.2080 では、棚卸表その他の決算書類について<strong>5年間の保存</strong>が定められています。",
+   "heading": "間違い③：評価損の根拠資料を残さない",
+   "type": "期限",
+   "subject": "決算書類の保存期間",
+   "claim": "棚卸表その他の決算書類は5年間の保存が必要",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "決算に関して作成した棚卸表その他の書類 5年",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c4",
+   "sentence": "棚卸表・決算書類を5年分保存できているか",
+   "heading": "自分で確認できるチェックリスト",
+   "type": "期限",
+   "subject": "書類の保存期間",
+   "claim": "棚卸表・決算書類は5年分保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c5",
+   "sentence": "帳簿・棚卸表などの決算関係書類は5年間の保存が必要",
+   "heading": "まとめ",
+   "type": "期限",
+   "subject": "決算関係書類の保存期間",
+   "claim": "帳簿・棚卸表などの決算関係書類は5年間の保存が必要",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c6",
+   "sentence": "電子データで作成した場合、電子帳簿保存法の要件（改ざん防止・検索機能）を満たす保存方法を整えることが2024年1月以降の義務となっています。",
+   "heading": "棚卸表はエクセルで管理してよいですか？",
+   "type": "適用年",
+   "subject": "電子帳簿保存法",
+   "claim": "電子データの要件に沿った保存は2024年1月以降の義務",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c7",
+   "sentence": "棚卸表は国税庁タックスアンサー No.2210 が示す「売上原価の計算に必要な記録」の一部でもあります。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "番号",
+   "subject": "棚卸表",
+   "claim": "棚卸表はタックスアンサーNo.2210の売上原価計算に必要な記録の一部",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c8",
+   "sentence": "国税庁タックスアンサー No.2080 では、棚卸表その他の決算書類について<strong>5年間の保存</strong>が定められています。",
+   "heading": "間違い③：評価損の根拠資料を残さない",
+   "type": "番号",
+   "subject": "帳簿書類の保存",
+   "claim": "決算書類の保存はタックスアンサーNo.2080に定めがある",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "決算に関して作成した棚卸表その他の書類 5年",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c9",
+   "sentence": "仕入れたときの金額（取得原価）をベースに在庫を評価します。",
+   "heading": "まず結論：売れ残り在庫を低く評価するには届出が必要",
+   "type": "要件",
+   "subject": "原価法",
+   "claim": "原価法は取得原価をベースに在庫を評価する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c10",
+   "sentence": "期末直前の仕入単価で全在庫を評価。もっとも簡便な方法",
+   "heading": "原価法とは",
+   "type": "要件",
+   "subject": "最終仕入原価法",
+   "claim": "最終仕入原価法は期末直前の仕入単価で全在庫を評価する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c11",
+   "sentence": "古い仕入れ分から先に出荷されたとみなして評価",
+   "heading": "原価法とは",
+   "type": "要件",
+   "subject": "先入先出法",
+   "claim": "先入先出法は古い仕入分から先に出荷されたとみなして評価する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c12",
+   "sentence": "仕入れのたびに平均単価を計算して評価",
+   "heading": "原価法とは",
+   "type": "要件",
+   "subject": "移動平均法",
+   "claim": "移動平均法は仕入れのたびに平均単価を計算して評価する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c13",
+   "sentence": "商品ごとに実際の取得原価で評価",
+   "heading": "原価法とは",
+   "type": "要件",
+   "subject": "個別法",
+   "claim": "個別法は商品ごとに実際の取得原価で評価する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c14",
+   "sentence": "時価が取得原価より下がっている商品については、その低い金額で帳簿に計上します。",
+   "heading": "低価法とは",
+   "type": "要件",
+   "subject": "低価法",
+   "claim": "時価が取得原価を下回る商品は時価で帳簿に計上する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c15",
+   "sentence": "これは「現在の状態で合理的に期待できる売却価格から、直接かかる費用を差し引いた金額」です。",
+   "heading": "シーズン落ち品の「時価」をどう決めるか",
+   "type": "要件",
+   "subject": "処分可能価額",
+   "claim": "処分可能価額は合理的な売却見込額から直接費用を差し引いた額",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c16",
+   "sentence": "「処分見込みがないので0円」とすることが合理的なケースもありますが、それを税務調査で説明するための根拠（処分見積書、廃棄の記録など）を残しておく必要があります。",
+   "heading": "シーズン落ち品の「時価」をどう決めるか",
+   "type": "要件",
+   "subject": "低価法の時価",
+   "claim": "時価を0円とする場合は処分見積書等の根拠を残す必要がある",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c17",
+   "sentence": "低価法の適用は、品目ごと（商品の種類ごと）に行います。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "低価法の適用単位",
+   "claim": "低価法は品目（商品の種類）ごとに適用する",
+   "recorded_status": "食い違い",
+   "recorded_quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+   "recorded_correct": "低価の事実の判定は、原則として棚卸資産の種類等を同じくするものごとに行います。ただし、事業の種類ごとに、かつ令第100条第1項の棚卸資産の区分ごとに一括して計算することも認められています。品目ごとに限るものではありません。",
+   "recorded_evidence_id": "tsutatsu:shotoku:47-9"
+  },
+  {
+   "id": "c18",
+   "sentence": "実務上は、棚卸表に以下を記録しておくことが求められます。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "棚卸表",
+   "claim": "低価法適用時は棚卸表に品番・数量・原価・時価等を記録する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c19",
+   "sentence": "決算時に「整然かつ明瞭に」作成・保存しておくことが求められています。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "棚卸表の保存",
+   "claim": "棚卸表は決算時に整然かつ明瞭に作成・保存する必要がある",
+   "recorded_status": "食い違い",
+   "recorded_quote": "記帳は、所得金額が正確に計算できるように、整然とかつ明瞭にする必要があります。",
+   "recorded_correct": "添付資料（No.2080）で「整然とかつ明瞭に」とされているのは記帳（帳簿への記載）についてです。棚卸表については「決算に関して作成した棚卸表その他の書類 5年」とあり、住所地や事業所などの所在地に5年間整理して保存する必要がある、とされています。なお、記事が出典としているNo.2210には、この記載はありません。",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c20",
+   "sentence": "廃棄の事実が確認できる記録（廃棄日・廃棄数量・廃棄方法・業者名など）が必要です。",
+   "heading": "廃棄処分した在庫の扱い",
+   "type": "要件",
+   "subject": "棚卸資産廃棄損",
+   "claim": "廃棄損計上には廃棄日・数量・方法・業者名等の記録が必要",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c21",
+   "sentence": "廃棄業者の受領書・写真記録などを保存してください。",
+   "heading": "廃棄処分した在庫の扱い",
+   "type": "要件",
+   "subject": "棚卸資産廃棄損",
+   "claim": "廃棄損の証拠として業者の受領書や写真記録を保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c22",
+   "sentence": "対策：棚卸表の「単価」欄には仕入れ値を記入する。",
+   "heading": "間違い②：期末在庫の評価単価を「売値」で計算する",
+   "type": "要件",
+   "subject": "棚卸表の記載",
+   "claim": "棚卸表の単価欄には仕入れ値を記入する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c23",
+   "sentence": "対策：値下げセールの価格表、アウトレット販売の実績、廃棄業者の見積書など、時価の根拠になる書類を棚卸表とセットで保存する。",
+   "heading": "間違い③：評価損の根拠資料を残さない",
+   "type": "要件",
+   "subject": "時価の根拠資料",
+   "claim": "時価の根拠書類は棚卸表とセットで保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c24",
+   "sentence": "商品ごとに数量・仕入単価が記録されているか",
+   "heading": "自分で確認できるチェックリスト",
+   "type": "要件",
+   "subject": "棚卸表の品目別記録",
+   "claim": "棚卸表には商品ごとに数量と仕入単価を記録する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c25",
+   "sentence": "廃棄日・数量・業者受領書などが保存されているか",
+   "heading": "自分で確認できるチェックリスト",
+   "type": "要件",
+   "subject": "廃棄在庫の証拠",
+   "claim": "廃棄在庫は廃棄日・数量・業者受領書などを保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c26",
+   "sentence": "税務上、棚卸資産は品目ごとに評価する必要があります。",
+   "heading": "全商品をまとめて「在庫一式○○円」と計上してよいですか？",
+   "type": "要件",
+   "subject": "棚卸資産の評価単位",
+   "claim": "棚卸資産は品目ごとに評価する必要がある",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c27",
+   "sentence": "品番・商品種別ごとに数量と単価を記録した棚卸表を作成してください。",
+   "heading": "全商品をまとめて「在庫一式○○円」と計上してよいですか？",
+   "type": "要件",
+   "subject": "棚卸表の作成",
+   "claim": "品番・商品種別ごとに数量と単価を記録した棚卸表を作成する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c28",
+   "sentence": "低価法の時価は「期末時点での処分可能価額」です。",
+   "heading": "値下げして販売中の商品も低価法で評価できますか？",
+   "type": "要件",
+   "subject": "低価法の時価",
+   "claim": "低価法の時価は期末時点での処分可能価額である",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c29",
+   "sentence": "形式よりも「品目・数量・単価・評価額が整然と記録されているか」が重要です。",
+   "heading": "棚卸表はエクセルで管理してよいですか？",
+   "type": "要件",
+   "subject": "棚卸表の記載事項",
+   "claim": "棚卸表には品目・数量・単価・評価額を整然と記録する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c30",
+   "sentence": "電子データで作成した場合、電子帳簿保存法の要件（改ざん防止・検索機能）を満たす保存方法を整えることが2024年1月以降の義務となっています。",
+   "heading": "棚卸表はエクセルで管理してよいですか？",
+   "type": "要件",
+   "subject": "電子帳簿保存法",
+   "claim": "電子作成の棚卸表は改ざん防止・検索機能の要件を満たし保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c31",
+   "sentence": "時価の根拠（値下げ実績・廃棄見積書など）を棚卸表とセットで保存しておくことが重要",
+   "heading": "まとめ",
+   "type": "要件",
+   "subject": "時価の根拠資料",
+   "claim": "時価の根拠資料は棚卸表とセットで保存する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c32",
+   "sentence": "その差額は評価損として必要経費に算入でき、利益を圧縮する効果があります。",
+   "heading": "（導入）",
+   "type": "判定",
+   "subject": "棚卸資産評価損",
+   "claim": "低価法による評価差額は評価損として必要経費に算入できる",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c33",
+   "sentence": "届出なしで「なんとなく安い金額にした」では税務上認められません。",
+   "heading": "まず結論：売れ残り在庫を低く評価するには届出が必要",
+   "type": "判定",
+   "subject": "低価法の選択",
+   "claim": "届出なしで任意に安く評価することは税務上認められない",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c34",
+   "sentence": "個人事業主・法人ともに基本はこちらで、届出なしの場合は原価法が適用されます。",
+   "heading": "原価法とは",
+   "type": "判定",
+   "subject": "原価法",
+   "claim": "個人・法人とも届出がなければ原価法が適用される",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c35",
+   "sentence": "その差額は棚卸資産評価損として計上され、税務上の必要経費（売上原価の増加）として扱われます。",
+   "heading": "低価法とは",
+   "type": "判定",
+   "subject": "棚卸資産評価損",
+   "claim": "低価法の差額は評価損として必要経費（売上原価の増加）になる",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c36",
+   "sentence": "届出をしていない場合は、原価法（最終仕入原価法）での評価となり、売れ残り在庫を時価で低く評価することはできません。",
+   "heading": "個人事業主が低価法を使うための条件",
+   "type": "判定",
+   "subject": "法定評価方法",
+   "claim": "届出がなければ最終仕入原価法となり時価で低く評価できない",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c37",
+   "sentence": "「アパレル全体の平均で下がっている」という評価方法は認められません。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "判定",
+   "subject": "低価法の適用単位",
+   "claim": "全体平均での時価下落を理由とする評価は認められない",
+   "recorded_status": "食い違い",
+   "recorded_quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+   "recorded_correct": "低価の事実の判定は、原則として棚卸資産の種類等を同じくするものごとに行います。ただし、事業の種類ごとに、かつ、棚卸資産の区分（令100条1項）ごとに一括して計算することも認められています。品目ごとの判定だけが認められるわけではありません。",
+   "recorded_evidence_id": "tsutatsu:shotoku:47-9"
+  },
+  {
+   "id": "c38",
+   "sentence": "「年末に在庫ゼロにするため全部廃棄した」という処理を税務調査で問われた際に、廃棄の証拠がないと否認されるリスクがあります。",
+   "heading": "廃棄処分した在庫の扱い",
+   "type": "判定",
+   "subject": "棚卸資産廃棄損",
+   "claim": "廃棄の証拠がなければ税務調査で廃棄損が否認されるおそれがある",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c39",
+   "sentence": "届出をしていないのに「処分品だから安い金額で棚卸しした」という処理が最もよくある誤りです。",
+   "heading": "間違い①：届出なしで売れ残りを安い金額で計上する",
+   "type": "判定",
+   "subject": "低価法の届出",
+   "claim": "届出なしで処分品を安い金額で棚卸計上するのは誤り",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c40",
+   "sentence": "法令上の根拠なしに時価評価することは、在庫の過少計上として指摘されます。",
+   "heading": "間違い①：届出なしで売れ残りを安い金額で計上する",
+   "type": "判定",
+   "subject": "棚卸資産の時価評価",
+   "claim": "法令上の根拠なく時価評価すると在庫の過少計上として指摘される",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c41",
+   "sentence": "届出なしの場合は最終仕入原価法で計上し、廃棄した分は廃棄損で別途対応する。",
+   "heading": "間違い①：届出なしで売れ残りを安い金額で計上する",
+   "type": "判定",
+   "subject": "法定評価方法・廃棄損",
+   "claim": "届出がなければ最終仕入原価法で評価し、廃棄分は廃棄損で処理する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c42",
+   "sentence": "在庫の評価は<strong>取得原価</strong>（仕入れた価格）が基本であり、売値ではありません。",
+   "heading": "間違い②：期末在庫の評価単価を「売値」で計算する",
+   "type": "判定",
+   "subject": "棚卸資産の評価基準",
+   "claim": "在庫の評価は取得原価が基本であり、売値ではない",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c43",
+   "sentence": "低価法で評価損を計上しても、根拠となる時価の算定根拠を残していないと税務調査で否認されることがあります。",
+   "heading": "間違い③：評価損の根拠資料を残さない",
+   "type": "判定",
+   "subject": "低価法の評価損",
+   "claim": "時価の算定根拠がないと低価法の評価損は税務調査で否認され得る",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c44",
+   "sentence": "低価法の届出があるか。なければ原価法で計上",
+   "heading": "自分で確認できるチェックリスト",
+   "type": "判定",
+   "subject": "評価方法の届出状況",
+   "claim": "低価法の届出がなければ原価法で計上する",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c45",
+   "sentence": "低価法の届出をしていないが、大量の売れ残りを安い金額で計上してしまった（過去の申告の修正が必要になる可能性があります）",
+   "heading": "税理士に相談した方がよいケース",
+   "type": "判定",
+   "subject": "低価法の届出",
+   "claim": "届出なしで売れ残りを安く計上した場合は過去の申告修正が必要になり得る",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c46",
+   "sentence": "「一式」での計上は、税務調査で内訳の説明を求められた際に対応できないリスクがあります。",
+   "heading": "全商品をまとめて「在庫一式○○円」と計上してよいですか？",
+   "type": "判定",
+   "subject": "在庫の一式計上",
+   "claim": "在庫の一式計上では税務調査で内訳を説明できないリスクがある",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  }
+ ],
+ "rechecked": [
+  {
+   "id": "c1",
+   "sentence": "低価の事実の判定は、原則として棚卸資産の種類等を同じくするものごとに行います。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "判定",
+   "subject": "低価法（低価の事実の判定単位）",
+   "claim": "低価の事実の判定は、原則として棚卸資産の種類等が同じものごとに行う。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが",
+   "recorded_correct": "",
+   "recorded_evidence_id": "tsutatsu:shotoku:47-9"
+  },
+  {
+   "id": "c2",
+   "sentence": "ただし、事業の種類ごとに、かつ棚卸資産の区分ごとに一括して計算することも認められています。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "低価法（一括計算の特例）",
+   "claim": "事業の種類ごと、かつ棚卸資産の区分ごとに一括して計算することも認められる。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+   "recorded_correct": "",
+   "recorded_evidence_id": "tsutatsu:shotoku:47-9"
+  },
+  {
+   "id": "c3",
+   "sentence": "棚卸表は売上原価の計算に必要な記録の一部でもあります。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "棚卸表（帳簿書類）",
+   "claim": "棚卸表は売上原価の計算に必要な記録の一部である。",
+   "recorded_status": "資料なし",
+   "recorded_quote": "",
+   "recorded_correct": "",
+   "recorded_evidence_id": ""
+  },
+  {
+   "id": "c4",
+   "sentence": "決算に関して作成した棚卸表は、住所地や事業所などの所在地に整理して保存する必要があります（保存期間は国税庁タックスアンサー No.2080 で確認してください）。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "要件",
+   "subject": "棚卸表の保存義務",
+   "claim": "決算に関して作成した棚卸表は、住所地や事業所等の所在地に整理して保存する必要がある。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "上記(1)イに該当する方は、帳簿や書類を5年間（記帳制度適用者が記帳制度に基づいて作成した帳簿については7年間）、その方の住所地や事業所などの所在地に整理して保存する必要があります。",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c5",
+   "sentence": "決算に関して作成した棚卸表は、住所地や事業所などの所在地に整理して保存する必要があります（保存期間は国税庁タックスアンサー No.2080 で確認してください）。",
+   "heading": "品目ごとに評価する必要があるか",
+   "type": "番号",
+   "subject": "棚卸表の保存期間",
+   "claim": "棚卸表の保存期間はタックスアンサーNo.2080に記載されている。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "決算に関して作成した棚卸表その他の書類 5年",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c6",
+   "sentence": "棚卸表・決算書類の保存期間を国税庁のタックスアンサーで確認し、保存できているか",
+   "heading": "自分で確認できるチェックリスト",
+   "type": "要件",
+   "subject": "棚卸表・決算書類の保存義務",
+   "claim": "棚卸表・決算書類には保存期間の定めがあり、保存が必要である。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "決算に関して作成した棚卸表その他の書類 5年",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c7",
+   "sentence": "電子データで保存する場合の要件については、国税庁の「電子帳簿保存法Q&A（一問一答）」で確認してください。",
+   "heading": "棚卸表はエクセルで管理してよいですか？",
+   "type": "要件",
+   "subject": "電子帳簿保存法（電子データ保存）",
+   "claim": "棚卸表を電子データで保存する場合には、電子帳簿保存法上の要件がある。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "（注）一定の要件の下、電子計算機を使用して作成する帳簿および書類に係る電磁的記録をもって、帳簿書類などの保存に代えることができることとされています。",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  },
+  {
+   "id": "c8",
+   "sentence": "帳簿・棚卸表などの決算関係書類の保存期間は、国税庁のタックスアンサーで確認しておく",
+   "heading": "まとめ",
+   "type": "要件",
+   "subject": "帳簿・決算関係書類の保存義務",
+   "claim": "帳簿・棚卸表などの決算関係書類には保存期間の定めがある。",
+   "recorded_status": "裏付けあり",
+   "recorded_quote": "保存が必要なもの保存期間収入金額や必要経費を記載した帳簿（法定帳簿） 7年業務に関して作成した上記以外の帳簿（任意帳簿） 5年決算に関して作成した棚卸表その他の書類 5年",
+   "recorded_correct": "",
+   "recorded_evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+  }
+ ]
+}

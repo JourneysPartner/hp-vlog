@@ -1,0 +1,859 @@
+{
+  "property": "https://mori-zeirishi.net/",
+  "range": {
+    "start": "2026-09-04",
+    "end": "2026-10-01"
+  },
+  "dimensions": [
+    "query"
+  ],
+  "rows": [
+    {
+      "clicks": 1,
+      "impressions": 8,
+      "ctr": 0.125,
+      "position": 8.875,
+      "query": "美容室 簡易課税 何種"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 30,
+      "query": "ebay 予約販売"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5,
+      "query": "ebay 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 48,
+      "query": "ebay 税理士"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 26.142857142857142,
+      "query": "kindle unlimited 確定申告 領収書"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 3,
+      "query": "note 販売手数料 有料記事 2026"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 3,
+      "query": "shopify 手数料 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 17,
+      "query": "shopify 海外 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 11,
+      "ctr": 0,
+      "position": 2.090909090909091,
+      "query": "shopify 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7,
+      "query": "site:nta.go.jp \"特定新設法人\" 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 39,
+      "query": "youtube 副業支援プラットフォーム"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4,
+      "query": "youtube 報酬 仕組み"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 8,
+      "query": "youtube 源泉徴収"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 9,
+      "query": "youtuber 源泉徴収"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 24,
+      "query": "お中元 どこまで"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "お歳暮 どこまで"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "てんばい"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 11.88888888888889,
+      "query": "アフィリエイト インボイス"
+    },
+    {
+      "clicks": 0,
+      "impressions": 20,
+      "ctr": 0,
+      "position": 14.9,
+      "query": "アフィリエイト 法人化"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 11,
+      "query": "アフィリエイト 法人化 メリット"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 6,
+      "query": "アフィリエイト 法人化 目安"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 26,
+      "query": "アフィリエイト 総合課税\""
+    },
+    {
+      "clicks": 0,
+      "impressions": 10,
+      "ctr": 0,
+      "position": 19.6,
+      "query": "イン ボイス 制度 レシート"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 19,
+      "query": "インフルエンサー 法人化"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 30,
+      "query": "インボイス レシート"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 30.23076923076923,
+      "query": "インボイス レジ"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 24,
+      "query": "インボイス 小売"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 11.692307692307692,
+      "query": "インボイス制度 アフィリエイト"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 35,
+      "query": "インボイス制度 コンビニ レシート"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18,
+      "query": "インボイス制度 スーパー"
+    },
+    {
+      "clicks": 0,
+      "impressions": 14,
+      "ctr": 0,
+      "position": 16.714285714285715,
+      "query": "インボイス制度 レシート"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25,
+      "query": "インボイス制度 仕訳例"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 19.625,
+      "query": "インボイス制度 小売"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 22.2,
+      "query": "オンラインサロン 会費 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 23,
+      "query": "オンラインサロン 個人事業主"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 37,
+      "query": "オンラインサロン 利用料"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "オンラインサロン 利益"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 19.5,
+      "query": "オンラインサロン 勘定科目"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 38,
+      "query": "オンラインサロン 報酬"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11,
+      "query": "オンラインサロン 確定申告"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 11.166666666666666,
+      "query": "オンラインサロン 税金"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11.5,
+      "query": "オンラインサロン 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "オンラインサロン 課金"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 29,
+      "query": "ガソリン代 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 29.5,
+      "query": "ゲーム 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "ゲーム機 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 8,
+      "query": "コンテンツ販売 税理士"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 26.2,
+      "query": "サブスク 経費 領収書"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 10.6,
+      "query": "ブログ 法人化"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "ペンキ 勘定科目"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "リース料 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "レシート 外税とは"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 48,
+      "query": "レシート 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 30.333333333333332,
+      "query": "レジ インボイス"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 28.875,
+      "query": "レジ 現金過不足"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 17,
+      "query": "一人親方 源泉徴収"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 17.333333333333332,
+      "query": "一人親方 白色申告 帳簿"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "一人親方 経費 車"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 13,
+      "query": "一人親方 車 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 41,
+      "query": "人工 代"
+    },
+    {
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 37.25,
+      "query": "人工代"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 84,
+      "query": "会計 ソフト 入力 代行"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 8,
+      "query": "副業の広告収入は何税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 16.5,
+      "query": "印税 源泉徴収"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 6,
+      "query": "印税 確定申告"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 12,
+      "query": "印税収入 税金"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 8,
+      "query": "収入 売上 違い"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 50,
+      "query": "商品廃棄損 仕訳"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品廃棄損 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 32.6,
+      "query": "固定資産税 経費"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5,
+      "query": "国税庁 家事関連費 必要経費 按分"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 9.25,
+      "query": "塗料 勘定科目"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5,
+      "query": "塗料は？"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 29,
+      "query": "専属外注とは"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 19,
+      "query": "小売業 インボイス 相談"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 41,
+      "query": "帳簿の種類 確定申告"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 64,
+      "query": "役員 報酬 シミュレーション"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 81.33333333333333,
+      "query": "役員 報酬 手取り シミュレーション"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 62.6,
+      "query": "役員報酬 シミュレーション"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 82,
+      "query": "役員報酬 決め方 シュミレーション"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "応援人工代"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "query": "森小路"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 6.142857142857143,
+      "query": "毛利税理士事務所"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 66.66666666666667,
+      "query": "法人化 相談"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 49,
+      "query": "法人成り 相談"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "特定 仕 入"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 19.142857142857142,
+      "query": "特定課税仕入とは"
+    },
+    {
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 13.6875,
+      "query": "特定課税仕入れ"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "特定課税仕入れとは"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "特定課税仕入れに係る支払対価の額"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "現金 過 不足 仕訳"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 23,
+      "query": "現金売上 仕訳"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6,
+      "query": "確定申告 ガソリン代"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 18.333333333333332,
+      "query": "確定申告 サブスク"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25,
+      "query": "確定申告 保存期間"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 32,
+      "query": "確定申告 固定資産税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 37.92307692307692,
+      "query": "確定申告 帳簿"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4,
+      "query": "確定申告 帳簿 保存期間"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "確定申告 帳簿の種類"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "query": "立替金 領収書 書き方"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 45.6,
+      "query": "簡易 イン ボイス"
+    },
+    {
+      "clicks": 0,
+      "impressions": 10,
+      "ctr": 0,
+      "position": 47,
+      "query": "簡易インボイス"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "簡易インボイス 書き方"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 46,
+      "query": "簡易インボイス 業種"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 40,
+      "query": "簡易インボイス 記載事項"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 54.5,
+      "query": "簡易インボイス 領収書"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10,
+      "query": "簡易課税 美容室"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 25.166666666666668,
+      "query": "経費 ガソリン代"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 40,
+      "query": "美容室 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 9.833333333333334,
+      "query": "美容室 簡易課税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.333333333333334,
+      "query": "美容院 消費税"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 24,
+      "query": "解説系youtuber"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "課税ミス"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "請求書 材料費 書き方"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4,
+      "query": "資本的支出 減価償却"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 34.142857142857146,
+      "query": "適格 簡易 請求 書"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 36.57142857142857,
+      "query": "適格簡易請求書"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 21,
+      "query": "適格簡易請求書 レシート"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 3,
+      "query": "青色申告 帳簿 書類 保存期間 7年 国税庁"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7,
+      "query": "領収書 宛名 住所 記載義務 消費税法"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "駐車場代 経費"
+    }
+  ]
+}

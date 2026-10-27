@@ -5,6 +5,7 @@ const {
   COOKIE_NAME, DEFAULT_PRODUCTION_HOST, jstDate, jstMinute, hash, parseCookies,
   issueVisitorCookie, verifyVisitorCookie, cookieHeader, isProductionRequest, isBot,
   parseBeaconBody, parseBeaconPayload, markUnique, markRate, rateKey, incrementPageview, incrementTransition,
+  CONTACT_PATH, THANKS_PATH, incrementSubmission,
 } = require('./lib/analytics-store');
 
 function noContent(headers = {}) {
@@ -60,10 +61,12 @@ async function handler(event, { getStoreFn = getStore } = {}) {
     ownRateMarker = rateKey(minute, vidHash, path);
 
     const stored = await incrementPageview(store, date, path);
-    // 問い合わせページへの遷移なら、どのページから来たかも記録する
-    // （どの記事が問い合わせを生んだかの実測。失敗しても閲覧記録には影響させない）
+    // 問い合わせ・送信完了の遷移元を別々に記録する。失敗しても閲覧記録には影響させない。
     if (ref) {
-      try { await incrementTransition(store, date, ref); }
+      try {
+        if (path === CONTACT_PATH) await incrementTransition(store, date, ref);
+        else if (path === THANKS_PATH) await incrementSubmission(store, date, ref);
+      }
       catch (e) { console.warn('[track-visit] 遷移の記録に失敗:', e.message); }
     }
     if (!stored) {

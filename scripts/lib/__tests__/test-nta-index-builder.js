@@ -66,6 +66,10 @@ console.log('\n=== Test 2: buildIndexEntry ===');
     char_count_body: 3127,
     fetched_at: '2026-06-21T10:00:00Z',
     last_modified: 'Wed, 22 Oct 2025 01:00:15 GMT',
+    first_fetched_at: '2026-06-21T10:00:00Z',
+    content_changed_at: '2026-08-01T10:00:00Z',
+    content_change_kind: 'law_version',
+    law_version: '令和8年4月1日現在法令等',
   };
   const fileAbsPath = path.join(builder.INDEX_FILE.replace(/index\.json$/, ''),
     'taxanswer', 'shohi', '6501.json');
@@ -79,6 +83,9 @@ console.log('\n=== Test 2: buildIndexEntry ===');
   assert(idx.char_count_body === 3127, `char_count_body 保持`);
   assert(idx.deleted === false, `deleted=false`);
   assert(idx.section === null, `section=null (taxanswer)`);
+  assert(idx.first_fetched_at === entry.first_fetched_at && idx.content_changed_at === entry.content_changed_at
+    && idx.content_change_kind === entry.content_change_kind && idx.law_version === entry.law_version, '追加4項目を載せる');
+  assert(Object.keys(idx).slice(-4).join(',') === 'first_fetched_at,content_changed_at,content_change_kind,law_version', '既存項目の後に追加する');
   // body は含まれない
   assert(!('body' in idx), `body は含まれない（軽量サマリ）`);
 }

@@ -4,7 +4,7 @@
  * 記事生成の「固定プロンプト」（毎回ほぼ変わらないルール群）
  *
  * 目的:
- *   - Anthropic prompt caching（Claude Sonnet 4.6）の cache 対象にできるよう、
+ *   - Anthropic prompt caching（Claude Sonnet 5.5）の cache 対象にできるよう、
  *     固定ルールを 1 箇所に集約する。
  *   - 可変部分（topic / title / persona / source_url / 差し戻しコメント等）は
  *     article-prompt-builder.js 側で組み立てる。
@@ -96,14 +96,39 @@ const WORD_COUNT_RANGE = {
   case_study:          { min: 4000, max: 5500 },
 };
 
+const WORD_COUNT_RANGE_BY_INTENT = {
+  answer: { min: 2500, max: 4000 },
+  decide: { min: 4000, max: 6000 },
+  guide:  { min: 5000, max: 7000 },
+};
+
+const MAIN_ARTICLE_TYPES = new Set(['basic_explainer', 'comparison_decision']);
+
+/** 意図がある本命記事は意図別、補強記事は従来の記事タイプ別レンジを返す。 */
+function rangeFor({ articleType, intentType, articleRole } = {}) {
+  const isSupport = articleRole === 'support'
+    || (!articleRole && articleType && !MAIN_ARTICLE_TYPES.has(articleType));
+  if (!isSupport && WORD_COUNT_RANGE_BY_INTENT[intentType]) {
+    return WORD_COUNT_RANGE_BY_INTENT[intentType];
+  }
+  return WORD_COUNT_RANGE[articleType] || WORD_COUNT_RANGE.edge_case;
+}
+
 // ── 文字数指示のキャリブレーション ─────────────────────────────
 // LLM は指示した上限を一定割合で超えて出力する。2026-08-15 の実測:
 //   本命 basic_explainer : 指示上限 7,000 → 実測 7,767 (1.1096)
 //   補強 edge_case       : 指示上限 5,000 → 実測 5,552 (1.1104)
-// 記事タイプが違っても比率がほぼ一致したため、一律 1.11 倍で補正する。
-// プロンプトには「受入基準 ÷ 1.11」を指示値として渡し、実出力が受入基準に
-// 収まるようにする（指示値をそのまま書くと必ず超過する）。
+// 表に無いモデルは Sonnet 4.6 の実測値を維持する。
 const LENGTH_OVERSHOOT = 1.11;
+// 旧指示上限: floor100(7000 / 1.11 * 0.98) = 6100 字。
+// 10/16: 7371 / 6100 = 1.20836、10/19: 7760 / 6100 = 1.27213。
+// 2 回の大きい方で補正し、同じ LENGTH_SAFETY でさらに余白を取る。
+const LENGTH_OVERSHOOT_BY_MODEL = {
+  'claude-sonnet-5-5': Math.max(7371 / 6100, 7760 / 6100),
+  // 2026-10-19 の実測: この補正の指示で 5,308字・6,136字、いずれも1回で上限内。
+  'deepseek/deepseek-v4.1-flash-1017': 1.11,
+};
+const currentWritingModel = () => process.env.CONTENT_MODEL || 'claude-sonnet-5-5';
 // 実測は2件のみで分散が不明なため、さらに安全側へ丸める余白。
 const LENGTH_SAFETY = 0.98;
 
@@ -111,10 +136,11 @@ const LENGTH_SAFETY = 0.98;
 const floor100 = n => Math.floor(n / 100) * 100;
 
 /** 受入基準から、LLM に提示する指示レンジを算出する */
-function calibratedRange(range) {
+function calibratedRange(range, model = currentWritingModel()) {
+  const overshoot = Object.hasOwn(LENGTH_OVERSHOOT_BY_MODEL, model) ? LENGTH_OVERSHOOT_BY_MODEL[model] : LENGTH_OVERSHOOT;
   return {
-    min: floor100(range.min / LENGTH_OVERSHOOT),
-    max: floor100((range.max / LENGTH_OVERSHOOT) * LENGTH_SAFETY),
+    min: floor100(range.min / overshoot),
+    max: floor100((range.max / overshoot) * LENGTH_SAFETY),
   };
 }
 
@@ -137,30 +163,48 @@ function calibratedRange(range) {
 //     まとめ途中で切断され、ensureDisclaimer が免責文を付与して
 //     検出を擦り抜けた
 // → 出力枠を広げた現在も「免責文・CTA まで完結」は絶対条件のまま。
-function guideTextFor(range) {
-  const c = calibratedRange(range);
+function guideTextFor(range, model) {
+  const c = calibratedRange(range, model);
   return `${c.min}〜${c.max}文字（下限・上限とも厳守。${c.max}文字を1文字でも超えないこと。免責文・CTA まで必ず含める）`;
 }
 
-// ── 出力トークン上限（受入上限を物理的に超えられなくする）─────────
-// プロンプトでの指示（キャリブレーション）は「守らせる」努力目標であり、
-// 超過を完全には防げない。max_tokens は API 側の物理制約なので、
-// 受入上限に相当するトークン数を上限に設定すれば絶対に超えられない。
-//
+// ── 出力トークン上限（免責文・CTA の途中で切らないことを優先）─────
+// 通常の超過は段落の短縮で直す。出力枠は受入上限の 1.15 倍を確保する。
 // 2026-08-15 実測（Claude Sonnet 4.6 / 日本語）:
 //   本命 7,767文字 → 出力 7,482 token
 //   補強 5,552文字 → 出力 5,384 token
 //   frontmatter を約600トークンとすると 本文は 0.874 token/文字
 const TOKENS_PER_CHAR = 0.8739;
 const FRONTMATTER_TOKENS = 700;   // 実測約600 + 余裕
-// 途中切れを防ぐ余白。これを大きくすると上限超過の余地が戻るため 5% に留める。
-const MAX_TOKENS_SAFETY = 1.05;
+// frontmatter 910 を引く: 10/16 (7316-910)/7371 = 0.869082、
+// 10/19 (7793-910)/7760 = 0.886985。大きい方を採用する。
+const TOKEN_ESTIMATES_BY_MODEL = {
+  'claude-sonnet-5-5': { tokensPerChar: Math.max((7316 - 910) / 7371, (7793 - 910) / 7760), frontmatterTokens: 910 },
+};
+// 本文の上限の 15% 超過まで収め、frontmatter の枠も別に確保する。
+const MAX_TOKENS_SAFETY = 1.15;
 
-/** 記事タイプの受入上限に相当する max_tokens を返す */
-function maxTokensFor(articleType) {
-  const range = WORD_COUNT_RANGE[articleType] || WORD_COUNT_RANGE.edge_case;
-  const bodyTokens = Math.ceil(range.max * TOKENS_PER_CHAR);
-  return Math.ceil((bodyTokens + FRONTMATTER_TOKENS) * MAX_TOKENS_SAFETY / 100) * 100;
+/** 記事タイプまたは記事条件の受入上限に相当する max_tokens を返す */
+function maxTokensFor(articleTypeOrOpts) {
+  const opts = typeof articleTypeOrOpts === 'string'
+    ? { articleType: articleTypeOrOpts }
+    : (articleTypeOrOpts || {});
+  const range = rangeFor(opts);
+  let model = opts.model;
+  if (!model) {
+    // 遅延 require で prompt builder との循環を避け、provider の解決（警告）は1回だけ行う。
+    const { resolveModel, resolveProvider } = require('./content-model');
+    model = resolveModel(resolveProvider());
+  }
+  const { tokensPerChar, frontmatterTokens } = Object.hasOwn(TOKEN_ESTIMATES_BY_MODEL, model)
+    ? TOKEN_ESTIMATES_BY_MODEL[model]
+    : { tokensPerChar: TOKENS_PER_CHAR, frontmatterTokens: FRONTMATTER_TOKENS };
+  const bodyTokens = Math.ceil(range.max * MAX_TOKENS_SAFETY * tokensPerChar);
+  return Math.ceil((bodyTokens + frontmatterTokens) / 100) * 100;
+}
+
+function wordCountGuideFor(opts) {
+  return guideTextFor(rangeFor(opts), opts?.model);
 }
 
 const WORD_COUNT_GUIDE = Object.fromEntries(
@@ -177,8 +221,8 @@ const WORD_COUNT_FLOOR_RATIO = 0.9;
 
 // ── 記事タイプ別の必須要素チェックリスト ────────────────────────
 const ARTICLE_TYPE_CHECKLIST = {
-  basic_explainer:     ['読者の悩みを言語化したリード文', 'この記事が答える疑問', '冒頭の結論', '制度の基本', '対象者', 'よくある誤解', '実務上の注意点', '相談が必要になる境目', 'よくある質問(FAQ)'],
-  comparison_decision: ['読者の悩みを言語化したリード文', '冒頭の結論', '比較表', '判断軸', 'どちらが向くか', '例外や注意点', '実務での選び方', 'よくある質問(FAQ)'],
+  basic_explainer:     ['読者の悩みを言語化したリード文', 'この記事が答える疑問', '冒頭の結論', '制度の基本', '対象者', 'よくある誤解', '実務上の注意点', '相談が必要になる境目', 'よくある質問(FAQ)', '実務で実際によくある場面（出典に無い一次情報）'],
+  comparison_decision: ['読者の悩みを言語化したリード文', '冒頭の結論', '比較表', '判断軸', 'どちらが向くか', '例外や注意点', '実務での選び方', 'よくある質問(FAQ)', '実務で実際によくある場面（出典に無い一次情報）'],
   edge_case:           ['読者の悩みを言語化したリード文', 'ケース設定', '条件分岐', 'どこで結論が変わるか', '確認すべき事実や証憑', '間違えやすい点', 'よくある質問(FAQ)'],
   industry_example:    ['読者の悩みを言語化したリード文', '業種特有の事情', '一般論との違い', '具体例', '実務上の注意点', 'よくある質問(FAQ)'],
   filing_practice:     ['読者の悩みを言語化したリード文', '手順ごとに分けた h2 見出し', '実務フロー', '必要書類', '保存資料', 'ミスしやすい点', '相談が必要な場面', 'よくある質問(FAQ)'],
@@ -212,13 +256,26 @@ const MACRO_GUIDE = {
 // 企画メタ（と、本文ベース再判定のときは本文）を連結して語句一致を見る。
 // __body は detectRulesFromBody が一時的に載せるフィールド。
 // 生成時のトピックには存在しないので、通常の判定結果は従来どおり変わらない。
-const _kw = (topic, terms) => {
-  const text = [
-    topic.title, topic.search_intent, topic.primary_question,
-    topic.reader_problem, topic.subcluster, topic.slug, topic.pain_point,
-    topic.__body,
-  ].filter(Boolean).join(' ');
-  return terms.some(t => text.includes(t));
+// 出典本文そのものは含めず、生成前に確定している題名・論点・検索語を使う。
+const ruleMatchText = topic => [
+  topic.title, topic.search_intent, topic.primary_question, topic.reader_problem,
+  topic.subcluster, topic.slug, topic.pain_point, topic.tax_terms, topic.target_query,
+  ...(Array.isArray(topic.secondary_queries) ? topic.secondary_queries : String(topic.secondary_queries || '').split(',').map(q => q.trim())), topic.source_title,
+  ...(topic.source_supplements || []).map(s => s.title),
+  ...[2, 3, 4].map(n => topic[`source_${n}_title`]),
+  ...(topic.__materialBundle?.pages?.sources || []).map(s => s.title),
+  topic.__rule_source_titles, topic.__body,
+].filter(Boolean).join(' ');
+const _kw = (topic, terms) => terms.some(t => ruleMatchText(topic).includes(t));
+// 贈与税・相続税の同名控除は所得税の所得要件の根拠にしない。
+// 混在記事の所得税側の論点は残して判定する。
+const incomeThresholdMatch = topic => {
+  const original = ruleMatchText(topic);
+  const text = original.replace(/(?:贈与税|相続税)(?:における|についての|の)?[「『\s]*(?:基礎控除|配偶者控除)/g, '')
+    .replace(/扶養義務者|配偶者控除[（(]おしどり贈与[）)]/g, '');
+  const inheritance = /贈与|相続税/.test(original) || ['inheritance_tax', 'gift_tax'].includes(topic.tax_domain) || topic.customer_segment === 'inheritance_gift';
+  if (inheritance && !/(?:所得税|住民税)(?:の|における|についての)?(?:扶養|配偶者控除|基礎控除)|扶養控除|合計所得金額|年収の壁|103万円の壁|被扶養者/.test(text)) return false;
+  return ['扶養', '配偶者控除', '基礎控除', '103万円の壁', '年収の壁', '合計所得金額', '58万円', '62万円', '被扶養者'].some(t => text.includes(t));
 };
 
 const CONDITIONAL_RULES = {
@@ -357,7 +414,9 @@ const CONDITIONAL_RULES = {
   income_tax_bracket: {
     scope: 'tax_domain',
     match: (t) => (t.tax_domain === 'income_tax' && t.pain_point === 'incorporation-threshold')
-      || _kw(t, ['法人成り', '所得税率', '速算表', '累進税率', '税率が逆転']),
+      || _kw(t, ['法人成り', '所得税率', '税率が逆転'])
+      || (_kw(t, ['速算表', '累進税率'])
+        && ((!_kw(t, ['相続税', '贈与税']) && t.tax_domain !== 'inheritance_tax') || _kw(t, ['所得税']))),
     text: `【所得税の速算表を「万円・目安」で丸めるときの境界表記（タックスアンサー No.2260）】
 法人成りの損益分岐などで所得税率の早見表を「課税所得の目安（万円）」で示す
 ことがあるが、境界の不等号を必ず正しく書くこと:
@@ -377,7 +436,7 @@ const CONDITIONAL_RULES = {
     scope: 'topic_specific',
     match: (t) => t.tax_domain === 'invoice_system'
       || ['invoice-judgement', 'invoice-transition-80-50', 'invoice-registration'].includes(t.pain_point)
-      || _kw(t, ['インボイス', '免税事業者からの仕入', '経過措置', '2割特例']),
+      || _kw(t, ['インボイス', '免税事業者からの仕入', '2割特例']),
     text: `【インボイス制度の免税事業者からの仕入経過措置（令和8年度税制改正で延長・タックスアンサー No.6253）】
 免税事業者からの課税仕入れは、仕入税額相当額の一定割合を控除できる経過措置がある。
 令和8年度税制改正で2年延長され、2026年10月から「70%控除」の区分が新設された。次の割合・期間を取り違えないこと:
@@ -510,8 +569,7 @@ const CONDITIONAL_RULES = {
   // 令和8年分について誤りになる。タックスアンサーは未反映のまま。
   dependent_income_threshold: {
     scope: 'topic_specific',
-    match: (t) => _kw(t, ['扶養', '配偶者控除', '基礎控除', '103万円の壁', '年収の壁',
-      '合計所得金額', '58万円', '62万円', '被扶養者']),
+    match: incomeThresholdMatch,
     text: `【扶養に入れる所得ライン（令和8年度税制改正で変更）】
 国税庁のタックスアンサーは令和7年4月1日現在法令等のままで、この改正を反映していない。
 出典の数値をそのまま書き写すと令和8年分について誤りになる。
@@ -889,6 +947,28 @@ function findUnappliedRules(topic = {}, body = '') {
   return detectRulesFromBody(topic, body).filter(r => !applied.has(r.key));
 }
 
+// 出どころ: yomiyasu-pocket（https://github.com/nanaism/yomiyasu-pocket 、
+// commit c42712c4f79b1b66c06c2b63404d0f6692d46134）の決まりを、推敲の指示から書く時点の指示に直したもの。
+// 文の長さと読点の目安は yomiyasu v2.4.0 の README の「7つの変換原則」から。
+// ライセンス: MIT（Copyright (c) 2026 nanaism）。全文は docs/third-party/yomiyasu-pocket-LICENSE.txt。
+// 新規の生成（STATIC_RULES）と差し戻しの全文書き直し（generate-draft.js の regenerateWithContentModel）で同じ定数を使う。
+// 部分の書き直しには入れない。対象外まで文体が変わり、本文の短縮の見張りに当たるおそれがあるため。
+const READABILITY_RULES = `═══ 読みやすい日本語（AI の文章に出やすい癖を避ける）═══
+この節より、正確性のルール（出典・数値・条件・例外）と穏当な表現のルールを優先する。
+読みやすくするために、条件・例外・注意書き・数値を削ったり丸めたりしない。
+- 主語と述語を対応させる。制度・書類・数字を人のように動かさない
+  （❌「この書類があなたを守ってくれます」→ ⭕「この書類を残しておくと、税務調査で取引を説明しやすくなります」）
+- 修飾と条件がどこにかかるかを明確にする。条件が3つ以上重なる文は、文を分けるか箇条書きにする
+- 1文はおおむね30〜45字を平均の目安にし、読点は1文に0〜2個を目安にする。間を作るだけの読点は打たない
+- 英語を一語ずつ写した言い回し（「〜を可能にします」「〜にフォーカスします」）を使わず、ふつうの日本語で書く
+- 見出しは本文の中身をそのまま表す言葉で書く。本文に出てこない比喩を見出しにしない
+  （❌「申告という山を越える」→ ⭕「申告までの手順」）
+- 「重要なのは」「ポイントは」などの前置きで文を始めない。伝えたい中身から書く
+- 「AではなくB」は、A が読者の実際の誤解（収入と所得の取り違えなど）のときだけ使う。意味の増えない対比は書かない
+- 地の文では、絵文字、ダッシュ（——、―）、文末のコロン（「〜は次のとおり：」）を使わない。文は「。」で終える
+- 文末の「と言えるでしょう」は、区分を判断した結果を述べるときのほかは使わない
+- 法令・通達の用語（課税標準、所得控除、特例など）は言い換えない。慣用句や自然な言い回しまで無理に言い換えない`;
+
 // ── 共通の固定ルール本体（キャッシュ対象の核）───────────────────
 const STATIC_RULES = `あなたは日本の税理士事務所（毛利順活税理士事務所）のブログライターです。
 特定の悩みを持つ見込み客が「判断・行動」しやすくなる、検索意図に正確に応えた独自価値のある記事を書きます。
@@ -929,8 +1009,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 
 【書き始める前のチェック】
 - セクション数 × セクションあたり想定文字数 がレンジに収まるか試算する
-- 本命記事（5000〜7000文字）なら h2 セクション 8〜12 個、
-  1 セクションあたり 400〜700 文字が目安
+- 指定レンジに応じて h2 の本数を決める（7,000 字なら 8〜12 本、4,000 字なら 5〜7 本、1 本 400〜700 字）
 - frontmatter（≈ 600 tokens 相当）も出力枠を消費する点を意識する
 
 ═══ コンテンツ構成ルール ═══
@@ -947,7 +1026,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 
 【冒頭の型（h2 見出しの前に、地の文で 150〜300 文字）】
 1) 読者が実際に置かれている場面を具体的に描く
-   例:「レジ横に置いた自販機の売上、レシートも出ないし帳簿にどう書けばいいのか——
+   例:「レジ横に置いた自販機の売上は、レシートも出ないので帳簿への書き方に迷いがちです。
       決算の直前になって手が止まる方は少なくありません。」
 2) その場面で読者が抱く疑問を、読者の言葉のまま 2〜4 個並べる
    （箇条書きにしてよい。税務用語ではなく、読者が実際に使う言い方で）
@@ -1038,6 +1117,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 - 同じ形式が 3 セクション以上続いたら、別の形式を挟んで単調さを避ける
 
 ═══ タイトル自然化ルール ═══
+- 題名は 28〜45 文字。45 文字を超えない。『｜副題』を付ける場合も合計 45 文字以内。主検索語があれば先頭 15 文字以内に置く。末尾に『を解説』『について』『まとめ』を付けない（字数を使うだけで意味を足さない）
 - **税務用語起点ではなく、読者の検索語起点**にする。読者属性＋実際の取引/生活イベント
   ＋悩み＋税務論点＋結論の方向性を、検索者が実際に入力しそうな自然な日本語でまとめる
   （不自然に詰め込まない）。
@@ -1174,7 +1254,7 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
   ✓「税込金額から割り戻す代わりに、請求書に記載した消費税額等を積み上げた金額」
 
 【判断に迷うとき】
-- 「自分の記憶から書こうとしている」と感じたら、その場で抽象化してよい
+- 「自分の記憶から書こうとしている」と感じたら、その場で抽象化する（具体的な要件・金額・期限は書かない）
 - 「業種別/区分別/年度別」の表は、relevantRefs に明確な出典がある時だけ作る
 - 表を作るより、原則だけ伝えて「具体は出典で確認」のほうが安全な場合がある
 
@@ -1197,9 +1277,13 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 　 法人の話に暦年の年分をそのまま当てはめないこと。
 
 ═══ SEO ルール ═══
-- summary（meta description）は具体的な結論・情報を含む文にする（「○○を解説します」のような曖昧表現は禁止）
-- h2 見出しにテーマのキーワードを自然に含める
-- タイトルと内容に乖離がないこと
+- 可変条件に「狙う検索語」があるときは、主検索語の語（分かち書きした各語）を次の位置に、自然な日本語で置く:
+  ・題名: 先頭 15 文字以内
+  ・summary: 先頭 60 文字以内に主検索語の語と結論
+  ・リード文（最初の h2 まで）: 主検索語の語を含む文を 1 つ以上
+  ・h2: 少なくとも 1 本に主検索語の語。副検索語は h2 か FAQ の h3 の疑問文で拾う
+  ・同じ語を段落ごとに繰り返さない（詰め込みは逆効果）
+- summary（meta description）は具体的な結論・情報を含む文にする（「○○を解説します」のような曖昧表現は禁止）。120 文字以内
 - 記事冒頭で検索意図にすぐ答える（前置きを長くしない）
 - 1記事1検索意図。複数テーマを詰め込まない
 - 業種名・取引名・悩みを自然に含め、想定読者を明確にする
@@ -1213,6 +1297,8 @@ SEO はその結果として取りにいく。単なる言い換え・薄い量�
 ═══ 文体・トーン ═══
 - 穏当で信頼感のある「です・ます」調で統一
 - 読者に直接語りかける視点。対象ペルソナに集中し、他業種の話題には触れない
+
+${READABILITY_RULES}
 
 ═══ 禁止事項 ═══
 - 誇大表現（「必ず節税」「絶対安心」「確実に節税」「100%節税」等）禁止
@@ -1236,6 +1322,7 @@ ${Object.values(ARTICLE_TYPE_INSTRUCTIONS).join('\n\n')}
 ${Object.entries(MACRO_GUIDE).map(([k, v]) => `・${k}: ${v}`).join('\n')}`;
 
 module.exports = {
+  READABILITY_RULES,
   STATIC_RULES,
   CONDITIONAL_RULES,
   selectConditionalRules,
@@ -1246,8 +1333,16 @@ module.exports = {
   WORD_COUNT_GUIDE,
   WORD_COUNT_GUIDE_FALLBACK,
   WORD_COUNT_RANGE,
+  WORD_COUNT_RANGE_BY_INTENT,
   WORD_COUNT_FLOOR_RATIO,
   LENGTH_OVERSHOOT,
+  LENGTH_OVERSHOOT_BY_MODEL,
+  TOKEN_ESTIMATES_BY_MODEL,
+  calibratedRange,
+  ruleMatchText,
+  rangeFor,
+  guideTextFor,
+  wordCountGuideFor,
   maxTokensFor,
   TOKENS_PER_CHAR,
   ARTICLE_TYPE_CHECKLIST,

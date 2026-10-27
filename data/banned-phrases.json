@@ -133,6 +133,19 @@
       "addedAt": "2026-07-30T08:33:06.715Z",
       "sourceArticle": "shopify-growth-overseas-tax-uncertain-guide",
       "autoExtracted": true
+    },
+    {
+      "id": "no-empty-title-suffix",
+      "pattern": "(を解説|について|まとめ)$",
+      "humanReadable": "タイトル末尾の「を解説」「について」「まとめ」",
+      "replacement": null,
+      "reason": "検索結果の表示幅を字数だけ使う末尾語（毛利決定 2026-09-27）",
+      "appliesTo": [
+        "title"
+      ],
+      "addedAt": "2026-09-27T00:00:00.000Z",
+      "sourceArticle": null,
+      "autoExtracted": false
     }
   ]
 }

@@ -1,0 +1,105 @@
+'use strict';
+
+// 原文の位置を保持する。括弧内・同じ行で閉じた強調内の句点・読点では切らない。
+const OPEN = { '（': '）', '(': ')', '「': '」', '『': '』', '【': '】' };
+function emphasisRanges(line) {
+  const ranges = [], tags = [];
+  let markdown = null;
+  for (const m of line.matchAll(/<(strong|b|em)\b[^>]*>|<\/(strong|b|em)\s*>|\*\*/gi)) {
+    if (m[1]) tags.push({ tag: m[1].toLowerCase(), start: m.index });
+    else if (m[2]) {
+      if (tags.at(-1)?.tag === m[2].toLowerCase()) ranges.push([tags.pop().start, m.index + m[0].length]);
+    } else if (markdown === null) markdown = m.index;
+    else { ranges.push([markdown, m.index + 2]); markdown = null; }
+  }
+  return ranges;
+}
+function splitUnits(source, { material = false, ranges = [[0, source.length]] } = {}) {
+  const units = [];
+  const add = (start, end, heading, segment) => {
+    const raw = source.slice(start, end), left = raw.length - raw.trimStart().length;
+    start += left; end -= raw.length - raw.trimEnd().length;
+    if (end > start) units.push({ s: units.length + 1, text: source.slice(start, end), start, end, heading, segment });
+  };
+  for (const [segment, [from, to]] of ranges.entries()) {
+    const stack = [];
+    const bracket = ch => {
+      if (OPEN[ch]) stack.push(OPEN[ch]);
+      else if (ch === stack.at(-1)) stack.pop();
+    };
+    for (const ch of source.slice(0, from)) bracket(ch);
+    let lineStart = from;
+    for (const line of source.slice(from, to).split(/\n/)) {
+      const lineEnd = lineStart + line.length;
+      const heading = /^\s*#{1,6}\s/.test(line);
+      const tableRow = !material && /^\s*\|/.test(line);
+      if (heading && !material) add(lineStart, lineEnd, true, segment);
+      else {
+        const emphasis = emphasisRanges(line);
+        let start = lineStart, commas = [];
+        const flush = end => {
+          if (material) while (end - start > 300) {
+            const cut = commas.filter(at => at > start && at <= start + 300).at(-1) || start + 300;
+            add(start, cut, heading, segment); start = cut;
+          }
+          add(start, end, heading, segment); start = end; commas = [];
+        };
+        for (let at = lineStart; at < lineEnd; at++) {
+          const ch = source[at];
+          bracket(ch);
+          const emphasized = emphasis.some(([from, to]) => at - lineStart >= from && at - lineStart < to);
+          if (!stack.length && !emphasized && ch === '、') commas.push(at + 1);
+          if (!tableRow && !stack.length && !emphasized && ch === '。') flush(at + 1);
+        }
+        flush(lineEnd);
+      }
+      lineStart = lineEnd + 1;
+    }
+  }
+  return units;
+}
+function renderUnits(units) { return units.map(u => `[${u.s}] ${u.text}`).join('\n'); }
+// AI は番号を数値・全角・「資料 3」「[12]」「12〜14」「12, 13」の形でも返すため、形だけ揃えてから範囲を確かめる。
+function unitNumber(value) {
+  const text = typeof value === 'number' ? String(value)
+    : typeof value === 'string' ? value.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/^資料/, '') : '';
+  return /^[1-9]\d*$/.test(text) ? Number(text) : null;
+}
+function basisText(raw) {
+  const consecutive = numbers => numbers.length && numbers.every(n => n) && numbers.every((n, i) => !i || n === numbers[i - 1] + 1)
+    ? (numbers.length === 1 ? String(numbers[0]) : `${numbers[0]}-${numbers.at(-1)}`) : '';
+  if (typeof raw === 'number') return String(raw);
+  if (Array.isArray(raw)) return consecutive(raw.map(unitNumber));
+  if (typeof raw !== 'string') return '';
+  const text = raw.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/[–—~〜ー−]/g, '-');
+  return /^[1-9]\d*(?:[,、][1-9]\d*)+$/.test(text) ? consecutive(text.split(/[,、]/).map(Number)) : text;
+}
+function rangeText(source, units, rawBasis, maxUnits = 4) {
+  const basis = basisText(rawBasis);
+  if (!/^[1-9]\d*(?:-[1-9]\d*)?$/.test(basis)) return null;
+  const [first, last = first] = basis.split('-').map(Number);
+  if (last < first || last - first >= maxUnits) return null;
+  const selected = units.filter(u => u.s >= first && u.s <= last);
+  if (selected.length !== last - first + 1 || selected.some(u => u.segment !== selected[0].segment)) return null;
+  const start = selected[0].start, end = selected.at(-1).end;
+  return { text: source.slice(start, end), start, end };
+}
+// 連続番号をまとめ、同じ資料の離れた範囲を最大2つまで扱う。重複は採らない。
+function basisRanges(raw) {
+  if (Array.isArray(raw)) raw = raw.map(unitNumber).join(',');
+  if (typeof raw === 'number') raw = String(raw);
+  if (typeof raw !== 'string') return null;
+  const parts = raw.normalize('NFKC').replace(/[\s[\]【】]/g, '').replace(/[–—~〜ー−]/g, '-').split(/[,、]/);
+  const ranges = [];
+  for (const part of parts) {
+    if (!/^[1-9]\d*(?:-[1-9]\d*)?$/.test(part)) return null;
+    const [first, last = first] = part.split('-').map(Number);
+    if (!Number.isSafeInteger(first) || !Number.isSafeInteger(last) || last < first) return null;
+    const previous = ranges.at(-1);
+    if (previous && first <= previous[1]) return null;
+    if (previous && first === previous[1] + 1) previous[1] = last;
+    else ranges.push([first, last]);
+  }
+  return ranges.length <= 2 ? ranges.map(([first, last]) => `${first}-${last}`) : null;
+}
+module.exports = { splitUnits, renderUnits, rangeText, unitNumber, basisRanges };

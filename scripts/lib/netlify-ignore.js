@@ -3,6 +3,7 @@
 const SUPPORTED_CONTEXTS = new Set(['production', 'deploy-preview', 'branch-deploy']);
 const IGNORED_PREFIXES = ['docs/', '.github/', 'scripts/lib/__tests__/', '.claude/', '.codex/'];
 const IGNORED_ROOT_FILES = new Set(['README.md', 'CLAUDE.md', 'AGENTS.md']);
+const IGNORED_FILES = new Set(['data/withdrawn-topics.json']);
 
 function result(skip, reason) {
   return { skip, reason };
@@ -36,7 +37,7 @@ function parseReviewStatus(content) {
 }
 
 function isIgnoredLocation(file) {
-  return IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)) || IGNORED_ROOT_FILES.has(file);
+  return IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)) || IGNORED_ROOT_FILES.has(file) || IGNORED_FILES.has(file);
 }
 
 function isNonPublishedArticle(file, base, head, git) {
@@ -53,6 +54,25 @@ function isNonPublishedArticle(file, base, head, git) {
   }
 
   return true;
+}
+
+function withoutReviewedAt(content) {
+  const match = String(content || '').match(/^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n)([\s\S]*)$/);
+  if (!match) return null;
+  const nl = match[1].includes('\r\n') ? '\r\n' : '\n';
+  const frontmatter = match[2].split(/\r?\n/).filter(line => !/^\s*reviewed_at\s*:/.test(line)).join(nl);
+  return match[1] + frontmatter + match[3] + match[4];
+}
+
+function isOnlyReviewedAtChange(file, base, head, git) {
+  if (!file.startsWith('content/posts/') || !file.endsWith('.md')) return false;
+  const oldContent = git.show(base, file);
+  const newContent = git.show(head, file);
+  if (oldContent === null || newContent === null) return false;
+  if (parseReviewStatus(oldContent) !== 'published' || parseReviewStatus(newContent) !== 'published') return false;
+  const withoutOldReviewedAt = withoutReviewedAt(oldContent);
+  const withoutNewReviewedAt = withoutReviewedAt(newContent);
+  return withoutOldReviewedAt !== null && withoutOldReviewedAt === withoutNewReviewedAt;
 }
 
 function decide({ env, git }) {
@@ -99,6 +119,7 @@ function decide({ env, git }) {
   for (const file of changedFiles) {
     if (isIgnoredLocation(file)) continue;
     if (isNonPublishedArticle(file, cachedCommitRef, commitRef, git)) continue;
+    if (isOnlyReviewedAtChange(file, cachedCommitRef, commitRef, git)) continue;
     affectingFiles.push(file);
   }
 

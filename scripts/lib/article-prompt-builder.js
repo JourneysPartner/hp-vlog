@@ -9,7 +9,7 @@
  * - OpenAI:    { system: string, user: string }（従来どおり）
  * - Anthropic: { system: [{type:'text', text, cache_control}], messages: [...] }
  *              固定ルールに cache_control: { type: 'ephemeral' } を付け、
- *              Claude Sonnet 4.6 の prompt caching を効かせられる構造にする。
+ *              Claude Sonnet 5.5 の prompt caching を効かせられる構造にする。
  *
  * 可変部分（毎回変わる）:
  *   topic / title / category / persona / article_type / article_role /
@@ -17,20 +17,25 @@
  */
 
 const {
-  STATIC_RULES, ARTICLE_TYPE_CHECKLIST, WORD_COUNT_GUIDE, WORD_COUNT_GUIDE_FALLBACK,
-  DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries,
+  STATIC_RULES, ARTICLE_TYPE_CHECKLIST,
+  DISCLAIMER_TEXT, selectConditionalRules, selectConditionalRuleEntries, wordCountGuideFor,
 } = require('./article-prompt-static');
 const bannedPhrasesLib = require('./banned-phrases');
 const { buildTaxPeriodBlock } = require('./current-tax-period');
+const { formatReplacementFrontmatter } = require('./replaces');
+const { WRITER_RULES } = require('./grounding-rules');
 
 // ── 可変部分の組み立て（生成時）────────────────────────────────
 function buildDynamicGenerationBlock({ topic, persona, cta, articleType, articleRole,
                                         ntaRefsBlock, lawChangesBlock, revisionHint,
                                         pairedTopic, pairedArticleType, pairedArticleRole,
+                                        replacementOutlineBlock,
                                         conditionalRules = [], now }) {
   // フォールバックは補強記事の下限に合わせる（未知の記事タイプでも
   // 旧来の 1,000〜1,500 文字に落ちて薄い記事にならないようにする）。
-  const wordCount = WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK;
+  const wordCount = wordCountGuideFor({
+    articleType, intentType: topic.intent_type, articleRole,
+  });
   const roleLabel = articleRole === 'main' ? '本命記事' : '補強記事';
   const checklist = ARTICLE_TYPE_CHECKLIST[articleType] || [];
   const macro = topic.macro || '';
@@ -41,9 +46,10 @@ function buildDynamicGenerationBlock({ topic, persona, cta, articleType, article
     ? `\n\n═══ この記事に必ず適用する論点別ルール（正確性・最優先）═══\n${conditionalRules.join('\n\n')}`
     : '';
 
-  const sourceInstruction = topic.source_url
+  const sourceInstruction = (topic.source_url
     ? `出典として「${topic.source_title || ''}」（${topic.source_url}）を参照すること`
-    : 'source_url / source_title は空文字のまま出力（本文では「国税庁によると」等の一般表現に留める）';
+    : 'source_url / source_title は空文字のまま出力（本文では「国税庁によると」等の一般表現に留める）') +
+    ([ntaRefsBlock, lawChangesBlock].some(block => block?.includes(WRITER_RULES[0])) ? '' : '\n' + WRITER_RULES.join('\n'));
 
   // 参考タイトル: curated トピックには人間が書いた title が、
   // 拡張シナリオでは空文字が入る。LLM はこれを「ヒント」として扱い、
@@ -90,6 +96,21 @@ ${pairedTitleHint}
   // prompt caching が毎日無効になるので、可変ブロックに置く）。
   const taxPeriodBlock = buildTaxPeriodBlock(now).trimStart();
 
+  const intentLabels = { answer: '一問一答', decide: '判断・比較', guide: '手順・全体像' };
+  const intentInstructions = {
+    answer: '一問一答。リード文の1文目で答えを書く。その後に読者の場面と疑問を短く。構成は 答え → 根拠 → 例外・分岐 → 仕訳例か表 → よくある間違い → FAQ → まとめ。下限を満たすための増量はしない（指定レンジの下限は目安。答えが済んだら短くてよい）',
+    decide: '判断・比較。冒頭2文で結論の方向と、結論が分かれる条件を示す。以降は既存の構成テンプレート（判断ポイント・チェックリスト重視）',
+    guide: '手順・全体像。既存のリード文の型と構成テンプレートのまま',
+  };
+  const secondary = Array.isArray(topic.secondary_queries) ? topic.secondary_queries : [];
+  const targetQueryBlock = topic.target_query ? `
+
+═══ 狙う検索語 ═══
+主検索語: ${topic.target_query}
+副検索語: ${secondary.join(' / ')}
+意図の型: ${intentLabels[topic.intent_type] || topic.intent_type || ''}
+${intentInstructions[topic.intent_type] || ''}` : '';
+
   return `${taxPeriodBlock}
 
 ═══ この記事の可変条件 ═══
@@ -107,7 +128,7 @@ ${titleHintLine}
 読者の課題: ${topic.reader_problem || '（パーソナと痛点から推測）'}
 読者が得られる到達点: ${topic.success_outcome || '（パーソナと痛点から推測）'}
 中心疑問: ${topic.primary_question || '（パーソナと痛点から推測）'}
-${pairBlock}
+${targetQueryBlock}${pairBlock}${replacementOutlineBlock || ''}
 
 ═══ このタイプの必須要素チェックリスト ═══
 ${checklist.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -124,13 +145,13 @@ ${revisionHint || ''}
 
 // ── 出力フォーマット指定（frontmatter テンプレ）────────────────
 // title はあなた（LLM）が記事内容に最も適したタイトルを生成する（Pattern C）。
-// 30〜70 文字、検索者が自然に検索する具体的な表現、`｜サブテキスト` 形式可、
+// 28〜45 文字、検索者が自然に検索する具体的な表現、`｜サブテキスト` 形式可、
 // 曖昧表現禁止、「〜の徹底解説」など中身がない煽り禁止。
 function buildFrontmatterTemplate({ topic, articleType, articleRole, relatedSlug,
                                      relatedTitle, relatedLinkText, now }) {
   return `---
-title: "（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、\`｜サブテキスト\`形式可、曖昧表現禁止）"
-slug: "${topic.slug}"
+title: "（あなたがこの記事に最も適したタイトルをここに記入。28〜45文字、検索者が自然に検索する具体的な表現、\`｜サブテキスト\`形式可、曖昧表現禁止）"
+slug: "${topic.url_slug || topic.slug}"
 category: "${topic.category || ''}"
 primary_persona: "${topic.persona}"
 secondary_persona: ""
@@ -153,6 +174,10 @@ business_stage: "${topic.business_stage || ''}"
 life_stage: "${topic.life_stage || ''}"
 pain_point: "${topic.pain_point || ''}"
 procedure_stage: "${topic.procedure_stage || ''}"
+topic_id: "${topic.slug || ''}"
+target_query: "${topic.target_query || ''}"
+secondary_queries: "${Array.isArray(topic.secondary_queries) ? topic.secondary_queries.join(',') : ''}"
+intent_type: "${topic.intent_type || ''}"${formatReplacementFrontmatter(topic.replaces)}
 summary: "（記事の結論や具体的情報を含む自然な文章。120文字以内。曖昧表現禁止）"
 review_status: "draft"
 review_comment: ""
@@ -173,7 +198,7 @@ updated_at: "${now}"
 function buildGenerationPrompt(args) {
   const { topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock,
           revisionHint, relatedSlug, relatedTitle, relatedLinkText, now,
-          pairedTopic, pairedArticleType, pairedArticleRole } = args;
+          pairedTopic, pairedArticleType, pairedArticleRole, replacementOutlineBlock } = args;
 
   const staticSystem = STATIC_RULES;  // ← キャッシュ対象（固定）
   const conditionalRules = selectConditionalRules(topic);  // 該当する論点別ルールだけ
@@ -186,7 +211,7 @@ function buildGenerationPrompt(args) {
   }
   const dynamicSystem = buildDynamicGenerationBlock({
     topic, persona, cta, articleType, articleRole, ntaRefsBlock, lawChangesBlock, revisionHint,
-    pairedTopic, pairedArticleType, pairedArticleRole, conditionalRules, now,
+    pairedTopic, pairedArticleType, pairedArticleRole, replacementOutlineBlock, conditionalRules, now,
   });
   const frontmatter = buildFrontmatterTemplate({
     topic, articleType, articleRole, relatedSlug, relatedTitle, relatedLinkText, now,
@@ -197,7 +222,7 @@ function buildGenerationPrompt(args) {
 【タイトル生成に関する重要指示】
 - title は frontmatter の placeholder ではなく、あなたが書いた本文の内容を最も的確に伝える日本語タイトルを生成して入れること
 - 検索者が実際に検索しそうな具体的な疑問形・名詞句で（例: 「〜はどうなる？」「〜の判断基準｜サブテキスト」）
-- 30〜70 文字を目安。70 文字を超えない
+- 28〜45 文字。45 文字を超えない。主検索語があれば先頭 15 文字以内に置く
 - 「徹底解説」「完全ガイド」「必読」などの中身のない煽り表現は禁止
 - 本文を書き上げた後、その内容を踏まえてタイトルを最適化すること
 
@@ -205,7 +230,7 @@ function buildGenerationPrompt(args) {
 
 ${frontmatter}
 
-（Markdown本文 ${WORD_COUNT_GUIDE[articleType] || WORD_COUNT_GUIDE_FALLBACK}）`;
+（Markdown本文 ${wordCountGuideFor({ articleType, intentType: topic.intent_type, articleRole })}）`;
 
   return { staticSystem, dynamicSystem, user, figures: args.sourceFigures || [] };
 }
@@ -236,6 +261,19 @@ function buildAnthropicUserContent(user, figures) {
 }
 
 // ── provider 別メッセージ変換 ──────────────────────────────────
+// Sonnet 5.5 は既定の thinking が max_tokens を消費するため、between_tools を指定する。
+// disabled は 400 になる。between_tools は他モデルに送れないため、完全一致で選ぶ。
+const ANTHROPIC_MODEL_OPTIONS = {
+  'claude-sonnet-5-5': {
+    thinking: { type: 'between_tools' },
+    output_config: { effort: 'high' },
+  },
+};
+
+function anthropicModelOptions(model) {
+  return Object.hasOwn(ANTHROPIC_MODEL_OPTIONS, model) ? ANTHROPIC_MODEL_OPTIONS[model] : {};
+}
+
 /**
  * OpenAI Chat Completions 形式に変換。
  * 固定ルールと可変指示を 1 つの system にまとめる（OpenAI は明示キャッシュAPIが別途のため統合）。
@@ -261,17 +299,19 @@ function toOpenAIMessages({ staticSystem, dynamicSystem, user, figures }) {
  *   [ { type:'text', text: STATIC_RULES, cache_control:{type:'ephemeral'} },
  *     { type:'text', text: dynamicSystem } ]
  */
-function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { model, maxTokens, useCache }) {
+function toAnthropicRequest({ staticSystem, dynamicSystem, user, figures }, { model, maxTokens, useCache, modelOptions }) {
   const systemBlocks = [
     useCache
       ? { type: 'text', text: staticSystem, cache_control: { type: 'ephemeral' } }
       : { type: 'text', text: staticSystem },
     { type: 'text', text: dynamicSystem },
-  ];
+  // 空の文字ブロックは API が 400 で断る（照合は可変部分を使わない）。中身のあるブロックだけ送る。
+  ].filter(block => typeof block.text === 'string' && block.text.trim());
   const content = buildAnthropicUserContent(user, figures);
   return {
     model,
     max_tokens: maxTokens || 4096,
+    ...(modelOptions === undefined ? anthropicModelOptions(model) : modelOptions),
     system: systemBlocks,
     messages: [{ role: 'user', content }],
   };
@@ -283,6 +323,7 @@ module.exports = {
   buildFrontmatterTemplate,
   toOpenAIMessages,
   toAnthropicRequest,
+  anthropicModelOptions,
   buildAnthropicUserContent,
   STATIC_RULES,
 };

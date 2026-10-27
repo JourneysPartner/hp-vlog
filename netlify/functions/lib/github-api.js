@@ -211,6 +211,35 @@ function updateFrontmatter(raw, updates) {
   return match[1] + fm + match[3] + match[4];
 }
 
+// ── Git の ref を取得（存在確認では 404 を null にする）──────────────
+async function getRef(branch) {
+  if (typeof branch !== 'string' || !branch) return null;
+  const encodedBranch = branch.split('/').map(encodeURIComponent).join('/');
+  const url = `${API_BASE}/repos/${REPO()}/git/ref/heads/${encodedBranch}`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub ref ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+function removeFrontmatterFields(raw, fields) {
+  const match = String(raw || '').match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
+  if (!match) throw new Error('frontmatter が見つかりません');
+  const names = new Set((Array.isArray(fields) ? fields : [fields]).map(String));
+  const lines = match[2].split(/\r?\n/).filter(line => {
+    for (const key of names) {
+      if (new RegExp(`^${key}:\\s*`).test(line)) return false;
+    }
+    return true;
+  });
+  const nl = match[1].includes('\r\n') ? '\r\n' : '\n';
+  return match[1] + lines.join(nl) + match[3] + match[4];
+}
+
 // ── JST 現在時刻 ISO 文字列 ─────────────────────────────────────────────
 function nowJST() {
   const now = new Date();
@@ -229,6 +258,22 @@ async function findPR(headBranch) {
   }
   const prs = await res.json();
   return prs.length > 0 ? prs[0] : null;
+}
+
+async function listOpenPRs() {
+  const h = await headers();
+  const prs = [];
+  for (let page = 1; ; page++) {
+    const url = `${API_BASE}/repos/${REPO()}/pulls?state=open&per_page=100&page=${page}`;
+    const res = await fetch(url, { headers: h });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`GitHub PR list ${res.status}: ${text}`);
+    }
+    const batch = await res.json();
+    prs.push(...batch);
+    if (batch.length < 100) return prs;
+  }
 }
 
 // ── PR の詳細を取得する ───────────────────────────────────────────────
@@ -320,6 +365,32 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
     try { await getPR(prNumber); } catch { /* noop */ }
   }
   throw lastError || new Error(`GitHub merge failed after ${maxAttempts} attempts`);
+}
+
+// ── マージ済みの下書きブランチを削除する ──────────────────────────────
+// 誤った枝を消さないよう、承認フローから利用できるのは draft/* だけに限定する。
+// 記事はこの時点で main に取り込み済みなので、削除失敗は公開処理を止めない。
+async function deleteBranch(branch, { fetchImpl = globalThis.fetch, headersImpl = headers, logger = console } = {}) {
+  if (typeof branch !== 'string' || !branch.startsWith('draft/')) {
+    return false;
+  }
+
+  try {
+    const encodedBranch = branch.split('/').map(encodeURIComponent).join('/');
+    const url = `${API_BASE}/repos/${REPO()}/git/refs/heads/${encodedBranch}`;
+    const h = await headersImpl();
+    const res = await fetchImpl(url, { method: 'DELETE', headers: h });
+    if (!res.ok) {
+      const text = await res.text();
+      logger.error(`[deleteBranch] ${branch} の削除に失敗しました (${res.status}): ${text}`);
+      return false;
+    }
+    logger.log(`[deleteBranch] ${branch} を削除しました`);
+    return true;
+  } catch (error) {
+    logger.error(`[deleteBranch] ${branch} の削除に失敗しました: ${error.message}`);
+    return false;
+  }
 }
 
 // ── PR をクローズする ──────────────────────────────────────────────────
@@ -473,8 +544,8 @@ async function readjustPublishSlots(publishAtStr, excludeFilename) {
 }
 
 module.exports = {
-  getFile, putFile, updateFrontmatter, escapeYamlDoubleQuoted, nowJST,
-  findPR, getPR, waitForMergeable, mergePR, closePR, commentOnPR,
+  getFile, getRef, putFile, updateFrontmatter, removeFrontmatterFields, escapeYamlDoubleQuoted, nowJST,
+  findPR, listOpenPRs, getPR, waitForMergeable, mergePR, deleteBranch, closePR, commentOnPR,
   triggerWorkflow, listWorkflowRuns,
   listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
 };

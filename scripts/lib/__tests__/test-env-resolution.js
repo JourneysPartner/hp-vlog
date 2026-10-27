@@ -37,7 +37,7 @@ console.log('\n=== Test 1: 本番想定 env の解決 ===');
 
   assert(cm.resolveProvider() === 'anthropic', 'content provider=anthropic');
   assert(cm.resolveModel('anthropic') === 'claude-sonnet-4-6', 'content model=claude-sonnet-4-6');
-  assert(cm.resolveModel('openai') === 'gpt-5.4', 'openai fallback=gpt-5.4');
+  assert(cm.resolveModel('openai', 'explicit-fact-model') === 'explicit-fact-model', '照合の明示モデルを維持');
   assert(cm.useCache() === true, 'prompt cache=true');
   assert(aux.canUseAux() === true, 'aux 利用可能');
   assert(aux.auxModel() === 'claude-haiku-4-5-20251001', 'aux model 確認');
@@ -67,7 +67,7 @@ console.log('\n=== Test 3: daily-draft.yml の env 受け渡し ===');
   const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/daily-draft.yml'), 'utf8');
   for (const key of ['ANTHROPIC_API_KEY', 'CONTENT_MODEL_PROVIDER', 'CONTENT_MODEL',
                      'CONTENT_MODEL_USE_PROMPT_CACHE', 'AUX_MODEL_ENABLED',
-                     'AUX_MODEL_PROVIDER', 'AUX_MODEL', 'OPENAI_API_KEY', 'OPENAI_MODEL']) {
+                     'AUX_MODEL_PROVIDER', 'AUX_MODEL', 'OPENAI_API_KEY', 'OPENAI_LUNA_MODEL']) {
     assert(yml.includes(`${key}:`), `daily-draft が ${key} を env に渡す`);
   }
 }
@@ -79,7 +79,7 @@ console.log('\n=== Test 4: regenerate-draft.yml の env 受け渡し ===');
   for (const key of ['ANTHROPIC_API_KEY', 'CONTENT_MODEL_PROVIDER', 'CONTENT_MODEL',
                      'CONTENT_MODEL_USE_PROMPT_CACHE', 'AUX_MODEL_ENABLED',
                      'AUX_MODEL_PROVIDER', 'AUX_MODEL', 'ENABLE_PARTIAL_REVISE',
-                     'OPENAI_API_KEY', 'OPENAI_MODEL']) {
+                     'OPENAI_API_KEY', 'OPENAI_LUNA_MODEL']) {
     assert(yml.includes(`${key}:`), `regenerate-draft が ${key} を env に渡す`);
   }
 }
@@ -92,7 +92,7 @@ console.log('\n=== Test 5: OpenAI に claude ID を渡さない ===');
   process.env.OPENAI_MODEL = 'gpt-5.4';
   process.env.ANTHROPIC_API_KEY = 'dummy';
   const cm = reload(path.join(ROOT, 'scripts/lib/content-model'));
-  assert(!/claude/.test(cm.resolveModel('openai')), 'openai 解決に claude が混入しない');
+  assert(cm.resolveModel('openai', 'explicit-fact-model') === 'explicit-fact-model', '照合に本文のモデルを流用しない');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

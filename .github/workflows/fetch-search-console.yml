@@ -7,12 +7,18 @@ name: Fetch Search Console
 #   GSC_SERVICE_ACCOUNT_JSON — サービスアカウントの鍵 JSON（設定手順は docs/search-console-setup.md）
 # 未設定の場合はスキップして正常終了する。
 #
-# 取り込んだデータは記事生成の候補選定に自動で接続しない（貯めて見られるようにするまで）。
+# GSC 由来の記事候補はこの週次 PR で人が検収し、マージ後に生成プールへ入る。
 
 on:
   schedule:
     - cron: '0 19 * * 0'   # 日曜 19:00 UTC = 月曜 JST 04:00
   workflow_dispatch:
+    inputs:
+      skip_inspection:
+        description: 'URL 検査を飛ばして検索データだけ取り込む'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: fetch-search-console
@@ -25,6 +31,7 @@ permissions:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -36,24 +43,46 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      # URL 検査（inspect-index-status.js）は sitemap.xml の URL を読む。
+      # sitemap.xml は build の生成物で git に無いため、先に作る（生成物は PR に含めない）。
+      - name: Build site (sitemap.xml)
+        run: npm run build
+
       - name: Fetch from Search Console
         env:
+          SKIP_INSPECTION: ${{ inputs.skip_inspection }}
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
         run: |
           if [ -z "$GSC_SERVICE_ACCOUNT_JSON" ]; then
             echo "::notice::GSC_SERVICE_ACCOUNT_JSON が未設定のためスキップします（docs/search-console-setup.md を参照）"
-            echo "SKIP=true" >> "$GITHUB_ENV"
-            exit 0
+          else
+            node scripts/fetch-search-console.js
+            if [ "$SKIP_INSPECTION" != "true" ]; then
+              node scripts/inspect-index-status.js
+            else
+              echo "::notice::skip_inspection=true のため URL 検査をスキップします"
+            fi
           fi
-          node scripts/fetch-search-console.js
+
+      - name: Build freshness candidates and report
+        run: |
+          node scripts/build-freshness-candidates.js
           node scripts/report-search-console.js
 
+      - name: Update GSC topics
+        id: gsc
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
+        run: node scripts/update-gsc-topics.js
+
       - name: Create PR if changed
-        if: env.SKIP != 'true'
+        id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GSC_TOPIC_SUMMARY: ${{ steps.gsc.outputs.summary }}
         run: |
-          if [ -z "$(git status --porcelain -- data/search-console)" ]; then
+          if [ -z "$(git status --porcelain -- data/search-console data/freshness data/gsc-topics.json)" ]; then
             echo "::notice::変更なし。PR は作成しません"
             exit 0
           fi
@@ -64,12 +93,33 @@ jobs:
           STAMP=$(date -u +%Y%m%d)
           BRANCH="search-console/${STAMP}"
           git checkout -b "$BRANCH"
-          git add data/search-console
+          git add data/search-console data/freshness
+          if [ -f data/gsc-topics.json ]; then
+            git add data/gsc-topics.json
+          fi
           git commit -m "chore: サーチコンソールの検索語を取り込み (${STAMP})"
           git push origin "$BRANCH"
 
-          SUMMARY=$(sed -n '1,12p' data/search-console/report.md)
-          gh pr create --base main --head "$BRANCH" \
+          if [ -f data/search-console/report.md ]; then
+            SUMMARY=$(sed -n '1,12p' data/search-console/report.md)
+          else
+            SUMMARY='サーチコンソールのレポートは未取得です。'
+          fi
+          if ! PR_URL=$(gh pr create --base main --head "$BRANCH" \
             --title "サーチコンソールの検索語を取り込み (${STAMP})" \
-            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。記事の候補選定には接続していません。\n\n%s\n\n全文: data/search-console/report.md' "$SUMMARY")" \
-            || echo "::error::PR の作成に失敗しました"
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。採用しない候補は削除せず `"status": "rejected"` を付けてください（削除すると翌週また提案されます）。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
+            echo "::error::PR の作成に失敗しました"
+            exit 0
+          fi
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Notify freshness candidates
+        if: steps.pr.outputs.pr_url != ''
+        env:
+          PR_PR_URL: ${{ steps.pr.outputs.pr_url }}
+          NETLIFY_NOTIFY_URL: ${{ vars.NETLIFY_NOTIFY_URL }}
+          NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
+        run: |
+          node scripts/notify-freshness-candidates.js \
+            --pr-url "${PR_PR_URL}" \
+            || echo "::warning::更新候補の通知に失敗しました（処理は継続）"

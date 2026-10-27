@@ -1,5 +1,5 @@
 ---
-title: "美容サロンの消費税、簡易課税と原則課税はどちらが有利？損益判定のポイントを解説"
+title: "美容室の簡易課税は第何種？みなし仕入率50%と原則課税の有利判定"
 slug: "deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide"
 category: "消費税"
 primary_persona: "beauty_salon_owner"
@@ -35,7 +35,7 @@ lead_value_score: 3
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "美容サロンは簡易課税の第5種（みなし仕入率50%）が適用される。課税仕入れの実際の割合が50%を下回るなら簡易課税が有利になる一方、大型設備投資があれば原則課税で還付を受けられる場合もある。"
+summary: "美容室・美容サロンは簡易課税の第5種（みなし仕入率50%）。課税仕入れの割合が50%を下回るなら簡易課税が有利、大型の設備投資がある年は原則課税で還付になることも。判定の手順を解説。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-09-10T16:10:18.594+09:00"

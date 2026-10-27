@@ -32,6 +32,7 @@ const shitsugiIndex    = require(path.join(ROOT, 'scripts/lib/nta-index/shitsugi
 const store            = require(path.join(ROOT, 'scripts/lib/nta-store'));
 const indexBuilder     = require(path.join(ROOT, 'scripts/lib/nta-index-builder'));
 const figures          = require(path.join(ROOT, 'scripts/lib/nta-figures'));
+const { detectContentChange } = require(path.join(ROOT, 'scripts/lib/nta-content-change'));
 
 // ── 引数パーサ ─────────────────────────────────────────────────
 // ページに図（画像）があれば取得して entry.images に載せる。
@@ -233,9 +234,7 @@ async function crawlTaxAnswer(args) {
     if (i >= target) break;
     i++;
 
-    const existing = args.incremental
-      ? store.loadTaxAnswerEntry(entry.category, entry.id)
-      : null;
+    const existing = store.loadTaxAnswerEntry(entry.category, entry.id);
 
     const r = await performIncrementalFetch(entry, existing, rl, args);
 
@@ -268,6 +267,7 @@ async function crawlTaxAnswer(args) {
       const parsed = taxanswerParser.parseTaxAnswerHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
+        ...detectContentChange(existing, { ...parsed, html_hash: r.fetchResult.htmlHash }, r.fetchResult.fetchedAt),
         fetched_at: r.fetchResult.fetchedAt,
         last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
         html_hash: r.fetchResult.htmlHash,
@@ -334,9 +334,7 @@ async function crawlShitsugi(args) {
     if (i >= target) break;
     i++;
 
-    const existing = args.incremental
-      ? store.readJson(store.shitsugiPath(entry.category, entry.section, entry.id))
-      : null;
+    const existing = store.readJson(store.shitsugiPath(entry.category, entry.section, entry.id));
 
     const r = await performIncrementalFetch(entry, existing, rl, args);
 
@@ -369,6 +367,7 @@ async function crawlShitsugi(args) {
       const parsed = shitsugiParser.parseShitsugiHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
+        ...detectContentChange(existing, { ...parsed, html_hash: r.fetchResult.htmlHash }, r.fetchResult.fetchedAt),
         fetched_at: r.fetchResult.fetchedAt,
         last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
         html_hash: r.fetchResult.htmlHash,

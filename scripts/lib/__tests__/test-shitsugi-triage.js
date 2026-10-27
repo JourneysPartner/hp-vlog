@@ -159,6 +159,7 @@ const okLLM = (decision, extra = {}) => async (system, user) => {
     writeData(cs);
     const topics = expandShitsugiTopics({
       candidateFile: DATA_FILE, sourceRoot: SRC_ROOT, logger: null, filterRelevance: false,
+      personaAllowlist: [],
     });
     const slugs = topics.map(t => t.slug).sort().join(',');
     assert(slugs === 'shitsugi-shohi-19-10,shitsugi-shohi-19-12',
@@ -181,6 +182,7 @@ const okLLM = (decision, extra = {}) => async (system, user) => {
     writeData(cs);
     const topics = expandShitsugiTopics({
       candidateFile: DATA_FILE, sourceRoot: SRC_ROOT, logger: null, filterRelevance: false,
+      personaAllowlist: [],
     });
     const fixed = topics.find(t => t.slug === 'shitsugi-shohi-19-20');
     assert(fixed && fixed.persona === 'general_corporation', '補正された読者想定に置き換わる');

@@ -13,7 +13,7 @@
  *   'rule_based_done' — 既にルールベースで実装済み
  *   'rule_based_todo' — ルールベース化可能だが未実装
  *   'needs_aux_model' — 安価モデルの採用を検討（API未決定）
- *   'content_model'   — 本文生成（Sonnet 4.6）
+ *   'content_model'   — 本文生成（Sonnet 5.5）
  *
  * impl: 実装場所（既存 or 想定）
  */
@@ -136,8 +136,8 @@ const AUX_TASKS = [
     label: '本文生成',
     tier: 'D',
     status: 'content_model',
-    impl: 'scripts/lib/content-model.js (generateContent / Sonnet 4.6)',
-    note: '品質維持のため高品質モデル（Claude Sonnet 4.6）を使用。',
+    impl: 'scripts/lib/content-model.js (generateContent / Sonnet 5.5)',
+    note: '品質維持のため高品質モデル（Claude Sonnet 5.5）を使用。',
   },
 ];
 

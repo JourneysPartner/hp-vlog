@@ -17,6 +17,9 @@
 
 function buildMessage(event, data) {
   switch (event) {
+    case 'review_auth_locked':
+      return { subject: '【ブログ】レビュー画面のログインを一時停止しました', body: 'ログインの失敗回数が上限に達したため、1時間ログインを停止しました。心当たりがない場合は、認証設定とアクセス状況を確認してください。' };
+
     case 'draft_created': {
       const { title, summary, persona, category, reviewUrl, prUrl, articleType, articleRole } = data;
 
@@ -282,6 +285,114 @@ function buildMessage(event, data) {
           reasonLines ? `■ 理由:\n${reasonLines}` : '',
           '',
           'レビュー画面から差し戻して、内容・出典・タイトルを見直してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'freshness_candidates': {
+      const { summary, prUrl } = data;
+      return {
+        subject: '【ブログ】記事の更新候補があります',
+        body: [
+          '週次チェックで記事の更新候補が見つかりました。',
+          '',
+          summary || '',
+          '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          '本文や更新日はまだ変更していません。候補と理由を確認してください。',
+        ].filter((line, index, lines) => line !== '' || (index > 0 && lines[index - 1] !== '')).join('\n'),
+      };
+    }
+
+    case 'refresh_ready': {
+      const { title, comment, reviewUrl, prUrl } = data;
+      return {
+        subject: '【ブログ】記事の更新案ができました',
+        body: [
+          '公開中の記事の更新案を作成しました。',
+          '',
+          `■ タイトル: ${title || '（タイトル未設定）'}`,
+          comment ? `■ 理由: ${comment}` : '',
+          reviewUrl ? `▶ レビュー画面: ${reviewUrl}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'レビュー画面で変更箇所を確認してください。承認すると公開中の記事に反映されます。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_no_change': {
+      return {
+        subject: '【ブログ】更新候補を確認しました（変更なし）',
+        body: [
+          'AI が見た範囲では直す所がありませんでした。問題なければ管理画面で「確認済み」を押してください。',
+          '',
+          '管理画面: https://mori-zeirishi.net/admin/freshness',
+        ].join('\n'),
+      };
+    }
+
+    case 'refresh_failed': {
+      const { title, comment } = data;
+      return {
+        subject: '【ブログ】記事の更新案を作成できませんでした',
+        body: [
+          '記事の更新案を作成できませんでした。',
+          '',
+          title ? `■ タイトル: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          '',
+          '内容を確認し、必要に応じて管理画面から再実行してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_approve_failed': {
+      const { title, comment } = data;
+      return {
+        subject: '【ブログ】更新案を反映できませんでした',
+        body: [
+          '更新案を反映できませんでした。',
+          '',
+          title ? `■ タイトル: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          '',
+          '一時的な失敗なら、レビュー画面から承認し直してください。',
+          '記事が変わった・反映する変更が無いなどで承認できない場合は、レビュー画面で「今回は見送り」にしてから、管理画面で更新案を作り直してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'refresh_processed': {
+      const { title, kind } = data;
+      return {
+        subject: '【ブログ】更新案は処理済みです',
+        body: [
+          ...(kind === 'applied'
+            ? ['この更新案は、すでに公開中の記事に反映済みです。']
+            : [
+              '更新案のブランチを読み取れず、開いているPRも確認できませんでした。',
+              'すでに処理済みか、取り下げられている可能性があります。',
+            ]),
+          '',
+          `■ タイトル: ${title || '更新案'}`,
+        ].join('\n'),
+      };
+    }
+
+    case 'refresh_published': {
+      const { title, publicUrl, reason } = data;
+      return {
+        subject: '【ブログ】公開中の記事を更新しました',
+        body: [
+          '承認された更新案を公開中の記事に反映しました。',
+          '',
+          `■ タイトル: ${title || '（タイトル未設定）'}`,
+          reason ? `■ 更新理由: ${reason}` : '',
+          publicUrl ? `▶ 記事URL: ${publicUrl}` : '',
+          '',
+          '公開日はそのままにし、更新日を記録しました。',
         ].filter(Boolean).join('\n'),
       };
     }

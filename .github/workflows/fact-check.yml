@@ -1,0 +1,101 @@
+name: 記事の事実照合
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 照合する記事の枝名
+        required: true
+        default: main
+      article_file:
+        description: 記事ファイル（リポジトリ直下からのパス。例 content/posts/2026-10-09-example.md）
+        required: true
+      code_ref:
+        description: 照合のコードとカタログを取る枝（通常は main。マージ前の確認のときだけ作業中の枝を指定）
+        required: false
+        default: main
+      repair:
+        description: 照合のあと修正と再照合まで行う（実行環境の中だけで、枝には書き込まない）
+        type: boolean
+        required: false
+        default: false
+      provider:
+        description: 照合の提供元（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      model:
+        description: 照合モデル（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      extract_model:
+        description: 抜き出しモデル（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      effort:
+        description: 照合の effort（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      extract_effort:
+        description: 抜き出しの effort（空ならリポジトリ変数の設定）
+        type: string
+        required: false
+      batch:
+        description: 照合を Batch で頼む
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  fact-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: 照合のコードとカタログを取る
+        env:
+          CODE_REF: ${{ inputs.code_ref || 'main' }}
+        run: |
+          git fetch origin "$CODE_REF" --depth=1
+          git checkout FETCH_HEAD -- scripts/ package.json package-lock.json data/nta-sources/ data/nta-tsutatsu/ data/law-sources/ data/nta-qa/ data/generic-source-pages.json
+      - run: npm ci
+      - name: 照合する（枝には書き込まない）
+        env:
+          ARTICLE_FILE: ${{ inputs.article_file }}
+          REPAIR: ${{ inputs.repair }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
+          FACT_CHECK_WRITER_MATERIALS: ${{ vars.FACT_CHECK_WRITER_MATERIALS }}
+          FACT_CHECK_PROVIDER: ${{ inputs.provider || vars.FACT_CHECK_PROVIDER }}
+          FACT_CHECK_MODEL: ${{ inputs.model || vars.FACT_CHECK_MODEL }}
+          FACT_CHECK_EXTRACT_MODEL: ${{ inputs.extract_model || vars.FACT_CHECK_EXTRACT_MODEL }}
+          FACT_CHECK_EFFORT: ${{ inputs.effort || vars.FACT_CHECK_EFFORT }}
+          FACT_CHECK_EXTRACT_EFFORT: ${{ inputs.extract_effort || vars.FACT_CHECK_EXTRACT_EFFORT }}
+          FACT_CHECK_BATCH: ${{ inputs.batch }}
+          FACT_CHECK_ENABLED: ${{ vars.FACT_CHECK_ENABLED }}
+          FACT_CHECK_MAX_CLAIMS: ${{ vars.FACT_CHECK_MAX_CLAIMS }}
+        run: |
+          if [ "$REPAIR" = "true" ]; then
+            node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD --write
+          else
+            node scripts/fact-check-article.js "$ARTICLE_FILE" --ref HEAD
+          fi
+      - name: 照合記録を保存する
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact-check-record
+          path: |
+            data/fact-check/*.json
+            ${{ inputs.article_file }}
+          if-no-files-found: warn

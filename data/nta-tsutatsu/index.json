@@ -5,10 +5,23 @@
     "short": "法基通",
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/hojin/01.htm",
     "file": "hojin.json",
+    "search_index": "hojin.index.json",
     "section_pages": 257,
-    "provision_count": 1310,
+    "provision_count": 1340,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:22:41.900Z"
+    "fetched_at": "2026-10-17T07:18:11.580Z"
+  },
+  {
+    "circular": "hyoka",
+    "label": "財産評価基本通達",
+    "short": "評基通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/01.htm",
+    "file": "hyoka.json",
+    "search_index": "hyoka.index.json",
+    "section_pages": 38,
+    "provision_count": 310,
+    "errors": 0,
+    "fetched_at": "2026-10-17T07:19:44.468Z"
   },
   {
     "circular": "shohi",
@@ -16,10 +29,11 @@
     "short": "消基通",
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01.htm",
     "file": "shohi.json",
+    "search_index": "shohi.index.json",
     "section_pages": 100,
     "provision_count": 645,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:18:04.606Z"
+    "fetched_at": "2026-10-17T07:12:50.260Z"
   },
   {
     "circular": "shotoku",
@@ -27,10 +41,59 @@
     "short": "所基通",
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/01.htm",
     "file": "shotoku.json",
+    "search_index": "shotoku.index.json",
     "section_pages": 134,
-    "provision_count": 1234,
+    "provision_count": 1236,
     "errors": 0,
-    "fetched_at": "2026-09-14T09:43:54.428Z"
+    "fetched_at": "2026-10-17T07:10:44.734Z"
+  },
+  {
+    "circular": "sochi_hojin",
+    "label": "租税特別措置法関係通達（法人税編）",
+    "short": "措通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/hojin/sochiho/750214/01.htm",
+    "file": "sochi_hojin.json",
+    "search_index": "sochi_hojin.index.json",
+    "section_pages": 136,
+    "provision_count": 937,
+    "errors": 0,
+    "fetched_at": "2026-10-17T07:26:13.399Z"
+  },
+  {
+    "circular": "sochi_joto",
+    "label": "租税特別措置法（山林所得・譲渡所得関係）の取扱いについて",
+    "short": "措通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/710826/sanrin/sanjyou/01.htm",
+    "file": "sochi_joto.json",
+    "search_index": "sochi_joto.index.json",
+    "section_pages": 53,
+    "provision_count": 419,
+    "errors": 0,
+    "fetched_at": "2026-10-17T07:23:21.613Z"
+  },
+  {
+    "circular": "sochi_shotoku",
+    "label": "租税特別措置法に係る所得税の取扱いについて",
+    "short": "措通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/01.htm",
+    "file": "sochi_shotoku.json",
+    "search_index": "sochi_shotoku.index.json",
+    "section_pages": 58,
+    "provision_count": 344,
+    "errors": 0,
+    "fetched_at": "2026-10-17T07:22:14.139Z"
+  },
+  {
+    "circular": "sochi_sozoku",
+    "label": "租税特別措置法（相続税法の特例関係）の取扱いについて",
+    "short": "措通",
+    "index_url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/01.htm",
+    "file": "sochi_sozoku.json",
+    "search_index": "sochi_sozoku.index.json",
+    "section_pages": 58,
+    "provision_count": 977,
+    "errors": 0,
+    "fetched_at": "2026-10-17T07:20:59.226Z"
   },
   {
     "circular": "sozoku",
@@ -38,9 +101,10 @@
     "short": "相基通",
     "index_url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/01.htm",
     "file": "sozoku.json",
+    "search_index": "sozoku.index.json",
     "section_pages": 35,
-    "provision_count": 439,
+    "provision_count": 438,
     "errors": 0,
-    "fetched_at": "2026-08-21T08:23:19.727Z"
+    "fetched_at": "2026-10-17T07:18:56.242Z"
   }
 ]

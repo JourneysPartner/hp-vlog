@@ -43,10 +43,16 @@ jobs:
           sudo apt-get install -y -qq poppler-utils   # pdftotext
 
       - name: Crawl
+        env:
+          INPUT_ONLY: ${{ github.event.inputs.only }}
         run: |
-          ARGS=""
-          if [ -n "${{ github.event.inputs.only }}" ]; then ARGS="--only ${{ github.event.inputs.only }}"; fi
-          node scripts/crawl-nta-qa.js $ARGS
+          if [ -n "$INPUT_ONLY" ] && [[ ! "$INPUT_ONLY" =~ ^[A-Za-z0-9_.,:/-]+$ ]]; then
+            echo "::error::only は英数字と _ - . , : / だけで指定してください。"
+            exit 1
+          fi
+          ARGS=()
+          if [ -n "$INPUT_ONLY" ]; then ARGS=(--only "$INPUT_ONLY"); fi
+          node scripts/crawl-nta-qa.js "${ARGS[@]}"
 
       - name: Check for changes
         id: changes

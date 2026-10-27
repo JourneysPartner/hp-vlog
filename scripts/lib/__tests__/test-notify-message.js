@@ -92,5 +92,49 @@ console.log('=== 下書きが1本だけの日の通知 ===');
     '理由やログURLが無くても本文が壊れない');
 }
 
+console.log('');
+console.log('=== 公開記事の更新案通知 ===');
+{
+  const ready = buildMessage('refresh_ready', {
+    title: '記事題名', comment: '出典本文が改訂（出典欄）',
+    reviewUrl: 'https://mori-zeirishi.net/review?file=a.md&ref=draft/refresh-a',
+    prUrl: 'https://github.com/example/pull/12',
+  });
+  assert(/更新案/.test(ready.subject) && /記事題名/.test(ready.body)
+    && /出典本文が改訂/.test(ready.body)
+    && ready.body.includes('https://mori-zeirishi.net/review?file=a.md&ref=draft/refresh-a'),
+  'refresh_ready は題名・理由・レビューURLを含む');
+
+  const noChange = buildMessage('refresh_no_change', {});
+  assert(noChange.body.includes('AI が見た範囲では直す所がありませんでした。問題なければ管理画面で「確認済み」を押してください。')
+    && noChange.body.includes('https://mori-zeirishi.net/admin/freshness'),
+  'refresh_no_change は指定文面と管理画面URLを含む');
+
+  const failedRefresh = buildMessage('refresh_failed', { title: '記事題名', comment: 'h2見出しの並びが変わりました。' });
+  assert(/更新案/.test(failedRefresh.subject) && /h2見出し/.test(failedRefresh.body),
+    'refresh_failed は理由を日本語で含む');
+
+  const failedApproval = buildMessage('refresh_approve_failed', { title: '記事題名', comment: '公開本文が変わりました。' });
+  assert(failedApproval.subject.includes('更新案を反映できませんでした')
+    && failedApproval.body.includes('公開本文が変わりました。')
+    && failedApproval.body.includes('一時的な失敗なら、レビュー画面から承認し直してください。')
+    && failedApproval.body.includes('レビュー画面で「今回は見送り」にしてから、管理画面で更新案を作り直してください。'),
+  'refresh_approve_failed は承認の失敗理由と再操作方法を含む');
+
+  const processedRefresh = buildMessage('refresh_processed', { title: '記事題名' });
+  assert(/処理済み/.test(processedRefresh.subject) && /すでに処理済みか、取り下げられている/.test(processedRefresh.body),
+    'refresh_processed は枝とPRを確認できないケースを短く案内');
+  const appliedRefresh = buildMessage('refresh_processed', { title: '記事題名', kind: 'applied' });
+  assert(/すでに公開中の記事に反映済み/.test(appliedRefresh.body) && !/取り下げられている/.test(appliedRefresh.body),
+    'refresh_processed（反映済み）は取り下げの可能性を案内しない');
+
+  const published = buildMessage('refresh_published', {
+    title: '記事題名', publicUrl: 'https://mori-zeirishi.net/blog/a/', reason: '税制改正（## 変更点）',
+  });
+  assert(/更新しました/.test(published.subject) && /記事題名/.test(published.body)
+    && /税制改正/.test(published.body) && published.body.includes('https://mori-zeirishi.net/blog/a/'),
+  'refresh_published は題名・記事URL・理由を含む');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

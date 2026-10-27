@@ -16,7 +16,13 @@ const BOT_RE = /bot|crawl|spider|slurp|preview|lighthouse|headless|monitor/i;
 
 const FIXED_PATHS = new Set([
   '/', '/about.html', '/contact.html', '/services.html', '/voice.html', '/privacy.html',
-  '/404.html', '/blog/',
+  '/404.html', '/blog/', '/contact-thanks.html', '/area/', '/pricing/',
+]);
+
+const PRETTY_PATHS = new Map([
+  ['/about', '/about.html'], ['/contact', '/contact.html'],
+  ['/contact-thanks', '/contact-thanks.html'], ['/services', '/services.html'],
+  ['/voice', '/voice.html'], ['/privacy', '/privacy.html'], ['/404', '/404.html'],
 ]);
 
 function jstDate(now = new Date()) {
@@ -28,7 +34,7 @@ function jstMinute(now = new Date()) {
 }
 
 function dateOffset(date, offset) {
-  const d = new Date(`${date}T00:00:00+09:00`);
+  const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + offset);
   return d.toISOString().slice(0, 10);
 }
@@ -109,25 +115,26 @@ function normalizePath(value) {
   let path = value.split(/[?#]/, 1)[0];
   if (!path || path.includes('\\') || path.includes('..') || /[\u0000-\u001f]/.test(path)) return null;
   if (path !== '/' && path.endsWith('/')) path = path.replace(/\/+$/, '') + '/';
-  return path;
+  return PRETTY_PATHS.get(path.replace(/\/$/, '')) || path;
 }
 
 function isAllowedPath(path) {
   if (FIXED_PATHS.has(path)) return true;
+  if (/^\/services\/[a-z0-9-]+\/?$/.test(path)) return true;
   if (/^\/blog\/[a-z0-9-]+\/?$/.test(path)) return true;
   if (/^\/blog\/page\/\d+\/?$/.test(path)) return true;
   if (/^\/blog\/(?:category|macro)\/[a-z0-9-]+(?:\/page\/\d+)?\/?$/.test(path)) return true;
   return false;
 }
 
-// 問い合わせページ（遷移の計測対象）。ここに内部ページから遷移した場合だけ、
-// 遷移元（どの記事から問い合わせに進んだか）を記録する。
+// 問い合わせ・送信完了ページで、直前に見ていた内部ページを記録する。
 const CONTACT_PATH = '/contact.html';
+const THANKS_PATH = '/contact-thanks.html';
 
 /**
  * ビーコンの本文を {path, ref} に分解する。
- * ref（遷移元）は、現在ページが問い合わせページで、遷移元がサイト内の許可された
- * パス（問い合わせページ自身を除く）の場合だけ有効。それ以外は null。
+ * ref（遷移元）は、現在ページが問い合わせ・送信完了ページで、遷移元がサイト内の
+ * 許可されたパス（問い合わせ・送信完了ページを除く）の場合だけ有効。それ以外は null。
  */
 function parseBeaconPayload(raw) {
   if (typeof raw !== 'string' || Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return null;
@@ -138,23 +145,16 @@ function parseBeaconPayload(raw) {
   const path = normalizePath(body.p);
   if (!path || !isAllowedPath(path)) return null;
   let ref = null;
-  if (path === CONTACT_PATH && typeof body.r === 'string') {
+  if ((path === CONTACT_PATH || path === THANKS_PATH) && typeof body.r === 'string') {
     const candidate = normalizePath(body.r);
-    if (candidate && candidate !== CONTACT_PATH && isAllowedPath(candidate)) ref = candidate;
+    if (candidate && candidate !== CONTACT_PATH && candidate !== THANKS_PATH && isAllowedPath(candidate)) ref = candidate;
   }
   return { path, ref };
 }
 
 function parseBeaconBody(raw) {
-  if (typeof raw !== 'string' || Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return null;
-  try {
-    const body = JSON.parse(raw);
-    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => k !== 'p' && k !== 'r')) return null;
-    const path = normalizePath(body.p);
-    return path && isAllowedPath(path) ? path : null;
-  } catch {
-    return null;
-  }
+  const payload = parseBeaconPayload(raw);
+  return payload ? payload.path : null;
 }
 
 function dailyKey(date) { return `daily/${date}`; }
@@ -192,13 +192,21 @@ async function incrementPageview(store, date, path, { maxAttempts = 8, sleep = d
 }
 
 function transitionKey(date) { return `transitions/${date}`; }
+function submissionKey(date) { return `submissions/${date}`; }
 
 /**
  * 問い合わせページへの遷移を記録する（日別・遷移元パス別の回数）。
  * どの記事が問い合わせを生んだかの実測になり、記事候補の選定に還元する。
  */
-async function incrementTransition(store, date, fromPath, { maxAttempts = 8, sleep = defaultSleep } = {}) {
-  const key = transitionKey(date);
+async function incrementTransition(store, date, fromPath, options = {}) {
+  return incrementFrom(store, transitionKey(date), date, fromPath, options);
+}
+
+async function incrementSubmission(store, date, fromPath, options = {}) {
+  return incrementFrom(store, submissionKey(date), date, fromPath, options);
+}
+
+async function incrementFrom(store, key, date, fromPath, { maxAttempts = 8, sleep = defaultSleep } = {}) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const current = await store.getWithMetadata(key, { type: 'json' });
     const previous = current && current.data && typeof current.data === 'object' ? current.data : {};
@@ -241,6 +249,6 @@ module.exports = {
   COOKIE_NAME, COOKIE_MAX_AGE, DEFAULT_PRODUCTION_HOST,
   jstDate, jstMinute, dateOffset, hash, parseCookies, issueVisitorCookie, verifyVisitorCookie, cookieHeader,
   isProductionRequest, isBot, normalizePath, isAllowedPath, parseBeaconBody, parseBeaconPayload,
-  CONTACT_PATH, incrementTransition, transitionKey,
+  CONTACT_PATH, THANKS_PATH, incrementTransition, transitionKey, incrementSubmission, submissionKey,
   dailyKey, uniqueKey, rateKey, markUnique, markRate, incrementPageview, countPrefix, listPrefixKeys, deleteKeys,
 };

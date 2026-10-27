@@ -2,6 +2,7 @@
 
 const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
 const { sendNotification } = require('./lib/notify');
+const reviewAuth = require('./lib/review-auth');
 const { appendEntries } = require('./lib/denylist-store');
 const { detectDenyIntent, buildEntriesFromContext } = require('../../scripts/lib/denylist');
 const bannedPhrasesLib = require('../../scripts/lib/banned-phrases');
@@ -22,6 +23,9 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  const auth = reviewAuth.requireAction(event);
+  if (auth.response) return auth.response;
 
   try {
     const { filename, comment, ref, suppress_topic } = JSON.parse(event.body || '{}');

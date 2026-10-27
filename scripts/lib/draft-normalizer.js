@@ -16,6 +16,7 @@
  */
 
 const { evaluateTopicFit, recommendationForDecision } = require('./customer-relevance');
+const { formatReplacementFrontmatter } = require('./replaces');
 
 const MAIN_TYPES = new Set(['basic_explainer', 'comparison_decision']);
 
@@ -137,7 +138,7 @@ function escFm(v) {
 }
 
 // ── LLM 出力のタイトルを検証 ──────────────────────────────────
-// 妥当: 6〜80 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない、
+// 妥当: 6〜60 字、placeholder（全角カッコのまま）でない、明らかな煽り語を含まない、
 // title-lint の HARD_FAIL を含まない（同一名詞 2 回繰り返しなど）。
 // 生成時にタイトルを確定できなかったときに入れる仮置き。
 // これが記事タイトルとして公開されないよう、承認/公開の各所で弾く。
@@ -160,7 +161,7 @@ function checkLlmTitle(s, ctx = {}) {
   if (!s || typeof s !== 'string') return { ok: false, reasons: ['タイトルが空'] };
   const t = s.trim();
   if (t.length < 6) reasons.push(`短すぎ: ${t.length}文字`);
-  if (t.length > 80) reasons.push(`長すぎ: ${t.length}文字`);
+  if (t.length > 60) reasons.push(`長すぎ: ${t.length}文字`);
   if (/^（.+記入.*）$/.test(t)) reasons.push('プロンプトの記入欄が残っている');
   if (/あなたがこの記事に最も適したタイトル/.test(t)) reasons.push('プロンプトの指示文が残っている');
   if (/(徹底解説|完全ガイド|必読)/.test(t)) reasons.push('安直な煽り表現');
@@ -184,12 +185,12 @@ function isValidLlmTitle(s, ctx = {}) {
 // ── topic metadata から canonical frontmatter を構築 ────────────
 // LLM frontmatter（llmMeta）から title / summary を採用（妥当な場合）。
 // title は Pattern C: ルールベース生成は使わず、LLM 出力を最終タイトルとする。
-function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {}) {
+function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic, summaryOverride } = {}) {
   const ts = now || new Date().toISOString();
   const articleType = topic.article_type || 'basic_explainer';
   const articleRole = topic.article_role || (MAIN_TYPES.has(articleType) ? 'main' : 'support');
 
-  const relatedSlug      = pairedTopic ? pairedTopic.slug : (topic.related_slug || '');
+  const relatedSlug      = pairedTopic ? (pairedTopic.url_slug || pairedTopic.slug) : (topic.related_slug || '');
   const relatedTitle     = pairedTopic ? pairedTopic.title : (topic.related_title || '');
   const relatedLinkText  = pairedTopic
     ? (RELATED_LINK_TEXTS[pairedTopic.article_type] || 'あわせて読みたい')
@@ -210,7 +211,7 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
     console.warn(`[draft-normalizer] LLM タイトルを採用せず（${llmCheck.reasons.join(' / ')}）` +
       ` 却下したタイトル: "${llmTitle}" → curated topic.title を採用: "${title}"`);
   } else {
-    title = `${PLACEHOLDER_TITLE_PREFIX}${topic.slug || 'untitled'}`;
+    title = `${PLACEHOLDER_TITLE_PREFIX}${topic.url_slug || topic.slug || 'untitled'}`;
     // 何を弾いたのかを必ず残す。理由を書いていなかったため、2026-08-25 に
     // 仮置きへ落ちた記事の原因を後から特定できなかった。
     console.warn(`[draft-normalizer] LLM タイトルを採用せず（${llmCheck.reasons.join(' / ')}）` +
@@ -220,7 +221,8 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
 
   // summary: LLM のものが妥当（10〜160字）ならそれ、なければ topic、なければ本文派生（呼び出し側で渡す）
   let summary = '';
-  const llmSummary = (llmMeta.summary || '').trim();
+  const overrideSummary = String(summaryOverride || '').trim();
+  const llmSummary = (overrideSummary || llmMeta.summary || '').trim();
   if (llmSummary && llmSummary.length >= 10 && llmSummary.length <= 200 && !/^（.*）$/.test(llmSummary)) {
     summary = llmSummary;
   } else if (topic.summary && topic.summary.length >= 10) {
@@ -269,10 +271,15 @@ function buildCanonicalFrontmatter(topic, { llmMeta = {}, now, pairedTopic } = {
     : [];
   const sourceSupplementFm = sourceSupplementLines.length > 0
     ? `\n${sourceSupplementLines.join('\n')}` : '';
+  if (topic.materials_warning) reviewWarning = [reviewWarning, topic.materials_warning].filter(Boolean).join(' / ');
+  const plan = require('./article-plan');
+  const planMetadata = plan.enabled() && ['ok', 'failed'].includes(topic.fact_plan_status)
+    ? plan.META_FIELDS.map(key => `\n${key}: "${escFm(topic[key] || '')}"`).join('') : '';
+  if (planMetadata) reviewWarning = [reviewWarning, plan.planWarning(topic)].filter(Boolean).join(' / ');
 
   return `---
 title: "${escFm(title)}"
-slug: "${escFm(topic.slug)}"
+slug: "${escFm(topic.url_slug || topic.slug)}"
 category: "${escFm(topic.category || '')}"
 primary_persona: "${escFm(topic.persona || topic.primary_persona || DEFAULT_PERSONA)}"
 secondary_persona: ""
@@ -287,6 +294,8 @@ source_provenance: "${escFm(topic.source_provenance || 'unknown')}"
 source_confidence: ${sourceConfidence}
 source_term: "${escFm(topic.source_term || '')}"
 source_guard_version: 1${sourceSupplementFm}
+source_bundle: "${escFm(topic.source_bundle || '')}"${planMetadata}
+tax_terms: "${escFm(topic.tax_terms || '')}"
 search_intent: "${escFm(topic.search_intent || '')}"
 reader_problem: "${escFm(topic.reader_problem || '')}"
 success_outcome: "${escFm(successOutcome)}"
@@ -299,6 +308,10 @@ business_stage: "${escFm(topic.business_stage || '')}"
 life_stage: "${escFm(topic.life_stage || '')}"
 pain_point: "${escFm(topic.pain_point || '')}"
 procedure_stage: "${escFm(topic.procedure_stage || '')}"
+topic_id: "${escFm(topic.slug || '')}"
+target_query: "${escFm(topic.target_query || '')}"
+secondary_queries: "${escFm(Array.isArray(topic.secondary_queries) ? topic.secondary_queries.join(',') : (topic.secondary_queries || ''))}"
+intent_type: "${escFm(topic.intent_type || '')}"${formatReplacementFrontmatter(topic.replaces)}
 customer_segment: "${escFm(fit.customer_segment)}"
 customer_fit_score: ${fit.customer_fit_score}
 search_intent_score: ${fit.search_intent_score}
@@ -343,10 +356,13 @@ function normalizeGeneratedDraft(rawText, topic, opts = {}) {
 
   // titleOverride: LLM のタイトルが使えず仮置きに落ちたとき、呼び出し側が
   // タイトルだけ作り直して渡してくる（generate-draft.js の retryTitleOnce）。
-  const metaForFm = opts.titleOverride ? { ...llmMeta, title: opts.titleOverride } : llmMeta;
+  let metaForFm = llmMeta;
+  if (opts.titleOverride) metaForFm = { ...metaForFm, title: opts.titleOverride };
+  if (opts.summaryOverride) metaForFm = { ...metaForFm, summary: opts.summaryOverride };
 
   const frontmatter = buildCanonicalFrontmatter(topicForFm, {
     llmMeta: metaForFm, now: opts.now, pairedTopic: opts.pairedTopic,
+    summaryOverride: opts.summaryOverride,
   });
 
   const content = `${frontmatter}\n\n${body.trim()}\n`;
@@ -354,6 +370,7 @@ function normalizeGeneratedDraft(rawText, topic, opts = {}) {
     content,
     body: body.trim(),
     title: (frontmatter.match(/^title:\s*"(.*)"$/m) || [])[1] || '',
+    summary: (frontmatter.match(/^summary:\s*"(.*)"$/m) || [])[1] || '',
     bodyH2Count: countH2(body),
     hadFrontmatter,
     leadingTextStripped: !!(extractFrontmatterAndBody(stripped).leadingText),
@@ -382,8 +399,12 @@ function clearPlaceholderTitleWarning(raw) {
   const rest = warnMatch[1].split(' / ').filter(w => w && w !== PLACEHOLDER_TITLE_WARNING);
   let out = text.replace(/^review_warning:\s*".*"$/m, `review_warning: "${rest.join(' / ')}"`);
   // 残る警告が無ければ、仮置きだけを理由にした revise を publish に戻す
-  if (rest.length === 0) {
+  const factBlocking = /^fact_check_blocking:\s*"?true"?\s*$/m.test(text) || /^fact_check_status:\s*"?revise"?\s*$/m.test(text);
+  const otherWarnings = warnMatch[1].replace(require('./fact-check').WARNING_RE, '')
+    .split(' / ').filter(w => w.trim() && w !== PLACEHOLDER_TITLE_WARNING);
+  if (otherWarnings.length === 0 && !factBlocking) {
     out = out.replace(/^recommendation:\s*"revise"$/m, 'recommendation: "publish"');
+    out = out.replace(/^fact_check_prev_recommendation:\s*"revise"$/m, 'fact_check_prev_recommendation: "publish"');
   }
   return out;
 }

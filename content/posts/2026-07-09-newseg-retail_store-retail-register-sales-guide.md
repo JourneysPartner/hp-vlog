@@ -1,5 +1,5 @@
 ---
-title: "小売店のレジ売上はどう仕訳する？現金過不足の処理まで解説"
+title: "レジの現金過不足の仕訳と勘定科目｜小売店のレジ売上（現金・カード・電子マネー）の計上方法"
 slug: "newseg-retail_store-retail-register-sales-guide"
 category: "帳簿・経費"
 primary_persona: "retail_store"
@@ -32,7 +32,7 @@ lead_value_score: 2
 tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
-summary: "小売店のレジ売上は販売時点で計上が原則。現金・クレカ・電子マネーで仕訳が異なり、現金過不足は原因究明→雑収入・雑損失で処理します。"
+summary: "レジの現金過不足は原因を確認したうえで雑収入・雑損失で処理します。レジ売上は販売時点で計上し、現金・クレジットカード・電子マネーで仕訳が変わります。仕訳例で解説。"
 review_status: "published"
 review_comment: ""
 approved_at: "2026-07-09T15:04:08.724+09:00"

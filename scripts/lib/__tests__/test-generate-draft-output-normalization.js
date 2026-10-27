@@ -175,8 +175,8 @@ console.log('\n=== Test 12: isValidLlmTitle ===');
   assert(isValidLlmTitle('メルカリ販売で法人化を考えるべき売上ラインは？｜初動を整理'), '妥当な日本語タイトル');
   assert(!isValidLlmTitle(''), '空文字は無効');
   assert(!isValidLlmTitle('短'), '6字未満は無効');
-  assert(!isValidLlmTitle('a'.repeat(81)), '80字超は無効');
-  assert(!isValidLlmTitle('（あなたがこの記事に最も適したタイトルをここに記入。30〜70文字、検索者が自然に検索する具体的な表現、`｜サブテキスト`形式可、曖昧表現禁止）'), 'placeholder 文字列は無効');
+  assert(!isValidLlmTitle('a'.repeat(61)), '60字超は無効');
+  assert(!isValidLlmTitle('（あなたがこの記事に最も適したタイトルをここに記入。28〜45文字、検索者が自然に検索する具体的な表現、`｜サブテキスト`形式可、曖昧表現禁止）'), 'placeholder 文字列は無効');
   assert(!isValidLlmTitle('メルカリ販売の徹底解説'), '徹底解説 を含むのは無効');
   assert(!isValidLlmTitle('メルカリ販売の完全ガイド'), '完全ガイド を含むのは無効');
   // 誤検知回帰防止: 「課税事業者／免税事業者」の正当な対比は共有 3-gram
@@ -207,6 +207,29 @@ console.log('\n=== Test 13: 適合スコア frontmatter ===');
   const dg = matter(normalizeGeneratedDraft('## 章1\n本文\n## 章2\n本文\n## 章3\n本文', goodTopic, { now: '2026-07-04T00:00:00Z' }).content).data;
   assert(dg.recommendation === 'publish', '良好トピックは recommendation=publish');
   assert(dg.customer_fit_score >= 4, '良好トピックは customer_fit_score>=4');
+}
+
+console.log('\n=== Test 14: 狙う検索語・URL slug・summaryOverride ===');
+{
+  const seoTopic = {
+    ...TOPIC,
+    url_slug: 'paint-account-category-guide',
+    target_query: '塗料 勘定科目',
+    secondary_queries: ['塗料 仕訳', 'ペンキ 経費'],
+    intent_type: 'answer',
+  };
+  const normalized = normalizeGeneratedDraft(
+    '---\ntitle: "塗料の勘定科目と仕訳を迷わず判断するための実務ガイド"\nsummary: "元の要約です。十分な長さがあります。"\n---\n\n## 塗料の処理\n本文です。',
+    seoTopic,
+    { now: '2026-09-27T00:00:00Z', summaryOverride: '塗料の勘定科目について、判断の結論と確認点を簡潔に示します。' },
+  );
+  const data = matter(normalized.content).data;
+  assert(data.slug === 'paint-account-category-guide', 'url_slug が slug 行に出る');
+  assert(data.topic_id === TOPIC.slug, 'topic_id は元の topic.slug');
+  assert(data.target_query === '塗料 勘定科目', 'target_query が出る');
+  assert(data.secondary_queries === '塗料 仕訳,ペンキ 経費', 'secondary_queries はカンマ区切り');
+  assert(data.intent_type === 'answer', 'intent_type が出る');
+  assert(/^塗料の勘定科目/.test(data.summary), 'summaryOverride が効く');
 }
 
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

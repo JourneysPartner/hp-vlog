@@ -1,0 +1,328 @@
+{
+  "_note": "本文中の用語に、その用語を主題にした記事へのリンクをビルド時に付ける辞書。記事の Markdown は触らない。term は本文に出る語そのまま。macros はリンクを出す記事の業種ハブ（hub-membership の日本語 macro 名）。\"*\" は全業種。enabled が false の行は使わない。",
+  "terms": [
+    {
+      "term": "簡易課税",
+      "slug": "deepdive-general_individual_proprietor-simplified-tax-business-category-guide",
+      "macros": [
+        "物販",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "輸出免税",
+      "slug": "shopify-growth-overseas-tax-uncertain-practice",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "消費税還付",
+      "slug": "ebay-export-consumption-tax-refund-guide",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "2割特例",
+      "slug": "suggest-invoice-2wari-f451e6",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "3割特例",
+      "slug": "suggest-invoice-2wari-f451e6",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "特定期間",
+      "slug": "tax-consumption-tax-taxable-business-threshold",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "少額減価償却資産",
+      "slug": "deepdive-reseller_marketplace_seller-small-depreciation-special-guide",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "一括償却資産",
+      "slug": "deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "源泉徴収",
+      "slug": "newseg-construction_solo-construction-withholding-received-guide",
+      "macros": [
+        "建設"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "専従者給与",
+      "slug": "esthetic-growth-family-employment-guide",
+      "macros": [
+        "サロン"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "インボイス登録",
+      "slug": "suggest-invoice-yametai-dd16cd",
+      "macros": [
+        "一般事業者"
+      ],
+      "enabled": false,
+      "note": "「やめたい」記事への誘導になるため無効化（Claude 受け入れ時）"
+    },
+    {
+      "term": "適格簡易請求書",
+      "slug": "newseg-retail_store-retail-invoice-guide",
+      "macros": [
+        "小売"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "リバースチャージ",
+      "slug": "deepdive-influencer_creator-b2b-electronic-services-guide",
+      "macros": [
+        "インフルエンサー"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "前受金",
+      "slug": "hair-salon-pre-opening-prepayment-recognition-guide",
+      "macros": [
+        "サロン"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "棚卸資産",
+      "slug": "mercari-growth-inventory-balance-practice",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "法人成り",
+      "slug": "affiliate-pr-incorporation-platform-fee-treatment-guide",
+      "macros": [
+        "インフルエンサー"
+      ],
+      "enabled": false,
+      "note": "手数料の記事で主題が違うため無効化（Claude 受け入れ時）"
+    },
+    {
+      "term": "小規模宅地等の特例",
+      "slug": "small-residential-land-special-provision",
+      "macros": [
+        "相続贈与"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "配偶者の税額軽減",
+      "slug": "inheritance-pre-planning-spouse-reduction-practice",
+      "macros": [
+        "相続贈与"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "生前贈与",
+      "slug": "gift-seven-year-addback-rule-update",
+      "macros": [
+        "相続贈与"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "相続時精算課税",
+      "slug": "settlement-tax-basic-deduction-2024",
+      "macros": [
+        "相続贈与"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "事業所得",
+      "slug": "general-income-classification-influencer-creator-pre-opening-guide",
+      "macros": [
+        "インフルエンサー"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "雑所得",
+      "slug": "general-income-classification-influencer-creator-pre-opening-guide",
+      "macros": [
+        "インフルエンサー"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "家事按分",
+      "slug": "newseg-construction_solo-construction-vehicle-expense-practice",
+      "macros": [
+        "建設"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "修繕費",
+      "slug": "deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "資本的支出",
+      "slug": "deepdive-general_individual_proprietor-capital-expenditure-vs-repair-guide",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "免税事業者",
+      "slug": "suggest-invoice-menzei-d94411",
+      "macros": [
+        "物販",
+        "サロン",
+        "インフルエンサー",
+        "YouTube",
+        "コンテンツ販売",
+        "建設",
+        "小売",
+        "卸売",
+        "一般事業者"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "仕入税額控除",
+      "slug": "deepdive-influencer_creator-vending-machine-special-guide",
+      "macros": [
+        "一般事業者"
+      ],
+      "enabled": false,
+      "note": "自動販売機特例の記事で主題が狭いため無効化（Claude 受け入れ時）"
+    },
+    {
+      "term": "外注費",
+      "slug": "creator-outsourcing-withholding-tax",
+      "macros": [
+        "インフルエンサー"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "人工代",
+      "slug": "newseg-construction_solo-construction-labor-cost-guide",
+      "macros": [
+        "建設"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "特定課税仕入れ",
+      "slug": "shitsugi-shohi-26-01",
+      "macros": [
+        "物販"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "現金過不足",
+      "slug": "newseg-retail_store-retail-register-sales-guide",
+      "macros": [
+        "小売"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "商品券",
+      "slug": "newseg-retail_store-retail-gift-certificate-practice",
+      "macros": [
+        "小売"
+      ],
+      "enabled": true
+    },
+    {
+      "term": "簡易課税",
+      "slug": "deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide",
+      "macros": [
+        "サロン"
+      ],
+      "enabled": true,
+      "note": "サロン記事はサロン向けの簡易課税記事へ（一般向けの行と macros を分ける）"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 ---
-title: "国外事業者への支払いは課税売上高に入る？特定課税仕入れと納税義務判定の落とし穴"
+title: "特定課税仕入れとは？リバースチャージで申告した支払いは課税売上高に入るのか（納税義務判定の落とし穴）"
 slug: "shitsugi-shohi-26-01"
 category: "消費税"
 primary_persona: "domestic_ec_seller"

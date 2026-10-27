@@ -1,0 +1,2271 @@
+{
+  "version": 1,
+  "logic_version": "plan2-s2",
+  "status": "ok",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": true,
+  "checked_at": "2026-10-26T07:39:37.753Z",
+  "body_sha256": "23ee928625f4030712c2e66366c9b8fd213d1aec6c84c78047fc0373adf107c2",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "- 被相続人の居住の用に供されていた一棟の建物に居住していた親族が取得する場合：相続開始の直前から申告期限まで引き続きその建物に居住し、かつその宅地等を相続開始時から申告期限まで有していることが必要です",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "期限",
+      "subject": "特定居住用宅地等",
+      "claim": "同居親族の居住継続・保有継続は申告期限まで",
+      "s": 39,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "- 被相続人と生計を一にしていた親族の居住の用に供されていた宅地等：相続開始前から申告期限まで引き続きその家屋に居住し、申告期限までその宅地等を有していることが必要です",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "期限",
+      "subject": "特定居住用宅地等",
+      "claim": "生計一親族の居住継続・保有継続は申告期限まで",
+      "s": 40,
+      "status": "裏付けあり",
+      "quote": "2 被相続人と生計を一にしていた親族相続開始前から相続税の申告期限まで引き続きその家屋に居住し、かつ、その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "- 被相続人の事業の用に供されていた場合：申告期限までにその事業を引き継ぎ、申告期限までその事業を営み、かつその宅地等を有していること（事業承継要件と保有継続要件）",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "期限",
+      "subject": "特定事業用宅地等",
+      "claim": "事業の引継ぎ・事業継続・宅地等の保有は申告期限まで",
+      "s": 46,
+      "status": "裏付けあり",
+      "quote": "○ 特定事業用宅地等の要件区分特例の適用要件被相続人の事業の用に供されていた宅地等事業承継要件その宅地等の上で営まれていた被相続人の事業を相続税の申告期限までに引き継ぎ、かつ、その申告期限までその事業を営んでいること。 保有継続要件その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "- 生計を一にしていた親族の事業の用に供されていた場合：相続開始の直前から申告期限まで、その宅地等の上で事業を営み、かつ有していること",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "期限",
+      "subject": "特定事業用宅地等",
+      "claim": "生計一親族の事業継続・保有は申告期限まで",
+      "s": 47,
+      "status": "裏付けあり",
+      "quote": "被相続人と生計を一にしていた被相続人の親族の事業の用に供されていた宅地等事業継続要件相続開始の直前から相続税の申告期限まで、その宅地等の上で事業を営んでいること。 保有継続要件その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "被相続人の貸付事業を申告期限までに引き継ぎ、その事業を行い続けること、生計を一にしていた親族であれば相続開始前から申告期限までその貸付事業を行い続けることが要件です。",
+      "heading": "貸付事業用宅地等",
+      "type": "期限",
+      "subject": "貸付事業用宅地等",
+      "claim": "貸付事業の引継ぎ・継続は申告期限まで",
+      "s": 52,
+      "status": "裏付けあり",
+      "quote": "○ 貸付事業用宅地等の要件区分特例の適用要件被相続人の貸付事業の用に供されていた宅地等事業承継要件その宅地等に係る被相続人の貸付事業を相続税の申告期限までに引き継ぎ、かつ、その申告期限までその貸付事業を行っていること保有継続要件その宅地等を相続税の申告期限まで有していること被相続人と生計を一にしていた被相続人の親族の貸付事業の用に供されていた宅地等事業継続要件相続開始前から相続税の申告期限まで、その宅地等に係る貸付事業を行っていること保有継続要件その宅地等を相続税の申告期限まで有していること （注1） 「準事業」とは、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の7",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "- 「相続人全員がそれぞれ使える」と思う：対象となり得る宅地等を取得した人が2人以上いる場合、誰が適用を受けるかについて全員の同意が必要で、原則として申告期限までに分割されていることも必要です。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "期限",
+      "subject": "小規模宅地等の特例",
+      "claim": "原則として申告期限までに遺産が分割されていることが必要",
+      "s": 68,
+      "status": "裏付けあり",
+      "quote": "また、この特例の対象となり得る宅地等やその他一定の特例の対象となり得る財産や宅地等を取得した相続人等が2人以上いる場合には、この特例の適用を受けようとする宅地等の選択についてその全員が同意しており、かつ、原則として相続税の申告期限までに分割されていることが必要です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:69の5-11",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "| 相続開始を知った日の翌日から10か月以内 | 相続税の申告書に特例の適用を受ける旨を記載し、計算の明細書や遺産分割協議書の写しなど一定の書類を添付して申告 |",
+      "heading": "申告手続と必要書類",
+      "type": "期限",
+      "subject": "相続税の申告",
+      "claim": "相続開始を知った日の翌日から10か月以内に申告する",
+      "s": 77,
+      "status": "裏付けあり",
+      "quote": "申告の期限と方法相続税の申告は、被相続人が死亡したことを知った日（通常の場合は、被相続人の死亡の日）の翌日から10か月以内に行うことになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/19/01.htm",
+        "law:sozokuzei:27",
+        "law:sozeki_hou:70_7_13"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "| 申告期限までに分割できない場合 | 原則として特例は適用できません。申告期限から3年以内に分割された場合などの救済があるため、税務署・税理士に確認 |",
+      "heading": "申告手続と必要書類",
+      "type": "期限",
+      "subject": "小規模宅地等の特例",
+      "claim": "申告期限から3年以内に分割された場合などの救済がある",
+      "s": 78,
+      "status": "裏付けあり",
+      "quote": "ただし、その分割されていない特例対象宅地等が申告期限から三年以内（当該期間が経過するまでの間に当該特例対象宅地等が分割されなかつたことにつき、当該相続又は遺贈に関し訴えの提起がされたことその他の政令で定めるやむを得ない事情がある場合において、政令で定めるところにより納税地の所轄税務署長の承認を受けたときは、当該特例対象宅地等の分割ができることとなつた日として政令で定める日の翌日から四月以内）に分割された場合（当該相続又は遺贈により財産を取得した者が次条第一項の規定の適用を受けている場合を除く。）には、その分割された当該特例対象宅地等については、この限りでない。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:69_4",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:sochi_sozoku:69の5-11",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "tsutatsu:sochi_sozoku:69の4-27"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "同居親族が取得する類型では、相続開始の直前から申告期限まで引き続きその建物に居住し、宅地等を相続開始時から申告期限まで有していることが要件です。",
+      "heading": "相続した自宅に子どもが住み続ける場合は？",
+      "type": "期限",
+      "subject": "特定居住用宅地等",
+      "claim": "同居親族の居住継続と宅地等の保有は申告期限まで",
+      "s": 102,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4152）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "期限",
+      "subject": "生前贈与加算",
+      "claim": "暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算される",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "（注3）相続や遺贈で財産を取得した相続人等（相続や遺贈で財産を取得しなかった相続時精算課税を選択した受贈者については、相続時精算課税適用財産を相続等により取得したものとみなされます。）が、加算対象期間内（被相続人の相続開始日が令和8年12月31日以前の場合は、加算対象期間は相続開始前3年以内となります。詳しくは、コード4161「贈与財産の加算と税額控除（暦年課税）」をご覧ください。）にその被相続人から暦年課税に係る贈与によって取得した財産の価額をいいます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "law:sozokuzei:11"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "| 特定事業用宅地等 | 400㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "割合",
+      "subject": "特定事業用宅地等",
+      "claim": "特定事業用宅地等の減額割合は80%",
+      "s": 23,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "| 特定同族会社事業用宅地等 | 400㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "割合",
+      "subject": "特定同族会社事業用宅地等",
+      "claim": "特定同族会社事業用宅地等の減額割合は80%",
+      "s": 24,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:70の6の10-17",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "| 特定居住用宅地等 | 330㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "割合",
+      "subject": "特定居住用宅地等",
+      "claim": "特定居住用宅地等の減額割合は80%",
+      "s": 25,
+      "status": "裏付けあり",
+      "quote": "その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "| 貸付事業用宅地等 | 200㎡ | 50% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "割合",
+      "subject": "貸付事業用宅地等",
+      "claim": "貸付事業用宅地等の減額割合は50%",
+      "s": 26,
+      "status": "裏付けあり",
+      "quote": "その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の7",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "- 「貸付用でも80%」と覚えている：貸付事業用は50%・200㎡です。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "割合",
+      "subject": "貸付事業用宅地等",
+      "claim": "貸付事業用は減額割合50%・限度面積200㎡",
+      "s": 69,
+      "status": "裏付けあり",
+      "quote": "その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "小規模宅地等の特例は、自宅なら330㎡・80%、事業用なら400㎡・80%、貸付事業用なら200㎡・50%という枠の中で、誰が取得するかによって要件が変わります。",
+      "heading": "まとめ",
+      "type": "割合",
+      "subject": "小規模宅地等の特例",
+      "claim": "自宅330㎡・80%、事業用400㎡・80%、貸付事業用200㎡・50%",
+      "s": 112,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:70の6の10-17",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4152）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "適用年",
+      "subject": "生前贈与加算",
+      "claim": "相続開始日が令和8年12月31日以前の場合の取扱い",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "（注3）相続や遺贈で財産を取得した相続人等（相続や遺贈で財産を取得しなかった相続時精算課税を選択した受贈者については、相続時精算課税適用財産を相続等により取得したものとみなされます。）が、加算対象期間内（被相続人の相続開始日が令和8年12月31日以前の場合は、加算対象期間は相続開始前3年以内となります。詳しくは、コード4161「贈与財産の加算と税額控除（暦年課税）」をご覧ください。）にその被相続人から暦年課税に係る贈与によって取得した財産の価額をいいます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "law:sozokuzei:11"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "区分ごとの限度面積と減額割合は次のとおりです（国税庁タックスアンサー No.4124）。",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "番号",
+      "subject": "小規模宅地等の特例",
+      "claim": "区分ごとの限度面積と減額割合は国税庁タックスアンサーNo.4124による",
+      "s": 20,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:sochi_sozoku:70の6の10-18",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "あわせて、配偶者が財産を取得する場合の配偶者の税額の軽減（国税庁タックスアンサー No.4158）は、申告期限までに分割されていない財産が対象になりません。",
+      "heading": "申告手続と必要書類",
+      "type": "番号",
+      "subject": "配偶者の税額の軽減",
+      "claim": "配偶者の税額の軽減は国税庁タックスアンサーNo.4158",
+      "s": 79,
+      "status": "裏付けあり",
+      "quote": "したがって、相続税の申告期限までに分割されていない財産は税額軽減の対象になりません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+        "law:sozokuzei_rei:4_2",
+        "law:sozokuzei:19_2",
+        "tsutatsu:sozoku:16-1"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4152）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "番号",
+      "subject": "生前贈与加算",
+      "claim": "生前贈与加算は国税庁タックスアンサーNo.4152",
+      "s": 109,
+      "status": "食い違い",
+      "quote": "（注3）相続や遺贈で財産を取得した相続人等（相続や遺贈で財産を取得しなかった相続時精算課税を選択した受贈者については、相続時精算課税適用財産を相続等により取得したものとみなされます。）が、加算対象期間内（被相続人の相続開始日が令和8年12月31日以前の場合は、加算対象期間は相続開始前3年以内となります。詳しくは、コード4161「贈与財産の加算と税額控除（暦年課税）」をご覧ください。）にその被相続人から暦年課税に係る贈与によって取得した財産の価額をいいます。",
+      "correct": "生前贈与加算（贈与財産の加算と税額控除（暦年課税））の詳細は国税庁タックスアンサーNo.4161",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "law:sozokuzei:11"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "小規模宅地等の特例は、亡くなった方（被相続人）またはその方と生計を一にしていた親族の事業の用・居住の用に供されていた宅地等のうち、一定要件を満たすものについて、相続税の課税価格に算入する価額を減額する制度です。",
+      "heading": "まず結論：使えるかどうかは「取得者」と「利用区分・面積」で決まる",
+      "type": "要件",
+      "subject": "小規模宅地等の特例",
+      "claim": "被相続人等の事業用・居住用宅地等で要件を満たすものの課税価格算入額を減額する",
+      "s": 10,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目相続税概要個人が、相続や遺贈によって取得した財産のうち、その相続開始の直前において被相続人または被相続人と生計を一にしていた被相続人の親族（「被相続人等」といいます。）の事業の用または居住の用に供されていた宅地等（土地または土地の上に存する権利をいいます。以下同じです。）のうち一定のものがある場合には、その宅地等のうち一定の面積までの部分（「小規模宅地等」といいます。）については、相続税の課税価格に算入すべき価額の計算上、下記の「減額される割合等」の表に掲げる区分ごとにそれぞれに掲げる割合を減額します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "law:sozeki_hou:70_7_13"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "対象となるのは、建物または構築物の敷地の用に供されている宅地等です（農地と採草放牧地は除かれます）。",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "小規模宅地等の特例",
+      "claim": "対象は建物・構築物の敷地の用に供される宅地等で、農地・採草放牧地は除く",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "（注）「宅地等のうち一定のもの」とは、建物または構築物の敷地の用に供されている宅地等（農地および採草放牧地を除きます。）をいい、棚卸資産およびこれに準ずる資産を除きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/11.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/03.htm",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "| 特定事業用宅地等 | 400㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "特定事業用宅地等",
+      "claim": "特定事業用宅地等の限度面積は400㎡",
+      "s": 23,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:70の6の10-18",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "| 特定同族会社事業用宅地等 | 400㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "特定同族会社事業用宅地等",
+      "claim": "特定同族会社事業用宅地等の限度面積は400㎡",
+      "s": 24,
+      "status": "裏付けあり",
+      "quote": "相続開始の直前における宅地等の利用区分要件限度面積減額される割合被相続人等の事業の用に供されていた宅地等貸付事業以外の事業用の宅地等 ① 特定事業用宅地等に該当する宅地等 400 80％ 貸付事業用の宅地等一定の法人に貸し付けられ、その法人の事業(貸付事業を除きます。)用の宅地等 ② 特定同族会社事業用宅地等に該当する宅地等 400 80％ ③ 貸付事業用宅地等に該当する宅地等 200 50％ 一定の法人に貸し付けられ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:70の6の10-17",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "| 特定居住用宅地等 | 330㎡ | 80% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "特定居住用宅地等の限度面積は330㎡",
+      "s": 25,
+      "status": "裏付けあり",
+      "quote": "その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "| 貸付事業用宅地等 | 200㎡ | 50% |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "貸付事業用宅地等",
+      "claim": "貸付事業用宅地等の限度面積は200㎡",
+      "s": 26,
+      "status": "裏付けあり",
+      "quote": "その法人の貸付事業用の宅地等 ④ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の貸付事業用の宅地等 ⑤ 貸付事業用宅地等に該当する宅地等 200 50％ 被相続人等の居住の用に供されていた宅地等 ⑥ 特定居住用宅地等に該当する宅地等 330 80％ 特例の適用を選択する宅地等が以下のいずれに該当するかに応じて、限度面積を判定します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-24の7",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "| 貸付事業用がない場合 | 特定事業用等は合計400㎡まで、特定居住用は330㎡まで。両方なら合計730㎡まで |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "要件",
+      "subject": "限度面積の判定",
+      "claim": "貸付事業用がなければ特定事業用等400㎡と特定居住用330㎡の合計730㎡まで",
+      "s": 30,
+      "status": "裏付けあり",
+      "quote": "特例の適用を選択する宅地等限度面積特定事業用等宅地等（①または②）および特定居住用宅地等（⑥） （貸付事業用宅地等がない場合） （①＋②）≦400㎡ ⑥≦330㎡ 両方を選択する場合は、合計730㎡ 貸付事業用宅地等（③、④または⑤）およびそれ以外の宅地等（①、②または⑥） （貸付事業用宅地等がある場合） （①＋②）×200/400＋⑥×200/330 ＋（③＋④＋⑤）≦200㎡ （注） 特例を適用する宅地等が配偶者居住権の目的となっている建物の敷地の用に供される宅地等またはその宅地等を配偶者居住権に基づき使用する権利の全部または一部である場合には、その宅地等の面積に、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:sochi_sozoku:70の6の8-18",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:70の6の10-16",
+        "tsutatsu:sochi_sozoku:69の4-27"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "- 被相続人の配偶者が取得する場合：取得者ごとの要件はありません",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "配偶者が取得する場合は取得者ごとの要件はない",
+      "s": 38,
+      "status": "裏付けあり",
+      "quote": "○ 特定居住用宅地等の要件区分特例の適用要件取得者取得者等ごとの要件 ① 被相続人の居住の用（注1）に供されていた宅地等（注2） 1 被相続人の配偶者 「取得者ごとの要件」はありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "- 被相続人の居住の用に供されていた一棟の建物に居住していた親族が取得する場合：相続開始の直前から申告期限まで引き続きその建物に居住し、かつその宅地等を相続開始時から申告期限まで有していることが必要です",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "同居親族は相続開始直前から申告期限まで居住を続け、宅地等を保有する必要がある",
+      "s": 39,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "- 被相続人と生計を一にしていた親族の居住の用に供されていた宅地等：相続開始前から申告期限まで引き続きその家屋に居住し、申告期限までその宅地等を有していることが必要です",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "生計一親族の居住用宅地等は相続開始前から申告期限まで居住し、保有する必要がある",
+      "s": 40,
+      "status": "裏付けあり",
+      "quote": "2 被相続人と生計を一にしていた親族相続開始前から相続税の申告期限まで引き続きその家屋に居住し、かつ、その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "なお、被相続人の居住の用に供されていた宅地等が2以上あるときは、主として居住の用に供していた一の宅地等に限られます。",
+      "heading": "特定居住用宅地等（自宅の敷地）",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "居住用宅地等が2以上あるときは主として居住の用に供した一の宅地等に限る",
+      "s": 41,
+      "status": "裏付けあり",
+      "quote": "なお、その宅地等が2以上ある場合には、主としてその居住の用に供していた一の宅地等に限ります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "ただし不動産貸付業・駐車場業・自転車駐車場業などは除かれ、これらは貸付事業用として扱われます。",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "要件",
+      "subject": "特定事業用宅地等",
+      "claim": "不動産貸付業・駐車場業・自転車駐車場業は除かれ、貸付事業用として扱われる",
+      "s": 45,
+      "status": "裏付けあり",
+      "quote": "特定事業用宅地等相続開始の直前において被相続人等の事業（不動産貸付業、駐車場業、自転車駐車場業および準事業（注1）を除きます。）の用に供されていた宅地等（その相続の開始前3年以内に新たに事業の用に供された宅地等（「3年以内事業宅地等」といいます。以下同じです。）（注2）を除きます。）で、次の表の区分に応じ、それぞれに掲げる要件のすべてに該当する被相続人の親族が相続または遺贈により取得したものをいいます（次の表の区分に応じ、それぞれに掲げる要件のすべてに該当する部分で、それぞれの要件に該当する被相続人の親族が相続または遺贈により取得した持分の割合に応ずる部分に限られます。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "- 被相続人の事業の用に供されていた場合：申告期限までにその事業を引き継ぎ、申告期限までその事業を営み、かつその宅地等を有していること（事業承継要件と保有継続要件）",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "要件",
+      "subject": "特定事業用宅地等",
+      "claim": "被相続人の事業を引き継いで営み、宅地等を保有すること（事業承継・保有継続要件）",
+      "s": 46,
+      "status": "裏付けあり",
+      "quote": "○ 特定事業用宅地等の要件区分特例の適用要件被相続人の事業の用に供されていた宅地等事業承継要件その宅地等の上で営まれていた被相続人の事業を相続税の申告期限までに引き継ぎ、かつ、その申告期限までその事業を営んでいること。 保有継続要件その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "- 生計を一にしていた親族の事業の用に供されていた場合：相続開始の直前から申告期限まで、その宅地等の上で事業を営み、かつ有していること",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "要件",
+      "subject": "特定事業用宅地等",
+      "claim": "生計一親族の事業用は相続開始直前から申告期限まで事業を営み、保有していること",
+      "s": 47,
+      "status": "裏付けあり",
+      "quote": "被相続人と生計を一にしていた被相続人の親族の事業の用に供されていた宅地等事業継続要件相続開始の直前から相続税の申告期限まで、その宅地等の上で事業を営んでいること。 保有継続要件その宅地等を相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "- 相続開始前3年以内に新たに事業の用に供された宅地等は、原則として対象から除かれます（一定の規模以上の事業を行っていた場合は別扱い）",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "要件",
+      "subject": "特定事業用宅地等",
+      "claim": "相続開始前3年以内に新たに事業用とした宅地等は原則対象外（一定規模以上は別扱い）",
+      "s": 48,
+      "status": "裏付けあり",
+      "quote": "一　特定事業用宅地等被相続人等の事業（不動産貸付業その他政令で定めるものを除く。以下この号及び第三号において同じ。）の用に供されていた宅地等で、次に掲げる要件のいずれかを満たす当該被相続人の親族（当該親族から相続又は遺贈により当該宅地等を取得した当該親族の相続人を含む。イ及び第四号（ロを除く。）において同じ。）が相続又は遺贈により取得したもの（相続開始前三年以内に新たに事業の用に供された宅地等（政令で定める規模以上の事業を行つていた被相続人等の当該事業の用に供されたものを除く。）を除き、政令で定める部分に限る。）をいう。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:69_4",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-20の5",
+        "tsutatsu:sochi_sozoku:69の4-20の4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "特定同族会社事業用は、一定の法人の事業用に供されていた宅地等で、申告期限においてその法人の役員であることなどの要件を満たす場合に対象となります。",
+      "heading": "特定事業用宅地等・特定同族会社事業用宅地等",
+      "type": "要件",
+      "subject": "特定同族会社事業用宅地等",
+      "claim": "一定法人の事業用宅地等で、申告期限に役員であること等の要件を満たせば対象",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "特定同族会社事業用宅地等相続開始の直前から相続税の申告期限まで一定の法人の事業（不動産貸付業、駐車場業、自転車駐車場業および準事業を除きます。）の用に供されていた宅地等で、次の表に掲げる要件のすべてに該当する被相続人の親族が相続または遺贈により取得したものをいいます（一定の法人の事業の用に供されている部分で、次の表に掲げる要件のすべてに該当する被相続人の親族が相続または遺贈により取得した持分の割合に応ずる部分に限られます。）。 ○ 特定同族会社事業用宅地等の要件区分特例の適用要件一定の法人の事業の用に供されていた宅地等法人役員要件相続税の申告期限においてその法人の役員(法人税法第2条第15号に規定する役員(清算人を除きます。)をいいます。)であること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:70の6の10-17",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "被相続人の貸付事業を申告期限までに引き継ぎ、その事業を行い続けること、生計を一にしていた親族であれば相続開始前から申告期限までその貸付事業を行い続けることが要件です。",
+      "heading": "貸付事業用宅地等",
+      "type": "要件",
+      "subject": "貸付事業用宅地等",
+      "claim": "被相続人の貸付事業を引き継ぎ継続すること、生計一親族なら貸付事業を継続すること",
+      "s": 52,
+      "status": "裏付けあり",
+      "quote": "○ 貸付事業用宅地等の要件区分特例の適用要件被相続人の貸付事業の用に供されていた宅地等事業承継要件その宅地等に係る被相続人の貸付事業を相続税の申告期限までに引き継ぎ、かつ、その申告期限までその貸付事業を行っていること保有継続要件その宅地等を相続税の申告期限まで有していること被相続人と生計を一にしていた被相続人の親族の貸付事業の用に供されていた宅地等事業継続要件相続開始前から相続税の申告期限まで、その宅地等に係る貸付事業を行っていること保有継続要件その宅地等を相続税の申告期限まで有していること （注1） 「準事業」とは、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-24の7",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "相続開始前3年以内に新たに貸付事業の用に供された宅地等は、原則として対象から除かれます。",
+      "heading": "貸付事業用宅地等",
+      "type": "要件",
+      "subject": "貸付事業用宅地等",
+      "claim": "相続開始前3年以内に新たに貸付事業用とした宅地等は原則対象外",
+      "s": 53,
+      "status": "裏付けあり",
+      "quote": "総数等の10分の5を超える数または金額の株式または出資を有する場合におけるその他の法人 （4） 取得者等が理事、監事、評議員その他これらの者に準ずるものとなっている持分の定めのない法人貸付事業用宅地等相続開始の直前において被相続人等の事業（不動産貸付業、駐車場業、自転車駐車場業および準事業（注1）に限ります。以下「貸付事業」といいます。）の用に供されていた宅地等（その相続開始前3年以内に新たに貸付事業の用に供された宅地等（「3年以内貸付宅地等」といいます。以下同じです。）（注2）を除きます。）で、次の表の区分に応じ、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:69の4-24の8",
+        "tsutatsu:sochi_sozoku:69の4-24の7",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "- 「相続人全員がそれぞれ使える」と思う：対象となり得る宅地等を取得した人が2人以上いる場合、誰が適用を受けるかについて全員の同意が必要で、原則として申告期限までに分割されていることも必要です。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "要件",
+      "subject": "小規模宅地等の特例",
+      "claim": "対象宅地の取得者が2人以上なら適用を受ける者の選択に全員の同意が必要",
+      "s": 68,
+      "status": "裏付けあり",
+      "quote": "また、この特例の対象となり得る宅地等やその他一定の特例の対象となり得る財産や宅地等を取得した相続人等が2人以上いる場合には、この特例の適用を受けようとする宅地等の選択についてその全員が同意しており、かつ、原則として相続税の申告期限までに分割されていることが必要です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/03.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "あわせて、配偶者が財産を取得する場合の配偶者の税額の軽減（国税庁タックスアンサー No.4158）は、申告期限までに分割されていない財産が対象になりません。",
+      "heading": "申告手続と必要書類",
+      "type": "要件",
+      "subject": "配偶者の税額の軽減",
+      "claim": "申告期限までに分割されていない財産は配偶者の税額の軽減の対象にならない",
+      "s": 79,
+      "status": "裏付けあり",
+      "quote": "したがって、相続税の申告期限までに分割されていない財産は税額軽減の対象になりません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+        "law:sozokuzei_rei:4_2",
+        "law:sozokuzei:19_2",
+        "tsutatsu:sozoku:16-1"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "同居親族が取得する類型では、相続開始の直前から申告期限まで引き続きその建物に居住し、宅地等を相続開始時から申告期限まで有していることが要件です。",
+      "heading": "相続した自宅に子どもが住み続ける場合は？",
+      "type": "要件",
+      "subject": "特定居住用宅地等",
+      "claim": "同居親族は相続開始直前から居住を継続し、相続開始時から宅地等を保有することが要件",
+      "s": 102,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "小規模宅地等の特例は、自宅なら330㎡・80%、事業用なら400㎡・80%、貸付事業用なら200㎡・50%という枠の中で、誰が取得するかによって要件が変わります。",
+      "heading": "まとめ",
+      "type": "要件",
+      "subject": "小規模宅地等の特例",
+      "claim": "誰が取得するかによって要件が変わる",
+      "s": 112,
+      "status": "裏付けあり",
+      "quote": "○ 特定居住用宅地等の要件区分特例の適用要件取得者取得者等ごとの要件 ① 被相続人の居住の用（注1）に供されていた宅地等（注2） 1 被相続人の配偶者 「取得者ごとの要件」はありません。 2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。 3 上記1および2以外の親族次の(1)から(6)の要件をすべて満たすこと。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:70の6の10-17",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "結論からいうと、使えるかどうかは「その土地を誰が取得するか」と「利用区分・面積」でほぼ決まります。",
+      "heading": "",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "使えるかは土地の取得者と利用区分・面積でほぼ決まる",
+      "s": 6,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "要件を満たしていても、申告書に書かなければ自動では適用されません。",
+      "heading": "まず結論：使えるかどうかは「取得者」と「利用区分・面積」で決まる",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "要件を満たしても申告書に記載しなければ自動では適用されない",
+      "s": 17,
+      "status": "裏付けあり",
+      "quote": "７　第一項の規定は、同項の規定の適用を受けようとする者の当該相続又は遺贈に係る相続税法第二十七条又は第二十九条の規定による申告書（これらの申告書に係る期限後申告書及びこれらの申告書に係る修正申告書を含む。次項において「相続税の申告書」という。）に第一項の規定の適用を受けようとする旨を記載し、同項の規定による計算に関する明細書その他の財務省令で定める書類の添付がある場合に限り、適用する。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:69_4",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "tsutatsu:sochi_sozoku:69の5-11",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "| 貸付事業用がある場合 | （特定事業用等の面積×200/400）＋（特定居住用の面積×200/330）＋貸付事業用の面積 ≦200㎡ |",
+      "heading": "対象になる宅地等は4区分だけ",
+      "type": "判定",
+      "subject": "限度面積の判定",
+      "claim": "貸付事業用があれば事業用×200/400＋居住用×200/330＋貸付用≦200㎡で判定",
+      "s": 31,
+      "status": "裏付けあり",
+      "quote": "特例の適用を選択する宅地等限度面積特定事業用等宅地等（①または②）および特定居住用宅地等（⑥） （貸付事業用宅地等がない場合） （①＋②）≦400㎡ ⑥≦330㎡ 両方を選択する場合は、合計730㎡ 貸付事業用宅地等（③、④または⑤）およびそれ以外の宅地等（①、②または⑥） （貸付事業用宅地等がある場合） （①＋②）×200/400＋⑥×200/330 ＋（③＋④＋⑤）≦200㎡ （注） 特例を適用する宅地等が配偶者居住権の目的となっている建物の敷地の用に供される宅地等またはその宅地等を配偶者居住権に基づき使用する権利の全部または一部である場合には、その宅地等の面積に、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:70の6の8-18",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:70の6の10-18",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "母が取得するなら取得者ごとの要件はありませんが、長男が取得するなら相続開始の直前から申告期限まで住み続け、土地を保有し続けることが条件になります。",
+      "heading": "ケース1：同居の長男が実家の敷地を相続する",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "母が取得すれば要件なし、同居の長男が取得すれば申告期限まで居住・保有が条件",
+      "s": 57,
+      "status": "裏付けあり",
+      "quote": "○ 特定居住用宅地等の要件区分特例の適用要件取得者取得者等ごとの要件 ① 被相続人の居住の用（注1）に供されていた宅地等（注2） 1 被相続人の配偶者 「取得者ごとの要件」はありません。 2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "亡くなる直前に施設へ入所していた場合でも、一定要件のもとでは入所前の居住の用をもって判定されます。",
+      "heading": "ケース2：被相続人が老人ホームに入所していた",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "老人ホーム入所でも一定要件のもとでは入所前の居住の用で判定される",
+      "s": 60,
+      "status": "裏付けあり",
+      "quote": "（注1） 「被相続人の居住の用」には、被相続人の居住の用に供されていた宅地等が、養護老人ホームへの入所など被相続人が居住の用に供することができない一定の事由（次の（1）または（2）の事由に限ります。）により相続開始の直前において被相続人の居住の用に供されていなかった場合（被相続人の居住の用に供されなくなった後に、事業の用または新たに被相続人等以外の人の居住の用に供された場合を除きます。）におけるその事由により居住の用に供されなくなる直前の被相続人の居住の用を含みます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "自宅の敷地と貸付事業用の土地があると、前述の調整算式で200㎡の枠に収める判定になります。",
+      "heading": "ケース3：自宅とアパートの土地を両方相続する",
+      "type": "判定",
+      "subject": "限度面積の判定",
+      "claim": "自宅と貸付事業用の土地があると調整算式で200㎡の枠に収める判定になる",
+      "s": 63,
+      "status": "裏付けあり",
+      "quote": "特例の適用を選択する宅地等限度面積特定事業用等宅地等（①または②）および特定居住用宅地等（⑥） （貸付事業用宅地等がない場合） （①＋②）≦400㎡ ⑥≦330㎡ 両方を選択する場合は、合計730㎡ 貸付事業用宅地等（③、④または⑤）およびそれ以外の宅地等（①、②または⑥） （貸付事業用宅地等がある場合） （①＋②）×200/400＋⑥×200/330 ＋（③＋④＋⑤）≦200㎡ （注） 特例を適用する宅地等が配偶者居住権の目的となっている建物の敷地の用に供される宅地等またはその宅地等を配偶者居住権に基づき使用する権利の全部または一部である場合には、その宅地等の面積に、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "tsutatsu:sochi_sozoku:70の6の8-18",
+        "tsutatsu:sochi_sozoku:69の4-10",
+        "tsutatsu:sochi_sozoku:70の6の10-16",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "- 「同居していれば使える」と思い込む：判定は相続開始の直前から申告期限までの継続で行われます。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "判定は相続開始直前から申告期限までの継続で行われる",
+      "s": 66,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "申告期限前に誰も住まなくなる、土地を手放すといった事情があると該当しません。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "申告期限前に誰も住まなくなるか土地を手放すと該当しない",
+      "s": 67,
+      "status": "裏付けあり",
+      "quote": "2 被相続人の居住の用に供されていた一棟の建物に居住していた親族（注3） 相続開始の直前から相続税の申告期限まで引き続きその建物に居住し、かつ、その宅地等を相続開始時から相続税の申告期限まで有していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "| 申告期限までに分割できない場合 | 原則として特例は適用できません。申告期限から3年以内に分割された場合などの救済があるため、税務署・税理士に確認 |",
+      "heading": "申告手続と必要書類",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "申告期限までに分割できない場合は原則として特例は適用できない",
+      "s": 78,
+      "status": "裏付けあり",
+      "quote": "４　第一項の規定は、同項の相続又は遺贈に係る相続税法第二十七条の規定による申告書の提出期限（以下この項において「申告期限」という。）までに共同相続人又は包括受遺者によつて分割されていない特例対象宅地等については、適用しない。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:69_4",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:sochi_sozoku:69の5-11",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "tsutatsu:sochi_sozoku:69の4-27"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "記載がない場合でも、やむを得ない事情があると税務署長が認めるときに限り適用される取扱いがあるため、まず申告書を作成した税理士に相談してください。",
+      "heading": "申告後に特例を使い忘れたことに気づいたら？",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "記載がなくても、やむを得ない事情を税務署長が認めるときに限り適用される",
+      "s": 100,
+      "status": "裏付けあり",
+      "quote": "８　税務署長は、相続税の申告書の提出がなかつた場合又は前項の記載若しくは添付がない相続税の申告書の提出があつた場合においても、その提出又は記載若しくは添付がなかつたことについてやむを得ない事情があると認めるときは、当該記載をした書類及び同項の財務省令で定める書類の提出があつた場合に限り、第一項の規定を適用することができる。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:69_4",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "tsutatsu:sochi_sozoku:69の5-11",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c53",
+      "sentence": "国税庁の質疑応答事例では、配偶者や子が住み続けており、その家屋が生活の拠点として利用されていると認められる場合には該当するとされています。",
+      "heading": "転勤で申告期限前に家を離れると使えなくなりますか？",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "転勤でも配偶者や子が住み続け生活の拠点と認められれば該当する（質疑応答事例）",
+      "s": 105,
+      "status": "裏付けあり",
+      "quote": "相続人Aの配偶者及び子の日常生活の状況、その家屋への入居目的、その家屋の構造及び設備の状況からみて、当該建物がAの生活の拠点として利用されている家屋といえる場合、すなわち、転勤という特殊事情が解消したときは、家族と起居を共にすることになると認められる家屋といえる場合については、甲に係る相続開始の直前から申告書の提出期限までAの居住の用に供していた家屋に該当するものとみるのが相当ですから、Aの取得した宅地は特定居住用宅地等である小規模宅地等に該当します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c54",
+      "sentence": "ただし申告期限前に誰も住まなくなった場合は該当しません。",
+      "heading": "転勤で申告期限前に家を離れると使えなくなりますか？",
+      "type": "判定",
+      "subject": "特定居住用宅地等",
+      "claim": "申告期限前に誰も住まなくなった場合は該当しない",
+      "s": 106,
+      "status": "裏付けあり",
+      "quote": "なお、相続人Aの配偶者及び子が、相続税の申告期限前に当該宅地の上に存する家屋に居住しないこととなった場合には、当該宅地は特定居住用宅地等である小規模宅地等に該当しません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "law:sozeki_hou:69_4",
+        "tsutatsu:sochi_sozoku:69の4-27",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+        "tsutatsu:sochi_sozoku:69の4-22の2",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+        "tsutatsu:sochi_sozoku:69の4-28"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4161）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "要件",
+      "subject": "生前贈与加算",
+      "claim": "暦年課税で贈与を受けた財産のうち一定期間内のものは相続財産に加算される。",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目相続税概要相続、遺贈や相続時精算課税（注1）に係る贈与（「相続等」といいます。）によって財産を取得した人（※）が、被相続人から加算対象期間（注2）に暦年課税に係る贈与によって取得した財産があるときは、その人の相続税の課税価格にその財産の贈与時の価額を加算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:1789457412756f33",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4:7b6223f3e0cc1b66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:c1ac69c3bd6d02e3",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm",
+        "tsutatsu:sochi_sozoku:69の4-28:b6ab96c90c2fe5c1"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4161）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "期限",
+      "subject": "生前贈与加算",
+      "claim": "相続開始前3年以内に暦年課税で贈与された財産が加算対象となる。",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "被相続人の相続開始日加算対象期間 ～令和8年12月31日相続開始前3年以内（死亡の日から遡って3年前の日から死亡の日までの間） 令和9年1月1日～令和12年12月31日令和6年1月1日から死亡の日までの間令和13年1月1日～ 相続開始前7年以内（死亡の日から遡って7年前の日から死亡の日までの間） なお、その加算された贈与財産の価額に対応する贈与税の額は、加算された人の相続税の計算上控除されることになります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:1789457412756f33",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4:7b6223f3e0cc1b66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:c1ac69c3bd6d02e3",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "tsutatsu:sochi_sozoku:69の4-1",
+        "tsutatsu:sochi_sozoku:69の4-27:666d338a07d68ae0"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4161）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "適用年",
+      "subject": "生前贈与加算",
+      "claim": "相続開始日が令和8年12月31日以前の場合は加算対象期間が3年以内となる。",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "被相続人の相続開始日加算対象期間 ～令和8年12月31日相続開始前3年以内（死亡の日から遡って3年前の日から死亡の日までの間） 令和9年1月1日～令和12年12月31日令和6年1月1日から死亡の日までの間令和13年1月1日～ 相続開始前7年以内（死亡の日から遡って7年前の日から死亡の日までの間） なお、その加算された贈与財産の価額に対応する贈与税の額は、加算された人の相続税の計算上控除されることになります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:1789457412756f33",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4:7b6223f3e0cc1b66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:c1ac69c3bd6d02e3",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm",
+        "tsutatsu:sochi_sozoku:69の4-27:666d338a07d68ae0"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4161）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "番号",
+      "subject": "生前贈与加算",
+      "claim": "生前贈与加算の根拠として国税庁タックスアンサーNo.4161が示されている。",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "（注3）相続や遺贈で財産を取得した相続人等（相続や遺贈で財産を取得しなかった相続時精算課税を選択した受贈者については、相続時精算課税適用財産を相続等により取得したものとみなされます。）が、加算対象期間内（被相続人の相続開始日が令和8年12月31日以前の場合は、加算対象期間は相続開始前3年以内となります。詳しくは、コード4161「贈与財産の加算と税額控除（暦年課税）」をご覧ください。）にその被相続人から暦年課税に係る贈与によって取得した財産の価額をいいます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:1789457412756f33",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4:7b6223f3e0cc1b66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:c1ac69c3bd6d02e3",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm",
+        "tsutatsu:sochi_sozoku:69の4-28:b6ab96c90c2fe5c1"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c20",
+      "sentence": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4152）。",
+      "heading": "生前にできる準備はありますか？",
+      "type": "番号",
+      "subject": "生前贈与加算",
+      "claim": "生前贈与加算は国税庁タックスアンサーNo.4152",
+      "s": 109,
+      "status": "食い違い",
+      "quote": "（注3）相続や遺贈で財産を取得した相続人等（相続や遺贈で財産を取得しなかった相続時精算課税を選択した受贈者については、相続時精算課税適用財産を相続等により取得したものとみなされます。）が、加算対象期間内（被相続人の相続開始日が令和8年12月31日以前の場合は、加算対象期間は相続開始前3年以内となります。詳しくは、コード4161「贈与財産の加算と税額控除（暦年課税）」をご覧ください。）にその被相続人から暦年課税に係る贈与によって取得した財産の価額をいいます。",
+      "correct": "生前贈与加算（贈与財産の加算と税額控除（暦年課税））の詳細は国税庁タックスアンサーNo.4161",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "keep": [],
+      "before": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4152）。",
+      "after": "生前贈与を併用する場合は、相続開始日が令和8年12月31日以前であれば、暦年課税の贈与財産は相続開始前3年以内の分が相続財産に加算されます（国税庁タックスアンサー No.4161）。",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "law:sozeki_hou:69_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "tsutatsu:sochi_sozoku:69の4-28",
+        "law:sozokuzei:11"
+      ]
+    }
+  ],
+  "dropped": 6,
+  "discarded": 0,
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 5796,
+      "output_chars": 5021,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 5133,
+        "output_tokens": 4653,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 56586,
+      "output_chars": 3222,
+      "wait_seconds": 120,
+      "usage": {
+        "input_tokens": 49354,
+        "output_tokens": 3694,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 926,
+      "output_chars": 134,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 779,
+        "output_tokens": 108,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 541,
+      "output_chars": 397,
+      "wait_seconds": 90,
+      "usage": {
+        "input_tokens": 471,
+        "output_tokens": 664,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 23053,
+      "output_chars": 241,
+      "wait_seconds": 1056,
+      "usage": {
+        "input_tokens": 20641,
+        "output_tokens": 483,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    }
+  ],
+  "input_chars_total": 86902,
+  "output_chars_total": 9015,
+  "review_items": [
+    {
+      "sentence": "そして忘れがちなのが、この特例は相続税の申告書に適用を受けようとする旨を記載し、計算の明細書などの一定の書類を添付した場合に限り適用される、という点です。",
+      "heading": "まず結論：使えるかどうかは「取得者」と「利用区分・面積」で決まる",
+      "type": "手続",
+      "subject": "小規模宅地等の特例",
+      "claim": "申告書に適用を受ける旨を記載し、計算明細書等を添付した場合に限り適用される",
+      "s": 16,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e",
+        "law:sozeki_hou:70_7_13:b7b557840592bb40"
+      ]
+    },
+    {
+      "sentence": "- 「申告後に気づけば直せる」と考える：適用には申告書への記載と書類の添付が前提です。",
+      "heading": "よくある間違いと、なぜ間違えるのか",
+      "type": "手続",
+      "subject": "小規模宅地等の特例",
+      "claim": "適用には申告書への記載と書類の添付が前提",
+      "s": 71,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f",
+        "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "sentence": "| 相続開始を知った日の翌日から10か月以内 | 相続税の申告書に特例の適用を受ける旨を記載し、計算の明細書や遺産分割協議書の写しなど一定の書類を添付して申告 |",
+      "heading": "申告手続と必要書類",
+      "type": "手続",
+      "subject": "小規模宅地等の特例",
+      "claim": "申告書に適用を受ける旨を記載し、計算明細書や遺産分割協議書の写し等を添付する",
+      "s": 77,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57",
+        "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/01.htm",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e"
+      ]
+    },
+    {
+      "sentence": "適用には申告書への記載と書類の添付が必要です。",
+      "heading": "申告後に特例を使い忘れたことに気づいたら？",
+      "type": "手続",
+      "subject": "小規模宅地等の特例",
+      "claim": "適用には申告書への記載と書類の添付が必要",
+      "s": 99,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f",
+        "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    },
+    {
+      "sentence": "判定の順序は「区分 → 取得者 → 面積 → 申告期限までの継続」です。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "判定順序は区分→取得者→面積→申告期限までの継続",
+      "s": 113,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm:a04668d5e73bf2ae",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b"
+      ]
+    },
+    {
+      "sentence": "要件を満たしていても申告書への記載がなければ適用されないため、相続が起きてから慌てないよう、元気なうちに土地の情報と分割の方針を家族で確認しておくことが実務上の近道になります。",
+      "heading": "まとめ",
+      "type": "手続",
+      "subject": "小規模宅地等の特例",
+      "claim": "要件を満たしても申告書への記載がなければ適用されない",
+      "s": 114,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "結論からいうと、使えるかどうかは「その土地を誰が取得するか」と「利用区分・面積」でほぼ決まります。",
+      "heading": "",
+      "type": "判定",
+      "subject": "小規模宅地等の特例",
+      "claim": "使えるかは土地の取得者と利用区分・面積でほぼ決まる",
+      "s": 6,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d",
+        "law:sozeki_hou:69_4:64d04d836e739ebc",
+        "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm:883f9743cc06d2b0",
+        "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    }
+  ],
+  "summary": "主張 54 件: 裏付けあり 52・修正 1（食い違い 1・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 6・捨てた主張 0・人が確かめる箇所 7 件",
+  "remaining": [],
+  "slug": "inheritance-tax-small-land-eligibility",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "kind": "taxanswer",
+      "no": "4124",
+      "title": "相続した事業の用や居住の用の宅地等の価額の特例（小規模宅地等の特例）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 226.76,
+      "text_ranges": [
+        [
+          0,
+          7700
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozeki_hou:69_4": {
+      "id": "law:sozeki_hou:69_4",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "69_4",
+      "title": "租税特別措置法 小規模宅地等についての相続税の課税価格の計算の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_69_4",
+      "score": 182.61,
+      "text_ranges": [
+        [
+          0,
+          4752
+        ]
+      ],
+      "text_deflate_base64": "zVvbWuJIEL73qdNBnCBBGEQQ0WWY8RBB4nhYRUR8mE4n4YpX2K+qu5NO0jk4zuzujZ9CH6qr/vqrurpkRtNbLimxg9EieDphbYuS2w1Zho8WJTNqWtTcZ+0+Ww8oGVAyDu8nQe8HJS4le5RMYIxB2NtheH3PV6DE3fSb7KpJiRuMHlmjBWPIPiW7lFymBofNC1y2rW7qvZvUbIbfZ3yMt1xyqfhE9XNKnKA3Dh2Lml1vYeBGA9gF9hrrxrvh5dQftLcrK7i58RaNzbd6UjxbHR/MG9RoUeLgt3vUMLerBiWut2z6F/PtyuK/UDLzl31KTqjZpKaJynG4JH7v3Xs9p+SKuSfUJPEAs8s6M2oa1DBZx06JwTo2JcfRdkHPERq4q3tvbf7JdmWpf4Le1iNKhrAFOUQBbEquKGlRMqVk11s2g95dgWBygDB6FWtqNayT6oiatrTLlJImJedgoG+PrGNtV1ZWmKDnbIyeZrrZ5LOo2d0MzwE5Qktcqq8wAKVKHSdfqinCbwqbigO65efKmA/gtLRZ+znfjllVjJlbZ6c/g3kDrHk6Zqc/haHxd0DaYp+SGZsfc8v6zjWzrqnZjQDJd2ftfUoe/JuJfzZBSXqFiLoK7yesOQxOSUrt7HUZNK65DP5VM7htBI1rSlz/6JnLo7dpDHtBC3mwB79rvDD3hDsOAFtqgBqEf8X1rP+qY/uDtrc6Cc7X2RW4EsL7hfd6rFmfzDbDDkhimN7rhbfgbuL6Z5MUAwSNF2/dZLfr8G6iyJDlAZsSMwYkLHKb4jctnQoKNbsJXjXqEfWxuoOKdfWSRNwr92KSw8WCAA9YUzudi0TJGaLL2NQcZAlQBWLGDS/bYDXibsi1gHp7wD2rnNzgq0NqtqLDbsjC3/8rEimCgWoCFcBZQuYrVDbKDLkF56I5NsMOW15uzr4H163wknivT9Ts+ksDhCFDaTvh8gV7ZWVOycl+tsPLtu+UiIcg3AdII0IC58B/OApubliLeAsD0eh6S5uSmTTEEKlJDAYDTe8D58BbT/xvK0pmgTtg9QsYRl4oaXnryWbSUqGoEYy4ctjMv4EdWWeXc5d/cE9JF0Com8XsJbP2gJHeTyk5FuvLuTGNNO45RXsvA6Adchk6VuAKqG++fMWtHRGtDBNit2HkMgPg09SLVEAa+bM42KpQSsEiwXCNqgBjsRbZAZsZRj77VFmoBwttV11qGKzR4hBTUaDBcjXK0XtPPgPlgaLIFzPoiAGYAYgUvioE+KGqWCzK7GBH8zxL7er6sHKRswqbFZy6lDaAKtBeqE8LclVis9EIrP7y4PdfaG1Caytas2htJglG7CvyOMMU4CqF+m8X1FsAPEGbLfIRcReNKr5QIA0HIBjQILQ25x5La20lPsloqjJL9gBL+0Oaxh3TMEzApILwmcygPLrE2ofMkguvnmgmICMZJxiuVXpFJxaDd2ht/kmw/IkDJKBU7RjtT4KoWKad7eqQGkZOFkjyKDDoOeH0L5iy2w7W14lAm+G5TD5UTnXp+6d621y0WPMo6P3gSsGbJ6Zxr/2Ce2Z0TVLTF9Z+FlEwIsvC+2fx7QWMITQWK0pyvIuDT3BiM5F7Fd7Pxbf4J05sFFUouP5zIltyKTfeTrnFUfM8UggbjVj7ebuywJP098yslqoWUOKLEI7nt2vWaIEVXh691wu2B3HY7/9ELc1kiSFrhcTtMQsAnmag0fcjFFGzG05sTJGFEbN4i+7PeftmoQUaEH+2AAkZYTY1h6cG0R2MT4niLSfepKXsKEvmWvKHpoqEKHXmGZi3qIEXGyT+5OXMP5uI3IHjXCbZfEzywiM8NOg9sK/7/mgBPt7usC9L/3S8GXZKLwBiIg7WZRNr5Cx30z8EikghVlz1r1j/CUYqXpZykMiObHVESSt4GlJyAKdWd8e95IATSlpZB/FPGwBIg4hyjCSxeP3+EzUPUebdRHTn8aXAeyHD+WCtDpNPZHQOzTzDK4fMcETCALxS5c9fveVEsEDyms6pUw5w/cEFNczI+QGOCqALDJ9kgV/Re4oIsietsmz4Zcqe72J8JPx2ENdpKqaUGlYoKesla1lpdEMiJqlIUzPJEoa2biOScgnVFPg29RYjT6FRF/WrPxGOcnYsCLO/MWL8LlpVAVdQ182QU1yH/KXC7xio98cYRmKZUa/VasZNhfTSraWicitXek2SmVz5U1T1GT7mutJIkkvJhZCt7sa68kB87LwKsiwRpvRo53mjqHUqfshPVepyIqxXg/LHlfDE7pp68wvMXWkyLlCRLR85diOOS6gCflrb1Vf83ShOAtU8B2JU/y2c2PBIsMdDkBm7Ipcqch7pGDFDZb7yFo3wcgp32716xHQ673IgSFgXmLp8h/qQvB36D0c8sOc5lRxg+w0D8Y3cgbpNJcC/33aZvF0x5Vh5IZviLOlIaJsut412+4yvz1LkmnXTSKBMoFdjkctXixNK05Rai8FXLPdhFlOfpSMd1bSzEeVfSPf+D7mVDnva3ArrX1XKlXk+kHz9hntpYb4tqgBaM2geV3P8mfNX5Kj+tylb4Wmf2/6RfJn8sgwfvvAPsYovbM8HJ8fIYrJgATcYLsOJ7S+saiu7SqWoB2Z4qlNiqQvm31H1FYqsaSumYMW5YV4s5BX1VCD8BaBrYF0BwVW1pLzN/kKCucNGo4Iy3W+uZuW84abSbOjiUOTRtnD8+zWtXykRVX71rlhMSqilrKSU4ia4ISPU+OKxQ5LLBFizaZG6aeX6U6mo/30VKuOE+dUdTVMTACOpmT9U0cnXZOlV4r+r7vwfwv3HFLdd9SDoQ53RSBYW8YVANHm5Wg7g6Cgqa/7bZcoZq9+xjp1uwbPrfvOGtQcgOUY3EAaNyqw91rjPtHrt5rzMZNo0eLMJaBYzW8NExvomDQyR4YNbJE+KUFB5MbphwgDwWjv4296QA9lDp3HovI2SgsUNbjJd54dtFb/Ub/rfKRmEziNyKtg0/PsZczNJeGI1ESRhjCZO7sJ7htnFYCL6/vxaXdespLx1VWjkCR5bgXPAu8D8hhG+7cKfzWHwdr85esYP38NpK24XAoEdbD9UWhTyOgeEAmXHYtzD6OApQJkYf/KvmvCtG7zb+AvYmo1G/qklbY03wISZ4vbDT3Rs2XHPXdrrM/1T5Q2MtzlQHxdqL+1KwvF5nxHoUzjUznZ1FF0PY5bhryJLO+cYaDzRjCIckpOORJLM2QbfNSquJvcH1JdpHy3AhIJ1sZG/7CPLiKYTkT3qXIK918NLQsnU3zfCyWFwshtO5/7oHZ1TX7LmKu4XBAH8vMZahDM6q8/x56za+ceQCCpPV2rLaaJXDNXNwxZrD8JHK9Fc2ElZOjE3fLS8xQGOL3tyRVeQ7TbpQ3kvZ9EW4GFJyTVdHNM5Je9Sv5cyGgxVd4neankGn1qhPLdO9iAibt4RTwjWNDXGncTR9IQASpNlTstS9LyesXiLVLK4aqzKFk8m09WMnkjkKtm99PhVIvzOdjWokjLlK8jCTlgBFEStW0DmpVlW/FSsvB8XpF7QIgBR0qYmv1NGKZksffC3yLUdfSU6mQpnee+uP/8Rf64gT9shqzaHxrN0zafVYJfQqj+Ar0LnOFyJbDtjF6EW2YnFMxmce3wQPP7Eo8VJS161xB8tNhNsrHl+9V6PsxlL1DmrsgOH0THAKJGO3Kodtkkti3RZVlET0USkuSLeufzY6n+pKMJh6lm+hZmMVokKb/wOjeP57mWbapNLvmBJ8keJgylalOElkjNhY+nZ3B6i+BiZvNR4+QePO5+zKDS7CaOm/oFFmnmYZIsEien6lRXVVKITTQhId2mPRlCVrM+iRm34sD5POaWaZwD3KnPz+0+kPBnm5JJ7izkWtkQqKpNH7uXcuq5IAOUwEYOuxoFzwIu+/sE0eHP9hyOo9h3PWdeO8j/28ug/HLF1M+I/Vp9jH1SDn1FlRGhHVON7sfLlrVfXv+5K2hD/7ZAM7vosqJL10yqK2eLrdtXhSGKjEa6F9wXh9PL+my49upS8wkgtfhXj8XtclD96yyaOzM0Z/wE="
+    },
+    "tsutatsu:sochi_sozoku:69の4-27": {
+      "id": "tsutatsu:sochi_sozoku:69の4-27",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-27",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等に係る相続税の課税の特例）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "個人が相続又は遺贈により取得した財産のうちに、郵政民営化法（平成17年法律第97号）第180条第1項((相続税に係る課税の特例))に規定する特定宅地等（以下69の4─33までにおいて「特定宅地等」という。）がある場合において、当該特定宅地等は、同項の規定により措置法第69条の4第3項第1号に規定する特定事業用宅地等に該当する同条第1項に規定する特例対象宅地等とみなして、同条及び同法第69条の5の規定を適用することに留意する。（平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13改正）",
+      "score": 97.78,
+      "text_ranges": [
+        [
+          0,
+          255
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+      "kind": "shitsugi",
+      "no": "08",
+      "title": "特定居住用宅地等の要件の一つである「相続開始時から申告期限まで引き続き当該建物に居住していること」の意義",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/08.htm",
+      "text": "被相続人甲と同居していた相続人Aは、被相続人の居住の用に供されていた宅地を相続しましたが、相続税の申告期限前に海外支店に転勤しました。 なお、相続人Aの配偶者及び子は、相続開始前から相続税の申告期限まで引き続き当該宅地の上に存する家屋に居住しています。 この場合、当該宅地は特定居住用宅地等である小規模宅地等に該当しますか。 相続人Aの配偶者及び子の日常生活の状況、その家屋への入居目的、その家屋の構造及び設備の状況からみて、当該建物がAの生活の拠点として利用されている家屋といえる場合、すなわち、転勤という特殊事情が解消したときは、家族と起居を共にすることになると認められる家屋といえる場合については、甲に係る相続開始の直前から申告書の提出期限までAの居住の用に供していた家屋に該当するものとみるのが相当ですから、Aの取得した宅地は特定居住用宅地等である小規模宅地等に該当します。 なお、相続人Aの配偶者及び子が、相続税の申告期限前に当該宅地の上に存する家屋に居住しないこととなった場合には、当該宅地は特定居住用宅地等である小規模宅地等に該当しません。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 443.1,
+      "text_ranges": [
+        [
+          0,
+          477
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-22の2": {
+      "id": "tsutatsu:sochi_sozoku:69の4-22の2",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-22の2",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （平成30年改正法附則による特定居住用宅地等に係る経過措置について）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "所得税法等の一部を改正する法律（平成30年法律第7号。以下69の4-22の2及び69の4-24の8において「平成30年改正法」という。）附則第118条第2項((相続税及び贈与税の特例に関する経過措置))に規定する経過措置対象宅地等（以下69の4-22の2において「経過措置対象宅地等」という。）については、次の経過措置が設けられていることに留意する。（平30課資2-9追加、令元課資2-10改正）\n(1) 個人が平成30年4月1日から令和2年3月31日までの間に相続又は遺贈により取得をした経過措置対象宅地等については、措置法第69条の4第3項第2号に規定する親族に係る要件は、同号イからハまでに掲げる要件のいずれか又は平成30年改正法による改正前の措置法第69条の4第3項第2号ロに掲げる要件とする。\n(2) 個人が令和2年4月1日以後に相続又は遺贈により取得をした財産のうちに経過措置対象宅地等がある場合において、同年3月31日において当該経過措置対象宅地等の上に存する建物の新築又は増築その他の工事が行われており、かつ、当該工事の完了前に相続又は遺贈があったときは、その相続又は遺贈に係る相続税の申告期限までに当該個人が当該建物を自己の居住の用に供したときは、当該経過措置対象宅地等は相続開始の直前において当該相続又は遺贈に係る被相続人の居住の用に供されていたものと、当該個人は措置法第69条の4第3項第2号イに掲げる要件を満たす親族とそれぞれみなす。\n(注)\n1 経過措置対象宅地等とは、平成30年3月31日に相続又は遺贈があったものとした場合に、平成30年改正法による改正前の措置法第69条の4第1項に規定する特例対象宅地等（同条第3項第2号に規定する特定居住用宅地等のうち同号ロに掲げる要件を満たすものに限る。）に該当することとなる宅地等をいうことに留意する。\n2 「工事の完了」とは、新築又は増築その他の工事に係る請負人から新築された建物の引渡しを受けたこと又は増築その他の工事に係る部分につき引渡しを受けたことをいうことに留意する。",
+      "score": 326.79,
+      "text_ranges": [
+        [
+          0,
+          874
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+      "kind": "shitsugi",
+      "no": "14",
+      "title": "単身赴任中の相続人が取得した被相続人の居住用宅地等についての小規模宅地等の特例",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+      "text": "被相続人甲は、自己の所有する家屋に、長男A、その配偶者B及びその子Cと同居していました(甲の配偶者は既に死亡しています。)。○年にAが転勤で大阪へ単身赴任となり、その後、この家屋には、甲、B及びCが居住していましたが、○+1年1月に甲が死亡したため、Aがこの家屋及びその敷地を相続により取得しました。 なお、Aは相続税の申告期限において引き続き単身赴任の状態にあります。 この場合、Aが取得した敷地は特定居住用宅地等である小規模宅地等に該当しますか。 Aの配偶者及び子の日常生活の状況、その家屋への入居目的、その家屋の構造及び設備の状況からみて、当該家屋がAの生活の拠点として利用されている家屋といえる場合、すなわち、転勤という特殊事情が解消したときは、その相続人の配偶者等と起居をともにすることになると認められる家屋といえる場合については、甲に係る相続開始の直前から申告書の提出期限までAの居住の用に供していた家屋に該当するものとみることができますから、Aの取得した宅地は特定居住用宅地等である小規模宅地等に該当することとなります。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 254.48,
+      "text_ranges": [
+        [
+          0,
+          467
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-28": {
+      "id": "tsutatsu:sochi_sozoku:69の4-28",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-28",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等について相続税に係る課税の特例の適用を受けている場合）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "郵政民営化法第180条第1項の規定は、同法の施行日（平成19年10月1日）から平成24年改正法（郵政民営化法等の一部を改正する等の法律（平成24年法律第30号）をいう。以下69の4-32までにおいて同じ。）の施行日(平成24年10月1日）の前日（平成24年9月30日）までの間にあっては平成24年改正法第3条((郵便局株式会社法の一部改正))の規定による改正前の郵便局株式会社法（平成17年法律第100号）第2条第2項((定義))に規定する郵便局の用に供するため郵便局株式会社に、平成24年10月1日から相続の開始の直前までの間にあっては日本郵便株式会社法（平成17年法律第100号）第2条第4項((定義))に規定する郵便局の用に供するため日本郵便株式会社に対し貸し付けられていた建物（以下69の4-37までにおいて「郵便局舎」という。）の敷地の用に供されていた土地又は土地の上に存する権利（以下69の4-37までにおいて「土地等」という。）について、既に郵政民営化法第180条第1項の規定の適用を受けていない場合に限り適用があることに留意する。（平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13、平25課資2-10改正）",
+      "score": 88.89,
+      "text_ranges": [
+        [
+          0,
+          524
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-20の5": {
+      "id": "tsutatsu:sochi_sozoku:69の4-20の5",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-20の5",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （平成31年改正法附則による特定事業用宅地等に係る経過措置について）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "所得税法等の一部を改正する法律（平成31年法律第6号）附則第79条第2項の規定により、平成31年4月1日から令和4年3月31日までの間に相続又は遺贈により取得をした宅地等については、平成31年4月1日以後に新たに事業の用に供されたもの（措置法令第40条の2第8項に定める規模以上の事業を行っていた被相続人等の事業の用に供されたものを除く。）が、措置法第69条の4第3項第1号に規定する特定事業用宅地等の対象となる宅地等から除かれることに留意する。（令元課資2－10追加）",
+      "score": 260.25,
+      "text_ranges": [
+        [
+          0,
+          235
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "kind": "taxanswer",
+      "no": "4152",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 49.58,
+      "text_ranges": [
+        [
+          0,
+          1930
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:sochi_sozoku:69の4-24の8": {
+      "id": "tsutatsu:sochi_sozoku:69の4-24の8",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-24の8",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （平成30年改正法附則による貸付事業用宅地等に係る経過措置について）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "平成30年改正法附則第118条第4項の規定により、平成30年4月1日から令和3年3月31日までの間に相続又は遺贈により取得をした宅地等については、平成30年4月1日以後に新たに貸付事業の用に供されたもの（相続開始の日まで3年を超えて引き続き特定貸付事業を行っていた被相続人等の当該特定貸付事業の用に供されたものを除く。）が、措置法第69条の4第3項第4号に規定する貸付事業用宅地等の対象となる宅地等から除かれることに留意する。（平30課資2-9追加、令元課資2-10改正）",
+      "score": 290.04,
+      "text_ranges": [
+        [
+          0,
+          236
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-10": {
+      "id": "tsutatsu:sochi_sozoku:69の4-10",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-10",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （選択特例対象宅地等のうちに貸付事業用宅地等がある場合の限度面積要件）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "措置法第69条の4第2項第3号の要件に該当する場合を算式で示せば、次のとおりである。（平20課資2-1、課審6-1、平22課資2-14、課審6-17、徴管5-10、平25課資2-13、課資7-18改正）\n\n（注） 算式中の符号は、次のとおりである。\nAは、当該相続又は遺贈により財産を取得した者に係るすべての措置法第69条の4第1項に規定する選択特例対象宅地等（以下69の4-11までにおいて「選択特例対象宅地等」という。）である同条第2項第1号に規定する特定事業用等宅地等の面積の合計\nBは、当該相続又は遺贈により財産を取得した者に係るすべての選択特例対象宅地等である同条第3項第2号に規定する特定居住用宅地等の面積の合計\nCは、当該相続又は遺贈により財産を取得した者に係るすべての選択特例対象宅地等である同条第3項第4号に規定する貸付事業用宅地等の面積の合計",
+      "score": 280.57,
+      "text_ranges": [
+        [
+          0,
+          381
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-24の7": {
+      "id": "tsutatsu:sochi_sozoku:69の4-24の7",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-24の7",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （相続開始前3年を超えて引き続き貸付事業の用に供されていた宅地等の取扱い）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "相続開始前3年を超えて引き続き被相続人等の貸付事業の用に供されていた宅地等については、措置法令第40条の2第19項に規定する特定貸付事業以外の貸付事業に係るものであっても、措置法第69条の4第3項第4号イ又はロに掲げる要件を満たす当該被相続人の親族が取得した場合には、同号に規定する貸付事業用宅地等に該当することに留意する。（平30課資2-9追加、令元課資2-10改正）\n(注) 被相続人等の貸付事業の用に供されていた宅地等が69の4-24の3に掲げる場合に該当する場合には、当該宅地等は引き続き貸付事業の用に供されていた宅地等に該当することに留意する。",
+      "score": 271.4,
+      "text_ranges": [
+        [
+          0,
+          277
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+      "kind": "shitsugi",
+      "no": "09",
+      "title": "特定同族会社に貸し付けられていた建物が相続税の申告期限までに建て替えられた場合の小規模宅地等の特例",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+      "text": "特定同族会社A(食品製造業)の社宅として有償で貸し付けられていた建物(被相続人所有)及びその敷地を相続により取得した相続人が、当該相続に係る相続税の申告期限までに建替え工事(建替え後の建物は、工場として、当該法人に有償で貸し付けられる。)に着手しました。 この場合、従前の建物に係る賃貸契約は解除され、新たに当該法人と賃貸契約を締結することとなりますが、租税特別措置法関係通達69の4-19((申告期限までに事業用建物等を建て替えた場合))の取扱いを適用して、当該建物の敷地について特定同族会社事業用宅地等である小規模宅地等に該当するとして取り扱うことができますか。 租税特別措置法関係通達69の4-19の取扱いは、特定同族会社事業用宅地等の判定についても準用することとしており、また、A法人との賃貸契約が解除されたといっても、建物建替えに伴う一時的なものであり、実質は更改に当たるものと解されます。 したがって、建替え後の建物がA法人の事業の用に供されると見込まれる場合には、租税特別措置法関係通達69の4-19の取扱いを適用して差し支えありません。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 294.47,
+      "text_ranges": [
+        [
+          0,
+          476
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の5-11": {
+      "id": "tsutatsu:sochi_sozoku:69の5-11",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の5-11",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （申告書の提出期限から3年以内に特定計画山林の特例及び小規模宅地等の特例に係る遺産が分割できない場合の承認申請）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_5/01.htm",
+      "law_version": "",
+      "text": "相続税法第27条の規定による申告書の提出期限から3年以内に共同相続人等によって分割されていない特定計画山林及び特例対象宅地等がある場合において、当該分割されていない特定計画山林又は特例対象宅地等が分割された後に、措置法第69条の5第1項又は措置法第69条の4第1項のいずれかの規定の適用を受けるために、当該共同相続人等は、措置法令第40条の2の2第8項及び措置法令第40条の2第23項においてそれぞれ準用する相続税法施行令（昭和25年政令第71号）第4条の2第2項((配偶者に対する相続税額の軽減の場合の財産分割の特例))に規定する承認申請書をそれぞれ同時に提出することができるものとする。（平16課資2-8、平18課資2-4、平20課資2-1、平21課資2-7、平22課資2-14、平29課資2-14、令元課資2-10改正）\r\n(注) 措置法令第40条の2の2第10項各号かっこ書及び措置法令第40条の2第24項かっこ書の所轄税務署長の承認を受けようとする場合の承認申請書の提出についても、上記に準じて取り扱う。",
+      "score": 283.76,
+      "text_ranges": [
+        [
+          0,
+          457
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+      "kind": "taxanswer",
+      "no": "4205",
+      "title": "相続税の申告と納税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4205.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 135.87,
+      "text_ranges": [
+        [
+          0,
+          2512
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/19/01.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/19/01.htm",
+      "kind": "shitsugi",
+      "no": "01",
+      "title": "共同相続人に該当しない親権者が未成年者である子に代理して遺産分割協議書を作成する場合",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/19/01.htm",
+      "text": "被相続人甲は、妻乙との間に子2人(成年者)がありましたが、妻以外の女性丙との間にも子が2人(うち未成年者1人)あり、生前に認知していました。 甲の死亡に係る相続に関し、相続人である妻乙と子供4人で遺産を協議分割し、その分割に基づいて相続税の申告をすることになりましたが、相続税の申告書に添付する遺産分割協議書には、未成年者である子に代理して親権者である丙が署名、押印すれば、家庭裁判所で特別代理人の選出を受けなくてもよいと考えますがどうでしょうか。なお、丙は包括受遺者ではありません。 丙の親権に服する子が1人の場合には、照会意見のとおりで差し支えありません。しかし、同じ者の親権に服する未成年者が2人以上いる場合には、そのうちの1人について親権者が法定代理人となり、他の未成年者については、それぞれ特別代理人の選任を必要とします。 (注) 未成年者の親権者が共同相続人であり、その子とともに遺産分割の協議に参加する場合には、民法第826条(利益相反行為)の規定により特別代理人の選任を要しますが、親権者が共同相続人としてその遺産分割に参加しない場合には、同条の適用はありませんので、法定代理人である親権者の同意のみで足ります。ただし、子が2人以上いる場合において、その1人の子と他の子との利益が相反する行為については、子のうちの1人を除き、特別代理人の選任を要します(同条第2項)。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 186.74,
+      "text_ranges": [
+        [
+          0,
+          592
+        ]
+      ]
+    },
+    "law:sozokuzei:27": {
+      "id": "law:sozokuzei:27",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "27",
+      "title": "相続税法 相続税の申告書",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_27",
+      "score": 140.7,
+      "text_ranges": [
+        [
+          0,
+          1403
+        ]
+      ],
+      "text_deflate_base64": "5VdtU+JIEP5+v3p6zmhCwouAICKLuVNhhcsqei6Gtx/TmZnkE3/hqmcSSEBR97aurmqr/ICTmZ6nu5/ufkZ1p+r5QlRthG8JhPGTvZ7bYtGIv06U/oQwilYcuRv/MTIrURgiuMgdhCB+sqNpBWGE3EZeEtWWWLYR2gj9eOKr5p8IAzUeR6EnyhBNmez5CEH00qPFqZNcWWTktiqCC4Qgga+qOUReF9U2wilyFzlHCLYYzHW8Lmoj5AwZj2Y30dRFaCAE2vgIoYRwhHArah7COTK+njsbhCkquiIHlVmiWkJ4NI4XPU2vNiuyw9VkqYJ2fDdRw4oBHDML4RsyeO24CVQDuWciFoWuaj4cxoPQQXhBuKXgkPECBjWs0LoGEC19eTVfz201HlOEX3qy55ts7oddlEF0uwbS61+tEcISYfBKUsBDIAzi6knUbB1ncjnvWnYkde0ttAhDhBXCHcIZnYV+cnKa+GWdpkDU7HhoJ35Z39jTAEJNpDQIoh+q64qsDJLONW3j9fjZQrCL2FIOaIS9Xy+MmafGnbCpsaWANw6mIBkUF4No6ux4l66HnjliiuUnRca4uU1KlnrCr30sZyGiPGZNKUharhi46U641lXToP28rvo3ZkW2b+jIytM/CBX5cmlHsxtxbK3ndo4bnugu6HZ2IZwT+XimxmPVWWr8v8ueb9xJruiUeiqrYUUFvqodR2FoeLvrTnEPuf9QEich8rqu8TvNz4HpGPKyn7Qa4tjSfNCt7PFMLF360VrEvicu7ymni6p0WNqpHizpMOR1eenkDOoI0N/dTvTMRZ+1oONG+TKkKtCPQTFlFMlo1oonvnA76hKi2TU5GFwgB+RuFLrU7Xk9Hp7Hc3NjXzUfxWlJdqeUNR0x7WkgHRYvjuhft6MWk+TsO8JIVmsUwBTqqeb8vcbppOAZ/209ryNjwikXR0tWS7n7MnOm1ZZTEpjJt9kGgdlGGerUhFNGGO3u2Zra5lX+NYtC3zi5V+obzgWbOUFD17OkOxbVNo1hZuWHnCZfU3v01nj7H1XIL1IMyEA2Vzss15sbyMsbym3ykqdEfhptuJpn1BtHgp9VJA1k7COKRss09tlayhgfIMyIVakdR3PF2QyTt427CT+KZucFJQh9CrEx9aNyMtOk7wgBZLAP4D/vcx3ttaGgp2dmmVZ0/pqmye35fDA3e6pjr9uNitp1Q8BAdnjWe7ZxTEuH/y3czgH1q/aeGJ9Uv94B/bz/4jAXSWelnjtpAzYISVseaVRNHdNAnlfU0/2PZdSc1UF757jsThP/CyXi+4wo9V5pnlFqa140ZeT/v46mftvQ5lfnTvo8M1WY1ZZROXLsF7v6dvTIsKW1bI5SuWm1njtb6fwpgurmYZ58aRYPl0L6OPSi0IvCUD8FS3vyevsSeGu4C4t6VbEKvSwFg9eUaE6sZ53yg7NgXzwI60GP8jYF9gOl36LWve2cmdZOA70jrnfhmkRmX+maw1on1yFHWjHo9D+E+vhWWOz0leyt097w+h8="
+    },
+    "law:sozeki_hou:70_7_13": {
+      "id": "law:sozeki_hou:70_7_13",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_7_13",
+      "title": "租税特別措置法 医療法人の持分についての相続税の税額控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_7_13",
+      "score": 59.76,
+      "text_ranges": [
+        [
+          0,
+          922
+        ]
+      ],
+      "text_deflate_base64": "vVbbdps6FHzvV7OVpAYDtuNrfMlxaJ2YmFTtit1zKDj2x2wk4Cm/cJYkIGDjuJe1+mYLsTV7ZvYIpplRELxu9Si8j3wToYdA+a2D4CE0ES4RHlCz4qkf/zuJgiD+YqBmI7jy0UfUyOvWQLCYYfNbJ356igIrvbtC8JKHNqMThDESM/5updDirVX8QpkVxmPC14Pjc9O7K9ZuIqxFHd9QdSowTtSpg0S5BUz/iKTLZwbCSFQQG+ZROESgLG88fnpi0+nxWcknr+i6rr6JxFAbWFtH+JpCkGx0UYToSJrspZc8Pp8EXILH2kO2G0mEc3a3YR29igTOlbKyDRKMoHFosqUpjhiTcqlkZTM6OeC/+q4X7YnQS/6N3RYCjftrdt3kU18UbHdYI+CzeTruqK6jcMG6FrMh8jX2YyN+BBaf6ZFvqEU+ukegEsAEiYVg8tEjwqVc3yEsETzWmsT9OWtu2IXNFsuk8VlBleSMEK4R5ifbJ13W8ZBouS5LBIKkiRoIjWBREFhLeMXYZ5gUiv82XXmzNB32pCi3YoNwphiQcxIvf4YiJERSnVsLKLty0ws3U8rX0gsXSTd5dpg5jmcQhQtRWRQBJKZ0eA+JXXiY93f886UiSj61Eb6+GbJCnSeoVo6VewpO+HogRkwYoy+DRQ6ODApmg1yhUWApft7GP8hMpTao10uxQPN4yaAmrh7TTNO0cZ06tjpItRBPffbSKyCJp6TLW8t0vFCvcGqqRcnhQs2d0ije2FF4I2SCHwh2pYjgRMiHGvnwuu2ipjHDPo6/kyDE+5LQjlXtiqbwGPfdwmHHo1uWOdo5Cn1R50CbY5smq+fYbUU7h99tJYw9wkqlJO/vzzqjjm4qwhGcenNU/GQhDGQWzIU7RQueIidjM/Ox+0d4SLfI6w+v2x5qmrSPVk90MUZEl21kwh7EQ1mqvxES5ePO3iTgsXmAcI9gs0aQrBtSFY/tZwg3wuPGgOuh4KiUGerCUQlRiUmgyZdn7juSx4OrqdayYjF37Uia6VJR3z9B/bvG/yk9qJrQyk199l4u37b56QWD70rlHV4lpdD71Ub4yBWb3ZtEfj4pvt4Rg9+04s03FY9vsE/mCs0HwkuHn7ITZQXFWBQOT90CfOqnzj+i+H+hzL0KtkL+WqUHKgCLT8C3gc1vJoRQKKTBe7OYgR6x/VXyAAirKDDlTnFwTRpo5H8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "kind": "taxanswer",
+      "no": "4161",
+      "title": "贈与財産の加算と税額控除（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 224.66,
+      "text_ranges": [
+        [
+          0,
+          2631
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "kind": "shitsugi",
+      "no": "04",
+      "title": "暦年課税の適用を受けた贈与財産について評価誤りが判明した場合の相続税の課税価格に加算される財産の価額",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "text": "私は、×１年８月１日に甲から土地の贈与を受け、暦年課税を適用して贈与税の期限内申告書を提出しました。 その後、×４年７月１日に甲について相続が開始し、上記の贈与税の申告書に記載した土地の贈与時の価額を甲の死亡に係る相続税の課税価格に加算して相続税の期限内申告書を提出しました。 ところが、上記の贈与税について、税務署長が（増額又は減額）更正することができなくなった後になって、申告書に記載した贈与時の土地の価額に評価誤りがあったことが判明しました。 この場合、×１年分贈与税については（増額又は減額）更正されないことになりますが、他方、相続税については税務署長が更正することができる場合、評価誤りを是正した後のこの贈与時の土地の価額が相続税の課税価格に加算される財産の価額になるとして、相続税の修正申告又は更正の請求を行うことができますか。また、相続税額から控除される贈与税相当額は、課せられた贈与税相当額となることでよいでしょうか。 相続税の課税価格に加算される財産の価額とは、贈与税の期限内申告書に記載された財産の価額ではなく、当該贈与税の課税価格計算の基礎に算入される財産に係る贈与の時における価額と解されます（相法19 、相基通19－１）。したがって、当該贈与税について税務署長が更正することができなくなった後においても、当該贈与税の課税価格計算の基礎に算入される財産に係る評価誤りを是正した後の当該財産に係る贈与の時における価額が相続税の課税価格に加算される財産の価額となります。そのため、甲の死亡に係る相続税については修正申告又は更正の請求を行うことができます。 なお、この場合において相続税額から控除される贈与税相当額は、課せられた贈与税相当額となります（相法19 、相基通19－６）｡",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 165.82,
+      "text_ranges": [
+        [
+          0,
+          750
+        ]
+      ]
+    },
+    "law:sozokuzei:11": {
+      "id": "law:sozokuzei:11",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "11",
+      "title": "相続税法 相続税の課税",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_11",
+      "text": "相続税は、この節及び第三節に定めるところにより、相続又は遺贈により財産を取得した者の被相続人からこれらの事由により財産を取得したすべての者に係る相続税の総額（以下この節及び第三節において「相続税の総額」という。）を計算し、当該相続税の総額を基礎としてそれぞれこれらの事由により財産を取得した者に係る相続税額として計算した金額により、課する。",
+      "score": 20.6,
+      "text_ranges": [
+        [
+          0,
+          170
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の6の10-17": {
+      "id": "tsutatsu:sochi_sozoku:70の6の10-17",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の6の10-17",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （個人の事業用資産についての納税猶予及び免除と小規模宅地等の特例を重複適用する場合）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_6/10.htm",
+      "law_version": "",
+      "score": 175.42,
+      "text_ranges": [
+        [
+          0,
+          1954
+        ]
+      ],
+      "text_deflate_base64": "1VjdUuJIFL7nKXIJF1Ml4KrzUPsOOT3DGH7DoC6iwyiKiALRQddBiPAuc9JJuOIVtro7iSEhgLizVVtaVhE7p8/5zvd9fRr7omOdDqynE2M4RMgjyYqPVFUQ7qYwtB8VhA4SBUmOqn/RcRVJBaGKcGaWbq0XzXw4srrdnY9mvYGgbVvdbnJ6nkHo2C2VaicINSR5eq/aLdVsN6iWod/urV52pivG6MoY5He3ELQdBC259SG5hzBGuGY7Qg7hM0IL5UL4bZSLCG2+4AvKZKZn+StN8QotF3gKmpuCNoUb67CNpELVKsJXJHlbziAU2HqSp+ePtKwgaP6KdrdERSI1r6xQTN++CHcoA0KdLePxw/u+AbQpDMzcdyv7bIzz9G5s/1iF3m4AtyUBFgGomV2WDS0MqfIFoUMn3xCOnYpIAeE7/9thCRJAkucRDpAUXYbk2Uf2sGMd1czPqqiDx1eMUZNmPtm3ffthP/UhuWVPXmjuHGUwRs3U62Pz8NnsXc70bCyeTEhRaKWn5xkGGlV/BkCzss9UOzGGefOqZx22XwtmrCLLUfXWCEJI9OXAvunb75BIIBv7Yd86vAxTZhPe+Tjlon7HCygi3LLgMonFUyshTEdBSMsFs6oa+onVHIfhXI+A60RaxMQ3t2qmK/F0AqFjlvoIFZ+mO/ZNn74cODYkHpLKtNZEUMV2kqC9pVWprnqNtNuKpVVFF6f1C+umyORcK9Nhy/3YZkBzesdmuiLeZ8SNSdtbW3+mZnpREGgtFEBzw2q0rNhtJRZPr2zedrh5dn9gjI43bVjU2/9Kk34D0Pw3bj60EzEplpSW6ijl8wzS9PuYfze7BcboCUnFHMoIZwg1UVpIw25pbrGuHSxBwyd7GRgf6g1H3+Ll5WfDAuF7JPf1EIxBzm4fM8dwkJ2TAEeziKTituHaag4RThHuRXv4ghyS3BzuYeBTkthIPDUGPdbabosz8i4YSiYxif3M9MZMr69gdSrSkn5kjBd1YxsKvb0pq0NSlWb6xUyvryf0TXe4nOn1SH1uHLUp8l6H4YsCxHhf49sJKRLk/9jNufcusxDPMWKSv3CqVu1HRYxtUT7y0RHjTFc8+abmj2fX1W57CBPzdIKgILTcWXEubVruIJFRJqsoTMsFPog5Y1pwq0fFGJR44m8bTpAQV6QTPjMc8fnuzGkRx2PJ6PLOoWWhd3kH5sK2iEqD5SwbtDSmbGgws+dxfIwrCMY5fsjHMP/uEeU7Abm/vdIzaq6LGpwDMmL/OhsiXLFMXAOPpxJIsvHthHsl0uYZ7do7qdiNAs9q8ejN5+hA9csPypW9U/h2Dp2nn9r8uuB4A585Q2Brdq9vDhouQsWo/fesbvcPsb2Zndi3RadPcIlwNs8YziF+0fOm2KAylnYyyHrx3DtQGPyBW6hgYv+nqZ46QULnx7ojDrfNX/JIWoNyHWNCAhfHIGSp6Fn+sWi1S1bhyRgqok1CRFa7NG0U/UOC320EmpT8TfM11tn9r3xxwSxdc691IPM15FU+xrjBF3ec22S2L9zOeK4yE4PWHBpO5Fd7FsYftj52yqQTUjyZENYm+uMp0PUyzVLHVvaG7g/th33vWmpdj+zRxVrs23kr+95JO/P8luqqf5QJIOAxz1v5Htr9kkfJ/7E8/acmqyXFRJRkpW8QK/oazhLN7jNhpUXxe67QIk77BZR2vxERiabXUfrrafWeqgr+USogznWA+E0o/AM="
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+      "kind": "shitsugi",
+      "no": "02",
+      "title": "小規模宅地等の特例の対象となる私道",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+      "text": "下の図のような場合に、被相続人は相続開始直前においてB土地に居住していたことから小規模宅地等の特例の適用があるものと考えますが、私道であるA土地の共有持分についてもこの特例の対象になりますか。 なお、私道Aは、B、C及びD土地の所有者の共有であり、同人らの通行の用に供されていました。 私道A土地は、被相続人の居住用宅地等であるB土地の維持・効用を果たすために必要不可欠なものですから、この土地の共有持分についても被相続人の居住用宅地として小規模宅地等の特例の対象となります。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 257.14,
+      "text_ranges": [
+        [
+          0,
+          238
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の6の10-18": {
+      "id": "tsutatsu:sochi_sozoku:70の6の10-18",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の6の10-18",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （個人の事業用資産についての納税猶予及び免除、小規模宅地等の特例又は特定計画山林の特例を重複適用する場合に限度面積要件等を満たさないとき）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_6/10.htm",
+      "law_version": "",
+      "text": "小規模宅地等、措置法第69条の5第1項に規定する選択特定計画山林（以下70の6の10-18において「選択特定計画山林」という。）又は特例事業用資産のうち宅地等（以下70の6の10-18において「猶予対象宅地等」という。）について、措置法第69条の4第1項、第69条の5第1項又は第70条の6の10第1項の規定の適用を重複して受けようとする場合において、その猶予対象宅地等の面積が同条第2項第1号イに規定する限度面積（70の6の10-17参照）を超えるとき又はその選択特定計画山林の価額が措置法第69条の5第5項（措置法令第40条の2の2第9項の規定の適用がある場合を含む。）に規定する限度額（69の5-12参照）を超えるときは、その猶予対象宅地等の全てについて措置法第70条の6の10第1項の規定の適用はないことに留意する。（令元課資2-10追加、令2課資2-10改正）\n\n(注)\n \n \n1 上記の限度面積を超える場合における当該小規模宅地等又は上記の限度額を超える場合における当該小規模宅地等及び当該選択特定計画山林は、その全てについて措置法第69条の4第1項及び第69条の5第1項の適用もないことに留意する（69の4-12及び69の5-13参照）。\n\n なお、この場合、その小規模宅地等又は選択特定計画山林については、その後の国税通則法第18条第2項に規定する期限後申告書及び同法第19条第3項に規定する修正申告書において、当該限度面積又は当該限度額を超えないこととなったときは、措置法第69条の4第1項又は第69条の5第1項の規定の適用があることに留意する。\n2 上記の「猶予対象宅地等」には、措置法第70条の6の9第1項（同条第2項の規定により読み替えて適用する場合を含む。）の規定により相続又は遺贈により取得をしたものとみなされた特例受贈事業用資産のうち同条第2項第1号イに掲げるものを含むことに留意する。",
+      "score": 284.98,
+      "text_ranges": [
+        [
+          0,
+          809
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "kind": "taxanswer",
+      "no": "4158",
+      "title": "配偶者の税額の軽減",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税概要配偶者の税額の軽減とは、被相続人の配偶者が遺産分割や遺贈により実際に取得した正味の遺産額が、次の金額のどちらか多い金額までは配偶者に相続税はかからないという制度です。 （注） この制度の対象となる財産には、隠蔽または仮装されていた財産は含まれません。 （1） 1億6千万円 （2） 配偶者の法定相続分相当額この配偶者の税額軽減は、配偶者が遺産分割などで実際に取得した財産を基に計算されることになっています。 したがって、相続税の申告期限までに分割されていない財産は税額軽減の対象になりません。 ただし、相続税の申告書または更正の請求書に「申告期限後3年以内の分割見込書」を添付した上で、申告期限までに分割されなかった財産について申告期限から3年以内に分割したときは、税額軽減の対象になります。 なお、相続税の申告期限から3年を経過する日までに分割できないやむを得ない事情があり、税務署長の承認を受けた場合で、その事情がなくなった日の翌日から4か月以内に分割されたときも、税額軽減の対象になります。 対象者または対象物被相続人の配偶者手続き申告等の方法 （1） 税額軽減の明細を記載した相続税の申告書または更正の請求書に戸籍謄本等のほか遺言書の写しや遺産分割協議書の写しなど、配偶者の取得した財産が分かる書類を添えて提出してください。 遺産分割協議書の写しには相続人全員の印鑑証明書（遺産分割協議書に押印したもの）も添付する必要があります。 （2） 相続税の申告後に行われた遺産分割に基づいて配偶者の税額軽減を受ける場合は、分割が成立した日の翌日から4か月以内に更正の請求という手続をする必要があります。 申告先等所轄税務署根拠法令等相法19の2、32、相規1の6、16 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 10238.73,
+      "text_ranges": [
+        [
+          0,
+          760
+        ]
+      ]
+    },
+    "law:sozokuzei_rei:4_2": {
+      "id": "law:sozokuzei_rei:4_2",
+      "kind": "law",
+      "key": "sozokuzei_rei",
+      "no": "4_2",
+      "title": "相続税法施行令 配偶者に対する相続税額の軽減の場合の財産分割の特例",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325CO0000000071#Mp-At_4_2",
+      "score": 167.87,
+      "text_ranges": [
+        [
+          0,
+          1221
+        ]
+      ],
+      "text_deflate_base64": "zVfbUupKEH33q6dngwaTGOQiIlJ4QUXCiW5AhYDwMZ2ZJE/8wq6eGTAgeNBTu+q8Qejp6bVW90ojB9W41xMuROOmbF4jBFHoxL1eFDrpVR7BT+49EVwg1JHbsjKPJm2EB3rCAbmNPIecIS+JWQ2hi5CLQlv+yiM4CBy5La6GomghPCED2aP8opgT3huCL0/6CKVMTAehhgxEca+rZe1Op0UoI3eQFyi5SRUIJxTWIYIv5pcI5+K9nDz2V1evJ+noK5DxaMSQMR0cN0bx64XwqPgUwmRoIfjRnEDJ75AWVwbi9FhettJ6cTG1osldNLJl71pFzhAeEHyEY4Qcwj0yJxuPzFXl5RAOkfHFlDDGc0eVbSMvRKOCGA+Rl+IXJ4UTwxX9ms0JXyBKz270qaQzRCDqpFdMXt6UglUiFu4pz1KmxdTaJ5soOcnDrf416c4FXFLllUHs2yrh9uQbZWeVzZwNZJ0TyTsLbiHnCIGibq7aUj3ntnriUrsWfepbRamw2vJ3SFfchCIwiFbJhXcWjWxqVAgUsU2Se3KmSUg6w6TTorDAiV+KOuYgCp192mhN6b+mq1YCGWgZdJh4ehRWex9JSO+CK7w3fZD6vtHYMcA+zdh72YwTlBXdHSVAG6FlwngprbcRPMO+Ki+x72j4wcu2i7SKVBuDj2ozCu1qjl2C7Yg3WkShHU1e6acXHoWHSyFHhf+HkOSL8vlUDqqLqSXPT2R/EoWOdiAxHspBVcxs0ibvm4fe22JaIE8aN+P6TOR92bymryOWXuWzdGtF06v8YmqlEMaVWyLROhSFPrFwNpaDKn1wjhT1xwiDz2HxPch/brQ/Lc3PR24hP/4U7Ohg020MTEcWHW2rpmAXorCSrZnGGq4QarIxWkwtzRUVVpgnXVcnkZWZvM0hLxHPMEZwSZSz8tbCNjJkOTF5INDHEZxoOkqrb//FEX82flv7ZIN2g5f6qkMwzfw4Zn70S1Xfu+14FrgOWKIODOr1/Lr47CkzWuBHk1vkHoG9BQXQ0ROrIlvb3Xcrok9s6JKyKJaKbI+kq83E0dU0zKLRoGEuuDST2w0sQJjQ3DL4YtqT/rVqaOfv+IJZCZaMaGxdOqVMVNuqnkPzDjL1fAxYCnlBZlZbxas2aiO4cedE2PX4va+4y/TWvy1yCJ2k6+qtaUmXclYTFshXS07yxjgX0xIy9r09abf57bkR7oFhyYUygGXaYJ0U4weUx6shnFIwHK7WxITl9d75LfnFzNkt+XpnhI68tL7oDLUYrVGfPA7i4fPqTZf0rwnOJWzwE4U24eWlpHOekCNSf8SVQeLbsjEivBrReotIryiOQhXcVWw4CM/0md6kRDIyfrCYlpGx9ZOKo4JrKF5do/Y1lVGpkt0M1r0ua+zCHaqXeiCO7mmvXzqSsRTzP6C5ukgFEDylli+eZuYd2hilzZtVB+gjZGu8lLKLuHW3+itwsJhWCNJHt/4Eg2H0y4M/aYEs1OVof8UXbHjIJmubG4l+qOcgU+qnvbqOjP8B"
+    },
+    "law:sozokuzei:19_2": {
+      "id": "law:sozokuzei:19_2",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "19_2",
+      "title": "相続税法 配偶者に対する相続税額の軽減",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_19_2",
+      "score": 156.98,
+      "text_ranges": [
+        [
+          0,
+          1938
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:sozoku:16-1": {
+      "id": "tsutatsu:sozoku:16-1",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "16-1",
+      "variant": 0,
+      "title": "相続税法基本通達 （相続税の総額を計算する場合の取得金額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/02/05.htm",
+      "law_version": "",
+      "text": "法第16条の規定により相続税の総額を計算する場合における同条に規定する「各取得金額」は、遺産が分割されたかどうかにかかわらず、また相続又は遺贈によって財産を取得した者がだれであるかにかかわらず、相続税の課税価格の合計額から遺産に係る基礎控除額を控除した後の金額を、法第15条第2項に規定する相続人の数に応じた相続人が民法第900条及び第901条((代襲相続人の相続分))の規定による相続分に応じて取得したものとして計算するのであるから留意する。（昭41直審（資）5、昭50直資2－257、平元直資2－207、平17課資2－4改正）改正）\n （注） 15－2の設例5の場合には、法第16条に規定する「前条第2項に規定する相続人の数に応じた相続人」の「民法第900条及び第901条の規定による相続分」は、養子1人（（B）又は（C）のいずれか1人を特定することを要しないのであるから留意する。）1/2&times;1/2＝1/4、（D）及び（E）1/2&times;1/2&times;1/2＝1/8 並びに配偶者1/2となる。",
+      "score": 37.73,
+      "text_ranges": [
+        [
+          0,
+          461
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/11.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/11.htm",
+      "kind": "shitsugi",
+      "no": "11",
+      "title": "小規模宅地等の特例の対象となる宅地等の範囲(財産管理人の事業)",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/11.htm",
+      "text": "民法第25条第1項の規定により家庭裁判所は失踪者甲の財産管理人Aを選任しました。Aは、甲の財産保全のため、従来、空き地であった土地にアスファルト舗装等を施し駐車場経営を開始しました。その後、甲が失踪してから7年が経過したため、甲の親族は家庭裁判所に対して失踪宣告を申立て、認められました。 この場合、その駐車場の敷地の用に供されている土地は、甲の事業用宅地（貸付事業用宅地）として小規模宅地等の特例の対象に該当しますか。 不在者の財産管理人は失踪者甲の法定代理人に当たり、その行為の効果は甲に帰属することとなります。 したがって、駐車場用地は甲の事業用宅地（貸付事業用宅地）として小規模宅地等の特例の対象になります。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 269.26,
+      "text_ranges": [
+        [
+          0,
+          308
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/03.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/03.htm",
+      "kind": "shitsugi",
+      "no": "03",
+      "title": "共有家屋(貸家)の敷地の用に供されていた宅地等についての小規模宅地等の特例の選択",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/03.htm",
+      "text": "夫に相続が開始したので、下の図のような貸家の敷地の用に供されていた宅地等について小規模宅地等の特例の適用を考えています（貸家の共有持分及び宅地等は妻（夫と生計を一にしています。）が全て相続により取得し、取得した家屋について妻が貸付事業を申告期限まで行っています。）。この場合、この宅地等のうち240 (夫の家屋の持分に対応する部分)は貸家建付地評価となり、160 (妻の家屋の持分に対応する部分)は自用地評価となりますが、特例の適用に当たっては、自用地部分160 と貸家建付地のうち40 の計200 について適用することとして差し支えありませんか。 夫の家屋の持分に対応する部分だけでなく、妻の家屋の持分に対応する部分についても、小規模宅地等の特例の対象となりますので、照会意見のとおり解して差し支えありません。",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 269,
+      "text_ranges": [
+        [
+          0,
+          356
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の6の8-18": {
+      "id": "tsutatsu:sochi_sozoku:70の6の8-18",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の6の8-18",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （限度面積の判定について）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_6/08.htm",
+      "law_version": "",
+      "text": "宅地等又は建物に係る措置法第70条の6の8第2項第1号イ又はロに定める限度面積要件の判定は、贈与者ごとに行うことに留意する。（令元課資2-10追加）",
+      "score": 195.56,
+      "text_ranges": [
+        [
+          0,
+          74
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の6の10-16": {
+      "id": "tsutatsu:sochi_sozoku:70の6の10-16",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の6の10-16",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （措置法第70条の6の9の規定により相続又は遺贈により取得をしたものとみなされる特例受贈事業用資産がある場合の限度面積要件）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_6/10.htm",
+      "law_version": "",
+      "text": "特例事業受贈者が措置法第70条の6の9第1項（同条第2項の規定により読み替えて適用する場合を含む。以下70の6の10-16において同じ。）の規定により贈与者から相続又は遺贈により取得をしたものとみなされた特例受贈事業用資産について措置法第70条の6の10第1項の規定の適用を受ける場合には、同条第2項第1号イに定める宅地等に係る限度面積は400m2から当該特例事業受贈者が措置法第70条の6の8第1項の規定の適用を受けるものとして贈与税の申告書に記載した同条第2項第1号イの宅地等（以下70の6の10-17までにおいて「受贈宅地等」という。）の面積を控除した面積となり、措置法第70条の6の10第2項第1号ロに定める建物に係る限度面積は800m2から当該特例事業受贈者が措置法第70条の6の8第1項の規定の適用を受けるものとして贈与税の申告書に記載した同条第2項第1号ロの建物（以下70の6の10-16において「受贈建物」という。）の床面積を控除した面積となるのであるが、この場合には、次の取扱いに留意する。（令元課資2-10追加、令2課資2-10改正）\n(1) 当該特例事業受贈者が当該受贈宅地等又は当該受贈建物の全部又は一部について措置法第70条の6の10第1項の規定の適用を受けない場合（当該贈与者の死亡の日前に当該受贈宅地等又は当該受贈建物に係る贈与税の全部又は一部について納税猶予の期限が確定している場合を含む。）であっても、当該特例事業受贈者が措置法第70条の6の9第1項の規定により当該贈与者から相続又は遺贈により取得をしたものとみなされた他の特例受贈事業用資産について措置法第70条の6の10第1項の規定の適用を受ける場合には、当該受贈宅地等の面積又は当該受贈建物の床面積については、上記により控除される。\n(2) 当該特例事業受贈者が当該受贈宅地等又は当該受贈建物につき行った措置法第70条の6の8第5項の譲渡又は第6項の移転につき同条第5項又は第6項の承認を受けている場合における上記の控除すべき面積又は床面積は、当該譲渡又は移転をした当該受贈宅地等の面積又は当該受贈建物の床面積による。",
+      "score": 147.92,
+      "text_ranges": [
+        [
+          0,
+          904
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-20の4": {
+      "id": "tsutatsu:sochi_sozoku:69の4-20の4",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-20の4",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （相続開始前3年を超えて引き続き事業の用に供されていた宅地等の取扱い）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "相続開始前3年を超えて引き続き被相続人等の事業の用に供されていた宅地等については、「措置法令第40条の2第8項に定める規模以上の事業を行っていた被相続人等の事業」以外の事業に係るものであっても、措置法第69条の4第3項第1号イ又はロに掲げる要件を満たす当該被相続人の親族が取得した場合には、同号に規定する特定事業用宅地等に該当することに留意する。（令元課資2－10追加）\n\n(注) 被相続人等の事業の用に供されていた宅地等が69の4-20の2に掲げる場合に該当する場合には、当該宅地等は引き続き事業の用に供されていた宅地等に該当することに留意する。",
+      "score": 218.45,
+      "text_ranges": [
+        [
+          0,
+          274
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:1789457412756f33": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "kind": "taxanswer",
+      "no": "4124",
+      "title": "相続した事業の用や居住の用の宅地等の価額の特例（小規模宅地等の特例）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 73.74,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozeki_hou:69_4:7b6223f3e0cc1b66": {
+      "id": "law:sozeki_hou:69_4",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "69_4",
+      "title": "租税特別措置法 小規模宅地等についての相続税の課税価格の計算の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_69_4",
+      "score": 50.17,
+      "text_ranges": [
+        [
+          0,
+          4752
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm:c1ac69c3bd6d02e3": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "kind": "taxanswer",
+      "no": "4161",
+      "title": "贈与財産の加算と税額控除（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 10229.74,
+      "text_ranges": [
+        [
+          0,
+          2631
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm",
+      "kind": "taxanswer",
+      "no": "4105",
+      "title": "相続税がかかる財産",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4105.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 134.24,
+      "text_ranges": [
+        [
+          0,
+          925
+        ]
+      ],
+      "text_deflate_base64": "tVZbdtpIEN0KSxhsx07WMmf20tXGtoR4GAJmwGAg5mVsRAw44RW8lyn1Q1/ewpzqRrLsJGe+5kOcVtNVdevWrWr9GWx6opz7KFaLI9l00rLWV8WdaI7kvBpsemri/pUS051+7KpRQV376nqpvjXUqCAHXA8g9Q/bpGTDR+4i1BB8+uf0THQekeX0rKsqt8jL1sgcaCOMEPLI8ghZ5A7CXH1ZC7+hKnNRylrbl60Tx3nZugj3yDkyiDcR/GBTVU8ZhGcEXzjnCB7yLPIMQh0ho4e3evyAPJM0sSEQfIPEM2DGCHfIy7Iw01ubwgAhg7AzfnyEITJA4MiLCNcIA1Hk6mwYnSwidBCqZMJ4ap8nz4Sw1gvH4HYQbo3ZldjVLAWWl5etI5sPstUnZMYw2ndTCdRTZCAKbeFeGOZMWAZysgnWXesuWK8R/PdkRyAozGQjrjt64QTLAvKyuLw3tJkUGY8I/gVQ0VmIS5MGcdAipn9Kg/4lLg39kc8Uwmc6vbePwFEClI8q7sKLEjIIO5d6NrVr2XSDXVePtsJZUs5+S7XntGi2RfOr2fkmHr19yag0GwRPz5bB5m/rQbkrPXqUoztkoEu14EeT1uZ8eFEKsxOEez3w1F2e5MQ9A3KEkKMqQx65p55ycumoRibYdQXrmSj2ZB1hZSruky39lo1OMsmcWzGsRAFzET1eXHdD/xihlqy7NaTqy4cuwr0szBDKsRly/tp78yqROigKvxHxYSrIs0m92741KY7fVOdl66RNIKOikDEN3y2F+su99WBElQueW2F9La/qyMt61pHeWaJF2qrSFqUf9ozol9Qig+Bbn3aTfBp4FPGAIr717yF3yYmbp8rE+izWEEpW53Zz376LPM2g3LdgTZpS7irYeQh+CHeqMnpjaODp3cwKJ2zdBMus6CyCbUP1dgSyMxbbIvJMsPZkf6IqIz2/MDWI0B4afqp1zWd6fmES8YMlk97DHifcB88kjSTCsHWjx7P9+j2quJt85XfV5bn0vbCbt+0ZrLuy1jetlDXgB6JY0wtHszOE3MGhnMxlcyzXzCiVwgZLZoof99h+kIX1Hkk50dyUzZEZKk+X4q6BpxsxudR8hjD4XzOjuB9eh1liKg7jWZUcJ1Zx1OfZjvJrVryy2Q6vPovzs5et81Y7+5kZXnli6Bnycq9XWfpANp1DusyCTd/IK+Zp+ssICNOkP+HmD8VqQcbnZz83kL6bG8xF6w75HE+3eOoepY/TdO8Z4qKu9m00hJEaFcJuXhaGYb1HdW8MxGphaaUhzPJmqFT0YPjuYrEj+ufeSXp4V7b/vHtiAf2+j6K6/k5Vx7/uaJrEtqmjG1vWuZrtlF/7vYbegkwQSIFOXmW0Vwn1yNgM1tt395T8WrLjkbLjkOQhOW3p8yYCbOhyCDnPxRRR3I8mrrsSTl9MMwTJ9KOsTKVbfQVP98MKIZ88STMT/LCbRxjaD5z954+5PWRnJb1O/ImlrpdyXj1ABofI4AgZpD8hg4M0gh8v0kcvP27s6pjyLIzlvHryB4J/YB4G8cth9PIhWhzvPZmXk+SRE/MwCDa9D7KykhOiJqxnhHuR/pT6Fw=="
+    },
+    "tsutatsu:sochi_sozoku:69の4-28:b6ab96c90c2fe5c1": {
+      "id": "tsutatsu:sochi_sozoku:69の4-28",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-28",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等について相続税に係る課税の特例の適用を受けている場合）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "郵政民営化法第180条第1項の規定は、同法の施行日（平成19年10月1日）から平成24年改正法（郵政民営化法等の一部を改正する等の法律（平成24年法律第30号）をいう。以下69の4-32までにおいて同じ。）の施行日(平成24年10月1日）の前日（平成24年9月30日）までの間にあっては平成24年改正法第3条((郵便局株式会社法の一部改正))の規定による改正前の郵便局株式会社法（平成17年法律第100号）第2条第2項((定義))に規定する郵便局の用に供するため郵便局株式会社に、平成24年10月1日から相続の開始の直前までの間にあっては日本郵便株式会社法（平成17年法律第100号）第2条第4項((定義))に規定する郵便局の用に供するため日本郵便株式会社に対し貸し付けられていた建物（以下69の4-37までにおいて「郵便局舎」という。）の敷地の用に供されていた土地又は土地の上に存する権利（以下69の4-37までにおいて「土地等」という。）について、既に郵政民営化法第180条第1項の規定の適用を受けていない場合に限り適用があることに留意する。（平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13、平25課資2-10改正）",
+      "score": 20.91,
+      "text_ranges": [
+        [
+          0,
+          524
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-1": {
+      "id": "tsutatsu:sochi_sozoku:69の4-1",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-1",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （加算対象贈与財産及び相続時精算課税の適用を受ける財産）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "措置法第69条の4第1項に規定する特例対象宅地等（以下69の5-11までにおいて「特例対象宅地等」という。）には、被相続人から贈与（贈与をした者の死亡により効力を生ずべき贈与（以下「死因贈与」という。）を除く。以下同じ。）により取得したものは含まれないため、相続税法（昭和25年法律第73号）第19条第１項((相続開始前7年以内に贈与があった場合の相続税額))に規定する加算対象贈与財産（以下70－１－５までにおいて「加算対象贈与財産」という。）及び相続時精算課税（同法第21条の9第3項((相続時精算課税の選択))の規定（措置法第70条の2の6第1項、第70条の2の7第1項（第70条の2の8において準用する場合を含む。）又は第70条の3第1項において準用する場合を含む。）をいう。以下70の7の2-3までにおいて同じ。）の適用を受ける財産については、措置法第69条の4第1項の規定の適用はないことに留意する。（平16課資2-8、平18課資2-4、平19課資2-7、課審6-5、平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13、平27課資2-9、平30課資2-9、令元課資2-10、令5課資2-21改正）",
+      "score": 143.16,
+      "text_ranges": [
+        [
+          0,
+          516
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:69の4-27:666d338a07d68ae0": {
+      "id": "tsutatsu:sochi_sozoku:69の4-27",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-27",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等に係る相続税の課税の特例）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "個人が相続又は遺贈により取得した財産のうちに、郵政民営化法（平成17年法律第97号）第180条第1項((相続税に係る課税の特例))に規定する特定宅地等（以下69の4─33までにおいて「特定宅地等」という。）がある場合において、当該特定宅地等は、同項の規定により措置法第69条の4第3項第1号に規定する特定事業用宅地等に該当する同条第1項に規定する特例対象宅地等とみなして、同条及び同法第69条の5の規定を適用することに留意する。（平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13改正）",
+      "score": 22.34,
+      "text_ranges": [
+        [
+          0,
+          255
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm:87663aed6d6f6a5d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm",
+      "title": "相続した事業の用や居住の用の宅地等の価額の特例（小規模宅地等の特例）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4124.htm"
+    },
+    "law:sozeki_hou:69_4:64d04d836e739ebc": {
+      "id": "law:sozeki_hou:69_4",
+      "title": "租税特別措置法 小規模宅地等についての相続税の課税価格の計算の特例",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_69_4"
+    },
+    "tsutatsu:sochi_sozoku:69の4-28:b48e1b4eb833253b": {
+      "id": "tsutatsu:sochi_sozoku:69の4-28",
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等について相続税に係る課税の特例の適用を受けている場合）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm"
+    },
+    "tsutatsu:sochi_sozoku:69の5-11:6258d23b639d37db": {
+      "id": "tsutatsu:sochi_sozoku:69の5-11",
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （申告書の提出期限から3年以内に特定計画山林の特例及び小規模宅地等の特例に係る遺産が分割できない場合の承認申請）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_5/01.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+    },
+    "tsutatsu:sochi_sozoku:69の4-27:4e283ee8c6eb2c0e": {
+      "id": "tsutatsu:sochi_sozoku:69の4-27",
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （郵便局舎の敷地の用に供されている宅地等に係る相続税の課税の特例）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm"
+    },
+    "law:sozeki_hou:70_7_13:b7b557840592bb40": {
+      "id": "law:sozeki_hou:70_7_13",
+      "title": "租税特別措置法 医療法人の持分についての相続税の税額控除",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_7_13"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm:abae1ba6b13f026f": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm",
+      "title": "小規模宅地等の特例の対象となる私道",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/02.htm"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/01.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/01.htm",
+      "title": "相続開始の年に被相続人から贈与を受けた宅地に係る小規模宅地等の特例の適用の可否",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/01.htm"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm:a04668d5e73bf2ae": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm",
+      "title": "特定同族会社に貸し付けられていた建物が相続税の申告期限までに建て替えられた場合の小規模宅地等の特例",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/09.htm"
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm:883f9743cc06d2b0": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm",
+      "title": "単身赴任中の相続人が取得した被相続人の居住用宅地等についての小規模宅地等の特例",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/14.htm"
+    }
+  }
+}

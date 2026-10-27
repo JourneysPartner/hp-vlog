@@ -243,4 +243,13 @@ if (require.main === module) {
   });
 }
 
-module.exports = { run, dateRange, prune, normalizeRows, parseServiceAccountJson, OUT_ROOT, PROPERTIES };
+module.exports = {
+  run,
+  dateRange,
+  prune,
+  normalizeRows,
+  parseServiceAccountJson,
+  accessTokenFromServiceAccount,
+  OUT_ROOT,
+  PROPERTIES,
+};

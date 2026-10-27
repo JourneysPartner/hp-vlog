@@ -52,6 +52,24 @@ const TOPICS = [
   //  【物販】eBay輸出セラー
   // ════════════════════════════════════════════════════════════
   { persona: 'ebay_export_seller', category: '消費税', quality: 'high',
+    macro: '物販', cluster: 'ebay', subcluster: 'ebay-tax-refund-complete', tax_domain: 'consumption_tax',
+    article_type: 'basic_explainer', article_role: 'main', priority: 'high',
+    title: 'eBay輸出の消費税還付 完全ガイド｜仕組み・条件・必要書類・申告手順',
+    slug: 'ebay-export-consumption-tax-refund-complete-guide',
+    replaces: ['ebay-shouhizei-kanpu-kihon', 'ebay-export-consumption-tax-refund-guide', 'ebay-tax-refund-required-documents'],
+    source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
+    source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
+    source_supplements: [
+      { no: '6613', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm', title: '免税事業者と仕入税額の還付' },
+      { no: '6615', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6615.htm', title: '確定申告書等に添付することとなる書類' },
+    ],
+    hint: '仕組み → 受けられる条件 → 課税事業者の選択の判断 → 必要書類 → 申告の順番 → よくある失敗の順で、既存3記事を置き換えられる網羅度にする',
+    search_intent: 'eBay 輸出 消費税 還付 仕組み 要件 必要書類 手順 課税事業者 選択',
+    reader_problem: '既存の記事では消費税還付の仕組み・条件・課税事業者の選択・必要書類・申告手順が分かれており、全体を一つの流れで判断できない',
+    success_outcome: '還付の仕組みから申告までを順番に理解し、必要な判断と書類と手続きを一つの記事で確認できる',
+    primary_question: 'eBay で海外に販売している個人事業主です。消費税の還付を受けられると聞きましたが、どういう仕組みで、何を満たし、どんな書類を揃えて、どの順番で手続きすればよいですか。' },
+
+  { persona: 'ebay_export_seller', category: '消費税', quality: 'high',
     macro: '物販', cluster: 'ebay', subcluster: 'ebay-tax-refund', tax_domain: 'consumption_tax',
     article_type: 'basic_explainer', pair_group: 'ebay-tax-refund',
     title: 'eBay輸出の消費税還付とは？仕組み・条件・申請手順をわかりやすく解説',
@@ -859,7 +877,7 @@ function getAllTopics() {
     console.log(`[topic-pool] curated と slug トークン重なりが高い expanded を ${droppedBySlug} 件除外`);
   }
 
-  return [...curated, ...expanded, ...SHITSUGI_TOPICS, ...SUGGEST_TOPICS].map(topic => {
+  return [...curated, ...expanded, ...SHITSUGI_TOPICS, ...SUGGEST_TOPICS, ...GSC_TOPICS].map(topic => {
     const source = resolveSourceForTopic(topic);
     return {
       ...topic,
@@ -881,7 +899,7 @@ const CURATED_TOPICS = TOPICS.map(topic => ({
 
 let SHITSUGI_TOPICS = [];
 let SHITSUGI_TOPIC_STATS = {
-  adopted: 0, included: 0, skipped: 0, unreadable: 0, relevanceRejected: 0, disabled: false,
+  adopted: 0, included: 0, skipped: 0, unreadable: 0, relevanceRejected: 0, personaRejected: 0, disabled: false,
 };
 try {
   const { expandShitsugiTopics, getLastExpansionStats } = require('./lib/shitsugi-topics');
@@ -901,10 +919,24 @@ try {
   console.warn(`[topic-pool] 検索需要由来の候補を読み込めません（従来プールで続行）: ${error.message}`);
 }
 
+let GSC_TOPICS = [];
+let GSC_TOPIC_STATS = { total: 0, included: 0, invalid: 0, disabled: false };
+try {
+  const { expandGscTopics, getLastGscStats } = require('./lib/gsc-topics');
+  GSC_TOPICS = expandGscTopics();
+  GSC_TOPIC_STATS = getLastGscStats();
+} catch (error) {
+  console.warn(`[topic-pool] GSC 由来の候補を読み込めません（従来プールで続行）: ${error.message}`);
+}
+
 const ALL_TOPICS = getAllTopics();
 
 function getSuggestTopicStats() {
   return { ...SUGGEST_TOPIC_STATS };
+}
+
+function getGscTopicStats() {
+  return { ...GSC_TOPIC_STATS };
 }
 
 function getShitsugiTopicStats() {
@@ -917,4 +949,5 @@ module.exports = {
   getAllTopics,
   getShitsugiTopicStats,
   getSuggestTopicStats,
+  getGscTopicStats,
 };

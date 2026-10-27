@@ -7,6 +7,7 @@ const { isNaturalCombination } = require('./customer-relevance');
 const ROOT = path.join(__dirname, '..', '..');
 const CANDIDATE_FILE = path.join(ROOT, 'data', 'nta-shitsugi-topics-candidate.json');
 const SOURCE_ROOT = path.join(ROOT, 'data', 'nta-sources');
+const PERSONA_ALLOWLIST_FILE = path.join(ROOT, 'data', 'shitsugi-persona-allowlist.json');
 
 const CATEGORY_BY_TAX_CATEGORY = {
   '消費税': '消費税',
@@ -52,12 +53,21 @@ let lastStats = {
   skipped: 0,
   unreadable: 0,
   relevanceRejected: 0,
+  personaRejected: 0,
   triaged: 0,
   disabled: false,
 };
 
 function normalizeText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function loadPersonaAllowlist(file = PERSONA_ALLOWLIST_FILE) {
+  const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(parsed) || parsed.some(persona => typeof persona !== 'string' || !persona.trim())) {
+    throw new Error('質疑応答 persona allowlist は文字列の配列である必要があります');
+  }
+  return parsed.map(persona => persona.trim());
 }
 
 function sourceFileFor(candidate, sourceRoot = SOURCE_ROOT) {
@@ -136,12 +146,20 @@ function expandShitsugiTopics(options = {}) {
   // candidateFile / sourceRoot はテスト用の注入口。通常は既定のまま。
   const candidateFile = options.candidateFile || CANDIDATE_FILE;
   const sourceRoot = options.sourceRoot || SOURCE_ROOT;
+  const personaAllowlist = options.personaAllowlist === undefined
+    ? loadPersonaAllowlist(options.personaAllowlistFile || PERSONA_ALLOWLIST_FILE)
+    : options.personaAllowlist;
+  if (!Array.isArray(personaAllowlist)) {
+    throw new Error('質疑応答 persona allowlist は配列である必要があります');
+  }
+  const allowedPersonas = new Set(personaAllowlist);
   const stats = {
     adopted: 0,
     included: 0,
     skipped: 0,
     unreadable: 0,
     relevanceRejected: 0,
+    personaRejected: 0,
     triaged: 0,
     disabled: process.env.DISABLE_SHITSUGI_TOPICS === 'true',
   };
@@ -173,6 +191,11 @@ function expandShitsugiTopics(options = {}) {
       if (!topic.category || !topic.tax_domain || !topic.slug || !topic.persona || !topic.macro) {
         throw new Error('必須の変換項目が不足しています');
       }
+      // 空配列は制限なし。既定では、集客対象として明示された persona だけを残す。
+      if (allowedPersonas.size > 0 && !allowedPersonas.has(topic.persona)) {
+        stats.personaRejected++;
+        continue;
+      }
       if (filterRelevance && !isNaturalCombination(topic)) {
         stats.relevanceRejected++;
         continue;
@@ -187,7 +210,7 @@ function expandShitsugiTopics(options = {}) {
   }
 
   stats.included = topics.length;
-  stats.skipped = stats.unreadable + stats.relevanceRejected;
+  stats.skipped = stats.unreadable + stats.relevanceRejected + stats.personaRejected;
   lastStats = stats;
   return topics;
 }
@@ -199,10 +222,12 @@ function getLastExpansionStats() {
 module.exports = {
   expandShitsugiTopics,
   getLastExpansionStats,
+  loadPersonaAllowlist,
   isConnectable,
   MACRO_BY_PERSONA,
   CATEGORY_BY_TAX_CATEGORY,
   TAX_DOMAIN_BY_CODE,
   CANDIDATE_FILE,
   SOURCE_ROOT,
+  PERSONA_ALLOWLIST_FILE,
 };

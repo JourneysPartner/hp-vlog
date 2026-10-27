@@ -8,40 +8,137 @@
  *
  * 具体的には:
  *   - 直近 7 / 14 / 30 日で macro 別の出現比率を集計
- *   - 当該 macro の比率が「均等分布」を超える場合、超過分に応じたペナルティ
+ *   - 当該 macro の比率が設定された目標比率を超える場合、超過分に応じたペナルティ
  *   - ハードキャップ:
- *       直近 7 日で macro が全体の 30% を超えていたら、その macro はその日 NG（候補があれば差し替え）
- *       直近 14 日で macro が全体の 50% を超えていたら、強いペナルティ
- *
- * 大分類の数を N とすると、均等比率は 1/N。
+ *       直近 7 日で macro ごとの上限を超え、かつ 14 日の実績が 4 本以上ならその macro はその日 NG
+ *       目標比率 0 の macro は、他の候補がある限り選ばない
  */
 
-const { ALL_MACROS } = require('./cluster-taxonomy');
+const fs = require('fs');
+const path = require('path');
+const { ALL_MACROS, resolveCluster } = require('./cluster-taxonomy');
 const { readPostsWithinDays, postReferenceDate } = require('./site-corpus');
+const TARGET_RATIOS = Object.freeze(require('../../data/macro-target-ratios.json'));
+const QUOTA_PATH = path.join(__dirname, '../../data/macro-quota.json');
+const INACTIVE_STATUSES = new Set(['skipped', 'rejected', 'merged']);
 
-// 2026-09-04: 7日ハードキャップを 60% → 30% に。
-//   cluster / persona×category の cooldown を廃止（cooldown.js 冒頭を参照）したことで、
-//   それが副次的に担っていた「大分類が偏らない」効果が失われ、シミュレーションでは
-//   相続贈与が 14 日中 61% を占めた。偏り是正は本来こちらの担当なので、緩すぎた
-//   上限（大分類 11 種に対し 60% ＝ 均等 9% の 6.6 倍）を締める。
-//   ブロックされた大分類の候補が全滅した場合は applyBalance 側でブロック解除される。
 const WINDOWS = [
-  { days: 7,  weight: 1.0, hardCap: 0.30 },  // 直近1週: 出しすぎはハードブロック
-  { days: 14, weight: 0.7, hardCap: null  },  // 直近2週: スコアペナルティ
-  { days: 30, weight: 0.4, hardCap: null  },  // 直近1月: 弱いペナルティ
+  { days: 7,  weight: 1.0 },
+  { days: 14, weight: 0.7 },
+  { days: 30, weight: 0.4 },
 ];
+
+function validateTargetRatios(targets = TARGET_RATIOS) {
+  const unknown = Object.keys(targets).filter(macro => !ALL_MACROS.includes(macro));
+  const invalid = Object.entries(targets).filter(([, ratio]) => !Number.isFinite(ratio) || ratio < 0 || ratio > 1);
+  const total = Object.values(targets).reduce((sum, ratio) => sum + ratio, 0);
+  return {
+    valid: unknown.length === 0 && invalid.length === 0 && Math.abs(total - 1) <= 0.01,
+    unknown,
+    invalid,
+    total,
+  };
+}
+
+const targetValidation = validateTargetRatios();
+if (!targetValidation.valid) {
+  throw new Error(`macro 目標比率が不正です（合計=${targetValidation.total}, 未知=${targetValidation.unknown.join(',')}）`);
+}
+
+function loadMacroQuota(configPath = QUOTA_PATH, warn = console.warn) {
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (!config || !Array.isArray(config.strict_macros)
+      || !Number.isFinite(config.window_days) || config.window_days <= 0
+      || !Number.isFinite(config.planned_per_window) || config.planned_per_window <= 0) {
+      throw new Error('invalid config');
+    }
+  } catch (_) {
+    warn('[macro-quota] 警告: 設定ファイルを読めないため、本数の上限なしで続行します。');
+    return null;
+  }
+  const unknown = config.strict_macros.filter(macro => !Object.hasOwn(TARGET_RATIOS, macro));
+  if (unknown.length > 0) {
+    throw new Error(`macro 上限設定の分類が不正です（未知=${unknown.join(',')}）`);
+  }
+  return config;
+}
+
+const MACRO_QUOTA = loadMacroQuota();
+
+function targetRatioFor(macro) {
+  return Number(TARGET_RATIOS[macro]) || 0;
+}
+
+function hardCapFor(macro) {
+  return Math.min(0.9, targetRatioFor(macro) * 1.6 + 0.05);
+}
+
+function quotaLimitFor(macro, config = MACRO_QUOTA) {
+  return config ? Math.max(1, Math.ceil(targetRatioFor(macro) * config.planned_per_window)) : null;
+}
+
+function isActivePost(post) {
+  return !INACTIVE_STATUSES.has(String(post.review_status || '').toLowerCase());
+}
+
+function windowCorpus(days, now, extraCorpus, excludeInactive = false) {
+  const main = readPostsWithinDays(days, now);
+  const posts = excludeInactive ? main.filter(isActivePost) : main.slice();
+  const seen = new Set(main.map(post => post.slug));
+  const threshold = now.getTime() - days * 24 * 60 * 60 * 1000;
+  for (const post of extraCorpus) {
+    if (!post || !post.slug || seen.has(post.slug) || !isActivePost(post)) continue;
+    const normalized = { ...post, file: post.file || `${post.slug}.md` };
+    if (postReferenceDate(normalized).getTime() < threshold) continue;
+    seen.add(post.slug);
+    posts.push({ ...normalized, macro: resolveCluster(normalized).macro });
+  }
+  return posts;
+}
+
+function computeMacroQuota(now = new Date(), { extraCorpus = [], config = MACRO_QUOTA } = {}) {
+  if (!config) return {};
+  const posts = windowCorpus(config.window_days, now, extraCorpus, true);
+  return Object.fromEntries(config.strict_macros.map(macro => {
+    const count = posts.filter(post => post.macro === macro).length;
+    const limit = quotaLimitFor(macro, config);
+    const target = targetRatioFor(macro);
+    return [macro, {
+      count, limit, target, windowDays: config.window_days,
+      blocked: count >= limit,
+      reason: `${macro}: 直近${config.window_days}日で ${count} 本（上限 ${limit} 本・目標 ${(target * 100).toFixed(0)}%）`,
+    }];
+  }));
+}
+
+function applyMacroQuota(candidates, quota = computeMacroQuota()) {
+  const passed = [];
+  const blocked = [];
+  for (const topic of candidates) {
+    const macro = topic.macro || (topic._cluster && topic._cluster.macro);
+    if (quota[macro] && quota[macro].blocked) {
+      blocked.push({ topic, macro, ...quota[macro] });
+    } else {
+      passed.push(topic);
+    }
+  }
+  return { passed, blocked };
+}
 
 /**
  * 各 window で macro 別の比率を集計する。
  *
  * @returns {Object} { 7: { macro: ratio, ... }, 14: {...}, 30: {...}, totals: { 7: count, ... } }
  */
-function computeMacroRatios(now = new Date()) {
+function computeMacroRatios(now = new Date(), { extraCorpus = [] } = {}) {
   const ratios = {};
   const totals = {};
 
   for (const w of WINDOWS) {
-    const posts = readPostsWithinDays(w.days, now);
+    // main の従来の集計は保ち、承認待ち下書きだけを重複なく追加する。
+    const posts = windowCorpus(w.days, now, extraCorpus);
     const counts = Object.fromEntries(ALL_MACROS.map(m => [m, 0]));
     for (const p of posts) {
       if (counts[p.macro] != null) counts[p.macro]++;
@@ -61,8 +158,6 @@ function computeMacroRatios(now = new Date()) {
   return { ratios, totals };
 }
 
-const FAIR_RATIO = 1 / ALL_MACROS.length;  // 均等分布
-
 /**
  * 候補トピックの macro に対する偏り補正スコアを算出する。
  *
@@ -71,7 +166,7 @@ const FAIR_RATIO = 1 / ALL_MACROS.length;  // 均等分布
  * @returns {Object} { score: -1..+1, hardBlocked: boolean, reasons: [...] }
  *   score:
  *     +1 → 大幅に未充足（積極的に選ぶべき）
- *     0  → 均等
+ *     0  → 目標どおり
  *     -1 → 大幅に出しすぎ（避けるべき）
  */
 function balanceScore(macro, ratiosResult = computeMacroRatios()) {
@@ -79,6 +174,17 @@ function balanceScore(macro, ratiosResult = computeMacroRatios()) {
   let score = 0;
   let totalWeight = 0;
   let hardBlocked = false;
+  const target = targetRatioFor(macro);
+
+  // 配分表にない macro は通常候補から外す。候補が全滅した場合は、呼び出し側の
+  // 既存フォールバックでブロックが解除されるため、元に戻す経路も保たれる。
+  if (target === 0) {
+    return {
+      score: -1,
+      hardBlocked: true,
+      reasons: [`${macro} は目標比率 0%（他の候補がある間は選定しない）`],
+    };
+  }
 
   for (const w of WINDOWS) {
     const ratio = ratiosResult.ratios[w.days][macro] || 0;
@@ -87,21 +193,22 @@ function balanceScore(macro, ratiosResult = computeMacroRatios()) {
     // 過小評価防止: total が小さい window は影響を弱める
     if (total < 2) continue;
 
-    const deviation = FAIR_RATIO - ratio;  // +ならunder, -ならover
-    const normalized = Math.max(-1, Math.min(1, deviation / FAIR_RATIO));
+    const deviation = target - ratio;  // +ならunder, -ならover
+    const normalized = Math.max(-1, Math.min(1, deviation / target));
 
     score += normalized * w.weight;
     totalWeight += w.weight;
 
-    if (w.hardCap != null && ratio > w.hardCap && total >= 3) {
+    const hardCap = hardCapFor(macro);
+    if (w.days === 7 && ratio > hardCap && ratiosResult.totals[14] >= 4) {
       hardBlocked = true;
-      reasons.push(`直近${w.days}日: ${macro} が ${(ratio * 100).toFixed(0)}% (上限${(w.hardCap * 100).toFixed(0)}%)`);
+      reasons.push(`直近${w.days}日: ${macro} が ${(ratio * 100).toFixed(0)}% (上限${(hardCap * 100).toFixed(0)}%)`);
     }
 
     if (deviation < -0.1) {
-      reasons.push(`直近${w.days}日: ${macro} 出しすぎ（${(ratio * 100).toFixed(0)}% / 均等${(FAIR_RATIO * 100).toFixed(0)}%）`);
+      reasons.push(`直近${w.days}日: ${macro} 出しすぎ（${(ratio * 100).toFixed(0)}% / 目標${(target * 100).toFixed(0)}%）`);
     } else if (deviation > 0.1) {
-      reasons.push(`直近${w.days}日: ${macro} 出し不足（${(ratio * 100).toFixed(0)}% / 均等${(FAIR_RATIO * 100).toFixed(0)}%）`);
+      reasons.push(`直近${w.days}日: ${macro} 出し不足（${(ratio * 100).toFixed(0)}% / 目標${(target * 100).toFixed(0)}%）`);
     }
   }
 
@@ -140,7 +247,14 @@ function applyBalance(candidates, ratiosResult = computeMacroRatios()) {
 
 module.exports = {
   WINDOWS,
-  FAIR_RATIO,
+  TARGET_RATIOS,
+  validateTargetRatios,
+  targetRatioFor,
+  hardCapFor,
+  loadMacroQuota,
+  quotaLimitFor,
+  computeMacroQuota,
+  applyMacroQuota,
   computeMacroRatios,
   balanceScore,
   applyBalance,

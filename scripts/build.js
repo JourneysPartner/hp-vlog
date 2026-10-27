@@ -5,6 +5,9 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
+const { linkTerms, readInternalLinkTerms } = require('./lib/internal-linker');
+const { createHeadingState, applyHeadingIdRenderer, buildTocHtml } = require('./lib/heading-anchors');
+const { similarityScore } = require('./lib/topic-similarity');
 const { agencyLinksForTopic } = require('./lib/official-sources');
 const { CATEGORIES, MACROS, getCategoryMeta, getCategorySlug, getMacroMeta, getMacroSlug } =
   require('./lib/blog-taxonomy');
@@ -27,6 +30,8 @@ const buildStats = { faqPosts: 0, authorBoxPosts: 0 };
 // 外部リンクに target="_blank" rel="noopener noreferrer" を付与する
 // renderer 拡張を一度だけ適用する（marked は module singleton）。
 applyExternalLinkRenderer(marked);
+const headingState = createHeadingState();
+applyHeadingIdRenderer(marked, headingState);
 
 const POSTS_PER_PAGE = 12;
 
@@ -39,23 +44,51 @@ const BLOG_OUT     = path.join(ROOT, 'blog');
 const PUBLISH_CONFIG_PATH = path.join(ROOT, 'data', 'tax-simulator', 'publish-config.json');
 // 業種別の柱ページの「まず読む記事」（毛利が後から埋める。空なら自動選定）
 const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
+// トップ・物販記事・物販ハブで共通利用する中核記事。slug の定義元はここだけにする。
+const PICKUP_POSTS_PATH = path.join(ROOT, 'data', 'pickup-posts.json');
+const INTERNAL_LINK_TERMS_PATH = path.join(ROOT, 'data', 'internal-link-terms.json');
+const internalLinkTerms = readInternalLinkTerms(INTERNAL_LINK_TERMS_PATH);
+// サービスページに表示する「対応している業種・働き方」。文言は設定側で一元管理する。
+const SERVICE_SEGMENTS_PATH = path.join(ROOT, 'data', 'service-segments.json');
+const NETSHOP_PERSONAS = new Set([
+  'ebay_export_seller',
+  'domestic_ec_seller',
+  'reseller_marketplace_seller',
+]);
 
 const ANALYTICS_BEACON = `
 <script>
 (() => {
   if (location.hostname !== 'mori-zeirishi.net' || navigator.doNotTrack === '1') return;
   const data = { p: location.pathname };
-  // 問い合わせページでは、どのページから来たか（サイト内のみ）を添える。
-  // どの記事が問い合わせにつながったかを実測するため。
-  if (location.pathname === '/contact.html' && document.referrer) {
+  const isContact = p => ['/contact', '/contact.html', '/contact/'].includes(p);
+  const isThanks = p => ['/contact-thanks', '/contact-thanks.html', '/contact-thanks/'].includes(p);
+  const fromKey = 'mz_contact_from';
+  if (isContact(location.pathname)) {
+    let from;
     try {
-      const from = new URL(document.referrer);
-      if (from.hostname === location.hostname) data.r = from.pathname;
+      from = new URL(document.referrer);
+    } catch (e) {}
+    if (from && from.hostname === location.hostname) {
+      if (!isContact(from.pathname) && !isThanks(from.pathname)) {
+        data.r = from.pathname;
+        try { sessionStorage.setItem(fromKey, from.pathname); } catch (e) {}
+      }
+    } else {
+      try { sessionStorage.removeItem(fromKey); } catch (e) {}
+    }
+  } else if (isThanks(location.pathname)) {
+    try {
+      const from = sessionStorage.getItem(fromKey);
+      if (from) data.r = from;
     } catch (e) {}
   }
   const body = JSON.stringify(data);
   if (!navigator.sendBeacon('/track', body)) {
     fetch('/track', { method: 'POST', body, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+  }
+  if (isThanks(location.pathname)) {
+    try { sessionStorage.removeItem(fromKey); } catch (e) {}
   }
 })();
 </script>`;
@@ -67,6 +100,11 @@ const FOOTER_HTML = fs.readFileSync(path.join(PARTIALS, 'footer.html'), 'utf8');
 const HEAD_COMMON_TPL = fs.readFileSync(path.join(PARTIALS, 'head-common.html'), 'utf8');
 // 記事末尾の執筆者欄。全記事に同じものを付ける（記事本文は変更しない）。
 const AUTHOR_BOX_HTML = fs.readFileSync(path.join(PARTIALS, 'author-box.html'), 'utf8');
+// サービス専用ページで共通利用する案内。ページ側には配置用プレースホルダーだけを置く。
+const SERVICE_SHARED_DIR = path.join(PAGES_DIR, 'services', '_shared');
+const SERVICE_FLOW_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'flow.html'), 'utf8');
+const SERVICE_PRICING_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'pricing-estimate.html'), 'utf8');
+const SERVICE_OFFICE_INTRO_HTML = fs.readFileSync(path.join(SERVICE_SHARED_DIR, 'office-intro.html'), 'utf8');
 // アイコンの SVG スプライト（使っている名前だけ。scripts/tools/build-icon-sprite.js で生成）。
 // Bootstrap Icons の CSS を CDN から読むのをやめ、<i class="bi bi-xxx"> の中に <svg><use> を入れる。
 const ICON_SPRITE_PATH = path.join(PARTIALS, 'icons.svg');
@@ -97,7 +135,10 @@ function injectPartials(html) {
   return html
     .replace(/\{\{HEADER\}\}/g, HEADER_HTML)
     .replace(/\{\{FOOTER\}\}/g, FOOTER_HTML)
-    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML);
+    .replace(/\{\{AUTHOR_BOX_HTML\}\}/g, AUTHOR_BOX_HTML)
+    .replace(/\{\{SERVICE_FLOW_HTML\}\}/g, SERVICE_FLOW_HTML)
+    .replace(/\{\{SERVICE_PRICING_HTML\}\}/g, SERVICE_PRICING_HTML)
+    .replace(/\{\{SERVICE_OFFICE_INTRO_HTML\}\}/g, SERVICE_OFFICE_INTRO_HTML);
 }
 
 function injectAnalyticsBeacon(html) {
@@ -391,6 +432,103 @@ function loadHubConfig() {
   }
 }
 
+function loadPickupConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(PICKUP_POSTS_PATH, 'utf8'));
+  } catch (error) {
+    console.warn(`[build] pickup-posts.json を読めないため案内枠を省略: ${error.message}`);
+    return { netshop_core: [], netshop_services: [] };
+  }
+}
+
+// loadPublishedPosts の戻り値だけを受け取り、未公開・不存在の slug は警告して除外する。
+function resolvePickupContext(posts, config = loadPickupConfig(), logger = console) {
+  const postsMap = new Map((posts || []).filter(p => p && p.slug).map(p => [p.slug, p]));
+  const corePosts = [];
+  const seenCore = new Set();
+  for (const slug of Array.isArray(config.netshop_core) ? config.netshop_core : []) {
+    if (seenCore.has(slug)) continue;
+    seenCore.add(slug);
+    const post = postsMap.get(slug);
+    if (post) corePosts.push(post);
+    else logger.warn(`[build] pickup 対象が存在しないか未公開のためスキップ: ${slug}`);
+  }
+
+  const services = [];
+  const seenServices = new Set();
+  for (const slug of Array.isArray(config.netshop_services) ? config.netshop_services : []) {
+    if (seenServices.has(slug)) continue;
+    seenServices.add(slug);
+    const service = serviceInfo(slug);
+    if (service) services.push(service);
+    else logger.warn(`[build] pickup のサービスが未定義のためスキップ: ${slug}`);
+  }
+
+  return {
+    corePosts,
+    coreSlugs: new Set(corePosts.map(p => p.slug)),
+    services,
+    allPosts: [...(posts || [])],
+  };
+}
+
+function isNetshopPost(post = {}) {
+  return hubMacroOf(post) === '物販' || NETSHOP_PERSONAS.has(post.primary_persona || post.persona || '');
+}
+
+function renderPickupPostsHtml(context) {
+  const corePosts = context && Array.isArray(context.corePosts) ? context.corePosts : [];
+  if (corePosts.length === 0) return '';
+
+  const serviceLabels = {
+    'ebay-export': 'eBay 輸出・越境 EC の税務',
+    'online-seller': 'ネット販売・せどり・フリマの税務',
+  };
+  const serviceButtons = (context.services || []).map(service =>
+    `<a href="${escAttr(service.url)}" class="btn-outline-navy">${escHtml(serviceLabels[service.slug] || service.short || service.name)} <i class="bi bi-arrow-right"></i></a>`
+  ).join('\n        ');
+
+  return `
+<section class="section-py bg-white" data-pickup-posts>
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">Start Here</span>
+      <h2 class="section-heading">ネット販売・eBay 輸出の消費税、まずここから</h2>
+      <div class="divider-orange"></div>
+      <p class="section-lead">還付の仕組みから必要書類、インボイスの影響まで。順番に読めば全体がつかめます。</p>
+    </div>
+    <div class="row g-4">
+${corePosts.map((p, i) => renderLatestPostCard(p, 100 + i * 50)).join('\n')}
+    </div>
+    ${serviceButtons ? `<div class="text-center mt-5 d-flex flex-wrap justify-content-center gap-3">\n        ${serviceButtons}\n    </div>` : ''}
+  </div>
+</section>`;
+}
+
+function buildPickupBoxHtml(post, context) {
+  const corePosts = context && Array.isArray(context.corePosts) ? context.corePosts : [];
+  if (!isNetshopPost(post) || corePosts.length === 0) return '';
+
+  const links = corePosts
+    .filter(core => core.slug !== post.slug)
+    .slice(0, 4)
+    .map(core => `<li><a href="/blog/${escAttr(core.slug)}/">${escHtml(core.title)}</a></li>`)
+    .join('\n        ');
+  const serviceSlug = (post.primary_persona || post.persona) === 'ebay_export_seller'
+    ? 'ebay-export'
+    : 'online-seller';
+  const service = serviceInfo(serviceSlug);
+
+  return `
+    <aside class="blog-related-article blog-pickup-box" data-pickup-box>
+      <h2><i class="bi bi-collection"></i> ネット販売の消費税、基本から確認する</h2>
+      <ul class="blog-pickup-list">
+        ${links}
+      </ul>
+      ${service ? `<a class="blog-hub-link blog-hub-link--service" href="${escAttr(service.url)}"><i class="bi bi-briefcase"></i> ${escHtml(service.short)}について相談する</a>` : ''}
+    </aside>`;
+}
+
 // 「まず読む記事」: hub-config.json の指定 → 無ければ点数の高い順（同点は新しい順）
 function pickFeaturedPosts(hubPosts, featuredSlugs = [], n = 3) {
   const bySlug = new Map(hubPosts.map(p => [p.slug, p]));
@@ -557,25 +695,98 @@ function buildListPageHtml({
   });
 }
 
-// ── 関連記事HTML生成（公開済みの場合のみ表示）─────────────────
-function buildRelatedArticleHtml(post, postsMap) {
-  if (!post.related_slug) return '';
-  const related = postsMap.get(post.related_slug);
-  if (!related) return '';
+// ── 関連記事HTML生成（公開済み・類似度 0.1 以上から最大 3 本）────
+function buildRelatedArticlesHtml(post, postsMap, pickupContext) {
+  const selected = [];
+  const selectedSlugs = new Set();
+  const isNetshop = isNetshopPost(post);
+  const coreSlugs = pickupContext && pickupContext.coreSlugs instanceof Set
+    ? pickupContext.coreSlugs
+    : new Set();
 
-  const linkText = post.related_link_text || 'あわせて読みたい';
-  const title    = related.title;
-  const summary  = related.summary || '';
+  function add(candidate, isPair = false) {
+    if (!candidate || candidate.slug === post.slug || selectedSlugs.has(candidate.slug)) return false;
+    if (!isPublished(candidate)) return false;
+    if (isNetshop && coreSlugs.has(candidate.slug)) return false;
+    selected.push({ post: candidate, isPair });
+    selectedSlugs.add(candidate.slug);
+    return true;
+  }
+
+  const pair = post.related_slug && postsMap instanceof Map ? postsMap.get(post.related_slug) : null;
+  if (pair && isPublished(pair)) {
+    if (!(isNetshop && coreSlugs.has(pair.slug))) {
+      add(pair, true);
+    } else {
+      // 物販の中核枠と重なるペアは、従来どおり別の物販記事に差し替える。
+      const replacement = (pickupContext && Array.isArray(pickupContext.allPosts)
+        ? pickupContext.allPosts
+        : [...postsMap.values()]
+      ).find(candidate =>
+        candidate && candidate.slug !== post.slug &&
+        !coreSlugs.has(candidate.slug) &&
+        isNetshopPost(candidate) &&
+        isPublished(candidate)
+      );
+      add(replacement, true);
+    }
+  }
+
+  const currentHub = hubMacroOf(post);
+  const candidates = [...(postsMap instanceof Map ? postsMap.values() : [])]
+    .filter(candidate =>
+      candidate &&
+      candidate.slug !== post.slug &&
+      !selectedSlugs.has(candidate.slug) &&
+      isPublished(candidate) &&
+      !(isNetshop && coreSlugs.has(candidate.slug))
+    )
+    .map(candidate => ({
+      post: candidate,
+      sameHub: hubMacroOf(candidate) === currentHub,
+      score: similarityScore(post, candidate).score,
+      publishedAt: new Date(candidate.publish_at).getTime() || 0,
+    }))
+    .filter(candidate => candidate.score >= 0.1)
+    .sort((a, b) =>
+      Number(b.sameHub) - Number(a.sameHub) ||
+      b.score - a.score ||
+      b.publishedAt - a.publishedAt ||
+      String(a.post.slug).localeCompare(String(b.post.slug))
+    );
+
+  for (const candidate of candidates) {
+    add(candidate.post);
+    if (selected.length >= 3) break;
+  }
+  if (selected.length === 0) return '';
+
+  const items = selected.map(({ post: related, isPair }) => {
+    const label = isPair
+      ? `<small>${escHtml(post.related_link_text || 'あわせて読みたい')}</small>`
+      : '';
+    return `
+        <div class="blog-related-item">
+          ${label}
+          <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
+            <span class="blog-related-title">${escHtml(related.title)}</span>
+            <span class="blog-related-summary">${escHtml(related.summary || '')}</span>
+            <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
+          </a>
+        </div>`;
+  }).join('');
 
   return `
     <div class="blog-related-article">
-      <h3><i class="bi bi-link-45deg"></i> ${escHtml(linkText)}</h3>
-      <a href="/blog/${escAttr(related.slug)}/" class="blog-related-link">
-        <span class="blog-related-title">${escHtml(title)}</span>
-        <span class="blog-related-summary">${escHtml(summary)}</span>
-        <span class="blog-related-more">この記事を読む <i class="bi bi-arrow-right"></i></span>
-      </a>
+      <h3><i class="bi bi-link-45deg"></i> 関連記事</h3>
+      <div class="blog-related-list">${items}
+      </div>
     </div>`;
+}
+
+// 既存の呼び出し元との互換性を保つ。
+function buildRelatedArticleHtml(post, postsMap, pickupContext) {
+  return buildRelatedArticlesHtml(post, postsMap, pickupContext);
 }
 
 function buildSourcesHtml(post) {
@@ -591,13 +802,26 @@ function buildSourcesHtml(post) {
 }
 
 // ── 記事ページ生成 ──────────────────────────────────────────────
-function generatePost(post, tpl, postsMap, publishConfig) {
+function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
+  headingState.reset();
+  const withTerms = linkTerms(post._body, {
+    terms: internalLinkTerms,
+    post,
+    postsMap,
+    isPublished,
+    hubMacroOf,
+    coreSlugs: pickupContext && pickupContext.coreSlugs instanceof Set
+      ? pickupContext.coreSlugs
+      : new Set(),
+  });
+  console.log(`[build]   ℹ ${post.slug}: 文脈リンク ${withTerms.stats.linked} 件`);
+
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）
   // 税以外の論点（社会保険など）に触れる記事では、本文中の官庁名も
   // その記事に適用された非税出典（official-sources.js）へリンクする。
   // 本文側のリンクも残すことで、複数出典を持たない既存記事の導線を変えない。
-  const { markdown: linkedBody, stats } = linkCitations(post._body, {
+  const { markdown: linkedBody, stats } = linkCitations(withTerms.markdown, {
     agencyLinks: agencyLinksForTopic(post),
     onMiss: ({ no, matched }) => {
       console.warn(`[build]   ⚠ 出典番号がカタログ未収録: ${matched} (${post.slug}) — tax-authority-refs.js への追加を検討`);
@@ -609,9 +833,11 @@ function generatePost(post, tpl, postsMap, publishConfig) {
   if (stats.agenciesLinked > 0) {
     console.log(`[build]   ℹ ${post.slug}: 官庁名リンク化 ${stats.agenciesLinked} 件（${stats.agencies.join(' / ')}）`);
   }
-  const htmlBody = marked(linkedBody)
+  let htmlBody = marked(linkedBody)
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
     .replace(/<\/table>/g, '</table></div>');
+  const tocHtml = buildTocHtml(htmlBody);
+  if (tocHtml) htmlBody = htmlBody.replace(/<h2\b/, `${tocHtml}\n<h2`);
   const publishDateISO = toISO(post.publish_at);
   const updatedDateISO = toISO(post.updated_at || post.publish_at);
   const publishDate    = formatDate(post.publish_at);
@@ -651,7 +877,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     faqSchema(faq),
   ]);
 
-  const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap);
+  const relatedArticleHtml = buildRelatedArticleHtml(post, postsMap, pickupContext);
   const simulatorCtaHtml = generateSimulatorCta(post, publishConfig);
 
   return render(tpl, {
@@ -670,6 +896,7 @@ function generatePost(post, tpl, postsMap, publishConfig) {
     EXTRA_STRUCTURED_DATA: extraStructuredData,
     BREADCRUMB_HTML:  breadcrumbHtml(crumbs),
     RELATED_ARTICLE_HTML: relatedArticleHtml,
+    PICKUP_BOX_HTML:  buildPickupBoxHtml(post, pickupContext),
     HUB_LINKS_HTML:   buildHubLinksHtml(post),
   });
 }
@@ -687,6 +914,64 @@ function escAttr(str) {
 }
 function stripTags(str) {
   return String(str || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function loadServiceSegments(filePath = SERVICE_SEGMENTS_PATH) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+// 未知のサービスや実在しないハブは、リンク切れを作らず警告だけに留める。
+function prepareServiceSegments(config, warn = console.warn) {
+  const prepared = {};
+  for (const [serviceSlug, entries] of Object.entries(config || {})) {
+    if (serviceSlug === '_note') continue;
+    if (!serviceInfo(serviceSlug)) {
+      warn(`[build] サービス区分の設定をスキップ: 未知のサービス slug「${serviceSlug}」`);
+      continue;
+    }
+    if (!Array.isArray(entries)) {
+      warn(`[build] サービス区分の設定をスキップ: ${serviceSlug} は配列ではありません`);
+      continue;
+    }
+    prepared[serviceSlug] = entries.filter((entry) => {
+      if (!entry || typeof entry.label !== 'string' || typeof entry.blurb !== 'string') {
+        warn(`[build] サービス区分の項目をスキップ: ${serviceSlug} の label / blurb が不正です`);
+        return false;
+      }
+      if (!HUB_CONTENT[entry.hub]) {
+        warn(`[build] サービス区分の項目をスキップ: 実在しないハブ「${entry.hub || ''}」`);
+        return false;
+      }
+      return true;
+    });
+  }
+  return prepared;
+}
+
+function renderServiceSegmentsHtml(serviceSlug, config) {
+  const entries = Array.isArray(config && config[serviceSlug]) ? config[serviceSlug] : [];
+  if (entries.length === 0) return '';
+
+  const cards = entries.map(entry => `
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <h3 class="service-title">${escHtml(entry.label)}</h3>
+          <p class="service-desc">${escHtml(entry.blurb)}</p>
+          <a href="/blog/macro/${escAttr(entry.hub)}/" class="service-link">業種別ガイドを読む <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>`).join('\n');
+
+  return `<section class="section-py" aria-labelledby="service-segments-heading">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">For You</span>
+      <h2 class="section-heading" id="service-segments-heading">対応している業種・働き方</h2>
+      <div class="divider-orange"></div>
+    </div>
+    <div class="row g-4 justify-content-center">${cards}
+    </div>
+  </div>
+</section>`;
 }
 
 // ── パンくず（表示用）────────────────────────────────────────────
@@ -867,13 +1152,18 @@ function renderRelatedPostsHtml(posts, spec) {
 }
 
 // ── 静的ページ生成 ──────────────────────────────────────────────
-function buildStaticPages(posts) {
+function buildStaticPages(posts, pickupContext = resolvePickupContext(posts || []), options = {}) {
   if (!fs.existsSync(PAGES_DIR)) return;
 
   const pages = listStaticPages();
   console.log(`[build] 静的ページ: ${pages.length} 件`);
 
   const latestPostsHtml = renderLatestPostsHtml(posts || []);
+  const pickupPostsHtml = renderPickupPostsHtml(pickupContext);
+  const rawServiceSegments = Object.prototype.hasOwnProperty.call(options, 'serviceSegments')
+    ? options.serviceSegments
+    : loadServiceSegments();
+  const serviceSegments = prepareServiceSegments(rawServiceSegments, options.warn || console.warn);
 
   for (const entry of pages) {
     const src = fs.readFileSync(path.join(PAGES_DIR, entry.src), 'utf8');
@@ -899,12 +1189,15 @@ function buildStaticPages(posts) {
     const structured = `  ${jsonLdScripts(schemas)}\n</head>`;
 
     const relatedSpec = parseRelatedSpec(src);
+    const serviceSlug = (entry.pathname.match(/^\/services\/([^/]+)\/$/) || [])[1] || '';
     const html = injectAnalyticsBeacon(injectPartials(src))
       .replace(/\s*<meta name="x-related-posts" content="[^"]*">/, '')
       .replace(/\{\{HEAD_COMMON\}\}/g, renderHeadCommon(entry, src))
       .replace(/\{\{LATEST_POSTS_HTML\}\}/g, latestPostsHtml)
+      .replace(/\{\{PICKUP_POSTS_HTML\}\}/g, pickupPostsHtml)
       .replace(/\{\{HUB_GUIDE_HTML\}\}/g, () => renderHubGuideHtml(posts || []))
       .replace(/\{\{RELATED_POSTS_HTML\}\}/g, () => renderRelatedPostsHtml(posts || [], relatedSpec))
+      .replace(/\{\{SERVICE_SEGMENTS_HTML\}\}/g, () => renderServiceSegmentsHtml(serviceSlug, serviceSegments))
       .replace('</head>', structured);
 
     const outPath = path.join(ROOT, entry.out);
@@ -948,10 +1241,11 @@ function main() {
   const hubCounts = assignHubMacro(posts);
   const hubSummary = [...hubCounts.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}:${v}`).join(', ');
   console.log(`[build] 業種ハブへの振り分け: ${posts.length} 件（${hubSummary}）`);
+  const pickupContext = resolvePickupContext(posts);
 
   // 1. 静的ページ生成（テンプレートにパーシャルと最新記事を注入してルートへ出力）
   console.log('[build] 静的ページを生成しています...');
-  buildStaticPages(posts);
+  buildStaticPages(posts, pickupContext);
 
   // 2. ブログ記事生成
   console.log('[build] ブログ記事を生成しています...');
@@ -978,7 +1272,7 @@ function main() {
     }
     const dir = path.join(BLOG_OUT, post.slug);
     fs.mkdirSync(dir, { recursive: true });
-    const html = generatePost(post, postTpl, postsMap, publishConfig);
+    const html = generatePost(post, postTpl, postsMap, publishConfig, pickupContext);
     fs.writeFileSync(path.join(dir, 'index.html'), inlineIcons(html), 'utf8');
     console.log(`[build]   → blog/${post.slug}/index.html`);
   }
@@ -1127,4 +1421,22 @@ function writePaginatedListing({
 
 if (require.main === module) main();
 
-module.exports = Object.freeze({ main, buildStaticPages, generatePost, buildListPageHtml, pickFeaturedPosts, selectRelatedPosts });
+module.exports = Object.freeze({
+  main,
+  buildStaticPages,
+  generatePost,
+  buildListPageHtml,
+  pickFeaturedPosts,
+  selectRelatedPosts,
+  loadPickupConfig,
+  resolvePickupContext,
+  renderPickupPostsHtml,
+  buildPickupBoxHtml,
+  buildRelatedArticlesHtml,
+  buildRelatedArticleHtml,
+  isNetshopPost,
+  isPublished,
+  loadServiceSegments,
+  prepareServiceSegments,
+  renderServiceSegmentsHtml,
+});

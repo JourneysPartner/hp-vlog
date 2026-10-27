@@ -50,7 +50,7 @@ console.log('\n=== Test 4: 文字数指示のキャリブレーション ===');
 // GUIDE（LLM への指示）は RANGE（受入基準）より小さくなければならない。
 // LLM は指示値を約 1.11 倍で超過するため、指示値をそのまま受入基準にすると必ず超過する。
 // 実測: 2026-08-15 本命 7,000指示→7,767実測 / 補強 5,000指示→5,552実測
-const OVERSHOOT = 1.11;
+const OVERSHOOT = require('../article-prompt-static').LENGTH_OVERSHOOT_BY_MODEL['claude-sonnet-5-5'];
 for (const [type, guide] of Object.entries(WORD_COUNT_GUIDE)) {
   const m = guide.match(/^(\d+)〜(\d+)文字/);
   const r = WORD_COUNT_RANGE[type];
@@ -109,10 +109,10 @@ ok(r1.produced === 4000, 'produced に実測値が入る');
 ok(r1.min === 5000, 'min に下限が入る');
 ok(r1.floor === 4500, 'floor に許容値が入る');
 
-console.log('\n=== Test 7: 未知の記事タイプは判定対象外 ===');
+console.log('\n=== Test 7: 未知の記事タイプは edge_case にフォールバック ===');
 const r2 = checkBodyLength(body(10), 'unknown_type');
-ok(r2.ok === true, '未知タイプは常に OK（既存挙動を壊さない）');
-ok(r2.min === null, '未知タイプは min=null');
+ok(r2.ok === false && r2.tooShort === true, '未知タイプも薄い本文を通さない');
+ok(r2.min === WORD_COUNT_RANGE.edge_case.min, '未知タイプは edge_case の下限');
 ok(r2.produced === 10, '未知タイプでも produced は返す');
 
 console.log('\n=== Test 8: 未知タイプのフォールバック文字数が古い値でない ===');
@@ -156,15 +156,16 @@ console.log('\n=== Test 8: 未知タイプのフォールバック文字数が�
 console.log('\n=== Test 8b: max_tokens が受入上限に対応している ===');
 {
   const { maxTokensFor, TOKENS_PER_CHAR } = require('../article-prompt-static');
-  const FM = 700, SAFETY = 1.05;
+  const { tokensPerChar: TPC, frontmatterTokens: FM } = require('../article-prompt-static').TOKEN_ESTIMATES_BY_MODEL['claude-sonnet-5-5'];
+  const SAFETY = 1.15;
   for (const [type, r] of Object.entries(WORD_COUNT_RANGE)) {
     const mt = maxTokensFor(type);
     // 受入上限の文字数を出し切れるだけの枠はある（途中切れしない）
-    const needed = Math.ceil(r.max * TOKENS_PER_CHAR) + FM;
+    const needed = Math.ceil(r.max * SAFETY * TPC) + FM;
     ok(mt >= needed, `${type}: max_tokens(${mt}) が受入上限 ${r.max} 文字を出し切れる(${needed} 以上)`);
     // かつ、受入上限を大きく超える余地は残さない（安全率 5% 程度）
-    ok(mt <= Math.ceil(needed * SAFETY / 100) * 100,
-      `${type}: max_tokens(${mt}) が過大でない（安全率5%以内）`);
+    ok(mt <= Math.ceil(needed / 100) * 100,
+      `${type}: max_tokens(${mt}) が過大でない（本文の余白15%以内）`);
   }
   // 旧来の一律 12000 では本命の上限 7,000 文字を大きく超えて出力できてしまう
   ok(maxTokensFor('basic_explainer') < 12000,
@@ -172,6 +173,72 @@ console.log('\n=== Test 8b: max_tokens が受入上限に対応している ==='
   // 未知タイプでも値が返る（補強相当にフォールバック）
   ok(maxTokensFor('unknown_type') === maxTokensFor('edge_case'),
     '未知タイプは補強記事の枠にフォールバックする');
+}
+
+console.log('\n=== Test 8c: モデル別の出力上限と環境変数の解決 ===');
+{
+  const { maxTokensFor } = require('../article-prompt-static');
+  const envKeys = ['CONTENT_MODEL_PROVIDER', 'CONTENT_MODEL', 'ANTHROPIC_API_KEY', 'OPENAI_MODEL'];
+  const savedEnv = Object.fromEntries(envKeys.map(key => [key, process.env[key]]));
+  try {
+    for (const key of envKeys) delete process.env[key];
+    const budgets = {
+      basic_explainer: [7800, 8100], comparison_decision: [7800, 8100], filing_practice: [7800, 8100],
+      edge_case: [5800, 6100], industry_example: [5800, 6100], misconception_fix: [5800, 6100],
+      case_study: [6300, 6600],
+    };
+    for (const [articleType, [legacy, sonnet55]] of Object.entries(budgets)) {
+      ok(maxTokensFor(articleType) === sonnet55, `${articleType}: 環境変数なしは Sonnet 5.5 の値 ${sonnet55}`);
+      ok(maxTokensFor({ articleType, model: 'claude-sonnet-4-6' }) === legacy, `${articleType}: Sonnet 4.6 は従来値`);
+      ok(maxTokensFor({ articleType, model: 'claude-sonnet-5-5' }) === sonnet55 && sonnet55 > legacy,
+        `${articleType}: Sonnet 5.5 の出力上限 ${sonnet55} は従来より大きい`);
+      if (WORD_COUNT_RANGE[articleType].max === 7000) {
+        ok(sonnet55 <= 12000, `${articleType}: 7,000字上限でも 12,000 tokens を超えない`);
+      }
+    }
+    for (const model of ['gpt-5.4', 'unknown-model', 'claude-opus-5-5', 'claude-sonnet-5-5-preview', 'toString']) {
+      ok(maxTokensFor({ articleType: 'edge_case', model }) === 5800, `${model}: 既定の比を使う`);
+    }
+    for (const [intentType, legacy, sonnet55] of [['answer', 4800, 5000], ['decide', 6800, 7100], ['guide', 7800, 8100]]) {
+      const opts = { articleType: 'basic_explainer', intentType, articleRole: 'main' };
+      ok(maxTokensFor({ ...opts, model: 'claude-sonnet-4-6' }) === legacy
+        && maxTokensFor({ ...opts, model: 'claude-sonnet-5-5' }) === sonnet55,
+        `${intentType}: 意図別の受入上限にもモデル別の比を適用`);
+    }
+    process.env.CONTENT_MODEL_PROVIDER = 'anthropic';
+    process.env.ANTHROPIC_API_KEY = 'dummy';
+    process.env.CONTENT_MODEL = 'claude-sonnet-5-5';
+    ok(maxTokensFor('edge_case') === 6100, '文字列呼び出しでも CONTENT_MODEL=Sonnet 5.5 を解決');
+    ok(maxTokensFor({ articleType: 'basic_explainer' }) === 8100, 'model 未指定のオブジェクトでも環境の Sonnet 5.5 を解決');
+    ok(maxTokensFor({ articleType: 'edge_case', model: 'claude-sonnet-4-6' }) === 5800, '明示 model は環境変数に優先');
+    process.env.CONTENT_MODEL = 'claude-sonnet-4-6';
+    ok(maxTokensFor('edge_case') === 5800, '環境変数で Sonnet 4.6 に切り戻せる');
+    delete process.env.CONTENT_MODEL;
+    ok(maxTokensFor('edge_case') === 6100, 'Anthropic の既定 Sonnet 5.5 も解決');
+
+    delete process.env.ANTHROPIC_API_KEY;
+    const oldWarn = console.warn;
+    const warnings = [];
+    let withoutKey;
+    try {
+      console.warn = message => warnings.push(message);
+      withoutKey = maxTokensFor('edge_case');
+    } finally {
+      console.warn = oldWarn;
+    }
+    ok(withoutKey === 6100, 'Anthropic の鍵なしでも書き手のモデルを維持');
+    ok(warnings.length === 0, '鍵が無くてもモデル選択だけでは警告しない');
+    process.env.CONTENT_MODEL_PROVIDER = 'openai';
+    process.env.CONTENT_MODEL = 'claude-sonnet-5-5';
+    let rejected = false;
+    try { maxTokensFor('edge_case'); } catch (_) { rejected = true; }
+    ok(rejected, 'OpenAI の本文生成指定を拒否する');
+  } finally {
+    for (const [key, value] of Object.entries(savedEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 }
 
 console.log('\n=== Test 9: 許容率が想定範囲 ===');

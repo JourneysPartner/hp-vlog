@@ -2,9 +2,14 @@
 
 const fs   = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const reviewAuth = require('./lib/review-auth');
+const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html');
 
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
-const { getFile } = require('./lib/github-api');
+const githubApi = require('./lib/github-api');
+const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
+const { bodyHash, evidenceRefs, outsideCandidateClaims, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
 
 /**
  * review-page — レビュー画面を動的生成する Netlify Function
@@ -43,8 +48,193 @@ function parseFrontmatter(raw) {
 // getFile は { content, sha } を返すので content を取り出す。
 async function fetchPostFromGitHub(filename, ref) {
   const filepath = `content/posts/${filename}`;
-  const { content } = await getFile(filepath, ref || undefined);
+  const { content } = await githubApi.getFile(filepath, ref || undefined);
   return content;
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 要点と詳細で、古い記録や読めない記録の判定を揃える。
+function factCheckState(meta, record, body) {
+  const labels = { ok: '照合済み', revise: '要修正', not_run: '未実施' };
+  const stale = record?.stale || (body !== undefined && record && !record.read_error && record.body_sha256 !== bodyHash(body));
+  const unreadable = record?.read_error;
+  const status = stale || unreadable ? 'not_run' : meta.fact_check_status || record?.status || '';
+  return { stale, unreadable, status, label: labels[status] || '照合の記録なし', usable: record && !stale && !unreadable };
+}
+
+// 保存した文は変えず、表示時だけ指定された書式を除いてからエスケープする。
+function factSentence(value) {
+  const original = String(value == null ? '' : value);
+  const cleaned = original
+    .replace(/<\/?(?:strong|em|b|i|u|mark|span|br|a|sup|sub)(?=[\s/>])(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi, '')
+    .replace(/\*\*|__/g, '')
+    .split(/\r?\n/).map(line => {
+      const text = line.trim().replace(/^(?:[-*+]|\d+[.)])\s+/, '');
+      return /^\|.*\|$/.test(text) ? text.slice(1, -1).split('|').map(cell => cell.trim()).join(' ／ ') : text;
+    }).join('\n').trim();
+  return escapeHtml(cleaned || original);
+}
+
+function renderFactEvidence(record, item, inline = false) {
+  const refs = evidenceRefs(record || {}, item).map(e => {
+    const url = /^https:\/\//.test(e.url || '') ? e.url : '';
+    const excerpts = !item.evidence_id || item.evidence_id === e.id ? quoteParts(item.quote).map(quote => factEvidenceExcerpt(e.text || '', quote)).filter(Boolean) : [];
+    return {
+      link: `${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(e.title || e.no || '根拠')}</a>` : escapeHtml(e.title || e.no || '根拠')}${e.law_version ? `（${escapeHtml(e.law_version)}）` : ''}`,
+      excerpt: excerpts.map(excerpt => `<blockquote>${escapeHtml(excerpt)}</blockquote>`).join(''),
+    };
+  });
+  if (inline) return refs.length ? `<div class="small mt-2">見た資料: ${refs.map(e => e.link).join('・')}</div>${refs.map(e => e.excerpt).join('')}` : '';
+  return refs.map(e => `<div class="small mt-2">${e.link}${e.excerpt}</div>`).join('');
+}
+
+function renderFactRemaining(record) {
+  const remaining = record?.remaining || [];
+  const contradictions = remaining.filter(c => c.status === '食い違い' || c.status === '期限の書き漏れ');
+  return `<h3 class="h6 text-danger">残った食い違い</h3>${contradictions.length ? contradictions.map(c => `<div class="alert alert-danger">${factSentence(c.sentence)}<div>${factSentence(c.correct || c.status)}</div>${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>'}
+    ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${factSentence(c.sentence)}</p>`).join('')}</div>` : ''}`;
+}
+
+function factReviewGroups(items) {
+  const groups = new Map();
+  for (const item of items) {
+    const status = String(item.status || '');
+    if (!groups.has(status)) groups.set(status, []);
+    groups.get(status).push(item);
+  }
+  const order = ['資料なし', '上限で未照合', ...[...groups.keys()].filter(status => status !== '資料なし' && status !== '上限で未照合')];
+  return order.filter(status => groups.has(status)).map(status => ({ status, items: groups.get(status) }));
+}
+
+function factReviewCounts(items) {
+  const labels = { '資料なし': '資料が見つからなかった', '上限で未照合': '件数の上限で照合しなかった' };
+  return factReviewGroups(items).map(group => `${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)} ${group.items.length} 件`).join('・');
+}
+
+function renderFactReviewItems(items, record) {
+  if (!items.length) return '';
+  const labels = { '資料なし': '資料が見つからなかった記述', '上限で未照合': '件数の上限で照合しなかった記述' };
+  const groups = factReviewGroups(items).map(group => {
+    const headings = new Map();
+    // 位置が無い記録は元の順番を使い、同じ見出しを一度だけ表示する。
+    const ordered = group.items.map((item, index) => ({ item, position: Number.isFinite(item.s) ? item.s : index }));
+    ordered.sort((a, b) => a.position - b.position);
+    for (const { item } of ordered) {
+      const heading = String(item.heading || '');
+      if (!headings.has(heading)) headings.set(heading, []);
+      headings.get(heading).push(item);
+    }
+    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
+  }).join('');
+  return `<details><summary>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）。承認を止める理由ではありません</summary>
+    <h3 class="h6 mt-3">人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）</h3>
+    <p>この一覧は承認を止める理由ではなく、他に承認を止める理由がなければ承認できます。</p>${groups}</details>`;
+}
+
+function renderConditionDifferences(claim) {
+  if (claim.condition_check?.verdict !== '不一致' || !Array.isArray(claim.condition_check.conditions)) return '';
+  return claim.condition_check.conditions.filter(c => c.match !== '一致').map(c =>
+    `<div class="small">条件の違い: 記事「${escapeHtml(String(c.article || '').slice(0, 160))}」 / 根拠「${escapeHtml(String(c.source || '').slice(0, 160))}」</div>`).join('');
+}
+
+function renderFactCheckSummary(meta, record, body) {
+  const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
+  const blocking = status === 'revise' || meta.fact_check_blocking === true || meta.fact_check_blocking === 'true';
+  if (!record && !blocking && status !== 'not_run') return '<p id="factCheckSummary">照合の記録なし</p>';
+  const corrections = usable ? record.corrections || [] : [];
+  const items = usable ? record.review_items || [] : [];
+  const outsideCount = usable ? outsideCandidateClaims(record).length : 0;
+  return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
+    <p><strong>状態:</strong> ${escapeHtml(label)}</p>
+    ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています</div>' : ''}
+    ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
+    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件</p>
+    ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
+    ${outsideCount ? `<p>候補の外の資料で裏付け ${outsideCount} 件</p>` : ''}
+    ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
+    <a href="#factCheck">詳細は本文の後ろ</a>
+    </div></div>`;
+}
+
+function renderFactOutsideCandidates(record) {
+  const items = outsideCandidateClaims(record);
+  if (!items.length) return '';
+  return `<details><summary>候補の外の資料で裏付け ${items.length} 件</summary>
+    <h3 class="h6 mt-3">候補の外の資料で裏付けた主張</h3>${items.map(c => {
+      const evidence = evidenceRefs(record, c).filter(e => e.id === c.evidence_id);
+      return `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${renderFactEvidence(record, { ...c, evidence }, true)}</div>`;
+    }).join('')}</details>`;
+}
+
+function renderFactCheck(meta, record, body) {
+  const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
+  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
+  return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
+    <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(label)}${status ? `（${escapeHtml(status)}）` : ''}</p>
+    <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>
+    ${usable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
+    <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
+    ${renderFactRemaining(record)}
+    ${renderFactReviewItems(record.review_items || [], record)}
+    ${renderFactOutsideCandidates(record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
+    </div></div>`;
+}
+
+/** 承認画面では原文全体を繰り返さず、引用の前後だけを表示する。 */
+function factEvidenceExcerpt(text, quote) {
+  const needle = normalizedQuote(quote);
+  if (!needle) return '';
+  let normalized = '';
+  const positions = [];
+  for (const match of text.matchAll(/[｡-ﾟ][ﾞﾟ]?|[\s\S]/gu)) {
+    const part = normalizedQuote(match[0]);
+    normalized += part;
+    for (let i = 0; i < part.length; i++) positions.push([match.index, match.index + match[0].length]);
+  }
+  const at = normalized.indexOf(needle);
+  if (at < 0) return '';
+  const start = Math.max(0, positions[at][0] - 300);
+  const end = Math.min(text.length, positions[at + needle.length - 1][1] + 300, start + 2000);
+  return text.slice(start, end);
+}
+
+async function fetchFactCheck(slug, ref, body) {
+  if (!/^[a-z0-9][a-z0-9_-]*$/i.test(slug || '')) return null;
+  try {
+    const { content } = await githubApi.getFile(`data/fact-check/${slug}.json`, ref || undefined);
+    const record = JSON.parse(content);
+    if (!record || record.version !== 1 || record.slug !== slug) return { read_error: true };
+    if (body !== undefined && record.body_sha256 !== bodyHash(body)) return { ...record, stale: true };
+    return record;
+  } catch (error) {
+    return /\b404\b|not found/i.test(String(error?.message || '')) ? null : { read_error: true };
+  }
+}
+
+function renderRefreshDiff(refreshContext, marked) {
+  if (!refreshContext || !refreshContext.available) {
+    return `<div class="alert alert-warning" role="alert">${escapeHtml(refreshContext && refreshContext.message || '公開中の記事を取得できませんでした。更新案を承認できません。')}</div>`;
+  }
+  if (!refreshContext.diff.length) {
+    return '<div class="alert alert-info" role="status">変更箇所を検出できませんでした。</div>';
+  }
+  const renderSide = (paragraphs) => paragraphs.map(row => {
+    const style = row.changed ? 'background:#fff0d4;border-left:4px solid #e6851a;padding:.55rem .75rem;margin:.45rem 0' : 'padding:.55rem .75rem;margin:.45rem 0';
+    const html = sanitizeReviewHtml(marked(row.text));
+    return `<div style="${style}">${html}</div>`;
+  }).join('') || '<p class="text-muted">（段落なし）</p>';
+  return `<div class="refresh-diff-list">${refreshContext.diff.map(section => `
+    <section class="card mb-3"><div class="card-header fw-bold">${escapeHtml(section.heading)}</div>
+      <div class="card-body"><div class="row g-3">
+        <div class="col-md-6"><h4 class="h6">変更前</h4>${renderSide(section.changedParagraphs.before)}</div>
+        <div class="col-md-6"><h4 class="h6">変更後</h4>${renderSide(section.changedParagraphs.after)}</div>
+      </div></div>
+    </section>`).join('')}</div>`;
 }
 
 // ── GitHub App 認証情報が揃っているか事前チェック ────────────────────
@@ -62,20 +252,36 @@ function assertGitHubCredentials() {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd, ref) {
-  const title      = meta.title      || '（タイトル未設定）';
-  const summary    = meta.summary    || '';
+function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null, security = {}) {
+  const nonce = security.nonce || crypto.randomBytes(18).toString('base64url');
+  const title      = escapeHtml(meta.title || '（タイトル未設定）');
+  const summary    = escapeHtml(meta.summary || '');
   const sourceUrl  = meta.source_url || '';
   const sourceTitle = meta.source_title || sourceUrl;
   const previewUrl = meta.preview_url || '';
   const publishAt  = meta.publish_at || '';
   const status     = meta.review_status || 'needs_review';
-  const category   = meta.category   || '';
+  const category   = escapeHtml(meta.category || '');
+  const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
+  const approvalDisabled = isRefresh && !(refreshContext && refreshContext.available);
+  const expiredTheme = isRefresh && freshnessRefresh.isExpiredRefreshTheme(meta);
+  const refreshBanner = isRefresh ? `
+  <div class="alert alert-primary" role="status">
+    公開中の記事の更新案です。承認すると、すぐに公開中の記事へ反映されます（公開日は変わらず、更新日が付きます）。
+    <div>反映されるのは本文だけです。題名・要約・公開日・出典欄は公開中の記事のまま変わりません。</div>
+    ${meta.refresh_note ? `<div class="mt-2"><strong>更新理由:</strong> ${escapeHtml(meta.refresh_note)}</div>` : ''}
+  </div>
+  ${expiredTheme ? '<div class="alert alert-warning" role="alert">期限切れのテーマです。更新ではなく公開停止も検討してください</div>' : ''}
+  ${!meta.source_guard_version ? `<div class="alert alert-warning" role="alert">出典確認の仕組みができる前の記事です（出典: ${escapeHtml(meta.source_url || '未設定')}）。出典との食い違いが無いかを特に見てください。</div>` : ''}
+  <div class="card mb-4"><div class="card-header bg-white fw-bold">変更箇所</div><div class="card-body">${renderRefreshDiff(refreshContext, require('marked').marked)}</div></div>` : '';
 
   // ── 顧客カテゴリ・適合スコア（Phase 3b）─────────────────────────
   const customerSegment = meta.customer_segment || '';
   const recommendation  = meta.recommendation || '';
   const reviewWarning   = meta.review_warning || '';
+  const targetQuery     = meta.target_query || '';
+  const secondaryQueries = meta.secondary_queries || '';
+  const intentLabel = { answer: '一問一答', decide: '判断・比較', guide: '手順・全体像' }[meta.intent_type] || meta.intent_type || '';
   const SEGMENT_LABELS = {
     ec_seller: 'EC物販', beauty_salon: '美容・サロン', creator: 'インフルエンサー',
     general_business: '一般事業者', inheritance_gift: '相続・贈与',
@@ -94,7 +300,7 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   const recLabel = { publish: '✅ 公開推奨', revise: '⚠ 要修正（内容確認）', reject: '⛔ 非推奨（作り直し検討）' }[recommendation] || '';
   const warnBanner = (recommendation && recommendation !== 'publish')
     ? `<div style="margin-bottom:12px;padding:10px 14px;border-radius:6px;background:#fff3cd;border:1px solid #ffe69c;color:#664d03">
-        <strong>${recLabel}</strong>${reviewWarning ? `<div style="margin-top:4px;font-size:13px">理由: ${reviewWarning}</div>` : ''}
+        <strong>${recLabel}</strong>${reviewWarning ? `<div style="margin-top:4px;font-size:13px">理由: ${escapeHtml(reviewWarning)}</div>` : ''}
       </div>`
     : '';
 
@@ -132,8 +338,10 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   .article-body blockquote { background: #fafafa; border-left: 3px solid #ccc; padding: .75rem 1rem; margin: 1rem 0; }
   .article-body ul, .article-body ol { padding-left: 1.5rem; }
   .article-body hr { margin: 1.5rem 0; }
-  .article-body .table-wrapper { overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
-  .article-body table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 480px; }
+  .article-body .table-wrapper, .refresh-diff-list .table-wrapper {
+    overflow-x: auto; margin: 1.5rem 0; -webkit-overflow-scrolling: touch; }
+  .article-body table, .refresh-diff-list table {
+    width: 100%; min-width: 480px; border-collapse: collapse; font-size: 0.92rem; }
   .article-body thead th { background: var(--primary-light); color: var(--primary); font-weight: 600;
     padding: .6rem .75rem; border: 1px solid #c8e6c9; text-align: left; white-space: nowrap; }
   .article-body tbody td { padding: .6rem .75rem; border: 1px solid #e0e0e0; line-height: 1.7; }
@@ -164,11 +372,14 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
 <div class="review-header">
   <div class="container d-flex align-items-center justify-content-between">
     <h1><i class="bi bi-pencil-square me-2"></i>ブログ記事レビュー</h1>
-    <span class="status-badge">${statusLabel}</span>
+    <div><span class="status-badge">${escapeHtml(statusLabel)}</span> <button type="button" class="btn btn-sm btn-outline-light ms-2" id="btnLogout">ログアウト</button></div>
   </div>
 </div>
 
 <div class="container py-4">
+
+  ${refreshBanner}
+  ${renderFactCheckSummary(meta, factRecord)}
 
   <!-- メタ情報カード -->
   <div class="card mb-4">
@@ -178,26 +389,28 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       <table class="table table-sm meta-table mb-0">
         <tbody>
           <tr><th>カテゴリ</th><td>${category}</td></tr>
-          <tr><th>顧客カテゴリ</th><td>${SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）'}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${recLabel}</span>` : ''}</td></tr>
+          <tr><th>顧客カテゴリ</th><td>${escapeHtml(SEGMENT_LABELS[customerSegment] || customerSegment || '（判定なし）')}${recLabel ? ` <span class="text-muted" style="font-size:12px">／ 判定: ${escapeHtml(recLabel)}</span>` : ''}</td></tr>
           <tr><th>適合スコア</th><td>${scoresHtml}<div class="text-muted" style="font-size:11px;margin-top:2px">5=良 / 3=注意 / 1-2=要改善</div></td></tr>
+          ${targetQuery ? `<tr><th>狙う検索語</th><td><strong>${escapeHtml(targetQuery)}</strong>${intentLabel ? `（型: ${escapeHtml(intentLabel)}）` : ''}${secondaryQueries ? `<div class="text-muted" style="font-size:12px;margin-top:3px">副: ${escapeHtml(secondaryQueries)}</div>` : ''}</td></tr>` : ''}
+          ${meta.article_role === 'main' ? '<tr><th>本命記事の確認</th><td>実務で実際によくある場面（出典に無い一次情報）が 1 つ以上あるか</td></tr>' : ''}
           <tr><th>要約</th><td>${summary}</td></tr>
           <tr>
             <th>出典URL</th>
-            <td>${sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener">${sourceTitle} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
+            <td>${sourceUrl ? httpsLink(sourceUrl, sourceTitle) : escapeHtml(sourceTitle || '（未設定）')}</td>
           </tr>
           <tr>
             <th>プレビューURL</th>
-            <td>${previewUrl ? `<a href="${previewUrl}" target="_blank" rel="noopener">${previewUrl} <i class="bi bi-box-arrow-up-right"></i></a>` : '（未設定）'}</td>
+            <td>${previewUrl ? httpsLink(previewUrl) : '（未設定）'}</td>
           </tr>
-          <tr>
+          ${isRefresh ? '' : `<tr>
             <th>公開日時（任意）</th>
             <td>
               <input type="datetime-local" id="publishAt" class="form-control form-control-sm" style="max-width:280px"
-                value="${publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : ''}">
+                value="${escapeHtml(publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : '')}">
               <small class="text-muted">未入力の場合は翌日 11:30 に自動設定されます</small>
             </td>
-          </tr>
-          <tr><th>ファイル</th><td><code>${filename}</code></td></tr>
+          </tr>`}
+          <tr><th>ファイル</th><td><code>${escapeHtml(filename)}</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -207,9 +420,11 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
   <div class="card mb-4">
     <div class="card-header bg-white fw-bold">記事本文</div>
     <div class="card-body article-body" id="articleBody">
-      ${bodyMd}
+      ${sanitizeReviewHtml(bodyMd)}
     </div>
   </div>
+
+  ${renderFactCheck(meta, factRecord)}
 
   <!-- 修正コメント入力欄 -->
   <div class="card mb-4 comment-area" id="commentCard">
@@ -217,7 +432,7 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       <label for="reviewComment" class="form-label fw-bold">修正コメント</label>
       <textarea id="reviewComment" class="form-control" rows="4"
         placeholder="修正してほしい内容を具体的に記入してください…"></textarea>
-      <div class="form-check mt-3">
+      ${isRefresh ? '' : `<div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="suppressTopic">
         <label class="form-check-label" for="suppressTopic">
           このテーマを<strong>今後生成しない</strong>（denylist に追加 / 再生成もスキップ）
@@ -225,7 +440,7 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
       </div>
       <div class="form-text">
         コメントに「今後…書かないでください」「もう生成しないでください」等の文言があれば、自動で禁止登録されます。
-      </div>
+      </div>`}
     </div>
   </div>
 
@@ -236,25 +451,51 @@ function renderReviewPage(filename, meta, bodyMd, ref) {
 <!-- 操作ボタン (sticky bottom) -->
 <div class="action-section">
   <div class="container d-flex flex-wrap gap-2 justify-content-center">
-    <button class="btn btn-approve btn-lg px-4" id="btnApprove" onclick="handleAction('approve')">
-      <i class="bi bi-check-circle me-1"></i>このまま公開
+    <button class="btn btn-approve btn-lg px-4" id="btnApprove"${approvalDisabled ? ' disabled' : ''}>
+      <i class="bi bi-check-circle me-1"></i>${isRefresh ? '更新を反映する' : 'このまま公開'}
     </button>
-    <button class="btn btn-revise btn-lg px-4" id="btnRevise" onclick="toggleRevise()">
+    <button class="btn btn-revise btn-lg px-4" id="btnRevise">
       <i class="bi bi-pencil me-1"></i>差し戻し
     </button>
-    <button class="btn btn-skip btn-lg px-4" id="btnSkip" onclick="handleAction('skip')">
+    <button class="btn btn-skip btn-lg px-4" id="btnSkip">
       <i class="bi bi-skip-forward me-1"></i>今回は見送り
     </button>
-    <button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" onclick="handleAction('skip', true)" title="このテーマを今後生成しない設定にしたうえで見送る">
+    ${isRefresh ? '' : `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" title="このテーマを今後生成しない設定にしたうえで見送る">
       <i class="bi bi-slash-circle me-1"></i>見送り＋今後このテーマを生成しない
-    </button>
+    </button>`}
   </div>
 </div>
 
-<script>
-const FILENAME = ${JSON.stringify(filename)};
-const REF = ${JSON.stringify(ref || '')};
+<script nonce="${escapeHtml(nonce)}">
+const FILENAME = ${scriptJson(filename)};
+const REF = ${scriptJson(ref || '')};
+const REVIEW_TOKEN = ${scriptJson(security.csrfToken || '')};
+const IS_REFRESH = ${JSON.stringify(isRefresh)};
 const FUNC_BASE = '/.netlify/functions';
+let reviseReady = false;
+document.getElementById('btnApprove').addEventListener('click', () => handleAction('approve'));
+document.getElementById('btnRevise').addEventListener('click', () => reviseReady ? handleAction('revise') : toggleRevise());
+document.getElementById('btnSkip').addEventListener('click', () => handleAction('skip'));
+document.getElementById('btnSkipForever')?.addEventListener('click', () => handleAction('skip', true));
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/review-logout', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN }, body: '{}' });
+    if (res.status === 401) { requireLogin(); return; }
+    if (!res.ok) throw new Error('ログアウトできませんでした。');
+    location.assign('/review' + location.search);
+  } catch (err) {
+    const result = document.getElementById('resultMsg');
+    result.className = 'result-msg show error';
+    result.textContent = err.message;
+  }
+});
+
+function requireLogin() {
+  const result = document.getElementById('resultMsg');
+  result.className = 'result-msg show error';
+  result.textContent = 'ログインし直してください';
+  setTimeout(() => location.assign('/review' + location.search), 1200);
+}
 
 function toggleRevise() {
   const card = document.getElementById('commentCard');
@@ -265,13 +506,14 @@ function toggleRevise() {
     const btn = document.getElementById('btnRevise');
     if (btn.textContent.includes('差し戻し')) {
       btn.innerHTML = '<i class="bi bi-send me-1"></i>コメントを送信';
-      btn.onclick = function() { handleAction('revise'); };
+      reviseReady = true;
     }
   }
 }
 
 async function handleAction(action, forceSuppress) {
-  const publishAt = document.getElementById('publishAt').value;
+  const publishInput = document.getElementById('publishAt');
+  const publishAt = publishInput ? publishInput.value : '';
   const comment   = document.getElementById('reviewComment').value;
   const resultEl  = document.getElementById('resultMsg');
   const suppressCheckbox = document.getElementById('suppressTopic');
@@ -295,13 +537,23 @@ async function handleAction(action, forceSuppress) {
   document.querySelectorAll('.action-section button').forEach(b => b.disabled = true);
 
   try {
+    if (action === 'approve') {
+      // 即時202の承認要求より先に、認証の拒否を同期の応答で確かめる。
+      const check = await fetch(FUNC_BASE + '/review-auth-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
+        body: '{}',
+      });
+      if (check.status === 401) { requireLogin(); return; }
+      if (check.status !== 204) throw new Error('承認の認証を確認できませんでした。しばらくしてからお試しください。');
+    }
     // approve のみバックグラウンド関数（最大15分）にルーティングし、
     // mergeable 待機 + マージリトライが Netlify の 10秒制限に阻まれないようにする。
     // バックグラウンド関数は 202 Accepted を即返すため、結果は Chatwork 通知で受け取る。
     const endpoint = action === 'approve' ? '/review-approve-background' : '/review-' + action;
     const res = await fetch(FUNC_BASE + endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
       body: JSON.stringify({
         filename: FILENAME, publish_at: publishAt, comment,
         ref: REF || undefined,
@@ -309,6 +561,7 @@ async function handleAction(action, forceSuppress) {
       }),
     });
 
+    if (res.status === 401) { requireLogin(); return; }
     // 202 Accepted (background function) はボディが空なので JSON 解析を試みない
     const data = res.status === 202 ? {} : await res.json().catch(() => ({}));
     if (res.ok) {
@@ -317,7 +570,9 @@ async function handleAction(action, forceSuppress) {
         ? '\\n※このテーマは今後生成しない設定に登録しました（' + data.denylistAdded.length + ' 件）。再生成も自動でスキップされます。'
         : '';
       if (action === 'approve') {
-        resultEl.textContent = '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
+        resultEl.textContent = IS_REFRESH
+          ? '公開中の記事へ反映しています。数分後にサイトに出ます。'
+          : '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
         resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
       } else if (action === 'skip') {
@@ -347,6 +602,14 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
+  const nonce = crypto.randomBytes(18).toString('base64url');
+  const headers = reviewAuth.pageHeaders(nonce);
+  const auth = reviewAuth.requireSession(event);
+  if (auth.response) {
+    if (auth.response.statusCode === 401) return reviewAuth.loginPage(reviewAuth.pageNext(event));
+    return { ...auth.response, headers: { ...headers, ...auth.response.headers } };
+  }
+
   const params = event.queryStringParameters || {};
   const filename = params.file;
   const ref = params.ref || '';   // draft ブランチ名（省略時は main）
@@ -354,7 +617,7 @@ exports.handler = async (event) => {
   if (!filename || !/^[\w-]+\.md$/.test(filename)) {
     return {
       statusCode: 400,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      headers,
       body: '<h1>400 Bad Request</h1><p>クエリパラメータ <code>?file=ファイル名.md</code> を指定してください。</p>',
     };
   }
@@ -387,19 +650,35 @@ exports.handler = async (event) => {
 
     // Markdown → HTML 変換（marked + GFM テーブル対応）
     const { marked } = require('marked');
-    const bodyHtml = marked(body)
-      .replace(/<table>/g, '<div class="table-wrapper"><table>')
-      .replace(/<\/table>/g, '</table></div>');
+    const bodyHtml = marked(body);
+
+    let refreshContext = null;
+    if (meta.refresh_of === 'published' || ref.startsWith('draft/refresh-')) {
+      try {
+        const mainRaw = await fetchPostFromGitHub(filename, 'main');
+        const mainArticle = parseFrontmatter(mainRaw);
+        if (mainArticle.meta.review_status !== 'published') {
+          refreshContext = { available: false, message: '公開中ではなくなった記事です。更新案を承認できません。' };
+        } else {
+          refreshContext = {
+            available: true,
+            diff: freshnessRefresh.diffSections(mainArticle.body, body),
+          };
+        }
+      } catch (_) {
+        refreshContext = { available: false, message: '公開中の記事を取得できませんでした。更新案を承認できません。' };
+      }
+    }
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: renderReviewPage(filename, meta, bodyHtml, ref),
+      headers,
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key) }),
     };
   } catch (err) {
     const msg = String(err && err.message || err);
     // 秘密情報をログに出さないため、token / 秘密鍵は含めない（err.message は GitHub の応答のみ）
-    console.error('[review-page] error:', msg);
+    console.error('[review-page] レビュー画面の取得に失敗しました');
 
     // rate limit (403) の場合は分かりやすいメッセージにする
     const isRateLimit = /rate limit|API rate limit exceeded|\b403\b/.test(msg);
@@ -407,7 +686,7 @@ exports.handler = async (event) => {
 
     let statusCode = 500;
     let heading = '500 Error';
-    let detail = msg;
+    let detail = 'レビュー画面を取得できませんでした。しばらくしてから再度お試しください。';
 
     if (isRateLimit) {
       statusCode = 503;
@@ -423,15 +702,21 @@ exports.handler = async (event) => {
 
     return {
       statusCode,
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers,
       body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">` +
             `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
-            `<title>${heading}</title>` +
+            `<title>${escapeHtml(heading)}</title>` +
             `<style>body{font-family:'Noto Sans JP',sans-serif;background:#f5f5f5;padding:2rem;color:#2c2c2c;}` +
             `.box{max-width:640px;margin:2rem auto;background:#fff;border-radius:12px;padding:2rem;` +
             `box-shadow:0 2px 12px rgba(0,0,0,0.08);border-left:4px solid #c62828;}` +
             `h1{font-size:1.2rem;color:#0B2045;}p{line-height:1.8;font-size:.95rem;color:#5a6572;}</style></head>` +
-            `<body><div class="box"><h1>${heading}</h1><p>${detail}</p></div></body></html>`,
+            `<body><div class="box"><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(detail)}</p></div></body></html>`,
     };
   }
 };
+
+exports.renderReviewPage = renderReviewPage;
+exports.parseFrontmatter = parseFrontmatter;
+exports.renderFactCheck = renderFactCheck;
+exports.renderFactCheckSummary = renderFactCheckSummary;
+exports.fetchFactCheck = fetchFactCheck;

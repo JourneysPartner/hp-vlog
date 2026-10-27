@@ -12,6 +12,7 @@ const ADMIN_NAV_ITEMS = Object.freeze([
   { key: 'home', label: '管理トップ', href: '/admin', icon: '🏠' },
   { key: 'articles', label: '記事管理', href: '/admin/articles', icon: '📝' },
   { key: 'candidates', label: '候補管理', href: '/admin/candidates', icon: '💬' },
+  { key: 'freshness', label: '更新候補', href: '/admin/freshness', icon: '🔄' },
   { key: 'analytics', label: 'アクセス解析', href: '/admin/analytics', icon: '📊' },
   { key: 'settings', label: 'HP設定', icon: '⚙️', disabled: true },
 ]);

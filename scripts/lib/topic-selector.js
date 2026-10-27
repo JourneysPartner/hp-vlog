@@ -4,7 +4,7 @@
  * テーマ選定オーケストレーター。
  *
  * 入力: topic pool（topic-pool.js の TOPICS）
- * 出力: その日に生成すべき 1〜2 本のトピック（main + support のペア）
+ * 出力: その日に生成すべき 1〜2 本のトピック（既定は main 1 本）
  *
  * 処理フロー:
  *   1. cluster / subcluster / tax_domain を全候補に解決
@@ -25,8 +25,10 @@ const { resolveCluster, resolveTaxDomain, MACRO } = require('./cluster-taxonomy'
 const { readAllPostsSorted, postReferenceDate } = require('./site-corpus');
 const { findSimilarInCorpus, similarityScore } = require('./topic-similarity');
 const { filterByCooldown, filterByTopicIdentity } = require('./cooldown');
-const { computeMacroRatios, applyBalance, balanceScore } = require('./category-balance');
+const { computeMacroRatios, applyBalance, balanceScore, computeMacroQuota, applyMacroQuota } = require('./category-balance');
 const { loadDenylist, isTopicDenied, findMatchingEntry, isTimeLimitedExpired } = require('./denylist');
+const { loadWithdrawnTopics, findWithdrawnTopic } = require('./withdrawn-topics');
+const { prefillTargetQuery, normalizeQuery, findTargetQueryOwner } = require('./target-query');
 const {
   isNaturalCombination, deriveSegment, rejectionReason, evaluateTopicFit, scoreLeadValue,
 } = require('./customer-relevance');
@@ -192,7 +194,7 @@ function demandKindOf(topic = {}) {
   return (topic.demand_evidence && topic.demand_evidence.kind) || null;
 }
 
-// 需要の証拠の「種類」ごとに1日最大1件（質疑応答・検索需要とも同じ流儀）。
+// 需要の証拠の「種類」ごとに1日最大1件（質疑応答・サジェスト・GSC とも同じ流儀）。
 // 同じ種類が2件になったら、優先度の低い方を別種の次点へ差し替える。
 function enforceDemandKindDailyLimit(picks, scored) {
   const limited = picks.slice();
@@ -308,11 +310,19 @@ function buildBestPair(scored, candidatesAll) {
   return [scored[0].topic];
 }
 
+function selectByCount(scored, candidatesAll, count = 2) {
+  if (count === 1) {
+    const main = scored.find(entry => isMain(entry.topic));
+    return main ? [main.topic] : [];
+  }
+  return buildBestPair(scored, candidatesAll);
+}
+
 /**
- * メイン関数: 与えられたトピックプールから今日の 2 本を選ぶ。
+ * メイン関数: 与えられたトピックプールから今日の指定本数を選ぶ。
  *
  * @param {Array} topics - topic-pool.TOPICS
- * @param {Object} options - { explain: bool, dryRun: bool, now: Date, requireTwo: bool }
+ * @param {Object} options - { explain: bool, dryRun: bool, now: Date, count: 1|2 }
  * @returns {Object} { picks: Topic[], explanation: object }
  */
 /**
@@ -341,7 +351,7 @@ function selectDailyTopics(topics, options = {}) {
   explanation.steps.push({ step: 'corpus', count: corpus.length, pending: pending.length });
 
   // 2. 既存 slug 除外
-  const existingSlugs = new Set(corpus.map(p => p.slug));
+  const existingSlugs = new Set(corpus.flatMap(p => [p.slug, p.topic_id]).filter(Boolean));
   let candidates = enriched.filter(t => !existingSlugs.has(t.slug));
   explanation.steps.push({
     step: 'filter-existing-slugs',
@@ -351,6 +361,34 @@ function selectDailyTopics(topics, options = {}) {
 
   if (candidates.length === 0) {
     explanation.warnings = ['すべてのトピックが既存slugと重複（pool枯渇）'];
+    return { picks: [], explanation };
+  }
+
+  // 2.2. 検索需要由来の候補は、既存記事が同じ主検索語を持っていれば除外する。
+  // プレフィルできない候補はここでは止めず、生成前の確定後ゲートに委ねる。
+  const targetQueryBlocked = [];
+  candidates = candidates.filter(topic => {
+    const prefilled = prefillTargetQuery(topic);
+    if (!prefilled || !prefilled.target_query) return true;
+    const key = normalizeQuery(prefilled.target_query);
+    const owner = findTargetQueryOwner(key, corpus);
+    if (!owner) return true;
+    targetQueryBlocked.push({
+      slug: topic.slug,
+      target_query: prefilled.target_query,
+      owner: owner.slug,
+    });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-target-query',
+    blocked: targetQueryBlocked.length,
+    remaining: candidates.length,
+    blockedDetails: targetQueryBlocked.slice(0, 5),
+  });
+
+  if (candidates.length === 0) {
+    explanation.warnings = ['すべてのトピックが既存の狙う検索語と重複'];
     return { picks: [], explanation };
   }
 
@@ -392,6 +430,20 @@ function selectDailyTopics(topics, options = {}) {
     blocked: denylistExcluded.length,
     remaining: candidates.length,
     blockedDetails: denylistExcluded.slice(0, 5),
+  });
+
+  // 2.75. 取り下げた題材と、7日間の除外期限内の生成失敗候補を除く。
+  const withdrawn = options.withdrawn === undefined ? loadWithdrawnTopics() : options.withdrawn;
+  const withdrawnExcluded = [];
+  candidates = candidates.filter(topic => {
+    const hit = findWithdrawnTopic(topic, withdrawn, now);
+    if (!hit) return true;
+    withdrawnExcluded.push({ slug: topic.slug, stage: hit.stage, date: hit.date });
+    return false;
+  });
+  explanation.steps.push({
+    step: 'filter-withdrawn', blocked: withdrawnExcluded.length,
+    remaining: candidates.length, blockedDetails: withdrawnExcluded.slice(0, 5),
   });
 
   // 2.8. 顧客カテゴリ関連性ゲート（安全装置・必ず効く）
@@ -546,7 +598,19 @@ function selectDailyTopics(topics, options = {}) {
   }
 
   // 5. カテゴリ偏り是正 + balance scoring
-  const ratios = computeMacroRatios(now);
+  const quota = computeMacroQuota(now, { extraCorpus: pending });
+  const { passed: quotaPassed, blocked: quotaBlocked } = applyMacroQuota(working, quota);
+  explanation.steps.push({
+    step: 'macro-quota',
+    blocked: quotaBlocked.length,
+    remaining: quotaPassed.length,
+    blockedDetails: quotaBlocked.slice(0, 5).map(b => ({
+      slug: b.topic.slug, macro: b.macro, count: b.count, limit: b.limit, reason: b.reason,
+    })),
+  });
+  // 以降の救済・ペアリング・差し替えでも上限による除外を戻さない。
+  working = quotaPassed;
+  const ratios = computeMacroRatios(now, { extraCorpus: pending });
   const { scored: balanceScored, blocked: balanceBlocked } = applyBalance(working, ratios);
   explanation.steps.push({
     step: 'apply-balance',
@@ -563,7 +627,7 @@ function selectDailyTopics(topics, options = {}) {
     topic: t, balance: 0, balanceReasons: [], hardBlocked: false,
   }));
 
-  if (balanceScored.length === 0) {
+  if (balanceScored.length === 0 && balanceBlocked.length > 0) {
     explanation.warnings = (explanation.warnings || []).concat(['カテゴリ偏りハードブロックで全滅 → ブロック解除']);
   }
 
@@ -585,8 +649,9 @@ function selectDailyTopics(topics, options = {}) {
     reasons: s.balanceReasons || [],
   }));
 
-  // 6. ペアリング
-  const picks = buildBestPair(scored, candidates);
+  // 6. 1 本モードは本命だけ、2 本モードは従来どおり本命＋補強を組む。
+  const count = Number(options.count) === 1 ? 1 : 2;
+  const picks = selectByCount(scored, candidates, count);
   explanation.picks = picks.map(p => explainPick(p, scored));
 
   // 7. 同日 2 本の最終類似度チェック
@@ -650,6 +715,7 @@ module.exports = {
   selectDailyTopics,
   enrichTopic,
   buildBestPair,
+  selectByCount,
   priorityBreakdown,
   rankBySelectionPriority,
   buildClusterRecency,

@@ -11,7 +11,7 @@
  *   そこに export したヘルパーはテストから安全に読み込めない。
  */
 
-const { WORD_COUNT_RANGE, WORD_COUNT_FLOOR_RATIO } = require('./article-prompt-static');
+const { rangeFor, WORD_COUNT_FLOOR_RATIO } = require('./article-prompt-static');
 
 /**
  * frontmatter を除いた本文の文字数を返す。
@@ -40,16 +40,13 @@ function measureBodyLength(content) {
  *
  * @param {string} content frontmatter を含む記事全体
  * @param {string} articleType 記事タイプ
+ * @param {string} [intentType] 検索意図の型
  * @returns {{ok:boolean, tooShort:boolean, tooLong:boolean, produced:number,
  *            min:number|null, max:number|null, floor:number|null}}
  */
-function checkBodyLength(content, articleType) {
+function checkBodyLength(content, articleType, intentType) {
   const produced = measureBodyLength(content);
-  const range = WORD_COUNT_RANGE[articleType];
-  // 未知の記事タイプは判定対象外（既存挙動を壊さない）
-  if (!range) {
-    return { ok: true, tooShort: false, tooLong: false, produced, min: null, max: null, floor: null };
-  }
+  const range = rangeFor({ articleType, intentType });
   const floor = Math.floor(range.min * WORD_COUNT_FLOOR_RATIO);
   const tooShort = produced < floor;
   const tooLong = produced > range.max;
