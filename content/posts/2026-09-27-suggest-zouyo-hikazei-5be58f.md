@@ -49,15 +49,15 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "贈与税の非課税制度は目的・対象者・金額上限がそれぞれ異なる。暦年贈与の基礎控除110万円、住宅取得資金の特例（最大1,000万円）、結婚・子育て資金など、財産や目的に応じた選び方を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-10-27T19:29:39.218+09:00"
+publish_at: "2026-10-28T11:36:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-27T00:06:02.082Z"
-updated_at: "2026-10-27T10:08:18.745Z"
+updated_at: "2026-10-27T19:29:39.218+09:00"
 source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4508.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4510.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4511.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4405.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm;相続税法1条の4;相続税法2条の2;租税特別措置法70条の2;措通70の2-5;租税特別措置法70条の2の5;相基通21の3-3;相続税法11条"
 tax_terms: ""
 fact_check_version: 1
@@ -66,6 +66,7 @@ fact_check_summary: "主張 75 件: 裏付けあり 72・修正 2（食い違い
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 「子どもに住宅購入の資金を援助したいが、贈与税がかかるのか不安」「毎年110万円ずつ贈与すれば非課税と聞いたけど、もっと大きな金額を一度に渡したい」——そんな場面で頭を悩ませる方は少なくありません。
