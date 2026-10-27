@@ -14,9 +14,13 @@
  *       目標比率 0 の macro は、他の候補がある限り選ばない
  */
 
-const { ALL_MACROS } = require('./cluster-taxonomy');
+const fs = require('fs');
+const path = require('path');
+const { ALL_MACROS, resolveCluster } = require('./cluster-taxonomy');
 const { readPostsWithinDays, postReferenceDate } = require('./site-corpus');
 const TARGET_RATIOS = Object.freeze(require('../../data/macro-target-ratios.json'));
+const QUOTA_PATH = path.join(__dirname, '../../data/macro-quota.json');
+const INACTIVE_STATUSES = new Set(['skipped', 'rejected', 'merged']);
 
 const WINDOWS = [
   { days: 7,  weight: 1.0 },
@@ -41,6 +45,28 @@ if (!targetValidation.valid) {
   throw new Error(`macro 目標比率が不正です（合計=${targetValidation.total}, 未知=${targetValidation.unknown.join(',')}）`);
 }
 
+function loadMacroQuota(configPath = QUOTA_PATH, warn = console.warn) {
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (!config || !Array.isArray(config.strict_macros)
+      || !Number.isFinite(config.window_days) || config.window_days <= 0
+      || !Number.isFinite(config.planned_per_window) || config.planned_per_window <= 0) {
+      throw new Error('invalid config');
+    }
+  } catch (_) {
+    warn('[macro-quota] 警告: 設定ファイルを読めないため、本数の上限なしで続行します。');
+    return null;
+  }
+  const unknown = config.strict_macros.filter(macro => !Object.hasOwn(TARGET_RATIOS, macro));
+  if (unknown.length > 0) {
+    throw new Error(`macro 上限設定の分類が不正です（未知=${unknown.join(',')}）`);
+  }
+  return config;
+}
+
+const MACRO_QUOTA = loadMacroQuota();
+
 function targetRatioFor(macro) {
   return Number(TARGET_RATIOS[macro]) || 0;
 }
@@ -49,17 +75,70 @@ function hardCapFor(macro) {
   return Math.min(0.9, targetRatioFor(macro) * 1.6 + 0.05);
 }
 
+function quotaLimitFor(macro, config = MACRO_QUOTA) {
+  return config ? Math.max(1, Math.ceil(targetRatioFor(macro) * config.planned_per_window)) : null;
+}
+
+function isActivePost(post) {
+  return !INACTIVE_STATUSES.has(String(post.review_status || '').toLowerCase());
+}
+
+function windowCorpus(days, now, extraCorpus, excludeInactive = false) {
+  const main = readPostsWithinDays(days, now);
+  const posts = excludeInactive ? main.filter(isActivePost) : main.slice();
+  const seen = new Set(main.map(post => post.slug));
+  const threshold = now.getTime() - days * 24 * 60 * 60 * 1000;
+  for (const post of extraCorpus) {
+    if (!post || !post.slug || seen.has(post.slug) || !isActivePost(post)) continue;
+    const normalized = { ...post, file: post.file || `${post.slug}.md` };
+    if (postReferenceDate(normalized).getTime() < threshold) continue;
+    seen.add(post.slug);
+    posts.push({ ...normalized, macro: resolveCluster(normalized).macro });
+  }
+  return posts;
+}
+
+function computeMacroQuota(now = new Date(), { extraCorpus = [], config = MACRO_QUOTA } = {}) {
+  if (!config) return {};
+  const posts = windowCorpus(config.window_days, now, extraCorpus, true);
+  return Object.fromEntries(config.strict_macros.map(macro => {
+    const count = posts.filter(post => post.macro === macro).length;
+    const limit = quotaLimitFor(macro, config);
+    const target = targetRatioFor(macro);
+    return [macro, {
+      count, limit, target, windowDays: config.window_days,
+      blocked: count >= limit,
+      reason: `${macro}: 直近${config.window_days}日で ${count} 本（上限 ${limit} 本・目標 ${(target * 100).toFixed(0)}%）`,
+    }];
+  }));
+}
+
+function applyMacroQuota(candidates, quota = computeMacroQuota()) {
+  const passed = [];
+  const blocked = [];
+  for (const topic of candidates) {
+    const macro = topic.macro || (topic._cluster && topic._cluster.macro);
+    if (quota[macro] && quota[macro].blocked) {
+      blocked.push({ topic, macro, ...quota[macro] });
+    } else {
+      passed.push(topic);
+    }
+  }
+  return { passed, blocked };
+}
+
 /**
  * 各 window で macro 別の比率を集計する。
  *
  * @returns {Object} { 7: { macro: ratio, ... }, 14: {...}, 30: {...}, totals: { 7: count, ... } }
  */
-function computeMacroRatios(now = new Date()) {
+function computeMacroRatios(now = new Date(), { extraCorpus = [] } = {}) {
   const ratios = {};
   const totals = {};
 
   for (const w of WINDOWS) {
-    const posts = readPostsWithinDays(w.days, now);
+    // main の従来の集計は保ち、承認待ち下書きだけを重複なく追加する。
+    const posts = windowCorpus(w.days, now, extraCorpus);
     const counts = Object.fromEntries(ALL_MACROS.map(m => [m, 0]));
     for (const p of posts) {
       if (counts[p.macro] != null) counts[p.macro]++;
@@ -172,6 +251,10 @@ module.exports = {
   validateTargetRatios,
   targetRatioFor,
   hardCapFor,
+  loadMacroQuota,
+  quotaLimitFor,
+  computeMacroQuota,
+  applyMacroQuota,
   computeMacroRatios,
   balanceScore,
   applyBalance,
