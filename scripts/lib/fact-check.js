@@ -241,7 +241,7 @@ function normalizedNumbers(text, range, forms) {
   return numbers;
 }
 
-function sufficientQuote(claim, result, ref, status) {
+function sufficientQuote(claim, result, ref, status, sumSupport) {
   const parts = quoteParts(result?.quote).map(normalizedQuote);
   if (!parts.length || parts.length > 2 || !ref || parts.some(p => !p)) return false;
   const wholeSentence = evidenceTexts(ref).some(text => sentenceRows(text).some(s => parts.includes(normalizedQuote(s.trim())) && /。$/.test(s.trim()) && s.trim() !== '。'));
@@ -260,13 +260,13 @@ function sufficientQuote(claim, result, ref, status) {
     // 不正な割合による照合不能は、従来どおり採用した原文全体で止める。
     if (evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return false;
     // 空白・文字幅を揃えた引用位置を原文へ戻し、同じ抜粋の前後300文字だけを使う。
-    if (!quoteSupportsNumbers(numbers, result, ref)) return false;
+    if (!quoteSupportsNumbers(numbers, result, ref, status === '裏付けあり' ? claim : null, sumSupport)) return false;
   }
   return true;
 }
 
 /** 数字の照合範囲は、原文の引用位置の前後300字に限定する。 */
-function quoteSupportsNumbers(numbers, result, ref) {
+function quoteSupportsNumbers(numbers, result, ref, claim = null, sumSupport) {
   if (!numbers.length || numbers.includes(null)) return false;
   const rawParts = quoteParts(result.quote);
   const parts = rawParts.map(normalizedQuote);
@@ -292,13 +292,52 @@ function quoteSupportsNumbers(numbers, result, ref) {
       if (quoted.includes(null)) continue;
       // 年だけの例外は引用そのものだけ。基準日の年は裏付けに使わない。
       const dates = normalizedNumbers(withoutAsOfDates(normalizedNumberText(rawParts[partIndex])));
-      supports[partIndex].push(new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-'))))));
+      const supported = new Set(numbers.filter(n => quoted.includes(n) || (typeof n === 'string' && /^日付:[^-]+$/.test(n) && dates.some(d => d?.startsWith(n + '-')))));
+      const sums = sumNumberSupport(numbers.filter(n => !supported.has(n)), quoted, claim);
+      for (const sum of sums) supported.add(sum.number);
+      supports[partIndex].push({ numbers: supported, sums });
     }
   }
   // 同じ引用が何度も現れても、別々の出現位置の近傍を一つの引用の裏付けに混ぜない。
-  const covers = sets => numbers.every(n => sets.some(s => s.has(n)));
-  return parts.length === 1 ? supports[0].some(s => covers([s]))
-    : parts.length === 2 && supports[0].some(a => supports[1].some(b => covers([a, b])));
+  const covers = sets => numbers.every(n => sets.some(s => s.numbers.has(n)));
+  let selected;
+  if (parts.length === 1) {
+    const found = supports[0].find(s => covers([s]));
+    if (found) selected = [found];
+  } else if (parts.length === 2) {
+    supports[0].some(a => supports[1].some(b => {
+      if (!covers([a, b])) return false;
+      selected = [a, b]; return true;
+    }));
+  }
+  if (selected && sumSupport) sumSupport.push(...new Map(selected.flatMap(s => s.sums).map(s => [s.number, s])).values());
+  return Boolean(selected);
+}
+
+/** 一つの引用位置の範囲だけで、文にも現れる金額を使った二項の合計を確かめる。 */
+function sumNumberSupport(numbers, quoted, claim) {
+  if (claim?.type !== '金額' || !/合計|合わせ|併せ|あわせ|合算|足す|足し|加え|加算|上乗せ|プラス/.test(claim.sentence)) return [];
+  const amount = n => typeof n === 'string' && /^\d+(?:\.\d+)?$/.test(n) && Number(n) >= 10000;
+  const sentence = normalizedNumbers(claim.sentence);
+  const parts = [...new Set(quoted.filter(amount))];
+  const equalsSum = (a, b, n) => {
+    // 小数も丸めて一致させず、同じ桁数の整数として足す。
+    const precision = Math.max(...[a, b, n].map(v => (v.split('.')[1] || '').length));
+    const units = v => { const [whole, fraction = ''] = v.split('.'); return BigInt(whole + fraction.padEnd(precision, '0')); };
+    return units(a) + units(b) === units(n);
+  };
+  const sums = [];
+  for (const n of numbers.filter(amount)) {
+    let found;
+    for (let i = 0; i < parts.length && !found; i++) for (let j = i + 1; j < parts.length; j++) {
+      const a = parts[i], b = parts[j];
+      if ((sentence.includes(a) || sentence.includes(b)) && equalsSum(a, b, n)) {
+        found = { number: n, parts: [a, b] }; break;
+      }
+    }
+    if (found) sums.push(found);
+  }
+  return sums;
 }
 
 function quoteParts(quote) { return typeof quote === 'string' && quote ? quote.split('\n…\n') : []; }
@@ -425,10 +464,11 @@ function partialQuoteNumbers(claim, grounded, ref) {
   if (!numbersInSentence(summary, checked.sentence) || evidenceTexts(ref).some(text => normalizedNumbers(text).includes(null))) return null;
   const numbers = summary.length ? summary : sentence;
   if (!numbers.length || numbers.includes(null)) return null;
-  const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref));
+  const sums = [];
+  const supported = numbers.filter(n => quoteSupportsNumbers([n], grounded, ref, checked, sums));
   const missing = numbers.filter(n => !supported.includes(n));
   if (!supported.length || !missing.length) return null;
-  return { forms: supportedNumberForms(claim.sentence, ref, supported) };
+  return { forms: supportedNumberForms(claim.sentence, ref, supported), ...(sums.length ? { sum_support: sums } : {}) };
 }
 
 function isScenarioAmount(c) {
@@ -598,7 +638,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s2';
+const LOGIC_VERSION = 'plan2-s3';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -846,23 +886,24 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           const numbers = normalizedNumbers(status === '裏付けあり' ? checked.claim : c.type === '番号' ? correct : numberCheckText(correct, page.ref));
           if (status === '裏付けあり' && !numbers.length) numbers.push(...normalizedNumbers(checked.sentence));
           return quoteExists(grounded.quote, page.ref) && sufficientQuote(c, grounded, page.ref, status) &&
-            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref) : status !== '裏付けあり' || !isNumericClaim(checked));
+            (numbers.length ? quoteSupportsNumbers(numbers, grounded, page.ref, status === '裏付けあり' ? checked : null) : status !== '裏付けあり' || !isNumericClaim(checked));
         });
         if (rescued) { citations = rescued; tooMany = false; }
       }
       const quote = joinQuotes(citations);
       let supportedNumbers = null;
+      const sumSupport = [];
       const ref = page?.ref;
       const grounded = { ...r, correct: correct ?? '', quote };
       if (status !== '資料なし') {
         const rejected = !evidenceNo ? '資料の番号が読めない' : !page ? '資料の番号がこの主張の候補でない' : !quote ? '根拠の文の番号が読めない・範囲外'
           : tooMany ? '数字の主張の根拠が2文を超える'
           : !quoteExists(quote, ref) ? '引用が資料に無い'
-            : !sufficientQuote(c, grounded, ref, status) ? '引用が短い・数字が引用の近くに無い'
+            : !sufficientQuote(c, grounded, ref, status, sumSupport) ? '引用が短い・数字が引用の近くに無い'
               : ['食い違い', '期限の書き漏れ'].includes(status) && !correct.trim() ? '正しい内容が空' : '';
         if (inCandidates && status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) && rejected === '引用が短い・数字が引用の近くに無い') {
           const partial = partialQuoteNumbers(c, grounded, ref);
-          if (partial?.forms.length) supportedNumbers = partial.forms;
+          if (partial?.forms.length) { supportedNumbers = partial.forms; sumSupport.push(...(partial.sum_support || [])); }
         }
         if (rejected) { status = '資料なし'; reason = rejected; }
       }
@@ -889,6 +930,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
         ...(outsideCandidates ? { evidence_outside_candidates: true } : {}),
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
+        ...(sumSupport.length ? { sum_support: sumSupport } : {}),
         ...(reason ? { reject_reason: reason } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
           status: r.status, evidence: pages.find(p => p.number === evidenceNo)?.id || r.evidence_id,
@@ -932,6 +974,34 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   if (!stageTally) checkTally(tally, options);
   else if (ownTally) checkTally(mergeTally(stageTally.answers), options);
   return claims.map(c => results.get(c.id)).filter(Boolean);
+}
+
+/** 本文の番号は、同じ文を裏付けたタックスアンサー自身の番号だけで補う。 */
+function supportNumbersFromSiblings(claims) {
+  const taxAnswerNumbers = text => [...new Set([...normalizedQuote(text).matchAll(/(?:No\.?|タックスアンサー(?:No\.?)?|TA)(\d{4})(?!\d)/gi)].map(m => m[1]))];
+  return claims.map(c => {
+    if (c.type !== '番号' || c.status !== '資料なし' || NO_REPAIR_REASONS.has(c.reject_reason) || !c.sentence) return c;
+    const summary = normalizedQuote(c.claim);
+    if (/[0-9〇零一二三四五六七八九十百千万億]+条|通[^。]*[-−][0-9〇零一二三四五六七八九十百千万億]+/.test(summary)) return c;
+    const inClaim = taxAnswerNumbers(c.claim);
+    const numbers = inClaim.length ? inClaim : taxAnswerNumbers(c.sentence);
+    if (!numbers.length) return c;
+    const matches = numbers.map(no => {
+      for (const sibling of claims) {
+        if (sibling === c || sibling.sentence !== c.sentence || sibling.type === '番号' || sibling.status !== '裏付けあり') continue;
+        const ref = (sibling.evidence || []).find(e => e.id === sibling.evidence_id && e.kind === 'taxanswer' && normalizedQuote(e.no) === no);
+        if (ref) return { sibling, ref };
+      }
+      return null;
+    });
+    if (matches.some(m => !m)) return c;
+    const { sibling, ref } = matches[0];
+    const { reject_reason, rejected_answer, ...supported } = c;
+    const evidence = [...(c.evidence || [])];
+    for (const match of matches) if (!evidence.some(e => e.id === match.ref.id)) evidence.push(match.ref);
+    return { ...supported, status: '裏付けあり', evidence_id: ref.id, quote: sibling.quote, correct: '', evidence,
+      number_from_sibling: { id: sibling.id, previous_status: '資料なし', previous_reject_reason: reject_reason || '' } };
+  });
 }
 
 function mergeTally(answers) {
@@ -1357,7 +1427,7 @@ async function checkFacts(body, options = {}) {
     }
     if (!writerIds.length) {
       const evidence = Object.fromEntries(claims.map(c => [c.id, candidates(c)]));
-      return [...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache, batch }), ...reused];
+      return supportNumbersFromSiblings([...await judgeClaims(claims, evidence, fullBody, call, { ...options, pageCache, batch }), ...reused]);
     }
     const answerTally = new Map(), deadlineSubjects = new Set();
     const loadText = options.loadEvidenceText || (ref => ['qa', 'change'].includes(ref.kind)
@@ -1419,7 +1489,7 @@ async function checkFacts(body, options = {}) {
     const original = new Map(stageA.map(c => [c.id, c]));
     const adopted = [...claims.map(c => final.get(c.id) || original.get(c.id)).filter(Boolean), ...reused];
     for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
-    return adopted;
+    return supportNumbersFromSiblings(adopted);
   };
   let revisedBody = body;
   try {
@@ -1702,4 +1772,4 @@ function inheritFactMetadata(original, regenerated) {
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
   articleEvidenceOptions,
   applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
-  normalizeBody, bodyHash, compactRecord, evidenceRefs, outsideCandidateClaims, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, WARNING_RE };
+  normalizeBody, bodyHash, compactRecord, evidenceRefs, outsideCandidateClaims, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, supportNumbersFromSiblings, WARNING_RE };
