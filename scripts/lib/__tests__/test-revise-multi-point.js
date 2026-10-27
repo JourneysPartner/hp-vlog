@@ -518,7 +518,7 @@ async function main() {
     const source = article(`## 確認事項\n\n${old}。補足です。`);
     for (const verb of ['変えてください', ' 変更してください', '直してください', '修正してください', '訂正してください',
       '置き換えてください', '置換してください', '書き換えてください', '書換してください', '差し替えてください',
-      '差替してください', '改めてください', '統一してください', 'してください', 'します', 'する']) {
+      '差替してください', '改めてください', '統一してください', 'してください', 'します']) {
       const text = `1. 「${old}」を「${next}」に${verb}\n2. 語尾を丁寧にしてください`;
       reply = user => inputBody(user).replace('補足です。', '補足を追加しました。');
       const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
@@ -550,6 +550,98 @@ async function main() {
     }
     for (const text of ['交際費の節減効果', '定年の節目', '会食の節度']) assert.equal(extractSectionHint(text), '');
     assert.equal(classifyRevision('「確認事項」の節を直してください').type, 'section_only');
+  });
+
+  await test('H1 弱い文脈語の触れ・反映・対応は削除せず混入、変更・修正・直し・変えだけ除去', () => {
+    for (const line of ['※ここでは住民税には触れていません。', '（ここでは贈与税には触れていません）',
+      '※上記以外の所得控除は反映していません。', '※ここでは対応しておりません。',
+      '※ここでは変更しましたが、住民税には触れていません。']) {
+      const notes = P.removeNewInternalNotes('', line);
+      assert.equal(notes.body, line); assert.deepEqual(notes.removed, []); assert.equal(notes.contaminated, true, line);
+      assert.equal(P.removeNewInternalNotes(line, line).contaminated, false, '既存の行は保持');
+    }
+    for (const line of ['※上記以外の部分は変更しておりません。', '※ここは直していません。',
+      '（ほかの部分は変更していません）', '※それ以外の文は修正しておりません。', '※ここは変えておりません。',
+      '※ご指摘以外の箇所には触れていません。', '※差し戻しコメントの内容は反映していません。']) {
+      const notes = P.removeNewInternalNotes('', line);
+      assert.equal(notes.body, ''); assert.deepEqual(notes.removed, [line]); assert.equal(notes.contaminated, false, line);
+    }
+    for (const line of ['※他の記述は変えていません。', '※指摘以外の箇所はそのままです。']) {
+      const notes = P.removeNewInternalNotes('', line);
+      assert.equal(notes.body, line); assert.equal(notes.contaminated, true, line);
+    }
+  });
+  await test('H1 単一の章・全文と複数指摘で税務注記を含む出力を捨てる', async () => {
+    const source = article('## 確認事項\n\n元の説明を確認します。\n\n## 別の章\n\n別の説明を確認します。');
+    const text = '1. 「確認事項」の章を直してください\n2. 「別の章」の章を直してください';
+    for (const line of ['※ここでは住民税には触れていません。', '（ここでは贈与税には触れていません）',
+      '※上記以外の所得控除は反映していません。']) {
+      reply = user => inputBody(user).replace('元の説明', '改善した説明') + '\n\n' + line;
+      const section = await G.regenerateSection(source, '「確認事項」の章を直してください', {
+        type: 'section_only', sectionHint: '確認事項',
+      }, { sourceBlocks: sources });
+      const targeted = await G.regenerateTargeted(source, '誤字を修正してください', { preserveTitle: true, sourceBlocks: sources });
+      for (const output of [section, targeted]) {
+        const { meta, body } = G.parseFrontmatter(output);
+        assert.equal(meta.review_status, 'needs_revision'); assert(meta.review_comment.includes('【自動再生成の警告】'));
+        assert.equal(body.trim(), G.parseFrontmatter(source).body.trim());
+      }
+      reply = user => inputBody(user).includes('## 確認事項')
+        ? inputBody(user).replace('元の説明', '改善した説明') + '\n\n' + line
+        : inputBody(user).replace('別の説明', '改善した別の説明');
+      const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+      const { meta, body } = G.parseFrontmatter(output);
+      assert.equal(meta.review_status, 'needs_revision'); assert(meta.review_comment.includes('1 点目（LLM が作業の説明を本文に書いたため）'));
+      assert(body.includes('元の説明を確認します。')); assert(body.includes('改善した別の説明を確認します。')); assert(!body.includes(line));
+    }
+  });
+  await test('H2 引用内の否定語と区切りは保持し、否定節の後のタイトル指示を実行', async () => {
+    const source = article('## 確認事項\n\n元の説明を確認します。');
+    for (const quoted of ['「登録しないとどうなる？」', '『登録しない、場合。どうする？』']) {
+      const text = `1. 「確認事項」の章を直してください\n2. タイトルを${quoted}に変更してください`;
+      const plan = G.getMultiPointRevisionPlan(source, text);
+      assert.deepEqual(plan.steps.map(step => step.kind), ['section', 'title']);
+      reply = user => user.includes('【対象セクション（現状）】') ? inputBody(user).replace('元の説明', '改善した説明')
+        : JSON.stringify({ title: quoted.slice(1, -1), summary: '要約です。' });
+      const output = await G.regenerateMultiPoint(source, text, plan, { sourceBlocks: sources });
+      assert.equal(G.parseFrontmatter(output).meta.title, quoted.slice(1, -1));
+      assert.equal(G.parseFrontmatter(output).meta.review_status, 'draft');
+    }
+    const text = '構成は変えずに、タイトルだけ自然にしてください。\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください';
+    const plan = G.getMultiPointRevisionPlan(source, text);
+    assert.deepEqual(plan.steps.map(step => step.kind), ['targeted', 'title']);
+    reply = user => user.includes('【記事本文（現状）—') ? inputBody(user).replace('元の説明', '改善した説明')
+      : JSON.stringify({ title: '自然な記事タイトル', summary: '要約です。' });
+    const output = await G.regenerateMultiPoint(source, text, plan, { sourceBlocks: sources });
+    assert.equal(G.parseFrontmatter(output).meta.title, '自然な記事タイトル');
+  });
+  await test('H2 否定節の後の章追加を保持して実行', async () => {
+    const source = article('## 確認事項\n\n元の説明を確認します。\n\n## まとめ\n\nまとめです。');
+    const text = '1. 「確認事項」の章を直してください\n2. 既存の章は変えずに、注意点の章を追加してください';
+    const plan = G.getMultiPointRevisionPlan(source, text);
+    assert.deepEqual(plan.steps.map(step => step.kind), ['section', 'add_section']);
+    reply = user => user.includes('【対象セクション（現状）】') ? inputBody(user).replace('元の説明', '改善した説明')
+      : '## 注意点\n\n必要な書類を確認してください。';
+    const output = await G.regenerateMultiPoint(source, text, plan, { sourceBlocks: sources });
+    assert.equal(G.parseFrontmatter(output).meta.review_status, 'draft');
+    assert(G.parseFrontmatter(output).body.includes('## 注意点'));
+  });
+  await test('H2 否定節に明示された対象章への具体例を section の段に保持', () => {
+    const source = article('## 確認事項\n\n元の説明です。');
+    const text = '1. 誤字を修正してください\n2. 「確認事項」の章は削らずに、具体例を足してください';
+    const plan = G.getMultiPointRevisionPlan(source, text);
+    const step = plan.steps.find(step => step.points.includes(2));
+    assert.equal(step.kind, 'section'); assert.equal(step.heading, '確認事項');
+    assert(step.instruction.includes('「確認事項」の章は削らずに、具体例を足してください'));
+  });
+  await test('H3 「にする場合」の説明追記を置換と読まない', async () => {
+    const source = article('## 確認事項\n\n簡易課税制度の適用を確認します。');
+    const text = '1. 「簡易課税制度」を「原則課税」にする場合の注意を追記してください\n2. 語尾を丁寧にしてください';
+    reply = user => inputBody(user) + '\n\n原則課税にする場合は、必要な手続きを確認してください。';
+    const output = await G.regenerateMultiPoint(source, text, G.getMultiPointRevisionPlan(source, text), { sourceBlocks: sources });
+    const { meta, body } = G.parseFrontmatter(output);
+    assert.equal(meta.review_status, 'draft'); assert.equal(meta.review_comment, '');
+    assert(body.includes('簡易課税制度')); assert(body.includes('原則課税にする場合'));
   });
 
   await test('補足: 同じ章の指摘を統合し、追加・全文・タイトルを順序づける', () => {

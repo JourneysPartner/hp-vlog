@@ -171,8 +171,20 @@ function planRevisionSteps(split, sections) {
   const classifyInstruction = instruction => {
     const original = String(instruction || '');
     const classification = classifyRevision(original);
-    const text = original.split('。').filter(sentence => !/ないで|ずに|せず|ません|ないよう|しない/.test(sentence)).join('。');
-    return { text, classification: classification.denySuppression || text === original ? classification : classifyRevision(text) };
+    const outsideQuotes = original.replace(/「[^」]*」|『[^』]*』/g, quoted => ' '.repeat(quoted.length));
+    let text = '', start = 0, hasPositiveClause = false;
+    for (let i = 0; i <= original.length; i++) {
+      if (i < original.length && !/[、。]/.test(outsideQuotes[i])) continue;
+      if (!/ないで|ずに|せず|ません|ないよう|しない/.test(outsideQuotes.slice(start, i))) {
+        text += original.slice(start, i < original.length ? i + 1 : i);
+        if (original.slice(start, i).trim()) hasPositiveClause = true;
+      }
+      start = i + 1;
+    }
+    const filtered = classification.denySuppression || text === original ? classification : classifyRevision(text);
+    const preserveOriginal = hasPositiveClause && ['title_only', 'add_section', 'section_only'].includes(classification.type) &&
+      filtered.type !== classification.type;
+    return { text, classification: preserveOriginal ? classification : filtered };
   };
   const preface = classifyInstruction(split.preface).classification;
   if (preface.denySuppression || (preface.type === 'full_regenerate' && preface.reason.startsWith('パターン一致:'))) {
@@ -520,17 +532,22 @@ function findInternalProcessWords(body) {
 function removeNewInternalNotes(before, after) {
   const original = String(before || ''), revised = String(after || '');
   const oldLines = new Set(original.split(/\r?\n/).map(line => line.trim()));
-  const context = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]|この段|別の段|ほかの指摘|他の指摘|ほかの箇所|他の箇所|その他の箇所|その他の指摘|ほかの部分|他の部分|上記以外|それ以外の(?:部分|箇所|文)|ここ(?:は|では)/;
-  const result = /変更|修正|反映|対応|対象外|触れ|直し|そのまま/;
+  const strongContext = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]|この段|別の段|ほかの指摘|他の指摘|ほかの箇所|他の箇所|その他の箇所|その他の指摘|指摘以外/;
+  const weakContext = /ほかの部分|他の部分|上記以外|それ以外の(?:部分|箇所|文)|ここ(?:は|では)/;
+  const context = new RegExp(`${strongContext.source}|${weakContext.source}`);
+  const result = /変更|修正|反映|対応|対象外|触れ|直し|変え|そのまま/;
   const noteStart = /^(?:※|＊|\*(?![*\s])|注[:：]|（|\(※|【注)/;
-  const report = /(?:変更|修正|反映|対応|直)し(?:て(?:い|おり)?ません|ました)|触れて(?:い|おり)?ません/;
-  const negativeReport = /(?:変更|修正|反映|対応|直)して(?:い|おり)?ません|触れて(?:い|おり)?ません/;
+  const report = /(?:変更|修正|反映|対応|直)し(?:て(?:い|おり)?ません|ました)|変えて(?:い|おり)?ません|触れて(?:い|おり)?ません/;
+  const negativeReport = /(?:変更|修正|反映|対応|直)して(?:い|おり)?ません|変えて(?:い|おり)?ません|触れて(?:い|おり)?ません/;
   const removed = [], remainingWords = [], lines = [];
   let removedGap = false;
   for (const line of revised.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!oldLines.has(trimmed)) {
-      if (noteStart.test(trimmed) && report.test(trimmed) && context.test(trimmed)) {
+      const reports = [...trimmed.matchAll(new RegExp(report.source, 'g'))];
+      const removableReport = reports.length > 0 && (strongContext.test(trimmed) ||
+        (weakContext.test(trimmed) && reports.every(match => /^(?:変更|修正|直|変え)/.test(match[0]))));
+      if (noteStart.test(trimmed) && removableReport) {
         removed.push(line);
         removedGap = true;
         console.warn(`[revise] 作業の注記を除去（${line.length} 文字）: ${trimmed.slice(0, 40)}`);
