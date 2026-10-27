@@ -13,6 +13,8 @@
  * 実際の LLM 呼び出しは呼び出し側（generate-draft.js / content-model）に任せる。
  */
 
+const { classifyRevision, extractSectionHint, RULES } = require('./revision-classifier');
+
 // ── 本文を h2（## ）単位のセクションに分割 ──────────────────────
 // 戻り値: { intro, sections: [{ heading, body, raw }] }
 //   intro: 最初の ## より前の導入部
@@ -136,6 +138,16 @@ function findTargetSectionIndex(sections, sectionHint, type) {
       if (r > bestRatio) { bestRatio = r; bestIdx = i; }
     }
     if (bestIdx >= 0 && bestRatio >= 0.5) return bestIdx;
+
+    // h2 の照合をすべて優先した後、h3 でも同じ 3 段階で親の章を探す。
+    const nested = sections.flatMap((s, sectionIndex) =>
+      [...s.body.matchAll(/^###\s+(.+?)\s*$/gm)].map(m => ({
+        heading: m[1], body: '', sectionIndex,
+      })));
+    if (nested.length) {
+      const nestedIdx = findTargetSectionIndex(nested, sectionHint, '');
+      if (nestedIdx >= 0) return nested[nestedIdx].sectionIndex;
+    }
   }
   // intro_conclusion_fix の「まとめ/結論」系
   if (type === 'intro_conclusion_fix') {
@@ -148,6 +160,55 @@ function findTargetSectionIndex(sections, sectionHint, type) {
     if (idx >= 0) return idx;
   }
   return -1;
+}
+
+function planRevisionSteps(split, sections) {
+  const steps = [], sectionSteps = new Map(), classifications = [];
+  let targeted, title;
+  for (const point of split.points) {
+    let classification = classifyRevision(point.text);
+    const text = point.text.replace(/\s+/g, ' ').trim();
+    if (classification.type === 'full_regenerate' && !classification.denySuppression &&
+        classification.reason === 'コメントが長く広範囲の修正と判断（120文字以上）' &&
+        !RULES.some(rule => rule.patterns.some(pattern => pattern.test(text)))) {
+      // 番号付きの一指摘が具体的で長い場合は、全文を渡して最小修正する。
+      classification = { ...classification, type: 'factual_correction', scope: 'targeted',
+        sectionHint: extractSectionHint(point.text),
+        reason: '指摘が長い（複数の指摘の 1 つなので全文の最小修正）' };
+    }
+    classifications.push({ no: point.no, ...classification });
+    if (classification.type === 'full_regenerate' || classification.denySuppression) {
+      return { fallback: true, reason: `指摘 ${point.no}: ${classification.reason}`, classifications };
+    }
+    let step;
+    if (classification.type === 'title_only') {
+      step = title ||= { kind: 'title', points: [], texts: [], classification };
+    } else if (classification.type === 'add_section') {
+      step = { kind: 'add_section', points: [], texts: [], classification };
+      steps.push(step);
+    } else {
+      const sectionIndex = classification.scope === 'section'
+        ? findTargetSectionIndex(sections, classification.sectionHint, classification.type) : -1;
+      if (sectionIndex >= 0) {
+        if (!sectionSteps.has(sectionIndex)) sectionSteps.set(sectionIndex, {
+          kind: 'section', sectionIndex, heading: sections[sectionIndex].heading,
+          points: [], texts: [], classification,
+        });
+        step = sectionSteps.get(sectionIndex);
+      } else {
+        step = targeted ||= { kind: 'targeted', points: [], texts: [], classification };
+      }
+    }
+    step.points.push(point.no);
+    step.texts.push(point.text);
+  }
+  const ordered = [...sectionSteps.values()].sort((a, b) => a.sectionIndex - b.sectionIndex)
+    .concat(steps, targeted || [], title || []);
+  const notice = '（この段では、次の指摘だけを直します。ほかの指摘は別の段で直すので触れないでください。作業の説明・注記・「変更していません」などの断り書きを本文に書かないでください。）';
+  return { fallback: false, classifications, steps: ordered.map(({ texts, ...step }) => ({
+    ...step,
+    instruction: `${notice}\n${split.preface || ''}\n\n${texts.join('\n\n')}`,
+  })) };
 }
 
 // ── frontmatter の title/summary 等だけ差し替える（title_only）──
@@ -441,6 +502,40 @@ function findInternalProcessWords(body) {
   return { contaminated: words.length > 0, words };
 }
 
+function removeNewInternalNotes(before, after) {
+  const original = String(before || ''), revised = String(after || '');
+  const oldLines = new Set(original.split(/\r?\n/).map(line => line.trim()));
+  const context = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]/;
+  const result = /変更|修正|反映|対応|対象外|触れ|直し|そのまま/;
+  const noteStart = /^(?:※|＊|\*|注[:：]|（※|\(※|【注)/;
+  const removed = [], remainingWords = [], lines = [];
+  let removedGap = false;
+  for (const line of revised.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!oldLines.has(trimmed) && context.test(trimmed) && result.test(trimmed)) {
+      if (noteStart.test(trimmed)) {
+        removed.push(line);
+        removedGap = true;
+        console.warn(`[revise] 作業の注記を除去（${line.length} 文字）: ${trimmed.slice(0, 40)}`);
+        continue;
+      }
+      remainingWords.push(trimmed.match(context)[0]);
+    }
+    if (removedGap && !trimmed && lines.length && !lines[lines.length - 1].trim()) continue;
+    lines.push(line);
+    removedGap = false;
+  }
+  const newline = revised.includes('\r\n') ? '\r\n' : '\n';
+  const body = removed.length ? lines.join(newline) : revised;
+  const count = (text, word) => text.split(word).length - 1;
+  const words = [...new Set([
+    ...INTERNAL_PROCESS_WORDS.filter(word => count(body, word) > count(original, word)),
+    ...remainingWords,
+  ])];
+  if (words.length) console.warn(`[revise] 作業の説明が混入: ${words.join('・')}`);
+  return { body, removed, contaminated: words.length > 0, words };
+}
+
 /**
  * LLM が本文の前に付けた検討過程を取り除く。
  *
@@ -503,6 +598,7 @@ module.exports = {
   splitSections,
   joinSections,
   findTargetSectionIndex,
+  planRevisionSteps,
   applyTitleOnly,
   replaceFmField,
   extractDirectTitleSwap,
@@ -514,6 +610,7 @@ module.exports = {
   buildTargetedPromptRetry,
   isBodyShrinkageSuspicious,
   findInternalProcessWords,
+  removeNewInternalNotes,
   stripAnalysisPreamble,
   INTERNAL_PROCESS_WORDS,
   normalizeForSectionMatch,

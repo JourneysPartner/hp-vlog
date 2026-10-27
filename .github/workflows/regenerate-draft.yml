@@ -45,10 +45,11 @@ jobs:
       - name: Use latest scripts, deps and moderation data from main
         run: |
           git fetch origin main --depth=1
-          git checkout origin/main -- scripts/ package.json package-lock.json \
-            data/banned-phrases.json data/topic-denylist.json \
-            data/curated-source-promotions.json data/nta-sources/ \
-            data/generic-source-pages.json data/nta-tsutatsu/ data/law-sources/
+          # scripts/ が読み込むデータは scripts/ と同じ版でないと動かない（下書きの枝が古いと
+          # 後から足されたデータが無く MODULE_NOT_FOUND になる。2026-10-27 run 40483979382）。
+          # data/ ごと main で上書きし、記事ごとの照合記録 data/fact-check/ だけ枝のものに戻す。
+          git checkout origin/main -- scripts/ package.json package-lock.json data/
+          git checkout HEAD -- data/fact-check/ 2>/dev/null || true
           # git checkout <ref> -- <path> は対象を index にもステージする。
           # そのままだと後段の `git commit` が scripts/ ごと巻き込んでコミットし、
           # ドラフトブランチに main のスクリプト差分が混入する（実際に混入していた）。
@@ -100,6 +101,7 @@ jobs:
           AUX_MODEL: ${{ vars.AUX_MODEL }}
           # 部分再生成の有効/無効
           ENABLE_PARTIAL_REVISE: ${{ vars.ENABLE_PARTIAL_REVISE }}
+          ENABLE_MULTI_POINT_REVISE: ${{ vars.ENABLE_MULTI_POINT_REVISE }}
           # OpenAI は Luna・事実照合に利用
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
