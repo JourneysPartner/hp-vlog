@@ -37,7 +37,7 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "小規模宅地の特例で「居住用」かどうかは、被相続人がその建物に生活の拠点を置いていたかどうかで判定します。仮住まいや特例目的のみの入居は対象外です。"
-review_status: "draft"
+review_status: "skipped"
 review_comment: ""
 approved_at: ""
 publish_at: ""
@@ -45,7 +45,7 @@ published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-09-26T00:08:48.929Z"
-updated_at: "2026-09-26T00:10:55.779Z"
+updated_at: "2026-10-27T18:03:11.905+09:00"
 ---
 「親が亡くなる前に施設に入っていたけれど、実家の土地は小規模宅地の特例を使えるのだろうか」「親の別荘や、建て替え中に仮住まいしていた家はどうなるのか」——相続税の申告を前にして、こうした疑問で手が止まる方は少なくありません。
 
