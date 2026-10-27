@@ -30,6 +30,13 @@ class FakeStore {
   }
 }
 
+// 従来の path/ref の期待値を保ち、追加フィールドも独立に検証する。
+function parsePageviewPayload(raw) {
+  const { event, ...payload } = analytics.parseBeaconPayload(raw);
+  assert.strictEqual(event, null);
+  return payload;
+}
+
 (async () => {
   console.log('\n=== analytics-store ===');
   const dateCases = [
@@ -77,7 +84,7 @@ class FakeStore {
     [{ p: '/contact-thanks/', r: '/contact-thanks/' }, { path: '/contact-thanks.html', ref: null }],
   ];
   for (const [body, expected] of payloadCases) {
-    assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify(body)), expected);
+    assert.deepStrictEqual(parsePageviewPayload(JSON.stringify(body)), expected);
     assert.strictEqual(analytics.parseBeaconBody(JSON.stringify(body)), expected.path);
   }
   for (const path of ['/pricing/', '/area/', '/services/tax-return/', '/services/tax-return', '/blog/x', '/blog/x/']) {
@@ -95,8 +102,67 @@ class FakeStore {
     assert.strictEqual(analytics.parseBeaconBody(raw), null);
   }
   for (const r of ['https://example.com/x', '/random', '/blog/' + 'x'.repeat(128), '/services/../x']) {
-    assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify({ p: '/contact', r })), { path: '/contact.html', ref: null });
+    assert.deepStrictEqual(parsePageviewPayload(JSON.stringify({ p: '/contact', r })), { path: '/contact.html', ref: null });
   }
+
+  let lineCases = 0;
+  function testLine(label, fn) { fn(); lineCases++; console.log(`  ✓ ${label}`); }
+  for (const [body, expected] of [
+    [{ p: '/contact', e: 'line' }, { path: '/contact.html', ref: null, event: 'line' }],
+    [{ p: '/contact', e: 'line', r: '/blog/x/' }, { path: '/contact.html', ref: '/blog/x/', event: 'line' }],
+    [{ p: '/contact/', e: 'line', r: '/about' }, { path: '/contact.html', ref: '/about.html', event: 'line' }],
+    [{ p: '/blog/x/', e: 'line', r: '/about' }, { path: '/blog/x/', ref: null, event: 'line' }],
+    [{ p: '/contact-thanks', e: 'line', r: '/blog/x/' }, { path: '/contact-thanks.html', ref: '/blog/x/', event: 'line' }],
+    [{ p: '/', e: 'line' }, { path: '/', ref: null, event: 'line' }],
+  ]) {
+    testLine(`LINE payload ${JSON.stringify(body)}`, () => {
+      assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify(body)), expected);
+      assert.strictEqual(analytics.parseBeaconBody(JSON.stringify(body)), expected.path);
+    });
+  }
+  for (const e of ['LINE', 'other', '', 1, null, true, {}, ['line']]) {
+    testLine(`LINE event の不正値 ${JSON.stringify(e)} を拒否`, () => {
+      assert.strictEqual(analytics.parseBeaconPayload(JSON.stringify({ p: '/contact', e })), null);
+    });
+  }
+  for (const body of [
+    { p: '/random', e: 'line' }, { p: '/tools/shohizei-simulator/', e: 'line' },
+    { p: '/contact', e: 'line', x: 1 }, { e: 'line' },
+    { p: '/contact', e: 'line', r: 'x'.repeat(1024) },
+  ]) {
+    testLine('LINE でも許可外のパス・キー・大きすぎる本文は拒否', () => {
+      assert.strictEqual(analytics.parseBeaconPayload(JSON.stringify(body)), null);
+    });
+  }
+  for (const r of ['/contact', '/contact-thanks/', '/random', 'https://example.com/x']) {
+    testLine(`LINE 遷移元の既存ガード ${r}`, () => {
+      assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify({ p: '/contact', e: 'line', r })),
+        { path: '/contact.html', ref: null, event: 'line' });
+    });
+  }
+  testLine('従来の閲覧 payload には event: null を返す', () => {
+    assert.deepStrictEqual(analytics.parseBeaconPayload('{"p":"/"}'), { path: '/', ref: null, event: null });
+  });
+  const lineStore = new FakeStore();
+  const lineDate = '2026-10-27';
+  assert.strictEqual(await analytics.incrementLine(lineStore, lineDate, '/blog/x/'), true);
+  lineStore.failUpdates = 1;
+  let lineSleeps = 0;
+  assert.strictEqual(await analytics.incrementLine(lineStore, lineDate, '/blog/x/', { sleep: async () => { lineSleeps++; } }), true);
+  assert.strictEqual(await analytics.incrementLine(lineStore, lineDate, '/contact.html'), true);
+  testLine('LINE は line/ の日別・遷移元別に積み上がり CAS 競合を再試行する', () => {
+    assert.deepStrictEqual(lineStore.values.get(analytics.lineKey(lineDate)),
+      { date: lineDate, total: 3, byFrom: { '/blog/x/': 2, '/contact.html': 1 } });
+    assert.deepStrictEqual([...lineStore.values.keys()], ['line/' + lineDate]);
+    assert.strictEqual(lineSleeps, 1);
+    assert.ok(lineStore.getOptions.every(options => options.consistency !== 'strong'));
+  });
+  lineStore.failUpdates = 3;
+  assert.strictEqual(await analytics.incrementLine(lineStore, lineDate, '/blog/x/', { maxAttempts: 1 }), false);
+  testLine('LINE は再試行切れで false を返し保存済み件数を保つ', () => {
+    assert.strictEqual(lineStore.values.get(analytics.lineKey(lineDate)).total, 3);
+  });
+  console.log(`LINE analytics-store: ${lineCases} cases PASS`);
 
   const store = new FakeStore();
   const date = '2026-07-14';

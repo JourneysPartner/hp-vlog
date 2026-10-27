@@ -30,14 +30,21 @@ function test(label, fn) {
   assert(true, label);
 }
 
+// 従来の path/ref の期待値を残し、新しい event フィールドも確認する。
+function parsePageviewPayload(raw) {
+  const { event, ...payload } = A.parseBeaconPayload(raw);
+  strict.equal(event, null);
+  return payload;
+}
+
 const buildSource = fs.readFileSync(path.join(ROOT, 'scripts/build.js'), 'utf8');
 const beaconLiteral = buildSource.match(/const ANALYTICS_BEACON = (`[\s\S]*?`);/);
 strict.ok(beaconLiteral, 'build.js の実際のビーコン文字列を使う');
 const beaconScript = vm.runInNewContext(beaconLiteral[1]).match(/<script>([\s\S]*?)<\/script>/)[1];
 
 function runBeacon({ pathname = '/contact', referrer = '', storage = new Map(), brokenStorage = false,
-  hostname = 'mori-zeirishi.net', doNotTrack = '0', beaconAccepted = true } = {}) {
-  const calls = [], fetches = [];
+  hostname = 'mori-zeirishi.net', doNotTrack = '0', beaconAccepted = true, beaconThrows = false, fetchThrows = false } = {}) {
+  const calls = [], fetches = [], listeners = [];
   const sessionStorage = Object.fromEntries(['getItem', 'setItem', 'removeItem'].map(method => [method, (key, value) => {
     if (brokenStorage) throw new Error('storage unavailable');
     if (method === 'getItem') return storage.get(key) || null;
@@ -45,15 +52,27 @@ function runBeacon({ pathname = '/contact', referrer = '', storage = new Map(), 
     else storage.delete(key);
   }]));
   vm.runInNewContext(beaconScript, {
-    location: { pathname, hostname }, document: { referrer }, URL, sessionStorage,
+    location: { pathname, hostname }, document: { referrer, addEventListener: (type, fn) => { listeners.push({ type, fn }); } }, URL, sessionStorage,
     navigator: { doNotTrack, sendBeacon: (url, raw) => {
       calls.push({ url, raw, storedAtSend: storage.get('mz_contact_from') });
+      if (beaconThrows) throw new Error('beacon unavailable');
       return beaconAccepted;
     } },
-    fetch: (url, options) => { fetches.push({ url, ...options }); return Promise.resolve(); },
+    fetch: (url, options) => {
+      fetches.push({ url, ...options });
+      if (fetchThrows) throw new Error('fetch unavailable');
+      return Promise.resolve();
+    },
   });
   const body = calls.length ? JSON.parse(calls[0].raw) : null;
-  return { calls, fetches, body, storage };
+  const click = target => {
+    let prevented = false;
+    for (const listener of listeners.filter(item => item.type === 'click')) {
+      listener.fn({ target, preventDefault: () => { prevented = true; } });
+    }
+    return prevented;
+  };
+  return { calls, fetches, body, storage, listeners, click };
 }
 
 // Netlify Blobs の最小モック（onlyIfNew / onlyIfMatch を再現）
@@ -184,7 +203,7 @@ function makeStore() {
       strict.deepEqual(r.body, { p: pathname, r: '/blog/x/' });
       strict.equal(r.storage.get('mz_contact_from'), '/blog/x/');
       strict.equal(r.calls[0].url, '/track');
-      strict.deepEqual(A.parseBeaconPayload(r.calls[0].raw), { path: '/contact.html', ref: '/blog/x/' });
+      strict.deepEqual(parsePageviewPayload(r.calls[0].raw), { path: '/contact.html', ref: '/blog/x/' });
     });
   }
   for (const ref of ['/contact', '/contact.html', '/contact/', '/contact-thanks', '/contact-thanks.html', '/contact-thanks/']) {
@@ -209,7 +228,7 @@ function makeStore() {
       strict.deepEqual(r.body, { p: pathname, r: '/blog/x/' });
       strict.equal(r.calls[0].storedAtSend, '/blog/x/');
       strict.ok(!storage.has('mz_contact_from'));
-      strict.deepEqual(A.parseBeaconPayload(r.calls[0].raw), { path: '/contact-thanks.html', ref: '/blog/x/' });
+      strict.deepEqual(parsePageviewPayload(r.calls[0].raw), { path: '/contact-thanks.html', ref: '/blog/x/' });
       strict.deepEqual(runBeacon({ pathname, storage }).body, { p: pathname });
     });
   }
@@ -227,7 +246,7 @@ function makeStore() {
       ['/contact-thanks', '/services/ebay-export/', '/services/ebay-export/']]) {
       const r = runBeacon({ pathname, referrer: 'https://mori-zeirishi.net' + from,
         storage: new Map([['mz_contact_from', from]]) });
-      strict.deepEqual(A.parseBeaconPayload(r.calls[0].raw), { path: pathname + '.html', ref: expected });
+      strict.deepEqual(parsePageviewPayload(r.calls[0].raw), { path: pathname + '.html', ref: expected });
     }
   });
   test('本番以外・Do Not Track では送信もストレージ変更もしない', () => {
@@ -242,6 +261,83 @@ function makeStore() {
     const r = runBeacon({ pathname: '/contact-thanks', storage: new Map([['mz_contact_from', '/blog/x/']]), beaconAccepted: false });
     strict.deepEqual(r.fetches, [{ url: '/track', method: 'POST', body: r.calls[0].raw, keepalive: true, credentials: 'same-origin' }]);
     strict.ok(!r.storage.has('mz_contact_from'));
+  });
+
+  console.log('\n=== LINE ビーコンと生成ページ ===');
+  const lineLink = { tagName: 'A', dataset: { track: 'line' } };
+  const lineChild = { tagName: 'SPAN', className: 'btn-line', closest: selector => {
+    strict.equal(selector, 'a[data-track="line"]');
+    return lineLink;
+  } };
+  for (const pathname of ['/contact', '/contact.html', '/contact/']) {
+    test(`${pathname}: LINE 内の span のクリックで保存済み遷移元を送る`, () => {
+      const r = runBeacon({ pathname, referrer: 'https://mori-zeirishi.net/contact', storage: new Map([['mz_contact_from', '/blog/x/']]) });
+      strict.deepEqual(r.body, { p: pathname });
+      strict.equal(r.listeners.length, 1);
+      strict.equal(r.listeners[0].type, 'click');
+      strict.equal(r.click(lineChild), false, 'リンクの既定動作を止めない');
+      strict.equal(r.calls.length, 2);
+      strict.deepEqual(JSON.parse(r.calls[1].raw), { p: pathname, e: 'line', r: '/blog/x/' });
+      strict.equal(r.calls[1].url, '/track');
+      strict.equal(r.storage.get('mz_contact_from'), '/blog/x/');
+    });
+  }
+  test('直接訪問の LINE クリックは r なしで送る', () => {
+    const r = runBeacon({ storage: new Map([['mz_contact_from', '/blog/stale/']]) });
+    strict.equal(r.click(lineChild), false);
+    strict.deepEqual(JSON.parse(r.calls[1].raw), { p: '/contact', e: 'line' });
+  });
+  test('読み込み後に保存した遷移元をクリック時に取得する', () => {
+    const r = runBeacon();
+    r.storage.set('mz_contact_from', '/blog/new/');
+    r.click(lineChild);
+    strict.deepEqual(JSON.parse(r.calls[1].raw), { p: '/contact', e: 'line', r: '/blog/new/' });
+  });
+  test('sessionStorage が例外でも LINE は r なしで送る', () => {
+    const r = runBeacon({ brokenStorage: true, referrer: 'https://mori-zeirishi.net/blog/x/' });
+    strict.equal(r.click(lineChild), false);
+    strict.deepEqual(JSON.parse(r.calls[1].raw), { p: '/contact', e: 'line' });
+  });
+  test('問い合わせ以外のページの LINE も計測する', () => {
+    const r = runBeacon({ pathname: '/blog/x/', storage: new Map([['mz_contact_from', '/about.html']]) });
+    r.click(lineChild);
+    strict.deepEqual(JSON.parse(r.calls[1].raw), { p: '/blog/x/', e: 'line' });
+  });
+  test('対象外リンク・非リンク・closest がない対象では送らず既定動作を保つ', () => {
+    const r = runBeacon();
+    for (const target of [null, undefined, {}, { closest: 1 }, { nodeType: 3 },
+      { tagName: 'A', closest: () => null }, { tagName: 'DIV', closest: () => null }]) {
+      strict.equal(r.click(target), false);
+    }
+    strict.equal(r.calls.length, 1);
+    strict.equal(r.fetches.length, 0);
+  });
+  for (const options of [{ hostname: 'preview.netlify.app' }, { doNotTrack: '1' }]) {
+    test(`LINE でも本番・DNT 判定を守る ${JSON.stringify(options)}`, () => {
+      const r = runBeacon(options);
+      strict.equal(r.click(lineChild), false);
+      strict.equal(r.calls.length + r.fetches.length, 0);
+      strict.equal(r.listeners.length, 0);
+    });
+  }
+  for (const options of [{ beaconAccepted: false }, { beaconThrows: true }, { beaconThrows: true, fetchThrows: true }]) {
+    test(`LINE の送信失敗は keepalive にフォールバックし移動を止めない ${JSON.stringify(options)}`, () => {
+      const r = runBeacon(options);
+      strict.equal(r.click(lineChild), false);
+      strict.deepEqual(r.fetches[1], { url: '/track', method: 'POST', body: r.calls[1].raw, keepalive: true, credentials: 'same-origin' });
+      strict.deepEqual(JSON.parse(r.fetches[1].body), { p: '/contact', e: 'line' });
+    });
+  }
+  test('生成 contact.html に枠全体の LINE リンクがあり入れ子や仮リンクがない', () => {
+    const html = fs.readFileSync(path.join(ROOT, 'contact.html'), 'utf8');
+    const match = html.match(/<a class="line-cta-box"([^>]*)>([\s\S]*?)<\/a>/);
+    strict.ok(match, 'npm run build で生成したページを確認する');
+    strict.ok(match[1].includes('href="https://lin.ee/u1IDDuS"'));
+    strict.ok(match[1].includes('data-track="line"'));
+    strict.ok(!/\b(?:target|rel)=/.test(match[1]));
+    strict.ok(match[2].includes('<span class="btn-line">LINEで相談する</span>'));
+    strict.ok(!match[2].includes('<a'));
+    strict.ok(!/href=["']#["']/.test(html));
   });
 
   console.log('\n=== 6. 管理APIの送信完了集計 ===');
@@ -264,6 +360,13 @@ function makeStore() {
         [`transitions/${today}`, { byFrom: { '/blog/x/': 7 } }],
         [`daily/${today}`, { pageviews: 8, byPath: { '/contact.html': 5, '/contact-thanks.html': 3 } }],
         [`daily/${yesterday}`, { pageviews: 4, byPath: { '/about.html': 4 } }],
+        [`line/${today}`, { byFrom: { '/blog/x/': 2, '/contact.html': 1, '/bad': -1, '/fraction': 1.5, '/zero': 0, '/string': '3' } }],
+        [`line/${yesterday}`, { byFrom: { '/blog/x/': 3 } }],
+        [`line/${A.dateOffset(today, -10)}`, { byFrom: { '/blog/middle/': 2 } }],
+        [`line/${older}`, { byFrom: { '/blog/old/': 4 } }],
+        [`line/${oldest}`, { byFrom: { '/blog/boundary/': 6 } }],
+        [`line/${outside}`, { byFrom: { '/outside-range': 99 } }],
+        [`line/${A.dateOffset(today, -2)}`, { byFrom: null }],
       ]);
       const store = { get: async key => records.get(key) || null, async *list() { yield { blobs: [] }; } };
       const event = { httpMethod: 'GET', headers: { authorization: 'Basic ' + Buffer.from('analytics-test:analytics-test-pass').toString('base64') } };
@@ -292,12 +395,37 @@ function makeStore() {
         strict.deepEqual(data.contactFrom, { '/blog/x/': 7 });
         strict.equal(data.summaries.today.pageviews, 8);
       });
+      test('日別と90日合計に LINE の遷移元を含み、欠測・null は空になる', () => {
+        strict.deepEqual(data.lineFrom, { '/blog/x/': 5, '/contact.html': 1, '/blog/middle/': 2, '/blog/old/': 4, '/blog/boundary/': 6 });
+        strict.deepEqual(data.daily.at(-1).lineFrom, records.get(`line/${today}`).byFrom);
+        strict.deepEqual(data.daily.at(-2).lineFrom, { '/blog/x/': 3 });
+        strict.deepEqual(data.daily.at(-3).lineFrom, {});
+        strict.deepEqual(data.daily.at(-4).lineFrom, {});
+        strict.ok(!Object.hasOwn(data.lineFrom, '/outside-range'));
+        strict.equal(Object.values(data.lineFrom).reduce((sum, count) => sum + count, 0), 18);
+      });
+      const withoutLineResponse = await handler(event, { getStoreFn: () => ({
+        ...store, get: async key => key.startsWith('line/') ? null : store.get(key),
+      }) });
+      test('LINE の有無で管理APIの既存フィールドを一切変えない', () => {
+        const legacyFields = input => {
+          const { lineFrom, ...rest } = input;
+          rest.daily = rest.daily.map(({ lineFrom, ...row }) => row);
+          return rest;
+        };
+        const withoutLine = JSON.parse(withoutLineResponse.body);
+        strict.deepEqual(legacyFields(data), legacyFields(withoutLine));
+        strict.deepEqual(withoutLine.lineFrom, {});
+        strict.ok(withoutLine.daily.every(row => Object.keys(row.lineFrom).length === 0));
+      });
       const unauthorized = await handler({ httpMethod: 'GET', headers: {} }, { getStoreFn: () => { throw new Error('auth bypassed'); } });
       assert(unauthorized.statusCode === 401, '注入ストアでも管理APIの認証は必須');
 
       const page = await require(path.join(ROOT, 'netlify/functions/admin-analytics-page')).handler(event);
       strict.ok(page.body.includes('送信完了につながったページ'));
       strict.ok(page.body.includes('選択中の期間に、このページを見たあと問い合わせを送った回数です（同じ画面の中で続けて見た場合だけ数えます）。'));
+      strict.ok(page.body.includes('LINE 相談につながったページ'));
+      strict.ok(page.body.includes('同じ人が 1 分以内に続けて押した分は 1 回と数えます。友だち追加まで進んだかは、LINE 公式アカウントの管理画面で確かめてください。'));
       const elements = new Map();
       const element = id => {
         if (!elements.has(id)) elements.set(id, { innerHTML: '', addEventListener: (name, fn) => { elements.get(id)[name] = fn; } });
@@ -307,7 +435,9 @@ function makeStore() {
       for (let i = 0; i < 11; i++) uiData.daily.at(-1).submittedFrom[`/blog/top-${i}/`] = 10 + i;
       vm.runInNewContext(page.body.match(/<script>([\s\S]*?)<\/script>/)[1], {
         document: { getElementById: element, querySelectorAll: () => [] },
-        fetch: async url => ({ ok: true, json: async () => url.includes('/api/') ? uiData : { '/blog/top-10/': '<記事名>' } }),
+        fetch: async url => ({ ok: true, json: async () => url.includes('/api/') ? uiData : {
+          '/blog/top-10/': '<記事名>', '/blog/x/': '<LINE記事>', '/contact.html': 'お問い合わせ',
+        } }),
       });
       await new Promise(resolve => setImmediate(resolve));
       test('管理画面は名称をエスケープし上位10件と選択期間を表示する', () => {
@@ -320,6 +450,28 @@ function makeStore() {
         const initialChart = element('chart').innerHTML;
         element('period').click({ target: { tagName: 'BUTTON', dataset: { days: '90' } } });
         strict.notEqual(element('chart').innerHTML, initialChart);
+      });
+      test('LINE 一覧と合計が7・30・90日の選択に追従し不正な件数を含めない', () => {
+        for (const [days, total] of [[7, 6], [30, 8], [90, 18]]) {
+          element('period').click({ target: { tagName: 'BUTTON', dataset: { days: String(days) } } });
+          strict.equal(element('line-total').innerHTML, `合計 ${total} 回`);
+          const html = element('line-from').innerHTML;
+          strict.ok(html.includes('&lt;LINE記事&gt;'));
+          strict.ok(!html.includes('<LINE記事>'));
+          strict.ok(html.includes('お問い合わせ'));
+          strict.equal(html.includes('/blog/old/'), days === 90);
+          strict.equal(html.includes('/blog/middle/'), days >= 30);
+          strict.ok(!html.includes('/bad') && !html.includes('/fraction') && !html.includes('/string') && !html.includes('/zero'));
+        }
+      });
+      test('LINE のパスもエスケープし、データなしでは合計0回を出す', () => {
+        uiData.daily.at(-1).lineFrom['/blog/<line>/'] = 1;
+        element('period').click({ target: { tagName: 'BUTTON', dataset: { days: '7' } } });
+        strict.ok(element('line-from').innerHTML.includes('/blog/&lt;line&gt;/'));
+        for (const row of uiData.daily) delete row.lineFrom;
+        element('period').click({ target: { tagName: 'BUTTON', dataset: { days: '30' } } });
+        strict.equal(element('line-total').innerHTML, '合計 0 回');
+        strict.equal(element('line-from').innerHTML, '<li>まだデータがありません。</li>');
       });
     } finally {
       for (const [key, value] of [['ADMIN_BASIC_USER', previous.user], ['ADMIN_BASIC_PASS', previous.pass]]) {
