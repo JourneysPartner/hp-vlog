@@ -317,7 +317,7 @@ function quoteSupportsNumbers(numbers, result, ref, claim = null, sumSupport) {
 
 /** 一つの引用位置の範囲だけで、文にも現れる金額を使った二項の合計を確かめる。 */
 function sumNumberSupport(numbers, quoted, claim, window) {
-  if (claim?.type !== '金額' || /[×✕＊*]|倍|につき|当たり|あたり|乗じ|乗ず|掛け/.test(window)) return [];
+  if (claim?.type !== '金額' || /[×✕＊*÷]|倍|につき|当たり|あたり|乗じ|乗ず|掛け|乗算|[0-9〇一二三四五六七八九十百千]分の[0-9〇一二三四五六七八九十百千]|[0-9][\/／][0-9]/.test(window)) return [];
   const amount = n => typeof n === 'string' && /^\d+(?:\.\d+)?$/.test(n) && Number(n) >= 10000;
   const positions = [], forms = [];
   const sentence = normalizedNumbers(normalizedNumberText(claim.sentence, positions), undefined, forms);
@@ -1014,13 +1014,18 @@ function supportNumbersFromSiblings(claims) {
     if (numbers.length !== sentenceNumbers.size || numbers.some(no => !sentenceNumbers.has(no))) return c;
     const remainder = summary.replace(citation, '').replace(/国税庁|タックスアンサー/g, '');
     if (/[0-9〇零一二三四五六七八九十百千万億兆壱壹弐貳参參肆伍陸漆柒捌玖拾佰仟萬阡]/.test(remainder)) return c;
+    const relevance = ref => require('./article-plan').relevantMaterial(c.subject, ref, (ref.text || '').split('関連リンク')[0]).condition;
+    const relatedTaxAnswers = (c.evidence || []).filter(ref => ref.kind === 'taxanswer' && [1, 3].includes(relevance(ref)));
     const matches = numbers.map(no => {
       for (const sibling of claims) {
         if (sibling === c || sibling.sentence !== c.sentence || sibling.type === '番号' || sibling.status !== '裏付けあり' ||
             subject(sibling.subject) !== subject(c.subject) || sibling.evidence_outside_candidates === true) continue;
         const ref = (sibling.evidence || []).find(e => e.id === sibling.evidence_id && e.kind === 'taxanswer' && normalizedQuote(e.no) === no &&
           (c.evidence || []).some(candidate => candidate.id === e.id));
-        if (ref && [1, 3].includes(require('./article-plan').relevantMaterial(c.subject, ref, (ref.text || '').split('関連リンク')[0]).condition)) return { sibling, ref };
+        if (ref) {
+          const condition = relevance(ref);
+          if (condition === 1 || (condition === 3 && relatedTaxAnswers.length === 1 && relatedTaxAnswers[0].id === ref.id)) return { sibling, ref };
+        }
       }
       return null;
     });
