@@ -4,6 +4,7 @@ const fs   = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
+const { normalizeBold } = require('./lib/cjk-bold');
 const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
 const { linkTerms, readInternalLinkTerms } = require('./lib/internal-linker');
 const { createHeadingState, applyHeadingIdRenderer, buildTocHtml } = require('./lib/heading-anchors');
@@ -820,7 +821,7 @@ function buildSourcesHtml(post) {
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
   headingState.reset();
-  const withTerms = linkTerms(post._body, {
+  const withTerms = linkTerms(normalizeBold(post._body), {
     terms: internalLinkTerms,
     post,
     postsMap,
