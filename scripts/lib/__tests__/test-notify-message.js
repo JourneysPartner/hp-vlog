@@ -136,5 +136,32 @@ console.log('=== 公開記事の更新案通知 ===');
   'refresh_published は題名・記事URL・理由を含む');
 }
 
+console.log('');
+console.log('=== 税シミュレーターのマスター鮮度通知 ===');
+{
+  const summary = '出典の改訂: 3 件（出典 2 枚）\n\n■ 改訂された出典\n・出典A（2 件）\n・出典B（1 件）';
+  const prUrl = 'https://github.com/example/repo/actions/runs/123';
+  const m = buildMessage('master_freshness', { title: 'マスター鮮度チェック', summary, prUrl });
+  assert(m.subject === '【税シミュレーター】マスターの確認が必要です', 'マスター鮮度通知の件名が指定どおり');
+  assert(m.body === [
+    '税シミュレーターのマスター鮮度チェックで、確認が必要な項目が見つかりました。',
+    '', summary, '', `▶ 実行結果（全文）: ${prUrl}`, '',
+    'マスターの値はまだ変更していません。出典の原文を読み、見直しが要るか確認してください。',
+  ].join('\n'), '指定の本文・要約・実行結果URLが順に入る');
+  assert(!m.body.includes('\n\n\n'), '要約とURLがあるとき空行が2つ続かない');
+
+  const noUrl = buildMessage('master_freshness', { summary });
+  assert(noUrl.body.includes(summary) && !noUrl.body.includes('▶ 実行結果（全文）:'),
+    'URLが無ければ要約を残し、URLの行を出さない');
+  assert(!noUrl.body.includes('\n\n\n'), 'URLが無くても空行が2つ続かない');
+
+  const noSummary = buildMessage('master_freshness', { prUrl });
+  assert(noSummary.body.includes(prUrl) && !noSummary.body.includes('\n\n\n'),
+    '要約が無くてもURLを残し、空行が2つ続かない');
+  const bare = buildMessage('master_freshness', {});
+  assert(!bare.body.includes('undefined') && !bare.body.includes('\n\n\n'),
+    '任意項目が無くても本文と空行が壊れない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

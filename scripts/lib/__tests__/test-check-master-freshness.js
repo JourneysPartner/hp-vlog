@@ -24,6 +24,9 @@ const {
   targetPeriods,
   nextPeriods,
   inNoticeWindow,
+  check,
+  buildReport,
+  buildNotifySummary,
 } = require(path.join(__dirname, '..', '..', 'check-master-freshness.js'));
 
 let passed = 0, failed = 0;
@@ -298,6 +301,114 @@ console.log('\n=== Test 7: 架空データでの出典照合 ===');
     '欠落した出典TA-Cだけを1件報告する');
   } catch (error) {
     assert(false, `試験7の子プロセス実行: ${error.message.split(/\r?\n/)[0]}`);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+// ── 8. 通知用の要約 ────────────────────────────────────────────
+console.log('\n=== Test 8: 通知用の要約 ===');
+{
+  const result = (findings = {}) => ({ findings: {
+    hashMismatch: [], coverageGap: [], coverageUpcoming: [], sourceMissing: [],
+    sourceUnknown: [], hashUntracked: [], blocked: [], notApproved: [],
+    ...findings,
+  } });
+  const revised = (sid, label, count = 1) => Array.from({ length: count }, (_, i) => ({
+    source_document_id: sid, label, record_id: `${sid}-${i}`,
+  }));
+  const sample = result({
+    hashMismatch: [...revised('B', '出典B', 3), ...revised('C', '出典C'), ...revised('A', '出典A')],
+    coverageGap: [{ label: '期間の出典', period: '2026年', state: 'blocked のみ' }],
+    coverageUpcoming: [{}], sourceMissing: [{ label: '取得できない出典' }],
+    sourceUnknown: [{}], hashUntracked: [{}], blocked: [{}], notApproved: [{}, {}],
+  });
+  const summary = buildNotifySummary(sample);
+  assert(summary.split('\n\n')[0] === [
+    '出典の改訂: 5 件（出典 3 枚）', '対象期間のレコード無し: 1 件',
+    '次の期間が未登録（予告）: 1 件', '出典が取得できない: 1 件',
+    '台帳に無い出典: 1 件', 'source_hash 未記録: 1 件',
+    '確認待ち(blocked): 1 件', '未承認: 2 件',
+  ].join('\n'), '8種類の件数が指定の順番と文面で出る');
+  assert(summary.split('\n\n')[1] === '■ 改訂された出典\n・出典B（3 件）\n・出典A（1 件）\n・出典C（1 件）',
+    '同じ出典をまとめ、件数の降順・同数はラベルの順に並べる');
+  assert(summary.split('\n\n')[2] === '■ 対象期間のレコード無し\n・期間の出典: 2026年（blocked のみ）',
+    '対象期間の内訳にラベル・期間・状態を出す');
+  assert(summary.split('\n\n')[3] === '■ 出典が取得できない\n・取得できない出典',
+    '取得できない出典の内訳を最後に出す');
+
+  const single = buildNotifySummary(result({ hashMismatch: revised('A', '出典A') }));
+  assert(single === '出典の改訂: 1 件（出典 1 枚）\n\n■ 改訂された出典\n・出典A（1 件）',
+    '0件の件数行や内訳の見出しは出さない');
+  assert(buildNotifySummary(result()) === '', 'すべて0件なら空文字を返す');
+  const sameLabel = buildNotifySummary(result({
+    hashMismatch: [...revised('A', '同じラベル'), ...revised('B', '同じラベル')],
+  }));
+  assert(sameLabel.startsWith('出典の改訂: 2 件（出典 2 枚）'),
+    '同じラベルでも source_document_id が異なれば別の出典として数える');
+
+  const manySources = Array.from({ length: 18 }, (_, i) => revised(`S${i}`, `出典${String(i).padStart(2, '0')}`)).flat();
+  const capped = buildNotifySummary(result({ hashMismatch: manySources }));
+  assert(capped.split('\n').filter(line => /^・出典/.test(line)).length === 15
+    && capped.endsWith('・ほか 3 枚') && !capped.includes('・出典15'),
+  '出典18枚は15行と残り3枚にまとめる');
+
+  const gaps = Array.from({ length: 12 }, (_, i) => ({ label: `期間${i}`, period: '2026年', state: 'レコード無し' }));
+  const missing = Array.from({ length: 11 }, (_, i) => ({ label: `欠落${i}` }));
+  const cappedDetails = buildNotifySummary(result({ coverageGap: gaps, sourceMissing: missing })).split('\n\n');
+  assert(cappedDetails[1].split('\n').filter(line => /^・期間/.test(line)).length === 10
+    && cappedDetails[1].endsWith('・ほか 2 件') && !cappedDetails[1].includes('・期間10:'),
+  '対象期間の内訳は10行と残り件数にまとめる');
+  assert(cappedDetails[2].split('\n').filter(line => /^・欠落/.test(line)).length === 10
+    && cappedDetails[2].endsWith('・ほか 1 件') && !cappedDetails[2].includes('・欠落10'),
+  '取得できない出典の内訳は10行と残り件数にまとめる');
+
+  const longSources = manySources.map(item => ({ ...item, label: item.label + '長い名称'.repeat(40) }));
+  const truncated = buildNotifySummary(result({ hashMismatch: longSources }));
+  const suffix = '（以下略。全文は実行結果を参照）';
+  assert(truncated.length <= 1500 && truncated.endsWith(`\n${suffix}`),
+    '長い要約は接尾辞を含め1500文字以内に収める');
+  assert(truncated.split('\n').slice(0, -1).filter(line => line.startsWith('・'))
+    .every(line => longSources.some(item => line === `・${item.label}（1 件）`)),
+  '長さで切る場合も出典の行の途中で切らない');
+  const boundary = result({ hashMismatch: revised('A', 'A'.repeat(1500 - (single.length - '出典A'.length))) });
+  const exact = buildNotifySummary(boundary);
+  assert(exact.length === 1500 && !exact.includes(suffix), 'ちょうど1500文字の要約は省略しない');
+  boundary.findings.hashMismatch[0].label += 'A';
+  assert(buildNotifySummary(boundary).endsWith(suffix), '1501文字から行単位の省略を行う');
+
+  const real = check('2026-10-27');
+  const realSummary = buildNotifySummary(real);
+  assert(realSummary.length <= 1500 && /^出典の改訂: /m.test(realSummary),
+    '実データにも出典の改訂行があり、1500文字以内');
+  console.log(`  - 参考: ${realSummary.split('\n')[0]} / ${realSummary.length} 文字`);
+
+  // コマンド全体で既存の出力順と全文を保ち、要約だけを末尾に追加する。
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'master-notify-output-'));
+  try {
+    const outputFile = path.join(tmp, 'github-output.txt');
+    const cli = spawnSync(process.execPath, [
+      path.join(__dirname, '..', '..', 'check-master-freshness.js'), '--as-of', '2026-10-27', '--json',
+    ], { env: { ...process.env, GITHUB_OUTPUT: outputFile }, encoding: 'utf8' });
+    if (cli.error) throw cli.error;
+    assert(cli.status === (real.findings.sourceMissing.length > 0 ? 1 : 0),
+      '要約の出力を追加してもコマンドの終了条件を変えない');
+    const f = real.findings;
+    const expected = [
+      `needs_attention=${f.hashMismatch.length + f.coverageGap.length + f.coverageUpcoming.length
+        + f.sourceMissing.length + f.sourceUnknown.length + f.hashUntracked.length}`,
+      `hash_mismatch=${f.hashMismatch.length}`, `coverage_gap=${f.coverageGap.length}`,
+      `coverage_upcoming=${f.coverageUpcoming.length}`, `blocked=${f.blocked.length}`,
+      `not_approved=${f.notApproved.length}`,
+      ...['hojinnari', 'shohizei', 'sozoku', 'yakuin_hoshu'].map(name =>
+        `gate_${name}=${real.simulatorGates[name].publishable ? 'pass' : 'stop'}`),
+      `report<<REPORT_EOF\n${buildReport(real)}\nREPORT_EOF`,
+      `notify_summary<<NOTIFY_EOF\n${realSummary}\nNOTIFY_EOF`, '',
+    ].join('\n');
+    assert(fs.readFileSync(outputFile, 'utf8') === expected,
+      '既存の出力項目・順番・全文を保ち、notify_summaryを所定の区切りで末尾に追加する');
+  } catch (error) {
+    assert(false, `試験8のGITHUB_OUTPUT子プロセス実行: ${error.message.split(/\r?\n/)[0]}`);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

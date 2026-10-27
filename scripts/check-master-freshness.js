@@ -353,6 +353,68 @@ function check(asOf) {
   };
 }
 
+// 通知では件数と出典ごとの内訳を短く示し、全文は既存レポートに任せる。
+function buildNotifySummary(result) {
+  const f = result.findings;
+  const lines = [];
+  const revisedSources = new Map();
+  for (const item of f.hashMismatch) {
+    const sid = item.source_document_id;
+    if (!revisedSources.has(sid)) revisedSources.set(sid, { label: item.label, count: 0 });
+    revisedSources.get(sid).count++;
+  }
+
+  if (f.hashMismatch.length > 0) {
+    lines.push(`出典の改訂: ${f.hashMismatch.length} 件（出典 ${revisedSources.size} 枚）`);
+  }
+  for (const [key, label] of [
+    ['coverageGap', '対象期間のレコード無し'],
+    ['coverageUpcoming', '次の期間が未登録（予告）'],
+    ['sourceMissing', '出典が取得できない'],
+    ['sourceUnknown', '台帳に無い出典'],
+    ['hashUntracked', 'source_hash 未記録'],
+    ['blocked', '確認待ち(blocked)'],
+    ['notApproved', '未承認'],
+  ]) {
+    if (f[key].length > 0) lines.push(`${label}: ${f[key].length} 件`);
+  }
+  if (lines.length === 0) return '';
+
+  if (revisedSources.size > 0) {
+    const sources = [...revisedSources.values()]
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'ja'));
+    lines.push('', '■ 改訂された出典');
+    for (const source of sources.slice(0, 15)) lines.push(`・${source.label}（${source.count} 件）`);
+    if (sources.length > 15) lines.push(`・ほか ${sources.length - 15} 枚`);
+  }
+  if (f.coverageGap.length > 0) {
+    lines.push('', '■ 対象期間のレコード無し');
+    for (const item of f.coverageGap.slice(0, 10)) {
+      lines.push(`・${item.label}: ${item.period}（${item.state}）`);
+    }
+    if (f.coverageGap.length > 10) lines.push(`・ほか ${f.coverageGap.length - 10} 件`);
+  }
+  if (f.sourceMissing.length > 0) {
+    lines.push('', '■ 出典が取得できない');
+    for (const item of f.sourceMissing.slice(0, 10)) lines.push(`・${item.label}`);
+    if (f.sourceMissing.length > 10) lines.push(`・ほか ${f.sourceMissing.length - 10} 件`);
+  }
+
+  const summary = lines.join('\n');
+  if (summary.length <= 1500) return summary;
+
+  const suffix = '（以下略。全文は実行結果を参照）';
+  const kept = [];
+  let length = 0;
+  for (const line of lines) {
+    // 接尾辞の前の改行も含め、行の途中では切らない。
+    if (length + line.length + 1 + suffix.length > 1500) break;
+    kept.push(line);
+    length += line.length + 1;
+  }
+  return `${kept.join('\n').trimEnd()}\n${suffix}`;
+}
+
 // ── レポート ──────────────────────────────────────────────────
 function buildReport(result) {
   const { findings: f, asOf, periods } = result;
@@ -502,6 +564,7 @@ function main() {
       );
     }
     fs.appendFileSync(ghOut, `report<<REPORT_EOF\n${report}\nREPORT_EOF\n`);
+    fs.appendFileSync(ghOut, `notify_summary<<NOTIFY_EOF\n${buildNotifySummary(result)}\nNOTIFY_EOF\n`);
   }
 
   // 引数なしの --gate は互換性のため従来どおり全レコードを一括判定する。
@@ -539,7 +602,7 @@ function main() {
 }
 
 module.exports = {
-  check, buildReport, collectRecords, coversPeriod,
+  check, buildReport, buildNotifySummary, collectRecords, coversPeriod,
   targetPeriods, nextPeriods, inNoticeWindow,
 };
 
