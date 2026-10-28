@@ -610,7 +610,7 @@ for (const no of ['4503', '4508']) test('H2', `関連するタックスアンサ
 test('H2', 'c35 の候補で関連するタックスアンサーは4508だけなので補完できる', () => {
   const relevantMaterial = require('../article-plan').relevantMaterial;
   const related = c35.evidence.filter(ref => ref.kind === 'taxanswer' &&
-    [1, 3].includes(relevantMaterial(c35.subject, ref, ref.text.split('関連リンク')[0]).condition));
+    relevantMaterial(c35.subject, ref, ref.text.split('関連リンク')[0]).condition > 0);
   assert.deepEqual(related.map(ref => ref.no), ['4508']);
   assert.equal(siblings()[0].status, '裏付けあり');
 });
@@ -631,10 +631,17 @@ test('H2', '条件1は他の関連候補があっても採り、条件3は他の
   assert.equal(result.status, '裏付けあり');
   assert.equal(result.evidence_id, exact.id);
 });
-test('H2', '一意に関連する候補が別の資料なら、その兄弟資料を採らない', () => {
+test('J2', '一意に関連する候補が別の資料なら、IDの照合で兄弟資料を採らない', () => {
   const ref4503 = require('../writer-materials').resolveMaterial('ta:4503');
-  const candidate4508 = { ...ref4508, text: c35.subject + 'について説明します。' };
+  const candidate4508 = { ...ref4508, title: '別の題名', text: '関係のない説明。' };
   const input = { ...c35, evidence: [candidate4508, ref4503] };
+  const relevance = ref => require('../article-plan').relevantMaterial(c35.subject, ref, ref.text.split('関連リンク')[0]).condition;
+  assert.equal(relevance(candidate4508), 0);
+  const related = input.evidence.filter(ref => ref.kind === 'taxanswer' && relevance(ref) > 0);
+  assert.deepEqual(related.map(ref => ref.id), [ref4503.id]);
+  assert.equal(relevance(related[0]), 3);
+  assert.equal(relevance(ref4508), 3);
+  assert.notEqual(related[0].id, ref4508.id);
   assert.deepEqual(F.supportNumbersFromSiblings([input, c45])[0], input);
 });
 
@@ -669,6 +676,23 @@ test('I1', 'c35は条件2を含めても関連するタックスアンサーが4
   assert.equal(result.number_from_sibling.id, 'c45');
 });
 
+test('J1', '同じIDでも番号側の資料が条件2・兄弟側が条件3なら補完しない', () => {
+  const candidate = { ...ref4508, text: c35.subject + 'について説明します。' };
+  const input = { ...c35, evidence: [candidate] };
+  const relevantMaterial = require('../article-plan').relevantMaterial;
+  assert.equal(candidate.id, c45.evidence_id);
+  assert.equal(relevantMaterial(c35.subject, candidate, candidate.text.split('関連リンク')[0]).condition, 2);
+  assert.equal(relevantMaterial(c35.subject, ref4508, ref4508.text.split('関連リンク')[0]).condition, 3);
+  assert.deepEqual(F.supportNumbersFromSiblings([input, c45])[0], input);
+});
+
+test('J1', '番号側の資料も条件3で一意なc35は引き続き補完できる', () => {
+  const [result] = siblings();
+  assert.equal(result.status, '裏付けあり');
+  assert.equal(result.evidence_id, ref4508.id);
+  assert.equal(result.number_from_sibling.id, 'c45');
+});
+
 (async () => {
   const originalFetch = global.fetch;
   const previousWriterMode = process.env.FACT_CHECK_WRITER_MATERIALS;
@@ -685,6 +709,6 @@ test('I1', 'c35は条件2を含めても関連するタックスアンサーが4
     if (previousWriterMode === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS;
     else process.env.FACT_CHECK_WRITER_MATERIALS = previousWriterMode;
   }
-  console.log(`試験1〜7・01b・01c・01d・01e: PASS ${passed} / FAIL ${tests.length - passed}`);
+  console.log(`試験1〜7・01b・01c・01d・01e・01f: PASS ${passed} / FAIL ${tests.length - passed}`);
   if (passed !== tests.length) process.exitCode = 1;
 })();

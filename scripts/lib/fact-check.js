@@ -1024,7 +1024,7 @@ function supportNumbersFromSiblings(claims) {
           (c.evidence || []).some(candidate => candidate.id === e.id));
         if (ref) {
           const condition = relevance(ref);
-          if (condition === 1 || (condition === 3 && relatedTaxAnswers.length === 1 && relatedTaxAnswers[0].id === ref.id)) return { sibling, ref };
+          if (condition === 1 || (condition === 3 && relatedTaxAnswers.length === 1 && relevance(relatedTaxAnswers[0]) === 3 && relatedTaxAnswers[0].id === ref.id)) return { sibling, ref };
         }
       }
       return null;
