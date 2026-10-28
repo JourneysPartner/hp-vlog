@@ -11,6 +11,7 @@ const { readLatestAudits, auditReason } = require('./fact-audit');
 const SITE_ORIGIN = 'https://mori-zeirishi.net';
 const SIGNAL_WEIGHTS = Object.freeze({
   source_updated: 3,
+  source_as_of_updated: 1,
   tax_reform: 2,
   fiscal_year: 2,
   search_decline: 1,
@@ -210,27 +211,44 @@ function sourceLabel(entry) {
 
 function sourceReason(post, sourceByUrl) {
   const published = articleDate(post);
-  if (!published) return null;
+  if (!published) return [];
   const reviewedAt = validDate(post.reviewed_at);
   const baseline = reviewedAt && reviewedAt > published ? reviewedAt : published;
   const sourceUrls = Array.isArray(post.source_urls)
     ? post.source_urls
     : [post.source_url, ...supplementalUrls(post)].filter(Boolean);
-  const matches = sourceUrls
+  const sources = sourceUrls
     .map(url => sourceByUrl.get(normalizeUrl(url)))
-    .filter(Boolean)
+    .filter(Boolean);
+  const matches = sources
     .filter(entry => {
       const changed = validDate(entry.content_changed_at);
       return changed && changed > baseline;
     })
     .sort((a, b) => new Date(b.content_changed_at) - new Date(a.content_changed_at));
-  if (!matches.length) return null;
-  const entry = matches[0];
-  return {
-    kind: 'source_updated',
-    detail: `${sourceLabel(entry)}の本文が ${formatDate(entry.content_changed_at)} に改訂${entry.content_change_kind === 'law_version' ? `（${entry.law_version} に更新）` : ''}`,
-    where: '出典欄',
-  };
+  const reasons = [];
+  if (matches.length) {
+    const entry = matches[0];
+    reasons.push({
+      kind: 'source_updated',
+      detail: `${sourceLabel(entry)}の本文が ${formatDate(entry.content_changed_at)} に改訂${entry.content_change_kind === 'law_version' ? `（${entry.law_version} に更新）` : ''}`,
+      where: '出典欄',
+    });
+  }
+  const asOfMatches = sources.filter(entry => {
+    const changed = validDate(entry.as_of_changed_at);
+    const contentChanged = validDate(entry.content_changed_at);
+    return changed && changed > baseline && !(contentChanged && contentChanged > baseline);
+  }).sort((a, b) => new Date(b.as_of_changed_at) - new Date(a.as_of_changed_at));
+  if (asOfMatches.length) {
+    const entry = asOfMatches[0];
+    reasons.push({
+      kind: 'source_as_of_updated',
+      detail: `${sourceLabel(entry)}の基準日が ${formatDate(entry.as_of_changed_at)} に「${entry.law_version}」へ更新（内容の変更なし）`,
+      where: '出典欄',
+    });
+  }
+  return reasons;
 }
 
 function normalizeText(value) {
@@ -438,7 +456,7 @@ function buildCandidates(inputs, options = {}) {
   for (const post of published) {
     const reviewedAt = validDate(post.reviewed_at);
     const reasons = [
-      sourceReason(post, sourceByUrl),
+      ...sourceReason(post, sourceByUrl),
       inputs.reform ? taxReformReason(post, reformItems, inputs.reform.year) : null,
       fiscalYearReason(post, taxYear),
       searchDeclineReason(post, search.declines),

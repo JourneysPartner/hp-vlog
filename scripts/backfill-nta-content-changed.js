@@ -58,6 +58,7 @@ function backfill(options = {}) {
     if (initial && current.fetched_at === initial.fetched_at) {
       delete next.content_changed_at;
       delete next.content_change_kind;
+      delete next.as_of_changed_at;
     } else if (initial && current.fetched_at !== initial.fetched_at) {
       const history = historyCache ? [] : git(root, ['log', '--format=%H', '--', relativeFile]).split(/\r?\n/).filter(Boolean);
       let previous = historyCache ? historyCache.previousVersions[relativeFile] || null : null;
@@ -79,10 +80,15 @@ function backfill(options = {}) {
           delete next.content_changed_at;
           delete next.content_change_kind;
         }
+        if (result.as_of_changed_at) next.as_of_changed_at = result.as_of_changed_at;
+        else delete next.as_of_changed_at;
       }
     }
     if (next.content_changed_at) {
       changed.push({ id: next.id, type: next.type, date: next.content_changed_at, kind: next.content_change_kind });
+    }
+    if (next.as_of_changed_at) {
+      changed.push({ id: next.id, type: next.type, date: next.as_of_changed_at, kind: 'as_of' });
     }
     if (JSON.stringify(next) !== JSON.stringify(current)) updates.push([file, next]);
   }
@@ -97,6 +103,8 @@ if (require.main === module) {
   const result = backfill({ dryRun: process.argv.includes('--dry-run') });
   console.log(`対象 ${result.total} 件、first_fetched_at 追加 ${result.firstFetchedCount} 件、書換 ${result.updated} 件`);
   for (const item of result.changed) console.log(`${item.id}\t${item.type}\t${item.date}\t${item.kind}`);
+  const asOfCount = result.changed.filter(item => item.kind === 'as_of').length;
+  console.log(`内容の改訂 ${result.changed.length - asOfCount} 件・基準日だけ ${asOfCount} 件`);
 }
 
 module.exports = { backfill };
