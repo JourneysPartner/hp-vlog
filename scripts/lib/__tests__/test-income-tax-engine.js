@@ -58,6 +58,61 @@ console.log('\n=== 給与所得: 別表第五の全1,175帯 ===');
     '660万円境界の給与所得控除は176万円');
 }
 
+console.log('\n=== 給与所得: C-12の1円未満切り捨て ===');
+{
+  // 期待値は指示書R2-1の手計算表から取り、マスターから生成しない。
+  const cases = [
+    [6599999, 4836800n, 1763199n, 'appendix5'],
+    [6600000, 4840000n, 1760000n, 'deduction_table'],
+    [6600001, 4840000n, 1760001n, 'deduction_table'],
+    [6655556, 4890000n, 1765556n, 'deduction_table'],
+    [7000000, 5200000n, 1800000n, 'deduction_table'],
+    [7234567, 5411110n, 1823457n, 'deduction_table'],
+    [8499999, 6549999n, 1950000n, 'deduction_table'],
+    [8500000, 6550000n, 1950000n, 'deduction_table'],
+    [10000000, 8050000n, 1950000n, 'deduction_table'],
+  ];
+  for (const [revenue, expectedIncome, expectedDeduction, expectedMethod] of cases) {
+    const result = salaryEngine.calculateSalaryIncome(yen(revenue), OPTIONS);
+    assert(amount(result.salaryIncome) === expectedIncome,
+      `C-12: 収入${revenue}円の給与所得は${expectedIncome}円`);
+    assert(amount(result.salaryIncomeDeduction) === expectedDeduction,
+      `C-12: 収入${revenue}円の給与所得控除額は${expectedDeduction}円`);
+    assert(result.calculationMethod === expectedMethod,
+      `C-12: 収入${revenue}円の計算方式は${expectedMethod}`);
+  }
+}
+{
+  const lower = 6600000n;
+  const upper = 8499999n;
+  const probes = new Set([lower, upper]);
+  for (let revenue = lower; revenue <= upper; revenue += 997n) probes.add(revenue);
+  const mismatches = [];
+  for (const revenue of probes) {
+    // 国税庁の算式をBigIntで直接計算する（この範囲は正なので整数除算が切り捨てになる）。
+    const expected = (revenue * 9n - 11000000n) / 10n;
+    const actual = amount(salaryEngine.calculateSalaryIncome(yen(revenue), OPTIONS).salaryIncome);
+    if (actual !== expected) {
+      mismatches.push({ revenue: String(revenue), expected: String(expected), actual: String(actual) });
+    }
+  }
+  assert(mismatches.length === 0,
+    `C-12: 660万〜850万円未満の両端・997円刻み全${probes.size}点が国税庁の算式と一致（不一致 ${mismatches.length}件${mismatches.length ? ': ' + JSON.stringify(mismatches.slice(0, 3)) : ''}）`);
+}
+{
+  const result = incomeTaxEngine.calculate({
+    taxYear: 2025,
+    salaryRevenue: yen(6655556),
+    deductions: {},
+  }, OPTIONS);
+  assert(amount(result.totalIncome) === 4890000n,
+    'C-12: 給与6,655,556円の合計所得は4,890,000円');
+  assert(amount(result.incomeDeductions.basic) === 680000n,
+    'C-12: 合計所得489万円以下の基礎控除は680,000円');
+  assert(amount(result.payableIncomeTax) === 423200n,
+    'C-12: 給与6,655,556円の所得税・復興特別所得税の納付税額は423,200円');
+}
+
 console.log('\n=== 事業所得・青色申告特別控除 ===');
 {
   const result = businessEngine.calculateBusinessIncome({
