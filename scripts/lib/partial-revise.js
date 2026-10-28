@@ -173,16 +173,19 @@ function planRevisionSteps(split, sections) {
     const classification = classifyRevision(original);
     const unnumbered = original.replace(/^\s*(?:[0-9０-９]+[.．)）、]|\([0-9０-９]+\)|（[0-9０-９]+）|[①-⑳])\s*/, '');
     const outsideQuotes = unnumbered.replace(/「[^」]*」|『[^』]*』/g, quoted => ' '.repeat(quoted.length));
+    const negativeText = outsideQuotes.replace(/ませんか|ないでしょうか|ないですか/g, polite => ' '.repeat(polite.length));
     const negativeClauses = [];
     let text = '', start = 0, hasPositiveClause = false;
     for (let i = 0; i <= unnumbered.length; i++) {
-      const punctuation = /[、。\r\n]/.test(outsideQuotes[i] || '');
-      const negativeEnd = /(?:せずに|ずに|ないで)$/.test(outsideQuotes.slice(Math.max(start, i - 3), i)) &&
-        !/^(?:ください|下さい|ほしい|いただ|もらえ)/.test(outsideQuotes.slice(i));
+      const subjectContinues = /[、\r\n]/.test(outsideQuotes[i] || '') &&
+        /(?:は|も|では|には|については)\s*$/.test(outsideQuotes.slice(start, i));
+      const punctuation = /[、。\r\n]/.test(outsideQuotes[i] || '') && !subjectContinues;
+      const negativeEnd = /(?:せずに|ずに|ないで)$/.test(negativeText.slice(Math.max(start, i - 3), i)) &&
+        !/^(?:ください|下さい|ほしい|いただ|もらえ)/.test(negativeText.slice(i));
       if (i < unnumbered.length && !punctuation && !negativeEnd) continue;
       const end = punctuation ? i + 1 : i;
       const clause = unnumbered.slice(start, end);
-      if (/ないで|ずに|せず|ません|ないよう|しない/.test(outsideQuotes.slice(start, end))) {
+      if (/ないで|ずに|せず|ません|ないよう|しない/.test(negativeText.slice(start, end))) {
         negativeClauses.push(clause);
       } else {
         text += clause;
@@ -192,7 +195,11 @@ function planRevisionSteps(split, sections) {
     }
     const filtered = classification.denySuppression || text === unnumbered ? classification : classifyRevision(text);
     const preserveOriginal = hasPositiveClause && ['title_only', 'add_section'].includes(classification.type) &&
-      filtered.type !== classification.type && !negativeClauses.some(clause => classifyRevision(clause).type === classification.type);
+      filtered.type !== classification.type && !negativeClauses.some(clause => {
+        if (classification.type !== 'title_only') return classifyRevision(clause).type === classification.type;
+        const normalized = clause.replace(/「[^」]*」|『[^』]*』/g, '').replace(/[\s、]/g, '');
+        return /(?:タイトル|要約|サマリー)(?:だけ|自体)?(?:は|を|も|については|には)?(?:そのまま|一切|絶対に?|全く|今のまま)?(?:変え|変更|変わ|いじ|触|直さ|修正|見直さ)/.test(normalized);
+      });
     return { text, classification: preserveOriginal ? classification : filtered };
   };
   const preface = classifyInstruction(split.preface).classification;

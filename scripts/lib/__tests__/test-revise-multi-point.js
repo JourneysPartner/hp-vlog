@@ -759,6 +759,81 @@ async function main() {
     assert(plan.steps[1].instruction.includes(splitRevisionPoints(text).points[1].text));
   });
 
+  await test('J1 タイトルの一部・意味・程度だけを保つ5例はタイトル段を作る', () => {
+    for (const instruction of ['タイトルは大きく変えずに、少し自然にしてください',
+      'タイトルの「完全ガイド」は変えずに、短く直してください',
+      'タイトルの意味は変えずに、もう少し自然にしてください',
+      'タイトルは今の意味を変えずに、もっと簡潔にしてください',
+      'タイトルの趣旨は変えないで、硬い表現を自然にしてください']) {
+      for (const text of ['1. 誤字を修正してください\n2. ' + instruction,
+        instruction + '\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください']) {
+        const plan = P.planRevisionSteps(splitRevisionPoints(text), sections);
+        assert.equal(plan.fallback, false, text);
+        assert.deepEqual(plan.steps.map(step => step.kind), ['targeted', 'title'], text);
+        assert(plan.steps[1].instruction.includes(instruction), '制約を元の文で渡す');
+      }
+    }
+  });
+  await test('J1 程度を保つタイトル依頼を本文の章の後で実行し draft にする', async () => {
+    const source = article('## 確認事項\n\n元の説明を確認する。');
+    const text = '1. 「確認事項」の章を直してください\n2. タイトルは大きく変えずに、少し自然にしてください';
+    const plan = G.getMultiPointRevisionPlan(source, text);
+    assert.deepEqual(plan.steps.map(step => step.kind), ['section', 'title']);
+    reply = user => user.includes('【対象セクション（現状）】') ? inputBody(user).replace('元の説明', '改善した説明')
+      : JSON.stringify({ title: '試験用の自然な記事タイトル', summary: '自然な要約です。' });
+    const output = await G.regenerateMultiPoint(source, text, plan, { sourceBlocks: sources });
+    const { meta, body } = G.parseFrontmatter(output);
+    assert.equal(meta.title, '試験用の自然な記事タイトル');
+    assert.equal(meta.review_status, 'draft'); assert.equal(meta.review_comment, '');
+    assert(body.includes('改善した説明を確認する。'));
+    assert.equal(requests.length, 2);
+    assert(requests[1].user.includes(splitRevisionPoints(text).points[1].text));
+  });
+  await test('J1 タイトル全体・要約・サマリーを変えない依頼は本文の targeted を維持', () => {
+    for (const instruction of ['タイトルはそのまま変えないで、語尾を丁寧にしてください',
+      'タイトルだけは変えないで、語尾を丁寧にしてください', 'タイトルは変えないで欲しいです。',
+      '要約を変更しないで、語尾を丁寧にしてください', 'サマリーを修正しないで、語尾を丁寧にしてください']) {
+      const text = '1. 誤字を修正してください\n2. ' + instruction;
+      const plan = P.planRevisionSteps(splitRevisionPoints(text), sections);
+      assert.equal(plan.fallback, false, instruction);
+      assert.deepEqual(plan.steps.map(step => step.kind), ['targeted'], instruction);
+      assert.deepEqual(plan.steps[0].points, [1, 2]);
+    }
+  });
+  await test('J2 主題直後の読点・改行を否定節から切り離さない', () => {
+    for (const instruction of ['タイトルは\n変えないで、語尾を丁寧にしてください',
+      'タイトルは、変えないで、語尾を丁寧にしてください',
+      'タイトルについては、変えずに語尾を丁寧にしてください',
+      'タイトルは\r\n変えないで、語尾を丁寧にしてください',
+      'タイトルも、変えないで、語尾を丁寧にしてください',
+      'タイトルには、触れないで、語尾を丁寧にしてください']) {
+      for (const text of ['1. 誤字を修正してください\n2. ' + instruction,
+        instruction + '\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください']) {
+        const plan = P.planRevisionSteps(splitRevisionPoints(text), sections);
+        assert.equal(plan.fallback, false, text);
+        assert.deepEqual(plan.steps.map(step => step.kind), ['targeted'], text);
+        assert(plan.steps[0].instruction.includes(instruction.replace(/\r\n/g, '\n')), '主題の後の改行を含む指示を保持');
+      }
+    }
+  });
+  await test('J3 丁寧な依頼のませんか・ないでしょうか・ないですかを肯定として分類', () => {
+    for (const ending of ['ませんか', 'ないでしょうか', 'ないですか']) {
+      for (const [instruction, kind] of [[`タイトルを自然にしていただけ${ending}`, 'title'],
+        [`注意点の章を追加していただけ${ending}`, 'add_section']]) {
+        const text = '1. 誤字を修正してください\n2. ' + instruction;
+        const plan = P.planRevisionSteps(splitRevisionPoints(text), sections);
+        assert.equal(plan.fallback, false, instruction);
+        assert.equal(plan.steps.find(step => step.points.includes(2)).kind, kind, instruction);
+        assert(plan.steps.every(step => step.instruction.includes('この段では')));
+      }
+    }
+    const preface = 'タイトルを自然にしていただけませんか';
+    const plan = P.planRevisionSteps(splitRevisionPoints(preface + '\n1. 誤字を修正してください\n2. 語尾を丁寧にしてください'), sections);
+    assert.deepEqual(plan.steps.map(step => step.kind), ['targeted', 'title']);
+    const mixed = P.planRevisionSteps(splitRevisionPoints('1. 誤字を修正してください\n2. タイトルは変えないで、語尾を丁寧にしていただけませんか'), sections);
+    assert.deepEqual(mixed.steps.map(step => step.kind), ['targeted'], '別の否定の制約は維持');
+  });
+
   await test('補足: 同じ章の指摘を統合し、追加・全文・タイトルを順序づける', () => {
     const points = splitRevisionPoints('前置き\n1. タイトルだけ自然にしてください\n2. 具体例の章を追加してください\n3. 「確認事項」の章を直してください\n4. 「確認事項」の章だけ丁寧にしてください\n5. 誤字を修正してください\n6. 注意点の章を追加してください');
     const plan = P.planRevisionSteps(points, P.splitSections('## 確認事項\n本文です。').sections);
