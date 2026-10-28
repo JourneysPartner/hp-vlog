@@ -171,19 +171,28 @@ function planRevisionSteps(split, sections) {
   const classifyInstruction = instruction => {
     const original = String(instruction || '');
     const classification = classifyRevision(original);
-    const outsideQuotes = original.replace(/「[^」]*」|『[^』]*』/g, quoted => ' '.repeat(quoted.length));
+    const unnumbered = original.replace(/^\s*(?:[0-9０-９]+[.．)）、]|\([0-9０-９]+\)|（[0-9０-９]+）|[①-⑳])\s*/, '');
+    const outsideQuotes = unnumbered.replace(/「[^」]*」|『[^』]*』/g, quoted => ' '.repeat(quoted.length));
+    const negativeClauses = [];
     let text = '', start = 0, hasPositiveClause = false;
-    for (let i = 0; i <= original.length; i++) {
-      if (i < original.length && !/[、。]/.test(outsideQuotes[i])) continue;
-      if (!/ないで|ずに|せず|ません|ないよう|しない/.test(outsideQuotes.slice(start, i))) {
-        text += original.slice(start, i < original.length ? i + 1 : i);
-        if (original.slice(start, i).trim()) hasPositiveClause = true;
+    for (let i = 0; i <= unnumbered.length; i++) {
+      const punctuation = /[、。\r\n]/.test(outsideQuotes[i] || '');
+      const negativeEnd = /(?:せずに|ずに|ないで)$/.test(outsideQuotes.slice(Math.max(start, i - 3), i)) &&
+        !/^(?:ください|下さい|ほしい|いただ|もらえ)/.test(outsideQuotes.slice(i));
+      if (i < unnumbered.length && !punctuation && !negativeEnd) continue;
+      const end = punctuation ? i + 1 : i;
+      const clause = unnumbered.slice(start, end);
+      if (/ないで|ずに|せず|ません|ないよう|しない/.test(outsideQuotes.slice(start, end))) {
+        negativeClauses.push(clause);
+      } else {
+        text += clause;
+        if (unnumbered.slice(start, i).trim()) hasPositiveClause = true;
       }
-      start = i + 1;
+      start = end;
     }
-    const filtered = classification.denySuppression || text === original ? classification : classifyRevision(text);
-    const preserveOriginal = hasPositiveClause && ['title_only', 'add_section', 'section_only'].includes(classification.type) &&
-      filtered.type !== classification.type;
+    const filtered = classification.denySuppression || text === unnumbered ? classification : classifyRevision(text);
+    const preserveOriginal = hasPositiveClause && ['title_only', 'add_section'].includes(classification.type) &&
+      filtered.type !== classification.type && !negativeClauses.some(clause => classifyRevision(clause).type === classification.type);
     return { text, classification: preserveOriginal ? classification : filtered };
   };
   const preface = classifyInstruction(split.preface).classification;
