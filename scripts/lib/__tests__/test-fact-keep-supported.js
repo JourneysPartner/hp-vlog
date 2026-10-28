@@ -638,6 +638,37 @@ test('H2', '一意に関連する候補が別の資料なら、その兄弟資�
   assert.deepEqual(F.supportNumbersFromSiblings([input, c45])[0], input);
 });
 
+test('I1', '4508が条件2・4503が条件3でも、4503を一意として補わない', () => {
+  const W = require('../writer-materials');
+  const relevantMaterial = require('../article-plan').relevantMaterial;
+  const subject = '住宅取得等資金の非課税';
+  const evidence = [W.resolveMaterial('ta:4508'), W.resolveMaterial('ta:4503')];
+  assert.deepEqual(evidence.map(ref => relevantMaterial(subject, ref, ref.text.split('関連リンク')[0]).condition), [2, 3]);
+  const sentence = '直系尊属から住宅取得等資金の贈与を受けた場合は、住宅取得等資金の非課税の対象です（国税庁タックスアンサー No.4503）。';
+  const input = { ...c35, sentence, subject, claim: '国税庁タックスアンサーNo.4503', evidence };
+  const ref = evidence[1];
+  const sibling = { ...c45, sentence, subject, evidence_id: ref.id, evidence: [ref], quote: ref.text.split('。')[0] + '。' };
+  assert.deepEqual(F.supportNumbersFromSiblings([input, sibling])[0], input);
+});
+test('I1', '条件2を一意性に数えても、条件2だけの資料を補完には採らない', () => {
+  const ref = require('../writer-materials').resolveMaterial('ta:4508');
+  const subject = '住宅取得等資金の非課税';
+  assert.equal(require('../article-plan').relevantMaterial(subject, ref, ref.text.split('関連リンク')[0]).condition, 2);
+  const input = { ...c35, subject, evidence: [ref] };
+  const sibling = { ...c45, subject, evidence: [ref] };
+  assert.deepEqual(F.supportNumbersFromSiblings([input, sibling])[0], input);
+});
+test('I1', 'c35は条件2を含めても関連するタックスアンサーが4508だけなので補完できる', () => {
+  const relevantMaterial = require('../article-plan').relevantMaterial;
+  const related = c35.evidence.filter(ref => ref.kind === 'taxanswer' &&
+    relevantMaterial(c35.subject, ref, ref.text.split('関連リンク')[0]).condition > 0);
+  assert.deepEqual(related.map(ref => ref.no), ['4508']);
+  const [result] = siblings();
+  assert.equal(result.status, '裏付けあり');
+  assert.equal(result.evidence_id, ref4508.id);
+  assert.equal(result.number_from_sibling.id, 'c45');
+});
+
 (async () => {
   const originalFetch = global.fetch;
   const previousWriterMode = process.env.FACT_CHECK_WRITER_MATERIALS;
@@ -654,6 +685,6 @@ test('H2', '一意に関連する候補が別の資料なら、その兄弟資�
     if (previousWriterMode === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS;
     else process.env.FACT_CHECK_WRITER_MATERIALS = previousWriterMode;
   }
-  console.log(`試験1〜7・01b・01c・01d: PASS ${passed} / FAIL ${tests.length - passed}`);
+  console.log(`試験1〜7・01b・01c・01d・01e: PASS ${passed} / FAIL ${tests.length - passed}`);
   if (passed !== tests.length) process.exitCode = 1;
 })();

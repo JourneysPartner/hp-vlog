@@ -1015,7 +1015,7 @@ function supportNumbersFromSiblings(claims) {
     const remainder = summary.replace(citation, '').replace(/国税庁|タックスアンサー/g, '');
     if (/[0-9〇零一二三四五六七八九十百千万億兆壱壹弐貳参參肆伍陸漆柒捌玖拾佰仟萬阡]/.test(remainder)) return c;
     const relevance = ref => require('./article-plan').relevantMaterial(c.subject, ref, (ref.text || '').split('関連リンク')[0]).condition;
-    const relatedTaxAnswers = (c.evidence || []).filter(ref => ref.kind === 'taxanswer' && [1, 3].includes(relevance(ref)));
+    const relatedTaxAnswers = (c.evidence || []).filter(ref => ref.kind === 'taxanswer' && relevance(ref) > 0);
     const matches = numbers.map(no => {
       for (const sibling of claims) {
         if (sibling === c || sibling.sentence !== c.sentence || sibling.type === '番号' || sibling.status !== '裏付けあり' ||
