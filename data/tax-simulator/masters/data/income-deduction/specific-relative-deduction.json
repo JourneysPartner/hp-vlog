@@ -110,7 +110,7 @@
       "calculation_order": 2,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -119,7 +119,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -143,7 +143,7 @@
       "_tier_label": "85万円超90万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 85万円超90万円以下 61万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T03",
@@ -152,7 +152,7 @@
       "calculation_order": 3,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -161,7 +161,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -185,7 +185,7 @@
       "_tier_label": "90万円超95万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 90万円超95万円以下 51万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T04",
@@ -194,7 +194,7 @@
       "calculation_order": 4,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -203,7 +203,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -227,7 +227,7 @@
       "_tier_label": "95万円超100万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 95万円超100万円以下 41万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T05",
@@ -236,7 +236,7 @@
       "calculation_order": 5,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -245,7 +245,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -269,7 +269,7 @@
       "_tier_label": "100万円超105万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 100万円超105万円以下 31万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T06",
@@ -278,7 +278,7 @@
       "calculation_order": 6,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -287,7 +287,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -311,7 +311,7 @@
       "_tier_label": "105万円超110万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 105万円超110万円以下 21万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T07",
@@ -320,7 +320,7 @@
       "calculation_order": 7,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -329,7 +329,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -353,7 +353,7 @@
       "_tier_label": "110万円超115万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 110万円超115万円以下 11万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T08",
@@ -362,7 +362,7 @@
       "calculation_order": 8,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -371,7 +371,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -395,7 +395,7 @@
       "_tier_label": "115万円超120万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 115万円超120万円以下 6万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T09",
@@ -404,7 +404,7 @@
       "calculation_order": 9,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -413,7 +413,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -437,7 +437,7 @@
       "_tier_label": "120万円超123万円以下",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族特別控除の金額 120万円超123万円以下 3万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     },
     {
       "record_id": "IDED-SPECREL-T10",
@@ -446,7 +446,7 @@
       "calculation_order": 10,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-28",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -455,7 +455,7 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-28",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
@@ -475,7 +475,7 @@
       "_meaning": "特定親族の合計所得金額が123万円を超えると特定親族に該当しない",
       "source_document_id": "NTA-TA-1177",
       "source_locator": "特定親族に該当する人の範囲 (5) 合計所得金額が123万円以下であること",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "source_hash": "f75c20fcbf5ef8fb52946c9ee8a43812fde662367644324462a5f0a74c9ca32a"
     }
   ]
 }
