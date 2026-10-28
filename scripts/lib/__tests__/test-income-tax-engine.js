@@ -290,5 +290,64 @@ console.log('\n=== official-examples の所得税3ケース ===');
     'GC-IT-FULL-SALARY の期待値をそのまま照合');
 }
 
+console.log('\n=== 給与所得: 令和8年分の承認状態と原表 ===');
+{
+  const mastersDir = path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator', 'masters');
+  const readSalaryMaster = name => JSON.parse(fs.readFileSync(path.join(
+    mastersDir, 'data', 'salary-income-deduction', name + '.json'
+  ), 'utf8'));
+  const appendixRecords = readSalaryMaster('appendix5').r8.records;
+  const deductionRecords = readSalaryMaster('deductions').r8.records;
+  const records = [...appendixRecords, ...deductionRecords];
+  const approvedCount = records.filter(record => record.data_review_status === 'approved').length;
+  assert(appendixRecords.length === 9 && deductionRecords.length === 5, '令和8年分の承認対象は別表第五9件と算式表5件の計14件');
+  assert(approvedCount === 0 || approvedCount === 14,
+    '14件をまとめて承認する（一部だけの承認は不可。承認済み ' + approvedCount + '件）');
+  if (records.length === 14 && approvedCount === 14) {
+    console.log('令和8年分の記録は承認済み: 期待値どおりであることを確かめる');
+    const cases = [
+      [0, 0], [690999, 0], [691000, 0], [740999, 0], [741000, 1000],
+      [1000000, 260000], [2190999, 1450999], [2191000, 1451000], [2192999, 1451000],
+      [2193000, 1453000], [2195999, 1453000], [2196000, 1456000], [2199999, 1456000],
+      [2200000, 1460000], [2203999, 1460000], [2204000, 1462800], [3000000, 2020000],
+      [3600000, 2440000], [3603999, 2440000], [3604000, 2443200], [6599999, 4836800],
+      // 660万円以上は算式表（所法28条2項・3項）。8,499,999円のような1円未満の端数が出る収入の丸めは台帳 C-12 で確認中のため、ここでは端数の出ない収入だけを確かめる。
+      [6600000, 4840000], [7000000, 5200000], [8500000, 6550000], [10000000, 8050000],
+    ];
+    for (const [revenue, income] of cases) {
+      const result = salaryEngine.calculateSalaryIncome(yen(revenue), { taxYear: 2026 });
+      assert(amount(result.salaryIncome) === BigInt(income), '令和8年分の収入 ' + revenue + '円 → 給与所得 ' + income + '円');
+    }
+    const fixture = JSON.parse(fs.readFileSync(path.join(mastersDir, 'fixtures', 'appendix5-r8-golden.json'), 'utf8'));
+    const bands = fixture.bands.filter(([lower]) => lower >= 2200000);
+    const bad = [];
+    for (const [lower, upper, income] of bands) {
+      for (const probe of [lower, upper - 1]) {
+        const result = salaryEngine.calculateSalaryIncome(yen(probe), { taxYear: 2026 });
+        if (amount(result.salaryIncome) !== BigInt(income)) {
+          bad.push({ probe, expected: income, actual: String(amount(result.salaryIncome)) });
+        }
+      }
+    }
+    assert(bands.length === 1100 && bad.length === 0,
+      '令和8年分の全' + bands.length + '帯の下端・上端直前が原表と一致（不一致 ' + bad.length + '件' +
+      (bad.length ? ': ' + JSON.stringify(bad.slice(0, 3)) : '') + '）');
+  } else if (approvedCount === 0) {
+    console.log('令和8年分の記録は未承認: 止まることを確かめる');
+    for (const revenue of [3000000, 8000000]) {
+      let caught;
+      try {
+        salaryEngine.calculateSalaryIncome(yen(revenue), { taxYear: 2026 });
+      } catch (error) {
+        caught = error;
+      }
+      assert(caught instanceof Error && caught.message.includes('別表第五の帯規則が利用できません'),
+        '未承認の令和8年分の収入 ' + revenue + '円は前年の値を使わず例外で止まる');
+    }
+  } else {
+    console.log('令和8年分の記録は一部だけ承認済み: 試験失敗');
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

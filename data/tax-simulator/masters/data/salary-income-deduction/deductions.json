@@ -14,7 +14,7 @@
     "last_checked_at": "2026-08-01T15:55:59.860Z",
     "law_version": "令和7年4月1日現在法令等"
   },
-  "_r8_reform_note": "tax-law-changes.js r8_employment_income_deduction: 最低保障額65万→69万（R8以後恒久）＋R8・R9に5万円上乗せ特例。タックスアンサーは令和7年分以降としか記載しておらずR8分を分離していない。MOF-R8-LAW で確認するまで R8 版は blocked。",
+  "_r8_reform_note": "令和8年分は r8 ブロック。最低保障額65万→69万（所法28条3項1号、令和8年分以後）＋令和8年・令和9年は74万（措法29条の4第1項）。条文は令和8年12月1日施行の版で確かめた（2026-10-28）。",
   "r7": {
     "_applies_to": "令和7年分（R7改正後。No.1410 記載の「令和7年分以降」表）",
     "records": [
@@ -238,9 +238,9 @@
   },
   "r8": {
     "_applies_to": "令和8年分",
-    "_basis": "令和8年度税制改正の大綱（財務省）「給与所得控除について、65万円の最低保障額を69万円に引き上げる」「令和8年及び令和9年における給与所得控除の最低保障額を5万円引き上げる特例を創設する」。恒久69万＋特例5万＝74万。",
-    "_status": "施行前。令和8年12月1日施行・令和8年分以後に適用。legal_status は enacted。",
-    "_derived_boundary_warning": "大綱には段階ごとの表が無い。第1段階の上限2,200,000円は、現行の第2段階の算式（65万＋(収入−190万)×30%）が74万に達する点として導いたもので、原文に書かれた値ではない。この導出だと第2段階の終点（収入360万）は116万となり現行と一致するため整合はとれているが、改正法が別の構造を採る可能性はある。施行後に所法28条3項の改正後条文で必ず確認すること。",
+    "_basis": "所得税法28条3項（令和8年法律第12号による改正後。最低額69万円）と租税特別措置法29条の4第1項（令和8年・令和9年は給与収入220万円以下で74万円）。条文は e-Gov の令和8年12月1日施行の版（未施行）で確認した（docs/tax-simulator/r8-switch/appendix5-r8-sources.md）。",
+    "_status": "施行前。令和8年12月1日施行・令和8年分以後に適用（改正法附則1条4号イ・3条1項）。legal_status は enacted。",
+    "_derived_boundary_resolved": "2026-10-28: 第1段階の上限2,200,000円は措法29条の4第1項に「二百二十万円以下」と書かれていることを条文で確かめた。2026-08-24に大綱から導いた値と同じ。",
     "records": [
       {
         "record_id": "SID-R8-TIER-01",
@@ -248,9 +248,9 @@
         "tax_year": 2026,
         "calculation_order": 1,
         "rounding_rule_id": "R-TRUNC-1-YEN",
-        "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -262,11 +262,11 @@
         },
         "effective_from": "2026-01-01",
         "effective_to": "2026-12-31",
-        "source_document_id": "MOF-R8-LAW",
+        "source_document_id": "EGOV-SPECIAL-TAX-MEASURES",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "approved",
+        "data_review_status": "unverified",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "0"
@@ -282,13 +282,9 @@
         },
         "rate": null,
         "rate_addition": null,
-        "_composition": "最低保障額 恒久69万円 ＋ 令和8年・9年の特例5万円 ＝ 74万円",
-        "source_locator": "大綱 一 個人所得課税（2）給与所得控除の最低保障額の引上げ（上限額2,200,000円は連続性からの導出）",
-        "value_certainty": "derived",
-        "requires_result_warning": true,
-        "_derivation": "大綱には「65万円の最低保障額を69万円に引き上げる」としか書かれておらず、段階ごとの表が無い。第1段階の上限2,200,000円は次のように導いた。(1) 大綱は最低保障額以外の改正に触れていないので、第2段階以降の算式（所法28条3項2〜5号）は現行のままとみなす。(2) 現行の第2段階は 65万＋(収入−190万)×30% なので、これが74万に達するのは収入220万円。(3) 境界を190万のままにすると、190万を1円超えた時点で控除額が74万から65万へ下がる。収入が増えて控除が減る不連続が生じるため、その形はとらないと考えられる。(4) 導出後の第2段階の終点（収入360万）は74万＋(360万−220万)×30%＝116万となり、現行と一致する。整合はとれている。",
-        "_warning_text": "令和8年分の給与所得控除は、改正法の施行前のため段階の境界が確定していません。この結果は概算です。",
-        "_affected_range": "給与収入190万円超220万円以下の範囲で、確定値と最大9万円（控除額）ずれる可能性があります。この範囲外では境界の取り方によらず同じ結果になります。"
+        "_composition": "措法29条の4第1項が、令和8年・令和9年の給与収入220万円以下の給与所得控除額を74万円と定める（所法28条3項1号の最低額69万円に5万円を上乗せした額）。収入が74万円に満たないときは控除額＝収入（同項の括弧書き）だが、660万円未満の給与所得は別表第五・措法29条の4第2項で求め、この表を直接使わないので記録には持たない",
+        "source_locator": "租税特別措置法29条の4第1項（令和8年12月1日施行の版 332AC0000000026_20261201_508AC0000000012）",
+        "value_certainty": "confirmed_from_source"
       },
       {
         "record_id": "SID-R8-TIER-02",
@@ -296,9 +292,9 @@
         "tax_year": 2026,
         "calculation_order": 2,
         "rounding_rule_id": "R-TRUNC-1-YEN",
-        "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -310,11 +306,11 @@
         },
         "effective_from": "2026-01-01",
         "effective_to": "2026-12-31",
-        "source_document_id": "MOF-R8-LAW",
+        "source_document_id": "EGOV-INCOME-TAX-ACT",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "approved",
+        "data_review_status": "unverified",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "2200001"
@@ -333,13 +329,9 @@
           "unit": "JPY",
           "value": "80000"
         },
-        "_note": "算式は現行（所法28条3項2号）と同じ。下限だけが190万→220万に動く",
-        "source_locator": "所得税法28条3項2号（改正後の下限は導出）",
-        "value_certainty": "derived",
-        "requires_result_warning": true,
-        "_derivation": "大綱には「65万円の最低保障額を69万円に引き上げる」としか書かれておらず、段階ごとの表が無い。第1段階の上限2,200,000円は次のように導いた。(1) 大綱は最低保障額以外の改正に触れていないので、第2段階以降の算式（所法28条3項2〜5号）は現行のままとみなす。(2) 現行の第2段階は 65万＋(収入−190万)×30% なので、これが74万に達するのは収入220万円。(3) 境界を190万のままにすると、190万を1円超えた時点で控除額が74万から65万へ下がる。収入が増えて控除が減る不連続が生じるため、その形はとらないと考えられる。(4) 導出後の第2段階の終点（収入360万）は74万＋(360万−220万)×30%＝116万となり、現行と一致する。整合はとれている。",
-        "_warning_text": "令和8年分の給与所得控除は、改正法の施行前のため段階の境界が確定していません。この結果は概算です。",
-        "_affected_range": "給与収入190万円超220万円以下の範囲で、確定値と最大9万円（控除額）ずれる可能性があります。この範囲外では境界の取り方によらず同じ結果になります。"
+        "_note": "所得税法28条3項1号（令和8年版）の算式。下限2,200,001円は措法29条の4第1項の「二百二十万円以下」の次の1円",
+        "source_locator": "所得税法28条3項1号（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）と租税特別措置法29条の4第1項（同 332AC0000000026_20261201_508AC0000000012）",
+        "value_certainty": "confirmed_from_source"
       },
       {
         "record_id": "SID-R8-TIER-03",
@@ -347,9 +339,9 @@
         "tax_year": 2026,
         "calculation_order": 3,
         "rounding_rule_id": "R-TRUNC-1-YEN",
-        "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -361,11 +353,11 @@
         },
         "effective_from": "2026-01-01",
         "effective_to": "2026-12-31",
-        "source_document_id": "MOF-R8-LAW",
+        "source_document_id": "EGOV-INCOME-TAX-ACT",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "approved",
+        "data_review_status": "unverified",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "3600001"
@@ -384,8 +376,8 @@
           "unit": "JPY",
           "value": "440000"
         },
-        "_note": "改正なし（所法28条3項3号）",
-        "source_locator": "所得税法28条3項3号",
+        "_note": "令和7年版の28条3項3号と同じ算式。令和8年版では28条3項2号（116万円＋(収入−360万円)×20%）",
+        "source_locator": "所得税法28条3項2号（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）",
         "value_certainty": "confirmed_from_source"
       },
       {
@@ -394,9 +386,9 @@
         "tax_year": 2026,
         "calculation_order": 4,
         "rounding_rule_id": "R-TRUNC-1-YEN",
-        "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -408,11 +400,11 @@
         },
         "effective_from": "2026-01-01",
         "effective_to": "2026-12-31",
-        "source_document_id": "MOF-R8-LAW",
+        "source_document_id": "EGOV-INCOME-TAX-ACT",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "approved",
+        "data_review_status": "unverified",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "6600001"
@@ -431,8 +423,8 @@
           "unit": "JPY",
           "value": "1100000"
         },
-        "_note": "改正なし（所法28条3項4号）",
-        "source_locator": "所得税法28条3項4号",
+        "_note": "令和7年版の28条3項4号と同じ算式。令和8年版では28条3項3号（176万円＋(収入−660万円)×10%）",
+        "source_locator": "所得税法28条3項3号（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）",
         "value_certainty": "confirmed_from_source"
       },
       {
@@ -441,9 +433,9 @@
         "tax_year": 2026,
         "calculation_order": 5,
         "rounding_rule_id": "R-TRUNC-1-YEN",
-        "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -455,11 +447,11 @@
         },
         "effective_from": "2026-01-01",
         "effective_to": "2026-12-31",
-        "source_document_id": "MOF-R8-LAW",
+        "source_document_id": "EGOV-INCOME-TAX-ACT",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "approved",
+        "data_review_status": "unverified",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "8500001"
@@ -472,12 +464,12 @@
         },
         "rate": null,
         "rate_addition": null,
-        "_note": "上限。改正なし（所法28条3項5号）",
-        "source_locator": "所得税法28条3項5号",
+        "_note": "上限。令和7年版の28条3項5号と同じ。令和8年版では28条3項4号",
+        "source_locator": "所得税法28条3項4号（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）",
         "value_certainty": "confirmed_from_source"
       }
     ],
-    "_usable_as_estimate": "導出した2件は value_certainty: \"derived\" と requires_result_warning: true を持つ。計算エンジンはこれを含む計算で resultStatus を \"partial\" とし、_warning_text を結果に添える。概算でも出したほうが利用者の役に立つため、値としては使う。施行後に条文で確認して confirmed_from_source に切り替える。"
+    "_usable_as_estimate": "2026-10-28 に導出値は無くなった（TIER-01・02 を confirmed_from_source にした）。"
   },
   "r2_to_r6": {
     "_applies_to": "令和2年分〜令和6年分（回帰テスト用。No.1410 記載）",
