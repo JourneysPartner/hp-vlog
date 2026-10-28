@@ -383,9 +383,9 @@ test('7', '却下した列の修正は未解決のまま承認を差し止める
   assert.ok(F.applyFactResult(raw, result).includes('fact_check_blocking: true'));
 });
 
-test('8', 'LOGIC_VERSION は plan2-s2', async () => {
+test('8', 'LOGIC_VERSION は plan2-s3', async () => {
   const result = await F.checkFacts('', { ...options, enabled: true });
-  assert.equal(result.record.logic_version, 'plan2-s2');
+  assert.equal(result.record.logic_version, 'plan2-s3');
 });
 
 (async () => {

@@ -142,6 +142,21 @@ function renderConditionDifferences(claim) {
     `<div class="small">条件の違い: 記事「${escapeHtml(String(c.article || '').slice(0, 160))}」 / 根拠「${escapeHtml(String(c.source || '').slice(0, 160))}」</div>`).join('');
 }
 
+function originalFactClaim(record, correction) {
+  return (record.claims || record.rechecked || []).find(c => c.id === correction.id);
+}
+
+function renderGeneralizedAnswer(record, correction) {
+  const original = originalFactClaim(record, correction);
+  if (!original) return '';
+  const answer = original?.rejected_answer;
+  if (!answer) return `<div class="small mt-2">${escapeHtml(original.reject_reason ? `AI の答え: 記録なし（${original.reject_reason}）` : 'AI の答え: 資料なし')}</div>`;
+  const ref = evidenceRefs(record, original).find(e => e.id === answer.evidence) || record.evidence?.[answer.evidence];
+  const source = ref?.title || ref?.url || '';
+  const message = `AI の答え: ${answer.status}${source ? `（${source}）` : ''}／機械が採らなかった理由: ${original.reject_reason || ''}`;
+  return `<div class="small mt-2">${escapeHtml(message)}</div><blockquote>${escapeHtml(String(answer.quote || '').slice(0, 200))}</blockquote>`;
+}
+
 function renderFactCheckSummary(meta, record, body) {
   const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
   const blocking = status === 'revise' || meta.fact_check_blocking === true || meta.fact_check_blocking === 'true';
@@ -149,11 +164,12 @@ function renderFactCheckSummary(meta, record, body) {
   const corrections = usable ? record.corrections || [] : [];
   const items = usable ? record.review_items || [] : [];
   const outsideCount = usable ? outsideCandidateClaims(record).length : 0;
+  const rejectedSupported = corrections.filter(c => c.generalized && originalFactClaim(record, c)?.rejected_answer?.status === '裏付けあり').length;
   return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
     <p><strong>状態:</strong> ${escapeHtml(label)}</p>
     ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています</div>' : ''}
     ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
-    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件</p>
+    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件${rejectedSupported ? `（うち AI は裏付けありと答えた ${rejectedSupported} 件）` : ''}</p>
     ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
     ${outsideCount ? `<p>候補の外の資料で裏付け ${outsideCount} 件</p>` : ''}
     ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
@@ -173,7 +189,7 @@ function renderFactOutsideCandidates(record) {
 
 function renderFactCheck(meta, record, body) {
   const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
-  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
+  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${c.generalized ? renderGeneralizedAnswer(record, c) : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
   return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
     <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(label)}${status ? `（${escapeHtml(status)}）` : ''}</p>
     <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>

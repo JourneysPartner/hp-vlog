@@ -224,12 +224,12 @@ async function main() {
     } });
     try {
       const initial = await F.checkArticle(raw, opts);
-      assert.equal(initial.record.logic_version, 'plan2-s2'); assert.equal(initial.record.status, 'ok');
+      assert.equal(initial.record.logic_version, 'plan2-s3'); assert.equal(initial.record.status, 'ok');
       const file = F.recordPath('precision-version', dir);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8')); prior.logic_version = '03k';
       fs.writeFileSync(file, JSON.stringify(prior)); calls.length = 0;
       const result = await F.checkArticle(raw, { ...opts, persist: false, previousRaw: raw });
-      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s2');
+      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s3');
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
