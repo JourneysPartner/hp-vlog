@@ -23,7 +23,7 @@ const { buildReferencePagesBlock, findReferencePages,
   findUnappliedReferencePages, formatReferencePages } = require('./lib/nta-reference-pages');
 const { getChangesForTopic, formatChangesForPrompt } = require('./lib/tax-law-changes');
 const { loadDenylist, findMatchingEntry, isTimeLimitedExpired, detectDenyIntent } = require('./lib/denylist');
-const { classifyRevision } = require('./lib/revision-classifier');
+const { classifyRevision, splitRevisionPoints } = require('./lib/revision-classifier');
 const partial = require('./lib/partial-revise');
 const { buildGenerationPrompt } = require('./lib/article-prompt-builder');
 const { buildReplacementOutlineBlock, formatReplacementFrontmatter, normalizeReplacementSlugs } = require('./lib/replaces');
@@ -2406,17 +2406,19 @@ async function enforceTitleBannedPhrases(content, comment) {
 }
 
 // ── 部分再生成: section（対象セクションのみ差し替え／追加）──────
-async function regenerateSection(existingContent, comment, classification, { preserveTitle = false } = {}) {
+async function regenerateSection(existingContent, comment, classification, { preserveTitle = false, sourceBlocks } = {}) {
   const { meta, body } = parseFrontmatter(existingContent);
   const { intro, sections } = partial.splitSections(body);
-  const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
+  const { combined: srcBlock, figures: srcFigures } = sourceBlocks || await buildRegenSourceBlocks(meta, body);
   existingContent = recordMaterialMetadata(existingContent, meta);
 
   if (classification.type === 'add_section') {
     // 新セクションを生成して末尾（まとめの前）に挿入
     const { system, user } = partial.buildSectionPrompt(meta, comment, null, classification, srcBlock);
     // 1 セクションのみの出力。本文長引き上げに伴い 1 章も長くなるため 4096 に拡張。
-    const newSection = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
+    const notes = partial.removeNewInternalNotes('', postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text));
+    if (notes.contaminated) return internalNotesWarning(existingContent, body, comment);
+    const newSection = notes.body;
     // まとめセクションがあればその前に、なければ末尾に追加
     const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
     const parsedNew = partial.splitSections(newSection).sections[0] ||
@@ -2432,10 +2434,12 @@ async function regenerateSection(existingContent, comment, classification, { pre
   if (idx < 0) {
     // 対象が特定できない → targeted にフォールバック（全文最小修正）
     console.warn('[regenerate] 対象セクション特定不可 → targeted にフォールバック');
-    return regenerateTargeted(existingContent, comment, { preserveTitle: preserveTitle || Boolean(classification && classification.preserveTitle) });
+    return regenerateTargeted(existingContent, comment, { preserveTitle: preserveTitle || Boolean(classification && classification.preserveTitle), sourceBlocks });
   }
   const { system, user } = partial.buildSectionPrompt(meta, comment, sections[idx], classification, srcBlock);
-  const revisedRaw = postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text);
+  const notes = partial.removeNewInternalNotes(sections[idx].raw, postProcessBodyOnly((await callSimpleOpenAI({ system, user, figures: srcFigures }, 4096, { kind: 'body' })).text));
+  if (notes.contaminated) return internalNotesWarning(existingContent, body, comment);
+  const revisedRaw = notes.body;
   const reparsed = partial.splitSections(revisedRaw).sections[0];
   if (reparsed) sections[idx] = reparsed;
   else sections[idx] = { heading: sections[idx].heading, body: revisedRaw };
@@ -2467,16 +2471,24 @@ function sanitizeRevisedBody(originalBody, revisedBody, label) {
   return revisedBody;
 }
 
-async function regenerateTargeted(existingContent, comment, { preserveTitle = false } = {}) {
+function internalNotesWarning(existingContent, body, comment) {
+  const note = '\n\n【自動再生成の警告】このコメントを自動で本文に反映できませんでした（LLM が作業の説明を本文に書いたため）。手動で該当箇所を直すか、コメントを具体化して再度お試しください。';
+  return rebuildWithBodyAndWarning(existingContent, body, comment + note);
+}
+
+async function regenerateTargeted(existingContent, comment, { preserveTitle = false, sourceBlocks, materialsRecorded = false } = {}) {
   const { body, meta } = parseFrontmatter(existingContent);
   const origLen = body.trim().length;
 
   // 1 回目: 通常プロンプト
-  const { combined: srcBlock, figures: srcFigures } = await buildRegenSourceBlocks(meta, body);
-  existingContent = recordMaterialMetadata(existingContent, meta);
+  const { combined: srcBlock, figures: srcFigures } = sourceBlocks || await buildRegenSourceBlocks(meta, body);
+  if (!materialsRecorded) existingContent = recordMaterialMetadata(existingContent, meta);
   const p1 = partial.buildTargetedPrompt(meta, comment, body, srcBlock);
   let { text: raw } = await callSimpleOpenAI({ system: p1.system, user: p1.user, figures: srcFigures }, 12000, { kind: 'body' });
   let revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted');
+  let notes = partial.removeNewInternalNotes(body, revised);
+  if (notes.contaminated) return internalNotesWarning(existingContent, body, comment);
+  revised = notes.body;
   let guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
 
   // 2 回目: 1 回目が shrinkage 判定なら、より厳しいプロンプトでリトライ
@@ -2488,6 +2500,9 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
     const p2 = partial.buildTargetedPromptRetry(meta, comment, body, prevLen, origLen, srcBlock);
     raw = (await callSimpleOpenAI({ system: p2.system, user: p2.user, figures: srcFigures }, 12000, { kind: 'body' })).text;
     revised = sanitizeRevisedBody(body, postProcessBodyOnly(raw), 'targeted リトライ');
+    notes = partial.removeNewInternalNotes(body, revised);
+    if (notes.contaminated) return internalNotesWarning(existingContent, body, comment);
+    revised = notes.body;
     guard = partial.isBodyShrinkageSuspicious(body, revised, 0.6);
   }
 
@@ -2510,6 +2525,110 @@ async function regenerateTargeted(existingContent, comment, { preserveTitle = fa
   let result = rebuildWithBody(existingContent, revised);
   if (!preserveTitle) result = await maybeUpdateTitleForTargeted(result, comment, meta);
   return result;
+}
+
+function getMultiPointRevisionPlan(existingContent, comment) {
+  if ([process.env.ENABLE_MULTI_POINT_REVISE, process.env.ENABLE_PARTIAL_REVISE]
+    .some(value => String(value).toLowerCase() === 'false')) return null;
+  const split = splitRevisionPoints(comment);
+  if (split.points.length < 2) return null;
+  console.log(`[regenerate] 指摘を ${split.points.length} 点に分割`);
+  const { body } = parseFrontmatter(existingContent);
+  const plan = partial.planRevisionSteps(split, partial.splitSections(body).sections);
+  for (const item of plan.classifications) {
+    console.log(`[regenerate] 指摘 ${item.no}: type=${item.type} scope=${item.scope} sectionHint=${item.sectionHint}`);
+  }
+  if (plan.fallback) {
+    console.log(`[regenerate] コメント全体の処理へ戻す: ${plan.reason}`);
+    return null;
+  }
+  return plan;
+}
+
+async function regenerateMultiPoint(existingContent, comment, plan, { sourceBlocks, buildSourceBlocks = buildRegenSourceBlocks } = {}) {
+  const { meta, body: originalBody } = parseFrontmatter(existingContent);
+  const split = splitRevisionPoints(comment);
+  const sources = sourceBlocks || await buildSourceBlocks(meta, originalBody);
+  const preparedContent = recordMaterialMetadata(existingContent, meta);
+  let content = preparedContent;
+  let body = originalBody;
+  const failed = new Map();
+  const sameBody = (before, after) => sanitizeBannedPhrases(before).replace(/\s+/g, ' ').trim() === after.replace(/\s+/g, ' ').trim();
+  const fail = (step, reason) => {
+    for (const no of step.points) failed.set(no, reason);
+    console.warn(`[regenerate] ${step.kind} 指摘 ${step.points.join(',')}: 失敗（${reason}）`);
+  };
+  console.log(`[regenerate] 段: ${plan.steps.map(step => `${step.kind} ${step.heading || ''} [${step.points.join(',')}]`).join(' → ')}`);
+  for (const step of plan.steps) {
+    if (step.kind === 'title') {
+      const instruction = [split.preface, ...split.points.filter(p => step.points.includes(p.no)).map(p => p.text)]
+        .filter(Boolean).join('\n\n');
+      content = await regenerateTitleOnly(rebuildWithBody(content, body), instruction);
+    } else if (step.kind === 'targeted') {
+      const inputContent = rebuildWithBody(content, body);
+      const revised = await regenerateTargeted(inputContent, step.instruction, {
+        preserveTitle: true, sourceBlocks: sources, materialsRecorded: true,
+      });
+      const parsed = parseFrontmatter(revised);
+      if (parsed.meta.review_status === 'needs_revision') {
+        fail(step, parsed.meta.review_comment.match(/LLM が ?([^）]+)/)?.[1] || '本文の修正を採用できない');
+        body = sanitizeBannedPhrases(body);
+        continue;
+      }
+      if (sameBody(parseFrontmatter(inputContent).body, parsed.body)) {
+        fail(step, '出力が入力と同じ');
+        continue;
+      }
+      body = parsed.body;
+    } else {
+      const { intro, sections } = partial.splitSections(body);
+      const section = step.kind === 'section' ? sections[step.sectionIndex] : null;
+      const before = section?.raw || '';
+      const prompt = partial.buildSectionPrompt(meta, step.instruction, section, step.classification, sources.combined);
+      const raw = (await callSimpleOpenAI({ ...prompt, figures: sources.figures }, 4096, { kind: 'body' })).text;
+      const revised = sanitizeRevisedBody(before, postProcessBodyOnly(raw), step.kind);
+      const notes = partial.removeNewInternalNotes(before, revised);
+      const parsed = partial.splitSections(notes.body);
+      const guard = partial.isBodyShrinkageSuspicious(before, notes.body, 0.6);
+      const reason = notes.contaminated ? 'LLM が作業の説明を本文に書いたため'
+        : parsed.intro.trim() || parsed.sections.length !== 1 || !parsed.sections[0].body.trim()
+          ? '出力が章として読めない' : guard.suspicious ? guard.reason
+            : step.kind === 'section' && sameBody(before, notes.body) ? '出力が入力と同じ' : '';
+      if (reason) { fail(step, reason); continue; }
+      if (step.kind === 'section') sections[step.sectionIndex] = parsed.sections[0];
+      else {
+        const concludeIdx = sections.findIndex(s => /まとめ|結論|おわり/.test(s.heading));
+        sections.splice(concludeIdx < 0 ? sections.length : concludeIdx, 0, parsed.sections[0]);
+      }
+      body = partial.joinSections(intro, sections);
+    }
+    console.log(`[regenerate] ${step.kind} 指摘 ${step.points.join(',')}: 成功`);
+  }
+
+  // 明示された旧文が残ったままなら、段が正常に出力されても未反映とする。
+  const count = (text, old) => text.split(old).length - 1;
+  const swap = /(?:「([^」\r\n]+)」|『([^』\r\n]+)』)を[\s、，,]*(?:(?:「([^」\r\n]+)」|『([^』\r\n]+)』)(?:という内容)?に\s*(?:直(?!接)|変更|変え|修正|訂正|置き換|置換|書き換|書換|差し替|差替|改め|統一|し[てま])|(?:削除|消し|取り除))/g;
+  for (const point of split.points) {
+    for (const match of point.text.matchAll(swap)) {
+      const old = match[1] || match[2];
+      const replacement = match[3] || match[4];
+      const unapplied = replacement?.includes(old)
+        ? count(body, replacement) <= count(originalBody, replacement)
+        : count(body, old) >= count(originalBody, old);
+      if (!failed.has(point.no) && old.length >= 6 && originalBody.includes(old) && unapplied) {
+        failed.set(point.no, '指定の文が残っている');
+        console.warn(`[regenerate] 指摘 ${point.no}: 指定の文が残っている`);
+      }
+    }
+  }
+  if (!failed.size) return rebuildWithBody(content, body);
+  const reasons = [...failed].sort((a, b) => a[0] - b[0]).map(([no, reason]) => `${no} 点目（${reason}）`).join('・');
+  if (failed.size === split.points.length) {
+    return rebuildWithBodyAndWarning(preparedContent, originalBody,
+      `${comment}\n\n【自動再生成の警告】差し戻しの指摘を自動で本文に反映できませんでした（${reasons}）。該当箇所を手動で直すか、その指摘だけで再度差し戻してください。`);
+  }
+  return rebuildWithBodyAndWarning(content, body,
+    `${comment}\n\n【自動反映は一部のみ】差し戻しの指摘 ${split.points.length} 点のうち、${reasons}を自動で反映できませんでした。該当箇所を手動で直すか、その指摘だけで再度差し戻してください。`);
 }
 
 /**
@@ -3209,7 +3328,11 @@ async function main() {
     }
 
     // ── 差し戻しコメントを分類し、再生成範囲を決める（部分再生成）──
-    const classification = classifyRevision(comment);
+    const multiPointPlan = isRefreshRegeneration ? null : getMultiPointRevisionPlan(existing, comment);
+    const classification = multiPointPlan ? {
+      type: 'multi_point', scope: [...new Set(multiPointPlan.steps.map(step => step.kind))].join('+'),
+      reason: '複数の指摘を段ごとに修正', denySuppression: false,
+    } : classifyRevision(comment);
     console.log(`[regenerate] 分類: type=${classification.type} scope=${classification.scope} (${classification.reason})`);
 
     // ENABLE_PARTIAL_REVISE=false で従来の全文再生成に固定可能
@@ -3239,6 +3362,8 @@ async function main() {
       console.log(refreshResult.warning
         ? '[regenerate] 更新案を自動反映できなかったため、手動確認の警告を記録しました'
         : `[regenerate] 更新案を ${refreshResult.scope} で再生成しました`);
+    } else if (multiPointPlan) {
+      content = await regenerateMultiPoint(existing, comment, multiPointPlan);
     } else if (scope === 'frontmatter') {
       // title_only: 本文を保ったまま title/summary だけ調整（最も安価）
       content = await regenerateTitleOnly(existing, comment);
@@ -3431,6 +3556,8 @@ module.exports = {
   regenerateWithContentModel,
   regenerateSection,
   regenerateTargeted,
+  regenerateMultiPoint,
+  getMultiPointRevisionPlan,
   callSimpleOpenAI,
   requireContentCredentials,
   applyMissingRulesToBody,

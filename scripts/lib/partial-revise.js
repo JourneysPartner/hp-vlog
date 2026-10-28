@@ -13,6 +13,8 @@
  * 実際の LLM 呼び出しは呼び出し側（generate-draft.js / content-model）に任せる。
  */
 
+const { classifyRevision, extractSectionHint, RULES } = require('./revision-classifier');
+
 // ── 本文を h2（## ）単位のセクションに分割 ──────────────────────
 // 戻り値: { intro, sections: [{ heading, body, raw }] }
 //   intro: 最初の ## より前の導入部
@@ -136,6 +138,19 @@ function findTargetSectionIndex(sections, sectionHint, type) {
       if (r > bestRatio) { bestRatio = r; bestIdx = i; }
     }
     if (bestIdx >= 0 && bestRatio >= 0.5) return bestIdx;
+
+    // h2 の照合をすべて優先した後、h3 でも同じ 3 段階で親の章を探す。
+    const nested = sections.flatMap((s, sectionIndex) =>
+      [...s.body.matchAll(/^###\s+(.+?)\s*$/gm)].map(m => ({
+        heading: m[1], body: '', sectionIndex,
+      })));
+    if (nested.length) {
+      const nestedIdx = findTargetSectionIndex(nested, sectionHint, '');
+      if (nestedIdx >= 0) {
+        const parentIndex = nested[nestedIdx].sectionIndex;
+        if (type !== 'table_fix' || /\|.+\|/.test(sections[parentIndex].body)) return parentIndex;
+      }
+    }
   }
   // intro_conclusion_fix の「まとめ/結論」系
   if (type === 'intro_conclusion_fix') {
@@ -148,6 +163,95 @@ function findTargetSectionIndex(sections, sectionHint, type) {
     if (idx >= 0) return idx;
   }
   return -1;
+}
+
+function planRevisionSteps(split, sections) {
+  const steps = [], sectionSteps = new Map(), classifications = [];
+  let targeted, title;
+  const classifyInstruction = instruction => {
+    const original = String(instruction || '');
+    const classification = classifyRevision(original);
+    const unnumbered = original.replace(/^\s*(?:[0-9０-９]+[.．)）、]|\([0-9０-９]+\)|（[0-9０-９]+）|[①-⑳])\s*/, '');
+    const outsideQuotes = unnumbered.replace(/「[^」]*」|『[^』]*』/g, quoted => ' '.repeat(quoted.length));
+    const negativeText = outsideQuotes.replace(/ませんか|ないでしょうか|ないですか/g, polite => ' '.repeat(polite.length));
+    const negativeClauses = [];
+    let text = '', start = 0, hasPositiveClause = false;
+    for (let i = 0; i <= unnumbered.length; i++) {
+      const subjectContinues = /[、\r\n]/.test(outsideQuotes[i] || '') &&
+        /(?:は|も|では|には|については)\s*$/.test(outsideQuotes.slice(start, i));
+      const punctuation = /[、。\r\n]/.test(outsideQuotes[i] || '') && !subjectContinues;
+      const negativeEnd = /(?:せずに|ずに|ないで)$/.test(negativeText.slice(Math.max(start, i - 3), i)) &&
+        !/^(?:ください|下さい|ほしい|いただ|もらえ)/.test(negativeText.slice(i));
+      if (i < unnumbered.length && !punctuation && !negativeEnd) continue;
+      const end = punctuation ? i + 1 : i;
+      const clause = unnumbered.slice(start, end);
+      if (/ないで|ずに|せず|ません|ないよう|しない/.test(negativeText.slice(start, end))) {
+        negativeClauses.push(clause);
+      } else {
+        text += clause;
+        if (unnumbered.slice(start, i).trim()) hasPositiveClause = true;
+      }
+      start = end;
+    }
+    const filtered = classification.denySuppression || text === unnumbered ? classification : classifyRevision(text);
+    const preserveOriginal = hasPositiveClause && ['title_only', 'add_section'].includes(classification.type) &&
+      filtered.type !== classification.type && !negativeClauses.some(clause => {
+        if (classification.type !== 'title_only') return classifyRevision(clause).type === classification.type;
+        const normalized = clause.replace(/「[^」]*」|『[^』]*』/g, '').replace(/[\s、]/g, '');
+        return /(?:タイトル|要約|サマリー)(?:だけ|自体)?(?:は|を|も|については|には)?(?:そのまま|一切|絶対に?|全く|今のまま)?(?:変え|変更|変わ|いじ|触|直さ|修正|見直さ)/.test(normalized);
+      });
+    return { text, classification: preserveOriginal ? classification : filtered };
+  };
+  const preface = classifyInstruction(split.preface).classification;
+  if (preface.denySuppression || (preface.type === 'full_regenerate' && preface.reason.startsWith('パターン一致:'))) {
+    return { fallback: true, reason: `前置き: ${preface.reason}`, classifications };
+  }
+  if (preface.type === 'title_only') title = { kind: 'title', points: [], texts: [], classification: preface };
+  for (const point of split.points) {
+    const classified = classifyInstruction(point.text);
+    let classification = classified.classification;
+    const text = classified.text.replace(/\s+/g, ' ').trim();
+    if (classification.type === 'full_regenerate' && !classification.denySuppression &&
+        classification.reason === 'コメントが長く広範囲の修正と判断（120文字以上）' &&
+        !RULES.some(rule => rule.patterns.some(pattern => pattern.test(text)))) {
+      // 番号付きの一指摘が具体的で長い場合は、全文を渡して最小修正する。
+      classification = { ...classification, type: 'factual_correction', scope: 'targeted',
+        sectionHint: extractSectionHint(point.text),
+        reason: '指摘が長い（複数の指摘の 1 つなので全文の最小修正）' };
+    }
+    classifications.push({ no: point.no, ...classification });
+    if (classification.type === 'full_regenerate' || classification.denySuppression) {
+      return { fallback: true, reason: `指摘 ${point.no}: ${classification.reason}`, classifications };
+    }
+    let step;
+    if (classification.type === 'title_only') {
+      step = title ||= { kind: 'title', points: [], texts: [], classification };
+    } else if (classification.type === 'add_section') {
+      step = { kind: 'add_section', points: [], texts: [], classification };
+      steps.push(step);
+    } else {
+      const sectionIndex = classification.scope === 'section'
+        ? findTargetSectionIndex(sections, classification.sectionHint, classification.type) : -1;
+      if (sectionIndex >= 0) {
+        if (!sectionSteps.has(sectionIndex)) sectionSteps.set(sectionIndex, {
+          kind: 'section', sectionIndex, heading: sections[sectionIndex].heading,
+          points: [], texts: [], classification,
+        });
+        step = sectionSteps.get(sectionIndex);
+      } else {
+        step = targeted ||= { kind: 'targeted', points: [], texts: [], classification };
+      }
+    }
+    step.points.push(point.no);
+    step.texts.push(point.text);
+  }
+  const ordered = [...sectionSteps.values()].sort((a, b) => a.sectionIndex - b.sectionIndex)
+    .concat(steps, targeted || [], title || []);
+  const notice = '（この段では、次の指摘だけを直します。ほかの指摘は別の段で直すので触れないでください。作業の説明・注記・「変更していません」などの断り書きを本文に書かないでください。）';
+  return { fallback: false, classifications, steps: ordered.map(({ texts, ...step }) => ({
+    ...step,
+    instruction: `${notice}\n${split.preface || ''}\n\n${texts.join('\n\n')}`,
+  })) };
 }
 
 // ── frontmatter の title/summary 等だけ差し替える（title_only）──
@@ -441,6 +545,52 @@ function findInternalProcessWords(body) {
   return { contaminated: words.length > 0, words };
 }
 
+function removeNewInternalNotes(before, after) {
+  const original = String(before || ''), revised = String(after || '');
+  const oldLines = new Set(original.split(/\r?\n/).map(line => line.trim()));
+  const strongContext = /差し戻し|コメント|ご指摘|ご依頼|ご指示|指示どおり|指示通り|指示に従|点目|指摘の[0-9０-９①-⑳]|指摘[0-9０-９①-⑳]|この段|別の段|ほかの指摘|他の指摘|ほかの箇所|他の箇所|その他の箇所|その他の指摘|指摘以外/;
+  const weakContext = /ほかの部分|他の部分|上記以外|それ以外の(?:部分|箇所|文)|ここ(?:は|では)/;
+  const context = new RegExp(`${strongContext.source}|${weakContext.source}`);
+  const result = /変更|修正|反映|対応|対象外|触れ|直し|変え|そのまま/;
+  const noteStart = /^(?:※|＊|\*(?![*\s])|注[:：]|（|\(※|【注)/;
+  const report = /(?:変更|修正|反映|対応|直)し(?:て(?:い|おり)?ません|ました)|変えて(?:い|おり)?ません|触れて(?:い|おり)?ません/;
+  const negativeReport = /(?:変更|修正|反映|対応|直)して(?:い|おり)?ません|変えて(?:い|おり)?ません|触れて(?:い|おり)?ません/;
+  const removed = [], remainingWords = [], lines = [];
+  let removedGap = false;
+  for (const line of revised.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!oldLines.has(trimmed)) {
+      const reports = [...trimmed.matchAll(new RegExp(report.source, 'g'))];
+      const removableReport = reports.length > 0 && (strongContext.test(trimmed) ||
+        (weakContext.test(trimmed) && reports.every(match => /^(?:変更|修正|直|変え)/.test(match[0]))));
+      if (noteStart.test(trimmed) && removableReport) {
+        removed.push(line);
+        removedGap = true;
+        console.warn(`[revise] 作業の注記を除去（${line.length} 文字）: ${trimmed.slice(0, 40)}`);
+        continue;
+      }
+      // 太字・箇条書きの論点列挙は、作業の報告でなければ本文として保持する。
+      const articlePoint = /^(?:\*\*|\*\s+)[0-9０-９①-⑳]+点目/.test(trimmed) &&
+        !report.test(trimmed) && !context.test(trimmed.replace(/[0-9０-９①-⑳]+点目/g, ''));
+      if (!articlePoint && ((context.test(trimmed) && result.test(trimmed)) || negativeReport.test(trimmed))) {
+        remainingWords.push(trimmed.match(context)?.[0] || trimmed.match(negativeReport)[0]);
+      }
+    }
+    if (removedGap && !trimmed && lines.length && !lines[lines.length - 1].trim()) continue;
+    lines.push(line);
+    removedGap = false;
+  }
+  const newline = revised.includes('\r\n') ? '\r\n' : '\n';
+  const body = removed.length ? lines.join(newline) : revised;
+  const count = (text, word) => text.split(word).length - 1;
+  const words = [...new Set([
+    ...INTERNAL_PROCESS_WORDS.filter(word => count(body, word) > count(original, word)),
+    ...remainingWords,
+  ])];
+  if (words.length) console.warn(`[revise] 作業の説明が混入: ${words.join('・')}`);
+  return { body, removed, contaminated: words.length > 0, words };
+}
+
 /**
  * LLM が本文の前に付けた検討過程を取り除く。
  *
@@ -503,6 +653,7 @@ module.exports = {
   splitSections,
   joinSections,
   findTargetSectionIndex,
+  planRevisionSteps,
   applyTitleOnly,
   replaceFmField,
   extractDirectTitleSwap,
@@ -514,6 +665,7 @@ module.exports = {
   buildTargetedPromptRetry,
   isBodyShrinkageSuspicious,
   findInternalProcessWords,
+  removeNewInternalNotes,
   stripAnalysisPreamble,
   INTERNAL_PROCESS_WORDS,
   normalizeForSectionMatch,
