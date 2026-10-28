@@ -406,7 +406,7 @@ test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び�
   assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
 });
 test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
-  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s2');
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s3');
 });
 
 const catalogRef = id => { const r = W.resolveMaterial(id); assert(r, id); return { ...r, text: r.text.split('関連リンク')[0] }; };

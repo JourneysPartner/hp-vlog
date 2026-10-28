@@ -110,6 +110,26 @@
   to = "/blog/ebay-export-consumption-tax-refund-complete-guide/"
   status = 301
 
+[[redirects]]
+  from = "/blog/ebay-just-opened-consumption-tax-judgement-practice/"
+  to = "/blog/ebay-taxable-vs-exempt-business/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/ebay-just-opened-invoice-judgement-guide/"
+  to = "/blog/ebay-export-invoice-system-impact/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/ebay-growth-incorporation-threshold-practice/"
+  to = "/blog/ebay-growth-incorporation-threshold-guide/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/ebay-growth-expense-grayzone-practice/"
+  to = "/blog/ebay-growth-expense-grayzone-guide/"
+  status = 301
+
 # 管理画面の入口: 認証後に /admin/articles へリダイレクト
 [[redirects]]
   from = "/admin"

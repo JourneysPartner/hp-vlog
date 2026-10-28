@@ -267,7 +267,6 @@ async function crawlTaxAnswer(args) {
       const parsed = taxanswerParser.parseTaxAnswerHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
-        ...detectContentChange(existing, { ...parsed, html_hash: r.fetchResult.htmlHash }, r.fetchResult.fetchedAt),
         fetched_at: r.fetchResult.fetchedAt,
         last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
         html_hash: r.fetchResult.htmlHash,
@@ -278,7 +277,10 @@ async function crawlTaxAnswer(args) {
         etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
       const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
-      store.saveTaxAnswerEntry(withFigures);
+      store.saveTaxAnswerEntry({
+        ...withFigures,
+        ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
+      });
       results.fetched++;
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${parsed.title.slice(0, 30)}`);
@@ -367,7 +369,6 @@ async function crawlShitsugi(args) {
       const parsed = shitsugiParser.parseShitsugiHtml(r.fetchResult.html, entry.url);
       const stored = {
         ...parsed,
-        ...detectContentChange(existing, { ...parsed, html_hash: r.fetchResult.htmlHash }, r.fetchResult.fetchedAt),
         fetched_at: r.fetchResult.fetchedAt,
         last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
         html_hash: r.fetchResult.htmlHash,
@@ -377,7 +378,10 @@ async function crawlShitsugi(args) {
         etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
       };
       const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
-      store.saveShitsugiEntry(withFigures);
+      store.saveShitsugiEntry({
+        ...withFigures,
+        ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
+      });
       results.fetched++;
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.section}/${entry.id} ${parsed.title.slice(0, 30)}`);

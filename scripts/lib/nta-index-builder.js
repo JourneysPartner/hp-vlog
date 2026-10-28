@@ -63,6 +63,7 @@ function buildIndexEntry(entry, fileAbsPath) {
     first_fetched_at: entry.first_fetched_at || null,
     content_changed_at: entry.content_changed_at || null,
     content_change_kind: entry.content_change_kind || null,
+    as_of_changed_at: entry.as_of_changed_at || null,
     law_version: entry.law_version || null,
   };
 }

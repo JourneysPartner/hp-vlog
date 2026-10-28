@@ -161,7 +161,7 @@ const RULES = [
       // この型は「セクション名を引用で示している」= 章レベルの修正意図が明確なので、
       // factual_correction 等よりも先に section_only に振り、対象セクションだけを
       // LLM に渡す（トークン節約 + 修正対象明確化）。
-      /[「『][^」』]{2,40}[」』]\s*の?\s*(?:章|区分|部分|セクション|見出し|段落)/,
+      /[「『][^」』]{2,40}[」』]\s*の?\s*(?:章|節(?!税|約|減|目|度)|区分|部分|セクション|見出し|段落)/,
     ],
   },
 ];
@@ -176,7 +176,7 @@ function extractSectionHint(comment) {
   // 「『...』の章」「「...」の見出し」「...について」など
   const quoted = c.match(/[「『]([^」』]{2,30})[」』]/);
   if (quoted) return quoted[1];
-  const about = c.match(/([一-鿿ぁ-んァ-ヶA-Za-z0-9・]{2,20})(?:について|の章|の見出し|の部分|のセクション|の説明|の表)/);
+  const about = c.match(/([一-鿿ぁ-んァ-ヶA-Za-z0-9・]{2,20})(?:について|の章|の節(?!税|約|減|目|度)|の見出し|の部分|のセクション|の説明|の表)/);
   if (about) return about[1];
   return '';
 }
@@ -240,9 +240,39 @@ function classifyRevision(comment) {
   };
 }
 
+// 連番で揃った行頭番号だけを分割し、番号を含む原文を保持する。
+function splitRevisionPoints(comment) {
+  const text = String(comment || '');
+  const lines = text.split(/\r?\n/);
+  const candidates = [];
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index].trimStart();
+    const numeric = line.match(/^(?:([0-9０-９]+)([.．)）、])|\(([0-9０-９]+)\)|（([0-9０-９]+)）)/);
+    const circled = line.match(/^[①-⑳]/);
+    if (circled) {
+      candidates.push({ index, no: circled[0].charCodeAt(0) - '①'.charCodeAt(0) + 1, kind: 'circled' });
+    } else if (numeric) {
+      candidates.push({ index, no: Number((numeric[1] || numeric[3] || numeric[4]).normalize('NFKC')),
+        kind: numeric[3] || numeric[4] ? 'parentheses' : numeric[2].normalize('NFKC') });
+    }
+  }
+  const starts = candidates.filter(s => s.kind === candidates[0].kind);
+  if (starts.length < 2 || starts.some((s, i) => s.no !== i + 1)) {
+    return { preface: text.trim(), points: [] };
+  }
+  return {
+    preface: lines.slice(0, starts[0].index).join('\n').trim(),
+    points: starts.map((s, i) => ({
+      no: s.no,
+      text: lines.slice(s.index, starts[i + 1]?.index ?? lines.length).join('\n').trim(),
+    })),
+  };
+}
+
 module.exports = {
   BODY_EDIT_PATTERNS,
   classifyRevision,
   extractSectionHint,
+  splitRevisionPoints,
   RULES,
 };

@@ -26,7 +26,7 @@
 | 20 | /blog/deepdive-reseller_marketplace_seller-lump-sum-depreciation-asset-practice/ | 記事 | ネット物販の記事・2026-06公開 |
 | 21 | /blog/deepdive-reseller_marketplace_seller-small-depreciation-special-guide/ | 記事 | ネット物販の記事・2026-06公開 |
 | 22 | /blog/ebay-growth-incorporation-threshold-guide/ | 記事 | ネット物販の記事・2026-06公開 |
-| 23 | /blog/ebay-growth-incorporation-threshold-practice/ | 記事 | ネット物販の記事・2026-06公開 |
+| 23 | /blog/ebay-growth-incorporation-threshold-practice/ | 記事 | ネット物販の記事・2026-06公開／統合済み（2026-10 統合先へ 301）・リクエスト不要 |
 | 24 | /blog/general-family-employment-domestic-ec-seller-growth-guide/ | 記事 | ネット物販の記事・2026-06公開 |
 | 25 | /blog/general-family-employment-domestic-ec-seller-growth-practice/ | 記事 | ネット物販の記事・2026-06公開 |
 | 26 | /blog/general-income-classification-reseller-marketplace-seller-growth-guide/ | 記事 | ネット物販の記事・2026-07公開 |
@@ -44,7 +44,7 @@
 | 38 | /blog/amazon-just-opened-invoice-judgement-practice/ | 記事 | ネット物販の記事・2026-05公開 |
 | 39 | /blog/amazon-seller-deductible-expenses-guide/ | 記事 | ネット物販の記事・2026-04公開 |
 | 40 | /blog/ebay-export-exchange-rate-accounting/ | 記事 | ネット物販の記事・2026-04公開 |
-| 41 | /blog/ebay-just-opened-invoice-judgement-guide/ | 記事 | ネット物販の記事・2026-05公開 |
+| 41 | /blog/ebay-just-opened-invoice-judgement-guide/ | 記事 | ネット物販の記事・2026-05公開／統合済み（2026-10 統合先へ 301）・リクエスト不要 |
 | 42 | /blog/ec-inventory-stocktaking-tax-return/ | 記事 | ネット物販の記事・2026-04公開 |
 | 43 | /blog/ec-seller-invoice-registration-guide/ | 記事 | ネット物販の記事・2026-04公開 |
 | 44 | /blog/ec-shop-simplified-vs-standard-tax/ | 記事 | ネット物販の記事・2026-04公開 |
@@ -68,7 +68,7 @@
 | 62 | /blog/yahoo-flea-side-income-misconception/ | 記事 | ネット物販の記事・2026-05公開 |
 | 63 | /blog/yahoo-shopping-tax-basics-guide/ | 記事 | ネット物販の記事・2026-05公開 |
 | 64 | /blog/ebay-export-shipping-customs-expenses/ | 記事 | 流入が来ている3分野・2026-04公開 |
-| 65 | /blog/ebay-just-opened-consumption-tax-judgement-practice/ | 記事 | 流入が来ている3分野・2026-05公開 |
+| 65 | /blog/ebay-just-opened-consumption-tax-judgement-practice/ | 記事 | 流入が来ている3分野・2026-05公開／統合済み（2026-10 統合先へ 301）・リクエスト不要 |
 | 66 | /blog/ec-purchase-non-invoice-supplier-measures/ | 記事 | 流入が来ている3分野・2026-04公開 |
 | 67 | /blog/general-incorporation-threshold-domestic-ec-seller-just-opened-practice/ | 記事 | 流入が来ている3分野・2026-05公開 |
 | 68 | /blog/general-sole-proprietor-social-insurance-misconceptions/ | 記事 | 流入が来ている3分野・2026-05公開 |
