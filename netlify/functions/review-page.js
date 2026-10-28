@@ -9,6 +9,7 @@ const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
+const { normalizeBold } = require('../../scripts/lib/cjk-bold');
 const { bodyHash, evidenceRefs, outsideCandidateClaims, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
 
 /**
@@ -241,7 +242,7 @@ function renderRefreshDiff(refreshContext, marked) {
   }
   const renderSide = (paragraphs) => paragraphs.map(row => {
     const style = row.changed ? 'background:#fff0d4;border-left:4px solid #e6851a;padding:.55rem .75rem;margin:.45rem 0' : 'padding:.55rem .75rem;margin:.45rem 0';
-    const html = sanitizeReviewHtml(marked(row.text));
+    const html = sanitizeReviewHtml(marked(normalizeBold(row.text)));
     return `<div style="${style}">${html}</div>`;
   }).join('') || '<p class="text-muted">（段落なし）</p>';
   return `<div class="refresh-diff-list">${refreshContext.diff.map(section => `
@@ -666,7 +667,7 @@ exports.handler = async (event) => {
 
     // Markdown → HTML 変換（marked + GFM テーブル対応）
     const { marked } = require('marked');
-    const bodyHtml = marked(body);
+    const bodyHtml = marked(normalizeBold(body));
 
     let refreshContext = null;
     if (meta.refresh_of === 'published' || ref.startsWith('draft/refresh-')) {
