@@ -163,6 +163,8 @@ const goldenR8 = JSON.parse(fs.readFileSync(path.join(MASTERS, 'fixtures', 'appe
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const appendix5R8 = buildAppendix5(apdx.r8.records, buildDeduction(salary.r8.records));
 {
+  assert(goldenR8.source_sha256 === apdx.r8._extraction_source.sha256, '令和8年版の検算表とマスターが指す原本のSHA-256が一致');
+  assert(goldenR8.law_revision_id === apdx.r8._extraction_source.law_revision_id, '令和8年版の検算表とマスターが指す法令版IDが一致');
   assert(goldenR8.band_count === goldenR8.bands.length, '令和8年版の宣言された帯数と実データ数が一致');
   assert(same(goldenR8.bands[0], [2026000, 2028000, 1336000]), '最初の帯は2,026,000〜2,028,000円 → 1,336,000円');
   assert(goldenR8.bands.slice(1).every(([from, to]) => to - from === 4000), '最初以外の全帯の幅が4,000円');

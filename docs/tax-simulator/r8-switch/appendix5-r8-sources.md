@@ -195,6 +195,7 @@ SID-R8-TIER-01〜05 は値を変えず、出典を大綱（MOF-R8-LAW）から�
 
 - **未承認の記録が 1 件でもあると、法人成り・役員報酬の公開判定（`masters:gate`）が「公開不可」になり、本番のビルドが止まる**（`scripts/build.js` 1385 行 → `scripts/lib/publish-prep.js` 203〜207 行が例外を投げる。対象の値の種類 `salary_income_after_deduction_appendix5`・`salary_income_deduction_table` は①④の必須）。PR の Netlify の試しの公開（deploy preview）も失敗する。
 - だから段 2 の PR は**下書き（draft）のまま**にし、毛利さんの照合（3 章）→ 承認の書き込み → **その後でマージ**する。
-- 承認の書き込み: `node scripts/approve-records.js` で対象が **14 件（APDX5-R8-SEG-01〜09・SID-R8-TIER-01〜05）だけ**であることを確かめてから、`node scripts/approve-records.js --by "毛利順活税理士事務所" --write`。
+- 承認の書き込み: **`--write` の直前に** `node scripts/approve-records.js`（引数なし）をもう一度流し、対象が **14 件（APDX5-R8-SEG-01〜09・SID-R8-TIER-01〜05）だけ**であることを確かめてから、`node scripts/approve-records.js --by "毛利順活税理士事務所" --write`。このスクリプトは対象を絞れず、その時点の未承認の記録を**すべて**承認する（main を取り込んで別の段の未承認の記録が入っていると、照合していない記録まで承認してしまう。2026-10-28 レビュー L-3）。
+- SID-R8-TIER-01 は措法29条の4第1項の括弧書き（収入が 74万円に満たないときは控除額＝収入）を持たない（5 章 3）。今の計算には影響しないが、将来この算式表を 220万円未満の収入に直接当てる処理（特定支出控除の「給与所得控除額の2分の1」など）を作るときは、この段を分けること（レビュー L-1）。
 - 承認後は、エンジンの 2026 年の給与所得が 4-4 の表どおりになることを試験が確かめる（8,499,999 だけは C-12 のため除き、端数の出ない 7,000,000 → 5,200,000 で代える。承認前は「別表第五の帯規則が利用できません」で止まることを確かめる）。
 - 2026-10-28 に、作業中のファイルへ `approve-records.js --by "試し" --write` を流してから `npm run masters:test` を流し、**73 本すべて通る**ことを確かめた（その後ファイルを元に戻し、SHA-256 の一致を確認）。承認前は、本番のビルドを呼ぶ試験 5 本（test-consolidation・test-pickup-links・test-service-segments・test-page-structure・test-cjk-bold）が「masters:gate が公開不可」で落ちる。
