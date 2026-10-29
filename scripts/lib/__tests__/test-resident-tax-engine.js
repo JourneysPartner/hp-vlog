@@ -43,6 +43,13 @@ console.log('\n=== 住民税エンジン: 基礎控除が所得税と違う ==='
     '住民税の課税所得は357万円（＝基礎控除43万円が効いている）');
 }
 
+console.log('\n=== 住民税エンジン: C-12の給与所得の端数 ===');
+{
+  const result = calc({ salaryRevenue: yen(8499999) });
+  assert(result.status === 'complete' && result.salaryIncome.value === 6549999n,
+    'C-12: 給与8,499,999円の住民税計算に使う給与所得は6,549,999円');
+}
+
 console.log('\n=== 住民税エンジン: 全工程（ゴールデンと同値） ===');
 {
   const r = calc({

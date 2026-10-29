@@ -24,7 +24,9 @@ function calculateDeductionFromTable(salaryRevenue, valueKey, searchCriterion) {
   const record = findRange(records, salaryRevenue, 'revenue_lower_inclusive');
   if (!record) throw new Error(`給与所得控除表に該当行がありません: ${salaryRevenue.value}`);
 
-  if (record.deduction_type === 'fixed') return masterMoney(record.fixed_amount);
+  if (record.deduction_type === 'fixed') {
+    return { exactDeduction: moneyToExact(masterMoney(record.fixed_amount)), record };
+  }
   if (record.deduction_type !== 'formula') {
     throw new Error(`未対応の給与所得控除方式です: ${record.deduction_type}`);
   }
@@ -32,7 +34,7 @@ function calculateDeductionFromTable(salaryRevenue, valueKey, searchCriterion) {
     multiplyRateByMoney(masterRate(record.rate), salaryRevenue),
     moneyToExact(masterMoney(record.rate_addition))
   );
-  return applyRounding(exactDeduction, record.rounding_rule_id);
+  return { exactDeduction, record };
 }
 
 function calculateFromAppendix5(salaryRevenue, searchCriterion) {
@@ -59,13 +61,16 @@ function calculateFromAppendix5(salaryRevenue, searchCriterion) {
       (salaryRevenue.value / bandStep.value) * bandStep.value,
       'salaryRevenue'
     );
-    const deduction = calculateDeductionFromTable(
+    const { exactDeduction, record: deductionRecord } = calculateDeductionFromTable(
       bandLower,
       record.deduction_table_value_key,
       searchCriterion
     );
     return {
-      salaryIncome: subtractMoney(bandLower, deduction),
+      salaryIncome: applyRounding(
+        subtractExact(moneyToExact(bandLower), exactDeduction),
+        deductionRecord.rounding_rule_id
+      ),
       record,
       bandLower,
     };
@@ -94,15 +99,23 @@ function calculateSalaryIncome(revenue, options = {}) {
     };
   }
 
-  const salaryIncomeDeduction = calculateDeductionFromTable(
+  const { exactDeduction, record } = calculateDeductionFromTable(
     salaryRevenue,
     'salary_income_deduction_table',
     searchCriterion
   );
+  // 給与所得の金額を計算してから1円未満を切り捨てる（国税庁『年末調整のしかた』
+  // 電子計算機等による年末調整（注）2、所得税法別表第五の備考、
+  // 確定申告の手引きの給与所得金額の計算表）。
+  // 給与所得控除額を先に切り捨てると給与所得が1円多くなる（台帳 C-12）。
+  const salaryIncome = applyRounding(
+    subtractExact(moneyToExact(salaryRevenue), exactDeduction),
+    record.rounding_rule_id
+  );
   return {
     salaryRevenue,
-    salaryIncomeDeduction,
-    salaryIncome: subtractMoney(salaryRevenue, salaryIncomeDeduction),
+    salaryIncomeDeduction: subtractMoney(salaryRevenue, salaryIncome),
+    salaryIncome,
     calculationMethod: 'deduction_table',
     bandLower: null,
   };
