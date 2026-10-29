@@ -203,7 +203,9 @@
 - 12 件すべて `approved` のとき: 照合表 5-2 の表を `{ taxYear: 2026 }` と `{ taxYear: 2025 }` で確かめる（配偶者は `calculateSpouseDeduction`・`calculateSpouseSpecialDeduction`、扶養は `calculateDependentDeductions` の `rows` の `kind`・`category`・`amount`）。2025 年は 580,000／580,001 の境目も。
 - 1 件でも `approved` でないとき: 「段 3 の 12 件がまとめて承認されていない（承認済み n 件）」で**試験失敗**にする（承認前に落ちるのは想定どおり。承認後に通る）。
 
-**B. データを差し替えて確かめる（承認の状態によらず流れる）**
+**B. データを差し替えて確かめる（差し替えで 12 件を承認済みにするので、承認の状態によらず同じ結果になる）**
+
+（2026-10-29 追記・レビュー L2: 承認前はこのファイルが前の 2025 年の試験で止まるため、B 節が実際に流れるのは承認後か、承認の試しのときだけ。）
 
 `scripts/lib/__tests__/test-tax-engine-common.js` の `loadSnapshotWithOneUnapprovedRecord` と同じやり方（`fs.readFileSync` を一時的に包み、`require.cache` から外して読み直す）で、2 つのマスターファイルを差し替えた `income-deductions.js` を作る。`snapshot.js` と、それを読み込むモジュール（`income-deductions.js` ほか）を読み直し、**終わったら `fs.readFileSync` と `require.cache` を元に戻す**（後の試験が本物のデータを使うように）。差し替えでは、まず段 3 の 12 件をすべて `approved` にしてから、下の変更を加える。
 
