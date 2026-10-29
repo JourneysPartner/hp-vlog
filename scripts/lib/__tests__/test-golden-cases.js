@@ -85,6 +85,8 @@ function inheritanceTaxTotal(estate, heirs, onDate) {
 }
 
 // 給与所得控除（660万円以上の表）
+// rounding_rule_id は給与所得の金額（収入 − 控除額）に当てる。控除額を先に切り捨てると
+// 給与所得が1円多くなる（台帳 C-12）。控除額は「収入 − 切り捨て後の給与所得」で返す。
 function salaryIncomeDeduction(revenue, year) {
   const input = inputMoney(revenue);
   const row = masters.findBracket('salary_income_deduction_table', input, { taxYear: year });
@@ -94,7 +96,8 @@ function salaryIncomeDeduction(revenue, year) {
     multiplyRateByMoney(masterRate(row.rate), input),
     moneyToExact(masterMoney(row.rate_addition))
   );
-  return applyRounding(deduction, row.rounding_rule_id).value;
+  const salaryIncome = applyRounding(subtractExact(moneyToExact(input), deduction), row.rounding_rule_id);
+  return input.value - salaryIncome.value;
 }
 
 // 基礎控除
