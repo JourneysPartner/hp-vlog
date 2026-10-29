@@ -543,7 +543,7 @@ function stage3Throws(action, message) {
   }
 }
 
-console.log('\n=== 段3: 差し替えデータ（B0〜B4） ===');
+console.log('\n=== 段3: 差し替えデータ（B0〜B7） ===');
 {
   const readFileSyncBefore = fs.readFileSync;
   const snapshotBefore = require('../../../src/tax-engine/masters/snapshot.js');
@@ -590,10 +590,44 @@ console.log('\n=== 段3: 差し替えデータ（B0〜B4） ===');
   assert(eligible.rows[0].kind === 'dependent' && eligible.rows[0].category === 'specific' &&
     amount(eligible.rows[0].amount) === 630000n, 'B4: 所得0円は特定扶養63万円で止まらない');
 
+  const b5 = loadStage3Deductions(records => {
+    const record = records.find(item => item.record_id === 'IDED-SPECREL-R8-T00');
+    if (record) record.data_review_status = 'unverified';
+  });
+  const dependent = { id: 'b5', ageAtYearEnd: 30, totalIncome: yen(0) };
+  assert(stage3Throws(() => b5.calculateDependentDeductions([dependent], { taxYear: 2026 }),
+    '特定親族特別控除の所得要件を取得できません'), 'B5: 2026年の0円の段が未承認なら止まる');
+  const previousYear = b5.calculateDependentDeductions([dependent], { taxYear: 2025 });
+  assert(amount(previousYear.total) === 380000n, 'B5: 2025年の同じ親族は扶養控除38万円で止まらない');
+
+  const b6 = loadStage3Deductions(records => {
+    const record = records.find(item => item.record_id === 'IDED-SPOUSE-SP-S02-T1');
+    if (record) {
+      const lower = record.applicability_conditions.find(condition =>
+        condition.subject === 'spouse_total_income' && condition.operator === 'gte');
+      lower.value.value = '600000';
+    }
+  });
+  assert(stage3Throws(() => spouseCalc(b6, 2026), '一意に決まりません'),
+    'B6: 最下段の下限が全記録の最小値と異なると止まる');
+
+  const b7 = loadStage3Deductions(records => {
+    const record = records.find(item => item.record_id === 'IDED-SPOUSE-SP-R8-S01-T2');
+    if (record) record.data_review_status = 'unverified';
+  });
+  const specialCalc = (self, income) => b7.calculateSpouseSpecialDeduction(yen(self),
+    { exists: true, totalIncome: yen(income) }, { taxYear: 2026 });
+  assert(stage3Throws(() => specialCalc(9200000, 700000), '本人の所得の段がありません: 9200000'),
+    'B7: 配偶者の所得に当たる表で本人の段が欠けると止まる');
+  assert(amount(specialCalc(5200000, 700000)) === 380000n,
+    'B7: 本人520万円の段は38万円で止まらない');
+  assert(amount(specialCalc(5200000, 600000)) === 0n,
+    'B7: 配偶者60万円は配偶者特別控除の表に当たらず0円で止まらない');
+
   assert(fs.readFileSync === readFileSyncBefore &&
     require('../../../src/tax-engine/income/income-deductions.js') === deductionsEngine &&
     require('../../../src/tax-engine/masters/snapshot.js') === snapshotBefore,
-  'B0〜B4の後は読取関数と本物のモジュールキャッシュに戻る');
+  'B0〜B7の後は読取関数と本物のモジュールキャッシュに戻る');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

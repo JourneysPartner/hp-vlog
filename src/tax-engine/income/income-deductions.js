@@ -93,7 +93,8 @@ function calculateSpouseSpecialDeduction(totalIncome, spouse, options = {}) {
   );
   if (records.length === 0) return zeroMoney();
   const record = findRange(records, taxpayerTotalIncome, 'income_lower_inclusive');
-  return record ? masterMoney(record.deduction_amount) : zeroMoney();
+  if (!record) throw new Error('配偶者特別控除の本人の所得の段がありません: ' + taxpayerTotalIncome.value);
+  return masterMoney(record.deduction_amount);
 }
 
 function dependentRecord(category, searchCriterion) {
