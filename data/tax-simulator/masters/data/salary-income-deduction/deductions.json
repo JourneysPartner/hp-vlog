@@ -250,8 +250,8 @@
         "calculation_order": 1,
         "rounding_rule_id": "R-TRUNC-1-YEN",
         "promulgated_at": "2026-03-31",
-        "verified_at": null,
-        "verified_by": null,
+        "verified_at": "2026-10-29",
+        "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -267,7 +267,7 @@
         "source_hash": null,
         "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "unverified",
+        "data_review_status": "approved",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "0"
@@ -294,8 +294,8 @@
         "calculation_order": 2,
         "rounding_rule_id": "R-TRUNC-1-YEN",
         "promulgated_at": "2026-03-31",
-        "verified_at": null,
-        "verified_by": null,
+        "verified_at": "2026-10-29",
+        "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -311,7 +311,7 @@
         "source_hash": null,
         "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "unverified",
+        "data_review_status": "approved",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "2200001"
@@ -341,8 +341,8 @@
         "calculation_order": 3,
         "rounding_rule_id": "R-TRUNC-1-YEN",
         "promulgated_at": "2026-03-31",
-        "verified_at": null,
-        "verified_by": null,
+        "verified_at": "2026-10-29",
+        "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -358,7 +358,7 @@
         "source_hash": null,
         "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "unverified",
+        "data_review_status": "approved",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "3600001"
@@ -388,8 +388,8 @@
         "calculation_order": 4,
         "rounding_rule_id": "R-TRUNC-1-YEN",
         "promulgated_at": "2026-03-31",
-        "verified_at": null,
-        "verified_by": null,
+        "verified_at": "2026-10-29",
+        "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -405,7 +405,7 @@
         "source_hash": null,
         "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "unverified",
+        "data_review_status": "approved",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "6600001"
@@ -435,8 +435,8 @@
         "calculation_order": 5,
         "rounding_rule_id": "R-TRUNC-1-YEN",
         "promulgated_at": "2026-03-31",
-        "verified_at": null,
-        "verified_by": null,
+        "verified_at": "2026-10-29",
+        "verified_by": "毛利順活税理士事務所",
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -452,7 +452,7 @@
         "source_hash": null,
         "as_of_date": "2026-10-28",
         "legal_status": "enacted",
-        "data_review_status": "unverified",
+        "data_review_status": "approved",
         "revenue_lower_inclusive": {
           "unit": "JPY",
           "value": "8500001"
