@@ -234,7 +234,7 @@
 3. `node scripts/lib/__tests__/test-income-tax-engine.js` は承認前だと落ちる（2025 年の扶養の試験で止まる）。落ちた最初の試験名とエラーの 1 行目を報告する。
 4. **承認後の試し**（必ず元に戻す）: 2 つのマスターファイルを `.tmp-` で始まる名前で控え、`node scripts/approve-records.js --by "試し" --write` を流して（対象が 12 件だけであることを 5 で先に確かめておく）、`node scripts/lib/__tests__/test-income-tax-engine.js` と `npm run masters:test` を流す。終わったら控えから戻し、戻したファイルの SHA-256 が控えと同じことを確かめる。控えは消す。
 5. `node scripts/approve-records.js`（`--write` を付けない）で「承認できる」が 12 件・「見送り」が 0 件で、対象が段 3 の 12 件だけであること。
-6. `node scripts/check-master-freshness.js --as-of 2026-10-29 --json` で: 「出典が更新された」10 件（今の 16 件から段 3 の 6 件が消える。残るのは CT-R1-REDUCED・ST-TYPE1〜6・IDED-SELFMED-FLOOR・-CAP・IT-H25-RECONSTRUCTION-SURTAX）、「対象期間のレコード無し」3 件（NTA-TA-1410・NTA-TA-1199・NTA-INCOME-R8。今と同じ）、「未承認」12 件（段 3 の 12 件）、公開判定は `hojinnari`・`yakuin_hoshu` が公開不可、`shohizei`・`sozoku` が公開可能。違えば報告する。
+6. `node scripts/check-master-freshness.js --as-of 2026-10-29 --json` で: 「出典が更新された」10 件（今の 16 件から段 3 の 6 件が消える。残るのは CT-R1-REDUCED・ST-TYPE1〜6・IDED-SELFMED-FLOOR・-CAP・IT-H25-RECONSTRUCTION-SURTAX）、「対象期間のレコード無し」3 件（NTA-TA-1410・NTA-TA-1199・NTA-INCOME-R8。今と同じ）、「未承認」12 件（段 3 の 12 件）、公開判定は 4 ツールとも公開可能（2026-10-29 追記: 指示書を書いた時点では hojinnari・yakuin_hoshu が公開不可と見込んだが、依存表で人的控除が optional のため止まらない。照合表 6 章・台帳 C-13）。違えば報告する。
 7. 変えたファイルが次の 5 本（＋試験で書き換わった `assets/js/` 等）だけであること:
    - `data/tax-simulator/masters/data/income-deduction/specific-relative-deduction.json`
    - `data/tax-simulator/masters/data/income-deduction/spouse-special-deduction.json`
