@@ -405,5 +405,196 @@ console.log('\n=== 給与所得: 令和8年分の承認状態と原表 ===');
   }
 }
 
+
+console.log('\n=== 段3: 62万円の所得要件（本物のデータ） ===');
+const stage3MasterFiles = [
+  path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator', 'masters', 'data',
+    'income-deduction', 'specific-relative-deduction.json'),
+  path.join(__dirname, '..', '..', '..', 'data', 'tax-simulator', 'masters', 'data',
+    'income-deduction', 'spouse-special-deduction.json'),
+];
+const stage3RecordIds = [
+  'IDED-SPECREL-T00', 'IDED-SPECREL-T01', 'IDED-SPECREL-R8-T00', 'IDED-SPECREL-R8-T01',
+  ...[1, 2, 3, 4].flatMap(n => ['IDED-SPOUSE-SP-S01-T' + n, 'IDED-SPOUSE-SP-R8-S01-T' + n]),
+];
+
+/** 照合表5-2の期待値を固定し、年ごとの控除の種類と金額を確かめる。 */
+function checkStage3Examples(engine, label) {
+  for (const year of [2025, 2026]) {
+    const options = { taxYear: year };
+    const r8 = year === 2026;
+    const spouseCases = [
+      [72, 620000, 5200000, r8 ? 480000n : 0n, r8 ? 0n : 380000n],
+      [72, 620001, 5200000, 0n, 380000n],
+      [40, 620000, 5200000, r8 ? 380000n : 0n, r8 ? 0n : 380000n],
+      [72, 600000, 5200000, r8 ? 480000n : 0n, r8 ? 0n : 380000n],
+      [72, 620001, 9200000, 0n, 260000n],
+      [72, 620001, 9800000, 0n, 130000n],
+      [72, 620001, 10000001, 0n, 0n],
+      [72, 950000, 5200000, 0n, 380000n],
+      [72, 950001, 5200000, 0n, 360000n],
+    ];
+    if (year === 2025) spouseCases.push(
+      [72, 580000, 5200000, 480000n, 0n],
+      [72, 580001, 5200000, 0n, 380000n]
+    );
+    for (const [age, income, self, expected, expectedSpecial] of spouseCases) {
+      const spouse = { exists: true, ageAtYearEnd: age, totalIncome: yen(income) };
+      const actual = engine.calculateSpouseDeduction(yen(self), spouse, options);
+      const special = engine.calculateSpouseSpecialDeduction(yen(self), spouse, options);
+      assert(amount(actual) === expected && amount(special) === expectedSpecial,
+        label + ': ' + year + '年・配偶者' + age + '歳/' + income + '円・本人' + self +
+        '円 → 配偶者控除' + expected + '円/特別' + expectedSpecial + '円');
+    }
+
+    const dependentCases = [
+      [30, 620000, 'child', false, 'dependent', r8 ? 'general' : 'income_over_limit', r8 ? 380000n : 0n],
+      [30, 620001, 'child', false, 'dependent', 'income_over_limit', 0n],
+      [20, 620000, 'child', false, r8 ? 'dependent' : 'specific_relative_special',
+        r8 ? 'specific' : 'specific_relative_special', 630000n],
+      [20, 620001, 'child', false, 'specific_relative_special', 'specific_relative_special', 630000n],
+      [20, 850000, 'child', false, 'specific_relative_special', 'specific_relative_special', 630000n],
+      [20, 850001, 'child', false, 'specific_relative_special', 'specific_relative_special', 610000n],
+      [75, 620000, 'parent', true, 'dependent', r8 ? 'elderly_cohabiting' : 'income_over_limit', r8 ? 580000n : 0n],
+      [75, 620001, 'parent', true, 'dependent', 'income_over_limit', 0n],
+      [30, 600000, 'child', false, 'dependent', r8 ? 'general' : 'income_over_limit', r8 ? 380000n : 0n],
+      [20, 600000, 'child', false, r8 ? 'dependent' : 'specific_relative_special',
+        r8 ? 'specific' : 'specific_relative_special', 630000n],
+    ];
+    if (year === 2025) dependentCases.push(
+      [20, 580000, 'child', false, 'dependent', 'specific', 630000n],
+      [20, 580001, 'child', false, 'specific_relative_special', 'specific_relative_special', 630000n]
+    );
+    for (const [age, income, relation, livesTogether, kind, category, expected] of dependentCases) {
+      const result = engine.calculateDependentDeductions([
+        { id: 'stage3', ageAtYearEnd: age, relation, livesTogether, totalIncome: yen(income) },
+      ], options);
+      const row = result.rows[0];
+      assert(result.status === 'complete' && result.rows.length === 1 && row.kind === kind &&
+        row.category === category && amount(row.amount) === expected && amount(result.total) === expected,
+      label + ': ' + year + '年・親族' + age + '歳/' + income + '円 → ' + kind + '/' + category + '/' + expected + '円');
+    }
+  }
+}
+
+{
+  const records = stage3MasterFiles.flatMap(file => JSON.parse(fs.readFileSync(file, 'utf8')).records)
+    .filter(record => stage3RecordIds.includes(record.record_id));
+  const approvedCount = records.filter(record => record.data_review_status === 'approved').length;
+  if (records.length === 12 && approvedCount === 12) {
+    checkStage3Examples(deductionsEngine, '本物のデータ');
+  } else {
+    assert(false, '段 3 の 12 件がまとめて承認されていない（承認済み ' + approvedCount + ' 件）');
+  }
+}
+
+/** ファイルは書かずに差し替え、読取関数・モジュールキャッシュを必ず元に戻す。 */
+function loadStage3Deductions(changeRecords = () => {}) {
+  const snapshotPath = require.resolve('../../../src/tax-engine/masters/snapshot.js');
+  const deductionsPath = require.resolve('../../../src/tax-engine/income/income-deductions.js');
+  const targetFiles = new Set(stage3MasterFiles.map(file => path.normalize(file)));
+  const originalReadFileSync = fs.readFileSync;
+  const originalCache = new Map(Object.entries(require.cache));
+  const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
+  // スナップショットを読むモジュールと、その呼出元も読み直しの対象にする。
+  const affected = new Set([snapshotPath, deductionsPath]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [id, entry] of originalCache) {
+      if (!affected.has(id) && entry.children.some(child => affected.has(child.id))) {
+        affected.add(id);
+        changed = true;
+      }
+    }
+  }
+  for (const id of affected) delete require.cache[id];
+  try {
+    fs.readFileSync = function readStage3Master(file, ...args) {
+      const source = originalReadFileSync.call(fs, file, ...args);
+      if (!targetFiles.has(path.normalize(String(file)))) return source;
+      const document = JSON.parse(source);
+      for (const record of document.records) {
+        if (stage3RecordIds.includes(record.record_id)) record.data_review_status = 'approved';
+      }
+      changeRecords(document.records);
+      const replaced = JSON.stringify(document);
+      return Buffer.isBuffer(source) ? Buffer.from(replaced, 'utf8') : replaced;
+    };
+    return require(deductionsPath);
+  } finally {
+    fs.readFileSync = originalReadFileSync;
+    for (const id of Object.keys(require.cache)) {
+      if (!originalCache.has(id)) delete require.cache[id];
+    }
+    for (const [id, entry] of originalCache) {
+      entry.children = originalChildren.get(id);
+      require.cache[id] = entry;
+    }
+  }
+}
+
+function stage3Throws(action, message) {
+  try {
+    action();
+    return false;
+  } catch (error) {
+    return error instanceof Error && error.message.includes(message);
+  }
+}
+
+console.log('\n=== 段3: 差し替えデータ（B0〜B4） ===');
+{
+  const readFileSyncBefore = fs.readFileSync;
+  const snapshotBefore = require('../../../src/tax-engine/masters/snapshot.js');
+  const b0 = loadStage3Deductions();
+  checkStage3Examples(b0, 'B0');
+
+  const spouse = { exists: true, ageAtYearEnd: 72, totalIncome: yen(600000) };
+  const spouseCalc = (engine, year) => engine.calculateSpouseDeduction(yen(5200000), spouse, { taxYear: year });
+  const b1 = loadStage3Deductions(records => {
+    for (const record of records) {
+      if (/^IDED-SPOUSE-SP-R8-S01-T[1-4]$/.test(record.record_id)) record.data_review_status = 'unverified';
+    }
+  });
+  assert(stage3Throws(() => spouseCalc(b1, 2026), '一意に決まりません'),
+    'B1: 2026年の最下段が未承認なら止まる');
+  assert(amount(spouseCalc(b1, 2025)) === 0n, 'B1: 2025年の計算は0円で止まらない');
+
+  const b2 = loadStage3Deductions(records => {
+    for (const record of records) {
+      if (/^IDED-SPOUSE-SP-S01-T[1-4]$/.test(record.record_id)) record.effective_to = null;
+    }
+  });
+  assert(stage3Throws(() => spouseCalc(b2, 2026), '一意に決まりません'),
+    'B2: 配偶者特別控除の2世代が重なると止まる');
+
+  const b3 = loadStage3Deductions(records => {
+    const record = records.find(item => item.record_id === 'IDED-SPECREL-T00');
+    if (record) record.effective_to = null;
+  });
+  assert(stage3Throws(() => b3.calculateDependentDeductions([
+    { id: 'b3', ageAtYearEnd: 30, totalIncome: yen(600000) },
+  ], { taxYear: 2026 }), '一意に決まりません'), 'B3: 扶養の0円の段が重なると止まる');
+
+  const b4 = loadStage3Deductions(records => {
+    const record = records.find(item => item.record_id === 'IDED-SPECREL-R8-T01');
+    if (record) record.data_review_status = 'unverified';
+  });
+  assert(stage3Throws(() => b4.calculateDependentDeductions([
+    { id: 'b4', ageAtYearEnd: 20, totalIncome: yen(700000) },
+  ], { taxYear: 2026 }), '特定親族特別控除の段がありません: 700000'), 'B4: 特定親族の段が欠けると止まる');
+  const eligible = b4.calculateDependentDeductions([
+    { id: 'b4-zero', ageAtYearEnd: 20, totalIncome: yen(0) },
+  ], { taxYear: 2026 });
+  assert(eligible.rows[0].kind === 'dependent' && eligible.rows[0].category === 'specific' &&
+    amount(eligible.rows[0].amount) === 630000n, 'B4: 所得0円は特定扶養63万円で止まらない');
+
+  assert(fs.readFileSync === readFileSyncBefore &&
+    require('../../../src/tax-engine/income/income-deductions.js') === deductionsEngine &&
+    require('../../../src/tax-engine/masters/snapshot.js') === snapshotBefore,
+  'B0〜B4の後は読取関数と本物のモジュールキャッシュに戻る');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
