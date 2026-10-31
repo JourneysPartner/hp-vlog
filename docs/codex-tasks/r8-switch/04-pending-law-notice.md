@@ -112,7 +112,7 @@ function checkCounterpartyCap(item, taxablePeriod, itemIndex, reasons) {
 今は「`sourceResultStatus === 'partial'` かつ ①の結果が `complete`」のときだけ、④の警告と除外項目を①の結果へ足している。段 5 の後は①の結果が常に `partial` になるので、**④の警告が捨てられる**（今も①が `partial` のときは捨てられている）。
 
 - 条件を `sourceHandoff && sourceHandoff.sourceResultStatus === 'partial' && simulated.resultStatus !== 'blocked'` に変える。
-- 警告は `code` で、除外項目は `code` で重複を除く（④・①の両方に `MASTER_PENDING_LAW_APPLIED` があるとき 1 件にする）。`code` の無い要素はそのまま残す。先に現れたものを残す。
+- 警告は `code`＋`fieldPath`＋本文（`basis` または `message`）が同じものだけ、除外項目は `code`＋`reason` が同じものだけ重複を除く（④・①の両方に同じ文の `MASTER_PENDING_LAW_APPLIED` があるとき 1 件にする。同じ `code` でも本文が違えば両方残す）。`code` の無い要素はそのまま残す。先に現れたものを残す。
 - `§13-1` のコメントは意味に合わせて直す。
 
 ## R7. 消費税の免税の表示を `complete` に結び付けない
@@ -187,18 +187,10 @@ function checkCounterpartyCap(item, taxablePeriod, itemIndex, reasons) {
 3. `npm run masters:gate` が 4 サービスとも公開可。
 4. `git status --short` に、この指示書に書いたファイル以外が無い。`assets/` の差は戻す。
 5. `git diff -- data/tax-simulator/masters/data` の変わった行が R8 の行だけ（`_` で始まる項目だけ）。
-</content>
-</invoke>
-<invoke name="Bash">
-<parameter name="command">cat > .tmp-readme-edit.js <<'EOF'
-const fs=require('fs');const p='docs/codex-tasks/r8-switch/README.md';let s=fs.readFileSync(p,'utf8');
-const a="| 3 | 62万円の所得要件（特定親族特別控除・配偶者特別控除の最下段を年で分ける）。あわせてエンジンに止まる確かめを 3 つ | `03-income-62.md` | 一次資料は取得・機械で照合済み（`docs/tax-simulator/r8-switch/income-62-sources.md`）。**人の照合と承認の後にマージ**（閉じる記録も未承認に戻るので、承認までは令和7年分の計算も止まる） |";
-const b="| 3 | 62万円の所得要件（特定親族特別控除・配偶者特別控除の最下段を年で分ける）。あわせてエンジンに止まる確かめを 3 つ | `03-income-62.md` | 済み（PR #724、2026-10-31 に 12 件を承認してマージ。AI の照合に基づく承認＝§50-1-20 の例外として `income-62-sources.md` 3 章に記録） |";
-const c="| 4 | エンジンの「施行前・概算」の注記と対応年の判定（設計書 §10-4・§11-1） | 後で書く | — |";
-const d="| 4 | エンジンの「施行前・概算」の注記と対応年の判定（設計書 §10-4・§11-1） | `04-pending-law-notice.md` | 実装中 |";
-const e="| 5 | 計算年の切替（2026 年） | 後で書く | 税理士の最終承認（台帳 E-1） |";
-const f="| 5 | 計算年の切替（2026 年）。前提: 台帳 C-7・C-13・C-14・C-15 | 後で書く | 税理士の最終承認（台帳 E-1） |";
-for(const[x,y]of[[a,b],[c,d],[e,f]]){if(!s.includes(x))throw new Error('not found: '+x.slice(0,30));s=s.replace(x,y);}
-fs.writeFileSync(p,s);
-EOF
-node .tmp-readme-edit.js; rm -f .tmp-readme-edit.js; git diff --stat
+
+## レビューの後で足したこと（2026-10-31、Opus 5.5 xhigh。Critical・High 0、Medium 1、Low 4）
+
+- R6 の重複の除き方を上の文に直した（Medium 1。`code` だけだと本文の違う警告を失う）。
+- `consumption-tax.js` の `invoiceTransitionRecord` は、取引日が無いとき 2 件の記録が同じと確かめてから使用記録に載せる（D1。止まる方式の記録で注記が付かないように）。
+- ④の `blocked` の表示用データは `warning.message` が無ければ `warning.basis` を読む（`SIM_TAX_YEAR_UNSUPPORTED` の本文が空になるのを防ぐ）。
+- 記録するだけで直さないこと: ②の 2027 年で 3割特例の対象外でも、判定の `find` が `CT-SPECIAL-3WARI` を使用記録に載せるので注記が付く（`eligibility.js` の `specialRecord`）。注記が多く出る側のずれで、2027 年は画面から届かない。
