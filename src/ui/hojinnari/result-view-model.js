@@ -1,5 +1,7 @@
 'use strict';
 
+const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
+
 const { incomeDeductionRows } = require('../income-deduction-view.js');
 
 const { resolveQuestion } = require('./question-catalog.js');
@@ -341,6 +343,7 @@ function buildResultViewModel(result) {
     periodLabel: result.periodLabel,
     resultStatusLabel,
     heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・${isTransition ? '移行年度比較' : '平年度比較'}・${resultStatusLabel}）`,
+    pendingLawNotice: pendingLawNoticeFrom(result),
     isPartial: partial,
     partialNotice: partial ? '概算の前提が含まれます' : undefined,
     conclusion: conclusion(result.summary.amount, isTransition),

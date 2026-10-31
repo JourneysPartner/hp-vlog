@@ -353,5 +353,53 @@ console.log('\n=== 不変条件とvalidate ===');
   'Moneyの指数表記1e3をok:falseで拒否する');
 }
 
+
+console.log('\n=== R8: 実際に適用した記録だけに注記 ===');
+for (const year of [2025, 2026]) {
+  const period = { from: year + '-01-01', to: year + '-12-31' };
+  const input = detailedInput({ period });
+  input.purchases[0].value.taxableWithoutInvoice = [{
+    band: 'standard_10', amount: taxIncl(110000),
+    transactionDate: year + '-10-01', hasRequiredRecords: 'yes',
+  }];
+  const actual = service.simulate(input, context(period), snapshotInfo);
+  assert(!actual.usedMasterRecords.some(r => r.recordId === 'INV-CAP-R8'),
+    year + '年は適用前の相手先別上限を使用記録に載せない');
+  if (year === 2025) {
+    assert(actual.resultStatus === 'complete' && !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
+      '2025年の適格請求書なし仕入は状態を保ち施行前注記なし');
+  } else {
+    assert(actual.resultStatus === 'partial' && hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED') &&
+      actual.usedMasterRecords.some(r => r.recordId === 'INV-TRANS-02'),
+      '2026年10月1日の仕入はINV-TRANS-02を使い施行前注記付きpartial');
+  }
+}
+{
+  const period = { from: '2027-01-01', to: '2027-12-31' };
+  const actual = service.simulate(detailedInput({ period }), context(period), snapshotInfo);
+  assert(actual.resultStatus === 'partial' && hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED') &&
+    row(actual, 'thirty_percent_special').taxPayable.value === 300000n &&
+    actual.usedMasterRecords.some(r => r.legalStatus === 'enacted'),
+    '2027年の3割特例は従来の金額を保ち施行前注記付きpartial');
+}
+for (const period of [
+  { from: '2028-01-01', to: '2028-12-31' },
+  { from: '2027-07-01', to: '2028-06-30' },
+]) {
+  const actual = service.simulate(detailedInput({ period }), context(period), snapshotInfo);
+  const warnings = actual.warnings.filter(w => w.code === 'SIM_TAX_YEAR_UNSUPPORTED');
+  assert(actual.resultStatus === 'blocked' && !Object.hasOwn(actual, 'breakdown') &&
+    warnings.length === 1 && warnings[0].basis.startsWith('2028年') &&
+    warnings[0].level === 'critical' && warnings[0].canContinue === false,
+    '未対応の2028年を含む課税期間は停止');
+}
+{
+  const actual = service.simulate(exemptInput(), context(), snapshotInfo);
+  assert(actual.resultStatus === 'complete' &&
+    !actual.usedMasterRecords.some(r => r.legalStatus === 'enacted') &&
+    !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
+    '2025年の免税結果はenactedなし・complete・注記なしを保つ');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

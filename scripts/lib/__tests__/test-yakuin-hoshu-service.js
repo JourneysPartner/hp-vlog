@@ -525,5 +525,42 @@ assert(!invalidResult.ok && invalidResult.errors.some(error =>
   error.fieldPath === '$.capital.value'),
 '指数表記のMoney Wireを ok:false で拒否する');
 
+
+console.log('\n=== R8: 各モードの2026年・対応外の年 ===');
+const r8Context = context({
+  incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
+  fiscalPeriod: { from: '2026-04-01', to: '2027-03-31' }, socialInsuranceMonths: ['2026-04'],
+});
+const r8ModeC = modeCInput();
+r8ModeC.plan.monthlySegments[0].period = r8Context.fiscalPeriod;
+for (const input of [
+  { ...modeAInput },
+  { mode: 'B', ...commonInput(), desiredMonthlyNetIncome: yen(387775), searchStep: '10000',
+    profitBeforeOfficerCompensation: yen(12000000) },
+  r8ModeC,
+]) {
+  try {
+    const actual = service.simulate(input, r8Context, snapshotInfo);
+    console.log('R9-10 ④' + input.mode + ': ' + actual.resultStatus + ' / ' +
+      actual.warnings.filter(w => w.canContinue === false).map(w => w.code + ': ' + w.basis).join(' / '));
+    assert(actual.resultStatus === 'partial' &&
+      actual.warnings.some(w => w.code === 'MASTER_PENDING_LAW_APPLIED'),
+      'R9-10 ④' + input.mode + 'の2026年は施行前注記付きpartial');
+  } catch (error) {
+    console.log('R9-10 ④' + input.mode + ': 例外 / ' + error.message.split('\n')[0]);
+    assert(false, 'R9-10 ④' + input.mode + 'の2026年は例外にならない');
+  }
+}
+assert([modeA, modeB, modeC].every(actual =>
+  !actual.warnings.some(w => w.code === 'MASTER_PENDING_LAW_APPLIED')),
+  '2025年のA・B・Cは従来の状態と警告を保ち、施行前注記なし');
+for (const year of [2024, 2027]) {
+  const actual = service.simulate(modeCInput(), context({ incomeTaxYear: year }), snapshotInfo);
+  const warning = actual.warnings.find(w => w.code === 'SIM_TAX_YEAR_UNSUPPORTED');
+  assert(actual.resultStatus === 'blocked' && warning && warning.level === 'critical' &&
+    warning.canContinue === false && warning.fieldPath === '$.calculationContext.incomeTaxYear' &&
+    !Object.hasOwn(actual, 'breakdown'), year + '年の④は対応外の年として停止');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

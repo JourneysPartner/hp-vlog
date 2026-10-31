@@ -1,5 +1,7 @@
 'use strict';
 
+const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
+
 const { resolveQuestion } = require('./question-catalog.js');
 
 const METHOD_LABELS = Object.freeze({
@@ -116,6 +118,7 @@ function common(result) {
   return {
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
+    pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
     warnings: sortedWarnings(result.warnings),
     assumptions: Object.freeze([...(result.assumptions || [])]),
     excludedItems: Object.freeze([...(result.excludedItems || [])]),
@@ -164,11 +167,11 @@ function buildResultViewModel(result) {
     throw new TypeError('結果表示に必要なshohizei内訳がありません');
   }
   const methodResults = result.breakdown.data.methodResults || [];
-  if (result.resultStatus === 'complete' && methodResults.length === 0) {
+  if (result.resultStatus !== 'blocked' && methodResults.length === 0) {
     const hasExportExempt = result.breakdown.data.hasExportExempt === true;
     return Object.freeze({
       ...common(result),
-      heading: `試算結果（${result.periodLabel}・complete）`,
+      heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
       exemptNotice: hasExportExempt

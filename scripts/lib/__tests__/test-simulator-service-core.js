@@ -276,5 +276,146 @@ assert(
   '想定内の出典不足は例外でなくblockedにする'
 );
 
+
+console.log('\n=== R8: 施行前・導出値の注記 ===');
+const pendingCode = 'MASTER_PENDING_LAW_APPLIED';
+const derivedCode = 'MASTER_DERIVED_VALUE_APPLIED';
+const effectiveRecord = { ...trackedRecords[0], legalStatus: 'effective' };
+const pendingRecord = { ...effectiveRecord, legalStatus: 'enacted' };
+const makeResult = (records, overrides = {}) => buildSimulationResult({
+  ...baseOptions, warnings: [], usedMasterRecords: records, ...overrides,
+});
+for (const count of [1, 2]) {
+  const actual = makeResult(Array.from({ length: count }, () => pendingRecord));
+  const notices = actual.warnings.filter(w => w.code === pendingCode);
+  assert(actual.resultStatus === 'partial' && notices.length === 1 &&
+    notices[0].basis.includes('施行前・概算') && notices[0].level === 'attention' &&
+    notices[0].canContinue === true &&
+    notices[0].userAction === '申告や判断に使う前に、施行後の取扱いをご確認ください',
+    count + '件のenactedから注記1件とpartialを返す');
+}
+assert(makeResult([pendingRecord], { resultStatus: 'partial' }).resultStatus === 'partial' &&
+  makeResult([pendingRecord], { resultStatus: 'partial' }).warnings.some(w => w.code === pendingCode),
+  'partialは注記を付けてpartialを保つ');
+for (const overrides of [
+  { resultStatus: 'blocked' },
+  { usedMasterRecords: [{ ...pendingRecord, reviewStatus: 'pending' }] },
+  { usedMasterRecords: [{ ...pendingRecord, sourceIds: ['NOT-IN-REGISTRY'] }] },
+]) {
+  const actual = makeResult([pendingRecord], overrides);
+  assert(actual.resultStatus === 'blocked' && !actual.warnings.some(w => w.code === pendingCode ||
+    w.code === derivedCode) && !Object.hasOwn(actual, 'breakdown'),
+    '停止理由がある結果に概算注記や内訳を加えない');
+}
+for (const status of ['complete', 'partial']) {
+  const actual = makeResult([effectiveRecord], { resultStatus: status });
+  assert(actual.resultStatus === status && actual.warnings.length === 0,
+    'effectiveだけなら' + status + 'と警告を変えない');
+}
+const derived = makeResult([
+  { ...effectiveRecord, valueCertainty: 'derived', warningText: '導出の確認文' },
+  { ...effectiveRecord, valueCertainty: 'derived', warningText: '導出の確認文' },
+  { ...effectiveRecord, valueCertainty: 'derived', warningText: null },
+  { ...effectiveRecord, requiresResultWarning: true, warningText: '別の確認文' },
+  { ...effectiveRecord, requiresResultWarning: true, warningText: null },
+]);
+assert(derived.resultStatus === 'partial' && derived.warnings.length === 3 &&
+  derived.warnings.every(w => w.code === derivedCode && w.level === 'attention' &&
+    w.canContinue === true && w.userAction === '法令で確定した値をご確認ください') &&
+  derived.warnings.some(w => w.basis === '導出の確認文') &&
+  derived.warnings.some(w => w.basis === '別の確認文') &&
+  derived.warnings.some(w => w.basis === '概算：この結果には、法令の本文に明記が無く計算で導いた値を使っています。'),
+  '導出値・警告必須の記録は文ごとに重複を除き、未指定時は共通文にする');
+assert(makeResult([{ ...effectiveRecord, requiresResultWarning: true }]).resultStatus === 'partial',
+  '導出値でなくても警告必須の記録ならpartialにする');
+assert(!makeResult([{ ...pendingRecord, valueCertainty: 'derived' }], { resultStatus: 'blocked' })
+  .warnings.some(w => w.code === pendingCode || w.code === derivedCode),
+  'blockedでは施行前・導出値の両方の注記を付けない');
+
+console.log('\n=== R8: peekと追跡項目 ===');
+snapshot.beginRecordTracking();
+const peeked = snapshot.peek('casualty_loss_scope', { onDate: '2026-08-01' });
+assert(snapshot.endRecordTracking().length === 0, 'peekの参照は使用記録に載らない');
+snapshot.beginRecordTracking();
+const found = snapshot.find('casualty_loss_scope', { onDate: '2026-08-01' });
+const foundReferences = snapshot.endRecordTracking();
+assert(require('util').isDeepStrictEqual(peeked, found) && foundReferences.length === 1,
+  'peekとfindの中身は同じでfindだけが使用記録に載る');
+assert(foundReferences[0].valueCertainty === (found[0].value_certainty ?? null) &&
+  foundReferences[0].requiresResultWarning === (found[0].requires_result_warning === true) &&
+  foundReferences[0].warningText === (typeof found[0]._warning_text === 'string' ? found[0]._warning_text : null),
+  '既存の記録でも追跡3項目の既定値を保持する');
+// 実ファイルは変えず、ロード時データの差替えで将来の導出値の追跡も確認する。
+const sourcePath = require.resolve('../../../src/tax-engine/masters/data-source.js');
+const savedSource = require.cache[sourcePath].exports;
+const savedSnapshot = require.cache[SNAPSHOT_PATH];
+try {
+  const fixture = {
+    ...found[0], value_certainty: 'derived', requires_result_warning: true,
+    _warning_text: '追跡した導出値の注記',
+  };
+  require.cache[sourcePath].exports = { ...savedSource,
+    getMasterDocuments: () => [{ content: JSON.stringify(fixture) }],
+  };
+  delete require.cache[SNAPSHOT_PATH];
+  const fixtureSnapshot = require(SNAPSHOT_PATH);
+  fixtureSnapshot.beginRecordTracking();
+  fixtureSnapshot.find(fixture.value_key, { onDate: '2026-08-01' });
+  const fixtureResult = makeResult(fixtureSnapshot.endRecordTracking());
+  assert(fixtureResult.usedMasterRecords[0].valueCertainty === 'derived' &&
+    fixtureResult.usedMasterRecords[0].requiresResultWarning === true &&
+    fixtureResult.usedMasterRecords[0].warningText === fixture._warning_text &&
+    fixtureResult.warnings.some(w => w.code === derivedCode && w.basis === fixture._warning_text),
+    '追跡3項目が結果のusedMasterRecordsと導出値警告まで届く');
+} finally {
+  require.cache[sourcePath].exports = savedSource;
+  require.cache[SNAPSHOT_PATH] = savedSnapshot;
+}
+
+console.log('\n=== R8: 対応年の判定 ===');
+const supportPath = require.resolve('../../../src/simulators/core/supported-year.js');
+const support = require(supportPath);
+snapshot.beginRecordTracking();
+for (const year of [2025, 2026, 2024, 2027, 2028]) {
+  const reasons = support.unsupportedIncomeYearReasons(year, '$.incomeTaxYear');
+  assert([2025, 2026].includes(year) ? reasons.length === 0 :
+    reasons.length === 1 && reasons[0].code === 'SIM_TAX_YEAR_UNSUPPORTED' &&
+    reasons[0].fieldPath === '$.incomeTaxYear' &&
+    reasons[0].message === year + '年の計算にはまだ対応していません。前年の値では計算しません。',
+    '所得税対応年 ' + year);
+}
+for (const year of [2025, 2026, 2027, 2024, 2028]) {
+  const reasons = support.unsupportedConsumptionPeriodReasons({
+    from: year + '-01-01', to: year + '-12-31',
+  }, '$.period');
+  assert(reasons.length === ([2025, 2026, 2027].includes(year) ? 0 : 1),
+    '消費税対応年 ' + year);
+}
+const crossYear = support.unsupportedConsumptionPeriodReasons(
+  { from: '2027-07-01', to: '2028-06-30' }, '$.period');
+assert(crossYear.length === 1 && crossYear[0].message.startsWith('2028年') &&
+  crossYear[0].fieldPath === '$.period', '期またぎは未対応の2028年だけを止める');
+const multipleYears = support.unsupportedConsumptionPeriodReasons(
+  { from: '2024-07-01', to: '2028-06-30' }, '$.period');
+assert(multipleYears.length === 2 && multipleYears[0].message.startsWith('2024年') &&
+  multipleYears[1].message.startsWith('2028年'), '期間の両端と途中の全暦年を確かめる');
+assert(snapshot.endRecordTracking().length === 0, '対応年の判定を使用記録に載せない');
+const savedSupport = require.cache[supportPath];
+try {
+  for (const records of [
+    [], [{ tax_year: 2025, support_status: 'unknown' }],
+    [{ tax_year: 2026, support_status: 'supported' }],
+    [{ tax_year: 2025, support_status: 'supported' }, { tax_year: 2025, support_status: 'supported' }],
+  ]) {
+    require.cache[SNAPSHOT_PATH].exports = { ...snapshot, peek: () => records };
+    delete require.cache[supportPath];
+    assert(require(supportPath).unsupportedIncomeYearReasons(2025, '$.year').length === 1,
+      '未承認等による欠損・未知状態・別年・重複は停止する');
+  }
+} finally {
+  require.cache[SNAPSHOT_PATH].exports = snapshot;
+  require.cache[supportPath] = savedSupport;
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

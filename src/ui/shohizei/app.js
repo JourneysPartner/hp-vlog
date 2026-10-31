@@ -95,6 +95,7 @@ const FIELD_IDS = Object.freeze({
 });
 
 const STYLE_TEXT = `
+.shohizei-pending-law-notice{font-weight:700;color:#7b3415;background:#fff4e5;border-left:4px solid #E85320;padding:16px}
 .shohizei-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
 .shohizei-app h1,.shohizei-app h2,.shohizei-app h3{color:#0B2045}.shohizei-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
 .shohizei-conclusion{background:#FDF0EA;border-left:6px solid #E85320}.shohizei-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.shohizei-app button{min-height:44px;padding:10px 18px;border-radius:8px;border:1px solid #0B2045;background:#fff;color:#0B2045;font:inherit}.shohizei-app button.shohizei-primary{background:#E85320;border-color:#E85320;color:#fff}
@@ -347,7 +348,7 @@ function mountShohizeiApp(rootElement, {
     await announceStatus('納税義務を判定しています');
     try {
       const result = await service.simulate(validation.value, context, snapshotInfo);
-      const exempt = result.resultStatus === 'complete' && result.breakdown &&
+      const exempt = result.resultStatus !== 'blocked' && result.breakdown &&
         result.breakdown.kind === 'shohizei' && result.breakdown.data.methodResults.length === 0;
       if (exempt) { showResult(result); return; }
       if ((result.applicableMethods || []).length > 0) { goToStep(2); return; }
@@ -451,6 +452,7 @@ function mountShohizeiApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'shohizei-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      viewModel.pendingLawNotice ? el('p', { className: 'shohizei-pending-law-notice' }, viewModel.pendingLawNotice) : null,
       keyResultSection(viewModel.keyResult),
       viewModel.isExempt ? el('section', { className: 'shohizei-card shohizei-conclusion' }, [
         el('h2', {}, viewModel.exemptTitle), el('p', {}, viewModel.exemptNotice),

@@ -924,5 +924,53 @@ assert(!invalidValidation.ok && invalidValidation.errors.some(error =>
   error.fieldPath === '$.corporate.capital.value'),
 'Moneyの指数表記1e3をok:falseで拒否する');
 
+
+console.log('\n=== R8: 2026年・対応外の年 ===');
+function nextYearDates(value) {
+  if (typeof value === 'string' && /^202[56]-/.test(value)) return (Number(value.slice(0, 4)) + 1) + value.slice(4);
+  if (Array.isArray(value)) return value.map(nextYearDates);
+  if (value && typeof value === 'object') return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, nextYearDates(child)]));
+  return value;
+}
+for (const [label, input, originalContext] of [
+  ['平年度', goldenInput(), context()],
+  ['移行年度', transitionInput(), transitionContext()],
+]) {
+  const yearContext = context({
+    incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
+    fiscalPeriod: nextYearDates(originalContext.fiscalPeriod), socialInsuranceMonths: ['2026-04'],
+  });
+  const yearInput = nextYearDates(input);
+  yearInput.individual.nationalHealthInsurance = { kind: 'actual', annualAmount: yen(600000) };
+  try {
+    const actual = service.simulate(yearInput, yearContext, snapshotInfo);
+    console.log('R9-10 ①' + label + ': ' + actual.resultStatus + ' / ' +
+      (actual.resultStatus === 'blocked' ? actual.warnings : []).map(w => w.code + ': ' + w.basis).join(' / '));
+    assert(actual.resultStatus === 'partial' && warningCode(actual, 'MASTER_PENDING_LAW_APPLIED'),
+      'R9-10 ①' + label + 'の2026年は施行前注記付きpartial');
+  } catch (error) {
+    console.log('R9-10 ①' + label + ': 例外 / ' + error.message.split('\n')[0]);
+    assert(false, 'R9-10 ①' + label + 'の2026年は例外にならない');
+  }
+  // 令和9年度の料率が未登録の間は止める（前年度の料率で代用しない）。扱いは段 5 で決める（台帳 C-16）
+  yearInput.individual.nationalHealthInsurance = { kind: 'estimate_accepted' };
+  const estimate = service.simulate(yearInput, yearContext, snapshotInfo);
+  assert(estimate.resultStatus === 'blocked' &&
+    estimate.warnings.some(warning => warning.code.includes('NHI_MUNICIPAL_RATE_NOT_REGISTERED')) &&
+    !Object.hasOwn(estimate, 'breakdown'),
+    'R9-10 ①' + label + 'の2026年の国保概算は翌年度の料率不足で停止');
+}
+assert(!warningCode(complete, 'MASTER_PENDING_LAW_APPLIED') &&
+  !warningCode(transition, 'MASTER_PENDING_LAW_APPLIED'),
+  '2025年の平年度・移行年度は従来の状態と警告を保ち、施行前注記なし');
+for (const year of [2024, 2027]) {
+  const actual = service.simulate(goldenInput(), context({ incomeTaxYear: year }), snapshotInfo);
+  const warning = actual.warnings.find(w => w.code === 'SIM_TAX_YEAR_UNSUPPORTED');
+  assert(actual.resultStatus === 'blocked' && warning && warning.level === 'critical' &&
+    warning.canContinue === false && warning.fieldPath === '$.calculationContext.incomeTaxYear' &&
+    !Object.hasOwn(actual, 'breakdown'), year + '年の①は対応外の年として停止');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

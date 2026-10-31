@@ -222,7 +222,7 @@
 
   "supported_years": {
     "_comment": "計算に対応している年。マスターが揃っていない年は計算させない。",
-    "_how_to_use": "計算エンジンは CalculationContext.asOfDate から対象年を決め、この表で対応可否を確認する。未対応なら resultStatus: blocked を返し、前年値へ黙ってフォールバックしない（§3-1）。",
+    "_how_to_use": "計算の対象年は CalculationContext の課税年（①④は incomeTaxYear、②は課税期間の暦年）で決め、この表で対応可否を確認する（src/simulators/core/supported-year.js）。未対応なら resultStatus: blocked を返し、前年値へ黙ってフォールバックしない（§3-1）。①④は supported と supported_with_pending_law だけ、②は partial も通す。③相続税は相続開始日で記録を引き、無ければ止まるので、この表では判定しない。",
     "records": [
       {
         "record_id": "TY-SUPPORTED-2025",
@@ -273,9 +273,9 @@
         "effective_to": "2026-12-31",
         "era_label": "令和8年",
         "support_status": "supported_with_pending_law",
-        "_covered": "上記に加えて、R8改正の基礎控除・給与所得控除・インボイス経過措置・社会保険料率",
-        "_caveat": "R8改正は令和8年12月1日施行の予定で、値は大綱に基づく（legal_status: enacted）。給与所得控除の段階の境界2件は大綱に記載が無く導出値（value_certainty: derived）。結果に施行前である旨と概算である旨を表示すること",
-        "_action_after_enforcement": "施行後に所法86・28条3項・別表第五を取り直し、値を確認して legal_status を effective に、value_certainty を confirmed_from_source に切り替える",
+        "_covered": "上記に加えて、令和8年分の基礎控除・給与所得控除（別表第五・措法29の4）・62万円の所得要件・インボイス経過措置・社会保険料率",
+        "_caveat": "所得税の令和8年度改正は令和8年12月1日施行（令和8年法律第12号）。施行までは legal_status: enacted で、それを使った結果は resultStatus: partial になり「施行前・概算」の注記が付く（src/simulators/core/result-builder.js）。基礎控除 BD-R8 とインボイス経過措置の出典は大綱のまま（台帳 C-14）",
+        "_action_after_enforcement": "施行後に legal_status を effective へ切り替える（別表第五・給与所得控除・62万円の要件の値は条文で確認済み。BD-R8 の出典の差し替えは台帳 C-14）",
         "source_document_id": "MOF-R8-LAW",
         "source_locator": "（対応状況の宣言）",
         "source_hash": null,

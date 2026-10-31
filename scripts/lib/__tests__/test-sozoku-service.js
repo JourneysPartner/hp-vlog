@@ -301,6 +301,8 @@ console.log('\n=== 生前贈与加算・贈与税額控除 ===');
   };
   delete input.smallResidentialLand;
   const simulation = result(input, context({ inheritanceOpenDate: '2028-06-01' }));
+  assert(simulation.resultStatus === 'partial' && hasWarning(simulation, 'MASTER_PENDING_LAW_APPLIED'),
+    '2028年6月1日の生前贈与加算は施行前注記付きpartial');
   const child1 = data(simulation).giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-1');
   const child2 = data(simulation).giftAddback.perRecipient.find(row => row.recipientHeirId === 'child-2');
   assert(child1.addbackAmount.value === 2500000n && child2.addbackAmount.value === 0n &&
@@ -472,6 +474,15 @@ console.log('\n=== validate とスナップショット ===');
   assert(data(level2).filingNeed === 'required_for_special_rule' &&
     data(level2).totalInheritanceTax.value === 0n,
   'LEVEL2: 税額0円でも特例利用のため申告必要（税額0円≠申告不要）');
+}
+
+
+console.log('\n=== R8: 相続開始日と施行前注記 ===');
+{
+  const actual = result(fullInput(), context({ inheritanceOpenDate: '2026-08-29' }));
+  assert(actual.resultStatus === 'complete' &&
+    !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
+    '2026年8月29日の相続はcomplete・注記なし');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -15,6 +15,7 @@ const individualBusinessTax = require('../../tax-engine/business-tax/individual-
 const socialInsurance = require('../../tax-engine/social-insurance/index.js');
 const corporateTax = require('../../tax-engine/corporate/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
+const { unsupportedIncomeYearReasons } = require('../core/supported-year.js');
 const {
   money,
   rate,
@@ -219,7 +220,9 @@ function translatePlanReasons(reasons) {
 }
 
 function supportedProfileReasons(input, context) {
-  const reasons = [];
+  const reasons = unsupportedIncomeYearReasons(
+    incomeYearFrom(context), '$.calculationContext.incomeTaxYear'
+  );
   const individual = input.individual || {};
   const business = individual.business || {};
   const corporate = input.corporate || {};

@@ -274,7 +274,9 @@ function invoiceTransitionRecord(period, transactionDate, itemIndex, reasons) {
 }
 
 function checkCounterpartyCap(item, taxablePeriod, itemIndex, reasons) {
-  // 将来も有効な単一レコードを取得し、適用開始日はレコード自身から判定する。
+  // 適用開始前の課税期間では上限を使わないので、開始日の確かめは使用記録に載せない。
+  const peeked = masters.peek('invoice_counterparty_annual_cap', { onDate: '9999-12-31' });
+  if (peeked.length === 1 && taxablePeriod.from < peeked[0].applies_to_period_start_from) return;
   const cap = requiredRecord('invoice_counterparty_annual_cap', { onDate: '9999-12-31' });
   if (taxablePeriod.from < cap.applies_to_period_start_from) return;
   if (!item.counterpartyId || item.counterpartyAnnualTotal === undefined ||

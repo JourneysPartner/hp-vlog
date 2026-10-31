@@ -110,7 +110,18 @@ const FIELD_IDS = Object.freeze({
   '$.corporate.expenses[0].value.value': 'hj-corporate-expenses',
 });
 
+function uniqueByCode(items) {
+  const seen = new Set();
+  return Object.freeze(items.filter(item => {
+    if (!item.code) return true;
+    if (seen.has(item.code)) return false;
+    seen.add(item.code);
+    return true;
+  }));
+}
+
 const STYLE_TEXT = `
+.hojinnari-pending-law-notice{font-weight:700;color:#7b3415;background:#fff4e5;border-left:4px solid #E85320;padding:16px}
 .hojinnari-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
 .hojinnari-app h1,.hojinnari-app h2,.hojinnari-app h3{color:#0B2045}
 .hojinnari-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
@@ -679,14 +690,14 @@ function mountHojinnariApp(rootElement, {
     try {
       const simulated = await service.simulate(validation.value, context, snapshotInfo);
       const sourceHandoff = store.getState().sourceHandoff;
-      // §13-1: partialの送信元を受けた結果をcompleteへ格上げしない。
+      // §13-1: 停止結果は保ち、partialの送信元の警告と除外項目を重複なく引き継ぐ。
       const result = sourceHandoff && sourceHandoff.sourceResultStatus === 'partial' &&
-          simulated.resultStatus === 'complete'
+          simulated.resultStatus !== 'blocked'
         ? Object.freeze({
           ...simulated,
           resultStatus: 'partial',
-          warnings: Object.freeze([...(sourceHandoff.warnings || []), ...(simulated.warnings || [])]),
-          excludedItems: Object.freeze([
+          warnings: uniqueByCode([...(sourceHandoff.warnings || []), ...(simulated.warnings || [])]),
+          excludedItems: uniqueByCode([
             ...(sourceHandoff.excludedItems || []), ...(simulated.excludedItems || []),
           ]),
         })
@@ -752,6 +763,7 @@ function mountHojinnariApp(rootElement, {
       el('div', { className: 'hojinnari-print' }, [
         el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
         el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
+        viewModel.pendingLawNotice ? el('p', { className: 'hojinnari-pending-law-notice' }, viewModel.pendingLawNotice) : null,
         el('section', { className: 'hojinnari-verdict-summary simulator-key-result', 'aria-label': '判定サマリー' }, [
           el('p', { className: 'hojinnari-verdict-banner' }, [
             el('span', { className: 'hojinnari-verdict-emphasis' }, summary.verdict.emphasisText),

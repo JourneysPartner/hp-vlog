@@ -99,6 +99,7 @@ const FIELD_IDS = Object.freeze({
 });
 
 const STYLE_TEXT = `
+.yh-pending-law-notice{font-weight:700;color:#7b3415;background:#fff4e5;border-left:4px solid #E85320;padding:16px}
 .yakuin-hoshu-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
 .yakuin-hoshu-app h1,.yakuin-hoshu-app h2,.yakuin-hoshu-app h3{color:#0B2045}
 .yh-card{background:#fff;border:1px solid #E3E8F0;border-radius:12px;padding:24px;margin:16px 0;box-shadow:var(--shadow-sm,0 2px 8px rgba(11,32,69,.08))}
@@ -684,6 +685,7 @@ function mountYakuinHoshuApp(rootElement, {
     return el('main', {}, [
       el('p', { className: 'yh-help' }, 'この印刷物は申告・届出に使用できません。利用後は「入力をクリア」を実行してください。'),
       el('h1', { id: 'yh-result-heading', tabindex: '-1' }, viewModel.heading),
+      viewModel.pendingLawNotice ? el('p', { className: 'yh-pending-law-notice' }, viewModel.pendingLawNotice) : null,
       keyResultSection(viewModel.keyResult),
       modeContent,
       viewModel.incomeDeductionRows.length > 0 ? el('details', { className: 'yh-card' }, [
