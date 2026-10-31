@@ -18,6 +18,7 @@
     "控除対象扶養親族に該当しないこと"
   ],
   "_resident_tax": "住民税側は地方税法34条1項12号。所得税と金額が違い、45万円から始まる逓減で、算式による端数調整がある（「十万円の整数倍の金額から八万円を控除した金額」）。段階表ではなく算式なので、住民税分は別途 resident-tax 側に算式として登録する必要がある。現時点では未登録。",
+  "_r8_change": "令和8年分以後、扶養親族の合計所得金額の要件が58万円以下から62万円以下になった（所得税法2条1項34号。令和8年法律第12号、令和8年12月1日施行・令和8年分以後に適用＝附則1条4号イ・2条1項）。最初の2段は令和7年分（T00・T01、2025年だけ）と令和8年分以後（R8-T00・R8-T01）に分けた。85万円超の段（T02〜T10）は両年で同じ。根拠と照合表: docs/tax-simulator/r8-switch/income-62-sources.md",
   "records": [
     {
       "record_id": "IDED-SPECREL-T00",
@@ -26,7 +27,7 @@
       "calculation_order": 0,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-31",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -35,13 +36,13 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-29",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
       "tax_or_insurance_type": "income_tax",
       "effective_from": "2025-01-01",
-      "effective_to": null,
+      "effective_to": "2025-12-31",
       "deduction_category": "specific_relative_special",
       "income_lower_inclusive": {
         "unit": "JPY",
@@ -57,9 +58,10 @@
       },
       "_meaning": "合計所得金額58万円以下なら控除対象扶養親族に該当するため、特定親族特別控除ではなく扶養控除（特定扶養親族63万円）を適用する。この控除は0円",
       "_do_not_double_count": "扶養控除と特定親族特別控除は同じ人について重複適用しない",
-      "source_document_id": "NTA-TA-1177",
-      "source_locator": "特定親族に該当する人の範囲 (6) 控除対象扶養親族に該当しないこと",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "_period_note": "令和7年分（2025年）だけ。令和8年分以後は IDED-SPECREL-R8-T00（62万円）",
+      "source_document_id": "EGOV-INCOME-TAX-ACT",
+      "source_locator": "所得税法2条1項34号（扶養親族: 合計所得金額が五十八万円以下）（令和8年12月1日前の版 340AC0000000033_20261001_507AC0000000070。令和8年法律第12号附則2条1項により令和7年分以前は従前の例）",
+      "source_hash": null
     },
     {
       "record_id": "IDED-SPECREL-T01",
@@ -68,7 +70,7 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": "2026-08-24",
+      "verified_at": "2026-10-31",
       "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
@@ -77,13 +79,13 @@
       "jurisdiction": {
         "country": "JP"
       },
-      "as_of_date": "2026-08-24",
+      "as_of_date": "2026-10-29",
       "legal_status": "effective",
       "data_review_status": "approved",
       "master_name": "income_deduction_master",
       "tax_or_insurance_type": "income_tax",
       "effective_from": "2025-01-01",
-      "effective_to": null,
+      "effective_to": "2025-12-31",
       "deduction_category": "specific_relative_special",
       "income_lower_inclusive": {
         "unit": "JPY",
@@ -99,9 +101,96 @@
       },
       "_income_basis": "特定親族の合計所得金額（納税者本人の所得では引かない）",
       "_tier_label": "58万円超85万円以下",
-      "source_document_id": "NTA-TA-1177",
-      "source_locator": "特定親族特別控除の金額 58万円超85万円以下 63万円",
-      "source_hash": "46ed1b1e44561bb9cf44290228f7a4773ada86128a5a9ac1585493727b46d85f"
+      "_period_note": "令和7年分（2025年）だけ。令和8年分以後は IDED-SPECREL-R8-T01（62万円超85万円以下）",
+      "source_document_id": "EGOV-INCOME-TAX-ACT",
+      "source_locator": "所得税法84条の2第1項1号（合計所得金額が八十五万円以下である特定親族 六十三万円）。下限は2条1項34号（扶養親族: 五十八万円以下）の次の1円（令和8年12月1日前の版 340AC0000000033_20261001_507AC0000000070。令和8年法律第12号附則2条1項により令和7年分以前は従前の例）",
+      "source_hash": null
+    },
+    {
+      "record_id": "IDED-SPECREL-R8-T00",
+      "value_key": "income_deduction_specific_relative_special",
+      "tax_year": null,
+      "calculation_order": 0,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2026-03-31",
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "as_of_date": "2026-10-29",
+      "legal_status": "enacted",
+      "data_review_status": "approved",
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "deduction_category": "specific_relative_special",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "620000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "0"
+      },
+      "_meaning": "合計所得金額62万円以下なら扶養親族（所得税法2条1項34号）＝控除対象扶養親族に該当するため、特定親族特別控除ではなく扶養控除（特定扶養親族63万円）を適用する。この控除は0円",
+      "_do_not_double_count": "扶養控除と特定親族特別控除は同じ人について重複適用しない",
+      "_period_note": "令和8年分以後（2026年〜）。令和7年分は IDED-SPECREL-T00（58万円）",
+      "source_document_id": "EGOV-INCOME-TAX-ACT",
+      "source_locator": "所得税法2条1項34号（扶養親族: 合計所得金額が六十二万円以下）（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）",
+      "source_hash": null
+    },
+    {
+      "record_id": "IDED-SPECREL-R8-T01",
+      "value_key": "income_deduction_specific_relative_special",
+      "tax_year": null,
+      "calculation_order": 1,
+      "rounding_rule_id": "R-NONE",
+      "promulgated_at": "2026-03-31",
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
+      "applies_to_period_start_from": null,
+      "applies_to_period_start_to": null,
+      "applies_to_transaction_from": null,
+      "applies_to_transaction_to": null,
+      "jurisdiction": {
+        "country": "JP"
+      },
+      "as_of_date": "2026-10-29",
+      "legal_status": "enacted",
+      "data_review_status": "approved",
+      "master_name": "income_deduction_master",
+      "tax_or_insurance_type": "income_tax",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "deduction_category": "specific_relative_special",
+      "income_lower_inclusive": {
+        "unit": "JPY",
+        "value": "620001"
+      },
+      "income_upper_inclusive": {
+        "unit": "JPY",
+        "value": "850000"
+      },
+      "deduction_amount": {
+        "unit": "JPY",
+        "value": "630000"
+      },
+      "_income_basis": "特定親族の合計所得金額（納税者本人の所得では引かない）",
+      "_tier_label": "62万円超85万円以下",
+      "_period_note": "令和8年分以後（2026年〜）。令和7年分は IDED-SPECREL-T01（58万円超85万円以下）",
+      "source_document_id": "EGOV-INCOME-TAX-ACT",
+      "source_locator": "所得税法84条の2第1項1号（合計所得金額が八十五万円以下である特定親族 六十三万円）。下限は2条1項34号（扶養親族: 六十二万円以下）の次の1円（令和8年12月1日施行の版 340AC0000000033_20261201_508AC0000000012）",
+      "source_hash": null
     },
     {
       "record_id": "IDED-SPECREL-T02",
