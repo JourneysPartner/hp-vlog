@@ -401,5 +401,52 @@ for (const period of [
     '2025年の免税結果はenactedなし・complete・注記なしを保つ');
 }
 
+
+console.log('\n=== R8レビュー: 経過措置の選択と相手先別上限 ===');
+for (const year of [2025, 2026]) {
+  const period = { from: year + '-01-01', to: year + '-12-31' };
+  const input = detailedInput({ period });
+  input.purchases[0].value.taxableWithoutInvoice = [{
+    band: 'standard_10', amount: taxIncl(110000), hasRequiredRecords: 'yes',
+  }];
+  const actual = service.simulate(input, context(period), snapshotInfo);
+  if (year === 2026) {
+    assert(row(actual, 'general').eligibility === 'blocked' &&
+      hasWarning(actual, 'CT_INVOICE_PERIOD_SPLIT_REQUIRED') &&
+      !actual.usedMasterRecords.some(record => ['INV-TRANS-01', 'INV-TRANS-02'].includes(record.recordId)) &&
+      !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
+      '2026年の取引日なし仕入は期間分割を求め、未使用の経過措置記録と施行前注記を載せない');
+  } else {
+    assert(row(actual, 'general').eligibility === 'eligible' &&
+      actual.usedMasterRecords.some(record => record.recordId === 'INV-TRANS-01'),
+      '2025年の取引日なし仕入は期間両端が同じ経過措置記録を使用記録に載せる');
+  }
+}
+{
+  const period = { from: '2026-10-01', to: '2027-09-30' };
+  for (const { label, counterparty, expectedCode } of [
+    { label: '相手先情報なし', counterparty: {}, expectedCode: 'CT_INVOICE_COUNTERPARTY_CAP_INPUT_REQUIRED' },
+    { label: '1億円超', counterparty: { counterpartyId: 'supplier-1',
+      counterpartyAnnualTotal: taxIncl(100000001) }, expectedCode: 'CT_INVOICE_COUNTERPARTY_CAP_EXCEEDED' },
+    { label: '1億円以下', counterparty: { counterpartyId: 'supplier-1',
+      counterpartyAnnualTotal: taxIncl(100000000) }, expectedCode: null },
+  ]) {
+    const input = detailedInput({ period, taxpayerType: 'corporation' });
+    input.purchases[0].value.taxableWithoutInvoice = [{
+      band: 'standard_10', amount: taxIncl(110000), hasRequiredRecords: 'yes', ...counterparty,
+    }];
+    const actual = service.simulate(input, context(period), snapshotInfo);
+    if (expectedCode) {
+      assert(row(actual, 'general').eligibility === 'blocked' && hasWarning(actual, expectedCode),
+        '上限適用期間の' + label + 'は' + expectedCode + 'で一般課税を停止');
+    } else {
+      assert(row(actual, 'general').eligibility === 'eligible' && actual.resultStatus === 'partial' &&
+        actual.usedMasterRecords.some(record => record.recordId === 'INV-CAP-R8') &&
+        hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
+        '上限適用期間の' + label + 'はINV-CAP-R8を使用し、施行前注記付きpartial');
+    }
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

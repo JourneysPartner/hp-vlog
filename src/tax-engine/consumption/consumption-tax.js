@@ -265,9 +265,11 @@ function invoiceTransitionRecord(period, transactionDate, itemIndex, reasons) {
       '取引日のインボイス経過措置割合を選べません', { itemIndex });
     return null;
   }
-  const from = masters.find('invoice_transition_deduction_rate', { onDate: period.from });
-  const to = masters.find('invoice_transition_deduction_rate', { onDate: period.to });
-  if (from.length === 1 && to.length === 1 && from[0].record_id === to[0].record_id) return from[0];
+  const from = masters.peek('invoice_transition_deduction_rate', { onDate: period.from });
+  const to = masters.peek('invoice_transition_deduction_rate', { onDate: period.to });
+  if (from.length === 1 && to.length === 1 && from[0].record_id === to[0].record_id) {
+    return masters.find('invoice_transition_deduction_rate', { onDate: period.from })[0];
+  }
   addReason(reasons, 'CT_INVOICE_PERIOD_SPLIT_REQUIRED',
     '経過措置割合の変更日をまたぐ仕入は期間別に分けて入力してください', { itemIndex });
   return null;

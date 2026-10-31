@@ -945,12 +945,9 @@ for (const [label, input, originalContext] of [
   yearInput.individual.nationalHealthInsurance = { kind: 'actual', annualAmount: yen(600000) };
   try {
     const actual = service.simulate(yearInput, yearContext, snapshotInfo);
-    console.log('R9-10 ①' + label + ': ' + actual.resultStatus + ' / ' +
-      (actual.resultStatus === 'blocked' ? actual.warnings : []).map(w => w.code + ': ' + w.basis).join(' / '));
     assert(actual.resultStatus === 'partial' && warningCode(actual, 'MASTER_PENDING_LAW_APPLIED'),
       'R9-10 ①' + label + 'の2026年は施行前注記付きpartial');
   } catch (error) {
-    console.log('R9-10 ①' + label + ': 例外 / ' + error.message.split('\n')[0]);
     assert(false, 'R9-10 ①' + label + 'の2026年は例外にならない');
   }
   // 令和9年度の料率が未登録の間は止める（前年度の料率で代用しない）。扱いは段 5 で決める（台帳 C-16）

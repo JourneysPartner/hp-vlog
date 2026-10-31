@@ -110,12 +110,13 @@ const FIELD_IDS = Object.freeze({
   '$.corporate.expenses[0].value.value': 'hj-corporate-expenses',
 });
 
-function uniqueByCode(items) {
+function uniqueByContent(items, contentOf) {
   const seen = new Set();
   return Object.freeze(items.filter(item => {
     if (!item.code) return true;
-    if (seen.has(item.code)) return false;
-    seen.add(item.code);
+    const key = JSON.stringify([item.code, ...contentOf(item)]);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   }));
 }
@@ -696,10 +697,14 @@ function mountHojinnariApp(rootElement, {
         ? Object.freeze({
           ...simulated,
           resultStatus: 'partial',
-          warnings: uniqueByCode([...(sourceHandoff.warnings || []), ...(simulated.warnings || [])]),
-          excludedItems: uniqueByCode([
-            ...(sourceHandoff.excludedItems || []), ...(simulated.excludedItems || []),
-          ]),
+          warnings: uniqueByContent(
+            [...(sourceHandoff.warnings || []), ...(simulated.warnings || [])],
+            item => [item.fieldPath, item.basis || item.message]
+          ),
+          excludedItems: uniqueByContent(
+            [...(sourceHandoff.excludedItems || []), ...(simulated.excludedItems || [])],
+            item => [item.reason]
+          ),
         })
         : simulated;
       const viewModel = buildResultViewModel(result);

@@ -527,44 +527,52 @@ async function main() {
 
 
   check('R8: 施行前注記を見出し直後に表示し、通常結果には表示しない', () => {
-    for (const mode of [undefined]) {
-      const original = run(goldenState()).result;
-      const noticeText = '施行前・概算：画面に引き継ぐ本文';
-      for (const includeNotice of [true, false]) {
-        const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
-          warnings: includeNotice
-            ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
-            : original.warnings };
-        const viewModel = buildResultViewModel(injected);
-        assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
-        withFakeDocument(({ root }) => {
-          const app = mountHojinnariApp(root, {
-            services: { validate() { return { ok: true }; }, simulate() {} },
-          });
-          app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
-          const notice = root.querySelector('.hojinnari-pending-law-notice');
-          if (includeNotice) {
-            assert(notice);
-            assert.strictEqual(notice.tagName, 'P');
-            assert.strictEqual(notice.textContent, noticeText);
-            const heading = root.querySelector('#hj-result-heading');
-            const siblings = heading.parentNode.children;
-            assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
-            assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
-            for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
-              assert(!ancestor.classList.contains('hojinnari-no-print'));
-            }
-          } else {
-            assert.strictEqual(notice, null);
-          }
-          app.destroy();
+    const original = run(goldenState()).result;
+    const noticeText = '施行前・概算：画面に引き継ぐ本文';
+    for (const includeNotice of [true, false]) {
+      const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
+        warnings: includeNotice
+          ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
+          : original.warnings };
+      const viewModel = buildResultViewModel(injected);
+      assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
+      withFakeDocument(({ root }) => {
+        const app = mountHojinnariApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
         });
-      }
-      const injected = { ...original, resultStatus: 'blocked', warnings: [],
-        summary: { title: '試算停止' } };
-      delete injected.breakdown;
-      assert.strictEqual((buildResultViewModel(injected)).pendingLawNotice, undefined);
+        app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
+        const notice = root.querySelector('.hojinnari-pending-law-notice');
+        if (includeNotice) {
+          assert(notice);
+          assert.strictEqual(notice.tagName, 'P');
+          assert.strictEqual(notice.textContent, noticeText);
+          const heading = root.querySelector('#hj-result-heading');
+          const siblings = heading.parentNode.children;
+          assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
+          assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
+          for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
+            assert(!ancestor.classList.contains('hojinnari-no-print'));
+          }
+        } else {
+          assert.strictEqual(notice, null);
+        }
+        app.destroy();
+      });
     }
+    const injected = { ...original, resultStatus: 'blocked',
+      warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }],
+      summary: { title: '試算停止' } };
+    delete injected.breakdown;
+    const blockedViewModel = buildResultViewModel(injected);
+    assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
+      assert.strictEqual(root.querySelector('.hojinnari-pending-law-notice'), null);
+      app.destroy();
+    });
   });
 
 
@@ -577,17 +585,22 @@ async function main() {
     let app;
     try {
       const base = run(goldenState()).result;
-      const firstWarning = { code: 'MASTER_PENDING_LAW_APPLIED', basis: '送信元の施行前・概算' };
+      const firstWarning = { code: 'MASTER_PENDING_LAW_APPLIED',
+        fieldPath: '$.calculationContext', basis: '送信元の施行前・概算' };
       const sourceWarnings = [firstWarning, { code: 'SOURCE_ONLY', basis: '送信元のみ' },
-        { basis: 'コードなし1' }, { basis: 'コードなし2' }];
+        { basis: 'コードなし' }, { basis: 'コードなし' }];
       const firstExcluded = { code: 'SHARED_EXCLUDED', reason: '送信元の除外' };
-      const sourceExcluded = [firstExcluded, { reason: 'コードなしの除外1' }];
+      const sourceExcluded = [firstExcluded, { reason: 'コードなしの除外' }];
       const simulated = { ...base, resultStatus: targetStatus,
         warnings: targetStatus === 'blocked' ? [{ code: 'STOP', basis: '停止理由' }] : [
-          { code: 'MASTER_PENDING_LAW_APPLIED', basis: '計算先の施行前・概算' },
-          { code: 'TARGET_ONLY', basis: '計算先のみ' }, { basis: 'コードなし3' }],
-        excludedItems: [{ code: 'SHARED_EXCLUDED', reason: '計算先の除外' },
-          { code: 'TARGET_EXCLUDED', reason: '計算先のみ' }, { reason: 'コードなしの除外2' }] };
+          { ...firstWarning },
+          { code: firstWarning.code, fieldPath: firstWarning.fieldPath, message: firstWarning.basis },
+          { ...firstWarning, basis: '計算先の施行前・概算' },
+          { ...firstWarning, fieldPath: '$.individual' },
+          { code: 'TARGET_ONLY', basis: '計算先のみ' }, { basis: 'コードなし' }],
+        excludedItems: [{ ...firstExcluded },
+          { code: 'SHARED_EXCLUDED', reason: '計算先の除外' },
+          { code: 'TARGET_EXCLUDED', reason: '計算先のみ' }, { reason: 'コードなしの除外' }] };
       if (targetStatus === 'blocked') delete simulated.breakdown;
       app = mountHojinnariApp(dom.root, {
         services: { validate() { return { ok: true, value: {} }; }, simulate() { return simulated; } },
@@ -608,11 +621,20 @@ async function main() {
       } else {
         assert.strictEqual(actual.resultStatus, 'partial');
         assert.deepStrictEqual(actual.warnings.map(w => w.code),
-          ['MASTER_PENDING_LAW_APPLIED', 'SOURCE_ONLY', undefined, undefined, 'TARGET_ONLY', undefined]);
+          ['MASTER_PENDING_LAW_APPLIED', 'SOURCE_ONLY', undefined, undefined,
+            'MASTER_PENDING_LAW_APPLIED', 'MASTER_PENDING_LAW_APPLIED', 'TARGET_ONLY', undefined]);
         assert.strictEqual(actual.warnings[0], firstWarning);
+        const pendingWarnings = actual.warnings.filter(warning => warning.code === firstWarning.code);
+        assert.deepStrictEqual(pendingWarnings.map(warning => [warning.fieldPath, warning.basis || warning.message]), [
+          [firstWarning.fieldPath, firstWarning.basis],
+          [firstWarning.fieldPath, '計算先の施行前・概算'],
+          ['$.individual', firstWarning.basis],
+        ]);
         assert.deepStrictEqual(actual.excludedItems.map(w => w.code),
-          ['SHARED_EXCLUDED', undefined, 'TARGET_EXCLUDED', undefined]);
+          ['SHARED_EXCLUDED', undefined, 'SHARED_EXCLUDED', 'TARGET_EXCLUDED', undefined]);
         assert.strictEqual(actual.excludedItems[0], firstExcluded);
+        assert.deepStrictEqual(actual.excludedItems.filter(item => item.code === firstExcluded.code)
+          .map(item => item.reason), [firstExcluded.reason, '計算先の除外']);
         assert.strictEqual(app.store.getState().viewModel.pendingLawNotice, firstWarning.basis);
         assert(dom.root.querySelector('.hojinnari-pending-law-notice'));
       }

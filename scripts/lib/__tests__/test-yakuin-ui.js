@@ -500,11 +500,41 @@ function main() {
           app.destroy();
         });
       }
-      const injected = { ...original, resultStatus: 'blocked', warnings: [],
+      const injected = { ...original, resultStatus: 'blocked',
+        warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }],
         summary: { title: '試算停止' } };
       delete injected.breakdown;
-      assert.strictEqual((buildYakuinHoshuResultViewModel(injected, { mode, optimizationCriterion: 'max_total_retained' })).pendingLawNotice, undefined);
+      const blockedViewModel = buildYakuinHoshuResultViewModel(injected, { mode, optimizationCriterion: 'max_total_retained' });
+      assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
+      withFakeDocument(({ root }) => {
+        const app = mountYakuinHoshuApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
+        });
+        app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
+        assert.strictEqual(root.querySelector('.yh-pending-law-notice'), null);
+        app.destroy();
+      });
     }
+  });
+
+
+  check('未対応年の停止理由はbasisから本文を取り画面にも表示する', () => {
+    const prepared = run(baseState());
+    const result = service.simulate(prepared.validation.value,
+      { ...prepared.context, incomeTaxYear: 2024 }, snapshotInfo);
+    assert.strictEqual(result.resultStatus, 'blocked');
+    const warning = result.warnings.find(item => item.code === 'SIM_TAX_YEAR_UNSUPPORTED');
+    assert(warning && warning.basis);
+    const viewModel = buildYakuinHoshuResultViewModel(result, { mode: 'C' });
+    assert.strictEqual(viewModel.alerts.find(item => item.code === warning.code).message, warning.basis);
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'blocked', result, viewModel }));
+      assert(root.textContent.includes(warning.basis));
+      app.destroy();
+    });
   });
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);

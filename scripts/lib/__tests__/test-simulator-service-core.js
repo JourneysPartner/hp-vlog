@@ -401,19 +401,32 @@ assert(multipleYears.length === 2 && multipleYears[0].message.startsWith('2024�
   multipleYears[1].message.startsWith('2028年'), '期間の両端と途中の全暦年を確かめる');
 assert(snapshot.endRecordTracking().length === 0, '対応年の判定を使用記録に載せない');
 const savedSupport = require.cache[supportPath];
+const supportedYearFixture = snapshot.peek('supported_tax_year', { taxYear: 2025 })[0];
 try {
-  for (const records of [
-    [], [{ tax_year: 2025, support_status: 'unknown' }],
-    [{ tax_year: 2026, support_status: 'supported' }],
-    [{ tax_year: 2025, support_status: 'supported' }, { tax_year: 2025, support_status: 'supported' }],
+  for (const { label, records, peekCount } of [
+    { label: '未承認', records: [{ ...supportedYearFixture, data_review_status: 'unverified' }], peekCount: 0 },
+    { label: '欠損', records: [], peekCount: 0 },
+    { label: '未知状態', records: [{ ...supportedYearFixture, support_status: 'unknown' }], peekCount: 1 },
+    { label: '別年', records: [{ ...supportedYearFixture, tax_year: 2026 }], peekCount: 1 },
+    { label: '重複', records: [supportedYearFixture,
+      { ...supportedYearFixture, record_id: supportedYearFixture.record_id + '-DUPLICATE' }], peekCount: 2 },
   ]) {
-    require.cache[SNAPSHOT_PATH].exports = { ...snapshot, peek: () => records };
+    // peekは差し替えず、ロード時データを使って承認状態も判定する。
+    require.cache[sourcePath].exports = { ...savedSource,
+      getMasterDocuments: () => [{ content: JSON.stringify({ records }) }],
+    };
+    delete require.cache[SNAPSHOT_PATH];
+    const fixtureSnapshot = require(SNAPSHOT_PATH);
+    assert(fixtureSnapshot.peek('supported_tax_year', { taxYear: 2025 }).length === peekCount,
+      label + 'の対応年レコードを本物のpeekで選別する');
     delete require.cache[supportPath];
-    assert(require(supportPath).unsupportedIncomeYearReasons(2025, '$.year').length === 1,
-      '未承認等による欠損・未知状態・別年・重複は停止する');
+    const reasons = require(supportPath).unsupportedIncomeYearReasons(2025, '$.year');
+    assert(reasons.length === 1 && reasons[0].code === 'SIM_TAX_YEAR_UNSUPPORTED',
+      label + 'の対応年判定は停止する');
   }
 } finally {
-  require.cache[SNAPSHOT_PATH].exports = snapshot;
+  require.cache[sourcePath].exports = savedSource;
+  require.cache[SNAPSHOT_PATH] = savedSnapshot;
   require.cache[supportPath] = savedSupport;
 }
 

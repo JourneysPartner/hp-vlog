@@ -300,7 +300,7 @@ function blockedViewModel(result, mode) {
     alerts: Object.freeze((result.warnings || []).map(warning => Object.freeze({
       code: warning.code,
       fieldPath: warning.fieldPath,
-      message: warning.message,
+      message: warning.message || warning.basis,
     }))),
     constraintNotice: noCandidate
       ? '入力した制約を満たす候補がありません。最低個人手取りまたは最低法人留保の制約を緩和して再計算してください。'

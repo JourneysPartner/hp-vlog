@@ -351,44 +351,52 @@ async function main() {
 
 
   check('R8: 施行前注記を見出し直後に表示し、通常結果には表示しない', () => {
-    for (const mode of [undefined]) {
-      const original = run(baseState()).result;
-      const noticeText = '施行前・概算：画面に引き継ぐ本文';
-      for (const includeNotice of [true, false]) {
-        const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
-          warnings: includeNotice
-            ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
-            : original.warnings };
-        const viewModel = buildResultViewModel(injected);
-        assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
-        withFakeDocument(({ root }) => {
-          const app = mountShohizeiApp(root, {
-            services: { validate() { return { ok: true }; }, simulate() {} },
-          });
-          app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
-          const notice = root.querySelector('.shohizei-pending-law-notice');
-          if (includeNotice) {
-            assert(notice);
-            assert.strictEqual(notice.tagName, 'P');
-            assert.strictEqual(notice.textContent, noticeText);
-            const heading = root.querySelector('#sz-result-heading');
-            const siblings = heading.parentNode.children;
-            assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
-            assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
-            for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
-              assert(!ancestor.classList.contains('shohizei-no-print'));
-            }
-          } else {
-            assert.strictEqual(notice, null);
-          }
-          app.destroy();
+    const original = run(baseState()).result;
+    const noticeText = '施行前・概算：画面に引き継ぐ本文';
+    for (const includeNotice of [true, false]) {
+      const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
+        warnings: includeNotice
+          ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
+          : original.warnings };
+      const viewModel = buildResultViewModel(injected);
+      assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
+      withFakeDocument(({ root }) => {
+        const app = mountShohizeiApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
         });
-      }
-      const injected = { ...original, resultStatus: 'blocked', warnings: [],
-        summary: { title: '試算停止' } };
-      delete injected.breakdown;
-      assert.strictEqual((buildResultViewModel(injected)).pendingLawNotice, undefined);
+        app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
+        const notice = root.querySelector('.shohizei-pending-law-notice');
+        if (includeNotice) {
+          assert(notice);
+          assert.strictEqual(notice.tagName, 'P');
+          assert.strictEqual(notice.textContent, noticeText);
+          const heading = root.querySelector('#sz-result-heading');
+          const siblings = heading.parentNode.children;
+          assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
+          assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
+          for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
+            assert(!ancestor.classList.contains('shohizei-no-print'));
+          }
+        } else {
+          assert.strictEqual(notice, null);
+        }
+        app.destroy();
+      });
     }
+    const injected = { ...original, resultStatus: 'blocked',
+      warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }],
+      summary: { title: '試算停止' } };
+    delete injected.breakdown;
+    const blockedViewModel = buildResultViewModel(injected);
+    assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
+      assert.strictEqual(root.querySelector('.shohizei-pending-law-notice'), null);
+      app.destroy();
+    });
   });
 
 

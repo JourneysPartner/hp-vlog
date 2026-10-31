@@ -541,13 +541,10 @@ for (const input of [
 ]) {
   try {
     const actual = service.simulate(input, r8Context, snapshotInfo);
-    console.log('R9-10 ④' + input.mode + ': ' + actual.resultStatus + ' / ' +
-      actual.warnings.filter(w => w.canContinue === false).map(w => w.code + ': ' + w.basis).join(' / '));
     assert(actual.resultStatus === 'partial' &&
       actual.warnings.some(w => w.code === 'MASTER_PENDING_LAW_APPLIED'),
       'R9-10 ④' + input.mode + 'の2026年は施行前注記付きpartial');
   } catch (error) {
-    console.log('R9-10 ④' + input.mode + ': 例外 / ' + error.message.split('\n')[0]);
     assert(false, 'R9-10 ④' + input.mode + 'の2026年は例外にならない');
   }
 }
