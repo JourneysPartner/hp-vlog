@@ -111,7 +111,7 @@ function method(viewModel, code) {
   return viewModel.eligibilityRows.find(row => row.methodCode === code);
 }
 
-function main() {
+async function main() {
   process.stdout.write('\n=== 初期画面・ページ遷移 ===\n');
   check('マウント直後はSTEP 1で、遷移時に先頭スクロール後フォーカスしintroを圧縮・復元する', () => {
     withFakeDocument(({ root, intro }) => {
@@ -349,12 +349,103 @@ function main() {
     assert.strictEqual(typeof context.window.TaxSimulator.mountShohizei, 'function');
   });
 
+
+  check('R8: 施行前注記を見出し直後に表示し、通常結果には表示しない', () => {
+    const original = run(baseState()).result;
+    const noticeText = '施行前・概算：画面に引き継ぐ本文';
+    for (const includeNotice of [true, false]) {
+      const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
+        warnings: includeNotice
+          ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
+          : original.warnings };
+      const viewModel = buildResultViewModel(injected);
+      assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
+      withFakeDocument(({ root }) => {
+        const app = mountShohizeiApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
+        });
+        app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
+        const notice = root.querySelector('.shohizei-pending-law-notice');
+        if (includeNotice) {
+          assert(notice);
+          assert.strictEqual(notice.tagName, 'P');
+          assert.strictEqual(notice.textContent, noticeText);
+          const heading = root.querySelector('#sz-result-heading');
+          const siblings = heading.parentNode.children;
+          assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
+          assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
+          for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
+            assert(!ancestor.classList.contains('shohizei-no-print'));
+          }
+        } else {
+          assert.strictEqual(notice, null);
+        }
+        app.destroy();
+      });
+    }
+    const injected = { ...original, resultStatus: 'blocked',
+      warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }],
+      summary: { title: '試算停止' } };
+    delete injected.breakdown;
+    const blockedViewModel = buildResultViewModel(injected);
+    assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
+      assert.strictEqual(root.querySelector('.shohizei-pending-law-notice'), null);
+      app.destroy();
+    });
+  });
+
+
+  process.stdout.write('\n=== R8: partialの免税表示 ===\n');
+  {
+    const exempt = run(baseState({
+      invoiceRegistered: 'no', becameTaxableByRegistration: '',
+      basePeriodTaxableSales: '8000000',
+      specifiedPeriodTaxableSales: '8000000', specifiedPeriodSalaryPayments: '2000000',
+      simplifiedElectionStatus: 'no', simplifiedElectionEffectiveYear: '',
+      simplifiedCategory: '', salesStandard10: '0', purchasesWithInvoiceStandard10: '0',
+    }), { emptyTransactions: true });
+    const injected = { ...exempt.result, resultStatus: 'partial',
+      warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: '施行前・概算：免税の試験' }] };
+    const viewModel = buildResultViewModel(injected);
+    assert.strictEqual(viewModel.isExempt, true);
+    assert(viewModel.heading.includes('partial'));
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previousDocument = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    let app;
+    try {
+      app = mountShohizeiApp(dom.root, {
+        services: { validate() { return { ok: true, value: {} }; }, simulate() { return injected; } },
+        snapshotInfo, now: () => calculatedAt,
+      });
+      app.store.setState(state => ({ ...state, screen: 'input', step: 1,
+        form: { ...state.form, ...baseState() } }));
+      const next = dom.root.querySelector('.shohizei-primary');
+      assert(next);
+      await next.listeners.get('click')();
+      assert.strictEqual(app.store.getState().screen, 'result');
+      assert.strictEqual(app.store.getState().viewModel.isExempt, true);
+      assert(dom.root.textContent.includes('納税義務なし（免税事業者）'));
+      assert(dom.root.querySelector('.shohizei-pending-law-notice'));
+      process.stdout.write('  ✓ partialでも方式0件なら納税義務の判定から免税結果を表示\n');
+      passed++;
+    } finally {
+      if (app) app.destroy();
+      if (previousDocument === undefined) delete global.document;
+      else global.document = previousDocument;
+    }
+  }
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 
-try {
-  main();
-} catch (error) {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
-}
+});

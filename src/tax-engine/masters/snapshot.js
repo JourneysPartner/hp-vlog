@@ -94,6 +94,9 @@ function trackedRecordReference(record) {
     reviewStatus: record.data_review_status,
     sourceIds,
     legalStatus: record.legal_status,
+    valueCertainty: record.value_certainty ?? null,
+    requiresResultWarning: record.requires_result_warning === true,
+    warningText: typeof record._warning_text === 'string' ? record._warning_text : null,
     verificationMode: 'single_primary_with_alternative_controls',
     alternativeControlRefs: {
       crossReferenceLocators: typeof record.source_locator === 'string'
@@ -207,6 +210,11 @@ function findRecords(valueKey, criterion) {
   return approved.length === 0 ? EMPTY_RESULT : Object.freeze(approved);
 }
 
+// findと同じ承認済み記録を返すが、判定だけの参照は使用記録に載せない。
+function peek(valueKey, criterion) {
+  return findRecords(valueKey, criterion);
+}
+
 function find(valueKey, criterion) {
   const records = findRecords(valueKey, criterion);
   trackRecords(records);
@@ -250,6 +258,7 @@ function findBracket(valueKey, amount, criterion) {
 }
 
 module.exports = Object.freeze({
+  peek,
   find,
   findBracket,
   getSnapshotInfo,

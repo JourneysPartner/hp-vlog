@@ -8,6 +8,7 @@ const consumptionTax = require('../../tax-engine/consumption/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
 const { money } = require('../../tax-engine/common/money.js');
 const eligibility = require('./eligibility.js');
+const { unsupportedConsumptionPeriodReasons } = require('../core/supported-year.js');
 
 const ENGINE_METHOD = Object.freeze({
   general: 'general',
@@ -207,6 +208,10 @@ function compareCalculation(input, period, assessment) {
 
 function calculate(input, context) {
   const period = taxablePeriodFrom(context);
+  const yearReasons = unsupportedConsumptionPeriodReasons(
+    period, '$.calculationContext.consumptionTaxPeriod'
+  );
+  if (yearReasons.length > 0) return blockedCalculation(yearReasons);
   const blockers = eligibility.globalBlockers(input, period);
   if (blockers.length > 0) {
     return blockedCalculation(blockers);

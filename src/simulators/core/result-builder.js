@@ -19,7 +19,25 @@ function deepFreeze(value) {
 // 呼び出し中の外部変更に影響されない、ロード時固定の読取専用台帳とする。
 const sourceRegistryDocument = deepFreeze(JSON.parse(JSON.stringify(loadedSourceRegistryDocument)));
 
+const PENDING_LAW_NOTICE = '施行前・概算：この結果には、法律は成立・公布済みですが、まだ適用が始まっていない改正の値を使っています。確定した金額ではなく概算としてご覧ください。';
+const DERIVED_VALUE_NOTICE = '概算：この結果には、法令の本文に明記が無く計算で導いた値を使っています。';
+
 const WARNING_MAP = Object.freeze({
+  MASTER_PENDING_LAW_APPLIED: Object.freeze({
+    level: 'attention',
+    canContinue: true,
+    userAction: '申告や判断に使う前に、施行後の取扱いをご確認ください',
+  }),
+  MASTER_DERIVED_VALUE_APPLIED: Object.freeze({
+    level: 'attention',
+    canContinue: true,
+    userAction: '法令で確定した値をご確認ください',
+  }),
+  SIM_TAX_YEAR_UNSUPPORTED: Object.freeze({
+    level: 'critical',
+    canContinue: false,
+    userAction: '税理士等の専門家にご確認ください',
+  }),
   HJ_CORPORATE_RETAINED_NOT_PERSONAL: Object.freeze({
     level: 'info',
     canContinue: true,
@@ -238,6 +256,21 @@ function buildSimulationResult(options) {
   if (warnings.some(warning => warning.canContinue === false)) resultStatus = 'blocked';
   if (!['complete', 'partial', 'blocked'].includes(resultStatus)) {
     throw new Error('resultStatusが値集合外です');
+  }
+
+  if (resultStatus !== 'blocked') {
+    const masterWarnings = [];
+    if (usedMasterRecords.some(record => record.legalStatus === 'enacted')) {
+      masterWarnings.push({ code: 'MASTER_PENDING_LAW_APPLIED', basis: PENDING_LAW_NOTICE });
+    }
+    const derivedTexts = new Set(usedMasterRecords
+      .filter(record => record.valueCertainty === 'derived' || record.requiresResultWarning === true)
+      .map(record => record.warningText ?? DERIVED_VALUE_NOTICE));
+    for (const basis of derivedTexts) {
+      masterWarnings.push({ code: 'MASTER_DERIVED_VALUE_APPLIED', basis });
+    }
+    warnings.push(...masterWarnings.map(toServiceWarning));
+    if (masterWarnings.length > 0 && resultStatus === 'complete') resultStatus = 'partial';
   }
 
   const result = {

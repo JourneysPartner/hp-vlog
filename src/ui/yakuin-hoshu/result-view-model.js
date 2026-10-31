@@ -1,5 +1,7 @@
 'use strict';
 
+const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
+
 const { formatYen } = require('../hojinnari/result-view-model.js');
 const { incomeDeductionRows } = require('../income-deduction-view.js');
 
@@ -69,6 +71,7 @@ function common(result, mode) {
     mode,
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
+    pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
     heading: `${result.resultStatus === 'blocked' ? '試算停止' : '試算結果'}（${result.periodLabel}・${result.resultStatus}）`,
     warnings: sortedWarnings(result.warnings),
     assumptions: Object.freeze([...(result.assumptions || [])]),
@@ -297,7 +300,7 @@ function blockedViewModel(result, mode) {
     alerts: Object.freeze((result.warnings || []).map(warning => Object.freeze({
       code: warning.code,
       fieldPath: warning.fieldPath,
-      message: warning.message,
+      message: warning.message || warning.basis,
     }))),
     constraintNotice: noCandidate
       ? '入力した制約を満たす候補がありません。最低個人手取りまたは最低法人留保の制約を緩和して再計算してください。'

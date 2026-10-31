@@ -465,6 +465,78 @@ function main() {
     assert.strictEqual(derived.result.resultStatus, 'complete');
   });
 
+
+  check('R8: 施行前注記を見出し直後に表示し、通常結果には表示しない', () => {
+    for (const mode of ['A', 'B', 'C']) {
+      const original = run(baseState({ mode })).result;
+      const noticeText = '施行前・概算：画面に引き継ぐ本文';
+      for (const includeNotice of [true, false]) {
+        const injected = { ...original, resultStatus: includeNotice ? 'partial' : original.resultStatus,
+          warnings: includeNotice
+            ? [...original.warnings, { code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }]
+            : original.warnings };
+        const viewModel = buildYakuinHoshuResultViewModel(injected, { mode, optimizationCriterion: 'max_total_retained' });
+        assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
+        withFakeDocument(({ root }) => {
+          const app = mountYakuinHoshuApp(root, {
+            services: { validate() { return { ok: true }; }, simulate() {} },
+          });
+          app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
+          const notice = root.querySelector('.yh-pending-law-notice');
+          if (includeNotice) {
+            assert(notice);
+            assert.strictEqual(notice.tagName, 'P');
+            assert.strictEqual(notice.textContent, noticeText);
+            const heading = root.querySelector('#yh-result-heading');
+            const siblings = heading.parentNode.children;
+            assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + 1);
+            assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
+            for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
+              assert(!ancestor.classList.contains('yh-no-print'));
+            }
+          } else {
+            assert.strictEqual(notice, null);
+          }
+          app.destroy();
+        });
+      }
+      const injected = { ...original, resultStatus: 'blocked',
+        warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: noticeText }],
+        summary: { title: '試算停止' } };
+      delete injected.breakdown;
+      const blockedViewModel = buildYakuinHoshuResultViewModel(injected, { mode, optimizationCriterion: 'max_total_retained' });
+      assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
+      withFakeDocument(({ root }) => {
+        const app = mountYakuinHoshuApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
+        });
+        app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
+        assert.strictEqual(root.querySelector('.yh-pending-law-notice'), null);
+        app.destroy();
+      });
+    }
+  });
+
+
+  check('未対応年の停止理由はbasisから本文を取り画面にも表示する', () => {
+    const prepared = run(baseState());
+    const result = service.simulate(prepared.validation.value,
+      { ...prepared.context, incomeTaxYear: 2024 }, snapshotInfo);
+    assert.strictEqual(result.resultStatus, 'blocked');
+    const warning = result.warnings.find(item => item.code === 'SIM_TAX_YEAR_UNSUPPORTED');
+    assert(warning && warning.basis);
+    const viewModel = buildYakuinHoshuResultViewModel(result, { mode: 'C' });
+    assert.strictEqual(viewModel.alerts.find(item => item.code === warning.code).message, warning.basis);
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      app.store.setState(state => ({ ...state, screen: 'blocked', result, viewModel }));
+      assert(root.textContent.includes(warning.basis));
+      app.destroy();
+    });
+  });
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 
