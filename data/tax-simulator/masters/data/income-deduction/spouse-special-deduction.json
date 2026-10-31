@@ -27,8 +27,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -82,7 +82,7 @@
       "source_hash": "ee1364c58db7f9e45d1f7adebd58b2c6dfe5c701b39b96d9567176c5649b3414",
       "as_of_date": "2026-10-29",
       "legal_status": "effective",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-S01-T2",
@@ -91,8 +91,8 @@
       "calculation_order": 2,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -146,7 +146,7 @@
       "source_hash": "ee1364c58db7f9e45d1f7adebd58b2c6dfe5c701b39b96d9567176c5649b3414",
       "as_of_date": "2026-10-29",
       "legal_status": "effective",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-S01-T3",
@@ -155,8 +155,8 @@
       "calculation_order": 3,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -210,7 +210,7 @@
       "source_hash": "ee1364c58db7f9e45d1f7adebd58b2c6dfe5c701b39b96d9567176c5649b3414",
       "as_of_date": "2026-10-29",
       "legal_status": "effective",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-R8-S01-T1",
@@ -219,8 +219,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -274,7 +274,7 @@
       "source_hash": null,
       "as_of_date": "2026-10-29",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-R8-S01-T2",
@@ -283,8 +283,8 @@
       "calculation_order": 2,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -338,7 +338,7 @@
       "source_hash": null,
       "as_of_date": "2026-10-29",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-R8-S01-T3",
@@ -347,8 +347,8 @@
       "calculation_order": 3,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -402,7 +402,7 @@
       "source_hash": null,
       "as_of_date": "2026-10-29",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-S02-T1",
@@ -1923,8 +1923,8 @@
       "calculation_order": 4,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": null,
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -1974,7 +1974,7 @@
       "source_hash": "ee1364c58db7f9e45d1f7adebd58b2c6dfe5c701b39b96d9567176c5649b3414",
       "as_of_date": "2026-10-29",
       "legal_status": "effective",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-R8-S01-T4",
@@ -1983,8 +1983,8 @@
       "calculation_order": 4,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-10-31",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "applies_to_transaction_from": null,
@@ -2034,7 +2034,7 @@
       "source_hash": null,
       "as_of_date": "2026-10-29",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "IDED-SPOUSE-SP-S02-T4",
