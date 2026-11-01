@@ -1,7 +1,10 @@
 {
   "note": "どのページから問い合わせページへ進んだか（byFrom）と、送信完了の前にどのページを見ていたか（submittedFrom）の実測（直近90日）。週次で更新。",
-  "updated_at": "2026-08-26T10:45:37.486Z",
+  "updated_at": "2026-11-01T21:53:42.742Z",
   "days": 90,
-  "byFrom": {},
+  "byFrom": {
+    "/services.html": 1,
+    "/": 2
+  },
   "submittedFrom": {}
 }
