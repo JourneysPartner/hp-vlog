@@ -6,6 +6,7 @@ const {
   issueVisitorCookie, verifyVisitorCookie, cookieHeader, isProductionRequest, isBot,
   parseBeaconBody, parseBeaconPayload, markUnique, markRate, rateKey, incrementPageview, incrementTransition,
   CONTACT_PATH, THANKS_PATH, incrementSubmission, incrementLine,
+  classifySource, deviceOf, sourceKey,
 } = require('./lib/analytics-store');
 
 function noContent(headers = {}) {
@@ -52,6 +53,23 @@ async function handler(event, { getStoreFn = getStore } = {}) {
     const date = jstDate(now);
     const vidHash = hash(visitor.id);
 
+    const saveSource = async kind => {
+      if (!payload.visit) return;
+      const { id, host, utm } = payload.visit;
+      const device = deviceOf((event.headers || {})['user-agent'] || (event.headers || {})['User-Agent']);
+      await store.set(sourceKey({ date, kind, ...classifySource(host, utm), device, id }), '1');
+    };
+
+    if (beaconEvent === 'engaged') {
+      const minute = jstMinute(now);
+      const ratePath = 'engaged:' + path;
+      const rate = await markRate(store, minute, vidHash, ratePath);
+      if (!rate.modified) return noContent(setCookie ? { 'Set-Cookie': setCookie } : {});
+      ownRateMarker = rateKey(minute, vidHash, ratePath);
+      await saveSource('e');
+      return noContent(setCookie ? { 'Set-Cookie': setCookie } : {});
+    }
+
     if (beaconEvent === 'line') {
       const minute = jstMinute(now);
       const ratePath = 'line:' + path;
@@ -75,6 +93,8 @@ async function handler(event, { getStoreFn = getStore } = {}) {
     ownRateMarker = rateKey(minute, vidHash, path);
 
     const stored = await incrementPageview(store, date, path);
+    try { await saveSource('v'); }
+    catch (e) { console.warn('[track-visit] 流入元の記録に失敗:', e.message); }
     // 問い合わせ・送信完了の遷移元を別々に記録する。失敗しても閲覧記録には影響させない。
     if (ref) {
       try {

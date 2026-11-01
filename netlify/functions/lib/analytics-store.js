@@ -132,7 +132,7 @@ const CONTACT_PATH = '/contact.html';
 const THANKS_PATH = '/contact-thanks.html';
 
 /**
- * ビーコンの本文を {path, ref, event} に分解する。
+ * ビーコンの本文を {path, ref, event, visit?} に分解する。
  * ref（遷移元）は、現在ページが問い合わせ・送信完了ページで、遷移元がサイト内の
  * 許可されたパス（問い合わせ・送信完了ページを除く）の場合だけ有効。それ以外は null。
  */
@@ -141,8 +141,8 @@ function parseBeaconPayload(raw) {
   let body;
   try { body = JSON.parse(raw); } catch { return null; }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
-  if (Object.keys(body).some(k => k !== 'p' && k !== 'r' && k !== 'e')) return null;
-  if (Object.hasOwn(body, 'e') && body.e !== 'line') return null;
+  if (Object.keys(body).some(k => !['p', 'r', 'e', 'v', 's', 'u'].includes(k))) return null;
+  if (Object.hasOwn(body, 'e') && body.e !== 'line' && body.e !== 'engaged') return null;
   const path = normalizePath(body.p);
   if (!path || !isAllowedPath(path)) return null;
   let ref = null;
@@ -150,7 +150,16 @@ function parseBeaconPayload(raw) {
     const candidate = normalizePath(body.r);
     if (candidate && candidate !== CONTACT_PATH && candidate !== THANKS_PATH && isAllowedPath(candidate)) ref = candidate;
   }
-  return { path, ref, event: body.e || null };
+  const payload = { path, ref, event: body.e || null };
+  if (typeof body.v === 'string' && /^[a-z0-9]{8,32}$/.test(body.v) &&
+      typeof body.s === 'string' && (!Object.hasOwn(body, 'u') || typeof body.u === 'string')) {
+    const host = body.s.toLowerCase();
+    if (host !== DEFAULT_PRODUCTION_HOST && host !== 'www.' + DEFAULT_PRODUCTION_HOST) {
+      payload.visit = { id: body.v, host: body.s, utm: body.u || '' };
+    }
+  }
+  if (body.e === 'engaged' && !payload.visit) return null;
+  return payload;
 }
 
 function parseBeaconBody(raw) {
@@ -161,6 +170,67 @@ function parseBeaconBody(raw) {
 function dailyKey(date) { return `daily/${date}`; }
 function uniqueKey(date, vidHash) { return `uniq/${date}/${vidHash}`; }
 function rateKey(minute, vidHash, path) { return `rate/${minute}/${vidHash}/${hash(path, 8)}`; }
+
+const SOURCE_TAG_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
+
+// 印の鍵の 1 区切りになるので、`..` や `-` のように URL の階層や区切りの記号と紛れる値を通さない。
+function isHostName(host) {
+  return /^[a-z0-9.-]{1,253}$/.test(host) &&
+    host.split('.').every(label => /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label));
+}
+
+function classifySource(host, utm) {
+  const tag = typeof utm === 'string' ? utm.toLowerCase() : '';
+  if (SOURCE_TAG_RE.test(tag)) {
+    if (['google', 'yahoo', 'bing', 'line'].includes(tag)) return { source: tag, detail: null };
+    if (['x', 'twitter', 'facebook', 'instagram', 'threads', 'youtube', 'tiktok', 'linkedin'].includes(tag)) return { source: 'sns', detail: null };
+    if (['openai', 'chatgpt', 'perplexity', 'copilot', 'gemini', 'claude'].includes(tag)) return { source: 'ai', detail: null };
+    return { source: 'tagged', detail: tag };
+  }
+  if (host === '') return { source: 'direct', detail: null };
+  if (typeof host !== 'string') return { source: 'other', detail: null };
+  host = host.toLowerCase();
+  if (!isHostName(host)) return { source: 'other', detail: null };
+  const under = domain => host === domain || host.endsWith('.' + domain);
+  let source;
+  if (['chatgpt.com', 'chat.openai.com', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com'].includes(host) || under('perplexity.ai')) source = 'ai';
+  // 国別ドメインを許しつつ、google.com.evil.example のような後置を除外する。
+  else if (/^(www\.)?google\.(?:[a-z]{2,}|(?:co|com)\.[a-z]{2})$/.test(host) || host === 'com.google.android.googlequicksearchbox') source = 'google';
+  else if (['search.yahoo.co.jp', 'search.yahoo.com', 'jp.co.yahoo.android.yjtop'].includes(host)) source = 'yahoo';
+  else if (under('bing.com')) source = 'bing';
+  else if (under('line.me') || host === 'lin.ee') source = 'line';
+  else if (['x.com', 't.co', 'twitter.com', 'threads.net', 'threads.com', 'youtu.be', 'lnkd.in'].includes(host) ||
+      ['facebook.com', 'instagram.com', 'youtube.com', 'tiktok.com', 'linkedin.com'].some(under)) source = 'sns';
+  else source = 'other';
+  return { source, detail: source === 'other' && host.length <= 64 ? host : null };
+}
+
+function deviceOf(userAgent) {
+  if (/iPhone|iPod/.test(userAgent || '')) return 'iphone';
+  return /Android/.test(userAgent || '') ? 'android' : 'pc';
+}
+
+const SOURCE_NAMES = new Set(['google', 'yahoo', 'bing', 'ai', 'line', 'sns', 'other', 'tagged', 'direct']);
+
+function sourceKey({ date, kind, source, device, detail = null, id }) {
+  const key = `src/${date}/${kind}/${source}/${device}/${detail === null ? '-' : detail}/${id}`;
+  if (!parseSourceKey(key)) throw new Error('Invalid source marker');
+  return key;
+}
+
+function parseSourceKey(key) {
+  if (typeof key !== 'string') return null;
+  const parts = key.split('/');
+  if (parts.length !== 7 || parts[0] !== 'src') return null;
+  const [, date, kind, source, device, rawDetail, id] = parts;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !['v', 'e'].includes(kind) || !SOURCE_NAMES.has(source) ||
+      !['iphone', 'android', 'pc'].includes(device) || !/^[a-z0-9]{8,32}$/.test(id)) return null;
+  try { if (dateOffset(date, 0) !== date) return null; } catch { return null; }
+  const detail = rawDetail === '-' ? null : rawDetail;
+  if (detail !== null && !(source === 'other' ? detail.length <= 64 && isHostName(detail) :
+    source === 'tagged' && SOURCE_TAG_RE.test(detail))) return null;
+  return { date, kind, source, device, detail, id };
+}
 
 async function markUnique(store, date, vidHash) {
   return store.set(uniqueKey(date, vidHash), '1', { onlyIfNew: true });
@@ -257,5 +327,6 @@ module.exports = {
   isProductionRequest, isBot, normalizePath, isAllowedPath, parseBeaconBody, parseBeaconPayload,
   CONTACT_PATH, THANKS_PATH, incrementTransition, transitionKey, incrementSubmission, submissionKey,
   incrementLine, lineKey,
+  classifySource, deviceOf, sourceKey, parseSourceKey,
   dailyKey, uniqueKey, rateKey, markUnique, markRate, incrementPageview, countPrefix, listPrefixKeys, deleteKeys,
 };
