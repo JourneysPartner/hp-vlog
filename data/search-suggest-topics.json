@@ -1835,7 +1835,65 @@
       "primary_question": "役員報酬の金額はいつまでに決定すれば、損金算入の要件を満たせますか？",
       "reader_problem": "役員報酬を決める時期を逃すと損金にできないのではないかと不安に感じている。",
       "selected_at": "2026-10-25T19:27:02.995Z"
+    },
+    {
+      "slug": "suggest-ec-kaigai-151d7a",
+      "seed_id": "ec-kaigai",
+      "phrases": [
+        "海外販売 消費税",
+        "国内仕入れ 海外販売 消費税"
+      ],
+      "persona": "ebay_export_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "国内で仕入れた商品を海外販売する場合、売上と仕入れにかかる消費税はどう扱われますか？",
+      "reader_problem": "海外販売が輸出免税になる条件や、国内仕入れ時の消費税の扱いを確認したい。",
+      "selected_at": "2026-11-01T20:58:11.738Z"
+    },
+    {
+      "slug": "suggest-furima-mercari-b3dfb0",
+      "seed_id": "furima-mercari",
+      "phrases": [
+        "メルカリ 売上 税金 バレる"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "メルカリの売上を申告しない場合、税務署に把握される可能性はありますか？",
+      "reader_problem": "申告が必要な売上を申告しなかった場合の発覚リスクや、その後の対応が気になっている。",
+      "selected_at": "2026-11-01T20:58:11.738Z"
+    },
+    {
+      "slug": "suggest-kensetsu-invoice-6da7ca",
+      "seed_id": "kensetsu-invoice",
+      "phrases": [
+        "一人親方 インボイス 2割特例",
+        "一人親方 インボイス 簡易課税"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "一人親方はインボイス登録後、2割特例と簡易課税のどちらを選ぶべきですか？",
+      "reader_problem": "利用できる消費税の計算方法や、納税額を抑えやすい選択肢が分からない。",
+      "selected_at": "2026-11-01T20:58:11.738Z"
+    },
+    {
+      "slug": "suggest-kojin-freelance-18a3f7",
+      "seed_id": "kojin-freelance",
+      "phrases": [
+        "フリーランス 税金の払い方"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "フリーランスの税金は、どのような方法で納付すればよいですか？",
+      "reader_problem": "税金の種類ごとの納付方法や納期限が分からず、払い忘れが心配。",
+      "selected_at": "2026-11-01T20:58:11.738Z"
     }
   ],
-  "updated_at": "2026-10-27T08:02:32.156Z"
+  "updated_at": "2026-11-01T20:58:11.739Z"
 }
