@@ -473,6 +473,99 @@ function makeStore() {
         strict.equal(element('line-total').innerHTML, '合計 0 回');
         strict.equal(element('line-from').innerHTML, '<li>まだデータがありません。</li>');
       });
+
+      // 2026-10-26（月）〜2026-11-01（日）。最終日が今日で、途中経過として扱う。
+      const week = [[25, 26], [26, 26], [16, 17], [23, 32], [21, 23], [7, 12], [3, 3]];
+      const dayOf = i => {
+        const d = new Date(Date.UTC(2026, 9, 26 + i));
+        return d.toISOString().slice(0, 10);
+      };
+      const chartRows = Array.from({ length: 90 }, (_, i) => {
+        const fromEnd = 89 - i;
+        const [visitors, pageviews] = fromEnd < 7 ? week[6 - fromEnd] : [10, 12];
+        return { date: dayOf(6 - fromEnd), visitors, pageviews, byPath: {} };
+      });
+      const showDays = (rows, today, days) => {
+        uiData.daily = rows;
+        uiData.today = today;
+        element('period').click({ target: { tagName: 'BUTTON', dataset: { days: String(days) } } });
+        return element('chart').innerHTML;
+      };
+      const axisTexts = html => [...html.matchAll(/<text class="axis"[^>]*>([^<]*)<\/text>/g)].map(m => m[1]);
+      test('7日のグラフは縦軸を切りのよい目盛り、横軸を毎日の日付と曜日で示す', () => {
+        const texts = axisTexts(showDays(chartRows, dayOf(6), 7));
+        strict.deepEqual(texts.filter(t => /^\d+$/.test(t)), ['0', '10', '20', '30', '40']);
+        strict.deepEqual(texts.filter(t => t.includes('/')), ['10/26', '10/27', '10/28', '10/29', '10/30', '10/31', '11/1']);
+        strict.deepEqual(texts.filter(t => /^[日月火水木金土]$/.test(t)), ['月', '火', '水', '木', '金', '土', '日']);
+        strict.ok(texts.includes('人・回'));
+        strict.ok(element('chart').innerHTML.includes('>32</text>'), '期間内の最大の PV を書き添える');
+      });
+      test('7日のグラフは土日の帯と今日の途中経過を示し、日別の表に全日の数値を出す', () => {
+        const html = showDays(chartRows, dayOf(6), 7);
+        strict.equal((html.match(/fill="#f1f4f9"/g) || []).length, 1);
+        strict.ok(html.includes('stroke-dasharray'));
+        strict.ok(element('chart-note').textContent.includes('今日の途中経過'));
+        const table = element('chart-table').innerHTML;
+        strict.ok(table.includes('<td>10/29（木）</td><td>23</td><td>32</td>'));
+        strict.ok(table.includes('<td>11/1（日） 途中経過</td><td>3</td><td>3</td>'));
+        strict.ok(table.indexOf('11/1（日）') < table.indexOf('10/26（月）'), '表は新しい日から並べる');
+      });
+      test('今日が期間に含まれなければ途中経過として扱わない', () => {
+        const html = showDays(chartRows, dayOf(7), 7);
+        strict.ok(!html.includes('stroke-dasharray'));
+        strict.ok(!element('chart-note').textContent.includes('今日の途中経過'));
+        strict.ok(!element('chart-table').innerHTML.includes('途中経過'));
+      });
+      test('30日・90日のグラフは各週の月曜を目盛りにし、週の並びが新しい側からそろう', () => {
+        const dates = days => axisTexts(showDays(chartRows, dayOf(6), days)).filter(t => t.includes('/'));
+        const thirty = dates(30);
+        strict.equal(thirty.at(-1), '10/26');
+        strict.equal(thirty.at(-2), '10/19');
+        strict.equal(thirty.length, 4);
+        strict.ok(element('chart-note').textContent.includes('各週の月曜日'));
+        const ninety = dates(90);
+        strict.equal(ninety.at(-1), '10/26');
+        strict.ok(ninety.length >= 6 && ninety.length <= 13);
+      });
+      test('値が小さい日や大きい日でも縦軸は同じ間隔の整数で、全データゼロでも壊れない', () => {
+        const scaled = max => axisTexts(showDays([{ date: dayOf(0), visitors: 0, pageviews: 0, byPath: {} }, { date: dayOf(1), visitors: 0, pageviews: max, byPath: {} }], dayOf(1), 7))
+          .filter(t => /^[\d,]+$/.test(t));
+        strict.deepEqual(scaled(0), ['0', '1']);
+        strict.deepEqual(scaled(3), ['0', '1', '2', '3']);
+        strict.deepEqual(scaled(7), ['0', '2', '4', '6', '8']);
+        strict.deepEqual(scaled(12), ['0', '5', '10', '15']);
+        strict.deepEqual(scaled(1234), ['0', '500', '1,000', '1,500']);
+      });
+      test('狭い画面では日付を1日おきに間引き、最新の日は必ず出す', () => {
+        element('chart').clientWidth = 320;
+        const html = showDays(chartRows, dayOf(6), 7);
+        delete element('chart').clientWidth;
+        strict.ok(html.includes('viewBox="0 0 320 300"'));
+        strict.deepEqual(axisTexts(html).filter(t => t.includes('/')), ['10/26', '10/28', '10/30', '11/1']);
+      });
+      test('グラフに触れるとその日の数値を出し、キーボードでも日を移動できる', () => {
+        showDays(chartRows, dayOf(6), 7);
+        const attrs = {};
+        element('chart-cross').setAttribute = (name, value) => { attrs[name] = value; };
+        Object.assign(element('chart-tip'), { style: {}, offsetWidth: 100, hidden: true });
+        const chart = element('chart');
+        chart.getBoundingClientRect = () => ({ left: 0, width: 760 });
+        chart.pointermove({ clientX: 388 });
+        strict.equal(element('tip-date').textContent, '10/29（木）');
+        strict.equal(element('tip-uu').textContent, '23');
+        strict.equal(element('tip-pv').textContent, '32');
+        strict.equal(element('chart-tip').hidden, false);
+        strict.equal(attrs.visibility, 'visible');
+        chart.keydown({ key: 'ArrowRight', preventDefault() {} });
+        strict.equal(element('tip-date').textContent, '10/30（金）');
+        chart.pointermove({ clientX: 9999 });
+        strict.equal(element('tip-date').textContent, '11/1（日） 途中経過');
+        chart.pointerleave({ pointerType: 'touch' });
+        strict.equal(element('chart-tip').hidden, false, '指を離しても数値を読めるよう残す');
+        chart.pointerleave({ pointerType: 'mouse' });
+        strict.equal(element('chart-tip').hidden, true);
+        strict.equal(attrs.visibility, 'hidden');
+      });
     } finally {
       for (const [key, value] of [['ADMIN_BASIC_USER', previous.user], ['ADMIN_BASIC_PASS', previous.pass]]) {
         if (value === undefined) delete process.env[key]; else process.env[key] = value;
