@@ -1,6 +1,6 @@
 'use strict';
 
-/** 依存表の任意値を空にしても、最小入力の主要計算が止まらないことを確かめる。 */
+/** 依存表の任意値を空にしても、最小入力の主要計算が止まらず結果も変わらないことを確かめる。 */
 const fs = require('fs');
 const path = require('path');
 const snapshotPath = require.resolve('../../../src/tax-engine/masters/snapshot.js');
@@ -23,7 +23,7 @@ function assert(condition, label) {
 function wrap(method) {
   return (key, ...args) => {
     accessed.add(key);
-    return key === omittedKey ? [] : real[method](key, ...args);
+    return key === omittedKey ? (method === 'findBracket' ? null : []) : real[method](key, ...args);
   };
 }
 const period = { from: '2025-01-01', to: '2025-12-31' };
@@ -108,9 +108,16 @@ function completed(result) {
   return ['complete', 'partial'].includes(result.resultStatus) && !!result.breakdown?.data;
 }
 
+function calculationAmounts(result) {
+  return JSON.stringify({ summary: result.summary, data: result.breakdown?.data },
+    (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+}
+
 try {
   // exports は凍結済みなので新しい物にし、必ずサービスを読む前に差し替える。
-  require.cache[snapshotPath].exports = Object.assign({}, real, { find: wrap('find'), peek: wrap('peek') });
+  require.cache[snapshotPath].exports = Object.assign({}, real, {
+    find: wrap('find'), peek: wrap('peek'), findBracket: wrap('findBracket'),
+  });
   const cases = [
     ['hojinnari', hojinnariInput, incomeContext],
     ['yakuin_hoshu', yakuinInput, incomeContext],
@@ -145,6 +152,8 @@ try {
         const result = run();
         assert(accessed.has(key) && completed(result),
           `${name}: ${key} が空でも例外・blockedなし (${result.resultStatus})`);
+        assert(calculationAmounts(result) === calculationAmounts(baseline),
+          `${name}: ${key} が空でも summary と breakdown.data が基準計算と一致する`);
       } catch (error) {
         assert(false, `${name}: ${key}: ${error.message.split('\n')[0]}`);
       }

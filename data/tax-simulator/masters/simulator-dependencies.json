@@ -263,27 +263,27 @@
             "tax_period_basis",
             "era_definition"
           ]
-        }
-      ],
-      "optional": [
+        },
         {
-          "_basis": "入力型設計書 §8-2『eligibility.basePeriod.taxableSales』『simplified.categorySelectedByUser』。簡易課税を選ぶ場合だけ使う。",
+          "_basis": "台帳 C-13。欠けても止まらず推奨が変わるので必須に置く",
+          "value_keys": [
+            "small_business_special_deduction"
+          ]
+        },
+        {
+          "_basis": "台帳 C-13。F4 の最小入力で欠けると summary または breakdown.data が変わることを確認。簡易課税の適用判定と比較結果を保つため必須に置く",
           "value_keys": [
             "simplified_taxation_ceiling",
             "simplified_deemed_purchase_rates"
           ]
-        },
+        }
+      ],
+      "optional": [
         {
           "_basis": "入力型設計書 §8-2『purchases[].taxableWithoutInvoice』。インボイスの無い仕入れがある場合だけ使う。",
           "value_keys": [
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap"
-          ]
-        },
-        {
-          "_basis": "入力型設計書 §8-2『eligibility.invoiceRegistration.becameTaxableByRegistration』。2割特例の適用を判定する場合だけ使う。",
-          "value_keys": [
-            "small_business_special_deduction"
           ]
         }
       ]
