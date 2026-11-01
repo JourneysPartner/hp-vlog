@@ -630,5 +630,23 @@ console.log('\n=== 段3: 差し替えデータ（B0〜B7） ===');
   'B0〜B7の後は読取関数と本物のモジュールキャッシュに戻る');
 }
 
+console.log('\n=== C-15: 障害者控除は同一生計配偶者・扶養親族だけ ===');
+{
+  for (const who of ['spouse', 'dependent']) {
+    for (const [total, expected] of [[580000, 270000], [580001, 0], [undefined, 270000]]) {
+      const person = { id: who, disability: 'general',
+        ...(total === undefined ? {} : { totalIncome: yen(total) }) };
+      const family = who === 'spouse' ? { spouse: person } : { dependents: [{ ...person, ageAtYearEnd: 17 }] };
+      const r = deductionsEngine.calculateIncomeDeductions({ totalIncome: yen(6000000),
+        grossIncomeEtc: yen(6000000), deductions: {}, ...family }, OPTIONS);
+      assert(r.deductions.disability.value === BigInt(expected),
+        `${who}・所得${total ?? 'なし'}円: 所得税の障害者控除は${expected}円`);
+    }
+  }
+  const self = deductionsEngine.calculateIncomeDeductions({ totalIncome: yen(30000000),
+    grossIncomeEtc: yen(30000000), self: { disability: 'general' }, deductions: {} }, OPTIONS);
+  assert(self.deductions.disability.value === 270000n, '所得税でも本人の障害者控除は所得で除かない');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

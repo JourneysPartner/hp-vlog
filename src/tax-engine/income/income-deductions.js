@@ -42,11 +42,7 @@ function calculateBasicDeduction(totalIncome, options = {}) {
   return masterMoney(record.deduction_amount);
 }
 
-function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
-  if (!spouse || spouse.exists === false || spouse.totalIncome === undefined) return zeroMoney();
-  const taxpayerTotalIncome = inputMoney(totalIncome, 'totalIncome');
-  const spouseTotalIncome = inputMoney(spouse.totalIncome, 'spouse.totalIncome');
-  const searchCriterion = criterion(options);
+function spouseDeductionCeiling(searchCriterion) {
   const specialRecords = masters.find('income_deduction_spouse_special', searchCriterion);
   const lowerValues = records => records
     .flatMap(record => record.applicability_conditions || [])
@@ -60,8 +56,15 @@ function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
   const [firstSpecialLower] = firstTierLowers;
   const minimumLower = lowerValues(specialRecords).reduce((lowest, value) => value < lowest ? value : lowest);
   if (firstSpecialLower !== minimumLower) throw new Error(ambiguousLowerMessage);
-  const spouseDeductionCeiling = inputMoney(firstSpecialLower - 1n);
-  if (spouseTotalIncome.value > spouseDeductionCeiling.value) return zeroMoney();
+  return inputMoney(firstSpecialLower - 1n);
+}
+
+function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
+  if (!spouse || spouse.exists === false || spouse.totalIncome === undefined) return zeroMoney();
+  const taxpayerTotalIncome = inputMoney(totalIncome, 'totalIncome');
+  const spouseTotalIncome = inputMoney(spouse.totalIncome, 'spouse.totalIncome');
+  const searchCriterion = criterion(options);
+  if (spouseTotalIncome.value > spouseDeductionCeiling(searchCriterion).value) return zeroMoney();
 
   const spouseCategory = Number.isInteger(spouse.ageAtYearEnd) && spouse.ageAtYearEnd >= 70
     ? 'elderly'
@@ -385,7 +388,17 @@ function calculateIncomeDeductions(input, options = {}) {
     deductions.earthquakeInsurance || [],
     options
   );
-  const disabilityPeople = [input.self, input.spouse, ...(input.dependents || [])];
+  const disabilityPeople = [input.self];
+  if (input.spouse && (input.spouse.totalIncome === undefined ||
+      inputMoney(input.spouse.totalIncome, 'spouse.totalIncome').value <=
+        spouseDeductionCeiling(searchCriterion).value)) {
+    disabilityPeople.push(input.spouse);
+  }
+  disabilityPeople.push(...(input.dependents || []).filter(person =>
+    person.totalIncome === undefined ||
+    inputMoney(person.totalIncome, 'dependent.totalIncome').value <=
+      specificRelativeIncomeCeiling(searchCriterion).value
+  ));
   const disability = sumMoney(disabilityPeople.map(person => disabilityAmount(person, searchCriterion)));
   const widowOrSingleParent = deductions.widowOrSingleParent === 'widow'
     ? deductionAmountRecord('income_deduction_widow', searchCriterion)

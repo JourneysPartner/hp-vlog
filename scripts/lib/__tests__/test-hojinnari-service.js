@@ -1065,5 +1065,25 @@ for (const year of [2024, 2027]) {
     !Object.hasOwn(actual, 'breakdown'), year + '年の①は対応外の年として停止');
 }
 
+console.log('\n=== C-15: 平年度・配偶者所得200万円は配偶者なしと同じ ===');
+{
+  const makeInput = spouse => {
+    const input = goldenInput();
+    // 個人側も配偶者控除を使える本人所得にし、住民税の不具合が隠れないようにする。
+    input.individual.business.expenses[0].value = yen(14000000);
+    if (spouse) input.individual.spouse = spouse;
+    return input;
+  };
+  const without = service.simulate(makeInput(), context(), snapshotInfo);
+  const over = service.simulate(makeInput({ exists: true, ageAtYearEnd: 40, totalIncome: yen(2000000) }),
+    context(), snapshotInfo);
+  const soleWithout = without.breakdown.data.soleProprietor;
+  const soleOver = over.breakdown.data.soleProprietor;
+  assert(soleOver.burdens.residentTax.value === soleWithout.burdens.residentTax.value,
+    '①平年度の個人側: 配偶者所得200万円と配偶者なしで住民税が一致する');
+  assert(soleOver.burdens.incomeTax.value === soleWithout.burdens.incomeTax.value,
+    '①平年度の個人側: 配偶者所得200万円と配偶者なしで所得税が一致する');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

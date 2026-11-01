@@ -559,5 +559,16 @@ for (const year of [2024, 2027]) {
     !Object.hasOwn(actual, 'breakdown'), year + '年の④は対応外の年として停止');
 }
 
+console.log('\n=== C-15: 配偶者所得200万円は配偶者なしと同じ ===');
+{
+  const over = candidateOf(service.simulate(modeCInput(500000, {
+    spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(2000000) },
+  }), context(), snapshotInfo));
+  assert(over.residentTax.value === candidate.residentTax.value,
+    '④: 配偶者所得200万円と配偶者なしで住民税が一致する');
+  assert(over.incomeTax.value === candidate.incomeTax.value,
+    '④: 配偶者所得200万円と配偶者なしで所得税が一致する');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
