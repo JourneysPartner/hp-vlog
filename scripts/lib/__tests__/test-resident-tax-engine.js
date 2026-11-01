@@ -474,6 +474,9 @@ for (const [year, boundary] of [[2025, 580000], [2026, 620000]]) {
     assert(r.incomeDeductions.dependents.value === (kind === 'dependent' ? amount : 0n) &&
       r.incomeDeductions.specificRelativeSpecial.value === (kind === 'specificRelativeSpecial' ? amount : 0n),
     year + '年・' + age + '歳・所得' + total + '円: 扶養と特定親族特別控除を重複適用しない');
+  }
+}
+
 console.log('\n=== F1: 老人扶養親族の人的控除差 ===');
 {
   for (const [together, deduction, taxable, difference, municipal, prefectural, annual, suffix] of [
