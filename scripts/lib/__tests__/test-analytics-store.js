@@ -164,6 +164,132 @@ function parsePageviewPayload(raw) {
   });
   console.log(`LINE analytics-store: ${lineCases} cases PASS`);
 
+  let sourceCases = 0;
+  async function testSource(label, fn) { await fn(); sourceCases++; }
+  const hostGroups = {
+    ai: ['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'www.perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com'],
+    google: ['google.com', 'www.google.co.jp', 'google.co.uk', 'www.google.com.au', 'com.google.android.googlequicksearchbox'],
+    yahoo: ['search.yahoo.co.jp', 'search.yahoo.com', 'jp.co.yahoo.android.yjtop'],
+    bing: ['bing.com', 'www.bing.com'], line: ['line.me', 'l.line.me', 'lin.ee'],
+    sns: ['x.com', 't.co', 'twitter.com', 'facebook.com', 'm.facebook.com', 'instagram.com', 'l.instagram.com',
+      'threads.net', 'threads.com', 'youtube.com', 'm.youtube.com', 'youtu.be', 'tiktok.com', 'www.tiktok.com',
+      'linkedin.com', 'www.linkedin.com', 'lnkd.in'],
+  };
+  for (const [source, hosts] of Object.entries(hostGroups)) {
+    for (const host of hosts) await testSource(host, () => {
+      assert.deepStrictEqual(analytics.classifySource(host.toUpperCase()), { source, detail: null });
+    });
+  }
+  for (const host of ['news.yahoo.co.jp', 'yahoo.co.jp', 'evilgoogle.com', 'google.com.evil.example',
+    'bing.com.evil.example', 'evilperplexity.ai', 'notline.me', 'sub.chatgpt.com', 'example.com']) {
+    await testSource(host, () => assert.deepStrictEqual(analytics.classifySource(host), { source: 'other', detail: host }));
+  }
+  for (const host of ['https://example.com/private?q=secret', 'example.com/path', 'bad host', '日本語.jp', 'x'.repeat(254), null, 1,
+    '..', '.', '-', 'a..b', '.example.com', 'example.com.', '-a.example', 'a-.example']) {
+    await testSource('invalid host', () => assert.deepStrictEqual(analytics.classifySource(host), { source: 'other', detail: null }));
+  }
+  await testSource('invalid marker details', () => {
+    const key = detail => `src/2026-11-01/v/other/pc/${detail}/abcd1234`;
+    assert.strictEqual(analytics.parseSourceKey(key('..')), null);
+    assert.strictEqual(analytics.parseSourceKey(key('.')), null);
+    assert.strictEqual(analytics.parseSourceKey(`src/2026-11-01/v/tagged/pc/_qr/abcd1234`), null);
+    assert.strictEqual(analytics.parseSourceKey(key('example.com')).detail, 'example.com');
+  });
+  await testSource('utm の記号だけの値は使わず参照元で判定する', () => {
+    for (const utm of ['-', '_', '-qr']) {
+      assert.deepStrictEqual(analytics.classifySource('search.yahoo.co.jp', utm), { source: 'yahoo', detail: null });
+    }
+    assert.deepStrictEqual(analytics.classifySource('', 'qr-2026_a'), { source: 'tagged', detail: 'qr-2026_a' });
+  });
+  await testSource('direct', () => assert.deepStrictEqual(analytics.classifySource(''), { source: 'direct', detail: null }));
+  for (const length of [64, 65, 253]) await testSource('detail length', () => {
+    assert.deepStrictEqual(analytics.classifySource('x'.repeat(length)), { source: 'other', detail: length === 64 ? 'x'.repeat(length) : null });
+  });
+  const tags = {
+    google: ['google'], yahoo: ['yahoo'], bing: ['bing'], line: ['line'],
+    sns: ['x', 'twitter', 'facebook', 'instagram', 'threads', 'youtube', 'tiktok', 'linkedin'],
+    ai: ['openai', 'chatgpt', 'perplexity', 'copilot', 'gemini', 'claude'],
+    tagged: ['qr', 'newsletter_2026-11', 'x'.repeat(32)],
+  };
+  for (const [source, values] of Object.entries(tags)) for (const utm of values) {
+    await testSource('utm priority ' + utm, () => assert.deepStrictEqual(analytics.classifySource('search.yahoo.co.jp', utm.toUpperCase()),
+      { source, detail: source === 'tagged' ? utm : null }));
+  }
+  for (const utm of ['', 'x'.repeat(33), 'with space', '../secret', '日本語', null, 1]) {
+    await testSource('invalid utm', () => assert.deepStrictEqual(analytics.classifySource('www.google.com', utm), { source: 'google', detail: null }));
+  }
+  const visitBody = { p: '/contact', r: '/blog/x/', v: 'abcd1234', s: 'search.yahoo.co.jp', u: 'QR' };
+  await testSource('visit payload', () => assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify(visitBody)),
+    { path: '/contact.html', ref: '/blog/x/', event: null, visit: { id: 'abcd1234', host: 'search.yahoo.co.jp', utm: 'QR' } }));
+  for (const body of [{ ...visitBody, u: undefined, s: '' }, { ...visitBody, v: 'x'.repeat(32) }]) {
+    await testSource('valid visit', () => assert.ok(analytics.parseBeaconPayload(JSON.stringify(body)).visit));
+  }
+  for (const change of [{ v: 'short' }, { v: 'UPPER123' }, { v: 12345678 }, { v: 'a'.repeat(33) },
+    { v: null }, { s: undefined }, { s: {} }, { u: 3 }, { u: null },
+    { s: 'mori-zeirishi.net' }, { s: 'WWW.MORI-ZEIRISHI.NET' }]) {
+    await testSource('bad visit preserves PV', () => {
+      const body = { ...visitBody, ...change };
+      assert.deepStrictEqual(analytics.parseBeaconPayload(JSON.stringify(body)), { path: '/contact.html', ref: '/blog/x/', event: null });
+      assert.strictEqual(analytics.parseBeaconPayload(JSON.stringify({ ...body, e: 'engaged' })), null);
+    });
+  }
+  await testSource('engaged requires visit', () => {
+    assert.strictEqual(analytics.parseBeaconPayload('{"p":"/","e":"engaged"}'), null);
+    const parsed = analytics.parseBeaconPayload(JSON.stringify({ ...visitBody, e: 'engaged' }));
+    assert.strictEqual(parsed.event, 'engaged');
+    assert.strictEqual(parsed.visit.id, visitBody.v);
+    assert.strictEqual(analytics.parseBeaconPayload(JSON.stringify({ ...visitBody, unknown: true })), null);
+  });
+  for (const [ua, device] of [['Mozilla iPhone', 'iphone'], ['iPod', 'iphone'], ['Android', 'android'], ['Windows', 'pc'], ['iPad', 'pc'], ['', 'pc']]) {
+    await testSource('device ' + device, () => assert.strictEqual(analytics.deviceOf(ua), device));
+  }
+  const marker = { date: '2026-11-01', kind: 'v', source: 'other', device: 'iphone', detail: 'example.com', id: 'abcd1234' };
+  for (const kind of ['v', 'e']) for (const [source, detail] of [['other', 'example.com'], ['other', null], ['google', null], ['tagged', 'qr_2026-11']]) {
+    await testSource('marker roundtrip', () => {
+      const value = { ...marker, kind, source, detail };
+      assert.deepStrictEqual(analytics.parseSourceKey(analytics.sourceKey(value)), value);
+    });
+  }
+  for (const key of ['src/2026-11-01/v/google/pc/-/abcd1234/extra', 'uniq/2026-11-01/v/google/pc/-/abcd1234',
+    'src/2026-02-30/v/google/pc/-/abcd1234', 'src/not-date/v/google/pc/-/abcd1234', 'src/2026-11-01/x/google/pc/-/abcd1234',
+    'src/2026-11-01/v/unknown/pc/-/abcd1234', 'src/2026-11-01/v/google/ipad/-/abcd1234',
+    'src/2026-11-01/v/google/pc/example.com/abcd1234', 'src/2026-11-01/v/other/pc/<script>/abcd1234',
+    'src/2026-11-01/v/tagged/pc/' + 'x'.repeat(33) + '/abcd1234', 'src/2026-11-01/v/google/pc/-/short', '', null]) {
+    await testSource('malformed marker', () => assert.strictEqual(analytics.parseSourceKey(key), null));
+  }
+  await testSource('real Blobs PUT and paginated list', async () => {
+    const { getStore } = require('@netlify/blobs');
+    const requests = [];
+    const key = analytics.sourceKey(marker);
+    const second = { ...marker, id: 'second1234' };
+    const secondKey = analytics.sourceKey(second);
+    const actual = getStore({ name: 'analytics', siteID: 'source-test-site', token: 'test-token',
+      edgeURL: 'https://blobs.invalid', fetch: async (url, options) => {
+        requests.push({ url: String(url), ...options });
+        if (options.method.toUpperCase() === 'PUT') return new Response('', { status: 200, headers: { etag: 'marker-etag' } });
+        const nextPage = new URL(url).searchParams.get('cursor') === 'next-page';
+        return new Response(JSON.stringify({ blobs: [{ key: nextPage ? secondKey : key, etag: 'marker-etag' }],
+          directories: [], ...(!nextPage ? { next_cursor: 'next-page' } : {}) }), { status: 200 });
+      } });
+    await actual.set(key, '1');
+    assert.strictEqual(requests[0].method.toUpperCase(), 'PUT');
+    assert.strictEqual(requests[0].url, 'https://blobs.invalid/source-test-site/site:analytics/' + key);
+    assert.strictEqual(requests[0].body, '1');
+    assert.ok(!Object.keys(requests[0].headers).some(name => /if-match|if-none-match/i.test(name)));
+    const listed = await analytics.listPrefixKeys(actual, 'src/');
+    const parsed = listed.map(analytics.parseSourceKey);
+    assert.deepStrictEqual(parsed, [marker, second]);
+    const counts = {};
+    for (const item of parsed) {
+      const group = [item.date, item.kind, item.source, item.device].join('|');
+      counts[group] = (counts[group] || 0) + 1;
+    }
+    assert.deepStrictEqual(counts, { '2026-11-01|v|other|iphone': 2 });
+    assert.strictEqual(requests.length, 3);
+    assert.ok(requests.slice(1).every(request => new URL(request.url).searchParams.get('prefix') === 'src/'));
+  });
+  console.log(`traffic sources analytics-store: ${sourceCases} cases PASS`);
+
   const store = new FakeStore();
   const date = '2026-07-14';
   const vid = analytics.hash('visitor');
@@ -197,7 +323,10 @@ function parsePageviewPayload(raw) {
   const todayRate = 'rate/2026-10-27-00:00/visitor/path';
   const staleRate = 'rate/2026-10-26-23:59/visitor/path';
   const unrelated = ['daily/2026-07-29', 'transitions/2026-07-29', 'submissions/2026-07-29'];
-  for (const key of [oldestUniq, staleUniq, todayUniq, todayRate, staleRate, ...unrelated]) {
+  const retainedSource = analytics.sourceKey({ ...marker, date: '2026-07-30' });
+  const staleSource = analytics.sourceKey({ ...marker, date: '2026-07-29' });
+  const todaySource = analytics.sourceKey({ ...marker, date: '2026-10-27', kind: 'e' });
+  for (const key of [oldestUniq, staleUniq, todayUniq, todayRate, staleRate, retainedSource, staleSource, todaySource, ...unrelated]) {
     await cleanupStore.set(key, '1');
   }
   const cleanupExports = {};
@@ -218,8 +347,8 @@ function parsePageviewPayload(raw) {
   const cleanupResult = await cleanupExports.handler({});
   assert.strictEqual(cleanupResult.statusCode, 200);
   assert.strictEqual(connected, 1);
-  assert.deepStrictEqual(JSON.parse(cleanupResult.body), { ok: true, uniq: 1, rate: 1 });
-  assert.deepStrictEqual([...cleanupStore.values.keys()].sort(), [oldestUniq, todayUniq, todayRate, ...unrelated].sort(),
+  assert.deepStrictEqual(JSON.parse(cleanupResult.body), { ok: true, uniq: 1, rate: 1, src: 1 });
+  assert.deepStrictEqual([...cleanupStore.values.keys()].sort(), [oldestUniq, todayUniq, todayRate, retainedSource, todaySource, ...unrelated].sort(),
     '89日前のuniqは残り90日前は消える。当日のrateと対象外の集計データは残る');
   console.log('analytics-cleanup retention boundary: PASS');
 

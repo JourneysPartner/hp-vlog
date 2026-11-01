@@ -41,10 +41,13 @@ const buildSource = fs.readFileSync(path.join(ROOT, 'scripts/build.js'), 'utf8')
 const beaconLiteral = buildSource.match(/const ANALYTICS_BEACON = (`[\s\S]*?`);/);
 strict.ok(beaconLiteral, 'build.js の実際のビーコン文字列を使う');
 const beaconScript = vm.runInNewContext(beaconLiteral[1]).match(/<script>([\s\S]*?)<\/script>/)[1];
+const VISIT_ID = (0.123456789).toString(36).slice(2, 14);
+const visitFields = (s = '') => ({ v: VISIT_ID, s });
 
 function runBeacon({ pathname = '/contact', referrer = '', storage = new Map(), brokenStorage = false,
-  hostname = 'mori-zeirishi.net', doNotTrack = '0', beaconAccepted = true, beaconThrows = false, fetchThrows = false } = {}) {
-  const calls = [], fetches = [], listeners = [];
+  hostname = 'mori-zeirishi.net', doNotTrack = '0', beaconAccepted = true, beaconThrows = false, fetchThrows = false,
+  search = '', webdriver = false } = {}) {
+  const calls = [], fetches = [], listeners = [], removed = [];
   const sessionStorage = Object.fromEntries(['getItem', 'setItem', 'removeItem'].map(method => [method, (key, value) => {
     if (brokenStorage) throw new Error('storage unavailable');
     if (method === 'getItem') return storage.get(key) || null;
@@ -52,8 +55,15 @@ function runBeacon({ pathname = '/contact', referrer = '', storage = new Map(), 
     else storage.delete(key);
   }]));
   vm.runInNewContext(beaconScript, {
-    location: { pathname, hostname }, document: { referrer, addEventListener: (type, fn) => { listeners.push({ type, fn }); } }, URL, sessionStorage,
-    navigator: { doNotTrack, sendBeacon: (url, raw) => {
+    location: { pathname, hostname, search }, document: { referrer,
+      addEventListener: (type, fn, options) => { listeners.push({ type, fn, options }); },
+      removeEventListener: (type, fn, options) => {
+        const index = listeners.findIndex(item => item.type === type && item.fn === fn && item.options.capture === options.capture);
+        strict.ok(index >= 0, '登録した capture のリスナーを外す');
+        removed.push(type); listeners.splice(index, 1);
+      } }, URL, URLSearchParams, sessionStorage,
+    Math: Object.assign(Object.create(Math), { random: () => 0.123456789 }),
+    navigator: { doNotTrack, webdriver, sendBeacon: (url, raw) => {
       calls.push({ url, raw, storedAtSend: storage.get('mz_contact_from') });
       if (beaconThrows) throw new Error('beacon unavailable');
       return beaconAccepted;
@@ -72,7 +82,8 @@ function runBeacon({ pathname = '/contact', referrer = '', storage = new Map(), 
     }
     return prevented;
   };
-  return { calls, fetches, body, storage, listeners, click };
+  const fire = type => listeners.filter(item => item.type === type).slice().forEach(item => item.fn({}));
+  return { calls, fetches, body, storage, listeners, click, fire, removed };
 }
 
 // Netlify Blobs の最小モック（onlyIfNew / onlyIfMatch を再現）
@@ -217,7 +228,7 @@ function makeStore() {
   for (const referrer of ['https://www.google.com/', '', 'invalid URL']) {
     test(`外部・空・不正な遷移元（${referrer}）では保存値を消す`, () => {
       const r = runBeacon({ referrer, storage: new Map([['mz_contact_from', '/blog/x/']]) });
-      strict.deepEqual(r.body, { p: '/contact' });
+      strict.deepEqual(r.body, { p: '/contact', ...visitFields(referrer.startsWith('https:') ? 'www.google.com' : '') });
       strict.ok(!r.storage.has('mz_contact_from'));
     });
   }
@@ -225,10 +236,10 @@ function makeStore() {
     test(`${pathname}: 保存した遷移元を送信後に消し再読込では送らない`, () => {
       const storage = new Map([['mz_contact_from', '/blog/x/']]);
       const r = runBeacon({ pathname, storage });
-      strict.deepEqual(r.body, { p: pathname, r: '/blog/x/' });
+      strict.deepEqual(r.body, { p: pathname, r: '/blog/x/', ...visitFields() });
       strict.equal(r.calls[0].storedAtSend, '/blog/x/');
       strict.ok(!storage.has('mz_contact_from'));
-      strict.deepEqual(parsePageviewPayload(r.calls[0].raw), { path: '/contact-thanks.html', ref: '/blog/x/' });
+      strict.deepEqual(parsePageviewPayload(r.calls[0].raw), { path: '/contact-thanks.html', ref: '/blog/x/', visit: { id: VISIT_ID, host: '', utm: '' } });
       strict.deepEqual(runBeacon({ pathname, storage }).body, { p: pathname });
     });
   }
@@ -261,6 +272,71 @@ function makeStore() {
     const r = runBeacon({ pathname: '/contact-thanks', storage: new Map([['mz_contact_from', '/blog/x/']]), beaconAccepted: false });
     strict.deepEqual(r.fetches, [{ url: '/track', method: 'POST', body: r.calls[0].raw, keepalive: true, credentials: 'same-origin' }]);
     strict.ok(!r.storage.has('mz_contact_from'));
+  });
+
+  console.log('\n=== 流入元ビーコン ===');
+  test('外部からの最初の表示はホストだけを送り、訪問を保存する', () => {
+    const r = runBeacon({ pathname: '/blog/x/', referrer: 'https://SEARCH.YAHOO.CO.JP/private?q=secret#fragment' });
+    strict.deepEqual(r.body, { p: '/blog/x/', ...visitFields('search.yahoo.co.jp') });
+    strict.deepEqual(JSON.parse(r.storage.get('mz_visit')), { i: VISIT_ID, s: 'search.yahoo.co.jp' });
+    strict.ok(!r.calls[0].raw.includes('private') && !r.calls[0].raw.includes('secret'));
+  });
+  for (const referrer of ['https://mori-zeirishi.net/blog/x/', 'https://search.yahoo.co.jp/', '']) {
+    test('同じタブの次ページ・再読込・再訪問は訪問情報を再送しない: ' + referrer, () => {
+      const first = runBeacon({ referrer: 'https://search.yahoo.co.jp/' });
+      const next = runBeacon({ pathname: '/about', referrer, storage: first.storage });
+      strict.deepEqual(next.body, { p: '/about' });
+      strict.equal(JSON.parse(next.storage.get('mz_visit')).i, VISIT_ID);
+    });
+  }
+  for (const referrer of ['', 'bad URL']) test('参照元を読めなければ空ホストを送る: ' + referrer, () => {
+    strict.deepEqual(runBeacon({ pathname: '/', referrer }).body, { p: '/', ...visitFields() });
+  });
+  for (const [search, u] of [['?utm_source=QR', 'QR'], ['?utm_source=' , ''], ['?utm_source=' + 'x'.repeat(40), 'x'.repeat(32)]]) {
+    test('utm_source のみを先頭32文字まで送る: ' + search, () => {
+      const r = runBeacon({ pathname: '/', search: search + '&secret=private' });
+      strict.deepEqual(r.body, { p: '/', ...visitFields(), u });
+      strict.equal(JSON.parse(r.storage.get('mz_visit')).u, u);
+      strict.ok(!r.calls[0].raw.includes('private'));
+    });
+  }
+  for (const type of ['scroll', 'pointerdown', 'keydown', 'touchstart']) test(type + ' の最初の1回だけ engaged を送り全リスナーを外す', () => {
+    const r = runBeacon({ pathname: '/blog/x/', referrer: 'https://search.yahoo.co.jp/', search: '?utm_source=QR' });
+    const events = r.listeners.filter(item => item.type !== 'click');
+    strict.equal(events.length, 4);
+    events.forEach(item => strict.deepEqual(JSON.parse(JSON.stringify(item.options)), { capture: true, passive: true }));
+    r.fire(type);
+    ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(r.fire);
+    strict.equal(r.calls.length, 2);
+    strict.deepEqual(JSON.parse(r.calls[1].raw), { p: '/blog/x/', e: 'engaged', ...visitFields('search.yahoo.co.jp'), u: 'QR' });
+    strict.deepEqual(r.removed.sort(), ['keydown', 'pointerdown', 'scroll', 'touchstart']);
+    strict.equal(JSON.parse(r.storage.get('mz_visit')).e, 1);
+    const next = runBeacon({ storage: r.storage });
+    next.fire(type);
+    strict.equal(next.calls.length, 1);
+    strict.equal(next.listeners.length, 1);
+  });
+  test('訪問開始後の内部ページでも元の流入元を使って操作を送る', () => {
+    const first = runBeacon({ referrer: 'https://www.google.com/' });
+    const next = runBeacon({ pathname: '/about', storage: first.storage, referrer: 'https://mori-zeirishi.net/contact' });
+    next.fire('scroll');
+    strict.deepEqual(JSON.parse(next.calls[1].raw), { p: '/about', e: 'engaged', ...visitFields('www.google.com') });
+  });
+  test('webdriver では PV は保ち、操作イベントを登録・送信しない', () => {
+    const r = runBeacon({ webdriver: true });
+    r.fire('scroll');
+    strict.equal(r.calls.length, 1);
+    strict.equal(r.body.v, VISIT_ID);
+    strict.deepEqual(r.listeners.map(item => item.type), ['click']);
+  });
+  test('壊れた JSON と sessionStorage 例外でも PV を送る', () => {
+    for (const options of [{ brokenStorage: true }, { storage: new Map([['mz_visit', '{']]) }]) {
+      const r = runBeacon(options);
+      strict.equal(r.calls.length, 1);
+      strict.equal(r.body.p, '/contact');
+      r.fire('touchstart');
+      strict.equal(r.calls.length, 2);
+    }
   });
 
   console.log('\n=== LINE ビーコンと生成ページ ===');
@@ -368,11 +444,64 @@ function makeStore() {
         [`line/${outside}`, { byFrom: { '/outside-range': 99 } }],
         [`line/${A.dateOffset(today, -2)}`, { byFrom: null }],
       ]);
-      const store = { get: async key => records.get(key) || null, async *list() { yield { blobs: [] }; } };
+      const sourceMarker = (date, kind, source, device, id, detail = null) => A.sourceKey({ date, kind, source, device, id, detail });
+      const sourceKeys = [
+        sourceMarker(today, 'v', 'yahoo', 'iphone', 'visit001'), sourceMarker(today, 'v', 'yahoo', 'pc', 'visit002'),
+        sourceMarker(today, 'e', 'yahoo', 'iphone', 'visit001'), sourceMarker(yesterday, 'v', 'google', 'android', 'visit003'),
+        sourceMarker(today, 'v', 'other', 'pc', 'visit004', 'example.com'), sourceMarker(today, 'e', 'other', 'pc', 'visit004', 'example.com'),
+        sourceMarker(today, 'v', 'tagged', 'iphone', 'visit005', 'qr'), sourceMarker(older, 'v', 'direct', 'pc', 'visit006'),
+        sourceMarker(oldest, 'v', 'ai', 'android', 'visit007'), sourceMarker(outside, 'v', 'bing', 'pc', 'visit008'),
+        'src/not-a-date/v/google/pc/-/visit009', 'src/' + today + '/v/evil/pc/-/visit009',
+      ];
+      let sourceListCalls = 0;
+      const store = { get: async key => records.get(key) || null, async *list({ prefix }) {
+        if (prefix !== 'src/') { yield { blobs: [] }; return; }
+        sourceListCalls++;
+        for (let i = 0; i < sourceKeys.length; i += 3) yield { blobs: sourceKeys.slice(i, i + 3).map(key => ({ key })) };
+      } };
       const event = { httpMethod: 'GET', headers: { authorization: 'Basic ' + Buffer.from('analytics-test:analytics-test-pass').toString('base64') } };
       const response = await handler(event, { getStoreFn: () => store });
       strict.equal(response.statusCode, 200);
       const data = JSON.parse(response.body);
+      test('流入元は src/ の一覧を一度だけ取り、ページをまたいで日別・端末別に集計する', () => {
+        strict.equal(sourceListCalls, 1);
+        strict.deepEqual(data.daily.at(-1).sources, { visits: {
+          yahoo: { iphone: 1, android: 0, pc: 1 }, other: { iphone: 0, android: 0, pc: 1 }, tagged: { iphone: 1, android: 0, pc: 0 },
+        }, engaged: { yahoo: { iphone: 1, android: 0, pc: 0 }, other: { iphone: 0, android: 0, pc: 1 } },
+        details: { 'other|example.com': 1, 'tagged|qr': 1 } });
+        strict.deepEqual(data.daily.at(-2).sources.visits.google, { iphone: 0, android: 1, pc: 0 });
+        strict.deepEqual(data.daily.at(-3).sources, { visits: {}, engaged: {}, details: {} });
+        strict.equal(data.sourcesSince, outside, '最古の有効な印は表示期間外でも記録開始日になる');
+        strict.ok(!data.sourcesError);
+      });
+      const legacyFieldsWithoutSources = input => {
+        const { sourcesSince, sourcesError, ...legacy } = input;
+        legacy.daily = legacy.daily.map(({ sources, ...row }) => row);
+        return legacy;
+      };
+      const withoutSources = JSON.parse((await handler(event, { getStoreFn: () => ({ ...store,
+        async *list({ prefix }) { if (prefix === 'src/') yield { blobs: [] }; else yield* store.list({ prefix }); },
+      }) })).body);
+      test('流入元なしでも既存のAPI項目は同じで開始日は null', () => {
+        strict.deepEqual(legacyFieldsWithoutSources(withoutSources), legacyFieldsWithoutSources(data));
+        strict.equal(withoutSources.sourcesSince, null);
+        strict.ok(withoutSources.daily.every(row => Object.keys(row.sources.visits).length === 0));
+      });
+      const failedSourcesResponse = await handler(event, { getStoreFn: () => ({ ...store,
+        async *list({ prefix }) {
+          if (prefix !== 'src/') { yield* store.list({ prefix }); return; }
+          yield { blobs: [{ key: sourceKeys[0] }] };
+          throw new Error('source listing unavailable');
+        },
+      }) });
+      test('流入元一覧の途中失敗でも200を返し、既存項目を保ち全行の流入元を空にする', () => {
+        strict.equal(failedSourcesResponse.statusCode, 200);
+        const failed = JSON.parse(failedSourcesResponse.body);
+        strict.equal(failed.sourcesError, true);
+        strict.equal(failed.sourcesSince, null);
+        strict.ok(failed.daily.every(row => JSON.stringify(row.sources) === JSON.stringify({ visits: {}, engaged: {}, details: {} })));
+        strict.deepEqual(legacyFieldsWithoutSources(failed), legacyFieldsWithoutSources(data));
+      });
       test('API today と最後の行が当日になり、今日・昨日のカードが対応する', () => {
         strict.equal(data.today, today);
         strict.equal(data.daily.at(-1).date, data.today);
@@ -440,6 +569,69 @@ function makeStore() {
         } }),
       });
       await new Promise(resolve => setImmediate(resolve));
+      const showSourceDays = days => element('period').click({ target: { tagName: 'BUTTON', dataset: { days: String(days) } } });
+      const sourceValues = label => {
+        const html = element('sources-table').innerHTML;
+        const row = html.match(new RegExp('<tr><th scope="row">' + label + '</th>(.*?)</tr>'));
+        strict.ok(row, label);
+        return [...row[1].matchAll(/<td>([\d,]+)<\/td>/g)].map(match => Number(match[1].replace(/,/g, '')));
+      };
+      test('流入元表は指定順の9分類・ゼロの行・合計と端末別の値を表示する', () => {
+        strict.deepEqual(sourceValues('ヤフー'), [2, 1, 1, 0, 1]);
+        strict.deepEqual(sourceValues('Google'), [1, 0, 0, 1, 0]);
+        strict.deepEqual(sourceValues('Bing'), [0, 0, 0, 0, 0]);
+        strict.deepEqual(sourceValues('合計'), [5, 2, 2, 1, 2]);
+        const labels = [...element('sources-table').innerHTML.matchAll(/<th scope="row">([^<]+)<\/th>/g)].map(match => match[1]);
+        strict.deepEqual(labels, ['Google', 'ヤフー', 'Bing', 'AI', 'LINE', 'SNS', '他のサイト', '印付きリンク', '不明', '合計']);
+        strict.equal(element('sources-since').textContent, outside.split('-').map(Number).join('/') + ' から記録しています。');
+        strict.ok(page.body.indexOf('<h2>流入元</h2>') > page.body.indexOf('日次推移'));
+        strict.ok(page.body.indexOf('<h2>流入元</h2>') < page.body.indexOf('人気ページ Top 10'));
+        strict.ok(page.body.includes('.sources-scroll{max-width:100%;overflow-x:auto}'));
+        for (const text of ['サイトに入ってきた 1 回を 1 訪問と数えます。', '直前のサイトが届かなかった訪問です。',
+          '自動アクセスを完全には見分けられません。', '検索語は分かりません。']) strict.ok(page.body.includes(text));
+      });
+      test('流入元表も7・30・90日切り替えに追従する', () => {
+        for (const [days, expected] of [[7, 5], [30, 5], [90, 7]]) {
+          showSourceDays(days);
+          strict.equal(sourceValues('合計')[0], expected);
+        }
+        strict.deepEqual(sourceValues('不明'), [1, 0, 0, 0, 1]);
+        showSourceDays(30);
+      });
+      test('流入元の内訳は多い順10件までで、名前の全特殊文字をエスケープする', () => {
+        const details = uiData.daily.at(-1).sources.details;
+        const before = { ...details };
+        for (let i = 0; i < 11; i++) details['other|site' + i + '.example'] = 10 + i;
+        details['tagged|<script>&"\''] = 100;
+        showSourceDays(30);
+        const html = element('source-details').innerHTML;
+        strict.equal((html.match(/<li>/g) || []).length, 10);
+        strict.ok(html.includes('&lt;script&gt;&amp;&quot;&#39;'));
+        strict.ok(!html.includes('<script>'));
+        strict.ok(html.indexOf('100 回') < html.indexOf('site10.example'));
+        strict.ok(html.indexOf('site10.example') < html.indexOf('site9.example'));
+        strict.ok(!html.includes('site0.example'));
+        uiData.daily.at(-1).sources.details = before;
+        showSourceDays(30);
+      });
+      test('流入元データなしは0の表と案内、取得失敗時も他の枠は表示する', () => {
+        const before = { daily: uiData.daily, sourcesSince: uiData.sourcesSince };
+        uiData.daily = structuredClone(withoutSources.daily); uiData.sourcesSince = null;
+        showSourceDays(30);
+        strict.deepEqual(sourceValues('合計'), [0, 0, 0, 0, 0]);
+        strict.equal(element('sources-since').textContent, 'まだデータがありません。');
+        strict.ok(element('source-details').innerHTML.includes('まだデータがありません。'));
+        uiData.sourcesError = true;
+        showSourceDays(30);
+        strict.equal(element('sources-since').textContent, '流入元を読み込めませんでした。');
+        strict.equal(element('sources-table').innerHTML, '');
+        strict.equal(element('source-details').innerHTML, '');
+        strict.ok(element('chart').innerHTML.includes('<svg'));
+        strict.ok(element('contact-from').innerHTML.includes('7 回'));
+        strict.ok(element('line-total').innerHTML.includes('8 回'));
+        Object.assign(uiData, before); delete uiData.sourcesError;
+        showSourceDays(30);
+      });
       test('管理画面は名称をエスケープし上位10件と選択期間を表示する', () => {
         const html = element('submitted-from').innerHTML;
         strict.ok(html.includes('&lt;記事名&gt;'));
