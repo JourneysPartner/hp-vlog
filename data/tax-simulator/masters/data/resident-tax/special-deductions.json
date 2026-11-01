@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/master-common.schema.json",
   "_comment": "住民税の配偶者特別控除・特定親族特別控除。地方税法34条1項10号の2・12号の算式から展開した。",
-  "_generated": "生成物。地方税法の算式をそのまま実装して段階に展開している。手で編集せず生成し直すこと。",
+  "_generated": "生成物。地方税法の算式をそのまま実装して段階に展開している。手で編集せず生成し直すこと。（生成の道具はリポジトリに無い。令和9年度分の 62万円は手で足した。台帳 C-15）",
   "_why_formula": "地方税法は段階表ではなく「〜を超える部分の金額を、5万円の整数倍から3万円を控除した金額へ切り下げて控除する」という算式で定めている。所得税（No.1195・No.1177）が表で示すのとは形が違う。算式のまま実装すると読み違えやすいので、段階に展開したうえで算式も記録している。",
   "_spouse_formula": {
     "article": "地方税法34条1項10号の2",
@@ -20,6 +20,7 @@
     "eligibility": "19歳以上23歳未満・合計所得金額123万円以下・控除対象扶養親族に該当しない"
   },
   "_cross_check": "所得税側（No.1195・No.1177。別の出典）と突き合わせると、配偶者特別控除は配偶者所得100万円超の部分が、特定親族特別控除は95万円超の部分が同額になる。展開が正しいことの裏付けになるのでテストで確認する。",
+  "_period_basis": "effective_from・effective_to は所得年で持つ。住民税の控除は所得年で引く（resident-tax.js の criteria.income）ので、令和8年度分は 2025-01-01、令和9年度分は 2026-01-01 から。",
   "spouse_special": {
     "records": [
       {
@@ -29,8 +30,8 @@
         "calculation_order": 1,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -41,7 +42,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "spouse_special_s1",
         "income_lower_inclusive": {
@@ -83,11 +84,78 @@
         "_self_income_range": "900万円以下",
         "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項10号の2 イ",
+        "source_locator": "地方税法34条1項10号の2 イ（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPOUSE-SP-R9-S01-T1",
+        "value_key": "resident_tax_deduction_spouse_special",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "spouse_special_s1",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "9000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "330000"
+        },
+        "applicability_conditions": [
+          {
+            "subject": "spouse_total_income",
+            "operator": "gte",
+            "value": {
+              "unit": "JPY",
+              "value": "620001"
+            },
+            "description": "配偶者の合計所得金額 620,001円以上"
+          },
+          {
+            "subject": "spouse_total_income",
+            "operator": "lte",
+            "value": {
+              "unit": "JPY",
+              "value": "1000000"
+            },
+            "description": "配偶者の合計所得金額 1,000,000円以下"
+          }
+        ],
+        "_base_amount_before_proration": {
+          "unit": "JPY",
+          "value": "330000"
+        },
+        "_self_income_range": "900万円以下",
+        "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項10号の2 イ・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPOUSE-SP-S01-T2",
@@ -96,8 +164,8 @@
         "calculation_order": 2,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -108,7 +176,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "spouse_special_s1",
         "income_lower_inclusive": {
@@ -150,11 +218,78 @@
         "_self_income_range": "900万円超950万円以下",
         "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項10号の2 ロ（イの2/3・1万円未満切上げ）",
+        "source_locator": "地方税法34条1項10号の2 ロ（イの2/3・1万円未満切上げ）（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPOUSE-SP-R9-S01-T2",
+        "value_key": "resident_tax_deduction_spouse_special",
+        "tax_year": null,
+        "calculation_order": 2,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "spouse_special_s1",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "9000001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "9500000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "220000"
+        },
+        "applicability_conditions": [
+          {
+            "subject": "spouse_total_income",
+            "operator": "gte",
+            "value": {
+              "unit": "JPY",
+              "value": "620001"
+            },
+            "description": "配偶者の合計所得金額 620,001円以上"
+          },
+          {
+            "subject": "spouse_total_income",
+            "operator": "lte",
+            "value": {
+              "unit": "JPY",
+              "value": "1000000"
+            },
+            "description": "配偶者の合計所得金額 1,000,000円以下"
+          }
+        ],
+        "_base_amount_before_proration": {
+          "unit": "JPY",
+          "value": "330000"
+        },
+        "_self_income_range": "900万円超950万円以下",
+        "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項10号の2 ロ（イの2/3・1万円未満切上げ）・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPOUSE-SP-S01-T3",
@@ -163,8 +298,8 @@
         "calculation_order": 3,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -175,7 +310,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "spouse_special_s1",
         "income_lower_inclusive": {
@@ -217,11 +352,78 @@
         "_self_income_range": "950万円超1,000万円以下",
         "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項10号の2 ハ（イの1/3・1万円未満切上げ）",
+        "source_locator": "地方税法34条1項10号の2 ハ（イの1/3・1万円未満切上げ）（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPOUSE-SP-R9-S01-T3",
+        "value_key": "resident_tax_deduction_spouse_special",
+        "tax_year": null,
+        "calculation_order": 3,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "spouse_special_s1",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "9500001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "10000000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "110000"
+        },
+        "applicability_conditions": [
+          {
+            "subject": "spouse_total_income",
+            "operator": "gte",
+            "value": {
+              "unit": "JPY",
+              "value": "620001"
+            },
+            "description": "配偶者の合計所得金額 620,001円以上"
+          },
+          {
+            "subject": "spouse_total_income",
+            "operator": "lte",
+            "value": {
+              "unit": "JPY",
+              "value": "1000000"
+            },
+            "description": "配偶者の合計所得金額 1,000,000円以下"
+          }
+        ],
+        "_base_amount_before_proration": {
+          "unit": "JPY",
+          "value": "330000"
+        },
+        "_self_income_range": "950万円超1,000万円以下",
+        "_income_tax_counterpart": "所得税の配偶者特別控除（No.1195）と、配偶者所得100万円超の部分は同額になる",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項10号の2 ハ（イの1/3・1万円未満切上げ）・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPOUSE-SP-S01-T4",
@@ -230,8 +432,8 @@
         "calculation_order": 4,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -242,7 +444,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "spouse_special_s1",
         "income_lower_inclusive": {
@@ -276,11 +478,70 @@
         ],
         "_meaning": "納税義務者の前年の合計所得金額が1,000万円を超える場合は適用なし",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項10号の2 柱書（前年の合計所得金額が千万円以下であるものに限る）",
+        "source_locator": "地方税法34条1項10号の2 柱書（前年の合計所得金額が千万円以下であるものに限る）（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPOUSE-SP-R9-S01-T4",
+        "value_key": "resident_tax_deduction_spouse_special",
+        "tax_year": null,
+        "calculation_order": 4,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "spouse_special_s1",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "10000001"
+        },
+        "income_upper_inclusive": null,
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "applicability_conditions": [
+          {
+            "subject": "spouse_total_income",
+            "operator": "gte",
+            "value": {
+              "unit": "JPY",
+              "value": "620001"
+            },
+            "description": "配偶者の合計所得金額 620,001円以上"
+          },
+          {
+            "subject": "spouse_total_income",
+            "operator": "lte",
+            "value": {
+              "unit": "JPY",
+              "value": "1000000"
+            },
+            "description": "配偶者の合計所得金額 1,000,000円以下"
+          }
+        ],
+        "_meaning": "納税義務者の前年の合計所得金額が1,000万円を超える場合は適用なし",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項10号の2 柱書（前年の合計所得金額が千万円以下であるものに限る）・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPOUSE-SP-S02-T1",
@@ -2113,8 +2374,8 @@
         "calculation_order": 0,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -2125,7 +2386,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "specific_relative_special",
         "income_lower_inclusive": {
@@ -2143,11 +2404,54 @@
         "_meaning": "合計所得金額58万円以下なら控除対象扶養親族に該当するため、特定親族特別控除ではなく扶養控除（住民税の特定扶養親族45万円）を適用する",
         "_do_not_double_count": "扶養控除と特定親族特別控除は同じ人について重複適用しない",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項12号 柱書（控除対象扶養親族に該当しないもの）",
+        "source_locator": "地方税法34条1項12号 柱書（控除対象扶養親族に該当しないもの）（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPECREL-R9-T00",
+        "value_key": "resident_tax_deduction_specific_relative_special",
+        "tax_year": null,
+        "calculation_order": 0,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "specific_relative_special",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "620000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "0"
+        },
+        "_meaning": "合計所得金額62万円以下なら控除対象扶養親族に該当するため、特定親族特別控除ではなく扶養控除（住民税の特定扶養親族45万円）を適用する",
+        "_do_not_double_count": "扶養控除と特定親族特別控除は同じ人について重複適用しない",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項12号 柱書（控除対象扶養親族に該当しないもの）・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPECREL-T01",
@@ -2156,8 +2460,8 @@
         "calculation_order": 1,
         "rounding_rule_id": "R-NONE",
         "promulgated_at": null,
-        "verified_at": "2026-08-24",
-        "verified_by": "毛利順活税理士事務所",
+        "verified_at": null,
+        "verified_by": null,
         "applies_to_period_start_from": null,
         "applies_to_period_start_to": null,
         "applies_to_transaction_from": null,
@@ -2168,7 +2472,7 @@
           "country": "JP"
         },
         "effective_from": "2025-01-01",
-        "effective_to": null,
+        "effective_to": "2025-12-31",
         "component": "personal_deduction",
         "deduction_category": "specific_relative_special",
         "income_lower_inclusive": {
@@ -2186,11 +2490,54 @@
         "_income_basis": "特定親族の合計所得金額（納税義務者の所得では引かない）",
         "_income_tax_counterpart": "所得税（No.1177）は最高63万円だが住民税は45万円。95万円超の部分は同額",
         "source_document_id": "SOUMU-RESIDENT-TAX",
-        "source_locator": "地方税法34条1項12号",
+        "source_locator": "地方税法34条1項12号（令和8年度分まで。所得要件 58万円は地方税法23条1項7号・9号の今の版 325AC0000000226_20261101_508AC0000000002）",
         "source_hash": null,
-        "as_of_date": "2026-08-24",
+        "as_of_date": "2026-11-01",
         "legal_status": "effective",
-        "data_review_status": "approved"
+        "data_review_status": "unverified"
+      },
+      {
+        "record_id": "RT-SPECREL-R9-T01",
+        "value_key": "resident_tax_deduction_specific_relative_special",
+        "tax_year": null,
+        "calculation_order": 1,
+        "rounding_rule_id": "R-NONE",
+        "promulgated_at": "2026-03-31",
+        "verified_at": null,
+        "verified_by": null,
+        "applies_to_period_start_from": null,
+        "applies_to_period_start_to": null,
+        "applies_to_transaction_from": null,
+        "applies_to_transaction_to": null,
+        "master_name": "resident_tax_master",
+        "tax_or_insurance_type": "resident_tax",
+        "jurisdiction": {
+          "country": "JP"
+        },
+        "effective_from": "2026-01-01",
+        "effective_to": null,
+        "component": "personal_deduction",
+        "deduction_category": "specific_relative_special",
+        "income_lower_inclusive": {
+          "unit": "JPY",
+          "value": "620001"
+        },
+        "income_upper_inclusive": {
+          "unit": "JPY",
+          "value": "950000"
+        },
+        "deduction_amount": {
+          "unit": "JPY",
+          "value": "450000"
+        },
+        "_income_basis": "特定親族の合計所得金額（納税義務者の所得では引かない）",
+        "_income_tax_counterpart": "所得税（No.1177）は最高63万円だが住民税は45万円。95万円超の部分は同額",
+        "source_document_id": "SOUMU-RESIDENT-TAX",
+        "source_locator": "地方税法34条1項12号・23条1項7号・9号（令和9年1月1日施行の版 325AC0000000226_20270101_508AC0000000002）。適用は令和8年法律第2号 附則3条2項・11条2項（令和9年度分以後）",
+        "source_hash": null,
+        "as_of_date": "2026-11-01",
+        "legal_status": "enacted",
+        "data_review_status": "unverified"
       },
       {
         "record_id": "RT-SPECREL-T02",

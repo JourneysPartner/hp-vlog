@@ -369,9 +369,9 @@ for (const year of [2025, 2026]) {
     assert(actual.resultStatus === 'complete' && !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED'),
       '2025年の適格請求書なし仕入は状態を保ち施行前注記なし');
   } else {
-    assert(actual.resultStatus === 'partial' && hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED') &&
-      actual.usedMasterRecords.some(r => r.recordId === 'INV-TRANS-02'),
-      '2026年10月1日の仕入はINV-TRANS-02を使い施行前注記付きpartial');
+    assert(actual.resultStatus === 'complete' && !hasWarning(actual, 'MASTER_PENDING_LAW_APPLIED') &&
+      actual.usedMasterRecords.some(r => r.recordId === 'INV-TRANS-02' && r.legalStatus === 'effective'),
+      '2026年10月1日の仕入は施行済みのINV-TRANS-02を使い施行前注記なし・complete');
   }
 }
 {
