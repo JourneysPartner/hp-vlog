@@ -61,7 +61,7 @@ console.log('\n=== 国民健康保険料 ===');
 console.log('\n=== C-16: 国保の前年度料率 ===');
 {
   const priorCode = 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED';
-  const priorMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。令和9年度の実際の保険料とは異なることがあります。';
+  const priorMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。軽減判定の所得基準も令和9年度の改定を反映していない場合があり、令和9年度の実際の保険料とは異なることがあります。';
   const input = nhiInput({ taxYear: 2027, insuredAges: [45] });
   for (const flag of [undefined, false, 'yes', 1]) {
     const result = nhi.calculate({ ...input, allowPriorFiscalYearRate: flag });
@@ -91,6 +91,28 @@ console.log('\n=== C-16: 国保の前年度料率 ===');
   assert(prior.notes[0].code === priorCode && prior.notes[0].message === priorMessage &&
     prior.notes.filter(note => note.code === priorCode).length === 1,
   '前年度代用の注記は指定本文と完全一致しnotesの先頭に1回だけ付く');
+  // 所得500万円・45歳・単身。期待値は指示書F3の手計算をそのまま固定する。
+  for (const [municipalityCode, medical, support, child, nursing, total] of [
+    ['13113', 390807n, 145560n, 14212n, 128851n, 679430n],
+    ['14100', 421551n, 133114n, 17308n, 145988n, 717961n],
+    ['23100', 454122n, 133690n, 13653n, 123058n, 724523n],
+    ['27100', 503048n, 161878n, 14541n, 137502n, 816969n],
+    ['40130', 293477n, 163777n, 14746n, 137188n, 609188n],
+    ['01100', 446567n, 133332n, 15353n, 120051n, 715303n],
+  ]) {
+    const result = nhi.calculate({ ...input, municipalityCode, allowPriorFiscalYearRate: true });
+    assert(result.status === 'complete' && result.taxYear === 2027 && result.rateFiscalYear === 2026,
+      `F3 自治体${municipalityCode}は2027年度に2026年度料率を代用する`);
+    for (const [component, expected] of [
+      ['medical', medical], ['elderly_support', support],
+      ['child_rearing_support', child], ['nursing_care', nursing],
+    ]) {
+      assert(result.components[component].amount.value === expected,
+        `F3 自治体${municipalityCode}の${component}は手計算${expected}円と一致する`);
+    }
+    assert(result.annualPremium.value === total,
+      `F3 自治体${municipalityCode}の国保合計は手計算${total}円と一致する`);
+  }
   const current = nhi.calculate({ ...input, taxYear: 2026, allowPriorFiscalYearRate: true });
   const original = nhi.calculate({ ...input, taxYear: 2026 });
   assert(current.rateFiscalYear === 2026 && current.annualPremium.value === original.annualPremium.value &&
@@ -170,6 +192,13 @@ console.log('\n=== C-16: 国保の前年度料率 ===');
     assert(result.rateFiscalYear === 2027 && !result.notes.some(note => note.code === priorCode) &&
       municipalDates.length === 1,
     '対象自治体の2027年度料率を登録すれば自動で前年度代用を止める');
+    const yokohama = engine.calculate({
+      ...input, municipalityCode: '14100', allowPriorFiscalYearRate: true,
+    });
+    assert(yokohama.status === 'complete' && yokohama.rateFiscalYear === 2026 &&
+      yokohama.annualPremium.value === 717961n &&
+      yokohama.notes[0].code === priorCode && yokohama.notes[0].message === priorMessage,
+    'F6 渋谷区だけ2027年度を登録しても横浜市は前年度代用と注記を続ける');
   });
 }
 

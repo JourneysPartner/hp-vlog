@@ -289,7 +289,7 @@ function calculateNhiPremium(input) {
     notes: [
       ...(rateFiscalYear !== values.taxYear ? [{
         code: 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED',
-        message: `国民健康保険料は、${fiscalYearLabel(values.taxYear)}の料率がまだ登録されていないため、${fiscalYearLabel(rateFiscalYear)}の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。${fiscalYearLabel(values.taxYear)}の実際の保険料とは異なることがあります。`,
+        message: `国民健康保険料は、${fiscalYearLabel(values.taxYear)}の料率がまだ登録されていないため、${fiscalYearLabel(rateFiscalYear)}の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。軽減判定の所得基準も${fiscalYearLabel(values.taxYear)}の改定を反映していない場合があり、${fiscalYearLabel(values.taxYear)}の実際の保険料とは異なることがあります。`,
       }] : []),
       {
         code: 'NHI_SELECTED_MUNICIPALITY_ESTIMATE',

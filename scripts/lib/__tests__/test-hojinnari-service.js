@@ -934,7 +934,7 @@ function nextYearDates(value) {
   return value;
 }
 const priorNhiCode = 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED';
-const priorNhiMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。令和9年度の実際の保険料とは異なることがあります。';
+const priorNhiMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。軽減判定の所得基準も令和9年度の改定を反映していない場合があり、令和9年度の実際の保険料とは異なることがあります。料率や賦課限度額が上がると、通常は個人事業の手取りが減り、比較は法人化に有利な方向へ動きます。';
 for (const [label, input, originalContext] of [
   ['平年度', goldenInput(), context()],
   ['移行年度', transitionInput(), transitionContext()],
@@ -974,6 +974,25 @@ for (const [label, input, originalContext] of [
     const previousNhi = previous.breakdown.data.soleProprietor.burdens.socialInsuranceEmployee.value - 210120n;
     assert(estimatedNhi === previousNhi && estimatedNhi === 960000n,
       'C-16 平年度の2026年と2025年は同じ所得・令和8年度料率で国保額960,000円が一致する');
+  } else {
+    const corporation = estimate.breakdown.data.corporation;
+    const details = corporation.nationalHealthInsuranceDetails;
+    assert(details.assessmentBase.value === 4920000n,
+      'F5 2026年の移行年度は個人期間の所得による賦課基礎4,920,000円を使う');
+    for (const [component, expected] of [
+      ['medical', 417092n], ['elderly_support', 155360n],
+      ['child_rearing_support', 15157n], ['nursing_care', 137356n],
+    ]) {
+      assert(details.components[component].amount.value === expected,
+        `F5 2026年の移行年度の${component}年額は手計算${expected}円と一致する`);
+    }
+    assert(corporation.nationalHealthInsuranceFullYear.value === 724965n,
+      'F5 2026年の移行年度の国保年額は724,965円になる');
+    assert(corporation.nationalHealthInsurance.value === 362482n,
+      'F5 2026年の移行年度の国保6か月分は円未満切り捨てで362,482円になる');
+    const soleNhi = estimate.breakdown.data.soleProprietor.burdens.socialInsuranceEmployee.value - 215040n;
+    assert(soleNhi === 1130000n,
+      'F5 2026年に個人事業を続ける側の国保は限度額合計1,130,000円になる');
   }
 
   // 結果ビルダーの施行前判定を通さず、サービス本体が決めた状態を確認する。
@@ -986,8 +1005,7 @@ for (const [label, input, originalContext] of [
     delete require.cache[servicePath];
     const isolatedService = require(servicePath);
     const estimatedOptions = isolatedService.simulate(yearInput, yearContext, snapshotInfo);
-    assert(estimatedOptions.resultStatus === 'partial' &&
-      !estimatedOptions.warnings.some(warning => warning.code === 'MASTER_PENDING_LAW_APPLIED'),
+    assert(estimatedOptions.resultStatus === 'partial',
     'C-16 ①' + label + 'は施行前注記がなくてもビルダーへpartialを渡す');
     yearInput.individual.nationalHealthInsurance = { kind: 'actual', annualAmount: yen(600000) };
     const actualOptions = isolatedService.simulate(yearInput, yearContext, snapshotInfo);
@@ -999,11 +1017,16 @@ for (const [label, input, originalContext] of [
     require.cache[servicePath] = originalService;
   }
 }
-for (const [municipalityCode, prefectureCode, isDesignatedCity] of [
-  ['13113', '13', false], ['14100', '14', true], ['23100', '23', true],
-  ['27100', '27', true], ['40130', '40', true], ['01100', '01', true],
+for (const [municipalityCode, prefectureCode, isDesignatedCity, expectedNhi] of [
+  ['13113', '13', false, 679430n], ['14100', '14', true, 717961n],
+  ['23100', '23', true, 724523n], ['27100', '27', true, 816969n],
+  ['40130', '40', true, 609188n], ['01100', '01', true, 715303n],
 ]) {
   const input = nextYearDates(goldenInput());
+  // 青色65万円控除後の事業所得500万円・45歳・単身にそろえる。
+  input.individual.business.revenue[0].value = yen(8000000);
+  input.individual.business.expenses[0].value = yen(2350000);
+  input.individual.self.ageAtYearEnd = 45;
   input.corporate.healthInsurer.prefectureCode = prefectureCode;
   const yearContext = context({
     incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
@@ -1014,6 +1037,10 @@ for (const [municipalityCode, prefectureCode, isDesignatedCity] of [
   assert(estimate.resultStatus === 'partial' && Object.hasOwn(estimate, 'breakdown') &&
     estimate.usedMasterRecords.filter(record => record.recordId.startsWith(`NHI-RATE-${municipalityCode}-`)).length === 4,
   `C-16 登録自治体${municipalityCode}の2026年は停止せず当該自治体の料率4件を使用する`);
+  // 社会保険料合計から2026年度の国民年金年額を引き、国保額を比較する。
+  const actualNhi = estimate.breakdown.data.soleProprietor.burdens.socialInsuranceEmployee.value - 215040n;
+  assert(actualNhi === expectedNhi,
+    `F3 登録自治体${municipalityCode}の国保額は手計算${expectedNhi}円と一致する`);
 }
 {
   const yearContext = context({

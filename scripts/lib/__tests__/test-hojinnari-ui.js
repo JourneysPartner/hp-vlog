@@ -578,7 +578,7 @@ async function main() {
 
   process.stdout.write('\n=== C-16: 前年度の国保料率の注記 ===\n');
   const priorNhiCode = 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED';
-  const priorNhiMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。令和9年度の実際の保険料とは異なることがあります。';
+  const priorNhiMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。軽減判定の所得基準も令和9年度の改定を反映していない場合があり、令和9年度の実際の保険料とは異なることがあります。料率や賦課限度額が上がると、通常は個人事業の手取りが減り、比較は法人化に有利な方向へ動きます。';
   check('前年度料率の警告本文を見出し後・施行前注記の次・判定サマリー前に印刷可能な形で表示する', () => {
     const original = run(goldenState()).result;
     for (const includePending of [false, true]) {
@@ -651,30 +651,35 @@ async function main() {
       app.destroy();
     });
   });
-  check('2026年の前年度代用を含む実際の結果でも計算範囲の国保は概算に分類する', () => {
-    const original = run(goldenState());
-    function advanceDates(value) {
-      if (typeof value === 'string' && /^202[56]-/.test(value)) {
-        return (Number(value.slice(0, 4)) + 1) + value.slice(4);
+  for (const [label, formState] of [
+    ['平年度', goldenState()], ['移行年度', transitionState()],
+  ]) {
+    check(`2026年の${label}の前年度代用を含む実際の結果でも国保は概算に分類する`, () => {
+      const original = run(formState);
+      function advanceDates(value) {
+        if (typeof value === 'string' && /^202[56]-/.test(value)) {
+          return (Number(value.slice(0, 4)) + 1) + value.slice(4);
+        }
+        if (Array.isArray(value)) return value.map(advanceDates);
+        if (value && typeof value === 'object') {
+          return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, advanceDates(child)]));
+        }
+        return value;
       }
-      if (Array.isArray(value)) return value.map(advanceDates);
-      if (value && typeof value === 'object') {
-        return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, advanceDates(child)]));
-      }
-      return value;
-    }
-    const validation = service.validate(original.wire);
-    assert.strictEqual(validation.ok, true);
-    const yearContext = { ...original.context, incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
-      fiscalPeriod: advanceDates(original.context.fiscalPeriod), socialInsuranceMonths: ['2026-04'] };
-    const result = service.simulate(advanceDates(validation.value), yearContext, snapshotInfo);
-    assert.strictEqual(result.resultStatus, 'partial');
-    const viewModel = buildResultViewModel(result);
-    assert.strictEqual(viewModel.nhiPriorRateNotice, priorNhiMessage);
-    assert.deepStrictEqual(viewModel.calculationRange.estimates.map(item => item.label), ['国民健康保険料']);
-    assert.strictEqual(viewModel.calculationRange.calculatedCount, original.viewModel.calculationRange.calculatedCount);
-    assert.strictEqual(viewModel.calculationRange.targetCount, original.viewModel.calculationRange.targetCount);
-  });
+      const validation = service.validate(original.wire);
+      assert.strictEqual(validation.ok, true);
+      const yearContext = { ...original.context, incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
+        fiscalPeriod: advanceDates(original.context.fiscalPeriod), socialInsuranceMonths: ['2026-04'] };
+      const result = service.simulate(advanceDates(validation.value), yearContext, snapshotInfo);
+      assert.strictEqual(result.resultStatus, 'partial');
+      const viewModel = buildResultViewModel(result);
+      assert.strictEqual(viewModel.nhiPriorRateNotice, priorNhiMessage);
+      assert.deepStrictEqual(viewModel.calculationRange.estimates.map(item => item.label), ['国民健康保険料']);
+      assert.strictEqual(viewModel.calculationRange.calculatedCount, original.viewModel.calculationRange.calculatedCount);
+      assert.strictEqual(viewModel.calculationRange.targetCount, original.viewModel.calculationRange.targetCount);
+    });
+  }
+
 
   process.stdout.write('\n=== R8: ④→①の警告と除外項目 ===\n');
   for (const targetStatus of ['complete', 'partial', 'blocked']) {
