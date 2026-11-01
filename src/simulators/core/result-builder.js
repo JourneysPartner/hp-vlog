@@ -57,6 +57,11 @@ const WARNING_MAP = Object.freeze({
     userAction: '対象自治体の国民健康保険料を確認してください',
     canContinue: true,
   }),
+  NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED: Object.freeze({
+    level: 'attention',
+    canContinue: true,
+    userAction: '対象自治体の最新の料率を確認し、実額が分かる場合は実額を入力してください',
+  }),
   CT_UNANSWERED_ADJUSTMENTS_ASSUMED_ZERO: Object.freeze({
     level: 'attention',
     userAction: '未回答の税務調整項目を確認してください',

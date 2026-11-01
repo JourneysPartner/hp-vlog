@@ -447,6 +447,7 @@ function calculateNationalHealthInsurance(individual, context) {
   const result = socialInsurance.calculateNhiPremium({
     municipalityCode: context.jurisdiction && context.jurisdiction.municipalityCode,
     taxYear: fiscalYear,
+    allowPriorFiscalYearRate: true,
     previousYearTotalIncome: preliminaryIncome.businessIncome,
     insuredAges: [individual.self.ageAtYearEnd],
   });
@@ -1184,6 +1185,12 @@ function blockedCalculation(reasons) {
   };
 }
 
+function usesPriorFiscalYearNhiRate(...calculations) {
+  return calculations.some(calculation => (calculation.warnings || []).some(
+    warning => warning.code === 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED'
+  ));
+}
+
 function calculateTransitionYear(input, context) {
   const periods = transitionPeriods(input, context);
   const fullYearIndividual = {
@@ -1225,7 +1232,8 @@ function calculateTransitionYear(input, context) {
     ...partialItems(input, consumptionTaxResult),
     ...(corporation.excludedItems || []),
   ];
-  const isPartial = input.corporate.locationSameAsResidence !== 'yes';
+  const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {
@@ -1293,7 +1301,8 @@ function calculate(input, context, masters) {
     ...(corporation.excludedItems || []),
   ];
   const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
-    (input.consumptionTax.include === true && !consumptionTaxResult.resolved);
+    (input.consumptionTax.include === true && !consumptionTaxResult.resolved) ||
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {

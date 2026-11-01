@@ -576,6 +576,106 @@ async function main() {
   });
 
 
+  process.stdout.write('\n=== C-16: 前年度の国保料率の注記 ===\n');
+  const priorNhiCode = 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED';
+  const priorNhiMessage = '国民健康保険料は、令和9年度の料率がまだ登録されていないため、令和8年度の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。令和9年度の実際の保険料とは異なることがあります。';
+  check('前年度料率の警告本文を見出し後・施行前注記の次・判定サマリー前に印刷可能な形で表示する', () => {
+    const original = run(goldenState()).result;
+    for (const includePending of [false, true]) {
+      const injected = { ...original, resultStatus: 'partial', warnings: [
+        ...original.warnings,
+        { code: priorNhiCode, basis: priorNhiMessage },
+        ...(includePending ? [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: '施行前の注記' }] : []),
+      ] };
+      const viewModel = buildResultViewModel(injected);
+      assert.strictEqual(viewModel.nhiPriorRateNotice, priorNhiMessage);
+      withFakeDocument(({ root }) => {
+        const app = mountHojinnariApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
+        });
+        app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
+        const notice = root.querySelector('.hojinnari-nhi-prior-rate-notice');
+        assert(notice);
+        assert.strictEqual(notice.tagName, 'P');
+        assert(notice.classList.contains('hojinnari-pending-law-notice'));
+        assert.strictEqual(notice.textContent, priorNhiMessage);
+        const heading = root.querySelector('h1');
+        const siblings = heading.parentNode.children;
+        assert.strictEqual(notice.parentNode, heading.parentNode);
+        assert.strictEqual(siblings.indexOf(notice), siblings.indexOf(heading) + (includePending ? 2 : 1));
+        if (includePending) {
+          assert.strictEqual(siblings[siblings.indexOf(notice) - 1].textContent, '施行前の注記');
+        }
+        assert(siblings.indexOf(notice) < siblings.indexOf(root.querySelector('.simulator-key-result')));
+        assert.strictEqual(notice.parentNode, root.querySelector('.hojinnari-print'));
+        for (let ancestor = notice; ancestor; ancestor = ancestor.parentNode) {
+          assert(!ancestor.classList.contains('hojinnari-no-print'));
+        }
+        app.destroy();
+      });
+    }
+  });
+  check('前年度料率の警告がない結果とblockedには注記を描かない', () => {
+    const original = run(goldenState()).result;
+    for (const blocked of [false, true]) {
+      const result = blocked ? { ...original, resultStatus: 'blocked', summary: { title: '試算停止' },
+        warnings: [{ code: priorNhiCode, basis: priorNhiMessage }] } : original;
+      if (blocked) delete result.breakdown;
+      const viewModel = buildResultViewModel(result);
+      assert.strictEqual(viewModel.nhiPriorRateNotice, undefined);
+      if (blocked) assert(!Object.hasOwn(viewModel, 'nhiPriorRateNotice'));
+      withFakeDocument(({ root }) => {
+        const app = mountHojinnariApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} },
+        });
+        app.store.setState(state => ({ ...state, screen: blocked ? 'blocked' : 'result', result, viewModel }));
+        assert.strictEqual(root.querySelector('.hojinnari-nhi-prior-rate-notice'), null);
+        app.destroy();
+      });
+    }
+  });
+  check('国保概算の選択時に前年度料率を使う条件と結果への明記を説明する', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      const explanation = '自治体の登録年度料率による概算です。対象年度の料率が未登録のときは前年度の料率で計算し、結果に明記します。';
+      app.store.setState(state => ({ ...state, step: 2,
+        form: { ...state.form, ...goldenState(), nationalHealthInsuranceKind: '' } }));
+      assert(!root.textContent.includes(explanation));
+      const select = root.querySelector('#hj-nhi-kind');
+      assert(select.textContent.includes('選んだ自治体の料率で概算する'));
+      select.value = 'estimate';
+      select.listeners.get('change')();
+      assert(root.textContent.includes(explanation));
+      app.destroy();
+    });
+  });
+  check('2026年の前年度代用を含む実際の結果でも計算範囲の国保は概算に分類する', () => {
+    const original = run(goldenState());
+    function advanceDates(value) {
+      if (typeof value === 'string' && /^202[56]-/.test(value)) {
+        return (Number(value.slice(0, 4)) + 1) + value.slice(4);
+      }
+      if (Array.isArray(value)) return value.map(advanceDates);
+      if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, advanceDates(child)]));
+      }
+      return value;
+    }
+    const validation = service.validate(original.wire);
+    assert.strictEqual(validation.ok, true);
+    const yearContext = { ...original.context, incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
+      fiscalPeriod: advanceDates(original.context.fiscalPeriod), socialInsuranceMonths: ['2026-04'] };
+    const result = service.simulate(advanceDates(validation.value), yearContext, snapshotInfo);
+    assert.strictEqual(result.resultStatus, 'partial');
+    const viewModel = buildResultViewModel(result);
+    assert.strictEqual(viewModel.nhiPriorRateNotice, priorNhiMessage);
+    assert.deepStrictEqual(viewModel.calculationRange.estimates.map(item => item.label), ['国民健康保険料']);
+    assert.strictEqual(viewModel.calculationRange.calculatedCount, original.viewModel.calculationRange.calculatedCount);
+    assert.strictEqual(viewModel.calculationRange.targetCount, original.viewModel.calculationRange.targetCount);
+  });
+
   process.stdout.write('\n=== R8: ④→①の警告と除外項目 ===\n');
   for (const targetStatus of ['complete', 'partial', 'blocked']) {
     const { createFakeDom } = require('./helpers/fake-dom.js');

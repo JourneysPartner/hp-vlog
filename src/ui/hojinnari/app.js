@@ -496,7 +496,7 @@ function mountHojinnariApp(rootElement, {
         { value: 'estimate', label: '選んだ自治体の料率で概算する' },
       ], '$.individual.nationalHealthInsurance'),
       form.nationalHealthInsuranceKind === 'estimate'
-        ? el('p', { className: 'hojinnari-help' }, '自治体の登録年度料率による概算です。') : null,
+        ? el('p', { className: 'hojinnari-help' }, '自治体の登録年度料率による概算です。対象年度の料率が未登録のときは前年度の料率で計算し、結果に明記します。') : null,
       form.nationalHealthInsuranceKind === 'actual'
         ? moneyField('nationalHealthInsuranceActual', 'hj-nhi-actual', '国保の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalHealthInsurance.annualAmount.value') : null,
@@ -769,6 +769,7 @@ function mountHojinnariApp(rootElement, {
         el('p', { className: 'hojinnari-help' }, 'この印刷物は申告・届出に使用できません。クラウド印刷等の利用時はブラウザ内完結の対象外です。利用後は「入力をクリア」を実行してください。'),
         el('h1', { id: 'hj-result-heading', tabindex: '-1' }, viewModel.heading),
         viewModel.pendingLawNotice ? el('p', { className: 'hojinnari-pending-law-notice' }, viewModel.pendingLawNotice) : null,
+        viewModel.nhiPriorRateNotice ? el('p', { className: 'hojinnari-pending-law-notice hojinnari-nhi-prior-rate-notice' }, viewModel.nhiPriorRateNotice) : null,
         el('section', { className: 'hojinnari-verdict-summary simulator-key-result', 'aria-label': '判定サマリー' }, [
           el('p', { className: 'hojinnari-verdict-banner' }, [
             el('span', { className: 'hojinnari-verdict-emphasis' }, summary.verdict.emphasisText),
