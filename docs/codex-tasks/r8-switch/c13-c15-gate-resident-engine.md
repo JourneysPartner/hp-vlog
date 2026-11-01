@@ -245,3 +245,38 @@ const DEPENDENT_DIFFERENCE_SUFFIX = Object.freeze({
 | 9,500,001 | 110,000 |
 | 10,000,000 | 110,000 |
 | 10,000,001 | 0 |
+
+## 差分レビューの後の修正（Opus 5.5 xhigh 差分レビュー 2026-11-01）
+
+F1〜F6 はすべて修正済み。Critical・High は 0 件。
+
+### F7. ①で消費税を含めるときの必須の値（Medium）
+
+②と同じ穴が①に残っている。`hojinnari` の `optional` から `small_business_special_deduction` と `simplified_taxation_ceiling` を `required` へ移す（`_basis` は `台帳 C-13。消費税を含めて比較するとき、欠けても止まらず金額が変わるので必須に置く`）。`simplified_deemed_purchase_rates` も同じ条件なら一緒に移す。
+
+`test-simulator-required-keys.js`: ①の入力に `consumptionTax.include: true` の 2 種類（2割特例が使える入力・使えない入力）を足す。任意の値を空にしたとき「金額が同じ」か「`HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI` で除外」を合格にする。入力は `test-hojinnari-service.js` の `consumptionTaxIncludedInput()` に合わせる。
+
+### F8. 配偶者の所得の段が丸ごと欠けたら止める（Medium）
+
+`resident-tax.js` の配偶者特別控除と `income-deductions.js` の `calculateSpouseSpecialDeduction`: 配偶者の所得に当たる記録が 0 件のとき、配偶者の所得が表の上限（`spouse_total_income` の `lte` の最大値）以下なら止める。上限を超えるときだけ今までどおり 0 円。文は `配偶者特別控除の配偶者の所得の段がありません: ` ＋金額。住民税は `masterUnavailableError` を使う。
+
+試験: `spouse_special_s3` の記録を除いた記録で、本人 600 万円が止まる。配偶者の所得は住民税が 110 万円、所得税が 105 万円（`s3` の範囲が税目で違う。住民税は 105万円超 110万円以下、所得税は 100万円超 105万円以下）。配偶者 133 万円超は 0 円のまま。
+
+### F9. 記録の欠けの `blocked` の文を直す（Low）
+
+`src/simulators/core/result-builder.js` の `WARNING_MAP` に `RT_MASTER_UNAVAILABLE`・`HJ_RESIDENT_TAX_RT_MASTER_UNAVAILABLE`・`HJ_CORPORATION_MASTER_UNAVAILABLE` を `level: 'critical'`・`canContinue: false` で足す。`userAction` は既存の `critical` の行に合わせる。文の末尾に「未登録コードのため…」が付かないことをサービスの試験で確かめる。
+
+### F10. `isSameLivelihoodSpouse` の扱いを直す（Low。指示書 F3 の誤り）
+
+`isSameLivelihoodSpouse: false` は「同一生計配偶者ではない」で、所得が上限を超える配偶者にも正しい値。配偶者特別控除は「生計を一にする配偶者」で足りる（地方税法 34条1項10号の2）。住民税の `calculateSpouseDeduction` の冒頭は `isSameLivelihood === false` だけを見て、`isSameLivelihoodSpouse === false` は配偶者控除の枝だけで見る。
+
+試験: 本人 600 万円・配偶者 100 万円・`isSameLivelihoodSpouse: false` は配偶者特別控除 33 万円。配偶者 0 円・同じ指定は配偶者控除 0 円。
+
+### F11. 特定親族の段の欠けも `blocked` へ（Low）
+
+`resident-tax.js` の `特定親族特別控除の段がありません` の例外を `masterUnavailableError` にする。`test-resident-tax-engine.js` の期待も合わせる。
+
+### 記録だけ（直さない）
+
+- `isSameLivelihood: false` の配偶者・`isDependent: false` の親族でも、所得税の配偶者控除・扶養控除の本体は付く。画面と検証を通る入力では起きない（エンジンを直接呼ぶときだけ）。
+- `adjustmentDifference` は表に無い接尾辞でも警告だけで計算を続ける。F1 の不具合が残った原因の形だが、今は対応表にしたので接尾辞の誤りは起きない。

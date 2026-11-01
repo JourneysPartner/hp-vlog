@@ -91,6 +91,34 @@ function shohizeiInput() {
     simplified: { categorySelectedByUser: true, primaryCategory: 'type5' }, specialistChecks: {},
   };
 }
+function hojinnariConsumptionInput(twentyPercentEligible) {
+  const input = hojinnariInput();
+  const individual = shohizeiInput();
+  const corporate = shohizeiInput();
+  corporate.taxpayerType = 'corporation';
+  corporate.eligibility.basePeriod = { exists: false };
+  corporate.eligibility.specifiedPeriod = {};
+  corporate.eligibility.filings = [
+    { kind: 'taxable_person_election', filed: 'no' },
+    { kind: 'simplified_election', filed: 'no' },
+  ];
+  for (const rows of [corporate.sales, corporate.purchases]) {
+    for (const row of rows) row.period = corporatePeriod;
+  }
+  // consumptionTaxIncludedInput と同じ期間入力。2割特例不可の組では登録起因の課税ではない。
+  if (!twentyPercentEligible) {
+    individual.eligibility.invoiceRegistration.becameTaxableByRegistration = 'no';
+    corporate.eligibility.invoiceRegistration.becameTaxableByRegistration = 'no';
+  }
+  input.consumptionTax = {
+    include: true, individualPeriodInput: individual, corporatePeriodInput: corporate,
+  };
+  return input;
+}
+function consumptionTaxExcluded(result) {
+  return (result.excludedItems || []).some(item =>
+    item.code === 'HJ_CONSUMPTION_TAX_METHOD_UNDETERMINED_BY_SHOHIZEI');
+}
 function sozokuInput() {
   return {
     level: 1, precision: 'simple', decedent: { residencyStatus: 'domestic_resident' },
@@ -120,12 +148,14 @@ try {
   });
   const cases = [
     ['hojinnari', hojinnariInput, incomeContext],
+    ['hojinnari', () => hojinnariConsumptionInput(true), incomeContext, '消費税あり・2割特例可'],
+    ['hojinnari', () => hojinnariConsumptionInput(false), incomeContext, '消費税あり・2割特例不可'],
     ['yakuin_hoshu', yakuinInput, incomeContext],
     ['shohizei', shohizeiInput, () => standaloneContext({ consumptionTaxPeriod: period })],
     ['sozoku', sozokuInput, () => standaloneContext({ inheritanceOpenDate: '2025-06-01' })],
   ];
-  for (const [name, makeInput, makeContext] of cases) {
-    console.log(`\n=== ${name}: 必須・任意と実計算の照合 ===`);
+  for (const [name, makeInput, makeContext, consumptionCase] of cases) {
+    console.log(`\n=== ${name}${consumptionCase ? `（${consumptionCase}）` : ''}: 必須・任意と実計算の照合 ===`);
     const service = require(`../../../src/simulators/${name === 'yakuin_hoshu' ? 'yakuin-hoshu' : name}/index.js`);
     const run = () => service.simulate(makeInput(), makeContext(), snapshotInfo);
     omittedKey = null;
@@ -135,6 +165,13 @@ try {
     catch (error) { assert(false, `${name}: 基準計算: ${error.message.split('\n')[0]}`); continue; }
     assert(completed(baseline), `${name}: 差し替えなしで計算が完了する (${baseline.resultStatus})`);
     const used = new Set(accessed);
+    if (consumptionCase) {
+      const data = baseline.breakdown?.data;
+      assert(!consumptionTaxExcluded(baseline) &&
+        data?.soleProprietor?.burdens?.consumptionTax?.value === (consumptionCase.endsWith('不可') ? 500000n : 200000n) &&
+        data?.corporation?.burdens?.consumptionTax?.value === (consumptionCase.endsWith('不可') ? 600000n : 200000n),
+        `${name}（${consumptionCase}）: 基準計算で両側の消費税が確定し、2割特例の可否を区別する`);
+    }
     const required = new Set(dependencies[name].required.flatMap(group => group.value_keys));
     const optional = new Set(dependencies[name].optional.flatMap(group => group.value_keys));
     const missing = [...used].filter(key => !required.has(key) && !optional.has(key));
@@ -152,8 +189,9 @@ try {
         const result = run();
         assert(accessed.has(key) && completed(result),
           `${name}: ${key} が空でも例外・blockedなし (${result.resultStatus})`);
-        assert(calculationAmounts(result) === calculationAmounts(baseline),
-          `${name}: ${key} が空でも summary と breakdown.data が基準計算と一致する`);
+        assert(calculationAmounts(result) === calculationAmounts(baseline) ||
+          (!!consumptionCase && consumptionTaxExcluded(result)),
+          `${name}: ${key} が空でも基準計算と一致するか、消費税ありの組では所定のコードで消費税を除外する`);
       } catch (error) {
         assert(false, `${name}: ${key}: ${error.message.split('\n')[0]}`);
       }

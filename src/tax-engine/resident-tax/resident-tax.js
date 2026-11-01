@@ -372,20 +372,30 @@ function specificRelativeIncomeCeiling(searchCriterion) {
 
 function calculateSpouseDeduction(totalIncome, spouse, searchCriterion) {
   if (!spouse || spouse.exists === false || spouse.isSameLivelihood === false ||
-      spouse.isSameLivelihoodSpouse === false || spouse.totalIncome === undefined) return null;
+      spouse.totalIncome === undefined) return null;
   const category = Number.isInteger(spouse.ageAtYearEnd) && spouse.ageAtYearEnd >= 70
     ? 'elderly'
     : 'general';
   const spouseIncome = inputMoney(spouse.totalIncome, 'spouse.totalIncome');
   if (spouseIncome.value > spouseDeductionCeiling(searchCriterion).value) {
-    const records = masters.find('resident_tax_deduction_spouse_special', searchCriterion)
-      .filter(record => spouseIncomeMatches(record, spouseIncome));
-    if (records.length === 0) return null;
+    const specialRecords = masters.find('resident_tax_deduction_spouse_special', searchCriterion);
+    const records = specialRecords.filter(record => spouseIncomeMatches(record, spouseIncome));
+    if (records.length === 0) {
+      const upperValues = specialRecords.flatMap(record => record.applicability_conditions || [])
+        .filter(condition => condition.subject === 'spouse_total_income' && condition.operator === 'lte')
+        .map(condition => masterMoney(condition.value).value);
+      if (upperValues.length === 0 ||
+          spouseIncome.value <= upperValues.reduce((highest, value) => value > highest ? value : highest)) {
+        throw masterUnavailableError('配偶者特別控除の配偶者の所得の段がありません: ' + spouseIncome.value);
+      }
+      return null;
+    }
     const record = findRange(records, totalIncome, 'income_lower_inclusive');
     if (!record) throw masterUnavailableError('配偶者特別控除の本人の所得の段がありません: ' + totalIncome.value);
     return { kind: 'spouseSpecial', category: record.deduction_category,
       amount: masterMoney(record.deduction_amount), differenceSuffix: null };
   }
+  if (spouse.isSameLivelihoodSpouse === false) return null;
   const records = masters.find('resident_tax_deduction_spouse', searchCriterion)
     .filter(record => conditionValue(record, 'spouse_category') === category);
   const record = findRange(records, totalIncome, 'income_lower_inclusive');
@@ -421,7 +431,7 @@ function calculateDependentRows(dependents, searchCriterion) {
             income,
             'income_lower_inclusive'
           );
-          if (!record) throw new Error('特定親族特別控除の段がありません: ' + income.value);
+          if (!record) throw masterUnavailableError('特定親族特別控除の段がありません: ' + income.value);
           rows.push({ id: dependent.id, kind: 'specificRelativeSpecial',
             category: 'specific_relative_special',
             amount: masterMoney(record.deduction_amount), differenceSuffix: null });
