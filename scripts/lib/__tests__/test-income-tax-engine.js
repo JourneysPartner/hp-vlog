@@ -797,5 +797,33 @@ console.log('\n=== C-7: 23歳未満の扶養親族がいる場合の生命保険
     'C-7 対象親族がいないときは特例の記録を参照しない');
 }
 
+console.log('\n=== F8: 所得税の配偶者所得の段の全件欠損 ===');
+{
+  const engine = loadStage3Deductions(records => {
+    for (let index = records.length - 1; index >= 0; index--) {
+      if (records[index].value_key === 'income_deduction_spouse_special' &&
+          records[index].deduction_category === 'spouse_special_s3') records.splice(index, 1);
+    }
+  });
+  const run = total => engine.calculateSpouseSpecialDeduction(yen(6000000),
+    { exists: true, totalIncome: yen(total) }, OPTIONS);
+  // 所得税の s3 は配偶者の所得 100万円超 105万円以下。110万円は s4 なので止まらず 26万円。
+  assert(run(1100000).value === 260000n, 'F8: s3 が欠けても 110万円（s4）は 260,000円');
+  assert(stage3Throws(() => run(1050000), '配偶者特別控除の配偶者の所得の段がありません: 1050000'),
+    '所得税の実際のs3に該当する105万円では、段の全件欠損を検出して停止する');
+  assert(run(1050001).value === 260000n, '所得税のs4に該当する105万1円は控除26万円を維持する');
+  for (const total of [1330001, 2000000]) assert(run(total).value === 0n,
+    `配偶者${total}円は表の上限超なので特別控除0円`);
+  for (const total of [0, 580000]) {
+    assert(run(total).value === 0n, `配偶者${total}円は通常の配偶者控除の所得範囲なので特別控除0円`);
+  }
+  const highTaxpayer = deductionsEngine.calculateIncomeDeductions({
+    totalIncome: yen(10000001), grossIncomeEtc: yen(10000001), deductions: {},
+    spouse: { totalIncome: yen(0) },
+  }, OPTIONS);
+  assert(highTaxpayer.deductions.spouse.value === 0n && highTaxpayer.deductions.spouseSpecial.value === 0n,
+    '本人1000万円超・配偶者所得0円も記録欠損と誤認せず、両控除0円');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

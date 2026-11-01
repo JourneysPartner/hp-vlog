@@ -125,6 +125,14 @@
         {
           "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
           "value_keys": ["life_insurance_deduction_new_under23"]
+        },
+        {
+          "_basis": "台帳 C-13。消費税を含めて比較するとき、欠けても止まらず金額が変わるので必須に置く",
+          "value_keys": [
+            "small_business_special_deduction",
+            "simplified_taxation_ceiling",
+            "taxable_sales_exemption_threshold"
+          ]
         }
       ],
       "optional": [
@@ -226,12 +234,9 @@
             "consumption_tax_rate_standard",
             "consumption_tax_rate_reduced",
             "consumption_tax_rate_old_transitional",
-            "taxable_sales_exemption_threshold",
-            "simplified_taxation_ceiling",
             "simplified_deemed_purchase_rates",
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap",
-            "small_business_special_deduction",
             "full_deduction_taxable_sales_cap"
           ]
         }

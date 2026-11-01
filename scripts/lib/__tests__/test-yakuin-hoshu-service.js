@@ -604,5 +604,38 @@ console.log('\n=== C-7: ④の特例と前提 ===');
   }
 }
 
+console.log('\n=== F9: 住民税マスターの欠けは継続不可の警告 ===');
+{
+  const residentPath = require.resolve('../../../src/tax-engine/resident-tax/index.js');
+  const real = require(residentPath);
+  const originalCache = new Map(Object.entries(require.cache));
+  const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
+  const originalExports = require.cache[residentPath].exports;
+  let result;
+  try {
+    require.cache[residentPath].exports = Object.assign({}, real, { calculate: () => ({
+      status: 'blocked', blockedReasons: [{
+        code: 'RT_MASTER_UNAVAILABLE', message: '住民税マスターが利用できません: F9試験用',
+      }],
+    }) });
+    for (const target of ['index.js', 'service.js']) {
+      delete require.cache[require.resolve('../../../src/simulators/yakuin-hoshu/' + target)];
+    }
+    result = require('../../../src/simulators/yakuin-hoshu/index.js').simulate(modeCInput(), context(), snapshotInfo);
+  } finally {
+    require.cache[residentPath].exports = originalExports;
+    for (const id of Object.keys(require.cache)) if (!originalCache.has(id)) delete require.cache[id];
+    for (const [id, entry] of originalCache) { entry.children = originalChildren.get(id); require.cache[id] = entry; }
+  }
+  const warning = result.warnings.find(item => item.code === 'RT_MASTER_UNAVAILABLE');
+  assert(result.resultStatus === 'blocked' && warning?.level === 'critical' && warning.canContinue === false,
+    'RT_MASTER_UNAVAILABLE: blocked・critical・継続不可');
+  assert(warning?.basis === '住民税マスターが利用できません: F9試験用' &&
+    warning.userAction === '承認済みマスターを用意してから再計算してください',
+    'RT_MASTER_UNAVAILABLE: 未登録コードの既定文を付けず再計算の準備を案内する');
+  assert(require('../../../src/simulators/yakuin-hoshu/index.js') === service,
+    'F9の試験後は本物の④サービスに戻る');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

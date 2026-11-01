@@ -1127,5 +1127,49 @@ console.log('\n=== C-7: ①の両側の特例と前提の重複排除 ===');
   }
 }
 
+/** F9の停止理由を実際のサービス経由で変換し、キャッシュを必ず戻す。 */
+function f9BlockedResidentResult(failOnCall) {
+  const residentPath = require.resolve('../../../src/tax-engine/resident-tax/index.js');
+  const real = require(residentPath);
+  const originalCache = new Map(Object.entries(require.cache));
+  const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
+  const originalExports = require.cache[residentPath].exports;
+  let calls = 0;
+  try {
+    require.cache[residentPath].exports = Object.assign({}, real, {
+      calculate(...args) {
+        calls++;
+        return calls === failOnCall ? { status: 'blocked', blockedReasons: [{
+          code: 'RT_MASTER_UNAVAILABLE', message: '住民税マスターが利用できません: F9試験用',
+        }] } : real.calculate(...args);
+      },
+    });
+    for (const target of ['hojinnari/index.js', 'hojinnari/service.js',
+      'yakuin-hoshu/index.js', 'yakuin-hoshu/service.js']) {
+      delete require.cache[require.resolve('../../../src/simulators/' + target)];
+    }
+    return require('../../../src/simulators/hojinnari/index.js').simulate(goldenInput(), context(), snapshotInfo);
+  } finally {
+    require.cache[residentPath].exports = originalExports;
+    for (const id of Object.keys(require.cache)) if (!originalCache.has(id)) delete require.cache[id];
+    for (const [id, entry] of originalCache) { entry.children = originalChildren.get(id); require.cache[id] = entry; }
+  }
+}
+console.log('\n=== F9: 住民税マスターの欠けを継続不可の警告にする ===');
+{
+  for (const [call, code] of [[1, 'HJ_RESIDENT_TAX_RT_MASTER_UNAVAILABLE'],
+    [2, 'HJ_CORPORATION_MASTER_UNAVAILABLE']]) {
+    const result = f9BlockedResidentResult(call);
+    const warning = result.warnings.find(item => item.code === code);
+    assert(result.resultStatus === 'blocked' && warning?.level === 'critical' && warning.canContinue === false,
+      `${code}: blocked・critical・継続不可`);
+    assert(warning?.basis === '住民税マスターが利用できません: F9試験用' &&
+      warning.userAction === '承認済みマスターを用意してから再計算してください',
+      `${code}: 未登録コードの既定文を付けず、承認済みマスターの準備を案内する`);
+  }
+  assert(require('../../../src/simulators/hojinnari/index.js') === service,
+    'F9の試験後は本物の①サービスに戻る');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
