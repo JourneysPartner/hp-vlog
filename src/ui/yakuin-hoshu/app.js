@@ -33,6 +33,7 @@ const INITIAL_FORM = Object.freeze({
   spouseTotalIncome: '',
   spouseAge70OrOver: false,
   spouseDisability: 'none',
+  dependentsUnder16: '0',
   dependents16To18: '0',
   dependents19To22: '0',
   dependents23To69: '0',
@@ -69,6 +70,7 @@ const FIELD_IDS = Object.freeze({
   '$.officer.disability': 'yh-self-disability',
   '$.spouse.totalIncome.value': 'yh-spouse-income',
   '$.spouse.disability': 'yh-spouse-disability',
+  '$.dependents.dependentsUnder16': 'yh-dependents-under-16',
   '$.dependents.dependents16To18': 'yh-dependents-16-18',
   '$.dependents.dependents19To22': 'yh-dependents-19-22',
   '$.dependents.dependents23To69': 'yh-dependents-23-69',
@@ -227,6 +229,7 @@ function mountYakuinHoshuApp(rootElement, {
     }
     const dependentInputs = DEPENDENT_BANDS.map(band => {
       const idSuffix = {
+        dependentsUnder16: 'under-16',
         dependents16To18: '16-18',
         dependents19To22: '19-22',
         dependents23To69: '23-69',
@@ -262,11 +265,9 @@ function mountYakuinHoshuApp(rootElement, {
         el('legend', {}, '扶養親族の人数'),
         dependentInputs,
         el('p', { className: 'yh-help' },
-          '16歳未満のお子さまは扶養控除の対象外のため入力不要です'),
+          '16歳未満の子は扶養控除の対象ではありませんが、住民税の非課税の判定と、生命保険料控除の特例（令和8年分・令和9年分）に使います。'),
         el('h3', {}, 'うち障害のある方'),
         disabilityInputs,
-        el('p', { className: 'yh-help' },
-          '16歳未満の扶養親族に係る障害者控除は第1弾の対象外です'),
       ]),
     ];
   }

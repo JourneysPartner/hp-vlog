@@ -244,10 +244,10 @@ function main() {
       assert(root.textContent.includes('配偶者はいますか'));
       assert(root.textContent.includes('年収から55万円を引いた金額'));
       assert(root.textContent.includes('19〜22歳（特定扶養）'));
-      assert(root.textContent.includes('16歳未満のお子さまは扶養控除の対象外'));
+      assert(root.textContent.includes('16歳未満の子は扶養控除の対象ではありませんが、住民税の非課税の判定と、生命保険料控除の特例（令和8年分・令和9年分）に使います。'));
       assert(root.textContent.includes('本人の障害者区分'));
       assert(root.textContent.includes('うち障害のある方'));
-      assert(root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
+      assert(!root.textContent.includes('16歳未満の扶養親族に係る障害者控除は第1弾の対象外'));
       assert(root.textContent.includes('小規模企業共済・iDeCoの掛金（年額）'));
       assert(root.textContent.includes('新契約：一般生命保険料（年額）'));
       assert(root.textContent.includes('ふるさと納税の年間寄附額'));
@@ -535,6 +535,59 @@ function main() {
       assert(root.textContent.includes(warning.basis));
       app.destroy();
     });
+  });
+
+
+  check('C-7: 16歳未満2人を10歳の扶養親族へ変換し、扶養控除は0円', () => {
+    const actual = run(baseState({ dependentsUnder16: '2' }));
+    assert.deepStrictEqual(actual.wire.dependents.map(person => person.ageAtYearEnd), [10, 10]);
+    assert(actual.wire.dependents.every(person => person.relation === 'child' && person.livesTogether));
+    const rows = actual.result.breakdown.data.candidates[0].orderedIncomeDeductions;
+    assert.strictEqual(rows.find(row => row.code === 'dependents').amount.value, 0n);
+  });
+  for (const count of ['', '0']) {
+    check('C-7: 16歳未満の人数「' + count + '」は0人', () => {
+      const form = baseState({ dependentsUnder16: count });
+      const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+      const wire = buildYakuinHoshuInput(form, context);
+      assert.strictEqual(Object.hasOwn(wire, 'dependents'), false);
+    });
+  }
+  for (const count of ['-1', 'abc']) {
+    check('C-7: 16歳未満の人数「' + count + '」は該当欄のエラー', () => {
+      const form = baseState({ dependentsUnder16: count });
+      const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+      assert.throws(() => buildYakuinHoshuInput(form, context), error =>
+        error instanceof YakuinHoshuInputBuildError && error.errors.some(item =>
+          item.fieldPath === '$.dependents.dependentsUnder16'));
+    });
+  }
+  check('C-7: 16歳未満の欄と説明を1回表示し、エラーも欄に関連付ける', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, {
+        services: { validate() { return { ok: true }; }, simulate() {} },
+      });
+      assert.strictEqual(app.store.getState().form.dependentsUnder16, '0');
+      app.store.setState(state => ({ ...state, screen: 'input', step: 1,
+        errors: [{ fieldPath: '$.dependents.dependentsUnder16', message: '人数のエラー' }] }));
+      const control = root.querySelector('#yh-dependents-under-16');
+      assert(control);
+      assert.strictEqual(control.getAttribute('aria-invalid'), 'true');
+      assert(root.textContent.includes('16歳未満'));
+      const notice = '16歳未満の子は扶養控除の対象ではありませんが、住民税の非課税の判定と、生命保険料控除の特例（令和8年分・令和9年分）に使います。';
+      assert.strictEqual(root.textContent.split(notice).length - 1, 1);
+      app.destroy();
+    });
+  });
+  check('C-7: 16歳未満も障害者人数に含め、同居特別を割り当てる', () => {
+    const actual = run(baseState({ dependentsUnder16: '2',
+      dependentDisabilityGeneral: '1', dependentDisabilitySpecialCohabiting: '1' }));
+    assert.deepStrictEqual(actual.wire.dependents.map(person => person.disability),
+      ['special_cohabiting', 'general']);
+    const form = baseState({ dependentsUnder16: '1', dependentDisabilityGeneral: '2' });
+    const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+    assert.throws(() => buildYakuinHoshuInput(form, context), error => error instanceof YakuinHoshuInputBuildError &&
+      error.errors.some(item => item.code.endsWith('_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS')));
   });
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);

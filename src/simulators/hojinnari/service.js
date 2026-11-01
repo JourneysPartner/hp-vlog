@@ -1,5 +1,8 @@
 'use strict';
 
+const LIFE_INSURANCE_UNDER23_ASSUMPTION =
+  '23歳未満の扶養親族がいるため、新生命保険料の控除は令和8年分・令和9年分の特例（上限6万円）で計算しています。住民税の生命保険料控除には、この特例はありません。';
+
 /**
  * 法人成りシミュレーター第1版。
  * 税額の算式は持たず、個人向け税・保険エンジンと役員報酬サービスを合成する。
@@ -630,6 +633,8 @@ function calculateSoleProprietor(input, context) {
     assumptions: [
       ...(nhi.assumptions || []),
       ...(pension.assumptions || []),
+      ...(incomeTaxResult.deductionDetails.lifeInsuranceUnder23Applied
+        ? [LIFE_INSURANCE_UNDER23_ASSUMPTION] : []),
       ...uniqueMessages(residentTaxResult.assumptions),
       ...uniqueMessages(businessTaxResult.notes),
       '個人事業税は必要経費に算入していません。自己参照を避ける第1版の扱いで、個人側の税額がやや大きめ（法人化有利方向）に出ます。',
@@ -884,6 +889,8 @@ function calculateTransitionCorporation(input, context, periods) {
     assumptions: [
       ...(nhi.assumptions || []),
       ...(pension.assumptions || []),
+      ...(incomeTaxResult.deductionDetails.lifeInsuranceUnder23Applied
+        ? [LIFE_INSURANCE_UNDER23_ASSUMPTION] : []),
       ...uniqueMessages(residentTaxResult.assumptions),
       ...uniqueMessages(businessTaxResult.notes),
       ...uniqueMessages(taxResult.assumptions),

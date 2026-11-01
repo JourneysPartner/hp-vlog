@@ -1,5 +1,8 @@
 'use strict';
 
+const LIFE_INSURANCE_UNDER23_ASSUMPTION =
+  '23歳未満の扶養親族がいるため、新生命保険料の控除は令和8年分・令和9年分の特例（上限6万円）で計算しています。住民税の生命保険料控除には、この特例はありません。';
+
 /**
  * 役員報酬シミュレーター第1版。
  * 税額・保険料の算式は持たず、既存エンジンの順算結果だけを合成する。
@@ -421,6 +424,8 @@ function calculateForward(input, context, monthlyAmount) {
     status: 'complete',
     candidate,
     assumptions: [
+      ...(incomeTaxResult.deductionDetails.lifeInsuranceUnder23Applied
+        ? [LIFE_INSURANCE_UNDER23_ASSUMPTION] : []),
       ...uniqueMessages(residentTaxResult.assumptions),
       ...uniqueMessages(corporateTaxResult.assumptions),
     ],

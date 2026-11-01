@@ -260,6 +260,7 @@ function calculate(input, options = {}) {
     deductionDetails: {
       dependents: deductionResult.dependentRows,
       lifeInsurance: deductionResult.lifeInsuranceRows,
+      lifeInsuranceUnder23Applied: deductionResult.lifeInsuranceUnder23Applied,
       earthquakeInsurance: deductionResult.earthquakeInsuranceRows,
     },
   };

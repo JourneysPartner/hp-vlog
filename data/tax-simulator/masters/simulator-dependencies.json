@@ -121,6 +121,10 @@
             "furusato_special_credit_allocation",
             "resident_tax_housing_loan_credit_limit"
           ]
+        },
+        {
+          "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
+          "value_keys": ["life_insurance_deduction_new_under23"]
         }
       ],
       "optional": [
@@ -475,6 +479,10 @@
             "furusato_special_credit_allocation",
             "resident_tax_housing_loan_credit_limit"
           ]
+        },
+        {
+          "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
+          "value_keys": ["life_insurance_deduction_new_under23"]
         }
       ],
       "optional": [

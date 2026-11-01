@@ -570,5 +570,39 @@ console.log('\n=== C-15: 配偶者所得200万円は配偶者なしと同じ ===
     '④: 配偶者所得200万円と配偶者なしで所得税が一致する');
 }
 
+
+console.log('\n=== C-7: ④の特例と前提 ===');
+{
+  const notice = '23歳未満の扶養親族がいるため、新生命保険料の控除は令和8年分・令和9年分の特例（上限6万円）で計算しています。住民税の生命保険料控除には、この特例はありません。';
+
+  for (const year of [2025, 2026]) {
+    const yearContext = year === 2025 ? context() : r8Context;
+    const makeInput = () => {
+      const input = modeCInput();
+      input.plan.monthlySegments[0].period = yearContext.fiscalPeriod;
+      return input;
+    };
+    const baseline = service.simulate(makeInput(), yearContext, snapshotInfo);
+    for (const age of [17, 23]) {
+      const input = makeInput();
+      input.dependents = [{ id: 'child', ageAtYearEnd: age, relation: 'child', totalIncome: yen(0) }];
+      input.deductions = { lifeInsurance: [
+        { generation: 'new', category: 'life', annualPremium: yen(120000) },
+      ] };
+      const result = service.simulate(input, yearContext, snapshotInfo);
+      const applies = year === 2026 && age === 17;
+      assert(result.resultStatus === baseline.resultStatus,
+        'C-7 ④' + year + '年・' + age + '歳: 特例だけで状態を変えない');
+      assert(result.assumptions.filter(text => text === notice).length === (applies ? 1 : 0),
+        'C-7 ④' + year + '年・' + age + '歳: 前提は該当時だけ1回');
+      const records = result.usedMasterRecords.filter(record => record.recordId.startsWith('IDED-LIFE-NEW-U23-'));
+      assert(applies ? records.some(record => record.recordId === 'IDED-LIFE-NEW-U23-T4') : records.length === 0,
+        'C-7 ④' + year + '年・' + age + '歳: 使用記録の対象年と年齢');
+      const actual = candidateOf(result).orderedIncomeDeductions.find(row => row.code === 'lifeInsurance').amount.value;
+      assert(actual === (applies ? 60000n : 40000n), 'C-7 ④の所得控除にも特例の額を渡す');
+    }
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
