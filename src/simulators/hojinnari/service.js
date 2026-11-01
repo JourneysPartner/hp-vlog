@@ -31,6 +31,7 @@ const { masterRate } = require('../../tax-engine/income/helpers.js');
 const { applyRounding } = require('../../tax-engine/common/rounding.js');
 
 const MONTHS_IN_YEAR = 12;
+const NHI_PRIOR_RATE_COMPARISON_NOTE = '料率や賦課限度額が上がると、通常は個人事業の手取りが減り、比較は法人化に有利な方向へ動きます。';
 const SUPPORTED_DEDUCTION_KEYS = new Set([
   'smallEnterpriseMutualAid',
   'lifeInsurance',
@@ -447,9 +448,15 @@ function calculateNationalHealthInsurance(individual, context) {
   const result = socialInsurance.calculateNhiPremium({
     municipalityCode: context.jurisdiction && context.jurisdiction.municipalityCode,
     taxYear: fiscalYear,
+    allowPriorFiscalYearRate: true,
     previousYearTotalIncome: preliminaryIncome.businessIncome,
     insuredAges: [individual.self.ageAtYearEnd],
   });
+  const notes = (result.notes || []).map(note =>
+    note.code === 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED'
+      ? { ...note, message: `${note.message}${NHI_PRIOR_RATE_COMPARISON_NOTE}` }
+      : note
+  );
   if (result.status === 'complete' && transitionMonths !== undefined) {
     const fullYearPremium = result.annualPremium;
     const proratedPremium = applyRounding(multiplyRateByMoney({
@@ -463,18 +470,18 @@ function calculateNationalHealthInsurance(individual, context) {
       assumptions: [
         `国民健康保険料は個人期間の事業所得（給与所得を含みません）から基礎控除43万円を引いた賦課基礎で成分ごとの年額・上限を計算し、合計額を${transitionMonths}か月分へ月割して円未満を切り捨てています。`,
         '国民健康保険料は概算です。実際は賦課年度と前年所得基準のずれ、資格取得・喪失日、自治体の軽減判定などにより異なります。',
-        ...uniqueMessages(result.notes),
+        ...uniqueMessages(notes),
       ],
-      warnings: result.notes || [],
+      warnings: notes,
     };
   }
   return {
     ...result,
     assumptions: [
       `平年度では${incomeYearFrom(context)}年分の所得に基づく${fiscalYear}年度賦課額として国民健康保険料を概算しています。`,
-      ...uniqueMessages(result.notes),
+      ...uniqueMessages(notes),
     ],
-    warnings: result.status === 'complete' ? result.notes || [] : [],
+    warnings: result.status === 'complete' ? notes : [],
   };
 }
 
@@ -1184,6 +1191,12 @@ function blockedCalculation(reasons) {
   };
 }
 
+function usesPriorFiscalYearNhiRate(...calculations) {
+  return calculations.some(calculation => (calculation.warnings || []).some(
+    warning => warning.code === 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED'
+  ));
+}
+
 function calculateTransitionYear(input, context) {
   const periods = transitionPeriods(input, context);
   const fullYearIndividual = {
@@ -1225,7 +1238,8 @@ function calculateTransitionYear(input, context) {
     ...partialItems(input, consumptionTaxResult),
     ...(corporation.excludedItems || []),
   ];
-  const isPartial = input.corporate.locationSameAsResidence !== 'yes';
+  const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {
@@ -1293,7 +1307,8 @@ function calculate(input, context, masters) {
     ...(corporation.excludedItems || []),
   ];
   const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
-    (input.consumptionTax.include === true && !consumptionTaxResult.resolved);
+    (input.consumptionTax.include === true && !consumptionTaxResult.resolved) ||
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {

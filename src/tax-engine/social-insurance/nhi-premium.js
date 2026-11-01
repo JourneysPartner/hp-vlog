@@ -106,7 +106,10 @@ function readInput(input) {
   if (insuredCount !== insuredAges.length) {
     throw new RangeError('insuredCount と insuredAges の件数を一致させてください');
   }
-  return { municipalityCode, taxYear, totalIncome, insuredAges, insuredCount };
+  return {
+    municipalityCode, taxYear, totalIncome, insuredAges, insuredCount,
+    allowPriorFiscalYearRate: input.allowPriorFiscalYearRate === true,
+  };
 }
 
 function uniqueRecord(records, label, predicate = () => true) {
@@ -202,12 +205,26 @@ function calculateComponent(record, assessmentBase, personCount, reduction) {
   };
 }
 
+function municipalRateRecords(taxYear, municipalityCode) {
+  const criterion = { onDate: `${String(taxYear).padStart(4, '0')}-04-01` };
+  return masters.find('national_health_insurance_municipal_rate', criterion)
+    .filter(record => record.jurisdiction.municipalityCode === municipalityCode)
+    .slice().sort((left, right) => left.calculation_order - right.calculation_order);
+}
+
+function fiscalYearLabel(year) {
+  return `令和${year - 2018}年度`;
+}
+
 function calculateNhiPremium(input) {
   const values = readInput(input);
   const criterion = { onDate: `${String(values.taxYear).padStart(4, '0')}-04-01` };
-  const municipalRecords = masters.find('national_health_insurance_municipal_rate', criterion)
-    .filter(record => record.jurisdiction.municipalityCode === values.municipalityCode)
-    .slice().sort((left, right) => left.calculation_order - right.calculation_order);
+  let rateFiscalYear = values.taxYear;
+  let municipalRecords = municipalRateRecords(rateFiscalYear, values.municipalityCode);
+  if (municipalRecords.length === 0 && values.allowPriorFiscalYearRate) {
+    rateFiscalYear = values.taxYear - 1;
+    municipalRecords = municipalRateRecords(rateFiscalYear, values.municipalityCode);
+  }
 
   if (municipalRecords.length === 0) {
     return {
@@ -258,6 +275,7 @@ function calculateNhiPremium(input) {
     municipalityCode: values.municipalityCode,
     municipalityLabel: municipalRecords[0].municipality_label,
     taxYear: values.taxYear,
+    rateFiscalYear,
     previousYearTotalIncome: values.totalIncome,
     basicDeduction,
     assessmentBase,
@@ -268,13 +286,19 @@ function calculateNhiPremium(input) {
     components,
     annualPremium,
     totalPremium: annualPremium,
-    notes: [{
-      code: 'NHI_SELECTED_MUNICIPALITY_ESTIMATE',
-      message: '選んだ自治体の料率による概算です。実際の年間国民健康保険料が分かる場合は実額を優先してください',
-    }, {
-      code: 'NHI_HOUSEHOLD_INCOME_V1',
-      message: '第1版は入力した世帯合算所得を所得割の基礎とし、介護分は40歳以上65歳未満の被保険者が1人以上いる場合に同じ基礎額を用います',
-    }],
+    notes: [
+      ...(rateFiscalYear !== values.taxYear ? [{
+        code: 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED',
+        message: `国民健康保険料は、${fiscalYearLabel(values.taxYear)}の料率がまだ登録されていないため、${fiscalYearLabel(rateFiscalYear)}の料率（所得割率・均等割額・平等割額・賦課限度額）で計算した概算です。軽減判定の所得基準も${fiscalYearLabel(values.taxYear)}の改定を反映していない場合があり、${fiscalYearLabel(values.taxYear)}の実際の保険料とは異なることがあります。`,
+      }] : []),
+      {
+        code: 'NHI_SELECTED_MUNICIPALITY_ESTIMATE',
+        message: '選んだ自治体の料率による概算です。実際の年間国民健康保険料が分かる場合は実額を優先してください',
+      }, {
+        code: 'NHI_HOUSEHOLD_INCOME_V1',
+        message: '第1版は入力した世帯合算所得を所得割の基礎とし、介護分は40歳以上65歳未満の被保険者が1人以上いる場合に同じ基礎額を用います',
+      },
+    ],
   };
 }
 

@@ -344,6 +344,9 @@ function buildResultViewModel(result) {
     resultStatusLabel,
     heading: `試算結果（${result.calculationContext.incomeTaxYear}年分・${isTransition ? '移行年度比較' : '平年度比較'}・${resultStatusLabel}）`,
     pendingLawNotice: pendingLawNoticeFrom(result),
+    nhiPriorRateNotice: (result.warnings || []).find(
+      warning => warning.code === 'NHI_PRIOR_FISCAL_YEAR_RATE_APPLIED'
+    )?.basis,
     isPartial: partial,
     partialNotice: partial ? '概算の前提が含まれます' : undefined,
     conclusion: conclusion(result.summary.amount, isTransition),
