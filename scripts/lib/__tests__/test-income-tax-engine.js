@@ -648,5 +648,65 @@ console.log('\n=== C-15: 障害者控除は同一生計配偶者・扶養親族�
   assert(self.deductions.disability.value === 270000n, '所得税でも本人の障害者控除は所得で除かない');
 }
 
+/** 配偶者控除の記録の欠けはメモリ内だけで作り、キャッシュを戻す。 */
+function loadF2SpouseDeductions(missingId) {
+  const snapshotPath = require.resolve('../../../src/tax-engine/masters/snapshot.js');
+  const deductionsPath = require.resolve('../../../src/tax-engine/income/income-deductions.js');
+  const real = require(snapshotPath);
+  const originalCache = new Map(Object.entries(require.cache));
+  const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
+  const originalExports = require.cache[snapshotPath].exports;
+  try {
+    require.cache[snapshotPath].exports = Object.assign({}, real, {
+      find: (key, searchCriterion) => real.find(key, searchCriterion).filter(record => record.record_id !== missingId),
+    });
+    delete require.cache[deductionsPath];
+    return require(deductionsPath);
+  } finally {
+    require.cache[snapshotPath].exports = originalExports;
+    for (const id of Object.keys(require.cache)) if (!originalCache.has(id)) delete require.cache[id];
+    for (const [id, entry] of originalCache) { entry.children = originalChildren.get(id); require.cache[id] = entry; }
+  }
+}
+console.log('\n=== F2: 所得税の配偶者控除も本人の段が欠けたら止める ===');
+{
+  for (const [missingId, age] of [['IDED-SPOUSE-T2-GENERAL', 40], ['IDED-SPOUSE-T2-ELDERLY', 71]]) {
+    const engine = loadF2SpouseDeductions(missingId);
+    const run = taxpayer => engine.calculateSpouseDeduction(yen(taxpayer),
+      { exists: true, ageAtYearEnd: age, totalIncome: yen(0) }, OPTIONS);
+    assert(stage3Throws(() => run(9200000), '配偶者控除の本人の所得の段がありません: 9200000'),
+      `${missingId} が欠けたら0円を出さず止まる`);
+    assert(run(8500000).value === (age >= 70 ? 480000n : 380000n),
+      `${missingId} が欠けても他の本人所得の段は使える`);
+    assert(run(10000001).value === 0n, `${missingId} が欠けても本人1000万円超の正規の0円の段は使える`);
+  }
+  assert(require('../../../src/tax-engine/income/income-deductions.js') === deductionsEngine,
+    '配偶者控除の欠損試験後は本物の所得控除モジュールに戻る');
+}
+
+console.log('\n=== F3: 所得税の障害者控除も家族の資格を確かめる ===');
+{
+  for (const flag of ['exists', 'isSameLivelihood', 'isSameLivelihoodSpouse']) {
+    for (const total of [0, undefined]) {
+      const r = deductionsEngine.calculateIncomeDeductions({
+        totalIncome: yen(6000000), grossIncomeEtc: yen(6000000), deductions: {},
+        spouse: { [flag]: false, disability: 'general',
+          ...(total === undefined ? {} : { totalIncome: yen(total) }) },
+      }, OPTIONS);
+      assert(r.deductions.disability.value === 0n,
+        `配偶者 ${flag}=false・所得${total ?? 'なし'}円: 所得税の障害者控除なし`);
+    }
+  }
+  for (const [facts, expected] of [[{ isDependent: false }, 0],
+    [{ countsForResidentTaxExemption: false }, 270000]]) {
+    const r = deductionsEngine.calculateIncomeDeductions({
+      totalIncome: yen(6000000), grossIncomeEtc: yen(6000000), deductions: {},
+      dependents: [{ ageAtYearEnd: 17, disability: 'general', totalIncome: yen(0), ...facts }],
+    }, OPTIONS);
+    assert(r.deductions.disability.value === BigInt(expected),
+      `親族 ${JSON.stringify(facts)}: 所得税の障害者控除${expected}円`);
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

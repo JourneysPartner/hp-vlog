@@ -59,6 +59,19 @@ function spouseDeductionCeiling(searchCriterion) {
   return inputMoney(firstSpecialLower - 1n);
 }
 
+function isSameLivelihoodSpouse(spouse, searchCriterion) {
+  return !!spouse && spouse.exists !== false && spouse.isSameLivelihood !== false &&
+    spouse.isSameLivelihoodSpouse !== false && (spouse.totalIncome === undefined ||
+      inputMoney(spouse.totalIncome, 'spouse.totalIncome').value <=
+        spouseDeductionCeiling(searchCriterion).value);
+}
+
+function isDependentRelative(dependent, searchCriterion) {
+  return dependent.isDependent !== false && (dependent.totalIncome === undefined ||
+    inputMoney(dependent.totalIncome, 'dependent.totalIncome').value <=
+      specificRelativeIncomeCeiling(searchCriterion).value);
+}
+
 function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
   if (!spouse || spouse.exists === false || spouse.totalIncome === undefined) return zeroMoney();
   const taxpayerTotalIncome = inputMoney(totalIncome, 'totalIncome');
@@ -73,7 +86,8 @@ function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
     categoryCondition(record, 'spouse_category') === spouseCategory
   );
   const record = findRange(records, taxpayerTotalIncome, 'income_lower_inclusive');
-  return record ? masterMoney(record.deduction_amount) : zeroMoney();
+  if (!record) throw new Error('配偶者控除の本人の所得の段がありません: ' + taxpayerTotalIncome.value);
+  return masterMoney(record.deduction_amount);
 }
 
 function spouseIncomeMatches(record, spouseTotalIncome) {
@@ -389,16 +403,8 @@ function calculateIncomeDeductions(input, options = {}) {
     options
   );
   const disabilityPeople = [input.self];
-  if (input.spouse && (input.spouse.totalIncome === undefined ||
-      inputMoney(input.spouse.totalIncome, 'spouse.totalIncome').value <=
-        spouseDeductionCeiling(searchCriterion).value)) {
-    disabilityPeople.push(input.spouse);
-  }
-  disabilityPeople.push(...(input.dependents || []).filter(person =>
-    person.totalIncome === undefined ||
-    inputMoney(person.totalIncome, 'dependent.totalIncome').value <=
-      specificRelativeIncomeCeiling(searchCriterion).value
-  ));
+  if (isSameLivelihoodSpouse(input.spouse, searchCriterion)) disabilityPeople.push(input.spouse);
+  disabilityPeople.push(...(input.dependents || []).filter(person => isDependentRelative(person, searchCriterion)));
   const disability = sumMoney(disabilityPeople.map(person => disabilityAmount(person, searchCriterion)));
   const widowOrSingleParent = deductions.widowOrSingleParent === 'widow'
     ? deductionAmountRecord('income_deduction_widow', searchCriterion)

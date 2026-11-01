@@ -171,3 +171,77 @@ resident_tax_housing_loan_credit_limit
 9. `git status` で指示書に無いファイルが変わっていないこと。
 
 `npm run masters:test` は Claude が隔離の外で流す。
+
+## レビュー後の修正（Opus 5.5 xhigh レビュー 2026-11-01）
+
+Critical・High は 0 件。差分の外で High 相当の不具合が 1 件見つかったので、F1 として同じ PR で直す（公開中の結果に影響する）。
+
+### F1. 別居の老人扶養親族の人的控除差が 0 円になる（前からの不具合）
+
+`calculateDependentRows` の接尾辞の作り方が誤っていて、`elderly_not_cohabiting` が `DEPENDENT-ELDERLY_ELDERLY` になり、10万円の差が入らない。文字列の置換をやめて対応表にする。
+
+```js
+const DEPENDENT_DIFFERENCE_SUFFIX = Object.freeze({
+  general: 'DEPENDENT-GENERAL',
+  specific: 'DEPENDENT-SPECIFIC',
+  elderly_not_cohabiting: 'DEPENDENT-ELDERLY',
+  elderly_cohabiting: 'DEPENDENT-ELDERLY-COHABITING',
+});
+```
+
+試験（`calc`、2025 年、本人の合計所得 250 万円、親族 71 歳）
+
+| 親族 | 所得控除 | 課税標準 | 人的控除差 | 市調整 | 県調整 | 年税額 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 親・別居（`relation: 'parent'`・`livesTogether: false`） | 43万＋38万 | 1,690,000 | 5万＋10万 | 4,500 | 3,000 | 166,500 |
+| 親・同居（`relation: 'parent'`・`livesTogether: true`） | 43万＋45万 | 1,620,000 | 5万＋13万 | 5,400 | 3,600 | 158,000 |
+
+どちらも警告 `RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED` が無い。
+
+### F2. 本人の段が欠けると黙って 0 円になる（Medium 1）
+
+記録の欠けで黙って 0 円にしない。次の 3 か所で、`findRange` が当たらないときは例外にする。
+
+- `resident-tax.js` の配偶者特別控除: `配偶者特別控除の本人の所得の段がありません: ` ＋金額（所得税と同じ文）。
+- `resident-tax.js` の配偶者控除: `配偶者控除の本人の所得の段がありません: ` ＋金額。
+- `income-deductions.js` の `calculateSpouseDeduction`: 同じ文。
+
+どの年の記録も本人の所得の全範囲を覆っている（1,000万円超の段は 0 円の記録がある）ので、正しい記録では今の動きは変わらない。
+
+試験: `RT-SPOUSE-SP-S01-T2` を除いた記録で本人 920 万円・配偶者 60 万円が止まる（`test-income-tax-engine.js` の記録を差し替える確かめの書き方に合わせる）。
+
+### F3. 「同一生計配偶者か」「扶養親族か」の判定を 1 か所にする（Medium 2）
+
+`resident-tax.js`・`income-deductions.js` のそれぞれに内部の関数を置き、障害者控除の絞り込みと人数の両方で使う。
+
+- `isSameLivelihoodSpouse(spouse, searchCriterion)`: `spouse` があり、`exists !== false`、`isSameLivelihood !== false`、`isSameLivelihoodSpouse !== false`、かつ `totalIncome` が無いか上限以下。
+- `isDependentRelative(dependent, searchCriterion)`: `isDependent !== false`、かつ `totalIncome` が無いか上限以下。
+
+`dependentCountForExemption` の `countsForResidentTaxExemption !== false` は人数だけの条件なのでそのまま残す。住民税の `calculateSpouseDeduction` の冒頭でも `isSameLivelihood === false`・`isSameLivelihoodSpouse === false` なら `null` を返す。
+
+試験: `spouse: { exists: false, disability: 'general', totalIncome: 0円 }` に障害者控除が付かない（住民税・所得税）。
+
+### F4. 必須の値の試験で「止まらないが金額が変わる」も見る（Medium 3・Low 1）
+
+`test-simulator-required-keys.js`
+
+1. `findBracket` も包む。空にするときは `null` を返す。
+2. 任意の値を空にした結果を、差し替えなしの結果と比べる（`summary` と `breakdown.data`。BigInt は文字列にして比べる）。違えば失敗にする。
+3. `small_business_special_deduction` は、空にしても `complete` のまま推奨が 2割特例の 20万円から簡易課税の 50万円に変わる。`shohizei` の `required` へ移す（`_basis` に `台帳 C-13。欠けても止まらず推奨が変わるので必須に置く`）。ほかに同じものが見つかったら同じように移し、最終報告に書く。
+
+### F5. 上限の記録が取れないときは `blocked` の経路へ（Low 3）
+
+`resident-tax.js` の `spouseDeductionCeiling`・`specificRelativeIncomeCeiling` と F2 の例外に `error.code = 'RT_MASTER_UNAVAILABLE'` を付ける（`requiredRecord` と同じ）。試験の期待も合わせる。
+
+### F6. 境目の試験を足す（Low 4）
+
+`calc`、2025 年。配偶者の所得 0 円（配偶者控除）と 60 万円（配偶者特別控除）の両方で、本人の合計所得ごとの控除額を確かめる。
+
+| 本人の合計所得 | 控除額 |
+| --- | --- |
+| 9,000,000 | 330,000 |
+| 9,000,001 | 220,000 |
+| 9,500,000 | 220,000 |
+| 9,500,001 | 110,000 |
+| 10,000,000 | 110,000 |
+| 10,000,001 | 0 |
