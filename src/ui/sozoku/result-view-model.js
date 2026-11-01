@@ -1,5 +1,7 @@
 'use strict';
 
+const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
+
 const { resolveQuestion } = require('./question-catalog.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
@@ -57,6 +59,7 @@ function common(result) {
   return {
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,
+    pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
     warnings: sortedWarnings(result.warnings),
     assumptions: Object.freeze([...(result.assumptions || [])]),
     excludedItems: Object.freeze([...(result.excludedItems || [])]),

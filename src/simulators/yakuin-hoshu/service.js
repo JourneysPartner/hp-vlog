@@ -12,6 +12,7 @@ const residentTax = require('../../tax-engine/resident-tax/index.js');
 const socialInsurance = require('../../tax-engine/social-insurance/index.js');
 const corporate = require('../../tax-engine/corporate/index.js');
 const snapshot = require('../../tax-engine/masters/snapshot.js');
+const { unsupportedIncomeYearReasons } = require('../core/supported-year.js');
 const {
   money,
   moneyToExact,
@@ -128,7 +129,9 @@ function hasUnsupportedTaxCredits(taxCredits) {
 }
 
 function supportedProfileReasons(input, context) {
-  const reasons = [];
+  const reasons = unsupportedIncomeYearReasons(
+    incomeYearFrom(context), '$.calculationContext.incomeTaxYear'
+  );
   if (input.healthInsurer.kind !== 'kyokai_kenpo') {
     reasons.push(blockedReason(
       'YH_HEALTH_INSURER_UNSUPPORTED',
