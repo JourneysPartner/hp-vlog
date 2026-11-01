@@ -10,7 +10,9 @@ const { webcrypto } = require('crypto');
 const service = require('../../../src/simulators/shohizei/index.js');
 const snapshot = require('../../../src/tax-engine/masters/snapshot.js');
 const builder = require('../../build-simulator-bundle.js');
-const { buildCalculationContext } = require('../../../src/ui/shohizei/context-builder.js');
+const {
+  buildCalculationContext, INVOICE_TRANSITION_CHANGE_DATE, invoiceTransitionSplit,
+} = require('../../../src/ui/shohizei/context-builder.js');
 const { buildShohizeiInput } = require('../../../src/ui/shohizei/input-builder.js');
 const {
   QUESTION_CATALOG,
@@ -326,6 +328,141 @@ async function main() {
     assert.strictEqual(purchase.amount.amount.value, '110000');
     assert.strictEqual(purchase.counterpartyAnnualTotal.amount.value, '220000');
     assert.strictEqual(purchase.hasRequiredRecords, 'yes');
+  });
+
+  process.stdout.write('\n=== C-18: インボイスなし仕入の期間分割 ===\n');
+  const period2026 = { from: '2026-01-01', to: '2026-12-31' };
+  const splitState = baseState({
+    hasPurchasesWithoutInvoice: 'yes', purchasesWithoutInvoice: '1100000',
+    purchasesWithoutInvoiceBeforeChange: '2200000',
+    purchasesWithoutInvoiceBeforeChangeBasis: 'exclusive',
+    purchasesWithoutInvoiceAnnualTotal: '3520000',
+  });
+  check('2025年は従来の1行・取引日なしで、変更前の欄を要求しない', () => {
+    const wire = buildShohizeiInput({ ...splitState, purchasesWithoutInvoiceBeforeChange: '' });
+    const rows = wire.purchases[0].value.taxableWithoutInvoice;
+    assert.strictEqual(rows.length, 1);
+    assert(!Object.hasOwn(rows[0], 'transactionDate'));
+    assert.strictEqual(rows[0].amount.amount.value, '1100000');
+    assert.deepStrictEqual(wire.sales[0].period, { from: '2025-01-01', to: '2025-12-31' });
+    assert.deepStrictEqual(wire.purchases[0].period, wire.sales[0].period);
+  });
+  check('2026年は変更後・変更前の順で金額・区分・共通項目と期間を送る', () => {
+    for (const band of ['standard_10', 'reduced_8']) {
+      const wire = buildShohizeiInput({ ...splitState, purchasesWithoutInvoiceBand: band,
+        purchasesWithoutInvoiceRecords: 'no' }, { consumptionTaxPeriod: period2026 });
+      assert.deepStrictEqual(wire.sales[0].period, period2026);
+      assert.deepStrictEqual(wire.purchases[0].period, period2026);
+      assert.deepStrictEqual(wire.purchases[0].value.taxableWithoutInvoice,
+        [['2026-10-01', '1100000', 'inclusive'], ['2026-09-30', '2200000', 'exclusive']]
+          .map(([transactionDate, amount, basis]) => ({
+            transactionDate, band, amount: { basis, amount: { unit: 'JPY', value: amount } },
+            counterpartyAnnualTotal: { basis: 'inclusive', amount: { unit: 'JPY', value: '3520000' } },
+            hasRequiredRecords: 'no',
+          })));
+    }
+  });
+  check('両方の金額を必須とし、0は受け付け、共通項目のエラーを重複させない', () => {
+    for (const [key, index] of [['purchasesWithoutInvoice', 0], ['purchasesWithoutInvoiceBeforeChange', 1]]) {
+      assert.throws(() => buildShohizeiInput({ ...splitState, [key]: '' },
+        { consumptionTaxPeriod: period2026 }), error => error.errors.length === 1 &&
+        error.errors[0].fieldPath === `$.purchases[0].value.taxableWithoutInvoice[${index}].amount.amount.value`);
+      const wire = buildShohizeiInput({ ...splitState, [key]: '0' }, { consumptionTaxPeriod: period2026 });
+      assert.strictEqual(wire.purchases[0].value.taxableWithoutInvoice[index].amount.amount.value, '0');
+    }
+    assert.throws(() => buildShohizeiInput({ ...splitState,
+      purchasesWithoutInvoiceAnnualTotal: '', purchasesWithoutInvoiceRecords: '' },
+    { consumptionTaxPeriod: period2026 }), error => {
+      assert.deepStrictEqual(error.errors.map(item => item.fieldPath), [
+        '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal.amount.value',
+        '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords',
+      ]);
+      return true;
+    });
+  });
+  check('変更日の境界だけをまたぐときに分割する', () => {
+    for (const period of [
+      { from: '2025-01-01', to: '2025-12-31' },
+      { from: '2026-01-01', to: '2026-09-30' },
+      { from: '2026-10-01', to: '2026-12-31' },
+    ]) {
+      assert.strictEqual(invoiceTransitionSplit(period), null);
+      const rows = buildShohizeiInput(splitState, { consumptionTaxPeriod: period })
+        .purchases[0].value.taxableWithoutInvoice;
+      assert.strictEqual(rows.length, 1);
+      assert(!Object.hasOwn(rows[0], 'transactionDate'));
+    }
+    assert(invoiceTransitionSplit({ from: '2026-09-30', to: '2026-10-01' }));
+    assert.deepStrictEqual(buildShohizeiInput(baseState(), { consumptionTaxPeriod: period2026 })
+      .purchases[0].value.taxableWithoutInvoice, []);
+  });
+  check('変更日と前日がマスターのINV-TRANS-02・01の境界に一致する', () => {
+    const masters = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..',
+      'data/tax-simulator/masters/data/consumption-tax/rates-and-thresholds.json'), 'utf8'));
+    const records = Object.values(masters).filter(Array.isArray).flat();
+    const split = invoiceTransitionSplit(period2026);
+    assert.strictEqual(INVOICE_TRANSITION_CHANGE_DATE,
+      records.find(item => item.record_id === 'INV-TRANS-02').applies_to_transaction_from);
+    assert.strictEqual(split.beforeDate,
+      records.find(item => item.record_id === 'INV-TRANS-01').applies_to_transaction_to);
+    assert.strictEqual(new Date(`${split.afterDate}T00:00:00Z`).getTime() -
+      new Date(`${split.beforeDate}T00:00:00Z`).getTime(), 24 * 60 * 60 * 1000);
+  });
+  check('2026年だけ2欄と説明を表示し、共通の入力は1組で前の金額を先に並べる', () => {
+    for (const consumptionTaxPeriod of [undefined, period2026]) {
+      withFakeDocument(({ root }) => {
+        const app = mountShohizeiApp(root, {
+          services: { validate() { return { ok: true }; }, simulate() {} }, consumptionTaxPeriod,
+        });
+        try {
+          assert.strictEqual(app.store.getState().form.purchasesWithoutInvoiceBeforeChange, '');
+          assert.strictEqual(app.store.getState().form.purchasesWithoutInvoiceBeforeChangeBasis, 'inclusive');
+          app.store.setState(state => ({ ...state, step: 2, form: { ...state.form, ...splitState } }));
+          const before = root.querySelector('#sz-without-invoice-amount-before');
+          assert.strictEqual(Boolean(before), Boolean(consumptionTaxPeriod));
+          assert(root.querySelector('#sz-without-invoice-amount'));
+          const explanation = '経過措置の控除割合が2026年10月1日に変わるので、取引日で分けて入力してください。どちらかが無ければ0を入力してください。';
+          assert.strictEqual(root.textContent.includes(explanation), Boolean(consumptionTaxPeriod));
+          if (consumptionTaxPeriod) {
+            const beforeLabel = 'インボイスなし課税仕入（2026年9月30日まで・80%控除）';
+            const afterLabel = 'インボイスなし課税仕入（2026年10月1日以後・70%控除）';
+            assert(root.textContent.includes(beforeLabel));
+            assert(root.textContent.includes(afterLabel));
+            assert(root.textContent.indexOf(beforeLabel) < root.textContent.indexOf(afterLabel));
+            before.value = '3300000';
+            // 簡易DOMは同種のリスナーを1個だけ保持するため、金額の解析をchangeで先に実行する。
+            before.listeners.get('change')();
+            before.listeners.get('input')();
+            assert.strictEqual(app.store.getState().form.purchasesWithoutInvoiceBeforeChange, '3300000');
+            const basis = root.querySelector('#sz-without-invoice-amount-before-basis');
+            basis.value = 'inclusive';
+            basis.listeners.get('change')();
+            assert.strictEqual(app.store.getState().form.purchasesWithoutInvoiceBeforeChangeBasis, 'inclusive');
+          } else {
+            assert(!root.textContent.includes('80%控除'));
+            assert(!root.textContent.includes('70%控除'));
+          }
+        } finally { app.destroy(); }
+      });
+    }
+  });
+  check('変更前の空欄エラーを対応する金額欄と要約リンクに結びつける', () => {
+    withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, { services: service, snapshotInfo,
+        now: () => calculatedAt, consumptionTaxPeriod: period2026 });
+      try {
+        app.store.setState(state => ({ ...state, step: 2,
+          form: { ...state.form, ...splitState, purchasesWithoutInvoiceBeforeChange: '' } }));
+        root.querySelector('.shohizei-primary').listeners.get('click')();
+        assert.deepStrictEqual(app.store.getState().errors.map(item => item.fieldPath),
+          ['$.purchases[0].value.taxableWithoutInvoice[1].amount.amount.value']);
+        const before = root.querySelector('#sz-without-invoice-amount-before');
+        assert.strictEqual(before.getAttribute('aria-invalid'), 'true');
+        assert(before.getAttribute('aria-describedby').includes('sz-without-invoice-amount-before-error'));
+        assert.strictEqual(root.querySelector('.shohizei-error-summary').querySelector('a')
+          .getAttribute('href'), '#sz-without-invoice-amount-before');
+      } finally { app.destroy(); }
+    });
   });
 
   process.stdout.write('\n=== カタログ・コンテキスト・バンドル ===\n');

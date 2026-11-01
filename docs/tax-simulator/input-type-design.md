@@ -648,6 +648,7 @@ type PurchaseInput = SimplePurchaseInput | DetailedPurchaseInput;
 interface TransitionalPurchase {
   band: ConsumptionTaxRateBand;
   amount: TaxIncl;
+  transactionDate?: LocalDate;          // 経過措置の割合と税率を決める取引日。課税期間が割合の変更日をまたぐときは必須
   counterpartyId?: string;              // 画面内で一意。名寄せできない場合は省略
   counterpartyAnnualTotal?: TaxIncl;    // その年・事業年度の相手先別合計（税込）
   hasRequiredRecords?: TriState;        // 帳簿・証憑の保存要件を満たすか

@@ -8,6 +8,15 @@ const CONSUMPTION_TAX_PERIOD = Object.freeze({
   to: '2025-12-31',
 });
 
+const INVOICE_TRANSITION_CHANGE_DATE = '2026-10-01';
+
+function invoiceTransitionSplit(period) {
+  if (!(period.from < INVOICE_TRANSITION_CHANGE_DATE && INVOICE_TRANSITION_CHANGE_DATE <= period.to)) {
+    return null;
+  }
+  return { beforeDate: '2026-09-30', afterDate: INVOICE_TRANSITION_CHANGE_DATE };
+}
+
 function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   if (!formState || typeof formState !== 'object') {
     throw new TypeError('フォーム状態はオブジェクトで指定してください');
@@ -26,5 +35,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
 module.exports = Object.freeze({
   SUPPORTED_YEAR,
   CONSUMPTION_TAX_PERIOD,
+  INVOICE_TRANSITION_CHANGE_DATE,
+  invoiceTransitionSplit,
   buildCalculationContext,
 });
