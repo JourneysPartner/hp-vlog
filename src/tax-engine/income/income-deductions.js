@@ -244,6 +244,7 @@ function calculateLifeInsuranceDeduction(
   const newCategoryCap = fixedTierCap('life_insurance_deduction_new', searchCriterion);
   const overallCap = sumMoney(LIFE_CATEGORIES.map(() => newCategoryCap));
   const hasUnder23Special = hasUnder23Dependent &&
+    premiumTotal(premiums, 'new', 'life').value > 0n &&
     masters.find('life_insurance_deduction_new_under23', searchCriterion).length > 0;
   const lifeCategoryCap = hasUnder23Special
     ? fixedTierCap('life_insurance_deduction_new_under23', searchCriterion)
@@ -276,7 +277,7 @@ function calculateLifeInsuranceDeduction(
     rows,
     overallCap,
     amount: minMoney(sumMoney(rows.map(row => row.amount)), overallCap),
-    under23SpecialApplied: hasUnder23Special && rows[0].newPremium.value > 0n,
+    under23SpecialApplied: hasUnder23Special,
   };
 }
 

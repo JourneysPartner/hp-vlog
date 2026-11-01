@@ -582,7 +582,9 @@ console.log('\n=== C-7: ④の特例と前提 ===');
       input.plan.monthlySegments[0].period = yearContext.fiscalPeriod;
       return input;
     };
-    const baseline = service.simulate(makeInput(), yearContext, snapshotInfo);
+    const baselineInput = makeInput();
+    baselineInput.dependents = [{ id: 'adult', ageAtYearEnd: 23, relation: 'child', totalIncome: yen(0) }];
+    const baseline = service.simulate(baselineInput, yearContext, snapshotInfo);
     for (const age of [17, 23]) {
       const input = makeInput();
       input.dependents = [{ id: 'child', ageAtYearEnd: age, relation: 'child', totalIncome: yen(0) }];

@@ -262,7 +262,7 @@ function mountYakuinHoshuApp(rootElement, {
     return [
       el('fieldset', {}, [el('legend', {}, '配偶者'), spouse]),
       el('fieldset', {}, [
-        el('legend', {}, '扶養親族の人数'),
+        el('legend', {}, '扶養親族の人数（その年12月31日時点の年齢）'),
         dependentInputs,
         el('p', { className: 'yh-help' },
           '16歳未満の子は扶養控除の対象ではありませんが、住民税の非課税の判定と、生命保険料控除の特例（令和8年分・令和9年分）に使います。'),
