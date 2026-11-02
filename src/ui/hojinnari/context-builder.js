@@ -2,7 +2,8 @@
 
 const { buildContextMetadata } = require('../context-builder.js');
 
-const SUPPORTED_YEAR = 2025;
+const SUPPORTED_YEARS = Object.freeze([2025, 2026]);
+const DEFAULT_YEAR = 2026;
 
 const MUNICIPALITIES = Object.freeze([
   Object.freeze({ key: 'shibuya', label: '渋谷区', municipalityCode: '13113', prefectureCode: '13', isDesignatedCity: false }),
@@ -42,9 +43,9 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   }
   const metadata = buildContextMetadata(snapshotInfo, calculatedAt);
   const year = formState.incomeTaxYear === undefined
-    ? SUPPORTED_YEAR
+    ? DEFAULT_YEAR
     : Number(formState.incomeTaxYear);
-  if (year !== SUPPORTED_YEAR) throw new RangeError('第1版の計算対象年は2025年だけです');
+  if (!SUPPORTED_YEARS.includes(year)) throw new RangeError('計算対象年は2025年か2026年で指定してください');
   const municipality = jurisdictionFor(formState);
   const isTransition = formState.comparisonBasis === 'transition_year';
   const establishedOn = formState.establishedOn;
@@ -57,7 +58,7 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
   return {
     ...metadata,
     incomeTaxYear: year,
-    residentTaxFiscalYear: year,
+    residentTaxFiscalYear: year + 1,
     fiscalPeriod: {
       from: isTransition ? establishedOn : `${year}-01-01`,
       to: `${year}-12-31`,
@@ -76,7 +77,8 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
 }
 
 module.exports = Object.freeze({
-  SUPPORTED_YEAR,
+  SUPPORTED_YEARS,
+  DEFAULT_YEAR,
   MUNICIPALITIES,
   buildCalculationContext,
 });

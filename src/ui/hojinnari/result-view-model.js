@@ -1,17 +1,13 @@
 'use strict';
 
 const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
+const { RESULT_STATUS_LABELS, resultStatusLabel: statusLabel } = require('../result-status-label.js');
 
 const { incomeDeductionRows } = require('../income-deduction-view.js');
 
 const { resolveQuestion } = require('./question-catalog.js');
 
 const WARNING_ORDER = Object.freeze({ critical: 0, attention: 1, info: 2 });
-const RESULT_STATUS_LABELS = Object.freeze({
-  complete: '計算完了',
-  partial: '一部概算',
-  blocked: '停止',
-});
 const NEARLY_EQUAL_THRESHOLD_YEN = 10000n;
 const RANGE_CATALOG = Object.freeze([
   Object.freeze({ code: 'income_tax', label: '所得税' }),
@@ -336,8 +332,7 @@ function buildResultViewModel(result) {
   const soleBurden = burdenTotal(data.soleProprietor, false);
   const corporationBurden = burdenTotal(data.corporation, true);
   const partial = result.resultStatus === 'partial';
-  const resultStatusLabel = RESULT_STATUS_LABELS[result.resultStatus];
-  if (!resultStatusLabel) throw new TypeError(`未知の結果状態です: ${result.resultStatus}`);
+  const resultStatusLabel = statusLabel(result.resultStatus);
   return Object.freeze({
     resultStatus: result.resultStatus,
     periodLabel: result.periodLabel,

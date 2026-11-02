@@ -1,6 +1,6 @@
 'use strict';
 
-const { CONSUMPTION_TAX_PERIOD, invoiceTransitionSplit } = require('./context-builder.js');
+const { DEFAULT_YEAR, consumptionTaxPeriodFor, invoiceTransitionSplit } = require('./context-builder.js');
 
 class ShohizeiInputBuildError extends Error {
   constructor(errors) {
@@ -222,7 +222,7 @@ function buildShohizeiInput(formState, options = {}) {
         '$.specialistChecks.complexTaxableSalesRatio', errors, '複雑な課税売上割合への該当'),
     },
   };
-  const period = options.consumptionTaxPeriod || CONSUMPTION_TAX_PERIOD;
+  const period = options.consumptionTaxPeriod || consumptionTaxPeriodFor(DEFAULT_YEAR);
   if (!options.emptyTransactions) Object.assign(input, transactions(formState, errors, period));
   if (formState.simplifiedElectionStatus === 'yes') {
     input.simplified = { categorySelectedByUser: true };

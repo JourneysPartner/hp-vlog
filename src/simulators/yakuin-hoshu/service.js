@@ -10,6 +10,7 @@ const LIFE_INSURANCE_UNDER23_ASSUMPTION =
 
 const { validateInput } = require('../core/validator.js');
 const { buildSimulationResult } = require('../core/result-builder.js');
+const { defenseCorporateTaxExcludedItem } = require('../core/defense-corporate-tax.js');
 const income = require('../../tax-engine/income/index.js');
 const residentTax = require('../../tax-engine/resident-tax/index.js');
 const socialInsurance = require('../../tax-engine/social-insurance/index.js');
@@ -315,7 +316,7 @@ function calculateForward(input, context, monthlyAmount) {
     ),
   }, {
     incomeYear,
-    residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYear,
+    residentTaxFiscalYear: context.residentTaxFiscalYear ?? (incomeYear + 1),
     jurisdiction: context.jurisdiction,
   });
   blocked.push(...engineBlockedReasons(residentTaxResult, 'RT', '$.calculationContext.jurisdiction'));
@@ -753,6 +754,13 @@ function simulate(input, context, masters) {
     }
     if (calculation.status === 'blocked') {
       calculation = blockedCalculation(calculation.blockedReasons);
+    }
+    if (calculation.resultStatus !== 'blocked') {
+      const defenseExcludedItem = defenseCorporateTaxExcludedItem(context.fiscalPeriod);
+      if (defenseExcludedItem) {
+        calculation.resultStatus = 'partial';
+        calculation.excludedItems = [...(calculation.excludedItems || []), defenseExcludedItem];
+      }
     }
     usedMasterRecords = snapshot.endRecordTracking();
   } catch (error) {

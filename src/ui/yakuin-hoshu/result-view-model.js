@@ -1,5 +1,7 @@
 'use strict';
 
+const { resultStatusLabel } = require('../result-status-label.js');
+
 const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
 
 const { formatYen } = require('../hojinnari/result-view-model.js');
@@ -70,9 +72,10 @@ function common(result, mode) {
   return {
     mode,
     resultStatus: result.resultStatus,
+    resultStatusLabel: resultStatusLabel(result.resultStatus),
     periodLabel: result.periodLabel,
     pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
-    heading: `${result.resultStatus === 'blocked' ? '試算停止' : '試算結果'}（${result.periodLabel}・${result.resultStatus}）`,
+    heading: `${result.resultStatus === 'blocked' ? '試算停止' : '試算結果'}（${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
     warnings: sortedWarnings(result.warnings),
     assumptions: Object.freeze([...(result.assumptions || [])]),
     excludedItems: Object.freeze([...(result.excludedItems || [])]),

@@ -235,7 +235,7 @@ assert(
 
 const result = buildSimulationResult(baseOptions);
 assert(
-  result.calculationVersion === 'calc-2026.08.1' &&
+  result.calculationVersion === 'calc-2026.11.1' &&
     result.inputSchemaVersion === 'hojinnari-1.0' &&
     result.supportedProfileVersion === 'initial-1',
   '結果へ共通定義の3つの版番号を載せる'

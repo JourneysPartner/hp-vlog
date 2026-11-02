@@ -8,8 +8,24 @@ const real = require(snapshotPath);
 const originalExports = require.cache[snapshotPath].exports;
 const originalCache = new Map(Object.entries(require.cache));
 const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
-const dependencies = JSON.parse(fs.readFileSync(path.join(__dirname,
-  '../../../data/tax-simulator/masters/simulator-dependencies.json'), 'utf8')).simulators;
+const { inspectSimulatorDependencies, evaluateSimulatorGates } = require('../simulator-dependencies.js');
+const mastersDir = path.join(__dirname, '../../../data/tax-simulator/masters');
+const dependencyTable = JSON.parse(fs.readFileSync(path.join(mastersDir, 'simulator-dependencies.json'), 'utf8'));
+const dependencies = dependencyTable.simulators;
+const records = [];
+function collectRecords(value) {
+  if (!value || typeof value !== 'object') return;
+  if (typeof value.record_id === 'string') { records.push(value); return; }
+  for (const item of Object.values(value)) collectRecords(item);
+}
+function readRecords(directory) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) readRecords(file);
+    else if (entry.name.endsWith('.json')) collectRecords(JSON.parse(fs.readFileSync(file, 'utf8')));
+  }
+}
+readRecords(path.join(mastersDir, 'data'));
 const snapshotInfo = real.getSnapshotInfo();
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 let omittedKey = null;
@@ -141,6 +157,33 @@ function calculationAmounts(result) {
     (_key, value) => typeof value === 'bigint' ? value.toString() : value);
 }
 
+// 2025年の既存入力を保ち、2026年は画面と同じ暦年・翌年度の文脈で確かめる。
+function for2026(value) {
+  if (typeof value === 'string') return value.replace(/^2025(?=-)/, '2026');
+  if (Array.isArray(value)) return value.map(for2026);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, for2026(item)]));
+  }
+  return value;
+}
+const period2026 = { from: '2026-01-01', to: '2026-12-31' };
+function incomeContext2026() {
+  return { ...for2026(incomeContext()), incomeTaxYear: 2026, residentTaxFiscalYear: 2027,
+    fiscalPeriod: { ...period2026 }, socialInsuranceMonths: ['2026-04'] };
+}
+function hojinnariInput2026() {
+  const input = for2026(hojinnariInput());
+  input.corporate.revenue[0].period = { ...period2026 };
+  input.corporate.expenses[0].period = { ...period2026 };
+  input.corporate.officerCompensation.monthlySegments[0].period = { ...period2026 };
+  return input;
+}
+function yakuinInput2026() {
+  const input = for2026(yakuinInput());
+  input.plan.monthlySegments[0].period = { ...period2026 };
+  return input;
+}
+
 try {
   // exports は凍結済みなので新しい物にし、必ずサービスを読む前に差し替える。
   require.cache[snapshotPath].exports = Object.assign({}, real, {
@@ -153,9 +196,13 @@ try {
     ['yakuin_hoshu', yakuinInput, incomeContext],
     ['shohizei', shohizeiInput, () => standaloneContext({ consumptionTaxPeriod: period })],
     ['sozoku', sozokuInput, () => standaloneContext({ inheritanceOpenDate: '2025-06-01' })],
+    ['hojinnari', hojinnariInput2026, incomeContext2026, null, '2026年'],
+    ['yakuin_hoshu', yakuinInput2026, incomeContext2026, null, '2026年'],
+    ['shohizei', () => for2026(shohizeiInput()),
+      () => standaloneContext({ consumptionTaxPeriod: period2026 }), null, '2026年'],
   ];
-  for (const [name, makeInput, makeContext, consumptionCase] of cases) {
-    console.log(`\n=== ${name}${consumptionCase ? `（${consumptionCase}）` : ''}: 必須・任意と実計算の照合 ===`);
+  for (const [name, makeInput, makeContext, consumptionCase, yearLabel] of cases) {
+    console.log(`\n=== ${name}${consumptionCase ? `（${consumptionCase}）` : ''}${yearLabel || ''}: 必須・任意と実計算の照合 ===`);
     const service = require(`../../../src/simulators/${name === 'yakuin_hoshu' ? 'yakuin-hoshu' : name}/index.js`);
     const run = () => service.simulate(makeInput(), makeContext(), snapshotInfo);
     omittedKey = null;
@@ -195,6 +242,14 @@ try {
       } catch (error) {
         assert(false, `${name}: ${key}: ${error.message.split('\n')[0]}`);
       }
+    }
+    // 必須値は計算側に代替処理があっても、公開ゲートで必ず止める。
+    for (const key of [...required].sort()) {
+      const missingRecords = records.filter(record => record.value_key !== key);
+      const gates = evaluateSimulatorGates(missingRecords,
+        inspectSimulatorDependencies(missingRecords, dependencyTable));
+      assert(!gates[name].publishable && gates[name].required.missingValueKeys.includes(key),
+        `${name}: 必須の ${key} が空なら公開を止める`);
     }
   }
 } finally {

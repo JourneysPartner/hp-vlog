@@ -1009,9 +1009,10 @@ for (const [label, input, originalContext] of [
     'C-16 ①' + label + 'は施行前注記がなくてもビルダーへpartialを渡す');
     yearInput.individual.nationalHealthInsurance = { kind: 'actual', annualAmount: yen(600000) };
     const actualOptions = isolatedService.simulate(yearInput, yearContext, snapshotInfo);
-    assert(actualOptions.resultStatus === 'complete' &&
+    assert(actualOptions.resultStatus === 'partial' &&
+      actualOptions.excludedItems.filter(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED').length === 1 &&
       !actualOptions.warnings.some(warning => warning.code === priorNhiCode),
-    'C-16 ①' + label + 'の実額入力はビルダーへcompleteを渡す');
+    'C-16 ①' + label + 'の実額入力は防衛特別法人税の除外によりビルダーへpartialを渡す');
   } finally {
     require.cache[builderPath].exports = originalBuilder;
     require.cache[servicePath] = originalService;

@@ -1,5 +1,7 @@
 'use strict';
 
+const { resultStatusLabel } = require('../result-status-label.js');
+
 const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
 
 const { resolveQuestion } = require('./question-catalog.js');
@@ -58,6 +60,7 @@ function grounds(result) {
 function common(result) {
   return {
     resultStatus: result.resultStatus,
+    resultStatusLabel: resultStatusLabel(result.resultStatus),
     periodLabel: result.periodLabel,
     pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
     warnings: sortedWarnings(result.warnings),
@@ -182,7 +185,7 @@ function secondaryInheritanceViewModel(value) {
 function buildBlockedViewModel(result) {
   return Object.freeze({
     ...common(result),
-    heading: `試算停止（${result.periodLabel}・blocked）`,
+    heading: `試算停止（${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
     alerts: Object.freeze((result.warnings || []).map(resolveQuestion)),
   });
 }
@@ -203,7 +206,7 @@ function buildSozokuResultViewModel(result, options = {}) {
   const base = {
     ...common(result),
     level,
-    heading: `試算結果（LEVEL ${level}・${result.periodLabel}・${result.resultStatus}）`,
+    heading: `試算結果（LEVEL ${level}・${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
     filingNeed: data.filingNeed,
     conclusion: Object.freeze({ code: data.filingNeed, text: filingText }),
     keyResult: Object.freeze({

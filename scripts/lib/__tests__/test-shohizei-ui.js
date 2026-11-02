@@ -11,7 +11,7 @@ const service = require('../../../src/simulators/shohizei/index.js');
 const snapshot = require('../../../src/tax-engine/masters/snapshot.js');
 const builder = require('../../build-simulator-bundle.js');
 const {
-  buildCalculationContext, INVOICE_TRANSITION_CHANGE_DATE, invoiceTransitionSplit,
+  buildCalculationContext, consumptionTaxPeriodFor, INVOICE_TRANSITION_CHANGE_DATE, invoiceTransitionSplit,
 } = require('../../../src/ui/shohizei/context-builder.js');
 const { buildShohizeiInput } = require('../../../src/ui/shohizei/input-builder.js');
 const {
@@ -87,9 +87,9 @@ function baseState(overrides = {}) {
   };
 }
 
-function run(formState, options) {
+function run(formState, options = {}) {
   const context = buildCalculationContext(formState, snapshotInfo, calculatedAt);
-  const wire = buildShohizeiInput(formState, options);
+  const wire = buildShohizeiInput(formState, { consumptionTaxPeriod: consumptionTaxPeriodFor(formState.consumptionTaxYear), ...options });
   const validation = service.validate(wire);
   assert.strictEqual(validation.ok, true, JSON.stringify(validation.errors || []));
   const result = service.simulate(validation.value, context, snapshotInfo);
@@ -101,7 +101,7 @@ function runAtPeriod(formState, period) {
     ...buildCalculationContext(formState, snapshotInfo, calculatedAt),
     consumptionTaxPeriod: { ...period },
   };
-  const wire = buildShohizeiInput(formState);
+  const wire = buildShohizeiInput(formState, { consumptionTaxPeriod: period });
   for (const segment of [...wire.sales, ...wire.purchases]) segment.period = { ...period };
   const validation = service.validate(wire);
   assert.strictEqual(validation.ok, true, JSON.stringify(validation.errors || []));
@@ -119,6 +119,7 @@ async function main() {
     withFakeDocument(({ root, intro }) => {
       const calls = [];
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
         introElement: intro,
         scrollToAppTop() { calls.push('scroll'); },
@@ -183,6 +184,7 @@ async function main() {
   check('結果見出し直下に推奨方式と納付額の主役ブロックを描画する', () => {
     withFakeDocument(({ root }) => {
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -211,6 +213,7 @@ async function main() {
     assert(exempt.viewModel.exemptNotice.includes('登録済みとして再計算'));
     withFakeDocument(({ root }) => {
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -287,6 +290,7 @@ async function main() {
     assert.strictEqual(exported.viewModel.excludedItems.length, 0);
     withFakeDocument(({ root }) => {
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -303,6 +307,7 @@ async function main() {
   check('輸出欄と基準期間欄に§20の区別・算入ヘルプを表示する', () => {
     withFakeDocument(({ root }) => {
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       assert(root.textContent.includes('輸出免税売上も含めた金額'));
@@ -323,7 +328,7 @@ async function main() {
       hasPurchasesWithoutInvoice: 'yes', purchasesWithoutInvoice: '110000',
       purchasesWithoutInvoiceAnnualTotal: '220000', purchasesWithoutInvoiceRecords: 'yes',
     });
-    const wire = buildShohizeiInput(state);
+    const wire = buildShohizeiInput(state, { consumptionTaxPeriod: consumptionTaxPeriodFor(2025) });
     const purchase = wire.purchases[0].value.taxableWithoutInvoice[0];
     assert.strictEqual(purchase.amount.amount.value, '110000');
     assert.strictEqual(purchase.counterpartyAnnualTotal.amount.value, '220000');
@@ -339,7 +344,7 @@ async function main() {
     purchasesWithoutInvoiceAnnualTotal: '3520000',
   });
   check('2025年は従来の1行・取引日なしで、変更前の欄を要求しない', () => {
-    const wire = buildShohizeiInput({ ...splitState, purchasesWithoutInvoiceBeforeChange: '' });
+    const wire = buildShohizeiInput({ ...splitState, purchasesWithoutInvoiceBeforeChange: '' }, { consumptionTaxPeriod: consumptionTaxPeriodFor(2025) });
     const rows = wire.purchases[0].value.taxableWithoutInvoice;
     assert.strictEqual(rows.length, 1);
     assert(!Object.hasOwn(rows[0], 'transactionDate'));
@@ -409,7 +414,7 @@ async function main() {
       new Date(`${split.beforeDate}T00:00:00Z`).getTime(), 24 * 60 * 60 * 1000);
   });
   check('2026年だけ2欄と説明を表示し、共通の入力は1組で前の金額を先に並べる', () => {
-    for (const consumptionTaxPeriod of [undefined, period2026]) {
+    for (const consumptionTaxPeriod of [consumptionTaxPeriodFor(2025), period2026, undefined]) {
       withFakeDocument(({ root }) => {
         const app = mountShohizeiApp(root, {
           services: { validate() { return { ok: true }; }, simulate() {} }, consumptionTaxPeriod,
@@ -419,11 +424,11 @@ async function main() {
           assert.strictEqual(app.store.getState().form.purchasesWithoutInvoiceBeforeChangeBasis, 'inclusive');
           app.store.setState(state => ({ ...state, step: 2, form: { ...state.form, ...splitState } }));
           const before = root.querySelector('#sz-without-invoice-amount-before');
-          assert.strictEqual(Boolean(before), Boolean(consumptionTaxPeriod));
+          assert.strictEqual(Boolean(before), consumptionTaxPeriod?.from !== '2025-01-01');
           assert(root.querySelector('#sz-without-invoice-amount'));
           const explanation = '経過措置の控除割合が2026年10月1日に変わるので、取引日で分けて入力してください。どちらかが無ければ0を入力してください。';
-          assert.strictEqual(root.textContent.includes(explanation), Boolean(consumptionTaxPeriod));
-          if (consumptionTaxPeriod) {
+          assert.strictEqual(root.textContent.includes(explanation), consumptionTaxPeriod?.from !== '2025-01-01');
+          if (consumptionTaxPeriod?.from !== '2025-01-01') {
             const beforeLabel = 'インボイスなし課税仕入（2026年9月30日まで・80%控除）';
             const afterLabel = 'インボイスなし課税仕入（2026年10月1日以後・70%控除）';
             assert(root.textContent.includes(beforeLabel));
@@ -448,7 +453,8 @@ async function main() {
   });
   check('変更前の空欄エラーを対応する金額欄と要約リンクに結びつける', () => {
     withFakeDocument(({ root }) => {
-      const app = mountShohizeiApp(root, { services: service, snapshotInfo,
+      const app = mountShohizeiApp(root, {
+        services: service, snapshotInfo,
         now: () => calculatedAt, consumptionTaxPeriod: period2026 });
       try {
         app.store.setState(state => ({ ...state, step: 2,
@@ -499,6 +505,7 @@ async function main() {
       assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
       withFakeDocument(({ root }) => {
         const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
@@ -528,6 +535,7 @@ async function main() {
     assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
     withFakeDocument(({ root }) => {
       const app = mountShohizeiApp(root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
@@ -550,7 +558,8 @@ async function main() {
       warnings: [{ code: 'MASTER_PENDING_LAW_APPLIED', basis: '施行前・概算：免税の試験' }] };
     const viewModel = buildResultViewModel(injected);
     assert.strictEqual(viewModel.isExempt, true);
-    assert(viewModel.heading.includes('partial'));
+    assert(viewModel.heading.includes('一部概算'));
+    assert(!viewModel.heading.includes('partial'));
     const { createFakeDom } = require('./helpers/fake-dom.js');
     const previousDocument = global.document;
     const dom = createFakeDom();
@@ -558,6 +567,7 @@ async function main() {
     let app;
     try {
       app = mountShohizeiApp(dom.root, {
+          consumptionTaxPeriod: consumptionTaxPeriodFor(2025),
         services: { validate() { return { ok: true, value: {} }; }, simulate() { return injected; } },
         snapshotInfo, now: () => calculatedAt,
       });
@@ -578,6 +588,69 @@ async function main() {
       else global.document = previousDocument;
     }
   }
+
+  process.stdout.write('\n=== 段5: 2026年の既定・課税期間・日本語の結果状態 ===\n');
+  check('既定の文脈と入力は2026暦年で、対応年の期間は凍結され範囲外は拒否する', () => {
+    const { DEFAULT_YEAR, SUPPORTED_YEARS } = require('../../../src/ui/shohizei/context-builder.js');
+    assert.strictEqual(DEFAULT_YEAR, 2026);
+    assert(Object.isFrozen(SUPPORTED_YEARS));
+    assert.deepStrictEqual(SUPPORTED_YEARS, [2025, 2026]);
+    const form = baseState({ consumptionTaxYear: undefined });
+    const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+    const input = buildShohizeiInput(form);
+    assert.deepStrictEqual(context.consumptionTaxPeriod, { from: '2026-01-01', to: '2026-12-31' });
+    assert.deepStrictEqual(input.sales[0].period, context.consumptionTaxPeriod);
+    assert.deepStrictEqual(input.purchases[0].period, context.consumptionTaxPeriod);
+    assert(Object.isFrozen(consumptionTaxPeriodFor(2026)));
+    for (const consumptionTaxYear of [2024, 2027]) {
+      assert.throws(() => consumptionTaxPeriodFor(consumptionTaxYear), RangeError);
+      assert.throws(() => buildCalculationContext({ consumptionTaxYear }, snapshotInfo, calculatedAt), RangeError);
+    }
+  });
+  check('2026年既定と2025年指定は文言・届出効力年・文脈と入力の期間が一致する', () => {
+    for (const consumptionTaxPeriod of [undefined, consumptionTaxPeriodFor(2025)]) withFakeDocument(({ root }) => {
+      const app = mountShohizeiApp(root, { services: service, consumptionTaxPeriod });
+      try {
+        const form = app.store.getState().form;
+        const year = consumptionTaxPeriod ? 2025 : 2026;
+        assert.strictEqual(form.consumptionTaxYear, year);
+        assert.strictEqual(form.simplifiedElectionEffectiveYear, String(year));
+        assert.strictEqual(form.taxablePersonElectionEffectiveYear, String(year));
+        assert(root.textContent.includes(`課税期間：${year}年1月1日〜12月31日（第1版固定）`));
+        const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+        const input = buildShohizeiInput(baseState({ consumptionTaxYear: year }),
+          { consumptionTaxPeriod: consumptionTaxPeriodFor(year) });
+        assert.deepStrictEqual(input.sales[0].period, context.consumptionTaxPeriod);
+        assert.deepStrictEqual(input.purchases[0].period, context.consumptionTaxPeriod);
+      } finally { app.destroy(); }
+    });
+    withFakeDocument(({ root }) => {
+      for (const consumptionTaxPeriod of [null, {}, { from: '2026-04-01', to: '2027-03-31' },
+        { from: '2026-01-01', to: '2026-12-30' }, { from: '2027-01-01', to: '2027-12-31' }]) {
+        assert.throws(() => mountShohizeiApp(root, { services: service, consumptionTaxPeriod }), RangeError);
+      }
+    });
+  });
+  check('②の見出しと印刷は全状態を日本語で表示し、未知の状態はTypeError', () => {
+    for (const [status, label] of [['complete', '計算完了'], ['partial', '一部概算'], ['blocked', '停止']]) {
+      const result = { ...complete.result, resultStatus: status };
+      if (status === 'blocked') delete result.breakdown;
+      const viewModel = buildResultViewModel(result);
+      assert.strictEqual(viewModel.resultStatus, status);
+      assert.strictEqual(viewModel.resultStatusLabel, label);
+      assert(viewModel.heading.includes(label));
+      assert(!viewModel.heading.includes(status));
+      withFakeDocument(({ root }) => {
+        const app = mountShohizeiApp(root, { services: service });
+        try {
+          app.store.setState(state => ({ ...state, screen: status === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+          assert(root.textContent.includes(`結果状態：${label}`));
+          assert(!root.textContent.includes(`結果状態：${status}`));
+        } finally { app.destroy(); }
+      });
+    }
+    assert.throws(() => buildResultViewModel({ ...complete.result, resultStatus: 'unknown' }), TypeError);
+  });
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }

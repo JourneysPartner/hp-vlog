@@ -79,6 +79,7 @@ function main() {
     withFakeDocument(({ root, intro }) => {
       const calls = [];
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
         introElement: intro,
         scrollToAppTop() { calls.push('scroll'); },
@@ -232,6 +233,7 @@ function main() {
   check('共通入力に家族欄・説明・対応準備中注記を表示し、結果詳細にも人的控除を表示する', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'input', step: 1,
@@ -305,6 +307,7 @@ function main() {
     assert(!upper.viewModel.handoffAvailable);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -355,6 +358,7 @@ function main() {
     assert.strictEqual(range.viewModel.requiredMonthlyCompensation, undefined);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -373,6 +377,7 @@ function main() {
   check('MODE A/B/Cの結果見出し直下に主役数値ブロックを描画する', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       for (const current of [modeA, modeB, modeC]) {
@@ -479,6 +484,7 @@ function main() {
         assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
         withFakeDocument(({ root }) => {
           const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
             services: { validate() { return { ok: true }; }, simulate() {} },
           });
           app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
@@ -508,6 +514,7 @@ function main() {
       assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
       withFakeDocument(({ root }) => {
         const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
@@ -529,6 +536,7 @@ function main() {
     assert.strictEqual(viewModel.alerts.find(item => item.code === warning.code).message, warning.basis);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'blocked', result, viewModel }));
@@ -565,6 +573,7 @@ function main() {
   check('C-7: 16歳未満の欄と説明を1回表示し、エラーも欄に関連付ける', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       assert.strictEqual(app.store.getState().form.dependentsUnder16, '0');
@@ -588,6 +597,96 @@ function main() {
     const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
     assert.throws(() => buildYakuinHoshuInput(form, context), error => error instanceof YakuinHoshuInputBuildError &&
       error.errors.some(item => item.code.endsWith('_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS')));
+  });
+
+  process.stdout.write('\n=== 段5: 2026年・住民税年度・防衛特別法人税 ===\n');
+  check('既定の2026年は施行日説明を表示し、2025年では表示せず範囲外は拒否する', () => {
+    const { incomeTaxLawChangeNotice } = require('../../../src/ui/law-change-notice.js');
+    assert.strictEqual(incomeTaxLawChangeNotice(2025), undefined);
+    assert.strictEqual(incomeTaxLawChangeNotice(2027), undefined);
+    for (const incomeTaxYear of [undefined, 2025]) withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, { services: service, incomeTaxYear });
+      try {
+        const year = incomeTaxYear || 2026;
+        assert.strictEqual(app.store.getState().form.incomeTaxYear, year);
+        app.store.setState(state => ({ ...state, screen: 'input', step: 1, form: { ...state.form, mode: 'C' } }));
+        assert(root.textContent.includes(`${year}年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。`));
+        assert.strictEqual(root.querySelector('.yh-law-change-notice')?.textContent, incomeTaxLawChangeNotice(year));
+      } finally { app.destroy(); }
+    });
+    withFakeDocument(({ root }) => {
+      for (const incomeTaxYear of [2024, 2027]) {
+        assert.throws(() => mountYakuinHoshuApp(root, { services: service, incomeTaxYear }), RangeError);
+      }
+    });
+  });
+  for (const mode of ['A', 'B', 'C']) {
+    check(`2026年のモード${mode}は住民税2026・2027年度と既定の全金額が一致する`, () => {
+      const actual = run(baseState({ incomeTaxYear: 2026, mode }));
+      assert.notStrictEqual(actual.result.resultStatus, 'blocked');
+      for (const fiscalYear of [2026, undefined]) {
+        const result = service.simulate(actual.validation.value,
+          { ...actual.context, residentTaxFiscalYear: fiscalYear }, snapshotInfo);
+        assert.deepStrictEqual(result.summary, actual.result.summary);
+        assert.deepStrictEqual(result.breakdown, actual.result.breakdown);
+      }
+    });
+  }
+  check('2026年の暦年には防衛特別法人税を付けず、4月開始は1件でpartial、blockedには付けない', () => {
+    const form = baseState({ incomeTaxYear: 2026 });
+    const normal = run(form);
+    const code = 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED';
+    assert(!normal.result.excludedItems.some(item => item.code === code));
+    const context = { ...normal.context, fiscalPeriod: { from: '2026-04-01', to: '2027-03-31' } };
+    const validation = service.validate(buildYakuinHoshuInput(form, context));
+    assert(validation.ok);
+    const result = service.simulate(validation.value, context, snapshotInfo);
+    assert.strictEqual(result.resultStatus, 'partial');
+    assert.deepStrictEqual(result.excludedItems.filter(item => item.code === code), [{
+      code, label: '防衛特別法人税は含めていない',
+      reason: '令和8年4月1日以後に開始する事業年度には、防衛特別法人税（法人税額から年500万円を差し引いた額の4%。事業年度が1年未満なら500万円を月数で按分）が課されますが、この結果には含めていません。法人税額が年500万円以下なら0円です。',
+      isAmountUnknown: true,
+    }]);
+    const blocked = service.simulate({ ...validation.value, officerResidenceSameAsCompany: 'no' }, context, snapshotInfo);
+    assert.strictEqual(blocked.resultStatus, 'blocked');
+    assert(!blocked.excludedItems.some(item => item.code === code));
+    assert.strictEqual(modeC.result.resultStatus, 'complete');
+    assert(!modeC.result.excludedItems.some(item => item.code === code));
+  });
+  check('2026年の④→①をbrowser-entryの公開APIで渡すと所得年2026・住民税2027年度で受け入れる', () => {
+    const browser = require('../../../src/simulators/browser-entry.js');
+    const actual = run(baseState({ incomeTaxYear: 2026 }));
+    withFakeDocument(({ root }) => {
+      const app = browser.mountYakuinHoshu(root, { services: { yakuinHoshu: service,
+        hojinnari: require('../../../src/simulators/hojinnari/index.js') }, snapshotInfo,
+        now: () => calculatedAt, router: { navigate() {} } });
+      try {
+        app.store.setState(state => ({ ...state, screen: 'result', result: actual.result, viewModel: actual.viewModel }));
+        root.querySelector('.yh-primary').listeners.get('click')();
+        const state = app.store.getState();
+        assert.strictEqual(state.handoffNotice.accepted, true);
+        const context = buildCalculationContext({ ...state.form, municipalityKey: 'shibuya' }, snapshotInfo, calculatedAt);
+        assert.strictEqual(context.incomeTaxYear, 2026);
+        assert.strictEqual(context.residentTaxFiscalYear, 2027);
+        assert.deepStrictEqual(context.fiscalPeriod, { from: '2026-01-01', to: '2026-12-31' });
+      } finally { app.destroy(); }
+    });
+  });
+  check('④の見出しは全状態を日本語で表示し、未知の状態はTypeError', () => {
+    for (const [status, label] of [['complete', '計算完了'], ['partial', '一部概算'], ['blocked', '停止']]) {
+      const result = { ...modeC.result, resultStatus: status };
+      const viewModel = buildYakuinHoshuResultViewModel(result, { mode: 'C' });
+      assert.strictEqual(viewModel.resultStatus, status);
+      assert.strictEqual(viewModel.resultStatusLabel, label);
+      assert(viewModel.heading.includes(label));
+      assert(!viewModel.heading.includes(status));
+    }
+    assert.throws(() => buildYakuinHoshuResultViewModel({ ...modeC.result, resultStatus: 'unknown' }, { mode: 'C' }), TypeError);
+    const { resultStatusLabel, RESULT_STATUS_LABELS } = require('../../../src/ui/result-status-label.js');
+    assert(Object.isFrozen(RESULT_STATUS_LABELS));
+    for (const status of ['unknown', 'toString', '__proto__', undefined]) {
+      assert.throws(() => resultStatusLabel(status), TypeError);
+    }
   });
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
