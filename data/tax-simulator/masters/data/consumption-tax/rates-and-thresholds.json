@@ -487,8 +487,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-11-02",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "tax_or_insurance_type": "consumption_tax",
@@ -509,7 +509,7 @@
       "source_locator": "所得税法等の一部を改正する法律（平成28年法律第15号）附則53条1項1号（令和8年法律第12号14条による改正後。e-Gov 消費税法 363AC0000000108_20261101_507AC0000000013 の改正附則に収録）",
       "as_of_date": "2026-11-01",
       "legal_status": "effective",
-      "data_review_status": "unverified",
+      "data_review_status": "approved",
       "_note": "令和8年法律第12号14条で改正。改正前は令和8年10月1日から50%になる予定だったが、70%に引き上げたうえで期間を延長した"
     },
     {
@@ -519,8 +519,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-11-02",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "tax_or_insurance_type": "consumption_tax",
@@ -541,7 +541,7 @@
       "source_locator": "所得税法等の一部を改正する法律（平成28年法律第15号）附則53条1項2号（令和8年法律第12号14条による改正後。e-Gov 消費税法 363AC0000000108_20261101_507AC0000000013 の改正附則に収録）",
       "as_of_date": "2026-11-01",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "INV-TRANS-04",
@@ -550,8 +550,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-11-02",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "tax_or_insurance_type": "consumption_tax",
@@ -572,7 +572,7 @@
       "source_locator": "所得税法等の一部を改正する法律（平成28年法律第15号）附則53条1項3号（令和8年法律第12号14条による改正後。e-Gov 消費税法 363AC0000000108_20261101_507AC0000000013 の改正附則に収録）",
       "as_of_date": "2026-11-01",
       "legal_status": "enacted",
-      "data_review_status": "unverified"
+      "data_review_status": "approved"
     },
     {
       "record_id": "INV-TRANS-05",
@@ -581,8 +581,8 @@
       "calculation_order": 1,
       "rounding_rule_id": "R-NONE",
       "promulgated_at": "2026-03-31",
-      "verified_at": null,
-      "verified_by": null,
+      "verified_at": "2026-11-02",
+      "verified_by": "毛利順活税理士事務所",
       "applies_to_period_start_from": null,
       "applies_to_period_start_to": null,
       "tax_or_insurance_type": "consumption_tax",
@@ -603,7 +603,7 @@
       "source_locator": "所得税法等の一部を改正する法律（平成28年法律第15号）附則53条1項柱書（令和十三年九月三十日まで）（令和8年法律第12号14条による改正後。e-Gov 消費税法 363AC0000000108_20261101_507AC0000000013 の改正附則に収録）",
       "as_of_date": "2026-11-01",
       "legal_status": "enacted",
-      "data_review_status": "unverified",
+      "data_review_status": "approved",
       "_note": "経過措置の最後の段階（30%）が令和13年9月30日で終わるため、令和13年10月1日以後は経過措置なし"
     }
   ],
@@ -614,8 +614,8 @@
     "calculation_order": 1,
     "rounding_rule_id": "R-NONE",
     "promulgated_at": "2026-03-31",
-    "verified_at": null,
-    "verified_by": null,
+    "verified_at": "2026-11-02",
+    "verified_by": "毛利順活税理士事務所",
     "applies_to_transaction_from": null,
     "applies_to_transaction_to": null,
     "tax_or_insurance_type": "consumption_tax",
@@ -640,7 +640,7 @@
     "source_locator": "所得税法等の一部を改正する法律（平成28年法律第15号）附則52条1項（令和8年法律第12号14条による改正後。e-Gov 消費税法 363AC0000000108_20261101_507AC0000000013 の改正附則に収録）。適用は令和8年法律第12号 附則90条3項",
     "as_of_date": "2026-11-01",
     "legal_status": "effective",
-    "data_review_status": "unverified",
+    "data_review_status": "approved",
     "_previous_cap": {
       "unit": "JPY",
       "value": "1000000000"
