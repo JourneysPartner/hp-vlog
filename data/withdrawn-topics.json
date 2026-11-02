@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "comment": "日次生成で取り下げた題材。通常の選定では二度と選ばない。項目を消せば選定に戻る。",
+  "comment": "日次生成で取り下げた題材。通常の選定では二度と選ばない（generation-failed-candidate は expires_at までの一時的な除外）。項目を消せば選定に戻る。",
   "entries": [
     {
       "topic_id": "suggest-furima-sedori-1e1ea0",
@@ -81,6 +81,16 @@
       "target_query": "相続 手続き 期限",
       "date": "2026-10-09",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/37862926041"
+    },
+    {
+      "topic_id": "suggest-furima-mercari-f1d33d",
+      "stage": "pregen-dedup",
+      "similar_to": "mercari-yahoo-auction-tax-filing-threshold",
+      "reason": "「メルカリの売上はいくらから税金がかかるか・確定申告が必要か」という論点が同一で、不用品・グッズの扱いも同じ記事内で扱われる同一の読者疑問。",
+      "url_slug": "mercari-sales-tax-threshold",
+      "target_query": "メルカリ 売上 税金",
+      "date": "2026-11-02",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/41403961192"
     }
   ]
 }
