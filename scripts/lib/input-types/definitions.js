@@ -378,6 +378,7 @@ const definitions = {
     band: ref('ConsumptionTaxRateBand'),
     amount: ref('TaxIncl'),
   }, {
+    transactionDate: ref('LocalDate'),
     counterpartyId: string,
     counterpartyAnnualTotal: ref('TaxIncl'),
     hasRequiredRecords: ref('TriState'),

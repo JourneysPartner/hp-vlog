@@ -513,6 +513,9 @@
         "amount": {
           "$ref": "#/$defs/TaxInclWire"
         },
+        "transactionDate": {
+          "$ref": "#/$defs/LocalDateWire"
+        },
         "counterpartyId": {
           "type": "string"
         },

@@ -87,13 +87,22 @@ console.log('\n=== Test 2: 所得税の特定親族特別控除 ===');
 }
 
 console.log('\n=== Test 3: 住民税の配偶者特別控除（算式からの展開） ===');
-{
-  const R = rt.spouse_special.records;
+for (const year of [2025, 2026]) {
+  const R = recordsForYear(rt.spouse_special.records, year);
   assert(R.length === 32, `8段階 × 4区分 ＝ 32件（実: ${R.length}）`);
   assert(lookup(R, 0, 900000) === 330000n, '本人900万以下 × 配偶者100万以下 → 33万円（配偶者控除と同額）');
   assert(lookup(R, 0, 1020000) === 310000n, '配偶者100万超105万以下 → 31万円');
   assert(lookup(R, 0, 1320000) === 30000n, '配偶者130万超133万以下 → 3万円');
   assert(lookup(R, 10500000, 900000) === 0n, '本人1,000万円超は適用なし');
+
+  const boundary = year === 2025 ? 580000 : 620000;
+  for (const [self, amount] of [[0, 330000n], [9200000, 220000n],
+    [9800000, 110000n], [10500000, 0n]]) {
+    assert(lookup(R, self, boundary) === null,
+      year + '年: 本人' + self + '円・配偶者' + boundary + '円は配偶者特別控除の対象外');
+    assert(lookup(R, self, boundary + 1) === amount,
+      year + '年: 本人' + self + '円・配偶者' + (boundary + 1) + '円 → ' + amount + '円');
+  }
 
   // 2/3・1/3 の按分と1万円未満切上げ
   assert(lookup(R, 9200000, 900000) === 220000n, '本人900万超950万以下 → 33万×2/3 ＝ 22万円');
@@ -103,8 +112,12 @@ console.log('\n=== Test 3: 住民税の配偶者特別控除（算式からの�
 }
 
 console.log('\n=== Test 4: 住民税の特定親族特別控除（算式からの展開） ===');
-{
-  const R = rt.specific_relative_special.records;
+for (const year of [2025, 2026]) {
+  const R = recordsForYear(rt.specific_relative_special.records, year);
+  const boundary = year === 2025 ? 580000 : 620000;
+  assert(lookup(R, boundary) === 0n, year + '年: 特定親族' + boundary + '円は扶養控除の対象');
+  assert(lookup(R, boundary + 1) === 450000n,
+    year + '年: 特定親族' + (boundary + 1) + '円は特定親族特別控除45万円');
   assert(lookup(R, 900000) === 450000n, '所得95万以下 → 45万円（特定扶養親族の扶養控除と同額）');
   assert(lookup(R, 960000) === 410000n, '95万超100万以下 → 41万円');
   assert(lookup(R, 1160000) === 60000n, '115万超120万以下 → 6万円');
@@ -117,7 +130,7 @@ for (const year of [2025, 2026]) {
   console.log('  対象年: ' + year);
   // 所得税は表（No.1195）、住民税は算式（地税法34条1項10号の2）で出所が違う。
   // 配偶者の所得が100万円を超える範囲では両者が同額になるはず。
-  const IT = recordsForYear(itSpouse.records, year), RT = rt.spouse_special.records;
+  const IT = recordsForYear(itSpouse.records, year), RT = recordsForYear(rt.spouse_special.records, year);
   const probes = [1020000, 1070000, 1120000, 1170000, 1220000, 1270000, 1320000];
   let mismatch = 0;
   for (const spouseIncome of probes) {
@@ -135,7 +148,7 @@ for (const year of [2025, 2026]) {
     '配偶者所得95万以下では所得税38万・住民税33万で異なる');
 
   // 特定親族特別控除も95万円超では一致するはず
-  const ITR = recordsForYear(itRel.records, year), RTR = rt.specific_relative_special.records;
+  const ITR = recordsForYear(itRel.records, year), RTR = recordsForYear(rt.specific_relative_special.records, year);
   let relMismatch = 0;
   for (const income of [960000, 1020000, 1070000, 1120000, 1160000, 1220000]) {
     const a = lookup(ITR, income), b = lookup(RTR, income);
@@ -152,7 +165,8 @@ console.log('\n=== Test 6: 段階の連続性 ===');
 {
   // 所得が1軸のもの（特定親族特別控除）は income_lower/upper で連続性を見る
   for (const [label, records] of [
-    ['住民税 特定親族特別控除', rt.specific_relative_special.records],
+    ['住民税2025年 特定親族特別控除', recordsForYear(rt.specific_relative_special.records, 2025)],
+    ['住民税2026年 特定親族特別控除', recordsForYear(rt.specific_relative_special.records, 2026)],
     ['所得税2025年 特定親族特別控除', recordsForYear(itRel.records, 2025)],
     ['所得税2026年 特定親族特別控除', recordsForYear(itRel.records, 2026)],
   ]) {
@@ -169,7 +183,8 @@ console.log('\n=== Test 6: 段階の連続性 ===');
   // 配偶者特別控除は2軸。配偶者の所得は applicability_conditions 側にあるので
   // そちらで連続性を見る。本人の所得は同じ4区分が全帯で繰り返される。
   for (const [label, records] of [
-    ['住民税 配偶者特別控除', rt.spouse_special.records],
+    ['住民税2025年 配偶者特別控除', recordsForYear(rt.spouse_special.records, 2025)],
+    ['住民税2026年 配偶者特別控除', recordsForYear(rt.spouse_special.records, 2026)],
     ['所得税2025年 配偶者特別控除', recordsForYear(itSpouse.records, 2025)],
     ['所得税2026年 配偶者特別控除', recordsForYear(itSpouse.records, 2026)],
   ]) {
@@ -253,6 +268,60 @@ console.log('\n=== Test 8: 期間の切れ目と重複 ===');
       const hits = relative.filter(record => lookup([record], income) !== null);
       assert(hits.length <= 1, year + '年: 特定親族' + income + '円の重複なし');
     }
+  }
+}
+
+
+console.log('\n=== Test 9: C-14・C-15の出典・金額・期間 ===');
+{
+  const basic = JSON.parse(fs.readFileSync(path.join(M, 'basic-deduction', 'deductions.json'), 'utf8'));
+  const invoice = JSON.parse(fs.readFileSync(path.join(M, 'consumption-tax', 'rates-and-thresholds.json'), 'utf8'));
+  const basicRecords = [...basic.r8.records, ...basic.r9.records];
+  assert(basicRecords.length === 14, 'BD-R8・BD-R9は14件');
+  for (const record of basicRecords) {
+    const tier = Number(record.record_id.slice(-2));
+    assert(record.source_document_id === (tier <= 2
+      ? 'EGOV-SPECIAL-TAX-MEASURES' : 'EGOV-INCOME-TAX-ACT'),
+    record.record_id + 'の出典は大綱から条文へ差し替える');
+    assert(!record.source_document_id.startsWith('MOF-') && record.legal_status === 'enacted',
+      record.record_id + 'は大綱を参照せず施行前のまま');
+  }
+  for (const records of [basic.r8.records, basic.r9.records]) {
+    assert(yen(records[0].deduction_amount) === 620000n + 420000n, '第1段は62万＋42万＝104万円');
+    assert(yen(records[1].deduction_amount) === 620000n + 50000n, '第2段は62万＋5万＝67万円');
+  }
+  const invoiceRecords = [...invoice.invoice_transition_rates, invoice.invoice_counterparty_cap]
+    .filter(record => ['INV-TRANS-02', 'INV-TRANS-03', 'INV-TRANS-04', 'INV-TRANS-05', 'INV-CAP-R8']
+      .includes(record.record_id));
+  assert(invoiceRecords.length === 5, 'インボイスの出典差し替えは5件');
+  for (const record of invoiceRecords) {
+    assert(record.source_document_id === 'EGOV-CONSUMPTION-TAX-ACT',
+      record.record_id + 'は消費税法の改正附則を参照する');
+    const expected = ['INV-TRANS-02', 'INV-CAP-R8'].includes(record.record_id) ? 'effective' : 'enacted';
+    assert(record.legal_status === expected, record.record_id + 'の法的状態は' + expected);
+  }
+  assert(rt.spouse_special.records.length === 36 && rt.specific_relative_special.records.length === 11,
+    '住民税は既存41件に6件を追加した47件');
+  const pairs = [
+    ...[1, 2, 3, 4].map(n => [rt.spouse_special.records, 'RT-SPOUSE-SP-S01-T' + n,
+      'RT-SPOUSE-SP-R9-S01-T' + n]),
+    ...['00', '01'].map(n => [rt.specific_relative_special.records, 'RT-SPECREL-T' + n,
+      'RT-SPECREL-R9-T' + n]),
+  ];
+  assert(pairs.length * 2 === 12, '住民税の変更対象は新旧12件');
+  for (const [records, oldId, newId] of pairs) {
+    const oldRecords = records.filter(record => record.record_id === oldId);
+    const newRecords = records.filter(record => record.record_id === newId);
+    assert(oldRecords.length === 1 && newRecords.length === 1, oldId + 'と' + newId + 'は各1件');
+    const old = oldRecords[0], added = newRecords[0];
+    assert(yen(old.deduction_amount) === yen(added.deduction_amount) &&
+      old.deduction_category === added.deduction_category && old.calculation_order === added.calculation_order,
+    newId + 'は同じ段の金額・分類・順番を保つ');
+    assert(old.effective_from === '2025-01-01' && old.effective_to === '2025-12-31' &&
+      added.effective_from === '2026-01-01' && added.effective_to === null,
+    newId + 'への期間の切替に重複も隙間もない');
+    assert(old.legal_status === 'effective' && added.legal_status === 'enacted',
+      newId + 'は令和9年1月1日の施行前');
   }
 }
 

@@ -443,6 +443,40 @@ console.log('\n=== C-15: 所得要件の記録の欠け・重なりでは停止�
     '異常記録の試験後は本物の住民税モジュールに戻る');
 }
 
+
+console.log('\n=== C-15記録: 所得年ごとの58万円・62万円の境界 ===');
+for (const [year, total, spouse, special] of [
+  [2025, 580000, 330000n, 0n], [2025, 580001, 0n, 330000n],
+  [2026, 580001, 330000n, 0n], [2026, 620000, 330000n, 0n],
+  [2026, 620001, 0n, 330000n],
+]) {
+  const r = calc({ previousYearTotalIncome: yen(6000000),
+    spouse: { exists: true, totalIncome: yen(total) } }, { incomeYear: year });
+  assert(r.status === 'complete', year + '年・配偶者所得' + total + '円の計算が完了する');
+  for (const [label, actual, expected] of [
+    ['配偶者控除', r.incomeDeductions.spouse.value, spouse],
+    ['配偶者特別控除', r.incomeDeductions.spouseSpecial.value, special],
+    ['年税額', r.annualTaxTotal.value, 526500n],
+  ]) assert(actual === expected,
+    year + '年・配偶者所得' + total + '円: ' + label + 'は' + expected + '円 (実際' + actual + '円)');
+}
+for (const [year, boundary] of [[2025, 580000], [2026, 620000]]) {
+  for (const [age, total, kind, amount] of [
+    [17, boundary, 'dependent', 330000n], [17, boundary + 1, 'dependent', 0n],
+    [20, boundary, 'dependent', 450000n], [20, boundary + 1, 'specificRelativeSpecial', 450000n],
+  ]) {
+    const r = calc({ previousYearTotalIncome: yen(6000000),
+      dependents: [{ id: 'boundary-child', ageAtYearEnd: age, totalIncome: yen(total) }] },
+    { incomeYear: year });
+    const row = r.deductionDetails.dependents[0];
+    assert(r.status === 'complete' && row.kind === kind && row.amount.value === amount,
+      year + '年・' + age + '歳・所得' + total + '円: ' + kind + 'は' + amount + '円 (実際' + row.amount.value + '円)');
+    assert(r.incomeDeductions.dependents.value === (kind === 'dependent' ? amount : 0n) &&
+      r.incomeDeductions.specificRelativeSpecial.value === (kind === 'specificRelativeSpecial' ? amount : 0n),
+    year + '年・' + age + '歳・所得' + total + '円: 扶養と特定親族特別控除を重複適用しない');
+  }
+}
+
 console.log('\n=== F1: 老人扶養親族の人的控除差 ===');
 {
   for (const [together, deduction, taxable, difference, municipal, prefectural, annual, suffix] of [

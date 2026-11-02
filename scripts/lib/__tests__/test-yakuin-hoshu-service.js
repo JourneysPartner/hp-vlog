@@ -606,6 +606,24 @@ console.log('\n=== C-7: ④の特例と前提 ===');
   }
 }
 
+console.log('\n=== C-15記録: 住民税の施行前注記はサービスで付ける ===');
+{
+  const input = modeCInput(500000, {
+    spouse: { exists: true, ageAtYearEnd: 40, totalIncome: yen(620001) },
+    dependents: [{ id: 'r9-relative', relation: 'child', ageAtYearEnd: 20, totalIncome: yen(620001) }],
+  });
+  input.plan.monthlySegments[0].period = r8Context.fiscalPeriod;
+  const actual = service.simulate(input, r8Context, snapshotInfo);
+  assert(actual.resultStatus === 'partial' &&
+    actual.warnings.some(w => w.code === 'MASTER_PENDING_LAW_APPLIED'),
+  '2026年の住民税の新記録を使った結果にはサービスで施行前注記を付ける');
+  for (const recordId of ['RT-SPOUSE-SP-R9-S01-T1', 'RT-SPECREL-R9-T01']) {
+    assert(actual.usedMasterRecords.some(record =>
+      record.recordId === recordId && record.legalStatus === 'enacted'),
+    '2026年の使用記録に' + recordId + 'を載せる');
+  }
+}
+
 console.log('\n=== F9: 住民税マスターの欠けは継続不可の警告 ===');
 {
   const residentPath = require.resolve('../../../src/tax-engine/resident-tax/index.js');

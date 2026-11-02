@@ -62,6 +62,21 @@ const ANALYTICS_BEACON = `
 (() => {
   if (location.hostname !== 'mori-zeirishi.net' || navigator.doNotTrack === '1') return;
   const data = { p: location.pathname };
+  let visit;
+  try { visit = JSON.parse(sessionStorage.getItem('mz_visit')); } catch (e) {}
+  let host = '';
+  try { host = new URL(document.referrer).hostname; } catch (e) {}
+  if (!visit && host !== location.hostname) {
+    visit = { i: Math.random().toString(36).slice(2, 14), s: host };
+    try {
+      const utm = new URLSearchParams(location.search).get('utm_source');
+      if (utm !== null) visit.u = utm.slice(0, 32);
+    } catch (e) {}
+    try { sessionStorage.setItem('mz_visit', JSON.stringify(visit)); } catch (e) {}
+    data.v = visit.i;
+    data.s = visit.s;
+    if (visit.u !== undefined) data.u = visit.u;
+  }
   const isContact = p => ['/contact', '/contact.html', '/contact/'].includes(p);
   const isThanks = p => ['/contact-thanks', '/contact-thanks.html', '/contact-thanks/'].includes(p);
   const fromKey = 'mz_contact_from';
@@ -92,6 +107,20 @@ const ANALYTICS_BEACON = `
     } catch (e) {}
   }
   send(data);
+  if (visit && !visit.e && !navigator.webdriver) {
+    const events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
+    const options = { capture: true, passive: true };
+    const engage = () => {
+      if (visit.e) return;
+      events.forEach(type => document.removeEventListener(type, engage, options));
+      visit.e = 1;
+      try { sessionStorage.setItem('mz_visit', JSON.stringify(visit)); } catch (e) {}
+      const body = { p: location.pathname, e: 'engaged', v: visit.i, s: visit.s };
+      if (visit.u !== undefined) body.u = visit.u;
+      send(body);
+    };
+    events.forEach(type => document.addEventListener(type, engage, options));
+  }
   if (isThanks(location.pathname)) {
     try { sessionStorage.removeItem(fromKey); } catch (e) {}
   }

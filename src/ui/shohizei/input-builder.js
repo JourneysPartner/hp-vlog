@@ -1,6 +1,6 @@
 'use strict';
 
-const { CONSUMPTION_TAX_PERIOD } = require('./context-builder.js');
+const { CONSUMPTION_TAX_PERIOD, invoiceTransitionSplit } = require('./context-builder.js');
 
 class ShohizeiInputBuildError extends Error {
   constructor(errors) {
@@ -139,7 +139,7 @@ function eligibility(formState, errors) {
   };
 }
 
-function transactions(formState, errors) {
+function transactions(formState, errors, period) {
   const salesValue = {
     kind: 'detailed',
     taxable: [
@@ -164,7 +164,8 @@ function transactions(formState, errors) {
     taxableWithoutInvoice: [],
   };
   if (formState.hasPurchasesWithoutInvoice === 'yes') {
-    purchaseValue.taxableWithoutInvoice.push({
+    const split = invoiceTransitionSplit(period);
+    const afterPurchase = {
       band: formState.purchasesWithoutInvoiceBand || 'standard_10',
       amount: taxIncl(formState.purchasesWithoutInvoice,
         formState.purchasesWithoutInvoiceBasis,
@@ -174,14 +175,25 @@ function transactions(formState, errors) {
       hasRequiredRecords: triState(formState.purchasesWithoutInvoiceRecords,
         '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords', errors,
         '帳簿と請求書の保存状況'),
-    });
+    };
+    if (split) afterPurchase.transactionDate = split.afterDate;
+    purchaseValue.taxableWithoutInvoice.push(afterPurchase);
+    if (split) {
+      purchaseValue.taxableWithoutInvoice.push({
+        ...afterPurchase,
+        amount: taxIncl(formState.purchasesWithoutInvoiceBeforeChange,
+          formState.purchasesWithoutInvoiceBeforeChangeBasis,
+          '$.purchases[0].value.taxableWithoutInvoice[1].amount', errors),
+        transactionDate: split.beforeDate,
+      });
+    }
   } else if (formState.hasPurchasesWithoutInvoice !== 'no') {
     errors.push(issue('SZ_UI_SELECTION_REQUIRED', '$.purchases[0].value.taxableWithoutInvoice',
       'インボイスなし仕入の有無を選択してください'));
   }
   return {
-    sales: [{ period: { ...CONSUMPTION_TAX_PERIOD }, value: salesValue }],
-    purchases: [{ period: { ...CONSUMPTION_TAX_PERIOD }, value: purchaseValue }],
+    sales: [{ period: { ...period }, value: salesValue }],
+    purchases: [{ period: { ...period }, value: purchaseValue }],
   };
 }
 
@@ -210,7 +222,8 @@ function buildShohizeiInput(formState, options = {}) {
         '$.specialistChecks.complexTaxableSalesRatio', errors, '複雑な課税売上割合への該当'),
     },
   };
-  if (!options.emptyTransactions) Object.assign(input, transactions(formState, errors));
+  const period = options.consumptionTaxPeriod || CONSUMPTION_TAX_PERIOD;
+  if (!options.emptyTransactions) Object.assign(input, transactions(formState, errors, period));
   if (formState.simplifiedElectionStatus === 'yes') {
     input.simplified = { categorySelectedByUser: true };
     if (formState.simplifiedCategory) input.simplified.primaryCategory = formState.simplifiedCategory;

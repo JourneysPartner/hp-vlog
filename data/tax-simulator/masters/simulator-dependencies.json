@@ -133,6 +133,13 @@
             "simplified_taxation_ceiling",
             "taxable_sales_exemption_threshold"
           ]
+        },
+        {
+          "_basis": "台帳 C-15。配偶者・親族の所得で控除の種類を決める上限の値。一部だけ未承認のまま公開すると、該当者の令和7年分の計算まで止まるので必須に置く",
+          "value_keys": [
+            "resident_tax_deduction_spouse_special",
+            "resident_tax_deduction_specific_relative_special"
+          ]
         }
       ],
       "optional": [
@@ -158,9 +165,7 @@
           "_basis": "入力型設計書 §8-1『residentTaxBasis / individual.jurisdiction』の resident_tax_deduction_*。該当する人的控除がある場合だけ使う。",
           "value_keys": [
             "resident_tax_deduction_spouse",
-            "resident_tax_deduction_spouse_special",
             "resident_tax_deduction_dependent",
-            "resident_tax_deduction_specific_relative_special",
             "resident_tax_deduction_disability",
             "resident_tax_deduction_widow",
             "resident_tax_deduction_single_parent",
@@ -285,17 +290,16 @@
             "simplified_taxation_ceiling",
             "simplified_deemed_purchase_rates"
           ]
-        }
-      ],
-      "optional": [
+        },
         {
-          "_basis": "入力型設計書 §8-2『purchases[].taxableWithoutInvoice』。インボイスの無い仕入れがある場合だけ使う。",
+          "_basis": "台帳 C-14。INV-CAP-R8 は適用前の年でも確かめに使う。未承認のまま公開すると、インボイスなしの仕入れがある令和7年分の結果まで下がるので必須に置く",
           "value_keys": [
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap"
           ]
         }
-      ]
+      ],
+      "optional": []
     },
     "sozoku": {
       "_label": "相続税",
@@ -488,6 +492,13 @@
         {
           "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
           "value_keys": ["life_insurance_deduction_new_under23"]
+        },
+        {
+          "_basis": "台帳 C-15。配偶者・親族の所得で控除の種類を決める上限の値。一部だけ未承認のまま公開すると、該当者の令和7年分の計算まで止まるので必須に置く",
+          "value_keys": [
+            "resident_tax_deduction_spouse_special",
+            "resident_tax_deduction_specific_relative_special"
+          ]
         }
       ],
       "optional": [
@@ -502,9 +513,7 @@
             "income_deduction_single_parent",
             "income_deduction_working_student",
             "resident_tax_deduction_spouse",
-            "resident_tax_deduction_spouse_special",
             "resident_tax_deduction_dependent",
-            "resident_tax_deduction_specific_relative_special",
             "resident_tax_deduction_disability",
             "resident_tax_deduction_widow",
             "resident_tax_deduction_single_parent",
