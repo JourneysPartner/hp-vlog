@@ -10,6 +10,7 @@ const LIFE_INSURANCE_UNDER23_ASSUMPTION =
 
 const { validateInput } = require('../core/validator.js');
 const { buildSimulationResult } = require('../core/result-builder.js');
+const { defenseCorporateTaxExcludedItem } = require('../core/defense-corporate-tax.js');
 const yakuinHoshu = require('../yakuin-hoshu/service.js');
 const shohizei = require('../shohizei/service.js');
 const income = require('../../tax-engine/income/index.js');
@@ -578,7 +579,7 @@ function calculateSoleProprietor(input, context) {
     ),
   }, {
     incomeYear: incomeYearFrom(context),
-    residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYearFrom(context),
+    residentTaxFiscalYear: context.residentTaxFiscalYear ?? (incomeYearFrom(context) + 1),
     jurisdiction: context.jurisdiction,
   });
   blocked = engineBlockedReasons(residentTaxResult, 'RESIDENT_TAX', '$.individual');
@@ -781,7 +782,7 @@ function calculateTransitionCorporation(input, context, periods) {
     ),
   }, {
     incomeYear: incomeYearFrom(context),
-    residentTaxFiscalYear: context.residentTaxFiscalYear ?? incomeYearFrom(context),
+    residentTaxFiscalYear: context.residentTaxFiscalYear ?? (incomeYearFrom(context) + 1),
     jurisdiction: context.jurisdiction,
   });
   blocked = engineBlockedReasons(residentTaxResult, 'RESIDENT_TAX', '$.individual');
@@ -1241,12 +1242,14 @@ function calculateTransitionYear(input, context) {
     corporateCombinedCash, soleScenario.personalDisposableCash
   );
   const consumptionTaxResult = { resolved: true, excludedItems: [] };
+  const defenseExcludedItem = defenseCorporateTaxExcludedItem(context.fiscalPeriod);
   const excludedItems = [
     ...partialItems(input, consumptionTaxResult),
     ...(corporation.excludedItems || []),
+    ...(defenseExcludedItem ? [defenseExcludedItem] : []),
   ];
   const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
-    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation) || !!defenseExcludedItem;
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {
@@ -1309,13 +1312,15 @@ function calculate(input, context, masters) {
     corporateCombinedCash,
     soleScenario.personalDisposableCash
   );
+  const defenseExcludedItem = defenseCorporateTaxExcludedItem(context.fiscalPeriod);
   const excludedItems = [
     ...partialItems(input, consumptionTaxResult),
     ...(corporation.excludedItems || []),
+    ...(defenseExcludedItem ? [defenseExcludedItem] : []),
   ];
   const isPartial = input.corporate.locationSameAsResidence !== 'yes' ||
     (input.consumptionTax.include === true && !consumptionTaxResult.resolved) ||
-    usesPriorFiscalYearNhiRate(soleProprietor, corporation);
+    usesPriorFiscalYearNhiRate(soleProprietor, corporation) || !!defenseExcludedItem;
   return {
     resultStatus: isPartial ? 'partial' : 'complete',
     summary: {

@@ -133,16 +133,20 @@ try {
     assert(!html.includes('sendBeacon'));
     assert(!html.includes('input-secret-value'));
     assert(!html.includes('9876543212345'));
-    assert(html.includes('配偶者控除・扶養控除・障害者控除・小規模企業共済/iDeCoには対応'));
-    assert(html.includes('16歳未満の扶養親族に係る障害者控除'));
+    assert(html.includes('その他所得、寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除'));
+    assert(!html.includes('移行年度の個人期間・法人期間を分けた比較'));
+    assert(!html.includes('生命保険料控除等の各種控除・税額控除'));
+    assert(html.includes('防衛特別法人税（令和8年4月1日以後に開始する事業年度。法人税額が年500万円（事業年度が1年未満なら月数で按分した額）以下なら0円）'));
+    assert(!html.includes('16歳未満の扶養親族に係る障害者控除'));
     assert(html.includes('配偶者・扶養親族ご自身の国民健康保険料・国民年金保険料（世帯分）'));
   });
   check('④の含めない項目は対応済み控除を除外せず、第1弾の範囲を明示する', () => {
     const definition = TOOL_DEFINITIONS.yakuin_hoshu;
     assert(definition.excludedItems.includes(
-      '生命保険料控除等の各種控除（配偶者控除・扶養控除・障害者控除・小規模企業共済/iDeCoには対応）'
+      '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除'
     ));
-    assert(definition.excludedItems.includes('16歳未満の扶養親族に係る障害者控除'));
+    assert(!definition.excludedItems.some(item => item.includes('生命保険料控除等の各種控除')));
+    assert(!definition.excludedItems.includes('16歳未満の扶養親族に係る障害者控除'));
     assert(!definition.excludedItems.some(item => item === '配偶者・扶養等の人的控除'));
   });
   check('4ツールは専用ヘッダ・簡素なフッタを持ち、共通ナビと固定CTAを含まない', () => {

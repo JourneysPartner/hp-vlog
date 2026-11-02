@@ -1,5 +1,7 @@
 'use strict';
 
+const { resultStatusLabel } = require('../result-status-label.js');
+
 const { pendingLawNoticeFrom } = require('../pending-law-notice.js');
 
 const { resolveQuestion } = require('./question-catalog.js');
@@ -117,6 +119,7 @@ function grounds(result) {
 function common(result) {
   return {
     resultStatus: result.resultStatus,
+    resultStatusLabel: resultStatusLabel(result.resultStatus),
     periodLabel: result.periodLabel,
     pendingLawNotice: result.resultStatus === 'blocked' ? undefined : pendingLawNoticeFrom(result),
     warnings: sortedWarnings(result.warnings),
@@ -136,7 +139,7 @@ function buildBlockedViewModel(result) {
   const general = methodResults.find(row => row.methodCode === 'general');
   return Object.freeze({
     ...common(result),
-    heading: `試算停止（${result.periodLabel}・blocked）`,
+    heading: `試算停止（${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
     isExempt: false,
     eligibilityRows: rows,
     comparisonRows: Object.freeze([]),
@@ -171,7 +174,7 @@ function buildResultViewModel(result) {
     const hasExportExempt = result.breakdown.data.hasExportExempt === true;
     return Object.freeze({
       ...common(result),
-      heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
+      heading: `試算結果（${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
       isExempt: true,
       exemptTitle: '納税義務なし（免税事業者）',
       exemptNotice: hasExportExempt
@@ -199,7 +202,7 @@ function buildResultViewModel(result) {
   const keyAmount = isRefund ? result.summary.amount : recommended && recommended.amount;
   return Object.freeze({
     ...common(result),
-    heading: `試算結果（${result.periodLabel}・${result.resultStatus}）`,
+    heading: `試算結果（${result.periodLabel}・${resultStatusLabel(result.resultStatus)}）`,
     isExempt: false,
     isPartial: result.resultStatus === 'partial',
     eligibilityRows: rows,

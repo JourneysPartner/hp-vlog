@@ -3,7 +3,7 @@
 const { appendFamilyFacts } = require('../family-input.js');
 const { appendPhase2Deductions } = require('../phase2-deduction-input.js');
 
-const YEAR_PERIOD = Object.freeze({ from: '2025-01-01', to: '2025-12-31' });
+const { DEFAULT_YEAR } = require('./context-builder.js');
 
 class HojinnariInputBuildError extends Error {
   constructor(errors) {
@@ -87,9 +87,9 @@ function buildHojinnariInput(formState, context) {
   }
   const errors = [];
   const isTransition = formState.comparisonBasis === 'transition_year';
-  const year = Number(formState.incomeTaxYear || 2025);
+  const year = Number(formState.incomeTaxYear || DEFAULT_YEAR);
   const establishedOn = formState.establishedOn;
-  let individualPeriod = YEAR_PERIOD;
+  let individualPeriod = { from: `${year}-01-01`, to: `${year}-12-31` };
   let corporatePeriod = context.fiscalPeriod;
   if (isTransition) {
     const establishedDate = new Date(`${establishedOn}T00:00:00Z`);

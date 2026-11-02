@@ -7,7 +7,7 @@ const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
 const {
-  buildCalculationContext, CONSUMPTION_TAX_PERIOD, invoiceTransitionSplit,
+  buildCalculationContext, DEFAULT_YEAR, consumptionTaxPeriodFor, invoiceTransitionSplit,
 } = require('./context-builder.js');
 const { ShohizeiInputBuildError, buildShohizeiInput } = require('./input-builder.js');
 const { buildResultViewModel } = require('./result-view-model.js');
@@ -24,7 +24,7 @@ const BASIS_OPTIONS = Object.freeze([
   { value: 'exclusive', label: '税抜' },
 ]);
 const INITIAL_FORM = Object.freeze({
-  consumptionTaxYear: 2025,
+  consumptionTaxYear: DEFAULT_YEAR,
   taxpayerType: '',
   invoiceRegistered: '',
   invoiceRegisteredOn: '',
@@ -35,9 +35,9 @@ const INITIAL_FORM = Object.freeze({
   specifiedPeriodTaxableSales: '',
   specifiedPeriodSalaryPayments: '',
   simplifiedElectionStatus: '',
-  simplifiedElectionEffectiveYear: '2025',
+  simplifiedElectionEffectiveYear: String(DEFAULT_YEAR),
   taxablePersonElectionStatus: '',
-  taxablePersonElectionEffectiveYear: '2025',
+  taxablePersonElectionEffectiveYear: String(DEFAULT_YEAR),
   isNewlyEstablished: '',
   isSpecifiedNewlyEstablished: '',
   inheritance: '',
@@ -109,11 +109,14 @@ const STYLE_TEXT = `
 @media print{.shohizei-no-print{display:none!important}.shohizei-app{max-width:none;padding:0}.shohizei-card{box-shadow:none;break-inside:avoid}.shohizei-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
 
-function cloneInitialForm() { return { ...INITIAL_FORM }; }
+function cloneInitialForm(year) {
+  return { ...INITIAL_FORM, consumptionTaxYear: year,
+    simplifiedElectionEffectiveYear: String(year), taxablePersonElectionEffectiveYear: String(year) };
+}
 
 function mountShohizeiApp(rootElement, {
   services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
-  consumptionTaxPeriod = CONSUMPTION_TAX_PERIOD,
+  consumptionTaxPeriod = consumptionTaxPeriodFor(DEFAULT_YEAR),
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -123,8 +126,14 @@ function mountShohizeiApp(rootElement, {
     throw new TypeError('shohizeiサービスが必要です');
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const year = Number(consumptionTaxPeriod && String(consumptionTaxPeriod.from).slice(0, 4));
+  const yearPeriod = consumptionTaxPeriodFor(year);
+  if (consumptionTaxPeriod.from !== yearPeriod.from || consumptionTaxPeriod.to !== yearPeriod.to) {
+    throw new RangeError('課税期間は対応する年の1月1日から12月31日までで指定してください');
+  }
+  consumptionTaxPeriod = yearPeriod;
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+  const store = createStore({ screen: 'input', step: 1, form: cloneInitialForm(year), errors: [], result: null, viewModel: null });
   let destroyed = false;
   rootElement.classList.add('shohizei-app');
   const pageView = createSimulatorPageView(rootElement, {
@@ -204,7 +213,7 @@ function mountShohizeiApp(rootElement, {
       ...stepHeader(1, '事業者の状況'), errorSummary(),
       el('p', { className: 'shohizei-help' },
         '入力と計算はこのブラウザ内で完結し、金額を保存・解析送信しません。'),
-      el('p', {}, '課税期間：2025年1月1日〜12月31日（第1版固定）'),
+      el('p', {}, `課税期間：${year}年1月1日〜12月31日（第1版固定）`),
       ...selectField('taxpayerType', 'sz-taxpayer-type', '事業者の区分', '3割特例の判定に影響します。', [
         { value: '', label: '選択してください' }, { value: 'individual', label: '個人事業者' }, { value: 'corporation', label: '法人' },
       ], '$.taxpayerType', true),
@@ -390,7 +399,7 @@ function mountShohizeiApp(rootElement, {
     if (result.resultStatus === 'blocked') announceAlert('条件を確認できないため計算を停止しました');
   }
   function resetState() {
-    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null, viewModel: null });
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(year), errors: [], result: null, viewModel: null });
   }
   function clearAll() {
     if (browserWindow && typeof browserWindow.confirm === 'function' &&
@@ -451,6 +460,7 @@ function mountShohizeiApp(rootElement, {
   function renderBlocked(viewModel) {
     return el('main', {}, [
       el('h1', { id: 'sz-result-heading', tabindex: '-1' }, viewModel.heading),
+      el('p', { className: 'shohizei-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       eligibilitySection(viewModel),
       ...viewModel.alerts.map(alert => el('section', { className: 'shohizei-card', role: 'alert' }, [
         el('h2', {}, alert.heading), el('p', {}, alert.description),
@@ -488,7 +498,7 @@ function mountShohizeiApp(rootElement, {
         ]),
       ],
       ...commonResultSections(viewModel),
-      el('p', { className: 'shohizei-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      el('p', { className: 'shohizei-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       resultActions(), el('p', { className: 'shohizei-placeholder shohizei-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }

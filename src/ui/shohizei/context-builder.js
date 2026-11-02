@@ -2,11 +2,13 @@
 
 const { buildContextMetadata } = require('../context-builder.js');
 
-const SUPPORTED_YEAR = 2025;
-const CONSUMPTION_TAX_PERIOD = Object.freeze({
-  from: '2025-01-01',
-  to: '2025-12-31',
-});
+const SUPPORTED_YEARS = Object.freeze([2025, 2026]);
+const DEFAULT_YEAR = 2026;
+
+function consumptionTaxPeriodFor(year) {
+  if (!SUPPORTED_YEARS.includes(year)) throw new RangeError('課税期間は2025年か2026年で指定してください');
+  return Object.freeze({ from: `${year}-01-01`, to: `${year}-12-31` });
+}
 
 const INVOICE_TRANSITION_CHANGE_DATE = '2026-10-01';
 
@@ -22,19 +24,19 @@ function buildCalculationContext(formState, snapshotInfo, calculatedAt) {
     throw new TypeError('フォーム状態はオブジェクトで指定してください');
   }
   const year = formState.consumptionTaxYear === undefined
-    ? SUPPORTED_YEAR
+    ? DEFAULT_YEAR
     : Number(formState.consumptionTaxYear);
-  if (year !== SUPPORTED_YEAR) throw new RangeError('第1版の課税期間は2025年だけです');
   return {
     ...buildContextMetadata(snapshotInfo, calculatedAt),
-    consumptionTaxPeriod: { ...CONSUMPTION_TAX_PERIOD },
+    consumptionTaxPeriod: { ...consumptionTaxPeriodFor(year) },
     jurisdiction: { country: 'JP' },
   };
 }
 
 module.exports = Object.freeze({
-  SUPPORTED_YEAR,
-  CONSUMPTION_TAX_PERIOD,
+  SUPPORTED_YEARS,
+  DEFAULT_YEAR,
+  consumptionTaxPeriodFor,
   INVOICE_TRANSITION_CHANGE_DATE,
   invoiceTransitionSplit,
   buildCalculationContext,

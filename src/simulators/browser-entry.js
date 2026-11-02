@@ -11,6 +11,7 @@ const shohizei = require('./shohizei/index.js');
 const sozoku = require('./sozoku/index.js');
 const yakuinHoshu = require('./yakuin-hoshu/index.js');
 const { mountHojinnariApp } = require('../ui/hojinnari/app.js');
+const { DEFAULT_YEAR } = require('../ui/hojinnari/context-builder.js');
 const { mountShohizeiApp } = require('../ui/shohizei/app.js');
 const { mountSozokuApp } = require('../ui/sozoku/app.js');
 const { mountYakuinHoshuApp } = require('../ui/yakuin-hoshu/app.js');
@@ -196,11 +197,11 @@ function mountSozoku(rootElement, options = {}) {
 
 function expectedHojinnariContext(handoff, snapshotInfo) {
   const source = handoff.calculationContext;
-  const year = 2025;
+  const year = DEFAULT_YEAR;
   return {
     ...source,
     incomeTaxYear: year,
-    residentTaxFiscalYear: year,
+    residentTaxFiscalYear: year + 1,
     fiscalPeriod: { from: `${year}-01-01`, to: `${year}-12-31` },
     socialInsuranceMonths: [`${year}-04`],
     jurisdiction: {

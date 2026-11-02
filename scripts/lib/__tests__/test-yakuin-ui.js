@@ -73,12 +73,13 @@ function rowAmount(rows, code) {
   return rows.find(row => row.code === code).exactYen;
 }
 
-function main() {
+async function main() {
   process.stdout.write('\n=== 初期画面・ページ遷移 ===\n');
   check('マウント直後はモード選択で、遷移時に先頭スクロール後フォーカスしintroを圧縮・復元する', () => {
     withFakeDocument(({ root, intro }) => {
       const calls = [];
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
         introElement: intro,
         scrollToAppTop() { calls.push('scroll'); },
@@ -232,6 +233,7 @@ function main() {
   check('共通入力に家族欄・説明・対応準備中注記を表示し、結果詳細にも人的控除を表示する', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'input', step: 1,
@@ -252,7 +254,7 @@ function main() {
       assert(root.textContent.includes('新契約：一般生命保険料（年額）'));
       assert(root.textContent.includes('ふるさと納税の年間寄附額'));
       assert(root.textContent.includes('源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'));
-      assert(root.textContent.includes('医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません'));
+      assert(root.textContent.includes('寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません'));
       assert(root.textContent.includes('ワンストップ特例は使用せず'));
       assert(!root.textContent.includes('単身'));
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -305,6 +307,7 @@ function main() {
     assert(!upper.viewModel.handoffAvailable);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -355,6 +358,7 @@ function main() {
     assert.strictEqual(range.viewModel.requiredMonthlyCompensation, undefined);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -373,6 +377,7 @@ function main() {
   check('MODE A/B/Cの結果見出し直下に主役数値ブロックを描画する', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       for (const current of [modeA, modeB, modeC]) {
@@ -479,6 +484,7 @@ function main() {
         assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
         withFakeDocument(({ root }) => {
           const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
             services: { validate() { return { ok: true }; }, simulate() {} },
           });
           app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
@@ -508,6 +514,7 @@ function main() {
       assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
       withFakeDocument(({ root }) => {
         const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
@@ -529,6 +536,7 @@ function main() {
     assert.strictEqual(viewModel.alerts.find(item => item.code === warning.code).message, warning.basis);
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'blocked', result, viewModel }));
@@ -565,6 +573,7 @@ function main() {
   check('C-7: 16歳未満の欄と説明を1回表示し、エラーも欄に関連付ける', () => {
     withFakeDocument(({ root }) => {
       const app = mountYakuinHoshuApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       assert.strictEqual(app.store.getState().form.dependentsUnder16, '0');
@@ -590,12 +599,145 @@ function main() {
       error.errors.some(item => item.code.endsWith('_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS')));
   });
 
+  process.stdout.write('\n=== 段5: 2026年・住民税年度・防衛特別法人税 ===\n');
+  check('既定の2026年は施行日説明を表示し、2025年では表示せず範囲外は拒否する', () => {
+    const { incomeTaxLawChangeNotice } = require('../../../src/ui/law-change-notice.js');
+    assert.strictEqual(incomeTaxLawChangeNotice(2025), undefined);
+    assert.strictEqual(incomeTaxLawChangeNotice(2027), undefined);
+    for (const incomeTaxYear of [undefined, 2025]) withFakeDocument(({ root }) => {
+      const app = mountYakuinHoshuApp(root, { services: service, incomeTaxYear });
+      try {
+        const year = incomeTaxYear || 2026;
+        assert.strictEqual(app.store.getState().form.incomeTaxYear, year);
+        app.store.setState(state => ({ ...state, screen: 'input', step: 1, form: { ...state.form, mode: 'C' } }));
+        assert(root.textContent.includes(`${year}年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。`));
+        assert.strictEqual(root.querySelector('.yh-law-change-notice')?.textContent, incomeTaxLawChangeNotice(year));
+      } finally { app.destroy(); }
+    });
+    withFakeDocument(({ root }) => {
+      for (const incomeTaxYear of [2024, 2027]) {
+        assert.throws(() => mountYakuinHoshuApp(root, { services: service, incomeTaxYear }), RangeError);
+      }
+    });
+  });
+  for (const mode of ['A', 'B', 'C']) {
+    check(`2026年のモード${mode}は住民税2026・2027年度と既定の全金額が一致する`, () => {
+      const actual = run(baseState({ incomeTaxYear: 2026, mode }));
+      assert.notStrictEqual(actual.result.resultStatus, 'blocked');
+      for (const fiscalYear of [2026, undefined]) {
+        const result = service.simulate(actual.validation.value,
+          { ...actual.context, residentTaxFiscalYear: fiscalYear }, snapshotInfo);
+        assert.deepStrictEqual(result.summary, actual.result.summary);
+        assert.deepStrictEqual(result.breakdown, actual.result.breakdown);
+        assert.deepStrictEqual(result.usedMasterRecords.map(record => record.recordId),
+          actual.result.usedMasterRecords.map(record => record.recordId));
+      }
+    });
+  }
+  check('2026年の暦年には防衛特別法人税を付けず、4月開始は1件でpartial、blockedには付けない', () => {
+    const form = baseState({ incomeTaxYear: 2026 });
+    const normal = run(form);
+    const code = 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED';
+    assert(!normal.result.excludedItems.some(item => item.code === code));
+    const context = { ...normal.context, fiscalPeriod: { from: '2026-04-01', to: '2027-03-31' } };
+    const validation = service.validate(buildYakuinHoshuInput(form, context));
+    assert(validation.ok);
+    const result = service.simulate(validation.value, context, snapshotInfo);
+    assert.strictEqual(result.resultStatus, 'partial');
+    assert.deepStrictEqual(result.excludedItems.filter(item => item.code === code), [{
+      code, label: '防衛特別法人税は含めていない',
+      reason: '令和8年4月1日以後に開始する事業年度には、防衛特別法人税（法人税額から年500万円を差し引いた額の4%。事業年度が1年未満なら500万円を月数で按分）が課されますが、この結果には含めていません。法人税額が年500万円（事業年度が1年未満なら月数で按分した額）以下なら0円です。',
+      isAmountUnknown: true,
+    }]);
+    const blocked = service.simulate({ ...validation.value, officerResidenceSameAsCompany: 'no' }, context, snapshotInfo);
+    assert.strictEqual(blocked.resultStatus, 'blocked');
+    assert(!blocked.excludedItems.some(item => item.code === code));
+    assert.strictEqual(modeC.result.resultStatus, 'complete');
+    assert(!modeC.result.excludedItems.some(item => item.code === code));
+  });
+  check('2026年の④→①をbrowser-entryの公開APIで渡すと所得年2026・住民税2027年度で受け入れる', () => {
+    const browser = require('../../../src/simulators/browser-entry.js');
+    const actual = run(baseState({ incomeTaxYear: 2026 }));
+    withFakeDocument(({ root }) => {
+      const app = browser.mountYakuinHoshu(root, { services: { yakuinHoshu: service,
+        hojinnari: require('../../../src/simulators/hojinnari/index.js') }, snapshotInfo,
+        now: () => calculatedAt, router: { navigate() {} } });
+      try {
+        app.store.setState(state => ({ ...state, screen: 'result', result: actual.result, viewModel: actual.viewModel }));
+        root.querySelector('.yh-primary').listeners.get('click')();
+        const state = app.store.getState();
+        assert.strictEqual(state.handoffNotice.accepted, true);
+        const context = buildCalculationContext({ ...state.form, municipalityKey: 'shibuya' }, snapshotInfo, calculatedAt);
+        assert.strictEqual(context.incomeTaxYear, 2026);
+        assert.strictEqual(context.residentTaxFiscalYear, 2027);
+        assert.deepStrictEqual(context.fiscalPeriod, { from: '2026-01-01', to: '2026-12-31' });
+      } finally { app.destroy(); }
+    });
+  });
+  check('④の見出しは全状態を日本語で表示し、未知の状態はTypeError', () => {
+    for (const [status, label] of [['complete', '計算完了'], ['partial', '一部概算'], ['blocked', '停止']]) {
+      const result = { ...modeC.result, resultStatus: status };
+      const viewModel = buildYakuinHoshuResultViewModel(result, { mode: 'C' });
+      assert.strictEqual(viewModel.resultStatus, status);
+      assert.strictEqual(viewModel.resultStatusLabel, label);
+      assert(viewModel.heading.includes(label));
+      assert(!viewModel.heading.includes(status));
+    }
+    assert.throws(() => buildYakuinHoshuResultViewModel({ ...modeC.result, resultStatus: 'unknown' }, { mode: 'C' }), TypeError);
+    const { resultStatusLabel, RESULT_STATUS_LABELS } = require('../../../src/ui/result-status-label.js');
+    assert(Object.isFrozen(RESULT_STATUS_LABELS));
+    for (const status of ['unknown', 'toString', '__proto__', undefined]) {
+      assert.throws(() => resultStatusLabel(status), TypeError);
+    }
+  });
+
+  check('R11-4: 16歳未満の一般障害者1人に所得税27万円・住民税26万円の障害者控除が付く', () => {
+    const form = baseState({ incomeTaxYear: 2026, dependentsUnder16: '1' });
+    const baseline = run(form).result.breakdown.data.candidates[0];
+    const actual = run({ ...form, dependentDisabilityGeneral: '1' }).result.breakdown.data.candidates[0];
+    assert.strictEqual(actual.orderedIncomeDeductions.find(row => row.code === 'disability').amount.value, 270000n);
+    assert.strictEqual(actual.residentTaxTotalIncomeDeductions.value - baseline.residentTaxTotalIncomeDeductions.value, 260000n);
+  });
+
+  {
+    const c = require('../../../data/tax-simulator/golden-cases/official-examples.json').cases
+      .find(item => item.case_id === 'GC-YH-MODE-C-500K-R8');
+    const i = c.inputs;
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previous = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    let app;
+    try {
+      app = mountYakuinHoshuApp(dom.root, { services: service, snapshotInfo, now: () => calculatedAt });
+      assert.strictEqual(app.store.getState().form.incomeTaxYear, 2026);
+      dom.root.querySelector('#yh-mode').children[2].listeners.get('click')();
+      const fields = baseState({ profitBeforeOfficerCompensation: i.profit_before_officer_compensation,
+        capital: i.capital, ageAtYearEnd: String(i.age), monthlyCompensation: i.monthly_compensation });
+      delete fields.incomeTaxYear;
+      app.store.setState(state => ({ ...state, form: { ...state.form, ...fields } }));
+      for (const step of [1, 2]) {
+        assert.strictEqual(app.store.getState().step, step);
+        await dom.root.querySelector('.yh-primary').listeners.get('click')();
+      }
+      const state = app.store.getState();
+      assert.strictEqual(state.screen, 'result', JSON.stringify(state.errors));
+      assert.strictEqual(rowAmount(state.viewModel.personalRows, 'personal_net_cash'), BigInt(c.expected.personal_net_cash));
+      assert.strictEqual(rowAmount(state.viewModel.corporateRows, 'corporate_retained_cash'), BigInt(c.expected.corporate_retained_cash));
+      assert.strictEqual(state.result.resultStatus, 'partial');
+      process.stdout.write('  ✓ R14: 年を指定しない④の画面の流れで個人4,686,000円・法人3,881,600円\n');
+      passed++;
+    } finally {
+      if (app) app.destroy();
+      if (previous === undefined) delete global.document;
+      else global.document = previous;
+    }
+  }
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 
-try {
-  main();
-} catch (error) {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
-}
+});

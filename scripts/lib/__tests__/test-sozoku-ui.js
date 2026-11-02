@@ -488,6 +488,26 @@ function main() {
     });
   });
 
+  check('③の見出しと印刷は全状態を日本語で表示し、未知の状態はTypeError', () => {
+    for (const [status, label] of [['complete', '計算完了'], ['partial', '一部概算'], ['blocked', '停止']]) {
+      const result = { ...full.result, resultStatus: status };
+      const viewModel = buildSozokuResultViewModel(result);
+      assert.strictEqual(viewModel.resultStatus, status);
+      assert.strictEqual(viewModel.resultStatusLabel, label);
+      assert(viewModel.heading.includes(label));
+      assert(!viewModel.heading.includes(status));
+      withFakeDocument(({ root }) => {
+        const app = mountSozokuApp(root, { services: service });
+        try {
+          app.store.setState(state => ({ ...state, screen: status === 'blocked' ? 'blocked' : 'result', result, viewModel }));
+          assert(root.textContent.includes(`結果状態：${label}`));
+          assert(!root.textContent.includes(`結果状態：${status}`));
+        } finally { app.destroy(); }
+      });
+    }
+    assert.throws(() => buildSozokuResultViewModel({ ...full.result, resultStatus: 'unknown' }), TypeError);
+  });
+
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }
 

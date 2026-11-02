@@ -6,7 +6,8 @@ const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = r
 const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
-const { MUNICIPALITIES, buildCalculationContext } = require('../hojinnari/context-builder.js');
+const { MUNICIPALITIES, SUPPORTED_YEARS, DEFAULT_YEAR, buildCalculationContext } = require('../hojinnari/context-builder.js');
+const { incomeTaxLawChangeNotice } = require('../law-change-notice.js');
 const { formatYen } = require('../hojinnari/result-view-model.js');
 const {
   YakuinHoshuInputBuildError,
@@ -19,7 +20,7 @@ const { DEPENDENT_BANDS, DISABILITY_FIELDS, dependentCount } = require('../famil
 const TOTAL_INPUT_STEPS = 2;
 const CONDITIONAL_KEYS = new Set(['municipalityKey', 'mode', 'optimizationCriterion', 'spouseExists']);
 const INITIAL_FORM = Object.freeze({
-  incomeTaxYear: 2025,
+  incomeTaxYear: DEFAULT_YEAR,
   mode: '',
   profitBeforeOfficerCompensation: '',
   capital: '',
@@ -101,6 +102,7 @@ const FIELD_IDS = Object.freeze({
 });
 
 const STYLE_TEXT = `
+.yh-law-change-notice{color:#55607a}
 .yh-pending-law-notice{font-weight:700;color:#7b3415;background:#fff4e5;border-left:4px solid #E85320;padding:16px}
 .yakuin-hoshu-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
 .yakuin-hoshu-app h1,.yakuin-hoshu-app h2,.yakuin-hoshu-app h3{color:#0B2045}
@@ -119,11 +121,12 @@ const STYLE_TEXT = `
 @media print{.yh-no-print{display:none!important}.yakuin-hoshu-app{max-width:none;padding:0}.yh-card{box-shadow:none;break-inside:avoid}@page{margin:15mm}}
 `;
 
-function cloneInitialForm() { return { ...INITIAL_FORM }; }
+function cloneInitialForm(year) { return { ...INITIAL_FORM, incomeTaxYear: year }; }
 function nextTask() { return new Promise(resolve => setTimeout(resolve, 0)); }
 
 function mountYakuinHoshuApp(rootElement, {
   services, snapshotInfo, now, onHandoff, scrollToAppTop, focusHeading, introElement,
+  incomeTaxYear = DEFAULT_YEAR,
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -133,9 +136,11 @@ function mountYakuinHoshuApp(rootElement, {
     throw new TypeError('yakuin_hoshuサービスが必要です');
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const year = Number(incomeTaxYear);
+  if (!SUPPORTED_YEARS.includes(year)) throw new RangeError('計算対象年は2025年か2026年で指定してください');
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
   const store = createStore({
-    screen: 'mode', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    screen: 'mode', step: 1, form: cloneInitialForm(year), errors: [], result: null,
     viewModel: null, canCancel: false,
   });
   let destroyed = false;
@@ -387,8 +392,10 @@ function mountYakuinHoshuApp(rootElement, {
       phase2DeductionFields(),
       el('div', { className: 'yh-card' }, [
         el('h2', {}, '固定している前提'),
-        el('p', {}, '2025年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。'),
-        el('p', {}, '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。'),
+        incomeTaxLawChangeNotice(year)
+          ? el('p', { className: 'yh-law-change-notice' }, incomeTaxLawChangeNotice(year)) : null,
+        el('p', {}, `${year}年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。`),
+        el('p', {}, '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。'),
         el('p', {}, 'ワンストップ特例は使用せず、確定申告を前提に計算します。'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),
@@ -557,7 +564,7 @@ function mountYakuinHoshuApp(rootElement, {
 
   function resetState() {
     calculationToken++;
-    store.setState({ screen: 'mode', step: 1, form: cloneInitialForm(), errors: [],
+    store.setState({ screen: 'mode', step: 1, form: cloneInitialForm(year), errors: [],
       result: null, viewModel: null, canCancel: false });
   }
   function clearAll() {

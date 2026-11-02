@@ -611,6 +611,7 @@ function mountSozokuApp(rootElement, {
   }
   function renderBlocked(viewModel) {
     return el('main', {}, [el('h1', { id: 'so-result-heading', tabindex: '-1' }, viewModel.heading),
+      el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       ...viewModel.alerts.map(alert => el('section', { className: 'sozoku-card', role: 'alert' }, [el('h2', {}, alert.heading), el('p', {}, alert.description),
         alert.resolutionType === 'consultation' ? el('p', { className: 'sozoku-placeholder' }, '個別相談（公開準備中）') : null])),
       ...commonResultSections({ ...viewModel, calculationRange: { calculatedCount: 0, targetCount: 6, excluded: [] } }), resultActions(1)]);
@@ -649,7 +650,7 @@ function mountSozokuApp(rootElement, {
             : el('p', {}, '特例を適用せず計算しました。適用できる可能性があります（要件の確認は専門家へご相談ください）。')]) : null,
       ] : el('button', { type: 'button', className: 'sozoku-primary sozoku-no-print', onClick: continueToLevel2 }, 'もっと詳しく（税額まで計算）'),
       ...commonResultSections(viewModel), renderSecondarySection(viewModel),
-      el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatus}`),
+      el('p', { className: 'sozoku-print-page-number' }, `結果状態：${viewModel.resultStatusLabel}`),
       resultActions(viewModel.level), el('p', { className: 'sozoku-placeholder sozoku-no-print' }, '個別相談（公開準備中・金額は送信しません）'),
     ]);
   }

@@ -103,6 +103,7 @@ async function main() {
     withFakeDocument(({ root, intro }) => {
       const calls = [];
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
         introElement: intro,
         scrollToAppTop() { calls.push('scroll'); },
@@ -170,6 +171,7 @@ async function main() {
   check('モード選択から移行年度の追加入力4点を表示する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       assert(root.textContent.includes('平年度で比較（毎年の定常状態）'));
@@ -203,6 +205,7 @@ async function main() {
     assert(transition.viewModel.transitionPeriodNote.includes('12月決算'));
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -240,6 +243,7 @@ async function main() {
   check('STEP2に家族欄と新注記を表示し、単身向け注記を撤去する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, step: 2,
@@ -260,7 +264,7 @@ async function main() {
       assert(root.textContent.includes('新契約：一般生命保険料（年額）'));
       assert(root.textContent.includes('ふるさと納税の年間寄附額'));
       assert(root.textContent.includes('源泉徴収票の「住宅借入金等特別控除の額」または申告書の控除額'));
-      assert(root.textContent.includes('医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません'));
+      assert(root.textContent.includes('寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません'));
       assert(root.textContent.includes('ワンストップ特例は使用せず'));
       assert(!root.textContent.includes('単身の方向け'));
       app.store.setState(state => ({ ...state, screen: 'result',
@@ -274,6 +278,7 @@ async function main() {
   check('STEP3に法人化後掛金を別欄で表示し、役員上限と共済継続を説明する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, step: 3 }));
@@ -354,6 +359,7 @@ async function main() {
   check('結果DOMは見出し直下・結論カード前に横スクロール可能な判定表を描画する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({
@@ -538,6 +544,7 @@ async function main() {
       assert.strictEqual(viewModel.pendingLawNotice, includeNotice ? noticeText : undefined);
       withFakeDocument(({ root }) => {
         const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
@@ -567,6 +574,7 @@ async function main() {
     assert.strictEqual(blockedViewModel.pendingLawNotice, undefined);
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       app.store.setState(state => ({ ...state, screen: 'blocked', result: injected, viewModel: blockedViewModel }));
@@ -591,6 +599,7 @@ async function main() {
       assert.strictEqual(viewModel.nhiPriorRateNotice, priorNhiMessage);
       withFakeDocument(({ root }) => {
         const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: 'result', result: injected, viewModel }));
@@ -626,6 +635,7 @@ async function main() {
       if (blocked) assert(!Object.hasOwn(viewModel, 'nhiPriorRateNotice'));
       withFakeDocument(({ root }) => {
         const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
           services: { validate() { return { ok: true }; }, simulate() {} },
         });
         app.store.setState(state => ({ ...state, screen: blocked ? 'blocked' : 'result', result, viewModel }));
@@ -637,6 +647,7 @@ async function main() {
   check('国保概算の選択時に前年度料率を使う条件と結果への明記を説明する', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       const explanation = '自治体の登録年度料率による概算です。対象年度の料率が未登録のときは前年度の料率で計算し、結果に明記します。';
@@ -708,6 +719,7 @@ async function main() {
           { code: 'TARGET_EXCLUDED', reason: '計算先のみ' }, { reason: 'コードなしの除外' }] };
       if (targetStatus === 'blocked') delete simulated.breakdown;
       app = mountHojinnariApp(dom.root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true, value: {} }; }, simulate() { return simulated; } },
         snapshotInfo, now: () => calculatedAt,
       });
@@ -780,6 +792,7 @@ async function main() {
   check('C-7: 16歳未満の欄と説明を1回表示し、エラーも欄に関連付ける', () => {
     withFakeDocument(({ root }) => {
       const app = mountHojinnariApp(root, {
+        incomeTaxYear: 2025,
         services: { validate() { return { ok: true }; }, simulate() {} },
       });
       assert.strictEqual(app.store.getState().form.dependentsUnder16, '0');
@@ -804,6 +817,167 @@ async function main() {
     assert.throws(() => buildHojinnariInput(form, context), error => error instanceof HojinnariInputBuildError &&
       error.errors.some(item => item.code.endsWith('_DEPENDENT_DISABILITY_TOTAL_EXCEEDS_DEPENDENTS')));
   });
+
+  process.stdout.write('\n=== 段5: 2026年の組み立て・住民税年度・防衛特別法人税 ===\n');
+  check('既定は2026年・住民税2027年度で、2025年も選択でき、範囲外は拒否する', () => {
+    const { SUPPORTED_YEARS, DEFAULT_YEAR } = require('../../../src/ui/hojinnari/context-builder.js');
+    assert(Object.isFrozen(SUPPORTED_YEARS));
+    assert.deepStrictEqual(SUPPORTED_YEARS, [2025, 2026]);
+    assert.strictEqual(DEFAULT_YEAR, 2026);
+    const context = buildCalculationContext({ municipalityKey: 'shibuya' }, snapshotInfo, calculatedAt);
+    assert.strictEqual(context.incomeTaxYear, 2026);
+    assert.strictEqual(context.residentTaxFiscalYear, 2027);
+    assert.deepStrictEqual(context.fiscalPeriod, { from: '2026-01-01', to: '2026-12-31' });
+    assert.deepStrictEqual(context.socialInsuranceMonths, ['2026-04']);
+    assert.strictEqual(buildCalculationContext(goldenState(), snapshotInfo, calculatedAt).residentTaxFiscalYear, 2026);
+    for (const incomeTaxYear of [2024, 2027]) {
+      assert.throws(() => buildCalculationContext(goldenState({ incomeTaxYear }), snapshotInfo, calculatedAt), RangeError);
+    }
+  });
+  check('2026年の平年度と移行年度で個人・法人の売上と経費の期間を年から作る', () => {
+    for (const transition of [false, true]) {
+      const form = goldenState({ incomeTaxYear: 2026, comparisonBasis: transition ? 'transition_year' : 'steady_state',
+        establishedOn: '2026-07-01', corporateSameAsIndividual: false,
+        corporateRevenue: '20000000', corporateExpenses: '8000000' });
+      const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
+      const input = buildHojinnariInput(form, context);
+      for (const key of ['revenue', 'expenses']) {
+        assert.deepStrictEqual(input.individual.business[key][0].period,
+          { from: '2026-01-01', to: transition ? '2026-06-30' : '2026-12-31' });
+        assert.deepStrictEqual(input.corporate[key][0].period,
+          { from: transition ? '2026-07-01' : '2026-01-01', to: '2026-12-31' });
+      }
+      for (const establishedOn of ['2026-01-01', '2027-01-01']) {
+        const invalid = { ...form, comparisonBasis: 'transition_year', establishedOn };
+        assert.throws(() => buildCalculationContext(invalid, snapshotInfo, calculatedAt), RangeError);
+        assert.throws(() => buildHojinnariInput(invalid, context), HojinnariInputBuildError);
+      }
+    }
+  });
+  check('既定の2026年だけ施行日説明を表示し、2025年のマウントも期間の範囲も保つ', () => {
+    const text = '令和8年分の所得税は、令和8年12月1日施行の改正（基礎控除と給与所得控除の引上げ、配偶者・扶養親族などの所得要件の62万円への引上げなど）を反映しています。住民税は令和9年度分として計算し、同じ62万円の所得要件（令和9年1月1日施行）を反映しています。施行日より前は、結果に「施行前・概算」と表示します。';
+    for (const incomeTaxYear of [undefined, 2025]) withFakeDocument(({ root }) => {
+      const app = mountHojinnariApp(root, { services: service, incomeTaxYear });
+      try {
+        const year = incomeTaxYear || 2026;
+        assert.strictEqual(app.store.getState().form.incomeTaxYear, year);
+        assert(root.textContent.includes(`計算対象年：${year}年（令和${year - 2018}年分）`));
+        assert.strictEqual(root.querySelector('.hojinnari-law-change-notice')?.textContent,
+          year === 2026 ? text : undefined);
+        app.store.setState(state => ({ ...state, errors: [], form: { ...state.form, comparisonBasis: 'transition_year' } }));
+        const date = root.querySelector('#hj-established-on');
+        assert.strictEqual(date.getAttribute('min'), `${year}-01-02`);
+        assert.strictEqual(date.getAttribute('max'), `${year}-12-31`);
+      } finally { app.destroy(); }
+    });
+    withFakeDocument(({ root }) => {
+      for (const incomeTaxYear of [2024, 2027]) {
+        assert.throws(() => mountHojinnariApp(root, { services: service, incomeTaxYear }), RangeError);
+      }
+    });
+  });
+  for (const comparisonBasis of ['steady_state', 'transition_year']) {
+    check(`2026年の${comparisonBasis}は住民税2026・2027年度と既定の全金額が一致する`, () => {
+      const actual = run(goldenState({ incomeTaxYear: 2026, comparisonBasis, establishedOn: '2026-07-01',
+        corporateRevenue: '20000000', corporateExpenses: '8000000' }));
+      for (const fiscalYear of [2026, undefined]) {
+        const context = { ...actual.context, residentTaxFiscalYear: fiscalYear };
+        const result = service.simulate(service.validate(actual.wire).value, context, snapshotInfo);
+        assert.deepStrictEqual(result.summary, actual.result.summary);
+        assert.deepStrictEqual(result.breakdown, actual.result.breakdown);
+        assert.deepStrictEqual(result.usedMasterRecords.map(record => record.recordId),
+          actual.result.usedMasterRecords.map(record => record.recordId));
+      }
+    });
+  }
+  const defenseCode = 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED';
+  const defenseReason = '令和8年4月1日以後に開始する事業年度には、防衛特別法人税（法人税額から年500万円を差し引いた額の4%。事業年度が1年未満なら500万円を月数で按分）が課されますが、この結果には含めていません。法人税額が年500万円（事業年度が1年未満なら月数で按分した額）以下なら0円です。';
+  check('防衛特別法人税は開始日で判定し、2025年・2026平年度には付けない', () => {
+    for (const form of [goldenState(), transitionState(), goldenState({ incomeTaxYear: 2026 }),
+      transitionState({ incomeTaxYear: 2026, establishedOn: '2026-03-31' })]) {
+      assert(!run(form).result.excludedItems.some(item => item.code === defenseCode));
+    }
+    for (const establishedOn of ['2026-04-01', '2026-07-01']) {
+      const result = run(transitionState({ incomeTaxYear: 2026, establishedOn })).result;
+      assert.strictEqual(result.resultStatus, 'partial');
+      assert.deepStrictEqual(result.excludedItems.filter(item => item.code === defenseCode), [{
+        code: defenseCode, label: '防衛特別法人税は含めていない', reason: defenseReason, isAmountUnknown: true,
+      }]);
+    }
+    const { defenseCorporateTaxExcludedItem } = require('../../../src/simulators/core/defense-corporate-tax.js');
+    for (const period of [undefined, {}, { from: '2026/04/01' }, { from: '2026-02-30' }]) {
+      assert.throws(() => defenseCorporateTaxExcludedItem(period), TypeError);
+    }
+  });
+  {
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previous = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    let app;
+    try {
+      const form = transitionState({ incomeTaxYear: 2026, establishedOn: '2026-07-01' });
+      const result = run(form).result;
+      app = mountHojinnariApp(dom.root, { services: service, snapshotInfo, now: () => calculatedAt });
+      app.store.setState(state => ({ ...state, step: 3, form: { ...state.form, ...form },
+        sourceHandoff: { sourceResultStatus: 'partial', warnings: [],
+          excludedItems: result.excludedItems.filter(item => item.code === defenseCode) } }));
+      await dom.root.querySelector('.hojinnari-primary').listeners.get('click')();
+      assert.strictEqual(app.store.getState().result.excludedItems.filter(item => item.code === defenseCode).length, 1);
+      passed++;
+      process.stdout.write('  ✓ ④→①で同じ防衛特別法人税の除外項目は1件にまとまる\n');
+    } finally {
+      if (app) app.destroy();
+      if (previous === undefined) delete global.document;
+      else global.document = previous;
+    }
+  }
+
+  check('R11-4: 16歳未満の一般障害者1人に所得税27万円・住民税26万円の障害者控除が付く', () => {
+    const form = goldenState({ incomeTaxYear: 2026, dependentsUnder16: '1' });
+    const baseline = run(form).result.breakdown.data;
+    const actual = run({ ...form, dependentDisabilityGeneral: '1' }).result.breakdown.data;
+    for (const scenario of ['soleProprietor', 'corporation']) {
+      assert.strictEqual(actual[scenario].orderedIncomeDeductions.find(row => row.code === 'disability').amount.value, 270000n);
+      assert.strictEqual(actual[scenario].residentTaxTotalIncomeDeductions.value -
+        baseline[scenario].residentTaxTotalIncomeDeductions.value, 260000n);
+    }
+  });
+
+  {
+    const c = require('../../../data/tax-simulator/golden-cases/official-examples.json').cases
+      .find(item => item.case_id === 'GC-HJ-STEADY-1200-R8');
+    const i = c.inputs;
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previous = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    let app;
+    try {
+      app = mountHojinnariApp(dom.root, { services: service, snapshotInfo, now: () => calculatedAt });
+      assert.strictEqual(app.store.getState().form.incomeTaxYear, 2026);
+      const fields = goldenState({ revenue: i.individual_revenue, expenses: i.individual_expenses,
+        blueReturn: i.blue_return_special_deduction_category, businessTaxCategory: i.business_tax_category,
+        ageAtYearEnd: String(i.age), capital: i.capital, officerCompensationMonthly: i.monthly_compensation });
+      delete fields.incomeTaxYear;
+      app.store.setState(state => ({ ...state, form: { ...state.form, ...fields } }));
+      for (const step of [1, 2, 3]) {
+        assert.strictEqual(app.store.getState().step, step);
+        await dom.root.querySelector('.hojinnari-primary').listeners.get('click')();
+      }
+      const state = app.store.getState();
+      assert.strictEqual(state.screen, 'result', JSON.stringify(state.errors));
+      assert.strictEqual(state.result.summary.amount.value, BigInt(c.expected.combined_reference_difference));
+      assert.strictEqual(state.viewModel.conclusion.exactAmount, BigInt(c.expected.combined_reference_difference));
+      assert.strictEqual(state.result.resultStatus, 'partial');
+      process.stdout.write('  ✓ R14: 年を指定しない①の画面の流れで参考差額825,140円\n');
+      passed++;
+    } finally {
+      if (app) app.destroy();
+      if (previous === undefined) delete global.document;
+      else global.document = previous;
+    }
+  }
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }

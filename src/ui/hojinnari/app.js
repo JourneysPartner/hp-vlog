@@ -6,7 +6,8 @@ const { createMoneyInput, createSelect, createChoiceGroup, parseMoneyInput } = r
 const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
-const { MUNICIPALITIES, buildCalculationContext } = require('./context-builder.js');
+const { MUNICIPALITIES, SUPPORTED_YEARS, DEFAULT_YEAR, buildCalculationContext } = require('./context-builder.js');
+const { incomeTaxLawChangeNotice } = require('../law-change-notice.js');
 const { HojinnariInputBuildError, buildHojinnariInput } = require('./input-builder.js');
 const { resolveQuestion } = require('./question-catalog.js');
 const { buildResultViewModel, formatYen, formatSignedYen } = require('./result-view-model.js');
@@ -19,7 +20,7 @@ const CONDITIONAL_FORM_KEYS = new Set([
   'locationSameAsResidence', 'spouseExists', 'comparisonBasis',
 ]);
 const INITIAL_FORM = Object.freeze({
-  incomeTaxYear: 2025,
+  incomeTaxYear: DEFAULT_YEAR,
   comparisonBasis: 'steady_state',
   establishedOn: '',
   revenue: '',
@@ -124,6 +125,7 @@ function uniqueByContent(items, contentOf) {
 }
 
 const STYLE_TEXT = `
+.hojinnari-law-change-notice{color:#55607a}
 .hojinnari-pending-law-notice{font-weight:700;color:#7b3415;background:#fff4e5;border-left:4px solid #E85320;padding:16px}
 .hojinnari-app{color:#22293a;max-width:1080px;margin:0 auto;padding:24px;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
 .hojinnari-app h1,.hojinnari-app h2,.hojinnari-app h3{color:#0B2045}
@@ -149,13 +151,14 @@ const STYLE_TEXT = `
 @media print{.hojinnari-no-print{display:none!important}.hojinnari-app{max-width:none;padding:0}.hojinnari-print{display:block;color:#000}.hojinnari-card,.hojinnari-verdict-summary{box-shadow:none;break-inside:avoid}.hojinnari-verdict-table-wrap{overflow:visible;margin:0}.hojinnari-summary-table{min-width:0;font-size:9pt}.hojinnari-verdict-banner{-webkit-print-color-adjust:exact;print-color-adjust:exact}.hojinnari-summary-total th,.hojinnari-summary-total td{-webkit-print-color-adjust:exact;print-color-adjust:exact}.hojinnari-print-page-number::after{content:" / ページ " counter(page)}@page{margin:15mm}}
 `;
 
-function cloneInitialForm() {
-  return { ...INITIAL_FORM };
+function cloneInitialForm(year) {
+  return { ...INITIAL_FORM, incomeTaxYear: year };
 }
 
 function mountHojinnariApp(rootElement, {
   services, snapshotInfo, now, handoff, handoffExpectedContext,
   scrollToAppTop, focusHeading, introElement,
+  incomeTaxYear = DEFAULT_YEAR,
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -165,8 +168,10 @@ function mountHojinnariApp(rootElement, {
     throw new TypeError('hojinnariサービスが必要です');
   }
   const nowProvider = typeof now === 'function' ? now : () => new Date().toISOString();
+  const year = Number(incomeTaxYear);
+  if (!SUPPORTED_YEARS.includes(year)) throw new RangeError('計算対象年は2025年か2026年で指定してください');
   const browserWindow = rootElement.ownerDocument && rootElement.ownerDocument.defaultView;
-  let initialForm = cloneInitialForm();
+  let initialForm = cloneInitialForm(year);
   let handoffNotice = null;
   let initialStep = 1;
   if (handoff !== undefined) {
@@ -390,7 +395,7 @@ function mountHojinnariApp(rootElement, {
     });
     const establishedOn = isTransition ? el('input', {
       id: 'hj-established-on', type: 'date', value: form.establishedOn,
-      min: '2025-01-02', max: '2025-12-31',
+      min: `${year}-01-02`, max: `${year}-12-31`,
       onInput: event => updateForm('establishedOn', event.currentTarget.value),
     }) : null;
     const checkbox = el('input', {
@@ -414,7 +419,9 @@ function mountHojinnariApp(rootElement, {
       store.getState().handoffNotice && !store.getState().handoffNotice.accepted
         ? el('p', { className: 'hojinnari-error', role: 'alert' }, store.getState().handoffNotice.message)
         : null,
-      el('p', {}, '計算対象年：2025年（令和7年分）'),
+      el('p', {}, `計算対象年：${year}年（令和${year - 2018}年分）`),
+      incomeTaxLawChangeNotice(year)
+        ? el('p', { className: 'hojinnari-law-change-notice' }, incomeTaxLawChangeNotice(year)) : null,
       ...moneyField('revenue', 'hj-revenue', isTransition
         ? '個人期間の売上（円）' : '年間売上高（円）',
         isTransition
@@ -511,7 +518,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
+        '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
       pageActions({ previous: true, next: true }),
     ]);
   }
@@ -586,10 +593,10 @@ function mountHojinnariApp(rootElement, {
     };
     if (step === 1) {
       if (form.comparisonBasis === 'transition_year' &&
-          (!/^2025-\d{2}-\d{2}$/.test(form.establishedOn) ||
-           form.establishedOn < '2025-01-02' || form.establishedOn > '2025-12-31')) {
+          (!new RegExp(`^${year}-\\d{2}-\\d{2}$`).test(form.establishedOn) ||
+           form.establishedOn < `${year}-01-02` || form.establishedOn > `${year}-12-31`)) {
         errors.push(localError('$.corporate.establishedOn',
-          '法人設立日は2025年1月2日から12月31日までで入力してください',
+          `法人設立日は${year}年1月2日から12月31日までで入力してください`,
           'HJ_ESTABLISHED_DATE_INVALID'));
       }
       requireMoney(form.revenue, '$.individual.business.revenue[0].value.value', '年間売上高');
@@ -727,7 +734,7 @@ function mountHojinnariApp(rootElement, {
   }
 
   function resetState() {
-    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(), errors: [], result: null,
+    store.setState({ screen: 'input', step: 1, form: cloneInitialForm(year), errors: [], result: null,
       viewModel: null, handoffNotice: null, sourceHandoff: null });
   }
 
