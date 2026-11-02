@@ -16,15 +16,15 @@ reader_problem: "収入が増えたYoutuberが、税額の目安や納税方法�
 success_outcome: "Youtuberの所得にかかる税金はいくらで、どのように納めればよいですかがわかり、自分のケースで判断できる"
 primary_question: "Youtuberの所得にかかる税金はいくらで、どのように納めればよいですか？"
 summary: "YouTube収入は必要経費を引いた所得に5〜45%の税率で所得税がかかり、翌年2月16日〜3月15日の確定申告で納めます。速算表での試算、7つの納付方法、予定納税、経費の区分を解説します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-02T17:55:49.591+09:00"
+publish_at: "2026-11-03T11:29:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-02T07:07:30.941Z"
-updated_at: "2026-11-02T08:25:04.612Z"
+updated_at: "2026-11-02T17:55:49.591+09:00"
 source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1350.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm;所得税法89条;租税特別措置法41条の19;所得税法37条;所得税法45条;所得税法51条;所得税法56条;所得税法57条;所得税法70条"
 tax_terms: "事業所得 必要経費 予定納税 確定申告"
 fact_plan_status: "ok"
@@ -70,6 +70,7 @@ fact_check_summary: "主張 82 件: 裏付けあり 71・修正 5（食い違い
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 動画の再生回数が伸びて、広告収入や企業案件の入金が少しずつ大きくなってくると、気になるのが税金です。口座にはお金が入ってくるのに、いくら残しておけばよいのか分からない。確定申告の時期になってから焦る方は少なくありません。
