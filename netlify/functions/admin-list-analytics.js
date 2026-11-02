@@ -2,7 +2,7 @@
 
 const { connectLambda, getStore } = require('@netlify/blobs');
 const { requireBasicAuth } = require('./lib/admin-auth');
-const { jstDate, dateOffset, countPrefix, transitionKey, submissionKey, lineKey } = require('./lib/analytics-store');
+const { jstDate, dateOffset, countPrefix, transitionKey, submissionKey, lineKey, listPrefixKeys, parseSourceKey } = require('./lib/analytics-store');
 
 async function mapWithConcurrency(items, concurrency, fn) {
   const out = new Array(items.length);
@@ -58,6 +58,35 @@ exports.handler = async (event, { getStoreFn = getStore } = {}) => {
       };
     });
 
+    let sourcesSince = null;
+    let sourcesError = false;
+    const emptySources = () => ({ visits: {}, engaged: {}, details: {} });
+    for (const row of rows) row.sources = emptySources();
+    try {
+      const keys = await listPrefixKeys(store, 'src/');
+      const byDate = new Map(rows.map(row => [row.date, row.sources]));
+      for (const key of keys) {
+        const marker = parseSourceKey(key);
+        if (!marker) continue;
+        const { date, kind, source, device, detail } = marker;
+        if (!sourcesSince || date < sourcesSince) sourcesSince = date;
+        const sources = byDate.get(date);
+        if (!sources) continue;
+        const counts = kind === 'v' ? sources.visits : sources.engaged;
+        if (!counts[source]) counts[source] = { iphone: 0, android: 0, pc: 0 };
+        counts[source][device]++;
+        if (kind === 'v' && detail !== null && (source === 'other' || source === 'tagged')) {
+          const name = source + '|' + detail;
+          sources.details[name] = (sources.details[name] || 0) + 1;
+        }
+      }
+    } catch (err) {
+      sourcesError = true;
+      sourcesSince = null;
+      for (const row of rows) row.sources = emptySources();
+      console.warn('[admin-analytics] sources failed:', err.message);
+    }
+
     const contactFrom = {};
     const submittedFrom = {};
     const lineFrom = {};
@@ -88,7 +117,8 @@ exports.handler = async (event, { getStoreFn = getStore } = {}) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Cache-Control': 'no-store' },
-      body: JSON.stringify({ ok: true, today, daily: rows, summaries, byPath, contactFrom, submittedFrom, lineFrom }),
+      body: JSON.stringify({ ok: true, today, daily: rows, summaries, byPath, contactFrom, submittedFrom, lineFrom,
+        sourcesSince, ...(sourcesError ? { sourcesError: true } : {}) }),
     };
   } catch (err) {
     console.error('[admin-analytics] list failed:', err.message);

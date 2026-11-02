@@ -28,6 +28,7 @@
 - 画面の文言に「令和8年12月1日施行の改正を反映」の説明を入れる（注記の文には日付を入れていない。段 4 の決定 D3）。
 - ②③④の見出しの状態が `partial` のまま英語で出るので、①の「一部概算」に揃えるか決める。
 - `src/simulators/core/versions.js` の `calculationVersion` を上げるか決める。
+- `src/simulators/browser-entry.js` の `const year = 2025`（④→①の受け渡し）を計算年に合わせる。`residentTaxFiscalYear` の入れ方を確かめる（台帳 C-23）。
 
 2026-12-01 の施行の後: 所得税の `enacted` の記録を `effective` に切り替えて公開する。住民税の 62万円の記録は 2027-01-01 の施行の後に切り替える。切り替えると「施行前・概算」の注記は消え、結果は `complete` に戻る。
 

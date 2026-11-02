@@ -20,10 +20,16 @@ exports.handler = async (event) => {
       const minute = key.split('/')[1];
       return minute && minute.slice(0, 10) < today;
     });
+    const sourceKeys = await listPrefixKeys(store, 'src/');
+    const staleSources = sourceKeys.filter(key => {
+      const date = key.split('/')[1];
+      return date && date < oldestRetained;
+    });
     await deleteKeys(store, staleUniq);
     await deleteKeys(store, staleRate);
-    console.log(`[analytics-cleanup] uniq=${staleUniq.length} rate=${staleRate.length}`);
-    return { statusCode: 200, body: JSON.stringify({ ok: true, uniq: staleUniq.length, rate: staleRate.length }) };
+    await deleteKeys(store, staleSources);
+    console.log(`[analytics-cleanup] uniq=${staleUniq.length} rate=${staleRate.length} src=${staleSources.length}`);
+    return { statusCode: 200, body: JSON.stringify({ ok: true, uniq: staleUniq.length, rate: staleRate.length, src: staleSources.length }) };
   } catch (err) {
     console.error('[analytics-cleanup] failed:', err.message);
     return { statusCode: 500, body: JSON.stringify({ ok: false, error: err.message }) };

@@ -199,6 +199,110 @@ class FailingStore {
       });
     }
     console.log(`LINE track-visit: ${lineCases} cases PASS`);
+    let sourceCases = 0;
+    async function testSource(label, fn) { await fn(); sourceCases++; }
+    const sourceEvent = (body = {}, headers = {}) => {
+      const event = eventFor('/contact', '/blog/x/');
+      event.body = JSON.stringify({ ...JSON.parse(event.body), v: 'visitabc1234', s: 'search.yahoo.co.jp', ...body });
+      Object.assign(event.headers, { 'user-agent': 'Mozilla iPhone' }, headers);
+      return event;
+    };
+    const sourceSend = (target, body, headers) => handler(sourceEvent(body, headers), { getStoreFn: () => target });
+    const visitMarker = A.sourceKey({ date, kind: 'v', source: 'yahoo', device: 'iphone', detail: null, id: 'visitabc1234' });
+    const engagedMarker = A.sourceKey({ date, kind: 'e', source: 'yahoo', device: 'iphone', detail: null, id: 'visitabc1234' });
+    const engagedRate = A.rateKey(minute, vidHash, 'engaged:/contact.html');
+    await testSource('visit marker and unchanged legacy counts', async () => {
+      const target = new FakeStore();
+      const writes = [];
+      const set = target.set.bind(target);
+      target.set = async (...args) => { if (args[0].startsWith('src/')) writes.push(args); return set(...args); };
+      const response = await sourceSend(target);
+      assert.strictEqual(response.statusCode, 204);
+      assert.deepStrictEqual(writes, [[visitMarker, '1']]);
+      assert.strictEqual(target.values.get(A.dailyKey(date)).pageviews, 1);
+      assert.strictEqual(target.values.get(A.transitionKey(date)).total, 1);
+      assert.ok(!visitMarker.includes(vidHash));
+      assert.ok(!visitMarker.includes(cookie));
+      await sourceSend(target);
+      assert.strictEqual(writes.length, 1, 'rate の確認を通らない再送は印を書かない');
+    });
+    await testSource('engaged writes only own rate and marker', async () => {
+      const target = new FakeStore();
+      await sourceSend(target, { e: 'engaged' });
+      assert.deepStrictEqual([...target.values.keys()].sort(), [engagedMarker, engagedRate].sort());
+      assert.strictEqual(target.values.get(engagedMarker), '1');
+      await sourceSend(target, { e: 'engaged' });
+      assert.deepStrictEqual(target.deleted, []);
+      assert.strictEqual(target.values.size, 2);
+    });
+    for (const engagedFirst of [false, true]) await testSource('engaged and PV independent rates', async () => {
+      const target = new FakeStore();
+      if (engagedFirst) await sourceSend(target, { e: 'engaged' });
+      await sourceSend(target);
+      if (!engagedFirst) await sourceSend(target, { e: 'engaged' });
+      assert.strictEqual(target.values.get(A.dailyKey(date)).pageviews, 1);
+      assert.strictEqual(target.values.get(A.transitionKey(date)).total, 1);
+      assert.ok(target.values.has(visitMarker));
+      assert.ok(target.values.has(engagedMarker));
+      assert.strictEqual([...target.values.keys()].filter(key => key.startsWith('uniq/')).length, 1);
+    });
+    await testSource('source failure preserves PV, transition and PV rate', async () => {
+      const target = new FakeStore();
+      const set = target.set.bind(target);
+      target.set = (...args) => { if (args[0].startsWith('src/')) throw new Error('source unavailable'); return set(...args); };
+      const response = await sourceSend(target);
+      assert.strictEqual(response.statusCode, 204);
+      assert.strictEqual(target.values.get(A.dailyKey(date)).pageviews, 1);
+      assert.strictEqual(target.values.get(A.transitionKey(date)).total, 1);
+      assert.ok(target.values.has(viewRate));
+      assert.deepStrictEqual(target.deleted, []);
+    });
+    await testSource('engaged failure releases only its own marker and retries', async () => {
+      const target = new FakeStore();
+      await sourceSend(target);
+      const before = structuredClone([...target.values]);
+      const set = target.set.bind(target);
+      target.set = (...args) => { if (args[0].startsWith('src/')) throw new Error('engaged unavailable'); return set(...args); };
+      assert.strictEqual((await sourceSend(target, { e: 'engaged' })).statusCode, 204);
+      assert.deepStrictEqual([...target.values], before);
+      assert.deepStrictEqual(target.deleted, [engagedRate]);
+      target.set = set;
+      await sourceSend(target, { e: 'engaged' });
+      assert.ok(target.values.has(engagedMarker));
+    });
+    for (const s of ['mori-zeirishi.net', 'www.mori-zeirishi.net', 'WWW.MORI-ZEIRISHI.NET']) {
+      await testSource('own host is not a visit', async () => {
+        const target = new FakeStore();
+        await sourceSend(target, { s, u: 'google' });
+        await sourceSend(target, { s, e: 'engaged' });
+        assert.ok(![...target.values.keys()].some(key => key.startsWith('src/')));
+        assert.strictEqual(target.values.get(A.dailyKey(date)).pageviews, 1);
+      });
+    }
+    for (const e of [undefined, 'engaged']) for (const ua of ['Googlebot', 'HeadlessChrome', '']) {
+      await testSource('bot has no source markers', async () => {
+        const target = new FakeStore();
+        assert.strictEqual((await sourceSend(target, { e }, { 'user-agent': ua })).statusCode, 204);
+        assert.strictEqual(target.values.size, 0);
+      });
+    }
+    for (const [ua, device] of [['Mozilla Android', 'android'], ['Mozilla Windows', 'pc']]) {
+      await testSource('request device and utm', async () => {
+        const target = new FakeStore();
+        await sourceSend(target, { u: 'QR' }, { 'user-agent': ua });
+        const keys = [...target.values.keys()].filter(key => key.startsWith('src/'));
+        assert.strictEqual(keys.length, 1);
+        assert.deepStrictEqual(A.parseSourceKey(keys[0]), { date, kind: 'v', source: 'tagged', device, detail: 'qr', id: 'visitabc1234' });
+      });
+    }
+    await testSource('resends overwrite the same anonymous marker', async () => {
+      const target = new FakeStore();
+      await sourceSend(target);
+      await target.delete(viewRate);
+      await sourceSend(target);
+      assert.strictEqual([...target.values.keys()].filter(key => key.startsWith('src/')).length, 1);
+    });
+    console.log(`traffic sources track-visit: ${sourceCases} cases PASS`);
     console.log('track-visit: PASS');
   } finally {
     global.Date = RealDate;
