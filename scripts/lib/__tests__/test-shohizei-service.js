@@ -7,6 +7,8 @@ const path = require('path');
 const service = require('../../../src/simulators/shohizei/index.js');
 const eligibility = require('../../../src/simulators/shohizei/eligibility.js');
 const masterSnapshot = require('../../../src/tax-engine/masters/snapshot.js');
+const { buildShohizeiInput } = require('../../../src/ui/shohizei/input-builder.js');
+const engine = require('../../../src/tax-engine/consumption/consumption-tax.js');
 
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 const goldenDocument = JSON.parse(fs.readFileSync(path.join(
@@ -446,6 +448,64 @@ for (const year of [2025, 2026]) {
         '上限適用期間の' + label + 'はINV-CAP-R8を使用し、施行前注記付きpartial');
     }
   }
+}
+
+console.log('\n=== C-18: UIから組み立てた2026年の経過措置仕入 ===');
+{
+  const period = { from: '2026-01-01', to: '2026-12-31' };
+  const formState = {
+    taxpayerType: 'individual',
+    invoiceRegistered: 'yes', invoiceRegisteredOn: '2023-10-01', becameTaxableByRegistration: 'yes',
+    basePeriodExists: true, basePeriodTaxableSales: '9000000',
+    specifiedPeriodTaxableSales: '9000000', specifiedPeriodSalaryPayments: '3000000',
+    simplifiedElectionStatus: 'no', taxablePersonElectionStatus: 'no',
+    isNewlyEstablished: 'no', isSpecifiedNewlyEstablished: 'no',
+    inheritance: 'no', merger: 'no', corporateSplit: 'no',
+    highValueAssetAcquisition: 'no', adjustableFixedAssetAcquisition: 'no', taxablePeriodShortened: 'no',
+    reverseCharge: 'no', specificTaxablePurchase: 'no', complexTaxableSalesRatio: 'no',
+    salesStandard10: '11000000', salesStandard10Basis: 'inclusive',
+    salesReduced8: '0', salesReduced8Basis: 'inclusive',
+    salesExportExempt: '0', salesExportExemptBasis: 'inclusive',
+    purchasesWithInvoiceStandard10: '0', purchasesWithInvoiceStandard10Basis: 'inclusive',
+    purchasesWithInvoiceReduced8: '0', purchasesWithInvoiceReduced8Basis: 'inclusive',
+    hasPurchasesWithoutInvoice: 'yes', purchasesWithoutInvoiceBand: 'standard_10',
+    purchasesWithoutInvoice: '1100000', purchasesWithoutInvoiceBasis: 'inclusive',
+    purchasesWithoutInvoiceBeforeChange: '1100000', purchasesWithoutInvoiceBeforeChangeBasis: 'inclusive',
+    purchasesWithoutInvoiceAnnualTotal: '2200000', purchasesWithoutInvoiceRecords: 'yes',
+  };
+  const wire = buildShohizeiInput(formState, { consumptionTaxPeriod: period });
+  const validation = service.validate(wire);
+  assert(validation.ok, '2026年の2行のUI入力をサービスが受理する: ' + JSON.stringify(validation.errors || []));
+  const actual = service.simulate(wire, context(period), snapshotInfo);
+  assert(!hasWarning(actual, 'CT_INVOICE_PERIOD_SPLIT_REQUIRED') &&
+    row(actual, 'general').eligibility === 'eligible' && row(actual, 'general').taxPayable,
+    'UIで分割した仕入は期間分割エラーを出さず一般課税の計算結果を返す');
+  // サービスは丸め前の内訳を公開しないため、同じUI入力のエンジン内訳で手計算を照合する。
+  const calculated = engine.calculate(wire, { method: 'general', taxablePeriod: period });
+  const details = calculated.purchaseTax.transitionDetails;
+  const exactYen = (value, expected) => value.num === BigInt(expected) * value.den;
+  assert(details.length === 2 && details.every(item => exactYen(item.taxBeforeTransition, 78000)),
+    '各1,100,000円の国税分の仕入税額は丸め前で78,000円');
+  assert(details[0].transactionDate === '2026-10-01' &&
+    details[0].transitionRecordId === 'INV-TRANS-02' && exactYen(details[0].deductibleTax, 54600) &&
+    details[1].transactionDate === '2026-09-30' &&
+    details[1].transitionRecordId === 'INV-TRANS-01' && exactYen(details[1].deductibleTax, 62400),
+    '変更後70%は54,600円・変更前80%は62,400円で手計算に一致する');
+  const standardBand = calculated.purchaseTax.bands.find(item => item.band === 'standard_10');
+  assert(exactYen(standardBand.deductibleTaxBeforeRounding, 117000),
+    '丸め前の国税分の仕入控除合計は手計算どおり117,000円');
+  console.log('  手計算照合（実際の丸め前の値）:', details.map(item =>
+    `${item.transactionDate}: 税額=${item.taxBeforeTransition.num / item.taxBeforeTransition.den}円, 控除=${item.deductibleTax.num / item.deductibleTax.den}円`).join('; '),
+  `合計=${standardBand.deductibleTaxBeforeRounding.num / standardBand.deductibleTaxBeforeRounding.den}円`);
+  const unsplit = structuredClone(wire);
+  unsplit.purchases[0].value.taxableWithoutInvoice = [
+    { ...unsplit.purchases[0].value.taxableWithoutInvoice[0], amount: taxIncl(2200000) },
+  ];
+  delete unsplit.purchases[0].value.taxableWithoutInvoice[0].transactionDate;
+  const blocked = service.simulate(unsplit, context(period), snapshotInfo);
+  assert(blocked.resultStatus === 'blocked' &&
+    hasWarning(blocked, 'CT_INVOICE_PERIOD_SPLIT_REQUIRED'),
+    'UI入力を取引日なしの1行に戻すと従来どおり期間分割エラーで一般課税を停止する');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

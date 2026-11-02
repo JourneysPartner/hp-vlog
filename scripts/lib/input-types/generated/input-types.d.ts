@@ -404,6 +404,7 @@ export type PurchaseInput = SimplePurchaseInput | DetailedPurchaseInput;
 export type TransitionalPurchase = {
   band: ConsumptionTaxRateBand;
   amount: TaxIncl;
+  transactionDate?: LocalDate;
   counterpartyId?: string;
   counterpartyAnnualTotal?: TaxIncl;
   hasRequiredRecords?: TriState;
@@ -1003,6 +1004,7 @@ export type PurchaseInputWire = SimplePurchaseInputWire | DetailedPurchaseInputW
 export type TransitionalPurchaseWire = {
   band: ConsumptionTaxRateBandWire;
   amount: TaxInclWire;
+  transactionDate?: LocalDateWire;
   counterpartyId?: string;
   counterpartyAnnualTotal?: TaxInclWire;
   hasRequiredRecords?: TriStateWire;

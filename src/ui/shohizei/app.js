@@ -6,7 +6,9 @@ const { createMoneyInput, createSelect } = require('../forms.js');
 const { announceStatus, announceAlert } = require('../a11y.js');
 const { createSimulatorPageView } = require('../simulator-page-view.js');
 const { queueEvent } = require('../analytics.js');
-const { buildCalculationContext } = require('./context-builder.js');
+const {
+  buildCalculationContext, CONSUMPTION_TAX_PERIOD, invoiceTransitionSplit,
+} = require('./context-builder.js');
 const { ShohizeiInputBuildError, buildShohizeiInput } = require('./input-builder.js');
 const { buildResultViewModel } = require('./result-view-model.js');
 
@@ -55,6 +57,7 @@ const INITIAL_FORM = Object.freeze({
   hasPurchasesWithoutInvoice: '',
   purchasesWithoutInvoiceBand: 'standard_10',
   purchasesWithoutInvoice: '', purchasesWithoutInvoiceBasis: 'inclusive',
+  purchasesWithoutInvoiceBeforeChange: '', purchasesWithoutInvoiceBeforeChangeBasis: 'inclusive',
   purchasesWithoutInvoiceAnnualTotal: '',
   purchasesWithoutInvoiceRecords: '',
   simplifiedCategory: '',
@@ -89,6 +92,7 @@ const FIELD_IDS = Object.freeze({
   '$.purchases[0].value.taxableWithInvoice[1].amount.amount.value': 'sz-purchases-8',
   '$.purchases[0].value.taxableWithoutInvoice': 'sz-without-invoice',
   '$.purchases[0].value.taxableWithoutInvoice[0].amount.amount.value': 'sz-without-invoice-amount',
+  '$.purchases[0].value.taxableWithoutInvoice[1].amount.amount.value': 'sz-without-invoice-amount-before',
   '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal.amount.value': 'sz-without-invoice-total',
   '$.purchases[0].value.taxableWithoutInvoice[0].hasRequiredRecords': 'sz-without-invoice-records',
   '$.simplified.primaryCategory': 'sz-simplified-category',
@@ -109,6 +113,7 @@ function cloneInitialForm() { return { ...INITIAL_FORM }; }
 
 function mountShohizeiApp(rootElement, {
   services, snapshotInfo, now, scrollToAppTop, focusHeading, introElement,
+  consumptionTaxPeriod = CONSUMPTION_TAX_PERIOD,
 } = {}) {
   if (!rootElement || typeof rootElement.replaceChildren !== 'function') {
     throw new TypeError('マウント先のDOM要素が必要です');
@@ -265,6 +270,7 @@ function mountShohizeiApp(rootElement, {
 
   function renderStep2() {
     const form = store.getState().form;
+    const split = invoiceTransitionSplit(consumptionTaxPeriod);
     return el('main', { className: 'shohizei-no-print' }, [
       ...stepHeader(2, '売上と仕入'), errorSummary(),
       el('p', {}, '税込・税抜は金額欄ごとに選択してください。'),
@@ -291,8 +297,14 @@ function mountShohizeiApp(rootElement, {
           ...selectField('purchasesWithoutInvoiceBand', 'sz-without-invoice-band', '税率区分', '', [
             { value: 'standard_10', label: '10%' }, { value: 'reduced_8', label: '8%（軽減税率）' },
           ], '$.purchases[0].value.taxableWithoutInvoice[0].band'),
+          split ? taxField('purchasesWithoutInvoiceBeforeChange', 'purchasesWithoutInvoiceBeforeChangeBasis',
+            'sz-without-invoice-amount-before', 'インボイスなし課税仕入（2026年9月30日まで・80%控除）',
+            '$.purchases[0].value.taxableWithoutInvoice[1].amount') : null,
           taxField('purchasesWithoutInvoice', 'purchasesWithoutInvoiceBasis', 'sz-without-invoice-amount',
-            'インボイスなし課税仕入', '$.purchases[0].value.taxableWithoutInvoice[0].amount'),
+            split ? 'インボイスなし課税仕入（2026年10月1日以後・70%控除）' : 'インボイスなし課税仕入',
+            '$.purchases[0].value.taxableWithoutInvoice[0].amount'),
+          split ? el('p', { className: 'shohizei-help' },
+            '経過措置の控除割合が2026年10月1日に変わるので、取引日で分けて入力してください。どちらかが無ければ0を入力してください。') : null,
           moneyField('purchasesWithoutInvoiceAnnualTotal', 'sz-without-invoice-total',
             'その相手先からの年間仕入合計（税込・円）', '相手先別上限の判定に使います。',
             '$.purchases[0].value.taxableWithoutInvoice[0].counterpartyAnnualTotal.amount.value').nodes,
@@ -337,7 +349,7 @@ function mountShohizeiApp(rootElement, {
     let context; let wire;
     try {
       context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
-      wire = buildShohizeiInput(store.getState().form, { emptyTransactions: true });
+      wire = buildShohizeiInput(store.getState().form, { emptyTransactions: true, consumptionTaxPeriod });
     } catch (error) { setBuildErrors(error, 1); return; }
     const validation = service.validate(wire);
     if (!validation.ok) {
@@ -359,7 +371,7 @@ function mountShohizeiApp(rootElement, {
     let context; let wire;
     try {
       context = buildCalculationContext(store.getState().form, snapshotInfo, nowProvider());
-      wire = buildShohizeiInput(store.getState().form);
+      wire = buildShohizeiInput(store.getState().form, { consumptionTaxPeriod });
     } catch (error) { setBuildErrors(error, 2); return; }
     const validation = service.validate(wire);
     if (!validation.ok) {
