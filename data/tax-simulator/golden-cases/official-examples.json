@@ -2020,7 +2020,7 @@
         "corporate_retained_cash": "3881600",
         "combined_cash": "8567600"
       },
-      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。税理士の最終承認は未了（台帳 E-1）。"
+      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。検証: 毛利順活税理士事務所（2026-11-02 承認、台帳 E-1）。"
     },
     {
       "case_id": "GC-HJ-STEADY-1200-R8",
@@ -2105,7 +2105,7 @@
         "corporation_burden_total_excluding_employer_social_insurance": "2559400",
         "corporation_combined_cash": "8567600"
       },
-      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。税理士の最終承認は未了（台帳 E-1）。"
+      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。検証: 毛利順活税理士事務所（2026-11-02 承認、台帳 E-1）。"
     },
     {
       "case_id": "GC-CT-GENERAL-R8-SPLIT",
@@ -2144,7 +2144,7 @@
         "local_tax": "106700",
         "total_tax": "485000"
       },
-      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。税理士の最終承認は未了（台帳 E-1）。"
+      "_note": "期待値はエンジンから逆算せず手計算した値（docs/tax-simulator/r8-switch/golden-2026.md）。検証: 毛利順活税理士事務所（2026-11-02 承認、台帳 E-1）。"
     }
   ]
 }
