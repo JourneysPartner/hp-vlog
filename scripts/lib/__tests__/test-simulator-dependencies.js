@@ -98,6 +98,25 @@ console.log('\n=== 検証2: 対応年の宣言は全シミュレーターで必�
   }
 }
 
+
+console.log('\n=== C-7: 特例の未承認・欠損は①④の公開を止める ===');
+{
+  const key = 'life_insurance_deduction_new_under23';
+  for (const missing of [false, true]) {
+    const records = missing ? realRecords.filter(record => record.value_key !== key)
+      : realRecords.map(record => record.value_key === key
+        ? { ...record, data_review_status: 'unverified', verified_at: null, verified_by: null } : record);
+    const inspection = inspectSimulatorDependencies(records, realTable);
+    const gates = evaluateSimulatorGates(records, inspection);
+    for (const type of ['hojinnari', 'yakuin_hoshu']) {
+      assert(!gates[type].publishable && (missing
+        ? gates[type].required.missingValueKeys.includes(key)
+        : gates[type].required.notApproved.filter(record => record.value_key === key).length === 4),
+      'C-7 ' + type + 'は特例の' + (missing ? '欠損' : '未承認4件') + 'で公開不可');
+    }
+  }
+}
+
 console.log('\n=== 検証3: 未分類 value_key の検出 ===');
 {
   const table = minimalTable();

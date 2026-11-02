@@ -708,6 +708,95 @@ console.log('\n=== F3: 所得税の障害者控除も家族の資格を確かめ
   }
 }
 
+
+console.log('\n=== C-7: 23歳未満の扶養親族がいる場合の生命保険料控除 ===');
+{
+  const premium = (annual, category = 'life', generation = 'new') =>
+    ({ generation, category, annualPremium: yen(annual) });
+  const run = (premiums, taxYear = 2026, applies = true) =>
+    deductionsEngine.calculateLifeInsuranceDeduction(premiums, { taxYear },
+      { hasUnder23Dependent: applies });
+  for (const [annual, special, ordinary] of [
+    [0, 0, 0], [20000, 20000, 20000], [29999, 29999, 24999],
+    [30000, 30000, 25000], [30001, 30000, 25000], [59999, 44999, 34999],
+    [60000, 45000, 35000], [60001, 45000, 35000], [119999, 59999, 40000],
+    [120000, 60000, 40000], [120001, 60000, 40000], [200000, 60000, 40000],
+  ]) {
+    const actual = run([premium(annual)]);
+    const normal = run([premium(annual)], 2026, false);
+    assert(actual.amount.value === BigInt(special) && normal.amount.value === BigInt(ordinary),
+      'C-7 新保険料' + annual + '円: 特例' + special + '円・通常' + ordinary +
+        '円（実際 ' + actual.amount.value + '・' + normal.amount.value + '円）');
+    assert(actual.under23SpecialApplied === (annual > 0) && !normal.under23SpecialApplied,
+      'C-7 新保険料' + annual + '円の適用フラグ');
+  }
+  for (const [newAnnual, oldAnnual, special, ordinary] of [
+    [120000, 100000, 60000, 50000], [10000, 100000, 60000, 50000],
+    [0, 100000, 50000, 50000], [30000, 25000, 55000, 40000],
+  ]) {
+    const premiums = [premium(newAnnual), premium(oldAnnual, 'life', 'old')];
+    const actual = run(premiums);
+    const normal = run(premiums, 2026, false);
+    assert(actual.amount.value === BigInt(special) && normal.amount.value === BigInt(ordinary),
+      'C-7 新' + newAnnual + '円・旧' + oldAnnual + '円: 特例' + special + '円・通常' + ordinary +
+        '円（実際 ' + actual.amount.value + '・' + normal.amount.value + '円）');
+    assert(actual.under23SpecialApplied === (newAnnual > 0), 'C-7 新旧併用の適用フラグ');
+  }
+  for (const category of ['nursing_medical', 'annuity']) {
+    const actual = run([premium(200000, category)]);
+    assert(actual.amount.value === 40000n && !actual.under23SpecialApplied,
+      'C-7 ' + category + 'には特例を適用せず4万円');
+  }
+  const combined = run(['life', 'nursing_medical', 'annuity'].map(category => premium(200000, category)));
+  assert(combined.amount.value === 120000n && combined.overallCap.value === 120000n &&
+    combined.rows.map(row => row.amount.value).join(',') === '60000,40000,40000',
+    'C-7 区分6万・4万・4万円でも合計上限は12万円');
+  assert(Object.keys(combined.rows[0]).join(',') ===
+    'category,newPremium,oldPremium,newDeduction,oldDeduction,amount', 'C-7 保険の明細行の形を維持');
+  for (const [year, expected] of [[2025, 40000], [2027, 60000], [2028, 40000]]) {
+    const actual = run([premium(120000)], year);
+    assert(actual.amount.value === BigInt(expected) && actual.under23SpecialApplied === (year === 2027),
+      'C-7 ' + year + '年の特例の適用期間');
+  }
+  const relative = (age, income, facts = {}) => ({ id: 'child', ageAtYearEnd: age,
+    relation: 'child', ...(income === undefined ? {} : { totalIncome: yen(income) }), ...facts });
+  const input = dependents => ({ totalIncome: yen(6000000), grossIncomeEtc: yen(6000000),
+    dependents, deductions: { lifeInsurance: [premium(120000)] } });
+  for (const [label, dependents, expected] of [
+    ['なし', [], 40000], ['10歳', [relative(10, 0)], 60000],
+    ['17歳', [relative(17, 0)], 60000], ['22歳・62万円', [relative(22, 620000)], 60000],
+    ['22歳・620001円', [relative(22, 620001)], 40000], ['23歳', [relative(23, 0)], 40000],
+    ['所得未入力', [relative(22)], 60000], ['扶養対象外', [relative(17, 0, { isDependent: false })], 40000],
+    ['配偶者を親族行に含めた場合', [relative(22, 0, { relation: 'spouse' })], 40000],
+    ['対象外の親族の後に10歳', [relative(23, 0), relative(10, 0)], 60000],
+  ]) {
+    const actual = deductionsEngine.calculateIncomeDeductions(input(dependents), { taxYear: 2026 });
+    assert(actual.deductions.lifeInsurance.value === BigInt(expected) &&
+      actual.lifeInsuranceUnder23Applied === (expected === 60000),
+      'C-7 親族' + label + ': 控除' + expected + '円・適用フラグ（実際 ' +
+        actual.deductions.lifeInsurance.value + '円）');
+  }
+  const spouseOnly = deductionsEngine.calculateIncomeDeductions({ ...input([]),
+    spouse: { exists: true, ageAtYearEnd: 30, totalIncome: yen(0) } }, { taxYear: 2026 });
+  assert(spouseOnly.deductions.lifeInsurance.value === 40000n && !spouseOnly.lifeInsuranceUnder23Applied,
+    'C-7 配偶者30歳だけは特例の対象外');
+  const noNew = deductionsEngine.calculateIncomeDeductions({ ...input([relative(10, 0)]),
+    deductions: { lifeInsurance: [premium(100000, 'life', 'old')] } }, { taxYear: 2026 });
+  assert(noNew.deductions.lifeInsurance.value === 50000n && !noNew.lifeInsuranceUnder23Applied,
+    'C-7 親族がいても新生命保険料0円では適用フラグなし');
+  const integrated = incomeTaxEngine.calculate({ business: { revenue: yen(6000000), expenses: yen(0) },
+    dependents: [relative(17, 0)], deductions: { lifeInsurance: [premium(120000)] } }, { taxYear: 2026 });
+  assert(integrated.deductionDetails.lifeInsuranceUnder23Applied === true &&
+    integrated.deductionDetails.lifeInsurance[0].amount.value === 60000n,
+    'C-7 所得税の最終結果へ適用フラグと明細を渡す');
+  const snapshot = require('../../../src/tax-engine/masters/snapshot.js');
+  snapshot.beginRecordTracking();
+  let used;
+  try { run([premium(120000)], 2026, false); } finally { used = snapshot.endRecordTracking(); }
+  assert(!used.some(record => record.recordId.startsWith('IDED-LIFE-NEW-U23-')),
+    'C-7 対象親族がいないときは特例の記録を参照しない');
+}
+
 console.log('\n=== F8: 所得税の配偶者所得の段の全件欠損 ===');
 {
   const engine = loadStage3Deductions(records => {

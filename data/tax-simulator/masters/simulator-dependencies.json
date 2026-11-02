@@ -123,6 +123,10 @@
           ]
         },
         {
+          "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
+          "value_keys": ["life_insurance_deduction_new_under23"]
+        },
+        {
           "_basis": "台帳 C-13。消費税を含めて比較するとき、欠けても止まらず金額が変わるので必須に置く",
           "value_keys": [
             "small_business_special_deduction",
@@ -484,6 +488,10 @@
             "furusato_special_credit_allocation",
             "resident_tax_housing_loan_credit_limit"
           ]
+        },
+        {
+          "_basis": "租税特別措置法41条の15の5（令和8年分・令和9年分）。23歳未満の扶養親族がいる人だけが使うが、未承認のまま公開すると該当者に黙って通常の表を使うので、必須に置いて公開判定で止める（台帳 C-7）",
+          "value_keys": ["life_insurance_deduction_new_under23"]
         },
         {
           "_basis": "台帳 C-15。配偶者・親族の所得で控除の種類を決める上限の値。一部だけ未承認のまま公開すると、該当者の令和7年分の計算まで止まるので必須に置く",

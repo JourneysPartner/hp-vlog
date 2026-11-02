@@ -1085,6 +1085,48 @@ console.log('\n=== C-15: 平年度・配偶者所得200万円は配偶者なし�
     '①平年度の個人側: 配偶者所得200万円と配偶者なしで所得税が一致する');
 }
 
+
+console.log('\n=== C-7: ①の両側の特例と前提の重複排除 ===');
+{
+  const notice = '23歳未満の扶養親族がいるため、新生命保険料の控除は令和8年分・令和9年分の特例（上限6万円）で計算しています。住民税の生命保険料控除には、この特例はありません。';
+
+  for (const [basis, makeInput, makeContext] of [
+    ['平年度', goldenInput, context], ['移行年度', transitionInput, transitionContext],
+  ]) {
+    for (const year of [2025, 2026]) {
+      const base = makeInput();
+      const originalContext = makeContext();
+      const yearContext = year === 2025 ? originalContext : context({
+        incomeTaxYear: 2026, residentTaxFiscalYear: 2026,
+        fiscalPeriod: nextYearDates(originalContext.fiscalPeriod), socialInsuranceMonths: ['2026-04'],
+      });
+      const baseline = service.simulate(year === 2025 ? base : nextYearDates(base), yearContext, snapshotInfo);
+      for (const age of [17, 23]) {
+        const input = year === 2025 ? makeInput() : nextYearDates(makeInput());
+        input.individual.dependents = [{ id: 'child', ageAtYearEnd: age, relation: 'child', totalIncome: yen(0) }];
+        input.individual.deductions = { lifeInsurance: [
+          { generation: 'new', category: 'life', annualPremium: yen(120000) },
+        ] };
+        const result = service.simulate(input, yearContext, snapshotInfo);
+        const applies = year === 2026 && age === 17;
+        assert(result.resultStatus === baseline.resultStatus,
+          'C-7 ①' + basis + '・' + year + '年・' + age + '歳: 特例だけで状態を変えない');
+        assert(result.assumptions.filter(text => text === notice).length === (applies ? 1 : 0),
+          'C-7 ①' + basis + '・' + year + '年・' + age + '歳: 前提は該当時だけ1回');
+        const records = result.usedMasterRecords.filter(record => record.recordId.startsWith('IDED-LIFE-NEW-U23-'));
+        assert(applies ? records.some(record => record.recordId === 'IDED-LIFE-NEW-U23-T4') : records.length === 0,
+          'C-7 ①' + basis + '・' + year + '年・' + age + '歳: 使用記録の対象年と年齢');
+        const scenarios = result.breakdown.data;
+        for (const key of ['soleProprietor', 'corporation']) {
+          const actual = scenarios[key].orderedIncomeDeductions.find(row => row.code === 'lifeInsurance').amount.value;
+          assert(actual === (applies ? 60000n : 40000n),
+            'C-7 ①' + basis + '・' + year + '年・' + age + '歳・' + key + ': 生命保険料控除');
+        }
+      }
+    }
+  }
+}
+
 /** F9の停止理由を実際のサービス経由で変換し、キャッシュを必ず戻す。 */
 function f9BlockedResidentResult(failOnCall) {
   const residentPath = require.resolve('../../../src/tax-engine/resident-tax/index.js');

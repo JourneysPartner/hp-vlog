@@ -72,6 +72,12 @@ function isDependentRelative(dependent, searchCriterion) {
       specificRelativeIncomeCeiling(searchCriterion).value);
 }
 
+function hasUnder23Dependent(dependents, searchCriterion) {
+  return dependents.some(dependent => Number.isInteger(dependent.ageAtYearEnd) &&
+    dependent.ageAtYearEnd >= 0 && dependent.ageAtYearEnd < 23 &&
+    dependent.relation !== 'spouse' && isDependentRelative(dependent, searchCriterion));
+}
+
 function calculateSpouseDeduction(totalIncome, spouse, options = {}) {
   if (!spouse || spouse.exists === false || spouse.totalIncome === undefined) return zeroMoney();
   const taxpayerTotalIncome = inputMoney(totalIncome, 'totalIncome');
@@ -228,23 +234,36 @@ function fixedTierCap(valueKey, searchCriterion) {
   return fixed.reduce((highest, value) => maxMoney(highest, value));
 }
 
-function calculateLifeInsuranceDeduction(premiums = [], options = {}) {
+function calculateLifeInsuranceDeduction(
+  premiums = [], options = {}, { hasUnder23Dependent = false } = {}
+) {
   const searchCriterion = criterion(options);
   if (premiums.some(item => item.generation === 'old' && item.category === 'nursing_medical')) {
     throw new RangeError('旧契約に介護医療保険料区分はありません');
   }
   const newCategoryCap = fixedTierCap('life_insurance_deduction_new', searchCriterion);
   const overallCap = sumMoney(LIFE_CATEGORIES.map(() => newCategoryCap));
+  const hasUnder23Special = hasUnder23Dependent &&
+    premiumTotal(premiums, 'new', 'life').value > 0n &&
+    masters.find('life_insurance_deduction_new_under23', searchCriterion).length > 0;
+  const lifeCategoryCap = hasUnder23Special
+    ? fixedTierCap('life_insurance_deduction_new_under23', searchCriterion)
+    : newCategoryCap;
   const rows = LIFE_CATEGORIES.map(category => {
     const newPremium = premiumTotal(premiums, 'new', category);
     const oldPremium = category === 'nursing_medical'
       ? zeroMoney()
       : premiumTotal(premiums, 'old', category);
-    const newDeduction = tierDeduction('life_insurance_deduction_new', newPremium, searchCriterion);
+    const specialCategory = hasUnder23Special && category === 'life';
+    const newDeduction = tierDeduction(specialCategory
+      ? 'life_insurance_deduction_new_under23'
+      : 'life_insurance_deduction_new', newPremium, searchCriterion);
     const oldDeduction = category === 'nursing_medical'
       ? zeroMoney()
       : tierDeduction('life_insurance_deduction_old', oldPremium, searchCriterion);
-    const combinedUnderNewCap = minMoney(addMoney(newDeduction, oldDeduction), newCategoryCap);
+    const combinedUnderNewCap = minMoney(
+      addMoney(newDeduction, oldDeduction), category === 'life' ? lifeCategoryCap : newCategoryCap
+    );
     return {
       category,
       newPremium,
@@ -258,6 +277,7 @@ function calculateLifeInsuranceDeduction(premiums = [], options = {}) {
     rows,
     overallCap,
     amount: minMoney(sumMoney(rows.map(row => row.amount)), overallCap),
+    under23SpecialApplied: hasUnder23Special,
   };
 }
 
@@ -408,7 +428,9 @@ function calculateIncomeDeductions(input, options = {}) {
   const spouseSpecialDeduction = spouseDeduction.value > 0n
     ? zeroMoney()
     : calculateSpouseSpecialDeduction(totalIncome, input.spouse, options);
-  const lifeInsurance = calculateLifeInsuranceDeduction(deductions.lifeInsurance || [], options);
+  const lifeInsurance = calculateLifeInsuranceDeduction(deductions.lifeInsurance || [], options, {
+    hasUnder23Dependent: hasUnder23Dependent(input.dependents || [], searchCriterion),
+  });
   const earthquakeInsurance = calculateEarthquakeInsuranceDeduction(
     deductions.earthquakeInsurance || [],
     options
@@ -452,6 +474,7 @@ function calculateIncomeDeductions(input, options = {}) {
     totalDeduction: sumMoney(ordered.map(([, amount]) => amount)),
     dependentRows: dependentResult.rows,
     lifeInsuranceRows: lifeInsurance.rows,
+    lifeInsuranceUnder23Applied: lifeInsurance.under23SpecialApplied,
     earthquakeInsuranceRows: earthquakeInsurance.rows,
   };
 }

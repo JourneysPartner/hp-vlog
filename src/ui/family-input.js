@@ -2,6 +2,13 @@
 
 const DEPENDENT_BANDS = Object.freeze([
   Object.freeze({
+    key: 'dependentsUnder16',
+    label: '16歳未満',
+    ageAtYearEnd: 10,
+    relation: 'child',
+    livesTogether: true,
+  }),
+  Object.freeze({
     key: 'dependents16To18',
     label: '16〜18歳',
     ageAtYearEnd: 17,

@@ -573,6 +573,19 @@ console.log('\n=== F6: 本人所得の境目を配偶者控除・配偶者特別
   }
 }
 
+
+console.log('\n=== C-7: 住民税の生命保険料控除に特例はない ===');
+{
+  const run = dependents => calc({ previousYearTotalIncome: yen(6000000), dependents,
+    deductions: { lifeInsurance: [{ generation: 'new', category: 'life', annualPremium: yen(120000) }] },
+  }, { incomeYear: 2026 });
+  const alone = run([]);
+  const family = run([{ ageAtYearEnd: 17, relation: 'child', totalIncome: yen(0) }]);
+  assert(alone.incomeDeductions.lifeInsurance.value === 28000n &&
+    family.incomeDeductions.lifeInsurance.value === 28000n,
+    'C-7 2026年も17歳の親族の有無によらず住民税の生命保険料控除は28,000円');
+}
+
 console.log('\n=== F8: 配偶者の所得の段が丸ごと欠けたら blocked ===');
 {
   const engine = loadC15Resident((key, records) => key === 'resident_tax_deduction_spouse_special'
