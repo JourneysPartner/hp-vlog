@@ -5,7 +5,7 @@
  *   node scripts/lib/__tests__/test-readability-rules.js
  * AI は偽の関数に置き換え、通信も禁止する。ファイルは作成しない。
  */
-const { READABILITY_RULES, STATIC_RULES } = require('../article-prompt-static');
+const { READABILITY_RULES, PLAIN_WORDING_RULES, STATIC_RULES } = require('../article-prompt-static');
 const { buildGenerationPrompt } = require('../article-prompt-builder');
 const contentModel = require('../content-model');
 const generation = require('../../generate-draft');
@@ -23,7 +23,7 @@ function checkPlacement(system, label) {
   assert(system.split(READABILITY_RULES).length - 1 === 1, `${label}: 決まりはちょうど1回`);
   assert(tone >= 0 && rules > tone, `${label}: 文体・トーンの後に置く`);
   assert(prohibitions > rules, `${label}: その後の最初の禁止事項より前に置く`);
-  assert(system.includes(`\n\n${READABILITY_RULES}\n\n═══ 禁止事項 ═══`),
+  assert(system.includes(`\n\n${READABILITY_RULES}\n\n${PLAIN_WORDING_RULES}\n\n═══ 禁止事項 ═══`),
     `${label}: 前後に空行を1つ置く`);
 }
 
@@ -77,8 +77,10 @@ async function main() {
   const withoutReadability = STATIC_RULES.replace(READABILITY_RULES, '');
   assert(!withoutReadability.includes('——'), '決まりの外に「——」を含まない');
   assert(!withoutReadability.includes('―'), '決まりの外に「―」を含まない');
+  assert(!PLAIN_WORDING_RULES.includes('——'), 'やわらかい言葉の決まりに「——」を含まない');
+  assert(!PLAIN_WORDING_RULES.includes('―'), 'やわらかい言葉の決まりに「―」を含まない');
   assert(withoutReadability.includes('   例:「レジ横に置いた自販機の売上は、レシートも出ないので帳簿への書き方に迷いがちです。\n' +
-    '      決算の直前になって手が止まる方は少なくありません。」'), '変更後の例を空白も含めて維持する');
+    '      決算が近づくと気になる方も多いはずです。」'), '変更後の例を空白も含めて維持する');
 
   console.log('\n=== R5-5: 新規生成では固定部分にだけ置く ===');
   const prompt = buildGenerationPrompt({

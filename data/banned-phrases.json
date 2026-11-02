@@ -146,6 +146,19 @@
       "addedAt": "2026-09-27T00:00:00.000Z",
       "sourceArticle": null,
       "autoExtracted": false
+    },
+    {
+      "id": "no-te-ga-tomaru",
+      "pattern": "手が止ま",
+      "humanReadable": "手が止まる",
+      "replacement": null,
+      "reason": "気取った言い回しで、記事全体が固い印象になる（毛利指摘 2026-11-02、PR #737 の差し戻し）。固定ルールのリード文の例をまねて、既存 281 本中 23 本に出ていた。「気になる」「迷う」など、ふだんの言葉で書く。",
+      "appliesTo": [
+        "body"
+      ],
+      "addedAt": "2026-11-02T00:00:00.000Z",
+      "sourceArticle": "youtuber-tax-payment-guide",
+      "autoExtracted": false
     }
   ]
 }
