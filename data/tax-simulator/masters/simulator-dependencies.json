@@ -100,6 +100,35 @@
             "officer_compensation_revision_reason",
             "officer_compensation_net_amount_rule"
           ]
+        },
+        {
+          "_basis": "台帳 C-13。入力が0件でもエンジンが毎回引く値。income-deductions.js の calculateIncomeDeductions（扶養の上限・生命保険料・地震保険料・寄附金）と resident-tax.js の所得控除・ふるさと納税・住宅ローン控除の計算が、入力の有無にかかわらず記録を読む。欠けると計算が止まるので必須に置く",
+          "value_keys": [
+            "income_deduction_specific_relative_special",
+            "life_insurance_deduction_new",
+            "life_insurance_deduction_old",
+            "earthquake_insurance_deduction",
+            "donation_deduction_income_cap_rate",
+            "donation_deduction_floor",
+            "resident_tax_life_insurance_deduction_new",
+            "resident_tax_life_insurance_deduction_old",
+            "resident_tax_life_insurance_total_cap",
+            "resident_tax_earthquake_insurance_deduction",
+            "resident_tax_earthquake_insurance_total_cap",
+            "donation_basic_credit_rate",
+            "furusato_special_credit_rate_table",
+            "furusato_special_credit_cap_rate",
+            "furusato_special_credit_allocation",
+            "resident_tax_housing_loan_credit_limit"
+          ]
+        },
+        {
+          "_basis": "台帳 C-13。消費税を含めて比較するとき、欠けても止まらず金額が変わるので必須に置く",
+          "value_keys": [
+            "small_business_special_deduction",
+            "simplified_taxation_ceiling",
+            "taxable_sales_exemption_threshold"
+          ]
         }
       ],
       "optional": [
@@ -115,7 +144,6 @@
             "income_deduction_spouse",
             "income_deduction_spouse_special",
             "income_deduction_dependent",
-            "income_deduction_specific_relative_special",
             "income_deduction_disability",
             "income_deduction_widow",
             "income_deduction_single_parent",
@@ -133,14 +161,6 @@
             "resident_tax_deduction_widow",
             "resident_tax_deduction_single_parent",
             "resident_tax_deduction_working_student"
-          ]
-        },
-        {
-          "_basis": "入力型設計書 §8-1『deductions.lifeInsurance』『deductions.earthquakeInsurance』。各保険料の入力がある場合だけ使う。",
-          "value_keys": [
-            "life_insurance_deduction_new",
-            "life_insurance_deduction_old",
-            "earthquake_insurance_deduction"
           ]
         },
         {
@@ -187,24 +207,12 @@
         {
           "_basis": "所得税法78条・地方税法37条の2・314条の7・附則7条の2。寄附（ふるさと納税を含む）の入力があるときだけ使う",
           "value_keys": [
-            "donation_deduction_floor",
-            "donation_deduction_income_cap_rate",
-            "donation_basic_credit_rate",
-            "furusato_special_credit_rate_table",
-            "furusato_special_credit_allocation",
-            "furusato_special_credit_cap_rate",
             "furusato_onestop_credit_rate_table"
           ]
         },
         {
           "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
           "value_keys": [
-            "resident_tax_housing_loan_credit_limit",
-            "resident_tax_life_insurance_deduction_new",
-            "resident_tax_life_insurance_deduction_old",
-            "resident_tax_life_insurance_total_cap",
-            "resident_tax_earthquake_insurance_deduction",
-            "resident_tax_earthquake_insurance_total_cap",
             "resident_tax_housing_loan_credit_applicable_years"
           ]
         },
@@ -222,12 +230,9 @@
             "consumption_tax_rate_standard",
             "consumption_tax_rate_reduced",
             "consumption_tax_rate_old_transitional",
-            "taxable_sales_exemption_threshold",
-            "simplified_taxation_ceiling",
             "simplified_deemed_purchase_rates",
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap",
-            "small_business_special_deduction",
             "full_deduction_taxable_sales_cap"
           ]
         }
@@ -263,27 +268,27 @@
             "tax_period_basis",
             "era_definition"
           ]
-        }
-      ],
-      "optional": [
+        },
         {
-          "_basis": "入力型設計書 §8-2『eligibility.basePeriod.taxableSales』『simplified.categorySelectedByUser』。簡易課税を選ぶ場合だけ使う。",
+          "_basis": "台帳 C-13。欠けても止まらず推奨が変わるので必須に置く",
+          "value_keys": [
+            "small_business_special_deduction"
+          ]
+        },
+        {
+          "_basis": "台帳 C-13。F4 の最小入力で欠けると summary または breakdown.data が変わることを確認。簡易課税の適用判定と比較結果を保つため必須に置く",
           "value_keys": [
             "simplified_taxation_ceiling",
             "simplified_deemed_purchase_rates"
           ]
-        },
+        }
+      ],
+      "optional": [
         {
           "_basis": "入力型設計書 §8-2『purchases[].taxableWithoutInvoice』。インボイスの無い仕入れがある場合だけ使う。",
           "value_keys": [
             "invoice_transition_deduction_rate",
             "invoice_counterparty_annual_cap"
-          ]
-        },
-        {
-          "_basis": "入力型設計書 §8-2『eligibility.invoiceRegistration.becameTaxableByRegistration』。2割特例の適用を判定する場合だけ使う。",
-          "value_keys": [
-            "small_business_special_deduction"
           ]
         }
       ]
@@ -321,28 +326,23 @@
             "tax_period_basis",
             "era_definition"
           ]
+        },
+        {
+          "_basis": "台帳 C-13。R2 の最小入力で欠けると計算全体が blocked になることを確認。inheritance-tax.js が保険金・退職金・2割加算・配偶者軽減・未成年者控除・障害者控除の記録を入力の有無にかかわらず読むため必須に置く",
+          "value_keys": [
+            "life_insurance_exemption",
+            "retirement_allowance_exemption",
+            "inheritance_two_tenths_surcharge",
+            "spouse_tax_relief_threshold",
+            "inheritance_minor_credit",
+            "inheritance_disability_credit"
+          ]
         }
       ],
       "optional": [
         {
-          "_basis": "入力型設計書 §8-3『assets.lifeInsurance』『assets.retirementAllowance』。該当財産がある場合だけ使う。",
+          "_basis": "入力型設計書 §8-3『heirs[].previousInheritanceWithin10Years』。相次相続控除の事実がある場合だけ使う。",
           "value_keys": [
-            "life_insurance_exemption",
-            "retirement_allowance_exemption"
-          ]
-        },
-        {
-          "_basis": "入力型設計書 §8-3『heirs[].relation』『division.spouseAcquisitionAmount』。該当する相続人・分割入力がある場合だけ使う。",
-          "value_keys": [
-            "inheritance_two_tenths_surcharge",
-            "spouse_tax_relief_threshold"
-          ]
-        },
-        {
-          "_basis": "入力型設計書 §8-3『heirs[].ageAtInheritance』『heirs[].disability』『heirs[].previousInheritanceWithin10Years』。各税額控除の事実がある場合だけ使う。",
-          "value_keys": [
-            "inheritance_minor_credit",
-            "inheritance_disability_credit",
             "inheritance_successive_credit"
           ]
         },
@@ -459,6 +459,27 @@
             "officer_compensation_revision_reason",
             "officer_compensation_net_amount_rule"
           ]
+        },
+        {
+          "_basis": "台帳 C-13。入力が0件でもエンジンが毎回引く値。income-deductions.js の calculateIncomeDeductions（扶養の上限・生命保険料・地震保険料・寄附金）と resident-tax.js の所得控除・ふるさと納税・住宅ローン控除の計算が、入力の有無にかかわらず記録を読む。欠けると計算が止まるので必須に置く",
+          "value_keys": [
+            "income_deduction_specific_relative_special",
+            "life_insurance_deduction_new",
+            "life_insurance_deduction_old",
+            "earthquake_insurance_deduction",
+            "donation_deduction_income_cap_rate",
+            "donation_deduction_floor",
+            "resident_tax_life_insurance_deduction_new",
+            "resident_tax_life_insurance_deduction_old",
+            "resident_tax_life_insurance_total_cap",
+            "resident_tax_earthquake_insurance_deduction",
+            "resident_tax_earthquake_insurance_total_cap",
+            "donation_basic_credit_rate",
+            "furusato_special_credit_rate_table",
+            "furusato_special_credit_cap_rate",
+            "furusato_special_credit_allocation",
+            "resident_tax_housing_loan_credit_limit"
+          ]
         }
       ],
       "optional": [
@@ -468,7 +489,6 @@
             "income_deduction_spouse",
             "income_deduction_spouse_special",
             "income_deduction_dependent",
-            "income_deduction_specific_relative_special",
             "income_deduction_disability",
             "income_deduction_widow",
             "income_deduction_single_parent",
@@ -484,11 +504,8 @@
           ]
         },
         {
-          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1 の保険料・医療費控除行。該当する控除入力がある場合だけ使う。",
+          "_basis": "入力型設計書 §8-4『①の個人給与側』と §8-1 の医療費控除行。該当する控除入力がある場合だけ使う。",
           "value_keys": [
-            "life_insurance_deduction_new",
-            "life_insurance_deduction_old",
-            "earthquake_insurance_deduction",
             "medical_expense_deduction_floor",
             "medical_expense_deduction_cap",
             "self_medication_deduction_floor",
@@ -515,24 +532,12 @@
         {
           "_basis": "所得税法78条・地方税法37条の2・314条の7・附則7条の2。寄附（ふるさと納税を含む）の入力があるときだけ使う",
           "value_keys": [
-            "donation_deduction_floor",
-            "donation_deduction_income_cap_rate",
-            "donation_basic_credit_rate",
-            "furusato_special_credit_rate_table",
-            "furusato_special_credit_allocation",
-            "furusato_special_credit_cap_rate",
             "furusato_onestop_credit_rate_table"
           ]
         },
         {
           "_basis": "地方税法附則5条の4。住宅ローン控除の入力があるときだけ使う。所得税から引ききれない額を住民税から控除する",
           "value_keys": [
-            "resident_tax_housing_loan_credit_limit",
-            "resident_tax_life_insurance_deduction_new",
-            "resident_tax_life_insurance_deduction_old",
-            "resident_tax_life_insurance_total_cap",
-            "resident_tax_earthquake_insurance_deduction",
-            "resident_tax_earthquake_insurance_total_cap",
             "resident_tax_housing_loan_credit_applicable_years"
           ]
         }

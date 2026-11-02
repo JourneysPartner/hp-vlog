@@ -226,5 +226,355 @@ console.log('\n=== 住民税エンジン: blocked ===');
     '市区町村コードが無ければ blocked（§3-2 の粒度表）');
 }
 
+console.log('\n=== C-15: 配偶者の所得だけで控除を判定する ===');
+{
+  const cases = [
+    [0, 330000, 0, 526500], [580000, 330000, 0, 526500],
+    [580001, 0, 330000, 526500], [1000000, 0, 330000, 526500],
+    [1000001, 0, 310000, 528500], [1300000, 0, 60000, 553500],
+    [1300001, 0, 30000, 556500], [1330000, 0, 30000, 556500],
+    [1330001, 0, 0, 559500], [2000000, 0, 0, 559500],
+  ];
+  for (const [spouseIncome, spouse, special, annual] of cases) {
+    const r = calc({ previousYearTotalIncome: yen(6000000),
+      spouse: { exists: true, totalIncome: yen(spouseIncome) } });
+    for (const [label, actual, expected] of [
+      ['配偶者控除', r.incomeDeductions.spouse.value, spouse],
+      ['配偶者特別控除', r.incomeDeductions.spouseSpecial.value, special],
+      ['年税額', r.annualTaxTotal.value, annual],
+    ]) assert(actual === BigInt(expected),
+      `配偶者所得${spouseIncome}円: ${label}は${expected}円 (実際${actual}円)`);
+  }
+  for (const [spouseIncome, spouse, special] of [[580000, 380000, 0], [580001, 0, 330000]]) {
+    const r = calc({ previousYearTotalIncome: yen(6000000),
+      spouse: { ageAtYearEnd: 71, totalIncome: yen(spouseIncome) } });
+    assert(r.incomeDeductions.spouse.value === BigInt(spouse) &&
+      r.incomeDeductions.spouseSpecial.value === BigInt(special),
+    `71歳・所得${spouseIncome}円: 配偶者${spouse}円・特別${special}円`);
+  }
+  for (const [taxpayer, spouseIncome, expected] of [[9500000, 1000000, 220000],
+    [10000001, 1000000, 0], [10000001, 0, 0]]) {
+    const r = calc({ previousYearTotalIncome: yen(taxpayer), spouse: { totalIncome: yen(spouseIncome) } });
+    assert(r.incomeDeductions.spouseSpecial.value === BigInt(expected) &&
+      r.incomeDeductions.spouse.value === 0n,
+    `本人${taxpayer}円・配偶者${spouseIncome}円: 配偶者特別控除${expected}円`);
+  }
+  for (const flags of [{ claimsSpouseSpecialDeduction: true }, { deductionType: 'special' }]) {
+    const low = calc({ previousYearTotalIncome: yen(6000000), spouse: { totalIncome: yen(0), ...flags } });
+    const high = calc({ previousYearTotalIncome: yen(6000000),
+      spouse: { totalIncome: yen(1300000), ...flags } });
+    assert(low.incomeDeductions.spouse.value === 330000n &&
+      low.incomeDeductions.spouseSpecial.value === 0n &&
+      high.incomeDeductions.spouse.value === 0n && high.incomeDeductions.spouseSpecial.value === 60000n,
+    `旧指定${Object.keys(flags)[0]}があっても所得で決める`);
+  }
+  const unknown = calc({ previousYearTotalIncome: yen(6000000), spouse: { exists: true } });
+  assert(unknown.deductionDetails.spouse === null && unknown.incomeDeductions.spouse.value === 0n &&
+    unknown.incomeDeductions.spouseSpecial.value === 0n, '配偶者の所得なしは従来どおり控除なし');
+  const r = calc({ previousYearTotalIncome: yen(2500000), spouse: { totalIncome: yen(900000) } });
+  assert(r.taxableTotalIncome.value === 1740000n && r.adjustmentDifference.value === 50000n &&
+    r.municipalAdjustmentDeduction.value === 1500n && r.prefecturalAdjustmentDeduction.value === 1000n &&
+    r.annualTaxTotal.value === 176500n,
+  `本人250万円・配偶者90万円: 課税174万円、差5万円、市調整1500円・県1000円、年税176500円 (実際${r.annualTaxTotal.value}円)`);
+  assert(!r.warnings.some(w => w.code === 'RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED'),
+    '配偶者特別控除の人的控除差0円を未登録と警告しない');
+}
+
+console.log('\n=== C-15: 親族の所得要件・人的控除差 ===');
+{
+  const cases = [[17, 580000, 'dependent', 'general', 330000],
+    [17, 580001, 'dependent', 'income_over_limit', 0],
+    [20, 580000, 'dependent', 'specific', 450000],
+    [20, 580001, 'specificRelativeSpecial', 'specific_relative_special', 450000],
+    [20, 950001, 'specificRelativeSpecial', 'specific_relative_special', 410000],
+    [20, 1230001, 'specificRelativeSpecial', 'specific_relative_special', 0],
+    [17, undefined, 'dependent', 'general', 330000]];
+  for (const [age, total, kind, category, amount] of cases) {
+    const r = calc({ previousYearTotalIncome: yen(6000000), dependents: [{ id: 'child',
+      ageAtYearEnd: age, ...(total === undefined ? {} : { totalIncome: yen(total) }) }] });
+    const row = r.deductionDetails.dependents[0];
+    assert(row.id === 'child' && row.kind === kind && row.category === category &&
+      row.amount.value === BigInt(amount),
+    `${age}歳・所得${total ?? 'なし'}円: ${kind}/${category} ${amount}円 (実際${row.amount.value}円)`);
+    if (total === 580001 || total === 1230001) assert(row.differenceSuffix === null,
+      `${age}歳・所得${total}円: 人的控除差の対象外`);
+  }
+  for (const [total, expected] of [[580000, 230000], [580001, 50000]]) {
+    const r = calc({ previousYearTotalIncome: yen(6000000),
+      dependents: [{ id: 'child', ageAtYearEnd: 20, totalIncome: yen(total) }] });
+    assert(r.adjustmentDifference.value === BigInt(expected),
+      `20歳・所得${total}円: 基礎と特定扶養の人的控除差は${expected}円`);
+    assert(!r.warnings.some(w => w.code === 'RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED'),
+      `20歳・所得${total}円: 特定親族特別控除の差0円に警告なし`);
+  }
+  for (const [age, total, expectedKind, amount] of [[17, 580001, 'dependent', 0],
+    [20, 580000, 'dependent', 450000], [20, 580001, 'specificRelativeSpecial', 450000]]) {
+    const r = calc({ previousYearTotalIncome: yen(6000000), dependents: [{ id: 'flag',
+      ageAtYearEnd: age, totalIncome: yen(total), claimsSpecificRelativeSpecialDeduction: true }] });
+    const row = r.deductionDetails.dependents[0];
+    assert(row.kind === expectedKind && row.amount.value === BigInt(amount),
+      `特定親族の旧指定があっても${age}歳・所得${total}円で判定する`);
+  }
+  const overlap = calc({ previousYearTotalIncome: yen(6000000), dependents: [{ id: 'both',
+    ageAtYearEnd: 20, totalIncome: yen(580001), claimsDependentDeduction: true,
+    claimsSpecificRelativeSpecialDeduction: true }] });
+  assert(overlap.status === 'blocked' && overlap.blockedReasons.some(reason =>
+    reason.code === 'RT_DEPENDENT_SPECIFIC_RELATIVE_OVERLAP'), '扶養と特定親族の重複指定は引き続き止める');
+}
+
+console.log('\n=== C-15: 非課税人数は同一生計配偶者・扶養親族だけ ===');
+{
+  const exemption = input => rt.calculateExemption(input, yen(2000000), { taxYear: 2025 });
+  for (const [total, count, threshold] of [[0, 2, 1010000], [580000, 2, 1010000],
+    [580001, 1, 450000], [undefined, 2, 1010000]]) {
+    const r = exemption({ spouse: { exists: true,
+      ...(total === undefined ? {} : { totalIncome: yen(total) }) } });
+    assert(r.personCount === count && r.threshold.value === BigInt(threshold),
+      `配偶者所得${total ?? 'なし'}円: 非課税人数${count}人・限度額${threshold}円`);
+  }
+  for (const age of [10, 17, 20]) {
+    for (const [total, count, threshold] of [[580000, 2, 1010000], [580001, 1, 450000],
+      [undefined, 2, 1010000]]) {
+      const r = exemption({ dependents: [{ ageAtYearEnd: age,
+        ...(total === undefined ? {} : { totalIncome: yen(total) }) }] });
+      assert(r.personCount === count && r.threshold.value === BigInt(threshold),
+        `${age}歳・所得${total ?? 'なし'}円: 非課税人数${count}人・限度額${threshold}円`);
+    }
+  }
+  const excluded = exemption({ spouse: { exists: false, totalIncome: yen(0) },
+    dependents: [{ ageAtYearEnd: 10, totalIncome: yen(0), countsForResidentTaxExemption: false }] });
+  assert(excluded.personCount === 1, '既存の人数除外指定を維持する');
+}
+
+console.log('\n=== C-15: 障害者控除と人的控除差の所得要件 ===');
+{
+  for (const who of ['spouse', 'dependent', 'childUnder16', 'specificRelative']) {
+    for (const [total, expected] of [[580000, 260000], [580001, 0], [undefined, 260000]]) {
+      const person = { id: who, disability: 'general',
+        ...(total === undefined ? {} : { totalIncome: yen(total) }) };
+      const input = who === 'spouse' ? { spouse: person } : { dependents: [{ ...person,
+        ageAtYearEnd: who === 'childUnder16' ? 10 : who === 'specificRelative' ? 20 : 17 }] };
+      const r = calc({ previousYearTotalIncome: yen(6000000), ...input });
+      assert(r.incomeDeductions.disability.value === BigInt(expected) &&
+        r.deductionDetails.disabilities.length === (expected > 0 ? 1 : 0),
+      `${who}・所得${total ?? 'なし'}円: 障害者控除${expected}円`);
+      const diff = r.adjustmentDifferenceDetails.filter(row => row.code === 'disability')
+        .reduce((sum, row) => sum + row.amount.value, 0n);
+      assert(diff === (expected > 0 ? 10000n : 0n),
+        `${who}・所得${total ?? 'なし'}円: 障害者の人的控除差も連動する`);
+    }
+  }
+  for (const total of [6000000, 30000000]) {
+    const r = calc({ previousYearTotalIncome: yen(total), self: { id: 'self', disability: 'general' } });
+    assert(r.incomeDeductions.disability.value === 260000n &&
+      r.adjustmentDifferenceDetails.some(row => row.code === 'disability' && row.amount.value === 10000n),
+    `本人所得${total}円: 障害者控除26万円と人的控除差1万円は本人所得で除かない`);
+  }
+}
+
+/** 記録の異常はメモリ内だけで作り、キャッシュを必ず戻す。 */
+function loadC15Resident(changeRecords) {
+  const snapshotPath = require.resolve('../../../src/tax-engine/masters/snapshot.js');
+  const residentPath = require.resolve('../../../src/tax-engine/resident-tax/resident-tax.js');
+  const real = require(snapshotPath);
+  const originalCache = new Map(Object.entries(require.cache));
+  const originalChildren = new Map([...originalCache].map(([id, entry]) => [id, entry.children.slice()]));
+  const originalExports = require.cache[snapshotPath].exports;
+  try {
+    require.cache[snapshotPath].exports = Object.assign({}, real, {
+      find(key, searchCriterion) {
+        return changeRecords(key, real.find(key, searchCriterion).map(record => structuredClone(record)));
+      },
+    });
+    delete require.cache[residentPath];
+    return require(residentPath);
+  } finally {
+    require.cache[snapshotPath].exports = originalExports;
+    for (const id of Object.keys(require.cache)) if (!originalCache.has(id)) delete require.cache[id];
+    for (const [id, entry] of originalCache) { entry.children = originalChildren.get(id); require.cache[id] = entry; }
+  }
+}
+function c15Throws(action, message) {
+  try { action(); return false; } catch (error) { return error instanceof Error && error.message.includes(message); }
+}
+function c15MasterBlocked(result, message) {
+  return result.status === 'blocked' && result.blockedReasons.some(reason =>
+    reason.code === 'RT_MASTER_UNAVAILABLE' && reason.message.includes(message));
+}
+console.log('\n=== C-15: 所得要件の記録の欠け・重なりでは停止する ===');
+{
+  const relativeKey = 'resident_tax_deduction_specific_relative_special';
+  const spouseKey = 'resident_tax_deduction_spouse_special';
+  const run = (engine, input) => engine.calculate({ jurisdiction: JUR, deductions: {},
+    previousYearTotalIncome: yen(6000000), ...input }, { incomeYear: 2025 });
+  for (const mode of ['missing', 'duplicate']) {
+    const engine = loadC15Resident((key, records) => {
+      if (key !== relativeKey) return records;
+      const zero = records.find(row => row.calculation_order === 0);
+      return mode === 'missing' ? records.filter(row => row.calculation_order !== 0)
+        : [...records, { ...zero, record_id: zero.record_id + '-DUP' }];
+    });
+    const expected = mode === 'missing' ? '特定親族特別控除の所得要件を取得できません'
+      : '特定親族特別控除の所得要件（0円の段）が一意に決まりません';
+    assert(c15MasterBlocked(run(engine, { dependents: [{ ageAtYearEnd: 20, totalIncome: yen(580001) }] }), expected),
+      `特定親族の0円の段が${mode}なら RT_MASTER_UNAVAILABLE で blocked`);
+    assert(run(engine, {}).status === 'complete', '親族0人なら所得要件の任意記録を引かない');
+  }
+  for (const mode of ['missing', 'ambiguous', 'notMinimum']) {
+    const engine = loadC15Resident((key, records) => {
+      if (key !== spouseKey) return records;
+      if (mode === 'missing') return records.filter(row => row.deduction_category !== 'spouse_special_s1');
+      const record = records.find(row => row.deduction_category === 'spouse_special_s1');
+      const target = mode === 'ambiguous' ? record
+        : records.find(row => row.deduction_category !== 'spouse_special_s1');
+      const lower = target.applicability_conditions.find(c => c.subject === 'spouse_total_income' && c.operator === 'gte');
+      lower.value.value = mode === 'ambiguous' ? '580002' : '580000';
+      return records;
+    });
+    assert(c15MasterBlocked(run(engine, { spouse: { totalIncome: yen(0) } }),
+      '配偶者特別控除の最下段（配偶者の所得要件）が一意に決まりません'),
+    `配偶者の最下段が${mode}なら RT_MASTER_UNAVAILABLE で blocked`);
+  }
+  const gap = loadC15Resident((key, records) => key === relativeKey
+    ? records.filter(row => row.calculation_order === 0) : records);
+  assert(c15MasterBlocked(run(gap, { dependents: [{ ageAtYearEnd: 20, totalIncome: yen(580001) }] }),
+    '特定親族特別控除の段がありません: 580001'), '所得に対応する特定親族の段が欠けたら RT_MASTER_UNAVAILABLE で blocked');
+  assert(require('../../../src/tax-engine/resident-tax/resident-tax.js') === rt,
+    '異常記録の試験後は本物の住民税モジュールに戻る');
+}
+
+console.log('\n=== F1: 老人扶養親族の人的控除差 ===');
+{
+  for (const [together, deduction, taxable, difference, municipal, prefectural, annual, suffix] of [
+    [false, 380000, 1690000, 150000, 4500, 3000, 166500, 'DEPENDENT-ELDERLY'],
+    [true, 450000, 1620000, 180000, 5400, 3600, 158000, 'DEPENDENT-ELDERLY-COHABITING'],
+  ]) {
+    const r = calc({ previousYearTotalIncome: yen(2500000), dependents: [{
+      id: 'parent', ageAtYearEnd: 71, relation: 'parent', livesTogether: together, totalIncome: yen(0),
+    }] });
+    for (const [label, actual, expected] of [
+      ['基礎控除', r.incomeDeductions.basic.value, 430000],
+      ['扶養控除', r.incomeDeductions.dependents.value, deduction],
+      ['課税標準', r.taxableTotalIncome.value, taxable],
+      ['人的控除差', r.adjustmentDifference.value, difference],
+      ['市調整', r.municipalAdjustmentDeduction.value, municipal],
+      ['県調整', r.prefecturalAdjustmentDeduction.value, prefectural],
+      ['年税額', r.annualTaxTotal.value, annual],
+    ]) assert(actual === BigInt(expected),
+      `71歳の親・${together ? '同居' : '別居'}: ${label}${expected}円 (実際${actual}円)`);
+    assert(r.deductionDetails.dependents[0].differenceSuffix === suffix,
+      `71歳の親・${together ? '同居' : '別居'}: 正しい人的控除差の接尾辞`);
+    assert(!r.warnings.some(w => w.code === 'RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED'),
+      `71歳の親・${together ? '同居' : '別居'}: 人的控除差の未登録警告なし`);
+  }
+}
+
+console.log('\n=== F2・F5: 配偶者の本人所得の段が欠けたら blocked ===');
+{
+  for (const [missingId, spouseIncome, age, expectedMessage] of [
+    ['RT-SPOUSE-SP-S01-T2', 600000, 40, '配偶者特別控除の本人の所得の段がありません: 9200000'],
+    ['RT-PD-SPOUSE-T2-GENERAL', 0, 40, '配偶者控除の本人の所得の段がありません: 9200000'],
+    ['RT-PD-SPOUSE-T2-ELDERLY', 0, 71, '配偶者控除の本人の所得の段がありません: 9200000'],
+  ]) {
+    let removed = false;
+    const engine = loadC15Resident((_key, records) => records.filter(record => {
+      if (record.record_id !== missingId) return true;
+      removed = true;
+      return false;
+    }));
+    const run = taxpayer => engine.calculate({ jurisdiction: JUR, deductions: {},
+      previousYearTotalIncome: yen(taxpayer),
+      spouse: { ageAtYearEnd: age, totalIncome: yen(spouseIncome) },
+    }, { incomeYear: 2025 });
+    assert(c15MasterBlocked(run(9200000), expectedMessage) && removed,
+      `${missingId} が欠けたら理由と RT_MASTER_UNAVAILABLE を返す`);
+    assert(run(8500000).status === 'complete', `${missingId} が欠けても別の本人所得の段は使える`);
+    const over = run(10000001);
+    assert(over.status === 'complete' && over.incomeDeductions.spouse.value === 0n &&
+      over.incomeDeductions.spouseSpecial.value === 0n,
+    `${missingId} が欠けても本人1000万円超の正規の0円の段は使える`);
+  }
+}
+
+console.log('\n=== F3: 家族の資格判定を障害者控除と非課税人数で揃える ===');
+{
+  for (const flag of ['exists', 'isSameLivelihood', 'isSameLivelihoodSpouse']) {
+    for (const total of [0, undefined]) {
+      const spouse = { [flag]: false, disability: 'general',
+        ...(total === undefined ? {} : { totalIncome: yen(total) }) };
+      const r = calc({ previousYearTotalIncome: yen(2500000), spouse });
+      assert(r.incomeDeductions.disability.value === 0n && r.deductionDetails.disabilities.length === 0 &&
+        !r.adjustmentDifferenceDetails.some(row => row.code === 'disability'),
+      `配偶者 ${flag}=false・所得${total ?? 'なし'}円: 障害者控除と人的控除差なし`);
+      assert(r.exemption.personCount === 1 && r.deductionDetails.spouse === null &&
+        r.incomeDeductions.spouse.value === 0n && r.incomeDeductions.spouseSpecial.value === 0n,
+      `配偶者 ${flag}=false・所得${total ?? 'なし'}円: 人数と配偶者控除にも含めない`);
+    }
+  }
+  for (const [facts, disability] of [
+    [{ isDependent: false }, 0],
+    [{ countsForResidentTaxExemption: false }, 260000],
+    [{ isDependent: false, countsForResidentTaxExemption: false }, 0],
+  ]) {
+    const r = calc({ previousYearTotalIncome: yen(2500000), dependents: [{
+      id: 'relative', ageAtYearEnd: 17, disability: 'general', totalIncome: yen(0), ...facts,
+    }] });
+    assert(r.exemption.personCount === 1 && r.incomeDeductions.disability.value === BigInt(disability),
+      `親族 ${JSON.stringify(facts)}: 非課税人数から除き、障害者控除は${disability}円`);
+  }
+}
+
+console.log('\n=== F6: 本人所得の境目を配偶者控除・配偶者特別控除で確かめる ===');
+{
+  for (const spouseIncome of [0, 600000]) {
+    for (const [taxpayer, expected] of [[9000000, 330000], [9000001, 220000],
+      [9500000, 220000], [9500001, 110000], [10000000, 110000], [10000001, 0]]) {
+      const r = calc({ previousYearTotalIncome: yen(taxpayer), spouse: { totalIncome: yen(spouseIncome) } });
+      const primary = spouseIncome === 0 ? 'spouse' : 'spouseSpecial';
+      const other = spouseIncome === 0 ? 'spouseSpecial' : 'spouse';
+      assert(r.status === 'complete' && r.incomeDeductions[primary].value === BigInt(expected) &&
+        r.incomeDeductions[other].value === 0n,
+      `本人${taxpayer}円・配偶者${spouseIncome}円: ${primary}は${expected}円`);
+    }
+  }
+}
+
+console.log('\n=== F8: 配偶者の所得の段が丸ごと欠けたら blocked ===');
+{
+  const engine = loadC15Resident((key, records) => key === 'resident_tax_deduction_spouse_special'
+    ? records.filter(record => record.deduction_category !== 'spouse_special_s3') : records);
+  const run = spouseIncome => engine.calculate({ jurisdiction: JUR, deductions: {},
+    previousYearTotalIncome: yen(6000000), spouse: { totalIncome: yen(spouseIncome) },
+  }, { incomeYear: 2025 });
+  for (const total of [1050001, 1100000]) {
+    assert(c15MasterBlocked(run(total), '配偶者特別控除の配偶者の所得の段がありません: ' + total),
+      `s3全件欠損・配偶者${total}円: 所得の段の欠けを理由付き blocked にする`);
+  }
+  for (const [total, expected] of [[1050000, 310000], [1100001, 210000], [1330001, 0], [2000000, 0]]) {
+    const r = run(total);
+    assert(r.status === 'complete' && r.incomeDeductions.spouseSpecial.value === BigInt(expected),
+      `s3全件欠損・配偶者${total}円: 該当する他の段または上限超の0円を維持する`);
+  }
+}
+
+console.log('\n=== F10: 同一生計配偶者でなくても特別控除の対象になる ===');
+{
+  for (const [total, expected] of [[1000000, 330000], [0, 0]]) {
+    const r = calc({ previousYearTotalIncome: yen(6000000), spouse: {
+      totalIncome: yen(total), isSameLivelihoodSpouse: false, disability: 'general',
+    } });
+    assert(r.incomeDeductions.spouse.value === 0n &&
+      r.incomeDeductions.spouseSpecial.value === BigInt(expected),
+      `isSameLivelihoodSpouse=false・配偶者${total}円: 配偶者控除0円・特別控除${expected}円`);
+    assert(r.incomeDeductions.disability.value === 0n && r.exemption.personCount === 1,
+      `配偶者${total}円: 障害者控除と非課税人数の資格判定は維持する`);
+  }
+  const differentLivelihood = calc({ previousYearTotalIncome: yen(6000000), spouse: {
+    totalIncome: yen(1000000), isSameLivelihood: false, isSameLivelihoodSpouse: false,
+  } });
+  assert(differentLivelihood.incomeDeductions.spouseSpecial.value === 0n,
+    '生計を一にしない配偶者は特別控除も対象外');
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -94,6 +94,21 @@ const WARNING_MAP = Object.freeze({
     userAction: 'マスターレコードの確認工程を完了してください',
     canContinue: false,
   }),
+  RT_MASTER_UNAVAILABLE: Object.freeze({
+    level: 'critical',
+    userAction: '承認済みマスターを用意してから再計算してください',
+    canContinue: false,
+  }),
+  HJ_RESIDENT_TAX_RT_MASTER_UNAVAILABLE: Object.freeze({
+    level: 'critical',
+    userAction: '承認済みマスターを用意してから再計算してください',
+    canContinue: false,
+  }),
+  HJ_CORPORATION_MASTER_UNAVAILABLE: Object.freeze({
+    level: 'critical',
+    userAction: '承認済みマスターを用意してから再計算してください',
+    canContinue: false,
+  }),
   IHT_MASTER_UNAVAILABLE: Object.freeze({
     level: 'critical',
     userAction: '承認済みマスターを用意してから再計算してください',

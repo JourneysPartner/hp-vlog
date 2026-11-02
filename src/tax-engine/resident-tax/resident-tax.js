@@ -30,6 +30,12 @@ const {
 
 const LOCAL_TAX_ROUNDING_RULE_ID = 'R-TRUNC-100-LOCAL-TAX';
 const LIFE_CATEGORIES = Object.freeze(['life', 'nursing_medical', 'annuity']);
+const DEPENDENT_DIFFERENCE_SUFFIX = Object.freeze({
+  general: 'DEPENDENT-GENERAL',
+  specific: 'DEPENDENT-SPECIFIC',
+  elderly_not_cohabiting: 'DEPENDENT-ELDERLY',
+  elderly_cohabiting: 'DEPENDENT-ELDERLY-COHABITING',
+});
 
 function addReason(reasons, code, message, itemIndex) {
   if (reasons.some(reason => reason.code === code && reason.itemIndex === itemIndex)) return;
@@ -120,13 +126,15 @@ function recordForCondition(valueKey, searchCriterion, subject, value) {
   return masters.find(valueKey, searchCriterion).find(record => conditionValue(record, subject) === value);
 }
 
+function masterUnavailableError(message) {
+  const error = new Error(message);
+  error.code = 'RT_MASTER_UNAVAILABLE';
+  return error;
+}
+
 function requiredRecord(valueKey, searchCriterion, predicate = () => true) {
   const record = masters.find(valueKey, searchCriterion).find(predicate);
-  if (!record) {
-    const error = new Error(`住民税マスターが利用できません: ${valueKey}`);
-    error.code = 'RT_MASTER_UNAVAILABLE';
-    throw error;
-  }
+  if (!record) throw masterUnavailableError(`住民税マスターが利用できません: ${valueKey}`);
   return record;
 }
 
@@ -214,17 +222,27 @@ function specialStatusApplies(input) {
   return hasDisability || isMinor || familyStatus === 'widow' || familyStatus === 'single_parent';
 }
 
-function sameLivelihoodSpouseCount(input) {
-  const spouse = input.spouse;
-  if (!spouse || spouse.exists === false) return 0;
-  if (spouse.isSameLivelihood === false || spouse.isSameLivelihoodSpouse === false) return 0;
-  return 1;
+function isSameLivelihoodSpouse(spouse, searchCriterion) {
+  return !!spouse && spouse.exists !== false && spouse.isSameLivelihood !== false &&
+    spouse.isSameLivelihoodSpouse !== false && (spouse.totalIncome === undefined ||
+      inputMoney(spouse.totalIncome, 'spouse.totalIncome').value <=
+        spouseDeductionCeiling(searchCriterion).value);
 }
 
-function dependentCountForExemption(input) {
+function isDependentRelative(dependent, searchCriterion) {
+  return dependent.isDependent !== false && (dependent.totalIncome === undefined ||
+    inputMoney(dependent.totalIncome, 'dependent.totalIncome').value <=
+      specificRelativeIncomeCeiling(searchCriterion).value);
+}
+
+function sameLivelihoodSpouseCount(input, searchCriterion) {
+  return isSameLivelihoodSpouse(input.spouse, searchCriterion) ? 1 : 0;
+}
+
+function dependentCountForExemption(input, searchCriterion) {
   // 施行令47条の3の人数には、所得控除額が0円となる16歳未満の扶養親族も含める。
   return (input.dependents || []).filter(dependent =>
-    dependent.countsForResidentTaxExemption !== false && dependent.isDependent !== false
+    dependent.countsForResidentTaxExemption !== false && isDependentRelative(dependent, searchCriterion)
   ).length;
 }
 
@@ -262,8 +280,8 @@ function calculateExemption(input, totalIncome, searchCriterion) {
   const addition = masterMoney(requiredRecord(
     'resident_tax_per_capita_exemption_addition', searchCriterion
   ).threshold_amount);
-  const spouseCount = sameLivelihoodSpouseCount(input);
-  const dependentCount = dependentCountForExemption(input);
+  const spouseCount = sameLivelihoodSpouseCount(input, searchCriterion);
+  const dependentCount = dependentCountForExemption(input, searchCriterion);
   const relativeCount = spouseCount + dependentCount;
   const personCount = relativeCount + 1;
   const threshold = sumMoney([
@@ -327,31 +345,67 @@ function spouseIncomeMatches(record, spouseIncome) {
     });
 }
 
+function spouseDeductionCeiling(searchCriterion) {
+  const specialRecords = masters.find('resident_tax_deduction_spouse_special', searchCriterion);
+  const lowerValues = records => records
+    .flatMap(record => record.applicability_conditions || [])
+    .filter(condition => condition.subject === 'spouse_total_income' && condition.operator === 'gte')
+    .map(condition => masterMoney(condition.value).value);
+  const firstTierLowers = new Set(lowerValues(
+    specialRecords.filter(record => record.deduction_category === 'spouse_special_s1')
+  ));
+  const ambiguousLowerMessage = '配偶者特別控除の最下段（配偶者の所得要件）が一意に決まりません';
+  if (firstTierLowers.size !== 1) throw masterUnavailableError(ambiguousLowerMessage);
+  const [firstSpecialLower] = firstTierLowers;
+  const minimumLower = lowerValues(specialRecords).reduce((lowest, value) => value < lowest ? value : lowest);
+  if (firstSpecialLower !== minimumLower) throw masterUnavailableError(ambiguousLowerMessage);
+  return inputMoney(firstSpecialLower - 1n);
+}
+
+function specificRelativeIncomeCeiling(searchCriterion) {
+  const records = masters.find('resident_tax_deduction_specific_relative_special', searchCriterion);
+  const zeroTiers = records.filter(record => record.calculation_order === 0);
+  if (zeroTiers.length === 0) throw masterUnavailableError('特定親族特別控除の所得要件を取得できません');
+  if (zeroTiers.length > 1) throw masterUnavailableError('特定親族特別控除の所得要件（0円の段）が一意に決まりません');
+  return masterMoney(zeroTiers[0].income_upper_inclusive);
+}
+
 function calculateSpouseDeduction(totalIncome, spouse, searchCriterion) {
-  if (!spouse || spouse.exists === false || spouse.totalIncome === undefined) return null;
+  if (!spouse || spouse.exists === false || spouse.isSameLivelihood === false ||
+      spouse.totalIncome === undefined) return null;
   const category = Number.isInteger(spouse.ageAtYearEnd) && spouse.ageAtYearEnd >= 70
     ? 'elderly'
     : 'general';
-  const wantsSpecial = spouse.claimsSpouseSpecialDeduction === true ||
-    spouse.deductionType === 'special';
-  if (wantsSpecial) {
-    const spouseIncome = inputMoney(spouse.totalIncome, 'spouse.totalIncome');
-    const records = masters.find('resident_tax_deduction_spouse_special', searchCriterion)
-      .filter(record => spouseIncomeMatches(record, spouseIncome));
-    if (records.length === 0) return null;
+  const spouseIncome = inputMoney(spouse.totalIncome, 'spouse.totalIncome');
+  if (spouseIncome.value > spouseDeductionCeiling(searchCriterion).value) {
+    const specialRecords = masters.find('resident_tax_deduction_spouse_special', searchCriterion);
+    const records = specialRecords.filter(record => spouseIncomeMatches(record, spouseIncome));
+    if (records.length === 0) {
+      const upperValues = specialRecords.flatMap(record => record.applicability_conditions || [])
+        .filter(condition => condition.subject === 'spouse_total_income' && condition.operator === 'lte')
+        .map(condition => masterMoney(condition.value).value);
+      if (upperValues.length === 0 ||
+          spouseIncome.value <= upperValues.reduce((highest, value) => value > highest ? value : highest)) {
+        throw masterUnavailableError('配偶者特別控除の配偶者の所得の段がありません: ' + spouseIncome.value);
+      }
+      return null;
+    }
     const record = findRange(records, totalIncome, 'income_lower_inclusive');
-    return record ? { kind: 'spouseSpecial', category: record.deduction_category,
-      amount: masterMoney(record.deduction_amount), differenceSuffix: null } : null;
+    if (!record) throw masterUnavailableError('配偶者特別控除の本人の所得の段がありません: ' + totalIncome.value);
+    return { kind: 'spouseSpecial', category: record.deduction_category,
+      amount: masterMoney(record.deduction_amount), differenceSuffix: null };
   }
+  if (spouse.isSameLivelihoodSpouse === false) return null;
   const records = masters.find('resident_tax_deduction_spouse', searchCriterion)
     .filter(record => conditionValue(record, 'spouse_category') === category);
   const record = findRange(records, totalIncome, 'income_lower_inclusive');
-  return record ? {
+  if (!record) throw masterUnavailableError('配偶者控除の本人の所得の段がありません: ' + totalIncome.value);
+  return {
     kind: 'spouse',
     category,
     amount: masterMoney(record.deduction_amount),
     differenceSuffix: `SPOUSE-${record.record_id.match(/-T[1-4]-/)[0].slice(1, 3)}-${category.toUpperCase()}`,
-  } : null;
+  };
 }
 
 function calculateDependentRows(dependents, searchCriterion) {
@@ -368,21 +422,29 @@ function calculateDependentRows(dependents, searchCriterion) {
       continue;
     }
     const age = dependent.ageAtYearEnd;
+    if (dependent.totalIncome !== undefined) {
+      const income = inputMoney(dependent.totalIncome, `${dependent.id || 'dependent'}.totalIncome`);
+      if (income.value > specificRelativeIncomeCeiling(searchCriterion).value) {
+        if (age >= 19 && age < 23) {
+          const record = findRange(
+            masters.find('resident_tax_deduction_specific_relative_special', searchCriterion),
+            income,
+            'income_lower_inclusive'
+          );
+          if (!record) throw masterUnavailableError('特定親族特別控除の段がありません: ' + income.value);
+          rows.push({ id: dependent.id, kind: 'specificRelativeSpecial',
+            category: 'specific_relative_special',
+            amount: masterMoney(record.deduction_amount), differenceSuffix: null });
+        } else {
+          rows.push({ id: dependent.id, kind: 'dependent', category: 'income_over_limit',
+            amount: zeroMoney(), differenceSuffix: null });
+        }
+        continue;
+      }
+    }
     if (!Number.isInteger(age) || age < 16) {
       rows.push({ id: dependent.id, kind: 'dependent', category: 'under_16',
         amount: zeroMoney(), differenceSuffix: null });
-      continue;
-    }
-    if (dependent.claimsSpecificRelativeSpecialDeduction === true) {
-      const income = inputMoney(dependent.totalIncome, `${dependent.id || 'dependent'}.totalIncome`);
-      const record = findRange(
-        masters.find('resident_tax_deduction_specific_relative_special', searchCriterion),
-        income,
-        'income_lower_inclusive'
-      );
-      rows.push({ id: dependent.id, kind: 'specificRelativeSpecial',
-        category: 'specific_relative_special',
-        amount: record ? masterMoney(record.deduction_amount) : zeroMoney(), differenceSuffix: null });
       continue;
     }
     let category = 'general';
@@ -398,8 +460,7 @@ function calculateDependentRows(dependents, searchCriterion) {
     );
     rows.push({ id: dependent.id, kind: 'dependent', category,
       amount: masterMoney(record.deduction_amount),
-      differenceSuffix: `DEPENDENT-${category.replace('not_cohabiting', 'ELDERLY')
-        .replace('elderly_cohabiting', 'ELDERLY-COHABITING').toUpperCase()}` });
+      differenceSuffix: DEPENDENT_DIFFERENCE_SUFFIX[category] });
   }
   return { rows, blockedReasons };
 }
@@ -509,7 +570,9 @@ function calculateResidentDeductions(input, totalIncome, searchCriterion) {
     });
   const basic = masterMoney(basicRecord.deduction_amount);
   const spouseRow = calculateSpouseDeduction(totalIncome, input.spouse, searchCriterion);
-  const people = [input.self || input.officer, input.spouse, ...(input.dependents || [])];
+  const people = [input.self || input.officer];
+  if (isSameLivelihoodSpouse(input.spouse, searchCriterion)) people.push(input.spouse);
+  people.push(...(input.dependents || []).filter(person => isDependentRelative(person, searchCriterion)));
   const disabilityRows = people.map((person, index) => ({ person, index,
     category: disabilityCategory(person) })).filter(row => row.category).map(row => {
     const record = personalDeductionRecord(
@@ -597,26 +660,12 @@ function adjustmentDifference(deductionResult, totalIncome, searchCriterion) {
   if (deductionResult.familyStatus === 'widow') add('WIDOW', 'widow');
   if (deductionResult.familyStatus === 'single_parent') add('SINGLE-PARENT', 'singleParent');
   if (deductionResult.workingStudentApplied) add('WORKING-STUDENT', 'workingStudent');
-  if (deductionResult.spouseRow) {
-    if (deductionResult.spouseRow.differenceSuffix) {
-      add(deductionResult.spouseRow.differenceSuffix, deductionResult.spouseRow.kind);
-    } else if (deductionResult.spouseRow.amount.value > 0n) {
-      warnings.push({
-        code: 'RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED',
-        message: '配偶者特別控除に対応する人的控除差が未登録のため、調整控除の基礎へ含めていません',
-        deductionCode: 'spouseSpecial',
-      });
-    }
+  // 地方税法37条の調整控除では、配偶者特別控除・特定親族特別控除の人的控除差は0円。
+  if (deductionResult.spouseRow && deductionResult.spouseRow.differenceSuffix) {
+    add(deductionResult.spouseRow.differenceSuffix, deductionResult.spouseRow.kind);
   }
   for (const row of deductionResult.dependentRows) {
     if (row.differenceSuffix && row.amount.value > 0n) add(row.differenceSuffix, row.kind);
-    else if (row.kind === 'specificRelativeSpecial' && row.amount.value > 0n) {
-      warnings.push({
-        code: 'RT_ADJUSTMENT_DIFFERENCE_UNREGISTERED',
-        message: '特定親族特別控除に対応する人的控除差が未登録のため、調整控除の基礎へ含めていません',
-        deductionCode: 'specificRelativeSpecial',
-      });
-    }
   }
   return { amount: sumMoney(applied.map(row => row.amount)), applied, warnings };
 }
