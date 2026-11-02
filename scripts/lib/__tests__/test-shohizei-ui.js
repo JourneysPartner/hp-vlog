@@ -617,11 +617,6 @@ async function main() {
         assert.strictEqual(form.simplifiedElectionEffectiveYear, String(year));
         assert.strictEqual(form.taxablePersonElectionEffectiveYear, String(year));
         assert(root.textContent.includes(`課税期間：${year}年1月1日〜12月31日（第1版固定）`));
-        const context = buildCalculationContext(form, snapshotInfo, calculatedAt);
-        const input = buildShohizeiInput(baseState({ consumptionTaxYear: year }),
-          { consumptionTaxPeriod: consumptionTaxPeriodFor(year) });
-        assert.deepStrictEqual(input.sales[0].period, context.consumptionTaxPeriod);
-        assert.deepStrictEqual(input.purchases[0].period, context.consumptionTaxPeriod);
       } finally { app.destroy(); }
     });
     withFakeDocument(({ root }) => {
@@ -631,6 +626,45 @@ async function main() {
       }
     });
   });
+  for (const consumptionTaxPeriod of [undefined, { from: '2025-01-01', to: '2025-12-31' }]) {
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previous = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    const calls = [];
+    let app;
+    try {
+      app = mountShohizeiApp(dom.root, { snapshotInfo, now: () => calculatedAt, consumptionTaxPeriod,
+        services: { validate: service.validate, simulate(input, context) {
+          calls.push({ input, context });
+          return complete.result;
+        } } });
+      const fields = baseState();
+      delete fields.consumptionTaxYear;
+      delete fields.simplifiedElectionEffectiveYear;
+      delete fields.taxablePersonElectionEffectiveYear;
+      app.store.setState(state => ({ ...state, form: { ...state.form, ...fields } }));
+      await dom.root.querySelector('.shohizei-primary').listeners.get('click')();
+      assert.strictEqual(app.store.getState().step, 2);
+      await dom.root.querySelector('.shohizei-primary').listeners.get('click')();
+      assert.strictEqual(app.store.getState().screen, 'result');
+      assert.strictEqual(calls.length, 2);
+      const expectedPeriod = consumptionTaxPeriod || { from: '2026-01-01', to: '2026-12-31' };
+      assert(calls[1].input.sales.length > 0 && calls[1].input.purchases.length > 0);
+      for (const call of calls) {
+        assert.deepStrictEqual(call.context.consumptionTaxPeriod, expectedPeriod);
+        for (const segment of [...(call.input.sales || []), ...(call.input.purchases || [])]) {
+          assert.deepStrictEqual(segment.period, call.context.consumptionTaxPeriod);
+        }
+      }
+      process.stdout.write(`  ✓ R12-2: appが渡す入力と文脈は${expectedPeriod.from.slice(0, 4)}暦年で一致する\n`);
+      passed++;
+    } finally {
+      if (app) app.destroy();
+      if (previous === undefined) delete global.document;
+      else global.document = previous;
+    }
+  }
   check('②の見出しと印刷は全状態を日本語で表示し、未知の状態はTypeError', () => {
     for (const [status, label] of [['complete', '計算完了'], ['partial', '一部概算'], ['blocked', '停止']]) {
       const result = { ...complete.result, resultStatus: status };
@@ -651,6 +685,47 @@ async function main() {
     }
     assert.throws(() => buildResultViewModel({ ...complete.result, resultStatus: 'unknown' }), TypeError);
   });
+
+  {
+    const c = goldenDocument.cases.find(item => item.case_id === 'GC-CT-GENERAL-R8-SPLIT');
+    const i = c.inputs;
+    const { createFakeDom } = require('./helpers/fake-dom.js');
+    const previous = global.document;
+    const dom = createFakeDom();
+    global.document = dom.document;
+    let app;
+    try {
+      app = mountShohizeiApp(dom.root, { services: service, snapshotInfo, now: () => calculatedAt });
+      assert.strictEqual(app.store.getState().form.consumptionTaxYear, 2026);
+      const fields = baseState({ taxpayerType: i.taxpayer_type,
+        basePeriodTaxableSales: i.base_period_taxable_sales, simplifiedElectionStatus: 'no',
+        salesStandard10: i.standard_rate_tax_inclusive_sales,
+        purchasesWithInvoiceStandard10: i.standard_rate_tax_inclusive_purchases_with_invoice,
+        hasPurchasesWithoutInvoice: 'yes',
+        purchasesWithoutInvoiceBeforeChange: i.standard_rate_tax_inclusive_purchases_without_invoice_until_2026_09_30,
+        purchasesWithoutInvoice: i.standard_rate_tax_inclusive_purchases_without_invoice_from_2026_10_01,
+        purchasesWithoutInvoiceAnnualTotal: '1650000', purchasesWithoutInvoiceRecords: 'yes' });
+      delete fields.consumptionTaxYear;
+      delete fields.simplifiedElectionEffectiveYear;
+      delete fields.taxablePersonElectionEffectiveYear;
+      app.store.setState(state => ({ ...state, form: { ...state.form, ...fields } }));
+      await dom.root.querySelector('.shohizei-primary').listeners.get('click')();
+      assert.strictEqual(app.store.getState().step, 2);
+      assert.strictEqual(dom.root.querySelector('#sz-without-invoice-amount-before').value, '1100000');
+      assert.strictEqual(dom.root.querySelector('#sz-without-invoice-amount').value, '550000');
+      await dom.root.querySelector('.shohizei-primary').listeners.get('click')();
+      const state = app.store.getState();
+      assert.strictEqual(state.screen, 'result', JSON.stringify(state.errors));
+      assert.strictEqual(state.result.resultStatus, 'complete');
+      assert.strictEqual(state.viewModel.comparisonRows.find(row => row.methodCode === 'general').exactYen, BigInt(c.expected.total_tax));
+      process.stdout.write('  ✓ R14: 既定2026年の②の画面の前後2欄から485,000円・complete\n');
+      passed++;
+    } finally {
+      if (app) app.destroy();
+      if (previous === undefined) delete global.document;
+      else global.document = previous;
+    }
+  }
 
   process.stdout.write(`\n${passed} passed, 0 failed\n`);
 }

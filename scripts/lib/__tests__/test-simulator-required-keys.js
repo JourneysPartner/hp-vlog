@@ -27,6 +27,9 @@ function readRecords(directory) {
 }
 readRecords(path.join(mastersDir, 'data'));
 const snapshotInfo = real.getSnapshotInfo();
+const { buildCalculationContext: buildIncomeContext } = require('../../../src/ui/hojinnari/context-builder.js');
+const { buildCalculationContext: buildConsumptionContext } = require('../../../src/ui/shohizei/context-builder.js');
+const calculatedAt = '2026-11-02T12:00:00+09:00';
 const yen = value => ({ unit: 'JPY', value: BigInt(value) });
 let omittedKey = null;
 let accessed = new Set();
@@ -168,8 +171,7 @@ function for2026(value) {
 }
 const period2026 = { from: '2026-01-01', to: '2026-12-31' };
 function incomeContext2026() {
-  return { ...for2026(incomeContext()), incomeTaxYear: 2026, residentTaxFiscalYear: 2027,
-    fiscalPeriod: { ...period2026 }, socialInsuranceMonths: ['2026-04'] };
+  return buildIncomeContext({ incomeTaxYear: 2026, municipalityKey: 'shibuya' }, snapshotInfo, calculatedAt);
 }
 function hojinnariInput2026() {
   const input = for2026(hojinnariInput());
@@ -199,7 +201,7 @@ try {
     ['hojinnari', hojinnariInput2026, incomeContext2026, null, '2026年'],
     ['yakuin_hoshu', yakuinInput2026, incomeContext2026, null, '2026年'],
     ['shohizei', () => for2026(shohizeiInput()),
-      () => standaloneContext({ consumptionTaxPeriod: period2026 }), null, '2026年'],
+      () => buildConsumptionContext({ consumptionTaxYear: 2026 }, snapshotInfo, calculatedAt), null, '2026年'],
   ];
   for (const [name, makeInput, makeContext, consumptionCase, yearLabel] of cases) {
     console.log(`\n=== ${name}${consumptionCase ? `（${consumptionCase}）` : ''}${yearLabel || ''}: 必須・任意と実計算の照合 ===`);
@@ -243,19 +245,22 @@ try {
         assert(false, `${name}: ${key}: ${error.message.split('\n')[0]}`);
       }
     }
-    // 必須値は計算側に代替処理があっても、公開ゲートで必ず止める。
-    for (const key of [...required].sort()) {
-      const missingRecords = records.filter(record => record.value_key !== key);
-      const gates = evaluateSimulatorGates(missingRecords,
-        inspectSimulatorDependencies(missingRecords, dependencyTable));
-      assert(!gates[name].publishable && gates[name].required.missingValueKeys.includes(key),
-        `${name}: 必須の ${key} が空なら公開を止める`);
-    }
   }
 } finally {
   require.cache[snapshotPath].exports = originalExports;
   for (const id of Object.keys(require.cache)) if (!originalCache.has(id)) delete require.cache[id];
   for (const [id, entry] of originalCache) { entry.children = originalChildren.get(id); require.cache[id] = entry; }
+}
+// 公開ゲートは年に依存しないため、各サービスについて一度ずつ確認する。
+for (const [name, dependency] of Object.entries(dependencies)) {
+  const required = new Set(dependency.required.flatMap(group => group.value_keys));
+  for (const key of [...required].sort()) {
+    const missingRecords = records.filter(record => record.value_key !== key);
+    const gates = evaluateSimulatorGates(missingRecords,
+      inspectSimulatorDependencies(missingRecords, dependencyTable));
+    assert(!gates[name].publishable && gates[name].required.missingValueKeys.includes(key),
+      `${name}: 必須の ${key} が空なら公開を止める`);
+  }
 }
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exitCode = failed > 0 ? 1 : 0;

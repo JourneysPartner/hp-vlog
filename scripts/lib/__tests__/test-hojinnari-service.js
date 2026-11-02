@@ -1005,14 +1005,37 @@ for (const [label, input, originalContext] of [
     delete require.cache[servicePath];
     const isolatedService = require(servicePath);
     const estimatedOptions = isolatedService.simulate(yearInput, yearContext, snapshotInfo);
-    assert(estimatedOptions.resultStatus === 'partial',
-    'C-16 ①' + label + 'は施行前注記がなくてもビルダーへpartialを渡す');
+    assert(estimatedOptions.resultStatus === 'partial' &&
+      estimatedOptions.excludedItems.filter(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED').length === 1,
+    '防衛特別法人税 ①' + label + 'の対象事業年度は国保概算と除外1件でpartialを渡す');
     yearInput.individual.nationalHealthInsurance = { kind: 'actual', annualAmount: yen(600000) };
     const actualOptions = isolatedService.simulate(yearInput, yearContext, snapshotInfo);
     assert(actualOptions.resultStatus === 'partial' &&
       actualOptions.excludedItems.filter(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED').length === 1 &&
       !actualOptions.warnings.some(warning => warning.code === priorNhiCode),
-    'C-16 ①' + label + 'の実額入力は防衛特別法人税の除外によりビルダーへpartialを渡す');
+    '防衛特別法人税 ①' + label + 'の対象事業年度は国保実額でも除外1件でpartialを渡す');
+
+    // 国保だけによるpartialを、防衛特別法人税の対象外となる開始日で確かめる。
+    // F5の金額検証は上の4月・7月開始の入力のまま保持する。
+    const c16Input = label === '移行年度'
+      ? nextYearDates(transitionInput('2025-03-01')) : nextYearDates(goldenInput());
+    const c16Context = { ...yearContext, residentTaxFiscalYear: 2027, fiscalPeriod: {
+      from: label === '移行年度' ? '2026-03-01' : '2026-01-01', to: '2026-12-31',
+    } };
+    for (const rows of [c16Input.corporate.revenue, c16Input.corporate.expenses,
+      c16Input.corporate.officerCompensation.monthlySegments]) {
+      for (const row of rows) row.period = { ...c16Context.fiscalPeriod };
+    }
+    for (const kind of ['actual', 'estimate_accepted']) {
+      c16Input.individual.nationalHealthInsurance = kind === 'actual'
+        ? { kind, annualAmount: yen(600000) } : { kind };
+      const options = isolatedService.simulate(c16Input, c16Context, snapshotInfo);
+      assert(options.resultStatus === (kind === 'actual' ? 'complete' : 'partial') &&
+        !options.excludedItems.some(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED') &&
+        options.warnings.some(warning => warning.code === priorNhiCode) === (kind !== 'actual'),
+      'C-16 ①' + label + 'の防衛対象外期間・国保' + (kind === 'actual' ? '実額はcomplete' : '代用はpartial') +
+        'で防衛特別法人税の除外なし');
+    }
   } finally {
     require.cache[builderPath].exports = originalBuilder;
     require.cache[servicePath] = originalService;
@@ -1170,6 +1193,82 @@ console.log('\n=== F9: 住民税マスターの欠けを継続不可の警告に
   }
   assert(require('../../../src/simulators/hojinnari/index.js') === service,
     'F9の試験後は本物の①サービスに戻る');
+}
+
+console.log('\n=== R14: GC-HJ-STEADY-1200-R8 ===');
+{
+  const c = goldenDocument.cases.find(item => item.case_id === 'GC-HJ-STEADY-1200-R8');
+  const i = c.inputs;
+  const yearContext = require('../../../src/ui/hojinnari/context-builder.js').buildCalculationContext({
+    incomeTaxYear: i.income_tax_year, municipalityKey: 'shibuya',
+  }, snapshotInfo, '2026-11-02T12:00:00+09:00');
+  const input = goldenInput();
+  input.comparisonBasis = i.comparison_basis;
+  input.individual.business.revenue = [periodSegment(`${i.income_tax_year}-01-01`, `${i.income_tax_year}-12-31`, i.individual_revenue)];
+  input.individual.business.expenses = [periodSegment(`${i.income_tax_year}-01-01`, `${i.income_tax_year}-12-31`, i.individual_expenses)];
+  input.individual.business.businessTaxCategory = i.business_tax_category;
+  input.individual.blueReturn.specialDeductionCategory = i.blue_return_special_deduction_category;
+  input.individual.self.ageAtYearEnd = i.age;
+  input.individual.nationalPension.months = i.national_pension_months;
+  input.corporate.capital = yen(i.capital);
+  input.corporate.revenue = [periodSegment(i.corporate_fiscal_period_from, i.corporate_fiscal_period_to, i.corporate_revenue)];
+  input.corporate.expenses = [periodSegment(i.corporate_fiscal_period_from, i.corporate_fiscal_period_to, i.corporate_expenses)];
+  input.corporate.officerCompensation.monthlySegments = [{ period: { ...yearContext.fiscalPeriod },
+    value: { monthlyAmount: yen(i.monthly_compensation) } }];
+  const result = service.simulate(input, yearContext, snapshotInfo);
+  assert(yearContext.residentTaxFiscalYear === i.resident_tax_fiscal_year &&
+    yearContext.fiscalPeriod.from === i.corporate_fiscal_period_from && yearContext.fiscalPeriod.to === i.corporate_fiscal_period_to &&
+    yearContext.socialInsuranceMonths[0] === i.premium_month && yearContext.jurisdiction.municipalityCode === i.municipality_code,
+  `${c.case_id}: 画面と同じ2026暦年・住民税2027年度の文脈`);
+  assert(result.resultStatus === 'partial' && warningCode(result, 'MASTER_PENDING_LAW_APPLIED') &&
+    warningCode(result, priorNhiCode) &&
+    !result.excludedItems.some(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED'),
+  `${c.case_id}: 施行前・国保代用によるpartialで防衛特別法人税の除外なし`);
+  const data = result.breakdown.data;
+  const sole = data.soleProprietor;
+  const corporate = data.corporation;
+  const actual = {
+    sole_social_insurance_deduction: sole.burdens.socialInsuranceEmployee,
+    sole_income_tax_basic_deduction: sole.orderedIncomeDeductions.find(row => row.code === 'basic').amount,
+    sole_income_tax_taxable_income: sole.incomeTaxTaxableIncome,
+    sole_income_tax_before_reconstruction: sole.incomeTaxCalculatedAmount,
+    sole_income_tax: sole.burdens.incomeTax,
+    sole_resident_tax_taxable_income: sole.residentTaxTaxableIncome,
+    sole_resident_tax_adjustment_deduction: sole.residentTaxAdjustmentDeduction,
+    sole_resident_tax_prefectural_income_levy: sole.residentTaxPrefecturalIncomeLevy,
+    sole_resident_tax_municipal_income_levy: sole.residentTaxMunicipalIncomeLevy,
+    sole_resident_tax: sole.burdens.residentTax,
+    sole_proprietor_enterprise_tax: sole.burdens.soleProprietorEnterpriseTax,
+    sole_personal_disposable_cash: sole.personalDisposableCash,
+    corporation_personal_disposable_cash: corporate.personalDisposableCash,
+    corporate_retained_cash: corporate.corporateRetainedCash,
+    corporation_income_tax: corporate.burdens.incomeTax,
+    corporation_resident_tax: corporate.burdens.residentTax,
+    corporation_social_insurance_employee: corporate.burdens.socialInsuranceEmployee,
+    corporation_social_insurance_employer: corporate.burdens.socialInsuranceEmployer,
+    corporate_taxes: corporate.burdens.corporateTaxes,
+    personal_disposable_difference: data.personalDisposableDifference,
+    combined_reference_difference: data.combinedReferenceDifference,
+  };
+  // 平年度のサービス結果には公開されない項目。試験側で逆算・再計算しない。
+  const unavailable = [
+    'income_before_blue_return_deduction', 'blue_return_special_deduction', 'business_income',
+    'national_pension_monthly_premium', 'national_pension', 'nhi_assessment_base',
+    'nhi_medical_income_levy', 'nhi_medical_per_capita_levy', 'nhi_medical',
+    'nhi_elderly_support_income_levy', 'nhi_elderly_support_per_capita_levy', 'nhi_elderly_support',
+    'nhi_child_rearing_support_income_levy', 'nhi_child_rearing_support_per_capita_levy', 'nhi_child_rearing_support',
+    'nhi_nursing_care', 'national_health_insurance',
+    'sole_income_tax_including_reconstruction_before_final_rounding', 'sole_resident_tax_per_capita_levy',
+    'sole_forest_environment_tax', 'sole_proprietor_enterprise_taxable_base', 'sole_burden_total',
+    'corporation_burden_total_excluding_employer_social_insurance', 'corporation_combined_cash',
+  ];
+  assert(Object.keys(c.expected).length === Object.keys(actual).length + unavailable.length &&
+    Object.keys(c.expected).every(key => Object.hasOwn(actual, key) || unavailable.includes(key)),
+  `${c.case_id}: 期待値45キーを照合21・未公開24に分類`);
+  for (const [key, value] of Object.entries(actual)) {
+    assert(value?.value === BigInt(c.expected[key]), `${c.case_id}: ${key} = ${c.expected[key]}`);
+  }
+  assert(result.summary.amount.value === BigInt(c.expected.combined_reference_difference), `${c.case_id}: summaryも参考差額と一致`);
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

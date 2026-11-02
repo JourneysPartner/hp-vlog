@@ -518,7 +518,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
+        '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
       pageActions({ previous: true, next: true }),
     ]);
   }

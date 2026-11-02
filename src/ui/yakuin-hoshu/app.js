@@ -395,7 +395,7 @@ function mountYakuinHoshuApp(rootElement, {
         incomeTaxLawChangeNotice(year)
           ? el('p', { className: 'yh-law-change-notice' }, incomeTaxLawChangeNotice(year)) : null,
         el('p', {}, `${year}年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。`),
-        el('p', {}, '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。'),
+        el('p', {}, '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。'),
         el('p', {}, 'ワンストップ特例は使用せず、確定申告を前提に計算します。'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),

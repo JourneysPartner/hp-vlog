@@ -1799,7 +1799,7 @@ function defenseCorporateTaxExcludedItem(fiscalPeriod) {
   return {
     code: 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED',
     label: '防衛特別法人税は含めていない',
-    reason: '令和8年4月1日以後に開始する事業年度には、防衛特別法人税（法人税額から年500万円を差し引いた額の4%。事業年度が1年未満なら500万円を月数で按分）が課されますが、この結果には含めていません。法人税額が年500万円以下なら0円です。',
+    reason: '令和8年4月1日以後に開始する事業年度には、防衛特別法人税（法人税額から年500万円を差し引いた額の4%。事業年度が1年未満なら500万円を月数で按分）が課されますが、この結果には含めていません。法人税額が年500万円（事業年度が1年未満なら月数で按分した額）以下なら0円です。',
     isAmountUnknown: true,
   };
 }
@@ -14274,7 +14274,7 @@ function mountHojinnariApp(rootElement, {
         ? moneyField('nationalPensionActual', 'hj-pension-actual', '国民年金の年間実額（円）',
           '0円以上の整数。', '$.individual.nationalPension.annualAmount.value') : null,
       el('p', { className: 'hojinnari-help' },
-        '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
+        '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。ワンストップ特例は使用せず、確定申告を前提に計算します。'),
       pageActions({ previous: true, next: true }),
     ]);
   }
@@ -18920,7 +18920,7 @@ function mountYakuinHoshuApp(rootElement, {
         incomeTaxLawChangeNotice(year)
           ? el('p', { className: 'yh-law-change-notice' }, incomeTaxLawChangeNotice(year)) : null,
         el('p', {}, `${year}年・暦年事業年度（1/1〜12/31）、協会けんぽ、従業員0人、賞与なし、期中改定なし、12か月同額です。`),
-        el('p', {}, '医療費控除・雑損控除・ふるさと納税以外の寄附金控除は含みません。'),
+        el('p', {}, '寡婦控除・ひとり親控除・勤労学生控除、医療費控除・雑損控除・ふるさと納税以外の寄附金控除、住宅ローン控除以外の税額控除は含みません。'),
         el('p', {}, 'ワンストップ特例は使用せず、確定申告を前提に計算します。'),
         el('p', {}, '役員住所と会社所在地が異なる場合は第1版の対象外です。'),
       ]),

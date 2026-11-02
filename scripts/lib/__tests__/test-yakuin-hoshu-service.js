@@ -657,5 +657,65 @@ console.log('\n=== F9: 住民税マスターの欠けは継続不可の警告 ==
     'F9の試験後は本物の④サービスに戻る');
 }
 
+console.log('\n=== R14: GC-YH-MODE-C-500K-R8 ===');
+{
+  const c = goldenDocument.cases.find(item => item.case_id === 'GC-YH-MODE-C-500K-R8');
+  const i = c.inputs;
+  const yearContext = require('../../../src/ui/hojinnari/context-builder.js').buildCalculationContext({
+    incomeTaxYear: i.income_tax_year, municipalityKey: 'shibuya',
+  }, snapshotInfo, '2026-11-02T12:00:00+09:00');
+  const input = modeCInput(i.monthly_compensation, {
+    mode: i.mode, profitBeforeOfficerCompensation: yen(i.profit_before_officer_compensation),
+    capital: yen(i.capital), employeeCount: i.employee_count, officer: { ageAtYearEnd: i.age },
+    healthInsurer: { kind: 'kyokai_kenpo', prefectureCode: i.prefecture_code },
+    plan: { monthlySegments: [{ period: { from: i.fiscal_period_from, to: i.fiscal_period_to },
+      value: { monthlyAmount: yen(i.monthly_compensation) } }] },
+  });
+  const result = service.simulate(input, yearContext, snapshotInfo);
+  assert(yearContext.residentTaxFiscalYear === i.resident_tax_fiscal_year &&
+    yearContext.fiscalPeriod.from === i.fiscal_period_from && yearContext.fiscalPeriod.to === i.fiscal_period_to &&
+    yearContext.socialInsuranceMonths[0] === i.premium_month && yearContext.jurisdiction.municipalityCode === i.municipality_code,
+  `${c.case_id}: 画面と同じ2026暦年・住民税2027年度の文脈`);
+  assert(result.resultStatus === 'partial' && result.warnings.some(item => item.code === 'MASTER_PENDING_LAW_APPLIED') &&
+    !result.excludedItems.some(item => item.code === 'CORP_DEFENSE_SPECIAL_TAX_EXCLUDED'),
+  `${c.case_id}: 施行前によるpartialで防衛特別法人税の除外なし`);
+  const candidate = candidateOf(result);
+  const actual = {
+    salary_income: candidate.salaryIncome,
+    health_and_child_rearing_support_employee: candidate.healthInsuranceEmployee,
+    employees_pension_employee: candidate.employeesPensionEmployee,
+    social_insurance_employee: candidate.socialInsuranceEmployee,
+    income_tax_basic_deduction: candidate.incomeTaxBasicDeduction,
+    income_tax_taxable_income: candidate.incomeTaxTaxableIncome,
+    income_tax: candidate.incomeTax,
+    resident_tax_taxable_income: candidate.residentTaxTaxableIncome,
+    resident_tax_adjustment_deduction: candidate.residentTaxAdjustmentDeduction,
+    resident_tax: candidate.residentTax,
+    personal_net_cash: candidate.personalNetCash,
+    health_and_child_rearing_support_employer: candidate.healthInsuranceEmployerExact,
+    employees_pension_employer: candidate.employeesPensionEmployerExact,
+    child_support_levy_employer: candidate.childSupportLevyEmployerExact,
+    social_insurance_employer: candidate.socialInsuranceEmployer,
+    corporate_income: candidate.corporateIncome,
+    corporate_tax: candidate.corporateTaxDetails.corporateTax,
+    local_corporate_tax: candidate.corporateTaxDetails.localCorporateTax,
+    inhabitant_tax_prefectural_income_levy: candidate.corporateTaxDetails.prefecturalInhabitantIncomeLevy,
+    inhabitant_tax_municipal_income_levy: candidate.corporateTaxDetails.municipalInhabitantIncomeLevy,
+    inhabitant_tax_per_capita_total: candidate.corporateTaxDetails.inhabitantPerCapitaLevy,
+    enterprise_tax: candidate.corporateTaxDetails.enterpriseTax,
+    special_enterprise_tax: candidate.corporateTaxDetails.specialEnterpriseTax,
+    corporate_taxes_total: candidate.corporateTaxes,
+    corporate_retained_cash: candidate.corporateRetainedCash,
+    combined_cash: candidate.combinedCash,
+  };
+  assert(Object.keys(c.expected).length === Object.keys(actual).length &&
+    Object.keys(c.expected).every(key => Object.hasOwn(actual, key)), `${c.case_id}: 26キーすべてに対応項目がある`);
+  for (const [key, value] of Object.entries(actual)) {
+    const expected = BigInt(c.expected[key]);
+    assert(value?.value !== undefined ? value.value === expected : value?.num === expected * value?.den,
+      `${c.case_id}: ${key} = ${c.expected[key]}`);
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

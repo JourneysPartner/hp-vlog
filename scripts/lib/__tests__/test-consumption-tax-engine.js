@@ -77,6 +77,45 @@ console.log('\n=== ゴールデンケース: 一般課税・簡易課税 ===');
   'GC-CT-GENERAL-FULL: 国税312,000円＋地方88,000円＝400,000円');
 }
 
+console.log('\n=== R14: GC-CT-GENERAL-R8-SPLIT ===');
+{
+  const document = JSON.parse(fs.readFileSync(path.join(__dirname,
+    '../../../data/tax-simulator/golden-cases/official-examples.json'), 'utf8'));
+  const c = document.cases.find(item => item.case_id === 'GC-CT-GENERAL-R8-SPLIT');
+  const i = c.inputs;
+  const result = engine.calculate(detailedInput({
+    period: i.taxable_period,
+    sales: [{ band: 'standard_10', amount: taxIncl(i.standard_rate_tax_inclusive_sales) }],
+    withInvoice: [{ band: 'standard_10', amount: taxIncl(i.standard_rate_tax_inclusive_purchases_with_invoice) }],
+    withoutInvoice: [
+      { band: 'standard_10', transactionDate: '2026-09-30', amount: taxIncl(i.standard_rate_tax_inclusive_purchases_without_invoice_until_2026_09_30) },
+      { band: 'standard_10', transactionDate: '2026-10-01', amount: taxIncl(i.standard_rate_tax_inclusive_purchases_without_invoice_from_2026_10_01) },
+    ],
+  }), { method: 'general' });
+  assert(result.status === 'complete', `${c.case_id}: 一般課税がcomplete`);
+  const transitions = result.purchaseTax.transitionDetails;
+  const actual = {
+    taxable_base: result.salesTax.taxableBaseTotal,
+    national_sales_tax: result.salesTax.nationalTaxTotal,
+    transitional_purchase_tax_80pct: transitions.find(row => row.transactionDate === '2026-09-30').deductibleTax,
+    transitional_purchase_tax_70pct: transitions.find(row => row.transactionDate === '2026-10-01').deductibleTax,
+    deductible_purchase_tax: result.credit,
+    national_tax: result.nationalTax,
+    local_tax: result.localConsumptionTax.amount,
+    total_tax: result.totalPayable,
+  };
+  // 適格請求書あり分だけの税額は結果に公開されないため、差し引いて逆算しない。
+  const unavailable = ['purchase_tax_with_invoice'];
+  assert(Object.keys(c.expected).length === Object.keys(actual).length + unavailable.length &&
+    Object.keys(c.expected).every(key => Object.hasOwn(actual, key) || unavailable.includes(key)),
+  `${c.case_id}: 期待値9キーを照合8・未公開1に分類`);
+  for (const [key, value] of Object.entries(actual)) {
+    const expected = BigInt(c.expected[key]);
+    assert(value?.value !== undefined ? value.value === expected : value?.num === expected * value?.den,
+      `${c.case_id}: ${key} = ${c.expected[key]}`);
+  }
+}
+
 console.log('\n=== §20 輸出免税売上・還付ゴールデンケース ===');
 {
   const document = JSON.parse(fs.readFileSync(path.join(
