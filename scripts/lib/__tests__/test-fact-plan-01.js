@@ -163,7 +163,19 @@ test('P3', '出典未確定の題材でも計画し、既存の断定禁止を�
     assert(textPrompt(prompts[0]).includes(SOURCE_UNCONFIRMED_RULE));
   }));
 test('P3/P4', '切替falseでもW規則を含むpromptIRと従来の前付けにバイト単位で一致', () => env({ FACT_PLAN_ENABLED: 'false' }, () => generating(topic(), '[]', ({ prompts, simple, t }) => {
-  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), '6e9553126d336e483755f5e677816a6bddb3fa629e997838381475f4bcc8e638');
+  const addedBodyRules = [
+    '- 「手がかり」（毛利指示 2026-11-04（PR #741）。「一つの手がかり」→「一つのポイント」。）',
+    '- 「常見です」（毛利指示 2026-11-04（PR #741）。ふだんの言葉にする。）',
+    '- 「常見（〜の誤りなど）」（「常見です」以外の形は自動で置き換えると文が崩れるので、人が直す。）',
+  ].join('\n');
+  assert.equal(prompts[0].dynamicSystem.split('\n' + addedBodyRules).length, 2);
+  const withoutBodyRules = prompts[0].dynamicSystem.replace('\n' + addedBodyRules, '');
+  // replacement:null の本文禁止語は、既存の規則でタイトルの指示にも載る。
+  const addedTitleRule = '\n- 「常見（〜の誤りなど）」';
+  assert.equal(withoutBodyRules.split(addedTitleRule).length, 2);
+  const prior = { ...prompts[0], dynamicSystem: withoutBodyRules.replace(addedTitleRule, '') };
+  assert.equal(hash(JSON.stringify(prior)), '6e9553126d336e483755f5e677816a6bddb3fa629e997838381475f4bcc8e638');
+  assert.equal(simple.length, 0); assert.equal(hash(JSON.stringify(prompts[0])), '2c27da07fe2ab7c701d6a4d398c88294beab7e182d9c9dbb3c10058ddee65211');
   assert.equal(hash(N.buildCanonicalFrontmatter(t, { now: now.toISOString() })), '97303caf7d917e593c1117b473153a1c0b12b1cdd9f75f97e39fc716f246b29a');
   assert(!Object.keys(t).some(k => k.startsWith('fact_')));
 })));
@@ -301,7 +313,7 @@ test('P5', '段Aの資料なしだけ段Bへ・食い違い/期限は維持・Ba
   assert.equal(r.record.stages.A.input_chars, r.record.calls.filter(c => c.task === 'judge').reduce((n, c) => n + c.input_chars, 0));
   assert.equal(r.record.stages.B.input_chars, r.record.calls.filter(c => c.task === 'stage_b_judge').reduce((n, c) => n + c.input_chars, 0));
   assert(r.record.stages.A.input_chars > 0 && r.record.stages.B.input_chars > 0);
-  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2-s3');
+  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2-s4');
 });
 test('P5', '既定の呼び出し部でも段BだけBatchを渡さず即時で呼ぶ', async () => {
   const a = ref('default-a', '試験制度は100万円です。'), b = ref('default-b', a.text), original = CM.generateContent, calls = [];

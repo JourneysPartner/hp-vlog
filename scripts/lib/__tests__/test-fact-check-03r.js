@@ -198,7 +198,7 @@ test('R3', '保持数字を差分照合で使い回し、LLMの2範囲はレビ�
     prior.logic_version = '03o'; fs.writeFileSync(file, JSON.stringify(prior));
     const old = await F.checkArticle(raw(giftClaim.sentence + '\n案内を追記します。'), { ...opts, previousRaw: before, persist: false });
     assert.equal(old.record.incremental, undefined);
-    assert.equal(old.record.logic_version, 'plan2-s3');
+    assert.equal(old.record.logic_version, 'plan2-s4');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 const filler = Array(5).fill('中間の説明が続いています'.repeat(15) + '。');
@@ -311,7 +311,7 @@ test('R4', 'supported_numbersが無い修正リクエストは変更前とバイ
     return [];
   });
 });
-test('R4', '抜き出しと判定のリクエストは03uの指示文とバイト単位で一致', async () => {
+test('R4', '抜き出しは従来どおり、判定は条件付きの別額の規則だけを足したリクエストとバイト単位で一致', async () => {
   const c = claim('控除は120万円です。');
   const e = ref(c.sentence, '2080', { id: 'e1', title: '試験資料', url: 'https://example.jp/e1' });
   await F.extractClaims(c.sentence, async req => {
@@ -319,7 +319,12 @@ test('R4', '抜き出しと判定のリクエストは03uの指示文とバイ�
     return [];
   }, options);
   await F.judgeClaims([c], { c1: [e] }, c.sentence, async req => {
-    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '648c1d093a68aba2cf5c4071e6a6d524aefd2f594f9c6d882619e2f922a9d844');
+    const addedRule = '主張が制度の控除額・上限額を「最高」「最大」「上限」などとして述べているのに、原文の注・ただし書きでは条件によって別の額（より高い額など）になると書かれていて、その文にも前後の文にもその条件と額が書かれていない場合は、食い違いとし、correct に条件と額を書いてください。';
+    assert.equal(req.system.split(addedRule).length, 2);
+    assert.equal(req.staticSystem.split(addedRule).length, 2);
+    const prior = { ...req, system: req.system.replace(addedRule, ''), staticSystem: req.staticSystem.replace(addedRule, '') };
+    assert.equal(createHash('sha256').update(JSON.stringify(prior)).digest('hex'), '648c1d093a68aba2cf5c4071e6a6d524aefd2f594f9c6d882619e2f922a9d844');
+    assert.equal(createHash('sha256').update(JSON.stringify(req)).digest('hex'), '1be8cd93ca54f5e0106c28ce4a5ca4eee65dfff1b334a80f6cb7c898621ed810');
     return [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }];
   }, options);
 });
@@ -385,9 +390,9 @@ test('R5', '別番号・番号の主張・法令資料・5桁の番号は除外�
   assert.equal((await judge({ ...c, type: '番号' }, ref('短', '2080'), '1')).status, '資料なし');
   assert.equal((await judge({ ...c, claim: c.claim.replace('2080', '20801'), sentence: c.sentence.replace('2080', '20801') }, ref(books, '2080'), '1')).status, '資料なし');
 });
-test('版', 'LOGIC_VERSIONはplan2-s3', async () => {
+test('版', 'LOGIC_VERSIONはplan2-s4', async () => {
   const result = await F.checkFacts('案内です。', { ...options, callLLM: async () => [], repair: false });
-  assert.equal(result.record.logic_version, 'plan2-s3');
+  assert.equal(result.record.logic_version, 'plan2-s4');
 });
 
 (async () => {

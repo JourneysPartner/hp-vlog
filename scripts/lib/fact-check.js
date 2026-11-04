@@ -651,7 +651,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s3';
+const LOGIC_VERSION = 'plan2-s4';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -778,6 +778,24 @@ function sourceDate(version) {
   return null;
 }
 
+function quoteNotes(page, citations) {
+  return (citations || []).map(cited => {
+    const notes = [];
+    let length = 0;
+    const last = page.units.findIndex(u => u.end === cited.end);
+    if (last < 0) return '';
+    for (const unit of page.units.slice(last + 1)) {
+      if (unit.segment !== page.units[last].segment) break;
+      if (!/^(?:（注|\(注|※|（※|ただし|なお)/.test(unit.text.trimStart())) break;
+      const nextLength = length + (notes.length ? 1 : 0) + unit.text.length;
+      if (notes.length === 3 || nextLength > 600) break;
+      notes.push(unit.text);
+      length = nextLength;
+    }
+    return notes.join('\n');
+  }).filter(Boolean).join('\n…\n');
+}
+
 async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   const ownWriter = writerRefs(options);
   const ownTally = ownWriter.length && !options[STAGE_TALLY];
@@ -794,7 +812,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
   const stageTally = options[STAGE_TALLY] || (ownTally ? { answers: new Map(), deadlineSubjects: new Set() } : null);
   const deadlineSubjects = stageTally?.deadlineSubjects || new Set();
   const tally = { declared: 0, rejected: 0, missing: 0, total: 0, samples: [] };
-  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
+  const instruction = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き（金額・期限・割合・適用年・番号の主張は連続2つまで）、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。主張が制度の控除額・上限額を「最高」「最大」「上限」などとして述べているのに、原文の注・ただし書きでは条件によって別の額（より高い額など）になると書かれていて、その文にも前後の文にもその条件と額が書かれていない場合は、食い違いとし、correct に条件と額を書いてください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。`;
   const example = '\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]';
   const cache = options.pageCache;
   const batching = options.batch && !options.batch.disabled;
@@ -936,10 +954,12 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const date = ref && sourceDate(ref.law_version);
       const cutoff = new Date(options.now || new Date());
       cutoff.setUTCMonth(cutoff.getUTCMonth() - 18);
+      const notes = ['食い違い', '期限の書き漏れ'].includes(status) ? quoteNotes(page, citations) : '';
       results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
         ...(typeof c.type_label === 'string' ? { type_label: c.type_label } : {}),
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
         status, quote: status === '資料なし' ? '' : quote, correct: status === '資料なし' ? '' : correct,
+        ...(notes ? { quote_notes: notes } : {}),
         evidence: candidates, evidence_id: status === '資料なし' ? '' : ref.id,
         ...(outsideCandidates ? { evidence_outside_candidates: true } : {}),
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
@@ -1173,7 +1193,7 @@ function repairInstructions(findings) {
   const { rowRemovals } = repairNumberGuards(findings);
   return findings.map(f => ({ ...f,
     ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
-    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' :
+    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない' :
       f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
           '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
@@ -1211,12 +1231,12 @@ function correctionPairs(before, after, findings, replacements) {
 async function repairBody(body, findings, callLLM, options = {}) {
   const enhanced = writerRefs(options).length > 0;
   const units = splitUnits(body);
-  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, subject, correct, quote, instruction, keep = [], keep_numbers }) => {
+  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, subject, correct, quote, quote_notes, instruction, keep = [], keep_numbers }) => {
     const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
       status, type, correct, quote, instruction: instruction + (enhanced && status === '食い違い' ? '。元の文の話題・役割（例・注意・手順など）は変えず、誤りの部分だけを直す' : ''),
-      keep, ...(keep_numbers ? { keep_numbers } : {}), ...(enhanced ? { subject, ...sentenceContext(body, sentence) } : {}) };
+      keep, ...(quote_notes ? { quote_notes } : {}), ...(keep_numbers ? { keep_numbers } : {}), ...(enhanced ? { subject, ...sentenceContext(body, sentence) } : {}) };
   });
   const ret = await callLLM({ task: 'repair', maxTokens: 8000,
     system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。' + (enhanced ? '\n' + MISCONCEPTION_CONTEXT_RULE : ''),
@@ -1244,6 +1264,16 @@ async function repairBody(body, findings, callLLM, options = {}) {
     if (!reason && enhanced && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
       const before = sentenceWords(f), after = tokenizeForMatcher(replacement);
       if (before.filter(word => after.has(word)).length < before.length / 2) reason = '元の文の話題を残していません';
+    }
+    if (!reason && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
+      const originalNumbers = expandYearDates(normalizedNumbers(f.sentence), f.sentence);
+      const keepNumbers = corrections.find(c => c.id === f.id).keep_numbers || [];
+      const allowedNumbers = new Set([f.sentence, f.correct || '', f.quote_notes || '', ...keepNumbers]
+        .flatMap(text => expandYearDates(normalizedNumbers(text), text)));
+      const revisedNumbers = expandYearDates(normalizedNumbers(replacement), replacement);
+      if (revisedNumbers.some(n => n === null ? !originalNumbers.includes(null) : !allowedNumbers.has(n))) {
+        reason = '根拠の正しい内容に無い数字を足しています';
+      }
     }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
@@ -1287,7 +1317,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
   checkSentences();
   if (enhanced && !options[REPAIR_RETRIED]) {
     const retryReasons = new Set(['置き換え後の文が元の文と同じです', '改行または見出しを含んでいます', '置き換え後の文が長すぎます', '表の列数が変わっています',
-      '裏付けのある数字を消しています', '資料の無い数字が残っています', '外さない列を書き換えています', '同じ文の別の指摘の置き換えを採れませんでした', '同じ文の置き換えが一致しません', '元の文の話題を残していません']);
+      '裏付けのある数字を消しています', '資料の無い数字が残っています', '外さない列を書き換えています', '同じ文の別の指摘の置き換えを採れませんでした', '同じ文の置き換えが一致しません', '元の文の話題を残していません', '根拠の正しい内容に無い数字を足しています']);
     const retry = findings.filter(f => retryReasons.has(rejected.get(f.id)));
     if (retry.length) {
       try {

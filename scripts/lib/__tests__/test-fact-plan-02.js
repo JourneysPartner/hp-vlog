@@ -309,8 +309,9 @@ for (const recover of [true, false]) test('S4', `6: 資料の無い数字が残�
 });
 test('S4', '6: 同じ文の複数指摘は同じ置き換えにまとめ、他の採用済みの修正を保持する', async () => {
   const text = '限度額は100万円、控除額は50万円です。', other = '別の限度額は80万円です。';
-  const findings = [claim('c1', text), claim('c2', text), claim('c3', other)].map(c => ({ ...c, status: '食い違い', quote: '根拠の本文', correct: '修正' }));
   const fixed = '限度額は200万円、控除額は60万円です。';
+  const findings = [claim('c1', text), claim('c2', text), claim('c3', other)].map(c => ({ ...c, status: '食い違い', quote: '根拠の本文',
+    correct: c.sentence === text ? fixed : '別の限度額は90万円です。' }));
   const r = await F.repairBody(text + '\n' + other, findings, async req => {
     const p = JSON.parse(req.user);
     if (req.task === 'retry_repair') {
@@ -406,7 +407,7 @@ test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び�
   assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
 });
 test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
-  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s3');
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s4');
 });
 
 const catalogRef = id => { const r = W.resolveMaterial(id); assert(r, id); return { ...r, text: r.text.split('関連リンク')[0] }; };
@@ -634,18 +635,32 @@ test('02b-M3','20文40主張の8文16主張は20%超として具体を外さな�
 
 test('02b-L1','一方だけ直しの対象になる同じ文は部分採用せず、別の文の採用は保つ',async()=>{
   const sentence='限度額は100万円、控除額は50万円です。',other='別の限度額は80万円です。';
-  const fs=[claim('c1',sentence),claim('c2',sentence),claim('c3',other)].map(c=>({...c,status:'食い違い'}));
+  const fs=[claim('c1',sentence),claim('c2',sentence),claim('c3',other)].map(c=>({...c,status:'食い違い',
+    correct:c.sentence===sentence?'限度額は200万円、控除額は50万円です。':'別の限度額は90万円です。'}));
   const r=await F.repairBody(sentence+'\n'+other,fs,async req=>req.task==='retry_repair'?[{id:'c1',replacement:'限度額は200万円、控除額は50万円です。'}]:[{id:'c1',replacement:sentence},{id:'c2',replacement:''},{id:'c3',replacement:'別の限度額は90万円です。'}],writer);
   assert.equal(r.body,sentence+'\n別の限度額は90万円です。');assert(r.rejected.has('c1')&&r.rejected.has('c2'));
 });
-test('02b-L2','同じ制度の別の修正文に新しく入った30%を変わっていない数字として通さない',async()=>{
+for (const inCorrect of [false, true]) test('02b-L2',`同じ制度の別の修正文に新しく入った30%を${inCorrect ? '再照合で止める' : 'R3で却下して止める'}`,async()=>{
   const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で計算し、売上税額に30%を掛けます。';
-  const source=ref('l2','みなし仕入率と控除率','みなし仕入率は70%です。\n控除率は80%です。');let round=0;
+  // (b) correct の30%にも初回判定の根拠を用意し、再照合での資料なしを別に確かめる。
+  const source=ref('l2','みなし仕入率と控除率','みなし仕入率は70%です。\n控除率は80%です。'+(inCorrect?'\n売上税額に30%を掛ける説明です。':''));let round=0;
   const r=await F.checkFacts(a+'\n'+b,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
     if(req.task==='extract'){round++;return extract(req,'割合','みなし仕入率と控除率').flatMap((c,i)=>[{...c,claim:i===0?`みなし仕入率${round===1?60:70}%`:`控除率${round===1?50:80}%`},...(round>1&&i===1?[{...c,claim:'売上税額に30%を掛けます。'}]:[])]);}
     if(req.task==='repair')return [{id:'c1',replacement:aa},{id:'c2',replacement:bb}];
-    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?'控除率は80%で計算します。':'みなし仕入率70%で売上税額を計算します。'}));
-  }});assert.equal(r.record.status,'revise');assert(r.record.remaining.some(c=>c.claim.includes('30%')&&!c.unchanged_numeric));
+    return JSON.parse(req.user).claims.map(c=>({id:c.id,status:c.claim.includes('30%')?'資料なし':round===1?'食い違い':'裏付けあり',evidence_id:c.evidence_ids[0],basis:'1-2',correct:c.claim.includes('控除率')?(inCorrect?bb:'控除率は80%で計算します。'):'みなし仕入率70%で売上税額を計算します。'}));
+  }});
+  assert.equal(r.record.status,'revise');
+  const correction=r.record.corrections.find(c=>c.before===b);
+  assert.equal(correction.resolved,false);
+  if(inCorrect){
+    assert.equal(correction.reason,undefined);assert.equal(correction.after,bb);assert.equal(r.body,aa+'\n'+bb);
+    assert(r.record.calls.some(c=>c.task==='recheck_judge'));
+    assert(r.record.rechecked.some(c=>c.status==='資料なし'&&c.claim.includes('30%')&&!c.unchanged_numeric));
+    assert(r.record.remaining.some(c=>c.claim.includes('30%')&&!c.unchanged_numeric));
+  }else{
+    assert.equal(correction.reason,'根拠の正しい内容に無い数字を足しています');assert.equal(correction.after,'');
+    assert.equal(r.body,aa+'\n'+b);assert(r.record.remaining.some(c=>c.sentence===b));
+  }
 });
 
 test('02b-L4','計画のW規則は4〜6、出典も計画も無い日次・差し戻しにもW規則を渡す',async()=>{
