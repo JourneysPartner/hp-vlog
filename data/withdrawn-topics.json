@@ -91,6 +91,16 @@
       "target_query": "メルカリ 売上 税金",
       "date": "2026-11-02",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/41403961192"
+    },
+    {
+      "topic_id": "suggest-content-note-e79e2e",
+      "stage": "pregen-dedup",
+      "similar_to": "newseg-content_seller-content-note-revenue-guide",
+      "reason": "note収益の税金（確定申告の要否・申告判断）という中心論点が既存のnote・Brain収益記事と同一で、読者から見れば同じ記事と感じられるため。",
+      "url_slug": "note-earnings-income-tax",
+      "target_query": "note 収益化 税金",
+      "date": "2026-11-04",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/41744163646"
     }
   ]
 }
