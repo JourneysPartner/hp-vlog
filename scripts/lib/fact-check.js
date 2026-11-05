@@ -365,6 +365,10 @@ function isNumericClaim(c) {
     /No\.|(?:第)?[〇零一二三四五六七八九十百千万億]+条|[〇零一二三四五六七八九十百千万億]+[-−][〇零一二三四五六七八九十百千万億]+/i.test(normalizedQuote(c.sentence)));
 }
 
+function uncheckedClaimBlocksApproval(c) {
+  return isNumericClaim(c) || (!NUMERIC_TYPES.has(c.type) && !REVIEW_TYPES.has(c.type));
+}
+
 function evidenceTexts(ref) {
   return ref.text_ranges ? ref.text_ranges.map(([start, end]) => ref.text.slice(start, end)) : [ref.text];
 }
@@ -597,7 +601,9 @@ async function extractClaims(body, callLLM, options = {}) {
     if (unit && isScenarioAmount(resolved)) continue;
     if (unit && enhanced && isCalculatedClaim(resolved)) { calculatedSkipped++; continue; }
     if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') {
-      discardedClaims.push({ ...fields({ ...c, sentence: sentence || (typeof c?.claim === 'string' ? c.claim : '') }), status: sentence ? '主張の形式が不正' : '本文に見つからない' });
+      const pointed = Number.isInteger(c.s) ? units[c.s - 1] : null;
+      discardedClaims.push({ ...fields({ ...c, sentence: sentence || (typeof c?.claim === 'string' ? c.claim : '') }),
+        status: sentence ? '主張の形式が不正' : '本文に見つからない', ...(pointed ? { pointed_sentence: pointed.text } : {}) });
       continue;
     }
     const key = claimKey(resolved);
@@ -1358,7 +1364,7 @@ async function checkFacts(body, options = {}) {
   const unresolvedSummary = unresolvedWriter ? `・書き手の資料のうち引けない ${unresolvedWriter} 件` : '';
   const record = { version: 1, logic_version: LOGIC_VERSION, status: 'not_run', model: cfg.model, provider: cfg.provider,
     extract_model: cfg.extractModel, effort: cfg.effort, extract_effort: cfg.extractEffort, batch: cfg.batch,
-    checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0,
+    checked_at: (options.now || new Date()).toISOString(), body_sha256: bodyHash(body), claims: [], rechecked: [], corrections: [], dropped: 0, discarded: 0, discarded_claims: [],
     calls: [], input_chars_total: 0, output_chars_total: 0, review_items: [], summary: cfg.enabled ? '照合を実施できませんでした' : '照合を無効にしています' };
   if (requestedWriterIds.length) record.writer_materials = materialFingerprint(requestedWriterIds, resolvedWriter.length);
   if (writerIds.length) {
@@ -1465,10 +1471,15 @@ async function checkFacts(body, options = {}) {
     const extracted = await extractClaims(text, call, writerIds.length ? { ...cfg, writer_materials: writerIds, resolvedWriterMaterials: resolvedWriter } : cfg);
     record.dropped += extracted.dropped;
     record.discarded += extracted.discarded;
+    record.discarded_claims.push(...extracted.discardedClaims.map(c => ({ ...c,
+      stage: rechecking ? '再照合' : '抜き出し', blocks_approval: uncheckedClaimBlocksApproval(c) })));
     if (writerIds.length) record.calculated_skipped += extracted.calculated_skipped || 0;
     for (const c of [...extracted.droppedClaims, ...extracted.discardedClaims]) {
-      if (isNumericClaim(c) || (!NUMERIC_TYPES.has(c.type) && !REVIEW_TYPES.has(c.type))) uncheckedNumeric++;
-      else addReviewItem({ ...c, evidence: writerIds.length ? stageACandidates(c) || candidates(c) : candidates(c) });
+      if (uncheckedClaimBlocksApproval(c)) uncheckedNumeric++;
+      else {
+        const { pointed_sentence, ...reviewClaim } = c;
+        addReviewItem({ ...reviewClaim, evidence: writerIds.length ? stageACandidates(reviewClaim) || candidates(reviewClaim) : candidates(reviewClaim) });
+      }
     }
     if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
@@ -1573,7 +1584,7 @@ async function checkFacts(body, options = {}) {
         .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
     const onlyConditions = findings.length > 0 && findings.every(c => c.condition_mismatch);
-    const beforeRepair = { dropped: record.dropped, discarded: record.discarded, calculated: record.calculated_skipped,
+    const beforeRepair = { dropped: record.dropped, discarded: record.discarded, discarded_claims: [...record.discarded_claims], calculated: record.calculated_skipped,
       uncheckedNumeric, review: [...record.review_items] };
     let repairPairs = new Map();
     const reviewCondition = c => {
@@ -1640,6 +1651,7 @@ async function checkFacts(body, options = {}) {
       // 判定が裏付けた元の文へ戻す。採れなかった条件修正の再照合結果を承認判断に混ぜない。
       revisedBody = body; record.rechecked = [];
       record.dropped = beforeRepair.dropped; record.discarded = beforeRepair.discarded;
+      record.discarded_claims = beforeRepair.discarded_claims;
       record.calculated_skipped = beforeRepair.calculated; uncheckedNumeric = beforeRepair.uncheckedNumeric;
       record.review_items = beforeRepair.review;
       record.corrections = [];
