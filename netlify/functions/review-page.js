@@ -143,23 +143,26 @@ function renderConditionDifferences(claim) {
     `<div class="small">条件の違い: 記事「${escapeHtml(String(c.article || '').slice(0, 160))}」 / 根拠「${escapeHtml(String(c.source || '').slice(0, 160))}」</div>`).join('');
 }
 
-function renderFactDiscarded(record) {
-  const items = record.discarded_claims;
+function renderFactDiscarded(record, status) {
+  const items = Array.isArray(record.discarded_claims) ? record.discarded_claims.filter(c => c && typeof c === 'object') : null;
   if (!items) return record.discarded > 0 ? `<p>捨てた主張 ${escapeHtml(record.discarded)} 件（この記録には主張の一覧がありません）</p>` : '';
   if (!items.length) return '';
-  const blocking = items.filter(c => c.blocks_approval).length;
+  const blocking = status === 'revise' ? items.filter(c => c.blocks_approval).length : 0;
+  const completed = status === 'revise' || status === 'ok';
+  const explanation = status === 'revise' ? '数字の主張は照合できていないため、承認を止めています。'
+    : status === 'ok' ? '' : '照合が最後まで動かなかったため、この一覧は承認の判断に使っていません。';
   const reasons = new Map([
     ['本文に見つからない', 'AI が指した文に、要約の数字や言葉が見つかりませんでした'],
     ['主張の形式が不正', 'AI の答えの形が正しくありませんでした（種類・制度名など）'],
   ]);
   return `<details${blocking ? ' open' : ''}><summary>捨てた主張 ${items.length} 件${blocking ? `（うち承認を止めている ${blocking} 件）` : ''}</summary>
-    <p>照合の AI が抜き出した主張のうち、本文の文と結び付けられなかったものです。数字の主張は照合できていないため、承認を止めています。</p>
+    <p>照合の AI が抜き出した主張のうち、本文の文と結び付けられなかったものです。${explanation}</p>
     ${items.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.pointed_sentence ?? c.sentence)}</div>
       <div>要約: ${escapeHtml(c.claim)}</div>
       <div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>
       <div class="small">理由: ${escapeHtml(reasons.get(c.status) ?? c.status)}</div>
       <div class="small">段階: ${escapeHtml(c.stage === '抜き出し' ? '最初の照合' : c.stage === '再照合' ? '修正の後の再照合' : c.stage)}</div>
-      ${c.blocks_approval ? '<div class="text-danger">数字を照合できていないため、承認を止めています</div>' : '<div class="small">人が確かめる箇所にも載せています（承認は止めません）</div>'}</div>`).join('')}</details>`;
+      ${status === 'revise' && c.blocks_approval ? '<div class="text-danger">数字を照合できていないため、承認を止めています</div>' : completed && !c.blocks_approval ? '<div class="small">人が確かめる箇所にも載せています（承認は止めません）</div>' : ''}</div>`).join('')}</details>`;
 }
 
 function originalFactClaim(record, correction) {
@@ -184,7 +187,8 @@ function renderFactCheckSummary(meta, record, body) {
   const corrections = usable ? record.corrections || [] : [];
   const items = usable ? record.review_items || [] : [];
   const outsideCount = usable ? outsideCandidateClaims(record).length : 0;
-  const discardedBlocking = usable ? (record.discarded_claims || []).filter(c => c.blocks_approval) : [];
+  const discardedClaims = usable && Array.isArray(record.discarded_claims) ? record.discarded_claims.filter(c => c && typeof c === 'object') : null;
+  const discardedBlocking = status === 'revise' && discardedClaims ? discardedClaims.filter(c => c.blocks_approval) : [];
   const rejectedSupported = corrections.filter(c => c.generalized && originalFactClaim(record, c)?.rejected_answer?.status === '裏付けあり').length;
   return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
     <p><strong>状態:</strong> ${escapeHtml(label)}</p>
@@ -193,7 +197,7 @@ function renderFactCheckSummary(meta, record, body) {
     ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件${rejectedSupported ? `（うち AI は裏付けありと答えた ${rejectedSupported} 件）` : ''}</p>
     ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
     ${discardedBlocking.length ? `<div class="alert alert-danger">数字を照合できなかった主張 ${discardedBlocking.length} 件で承認が止まっています。${discardedBlocking.map(c => `<p>${factSentence(c.pointed_sentence ?? c.sentence)}／要約: ${escapeHtml(c.claim)}</p>`).join('')}<a href="#factCheck">詳しくは本文の後ろの「捨てた主張」</a></div>` : ''}
-    ${!record.discarded_claims && record.discarded > 0 ? `<p>捨てた主張 ${escapeHtml(record.discarded)} 件（この記録には主張の一覧がありません）</p>` : ''}
+    ${!discardedClaims && record.discarded > 0 ? `<p>捨てた主張 ${escapeHtml(record.discarded)} 件（この記録には主張の一覧がありません）</p>` : ''}
     ${outsideCount ? `<p>候補の外の資料で裏付け ${outsideCount} 件</p>` : ''}
     ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
     <a href="#factCheck">詳細は本文の後ろ</a>
@@ -220,7 +224,7 @@ function renderFactCheck(meta, record, body) {
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
     ${renderFactRemaining(record)}
     ${renderFactReviewItems(record.review_items || [], record)}
-    ${renderFactDiscarded(record)}
+    ${renderFactDiscarded(record, status)}
     ${renderFactOutsideCandidates(record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}
     </div></div>`;
 }

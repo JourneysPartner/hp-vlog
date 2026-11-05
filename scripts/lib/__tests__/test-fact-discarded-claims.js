@@ -39,8 +39,17 @@ test('R1: 本文に見つからない主張の元の欄を維持し、指した�
     claim: missing, s: 2, status: '本文に見つからない', pointed_sentence: original }]);
 });
 
-test('R1: 整数でない番号・範囲外・番号なしには指した文を作らない', async () => {
-  for (const s of [0, -1, 2, 1.5, '1', null, undefined]) {
+test('F2: 文字列・角括弧・全角の番号にも指した文を残し、元の s の扱いは変えない', async () => {
+  for (const s of ['1', '[1]', '１']) {
+    const result = await F.extractClaims(original, async () => [raw({ s })]);
+    assert.equal(result.discarded, 1);
+    assert.deepEqual(result.discardedClaims, [{ sentence: missing, heading: '', type: '金額', subject: '控除',
+      claim: missing, status: '本文に見つからない', pointed_sentence: original }], s);
+  }
+});
+
+test('R1/F2: 読めない番号・範囲外・番号なしには指した文を作らない', async () => {
+  for (const s of [0, -1, 2, 1.5, 'a', null, undefined]) {
     const result = await F.extractClaims(original, async () => [raw({ s })]);
     assert.equal(result.discarded, 1);
     assert.equal(Object.hasOwn(result.discardedClaims[0], 'pointed_sentence'), false, String(s));
@@ -191,7 +200,64 @@ const row = (extra = {}) => ({ ...raw(), sentence: missing, pointed_sentence: or
   status: '本文に見つからない', stage: '抜き出し', blocks_approval: true, ...extra });
 const displayRecord = (extra = {}) => ({ status: 'revise', body_sha256: F.bodyHash(original),
   corrections: [], remaining: [], review_items: [], discarded: 1, discarded_claims: [row()], ...extra });
-const render = (record, body = original) => [page.renderFactCheckSummary({}, record, body), page.renderFactCheck({}, record, body)];
+const render = (record, body = original, meta = {}) => [page.renderFactCheckSummary(meta, record, body), page.renderFactCheck(meta, record, body)];
+
+test('F1: 状態表どおりに承認の表示を切り替え、記事情報の状態も使う', () => {
+  for (const [recordStatus, statusOverride] of [['not_run'], ['revise'], ['ok'], ['unknown'],
+    ['revise', 'not_run'], ['not_run', 'revise'], ['revise', 'ok']]) {
+    const status = statusOverride || recordStatus;
+    const record = displayRecord({ status: recordStatus, discarded: 2,
+      discarded_claims: [row(), row({ claim: '人が確かめる主張', blocks_approval: false })] });
+    const before = JSON.stringify(record);
+    const [summary, detail] = render(record, original, statusOverride ? { fact_check_status: statusOverride } : {});
+    const blocking = status === 'revise';
+    assert.equal(summary.includes('class="alert alert-danger"'), blocking);
+    assert.equal(summary.includes('承認が止まっています'), blocking);
+    assert.equal(summary.includes('数字を照合できなかった主張 1 件'), blocking);
+    assert.ok(detail.includes(`<details${blocking ? ' open' : ''}><summary>捨てた主張 2 件${blocking ? '（うち承認を止めている 1 件）' : ''}</summary>`));
+    assert.equal(detail.includes('<details open>'), blocking);
+    const explanation = blocking ? '数字の主張は照合できていないため、承認を止めています。'
+      : status === 'ok' ? '' : '照合が最後まで動かなかったため、この一覧は承認の判断に使っていません。';
+    assert.ok(detail.includes(`<p>照合の AI が抜き出した主張のうち、本文の文と結び付けられなかったものです。${explanation}</p>`));
+    assert.equal(detail.includes('承認を止めています'), blocking);
+    assert.equal(detail.includes('<div class="text-danger">数字を照合できていないため、承認を止めています</div>'), blocking);
+    assert.equal(detail.includes('人が確かめる箇所にも載せています（承認は止めません）'), blocking || status === 'ok');
+    assert.equal(JSON.stringify(record), before, '表示で承認判断や記録を変えない');
+  }
+});
+
+test('F1: 数字の主張を捨てた後に判定が失敗した実際の記録では承認停止を表示しない', async () => {
+  const retained = '課税額は100万円です。', body = original + '\n' + retained;
+  for (const failOpen of [false, true]) {
+    const calls = [];
+    const { body: checkedBody, record } = await F.checkFacts(body, { ...opts, failOpen,
+      searchEvidence: () => [source(retained)], callLLM: async req => {
+        calls.push(req.task);
+        if (req.task === 'extract') return [raw(), raw({ type: '要件', claim: '未成年者だけが対象です。' }),
+          raw({ s: 2, subject: '課税額', claim: retained })];
+        assert.equal(req.task, 'judge');
+        throw new Error('F1 fake judge failure');
+      } });
+    assert.deepEqual(calls, ['extract', 'judge']);
+    assert.equal(checkedBody, body);
+    assert.equal(record.status, 'not_run');
+    assert.equal(record.body_sha256, F.bodyHash(body));
+    assert.equal(record.discarded, 2);
+    assert.deepEqual(record.discarded_claims.map(c => c.blocks_approval), [true, false]);
+    assert.equal(record.discarded_claims[0].pointed_sentence, original);
+    const before = JSON.stringify(record);
+    const [summary, detail] = render(record, body);
+    assert.ok(!summary.includes('class="alert alert-danger"'));
+    assert.ok(!summary.includes('承認が止まっています'));
+    assert.ok(!summary.includes('数字を照合できなかった主張'));
+    assert.ok(detail.includes('<details><summary>捨てた主張 2 件</summary>'));
+    assert.ok(!detail.includes('<details open>'));
+    assert.ok(detail.includes('照合が最後まで動かなかったため、この一覧は承認の判断に使っていません。'));
+    assert.ok(!detail.includes('承認を止めています'));
+    assert.ok(!detail.includes('承認は止めません'));
+    assert.equal(JSON.stringify(record), before, '表示で失敗した記録を変えない');
+  }
+});
 
 test('R3: 要点に件数・文・要約と赤い枠、詳細に指定の文言と開いた一覧が出る', () => {
   const record = displayRecord(), before = JSON.stringify(record);
@@ -251,6 +317,38 @@ test('R3: 一覧のない旧版の記録と0件の表示', () => {
   for (const discarded_claims of [undefined, []]) for (const html of render(displayRecord({ discarded: 0, discarded_claims }))) {
     assert.ok(!html.includes('捨てた主張'));
     assert.ok(!html.includes('数字を照合できなかった主張'));
+  }
+});
+
+test('F3: 一覧が配列でない記録は要点・詳細とも旧版の記録として表示する', () => {
+  for (const discarded_claims of [{}, true, 'x', null]) {
+    const record = displayRecord({ discarded_claims }), before = JSON.stringify(record);
+    for (const html of render(record)) {
+      assert.ok(html.includes('<p>捨てた主張 1 件（この記録には主張の一覧がありません）</p>'));
+      assert.ok(!html.includes('数字を照合できなかった主張'));
+      assert.ok(!html.includes('<summary>捨てた主張'));
+    }
+    assert.equal(JSON.stringify(record), before, '表示で壊れた一覧も書き換えない');
+    for (const html of render(displayRecord({ discarded: 0, discarded_claims }))) {
+      assert.ok(!html.includes('捨てた主張'));
+    }
+  }
+});
+
+test('F3: 一覧に null・数字などが混ざっても正しい要素だけを表示する', () => {
+  const record = displayRecord({ discarded: 6, discarded_claims: [null, 7, 'x', true, row(),
+    row({ claim: '人が確かめる主張', blocks_approval: false })] }), before = JSON.stringify(record);
+  const [summary, detail] = render(record);
+  assert.ok(summary.includes('数字を照合できなかった主張 1 件で承認が止まっています。'));
+  assert.ok(summary.includes(`<p>${original}／要約: ${missing}</p>`));
+  assert.ok(!summary.includes('人が確かめる主張'));
+  assert.ok(detail.includes('<summary>捨てた主張 2 件（うち承認を止めている 1 件）</summary>'));
+  assert.equal((detail.match(/<div>要約:/g) || []).length, 2);
+  assert.ok(detail.includes(`要約: ${missing}`));
+  assert.ok(detail.includes('要約: 人が確かめる主張'));
+  assert.equal(JSON.stringify(record), before, '表示で記録の要素や件数を変えない');
+  for (const html of render(displayRecord({ discarded_claims: [null, 7] }))) {
+    assert.ok(!html.includes('捨てた主張'));
   }
 });
 

@@ -601,7 +601,7 @@ async function extractClaims(body, callLLM, options = {}) {
     if (unit && isScenarioAmount(resolved)) continue;
     if (unit && enhanced && isCalculatedClaim(resolved)) { calculatedSkipped++; continue; }
     if (!sentence || !TYPES.includes(c.type) || typeof c.subject !== 'string' || !c.subject.trim() || typeof c.claim !== 'string') {
-      const pointed = Number.isInteger(c.s) ? units[c.s - 1] : null;
+      const pointed = number ? units[number - 1] : null;
       discardedClaims.push({ ...fields({ ...c, sentence: sentence || (typeof c?.claim === 'string' ? c.claim : '') }),
         status: sentence ? '主張の形式が不正' : '本文に見つからない', ...(pointed ? { pointed_sentence: pointed.text } : {}) });
       continue;
