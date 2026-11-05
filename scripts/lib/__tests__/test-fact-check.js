@@ -197,12 +197,36 @@ async function main() {
     assert.equal(cap.record.status, 'ok'); assert.equal(cap.record.dropped, 1);
     assert.equal(cap.record.review_items.length, 1); assert.equal(cap.record.review_items[0].type, '要件');
   });
-  await test('R4', '修正後に別制度の主張を足した場合も再照合で止める', async () => {
+  for (const inCorrect of [false, true]) await test('R4', `修正後に別制度の主張を足した場合も${inCorrect ? '再照合で止める' : 'R3で却下して止める'}`, async () => {
     const extra = '別制度では999万円を控除します。';
     const llm = fake({ revised: body.replace(wrong, correct + extra) });
-    const call = async req => req.task === 'extract' && req.user.includes(extra) ? [c(correct), c(extra, '金額', { subject: '別制度' })] : llm.fn(req);
-    const r = await F.checkFacts(body, { callLLM: call, searchEvidence: claim => claim.subject === '別制度' ? [] : evidence, now });
-    assert.equal(r.record.status, 'revise'); assert.ok(r.record.remaining.some(x => x.subject === '別制度'));
+    // (b) 初回の correct 自体も数字の照合を通し、再照合では別制度を資料なしと判定させる。
+    const refs = inCorrect ? evidence.map(e => ({ ...e, text: correct + extra })) : evidence;
+    const call = async req => {
+      if (req.task === 'extract' && req.user.includes(extra)) return [c(correct), c(extra, '金額', { subject: '別制度' })];
+      const result = await llm.fn(req);
+      if (!inCorrect || req.task !== 'judge') return result;
+      const claims = readPayload(req).claims;
+      return result.map(row => claims.find(x => x.id === row.id).subject === '別制度' ? { id: row.id, status: '資料なし' } :
+        row.status === '食い違い' ? { ...row, correct: correct + extra } : row);
+    };
+    const r = await F.checkFacts(body, { callLLM: call, searchEvidence: claim => claim.subject === '別制度' ? [] : refs, now });
+    assert.equal(r.record.status, 'revise');
+    const correction = r.record.corrections.find(x => x.before === wrong);
+    assert.equal(correction.resolved, false);
+    if (inCorrect) {
+      assert.equal(correction.after, correct + extra);
+      assert.equal(correction.reason, undefined);
+      assert.equal(r.body, body.replace(wrong, correct + extra));
+      assert.ok(r.record.calls.some(x => x.task === 'recheck_judge'));
+      assert.ok(r.record.rechecked.some(x => x.subject === '別制度' && x.status === '資料なし'));
+      assert.ok(r.record.remaining.some(x => x.subject === '別制度' && x.status === '資料なし'));
+    } else {
+      assert.equal(correction.reason, '根拠の正しい内容に無い数字を足しています');
+      assert.equal(correction.after, '');
+      assert.equal(r.body, body);
+      assert.ok(!r.record.calls.some(x => x.task.startsWith('recheck_')));
+    }
   });
 
   await test('R5', 'okで既存frontmatter・注意を保持しJSONへ詳細を保存', async () => {

@@ -139,14 +139,16 @@ async function main() {
     assert.equal(result.record.status, 'ok'); assert.ok(result.body.includes(other)); assert.ok(!result.body.includes('20%'));
   });
   for (const status of ['食い違い', '期限の書き漏れ']) await test('L2', `${status}にはkeepの数字の歯止めを掛けない`, async () => {
-    const finding = claim('控除は110万円です。', { status, keep: [{ claim: '控除110万円' }] });
-    const replacement = '控除は120万円です。';
+    const correct = '控除は120万円です。' + (status === '期限の書き漏れ' ? '適用期限は令和9年3月31日です。' : '');
+    const finding = claim('控除は110万円です。', { status, correct, keep: [{ claim: '控除110万円' }] });
+    const replacement = correct;
     const result = await F.repairBody(finding.sentence, [finding], async request => {
       const c = JSON.parse(request.user).corrections[0];
-      assert.equal(c.instruction, status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す' : 'この制度の説明に、根拠の適用期限を1文で足す');
+      assert.equal(c.instruction, status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない' : 'この制度の説明に、根拠の適用期限を1文で足す');
       return [{ id: c.id, replacement }];
     });
     assert.equal(result.rejected.size, 0); assert.equal(result.body, replacement);
+    assert.ok(!result.body.includes('110万円'), 'correct の数字への修正では keep の元の数字を残さなくてよい');
   });
   await test('L2', '番号を消す指示は維持する', () => {
     assert.equal(F.repairInstructions([claim('番号110です。', { status: '資料なし', type: '番号' })])[0].instruction,
@@ -224,12 +226,12 @@ async function main() {
     } });
     try {
       const initial = await F.checkArticle(raw, opts);
-      assert.equal(initial.record.logic_version, 'plan2-s3'); assert.equal(initial.record.status, 'ok');
+      assert.equal(initial.record.logic_version, 'plan2-s4'); assert.equal(initial.record.status, 'ok');
       const file = F.recordPath('precision-version', dir);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8')); prior.logic_version = '03k';
       fs.writeFileSync(file, JSON.stringify(prior)); calls.length = 0;
       const result = await F.checkArticle(raw, { ...opts, persist: false, previousRaw: raw });
-      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s3');
+      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s4');
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });

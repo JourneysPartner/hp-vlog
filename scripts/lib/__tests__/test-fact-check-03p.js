@@ -30,7 +30,7 @@ function assertBlocked(result) {
 }
 async function scenario({ body = WRONG + '\n' + WRONG_DATE, replacements = [WRONG, RIGHT_DATE], source = SOURCE,
   extractFilter = () => true, initialStatus = '食い違い', recheckStatus = () => '裏付けあり', subject = () => '基礎控除',
-  searchEvidence = () => [ref(source)], onJudge = () => {} } = {}) {
+  searchEvidence = () => [ref(source)], onJudge = () => {}, initialCorrect = () => undefined } = {}) {
   let extracts = 0;
   const requests = [];
   const result = await F.checkFacts(body, { ...options, searchEvidence, callLLM: async request => {
@@ -45,7 +45,8 @@ async function scenario({ body = WRONG + '\n' + WRONG_DATE, replacements = [WRON
     return H.readPayload(request).claims.map(c => {
       const status = extracts === 1 ? typeof initialStatus === 'function' ? initialStatus(c) : initialStatus : recheckStatus(c);
       return { id: c.id, status, evidence_id: c.evidence_ids[0], basis: /万円/.test(c.sentence) ? '1' : '2',
-        ...(status === '裏付けあり' ? {} : { correct: c.subject === '別制度' ? '別制度の控除は200万円です。' : /万円/.test(c.sentence) ? RIGHT : RIGHT_DATE }) };
+        ...(status === '裏付けあり' ? {} : { correct: (extracts === 1 ? initialCorrect(c) : undefined) ??
+          (c.subject === '別制度' ? '別制度の控除は200万円です。' : /万円/.test(c.sentence) ? RIGHT : RIGHT_DATE) }) };
     });
   } });
   return { ...result, requests };
@@ -66,16 +67,44 @@ for (const status of ['食い違い', '期限の書き漏れ', '資料なし']) 
     assert.equal(result.replacements.size, 0);
   }
 });
-test('P1', '書き換えた文自身の裏付けが無ければ同じ制度名の別の文で解決しない', async () => {
+for (const inCorrect of [false, true]) test('P1', `書き換えた文自身の裏付けが無ければ同じ制度名の別の文で解決しない（${inCorrect ? 'R3通過後' : 'R3で却下'}）`, async () => {
   const stillWrong = '基礎控除は121万円です。';
-  const result = await scenario({ replacements: [stillWrong, RIGHT_DATE], extractFilter: s => s === RIGHT_DATE });
-  assertBlocked(result); assert.ok(result.body.includes(stillWrong));
+  const result = await scenario({ replacements: [stillWrong, RIGHT_DATE], extractFilter: s => s === RIGHT_DATE,
+    // (b) 初回判定の correct と資料に121万円を含め、再照合で自身の裏付けが欠ける場合を確かめる。
+    ...(inCorrect ? { source: stillWrong + '\n' + RIGHT_DATE, initialCorrect: c => /万円/.test(c.sentence) ? stillWrong : RIGHT_DATE } : {}) });
+  assertBlocked(result);
   assert.equal(result.record.corrections[0].resolved, false); assert.equal(result.record.corrections[1].resolved, true);
+  if (inCorrect) {
+    assert.equal(result.body, stillWrong + '\n' + RIGHT_DATE);
+    assert.equal(result.record.corrections[0].reason, undefined);
+    assert.equal(result.record.corrections[0].after, stillWrong);
+    assert.ok(result.record.rechecked.some(c => c.sentence === RIGHT_DATE && c.status === '裏付けあり'));
+    assert.ok(!result.record.rechecked.some(c => c.sentence === stillWrong), '書き換えた文自身の裏付けは再照合に無い');
+  } else {
+    assert.equal(result.record.corrections[0].reason, '根拠の正しい内容に無い数字を足しています');
+    assert.equal(result.record.corrections[0].after, '');
+    assert.equal(result.body, WRONG + '\n' + RIGHT_DATE);
+  }
 });
-test('P1', '止める主張は同じ制度名の別の文まで広く見る', async () => {
-  const result = await scenario({ replacements: [RIGHT, WRONG_DATE.replace('10日', '11日')],
-    recheckStatus: c => /万円/.test(c.sentence) ? '裏付けあり' : '資料なし' });
-  assertBlocked(result); assert.equal(result.record.corrections[0].resolved, false);
+for (const inCorrect of [false, true]) test('P1', `止める主張は同じ制度名の別の文まで広く見る（${inCorrect ? 'R3通過後' : 'R3で却下'}）`, async () => {
+  const revisedDate = WRONG_DATE.replace('10日', '11日');
+  const result = await scenario({ replacements: [RIGHT, revisedDate],
+    recheckStatus: c => /万円/.test(c.sentence) ? '裏付けあり' : '資料なし',
+    ...(inCorrect ? { source: RIGHT + '\n' + revisedDate, initialCorrect: c => /万円/.test(c.sentence) ? RIGHT : revisedDate } : {}) });
+  assertBlocked(result);
+  assert.equal(result.record.corrections[1].resolved, false);
+  if (inCorrect) {
+    assert.equal(result.body, RIGHT + '\n' + revisedDate);
+    assert.ok(result.record.corrections.every(c => c.reason === undefined));
+    assert.equal(result.record.corrections[1].after, revisedDate);
+    assert.ok(result.record.rechecked.some(c => c.sentence === RIGHT && c.status === '裏付けあり'));
+    assert.ok(result.record.rechecked.some(c => c.sentence === revisedDate && c.status === '資料なし'));
+    assert.equal(result.record.corrections[0].resolved, false, '自身が裏付けありでも、同じ制度の別の文の資料なしで止める');
+  } else {
+    assert.equal(result.record.corrections[1].reason, '根拠の正しい内容に無い数字を足しています');
+    assert.equal(result.record.corrections[1].after, '');
+    assert.equal(result.body, RIGHT + '\n' + WRONG_DATE);
+  }
 });
 test('P1', '両方を正しく修正すると両方とも解決する', async () => {
   const result = await scenario({ replacements: [RIGHT, RIGHT_DATE] });

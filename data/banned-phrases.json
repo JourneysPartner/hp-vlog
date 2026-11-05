@@ -159,6 +159,45 @@
       "addedAt": "2026-11-02T00:00:00.000Z",
       "sourceArticle": "youtuber-tax-payment-guide",
       "autoExtracted": false
+    },
+    {
+      "id": "no-tegakari",
+      "pattern": "手(?:がか|掛か|掛)り",
+      "humanReadable": "手がかり",
+      "replacement": "ポイント",
+      "reason": "毛利指示 2026-11-04（PR #741）。「一つの手がかり」→「一つのポイント」。",
+      "appliesTo": [
+        "body"
+      ],
+      "addedAt": "2026-11-04T00:00:00.000Z",
+      "sourceArticle": "reselling-income-tax-classification",
+      "autoExtracted": false
+    },
+    {
+      "id": "no-jouken-desu",
+      "pattern": "常見です",
+      "humanReadable": "常見です",
+      "replacement": "よくあります",
+      "reason": "毛利指示 2026-11-04（PR #741）。ふだんの言葉にする。",
+      "appliesTo": [
+        "body"
+      ],
+      "addedAt": "2026-11-04T00:00:00.000Z",
+      "sourceArticle": "reselling-income-tax-classification",
+      "autoExtracted": false
+    },
+    {
+      "id": "no-jouken",
+      "pattern": "常見",
+      "humanReadable": "常見（〜の誤りなど）",
+      "replacement": null,
+      "reason": "「常見です」以外の形は自動で置き換えると文が崩れるので、人が直す。",
+      "appliesTo": [
+        "body"
+      ],
+      "addedAt": "2026-11-04T00:00:00.000Z",
+      "sourceArticle": "reselling-income-tax-classification",
+      "autoExtracted": false
     }
   ]
 }

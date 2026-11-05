@@ -191,13 +191,17 @@ async function main() {
     assert.equal(result.claims.length, 0); assert.equal(result.discarded, 1);
   });
 
-  await test('K4', '判定の指示文は指定の括弧書き1つ以外を変えず、呼び出し設定を維持する', async () => {
+  await test('K4', '判定の指示文は既知の括弧書き・規則の追加以外を変えず、呼び出し設定を維持する', async () => {
     const previous = `主張を添付した原文だけで照合してください。evidence の中の、各主張の evidence_ids の資料を優先して根拠にしてください。要件・判定・手続の主張で、evidence_ids の資料に根拠が無く、この資料表の別の資料に根拠があるときは、その資料の番号を evidence_id に書いてかまいません。金額・割合・期限・適用年・番号の主張は evidence_ids の資料だけを根拠にしてください。判断できなければ資料なしにする。記憶で補わない。括弧書き・ただし書きの対象を取り違えない。${LAW_SCOPE_RULE} 出力は [{id,status,evidence_id,basis,correct}] の形のJSON配列だけです（correct は食い違い・期限の書き漏れのときだけ、資料なしでは evidence_id・basis も書かない）。statusは裏付けあり／食い違い／資料なし／期限の書き漏れ。裏付けあり・食い違い・期限の書き漏れでは basis に根拠の文の番号（連続4つまで）を書き、evidence_id にその資料の番号を書いてください。食い違いには correct に原文に基づく正しい内容を書く。制度の適用期限が原文にあるのに番号付きの本文のどこにも書かれていない場合、制度ごとに1件だけ期限の書き漏れとし、correctに期限を書いてください。設例の額を制度の上限と混同しないでください。数字の根拠が同じ資料の離れた2か所にあるときに限り、basis に範囲を2つまで "12-13,30" の形で書いてください。\n例: [{"id":"c1","status":"裏付けあり","evidence_id":3,"basis":"12-13"}]`;
+    const addedRule = '主張が制度の控除額・上限額を「最高」「最大」「上限」などとして述べているのに、原文の注・ただし書きでは条件によって別の額（より高い額など）になると書かれていて、その文にも前後の文にもその条件と額が書かれていない場合は、食い違いとし、correct に条件と額を書いてください。';
+    const expected = previous.replace('数字の根拠が同じ資料', addedRule + '数字の根拠が同じ資料');
     await judge([first], first.sentence, async req => {
       const instruction = req.system.split('\n\n[資料 ')[0];
       // 03k の後に Claude が足した経過措置の規則（実 AI の #644 で生前贈与加算の段階を見逃したため）も除いて比べる。
-      assert.equal(instruction.replace('（金額・期限・割合・適用年・番号の主張は連続2つまで）', '')
-        .replace('その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。', ''), previous);
+      const normalized = instruction.replace('（金額・期限・割合・適用年・番号の主張は連続2つまで）', '')
+        .replace('その主張の数字・期間そのものが、原文で適用時期によって段階的に変わるのに、番号付きの本文のどこにも段階や対象の時期が書かれていない場合に限り、食い違いとし、correct に段階を書いてください。特定の年分の値として正しく書いている場合は裏付けありとしてください。', '');
+      assert.equal(normalized.replace(addedRule, ''), previous, 'R4 の1文以外は旧期待値と一致する');
+      assert.equal(normalized, expected);
       assert.equal(req.system, req.staticSystem); assert.equal(req.maxTokens, 16000);
       assert.equal(F.config().model, 'claude-opus-5-5');
       return [support('c1')];
