@@ -30,7 +30,7 @@
 `repairBody` の置き換えの確かめ（今の `reason` の判定の並び）に、状態が 食い違い または 期限の書き漏れ の指摘について次を足す。`enhanced` かどうかに関わらず行う。
 
 - 置き換え文の数字 = `expandYearDates(normalizedNumbers(replacement), replacement)`。
-- 許す数字 = 元の文・`correct`・`quote_notes`・`keep_numbers` のそれぞれに同じ処理をした数字の和。
+- 許す数字 = **同じ文（`f.sentence` が同じ）の 食い違い・期限の書き漏れ の指摘全部**について、元の文・`correct`・`quote_notes`・`keep_numbers` のそれぞれに同じ処理をした数字の和。同じ文の指摘は 1 つの置き換えにまとめるため、指摘 1 件ごとに確かめると、まとめた正しい置き換えまで却下される（2026-11-05 のレビュー指摘 1 で広げた。`01b-review-fixes.md`）。
 - 置き換え文の数字のうち、許す数字に無いものが 1 つでもあれば、reason を `根拠の正しい内容に無い数字を足しています` とする。読めない数字（null）が置き換え文にあり、元の文に無い場合も同じ reason。
 - この reason を `retryReasons` に加える（作り直しの依頼で理由が AI に伝わる）。
 - 数字の比べ方は既存の `normalizedNumbers`・`expandYearDates` の正規化に従う（「令和元年」は `日付:令和1` になる）。新しい正規化は作らない。
