@@ -1267,8 +1267,9 @@ async function repairBody(body, findings, callLLM, options = {}) {
     }
     if (!reason && ['食い違い', '期限の書き漏れ'].includes(f.status)) {
       const originalNumbers = expandYearDates(normalizedNumbers(f.sentence), f.sentence);
-      const keepNumbers = corrections.find(c => c.id === f.id).keep_numbers || [];
-      const allowedNumbers = new Set([f.sentence, f.correct || '', f.quote_notes || '', ...keepNumbers]
+      const allowedNumbers = new Set(corrections
+        .filter(c => c.sentence === f.sentence && ['食い違い', '期限の書き漏れ'].includes(c.status))
+        .flatMap(c => [c.sentence, c.correct || '', c.quote_notes || '', ...(c.keep_numbers || [])])
         .flatMap(text => expandYearDates(normalizedNumbers(text), text)));
       const revisedNumbers = expandYearDates(normalizedNumbers(replacement), replacement);
       if (revisedNumbers.some(n => n === null ? !originalNumbers.includes(null) : !allowedNumbers.has(n))) {

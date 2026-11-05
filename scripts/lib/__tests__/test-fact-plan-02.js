@@ -311,7 +311,7 @@ test('S4', '6: 同じ文の複数指摘は同じ置き換えにまとめ、他�
   const text = '限度額は100万円、控除額は50万円です。', other = '別の限度額は80万円です。';
   const fixed = '限度額は200万円、控除額は60万円です。';
   const findings = [claim('c1', text), claim('c2', text), claim('c3', other)].map(c => ({ ...c, status: '食い違い', quote: '根拠の本文',
-    correct: c.sentence === text ? fixed : '別の限度額は90万円です。' }));
+    correct: { c1: '限度額は200万円です。', c2: '控除額は60万円です。', c3: '別の限度額は90万円です。' }[c.id] }));
   const r = await F.repairBody(text + '\n' + other, findings, async req => {
     const p = JSON.parse(req.user);
     if (req.task === 'retry_repair') {
@@ -636,9 +636,10 @@ test('02b-M3','20文40主張の8文16主張は20%超として具体を外さな�
 test('02b-L1','一方だけ直しの対象になる同じ文は部分採用せず、別の文の採用は保つ',async()=>{
   const sentence='限度額は100万円、控除額は50万円です。',other='別の限度額は80万円です。';
   const fs=[claim('c1',sentence),claim('c2',sentence),claim('c3',other)].map(c=>({...c,status:'食い違い',
-    correct:c.sentence===sentence?'限度額は200万円、控除額は50万円です。':'別の限度額は90万円です。'}));
+    correct:{c1:'限度額は200万円です。',c2:'控除額は60万円です。',c3:'別の限度額は90万円です。'}[c.id]}));
   const r=await F.repairBody(sentence+'\n'+other,fs,async req=>req.task==='retry_repair'?[{id:'c1',replacement:'限度額は200万円、控除額は50万円です。'}]:[{id:'c1',replacement:sentence},{id:'c2',replacement:''},{id:'c3',replacement:'別の限度額は90万円です。'}],writer);
   assert.equal(r.body,sentence+'\n別の限度額は90万円です。');assert(r.rejected.has('c1')&&r.rejected.has('c2'));
+  assert.equal(r.rejected.get('c1'),'同じ文の別の指摘の置き換えを採れませんでした');assert.equal(r.rejected.get('c2'),'置き換え後の文が空です');
 });
 for (const inCorrect of [false, true]) test('02b-L2',`同じ制度の別の修正文に新しく入った30%を${inCorrect ? '再照合で止める' : 'R3で却下して止める'}`,async()=>{
   const a='みなし仕入率60%で売上税額に30%を掛けます。',b='控除率は50%で計算します。',aa=a.replace('60%','70%'),bb='控除率は80%で計算し、売上税額に30%を掛けます。';

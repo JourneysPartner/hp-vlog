@@ -198,6 +198,100 @@ test('R3', '読めない数字は元の文にある場合だけ許す', async ()
   }
 });
 
+for (const [label, original, details, replacement, invalid] of [
+  ['食い違い2件', '限度額は100万円、控除額は50万円です。',
+    [['食い違い', '限度額は200万円です。'], ['食い違い', '控除額は60万円です。']],
+    '限度額は200万円、控除額は60万円です。', '限度額は200万円、控除額は70万円です。'],
+  ['食い違いと期限の書き漏れ', '限度額は100万円で、申請できます。',
+    [['食い違い', '限度額は200万円です。'], ['期限の書き漏れ', '申請期限は令和9年3月31日です。']],
+    '限度額は200万円で、令和9年3月31日まで申請できます。', '限度額は200万円で、令和8年3月31日まで申請できます。'],
+]) for (const [name, opts] of [['enhanced 偽', options], ['enhanced 真', enhanced]]) {
+  const findings = details.map(([status, correct], i) => finding({ id: `c${i + 1}`, sentence: original, claim: original,
+    type: status === '期限の書き漏れ' ? '期限' : '金額', subject: '試験制度', status, correct, quote: '', quote_notes: '' }));
+  test('R3', `${name}: 同じ文の${label}をまとめた置換は作り直さず採る`, async () => {
+    const tasks = [];
+    const result = await F.repairBody(original, findings, async req => {
+      tasks.push(req.task);
+      return findings.map(f => ({ id: f.id, replacement }));
+    }, opts);
+    assert.deepEqual(tasks, ['repair']);
+    assert.equal(result.rejected.size, 0);
+    assert.equal(result.body, replacement);
+  });
+  test('R3', `${name}: 同じ文の${label}のどの指摘にも無い数字は両方却下する`, async () => {
+    const result = await F.repairBody(original, findings, async () => findings.map(f => ({ id: f.id, replacement: invalid })), opts);
+    for (const f of findings) assert.equal(result.rejected.get(f.id), numberReason);
+    assert.equal(result.body, original);
+    assert.equal(result.replacements.size, 0);
+  });
+}
+
+test('R3', '別の文の指摘の数字は共有せず、その文の正しい修正は採る', async () => {
+  const original = '限度額は100万円、控除額は50万円です。', other = '別の限度額は80万円です。';
+  const findings = [
+    ['c1', original, '限度額は200万円です。'], ['c2', original, '控除額は60万円です。'],
+    ['c3', other, '別の限度額は90万円です。'],
+  ].map(([id, sentence, correct]) => finding({ id, sentence, claim: sentence, type: '金額', correct, quote: '', quote_notes: '' }));
+  const result = await F.repairBody(original + '\n' + other, findings, async () => findings.map(f => ({ id: f.id,
+    replacement: f.id === 'c3' ? f.correct : '限度額は200万円、控除額は90万円です。' })), options);
+  for (const id of ['c1', 'c2']) assert.equal(result.rejected.get(id), numberReason);
+  assert.equal(result.rejected.has('c3'), false);
+  assert.equal(result.body, original + '\n別の限度額は90万円です。');
+});
+
+test('R3', '同じ文でも資料なしの指摘の correct の数字は共有しない', async () => {
+  const original = '限度額は100万円、控除額は50万円です。';
+  const findings = [
+    finding({ id: 'c1', sentence: original, claim: '限度額は100万円', type: '金額', correct: '限度額は200万円です。', quote: '', quote_notes: '' }),
+    finding({ id: 'c2', sentence: original, claim: '控除額は50万円', type: '金額', status: '資料なし', correct: '控除額は70万円です。', quote: '', quote_notes: '' }),
+  ];
+  const result = await F.repairBody(original, findings, async () => findings.map(f => ({ id: f.id,
+    replacement: '限度額は200万円、控除額は70万円です。' })), options);
+  assert.equal(result.rejected.get('c1'), numberReason);
+  assert.equal(result.body, original);
+});
+
+for (const field of ['quote_notes', 'keep_numbers', 'supported_numbers']) test('R3', `同じ文の別の指摘の ${field} の数字も共有する`, async () => {
+  const original = '限度額は100万円、控除額は50万円です。', replacement = '限度額は200万円、控除額は60万円です。';
+  const findings = [
+    finding({ id: 'c1', sentence: original, correct: '限度額は200万円です。', quote: '', quote_notes: '' }),
+    finding({ id: 'c2', sentence: original, correct: '', quote: '', quote_notes: '',
+      [field]: field === 'quote_notes' ? '条件を満たす控除額は60万円です。' : ['60万円'] }),
+  ];
+  const result = await F.repairBody(original, findings, async () => findings.map(f => ({ id: f.id, replacement })), options);
+  assert.equal(result.rejected.size, 0);
+  assert.equal(result.body, replacement);
+});
+
+test('R3', '同じ文の別の指摘でも quote だけにある数字は共有しない', async () => {
+  const original = '限度額は100万円、控除額は50万円です。';
+  const findings = ['c1', 'c2'].map(id => finding({ id, sentence: original,
+    correct: id === 'c1' ? '限度額は200万円です。' : '控除額は60万円です。',
+    quote: id === 'c2' ? '控除額は70万円です。' : '', quote_notes: '' }));
+  const result = await F.repairBody(original, findings, async () => findings.map(f => ({ id: f.id,
+    replacement: '限度額は200万円、控除額は70万円です。' })), options);
+  for (const f of findings) assert.equal(result.rejected.get(f.id), numberReason);
+  assert.equal(result.body, original);
+});
+
+test('R3', '作り直しに渡らない同じ文の指摘の数字は共有しない', async () => {
+  const original = '限度額は100万円、控除額は50万円です。', tasks = [];
+  const findings = ['c1', 'c2'].map(id => finding({ id, sentence: original, claim: original, type: '金額', subject: '試験制度',
+    correct: id === 'c1' ? '限度額は200万円です。' : '控除額は60万円です。', quote: '', quote_notes: '' }));
+  const result = await F.repairBody(original, findings, async req => {
+    tasks.push(req.task);
+    if (req.task === 'retry_repair') {
+      assert.deepEqual(JSON.parse(req.user).corrections.map(c => c.id), ['c1']);
+      return [{ id: 'c1', replacement: '限度額は200万円、控除額は60万円です。' }];
+    }
+    return [{ id: 'c1', replacement: original }, { id: 'c2', replacement: '' }];
+  }, enhanced);
+  assert.deepEqual(tasks, ['repair', 'retry_repair']);
+  assert.equal(result.rejected.get('c1'), numberReason);
+  assert.equal(result.rejected.get('c2'), '置き換え後の文が空です');
+  assert.equal(result.body, original);
+});
+
 test('R3', '#741 の悪い置換を本文に入れず、承認を止めて注と理由を記録する', async () => {
   const tasks = [];
   const result = await F.checkFacts(sentence, { ...options, writer_materials: [], searchEvidence: () => [ref(source2070.body)],
