@@ -33,13 +33,13 @@ const base = {
 };
 function serialize(meta, text) { return matter.stringify(text, meta).replace(/^title:.*$/m, () => `title: ${JSON.stringify(meta.title)}`); }
 function article(meta = {}, text = body) { return serialize({ ...base, ...meta }, text); }
-function setup(meta = {}, { refresh = false, mainMeta = {}, putError = '', putResult = { commit: { sha: 'approved-commit' } }, mergeImpl = null, fallbackMainStatus = '' } = {}) {
+function setup(meta = {}, { refresh = false, mainMeta = {}, putError = '', putResult = { commit: { sha: 'approved-commit' } }, waitImpl = null, mergeImpl = null, fallbackMainStatus = '' } = {}) {
   const data = { ...base, ...meta };
   if (meta.fact_check_prev_recommendation === undefined && Object.hasOwn(meta, 'fact_check_prev_recommendation')) delete data.fact_check_prev_recommendation;
   if (refresh) Object.assign(data, { refresh_of: 'published', refresh_base_hash: refreshBaseHash(originalBody + '\n') });
   const branch = serialize(data, body);
   const main = article({ recommendation: 'publish', review_status: 'published', fact_check_status: 'ok', fact_check_blocking: false, ...mainMeta }, originalBody);
-  const state = { puts: [], notifications: [], merges: [], closes: [], deletes: [], waits: 0, frontmatterUpdates: [], events: [] };
+  const state = { puts: [], notifications: [], merges: [], closes: [], deletes: [], waits: 0, waitOptions: [], frontmatterUpdates: [], events: [] };
   const deps = {
     getFile: async (_file, ref) => {
       if (ref === undefined && fallbackMainStatus) return { content: article({ review_status: fallbackMainStatus }), sha: 'main-sha' };
@@ -49,7 +49,7 @@ function setup(meta = {}, { refresh = false, mainMeta = {}, putError = '', putRe
     putFile: async (...args) => { state.events.push('put'); state.puts.push(args); if (putError) throw new Error(putError); return putResult; },
     updateFrontmatter: (raw, updates) => { state.frontmatterUpdates.push(updates); state.events.push('frontmatter'); return api.updateFrontmatter(raw, updates); }, nowJST: () => now,
     findPR: async ref => ({ number: 744, head: { ref } }),
-    waitForMergeable: async () => { state.waits++; return { mergeable: true }; },
+    waitForMergeable: async (...args) => { state.waits++; state.waitOptions.push(args[1]); return waitImpl ? waitImpl(...args) : { mergeable: true }; },
     mergePR: async (...args) => { state.merges.push(args); return mergeImpl ? mergeImpl(...args) : { merged: true }; },
     closePR: async n => state.closes.push(n), deleteBranch: async ref => state.deletes.push(ref),
     findApprovedArticlesForDate: async () => [],
@@ -231,12 +231,13 @@ test('R4: 上書きで承認した実際の結果を publish-due が公開する
   try { publish.main(); assert.equal(matter(raw).data.review_status, 'published'); assert.equal(matter(raw).data.fact_check_status, 'revise'); }
   finally { Object.assign(fs, saved); if (output !== undefined) process.env.GITHUB_OUTPUT = output; }
 });
-async function withMergeFetch(statuses, run, { headSha = 'different-head', getError = false } = {}) {
+async function withMergeFetch(statuses, run, { headSha = 'different-head', getError = false, prs = null } = {}) {
   const savedFetch = global.fetch;
   const keys = ['GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'GH_APP_INSTALLATION_ID', 'GITHUB_TOKEN'];
   const savedEnv = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   const requests = [];
   let attempt = 0;
+  let reads = 0;
   for (const key of keys) delete process.env[key];
   process.env.GITHUB_TOKEN = 'merge-head-sha-test-token';
   global.fetch = async (url, options = {}) => {
@@ -244,11 +245,12 @@ async function withMergeFetch(statuses, run, { headSha = 'different-head', getEr
     assert.ok(url.endsWith(method === 'PUT' ? '/pulls/744/merge' : '/pulls/744'));
     assert.ok(['PUT', 'GET'].includes(method));
     requests.push({ method, body: options.body ? JSON.parse(options.body) : null });
-    if (method === 'GET' && getError) throw new Error('fake PR read failure');
-    const status = method === 'PUT' ? statuses[attempt++] : 200;
+    if (method === 'GET' && getError === true) throw new Error('fake PR read failure');
+    const status = method === 'PUT' ? statuses[attempt++] : typeof getError === 'number' ? getError : 200;
     assert.ok(status, '指定していない通信を行わない');
+    const pr = method === 'GET' && prs ? prs[Math.min(reads++, prs.length - 1)] : { mergeable: true, mergeable_state: 'clean', head: { sha: headSha } };
     return { ok: status >= 200 && status < 300, status,
-      json: async () => method === 'PUT' ? { merged: true } : { mergeable: true, head: { sha: headSha } },
+      json: async () => method === 'PUT' ? { merged: true } : pr,
       text: async () => 'fake head changed' };
   };
   try { await run(requests); }
@@ -337,11 +339,15 @@ test('F2: 409で先頭が一致していれば同じSHAを指定したまま再�
     assert.equal(requests[0].body.sha, 'abc'); assert.deepEqual(requests[2].body, requests[0].body);
   }, { headSha: 'abc' });
 });
-test('F2: 409でPRを取り直せないときはマージ1回で失敗', async () => {
+for (const getError of [true, 503]) test(`G3: PR取得失敗は先頭不一致と分け、マージ1回で失敗 (${getError})`, async () => {
   await withMergeFetch([409], async requests => {
-    await assert.rejects(api.mergePR(744, '', { expectedHeadSha: 'abc', intervalMs: 0 }), /枝の先頭が承認の版と違う/);
+    await assert.rejects(api.mergePR(744, '', { expectedHeadSha: 'abc', intervalMs: 0 }), error => {
+      assert.match(error.message, /PR を取り直せなかった/);
+      assert.doesNotMatch(error.message, /枝の先頭が承認の版と違う/);
+      return true;
+    });
     assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET']);
-  }, { getError: true });
+  }, { getError });
 });
 test('F2: 先頭が一致する409にも再試行の上限を適用する', async () => {
   await withMergeFetch([409, 409], async requests => {
@@ -367,6 +373,82 @@ test('F5: 本文が同じ再生成でも古い上書き欄を引き継がない'
   assert.equal(inherited.content, matter(original).content);
   assert.equal(inherited.data.fact_check_status, 'revise'); assert.equal(inherited.data.fact_check_blocking, true);
   assert.equal(inherited.data.fact_check_summary, base.fact_check_summary);
+});
+const readyPR = sha => ({ mergeable: true, mergeable_state: 'clean', head: { sha } });
+for (const override of [false, true]) test(`G1: 古いマージ可を待ち、承認の版で1回だけマージ (${override})`, async () => {
+  await withMergeFetch([200], async requests => {
+    const h = setup(override ? {} : unblocked, { putResult: { commit: { sha: 'abc' } },
+      waitImpl: (number, options) => api.waitForMergeable(number, { ...options, maxAttempts: 2, intervalMs: 0 }),
+      mergeImpl: (number, title, options) => api.mergePR(number, title, { ...options, intervalMs: 0 }) });
+    const response = await h.run(override ? consent : {});
+    assert.equal(JSON.parse(response.body).merged, true);
+    assert.deepEqual(h.state.waitOptions, [{ maxAttempts: 12, intervalMs: 2000, expectedHeadSha: 'abc' }]);
+    assert.deepEqual(requests.map(r => r.method), ['GET', 'GET', 'PUT']);
+    assert.equal(requests[2].body.sha, 'abc'); assert.equal(h.state.merges.length, 1);
+    assert.deepEqual(h.state.notifications.map(n => n.event), ['approved']);
+  }, { prs: [readyPR('old-head'), readyPR('abc')] });
+});
+test('G1: 先頭が追いつかない場合も承認の版を指定してマージし、失敗を通知', async () => {
+  await withMergeFetch([409], async requests => {
+    let timedOutPR;
+    const h = setup({}, { putResult: { commit: { sha: 'abc' } },
+      waitImpl: async (number, options) => timedOutPR = await api.waitForMergeable(number, { ...options, maxAttempts: 2, intervalMs: 0 }),
+      mergeImpl: (number, title, options) => api.mergePR(number, title, { ...options, intervalMs: 0 }) });
+    const response = await h.run(consent);
+    assert.equal(JSON.parse(response.body).merged, false);
+    assert.deepEqual(timedOutPR, readyPR('old-head'));
+    assert.deepEqual(requests.map(r => r.method), ['GET', 'GET', 'PUT', 'GET']);
+    assert.equal(requests[2].body.sha, 'abc'); assert.equal(h.state.merges.length, 1);
+    assert.equal(h.state.deletes.length, 0);
+    assert.deepEqual(h.state.notifications.map(n => n.event), ['merge_failed']);
+  }, { prs: [readyPR('old-head')] });
+});
+test('G1: 版指定がない通常承認は待機にも版を指定しない', async () => {
+  const h = setup(unblocked, { putResult: {} }); await h.run();
+  assert.deepEqual(h.state.waitOptions, [{ maxAttempts: 12, intervalMs: 2000 }]);
+});
+test('G1: 版指定のない待機は従来どおり最初のマージ可で戻る', async () => {
+  await withMergeFetch([], async requests => {
+    assert.deepEqual(await api.waitForMergeable(744, { maxAttempts: 2, intervalMs: 0 }), readyPR('old-head'));
+    assert.deepEqual(requests.map(r => r.method), ['GET']);
+  }, { prs: [readyPR('old-head'), readyPR('abc')] });
+});
+test('G1: 版指定のない待機でも未確定の状態は再取得する', async () => {
+  await withMergeFetch([], async requests => {
+    assert.deepEqual(await api.waitForMergeable(744, { maxAttempts: 2, intervalMs: 0 }), readyPR('old-head'));
+    assert.deepEqual(requests.map(r => r.method), ['GET', 'GET']);
+  }, { prs: [{ mergeable: null, mergeable_state: 'unknown' }, readyPR('old-head')] });
+});
+for (const old of [{ mergeable: true, mergeable_state: 'clean' }, { mergeable: false, mergeable_state: 'dirty', head: { sha: 'old-head' } }]) {
+  test(`G1: 先頭の欠落・古い状態を判断に使わず承認の版を待つ (${old.mergeable_state}, ${old.head?.sha})`, async () => {
+    await withMergeFetch([], async requests => {
+      assert.deepEqual(await api.waitForMergeable(744, { expectedHeadSha: 'abc', maxAttempts: 2, intervalMs: 0 }), readyPR('abc'));
+      assert.deepEqual(requests.map(r => r.method), ['GET', 'GET']);
+    }, { prs: [old, readyPR('abc')] });
+  });
+}
+for (const expectedHeadSha of [undefined, 'abc']) test(`G1: 対象の版のコンフリクトは従来どおり停止 (${expectedHeadSha})`, async () => {
+  await withMergeFetch([], async requests => {
+    await assert.rejects(api.waitForMergeable(744, { expectedHeadSha, intervalMs: 0 }), /コンフリクト状態/);
+    assert.deepEqual(requests.map(r => r.method), ['GET']);
+  }, { prs: [{ mergeable: false, mergeable_state: 'dirty', head: { sha: 'abc' } }] });
+});
+const staleAudit = { fact_check_override: true, fact_check_override_at: now, fact_check_override_status: 'revise',
+  fact_check_override_summary: '過去の指摘', fact_check_override_sha: 'old', fact_check_override_future: '古い欄' };
+test('G2: 元の記事のタイトルだけを変えた再生成から上書き欄を消す', () => {
+  const original = article({ fact_check_version: 1, ...staleAudit });
+  const regenerated = F.updateMeta(original, { title: '変更後のタイトル' });
+  const inherited = matter(F.inheritFactMetadata(original, regenerated));
+  assert.ok(!Object.keys(inherited.data).some(key => key.startsWith('fact_check_override')));
+  assert.equal(inherited.data.title, '変更後のタイトル'); assert.equal(inherited.content, matter(original).content);
+  for (const key of ['fact_check_status', 'fact_check_summary', 'fact_check_blocking', 'recommendation']) assert.deepEqual(inherited.data[key], matter(original).data[key], key);
+});
+for (const sourceAudit of [false, true]) test(`G2: 継承する欄が無くても再生成側の上書き欄だけを消す (${sourceAudit})`, () => {
+  const minimal = '---\ntitle: "元のタイトル"\n---\n本文です。';
+  const original = sourceAudit ? F.updateMeta(minimal, staleAudit) : minimal;
+  const regenerated = F.updateMeta(original, { ...staleAudit, title: '変更後のタイトル' });
+  const inherited = F.inheritFactMetadata(original, regenerated);
+  assert.equal(inherited, F.updateMeta(minimal, { title: '変更後のタイトル' }));
 });
 (async () => {
   let passed = 0;

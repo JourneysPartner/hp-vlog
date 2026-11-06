@@ -302,16 +302,17 @@ async function getPR(prNumber) {
 //   dirty       — コンフリクトあり（マージ不可）
 //   draft       — draft PR
 //
-async function waitForMergeable(prNumber, { maxAttempts = 12, intervalMs = 2000 } = {}) {
+async function waitForMergeable(prNumber, { maxAttempts = 12, intervalMs = 2000, expectedHeadSha } = {}) {
   const MERGEABLE_STATES = new Set(['clean', 'has_hooks', 'unstable']);
   let lastPr = null;
 
   for (let i = 0; i < maxAttempts; i++) {
     const pr = await getPR(prNumber);
     lastPr = pr;
+    const headMatches = !expectedHeadSha || pr.head?.sha === expectedHeadSha;
 
     // mergeable=true かつ state がマージ許可セットなら即 OK
-    if (pr.mergeable === true && MERGEABLE_STATES.has(pr.mergeable_state)) {
+    if (headMatches && pr.mergeable === true && MERGEABLE_STATES.has(pr.mergeable_state)) {
       return pr;
     }
 
@@ -319,7 +320,7 @@ async function waitForMergeable(prNumber, { maxAttempts = 12, intervalMs = 2000 
     // mergeable=null = GitHub がまだ計算中 → 待機
     // mergeable=false でも mergeable_state が unknown のうちは再計算待ちのことがある
     //   （push 直後など）→ ここでは throw しない
-    if (pr.mergeable === false && pr.mergeable_state === 'dirty') {
+    if (headMatches && pr.mergeable === false && pr.mergeable_state === 'dirty') {
       throw new Error(`PR #${prNumber} はコンフリクト状態です (mergeable_state=dirty)`);
     }
 
@@ -355,7 +356,8 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
     let headChecked = false;
     if (expectedHeadSha && res.status === 409) {
       let current;
-      try { current = await getPR(prNumber); } catch { /* 先頭を確かめられなければマージしない。 */ }
+      try { current = await getPR(prNumber); }
+      catch { throw new Error('GitHub merge 409: PR を取り直せなかった'); }
       if (current?.head?.sha !== expectedHeadSha) {
         throw new Error(`GitHub merge 409: 枝の先頭が承認の版と違う: ${text}`);
       }

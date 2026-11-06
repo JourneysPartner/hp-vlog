@@ -1861,7 +1861,8 @@ function inheritFactMetadata(original, regenerated) {
   } else if (before.recommendation === 'revise' || before.recommendation === 'reject') {
     updates.recommendation = before.recommendation;
   }
-  return Object.keys(updates).length ? updateMeta(regenerated, updates) : regenerated;
+  const removeKeys = Object.keys(after).filter(key => key.startsWith('fact_check_override'));
+  return Object.keys(updates).length || removeKeys.length ? updateMeta(regenerated, updates, undefined, removeKeys) : regenerated;
 }
 
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,

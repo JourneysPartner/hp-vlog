@@ -592,7 +592,7 @@ async function handler(event, injected = {}) {
         // GitHub の mergeable 計算が落ち着くまで待つ
         // 直前の putFile で sha が更新されているため、push 直後と同じく
         // mergeable=null になりやすい。長めに待つ。
-        const stable = await waitForMergeable(pr.number, { maxAttempts: 12, intervalMs: 2000 });
+        const stable = await waitForMergeable(pr.number, { maxAttempts: 12, intervalMs: 2000, ...(expectedHeadSha ? { expectedHeadSha } : {}) });
         console.log(`[review-approve] PR #${pr.number} 状態: mergeable=${stable && stable.mergeable} state=${stable && stable.mergeable_state}`);
 
         // 先頭を承認のコミットに固定する。先頭不一致の 409 は再試行しない。
