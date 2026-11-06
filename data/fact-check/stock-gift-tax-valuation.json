@@ -1,0 +1,2840 @@
+{
+  "version": 1,
+  "logic_version": "03u",
+  "status": "revise",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": true,
+  "checked_at": "2026-10-21T00:07:43.793Z",
+  "body_sha256": "903be14c08943c1a4040edf6186aaaf54c828cb820874ee9488dbc98ffe41965",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "結論からいうと、非上場株式の贈与は「贈与日の株価を評価する」「贈与税を計算する」「翌年の2月1日から3月15日までに申告する」という3段階で進みます。",
+      "heading": "",
+      "type": "期限",
+      "subject": "非上場株式の贈与",
+      "claim": "贈与税は翌年2月1日から3月15日までに申告する",
+      "s": 8,
+      "status": "裏付けあり",
+      "quote": "贈与をした年贈与財産令和７年 1,610万円令和８年 1,890万円贈与税額及び相続税額の計算 （参考）財産の価格変動と贈与・相続財産のイメージ手続き申告等の方法相続時精算課税を選択しようとする受贈者（子または孫など）は、その選択に係る最初の贈与を受けた年の翌年2月1日から3月15日までの間（贈与税の申告書の提出期間）に納税地の所轄税務署長に対して「相続時精算課税選択届出書」を受贈者の戸籍の謄本などの一定の書類とともに提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4632.htm",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/17/02.htm",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/17/01.htm",
+        "tsutatsu:sochi_sozoku:70の7-14の2"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "ただし株価の評価方法は、会社の規模と、誰が株を受け取るかによって変わります。",
+      "heading": "",
+      "type": "判定",
+      "subject": "取引相場のない株式の評価",
+      "claim": "評価方法は会社の規模と株式の取得者によって変わる",
+      "s": 9,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。 原則的評価方式 原則的評価方式は、評価する株式を発行した会社を総資産価額、従業員数および取引金額により大会社、中会社または小会社のいずれかに区分して、原則として次のような方法で評価をすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "上場株式や気配相場のある株式の評価は別の取扱いになります。",
+      "heading": "この記事でわかること",
+      "type": "要件",
+      "subject": "取引相場のない株式の評価",
+      "claim": "上場株式や気配相場のある株式の評価は別の取扱いになる",
+      "s": 18,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "この記事では、国税庁タックスアンサーNo.4638が対象とする「取引相場のない株式」に限って説明します。",
+      "heading": "この記事でわかること",
+      "type": "番号",
+      "subject": "取引相場のない株式の評価",
+      "claim": "取引相場のない株式はタックスアンサーNo.4638が対象とする",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "最初に押さえるべき結論は、<strong>同じ会社の同じ株式でも、贈与を受ける人が会社の経営を支配している同族株主等か、そうでない株主かで評価方法が変わる</strong>という点です。",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "判定",
+      "subject": "取引相場のない株式の評価",
+      "claim": "取得者が同族株主等か否かで同じ株式でも評価方法が変わる",
+      "s": 21,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "| 同族株主等（経営支配力を持つ株主） | 原則的評価方式（会社の規模に応じて類似業種比準方式・純資産価額方式・その併用） |",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "判定",
+      "subject": "原則的評価方式",
+      "claim": "同族株主等の取得には会社規模に応じた原則的評価方式を用いる",
+      "s": 24,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。 原則的評価方式 原則的評価方式は、評価する株式を発行した会社を総資産価額、従業員数および取引金額により大会社、中会社または小会社のいずれかに区分して、原則として次のような方法で評価をすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/13/02.htm",
+        "tsutatsu:hyoka:180",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "| 同族株主以外の株主 | 配当還元方式（会社の規模にかかわらず） |",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "判定",
+      "subject": "配当還元方式",
+      "claim": "同族株主以外の株主の取得は会社規模にかかわらず配当還元方式",
+      "s": 25,
+      "status": "裏付けあり",
+      "quote": "特例的な評価方式 取引相場のない株式は、原則として、以上のような方式により評価しますが、同族株主以外の株主が取得した株式については、その株式の発行会社の規模にかかわらず原則的評価方式に代えて特例的な評価方式である配当還元方式で評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+        "tsutatsu:hyoka:188-2",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "配当還元方式は、その株式で受け取る1年間の配当金額を一定の利率（10パーセント）で還元して株価を求める方法です。",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "割合",
+      "subject": "配当還元方式",
+      "claim": "1年間の配当金額を10パーセントで還元して株価を求める",
+      "s": 26,
+      "status": "裏付けあり",
+      "quote": "配当還元方式とは、その株式を所有することによって受け取る一年間の配当金額を、一定の利率（10パーセント）で還元して元本である株式の価額を評価する方法です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "配当が少ない会社では評価額が低く出やすいため、使えるなら使いたい方法ですが、使えるのは同族株主以外の株主が取得する場合に限られます。",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "要件",
+      "subject": "配当還元方式",
+      "claim": "配当還元方式は同族株主以外の株主が取得する場合に限られる",
+      "s": 27,
+      "status": "裏付けあり",
+      "quote": "特例的な評価方式 取引相場のない株式は、原則として、以上のような方式により評価しますが、同族株主以外の株主が取得した株式については、その株式の発行会社の規模にかかわらず原則的評価方式に代えて特例的な評価方式である配当還元方式で評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+        "tsutatsu:hyoka:188-2",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "なお、会社が「特定の評価会社」に該当する場合は、原則的評価方式ではなく純資産価額方式や清算分配見込額による評価に変わります。",
+      "heading": "まず結論：株価は「誰が受け取るか」で決まる",
+      "type": "判定",
+      "subject": "特定の評価会社",
+      "claim": "特定の評価会社は純資産価額方式や清算分配見込額で評価する",
+      "s": 28,
+      "status": "裏付けあり",
+      "quote": "特定の評価会社の株式の評価 次のような特定の評価会社の株式は、原則として、（1）から（5）については純資産価額方式により、（6）については清算分配見込額により評価することになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm",
+        "tsutatsu:hyoka:189",
+        "tsutatsu:hyoka:186-3",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "国税庁タックスアンサーNo.4638に沿って整理すると、取引相場のない株式の評価は次の流れになります。",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "番号",
+      "subject": "取引相場のない株式の評価",
+      "claim": "評価の流れはタックスアンサーNo.4638に沿って整理される",
+      "s": 31,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "会社の規模区分は、総資産価額（帳簿価額で計算した金額）、従業員数、直前期末以前1年間の取引金額によって判定します。",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "要件",
+      "subject": "会社の規模区分",
+      "claim": "総資産価額・従業員数・直前期末以前1年間の取引金額で判定する",
+      "s": 37,
+      "status": "裏付けあり",
+      "quote": "原則的評価方式 原則的評価方式は、評価する株式を発行した会社を総資産価額、従業員数および取引金額により大会社、中会社または小会社のいずれかに区分して、原則として次のような方法で評価をすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/06/01.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "従業員70人以上かどうか、業種ごとの資産額・取引金額のボーダーに当てはまるかで大会社・中会社・小会社が決まり、評価方法は次のように分かれます。",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "判定",
+      "subject": "会社の規模区分",
+      "claim": "従業員70人以上か、業種別の資産額・取引金額基準で区分が決まる",
+      "s": 38,
+      "status": "裏付けあり",
+      "quote": "従業員数が70人以上の会社又は右のいずれかに該当する会社\n卸売業\n20億円以上(従業員数が35人以下の会社を除く。)\n30億円以上",
+      "correct": "",
+      "evidence_id": "tsutatsu:hyoka:178",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "| 大会社 | 類似業種比準方式（類似業種の株価を基に、配当金額・利益金額・純資産価額の3つで比準） |",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "判定",
+      "subject": "会社の規模区分",
+      "claim": "大会社は類似業種比準方式で評価する",
+      "s": 41,
+      "status": "裏付けあり",
+      "quote": "（1） 大会社 大会社は、原則として、類似業種比準方式により評価します。類似業種比準方式とは、類似業種の株価を基に、評価する会社の一株当たりの「配当金額」、「利益金額」および「純資産価額（簿価）」の3つで比準して評価する方法です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "tsutatsu:hyoka:180",
+        "tsutatsu:hyoka:183-2",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "| 中会社 | 大会社と小会社の方法を併用 |",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "判定",
+      "subject": "会社の規模区分",
+      "claim": "中会社は大会社と小会社の評価方法を併用する",
+      "s": 42,
+      "status": "裏付けあり",
+      "quote": "（3） 中会社 中会社は、大会社と小会社の評価方法を併用して評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "| 小会社 | 純資産価額方式（総資産・負債を相続税評価に洗い替えて計算） |",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "判定",
+      "subject": "会社の規模区分",
+      "claim": "小会社は純資産価額方式で評価する",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "（2） 小会社 小会社は、原則として、純資産価額方式によって評価します。純資産価額方式とは、会社の総資産や負債を原則として相続税の評価に洗い替えて、その評価した総資産の価額から負債や評価差額に対する法人税額等相当額を差し引いた残りの金額により評価する方法です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:186-3",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "判定に使う数値は、原則として贈与の直前に行われた事業年度末の帳簿価額などです。",
+      "heading": "非上場株式の株価評価の全体像",
+      "type": "要件",
+      "subject": "会社の規模区分",
+      "claim": "判定には原則として贈与直前の事業年度末の帳簿価額等を使う",
+      "s": 44,
+      "status": "裏付けあり",
+      "quote": "上の表の「総資産価額（帳簿価額によって計算した金額）及び従業員数」及び「直前期末以前1年間における取引金額」は、それぞれ次の(1)から(3)により、「卸売業」、「小売・サービス業」又は「卸売業、小売・サービス業以外」の判定は(4)による。\n（1） 「総資産価額（帳簿価額によって計算した金額)」は、課税時期の直前に終了した事業年度の末日（以下「直前期末」という。）における評価会社の各資産の帳簿価額の合計額とする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:hyoka:178",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:189",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "実務メモとして、従業員数の判定では、直前期末以前1年間に継続して勤務していた従業員（1週間当たりの労働時間が30時間未満の方を除く）に、それ以外の勤務者の労働時間を1人当たり年間平均労働時間数（1,800時間）で割った数を加算する扱いになっています。",
+      "heading": "【手順①】評価に使う決算書と資料を集める",
+      "type": "要件",
+      "subject": "従業員数の判定",
+      "claim": "週30時間未満の者を除く継続勤務者に他は1800時間換算で加算",
+      "s": 54,
+      "status": "裏付けあり",
+      "quote": "（2） 「従業員数」は、直前期末以前1年間においてその期間継続して評価会社に勤務していた従業員（就業規則等で定められた1週間当たりの労働時間が30時間未満である従業員を除く。以下この項において「継続勤務従業員」という。）の数に、直前期末以前1年間において評価会社に勤務していた従業員（継続勤務従業員を除く。）のその1年間における労働時間の合計時間数を従業員1人当たり年間平均労働時間数で除して求めた数を加算した数とする。\n この場合における従業員1人当たり年間平均労働時間数は、1,800時間とする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:hyoka:178",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/06/01.htm",
+        "tsutatsu:hyoka:168",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "株価は贈与の日、つまり贈与により財産を取得した日を基準に評価します。",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "判定",
+      "subject": "贈与財産の評価時期",
+      "claim": "株価は贈与により財産を取得した日を基準に評価する",
+      "s": 57,
+      "status": "裏付けあり",
+      "quote": "直前々期末の比準要素のいずれか2つ以上がゼロである会社（比準要素数1の会社）の株式 （2） 株式等の保有割合（総資産価額中に占める株式、出資および新株予約権付社債の価額の合計額の割合）が一定の割合以上の会社（株式等保有特定会社）の株式 （3） 土地等の保有割合（総資産価額中に占める土地などの価額の合計額の割合）が一定の割合以上の会社（土地保有特定会社）の株式 （4） 課税時期（相続または遺贈の場合は被相続人の死亡の日、贈与の場合は贈与により財産を取得した日）において開業後の経過年数が3年未満の会社や、類似業種比準方式で評価する場合の3つの比準要素である「配当金額」、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "tsutatsu:sochi_sozoku:69の4-1",
+        "tsutatsu:sozoku:38-3",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "- 同族株主等に該当するかどうかは、贈与後の持株割合ではなく贈与を受ける人ごとの立場で判断する",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "判定",
+      "subject": "同族株主等の判定",
+      "claim": "同族株主等の該当は贈与を受ける人ごとの立場で判断する",
+      "s": 62,
+      "status": "食い違い",
+      "quote": "この場合における「同族株主」とは、課税時期における評価会社の株主のうち、株主の1人及びその同族関係者（法人税法施行令第4条((同族関係者の範囲))に規定する特殊の関係のある個人又は法人をいう。以下同じ。）の有する議決権の合計数がその会社の議決権総数の30％以上（その評価会社の株主のうち、株主の1人及びその同族関係者の有する議決権の合計数が最も多いグループの有する議決権の合計数が、その会社の議決権総数の50％超である会社にあっては、50％超）である場合におけるその株主及びその同族関係者をいう。\r\n（2） 中心的な同族株主のいる会社の株主のうち、中心的な同族株主以外の同族株主で、その者の株式取得後の議決権の数がその会社の議決権総数の5％未満であるもの（課税時期において評価会社の役員（社長、理事長並びに法人税法施行令第71条第1項第1号、第2号及び第4号に掲げる者をいう。以下この項において同じ。）である者及び課税時期の翌日から法定申告期限までの間に役員となる者を除く。）の取得した株式",
+      "correct": "同族株主等かどうかは課税時期における株主グループの議決権割合で判定します。中心的な同族株主以外の同族株主などについては、その者の株式取得後の議決権の数が議決権総数の5％未満かどうかで判定します。そのため、取得後の議決権数も判定に用いられます。",
+      "evidence_id": "tsutatsu:hyoka:188",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:188-6",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:188-2",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "- 暦年課税で贈与した財産は、一定期間内の贈与分が相続財産に加算される対象になる（令和8年12月31日以前に相続開始となる場合は、相続開始前3年以内の暦年贈与が加算対象）",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "適用年",
+      "subject": "生前贈与加算",
+      "claim": "令和8年末以前の相続開始は相続開始前3年以内の暦年贈与を加算",
+      "s": 63,
+      "status": "裏付けあり",
+      "quote": "被相続人の相続開始日加算対象期間 ～令和8年12月31日相続開始前3年以内（死亡の日から遡って3年前の日から死亡の日までの間） 令和9年1月1日～令和12年12月31日令和6年1月1日から死亡の日までの間令和13年1月1日～ 相続開始前7年以内（死亡の日から遡って7年前の日から死亡の日までの間） なお、その加算された贈与財産の価額に対応する贈与税の額は、加算された人の相続税の計算上控除されることになります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "tsutatsu:sochi_sozoku:69の4-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "1年間に贈与を受けた財産の価額の合計から、基礎控除額110万円を差し引いた残額に課税されます。",
+      "heading": "暦年課税の場合",
+      "type": "金額",
+      "subject": "暦年課税",
+      "claim": "1年間の贈与財産の合計から基礎控除額110万円を差し引いて課税",
+      "s": 70,
+      "status": "裏付けあり",
+      "quote": "贈与税の計算は、まず、その年の1月1日から12月31日までの1年間に贈与によりもらった財産の価額を合計します。 続いて、その合計額から基礎控除額110万円を差し引きます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+        "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "税率は贈与税の税率表（国税庁タックスアンサーNo.4408などで確認できます）を当てはめて計算します。",
+      "heading": "暦年課税の場合",
+      "type": "番号",
+      "subject": "贈与税の税率",
+      "claim": "贈与税の税率表はタックスアンサーNo.4408などで確認できる",
+      "s": 72,
+      "status": "裏付けあり",
+      "quote": "基礎控除後の課税価格 200万円以下 300万円以下 400万円以下 600万円以下 1,000万円以下 1,500万円以下 3,000万円以下 3,000万円超税率 10％ 15％ 20％ 30％ 40％ 45％ 50％ 55％ 控除額 ‐ 10万円 25万円 65万円 125万円 175万円 250万円 400万円 ＜特例贈与財産用＞（特例税率） この速算表は、贈与により財産を取得した者（贈与を受けた年の1月1日において18歳（注）以上の者に限ります。）が、直系尊属（父母や祖父母など）から贈与により取得した財産に係る贈与税の計算に使用します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+        "law:sozokuzei:21_13",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "贈与者が贈与をした年の1月1日において60歳以上の父母または祖父母などで、受贈者が贈与を受けた年の1月1日において18歳以上の直系卑属（子や孫など）であれば、相続時精算課税を選択できます。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "要件",
+      "subject": "相続時精算課税",
+      "claim": "贈与者が1月1日に60歳以上の父母等で受贈者が18歳以上の直系卑属",
+      "s": 74,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物適用対象者贈与者は贈与をした年の1月1日において60歳以上の父母または祖父母など、受贈者は贈与を受けた年の1月1日において18歳以上の者のうち、贈与者の直系卑属（子や孫など）である推定相続人または孫とされています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:hyoka:168",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "財産の種類・金額・贈与回数に制限はありません。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "要件",
+      "subject": "相続時精算課税",
+      "claim": "財産の種類・金額・贈与回数に制限はない",
+      "s": 75,
+      "status": "裏付けあり",
+      "quote": "適用対象財産等贈与財産の種類、金額、贈与回数に制限はありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:33_2",
+        "law:sozokuzei:21_13",
+        "tsutatsu:hyoka:168",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "計算は、1年間に贈与を受けた財産の価額の合計から基礎控除額110万円を控除し、さらに特別控除額（限度額2,500万円）を控除した後の金額に一律20パーセントの税率を乗じます。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "金額",
+      "subject": "相続時精算課税",
+      "claim": "基礎控除110万円と特別控除限度額2500万円を控除する",
+      "s": 76,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "basis": "13,17",
+        "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。\n…\n（注2） 令和5年12月3"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "計算は、1年間に贈与を受けた財産の価額の合計から基礎控除額110万円を控除し、さらに特別控除額（限度額2,500万円）を控除した後の金額に一律20パーセントの税率を乗じます。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "割合",
+      "subject": "相続時精算課税",
+      "claim": "控除後の金額に一律20パーセントの税率を乗じる",
+      "s": 76,
+      "status": "裏付けあり",
+      "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+        "law:sozokuzei:21_12",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "ただし、この制度は贈与者ごとに選択でき、一度選択するとその贈与者からの贈与は以後すべて相続時精算課税が適用され、暦年課税には戻せません。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "手続",
+      "subject": "相続時精算課税",
+      "claim": "贈与者ごとに選択でき、一度選択すると暦年課税に戻せない",
+      "s": 78,
+      "status": "裏付けあり",
+      "quote": "なお、この制度は贈与者（父母または祖父母など）ごとに選択できますが、一度選択すると、その選択に係る贈与者（「特定贈与者」といいます。）から贈与を受ける財産（「相続時精算課税適用財産」といいます。）については、その選択をした年分以降すべてこの制度が適用され、「暦年課税（注）」へ変更することはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+        "tsutatsu:hyoka:168",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "贈与時の価額は、贈与者が亡くなったときの相続税の計算に加算されます。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "判定",
+      "subject": "相続時精算課税",
+      "claim": "贈与時の価額が贈与者の相続時に相続税の計算へ加算される",
+      "s": 79,
+      "status": "裏付けあり",
+      "quote": "また、特定贈与者である父母または祖父母などが亡くなった時の相続税の計算上、相続財産の価額に相続時精算課税適用財産の贈与時の価額（令和6年1月1日以後の贈与により取得した相続時精算課税適用財産については、贈与を受けた年分ごとに、その相続時精算課税適用財産の贈与時の価額の合計額から相続時精算課税に係る基礎控除額を控除した残額）を加算して相続税額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "<strong>見落としやすいのが、特別控除は贈与税の期限内申告書を提出した場合に限り適用されるという点です。</strong>評価額が基礎控除以下だと思って申告書を出さず、後から株価の評価誤りが判明した場合、期限後申告になると特別控除が使えず、思わぬ税額が生じることがあります。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "要件",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "特別控除は期限内申告書を提出した場合に限り適用される",
+      "s": 80,
+      "status": "裏付けあり",
+      "quote": "（注3） 特別控除額は贈与税の期限内申告書を提出した場合に限り控除することができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "tsutatsu:sochi_sozoku:70の3-15",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "<strong>見落としやすいのが、特別控除は贈与税の期限内申告書を提出した場合に限り適用されるという点です。</strong>評価額が基礎控除以下だと思って申告書を出さず、後から株価の評価誤りが判明した場合、期限後申告になると特別控除が使えず、思わぬ税額が生じることがあります。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "判定",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "期限後申告になると特別控除が使えない",
+      "s": 80,
+      "status": "裏付けあり",
+      "quote": "２　前項の規定は、期限内申告書に同項の規定により控除を受ける金額、既に同項の規定の適用を受けて控除した金額がある場合の控除した金額その他財務省令で定める事項の記載がある場合に限り、適用する。",
+      "correct": "",
+      "evidence_id": "law:sozokuzei:21_12",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "tsutatsu:sochi_sozoku:70の3の3-14",
+        "tsutatsu:sochi_sozoku:70の3-15",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "国税庁の質疑応答事例（令和5年度税制改正関係 問2-1）でも、この取扱いが示されています。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "番号",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "取扱いは質疑応答事例(令和5年度税制改正関係 問2-1)で示される",
+      "s": 81,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "贈与税の申告と納税は、原則として財産をもらった人が、もらった年の翌年の2月1日から3月15日までに行います。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "期限",
+      "subject": "贈与税の申告と納税",
+      "claim": "受贈者が贈与を受けた年の翌年2月1日から3月15日までに行う",
+      "s": 83,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "申告書はe-Taxのほか、郵便や信書便による送付、税務署の時間外収受箱への投函でも提出できます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "手続",
+      "subject": "贈与税の申告",
+      "claim": "e-Tax、郵便・信書便、時間外収受箱への投函で提出できる",
+      "s": 85,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告書は、e-Taxを利用して提出（送信）する方法のほか、郵便や信書便による送付または税務署の時間外収受箱へ投函する方法により提出することができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:49",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "提出先は、原則として贈与を受けた人の住所を所轄する税務署です。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "手続",
+      "subject": "贈与税の申告",
+      "claim": "提出先は原則として受贈者の住所を所轄する税務署",
+      "s": 86,
+      "status": "裏付けあり",
+      "quote": "申告先等贈与税の申告書の提出先は、原則、贈与を受けた人の住所を所轄する税務署です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-2",
+        "law:sozokuzei:49",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "相続時精算課税を選択する場合は、その最初の贈与を受けた年の翌年2月1日から3月15日までの間に「相続時精算課税選択届出書」を一定の書類とともに提出する必要があります。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "期限",
+      "subject": "相続時精算課税選択届出書",
+      "claim": "最初の贈与の翌年2月1日から3月15日までに提出する",
+      "s": 87,
+      "status": "裏付けあり",
+      "quote": "贈与をした年贈与財産令和７年 1,610万円令和８年 1,890万円贈与税額及び相続税額の計算 （参考）財産の価格変動と贈与・相続財産のイメージ手続き申告等の方法相続時精算課税を選択しようとする受贈者（子または孫など）は、その選択に係る最初の贈与を受けた年の翌年2月1日から3月15日までの間（贈与税の申告書の提出期間）に納税地の所轄税務署長に対して「相続時精算課税選択届出書」を受贈者の戸籍の謄本などの一定の書類とともに提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-3",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "相続時精算課税を選択する場合は、その最初の贈与を受けた年の翌年2月1日から3月15日までの間に「相続時精算課税選択届出書」を一定の書類とともに提出する必要があります。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "手続",
+      "subject": "相続時精算課税選択届出書",
+      "claim": "選択する場合は一定の書類とともに届出書を提出する必要がある",
+      "s": 87,
+      "status": "裏付けあり",
+      "quote": "贈与をした年贈与財産令和７年 1,610万円令和８年 1,890万円贈与税額及び相続税額の計算 （参考）財産の価格変動と贈与・相続財産のイメージ手続き申告等の方法相続時精算課税を選択しようとする受贈者（子または孫など）は、その選択に係る最初の贈与を受けた年の翌年2月1日から3月15日までの間（贈与税の申告書の提出期間）に納税地の所轄税務署長に対して「相続時精算課税選択届出書」を受贈者の戸籍の謄本などの一定の書類とともに提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-3",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "申告による納付税額が10万円を超えていること、金銭で一度に納めることが難しい理由があること、担保を提供することの3つを満たす場合に、5年以内の年賦で納付できます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "要件",
+      "subject": "贈与税の延納",
+      "claim": "納付税額10万円超・金銭納付困難・担保提供の3つが要件",
+      "s": 89,
+      "status": "裏付けあり",
+      "quote": "（1）延納を受けるための要件延納を受けるには、次の3つのすべてに当てはまることが必要です。 イ申告による納付税額が10万円を超えていることロ金銭で一度に納めることが難しい理由があることハ担保を提供することただし、延納税額が100万円以下で延納期間が3年以下の場合、担保は必要ありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "tsutatsu:sozoku:39-2",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "申告による納付税額が10万円を超えていること、金銭で一度に納めることが難しい理由があること、担保を提供することの3つを満たす場合に、5年以内の年賦で納付できます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "期限",
+      "subject": "贈与税の延納",
+      "claim": "5年以内の年賦で納付できる",
+      "s": 89,
+      "status": "裏付けあり",
+      "quote": "この延納は一定の条件の下に5年以内の年賦により納税する方法です。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "tsutatsu:sozoku:39-2",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "ただし延納税額が100万円以下で延納期間が3年以下の場合は担保が不要です。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "要件",
+      "subject": "贈与税の延納",
+      "claim": "延納税額100万円以下かつ延納期間3年以下なら担保不要",
+      "s": 90,
+      "status": "裏付けあり",
+      "quote": "イ申告による納付税額が10万円を超えていることロ金銭で一度に納めることが難しい理由があることハ担保を提供することただし、延納税額が100万円以下で延納期間が3年以下の場合、担保は必要ありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "tsutatsu:sozoku:38-10",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "延納できることになった税金には年率6.6パーセントの利子税がかかります。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "割合",
+      "subject": "贈与税の延納",
+      "claim": "延納税額には年率6.6パーセントの利子税がかかる",
+      "s": 91,
+      "status": "食い違い",
+      "quote": "なお、延納できることになった税金には年率6.6パーセントの利子税がかかります。 また、各年の延納特例基準割合（※）が7.3パーセントに満たない場合の利子税の割合は、次の算式により計算される割合（特例割合）が適用されます。",
+      "correct": "利子税は原則として年率6.6パーセントです。ただし、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozokuzei:33_2",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "期限までに申告しなかった場合や、実際より少ない額で申告した場合は加算税が、納税が遅れた場合は延滞税がかかります。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "判定",
+      "subject": "加算税・延滞税",
+      "claim": "無申告・過少申告は加算税、納税遅延は延滞税がかかる",
+      "s": 92,
+      "status": "裏付けあり",
+      "quote": "（注）申告期限までに申告しなかった場合や実際にもらった額より少ない額で申告した場合には、本来の税金のほかに加算税がかかります。 また、納税が期限に遅れた場合は、その遅れた税額に対して延滞税がかかります（詳しくは、延滞税についてをご覧ください）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+        "law:sozokuzei:33_2",
+        "tsutatsu:sozoku:51-4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "配当還元方式が使えるのは同族株主以外の株主が取得する場合です。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "配当還元方式",
+      "claim": "配当還元方式は同族株主以外の株主が取得する場合に使える",
+      "s": 98,
+      "status": "裏付けあり",
+      "quote": "特例的な評価方式 取引相場のない株式は、原則として、以上のような方式により評価しますが、同族株主以外の株主が取得した株式については、その株式の発行会社の規模にかかわらず原則的評価方式に代えて特例的な評価方式である配当還元方式で評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+        "tsutatsu:hyoka:188-2",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "親から子への贈与のように同族株主等に該当する場面では、原則的評価方式で計算します。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "原則的評価方式",
+      "claim": "親から子への贈与など同族株主等の場面は原則的評価方式で計算",
+      "s": 99,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "比準要素がゼロの会社、株式等の保有割合や土地等の保有割合が高い会社、開業後3年未満の会社などは、原則として純資産価額方式等による評価になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "特定の評価会社",
+      "claim": "比準要素ゼロ・株式等や土地等保有割合大・開業3年未満は純資産価額方式等",
+      "s": 101,
+      "status": "裏付けあり",
+      "quote": "特定の評価会社の株式の評価 次のような特定の評価会社の株式は、原則として、（1）から（5）については純資産価額方式により、（6）については清算分配見込額により評価することになっています。 なお、（1）から（4）の会社の株式を取得した同族株主以外の株主等については、特例的な評価方式である配当還元方式により評価します。 （1） 類似業種比準方式で評価する場合の3つの比準要素である「配当金額」、「利益金額」および「純資産価額（簿価）」のうち直前期末の比準要素のいずれか2つがゼロであり、かつ、直前々期末の比準要素のいずれか2つ以上がゼロである会社（比準要素数1の会社）の株式 （2） 株式等の保有割合（総資産価額中に占める株式、出資および新株予約権付社債の価額の合計額の割合）が一定の割合以上の会社（株式等保有特定会社）の株式 （3） 土地等の保有割合（総資産価額中に占める土地などの価額の合計額の割合）が一定の割合以上の会社（土地保有特定会社）の株式 （4） 課税時期（相続または遺贈の場合は被相続人の死亡の日、贈与の場合は贈与により財産を取得した日）において開業後の経過年数が3年未満の会社や、類似業種比準方式で評価する場合の3つの比準要素である「配当金額」、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm",
+        "tsutatsu:hyoka:189",
+        "tsutatsu:hyoka:189-4",
+        "tsutatsu:hyoka:186-3"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "基礎控除以下だからと申告を見送り、後から評価誤りが判明すると、特別控除が使えない事態になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "申告を見送り後に評価誤りが判明すると特別控除が使えない",
+      "s": 106,
+      "status": "裏付けあり",
+      "quote": "２　前項の規定は、期限内申告書に同項の規定により控除を受ける金額、既に同項の規定の適用を受けて控除した金額がある場合の控除した金額その他財務省令で定める事項の記載がある場合に限り、適用する。",
+      "correct": "",
+      "evidence_id": "law:sozokuzei:21_12",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "| 申告期限（翌年2月1日〜3月15日）を把握しているか | □ |",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "期限",
+      "subject": "贈与税の申告",
+      "claim": "申告期限は翌年2月1日から3月15日",
+      "s": 118,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "law:sozokuzei:49",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "上場株式や気配相場等のある株式以外の株式は「取引相場のない株式」として評価し、贈与税の対象財産に含めます。",
+      "heading": "非上場株式でも贈与税の対象になりますか？",
+      "type": "判定",
+      "subject": "取引相場のない株式",
+      "claim": "非上場株式も取引相場のない株式として評価し贈与税の対象となる",
+      "s": 131,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "評価額が基礎控除額以下であれば贈与税はかかりませんが、相続時精算課税を選択している場合は申告が必要になることがあります。",
+      "heading": "非上場株式でも贈与税の対象になりますか？",
+      "type": "判定",
+      "subject": "贈与税の申告",
+      "claim": "基礎控除以下なら非課税だが精算課税選択時は申告が必要な場合あり",
+      "s": 132,
+      "status": "裏付けあり",
+      "quote": "なお、特定贈与者からの贈与により取得した財産の価額が110万円を超えるなど、贈与税の申告書を提出する場合には、「相続時精算課税選択届出書」および一定の書類を贈与税の申告書に添付して所轄税務署長へ提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+        "law:sozeki_hou:70_3_2"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "贈与によって株式の権利が移れば、贈与後に受け取る配当は受贈者のものです。",
+      "heading": "贈与した株式の配当は誰のものになりますか？",
+      "type": "判定",
+      "subject": "贈与株式の配当",
+      "claim": "権利が移れば贈与後に受け取る配当は受贈者のものとなる",
+      "s": 143,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:hyoka:179",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "5. 翌年2月1日から3月15日までに申告・納税する（相続時精算課税は選択届出書も提出）",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "贈与税の申告と納税",
+      "claim": "翌年2月1日から3月15日までに申告・納税する",
+      "s": 155,
+      "status": "裏付けあり",
+      "quote": "贈与税の申告と納税の期限贈与税の申告と納税は、原則、財産をもらった人が、もらった年の翌年の2月1日から3月15日までにすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+        "tsutatsu:sozoku:21の9-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "5. 翌年2月1日から3月15日までに申告・納税する（相続時精算課税は選択届出書も提出）",
+      "heading": "まとめ",
+      "type": "手続",
+      "subject": "相続時精算課税選択届出書",
+      "claim": "相続時精算課税を選ぶ場合は選択届出書も提出する",
+      "s": 155,
+      "status": "裏付けあり",
+      "quote": "この制度を選択する場合には、贈与を受けた年の翌年の2月1日から3月15日までの間に一定の書類を添付した「相続時精算課税選択届出書」を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm",
+        "tsutatsu:sozoku:21の9-3",
+        "tsutatsu:sozoku:21の9-2",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c53",
+      "sentence": "株価の評価方法は会社の規模と株主の区分で決まり、同じ会社でも誰に贈与するかで結果が変わります。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "取引相場のない株式の評価",
+      "claim": "評価方法は会社の規模と株主の区分で決まる",
+      "s": 156,
+      "status": "裏付けあり",
+      "quote": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 取引相場のない株式（ 「上場株式」 および 「気配相場等のある株式」 以外の株式をいいます。）は、相続や贈与などで株式を取得した株主が、その株式を発行した会社の経営支配力を持っている同族株主等か、それ以外の株主かの区分により、それぞれ原則的評価方式または特例的な評価方式である配当還元方式により評価します。 原則的評価方式 原則的評価方式は、評価する株式を発行した会社を総資産価額、従業員数および取引金額により大会社、中会社または小会社のいずれかに区分して、原則として次のような方法で評価をすることになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "warning": "注意: 根拠の基準日が古い",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "tsutatsu:hyoka:168",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm",
+        "law:sozokuzei:28"
+      ]
+    },
+    {
+      "id": "c54",
+      "sentence": "相続時精算課税の特別控除が期限内申告を前提としている点も、見落とすと税額に影響します。",
+      "heading": "まとめ",
+      "type": "要件",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "特別控除は期限内申告を前提としている",
+      "s": 157,
+      "status": "裏付けあり",
+      "quote": "（注3） 特別控除額は贈与税の期限内申告書を提出した場合に限り控除することができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "- 同族株主等に該当するかどうかは、課税時期における株主グループの議決権割合で判定し、中心的な同族株主以外の同族株主などについては、その者の株式取得後の議決権の数が議決権総数の5％未満かどうかで判定する",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "判定",
+      "subject": "同族株主等の判定",
+      "claim": "同族株主等への該当は課税時期の株主グループの議決権割合で判定する",
+      "s": 62,
+      "status": "裏付けあり",
+      "quote": "この場合における「同族株主」とは、課税時期における評価会社の株主のうち、株主の1人及びその同族関係者（法人税法施行令第4条((同族関係者の範囲))に規定する特殊の関係のある個人又は法人をいう。以下同じ。）の有する議決権の合計数がその会社の議決権総数の30％以上（その評価会社の株主のうち、株主の1人及びその同族関係者の有する議決権の合計数が最も多いグループの有する議決権の合計数が、その会社の議決権総数の50％超である会社にあっては、50％超）である場合におけるその株主及びその同族関係者をいう。",
+      "correct": "",
+      "evidence_id": "tsutatsu:hyoka:188",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "tsutatsu:hyoka:168:e0b2ed2212dae7f1",
+        "tsutatsu:hyoka:188-6:94aef8c766775cf8",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/05/03.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "- 同族株主等に該当するかどうかは、課税時期における株主グループの議決権割合で判定し、中心的な同族株主以外の同族株主などについては、その者の株式取得後の議決権の数が議決権総数の5％未満かどうかで判定する",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "割合",
+      "subject": "同族株主等の判定",
+      "claim": "中心的な同族株主以外の同族株主等は取得後の議決権が総数の5％未満かで判定する",
+      "s": 62,
+      "status": "裏付けあり",
+      "quote": "（2） 中心的な同族株主のいる会社の株主のうち、中心的な同族株主以外の同族株主で、その者の株式取得後の議決権の数がその会社の議決権総数の5％未満であるもの（課税時期において評価会社の役員（社長、理事長並びに法人税法施行令第71条第1項第1号、第2号及び第4号に掲げる者をいう。以下この項において同じ。）である者及び課税時期の翌日から法定申告期限までの間に役員となる者を除く。）の取得した株式",
+      "correct": "",
+      "evidence_id": "tsutatsu:hyoka:188",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "tsutatsu:hyoka:168:e0b2ed2212dae7f1",
+        "tsutatsu:hyoka:188-6:94aef8c766775cf8",
+        "https://www.nta.go.jp/law/shitsugi/hyoka/05/03.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "計算は、1年間に贈与を受けた財産の価額の合計から所定の控除額を差し引いた後の金額に、一律20パーセントの税率を乗じます（控除額の詳細は国税庁の「相続時精算課税の選択」で確認してください）。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "要件",
+      "subject": "相続時精算課税",
+      "claim": "1年間の贈与財産の価額合計から所定の控除額を差し引いて税額を計算する",
+      "s": 76,
+      "status": "裏付けあり",
+      "quote": "計算方法・計算式 （1） 贈与税額の計算相続時精算課税適用財産については、その選択をした年分以後、特定贈与者以外の者からの贈与財産と区分して、1年間に贈与を受けた財産の価額の合計額を基に贈与税額を計算します。 その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm:dcbb5947d03793cf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:eb06b00641fe11c7",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:220a0433c6bad0cb",
+        "tsutatsu:hyoka:168:e0b2ed2212dae7f1"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "計算は、1年間に贈与を受けた財産の価額の合計から所定の控除額を差し引いた後の金額に、一律20パーセントの税率を乗じます（控除額の詳細は国税庁の「相続時精算課税の選択」で確認してください）。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "割合",
+      "subject": "相続時精算課税",
+      "claim": "控除後の金額に一律20％の税率を乗じる",
+      "s": 76,
+      "status": "裏付けあり",
+      "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:eb06b00641fe11c7",
+        "law:sozokuzei:21_13:5cddcc371381fc99",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:220a0433c6bad0cb",
+        "law:sozokuzei:28:fb3dff865939238c"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "国税庁の質疑応答事例でも、この取扱いが示されています。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "番号",
+      "subject": "相続時精算課税",
+      "claim": "この取扱いは国税庁の質疑応答事例で示されている",
+      "s": 81,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:eb06b00641fe11c7",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm:dcbb5947d03793cf",
+        "tsutatsu:hyoka:168:e0b2ed2212dae7f1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:220a0433c6bad0cb"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "延納できることになった税金には、原則として年率6.6パーセントの利子税がかかりますが、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "割合",
+      "subject": "延納の利子税",
+      "claim": "延納税額には原則として年率6.6％の利子税がかかる",
+      "s": 91,
+      "status": "裏付けあり",
+      "quote": "なお、延納できることになった税金には年率6.6パーセントの利子税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+        "tsutatsu:hyoka:179:cec79f4642910275",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1",
+        "tsutatsu:hyoka:168:e0b2ed2212dae7f1"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "延納できることになった税金には、原則として年率6.6パーセントの利子税がかかりますが、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "判定",
+      "subject": "延納の利子税",
+      "claim": "延納特例基準割合が7.3％未満の年は特例割合が適用される",
+      "s": 91,
+      "status": "裏付けあり",
+      "quote": "また、各年の延納特例基準割合（※）が7.3パーセントに満たない場合の利子税の割合は、次の算式により計算される割合（特例割合）が適用されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+        "tsutatsu:hyoka:179:cec79f4642910275",
+        "law:sozokuzei:52",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "延納できることになった税金には、原則として年率6.6パーセントの利子税がかかりますが、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "割合",
+      "subject": "延納の利子税",
+      "claim": "特例割合は6.6％×延納特例基準割合÷7.3％で計算する",
+      "s": 91,
+      "status": "裏付けあり",
+      "quote": "（算式） 6.6％×延納特例基準割合(※)÷7.3％ （注）0.1パーセント未満の端数は切り捨て、その割合が0.1パーセント未満の割合である場合は年0.1パーセント ※延納特例基準割合各分納期間の開始の日の属する年の前々年の9月から前年の8月までの各月における銀行の新規の短期貸出約定平均金利の合計を12で除して得た割合として各年の前年の11月30日までに財務大臣が告示する割合に、年0.5パーセントの割合を加算した割合をいいます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+        "tsutatsu:hyoka:178:f924e55023a6730b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+        "tsutatsu:hyoka:179:cec79f4642910275",
+        "law:sozokuzei:52",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c20",
+      "sentence": "- 同族株主等に該当するかどうかは、贈与後の持株割合ではなく贈与を受ける人ごとの立場で判断する",
+      "heading": "【手順②】贈与する株式とタイミングを決める",
+      "type": "判定",
+      "subject": "同族株主等の判定",
+      "claim": "同族株主等の該当は贈与を受ける人ごとの立場で判断する",
+      "s": 62,
+      "status": "食い違い",
+      "quote": "この場合における「同族株主」とは、課税時期における評価会社の株主のうち、株主の1人及びその同族関係者（法人税法施行令第4条((同族関係者の範囲))に規定する特殊の関係のある個人又は法人をいう。以下同じ。）の有する議決権の合計数がその会社の議決権総数の30％以上（その評価会社の株主のうち、株主の1人及びその同族関係者の有する議決権の合計数が最も多いグループの有する議決権の合計数が、その会社の議決権総数の50％超である会社にあっては、50％超）である場合におけるその株主及びその同族関係者をいう。\r\n（2） 中心的な同族株主のいる会社の株主のうち、中心的な同族株主以外の同族株主で、その者の株式取得後の議決権の数がその会社の議決権総数の5％未満であるもの（課税時期において評価会社の役員（社長、理事長並びに法人税法施行令第71条第1項第1号、第2号及び第4号に掲げる者をいう。以下この項において同じ。）である者及び課税時期の翌日から法定申告期限までの間に役員となる者を除く。）の取得した株式",
+      "correct": "同族株主等かどうかは課税時期における株主グループの議決権割合で判定します。中心的な同族株主以外の同族株主などについては、その者の株式取得後の議決権の数が議決権総数の5％未満かどうかで判定します。そのため、取得後の議決権数も判定に用いられます。",
+      "evidence_id": "tsutatsu:hyoka:188",
+      "keep": [],
+      "before": "- 同族株主等に該当するかどうかは、贈与後の持株割合ではなく贈与を受ける人ごとの立場で判断する",
+      "after": "- 同族株主等に該当するかどうかは、課税時期における株主グループの議決権割合で判定し、中心的な同族株主以外の同族株主などについては、その者の株式取得後の議決権の数が議決権総数の5％未満かどうかで判定する",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:188-6",
+        "tsutatsu:hyoka:188",
+        "tsutatsu:hyoka:188-2",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "計算は、1年間に贈与を受けた財産の価額の合計から基礎控除額110万円を控除し、さらに特別控除額（限度額2,500万円）を控除した後の金額に一律20パーセントの税率を乗じます。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "金額",
+      "subject": "相続時精算課税",
+      "claim": "基礎控除110万円と特別控除限度額2500万円を控除する",
+      "s": 76,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "basis": "13,17",
+        "quote": "その贈与税の額は、特定贈与者ごとに、1年間に贈与を受けた相続時精算課税適用財産の価額の合計額（課税価格）から、相続時精算課税に係る基礎控除額110万円（注1）を控除（注2）し、特別控除額（限度額2,500万円。前年以前において、既にこの特別控除額を控除している場合は、残額が限度額となります。）（注3）を控除した後の金額に、一律20パーセントの税率を乗じて算出します。\n…\n（注2） 令和5年12月3"
+      },
+      "keep": [
+        {
+          "type": "割合",
+          "subject": "相続時精算課税",
+          "claim": "控除後の金額に一律20パーセントの税率を乗じる"
+        }
+      ],
+      "before": "計算は、1年間に贈与を受けた財産の価額の合計から基礎控除額110万円を控除し、さらに特別控除額（限度額2,500万円）を控除した後の金額に一律20パーセントの税率を乗じます。",
+      "after": "計算は、1年間に贈与を受けた財産の価額の合計から所定の控除額を差し引いた後の金額に、一律20パーセントの税率を乗じます（控除額の詳細は国税庁の「相続時精算課税の選択」で確認してください）。",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozeki_hou:70_3_2",
+        "law:sozokuzei:21_11_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "国税庁の質疑応答事例（令和5年度税制改正関係 問2-1）でも、この取扱いが示されています。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "番号",
+      "subject": "相続時精算課税の特別控除",
+      "claim": "取扱いは質疑応答事例(令和5年度税制改正関係 問2-1)で示される",
+      "s": 81,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "keep": [],
+      "before": "国税庁の質疑応答事例（令和5年度税制改正関係 問2-1）でも、この取扱いが示されています。",
+      "after": "国税庁の質疑応答事例でも、この取扱いが示されています。",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "tsutatsu:hyoka:178",
+        "law:sozokuzei:21_12",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+        "tsutatsu:hyoka:168"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "延納できることになった税金には年率6.6パーセントの利子税がかかります。",
+      "heading": "【手順④】申告と納税をする",
+      "type": "割合",
+      "subject": "贈与税の延納",
+      "claim": "延納税額には年率6.6パーセントの利子税がかかる",
+      "s": 91,
+      "status": "食い違い",
+      "quote": "なお、延納できることになった税金には年率6.6パーセントの利子税がかかります。 また、各年の延納特例基準割合（※）が7.3パーセントに満たない場合の利子税の割合は、次の算式により計算される割合（特例割合）が適用されます。",
+      "correct": "利子税は原則として年率6.6パーセントです。ただし、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "keep": [],
+      "before": "延納できることになった税金には年率6.6パーセントの利子税がかかります。",
+      "after": "延納できることになった税金には、原則として年率6.6パーセントの利子税がかかりますが、各年の延納特例基準割合が7.3パーセントに満たない場合は、6.6％×延納特例基準割合÷7.3％で計算した特例割合が適用されます。",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+        "tsutatsu:hyoka:178",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+        "law:sozokuzei:33_2",
+        "tsutatsu:hyoka:179",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm"
+      ]
+    }
+  ],
+  "dropped": 0,
+  "discarded": 1,
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 7618,
+      "output_chars": 4446,
+      "wait_seconds": 151,
+      "usage": {
+        "input_tokens": 6689,
+        "output_tokens": 4569,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 77280,
+      "output_chars": 3549,
+      "wait_seconds": 181,
+      "usage": {
+        "input_tokens": 67236,
+        "output_tokens": 7111,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 2618,
+      "output_chars": 462,
+      "wait_seconds": 151,
+      "usage": {
+        "input_tokens": 2105,
+        "output_tokens": 983,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 866,
+      "output_chars": 728,
+      "wait_seconds": 151,
+      "usage": {
+        "input_tokens": 764,
+        "output_tokens": 1059,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 36326,
+      "output_chars": 451,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 32012,
+        "output_tokens": 751,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    }
+  ],
+  "input_chars_total": 124708,
+  "output_chars_total": 9636,
+  "review_items": [
+    {
+      "id": "c50",
+      "sentence": "贈与によって株式の権利が移れば、贈与後に受け取る配当は受贈者のものです。",
+      "heading": "贈与した株式の配当は誰のものになりますか？",
+      "type": "判定",
+      "subject": "贈与株式の配当",
+      "claim": "権利が移れば贈与後に受け取る配当は受贈者のものとなる",
+      "s": 143,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:88b7f489f42b26e4",
+        "tsutatsu:hyoka:178:1e8c8c00ecbfae3f",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d",
+        "tsutatsu:hyoka:179:82d978e85dbc5f35",
+        "tsutatsu:hyoka:168:db7630326656fba5"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "国税庁の質疑応答事例でも、この取扱いが示されています。",
+      "heading": "相続時精算課税を選択する場合",
+      "type": "番号",
+      "subject": "相続時精算課税",
+      "claim": "この取扱いは国税庁の質疑応答事例で示されている",
+      "s": 81,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:88b7f489f42b26e4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0",
+        "tsutatsu:hyoka:178:1e8c8c00ecbfae3f",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:cad27ba0ef1b34cd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm:7cf11f30db456007",
+        "tsutatsu:hyoka:168:db7630326656fba5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57"
+      ]
+    }
+  ],
+  "summary": "主張 54 件: 裏付けあり 49・修正 4（食い違い 2・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 2 件",
+  "remaining": [],
+  "slug": "stock-gift-tax-valuation",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "kind": "taxanswer",
+      "no": "4638",
+      "title": "取引相場のない株式の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 139.49,
+      "text_ranges": [
+        [
+          0,
+          1582
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:hyoka:178": {
+      "id": "tsutatsu:hyoka:178",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "178",
+      "variant": 0,
+      "title": "財産評価基本通達 （取引相場のない株式の評価上の区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm",
+      "law_version": "",
+      "score": 173.36,
+      "text_ranges": [
+        [
+          0,
+          1717
+        ]
+      ],
+      "text_deflate_base64": "vVjdUuJKEL7PU3ipVXuqCP6xb5eJiImEjbssuCi7QAmIBCIr7MpP1HexM5NwxSuc6pkkJCx6cK06V0w1M91ff/0zPaFmmTol73JM6yMgNpAukCyrd6ljArHdx8a8UQByCwrxb0ruYwPIOagakByQDpAKqHkg34HY0RGvMvUbhutceM3HhaO5s5Y7zoNiiONCDkqBH8+iHkVdODoQg/UaQGy/0QFi0+Z1uJO4475YU1MDcksHZvAXos0CuQDVAGL5N3f0oRhCygOx6FMVyDcgbVAIgsRtP0BFQ/P6MVqxL0AlQCzu0RWQdugjV6KoQGpA6uiyQuiZwc5NVu+645k7a9FmWXjtjmdeH/FTs0wfz3EzqQk2BGBPn6AhYicYiDEWJzmOU85knvXuX9h91i1hWs58fNa7rwN41q1NqFg4GvvW35O9y5E/PNldOAX5IxzNUHYYkx0I2f4uym5K+whXSDIJCZ0M00IgpyPJgd+9829K6YVTyERCObWUyqmlWF6Klxrk9FK6t5RmYnsPlwA+BuJ/OAb2dcL6VwtHlyS/bbJOgxpTquUk8YMc5Y6pPZG8e9Mfnnhfr0Tctul46A2ewiDGCOxonh3EZX7yed4o7FDzFMiQPhZZq0+LDVYaSN7liOoFVq2xqoXh1QsynYzm5SKqIqdAPoOap7xIhRJJ2oqqQ4qrAmIcptzplFfcKeZVvGrMYbJe8islEyosjOnVHWv1pXSKZrM0lxPqtlcs7e6HlvKRJVC/zCtNICYo6o60mzgvSXRg0qs7OJqB+guOHDgqgjpBQ/L++wylVw2FLmDRvmBUFNK7TSfPS9JW1KvWRoZVu2yqLHWR6w3DsnC0ZUdMbqD1ET3T4rAwg5dhPPyQSqXc8cmLXv43v3Efw6gKV16J6t677R6sakiv2t480PvvRpNZ1RDGPkSzFV1Mfxt7C1T11ZKMxVKoC2r7JVfC0L0lWJspPlg98LfR2Mxc5k9zW6LHiXEBFGOlK2PFbNyXF47+Z2cGpSCEqPytTZoPOKv3uRhwtuUdLHNV397dCWCpp7hTMWIUFgLJC0RycBo3YWxOPEdlU63Jx4Hb7b0IAN7w0sLR5IWjb72TzZ3Ieb9753U+sYrKqjWcDDmLQCzvl+pOc+KMO80j5ZMRnbZxJqla7LwVnxvj3K+bG5cBWBlv6FlW+IDrBHqbnml+R+PrTjThoP/pwP+VRBDu/GcWZHHWFNNwtTYvF73fFe/3BfeznQRn0XyT5iviL36wFplEsgc/Wavvt02qn/Ah7zqYz1SdZ1NNnis/5+UibxU1zB9i09MRPSqwisoBGbspsQz7zjUQFZM0tBLvbmHjKwKx+WQcc0cxhBcC8PL4mkjYvG6tTZl6EyPrQSRvPd5Nkf11xZlgJ0iAgKHSANQvkVLZnU4jXoUiOhnS7ydxFdzTa24c8bKfKp+ea4Gu03pUE3xnLMm2BM3BtR1H+HYAmJTyh0wqFfqVTObdsJjf1b3CZH6l0rxL27vIRuZFSQOx3CeecuYnetwKO602P/ns/yjghqOZ33GoNhabgTTDCroVR6h2w3DNOzOXMD3PSgNWrvBoJ73dQ2+TwIz/rafGbnGbtfpex173Ir3lr9lTv/ON9377zYFZ9sWwVgU7ckbGp82z3l2JTBgKI45FAPQubf70S9T6H1mw2mxpbQqkJfaHFwl/HT8U0UT8OLKSA9IAYqWjN0lETpgb8QMGPbOAPHIaeQ+IxltEGbtOVaz1tcZYVQFVpc0LINnkhsBiBCC6wUI3YrnEhh3MpiBWaYzVsumEWLzm47x0j4uznDvNz0v37riN8wKx2LDkTqd49w1LrPyA30NmTa/XO5TZ98az3nUfnryvHazzYwcb2sOEK+4AKXHn8RuMED7rltfryfP6Mf5Qk9vr9dLUvBeh93q9PRQTi326A/IFOQvU3QZ0cnWcoeASEPOHV6qwrBn5/S8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "kind": "taxanswer",
+      "no": "4103",
+      "title": "相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 151.95,
+      "text_ranges": [
+        [
+          0,
+          2656
+        ]
+      ],
+      "text_deflate_base64": "zVnbctpKFv0VPuA8GN/iPE7NZ0ydf1G3sS2BuBhfCMaxzQQT2QRxEiiHm8nHbHVLPPELU7tbLVpCYJwzD6fKD0hu9b6vvXb3f7xJi1XtIzYa7PNbM8trj355xm4d3r/yJi2/a/2ZYb1Z8L3pOyW/4fqNof9y4zslMEgwML1hyXdKvE2DNpH/4nXq/5j5bi14/oHLiMvMFzZuA3GA9MAgrHTPrDPxWAPSPtzh3b43efSGeSCub77wXhHIDMg9kJ7/eK3ePAN5AlIAaoFBskf6R6xbib5g3Y5a22G9GcowSPCj6V9+AVqVGgvB9+xhwComkA6QPJAckPacDHn+DshXIEWghcg8zYavQOpgUCAXy5e0qj6sAy1o2/YiHwGtsnINyDnKHQ3Q0F+2/LEbel3atodPB+JxJqS58+sLIB1vaDD3BojLG8N58w5olf+ceJNP0hQw7FTnS73Y9zw7G/PGEIwifliusLNxqOyvk6BNgNhAKNC8EIr2ZYQP82CQmKWkJ80JjJPF1Nwcq8XUAnIpwtyJOVbKIDYYBK0at3Xv4XoU+hktD993vF80CocUjQZbI+beRC/RNpSVE3+hGUIHdGsyCrQgUyLcKt13T/6lE2bO2s07QFoyeWS4Y5rTaphpowEzT73J47xeFLaPxHrdsbYUB+QKKHoGDJvftNloIJVZTE3ed1AiajJkLYs3BspjF2FpLd3bAHohoyhiY5Cks3Ap+vStcrO9cRNIWTx+AXLP6xRzN8IA4gaO6bs1rEMjBIDQZcT1Zs15swik87Z/iSt1k/vLDxdTU2LTIRsNsmGVeJNHNrOj9RgAagLNs/I1m9Wku7cQlwxbapUy8zTK4Ci0v2cLRrpiBo4pfmNGrgHLMNfZ/dhvlXjp67zewk9oVf6WBnK3IPxjocL5B9+VhrejuMhPZGjEv8KUZSc/vdcL/yYH5FlDtzz6kPRXw7rqKG9YCJxPQFwwbLmGX494/wqOJ/KRTcsiR8M9wbClUG9WkPAD5DJofxVJ9YDpTnIyU7EaxDen0t1vdZOe3oDgeLLUnlbnxg2QT0Du1Vd20LSBlrG2aCGB5ZmouDKJqhOGrFQ47cPxFI6t/f2dXfTC0o82hhajq5rAeoOjyozJI268KZ0vYU/lloq3I8Os0mK9ltnDbKTl5l3QDzHMsTZFTJICASaq9UqaYD3JcogWaLDTiwotQkYgbjZqgcte/C5aYBBWrgUDMyEj0XLTxMSJhPjeFSnYjNJLvvQbA78/YcVz9v1uMTWRctBcRDZELwgxlZcc5t7IdPTG4zgzUQiPccqltNsErIFhzz/fecM8exjwh2c2LfvdRNdxdZriD4pI0+wXb2yych5In50URYK4vjXyZgWMcemZ968+7ABxPwBxD1RXcVULCjEoRTC6VOKsxnRoLlVvZhSE9a43LvDHLuJj/2wFfLfSPq70IRD3aJ3SSWGpGmvYIYJr/15WynjbQP6KJ6D9f8kb7HSta5mUi6n5N5O6M69XdIIXCqZU+U+jZgbNxCpYgIbftRIY4jsuMlGDzM/OseEol7LGHb/6C+m3+YJSkZlE5FIxk3W9A8E4i1Ac5YXsnnLBb3T2zYQMucQKO9I9H04cKk+VFIfZY0EPsO3iPMJGA0nUV+O0woc0KkCr7H4cfbWhc2ekHXq1iL16aeRuyVk26bUNk1lVGVNRrPRmTf4wjRj2+o6dTmmy2R1veMZOT2X3zUo2s2xEfWdX7F0LDTQfo08XU3Ner+Dg0Czu/nGwE26E/MYqstEA42cV9YLAPlv7r3hzIaFQ3y/OrgQwx6FC8i0k6UqscPBzoqCk2nu6JWG6CcYalomICw4+s8LuDhyfY5umEzjuw7Epqqrkl86AVr1RTXCYNhYGzmu1lHaR7vLlQCqka8i0TbKvz+D02krAwjrCGyc6byTFmw6MtQ3lMoVlNX3B2opaJl6GVWyMyGjgDbty/12JwCH7SBZYDBNimBzyvt+shY31HCt+vQZVB7lQiBRaGDz1xWN5hbhmd5ASts4ETruiTadHXggubqKBy1rNyGntAKc1PNTYU/OaVdTnNX2YT8D7aoa9b0oirkqatJazLM9MEgAUZ5S+5bf3WOinJ/5ln53n8eBkeWoSOzmSTVUJ1adxO9lRF1NTOCk2o23sa+vLODQ/vlVq5qTO72qYReoiD5n+Zndw5GKguTkZBwMzdSpf/QrFCYyQC8LyjlrismLv45aG7UYiuj8oAiXrFF7NN78xZK8Xq6ifirKCOtw0okTUNdA+LgpXPgPJvVuJNRkfApvIP1F6em6Fzp3THB4Aamdaa5Mv0S+WLKYifVyPsmm7gKcc4/7zz2/+WSc36ybB6LQED0yIGQ4XrQ57whN01q0splU5VzH3hdfKGGqDsG7l30B6/9q+g6dakQI8BuHfmmIodsShTn5lc6n/svWxRl8/yknpvKvjls4hZNIspjU2GmSyfxyq5qjef5Lvjz6G7/VWIqfGVIxFBGZlGhjHi6mlZzR/mLKWxQpXQJxQM3WaFC0D2oLjpqBqQ24VEOxIUZanGMhdOcm8jeOhV5xwHlWYHk6GK5cYIlNWxhiVa/zWYObndCKiXTJsccMQDZg68GDjI65sfNgTcZklIdd3SuwWuQO3jOA1h4+Fuv/6Y371c3nvgrz7HfcSWoNzuTn0v4vYfcvx22/qONpNXoOgIx2g2NS2udZYy4j2dva31ZV01M0LSgr12HiyqbB3M4vcqmfaOkMOXk4QIRD3w1Ow9Bgmrnzi91PvCJE60129i1qTOx3tjqqdlinDre6i5I7sxPS7VmIX/jDihYfoqtJvDHn/ajeL12pI4vHHgfrxcfF6J35kD/HVERhkby9c6TeG3qSFSw+Wb4J2GYkyyWYRBZcHULtA3H0wSPRwqD980B+O1IMSxEvP3qS1vyMUk69QML8c8e4X3r+a13PMOst+zPwP"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4632.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4632.htm",
+      "kind": "taxanswer",
+      "no": "4632",
+      "title": "上場株式の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4632.htm",
+      "text": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 上場株式とは、金融商品取引所に上場されている株式をいいます。 上場株式は、その株式が上場されている金融商品取引所が公表する課税時期（相続または遺贈の場合は被相続人の死亡の日、贈与の場合は贈与により財産を取得した日）の最終価格によって評価します。 ただし、課税時期の最終価格が、次の3つの価額のうち最も低い価額を超える場合は、その最も低い価額により評価します。 イ 課税時期の属する月の毎日の最終価格の月平均額 ロ 課税時期の属する月の前月の毎日の最終価格の月平均額 ハ 課税時期の属する月の前々月の毎日の最終価格の月平均額 なお、課税時期に最終価格がない場合やその株式に権利落などがある場合には、一定の修正をすることになっています。 以上が原則ですが、負担付贈与や個人間の対価を伴う取引で取得した上場株式の価額は、その株式が上場されている金融商品取引所の公表する課税時期の最終価格によって評価します。 上場株式の価額は、 「上場株式の評価明細書」 を使用して評価することができます。 根拠法令等 評基通168～172 ",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 102.49,
+      "text_ranges": [
+        [
+          0,
+          491
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/hyoka/17/02.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/hyoka/17/02.htm",
+      "kind": "shitsugi",
+      "no": "02",
+      "title": "種類株式の評価（その2）－上場会社が発行した普通株式に転換が予定されている非上場株式の評価",
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/17/02.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 199.7,
+      "text_ranges": [
+        [
+          0,
+          1806
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/hyoka/17/01.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/hyoka/17/01.htm",
+      "kind": "shitsugi",
+      "no": "01",
+      "title": "種類株式の評価（その1）－上場会社が発行した利益による消却が予定されている非上場株式の評価",
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/17/01.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 197.91,
+      "text_ranges": [
+        [
+          0,
+          1175
+        ]
+      ],
+      "text_deflate_base64": "nVZbctpIFN0KX1PJx1TF40pNTc1XdjHryAp02whLSDIOxnZ4GFBsbB62iDGxMQhmMVfdkr7YwtTtlgABnprJn9207uPcc87tYFLk7XHg18KbBcIdAkNmfZL/2GF1Grk2wiVCK75qBvIqgifafe6Xlr6h/kDweEHn3ivCMJhYkdtF8BC6CEVkxaVvIgxRg7/46ziYdeKqgzDgRi+sFxEGyAxklng2uDNGsIOpwb0awjkyG+EWIY/M4vlWzPJpsjuEKoKNGiCcUSZmIBQQ+qtqgoUbuw5lhd7GhUHUOw8WLn3OLFniHfXGjuWvFmosF7f1sJ50I8zzaOHHx19i18kdUPD5GUILWfHjhw+8UOD5PteNWHf4/Cw+/pK9cvCRFwrxVTMcD8OeI67cuK0v/VpO4RtMLdF54K9jPr1F8FYxEOytqAiDGCpyBH0Cg1B1FJ4IV9TrxImen1S74d/2ZuQV2KqIdRBq9KrJS4wX2+vSVGbR7geTGU1ouJBf3G5XxMrRs45gINyqQzpxbWSldXjhWcG8Go3csHJN9DAKse6IqhdrtXRKA64b4cBCcFEDdUgIEiXgBsFRICMri8pQmOcysOyZ2cGsE0yKRMR9aRCGO+VIeik6p1QfSjhviASMicZ9MHtOSmPlaPSCkOd6h1ioeMZsKiUFJ2mciPiK4CRsZmVkDOGaQJufRb1RNHrheielo+J6MeW6YuGZHKktuejQicZypKyn7tI3c+ldj7fH/NRA8LIhh+JxmtVLEZmJUEv0digaxuGBuOwgKHUPNrOnYhuukeL+CzeeleC28doKmdJLcXGN5R6pINxlEAaP6934qMtLhvQMLT7qIiurtP+GTPTwXTxORbcnns6D2Y00ko7wflBEr4YM5AcksQQwVo6rxCbFsWAyC19KgV+TLCvKqm9XMWnADTMjk7WlzH9QOA24UeDmiMJdfKeIUyMc53+6oAQMGTMBQyXakZQcYGs3L3ElexLMvoY3C85+EKKnA2QaaoxceE97GUVOiF6zb6JUzw6LBqzOVzmQlYPZ12ByshluVaIiURJK+guVksCxyi1zrLZJxrYJZuqD6/dJK+Ap8xYXr+LpfOkbSvTqkLemonEfa7UYKgd//P7rb+8O38u1MxDTC4SvJAwNNv18ten2krUb9Udh90RUmWi0Nqnyht/YyazIIyzJWtqYqWQHyTVW5qVLhC8b5PZW5E7LUod5UjAJ2grmJwj59NfEQdI9dikRryaWEZ4WwsqjdI2d8W1br7R0Ze+plSmaFqWYU6ptIPZOgfN+v0xZmZuOKJ2mzSeLW8IKqMFqUXCjJ8hvBmF9kjgos6Rr0osh0o5osSgQt6qWnSNjO8wYxG4z8H0Femi+RuYopXo2eN+hYpgpkZXAqQHsYduaOHuwpq6gTUdbpCJtn8qVnqCwzRcJ+4oOWaPbAk4dWlSuBj/Px00avs0+ta3U5ynX7N3ugonF6821l1El65fI/6G5JLJclNubdxdubk+5UdjkwuY3W6MTzQb3Wghe2PX54lLxjpeG0dE8fXJ64TDP6yNe0BHuePGaL2x1jTQkt4N4nEYP35e++cvnT58//xlMinH1VDrXfwi48Vp6K2DmRSWxVinCb7TMSSLyvcP1I9G4J2TrTV46SWWntnWJxrN//Cn5qixYuOG4Ej0dh5Xr1F09YdMSS/THygoB9e1uv1sMUDXQzpFcFI0+92pL31S76w0xDDJ1UpC1DFTGrDUnaMSuE199eyu1worcbr2/d5Zj+GDSXpGbSjTMMO+GefetpZdb+k5OXfkH"
+    },
+    "tsutatsu:sochi_sozoku:70の7-14の2": {
+      "id": "tsutatsu:sochi_sozoku:70の7-14の2",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の7-14の2",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （対象受贈非上場株式等に係る贈与者又は認定贈与承継会社が2以上ある場合の納税猶予分の贈与税額の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_7/01.htm",
+      "law_version": "",
+      "score": 180.93,
+      "text_ranges": [
+        [
+          0,
+          1267
+        ]
+      ],
+      "text_deflate_base64": "3VfRUuJKEH33K3iEh60C1Kv+XXpWMEAgmkVYXF1hFzULcdhFrhcR4WM6kwlP/MLWzCQxoiDsrftyiyoKmplO9+nTpxvWm/i/Wsys+wN9dvHVHRZZc+A1O2xs8tsCEsurdPgT9e5OuePspb2LFgLd446TmTVzCHQGP3jVRmIxs45wgqTE/zZY7d4rTPl9Q/n1tRxC1x/o7rCCxEKoI1yyY0N66PrXJqNnCA0kJXXG13LM1BF6bHVw0HWnRNzqlBk9U3fVc93xGW9PEIys+3jlDosI4hxrDtixjtBFKAaxDsrcrnDj3h3pTM8jUOWF25VZqyy+2jqndYQeauA5IvdZMy88EB1J0W8ZCHmETwg2QpefNrxDU2WCGpmPdfZwl834nb5/d5T9sOdPn1ixiRoIczY0Z3YCy3Zo2Q8Me6HhIDAcLN7ZTsePuI9tlvsYnUkr025oyGa86oN3+30+LmxtJbYSyUwqIXPqepU+ghVDiDJjJPHosuk5wmfUAOECiYHwVb4/XxE4EYs9ffJ/9JeVXpVJeADKHgYLSIvPnT63K+6k5TXHEsspQkfy5FoAv4SC2Vkzxx1nl5n/CB8Bj8LaBJUTxZiP9ciH+9jmjrMTuNkXTN5WVH7poJRJp1k+7513vJGGQHm3553+ZEfX/DiP0BOlJ6aM8lDWuoAaEagiaSfw4+1rVN3HK9auCQTk14SCbE2KL0HWiDB1h7chsQ8RrpXboOVCSJhZY5P6cwfmbIGvQH9Z/9D3wqPupKU6hR3rvq3PWuUtkf6a2Rn8y5Dfn3G7oqqbzaiyHHDHEVWJFy5W/CwC/SvUIA0WfgnVaT7WF37Zj0PkjWpCuSRBAt4Tix13kWiqoEqDYi62I9nbwEuMWG+IJRKCQBFu4gr1/6IGsXjhIXIiY6sqvVSUUU9UJHopMlSySbwED+7s+bgwH58kwtCp1yDxxIQk/ruBEUwdif6KzEU++pVX7c1y5VntmzslQldGIwSDtWvsy5M6qVB4MUvPCy+YAnTtAUTZ5Uii1hHX1+JH1JtdhHYAkRxke2nRJR8yO8nksixVd8azEcNEPuEFVMYjb0TZ/ze5rpdlKiXumTWv8EumGoj4stksKGUllrXIK8KWkBTWAT3SeL/f4tXvUYqyHd9eQTaspYjEq9zMGm2EU9ElpKQ01GsQ3p9wWlezNOI6uxzxdiW8QqWTXjDP/1geNoqZWCoGWQgx0sM6y74/OpEh3YioxDQ147Gt3hTEgrVJJMwsItz9WR1fzzmh7WulFhB5ORWT2VRi1X6y+9Z+UhRyt2b2w6Jvf05mUkjaCoM3F5Q3176NRlFsfRdPWSWhpz8DVIIBqEbCexpBrIW1LvwXscnyRqxgb39e25LbqUSAUjYVIcxpnR2Ngj6Dy4Xh9K6cRUwRSrrGfvyew5BHGvkN"
+    },
+    "tsutatsu:hyoka:168": {
+      "id": "tsutatsu:hyoka:168",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "168",
+      "variant": 0,
+      "title": "財産評価基本通達 （評価単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/01.htm",
+      "law_version": "",
+      "score": 135.18,
+      "text_ranges": [
+        [
+          0,
+          1200
+        ]
+      ],
+      "text_deflate_base64": "rVfbVuJKEH33K3x0Hs5aJzhe5u/oBjSBIIhy83KAGVSuwSXOEiHGf5lKdSdP/MJZ3Z2EICh61nki6VRX79q7qqtgzR7aBSxkgYyZfAbS9ys/gdSB5lini3oXiOU6Lb+VBzKCJAFyDdQEagCx/GyNNdJALF6+B9IDmgNyDqQDpA9JwgYtIH128gCkBDSH5hT1IyB9dM6ApANXxNLEwQUdyEjD5MKB1y27TksBgSSd2zqrDfd2+eWj1y3vYbsCqRk+jxNqQUtEK9p3r/fgdcuJuZ2Pre4tVrXFdu0wZnyw8Pp3sPxX7KT9cE37ge0KO39mw19z29ia27o2t41td5LF5qOicW7r/vGp908ey0d4RrBQQbvMjOT69XFZhYclM7GLz49sXEYnxweDxB4Wnua2IR7ZdeuP0UPrgjvdP0afDwbavt/MCKpuC2hdKKrWngq0JBgnR5Ck7uzGneSwaAKpSV4NIH0FHUhZSEtuhTHNBQnx4V4RfEIEz+6rfibPLyfYfORDkRxAaORka8N3KfloNWdWIWwBbW/z+sw3H1T2CeaqN+xq4HVs1CfsZoj5c9e+AGLhUca7FRkNVAfyC8htfKM8sxot/ofgVd3gtOo3h9xq8eJRBAmL5gcwVrdEYJh5LLX8uhKQGm5jZuBXcn7y3J1kxYExit/LSCBmqIEVpAEtMePV6+UlogaQM4GOlljtRJZ9TnoWn1j1RrxSI8wfS65YaOTlgwPkTiot6jyCsSQCLfn1NpBCnNF39DQjGj6UUV4Yn8Ac2n8K8xrFlpFvLpNdUSaKdlUG8pQekHR0yo72TTGwk/i2Wgbu7EZcRiGqzSd+l4UZiovGA76ciZyiJSxUgZxGV7yooWUzbEzZtKKY4a9mRNoabwGBAW9+5UxSnQ38f+L0zYHsBYG4k5mUu7cWOT8fe44N5FX0mJGjsiKG0xTlIOqvEY9rbuuufcHbDhDL6wx5X6SKf3EJpMrrU+/3kzudAjHRLoewS0F3DPtl6PZ20SCJtbCX/MhrVlbK8lm8PvM6tTdJGEFiepH3c+iYC9GXmcfmIxb1VQzMKHuOza5EpDvRi9TGEtcLJQEdNBdzMVKWksEAtMS9SdpFqH33lX5B1/1FgvJ0C9MNd9p2ZzV21UAnwzoLdeNfxYkfZudb4+wzZi+BmLw+5eeNQLxPpOySn1jWBpeLIPAOSP4L8R6IeP1MHl/O4jGqFf/4dGOAayy/GF3k4f+J6FBEBPQZUjqkUkBHQHuQqgJ9gtQdpMaLVJYzDj6PmV7UDuIzzuH+0owjfjQsPL2Za1jlXlwAU50/phVrCpCEbvFRMgwyLYogab6xh2ReRhgEI9PaVAIDuXNnNXdyEjbdBlAq72ZLGJNWOJZYc1v/oeYlr6tqUPYaZR20g/Rif4w82Uab4kYK7wd+afELZRxlnBmfINVIvGlsupOvWek2B6QNSeL1HnjnhNUpu2qIpimV9Fqm+/KKhZGXelE3AR5logkhDLjv14vhuC3l/RGba1cFCIUVkh0csGvBUaiZHHZoNqIYjQeg2bAFGIrotyLFGH9nVlk/qSr8qnUqA5yl2PAnOl8JP6aXCF/bPxR/CrbRyPr1tkrelb8Lc9v4Fw=="
+    },
+    "tsutatsu:hyoka:179": {
+      "id": "tsutatsu:hyoka:179",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "179",
+      "variant": 0,
+      "title": "財産評価基本通達 （取引相場のない株式の評価の原則）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm",
+      "law_version": "",
+      "score": 286.82,
+      "text_ranges": [
+        [
+          0,
+          1168
+        ]
+      ],
+      "text_deflate_base64": "zVbNctJQFN7nKVg5OqOdJJDSjq/Q13DhwpU+QM6llvAT0VKopbUtQ6jQStoB1AApfZiTewOrvIJzbyAtCLZq67iDc777nf+TQzPm+PgtwhkSA0mW5vvU2EIoIckjHFHrs+dWfGuIOnhOK/xNC1mEDr0oTFRgs+NT6hYQbG9YHVdNhHPUAeGTIDlEkmdfqlMTOdRJ4BrsYyuh+PvdUScdD1xTWcfUgMuSN2SroUxb47JmSaNWGVMD2uusjk7bo2ZJDVxzLRIq8rVUka/F6rU4EUnV9Yn0maJSq8x2eqxVC9yMFLiGEriZ2HXkS8IbVw8912X1lt+w2fkO65enWhEn1BBORs2SN6wi7IVhIxwhHCPsog5+1/Qb7/xhk+b2RvpbBHsMDsseRpVAHRRu+LLIn5Esgu13d0adtL9TCy0FruHvO/63it94F1qaN98wfHuX24OjcfqDeJJZ6h8UERoIeYTPCGboMU+HytMRFX9ZOkSFbd/eFapJDD87cI/ZCW15TotrlxWDbD98EieA5Ulc5t2jNy9fvXj9fCNwcw/i5YQ/bGlzg7d3zHOyUZ3C3KGe30B9UsaQPCo1nW4HaleQAJKc/70w5xh1Ov7F1R1dmuyOYZHVW7RYZaULWjAQzv39Ls2Y7OCIHZx5gzrNmArtdcflImeELMIHJDlaKFO3FDUSvTpA+IhwsnDZRB7TTJu+N3igsIVQRdhEqAhwjlqiSrDJyj0RbYhsRD0pIbFi9x7y1PdK5J0kUdOhtTartyR6UaC1NqYGSL5iysVUEUlPKKYQ1GEZiOfOKktT1gTd3KRbW96g7jlZ7viMF/m45vX7Qpnj4xxWnWyP9yyEgtjTGUn7LyjklXVZktRfE6ny7UScQnsqy7LnpP8fKnklqUlS8nayO6QqcS8sdwjsTmVblSX+EWGdBv+MjKy0eGtP74yzUbMt9h4fOHrcFfN3Fu4iz8l6l+YyMBIiZvrmsKZasT9eJA8/jMmb3RuXw3/s4JT19dkRUWd1M0OsaDO6cC7iizoxOQNc2KzaT5BIlZgzw/tzBjBncwJcnTehLoStLYLdNMfbJha4RlzcYredmv/2UPr9U2UDyba8osmiW3cRTh6rT/7qWlp0ZvwA"
+    },
+    "law:sozokuzei:28": {
+      "id": "law:sozokuzei:28",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "28",
+      "title": "相続税法 贈与税の申告書",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_28",
+      "score": 63.88,
+      "text_ranges": [
+        [
+          0,
+          850
+        ]
+      ],
+      "text_deflate_base64": "xVXbUiIxEH33q9NRdIYZLiLKDkLB1KqgYFSkdocR8GN6ksw88Qtbuajhoqu1Vm0VDyE0fTnn9Ek+9bKkijBC6iEt55NYNn8ibfDaGV+2EFoIvZyUEO6QAEIXgfHZlHuHCCzX/5XDqjrfTOSwmi1j0Z8jjLJnijSQ43GWhrwCWUJEN0ZgWdpEAjvuk31eKyM8bv/ESyOV/6rGWfulz+C1dBFXEEIEVY73p7zuIQFe8xDu+OIkv57YiSDcUXTWVZeJX/RLTglWwLVsDjUILYRjpAFSisAQBm6h1dzb0a0+60l1xYSsJ7f9i+qgiC74MvwQxvW5YFREddUMoau5r1Ktk4LA5HPIZ9MsDUXHUy21LhECpH6W+KLjqd7Spr5cIgxWc4/XdXxCPhOPMOLnC4U5aXP/SDyeyvFYRks98r7oxgaNol9SyEwrcliVLJb1wyxNdcObIGzEqCkeyvwoRdrQwrtBONB1TxCYeDzly0AdzhZ5HPLOvZLZoiZ8YpTDH0rCJ0gbouM7fz9BGOrPjYukgc4o5KtJHAA1CwTWWCOwLk7FTvZ0lk9iHkSyA9nTBcJA4UABaZClgVIIbeTDH/ncFO3J5iM/LovzBGnDoKTnZcIn+eJAfQ0iuZgUp78RRqJWV6DZbo+Rhgj3ulXf9k/o3mreQEK4X3F5cihRcIhxrNJVJwiNdbAuNApXIj1TiwGRUaESOiFGeVlyW5CmDi7b4NunLI0dBwlflbotuJdg5qotX/emNUuyW82yZaxRZgiHCPEHliRZi5cuEU4VQDQo9ofGxXjdy4eeTmImrXy/bdGG9RTdvAOsxWpLNHbzN5SnDxVFZ5aGSIg8T+SvtoionCwla5mBTSWD+Ge42dnNV6n6F3N9fXM+4NtM/p8dV+Ge+GaNdtUou2v7spURwgyhYvnQhvMWBsyEiU6viOrcVxrcjHlL9WaJ2/ztreYn7oLz0u32gm/DY19KO48jEGfTeT18xzTs2BujOuO9ax17q3lTCdifcdY2dGiEAm1abEMJ36Kuvy+Lo7edS2GZ2ezZsmp7tm9X7zOrZ/fZeYs+YXlvmL5Hqrl3HMc+An8A"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm",
+      "kind": "taxanswer",
+      "no": "4602",
+      "title": "土地家屋の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4602.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 63.14,
+      "text_ranges": [
+        [
+          0,
+          1538
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm",
+      "kind": "taxanswer",
+      "no": "4604",
+      "title": "路線価方式による宅地の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4604.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 110.49,
+      "text_ranges": [
+        [
+          0,
+          1027
+        ]
+      ],
+      "text_deflate_base64": "rVZbduJGEN2KljDM2JlkLTnZi6rlsQUIcHCwGB4jZDAjoyA8Aye8BP7wTlLqbumLLczpFgLxMHGc/Oj0EVT1rXtvVenXYN6hZeMjnY7OWEPPMPOel5a04bBhJZh3eD/7m0IHy/CbzZ0ir3sKr0/4XzXuFFGFcKQHkyJ3igrrkrALSjge8HEtWNorX0doIngR3ITjAYIbNe8QTIQuwgWSPHM+s9ktr10g9Kj3iTYeEbwMnQ7Z7RQ1GzUfNR01ly5uECwkOQSPFjR6eUkL1WBRQPCCpR3ZhZWfRTCCeRWhgsRAsGjjkVqW+H+cl5TDh0qwtBE+I8nT1ohe6wguwkCUkP4pwSGxijdxPQjepjAkZWrNEJx1MSqwP20ED4mOcIngJglNhKVIopItK28Aqqx8PbPyswrrt6PmXSqVR+/vQ9sIljZr+WG7wfpt5Zd372KSVr6+F7Dys8/mYQgvXq38JpKOuOi9uIjCiN1O4zi6+BZZTzTX4p4Z2YL00NG5ZyofUxelA05e9Gy+lHuNQusLFB8EimBm/DOKn863KMJ26XXlPpsv5U5QlASKM4Ei1iP2/6ssGntSQdJZ+XnU+vJZklnzIuv58azxGxmp5ZVnU4mad/yhICLY0DnQP7YuLVo0e5W2YtxyGxuz4n3axtI17lFOkJSDqYlQRejG3MqcVnT1e0x45FYRLkThSS8k9yYmlydLwGo8UmOG4PHKI0IPSf59ML8PJrlUqLuBtgV7UJ+oRvTJF/n0doq4vti0ZnKfG8ED/8NZdxfJv6XQdXO7VO9Qr7ZXXw8hJybGfyXToNeGPDgxPXsT6VDWQ9bCcTOq3wldKuN9XUh5l8pdmWJHxY1+FLwKJ5oUVTjRPOuJmvBD60MEl3dmOwPPmPF+VlD31JAUWTLQEHQTQJKV/5RLIsF8FKdM4oW9J1YZ8eJVaDsIA4XWF9wp0hmgVpf92UKtJg5kokj+vodiXVQOL9nqq7zJwEdn90bTXUW2lt0hgZQTBwvdj+yRtDBywcqOg0F69Ml16G66KpiokeYgGBLvdv2uAf7vGUVxL++P9BUnBry8cXBktUq19+2cefXSSjbcq3bLv83Mhs7R2W6kE+wYZ03YVwSC0BZEEoIqiM8vzxLlfi3LDMkgAI/mpsIfpMwaWfmyh3CxPz5OdC+4wbyNoCN0T7XxjhFTTL+evL/V+farh91OqV8SAImemvg5qeswZayc8Fm/GtPDnAeqP2xWalycgqpBG3KOlHIiWJ5PBMdysGqRjx5ZfYKq2M3lYPF00GciDOFG0m1IVQrb4llryvKtzSexUJlas0itZT6gCpkz8ThfLb5kflZ+AA=="
+    },
+    "https://www.nta.go.jp/law/shitsugi/hyoka/13/02.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/hyoka/13/02.htm",
+      "kind": "shitsugi",
+      "no": "02",
+      "title": "医療法人の出資を類似業種比準方式により評価する場合の業種目の判定等",
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/13/02.htm",
+      "text": "医療法人の出資を類似業種比準方式により評価する場合には、どの業種目に該当するのでしょうか。 医療法人は、医療法上剰余金の配当が禁止されているなど、会社法上の会社とは異なる特色を有しています。 このような医療法人の出資を類似業種比準方式により評価するとした場合、類似する業種目が見当たらないことから、業種目を「その他の産業」として評価することになります。 なお、取引相場のない株式(出資)を評価する場合の会社規模区分(大、中、小会社の区分)については、医療法人そのものはあくまで「サービス業」の一種と考えられることから、「小売・サービス業」に該当することになります。",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 239.71,
+      "text_ranges": [
+        [
+          0,
+          282
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:180": {
+      "id": "tsutatsu:hyoka:180",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "180",
+      "variant": 0,
+      "title": "財産評価基本通達 （類似業種比準価額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/03.htm",
+      "law_version": "",
+      "text": "前項の類似業種比準価額は、類似業種の株価並びに1株当たりの配当金額、年利益金額及び純資産価額（帳簿価額によって計算した金額）を基とし、次の算式によって計算した金額とする。この場合において、評価会社の直前期末における資本金等の額（法人税法第2条（（定義））第16号に規定する資本金等の額をいう。以下同じ。）を直前期末における発行済株式数（自己株式（会社法第113条第4項に規定する自己株式をいう。以下同じ。）を有する場合には、当該自己株式の数を控除した株式数。以下同じ。）で除した金額（以下「1株当たりの資本金等の額」という。）が50円以外の金額であるときは、その計算した金額に、1株当たりの資本金等の額の50円に対する倍数を乗じて計算した金額とする。（昭44直資3－20・昭47直資3－16・昭58直評5外・平12課評2－4外・平18課評2－27外・平20課評2-5外・平29課評2-12外改正）\n\n（1) 上記算式中の「A」、「」、「」、「」、「B」、「C」及び「D」は、それぞれ次による。\n「A」＝類似業種の株価\n「」＝評価会社の1株当たりの配当金額\n「」＝評価会社の1株当たりの利益金額\n「」＝評価会社の1株当たりの純資産価額（帳簿価額によって計算した金額）\n「B」＝課税時期の属する年の類似業種の1株当たりの配当金額\n「C」＝課税時期の属する年の類似業種の1株当たりの年利益金額\n「D」＝課税時期の属する年の類似業種の1株当たりの純資産価額（帳簿価額によって計算した金額）\n(注) 類似業種比準価額の計算に当たっては、、及びの金額は183≪評価会社の1株当たりの配当金額等の計算≫により1株当たりの資本金等の額を50円とした場合の金額として計算することに留意する。\n（2） 上記算式中の「0.7」は、178≪取引相場のない株式の評価上の区分≫に定める中会社の株式を評価する場合には「0.6」、同項に定める小会社の株式を評価する場合には「0.5」とする。",
+      "score": 234.39,
+      "text_ranges": [
+        [
+          0,
+          830
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+      "kind": "taxanswer",
+      "no": "4606",
+      "title": "倍率方式による土地の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4606.htm",
+      "text": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 倍率方式は、路線価が定められていない地域の土地の評価方法です。路線価が定められていない地域の土地を評価する場合には、その土地の固定資産税評価額（注1）に一定の倍率（注2）を乗じて計算した金額で評価します。（路線価方式については、 コード4604「路線価方式による宅地の評価」 を参照してください。） （注1）都税事務所や市（区）役所または町村役場で確認することができます。 （注2）倍率は 「評価倍率表」 で確認することができます。 倍率方式による宅地や農地（田）の評価額の計算例 根拠法令等 評基通21、21－2 ",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 55.26,
+      "text_ranges": [
+        [
+          0,
+          290
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:188-2": {
+      "id": "tsutatsu:hyoka:188-2",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "188-2",
+      "variant": 0,
+      "title": "財産評価基本通達 （同族株主以外の株主等が取得した株式の評価）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/04.htm",
+      "law_version": "",
+      "text": "前項の株式の価額は、その株式に係る年配当金額（183≪評価会社の1株当たりの配当金額等の計算≫の(1)に定める1株当たりの配当金額をいう。ただし、その金額が2円50銭未満のもの及び無配のものにあっては2円50銭とする。）を基として、次の算式により計算した金額によって評価する。ただし、その金額がその株式を179≪取引相場のない株式の評価の原則≫の定めにより評価するものとして計算した金額を超える場合には、179≪取引相場のない株式の評価の原則≫の定めにより計算した金額によって評価する。（昭58直評5外追加、平12課評2－4外・平18課評2－27外改正） \n\n(注) 上記算式の「その株式に係る年配当金額」は1株当たりの資本金等の額を50円とした場合の金額であるので、算式中において、評価会社の直前期末における1株当たりの資本金等の額の50円に対する倍数を乗じて評価額を計算することとしていることに留意する。",
+      "score": 231.4,
+      "text_ranges": [
+        [
+          0,
+          404
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:188": {
+      "id": "tsutatsu:hyoka:188",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "188",
+      "variant": 0,
+      "title": "財産評価基本通達 （同族株主以外の株主等が取得した株式）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/04.htm",
+      "law_version": "",
+      "score": 228.64,
+      "text_ranges": [
+        [
+          0,
+          1194
+        ]
+      ],
+      "text_deflate_base64": "zVfbUuJKFH2fqvmHedS3AeXo52U34CQQJ4xMQBFLcgZRAkQPWCOXiP8yO90JT/mFqe6GEK5iHc/liUpn9+691t5rpUkcHf/SbGqUqGv6l31ae0RwEGyEDKvZ1DUQnKBpemPL6+cQHKoPqXryS2vxMEWnBZ2VDVazvf7IG93QegnBkY9+R0PQeeZxGaGMcD1NqJwi3KMCrG2JszIIFSQ6Qh6hFTS79LmIcIEkP40nZyImgwogXMn8sjBvbE2sebZJLcsrdCpIAKGFREWSR4WErsrOO4dH/uVj0PtyELqniT8wPWLnndQBX2uaKV64XDleWKGDXiIV2N2gaSb5vtjy8Xw5eUTrJfZ9wDo/Qlf7+CF01UToap/i7EyhkrznVvz6OA4D4QTBQgW2sMmBrVD54RNCkb+pPdKCyiFDDuGbQL3QGsH5nSQqsLv+3Vd2QVj1Or5l2uVYdbOqp9VFKwlvOKRGDqEn+yFPmpT+9F5IoGQ53T3TGw75MT2TlZ4DS/dGdb/dPmRX1t7eUjyC499n6GV3f58PQMPgHRQD4GsD5vCpk7GiGIIkT5W8KEFFuJdHzYbkBBXijW68fp4WdIRz0X2Nw6lqMmfQeWB/DdldUxSuBncqMx8QdAklgh+F+U+GCHAOPoduVuTOha4qw9+Ns10qZFUFCaH1ipijB0y3MO1iurwTupl2tgBMcYDBzyzCraR5Ftvij/ADoSEnaBYomJ3GrhnBmVa9/mgb8ljnhHKSXDlev0Nf0n4lg2C/qqIlzjftjRS1mPA24mbaByEtKTY61uNU8be7DUsqdLOsarOhEjGEhA9w6KrrBJhBaCwNE30e0KIVuqpfH0/MJ1TAL5x4w/zEfPL6DUFna5POjhLsyvLb7cSkluU/1BD72+0kNZ5kM7ga+TK02NcuwhkfnsVuSB1JhxHWOi91UVxTgIGSlakXATr+i87KN9zeicZ6JnUq/vce/ZZj1evJRQFhLDI4k1IRoSVRC7Oyo5ImF3UEI9LyG41w4yy9YopToPHZ4yqOyI8POK8/e0rhJy9YAf/y0e+NAkthZYP7ejZD3Wt6q9HGQFKUCBq2+EA69HbEyoZwlCL/ChItmsQVj1jS5XzkV/bqf9/vkqnI75ZPJme00EKivKO7rjttu6esGMfBhk+uuMxs8YtNvX9P797FfxNrTOMVCtZpQXBxuGyisw06T0Ryop48Qn3p1vF/omwnvt42Mv++2e8l9yMvX3XKf9jtdve5/7xxM00vXGti/hb/k+AshrXo6bmfb4tUr538OXZyrNXkTKAqiytOZl4OB5N5kxP9Bg=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm",
+      "kind": "taxanswer",
+      "no": "4622",
+      "title": "私道の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4622.htm",
+      "text": "[令和7年4月1日現在法令等] 対象税目 相続税、贈与税 概要 私道には、公共の用に供するもの、つまり、不特定多数の者の通行の用に供するいわゆる通り抜け道路と、そうでないもの、つまり、袋小路のようにもっぱら特定の者の通行の用に供するいわゆる行き止まり道路があります。 このうち、私道の評価の対象となる宅地は、後者に該当するものです。私道であっても、前者に該当するものは、その私道の価額は評価しないことになっています。 私道の評価は、その宅地が私道でないものとして 路線価方式 または 倍率方式 によって評価した価額の30パーセント相当額で評価します。この場合、倍率地域にある私道の固定資産税評価額が私道であることを考慮して付されている場合には、その宅地が私道でないものとした固定資産税評価額に倍率を乗じて評価した価額の30パーセント相当額で評価します。 （注）次の図のAの部分のように、宅地Bへの通路として専用利用している路地状敷地については、私道として評価することはせず、隣接する宅地Bとともに1画地の宅地として評価します。 計算式 （算式） 私道の価額＝正面路線価×奥行価格補正率×間口狭小補正率×奥行長大補正率×0.3×地積 （注） 特定路線価 を設定している場合の評価方法 その私道に設定された特定路線価を基に評価（特定路線価×0.3×地積）しても差し支えありません。 根拠法令等 評基通24 ",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 53.67,
+      "text_ranges": [
+        [
+          0,
+          601
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:189": {
+      "id": "tsutatsu:hyoka:189",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "189",
+      "variant": 0,
+      "title": "財産評価基本通達 （特定の評価会社の株式）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/05.htm",
+      "law_version": "",
+      "score": 282.69,
+      "text_ranges": [
+        [
+          0,
+          2092
+        ]
+      ],
+      "text_deflate_base64": "7VjbUiJJEH33K3xsInYjAMXRv+sqUbuhe2BAUJFZIGyVy9C6wMwg9jAfk1QVPPELG1XVN9oGcdZ92NiNmAcmuyor62Sek1mmPhwqCilUiVNh12PSHAGyAXUBZWmzS5wCIHveqcymrdk4B8gmxoRop4kEX6UaTH8idi1Y4tSYNQVku1tVE1Ab0AOoKLJgPjxj5zeA7NnPz7Sus9w3OkSgIlL9Rm/7gGxuOcmzvg6oR37WAV0CuuNnYQSoQb+0APXoxwGgEuB8/Om4BCjL/6kI0OfAjuzZtLVomTKwiCt5P37otBzsxQagPwAbkcXidmXAJqAeYI1bVLyzsyvwy724teEdZyvpBClogB6UvQSg3rwzID/KgK5e3CUPqAPolP/AJaJZAm2+jDRHpKjxc1FOXPOOH9cdsPZHeoVpvUF0M/yVFDVWPGW1LKAu/3H+J2As4izEpobe56lW5DhYOslXePAIA875YPr2N96o7d2iwlHlGJY5jLhETkzP0hBZtkWENqD2vGtyC9a9BW1AbvpWg3kQN8oDuhFO3O2ALjgCP8o8Knk6Ls1bBgc2WHMl07d0NHrZzxyy69G8U8kQqwrHz+RpmJaGVNq3HMy7g3mnkl465qFvTKUD635gzQTWVMhnyJxOBuYj1/x76LTAuH9ArCo9f6L9m6Wj7ywdLbV09F36cE4n1fkdYqMmrTymeJ2vMmJnN3W4pyiRfKf4R56rBk8vshcnJvlRXpx9WrRMwT973taYfSE4r6QSoCKR7BygoUy2S0sOn7HJG9cDFcUsIlqHXef8RdJ3zDo2OpfVKQm8dDQyHrLHnx6fBQl57u9kyCLxDel36ehCj+wwn3mA8lRuPwXUEiWVBVQTX/NpQEYS0H2o+POALFARux5xiqkntN6g9R4v4MaETqqCdKLeisaiecJv56pWT3y9jD8fl8IhB+xe1Z/X45093wqhDqJe4R+vbo+vQlR05SDKV5cTuLS4sgAVQMXCKc/u+hpzpT7Lo+Ik0jfobQSWQDl5dMM2L+Zw2chyWKkRjrHlyp7wKrMhUzF7viW6uUeeRotqWRzUYOMpT1DBpJdNNzshLXUliDvtiv/aPnYSI1a5otmCLxE8zrSgnLgg6+tuFxPdMEq6nd2wLIc1Odq26rqr7cWs2x95C+NXWKi1BTpfoVq09eSkN1k/HuA2KWrztrZSMKhHzKZ04rVpRM4m8+GZBJpWH2mzO5tobJSl7c7s+ZJZU4K/Lh1NhkqHFfblS5p+bikKsWts2kkkuCFNCt95Kd0VfGTX+fJ6s1srXMIOj5aOuaco22DqDxxck1Y6oMDEEJ2ixOvVcxZbny9RerdAQievOYddj9m3Gmt/lA621q/oJYg+EFJhZJJL58Sj/0bq74WpPxWL7bCIvEEPNmC0tSL8OuJrNGSPc5PUG6T+uImYa3npj2kbQIliuv9umK4N/I2A7ivKqxjIkW1RzdPbPpkaXDNpvUsnqi/ssoK3xB6wtZv65ffEqsMcse69aHveVO7OjD74L3usu/exsPXeQFPZ98LfGi/EgB8R9dkkLx40BjHH5GYgfq9UQmiQf0gnSTZLTk9dFqvI38R7mlXdsDWVWdkaDM+9xVXRm2y5KpJiD7DqFdB98Dh6vfvY79t9ZHWuk0hf2njfieOGK3wxrDA+xEihzMgOHPffr0Rn4/5/rUQ//JZMJmfjs5UqfSyQmwEcPwP+CscOHJcBP212sx/nxj9+vctXeZB54VjU+Gycm7cvAVuhrRcy59sTJab6kHG0vtaWjrYvhtkt9XV9R4r+3QFbUrnhOApyfMfPeI/ztwz7r4X97+hHsc686V5cXmrC/y/jdS9jI5hjME5GwXvPN1v6n32zZUJk1E1ZazPnE5eVcT/uzyXr18bM15urP6Mo25+8zZB7IB6g4xNmX6yJPvTxzeEeKMoG36/F9xc="
+    },
+    "tsutatsu:hyoka:186-3": {
+      "id": "tsutatsu:hyoka:186-3",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "186-3",
+      "variant": 0,
+      "title": "財産評価基本通達 （評価会社が有する株式等の純資産価額の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/04.htm",
+      "law_version": "",
+      "text": "185≪純資産価額≫の定めにより、課税時期における評価会社の各資産を評価する場合において、当該各資産のうちに取引相場のない株式があるときの当該株式の1株当たりの純資産価額（相続税評価額によって計算した金額）は、当該株式の発行会社の課税時期における各資産をこの通達に定めるところにより評価した金額の合計額から課税時期における各負債の金額の合計額を控除した金額を課税時期における当該株式の発行会社の発行済株式数で除して計算した金額とする。\n なお、評価会社の各資産のうちに出資及び転換社債型新株予約権付社債（197－5((転換社債型新株予約権付社債の評価))の(3)のロに定めるものをいう。）のある場合についても、同様とする。（平2直評12外追加、平11課評2－12外・平12課評2－4外・平15課評2－15外改正）\r\n（注） この場合における1株当たりの純資産価額（相続税評価額によって計算した金額）の計算に当たっては、186-2≪評価差額に対する法人税額等に相当する金額≫の定めにより計算した評価差額に対する法人税額等に相当する金額を控除しないのであるから留意する。",
+      "score": 274.58,
+      "text_ranges": [
+        [
+          0,
+          483
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+      "kind": "taxanswer",
+      "no": "4609",
+      "title": "地積規模の大きな宅地の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4609.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 67.9,
+      "text_ranges": [
+        [
+          0,
+          1620
+        ]
+      ],
+      "text_deflate_base64": "1VjbcuI4EP0Vf8DOlLnVzHzL1v6LJTITAwYC4TIhzoAnQJwADgnZ5U7+JW1J9lN+YUuSMTdXLlXZh30JWFK3T3efPmrypztvk7LxhUwfktTUY7TeYcUVMW06qrrzNhtk/lLI7cq7s5hdYOeOws4n7J8GswugIe9BdycFZhcU2sVeFynEHLLrvNctUtsC5JD2FaA8oBvifCfmEJAN6PZNh0BD7iRD2ld+ekkmmJhFQD1AWUBHgLqAblOqSqYjWptC2oL0AtI6pHvuvONOstyneAX/In0eeHPnHdKuyZOk2dxzHvtDfZd7XBamR4BWgM5Aw8rzQqcjO/a8yCi0z6N8Xuj8CVAOcOZ5oSfFgyOMGoANvoF63vU9WZ5yHzi3TgfPxWsp4079s7b4YuygEBDIBHtWnRg17+aRVh+IMSPN5vNCl+nwbJ1V5nRUZf1+IkkvLNbvx1RSHAtHTUC3fCEmFhyvWyROA1CPNGeAOoDyEgPRf3iDe0A99xFz8CeGdLj2F/db33mAgTkP0K/l2NnMswyGZ4DLnmUA+gHoVDDAACRixDmJFnBZBJgPoxMJ7NGMRkx7O2M86jiPei86QA6r2L5WWZfcIOMO7QzIELOKHfKAGscCYVVksssLhHOb3cjXJUSdhSFxpuw6zwrHgIykqkK6xOmD55AeQVrntLi4c2d9P73keDJToneIMdvjXyLCMLPNvpfAcGYp3r3FKpfeddVdWaQ5o2bf1xo+qsTjn+K8eE4DMOJm7SvJKjLukNaDTETAXpHEgy4MulOyOoASyX/BPL9b47ZmkdMOn0lOxCUnEoeUoPXfVD8J6MqJHRCQ00nYJA9tvMeSn85K/xzP5DZkgPdYYtXHd749iFWy7t0AhFnICXcy8NM2MYuS62+DIQHs+APNeE0CHFls0IQuCcUWxbrZkONDvMjye+NbNm5wckWRETAW2tYD1A5J/QYZc4QAWJxeZ46vNUj1B+0MID13l3+ziu0ui4HY8I7JAtYBjeTJ3a1IMDKKbMjRoLYaIhrv1w8NJFLIrwBhISrD3cRuICky+7Q2paNq2EMv55q0HsiJ/p/UlsetIdLpeJbBYbUW3qVJB5dc3fCRO8lzji5/E3O4WUc3gK65/5MjZjusMt/ddQDN+S2lIYmTthZk7Gy5LbvTOqCfgLr0DnONQk13ZflWXoIBdLG5dsOLeMuKy71TB1TfMeRMueS7MgN8d0uphFa8wIKPTfE+l4SS9mjhHlAZcO6p1ALkrKHbTyVr63FnXnCXBUBHO0HibESET6WWsp+38xlxGt7omFUumV2QRtKNzMPLKVWeStaeS4PaZ3RWY40jQDd+7ZQUL73xhX/+O2xUyaNgEZepmYlqj5zIF3+VzDogJ3Y4iYneaorWcbbpESUGzv+dwMF1/LzIhBejt7rnlgM+Se4t8o5dr5CS7a1mEet3d/RXfVOZcL3Q9I8Lh9e5HLX2eBtEcgCJD1avlLT3Ua20LbNiNx9g0wwJ7z2o3kg0Lb+Ti/dGEkxeZR9ds4pEECVLkeyKXt0eyJhTJ4viRg02ZOKOOVuGRVodMjwV42SODyLuMk/NGzrT+JyjHwPO0rwtyrxVfg0r7iTr2T/lG9zJgPeCZigirIBI4fObLvsdiV3rLnk0ZR8EDONK9wuwsaeSnmWvL/WsqM7V3uB5+OsxYlqWEJUXhg0lUJEoaVFSqqrIqVwRvxgVmUZF/fwtpcRTwWJwIrF3QlW+pILF4ERq98TXlBKPp4LV4Ij6+auqJL+kwlvr1Z+1Hx/1K1HFVPXVsFJqRFg8m7Q1pblW+K8HPg+R5szXGnH1Uxw0FI/Jj7j4SHwDDSVV/od/S339lFD+BQ=="
+    },
+    "https://www.nta.go.jp/law/shitsugi/hyoka/06/01.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/hyoka/06/01.htm",
+      "kind": "shitsugi",
+      "no": "01",
+      "title": "事業年度を変更している場合の「直前期末以前1年間における取引金額」の計算",
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/06/01.htm",
+      "text": "財産評価基本通達178（取引相場のない株式の評価上の区分）による会社規模区分の判定上、課税時期の直前期末以前1年間の期間中に評価会社が事業年度の変更を行っている場合には、「直前期末以前1年間における取引金額」は、どのように計算するのでしょうか。 「直前期末以前1年間における取引金額」は、その期間における評価会社の目的とする事業に係る収入金額(金融業・証券業については収入利息及び収入手数料)をいうのであるから、事業年度の変更の有無にかかわらず、課税時期の直前期末以前1年間の実際の取引金額によることになります。 したがって、下の例では、X＋1年4月1日からX＋2年3月31日まで(図の + )の実際の取引金額によることとなりますが、X＋1年4月1日から同年5月31日まで(図の )の間の取引金額を明確に区分することが困難な場合には、この期間に対応する取引金額について、X年6月1日からX＋1年5月31日まで(図の )の間の取引金額を月数あん分して求めた金額によっても差し支えありません。",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 278.21,
+      "text_ranges": [
+        [
+          0,
+          444
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:183-2": {
+      "id": "tsutatsu:hyoka:183-2",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "183-2",
+      "variant": 0,
+      "title": "財産評価基本通達 （類似業種の1株当たりの配当金額等の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/03.htm",
+      "law_version": "",
+      "text": "180≪類似業種比準価額≫の類似業種の「1株当たりの配当金額」、「1株当たりの年利益金額」及び「1株当たりの純資産価額（帳簿価額によって計算した金額）」は、財務諸表（連結財務諸表を作成している標本会社にあっては、連結財務諸表）に基づき、各標本会社について、前項の(1)、(2)及び(3)の定めに準じて計算した1株当たりの配当金額、1株当たりの年利益金額及び1株当たりの純資産価額（帳簿価額によって計算した金額）を基に計算した金額によることとし、その金額は別に定める。\n この場合において、「資本金等の額」とあるのは、「資本金の額等」と、「法人税の課税所得金額（固定資産売却益、保険差益等の非経常的な利益の金額を除く。）に、その所得の計算上益金に算入されなかった剰余金の配当（資本金等の額の減少によるものを除く。）等の金額（所得税額に相当する金額を除く。）及び損金に算入された繰越欠損金の控除額を加算した金額」とあるのは、「税引前当期純利益の額」と、「資本金等の額及び法人税法第2条((定義))第18号に規定する利益積立金額に相当する金額（法人税申告書別表五(一)「利益積立金額及び資本金等の額の計算に関する明細書」の差引翌期首現在利益積立金額の差引合計額）」とあるのは、「純資産の部」と読替えて計算した金額とする。（昭47直資3－16・昭58直評5外・平29課評2-12外改正）",
+      "score": 249.99,
+      "text_ranges": [
+        [
+          0,
+          589
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "kind": "taxanswer",
+      "no": "4161",
+      "title": "贈与財産の加算と税額控除（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4161.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 164.23,
+      "text_ranges": [
+        [
+          0,
+          2631
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:sochi_sozoku:69の4-1": {
+      "id": "tsutatsu:sochi_sozoku:69の4-1",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "69の4-1",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （加算対象贈与財産及び相続時精算課税の適用を受ける財産）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/69_4/01.htm",
+      "law_version": "",
+      "text": "措置法第69条の4第1項に規定する特例対象宅地等（以下69の5-11までにおいて「特例対象宅地等」という。）には、被相続人から贈与（贈与をした者の死亡により効力を生ずべき贈与（以下「死因贈与」という。）を除く。以下同じ。）により取得したものは含まれないため、相続税法（昭和25年法律第73号）第19条第１項((相続開始前7年以内に贈与があった場合の相続税額))に規定する加算対象贈与財産（以下70－１－５までにおいて「加算対象贈与財産」という。）及び相続時精算課税（同法第21条の9第3項((相続時精算課税の選択))の規定（措置法第70条の2の6第1項、第70条の2の7第1項（第70条の2の8において準用する場合を含む。）又は第70条の3第1項において準用する場合を含む。）をいう。以下70の7の2-3までにおいて同じ。）の適用を受ける財産については、措置法第69条の4第1項の規定の適用はないことに留意する。（平16課資2-8、平18課資2-4、平19課資2-7、課審6-5、平20課資2-1、課審6-1、平21課資2-7、課審6-10、徴管5-13、平27課資2-9、平30課資2-9、令元課資2-10、令5課資2-21改正）",
+      "score": 177.78,
+      "text_ranges": [
+        [
+          0,
+          516
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:38-3": {
+      "id": "tsutatsu:sozoku:38-3",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "38-3",
+      "variant": 0,
+      "title": "相続税法基本通達 （相続又は遺贈により取得した財産に含める贈与財産）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/06/01.htm",
+      "law_version": "",
+      "text": "法第19条第１項の規定により相続税の課税価格に加算される贈与財産で法第21条の2第4項の規定の適用があるもののうちに不動産、立木等法施行令第13条に規定する財産がある場合においては、当該財産は、法第38条第1項に規定する「相続又は遺贈により取得した財産」に含むことに留意する。\n\n また、相続開始の年において、特定贈与者である被相続人からの贈与により取得した相続時精算課税の適用を受ける財産（令和６年１月１日以後に取得した財産で、かつ、法第21条の15第１項又は第21条の16第３項の規定の適用により、当該財産の価額の合計額から相続時精算課税に係る基礎控除をした残額が零となる場合における当該財産を除く。）のうちに不動産、立木等法施行令第13条に規定する財産がある場合についても、これに準ずることに留意する。 （昭46直審（資）6、昭50直資2－257、平4課資2－158・徴管5－6改正、平15課資2－1・徴管5－7、平18徴管5－14、令５課資２－21・徴管６－30改正）>",
+      "score": 176.82,
+      "text_ranges": [
+        [
+          0,
+          439
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:188-6": {
+      "id": "tsutatsu:hyoka:188-6",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "188-6",
+      "variant": 0,
+      "title": "財産評価基本通達 （投資育成会社が株主である場合の同族株主等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/04.htm",
+      "law_version": "",
+      "text": "188≪同族株主以外の株主等が取得した株式≫の(1)から(4)までについては、評価会社の株主のうちに投資育成会社（中小企業投資育成株式会社法（昭和38年法律第101号）に基づいて設立された中小企業投資育成株式会社をいう。以下この項において同じ。）があるときは、次による。（平12課評2－4外追加・平15課評2－15外改正）\r\n（1） 当該投資育成会社が同族株主（188≪同族株主以外の株主等が取得した株式≫の(1)に定める同族株主をいう。以下同じ。）に該当し、かつ、当該投資育成会社以外に同族株主に該当する株主がいない場合には、当該投資育成会社は同族株主に該当しないものとして適用する。\r\n（2） 当該投資育成会社が、中心的な同族株主（188≪同族株主以外の株主等が取得した株式≫の(2)に定める中心的な同族株主をいう。以下(2)において同じ。）又は中心的な株主（188≪同族株主以外の株主等が取得した株式≫の(4)に定める中心的な株主をいう。以下(2)において同じ。）に該当し、かつ、当該投資育成会社以外に中心的な同族株主又は中心的な株主に該当する株主がいない場合には、当該投資育成会社は中心的な同族株主又は中心的な株主に該当しないものとして適用する。\r\n（3） 上記(1)及び(2)において、評価会社の議決権総数からその投資育成会社の有する評価会社の議決権の数を控除した数をその評価会社の議決権総数とした場合に同族株主に該当することとなる者があるときは、その同族株主に該当することとなる者以外の株主が取得した株式については、上記(1)及び(2)にかかわらず、188((同族株主以外の株主等が取得した株式))の「同族株主以外の株主等が取得した株式」に該当するものとする。\r\n(注) 上記(3)の「議決権総数」及び「議決権の数」には、188－5（（種類株式がある場合の議決権総数等））の「株主総会の一部の事項について議決権を行使できない株式に係る議決権の数」を含めるものとする。",
+      "score": 283.97,
+      "text_ranges": [
+        [
+          0,
+          839
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "kind": "taxanswer",
+      "no": "4409",
+      "title": "贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 198.17,
+      "text_ranges": [
+        [
+          0,
+          2216
+        ]
+      ],
+      "text_deflate_base64": "5VjbVuJIFP2VPHavZc8i4KX7W2bNv+SUYoe7og4NqECLiNiGaWEckIgP/SdzUlXhKb8wqyqkEhBUei5ruvuNJFXn7LPPbevPzqhJi9m3dNhfZ8emzkrnvDCmx23WO3JGTX6d+kWj3bH7ucHbeV613L7pDPK8nWct4rZA+9MYaaxiIUkhlBAs8WU7Seuf0ci6Nw1+eIakiITIA2cINYQ2Qg6NHEIaiYnQ4x/vqFXhhz26n/bverap/Hh2CuFKWDBAvUSwnNER/30H4QHBouYuQgZJGskOQhlhx704czufkOxEr/guECwJNSPBdBAukRRZ/sa1/RBaCDsIY2nHQrhAAxAIkgJCFaFFC4QnL4KTBYQ6wpG4YhCNVwf8tsLKhN+MuVVyOzfCMSlOYMDSp/JOjdb7dM9EsKLI3LbJrRKSIk3+4dwfOOMMwoXb+cQ+5AUOkkFos08NCagtiUvLHx35Q2I1iObZJuu1PTu1ChAR3YngcJxFsFixSaunCF0ROOSk7SqSAzSI/F1DAxYbB4unhtQ8Z/mLSbkpQimUEPYl9hoSEEmE7lwS2XFtUt6ju8kgNVn6kHRbIL3LmBQhzjjj2RW/WjfpsK9Pq9UZnUvoVwKZeauqinVzsiZS/LBGUznfawgriF+QptNhn1ctSZywIG7pa7FYzBm8p7u7aIAytq5eBgkMTU79Z2SpB19F1E1ZUS1qnkgeWs9lRyR8mh3SfGxTQ8MMSD9CkkWSmbzfnzRyYSEZKS0SgObZOU3Xp0+ebS7J4JXzQITr2h1v5v08Tho5QYsw8PZdxEAk1erIiRYTztAw+UOWDvvO6HxSziFc8eFvSNLubVrhnbs/Azy+tjEDXPmVLvS1zSAQ3L5WeVmRnMf3oomK1mm0YqbzDCxn3JAWhQVWadFh/2kKFfdy0sj+EC0o+nZpNmaaVc0k2YvBWFopjeG4neU+QrdoyCm6Bf0vBrFBtPWlVfUSJoJKiaukinwFE+FRKahTX0qavuHZSd9ptCASiZ821KMZf6aVH3dt0GrfeVdF+mZBV23Fwycz8a1xqNAv51Dfekm9hae+lLR4zK+3Ey2xHkTeEV20rPGeXK/Bp2kkPgTXSHq26QzSbvuDHCsZ2XZdbt5K2ZNl1yPnruEbnAonsHzvU+EgXTvjBqvb/g703Sn7fvoWbL9hX6qmQ2n2Kpx3QmuZSNK08Csdl3zXavD5Z1iZRIagRfdMt22qgSgAkCzCKZLsahNqZjjWmJXxX9J0XeRnqoMOJOB57bOQw5fFbi0c6/9UFL6sUhTF1za3IhNTqjUkRQl25Ww/S4xnm/K9NalUhYopfRRzo5+TMqT2dFiqSXh1QO8PJDFdv7iikMI9OA1arY2y2hnuZU8GVfAXK5Iebtu4nVpPxHQ0ltGrWqYd9ecLRT6+pJmy+COCFBEO3dbFvBQPtbBSd5XI4PHsXGTsnITTML7S6cQqp1UReHYlUgcCKi0Q19j27JSvbzeEvo2zYzMRKNxU7odSuJ59/PQe8ezTx3skfH41twZeh4vUs4+/epEKr/PydBaFEKihnlooUF8U23ciUP8VqflqDvzrOUUpCF604WX2/ktF+T+uYv2ZKo5+/TuC8Kso2HiagCi25ZkOT81oOT1E/Y2LuVWF2kuEVNC4K8kp5VQtuER0Gf4oKuc5ybFYWiyWEFGpECGT1YcsU1f/meXVAesdxXUE6513f6on0AD5pG+Ix01BRr7DekdbMQQrgWDF/XqntbuJUfEvvglvxd/o2l8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "kind": "taxanswer",
+      "no": "4152",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 127.07,
+      "text_ranges": [
+        [
+          0,
+          1930
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "kind": "taxanswer",
+      "no": "4408",
+      "title": "贈与税の計算と税率（暦年課税）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4408.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 210.74,
+      "text_ranges": [
+        [
+          0,
+          2315
+        ]
+      ],
+      "text_deflate_base64": "zVjrctrIEn4V/dl/p7IWl8R5lq19F7UCiTAXG3whsb0LJA7IKJY3hs0ao+Af+ya0RhK/eIWt6ZFGg5AdZ8/ZrVNFUSPNTE93f19fRj/58wvWaeyy2bQUnFt60P0Y7i/YuR1Mjv35RXhV+1lj14vo8yC0W+GZG00t/7YV2q1gaEZD0JbGXAtOXTRrCF0El8+8qrL+ZzQa0c0gPPqAZgdNkxZ8QOgh2AhNNJoIe2haCJPw/R1zT8OjCWvvib1rz5LnrL0agsMlGCBfIrj+/Dj8vYJwj+Ay6zVCHc09NCsI7xAq0ehDNP6EZkXdIo5AcEnVOikzRrhEsxO0biJPmDBEqCAsSI6LMEIDEEw09xHOaPaI7ZthdZQs3kfoIxzzXYapqedFthW6XYRrErFAOKXBL1zj2RTB1WOPk/I1vRCcW0XxvOAHg6uz2XR1cojgCLnkCYsMTT0auxlcfzFYDZpodtiBFdkWKUh2GKYWfjklu4apCrSIb6DTWe8uvGgFrdHq3cVq0NT1Hf/2DXv9mov7g3uMecccOCkx+DTg6iTiApcAAHf1pk1CHU6Y1hs0O/6si/AWYRjaLaFg4hlFQYRD+o0QrpNpx1/cM+sSYbwyeqHbjQb2JlbJ5nSak+EyPLIRHPb1kCD+QDBdZwzk3s23sYLQY4tGaorZIVFcCJqAMFTUzxKAO8NsSJwkHejERkpUqbpKGGmGtvbO/Vsjsj6JaQFxeGSvvV/XniWmhH/XXk34zlWcQIwzGmFt5i/qGREUek50eUNGdSkEKqw/ZQcW52wOfx3/6z25VPG4v6gjWAi/oQGsWmFej3ga7+cvLxx2Ocy8jIbjmG1XBwi36RSM6E0jOB8H1gGbTSOjyrGM1aIozdVDRVWAFo1vQrvlLwZB39MKOzHE/vyjf1vXipnnUub5eeZZ/8/O1ptyVubWGuVN9KUqcNL0nbVX1fQy/y/QuEj/JfFP78s0LtNYMlVbGgdaQlWtUI4Hz5OBLl/pL8pyVbJeWsg5lUsIwSkx9Q1OZbKQTPBs/4QtRED0IqMq8zdNdRHaPKQyKc/hBYBSkr4bXE3WnhVM7LVXIx/yREIUcFbvDtR4oXLQQAPCs2k4mbPf9thnUt/6Elw30ayEH0/iMbGG1nPGZVTf0DhOoI5/b6JZf2oISI01NBpkA4WWTdWiTsWD+0wU2BKbTYtJfvfnH1mtqbDfQbiI0zPf0yjsKNLGG/lCDTxhaxJRzkZEGaBMZYItP5zWnsUuHF4nk41pPriiIgzXyZZRUgrO0DyMYfn+aPxnoq+0tUZ58z+Px2IyeJkMdDkqyBgt6TJsS4kmCs1Y9Q//62F4WkEYi2Kh9g5Uad21Z+mSzWvPKtJDzFDOCh5rZmS8IqTyepNYAqdrbnEhwiWUNzuccGZdpGC+txDvfbiqPLy3+M1z7ccl+7eD4GSmRGSD3VejISCMxSnChf6i/l1mqtEk3Ew96WuEcRIssgiJXudQ7g1OZsHkOCdE8dVczU482i9O+LbhOOjux2FGFTIONrMiSmiassyKPz/x7+42cpeaTIVnMyc9tFpkTLbfjaZWXFhn09XX9wgN2Tx+K2GLW8FW2uYF+87gEq8OuB08C7kp7v6izqFQEUgbVWjIsJSb1p4lcYsbSIN3YNv5l8v9Rr4pK7Wvqcl2T1t7v2jFl9k4FE2hwDad1v7saoWdH0iCLLRcQLkoH54eGirf/lvXy0KpuL6R1L4FwX6tVMPHiPQd5P77oKodxv8BqHpZgLohoLT7LMX4X8ha/wgf6Ege8atqk8EXing7ejOm2wfXidpwqdzjxIh7hQw98rIeTad8UkoXrd7jDeP2vW/Z7mt0155RxXLTjwbbaQBGioBegq7Dmn1+LzPruVAJJFjtRujF7s/pMtp77DK6bA8eVCpL4ycotc2Qv6fUey2cNv3520S15ibNucOX7T6CvWwPNm/4o63ozXEUNHQZugbkKA2N0lZsp9ElkFRIoHz1EKqIFJHmB7PDencIzmbldXJs5xlExUPVSqHKlotFchmqPRU3/kk55DtrgH+7F9lvxScwkXXImgG/AuT42mHXC4KdN0piy/bNXjqXlC4qyUsa8CP1O8nj2quX0nGNlNR3nj0Xb5bGkIOUfLl5kJerV7bIFRu9qNmJBo3045gMEwVx+kr374H+gP5PAf1JmD+hRDyCel4A5aOeuXtvoK4c92dXuc1v4q6tPeU6lSBf3H22qyA/0NQPq2pl5Bt4elEnScKy3c8jryuX1DkJ8iyNl0j/xD3hst1P+ZjsT/UUHn75rCTVVlUK+rOg3pdfpsOz22ByXNAR3AIaQINyMnjBq09rHEyOX+zQAnBLaIB8KGt/AQ=="
+    },
+    "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "kind": "shitsugi",
+      "no": "04",
+      "title": "暦年課税の適用を受けた贈与財産について評価誤りが判明した場合の相続税の課税価格に加算される財産の価額",
+      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/11/04.htm",
+      "text": "私は、×１年８月１日に甲から土地の贈与を受け、暦年課税を適用して贈与税の期限内申告書を提出しました。 その後、×４年７月１日に甲について相続が開始し、上記の贈与税の申告書に記載した土地の贈与時の価額を甲の死亡に係る相続税の課税価格に加算して相続税の期限内申告書を提出しました。 ところが、上記の贈与税について、税務署長が（増額又は減額）更正することができなくなった後になって、申告書に記載した贈与時の土地の価額に評価誤りがあったことが判明しました。 この場合、×１年分贈与税については（増額又は減額）更正されないことになりますが、他方、相続税については税務署長が更正することができる場合、評価誤りを是正した後のこの贈与時の土地の価額が相続税の課税価格に加算される財産の価額になるとして、相続税の修正申告又は更正の請求を行うことができますか。また、相続税額から控除される贈与税相当額は、課せられた贈与税相当額となることでよいでしょうか。 相続税の課税価格に加算される財産の価額とは、贈与税の期限内申告書に記載された財産の価額ではなく、当該贈与税の課税価格計算の基礎に算入される財産に係る贈与の時における価額と解されます（相法19 、相基通19－１）。したがって、当該贈与税について税務署長が更正することができなくなった後においても、当該贈与税の課税価格計算の基礎に算入される財産に係る評価誤りを是正した後の当該財産に係る贈与の時における価額が相続税の課税価格に加算される財産の価額となります。そのため、甲の死亡に係る相続税については修正申告又は更正の請求を行うことができます。 なお、この場合において相続税額から控除される贈与税相当額は、課せられた贈与税相当額となります（相法19 、相基通19－６）｡",
+      "law_version": "令和７年８月１日現在の法令・通達等",
+      "score": 223.38,
+      "text_ranges": [
+        [
+          0,
+          750
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "kind": "taxanswer",
+      "no": "4402",
+      "title": "贈与税がかかる場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 75.21,
+      "text_ranges": [
+        [
+          0,
+          1766
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozokuzei:21_13": {
+      "id": "law:sozokuzei:21_13",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_13",
+      "title": "相続税法 相続時精算課税に係る贈与税の税率",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_13",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税の額は、特定贈与者ごとに、第二十一条の十一の二第一項の規定による控除後の贈与税の課税価格（前条第一項の規定の適用がある場合には、同項の規定による控除後の金額）にそれぞれ百分の二十の税率を乗じて計算した金額とする。",
+      "score": 197.28,
+      "text_ranges": [
+        [
+          0,
+          155
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+      "kind": "taxanswer",
+      "no": "4302",
+      "title": "贈与者が贈与した年の中途に死亡した場合の相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4302.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税、贈与税概要贈与者が贈与をした年の中途に死亡した場合に、相続時精算課税の適用を受けるときは、贈与税の申告書を提出する必要はありませんが、「相続時精算課税選択届出書」を提出する必要があります。 この場合における「相続時精算課税選択届出書」の提出期限および提出先は通常の場合とは異なり、次のイまたはロのいずれか早い日までに、贈与者の死亡に係る相続税の納税地の所轄税務署長に提出します。 イ贈与税の申告書の提出期限（通常は、贈与を受けた年の翌年の3月15日） ロ贈与者の死亡に係る相続税の申告書の提出期限（通常は、相続の開始の日の翌日から10か月を経過する日） なお、上記ロの日がこの届出書の提出期限となる場合に、贈与者の死亡に係る相続税の申告書を提出するときには、相続税の申告書にこの届出書を添付しなければなりません。 （注1） 相続税の申告書を提出する必要がない場合であっても、相続時精算課税の適用を受けるためには、提出期限までにこの届出書を贈与者の死亡に係る相続税の納税地の所轄税務署長に提出しなければなりません。 また、「相続時精算課税選択届出書」には、受贈者の戸籍の謄本または抄本その他の書類で、次の内容を証する書類を添付することとされています（贈与を受けた日以後に作成されたものを提出してください。）。 （イ） 受贈者の氏名、生年月日 （ロ） 受贈者が贈与者の直系卑属である推定相続人または孫であること （注2） マイナンバー（個人番号）を記載した各種申告書、申請書、届出書等を提出する際には、マイナンバーカード等の一定の本人確認書類の提示または写しの添付が必要になります。 根拠法令等相法21の9、28、相令5、相規11、措法70の2の6、措規23の5の6、相基通21の9-2 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 308.96,
+      "text_ranges": [
+        [
+          0,
+          766
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "kind": "taxanswer",
+      "no": "4305",
+      "title": "相続時精算課税選択届出書に添付する書類（贈与税の申告期限前に受贈者が死亡した場合）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目贈与税概要贈与により財産を取得した者が、相続時精算課税の適用を受けることができる場合で、その贈与を受けた年の翌年の3月15日以前に死亡し、「相続時精算課税選択届出書」を提出していなかったときは、その者の相続人（その贈与をした者を除きます。）はその死亡したことを知った日の翌日から10か月以内に「相続時精算課税選択届出書」をその死亡した者の納税地の所轄税務署長に提出することができます。これにより、その贈与を受けた財産について相続時精算課税の適用を受けることができます。 （注） 贈与により財産を取得した者が、死亡した年の1月1日からその死亡の日までに110万円を超える財産を贈与により取得していた場合など、贈与税の申告書を提出するときは、「相続時精算課税選択届出書」は贈与税の申告書に添付して所轄税務署長へ提出する必要があります。 なお、この届出書には、次の書類を添付しなければなりません。 1 相続時精算課税選択届出書付表 2 受贈者の相続人の戸籍の謄本または抄本その他の書類で、受贈者のすべての相続人を明らかにする書類 3 受贈者の戸籍の謄本または抄本その他の書類で次の内容を証する書類イ受贈者の氏名、生年月日、死亡年月日ロ受贈者が贈与者の直系卑属である推定相続人または孫であること （注1） 相続人が2人以上いる場合には、相続人全員が「相続時精算課税選択届出書付表」に連署しなければ、相続時精算課税の適用を受けることはできません。 （注2） マイナンバー（個人番号）を記載した各種申告書、申請書、届出書等を提出する際には、マイナンバーカード等の一定の本人確認書類の提示または写しの添付が必要になります。 （注3） 上記の戸籍の謄本または抄本その他の書類は、贈与を受けた日以後に作成されたものを提出してください。 根拠法令等相法21の18、28、措法70の2の6、相令5の6、相規11、措規23の5の6、相基通21の9-2 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 306.26,
+      "text_ranges": [
+        [
+          0,
+          834
+        ]
+      ]
+    },
+    "law:sozokuzei:33_2": {
+      "id": "law:sozokuzei:33_2",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "33_2",
+      "title": "相続税法 相続時精算課税に係る贈与税額の還付",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_33_2",
+      "score": 249.18,
+      "text_ranges": [
+        [
+          0,
+          1789
+        ]
+      ],
+      "text_deflate_base64": "7VjZduJIDH3vr7aqITHYLCEsWRvoTgiJE/dk6R5iSPIxclXhJ35hjkq2KQwk6WXmzJwzb1BWqVRXV1ey9bguvUP9dJd0/kT4ig7o6+s48mUN4omjTocIIf2O2ggeisrGp7IcIDwjXCCE81FDhkcIAQoXRVUfT/T3Iz2uJ8Mae1D1i+TwDKGDwkfhrTuMH09pcVJJBmXLYZjApW6PUbRko4ewh8Kb3w11+wtCEL8I+vvgxpO6HtcRQj5xMXM3BEzRFuL0OCpZqeV7EcYIPXRATr+r6Sdy64B0L+VNk38nUJd/7On2vdyryupAhz1e16VhYVE2qgj3yW5taQaBPp7Ip32EQwKBTxQtg0wDHbGYVQo2ye6eicpHoMvKwYNsuhQ/VBFKCCMK72l/fnmXWooW/92egh7tEgLhCqFqLdYoNbToIZwh9AtHG2Rqa2z5qE6HduIYBHU8QQjm44M53cgkHfoIpwjhmyduTN/voEdgTiHQ3qLHmlvoW8gL42fEUKyAb3CWTZ99ForCung/T5a9qELPXL/IgSVPRCmeHvAiOuLDYtZCx5GV2iooKbnZOtnds2/Oi8xIeiRa87Grwx47tS5Jd+OEZQah7Ef6rG54cEXGx08UmXMkK7vqvmMwbbMuZJxwkkF5MXMLh5obhuqkn3T3+SB1bXLQLMnGnwiBqt8htKx4QulH0t1BCOTLCcIBg57b060FUD33zomCL775QcngK2TAhcRCAXR6+6uqdNRtZPa2+Pqqdy4bLoVk7bIArMlymbJi2S9mLuW7d25EJCgYmBODBC6zv/sGPQOgYbyJc722l+C/vtcgmUpwhuc450c8cWx6WJXpy36koq45nbcHqtGUu1Feq1kwp5x3Nv4QR/6bHuWz/7q77FFIHhezfdsjOlZoDqtxJjiGTQWFSWv8c8ByF0eRTXYyNusEZNeTF14K9hL7FbLIGqgTF0VLf/MTqOdJNvksIexw0bXRceyAsrp7vzL6W+AJksMmiqppM0aArFLv0KnmNupQ6LtnHfbmV3dUgcZ07pQRfFa7XHJkoyufe6wumS5e/Iq4mr4R5sDnTWZZIRtEwedRQp0OFzOXS44loNiNuRqtFG1sdymLUuMskmU+gsztYd7hf7i/rc1HdlPdjn8gvz6n48NKW3ivnHf/EzlWxw/q5gsp3+qkUSg9uTuS7o6+qVDWzRY6N/DUrciQMj3HmLHuvs6erYyxypO7J0ceT2rqpKbb9zrwEEZ8xHz8gOAWQmU/c+/cwNggsy9AixyVe6ZuI4KoGaBwSFmn5/GEJTlMBmWe9NT1kPlnkdXni+ubSqZmdpzvI3ruIZ+uf4Hr8nNPVgfMlt/L+LRXWP6Tj2PTtMMfLYMet4Q48v/Ng807Zxgr2v/HmJ8fYzgLr/NBNlPCrHeSDdPL216Wlbd5aoinNO2QxG6aGnKBtP0YlizJkWntxVbsqI4/oUg32hQh1MQZOs4Gce1HCOcIjYJUb1Pff0AyKVRL3mTTRzhgIVyN7XWoK5sHNBjbUP9cvgznQhPekYHdU71LhBJRBz/eEHV+rj1l4BaSUXj6t0APL6RMb/GD+5fVx0PW+fh5qAazrUpp8I0jT4Z9A9wOguFo03wXIgRHJua+Lg1l9RHhaj70tYiWjazdJxJAX3/z1cTVRyXlNtWnE5M/o9CpfZh5uMhmNVYIuog85nYzkme3KBrZpwZjkHWx9wQpG116Sf/uGm87CI8ItSwA33raWTnCxBlPu/SXPm1Rm1ZR13DIU+2XeHqGcJHXrW7u6PatlQI6Ig87zdTqF6FVtqxK2mJ2wJImmyUeCPKTMmkJEabUROyXqPQ9pW1mFyKNvr6W5ZvXdXExc9NLZpRd77l5ufMctrHd5C/1qvuo7jubEFwbTyFIup8RevKlPB8BwlUceSZa03nXUEZH/AU="
+    },
+    "law:sozeki_hou:70_3_2": {
+      "id": "law:sozeki_hou:70_3_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "70_3_2",
+      "title": "租税特別措置法 相続時精算課税に係る贈与税の基礎控除の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_70_3_2",
+      "text": "令和六年一月一日以後に相続税法第二十一条の九第五項に規定する相続時精算課税適用者（第三項において「相続時精算課税適用者」という。）がその年中において同条第五項に規定する特定贈与者（第三項において「特定贈与者」という。）からの贈与により取得した財産に係るその年分の贈与税については、同法第二十一条の十一の二第一項の規定にかかわらず、贈与税の課税価格から百十万円を控除する。\n２　前項の規定により控除された金額は、相続税法その他相続税又は贈与税に関する法令の規定の適用については、相続税法第二十一条の十一の二第一項の規定により控除されたものとみなす。\n３　第一項の相続時精算課税適用者に係る特定贈与者が二人以上ある場合における各特定贈与者から贈与により取得した財産に係る課税価格から控除する金額の計算については、政令で定める。",
+      "score": 306.68,
+      "text_ranges": [
+        [
+          0,
+          361
+        ]
+      ]
+    },
+    "law:sozokuzei:21_11_2": {
+      "id": "law:sozokuzei:21_11_2",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_11_2",
+      "title": "相続税法 相続時精算課税に係る贈与税の基礎控除",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_11_2",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、贈与税の課税価格から六十万円を控除する。\n２　前項の相続時精算課税適用者に係る特定贈与者が二人以上ある場合における各特定贈与者から贈与により取得した財産に係る課税価格から控除する金額の計算については、政令で定める。",
+      "score": 306.4,
+      "text_ranges": [
+        [
+          0,
+          162
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "kind": "taxanswer",
+      "no": "4504",
+      "title": "住宅取得等資金の贈与を受けた場合の贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4504.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 290.14,
+      "text_ranges": [
+        [
+          0,
+          1523
+        ]
+      ],
+      "text_deflate_base64": "rVfLdtpIEP0VLZNzsgBsEnsxXzJn/kXVGCPx9IswxO8TbBQzFk7geMDIZDGfUmq1tNIvzOluPVoCx2QyOyGqq6tu3VtV+t1dDOhRc4fOp9vemVH0ejess6RnljfpuosBuzf/0Oh46X+9Zlabndr+1HBnbWa1vVvi34L73KF2lXY+0mWP3Zv+pBbUDhEiMyRHtNNDOES4Zacz9vjJ6xP2bcnsnn/3jVncIICZV79A6CFc0qspPTCS49wAbN8ymN3jrqp/u8/H7rKBMPTv/vL+bItTS4Q+guX9dY1gIzEQ9hFGCHdI6tG/OtHSNEvemYEwYsZj6BjlXe9+EjomQgOJuf2uUCi4sxrd30cdvHGLW+yoFiXFAuxNs9eBHjS9M8Od3fObzwCJhZUWuzelB3dxQwcfE4fsxEKwqf1Ivzb4g/CPMHK/EyQNenPIpntIjnj2OiDsIXxC0kzv5dkPxPtbJGRz4LXQMbyJFTqmhnpzNUzUWxnfMOb3kwlWHKyY2+XCDj92OmWTBX2o068XErONOZLWPzi/iOLkV9qoN5M3Qf+APt0G1y35lwy5xAvEHRFWHYqUbhE6CFcIXR6sTrT1MIDNzDk1brz2MOgPuFeRlIqNDNPXqwgnCJZA4FzgfYGkGcAXUa6ueLPKNlnyJMNXsMiiW46pFjrGmmrAuJiyUTB0iTBMoeOx9pE0mDkXomkicP4gHIu/eGlQB2Y8Rs/roziWGHEPnDMyW+4WCeGl4a4kD5cIl+Ihd6RN2wuEUXyWYxrH0OQyhb2MqwTE1chCx3gJQDXtH5RaAGFHoSTMIw3JPM780DHiA6KmpBHUDgUxok7EjZRGoYVOS1MrlTJVnAsdk1t8UEq5PrxY3pdPbNBO+ChDammldxk2bEZmfvi33a000ljeRTqfBh+PEUb+oOZ1H3jreXqSaP84vBdFq0OxGHdGcvRSgLGwMt58vRo6Bu8d5pzan1LBcYVbgoh7CS0E0aUQs2NCXOEur70rB2EouH5Mjf2YneeCYcpLuMxBLVpqqux8MAKc1fT9b9fs5DMHcHktaMLNpE+VzYLoda43pUSr3XTVv6iLzHconHRUM5mIYjNi0zH70kIYKoyRnSG+s680gabw2kpFFzoG7RBfr4TOK0zIoxfrQygoLkxeOCkZ/+lppULoVN9swje+e7Rrb7XQOdeKO+8jF2/Ua95mRJmkrm2lMCQiVNWkhPQmlW7Fosb+W+UGdjKhh3WvT7hm1P4gGlhqnzkum5XsUasD7Kfg3VDxqiJy8MstLjfjNw5BaDE77TiLbElbOe/e0/m0GC2RfKVZZnaSoH+QbmT84DA5WOYH+V62FR81W9lxNF6Zs6dIjjlhvXFrdUq8OgEQvv8fc6CUmwPbv9jli+9230cuXtJFvuJSFIWov/+qdpWE2Pcm318WN0Gfr31s/oCk7j/WEzxygSTJq1lo5fjtTwWkCnRDHFRiiw0kmUuvrgzUeKRPvAHTTs+fGr5eLYqOmjZnpZM2pX5F97xD+Cxa954QwyUSeHWjyt+aLlW9zEXkKLvJqd9HI6m6VernBspKhmsYH0+CsTIJIm0lM0toxkB42ATNdEEHW01HjF3+JZhZIuPbaWfsV55FDH2unjUY2u5MDyoWXwLjeEpldf211gGSnsoZR58JOnh2gzem7PRfD6kO/2G3jHIkRM0x2mR4A7uae42r5HObnc68SbdURLCLhfD5Qj5tyavdxaCMYJd41O07b9L9UIh+ioct2VHL3sncu//sTbpBf4+ateJuagB2SfsX"
+    },
+    "law:sozokuzei:21_12": {
+      "id": "law:sozokuzei:21_12",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_12",
+      "title": "相続税法 相続時精算課税に係る贈与税の特別控除",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_12",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税については、特定贈与者ごとの前条第一項の規定による控除後の贈与税の課税価格からそれぞれ次に掲げる金額のうちいずれか低い金額を控除する。一　二千五百万円（既にこの条の規定の適用を受けて控除した金額がある場合には、その金額の合計額を控除した残額）\n二　特定贈与者ごとの前条第一項の規定による控除後の贈与税の課税価格\n２　前項の規定は、期限内申告書に同項の規定により控除を受ける金額、既に同項の規定の適用を受けて控除した金額がある場合の控除した金額その他財務省令で定める事項の記載がある場合に限り、適用する。\n３　税務署長は、第一項の財産について前項の記載がない期限内申告書の提出があつた場合において、その記載がなかつたことについてやむを得ない事情があると認めるときは、その記載をした書類の提出があつた場合に限り、第一項の規定を適用することができる。",
+      "score": 289.54,
+      "text_ranges": [
+        [
+          0,
+          421
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+      "kind": "taxanswer",
+      "no": "4301",
+      "title": "相続時精算課税の選択と相続税の申告義務",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税、贈与税概要相続時精算課税は、贈与時に、相続時精算課税の適用を受ける贈与財産（「相続時精算課税適用財産」といいます。）に対する贈与税を納め、その贈与者が亡くなった時にその相続時精算課税適用財産の贈与時の価額（令和6年1月1日以後の贈与により取得した相続時精算課税適用財産については、贈与を受けた年分ごとに、相続時精算課税適用財産の贈与時の価額の合計額から相続時精算課税に係る基礎控除額を控除した残額）と相続財産の価額とを合計した金額を基に計算した相続税額から、既に納めたその贈与税相当額を控除することにより、贈与税・相続税を通じた納税を行う制度です。 したがって、相続時精算課税の選択を行った場合で、その贈与者が亡くなったときは、相続時精算課税適用財産を相続財産に加算して相続税の計算を行います。この計算の結果、相続税の基礎控除額以下であれば相続税の申告は必要ありません（注）。 （注） 相続税の申告の必要がない場合でも、相続時精算課税適用財産について既に納めた贈与税がある場合には、相続税の申告をすることにより還付を受けることができます。この還付を受けるための申告書は、相続開始の日の翌日から起算して5年を経過する日まで提出することができます。 根拠法令等相法21の15、21の16、27、33の2、通法74、措法70の2の6、70の2の7、70の2の8、令5改正法附則19、相基通27-8 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 275.64,
+      "text_ranges": [
+        [
+          0,
+          620
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の3の3-14": {
+      "id": "tsutatsu:sochi_sozoku:70の3の3-14",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の3の3-14",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （災害承認を受けた土地又は建物の価額から控除される相続時精算課税に係る基礎控除の額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_3/05.htm",
+      "law_version": "",
+      "text": "災害承認を受けた土地又は建物を贈与により取得した年中に当該贈与をした特定贈与者以外の特定贈与者からの贈与により取得した財産がある場合において、措置法第70条の３の３第１項の規定により読み替えて適用する相続税法第21条の15第１項又は第21条の16第３項の規定の適用により当該土地又は建物の価額から控除される相続時精算課税に係る基礎控除の額は、当該年分の贈与税の申告書の提出又は更正若しくは決定がされている場合には、その申告書の提出又は更正若しくは決定に係る相続時精算課税に係る基礎控除の額となることに留意する（相続税法基本通達21の15－２の２((「第21条の11の２第１項の規定による控除」の意義))参照）。（令5課資2-21追加）\n(注) 令和５年12月31日以前に贈与により取得した土地又は建物について、措置法第70条の３の３第１項の規定の適用がある場合における相続税法第21条の15第１項又は第21条の16第３項の規定により相続税の課税価格に加算又は算入される金額については、相続時精算課税に係る基礎控除はないことに留意する。",
+      "score": 278.47,
+      "text_ranges": [
+        [
+          0,
+          467
+        ]
+      ]
+    },
+    "tsutatsu:sochi_sozoku:70の3-15": {
+      "id": "tsutatsu:sochi_sozoku:70の3-15",
+      "kind": "tsutatsu",
+      "circular": "sochi_sozoku",
+      "no": "70の3-15",
+      "variant": 0,
+      "title": "租税特別措置法（相続税法の特例関係）の取扱いについて （期限後申告等に係る「特定の贈与者から住宅取得等資金の贈与を受けた場合の相続時精算課税の特例」の適用）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/sozoku/sochiho/080708/70_3/02.htm",
+      "law_version": "",
+      "text": "措置法第70条の3第1項の規定は、同条第9項又は第11項に規定する個人がこれらの規定により同条第1項の規定の適用を受けようとする場合を除き、期限後申告若しくは修正申告又は更正若しくは決定に係る贈与税については、適用がないことに留意する。（平29課資2-14改正）\n\n目次に戻る",
+      "score": 276.99,
+      "text_ranges": [
+        [
+          0,
+          138
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "kind": "taxanswer",
+      "no": "4429",
+      "title": "贈与税の申告と納税",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4429.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 175.19,
+      "text_ranges": [
+        [
+          0,
+          2466
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozokuzei:49": {
+      "id": "law:sozokuzei:49",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "49",
+      "title": "相続税法 相続時精算課税等に係る贈与税の申告内容の開示等",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_49",
+      "text": "相続又は遺贈（当該相続に係る被相続人からの贈与により取得した財産で第二十一条の九第三項の規定の適用を受けるものに係る贈与を含む。）により財産を取得した者は、当該相続又は遺贈により財産を取得した他の者（以下この項において「他の共同相続人等」という。）がある場合には、当該被相続人に係る相続税の期限内申告書、期限後申告書若しくは修正申告書の提出又は国税通則法第二十三条第一項（更正の請求）の規定による更正の請求に必要となるときに限り、次に掲げる金額（他の共同相続人等が二人以上ある場合にあつては、全ての他の共同相続人等の当該金額の合計額）について、政令で定めるところにより、当該相続に係る被相続人の死亡の時における住所地その他の政令で定める場所の所轄税務署長に開示の請求をすることができる。一　他の共同相続人等が当該被相続人から贈与により取得した次に掲げる加算対象贈与財産（第十九条第一項に規定する加算対象贈与財産をいう。以下この号において同じ。）の区分に応じそれぞれ次に定める贈与税の課税価格に係る金額の合計額イ　相続の開始前三年以内に取得した加算対象贈与財産贈与税の申告書に記載された贈与税の課税価格の合計額\nロ　イに掲げる加算対象贈与財産以外の加算対象贈与財産贈与税の申告書に記載された贈与税の課税価格の合計額から百万円を控除した残額\n二　他の共同相続人等が当該被相続人から贈与により取得した第二十一条の九第三項の規定の適用を受けた財産に係る贈与税の申告書に記載された第二十一条の十一の二第一項の規定による控除後の贈与税の課税価格の合計額\n２　前項各号の贈与税について修正申告書の提出又は更正若しくは決定があつた場合には、同項各号の贈与税の課税価格は、当該修正申告書に記載された贈与税の課税価格又は当該更正若しくは決定後の贈与税の課税価格とする。\n３　第一項の請求があつた場合には、税務署長は、当該請求をした者に対し、当該請求後二月以内に同項の開示をしなければならない。",
+      "score": 170.65,
+      "text_ranges": [
+        [
+          0,
+          836
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:21の9-2": {
+      "id": "tsutatsu:sozoku:21の9-2",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "21の9-2",
+      "variant": 0,
+      "title": "相続税法基本通達 （「相続時精算課税選択届出書」の提出先等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/02/12.htm",
+      "law_version": "",
+      "text": "贈与者が贈与をした年の中途において死亡した場合又は贈与により財産を取得した者が相続時精算課税選択届出書の提出期限前に当該相続時精算課税選択届出書を提出しないで死亡した場合において、当該贈与を受けた財産について相続時精算課税の適用を受けるために提出する相続時精算課税選択届出書の提出先及び提出期限は、次に掲げる場合に応じ、それぞれに掲げるところによることに留意する。（平15課資2-1追加、平16課資2-6、平30課資2－9、令3課資2－14改正）>\n\n \n 区分\n 提出先\n 提出期限\n \n \n (1) 贈与者が贈与をした年の中途で死亡した場合\n\n（注） 相続時精算課税選択届出書に係る受贈財産については、贈与税の申告を要しないことに留意する。\n 受贈者に係る贈与税の申告書の提出期限（相続税法第28条第1項又は第2項に規定する期限）以前に当該贈与者の死亡に係る相続税の申告書の提出期限（同法第27条第1項又は第2項に規定する期限）が到来するとき\n 当該贈与者に係る相続税の納税地を所轄する税務署長\n 当該贈与者に係る相続税の申告書の提出期限\n \n \n 贈与者の死亡に係る相続税の申告書の提出期限\n\n（相続税法第27条第1項又は第2項に規定する期限）前に受贈者に係る贈与税の申告書の提出期限（同法第28条第1項又は第2項に規定する期限）が到来するとき\n 当該受贈者に係る贈与税の申告書の提出期限\n \n \n (2) 贈与により財産を取得した者が相続時精算課税選択届出書の提出期限前に当該届出書を提出しないで死亡した場合（上記(1)に該当する場合を除く。）\n 当該受贈者に係る贈与税の納税地を所轄する税務署長\n 当該受贈者に係る贈与税の申告書の提出期限",
+      "score": 174.21,
+      "text_ranges": [
+        [
+          0,
+          724
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm",
+      "kind": "taxanswer",
+      "no": "4304",
+      "title": "相続時精算課税選択届出書に添付する書類",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4304.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目贈与税概要相続時精算課税を選択しようとする受贈者は、選択をしようとする贈与を受けた年の翌年の2月1日から3月15日までの間（贈与税の申告書の提出期間）に納税地の所轄税務署長に対して、「相続時精算課税選択届出書」を提出しなければなりません。 （注） 贈与を受けた財産の価額が110万円を超えるなど、贈与税の申告書を提出する場合には、相続時精算課税選択届出書は贈与税の申告書に添付して所轄税務署長へ提出する必要があります。 なお、この届出書には、次の書類を添付することとされています。 1 受贈者が贈与者の直系卑属（子や孫など）である推定相続人または孫である場合受贈者の戸籍の謄本または抄本その他の書類で、次の内容を証する書類（贈与を受けた日以後に作成されたものを提出してください。） イ受贈者の氏名、生年月日ロ受贈者が贈与者の推定相続人または孫であること 2 受贈者が「個人の事業用資産についての贈与税の納税猶予及び免除の特例（措法70の6の8）」の適用を受ける特例事業受贈者である場合（受贈者が1に該当する場合を除きます。） （1） 受贈者の氏名および生年月日を証する書類 （2） 受贈者が贈与者からの贈与により特例受贈事業用資産の取得をしたことを証する書類 3 受贈者が「非上場株式等についての贈与税の納税猶予及び免除の特例（措法70の7の5）」の適用を受ける特例経営承継受贈者である場合（受贈者が1に該当する場合を除きます。） （1） 受贈者の氏名および生年月日を証する書類 （2） 受贈者が贈与者からの贈与により特例対象受贈非上場株式等の取得をしたことを証する書類 （注） マイナンバー（個人番号）を記載した各種申告書、申請書、届出書等を提出する際には、マイナンバーカード等の一定の本人確認書類の提示または写しの添付が必要になります。 根拠法令等相法21の9、措法70の2の6、70の2の7、70の2の8、相令5、相規11、措規23の5の6、23の5の7、23の5の8 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 458.78,
+      "text_ranges": [
+        [
+          0,
+          858
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:21の9-3": {
+      "id": "tsutatsu:sozoku:21の9-3",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "21の9-3",
+      "variant": 0,
+      "title": "相続税法基本通達 （相続時精算課税選択届出書の提出）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/02/12.htm",
+      "law_version": "",
+      "text": "贈与により取得した財産について、相続時精算課税の適用を受けようとする者は、その年分の贈与税の申告書の提出を要しない場合であっても、法第21条の９第２項及び法施行令第５条第１項前段の規定に基づき相続時精算課税選択届出書をその提出期限までに提出する必要があることに留意する。なお、相続時精算課税選択届出書をその提出期限までに提出しなかった場合には、相続時精算課税の適用を受けることはできないことに留意する。（平15課資2-1追加、令５課資２－21改正）>\n\n(注)\n\n１ 提出期限までに相続時精算課税選択届出書が提出されなかった場合におけるゆうじょ規定は設けられていない。\n２ 法第21条の９第２項及び法施行令第５条第１項前段の規定に基づき相続時精算課税選択届出書のみをその提出期限までに提出した場合には、相続時精算課税の適用を受けることができることから、例えば、贈与により財産を取得した者が当該規定に基づいてその提出期限までに相続時精算課税選択届出書のみを提出していた場合において、当該贈与を受けた年分に係る贈与税についての期限後申告書を提出することとなった場合でも、引き続き相続時精算課税の適用を受けることができることに留意する。",
+      "score": 453.32,
+      "text_ranges": [
+        [
+          0,
+          515
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:39-2": {
+      "id": "tsutatsu:sozoku:39-2",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "39-2",
+      "variant": 0,
+      "title": "相続税法基本通達 （取引相場のない株式の延納担保）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/06/02.htm",
+      "law_version": "",
+      "text": "相続若しくは遺贈又は贈与により取得した取引相場のない株式を担保とした延納申請があった場合において、次のいずれかに該当する事由があるときは、当該株式を延納の担保として認めることができる。（平4課資2－158・徴管5－6追加）>\n\n（1） 相続若しくは遺贈又は贈与により取得した財産のほとんどが取引相場のない株式であり、かつ、当該株式以外に延納の担保として提供すべき適当な財産がないと認められること。\n（2） 取引相場のない株式以外に財産があるが、当該財産が他の債務の担保となっており、延納の担保として提供することが適当でないと認められること。",
+      "score": 164.62,
+      "text_ranges": [
+        [
+          0,
+          270
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:38-10": {
+      "id": "tsutatsu:sozoku:38-10",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "38-10",
+      "variant": 0,
+      "title": "相続税法基本通達 （贈与税の延納期間）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/06/01.htm",
+      "law_version": "",
+      "text": "贈与税の延納期間は、納税義務者の申請に基づき、その者の事業の継続又は生活の状況等を考慮し、5年の範囲内で適当と認められる期間を定めるものとする。>",
+      "score": 182.79,
+      "text_ranges": [
+        [
+          0,
+          73
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+      "kind": "taxanswer",
+      "no": "4157",
+      "title": "相続税額の2割加算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4157.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税概要相続、遺贈や相続時精算課税に係る贈与によって財産を取得した人が、被相続人の一親等の血族（代襲相続人となった孫（直系卑属）を含みます。）および配偶者以外の人である場合には、その人の相続税額にその相続税額の2割に相当する金額が加算されます。 （注1） 被相続人の養子は、一親等の法定血族であることから、相続税額の2割加算の対象とはなりません。ただし、被相続人の養子となっている被相続人の孫は、被相続人の子が相続開始前に死亡したときや相続権を失ったためその孫が代襲して相続人となっているときを除き、相続税額の2割加算の対象になります。 （注2） 相続時精算課税適用者が相続開始の時において被相続人の一親等の血族に該当しない場合であっても、相続時精算課税に係る贈与によって財産を取得した時において被相続人の一親等の血族であったときは、その財産に対応する一定の相続税額については加算の対象になりません。 相続税額の2割加算の対象になる人例えば、以下の方は相続税額の2割加算の対象になります。 （1） 被相続人から相続または遺贈により財産を取得した人で、被相続人の配偶者、父母、子ではない人（例示：被相続人の兄弟姉妹や、おい、めいとして相続人となった人） （2） 被相続人の養子として相続人となった人で、その被相続人の孫でもある人のうち、代襲相続人にはなっていない人計算方法・計算式相続税額の2割加算が行われる場合の加算金額 ＝ 各人の税額控除前の相続税額×0.2 ただし、相続時精算課税に係る贈与を受けている人で、かつ、相続開始の時までに被相続人との続柄に変更（養子縁組の解消等）がある場合は、計算が異なります。 根拠法令等相法18、21の15、21の16、相基通18-5 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 63.11,
+      "text_ranges": [
+        [
+          0,
+          757
+        ]
+      ]
+    },
+    "tsutatsu:sozoku:51-4": {
+      "id": "tsutatsu:sozoku:51-4",
+      "kind": "tsutatsu",
+      "circular": "sozoku",
+      "no": "51-4",
+      "variant": 0,
+      "title": "相続税法基本通達 （贈与税の期限後申告の特則等により申告があった場合の延滞税）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/sozoku2/07/01.htm",
+      "law_version": "",
+      "text": "法第51条第2項の延滞税の額の計算の基礎となるべき日数の計算の規定は、相続税の申告書の提出期限後において、法第30条第2項若しくは第31条第4項の規定により贈与税の期限後申告書若しくは修正申告書の提出があった場合、又は法第35条第4項の規定により税務署長において更正若しくは決定をした場合において、当該申告書の提出により納付すべき贈与税額又は更正若しくは決定に係る贈与税の延滞税の額の計算の基礎となるべき日数の計算について準用することに取り扱うものとする。この場合において、法第51条第2項の規定中「相続税」とあるのは「贈与税」と、「相続又は遺贈により財産を取得した者」とあるのは「贈与により財産を取得した者」と、「次に掲げる事由」とあるのは「次のハに掲げる事由」と、「納付すべき相続税額」とあるのは「納付すべき贈与税額」と読み替えて取り扱うものとする。（平16課資2－6追加）>",
+      "score": 176.51,
+      "text_ranges": [
+        [
+          0,
+          390
+        ]
+      ]
+    },
+    "tsutatsu:hyoka:189-4": {
+      "id": "tsutatsu:hyoka:189-4",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "189-4",
+      "variant": 0,
+      "title": "財産評価基本通達 （土地保有特定会社の株式又は開業後3年未満の会社等の株式の評価）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/05.htm",
+      "law_version": "",
+      "text": "189((特定の評価会社の株式))の(3)の「土地保有特定会社の株式」又は同項の(4)の「開業後3年未満の会社等の株式」の価額は、185((純資産価額))の本文の定めにより計算した1株当たりの純資産価額（相続税評価額によって計算した金額）によって評価する。この場合における当該各株式の1株当たりの純資産価額（相続税評価額によって計算した金額）については、それぞれ、当該株式の取得者とその同族関係者の有する当該株式に係る議決権の合計数が土地保有特定会社又は開業後3年未満の会社等の185((純資産価額))のただし書に定める議決権総数の50％以下であるときは、上記により計算した1株当たりの純資産価額（相続税評価額によって計算した金額）を基に同項のただし書の定めにより計算した金額とする。\n なお、当該各株式が188((同族株主以外の株主等が取得した株式))に定める同族株主以外の株主等が取得した株式に該当する場合には、その株式の価額は、188－2((同族株主以外の株主等が取得した株式の評価))の本文の定めにより計算した金額（この金額が本項本文の定めによって評価するものとして計算した金額を超える場合には、本項本文の定めにより計算した金額）によって評価する。（平2直評12外追加、平12課評2－4外・平15課評2－15外改正）",
+      "score": 319.94,
+      "text_ranges": [
+        [
+          0,
+          562
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:6c8d02dde92221bb": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "kind": "taxanswer",
+      "no": "4638",
+      "title": "取引相場のない株式の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 190.92,
+      "text_ranges": [
+        [
+          0,
+          1582
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:hyoka:178:f924e55023a6730b": {
+      "id": "tsutatsu:hyoka:178",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "178",
+      "variant": 0,
+      "title": "財産評価基本通達 （取引相場のない株式の評価上の区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm",
+      "law_version": "",
+      "score": 234.78,
+      "text_ranges": [
+        [
+          0,
+          1717
+        ]
+      ],
+      "text_deflate_base64": "vVjdUuJKEL7PU3ipVXuqCP6xb5eJiImEjbssuCi7QAmIBCIr7MpP1HexM5NwxSuc6pkkJCx6cK06V0w1M91ff/0zPaFmmTol73JM6yMgNpAukCyrd6ljArHdx8a8UQByCwrxb0ruYwPIOagakByQDpAKqHkg34HY0RGvMvUbhutceM3HhaO5s5Y7zoNiiONCDkqBH8+iHkVdODoQg/UaQGy/0QFi0+Z1uJO4475YU1MDcksHZvAXos0CuQDVAGL5N3f0oRhCygOx6FMVyDcgbVAIgsRtP0BFQ/P6MVqxL0AlQCzu0RWQdugjV6KoQGpA6uiyQuiZwc5NVu+645k7a9FmWXjtjmdeH/FTs0wfz3EzqQk2BGBPn6AhYicYiDEWJzmOU85knvXuX9h91i1hWs58fNa7rwN41q1NqFg4GvvW35O9y5E/PNldOAX5IxzNUHYYkx0I2f4uym5K+whXSDIJCZ0M00IgpyPJgd+9829K6YVTyERCObWUyqmlWF6Klxrk9FK6t5RmYnsPlwA+BuJ/OAb2dcL6VwtHlyS/bbJOgxpTquUk8YMc5Y6pPZG8e9Mfnnhfr0Tctul46A2ewiDGCOxonh3EZX7yed4o7FDzFMiQPhZZq0+LDVYaSN7liOoFVq2xqoXh1QsynYzm5SKqIqdAPoOap7xIhRJJ2oqqQ4qrAmIcptzplFfcKeZVvGrMYbJe8islEyosjOnVHWv1pXSKZrM0lxPqtlcs7e6HlvKRJVC/zCtNICYo6o60mzgvSXRg0qs7OJqB+guOHDgqgjpBQ/L++wylVw2FLmDRvmBUFNK7TSfPS9JW1KvWRoZVu2yqLHWR6w3DsnC0ZUdMbqD1ET3T4rAwg5dhPPyQSqXc8cmLXv43v3Efw6gKV16J6t677R6sakiv2t480PvvRpNZ1RDGPkSzFV1Mfxt7C1T11ZKMxVKoC2r7JVfC0L0lWJspPlg98LfR2Mxc5k9zW6LHiXEBFGOlK2PFbNyXF47+Z2cGpSCEqPytTZoPOKv3uRhwtuUdLHNV397dCWCpp7hTMWIUFgLJC0RycBo3YWxOPEdlU63Jx4Hb7b0IAN7w0sLR5IWjb72TzZ3Ieb9753U+sYrKqjWcDDmLQCzvl+pOc+KMO80j5ZMRnbZxJqla7LwVnxvj3K+bG5cBWBlv6FlW+IDrBHqbnml+R+PrTjThoP/pwP+VRBDu/GcWZHHWFNNwtTYvF73fFe/3BfeznQRn0XyT5iviL36wFplEsgc/Wavvt02qn/Ah7zqYz1SdZ1NNnis/5+UibxU1zB9i09MRPSqwisoBGbspsQz7zjUQFZM0tBLvbmHjKwKx+WQcc0cxhBcC8PL4mkjYvG6tTZl6EyPrQSRvPd5Nkf11xZlgJ0iAgKHSANQvkVLZnU4jXoUiOhnS7ydxFdzTa24c8bKfKp+ea4Gu03pUE3xnLMm2BM3BtR1H+HYAmJTyh0wqFfqVTObdsJjf1b3CZH6l0rxL27vIRuZFSQOx3CeecuYnetwKO602P/ns/yjghqOZ33GoNhabgTTDCroVR6h2w3DNOzOXMD3PSgNWrvBoJ73dQ2+TwIz/rafGbnGbtfpex173Ir3lr9lTv/ON9377zYFZ9sWwVgU7ckbGp82z3l2JTBgKI45FAPQubf70S9T6H1mw2mxpbQqkJfaHFwl/HT8U0UT8OLKSA9IAYqWjN0lETpgb8QMGPbOAPHIaeQ+IxltEGbtOVaz1tcZYVQFVpc0LINnkhsBiBCC6wUI3YrnEhh3MpiBWaYzVsumEWLzm47x0j4uznDvNz0v37riN8wKx2LDkTqd49w1LrPyA30NmTa/XO5TZ98az3nUfnryvHazzYwcb2sOEK+4AKXHn8RuMED7rltfryfP6Mf5Qk9vr9dLUvBeh93q9PRQTi326A/IFOQvU3QZ0cnWcoeASEPOHV6qwrBn5/S8="
+    },
+    "tsutatsu:hyoka:168:e0b2ed2212dae7f1": {
+      "id": "tsutatsu:hyoka:168",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "168",
+      "variant": 0,
+      "title": "財産評価基本通達 （評価単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/01.htm",
+      "law_version": "",
+      "score": 124.95,
+      "text_ranges": [
+        [
+          0,
+          1200
+        ]
+      ],
+      "text_deflate_base64": "rVfbVuJKEH33K3x0Hs5aJzhe5u/oBjSBIIhy83KAGVSuwSXOEiHGf5lKdSdP/MJZ3Z2EICh61nki6VRX79q7qqtgzR7aBSxkgYyZfAbS9ys/gdSB5lini3oXiOU6Lb+VBzKCJAFyDdQEagCx/GyNNdJALF6+B9IDmgNyDqQDpA9JwgYtIH128gCkBDSH5hT1IyB9dM6ApANXxNLEwQUdyEjD5MKB1y27TksBgSSd2zqrDfd2+eWj1y3vYbsCqRk+jxNqQUtEK9p3r/fgdcuJuZ2Pre4tVrXFdu0wZnyw8Pp3sPxX7KT9cE37ge0KO39mw19z29ia27o2t41td5LF5qOicW7r/vGp908ey0d4RrBQQbvMjOT69XFZhYclM7GLz49sXEYnxweDxB4Wnua2IR7ZdeuP0UPrgjvdP0afDwbavt/MCKpuC2hdKKrWngq0JBgnR5Ck7uzGneSwaAKpSV4NIH0FHUhZSEtuhTHNBQnx4V4RfEIEz+6rfibPLyfYfORDkRxAaORka8N3KfloNWdWIWwBbW/z+sw3H1T2CeaqN+xq4HVs1CfsZoj5c9e+AGLhUca7FRkNVAfyC8htfKM8sxot/ofgVd3gtOo3h9xq8eJRBAmL5gcwVrdEYJh5LLX8uhKQGm5jZuBXcn7y3J1kxYExit/LSCBmqIEVpAEtMePV6+UlogaQM4GOlljtRJZ9TnoWn1j1RrxSI8wfS65YaOTlgwPkTiot6jyCsSQCLfn1NpBCnNF39DQjGj6UUV4Yn8Ac2n8K8xrFlpFvLpNdUSaKdlUG8pQekHR0yo72TTGwk/i2Wgbu7EZcRiGqzSd+l4UZiovGA76ciZyiJSxUgZxGV7yooWUzbEzZtKKY4a9mRNoabwGBAW9+5UxSnQ38f+L0zYHsBYG4k5mUu7cWOT8fe44N5FX0mJGjsiKG0xTlIOqvEY9rbuuufcHbDhDL6wx5X6SKf3EJpMrrU+/3kzudAjHRLoewS0F3DPtl6PZ20SCJtbCX/MhrVlbK8lm8PvM6tTdJGEFiepH3c+iYC9GXmcfmIxb1VQzMKHuOza5EpDvRi9TGEtcLJQEdNBdzMVKWksEAtMS9SdpFqH33lX5B1/1FgvJ0C9MNd9p2ZzV21UAnwzoLdeNfxYkfZudb4+wzZi+BmLw+5eeNQLxPpOySn1jWBpeLIPAOSP4L8R6IeP1MHl/O4jGqFf/4dGOAayy/GF3k4f+J6FBEBPQZUjqkUkBHQHuQqgJ9gtQdpMaLVJYzDj6PmV7UDuIzzuH+0owjfjQsPL2Za1jlXlwAU50/phVrCpCEbvFRMgwyLYogab6xh2ReRhgEI9PaVAIDuXNnNXdyEjbdBlAq72ZLGJNWOJZYc1v/oeYlr6tqUPYaZR20g/Rif4w82Uab4kYK7wd+afELZRxlnBmfINVIvGlsupOvWek2B6QNSeL1HnjnhNUpu2qIpimV9Fqm+/KKhZGXelE3AR5logkhDLjv14vhuC3l/RGba1cFCIUVkh0csGvBUaiZHHZoNqIYjQeg2bAFGIrotyLFGH9nVlk/qSr8qnUqA5yl2PAnOl8JP6aXCF/bPxR/CrbRyPr1tkrelb8Lc9v4Fw=="
+    },
+    "tsutatsu:hyoka:188-6:94aef8c766775cf8": {
+      "id": "tsutatsu:hyoka:188-6",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "188-6",
+      "variant": 0,
+      "title": "財産評価基本通達 （投資育成会社が株主である場合の同族株主等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/04.htm",
+      "law_version": "",
+      "text": "188≪同族株主以外の株主等が取得した株式≫の(1)から(4)までについては、評価会社の株主のうちに投資育成会社（中小企業投資育成株式会社法（昭和38年法律第101号）に基づいて設立された中小企業投資育成株式会社をいう。以下この項において同じ。）があるときは、次による。（平12課評2－4外追加・平15課評2－15外改正）\r\n（1） 当該投資育成会社が同族株主（188≪同族株主以外の株主等が取得した株式≫の(1)に定める同族株主をいう。以下同じ。）に該当し、かつ、当該投資育成会社以外に同族株主に該当する株主がいない場合には、当該投資育成会社は同族株主に該当しないものとして適用する。\r\n（2） 当該投資育成会社が、中心的な同族株主（188≪同族株主以外の株主等が取得した株式≫の(2)に定める中心的な同族株主をいう。以下(2)において同じ。）又は中心的な株主（188≪同族株主以外の株主等が取得した株式≫の(4)に定める中心的な株主をいう。以下(2)において同じ。）に該当し、かつ、当該投資育成会社以外に中心的な同族株主又は中心的な株主に該当する株主がいない場合には、当該投資育成会社は中心的な同族株主又は中心的な株主に該当しないものとして適用する。\r\n（3） 上記(1)及び(2)において、評価会社の議決権総数からその投資育成会社の有する評価会社の議決権の数を控除した数をその評価会社の議決権総数とした場合に同族株主に該当することとなる者があるときは、その同族株主に該当することとなる者以外の株主が取得した株式については、上記(1)及び(2)にかかわらず、188((同族株主以外の株主等が取得した株式))の「同族株主以外の株主等が取得した株式」に該当するものとする。\r\n(注) 上記(3)の「議決権総数」及び「議決権の数」には、188－5（（種類株式がある場合の議決権総数等））の「株主総会の一部の事項について議決権を行使できない株式に係る議決権の数」を含めるものとする。",
+      "score": 359.4,
+      "text_ranges": [
+        [
+          0,
+          839
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/hyoka/05/03.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/hyoka/05/03.htm",
+      "kind": "shitsugi",
+      "no": "03",
+      "title": "同族株主がいない会社の株主の議決権割合の判定",
+      "url": "https://www.nta.go.jp/law/shitsugi/hyoka/05/03.htm",
+      "text": "甲社は同族株主のいない会社ですが、その株主であるA及びその親族が所有する甲社の株式数に応じた議決権割合は図のとおりであり、他の株主にこれらの者の同族関係者はいません。 Aが死亡し、甲社株式をAの配偶者Bが相続したときには、その株式はどのように評価することとなりますか。 財産評価基本通達188(同族株主以外の株主等が取得した株式)(3)に定める株式に該当し、配当還元方式により評価することとなります。 (理由) 財産評価基本通達188(3)では、「その株主の取得した株式」とあることから、Bが取得したときには、CはBの親族(配偶者、6親等内の血族及び3親等内の姻族)に当たらず、「株主の1人及びその同族関係者の有する議決権の合計数」が15%未満となるため、財産評価基本通達188(3)に定める株主に該当することとなり、財産評価基本通達188-2(同族株主以外の株主等が取得した株式の評価)の定めにより配当還元方式により評価することとなります。 (注) 子のいずれかがAの株式を相続した場合には、Cが6親等内の血族に当たるので、子は、議決権割合の合計が15%以上のグループに属しますが、Cが中心的な株主であり、かつ、子の相続後の議決権割合が5%未満であることから、その子が役員又は法定申告期限までに役員となる者でない限り、配当還元方式が適用されることとなります。",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 337.66,
+      "text_ranges": [
+        [
+          0,
+          580
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:26a0f5c926c4d2e1": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "kind": "taxanswer",
+      "no": "4103",
+      "title": "相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 122.56,
+      "text_ranges": [
+        [
+          0,
+          2656
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm:dcbb5947d03793cf": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+      "kind": "taxanswer",
+      "no": "4301",
+      "title": "相続時精算課税の選択と相続税の申告義務",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目相続税、贈与税概要相続時精算課税は、贈与時に、相続時精算課税の適用を受ける贈与財産（「相続時精算課税適用財産」といいます。）に対する贈与税を納め、その贈与者が亡くなった時にその相続時精算課税適用財産の贈与時の価額（令和6年1月1日以後の贈与により取得した相続時精算課税適用財産については、贈与を受けた年分ごとに、相続時精算課税適用財産の贈与時の価額の合計額から相続時精算課税に係る基礎控除額を控除した残額）と相続財産の価額とを合計した金額を基に計算した相続税額から、既に納めたその贈与税相当額を控除することにより、贈与税・相続税を通じた納税を行う制度です。 したがって、相続時精算課税の選択を行った場合で、その贈与者が亡くなったときは、相続時精算課税適用財産を相続財産に加算して相続税の計算を行います。この計算の結果、相続税の基礎控除額以下であれば相続税の申告は必要ありません（注）。 （注） 相続税の申告の必要がない場合でも、相続時精算課税適用財産について既に納めた贈与税がある場合には、相続税の申告をすることにより還付を受けることができます。この還付を受けるための申告書は、相続開始の日の翌日から起算して5年を経過する日まで提出することができます。 根拠法令等相法21の15、21の16、27、33の2、通法74、措法70の2の6、70の2の7、70の2の8、令5改正法附則19、相基通27-8 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 282.35,
+      "text_ranges": [
+        [
+          0,
+          620
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:eb06b00641fe11c7": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "kind": "taxanswer",
+      "no": "4409",
+      "title": "贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 281.43,
+      "text_ranges": [
+        [
+          0,
+          2216
+        ]
+      ],
+      "text_deflate_base64": "5VjbVuJIFP2VPHavZc8i4KX7W2bNv+SUYoe7og4NqECLiNiGaWEckIgP/SdzUlXhKb8wqyqkEhBUei5ruvuNJFXn7LPPbevPzqhJi9m3dNhfZ8emzkrnvDCmx23WO3JGTX6d+kWj3bH7ucHbeV613L7pDPK8nWct4rZA+9MYaaxiIUkhlBAs8WU7Seuf0ci6Nw1+eIakiITIA2cINYQ2Qg6NHEIaiYnQ4x/vqFXhhz26n/bverap/Hh2CuFKWDBAvUSwnNER/30H4QHBouYuQgZJGskOQhlhx704czufkOxEr/guECwJNSPBdBAukRRZ/sa1/RBaCDsIY2nHQrhAAxAIkgJCFaFFC4QnL4KTBYQ6wpG4YhCNVwf8tsLKhN+MuVVyOzfCMSlOYMDSp/JOjdb7dM9EsKLI3LbJrRKSIk3+4dwfOOMMwoXb+cQ+5AUOkkFos08NCagtiUvLHx35Q2I1iObZJuu1PTu1ChAR3YngcJxFsFixSaunCF0ROOSk7SqSAzSI/F1DAxYbB4unhtQ8Z/mLSbkpQimUEPYl9hoSEEmE7lwS2XFtUt6ju8kgNVn6kHRbIL3LmBQhzjjj2RW/WjfpsK9Pq9UZnUvoVwKZeauqinVzsiZS/LBGUznfawgriF+QptNhn1ctSZywIG7pa7FYzBm8p7u7aIAytq5eBgkMTU79Z2SpB19F1E1ZUS1qnkgeWs9lRyR8mh3SfGxTQ8MMSD9CkkWSmbzfnzRyYSEZKS0SgObZOU3Xp0+ebS7J4JXzQITr2h1v5v08Tho5QYsw8PZdxEAk1erIiRYTztAw+UOWDvvO6HxSziFc8eFvSNLubVrhnbs/Azy+tjEDXPmVLvS1zSAQ3L5WeVmRnMf3oomK1mm0YqbzDCxn3JAWhQVWadFh/2kKFfdy0sj+EC0o+nZpNmaaVc0k2YvBWFopjeG4neU+QrdoyCm6Bf0vBrFBtPWlVfUSJoJKiaukinwFE+FRKahTX0qavuHZSd9ptCASiZ821KMZf6aVH3dt0GrfeVdF+mZBV23Fwycz8a1xqNAv51Dfekm9hae+lLR4zK+3Ey2xHkTeEV20rPGeXK/Bp2kkPgTXSHq26QzSbvuDHCsZ2XZdbt5K2ZNl1yPnruEbnAonsHzvU+EgXTvjBqvb/g703Sn7fvoWbL9hX6qmQ2n2Kpx3QmuZSNK08Csdl3zXavD5Z1iZRIagRfdMt22qgSgAkCzCKZLsahNqZjjWmJXxX9J0XeRnqoMOJOB57bOQw5fFbi0c6/9UFL6sUhTF1za3IhNTqjUkRQl25Ww/S4xnm/K9NalUhYopfRRzo5+TMqT2dFiqSXh1QO8PJDFdv7iikMI9OA1arY2y2hnuZU8GVfAXK5Iebtu4nVpPxHQ0ltGrWqYd9ecLRT6+pJmy+COCFBEO3dbFvBQPtbBSd5XI4PHsXGTsnITTML7S6cQqp1UReHYlUgcCKi0Q19j27JSvbzeEvo2zYzMRKNxU7odSuJ59/PQe8ezTx3skfH41twZeh4vUs4+/epEKr/PydBaFEKihnlooUF8U23ciUP8VqflqDvzrOUUpCF604WX2/ktF+T+uYv2ZKo5+/TuC8Kso2HiagCi25ZkOT81oOT1E/Y2LuVWF2kuEVNC4K8kp5VQtuER0Gf4oKuc5ybFYWiyWEFGpECGT1YcsU1f/meXVAesdxXUE6513f6on0AD5pG+Ix01BRr7DekdbMQQrgWDF/XqntbuJUfEvvglvxd/o2l8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:220a0433c6bad0cb": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "kind": "taxanswer",
+      "no": "4152",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 120.37,
+      "text_ranges": [
+        [
+          0,
+          1930
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozokuzei:21_13:5cddcc371381fc99": {
+      "id": "law:sozokuzei:21_13",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "21_13",
+      "title": "相続税法 相続時精算課税に係る贈与税の税率",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_21_13",
+      "text": "相続時精算課税適用者がその年中において特定贈与者からの贈与により取得した財産に係るその年分の贈与税の額は、特定贈与者ごとに、第二十一条の十一の二第一項の規定による控除後の贈与税の課税価格（前条第一項の規定の適用がある場合には、同項の規定による控除後の金額）にそれぞれ百分の二十の税率を乗じて計算した金額とする。",
+      "score": 276.53,
+      "text_ranges": [
+        [
+          0,
+          155
+        ]
+      ]
+    },
+    "law:sozokuzei:28:fb3dff865939238c": {
+      "id": "law:sozokuzei:28",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "28",
+      "title": "相続税法 贈与税の申告書",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_28",
+      "score": 106.22,
+      "text_ranges": [
+        [
+          0,
+          850
+        ]
+      ],
+      "text_deflate_base64": "xVXbUiIxEH33q9NRdIYZLiLKDkLB1KqgYFSkdocR8GN6ksw88Qtbuajhoqu1Vm0VDyE0fTnn9Ek+9bKkijBC6iEt55NYNn8ibfDaGV+2EFoIvZyUEO6QAEIXgfHZlHuHCCzX/5XDqjrfTOSwmi1j0Z8jjLJnijSQ43GWhrwCWUJEN0ZgWdpEAjvuk31eKyM8bv/ESyOV/6rGWfulz+C1dBFXEEIEVY73p7zuIQFe8xDu+OIkv57YiSDcUXTWVZeJX/RLTglWwLVsDjUILYRjpAFSisAQBm6h1dzb0a0+60l1xYSsJ7f9i+qgiC74MvwQxvW5YFREddUMoau5r1Ktk4LA5HPIZ9MsDUXHUy21LhECpH6W+KLjqd7Spr5cIgxWc4/XdXxCPhOPMOLnC4U5aXP/SDyeyvFYRks98r7oxgaNol9SyEwrcliVLJb1wyxNdcObIGzEqCkeyvwoRdrQwrtBONB1TxCYeDzly0AdzhZ5HPLOvZLZoiZ8YpTDH0rCJ0gbouM7fz9BGOrPjYukgc4o5KtJHAA1CwTWWCOwLk7FTvZ0lk9iHkSyA9nTBcJA4UABaZClgVIIbeTDH/ncFO3J5iM/LovzBGnDoKTnZcIn+eJAfQ0iuZgUp78RRqJWV6DZbo+Rhgj3ulXf9k/o3mreQEK4X3F5cihRcIhxrNJVJwiNdbAuNApXIj1TiwGRUaESOiFGeVlyW5CmDi7b4NunLI0dBwlflbotuJdg5qotX/emNUuyW82yZaxRZgiHCPEHliRZi5cuEU4VQDQo9ofGxXjdy4eeTmImrXy/bdGG9RTdvAOsxWpLNHbzN5SnDxVFZ5aGSIg8T+SvtoionCwla5mBTSWD+Ge42dnNV6n6F3N9fXM+4NtM/p8dV+Ge+GaNdtUou2v7spURwgyhYvnQhvMWBsyEiU6viOrcVxrcjHlL9WaJ2/ztreYn7oLz0u32gm/DY19KO48jEGfTeT18xzTs2BujOuO9ax17q3lTCdifcdY2dGiEAm1abEMJ36Kuvy+Lo7edS2GZ2ezZsmp7tm9X7zOrZ/fZeYs+YXlvmL5Hqrl3HMc+An8A"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+      "kind": "taxanswer",
+      "no": "4211",
+      "title": "相続税の延納",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4211.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 156.42,
+      "text_ranges": [
+        [
+          0,
+          2696
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:hyoka:179:cec79f4642910275": {
+      "id": "tsutatsu:hyoka:179",
+      "kind": "tsutatsu",
+      "circular": "hyoka",
+      "no": "179",
+      "variant": 0,
+      "title": "財産評価基本通達 （取引相場のない株式の評価の原則）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm",
+      "law_version": "",
+      "score": 175.74,
+      "text_ranges": [
+        [
+          0,
+          1168
+        ]
+      ],
+      "text_deflate_base64": "zVbNctJQFN7nKVg5OqOdJJDSjq/Q13DhwpU+QM6llvAT0VKopbUtQ6jQStoB1AApfZiTewOrvIJzbyAtCLZq67iDc777nf+TQzPm+PgtwhkSA0mW5vvU2EIoIckjHFHrs+dWfGuIOnhOK/xNC1mEDr0oTFRgs+NT6hYQbG9YHVdNhHPUAeGTIDlEkmdfqlMTOdRJ4BrsYyuh+PvdUScdD1xTWcfUgMuSN2SroUxb47JmSaNWGVMD2uusjk7bo2ZJDVxzLRIq8rVUka/F6rU4EUnV9Yn0maJSq8x2eqxVC9yMFLiGEriZ2HXkS8IbVw8912X1lt+w2fkO65enWhEn1BBORs2SN6wi7IVhIxwhHCPsog5+1/Qb7/xhk+b2RvpbBHsMDsseRpVAHRRu+LLIn5Esgu13d0adtL9TCy0FruHvO/63it94F1qaN98wfHuX24OjcfqDeJJZ6h8UERoIeYTPCGboMU+HytMRFX9ZOkSFbd/eFapJDD87cI/ZCW15TotrlxWDbD98EieA5Ulc5t2jNy9fvXj9fCNwcw/i5YQ/bGlzg7d3zHOyUZ3C3KGe30B9UsaQPCo1nW4HaleQAJKc/70w5xh1Ov7F1R1dmuyOYZHVW7RYZaULWjAQzv39Ls2Y7OCIHZx5gzrNmArtdcflImeELMIHJDlaKFO3FDUSvTpA+IhwsnDZRB7TTJu+N3igsIVQRdhEqAhwjlqiSrDJyj0RbYhsRD0pIbFi9x7y1PdK5J0kUdOhtTartyR6UaC1NqYGSL5iysVUEUlPKKYQ1GEZiOfOKktT1gTd3KRbW96g7jlZ7viMF/m45vX7Qpnj4xxWnWyP9yyEgtjTGUn7LyjklXVZktRfE6ny7UScQnsqy7LnpP8fKnklqUlS8nayO6QqcS8sdwjsTmVblSX+EWGdBv+MjKy0eGtP74yzUbMt9h4fOHrcFfN3Fu4iz8l6l+YyMBIiZvrmsKZasT9eJA8/jMmb3RuXw3/s4JT19dkRUWd1M0OsaDO6cC7iizoxOQNc2KzaT5BIlZgzw/tzBjBncwJcnTehLoStLYLdNMfbJha4RlzcYredmv/2UPr9U2UDyba8osmiW3cRTh6rT/7qWlp0ZvwA"
+    },
+    "law:sozokuzei:52": {
+      "id": "law:sozokuzei:52",
+      "kind": "law",
+      "key": "sozokuzei",
+      "no": "52",
+      "title": "相続税法 延納等に係る利子税",
+      "law_version": "2026-04-01",
+      "url": "https://laws.e-gov.go.jp/law/325AC0000000073#Mp-At_52",
+      "score": 162.46,
+      "text_ranges": [
+        [
+          0,
+          1909
+        ]
+      ],
+      "text_deflate_base64": "zVhdV+JIEH33V3c1MhMgEQSE0eggqzBoJM4o62BA+TGVTsITf2FPdXc+Cchxz+zZFw+GTn3eurcasXgJZxaCG01+ieYj8rZo9hFOEQYRqyI8IoPgYYjgitaxaP5GcBGOES6QmwgNBCe6exJvHYRz5A1xPRMtA8FBqMtjY2VBGF/CmRVOTtZDC8Hx3/5GsBHG4q1Dr2vLTnDyhNAmO8admLbCyQnydjiz/MU3hD7CPQVGfn/SZ16TT46RcX/OkLHw4cGfM2F/R3Dit84RXhGsXACpzb0xq9hkfZIXxcALb08QJhRP/kxpDUN7Hr5cqNdF00B4jGaGPz+JS+HKmGvCAn9eC66G6oyw3+gAuxC1r8HzWXrG6wZXQ/rXM9fX1c3SCLvP4rSuIgx6r2LZpES4QXlJI+G0Rl5kvpslfY7GTeFeJMfCmRVcDtbnLeW6ULegPyIv5LErg2TZAHTBJSoSszvw8ChapupyfJIOaNfvpkoksOcqDH/lBtOb5CHydtBsia+ehMEg6I/SFrTiSDzzX0Viz4LpzZpdhINREkbwyxPuRfKQkHNeiIHeRcbDhwdh2+vrahZIomUifEPGVeXDlSnfaiCvaeTk5sJNeoHwjvADwaV/ex0ER6wupSkQrzNRnWJlIf+eYmWJfIGVZ6wYNKS1J9EyNktDzSzyW5UIVqa5+VKozoBThn2bxT/ClZy17/Q3b4eKxoHsSHfIePAwVCVNh4iZ6RTHgSGzZNGOEb7osvC2/9qn1GAcuv2kxeuvpyqq0J6nTUxp4RYZi+6fCOEyi+hpGHZvEFz/faiKSS5gSGwzt0TjLOzeqFmID5jCus5msVka/mLkzxsIHQp4K52CnZ0ZkWViPPLldaXNuuwm32Kb09Je5B05/oof0jLxOvO9LgHDtovAYPA5g3swdkRQYKy8KPkSBJf3gcfiEtQlthrkicGBLQydRnA52dM8BDPorvzFLcKPIjp5O3qpIhgHVj/xq0Z0y7UjHt/lNMrJ51yel2QE4+0Y1pWJqoPWgD1NSirre6ZWM88U9nd/MRLv5p/SNMVGNUvKpmadAi2JlhFNDOUlOPmxPr/VFOg2ylVRWyvaydBbjguJacD96JXdjLhNM58ilaPNso2M7VFzuRGZqRy/Xmk11OpMSqRlVMqBsKCo1/FzYdvZrwpv+fOK+lZpbkFWAq8Xdie5TvO2aDnIWaI1BZUvJkX81gteDKpLJsFduFEdkumXyUTWGpg05XRmEJzzXdjVZCCP7UHbfuPKbIwPUxg/g6uR6nTe5gRhJXfFvmRyAqgsaVwl3l7DXVJSZPxos+wkUCglByoEgwOZOumu6mW6NuVVORMupe0veghugUDkt2aZliiVgrjQZ1K8E8ibKiri9NqTKq5mRQZa2qEjXyG9jF6edS3InZUlTBXbDi+uqFblYLnr6y/CayaJqC0tg0s3rriz7v2F0BerajQGhHvfa8iT8uKxRaeqN12iR6UZDdXwJsLjGrxoZmS37Bj+dS0thPSeeO8rjBThzKBksuPBFS0zeaIObE9tYaYPH9ns3rF/hdw11mH3OXIa1ABrJk2lg6LcZSCYSzDhrf9rjvVijrKJyOvSWhthkNFgNeUSlPmVP9W+IgDSrwo11FexZi92pMf7j17pPnE/K4jpLgyXgCd/ed0DoaA/0lnECElgU9KvvNlMAVODu1oms8gJfQks81fPP43bUkxG91OEVWCviEBhnFWPkhGrOtLjAOEaoU/3yPzVM4Q34T6H05pYvKzPfqvECwUv5i4vu/9J7vlb8hYj632Mt+Va2Ezeko220uHaPzU7flkpvf768wpWFv68tmuB/uyd8qCfmo42y7P4t6bimG0vgeph/MvAtvrtVPKthc1MO60XQj2xGk+TbxHVXQvyoT+FZTZstaclFmLlL14b9izGHx7LjLeT5dzyFA5a7WJSzpRle8UorKwfu/5E9WryarjVtTLKoy00mhihq3VIPuwgtxJqVjjr0Qpas0TrWE1tugVpWy7CglifQdExA83itN1pAk4ELV6m4301c39SWcXBpYU7fD37Bw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm:88b7f489f42b26e4": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm",
+      "title": "取引相場のない株式の評価",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hyoka/4638.htm"
+    },
+    "tsutatsu:hyoka:178:1e8c8c00ecbfae3f": {
+      "id": "tsutatsu:hyoka:178",
+      "title": "財産評価基本通達 （取引相場のない株式の評価上の区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm:af81fad1925803e0": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm",
+      "title": "相続時精算課税の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4103.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm:3f22f2f94a0000bd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+      "title": "贈与税がかかる場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm:3fed50446d63a22d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm",
+      "title": "相続時精算課税選択届出書に添付する書類（贈与税の申告期限前に受贈者が死亡した場合）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4305.htm"
+    },
+    "tsutatsu:hyoka:179:82d978e85dbc5f35": {
+      "id": "tsutatsu:hyoka:179",
+      "title": "財産評価基本通達 （取引相場のない株式の評価の原則）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/02.htm"
+    },
+    "tsutatsu:hyoka:168:db7630326656fba5": {
+      "id": "tsutatsu:hyoka:168",
+      "title": "財産評価基本通達 （評価単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/sisan/hyoka_new/08/01.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm:cad27ba0ef1b34cd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm",
+      "title": "贈与税の計算(相続時精算課税の選択をした場合)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4409.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm:7cf11f30db456007": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm",
+      "title": "相続時精算課税の選択と相続税の申告義務",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4301.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm:2b2a257c535daf57": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm",
+      "title": "相続税の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm"
+    }
+  }
+}
