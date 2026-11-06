@@ -407,7 +407,7 @@ test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び�
   assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
 });
 test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
-  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s4');
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s5');
 });
 
 const catalogRef = id => { const r = W.resolveMaterial(id); assert(r, id); return { ...r, text: r.text.split('関連リンク')[0] }; };
@@ -686,7 +686,8 @@ for(const result of ['回復','再度不正','空配列','失敗','JSON不正','
     }
     if(req.task==='condition_check')return condition();return supported(req);
   }});assert.equal(calls.filter(c=>c.task==='retry_extract').length,1);assert(r.record.calls.some(c=>c.task==='retry_extract'));
-  assert.equal(r.record.discarded,result==='回復'?0:1);assert.equal(r.record.status,result==='回復'?'ok':'revise');
+  assert.equal(r.record.discarded,result==='回復'?0:1);assert.equal(r.record.status,'ok');
+  if(result!=='回復')assert(r.record.review_items.some(c=>c.status==='照合で文を特定できなかった'));
 });
 
 test('02c-H3', '段Aの範囲外4件は、聞き直しと段Bが資料なしでも歯止めに残る', async () => {
@@ -731,7 +732,8 @@ test('02c-N2', '要件だけ拾い直しても1,000万円と令和8年12月31日
       if (req.task === 'condition_check') return condition();
       return JSON.parse(req.user).claims.map(c => pageAnswer(req, c.id, source, /1,000万円/, '裏付けあり'));
     } });
-  assert.equal(r.record.status, 'revise'); assert.equal(r.record.discarded, 1); assert.equal(r.body, sentence);
+  assert.equal(r.record.status, 'ok'); assert.equal(r.record.discarded, 1); assert.equal(r.body, sentence);
+  assert(r.record.review_items.some(c => c.status === '照合で文を特定できなかった'));
 });
 
 for (const [article, sourceText] of [['95%以上','95%未満'], ['届出書で足りる','承認申請書が必要'], ['戻れます','戻れません'], ['青色申告者は','青色申告者で届出をした者は']]) {

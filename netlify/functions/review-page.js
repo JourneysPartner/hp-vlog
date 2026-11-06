@@ -46,11 +46,10 @@ function parseFrontmatter(raw) {
 
 // ── GitHub App 認証つきで content/posts/{file} を取得 ─────────────────
 // ref: 省略時は GITHUB_BRANCH (デフォルト main)
-// getFile は { content, sha } を返すので content を取り出す。
+// 見た版だけを承認できるように、記事とファイルの sha を一緒に返す。
 async function fetchPostFromGitHub(filename, ref) {
   const filepath = `content/posts/${filename}`;
-  const { content } = await githubApi.getFile(filepath, ref || undefined);
-  return content;
+  return githubApi.getFile(filepath, ref || undefined);
 }
 
 function escapeHtml(value) {
@@ -108,7 +107,8 @@ function factReviewGroups(items) {
     if (!groups.has(status)) groups.set(status, []);
     groups.get(status).push(item);
   }
-  const order = ['資料なし', '上限で未照合', ...[...groups.keys()].filter(status => status !== '資料なし' && status !== '上限で未照合')];
+  const priority = ['資料なし', '上限で未照合', '照合で文を特定できなかった'];
+  const order = [...priority, ...[...groups.keys()].filter(status => !priority.includes(status))];
   return order.filter(status => groups.has(status)).map(status => ({ status, items: groups.get(status) }));
 }
 
@@ -130,7 +130,7 @@ function renderFactReviewItems(items, record) {
       if (!headings.has(heading)) headings.set(heading, []);
       headings.get(heading).push(item);
     }
-    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div><div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
+    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${c.status === '照合で文を特定できなかった' && c.pointed_sentence ? `<div class="small">AI が指した文: ${factSentence(c.pointed_sentence)}</div>` : ''}<div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
   }).join('');
   return `<details><summary>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）。承認を止める理由ではありません</summary>
     <h3 class="h6 mt-3">人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）</h3>
@@ -149,8 +149,8 @@ function renderFactDiscarded(record, status) {
   if (!items.length) return '';
   const blocking = status === 'revise' ? items.filter(c => c.blocks_approval).length : 0;
   const completed = status === 'revise' || status === 'ok';
-  const explanation = status === 'revise' ? '数字の主張は照合できていないため、承認を止めています。'
-    : status === 'ok' ? '' : '照合が最後まで動かなかったため、この一覧は承認の判断に使っていません。';
+  const explanation = blocking ? '数字の主張は照合できていないため、承認を止めています。'
+    : completed ? '' : '照合が最後まで動かなかったため、この一覧は承認の判断に使っていません。';
   const reasons = new Map([
     ['本文に見つからない', 'AI が指した文に、要約の数字や言葉が見つかりませんでした'],
     ['主張の形式が不正', 'AI の答えの形が正しくありませんでした（種類・制度名など）'],
@@ -192,7 +192,7 @@ function renderFactCheckSummary(meta, record, body) {
   const rejectedSupported = corrections.filter(c => c.generalized && originalFactClaim(record, c)?.rejected_answer?.status === '裏付けあり').length;
   return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
     <p><strong>状態:</strong> ${escapeHtml(label)}</p>
-    ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています</div>' : ''}
+    ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています（下の確認欄に印を付ければ公開できます）</div>' : ''}
     ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
     ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件${rejectedSupported ? `（うち AI は裏付けありと答えた ${rejectedSupported} 件）` : ''}</p>
     ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
@@ -308,6 +308,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   const category   = escapeHtml(meta.category || '');
   const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
   const approvalDisabled = isRefresh && !(refreshContext && refreshContext.available);
+  const factBlocking = meta.fact_check_blocking === true || String(meta.fact_check_blocking) === 'true' || meta.fact_check_status === 'revise';
   const expiredTheme = isRefresh && freshnessRefresh.isExpiredRefreshTheme(meta);
   const refreshBanner = isRefresh ? `
   <div class="alert alert-primary" role="status">
@@ -494,8 +495,9 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 
 <!-- 操作ボタン (sticky bottom) -->
 <div class="action-section">
+  ${factBlocking ? `<div class="container mb-2"><label><input type="checkbox" id="factCheckOverride"> ${meta.fact_check_status === 'not_run' ? '照合が最後まで動いていません。' : ''}照合の指摘を確認しました。指摘が残ったまま、自分の判断で公開します</label></div>` : ''}
   <div class="container d-flex flex-wrap gap-2 justify-content-center">
-    <button class="btn btn-approve btn-lg px-4" id="btnApprove"${approvalDisabled ? ' disabled' : ''}>
+    <button class="btn btn-approve btn-lg px-4" id="btnApprove"${approvalDisabled || factBlocking ? ' disabled' : ''}>
       <i class="bi bi-check-circle me-1"></i>${isRefresh ? '更新を反映する' : 'このまま公開'}
     </button>
     <button class="btn btn-revise btn-lg px-4" id="btnRevise">
@@ -513,10 +515,17 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 <script nonce="${escapeHtml(nonce)}">
 const FILENAME = ${scriptJson(filename)};
 const REF = ${scriptJson(ref || '')};
+const FILE_SHA = ${scriptJson(security.fileSha || '')};
 const REVIEW_TOKEN = ${scriptJson(security.csrfToken || '')};
 const IS_REFRESH = ${JSON.stringify(isRefresh)};
 const FUNC_BASE = '/.netlify/functions';
 let reviseReady = false;
+let actionPending = false;
+const factOverrideCheck = document.getElementById('factCheckOverride');
+function syncApprovalButton() {
+  document.getElementById('btnApprove').disabled = actionPending || ${JSON.stringify(approvalDisabled)} || Boolean(factOverrideCheck && !factOverrideCheck.checked);
+}
+factOverrideCheck?.addEventListener('change', syncApprovalButton);
 document.getElementById('btnApprove').addEventListener('click', () => handleAction('approve'));
 document.getElementById('btnRevise').addEventListener('click', () => reviseReady ? handleAction('revise') : toggleRevise());
 document.getElementById('btnSkip').addEventListener('click', () => handleAction('skip'));
@@ -578,6 +587,7 @@ async function handleAction(action, forceSuppress) {
   }
 
   // ボタン無効化
+  actionPending = true;
   document.querySelectorAll('.action-section button').forEach(b => b.disabled = true);
 
   try {
@@ -601,6 +611,7 @@ async function handleAction(action, forceSuppress) {
       body: JSON.stringify({
         filename: FILENAME, publish_at: publishAt, comment,
         ref: REF || undefined,
+        ...(action === 'approve' ? { file_sha: FILE_SHA, ...(factOverrideCheck?.checked ? { fact_check_override: true } : {}) } : {}),
         suppress_topic: suppress_topic,
       }),
     });
@@ -631,6 +642,8 @@ async function handleAction(action, forceSuppress) {
     resultEl.className = 'result-msg show error';
     resultEl.textContent = err.message;
     document.querySelectorAll('.action-section button').forEach(b => b.disabled = false);
+    actionPending = false;
+    syncApprovalButton();
   }
 }
 </script>
@@ -668,6 +681,7 @@ exports.handler = async (event) => {
 
   try {
     let raw;
+    let fileSha = '';
     if (ref) {
       // ref が明示されていれば必ずその ref から取得する。
       //
@@ -678,7 +692,7 @@ exports.handler = async (event) => {
       // 修正前の本文が表示された（2026-08-17 に発生）。
       // 「ローカル優先」は netlify dev のためのものなので、ref 指定時は使わない。
       assertGitHubCredentials();
-      raw = await fetchPostFromGitHub(filename, ref);
+      ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, ref));
     } else {
       try {
         // ローカルファイルがあればそちらを優先（netlify dev 用）
@@ -687,7 +701,7 @@ exports.handler = async (event) => {
         // ローカルになければ GitHub App 認証つき API で取得
         // 認証情報が無い場合は無認証 fallback せず明確なエラーにする
         assertGitHubCredentials();
-        raw = await fetchPostFromGitHub(filename, undefined);
+        ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, undefined));
       }
     }
     const { meta, body } = parseFrontmatter(raw);
@@ -699,7 +713,7 @@ exports.handler = async (event) => {
     let refreshContext = null;
     if (meta.refresh_of === 'published' || ref.startsWith('draft/refresh-')) {
       try {
-        const mainRaw = await fetchPostFromGitHub(filename, 'main');
+        const { content: mainRaw } = await fetchPostFromGitHub(filename, 'main');
         const mainArticle = parseFrontmatter(mainRaw);
         if (mainArticle.meta.review_status !== 'published') {
           refreshContext = { available: false, message: '公開中ではなくなった記事です。更新案を承認できません。' };
@@ -717,7 +731,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key) }),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key), fileSha }),
     };
   } catch (err) {
     const msg = String(err && err.message || err);

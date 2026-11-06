@@ -89,7 +89,8 @@ async function main() {
     const extracted = await F.extractClaims(body, async () => [claim(sentence)]);
     assert.equal(extracted.claims[0].sentence, body); assert.equal(extracted.discarded, 0);
     const r = await F.checkFacts(sentence, { repair: false, searchEvidence: () => refs, callLLM: async req => req.task === 'extract' ? [claim(), claim('存在しない期限は令和9年3月31日です。')] : judge(req) });
-    assert.equal(r.record.status, 'revise'); assert.equal(r.record.discarded, 1);
+    assert.equal(r.record.status, 'ok'); assert.equal(r.record.discarded, 1);
+    assert.equal(r.record.review_items[0].status, '照合で文を特定できなかった');
   });
   await test('F5c', async () => {
     const wrong = '制度の期限は令和8年3月31日です。';

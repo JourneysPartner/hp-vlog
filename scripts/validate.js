@@ -158,6 +158,10 @@ function validateFile(filePath) {
 
   const isScored = fm.recommendation !== undefined && fm.recommendation !== null && fm.recommendation !== '';
   const isLive = ['approved', 'scheduled', 'published'].includes(fm.review_status);
+  if (isLive && (fm.fact_check_blocking === true || String(fm.fact_check_blocking) === 'true' || fm.fact_check_status === 'revise')
+      && fm.fact_check_override !== true) {
+    errors.push(`照合で止まっている記事が ${fm.review_status} になっています（照合の指摘を確認した記録がありません）`);
+  }
   const saScore = Number.isFinite(fm.source_alignment_score) ? fm.source_alignment_score
     : (fm.source_alignment_score != null ? parseInt(fm.source_alignment_score, 10) : null);
 

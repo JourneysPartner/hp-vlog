@@ -316,13 +316,13 @@ test('R3', '#741 の悪い置換を本文に入れず、承認を止めて注と
   assert.deepEqual(tasks, ['extract', 'judge', 'repair']);
 });
 
-test('R4', 'judge の指定位置に規則が入り、版が plan2-s4 になる', async () => {
+test('R4', 'judge の指定位置に規則が入り、版が plan2-s5 になる', async () => {
   await F.judgeClaims([claim], { c28: [ref(source2070.body)] }, sentence, async req => {
     assert.ok(req.system.includes('特定の年分の値として正しく書いている場合は裏付けありとしてください。' + judgeInstruction));
     return [{ id: 'c28', status: '資料なし' }];
   }, options);
   const result = await F.checkFacts('', { ...options, callLLM: async () => { throw new Error('空本文で AI を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s4');
+  assert.equal(result.record.logic_version, 'plan2-s5');
 });
 
 test('R5', '手がかりの3表記をポイントへ置換する', () => {
