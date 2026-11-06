@@ -211,6 +211,21 @@
         "impressions": 40,
         "clicks": 1
       }
+    },
+    {
+      "id": "20261106-15",
+      "source": "newseg-retail_store-retail-gift-certificate-practice",
+      "anchor": "売上の計上タイミング",
+      "target": "newseg-retail_store-retail-register-sales-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。レジの記事の商品券の行を直すのと同じ PR で足す（「商品を渡した時点が売上の計上タイミングです」）",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.9,
+        "impressions": 60,
+        "clicks": 0
+      }
     }
   ]
 }
