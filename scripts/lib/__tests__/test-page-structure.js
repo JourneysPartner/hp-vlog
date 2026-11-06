@@ -190,6 +190,7 @@ const basePost = publishedPost('source-post', { title: '別テーマの記事' }
 const termTarget = publishedPost('simple-tax-target', { title: '簡易課税の解説' });
 const termMap = new Map([[basePost.slug, basePost], [termTarget.slug, termTarget]]);
 const protectedMarkdown = [
+  '## 本文',
   '# 簡易課税',
   '| 簡易課税 |',
   '[簡易課税](/already/)',
@@ -214,7 +215,7 @@ check('R4', linked.markdown.includes('data-term="簡易課税"') && linked.markd
 const manyTerms = ['用語甲', '用語乙', '用語丙', '用語丁', '用語戊'];
 const manyTargets = manyTerms.map((term, index) => publishedPost(`target-${index}`, { title: `${term}の解説` }));
 const manyMap = new Map([[basePost.slug, basePost], ...manyTargets.map(post => [post.slug, post])]);
-const manyLinked = linkTerms(manyTerms.join(' '), {
+const manyLinked = linkTerms('## 本文\n\n' + manyTerms.join(' '), {
   terms: manyTerms.map((term, index) => ({ term, slug: `target-${index}`, macros: ['サロン'], enabled: true })),
   post: basePost,
   postsMap: manyMap,
@@ -228,7 +229,7 @@ const overlapTargets = [
   publishedPost('small-asset', { title: '少額減価償却資産の解説' }),
   publishedPost('depreciation', { title: '減価償却の解説' }),
 ];
-const overlap = linkTerms('少額減価償却資産を確認します。', {
+const overlap = linkTerms('## 本文\n\n少額減価償却資産を確認します。', {
   terms: [
     { term: '減価償却', slug: 'depreciation', macros: ['サロン'], enabled: true },
     { term: '少額減価償却資産', slug: 'small-asset', macros: ['サロン'], enabled: true },
@@ -241,7 +242,7 @@ const overlap = linkTerms('少額減価償却資産を確認します。', {
 });
 check('R4', overlap.stats.linked === 1 && overlap.markdown.includes('/blog/small-asset/'), '重なる用語は長い語を先に処理してリンク内を除外する');
 
-const excluded = quietly(() => linkTerms('簡易課税 免税事業者 商品券', {
+const excluded = quietly(() => linkTerms('## 本文\n\n簡易課税 免税事業者 商品券', {
   terms: [
     { term: '簡易課税', slug: termTarget.slug, macros: ['建設'], enabled: true },
     { term: '免税事業者', slug: 'disabled-target', macros: ['サロン'], enabled: false },
@@ -253,8 +254,8 @@ const excluded = quietly(() => linkTerms('簡易課税 免税事業者 商品券
   hubMacroOf: post => post._hubMacro,
   coreSlugs: new Set(),
 }));
-check('R4', excluded.stats.linked === 0 && excluded.markdown === '簡易課税 免税事業者 商品券', 'macros 外・無効・未公開の対象を使わない');
-const ownTitle = linkTerms('簡易課税を本文でも説明します。', {
+check('R4', excluded.stats.linked === 0 && excluded.markdown === '## 本文\n\n簡易課税 免税事業者 商品券', 'macros 外・無効・未公開の対象を使わない');
+const ownTitle = linkTerms('## 本文\n\n簡易課税を本文でも説明します。', {
   terms: [{ term: '簡易課税', slug: termTarget.slug, macros: ['サロン'], enabled: true }],
   post: { ...basePost, title: '簡易課税の主題記事' },
   postsMap: termMap,

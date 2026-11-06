@@ -1,0 +1,17 @@
+{
+  "_note": "週次レポートの内部リンクの候補と長い質問の検索語の条件。target_macros は今リンクを足す対象の業種ハブ。exclude_slugs は exclude_until までは対象外（eBay の統合の効果を 11/23〜29 に確かめるため、リンクで効果を混ぜない）。",
+  "position_min": 4,
+  "position_max": 20,
+  "min_impressions": 20,
+  "target_macros": ["小売", "建設"],
+  "exclude_slugs": [
+    "ebay-export-consumption-tax-refund-complete-guide",
+    "ebay-taxable-vs-exempt-business",
+    "ebay-export-invoice-system-impact",
+    "ebay-growth-incorporation-threshold-guide",
+    "ebay-growth-expense-grayzone-guide"
+  ],
+  "exclude_until": "2026-11-30",
+  "min_query_tokens": 3,
+  "question_words": ["どっち", "とは", "いつまで", "しないと", "どうなる", "ばれ", "バレ", "いくら", "必要", "違い", "やり方", "方法", "かかる", "できる", "?", "？"]
+}

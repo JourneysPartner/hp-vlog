@@ -1,0 +1,126 @@
+{
+  "_note": "検索データをもとに人が承認した内部リンク。source の本文に出る anchor をビルド時に target へのリンクにする。記事の Markdown は変えない。止めるときは enabled を false にする。",
+  "placements": [
+    {
+      "id": "20261106-01",
+      "source": "newseg-construction_solo-construction-qualification-cost-electrical-practice",
+      "anchor": "少額の消耗品",
+      "target": "newseg-construction_solo-construction-consumables-painting-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。塗料の記事は本文からのリンク0本・4.3位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 4.3,
+        "impressions": 343,
+        "clicks": 12
+      }
+    },
+    {
+      "id": "20261106-02",
+      "source": "suggest-kensetsu-hitori-5cdd76",
+      "anchor": "材料費・消耗品費",
+      "target": "newseg-construction_solo-construction-consumables-painting-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。同上",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 4.3,
+        "impressions": 343,
+        "clicks": 12
+      }
+    },
+    {
+      "id": "20261106-03",
+      "source": "newseg-retail_store-retail-point-discount-guide",
+      "anchor": "値引き・返品・割戻し",
+      "target": "newseg-retail_store-retail-return-handling-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。返品の記事は本文からのリンク0本・8.4位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.4,
+        "impressions": 144,
+        "clicks": 3
+      }
+    },
+    {
+      "id": "20261106-04",
+      "source": "newseg-wholesale-wholesale-return-rebate-practice",
+      "anchor": "仕入戻し",
+      "occurrence": 2,
+      "target": "newseg-retail_store-retail-return-handling-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。同上（2回目の出現「仕入戻しは仕入側の処理です」）",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.4,
+        "impressions": 144,
+        "clicks": 3
+      }
+    },
+    {
+      "id": "20261106-05",
+      "source": "hair-salon-pre-opening-cash-management-practice",
+      "anchor": "レジ締め・現金照合",
+      "target": "newseg-retail_store-retail-register-sales-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。レジの記事は本文からのリンク0本・8.9位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.9,
+        "impressions": 60,
+        "clicks": 0
+      }
+    },
+    {
+      "id": "20261106-06",
+      "source": "deepdive-domestic_ec_seller-travel-expense-input-tax-guide",
+      "anchor": "適格簡易請求書",
+      "target": "newseg-retail_store-retail-invoice-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。簡易インボイスの記事は本文からのリンク0本・8.0位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8,
+        "impressions": 45,
+        "clicks": 1
+      }
+    },
+    {
+      "id": "20261106-07",
+      "source": "newseg-construction_solo-construction-bookkeeping-guide",
+      "anchor": "ガソリン代・車検費用・駐車場代",
+      "target": "newseg-construction_solo-construction-vehicle-expense-practice",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。車両費の記事は本文からのリンク0本・6.3位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 6.3,
+        "impressions": 28,
+        "clicks": 0
+      }
+    },
+    {
+      "id": "20261106-08",
+      "source": "newseg-construction_solo-construction-tools-expense-guide",
+      "anchor": "車両の維持費",
+      "target": "newseg-construction_solo-construction-vehicle-expense-practice",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認。同上",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 6.3,
+        "impressions": 28,
+        "clicks": 0
+      }
+    }
+  ]
+}

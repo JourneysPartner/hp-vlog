@@ -6,7 +6,7 @@ const matter = require('gray-matter');
 const { marked } = require('marked');
 const { normalizeBold } = require('./lib/cjk-bold');
 const { linkCitations, applyExternalLinkRenderer } = require('./lib/citation-linker');
-const { linkTerms, readInternalLinkTerms } = require('./lib/internal-linker');
+const { linkInternal, readInternalLinkTerms, readInternalLinkPlacements } = require('./lib/internal-linker');
 const { createHeadingState, applyHeadingIdRenderer, buildTocHtml } = require('./lib/heading-anchors');
 const { similarityScore } = require('./lib/topic-similarity');
 const { agencyLinksForTopic } = require('./lib/official-sources');
@@ -49,6 +49,8 @@ const HUB_CONFIG_PATH = path.join(ROOT, 'data', 'hub-config.json');
 const PICKUP_POSTS_PATH = path.join(ROOT, 'data', 'pickup-posts.json');
 const INTERNAL_LINK_TERMS_PATH = path.join(ROOT, 'data', 'internal-link-terms.json');
 const internalLinkTerms = readInternalLinkTerms(INTERNAL_LINK_TERMS_PATH);
+const INTERNAL_LINK_PLACEMENTS_PATH = path.join(ROOT, 'data', 'internal-link-placements.json');
+const internalLinkPlacements = readInternalLinkPlacements(INTERNAL_LINK_PLACEMENTS_PATH);
 // サービスページに表示する「対応している業種・働き方」。文言は設定側で一元管理する。
 const SERVICE_SEGMENTS_PATH = path.join(ROOT, 'data', 'service-segments.json');
 const NETSHOP_PERSONAS = new Set([
@@ -850,8 +852,9 @@ function buildSourcesHtml(post) {
 // ── 記事ページ生成 ──────────────────────────────────────────────
 function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
   headingState.reset();
-  const withTerms = linkTerms(normalizeBold(post._body), {
+  const withTerms = linkInternal(normalizeBold(post._body), {
     terms: internalLinkTerms,
+    placements: internalLinkPlacements,
     post,
     postsMap,
     isPublished,
@@ -860,7 +863,7 @@ function generatePost(post, tpl, postsMap, publishConfig, pickupContext) {
       ? pickupContext.coreSlugs
       : new Set(),
   });
-  console.log(`[build]   ℹ ${post.slug}: 文脈リンク ${withTerms.stats.linked} 件`);
+  console.log(`[build]   ℹ ${post.slug}: 文脈リンク ${withTerms.stats.terms.linked} 件・指定リンク ${withTerms.stats.placements.linked} 件`);
 
   // 本文中の「国税庁タックスアンサー No.XXXX」をクリック可能リンクに変換
   // （過去記事のソース .md は変更せず、ビルド時の HTML 生成段階で適用）

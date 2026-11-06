@@ -16,6 +16,23 @@ const { tokenizeQuery } = require('./lib/target-query');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
+const { validatePlacements } = require('./lib/internal-linker');
+
+function validatePlacementFile(filePath = path.join(ROOT, 'data', 'internal-link-placements.json')) {
+  // この仕組みより前に作った下書きの枝にはファイルが無い。build と同じく 0 件として扱う。
+  if (!fs.existsSync(filePath)) return { file: path.relative(ROOT, filePath), errors: [], warnings: [] };
+  try {
+    const config = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const postsMap = new Map(fs.readdirSync(POSTS_DIR).filter(file => file.endsWith('.md')).map(file => {
+      const parsed = matter(fs.readFileSync(path.join(POSTS_DIR, file), 'utf8'));
+      return [parsed.data.slug, { ...parsed.data, _body: parsed.content }];
+    }));
+    const isPublished = post => post.review_status === 'published' && !!post.publish_at && new Date(post.publish_at) <= new Date();
+    return { file: path.relative(ROOT, filePath), ...validatePlacements(config, { postsMap, isPublished }) };
+  } catch (error) {
+    return { file: path.relative(ROOT, filePath), errors: [`指定リンクを読めません: ${error.message}`], warnings: [] };
+  }
+}
 
 // ── 必須フロントマター項目 ──────────────────────────────────────
 const REQUIRED_FIELDS = [
@@ -350,8 +367,8 @@ function main() {
   }
 
   let hasError = false;
-  for (const file of files) {
-    const result = validateFile(file);
+  const results = [...files.map(validateFile), validatePlacementFile()];
+  for (const result of results) {
     const hasIssue = result.errors.length > 0 || result.warnings.length > 0;
     if (!hasIssue) {
       console.log(`✓ ${result.file}`);
@@ -377,4 +394,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { validateFile, main };
+module.exports = { validateFile, validatePlacementFile, main };
