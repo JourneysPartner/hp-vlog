@@ -31,7 +31,10 @@ async function repairDate(kind, replacement, fullYear = false) {
     if (req.task === 'extract') {
       extracts++;
       if (extracts > 1) return [{ s: 1, type: '金額', subject: '相続時精算課税', claim: '基礎控除は年110万円' }];
-      if (kind === 'b') return [{ s: 1, type: '金額', subject: '相続時精算課税', claim: `${fullYear ? '令和7年1月1日' : '令和7年'}以降の贈与から年110万円の基礎控除が新設` }];
+      if (kind === 'b') return [
+        { s: 1, type: '金額', subject: '相続時精算課税', claim: `${fullYear ? '令和7年1月1日' : '令和7年'}以降の贈与から年110万円の基礎控除が新設` },
+        { s: 1, type: '金額', subject: '相続時精算課税', claim: '基礎控除は110万円' },
+      ];
       return [
         { s: 1, type: '適用年', subject: '相続時精算課税', claim: `${fullYear ? '令和6年1月1日' : '令和6年'}以降の贈与に適用` },
         { s: 1, type: '金額', subject: '相続時精算課税', claim: '基礎控除は110万円' },
@@ -39,7 +42,9 @@ async function repairDate(kind, replacement, fullYear = false) {
       ];
     }
     if (req.task === 'repair') return [{ id: kind === 'a' ? 'c3' : 'c1', replacement }];
-    return JSON.parse(req.user).claims.map(c => ({ id: c.id, status: '裏付けあり', evidence_id: 1, basis: '1' }));
+    // W1は修正の安全確認を検証する。誤った数字はAI自身が資料なしと答える。
+    return JSON.parse(req.user).claims.map(c => ({ id: c.id,
+      status: extracts === 1 && c.id === (kind === 'a' ? 'c3' : 'c1') ? '資料なし' : '裏付けあり', evidence_id: 1, basis: '1' }));
   } });
 }
 
@@ -53,7 +58,8 @@ for (const fullYear of [false, true]) test('W1', `(a) ${fullYear ? '年月日' :
 
 for (const fullYear of [false, true]) test('W1', `(b) ${fullYear ? '年月日' : '年だけ'}の要約でも誤った適用日を残す修正を拒否する`, async () => {
   const result = await repairDate('b', badB, fullYear);
-  assert.deepEqual(result.record.claims[0].supported_numbers, ['110万円']);
+  assert.equal(result.record.claims[0].status, '資料なし');
+  assert.deepEqual(result.record.corrections[0].keep.map(c => c.claim), ['基礎控除は110万円']);
   assert.equal(result.body, originalB); assert.equal(result.record.status, 'revise');
   assert.equal(result.record.corrections[0].reason, '資料の無い数字が残っています');
 });

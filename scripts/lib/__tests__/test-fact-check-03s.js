@@ -121,29 +121,31 @@ async function repaired({ mode = 'supported', original = wedding.sentence, sourc
       status: extracts > 1 && mode === 'unsupported' ? '資料なし' : '裏付けあり', evidence_id: 1, basis: '1' }));
   } });
 }
-for (const mode of ['missing', 'vague', 'unsupported', 'supported']) test('S2', `残した数字の再照合: ${mode}`, async () => {
+for (const mode of ['missing', 'vague', 'unsupported', 'supported']) test('S2', `初回のAI裏付けありは再照合へ進めない: ${mode}`, async () => {
   const result = await repaired({ mode });
-  const resolved = mode === 'supported';
-  assert.equal(result.record.corrections[0].resolved, resolved);
-  assert.equal(result.record.status, resolved ? 'ok' : 'revise');
-  if (mode === 'missing') assert.equal(result.record.rechecked.length, 0);
-  if (mode === 'vague') assert.equal(result.record.rechecked[0].claim, '結婚費用には上限があります。');
-  if (!resolved) {
-    assert.ok(result.record.remaining.some(c => c.id === 'c1'));
-    const raw = `---\nslug: fact-03s\nrecommendation: publish\n---\n${result.body}`;
-    const meta = matter(F.applyFactResult(raw, result)).data;
-    assert.equal(meta.recommendation, 'revise'); assert.equal(meta.fact_check_blocking, true);
-  }
+  assert.equal(result.body, wedding.sentence);
+  assert.equal(result.record.status, 'ok');
+  assert.deepEqual(result.record.corrections, []);
+  assert.deepEqual(result.record.rechecked, []);
+  assert.deepEqual(result.record.remaining, []);
+  assert.equal(result.record.calls.some(c => c.task === 'repair'), false);
+  assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
+  assert.deepEqual(result.record.review_items[0].supported_numbers, ['1,000万円']);
 });
-test('S2', 'keep_numbersの全数字が再照合されたときだけ解決する', async () => {
+
+test('S2', 'AIが裏付けた初回の保持数字は全て人が確かめる箇所に残す', async () => {
   const original = '結婚・子育て資金は18歳から1,000万円（うち結婚費用300万円）まで非課税です。';
   const source = '結婚・子育て資金は18歳から1,000万円まで非課税です。';
   const revised = '結婚・子育て資金は18歳から1,000万円まで非課税です（結婚費用の上限は国税庁で確認）。';
   for (const summary of [undefined, '結婚・子育て資金は1,000万円まで非課税です。']) {
     const result = await repaired({ original, source, revised, summary });
     assert.deepEqual(result.record.claims[0].supported_numbers, ['18歳', '1,000万円']);
-    assert.equal(result.record.corrections[0].resolved, summary === undefined);
-    assert.equal(result.record.status, summary === undefined ? 'ok' : 'revise');
+    assert.equal(result.body, original);
+    assert.deepEqual(result.record.corrections, []);
+    assert.deepEqual(result.record.rechecked, []);
+    assert.equal(result.record.status, 'ok');
+    assert.deepEqual(result.record.review_items[0].supported_numbers, ['18歳', '1,000万円']);
+    assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
   }
 });
 test('S2', 'keep_numbersが無い一般化は従来どおり', async () => {

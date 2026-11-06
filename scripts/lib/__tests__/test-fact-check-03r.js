@@ -198,7 +198,7 @@ test('R3', '保持数字を差分照合で使い回し、LLMの2範囲はレビ�
     prior.logic_version = '03o'; fs.writeFileSync(file, JSON.stringify(prior));
     const old = await F.checkArticle(raw(giftClaim.sentence + '\n案内を追記します。'), { ...opts, previousRaw: before, persist: false });
     assert.equal(old.record.incremental, undefined);
-    assert.equal(old.record.logic_version, 'plan2-s5');
+    assert.equal(old.record.logic_version, 'plan2-s6');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 const filler = Array(5).fill('中間の説明が続いています'.repeat(15) + '。');
@@ -328,7 +328,7 @@ test('R4', '抜き出しは従来どおり、判定は条件付きの別額の�
     return [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }];
   }, options);
 });
-test('R4', '残した数字は再照合し、裏付けが無ければ止める', async () => {
+test('R4', 'AIが裏付けた初回の数字は修正せず、再照合へ進めない', async () => {
   for (const recheckStatus of ['裏付けあり', '資料なし']) {
     let extracts = 0;
     const result = await F.checkFacts(wedding.sentence, { ...options, searchEvidence: () => [weddingRef], callLLM: async req => {
@@ -343,10 +343,14 @@ test('R4', '残した数字は再照合し、裏付けが無ければ止める',
       }
       return [{ id: 'c1', status: extracts === 1 ? '裏付けあり' : recheckStatus, evidence_id: 1, basis: '1' }];
     } });
-    assert.equal(extracts, 2); assert.equal(result.body, replacement);
-    assert.equal(result.record.rechecked.length, 1);
-    assert.equal(result.record.rechecked[0].status, recheckStatus);
-    assert.equal(result.record.status, recheckStatus === '裏付けあり' ? 'ok' : 'revise');
+    assert.equal(extracts, 1); assert.equal(result.body, wedding.sentence);
+    assert.deepEqual(result.record.rechecked, []);
+    assert.deepEqual(result.record.corrections, []);
+    assert.deepEqual(result.record.remaining, []);
+    assert.equal(result.record.status, 'ok');
+    assert.equal(result.record.calls.some(c => c.task === 'repair'), false);
+    assert.deepEqual(result.record.review_items[0].supported_numbers, ['1,000万円']);
+    assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
   }
 });
 
@@ -390,9 +394,9 @@ test('R5', '別番号・番号の主張・法令資料・5桁の番号は除外�
   assert.equal((await judge({ ...c, type: '番号' }, ref('短', '2080'), '1')).status, '資料なし');
   assert.equal((await judge({ ...c, claim: c.claim.replace('2080', '20801'), sentence: c.sentence.replace('2080', '20801') }, ref(books, '2080'), '1')).status, '資料なし');
 });
-test('版', 'LOGIC_VERSIONはplan2-s5', async () => {
+test('版', 'LOGIC_VERSIONはplan2-s6', async () => {
   const result = await F.checkFacts('案内です。', { ...options, callLLM: async () => [], repair: false });
-  assert.equal(result.record.logic_version, 'plan2-s5');
+  assert.equal(result.record.logic_version, 'plan2-s6');
 });
 
 (async () => {

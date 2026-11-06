@@ -407,7 +407,7 @@ test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び�
   assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
 });
 test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
-  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s5');
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s6');
 });
 
 const catalogRef = id => { const r = W.resolveMaterial(id); assert(r, id); return { ...r, text: r.text.split('関連リンク')[0] }; };
@@ -455,7 +455,7 @@ test('02b-H3', '本物の資料にある数字4件が範囲外、聞き直しも
     } });
   assert.equal(r.record.status, 'not_run'); assert.equal(r.body, body); assert(!r.record.calls.some(c => c.task === 'repair'));
 });
-test('02b-H3', '聞き直しの資料なしで元の保持数字・却下理由・回答を消さず、前回答を渡す', async()=>{
+test('02b-H3', '聞き直しの資料なしを記録し、元の保持数字・却下理由・回答を消さず、前回答を渡す', async()=>{
   const source=catalogRef('ta:4508'),c=claim('c1','省エネ等住宅の非課税限度額は1,000万円、追加の限度額は9,999万円です。','金額','住宅取得等資金の贈与の非課税');
   const first=req=>[pageAnswer(req,'c1',source,/1,000万円/,'裏付けあり')];
   const baseline=await F.judgeClaims([c],{c1:[source]},c.sentence,async req=>first(req),{loadEvidenceText:e=>e.text});
@@ -465,7 +465,7 @@ test('02b-H3', '聞き直しの資料なしで元の保持数字・却下理由�
       return [{id:'c1',status:'資料なし'}];
     }return first(req);
   },{writer_materials:['ta:4508'],loadEvidenceText:e=>e.text});
-  assert.deepEqual(r,baseline);assert(r[0].supported_numbers.includes('1,000万円'));assert.equal(r[0].reject_reason,'引用が短い・数字が引用の近くに無い');
+  assert.deepEqual(r,baseline.map(row=>({...row,retry_status:'資料なし'})));assert(r[0].supported_numbers.includes('1,000万円'));assert.equal(r[0].reject_reason,'引用が短い・数字が引用の近くに無い');
 });
 test('02b-H4', '試算見出しでも割合・期限・制度の金額を残し、計算結果の金額だけ件数つきで外す', async () => {
   const source = catalogRef('ta:6498');

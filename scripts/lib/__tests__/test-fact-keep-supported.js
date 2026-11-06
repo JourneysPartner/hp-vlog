@@ -163,7 +163,7 @@ test('3', '複数の番号が全部対応すれば最初の番号の根拠を採
 
 const options = { now: new Date('2026-10-27T00:00:00Z'), provider: 'anthropic', model: 'claude-opus-5-5', enabled: true, batch: false };
 const replacement = '暦年課税の基礎控除110万円との併用については、詳しくは国税庁のタックスアンサーで確認してください。';
-async function checkExample({ wrong = false, writer = false, recheckNumber = false } = {}) {
+async function checkExample({ wrong = false, writer = false, recheckNumber = false, mismatch = false } = {}) {
   const amount = { ...c16, sentence: c16.sentence.replace('2,110', wrong ? '2,210' : '2,110'), claim: c16.claim.replace('2,110', wrong ? '2,210' : '2,110') };
   const body = amount.sentence + '\n\n' + c35.sentence;
   const repairReplacement = recheckNumber ? replacement.replace('タックスアンサーで', 'タックスアンサー No.4452 で') : replacement;
@@ -176,7 +176,9 @@ async function checkExample({ wrong = false, writer = false, recheckNumber = fal
       : [amount, c35, c45]).map(({ sentence, type, subject, claim }) => ({ sentence, type, subject, claim }));
     if (['judge', 'retry_judge'].includes(req.task)) return H.readPayload(req).claims.map(c => c.type === '番号'
       ? { id: c.id, status: '資料なし' }
-      : { id: c.id, status: '裏付けあり', evidence_id: c.type === '金額' ? ref4452.id : ref4508.id, quote: c.type === '金額' ? quote : c45.quote, correct: '' });
+      : { id: c.id, status: mismatch && c.type === '金額' && !req.user.includes(repairReplacement) ? '食い違い' : '裏付けあり',
+        evidence_id: c.type === '金額' ? ref4452.id : ref4508.id, quote: c.type === '金額' ? quote : c45.quote,
+        correct: mismatch && c.type === '金額' && !req.user.includes(repairReplacement) ? repairReplacement : '' });
     if (req.task === 'condition_check') return { verdict: '一致', conditions: [] };
     if (req.task === 'repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: repairReplacement }));
     throw new Error('予期しない偽LLM呼び出し: ' + req.task);
@@ -204,24 +206,26 @@ for (const writer of [false, true]) test('4', `${writer ? '段A/B' : '通常'}�
   assert.equal(number.number_from_sibling.id, saved.claims.find(c => c.type === '要件').id);
   assert.equal(number.number_from_sibling.previous_status, '資料なし');
 });
-for (const writer of [false, true]) test('5', `${writer ? '段A/B' : '通常'}の不正な合計は従来どおり具体を外す`, async () => {
+for (const writer of [false, true]) test('5', `${writer ? '段A/B' : '通常'}のAIが裏付けた不正な合計は人へ回す`, async () => {
   const result = await checkExample({ wrong: true, writer });
   const original = result.record.claims.find(c => c.type === '金額');
   assert.equal(original.status, '資料なし', result.record.summary);
   assert.equal(original.sum_support, undefined);
   assert.equal(original.rejected_answer.status, '裏付けあり');
   assert.deepEqual(original.supported_numbers, ['110万円']);
-  const correction = result.record.corrections.find(c => c.id === original.id);
-  assert.ok(correction, result.record.summary);
-  assert.equal(correction.generalized, true);
-  assert.equal(correction.resolved, true);
-  assert.equal(correction.after, replacement);
-  assert.equal(result.body, replacement + '\n\n' + c35.sentence);
-  assert.equal(result.record.rechecked[0].status, '裏付けあり');
+  assert.deepEqual(result.record.corrections, []);
+  assert.deepEqual(result.record.rechecked, []);
+  assert.deepEqual(result.record.remaining, []);
+  assert.equal(result.body, result.originalBody);
+  assert.equal(result.fakeCalls.includes('repair'), false);
+  assert.equal(result.record.review_items.length, 1);
+  assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
+  assert.deepEqual(result.record.review_items[0].rejected_answer, original.rejected_answer);
   assert.equal(result.record.status, 'ok');
 });
 for (const writer of [false, true]) test('5', `${writer ? '段A/B' : '通常'}の再照合でも同じ文の資料番号を補う`, async () => {
-  const result = await checkExample({ wrong: true, writer, recheckNumber: true });
+  // 裏付けありの数字は初回に修正しないため、本物の食い違いから再照合を始める。
+  const result = await checkExample({ wrong: true, writer, recheckNumber: true, mismatch: true });
   assert.equal(result.record.status, 'ok', result.record.summary);
   assert.equal(result.record.corrections[0].resolved, true);
   const number = result.record.rechecked.find(c => c.type === '番号');
@@ -256,9 +260,9 @@ test('6', 'claims が無い記録は再照合から取得し、題名が無け�
   assert.ok(page.renderFactCheck({}, plain).includes('AI の答え: 資料なし</div>'));
   assert.equal(page.renderFactCheckSummary({}, plain).includes('うち AI は'), false);
 });
-test('7', 'LOGIC_VERSION は plan2-s5', async () => {
+test('7', 'LOGIC_VERSION は plan2-s6', async () => {
   const result = await F.checkFacts('', { ...options, writer_materials: [], callLLM: async () => { throw new Error('空本文で LLM を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s5');
+  assert.equal(result.record.logic_version, 'plan2-s6');
 });
 
 for (const claim of ['No.4508・4510', 'No.4508、4510', '措置法70の2・No.4508', 'No.4508・４５１０', 'No.4508・四五一〇']) {
@@ -486,7 +490,7 @@ for (const retryStatus of ['食い違い', '期限の書き漏れ', '資料な�
     assert.deepEqual(calls, ['judge', 'retry_judge']);
     assert.equal(rows[0].status, '資料なし');
     assert.equal(rows[0].rejected_answer.status, '裏付けあり');
-    assert.equal(rows[0].retry_status, retryStatus === '資料なし' ? undefined : retryStatus);
+    assert.equal(rows[0].retry_status, retryStatus);
     const [number] = F.supportNumbersFromSiblings([...rows, c45]);
     assert.equal(number.status, retryStatus === '資料なし' ? '裏付けあり' : '資料なし');
     assert.equal(JSON.parse(JSON.stringify(F.compactRecord({ claims: rows }))).claims[0].retry_status, rows[0].retry_status);
