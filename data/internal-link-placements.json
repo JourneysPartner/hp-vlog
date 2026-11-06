@@ -1,0 +1,4 @@
+{
+  "_note": "検索データをもとに人が承認した内部リンク。source の本文に出る anchor をビルド時に target へのリンクにする。記事の Markdown は変えない。止めるときは enabled を false にする。",
+  "placements": []
+}

@@ -20,9 +20,28 @@ const matter = require('gray-matter');
 const { readAllPosts } = require('./lib/site-corpus');
 const { normalizeQuery } = require('./lib/target-query');
 const { locateQuery } = require('./lib/query-placement');
+const { normalizeBold } = require('./lib/cjk-bold');
+const { hubMacroOf, assignHubMacro } = require('./lib/hub-membership');
+const { linkInternal, blogLinkTargets, readInternalLinkTerms, readInternalLinkPlacements } = require('./lib/internal-linker');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_ROOT = path.join(ROOT, 'data', 'search-console');
+const DEFAULT_LINK_CONFIG = Object.freeze({
+  position_min: 4, position_max: 20, min_impressions: 20,
+  target_macros: ['小売', '建設'],
+  exclude_slugs: [
+    'ebay-export-consumption-tax-refund-complete-guide', 'ebay-taxable-vs-exempt-business',
+    'ebay-export-invoice-system-impact', 'ebay-growth-incorporation-threshold-guide',
+    'ebay-growth-expense-grayzone-guide',
+  ],
+  exclude_until: '2026-11-30', min_query_tokens: 3,
+  question_words: ['どっち', 'とは', 'いつまで', 'しないと', 'どうなる', 'ばれ', 'バレ', 'いくら', '必要', '違い', 'やり方', '方法', 'かかる', 'できる', '?', '？'],
+});
+
+function readLinkConfig(filePath = path.join(ROOT, 'data', 'gsc-link-config.json')) {
+  try { return { ...DEFAULT_LINK_CONFIG, ...readJson(filePath) }; }
+  catch (_) { return { ...DEFAULT_LINK_CONFIG }; }
+}
 
 function readJson(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
 function n(v) { return Number(v || 0).toLocaleString('ja-JP'); }
@@ -110,6 +129,7 @@ function readPublishedPostContents(postsDir = path.join(ROOT, 'content', 'posts'
         title: String(parsed.data.title || ''),
         headings,
         body,
+        metadata: parsed.data,
       });
     } catch (_) {
       // 1記事が壊れていても週次レポートは継続する。
@@ -296,6 +316,112 @@ function buildFreshnessSection(candidates = []) {
   return lines;
 }
 
+// ビルドは呼ばず、同じ公開判定・本文・中核記事・リンク処理で集計する。
+function calculateBodyLinks({ posts = [], postContents = new Map(), terms = [], placements = [], pickupConfig = {}, now = new Date() }) {
+  const isPublished = post => post.review_status === 'published' && !!post.publish_at && new Date(post.publish_at) <= now;
+  const published = posts.map(post => {
+    const content = contentForSlug(postContents, post.slug);
+    return { ...(content && content.metadata || post), _body: content ? content.body : post._body || '' };
+  }).filter(isPublished).sort((a, b) => new Date(b.publish_at) - new Date(a.publish_at));
+  assignHubMacro(published);
+  const postsMap = new Map(published.map(post => [post.slug, post]));
+  const coreSlugs = new Set((pickupConfig.netshop_core || []).filter(slug => postsMap.has(slug)));
+  const incoming = new Map();
+  const applied = new Set();
+  for (const post of published) {
+    const result = linkInternal(normalizeBold(post._body), { terms, placements, post, postsMap, isPublished, hubMacroOf, coreSlugs });
+    for (const target of blogLinkTargets(result.markdown)) {
+      const sources = incoming.get(target) || new Set();
+      sources.add(post.slug);
+      incoming.set(target, sources);
+    }
+    for (const id of result.stats.placements.linkedIds) applied.add(id);
+  }
+  return { incoming, applied };
+}
+
+function linkCell(value) {
+  return String(value == null ? '' : value).replace(/\|/g, '\\|').replace(/[\r\n]+/g, ' ');
+}
+
+function buildInternalLinkSections({ pages, queries, queryPages, posts, postContents, pickupConfig,
+  indexStatus, linkTerms = [], placements = [], linkConfig = DEFAULT_LINK_CONFIG, now = new Date() }) {
+  const config = { ...DEFAULT_LINK_CONFIG, ...linkConfig };
+  const { incoming, applied } = calculateBodyLinks({ posts, postContents, terms: linkTerms, placements, pickupConfig, now });
+  const postBySlug = new Map(posts.map(post => [post.slug, post]));
+  const pageBySlug = new Map(pages.filter(row => pageKind(row.page) === '記事').map(row => [articleSlug(row.page), row]));
+  const indexBySlug = new Map(((indexStatus && indexStatus.rows) || []).map(row => [articleSlug(row.url), row]));
+  const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+  const lines = ['## 内部リンクの候補（順位 4〜20 位）', '',
+    'Claude がこの表と本文を読んでリンク案（リンク元・言い回し・行き先）を作り、承認されたものを data/internal-link-placements.json に足します。', ''];
+  const candidates = pages.filter(row => pageKind(row.page) === '記事'
+    && row.position >= config.position_min && row.position <= config.position_max && row.impressions >= config.min_impressions)
+    .sort((a, b) => b.impressions - a.impressions).slice(0, 20);
+  lines.push(candidates.length ? table(['記事', '業種', '表示', 'クリック', '順位', 'Google 登録', '本文からのリンク数', '主な検索語', '今回の対象'], candidates.map(row => {
+    const slug = articleSlug(row.page);
+    const post = postBySlug.get(slug);
+    const content = contentForSlug(postContents, slug);
+    const macro = post ? hubMacroOf(content && content.metadata || post) : '不明';
+    const index = indexBySlug.get(slug);
+    const target = today < config.exclude_until && config.exclude_slugs.includes(slug)
+      ? 'eBay の確認中' : (config.target_macros.includes(macro) ? '○' : '業種外');
+    const topQueries = (queryPages || []).filter(q => articleSlug(q.page) === slug)
+      .sort((a, b) => b.impressions - a.impressions).slice(0, 3).map(q => linkCell(q.query));
+    return [linkCell(post && post.title || slug), macro, n(row.impressions), n(row.clicks), pos(row.position),
+      !index || index.error ? '不明' : isIndexed(index) ? '○' : '×',
+      n((incoming.get(slug) || new Set()).size), topQueries.join('、') || '（伏せられています）', target];
+  })) : '（該当なし）');
+  lines.push('', '## 足したリンクのその後', '');
+  const groups = new Map();
+  for (const entry of placements.filter(entry => entry.enabled !== false)) {
+    const rows = groups.get(entry.target) || [];
+    rows.push(entry); groups.set(entry.target, rows);
+  }
+  const metrics = row => row ? `${pos(row.position)} / ${n(row.impressions)} / ${n(row.clicks)}` : '—';
+  lines.push(groups.size ? table(['行き先', 'リンク元の数（実際/指定）', '追加日', '経過週', '基準の順位・表示・クリック', '今の順位・表示・クリック', '順位の差'], [...groups].map(([slug, rows]) => {
+    const ordered = [...rows].sort((a, b) => a.added_at.localeCompare(b.added_at));
+    const earliest = ordered[0];
+    const baselineEntry = ordered.find(entry => entry.baseline && Number.isFinite(entry.baseline.position));
+    const baseline = baselineEntry && baselineEntry.baseline;
+    const current = pageBySlug.get(slug);
+    // 表示と同じ小数第1位で比べる（8.4 と 8.44 を「悪化」と書かない）。
+    const delta = baseline && current ? Math.round((baseline.position - current.position) * 10) / 10 : null;
+    const weeks = Math.max(0, Math.floor((Date.parse(today) - Date.parse(earliest.added_at)) / (7 * 86400000)));
+    return [linkCell(postBySlug.get(slug) && postBySlug.get(slug).title || slug),
+      `${rows.filter(entry => applied.has(entry.id)).length}/${rows.length}`, earliest.added_at, n(weeks),
+      metrics(baseline), metrics(current), delta === null ? '—' : delta > 0 ? `+${pos(delta)} 位改善` : delta < 0 ? `−${pos(-delta)} 位悪化` : '0.0 位（変化なし）'];
+  })) : '（まだありません）');
+  const queryImpressions = queries.reduce((sum, row) => sum + Number(row.impressions || 0), 0);
+  const pageImpressions = pages.reduce((sum, row) => sum + Number(row.impressions || 0), 0);
+  lines.push('', '## 長い質問の検索語', '',
+    `Google は件数の少ない検索語を伏せるため、ここに出るのは一部です（この期間の表示の約 ${pageImpressions ? (100 * queryImpressions / pageImpressions).toFixed(1) + '%' : '—（ページの表示なし）'}）。`, '');
+  const aiQuery = row => Array.from(String(row.query)).length > 60 || /question:/i.test(row.query);
+  const longQueries = [...queries].filter(row => aiQuery(row)
+    || String(row.query).trim().split(/[\s\u3000]+/).filter(Boolean).length >= config.min_query_tokens
+    || config.question_words.some(word => String(row.query).includes(word)))
+    .sort((a, b) => b.impressions - a.impressions).slice(0, 20);
+  const queryTable = rows => rows.length ? table(['検索語', '表示', 'クリック', '順位', '該当ページ'], rows.slice(0, 20).map(row => {
+    const page = bestImpressionPage(row.query, queryPages);
+    return [linkCell(row.query), n(row.impressions), n(row.clicks), pos(row.position),
+      page ? linkCell(pageKind(page.page) === '記事' ? articleSlug(page.page) : page.page) : '—'];
+  })) : '（該当なし）';
+  lines.push(queryTable(longQueries.filter(row => !aiQuery(row))), '', '### AI が代わりに検索したとみられる語', '', queryTable(longQueries.filter(aiQuery)));
+  lines.push('', '## 辞書の行き先の点検', '');
+  const enabledTerms = linkTerms.filter(entry => entry.enabled !== false);
+  const problems = enabledTerms.flatMap(entry => {
+    const post = postBySlug.get(entry.slug);
+    let status = '';
+    if (!post) status = '行き先がありません';
+    else if (post.review_status === 'merged') status = `統合済み${post.merged_into ? `（${post.merged_into}）` : ''}`;
+    else if (post.review_status !== 'published' || !post.publish_at || !(new Date(post.publish_at) <= now)) status = '未公開・取り下げ';
+    return status ? [[linkCell(entry.term), linkCell(entry.slug), linkCell(status)]] : [];
+  });
+  lines.push(problems.length ? table(['語', '行き先', '状態'], problems) : '（問題ありません）');
+  const unseen = new Set(enabledTerms.map(entry => entry.slug).filter(slug => !pageBySlug.has(slug) || !(pageBySlug.get(slug).impressions > 0)));
+  lines.push('', `この期間に表示が無い辞書の行き先: ${n(unseen.size)} 件`);
+  return lines;
+}
+
 function buildReport({
   latest,
   queries,
@@ -309,6 +435,7 @@ function buildReport({
   freshnessCandidates = [],
   queryPages = null,
   postContents = new Map(),
+  linkTerms = [], placements = [], linkConfig = DEFAULT_LINK_CONFIG, now = new Date(),
 }) {
   const byImp = [...queries].sort((a, b) => b.impressions - a.impressions);
   const top30 = byImp.slice(0, 30);
@@ -356,6 +483,9 @@ function buildReport({
     : '（該当なし）');
   lines.push('');
   lines.push(...buildTargetQuerySection(posts, queries));
+  lines.push('');
+  lines.push(...buildInternalLinkSections({ pages, queries, queryPages, posts, postContents, pickupConfig,
+    indexStatus, linkTerms, placements, linkConfig, now }));
   lines.push('');
   lines.push('## ページ別の上位30（クリック順）');
   lines.push('');
@@ -442,6 +572,9 @@ function run(options = {}) {
     postContents,
     pickupConfig,
     freshnessCandidates,
+    linkTerms: readInternalLinkTerms(path.join(ROOT, 'data', 'internal-link-terms.json')),
+    placements: readInternalLinkPlacements(path.join(ROOT, 'data', 'internal-link-placements.json')),
+    linkConfig: readLinkConfig(options.linkConfigPath),
   });
   fs.writeFileSync(path.join(outRoot, 'report.md'), md, 'utf8');
   (options.log || console.log)(`[gsc] → data/search-console/report.md（前回: ${prevDir || 'なし'}）`);
@@ -465,4 +598,8 @@ module.exports = {
   bestImpressionPage,
   growableDetails,
   buildTargetQuerySection,
+  DEFAULT_LINK_CONFIG,
+  readLinkConfig,
+  calculateBodyLinks,
+  buildInternalLinkSections,
 };
