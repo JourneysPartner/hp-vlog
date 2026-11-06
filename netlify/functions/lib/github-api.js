@@ -352,8 +352,14 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
     if (res.ok) return res.json();
 
     const text = await res.text();
+    let headChecked = false;
     if (expectedHeadSha && res.status === 409) {
-      throw new Error(`GitHub merge 409: 枝の先頭が承認の版と違う: ${text}`);
+      let current;
+      try { current = await getPR(prNumber); } catch { /* 先頭を確かめられなければマージしない。 */ }
+      if (current?.head?.sha !== expectedHeadSha) {
+        throw new Error(`GitHub merge 409: 枝の先頭が承認の版と違う: ${text}`);
+      }
+      headChecked = true;
     }
     lastError = new Error(`GitHub merge ${res.status}: ${text}`);
 
@@ -366,7 +372,7 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
     console.warn(`[mergePR] PR #${prNumber} attempt ${i + 1}/${maxAttempts} 失敗 (${res.status}) → ${intervalMs}ms 待機して再試行`);
     await new Promise(r => setTimeout(r, intervalMs));
     // 再取得して状態を更新（GitHub に再計算を促す）
-    try { await getPR(prNumber); } catch { /* noop */ }
+    if (!headChecked) try { await getPR(prNumber); } catch { /* noop */ }
   }
   throw lastError || new Error(`GitHub merge failed after ${maxAttempts} attempts`);
 }

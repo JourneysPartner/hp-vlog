@@ -2,6 +2,7 @@
 
 // 偽の AI と資料だけで、捨てた主張の記録・表示と承認判断の維持を確かめる。
 const assert = require('assert/strict');
+const matter = require('gray-matter');
 const F = require('../fact-check');
 const H = require('./fact-pages-test-helpers');
 const page = require('../../../netlify/functions/review-page');
@@ -32,6 +33,31 @@ async function check(body, rows, extra = {}) {
   invariant(result.record);
   return result;
 }
+
+const longBody = original + '\n' + '制度の説明を確認します。'.repeat(50).slice(0, 446 - original.length - 1);
+test('段階3 F1: 446字の本文で数字の主張を全部捨てたら未実施で止める', async () => {
+  assert.equal(longBody.length, 446);
+  const result = await F.checkFacts(longBody, { ...opts, callLLM: async req => {
+    assert.equal(req.task, 'extract');
+    return Array.from({ length: 12 }, (_, i) => raw({ claim: `控除は${65 + i}万円です。` }));
+  } });
+  assert.equal(result.record.status, 'not_run'); assert.equal(result.record.summary, '主張を抜き出せませんでした');
+  assert.equal(result.record.discarded, 12); assert.ok(result.record.discarded_claims.every(c => c.blocks_approval === false));
+  const meta = matter(F.applyFactResult('---\nrecommendation: publish\n---\n' + longBody, result)).data;
+  assert.equal(meta.fact_check_status, 'not_run'); assert.equal(meta.fact_check_blocking, true);
+});
+test('段階3 F1: 長文でも正しい主張が1件あれば捨てた分では止めない', async () => {
+  const { record } = await check(longBody, [], { searchEvidence: () => [source(original)],
+    callLLM: async req => req.task === 'extract' ? [raw({ claim: original }), raw()] : supported(req) });
+  assert.equal(record.status, 'ok'); assert.equal(record.claims.length, 1); assert.equal(record.discarded, 1);
+  assert.equal(record.discarded_claims[0].blocks_approval, false);
+  assert.equal(record.review_items[0].status, '照合で文を特定できなかった');
+});
+for (const length of [199, 200]) test(`段階3 F1: 見出しを除いた本文の長さで未実施を判断する (${length})`, async () => {
+  const body = '## ' + '見出し'.repeat(100) + '\n' + '説明'.repeat(100).slice(0, length);
+  const result = await F.checkFacts(body, { ...opts, callLLM: async () => [raw()] });
+  assert.equal(result.record.status, length < 200 ? 'ok' : 'not_run');
+});
 
 test('R1: 本文に見つからない主張の元の欄を維持し、指した文を足す', async () => {
   const result = await F.extractClaims('## 制度\n' + original, async () => [raw({ s: 2 })]);

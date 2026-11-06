@@ -1485,7 +1485,7 @@ async function checkFacts(body, options = {}) {
     };
     extracted.droppedClaims.forEach(c => trackUnchecked(c));
     extracted.discardedClaims.forEach(c => trackUnchecked(c, true));
-    if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
+    if (!extracted.claims.length && (!rechecking || !extracted.discarded) && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
     }
     let claims = extracted.claims, reused = [];
@@ -1835,7 +1835,7 @@ function inheritFactMetadata(original, regenerated) {
   const { data: before } = matter(original);
   const { data: after } = matter(regenerated);
   const planned = Object.hasOwn(before, 'fact_plan_status');
-  const updates = Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('fact_check_')));
+  const updates = Object.fromEntries(Object.entries(before).filter(([key]) => key.startsWith('fact_check_') && !key.startsWith('fact_check_override')));
   for (const key of ['fact_plan_status', 'fact_plan', 'fact_plan_missing', 'fact_materials']) {
     if (before[key] !== undefined) updates[key] = before[key];
   }

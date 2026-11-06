@@ -39,15 +39,15 @@ function setup(meta = {}, { refresh = false, mainMeta = {}, putError = '', putRe
   if (refresh) Object.assign(data, { refresh_of: 'published', refresh_base_hash: refreshBaseHash(originalBody + '\n') });
   const branch = serialize(data, body);
   const main = article({ recommendation: 'publish', review_status: 'published', fact_check_status: 'ok', fact_check_blocking: false, ...mainMeta }, originalBody);
-  const state = { puts: [], notifications: [], merges: [], closes: [], deletes: [], waits: 0 };
+  const state = { puts: [], notifications: [], merges: [], closes: [], deletes: [], waits: 0, frontmatterUpdates: [], events: [] };
   const deps = {
     getFile: async (_file, ref) => {
       if (ref === undefined && fallbackMainStatus) return { content: article({ review_status: fallbackMainStatus }), sha: 'main-sha' };
       if (ref === 'main') { if (!refresh && !mainMeta.review_status) throw new Error('404 not found'); return { content: main, sha: 'main-sha' }; }
       return { content: branch, sha: 'seen-sha' };
     },
-    putFile: async (...args) => { state.puts.push(args); if (putError) throw new Error(putError); return putResult; },
-    updateFrontmatter: api.updateFrontmatter, nowJST: () => now,
+    putFile: async (...args) => { state.events.push('put'); state.puts.push(args); if (putError) throw new Error(putError); return putResult; },
+    updateFrontmatter: (raw, updates) => { state.frontmatterUpdates.push(updates); state.events.push('frontmatter'); return api.updateFrontmatter(raw, updates); }, nowJST: () => now,
     findPR: async ref => ({ number: 744, head: { ref } }),
     waitForMergeable: async () => { state.waits++; return { mergeable: true }; },
     mergePR: async (...args) => { state.merges.push(args); return mergeImpl ? mergeImpl(...args) : { merged: true }; },
@@ -130,15 +130,20 @@ for (const mainMeta of [{ title: '[要レビュー] override-check' }, { recomme
     assert.equal((await h.run(consent)).statusCode, 400); noWrites(h);
   });
 }
-test('S4: 既存の記録があっても要約の引用符・改行・置換文字をそのまま残す', async () => {
+test('F4/S4: 既存の記録があっても要約の引用符・改行・置換文字をそのまま残す', async () => {
   for (const refresh of [false, true]) {
-    const summary = '指摘 "$&"\n次の行';
-    const h = setup({ fact_check_summary: summary, fact_check_override_summary: '過去の要約' }, { refresh,
-      mainMeta: { fact_check_override_summary: '過去の要約' } });
+    const summary = "指摘 \"$'\" と \"$&\"\n次の行";
+    const oldAudit = { fact_check_override: true, fact_check_override_at: '過去', fact_check_override_status: 'not_run',
+      fact_check_override_summary: '過去の要約', fact_check_override_sha: 'old-sha' };
+    const h = setup({ fact_check_summary: summary, ...oldAudit }, { refresh, mainMeta: oldAudit });
     assert.equal((await h.run(consent)).statusCode, 200);
     const saved = matter(h.state.puts[0][1]).data;
     assert.equal(saved.fact_check_override_summary, summary);
     assert.equal(saved.fact_check_override, true);
+    for (const key of Object.keys(oldAudit)) assert.equal(h.state.puts[0][1].match(new RegExp(`^${key}:`, 'gm'))?.length, 1, key);
+    assert.equal(saved.fact_check_override_at, now); assert.equal(saved.fact_check_override_status, 'revise');
+    assert.equal(saved.fact_check_override_sha, 'seen-sha');
+    assert.ok(h.state.frontmatterUpdates.every(updates => !Object.keys(updates).some(key => key.startsWith('fact_check_override'))));
   }
 });
 test('R1: GitHub から取得した枝の SHA を画面に埋める', async () => {
@@ -226,7 +231,7 @@ test('R4: 上書きで承認した実際の結果を publish-due が公開する
   try { publish.main(); assert.equal(matter(raw).data.review_status, 'published'); assert.equal(matter(raw).data.fact_check_status, 'revise'); }
   finally { Object.assign(fs, saved); if (output !== undefined) process.env.GITHUB_OUTPUT = output; }
 });
-async function withMergeFetch(statuses, run) {
+async function withMergeFetch(statuses, run, { headSha = 'different-head', getError = false } = {}) {
   const savedFetch = global.fetch;
   const keys = ['GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'GH_APP_INSTALLATION_ID', 'GITHUB_TOKEN'];
   const savedEnv = Object.fromEntries(keys.map(key => [key, process.env[key]]));
@@ -239,10 +244,11 @@ async function withMergeFetch(statuses, run) {
     assert.ok(url.endsWith(method === 'PUT' ? '/pulls/744/merge' : '/pulls/744'));
     assert.ok(['PUT', 'GET'].includes(method));
     requests.push({ method, body: options.body ? JSON.parse(options.body) : null });
+    if (method === 'GET' && getError) throw new Error('fake PR read failure');
     const status = method === 'PUT' ? statuses[attempt++] : 200;
     assert.ok(status, '指定していない通信を行わない');
     return { ok: status >= 200 && status < 300, status,
-      json: async () => method === 'PUT' ? { merged: true } : { mergeable: true },
+      json: async () => method === 'PUT' ? { merged: true } : { mergeable: true, head: { sha: headSha } },
       text: async () => 'fake head changed' };
   };
   try { await run(requests); }
@@ -258,10 +264,10 @@ for (const expectedHeadSha of [undefined, 'abc']) test(`R10/試験1: マージ�
       ...(expectedHeadSha ? { sha: expectedHeadSha } : {}) } }]);
   });
 });
-test('R10/試験2: 先頭指定のある409は1回で失敗し、状態を再取得しない', async () => {
+test('F2: 409でPRを取り直して先頭が違えばマージ1回で失敗', async () => {
   await withMergeFetch([409], async requests => {
     await assert.rejects(api.mergePR(744, '', { expectedHeadSha: 'abc', maxAttempts: 4, intervalMs: 0 }), /枝の先頭が承認の版と違う/);
-    assert.equal(requests.length, 1); assert.equal(requests[0].body.sha, 'abc');
+    assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET']); assert.equal(requests[0].body.sha, 'abc');
   });
 });
 test('R10/試験2: 先頭指定のない409は従来どおり再取得して再試行', async () => {
@@ -319,10 +325,48 @@ for (const fallbackMainStatus of ['', 'approved']) test(`S2/R11: マージ時の
       mergeImpl: (number, title, options) => api.mergePR(number, title, { ...options, intervalMs: 0 }) });
     const response = await h.run(consent);
     assert.equal(JSON.parse(response.body).merged, false);
-    assert.equal(requests.length, 1); assert.equal(requests[0].body.sha, 'abc');
+    assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET']); assert.equal(requests[0].body.sha, 'abc');
     assert.equal(h.state.deletes.length, 0);
     assert.deepEqual(h.state.notifications.map(n => n.event), fallbackMainStatus ? [] : ['merge_failed']);
   });
+});
+test('F2: 409で先頭が一致していれば同じSHAを指定したまま再試行', async () => {
+  await withMergeFetch([409, 200], async requests => {
+    assert.deepEqual(await api.mergePR(744, '', { expectedHeadSha: 'abc', maxAttempts: 2, intervalMs: 0 }), { merged: true });
+    assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET', 'PUT']);
+    assert.equal(requests[0].body.sha, 'abc'); assert.deepEqual(requests[2].body, requests[0].body);
+  }, { headSha: 'abc' });
+});
+test('F2: 409でPRを取り直せないときはマージ1回で失敗', async () => {
+  await withMergeFetch([409], async requests => {
+    await assert.rejects(api.mergePR(744, '', { expectedHeadSha: 'abc', intervalMs: 0 }), /枝の先頭が承認の版と違う/);
+    assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET']);
+  }, { getError: true });
+});
+test('F2: 先頭が一致する409にも再試行の上限を適用する', async () => {
+  await withMergeFetch([409, 409], async requests => {
+    await assert.rejects(api.mergePR(744, '', { expectedHeadSha: 'abc', maxAttempts: 2, intervalMs: 0 }), /GitHub merge 409/);
+    assert.deepEqual(requests.map(r => r.method), ['PUT', 'GET', 'PUT', 'GET']);
+    assert.ok(requests.filter(r => r.method === 'PUT').every(r => r.body.sha === 'abc'));
+  }, { headSha: 'abc' });
+});
+for (const refresh of [false, true]) for (const blocked of [false, true]) test(`F3: 上書きログは全ゲートを通った書き込みの直前だけ (${refresh}, ${blocked})`, async () => {
+  const h = setup(blocked ? { fact_check_prev_recommendation: 'revise' } : {}, { refresh });
+  const log = console.log;
+  console.log = (...args) => { if (String(args[0]).startsWith('[review-approve] 照合の指摘を人の判断で上書き:')) h.state.events.push('override-log'); };
+  try { await h.run(consent); } finally { console.log = log; }
+  assert.equal(h.state.events.filter(event => event === 'override-log').length, blocked ? 0 : 1);
+  if (!blocked) assert.deepEqual(h.state.events.slice(-2), ['override-log', 'put']);
+});
+test('F5: 本文が同じ再生成でも古い上書き欄を引き継がない', () => {
+  const original = article({ fact_check_version: 1, fact_check_override: true, fact_check_override_at: now,
+    fact_check_override_status: 'revise', fact_check_override_summary: '過去の指摘', fact_check_override_sha: 'old', fact_check_override_future: '古い欄' });
+  const regenerated = article();
+  const inherited = matter(F.inheritFactMetadata(original, regenerated));
+  assert.ok(!Object.keys(inherited.data).some(key => key.startsWith('fact_check_override')));
+  assert.equal(inherited.content, matter(original).content);
+  assert.equal(inherited.data.fact_check_status, 'revise'); assert.equal(inherited.data.fact_check_blocking, true);
+  assert.equal(inherited.data.fact_check_summary, base.fact_check_summary);
 });
 (async () => {
   let passed = 0;

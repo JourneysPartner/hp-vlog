@@ -280,6 +280,7 @@ async function handleRefreshApproval({
 
   const commitMessage = `refresh: ${title} (#${pr.number})`;
   try {
+    if (factOverride) console.log(`[review-approve] 照合の指摘を人の判断で上書き: ${filename}`);
     await putFile(filepath, target.content, mainFile.sha, commitMessage, 'main');
   } catch (error) {
     if (!isShaConflict(error)) throw error;
@@ -297,6 +298,7 @@ async function handleRefreshApproval({
       return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: '反映する変更がありません。', action: 'refresh_approve', filename, noChange: true }) };
     }
     try {
+      if (factOverride) console.log(`[review-approve] 照合の指摘を人の判断で上書き: ${filename}`);
       await putFile(filepath, target.content, mainFile.sha, `refresh: ${title} (#${pr.number})`, 'main');
     } catch (_) {
       await notifyFailure('公開中の記事への反映に失敗しました。更新案の枝は残しています。');
@@ -401,7 +403,6 @@ async function handler(event, injected = {}) {
       return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
     }
     const factOverride = overrideAccepted ? factOverrideUpdates(branchMeta, file_sha, nowJST()) : null;
-    if (overrideAccepted) console.log(`[review-approve] 照合の指摘を人の判断で上書き: ${filename}`);
     if (!Object.keys(branchMeta).some(key => key.startsWith('fact_check_'))) console.log(`[review-approve] ${filename}: 照合の記録なし`);
     if (isRefresh) {
       if (!ref) {
@@ -561,12 +562,13 @@ async function handler(event, injected = {}) {
       publish_at: publishAt,
       publish_slot: publishSlot,
       updated_at: now,
-      ...(factOverride ? { ...factOverride, fact_check_override_at: now } : {}),
+      ...(factOverride && Object.hasOwn(factOverride, 'recommendation') ? { recommendation: factOverride.recommendation } : {}),
     };
 
     let updated = updateFrontmatter(content, updates);
     // 通常の更新で文字列になる真偽値と、置換文字を含む要約をそのまま記録する。
     if (factOverride) updated = updateApprovalFields(updated, { ...factOverride, fact_check_override_at: now });
+    if (factOverride) console.log(`[review-approve] 照合の指摘を人の判断で上書き: ${filename}`);
     const written = await putFile(filepath, updated, sha, `publish: ${fmTitle || filename}`, ref || undefined);
     const expectedHeadSha = written?.commit?.sha;
 

@@ -156,15 +156,15 @@ async function main() {
     assert.equal(meta(result).fact_check_blocking, false);
   });
 
-  for (const type of ['要件', '判定', '手続']) await test('E1', `本文にない${type}だけを捨てた場合は一覧に残し承認可能`, async () => {
+  for (const type of ['要件', '判定', '手続']) await test('E1', `長文で${type}を全部捨てた場合は一覧に残し未実施で止める`, async () => {
     const absent = claim('本文にない記述です。', type);
-    // 長い本文でも、抽出された非数値の主張を捨てたことを未実施と取り違えない。
+    // 長文で有効な主張が0件なら、捨てた種類にかかわらず照合全体を未実施にする。
     const body = 'この文章は制度の背景を説明するものです。'.repeat(20);
     const result = await F.checkArticle(raw(body), options({ repair: false, searchEvidence: () => [ref()],
       callLLM: async request => { assert.equal(request.task, 'extract'); return [absent]; } }));
-    assert.equal(result.record.status, 'ok'); assert.equal(result.record.discarded, 1); assert.equal(result.body, body);
+    assert.equal(result.record.status, 'not_run'); assert.equal(result.record.discarded, 1); assert.equal(result.body, body);
     assert.equal(result.record.review_items[0].sentence, absent.sentence);
-    assert.equal(result.record.review_items[0].status, '照合で文を特定できなかった'); assert.equal(meta(result).fact_check_blocking, false);
+    assert.equal(result.record.review_items[0].status, '照合で文を特定できなかった'); assert.equal(meta(result).fact_check_blocking, true);
   });
 
   await test('E1', '最初に未知の種類を捨てた場合も人の確認に回す', async () => {
