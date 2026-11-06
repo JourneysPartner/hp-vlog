@@ -51,21 +51,22 @@ tax_risk_score: 4
 recommendation: "publish"
 review_warning: ""
 summary: "生前贈与の非課税は暦年課税の基礎控除110万円までが目安。超えた場合や相続時精算課税を選ぶ場合は、翌年2月1日〜3月15日に申告が必要です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ SEO: h2_missing_query"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-06T21:24:17.277+09:00"
+publish_at: "2026-11-07T17:34:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-19T00:06:05.397Z"
-updated_at: "2026-10-19T00:08:03.628Z"
+updated_at: "2026-11-06T21:24:17.277+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 59 件: 裏付けあり 54・修正 1（食い違い 0・期限 0・具体を外した 1）・残った食い違い 0・未解決 0・上限で未照合 16・捨てた主張 2・人が確かめる箇所 22 件・候補の外の資料で裏付け 2 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "evening"
 ---
 「子どもに毎年まとまったお金を渡しているけれど、これは非課税で済むのだろうか」「110万円を超えたら確定申告が必要と聞いたが、自分はどうなのか」——生前贈与を考え始めたとき、多くの方が最初に引っかかるのがこの点です。
 
