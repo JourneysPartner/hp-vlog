@@ -333,11 +333,12 @@ async function waitForMergeable(prNumber, { maxAttempts = 12, intervalMs = 2000 
 }
 
 // ── PR をマージする（405 not mergeable に対するリトライ付き）───────────
-async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 3000 } = {}) {
+async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 3000, expectedHeadSha } = {}) {
   const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/merge`;
   const body = JSON.stringify({
     commit_title: commitTitle || `merge: PR #${prNumber}`,
     merge_method: 'squash',
+    ...(expectedHeadSha ? { sha: expectedHeadSha } : {}),
   });
 
   let lastError = null;
@@ -351,6 +352,9 @@ async function mergePR(prNumber, commitTitle, { maxAttempts = 4, intervalMs = 30
     if (res.ok) return res.json();
 
     const text = await res.text();
+    if (expectedHeadSha && res.status === 409) {
+      throw new Error(`GitHub merge 409: 枝の先頭が承認の版と違う: ${text}`);
+    }
     lastError = new Error(`GitHub merge ${res.status}: ${text}`);
 
     // 405 "not mergeable" は GitHub の mergeable 再計算待ちで一時的に出ることがある

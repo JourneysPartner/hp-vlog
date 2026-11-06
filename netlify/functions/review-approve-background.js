@@ -567,7 +567,8 @@ async function handler(event, injected = {}) {
     let updated = updateFrontmatter(content, updates);
     // 通常の更新で文字列になる真偽値と、置換文字を含む要約をそのまま記録する。
     if (factOverride) updated = updateApprovalFields(updated, { ...factOverride, fact_check_override_at: now });
-    await putFile(filepath, updated, sha, `publish: ${fmTitle || filename}`, ref || undefined);
+    const written = await putFile(filepath, updated, sha, `publish: ${fmTitle || filename}`, ref || undefined);
+    const expectedHeadSha = written?.commit?.sha;
 
     // PR 自動マージ
     // - findPR → waitForMergeable で mergeable 確定を待ってから merge
@@ -577,6 +578,9 @@ async function handler(event, injected = {}) {
     let mergeError = null;
     if (ref) {
       try {
+        if (factOverride && !expectedHeadSha) {
+          throw new Error('承認の書き込みの版を取得できませんでした');
+        }
         const pr = await findPR(ref);
         if (!pr) {
           throw new Error(`対象 PR が見つかりません (head=${ref})`);
@@ -589,8 +593,8 @@ async function handler(event, injected = {}) {
         const stable = await waitForMergeable(pr.number, { maxAttempts: 12, intervalMs: 2000 });
         console.log(`[review-approve] PR #${pr.number} 状態: mergeable=${stable && stable.mergeable} state=${stable && stable.mergeable_state}`);
 
-        // mergePR 内部でも 405/409/502/503 に対し最大 4 回リトライ
-        mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`);
+        // 先頭を承認のコミットに固定する。先頭不一致の 409 は再試行しない。
+        mergeResult = await mergePR(pr.number, `publish: ${fmTitle || filename}`, expectedHeadSha ? { expectedHeadSha } : undefined);
         console.log(`[review-approve] PR #${pr.number} をマージしました`);
 
         // 記事は main に取り込み済みなので、枝の削除失敗では公開処理を止めない。
