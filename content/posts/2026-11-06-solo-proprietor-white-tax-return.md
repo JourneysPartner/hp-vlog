@@ -52,24 +52,30 @@ source_alignment_score: 4
 practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
-recommendation: "revise"
+recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 純損失の繰越控除（0.78） / 論点別ルールを部分修正で反映: small_depreciable_assets（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: small_depreciable_assets_2026（修正箇所が現行の制度に合うか確認してください） / 論点別ルールが未反映: small_depreciable_assets（表の該当行が現行の制度に合うか確認してください） / 論点別ルールが未反映: small_depreciable_assets_2026（表の該当行が現行の制度に合うか確認してください） / 【事実の照合】主張 62 件: 裏付けあり 53・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 10・捨てた主張 2・人が確かめる箇所 18 件【/事実の照合】"
 summary: "一人親方の確定申告は白色申告のままでも可能です。最大65万円の特別控除、赤字の3年繰越、少額減価償却資産の特例など青色だけの特典と、申請期限・記帳の手間を並べて選び方を整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-06T18:35:35.947+09:00"
+publish_at: "2026-11-07T11:55:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-06T00:06:19.915Z"
-updated_at: "2026-11-06T06:54:52.887Z"
+updated_at: "2026-11-06T18:35:35.947+09:00"
 fact_check_version: 1
 fact_check_status: "revise"
 fact_check_summary: "主張 62 件: 裏付けあり 53・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 10・捨てた主張 2・人が確かめる箇所 18 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: true
+publish_slot: "morning"
+fact_check_override: true
+fact_check_override_at: "2026-11-06T18:35:35.947+09:00"
+fact_check_override_status: "revise"
+fact_check_override_summary: "主張 62 件: 裏付けあり 53・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 10・捨てた主張 2・人が確かめる箇所 18 件"
+fact_check_override_sha: "d2e1ea1e6042fc71f2c58e466232f53ec99f79c3"
 ---
 一人親方として現場を回していると、確定申告の季節に必ず迷うのが「白色申告のままでいいのか」という点です。帳簿をつける時間は現場仕事の合間にしか取れませんし、青色申告の話を聞いても手間が増えるだけに見えるかもしれません。
 
