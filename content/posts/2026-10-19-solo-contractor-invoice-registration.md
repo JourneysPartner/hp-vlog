@@ -53,7 +53,7 @@ practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
 recommendation: "revise"
-review_warning: "出典: LLM選定の確信度が低い（0.86 < 0.9） / 論点別ルールを部分修正で反映: tsutatsu_citation（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: shotoku_tsutatsu_shihonteki_shishutsu（修正箇所が現行の制度に合うか確認してください） / 【事実の照合】主張 66 件: 裏付けあり 29・修正 5（食い違い 0・期限 1・具体を外した 4）・残った食い違い 2・未解決 16・上限で未照合 0・捨てた主張 3・人が確かめる箇所 24 件 / 照合の入力が多い（153475 字）【/事実の照合】"
+review_warning: "出典: LLM選定の確信度が低い（0.86 < 0.9） / 論点別ルールを部分修正で反映: tsutatsu_citation（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: shotoku_tsutatsu_shihonteki_shishutsu（修正箇所が現行の制度に合うか確認してください）"
 summary: "一人親方のインボイス登録は、元請が課税事業者で継続発注が見込めるなら登録が基本です。令和8年分は2割特例、令和9年分以降は3割特例で納税額は売上税額の2〜3割に収まります。"
 review_status: "draft"
 review_comment: "⚠ SEO: h2_missing_query ／ ⚠ SEO: secondary_not_covered:インボイス 未登録 取引先 ／ ⚠ SEO: secondary_not_covered:建設業 インボイス 下請け"
@@ -65,11 +65,11 @@ preview_url: ""
 created_at: "2026-10-19T13:28:00.404Z"
 updated_at: "2026-10-19T13:28:44.815Z"
 fact_check_version: 1
-fact_check_status: "revise"
-fact_check_summary: "主張 66 件: 裏付けあり 29・修正 5（食い違い 0・期限 1・具体を外した 4）・残った食い違い 2・未解決 16・上限で未照合 0・捨てた主張 3・人が確かめる箇所 24 件 / 照合の入力が多い（153475 字）"
+fact_check_status: "ok"
+fact_check_summary: "主張 56 件: 裏付けあり 43・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 2・人が確かめる箇所 15 件・AI 裏付けあり・数字未確認 2 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "revise"
-fact_check_blocking: true
+fact_check_blocking: false
 ---
 
 一人親方として現場を回していると、元請から「インボイス登録をお願いします」という書面を渡され、そのまま放置してしまっていませんか。登録すれば消費税を納めることになるのは分かる。でも、実際にいくら払うのか、断ったら仕事が減るのかが分からないまま、返事を先延ばしにしている方は少なくありません。
