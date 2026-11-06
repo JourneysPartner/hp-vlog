@@ -121,6 +121,96 @@
         "impressions": 28,
         "clicks": 0
       }
+    },
+    {
+      "id": "20261106-09",
+      "source": "newseg-wholesale-wholesale-consignment-general-practice",
+      "anchor": "売上返品",
+      "target": "newseg-retail_store-retail-return-handling-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。返品の記事は本文からのリンク2本・8.4位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.4,
+        "impressions": 144,
+        "clicks": 3
+      }
+    },
+    {
+      "id": "20261106-10",
+      "source": "newseg-wholesale-wholesale-food-loss-food-guide",
+      "anchor": "返品処理",
+      "target": "newseg-retail_store-retail-return-handling-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。同上（「まず返品処理（売上の取消）を行い」）",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.4,
+        "impressions": 144,
+        "clicks": 3
+      }
+    },
+    {
+      "id": "20261106-11",
+      "source": "newseg-retail_store-retail-qr-payment-practice",
+      "anchor": "現金売上",
+      "target": "newseg-retail_store-retail-register-sales-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。レジの記事は本文からのリンク1本・8.9位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8.9,
+        "impressions": 60,
+        "clicks": 0
+      }
+    },
+    {
+      "id": "20261106-12",
+      "source": "newseg-retail_store-retail-reduced-tax-rate-practice",
+      "anchor": "インボイス制度（適格請求書等保存方式）",
+      "target": "newseg-retail_store-retail-invoice-guide",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。簡易インボイスの記事は本文からのリンク1本・8.0位",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 8,
+        "impressions": 45,
+        "clicks": 1
+      }
+    },
+    {
+      "id": "20261106-13",
+      "source": "newseg-construction_solo-construction-bookkeeping-guide",
+      "anchor": "材料費",
+      "target": "newseg-construction_solo-construction-material-cost-practice",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。材料費の立替の記事は本文からのリンク0本・4.8位（「ホームセンターで材料費△△円を支払った」）",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 4.8,
+        "impressions": 40,
+        "clicks": 1
+      }
+    },
+    {
+      "id": "20261106-14",
+      "source": "newseg-construction_solo-construction-workform-judgment-joyou-guide",
+      "anchor": "材料費",
+      "target": "newseg-construction_solo-construction-material-cost-practice",
+      "enabled": true,
+      "added_at": "2026-11-06",
+      "reason": "2026-11-06 毛利承認（第2弾）。同上（「売上から材料費・工具費・交通費などの必要経費を」）",
+      "baseline": {
+        "range_end": "2026-10-29",
+        "position": 4.8,
+        "impressions": 40,
+        "clicks": 1
+      }
     }
   ]
 }
