@@ -1,0 +1,2573 @@
+{
+  "version": 1,
+  "logic_version": "plan2-s4",
+  "status": "revise",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": false,
+  "checked_at": "2026-11-06T06:54:52.899Z",
+  "body_sha256": "875bb20e9cd4fd5edce6672129e248ea7219bd7c6c0cc67f6d4b731bdaece929",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "ただし青色申告には最大65万円の特別控除や赤字の繰越など、白色にはない特典があり、所得金額と記帳の手間に見合うかどうかで決まります。",
+      "heading": "",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "青色申告には最大65万円の特別控除がある",
+      "s": 7,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目所得税概要青色申告者に対しては種々の特典がありますが、その1つに所得金額から55万円（一定の要件を満たす場合は65万円）または10万円を控除するという青色申告特別控除があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "| 所得が一定程度あり、e-Taxで申告できる | 青色申告 | 最大65万円の青色申告特別控除を狙える |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "e-Taxで申告できれば最大65万円の控除を狙える",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "（注1）令和2年分以後の青色申告特別控除について、この最高55万円の青色申告特別控除を受けることができる方が、電子帳簿保存（※）またはe-Taxによる電子申告を行っている場合は、最高65万円の青色申告特別控除が受けられます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "| 青色申告特別控除 | なし | 最大65万円（要件により55万円・10万円） |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "控除は最大65万円、要件により55万円・10万円",
+      "s": 31,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目所得税概要青色申告者に対しては種々の特典がありますが、その1つに所得金額から55万円（一定の要件を満たす場合は65万円）または10万円を控除するという青色申告特別控除があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "- <strong>65万円</strong>：55万円の要件を満たしたうえで、仕訳帳と総勘定元帳を優良な電子帳簿の要件を満たして電子保存、またはe-Taxでの申告を行っている場合",
+      "heading": "青色申告特別控除は3段階ある",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "65万円控除は55万円の要件に加え優良な電子帳簿保存かe-Tax申告が要件",
+      "s": 39,
+      "status": "裏付けあり",
+      "quote": "（注1）令和2年分以後の青色申告特別控除について、この最高55万円の青色申告特別控除を受けることができる方が、電子帳簿保存（※）またはe-Taxによる電子申告を行っている場合は、最高65万円の青色申告特別控除が受けられます。\n…\n（※）令和4年分以後の青色申告特別控除（最高65万円）の適用を受けるためには、その年分の事業における仕訳帳および総勘定元帳について優良な電子帳簿の要件を満たして電子データによる備付けおよび保存を行い、一定の事項を記載した届出書を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "- <strong>10万円</strong>：青色申告者で、55万円・65万円の要件に当てはまらない場合",
+      "heading": "青色申告特別控除は3段階ある",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "55万円・65万円の要件に当てはまらない青色申告者は10万円",
+      "s": 41,
+      "status": "裏付けあり",
+      "quote": "10万円の青色申告特別控除この控除は、上記「55万円の青色申告特別控除」および「65万円の青色申告特別控除」の要件に該当しない青色申告者が受けられます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:sozeki_hou:25_2",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "その代わり、要件を満たせば事業専従者控除として、配偶者は最高86万円、15歳以上のその他の親族は最高50万円を必要経費とみなせます。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "金額",
+      "subject": "事業専従者控除",
+      "claim": "配偶者は最高86万円、15歳以上のその他親族は最高50万円を必要経費とみなす",
+      "s": 55,
+      "status": "裏付けあり",
+      "quote": "（2）白色申告者に係る「事業専従者控除額」 白色申告の場合、生計を一にする配偶者やその他の親族に支払った給与等を必要経費に算入することができませんが、これらの方が専ら事業に従事している場合には、事業専従者控除として、配偶者は最高 86 万円、15 歳以上のその他の親族は最高 50 万円を必要経費として差し引くことができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:166",
+        "law:shotokuzei_ki:36_4",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "ただし「控除する前の事業所得等の金額÷（事業専従者の数＋1）」とのいずれか低い金額になり、確定申告書に控除を受ける旨と金額を書かなければ適用されません。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "金額",
+      "subject": "事業専従者控除",
+      "claim": "控除前事業所得等÷（専従者数＋1）との低い方が控除額",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "事業専従者控除 （1）事業専従者控除額は、次のイまたはロの金額のいずれか低い金額です。 イ事業専従者が事業主の配偶者であれば86万円、配偶者でなければ事業専従者一人につき50万円ロこの控除をする前の事業所得等の金額を事業専従者の数に1を足した数で割った金額 （2）事業専従者控除を受けるための要件は、次のとおりです。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:166",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "- 40万円未満の工具や機械の購入予定を把握している",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "金額",
+      "subject": "少額減価償却資産の特例",
+      "claim": "40万円未満の工具や機械が特例の対象",
+      "s": 102,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "basis": "9",
+        "quote": "（注3）一定の要件を満たす青色申告者が、平成18年4月1日から令和11年3月31日までに取得した取得価額10万円以上40万円未満（令和8年3月31日までに取得した場合の取得価額は10万円以上30万円未満）の減価償却資産（上記（注2）の適用を受けるものを除きます。）については、一定の要件の下でその取得価額の合計額のうち300万円に達するまでの取得価額の合計額をその業務の用に供した年分の必要経費に算入"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、40万円未満の工具をまとめて買うといった事情があるなら、青色申告の特典は無視できません。",
+      "heading": "まとめ",
+      "type": "金額",
+      "subject": "少額減価償却資産の特例",
+      "claim": "40万円未満の工具をまとめて買うなら青色の特典が有用",
+      "s": 128,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "basis": "9",
+        "quote": "（注3）一定の要件を満たす青色申告者が、平成18年4月1日から令和11年3月31日までに取得した取得価額10万円以上40万円未満（令和8年3月31日までに取得した場合の取得価額は10万円以上30万円未満）の減価償却資産（上記（注2）の適用を受けるものを除きます。）については、一定の要件の下でその取得価額の合計額のうち300万円に達するまでの取得価額の合計額をその業務の用に供した年分の必要経費に算入"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "| 赤字が数年続きそう | 青色申告 | 赤字を翌年以後3年間繰り越せる。白色申告では原則できない（変動所得・被災事業用資産の損失は可） |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "期限",
+      "subject": "純損失の繰越控除",
+      "claim": "青色申告の赤字は翌年以後3年間繰り越せる",
+      "s": 20,
+      "status": "裏付けあり",
+      "quote": "純損失の繰越しと繰戻しイ純損失の繰越し事業所得などに損失（赤字）の金額がある場合で、損益通算の規定を適用してもなお控除しきれない部分の金額（純損失の金額）が生じたときには、その損失額を翌年以後3年間にわたって繰り越して、各年分の所得金額から控除します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:201"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "| 赤字の繰越 | できない | 翌年以後3年間繰り越せる |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "期限",
+      "subject": "純損失の繰越控除",
+      "claim": "青色は赤字を翌年以後3年間繰り越せ、白色はできない",
+      "s": 32,
+      "status": "裏付けあり",
+      "quote": "確定申告書を提出する居住者のその年の前年以前三年内の各年（その年分の所得税につき青色申告書を提出している年に限る。）において生じた純損失の金額（この項の規定により前年以前において控除されたもの及び第百四十二条第二項（純損失の繰戻しによる還付）の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）がある場合には、当該純損失の金額に相当する金額は、政令で定めるところにより、当該確定申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。\n２　確定申告書を提出する居住者のその年の前年以前三年内の各年において生じた純損失の金額（前項の規定の適用を受けるもの及び第百四十二条第二項の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）のうち、当該各年において生じた次に掲げる損失の金額に係るもので政令で定めるものがあるときは、当該政令で定める純損失の金額に相当する金額は、政令で定めるところにより、当該申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:70",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:201"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "| 帳簿の保存 | 法定帳簿7年、任意帳簿・書類5年 | 同左 |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "期限",
+      "subject": "帳簿の保存",
+      "claim": "法定帳簿は7年、任意帳簿・書類は5年保存（白色・青色共通）",
+      "s": 35,
+      "status": "裏付けあり",
+      "quote": "保存が必要なもの保存期間収入金額や必要経費を記載した帳簿（法定帳簿） 7年業務に関して作成した上記以外の帳簿（任意帳簿） 5年決算に関して作成した棚卸表その他の書類 5年業務に関して作成し、又は受領した請求書、納品書、送り状、領収書などの書類 5年 ※ 令和5年分の確定申告に対する修正申告等から、売上げに関する帳簿を保存していなかったことや帳簿の売上げについて記載が不十分であったことなどが税務調査において把握された場合には、帳簿に記載すべき事項に関する申告漏れに対して通常課される加算税（過少申告加算税・無申告加算税）の割合に5パーセントまたは10パーセントが加重されることとなりました。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "事業所得で赤字が出たとき、青色申告者はその損失を翌年以後3年間にわたって繰り越し、各年分の所得から差し引けます。",
+      "heading": "赤字を3年繰り越せるのは原則として青色だけ",
+      "type": "期限",
+      "subject": "純損失の繰越控除",
+      "claim": "青色申告者は事業所得の損失を翌年以後3年間繰り越して控除できる",
+      "s": 45,
+      "status": "裏付けあり",
+      "quote": "純損失の繰越しと繰戻しイ純損失の繰越し事業所得などに損失（赤字）の金額がある場合で、損益通算の規定を適用してもなお控除しきれない部分の金額（純損失の金額）が生じたときには、その損失額を翌年以後3年間にわたって繰り越して、各年分の所得金額から控除します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:201"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "原則は青色申告しようとする年の3月15日まで、その年の1月16日以後に新規開業した場合は業務開始日から2か月以内です。",
+      "heading": "よくある間違い",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "原則その年3月15日まで、1月16日以後開業は開始日から2か月以内",
+      "s": 74,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。 （2）新規開業した場合（その年の1月16日以後に新規に業務を開始した場合） 業務を開始した日から2か月以内に「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "その年の3月15日まで、または1月16日以後に開業した場合は業務開始日から2か月以内に、納税地の所轄税務署長へ提出します。",
+      "heading": "【手順①】青色申告承認申請書を期限までに出す",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "3月15日まで、1月16日以後開業は開始日から2か月以内に提出",
+      "s": 85,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。 （2）新規開業した場合（その年の1月16日以後に新規に業務を開始した場合） 業務を開始した日から2か月以内に「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "青色事業専従者給与に関する届出書の提出期限は、給与を必要経費に算入しようとする年の3月15日までです。",
+      "heading": "【手順③】家族に給与を払うなら専従者の届出を出す",
+      "type": "期限",
+      "subject": "青色事業専従者給与",
+      "claim": "届出書は必要経費に算入しようとする年の3月15日までに提出",
+      "s": 90,
+      "status": "裏付けあり",
+      "quote": "提出期限は、青色事業専従者給与額を必要経費に算入しようとする年の3月15日（その年の1月16日以後、新たに事業を開始した場合や新たに専従者がいることとなった場合には、その開始した日や専従者がいることとなった日から2か月以内）までです。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "その年の1月16日以後に事業を開始した場合や新たに専従者がいることとなった場合は、その日から2か月以内になります。",
+      "heading": "【手順③】家族に給与を払うなら専従者の届出を出す",
+      "type": "期限",
+      "subject": "青色事業専従者給与",
+      "claim": "1月16日以後の開業や新たな専従者はその日から2か月以内",
+      "s": 91,
+      "status": "裏付けあり",
+      "quote": "提出期限は、青色事業専従者給与額を必要経費に算入しようとする年の3月15日（その年の1月16日以後、新たに事業を開始した場合や新たに専従者がいることとなった場合には、その開始した日や専従者がいることとなった日から2か月以内）までです。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "- 3月15日（新規開業なら開始日から2か月）という期限を確認した",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "期限は3月15日、新規開業なら開始日から2か月",
+      "s": 100,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。 （2）新規開業した場合（その年の1月16日以後に新規に業務を開始した場合） 業務を開始した日から2か月以内に「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "その年の1月16日以後に新たに業務を開始した場合は、開始日から2か月以内に申請すればその年から青色申告できます。",
+      "heading": "年の中途から青色申告に変えられますか？",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "1月16日以後開業なら開始日から2か月以内の申請でその年から青色可",
+      "s": 114,
+      "status": "裏付けあり",
+      "quote": "（2）新規開業した場合（その年の1月16日以後に新規に業務を開始した場合） 業務を開始した日から2か月以内に「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "すでに事業を営んでいる年の途中で変更する場合は、翌年分について3月15日までに申請する形になります。",
+      "heading": "年の中途から青色申告に変えられますか？",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "既存事業の年途中の変更は翌年分について3月15日までに申請",
+      "s": 115,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "まずは今年の所得見込みと、3月15日という期限を手元で確認するところから始めてください。",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "青色申告承認申請",
+      "claim": "申請期限は3月15日",
+      "s": 130,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "| 30万円前後の工具や機械をまとめて買う | 青色申告 | 少額減価償却資産の特例が使える（令和11年3月31日までに取得等して業務の用に供したものが対象） |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "適用年",
+      "subject": "少額減価償却資産の特例",
+      "claim": "令和11年3月31日までに取得等し業務の用に供したものが対象",
+      "s": 22,
+      "status": "裏付けあり",
+      "quote": "中小事業者（第十条第八項第六号に規定する中小事業者で青色申告書を提出するもののうち、事務負担に配慮する必要があるものとして政令で定めるものをいう。以下この項において同じ。）が、平成十八年四月一日から令和十一年三月三十一日までの間に取得し、又は製作し、若しくは建設し、かつ、当該中小事業者の不動産所得、事業所得又は山林所得を生ずべき業務の用に供した減価償却資産で、その取得価額が四十万円未満であるもの（その取得価額が十万円未満であるもの及び第十九条第一項各号に掲げる規定の適用を受けるものその他政令で定めるものを除く。以下この条において「少額減価償却資産」という。）については、",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "ただし青色申告には最大65万円の特別控除や赤字の繰越など、白色にはない特典があり、所得金額と記帳の手間に見合うかどうかで決まります。",
+      "heading": "",
+      "type": "要件",
+      "subject": "純損失の繰越控除",
+      "claim": "青色申告には白色にない赤字の繰越の特典がある",
+      "s": 7,
+      "status": "裏付けあり",
+      "quote": "確定申告書を提出する居住者のその年の前年以前三年内の各年（その年分の所得税につき青色申告書を提出している年に限る。）において生じた純損失の金額（この項の規定により前年以前において控除されたもの及び第百四十二条第二項（純損失の繰戻しによる還付）の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）がある場合には、当該純損失の金額に相当する金額は、政令で定めるところにより、当該確定申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:70",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_rei:201",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "白色申告は事前の承認申請が要らず、記帳も簡易な方法でよいため、開業したばかりで所得が小さいうちは負担が軽い申告方法です。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "要件",
+      "subject": "白色申告",
+      "claim": "白色申告の記帳は簡易な方法でよい",
+      "s": 14,
+      "status": "裏付けあり",
+      "quote": "記帳に当たっては、一つ一つの取引ごとではなく、日々の合計金額のみをまとめて記載するなど、簡易な方法で記載してもよいことになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "一方、青色申告は承認申請が必要で、記帳は正規の簿記が原則（簡易な記帳でもよい）となり、55万円・65万円の控除を受けるには複式簿記などの要件を満たす必要がある代わりに、所得金額から差し引ける特別控除や赤字の繰越といった特典が付きます。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "要件",
+      "subject": "青色申告",
+      "claim": "青色申告の記帳は正規の簿記が原則で、簡易な記帳でもよい",
+      "s": 15,
+      "status": "裏付けあり",
+      "quote": "青色申告者の帳簿書類とその保存青色申告の記帳は、年末に貸借対照表と損益計算書を作成することができるような正規の簿記によることが原則ですが、現金出納帳、売掛帳、買掛帳、経費帳、固定資産台帳のような帳簿を備え付けて簡易な記帳をするだけでもよいことになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_rei:164",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_ki:36_4",
+        "law:shotokuzei_hou:2"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "一方、青色申告は承認申請が必要で、記帳は正規の簿記が原則（簡易な記帳でもよい）となり、55万円・65万円の控除を受けるには複式簿記などの要件を満たす必要がある代わりに、所得金額から差し引ける特別控除や赤字の繰越といった特典が付きます。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "要件",
+      "subject": "青色申告特別控除",
+      "claim": "55万円・65万円の控除には複式簿記などの要件を満たす必要がある",
+      "s": 15,
+      "status": "裏付けあり",
+      "quote": "55万円の青色申告特別控除この55万円の控除を受けるための要件は、次のようになっています。 （1）不動産所得または事業所得を生ずべき事業を営んでいること。 （2）これらの所得に係る取引を正規の簿記の原則（一般的には複式簿記）により記帳していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "| 記帳の水準 | 日々の合計をまとめて記載する簡易な方法でよい | 正規の簿記（複式簿記）が原則。簡易な記帳でもよいが控除額が変わる |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "要件",
+      "subject": "記帳",
+      "claim": "白色は簡易な記帳、青色は複式簿記が原則で簡易記帳だと控除額が変わる",
+      "s": 30,
+      "status": "裏付けあり",
+      "quote": "青色申告者の帳簿書類とその保存青色申告の記帳は、年末に貸借対照表と損益計算書を作成することができるような正規の簿記によることが原則ですが、現金出納帳、売掛帳、買掛帳、経費帳、固定資産台帳のような帳簿を備え付けて簡易な記帳をするだけでもよいことになっています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "| 少額減価償却資産の特例 | 対象外 | 対象 |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "要件",
+      "subject": "少額減価償却資産の特例",
+      "claim": "少額減価償却資産の特例は白色は対象外で青色は対象",
+      "s": 34,
+      "status": "裏付けあり",
+      "quote": "中小事業者（第十条第八項第六号に規定する中小事業者で青色申告書を提出するもののうち、事務負担に配慮する必要があるものとして政令で定めるものをいう。以下この項において同じ。）が、平成十八年四月一日から令和十一年三月三十一日までの間に取得し、又は製作し、若しくは建設し、かつ、当該中小事業者の不動産所得、事業所得又は山林所得を生ずべき業務の用に供した減価償却資産で、その取得価額が四十万円未満であるもの（その取得価額が十万円未満であるもの及び第十九条第一項各号に掲げる規定の適用を受けるものその他政令で定めるものを除く。以下この条において「少額減価償却資産」という。）については、",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "白色申告では原則としてこの繰越ができませんが、変動所得の損失や被災事業用資産の損失から生じた純損失は、白色申告でも翌年以後3年間繰り越して控除できます。",
+      "heading": "赤字を3年繰り越せるのは原則として青色だけ",
+      "type": "要件",
+      "subject": "純損失の繰越控除",
+      "claim": "白色は原則不可だが変動所得・被災事業用資産の純損失は3年間繰越可",
+      "s": 47,
+      "status": "裏付けあり",
+      "quote": "２　確定申告書を提出する居住者のその年の前年以前三年内の各年において生じた純損失の金額（前項の規定の適用を受けるもの及び第百四十二条第二項の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）のうち、当該各年において生じた次に掲げる損失の金額に係るもので政令で定めるものがあるときは、当該政令で定める純損失の金額に相当する金額は、政令で定めるところにより、当該申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。一　変動所得の金額の計算上生じた損失の金額\n二　被災事業用資産の損失の金額",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:70",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:201"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "一定の減価償却資産について、取得価額をその年の必要経費に算入できる特例があります。",
+      "heading": "少額減価償却資産の特例も青色が前提",
+      "type": "要件",
+      "subject": "少額減価償却資産の特例",
+      "claim": "一定の減価償却資産は取得価額をその年の必要経費に算入できる",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "中小事業者（第十条第八項第六号に規定する中小事業者で青色申告書を提出するもののうち、事務負担に配慮する必要があるものとして政令で定めるものをいう。以下この項において同じ。）が、平成十八年四月一日から令和十一年三月三十一日までの間に取得し、又は製作し、若しくは建設し、かつ、当該中小事業者の不動産所得、事業所得又は山林所得を生ずべき業務の用に供した減価償却資産で、その取得価額が四十万円未満であるもの（その取得価額が十万円未満であるもの及び第十九条第一項各号に掲げる規定の適用を受けるものその他政令で定めるものを除く。以下この条において「少額減価償却資産」という。）については、所得税法第四十九条第一項の規定にかかわらず、当該少額減価償却資産の取得価額に相当する金額を、当該中小事業者のその業務の用に供した年分の不動産所得の金額、事業所得の金額又は山林所得の金額の計算上、必要経費に算入する。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_rei:18_5",
+        "law:sozeki_hou:67_5"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "この特例は青色申告書を提出する中小事業者が対象で、確定申告書への明細書の添付が必要です。",
+      "heading": "少額減価償却資産の特例も青色が前提",
+      "type": "要件",
+      "subject": "少額減価償却資産の特例",
+      "claim": "青色申告書を提出する中小事業者が対象",
+      "s": 51,
+      "status": "裏付けあり",
+      "quote": "中小事業者（第十条第八項第六号に規定する中小事業者で青色申告書を提出するもののうち、事務負担に配慮する必要があるものとして政令で定めるものをいう。以下この項において同じ。）が、平成十八年四月一日から令和十一年三月三十一日までの間に取得し、又は製作し、若しくは建設し、かつ、当該中小事業者の不動産所得、事業所得又は山林所得を生ずべき業務の用に供した減価償却資産で、その取得価額が四十万円未満であるもの（その取得価額が十万円未満であるもの及び第十九条第一項各号に掲げる規定の適用を受けるものその他政令で定めるものを除く。以下この条において「少額減価償却資産」という。）については、",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_rei:18_5",
+        "law:sozeki_hou:67_5"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "専従者は15歳以上で、その年を通じて6か月を超える期間その事業に専ら従事していることが要件です。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "要件",
+      "subject": "青色事業専従者給与",
+      "claim": "専従者は15歳以上で年6か月超その事業に専ら従事することが要件",
+      "s": 58,
+      "status": "裏付けあり",
+      "quote": "青色事業専従者とは、次の要件のいずれにも該当する人をいいます。 イ青色申告者と生計を一にする配偶者その他の親族であること。 ロその年の12月31日現在で年齢が15歳以上であること。 ハその年を通じて6か月を超える期間（一定の場合には事業に従事することができる期間の2分の1を超える期間）、その青色申告者の営む事業に専ら従事していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "2. 所得金額があり、複式簿記とe-Taxまで対応できる → 青色申告で65万円を狙う価値がある",
+      "heading": "自分はどちらに当てはまるか",
+      "type": "要件",
+      "subject": "青色申告特別控除",
+      "claim": "複式簿記とe-Taxに対応できれば65万円控除を狙える",
+      "s": 63,
+      "status": "裏付けあり",
+      "quote": "青色申告特別控除イ不動産所得または事業所得を生ずべき事業を営んでいる青色申告者で、これらの所得に係る取引を正規の簿記の原則、（一般的には複式簿記）により記帳し、その記帳に基づいて作成した貸借対照表および損益計算書を確定申告書に添付して、確定申告書をその提出期限（確定申告期限）までに提出している場合には、原則としてこれらの所得を通じて最高55万円（令和元年以前は最高65万円）を控除することとされています。 （注1）令和2年分以後の青色申告特別控除について、この最高55万円の青色申告特別控除を受けることができる方が、電子帳簿保存（※）またはe-Taxによる電子申告を行っている場合は、最高65万円の青色申告特別控除が受けられます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "- 白色申告では少額減価償却資産の特例を使えないこの特例は青色申告者が対象です。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "少額減価償却資産の特例",
+      "claim": "白色申告では使えず、青色申告者が対象",
+      "s": 81,
+      "status": "裏付けあり",
+      "quote": "中小事業者（第十条第八項第六号に規定する中小事業者で青色申告書を提出するもののうち、事務負担に配慮する必要があるものとして政令で定めるものをいう。以下この項において同じ。）が、平成十八年四月一日から令和十一年三月三十一日までの間に取得し、又は製作し、若しくは建設し、かつ、当該中小事業者の不動産所得、事業所得又は山林所得を生ずべき業務の用に供した減価償却資産で、その取得価額が四十万円未満であるもの（その取得価額が十万円未満であるもの及び第十九条第一項各号に掲げる規定の適用を受けるものその他政令で定めるものを除く。以下この条において「少額減価償却資産」という。）については、",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "複式簿記で記帳し、貸借対照表と損益計算書を申告書に添付できる状態にします。",
+      "heading": "【手順②】帳簿の付け方を決める",
+      "type": "要件",
+      "subject": "青色申告特別控除",
+      "claim": "複式簿記で記帳し貸借対照表と損益計算書を添付する",
+      "s": 87,
+      "status": "裏付けあり",
+      "quote": "（2）これらの所得に係る取引を正規の簿記の原則（一般的には複式簿記）により記帳していること。 （3）（2）の記帳に基づいて作成した貸借対照表、損益計算書および所得の金額の計算に関する明細書を確定申告書に添付し、この控除の適用を受ける金額を記載して、その年分の確定申告期限（翌年3月15日）までに当該申告書を提出すること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "55万円・65万円の青色申告特別控除は、確定申告期限までに申告することが要件です。",
+      "heading": "【手順④】期限内に確定申告する",
+      "type": "要件",
+      "subject": "青色申告特別控除",
+      "claim": "55万円・65万円控除は確定申告期限までの申告が要件",
+      "s": 95,
+      "status": "裏付けあり",
+      "quote": "（注4）還付申告書等を提出する方であっても、55万円または65万円の青色申告特別控除の適用を受けるためには、その年分の確定申告期限（翌年3月15日）までに当該申告書を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "結論からいうと、白色申告のままでも確定申告はできます。",
+      "heading": "",
+      "type": "判定",
+      "subject": "白色申告",
+      "claim": "白色申告のままでも確定申告はできる",
+      "s": 6,
+      "status": "裏付けあり",
+      "quote": "青色申告者については、一定の要件を備えた帳簿書類を備え付け、記録し、保存するよう定められていますが、白色申告者に対しても、記帳制度や記録保存制度が設けられています。 また、確定申告書を提出する場合には、総収入金額や必要経費の内容を記載した書類（収支内訳書など）の添付が必要になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "| 赤字が数年続きそう | 青色申告 | 赤字を翌年以後3年間繰り越せる。白色申告では原則できない（変動所得・被災事業用資産の損失は可） |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "判定",
+      "subject": "純損失の繰越控除",
+      "claim": "白色申告は原則繰越不可だが変動所得・被災事業用資産の損失は可",
+      "s": 20,
+      "status": "裏付けあり",
+      "quote": "２　確定申告書を提出する居住者のその年の前年以前三年内の各年において生じた純損失の金額（前項の規定の適用を受けるもの及び第百四十二条第二項の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）のうち、当該各年において生じた次に掲げる損失の金額に係るもので政令で定めるものがあるときは、当該政令で定める純損失の金額に相当する金額は、政令で定めるところにより、当該申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。一　変動所得の金額の計算上生じた損失の金額\n二　被災事業用資産の損失の金額",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:70",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:201"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "| 家族への給与 | 原則として必要経費にならない（事業専従者控除で一定額を控除） | 届出に基づき支払額を必要経費にできる |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "判定",
+      "subject": "家族への給与",
+      "claim": "白色は原則必要経費にならず、青色は届出に基づき必要経費にできる",
+      "s": 33,
+      "status": "裏付けあり",
+      "quote": "これらの給与は原則として必要経費にはなりませんが、次のような特別の取扱いが認められています。 （1）青色申告者に係る「青色事業専従者給与」 青色申告の方は、生計を一にする配偶者やその他の親族（15歳未満の人を除きます。）で、専らその事業に従事している人に給与を支払っている場合、その支払った金額のうち、相当であると認められる金額を必要経費とすることができます。 （2）白色申告者に係る「事業専従者控除額」 白色申告の場合、生計を一にする配偶者やその他の親族に支払った給与等を必要経費に算入することができませんが、これらの方が専ら事業に従事している場合には、事業専従者控除として、配偶者は最高 86 万円、15 歳以上のその他の親族は最高 50 万円を必要経費として差し引くことができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "注意したいのは、控除は所得金額が少なければその額が限度になる点です。",
+      "heading": "青色申告特別控除は3段階ある",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "所得金額が少なければ控除はその額が限度",
+      "s": 42,
+      "status": "裏付けあり",
+      "quote": "（注2）不動産所得の金額または事業所得の金額の合計額が55万円より少ない場合には、その合計額が限度になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "不動産所得と事業所得の合計が55万円より少ない年は、55万円をまるごと引けるわけではありません。",
+      "heading": "青色申告特別控除は3段階ある",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "不動産・事業所得の合計が55万円未満なら55万円全額は引けない",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "（注2）不動産所得の金額または事業所得の金額の合計額が55万円より少ない場合には、その合計額が限度になります。ただし、この合計額とは損益通算前の黒字の所得金額の合計額をいいますので、いずれかの所得に損失が生じている場合には、その損失をないものとして合計額を計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "配偶者や親族が現場や事務を手伝っている場合、白色申告では支払った給与を必要経費にできません。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "判定",
+      "subject": "事業専従者控除",
+      "claim": "白色申告では家族に支払った給与を必要経費にできない",
+      "s": 54,
+      "status": "裏付けあり",
+      "quote": "（2）白色申告者に係る「事業専従者控除額」 白色申告の場合、生計を一にする配偶者やその他の親族に支払った給与等を必要経費に算入することができませんが、これらの方が専ら事業に従事している場合には、事業専従者控除として、配偶者は最高 86 万円、15 歳以上のその他の親族は最高 50 万円を必要経費として差し引くことができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:166",
+        "law:shotokuzei_ki:36_4",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "労務の対価として相当と認められる金額を超える部分は必要経費になりません。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "判定",
+      "subject": "青色事業専従者給与",
+      "claim": "労務の対価として相当な金額を超える部分は必要経費にならない",
+      "s": 59,
+      "status": "裏付けあり",
+      "quote": "（4）青色事業専従者給与の額は、労務の対価として相当であると認められる金額であること。 なお、過大とされる部分は必要経費とはなりません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "1. 所得金額が小さく、青色の特別控除をほとんど引けない見込み → 白色申告でも結果は大きく変わらない",
+      "heading": "自分はどちらに当てはまるか",
+      "type": "判定",
+      "subject": "白色申告",
+      "claim": "所得が小さく特別控除をほぼ引けないなら白色でも結果は大差ない",
+      "s": 62,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "3. 今年すでに赤字、または来年も赤字が見込まれる → 繰越のため青色申告",
+      "heading": "自分はどちらに当てはまるか",
+      "type": "判定",
+      "subject": "純損失の繰越控除",
+      "claim": "赤字が見込まれるなら繰越のため青色申告が向く",
+      "s": 64,
+      "status": "裏付けあり",
+      "quote": "純損失の繰越しと繰戻しイ純損失の繰越し事業所得などに損失（赤字）の金額がある場合で、損益通算の規定を適用してもなお控除しきれない部分の金額（純損失の金額）が生じたときには、その損失額を翌年以後3年間にわたって繰り越して、各年分の所得金額から控除します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+        "law:shotokuzei_hou:70",
+        "law:shotokuzei_rei:201",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "期限を過ぎるとその年は白色申告になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "青色申告承認申請",
+      "claim": "申請期限を過ぎるとその年は白色申告になる",
+      "s": 75,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "生計を一にする親族への給与は原則として必要経費になりません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "家族への給与",
+      "claim": "生計を一にする親族への給与は原則として必要経費にならない",
+      "s": 77,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目所得税概要納税者と生計を一にしている配偶者その他の親族が納税者の経営する不動産所得、事業所得または山林所得を生ずべき事業に従事している場合、納税者がこれらの人に給与を支払うことがあります。これらの給与は原則として必要経費にはなりませんが、次のような特別の取扱いが認められています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "白色で適用すると申告の修正が必要になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "少額減価償却資産の特例",
+      "claim": "白色で適用すると申告の修正が必要になる",
+      "s": 82,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_rei:18_5",
+        "law:sozeki_hou:67_5"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "期限後に出すと控除額が変わります。",
+      "heading": "【手順④】期限内に確定申告する",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "期限後申告だと控除額が変わる",
+      "s": 96,
+      "status": "裏付けあり",
+      "quote": "（注4）還付申告書等を提出する方であっても、55万円または65万円の青色申告特別控除の適用を受けるためには、その年分の確定申告期限（翌年3月15日）までに当該申告書を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "必要経費として算入できるかどうかの判断は、白色か青色かで変わるものではありません。",
+      "heading": "白色申告でも経費にできる範囲は青色と変わりませんか？",
+      "type": "判定",
+      "subject": "必要経費",
+      "claim": "必要経費算入の判断は白色か青色かで変わらない",
+      "s": 111,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:167",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "控除できる金額は、その年の不動産所得と事業所得の合計が控除額より少ない場合、その合計額が限度になります。",
+      "heading": "青色申告特別控除は所得が少ないと使えませんか？",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "不動産所得と事業所得の合計が控除額未満なら合計額が限度",
+      "s": 117,
+      "status": "裏付けあり",
+      "quote": "（注2）不動産所得の金額または事業所得の金額の合計額が55万円より少ない場合には、その合計額が限度になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "所得が小さい年に65万円を丸ごと引けるわけではない点に注意してください。",
+      "heading": "青色申告特別控除は所得が少ないと使えませんか？",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "所得が小さい年は65万円を丸ごと引けない",
+      "s": 118,
+      "status": "裏付けあり",
+      "quote": "（注2）不動産所得の金額または事業所得の金額の合計額が55万円より少ない場合には、その合計額が限度になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm"
+      ]
+    },
+    {
+      "id": "c53",
+      "sentence": "白色申告では支払った給与を必要経費にできず、事業専従者控除で一定額を差し引く形になります。",
+      "heading": "家族に手伝ってもらっていますが、給与として経費にできますか？",
+      "type": "判定",
+      "subject": "事業専従者控除",
+      "claim": "白色は給与を必要経費にできず事業専従者控除で一定額を差し引く",
+      "s": 120,
+      "status": "裏付けあり",
+      "quote": "（2）白色申告者に係る「事業専従者控除額」 白色申告の場合、生計を一にする配偶者やその他の親族に支払った給与等を必要経費に算入することができませんが、これらの方が専ら事業に従事している場合には、事業専従者控除として、配偶者は最高 86 万円、15 歳以上のその他の親族は最高 50 万円を必要経費として差し引くことができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:166",
+        "law:shotokuzei_ki:36_4",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c54",
+      "sentence": "一人親方の確定申告は、白色申告のままでも行えます。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "白色申告",
+      "claim": "一人親方の確定申告は白色申告のままでも行える",
+      "s": 126,
+      "status": "裏付けあり",
+      "quote": "青色申告者については、一定の要件を備えた帳簿書類を備え付け、記録し、保存するよう定められていますが、白色申告者に対しても、記帳制度や記録保存制度が設けられています。 また、確定申告書を提出する場合には、総収入金額や必要経費の内容を記載した書類（収支内訳書など）の添付が必要になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c55",
+      "sentence": "白色申告は事前の承認申請が要らず、記帳も簡易な方法でよいため、開業したばかりで所得が小さいうちは負担が軽い申告方法です。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は事前の承認申請が不要",
+      "s": 14,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c56",
+      "sentence": "一方、青色申告は承認申請が必要で、記帳は正規の簿記が原則（簡易な記帳でもよい）となり、55万円・65万円の控除を受けるには複式簿記などの要件を満たす必要がある代わりに、所得金額から差し引ける特別控除や赤字の繰越といった特典が付きます。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "青色申告",
+      "claim": "青色申告には承認申請が必要",
+      "s": 15,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_rei:164",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_ki:36_4",
+        "law:shotokuzei_hou:2"
+      ]
+    },
+    {
+      "id": "c57",
+      "sentence": "| 開業したばかりで所得が小さい | 白色申告 | 申請が不要で、控除をフルに使えない可能性がある |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は申請が不要",
+      "s": 18,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    },
+    {
+      "id": "c58",
+      "sentence": "| 家族に手伝ってもらい給与を払いたい | 青色申告 | 届出を前提に実額を必要経費にできる |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "届出を前提に家族への給与の実額を必要経費にできる",
+      "s": 21,
+      "status": "裏付けあり",
+      "quote": "青色事業専従者給与青色申告者と生計を一にしている配偶者やその他の親族のうち、年齢が15歳以上で、その青色申告者の事業に専ら従事している人に支払った給与は、事前に提出された届出書に記載された金額の範囲内で専従者の労務の対価として適正な金額であれば、必要経費に算入することができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:shotokuzei_hou:57"
+      ]
+    },
+    {
+      "id": "c59",
+      "sentence": "| とにかく手間を最小限にしたい | 白色申告 | 申請も複式簿記も不要 |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は申請も複式簿記も不要",
+      "s": 23,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:164",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c60",
+      "sentence": "| 事前の承認申請 | 不要 | 必要（青色申告承認申請書） |",
+      "heading": "白色申告と青色申告はここが違う",
+      "type": "手続",
+      "subject": "青色申告承認申請",
+      "claim": "青色申告は青色申告承認申請書による事前の承認申請が必要",
+      "s": 29,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物青色申告者手続き申告等の方法 （1）原則新たに青色申告の申請をする方は、青色申告をしようとする年の3月15日までに「青色申告承認申請書」を納税地の所轄税務署長に提出してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "law:shotokuzei_ki:55",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c61",
+      "sentence": "この特例は青色申告書を提出する中小事業者が対象で、確定申告書への明細書の添付が必要です。",
+      "heading": "少額減価償却資産の特例も青色が前提",
+      "type": "手続",
+      "subject": "少額減価償却資産の特例",
+      "claim": "確定申告書への明細書の添付が必要",
+      "s": 51,
+      "status": "裏付けあり",
+      "quote": "３　第一項の規定は、確定申告書に少額減価償却資産の取得価額に関する明細書の添付がある場合に限り、適用する。",
+      "correct": "",
+      "evidence_id": "law:sozeki_hou:28_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_rei:18_5",
+        "law:sozeki_hou:67_5"
+      ]
+    },
+    {
+      "id": "c62",
+      "sentence": "ただし「控除する前の事業所得等の金額÷（事業専従者の数＋1）」とのいずれか低い金額になり、確定申告書に控除を受ける旨と金額を書かなければ適用されません。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "手続",
+      "subject": "事業専従者控除",
+      "claim": "確定申告書に控除を受ける旨と金額を書かなければ適用されない",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "ロ確定申告書にこの控除を受ける旨やその金額など必要な事項を記載すること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:166",
+        "law:shotokuzei_ki:36_4",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "- 工具や機械の購入予定を把握している（青色申告での取り扱いは国税庁のタックスアンサーで確認）",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "番号",
+      "subject": "青色申告の工具・機械購入の取扱い",
+      "claim": "工具や機械の購入の青色申告での取扱いは国税庁のタックスアンサーで確認できる",
+      "s": 102,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "tsutatsu:shotoku:150-1",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-1"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、工具や機械をまとめて買うといった事情があるなら、青色申告の特典は無視できません（特典の詳しい要件は国税庁のタックスアンサーで確認できます）。",
+      "heading": "まとめ",
+      "type": "要件",
+      "subject": "青色申告の特典",
+      "claim": "複式簿記とe-Taxに対応できる場合、青色申告の特典は無視できない",
+      "s": 128,
+      "status": "裏付けあり",
+      "quote": "青色申告特別控除イ不動産所得または事業所得を生ずべき事業を営んでいる青色申告者で、これらの所得に係る取引を正規の簿記の原則、（一般的には複式簿記）により記帳し、その記帳に基づいて作成した貸借対照表および損益計算書を確定申告書に添付して、確定申告書をその提出期限（確定申告期限）までに提出している場合には、原則としてこれらの所得を通じて最高55万円（令和元年以前は最高65万円）を控除することとされています。 （注1）令和2年分以後の青色申告特別控除について、この最高55万円の青色申告特別控除を受けることができる方が、電子帳簿保存（※）またはe-Taxによる電子申告を行っている場合は、最高65万円の青色申告特別控除が受けられます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:164",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_ki:36_4"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、工具や機械をまとめて買うといった事情があるなら、青色申告の特典は無視できません（特典の詳しい要件は国税庁のタックスアンサーで確認できます）。",
+      "heading": "まとめ",
+      "type": "番号",
+      "subject": "青色申告の特典",
+      "claim": "青色申告の特典の詳しい要件は国税庁のタックスアンサーで確認できる",
+      "s": 128,
+      "status": "裏付けあり",
+      "quote": "青色申告特別控除の詳細については、コード2072「青色申告特別控除」を参照してください。\n…\n青色事業専従者給与の詳細については、コード2075「青色事業専従者給与と事業専従者控除」を参照してください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:shotoku:150-1",
+        "law:shotokuzei_rei:164",
+        "tsutatsu:sochi_shotoku:25の2-1",
+        "law:shotokuzei_ki:36_4"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c8",
+      "sentence": "- 40万円未満の工具や機械の購入予定を把握している",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "金額",
+      "subject": "少額減価償却資産の特例",
+      "claim": "40万円未満の工具や機械が特例の対象",
+      "s": 102,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "basis": "9",
+        "quote": "（注3）一定の要件を満たす青色申告者が、平成18年4月1日から令和11年3月31日までに取得した取得価額10万円以上40万円未満（令和8年3月31日までに取得した場合の取得価額は10万円以上30万円未満）の減価償却資産（上記（注2）の適用を受けるものを除きます。）については、一定の要件の下でその取得価額の合計額のうち300万円に達するまでの取得価額の合計額をその業務の用に供した年分の必要経費に算入"
+      },
+      "keep": [],
+      "before": "- 40万円未満の工具や機械の購入予定を把握している",
+      "after": "- 工具や機械の購入予定を把握している（青色申告での取り扱いは国税庁のタックスアンサーで確認）",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、40万円未満の工具をまとめて買うといった事情があるなら、青色申告の特典は無視できません。",
+      "heading": "まとめ",
+      "type": "金額",
+      "subject": "少額減価償却資産の特例",
+      "claim": "40万円未満の工具をまとめて買うなら青色の特典が有用",
+      "s": 128,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "basis": "9",
+        "quote": "（注3）一定の要件を満たす青色申告者が、平成18年4月1日から令和11年3月31日までに取得した取得価額10万円以上40万円未満（令和8年3月31日までに取得した場合の取得価額は10万円以上30万円未満）の減価償却資産（上記（注2）の適用を受けるものを除きます。）については、一定の要件の下でその取得価額の合計額のうち300万円に達するまでの取得価額の合計額をその業務の用に供した年分の必要経費に算入"
+      },
+      "keep": [],
+      "before": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、40万円未満の工具をまとめて買うといった事情があるなら、青色申告の特典は無視できません。",
+      "after": "一方で、複式簿記とe-Taxに対応できる、赤字を繰り越したい、家族に実額の給与を払いたい、工具や機械をまとめて買うといった事情があるなら、青色申告の特典は無視できません（特典の詳しい要件は国税庁のタックスアンサーで確認できます）。",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+        "law:shotokuzei_rei:164",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+        "law:sozeki_hou:28_2",
+        "law:sozeki_hou:67_5",
+        "law:sozeki_rei:18_5"
+      ]
+    }
+  ],
+  "dropped": 10,
+  "discarded": 2,
+  "discarded_claims": [
+    {
+      "sentence": "55万円控除は複式簿記、決算書2表の添付、期限内申告が要件",
+      "heading": "",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "55万円控除は複式簿記、決算書2表の添付、期限内申告が要件",
+      "s": 40,
+      "status": "本文に見つからない",
+      "pointed_sentence": "- <strong>55万円</strong>：複式簿記で記帳し、貸借対照表と損益計算書を添付して確定申告期限までに申告する場合",
+      "stage": "抜き出し",
+      "blocks_approval": true
+    },
+    {
+      "sentence": "40万円未満の機械工具が特例の対象",
+      "heading": "",
+      "type": "金額",
+      "subject": "少額減価償却資産の特例",
+      "claim": "40万円未満の機械工具が特例の対象",
+      "s": 66,
+      "status": "本文に見つからない",
+      "pointed_sentence": "5. 40万円未満の機械工具を年間でまとめて買う予定がある → 少額減価償却資産の特例のため青色申告",
+      "stage": "抜き出し",
+      "blocks_approval": true
+    }
+  ],
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 6458,
+      "output_chars": 5826,
+      "usage": {
+        "input_tokens": 5675,
+        "output_tokens": 6057,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 56005,
+      "output_chars": 3663,
+      "usage": {
+        "input_tokens": 10643,
+        "output_tokens": 5656,
+        "cache_creation_input_tokens": 37369,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 1076,
+      "output_chars": 233,
+      "usage": {
+        "input_tokens": 864,
+        "output_tokens": 485,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 627,
+      "output_chars": 497,
+      "usage": {
+        "input_tokens": 555,
+        "output_tokens": 970,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 48897,
+      "output_chars": 162,
+      "usage": {
+        "input_tokens": 5809,
+        "output_tokens": 697,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 37369
+      }
+    }
+  ],
+  "input_chars_total": 113063,
+  "output_chars_total": 10381,
+  "review_items": [
+    {
+      "sentence": "青色申告なら、青色事業専従者給与に関する届出書を提出したうえで、届出に記載した方法と金額の範囲内で支払った給与を必要経費にできます。",
+      "heading": "家族に手伝ってもらう場合の扱いが変わる",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "届出書提出のうえ、記載した方法・金額の範囲内で給与を必要経費にできる",
+      "s": 57,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_hou:57:58d8069ea5925b01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "sentence": "4. 配偶者や親族に実額の給与を払いたい → 青色事業専従者給与の届出を検討",
+      "heading": "自分はどちらに当てはまるか",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "家族に実額給与を払うなら青色事業専従者給与の届出を検討",
+      "s": 65,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "sentence": "青色申告には別途「青色申告承認申請書」の提出と承認が必要です。",
+      "heading": "よくある間違い",
+      "type": "手続",
+      "subject": "青色申告承認申請",
+      "claim": "開業届とは別に青色申告承認申請書の提出と承認が必要",
+      "s": 71,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:55:cf34f28ca5264e8c",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    },
+    {
+      "sentence": "白色なら事業専従者控除、青色なら青色事業専従者給与の届出という手続きが前提です。",
+      "heading": "よくある間違い",
+      "type": "手続",
+      "subject": "家族への給与",
+      "claim": "白色は事業専従者控除、青色は専従者給与の届出が前提",
+      "s": 78,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm:d5d569bd0f486c3c",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "sentence": "金額を計算していても、確定申告書に必要事項を書いていなければ適用されません。",
+      "heading": "よくある間違い",
+      "type": "手続",
+      "subject": "事業専従者控除",
+      "claim": "確定申告書に必要事項を書かなければ適用されない",
+      "s": 80,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "law:shotokuzei_rei:166:71914d2c5e59172e",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "sentence": "その年の3月15日まで、または1月16日以後に開業した場合は業務開始日から2か月以内に、納税地の所轄税務署長へ提出します。",
+      "heading": "【手順①】青色申告承認申請書を期限までに出す",
+      "type": "手続",
+      "subject": "青色申告承認申請",
+      "claim": "納税地の所轄税務署長へ提出する",
+      "s": 85,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:55:cf34f28ca5264e8c",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    },
+    {
+      "sentence": "氏名、職務の内容、給与の金額、支給期を記載します。",
+      "heading": "【手順③】家族に給与を払うなら専従者の届出を出す",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "届出書に氏名・職務内容・給与金額・支給期を記載する",
+      "s": 92,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "law:shotokuzei_hou:57:58d8069ea5925b01"
+      ]
+    },
+    {
+      "sentence": "給与を増額するときは変更届出書の提出も必要です。",
+      "heading": "【手順③】家族に給与を払うなら専従者の届出を出す",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "給与を増額するときは変更届出書の提出が必要",
+      "s": 93,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "law:shotokuzei_hou:57:58d8069ea5925b01"
+      ]
+    },
+    {
+      "sentence": "実額を必要経費にしたい場合は、青色申告の承認を受けたうえで青色事業専従者給与に関する届出書を期限までに提出する必要があります。",
+      "heading": "家族に手伝ってもらっていますが、給与として経費にできますか？",
+      "type": "手続",
+      "subject": "青色事業専従者給与",
+      "claim": "実額経費化には青色承認と届出書の期限内提出が必要",
+      "s": 121,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "law:shotokuzei_hou:57:58d8069ea5925b01"
+      ]
+    },
+    {
+      "sentence": "開業届は事業を始めたことを届け出る書類、青色申告承認申請書は青色申告による申告をしたい旨を申請する書類で、目的が異なります。",
+      "heading": "開業届と青色申告承認申請書は何が違いますか？",
+      "type": "手続",
+      "subject": "青色申告承認申請",
+      "claim": "開業届は開業の届出、青色申告承認申請書は青色申告の申請で目的が異なる",
+      "s": 123,
+      "status": "上限で未照合",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:55:cf34f28ca5264e8c",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "law:shotokuzei_ki:36_4:a6ad2c1ad4226159"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "1. 所得金額が小さく、青色の特別控除をほとんど引けない見込み → 白色申告でも結果は大きく変わらない",
+      "heading": "自分はどちらに当てはまるか",
+      "type": "判定",
+      "subject": "白色申告",
+      "claim": "所得が小さく特別控除をほぼ引けないなら白色でも結果は大差ない",
+      "s": 62,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "期限を過ぎるとその年は白色申告になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "青色申告承認申請",
+      "claim": "申請期限を過ぎるとその年は白色申告になる",
+      "s": 75,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_ki:55:cf34f28ca5264e8c",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "白色で適用すると申告の修正が必要になります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "少額減価償却資産の特例",
+      "claim": "白色で適用すると申告の修正が必要になる",
+      "s": 82,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm:365a2c1ea2a076db",
+        "law:sozeki_hou:28_2:461bf90895db8159",
+        "law:sozeki_rei:18_5:8de8640aa0e11a20",
+        "law:sozeki_hou:67_5:26f07444cb132e17"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "必要経費として算入できるかどうかの判断は、白色か青色かで変わるものではありません。",
+      "heading": "白色申告でも経費にできる範囲は青色と変わりませんか？",
+      "type": "判定",
+      "subject": "必要経費",
+      "claim": "必要経費算入の判断は白色か青色かで変わらない",
+      "s": 111,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "law:shotokuzei_hou:57:58d8069ea5925b01",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_rei:167:4a802e64eb89a644",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "id": "c55",
+      "sentence": "白色申告は事前の承認申請が要らず、記帳も簡易な方法でよいため、開業したばかりで所得が小さいうちは負担が軽い申告方法です。",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は事前の承認申請が不要",
+      "s": 14,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    },
+    {
+      "id": "c57",
+      "sentence": "| 開業したばかりで所得が小さい | 白色申告 | 申請が不要で、控除をフルに使えない可能性がある |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は申請が不要",
+      "s": 18,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d"
+      ]
+    },
+    {
+      "id": "c59",
+      "sentence": "| とにかく手間を最小限にしたい | 白色申告 | 申請も複式簿記も不要 |",
+      "heading": "先に結論：白色で足りる人、青色を選ぶ人",
+      "type": "手続",
+      "subject": "白色申告",
+      "claim": "白色申告は申請も複式簿記も不要",
+      "s": 23,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    },
+    {
+      "id": "c1",
+      "sentence": "- 工具や機械の購入予定を把握している（青色申告での取り扱いは国税庁のタックスアンサーで確認）",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "番号",
+      "subject": "青色申告の工具・機械購入の取扱い",
+      "claim": "工具や機械の購入の青色申告での取扱いは国税庁のタックスアンサーで確認できる",
+      "s": 102,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd",
+        "law:shotokuzei_rei:164:8cca0aab42161774",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf",
+        "tsutatsu:shotoku:150-1:a849d124c9a8ea85",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d",
+        "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec"
+      ]
+    }
+  ],
+  "summary": "主張 62 件: 裏付けあり 53・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 10・捨てた主張 2・人が確かめる箇所 18 件",
+  "remaining": [],
+  "slug": "solo-proprietor-white-tax-return",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "kind": "taxanswer",
+      "no": "2075",
+      "title": "青色事業専従者給与と事業専従者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 289.37,
+      "text_ranges": [
+        [
+          0,
+          1713
+        ]
+      ],
+      "text_deflate_base64": "rVjrUuJIFH4VHmG8sfMuW/sufXpECQngoIAoM6jDTVmCijrcZB7mpDvJL15hqzvdSSBBndqpmpoqQ/e5fuc7X/K3M2+zivWZTZ/2eTO/w+sdt7xkzT4fV5152x0a/2TYaOk9XLv9kntpc4OwZd3tl3iXel1wn4puv+SRHELfPWt5/TzSijMhCAOEOkIX4RCp6eeKDF7ksW8ItjOvIdhe947XywhWzIjtPlus9oLQQGo6kyIzq+7Zj8ApEnBmJu8M1Z+wRGghjNjDA/9eVw9pxT1rIVwgTBGKwXmEAVueOjMzHhK7emIneSTxFCyEU6QWUkMEOZshDNznrjMpIa3wsxE3qghH4gz05WGKtCDDaCCh8bvqFoxYqcWMY3leuGa/cqJoz5b3OJclGiHcaSOXSE+FWQL832sEG2leurtzjSnLdxBsVq5x40HED5Z3V0QKwh21VFI6ksxqkd9ZLQz/W8UzHt2zMftakPkNnF8UqYnECn4KysPuKVueeiSnoibFTPwmgs1rUxEqgUSLG2vNpYfJ/opYDvhwzJt3fEZUXWnFb7QRimHIq4WB0EMC7J7KEkoz27u3pTk/ku0NTMUOtPzjr/51URRYVPdapHU5Ya+nIgCQ9YH+WnWpqa7QynoD+0EBYojoxZMSfdhdLQy38bqtDxsd4KWe32gLV6SYiV8TzQ8B+/tNQBjEKxDUzR0aiYwGrl1nuc72vCKQxvEuAWIFvXt/5gLg62neSD6cFSQQo40RbxJ/cJ75nM04k2N2dIQEdg4yfDh25h1nUpDtTKatrx180tdSeign86eNUGeLKkL5rX7ycT91tOyNZELDmgo0BGmFlesIXzWIFYklMJI0qNApb4nysRPLmZAADfH2c+PFbxfCxmuSsaL+hakIdGY2aTYGtW0M8hZ9bM1I3d0KeRFqW/JYV+FDB+Y9Tpz5uSgaWBpeqrzetYW0HHFgBLKRD7fuWYKoFXa/IbWceYe1a1G+slZpt3TR3kj7zYroWNdJxeuCM38JUlWML04WpNdeGpUnIKGnWlWgpR2GRCaBvC1y6S7yruOxZQ8upMUBUurdPkp2bCjw0Yo8ENs3SNsJpCTlQOM9IZCIGr8Mg3Ns+oRg7+zyZn4vkigIPTZ98l9vECy5YzQVpBgqR4ZoxScXCOcI3SyCyZsiSO8lh5BHavJmy6+drhZ5Z0KYfbGBjgS5pfGkNoJg77L8kYg8zYMRbqckmwgNREnkTTJrklCjDNWqeWe1w8Cv3QRBs4cCO57xywkSsdgCFcSa94KpDOK9Hoo/zYb7+uhXfwqklU/Y8SzdefCbyKtxEiDqrUlJWaTh2qlr0aNWa9D4PaFMD3i9s1rk1wAhnmd5vSMmeSmVU+1ess9AlY5W/JrJekHRWqqT9DA8FpsFay0r8e8u2JYbW0u1LGaW1ztIDz9iSpwEE6mxGwBPxH2Uk+JnKcGjx15etaMeaedb5tjm92V2UkQCHvxkZkPcPcoxeyrkgl5ASsQQ4Gcj97nLmy0Z163AZv/cE0HE0TzQUa9rS8XvUqmF+bKbeoDtsMKRY1phN3XJ740YO0vHBIIMo3BphbUNfvmkQ2kJwgwr/3FwSyMbEPchx+ffpevy/4L7apHfWy2MeHd0AavxTcRrUz6uShLNIy2scbXAkSn2nQZUqoVQqrqjQ3b5yI6EDNjgfKRUcnaC9FaL/P621RGBQpiXaqLwpIAzWjrL60i/fFAbp5CuqHRBgBZKrN2TFqvqzpe+JMZRQoslXogIzaQqBr0Zt8uJ2F6l7VCWyJ1ix94Bwl1nOq8lhMNYPnq5JeZNqRBnMhe2op0W1MBCuP+cDWXq+u93UvuJIxtWnQkJ3mqkCioefFIGRLyCDJQ8FttXQtwohiJRvZQPjSgzWkkhieo9wiDYRWNFXeJRjxmP8VcjvUzS9XlMwOr5tD8kZZC2kyp3Y9ElK50yfHzcT0a3Xcw05LeArpjSd5XMTiYR4p8QMruZP6Nj9jK/J2NCdnm38O8rDPwydG9mzL4IrOittAbNEBm83g9fRPVACcoP5h3hzpmZ/lUuffUQqj45yUj1V57gI5RxuymWCGwkxw3TfblAKAZPWC7vDo0NkudXU25ehd+4uEH4uLqLBA6y4r+/BI4M4szbO9l98aaZPQieeN3yXhbB3s/8Bw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "kind": "taxanswer",
+      "no": "2072",
+      "title": "青色申告特別控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 366.22,
+      "text_ranges": [
+        [
+          0,
+          1957
+        ]
+      ],
+      "text_deflate_base64": "7VjLctvGEv0V/UCqIr/qfsjdpbLIIv+QJWZISgABPkSJ4ks2SVsiIdEELVGxwfe/3MYMgBV/4VbPYECAD5lOKrtsXBQ8mOnuc/r0GfzizW5ZxfoPmzy/4Tf6Ka/d+aUlu7H5uOrNbv2h8esJGy2Dx65vF/2Www2NLWu+XeQ9GvRI+L4SGE/+1Zhd5AMtB2TARksgNSA9ICPfdgAfOr4xYTkXiAWEAs0DWQJp4J8aAfIeiHMK5BbIQO4enl+E3QIQE6jx9q3nnrOzs/Vc91yNOU0gTtAj3uwr0AqfakDaQBqs88zKOpDRu3i5IQ5pAxmd/iyf4QvFfti4xbOpCcQGkgVylswBA9Xv1LJ0uBo9UdEAcQ6/dQnESSyMHtMKK9WAXIiT20DJJhEyAo3wz10gDlAdyBmQAZAHIJ9EGbOb89dz/XQ9Nzy3wMyqf/VJ1ivO1Jua/G4YPaQV/6oNpAlkAqQg/wujuP4K9BJIHzfGWC6xEHLvV6Jsl0AtoAaGHm0/8FYUqMlK12xexTIOPwW9EuL6ZRXYdSAOK7aZcS5BCvTPfjMrchgFt+dsXpLLxOYDzJDmA7vO3LEiyk4gr9dzI47HUYsHrD0Fcicq0vMWN1wvix3awZPLtDYbLf1cP+jaWM1ywW/lA1v3nRpvuUDyorJjlZGjOObINUAG4fVHSQxeL/rPX/AtWvE/TpnTlCiLfQb828yb1fFc5O7lBmDihOTev7KTSEen0Epg1wPMReSrSM8mz0xHiqROuWmHjfJ6rvsri02eX2NTvuW1O8XoPtZhcRncP22iohVeKrPzqSJ2opJ8bCNj/NIyPL/w3Jm/vFcgmLIYqgDYpN7SBFoJicvzH5Lg8OuJZOkxDZBiugiFjETcBZFAC+mn0ZP/abMfiEruou0KTj9ZTvzXKICWi0ubagnFgp3+2dCBlfXA1sVv6/XPkXJ4szvPNUUOog+k2mhkZx+1f+pQJ2YBaISViix3BzTLVrmgR/w/reBpJmnouXneoPymjbz70+Ku7jez3tRkThuI5Temop+R76w95dNrEc9ICEUJNCKLiSkgEWriFAvBiBbbElBVWPydLCaGJ+gT00D02UZ8xEH5mPXxshhsJcLY9+wxL8KwZJoi1MaGkq/2iVgMwj41OwBRzEehKuzLhYgymwxlw4/Ee2GjzKa9SGcTCi9O7iS7O/EWUlAKS6g1faeGVCNOOKuwYS1Wyz1hbpWSOIq1WZRnauGkS4gtLxfY7SNCjnjX4ybcm1S0GI94EMuo2D8COxlDAvhlCozXL4GhkQMw4HAOO2f8c1fp387Gb9ZzI6RZb1aPpcofGltqJaRFNJYcd5SmZCbiwrtjBu8eAVajNk2Ef0Z3FdV3XMNRwSPX3v2jruHEc3HugmYdo+JaIXHUILh/YovLg/Ma+/kkiiXF6hdfBHq7BUjkUpTh8GbVwB6L2R8pq/+txMw6c5osl5GeQBjHrByrYWvGhmXmjv0vK2/1ng3rwpGYwnzcsBINtMx6/oGVqJ/rI7C0EnStTcVUcJu5KcLMDLfCjE3wNodaLmjku25ENgFK9ra7cCSfJBdj2v3+039/+2M911lr4dtFmWQk2pmZ/1zAQOg3oBPInEGmIxPzFivsBanzGvFW3aQ72MiwRHBTnBO5oZitiAczG8FTh5s5oFmgY3GKjtSYLbjbEoS7R5q2xhuOaoSVs3hHGFeB9CUSqGfLe2Y2hHu6QIOJHFHaJjDjLTfsfkiBKli+7fyJE41jjWBImTFkriBzB5k50JUyhk5qT1rxnxvYwudTlm+ljJIaoJAp4Q4ZAzLnQD9hpnQUJUgGgV0PrSc5fyUEuEycKFi/lHCpZIXdoSbTv4o5s6MJ8TSV9683bPJ8Gt2/pLZiEdMJHHFqIzkmlB49+HaRmQ1/8RRWv0WgGgVurIIHHIWeWxDL7MQoxCQxyuBeevRSZL52+ouPq+H1R9GtFSBXQa8vFneAVBHAlAdVhh67fo8uqLj7qaIwHd0XW1ovaNV6rqfufT88B2LZQUjE+h9SHpZ9CAxkSrI+++6pohe3UYxsL6OqM2IXKUGNNCqb7ANvaoadXPpe0ZaeS86lvznojhprMYV57SPen3bIcbAEfxXHaK61hWewDvCEUrykkoL/tQmkIEf23jD2uqrjS7yvRqNEjdQ9ZyO1f31U0FvIdAVh3ARz+ru6vv+qtdXGYp6cQKYl5K4DmWa0NXFAs14+jJVGQWYB5IEbpqhwcgAXDqpA/A3mexZI/ZZY/KBfiRoHNOsYy3XQ4aCR3rlnWkpL5NxKO929H2W+a6Ejb8seH/mH2sv3nM03rO/fc9QG/15yjr1xHkJIIwewefHyIz+XCtIohOUHVON+i1WqhwryCcvp/tDghhYssvHM5p0JNzvx11hefODj6qu3QJxXKBfFh1Bryj9/Oj00onHlG7xWnfwf"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "kind": "taxanswer",
+      "no": "2070",
+      "title": "青色申告制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 236.72,
+      "text_ranges": [
+        [
+          0,
+          3489
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+      "kind": "shitsugi",
+      "no": "05",
+      "title": "業務的規模の不動産所得と赤字の事業所得がある場合の青色申告特別控除",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/05.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 313.38,
+      "text_ranges": [
+        [
+          0,
+          881
+        ]
+      ],
+      "text_deflate_base64": "vVbbVtpAFP0VP6HtWvb75oyCCSFyF4JYZIkkcgmt2BYE9WNOJpcnfqHrTBISLiq42r5kTSaZc9n77J14JiCMkYF7OxKa4TVP/V7BtToItjPVhVbzqjeuysRzHcFyHjX3dhTf5hE48hwyCK7KvnrvVSeilEOwXfXF7+vIy6JQRygh9BBy9CY8Ixh0kIHbGorZg1CylGgt7AChi3AqT403gnvqTCi37rkZGF2h6jIXnQrOSkFHR8j7P7tiRKUi9OOMdYQ2Mn7kmW3POo9D9L0n253UvOHwy7F7Rf0uF2VvOFwuKsF1BsH2ewVhN6keriDXXitjuVDCRdDRj4+d6ZnIZpcLFWG8gZ8oKLSZ7pWXvWoboYkwQ9DDRwTbxS/kzGcZWo+f/R8d2ZCBXEPOEWx5W0OelyCd0j7tVJDryMCZ5nyrEb+WCynaInO8Rbi54nO9SL4GKtxESSMybTrIQBTzB8GGYAdw51WtZEy45jwZovWdaKdEBWQQsUezJvMy2JfF0odZ/PwpxeKOKlcc+OwEQUmmmkDR5MKkuvkZQpZ2GD+SDW1KZZ8xSueFNnKQqa9INfML2R8481+hUkTGQui5j0xCVk+GIxmaelTt/5fDLiChIotKi/UflhaC9LdVWQ/HkjghPX6TVztWmR07ky2Kim8ptOblwCiKxx7CwG0x0TVjnOhcWCkv+508TU/EnBkBIxGzPT4jIWRMZ9GkenZY9ba6LRkoBNxMKzcVZ4wsvxnqXTSYLj177N/di6dKPGKXyCvIuLzV5LVPyuDqesbBFvhcupD2RsFyui2pvBDzletLByOjaCfUcL7Z4EFcy+7i1ozU0A42h3aHVa0l3mPy3hmXqCWSWGsoVT8gU5HfyvU44xQiCXB7fOLjAnYkVT/gXm+pPrRJPQ3g+x55iDOsFQADyWA7/MCFDrrxA4IwcF5o9px5zbcmYjoRhRzCxPtdEFpD2E2RORHTyeq14HIuRsXgcu7dAIFqNYL8PYXlhjNvyGZjGVNnd86USZuKPZuXY6s2xPWDKCqhHOTPEdnC18QWXrW0JMMOUA/Aqxrhxfgf"
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+      "kind": "shitsugi",
+      "no": "04",
+      "title": "青色申告特別控除（55万円）と確定申告の要否",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 295.82,
+      "text_ranges": [
+        [
+          0,
+          1161
+        ]
+      ],
+      "text_deflate_base64": "xVbbctpIEP2VfMA+GFe8W/t36kkwEuJ+NTZeTAJIASJSwNoCZPiY1sxIT/qFrZmRsIB412Vvym9imOnL6dOnm1uAMEMNfLdIzSZvfA3mrr+5QqgiOP7aZMPvSGq0dY+kjmAh5JHkUYPwthYYc95Y0GoewWHGLhgXxc1yW74dIXxG2CJ0UCOsO6WrJcIEYSDPR2mPzNDoti3cbVoIE/73yHdL6jDydLpasu4kGO9Yc8lcPfIMhAICEWEk9j9wkYaj3FD9Utg6tp7yLRNOJ8CNFdWHrGSFnQE1ijIf8SrMVcN+EaHwx0ffzdHLS4kAQWIi9JAAasCtHrdLiYExf3TYosmn0/MLBCfyauy2z6fTyKuHd1n5UaXlBwTnOfeRp6uPsF+8uFBeZc5OMCpT5xpJLYRvvGEjtBF69G5JK7rMbvZTTJMUZpk/kxRshPEheinEAy17ilW6BgiFoF9AUkZSQOipt/y74W+GdNA6he78TPn1N0PfNRGcdMj8y5o61woFduOK1+UKza2R1IIRyBTHMhAbwUGoyw9LhC1+WjLjfGBfKa5Spxe2vvg7InhoFFm5Iu93kJhhp6J4K5kySzNFxcvtEoJzHA+pxfFII3SXlVHN9lEF2icEPUZS0PIzgik/LBE8ySFcihMBctbyvWsJ7xvdn7A/8qoIJjM04YoY+5II640ZM5rHfUnM/yw5wq2oVRJl2uZTaX87OzuqrhXHJgyYwmRiKW2AZu3wk532ydYVtjDodknLJVrWEWZHlENoSr7F4ac4lN8LSjonWs4jLEJNC+BBnbyUn3GDHzUWLfWokZN0aitvr6LNvm43SOqi1RMjSjQy55lEL6ppvRACoJEPCddV1lUhQ1rhNVlrRZmJSIwtmv5m8CQvMEGiI8k/15mqOif/iguBfRV4RmAOJUZlwfOrEl/+YDduTMaHjRgtsrf9zf0ezUTQZImJyY2VvzXFkwOtUy1nBbbOnbZSvzgdUpN/xfMmDSvtrVl3GmrXITQy55nIK0ZeK0ZTyonDyeo9VPxkBJ3SJpE71SVFkY3Z4Y/zsPnw7MAlJtVMf70WHaMBdRf8x47duGH/L4QJ7a0Rhqpd/Mcu0ysKxWDuUq1HZ1uetYK+rYCPayUvnNL74KTbE+oqsLcQJkkKB9NJye9BnWPNFDIeefpLC9AK77Kyfonwv74BTobcYz34Nv9/5vLzXE36i+oDyYN0pU8Gs9gy4E68/zeKstu+AulUOF5I0czZe1D0qQAxcvubxERCJDfsA+FPceZ9GfBTwA4YMHp77duy/AWEr/F8e9ogDlbdNyAw+wXap0AQa3RqCaCVgrJ6RND48raw3ysiT//9YwrdBJhkkdgvtMngFvPkPptaw2J6/LqF6x8="
+    },
+    "tsutatsu:sochi_shotoku:25の2-1": {
+      "id": "tsutatsu:sochi_shotoku:25の2-1",
+      "kind": "tsutatsu",
+      "circular": "sochi_shotoku",
+      "no": "25の2-1",
+      "variant": 0,
+      "title": "租税特別措置法に係る所得税の取扱いについて （青色申告特別控除額の計算等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/25/01.htm",
+      "law_version": "",
+      "text": "措置法第25条の2第1項又は第4項の規定による青色申告特別控除額の計算等については、次の諸点に留意する。(平5課所4－2追加、令元課個2-24、課法11-4、課審5-13、令８課個2-10、課審5-4改正)\r\n(1) 措置法第25条の2第1項第2号に規定する不動産所得の金額、事業所得の金額及び山林所得の金額又は同条第4項第2号に規定する不動産所得の金額及び事業所得の金額は、損益通算をする前のいわゆる黒字の所得金額をいうのであるから、これらの所得の金額の計算上生じた損失の金額がある場合には、その損失の金額を除外したところにより同条第1項第2号又は同条第4項第2号の合計額を計算すること。\r\n(2) 措置法第25条の2第1項の規定による青色申告特別控除額は、この控除をする前のいわゆる黒字の不動産所得の金額、事業所得の金額又は山林所得の金額から、これらの黒字の金額を限度として順次控除すること。また、同条第4項の規定による青色申告特別控除額は、この控除をする前のいわゆる黒字の不動産所得の金額又は事業所得の金額から、これらの黒字の金額を限度として順次控除すること。\r\n(3) 措置法第26条第1項（（社会保険診療報酬の所得計算の特例））の規定の適用を受ける社会保険診療報酬に係る所得がある場合には、同法第25条の2第1項第2号又は同条第4項第2号に規定する合計額を計算するときはこれを除外したところによるのであるが、同条第3項又は第6項の控除をするときには、当該所得を含めた事業所得の金額から控除すること。",
+      "score": 221.34,
+      "text_ranges": [
+        [
+          0,
+          654
+        ]
+      ]
+    },
+    "law:shotokuzei_rei:164": {
+      "id": "law:shotokuzei_rei:164",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "164",
+      "title": "所得税法施行令 青色事業専従者給与の判定基準等",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_164",
+      "text": "法第五十七条第一項（事業に専従する親族がある場合の必要経費の特例等）に規定する政令で定める状況は、次に掲げる状況とする。一　法第五十七条第一項に規定する青色事業専従者の労務に従事した期間、労務の性質及びその提供の程度\n二　その事業に従事する他の使用人が支払を受ける給与の状況及びその事業と同種の事業でその規模が類似するものに従事する者が支払を受ける給与の状況\n三　その事業の種類及び規模並びにその収益の状況\n２　法第五十七条第二項に規定する書類を提出した居住者は、当該書類に記載した事項を変更する場合には、財務省令で定めるところにより、その旨その他必要な事項を記載した書類を納税地の所轄税務署長に提出しなければならない。",
+      "score": 197.93,
+      "text_ranges": [
+        [
+          0,
+          310
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm",
+      "kind": "shitsugi",
+      "no": "03",
+      "title": "青色申告特別控除（10万円）と確定申告の要否",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/03.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 285.33,
+      "text_ranges": [
+        [
+          0,
+          914
+        ]
+      ],
+      "text_deflate_base64": "tVbbctowEP2VfEAfQmbamf6dVi3BxhgDgQC5DKEF7BJqOoE2XBzyMWtJ9hO/0JFkOwaStpO2b8JYu3vOnj1r4QLCFAmEC5tZLdH8HN0twnWHD78ibbDzH0jPEFyEMtIyEoivG5F5J5ozVi8j+Nx8jMa2fNNpI9QRRggfETYIXSSUX03Yco5wizBQz0f5RNwkbNNG8MP1OcKt+D4KF1X9cBsYbDnnV7fR+JG35nxhbAMToYJAZRlp/CMhq/d1Gmacylj70XO5Fc48AGEumTHkVTfuDphpKzzyVlyqx30boXLyPlyU2OmpYoAitRB6SAEJCLcnvGoaYCwefD5ricnk5C2Cvw0a/LovJpNtUI9vivrAnHsE/6X028DQh7hvF451VoXZj0YO8y+QNmL4IpoeQhuhx27mrGYodNNnOU0hTAsZBA9hvMtejvGIFA+5yvcAoRL1K0gdpBWEnr4rvprhesgG589Ql4AI18NwYSH4+ZLFpxXzLzQL/HIhbzs1VlohbUQjUBDHqhAPwUc4UwdXli1/ugpxOfI6suEri/m9+PxT+EilDk2bOzX1fhepFXdrWrdKKdO8UnS9wqsi+Pv10EZSjwrCHouqqmlWVUQ+IBgJk1KWHxEsdXBl8bSEcCqfSJKLbhhcKHolpfkK/jhrJvpLOY2EHm2DOoLFTSKTUDNrhoTVnHKztT+R1PptsxGuZZey4nIxn5r65vh4r69uUp4MYMmQaaR8AFb04g9ePidf1fjMZJs5c6rMMRCme2JDaCmlJeXn1FPOrCSPiTllhFlMSAT3+smfKjMZ7b2RYtUeM0tKSG2d7VWC2WmdHPI0iLaLwknhWaeQo0/oUapyjbouDYhUXoOa2AqJUuCsFa4HT8YCt0gNpOWXZlJ35+Bf+ULkdaLAjKyh4siRA9apivk3frlIxHi/DtcdPdXh+kfGZmplqsXUEuYy3Fjyyo7L6WFzI88Qflv7XgKHNtRfyabJ08p6K341iclFDM3CSWEb2O8SLpWN+IIuf+ne/LqvDfzfuvfB6jkUTWpzekZsicXqioe7uHX/4qKlFiNWuFrlJyshMHuTWkip8k1vZ6YS89r109er62B3PJxFX+7+zbobPSOBVLbMGCiC8xQebDp9U7nK58Q6nmx55/vhLxiY/ofPAk0C21QyF94GRrrSFWEp1tR2s8W/b3O7pKR9/8V6+nu/Q0J/Ag=="
+    },
+    "law:sozeki_hou:25_2": {
+      "id": "law:sozeki_hou:25_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "25_2",
+      "title": "租税特別措置法 青色申告特別控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_25_2",
+      "score": 282.7,
+      "text_ranges": [
+        [
+          0,
+          1793
+        ]
+      ],
+      "text_deflate_base64": "3VjZdtpIEH3PV3c3BgskQGE1lm2sxMHyYEQCnhjE9jGl1vLEL+RUt1oIEMTxJHPOzCO9lKpu3bpVTXzbiMqTsDXlHyuBNQPWCOomv/SA9oDpQJtAHaBDoA9Aq6FT43ovXE3i9itQNyhvor+qwBq83gX6EegA6AUwnRPd9zygLtDbc8fmL1wrbZda+Pzsz8rxfRGoGw3q3L0G6sb0KWw5u1vqPLBG3HsAWgfCtssyUNefVbneDlufgzLh6y7evfwY21Ug1Pf04MvoYJ3XNaBj/u1bcNc9vELHQKhcDJ1aMG2jb57Bq5QXR8GtLX+iq4SmW/6skN2S9mVQuOsZye5hjENgGrBK5Gih2wXaBdr/rbHowMrBsw10GNQmQBvAdLXlAi0BtTER9BqYAVT3VzWgF8kB1ghqjwJn9ErdchJWEObPCBAiYr/kpdIH3zOAkP8QcNulFjzbyj7JJx81gDJk3v0LNzVRBsgPbopA6FCdR1DCh7W/vPY3t3HPixwv7LG0bILWOCi3s1QGOgdaVbAO+XjNNzfSTlxwkOWp/xm6p1AkANZfxScqIosDbhpAr2RVnKWFy00tcrTYrn7YLhuYxnI1F19Fgd6+uwjBb+dpfF/CfKRfFCz7sF02gZD4D2rU40Ek0tG9GFgjbPWxTAQKcgsNdr4DI8AYUBfZtM99XhztEfwUxTKkiEjxSNwMSTdpM+ytuWWJkhqeMJtkDm+tmtHTJPFWgcNn0/DrJrBmsX2Hn2Y9oJq/uFLINIUUDN+i22eENwfDXbKH/kaUVL3Dl1gTkXMVGxNRxMq+qLbtUkv8YWXhTL4df0a4domklgapy0tF7s7R8tM0fPmKZXriE4I2uBhNbOTMDfUXD0AfEUlGs3Uf90zJSJGURAYkSv8MjXE2v7l6uRPFPMl8nyiedemPdw3fawl1b/1y7/jXsdiTylZGKvekX2mJkdsYUhJFTxO+ah4spvKNc8c+6tGA+ovvAvUd3oixR4D2hR0mdh9llxJIV7MtSioEr7/6sxEQ4wB4IDI58q6bkJoYiXQdHutKJ1WMCmvWUM0yK8aG8KqaTXtaLipqMdPl4plVKUW6UzWqQBhiIChyAxnIyfPoXhNYNSuWsbXgI1PSJXjqA2v4q40ICqP2VzeBZia+WavQqcWdT/6GHfjpb2756CrozJHBIxStsDz31zrqR+eTvB5M23ytb5can08DzUSKz1/k4o7WXovXX7fLMrYRy8oqfaYAWtn1SP8iXK2n89Mxqm8BhK+bSDbVPfYDVMqdkat0PpOzSPZzsbUIP9Pw+kKpr8tZT7YaXq8AnUq4ksFAfO6nV04eMxNPkLp5nmSTyy89XrGgcAfsAdgYCiMotIF9hsIQCveKFbp0D9uIbSheXaQMxwyegeht4fxOBNT6+yPdnzXSEYNb1tu5lEjWTqOOW+5+LyUskf+DZpp2A6yiTx53r3fjH3Xl+Bfc9NEWXQutGaKAFor8/ltMrv2NHVRIZDfRlZeFquR+ZBtBa4MWak5MJqJKzxanZWXrM+ytEw0VqpqUaNqjTgxjuV1Bpko6zC8HoVkK/74I560D6flVIZM8OEIMR6AIR5deOsTG90WM9HD0P55LNaG/ib4HXSchopnbcvVkAMiMtWkvVd14B7h0Aw+bQ5ylk7eLsP/zxjDkfQ/oF6DVt0OkpLwtumk/msw46fPxOiw+RraDFDKroZUMDgI6pKW/6LxvfDgOObiqhS9fzyQlFRHJDeyvhPobWxI46a/iadQGQs68jt/xevvpXHjqldbJuiL/0VG6kfc0SYcT9Yg9nHnyBASfR8k7Buel7NSRaMvRP0Pq0xjzcU287W+nP09/3EIi+LMB0CnyOneM/F9x3w1eF6KvyX9YKuI5pWNyT2kYaySv0jztV/8HYInsNxox3WUHVMJ+AA=="
+    },
+    "law:shotokuzei_ki:36_4": {
+      "id": "law:shotokuzei_ki:36_4",
+      "kind": "law",
+      "key": "shotokuzei_ki",
+      "no": "36_4",
+      "title": "所得税法施行規則 青色専従者給与に関する届出書の記載事項等",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_36_4",
+      "text": "法第五十七条第二項（事業に専従する親族がある場合の必要経費の特例等）に規定する財務省令で定める事項は、次に掲げる事項とする。一　法第五十七条第二項に規定する書類を提出する者の氏名及び住所（国内に住所がない場合には、居所）並びに住所地（国内に住所がない場合には、居所地）と納税地とが異なる場合には、その納税地\n二　法第五十七条第一項に規定する青色事業専従者（以下この条において「青色事業専従者」という。）の前号の者との続柄及び年齢\n三　青色事業専従者が他の業務に従事し又は就学している場合には、その事実\n四　その事業に従事する他の使用人に対して支払う給与の金額並びにその支給の方法及び形態\n五　昇給の基準その他参考となるべき事項\n２　法第五十七条第二項に規定する書類に記載した青色事業専従者の給与の金額の基準を変更する場合には、遅滞なく、次に掲げる事項を記載した書類を納税地の所轄税務署長に提出しなければならない。一　当該書類を提出する者の氏名及び住所（国内に住所がない場合には、居所）並びに住所地（国内に住所がない場合には、居所地）と納税地とが異なる場合には、その納税地\n二　その変更する内容及びその理由\n三　その他参考となるべき事項\n３　法第五十七条第一項に規定する居住者がその年一月十六日以後新たに青色事業専従者を有することとなつた場合には、その者は、その有することとなつた日から二月以内に、同条第二項に規定する書類を納税地の所轄税務署長に提出するものとする。",
+      "score": 126.71,
+      "text_ranges": [
+        [
+          0,
+          632
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:150-1": {
+      "id": "tsutatsu:shotoku:150-1",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "150-1",
+      "variant": 0,
+      "title": "所得税基本通達 （青色申告の承認を取り消した場合の事業専従者控除）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/20/01.htm",
+      "law_version": "",
+      "text": "既に確定申告書の提出又は通則法第25条《決定》の規定による決定のあった年分につき青色申告書の提出の承認を取り消した場合には、当該年分の不動産所得の金額、事業所得の金額又は山林所得の金額の計算上法第57条第1項《事業に専従する親族がある場合の必要経費の特例等》の規定の適用を受けていた親族で同条第3項に規定する事業専従者に該当する者については、同条第6項に規定する「やむを得ない事情がある」ものとして同条第3項に規定する事業専従者控除を認めるものとする。 >\n\n このページの先頭へ",
+      "score": 323.41,
+      "text_ranges": [
+        [
+          0,
+          240
+        ]
+      ]
+    },
+    "law:shotokuzei_rei:166": {
+      "id": "law:shotokuzei_rei:166",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "166",
+      "title": "所得税法施行令 事業専従者控除の限度額の計算",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_166",
+      "text": "法第五十七条第三項第二号（事業に専従する親族がある場合の必要経費の特例等）に規定する山林所得の金額は、法第三十二条第三項（山林所得の金額）に規定する残額とする。\n２　居住者が不動産所得、事業所得又は山林所得のうち二以上の所得を生ずべき事業（法第五十七条第三項に規定する事業専従者の従事する事業に限る。）を営む場合における同項第二号の規定の適用については、当該事業に係る同号に規定する不動産所得の金額、事業所得の金額又は山林所得の金額の合計額及び当該事業に従事するすべての当該事業専従者の数を基礎として同号に掲げる金額を計算するものとする。",
+      "score": 295.97,
+      "text_ranges": [
+        [
+          0,
+          269
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:57": {
+      "id": "law:shotokuzei_hou:57",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "57",
+      "title": "所得税法 事業に専従する親族がある場合の必要経費の特例等",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_57",
+      "score": 177.53,
+      "text_ranges": [
+        [
+          0,
+          1497
+        ]
+      ],
+      "text_deflate_base64": "3VjLdtpIEN37q7s6gBEShgBGsSHGeHgoYAtiE48sA/6YUrekFb8wp7olIfHw5Mxi5pzZJaK6nrfu7Xb8vRUZz2HnRXytyZ6HvCUbTXHpI9wgNxHaCA7CHGGEUA+dK2HehJvn+PpPBFcaH9GsjrwlGjbCV4QJQgm5KX6Wg00jYmUEJ+wMIqeKvBV4TPkht3G5LuBVGXxHcIP3LoIbTWbSbuzWVfG2ijcPog6B35FPL7I/kz5DmCJw5Cad4q34ZoTQQMZ3awNhKpYcuaG95aK7ovuKnAmjLr8PEebRpCHcW51D4Jty/IQwF9t24JtJvZwjuLt1NXgfB54u39VnEWpUHUyQWbFqmvYgllxs2xSO1VWvSgiVNDFLbNrRj+c0lonckI/D+J5ykz0vHt5RVs63iIyvkVtZD2X3Tb5c6/SUTyrtpGV8+TUe1hHccFESvWdRKeezDX9NAu+KwnUW0rjODWsg7leiWVXGC2SQdslNuzSnhCnnhurtLTLQaWQ+09DTpPO1lTBvci21EQayP4i7bfKf/OpKNo1eZqJRQ3jRB2WjGWx75NkxhT/JAqV9c0PHjYd3+kg0aUhneGTjiKYVOm7uS5JVYg9WPLwL1uv8oBEs2VmEvyb6Y1ZXWHuVL5AHp+x8BO8jQpp7ixzIOLGZh+Wp6o9dbIIrFttgO1SQsGkQPU9s2hmMERy1O0BnuZVLaZGVlkfyQefTtOfBB3kTbytRrdCRAt6SXwOvLszrsPOHNJjY2vvBMdCWB99Fo4qwED9/yjv78AiBsBq6duDVxEc5mkD4y4qe36kPri3KYyqW8jeJMRjofE7vS5ptlryuLo2Ylta4EuVxGt1Jxsf4xW7dQsaSTikXwftYbC36b7OUOdXuQucqYzFh1PUGpkB3Y/gRdpz9bvAq7XAaLDeG3GzeVoFnyH414Sl7jLBFmO7W1ZwB0wai/CTtsU5PdpcIA1qSpqXTSKbFW3HXFNNkbQ6Ws4D1oqUKTcwS+JbsE3OJSlmxzxwZnGu9XDZEs555juDPBLWVsnDf9KYd7HngTdTGzk9iUfYH2cJEz0PSiT4c7Ezgm1Qyb6VEpvLXPMhb4UoJTH+ppxZtSkW9mafKZCPM1JgshCX9m9ZvRnynYNFGxrKZ7dbV8PEx8JjqdUEB9nM91JP/p2r9jl7pbE+C75iN/hPWIVJplo4Anew2MpCPVLi8ekZo5eVRrfRQ1XuroGMGmyuEUmLAW0U+cxA+FKpukHGCAWMHnk/wmeWrhszFRx/hG3WJAt0ht/TZbBPSoKM9heXam0Nagp+DWKI817QSeJeiUrnAL0/kiI/y+UWsTGQw6mbMkZ0P/A4hVR8OfOuASP+FkSqeJJwWqJi3EipOdryEMNWTL7Kie6wHhF/eOp32MftdL+lXj9GR2j1ClYiIPk7VjpJg5+PqcBe7dYe45Zx+6PUhHB7drc4jNpOB/bWLV5HXzqBRX/0Gaf2LTGNPhTgUWNEshY57brnSlBRd/J3n39Pq/QZd7NbXyJjiYqNYMEUKH3zh3u6fITl5PK/SprQdrVT/pIl7apjH3YeMXhM/iUBZGoYH4zwEqSqvS+UVBOtkYW6qYtq1mcdLsi8ZvopJfOrqGHcp8XOeUfjJ0PqNp0MXnxknzAoY4SXkaoO2SSMIJl/KmYzk7rimOpsA9gQI9ouff3Zaiv/q2YXPThFEaq4zzvs6UTxV3lbTNvLoyEuqVnDNffHmgR5tZ0Rc9eKH0hGT7KujDL979qSz6h7mGYpimbTHCdl9mkaO/63MGzG39xSzTr4o+fQe+EMEO4HLpS96G+StTy6O+kjBHlx5o0XfDRtb/ZRRS0O9VvO+13d5TQJpl9LcNm15w6X9QIKT5rP/A0CSw55DUhsKejLixW79DRk7eV3VeR9zUDSB4P2V3K2WYc9NkOVbZ97X1J3sBipGhuytktanqiINM3y9za53n0DtiPo1h9iacBBmKZNQC44fj8j4Xw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+      "kind": "taxanswer",
+      "no": "2100",
+      "title": "減価償却のあらまし",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 123.3,
+      "text_ranges": [
+        [
+          0,
+          2285
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:sozeki_hou:28_2": {
+      "id": "law:sozeki_hou:28_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "28_2",
+      "title": "租税特別措置法 中小事業者の少額減価償却資産の取得価額の必要経費算入の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_28_2",
+      "score": 290.11,
+      "text_ranges": [
+        [
+          0,
+          899
+        ]
+      ],
+      "text_deflate_base64": "tZbfVuJIEMbv96m7eokGQwyGPxHBAVSQMUNQYGcCKPMw1dVJrnyFPd0dICB43N2z53CBbVf3V1W/+hoRj+nZE0tHDsYps95f7eTHD3JB3vbVFyvMepb+MibvF0KYDj2KbhBayB2xH4vwmN36aXma1Gd0dSHbMXJfelU6X5r9yDlCpD9nCH1kIJYOOa102pOOhRBmliutyGym31Y6BIQKAi/EjhAChKGs/xarB4RHJYbDbgP3EUrqfMbFaiBiB6GGEGU9dT7Chf7vkKoVhGtk/P21rK5gQIuZtKvkAlkhLebUbsuOLWImgwGCg7wsVg/kV8gFETNazEVc1hvKZkVvWyM8qruaNYSQvCatA6WWAXk2wiS9fxNvHbOSOgOdiIcwodUyHY3NuroLHlTIWy39Pv1Q4UjELjmNpH4vy0ydr2soB2Pzp7mIXl7ktyDfwP2k3kW4QVgguHIwJqeFECX1EUIo1m0toyvjtlj3qdQld57OzpP6vcpF6blFiEwuYt3P+i5ChdptnfU5nZ3JzpNcMp34rk3vr/bxwE+jyLtAmBn8xOLWEChilvUsqpYMfvJyiuAjdzYcRhl8V7lwn7wA4aqAihIgVs1PUMlaD6oF+6jI234RFWQVer7K+u6REjFXA5nzplkKVftMIEyQgelCMrqUs4ZKzZRuPzuEaJNOqAFwkHvIy6prGxJOajgscpi0Y3qrmSHKzlWUGorTRJlCnQJDzYJ9dgQ8iPLD9wncrh9BcRsCUTqykygQ8YUSpic9+auSTldKfxSQNcgdg3HTFOrNqWrv9+U/ZmSOUsB8ubYRVe10ZBuYRVxOWmvD8/urbcR8cqm2soIw7mdNhx6dfACVgUT08i13v8XcFPAghFZ/yvHdqZDtQBXKNdFTXENe0URFetshpcVc1C0uiGVF+bkakGB3ggr8eFTekZ3I5k/kNS2mpHR2utoSI9mxZeMZuS8WgbJfGBoMTDobnL7s29xPf1oItuJEjaG7Sfaj8xQbl78+eylDmEE9R25j4/+GCmUpVVoOtZ4c4D/eX31kjMquGfW8CsYdbobqqVjXdD8K5WD6UemoFmqj7CI8IZSScGIqqD39Wq8XMze98TexeyJqyNgxy1GRyd2Sopvduw3h1/0ma96Za+T1ZTJ/1uGR/LUSq+vt673lMWtVkauhz227oK9+Qt8Hh4fuaXE7sLfGuydx1tBvweZw7hd1HEwNVSuH5sxtpd4A9j8b4wlXbOgx3AyL0flPH4j8qMAwZarfMIiKuGxG7vCxVJ+VepkYfNakvNbB5tfbk1g6eqem/eNLzPjf"
+    },
+    "law:sozeki_hou:67_5": {
+      "id": "law:sozeki_hou:67_5",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "67_5",
+      "title": "租税特別措置法 中小企業者等の少額減価償却資産の取得価額の損金算入の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_67_5",
+      "score": 286.07,
+      "text_ranges": [
+        [
+          0,
+          987
+        ]
+      ],
+      "text_deflate_base64": "nVZRU+I8FH3fX52bBW2hlVIqiMAgu4BopTqgu6Ug/pibpO2Tf+GbJC0UKI7fzvDApDc3955z7klYOOcvDbYBMZknpBrPzc+NET898V6P28AiSwxGCAHv9eSiDWw1SO+q8dMTC3/yxl8EP5k2eHCL0EVaZ4fZPjcGdywdz6v+aXwKD7E3S7tjPm6zqK53yZiHBX9v6RikFCFA6qbdMUIDCf3cmLxhIDzvkrPV4DR5sl2IyZzbHnes+K3CHSOemwj3SCAduIm5iL0lb9ZEL0TqiobDL6PiiZ8bg0V1Xu8miztRl1WlVVtUAx3DP6rJFBAsBLovEmYIHYSp8D7YeoxwL4uhUAjw065zHE8gJbdx0BHLaxZFvFFDWJZQoP7vuGAhSe+qRy3H5ooHt8mjrc51eaOD0EQYaqBKg3ewK3DKkJe/C4QRf28lD4uDI8BnH7L9L/LHbxZv/+G1HneaLKwlMyP21gj+nrvI0tyJqwWCi7Quwh7bjnhlyO3XZHkZe78RrGR2k2xMhGukFsIUoXJOG0hd+RUukFC2nrCwjtBCCHSFCDX1dcodC+Em2wIWEuCrpTAcboPU6uqV93qib7CQiM4EoY7UZOsxdy1JREj46pWFpgow9YoK20qBQZC2W7LHRptvO5pirdjk9zt77+uVpD5RamlIJa+jZDbX6/IsGMstCnB2MqEIgWYNIYi9mWRh21OphmXQ3aucA6kcVQ/bjtKRjWBlAgsv+cWF6D+KiKjiaXEEyjd+uWsnYBZ5KtIUg9FOsdypHNGdaybQbrDX7V6Bsga2bp8dq4IAioyrwdkzjsTiL810ZJegRGw1jJlstIpE38yG/e6VO8ZhqoydswmPQfPjXribrPSyqRcl0WD/C9GdiQTK8ZESHSMVG02LRQrHTi+b8ZsVOxdqKORG1aaN8LxTRWlYXuHzXocHpwTCJErbQR4ZyNEOOiysIQGdU37VvQcdXp1krkKoZucLVEuhKCtD75VS+TYRAXeMZGZoJbPQjLtbLWZ5W5UcYelhl4qVUh8iPCJUCsVLiIp5JC+ZV98rWeqhbinj8svB7Bvi+gWpy1YdaUow1WAecPF9N6Nu8qeKYEi0T+g+j0bm8we9gJ+ClxGXm9u/QC0n1FHNznYy+PG5cZEQbtqqmRwFVau4lezybUtNSAEOoqy2bxzxEfvPGsHYGyoEj4Su0KduvvegiBYSUrhRg9yQ5M74VyQvsfyloC/J/LoLvrCu7xtD2v6lqxE3V/Hri3yPQCD+rtn6Zve+2MlNPR/khGUnFtrwzrRxUhwMzxenHUm5h3qNxLOrgxKX18qB8+TULdZxNBQnMPlIDaQ17lS+byZnnEQ/A0ps6n8YcpaqoxWkQbzWgmShqQfs5AEXIKzlDU3gK6wzyDr5M/GRRXUVqbR9eo0R+h8="
+    },
+    "law:sozeki_rei:18_5": {
+      "id": "law:sozeki_rei:18_5",
+      "kind": "law",
+      "key": "sozeki_rei",
+      "no": "18_5",
+      "title": "租税特別措置法施行令 中小事業者の少額減価償却資産の取得価額の必要経費算入の特例",
+      "law_version": "2026-07-31",
+      "url": "https://laws.e-gov.go.jp/law/332CO0000000043#Mp-At_18_5",
+      "text": "法第二十八条の二第一項に規定する事務負担に配慮する必要があるものとして政令で定めるものは、常時使用する従業員の数が四百人以下の個人とする。\n２　法第二十八条の二第一項に規定する政令で定める減価償却資産は、次に掲げる規定の適用を受ける減価償却資産及び貸付け（主要な業務として行われるものを除く。）の用に供した減価償却資産とする。一　所得税法施行令第百三十八条又は第百三十九条の規定\n二　法第三十三条の六第一項、第三十七条の三第一項又は第三十七条の五第四項の規定\n三　第十六条の三第六項又は第十八条の七第七項の規定\n３　前項に規定する主要な業務として行われる貸付けに該当するかどうかの判定その他前二項の規定の適用に関し必要な事項は、財務省令で定める。",
+      "score": 270.69,
+      "text_ranges": [
+        [
+          0,
+          323
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+      "kind": "taxanswer",
+      "no": "1523",
+      "title": "先物取引の差金等決済に係る損失の繰越控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1523.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目所得税概要先物取引の差金等決済に係る損失の繰越控除とは、「先物取引に係る雑所得等」の金額の計算上生じた損失がある場合に、その損失の金額を翌年以後3年間にわたり繰り越し、その繰り越された年分の「先物取引に係る雑所得等」の金額を限度として、一定の方法により、「先物取引に係る雑所得等」の金額の計算上その損失の金額を差し引くことです。 先物取引の差金等決済に係る損失の繰越控除の方法先物取引の差金等決済に係る損失の繰越控除は、次の順序により行います。 （1） 先物取引の差金等決済に係る損失の金額が前年以前3年以内の2以上の年分に生じたものである場合には、これらの年のうち最も古い年分に生じた先物取引の差金等決済に係る損失の金額から順次差し引きます。 （2） 雑損失の繰越控除（前年以前3年内の各年において生じた雑損控除の対象となる損失額のうち、当該各年において控除されなかったものを本年分の総所得金額等から控除する制度をいいます。）を行う場合には、まず、先物取引の差金等決済に係る損失の繰越控除を行った後、雑損失の繰越控除を行います。 手続き申告等の方法先物取引の差金等決済に係る損失の繰越控除を受けるためには、次の手続が必要となります。 （1） 先物取引の差金等決済に係る損失の金額が生じた年分の所得税につき、当該事項を記載した「令和年分の所得税及び復興特別所得税の申告書付表（先物取引に係る繰越損失用）(PDF/705KB)」および「先物取引に係る雑所得等の金額の計算明細書(PDF/579KB)」を添付した確定申告書を提出すること。 （2） その後において連続して上記の申告書付表を添付した確定申告書を提出すること。 （3） この繰越控除を受けようとする年分の所得税につき、上記の申告書付表および計算明細書を添付した確定申告書を提出すること。 申告先等所轄税務署根拠法令等措法41の14、41の15、措令26の23、26の26、措規19の8、19の9 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 163.29,
+      "text_ranges": [
+        [
+          0,
+          847
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:70": {
+      "id": "law:shotokuzei_hou:70",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "70",
+      "title": "所得税法 純損失の繰越控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70",
+      "text": "確定申告書を提出する居住者のその年の前年以前三年内の各年（その年分の所得税につき青色申告書を提出している年に限る。）において生じた純損失の金額（この項の規定により前年以前において控除されたもの及び第百四十二条第二項（純損失の繰戻しによる還付）の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）がある場合には、当該純損失の金額に相当する金額は、政令で定めるところにより、当該確定申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。\n２　確定申告書を提出する居住者のその年の前年以前三年内の各年において生じた純損失の金額（前項の規定の適用を受けるもの及び第百四十二条第二項の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）のうち、当該各年において生じた次に掲げる損失の金額に係るもので政令で定めるものがあるときは、当該政令で定める純損失の金額に相当する金額は、政令で定めるところにより、当該申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。一　変動所得の金額の計算上生じた損失の金額\n二　被災事業用資産の損失の金額\n３　前項第二号に掲げる被災事業用資産の損失の金額とは、棚卸資産又は第五十一条第一項若しくは第三項（資産損失の必要経費算入）に規定する資産の災害による損失の金額（その災害に関連するやむを得ない支出で政令で定めるものの金額を含むものとし、保険金、損害賠償金その他これらに類するものにより補塡される部分の金額を除く。）で前項第一号に掲げる損失の金額に該当しないものをいう。\n４　第一項又は第二項の規定は、これらの規定に規定する居住者が純損失の金額が生じた年分の所得税につき確定申告書を提出し、かつ、それぞれその後において連続して確定申告書を提出している場合に限り、適用する。\n５　第一項及び第二項の規定による控除は、純損失の繰越控除という。",
+      "score": 329.01,
+      "text_ranges": [
+        [
+          0,
+          814
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:70_2": {
+      "id": "law:shotokuzei_hou:70_2",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "70_2",
+      "title": "所得税法 特定非常災害に係る純損失の繰越控除の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70_2",
+      "score": 289.39,
+      "text_ranges": [
+        [
+          0,
+          2979
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_rei:201": {
+      "id": "law:shotokuzei_rei:201",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "201",
+      "title": "所得税法施行令 純損失の繰越控除",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_201",
+      "score": 275,
+      "text_ranges": [
+        [
+          0,
+          1089
+        ]
+      ],
+      "text_deflate_base64": "tVbbdtowEHzPV2vFpRjsmiS0FAgB95BAamJKw2lsQsjHrOXLE7/QsxJ2wRgnLckbwtrVzuxoNcHDl3A69d2SMCDoW/I3i4cVYdYQZrRc6vGwslnVwkUraBpiNEdwQu9n9LsefB7HndFmpSE40a0pnC6CjbyGvLG7Of50HlsGgqP20x4YIZQRbhFmyCCYWgg2hXNA3kCYIFwiN9JsyLjvMmQsydA5coQuNEN4C//pRmiG72rCW4gqFR/sw0Rw/KWegkVoINfkUpPLNcKYIGuecLpx/1q4bgjPwnlAsP0Xnjl9lw1aap6/buzT4sRwF7YmCDoChYvhQjRrkgpiYK/sZUuVjYwHU0uYj3JbXTEmmjrCN2Rc5feXuv9047t1BEd4CwQ7bA1oAwyQcwQHYZx7omRYR64lgQ5CFcEKrhhyLkxqUCZhHuHEWzysBlNrtzXI+Jm/1JGx3H5Q3S5LK06xFZ50knqQj5Cx3LQKNuF8NAONiXU7/RRNaqHT9t16Wtjf8NJE1KppHtLKdBp21r7XFwaIip3eJdm/RF7Lllxu5RU0jbBXj1k3dNqUalgVSzP3Om2x8wuENgGn1v5ASDXXRjConfRnOYuRosoEk3EsmcfFtJWmJNDYV8mFrLmL0FddU9gPGCOYWR1g6f5V6sV8Hly33519UbmXdH8cm413ZDOPhHxCTWSMFH0asFP0nuB5BcBmVaP2H6sT9MjSkZuSlIOR+HwZ3f1SO8Va32m2ts9LO50BMWMRPL6FwQYxWFDZ2xg8Uba5JGa6QgwWdPrjGZQtND+4gPTNcDVqTEZWzXI4cVRNu9OjiOjEDuTdQbp6yg7QfDDA9/pB38qM4+IpTJjpERpIVHbwNg/1WkIaKWeb1YV6NvcDCvzDdvqkUooYBQZXmuLVf/pKskrmb9rV/3BECHZSjzRgB+4o7CzD1kB4i8xxyCD6bofwnPlfmHWEh6I88tNh8dLzNGie0rNZ2eaRRIedtej1kjZoyrvGvfPj3nWXQ12ZNzFbR3PrAIUhlbSd/puVRr5mtEdv7jvxT9UWmL1U6NI36bntLqp/P4NSp0oSvugy5/jwwqhLnKsihJn6WnQoCb1+zFImHnWixu2B7I/ekz8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "kind": "taxanswer",
+      "no": "2080",
+      "title": "白色申告者の記帳・帳簿等保存制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 151.27,
+      "text_ranges": [
+        [
+          0,
+          1613
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+      "kind": "shitsugi",
+      "no": "10",
+      "title": "年の中途で事業に従事した親族に係る青色事業専従者給与",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+      "text": "会社勤務をしていたAは8月に退職し、父Bの経営する個人事業(青色申告)に専従者として従事しました。その年中におけるAの専従期間は6か月未満ですが、この間に支払ったAに対する青色事業専従者給与は、Bの事業所得の金額の計算上必要経費に算入できますか。 必要経費に算入して差し支えありません。 青色事業専従者の判定に当たって、事業に従事する者が相当の理由により事業主と生計を一にする親族としてその事業に従事することができなかった期間がある場合には、従事可能期間の2分の1を超える期間専ら事業に従事していれば足りるものとされています(所得税法施行令第165条第1項第2号)。この「相当の理由」には就職や退職も含むと解されます。 したがって、照会については、退職したときから年末までを「従事可能期間」とし、その2分の1を超える期間専ら事業に従事している場合には、その間に支払った給与は青色事業専従者給与として必要経費に算入されます。 (注) Bは、Aを青色事業専従者とした日から2か月以内に青色事業専従者に関する届出(変更届出)書を提出しなければなりません(所得税法第57条第2項、所得税法施行規則第36条の4第3項)。",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 178.61,
+      "text_ranges": [
+        [
+          0,
+          505
+        ]
+      ]
+    },
+    "law:shotokuzei_ki:55": {
+      "id": "law:shotokuzei_ki:55",
+      "kind": "law",
+      "key": "shotokuzei_ki",
+      "no": "55",
+      "title": "所得税法施行規則 青色申告承認申請書の記載事項",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_55",
+      "text": "法第百四十四条（青色申告の承認の申請）に規定する財務省令で定める事項は、次に掲げる事項とする。一　法第百四十四条に規定する申請書を提出する者の氏名及び住所（国内に住所がない場合には、居所）並びに住所地（国内に住所がない場合には、居所地）と納税地とが異なる場合には、その納税地\n二　前号の申請書を提出した後最初に青色申告書を提出しようとする年\n三　法第百五十条第一項（青色申告の承認の取消し）の規定により青色申告書の提出の承認を取り消され、又は法第百五十一条第一項（青色申告の取りやめ）の規定により青色申告書による申告書の提出をやめる旨の届出書を提出した後再び第一号の申請書を提出しようとする場合には、その取消しに係る同条第二項の規定による通知を受けた日又は取りやめの届出書の提出をした日\n四　その年一月十六日以後新たに法第百四十三条（青色申告）に規定する業務を開始した場合には、その開始した年月日\n五　その他参考となるべき事項",
+      "score": 266.86,
+      "text_ranges": [
+        [
+          0,
+          413
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:2": {
+      "id": "law:shotokuzei_hou:2",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "2",
+      "title": "所得税法 定義",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_2",
+      "score": 111.33,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "kind": "taxanswer",
+      "no": "2020",
+      "title": "確定申告",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 60.19,
+      "text_ranges": [
+        [
+          0,
+          1649
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm",
+      "kind": "taxanswer",
+      "no": "1184",
+      "title": "扶養家族に寝たきりの人がいるときの控除額",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 63.52,
+      "text_ranges": [
+        [
+          0,
+          1217
+        ]
+      ],
+      "text_deflate_base64": "zVddbuJIEL6KH2ekjYQNIeFlL7Lau3R5QmKDCZn8KgnZhBlCHBjMZI1YwAy5y5S7bT9xhVV3G9sEkiXSPKyELMv9ddVXVV9VN3/4XoseW7t0PCiwhqGyi/ugPqMNm7lnvtcKeuafCu3PwqdmYB8G1w4zCZ1dBPYha+thGxBuEBw6HiA4qsYaRp5bQHCC+oy5gPBAp2cItWB4hVArIlRZw/C9e39UQeiiXke4RfiK0EYC4aTr/zhBcKKrBnVcATBQr9D+jYDVUK9w05UhK1cRHviW1kF0/Rmh43vVsPcP6sf0uSx42QiXqFfnUyNdql8gcDB/6hbCd3Z47M+eg56J+rHEI5yIvRa3DzUB3gvsKp20M667CLoA22GnhjqgbnKD3J3pTyYI/cAcU+NeBhKSsrDZEfxn3BHRFeHJ4RHCPg+Ab7OYOYxalbDdYRd1Ab1F6NMjyx+R4PQ2tI2oXKMwFBYfEhKCaB8JiMxWEZz51FDnUzPxzw4fostWmoM1gaa8OggVJPAeLpZ0IJWydmMWsBoEvRvQI0MkdimOD+rHlzGA43vnCN0P2kfpaPE9dpQYT/ARPAanMlR9qQRSzCnu4HPUrCnrc7dS0G74+Dflcr1M+ROQ4KjJC1LI+aMDur8/nxrvyuWKK650hCpCSxFvvOdWQFYwqAX2oXiPHUhkalrXES4Q6slSZosteaB+7I+IKIRsh5tFwp0FewdhD+FKdJBUn0OPLPpU5vIajUTb28JRmyPT4vZ3thcJMYWH5YaYTw1tPjU3KqreysJkutm3JmfZFISsCTX2kwmSOpELyTZ/RELjG4Lzmn6V/K7kzPPtXC0tFfNyKSTgTybZJZmPkEDY7gQ90/fuaUukkJSVQmzwBUbZjr8rP4mnKq/3ky1bZPmjI4ZIM1EHHQ/ScSwHuvwa/fiCYKlF1nMXY9jho4fPvz3xW2TqJ/E0ZTXqlMCrDN9LppSQ0fKs57JGh03IW7zyymrKfz2vndxGSSooLyqZMFlHMubw370KTnA9CFyPM/peoU9/zadGYAxZv4afvOD+PH7nw/pR9BMfEhuYtbO9+qJR18e4tfW7gp96dOwy4yifo+MBNfa5pGdW1nS2FXkZNunG1WMpiYA1vokj0aFHRmgbclTLCc3nqWvPp6bydh8n1OJCrFtSSrl4SsszJ+n3pE9TRDgsl7aX0VoxBuW1BXo7Rau/5V5YV+ORoajFtNvfoLdW1VmR/HpJ83InGd6kHLyF00DDIaeVjPzXLx79zMXjGvUTJHpy9ZBa00qp1sxaNg/vVQxCNzr/4j9LD/WsNgWXilDlwzvOiFRAC8G8JbLC7v+52tJPdmrEN37z8e1bz+a3GnY3ZtW75D8FMwlzzzQksFNCArt5/ijwx7Y42ojvtdScfKW3k4hcaVv5kkhMh7lnBZX/3ShKoWgldjpmva/MPYsu96h5UFT+BQ=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "kind": "taxanswer",
+      "no": "2210",
+      "title": "必要経費の知識",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 242.91,
+      "text_ranges": [
+        [
+          0,
+          2533
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_rei:167": {
+      "id": "law:shotokuzei_rei:167",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "167",
+      "title": "所得税法施行令 二以上の事業に従事した場合の事業専従者給与等の必要経費算入額の計算",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_167",
+      "text": "居住者が不動産所得、事業所得又は山林所得のうち二以上の所得を生ずべき事業を営み、かつ、同一の法第五十七条第一項又は第三項（事業に専従する親族がある場合の必要経費の特例等）に規定する青色事業専従者又は事業専従者が当該二以上の所得を生ずべき事業に従事する場合における当該事業に係る不動産所得の金額、事業所得の金額又は山林所得の金額の計算上同条第一項の規定により必要経費に算入される金額（以下この条において「青色専従者給与額」という。）又は法第五十七条第三項の規定により必要経費とみなされる金額（以下この条において「事業専従者控除額」という。）は、次の各号に掲げる場合の区分に応じ当該各号に掲げる金額とする。一　当該青色事業専従者又は事業専従者が当該二以上の所得を生ずべきそれぞれの事業に従事した分量が明らかである場合当該青色事業専従者又は事業専従者に係る青色専従者給与額又は事業専従者控除額をそれぞれその事業に従事した分量に応じて配分して計算した金額\n二　当該青色事業専従者又は事業専従者が当該二以上の所得を生ずべきそれぞれの事業に従事した分量が明らかでない場合当該青色事業専従者又は事業専従者がそれぞれの事業に均等に従事したものとみなして前号の規定に準じて計算した金額",
+      "score": 232.48,
+      "text_ranges": [
+        [
+          0,
+          533
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm:8e3d18d17699cbdd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm",
+      "title": "青色事業専従者給与と事業専従者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2075.htm"
+    },
+    "law:shotokuzei_rei:164:8cca0aab42161774": {
+      "id": "law:shotokuzei_rei:164",
+      "title": "所得税法施行令 青色事業専従者給与の判定基準等",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_164"
+    },
+    "law:shotokuzei_ki:36_4:a6ad2c1ad4226159": {
+      "id": "law:shotokuzei_ki:36_4",
+      "title": "所得税法施行規則 青色専従者給与に関する届出書の記載事項等",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_36_4"
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm:7fd3e9eba0f7bd15": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm",
+      "title": "年の中途で事業に従事した親族に係る青色事業専従者給与",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/04/10.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm:d7e215b613858bcf": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm",
+      "title": "青色申告制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm"
+    },
+    "law:shotokuzei_hou:57:58d8069ea5925b01": {
+      "id": "law:shotokuzei_hou:57",
+      "title": "所得税法 事業に専従する親族がある場合の必要経費の特例等",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_57"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm:2a32b85377a4fa7d": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "title": "青色申告特別控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "title": "配偶者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+    },
+    "law:shotokuzei_ki:55:cf34f28ca5264e8c": {
+      "id": "law:shotokuzei_ki:55",
+      "title": "所得税法施行規則 青色申告承認申請書の記載事項",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_55"
+    },
+    "tsutatsu:shotoku:150-1:a849d124c9a8ea85": {
+      "id": "tsutatsu:shotoku:150-1",
+      "title": "所得税基本通達 （青色申告の承認を取り消した場合の事業専従者控除）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/20/01.htm"
+    },
+    "tsutatsu:sochi_shotoku:25の2-1:47ad48bbed17c6ec": {
+      "id": "tsutatsu:sochi_shotoku:25の2-1",
+      "title": "租税特別措置法に係る所得税の取扱いについて （青色申告特別控除額の計算等）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/25/01.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm:d5d569bd0f486c3c": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm",
+      "title": "扶養家族に寝たきりの人がいるときの控除額",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1184.htm"
+    },
+    "law:shotokuzei_rei:166:71914d2c5e59172e": {
+      "id": "law:shotokuzei_rei:166",
+      "title": "所得税法施行令 事業専従者控除の限度額の計算",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_166"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "title": "白色申告者の記帳・帳簿等保存制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm:365a2c1ea2a076db": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm",
+      "title": "減価償却のあらまし",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm"
+    },
+    "law:sozeki_hou:28_2:461bf90895db8159": {
+      "id": "law:sozeki_hou:28_2",
+      "title": "租税特別措置法 中小事業者の少額減価償却資産の取得価額の必要経費算入の特例",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_28_2"
+    },
+    "law:sozeki_rei:18_5:8de8640aa0e11a20": {
+      "id": "law:sozeki_rei:18_5",
+      "title": "租税特別措置法施行令 中小事業者の少額減価償却資産の取得価額の必要経費算入の特例",
+      "url": "https://laws.e-gov.go.jp/law/332CO0000000043#Mp-At_18_5"
+    },
+    "law:sozeki_hou:67_5:26f07444cb132e17": {
+      "id": "law:sozeki_hou:67_5",
+      "title": "租税特別措置法 中小企業者等の少額減価償却資産の取得価額の損金算入の特例",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_67_5"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "title": "必要経費の知識",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+    },
+    "law:shotokuzei_rei:167:4a802e64eb89a644": {
+      "id": "law:shotokuzei_rei:167",
+      "title": "所得税法施行令 二以上の事業に従事した場合の事業専従者給与等の必要経費算入額の計算",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_167"
+    }
+  }
+}
