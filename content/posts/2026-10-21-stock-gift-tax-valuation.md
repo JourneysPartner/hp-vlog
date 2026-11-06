@@ -52,24 +52,30 @@ source_alignment_score: 4
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 4
-recommendation: "revise"
+recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 財産評価基本通達（0.56） / 【事実の照合】主張 54 件: 裏付けあり 49・修正 4（食い違い 2・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 2 件 / 注意: 根拠の基準日が古い【/事実の照合】"
 summary: "非上場株式の生前贈与は、贈与日の株価を会社の規模と株主の区分に応じて評価し、翌年2月1日から3月15日までに贈与税を申告します。相続時精算課税の可否も含め、手順を順に整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ SEO: title_too_short ／ ⚠ SEO: lead_missing_query ／ ⚠ SEO: h2_missing_query ／ ⚠ SEO: secondary_not_covered:生前贈与 申告手続き"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-06T21:27:33.723+09:00"
+publish_at: "2026-11-07T11:48:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-21T00:06:27.313Z"
-updated_at: "2026-10-21T00:06:27.313Z"
+updated_at: "2026-11-06T21:27:33.723+09:00"
 fact_check_version: 1
 fact_check_status: "revise"
 fact_check_summary: "主張 54 件: 裏付けあり 49・修正 4（食い違い 2・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 2 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: true
+publish_slot: "morning"
+fact_check_override: true
+fact_check_override_at: "2026-11-06T21:27:33.723+09:00"
+fact_check_override_status: "revise"
+fact_check_override_summary: "主張 54 件: 裏付けあり 49・修正 4（食い違い 2・期限 0・具体を外した 2）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 2 件"
+fact_check_override_sha: "56a524cf85603ec45cd99080e8c03a9b9a3b3768"
 ---
 
 会社の株をそろそろ子どもに渡しておきたい。そう考えて調べ始めると、上場株式のように毎日の株価が新聞に載っているわけではないことに気づきます。決算書を前にして、どこから手を付ければいいのか手が止まってしまう方は少なくありません。
