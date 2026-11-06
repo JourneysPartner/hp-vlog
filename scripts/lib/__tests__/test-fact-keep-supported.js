@@ -490,7 +490,7 @@ for (const retryStatus of ['食い違い', '期限の書き漏れ', '資料な�
     assert.deepEqual(calls, ['judge', 'retry_judge']);
     assert.equal(rows[0].status, '資料なし');
     assert.equal(rows[0].rejected_answer.status, '裏付けあり');
-    assert.equal(rows[0].retry_status, retryStatus === '資料なし' ? undefined : retryStatus);
+    assert.equal(rows[0].retry_status, retryStatus);
     const [number] = F.supportNumbersFromSiblings([...rows, c45]);
     assert.equal(number.status, retryStatus === '資料なし' ? '裏付けあり' : '資料なし');
     assert.equal(JSON.parse(JSON.stringify(F.compactRecord({ claims: rows }))).claims[0].retry_status, rows[0].retry_status);

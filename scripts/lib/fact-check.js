@@ -663,7 +663,9 @@ const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で�
 
 function aiSupportedUnverifiedNumbers(c) {
   return c.status === '資料なし' && c.reject_reason === '引用が短い・数字が引用の近くに無い' &&
-    c.rejected_answer?.status === '裏付けあり';
+    c.rejected_answer?.status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(c.type) &&
+    isNumericClaim(c) && !c.invalid_ratio && !['食い違い', '期限の書き漏れ'].includes(c.stage_a_status) &&
+    !['食い違い', '期限の書き漏れ', '資料なし'].includes(c.retry_status);
 }
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
@@ -968,6 +970,9 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
       const cutoff = new Date(options.now || new Date());
       cutoff.setUTCMonth(cutoff.getUTCMonth() - 18);
       const notes = ['食い違い', '期限の書き漏れ'].includes(status) ? quoteNotes(page, citations) : '';
+      // 数字の不足と区別し、採用した原文全体の不正な割合による却下は人への振り分けで緩めない。
+      const invalidRatio = reason === '引用が短い・数字が引用の近くに無い' && ['金額', '割合', '期限', '適用年'].includes(c.type) &&
+        [c.claim, c.sentence, ...evidenceTexts(ref)].some(text => normalizedNumbers(text).includes(null));
       results.set(c.id, { id: c.id, sentence: c.sentence, heading: c.heading, type: c.type, subject: c.subject, claim: c.claim,
         ...(typeof c.type_label === 'string' ? { type_label: c.type_label } : {}),
         s: units.find(u => !u.heading && u.text === c.sentence)?.s,
@@ -978,6 +983,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         ...(supportedNumbers ? { supported_numbers: supportedNumbers } : {}),
         ...(sumSupport.length ? { sum_support: sumSupport } : {}),
         ...(reason ? { reject_reason: reason } : {}),
+        ...(invalidRatio ? { invalid_ratio: true } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
           status: r.status, evidence: pages.find(p => p.number === evidenceNo)?.id || r.evidence_id,
           basis: String(r.basis ?? '').slice(0, 40), quote: quote.slice(0, 200),
@@ -1006,8 +1012,10 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
           for (const c of retried) {
             if (c.status !== '資料なし') results.set(c.id, c);
             else {
-              if (['食い違い', '期限の書き漏れ'].includes(c.rejected_answer?.status)) {
-                results.set(c.id, { ...results.get(c.id), retry_status: c.rejected_answer.status });
+              const retryStatus = ['食い違い', '期限の書き漏れ'].includes(c.rejected_answer?.status)
+                ? c.rejected_answer.status : !c.reject_reason ? '資料なし' : '';
+              if (retryStatus) {
+                results.set(c.id, { ...results.get(c.id), retry_status: retryStatus });
               }
               stageTally.answers.set(c.id, previousTally.get(c.id));
             }
@@ -1578,7 +1586,10 @@ async function checkFacts(body, options = {}) {
       const previous = original.get(c.id), result = final.get(c.id) || previous;
       const status = [previous?.status, previous?.rejected_answer?.status, previous?.retry_status]
         .find(status => ['食い違い', '期限の書き漏れ'].includes(status));
-      return result && ['食い違い', '期限の書き漏れ'].includes(status) ? { ...result, stage_a_status: status } : result;
+      // 段Bに採れる答えが無くても、段Aの聞き直しで取り下げた裏付けを復活させない。
+      const adopted = result && previous?.retry_status === '資料なし' && !result.retry_status
+        ? { ...result, retry_status: '資料なし' } : result;
+      return adopted && ['食い違い', '期限の書き漏れ'].includes(status) ? { ...adopted, stage_a_status: status } : adopted;
     }).filter(Boolean), ...reused];
     for (const c of adopted) if (c.correct_requires_review) addReviewItem(c);
     return supportNumbersFromSiblings(adopted);
