@@ -123,6 +123,80 @@ console.log('=== 7. tools/ は触っていない ===');
 }
 
 console.log('');
+console.log('=== 8. フォント CSS は非同期・CDN は先に接続 ===');
+{
+  function htmlFiles(dir) {
+    return fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).flatMap(entry => {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        return ['tools', '_shared'].includes(entry.name) ? [] : htmlFiles(rel);
+      }
+      return entry.name.endsWith('.html') ? [rel] : [];
+    });
+  }
+
+  const pageTemplates = htmlFiles('templates/pages');
+  const fontTemplates = [
+    ...pageTemplates,
+    'templates/blog-list.html', 'templates/blog-post.html',
+    'templates/blog-hub.html', 'templates/blog-hub-index.html',
+  ];
+  const staticPages = pageTemplates.map(t => {
+    const rel = t.replace('templates/pages/', '');
+    return rel.includes('/') || ['pricing.html', 'area.html'].includes(rel)
+      ? rel.replace(/\.html$/, '/index.html') : rel;
+  });
+  // 既存の標本検査は残し、追加分は全テンプレート・全生成ページを調べる。
+  const fontTargets = [...fontTemplates, ...staticPages, ...htmlFiles('blog')];
+  const fontUrl = 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Zen+Old+Mincho:wght@700&display=swap';
+  const attr = (tag, name) => {
+    const m = tag.match(new RegExp(`\\s${name}="([^"]*)"`));
+    return m ? m[1] : null;
+  };
+  const checks = [
+    ['全ページのフォント stylesheet に media="print" と onload がある', (html, active, links) =>
+      links.length === 1 && attr(links[0], 'href') === fontUrl &&
+      attr(links[0], 'media') === 'print' && attr(links[0], 'onload') === "this.media='all'"],
+    ['同じフォント URL の preload as="style" がある', (html, active) =>
+      (active.match(/<link\b[^>]*>/g) || []).some(tag =>
+        attr(tag, 'rel') === 'preload' && attr(tag, 'href') === fontUrl && attr(tag, 'as') === 'style')],
+    ['同じフォント URL の noscript stylesheet がある', html =>
+      (html.match(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/g) || []).some(block =>
+        (block.match(/<link\b[^>]*>/g) || []).some(tag =>
+          attr(tag, 'rel') === 'stylesheet' && attr(tag, 'href') === fontUrl && attr(tag, 'media') === null))],
+    // JavaScript 無効時だけ有効な noscript は、表示を止める通常の link から除く。
+    ['noscript 以外に media の無いフォント stylesheet が無い', (html, active, links) =>
+      links.every(tag => attr(tag, 'media') !== null)],
+    ['Bootstrap CSS より前に jsDelivr の preconnect がある', (html, active) => {
+      const tags = active.match(/<link\b[^>]*>/g) || [];
+      const preconnect = tags.findIndex(tag => attr(tag, 'rel') === 'preconnect' && attr(tag, 'href') === 'https://cdn.jsdelivr.net');
+      const bootstrap = tags.findIndex(tag => attr(tag, 'rel') === 'stylesheet' && /^https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@/.test(attr(tag, 'href') || ''));
+      return preconnect >= 0 && bootstrap > preconnect;
+    }],
+  ];
+  for (const [label, check] of checks) {
+    const bad = fontTargets.filter(t => {
+      if (!fs.existsSync(path.join(ROOT, t))) return true;
+      const html = read(t);
+      const active = html.replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/g, '');
+      const links = (active.match(/<link\b[^>]*>/g) || []).filter(tag =>
+        attr(tag, 'rel') === 'stylesheet' && /^https:\/\/fonts\.googleapis\.com\/css2\?/.test(attr(tag, 'href') || ''));
+      return !check(html, active, links);
+    });
+    assert(bad.length === 0, `${label}（${fontTargets.length} ファイル）${bad.length ? '：' + bad.slice(0, 3).join(', ') : ''}`);
+  }
+
+  const css = read('assets/css/style.css');
+  for (const [name, expected] of [
+    ['--font-family', "'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif"],
+    ['--font-display', "'Zen Old Mincho', 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif"],
+  ]) {
+    const m = css.match(new RegExp(`${name}:\\s*([^;]+);`));
+    assert(m && m[1].trim() === expected, `${name} の先頭書体を保ち、指定の代替書体を順に含む`);
+  }
+}
+
+console.log('');
 console.log('=== 結果 ===');
 console.log(`PASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

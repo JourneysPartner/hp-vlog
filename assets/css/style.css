@@ -22,8 +22,8 @@
   --color-text:         #22293a;
   --color-text-muted:   #55607a;
   --color-border:       #E3E8F0;
-  --font-family:        'Noto Sans JP', sans-serif;
-  --font-display:       'Zen Old Mincho', 'Noto Serif JP', serif;
+  --font-family:        'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+  --font-display:       'Zen Old Mincho', 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --header-height:      72px;
   --section-py:         96px;
   --radius-sm:          8px;
