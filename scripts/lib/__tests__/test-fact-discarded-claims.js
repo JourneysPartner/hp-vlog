@@ -21,7 +21,7 @@ function invariant(record) {
   const before = JSON.stringify(record);
   assert.deepEqual(JSON.parse(JSON.stringify(F.compactRecord(record))).discarded_claims, record.discarded_claims);
   assert.equal(JSON.stringify(record), before, '記録の圧縮で元の一覧を変えない');
-  assert.ok(record.review_items.every(c => !Object.hasOwn(c, 'pointed_sentence')));
+  assert.ok(record.review_items.every(c => !Object.hasOwn(c, 'pointed_sentence') || c.status === '照合で文を特定できなかった'));
 }
 
 async function check(body, rows, extra = {}) {
@@ -79,17 +79,19 @@ test('R1: 採用した主張と件数の上限で落とした主張には新し�
   assert.ok([...result.claims, ...result.droppedClaims].every(c => !Object.hasOwn(c, 'pointed_sentence')));
 });
 
-test('R2: 捨てた金額の主張を記録し、従来どおり承認を止める', async () => {
+test('R8: 最初に捨てた金額の主張は承認を止めず、人の確認に回す', async () => {
   const { body, record } = await check(original, [raw()]);
   assert.equal(body, original);
-  assert.equal(record.status, 'revise');
+  assert.equal(record.status, 'ok');
   assert.equal(record.discarded, 1);
   assert.deepEqual(record.remaining, []);
-  assert.deepEqual(record.review_items, []);
+  assert.equal(record.review_items.length, 1);
+  assert.equal(record.review_items[0].status, '照合で文を特定できなかった');
+  assert.equal(record.review_items[0].pointed_sentence, original);
   assert.deepEqual(record.discarded_claims, [{ sentence: missing, heading: '', type: '金額', subject: '控除', claim: missing,
-    s: 1, status: '本文に見つからない', pointed_sentence: original, stage: '抜き出し', blocks_approval: true }]);
-  assert.equal(record.logic_version, 'plan2-s4');
-  assert.equal(record.summary, '主張 0 件: 裏付けあり 0・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 0 件');
+    s: 1, status: '本文に見つからない', pointed_sentence: original, stage: '抜き出し', blocks_approval: false }]);
+  assert.equal(record.logic_version, 'plan2-s5');
+  assert.equal(record.summary, '主張 0 件: 裏付けあり 0・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 1 件');
 });
 
 test('R2: 捨てた要件は従来の内容で人の確認に回し、承認を止めない', async () => {
@@ -101,18 +103,18 @@ test('R2: 捨てた要件は従来の内容で人の確認に回し、承認を�
   assert.equal(record.discarded_claims[0].blocks_approval, false);
   assert.equal(record.discarded_claims[0].pointed_sentence, original);
   assert.deepEqual(record.review_items, [{ sentence: claim, heading: '', type: '要件', subject: '控除', claim,
-    s: 1, status: '本文に見つからない', evidence: [] }]);
+    s: 1, status: '照合で文を特定できなかった', pointed_sentence: original, evidence: [] }]);
 });
 
-test('R2: 8種類の未照合の振り分けと、未知の種類を止める条件を維持', async () => {
+test('R8: 最初に捨てた主張は種類によらず人の確認に回す', async () => {
   for (const type of ['金額', '割合', '期限', '適用年', '番号', '要件', '判定', '手続', 'その他']) {
     const numeric = ['金額', '割合', '期限', '適用年', '番号', 'その他'].includes(type);
     const claim = numeric ? missing : '扶養親族だけが対象となります。';
     const { record } = await check(original, [raw({ type, claim })]);
     assert.equal(record.discarded, 1, type);
-    assert.equal(record.discarded_claims[0].blocks_approval, numeric, type);
-    assert.equal(record.status, numeric ? 'revise' : 'ok', type);
-    assert.equal(record.review_items.length, numeric ? 0 : 1, type);
+    assert.equal(record.discarded_claims[0].blocks_approval, false, type);
+    assert.equal(record.status, 'ok', type);
+    assert.equal(record.review_items.length, 1, type);
     assert.deepEqual(record.remaining, []);
   }
   const { record } = await check(original, [raw({ s: 99, claim: '扶養親族だけが対象となります。' })]);
@@ -138,10 +140,11 @@ test('R2: 修正の後の再照合でも一覧を積み、段階と件数が合�
   assert.equal(result.body, after);
   assert.equal(result.record.status, 'revise');
   assert.deepEqual(result.record.remaining, []);
-  assert.deepEqual(result.record.review_items, []);
+  assert.equal(result.record.review_items.length, 1);
+  assert.equal(result.record.review_items[0].status, '照合で文を特定できなかった');
   assert.equal(result.record.discarded, 2);
   assert.deepEqual(result.record.discarded_claims.map(c => [c.stage, c.pointed_sentence, c.blocks_approval]),
-    [['抜き出し', before, true], ['再照合', after, true]]);
+    [['抜き出し', before, false], ['再照合', after, true]]);
   assert.equal(result.record.corrections[0].resolved, true);
 });
 
@@ -186,14 +189,58 @@ for (const recovered of [true, false]) test(`R2: 書き手資料モードの抜�
     } });
   assert.equal(tasks.filter(task => task === 'retry_extract').length, 1);
   assert.equal(record.discarded, recovered ? 0 : 1);
-  assert.equal(record.status, recovered ? 'ok' : 'revise');
+  assert.equal(record.status, 'ok');
   assert.deepEqual(record.remaining, []);
-  assert.deepEqual(record.review_items, []);
+  assert.equal(record.review_items.length, recovered ? 0 : 1);
   if (!recovered) {
     assert.equal(record.discarded_claims[0].status, '主張の形式が不正');
     assert.equal(record.discarded_claims[0].pointed_sentence, original);
-    assert.equal(record.discarded_claims[0].blocks_approval, true);
+    assert.equal(record.discarded_claims[0].blocks_approval, false);
   }
+});
+
+test('R8: 数字の主張の形式が不正でも、最初の抜き出しでは止めない', async () => {
+  const { record } = await check(original, [raw({ type: 'その他', subject: '', claim: original })]);
+  assert.equal(record.status, 'ok');
+  assert.equal(record.discarded_claims[0].status, '主張の形式が不正');
+  assert.equal(record.discarded_claims[0].blocks_approval, false);
+  assert.equal(record.review_items.length, 1);
+  assert.equal(record.review_items[0].status, '照合で文を特定できなかった');
+  assert.equal(record.review_items[0].pointed_sentence, original);
+});
+
+test('R8: #744 の箇条書きを要約して捨てても止めず、画面に指した文を出す', async () => {
+  const sentence = '- <strong>10万円</strong>：上のいずれにも当てはまらない場合';
+  const { record } = await check(sentence, [raw({ claim: '65万円・55万円の要件に当てはまらない場合は10万円' })]);
+  assert.equal(record.status, 'ok');
+  assert.equal(record.discarded_claims[0].blocks_approval, false);
+  assert.equal(record.review_items[0].pointed_sentence, sentence);
+  const [summary, detail] = render(record, sentence);
+  assert.match(summary, /照合で文を特定できなかった 1 件/);
+  assert.match(detail, /AI が指した文: 10万円：上のいずれにも当てはまらない場合/);
+  assert.match(detail, /人が確かめる箇所にも載せています（承認は止めません）/);
+  assert.ok(!detail.includes('承認を止めています'));
+  const revised = render({ ...record, status: 'revise' }, sentence)[1];
+  assert.ok(!revised.includes('数字の主張は照合できていないため、承認を止めています。'));
+});
+
+test('S6/R8: 上限で未照合の数字の主張は引き続き止める', async () => {
+  const second = '控除は100万円です。';
+  const { record } = await check(original + '\n' + second, [raw({ claim: original }), raw({ s: 2, claim: second })], {
+    maxNumericClaims: 1, searchEvidence: () => [source(original)],
+    callLLM: async req => req.task === 'extract' ? [raw({ claim: original }), raw({ s: 2, claim: second })] : supported(req),
+  });
+  assert.equal(record.status, 'revise');
+  assert.equal(record.dropped, 1); assert.equal(record.discarded, 0);
+  assert.deepEqual(record.review_items, []);
+});
+
+test('R9: 人の確認一覧は資料なし・上限・文を特定できなかった項目の順', () => {
+  const statuses = ['照合で文を特定できなかった', '上限で未照合', '資料なし'];
+  const record = displayRecord({ review_items: statuses.map(status => ({ sentence: original, status })), discarded_claims: [] });
+  const html = render(record)[1];
+  assert.ok(html.indexOf('<h4 class="h6">資料が見つからなかった記述') < html.indexOf('<h4 class="h6">件数の上限で照合しなかった記述'));
+  assert.ok(html.indexOf('<h4 class="h6">件数の上限で照合しなかった記述') < html.indexOf('<h4 class="h6">照合で文を特定できなかった'));
 });
 
 const row = (extra = {}) => ({ ...raw(), sentence: missing, pointed_sentence: original, heading: '',
@@ -243,7 +290,7 @@ test('F1: 数字の主張を捨てた後に判定が失敗した実際の記録�
     assert.equal(record.status, 'not_run');
     assert.equal(record.body_sha256, F.bodyHash(body));
     assert.equal(record.discarded, 2);
-    assert.deepEqual(record.discarded_claims.map(c => c.blocks_approval), [true, false]);
+    assert.deepEqual(record.discarded_claims.map(c => c.blocks_approval), [false, false]);
     assert.equal(record.discarded_claims[0].pointed_sentence, original);
     const before = JSON.stringify(record);
     const [summary, detail] = render(record, body);

@@ -195,6 +195,7 @@ function buildMessage(event, data) {
       }
       const lines = [
         '記事を承認しました。公開予約を受け付けました。',
+        ...(data.fact_check_override === true ? [`照合の指摘が残ったまま、確認のうえ公開しました（照合: ${data.fact_check_summary || ''}）`] : []),
         '',
         `■ タイトル: ${title}`,
       ];
@@ -404,6 +405,7 @@ function buildMessage(event, data) {
         subject: '【ブログ】公開中の記事を更新しました',
         body: [
           '承認された更新案を公開中の記事に反映しました。',
+          ...(data.fact_check_override === true ? [`照合の指摘が残ったまま、確認のうえ公開しました（照合: ${data.fact_check_summary || ''}）`] : []),
           '',
           `■ タイトル: ${title || '（タイトル未設定）'}`,
           reason ? `■ 更新理由: ${reason}` : '',

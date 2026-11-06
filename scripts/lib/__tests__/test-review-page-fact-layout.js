@@ -189,7 +189,8 @@ async function main() {
       ]) {
         const html = page.renderReviewPage(filename, variant.meta, screen.htmlBody, variant.ref, variant.context, screen.record);
         const button = html.match(/<button\b[^>]*id="btnApprove"[^>]*>/)[0];
-        assert.equal(/\sdisabled(?:\s|>)/.test(button), variant.disabled);
+        const factBlocking = variant.meta.fact_check_blocking === true || variant.meta.fact_check_blocking === 'true' || variant.meta.fact_check_status === 'revise';
+        assert.equal(/\sdisabled(?:\s|>)/.test(button), variant.disabled || factBlocking);
         if (variant.ref.startsWith('draft/refresh-') || variant.meta.refresh_of === 'published') {
           assert.ok(html.indexOf('公開中の記事の更新案です') < html.indexOf('変更箇所</div>'));
           assert.ok(html.indexOf('変更箇所</div>') < html.indexOf('id="factCheckSummary"'));

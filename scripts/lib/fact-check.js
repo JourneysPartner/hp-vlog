@@ -657,7 +657,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s4';
+const LOGIC_VERSION = 'plan2-s5';
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -1471,16 +1471,20 @@ async function checkFacts(body, options = {}) {
     const extracted = await extractClaims(text, call, writerIds.length ? { ...cfg, writer_materials: writerIds, resolvedWriterMaterials: resolvedWriter } : cfg);
     record.dropped += extracted.dropped;
     record.discarded += extracted.discarded;
-    record.discarded_claims.push(...extracted.discardedClaims.map(c => ({ ...c,
-      stage: rechecking ? '再照合' : '抜き出し', blocks_approval: uncheckedClaimBlocksApproval(c) })));
     if (writerIds.length) record.calculated_skipped += extracted.calculated_skipped || 0;
-    for (const c of [...extracted.droppedClaims, ...extracted.discardedClaims]) {
-      if (uncheckedClaimBlocksApproval(c)) uncheckedNumeric++;
+    const trackUnchecked = (c, discarded = false) => {
+      const blocks = (!discarded || rechecking) && uncheckedClaimBlocksApproval(c);
+      if (discarded) record.discarded_claims.push({ ...c, stage: rechecking ? '再照合' : '抜き出し', blocks_approval: blocks });
+      if (blocks) uncheckedNumeric++;
       else {
         const { pointed_sentence, ...reviewClaim } = c;
-        addReviewItem({ ...reviewClaim, evidence: writerIds.length ? stageACandidates(reviewClaim) || candidates(reviewClaim) : candidates(reviewClaim) });
+        addReviewItem({ ...reviewClaim,
+          ...(discarded && !rechecking ? { status: '照合で文を特定できなかった', ...(pointed_sentence !== undefined ? { pointed_sentence } : {}) } : {}),
+          evidence: writerIds.length ? stageACandidates(reviewClaim) || candidates(reviewClaim) : candidates(reviewClaim) });
       }
-    }
+    };
+    extracted.droppedClaims.forEach(c => trackUnchecked(c));
+    extracted.discardedClaims.forEach(c => trackUnchecked(c, true));
     if (!extracted.claims.length && !extracted.discarded && text.replace(/^\s*#{1,6}\s+.*$/gm, '').trim().length >= 200) {
       const error = new Error('主張を抜き出せませんでした'); error.emptyClaims = true; throw error;
     }
@@ -1719,10 +1723,19 @@ function shouldUseStageB(result, globalCandidates, refs = [], stageACandidates =
     !globalCandidates().some(ref => ref.id === result.evidence_id));
 }
 
-function updateMeta(raw, updates, body) {
+function updateMeta(raw, updates, body, removeKeys = []) {
   const m = raw.match(/^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!m) throw new Error('frontmatter がありません');
   let fm = m[2].replace(/\r/g, '');
+  if (removeKeys.length) {
+    const removed = new Set(removeKeys);
+    let removing = false;
+    fm = fm.split('\n').filter(line => {
+      const key = line.match(/^([^:\s]+):/)?.[1];
+      if (key) removing = removed.has(key);
+      return !removing;
+    }).join('\n');
+  }
   for (const [key, value] of Object.entries(updates)) {
     const line = `${key}: ${['number', 'boolean'].includes(typeof value) ? value : JSON.stringify(String(value ?? ''))}`;
     const re = new RegExp(`^${key}:.*$`, 'm');
@@ -1747,7 +1760,7 @@ function applyFactResult(raw, result, options = {}) {
     fact_check_model: result.record.model, fact_check_prev_recommendation: previous, fact_check_blocking: block,
     recommendation: previous === 'reject' ? 'reject' : block ? 'revise' : previous,
     review_warning: [warnings, warning].filter(Boolean).join(' / '),
-  }, result.body);
+  }, result.body, Object.keys(meta).filter(key => key.startsWith('fact_check_override')));
 }
 
 function recordPath(slug, dir = path.join(ROOT, 'data', 'fact-check')) {

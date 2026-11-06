@@ -128,7 +128,7 @@ async function main() {
     assert.equal(result.record.corrections[0].resolved, true); assert.equal(meta(result).fact_check_blocking, false);
   });
 
-  for (const type of ['金額', '割合', '期限', '適用年', '番号']) await test('E1', `${type}の資料なし・上限超過・捨てた主張は差し止める`, async () => {
+  for (const type of ['金額', '割合', '期限', '適用年', '番号']) await test('E1', `${type}の資料なし・上限超過は止め、最初に捨てた主張は人の確認に回す`, async () => {
     const one = claim('制度甲の値は100です。', type), two = claim('制度乙の値は200です。', type);
     for (const mode of ['資料なし', '上限超過', '捨てた主張']) {
       const body = mode === '捨てた主張' ? one.sentence : one.sentence + two.sentence;
@@ -137,7 +137,8 @@ async function main() {
           if (request.task === 'extract') return [one, two];
           return mode === '資料なし' ? missing(request) : supported(request);
         } }));
-      assert.equal(result.record.status, 'revise', mode); assert.equal(meta(result).fact_check_blocking, true, mode);
+      assert.equal(result.record.status, mode === '捨てた主張' ? 'ok' : 'revise', mode);
+      assert.equal(meta(result).fact_check_blocking, mode !== '捨てた主張', mode);
       if (mode === '上限超過') assert.equal(result.record.dropped, 1);
       if (mode === '捨てた主張') assert.equal(result.record.discarded, 1);
     }
@@ -163,15 +164,15 @@ async function main() {
       callLLM: async request => { assert.equal(request.task, 'extract'); return [absent]; } }));
     assert.equal(result.record.status, 'ok'); assert.equal(result.record.discarded, 1); assert.equal(result.body, body);
     assert.equal(result.record.review_items[0].sentence, absent.sentence);
-    assert.equal(result.record.review_items[0].status, '本文に見つからない'); assert.equal(meta(result).fact_check_blocking, false);
+    assert.equal(result.record.review_items[0].status, '照合で文を特定できなかった'); assert.equal(meta(result).fact_check_blocking, false);
   });
 
-  await test('E1', '未知の種類を捨てた場合は資料なしの緩和対象にしない', async () => {
+  await test('E1', '最初に未知の種類を捨てた場合も人の確認に回す', async () => {
     const body = '個別の事情を確認します。';
     const result = await F.checkArticle(raw(body), options({ repair: false, searchEvidence: () => [],
       callLLM: async () => [claim(body, '未知の種類')] }));
-    assert.equal(result.record.status, 'revise'); assert.equal(meta(result).fact_check_blocking, true);
-    assert.equal(result.record.review_items.length, 0);
+    assert.equal(result.record.status, 'ok'); assert.equal(meta(result).fact_check_blocking, false);
+    assert.equal(result.record.review_items.length, 1);
   });
 
   await test('E1', '上限では金額・期限・割合・適用年・番号を先に残す', async () => {

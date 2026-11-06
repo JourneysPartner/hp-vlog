@@ -256,9 +256,9 @@ test('6', 'claims が無い記録は再照合から取得し、題名が無け�
   assert.ok(page.renderFactCheck({}, plain).includes('AI の答え: 資料なし</div>'));
   assert.equal(page.renderFactCheckSummary({}, plain).includes('うち AI は'), false);
 });
-test('7', 'LOGIC_VERSION は plan2-s4', async () => {
+test('7', 'LOGIC_VERSION は plan2-s5', async () => {
   const result = await F.checkFacts('', { ...options, writer_materials: [], callLLM: async () => { throw new Error('空本文で LLM を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s4');
+  assert.equal(result.record.logic_version, 'plan2-s5');
 });
 
 for (const claim of ['No.4508・4510', 'No.4508、4510', '措置法70の2・No.4508', 'No.4508・４５１０', 'No.4508・四五一〇']) {

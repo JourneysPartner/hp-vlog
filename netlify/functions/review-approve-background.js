@@ -126,25 +126,42 @@ function refreshBodyOnMain(mainRaw, branchRaw) {
   return { content: main.frontmatter + body, mainBody: main.body, branchBody: body };
 }
 
-function updateRefreshDates(raw, now) {
+function factOverrideUpdates(meta, sha, now) {
+  const ownRevise = meta.recommendation === 'revise' && Object.hasOwn(meta, 'fact_check_prev_recommendation')
+    && ['revise', 'not_run'].includes(meta.fact_check_status);
+  return {
+    ...(ownRevise ? { recommendation: meta.fact_check_prev_recommendation } : {}),
+    fact_check_override: true,
+    fact_check_override_at: now,
+    fact_check_override_status: meta.fact_check_status || '',
+    fact_check_override_summary: meta.fact_check_summary || '',
+    fact_check_override_sha: sha,
+  };
+}
+
+function updateRefreshDates(raw, now, extraUpdates = {}) {
+  return updateApprovalFields(raw, { updated_at: now, reviewed_at: now, ...extraUpdates });
+}
+
+function updateApprovalFields(raw, updates) {
   const match = String(raw || '').match(/^(---\r?\n)([\s\S]+?)(\r?\n---\r?\n)([\s\S]*)$/);
   if (!match) throw new Error('frontmatter が見つかりません');
   const newline = match[1].includes('\r\n') ? '\r\n' : '\n';
-  const updates = { updated_at: now, reviewed_at: now };
+  const yamlValue = value => typeof value === 'boolean' ? String(value) : JSON.stringify(String(value ?? ''));
   const found = new Set();
   const lines = match[2].split(/(?<=\n)/).map(chunk => {
     const ending = chunk.endsWith('\r\n') ? '\r\n' : (chunk.endsWith('\n') ? '\n' : '');
     const line = ending ? chunk.slice(0, -ending.length) : chunk;
-    const field = line.match(/^((updated_at|reviewed_at):[ \t]*).*$/);
-    if (!field) return chunk;
+    const field = line.match(/^(([^:\s]+):[ \t]*).*$/);
+    if (!field || !Object.hasOwn(updates, field[2])) return chunk;
     found.add(field[2]);
-    return `${field[1]}"${updates[field[2]]}"${ending}`;
+    return `${field[1]}${yamlValue(updates[field[2]])}${ending}`;
   });
   let frontmatterLines = lines.join('');
   for (const [key, value] of Object.entries(updates)) {
     if (found.has(key)) continue;
     if (frontmatterLines && !frontmatterLines.endsWith('\n')) frontmatterLines += newline;
-    frontmatterLines += `${key}: "${value}"`;
+    frontmatterLines += `${key}: ${yamlValue(value)}`;
     found.add(key);
   }
   return match[1] + frontmatterLines + match[3] + match[4];
@@ -162,6 +179,7 @@ function isShaConflict(error) {
 async function handleRefreshApproval({
   filename, filepath, ref, branchFile, getFile, putFile, updateFrontmatter,
   nowJST, findPR, closePR, deleteBranch, sendNotification,
+  factOverride = null,
 }) {
   let title = filename;
   const notifyFailure = async reason => {
@@ -229,8 +247,12 @@ async function handleRefreshApproval({
     }
     const quality = refreshQualityFailure(raw, filename);
     if (quality) return { error: quality.reason };
+    const recommendation = factOverride?.recommendation ?? branchMeta.recommendation;
+    if (factOverride && ['revise', 'reject'].includes(recommendation)) {
+      return { error: `recommendation が ${recommendation} です` };
+    }
     const now = nowJST();
-    return { content: updateRefreshDates(next.content, now), now };
+    return { content: updateRefreshDates(next.content, now, factOverride ? { ...factOverride, fact_check_override_at: now } : {}), now };
   };
 
   let target = prepareMain(mainFile.content);
@@ -294,6 +316,7 @@ async function handleRefreshApproval({
       title,
       publicUrl,
       reason: branchMeta.refresh_note || '',
+      ...(factOverride ? { fact_check_override: true, fact_check_summary: branchMeta.fact_check_summary || '' } : {}),
     });
   } catch (_) { console.error('[review-approve] 更新反映通知の送信に失敗しました'); }
   return {
@@ -325,7 +348,7 @@ async function handler(event, injected = {}) {
   if (auth.response) return auth.response;
 
   try {
-    const { filename, publish_at, ref } = JSON.parse(event.body || '{}');
+    const { filename, publish_at, ref, file_sha, fact_check_override } = JSON.parse(event.body || '{}');
     refreshRequest = typeof ref === 'string' && ref.startsWith('draft/refresh-');
     refreshFilename = filename || '';
 
@@ -362,16 +385,23 @@ async function handler(event, injected = {}) {
     const branchMeta = parseFrontmatterMeta(content);
     const isRefresh = refreshRequest || branchMeta.refresh_of === 'published';
     refreshRequest = isRefresh;
-    if (branchMeta.fact_check_blocking === true || String(branchMeta.fact_check_blocking) === 'true' || branchMeta.fact_check_status === 'revise') {
-      const reason = `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。差し戻して直してください`;
+    const factBlocking = branchMeta.fact_check_blocking === true || String(branchMeta.fact_check_blocking) === 'true' || branchMeta.fact_check_status === 'revise';
+    const overrideAccepted = factBlocking && fact_check_override === true;
+    if (factBlocking && (!overrideAccepted || !file_sha || file_sha !== sha)) {
+      const statusCode = overrideAccepted ? 409 : 400;
+      const reason = overrideAccepted
+        ? '記事の内容が変わりました。レビュー画面を開き直して、もう一度確かめてください'
+        : `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。直す場合は差し戻してください。指摘を確認したうえで公開する場合は、レビュー画面の確認欄に印を付けて押してください`;
       try {
         await sendNotification(isRefresh ? 'refresh_approve_failed' : 'quality_blocked', {
           title: branchMeta.title || filename, filename,
           ...(isRefresh ? { comment: reason } : { reasons: [reason] }),
         });
       } catch (_) { console.error('[review-approve] 事実照合の停止通知送信に失敗しました'); }
-      return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+      return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
     }
+    const factOverride = overrideAccepted ? factOverrideUpdates(branchMeta, file_sha, nowJST()) : null;
+    if (overrideAccepted) console.log(`[review-approve] 照合の指摘を人の判断で上書き: ${filename}`);
     if (!Object.keys(branchMeta).some(key => key.startsWith('fact_check_'))) console.log(`[review-approve] ${filename}: 照合の記録なし`);
     if (isRefresh) {
       if (!ref) {
@@ -379,7 +409,7 @@ async function handler(event, injected = {}) {
         catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
         return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '更新案の承認には ref が必要です。' }) };
       }
-      return await handleRefreshApproval({ filename, filepath, ref, branchFile, getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, deleteBranch, sendNotification });
+      return await handleRefreshApproval({ filename, filepath, ref, branchFile, getFile, putFile, updateFrontmatter, nowJST, findPR, closePR, deleteBranch, sendNotification, factOverride });
     }
 
     if (ref) {
@@ -428,7 +458,8 @@ async function handler(event, injected = {}) {
     // スコア未設定のレガシー記事は従来どおり承認可（既存運用を壊さない）。
     const fmStr = (re) => (content.match(re) || [])[1];
     const fmNum = (re) => { const v = fmStr(re); const n = parseInt(v, 10); return isNaN(n) ? null : n; };
-    const recommendation = fmStr(/^recommendation:\s*"?([^"\n\r]+)"?/m);
+    const recommendation = factOverride && Object.hasOwn(factOverride, 'recommendation')
+      ? factOverride.recommendation : fmStr(/^recommendation:\s*"?([^"\n\r]+)"?/m);
 
     // タイトルが仮置きのままなら承認しない。生成時にタイトルを確定できないと
     // 「[要レビュー] {slug}」が入る。これが公開されると slug が記事タイトルになる。
@@ -530,9 +561,12 @@ async function handler(event, injected = {}) {
       publish_at: publishAt,
       publish_slot: publishSlot,
       updated_at: now,
+      ...(factOverride ? { ...factOverride, fact_check_override_at: now } : {}),
     };
 
-    const updated = updateFrontmatter(content, updates);
+    let updated = updateFrontmatter(content, updates);
+    // 通常の更新で文字列になる真偽値と、置換文字を含む要約をそのまま記録する。
+    if (factOverride) updated = updateApprovalFields(updated, { ...factOverride, fact_check_override_at: now });
     await putFile(filepath, updated, sha, `publish: ${fmTitle || filename}`, ref || undefined);
 
     // PR 自動マージ
@@ -601,6 +635,7 @@ async function handler(event, injected = {}) {
         });
       } else {
         await sendNotification('approved', {
+          ...(factOverride ? { fact_check_override: true, fact_check_summary: branchMeta.fact_check_summary || '' } : {}),
           title: fmTitle,
           filename,
           publishAt,
