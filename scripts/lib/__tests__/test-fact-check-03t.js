@@ -70,18 +70,19 @@ async function repaired({ original = gift.sentence, summary = original, source =
       basis: extracts === 1 ? basis : recheckBasis }));
   } });
 }
-for (const recheck of [true, false]) test('T1', `3年と100万円を残す修正は採り、再照合が${recheck ? 'あれば解決' : '無ければ止める'}`, async () => {
+for (const recheck of [true, false]) test('T1', `AIが裏付けた初回の数字は再照合の設定${recheck}でも修正しない`, async () => {
   const result = await repaired({ recheck });
-  assert.equal(result.body, keptGift); assert.deepEqual(result.record.claims[0].supported_numbers, ['3年', '100万円']);
-  assert.equal(result.record.corrections[0].resolved, recheck);
-  assert.equal(result.record.status, recheck ? 'ok' : 'revise');
-  if (!recheck) {
-    assert.equal(result.record.rechecked.length, 0);
-    const raw = `---\nslug: fact-03t\nrecommendation: publish\n---\n${result.body}`;
-    const meta = matter(F.applyFactResult(raw, result)).data;
-    assert.equal(meta.recommendation, 'revise'); assert.equal(meta.fact_check_blocking, true);
-  }
+  assert.equal(result.body, gift.sentence);
+  assert.deepEqual(result.record.claims[0].supported_numbers, ['3年', '100万円']);
+  assert.deepEqual(result.record.corrections, []);
+  assert.deepEqual(result.record.rechecked, []);
+  assert.deepEqual(result.record.remaining, []);
+  assert.equal(result.record.status, 'ok');
+  assert.equal(result.record.calls.some(c => c.task === 'repair'), false);
+  assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
+  assert.deepEqual(result.record.review_items[0].supported_numbers, ['3年', '100万円']);
 });
+
 for (const [replacement, reason] of [
   [gift.sentence.replace('です。', 'となります。'), '資料の無い数字が残っています'],
   ['加算されない贈与財産の総額は100万円です。', '裏付けのある数字を消しています'],
@@ -109,16 +110,20 @@ test('T2', '本文の同じ値の全表記を残し、重複だけ除く', async
   const row = await judge(claim(sentence, { claim: weddingSummary }), weddingSource, '1');
   assert.deepEqual(row.supported_numbers, ['1,000万円', '1千万円']);
 });
-for (const recheckType of ['要件', '判定', '手続', '番号', '金額', '割合', '期限', '適用年']) test('T3', `再照合の${recheckType}を数字の裏付けに数えるか`, async () => {
+for (const recheckType of ['要件', '判定', '手続', '番号', '金額', '割合', '期限', '適用年']) test('T3', `初回のAI裏付けありは${recheckType}の再照合を始めない`, async () => {
   const filler = Array(5).fill('中間の説明を確認しています'.repeat(15) + '。');
   const text = [weddingSource.text, ...filler, '制度の案内については国税庁の説明を確認してください。'].join('\n');
   const numeric = ['金額', '割合', '期限', '適用年'].includes(recheckType);
   const result = await repaired({ original: wedding, source: ref(text), basis: '1',
     replacement: '結婚費用は1,000万円まで非課税です（詳しくは国税庁の案内で確認）。', recheckType,
     recheckBasis: numeric ? '1' : String(U.splitUnits(text, { material: true }).at(-1).s) });
-  assert.equal(result.record.rechecked[0].status, '裏付けあり');
-  assert.equal(result.record.corrections[0].resolved, numeric);
-  assert.equal(result.record.status, numeric ? 'ok' : 'revise');
+  assert.equal(result.body, wedding);
+  assert.deepEqual(result.record.rechecked, []);
+  assert.deepEqual(result.record.corrections, []);
+  assert.deepEqual(result.record.remaining, []);
+  assert.equal(result.record.status, 'ok');
+  assert.equal(result.record.calls.some(c => c.task === 'repair'), false);
+  assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
 });
 test('T4', '単なる譲渡は所得税資料の減点を外さず、譲渡所得なら外す', () => {
   const title = '土地の譲渡の非課税', e = { id: 'joto', kind: 'taxanswer', no: '9999', title,

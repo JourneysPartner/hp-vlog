@@ -124,14 +124,21 @@ async function judge(sentence, { type = '期限', source = '確定申告書の�
     async () => [{ id: 'c1', status, evidence_id: 1, basis, ...(correct === undefined ? {} : { correct }) }], options);
   return rows[0];
 }
-for (const type of ['期限', '金額']) test('P2', `${type}の読めない漢数字の条番号を数字なしとして通さない`, async () => {
+for (const type of ['期限', '金額']) test('P2', `${type}の読めない漢数字の条番号は判定で採らず、AIが裏付けた文は人へ回す`, async () => {
   for (const sentence of ['所得税法百二十条により確定申告書の提出が必要です。', '措置法七十条の四により提出が必要です。', '六九の四−一により提出が必要です。']) {
     assert.deepEqual(F.normalizedNumbers(sentence), []);
     const row = await judge(sentence, { type });
     assert.equal(row.status, '資料なし'); assert.equal(row.reject_reason, '引用が短い・数字が引用の近くに無い');
     const result = await F.checkFacts(sentence, { ...options, repair: false, searchEvidence: () => [ref('確定申告書の提出が必要となる場合の手続を説明しています。')],
       callLLM: async r => r.task === 'extract' ? [{ s: 1, type, subject: '基礎控除', claim: sentence }] : [{ id: 'c1', status: '裏付けあり', evidence_id: 1, basis: '1' }] });
-    assertBlocked(result);
+    assert.equal(result.body, sentence);
+    assert.equal(result.record.status, 'ok');
+    assert.deepEqual(result.record.remaining, []);
+    assert.deepEqual(result.record.corrections, []);
+    assert.equal(result.record.claims[0].reject_reason, row.reject_reason);
+    assert.equal(result.record.review_items.length, 1);
+    assert.equal(result.record.review_items[0].status, 'AI は裏付けあり（数字は機械で確かめられなかった）');
+    assert.equal(result.record.review_items[0].rejected_answer.status, '裏付けあり');
   }
 });
 test('P2', '範囲を絞る処理でも読めない条番号を数字なしとして救わない', async () => {

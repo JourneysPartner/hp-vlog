@@ -657,7 +657,14 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s5';
+const LOGIC_VERSION = 'plan2-s6';
+
+const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
+
+function aiSupportedUnverifiedNumbers(c) {
+  return c.status === '資料なし' && c.reject_reason === '引用が短い・数字が引用の近くに無い' &&
+    c.rejected_answer?.status === '裏付けあり';
+}
 
 // 同じ制度の 2 件目の期限の書き漏れは、根拠を確かめていないので自動で直さず、止めて人が確かめる。
 const NO_REPAIR_REASONS = new Set(['同じ制度の期限の書き漏れは記録済み']);
@@ -1579,11 +1586,15 @@ async function checkFacts(body, options = {}) {
   let revisedBody = body;
   try {
     record.claims = options.previousClaims ? await analyze(changedText(options.previousBody, body), body, [], new Map(), options.previousClaims) : await analyze(body, body);
-    const missingReview = writerIds.length ? record.claims.filter(c => c.status === '資料なし' && REVIEW_TYPES.has(c.type) && !NO_REPAIR_REASONS.has(c.reject_reason)) : [];
+    // 書き手の文（前回記録の再利用を含む）だけを人へ回す。再照合の判定は緩めない。
+    const aiSupportedNumbers = record.claims.filter(aiSupportedUnverifiedNumbers);
+    for (const c of aiSupportedNumbers) addReviewItem({ ...c, status: AI_SUPPORTED_NUMBERS_REVIEW });
+    const actionableClaims = record.claims.filter(c => !aiSupportedUnverifiedNumbers(c));
+    const missingReview = writerIds.length ? actionableClaims.filter(c => c.status === '資料なし' && REVIEW_TYPES.has(c.type) && !NO_REPAIR_REASONS.has(c.reject_reason)) : [];
     const missingSentences = new Set(missingReview.map(c => c.sentence));
     const tooManyMissing = missingSentences.size > 8 || missingReview.length > record.claims.length * 0.2;
     const autoReview = missingSentences.size > 0 && !tooManyMissing;
-    const findings = record.claims.filter(c => (blockingFinding(c) || (autoReview && missingReview.includes(c))) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
+    const findings = actionableClaims.filter(c => (blockingFinding(c) || (autoReview && missingReview.includes(c))) && !NO_REPAIR_REASONS.has(c.reject_reason)).map(c => ({ ...c,
       keep: c.status === '資料なし' ? record.claims.filter(k => k.sentence === c.sentence && k.status === '裏付けあり' && k.evidence_outside_candidates !== true)
         .map(({ type, subject, claim }) => ({ type, subject, claim })) : [],
     }));
@@ -1674,7 +1685,7 @@ async function checkFacts(body, options = {}) {
       reviewCondition(c);
       record.corrections = record.corrections.filter(f => !(f.id === c.id && f.condition_mismatch && !f.resolved));
     }
-    const unresolved = record.claims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
+    const unresolved = actionableClaims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
     const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり' && !(writerIds.length && c.unchanged_numeric))];
     for (const c of pending) if (!blockingFinding(c)) addReviewItem(c);
     record.remaining = pending.filter(blockingFinding);
@@ -1685,6 +1696,7 @@ async function checkFacts(body, options = {}) {
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
+    if (aiSupportedNumbers.length) record.summary += `・AI 裏付けあり・数字未確認 ${aiSupportedNumbers.length} 件`;
     if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
     if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';
     const outsideCount = outsideCandidateClaims(record).length;
