@@ -76,7 +76,8 @@ jobs:
           ENCODED_FILE=$(node -e 'console.log(encodeURIComponent(process.argv[1]));' "$FILE")
           HEAD_SHA=$(read_field headRefOid)
           # 枝の記事はデータとして読む（PR の枝のコードは動かさない）。
-          ARTICLE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/contents/content/posts/${ENCODED_FILE}?ref=${HEAD_SHA}")
+          # 記事が取れなくてもジョブを失敗させない（題名は PR の題名にする）。
+          ARTICLE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/contents/content/posts/${ENCODED_FILE}?ref=${HEAD_SHA}" || echo '{}')
           TITLE=$(node -e 'const d = JSON.parse(process.argv[1]); const raw = Buffer.from(String(d.content || "").replace(/\s+/g, ""), "base64").toString("utf8"); const fm = raw.match(/^---\r?\n[\s\S]+?\r?\n---/); const line = (fm ? fm[0] : "").match(/^title:\s*"?(.*?)"?\s*$/m); console.log(line ? line[1] : "");' "$ARTICLE_JSON")
           PR_TITLE=$(read_field title)
           if [ -z "$TITLE" ]; then TITLE="$PR_TITLE"; fi

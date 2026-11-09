@@ -109,3 +109,19 @@ README.md の厳守事項 1〜8 を必ず守る。行番号は origin/main 3b6ff
 - 既存の試験の期待値（壊れたら、こちらの実装を直す）。
 - `.github/workflows/` の既存のワークフロー、netlify.toml、netlify-ignore。
 - 記事（content/posts/）と data/ の中身。
+
+## 2026-11-09 レビュー後に変えたこと（上の R の記述より、こちらが正）
+
+独立レビュー（Opus 5.5 xhigh）2 回の指摘で、次のとおり変えた。上の本文と食い違うところは、ここに書いたものが今の動き。
+
+- 判定（R2）: main と枝で `review_status`・`slug`・`publish_at`・`published_at`・`approved_at`・`publish_slot` の 6 項目が同じであること、PR が下書きでないこと、変更ファイルの `previous_filename` と `status`（記事は modified のみ、ほかは added・modified のみ）、merge base の版の記事と今の main の記事が同じこと（`compareCommits`）も条件。枝の記事は表示時の head sha の版で読む。`listPRFiles` は `filename`・`status`・`previous_filename`・`additions`・`deletions` を返す。
+- 枝名（R2・R8）: `edit/` で始まるが形の正しくない枝は、画面・承認・差し戻し・見送りのすべてで断る。ワークフローも同じ `isManualEditRef` で判定する。
+- 承認（R4）: mergeable_state が `unstable` のときは、すぐ断らずに check runs と commit status を読む。失敗があれば止め、pending だけなら最大 8 分待つ（読み取りの一時的なエラーは 3 回まで続けて待つ）。待つ間に head が変われば止め、PR がマージ・クローズされればそれに合わせて終える。確認の後も `unstable` が残れば数回読み直す。照合の上書きを書いたときは、そのコミットの親が表示時の head と同じか確かめる。マージに失敗した後や二度押しの「反映済み」は、マージされた版の head が見た版と同じときだけ。
+- 通知（R7）: 手直しでない公開済みの記事の 409 と、形の正しくない edit/ の枝は `edit_unsupported`。差し戻し・見送りの失敗は `edit_revise_failed`・`edit_skip_failed`。
+- ワークフロー（R8）: 題名は head sha の版の記事を GitHub の API でデータとして読む（失敗しても赤くしない）。`file=` を符号化、PR が open でなければ通知しない、フォークの PR は除く。
+
+見送った指摘（記録）:
+- N4: 照合の上書きをして承認した後、別のタブから二度押しすると「違う版がマージされています」と出る（上書きのコミットが入るため）。ボタンは押すと無効になり、頻度は低い。
+- N6: 確認を待つ間（最大約 9 分）に main の同じ記事が変わると、3 方向マージで main の変更も入る（巻き戻しにはならない）。
+- L12: filename・ref の形式違いの 400 は通知しない（画面からは来ないため）。
+- 要確認 N2: GitHub App に Checks・Commit statuses の読み取り権限が無いと、`unstable` のときに毎回「自動の確認の状態を確認できませんでした」で止まる（止まる側に倒れる）。最初の通しの確認で確かめる。

@@ -341,6 +341,12 @@ const EDIT_CHECK_WAIT = Object.freeze({ intervalMs: 15000, maxWaitMs: 8 * 60 * 1
 const EDIT_CHECK_HEAD_CHANGED = '画面を開いた後に PR が更新されました。画面を開き直してください';
 const EDIT_CHECK_FAILED = '自動の確認（試験・試し公開）が失敗しています。Claude に確認を頼んでください';
 const EDIT_CHECK_TIMEOUT = '自動の確認が終わっていません。5 分ほどおいて画面を開き直し、もう一度押してください';
+const EDIT_CHECK_UNREADABLE = '自動の確認の状態を確認できませんでした。GitHub で状態を確認してください';
+const EDIT_CHECK_CLOSED = 'PR が閉じられました。GitHub で確認してください';
+const EDIT_MERGED_OTHER_VERSION = '画面で見た版と違う版がマージされています。GitHub で確認してください';
+
+// 確認が終わったのに mergeable_state が unstable のままのとき、PR を読み直す間隔と回数。
+const EDIT_STATE_POLL = Object.freeze({ intervalMs: 3000, maxReads: 5 });
 
 const FAILED_CHECK_CONCLUSIONS = new Set(['failure', 'timed_out', 'cancelled', 'action_required']);
 
@@ -374,35 +380,88 @@ async function readEditChecks(getCombinedStatus, listCheckRuns, sha) {
 }
 
 /**
+ * 待つ間に読んだ PR の状態から、待ちを終えるべき結果を返す（続けるなら null）。
+ * マージ済みは、画面で見た版と同じときだけ処理済みにする（L6・N5 と同じ確かめ方）。
+ */
+function settleEditPRState(pr, headSha) {
+  if (pr && pr.merged === true) {
+    if (headSha && pr.head && pr.head.sha === headSha) return { ok: true, processed: true };
+    return { ok: false, reason: EDIT_MERGED_OTHER_VERSION };
+  }
+  if (pr && pr.state && pr.state !== 'open') {
+    return { ok: false, reason: EDIT_CHECK_CLOSED };
+  }
+  if (!pr || !pr.head || pr.head.sha !== headSha) {
+    return { ok: false, reason: EDIT_CHECK_HEAD_CHANGED };
+  }
+  return null;
+}
+
+/**
  * unstable の手直し PR について、失敗が無く pending だけなら待つ。
  * 失敗が 1 つでもあれば待たずに止める。head sha が変わったら止める。
+ * 待つ間にマージ済み・閉じられたらその場で終える。
+ * 読み取りの一時的なエラーは 3 回続くまで待ちを続け、4 回続いたら止める。
  */
 async function waitForEditChecks({
   prNumber, headSha, getPR, getCombinedStatus, listCheckRuns,
   intervalMs, maxWaitMs, sleep,
 }) {
   const maxAttempts = Math.max(1, Math.ceil(maxWaitMs / Math.max(1, intervalMs)));
-  const headChanged = { ok: false, reason: EDIT_CHECK_HEAD_CHANGED };
   const checkFailed = { ok: false, reason: EDIT_CHECK_FAILED };
   const timedOut = { ok: false, reason: EDIT_CHECK_TIMEOUT };
-  try {
-    for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+  const unreadable = { ok: false, reason: EDIT_CHECK_UNREADABLE };
+  let errors = 0;
+  for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+    try {
       const pr = await getPR(prNumber);
-      if (!pr || !pr.head || pr.head.sha !== headSha) return headChanged;
+      const settled = settleEditPRState(pr, headSha);
+      if (settled) return settled;
       const checks = await readEditChecks(getCombinedStatus, listCheckRuns, headSha);
+      errors = 0;
       if (checks.failures.length) {
         console.warn(`[review-approve] 手直しの自動の確認が失敗: ${checks.failures.join(' / ')}`);
         return checkFailed;
       }
       if (!checks.pending) return { ok: true };
-      if (attempt === maxAttempts) break;
-      await sleep(intervalMs);
+    } catch (error) {
+      errors += 1;
+      console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
+      if (errors > 3) return unreadable;
     }
-  } catch (error) {
-    console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
-    return { ok: false, reason: '自動の確認の状態を確認できませんでした。GitHub で状態を確認してください' };
+    if (attempt === maxAttempts) break;
+    await sleep(intervalMs);
   }
   return timedOut;
+}
+
+/**
+ * 確認が終わったのに mergeable_state が unstable のままのとき、PR を読み直して
+ * clean / has_hooks を待つ。3 秒おきに最大 5 回。マージ済み・閉じられた・head の
+ * 変化はその場で終える。
+ */
+async function pollEditPRState({
+  prNumber, headSha, getPR, sleep,
+  intervalMs = EDIT_STATE_POLL.intervalMs, maxReads = EDIT_STATE_POLL.maxReads,
+}) {
+  let readOk = false;
+  for (let read = 0; read < maxReads; read++) {
+    if (read > 0) await sleep(intervalMs);
+    let pr;
+    try {
+      pr = await getPR(prNumber);
+    } catch (error) {
+      console.error(`[review-approve] 手直しの PR を読めませんでした: ${error && error.message}`);
+      continue;
+    }
+    readOk = true;
+    const settled = settleEditPRState(pr, headSha);
+    if (settled) return settled;
+    if (pr.mergeable === true && MANUAL_EDIT_MERGEABLE_STATES.has(pr.mergeable_state)) {
+      return { ok: true, pr };
+    }
+  }
+  return { ok: false, reason: readOk ? EDIT_CHECK_TIMEOUT : EDIT_CHECK_UNREADABLE };
 }
 
 /**
@@ -439,6 +498,14 @@ async function handleManualEditApproval({
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, action: 'edit_approve', filename, ...extra }),
   });
+  const processedResult = async () => {
+    try {
+      await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) });
+    } catch (_) {
+      console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+    }
+    return success('この手直しはすでに反映済みです。', { processed: true });
+  };
 
   // 1. サーバー側で手直し PR の条件を確かめる（画面から送られた値を信じない）。
   const check = await manualEdit.checkManualEditPR({
@@ -479,7 +546,7 @@ async function handleManualEditApproval({
           }
           return success('この手直しはすでに反映済みです。', { processed: true });
         }
-        return failure(409, '画面で見た版と違う版がマージされています。GitHub で確認してください', prUrlOf(closedPR) || prUrl);
+        return failure(409, EDIT_MERGED_OTHER_VERSION, prUrlOf(closedPR) || prUrl);
       }
     }
     return failure(409, (check.reasons || []).join(' / ') || '手直し PR として扱えません。', prUrl);
@@ -608,6 +675,8 @@ async function handleManualEditApproval({
 
   // unstable は「自動の確認が失敗中か実行中」。失敗が無ければ終わるまで待つ。
   if (stable.mergeable_state === 'unstable') {
+    // 2 回目の待ちも含めて、最初の 8 分の締め切りの中で待つ。
+    const checkDeadline = Date.now() + checkWait.maxWaitMs;
     const settled = await waitForEditChecks({
       prNumber: check.pr.number,
       headSha: expectedHeadSha,
@@ -618,6 +687,7 @@ async function handleManualEditApproval({
       maxWaitMs: checkWait.maxWaitMs,
       sleep: waitFn,
     });
+    if (settled.processed) return processedResult();
     if (!settled.ok) return failure(409, settled.reason, prUrl);
     // 全部終わったら、改めてマージできる状態を確かめる。
     try {
@@ -627,6 +697,46 @@ async function handleManualEditApproval({
     }
     if (!stable || !stable.head || stable.head.sha !== expectedHeadSha) {
       return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+    }
+
+    // 確認が終わった直後でも、GitHub 側の反映待ちでまだ unstable のことがある。
+    // 失敗が無ければ同じ締め切りの中で pending を待ち、そのあと clean / has_hooks を
+    // 読み直してからマージする（mergeable_state の文では止めない）。
+    if (stable.mergeable_state === 'unstable') {
+      let checks;
+      try {
+        checks = await readEditChecks(getCombinedStatus, listCheckRuns, expectedHeadSha);
+      } catch (error) {
+        console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
+        return failure(409, EDIT_CHECK_UNREADABLE, prUrl);
+      }
+      if (checks.failures.length) {
+        console.warn(`[review-approve] 手直しの自動の確認が失敗: ${checks.failures.join(' / ')}`);
+        return failure(409, EDIT_CHECK_FAILED, prUrl);
+      }
+      if (checks.pending) {
+        const again = await waitForEditChecks({
+          prNumber: check.pr.number,
+          headSha: expectedHeadSha,
+          getPR,
+          getCombinedStatus,
+          listCheckRuns,
+          intervalMs: checkWait.intervalMs,
+          maxWaitMs: Math.max(0, checkDeadline - Date.now()),
+          sleep: waitFn,
+        });
+        if (again.processed) return processedResult();
+        if (!again.ok) return failure(409, again.reason, prUrl);
+      }
+      const polled = await pollEditPRState({
+        prNumber: check.pr.number,
+        headSha: expectedHeadSha,
+        getPR,
+        sleep: waitFn,
+      });
+      if (polled.processed) return processedResult();
+      if (!polled.ok) return failure(409, polled.reason, prUrl);
+      stable = polled.pr;
     }
   }
 
@@ -641,15 +751,15 @@ async function handleManualEditApproval({
   } catch (error) {
     console.error(`[review-approve] 手直しの PR マージ失敗: ${error.message}`);
     // 同時に 2 回押されたときは、相手が先にマージしている。merged を確かめる。
-    let alreadyMerged = false;
-    try {
-      const after = await getPR(check.pr.number);
-      alreadyMerged = Boolean(after && after.merged === true);
-    } catch (_) { alreadyMerged = false; }
-    if (alreadyMerged) {
-      try { await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) }); }
-      catch (_) { console.error('[review-approve] 手直しの処理済み通知送信に失敗しました'); }
-      return success('この手直しはすでに反映済みです。', { processed: true });
+    let after = null;
+    try { after = await getPR(check.pr.number); }
+    catch (_) { after = null; }
+    if (after && after.merged === true) {
+      // 画面で見た版と同じ版がマージされたときだけ「反映済み」にする。
+      if (!after.head || after.head.sha !== expectedHeadSha) {
+        return failure(409, EDIT_MERGED_OTHER_VERSION, prUrl);
+      }
+      return await processedResult();
     }
     return failure(409, `この PR をマージできませんでした（${error.message}）。GitHub で状態を確認してください`, prUrl);
   }

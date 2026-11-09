@@ -160,7 +160,17 @@ function editSetup({
     listCheckRuns: listCheckRuns || (async () => ({ total_count: 0, check_runs: [] })),
     editCheckWait: editCheckWait || { intervalMs: 1, maxWaitMs: 3 },
     sleep,
-    getPR: getPROverride || (async () => { state.prReads++; return afterMerge; }),
+    // マージ前の読み直しは「まだマージされていない開いている PR」を返し、
+    // マージ後（mergePR を呼んだ後）は afterMerge を返す。
+    // pr が null のときは、閉じた PR を確かめる読み直しなので afterMerge を返す。
+    getPR: getPROverride || (async () => {
+      state.prReads++;
+      if (pr === null) return afterMerge;
+      if (state.merges.length === 0) {
+        return { merged: false, state: 'open', head: { sha: 'head-sha' } };
+      }
+      return afterMerge;
+    }),
     closePR: async number => state.closes.push(number),
     commentOnPR: async (number, body) => state.comments.push([number, body]),
     waitForMergeable: async (number, options) => {
@@ -486,6 +496,19 @@ async function main() {
       'マージの失敗後に merged なら処理済みにする');
     check(JSON.stringify(notificationEvents(alreadyMerged.state)) === JSON.stringify(['edit_processed']),
       'マージの失敗後に merged なら edit_processed を通知する');
+
+    // N5: マージの失敗後に merged でも、画面で見た版と違う版なら処理済みにしない。
+    const otherVersion = editSetup({
+      mergeError: 'GitHub merge 405',
+      afterMerge: { merged: true, head: { sha: 'other-sha' } },
+    });
+    const otherVersionResponse = await otherVersion.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(otherVersionResponse.statusCode === 409
+      && JSON.parse(otherVersionResponse.body).processed === undefined,
+      'マージの失敗後に merged でも、見た版と違う版なら処理済みにしない');
+    const otherVersionNote = findNotification(otherVersion.state, 'edit_approve_failed');
+    check(otherVersionNote && otherVersionNote.data.comment.includes('画面で見た版と違う版がマージされています'),
+      '見た版と違う版がマージされていたら GitHub で確認するよう通知する');
   }
 
   console.log('\n── 4. 見た版の head sha ──');
@@ -618,6 +641,143 @@ async function main() {
     const headChangedNote = findNotification(headChanged.state, 'edit_approve_failed');
     check(headChangedNote && headChangedNote.data.comment.includes('画面を開いた後に PR が更新されました'),
       '待つ間の head の変化は画面を開き直すよう通知する');
+
+    // N1: 確認が終わった直後も unstable のときは、PR を読み直して clean を待つ。
+    const lateClean = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: [unstableFirst, unstableFirst],
+        getCombinedStatus: async () => ({ state: 'success', statuses: [] }),
+        getPR: async () => {
+          reads++;
+          if (reads <= 2) {
+            return { merged: false, state: 'open', head: { sha: 'head-sha' }, mergeable: true, mergeable_state: 'unstable' };
+          }
+          if (reads === 3) {
+            return { merged: false, state: 'open', head: { sha: 'head-sha' }, mergeable: true, mergeable_state: 'clean' };
+          }
+          return { merged: true, head: { sha: 'head-sha' } };
+        },
+      });
+    })();
+    const lateCleanResponse = await lateClean.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(lateCleanResponse.statusCode === 200 && lateClean.state.merges.length === 1,
+      '確認の後にまだ unstable でも、clean に変わったらマージする');
+
+    // N1: 確認が終わった直後に pending が残っていれば、同じ締め切りの中で待ちを続ける。
+    const latePending = (() => {
+      let statusReads = 0;
+      let prReads = 0;
+      return editSetup({
+        waitResult: [unstableFirst, unstableFirst],
+        getCombinedStatus: async () => {
+          statusReads++;
+          return statusReads === 2
+            ? { state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }
+            : { state: 'success', statuses: [] };
+        },
+        getPR: async () => {
+          prReads++;
+          if (prReads >= 4) return { merged: true, head: { sha: 'head-sha' } };
+          if (prReads >= 2) {
+            return { merged: false, state: 'open', head: { sha: 'head-sha' }, mergeable: true, mergeable_state: 'clean' };
+          }
+          return { merged: false, state: 'open', head: { sha: 'head-sha' } };
+        },
+      });
+    })();
+    const latePendingResponse = await latePending.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(latePendingResponse.statusCode === 200 && latePending.state.merges.length === 1,
+      '確認の後に pending が残っていても、終わって clean になればマージする');
+
+    // N1: 最後まで unstable なら、mergeable_state の文ではなく開き直しを促す文で止める。
+    const stillUnstable = editSetup({
+      waitResult: [unstableFirst, unstableFirst],
+      getCombinedStatus: async () => ({ state: 'success', statuses: [] }),
+      getPR: async () => ({
+        merged: false, state: 'open', head: { sha: 'head-sha' }, mergeable: true, mergeable_state: 'unstable',
+      }),
+    });
+    const stillUnstableResponse = await stillUnstable.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(stillUnstableResponse.statusCode === 409 && stillUnstable.state.merges.length === 0,
+      '最後まで unstable ならマージしない');
+    const stillUnstableNote = findNotification(stillUnstable.state, 'edit_approve_failed');
+    check(stillUnstableNote && stillUnstableNote.data.comment.includes('自動の確認が終わっていません')
+      && !stillUnstableNote.data.comment.includes('mergeable_state'),
+      '最後まで unstable なら mergeable_state の文ではなく、開き直しを促す文で通知する');
+
+    // N7: 待つ間にマージされたら、見た版と同じときだけ処理済みにする。
+    const mergedWhileWaiting = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: unstableFirst,
+        getCombinedStatus: async () => ({ state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }),
+        getPR: async () => {
+          reads++;
+          return reads === 1
+            ? { merged: false, state: 'open', head: { sha: 'head-sha' } }
+            : { merged: true, state: 'closed', head: { sha: 'head-sha' } };
+        },
+      });
+    })();
+    const mergedWhileWaitingResponse = await mergedWhileWaiting.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(mergedWhileWaitingResponse.statusCode === 200
+      && JSON.parse(mergedWhileWaitingResponse.body).processed === true
+      && mergedWhileWaiting.state.merges.length === 0,
+      '待つ間にマージされたら、見た版と同じなら書き込みもマージもせず処理済み');
+    check(JSON.stringify(notificationEvents(mergedWhileWaiting.state)) === JSON.stringify(['edit_processed']),
+      '待つ間にマージされたら edit_processed を通知する');
+
+    // N7: 待つ間に閉じられたら、マージせずに止める。
+    const closedWhileWaiting = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: unstableFirst,
+        getCombinedStatus: async () => ({ state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }),
+        getPR: async () => {
+          reads++;
+          return reads === 1
+            ? { merged: false, state: 'open', head: { sha: 'head-sha' } }
+            : { merged: false, state: 'closed', head: { sha: 'head-sha' } };
+        },
+      });
+    })();
+    const closedWhileWaitingResponse = await closedWhileWaiting.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(closedWhileWaitingResponse.statusCode === 409 && closedWhileWaiting.state.merges.length === 0,
+      '待つ間に閉じられたらマージしない');
+    const closedWhileWaitingNote = findNotification(closedWhileWaiting.state, 'edit_approve_failed');
+    check(closedWhileWaitingNote && closedWhileWaitingNote.data.comment.includes('PR が閉じられました'),
+      '待つ間に閉じられたら PR が閉じられたと通知する');
+
+    // N7: 読み取りの一時的なエラーは 3 回続くまで待ちを続ける。
+    const transientErrors = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: [unstableFirst, cleanSecond],
+        getCombinedStatus: async () => ({ state: 'success', statuses: [] }),
+        getPR: async () => {
+          reads++;
+          if (reads <= 2) throw new Error('GitHub get PR 502');
+          if (reads >= 4) return { merged: true, head: { sha: 'head-sha' } };
+          return { merged: false, state: 'open', head: { sha: 'head-sha' } };
+        },
+      });
+    })();
+    const transientErrorsResponse = await transientErrors.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(transientErrorsResponse.statusCode === 200 && transientErrors.state.merges.length === 1,
+      '読み取りのエラーが 2 回続いても、その後に読めればマージする');
+
+    // N7: 4 回続いたら「状態を確認できませんでした」で止める。
+    const persistentErrors = editSetup({
+      waitResult: unstableFirst,
+      getPR: async () => { throw new Error('GitHub get PR 502'); },
+    });
+    const persistentErrorsResponse = await persistentErrors.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(persistentErrorsResponse.statusCode === 409 && persistentErrors.state.merges.length === 0,
+      '読み取りのエラーが 4 回続いたらマージしない');
+    const persistentErrorsNote = findNotification(persistentErrors.state, 'edit_approve_failed');
+    check(persistentErrorsNote && persistentErrorsNote.data.comment.includes('自動の確認の状態を確認できませんでした'),
+      '読み取りのエラーが 4 回続いたら状態を確認できなかったと通知する');
   }
 
   console.log('\n── 6. マージ後の確認と二度押し ──');
@@ -1106,6 +1266,7 @@ async function main() {
     check(/read_field state\)" != "OPEN"/.test(yaml), '開いている PR だけを通知する');
     check(/contents\/content\/posts\/\$\{ENCODED_FILE\}\?ref=\$\{HEAD_SHA\}/.test(yaml),
       '題名は枝の記事を head sha の API からデータとして読む');
+    check(/\|\| echo '\{\}'/.test(yaml), '記事を取得できなくてもジョブを失敗させない（題名は PR の題名にする）');
     check(/ENCODED_FILE=/.test(yaml) && /file=\$\{ENCODED_FILE\}/.test(yaml), 'file= の値を URL 符号化する');
     check(/head\.repo\.full_name == github\.repository/.test(yaml), 'フォークからの PR は除外する');
     check(/TITLE=\$\(node -e 'const d = JSON\.parse/.test(yaml), '題名は API で読んだ記事から取る');
