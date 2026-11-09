@@ -1377,13 +1377,14 @@ async function repairBody(body, findings, callLLM, options = {}) {
  * 位置が文字どおり見つからない・置き換えても X1 のままなら「戻す」（S3）。
  */
 function secondReplacement(first, replaced) {
-  let x2 = first;
-  for (const [sentence, next] of replaced) {
-    if (!x2.includes(sentence)) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
-    // 2 回目の修正（repairBody）は X1 の中の同じ文を全部書き換えるので、X2 も全部の出現に当てる。
-    // split/join で $&・$1・$$ などを記号として読ませず、返された文をそのまま入れる。
-    x2 = x2.split(sentence).join(next);
+  // 1 回目の置き換えを文に分け、同じ文だけを替える。長い文の中の一部分を
+  // 文字列で置き換えて文を壊さないよう、本文への当て直し（applyRepairPairs）と同じ当て方にする。
+  // 置き換える文が文の単位で見つからなければ「戻す」（S3）。
+  const units = new Set(splitUnits(first).filter(u => !u.heading).map(u => u.text));
+  for (const sentence of replaced.keys()) {
+    if (!units.has(sentence)) return { x2: first, reverted: true, reason: '置き換えの位置が見つかりません' };
   }
+  const x2 = applyRepairPairs(first, replaced);
   if (x2 === first) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
   return { x2, reverted: false, reason: '' };
 }
@@ -1838,13 +1839,19 @@ async function checkFacts(body, options = {}) {
           }
           const keptE2 = e2.filter(r => [...keptTargets.values()].some(t => insideReplacement(t.x2, r)));
           const keptE2Claims = new Set(keptE2.map(r => normalizedClaim(r.sentence)).filter(Boolean));
-          const coveredByKeptE2 = r => Boolean(normalizedClaim(r.sentence)) && keptE2Claims.has(normalizedClaim(r.sentence));
-          // 1 回目の再照合の行を消すのは、最後の本文にその文がもう無いか、2 回目の残す行が同じ文を
-          // 見直したときだけ（止める側に倒す）。対象の X1 の中にあるというだけでは消さない。
+          // 最後の本文の文のうち、その行の文を含むものを集める（文の単位で見る）。
+          const coveringSentences = r => {
+            const needle = normalizedClaim(r.sentence);
+            return needle ? sentenceRows(revisedBody).map(s => normalizedClaim(s)).filter(s => s.includes(needle)) : [];
+          };
+          // 1 回目の再照合の行を消すのは、最後の本文にその文を含む文がもう無いか、その全部を
+          // 2 回目の残す行が見直したときだけ（止める側に倒す）。対象の X1 の中にあるというだけでは消さない。
           const firstRemoved = beforeRechecked.filter(r => [...retryTargets.values()].some(t => insideReplacement(t.first, r)) &&
-            (!actualSentence(revisedBody, r.sentence) || coveredByKeptE2(r)));
+            coveringSentences(r).every(s => keptE2Claims.has(s)));
+          // 人が確かめる箇所から消すのは、最後の本文にその文がもう無いときだけ。
+          // 2 回目の残す行が同じ文を見直したというだけでは消さない（同じ鍵の項目は足し直されないため）。
           const removedRows = (revertAll ? beforeRechecked : [...firstRemoved, ...e2.filter(r => !keptE2.includes(r))])
-            .filter(r => !actualSentence(revisedBody, r.sentence) || coveredByKeptE2(r));
+            .filter(r => !actualSentence(revisedBody, r.sentence));
           const removedKeys = new Set(removedRows.map(claimKey));
           const claimKeys = new Set(record.claims.map(claimKey));
           record.review_items = record.review_items.filter(r => r.status === REVERTED_FIX_REVIEW || claimKeys.has(claimKey(r)) || !removedKeys.has(claimKey(r)));

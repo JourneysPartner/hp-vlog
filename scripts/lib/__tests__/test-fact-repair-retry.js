@@ -734,6 +734,169 @@ async function main() {
     }
   });
 
+  await test('N4-1（条件の違い）2 回目で残した文と並ぶ「条件の違いを要確認」を消さない', async () => {
+    const old = process.env.FACT_CHECK_WRITER_MATERIALS;
+    process.env.FACT_CHECK_WRITER_MATERIALS = 'true';
+    try {
+      const S = '制度Cでは届出が必要です。';
+      const FIX1 = '制度Cでは申請が必要です。';
+      const KEEP = '制度Cの書類は郵送で出せます。';
+      const X1 = FIX1 + KEEP;
+      const FIX2 = '制度Cでは承認が必要です。';
+      const X2 = FIX2 + KEEP;
+      const body = `## 制度\n${S}\n`;
+      const source = ref('gift', '制度Cの資料', `${X1}\n${X2}\n${KEEP}\n`);
+      const fn = async request => {
+        if (request.task === 'condition_check') {
+          const data = JSON.parse(request.user);
+          if (data.article === KEEP) return { verdict: '不一致', conditions: [{ article: '郵送で出す', source: '窓口で出す', match: '不一致' }] };
+          return { verdict: '一致', conditions: [] };
+        }
+        if (request.task === 'extract') {
+          const out = [];
+          if (request.user.includes(FIX2)) out.push(row(FIX2, '判定', '制度C', FIX2));
+          if (request.user.includes(FIX1)) out.push(row(FIX1, '判定', '制度C', FIX1));
+          if (request.user.includes(S)) out.push(row(S, '判定', '制度C', S));
+          if (request.user.includes(KEEP)) out.push(row(KEEP, '手続', '制度C', KEEP));
+          return out;
+        }
+        if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+          if (c.sentence === S) return { id: c.id, status: '食い違い', quote: FIX1, correct: X1, evidence_id: 'gift' };
+          if (c.sentence === FIX1) return { id: c.id, status: '食い違い', quote: FIX2, correct: X2, evidence_id: 'gift' };
+          return { id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: 'gift' };
+        });
+        if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+          replacement: c.sentence === S ? X1 : c.earlier_fix ? FIX2 : X2 }));
+        throw new Error('未定義: ' + request.task);
+      };
+      const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
+        callLLM: fn, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text });
+      const { repair, recheck } = budget(r.record);
+      assert.equal(repair, 2); assert.equal(recheck, 2);
+      // 2 回目で 1 文目を直して本文は ok。残した 2 文目は裏付けありだが、条件確認で人に回る文。
+      assert.equal(r.record.status, 'ok');
+      assert.ok(r.body.includes(X2));
+      assert.deepEqual(r.record.repair_retry, { targets: 1, kept: 1, reverted: 0 });
+      const items = r.record.review_items.filter(c => c.sentence === KEEP);
+      assert.equal(items.length, 1, '人が確かめる箇所から条件の違いの項目が消えている');
+      assert.equal(items[0].status, '条件の違いを要確認');
+    } finally {
+      if (old === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS; else process.env.FACT_CHECK_WRITER_MATERIALS = old;
+    }
+  });
+
+  await test('N5-1（前に言葉を足す直し）直った文の古い再照合の行を残さない', async () => {
+    const S = '制度Bの提出書類は届出書です。';
+    const BAD = '制度Bの届出書を提出します。';
+    const GOOD = '開業した年は制度Bの届出書を提出します。';
+    const body = `## 制度\n${S}\n`;
+    const fn = async request => {
+      if (request.task === 'extract') {
+        if (request.user.includes(GOOD)) return [row(GOOD, '手続', '制度B', GOOD)];
+        if (request.user.includes(BAD)) return [row(BAD, '手続', '制度B', BAD)];
+        return [row(S, '手続', '制度B', S)];
+      }
+      if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+        if (c.sentence === S) return { id: c.id, status: '食い違い', quote: BAD, correct: BAD, evidence_id: 'doc' };
+        if (c.sentence === BAD) return { id: c.id, status: '食い違い', quote: GOOD, correct: GOOD, evidence_id: 'doc' };
+        if (c.sentence === GOOD) return { id: c.id, status: '裏付けあり', quote: GOOD, evidence_id: 'doc' };
+        return { id: c.id, status: '資料なし' };
+      });
+      if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+        replacement: c.earlier_fix ? GOOD : BAD }));
+      throw new Error('未定義: ' + request.task);
+    };
+    const r = await F.checkFacts(body, { ...options, callLLM: fn,
+      searchEvidence: () => [ref('doc', '試験資料', `${BAD}\n${GOOD}\n`)], loadEvidenceText: e => e.text });
+    budget(r.record);
+    // 誤りの文は直した文の中にそのまま含まれるが、本文の文としては直っているので止めない。
+    assert.equal(r.record.status, 'ok');
+    assert.ok(r.body.includes(GOOD));
+    assert.deepEqual(r.record.remaining, []);
+    assert.ok(!r.record.rechecked.some(c => c.sentence === BAD && c.status !== '裏付けあり'));
+    assert.deepEqual(r.record.review_items, []);
+    const correction = r.record.corrections.find(c => c.before === S);
+    assert.equal(correction.after, GOOD);
+    assert.equal(correction.resolved, true);
+  });
+
+  await test('N6-1（文の単位）2 回目の置き換えで長い文の中まで置き換えない', async () => {
+    const S = '制度Dでは申告が必要です。';
+    const A = '制度Dでは確定申告が必要です。';
+    const B = '申告が必要です。';
+    const X1 = A + B;
+    const C = '制度Dでは承認の申請も必要です。';
+    const X2 = A + C;
+    const body = `## 制度\n${S}\n`;
+    const fn = async request => {
+      if (request.task === 'extract') {
+        if (request.user.includes(C)) return [row(A, '判定', '制度D', A), row(C, '判定', '制度D', C)];
+        if (request.user.includes(A) && request.user.includes(B)) return [row(A, '判定', '制度D', A), row(B, '判定', '制度D', B)];
+        return [row(S, '判定', '制度D', S)];
+      }
+      if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+        if (c.sentence === S) return { id: c.id, status: '食い違い', quote: A, correct: X1, evidence_id: 'doc' };
+        if (c.sentence === B) return { id: c.id, status: '食い違い', quote: C, correct: C, evidence_id: 'doc' };
+        if (c.sentence === A || c.sentence === C) return { id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: 'doc' };
+        return { id: c.id, status: '資料なし' };
+      });
+      if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+        replacement: c.earlier_fix ? C : X1 }));
+      throw new Error('未定義: ' + request.task);
+    };
+    const r = await F.checkFacts(body, { ...options, callLLM: fn,
+      searchEvidence: () => [ref('doc', '試験資料', `${X1}\n${X2}\n`)], loadEvidenceText: e => e.text });
+    const { repair, recheck } = budget(r.record);
+    assert.equal(repair, 2); assert.equal(recheck, 2);
+    assert.equal(r.record.status, 'ok');
+    // 後ろの文だけが替わり、前の文の中の「申告が必要です。」まで置き換えない。
+    assert.ok(r.body.includes(X2));
+    assert.ok(!r.body.includes('制度Dでは確定制度Dでは承認'));
+    const correction = r.record.corrections.find(c => c.before === S);
+    assert.equal(correction.after, X2);
+    assert.equal(correction.resolved, true);
+    assert.deepEqual(correction.retry, { status: 'kept', first_after: X1 });
+  });
+
+  await test('N6-2（安全弁）2 回目の置き換えが 2 回目の本文に無ければ戻す', async () => {
+    // 前置き除去で 2 回目の本文が 1 回目の置き換えに戻る形。置き換えた X2 は本文に無い。
+    const S = '制度Dでは申告が必要です。';
+    const A = '制度Dでは確定申告が必要です。';
+    const B = '申告が必要ですので手続の前に税務署へ確認をしてください。';
+    const X1 = A + B;
+    const REPEAT = '承認。' + X1;
+    const BAD = '申告は承認が必要です。';
+    const body = `${S}\n`;
+    const fn = async request => {
+      if (request.task === 'extract') {
+        if (request.user.includes(A) && request.user.includes(B)) return [row(A, '判定', '制度D', A), row(B, '判定', '制度D', B)];
+        return [row(S, '判定', '制度D', S)];
+      }
+      if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+        if (c.sentence === S) return { id: c.id, status: '食い違い', quote: A, correct: X1, evidence_id: 'doc' };
+        if (c.sentence === B) return { id: c.id, status: '食い違い', quote: BAD, correct: BAD, evidence_id: 'doc' };
+        if (c.sentence === A) return { id: c.id, status: '裏付けあり', quote: A, evidence_id: 'doc' };
+        return { id: c.id, status: '資料なし' };
+      });
+      if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+        replacement: c.earlier_fix ? REPEAT : X1 }));
+      throw new Error('未定義: ' + request.task);
+    };
+    const r = await F.checkFacts(body, { ...options, callLLM: fn,
+      searchEvidence: () => [ref('doc', '試験資料', `${X1}\n${REPEAT}\n${BAD}\n`)], loadEvidenceText: e => e.text });
+    budget(r.record);
+    assert.equal(r.record.status, 'revise');
+    assert.ok(rows(r.body).includes(S));
+    assert.ok(!r.body.includes(X1));
+    const correction = r.record.corrections.find(c => c.before === S);
+    assert.equal(correction.reverted, true);
+    assert.equal(correction.after, '');
+    assert.equal(correction.retry.status, 'reverted');
+    assert.equal(correction.retry.cause, '2 回目の修正を採れませんでした（置き換えの位置が見つかりません）');
+    assert.deepEqual(r.record.repair_retry, { targets: 1, kept: 0, reverted: 1 });
+    assert.equal(r.record.review_items.filter(c => c.status === REVERTED).length, 1);
+  });
+
   await test('N2（引用が空のときは空の引用枠を出さない）', () => {
     const item = quote => ({ id: 'r1', sentence: '元の文です。', heading: '制度', type: '判定', subject: '試験制度', claim: '主張',
       status: REVERTED, proposal: '採らなかった修正案です。',
