@@ -1,0 +1,69 @@
+{
+  "note": "#693（一人親方のインボイス登録）の照合記録（plan2-s6、2026-11-06）から。c41・c42・c63 は qa:invoice/jireishu が候補に入ること。c40・c46 は今の検索で根拠が候補にある主張（押し出しの確認用）。",
+  "meta": {
+    "tax_terms": "適格請求書発行事業者 仕入税額控除 免税事業者 課税事業者選択届出書",
+    "pain_point": "suggest-kensetsu-invoice-ac1629",
+    "primary_question": "一人親方はインボイス登録をするべきで、登録すると消費税の納税はどう変わる？",
+    "reader_problem": "取引先から登録を求められているが、インボイス登録による受注への影響や消費税負担を比較できていない。",
+    "search_intent": "一人親方 インボイス登録 一人親方 インボイス 消費税 一人親方 インボイス制度",
+    "title": "一人親方のインボイス登録はすべき？消費税と受注への影響を比較",
+    "tax_domain": "invoice_system",
+    "source_url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+    "source_bundle": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm;消費税法2条;消費税法4条;消費税法5条;消費税法30条;消基通11-1-1;消費税法施行令46条;消費税法9条",
+    "source_2_url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+    "source_3_url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+    "source_4_url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+  },
+  "claims": [
+    {
+      "id": "c40",
+      "sentence": "登録をやめて免税事業者に戻るには、<strong>戻りたい課税期間の初日から起算して15日前の日まで</strong>に、登録取消しの届出書を出す必要があります。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "戻りたい課税期間の初日から起算して15日前の日までに取消届出書を出す",
+      "status_at_plan2_s6": "裏付けあり",
+      "evidence_id_at_plan2_s6": "tsutatsu:shohi:1-4-1の2"
+    },
+    {
+      "id": "c41",
+      "sentence": "翌年1月1日から戻したい場合は、その年の<strong>12月17日が期限</strong>です。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "翌年1月1日から免税事業者に戻すには12月17日が期限である",
+      "status_at_plan2_s6": "資料なし",
+      "evidence_id_at_plan2_s6": ""
+    },
+    {
+      "id": "c42",
+      "sentence": "この期限は土日祝でも延びません。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "取消届出の期限は土日祝日でも延長されない",
+      "status_at_plan2_s6": "資料なし",
+      "evidence_id_at_plan2_s6": ""
+    },
+    {
+      "id": "c46",
+      "sentence": "期限を過ぎると、その課税期間からは戻せません。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "期限を過ぎるとその課税期間からは免税事業者に戻せない",
+      "status_at_plan2_s6": "裏付けあり",
+      "evidence_id_at_plan2_s6": "law:shohizei_hou:57_2"
+    },
+    {
+      "id": "c63",
+      "sentence": "一方、登録すると売上1,000万円以下でも納税義務が続き、やめるには課税期間の初日から起算して15日前までの届出が必要です。",
+      "heading": "まとめ",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "やめるには課税期間の初日から起算して15日前までの届出が必要である",
+      "status_at_plan2_s6": "資料なし",
+      "evidence_id_at_plan2_s6": ""
+    }
+  ]
+}

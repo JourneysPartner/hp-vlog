@@ -657,7 +657,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s6';
+const LOGIC_VERSION = 'plan2-s7';
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
 
@@ -1848,6 +1848,9 @@ async function checkArticle(raw, options = {}) {
 /** 下書きと公開済み記事の照合に、同じ記事資料を渡す。 */
 function articleEvidenceOptions(meta) {
   return { tax_terms: meta.tax_terms, source_bundle: meta.source_bundle, tax_domain: meta.tax_domain, source_url: meta.source_url,
+    // 記事の分野に合う Q&A を選ぶ語。書き手に Q&A を渡すとき（buildQaBlockForTopic）と同じ欄。
+    qa_scope_text: [meta.tax_terms, meta.pain_point, meta.primary_question, meta.reader_problem, meta.search_intent, meta.title]
+      .filter(Boolean).join(' '),
     source_supplements: [...(Array.isArray(meta.source_supplements) ? meta.source_supplements : []),
       ...[2, 3, 4].filter(n => meta[`source_${n}_url`]).map(n => ({ url: meta[`source_${n}_url`] }))],
     ...(meta.fact_materials ? { writer_materials: String(meta.fact_materials).split(';').filter(Boolean) } : {}) };
