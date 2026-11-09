@@ -139,3 +139,14 @@
 - 条件確認だけの修正の扱い（1675〜1698 行）。
 - 承認・上書き・公開（`netlify/functions/review-approve-background.js` ほか）、`scripts/validate.js`、ワークフロー、カタログ（`data/`）、記事（`content/`）。
 - パッケージ（`package.json`・`package-lock.json`）。
+
+## レビュー 1 回目の対応（01d、2026-11-09）
+
+Opus 5.5 xhigh の差分レビュー（`review-01.md`）は「直してからマージ」（High 2・Medium 2・Low 3）。次のとおり直す。
+
+- **H1** 2 回目の再照合には、書き換わった文だけでなく、残す候補の置き換え X2(S) を丸ごと渡す（1 回目の 1632〜1635 行と同じ補い方で、X2(S) の全文を足す）。2 回目の判定（残す／戻す、解決の計算）は、X2(S) の中の全部の行を E2 から見る。これで、1 回目の置き換えの中で 2 回目に手を付けなかった文の「止める行」も E2 に入り直し、X1 の中に同じ文が 2 回あっても見落とさない。試験: 1 回目の置き換えが 2 文で、1 文目が食い違い・2 文目が資料なし（数字）→ 1 文目だけ 2 回目で直る → 状態は `revise` のまま、2 文目の資料なしが `remaining` に残る。
+- **H2** 「全部の修正を採らない」予備の道では、残すにした対象の一覧も空にする（すべて戻したものとして記録し、`repair_retry` の数も合わせる）。試験: 対象 2 つ（A は 2 回目で裏付けあり、B は 2 回目も食い違い）で、作り直した本文だけが `validateRepair` を通らない → A・B とも `reverted: true`・`after: ''`・`resolved: false`・`retry.status: 'reverted'`、`retry.status: 'kept'` の記録が無い、`repair_retry` が `{ targets: 2, kept: 0, reverted: 2 }`、A・B の元の指摘が `remaining` にある。
+- **M1** R2 の対象に「S の指摘のどれかが止める指摘（`blockingFinding`）である」を足す。止めない指摘だけの文（書き手の資料があるときの、要件・判定・手続の資料なしを案内に変える修正）は対象にせず、今と同じく置き換えが残り、再照合の誤りの行で止まる。試験: そういう文で再照合が置き換えの中に食い違い → 2 回目は動かず、状態 `revise`。
+- **M2** 承認画面の「人が確かめる箇所」の `REVERTED_FIX_REVIEW` の項目で、再照合の各行の引用（`quote`）を `escapeHtml` を通して引用枠（`<blockquote>`）で出す。試験 T11 を、保存の形（`compactRecord` を通した記録）で描画して、引用の文が出ることまで確かめる形にする。
+- **L3** 試験を直す: `test-fact-repair-retry.js` の 180 行付近の常に真になる確かめを正しくする。T6 に「`again_judge` の途中で失敗」の形を足す。T13 の回数の数えに `again_retry_repair` などの聞き直しも入れる。T2 で `corrections`・`rechecked`・`review_items`・本文・状態を全部比べる。
+- **L1・L2** は直さず README の「残る穴」に記録する。
