@@ -416,6 +416,149 @@ function buildMessage(event, data) {
       };
     }
 
+    // ── 公開中の記事の手直し（枝 edit/<slug>）──────────────────────
+    case 'edit_ready': {
+      const { title, comment, reviewUrl, prUrl } = data;
+      return {
+        subject: `【手直しの確認】${title || '（タイトル未設定）'}`,
+        body: [
+          '公開中の記事の手直し PR ができました。',
+          '',
+          `■ 題名: ${title || '（タイトル未設定）'}`,
+          comment ? `■ 変更の要約: ${comment}` : '',
+          reviewUrl ? `▶ 確認画面: ${reviewUrl}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          '確認画面で変更箇所を確かめてください。承認すると、この PR をマージして公開中の記事に反映します（題名・説明文も変わります。公開日は変わりません）。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_published': {
+      const { title, publicUrl, prUrl } = data;
+      return {
+        subject: '【手直し】公開中の記事に反映しました',
+        body: [
+          '手直しを公開中の記事に反映しました（PR をマージしました）。',
+          '',
+          `■ 題名: ${title || '（タイトル未設定）'}`,
+          publicUrl ? `▶ 記事URL: ${publicUrl}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          '公開日は変わっていません。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_approve_failed': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】公開中の記事に反映できませんでした',
+        body: [
+          '手直しを公開中の記事に反映できませんでした。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          '確認画面を開き直して、もう一度お試しください。直せない場合は GitHub で PR の状態を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_processed': {
+      const { title, prUrl } = data;
+      return {
+        subject: '【手直し】すでに反映済みです',
+        body: [
+          'この手直しはすでに反映済みです。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_revise_requested': {
+      const { title, comment, prUrl, reviewUrl } = data;
+      return {
+        subject: '【手直し】差し戻しを受け付けました',
+        body: [
+          '手直しの差し戻しを受け付けました。PR にコメントを残しました。',
+          '',
+          `■ 題名: ${title || '（タイトル未設定）'}`,
+          comment ? `■ コメント: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          reviewUrl ? `▶ 確認画面: ${reviewUrl}` : '',
+          '',
+          '直すのは Claude です（AI の作り直しは行いません）。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_skipped': {
+      const { title, prUrl } = data;
+      return {
+        subject: '【手直し】見送りにしました',
+        body: [
+          '手直しを見送りにしました。PR は閉じています（枝は残しています）。',
+          '',
+          `■ 題名: ${title || '（タイトル未設定）'}`,
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    // 差し戻し・見送りそのものが失敗したとき（成功の通知は出さない）。
+    case 'edit_revise_failed': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】差し戻しを伝えられませんでした',
+        body: [
+          '手直しの PR に差し戻しを伝えられませんでした。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'しばらくしてから、確認画面でもう一度差し戻してください。直せない場合は GitHub で PR を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_skip_failed': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】見送れませんでした',
+        body: [
+          '手直しの PR を見送れませんでした（閉じられませんでした）。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'しばらくしてから、確認画面でもう一度見送ってください。直せない場合は GitHub で PR を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    // この画面では扱えない種類の PR（手直しでない公開済みの記事・形が正しくない edit/ の枝）。
+    case 'edit_unsupported': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】この画面では扱えない PR です',
+        body: [
+          'この画面では扱えない種類の PR が指定されました。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'GitHub で PR の状態を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     default:
       return { subject: event, body: JSON.stringify(data, null, 2) };
   }

@@ -136,7 +136,8 @@ function logRateLimit(res, label) {
 // ref: 省略時は GITHUB_BRANCH (デフォルト main)
 async function getFile(filepath, ref) {
   const branch = ref || BRANCH();
-  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${branch}`;
+  // ref は枝名（`edit/a b` など）をそのまま URL に置くと壊れるため符号化する。
+  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${encodeURIComponent(branch)}`;
   const h = await headers();
   const res = await fetch(url, { headers: h });
   if (!res.ok) {
@@ -276,6 +277,37 @@ async function listOpenPRs() {
   }
 }
 
+// ── PR の変更ファイル一覧を取得する ────────────────────────────────────
+// 返すのは { filename, status, previous_filename, additions, deletions }。
+// 1 PR で扱える件数には上限を設ける（手直し PR は記事 1 本＋数ファイルだけなので、
+// 301 件以上は異常）。
+async function listPRFiles(prNumber) {
+  const h = await headers();
+  const files = [];
+  for (let page = 1; ; page++) {
+    const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/files?per_page=100&page=${page}`;
+    const res = await fetch(url, { headers: h });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`GitHub PR files ${res.status}: ${text}`);
+    }
+    const batch = await res.json();
+    for (const item of batch) {
+      files.push({
+        filename: item.filename,
+        status: item.status,
+        ...(item.previous_filename ? { previous_filename: item.previous_filename } : {}),
+        additions: Number.isFinite(item.additions) ? item.additions : 0,
+        deletions: Number.isFinite(item.deletions) ? item.deletions : 0,
+      });
+    }
+    if (files.length > 300) {
+      throw new Error(`PR #${prNumber} の変更ファイルが多すぎます（301 件以上）`);
+    }
+    if (batch.length < 100) return files;
+  }
+}
+
 // ── PR の詳細を取得する ───────────────────────────────────────────────
 async function getPR(prNumber) {
   const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}`;
@@ -284,6 +316,42 @@ async function getPR(prNumber) {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`GitHub get PR ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── 2 つのコミットを比べる（共通の親 merge_base_commit を読む）─────────
+async function compareCommits(base, head) {
+  const url = `${API_BASE}/repos/${REPO()}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub compare ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── コミットの status を取得する（GET /commits/{sha}/status）──────────
+async function getCombinedStatus(sha) {
+  const url = `${API_BASE}/repos/${REPO()}/commits/${encodeURIComponent(sha)}/status`;
+  const h = await headers();
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub commit status ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ── コミットの check runs を取得する（GET /commits/{sha}/check-runs）───
+async function listCheckRuns(sha) {
+  const url = `${API_BASE}/repos/${REPO()}/commits/${encodeURIComponent(sha)}/check-runs?per_page=100`;
+  const h = await headers('application/vnd.github+json');
+  const res = await fetch(url, { headers: h });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GitHub check runs ${res.status}: ${text}`);
   }
   return res.json();
 }
@@ -558,6 +626,7 @@ async function readjustPublishSlots(publishAtStr, excludeFilename) {
 module.exports = {
   getFile, getRef, putFile, updateFrontmatter, removeFrontmatterFields, escapeYamlDoubleQuoted, nowJST,
   findPR, listOpenPRs, getPR, waitForMergeable, mergePR, deleteBranch, closePR, commentOnPR,
+  listPRFiles, compareCommits, getCombinedStatus, listCheckRuns,
   triggerWorkflow, listWorkflowRuns,
   listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
 };

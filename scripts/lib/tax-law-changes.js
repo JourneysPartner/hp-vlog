@@ -113,6 +113,26 @@ const CHANGES = [
     personas: ['inheritance_client'],
     reference: 'https://www.mof.go.jp/tax_policy/tax_reform/outline/fy2026/08taikou_02.htm',
   },
+
+  // ── 飲食料品の消費税率引下げ法案（令和8年10月9日提出）──
+  // 令和8年11月時点では参議院で審議中（未成立）。成立したら status・title・summary を見直すこと。
+  {
+    key: 'food_rate_cut_2027_bill',
+    status: 'active',
+    valid_to: '2029-03-31',
+    title: '飲食料品の消費税率を2年間1%に下げる法律案（令和9年4月〜令和11年3月。令和8年11月時点で参議院で審議中）',
+    summary: '「租税及び社会保険料による負担の軽減のための飲食料品に係る消費税率の臨時的な引下げ及び就業者負担軽減支援金の支給に関する法律案」（第222回国会 閣法第1号）。'
+      + '令和8年10月9日に国会に提出、11月6日に衆議院で可決、参議院で審議中（令和8年11月9日時点で未成立）。'
+      + '成立すれば、令和9年4月1日から令和11年3月31日までに行う軽減税率の対象の飲食料品の譲渡の税率が、8%から1%（消費税率0.78%、地方消費税と合わせて1%）になる。'
+      + '外食・酒類は10%のまま、定期購読の新聞は8%のまま。'
+      + '課税事業者選択届出書と簡易課税制度選択不適用届出書を令和9年4月1日を含む課税期間中に出せる特例、簡易課税の計算方法の特例、中間申告の特例も法律案に入っている。'
+      + '成立前なので「引き下げられた」「決まった」と書かず、「法律案が成立した場合」「予定」と書くこと。'
+      + '細かい扱いは国税庁の「消費税率引下げ特設サイト」へ案内すること。',
+    tax_domain: 'consumption_tax',
+    personas: ['domestic_ec_seller', 'reseller_marketplace_seller'],
+    reference: 'https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/zeiritsuhikisage.htm',
+  },
+
   {
     key: 'invoice_transitional_measures',
     status: 'transitional',
