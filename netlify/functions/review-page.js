@@ -102,6 +102,7 @@ function renderFactRemaining(record) {
 }
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
+const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
 
 function renderAiSupportedNumberEvidence(record, item) {
   const answer = item.rejected_answer || {};
@@ -116,7 +117,7 @@ function factReviewGroups(items) {
     if (!groups.has(status)) groups.set(status, []);
     groups.get(status).push(item);
   }
-  const priority = [AI_SUPPORTED_NUMBERS_REVIEW, '資料なし', '上限で未照合', '照合で文を特定できなかった'];
+  const priority = [REVERTED_FIX_REVIEW, AI_SUPPORTED_NUMBERS_REVIEW, '資料なし', '上限で未照合', '照合で文を特定できなかった'];
   const order = [...priority, ...[...groups.keys()].filter(status => !priority.includes(status))];
   return order.filter(status => groups.has(status)).map(status => ({ status, items: groups.get(status) }));
 }
@@ -124,6 +125,12 @@ function factReviewGroups(items) {
 function factReviewCounts(items) {
   const labels = { '資料なし': '資料が見つからなかった', '上限で未照合': '件数の上限で照合しなかった' };
   return factReviewGroups(items).map(group => `${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)} ${group.items.length} 件`).join('・');
+}
+
+function renderRevertedFixReview(record, item) {
+  const rows = Array.isArray(item.recheck) ? item.recheck : [];
+  return `<div class="small">採らなかった修正案: ${factSentence(item.proposal)}</div>${rows.map(row =>
+    `<div class="small">再照合の指摘（${escapeHtml(String(row.status || ''))}）: ${escapeHtml(String(row.correct || ''))}</div>${row.quote ? `<blockquote>${escapeHtml(String(row.quote))}</blockquote>` : ''}${renderFactEvidence(record, { ...item, evidence_id: row.evidence_id, quote: row.quote })}`).join('')}`;
 }
 
 function renderFactReviewItems(items, record) {
@@ -139,7 +146,7 @@ function renderFactReviewItems(items, record) {
       if (!headings.has(heading)) headings.set(heading, []);
       headings.get(heading).push(item);
     }
-    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${c.status === '照合で文を特定できなかった' && c.pointed_sentence ? `<div class="small">AI が指した文: ${factSentence(c.pointed_sentence)}</div>` : ''}<div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${c.status === AI_SUPPORTED_NUMBERS_REVIEW ? renderAiSupportedNumberEvidence(record, c) : renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
+    return `<h4 class="h6">${escapeHtml(Object.hasOwn(labels, group.status) ? labels[group.status] : group.status)}</h4>${[...headings].map(([heading, rows]) => `<h5 class="h6">${escapeHtml(heading)}</h5>${rows.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${c.status === REVERTED_FIX_REVIEW ? renderRevertedFixReview(record, c) : ''}${c.status === '照合で文を特定できなかった' && c.pointed_sentence ? `<div class="small">AI が指した文: ${factSentence(c.pointed_sentence)}</div>` : ''}<div class="small">種類: ${escapeHtml(c.type)} / 制度名: ${escapeHtml(c.subject)}</div>${typeof c.stage_a_answer?.correct === 'string' && c.stage_a_answer.correct ? `<div class="small">段Aの修正案（要約）: ${escapeHtml(c.stage_a_answer.correct.slice(0, 200))}</div>` : ''}${renderConditionDifferences(c)}${c.status === AI_SUPPORTED_NUMBERS_REVIEW ? renderAiSupportedNumberEvidence(record, c) : renderFactEvidence(record, c, true)}</div>`).join('')}`).join('')}`;
   }).join('');
   return `<details><summary>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）。承認を止める理由ではありません</summary>
     <h3 class="h6 mt-3">人が確かめる箇所（資料が見つからなかった記述・照合しなかった記述）</h3>
@@ -227,7 +234,7 @@ function renderFactOutsideCandidates(record) {
 
 function renderFactCheck(meta, record, body) {
   const { stale, unreadable, status, label, usable } = factCheckState(meta, record, body);
-  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${c.generalized ? renderGeneralizedAnswer(record, c) : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
+  const pairs = items => items.length ? items.map(c => `<div class="border rounded p-3 mb-2"><div><strong>前:</strong> ${factSentence(c.before || c.sentence)}</div><div><strong>後:</strong> ${c.reverted ? '元の文に戻しました（採らなかった修正案は人が確かめる箇所に載せています）' : factSentence(c.after || '（修正なし）')}</div>${!c.resolved ? '<div class="text-danger">再照合後も未解決です</div>' : ''}${c.generalized ? renderGeneralizedAnswer(record, c) : ''}${renderFactEvidence(record, c)}</div>`).join('') : '<p class="text-muted">該当なし</p>';
   return `<div class="card mb-4" id="factCheck"><div class="card-header bg-white fw-bold">事実の照合</div><div class="card-body">
     <p class="${status === 'revise' ? 'text-danger' : ''}"><strong>状態:</strong> ${escapeHtml(label)}${status ? `（${escapeHtml(status)}）` : ''}</p>
     <p>${escapeHtml(stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : meta.fact_check_summary || record?.summary || '')}</p>
@@ -868,5 +875,6 @@ exports.handler = async (event) => {
 exports.renderReviewPage = renderReviewPage;
 exports.parseFrontmatter = parseFrontmatter;
 exports.renderFactCheck = renderFactCheck;
+exports.REVERTED_FIX_REVIEW = REVERTED_FIX_REVIEW;
 exports.renderFactCheckSummary = renderFactCheckSummary;
 exports.fetchFactCheck = fetchFactCheck;

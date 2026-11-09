@@ -105,7 +105,7 @@ async function realData() {
       const old = {};
       let repaired = false;
       for (const c of fixture.recorded_calls) { const task = repaired && ['extract', 'judge'].includes(c.task) ? `recheck_${c.task}` : c.task; old[task] = (old[task] || 0) + c.input_chars; if (c.task === 'repair') repaired = true; }
-      const initial = result.record.calls.filter(c => !c.task.startsWith('recheck_')).reduce((sum, c) => sum + c.input_chars, 0);
+      const initial = result.record.calls.filter(c => !c.task.startsWith('recheck_') && !c.task.startsWith('again_')).reduce((sum, c) => sum + c.input_chars, 0);
       const materialByKind = Object.fromEntries(['国税庁のページ', '法令', '通達'].map(kind => [kind, { pages: 0, chars: 0 }]));
       for (const page of initialPack.pages) {
         const kind = page.ref.kind === 'law' ? '法令' : page.ref.kind === 'tsutatsu' ? '通達' : '国税庁のページ';
