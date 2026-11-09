@@ -657,9 +657,10 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s7';
+const LOGIC_VERSION = 'plan2-s8';
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
+const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
 
 function aiSupportedUnverifiedNumbers(c) {
   return c.status === '資料なし' && c.reject_reason === '引用が短い・数字が引用の近くに無い' &&
@@ -1214,7 +1215,7 @@ function repairInstructions(findings) {
   const { rowRemovals } = repairNumberGuards(findings);
   return findings.map(f => ({ ...f,
     ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
-    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない' :
+    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない。quote・quote_notes に例外（「〜の場合を除く」「ただし〜」など）や、別の判定のしかた・選択肢（「〜に代えて〜で判定することもできる」「いずれかを選べる」など）が書かれているときは、それを落とさずに書く' :
       f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
         f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
           '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
@@ -1252,12 +1253,14 @@ function correctionPairs(before, after, findings, replacements) {
 async function repairBody(body, findings, callLLM, options = {}) {
   const enhanced = writerRefs(options).length > 0;
   const units = splitUnits(body);
-  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, subject, correct, quote, quote_notes, instruction, keep = [], keep_numbers }) => {
+  const corrections = repairInstructions(findings).map(({ id, sentence, heading, status, type, subject, correct, quote, quote_notes, instruction, keep = [], keep_numbers, earlier_fix }) => {
     const at = units.find(u => !u.heading && u.text === sentence)?.start ?? -1;
     const context = text => sentenceRows(text).map(s => s.trim()).filter(s => s && !/^#{1,6}\s/.test(s));
     return { id, sentence, heading, prev: context(body.slice(0, at)).at(-1) || '', next: context(body.slice(at + sentence.length))[0] || '',
-      status, type, correct, quote, instruction: instruction + (enhanced && status === '食い違い' ? '。元の文の話題・役割（例・注意・手順など）は変えず、誤りの部分だけを直す' : ''),
-      keep, ...(quote_notes ? { quote_notes } : {}), ...(keep_numbers ? { keep_numbers } : {}), ...(enhanced ? { subject, ...sentenceContext(body, sentence) } : {}) };
+      status, type, correct, quote, instruction: instruction + (enhanced && status === '食い違い' ? '。元の文の話題・役割（例・注意・手順など）は変えず、誤りの部分だけを直す' : '') +
+        (earlier_fix ? '。earlier_fix は 1 回目の修正で直した点です。その正しい内容は保ったまま、correct の指摘に合わせて直す' : ''),
+      keep, ...(quote_notes ? { quote_notes } : {}), ...(keep_numbers ? { keep_numbers } : {}), ...(earlier_fix ? { earlier_fix } : {}),
+      ...(enhanced ? { subject, ...sentenceContext(body, sentence) } : {}) };
   });
   const ret = await callLLM({ task: 'repair', maxTokens: 8000,
     system: '指摘された文だけを最小限修正し、各文の置き換え後の文を [{id,replacement}] のJSON配列だけで出力してください。replacement は元の文の位置にそのまま入る（改行・見出しを含めない）。表の行は列の数を変えずに直し、期限を足すときは該当する列の中に書く。主題・構成・見出し・文体は変えず、他の文はそのまま残す。検討の過程・確認結果・修正方針の説明を本文に書かない。「差し戻しコメント」「論点別ルール」「該当箇所」などの語を本文に登場させない。本文は元の書き出しからそのまま始める。frontmatterやコードフェンスは出力しない。根拠に無いことを記憶で補わない。' + (enhanced ? '\n' + MISCONCEPTION_CONTEXT_RULE : ''),
@@ -1369,6 +1372,29 @@ async function repairBody(body, findings, callLLM, options = {}) {
   return { body: revised, accepted: true, rejected, replacements: edits };
 }
 
+/**
+ * 1 回目の置き換え X1 の中の各文を 2 回目の置き換えに替えて X2 を作る。
+ * 位置が文字どおり見つからない・置き換えても X1 のままなら「戻す」（S3）。
+ */
+function secondReplacement(first, replaced) {
+  let x2 = first;
+  for (const [sentence, next] of replaced) {
+    if (!x2.includes(sentence)) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
+    // 置き換えの文字列の $&・$1・$$ などを記号として読ませず、返された文をそのまま入れる。
+    x2 = x2.replace(sentence, () => next);
+  }
+  if (x2 === first) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
+  return { x2, reverted: false, reason: '' };
+}
+
+/** 元の本文に、採った置き換えだけを後ろから当て直す（条件確認の戻しと同じ作り）。 */
+function applyRepairPairs(body, repairPairs) {
+  let revised = body;
+  const edits = splitUnits(body).filter(u => !u.heading && repairPairs.has(u.text));
+  for (const u of edits.sort((a, b) => b.start - a.start)) revised = revised.slice(0, u.start) + repairPairs.get(u.text) + revised.slice(u.end);
+  return revised;
+}
+
 async function checkFacts(body, options = {}) {
   const requestedWriterIds = writerMaterials(options);
   const resolvedWriter = resolveWriterMaterials(requestedWriterIds);
@@ -1400,16 +1426,17 @@ async function checkFacts(body, options = {}) {
   const extracting = request => ['extract', 'retry_extract'].includes(request.task);
   const caller = options.callLLM || (async request => cfg.provider === 'gateway'
     ? require('./gateway-model').callGateway({ model: request.model, system: request.system, user: request.user, maxTokens: 64000,
-      task: (rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs })
+      task: (again ? 'again_' : rechecking ? 'recheck_' : '') + (request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task), signal: request.signal, timeoutMs: cfg.timeoutMs })
     : contentModel.generateContent({ staticSystem: extracting(request) ? '' : request.staticSystem || request.system,
     dynamicSystem: extracting(request) ? request.system : '', user: request.user },
     { provider: cfg.provider, model: request.model, modelOptions: extracting(request) ? cfg.extractModelOptions : cfg.modelOptions, maxTokens: request.maxTokens,
       fallback: false, signal: request.signal, timeoutMs: cfg.timeoutMs, batch: request.stageB || request.immediate ? null : batch }));
+  let again = false;
   let rechecking = false;
   const call = async request => {
     const batching = !request.stageB && !request.immediate && batch && !batch.disabled;
     const task = request.stageB && request.task === 'judge' ? 'stage_b_judge' : request.task;
-    const entry = { task: rechecking ? `recheck_${task}` : task,
+    const entry = { task: again ? `again_${task}` : rechecking ? `recheck_${task}` : task,
       model: extracting(request) ? cfg.extractModel : cfg.model, mode: batching ? 'batch' : 'sync',
       input_chars: request.system.length + request.user.length, output_chars: 0 };
     record.calls.push(entry);
@@ -1447,8 +1474,8 @@ async function checkFacts(body, options = {}) {
   const pageCache = {};
   const stageBCache = {};
   let uncheckedNumeric = 0;
-  const addReviewItem = c => {
-    if (record.review_items.some(r => claimKey(r) === claimKey(c))) return;
+  const addReviewItem = (c, force = false) => {
+    if (!force && record.review_items.some(r => claimKey(r) === claimKey(c))) return;
     // 一覧には候補の所在を残し、判定に使わない原文は重ねて保存しない。
     record.review_items.push({ ...c, evidence: (c.evidence || []).map(({ id, title, url }) => ({ id, title, url })) });
   };
@@ -1670,6 +1697,174 @@ async function checkFacts(body, options = {}) {
         }
         if (writerIds.length) for (const c of record.corrections) if (c.generalized && REVIEW_TYPES.has(c.type) &&
             record.rechecked.some(r => r.status !== '裏付けあり' && matchesCorrection(c, r, pairs))) c.resolved = false;
+
+        // 再照合で置き換えの中に食い違い・期限の書き漏れが残った文だけを、もう 1 回だけ直す。
+        // 直せない・直しても残るなら、その文は書き手の元の文に戻す（S1〜S8）。
+        const beforeRechecked = [...record.rechecked];
+        const insideReplacement = (text, row) => {
+          const needle = normalizedClaim(row.sentence);
+          return Boolean(needle) && normalizedClaim(text).includes(needle);
+        };
+        const errorRow = r => ['食い違い', '期限の書き漏れ'].includes(r.status) && blocksRepair(r);
+        const retryTargets = new Map();
+        for (const f of findings) {
+          if (retryTargets.has(f.sentence)) continue;
+          const own = findings.filter(x => x.sentence === f.sentence);
+          const ownCorrections = record.corrections.filter(c => c.sentence === f.sentence);
+          const first = pairs.get(f.sentence);
+          // 条件確認だけの指摘・置き換えを採れなかった文・置き換えの中に無い誤りは対象にしない。
+          if (!ownCorrections.length || !ownCorrections.some(c => c.after) || own.some(x => x.condition_mismatch) || !first) continue;
+          const errors = record.rechecked.filter(r => errorRow(r) && insideReplacement(first, r));
+          if (errors.length) retryTargets.set(f.sentence, { sentence: f.sentence, findings: own, first, errors });
+        }
+        if (retryTargets.size) {
+          // 予備の道（作り直した本文を採れないとき）は、2 回目の判定で変える前の対応表を使う。
+          const firstPairs = new Map(pairs);
+          const retryFindings = [], seenRetryIds = new Set();
+          for (const target of retryTargets.values()) for (const r of target.errors) {
+            if (seenRetryIds.has(r.id)) continue;
+            seenRetryIds.add(r.id);
+            retryFindings.push({ id: r.id, sentence: r.sentence, heading: r.heading, status: r.status, type: r.type, subject: r.subject,
+              correct: r.correct, quote: r.quote, ...(r.quote_notes ? { quote_notes: r.quote_notes } : {}),
+              evidence_id: r.evidence_id, evidence: r.evidence, keep: [],
+              earlier_fix: target.findings.map(x => ({ before: x.sentence, correct: x.correct, quote: x.quote })) });
+          }
+          const revertedTargets = new Map(), keptTargets = new Map(), proposals = new Map();
+          let secondChanges = '', e2 = [], retryCrashed = false, revertAll = false;
+          try {
+            again = true;
+            const second = await repairBody(revisedBody, retryFindings, call, options);
+            const acceptedTargets = new Map();
+            if (!second.accepted) {
+              for (const target of retryTargets.values()) revertedTargets.set(target.sentence, {
+                ...target, proposal: target.first, recheckRows: target.errors, cause: `2 回目の修正を採れませんでした（${second.reason}）` });
+            } else for (const target of retryTargets.values()) {
+              const replaced = new Map(), reasons = [];
+              for (const r of target.errors) {
+                const next = second.replacements.get(r.sentence);
+                if (second.rejected.has(r.id) || !next) reasons.push(second.rejected.get(r.id) || '置き換え後の文がありません');
+                else replaced.set(r.sentence, next);
+              }
+              // 1 回目の置き換えの中に置き換えの位置が無ければ、その修正は採らない（S3）。
+              const { x2, reverted: positionMissing, reason: positionReason } = secondReplacement(target.first, replaced);
+              proposals.set(target.sentence, x2);
+              if (positionMissing) reasons.push(positionReason);
+              if (reasons.length) revertedTargets.set(target.sentence, { ...target, proposal: replaced.size ? x2 : target.first, recheckRows: target.errors, cause: `2 回目の修正を採れませんでした（${reasons[0]}）` });
+              else acceptedTargets.set(target.sentence, { ...target, x2, replaced });
+            }
+            if (acceptedTargets.size) {
+              secondChanges = changedText(revisedBody, second.body);
+              for (const target of acceptedTargets.values()) for (const [sentence, next] of target.replaced) {
+                if (next !== sentence && !secondChanges.includes(next) && second.body.includes(next)) {
+                  const row = retryFindings.find(f => f.sentence === sentence);
+                  secondChanges += `\n${row?.heading ? '## ' + row.heading : ''}\n${next}`;
+                }
+              }
+              const secondPairs = new Map([...retryTargets.keys()].map(S => [S, proposals.get(S)]));
+              for (const target of acceptedTargets.values()) for (const [sentence, next] of target.replaced) secondPairs.set(sentence, next);
+              const retryAnalyzeFindings = [...findings.filter(f => retryTargets.has(f.sentence)), ...retryFindings];
+              e2 = secondChanges.trim() ? await analyze(secondChanges, second.body, retryAnalyzeFindings, secondPairs) : [];
+              // 条件確認の誤警報と、変えていない数字の扱いは 1 回目と同じく当てる。
+              for (const c of e2) if (c.condition_mismatch) reviewCondition(c);
+              if (writerIds.length) for (const r of e2) {
+                const f = retryAnalyzeFindings.find(x => matchesCorrection(x, r, secondPairs) && unchangedNumericClaim(x, r, secondPairs.get(x.sentence) || '', record.claims));
+                if (!f) continue;
+                r.unchanged_numeric = true;
+                if (!record.claims.some(c => c.type === r.type && c.subject === r.subject && JSON.stringify(normalizedNumbers(c.claim)) === JSON.stringify(normalizedNumbers(r.claim)))) addReviewItem(r);
+              }
+              for (const target of acceptedTargets.values()) {
+                if (e2.some(r => insideReplacement(target.x2, r) && errorRow(r))) revertedTargets.set(target.sentence, {
+                  ...target, proposal: target.x2, recheckRows: e2.filter(r => errorRow(r) && insideReplacement(target.x2, r)), cause: '2 回目の再照合でも誤りが残りました' });
+                else keptTargets.set(target.sentence, target);
+              }
+            }
+          } catch (error) {
+            retryCrashed = true;
+            keptTargets.clear(); revertedTargets.clear();
+            for (const target of retryTargets.values()) revertedTargets.set(target.sentence, {
+              ...target, proposal: proposals.get(target.sentence) || target.first, recheckRows: target.errors, cause: '2 回目の修正・再照合を実施できませんでした' });
+          } finally { again = false; }
+          // 本文は元の本文に、残った置き換えだけを当て直す。戻した文は書き手の元の文のまま残る。
+          for (const [S, target] of keptTargets) repairPairs.set(S, target.x2);
+          for (const S of revertedTargets.keys()) repairPairs.delete(S);
+          const rebuilt = applyRepairPairs(body, repairPairs);
+          const rebuiltUnits = splitUnits(rebuilt);
+          let rebuiltValid = [...revertedTargets.keys()].every(S => rebuiltUnits.some(u => !u.heading && u.text === S));
+          try { if (rebuiltValid && options.validateRepair && !options.validateRepair(rebuilt)) rebuiltValid = false; }
+          catch (_) { rebuiltValid = false; }
+          if (rebuiltValid) {
+            revisedBody = rebuilt;
+          } else {
+            // 戻した文を元のとおりに置けない（起きない想定）。安全側で全部の修正を採らない。
+            revisedBody = body; repairPairs = new Map(); revertAll = true;
+            for (const c of record.corrections) {
+              c.after = ''; c.resolved = false; c.reverted = true;
+              c.proposal = proposals.get(c.sentence) || firstPairs.get(c.sentence) || '';
+              c.reason = '再照合で誤りが残ったため、元の文に戻しました';
+              c.retry = { status: 'reverted', first_after: firstPairs.get(c.sentence) || '',
+                ...(c.proposal && c.proposal !== (firstPairs.get(c.sentence) || '') ? { second_after: c.proposal } : {}),
+                cause: '元の文に戻せなかったため、すべての修正を採りませんでした' };
+            }
+            revertedTargets.clear();
+            for (const c of record.corrections) revertedTargets.set(c.sentence, { sentence: c.sentence,
+              findings: findings.filter(f => f.sentence === c.sentence), first: firstPairs.get(c.sentence) || '',
+              proposal: c.proposal, recheckRows: beforeRechecked.filter(r => insideReplacement(firstPairs.get(c.sentence) || '', r)),
+              cause: c.retry.cause });
+          }
+          for (const [S, target] of revertedTargets) for (const c of record.corrections.filter(c => c.sentence === S && !c.reverted)) {
+            c.after = ''; c.resolved = false; c.reverted = true; c.proposal = target.proposal;
+            c.reason = '再照合で誤りが残ったため、元の文に戻しました';
+            c.retry = { status: 'reverted', first_after: target.first,
+              ...(target.proposal && target.proposal !== target.first ? { second_after: target.proposal } : {}), cause: target.cause };
+          }
+          const keptE2 = e2.filter(r => [...keptTargets.values()].some(t => insideReplacement(t.x2, r)));
+          const firstRemoved = beforeRechecked.filter(r => [...retryTargets.values()].some(t => insideReplacement(t.first, r)));
+          const removedRows = (revertAll ? beforeRechecked : [...firstRemoved, ...e2.filter(r => !keptE2.includes(r))])
+            .filter(r => !actualSentence(revisedBody, r.sentence));
+          const removedKeys = new Set(removedRows.map(claimKey));
+          const claimKeys = new Set(record.claims.map(claimKey));
+          record.review_items = record.review_items.filter(r => r.status === REVERTED_FIX_REVIEW || claimKeys.has(claimKey(r)) || !removedKeys.has(claimKey(r)));
+          record.rechecked = revertAll ? [] : [...beforeRechecked.filter(r => !firstRemoved.includes(r)), ...keptE2];
+          // 残した修正の解決は、2 回目の置き換えと再照合の結果で計算し直す。
+          const keptPairs = new Map(pairs);
+          for (const [S, target] of keptTargets) keptPairs.set(S, target.x2);
+          for (const [S, target] of keptTargets) {
+            const ownE2 = e2.filter(r => insideReplacement(target.x2, r));
+            for (const c of record.corrections.filter(c => c.sentence === S)) {
+              c.after = target.x2;
+              c.retry = { status: 'kept', first_after: target.first };
+              c.resolved = !repair.rejected.has(c.id) && !revisedBody.includes(c.sentence) && !ownE2.some(r => blocksRepair(r) && matchesCorrection(c, r, keptPairs));
+              if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
+                c.resolved = !repair.rejected.has(c.id) && secondChanges.trim().length > 0 && ownE2.some(r =>
+                  r.status === '裏付けあり' && (!c.condition_mismatch || (r.type === c.type && r.subject === c.subject)) &&
+                  Boolean(normalizedClaim(r.sentence)) && normalizedClaim(target.x2).includes(normalizedClaim(r.sentence))) &&
+                  !ownE2.some(r => matchesCorrection(c, r, keptPairs) && blocksRepair(r));
+              }
+              if (c.status === '資料なし' && c.supported_numbers?.length) {
+                const required = c.supported_numbers.flatMap(n => normalizedNumbers(n));
+                const supported = ownE2.filter(r => r.status === '裏付けあり' && ['金額', '割合', '期限', '適用年'].includes(r.type) && normalizedClaim(r.sentence) &&
+                  normalizedClaim(target.x2).includes(normalizedClaim(r.sentence))).flatMap(r => {
+                  const summary = normalizedNumbers(r.claim), sentence = normalizedNumbers(r.sentence);
+                  return summary.filter(n => n !== null && sentence.includes(n));
+                });
+                c.resolved = c.resolved && required.length > 0 && !required.includes(null) && required.every(n => supported.includes(n));
+              }
+              if (writerIds.length && c.generalized && REVIEW_TYPES.has(c.type) && ownE2.some(r => r.status !== '裏付けあり' && matchesCorrection(c, r, keptPairs))) c.resolved = false;
+            }
+          }
+          // 採らなかった修正案と、再照合の指摘（正しい内容・引用・根拠）を人が確かめる箇所に残す。
+          for (const [S, target] of revertedTargets) {
+            const f = target.findings[0] || findings.find(x => x.sentence === S);
+            if (!f) continue;
+            const rows = (target.recheckRows || []).map(({ status, claim, correct, quote, evidence_id }) => ({ status, claim, correct, quote, evidence_id }));
+            const evidence = [...(f.evidence || []), ...(target.recheckRows || []).flatMap(row => row.evidence || [])];
+            addReviewItem({ id: f.id, sentence: S, heading: f.heading, type: f.type, subject: f.subject, claim: f.claim, s: f.s,
+              status: REVERTED_FIX_REVIEW, proposal: target.proposal, recheck: rows,
+              evidence: [...new Map(evidence.filter(e => e && e.id).map(e => [e.id, e])).values()] }, true);
+          }
+          record.repair_retry = { targets: retryTargets.size, kept: keptTargets.size, reverted: revertedTargets.size };
+          if (retryCrashed) record.repair_warning = [record.repair_warning, '再照合で誤りが残った修正を元の文に戻しました（2 回目を実施できませんでした）'].filter(Boolean).join(' / ');
+        }
       } else record.repair_warning = repair.reason;
     }
     const unverifiedConditions = record.claims.filter(c => c.condition_mismatch && !record.corrections.find(f => f.id === c.id)?.resolved);
@@ -1704,7 +1899,7 @@ async function checkFacts(body, options = {}) {
     // 数字の未照合と、種類を問わない食い違い・期限の書き漏れは引き続き止める。
     record.status = record.remaining.length || uncheckedNumeric ? 'revise' : 'ok';
     const repaired = record.corrections.filter(c => c.resolved).length;
-    record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}`;
+    record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}${record.repair_retry?.reverted ? `・元の文に戻した ${record.repair_retry.reverted}` : ''}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
     if (aiSupportedNumbers.length) record.summary += `・AI 裏付けあり・数字未確認 ${aiSupportedNumbers.length} 件`;
@@ -1893,5 +2088,6 @@ function inheritFactMetadata(original, regenerated) {
 
 module.exports = { extractClaims, judgeClaims, searchEvidence, repairBody, repairInstructions, checkFacts, checkArticle,
   articleEvidenceOptions,
-  applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata,
-  normalizeBody, bodyHash, compactRecord, evidenceRefs, outsideCandidateClaims, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, supportNumbersFromSiblings, WARNING_RE };
+  applyFactResult, updateMeta, recordPath, changedText, preservesOtherText, normalizedQuote, sourceDate, config, inheritFactMetadata, secondReplacement,
+  normalizeBody, bodyHash, compactRecord, evidenceRefs, outsideCandidateClaims, normalizedNumbers, sufficientQuote, quoteParts, correctionPairs, supportNumbersFromSiblings, WARNING_RE,
+  REVERTED_FIX_REVIEW };

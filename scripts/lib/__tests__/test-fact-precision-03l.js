@@ -144,7 +144,7 @@ async function main() {
     const replacement = correct;
     const result = await F.repairBody(finding.sentence, [finding], async request => {
       const c = JSON.parse(request.user).corrections[0];
-      assert.equal(c.instruction, status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない' : 'この制度の説明に、根拠の適用期限を1文で足す');
+      assert.equal(c.instruction, status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない。quote・quote_notes に例外（「〜の場合を除く」「ただし〜」など）や、別の判定のしかた・選択肢（「〜に代えて〜で判定することもできる」「いずれかを選べる」など）が書かれているときは、それを落とさずに書く' : 'この制度の説明に、根拠の適用期限を1文で足す');
       return [{ id: c.id, replacement }];
     });
     assert.equal(result.rejected.size, 0); assert.equal(result.body, replacement);
@@ -226,12 +226,12 @@ async function main() {
     } });
     try {
       const initial = await F.checkArticle(raw, opts);
-      assert.equal(initial.record.logic_version, 'plan2-s7'); assert.equal(initial.record.status, 'ok');
+      assert.equal(initial.record.logic_version, 'plan2-s8'); assert.equal(initial.record.status, 'ok');
       const file = F.recordPath('precision-version', dir);
       const prior = JSON.parse(fs.readFileSync(file, 'utf8')); prior.logic_version = '03k';
       fs.writeFileSync(file, JSON.stringify(prior)); calls.length = 0;
       const result = await F.checkArticle(raw, { ...opts, persist: false, previousRaw: raw });
-      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s7');
+      assert.equal(result.record.incremental, undefined); assert.equal(result.record.logic_version, 'plan2-s8');
       assert.ok(calls.some(c => c.task === 'extract')); assert.ok(calls.some(c => c.task === 'judge'));
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });

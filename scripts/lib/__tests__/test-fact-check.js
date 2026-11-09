@@ -148,10 +148,11 @@ async function main() {
     assert.equal(r.record.calls.length, 5);
     console.log('照合費用の実測（偽LLM）:', JSON.stringify(r.record.calls));
   });
-  await test('R4', '再照合で食い違いが残っても2回目の修正をしない', async () => {
+  await test('R4', '再照合で食い違いが残ったら1回だけ直し、だめなら元の文に戻す', async () => {
     const llm = fake({ remain: true });
     const r = await F.checkFacts(body, { callLLM: llm.fn, searchEvidence: () => evidence, now });
-    assert.equal(r.record.status, 'revise'); assert.equal(llm.calls.filter(x => x.task === 'repair').length, 1);
+    assert.equal(r.record.status, 'revise'); assert.equal(llm.calls.filter(x => x.task === 'repair').length, 2);
+    assert.equal(r.body, body);
   });
   await test('R4', '期限の書き漏れは期限を1文足し、再照合する', async () => {
     const sentence = '住宅取得等資金の贈与の非課税制度があります。';

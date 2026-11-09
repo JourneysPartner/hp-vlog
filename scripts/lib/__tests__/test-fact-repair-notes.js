@@ -19,7 +19,7 @@ const quote = quoteParts.join('\n…\n');
 const note1 = '（注1）令和2年分以後の青色申告特別控除について、この最高55万円の青色申告特別控除を受けることができる方が、電子帳簿保存（※）またはe-Taxによる電子申告を行っている場合は、最高65万円の青色申告特別控除が受けられます。';
 const bad = '事業所得にして青色申告をする場合、簡易な記帳でもよいとされていますが、最高55万円（令和元年以前は最高65万円）の青色申告特別控除を受けるには、複式簿記での記帳と、貸借対照表・損益計算書を確定申告書に添付して期限内に提出することが要件で、それ以外の青色申告者は最高10万円の控除となります。';
 const good = '事業所得で青色申告をする場合、最高55万円の青色申告特別控除を受けるには、複式簿記での記帳と貸借対照表・損益計算書の添付、期限内の提出が必要です。この要件に加えて、e-Taxで申告するか、帳簿を優良な電子帳簿として保存していれば、控除は最高65万円になります。それ以外の青色申告者は最高10万円です。';
-const repairInstruction = '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない';
+const repairInstruction = '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない。quote・quote_notes に例外（「〜の場合を除く」「ただし〜」など）や、別の判定のしかた・選択肢（「〜に代えて〜で判定することもできる」「いずれかを選べる」など）が書かれているときは、それを落とさずに書く';
 const judgeInstruction = '主張が制度の控除額・上限額を「最高」「最大」「上限」などとして述べているのに、原文の注・ただし書きでは条件によって別の額（より高い額など）になると書かれていて、その文にも前後の文にもその条件と額が書かれていない場合は、食い違いとし、correct に条件と額を書いてください。';
 const numberReason = '根拠の正しい内容に無い数字を足しています';
 const claim = { id: 'c28', sentence, claim: sentence, type: '要件', subject: '青色申告', heading: '' };
@@ -316,13 +316,13 @@ test('R3', '#741 の悪い置換を本文に入れず、承認を止めて注と
   assert.deepEqual(tasks, ['extract', 'judge', 'repair']);
 });
 
-test('R4', 'judge の指定位置に規則が入り、版が plan2-s7 になる', async () => {
+test('R4', 'judge の指定位置に規則が入り、版が plan2-s8 になる', async () => {
   await F.judgeClaims([claim], { c28: [ref(source2070.body)] }, sentence, async req => {
     assert.ok(req.system.includes('特定の年分の値として正しく書いている場合は裏付けありとしてください。' + judgeInstruction));
     return [{ id: 'c28', status: '資料なし' }];
   }, options);
   const result = await F.checkFacts('', { ...options, callLLM: async () => { throw new Error('空本文で AI を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s7');
+  assert.equal(result.record.logic_version, 'plan2-s8');
 });
 
 test('R5', '手がかりの3表記をポイントへ置換する', () => {
