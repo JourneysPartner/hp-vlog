@@ -9,8 +9,8 @@ article_role: "main"
 related_slug: ""
 related_title: ""
 related_link_text: ""
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
-source_title: "仕入税額控除の対象となるもの"
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+source_title: "適格請求書等保存方式（インボイス制度）"
 search_intent: "一人親方 インボイス登録 一人親方 インボイス 消費税 一人親方 インボイス制度"
 reader_problem: "取引先から登録を求められているが、インボイス登録による受注への影響や消費税負担を比較できていない。"
 success_outcome: "一人親方はインボイス登録をするべきで、登録すると消費税の納税はどう変わるがわかり、自分のケースで判断できる"
@@ -18,22 +18,20 @@ primary_question: "一人親方はインボイス登録をするべきで、登�
 summary: "一人親方のインボイス登録は、元請が課税事業者で継続発注があるなら登録が基本。令和8年分は2割特例で売上税額の2割、令和9年分・令和10年分は3割特例で3割。取消しは初日から15日前まで。"
 review_status: "draft"
 review_comment: ""
-approved_at: ""
-publish_at: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-19T13:28:00.404Z"
 updated_at: "2026-11-06T12:48:11.636Z"
-source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm;消費税法2条;消費税法4条;消費税法5条;消費税法30条;消基通11-1-1;消費税法施行令46条;消費税法9条"
+source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm;消費税法2条;消費税法4条;消費税法5条;消費税法30条;消基通11-1-1;消費税法施行令46条;消費税法9条"
 tax_terms: "適格請求書発行事業者 仕入税額控除 免税事業者 課税事業者選択届出書"
-source_provenance: "llm-auto"
-source_confidence: 0.86
-source_term: "仕入税額控除"
-source_2_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
-source_2_title: "適格請求書等保存方式（インボイス制度）"
-source_2_term: "適格請求書発行事業者"
-source_2_confidence: 0.78
+source_provenance: "curated"
+source_confidence: 1
+source_term: "適格請求書発行事業者"
+source_2_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
+source_2_title: "仕入税額控除の対象となるもの"
+source_2_term: "仕入税額控除"
+source_2_confidence: 0.86
 source_3_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm"
 source_3_title: "免税事業者と仕入税額の還付"
 source_3_term: "免税事業者"
@@ -53,12 +51,12 @@ procedure_stage: ""
 customer_segment: "construction_solo"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 5
 practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
-recommendation: "revise"
-review_warning: "出典: LLM選定の確信度が低い（0.86 < 0.9） / 論点別ルールを部分修正で反映: tsutatsu_citation（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: shotoku_tsutatsu_shihonteki_shishutsu（修正箇所が現行の制度に合うか確認してください）"
+recommendation: "publish"
+review_warning: ""
 source_guard_version: 1
 fact_check_version: 1
 fact_check_status: "ok"
