@@ -1380,8 +1380,9 @@ function secondReplacement(first, replaced) {
   let x2 = first;
   for (const [sentence, next] of replaced) {
     if (!x2.includes(sentence)) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
-    // 置き換えの文字列の $&・$1・$$ などを記号として読ませず、返された文をそのまま入れる。
-    x2 = x2.replace(sentence, () => next);
+    // 2 回目の修正（repairBody）は X1 の中の同じ文を全部書き換えるので、X2 も全部の出現に当てる。
+    // split/join で $&・$1・$$ などを記号として読ませず、返された文をそのまま入れる。
+    x2 = x2.split(sentence).join(next);
   }
   if (x2 === first) return { x2, reverted: true, reason: '置き換えの位置が見つかりません' };
   return { x2, reverted: false, reason: '' };
@@ -1754,6 +1755,14 @@ async function checkFacts(body, options = {}) {
               if (reasons.length) revertedTargets.set(target.sentence, { ...target, proposal: replaced.size ? x2 : target.first, recheckRows: target.errors, cause: `2 回目の修正を採れませんでした（${reasons[0]}）` });
               else acceptedTargets.set(target.sentence, { ...target, x2, replaced });
             }
+            // 置き換えた X2 が 2 回目の本文に無いときは、丸ごとの再照合を飛ばさず、その対象だけ戻す。
+            // （本文に入るのは X2 なので、見つからない X2 を「残す」にはしない。）
+            for (const target of [...acceptedTargets.values()]) {
+              if (second.body.includes(target.x2)) continue;
+              acceptedTargets.delete(target.sentence);
+              revertedTargets.set(target.sentence, { ...target, proposal: target.x2, recheckRows: target.errors,
+                cause: '2 回目の修正を採れませんでした（置き換えの位置が見つかりません）' });
+            }
             if (acceptedTargets.size) {
               secondChanges = changedText(revisedBody, second.body);
               for (const target of acceptedTargets.values()) for (const [sentence, next] of target.replaced) {
@@ -1828,9 +1837,14 @@ async function checkFacts(body, options = {}) {
               ...(target.proposal && target.proposal !== target.first ? { second_after: target.proposal } : {}), cause: target.cause };
           }
           const keptE2 = e2.filter(r => [...keptTargets.values()].some(t => insideReplacement(t.x2, r)));
-          const firstRemoved = beforeRechecked.filter(r => [...retryTargets.values()].some(t => insideReplacement(t.first, r)));
+          const keptE2Claims = new Set(keptE2.map(r => normalizedClaim(r.sentence)).filter(Boolean));
+          const coveredByKeptE2 = r => Boolean(normalizedClaim(r.sentence)) && keptE2Claims.has(normalizedClaim(r.sentence));
+          // 1 回目の再照合の行を消すのは、最後の本文にその文がもう無いか、2 回目の残す行が同じ文を
+          // 見直したときだけ（止める側に倒す）。対象の X1 の中にあるというだけでは消さない。
+          const firstRemoved = beforeRechecked.filter(r => [...retryTargets.values()].some(t => insideReplacement(t.first, r)) &&
+            (!actualSentence(revisedBody, r.sentence) || coveredByKeptE2(r)));
           const removedRows = (revertAll ? beforeRechecked : [...firstRemoved, ...e2.filter(r => !keptE2.includes(r))])
-            .filter(r => !actualSentence(revisedBody, r.sentence));
+            .filter(r => !actualSentence(revisedBody, r.sentence) || coveredByKeptE2(r));
           const removedKeys = new Set(removedRows.map(claimKey));
           const claimKeys = new Set(record.claims.map(claimKey));
           record.review_items = record.review_items.filter(r => r.status === REVERTED_FIX_REVIEW || claimKeys.has(claimKey(r)) || !removedKeys.has(claimKey(r)));
