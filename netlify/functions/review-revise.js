@@ -1,7 +1,8 @@
 'use strict';
 
-const { getFile, putFile, updateFrontmatter, nowJST, triggerWorkflow, findPR, commentOnPR, extractFmField, readjustPublishSlots } = require('./lib/github-api');
-const { sendNotification } = require('./lib/notify');
+const githubApi = require('./lib/github-api');
+const notify = require('./lib/notify');
+const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
 const { appendEntries } = require('./lib/denylist-store');
 const { detectDenyIntent, buildEntriesFromContext } = require('../../scripts/lib/denylist');
@@ -17,9 +18,24 @@ const bannedPhrasesLib = require('../../scripts/lib/banned-phrases');
  * 1. review_status → needs_revision, review_comment → comment
  * 2. GitHub Actions の regenerate-draft ワークフローを起動
  * 3. 再生成ジョブが完了したら Chatwork に通知が届く
+ *
+ * 公開中の記事の手直し PR（枝 edit/<slug>）では、記事のファイル・denylist・
+ * banned-phrases・公開枠には何も書かず、PR にコメントを残して Chatwork に知らせる
+ * （直すのは Claude。AI の作り直しはしない）。
  */
 
-exports.handler = async (event) => {
+async function handler(event, injected = {}) {
+  const getFile = injected.getFile || githubApi.getFile;
+  const putFile = injected.putFile || githubApi.putFile;
+  const updateFrontmatter = injected.updateFrontmatter || githubApi.updateFrontmatter;
+  const nowJST = injected.nowJST || githubApi.nowJST;
+  const triggerWorkflow = injected.triggerWorkflow || githubApi.triggerWorkflow;
+  const findPR = injected.findPR || githubApi.findPR;
+  const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
+  const extractFmField = injected.extractFmField || githubApi.extractFmField;
+  const readjustPublishSlots = injected.readjustPublishSlots || githubApi.readjustPublishSlots;
+  const sendNotification = injected.sendNotification || notify.sendNotification;
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
@@ -39,6 +55,53 @@ exports.handler = async (event) => {
 
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
+
+    // ── 公開中の記事の手直し PR ────────────────────────────────────
+    // 記事のファイル・denylist・banned-phrases・公開枠には何も書かない。
+    // AI の作り直しもせず、PR にコメントを残して Chatwork に知らせる（直すのは Claude）。
+    if (manualEdit.isManualEditRef(ref)) {
+      const editTitle = (content.match(/^title:\s*"?(.*?)"?\s*$/m) || [])[1] || filename;
+      let editPR = null;
+      try { editPR = await findPR(ref); } catch (_) { editPR = null; }
+      if (!editPR) {
+        try {
+          await sendNotification('edit_approve_failed', {
+            title: editTitle, filename, comment: '手直しの PR が見つかりません。差し戻しできませんでした。',
+          });
+        } catch (_) { console.error('[review-revise] 手直しの差し戻し失敗通知に失敗しました'); }
+        return {
+          statusCode: 409,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: '手直しの PR が見つかりません。' }),
+        };
+      }
+      try {
+        await commentOnPR(editPR.number, `承認画面から差し戻し: ${comment.trim()}`);
+      } catch (e) {
+        console.error(`[review-revise] 手直し PR へのコメント失敗: ${e.message}`);
+      }
+      const editBaseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
+      try {
+        await sendNotification('edit_revise_requested', {
+          title: editTitle,
+          comment: comment.trim(),
+          prUrl: editPR.html_url || '',
+          reviewUrl: `${editBaseUrl}/review?file=${filename}&ref=${encodeURIComponent(ref)}`,
+        });
+      } catch (e) {
+        console.error(`[review-revise] 手直しの差し戻し通知失敗: ${e.message}`);
+      }
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: '差し戻しを受け付けました。PR にコメントを残しました。',
+          action: 'revise',
+          filename,
+          comment: comment.trim(),
+        }),
+      };
+    }
 
     // ── テーマ禁止判定（コメントの明示指示 or suppress_topic フラグ）─
     // 既存記事の frontmatter から topic 情報を抜き、denylist に登録する。
@@ -211,4 +274,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: err.message }),
     };
   }
-};
+}
+
+exports.handler = event => handler(event);
+exports._handler = handler;

@@ -251,8 +251,11 @@ async function main() {
 
     const ordinary = setup(rawArticle({ status: 'needs_review', refresh: false }), original);
     const blocked = await ordinary.handler(request({ ref: 'draft/ordinary-review' }));
-    assert(blocked.statusCode === 409 && ordinary.state.puts.length === 0 && ordinary.state.notifications.length === 0,
-      '通常経路は main に published の同名記事があれば通知・書き込みなしで409');
+    // 2026-11-09: 黙って失敗しないよう通知を出すことにした（manual-edit-review R4）
+    assert(blocked.statusCode === 409 && ordinary.state.puts.length === 0
+      && ordinary.state.notifications.length === 1
+      && ordinary.state.notifications[0].event === 'edit_approve_failed',
+    '通常経路は main に published の同名記事があれば、書き込みなしで409にし、edit_approve_failed を1回通知する');
 
     let eligible = null;
     for (const filename of fs.readdirSync(path.join(ROOT, 'content', 'posts')).filter(name => name.endsWith('.md'))) {

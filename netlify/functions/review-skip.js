@@ -1,6 +1,7 @@
 'use strict';
 
 const githubApi = require('./lib/github-api');
+const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
 const { appendEntries } = require('./lib/denylist-store');
@@ -25,6 +26,7 @@ async function handler(event, injected = {}) {
   const nowJST = injected.nowJST || githubApi.nowJST;
   const findPR = injected.findPR || githubApi.findPR;
   const closePR = injected.closePR || githubApi.closePR;
+  const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
   const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
   const extractFmField = injected.extractFmField || githubApi.extractFmField;
   const readjustPublishSlots = injected.readjustPublishSlots || githubApi.readjustPublishSlots;
@@ -48,6 +50,46 @@ async function handler(event, injected = {}) {
 
     // frontmatter からタイトル + denylist 用メタを取得
     const fmTitle = (content.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || '';
+
+    // ── 公開中の記事の手直し PR ────────────────────────────────────
+    // 記事のファイル・denylist・公開枠には何も書かず、PR を閉じてコメントを残す。
+    // 枝は消さない（deleteBranch は draft/* だけ）。
+    if (manualEdit.isManualEditRef(ref)) {
+      let editPR = null;
+      try { editPR = await findPR(ref); } catch (_) { editPR = null; }
+      if (!editPR) {
+        try {
+          await sendNotification('edit_approve_failed', {
+            title: fmTitle || filename, filename, comment: '手直しの PR が見つかりません。見送りできませんでした。',
+          });
+        } catch (_) { console.error('[review-skip] 手直しの見送り失敗通知に失敗しました'); }
+        return {
+          statusCode: 409,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: '手直しの PR が見つかりません。' }),
+        };
+      }
+      try { await commentOnPR(editPR.number, '承認画面から見送り'); }
+      catch (e) { console.error(`[review-skip] 手直し PR へのコメント失敗: ${e.message}`); }
+      try { await closePR(editPR.number); }
+      catch (e) { console.error(`[review-skip] 手直し PR のクローズ失敗: ${e.message}`); }
+      try {
+        await sendNotification('edit_skipped', {
+          title: fmTitle || filename,
+          ...(editPR.html_url ? { prUrl: editPR.html_url } : {}),
+        });
+      } catch (e) { console.error(`[review-skip] 手直しの見送り通知失敗: ${e.message}`); }
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `見送りにしました: ${fmTitle || filename}`,
+          action: 'skip',
+          filename,
+        }),
+      };
+    }
+
     const fmExisting = {};
     for (const line of (content.match(/^---[\s\S]+?---/) || [''])[0].split(/\r?\n/)) {
       const m = line.match(/^([a-zA-Z_]+):\s*"?(.*?)"?\s*$/);

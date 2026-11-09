@@ -1,6 +1,7 @@
 'use strict';
 
 const githubApi = require('./lib/github-api');
+const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
@@ -328,13 +329,238 @@ async function handleRefreshApproval({
   };
 }
 
+// 手直し PR でマージしてよい mergeable_state。
+// unstable（CI 失敗中）・blocked（保護）・dirty（衝突）・behind（遅れ）・unknown（未確定）は
+// 「今はマージしない」とし、状態を通知して人に委ねる。
+const MANUAL_EDIT_MERGEABLE_STATES = new Set(['clean', 'has_hooks']);
+
+/**
+ * 公開中の記事の手直し PR（枝 edit/<slug>）の承認。
+ *
+ * 日次の下書きと違い、main の記事は最初から published なので main の
+ * review_status では成功を判定しない。PR をマージできたか（getPR().merged）で見る。
+ * 枝は消さない（厳守事項 6）。frontmatter の review_status・publish_at なども触らない。
+ */
+async function handleManualEditApproval({
+  filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
+  getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+  sendNotification, nowJST,
+}) {
+  let title = filename;
+  const prUrlOf = pr => (pr && pr.html_url ? pr.html_url : '');
+  const failure = async (statusCode, comment, prUrl = '') => {
+    try {
+      await sendNotification('edit_approve_failed', { title, comment, ...(prUrl ? { prUrl } : {}) });
+    } catch (_) {
+      console.error('[review-approve] 手直しの失敗通知送信に失敗しました');
+    }
+    return {
+      statusCode,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: comment }),
+    };
+  };
+  const success = (message, extra = {}) => ({
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, action: 'edit_approve', filename, ...extra }),
+  });
+
+  // 1. サーバー側で手直し PR の条件を確かめる（画面から送られた値を信じない）。
+  const check = await manualEdit.checkManualEditPR({ filename, ref, findPR, listPRFiles, getFile });
+  const branchFile = check.branchFile;
+  const branchContent = branchFile ? branchFile.content : '';
+  const branchMeta = parseFrontmatterMeta(branchContent);
+  if (branchMeta.title) title = branchMeta.title;
+  const prUrl = prUrlOf(check.pr);
+  if (!check.ok) {
+    // findPR(ref) で開いている PR が見つからないとき、画面が表示に使った PR 番号が
+    // 送られていれば、その PR がマージ済みかどうかを確かめる。
+    // pr_number は画面から来た値なので、枝の名前が ref と一致することを必ず先に確かめる。
+    if (!check.pr && Number.isInteger(pr_number) && pr_number > 0) {
+      let closedPR = null;
+      try { closedPR = await getPR(pr_number); }
+      catch (_) { closedPR = null; }
+      const mergedIntoMain = closedPR
+        && closedPR.head && closedPR.head.ref === ref
+        && closedPR.base && closedPR.base.ref === 'main'
+        && closedPR.merged === true;
+      if (mergedIntoMain) {
+        const closedPrUrl = prUrlOf(closedPR);
+        try {
+          await sendNotification('edit_processed', { title, ...(closedPrUrl ? { prUrl: closedPrUrl } : {}) });
+        } catch (_) {
+          console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+        }
+        return success('この手直しはすでに反映済みです。', { processed: true });
+      }
+    }
+    return failure(409, (check.reasons || []).join(' / ') || '手直し PR として扱えません。', prUrl);
+  }
+
+  // 619-629 の代わり: 二度押しは main の review_status ではなく PR の merged で判定する。
+  if (check.pr.merged === true || check.pr.merged_at) {
+    try { await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) }); }
+    catch (_) { console.error('[review-approve] 手直しの処理済み通知送信に失敗しました'); }
+    return success('この手直しはすでに反映済みです。', { processed: true });
+  }
+
+  // 2. 画面が見た版だけを承認できるようにする。
+  if (!head_sha || head_sha !== check.headSha) {
+    return failure(409, '画面を開いた後に PR が更新されました。画面を開き直してください', prUrl);
+  }
+
+  // 3. 照合の停止と上書き（390-404 と同じ判定・同じ条件）。
+  const branchSha = branchFile.sha;
+  const factBlocking = branchMeta.fact_check_blocking === true
+    || String(branchMeta.fact_check_blocking) === 'true'
+    || branchMeta.fact_check_status === 'revise';
+  const overrideAccepted = factBlocking && fact_check_override === true;
+  if (factBlocking && (!overrideAccepted || !file_sha || file_sha !== branchSha)) {
+    const statusCode = overrideAccepted ? 409 : 400;
+    const reason = overrideAccepted
+      ? '記事の内容が変わりました。レビュー画面を開き直して、もう一度確かめてください'
+      : `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。直す場合は差し戻してください。指摘を確認したうえで公開する場合は、レビュー画面の確認欄に印を付けて押してください`;
+    try {
+      await sendNotification('quality_blocked', { title, filename, reasons: [reason] });
+    } catch (_) {
+      console.error('[review-approve] 手直しの照合停止通知送信に失敗しました');
+    }
+    return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+  }
+  const factOverride = overrideAccepted ? factOverrideUpdates(branchMeta, file_sha, nowJST()) : null;
+
+  // 出典ガード（枝の内容で判定）。
+  const sourceGuard = approvalSourceGuard(branchContent);
+  if (sourceGuard.blocked) {
+    console.warn(`[review-approve] 手直しの承認拒否(出典ガード): ${filename} — ${(sourceGuard.reasons || []).join(' / ')}`);
+    try {
+      await sendNotification('source_blocked', { title, filename, reasons: sourceGuard.reasons || [] });
+    } catch (notifyErr) {
+      console.error(`[review-approve] 出典ガード通知送信失敗: ${notifyErr.message}`);
+    }
+    return {
+      statusCode: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Source review is required before approval.', blocked: true, reasons: sourceGuard.reasons }),
+    };
+  }
+
+  // 仮置きタイトル。
+  if (branchMeta.title && isPlaceholderTitle(branchMeta.title)) {
+    const reason = 'タイトルが仮置きのままです（記事に合ったタイトルを付けてください）';
+    try { await sendNotification('quality_blocked', { title, filename, reasons: [reason] }); }
+    catch (notifyErr) { console.error(`[review-approve] 手直しの品質ゲート通知送信失敗: ${notifyErr.message}`); }
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+  }
+
+  // 品質ゲート（recommendation・各スコア）。
+  const recommendation = factOverride && Object.hasOwn(factOverride, 'recommendation')
+    ? factOverride.recommendation
+    : branchMeta.recommendation;
+  if (recommendation) {
+    const score = key => {
+      const number = Number.parseInt(branchMeta[key], 10);
+      return Number.isNaN(number) ? null : number;
+    };
+    const reasons = [];
+    if (recommendation === 'reject') reasons.push('recommendation が reject です');
+    if (recommendation === 'revise') reasons.push('recommendation が revise です');
+    const fit = score('customer_fit_score');
+    const intent = score('search_intent_score');
+    const alignment = sourceGuard && sourceGuard.alignment && typeof sourceGuard.alignment.score === 'number'
+      ? sourceGuard.alignment.score
+      : score('source_alignment_score');
+    if (fit != null && fit <= 3) reasons.push(`顧客適合スコアが低い (${fit}/5)`);
+    if (intent != null && intent <= 3) reasons.push(`検索意図スコアが低い (${intent}/5)`);
+    if (alignment != null && alignment <= 3) reasons.push(`出典一致スコアが低い (${alignment}/5)`);
+    if (reasons.length) {
+      console.warn(`[review-approve] 手直しの承認拒否(品質ゲート): ${filename} — ${reasons.join(' / ')}`);
+      try { await sendNotification('quality_blocked', { title, filename, reasons }); }
+      catch (notifyErr) { console.error(`[review-approve] 手直しの品質ゲート通知送信失敗: ${notifyErr.message}`); }
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'この記事は品質ゲートにより承認できません。差し戻して内容・出典・タイトルを見直してください。', blocked: true, recommendation, reasons }),
+      };
+    }
+  }
+
+  // 4. 照合の上書きが受け入れられたときだけ、枝に上書きの記録を書く。
+  //    それ以外では枝に何も書かない（review_status・publish_at などは触らない）。
+  let expectedHeadSha = check.headSha;
+  if (factOverride) {
+    let written;
+    try {
+      const updated = updateApprovalFields(branchContent, { ...factOverride, fact_check_override_at: factOverride.fact_check_override_at || nowJST() });
+      console.log(`[review-approve] 手直しで照合の指摘を人の判断で上書き: ${filename}`);
+      written = await putFile(filepath, updated, branchSha, `edit: ${title} の照合の上書き`, ref);
+    } catch (error) {
+      return failure(409, '手直しの枝に照合の記録を書けませんでした。画面を開き直してください', prUrl);
+    }
+    const commitSha = written && written.commit ? written.commit.sha : '';
+    if (!commitSha) {
+      return failure(409, '承認の書き込みの版を取得できませんでした', prUrl);
+    }
+    expectedHeadSha = commitSha;
+  }
+
+  // 5. マージできる状態を待ち、clean / has_hooks のときだけマージする。
+  let stable;
+  try {
+    stable = await waitForMergeable(check.pr.number, { maxAttempts: 12, intervalMs: 2000, expectedHeadSha });
+  } catch (error) {
+    return failure(409, `マージできる状態を確認できませんでした（${error.message}）。`, prUrl);
+  }
+  const mergeableState = stable && stable.mergeable_state ? stable.mergeable_state : '';
+  const mergeableLabel = !mergeableState || mergeableState === 'unknown' ? '不明' : mergeableState;
+  const headMatches = Boolean(stable && stable.head && stable.head.sha === expectedHeadSha);
+  if (!stable || stable.mergeable !== true || !MANUAL_EDIT_MERGEABLE_STATES.has(stable.mergeable_state) || !headMatches) {
+    return failure(409, `この PR は今はマージできません（mergeable_state=${mergeableLabel}）。GitHub で状態を確認してください`, prUrl);
+  }
+
+  try {
+    await mergePR(check.pr.number, `edit: ${title} (#${check.pr.number})`, { expectedHeadSha });
+  } catch (error) {
+    console.error(`[review-approve] 手直しの PR マージ失敗: ${error.message}`);
+    return failure(409, `この PR をマージできませんでした（${error.message}）。GitHub で状態を確認してください`, prUrl);
+  }
+
+  // 6. 成功判定は getPR(n).merged で行う（main の review_status では判定しない）。
+  let merged = false;
+  try {
+    const after = await getPR(check.pr.number);
+    merged = Boolean(after && after.merged === true);
+  } catch (_) {
+    merged = false;
+  }
+  if (!merged) {
+    return failure(409, 'マージの結果を確認できませんでした（merged になりませんでした）。GitHub で状態を確認してください', prUrl);
+  }
+
+  // 7. 枝は消さない。
+  const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
+  const slug = branchMeta.slug ? String(branchMeta.slug) : '';
+  try {
+    await sendNotification('edit_published', {
+      title,
+      publicUrl: slug ? `${baseUrl}/blog/${slug}/` : '',
+      ...(prUrl ? { prUrl } : {}),
+    });
+  } catch (_) { console.error('[review-approve] 手直しの反映通知送信に失敗しました'); }
+  return success(`手直しを反映しました: ${title}`, { merged: true });
+}
+
 async function handler(event, injected = {}) {
   const getFile = injected.getFile || githubApi.getFile;
   const putFile = injected.putFile || githubApi.putFile;
   const updateFrontmatter = injected.updateFrontmatter || githubApi.updateFrontmatter;
   const nowJST = injected.nowJST || githubApi.nowJST;
   const findPR = injected.findPR || githubApi.findPR;
+  const listPRFiles = injected.listPRFiles || githubApi.listPRFiles;
+  const getPR = injected.getPR || githubApi.getPR;
   const closePR = injected.closePR || githubApi.closePR;
+  const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
   const waitForMergeable = injected.waitForMergeable || githubApi.waitForMergeable;
   const mergePR = injected.mergePR || githubApi.mergePR;
   const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
@@ -342,6 +568,8 @@ async function handler(event, injected = {}) {
   const sendNotification = injected.sendNotification || notify.sendNotification;
   let refreshRequest = false;
   let refreshFilename = '';
+  let editRequest = false;
+  let editFilename = '';
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
@@ -350,15 +578,31 @@ async function handler(event, injected = {}) {
   if (auth.response) return auth.response;
 
   try {
-    const { filename, publish_at, ref, file_sha, fact_check_override } = JSON.parse(event.body || '{}');
+    const { filename, publish_at, ref, file_sha, fact_check_override, head_sha, pr_number } = JSON.parse(event.body || '{}');
     refreshRequest = typeof ref === 'string' && ref.startsWith('draft/refresh-');
     refreshFilename = filename || '';
 
-    if (!filename) {
+    if (!filename || !/^[\w-]+\.md$/.test(String(filename))) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
+    }
+    if (ref !== undefined && (typeof ref !== 'string' || ref.length > 200)) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'ref が正しくありません' }) };
     }
 
     const filepath = `content/posts/${filename}`;
+
+    // 公開中の記事の手直し PR（枝 edit/<slug>）は専用の経路で扱う。
+    // main が最初から published なので、下の「公開済みの 409」より前に分ける。
+    if (manualEdit.isManualEditRef(ref)) {
+      editRequest = true;
+      editFilename = filename;
+      return await handleManualEditApproval({
+        filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
+        getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+        sendNotification, nowJST,
+      });
+    }
+
     let branchFile;
     try {
       branchFile = await getFile(filepath, ref || undefined);
@@ -417,6 +661,14 @@ async function handler(event, injected = {}) {
       try {
         const currentMain = await getFile(filepath, 'main');
         if (mainStatus(currentMain.content) === 'published') {
+          // バックグラウンド関数は常に 202 を返すため、断ったことを必ず通知する。
+          try {
+            await sendNotification('edit_approve_failed', {
+              title: branchMeta.title || filename,
+              comment: 'この画面では承認できない種類の PR です。GitHub で確認してください',
+              filename,
+            });
+          } catch (_) { console.error('[review-approve] 承認できない種類の通知送信に失敗しました'); }
           return { statusCode: 409, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '公開済みの記事は通常の承認経路で変更できません。' }) };
         }
       } catch (error) {
@@ -666,6 +918,16 @@ async function handler(event, injected = {}) {
       }),
     };
   } catch (err) {
+    if (editRequest) {
+      try { await sendNotification('edit_approve_failed', { title: editFilename || '手直し', comment: '手直しの承認処理に失敗しました。' }); }
+      catch (_) { console.error('[review-approve] 手直しの失敗通知送信に失敗しました'); }
+      console.error('[review-approve] 手直しの承認処理に失敗しました');
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: '手直しの承認処理に失敗しました。' }),
+      };
+    }
     if (refreshRequest) {
       try { await sendNotification('refresh_approve_failed', { title: refreshFilename || '更新案', comment: '更新案の承認処理に失敗しました。' }); }
       catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }

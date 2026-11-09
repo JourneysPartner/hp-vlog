@@ -136,7 +136,8 @@ function logRateLimit(res, label) {
 // ref: 省略時は GITHUB_BRANCH (デフォルト main)
 async function getFile(filepath, ref) {
   const branch = ref || BRANCH();
-  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${branch}`;
+  // ref は枝名（`edit/a b` など）をそのまま URL に置くと壊れるため符号化する。
+  const url = `${API_BASE}/repos/${REPO()}/contents/${filepath}?ref=${encodeURIComponent(branch)}`;
   const h = await headers();
   const res = await fetch(url, { headers: h });
   if (!res.ok) {
@@ -273,6 +274,28 @@ async function listOpenPRs() {
     const batch = await res.json();
     prs.push(...batch);
     if (batch.length < 100) return prs;
+  }
+}
+
+// ── PR の変更ファイル一覧を取得する ────────────────────────────────────
+// 返すのは { filename, status } だけ。1 PR で扱える件数には上限を設ける
+// （手直し PR は記事 1 本＋数ファイルだけなので、301 件以上は異常）。
+async function listPRFiles(prNumber) {
+  const h = await headers();
+  const files = [];
+  for (let page = 1; ; page++) {
+    const url = `${API_BASE}/repos/${REPO()}/pulls/${prNumber}/files?per_page=100&page=${page}`;
+    const res = await fetch(url, { headers: h });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`GitHub PR files ${res.status}: ${text}`);
+    }
+    const batch = await res.json();
+    for (const item of batch) files.push({ filename: item.filename, status: item.status });
+    if (files.length > 300) {
+      throw new Error(`PR #${prNumber} の変更ファイルが多すぎます（301 件以上）`);
+    }
+    if (batch.length < 100) return files;
   }
 }
 
@@ -558,6 +581,7 @@ async function readjustPublishSlots(publishAtStr, excludeFilename) {
 module.exports = {
   getFile, getRef, putFile, updateFrontmatter, removeFrontmatterFields, escapeYamlDoubleQuoted, nowJST,
   findPR, listOpenPRs, getPR, waitForMergeable, mergePR, deleteBranch, closePR, commentOnPR,
+  listPRFiles,
   triggerWorkflow, listWorkflowRuns,
   listDirectory, extractFmField, findApprovedArticlesForDate, readjustPublishSlots,
 };
