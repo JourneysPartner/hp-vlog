@@ -58,14 +58,14 @@ practical_usefulness_score: 5
 lead_value_score: 4
 tax_risk_score: 3
 recommendation: "revise"
-review_warning: "出典: LLM選定の確信度が低い（0.86 < 0.9） / 論点別ルールを部分修正で反映: tsutatsu_citation（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: shotoku_tsutatsu_shihonteki_shishutsu（修正箇所が現行の制度に合うか確認してください） / 【事実の照合】主張 63 件: 裏付けあり 44・修正 1（食い違い 0・期限 0・具体を外した 1）・残った食い違い 0・未解決 1・上限で未照合 0・捨てた主張 1・人が確かめる箇所 18 件・候補の外の資料で裏付け 3 件【/事実の照合】"
+review_warning: "出典: LLM選定の確信度が低い（0.86 < 0.9） / 論点別ルールを部分修正で反映: tsutatsu_citation（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: withholding_scope（修正箇所が現行の制度に合うか確認してください） / 論点別ルールを部分修正で反映: shotoku_tsutatsu_shihonteki_shishutsu（修正箇所が現行の制度に合うか確認してください）"
 source_guard_version: 1
 fact_check_version: 1
-fact_check_status: "revise"
-fact_check_summary: "主張 63 件: 裏付けあり 44・修正 1（食い違い 0・期限 0・具体を外した 1）・残った食い違い 0・未解決 1・上限で未照合 0・捨てた主張 1・人が確かめる箇所 18 件・候補の外の資料で裏付け 3 件"
+fact_check_status: "ok"
+fact_check_summary: "主張 52 件: 裏付けあり 49・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 0・人が確かめる箇所 3 件・AI 裏付けあり・数字未確認 1 件・候補の外の資料で裏付け 7 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "revise"
-fact_check_blocking: true
+fact_check_blocking: false
 ---
 
 一人親方として現場を回していると、元請から「インボイス登録をお願いします」という書面を渡され、そのままにしていませんか。登録すれば消費税を納めることになるのは分かる。でも、いくら払うのか、断ったら仕事が減るのかが分からないまま、返事を先延ばしにしている方も多いでしょう。
