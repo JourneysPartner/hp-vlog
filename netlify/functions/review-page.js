@@ -318,7 +318,8 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   const status     = meta.review_status || 'needs_review';
   const category   = escapeHtml(meta.category || '');
   const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
-  const isManualEdit = manualEdit.isManualEditRef(ref);
+  // 形が正しくない edit/ の枝も手直しの画面として扱い、理由を出して承認を止める。
+  const isManualEdit = manualEdit.isEditRefShape(ref);
   const edit = editContext && typeof editContext === 'object'
     ? editContext
     : { ok: false, reasons: ['手直し PR の情報を確認できませんでした。'], files: [], headSha: '', pr: null, mainFile: null, branchFile: null };
@@ -368,7 +369,11 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   <div class="card mb-4"><div class="card-header bg-white fw-bold">本文の変更箇所</div><div class="card-body">${renderRefreshDiff(editDiffContext, require('marked').marked)}</div></div>
   <div class="card mb-4"><div class="card-header bg-white fw-bold">この PR で変わるファイル</div><div class="card-body">
     ${edit.files && edit.files.length
-      ? `<ul class="mb-0">${edit.files.map(file => `<li><code>${escapeHtml(file.filename)}</code>${file.status ? `（${escapeHtml(file.status)}）` : ''}</li>`).join('')}</ul>`
+      ? `<ul class="mb-0">${edit.files.map(file => {
+        const additions = Number.isFinite(file.additions) ? file.additions : 0;
+        const deletions = Number.isFinite(file.deletions) ? file.deletions : 0;
+        return `<li><code>${escapeHtml(file.filename)}</code>${file.status ? `（${escapeHtml(file.status)}、追加 ${additions} 行・削除 ${deletions} 行）` : ''}</li>`;
+      }).join('')}</ul>`
       : '<p class="text-muted">変更ファイルを確認できませんでした。</p>'}
   </div></div>` : '';
 
@@ -689,7 +694,9 @@ async function handleAction(action, forceSuppress) {
             ? '公開中の記事へ反映しています。数分後にサイトに出ます。'
             : '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
-        resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
+        resultEl.textContent = IS_MANUAL_EDIT
+          ? '差し戻しを伝えました。Claude が直します。' + suppressNote
+          : '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
       } else if (action === 'skip') {
         resultEl.textContent = '見送りにしました。PRは自動でクローズされます。' + suppressNote;
       } else {
@@ -740,9 +747,34 @@ exports.handler = async (event) => {
   }
 
   try {
+    // 公開中の記事の手直し PR（枝 edit/<slug>、および形が正しくない edit/ の枝）は、
+    // サーバー側で毎回条件を確かめる。
+    const editShape = manualEdit.isEditRefShape(ref);
+    let editContext = null;
+    if (editShape) {
+      assertGitHubCredentials();
+      editContext = await manualEdit.checkManualEditPR({
+        filename,
+        ref,
+        findPR: githubApi.findPR,
+        listPRFiles: githubApi.listPRFiles,
+        getFile: githubApi.getFile,
+        compareCommits: githubApi.compareCommits,
+      });
+    }
+
+    // 手直し PR は、checkManualEditPR が読んだのと同じ先頭のコミット（head sha）から
+    // 本文を描く。表示した版と承認する版を食い違わせない。
+    // 形が正しくない edit/ の枝は、読める main を描いて理由を出す。
+    let articleRef = ref;
+    if (editShape) {
+      if (!manualEdit.isManualEditRef(ref)) articleRef = 'main';
+      else if (editContext && editContext.headSha) articleRef = editContext.headSha;
+    }
+
     let raw;
     let fileSha = '';
-    if (ref) {
+    if (articleRef) {
       // ref が明示されていれば必ずその ref から取得する。
       //
       // 以前はローカル読み込みを無条件に優先していたため、記事が main にも
@@ -751,8 +783,8 @@ exports.handler = async (event) => {
       // その結果、下書きブランチの修正版を見に行ったつもりで main の
       // 修正前の本文が表示された（2026-08-17 に発生）。
       // 「ローカル優先」は netlify dev のためのものなので、ref 指定時は使わない。
-      assertGitHubCredentials();
-      ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, ref));
+      if (!editShape) assertGitHubCredentials();
+      ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, articleRef));
     } else {
       try {
         // ローカルファイルがあればそちらを優先（netlify dev 用）
@@ -788,22 +820,10 @@ exports.handler = async (event) => {
       }
     }
 
-    // 公開中の記事の手直し PR（枝 edit/<slug>）は、サーバー側で毎回条件を確かめる。
-    let editContext = null;
-    if (manualEdit.isManualEditRef(ref)) {
-      editContext = await manualEdit.checkManualEditPR({
-        filename,
-        ref,
-        findPR: githubApi.findPR,
-        listPRFiles: githubApi.listPRFiles,
-        getFile: githubApi.getFile,
-      });
-    }
-
     return {
       statusCode: 200,
       headers,
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key), fileSha }, editContext),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, articleRef, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key), fileSha }, editContext),
     };
   } catch (err) {
     const msg = String(err && err.message || err);

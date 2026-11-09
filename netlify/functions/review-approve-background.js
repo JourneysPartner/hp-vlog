@@ -330,9 +330,80 @@ async function handleRefreshApproval({
 }
 
 // 手直し PR でマージしてよい mergeable_state。
-// unstable（CI 失敗中）・blocked（保護）・dirty（衝突）・behind（遅れ）・unknown（未確定）は
-// 「今はマージしない」とし、状態を通知して人に委ねる。
+// 通常は clean・has_hooks だけ。unstable（自動の確認が失敗中・実行中）は、
+// 失敗が無く pending だけなら待ち、全部終わってから改めて確かめる。
 const MANUAL_EDIT_MERGEABLE_STATES = new Set(['clean', 'has_hooks']);
+
+// 手直し PR の自動の確認（commit status・check runs）を待つ間隔と上限。
+// 背景関数は 15 分まで動けるので、8 分まで待って残りをマージに使う。
+const EDIT_CHECK_WAIT = Object.freeze({ intervalMs: 15000, maxWaitMs: 8 * 60 * 1000 });
+
+const EDIT_CHECK_HEAD_CHANGED = '画面を開いた後に PR が更新されました。画面を開き直してください';
+const EDIT_CHECK_FAILED = '自動の確認（試験・試し公開）が失敗しています。Claude に確認を頼んでください';
+const EDIT_CHECK_TIMEOUT = '自動の確認が終わっていません。5 分ほどおいて画面を開き直し、もう一度押してください';
+
+const FAILED_CHECK_CONCLUSIONS = new Set(['failure', 'timed_out', 'cancelled', 'action_required']);
+
+// commit status と check runs を読み、失敗と pending を数える。
+async function readEditChecks(getCombinedStatus, listCheckRuns, sha) {
+  const [status, runs] = await Promise.all([
+    getCombinedStatus(sha),
+    listCheckRuns(sha),
+  ]);
+  const statuses = Array.isArray(status && status.statuses) ? status.statuses : [];
+  const checkRuns = Array.isArray(runs && runs.check_runs) ? runs.check_runs : [];
+  const failures = [];
+  for (const item of statuses) {
+    const state = String(item && item.state || '');
+    if (state === 'failure' || state === 'error') {
+      failures.push(`commit status ${item.context ? `${item.context}: ` : ''}${state}`);
+    }
+  }
+  if (!failures.length && statuses.length && ['failure', 'error'].includes(String(status && status.state || ''))) {
+    failures.push(`commit status: ${String(status.state)}`);
+  }
+  for (const run of checkRuns) {
+    if (FAILED_CHECK_CONCLUSIONS.has(String(run && run.conclusion || ''))) {
+      failures.push(`check run ${run.name ? `${run.name}: ` : ''}${run.conclusion}`);
+    }
+  }
+  const pending = statuses.some(item => String(item && item.state || '') === 'pending')
+    || checkRuns.some(run => String(run && run.status || '') !== 'completed')
+    || (statuses.length > 0 && String(status && status.state || '') === 'pending');
+  return { failures, pending };
+}
+
+/**
+ * unstable の手直し PR について、失敗が無く pending だけなら待つ。
+ * 失敗が 1 つでもあれば待たずに止める。head sha が変わったら止める。
+ */
+async function waitForEditChecks({
+  prNumber, headSha, getPR, getCombinedStatus, listCheckRuns,
+  intervalMs, maxWaitMs, sleep,
+}) {
+  const maxAttempts = Math.max(1, Math.ceil(maxWaitMs / Math.max(1, intervalMs)));
+  const headChanged = { ok: false, reason: EDIT_CHECK_HEAD_CHANGED };
+  const checkFailed = { ok: false, reason: EDIT_CHECK_FAILED };
+  const timedOut = { ok: false, reason: EDIT_CHECK_TIMEOUT };
+  try {
+    for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+      const pr = await getPR(prNumber);
+      if (!pr || !pr.head || pr.head.sha !== headSha) return headChanged;
+      const checks = await readEditChecks(getCombinedStatus, listCheckRuns, headSha);
+      if (checks.failures.length) {
+        console.warn(`[review-approve] 手直しの自動の確認が失敗: ${checks.failures.join(' / ')}`);
+        return checkFailed;
+      }
+      if (!checks.pending) return { ok: true };
+      if (attempt === maxAttempts) break;
+      await sleep(intervalMs);
+    }
+  } catch (error) {
+    console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
+    return { ok: false, reason: '自動の確認の状態を確認できませんでした。GitHub で状態を確認してください' };
+  }
+  return timedOut;
+}
 
 /**
  * 公開中の記事の手直し PR（枝 edit/<slug>）の承認。
@@ -344,13 +415,16 @@ const MANUAL_EDIT_MERGEABLE_STATES = new Set(['clean', 'has_hooks']);
 async function handleManualEditApproval({
   filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
   getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+  compareCommits, getCombinedStatus, listCheckRuns, editCheckWait = {}, sleep,
   sendNotification, nowJST,
 }) {
   let title = filename;
   const prUrlOf = pr => (pr && pr.html_url ? pr.html_url : '');
-  const failure = async (statusCode, comment, prUrl = '') => {
+  const checkWait = { ...EDIT_CHECK_WAIT, ...(editCheckWait || {}) };
+  const waitFn = typeof sleep === 'function' ? sleep : ms => new Promise(resolve => setTimeout(resolve, ms));
+  const failure = async (statusCode, comment, prUrl = '', event = 'edit_approve_failed') => {
     try {
-      await sendNotification('edit_approve_failed', { title, comment, ...(prUrl ? { prUrl } : {}) });
+      await sendNotification(event, { title, comment, ...(prUrl ? { prUrl } : {}) });
     } catch (_) {
       console.error('[review-approve] 手直しの失敗通知送信に失敗しました');
     }
@@ -367,12 +441,21 @@ async function handleManualEditApproval({
   });
 
   // 1. サーバー側で手直し PR の条件を確かめる（画面から送られた値を信じない）。
-  const check = await manualEdit.checkManualEditPR({ filename, ref, findPR, listPRFiles, getFile });
+  const check = await manualEdit.checkManualEditPR({
+    filename, ref, findPR, listPRFiles, getFile, compareCommits,
+  });
   const branchFile = check.branchFile;
   const branchContent = branchFile ? branchFile.content : '';
   const branchMeta = parseFrontmatterMeta(branchContent);
   if (branchMeta.title) title = branchMeta.title;
   const prUrl = prUrlOf(check.pr);
+
+  // edit/ で始まるが名前の形が正しくない枝は、この画面では扱えない。
+  // 記事のファイルにも denylist にも書かず、ワークフローも起動しない。
+  if (manualEdit.isEditRefShape(ref) && !manualEdit.isManualEditRef(ref)) {
+    return failure(409, '手直しの枝の名前の形が正しくありません。', prUrl, 'edit_unsupported');
+  }
+
   if (!check.ok) {
     // findPR(ref) で開いている PR が見つからないとき、画面が表示に使った PR 番号が
     // 送られていれば、その PR がマージ済みかどうかを確かめる。
@@ -386,23 +469,20 @@ async function handleManualEditApproval({
         && closedPR.base && closedPR.base.ref === 'main'
         && closedPR.merged === true;
       if (mergedIntoMain) {
-        const closedPrUrl = prUrlOf(closedPR);
-        try {
-          await sendNotification('edit_processed', { title, ...(closedPrUrl ? { prUrl: closedPrUrl } : {}) });
-        } catch (_) {
-          console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+        // 送られた head_sha と、マージされた版が同じときだけ「処理済み」。
+        if (head_sha && closedPR.head.sha === head_sha) {
+          const closedPrUrl = prUrlOf(closedPR);
+          try {
+            await sendNotification('edit_processed', { title, ...(closedPrUrl ? { prUrl: closedPrUrl } : {}) });
+          } catch (_) {
+            console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+          }
+          return success('この手直しはすでに反映済みです。', { processed: true });
         }
-        return success('この手直しはすでに反映済みです。', { processed: true });
+        return failure(409, '画面で見た版と違う版がマージされています。GitHub で確認してください', prUrlOf(closedPR) || prUrl);
       }
     }
     return failure(409, (check.reasons || []).join(' / ') || '手直し PR として扱えません。', prUrl);
-  }
-
-  // 619-629 の代わり: 二度押しは main の review_status ではなく PR の merged で判定する。
-  if (check.pr.merged === true || check.pr.merged_at) {
-    try { await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) }); }
-    catch (_) { console.error('[review-approve] 手直しの処理済み通知送信に失敗しました'); }
-    return success('この手直しはすでに反映済みです。', { processed: true });
   }
 
   // 2. 画面が見た版だけを承認できるようにする。
@@ -502,6 +582,13 @@ async function handleManualEditApproval({
     if (!commitSha) {
       return failure(409, '承認の書き込みの版を取得できませんでした', prUrl);
     }
+    // 書いた版の親が、画面で見た版（check.headSha）でなければ、その間に
+    // 枝が進んでいる。古い内容の上に書いた可能性があるのでマージしない。
+    const parentSha = written.commit.parents && written.commit.parents[0]
+      ? String(written.commit.parents[0].sha || '') : '';
+    if (!parentSha || parentSha !== check.headSha) {
+      return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+    }
     expectedHeadSha = commitSha;
   }
 
@@ -512,10 +599,40 @@ async function handleManualEditApproval({
   } catch (error) {
     return failure(409, `マージできる状態を確認できませんでした（${error.message}）。`, prUrl);
   }
+  if (!stable) {
+    return failure(409, 'この PR は今はマージできません（状態を確認できませんでした）。GitHub で状態を確認してください', prUrl);
+  }
+  if (!stable.head || stable.head.sha !== expectedHeadSha) {
+    return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+  }
+
+  // unstable は「自動の確認が失敗中か実行中」。失敗が無ければ終わるまで待つ。
+  if (stable.mergeable_state === 'unstable') {
+    const settled = await waitForEditChecks({
+      prNumber: check.pr.number,
+      headSha: expectedHeadSha,
+      getPR,
+      getCombinedStatus,
+      listCheckRuns,
+      intervalMs: checkWait.intervalMs,
+      maxWaitMs: checkWait.maxWaitMs,
+      sleep: waitFn,
+    });
+    if (!settled.ok) return failure(409, settled.reason, prUrl);
+    // 全部終わったら、改めてマージできる状態を確かめる。
+    try {
+      stable = await waitForMergeable(check.pr.number, { maxAttempts: 12, intervalMs: 2000, expectedHeadSha });
+    } catch (error) {
+      return failure(409, `マージできる状態を確認できませんでした（${error.message}）。`, prUrl);
+    }
+    if (!stable || !stable.head || stable.head.sha !== expectedHeadSha) {
+      return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+    }
+  }
+
   const mergeableState = stable && stable.mergeable_state ? stable.mergeable_state : '';
   const mergeableLabel = !mergeableState || mergeableState === 'unknown' ? '不明' : mergeableState;
-  const headMatches = Boolean(stable && stable.head && stable.head.sha === expectedHeadSha);
-  if (!stable || stable.mergeable !== true || !MANUAL_EDIT_MERGEABLE_STATES.has(stable.mergeable_state) || !headMatches) {
+  if (stable.mergeable !== true || !MANUAL_EDIT_MERGEABLE_STATES.has(stable.mergeable_state)) {
     return failure(409, `この PR は今はマージできません（mergeable_state=${mergeableLabel}）。GitHub で状態を確認してください`, prUrl);
   }
 
@@ -523,6 +640,17 @@ async function handleManualEditApproval({
     await mergePR(check.pr.number, `edit: ${title} (#${check.pr.number})`, { expectedHeadSha });
   } catch (error) {
     console.error(`[review-approve] 手直しの PR マージ失敗: ${error.message}`);
+    // 同時に 2 回押されたときは、相手が先にマージしている。merged を確かめる。
+    let alreadyMerged = false;
+    try {
+      const after = await getPR(check.pr.number);
+      alreadyMerged = Boolean(after && after.merged === true);
+    } catch (_) { alreadyMerged = false; }
+    if (alreadyMerged) {
+      try { await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) }); }
+      catch (_) { console.error('[review-approve] 手直しの処理済み通知送信に失敗しました'); }
+      return success('この手直しはすでに反映済みです。', { processed: true });
+    }
     return failure(409, `この PR をマージできませんでした（${error.message}）。GitHub で状態を確認してください`, prUrl);
   }
 
@@ -563,6 +691,11 @@ async function handler(event, injected = {}) {
   const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
   const waitForMergeable = injected.waitForMergeable || githubApi.waitForMergeable;
   const mergePR = injected.mergePR || githubApi.mergePR;
+  const compareCommits = injected.compareCommits || githubApi.compareCommits;
+  const getCombinedStatus = injected.getCombinedStatus || githubApi.getCombinedStatus;
+  const listCheckRuns = injected.listCheckRuns || githubApi.listCheckRuns;
+  const editCheckWait = injected.editCheckWait || {};
+  const sleep = injected.sleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
   const findApprovedArticlesForDate = injected.findApprovedArticlesForDate || githubApi.findApprovedArticlesForDate;
   const sendNotification = injected.sendNotification || notify.sendNotification;
@@ -593,12 +726,15 @@ async function handler(event, injected = {}) {
 
     // 公開中の記事の手直し PR（枝 edit/<slug>）は専用の経路で扱う。
     // main が最初から published なので、下の「公開済みの 409」より前に分ける。
-    if (manualEdit.isManualEditRef(ref)) {
+    // edit/ で始まるが名前の形が正しくない枝も、ここで断る（通常の下書きとして
+    // 扱うと、記事のファイルを書き換えてしまう）。
+    if (manualEdit.isEditRefShape(ref)) {
       editRequest = true;
       editFilename = filename;
       return await handleManualEditApproval({
         filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
         getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+        compareCommits, getCombinedStatus, listCheckRuns, editCheckWait, sleep,
         sendNotification, nowJST,
       });
     }
@@ -663,7 +799,7 @@ async function handler(event, injected = {}) {
         if (mainStatus(currentMain.content) === 'published') {
           // バックグラウンド関数は常に 202 を返すため、断ったことを必ず通知する。
           try {
-            await sendNotification('edit_approve_failed', {
+            await sendNotification('edit_unsupported', {
               title: branchMeta.title || filename,
               comment: 'この画面では承認できない種類の PR です。GitHub で確認してください',
               filename,

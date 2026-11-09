@@ -509,6 +509,56 @@ function buildMessage(event, data) {
       };
     }
 
+    // 差し戻し・見送りそのものが失敗したとき（成功の通知は出さない）。
+    case 'edit_revise_failed': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】差し戻しを伝えられませんでした',
+        body: [
+          '手直しの PR に差し戻しを伝えられませんでした。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'しばらくしてから、確認画面でもう一度差し戻してください。直せない場合は GitHub で PR を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    case 'edit_skip_failed': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】見送れませんでした',
+        body: [
+          '手直しの PR を見送れませんでした（閉じられませんでした）。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'しばらくしてから、確認画面でもう一度見送ってください。直せない場合は GitHub で PR を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
+    // この画面では扱えない種類の PR（手直しでない公開済みの記事・形が正しくない edit/ の枝）。
+    case 'edit_unsupported': {
+      const { title, comment, prUrl } = data;
+      return {
+        subject: '【手直し】この画面では扱えない PR です',
+        body: [
+          'この画面では扱えない種類の PR が指定されました。',
+          '',
+          title ? `■ 題名: ${title}` : '',
+          comment ? `■ 理由: ${comment}` : '',
+          prUrl ? `▶ Pull Request: ${prUrl}` : '',
+          '',
+          'GitHub で PR の状態を確認してください。',
+        ].filter(Boolean).join('\n'),
+      };
+    }
+
     default:
       return { subject: event, body: JSON.stringify(data, null, 2) };
   }

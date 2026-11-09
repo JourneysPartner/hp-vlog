@@ -73,8 +73,8 @@ function article({
   return ['---', ...lines, '---', body, ''].join('\n');
 }
 
-function prFile(filename, status = 'modified') {
-  return { filename, status };
+function prFile(filename, status = 'modified', extra = {}) {
+  return { filename, status, additions: 3, deletions: 1, ...extra };
 }
 
 const DEFAULT_FILES = [
@@ -97,17 +97,20 @@ function checkContext({
   ref = REF, pr = defaultPR(), files = DEFAULT_FILES,
   main = article({ title: '公開中の題名', summary: '公開中の説明文', body: '公開中の本文です。' }),
   branch = article({ title: '手直し後の題名', summary: '手直し後の説明文', body: '手直し後の本文です。' }),
+  baseSha = 'base-sha', baseFileSha = 'main-sha', baseFile = main,
+  compareCommits = null,
 } = {}) {
   return manualEdit.checkManualEditPR({
     filename: FILENAME,
     ref,
     findPR: async () => pr,
     listPRFiles: async () => files,
+    compareCommits: compareCommits || (async () => ({ merge_base_commit: { sha: baseSha } })),
     getFile: async (file, fileRef) => {
       if (file !== ARTICLE_PATH) throw new Error('GitHub GET 404: not found');
-      return fileRef === 'main'
-        ? { content: main, sha: 'main-sha' }
-        : { content: branch, sha: 'branch-sha' };
+      if (fileRef === 'main') return { content: main, sha: 'main-sha' };
+      if (fileRef === baseSha) return { content: baseFile, sha: baseFileSha };
+      return { content: branch, sha: 'branch-sha' };
     },
   });
 }
@@ -121,35 +124,49 @@ function editSetup({
   pr = defaultPR(),
   branchSha = 'branch-sha',
   mainSha = 'main-sha',
-  putResult = { commit: { sha: 'override-commit' } },
+  baseSha = 'base-sha',
+  baseFileSha = 'main-sha',
+  putResult = { commit: { sha: 'override-commit', parents: [{ sha: 'head-sha' }] } },
   waitResult = { mergeable: true, mergeable_state: 'clean', head: { sha: 'head-sha' } },
   waitError = null,
   mergeError = null,
-  afterMerge = { merged: true },
+  afterMerge = { merged: true, head: { sha: 'head-sha' } },
+  getPR: getPROverride = null,
+  getCombinedStatus = null,
+  listCheckRuns = null,
+  editCheckWait = null,
+  sleep = async () => {},
 } = {}) {
   const state = {
     puts: [], notifications: [], merges: [], waits: [], closes: [], deletes: [],
     comments: [], gets: [], prReads: 0,
   };
+  const waitResults = Array.isArray(waitResult) ? waitResult : null;
   const deps = {
     getFile: async (file, fileRef) => {
       state.gets.push({ file, ref: fileRef });
       if (file !== ARTICLE_PATH) throw new Error('GitHub GET 404: not found');
       if (fileRef === 'main') return { content: main, sha: mainSha };
-      if (fileRef === ref) return { content: branch, sha: branchSha };
-      throw new Error('GitHub GET 404: not found');
+      if (fileRef === baseSha) return { content: main, sha: baseFileSha };
+      return { content: branch, sha: branchSha };
     },
     putFile: async (...args) => { state.puts.push(args); return putResult; },
     updateFrontmatter: api.updateFrontmatter,
     nowJST: () => '2026-11-09T10:00:00+09:00',
     findPR: async () => pr,
     listPRFiles: async () => files,
-    getPR: async () => { state.prReads++; return afterMerge; },
+    compareCommits: async () => ({ merge_base_commit: { sha: baseSha } }),
+    getCombinedStatus: getCombinedStatus || (async () => ({ state: 'success', statuses: [] })),
+    listCheckRuns: listCheckRuns || (async () => ({ total_count: 0, check_runs: [] })),
+    editCheckWait: editCheckWait || { intervalMs: 1, maxWaitMs: 3 },
+    sleep,
+    getPR: getPROverride || (async () => { state.prReads++; return afterMerge; }),
     closePR: async number => state.closes.push(number),
     commentOnPR: async (number, body) => state.comments.push([number, body]),
     waitForMergeable: async (number, options) => {
       state.waits.push({ number, options });
       if (waitError) throw new Error(waitError);
+      if (waitResults) return waitResults[Math.min(state.waits.length - 1, waitResults.length - 1)];
       return waitResult;
     },
     mergePR: async (...args) => {
@@ -271,6 +288,87 @@ async function main() {
     check(allowedFactCheck.ok === true, '照合の記録と test-title-refresh.js は許す');
   }
 
+  console.log('\n── 1b. main と枝で変えてはいけない 6 項目 ──');
+  {
+    const cases = [
+      ['review_status', { status: 'approved' }],
+      ['slug', { slug: 'another-slug' }],
+      ['publish_at', { overrides: { publish_at: '2024-03-01T11:05:00+09:00' } }],
+      ['published_at', { overrides: { published_at: '2024-03-01T11:05:00+09:00' } }],
+      ['approved_at', { overrides: { approved_at: '2024-02-20T11:00:00+09:00' } }],
+      ['publish_slot', { overrides: { publish_slot: 'morning' } }],
+    ];
+    for (const [key, options] of cases) {
+      const result = await checkContext({ branch: article(options) });
+      check(result.ok === false && result.reasons.some(reason => reason.includes(key) && reason.includes('main と違います')),
+        `${key} が main と違えば断り、項目名を理由に出す`);
+    }
+  }
+
+  console.log('\n── 1c. 変更ファイルの状態と名前の変更 ──');
+  {
+    const renamedArticle = await checkContext({
+      files: [prFile('content/posts/2026-01-02-renamed.md', 'renamed', { previous_filename: ARTICLE_PATH })],
+    });
+    check(renamedArticle.ok === false, '記事の名前の変更は断る');
+
+    const removedArticle = await checkContext({ files: [prFile(ARTICLE_PATH, 'removed')] });
+    check(removedArticle.ok === false && removedArticle.reasons.some(reason => reason.includes('「変更」だけ')),
+      '記事の削除は断る');
+
+    const addedArticle = await checkContext({ files: [prFile(ARTICLE_PATH, 'added')] });
+    check(addedArticle.ok === false && addedArticle.reasons.some(reason => reason.includes('「変更」だけ')),
+      '記事の追加は断る');
+
+    const renamedExtra = await checkContext({
+      files: [...DEFAULT_FILES, prFile('data/internal-link-placements.json', 'renamed', { previous_filename: 'data/old-placements.json' })],
+    });
+    check(renamedExtra.ok === false && renamedExtra.reasons.some(reason => reason.includes('状態ではありません')),
+      '許可リストのファイルの名前の変更は断る');
+
+    const removedExtra = await checkContext({
+      files: [...DEFAULT_FILES, prFile('scripts/lib/__tests__/test-title-refresh.js', 'removed')],
+    });
+    check(removedExtra.ok === false, '許可リストのファイルの削除は断る');
+
+    const otherFactCheck = await checkContext({
+      files: [...DEFAULT_FILES, prFile('data/fact-check/another-slug.json', 'modified')],
+    });
+    check(otherFactCheck.ok === false && otherFactCheck.reasons.some(reason => reason.includes('another-slug.json')),
+      '別の slug の照合の記録は断る');
+
+    const upperPath = await checkContext({ files: [prFile('Content/posts/2026-01-01-edit-check.md'), ...DEFAULT_FILES] });
+    check(upperPath.ok === false && upperPath.reasons.some(reason => reason.includes('Content/posts')),
+      '大文字のパスは断る');
+
+    const renameOut = await checkContext({
+      files: [prFile('scripts/build.js', 'renamed', { previous_filename: 'data/internal-link-placements.json' })],
+    });
+    check(renameOut.ok === false && renameOut.reasons.some(reason => reason.includes('scripts/build.js')),
+      '許可リストの外への名前の変更は、変更後の名前で断る');
+  }
+
+  console.log('\n── 1d. main 側の記事が変わっていないか ──');
+  {
+    const same = await checkContext();
+    check(same.ok === true, '共通の親の記事が今の main と同じなら通す');
+
+    const changedMain = await checkContext({ baseFileSha: 'old-main-sha' });
+    check(changedMain.ok === false && changedMain.reasons.some(reason => reason.includes('main 側でこの記事が変わりました')),
+      '共通の親の記事が今の main と違えば断る');
+
+    const noCompare = await checkContext({ compareCommits: async () => { throw new Error('GitHub compare 404'); } });
+    check(noCompare.ok === false && noCompare.reasons.some(reason => reason.includes('共通の親')),
+      '共通の親を確認できなければ断る');
+  }
+
+  console.log('\n── 1e. 下書きの PR ──');
+  {
+    const draft = await checkContext({ pr: defaultPR({ draft: true }) });
+    check(draft.ok === false && draft.reasons.some(reason => reason.includes('下書きの PR')),
+      '下書きの PR は断り、確認できる状態にするよう案内する');
+  }
+
   console.log('\n=== 2. 手直し PR の画面 ===');
   {
     const html = page.renderReviewPage(FILENAME, {
@@ -312,6 +410,31 @@ async function main() {
       '手直し PR 以外では head_sha を送らない');
     check(ordinaryRun.requests.length === 1 && !Object.hasOwn(ordinaryRun.requests[0].body, 'pr_number'),
       '手直し PR 以外では pr_number を送らない');
+
+    // L10: 変更ファイルの状態・追加行数・削除行数
+    const withCounts = page.renderReviewPage(FILENAME, { title: '手直し後の題名', review_status: 'published' },
+      '<p>本文</p>', REF, null, null, {}, editContext({
+        files: [prFile(ARTICLE_PATH, 'modified', { additions: 12, deletions: 4 })],
+      }));
+    check(withCounts.includes('追加 12 行') && withCounts.includes('削除 4 行'), '変更ファイルに追加・削除の行数を出す');
+
+    // L1: 差し戻しの後の文（手直しは Claude が直す）
+    const reviseRun = runPageScript(html);
+    reviseRun.node('reviewComment').value = '見出しを直してください';
+    await vm.runInContext("handleAction('revise')", reviseRun.context);
+    check(reviseRun.node('resultMsg').textContent.includes('差し戻しを伝えました。Claude が直します'),
+      '手直しの差し戻し後は Claude が直すことを伝える');
+    check(!reviseRun.node('resultMsg').textContent.includes('AIが記事を再生成中です'),
+      '手直しの差し戻し後に AI の再生成と書かない');
+
+    // 形が正しくない edit/ の枝も、手直しの画面として理由を出し承認を止める。
+    const invalidHtml = page.renderReviewPage(FILENAME, { title: '公開中の題名', review_status: 'published' },
+      '<p>本文</p>', 'edit/Foo', null, null, {}, {
+        ok: false, reasons: ['手直しの枝の名前の形が正しくありません。'], headSha: '', pr: null, files: [],
+        mainFile: null, branchFile: null,
+      });
+    check(invalidHtml.includes('手直しの枝の名前の形が正しくありません。'), '形が正しくない edit/ の枝は画面に理由を出す');
+    check(/id="btnApprove"[^>]* disabled/.test(invalidHtml), '形が正しくない edit/ の枝は承認ボタンを無効にする');
   }
 
   console.log('\n=== 3. 手直し PR の承認（成功）===');
@@ -334,6 +457,37 @@ async function main() {
     '題名・公開中の記事の URL・PR の URL を通知する');
   }
 
+  console.log('\n── 3b. 照合の上書きの書き込みの親 ──');
+  {
+    const blocking = { fact_check_status: 'revise', fact_check_blocking: true, fact_check_summary: '見出しに食い違い' };
+    const staleParent = editSetup({
+      branch: article({ overrides: blocking }),
+      putResult: { commit: { sha: 'override-commit', parents: [{ sha: 'old-sha' }] } },
+    });
+    const staleParentResponse = await staleParent.run({ head_sha: 'head-sha', file_sha: 'branch-sha', fact_check_override: true });
+    check(staleParentResponse.statusCode === 409 && staleParent.state.merges.length === 0,
+      '書き込みの親が見た版と違えばマージしない');
+    const staleParentNote = findNotification(staleParent.state, 'edit_approve_failed');
+    check(staleParentNote && staleParentNote.data.comment.includes('画面を開いた後に PR が更新されました'),
+      '書き込みの親が違えば画面を開き直すよう通知する');
+
+    const noParent = editSetup({
+      branch: article({ overrides: blocking }),
+      putResult: { commit: { sha: 'override-commit' } },
+    });
+    const noParentResponse = await noParent.run({ head_sha: 'head-sha', file_sha: 'branch-sha', fact_check_override: true });
+    check(noParentResponse.statusCode === 409 && noParent.state.merges.length === 0,
+      '書き込みの親が取れなければマージしない');
+
+    // L5: マージに失敗しても、相手が先にマージしていれば処理済みにする。
+    const alreadyMerged = editSetup({ mergeError: 'GitHub merge 405', afterMerge: { merged: true, head: { sha: 'head-sha' } } });
+    const alreadyMergedResponse = await alreadyMerged.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(alreadyMergedResponse.statusCode === 200 && JSON.parse(alreadyMergedResponse.body).processed === true,
+      'マージの失敗後に merged なら処理済みにする');
+    check(JSON.stringify(notificationEvents(alreadyMerged.state)) === JSON.stringify(['edit_processed']),
+      'マージの失敗後に merged なら edit_processed を通知する');
+  }
+
   console.log('\n── 4. 見た版の head sha ──');
   {
     const missing = editSetup();
@@ -351,7 +505,7 @@ async function main() {
 
   console.log('\n── 5. マージできない状態 ──');
   {
-    for (const [state, mergeable] of [['unstable', true], ['blocked', false], ['dirty', false], ['behind', false]]) {
+    for (const [state, mergeable] of [['blocked', false], ['dirty', false], ['behind', false]]) {
       const harness = editSetup({
         waitResult: { mergeable, mergeable_state: state, head: { sha: 'head-sha' } },
       });
@@ -371,6 +525,99 @@ async function main() {
     const failedWaitResponse = await failedWait.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
     check(failedWaitResponse.statusCode === 409 && failedWait.state.merges.length === 0
       && Boolean(findNotification(failedWait.state, 'edit_approve_failed')), '状態を確認できなければマージしない');
+
+    // has_hooks は今までどおり通す。
+    const hooks = editSetup({ waitResult: { mergeable: true, mergeable_state: 'has_hooks', head: { sha: 'head-sha' } } });
+    const hooksResponse = await hooks.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(hooksResponse.statusCode === 200 && hooks.state.merges.length === 1, 'has_hooks はそのままマージする');
+  }
+
+  console.log('\n── 5b. unstable（自動の確認）──');
+  {
+    const unstableFirst = { mergeable: true, mergeable_state: 'unstable', head: { sha: 'head-sha' } };
+    const cleanSecond = { mergeable: true, mergeable_state: 'clean', head: { sha: 'head-sha' } };
+
+    const pendingThenOk = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: [unstableFirst, cleanSecond],
+        getCombinedStatus: async () => (++reads === 1
+          ? { state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }
+          : { state: 'success', statuses: [{ state: 'success', context: 'ci' }] }),
+        listCheckRuns: async () => ({ total_count: 0, check_runs: [] }),
+      });
+    })();
+    const pendingResponse = await pendingThenOk.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(pendingResponse.statusCode === 200 && pendingThenOk.state.merges.length === 1,
+      'pending が成功に変わったらマージする');
+    check(pendingThenOk.state.waits.length === 2, '確認が終わった後に改めて mergeable を確かめる');
+
+    const pendingRun = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: [unstableFirst, cleanSecond],
+        getCombinedStatus: async () => ({ state: 'success', statuses: [] }),
+        listCheckRuns: async () => (++reads === 1
+          ? { total_count: 1, check_runs: [{ name: 'test', status: 'in_progress', conclusion: null }] }
+          : { total_count: 1, check_runs: [{ name: 'test', status: 'completed', conclusion: 'success' }] }),
+      });
+    })();
+    const pendingRunResponse = await pendingRun.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(pendingRunResponse.statusCode === 200 && pendingRun.state.merges.length === 1,
+      'check run が実行中から成功に変わったらマージする');
+
+    const statusFailed = editSetup({
+      waitResult: unstableFirst,
+      getCombinedStatus: async () => ({ state: 'failure', statuses: [{ state: 'failure', context: 'deploy' }] }),
+    });
+    const statusFailedResponse = await statusFailed.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(statusFailedResponse.statusCode === 409 && statusFailed.state.merges.length === 0,
+      'commit status が失敗ならマージしない');
+    const statusFailedNote = findNotification(statusFailed.state, 'edit_approve_failed');
+    check(statusFailedNote && statusFailedNote.data.comment.includes('自動の確認（試験・試し公開）が失敗しています'),
+      'commit status の失敗を理由に通知する');
+
+    for (const conclusion of ['failure', 'timed_out', 'cancelled', 'action_required']) {
+      const runFailed = editSetup({
+        waitResult: unstableFirst,
+        listCheckRuns: async () => ({ total_count: 1, check_runs: [{ name: 'test', status: 'completed', conclusion }] }),
+      });
+      const runFailedResponse = await runFailed.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+      check(runFailedResponse.statusCode === 409 && runFailed.state.merges.length === 0,
+        `check run が ${conclusion} ならマージしない`);
+    }
+
+    const timedOut = editSetup({
+      waitResult: unstableFirst,
+      getCombinedStatus: async () => ({ state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }),
+      editCheckWait: { intervalMs: 1, maxWaitMs: 3 },
+    });
+    const timedOutResponse = await timedOut.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(timedOutResponse.statusCode === 409 && timedOut.state.merges.length === 0,
+      '時間切れならマージしない');
+    const timedOutNote = findNotification(timedOut.state, 'edit_approve_failed');
+    check(timedOutNote && timedOutNote.data.comment.includes('自動の確認が終わっていません'),
+      '時間切れを理由に通知する');
+
+    const headChanged = (() => {
+      let reads = 0;
+      return editSetup({
+        waitResult: unstableFirst,
+        getCombinedStatus: async () => ({ state: 'pending', statuses: [{ state: 'pending', context: 'ci' }] }),
+        getPR: async () => {
+          reads++;
+          return reads === 1
+            ? { merged: false, head: { sha: 'head-sha' } }
+            : { merged: false, head: { sha: 'new-head-sha' } };
+        },
+      });
+    })();
+    const headChangedResponse = await headChanged.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(headChangedResponse.statusCode === 409 && headChanged.state.merges.length === 0,
+      '待つ間に head sha が変わったらマージしない');
+    const headChangedNote = findNotification(headChanged.state, 'edit_approve_failed');
+    check(headChangedNote && headChangedNote.data.comment.includes('画面を開いた後に PR が更新されました'),
+      '待つ間の head の変化は画面を開き直すよう通知する');
   }
 
   console.log('\n── 6. マージ後の確認と二度押し ──');
@@ -382,13 +629,14 @@ async function main() {
     check(JSON.stringify(notificationEvents(notMerged.state)) === JSON.stringify(['edit_approve_failed']),
       'merged が false なら edit_approve_failed を通知する');
 
-    const already = editSetup({ pr: defaultPR({ merged: true }) });
-    const alreadyResponse = await already.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
-    const alreadyBody = JSON.parse(alreadyResponse.body);
-    check(alreadyResponse.statusCode === 200 && alreadyBody.processed === true && already.state.merges.length === 0,
-      '既にマージ済みならマージせず 200 の処理済みにする');
-    check(JSON.stringify(notificationEvents(already.state)) === JSON.stringify(['edit_processed']),
-      '処理済みは edit_processed を通知する');
+    // L6: 開いている PR の merged の値だけでは処理済みにしない
+    // （findPR は開いている PR しか返さないので、この分岐は起こらない）。
+    const openMergedFlag = editSetup({ pr: defaultPR({ merged: true }) });
+    const openMergedFlagResponse = await openMergedFlag.run({ head_sha: 'head-sha', file_sha: 'branch-sha' });
+    const openMergedFlagBody = JSON.parse(openMergedFlagResponse.body);
+    check(openMergedFlagResponse.statusCode === 200 && openMergedFlagBody.processed === undefined
+      && openMergedFlag.state.merges.length === 1,
+    '開いている PR の merged の値だけでは処理済みにせず、通常どおりマージする');
   }
 
   console.log('\n── 6b. 閉じた手直し PR への二度押し ──');
@@ -404,6 +652,18 @@ async function main() {
     'マージ済みの閉じた PR は正しい pr_number なら書き込みもマージもせず 200 の処理済み');
     check(JSON.stringify(notificationEvents(mergedClosed.state)) === JSON.stringify(['edit_processed']),
       'マージ済みの閉じた PR は edit_processed を 1 回だけ通知する');
+
+    // L6: マージされた版が、画面で見た head sha と違う。
+    const mergedOtherSha = editSetup({
+      pr: null,
+      afterMerge: defaultPR({ merged: true, state: 'closed', head: { ref: REF, sha: 'other-head-sha' } }),
+    });
+    const mergedOtherShaResponse = await mergedOtherSha.run({ pr_number: 901, head_sha: 'head-sha', file_sha: 'branch-sha' });
+    check(mergedOtherShaResponse.statusCode === 409 && mergedOtherSha.state.merges.length === 0 && mergedOtherSha.state.puts.length === 0,
+      'マージ済みでも見た版と違う版なら処理済みにしない');
+    const mergedOtherShaNote = findNotification(mergedOtherSha.state, 'edit_approve_failed');
+    check(mergedOtherShaNote && mergedOtherShaNote.data.comment.includes('画面で見た版と違う版がマージされています'),
+      '見た版と違う版がマージされていたら GitHub で確認するよう通知する');
 
     const wrongBranch = editSetup({
       pr: null,
@@ -485,7 +745,7 @@ async function main() {
 
   console.log('\n=== 9. 手直し PR の差し戻し ===');
   {
-    const state = { puts: [], comments: [], workflows: [], notifications: [], gets: [] };
+    const state = { puts: [], comments: [], workflows: [], notifications: [], gets: [], denylist: 0 };
     const deps = {
       getFile: async (file, ref) => {
         state.gets.push({ file, ref });
@@ -496,7 +756,10 @@ async function main() {
       nowJST: () => '2026-11-09T10:00:00+09:00',
       triggerWorkflow: async (...args) => { state.workflows.push(args); },
       findPR: async () => defaultPR(),
+      listPRFiles: async () => DEFAULT_FILES,
+      compareCommits: async () => ({ merge_base_commit: { sha: 'base-sha' } }),
       commentOnPR: async (number, body) => { state.comments.push([number, body]); },
+      appendEntries: async () => { state.denylist++; return { added: [] }; },
       extractFmField: api.extractFmField,
       readjustPublishSlots: async () => { throw new Error('公開枠の再調整を呼んではいけません'); },
       sendNotification: async (event, data) => state.notifications.push({ event, data }),
@@ -515,6 +778,7 @@ async function main() {
     check(state.notifications[0].data.prUrl === PR_URL
       && state.notifications[0].data.reviewUrl === `https://mori-zeirishi.net/review?file=${FILENAME}&ref=edit%2Fedit-check`,
     'PR の URL と画面の URL を通知する');
+    check(state.denylist === 0, '手直しの差し戻しでは denylist の appendEntries を呼ばない');
   }
 
   console.log('\n=== 10. 手直し PR の見送り ===');
@@ -526,6 +790,8 @@ async function main() {
       updateFrontmatter: api.updateFrontmatter,
       nowJST: () => '2026-11-09T10:00:00+09:00',
       findPR: async () => defaultPR(),
+      listPRFiles: async () => DEFAULT_FILES,
+      compareCommits: async () => ({ merge_base_commit: { sha: 'base-sha' } }),
       closePR: async number => { state.closes.push(number); },
       commentOnPR: async (number, body) => { state.comments.push([number, body]); },
       deleteBranch: async name => { state.deletes.push(name); },
@@ -555,9 +821,141 @@ async function main() {
     const response = await harness.run({}, { ref: 'draft/ordinary-review' });
     check(response.statusCode === 409, '公開済みの記事は通常の承認経路では 409');
     check(harness.state.puts.length === 0 && harness.state.merges.length === 0, '書き込みもマージもしない');
-    const note = findNotification(harness.state, 'edit_approve_failed');
+    const note = findNotification(harness.state, 'edit_unsupported');
     check(Boolean(note) && note.data.comment === 'この画面では承認できない種類の PR です。GitHub で確認してください',
-      '黙って失敗せず edit_approve_failed を通知する');
+      '黙って失敗せず edit_unsupported を通知する');
+  }
+
+  console.log('\n=== 11b. 形が正しくない edit/ の枝 ===');
+  {
+    const badRefs = ['edit/Foo', 'edit/2026/foo', 'edit/foo.bar', `edit/${'a'.repeat(82)}`];
+    for (const badRef of badRefs) {
+      check(manualEdit.isManualEditRef(badRef) === false, `${badRef.slice(0, 24)}… は手直しの枝として扱わない`);
+      const checked = await checkContext({ ref: badRef });
+      check(checked.ok === false && checked.reasons.some(reason => reason.includes('形が正しくありません')),
+        `${badRef.slice(0, 24)}… は形が正しくないと理由を出す`);
+    }
+
+    const approveHarness = editSetup({ ref: 'edit/Foo' });
+    const approveResponse = await approveHarness.run({ head_sha: 'head-sha', file_sha: 'branch-sha' }, { ref: 'edit/Foo' });
+    check(approveResponse.statusCode === 409 && approveHarness.state.puts.length === 0 && approveHarness.state.merges.length === 0,
+      '形が正しくない枝の承認は、書かずにマージせず 409');
+    check(JSON.stringify(notificationEvents(approveHarness.state)) === JSON.stringify(['edit_unsupported']),
+      '形が正しくない枝の承認は edit_unsupported を通知する');
+
+    const reviseState = { puts: [], workflows: [], notifications: [], denylist: 0 };
+    const reviseResponse = await revise._handler(authenticatedEvent({
+      httpMethod: 'POST',
+      body: JSON.stringify({ filename: FILENAME, ref: 'edit/Foo', comment: '直してください' }),
+    }), {
+      getFile: async () => { throw new Error('読んではいけません'); },
+      putFile: async (...args) => { reviseState.puts.push(args); },
+      updateFrontmatter: api.updateFrontmatter,
+      nowJST: () => '2026-11-09T10:00:00+09:00',
+      triggerWorkflow: async (...args) => { reviseState.workflows.push(args); },
+      findPR: async () => defaultPR(),
+      commentOnPR: async () => {},
+      appendEntries: async () => { reviseState.denylist++; return { added: [] }; },
+      extractFmField: api.extractFmField,
+      readjustPublishSlots: async () => null,
+      sendNotification: async (event, data) => reviseState.notifications.push({ event, data }),
+    });
+    check(reviseResponse.statusCode === 409 && reviseState.puts.length === 0 && reviseState.workflows.length === 0
+      && reviseState.denylist === 0, '形が正しくない枝の差し戻しは、何も書かずワークフローも起動しない');
+    check(reviseState.notifications.length === 1 && reviseState.notifications[0].event === 'edit_unsupported',
+      '形が正しくない枝の差し戻しは edit_unsupported を通知する');
+
+    const skipState = { puts: [], closes: [], notifications: [] };
+    const skipResponse = await skip._handler(authenticatedEvent({
+      httpMethod: 'POST',
+      body: JSON.stringify({ filename: FILENAME, ref: 'edit/Foo' }),
+    }), {
+      getFile: async () => { throw new Error('読んではいけません'); },
+      putFile: async (...args) => { skipState.puts.push(args); },
+      updateFrontmatter: api.updateFrontmatter,
+      nowJST: () => '2026-11-09T10:00:00+09:00',
+      findPR: async () => defaultPR(),
+      closePR: async number => { skipState.closes.push(number); },
+      commentOnPR: async () => {},
+      deleteBranch: async () => {},
+      extractFmField: api.extractFmField,
+      readjustPublishSlots: async () => null,
+      sendNotification: async (event, data) => skipState.notifications.push({ event, data }),
+    });
+    check(skipResponse.statusCode === 409 && skipState.puts.length === 0 && skipState.closes.length === 0,
+      '形が正しくない枝の見送りは、何も書かず PR も閉じない');
+    check(skipState.notifications.length === 1 && skipState.notifications[0].event === 'edit_unsupported',
+      '形が正しくない枝の見送りは edit_unsupported を通知する');
+  }
+
+  console.log('\n=== 11c. 差し戻し・見送りの失敗 ===');
+  {
+    const makeRevise = (commentOnPR) => {
+      const state = { puts: [], notifications: [], denylist: 0 };
+      const deps = {
+        getFile: async () => ({ content: article({ title: '手直し後の題名' }), sha: 'branch-sha' }),
+        putFile: async (...args) => { state.puts.push(args); },
+        updateFrontmatter: api.updateFrontmatter,
+        nowJST: () => '2026-11-09T10:00:00+09:00',
+        triggerWorkflow: async () => {},
+        findPR: async () => defaultPR(),
+        listPRFiles: async () => DEFAULT_FILES,
+        compareCommits: async () => ({ merge_base_commit: { sha: 'base-sha' } }),
+        commentOnPR,
+        appendEntries: async () => { state.denylist++; return { added: [] }; },
+        extractFmField: api.extractFmField,
+        readjustPublishSlots: async () => null,
+        sendNotification: async (event, data) => state.notifications.push({ event, data }),
+      };
+      return { state, run: () => revise._handler(authenticatedEvent({
+        httpMethod: 'POST',
+        body: JSON.stringify({ filename: FILENAME, ref: REF, comment: '直してください' }),
+      }), deps) };
+    };
+
+    const reviseFailed = makeRevise(async () => { throw new Error('comment failed'); });
+    const reviseFailedResponse = await reviseFailed.run();
+    check(reviseFailedResponse.statusCode === 502 && reviseFailed.state.puts.length === 0,
+      '差し戻しのコメントに失敗したら 502 を返し、記事を書かない');
+    check(JSON.stringify(notificationEvents(reviseFailed.state)) === JSON.stringify(['edit_revise_failed']),
+      '差し戻しのコメントに失敗したら edit_revise_failed を通知する');
+
+    const makeSkip = (commentOnPR, closePR) => {
+      const state = { puts: [], notifications: [] };
+      const deps = {
+        getFile: async () => ({ content: article({ title: '手直し後の題名' }), sha: 'branch-sha' }),
+        putFile: async (...args) => { state.puts.push(args); },
+        updateFrontmatter: api.updateFrontmatter,
+        nowJST: () => '2026-11-09T10:00:00+09:00',
+        findPR: async () => defaultPR(),
+        listPRFiles: async () => DEFAULT_FILES,
+        compareCommits: async () => ({ merge_base_commit: { sha: 'base-sha' } }),
+        closePR,
+        commentOnPR,
+        deleteBranch: async () => {},
+        extractFmField: api.extractFmField,
+        readjustPublishSlots: async () => null,
+        sendNotification: async (event, data) => state.notifications.push({ event, data }),
+      };
+      return { state, run: () => skip._handler(authenticatedEvent({
+        httpMethod: 'POST',
+        body: JSON.stringify({ filename: FILENAME, ref: REF }),
+      }), deps) };
+    };
+
+    const commentFailed = makeSkip(async () => { throw new Error('comment failed'); }, async () => {});
+    const commentFailedResponse = await commentFailed.run();
+    check(commentFailedResponse.statusCode === 502 && commentFailed.state.puts.length === 0,
+      '見送りのコメントに失敗したら 502 を返し、記事を書かない');
+    check(JSON.stringify(notificationEvents(commentFailed.state)) === JSON.stringify(['edit_skip_failed']),
+      '見送りのコメントに失敗したら edit_skip_failed を通知する');
+
+    const closeFailed = makeSkip(async () => {}, async () => { throw new Error('close failed'); });
+    const closeFailedResponse = await closeFailed.run();
+    check(closeFailedResponse.statusCode === 502 && closeFailed.state.puts.length === 0,
+      '見送りのクローズに失敗したら 502 を返し、記事を書かない');
+    check(JSON.stringify(notificationEvents(closeFailed.state)) === JSON.stringify(['edit_skip_failed']),
+      '見送りのクローズに失敗したら edit_skip_failed を通知する');
   }
 
   console.log('\n=== 12. 入力の検査 ===');
@@ -614,6 +1012,48 @@ async function main() {
     }
   }
 
+  console.log('\n=== 13b. review-page の配線（偽の github-api）===');
+  {
+    const saved = {
+      getFile: api.getFile, findPR: api.findPR, listPRFiles: api.listPRFiles, compareCommits: api.compareCommits,
+    };
+    const keys = ['GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'GH_APP_INSTALLATION_ID', 'GITHUB_TOKEN'];
+    const savedEnv = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+    for (const key of keys) delete process.env[key];
+    process.env.GITHUB_TOKEN = 'test-secret';
+    const calls = [];
+    const main = article({ title: '公開中の題名', summary: '公開中の説明文', body: '公開中の本文です。' });
+    const branch = article({ title: '手直し後の題名', summary: '手直し後の説明文', body: '手直し後の本文です。' });
+    api.findPR = async () => defaultPR();
+    api.listPRFiles = async () => DEFAULT_FILES;
+    api.compareCommits = async () => ({ merge_base_commit: { sha: 'base-sha' } });
+    api.getFile = async (file, ref) => {
+      calls.push({ file, ref });
+      if (file !== ARTICLE_PATH) throw new Error('GitHub GET 404: not found');
+      if (ref === 'main' || ref === 'base-sha') return { content: main, sha: 'main-sha' };
+      return { content: branch, sha: 'branch-sha' };
+    };
+    try {
+      const response = await page.handler(authenticatedEvent({
+        httpMethod: 'GET',
+        queryStringParameters: { file: FILENAME, ref: REF },
+      }));
+      check(response.statusCode === 200, 'review-page は手直し PR の画面を 200 で返す');
+      check(response.body.includes('公開中の記事の手直しです'), 'review-page が checkManualEditPR の結果を使って手直しの画面を出す');
+      check(response.body.includes('const EDIT_HEAD_SHA = "head-sha";'), '画面に表示した head sha を埋める');
+      check(calls.some(call => call.file === ARTICLE_PATH && call.ref === 'head-sha'),
+        '本文は checkManualEditPR が読んだ同じ head sha から描く');
+      check(!calls.some(call => call.file === ARTICLE_PATH && call.ref === REF),
+        '枝の名前のままでは本文を読まない');
+    } finally {
+      Object.assign(api, saved);
+      for (const key of keys) {
+        if (savedEnv[key] === undefined) delete process.env[key];
+        else process.env[key] = savedEnv[key];
+      }
+    }
+  }
+
   console.log('\n=== 14. 新しい通知の文面 ===');
   {
     const data = {
@@ -628,6 +1068,9 @@ async function main() {
       edit_processed: '【手直し】すでに反映済みです',
       edit_revise_requested: '【手直し】差し戻しを受け付けました',
       edit_skipped: '【手直し】見送りにしました',
+      edit_revise_failed: '【手直し】差し戻しを伝えられませんでした',
+      edit_skip_failed: '【手直し】見送れませんでした',
+      edit_unsupported: '【手直し】この画面では扱えない PR です',
     };
     for (const [event, subject] of Object.entries(expected)) {
       const message = buildMessage(event, data);
@@ -658,6 +1101,14 @@ async function main() {
     check(/gh pr view/.test(yaml) && /pr_number|PR_NUMBER/.test(yaml), 'PR の情報は gh で読む');
     check(/--event edit_ready/.test(yaml) && /--review-url/.test(yaml) && /--pr-url/.test(yaml), 'edit_ready を画面の URL と PR の URL 付きで送る');
     check(/node scripts\/notify\.js/.test(yaml), '既存の通知スクリプトを使う');
+    check(/require\("\.\/netlify\/functions\/lib\/manual-edit"\)\.isManualEditRef/.test(yaml)
+      && /node -e/.test(yaml), 'main の manual-edit.js の isManualEditRef で同じ判定をする');
+    check(/read_field state\)" != "OPEN"/.test(yaml), '開いている PR だけを通知する');
+    check(/contents\/content\/posts\/\$\{ENCODED_FILE\}\?ref=\$\{HEAD_SHA\}/.test(yaml),
+      '題名は枝の記事を head sha の API からデータとして読む');
+    check(/ENCODED_FILE=/.test(yaml) && /file=\$\{ENCODED_FILE\}/.test(yaml), 'file= の値を URL 符号化する');
+    check(/head\.repo\.full_name == github\.repository/.test(yaml), 'フォークからの PR は除外する');
+    check(/TITLE=\$\(node -e 'const d = JSON\.parse/.test(yaml), '題名は API で読んだ記事から取る');
   }
 
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

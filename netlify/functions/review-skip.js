@@ -4,7 +4,7 @@ const githubApi = require('./lib/github-api');
 const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
-const { appendEntries } = require('./lib/denylist-store');
+const denylistStore = require('./lib/denylist-store');
 const { buildEntriesFromContext } = require('../../scripts/lib/denylist');
 
 /**
@@ -28,8 +28,11 @@ async function handler(event, injected = {}) {
   const closePR = injected.closePR || githubApi.closePR;
   const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
   const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
+  const listPRFiles = injected.listPRFiles || githubApi.listPRFiles;
+  const compareCommits = injected.compareCommits || githubApi.compareCommits;
   const extractFmField = injected.extractFmField || githubApi.extractFmField;
   const readjustPublishSlots = injected.readjustPublishSlots || githubApi.readjustPublishSlots;
+  const appendEntries = injected.appendEntries || denylistStore.appendEntries;
   const sendNotification = injected.sendNotification || notify.sendNotification;
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -45,6 +48,22 @@ async function handler(event, injected = {}) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
     }
 
+    // ── 形が正しくない edit/ の枝 ──────────────────────────────────
+    // 記事のファイルにも denylist にも書かず、PR も閉じない。
+    if (manualEdit.isEditRefShape(ref) && !manualEdit.isManualEditRef(ref)) {
+      try {
+        await sendNotification('edit_unsupported', {
+          title: filename,
+          comment: '手直しの枝の名前の形が正しくありません。',
+        });
+      } catch (_) { console.error('[review-skip] 扱えない枝の通知に失敗しました'); }
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: '手直しの枝の名前の形が正しくありません。' }),
+      };
+    }
+
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
 
@@ -55,27 +74,47 @@ async function handler(event, injected = {}) {
     // 記事のファイル・denylist・公開枠には何も書かず、PR を閉じてコメントを残す。
     // 枝は消さない（deleteBranch は draft/* だけ）。
     if (manualEdit.isManualEditRef(ref)) {
-      let editPR = null;
-      try { editPR = await findPR(ref); } catch (_) { editPR = null; }
-      if (!editPR) {
+      // PR が開いていることと枝の名前の形だけは必ず確かめる。
+      let check = null;
+      try {
+        check = await manualEdit.checkManualEditPR({
+          filename, ref, findPR, listPRFiles, getFile, compareCommits,
+        });
+      } catch (_) { check = null; }
+      const editPR = check && check.pr ? check.pr : null;
+      const editContent = check && check.branchFile ? check.branchFile.content : content;
+      const editTitle = (editContent.match(/^title:\s*"?([^"\n\r]+)"?/m) || [])[1] || fmTitle || filename;
+      const skipFailed = async (reason, statusCode = 502) => {
         try {
-          await sendNotification('edit_approve_failed', {
-            title: fmTitle || filename, filename, comment: '手直しの PR が見つかりません。見送りできませんでした。',
+          await sendNotification('edit_skip_failed', {
+            title: editTitle, filename, comment: reason,
+            ...(editPR && editPR.html_url ? { prUrl: editPR.html_url } : {}),
           });
         } catch (_) { console.error('[review-skip] 手直しの見送り失敗通知に失敗しました'); }
         return {
-          statusCode: 409,
+          statusCode,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: '手直しの PR が見つかりません。' }),
+          body: JSON.stringify({ error: reason }),
         };
+      };
+      if (!editPR) {
+        return skipFailed('手直しの PR が見つかりません。見送りできませんでした。', 409);
       }
-      try { await commentOnPR(editPR.number, '承認画面から見送り'); }
-      catch (e) { console.error(`[review-skip] 手直し PR へのコメント失敗: ${e.message}`); }
-      try { await closePR(editPR.number); }
-      catch (e) { console.error(`[review-skip] 手直し PR のクローズ失敗: ${e.message}`); }
+      try {
+        await commentOnPR(editPR.number, '承認画面から見送り');
+      } catch (e) {
+        console.error(`[review-skip] 手直し PR へのコメント失敗: ${e.message}`);
+        return skipFailed('PR に見送りを伝えられませんでした。しばらくしてからもう一度お試しください。');
+      }
+      try {
+        await closePR(editPR.number);
+      } catch (e) {
+        console.error(`[review-skip] 手直し PR のクローズ失敗: ${e.message}`);
+        return skipFailed('PR を閉じられませんでした。しばらくしてからもう一度お試しください。');
+      }
       try {
         await sendNotification('edit_skipped', {
-          title: fmTitle || filename,
+          title: editTitle,
           ...(editPR.html_url ? { prUrl: editPR.html_url } : {}),
         });
       } catch (e) { console.error(`[review-skip] 手直しの見送り通知失敗: ${e.message}`); }
@@ -83,7 +122,7 @@ async function handler(event, injected = {}) {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `見送りにしました: ${fmTitle || filename}`,
+          message: `見送りにしました: ${editTitle}`,
           action: 'skip',
           filename,
         }),

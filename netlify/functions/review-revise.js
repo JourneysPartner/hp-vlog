@@ -4,7 +4,7 @@ const githubApi = require('./lib/github-api');
 const notify = require('./lib/notify');
 const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
-const { appendEntries } = require('./lib/denylist-store');
+const denylistStore = require('./lib/denylist-store');
 const { detectDenyIntent, buildEntriesFromContext } = require('../../scripts/lib/denylist');
 const bannedPhrasesLib = require('../../scripts/lib/banned-phrases');
 
@@ -32,8 +32,11 @@ async function handler(event, injected = {}) {
   const triggerWorkflow = injected.triggerWorkflow || githubApi.triggerWorkflow;
   const findPR = injected.findPR || githubApi.findPR;
   const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
+  const listPRFiles = injected.listPRFiles || githubApi.listPRFiles;
+  const compareCommits = injected.compareCommits || githubApi.compareCommits;
   const extractFmField = injected.extractFmField || githubApi.extractFmField;
   const readjustPublishSlots = injected.readjustPublishSlots || githubApi.readjustPublishSlots;
+  const appendEntries = injected.appendEntries || denylistStore.appendEntries;
   const sendNotification = injected.sendNotification || notify.sendNotification;
 
   if (event.httpMethod !== 'POST') {
@@ -53,6 +56,22 @@ async function handler(event, injected = {}) {
       return { statusCode: 400, body: JSON.stringify({ error: '修正コメントは必須です' }) };
     }
 
+    // ── 形が正しくない edit/ の枝 ──────────────────────────────────
+    // 記事のファイルにも denylist にも書かず、ワークフローも起動しない。
+    if (manualEdit.isEditRefShape(ref) && !manualEdit.isManualEditRef(ref)) {
+      try {
+        await sendNotification('edit_unsupported', {
+          title: filename,
+          comment: '手直しの枝の名前の形が正しくありません。',
+        });
+      } catch (_) { console.error('[review-revise] 扱えない枝の通知に失敗しました'); }
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: '手直しの枝の名前の形が正しくありません。' }),
+      };
+    }
+
     const filepath = `content/posts/${filename}`;
     const { content, sha } = await getFile(filepath, ref || undefined);
 
@@ -60,25 +79,35 @@ async function handler(event, injected = {}) {
     // 記事のファイル・denylist・banned-phrases・公開枠には何も書かない。
     // AI の作り直しもせず、PR にコメントを残して Chatwork に知らせる（直すのは Claude）。
     if (manualEdit.isManualEditRef(ref)) {
-      const editTitle = (content.match(/^title:\s*"?(.*?)"?\s*$/m) || [])[1] || filename;
-      let editPR = null;
-      try { editPR = await findPR(ref); } catch (_) { editPR = null; }
-      if (!editPR) {
+      // PR が開いていることと枝の名前の形だけは必ず確かめる。
+      // それ以外の理由（ファイルの状態など）では差し戻しを続けてよい。
+      let check = null;
+      try {
+        check = await manualEdit.checkManualEditPR({
+          filename, ref, findPR, listPRFiles, getFile, compareCommits,
+        });
+      } catch (_) { check = null; }
+      const editPR = check && check.pr ? check.pr : null;
+      const editContent = check && check.branchFile ? check.branchFile.content : content;
+      const editTitle = (editContent.match(/^title:\s*"?(.*?)"?\s*$/m) || [])[1] || filename;
+      const reviseFailed = async (reason, statusCode = 502) => {
         try {
-          await sendNotification('edit_approve_failed', {
-            title: editTitle, filename, comment: '手直しの PR が見つかりません。差し戻しできませんでした。',
-          });
+          await sendNotification('edit_revise_failed', { title: editTitle, filename, comment: reason });
         } catch (_) { console.error('[review-revise] 手直しの差し戻し失敗通知に失敗しました'); }
         return {
-          statusCode: 409,
+          statusCode,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: '手直しの PR が見つかりません。' }),
+          body: JSON.stringify({ error: reason }),
         };
+      };
+      if (!editPR) {
+        return reviseFailed('手直しの PR が見つかりません。差し戻しできませんでした。', 409);
       }
       try {
         await commentOnPR(editPR.number, `承認画面から差し戻し: ${comment.trim()}`);
       } catch (e) {
         console.error(`[review-revise] 手直し PR へのコメント失敗: ${e.message}`);
+        return reviseFailed('PR に差し戻しを伝えられませんでした。しばらくしてからもう一度お試しください。');
       }
       const editBaseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
       try {

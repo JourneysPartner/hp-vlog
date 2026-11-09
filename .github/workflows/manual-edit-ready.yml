@@ -22,6 +22,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.base.ref == 'main' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
        github.event.pull_request.draft == false &&
        startsWith(github.event.pull_request.head.ref, 'edit/'))
     runs-on: ubuntu-latest
@@ -44,15 +45,16 @@ jobs:
           NOTIFY_WEBHOOK_SECRET: ${{ secrets.NOTIFY_WEBHOOK_SECRET }}
         run: |
           set -euo pipefail
-          PR_JSON=$(gh pr view "$PR_NUMBER" --json number,title,url,headRefName,isDraft,baseRefName,state,files)
+          PR_JSON=$(gh pr view "$PR_NUMBER" --json number,title,url,headRefName,headRefOid,isDraft,baseRefName,state,files)
           read_field() {
             node -e 'const d = JSON.parse(process.argv[1]); const v = process.argv[2].split(".").reduce((o, k) => (o == null ? o : o[k]), d); console.log(v == null ? "" : String(v));' "$PR_JSON" "$1"
           }
           BRANCH=$(read_field headRefName)
-          case "$BRANCH" in
-            edit/*) ;;
-            *) echo "手直しの枝ではないため通知しません: $BRANCH"; exit 0 ;;
-          esac
+          # main のコードの判定（isManualEditRef）と同じ形かどうかを確かめる。
+          if ! node -e 'process.exit(require("./netlify/functions/lib/manual-edit").isManualEditRef(process.argv[1]) ? 0 : 1)' "$BRANCH"; then
+            echo "手直しの枝の名前の形が正しくないため通知しません: $BRANCH"
+            exit 0
+          fi
           if [ "$(read_field isDraft)" = "true" ]; then
             echo "下書きの PR のため通知しません"
             exit 0
@@ -61,16 +63,24 @@ jobs:
             echo "向き先が main ではないため通知しません"
             exit 0
           fi
+          if [ "$(read_field state)" != "OPEN" ]; then
+            echo "開いている PR ではないため通知しません: $(read_field state)"
+            exit 0
+          fi
           POST_COUNT=$(node -e 'const d = JSON.parse(process.argv[1]); const files = (d.files || []).map(f => f.path || f.filename || ""); console.log(files.filter(p => /^content\/posts\/[^/]+\.md$/.test(p)).length);' "$PR_JSON")
           if [ "$POST_COUNT" != "1" ]; then
             echo "記事の変更が 1 本ではないため通知しません: $POST_COUNT"
             exit 0
           fi
           FILE=$(node -e 'const d = JSON.parse(process.argv[1]); const files = (d.files || []).map(f => f.path || f.filename || ""); console.log(files.filter(p => /^content\/posts\/[^/]+\.md$/.test(p))[0].replace(/^content\/posts\//, ""));' "$PR_JSON")
-          TITLE=$(node -e 'const fs = require("fs"); let title = ""; try { const raw = fs.readFileSync(process.argv[1], "utf8"); const fm = raw.match(/^---\r?\n[\s\S]+?\r?\n---/); const line = (fm ? fm[0] : "").match(/^title:\s*"?(.*?)"?\s*$/m); if (line) title = line[1]; } catch (_) {} console.log(title);' "content/posts/$FILE")
+          ENCODED_FILE=$(node -e 'console.log(encodeURIComponent(process.argv[1]));' "$FILE")
+          HEAD_SHA=$(read_field headRefOid)
+          # 枝の記事はデータとして読む（PR の枝のコードは動かさない）。
+          ARTICLE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/contents/content/posts/${ENCODED_FILE}?ref=${HEAD_SHA}")
+          TITLE=$(node -e 'const d = JSON.parse(process.argv[1]); const raw = Buffer.from(String(d.content || "").replace(/\s+/g, ""), "base64").toString("utf8"); const fm = raw.match(/^---\r?\n[\s\S]+?\r?\n---/); const line = (fm ? fm[0] : "").match(/^title:\s*"?(.*?)"?\s*$/m); console.log(line ? line[1] : "");' "$ARTICLE_JSON")
           PR_TITLE=$(read_field title)
           if [ -z "$TITLE" ]; then TITLE="$PR_TITLE"; fi
           PR_URL=$(read_field url)
           ENCODED_BRANCH=$(node -e 'console.log(encodeURIComponent(process.argv[1]));' "$BRANCH")
-          REVIEW_URL="https://mori-zeirishi.net/review?file=$FILE&ref=$ENCODED_BRANCH"
+          REVIEW_URL="https://mori-zeirishi.net/review?file=${ENCODED_FILE}&ref=${ENCODED_BRANCH}"
           node scripts/notify.js --event edit_ready --title "$TITLE" --review-url "$REVIEW_URL" --pr-url "$PR_URL" --comment "$PR_TITLE"
