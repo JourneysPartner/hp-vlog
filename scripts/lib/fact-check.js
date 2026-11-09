@@ -1713,7 +1713,9 @@ async function checkFacts(body, options = {}) {
           const ownCorrections = record.corrections.filter(c => c.sentence === f.sentence);
           const first = pairs.get(f.sentence);
           // 条件確認だけの指摘・置き換えを採れなかった文・置き換えの中に無い誤りは対象にしない。
-          if (!ownCorrections.length || !ownCorrections.some(c => c.after) || own.some(x => x.condition_mismatch) || !first) continue;
+          // 止めない指摘だけの文（資料なしの要件・判定・手続を案内に変える修正）も対象にしない（M1）。
+          if (!ownCorrections.length || !ownCorrections.some(c => c.after) || own.some(x => x.condition_mismatch) ||
+              !own.some(blockingFinding) || !first) continue;
           const errors = record.rechecked.filter(r => errorRow(r) && insideReplacement(first, r));
           if (errors.length) retryTargets.set(f.sentence, { sentence: f.sentence, findings: own, first, errors });
         }
@@ -1760,6 +1762,12 @@ async function checkFacts(body, options = {}) {
                   secondChanges += `\n${row?.heading ? '## ' + row.heading : ''}\n${next}`;
                 }
               }
+              // 2 回目に手を付けなかった文の止める行も見落とさないよう、残す候補の置き換え X2 を丸ごと渡す（H1）。
+              for (const target of acceptedTargets.values()) {
+                if (!target.x2 || target.x2 === target.sentence || secondChanges.includes(target.x2) || !second.body.includes(target.x2)) continue;
+                const heading = target.findings[0]?.heading;
+                secondChanges += `\n${heading ? '## ' + heading : ''}\n${target.x2}`;
+              }
               const secondPairs = new Map([...retryTargets.keys()].map(S => [S, proposals.get(S)]));
               for (const target of acceptedTargets.values()) for (const [sentence, next] of target.replaced) secondPairs.set(sentence, next);
               const retryAnalyzeFindings = [...findings.filter(f => retryTargets.has(f.sentence)), ...retryFindings];
@@ -1797,6 +1805,8 @@ async function checkFacts(body, options = {}) {
           } else {
             // 戻した文を元のとおりに置けない（起きない想定）。安全側で全部の修正を採らない。
             revisedBody = body; repairPairs = new Map(); revertAll = true;
+            // 残すにした対象も含め、すべて戻したものとして記録する（H2）。
+            keptTargets.clear();
             for (const c of record.corrections) {
               c.after = ''; c.resolved = false; c.reverted = true;
               c.proposal = proposals.get(c.sentence) || firstPairs.get(c.sentence) || '';

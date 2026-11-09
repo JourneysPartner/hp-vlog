@@ -129,7 +129,7 @@ function factReviewCounts(items) {
 function renderRevertedFixReview(record, item) {
   const rows = Array.isArray(item.recheck) ? item.recheck : [];
   return `<div class="small">採らなかった修正案: ${factSentence(item.proposal)}</div>${rows.map(row =>
-    `<div class="small">再照合の指摘（${escapeHtml(String(row.status || ''))}）: ${escapeHtml(String(row.correct || ''))}</div>${renderFactEvidence(record, { ...item, evidence_id: row.evidence_id, quote: row.quote })}`).join('')}`;
+    `<div class="small">再照合の指摘（${escapeHtml(String(row.status || ''))}）: ${escapeHtml(String(row.correct || ''))}</div><blockquote>${escapeHtml(String(row.quote || ''))}</blockquote>${renderFactEvidence(record, { ...item, evidence_id: row.evidence_id, quote: row.quote })}`).join('')}`;
 }
 
 function renderFactReviewItems(items, record) {
