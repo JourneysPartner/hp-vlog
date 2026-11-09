@@ -194,5 +194,67 @@ console.log('=== Test 7: 令和8年度税制改正の登録 ===');
     '相続の記事には相続の改正だけ');
 }
 
+// -- 8. 飲食料品の消費税率引下げ法案（令和8年10月9日提出）-------------
+// 2026-11-09: 立案中の法律案を1件登録した。成立前なので status は active のまま、
+// valid_to は引下げ期間の終了日で期限切れにする。
+console.log('');
+console.log('=== Test 8: 飲食料品の消費税率引下げ法案 ===');
+{
+  const KEY = 'food_rate_cut_2027_bill';
+
+  // personas は一覧に既にある名前だけを使う（KNOWN_PERSONAS を増やさない）。
+  const personasUnion = new Set(CHANGES.flatMap(c => c.personas || []));
+  const EXPECTED_KNOWN = [
+    'beauty_salon_owner', 'domestic_ec_seller', 'ebay_export_seller',
+    'influencer_creator', 'inheritance_client', 'reseller_marketplace_seller',
+  ];
+  assert(JSON.stringify([...personasUnion].sort()) === JSON.stringify(EXPECTED_KNOWN),
+    'KNOWN_PERSONAS に相当する集合は足す前と同じ');
+  assert(!personasUnion.has('retail_store'), 'retail_store は既知ペルソナに加わっていない');
+  assert(!personasUnion.has('wholesale'), 'wholesale は既知ペルソナに加わっていない');
+
+  const byKey = Object.fromEntries(CHANGES.map(c => [c.key, c]));
+  const food = byKey[KEY];
+  assert(!!food, `登録されている: ${KEY}`);
+  assert(food.status === 'active', 'status は active');
+  assert(food.valid_to === '2029-03-31', 'valid_to は令和11年3月31日');
+  assert(food.tax_domain === 'consumption_tax', '税目は消費税');
+  assert(JSON.stringify(food.personas) === JSON.stringify(['domestic_ec_seller', 'reseller_marketplace_seller']),
+    'personas は既存の2つだけ');
+
+  // 未知ペルソナ（retail_store / wholesale）は税目だけで照合される
+  for (const persona of ['retail_store', 'wholesale']) {
+    const got = getChangesForTopic({ tax_domain: 'consumption_tax', persona }, 2);
+    assert(got.some(c => c.key === KEY), `${persona}: 消費税の記事に届く`);
+  }
+
+  // 既知ペルソナでも personas に含まれていれば届く
+  const ec = getChangesForTopic({ tax_domain: 'consumption_tax', persona: 'domestic_ec_seller' }, 2);
+  assert(ec.some(c => c.key === KEY), 'domestic_ec_seller: 消費税の記事に届く');
+
+  // 既知ペルソナで personas に無ければ届かない
+  const salon = getChangesForTopic({ tax_domain: 'consumption_tax', persona: 'beauty_salon_owner' }, 5);
+  assert(!salon.some(c => c.key === KEY), 'beauty_salon_owner には届かない');
+
+  // インボイスの既存2件の並びは変わらない（未知ペルソナは税目だけで照合）
+  const NOW = new Date('2026-11-09');
+  const inv = getChangesForTopic({ tax_domain: 'invoice_system', persona: 'retail_store' }, 2, NOW);
+  assert(JSON.stringify(inv.map(c => c.key)) ===
+    JSON.stringify(['r8_invoice_30pct_special', 'invoice_transitional_measures']),
+    'インボイス（retail_store）の結果は足す前と同じ2件');
+
+  // valid_to を過ぎたら返らない
+  const later = getChangesForTopic(
+    { tax_domain: 'consumption_tax', persona: 'domestic_ec_seller' }, 2, new Date('2029-04-01'));
+  assert(!later.some(c => c.key === KEY), 'valid_to を過ぎると返らない');
+
+  // プロンプト整形に成立前であることの注意が入る
+  const text = formatChangesForPrompt(getChangesForTopic(
+    { tax_domain: 'consumption_tax', persona: 'domestic_ec_seller' }, 2, NOW));
+  assert(/法律案/.test(text), '整形に「法律案」が入る');
+  assert(/参議院で審議中/.test(text), '整形に「参議院で審議中」が入る');
+  assert(/成立前/.test(text), '整形に「成立前」が入る');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
