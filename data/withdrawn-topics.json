@@ -101,6 +101,26 @@
       "target_query": "note 収益化 税金",
       "date": "2026-11-04",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/41744163646"
+    },
+    {
+      "topic_id": "suggest-furima-mercari-6b1842",
+      "stage": "pregen-dedup",
+      "similar_to": "mercari-yahoo-auction-tax-filing-threshold",
+      "reason": "メルカリの売上に確定申告が必要かどうかという同一の論点（申告義務の判定・20万円基準）を扱っており、personaが同じメルカリセラー向け記事として読者からは重複に見える。",
+      "url_slug": "mercari-sales-tax-filing",
+      "target_query": "メルカリ 売上 税金 知恵袋",
+      "date": "2026-11-09",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/42538271619"
+    },
+    {
+      "topic_id": "suggest-creator-influencer-adfd4a",
+      "stage": "pregen-dedup",
+      "similar_to": "youtuber-influencer-tax-return-basics",
+      "reason": "既存の「YouTuber・インフルエンサーの確定申告入門」と同様、インフルエンサー向けの確定申告の基本（いくらから必要か・申告のやり方）という同一論点を扱っており、persona違いでも読者からは同じ記事と感じられる。",
+      "url_slug": "influencer-tax-return-guide",
+      "target_query": "インフルエンサー 確定申告 いくらから",
+      "date": "2026-11-09",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/42538271619"
     }
   ]
 }
