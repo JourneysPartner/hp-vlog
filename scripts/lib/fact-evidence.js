@@ -5,6 +5,7 @@ const path = require('path');
 const laws = require('./law-sources');
 const tsutatsu = require('./nta-tsutatsu');
 const { tokenizeForMatcher, rankSources, TAX_CATEGORY_CODES } = require('./nta-source-matcher');
+const { eligibleSourceKeys } = require('./nta-qa-sources');
 const { relationReferences } = require('./materials-bundle');
 const { resolveSourceForTopic } = require('./tax-authority-refs');
 const ROOT = path.join(__dirname, '..', '..');
@@ -12,11 +13,21 @@ let catalog;
 // 検索用の正規化文字列は資料オブジェクトに足さず、返却する資料の形を保つ。
 const statementTexts = new WeakMap();
 const statementFrequencies = new WeakMap();
+// Q&A の正規化文字列も資料オブジェクトに足さない（返す資料の形を保つ）。
+const qaTexts = new WeakMap();
+let qaCatalogEntries;
+const qaScopeEntries = new Map();
 const compactText = text => String(text || '').normalize('NFKC').toLowerCase().replace(/[\p{P}\p{S}\s]/gu, '');
 const phraseText = text => String(text || '').normalize('NFKC').toLowerCase().replace(/(?<=\d),(?=\d)/g, '');
 
 // #642 の試算: 対応する根拠が候補にある主張は20→28件、既存の根拠は231/231件を維持。
 const OTHER_TAX_SCORE = 0.15;
+// Q&A・事例集の専用 1 枠の下限（02-qa-slot.md R3・2026-11-07 毛利さん決定）。
+// 11/7 の試算（02-qa-slot.md の表）では「専用 1 枠・この枠だけ数字も使う」形で
+// #693 の c41・c42・c63 が事例集に入り、637 主張中 153 主張に Q&A が入った。
+// その試算で枠に入った問の点がこれを上回り、6 字の一致 0 の問は入らなかった。
+const QA_MIN_SCORE = 60;
+const QA_MIN_PHRASES = 1;
 const TAX_WORDS = Object.freeze({
   income: ['所得税', '所得', '確定申告', '年末調整', '源泉', '譲渡所得', '取得費', '空き家'],
   corporate: ['法人', '会社', '役員', '事業年度'],
@@ -102,6 +113,56 @@ function evidenceCatalog() {
   }
   catalog = { entries, df };
   return catalog;
+}
+
+/**
+ * 国税庁の Q&A・事例集（data/nta-qa）を検索用の資料にする。
+ * evidenceCatalog() には入れない（article-plan.js と writer-materials.js が
+ * 別に qaCatalog() を持ち、目録に入れると二重になるため）。
+ * index や問のファイルが読めないときは例外にして、検索範囲を黙って狭めない。
+ */
+function qaEvidenceEntries() {
+  if (qaCatalogEntries) return qaCatalogEntries;
+  const parsed = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'nta-qa', 'index.json'), 'utf8'));
+  if (!Array.isArray(parsed.entries)) throw new Error('Q&Aの目録を読めませんでした');
+  qaCatalogEntries = parsed.entries.map(function (item) {
+    const question = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'nta-qa', item.file_path), 'utf8'));
+    if (typeof question.body !== 'string') throw new Error('Q&Aの本文を読めませんでした');
+    const questionTitle = String(item.title || question.title || '');
+    // 検索で題名の語として数えるのは問の題名だけ。資料名は全問に共通なので数えない。
+    const entry = {
+      id: `qa:${item.source_key}/${item.id}`, kind: 'qa',
+      title: `${item.source_label || ''} ${questionTitle}`.trim(), url: item.url, text: question.body,
+      source_key: item.source_key, tax_domain: item.tax_domain, tax_category_code: item.tax_category_code,
+      q_no: item.q_no, law_version: '',
+      tokens: new Set(tokenizeForMatcher(`${questionTitle} ${question.body}`)),
+      titleTokens: new Set(tokenizeForMatcher(questionTitle)),
+    };
+    qaTexts.set(entry, { title: compactText(questionTitle), text: phraseText(question.body) });
+    return entry;
+  });
+  return qaCatalogEntries;
+}
+
+/** 記事の分野に合う Q&A の配列は source_key の組と tax_domain ごとに 1 回だけ作る。 */
+function qaEntriesFor(sourceKeys, taxDomain) {
+  if (!sourceKeys || !sourceKeys.size || !taxDomain) return [];
+  const key = [...sourceKeys].sort().join('\u0000') + '\u0001' + taxDomain;
+  const cached = qaScopeEntries.get(key);
+  if (cached) return cached;
+  const entries = qaEvidenceEntries().filter(function (e) { return sourceKeys.has(e.source_key) && e.tax_domain === taxDomain; });
+  qaScopeEntries.set(key, entries);
+  return entries;
+}
+
+/** 照合の検索用の Q&A の正規化文字列。 */
+function qaIndexedText(entry) {
+  return qaTexts.get(entry);
+}
+
+function resetQaEvidenceForTest() {
+  qaCatalogEntries = undefined;
+  qaScopeEntries.clear();
 }
 
 function contiguousExcerpt(text, query, maxChars = 2000, focus = '') {
@@ -270,11 +331,73 @@ function scoreEvidence(claim, options = {}) {
     const statementEligible = !statementTax || !tax || tax === statementTax;
     return { e, score: score + bonus, ownScore: ownScore + bonus, statementScore, statementEligible, numericMatch, titleMatch, direct: bonus >= 10000 };
   });
-  return { scored, subjectName, tokens, query, focus, bundle };
+  return { scored, subjectName, tokens, query, focus, bundle,
+    context: { weights, statementTokens, statement, phrases, subjectTokens, frequencies, df,
+      population: options.scorePopulation ?? entries.length, articleTax, statementTax, claimText, subjectName } };
+}
+
+/**
+ * Q&A・事例集の専用 1 枠の点。既存の statementScore と考え方は同じだが、
+ * 珍しさ・母数・数字と題名の頻度は既存の目録（Q&A 抜き）から計算した値を使う。
+ * この枠だけは数字を含む 6 字の一致も数える（2026-11-07 毛利さん決定）。
+ */
+function qaSlotCandidates(options, context, includeBelowThreshold = false) {
+  if (!options.qa_scope_text) return [];
+  const entries = qaEntriesFor(eligibleSourceKeys(options.qa_scope_text), options.tax_domain);
+  if (entries.length === 0) return [];
+  const { weights, statementTokens, statement, phrases, subjectTokens, frequencies, df, population, articleTax, statementTax, claimText, subjectName } = context;
+  const rows = [];
+  for (const e of entries) {
+    const indexed = qaIndexedText(e);
+    let qaScore = 0, mainScore = 0, phraseMatches = 0;
+    for (const [t, rarity] of weights) {
+      // 第 2 キーの mainScore は今のまま（語の点は変えない）。
+      if (e.tokens.has(t)) mainScore += rarity * (subjectTokens.has(t) ? 2 : 1);
+      if (e.titleTokens.has(t)) mainScore += rarity * (subjectTokens.has(t) ? 6 : 3);
+      // qaScore の語の部分は、既存の statementScore と同じく主張の文（claim＋sentence）の語だけを数える。
+      if (statementTokens.has(t)) {
+        if (e.tokens.has(t)) qaScore += rarity;
+        if (e.titleTokens.has(t)) qaScore += rarity * 3;
+      }
+    }
+    // 第 2 キーは scoreEvidence と同じく、制度名が問の題名（資料名を除く）にあれば加点する。
+    if (subjectName && indexed.title.includes(subjectName)) {
+      mainScore += 80 * subjectName.length / indexed.title.length;
+    }
+    if (indexed.title.length >= 2 && statement.includes(indexed.title) && e.titleTokens.size &&
+        [...e.titleTokens].every(function (t) { return statementTokens.has(t); })) {
+      // Q&A の題名は既存の目録に無いので、頻度は 1 として扱う（同じ題名の問は 1 件だけ）。
+      qaScore += 80 / (frequencies.titles.get(indexed.title) || 1);
+    }
+    // 主題の語のうち主張の文に無いものだけを、本文なら珍しさ×1・題名なら×3 で足す。
+    // 数字だけの語は weights と同じく使わない（数字を使うのは 6 字の一致だけ）。
+    for (const t of subjectTokens) {
+      if (statementTokens.has(t) || /^\d+$/.test(t)) continue;
+      const rarity = Math.log(1 + population / ((df.get(t) || 0) + 1));
+      if (e.tokens.has(t)) qaScore += rarity;
+      if (e.titleTokens.has(t)) qaScore += rarity * 3;
+    }
+    // 数字を含む 6 字の一致もこの枠では数える（rareNumbers では絞らない）。
+    for (const phrase of phrases.keys()) if (indexed.text.includes(phrase)) { qaScore += 20; phraseMatches++; }
+    const qaTax = CATEGORY_TAX[e.tax_category_code];
+    if (articleTax && qaTax && qaTax !== articleTax && !TAX_WORDS[qaTax].some(function (word) { return claimText.includes(word); })) {
+      qaScore *= OTHER_TAX_SCORE; mainScore *= OTHER_TAX_SCORE;
+    }
+    // 別の税目の扱いは既存の本文の枠と同じ。下限は点と 6 字の一致の両方で見る。
+    if (statementTax && qaTax && qaTax !== statementTax) continue;
+    if (!includeBelowThreshold && (qaScore <= QA_MIN_SCORE || phraseMatches < QA_MIN_PHRASES)) continue;
+    rows.push({ e, qaScore, score: mainScore, phraseMatches });
+  }
+  return rows.sort(function (a, b) { return b.qaScore - a.qaScore || b.score - a.score || a.e.id.localeCompare(b.e.id); });
+}
+
+/** 試験用: 主張の Q&A 枠の点（行ごとの qaScore）を、検索と同じ計算で返す。下限では絞らない。 */
+function qaSlotScores(claim, options = {}) {
+  return qaSlotCandidates(options, scoreEvidence(claim, options).context, true);
 }
 
 function searchEvidence(claim, options = {}) {
-  const { scored, subjectName, tokens, query, focus, bundle } = scoreEvidence(claim, options);
+  const { scored, subjectName, tokens, query, focus, bundle, context } = scoreEvidence(claim, options);
   const byScore = (a, b) => b.score - a.score || a.e.id.localeCompare(b.e.id);
   const ranked = scored.filter(r => r.score > 5).sort(byScore);
   const articleIds = new Set([options.source_url,
@@ -323,8 +446,33 @@ function searchEvidence(claim, options = {}) {
     // 記事資料の4件目以降など、入れ替えなくても最終7件に残るページには枠を使わない。
     if (!retainedIds.has(statementTop.e.id)) diverse.splice(2, 1, statementTop);
   }
+  // Q&A を入れる前に、今の選び方（Q&A なし）で最終の候補を組み立てる。
+  // 記事の資料の 4 件目以降も含め、ここで 7 件が決まる。
+  const lockedIds = new Set(seen); // 記事の資料の先頭 3 件・制度名の検索
   diverse.forEach(add);
   own.slice(3).forEach(add);
+  // Q&A・事例集は専用の 1 枠だけ。記事の資料・直接引用・制度名の検索・一般の枠・
+  // 本文の枠のどれにも入れず、URL でも記事の資料と照らし合わせない（同じ PDF を
+  // 多数の問が共有するため）。Q&A なしの最終の候補を押し出さないように入れる。
+  const qaTop = qaSlotCandidates(options, context).find(row => !seen.has(row.e.id));
+  if (qaTop) {
+    const qaSelected = { e: qaTop.e, score: qaTop.score };
+    if (selected.length < 7) selected.push(qaSelected); // 空きがあれば末尾に足す（何も押し出さない）。
+    else {
+      const statementId = statementTop && statementTop.e.id;
+      // 置き換えてよいのは、最終の 7 件にあり、記事の先頭 3 件・制度名の検索・
+      // 記事の資料・直接引用・本文の枠のどれでもない行だけ。
+      const replaceable = row => Boolean(row) && selected.some(({ e }) => e.id === row.e.id) &&
+        !lockedIds.has(row.e.id) && !isArticle(row.e) && !row.direct && row.e.id !== statementId;
+      // 一般の枠の 3 枠目、次に 2 枠目の順に探し、無ければ Q&A は入れない。
+      for (const slot of [diverse[2], diverse[1]]) {
+        if (!replaceable(slot)) continue;
+        const at = selected.findIndex(({ e }) => e.id === slot.e.id);
+        if (at >= 0) selected.splice(at, 1, qaSelected);
+        break;
+      }
+    }
+  }
   return selected.map(({ e, score }) => {
     const { tokens: _tokens, titleTokens: _titleTokens, lazy: _lazy, ...data } = e;
     const text = e.lazy ? e.kind === 'law' ? laws.getArticle(e.key, e.no)?.text : tsutatsu.findProvisions(e.no, e.circular)[e.variant || 0]?.body : e.text;
@@ -336,6 +484,11 @@ function searchEvidence(claim, options = {}) {
 
 // 検索の候補・順番・抜粋は変えず、資料表を作るときだけ原文を読む。
 function loadEvidenceText(ref) {
+  if (ref && typeof ref.id === 'string' && ref.id.startsWith('qa:')) {
+    const entry = qaEvidenceEntries().find(e => e.id === ref.id);
+    if (entry) return entry.text;
+    return ref.text;
+  }
   const entry = evidenceCatalog().entries.find(e => e.id === ref.id);
   if (!entry) return ref.text;
   const text = entry.lazy ? entry.kind === 'law' ? laws.getArticle(entry.key, entry.no)?.text
@@ -343,4 +496,5 @@ function loadEvidenceText(ref) {
   if (typeof text !== 'string') throw new Error('索引に対応する原文を読めませんでした');
   return text;
 }
-module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText, subjectWithoutTrailingParens, scoreEvidence, evidenceTax, CATEGORY_TAX };
+module.exports = { searchEvidence, evidenceCatalog, contiguousExcerpt, loadEvidenceText, subjectWithoutTrailingParens, scoreEvidence, evidenceTax, CATEGORY_TAX,
+  qaEvidenceEntries, resetQaEvidenceForTest, qaSlotScores };
