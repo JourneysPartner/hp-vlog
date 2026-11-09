@@ -59,21 +59,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "インフルエンサーの確定申告は、収入を事業所得か雑所得に分け、開業届の職業欄は動画配信業など活動に近い名称で書きます。青色申告の期限と消費税の免税ラインも確認を。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-09T17:17:19.909+09:00"
+publish_at: "2026-11-10T11:53:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-09T00:07:30.616Z"
-updated_at: "2026-11-09T07:46:14.471Z"
+updated_at: "2026-11-09T17:17:19.909+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 46 件: 裏付けあり 30・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 1・捨てた主張 0・人が確かめる箇所 17 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 インフルエンサーの確定申告では、職業や業種をどう書くかで迷いがちです。結論から言うと、申告では収入を「事業所得」か「雑所得」に分けて計算し、開業届などの職業欄は動画配信業やウェブメディア運営業など、実際の活動に近い名称で書きます。
 
