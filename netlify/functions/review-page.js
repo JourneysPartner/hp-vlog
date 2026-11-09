@@ -8,6 +8,7 @@ const { sanitizeReviewHtml, scriptJson, httpsLink } = require('./lib/review-html
 
 // GitHub App 認証つき共通 helper（getInstallationToken → 必ず authenticated request）
 const githubApi = require('./lib/github-api');
+const manualEdit = require('./lib/manual-edit');
 const freshnessRefresh = require('../../scripts/lib/freshness-refresh');
 const { normalizeBold } = require('../../scripts/lib/cjk-bold');
 const { bodyHash, evidenceRefs, outsideCandidateClaims, normalizedQuote, quoteParts } = require('../../scripts/lib/fact-check');
@@ -306,7 +307,7 @@ function assertGitHubCredentials() {
 }
 
 // ── HTML テンプレート ─────────────────────────────────────────────────
-function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null, security = {}) {
+function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, factRecord = null, security = {}, editContext = null) {
   const nonce = security.nonce || crypto.randomBytes(18).toString('base64url');
   const title      = escapeHtml(meta.title || '（タイトル未設定）');
   const summary    = escapeHtml(meta.summary || '');
@@ -317,7 +318,14 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   const status     = meta.review_status || 'needs_review';
   const category   = escapeHtml(meta.category || '');
   const isRefresh = meta.refresh_of === 'published' || String(ref || '').startsWith('draft/refresh-');
-  const approvalDisabled = isRefresh && !(refreshContext && refreshContext.available);
+  // 形が正しくない edit/ の枝も手直しの画面として扱い、理由を出して承認を止める。
+  const isManualEdit = manualEdit.isEditRefShape(ref);
+  const edit = editContext && typeof editContext === 'object'
+    ? editContext
+    : { ok: false, reasons: ['手直し PR の情報を確認できませんでした。'], files: [], headSha: '', pr: null, mainFile: null, branchFile: null };
+  const approvalDisabled = (isRefresh && !(refreshContext && refreshContext.available))
+    || (isManualEdit && !(editContext && edit.ok));
+  const draftOnly = !isRefresh && !isManualEdit;
   const factBlocking = meta.fact_check_blocking === true || String(meta.fact_check_blocking) === 'true' || meta.fact_check_status === 'revise';
   const expiredTheme = isRefresh && freshnessRefresh.isExpiredRefreshTheme(meta);
   const refreshBanner = isRefresh ? `
@@ -329,6 +337,45 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   ${expiredTheme ? '<div class="alert alert-warning" role="alert">期限切れのテーマです。更新ではなく公開停止も検討してください</div>' : ''}
   ${!meta.source_guard_version ? `<div class="alert alert-warning" role="alert">出典確認の仕組みができる前の記事です（出典: ${escapeHtml(meta.source_url || '未設定')}）。出典との食い違いが無いかを特に見てください。</div>` : ''}
   <div class="card mb-4"><div class="card-header bg-white fw-bold">変更箇所</div><div class="card-body">${renderRefreshDiff(refreshContext, require('marked').marked)}</div></div>` : '';
+
+  // ── 公開中の記事の手直し（枝 edit/<slug>）──────────────────────────
+  const editDiffContext = isManualEdit
+    ? (edit.mainFile && edit.branchFile
+      ? {
+        available: true,
+        diff: freshnessRefresh.diffSections(
+          parseFrontmatter(edit.mainFile.content).body,
+          parseFrontmatter(edit.branchFile.content).body),
+      }
+      : { available: false, message: '公開中の記事と手直しの枝を比べられませんでした。' })
+    : null;
+  const editReasons = isManualEdit && !edit.ok
+    ? `<div class="alert alert-danger" role="alert"><strong>この手直し PR は承認できません。</strong><ul class="mb-0 mt-2">${(edit.reasons || []).map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}</ul></div>`
+    : '';
+  const editItems = isManualEdit && edit.mainFile && edit.branchFile
+    ? manualEdit.diffFrontmatter(edit.mainFile.content, edit.branchFile.content)
+    : [];
+  const editBanner = isManualEdit ? `
+  <div class="alert alert-primary" role="status">
+    公開中の記事の手直しです。承認すると、この PR をマージして公開中の記事に反映します（題名・説明文も変わります。公開日は変わりません）。
+    ${edit.pr && edit.pr.html_url ? `<div class="mt-2"><a href="${escapeHtml(edit.pr.html_url)}" target="_blank" rel="noopener">▶ Pull Request #${escapeHtml(edit.pr.number)}</a></div>` : ''}
+  </div>
+  ${editReasons}
+  <div class="card mb-4"><div class="card-header bg-white fw-bold">変わる項目</div><div class="card-body">
+    ${editItems.length
+      ? `<table class="table table-sm mb-0"><thead><tr><th>項目</th><th>前</th><th>後</th></tr></thead><tbody>${editItems.map(item => `<tr><td><code>${escapeHtml(item.key)}</code></td><td>${escapeHtml(item.before)}</td><td>${escapeHtml(item.after)}</td></tr>`).join('')}</tbody></table>`
+      : '<p class="text-muted">変わる項目はありません。</p>'}
+  </div></div>
+  <div class="card mb-4"><div class="card-header bg-white fw-bold">本文の変更箇所</div><div class="card-body">${renderRefreshDiff(editDiffContext, require('marked').marked)}</div></div>
+  <div class="card mb-4"><div class="card-header bg-white fw-bold">この PR で変わるファイル</div><div class="card-body">
+    ${edit.files && edit.files.length
+      ? `<ul class="mb-0">${edit.files.map(file => {
+        const additions = Number.isFinite(file.additions) ? file.additions : 0;
+        const deletions = Number.isFinite(file.deletions) ? file.deletions : 0;
+        return `<li><code>${escapeHtml(file.filename)}</code>${file.status ? `（${escapeHtml(file.status)}、追加 ${additions} 行・削除 ${deletions} 行）` : ''}</li>`;
+      }).join('')}</ul>`
+      : '<p class="text-muted">変更ファイルを確認できませんでした。</p>'}
+  </div></div>` : '';
 
   // ── 顧客カテゴリ・適合スコア（Phase 3b）─────────────────────────
   const customerSegment = meta.customer_segment || '';
@@ -434,6 +481,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
 <div class="container py-4">
 
   ${refreshBanner}
+  ${editBanner}
   ${renderFactCheckSummary(meta, factRecord)}
 
   <!-- メタ情報カード -->
@@ -457,14 +505,14 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
             <th>プレビューURL</th>
             <td>${previewUrl ? httpsLink(previewUrl) : '（未設定）'}</td>
           </tr>
-          ${isRefresh ? '' : `<tr>
+          ${draftOnly ? `<tr>
             <th>公開日時（任意）</th>
             <td>
               <input type="datetime-local" id="publishAt" class="form-control form-control-sm" style="max-width:280px"
                 value="${escapeHtml(publishAt ? publishAt.replace(/\+.*$/, '').replace('T', 'T') : '')}">
               <small class="text-muted">未入力の場合は翌日 11:30 に自動設定されます</small>
             </td>
-          </tr>`}
+          </tr>` : ''}
           <tr><th>ファイル</th><td><code>${escapeHtml(filename)}</code></td></tr>
         </tbody>
       </table>
@@ -487,7 +535,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
       <label for="reviewComment" class="form-label fw-bold">修正コメント</label>
       <textarea id="reviewComment" class="form-control" rows="4"
         placeholder="修正してほしい内容を具体的に記入してください…"></textarea>
-      ${isRefresh ? '' : `<div class="form-check mt-3">
+      ${draftOnly ? `<div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="suppressTopic">
         <label class="form-check-label" for="suppressTopic">
           このテーマを<strong>今後生成しない</strong>（denylist に追加 / 再生成もスキップ）
@@ -495,7 +543,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
       </div>
       <div class="form-text">
         コメントに「今後…書かないでください」「もう生成しないでください」等の文言があれば、自動で禁止登録されます。
-      </div>`}
+      </div>` : ''}
     </div>
   </div>
 
@@ -508,7 +556,7 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
   ${factBlocking ? `<div class="container mb-2"><label><input type="checkbox" id="factCheckOverride"> ${meta.fact_check_status === 'not_run' ? '照合が最後まで動いていません。' : ''}照合の指摘を確認しました。指摘が残ったまま、自分の判断で公開します</label></div>` : ''}
   <div class="container d-flex flex-wrap gap-2 justify-content-center">
     <button class="btn btn-approve btn-lg px-4" id="btnApprove"${approvalDisabled || factBlocking ? ' disabled' : ''}>
-      <i class="bi bi-check-circle me-1"></i>${isRefresh ? '更新を反映する' : 'このまま公開'}
+      <i class="bi bi-check-circle me-1"></i>${isManualEdit ? '手直しを反映する' : isRefresh ? '更新を反映する' : 'このまま公開'}
     </button>
     <button class="btn btn-revise btn-lg px-4" id="btnRevise">
       <i class="bi bi-pencil me-1"></i>差し戻し
@@ -516,9 +564,9 @@ function renderReviewPage(filename, meta, bodyMd, ref, refreshContext = null, fa
     <button class="btn btn-skip btn-lg px-4" id="btnSkip">
       <i class="bi bi-skip-forward me-1"></i>今回は見送り
     </button>
-    ${isRefresh ? '' : `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" title="このテーマを今後生成しない設定にしたうえで見送る">
+    ${draftOnly ? `<button class="btn btn-outline-danger btn-lg px-4" id="btnSkipForever" title="このテーマを今後生成しない設定にしたうえで見送る">
       <i class="bi bi-slash-circle me-1"></i>見送り＋今後このテーマを生成しない
-    </button>`}
+    </button>` : ''}
   </div>
 </div>
 
@@ -528,6 +576,9 @@ const REF = ${scriptJson(ref || '')};
 const FILE_SHA = ${scriptJson(security.fileSha || '')};
 const REVIEW_TOKEN = ${scriptJson(security.csrfToken || '')};
 const IS_REFRESH = ${JSON.stringify(isRefresh)};
+const IS_MANUAL_EDIT = ${JSON.stringify(isManualEdit)};
+const EDIT_HEAD_SHA = ${scriptJson(isManualEdit && edit.headSha ? edit.headSha : '')};
+const EDIT_PR_NUMBER = ${JSON.stringify(isManualEdit && edit.pr && Number.isInteger(edit.pr.number) ? edit.pr.number : null)};
 const FUNC_BASE = '/.netlify/functions';
 let reviseReady = false;
 let actionPending = false;
@@ -621,6 +672,8 @@ async function handleAction(action, forceSuppress) {
       body: JSON.stringify({
         filename: FILENAME, publish_at: publishAt, comment,
         ref: REF || undefined,
+        ...(EDIT_HEAD_SHA ? { head_sha: EDIT_HEAD_SHA } : {}),
+        ...(EDIT_PR_NUMBER !== null ? { pr_number: EDIT_PR_NUMBER } : {}),
         ...(action === 'approve' ? { file_sha: FILE_SHA, ...(factOverrideCheck?.checked ? { fact_check_override: true } : {}) } : {}),
         suppress_topic: suppress_topic,
       }),
@@ -635,11 +688,15 @@ async function handleAction(action, forceSuppress) {
         ? '\\n※このテーマは今後生成しない設定に登録しました（' + data.denylistAdded.length + ' 件）。再生成も自動でスキップされます。'
         : '';
       if (action === 'approve') {
-        resultEl.textContent = IS_REFRESH
-          ? '公開中の記事へ反映しています。数分後にサイトに出ます。'
-          : '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
+        resultEl.textContent = IS_MANUAL_EDIT
+          ? '手直しを反映しています。数分後にサイトに出ます。'
+          : IS_REFRESH
+            ? '公開中の記事へ反映しています。数分後にサイトに出ます。'
+            : '公開処理を受け付けました。PRの自動マージ（最大1分程度かかります）と公開完了通知をChatworkでお知らせします。';
       } else if (action === 'revise') {
-        resultEl.textContent = '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
+        resultEl.textContent = IS_MANUAL_EDIT
+          ? '差し戻しを伝えました。Claude が直します。' + suppressNote
+          : '差し戻しを受け付けました。AIが記事を再生成中です。完了後にChatworkで通知します。' + suppressNote;
       } else if (action === 'skip') {
         resultEl.textContent = '見送りにしました。PRは自動でクローズされます。' + suppressNote;
       } else {
@@ -690,9 +747,34 @@ exports.handler = async (event) => {
   }
 
   try {
+    // 公開中の記事の手直し PR（枝 edit/<slug>、および形が正しくない edit/ の枝）は、
+    // サーバー側で毎回条件を確かめる。
+    const editShape = manualEdit.isEditRefShape(ref);
+    let editContext = null;
+    if (editShape) {
+      assertGitHubCredentials();
+      editContext = await manualEdit.checkManualEditPR({
+        filename,
+        ref,
+        findPR: githubApi.findPR,
+        listPRFiles: githubApi.listPRFiles,
+        getFile: githubApi.getFile,
+        compareCommits: githubApi.compareCommits,
+      });
+    }
+
+    // 手直し PR は、checkManualEditPR が読んだのと同じ先頭のコミット（head sha）から
+    // 本文を描く。表示した版と承認する版を食い違わせない。
+    // 形が正しくない edit/ の枝は、読める main を描いて理由を出す。
+    let articleRef = ref;
+    if (editShape) {
+      if (!manualEdit.isManualEditRef(ref)) articleRef = 'main';
+      else if (editContext && editContext.headSha) articleRef = editContext.headSha;
+    }
+
     let raw;
     let fileSha = '';
-    if (ref) {
+    if (articleRef) {
       // ref が明示されていれば必ずその ref から取得する。
       //
       // 以前はローカル読み込みを無条件に優先していたため、記事が main にも
@@ -701,8 +783,8 @@ exports.handler = async (event) => {
       // その結果、下書きブランチの修正版を見に行ったつもりで main の
       // 修正前の本文が表示された（2026-08-17 に発生）。
       // 「ローカル優先」は netlify dev のためのものなので、ref 指定時は使わない。
-      assertGitHubCredentials();
-      ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, ref));
+      if (!editShape) assertGitHubCredentials();
+      ({ content: raw, sha: fileSha } = await fetchPostFromGitHub(filename, articleRef));
     } else {
       try {
         // ローカルファイルがあればそちらを優先（netlify dev 用）
@@ -741,7 +823,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, ref, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key), fileSha }),
+      body: renderReviewPage(filename, meta, bodyHtml, ref, refreshContext, await fetchFactCheck(meta.slug, articleRef, body), { nonce, csrfToken: reviewAuth.csrfToken(auth.session, auth.key), fileSha }, editContext),
     };
   } catch (err) {
     const msg = String(err && err.message || err);

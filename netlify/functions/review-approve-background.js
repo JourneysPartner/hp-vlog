@@ -1,6 +1,7 @@
 'use strict';
 
 const githubApi = require('./lib/github-api');
+const manualEdit = require('./lib/manual-edit');
 const reviewAuth = require('./lib/review-auth');
 const notify = require('./lib/notify');
 const { parseFrontmatterMeta, evaluateSourceGuard } = require('../../scripts/lib/source-guard');
@@ -328,20 +329,490 @@ async function handleRefreshApproval({
   };
 }
 
+// 手直し PR でマージしてよい mergeable_state。
+// 通常は clean・has_hooks だけ。unstable（自動の確認が失敗中・実行中）は、
+// 失敗が無く pending だけなら待ち、全部終わってから改めて確かめる。
+const MANUAL_EDIT_MERGEABLE_STATES = new Set(['clean', 'has_hooks']);
+
+// 手直し PR の自動の確認（commit status・check runs）を待つ間隔と上限。
+// 背景関数は 15 分まで動けるので、8 分まで待って残りをマージに使う。
+const EDIT_CHECK_WAIT = Object.freeze({ intervalMs: 15000, maxWaitMs: 8 * 60 * 1000 });
+
+const EDIT_CHECK_HEAD_CHANGED = '画面を開いた後に PR が更新されました。画面を開き直してください';
+const EDIT_CHECK_FAILED = '自動の確認（試験・試し公開）が失敗しています。Claude に確認を頼んでください';
+const EDIT_CHECK_TIMEOUT = '自動の確認が終わっていません。5 分ほどおいて画面を開き直し、もう一度押してください';
+const EDIT_CHECK_UNREADABLE = '自動の確認の状態を確認できませんでした。GitHub で状態を確認してください';
+const EDIT_CHECK_CLOSED = 'PR が閉じられました。GitHub で確認してください';
+const EDIT_MERGED_OTHER_VERSION = '画面で見た版と違う版がマージされています。GitHub で確認してください';
+
+// 確認が終わったのに mergeable_state が unstable のままのとき、PR を読み直す間隔と回数。
+const EDIT_STATE_POLL = Object.freeze({ intervalMs: 3000, maxReads: 5 });
+
+const FAILED_CHECK_CONCLUSIONS = new Set(['failure', 'timed_out', 'cancelled', 'action_required']);
+
+// commit status と check runs を読み、失敗と pending を数える。
+async function readEditChecks(getCombinedStatus, listCheckRuns, sha) {
+  const [status, runs] = await Promise.all([
+    getCombinedStatus(sha),
+    listCheckRuns(sha),
+  ]);
+  const statuses = Array.isArray(status && status.statuses) ? status.statuses : [];
+  const checkRuns = Array.isArray(runs && runs.check_runs) ? runs.check_runs : [];
+  const failures = [];
+  for (const item of statuses) {
+    const state = String(item && item.state || '');
+    if (state === 'failure' || state === 'error') {
+      failures.push(`commit status ${item.context ? `${item.context}: ` : ''}${state}`);
+    }
+  }
+  if (!failures.length && statuses.length && ['failure', 'error'].includes(String(status && status.state || ''))) {
+    failures.push(`commit status: ${String(status.state)}`);
+  }
+  for (const run of checkRuns) {
+    if (FAILED_CHECK_CONCLUSIONS.has(String(run && run.conclusion || ''))) {
+      failures.push(`check run ${run.name ? `${run.name}: ` : ''}${run.conclusion}`);
+    }
+  }
+  const pending = statuses.some(item => String(item && item.state || '') === 'pending')
+    || checkRuns.some(run => String(run && run.status || '') !== 'completed')
+    || (statuses.length > 0 && String(status && status.state || '') === 'pending');
+  return { failures, pending };
+}
+
+/**
+ * 待つ間に読んだ PR の状態から、待ちを終えるべき結果を返す（続けるなら null）。
+ * マージ済みは、画面で見た版と同じときだけ処理済みにする（L6・N5 と同じ確かめ方）。
+ */
+function settleEditPRState(pr, headSha) {
+  if (pr && pr.merged === true) {
+    if (headSha && pr.head && pr.head.sha === headSha) return { ok: true, processed: true };
+    return { ok: false, reason: EDIT_MERGED_OTHER_VERSION };
+  }
+  if (pr && pr.state && pr.state !== 'open') {
+    return { ok: false, reason: EDIT_CHECK_CLOSED };
+  }
+  if (!pr || !pr.head || pr.head.sha !== headSha) {
+    return { ok: false, reason: EDIT_CHECK_HEAD_CHANGED };
+  }
+  return null;
+}
+
+/**
+ * unstable の手直し PR について、失敗が無く pending だけなら待つ。
+ * 失敗が 1 つでもあれば待たずに止める。head sha が変わったら止める。
+ * 待つ間にマージ済み・閉じられたらその場で終える。
+ * 読み取りの一時的なエラーは 3 回続くまで待ちを続け、4 回続いたら止める。
+ */
+async function waitForEditChecks({
+  prNumber, headSha, getPR, getCombinedStatus, listCheckRuns,
+  intervalMs, maxWaitMs, sleep,
+}) {
+  const maxAttempts = Math.max(1, Math.ceil(maxWaitMs / Math.max(1, intervalMs)));
+  const checkFailed = { ok: false, reason: EDIT_CHECK_FAILED };
+  const timedOut = { ok: false, reason: EDIT_CHECK_TIMEOUT };
+  const unreadable = { ok: false, reason: EDIT_CHECK_UNREADABLE };
+  let errors = 0;
+  for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+    try {
+      const pr = await getPR(prNumber);
+      const settled = settleEditPRState(pr, headSha);
+      if (settled) return settled;
+      const checks = await readEditChecks(getCombinedStatus, listCheckRuns, headSha);
+      errors = 0;
+      if (checks.failures.length) {
+        console.warn(`[review-approve] 手直しの自動の確認が失敗: ${checks.failures.join(' / ')}`);
+        return checkFailed;
+      }
+      if (!checks.pending) return { ok: true };
+    } catch (error) {
+      errors += 1;
+      console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
+      if (errors > 3) return unreadable;
+    }
+    if (attempt === maxAttempts) break;
+    await sleep(intervalMs);
+  }
+  return timedOut;
+}
+
+/**
+ * 確認が終わったのに mergeable_state が unstable のままのとき、PR を読み直して
+ * clean / has_hooks を待つ。3 秒おきに最大 5 回。マージ済み・閉じられた・head の
+ * 変化はその場で終える。
+ */
+async function pollEditPRState({
+  prNumber, headSha, getPR, sleep,
+  intervalMs = EDIT_STATE_POLL.intervalMs, maxReads = EDIT_STATE_POLL.maxReads,
+}) {
+  let readOk = false;
+  for (let read = 0; read < maxReads; read++) {
+    if (read > 0) await sleep(intervalMs);
+    let pr;
+    try {
+      pr = await getPR(prNumber);
+    } catch (error) {
+      console.error(`[review-approve] 手直しの PR を読めませんでした: ${error && error.message}`);
+      continue;
+    }
+    readOk = true;
+    const settled = settleEditPRState(pr, headSha);
+    if (settled) return settled;
+    if (pr.mergeable === true && MANUAL_EDIT_MERGEABLE_STATES.has(pr.mergeable_state)) {
+      return { ok: true, pr };
+    }
+  }
+  return { ok: false, reason: readOk ? EDIT_CHECK_TIMEOUT : EDIT_CHECK_UNREADABLE };
+}
+
+/**
+ * 公開中の記事の手直し PR（枝 edit/<slug>）の承認。
+ *
+ * 日次の下書きと違い、main の記事は最初から published なので main の
+ * review_status では成功を判定しない。PR をマージできたか（getPR().merged）で見る。
+ * 枝は消さない（厳守事項 6）。frontmatter の review_status・publish_at なども触らない。
+ */
+async function handleManualEditApproval({
+  filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
+  getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+  compareCommits, getCombinedStatus, listCheckRuns, editCheckWait = {}, sleep,
+  sendNotification, nowJST,
+}) {
+  let title = filename;
+  const prUrlOf = pr => (pr && pr.html_url ? pr.html_url : '');
+  const checkWait = { ...EDIT_CHECK_WAIT, ...(editCheckWait || {}) };
+  const waitFn = typeof sleep === 'function' ? sleep : ms => new Promise(resolve => setTimeout(resolve, ms));
+  const failure = async (statusCode, comment, prUrl = '', event = 'edit_approve_failed') => {
+    try {
+      await sendNotification(event, { title, comment, ...(prUrl ? { prUrl } : {}) });
+    } catch (_) {
+      console.error('[review-approve] 手直しの失敗通知送信に失敗しました');
+    }
+    return {
+      statusCode,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: comment }),
+    };
+  };
+  const success = (message, extra = {}) => ({
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, action: 'edit_approve', filename, ...extra }),
+  });
+  const processedResult = async () => {
+    try {
+      await sendNotification('edit_processed', { title, ...(prUrl ? { prUrl } : {}) });
+    } catch (_) {
+      console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+    }
+    return success('この手直しはすでに反映済みです。', { processed: true });
+  };
+
+  // 1. サーバー側で手直し PR の条件を確かめる（画面から送られた値を信じない）。
+  const check = await manualEdit.checkManualEditPR({
+    filename, ref, findPR, listPRFiles, getFile, compareCommits,
+  });
+  const branchFile = check.branchFile;
+  const branchContent = branchFile ? branchFile.content : '';
+  const branchMeta = parseFrontmatterMeta(branchContent);
+  if (branchMeta.title) title = branchMeta.title;
+  const prUrl = prUrlOf(check.pr);
+
+  // edit/ で始まるが名前の形が正しくない枝は、この画面では扱えない。
+  // 記事のファイルにも denylist にも書かず、ワークフローも起動しない。
+  if (manualEdit.isEditRefShape(ref) && !manualEdit.isManualEditRef(ref)) {
+    return failure(409, '手直しの枝の名前の形が正しくありません。', prUrl, 'edit_unsupported');
+  }
+
+  if (!check.ok) {
+    // findPR(ref) で開いている PR が見つからないとき、画面が表示に使った PR 番号が
+    // 送られていれば、その PR がマージ済みかどうかを確かめる。
+    // pr_number は画面から来た値なので、枝の名前が ref と一致することを必ず先に確かめる。
+    if (!check.pr && Number.isInteger(pr_number) && pr_number > 0) {
+      let closedPR = null;
+      try { closedPR = await getPR(pr_number); }
+      catch (_) { closedPR = null; }
+      const mergedIntoMain = closedPR
+        && closedPR.head && closedPR.head.ref === ref
+        && closedPR.base && closedPR.base.ref === 'main'
+        && closedPR.merged === true;
+      if (mergedIntoMain) {
+        // 送られた head_sha と、マージされた版が同じときだけ「処理済み」。
+        if (head_sha && closedPR.head.sha === head_sha) {
+          const closedPrUrl = prUrlOf(closedPR);
+          try {
+            await sendNotification('edit_processed', { title, ...(closedPrUrl ? { prUrl: closedPrUrl } : {}) });
+          } catch (_) {
+            console.error('[review-approve] 手直しの処理済み通知送信に失敗しました');
+          }
+          return success('この手直しはすでに反映済みです。', { processed: true });
+        }
+        return failure(409, EDIT_MERGED_OTHER_VERSION, prUrlOf(closedPR) || prUrl);
+      }
+    }
+    return failure(409, (check.reasons || []).join(' / ') || '手直し PR として扱えません。', prUrl);
+  }
+
+  // 2. 画面が見た版だけを承認できるようにする。
+  if (!head_sha || head_sha !== check.headSha) {
+    return failure(409, '画面を開いた後に PR が更新されました。画面を開き直してください', prUrl);
+  }
+
+  // 3. 照合の停止と上書き（390-404 と同じ判定・同じ条件）。
+  const branchSha = branchFile.sha;
+  const factBlocking = branchMeta.fact_check_blocking === true
+    || String(branchMeta.fact_check_blocking) === 'true'
+    || branchMeta.fact_check_status === 'revise';
+  const overrideAccepted = factBlocking && fact_check_override === true;
+  if (factBlocking && (!overrideAccepted || !file_sha || file_sha !== branchSha)) {
+    const statusCode = overrideAccepted ? 409 : 400;
+    const reason = overrideAccepted
+      ? '記事の内容が変わりました。レビュー画面を開き直して、もう一度確かめてください'
+      : `事実の照合で承認できない状態です（${branchMeta.fact_check_status || '照合で停止'}）。直す場合は差し戻してください。指摘を確認したうえで公開する場合は、レビュー画面の確認欄に印を付けて押してください`;
+    try {
+      await sendNotification('quality_blocked', { title, filename, reasons: [reason] });
+    } catch (_) {
+      console.error('[review-approve] 手直しの照合停止通知送信に失敗しました');
+    }
+    return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+  }
+  const factOverride = overrideAccepted ? factOverrideUpdates(branchMeta, file_sha, nowJST()) : null;
+
+  // 出典ガード（枝の内容で判定）。
+  const sourceGuard = approvalSourceGuard(branchContent);
+  if (sourceGuard.blocked) {
+    console.warn(`[review-approve] 手直しの承認拒否(出典ガード): ${filename} — ${(sourceGuard.reasons || []).join(' / ')}`);
+    try {
+      await sendNotification('source_blocked', { title, filename, reasons: sourceGuard.reasons || [] });
+    } catch (notifyErr) {
+      console.error(`[review-approve] 出典ガード通知送信失敗: ${notifyErr.message}`);
+    }
+    return {
+      statusCode: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Source review is required before approval.', blocked: true, reasons: sourceGuard.reasons }),
+    };
+  }
+
+  // 仮置きタイトル。
+  if (branchMeta.title && isPlaceholderTitle(branchMeta.title)) {
+    const reason = 'タイトルが仮置きのままです（記事に合ったタイトルを付けてください）';
+    try { await sendNotification('quality_blocked', { title, filename, reasons: [reason] }); }
+    catch (notifyErr) { console.error(`[review-approve] 手直しの品質ゲート通知送信失敗: ${notifyErr.message}`); }
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: reason }) };
+  }
+
+  // 品質ゲート（recommendation・各スコア）。
+  const recommendation = factOverride && Object.hasOwn(factOverride, 'recommendation')
+    ? factOverride.recommendation
+    : branchMeta.recommendation;
+  if (recommendation) {
+    const score = key => {
+      const number = Number.parseInt(branchMeta[key], 10);
+      return Number.isNaN(number) ? null : number;
+    };
+    const reasons = [];
+    if (recommendation === 'reject') reasons.push('recommendation が reject です');
+    if (recommendation === 'revise') reasons.push('recommendation が revise です');
+    const fit = score('customer_fit_score');
+    const intent = score('search_intent_score');
+    const alignment = sourceGuard && sourceGuard.alignment && typeof sourceGuard.alignment.score === 'number'
+      ? sourceGuard.alignment.score
+      : score('source_alignment_score');
+    if (fit != null && fit <= 3) reasons.push(`顧客適合スコアが低い (${fit}/5)`);
+    if (intent != null && intent <= 3) reasons.push(`検索意図スコアが低い (${intent}/5)`);
+    if (alignment != null && alignment <= 3) reasons.push(`出典一致スコアが低い (${alignment}/5)`);
+    if (reasons.length) {
+      console.warn(`[review-approve] 手直しの承認拒否(品質ゲート): ${filename} — ${reasons.join(' / ')}`);
+      try { await sendNotification('quality_blocked', { title, filename, reasons }); }
+      catch (notifyErr) { console.error(`[review-approve] 手直しの品質ゲート通知送信失敗: ${notifyErr.message}`); }
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'この記事は品質ゲートにより承認できません。差し戻して内容・出典・タイトルを見直してください。', blocked: true, recommendation, reasons }),
+      };
+    }
+  }
+
+  // 4. 照合の上書きが受け入れられたときだけ、枝に上書きの記録を書く。
+  //    それ以外では枝に何も書かない（review_status・publish_at などは触らない）。
+  let expectedHeadSha = check.headSha;
+  if (factOverride) {
+    let written;
+    try {
+      const updated = updateApprovalFields(branchContent, { ...factOverride, fact_check_override_at: factOverride.fact_check_override_at || nowJST() });
+      console.log(`[review-approve] 手直しで照合の指摘を人の判断で上書き: ${filename}`);
+      written = await putFile(filepath, updated, branchSha, `edit: ${title} の照合の上書き`, ref);
+    } catch (error) {
+      return failure(409, '手直しの枝に照合の記録を書けませんでした。画面を開き直してください', prUrl);
+    }
+    const commitSha = written && written.commit ? written.commit.sha : '';
+    if (!commitSha) {
+      return failure(409, '承認の書き込みの版を取得できませんでした', prUrl);
+    }
+    // 書いた版の親が、画面で見た版（check.headSha）でなければ、その間に
+    // 枝が進んでいる。古い内容の上に書いた可能性があるのでマージしない。
+    const parentSha = written.commit.parents && written.commit.parents[0]
+      ? String(written.commit.parents[0].sha || '') : '';
+    if (!parentSha || parentSha !== check.headSha) {
+      return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+    }
+    expectedHeadSha = commitSha;
+  }
+
+  // 5. マージできる状態を待ち、clean / has_hooks のときだけマージする。
+  let stable;
+  try {
+    stable = await waitForMergeable(check.pr.number, { maxAttempts: 12, intervalMs: 2000, expectedHeadSha });
+  } catch (error) {
+    return failure(409, `マージできる状態を確認できませんでした（${error.message}）。`, prUrl);
+  }
+  if (!stable) {
+    return failure(409, 'この PR は今はマージできません（状態を確認できませんでした）。GitHub で状態を確認してください', prUrl);
+  }
+  if (!stable.head || stable.head.sha !== expectedHeadSha) {
+    return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+  }
+
+  // unstable は「自動の確認が失敗中か実行中」。失敗が無ければ終わるまで待つ。
+  if (stable.mergeable_state === 'unstable') {
+    // 2 回目の待ちも含めて、最初の 8 分の締め切りの中で待つ。
+    const checkDeadline = Date.now() + checkWait.maxWaitMs;
+    const settled = await waitForEditChecks({
+      prNumber: check.pr.number,
+      headSha: expectedHeadSha,
+      getPR,
+      getCombinedStatus,
+      listCheckRuns,
+      intervalMs: checkWait.intervalMs,
+      maxWaitMs: checkWait.maxWaitMs,
+      sleep: waitFn,
+    });
+    if (settled.processed) return processedResult();
+    if (!settled.ok) return failure(409, settled.reason, prUrl);
+    // 全部終わったら、改めてマージできる状態を確かめる。
+    try {
+      stable = await waitForMergeable(check.pr.number, { maxAttempts: 12, intervalMs: 2000, expectedHeadSha });
+    } catch (error) {
+      return failure(409, `マージできる状態を確認できませんでした（${error.message}）。`, prUrl);
+    }
+    if (!stable || !stable.head || stable.head.sha !== expectedHeadSha) {
+      return failure(409, EDIT_CHECK_HEAD_CHANGED, prUrl);
+    }
+
+    // 確認が終わった直後でも、GitHub 側の反映待ちでまだ unstable のことがある。
+    // 失敗が無ければ同じ締め切りの中で pending を待ち、そのあと clean / has_hooks を
+    // 読み直してからマージする（mergeable_state の文では止めない）。
+    if (stable.mergeable_state === 'unstable') {
+      let checks;
+      try {
+        checks = await readEditChecks(getCombinedStatus, listCheckRuns, expectedHeadSha);
+      } catch (error) {
+        console.error(`[review-approve] 手直しの自動の確認を読めませんでした: ${error && error.message}`);
+        return failure(409, EDIT_CHECK_UNREADABLE, prUrl);
+      }
+      if (checks.failures.length) {
+        console.warn(`[review-approve] 手直しの自動の確認が失敗: ${checks.failures.join(' / ')}`);
+        return failure(409, EDIT_CHECK_FAILED, prUrl);
+      }
+      if (checks.pending) {
+        const again = await waitForEditChecks({
+          prNumber: check.pr.number,
+          headSha: expectedHeadSha,
+          getPR,
+          getCombinedStatus,
+          listCheckRuns,
+          intervalMs: checkWait.intervalMs,
+          maxWaitMs: Math.max(0, checkDeadline - Date.now()),
+          sleep: waitFn,
+        });
+        if (again.processed) return processedResult();
+        if (!again.ok) return failure(409, again.reason, prUrl);
+      }
+      const polled = await pollEditPRState({
+        prNumber: check.pr.number,
+        headSha: expectedHeadSha,
+        getPR,
+        sleep: waitFn,
+      });
+      if (polled.processed) return processedResult();
+      if (!polled.ok) return failure(409, polled.reason, prUrl);
+      stable = polled.pr;
+    }
+  }
+
+  const mergeableState = stable && stable.mergeable_state ? stable.mergeable_state : '';
+  const mergeableLabel = !mergeableState || mergeableState === 'unknown' ? '不明' : mergeableState;
+  if (stable.mergeable !== true || !MANUAL_EDIT_MERGEABLE_STATES.has(stable.mergeable_state)) {
+    return failure(409, `この PR は今はマージできません（mergeable_state=${mergeableLabel}）。GitHub で状態を確認してください`, prUrl);
+  }
+
+  try {
+    await mergePR(check.pr.number, `edit: ${title} (#${check.pr.number})`, { expectedHeadSha });
+  } catch (error) {
+    console.error(`[review-approve] 手直しの PR マージ失敗: ${error.message}`);
+    // 同時に 2 回押されたときは、相手が先にマージしている。merged を確かめる。
+    let after = null;
+    try { after = await getPR(check.pr.number); }
+    catch (_) { after = null; }
+    if (after && after.merged === true) {
+      // 画面で見た版と同じ版がマージされたときだけ「反映済み」にする。
+      if (!after.head || after.head.sha !== expectedHeadSha) {
+        return failure(409, EDIT_MERGED_OTHER_VERSION, prUrl);
+      }
+      return await processedResult();
+    }
+    return failure(409, `この PR をマージできませんでした（${error.message}）。GitHub で状態を確認してください`, prUrl);
+  }
+
+  // 6. 成功判定は getPR(n).merged で行う（main の review_status では判定しない）。
+  let merged = false;
+  try {
+    const after = await getPR(check.pr.number);
+    merged = Boolean(after && after.merged === true);
+  } catch (_) {
+    merged = false;
+  }
+  if (!merged) {
+    return failure(409, 'マージの結果を確認できませんでした（merged になりませんでした）。GitHub で状態を確認してください', prUrl);
+  }
+
+  // 7. 枝は消さない。
+  const baseUrl = process.env.SITE_BASE_URL || 'https://mori-zeirishi.net';
+  const slug = branchMeta.slug ? String(branchMeta.slug) : '';
+  try {
+    await sendNotification('edit_published', {
+      title,
+      publicUrl: slug ? `${baseUrl}/blog/${slug}/` : '',
+      ...(prUrl ? { prUrl } : {}),
+    });
+  } catch (_) { console.error('[review-approve] 手直しの反映通知送信に失敗しました'); }
+  return success(`手直しを反映しました: ${title}`, { merged: true });
+}
+
 async function handler(event, injected = {}) {
   const getFile = injected.getFile || githubApi.getFile;
   const putFile = injected.putFile || githubApi.putFile;
   const updateFrontmatter = injected.updateFrontmatter || githubApi.updateFrontmatter;
   const nowJST = injected.nowJST || githubApi.nowJST;
   const findPR = injected.findPR || githubApi.findPR;
+  const listPRFiles = injected.listPRFiles || githubApi.listPRFiles;
+  const getPR = injected.getPR || githubApi.getPR;
   const closePR = injected.closePR || githubApi.closePR;
+  const commentOnPR = injected.commentOnPR || githubApi.commentOnPR;
   const waitForMergeable = injected.waitForMergeable || githubApi.waitForMergeable;
   const mergePR = injected.mergePR || githubApi.mergePR;
+  const compareCommits = injected.compareCommits || githubApi.compareCommits;
+  const getCombinedStatus = injected.getCombinedStatus || githubApi.getCombinedStatus;
+  const listCheckRuns = injected.listCheckRuns || githubApi.listCheckRuns;
+  const editCheckWait = injected.editCheckWait || {};
+  const sleep = injected.sleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const deleteBranch = injected.deleteBranch || githubApi.deleteBranch;
   const findApprovedArticlesForDate = injected.findApprovedArticlesForDate || githubApi.findApprovedArticlesForDate;
   const sendNotification = injected.sendNotification || notify.sendNotification;
   let refreshRequest = false;
   let refreshFilename = '';
+  let editRequest = false;
+  let editFilename = '';
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
@@ -350,15 +821,34 @@ async function handler(event, injected = {}) {
   if (auth.response) return auth.response;
 
   try {
-    const { filename, publish_at, ref, file_sha, fact_check_override } = JSON.parse(event.body || '{}');
+    const { filename, publish_at, ref, file_sha, fact_check_override, head_sha, pr_number } = JSON.parse(event.body || '{}');
     refreshRequest = typeof ref === 'string' && ref.startsWith('draft/refresh-');
     refreshFilename = filename || '';
 
-    if (!filename) {
+    if (!filename || !/^[\w-]+\.md$/.test(String(filename))) {
       return { statusCode: 400, body: JSON.stringify({ error: 'filename は必須です' }) };
+    }
+    if (ref !== undefined && (typeof ref !== 'string' || ref.length > 200)) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'ref が正しくありません' }) };
     }
 
     const filepath = `content/posts/${filename}`;
+
+    // 公開中の記事の手直し PR（枝 edit/<slug>）は専用の経路で扱う。
+    // main が最初から published なので、下の「公開済みの 409」より前に分ける。
+    // edit/ で始まるが名前の形が正しくない枝も、ここで断る（通常の下書きとして
+    // 扱うと、記事のファイルを書き換えてしまう）。
+    if (manualEdit.isEditRefShape(ref)) {
+      editRequest = true;
+      editFilename = filename;
+      return await handleManualEditApproval({
+        filename, filepath, ref, pr_number, head_sha, file_sha, fact_check_override,
+        getFile, putFile, getPR, listPRFiles, findPR, waitForMergeable, mergePR,
+        compareCommits, getCombinedStatus, listCheckRuns, editCheckWait, sleep,
+        sendNotification, nowJST,
+      });
+    }
+
     let branchFile;
     try {
       branchFile = await getFile(filepath, ref || undefined);
@@ -417,6 +907,14 @@ async function handler(event, injected = {}) {
       try {
         const currentMain = await getFile(filepath, 'main');
         if (mainStatus(currentMain.content) === 'published') {
+          // バックグラウンド関数は常に 202 を返すため、断ったことを必ず通知する。
+          try {
+            await sendNotification('edit_unsupported', {
+              title: branchMeta.title || filename,
+              comment: 'この画面では承認できない種類の PR です。GitHub で確認してください',
+              filename,
+            });
+          } catch (_) { console.error('[review-approve] 承認できない種類の通知送信に失敗しました'); }
           return { statusCode: 409, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: '公開済みの記事は通常の承認経路で変更できません。' }) };
         }
       } catch (error) {
@@ -666,6 +1164,16 @@ async function handler(event, injected = {}) {
       }),
     };
   } catch (err) {
+    if (editRequest) {
+      try { await sendNotification('edit_approve_failed', { title: editFilename || '手直し', comment: '手直しの承認処理に失敗しました。' }); }
+      catch (_) { console.error('[review-approve] 手直しの失敗通知送信に失敗しました'); }
+      console.error('[review-approve] 手直しの承認処理に失敗しました');
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: '手直しの承認処理に失敗しました。' }),
+      };
+    }
     if (refreshRequest) {
       try { await sendNotification('refresh_approve_failed', { title: refreshFilename || '更新案', comment: '更新案の承認処理に失敗しました。' }); }
       catch (_) { console.error('[review-approve] 更新案の失敗通知送信に失敗しました'); }
