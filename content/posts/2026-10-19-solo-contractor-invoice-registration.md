@@ -16,13 +16,13 @@ reader_problem: "取引先から登録を求められているが、インボイ
 success_outcome: "一人親方はインボイス登録をするべきで、登録すると消費税の納税はどう変わるがわかり、自分のケースで判断できる"
 primary_question: "一人親方はインボイス登録をするべきで、登録すると消費税の納税はどう変わる？"
 summary: "一人親方のインボイス登録は、元請が課税事業者で継続発注があるなら登録が基本。令和8年分は2割特例で売上税額の2割、令和9年分・令和10年分は3割特例で3割。取消しは初日から15日前まで。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-10-19T13:28:00.404Z"
-updated_at: "2026-11-06T12:48:11.636Z"
+updated_at: "2026-11-10T15:48:00.731+09:00"
 source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm;消費税法2条;消費税法4条;消費税法5条;消費税法30条;消基通11-1-1;消費税法施行令46条;消費税法9条"
 tax_terms: "適格請求書発行事業者 仕入税額控除 免税事業者 課税事業者選択届出書"
 source_provenance: "curated"
@@ -64,6 +64,9 @@ fact_check_summary: "主張 52 件: 裏付けあり 49・修正 0（食い違い
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "revise"
 fact_check_blocking: false
+approved_at: "2026-11-10T15:48:00.731+09:00"
+publish_at: "2026-11-11T11:07:00.000+09:00"
+publish_slot: "morning"
 ---
 
 一人親方として現場を回していると、元請から「インボイス登録をお願いします」という書面を渡され、そのままにしていませんか。登録すれば消費税を納めることになるのは分かる。でも、いくら払うのか、断ったら仕事が減るのかが分からないまま、返事を先延ばしにしている方も多いでしょう。
