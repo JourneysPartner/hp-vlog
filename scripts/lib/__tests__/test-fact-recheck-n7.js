@@ -225,6 +225,8 @@ await test('T6 2 回目・前に言葉を足した直しが資料なしなら、
   assert.deepEqual(r.record.repair_retry, { targets: 1, kept: 1, reverted: 0 });
   assert.ok(r.record.rechecked.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いの行が再照合に残っていない');
   assert.ok(r.record.remaining.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いが残った指摘に無い');
+  // 残した 1 回目の止める行（B）が置き換えの中にあるので、S の修正も直ったにしない（L1）。
+  assert.equal(r.record.corrections.find(c => c.before === S).resolved, false);
   const item = r.record.review_items.find(c => c.sentence === B2);
   assert.equal(item?.status, '資料なし');
 });
@@ -411,6 +413,228 @@ await test('T11 版: 記録の logic_version が plan2-s9', async () => {
   const r = await runG1();
   budget(r.record);
   assert.equal(r.record.logic_version, 'plan2-s9');
+});
+
+// ── T12: 1 回目の条件確認だけの修正は、今のとおり通す（L2） ───────────
+await test('T12 条件確認だけの修正は、置き換えの含む文に資料なしがあっても今のとおり直す', async () => {
+  const old = process.env.FACT_CHECK_WRITER_MATERIALS;
+  process.env.FACT_CHECK_WRITER_MATERIALS = 'true';
+  try {
+    const S = '制度Hの届出書を提出します。';
+    const X1 = '開業した年は制度Hの届出書を提出します。';
+    const MISSING = '提出の期限は資料で確認が必要';
+    const body = `## 制度\n${S}\n`;
+    const source = ref('gift', '制度Hの資料', `${X1}\n${S}\n`);
+    const fn = async request => {
+      if (request.task === 'condition_check') {
+        const data = JSON.parse(request.user);
+        if (data.article === S) return { verdict: '不一致', correct: X1,
+          conditions: [{ article: '提出する書類', source: '開業した年の届出書', match: '不一致' }] };
+        return { verdict: '一致', conditions: [] };
+      }
+      if (request.task === 'extract') {
+        if (request.user.includes(X1)) return [row(X1, '手続', '制度H', X1), row(X1, '判定', '制度H', MISSING)];
+        return [row(S, '手続', '制度H', S)];
+      }
+      if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+        if (c.sentence === X1 && c.type === '判定') return { id: c.id, status: '資料なし' };
+        return { id: c.id, status: '裏付けあり', quote: X1, evidence_id: 'gift' };
+      });
+      if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id, replacement: X1 }));
+      throw new Error('未定義: ' + request.task);
+    };
+    const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
+      callLLM: fn, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text });
+    const { repair, recheck } = budget(r.record);
+    assert.equal(repair, 1); assert.equal(recheck, 1);
+    // 条件確認の除外（c.condition_mismatch）を外すと、本文が元の文に戻り、修正の記録が消える。
+    assert.equal(r.body, `## 制度\n${X1}\n`);
+    assert.equal(r.record.status, 'ok');
+    assert.deepEqual(r.record.remaining, []);
+    const correction = r.record.corrections.find(c => c.before === S);
+    assert.equal(correction.status, '食い違い');
+    assert.equal(correction.condition_mismatch, true);
+    assert.equal(correction.after, X1);
+    assert.equal(correction.resolved, true);
+    const missing = r.record.review_items.find(c => c.sentence === X1 && c.status === '資料なし');
+    assert.equal(missing?.type, '判定');
+    assert.ok(!r.record.review_items.some(c => c.status === '条件の違いを要確認'), '条件確認だけの項目が人に回っている');
+  } finally {
+    if (old === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS; else process.env.FACT_CHECK_WRITER_MATERIALS = old;
+  }
+});
+
+// ── T13: 2 回目・その文の行が全部裏付けありか（L2） ────────────────
+await test('T13 2 回目・B2 の 2 つの主張のどちらかが資料なしなら、1 回目の食い違いの行を残す', async () => {
+  const S = '制度Fの届出は市役所に出します。';
+  const A = '制度Fの届出は税務署に出します。';
+  const B = '制度Fの届出書は郵送で出せます。';
+  const B2 = '原則として制度Fの届出書は郵送で出せます。';
+  const CORRECT_B = '制度Fの届出書は窓口に持参します。';
+  const REQUIRED = '届出書の提出が必要';
+  const MAIL = '郵送で出せる';
+  const X1 = A + B;
+  const body = `## 制度\n${S}\n`;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '要件', '制度F', REQUIRED), row(B2, '手続', '制度F', MAIL)];
+      if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B)];
+      return [row(S, '手続', '制度F', S)];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === S) return { id: c.id, status: '食い違い', quote: A, correct: X1, evidence_id: 'doc' };
+      if (c.sentence === A) return { id: c.id, status: '裏付けあり', quote: A, evidence_id: 'doc' };
+      if (c.sentence === B) return { id: c.id, status: '食い違い', quote: CORRECT_B, correct: CORRECT_B, evidence_id: 'doc' };
+      if (c.sentence === B2 && c.type === '要件') return { id: c.id, status: '裏付けあり', quote: B2, evidence_id: 'doc' };
+      return { id: c.id, status: '資料なし' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+      replacement: c.earlier_fix ? B2 : X1 }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(body, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${A}\n${CORRECT_B}\n${B}\n${B2}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 2); assert.equal(recheck, 2);
+  assert.equal(r.body, `## 制度\n${A}${B2}\n`);
+  assert.equal(r.record.status, 'revise');
+  // B2 の行が 1 つでも裏付けありでないなら、B の食い違いの行を消さない（every を some にすると落ちる）。
+  assert.ok(r.record.rechecked.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いの行が再照合に残っていない');
+  assert.ok(r.record.remaining.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いが残った指摘に無い');
+});
+
+// ── T14: 1 回目・含む文が全部裏付けありか（L2） ─────────────────────
+await test('T14 1 回目・含む文が 2 つあり片方が資料なしなら止める', async () => {
+  const B = '原則として制度Gの届出書は郵送で出せます。';
+  const E = '例外として、制度Gの届出書は郵送で出せます。';
+  const X1 = B + E;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(E)) return [row(B, '手続', '制度G', B), row(E, '手続', '制度G', E)];
+      return [row(G_S, '手続', '制度G', G_S)];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === G_S) return { id: c.id, status: '食い違い', quote: G_CORRECT, correct: G_CORRECT, evidence_id: 'doc' };
+      if (c.sentence === B) return { id: c.id, status: '裏付けあり', quote: B, evidence_id: 'doc' };
+      return { id: c.id, status: '資料なし' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id, replacement: X1 }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(G_BODY, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${G_CORRECT}\n${B}\n${E}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 1); assert.equal(recheck, 1);
+  assert.equal(r.body, `## 制度\n${X1}\n`);
+  assert.equal(r.record.status, 'revise');
+  // 含む文の every を some にすると、1 文目だけで通って落ちる。
+  assert.ok(r.record.remaining.some(c => c.sentence === G_S && c.status === '食い違い'), 'S の食い違いが残った指摘に無い');
+  assert.equal(r.record.corrections.find(c => c.before === G_S).resolved, false);
+});
+
+// ── T15: 2 回目・止める行だけを「全部」の対象にする（L2） ──────────────
+await test('T15 2 回目・止めない行は今のとおり消し、止める行だけを残す', async () => {
+  const S = '制度Fの届出は市役所に出します。';
+  const A = '制度Fの届出は税務署に出します。';
+  const B = '制度Fの届出書は郵送で出せます。';
+  const B2 = '原則として制度Fの届出書は郵送で出せます。';
+  const N = '制度Fの窓口は平日に開いています。';
+  const CORRECT_B = '制度Fの届出書は窓口に持参します。';
+  const FIRST_CLAIM = '窓口の開館時間は資料で確認が必要';
+  const SECOND_CLAIM = '窓口は平日に開いている';
+  const X1 = A + B + N;
+  const body = `## 制度\n${S}\n`;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '手続', '制度F', B2), row(N, '手続', '制度F', SECOND_CLAIM)];
+      if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B), row(N, '手続', '制度F', FIRST_CLAIM)];
+      return [row(S, '手続', '制度F', S)];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === S) return { id: c.id, status: '食い違い', quote: A, correct: X1, evidence_id: 'doc' };
+      if (c.sentence === A) return { id: c.id, status: '裏付けあり', quote: A, evidence_id: 'doc' };
+      if (c.sentence === B) return { id: c.id, status: '食い違い', quote: CORRECT_B, correct: CORRECT_B, evidence_id: 'doc' };
+      return { id: c.id, status: '資料なし' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+      replacement: c.earlier_fix ? B2 : X1 }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(body, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${A}\n${CORRECT_B}\n${B}\n${B2}\n${N}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 2); assert.equal(recheck, 2);
+  assert.equal(r.body, `## 制度\n${A}${B2}${N}\n`);
+  assert.equal(r.record.status, 'revise');
+  assert.deepEqual(r.record.repair_retry, { targets: 1, kept: 1, reverted: 0 });
+  assert.ok(r.record.remaining.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いが残った指摘に無い');
+  // 止めない行（N）の 1 回目の行は今のとおり消す。R2 の「止める行だけ」の限定を外すと残って落ちる。
+  assert.ok(!r.record.rechecked.some(c => c.sentence === N && c.claim === FIRST_CLAIM), '止めない行の 1 回目の行が消えていない');
+  assert.ok(r.record.rechecked.some(c => c.sentence === N && c.claim === SECOND_CLAIM), '止めない行の 2 回目の行が再照合に無い');
+});
+
+// ── T16: R7・1 回目（後ろに句を足した直し） ───────────────────────
+await test('T16 1 回目・後ろに句を足した直しの 2 文目が資料なしなら止める', async () => {
+  const B2 = '制度Gの届出書は郵送で出せますが、例外があります。';
+  const X1 = G_A + B2;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(B2)) return [row(G_A, '手続', '制度G', G_A), row(B2, '手続', '制度G', B2)];
+      return [row(G_S, '手続', '制度G', G_S)];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === G_S) return { id: c.id, status: '食い違い', quote: G_CORRECT, correct: G_CORRECT, evidence_id: 'doc' };
+      if (c.sentence === G_A) return { id: c.id, status: '裏付けあり', quote: G_A, evidence_id: 'doc' };
+      return { id: c.id, status: '資料なし' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id, replacement: X1 }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(G_BODY, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${G_CORRECT}\n${G_A}\n${B2}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 1); assert.equal(recheck, 1);
+  assert.equal(r.body, `## 制度\n${X1}\n`);
+  assert.equal(r.record.status, 'revise');
+  // 終わりの句点まで比べると含む文が無くなり、resolved: true になって落ちる（R7）。
+  assert.equal(r.record.corrections.find(c => c.before === G_S).resolved, false);
+  assert.ok(r.record.remaining.some(c => c.sentence === G_S && c.status === '食い違い'), 'S の食い違いが残った指摘に無い');
+});
+
+// ── T17: R7・2 回目（後ろに句を足した直し） ───────────────────────
+await test('T17 2 回目・後ろに句を足した直しが資料なしなら、1 回目の食い違いの行を残す', async () => {
+  const S = '制度Fの届出は市役所に出します。';
+  const A = '制度Fの届出は税務署に出します。';
+  const B = '制度Fの届出書は郵送で出せます。';
+  const B2 = '制度Fの届出書は郵送で出せますが、例外があります。';
+  const CORRECT_B = '制度Fの届出書は窓口に持参します。';
+  const X1 = A + B;
+  const body = `## 制度\n${S}\n`;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '手続', '制度F', B2)];
+      if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B)];
+      return [row(S, '手続', '制度F', S)];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === S) return { id: c.id, status: '食い違い', quote: A, correct: X1, evidence_id: 'doc' };
+      if (c.sentence === A) return { id: c.id, status: '裏付けあり', quote: A, evidence_id: 'doc' };
+      if (c.sentence === B) return { id: c.id, status: '食い違い', quote: CORRECT_B, correct: CORRECT_B, evidence_id: 'doc' };
+      return { id: c.id, status: '資料なし' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+      replacement: c.earlier_fix ? B2 : X1 }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(body, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${A}\n${CORRECT_B}\n${B}\n${B2}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 2); assert.equal(recheck, 2);
+  assert.equal(r.body, `## 制度\n${A}${B2}\n`);
+  assert.equal(r.record.status, 'revise');
+  // 終わりの句点まで比べると、B を含む本文の文が無いとみなされて B の行が消え、ok になって落ちる（R7）。
+  assert.ok(r.record.rechecked.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いの行が再照合に残っていない');
+  assert.ok(r.record.remaining.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いが残った指摘に無い');
 });
 
 console.log(`\n${passed} 件通過・${failed} 件失敗`);
