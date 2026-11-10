@@ -1,0 +1,2154 @@
+{
+  "version": 1,
+  "logic_version": "plan2-s7",
+  "status": "ok",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": true,
+  "checked_at": "2026-11-09T09:37:50.423Z",
+  "body_sha256": "c19f3a2690cf9f475f28c32bb8e5bd161c639b4332138b88be157729d78791bb",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "納税額は、令和8年分が2割特例で売上税額の2割、令和9年分と令和10年分が3割特例で3割に収まります。",
+      "heading": "",
+      "type": "割合",
+      "subject": "2割特例",
+      "claim": "令和8年分の納税額は2割特例で売上税額の2割に収まる",
+      "s": 7,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "納税額は、令和8年分が2割特例で売上税額の2割、令和9年分と令和10年分が3割特例で3割に収まります。",
+      "heading": "",
+      "type": "割合",
+      "subject": "3割特例",
+      "claim": "令和9年分と令和10年分の納税額は3割特例で売上税額の3割に収まる",
+      "s": 7,
+      "status": "裏付けあり",
+      "quote": "小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "<strong>登録する</strong>とは、税務署長に登録申請書を提出し、適格請求書発行事業者として登録を受けることです。",
+      "heading": "くらべる2つの選択肢",
+      "type": "手続",
+      "subject": "適格請求書発行事業者の登録",
+      "claim": "税務署長に登録申請書を提出し適格請求書発行事業者の登録を受ける",
+      "s": 16,
+      "status": "裏付けあり",
+      "quote": "適格請求書発行事業者登録制度適格請求書発行事業者となるためには、税務署長に「適格請求書発行事業者の登録申請書」（以下「登録申請書」といいます。）を提出し、登録を受ける必要があります（注1）（注2）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_rei:70_2",
+        "qa:invoice/02"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "登録を受けた課税事業者は、基準期間の課税売上高にかかわらず消費税の納税義務が免除されません（国税庁タックスアンサー No.6498）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "判定",
+      "subject": "登録事業者の納税義務",
+      "claim": "登録を受けた課税事業者は基準期間の課税売上高にかかわらず納税義務が免除されない",
+      "s": 17,
+      "status": "裏付けあり",
+      "quote": "（注2）適格請求書発行事業者の登録を受けた課税事業者は、基準期間の課税売上高にかかわらず、消費税の納税義務は免除されません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "登録を受けた課税事業者は、基準期間の課税売上高にかかわらず消費税の納税義務が免除されません（国税庁タックスアンサー No.6498）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "番号",
+      "subject": "登録事業者の納税義務",
+      "claim": "登録事業者の納税義務の根拠として国税庁タックスアンサーNo.6498を引用",
+      "s": 17,
+      "status": "裏付けあり",
+      "quote": "（注2）適格請求書発行事業者の登録を受けた課税事業者は、基準期間の課税売上高にかかわらず、消費税の納税義務は免除されません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "基準期間（個人事業者の場合はその年の前々年）の課税売上高が1,000万円以下なら納税義務が免除され、課税仕入れに係る消費税額の控除も還付も受けられません（No.6613）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "要件",
+      "subject": "免税事業者",
+      "claim": "個人事業者の基準期間はその年の前々年である",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税には事業者免税点制度が設けられており、基準期間（個人事業者の場合はその年の前々年、事業年度が1年である法人の場合はその事業年度の前々事業年度）における課税売上高が1,000万円以下の事業者は消費税の納税義務が免除されます（注）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "基準期間（個人事業者の場合はその年の前々年）の課税売上高が1,000万円以下なら納税義務が免除され、課税仕入れに係る消費税額の控除も還付も受けられません（No.6613）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "金額",
+      "subject": "免税事業者",
+      "claim": "基準期間の課税売上高が1,000万円以下なら納税義務が免除される",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税には事業者免税点制度が設けられており、基準期間（個人事業者の場合はその年の前々年、事業年度が1年である法人の場合はその事業年度の前々事業年度）における課税売上高が1,000万円以下の事業者は消費税の納税義務が免除されます（注）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "基準期間（個人事業者の場合はその年の前々年）の課税売上高が1,000万円以下なら納税義務が免除され、課税仕入れに係る消費税額の控除も還付も受けられません（No.6613）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "判定",
+      "subject": "免税事業者",
+      "claim": "免税事業者は課税仕入れに係る消費税額の控除も還付も受けられない",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "納税義務が免除される事業者（以下「免税事業者」といいます。）は、課税資産の譲渡等を行っても、その課税期間は消費税の納税義務が免除されることになり、課税仕入れ（特定課税仕入れを含みます。）および課税貨物に係る消費税額の控除もできません（課税売上げに係る消費税額よりも課税仕入れ等に係る消費税額が多い場合でも、還付を受けることはできません。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "基準期間（個人事業者の場合はその年の前々年）の課税売上高が1,000万円以下なら納税義務が免除され、課税仕入れに係る消費税額の控除も還付も受けられません（No.6613）。",
+      "heading": "くらべる2つの選択肢",
+      "type": "番号",
+      "subject": "免税事業者",
+      "claim": "免税事業者の根拠としてタックスアンサーNo.6613を引用",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税には事業者免税点制度が設けられており、基準期間（個人事業者の場合はその年の前々年、事業年度が1年である法人の場合はその事業年度の前々事業年度）における課税売上高が1,000万円以下の事業者は消費税の納税義務が免除されます（注）。 納税義務が免除される事業者（以下「免税事業者」といいます。）は、課税資産の譲渡等を行っても、その課税期間は消費税の納税義務が免除されることになり、課税仕入れ（特定課税仕入れを含みます。）および課税貨物に係る消費税額の控除もできません（課税売上げに係る消費税額よりも課税仕入れ等に係る消費税額が多い場合でも、還付を受けることはできません。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "| 元請の仕入税額控除 | 適格請求書の保存で全額控除できる | 経過措置で一部のみ（80%から70%・50%・30%へ段階的に低下） |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "割合",
+      "subject": "仕入税額控除の経過措置",
+      "claim": "免税事業者からの仕入れの控除割合は80%から70%・50%・30%へ段階的に下がる",
+      "s": 23,
+      "status": "裏付けあり",
+      "quote": "期間 令和５年10月１日から令和８年９月30日まで 令和８年10月１日から令和 10 年９月30日まで 令和 10 年10月１日から令和 12 年９月30日まで 令和 12 年10月１日から令和 13 年９月30日まで 割合 仕入税額相当額の 80％ 仕入税額相当額の 70％ 仕入税額相当額の 50％ 仕入税額相当額の 30％ （注） 令和６年10月１日以後に開始する課税期間においては、一の免税事業者等から行う当 該経過措置の対象となる課税仕入れの額の合計額がその年又はその事業年度で課税期間 に応じた一定の金額を超える場合には、その超えた部分の課税仕入れについて、",
+      "correct": "",
+      "evidence_id": "qa:invoice/113",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:21-1-3",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/113",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "| 自分の消費税 | 令和8年分は売上税額の2割、令和9年分・令和10年分は3割（特例） | 原則としてなし |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "割合",
+      "subject": "2割特例",
+      "claim": "令和8年分は売上税額の2割を納付する",
+      "s": 24,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "tsutatsu:shohi:21-1-3",
+        "qa:invoice/114"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "| 自分の消費税 | 令和8年分は売上税額の2割、令和9年分・令和10年分は3割（特例） | 原則としてなし |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "割合",
+      "subject": "3割特例",
+      "claim": "令和9年分・令和10年分は売上税額の3割を納付する",
+      "s": 24,
+      "status": "裏付けあり",
+      "quote": "小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "tsutatsu:shohi:21-1-3",
+        "qa:invoice/117-3"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "| 請求書の記載 | 登録番号や税率ごとの区分の記載が必要 | 今の様式のままでよい |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "要件",
+      "subject": "適格請求書の記載事項",
+      "claim": "適格請求書には登録番号や税率ごとの区分の記載が必要",
+      "s": 25,
+      "status": "裏付けあり",
+      "quote": "適格請求書等の記載事項や発行のしかた適格請求書等の種類適格請求書等への記載事項取引の相手方から交付を受ける、請求書、納品書等(注1) ①書類作成者の氏名または名称および登録番号 ②取引年月日 ③取引内容（軽減税率の対象品目である旨） ④税率ごとに区分して合計した税込対価（又は税抜対価）の額及び適用税率 ⑤税率ごとに区分した消費税額等 ⑥書類の交付を受ける事業者の氏名または名称仕入を行った事業者が自ら作成する仕入明細書、",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6497.htm",
+        "tsutatsu:shohi:1-8-2",
+        "qa:invoice/56"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "| 申告の手間 | 消費税の確定申告が毎年必要 | 不要 |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "手続",
+      "subject": "消費税の確定申告",
+      "claim": "登録すると消費税の確定申告が毎年必要になる",
+      "s": 26,
+      "status": "裏付けあり",
+      "quote": "なお、課税事業者は、課税期間ごとに、原則として、その課税期間の終了の日の翌日から2か月以内（個人事業者の12月31日の属する課税期間は翌年3月31日まで）に、納税地の所轄税務署長に消費税および地方消費税の確定申告書を提出するとともに、その申告に係る消費税額と地方消費税額を併せて納付しなければなりません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/08",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "| やめるとき | 期限までに登録取消しの届出書が必要 | 手続き不要 |",
+      "heading": "登録する場合と登録しない場合の比較",
+      "type": "手続",
+      "subject": "登録の取消し",
+      "claim": "登録をやめるには期限までに登録取消しの届出書の提出が必要",
+      "s": 28,
+      "status": "裏付けあり",
+      "quote": "【令和６年４月改訂】 【答】 適格請求書発行事業者は、納税地を所轄する税務署長に「適格請求書発行事業者の登録の取 消しを求める旨の届出書」（以下「登録取消届出書」といいます。）を提出することにより、適 格請求書発行事業者の登録の効力を失わせることができます（消法 57 の２⑩一）。 なお、この場合、原則として、登録取消届出書の提出があった日の属する課税期間の翌課税 期間の初日に登録の効力が失われることとなります（消法 57 の２⑩一）。 ただし、登録取消届出書を、翌課税期間の初日から起算して 15 日前の日（注）を過ぎて提出し た場合は、翌々課税期間の初日に登録の効力が失われることとなります（消法 57 の２⑩一、消 令 70 の５③）。",
+      "correct": "",
+      "evidence_id": "qa:invoice/13",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:57_2",
+        "qa:invoice/13",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "課税事業者の元請は、あなたの請求書が適格請求書でないと仕入税額控除を全額受けられません。",
+      "heading": "自分はどれに当てはまるか",
+      "type": "判定",
+      "subject": "仕入税額控除",
+      "claim": "課税事業者の元請は適格請求書でないと仕入税額控除を全額受けられない",
+      "s": 37,
+      "status": "裏付けあり",
+      "quote": "仕入税額控除の要件（買手の留意点） 適格請求書等保存方式の下では、適格請求書などの請求書等の交付を受けることが困難な一定の場合を除き、一定の事項を記載した帳簿および請求書等の保存が仕入税額控除の要件となります。 なお、適格請求書等保存方式においては、免税事業者や消費者など、適格請求書発行事業者以外の者から行った課税仕入れに係る消費税額を控除することができなくなりますが、一定の要件を満たす場合には、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を仕入税額として控除できる経過措置が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:11-1-8",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
+        "qa:invoice/97",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "| 2割特例（令和8年分まで） | 100万円×20% | 20万円 |",
+      "heading": "納税額はいくらになるか",
+      "type": "割合",
+      "subject": "2割特例",
+      "claim": "2割特例は令和8年分まで売上税額に20%を乗じて納付税額を計算する",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/117-3",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "| 3割特例（令和9年分・令和10年分） | 100万円×30% | 30万円 |",
+      "heading": "納税額はいくらになるか",
+      "type": "割合",
+      "subject": "3割特例",
+      "claim": "3割特例は令和9年分・令和10年分に売上税額に30%を乗じて計算する",
+      "s": 44,
+      "status": "裏付けあり",
+      "quote": "小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/125",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "2割特例は、令和5年10月1日から令和8年9月30日までの日の属する課税期間が対象です。",
+      "heading": "納税額はいくらになるか",
+      "type": "適用年",
+      "subject": "2割特例",
+      "claim": "令和5年10月1日から令和8年9月30日までの日の属する課税期間が対象",
+      "s": 46,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/115",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "2割特例は、令和5年10月1日から令和8年9月30日までの日の属する課税期間が対象です。",
+      "heading": "納税額はいくらになるか",
+      "type": "適用年",
+      "subject": "2割特例",
+      "claim": "個人事業者は令和8年分が2割特例の最後の適用年分となる",
+      "s": 46,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/114",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "3割特例は令和9年および令和10年の課税期間が対象で、小規模な個人事業者向けの措置です。",
+      "heading": "納税額はいくらになるか",
+      "type": "適用年",
+      "subject": "3割特例",
+      "claim": "3割特例は令和9年および令和10年の課税期間が対象",
+      "s": 48,
+      "status": "裏付けあり",
+      "quote": "小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/114-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "3割特例は令和9年および令和10年の課税期間が対象で、小規模な個人事業者向けの措置です。",
+      "heading": "納税額はいくらになるか",
+      "type": "要件",
+      "subject": "3割特例",
+      "claim": "3割特例は小規模な個人事業者向けの措置である",
+      "s": 48,
+      "status": "裏付けあり",
+      "quote": "小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/114-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "どちらも事前の届出は不要で、申告書の所定欄に適用を受ける旨を書きます。",
+      "heading": "納税額はいくらになるか",
+      "type": "手続",
+      "subject": "2割特例・3割特例",
+      "claim": "事前届出は不要で申告書の所定欄に適用を受ける旨を記載する",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "また、３割特例は、２割特例と同様、簡易課税制度のように事前の届出や継続して適用しな ければならないという制限はなく、申告書に３割特例の適用を受ける旨を付記することにより、 適用を受けることができます（28年改正法附則51の３③）。",
+      "correct": "",
+      "evidence_id": "qa:invoice/114-2",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/117",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "qa:invoice/114-2"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "この2つを使えば、仕入れの実額計算やインボイスの保存が要らないため、納税額は売上税額の2割から3割に収まりますので、受注を失うリスクと比べて負担は小さいといえます。",
+      "heading": "納税額はいくらになるか",
+      "type": "判定",
+      "subject": "2割特例・3割特例",
+      "claim": "特例を使えば仕入れの実額計算やインボイスの保存が不要になる",
+      "s": 50,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "本則課税は、売上税額から仕入税額を差し引いて計算します。",
+      "heading": "納税額はいくらになるか",
+      "type": "要件",
+      "subject": "本則課税",
+      "claim": "本則課税は売上税額から仕入税額を差し引いて計算する",
+      "s": 51,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税の納付税額は、課税期間中の課税売上げに係る消費税額からその課税期間中の課税仕入れ、特定課税仕入れ等に係る消費税額を控除（仕入控除税額）して計算します。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/118",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "課税仕入れには、材料や消耗品の購入、車両や器具備品の購入・賃借、外注費、通信費、水道光熱費などが含まれます（No.6451）。",
+      "heading": "納税額はいくらになるか",
+      "type": "要件",
+      "subject": "課税仕入れ",
+      "claim": "材料・消耗品、車両・器具備品の購入賃借、外注費、通信費、水道光熱費などが含まれる",
+      "s": 52,
+      "status": "裏付けあり",
+      "quote": "（1） 商品などの棚卸資産の購入 （2） 原材料等の購入 （3） 機械や建物等のほか、車両や器具備品等の事業用資産の購入または賃借 （4） 広告宣伝費、厚生費、接待交際費、通信費、水道光熱費などの支払 （5） 事務用品、消耗品、新聞図書などの購入 （6） 修繕費 （7） 外注費なお、給与等の支払は課税仕入れとなりませんが、加工賃や人材派遣料のように事業者が行う労働やサービスの提供の対価には消費税が課税されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "law:shohizei_rei:46",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6355.htm",
+        "tsutatsu:shohi:21-1-3",
+        "qa:invoice/96",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "課税仕入れには、材料や消耗品の購入、車両や器具備品の購入・賃借、外注費、通信費、水道光熱費などが含まれます（No.6451）。",
+      "heading": "納税額はいくらになるか",
+      "type": "番号",
+      "subject": "課税仕入れ",
+      "claim": "課税仕入れの範囲の根拠としてタックスアンサーNo.6451を引用",
+      "s": 52,
+      "status": "裏付けあり",
+      "quote": "（1） 商品などの棚卸資産の購入 （2） 原材料等の購入 （3） 機械や建物等のほか、車両や器具備品等の事業用資産の購入または賃借 （4） 広告宣伝費、厚生費、接待交際費、通信費、水道光熱費などの支払 （5） 事務用品、消耗品、新聞図書などの購入 （6） 修繕費 （7） 外注費なお、給与等の支払は課税仕入れとなりませんが、加工賃や人材派遣料のように事業者が行う労働やサービスの提供の対価には消費税が課税されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6355.htm",
+        "tsutatsu:shohi:21-1-3",
+        "qa:invoice/100",
+        "law:shohizei_rei:46"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "多額の設備投資をした年は、本則課税のほうが有利になることがあります。",
+      "heading": "納税額はいくらになるか",
+      "type": "判定",
+      "subject": "本則課税",
+      "claim": "多額の設備投資をした年は本則課税が有利になることがある",
+      "s": 53,
+      "status": "裏付けあり",
+      "quote": "なお、多額の設備投資などがあり、課税仕入れ等に係る消費税額が課税売上げに係る消費税 額を上回る場合、一般課税であれば還付税額が生じますが、簡易課税制度や３割特例を適用し ている場合には、通常、還付税額が生じることはありませんので、その点も踏まえ申告方法を ご検討ください。",
+      "correct": "",
+      "evidence_id": "qa:invoice/117-3",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/faq",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "qa:invoice/117-3"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "免税事業者など適格請求書発行事業者以外の者からの課税仕入れは、仕入税額控除の対象外になります。",
+      "heading": "登録しないときに元請の側で起きること",
+      "type": "判定",
+      "subject": "仕入税額控除",
+      "claim": "適格請求書発行事業者以外の者からの課税仕入れは仕入税額控除の対象外",
+      "s": 55,
+      "status": "裏付けあり",
+      "quote": "なお、適格請求書等保存方式においては、免税事業者や消費者など、適格請求書発行事業者以外の者から行った課税仕入れに係る消費税額を控除することができなくなりますが、一定の要件を満たす場合には、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を仕入税額として控除できる経過措置が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:21-1-3",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
+        "qa:invoice/130",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "ただし経過措置があり、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を控除できます（No.6498）。",
+      "heading": "登録しないときに元請の側で起きること",
+      "type": "適用年",
+      "subject": "仕入税額控除の経過措置",
+      "claim": "経過措置は令和5年10月1日から令和13年9月30日までの期間に適用",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "期間 令和５年10月１日から令和８年９月30日まで 令和８年10月１日から令和 10 年９月30日まで 令和 10 年10月１日から令和 12 年９月30日まで 令和 12 年10月１日から令和 13 年９月30日まで 割合 仕入税額相当額の 80％ 仕入税額相当額の 70％ 仕入税額相当額の 50％ 仕入税額相当額の 30％ （注） 令和６年10月１日以後に開始する課税期間においては、一の免税事業者等から行う当 該経過措置の対象となる課税仕入れの額の合計額がその年又はその事業年度で課税期間 に応じた一定の金額を超える場合には、その超えた部分の課税仕入れについて、",
+      "correct": "",
+      "evidence_id": "qa:invoice/113",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/113",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "ただし経過措置があり、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を控除できます（No.6498）。",
+      "heading": "登録しないときに元請の側で起きること",
+      "type": "割合",
+      "subject": "仕入税額控除の経過措置",
+      "claim": "仕入税額相当額の80%、その後70%・50%・30%を控除できる",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "期間 令和５年10月１日から令和８年９月30日まで 令和８年10月１日から令和 10 年９月30日まで 令和 10 年10月１日から令和 12 年９月30日まで 令和 12 年10月１日から令和 13 年９月30日まで 割合 仕入税額相当額の 80％ 仕入税額相当額の 70％ 仕入税額相当額の 50％ 仕入税額相当額の 30％ （注） 令和６年10月１日以後に開始する課税期間においては、一の免税事業者等から行う当 該経過措置の対象となる課税仕入れの額の合計額がその年又はその事業年度で課税期間 に応じた一定の金額を超える場合には、その超えた部分の課税仕入れについて、",
+      "correct": "",
+      "evidence_id": "qa:invoice/113",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/113",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "ただし経過措置があり、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を控除できます（No.6498）。",
+      "heading": "登録しないときに元請の側で起きること",
+      "type": "番号",
+      "subject": "仕入税額控除の経過措置",
+      "claim": "経過措置の根拠としてタックスアンサーNo.6498を引用",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "なお、適格請求書等保存方式においては、免税事業者や消費者など、適格請求書発行事業者以外の者から行った課税仕入れに係る消費税額を控除することができなくなりますが、一定の要件を満たす場合には、令和5年10月1日から令和13年9月30日までの期間は、仕入税額相当額の一定割合（80パーセント、7・5・3割）を仕入税額として控除できる経過措置が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/113",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "割合は段階的に下がるため、元請の負担は年々増えていきます。",
+      "heading": "登録しないときに元請の側で起きること",
+      "type": "判定",
+      "subject": "仕入税額控除の経過措置",
+      "claim": "控除割合が段階的に下がるため元請の負担は年々増える",
+      "s": 57,
+      "status": "裏付けあり",
+      "quote": "期間 令和５年10月１日から令和８年９月30日まで 令和８年10月１日から令和 10 年９月30日まで 令和 10 年10月１日から令和 12 年９月30日まで 令和 12 年10月１日から令和 13 年９月30日まで 割合 仕入税額相当額の 80％ 仕入税額相当額の 70％ 仕入税額相当額の 50％ 仕入税額相当額の 30％ （注） 令和６年10月１日以後に開始する課税期間においては、一の免税事業者等から行う当 該経過措置の対象となる課税仕入れの額の合計額がその年又はその事業年度で課税期間 に応じた一定の金額を超える場合には、その超えた部分の課税仕入れについて、",
+      "correct": "",
+      "evidence_id": "qa:invoice/113",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:21-1-1",
+        "tsutatsu:shohi:21-1-3",
+        "tsutatsu:shohi:21-1-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "qa:invoice/113"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "登録をやめて免税事業者に戻るには、<strong>戻りたい課税期間の初日から起算して15日前の日まで</strong>に、登録取消しの届出書を出す必要があります。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "戻りたい課税期間の初日から起算して15日前の日までに取消届出書を提出する",
+      "s": 59,
+      "status": "裏付けあり",
+      "quote": "る旨の届出書（登録通知日より前は取下書） 取り消したい課税期間の初日から起算して15日前の日（注２、３） 取消手続 取り消し後の 納税義務 登録日から２年経過日の属する課税期間の末日までは、基準 期間の課税売上高にかかわらず、納税義務が免除されない。",
+      "correct": "",
+      "evidence_id": "qa:invoice/jireishu",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:57_2",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "翌年1月1日から戻したい場合は、その年の<strong>12月17日が期限</strong>です。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "翌年1月1日から免税事業者に戻す場合の期限はその年の12月17日",
+      "s": 60,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "qa:invoice/jireishu",
+        "basis": "13",
+        "quote": "※1/1から登録を取り消す場合、12/17まで（土日祝日の場合でもその翌日に期限が 延長されない。 ）に提出しなければならない。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "この期限は土日祝でも延びません。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "登録取消しの届出期限は土日祝でも延長されない",
+      "s": 61,
+      "status": "裏付けあり",
+      "quote": "※1/1から登録を取り消す場合、12/17まで（土日祝日の場合でもその翌日に期限が 延長されない。 ）に提出しなければならない。",
+      "correct": "",
+      "evidence_id": "qa:invoice/jireishu",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_rei:70_2",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "課税事業者となった日から2年を経過する日の属する課税期間の初日以後でなければ、課税事業者選択不適用届出書を提出できません（No.6501）。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "要件",
+      "subject": "課税事業者選択不適用届出書",
+      "claim": "課税事業者となった日から2年経過日の属する課税期間初日以後でないと提出できない",
+      "s": 63,
+      "status": "裏付けあり",
+      "quote": "ただし、消費税課税事業者選択届出書を提出した事業者は、事業を廃止した場合を除き、原則として、課税事業者となった日から2年を経過する日の属する課税期間の初日以後でなければ、消費税課税事業者選択不適用届出書を提出することができませんので、課税事業者となった日から2年間は免税事業者となることはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:1-4-11",
+        "qa:invoice/faq",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "課税事業者となった日から2年を経過する日の属する課税期間の初日以後でなければ、課税事業者選択不適用届出書を提出できません（No.6501）。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "番号",
+      "subject": "課税事業者選択不適用届出書",
+      "claim": "不適用届出書の提出制限の根拠としてタックスアンサーNo.6501を引用",
+      "s": 63,
+      "status": "裏付けあり",
+      "quote": "ただし、消費税課税事業者選択届出書を提出した事業者は、事業を廃止した場合を除き、原則として、課税事業者となった日から2年を経過する日の属する課税期間の初日以後でなければ、消費税課税事業者選択不適用届出書を提出することができませんので、課税事業者となった日から2年間は免税事業者となることはできません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:1-4-11",
+        "qa:invoice/faq",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "この2年間の継続適用が関係するため、登録を取消してもすぐには免税事業者に戻れない場合があります。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "判定",
+      "subject": "登録の取消し",
+      "claim": "2年間の継続適用により取消してもすぐ免税事業者に戻れない場合がある",
+      "s": 64,
+      "status": "裏付けあり",
+      "quote": "（注）１ この経過措置の適用を受ける登録日の属する課税期間が令和５年 10 月１日を含ま ない場合は、登録日の属する課税期間の翌課税期間から登録日以後２年を経過する日 の属する課税期間までの各課税期間については免税事業者となることはできません（28 年改正法附則 44⑤）。",
+      "correct": "",
+      "evidence_id": "qa:invoice/07",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/07",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "期限を過ぎると、その課税期間からは戻せません。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "判定",
+      "subject": "登録の取消し",
+      "claim": "期限を過ぎるとその課税期間からは免税事業者に戻せない",
+      "s": 65,
+      "status": "裏付けあり",
+      "quote": "ただし、登録取消届出書を、翌課税期間の初日から起算して 15 日前の日（注）を過ぎて提出し た場合は、翌々課税期間の初日に登録の効力が失われることとなります（消法 57 の２⑩一、消 令 70 の５③）。",
+      "correct": "",
+      "evidence_id": "qa:invoice/13",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/07",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "qa:invoice/13"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "登録している限り納税義務は続きます。",
+      "heading": "見落としやすい点",
+      "type": "判定",
+      "subject": "登録事業者の納税義務",
+      "claim": "売上1,000万円以下でも登録している限り納税義務は続く",
+      "s": 69,
+      "status": "裏付けあり",
+      "quote": "適格請求書発行事業者の登録を受けている場合課税期間の基準期間における課税売上高が1,000万円以下であっても、適格請求書発行事業者の登録を受けている場合には、納税義務は免除されません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "登録は事業者単位です。",
+      "heading": "見落としやすい点",
+      "type": "要件",
+      "subject": "適格請求書発行事業者の登録",
+      "claim": "登録は事業者単位であり一部の取引先分だけの登録はできない",
+      "s": 71,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:57_2",
+        "tsutatsu:shohi:1-7-3"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "- 年によって売上が1,000万円を超える場合は、基準期間（個人事業者の場合はその年の前々年）の課税売上高で免税事業者かどうかが決まります（No.6613）。",
+      "heading": "見落としやすい点",
+      "type": "判定",
+      "subject": "免税事業者",
+      "claim": "個人事業者は前々年の基準期間の課税売上高で免税事業者か判定される",
+      "s": 72,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税の納税義務の免除事業者は、国内において行った課税資産の譲渡等について消費税を納める義務がありますが、その課税期間の基準期間（個人事業者の場合はその年の前々年、事業年度が1年である法人の場合はその事業年度の前々事業年度）における課税売上高が1,000万円以下である場合には、原則として、納税義務が免除されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "- 年によって売上が1,000万円を超える場合は、基準期間（個人事業者の場合はその年の前々年）の課税売上高で免税事業者かどうかが決まります（No.6613）。",
+      "heading": "見落としやすい点",
+      "type": "番号",
+      "subject": "免税事業者",
+      "claim": "基準期間による判定の根拠としてタックスアンサーNo.6613を引用",
+      "s": 72,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税には事業者免税点制度が設けられており、基準期間（個人事業者の場合はその年の前々年、事業年度が1年である法人の場合はその事業年度の前々事業年度）における課税売上高が1,000万円以下の事業者は消費税の納税義務が免除されます（注）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/08-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "登録のタイミングで納税義務の発生時期が変わります。",
+      "heading": "見落としやすい点",
+      "type": "判定",
+      "subject": "適格請求書発行事業者の登録",
+      "claim": "登録のタイミングで納税義務の発生時期が変わる",
+      "s": 73,
+      "status": "裏付けあり",
+      "quote": "なお、免税事業者が課税期間の途中で適格請求書発行事業者の登録を受けた場合には、その登録日以後に行った課税資産の譲渡等が消費税の申告の対象となる経過措置が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:57_2",
+        "tsutatsu:shohi:1-7-3",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "適格請求書発行事業者は基準期間の課税売上高が1,000万円以下でも免税事業者になりません。",
+      "heading": "売上1,000万円以下でも、登録したら消費税を納めるのですか？",
+      "type": "判定",
+      "subject": "登録事業者の納税義務",
+      "claim": "適格請求書発行事業者は基準期間の課税売上高1,000万円以下でも免税にならない",
+      "s": 92,
+      "status": "裏付けあり",
+      "quote": "適格請求書発行事業者の登録を受けている場合課税期間の基準期間における課税売上高が1,000万円以下であっても、適格請求書発行事業者の登録を受けている場合には、納税義務は免除されません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/jireishu",
+        "law:shohizei_hou:9"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "ただし2割特例・3割特例を使えば、納税額は売上税額の2割から3割で済みます。",
+      "heading": "売上1,000万円以下でも、登録したら消費税を納めるのですか？",
+      "type": "割合",
+      "subject": "2割特例・3割特例",
+      "claim": "特例を使えば納税額は売上税額の2割から3割で済む",
+      "s": 93,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。\n…\n小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/114",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "令和8年分は2割特例、令和9年分と令和10年分は3割特例の対象です。",
+      "heading": "2割特例と3割特例はどちらを使えばよいですか？",
+      "type": "適用年",
+      "subject": "2割特例・3割特例",
+      "claim": "令和8年分は2割特例、令和9年分と令和10年分は3割特例の対象",
+      "s": 96,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。\n…\n小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/114-2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "3割特例は事前の届出が不要で、申告書に適用を受ける旨を記載するだけで使えます。",
+      "heading": "2割特例と3割特例はどちらを使えばよいですか？",
+      "type": "手続",
+      "subject": "3割特例",
+      "claim": "3割特例は事前届出不要で申告書に適用を受ける旨を記載するだけで使える",
+      "s": 97,
+      "status": "裏付けあり",
+      "quote": "また、３割特例は、２割特例と同様、簡易課税制度のように事前の届出や継続して適用しな ければならないという制限はなく、申告書に３割特例の適用を受ける旨を付記することにより、 適用を受けることができます（28年改正法附則51の３③）。",
+      "correct": "",
+      "evidence_id": "qa:invoice/114-2",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "qa:invoice/117",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "qa:invoice/114-2"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "制度上は断れます。",
+      "heading": "元請から登録を求められた場合、断ることはできますか？",
+      "type": "判定",
+      "subject": "適格請求書発行事業者の登録",
+      "claim": "元請から登録を求められても制度上は断ることができる",
+      "s": 99,
+      "status": "裏付けあり",
+      "quote": "国内において課税資産の譲渡等を行い、又は行おうとする事業者であつて、第五十七条の四第一項に規定する適格請求書の交付をしようとする事業者（第九条第一項本文の規定により消費税を納める義務が免除される事業者を除く。）は、税務署長の登録を受けることができる。",
+      "correct": "",
+      "evidence_id": "law:shohizei_hou:57_2",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:57_2",
+        "tsutatsu:shohi:1-7-3"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "納税額は令和8年分が売上税額の2割、令和9年分・令和10年分が3割に収まります。",
+      "heading": "まとめ",
+      "type": "割合",
+      "subject": "2割特例・3割特例",
+      "claim": "令和8年分は売上税額の2割、令和9年分・令和10年分は3割に収まる",
+      "s": 104,
+      "status": "裏付けあり",
+      "quote": "小規模事業者に係る税額控除に関する経過措置（2割特例）について小規模な事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和5年10月1日から令和8年9月30日までの日の属する課税期間において、その納付税額を売上税額の2割とすることができる経過措置（2割特例）が設けられています。\n…\n小規模個人事業者に係る税額控除に関する経過措置（3割特例）について小規模な個人事業者に対する負担軽減措置として、適格請求書等保存方式を機に免税事業者が適格請求書発行事業者の登録を受けて課税事業者となった場合に、令和9年および令和10年の課税期間において、その納付税額を売上税額の3割とすることができる経過措置（3割特例）が設けられています。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+        "tsutatsu:shohi:21-1-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "一方、登録すると売上1,000万円以下でも納税義務が続きます。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "登録事業者の納税義務",
+      "claim": "登録すると売上1,000万円以下でも納税義務が続く",
+      "s": 105,
+      "status": "裏付けあり",
+      "quote": "適格請求書発行事業者の登録を受けている場合課税期間の基準期間における課税売上高が1,000万円以下であっても、適格請求書発行事業者の登録を受けている場合には、納税義務は免除されません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+        "tsutatsu:shohi:21-1-1",
+        "law:shohizei_hou:9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+      ]
+    }
+  ],
+  "rechecked": [],
+  "corrections": [],
+  "dropped": 0,
+  "discarded": 0,
+  "discarded_claims": [],
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 5029,
+      "output_chars": 4353,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 4301,
+        "output_tokens": 4247,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 94280,
+      "output_chars": 3066,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 82263,
+        "output_tokens": 5523,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    }
+  ],
+  "input_chars_total": 99309,
+  "output_chars_total": 7419,
+  "review_items": [
+    {
+      "id": "c35",
+      "sentence": "翌年1月1日から戻したい場合は、その年の<strong>12月17日が期限</strong>です。",
+      "heading": "登録をやめたいときの手続きと期限",
+      "type": "期限",
+      "subject": "登録の取消し",
+      "claim": "翌年1月1日から免税事業者に戻す場合の期限はその年の12月17日",
+      "s": 60,
+      "status": "AI は裏付けあり（数字は機械で確かめられなかった）",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "qa:invoice/jireishu",
+        "basis": "13",
+        "quote": "※1/1から登録を取り消す場合、12/17まで（土日祝日の場合でもその翌日に期限が 延長されない。 ）に提出しなければならない。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm:38a1f1b78cb3b081",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm:9dca21345d6f3396",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm:758d08b9330adcf1",
+        "tsutatsu:shohi:21-1-1:b811e15b2f45ade2",
+        "qa:invoice/jireishu:1410a73846d8ad9c",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm:976cc86602eb5628",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm:762c12b0e078cdaa"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "この2つを使えば、仕入れの実額計算やインボイスの保存が要らないため、納税額は売上税額の2割から3割に収まりますので、受注を失うリスクと比べて負担は小さいといえます。",
+      "heading": "納税額はいくらになるか",
+      "type": "判定",
+      "subject": "2割特例・3割特例",
+      "claim": "特例を使えば仕入れの実額計算やインボイスの保存が不要になる",
+      "s": 50,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm:38a1f1b78cb3b081",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm:976cc86602eb5628",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm:9dca21345d6f3396",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm:94645f4210f1c206",
+        "tsutatsu:shohi:21-1-1:b811e15b2f45ade2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm:758d08b9330adcf1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm:762c12b0e078cdaa"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "登録は事業者単位です。",
+      "heading": "見落としやすい点",
+      "type": "要件",
+      "subject": "適格請求書発行事業者の登録",
+      "claim": "登録は事業者単位であり一部の取引先分だけの登録はできない",
+      "s": 71,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm:38a1f1b78cb3b081",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm:9dca21345d6f3396",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm:976cc86602eb5628",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm:a04074bb2a0f956f",
+        "tsutatsu:shohi:21-1-1:b811e15b2f45ade2",
+        "law:shohizei_hou:57_2:1da8aed06d60d3da",
+        "tsutatsu:shohi:1-7-3:2fb41f993b7271c4"
+      ]
+    }
+  ],
+  "summary": "主張 52 件: 裏付けあり 49・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 0・人が確かめる箇所 3 件・AI 裏付けあり・数字未確認 1 件・候補の外の資料で裏付け 7 件",
+  "remaining": [],
+  "slug": "solo-contractor-invoice-registration",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "kind": "taxanswer",
+      "no": "6451",
+      "title": "仕入税額控除の対象となるもの",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目消費税概要消費税の納付税額は、課税期間中の課税売上げに係る消費税額からその課税期間中の課税仕入れ、特定課税仕入れ等に係る消費税額を控除（仕入控除税額）して計算します。 課税仕入れとは、事業者が、事業として他の者から資産の譲り受けや借り受けを行うこと、または役務の提供を受けることをいいます。ただし、非課税や免税となる取引、給与等の支払は含まれません。 特定課税仕入れとは、課税仕入れのうち、事業として他の者（国外事業者）から受けた事業者向け電気通信利用役務の提供（例：広告の配信等）及び特定役務の提供（例：芸能人等の役務提供）をいいます。特定課税仕入れについては、当該役務の提供を受けた国内事業者が申告納税を行います（リバースチャージ方式）。 課税仕入れとなる取引課税仕入れとなる取引には次のようなものがあります。 （1） 商品などの棚卸資産の購入 （2） 原材料等の購入 （3） 機械や建物等のほか、車両や器具備品等の事業用資産の購入または賃借 （4） 広告宣伝費、厚生費、接待交際費、通信費、水道光熱費などの支払 （5） 事務用品、消耗品、新聞図書などの購入 （6） 修繕費 （7） 外注費なお、給与等の支払は課税仕入れとなりませんが、加工賃や人材派遣料のように事業者が行う労働やサービスの提供の対価には消費税が課税されます。したがって、加工賃や人材派遣料、警備や清掃などを外部に委託している場合の委託料などは課税仕入れとなります。 （注） その他、密輸品又は免税購入品と知りながら行った課税仕入れや居住用賃貸建物の取得については、仕入税額控除が制限されています。 ※ 密輸品と知りながら行った課税仕入れに係る仕入税額控除の制限 ※ 免税購入品と知りながら行った課税仕入れに係る仕入税額控除の制限 ※ 居住用賃貸建物の取得等に係る仕入税額控除の制限 （PDF/372KB） 根拠法令等消法2、4、5、30、消基通11-1-1～3 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 102.54,
+      "text_ranges": [
+        [
+          0,
+          837
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "kind": "taxanswer",
+      "no": "6613",
+      "title": "免税事業者と仕入税額の還付",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 187.92,
+      "text_ranges": [
+        [
+          0,
+          1413
+        ]
+      ],
+      "text_deflate_base64": "3VfrVuJIEH4Vfs6esz9ER2fnWfbsu6RaLgkJXlBQxB1kVIyyBAcYh5vMu2ylO8kvXmFPdSchiTi3n3sO5DRNd9VXVV9d8qc7v+E16w8+Hb8Vl3penN16h0t+aYtR3Z3feH3jrxwfLP1PHc8+8FqOeNL94dyzD0SX+V2IfyL0EAbuzBS3fV8r8mKVzrMp15/4rItg+XYf4RiZgcxC6CJUkFVQA96eiVlDXLaDxslqoXPNdGezWA6Cw6/G/EhHGCD8TT+nY3oaVdSKtNZAHebTsVKUlyfuEBgyk6yYzV5KSd8JxSU3VwtDmlSRoE3/YejZB/x66E4qQe+c1Py+tbXlTsq8VHLnt+7EjKVK2IOEZxxvLL2xvOdmE8HixWrQvEGoS1csEZqrhS5GNunUWO5bp5kZ61gt9FCxZil3r9VrVQQboSA/pAA1Ji0aoAbKFn9U9k6vERy/PxSTjtc3kNX8joVwTeFhDDVQvlLnVYR+wjBmIpxIGD2EBxVsJcqd13nxFpm1WuieMeXORWYfWY0f9RC+psFXkOkIoxD/0PaMe4Se+1UGOkIVdKoIjji4IySMSSZUpZwWMmJYMpQItc0SmE6AGcsAIy9t1mjxmwuEQkSzO+XAgBXc+TmZc3imiBT5ZJABFtqosdzrd6zwDjMVxdYOTXAisyMvPqyFsFoAE1H5gHCG0F4f2+zxXtA8ilI23M/FXFWVY5dPx/mtsHS481u+tMhwuBdXC79nik9MtCZec+Z3rDSoM4Su15wH1nBtaxIR0eZGErirbE1WipiWiZTsIZj0YYcEGS5eJ+rgRQaGIfgh56sY83qJnwCy2pq10FYsR/YZ9xe4f4JsSlw8PHKXraSRdEzaL04HwqjLlGvzwdJddlQdRS1ZWUPe88tH0Zgm9i0ZsmVUUNepnpOgHYXMnV8H5WMER/K0l72TIPLrmtRdGYRE3vCB1PcTEkxkRpia8mLWuRkDwmzSILpzJiNgEaOhEOzbXC/Jy0zKsqUIQul9nHHnwjsd8eMKeVSmcxjbRNklTWkn/aJ7NuMrH6titIlUbWRAvJQQRWuCrCYOj3h5FtMMwXktx7/ZT0h14nA6izXgxS/u84l3UVgz7Z8O6SLTSggPMvfu1smeXy2M3KZO4PyPWneo09eKZPI2mfy9Eua8KF4hYUIhOyREtbfIYz8IihrxUxFBXwt7S8IyRFCFnH+q8PIszSAqLZv7gGruSZi7JDldWkMSxQFI082J6OZ4xtRdEk8DuPdO7TgTFUlF49G3+5GQJVEeBqE/Go9+99C3+14vDDOBWC30Pemz1sR7uiCqHunu82da6CVuDEP5qliGnPgVbKTonYxw7zzoVMMJRI1DFMwGX57JRn+WUpQRmMhmXyu6k4pvnyM4b/K/qTL35t1v0uq7VCPTwL8fScmHKvmQjWSvMPZ2t/KoWZvt0apSH/OKdyq68v4VpTwUKE//1eY51Y/fJyZ5hUTt5ym5dsSlvqP+UdCcbT4dU9A1CK6HwXVbNJrU1qKxMAM+rnneQZkKz6KOUJUJVMuMCWEBX9TDf6HHn0/iDrlZVzh/llJTiXz3IBgvCmGW/7LT0rrJxGU7EbLMu0dU+bOR0KykeTF0z5jSffYZ2Q3u6yoWCKdRONKBEIZJ5IWqquy8qHt9Qxia/1yghDeb3vMwhNmaBJ0P9G9yTkk0LmlTL9kDVIK6kz757OX8Dk40Q6hum5qX0zOso+ZWNc8GjY9hHz8/8MaP8sXi3O/YXt+gWspq4stcdk46w78W/S5E+VSJ3ama3KZ+1oxnptgcxQ6EOTE07fq4X8bdOwOPhMsY/AiqF0GO020vv0vplva38kdScDShhFO0Ctr381FcTYV5Fb9DiyddjOrbqMF7+QWH1vkteuTpsa0e4T4tdqLFanGKGuzQ2be79NjL/Qc="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "kind": "taxanswer",
+      "no": "6498",
+      "title": "適格請求書等保存方式（インボイス制度）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 177.5,
+      "text_ranges": [
+        [
+          0,
+          2533
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+      "kind": "taxanswer",
+      "no": "6503",
+      "title": "基準期間がない法人の納税義務の免除の特例",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 102.27,
+      "text_ranges": [
+        [
+          0,
+          3420
+        ]
+      ],
+      "text_deflate_base64": "7VrrUuLKFn4VHuBMlTjbqb2f5dR5l3QPaEJAvCCI4CAqGEWDgtvh7rtMpzvJL1/h1OruNEkIN2vvs/+cKssKTWf1Wqu//tal+bczvqUn+d/p8PU3VtfTrNJyizNat1j/zBnfuk/Gf1K0O/Nemq516NZs9qZ7vbFrHbI29trIGZms9eRpWYK6REO0NqX7WYI6BOUIyhDU9pp5gm4IangPPdc69PoHbumGINt76rFB030y+ORbMVkJJ/jEfS0QjAg23dk9NasE5QnCBOcImhHEP2qIoEsQxSWzesMvnxJk08aIjcri48dEZ33rY2IEKh0TbIr59KbnDHJ+55ygfPpfOzs7zuCA7u8745YzMAm646uZ9OqVHun8bbDPGWjUvoBFxDg+8au3BBWIhua6I9t9LYC3AsVptsCnnRGcl+prOKV0S4U1JsiSrtRMZzQK+XfuJpjALafDV/hvFIiWhWd8widkQJ3+mTMaJb4lZNLhKx211evhwY+JvjgIbqLDV1Z/YCNN+Sd5mWBnwu/7ZZPemQTZrNIiyN6FUaOgPlOjwB9Mgg16lGeVljNu0RlfE9DwZ95Hh+A5bPJ5M66CzT3WCWRXCGrQo0xEbXzCN6pIUI2gRgALY+4rtSEExeHzOdQA3NsE440R8cDVEFtvwUdsEi0fx5oGznIGGvd0BxAS0VTKCTbEpsUyM1645OjJ0XCKlZ8JahDU8awnt2MGejTUy2I8zeoNt2aDC7BOUH83+Bzf7QVN1HI1gsGp4BkNrZHapYcNahxwH1QIaq8/RZwEAt93POvcg5NeFf5j5WfPelIApd2Z+Coq1g7E2q4xdGYmd/OMe6dLtLxrDKl9AaLaRaG+8tEGcjrefY9OT8W6MSqJvt6NWncB3uKACxGAdEsEVqU+Pc6Bc96zXhsF8Alt9S9tnPLRPbuaeB2TvWBWG7jVkdfMx5l7Q9jjzGrYrfEKsn1075YsOPd1w800+VomP/dFgg1h+krfBKjSsCSZcRmkbXXYkk/XAonhPvk+Id+Nb3s7aQBDom1aATimiN3sndgggooEXcF6sJLYAoGdAOr4hOq3fPkYMGTQXDwrHQnEwOtuqUHQOV8sk4CtyGQ7tocy6GI94TAItTBeiqfoqVq73UnxZjl+Pia6eztzJhduu+i2DLmKCrKBEh8TIxTYbYL2CWpuEHRCqO4fsPqjf3AMgGzOTzw9GHn9Axg8OObjCySfi4W+j4kuCSjGOAAoKxZiuL7dZYnLhqhPiTjHXXeTCBZpTBRz4KdLLuoH/2/Duu3yX+2VGBKloZvo100ivCj4OKR0gp7B5piy+CSklMpSggDHM4NZftFXtq+VnMETQXf0usKtFM4V0VicktyCY5IcwLXlqW7MB9vbySXl/uGNjWV6MaN+HV+tCyvRF+GVZpSYlkYZzlBhXby3LGx8IOxjokd8AOcK5F+rKBDzsY8GLPeDvuTowYjVBgSfsOIRPRgJwk7eEHG4wvQKS9zQI92Z/gkRU9+nRk+mO5F9X8OKwF2qiuqfuY+P6TS7BAKDx1122RS8FkTK/IIfb5enJYkph81J6ILDw0yeE6pkaLawBp8Q0ZxBzrPOCbJ/HV+JtP3X8c3fFkNDxVJtSm8B3az+SEeVuXtuy7Q2jWWwXwU+nHHLrxYWQtH6omVpeRSpMQGs9Omc1i2ZfCr2CPstVLGui4iL9sC7dHoKGxeZbLN6RxRQ7vu8aJL1wWIxvrwGd95hUaEYgCFcUUVPvlAjakI3MagTjDn2LILe+Ug1VOWIsNZW4ZEHUmhFfKPD1/SO7EUoewKFqootQiwidzE4MJE6m3MDFrUdsB5Gilfj6Ii5nFVarP4Ia2s9xRWBU+8SXcUrmn2CHhLDoBAopEFdy9nb2g2e4nBUJ2w1fYfGVyZ18yIhwOWGesXjy/8qwYqH0bVh8/PF2sZ5quCh9MfEUBYmhEx7q3Q2kj/GNF+aRW6b9QKshH+gazd+C0WBChdyxquvjkREgg/zS14XLRkrBDRwnXt7GE6JRJHGt02W/aERyzWGzM4R9OCXr4GIQI1Iii0miG+DwZATItENZAJFc2VE65KPGBLJydbZG2Cg49YGc5ODBmN4jpgQigur+kd7NJOh+/sEn6j0RhnM+tauKHMUOpaieylGkuPbp6sOmZMqVSQSYHm5p+Kr2E4llta0NgVvjJDXf3DLx/S97j6VnJHJOyebdl0W86ooRCUgeQSIK/lp+XHrkO12M7TWk6tAW7EUZDJJOQxwR+r/acA/kwak5kfrc6uYnCW5/VF+ie1fmAi2ZgHlaZq7ghENyRdEzNQQLR7SbCsIofMmGC0eurVcEHJteqR7li7C7N7O0nUwnreMVlUUFeVMmU1p+RV60aI+v3FYrZ0ksOUXSNAazIusYgGyNu3OnFlTpUB+9Uj1EVWtsLU0nFnxLeDkVlpEsy1olx11OLiTu2SSeDYs2iI3AdG6UhSwsaMvDtkm8T/WEd9s0SCD1fLhFusKUTIXULW2IEWIPjwH3Ahqn1FpQ7GJ6gnWp/VnMM3QvGkGPppVd9rzz35CsSnbBTHF4uwlGDrmnFjoE+NCw7kaqLONeyWimCGb2OLqwxmZ/lUWTri8CeHXBfNGx1+6p8gOJM8bICGm57VSsUxwDm6hxJFTxyMxTISJlnfkOt7DOzt7FRRLayOI7OJQQq+gTGeVqFVrkvwtz2R+2Q0bPdpC1XCfWhYw4zPOGXngmGUGRr0v43XPco17YNP3SwFW2mgEEcmmkzPhbth+uHPP8CNnAvhUjaCWRg156/ryIynK2e41KCNvl/CJM9A8/VHMgaYqyN9P7vQutWi+uqDSlQrwW2CeYMQv9/VLFai/LrkaXiZUXhnH9k/GneSelzrrXf5uIZYRS0LbznS5P/PfRMSME9Zva5x6Wd2kS3NDVs5Pu/vcZOenMhnR3yBmxDqknBYTWA9O+IIn5t05ouWX+iEU5tnNBS0MxLiKpoG74KqYjkcc7EHOLvF7Tl9+eNYTxVUQcme6XQOmaYjdN9j1s5rv3WTdqQ1NA33o6W/84cG9H7F72C9vnHMGTTXZRyY7eqTZn7Duz5Z8qFrwEMyhuEpPoXPkGy+s9cSs+3BmE9ac39DD7TucyMK5M+V9x1nTbxbCjd+55PozKw9D45EqU9xscBrLQBkt5fD2eLxtYkv6XfxlQyhLDfow4ic9xv2aO/k7dU+aXPdzsmRXQ2ZeqR8MsTed9c/+IBpK78IvPYKHr/JXMu3i7jfxSBsjX7tIf9n7kt6DWfDwu3zY3eEP376kU3752tduVCc5Ba3kVCLZp77tfU2nBJ37ZZ4R8TRU1Wphpg9CFZSG9KzIqV3+UoRmdVGh8mLgOjgBJbc28DoH8pKVfxsK7rb41n04pcUbUQh67YUqUObOYEyffN/n/zOcYHJ0OuQSG7ynMQuuosyPSSPFZ2SCPx2KzEKJ5mrBby3y3JR9gkoElYPNr/DOS44XNTYrDWk5M++CAkixp32XiQz8PEYkMg2ub1E1S1MEX4Oa+IX7H+4KqN1g5WnQqs+ECoM6Qb25cuCEnN88D/RuhKuIBblo8F8="
+    },
+    "tsutatsu:shohi:21-1-1": {
+      "id": "tsutatsu:shohi:21-1-1",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "21-1-1",
+      "variant": 0,
+      "title": "消費税法基本通達 （免税事業者に係る適格請求書発行事業者の登録申請に関する経過措置）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/21/01.htm",
+      "law_version": "",
+      "text": "28年改正法附則第44条第４項《適格請求書発行事業者の登録等に関する経過措置》の規定により、適格請求書発行事業者の登録開始日（同条第３項に規定する「登録開始日」をいう。以下21－1－1において同じ。）が令和５年10月１日から令和11年９月30日までの日の属する課税期間中である適格請求書発行事業者の登録がされた場合には、当該登録開始日から当該課税期間の末日までの間における課税資産の譲渡等及び特定課税仕入れについては、法第９条第１項本文《小規模事業者に係る納税義務の免除》の規定は適用されないのであるから、当該課税期間において免税事業者である事業者が適格請求書発行事業者の登録を受けようとする場合には、登録申請書のみを提出すればよく、課税事業者選択届出書の提出を要しないことに留意する。（令５課消２－９により追加）p>\r\n(注) 28年改正法附則第44条第４項の規定の適用を受け、令和５年10月１日から令和11年９月30日までの日の属する課税期間中に適格請求書発行事業者の登録を受けた事業者は、当該登録を受けた課税期間の翌課税期間以後の課税期間についても法第９条第１項本文の規定の適用はないこととなる。\n\r\n なお、当該事業者（適格請求書発行事業者の登録を受けていないとすれば、同項本文の規定の適用がある事業者に限る。）は、登録開始日の属する課税期間が令和５年10月１日を含む場合、法第57条の２第10項第１号《適格請求書発行事業者の登録の取消しを求める場合の届出》に規定する適格請求書発行事業者の登録の取消しを求める旨の届出書を提出し、当該登録の取消しを受けることで、法第９条第１項本文の規定が適用されるが、登録開始日の属する課税期間が令和５年10月１日を含まない場合、登録開始日の属する課税期間の翌課税期間から登録開始日以後２年を経過する日の属する課税期間までの各課税期間については、同項本文の規定は適用されない。",
+      "score": 230.96,
+      "text_ranges": [
+        [
+          0,
+          809
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+      "kind": "taxanswer",
+      "no": "6630",
+      "title": "やむを得ない事情により課税事業者選択届出書等の提出が間に合わなかった場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+      "law_version": "令和7年4月1日現在法令等",
+      "score": 139.38,
+      "text_ranges": [
+        [
+          0,
+          1127
+        ]
+      ],
+      "text_deflate_base64": "rVbrUuJYEH6V/Nz9YdWic6l9lq19l/QBh1xAZgRBhVnUUYxkZURcBxPAh+mck+SXr7DVfRLCII5TW1tFUQdOn+7+vr7+EYXncr/2Xj7cvVE9q6Q6F3FjIXuemhxE4Xl8bf9pyK+LZHwae3txd2Soeyu5DWNvz1ADkQzAiAJXXVwn5i5CDU1A+IwwSoa3sbenev203Uzbrrx0pV1H8NGsLRVomeXzFKbK+UuOHVkNVHeKZp20vSYfTespXMUt7wcP45tTddjUz6V1L4PBBluwQOgjfP2Zh5uNin3V+CirAcIRChehieARJ3CJUEcYIrgIX9iKvvIRzhEqCAMUFRQmin256LBkhWCWmVIQrK2PApjeJooaChthVFiHUW56gzl5cic/WmzuK5qgbDOZVwiRexTPb9ODb/TcfkyGBEE2OgifVvz3UVgonI2RzWK60aWCjQ47LxBGrPCRfTugJ8T5EZrCeAm/EU2dxDskxRmIEZq1F9miMHoZyr9PSVhYCB8Qhtlzsc98VzLL5NElmrCBSLEvHw/ZxwHLZyzG17bOkR/64Mt5k0E7bKiLokkon2ZW6WlmG2mvGsMcTUjPPHVzJ0cTOneH+iCrdX1IPs7T7rfs6u6KI1BD+ERnQaUmezcq/KSDE4Mvx2Mi6uguBp/9HMnzKzKUpzb9Tz8pjFHYjoIgPq7EMCdzcJlUh/IbaUhu/47CMI+8rdHlAfRlP5DdE53j+dtafBTErX4W6meJ81qeVmLnXu26nErDvEQ8zkcgByi5XM0/cbhNHGZcIoxyJ3wVtBGOKXXzqJPeCayUdpbDKy2L0JIZ8OX05uXKXXVRbKyO/xnkDoF8XnGkvOerzgWXnkMfYSJclxBc1bOi8EJ+2EXw4+40vj/O2sda0/m+nnNJP3okYPpnFJD3qn3DD/1XOjXhuVopeMYsXGm6URCscO0tkRc43xDOKLyIps5qCNfaX179VKzfd64NhVjQujSkbJdB1g2m4Xm70wnj6QRYcbnIGQ2aO0hnRb7DAlmCFTLkFKypXYujtD6rzgUdHu5Uz6KzCWsyenSSw1rSrvNhwRy/2njXB0FOahauxDtMqIKoaOPWJPFd1Z0+zaxXZ+7TzFpOwKeZrU0XGWQ/RAtXM7xU+/ND+b8pp1Yg9snEDyYpXTURTphDF4W9vVY1m0ajv2moe/kAGxTDhMYYGVwpraWD4EXzf2gQwKC4ZSicWYT1pWR8YaIOEBoIJ+QHVMi2OnlQ7slya6M9TU0OfkcTdt7TPLy3ovB8+zeE0Taa8PZ9dlD3luwHqXlc2nqzVXqH5bBE4qWdrdLWW5Ix0vZZan5BMcHyDMu28e7dzrahmy5PmayhPI/nJmjuL+sLRlEs7q/ycTcZ0JTjYXJY1C+CIw8aCBUe4g2Erty1DNmdx94egp+2z/L4tOLuNPGrunK1gBybaTdMrsbZlQixPEHxiOUZA7hMTmtcIIPnm4GhDRSLGjfMxK/Gw6ZsfDG4H7SSweVKXx/wyF41SDLSYirWoqbbEZM7wfIH/q6Q8+DI+QMr7SOcsld6uLpPs77BEhUjX2aIoJast6TT5X7pcOP0OI1aCO0cF2kwotCRixr1lNaDbFcYKi+XMJINkZjlLL11tvLuwy43ljuogeKMKRxzStBaJUd91Z7nmVmUBEIP4bbwjqhw0tPD3HO9MxRr4Pd6Yfov"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "kind": "taxanswer",
+      "no": "6501",
+      "title": "納税義務の免除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 103.79,
+      "text_ranges": [
+        [
+          0,
+          2996
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+      "kind": "taxanswer",
+      "no": "6625",
+      "title": "適格請求書等の記載事項",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 192.18,
+      "text_ranges": [
+        [
+          0,
+          1811
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shohizei_rei:70_2": {
+      "id": "law:shohizei_rei:70_2",
+      "kind": "law",
+      "key": "shohizei_rei",
+      "no": "70_2",
+      "title": "消費税法施行令 適格請求書発行事業者の登録申請書の提出期限",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/363CO0000000360#Mp-At_70_2",
+      "text": "法第五十七条の二第二項に規定する政令で定める日は、同項に規定する課税期間の初日から起算して十五日前の日とする。\n２　法第五十七条の二第二項後段の規定により同項に規定する政令で定める日までに同項の申請書を提出した事業者について、同項に規定する課税期間の初日後に同条第三項の規定による登録（同条第一項の登録をいう。以下第七十条の十二までにおいて同じ。）がされたときは、同日に登録を受けたものとみなす。",
+      "score": 435,
+      "text_ranges": [
+        [
+          0,
+          198
+        ]
+      ]
+    },
+    "qa:invoice/02": {
+      "id": "qa:invoice/02",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問２ 登録の手続",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問２",
+      "law_version": "",
+      "score": 154.58,
+      "text_ranges": [
+        [
+          0,
+          2358
+        ]
+      ],
+      "text_deflate_base64": "vVjNcuLKFX6VXt67SNVMpVJ3n6q8QaqyziLvkKW6wR6JHwswP8YwA9hgsLFlbDweEMJ+F466JVa8QnK61UIIPOM7uZWNC7ek7vPzne87fVZHPbKm16LrheO8eGCiNQuabtgr+G5eDO5C4wioEzQX68IjN5+5e0U2XpmoBWHlg+dzsvFM9T9QRy1tPIvwmr3xKu/dG+g9GBToNVAHmAn0GOiN2gzoMOwV5IoDdAi0CTQPBgOj5C/6vFLYeA0+f9p4VdE2RXUejhgYZQJGKbir4q/3msAq3G4ALevzR3gUy8dvbv3cvpkHeirfLEjTinLFUd6EN48kGJ0kThqvmyVgFrAC0Bfc3WAbz1JvB0/FYHTC2xNgFWEZ4TKrjsfFfDNYPq5r34COlQVBdYr+tGb4sl3in1z1Mn89Cq+otIYBywF9IUCbG88Uz6aY1shffiNAnY1XWZV7YFDecdfG+cYrb7zixmvIv2W0yGAkfZA08l9/+vs//03Qf/M6qI6ANoBeaQOk/8ovlSlMaBvoI9Cqft8G2gVaA5rdeCY38r7rJuJzD2xOIPMFMh5kTMjUgF1DZop7MabRUOD2fZhZyqjfKCe3oTQYLtIcGHSd+bpGC8aYT5b7QeC6T7xkAnXWBiX+4owfmcpjXsry1hKT8GBIbPbRoEwbf7C5xsMCF9kr2r1n1n4knejkGEa0s5tliQdVYvkKL12FV9RfPAMdh9ePfHkqw34DNKutHqtP9oFOkkiP7Ji8Ah2LaY07576bX3ePgFWC5iJEIGI6Y4zLqsvGpiTNTWKa37+oD2W+P6N7jRGwyto4J0FnoOKry2SEyUf4X+HWMkQH0XmxKl+uyv1V+SqCo3y3c9DJVDWLzBHvPkSEYhSi7Lk/+JAf3Ya9EbCvMsMmGEUZ1pw084pEjyPjdWZjrPGj4m6lF/aZIoaYBvIYaF9tH0ENGbMBRm5/N010NT5/Ih8/ENE2kYdFY4BcyCz1nHz8SCQTNvH5nz8Q+fxFVqYjfzv84YtKSHjzGIxORLuzrp/6s7uYWQ5YbOSBVbCGbRYcDVUNE1XEGAQsZJuFRkZxB/nfYj7cibRkX4QovRe3PUkrI4w4ltcwSsKq/EQUnNE/+bX66CCwLlflGzCoeDb9RZ/89kE9qK3KXbR9Ve7+WC7ExOal4sYzV8Zi41ncRqrgpWIwnJBVuYfG+K678UzfdUXXk1ZjtQb9F966DO4sLI5mf8uWkQqk8SDat9xtqO392QLhL+PB801hGRJIBm+PCG/juRcksObcOeetJe/Xk6KFK8dHSTgrPQ2nn4LqJVAnvHsUsx4aRsf+K9s5xaBqK3kiFre/qAM9JTI7+IFw60DPscQZkwRZic8TbWtLVbtmSURlYw4Ag/mLgT/L81IB6Fmc3I1n+YsB79eBOiS9xX4B/aGOEuXpm47q+KvwX2qar91w+xtZlfvRAp8/YV/SGJBVeaDX7Lp4NuMnMcXy/gPPzbdfbDGWVsoIhDsxkHTnL20xKQeDEbq4/BqOznYYl+V5v85bS991pdidB8MJGMUwP5CZsoHek/fsIhpDMbGxwhpDPjyVJF1ETY3MiloDXcwJCWAVPiuIdiupu9w2CaYwjnZiI33879guKaBJ2ZUJHSNQZJtEYvkLR2da/jpgFH7IAEmWif/FSutbovW08aygOuWfXDxVRgVoVUk+SXZAOwqiIs47Lla9PeGzKdLIoo+ovbIluUWNDOaZZYEZ6PtLA+h5MlsqH8AqOm6qK4u6BZJsF/54T+lYmLPgoRjeZkX7FrP4beEvzshun5jsB7Y+aSCZEleWEi2tEJXdrwo7zWayOxCNC2xJUsJCxxpOhV0h12iuz3cqiTFeKojh2Y5YS0OVlSRlpt5d27vtUYdRgyPN8hfpMkpyBoqIjGqiy2gBO1XNNAFaDWpNkbVTEIr6IzxkOtp4Fl7P/g9gIrrURgpM/kseqAl0Ilu0E36ykNTxnb0woVF0E71mJDK66AnQTvwlt3JSN7FM+UsBC/m4yF1kPjGxMe8RKk1+fc6HC2DZdeuCX5/LRBWU4dJ1hm0Tdk625PZzMCjZM7CRughqjwuJLlwDEK+6MSX7i0sZi6vElq/y+iNBzB7wnsDmSaFSQSTvKUnyO2vS0ew2lkZ3gF7GB4JR2Lc6ArFRJGhhhgIbQiYD7B5TcDRItO8dCURbxym37p3J9Z3AnJLo1qgxxx9ykXksuzX18H3sPqZGiSJ9c8KGqChvulhgBJNr0B3uoY7iHskdUS+ZLnMlE05P3rV/fLVDD/Sl8r3OV1NqKm9/ChUa5aI+F9OaFIpsSnq/T+ayN8cEk/B6GjxN9n0DmvOXtlxx+IzxghtUXfG5rJDHJ3mgd2lFWpW/EtG+VQ2CSg9Cp+MCHQAthq9Lnusm+vRo6qHgSFSXvip3waA4Y6COxunWtnereKRTSq0PivW7Cuan1Xo/NF2y34lhznR3zh/yyORGMWrG3u7aeXuCfahRlFeGN28Kcvt3XgRwdmQUk/exCt5p3jn+ihqlSO7iYc8vYjr6VR0tWrP154uojCWJ6LlcpMpkT5aNUjwxSgyBtsWjUVwmkCkDWwKbqnmPelWr6M1/75R6oyWOhTLmL//4219JYJm/glE8NEpyZLHLImDz1EiJyJLOyqquQ+YW2Q27BJwy7R68vYa8MfM61JUYVMUyxbgk4pvqQkUx7I2CvqvFvhNOb3hNiljrCw4u1UgFY2XrA4Zy0jDguZbwbGAFCRAla7Z2tCu1BUs2qE4JWpH5JJdeJY20hVk6bDXL48W9Zgd3Vb684J4dNfQnvdjp7XXt7fkeOdzeHhocduKJyCEEOorU5DU6z62icOucNYFl/VkOuVADId6TpCZ54rToL9sy9XnIDIBdQGYc3FkH79op8lej7sCah6O7xHyikHqNpIrpgB+SoLfwjTQwn3wzZp3gwg1vimnWkRUYa6ijA4jkuG4t+F0pHHni7ES0ZhvPRHfRxpw0syQzP5bYt7TrDrfrstW7UeP2nfDSAtEz5GHcW6tibSB4RydB6ZhfjmNH/MVlUDpeG9R/RbZPUXeyIFPGpjQ8oosdjmE5XWaHGOOn57s/N94lh+e7cSW8A0DRVOTkMZ61qlsAFl4pyx8MbOItQ7JNXx75vTmzgzrVk5siyHAMqDxG576Dp7dOe/9h/wE="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+      "kind": "taxanswer",
+      "no": "6602",
+      "title": "相続で事業を引き継いだ場合の納税義務について",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6602.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 236.6,
+      "text_ranges": [
+        [
+          0,
+          1429
+        ]
+      ],
+      "text_deflate_base64": "1VfvUuJIEH8VHuCsEl3Le5ere5f0nGBIgiCoiHiLrMgGc0ZFl4Og8DCdmUk+7Stc9SSEEP+Ad7dVd58yM5np6f71r6e7f/EnXV6zfubjx0/iXM+LxpWsTPm5LR6O/UlX3pR+zfHbaXDfkfaBbLliqAeDibQPRI8FPeCFsrQPfM8UVzeBVkD4isCQmbI1ksMz3/O+P+niwc5/fyohWKhB9APBQaYjM4IvTrIVwY0EIauJ0kwOmwgNhDa/eORVPRK0pQQ5CAbCHkIP4TYRGomQj6SRnPa52US4FX90EFwEm44wQw2u1WCK0ESN5WgOBmqwrIslKlW+70UqJFYH14O0vSGMhPGZ3xt83xOtEWqQ2SnO2+FJXZbG/tTMbiYN2qTi/Ii864jTenSQ60Pu9V4ccbkx5kYrbfaHsExtcBBuecVAeFCatJDVFVJflwG1EOrILGQlBDfoVbh7huCG0JdHNrIarzQQDkkBKCpwm8hMNShHSoqTO2Wmk5aTWCRvSqThAuprJc1CuEv5SemmsdyCTLmMISk0LGIgXJLXGlfqrs+RVnz8SNO2J7yTyC9pJiVwBR1LHe+p9WuEPSI2Y7zqIMwWvFkQMrc+ixUyq323rEM7FgguL9jhb3bCHH+k0ZTV5LCppDUQeupskTYwCAYdeXT5zsFXNGQ1denewtKXyPLxI9mf8kTm7xtAHyIzs6ZGdL8c+CMjdE4RrPxPm5ub/mifF4vkjmEBQSf3xQC+52s5s9TAVDT7nbRQuuS3xLm+nVf/puqRcpVW2deCF8phs4twrCi4zLytH22sP7nyR2byhKbt9UdmYJ9SeGpWCH1x8RQ4prhnFEFNL+hY2RdYqfYBWmplBCfoD/hzPQ6WORkUHuVXMY9MX4bQegHh2xSKHKYGMS/lzEKtsA673jr4D3xhv/M3CnaVfGy6oqoHth52yn+XriuN+LeI+Z/E6f/K9HXd9UYQJOBkEoYTdPfF8R2JWcq7aWxSJU+2UlmYm15UOaDjj7RImu+Z3G37IyMFicoucbZWU8ZQA/5cD/qDSNQ8f1jcbYdnLQSH60VeGnC3rdKMso8kpB/V21XeaKYLRALyi6eqikY66VK5QIqpp1wDXt1Lg8ML97xqxQlvDeeTaXEZSEd45QSZIUr3CqXoomxhqNbddfB/M5CykeOIu0Oqq0dG4muuFwnV2TnCKRGtNIjI6I8baqUn3UZShob7hxRLrLaMxvoKzB39As9MXTtHwyT8oa9QMulevTv31JzUPyJIM8XRqitWlrruXKD7Xr2gQVQypHFZebVsTkJrsCiEk6qzVJ5XG/RWpCUjOP6MYnuVcEvcTHyvE7cgLxSmfo2C/psVwkEUVdEmxdMz9fSYotFH2EsXPimadF9volhtlWa2qoSv6dJF9ESPXS9utAjNeuq6tTNa0o9lWLDKyR/3FdGbquSkhVj0KquTTyxNHj3QHur9ykudjAYUemZTPg/C4z9fY8q7rY64GAvzImnCxVAXD8f5TdRgZxfB3ZoPtqOek7e9UDvLb+xs5FED+m7H30/xd0d9d+P57sZO7i8="
+    },
+    "qa:invoice/jireishu": {
+      "id": "qa:invoice/jireishu",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A インボイス制度において事業者が注意すべき事例集",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0023007-071.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": null,
+      "law_version": "",
+      "score": 187.11,
+      "text_ranges": [
+        [
+          0,
+          5119
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shohizei_hou:9": {
+      "id": "law:shohizei_hou:9",
+      "kind": "law",
+      "key": "shohizei_hou",
+      "no": "9",
+      "title": "消費税法 小規模事業者に係る納税義務の免除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/363AC0000000108#Mp-At_9",
+      "score": 220.36,
+      "text_ranges": [
+        [
+          0,
+          2264
+        ]
+      ],
+      "text_deflate_base64": "xVjbVuJKEH33q7ubiwkJgshFBA9wxguKxhGZOSEifEylc3niF86q7qTtEGDQGc9ZywdX6O6q2rVrV3X7nhVcP0akBNQBWgY6AkKBXgJ1ovtpOD4J+oO4fQZ04q8YMIsPvMBrq49AK0BPgVlyMf829d1KPDkHavNqwXePebnsv177rgX0FiieEJHSemHE9C4YLqKJFTyzoOeGXS8a2b5yhjXi7hXQGhC2XpjC0BXQItAboE9AaPjw4HvN4HKE/7gkHqL/0U2NOxdisYV/rAbMBHqxNSLffQQ64b03Xi6lgeD50cgWtgZycfRyHDa/4d7HaeCOwkeT1ypAX0Jzzp0LucZ/bfHSNTA79bMKhAY/jWj6Go5PgDXCWRUYBWaFyztudYE1eKkqAuwCs4AwoAOgQ6Ad4eoZUCd4afGlhR4a14HzA6iDoTEK1JYw8uGM1w2JhtwSd+vAKgLne4yFsKP1ogGEcLMqAJqkAHU/ksixtBE8jNCJepHX/gE6CU6mQBvALF8jELc9bpTR6VUf6Dl/O4vupmpLEgCz4uPTeFQF1hCIl4Ew3yXoJ7F8z1MHSqCzftq+S/h8psgUvLR8z9PXfDqv6P/T0l9imPGoul4YgmQ2r1JemmSplkVS25UJKuG9yM2wJDFMzvFs+SV8eOBV6rtEfue9XjxMAk9+8uzgEg/3XVN3QMXF6zbQ87ROHF43orGBnmABmEgOdqXnKwFf/lp43PITawQnt4KdHaCDdP37yeuFsRFaxuFsLLqrQGzJKzSXCgoWZKWvMIxWzZgVZTrypoFUBSEThDHkrLeBY4kQrpBOOVYoDggkzV9nNuftHj+PEM3/3Kpao/Qm+egWpCFRkE7YXQJr+PMOcoXehE6HH3t6go98z97wPlttKClfV2155ibisUOlfpdH21nTkEZlmLh+mw+8PgG6RLVPxY/PZ9y7QdHuG0HruzIk/k+tSJUWPUKWtZ6PaGyETieTj/XiTEl3IkSoosqG0OSLGzxueSaw1k4hogz7Bla3R0R3wfyFkyfcyxphcyAMD0Q1Vd+7CBNuJXvHqj8drRdNIEQxNug/BO3jTMtlBrDKvqZH7bTptSR4Qj7G4u8+20hs1bEP7FLrhcHr9uebnKbaByqyrGW0mIwq2PN1WQwnw90yvXs4ys5caprYjbwT07uwOUby1joYnazUDn6JxucRmkNa8ecKP/aCniuCRWzDWRVB6CMhApNEb0UJGn60uuHbNG6JTl+rK61Ih46JZExSLnIBHotr9DxuXRB0rjGzz39Jc9mQnXBl618wsx8+JBkkMTVti99aB2xBQPzXNhZYc+W/XgG9VfNKduVtdv7KQJH13PRfr/nS3hg81wvjQ9zW2YI5/VkCamx6lZ2X96py+TcG2/cBXJZbjo34U0JIxPx9Dm1pc+iGalg6NXW2aUx6N7mP+kpTWANYUSTPEJeaVMmk2hHKazg5K5bw10Lw+Lc0mlVEzNPX1NK9cNgG+l3In6mD1dbB0oim5iiqzVefRHNr8IktTdK2yupGjaKTxqUoL+zc2KrmM+wAP+yYnsgt+4tebk/L5TaDzp9I/P4Upih1taYk3ajqWekkHdBrfmliPoE4r9sKvt3oL0VIjlQbXRh5vbghUGpS9d3Cjkv2lhx8UJHkllXQmvGnZfQ84j0PlUfpUlaCZMnuXj/BSe3tTKdXNB2H5p24rrTVlVqeg0HNivsGmPy4whi+kWhxISzzy8xFTt3WPHv/dY73entucf7qUsoJHwySqxp1+KLFa21glfwFbJcD8p659z5p5i9pe5Ki0oGT9bbLmBr8ZXVILqmroE7pX/VZDRw5hqvyoY4sH27iTSftvIf5nPMQCVyfACPaU5Mow3yzyr0qHaqhH/IQG861GnsO3pVeg9LK1cs2/2qTatehTzYoILufNrYTTGPgvgeLvS0h6Siu+Wc7yjaV/h+aigRwax/5BGcOBPNTJ2d6x1f348+OVDeInpry0lfL7a7mBtpkJs+JTPrrvSh/1I2kEaCVlfjelfPB+cZ8sLP9vx8t3nLlofmxM7dmf46D/kQuCFe2Rv2nQ4aSDASVOa/0MJdXz7Laj9aLLhAiMknwh2Uy2qP+FUrqSVpgQ7W+h532IERY47CKVCTqqCH+QMbtKAiHm1WN4IpNqkytTK/QX6Dqtoox1ysUy5zQnPs4dCQC6buFfCc8uBZteVrYfOGnlSyTEvnXB59fzhG5u+z7JXhXvFsrKW5j6+OrUnSDheJ7llgp6i/X5IGwfwE="
+    },
+    "tsutatsu:shohi:21-1-3": {
+      "id": "tsutatsu:shohi:21-1-3",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "21-1-3",
+      "variant": 0,
+      "title": "消費税法基本通達 （適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/21/01.htm",
+      "law_version": "",
+      "text": "11－1－3注書２の課税仕入れのように、適格請求書の交付を受けられないことにより法第30条第９項《仕入税額控除に係る請求書等》に規定する請求書等の保存ができない課税仕入れであっても、28年改正法附則第52条第１項又は第53条第１項《適格請求書発行事業者以外の者から行った課税仕入れに係る税額控除に関する経過措置》の規定の適用を受ける課税仕入れは、これらの規定により計算した金額が課税仕入れに係る消費税額とみなされることに留意する。（令５課消２－９により追加）p>",
+      "score": 347.71,
+      "text_ranges": [
+        [
+          0,
+          231
+        ]
+      ]
+    },
+    "qa:invoice/113": {
+      "id": "qa:invoice/113",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問113 免税事業者等からの仕入れに係る経過措置",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問113",
+      "law_version": "",
+      "score": 259.17,
+      "text_ranges": [
+        [
+          0,
+          1919
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "qa:invoice/114": {
+      "id": "qa:invoice/114",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問114 小規模事業者に係る税額控除に関する経過措置〈２割特例〉",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問114",
+      "law_version": "",
+      "score": 273.92,
+      "text_ranges": [
+        [
+          0,
+          985
+        ]
+      ],
+      "text_deflate_base64": "nVbddto4EH4VXe7ehXa7Zx/PoxCwscFA+HObFGhC4oTFaUiaA8aBd8lYsn3lV9gjCRxjkvScvbI8I30affPNSGmgs592fGVzdxz6Jp/MYu0EYRpuKFIzchvJuM4b14lziTBNej8QHGH/ZSXQ4I3b6NlDTU+DNjPmkbEM1yZqRhoYhHVtUir9RRK44aMgnpr8nvJvi2hmhJtzNhvw3pIFNoKX9Ex2bbK1FS405n3lZ8Okd4pwhxoU1zp+PLZyQXqRs0qsOcIUqY60Ft/OI7cR+ibZzXARbhEuEIbspK582QkRLhHKCFdqM/6kx/NV5DYEbueBtWr5OdHPMR+cIkxjV4+8PsI1Qr1ARBoIIkjGRBoYCBaCIBLhHKEilznCqIG0eKxywrxlfifedRB0GZaNMELoCrtGUWuGq0vWttKgy5aPadDhZ3q8eWa1EWot5SXSPcjcvLOMXYpai6DWjGYdMcqDlI74mZ4GLd6fIJhIjZ1TQTj8TP98JJ1rGbonxx67/65kwJplxfkua1OE2pZUDQqUkzTQD7JgoWYpiAQWvPad3ddY1effFqjVxX52k1X9wwS/kd/RI2vqSNusOUXYyIgd1KhKglISeV9KEoiaCiUNdP7gypVTJY7osR6uBqoaELydCF6PuysRwUpSbYlptJ1lOSOJ5FhqITW3Dtfhfk8yTF/Xg8eaeuzqcjxld2uFnulU2kXS2MU8XNQQ2lnZsrt1uB6LjTedhJajmSEKrdoiCktN2gfKbUbbu9P0EYbcM9UqoQpjjrQdLvsIA4RhMq6ngR6uJuHCRM2KjCXTJ2rtFlYk0ZUMlRHWJJcSV50G4VSOrfcqKkPf7zF7uPlMx+5MUmsgtWQRbSekgf7pH8KWj7yz5LML/tBNnDIzql9KCF4atF9ao5fWWGBolGQCIAeKs37XlA4kqdIqLFdIqaiL59P4Zv4BDikA7deYF22svCVcTdjayqtsJ7LL11Ic+tzvZQhqptJNMh0gWGnQIqx+HC6qrFLZcr7T4+4c21pgjSEzqjK+vkLfSw14CdxEHVeUot1XMi9meZcyIkfDAwhZcrLjbiPVn5h/heCJNiDa6DT0TWZI2cqGgbQcPTnR01cV0zYCMb6VEVgIP2WFG9JSRnCJ/FSY/pQ4TbGlcNhiY9n8RQsSmv/NyXhf/IarQewO9hW9bVnqGjvkgxwSIiX6kUJ/bOUpQ639L+LF4d/ViUpv1y6VvqBWexOcfID10hqhZjK7hvAgUVCr/U3ejvEjlDFqpuie0GE2jU6uCxchKcZG27l8Z1Xnvd2z6SUej/E4QLpAzST5SSQNzokqisxQJ4ddTdxjuVkyO6I1in7xUm2TA6eIVUStwmT2XXz8vKVfM0WzUY8Fws/+5eeTgztyV4aaGfp+Zme2jnDHH7qh76eBXvok7vt7P/L6+Svv4z5FsureexYwvZL99wr//cL/oPDvbP/V04z3J+SPPDQpHZHszfEnKT4RDt8f5PMRESgfH6egMivPNMKtIvs/"
+    },
+    "qa:invoice/117-3": {
+      "id": "qa:invoice/117-3",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問117－３ ３割特例を適用するよりも簡易課税制度を適用した方が納付税額が少なくなる場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117-3.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問117－３",
+      "law_version": "",
+      "score": 211.25,
+      "text_ranges": [
+        [
+          0,
+          1764
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6497.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6497.htm",
+      "kind": "taxanswer",
+      "no": "6497",
+      "title": "仕入税額控除のために保存する帳簿および請求書等の記載事項",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6497.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 307.01,
+      "text_ranges": [
+        [
+          0,
+          5809
+        ]
+      ],
+      "text_deflate_base64": "7VzZUuNI1n4VLrvvmuqqXi5nXuOP/12UsgHZlm0224BNGRcGhI1lY1PgDXiXSmVKuuIVJk5uSi02UL1Ex8REVFS4JOV2li+/c/Jk/Z+36JJ9+zcyu/tIW9YmbVz41SfScuik5i26/qDw/xtk+BTcdnyn4jddem8F44XvVOilGVwib1EjWxe+Uwk7ZVq5Co+7GLkhuvYPHWzuk2oDoz1sljBqYxNh1MdoiA1EJzXinnjzUni2hZEdOEfBsoBRDZs2Rm0ynfijZ4yK2LQwmgT9Er01aXPqDwoYud7zKRkcQSsY/R4jRza8xCiP0RNGx9gwMTrAyI23FaOH6JqeLdUr9cQfdejRQfQcuRgtMCphQyyTHlX8u5HozcxjdArjmjCrsLnwz5F/kg+co9Aew9p3+xg9q/lsKMHxZcCPyg5Gw2DxSKdN/s+XpfUbzu3h3BKbC5yb4Jz1AoJxqHNM53X10eZPWV+5QXeH1kayZwejHkbnMbnAkq5gPfMSvRgExpbQR2JuhxOyV2SL3A86Nkbbkf4MRKp1sqzxt3KsQzZcn9hzYm1j1MDoMnCOyHQCg4L6exhdQ89fbX93+2VpeYsLb1rChs2b8OfYKLN+8roiYWlyGuR5K7hEGNkYmdgsRsL9Ziw2vKlB3BOMXD5BjPrB9Zg8HvApBL2x71S4HrFpvywtsnVDtm69eTc0Tuh1O6x/8Qsz76mEzXyw0yOlWjC+Judjet0Wz9ki2HTyIEI2XHBZpU5HrAa5mlxtPuVNb7pDtrdpq0fnBugoNQ//qx2iCq30/EeX6XHdvJkRd5l8Lrnu1LKFO5n70p0ami+5zBaV81xl+a0d9MqgZbPABhKyDa4nrKsqHw6bEzC8XOGXj7//gg07oyNzX2qdG43LJ0GqxZXebJQZWpj+1hW3HjbeGXg2yisFM6T6XUMqcE6zwJ9vbpLZ3c+0Zf3M3zyBpSP3A5ndhfUDcPLzcXjepvVjcgCTCgZjOu3E5Kk7Ali1zcyozFS7nxDLRlIuhq03Jssab+YXZoEzwOZXbHZxzuIrxehQLja+TKUurkOu0kyM1dCvh82SbDhNtBX+fdNhJuAwUC0yybBFAJa8LAsbKStzydkd2bWw2U2/8ptTWijR+gwjl46qZLfMpNLGaEh2y/7VCOcGyVbCg8/BJGd3tGWBjnLVtHV7zyZY/WTHPzyPun2ckRKgF9neIu7sZWkB9qacCSPbW9ThOTggmIbYgFCboyzfyHgrOYQwBL5B8NGxaQqkBJgpCVHI7UM15JOJ9il9iDd3ThsOKADnMjydN6CHQ1qokeGT9wRaDDvll6WlbC3slNUMSGtE67P4q77fnCowgSepnYkND9hWBHD/brz4cyFWuGV55ZTUlhBXjjctBs5Rygn6pHiGkcWd/Nve2R9ZJgOLE6YhBvmawnTgpg1HTQM8D8btrHIj77FKC4ayd1owSMshrZHWgy03P+7xcvNDtr4HvLpbfNvrvH/ooTctZwxtmBucZb13JfHuSm+fvQ6ySvS6toh1T+aXrGGRM88E2fMHBa5sWp+RZRWjflj/whX2srx9WW6/LDuMhrikVt3c/AmM+A/YirROV8fnaL2ajXKas24LfFlaH8BX/cIMiMdqxF71wVtwO7vtCvReORMOjLnSig9WAhvONdc3SYMnYwYrGjncakjzkXTrGjWL7QzqOdndw2gvbC7oqBEaJ95zh1gQx6jNh1Z3vadmJLO13QbFaZB7xLkFNmc4d8o4U55znkSHQAHZ/FPPC4wq5NNhzSohJd0l18O5XRYnzHAO4dw5+z2Vtp8RqHEjellavHNyPvamRVIYMyu2f/+UiDsUrZXtoijrHW4TEcYDpjSbKbisI9y7lwI7Sf6dq2E0vpi5mnfOuonNA9DWa7MOrif+3ShDc4plb27+BlFS85F8yYEf3hfZPtZOWaV0Kg0f+arD+hd49SrFfllaPwO+eM+nIKvWiLTb3KhVV8HY8QsQx5FljVTrbCtIMkXxjbmf7ofTaWgYhxKlINm/2Pw5KeDRKATk5j6t7pKduQhtEjv/m4dTfGl9/zKKAF/Xv9T3DHo751AeGid++0IzvzZbFxC7QVJ2Ah2rq2Wa1OV6ksfo8IFKRSjmxzsJj/NkOuQGsYoRsr2rHAu55co50Sa7VuBYYaecCN/eG6bEm78pNElma8yuMMrckQzy+rQyZhFaaUVKiWVAtNGxgfy7MjlALM1zyqhEXZNhP+x8FgpuTuF3Coc3sNlNUovjedCxtf1gxSarrO94Edpjv9Yj1YfIStKBQ9bmqzyGttoQ3SLXH+ZJc0y2twBiJcHgb9nDvupkTfgjODdM2GGh+yV5PAiux0oK3mOLWrtcNAn/418mhuYeUH014npXvJfVj/22AC87ohOdvyWue63nZDi3Zs2gvWLLe+owr5RA41SCp6V4GOXXXL824h6UmWvj7slhK9zZ0+GC74uin1xTxw02manQLeSPut7iSCcDr9qy4qSZCVQyqkJwdzHgYZ03LXPewuKmLume0NpIBut9MnwSecNX/GCbzypFCR3enHuhcHzlvyzpqUFH82+ADjGxfxp0/CnuyJ39L3LH/y5HzPA5MYTumhH7Sp006DllgVRxKE9FAGUdphMdKi4bOJbvNt64ASqVS3/qZ3qJSrfwaehWsioQ9b/MWcwcESfp0P3weFdPNjBWkvDjd1OAdU4ZISET3zpHTCc43xJeZ7tvKgn612z4aSv50/f5lSnMd+HJPzGd+84hFPg0vwM33pEuydzk0TQBOBs/fPxxg5Sn5HxMpiY5uxPRjDZ/rvi3Iw2oTOtQJtx4ANvEZpGcjyN1b13Q1gBspT6jEziYg1mbRejcrIqkqhCggiKX9Pa9RSnqpFpnoUIlmvPFAKxI0gKYtsmbMBqhdZ6SaOQwa8EmBmPfMx9+PJXiVd8fh6CrfwD4/S+AWc2Y/keR/rpYJXf0h2KVHz79uBEsp4z63JLqkLOrdyStYoPYPLMW1h5WeXnMAGSSh0+AZU5gDi9LCw7FnAqd1Pybm19+pacdcI3llKWhxAJSjViRwGWVGSorEoh/kPZw1oRVTTAPEilLKBVYxvBFxsLeoq6tz6WF5zhJu0yMSAo84ZQUXkK6yYxcZNRFXWZiuLdMOAaI747q1gGif1fmi4G0YMEIHvN84Eguiczea8aTzBNHT1Slzt+YEn3nfP7mnGkqN8pgzpvbCaGsynnzeimFdBJnemxXnQAi/ZOSrUAU/2gahk4AzH/Y/JEr+odPP6oSGNn1UC9YSwVyxxjNIHSUIZxY0Kt1bYmSFbkhRScaKpMrv3Qyk8iyoUuGT+S5xU8tEvV72amZ7wo62DG0wUqB+CalzmJ6HBWgSA0qEiyMRlA95Lrh4ITMG9GJh7Aum3+ADQ5XR98aJWLPGJTmgYKihnry7dD4dmhoZW7bzMy2MerxpYkYV8DeJcwkOkkDrya1bV6+5E2NwLrxT/IY9fyHKuNlVzrxifSq6u8MJPz22ARh6rI194lRwiwTJyLy2NlWD6OqSCSwzL4we8BjyCIoBPGdEj9/12rQLpWUyIOLUYMeDplUVQWfOCzbYHo6gzYGEgd2YrVOePo5/sTWaVFCVTh3wA7P+mBqd5Y/OISTQfmQWFN1sJeoV1TyWllnKKzJQGoeevkmN97gtkMOkN9cEXGy/RWKQ6JCvXVDvqX/eKlJ8iwx7kMO2bXp1REv5Ux0zvkXHwIIXXeO0THUcVYfAPYM+5uxYOeIefh9xOs1RcWO7srqaFQGfPFF8QNddpDNwp2+KJljyqA3eSaZAecZYLN8emZe/hBHowkBirHAd+M6Ay5eNQMjx5DWsL8TL1hRiDjveipt4NwiPN2nn1tk3vhmXPI/4U4lqLbgVOtzi7hgJ/ybKOUnCxBZ+8GJtyhx1OfRNIf5qLvBCSdl3uyJ7XepXmT+HaBMVL1e8Spgtje5onNurOZ+MFky1hZxBWjY/KwVzUKCTfWQBTJRbx/4APzUPN0142aAX7pvksU8cAbe8sTvPmFk0/oOtZ7J1gP4eHMvGDuJWTL0KTOSxoGyLzgqSw/5X+1gvIDt/PbzinLZFfHTd+4Z4pBBlCJFk+dl4uXEc/AJhvVxLOaQevVXoSGYn1YuLhBDttVdPv7KTkvq3fiostgsihbRO/Sg7MtVexTv8NUsQFYnEcQlNjF9A1wT6ovkVja5EEQoo6wpIsOpeg0eNWkTZtZvsW8Uqc64prAhyKSi7DrlYKVILOF9AwUkBqKjuxAd0NEdR1vlE/79sX9/wvy07z01/a+X6gAsykzKMkE5PxGb8+/DnSpQ+W4r3DnlNseX5H/dZfglUna0fhzu7IGPMtlJixZkRulYituWBZGNNPQr5qOUKlwwrhXSnmN0wWUtiNDaLM5atan9yZS7oNo1X3dHsfPH0GwXSKTCROAhGYjJZVeSzmTLVqImQtJNsN+YyfOsF8Ni0vysoaKKXqUEFd5mWSJ3nYRYJe4L7qs0x8+JtHhZ1nE+LCAqSYTPApyTFV+KiTDdtwWXXa8b8N20DzncFvn0RBQH4kq7b1SikuAFb8dbUQKdmsEQ2E6jRFsWiFIj78p2wKDW9/6ytD5Gx3uri2S4dkW5qLc49w+dKDIUJXQuJFx2L+GC1nzOc0dsn0vdrDL3VeiQJZG+tzhXRdF6bBivnXbJlhPmHGUK3tRg/8xOqQhVsehNZV1p7Q6u9+QWcgnRNFSBrb5YceeH19LG7i9F+JElohWVejEJC1zUg6o4SkUGwQmIrew3a0hbLkkHdxG4ra9VZrAcuyGTwd2zg/OVKqE3Z8HuYwwkpLLjVeMsYcbYyptu2xllxQ+4S8SvCvW0fa6frhGPiEymXTMQ62Tig3amGp3/qfyh3NuGoXFCplPg9vrsYdKxknygP0YOTF6/yyNlocfGIkqT9vsnx8Yp8hnlxuIXI1Puq7uazDvoU0VOtEemXG1Fzbp0DnOflfK2mUxW6PJlaX1iMLY89S8cb3nCUvluqsxd2E3sM3OfVjrRhcR4Xot/KW8zsDsckWnGAckoJ+64xQ5fc73oKIf3ae6T0hFxT/yrPb/pEusCPLNx4S2O4DfqC3ASpEewMdqAAomg49CWxX9wggmtimd8XN6/f38HIooLPMk3tbVkeFS8gonnJWnhVpxfZjuSdREah686TDKZiNqrbtOuqnFOX+GV5P9K4oHaJRFt3dBT4FnRgpm25CgRLEkBOdFhUaTFYfYG+oueREzS9czE6Fr5ZHN4iN8yTz15/fS6/TSL4UtwibFGo+TN55r163lE2z8cedMBQ/QKNnjBkMOmJwgo3/cTrehZjyyrPK4OrTvacoCSzhuqh6wJ26TSJoWdqOZWtzA6OGc16r31h8A6b/BrF+zVOmZAtizoAYRoE/MYI4vxyj0JyYlti98blgUD69Rpy+JCCbfFezrhV84zEgCaPoTEVfieEJ8eqsgFCkYf8T8tYfvWOIJfR2UJ5bgmGxd0eBiMHuDtmSmmlavh3DW7pcBuEZhdbM7ZzCbs4QHOlbDpwG9zxi4bWNj8kuj5X/+G1uYVS59Nwhawl7D+Jb1Mclsi1Qdxor56pTxEDa5vRQkAsulRhVlCKYEOWlfvU2JCa6/ZpKvNs8fuN7xBI/RsRktn6r87oPcWndQ+YAN9xAb6hA3080/w41eM3I+c1HmL7sffwZFnkw+/0sMZHZzTSQ3Ofgo7Hz9sYFQktSpcP4FrEVWMmmD0zUdGBKO9HqNDvzkN+jt8bfythkkuf+v3Dkj1nF8aDi5TN4ZlMM3tYJv9nWcQWiSPHOXawK7Qk+SzpZdle4N9kZd/LLiQXD4kxaaUD789tc0CxLqEM7bpLYrkCbRGD2ekno+RWJZlFTiImhIHOaRUxWcG2gDLBEO9ZYYIxIC4bVrXaGt026mF0TiaHAihGHaO5LzbUWaBHdrG+0XT/wA="
+    },
+    "tsutatsu:shohi:1-8-2": {
+      "id": "tsutatsu:shohi:1-8-2",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "1-8-2",
+      "variant": 0,
+      "title": "消費税法基本通達 （適格請求書の記載事項に係る電磁的記録の提供）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01/08.htm",
+      "law_version": "",
+      "text": "適格請求書発行事業者が、法第57条の４第５項《適格請求書発行事業者の義務》の規定により、適格請求書、適格簡易請求書又は適格返還請求書の交付に代えて行う、これらの書類に記載すべき事項に係る電磁的記録（電子計算機を使用して作成する国税関係帳簿書類の保存方法等の特例に関する法律第２条第３号《定義》に規定する「電磁的記録」をいう。以下同じ。）の提供には、光ディスク、磁気テープ等の記録用の媒体による提供のほか、例えば、次に掲げるようなものが該当する。（令５課消２－９により追加）p>\r\n(1) いわゆるＥＤＩ取引を通じた提供\r\n(2) 電子メールによる提供\r\n(3) インターネット上のサイトを通じた提供\r\nまた、適格請求書に係る記載事項につき、例えば、納品書データと請求書データなど複数の電磁的記録の提供による場合又は納品書と請求書データなど書面の交付と電磁的記録の提供による場合のいずれにおいても、1－8－1後段に準じて取り扱うこととなる。",
+      "score": 300.57,
+      "text_ranges": [
+        [
+          0,
+          419
+        ]
+      ]
+    },
+    "qa:invoice/56": {
+      "id": "qa:invoice/56",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問56 記号、番号による適格請求書発行事業者の氏名又は名称及び登録番号の記載",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/56.pdf",
+      "text": "（記号、番号による適格請求書発行事業者の氏名又は名称及び登録番号の記載） 問 56 当社は、名称に代えて、取引先と共有する取引先コード（取引先コード表により当社の名 称等の情報を共有しています。）を請求書に記載しています。 取引先コードの内容に登録番号を追加することにより、適格請求書の記載事項を満たすこ とになりますか。【令和５年 10 月改訂】 【答】 適格請求書には、「適格請求書発行事業者の氏名又は名称及び登録番号」の記載が必要となり ます（消法57の４①一）。 登録番号と紐付けて管理されている取引先コード表などを適格請求書発行事業者と相手先の 間で共有しており、買手においても取引先コードから登録番号が確認できる場合には、取引先 コードの表示により「適格請求書発行事業者の氏名又は名称及び登録番号」の記載があると認 められます。したがって、貴社の請求書は、適格請求書の記載事項を満たすことになります（基 通１－８－３）。 なお、売手が適格請求書発行事業者でなくなった場合は、速やかに取引先コード表を修正す る必要があるほか、事後的な確認を行うために、売手が適格請求書発行事業者である期間が確 認できる措置を講じておく必要があります。",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問56",
+      "law_version": "",
+      "score": 328.33,
+      "text_ranges": [
+        [
+          0,
+          522
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+      "kind": "taxanswer",
+      "no": "6610",
+      "title": "法人に係る消費税の確定申告書の提出期限について",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 143.03,
+      "text_ranges": [
+        [
+          0,
+          1167
+        ]
+      ],
+      "text_deflate_base64": "rVftVuJIEH0VXkFXz+677Nl3SbXiJiQIMiCDMKOOEjOyBBV15PthKt0dfvkKe6o7n3yos7N/OBC6q2/de6uq82cwueY15w8+etwTHXNHNLuyMucdTwwbweRa9q2/CnwwD+8vpXcs2754NsOHifSOhctCF+S3MffPZH3IT0qi/YLgi0qV/z0WnfNlq0oxxuPXqRnePkjvOBjbotsPjSJCb9mqIrPRYK9TC2GABug1tPH0U7JF/0TwpTUK5jaCv4Tvsu4hq/FKE+EEwUU4RGbzi0deNRH83EZW49UewgJhjtBCgwWTbvBi86qD8Dk+vY7gIfQQvqxuB18+sWB8RHk1uwg2MmsXwRYdM5h0+RFlggbIx7L0jnnnDllNWEY4O6TDmE0P7ZacPSwbPxB6CXcUd4U4VtPEITQRbikx5iDc0XdWUujbyIgXMfQItMEKyY+CeClKvxm89Amn4lylUyJmwBW+Hcxa4cOlrF8hOPpkdc55TFpPS6AZiBfolH1+/1Vnk2UmT4svF07Cz06Wn9epuU7rRzcTZTnsvugYfO4QKPNoWSzLvoXghJcOsgrxlbogl1B2QZSTVVZf5gg3ygK9/6YHyRDtUYan0JPnZeNHAQ1HKxHJvWlRamujvMHZzE7qRwy9ndeppb/tKsTOx31HWGLrZYFoFPy+RAXbfiEUubQ32yNawGp6jWh2NazfFKzULrra+eiRj13SU+tWPcw+X3HCRqsh9IIFIza2lI/yhSbWifwT89tQqkWlX1BCloi3nBpOfvV5UvuZA0vITIQh79yJ01EOyGM5mHxWFF3rcstytSVylBA3v/N+leKwWjB7IkuBGwckGviiGLpAWgOLbddKS58sgewOD3p4MMWD5tI4k36Tm8987MYNgGykn4fubdwbyDs/4c4NTXfVGtHR/Wp8hM+LniLDSfuKjpYJgowh+Kr7LpQ4Gb00yHclZ7UYLRGmYsJ2VF9U/K/qMxf/rbJIa+IDmuxu1iSF4KS4fIcXPVEfLIvl5ek35Yma6Fhxy6mozyvKCT5FI4qZyEp5nX1hLcJbaiC8NOKlNlFyfa83rqj0U5rnox3FGKhLr0q6oXeZaosXy+IhlCMM9ZGSyEXD4f6Z+GdOZ/lnyEC1c52j/S48WR+GPXutbW2XSDvx460wYQAGxIAeIKTIYeSyTC6bTh9kTo9mhZLygvTVSH5xQOirj4K0KvT7dcPWemQ80NJ2vr1V08QW7Q7dFvuq67dn4u4EwQ+mJ/HDHp99UlQlU/mGKCFjulT5yUCJJzHN+4hIJzd0aSU15NCt6JvJ+qiM7emoOOU0IeovNwh1MfTEYUVV1QUlDYdprnvqRvU/DOylcSWfqplOO1eSD3Si+t9sL9jUZDKDN0vS2tTNzksdOStXcvFa/+uN69fevmh208vXhquAvy3q+lWbDJSZ++8C+eXpP3hz+uu3mNAoJiNq5a1EWLZ8PkMo68C8aMq+pa9VyYVKXIyEfZG8G4lnUwwbe/towN4+gr+rm6wYNn5XPwv/Ag=="
+    },
+    "qa:invoice/08": {
+      "id": "qa:invoice/08",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A インボイス制度に関するQ&A 08",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": null,
+      "law_version": "",
+      "score": 120.4,
+      "text_ranges": [
+        [
+          0,
+          1254
+        ]
+      ],
+      "text_deflate_base64": "tVdbc9o4FP4retx9a7qd6f48H21oDDZ3SCCQEpZcTDyYlLBdLib8lz2WbD/5L3QkGcfYgU077VtGFjpH300nkauz5RzB8RaTUGshGEiLfncdmjOkDVa9QKgjDNj1nNV0BBuhJFaowb/qwWztWxUEx/97xZxLv/XE6iUEk20LwR0gWAgPYmd/EJ43I1dnmuGtVt7K4LeTQCsgOOrYyC1GbpGwdjVyOyS3y0QN8j2GMObXbmAb/AvlvYXfXQVDM332wUtogHAlisszI7fO+3rk1gm/uFVHk5P3hPd18seJWntGuEdwgoeZb1XUbRCcPQDiq9sINwinCHes8K+3afqXpwg2b3cRdIQ7hCrCNUJb7NEoajVvfcMaJoncJlvOI/eC9/Vgu2Gla9TqyefI7civLd7XeWsZWBS1OkGt5k9a4i/RPCuUfauSuv89AkVq5NHcnbnYx9T+MUCJ5E+Pv4EdXvYQLhDu0mWY/glpI4Sx37LCc4PdG/tYWghdpPFiCAte+sy+lNjZivcWSBu8WmNnK3nsjkPaCLs3BKEs2emiRoWCsjX3+HgzPs+GZOsxfZqiRmhlJ5I0XOT7BCjamqIGaoM8Me7mUElvfcueTYSpgihVxSLSZKUYB3DEWRoc7z399YDYd9TYwdBEGCEMVOng6cxvjYQbJjPCF0N/UmTVEsKTX1wy5zLub91mhVukZpqBTFeSn1dNlMmP+GqRq7//k7DlnLeWfDIi/Kkddk9Z8Yx8+PBffRS5RdQoQa2UY9r2tgLbnUQd/x8zhAqvPPgbBzWDRK7uPRsygX7IRApfovCjDVWHLUze70lEY3Wrdb/1JDQjdU1ehK0Bq5li904VL7KhhpJNVt0kkQ/57RDdv2evRDIuJxnZCjAyGhPAZHpXfWdXSb5zBJttmggDQaMGwcOMHHW4wIns6J9K8BX9PaRNwW9y0cg1IrceI3E8ug7cKRPnuxyMKU95Uzgm77tYmxqQ/zOtk3dO3jjkuHP2fDIXlPrPY2Z0EUy/NUDoJDkobsuqNND+yiZiPgdeI0zFsbyetP3+yx+3k0LHYcVyEmEkl2HnMlveqWyxhc5f9ZgspbjwFhMhm96GfSqkywaTGdJSkqUKL5IGTPmcjy5ZeRGjTU+97ZVvVVj/kQ0G6taiZ7fNqudSXPGvYo5mll8cI9zvHQJ2MJ5JHUt9IqUiZ2mD94vqrRM9Si2wTTMYz9I/ZlU9ie3d6S/M8k7Fnz8ibQRWR4aTeOJ4bxEOPyNteNsrNukgXBBZ41TyY8lHb/r2YjEqOwGFw3K6A4WfWueV+7B7g+CEMCZ+y3pNGKYkrJxkskpjb30Th/HJxziJI7dx7D3OGepnzivk+AMsAv+XTCeCJJIEtihcsxG2b51RvgOTXz6jJA/Sm4Zta38IMZMZO3Zp8i/Afr/1TL+vzSKRW1SJcGQQOTKHkJ8+iKgxo6YyVozf8Qx/8o4kU3ryAITd2KyqLfZYD4dl1XowG7PRLAXi9C2TC3kZXaRPD9h0mrJp/HZ+Aw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm",
+      "kind": "taxanswer",
+      "no": "6137",
+      "title": "課税期間",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6137.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 61.31,
+      "text_ranges": [
+        [
+          0,
+          1421
+        ]
+      ],
+      "text_deflate_base64": "tVftcto4FH2VvEBmamC77bPs7Lv4KjSxMZCU8LEptKQZQrxhMEmgKdgJeZhryfArr7Aj+SOyMIadTv8w2JKuzj336Oj6L98b0Eb1A13MSqxnaKxzHZwuac9m05bvDYKx+fcBnSxX998Dux50HfZorB68wK6zIVkNYXX7wP/3+uv2OdUt33V912LX45X+CcGRRxEmqIMW7YFgITG1AusZxfB5iXCD4MSTbxAuUCd0MUNw/Pl4rTcRblj7DqGPMAp3QdJYty16YyF0EPr0ckbPDCTlZJR6R2x8lRqFEUIFoYwwREJQhzRIJw7oCFSTBLAOwQ/iu8dvIxJ4G+EWSUVkwWEfcPZcN5MChK88RjwhxEoXM+oOk7STPKNppLGyx8HI2shksjOBeKGTmUQIJo3BYb1Rdlb8GSrJllKpN3E0xfoR6kDrfWqeiMcOZz2mQMGdRuYEL9VEJwUEi/UM37umx59en4xNpcnFcOj9Nw6YWAr5wUuVLmbFtOZen8wQZjCrBXad9u44BFNfPZf5o3URPD+sWz95LWLpcw6IgTClvTvWXkjvneDKpc6XoDmlnyusO0fSYKdn9MQN8QgObC47sWNIQziZa/qFILGSaOvvNQRb2YK/JA3/+QdCF2EYzGq+94/g9RbhM5Iqwp1UtS6Sc144lWpz4S9VdjgF4n1SKZngNcxZ5RvHTQweXYdiWJS40ksh2ImWfjuiVZcax2G8oD8O5k5MxbmYUBWar71pbKO21RRO0lD2HclRlZORdhul8KhDKTX+no+/k8f/TI1/3BjX3u2yM3pWToCn+bbzeYgIVU4Vaaj87p19TmH6MkoNYbBxOHeATexOrVUOOsVzqPH1rVAx1N2a+mXor08Gm9ra65OZfUiE9P8Nmja/TU474pAZCMdSYJvHI2XUgXWuEEb7xoEhv4aIJWvd99oZzhhFGNGByboznngmBsHrNrfdO52I9G17xSWN7Cr38nGoWZNOg/A8vZqYmbw2hBe5zJEX7k7vK/TE5T6qc9vb7dCR1+6ww7DmBV7z7GP2P4uWcJxM5nIgoDCXf21v7pgZ5Hfw7c9r4aa/iW+1b9iDZbXHyevoSGN9MeD616FAF7PoNpNF/8Zl4gMTyQdimJIXiL4zOgmKU631pj8fi+V75rCzSeOmFy7PraeTOJ1QXKRc5T7cYh6kEeELXSFLw4rNJpnNYyuQRbxXTtEpXlY3Ye2Z6DZLfxGSEk2F1HFxZlJuP9rawf5KgSMxySIVXxKqCUTnohyjCcnvK0zE3Xaq402ihR9ASmfR39W5hzRWt7GX5kSyw3wtZbQRyoxMqWTf4hmx83ffKsNIZWYt/zTuVOtW85A3zvMPdrlg1mXy4cweDTZtFfjJ+sibzT/4D//HHg3fG5S08C/tu2v9S/FQO9TwyOPTi4eFQzE4bbFpSyvyCCX+XL9l09aH9whO6eA/"
+    },
+    "law:shohizei_hou:57_2": {
+      "id": "law:shohizei_hou:57_2",
+      "kind": "law",
+      "key": "shohizei_hou",
+      "no": "57_2",
+      "title": "消費税法 適格請求書発行事業者の登録等",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/363AC0000000108#Mp-At_57_2",
+      "score": 194.89,
+      "text_ranges": [
+        [
+          0,
+          3201
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "qa:invoice/13": {
+      "id": "qa:invoice/13",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問13 登録の取りやめ",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/13.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問13",
+      "law_version": "",
+      "score": 134.03,
+      "text_ranges": [
+        [
+          0,
+          1710
+        ]
+      ],
+      "text_deflate_base64": "zVhdc9o4FP0retyd2YeQtpPuv9NVSWKwEwMBHBpaui1QAo3zAaVAHPJfei3ZPPkv7EjCxnylIdOd2Zk8EAlJ955z7tEVkWcEtfuZdYfgcruKLI8siwwiL0d4xSaZV4Q/nAXNKcJ15J2JuiFuJ4HriH7Fn0wQviIwuYiCf9/kJSvyKnw8IJk9IupG5BWF00LozeBSfPLCnilumbgYBbVJ+I/lT0zRugrpIYI7j4GVuO0gFBHaBCGLMEVwEBoIVuoEh48HkVdOHWAiy+1yxiJPtXkWoRPSdwgGQhshS9TBNaQM4UwC82nACwZSQLhEcJEZCEcIXZEzg+F7BIs/HoZtUGjUZDSUIS3E4VaTcEV5HHYY0iJBWgiuyvLTr8K+RgrB4CTonPL6DbKSyNHwISvPYaYcNGvBw92s8gOhh9R6LgiKbCKGhsSXlcQtk1gwUzgdOXeb58cTcTFCehJ5hn/f8kcmUksv5nZVDI30dxA6CsRsglvk5eS2doEfT3SsCsmOjJIZWjAzuCTPDTY/5vkLSV3zFpmNcJHa0VK4n+izI88QQ0P0K+TNAUFwI6/0s3jpj6iMiDKC0EXIKyqXmOWnDZ47Vvs5UgQUNicLbpyUJZUPXxAaSoIuv/2oMw27d0HnVNQbs6o8Ini09AhJhrjxQdfFaoJgzRNkVirBjgya5Z+bYAPhk8xiWwqsJKfiqNaCkrUUfv8RuI6GgmTeEOG0eO5EJu+0ZAD9jiZ4Bqco/9oxKI48fw6qlu6jhfRwy1G/NX+kIIYG8e+b5GBPz1R+Fj8nsMQ+IilrKwGUw36XV+yFDKCH0FQybuvolx1Huh/JHBAV+1SprrcN4rT0SWwP1twsk0Q0jmlZ8kNZ6qkisGKMev4jkzX/3ZrBqTjtBg9uUk3bvZeVeKGHjKYZ8O9bvFlFcMPuHUnx8gKbXuL6BQ5MYguO646xRLfCaclIp1bklfh4gKykc9egPll0mhyXF7LL4wt+Nc4kFZ1WWSK665SrXCA7izxj/y3h44Eoj8XVF9GvzGpZnjsmr1//LDbnNK6x5z7Jnhte9oPBzbrueMWOPAdpfl0Om6kmSenqeZLJEKXZmtTsq720Zt0noPNHV4uyTGhmZuyTpnQPKHObBYdfEWxlNRV1V1NGEkkTeVm82GHUjWIJpyUu6upf4BcP4qYo4WzNnWNW/TzXQb/Cp6Y6+vxKZr7/SrGkhoNv30jm4C3h9g/JEPTCts3d93qlP28ePiC4/n3VH9HQ+CY/63EKvN7QEXBbKpxk9iXaZP9voucJL1gLeEOzpdKxEa7jiYzG/WtyVawIXYpNWl0uYSV4tNQHrcDE9qQClU/Q/E5XfOJKSBVG/tSMvKJk6Ffb6MbO1H1e5Bnp5k9haT1hjpttkaR80Um8g6zvI+qNZPR842htafTpXGTeWonJ0DMB6CJkF9vsvGDzuZtH04CRBWIbcdQYkj+2EvDn5nUr8K/bANnYt/zy2iZL93bcAiZyK/1nctt/s1VuZD1fLbfI+32t0EoHRNaOyv0/xf27KuI/lbIm96VSXlGy7kHJzk2oFjO4MnnVMop+R2RtBJvoq29x83GbhfSdBEAfP4ORyH/cErF8ZcorKGXbyVNkB4PfVH4NPrV0b7ex8ZH3WmMiJtUECP1N/uXOH+VnvXMEi2T+2tvbI/7omB8dzV9/cYUidIl+BgeFo6B8u+hB4wh1zxKwMTeGfNJGcGdwGZQ76X5C4rXa2swbMFXtDdUX9pK+kiyv1+/vzka2Y15dnjtJd+pILTE0wrv7oHO6olpNlT860YGmHISerPTyG1t5qQB/aqrfD27ks2GUDzvn+q5NmE2K5TnCiH9eSdbmUq+RuWsQbRBpcnfiYAXlDSUY9y9zBMmuEO6E4L8="
+    },
+    "tsutatsu:shohi:11-1-8": {
+      "id": "tsutatsu:shohi:11-1-8",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "11-1-8",
+      "variant": 0,
+      "title": "消費税法基本通達 （相続等により課税事業者となった場合の仕入税額控除）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/11/01.htm",
+      "law_version": "",
+      "text": "法第9条第1項本文《小規模事業者に係る納税義務の免除》の規定により消費税を納める義務が免除される事業者が、法第10条第1項《相続があった場合の納税義務の免除の特例》、第11条第1項《合併があった場合の納税義務の免除の特例》、第12条第1項若しくは第５項《分割等があった場合の納税義務の免除の特例》又は第57条の3第3項《適格請求書発行事業者が死亡した場合における手続等》の規定により、その課税期間の中途において法第9条第1項本文の規定の適用を受けないこととなった場合には、その適用を受けないこととなった日から、法第30条《仕入れに係る消費税額の控除》及び法第32条《仕入れに係る対価の返還等を受けた場合の仕入れに係る消費税額の控除の特例》の規定を適用することとなるのであるから留意する。（平13課消1－5、令５課消２－９により追加）p>\r\n(注) 法第12条第1項の規定により、その課税期間の中途において法第9条第1項本文の規定の適用を受けないこととなった場合とは、法第12条第7項第3号《分割等の意義》に該当する分割等による設立がこれに該当する。",
+      "score": 263.11,
+      "text_ranges": [
+        [
+          0,
+          474
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
+      "kind": "taxanswer",
+      "no": "6496",
+      "title": "仕入税額控除をするための帳簿及び請求書等の保存",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6496.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 258.08,
+      "text_ranges": [
+        [
+          0,
+          1647
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "qa:invoice/97": {
+      "id": "qa:invoice/97",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問97 出来高検収書の保存による仕入税額控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/97.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問97",
+      "law_version": "",
+      "score": 229.97,
+      "text_ranges": [
+        [
+          0,
+          1169
+        ]
+      ],
+      "text_deflate_base64": "pVftcuo2EH0VvUI607nt22mVkGtjwIHwWcgFGrgQmJiGZFqwHfIurCXsX7xCRxI2BpyQtH8YsKXdPWfPHomtb/DvrrgbRtOmGHS4XRLtBYITvN3xxybCFJmBzAq8Gs8NN+NS1C+K0ihqDba+SXjNJr9/I/z1djNYIcyQQji1EMrhvIdwj9DlnhuOH/k/w8C1ZDAYIFwh/EQK/PU2fJgfLnCCBY0ux8gqgVeXP11LDB9Dmtv6RuANg4WFtMCvi9xuhOMG0e+QFhHGKu4VwgqhhZRtfRNhuq+G2QhtmTi1Jgm0iwNTPlshNNQyCeZkQSHsFzQwkpSc0JfGp6lEVlEbrhK4u+fg8Oscd5bcziM8pyPwtw5CE6EbfS9H/aKMMG6GEkwDoSvai6j/gxywcdq99/hgleC1I4wbGYsCwh2ygkzZdRGGCMVwaoXzXpJYVGfCrCm4B7SRXecyZJNqcDaBU40mcK2ol0NwNn+64UQm43YDoaw25pHlVX23sj5WiaXYIsgs+VSC07rMn+oy5vywaigghQgeRM8Pp5Z4YqK92DyaOrSoL7lvq+rziTxVIkdmgWuECcmG+14R4ETwsKmO98j2pc+4PQsvXxFGshHsu0pgIWVIbwJvwCuFrV/lyxdycUFExwjfXgnP95CWU++bfPmy9auiY4jqMhwzpGWC9GbzWJXfzgF1pHTScBmTzUqPIqscTXL2KKabS4vknTks7HUH3QwiWeU/aaUbLPIIo4/0gRS+1J2tb/CuG9E/Li62fnHr19VnQ7vJkbh3ApVIR0SOtF0X5pNaMeYDU1oOy6vXbWS3cnAQJpJzCllimn1aoeXEkEWztHn5S69EcA4IYxXhUoSuJIa/5cKfIKcAWFxUa009pOx8oNOprtm/fVubk7Nb1+aUyOZCldtskxsh2Ag9hJqyREbW1CNHBpupjlNpBO4g8JrvGVmGb8eUIquQnRovvThKC5nFey/8xjgyAe106c2fVlMXGchC0+JM5ZhlRIfCUf8/aGlmR5GyowjkM8385de1OTlNLUZN7ttrc/pRC/VMqzruY+Oshs8TXpM+swNMIZy/qCuCHBLu1+Q0txfCtER9qXyQSXZOunY8Di037Be0ERG1Qu2ME2/sFe+MU1aj/J9ZmZL6ikUezxs5O3DSUMFRRiTrOEF24mVZxpVZIsk+r2S+u/Rl5FOn1O6ovI5zFxSjxf1Jr9D09JidgtCbz1/xvtJX3VbtlLb6vFdFnCFH3RX1MCcgJqr9uhE7iSVAuTEQzdLuQDqcyi+f9Hy2Cp/6cbO74m8jnHt6jT7ZdGuy64sLktUwk8iLgPw9kbpNEcudQuBei8ZQ5nv6oS0rnMw345LodKP6bVqr+rmuVTtj8CbRH1QGFjIzxiCjkbgWnX5nKeq034NWmjc2TkPUl+K5lihcNtucC8NDaOgFyV+HxAM+II8k7L1bu7qM8tkqWPWl42puteb/H0/kU8lO6Mpka3fhoexf"
+    },
+    "qa:invoice/125": {
+      "id": "qa:invoice/125",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問125 課税期間をまたぐ適格請求書による売上税額の計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/125.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問125",
+      "law_version": "",
+      "score": 152.2,
+      "text_ranges": [
+        [
+          0,
+          1253
+        ]
+      ],
+      "text_deflate_base64": "pVfbVttGFP2VeWzfME3afp7OxIB8v9/AqczCgIKLnNiEGFnY/5KjmZGf9AtdMyPJ40toVvvCAls6l7332ecQB3b0MBNulQ+dTbeFtImwQnAQ6hv4xEdBNCnxL5RfLRAmSG2kJXYzCxdF4VY31xUEL3Jt4fXioEBYp0Zyp+8Je22J8QphihbEQYsPbf7FF14PwePzTuj7CPdogY6D0JRBzCwwRsgj3OkIfFrlQ5ucnhDeuxXfRkgBwUXoqSfyqtwBWpToVOQ0Jx9EKCEtxEF7+6568l4WoVuFSbimSEtH+lSJWb289yR/tqPZMumcNiO3HwUFhB5JSqElBE/lGCCU0QKEFtIy0iZzfITJLnJGoxaITxUNhoZTRpDRWqrVsopZSVqFEloUrXq4HLNmOQ5ahL08xUGPD+1o/cqKI7Qaxtcd9vJEcidE0tB+iVyKVoOgVRePbfnbUTYPWQj9cbjsK9SdPcBYrYgw1x+Kz9e83zKw9Nj5AKEXB/bmailuQFzmI7e/Kc8QJkTpqchr9XB1pUMjpRJC2mT1CcI6IzcOCkib4foje+xvqaclNnpidVuWK8H+qACbpLx0JPbgCLcqqhcIbYWlZ5JIxGNB1li3I9fWpOROTph9juD98afM+NJD6CPcpbio/i8a6ln3DZbiwN6jNA7sOCjwZ5vPO+/ef2+M0QLCn+1wOf79VPZnUYLQjuYPrFNTINgI5wgP+/qkTZOMBAELxLpsTrJKJ9UfB429eTg9yaZB5lWQEEPYVOOhcd4FM5O5bnmC8KD+dORU/ovevX2NS69JACQq3NRA8AppS0PygFDM7OJAqGpSCzNuLxF66YfuYarw9ato7zMWPVRk4bSwbS5VnB5rR9F6o2f0KDsG2tJ+TnMG2PKD33IG2DYfOnw4SfRNLXNQ0kAFPU/kp9iTATd33bcDapJZrcuCzt5kHyInWVezRJCWw+UtG3eNWImmjC7Fuqzsp5WW9ka2A5Pb5YNSVptGH14R7kni6ckysuBHS+qn4NeIvgmoqjqxeVbrEll8ksZVG+cuXFgI3sGySFrIxpC9tqJPs2M7pZiZ/U4z4Ilpnl1JQ2TroXYbcvC+p+cw9Eub0Zmq7KPS7F9Iy6zsK8syxzWzyDLC59Qcvd3E98aLOy5JZC1bD3D0a9H8QrRvZJTHGV9cK+tMEJPfrgI2XYWra+l8bpUXh+mfUg5qZpVcvB678HVY04llNNrU4B12f2T/qvTpGUAp++Yh9Hh7imAjUKTFHRcJFxbvvui74wdSKiunyWcrPxPuceK3LjzY2UMZzcqZ1Byl48POzxDuw+WS52sSYQP9LGsqgb2t9d/pIP+HD0NNjol2pvMDRmTTJlTkiHq315t3jNGpWiq7/Emnm7vyyNQXpHCrzPH58O+NdbmBdhw046ASB131s5GeqkV9d4pvI2ZfyKmnTfE8EM+XOr9hWjsXJS1l7s5GT0TPdVap7OYI9B4fUD50dhxPA1Uv8/v+4bXwo90TBzZzfLKxLuNgYHTV1DeCej9bP5P9DtPOZcUZUsr+zAZEe84aRSX+/VuKbO/ft7e3vHTV2t+3leTOSuXtselKqXoaLirRHST3sTR3q85qNLI+yDv0e6/0U9xKJez2vFWFPrpZ55yf3Yh1U3teuOyKqwV7VU5bPxftLyZIrJ4P/RK/fWQvT8y/M3ZAlZ0li4O3p2pGspvDY44vxlV9tMgD6G2dJXUYacRXGvoSG967lTu2UFG+UURqITzmTpKPpV944cJi3qV+VsuUHDl/E7dJzq9UW/I/BfILn7u/KhsYguhIuP4B"
+    },
+    "qa:invoice/115": {
+      "id": "qa:invoice/115",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問115 ２割特例の適用ができない課税期間①",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/115.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問115",
+      "law_version": "",
+      "score": 265.71,
+      "text_ranges": [
+        [
+          0,
+          1844
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "qa:invoice/114-2": {
+      "id": "qa:invoice/114-2",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問114－２ 小規模個人事業者に係る税額控除に関する経過措置〈３割特例〉",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114-2.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問114－２",
+      "law_version": "",
+      "score": 315.3,
+      "text_ranges": [
+        [
+          0,
+          1058
+        ]
+      ],
+      "text_deflate_base64": "nVbbUuM4EP0VPc68kd2Zqv08t4DEjh1yhcQzsJCBgCGLYQJD5WLCv9CWbD/5F7Zaso1DAsPuQ6rkjtSX06ePlAamuG3G503pDYVhh/N5OLfl6Do2dhHG4RNHbkfeXjJsyL2LxD1DGCcHPxBcsv9yEtiTe1fRo4+GmQZdYU0iaxYubTSsNLCY2G+ySuVLGjTSoMOKQP8vRBqYadApQqSBheAncBn1PNG8ibcf5eFxctBFcKJfPJxXGUIf4VgsHYQxQh1hB+EcOUcDEriUJ0E8tuVPLr9PI3ceD51SWn7kLhJnQge5ibweX00ib6+0wUO4Qjgl/2uoIZyxLBjcoAHlrBE80XLkxYBilPEDB4GQQDhCqCJcEADgoAHK4ovqrvBn2rt2LvddBFNFaSKcIOyT3eAMjVa4OBMdJw0GYnafBj15aMZPj6J+gkab/o6ue7TKd7lidi+adYQ7balskcGsIvi68BzZEowGrBV+oSsQu40yVmlgvrIgOAwNR7tOYCrrf4ufdVGby+9TNBoIvmy2RG3+IfRP7kXLRN4RrTHCE8KScDO4YofzTpvZiyNuay+f5J33WRVJXYvuG+FioIlJQHhm5PfLEORsJZ4mtTZt452iX5uAayO3M7vnMjk/KDDLzoMvWmbsmWo9FjdL7V0+mPFkkadiI7fE6SSc1hE6xQSJm2W4HFLgp17Cd6JrNR2Z22xP2Q9bCcY7eTU0MtK39bE06AtrgrwTzvoIA4TjZNhIAzNcjMKpjYYTWTNhjvTZLD9qoKcQ2lnthqeLQeiqtcNU9Y1NU95dnXIn9q4VehZyRxG+7Nr84y8xu5e9mbw+lXf7ibsjrNrXCoKfBt3n9slze0halAamvPOUKr1B3DWavcefzTzUrsiSCY147MaXkwQu2QcdrfLGj56csiVcjJSerdPr7GUuj+dyflB4YHqrZkwyHiA4adAWje1wWhPVatbKYnizOrIhEHvHwqqp/Pra+4rK5/pL89fsa4Kv9TfvFFOr4zUfb0ukAdHtUA66WQXmg5ifI/gkCiSR43BuC0tNjZIP5DvRgxs9fNPJZqnR+oqp3ByEWzXwloJ7JydqVZgPiduiVMjepMC9O9GukyDRFPymZNmnz3AxiL3BKskzAUMD2DtIlYH6LZ9/0EgoNK9IVP5LR/I4VPubBNJ9329WKl/1vY1G/VWIvJZ3PBo2iSH0RJNHuxcbbijR5LGx/XILscoWKy6rNGjL/ihcjBK3kRNkJYNcjX1xs4x/DgshL9R1k7iScFInSLT8b+KWrPFdLeqdksfriZwOtUctpOqMo0TRJu6Uu0rB6iVmv4KId0rkK7TB33yl8DPcHuJ2gHyKhs3Km1gaHDE9uYWhwdZFl+7Y0i5FFVJuUrvnWoet/Um5UtYbnk+GTVKppVce/iOPRmvXd64Vr3X0Y3qZi0zx/NjXr43i+yD7Rmion36Lyf6IfSofIcYUXPnMdJasiFa465fcld9F5ZDuq5Cr7ydXHprszy1GKbxf4iqZc4+r6uaUQUe40rizVYZv3vQv"
+    },
+    "qa:invoice/117": {
+      "id": "qa:invoice/117",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問117 ２割特例や３割特例を適用した課税期間後の簡易課税制度の選択",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問117",
+      "law_version": "",
+      "score": 214.59,
+      "text_ranges": [
+        [
+          0,
+          1685
+        ]
+      ],
+      "text_deflate_base64": "vZfdVuJIEMdfpS9378TZObv7dqk+jAYSQL7EjMyiM4IZWRHFcSFEfRcr3QlXeYU93Z1IEgjiOu6NJ6Q7VV1Vv/pXG7p66DZY6cYvzbwHA2kxdJuJn40FfPdbNkIHoRdc3Ph2lXd7i8MmezARRv74lB811Xum3zFngDBawJSX/wrdEmHtGikUfidsXAsGNW6feo7B+5eB9glh6D1SpIZvVxenFV49X1hnCMPF4VcES7z/YS6gyqsX/v0oTB8ydEvSizwYbbBaB6GOMEAoIjyooyKYqAHxH83koREMpKVUwGDGEZ4jVBAuEGriLzWEFQqoQU6QGfc96X4k7ViRe/nqTB7qHGHI7/TgZu7b1VWLKmfsusz2HX48RdrgtQO278hkmAhjpLq0pqwbqFHUDrz5GWuYodtms9vQbfGuHjzes/IJanWSWD56XuatWWDTaNm/bImnNeGlyj7wWxNWL6uysJNbdqAjDBGuUANW7bHSPkK0EzVA+LImO+Lwe3KbMPJcEiJrMmL6F97pi4dSRT5E+ULNfEXKtEo6awZ7/BQMQJQCKNKyNGuhRgmC8OrTGWqwif51VV7Ad37iBkODX1N+PE0AbeZGn+icKOIVLuNu+Oqw0WeVcLFkHfzCJ3boNn5VSQld/UUXOR5MRQOJcbB4V/+wwzt9b95npQrC0P9BPWdvpc5lyd1AFVx5zxj3ppfqmE3ZmsO8far91gG3hhiDd8TPwD4KhFHZ1K/nwb+tiA3dsWCjpAX3RRLpi11lhuXf3yza/4jWjLgRbjKM54SySu1WvJIcYGV8lEoFsREepRK1Ze8LbENX3/2DzW55a8Yvv/FJe2EVWWn/YwFhFLqNp3ofNYh+NZ/qZ6IQkvRYDOGb6k/JtS4ERYNYHzpsdsv0vRixpDoORevSciQBtBGcKlM9phme4yTxT6oN0/eISNoKzv+tt0NXz1hXKG0gibyAkky1zFJljdguc5Pyt+0wEMOjSWQhzXiwxOITurrslVLovk17NyqX7bfHcoyVkyqteBh4jiE7fqQSjGDGUmlH36jTqmkmOqDlty1erMnZeCK4hKKKpbE6YnOlTEkk7/T5cVc0jAbs+J6P6wKUvuql5fznkzaTAAaDGht9Vi89t07kPtGR3vzQm2qB/rd4duuRxW5PWWc1HeGqsMu7+u6f0dqBGWteYPRlKmoIV9HrgjoAu29KPKJsE5FraAosqLh1qI73H01lkk/anuNkST+eip0SqTjyUXx10fmdzift3z7GjXsiNTMKCGFE4oCj1lt2Sa5xk83vpIxJvViCslQvtUHd2dLfioqT1HQM3SbJSB3vDmXg5huLl1c78nOKdy4GvVSn5Y2EUpmEVAXJsoRi31UC+mOkzfgWlwM9auVXTKE438u+UB2qGUIJ1G2WrIppWoVfPe4zglnY4V09lPn35n0iOUiN+/S3peTc31rwbIQKyYwUIt5lrky+5QSn5nOwZPV2T1ZHSWXTreElD7E5a/tDZSpMkn5JpsbZ464qX6Iclrx8NXlXJx8KgnuZ7vgfBIkKedLma8dPPBiszEhLkKQESaZUXPD4teOPOtKFmSxNtNrtJSv9InNrLoXyn5w196MMgC9dN1f42zTdycvoPcf3RviWdjbhl67tlp7fC8DnA3jTy1ykEvV/LVhSS/K4Uov/G1ZpXVtY740VKeyQn8JVwtC2YG3v+73IWp5gw71+PW/LTzcD9y8="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm",
+      "kind": "taxanswer",
+      "no": "6105",
+      "title": "課税の対象",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6105.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 19.54,
+      "text_ranges": [
+        [
+          0,
+          1293
+        ]
+      ],
+      "text_deflate_base64": "tVddctpIEL6KL5AHJ9mt3GVr76IesC0hYdlgcAxOMAHbAgJkwUvxI/BhWi2JJ66w1TOSECCc5GGrXC6hmenpn+/7uvWXt2hTyfpEs5eP/r1+6t8+BvaK7h1/XPEW7aBv/H1Cw1X4TzNwLoP6wJ/o4WgROJf+kwifIPmJMAi7o8C5VJsRhqgB1Zd0fobQQygg5BGevLnpP/ZD7QzBUs8IDsItwhMNV96qiaJEK/4ZNi2E83B8Edy02Hh/5E+bQd9gU0JHGAfGjAY1b1Ghs0cUFkIXhYEwRuh5r1/Yk/sf1GggmCgMcisIRbKrvEdYKExqV6m+DEdOYHQQBuRW5Gph4+qhO6WzR7Kr5FY2roHQW99dRQdVUO1qOih2VdiRWXkqcTLL/17YGdGyLKPuIuTjI5wxlUP2J0qjw+85tALCCqGOooyaOPk/MnuycfXTjWu8YUkdVQ6foGZtt2rFyFcNSDO9+TxZ2rh6ZEWUovNyg8yshNl8jqIko8jLIO84wsR6cvnOHYchxRXISLkokV2kVQc1CCZ3waTGoIB2YH4PemY6MoQyX5HhDW9qIFgILelKFCXCwJv2yW6Hi0I46lBrlKROWUxW2SG5AWH4RlZlSZNy3/GNGgT/PnnTS9/QaHWrjEtnVup/eNGlwSS4cfgWUaLWiIovfFaYYdMKxFzCrKMS9+bVR8AmzxdQg6hYSQBxQYP6IKjlOW1CqASFTl+mtiKZ2ZDvBwjPMiQmJGqA8AVh4L8syJTo56VZguTjLqayowkG7fuNa2RifAvUzOU0oAKjQ2VIFYlTxlpwgCbGLQNEMssu0nDF5Vl8lii7RbhGYR7DkYyxy1CF5s7ZQ6pKU1KSYk35FVQG+SblGwjPWZrEcR4K9s/FJkIasy6/vsuvL65ZqVr3VOjwc6x1NPiCYCN8ZtPjr3IpBbypFurfGSaM8GEUqLwy7BZRQCSwycUKLwyTsgzDOJIVQZcNMi62ePnlqCJU7+mVolwMA2YRVc4lNmQwokSDCc37CM8ql1ERRMFbvgY3yokGPbzQlY4in2KNFV50g/YqbC3T1hQLaDmjcpN7w4vuTS93jMh8HVL3qARu6eYgvMqLKqp1/az4ad1RbL3xx46ft2VdH9gO5CPSfdi4xiE5tuPBuOJNObuoWRmKnGLer4YVK/vG1f2xI7tHZHDj6lGJRH4nuzGb5eaDjjyaSuZdpycHroPJ0fv2lbeqZ3AuuT42FHekiGR7+TS9qUb6haSE3J9Y1MBv1ag4je0oNR9SfU6DWuKldPocoevfG7T8tn0PCxZSDXynQ3pHochbVBEGrAHbnRZd9dh4RC0Zw97oxAK5P00dL5C6RBJFTlZK81gfIiPZ5c7QwrL8e5Yvz39yPHYmPXTQ1TXC9bq+8H/crrWa99okvRPcOPtFVMdj+1mrzwiCsc994IgPopQaNWNqxk0stWQdT+Zu40pUdRu5pGRmDfaXGADn3EQO5kDZ2lrpeuwaTKZPVrZIKA5r85ZLsgy5LuauMOeimGEOMNeSz1O/OiPXZn+ErhL6lqlofmBvU/LbS8tU8FLkD49VR9bMCrujSM2SJnuY2bAzllC12VcxZs9yxp+np594EKgv6VuOb54UEHQu5R4e+PNBoDAPxXJd/cZLEZhvyBbB2fO+NB77rvit7w2EtqpmxMDf/p6xdj/GMsDHDTZBccqcmR785bMihyln5o6Enck6VbFjxOy069TBoYSXo6Cg+r9KKq8KkS6tKvy+l/7DzDcfki9Rf6L748p71OAjavCHamjUmK+12h/vTt+dbpZfP5z8Bw=="
+    },
+    "qa:invoice/118": {
+      "id": "qa:invoice/118",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問118 適格請求書等保存方式の下での税額計算の概要",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/118.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問118",
+      "law_version": "",
+      "score": 110.84,
+      "text_ranges": [
+        [
+          0,
+          2157
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shohizei_rei:46": {
+      "id": "law:shohizei_rei:46",
+      "kind": "law",
+      "key": "shohizei_rei",
+      "no": "46",
+      "title": "消費税法施行令 課税仕入れに係る消費税額の計算",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/363CO0000000360#Mp-At_46",
+      "score": 144.96,
+      "text_ranges": [
+        [
+          0,
+          1569
+        ]
+      ],
+      "text_deflate_base64": "7VjbVuJKEH2fr041RoMkwnARNDLCGsVoBBw865wQLn5MpTvJE79wVnWHkIsgnhnfzlsISdXuXbt2V0e8dsLn58CrcgtEfyivtXigI7jRqM4n1whXyGqi/RYs7hAe6A4DZDUEB6GFzEJwkRnIziPHCCddhC7CbXz2PR5aCFPUQDwPESa8ccLr/yC44mKG0ERWi55moXMRLDpcv0dmbpZGWJ3zyXXhPiF5nPFVSyFBxhAmyJrx1R1CHTUWLO4Dr0ZgYBK6A8ID5wgnCCPeMBF6qLHNskoYTJ8bpwguf7tB6PFViyJvgaVL24Kf8IYROYa8dsOrtXx3EngVbgHXXWTNYN6l+DAKJ11+5ufX7iSANRZ4GmpaDI9isIzcmvjFhO1tloZQ5PttbkHgVURfEmXb+6pQiICsKZd5mpJQWG/g3wWLHrImr3cRviPcFrhVDBTDghs5vYgidCT/I8rCKHg80BPA+VKKv41otgidi3hohWNKTahgqOKXCxq8MVpOxVGUKsa+Bb6Z0hS+DEWvdSxZvrmPrEKcP0tZMfhvE7dZGofjq3/LdG/zmghPcoEOQtJ+e15xpFhHUmoV1fzEpwXFzr+ci9cOYfYv92ldUfefSu5VUdNE2YTm/S1lZoGy2F6EPyG8PomcXmzOiLLGe+XPP1YuvDIMelGD8PmZ2zYJa94X/SGvnyO8pmqT1Ow1FVFvBGv7Y8UU8EityIucVj60hFRGvG4gTFP1f2Ffctv+oEhetZjY9uLhDwUxEaC8k2mRK4Q5ghX4NVW8JHepbMHqRhgNJbd3mS1FloRqkM1+JPsFHaifao1cH3+R6bUPk0uA3iM3Nas/wPLRKv5arvXxFwtZH6OmlRPvOsvTKDG7Q6ghq2KlhrBGeDgwtuzLLdpTUe3w6TpYUwtLlzTKZea6m0tNGXM+dnz8fRZ3cCaSc40FiiZuQboDlfKaweKSdhpNV+TshLJYCc/m03X0a6jeil7PwvZPeng8E95QFiyBnYxvRCn95IO/eMOQ8GivIjC6m4DRXUJ4cMja7ZfJzOUSjaen4uZJ+Jpc+1R0XhDMsH0rg9yWt8bkGdbkxhmyc2E5pNFU07YtLIcUqd+r1HxtppLaLKvfNssmalrg18T9WLJDDYHQp/VLOsTNbXzZSingVSse6B/Ow5KUO1WzQsDMM5O4suI+PfAJofxf9d+uOrLmO57tVcqDCPdew5e3jGV2d4NhngclDCIwed0lzon2OpkRXKfgk4Wzpjqh5M8dnz+qsCZFbpgHDoB71ZUx5t2Rh3zHkdPoA9EuD0HfNssWatqBxlCEJt7st4veXJoEQ+civDijelOxn2Titkzsbk96u6FBOFfCv1QE8ek6GW5z6CfbE6xqPCtHit/O12YSw2PYdjI7Jg3eGReYqrlyy+bBohYLXwqeaiU591qpFLJMBt6YVmev+KmetfxoaMoVFff0dBtNcZZdadu6SY0+tR0dV6DRuyJOHa1sK7svBaW/1OR+pDcd/qygtsf8IJFxZJhmPTTwKlhZqE4j5J8xx73Bd544xsqC9G/bcpPvS+Z/IDMPfoDIfL+QqN4zrC9p9X8B"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6355.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6355.htm",
+      "kind": "taxanswer",
+      "no": "6355",
+      "title": "課税売上げと課税仕入れ",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6355.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目消費税概要事業者が国内で商品の販売やサービスの提供などを行った場合には、原則として消費税が課税されます。 この消費税の納付税額は課税期間中の課税売上げに係る消費税額から課税仕入れ等に係る消費税額を差し引いて計算します。 ここで課税仕入れ等に係る消費税額を差し引くことを仕入税額控除といいます。 課税売上げ課税売上げとは、商品の売上げのほか、機械や建物等の事業用資産の売却など事業のための資産の譲渡、貸付け、サービスの提供をいいます。 ただし、土地の売却や貸付けなどの非課税取引は課税売上げに含まれません。 課税仕入れ課税仕入れとは、商品などの棚卸資産の仕入れ、機械や建物等の事業用資産の購入または賃借、原材料や事務用品の購入、運送等のサービスの購入、そのほか事業者が事業として他の者から資産を譲り受けることなどをいいます。これは、仕入先が免税事業者や消費者の場合でも課税仕入れに当たります。ただし、適格請求書発行事業者以外の者からの課税仕入れは、原則として、仕入税額控除の対象とはなりません。 また、土地の購入や賃借などの非課税取引、課税対象とならない給与、賃金などは課税仕入れに含まれません。 仕入税額控除仕入税額の控除は、実際に仕入れなどをした課税期間において行います。 したがって、建物などの減価償却資産であっても、それらの資産を購入した課税期間において、その購入価額の全額に対する消費税の額が仕入税額控除の対象になります。 なお、消費税の納税義務が免除されている事業者については、この仕入税額控除は受けられません。 （注）適格請求書等保存方式の下、仕入税額控除の適用を受けるためには、原則として、一定の事項が記載された帳簿および請求書等（適格請求書等）を保存する必要があります。 詳しくは、コード6496「仕入税額控除をするための帳簿および請求書等の保存」を参照ください。 根拠法令等消法2、6、28、30、消基通11-1-3、11-3-1、11-3-3 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 205.57,
+      "text_ranges": [
+        [
+          0,
+          852
+        ]
+      ]
+    },
+    "qa:invoice/96": {
+      "id": "qa:invoice/96",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問96 見積額が記載された適格請求書の保存等",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/96.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問96",
+      "law_version": "",
+      "score": 152.73,
+      "text_ranges": [
+        [
+          0,
+          1146
+        ]
+      ],
+      "text_deflate_base64": "rVbbctpIEP2V+YTNy1bt36nHYEsIjLljwAFiLgItAmPWBiTjf3FrRuKJX9iaGSFLODhJJS8ul5i+nT59ug+eHo7MYFLY9wsI+dBqhp6BUEOaR+juYcJ7Xmib/IHy9hrB8V/v2KwZzIyDZxBWK5J//ibspRIMdghjhDlqwBerPVRY1gguH8KlizBFmPBBZ391F8wMBNtfa8xp8U53X68gLYcjQGigBuF0GVjXvltj2aGIT8thP49wj9BVP0Um4PCOzRtDgqCi2rw650aNzXf+ro/gqFqCb1vmtIRrkUHm1DvYCAOEDMJI5Z0yF2kJWJBSpCZCBcESJlRHmvPdGmHZYWBd7/sFfj3e3w4SyY6k0x3CLWr0BMFgZigEeX3DvKJMIhcloYEM44gYcIkwTTRGBTZV9iQVGBxWrHPjQXqZI0wSLmxROs1F2YCJGkXtxncHrJxn2Qu2WR28Bu/o4esLy/VQK8W/Hrwa26zIl78I7+i8ugktilqJoHYTzKryP6iGj1NWK6bCHZt40qm4UQh34uNn7WojtISf9+LHquy4apLA+5L1VuxGT6Nw2lnfHfprUyQqmpiTiFgpaDRKJEtyyddvpR5q8FbqS8uMyEvwxolCUipbJgpiuyTbuieVJUqxgtpCBjZlBgWVHzlvbLPuFmGIUPzIX/9VcJM/6eHSVeAgWEnS/KQtiY1FKc8R/+PiksnJXjrs4asAjZrpZisul+LvP8rVZrle4DQIK+oIc75uB05D+T3OW6pJB09PEgHBCS09cBq8vuGPNfm4oeaIGUuuuwgN9SAen6hxGiRLImnAkwCm8fg1MJyzGKTJT5JQKB1UeLCXSjhZ/qQX6cREahxF4SyKqNGDZwjCv5V65Ne0fzvw3SbSMis2VJ8VoIQV68yrCXTaa26YvL5RyfwR75Euyn2gtDOujsjaxud0Mi2T+XBaQApIDZlBxCj+aB28UoRIPMwxRT4Z4KPw2GqGU+8/rfXg6SerhvivDp/dK1Z9eG18Bxzo+uuckNQz4LDXrFyreQSaUrm3Uv83m67gExs16v6fdSf3BI0WqZTYfdvliwZeuEj/RbrBC1ddGIQvVsLjrh38N0ruzdOde7sN+3l/a/LhLNSyiprB023wpOZ4JBYJLUoQTUXlIzHKEv3TdRIXTH5cMc0oLvLmdbBaJG8o2ZwpQlGQOL1LRNFXpQ9XTPe4M2x/OyACRhWVmh+ink6KjFHmd33ffUoq5ZmT6zKBVv7jRidK+YLijj9CfBWJJASJ7ffLSd5ux1LGcrd+GMxjyIRaieTYs4PQ4NU5gp4gcZsgrYgJ6m73Wot8+XLwCgevLv82ozE+ds84eKUEO2n52CuB5WlbaDm8miI1/JcO12+UECfkTAi/FJD3CTzydR4PIfk+8L+hUKjRT4SIpJUofQhq4K9zodVEsNhNno+bcrJuFUBlEt2a4MqzEPydKYFeiAN+0uXfFvJWl1x19IBu+KAjVpMH4eyZ3dtSu8asVmTDUrDKJI9A9UWd+uoCIQgFNXBBS5xnilHh41VQvRebcrbk6740yL/P4pkZ2LfaCPbnwkKiK6RiBpknro1FsnZTSEy0qPKRaIIdTpbspSJdR3j/Dw=="
+    },
+    "qa:invoice/100": {
+      "id": "qa:invoice/100",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問100 郵便切手類又は物品切手等により課税仕入れを行った場合における課税仕入れの時期",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/100.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問100",
+      "law_version": "",
+      "score": 161.57,
+      "text_ranges": [
+        [
+          0,
+          1142
+        ]
+      ],
+      "text_deflate_base64": "rVbbcuI4EP0VfUKo2nnYv3OLYWNjLgn3SxKghjuFmSQTFoKBf5m2ZPvJv7AlCYMDnoSEfQoVtdynT58+6sDW/eSLs9ky/Zobpt95YHkdYeYaI1YE9U93aiBMkOpI0974yR3mnFWZpXpIM0gLXieD8AOhxdq/2I0uIiGNcIvUPA4Gi9cpv2sFtkFYOU8SV1eErYtud4MwQw28Z1tEQhWhdR4qC+EfhI64ez2W3xkwu8zzTfel76xqSAssX1VgkFIZP0HoEoTvCH2V1Z3X3XnDbXxHmJyVlRaiQHmdIkxieBnqziItY/oy3UbFo0aJDyPetr2JyR8pby7cqeFs79m0xitLZudDCiVEDZhdRsi68wZCFjW4BCL5AONblhQCFe8Oc34ny3MDv95FsHwYuaXhG3qhiDBEyCAMBFBRbh3BRI2iduOsuoQVMoFdYstfJJEg/E73tmuWbqN2q87lcVkeX4ljXlp6Q4raLUHtxp2WxK/zRHGQkir8QCbMWK7FjGuJtKroPRHpBGHmjZ7YuojQRGiIFqyXhJn1aD4EK15pId0I9+/EOK8m7009LYVgnSAYIoyRpkMOM6jBB5JxVj1mZKOzx/IVbjzKug+1fkE7CiiRSAUQVdaFk4rUOGdMleDdeZ1I9SuVivRnpmSzjbPpIC3w0owbZWVTvNoTR48PgtvQo/hdy68U/9CLKtmPR8TjZpKM4m6QxlmkEBmDIUJZ3r9k9mWOs+evJRCEyE517sOIHCVGsFRuhAzbprw+xGrviG3Znq3IregVVwSTKgyT90iXmNTl9xfC89Nldr1GmBD5hIRx9AWTNiaLIlpCPiJGgHvtOquauxkxU0Bhqaysfk9sWgDVwHv6lxtmDHMLjVkN+R3Tb6eINLyaZxuqGWzx7P7cRjiQZcHgEsMLbJ3PdWfV/evv37dtZ6Fh0kQN+FwnXj+f+IZgBXbJWWiBbQgxyFstIfJj8Q4UHe7PDq8Vo6SoElRJga2zfIVJ2xSWWe0hLUjAoQFrVGSCTFh4RJTUJOGwZdQzEzuQfqMpHsYj1dZfvU4mYmK79YA1H1g+t0uzHxdhoEVv9HRUJDlcWy/PtVdqhu2OafGnOkz+txZP992UQw5qIervDAIsUaRwv/GJb6URno9YCWz9C2STKFxeyyE1xOMrZnnnp3795jDXO1l8zZQPExYFSj4wM0r3z7KQ7c47LGXNgW3E71GhgR02lT80nRx3nRbCrtcj3Oyo+4yvxmuAtV59rZFIBHY2sItE/qnudTAWdQukaW9YC2z9Ep1+CiIRGMOGBbYhFoNuBcE6XeidLY3b0WdntGkgwkSR+XgR7L07DqZ6Ycz396OPt+q4DpJ3+Xn7tGn0Pw=="
+    },
+    "qa:invoice/faq": {
+      "id": "qa:invoice/faq",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A インボイス制度に関するQ&A（多く寄せられるご質問）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0521-1334-faq.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": null,
+      "law_version": "",
+      "score": 124.95,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ],
+        [
+          2004,
+          4004
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "qa:invoice/130": {
+      "id": "qa:invoice/130",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問130 免税事業者等からの課税仕入れに係る経過措置を適用する場合の税額計算",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/130.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問130",
+      "law_version": "",
+      "score": 195.71,
+      "text_ranges": [
+        [
+          0,
+          1809
+        ]
+      ],
+      "text_deflate_base64": "xVjdVtpKFH6VeYIW9Jyjjzd7KhggoCCIVLqQVcVUCrQea/mJeOGbdGcm4SqvcNbMJCHEBLVrdZ27Icnsn29/+5s9+LbBC1XXqjnzirgaebTgjkoIFWQlhLF3cytfLVq8cIXMRBg6jwxZxf1hrqAmajfuwxhZYwVf3KaF0EFW4Rd3/NhAGLtWbdWvepbhjtu+XSK8dUTyuzmygi/iwvaGFfGdifOpOyo5j5/46Eyczrh9tDqt8OsKX5q+fcZnd6vTE4QJUnhTkAiXCAcIA2TMmVI+/kh46VaHpb/TwYna9apziTAOEmANftRGqEu7zERWQbAQxggnanEtMwQTKSB8QhhHqaba5IWfzsOJ+/GAINxoGMTpTPzbQtYQrQ6CIQOEI4QLhJaMlzKkx87ikjdM327y2Z1vN0XX8B4fePkCaT329ix6K5ozz2JI6wTpsTtqytV2iGXA04pKRyFb6/HSIVJI7urMvb4ZIe4srvjlqYSbFrZAT9bYK+sp0LCG1zcRiiGsExVKFWGJcI7sREPMjXs+H2TRIW7WPZ/yh5NVv4owJrrcQbVZI/6dcvaIcIPQRhiEhVK+E5QG07NGayLIZA5UfB2kTHS/bn68pg8J+VNB6CEDhCF/LHgDkBQYgLO432Cnxl/2RX4XaXkLx19oQVqRzhGa/Ii5hesEq0gy4vSOHWaA1Vkd1jW6EaWTjFaJiK991SwWQhlZWS1uiFoFyBHfrpNNLzE0qOl+qTrTMkJDG0dajYXaDsoQBvwsq5Q2XucmYwolId0TDJEZyMrBEw1NUDwTgW0k8hrfz5pjvPrwwOeDSD+y1FU0J6LU4pOls5SIapxIPp8j3ChKku+92/dtw1s8iOm5a9Xc2qEszmTpfe9r1GOZT0g+tx9u/Ofdzl++XZKNMWsjnCEM3HGbH84VvL2w0EOSz0XO9nPEtw3xr5W9UaLi24bOKjLi23VeLIrujZhTeR4MJ6L1DcF0mz1loadirWry6L3BN6zBjUNRtRAG/MggCBN+fi6qljNvSqhCl0iZb5dkcM2ZGH12FperzgEvHZKdnV/1C2dKkcLOrl7K4CkjitBlSdbfKCBrcHOuUGmr/PvusVpT0F+Kbk8J1NiZjla0iexAdHuiO9SyGPKPAn848b7cxmz1njGhqbAZOtOyZ51JqmhSJqUzbAvG+M8xQls0J+pciciq9FTlvZSAU5BhlrvuD1PGzhqi1k9triinVPrGkdO040ZR1uHe8G4XgSqPSu75lKyVeYNSEaNkXaS8jUWpldiOrBFxTBODHw7c4+LrmUbeSrXtTAvh/xyCZSJ8iwyuVfLY8Cxj1a+SRCft7ZPtnefbRhSN9vcyTVPIMySBjsTwfCVXftGFpMsvuiCZTKGQVM8kLgnZlb30+uGC/IHp0xBWR8xPtVbq70WHRSOcHE+loMaONN+uy6dZIZDnGk2e2lKY30udztz21Cb7ufeSE779icQLROLFf07F1BAbvxFiPicjfGpHYbzk9aktY03tULK3H+WSHUZsT4LgxLcb2+YBXroVxgKh/cfngRRPb5oH4geAMx0hDMOO6P3WqLBlEgj1RSkG+X8ng1cOBunn89yMzue5GZzPkUGS0eTBtB4etUP+2NUKH17w9O3gSt1wksNoYoSTJoKLIQkvVi0+u8vnRNfw7bpoX2kt2rx1dUTX2M2pl0uEa5J5F5H4FEh8c4ZlIgv4JtN7MdPB7kzbO2+0/feG7Z2ttnffaHtX2ZYycMQ8+kEWOsTndNOPPBKWshP0FVD33+acFWtiXfYpVZeU9FuUnpyIHr4SHZnokJTRZ/NkVwqg/gKY3WnV1D+1V/lwPkC41nbIc7LqW+p6aGAN774gT+MNhVoPK8Fb6K0+WLr5tv3pQeG5Fk42Gig+GiYwzYwx/Y53nSKAGyWV7HyxnchujqzZI32qWLJKn9VTL3KGBKrpWjVvaSM8qt45OODF4vqZnCbVo/8A"
+    },
+    "tsutatsu:shohi:21-1-2": {
+      "id": "tsutatsu:shohi:21-1-2",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "21-1-2",
+      "variant": 0,
+      "title": "消費税法基本通達 （貸倒れがあった場合の適格請求書発行事業者となる小規模事業者に係る税額控除に関する経過措置の適用関係）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/21/01.htm",
+      "law_version": "",
+      "text": "28年改正法附則第51条の２第１項《適格請求書発行事業者となる小規模事業者に係る税額控除に関する経過措置》又は第51条の３第１項《適格請求書発行事業者となる小規模個人事業者に係る税額控除に関する経過措置》の規定を適用している事業者の行った課税資産の譲渡等に係る売掛金等について貸倒れにより法第39条第１項《貸倒れに係る消費税額の控除等》の規定の適用がある場合又は同項の規定の適用を受けた貸倒れに係る売掛金等を回収した場合における消費税額の計算は、次によるのであるから留意する。（令５課消２－９により追加、令８課消２－11により改正）p>\r\n(1) その貸倒れとなった売掛金等に係る消費税額（当該売掛金等の金額に法第39条第１項に規定する割合を乗じて算出した金額をいう。以下21－１－２において同じ。）は、当該課税期間の課税標準額に対する消費税額から、28年改正法附則第51条の２第１項又は第51条の３第１項の規定により当該課税期間における仕入控除税額とみなされる金額を控除した後の金額から控除する。\r\n(2) 回収した売掛金等に係る消費税額は、その回収した日の属する課税期間における課税標準額に対する消費税額に加算され、加算後の金額を基に同項の規定により仕入控除税額を計算する。",
+      "score": 317.84,
+      "text_ranges": [
+        [
+          0,
+          539
+        ]
+      ]
+    },
+    "tsutatsu:shohi:1-4-11": {
+      "id": "tsutatsu:shohi:1-4-11",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "1-4-11",
+      "variant": 0,
+      "title": "消費税法基本通達 （課税事業者選択届出書の効力）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01/04.htm",
+      "law_version": "",
+      "text": "課税事業者選択届出書は、その基準期間における課税売上高が1,000万円以下である課税期間について課税事業者となることを選択するものであるから、当該届出書を提出したことにより課税事業者となった後において基準期間における課税売上高が1,000万円を超えた場合であっても、法第9条第5項《課税事業者の選択不適用》に規定する届出書（以下この章において「課税事業者選択不適用届出書」という。）を提出しない限り課税事業者選択届出書の効力は存続し、基準期間における課税売上高が1,000万円以下の課税期間については、同条第1項本文《小規模事業者に係る納税義務の免除》の規定にかかわらず課税事業者となるのであるから留意する。（平15課消1－37、平19課消1－18、平22課消1－9により改正）p>\r\n(注) 課税事業者選択不適用届出書を提出した事業者が、当該届出書の提出日以後、当該届出書を提出した日の属する課税期間中に法第9条第7項《調整対象固定資産の仕入れ等を行った場合の課税事業者選択不適用の制限》に規定する調整対象固定資産の仕入れ等（以下この章、13－1－4の2及び13－1－4の3において「調整対象固定資産の仕入れ等」という。）を行ったことにより同項の規定の適用を受けることとなった場合には、同項後段の規定により、当該届出書の提出がなかったものとみなされ、引き続き課税事業者選択届出書は、その効力が存続することに留意する。",
+      "score": 325.41,
+      "text_ranges": [
+        [
+          0,
+          609
+        ]
+      ]
+    },
+    "qa:invoice/07": {
+      "id": "qa:invoice/07",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問７ 免税事業者が令和５年 10 月１日から令和 11 年９月 30 日までの日の属する課税期間中に登録を 受ける場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/07.pdf",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問７",
+      "law_version": "",
+      "score": 160.34,
+      "text_ranges": [
+        [
+          0,
+          1089
+        ]
+      ],
+      "text_deflate_base64": "xVbtbtpKEH2VfYTQNup9PM9eUmwwn4EQB1qSAqkDitNAmvLhhHfpeNf2L7/C1e7ajjEEcaUrXQkhs3hn55w5Z2YjV2dnVd+ueasKH98H2hmC6a1HrGVGboctn0jhhPC+HrlN3h0jVJAa6m9SKBC2fIpci/d18vGEyP9fEX4gOPLZYY/fECyklWAy8+0a7w/Ci3NvcY8w9a11aM6QtgirdxGaSCvs+ok19Mg1COvUI7dL/pfESJpZLjGxrX7BjUeEIsIUYSQfbnnHQtARbhHqCNcIHbGuUXnkADVAOBd7VRDxsyj3ioTV8SlCgmAjTJCW5WZLvKRR1BoJ7kuJq837Om8vA5ui1iSoNfz7tnja5WsXi0iJgsz/ATVgtQEzSvLYroCgAX/Wg9nat2u53EJY8PI39lhmpRXvLSJX99Zjb1FBzQwmM+LbtdwbqFVl3KL8SDgajVwDaYvXG6y0EkdqkDsmYaDCNmfBLSCYCDRDiIka7FEB+a9lgFBW5d1/njqOvZqHFROzHMIdv3aDaYU/Ut5b+NYquDEzkB0VwW/PxTu9ReoPtjB5v8e748jVFWkpSFI4FYiItx6HVjWNkc1CvhtXNqsKFVUhl7FFTQL7MnANtSgVawumhFy/psHTdFL1kr2183+ZIdR4beK/OAhmYN/LhAykpvRJrIfI1T/8JWrE20t+P+TzTmgVmVEinz79aQ6FFuW6tx7F64XTP80bodrBKtSuyIdC5FYjt5l8G6hRIuEOpG6GqnzKf9s5OSHc+W172xkKdKK/uISifu+hz4EnsXeTDdvRp+zlXLqvnKo+75g3Z1gZBzxkHNBDeq5Qxs3Ft2usYvkvs7DzW+iN6oJ/dTyYzDG91RdFiUzczEGRCpaIBVuDBPQPcaTij9IcAcpH0zxEgYwiODLcRkbsyHrHld5Xy+9pzSbCb0eWCm6P9FM2ubT9ssGKry6U1REcoirBhjNvUQ6nl9KzFVnhulAsXKXwc5VPQ/D+dKu1xOtvEyLbVUVy7TlrlkV1NmdEVni76WuUCL7mduQakdskR+o3k+T+xnZwftIWa0wRXlUtirvqPxjY8Tfm9orgKd3orYXQIrfFlk9IWwpK2n/I+3FjSlmjuL2e4RYedsZe7ODE0A8ySDX1z8G2M4olGbmt44iXdOWyOzgQ3hLPzN87hDI5rjX8+6GZddjuHeG9WDF9tKVSUU0kV3amf01dkQVNJGod4YsMZ+X6qZopB2IFv377TldNrnjQMaOazG2limkqTTU3SZ4mAbkpW9DPjL9iBfBnnc875PSzUF/kttRg4c+6tx6RzyfxatKftAar00D7W9yyktvFCUkvY8pDySSWnjGWzLliP5vhTTWYl/z2MJjdiSbzRvOubqfehma6t1AeOW5m5SWOGv0H"
+    },
+    "tsutatsu:shohi:1-7-3": {
+      "id": "tsutatsu:shohi:1-7-3",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "1-7-3",
+      "variant": 0,
+      "title": "消費税法基本通達 （適格請求書発行事業者の登録の効力）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01/07.htm",
+      "law_version": "",
+      "text": "適格請求書発行事業者の登録は、適格請求書発行事業者登録簿に登載された日（以下「登録日」という。）からその効力を有するのであるから、法第57条の２第７項《登録等の通知》による通知を受けた日にかかわらず、適格請求書発行事業者は、登録日以後に行った課税資産の譲渡等について法第57条の４第１項《適格請求書の交付義務》の規定に基づき適格請求書を交付することとなることに留意する。（令５課消２－９により追加）p>\r\n(注)１ 登録日から登録の通知を受けた日までの間に行った課税資産の譲渡等について、既に請求書等の書類を交付している場合には、当該通知を受けた日以後に登録番号等を相手方に書面等（既に交付した書類との相互の関連が明確であり、当該書面等の交付を受ける事業者が同項各号に掲げる事項を適正に認識できるものに限る。）で通知することにより、これらの書類等を合わせて適格請求書の記載事項を満たすことができる。\r\n２ 適格請求書発行事業者の登録がされた場合、登録日その他の適格請求書発行事業者登録簿に登載された事項が、インターネットを通じて公表されることとなる。また、適格請求書発行事業者の登録が取り消された又はその効力を失った場合のその年月日についても同様である。",
+      "score": 348.53,
+      "text_ranges": [
+        [
+          0,
+          527
+        ]
+      ]
+    },
+    "qa:invoice/08-2": {
+      "id": "qa:invoice/08-2",
+      "kind": "qa",
+      "title": "インボイス制度に関するQ&A 問８－２ 課税期間の中途から課税事業者となった場合の基準期間における課税売上高",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08-2.pdf",
+      "text": "（課税期間の中途から課税事業者となった場合の基準期間における課税売上高） 問８－２ 私は、令和Ｘ年 10 月１日から適格請求書発行事業者となった個人事業者ですが、そ れまでの間は免税事業者でした。令和Ｘ＋２年分の申告における基準期間（令和Ｘ年分）に おける課税売上高は、免税事業者であった令和Ｘ年１月から９月までの金額を含むのでしょ うか。【令和６年４月追加】 【答】 適格請求書発行事業者になったことにより、令和Ｘ年 10 月１日から課税事業者となった個人 事業者が、令和Ｘ＋２年分の消費税の確定申告を行うに当たり、その基準期間は令和Ｘ年となり ますが、この場合の基準期間における課税売上高（税抜）は、当該個人事業者が免税事業者であ った期間（令和Ｘ年１月から９月）の課税売上高を含む金額で計算することとなります（消法９ ②一、基通１－４－５）。 また、その免税事業者であった期間に係る課税売上高について税抜処理は行わず、その売上げ （非課税売上げ等を除きます。）がそのまま課税売上高となりますので、以下の例のとおり計算す ることとなります。 【計算例】※ 全て適用税率は 10％ ① 令和Ｘ年１月～９月 課税売上高 5,500,000 円 ② 令和Ｘ年 10 月～12 月 課税売上高 4,400,000 円 ⇒ ① 5,500,000 円 ＋ ② 4,400,000 円×100／110 ＝ 9,500,000 円 そのまま計算 税抜処理",
+      "source_key": "invoice",
+      "tax_domain": "invoice_system",
+      "tax_category_code": "shohi",
+      "q_no": "問８－２",
+      "law_version": "",
+      "score": 256.1,
+      "text_ranges": [
+        [
+          0,
+          622
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm:38a1f1b78cb3b081": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm",
+      "title": "仕入税額控除の対象となるもの",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm:9dca21345d6f3396": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm",
+      "title": "免税事業者と仕入税額の還付",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm:758d08b9330adcf1": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm",
+      "title": "やむを得ない事情により課税事業者選択届出書等の提出が間に合わなかった場合",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm"
+    },
+    "tsutatsu:shohi:21-1-1:b811e15b2f45ade2": {
+      "id": "tsutatsu:shohi:21-1-1",
+      "title": "消費税法基本通達 （免税事業者に係る適格請求書発行事業者の登録申請に関する経過措置）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/21/01.htm"
+    },
+    "qa:invoice/jireishu:1410a73846d8ad9c": {
+      "id": "qa:invoice/jireishu",
+      "title": "インボイス制度に関するQ&A インボイス制度において事業者が注意すべき事例集",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0023007-071.pdf"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm:976cc86602eb5628": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm",
+      "title": "適格請求書等保存方式（インボイス制度）",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm:762c12b0e078cdaa": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm",
+      "title": "納税義務の免除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm:94645f4210f1c206": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm",
+      "title": "基準期間がない法人の納税義務の免除の特例",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6503.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm:a04074bb2a0f956f": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm",
+      "title": "適格請求書等の記載事項",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6625.htm"
+    },
+    "law:shohizei_hou:57_2:1da8aed06d60d3da": {
+      "id": "law:shohizei_hou:57_2",
+      "title": "消費税法 適格請求書発行事業者の登録等",
+      "url": "https://laws.e-gov.go.jp/law/363AC0000000108#Mp-At_57_2"
+    },
+    "tsutatsu:shohi:1-7-3:2fb41f993b7271c4": {
+      "id": "tsutatsu:shohi:1-7-3",
+      "title": "消費税法基本通達 （適格請求書発行事業者の登録の効力）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01/07.htm"
+    }
+  }
+}
