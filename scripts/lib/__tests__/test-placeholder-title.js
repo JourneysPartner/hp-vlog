@@ -8,7 +8,7 @@
  * 検証:
  *   1. 弾いた理由が分かること（原因を追えなかった問題）
  *   2. 仮置きなら「要修正」になり、理由がレビュー画面に出ること
- *   3. 承認・公開の各段で止まること
+ *   3. 承認・公開の各段で止まること（承認の 3 つの道それぞれを、関数ごとに確かめる）
  */
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..', '..');
@@ -105,8 +105,34 @@ console.log('=== 4. 承認・公開で止まる ===');
   const approve = require('fs').readFileSync(
     path.join(ROOT, 'netlify/functions/review-approve-background.js'), 'utf8');
   assert(/isPlaceholderTitle\(fmTitle\)/.test(approve), '承認ゲートが仮置きを見ている');
-  assert(approve.indexOf('isPlaceholderTitle(fmTitle)') < approve.indexOf('if (recommendation) {'),
-    '判定スコアの有無に関係なく先に止める');
+
+  // 承認の道ごとに、仮置きタイトルの確かめが品質ゲート（recommendation の確かめ）
+  // より前にあることを見る。2026-11-09 の #759 で手直し PR の道にも品質ゲートが
+  // 増えたため、ファイル全体で最初の位置を比べると別の関数の行と比べてしまう。
+  const functionBody = (src, header) => {
+    const start = src.indexOf(header);
+    if (start < 0) return { body: '', start: -1, end: -1 };
+    const rest = src.slice(start + header.length);
+    const next = rest.match(/^(?:async function |function |exports\.)/m);
+    const end = next ? start + header.length + next.index : src.length;
+    return { body: src.slice(start, end), start, end };
+  };
+  // 関数の中だけで位置を比べる。3 つの文字列がそろわなければ通さない。
+  const assertBeforeGate = (path, header, placeholderNeedle, gateNeedle) => {
+    const part = functionBody(approve, header);
+    const at = part.body.indexOf(placeholderNeedle);
+    const gate = part.body.indexOf(gateNeedle);
+    const ok = part.start >= 0 && at >= 0 && gate >= 0 && at < gate;
+    assert(ok, `${path}: 仮置きの確かめが品質ゲートより前`
+      + (ok ? '' : `（関数の位置 ${part.start} / 仮置き ${at} / 品質ゲート ${gate}）`));
+  };
+
+  assertBeforeGate('更新案の承認', 'function refreshQualityFailure(',
+    'isPlaceholderTitle(meta.title)', 'if (meta.recommendation) {');
+  assertBeforeGate('手直し PR の承認', 'async function handleManualEditApproval(',
+    'isPlaceholderTitle(branchMeta.title)', 'if (recommendation) {');
+  assertBeforeGate('下書きの承認', 'async function handler(',
+    'isPlaceholderTitle(fmTitle)', 'if (recommendation) {');
 }
 
 console.log('');
