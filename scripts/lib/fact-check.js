@@ -1860,11 +1860,18 @@ async function checkFacts(body, options = {}) {
           }
           const keptE2 = e2.filter(r => [...keptTargets.values()].some(t => insideReplacement(t.x2, r)));
           const keptE2Claims = new Set(keptE2.map(r => normalizedClaim(r.sentence)).filter(Boolean));
+          // 最後の本文に当てた置き換えの中の文（見出しを除く。戻した対象は repairPairs から消えている）。
+          // 句点を外して比べるのは、この置き換えた文の中だけにする（N7・R10）。
+          const repairedUnits = new Set();
+          for (const x of repairPairs.values()) for (const u of splitUnits(String(x))) if (!u.heading) repairedUnits.add(normalizedClaim(u.text));
           // 最後の本文の文のうち、その行の文を含むものを集める（文の単位で見る）。
-          // 終わりの句点は外して比べる（N7。後ろに句を足した直しも含む文にする）。
+          // 置き換えた文は終わりの句点を外して比べ（N7。後ろに句を足した直しも含む文にする）、
+          // 置き換えていない本文と見出しは句点までで比べる（記事の別の所の問いの文で止めすぎない。R10）。
           const coveringSentences = r => {
+            const strict = normalizedClaim(r.sentence);
             const needle = containmentNeedle(r.sentence);
-            return needle ? sentenceRows(revisedBody).map(s => normalizedClaim(s)).filter(s => s.includes(needle)) : [];
+            return sentenceRows(revisedBody).map(s => normalizedClaim(s)).filter(s =>
+              repairedUnits.has(s) ? Boolean(needle) && s.includes(needle) : s.includes(strict));
           };
           // 2 回目の残す行のうち、その文を判定した行が全部「裏付けあり」か（N7）。
           // 行が 1 つ以上あることは keptE2Claims が確かめる。
@@ -1891,17 +1898,23 @@ async function checkFacts(body, options = {}) {
             const ownE2 = e2.filter(r => insideReplacement(target.x2, r));
             // 2 回目に残した 1 回目の止める行も、残した置き換えの中にあるものは「直った」の計算に入れる（L1）。
             // 2 回目は元の食い違いの文を直したが、その置き換えの中の別の誤りが残ったときは直ったとしない。
-            const keptFirstRows = beforeRechecked.filter(r => !firstRemoved.includes(r) && insideReplacement(target.x2, r));
-            const stopRows = [...keptFirstRows, ...ownE2];
+            // 置き換えの中にあるかは、終わりの句点を外して比べる（後ろに句を足した直しも拾う。R9）。
+            const keptFirstRows = beforeRechecked.filter(r => {
+              const needle = containmentNeedle(r.sentence);
+              return !firstRemoved.includes(r) && Boolean(needle) && normalizedClaim(target.x2).includes(needle);
+            });
+            // 1 回目の残した行は置き換えの中にあると決まっているので、制度名の一致は見ない（R9）。
+            const firstStops = keptFirstRows.some(blocksRepair);
             for (const c of record.corrections.filter(c => c.sentence === S)) {
+              const secondStops = ownE2.some(r => blocksRepair(r) && matchesCorrection(c, r, keptPairs));
               c.after = target.x2;
               c.retry = { status: 'kept', first_after: target.first };
-              c.resolved = !repair.rejected.has(c.id) && !revisedBody.includes(c.sentence) && !stopRows.some(r => blocksRepair(r) && matchesCorrection(c, r, keptPairs));
+              c.resolved = !repair.rejected.has(c.id) && !revisedBody.includes(c.sentence) && !firstStops && !secondStops;
               if (['食い違い', '期限の書き漏れ'].includes(c.status)) {
                 c.resolved = !repair.rejected.has(c.id) && secondChanges.trim().length > 0 && ownE2.some(r =>
                   r.status === '裏付けあり' && (!c.condition_mismatch || (r.type === c.type && r.subject === c.subject)) &&
                   Boolean(normalizedClaim(r.sentence)) && normalizedClaim(target.x2).includes(normalizedClaim(r.sentence))) &&
-                  !stopRows.some(r => matchesCorrection(c, r, keptPairs) && blocksRepair(r)) &&
+                  !firstStops && !secondStops &&
                   // 食い違いの直しは、2 回目の置き換えの中の元の誤りの文を含む文が全部裏付けられたときだけ直ったとする（N7）。
                   (c.status !== '食い違い' || c.condition_mismatch || reconfirmedOriginal(target.x2, c.sentence, ownE2));
               }

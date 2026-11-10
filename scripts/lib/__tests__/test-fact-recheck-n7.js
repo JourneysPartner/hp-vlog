@@ -635,6 +635,94 @@ await test('T17 2 回目・後ろに句を足した直しが資料なしなら�
   // 終わりの句点まで比べると、B を含む本文の文が無いとみなされて B の行が消え、ok になって落ちる（R7）。
   assert.ok(r.record.rechecked.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いの行が再照合に残っていない');
   assert.ok(r.record.remaining.some(c => c.sentence === B && c.status === '食い違い'), 'B の食い違いが残った指摘に無い');
+  // 後ろに句を足した直しでも、残した 1 回目の止める行を拾って S の修正を直ったにしない（R9）。
+  assert.equal(r.record.corrections.find(c => c.before === S).resolved, false);
+});
+
+// ── T18: R10・止めすぎない側（記事の別の所の問いの文） ─────────────────
+await test('T18 R10: 記事の別の所の問いの文では止めず、置き換えの中だけ句点を外して比べる', async () => {
+  const S = '制度Bの提出書類は届出書です。';
+  const BAD = '制度Bの届出書を提出します。';
+  const GOOD2 = '制度Bの届出書は開業した年に出します。';
+  const HEADING = '## 制度Bの届出書を提出しますか';
+  const QUESTION = '制度Bの届出書を提出しますか？';
+  const body = `## 制度\n${S}\n${HEADING}\n${QUESTION}\n`;
+  const fn = async request => {
+    if (request.task === 'extract') {
+      if (request.user.includes(GOOD2)) return [row(GOOD2, '手続', '制度B', GOOD2)];
+      if (request.user.includes(BAD)) return [row(BAD, '手続', '制度B', BAD)];
+      if (request.user.includes(S)) return [row(S, '手続', '制度B', S)];
+      return [];
+    }
+    if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+      if (c.sentence === S) return { id: c.id, status: '食い違い', quote: BAD, correct: BAD, evidence_id: 'doc' };
+      if (c.sentence === BAD) return { id: c.id, status: '食い違い', quote: GOOD2, correct: GOOD2, evidence_id: 'doc' };
+      return { id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: 'doc' };
+    });
+    if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+      replacement: c.earlier_fix ? GOOD2 : BAD }));
+    throw new Error('未定義: ' + request.task);
+  };
+  const r = await F.checkFacts(body, { ...options, callLLM: fn,
+    searchEvidence: () => [ref('doc', '試験資料', `${BAD}\n${GOOD2}\n`)], loadEvidenceText: e => e.text });
+  const { repair, recheck } = budget(r.record);
+  assert.equal(repair, 2); assert.equal(recheck, 2);
+  // 置き換えていない見出しと問いの文は本文に残るが、句点までで比べるので B の行を止めない（369a4083・main と同じ）。
+  assert.equal(r.body, `## 制度\n${GOOD2}\n${HEADING}\n${QUESTION}\n`);
+  assert.equal(r.record.status, 'ok');
+  assert.deepEqual(r.record.remaining, []);
+  assert.ok(!r.record.rechecked.some(c => c.sentence === BAD && c.status !== '裏付けあり'));
+  const correction = r.record.corrections.find(c => c.before === S);
+  assert.equal(correction.after, GOOD2);
+  assert.equal(correction.resolved, true);
+});
+
+// ── T19: R10・置き換えの中は全部（後ろに句を足した文） ─────────────────
+await test('T19 R10: 置き換えた文の中では、後ろに句を足した文でも含む文として止める', async () => {
+  const old = process.env.FACT_CHECK_WRITER_MATERIALS;
+  process.env.FACT_CHECK_WRITER_MATERIALS = 'true';
+  try {
+    const T = 'この制度の金額は10万円です。';
+    const C = 'この制度の手続は所定の用紙で行います。';
+    const GEN_T = 'この制度の金額は、詳しくは国税庁のページで確認してください。届出書は税務署に提出します。';
+    const GEN_C = 'この制度の手続は、詳しくは国税庁のページで確認してください。届出書は税務署に提出しますが、郵送でも出せます。';
+    const BAD = '届出書は税務署に提出します。';
+    const CORRECT_BAD = '届出書は所轄の税務署に提出します。';
+    const GOOD = '原則として届出書は税務署に提出します。';
+    const filler = ['この制度の金額は20万円です。', 'この制度の金額は30万円です。', 'この制度の金額は40万円です。', 'この制度の金額は50万円です。', 'この制度の金額は60万円です。'];
+    const body = `## 制度\n${T}\n${C}\n${filler.join('\n')}\n`;
+    const source = ref('gift', '制度資料', `${GEN_T}\n${GEN_C}\n${BAD}\n${GOOD}\n${CORRECT_BAD}\n${T}\n${C}\n${filler.join('\n')}\n`);
+    const fn = async request => {
+      if (request.task === 'condition_check') return { verdict: '一致', conditions: [] };
+      if (request.task === 'extract') {
+        if (request.user.includes(GOOD)) return [row(GOOD, '手続', '試験制度', GOOD)];
+        if (request.user.includes(BAD)) return [row(BAD, '手続', '試験制度', BAD)];
+        return [row(T, '金額', '試験制度', T), row(C, '手続', '試験制度', C),
+          ...filler.map(sentence => row(sentence, '金額', '試験制度', sentence))];
+      }
+      if (request.task === 'judge') return H.readPayload(request).claims.map(c => {
+        if (c.sentence === T || c.sentence === C) return { id: c.id, status: '資料なし' };
+        if (c.sentence === BAD) return { id: c.id, status: '食い違い', quote: CORRECT_BAD, correct: CORRECT_BAD, evidence_id: 'gift' };
+        if (c.sentence === GOOD) return { id: c.id, status: '裏付けあり', quote: GOOD, evidence_id: 'gift' };
+        return { id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: 'gift' };
+      });
+      if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
+        replacement: c.sentence === T ? GEN_T : c.sentence === C ? GEN_C : GOOD }));
+      throw new Error('未定義: ' + request.task);
+    };
+    const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
+      callLLM: fn, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text });
+    const { repair, recheck } = budget(r.record);
+    assert.equal(repair, 2); assert.equal(recheck, 2);
+    // GEN_T の BAD は 2 回目に GOOD へ直るが、GEN_C の中の後ろに句を足した文は本文に残る。
+    assert.equal(r.body, `## 制度\n${GEN_T.replace(BAD, GOOD)}\n${GEN_C}\n${filler.join('\n')}\n`);
+    assert.ok(r.body.includes('届出書は税務署に提出しますが、郵送でも出せます。'), '後ろに句を足した文が本文に残っていない');
+    assert.equal(r.record.status, 'revise');
+    assert.ok(r.record.rechecked.some(c => c.sentence === BAD && c.status === '食い違い'), 'BAD の食い違いの行が再照合に残っていない');
+    assert.ok(r.record.remaining.some(c => c.sentence === BAD && c.status === '食い違い'), 'BAD の食い違いが残った指摘に無い');
+  } finally {
+    if (old === undefined) delete process.env.FACT_CHECK_WRITER_MATERIALS; else process.env.FACT_CHECK_WRITER_MATERIALS = old;
+  }
 });
 
 console.log(`\n${passed} 件通過・${failed} 件失敗`);
