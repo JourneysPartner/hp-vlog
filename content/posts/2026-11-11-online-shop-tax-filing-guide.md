@@ -59,21 +59,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "計画: 資料が見つからない制度 事業所得と雑所得の区分"
 summary: "ネットショップの副業売上は、経費を引いた所得が20万円を超えると確定申告が必要です。所得区分の考え方から経費の集計、申告書の提出までの手順と期限を説明します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ 論点別ルールが未反映: small_depreciable_assets（表の該当行が現行の制度に合うか確認してください） / 論点別ルールが未反映: platform_taxation（該当箇所が現行の制度に合うか確認してください） / 論点別ルールが未反映: withholding_scope（該当箇所が現行の制度に合うか確認してください） / 論点別ルールが未反映: small_depreciable_assets_2026（表の該当行が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-11T18:41:39.633+09:00"
+publish_at: "2026-11-12T11:34:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-11T00:06:57.140Z"
-updated_at: "2026-11-11T00:06:57.140Z"
+updated_at: "2026-11-11T18:41:39.633+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 60 件: 裏付けあり 52・修正 1（食い違い 1・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 6・捨てた主張 0・人が確かめる箇所 13 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 会社員をしながらネットショップを開き、メルカリやBASE、Amazonで商品を売っている。注文が入るのはうれしいけれど、確定申告の時期になると、どこから手を付ければいいのか分からず不安になる。そんな声をよく聞きます。
