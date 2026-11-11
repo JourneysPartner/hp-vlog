@@ -179,26 +179,54 @@ console.log('\n=== Test 7: tax-authority-refs が tax_domain ごとに整って�
 
 console.log('\n=== Test 8: filter-target-query と topic_id ===');
 {
-  const demandTopic = TOPICS.find(t => t.demand_evidence &&
-    ['search-suggest', 'gsc'].includes(t.demand_evidence.kind) &&
-    Array.isArray(t.demand_evidence.phrases) && t.demand_evidence.phrases.length > 0);
-  if (demandTopic) {
-    const target = demandTopic.demand_evidence.phrases[0];
-    const blocked = selectDailyTopics([demandTopic], {
-      now: new Date(), count: 1, extraCorpus: [{ slug: 'query-owner', target_query: target }],
-    });
-    const step = blocked.explanation.steps.find(s => s.step === 'filter-target-query');
-    assert(step && step.blocked === 1 && step.remaining === 0, '一致する target_query を持つ候補は除外');
+  // 実データ（TOPICS と公開済み記事）に頼らず、検索需要つきの偽の題材を1件組み立てる。
+  // 公開済みの記事・下書き・取り下げた題材のどれとも slug と言葉が重ならない値にする。
+  // 項目の形は TOPICS の検索需要つきの題材（suggest-topics.js の toPoolTopic）に合わせる。
+  const FIXTURE_SLUG = 'fixture-demand-topic-test8';
+  const FIXTURE_QUERY = '試験用の検索語 偽の題材';
+  const demandTopic = {
+    slug: FIXTURE_SLUG,
+    title: '偽の題材テスト用の記事',
+    macro: '物販',
+    persona: 'ebay_export_seller',
+    article_type: 'basic_explainer',
+    category: '消費税',
+    tax_domain: 'consumption_tax',
+    cluster: 'suggest-consumption_tax',
+    subcluster: FIXTURE_SLUG,
+    pain_point: FIXTURE_SLUG,
+    search_intent: FIXTURE_QUERY,
+    reader_problem: '偽の題材が検索語の重複で止まるかを確かめたい',
+    primary_question: '偽の題材は検索語の重複で止まりますか。',
+    success_outcome: '偽の題材の扱いを確認できる',
+    demand_evidence: {
+      kind: 'search-suggest',
+      score: 74,
+      phrases: [FIXTURE_QUERY, '試験用の検索語 予備'],
+    },
+  };
 
-    const allowed = selectDailyTopics([demandTopic], {
-      now: new Date(), count: 1, extraCorpus: [{ slug: 'other-owner', target_query: '一致しない 検索語' }],
-    });
-    const allowedStep = allowed.explanation.steps.find(s => s.step === 'filter-target-query');
-    assert(allowedStep && allowedStep.blocked === 0 && allowedStep.remaining === 1, '不一致なら検索語ゲートを通る');
-  } else {
-    assert(false, '検索需要由来のテスト候補が存在する');
-    assert(false, '検索需要由来のテスト候補が存在する');
-  }
+  // S2: 偽の題材が手前の段で外れず、filter-target-query まで届くことを先に確かめる。
+  const reach = selectDailyTopics([demandTopic], { now: new Date(), count: 1 });
+  const reachExisting = reach.explanation.steps.find(s => s.step === 'filter-existing-slugs');
+  const reachTarget = reach.explanation.steps.find(s => s.step === 'filter-target-query');
+  assert(reachExisting && reachExisting.excluded === 0 && reachExisting.remaining === 1,
+    '偽の題材は filter-existing-slugs で外れない（公開済み記事と重ならない）');
+  assert(reachTarget && reachTarget.remaining === 1,
+    '偽の題材は filter-target-query まで届く');
+
+  const target = demandTopic.demand_evidence.phrases[0];
+  const blocked = selectDailyTopics([demandTopic], {
+    now: new Date(), count: 1, extraCorpus: [{ slug: 'query-owner', target_query: target }],
+  });
+  const step = blocked.explanation.steps.find(s => s.step === 'filter-target-query');
+  assert(step && step.blocked === 1 && step.remaining === 0, '一致する target_query を持つ候補は除外');
+
+  const allowed = selectDailyTopics([demandTopic], {
+    now: new Date(), count: 1, extraCorpus: [{ slug: 'other-owner', target_query: '一致しない 検索語' }],
+  });
+  const allowedStep = allowed.explanation.steps.find(s => s.step === 'filter-target-query');
+  assert(allowedStep && allowedStep.blocked === 0 && allowedStep.remaining === 1, '不一致なら検索語ゲートを通る');
 
   const topic = TOPICS[0];
   const byTopicId = selectDailyTopics([topic], {
