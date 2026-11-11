@@ -1,142 +1,252 @@
 'use strict';
 /**
- * 検索結果向けの題名・説明文差し替え（クロール改善 09）
+ * 検索結果向けの題名・説明文差し替え（クロール改善 09）で対象にした 10 本について、
+ * 公開した後に変わってはいけない 11 項目（PINNED_FIELDS）だけを固定する。
  *
- * 対象10本の title / summary と、それ以外の frontmatter・本文が
- * 変更されていないことを確認する。鮮度更新済みの記事は更新日と本文の変更を許容する。
+ * 差し替えのときは題名・説明文・本文も固定していたが、その後の正しい変更で 3 回落ちた。
+ * - 2026-10-08 鮮度更新の更新案（#663）でサブスク記事の本文と更新日が変わった
+ * - 2026-11-06 毛利承認の手作業 PR（#751 など）で題名・説明文・本文が変わった
+ * - 2026-11-10 承認画面の手直し PR（#762）で塗装工の記事の本文が 1 行変わった
+ * 本文と題名・説明文は、鮮度更新（/admin/freshness）と手直し PR（#759）の承認で
+ * 人が確かめてから入るので、この試験では固定しない。
+ * 題名の形は test-title-lint.js・test-seo-lint.js が見ている。
+ *
+ * 固定する 11 項目の値は、2026-11-11 に 10 本とも「題名・説明文・更新日・確認日を
+ * 除いた frontmatter」が差し替えのときの指紋と一致することを確かめたうえで、
+ * 記事から写した。落ちたときに、どの記事のどの項目が変わったかが出るよう、
+ * 指紋ではなく値をそのまま書いている。
+ *
+ * 点数・推奨・関連記事・検索の意図などは、あとの照合・内部リンクの更新・鮮度更新で
+ * 正しく変わりうるので固定しない。項目が足されても落とさない。
+ * 差し替えのときから無かった固定の項目が足されても落とさない（pinned に無い項目は見ない）。
  */
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const matter = require('gray-matter');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
 const normalizeLf = (value) => String(value || '').replace(/\r\n?/g, '\n');
 
+// 公開した後に変わってはいけない 11 項目。
+const PINNED_FIELDS = [
+  'slug',
+  'category',
+  'article_type',
+  'customer_segment',
+  'source_url',
+  'source_title',
+  'source_provenance',
+  'created_at',
+  'publish_at',
+  'published_at',
+  'pr_number',
+];
+
 const EXPECTED = [
   {
     file: '2026-08-26-newseg-construction_solo-construction-consumables-painting-guide.md',
     slug: 'newseg-construction_solo-construction-consumables-painting-guide',
-    title: '塗料・ペンキの勘定科目は？塗装工の消耗品費・材料費の分け方と年末在庫の処理',
-    summary: '塗料・ペンキ・シンナー・刷毛の勘定科目は消耗品費か材料費か。使い切った分だけが経費で、年末に残った分は棚卸資産にして翌年へ繰り越します。仕訳例つき。',
     updated_at: '2026-08-27T12:00:59.141+09:00',
-    fullHash: 'f7048ea7bf36039891ce793c0fd0e59cb41ea3f04660e194c9f0de05281e7278',
-    freshHash: 'b67505bf3fe3f1ce7e46fce888499661e48a6f35977c669cf20e4eee4302dc17',
+    pinned: {
+      slug: 'newseg-construction_solo-construction-consumables-painting-guide',
+      category: '帳簿・経費',
+      article_type: 'basic_explainer',
+      customer_segment: 'construction_solo',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm',
+      source_title: '国税庁タックスアンサー No.2210 やさしい必要経費の知識',
+      source_provenance: 'curated',
+      created_at: '2026-08-26T00:05:52.154Z',
+      publish_at: '2026-08-27T11:28:00.000+09:00',
+      published_at: '2026-08-27T12:00:59.141+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-07-09-newseg-retail_store-retail-register-sales-guide.md',
     slug: 'newseg-retail_store-retail-register-sales-guide',
     // 2026-11-06 毛利承認で題名・説明文を差し替え（冒頭の答え・商品券の行と現金主義の例外の訂正、reviewed_at 付き）。
-    title: 'レジの現金過不足の仕訳は？原因不明なら雑損失・雑収入｜小売店のレジ売上・レジ金の勘定科目',
-    summary: 'レジ締めで現金が合わないときは差額を「現金過不足」で記録し、原因が分かれば正しい科目へ、決算まで不明なら不足は雑損失・超過は雑収入にします。売上は現金・カード・電子マネーとも商品を渡した日に計上します。仕訳例で解説。',
-    updated_at: '2026-07-10T12:08:53.765+09:00',
-    fullHash: '2fbd5773edc71ebf36613f5021f6b8fc2364650fafe1c1bf79165ebe54f67af9',
-    freshHash: '87eda08d69ccc1ada36ae7f5b9446c41c4f4805d9b6dca73c8b10503a0d16190',
+    updated_at: '2026-11-06T21:40:00.000+09:00',
+    pinned: {
+      slug: 'newseg-retail_store-retail-register-sales-guide',
+      category: '帳簿・経費',
+      article_type: 'basic_explainer',
+      customer_segment: 'retail_store',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2200.htm',
+      source_title: '国税庁タックスアンサー No.2200 収入金額とその計算',
+      created_at: '2026-07-09T00:06:47.294Z',
+      publish_at: '2026-07-10T11:25:00.000+09:00',
+      published_at: '2026-07-10T12:08:53.765+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-06-01-youtube-side-business-withholding-treatment-guide.md',
     slug: 'youtube-side-business-withholding-treatment-guide',
-    title: 'YouTubeの収入に源泉徴収はある？AdSenseは原則なし・PR案件はあり｜副業の確定申告での処理',
-    summary: 'YouTubeの広告収入（AdSense）は原則源泉徴収なし、PR案件の報酬は支払者が源泉徴収する場合があります。副業の確定申告でどう精算するかを整理します。',
     updated_at: '2026-09-27',
-    fullHash: 'a209d5a6339d583d8eaba0f96fa10a4f078cd3b921d8829c7c2978336b4f99b3',
-    freshHash: '702e17fb287bd3036b8cfe4280b17f8caf540d510a3dac5f72fc39948ef1afbe',
+    pinned: {
+      slug: 'youtube-side-business-withholding-treatment-guide',
+      category: '所得税',
+      article_type: 'comparison_decision',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2792.htm',
+      source_title: '国税庁タックスアンサー No.2792 源泉徴収が必要な報酬・料金',
+      created_at: '2026-06-01T00:42:37.042Z',
+      publish_at: '2026-06-02T11:05:00.000+09:00',
+      published_at: '2026-06-02T11:29:48.556+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-07-23-newseg-content_seller-content-subscription-revenue-guide.md',
     slug: 'newseg-content_seller-content-subscription-revenue-guide',
-    title: 'オンラインサロン・サブスク収入の勘定科目と経費｜確定申告での所得区分と計上時期',
-    summary: 'オンラインサロンやサブスクの会費収入は受取月ごとに計上。勘定科目、経費にできる範囲、事業所得か雑所得かの判断を、運営者の側から整理します。',
-    updated_at: '2026-07-24T12:03:38.662+09:00',
-    fullHash: '621c572c182c4b39b330bd03e5410d68fa21ba48274c65a4266cf39d65a47eb6',
-    freshHash: 'bdfacfba6e72f035193d34cd14c7278a9f5f66c80724641c7597458cf45889a5',
+    updated_at: '2026-10-05T13:45:43.544+09:00',
+    pinned: {
+      slug: 'newseg-content_seller-content-subscription-revenue-guide',
+      category: '所得税',
+      article_type: 'basic_explainer',
+      customer_segment: 'content_seller',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2200.htm',
+      source_title: '国税庁タックスアンサー No.2200 収入金額とその計算',
+      source_provenance: 'curated',
+      created_at: '2026-07-23T00:07:26.372Z',
+      publish_at: '2026-07-24T11:54:00.000+09:00',
+      published_at: '2026-07-24T12:03:38.662+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-09-10-deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide.md',
     slug: 'deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide',
-    title: '美容室の簡易課税は第何種？みなし仕入率50%と原則課税の有利判定',
-    summary: '美容室・美容サロンは簡易課税の第5種（みなし仕入率50%）。課税仕入れの割合が50%を下回るなら簡易課税が有利、大型の設備投資がある年は原則課税で還付になることも。判定の手順を解説。',
     updated_at: '2026-09-11T12:00:53.487+09:00',
-    fullHash: '13d06d1919bfca5dd9c6fca26597c9ca65870f6319623f98ccfc9898e464aa1b',
-    freshHash: 'c68ac26bdf9dd9c829e540e98393b808cebac5b9bb9cdb385c99ec6c8e58864d',
+    pinned: {
+      slug: 'deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide',
+      category: '消費税',
+      article_type: 'basic_explainer',
+      customer_segment: 'beauty_salon',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6505.htm',
+      source_title: '国税庁タックスアンサー No.6505 簡易課税制度',
+      source_provenance: 'curated',
+      created_at: '2026-09-10T00:05:57.577Z',
+      publish_at: '2026-09-11T11:16:00.000+09:00',
+      published_at: '2026-09-11T12:00:53.487+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-08-20-deepdive-general_individual_proprietor-lease-transaction-guide.md',
     slug: 'deepdive-general_individual_proprietor-lease-transaction-guide',
-    title: 'リース料の勘定科目と経費処理｜売買処理か賃貸借処理かの判断基準（フルペイアウト・中途解約不可）',
-    summary: 'リース契約の経理処理は「売買処理」か「賃貸借処理」かで大きく異なります。中途解約不可・フルペイアウトの2要件を満たすと資産計上が必要になります。判断基準と仕訳の考え方を解説します。',
     updated_at: '2026-08-21T12:00:57.736+09:00',
-    fullHash: '426b8a46954abc80036f724a49e33105e2a041009690f4498927ac21e88742bf',
-    freshHash: 'c56fc52dfd266784f31ed5a9808e462447cb76a1519ba583224d269e3ad5ab51',
+    pinned: {
+      slug: 'deepdive-general_individual_proprietor-lease-transaction-guide',
+      category: '帳簿・経費',
+      article_type: 'basic_explainer',
+      customer_segment: 'general_business',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5702.htm',
+      source_title: 'リース取引についての取扱いの概要(平成20年4月1日以後契約分)',
+      source_provenance: 'llm-auto',
+      created_at: '2026-08-20T00:06:06.571Z',
+      publish_at: '2026-08-21T11:17:00.000+09:00',
+      published_at: '2026-08-21T12:00:57.736+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-08-25-newseg-youtuber-youtube-gaming-capture-gaming-guide.md',
     slug: 'newseg-youtuber-youtube-gaming-capture-gaming-guide',
-    title: 'ゲーム機・配信機材は経費にできる？ゲーム実況をする個人事業主の減価償却と少額特例',
-    summary: 'ゲーム機・キャプチャボード・配信用PCは、業務に使う分が経費。10万円未満は全額その年の経費、10万円以上は少額特例・一括償却・減価償却の3通りに分かれます。',
     updated_at: '2026-08-26T12:00:56.199+09:00',
-    fullHash: '0a97740972a27fc6b55a07268419c50cea6f0bac2b4c346916abccd9b70ca794',
-    freshHash: '4b873b0276f7a2b9e5fa2e4fd461e3707ec77585e9030264877337b612071e71',
+    pinned: {
+      slug: 'newseg-youtuber-youtube-gaming-capture-gaming-guide',
+      category: '帳簿・経費',
+      article_type: 'basic_explainer',
+      customer_segment: 'youtuber',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2100.htm',
+      source_title: '国税庁タックスアンサー No.2100 減価償却のあらまし',
+      source_provenance: 'curated',
+      created_at: '2026-08-25T00:05:48.995Z',
+      publish_at: '2026-08-26T11:34:00.000+09:00',
+      published_at: '2026-08-26T12:00:56.199+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-08-21-newseg-retail_store-retail-gift-certificate-practice.md',
     slug: 'newseg-retail_store-retail-gift-certificate-practice',
     // 2026-11-06 毛利承認で題名・説明文を差し替え（冒頭の答え・仕訳例①の金額の訂正、reviewed_at 付き）。
-    title: '商品券・ギフトカードの消費税は非課税？不課税？発行・売買・使うときの違いと仕訳',
-    summary: '自分の店が発行して売る商品券は不課税、他社の商品券の売り買いは非課税、商品券で支払われて商品を売ったときは通常の課税売上です。贈答用に買った商品券は仕入税額控除の対象になりません。売上の計上日と仕訳例も紹介します。',
-    updated_at: '2026-08-22T18:00:53.975+09:00',
-    fullHash: '5a3b36f39caabcdbe9a5924ef17436130daefc1ffc1c8599de9f94603ac378b5',
-    freshHash: '37341fe8439efa8f91c7cefba60b97c89a2b644476907b50e50f35994af63347',
+    updated_at: '2026-11-06T18:50:00.000+09:00',
+    pinned: {
+      slug: 'newseg-retail_store-retail-gift-certificate-practice',
+      category: '消費税',
+      article_type: 'industry_example',
+      customer_segment: 'retail_store',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6229.htm',
+      source_title: '国税庁タックスアンサー No.6229 商品券やプリペイドカードなど',
+      source_provenance: 'curated',
+      created_at: '2026-08-21T00:08:41.038Z',
+      publish_at: '2026-08-22T17:23:00.000+09:00',
+      published_at: '2026-08-22T18:00:53.975+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-07-30-shopify-growth-overseas-tax-uncertain-practice.md',
     slug: 'shopify-growth-overseas-tax-uncertain-practice',
-    title: 'Shopifyの海外販売と消費税｜売上は輸出免税でゼロ、仕入や手数料の控除はどうなる？具体例で解説',
-    summary: 'Shopifyで海外の消費者に販売した売上は輸出免税で消費税がかかりません。ただし帳簿と証拠書類の保存が条件で、仕入や手数料の消費税を控除し損ねる記帳ミスが多い点を具体例で解説。',
     updated_at: '2026-09-27',
-    fullHash: 'c21c166f1d441ee383fef540abbf1d5648c804e7198fc1a76815e0b88e432672',
-    freshHash: '2abdad1a3101d53dec56d1f07ca9000ea428df3c145abba37234da97769dfffd',
+    pinned: {
+      slug: 'shopify-growth-overseas-tax-uncertain-practice',
+      category: '消費税',
+      article_type: 'industry_example',
+      customer_segment: 'ec_seller',
+      source_url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6551.htm',
+      source_title: '国税庁タックスアンサー No.6551 輸出取引の免税',
+      source_provenance: 'curated',
+      created_at: '2026-07-30T00:08:55.678Z',
+      publish_at: '2026-07-31T17:21:00.000+09:00',
+      published_at: '2026-07-31T18:13:59.025+09:00',
+      pr_number: '',
+    },
   },
   {
     file: '2026-09-12-shitsugi-shohi-26-01.md',
     slug: 'shitsugi-shohi-26-01',
     // 2026-11-06 毛利承認で題名・説明文を差し替え（冒頭に定義を追加、reviewed_at 付き）。
-    title: '特定課税仕入れとは？対象の取引・申告が要る場合と納税義務の判定',
-    summary: '特定課税仕入れとは、国外事業者から受けるネット広告の掲載などの事業者向けサービスや芸能・スポーツの役務のこと。申告が要るのは一般課税で課税売上割合95%未満の期間だけで、支払額は納税義務の判定の課税売上高に入りません。',
-    updated_at: '2026-09-14T12:00:58.567+09:00',
-    fullHash: '77790532f371f739022ccc11f8e0a3ee8d5c6ea42f744dda221e0a2698b03b5c',
-    freshHash: '33fb6c37a51984fa98bf0fd6b953a6452b9e303ca9daf89dcad7876f07a2758c',
+    updated_at: '2026-11-06T18:50:00.000+09:00',
+    pinned: {
+      slug: 'shitsugi-shohi-26-01',
+      category: '消費税',
+      article_type: 'case_study',
+      customer_segment: 'ec_seller',
+      source_url: 'https://www.nta.go.jp/law/shitsugi/shohi/26/01.htm',
+      source_title: '特定課税仕入れがある場合の納税義務の判定',
+      source_provenance: 'explicit',
+      created_at: '2026-09-12T00:05:57.701Z',
+      publish_at: '2026-09-13T17:25:00.000+09:00',
+      published_at: '2026-09-14T12:00:58.567+09:00',
+      pr_number: '',
+    },
   },
 ];
 
-// 基準 700de4ab。旧まとめハッシュの一致を確認したうえで 1 本ずつ計算。
-// CRLF/CR を LF に正規化して gray-matter で読み、キーの挿入順を保って
-// title・summary を除いた { file, data, body } を JSON 化し SHA-256 にする。
-// 鮮度更新用は updated_at・reviewed_at も除き、{ file, data } を同様にハッシュ化。
-function isFreshnessUpdated(data) {
-  return !!data.reviewed_at && data.updated_at === data.reviewed_at
-    && Date.parse(data.reviewed_at) >= Date.parse('2026-09-28T00:00:00+09:00');
+const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+
+// 記事ごと・項目ごとに、固定の 11 項目のうち pinned にある項目が pinned と同じかを返す。
+// pinned に無い項目（差し替えのときから記事に無かった項目）は見ない
+// （あとで正しく書き足しても落とさない）。
+function checkPinnedFields(data, expected) {
+  return PINNED_FIELDS
+    .filter(field => hasOwn(expected.pinned, field))
+    .map(field => ({
+      field,
+      label: `${expected.slug}: ${field} は差し替えのときから不変`,
+      ok: hasOwn(data, field) && data[field] === expected.pinned[field],
+    }));
 }
 
-function stableHash(parsed, file, fresh) {
-  const data = {};
-  const omitted = fresh ? ['title', 'summary', 'updated_at', 'reviewed_at'] : ['title', 'summary'];
-  for (const [key, value] of Object.entries(parsed.data)) {
-    if (!omitted.includes(key)) data[key] = value;
-  }
-  const stable = fresh ? { file, data } : { file, data, body: normalizeLf(parsed.content) };
-  return crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
-}
-
-function checkStableArticle(parsed, expected) {
-  const fresh = isFreshnessUpdated(parsed.data);
-  return {
-    fresh,
-    updatedOk: fresh ? Date.parse(parsed.data.updated_at) > Date.parse(expected.updated_at)
-      : parsed.data.updated_at === expected.updated_at,
-    stableOk: stableHash(parsed, expected.file, fresh) === (fresh ? expected.freshHash : expected.fullHash),
-  };
+// 更新日は「差し替えのときより前に戻っていない」だけを確かめる。
+// 読めない日付（Date.parse が NaN）は落とす。
+function updatedNotBefore(data, expected) {
+  const actual = Date.parse(data.updated_at);
+  const base = Date.parse(expected.updated_at);
+  return Number.isFinite(actual) && Number.isFinite(base) && actual >= base;
 }
 
 let passed = 0;
@@ -152,79 +262,119 @@ const parsedByFile = new Map(allFiles.map(file => {
   return [file, matter(source)];
 }));
 
-console.log('=== 1. 対象と frontmatter ===');
+console.log('=== 1. 対象 ===');
 for (const expected of EXPECTED) {
   const hits = [...parsedByFile.entries()].filter(([, parsed]) => parsed.data.slug === expected.slug && parsed.data.review_status === 'published');
   assert(hits.length === 1 && hits[0][0] === expected.file, `${expected.slug}: 公開記事が1本だけ`);
   if (hits.length !== 1) continue;
 
   const data = hits[0][1].data;
-  assert(data.title === expected.title, `${expected.slug}: title が指定値`);
-  assert(data.summary === expected.summary, `${expected.slug}: summary が指定どおり`);
-  const stable = checkStableArticle(hits[0][1], expected);
-  assert(stable.updatedOk, `${expected.slug}: 更新日が不変または鮮度更新で新しくなった`);
   assert([...String(data.summary || '')].length <= 120, `${expected.slug}: summary が120文字以内`);
+  assert(updatedNotBefore(data, expected), `${expected.slug}: 更新日が差し替えのときより前でない`);
 }
 
 console.log('');
-console.log('=== 2. 本文とその他の frontmatter ===');
+console.log('=== 2. 公開の後に変わってはいけない項目 ===');
 for (const expected of EXPECTED) {
-  const stable = checkStableArticle(parsedByFile.get(expected.file), expected);
-  assert(stable.stableOk, expected.slug + ': ' + (stable.fresh
-    ? '鮮度更新でも slug・日付・出典・公開日時などは不変' : '本文と title / summary 以外は不変'));
+  const parsed = parsedByFile.get(expected.file);
+  if (!parsed) {
+    assert(false, `${expected.slug}: ${expected.file} がある`);
+    continue;
+  }
+  for (const result of checkPinnedFields(parsed.data, expected)) {
+    assert(result.ok, result.label);
+  }
 }
 
-console.log('\n=== 3. 偽データで変更検出を確認 ===');
-const fixturePassed = passed, fixtureFailed = failed;
-const clone = parsed => ({ data: { ...parsed.data }, content: parsed.content });
-function chooseOrdinaryArticle(expectedArticles, articles) {
-  const expected = expectedArticles.find(item => !isFreshnessUpdated(articles.get(item.file).data));
-  if (expected) return { expected, parsed: clone(articles.get(expected.file)) };
-  // 対象がすべて更新された後も、未更新記事の変更検出を偽データで確かめる。
-  const file = 'fixture-ordinary.md';
-  const parsed = { data: { slug: 'fixture-ordinary', updated_at: '2026-09-01', source_url: 'https://example.com/source', published_at: '2026-09-01' }, content: '偽の未更新本文' };
-  return { parsed, expected: { file, updated_at: parsed.data.updated_at,
-    fullHash: stableHash(parsed, file, false), freshHash: stableHash(parsed, file, true) } };
+console.log('\n=== 3. 偽データで変更の検出を確かめる ===');
+// 実際の記事に頼らず、固定の 11 項目を全部持つ偽の記事 1 本で確かめる。
+const FIXTURE_UPDATED_AT = '2026-09-02T12:00:00.000+09:00';
+const fixturePinned = {
+  slug: 'fixture-ordinary',
+  category: '帳簿・経費',
+  article_type: 'basic_explainer',
+  customer_segment: 'construction_solo',
+  source_url: 'https://example.com/source',
+  source_title: '偽の出典',
+  source_provenance: 'curated',
+  created_at: '2026-09-01T00:00:00.000Z',
+  publish_at: '2026-09-02T11:00:00.000+09:00',
+  published_at: FIXTURE_UPDATED_AT,
+  pr_number: '',
+};
+const fixtureExpected = {
+  file: 'fixture-ordinary.md',
+  slug: fixturePinned.slug,
+  updated_at: FIXTURE_UPDATED_AT,
+  pinned: fixturePinned,
+};
+function fixtureArticle(overrides) {
+  return {
+    data: {
+      title: '偽の題名',
+      summary: '偽の説明文',
+      ...fixturePinned,
+      customer_fit_score: 4,
+      related_slug: 'fixture-related',
+      updated_at: FIXTURE_UPDATED_AT,
+      ...overrides,
+    },
+    content: '偽の本文',
+  };
 }
-const { expected: ordinary, parsed: base } = chooseOrdinaryArticle(EXPECTED, parsedByFile);
-assert(!isFreshnessUpdated(base.data) && checkStableArticle(base, ordinary).stableOk, '未更新記事を探し、無ければ偽の未更新記事を使う');
-const sampleFiles = new Map(['first.md', 'second.md'].map(file => [file, clone(base)]));
-sampleFiles.get('first.md').data.updated_at = sampleFiles.get('first.md').data.reviewed_at = '2026-10-05T09:00:00+09:00';
-assert(chooseOrdinaryArticle([{ file: 'first.md' }, { file: 'second.md' }], sampleFiles).expected.file === 'second.md', '先頭記事が更新済みなら後ろの未更新記事を選ぶ');
-sampleFiles.get('second.md').data.updated_at = sampleFiles.get('second.md').data.reviewed_at = '2026-10-05T09:00:00+09:00';
-const synthetic = chooseOrdinaryArticle([{ file: 'first.md' }, { file: 'second.md' }], sampleFiles);
-assert(!isFreshnessUpdated(synthetic.parsed.data) && checkStableArticle(synthetic.parsed, synthetic.expected).stableOk, '全記事が更新済みでも偽の未更新記事で検証できる');
-const syntheticChanged = clone(synthetic.parsed);
-syntheticChanged.content += '変';
-assert(!checkStableArticle(syntheticChanged, synthetic.expected).stableOk, '全記事更新後の偽記事でも本文 1 文字の変更を検出');
-const syntheticFresh = clone(synthetic.parsed);
-syntheticFresh.data.updated_at = syntheticFresh.data.reviewed_at = '2026-10-05T09:00:00+09:00';
-syntheticFresh.content += '更新本文';
-assert(checkStableArticle(syntheticFresh, synthetic.expected).stableOk && checkStableArticle(syntheticFresh, synthetic.expected).updatedOk, '全記事更新後の偽記事でも鮮度更新を許容');
-const changed = clone(base);
-changed.content += '変';
-assert(!checkStableArticle(changed, ordinary).stableOk, '未更新記事の本文 1 文字の変更は失敗');
-const fresh = clone(base);
-fresh.data.updated_at = fresh.data.reviewed_at = '2026-10-05T09:00:00+09:00';
-fresh.content += '更新本文';
-assert(checkStableArticle(fresh, ordinary).stableOk && checkStableArticle(fresh, ordinary).updatedOk, '鮮度更新済みの本文変更は成功');
-for (const field of ['source_url', 'published_at']) {
-  const altered = clone(fresh);
-  altered.data[field] = '変更';
-  assert(!checkStableArticle(altered, ordinary).stableOk, '鮮度更新済みでも ' + field + ' の変更は失敗');
+const failingFields = (parsed, expected = fixtureExpected) => checkPinnedFields(parsed.data, expected)
+  .filter(result => !result.ok).map(result => result.field);
+const fixtureOk = (parsed, expected = fixtureExpected) => (
+  failingFields(parsed, expected).length === 0 && updatedNotBefore(parsed.data, expected)
+);
+
+const fixtureBase = fixtureArticle();
+assert(fixtureOk(fixtureBase), '偽の記事: そのままなら通る');
+
+const bodyChanged = fixtureArticle();
+bodyChanged.content += '変';
+assert(fixtureOk(bodyChanged), '偽の記事: 本文を変えても通る');
+
+const titleChanged = fixtureArticle({ title: '別の題名', summary: '別の説明文' });
+assert(fixtureOk(titleChanged), '偽の記事: 題名・説明文を変えても通る');
+
+const freshnessAdvanced = fixtureArticle({
+  updated_at: '2026-10-05T09:00:00+09:00',
+  reviewed_at: '2026-10-05T09:00:00+09:00',
+});
+assert(fixtureOk(freshnessAdvanced), '偽の記事: 更新日・確認日を進めても通る');
+
+const unpinnedChanged = fixtureArticle({
+  customer_fit_score: 1,
+  related_slug: 'fixture-other',
+  search_intent: '足した項目',
+});
+assert(fixtureOk(unpinnedChanged), '偽の記事: 固定でない項目を変えても足しても通る');
+
+for (const field of PINNED_FIELDS) {
+  const changed = fixtureArticle({ [field]: `${fixturePinned[field]}変更` });
+  const failing = failingFields(changed);
+  assert(failing.length === 1 && failing[0] === field, `偽の記事: ${field} を変えると落ちる`);
 }
-const reviewed = clone(base);
-reviewed.data.reviewed_at = '2026-10-05T09:00:00+09:00';
-const reviewedExpected = { ...ordinary, fullHash: stableHash(reviewed, ordinary.file, false) };
-assert(!isFreshnessUpdated(reviewed.data) && checkStableArticle(reviewed, reviewedExpected).stableOk, '更新日と異なる確認日は全体の検証対象');
-reviewed.content += '変';
-assert(!checkStableArticle(reviewed, reviewedExpected).stableOk, '確認日だけある記事の本文変更は失敗');
-assert(!isFreshnessUpdated({ updated_at: '2026-09-27', reviewed_at: '2026-09-27' }), '差し替えより前の確認日は鮮度更新扱いしない');
-assert(!isFreshnessUpdated({ updated_at: '不正', reviewed_at: '不正' }), '不正な日時は鮮度更新扱いしない');
-const oldUpdate = clone(fresh);
-const sameDateExpected = { ...ordinary, updated_at: oldUpdate.data.updated_at };
-assert(!checkStableArticle(oldUpdate, sameDateExpected).updatedOk, '鮮度更新の更新日は基準より新しい必要がある');
-console.log(`F5: PASS: ${passed - fixturePassed} / FAIL: ${failed - fixtureFailed}`);
+
+for (const field of PINNED_FIELDS) {
+  const deleted = fixtureArticle();
+  delete deleted.data[field];
+  const failing = failingFields(deleted);
+  assert(failing.length === 1 && failing[0] === field, `偽の記事: ${field} を消すと落ちる`);
+}
+
+const pinnedWithoutProvenance = { ...fixturePinned };
+delete pinnedWithoutProvenance.source_provenance;
+const addedPinnedField = fixtureArticle();
+const addedFailing = failingFields(addedPinnedField, { ...fixtureExpected, pinned: pinnedWithoutProvenance });
+assert(addedFailing.length === 0, '偽の記事: pinned に無い固定の項目を足しても通る');
+
+const olderUpdate = fixtureArticle({ updated_at: '2026-08-01T12:00:00+09:00' });
+assert(!updatedNotBefore(olderUpdate.data, fixtureExpected), '偽の記事: 更新日を基準より前に戻すと落ちる');
+
+const unreadableUpdate = fixtureArticle({ updated_at: '不正' });
+assert(!updatedNotBefore(unreadableUpdate.data, fixtureExpected), '偽の記事: 読めない更新日は落ちる');
 
 console.log('');
 console.log('=== 結果 ===');
