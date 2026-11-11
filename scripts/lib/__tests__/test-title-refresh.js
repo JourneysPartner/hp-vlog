@@ -18,6 +18,7 @@
  *
  * 点数・推奨・関連記事・検索の意図などは、あとの照合・内部リンクの更新・鮮度更新で
  * 正しく変わりうるので固定しない。項目が足されても落とさない。
+ * 差し替えのときから無かった固定の項目が足されても落とさない（pinned に無い項目は見ない）。
  */
 const fs = require('fs');
 const path = require('path');
@@ -227,23 +228,17 @@ const EXPECTED = [
 
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
-// 記事ごと・項目ごとに、固定の 11 項目が pinned と同じかを返す。
-// pinned に無い項目は、記事にも無いこと（足されていないこと）を確かめる。
+// 記事ごと・項目ごとに、固定の 11 項目のうち pinned にある項目が pinned と同じかを返す。
+// pinned に無い項目（差し替えのときから記事に無かった項目）は見ない
+// （あとで正しく書き足しても落とさない）。
 function checkPinnedFields(data, expected) {
-  return PINNED_FIELDS.map(field => {
-    if (hasOwn(expected.pinned, field)) {
-      return {
-        field,
-        label: `${expected.slug}: ${field} は差し替えのときから不変`,
-        ok: hasOwn(data, field) && data[field] === expected.pinned[field],
-      };
-    }
-    return {
+  return PINNED_FIELDS
+    .filter(field => hasOwn(expected.pinned, field))
+    .map(field => ({
       field,
-      label: `${expected.slug}: ${field} は差し替えのときと同じく無い`,
-      ok: !hasOwn(data, field),
-    };
-  });
+      label: `${expected.slug}: ${field} は差し替えのときから不変`,
+      ok: hasOwn(data, field) && data[field] === expected.pinned[field],
+    }));
 }
 
 // 更新日は「差し替えのときより前に戻っていない」だけを確かめる。
@@ -373,7 +368,7 @@ const pinnedWithoutProvenance = { ...fixturePinned };
 delete pinnedWithoutProvenance.source_provenance;
 const addedPinnedField = fixtureArticle();
 const addedFailing = failingFields(addedPinnedField, { ...fixtureExpected, pinned: pinnedWithoutProvenance });
-assert(addedFailing.length === 1 && addedFailing[0] === 'source_provenance', '偽の記事: pinned に無い固定の項目を足すと落ちる');
+assert(addedFailing.length === 0, '偽の記事: pinned に無い固定の項目を足しても通る');
 
 const olderUpdate = fixtureArticle({ updated_at: '2026-08-01T12:00:00+09:00' });
 assert(!updatedNotBefore(olderUpdate.data, fixtureExpected), '偽の記事: 更新日を基準より前に戻すと落ちる');
