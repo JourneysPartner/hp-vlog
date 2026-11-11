@@ -121,6 +121,16 @@
       "target_query": "インフルエンサー 確定申告 いくらから",
       "date": "2026-11-09",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/42538271619"
+    },
+    {
+      "topic_id": "suggest-creator-youtuber-ae05b3",
+      "stage": "pregen-dedup",
+      "similar_to": "youtuber-tax-payment-guide",
+      "reason": "既存の「YouTuberの税金はいくら？払い方と確定申告の判断基準」と、税額の目安と納め方という同一論点・同一personaで実質的に同じ記事となるため。",
+      "url_slug": "youtuber-tax-amount-payment",
+      "target_query": "youtuber 税金 いくら",
+      "date": "2026-11-11",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/42928547998"
     }
   ]
 }
