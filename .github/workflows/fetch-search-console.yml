@@ -71,6 +71,9 @@ jobs:
           fi
 
       - name: Fetch from Bing Webmaster Tools
+        # 時間切れは `||` では拾えないため、手順そのものに上限と「失敗しても続ける」を付ける。
+        timeout-minutes: 10
+        continue-on-error: true
         env:
           BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
         run: |

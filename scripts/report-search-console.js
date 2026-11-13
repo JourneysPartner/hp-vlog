@@ -446,6 +446,9 @@ function buildBingSection({ bing = null, gscLatest = null, gscPages = null } = {
     lines.push(`- 索引にあるページ（InIndex）: ${bingNumber(lastRow.InIndex)}（期間の初日 ${bingNumber(first.InIndex)}、差 ${difference === null ? '—' : signed(difference)}）`);
     lines.push(`- 期間の合計: 巡回したページ ${bingNumber(bingSum(crawlRows, 'CrawledPages'))} ／ 巡回の誤り ${bingNumber(bingSum(crawlRows, 'CrawlErrors'))} ／ 4xx ${bingNumber(bingSum(crawlRows, 'Code4xx'))} ／ 5xx ${bingNumber(bingSum(crawlRows, 'Code5xx'))} ／ robots.txt で止めた ${bingNumber(bingSum(crawlRows, 'BlockedByRobotsTxt'))}`);
     lines.push(`- 被リンク（InLinks、最新の日）: ${bingNumber(lastRow.InLinks)}`);
+    const crawlConflicts = sections.crawl && Array.isArray(sections.crawl.conflicting_dates)
+      ? sections.crawl.conflicting_dates : [];
+    if (crawlConflicts.length) lines.push(`- 巡回の数字が食い違ったため除いた日: ${crawlConflicts.join(', ')}`);
   }
 
   const feedRows = bing.feeds && Array.isArray(bing.feeds.rows) ? bing.feeds.rows : [];
@@ -678,7 +681,13 @@ function buildReport({
     pickupConfig,
   }));
   lines.push('');
-  lines.push(...buildBingSection({ bing, gscLatest: latest, gscPages: pages }));
+  // Bing の節は、data/bing-webmaster/ の中身が壊れていてもレポート全体を止めない（R15）。
+  try {
+    lines.push(...buildBingSection({ bing, gscLatest: latest, gscPages: pages }));
+  } catch (_) {
+    lines.push('## Bing の数字（Bing Webmaster Tools）', '',
+      '（Bing の数字を読めませんでした。data/bing-webmaster/ の中身を確かめてください）');
+  }
   lines.push('');
   lines.push(...buildFreshnessSection(freshnessCandidates));
   lines.push('');

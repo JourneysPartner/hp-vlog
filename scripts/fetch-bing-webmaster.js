@@ -60,6 +60,8 @@ const CRAWL_FIELDS = Object.freeze([
 
 const BLOCKED_MESSAGE = '[bing] 鍵が含まれるため書き込みを止めました';
 const DATE_PATTERN = /^\/Date\((-?\d+)([+-]\d{4})?\)\/$/;
+/** 形の記録に並べてよい項目名（改行などが入った鍵を Actions の記録に出さないため）。 */
+const SHAPE_KEY_PATTERN = /^[A-Za-z0-9_]{1,40}$/;
 
 function ymd(date) { return date.toISOString().slice(0, 10); }
 function stamp(date) { return ymd(date).replace(/-/g, ''); }
@@ -69,8 +71,8 @@ function dayNumber(date) { return Math.floor(Date.parse(`${date}T00:00:00Z`) / 8
 function dateFromDay(day) { return new Date(day * 86400000).toISOString().slice(0, 10); }
 
 /**
- * 鍵を外に出さないための最後の守り。ログに出す文と保存する JSON を、出す・書く直前に確かめる。
- * 鍵そのもの・encodeURIComponent(鍵)・apikey のどれかを含んでいたら書かずに止める。
+ * 鍵を外に出さないための最後の守り。ログに出す文は、出す直前に確かめる。
+ * 鍵そのもの・encodeURIComponent(鍵)・apikey のどれかを含んでいたら出さずに止める。
  */
 function guardText(text, apiKey) {
   const value = String(text == null ? '' : text);
@@ -86,8 +88,35 @@ function emit(log, text, apiKey) {
   log(guardText(text, apiKey));
 }
 
-function writeJsonFile(filePath, value, apiKey) {
-  fs.writeFileSync(filePath, guardText(`${JSON.stringify(value, null, 2)}\n`, apiKey));
+/**
+ * 保存する JSON の確かめ（2026-11-13 bing-weekly R13）。
+ * 見るのは鍵そのものと encodeURIComponent(鍵) だけ。検索語・ページの URL に偶然「apikey」の
+ * 文字が入っても、その週の取り込みを止めないため「apikey」では止めない。
+ * （「apikey」はログの側（guardText）で止める。失敗の理由の文もログに出るのでそこで止まる。）
+ */
+function guardJson(text, apiKey) {
+  const value = String(text == null ? '' : text);
+  if (!apiKey) return value;
+  for (const needle of [String(apiKey), encodeURIComponent(String(apiKey))]) {
+    if (needle && value.includes(needle)) throw new Error(BLOCKED_MESSAGE);
+  }
+  return value;
+}
+
+function jsonText(value) {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+/**
+ * 保存するファイルを全部先に作って確かめ、全部が通ってから書き始める（途中まで書いて止まらない）。
+ * 日付フォルダも、確かめが通ったあとに作る。
+ */
+function writeJsonFiles(entries, apiKey) {
+  const prepared = entries.map(([filePath, value]) => [filePath, guardJson(jsonText(value), apiKey)]);
+  for (const [filePath, text] of prepared) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, text);
+  }
 }
 
 /**
@@ -156,11 +185,22 @@ async function callEndpoint({ name, siteUrl, apiKey, fetchImpl, log, retryDelays
     if (response) {
       if (response.ok) {
         let payload = null;
-        try { payload = await response.json(); } catch (_) { payload = null; }
-        if (payload && Array.isArray(payload.d)) return payload.d;
-        throw new Error(`${label}: 応答の形が違います`);
-      }
-      if (response.status === 429 || response.status >= 500) {
+        let timedOut = false;
+        try {
+          payload = await response.json();
+        } catch (error) {
+          // 本文を読む途中の時間切れも、時間切れとしてやり直す（R17）。
+          if (error && (error.name === 'TimeoutError' || error.name === 'AbortError')) timedOut = true;
+        }
+        if (timedOut) {
+          retryable = true;
+          reason = `${label}: 時間切れ`;
+        } else if (payload && Array.isArray(payload.d)) {
+          return payload.d;
+        } else {
+          throw new Error(`${label}: 応答の形が違います`);
+        }
+      } else if (response.status === 429 || response.status >= 500) {
         retryable = true;
         reason = await httpReason(label, response);
       } else {
@@ -376,8 +416,11 @@ function shapeLine(name, rawRows, { dropped = 0, duplicates = 0, conflicts = 0 }
     parts.push('（日付 なし）');
   }
   const first = rawRows.find(row => row && typeof row === 'object');
-  const keys = first ? Object.keys(first).filter(key => key !== '__type').sort() : [];
-  parts.push(`項目 ${keys.length ? keys.join(',') : 'なし'}`);
+  const keys = first ? Object.keys(first).filter(key => key !== '__type') : [];
+  const shown = keys.filter(key => SHAPE_KEY_PATTERN.test(key)).sort();
+  parts.push(`項目 ${shown.length ? shown.join(',') : 'なし'}`);
+  const hidden = keys.length - shown.length;
+  if (hidden > 0) parts.push(`他 ${n(hidden)} 個`);
   if (name === 'queries' || name === 'pages') {
     const positions = rawRows
       .map(row => (row && typeof row === 'object' ? row.AvgImpressionPosition : null))
@@ -462,21 +505,26 @@ async function run(options = {}) {
     emit(log, shapeLine(name, raw[name], { dropped: normalized[name].dropped, duplicates, conflicts }), apiKey);
   }
 
-  // 期間: traffic の最新の日付から 28 日。traffic が 0 行なら他の窓口の最新の日付。
+  // 期間: traffic の全部の行（食い違いの日も含む）の最新の日付から 28 日。
+  // traffic が 0 行なら他の窓口の最新の日付（R12）。
   const fallbackDates = [];
   for (const name of ['queries', 'pages', 'crawl']) {
     if (!normalized[name]) continue;
     for (const row of normalized[name].rows) fallbackDates.push(row.date);
   }
-  const end = trafficDedupe.rows.length
-    ? dateBounds(trafficDedupe.rows).max
+  const trafficBounds = dateBounds(normalized.traffic.rows);
+  const end = trafficBounds.max
+    ? trafficBounds.max
     : (fallbackDates.length ? fallbackDates.sort()[fallbackDates.length - 1] : null);
+  const start = end ? dateFromDay(dayNumber(end) - (WINDOW_DAYS - 1)) : null;
+  const inRange = (date) => Boolean(start) && date >= start && date <= end;
   const window = end
     ? {
-      start: dateFromDay(dayNumber(end) - (WINDOW_DAYS - 1)),
+      start,
       end,
       days_reported: 0,
-      conflicting_dates: [...new Set([...trafficDedupe.conflicts, ...crawlDedupe.conflicts])].sort(),
+      // 期間の中の traffic の食い違いだけを「除いた日」として出す（期間の外の日は出さない）。
+      conflicting_dates: trafficDedupe.conflicts.filter(inRange),
     }
     : null;
   const inWindow = (rows) => (window ? rows.filter(row => row.date >= window.start && row.date <= window.end) : []);
@@ -495,7 +543,6 @@ async function run(options = {}) {
   const pagesOut = normalized.pages ? aggregateTerms(pagesInWindow, 'page') : [];
 
   const sections = {};
-  const trafficBounds = dateBounds(normalized.traffic.rows);
   const trafficPerDate = perDateStats(trafficRows);
   sections.traffic = {
     status: 'ok',
@@ -505,6 +552,8 @@ async function run(options = {}) {
     date_max: trafficBounds.max,
     weeks: trafficPerDate.dates,
     weeks_at_cap: trafficPerDate.atCap,
+    // 期間の外も含む全部の食い違い（latest.json での記録用。レポートには window の分だけ出す）。
+    conflicting_dates: [...trafficDedupe.conflicts],
   };
   for (const name of ['queries', 'pages']) {
     if (!normalized[name]) { sections[name] = { status: 'failed', reason: failures[name] }; continue; }
@@ -536,6 +585,8 @@ async function run(options = {}) {
       date_max: bounds.max,
       weeks: perDate.dates,
       weeks_at_cap: perDate.atCap,
+      // 期間の中の食い違いだけ（レポートの「巡回とサイトマップ」に出す）。
+      conflicting_dates: crawlDedupe.conflicts.filter(inRange),
     };
   }
   if (!normalized.feeds) {
@@ -549,29 +600,29 @@ async function run(options = {}) {
   }
 
   const dirName = stamp(now);
-  const dir = path.join(outRoot, dirName);
-  fs.mkdirSync(dir, { recursive: true });
-
+  const entries = [];
   const files = {};
-  const write = (name, content) => {
+  const add = (name, content) => {
     const rel = `${dirName}/${name}.json`;
-    writeJsonFile(path.join(outRoot, rel), content, apiKey);
     files[name] = rel;
+    entries.push([path.join(outRoot, rel), content]);
   };
-  write('traffic', { site_url: siteUrl, window, rows: trafficRows });
-  if (normalized.queries) write('queries', { site_url: siteUrl, window, rows: queriesOut });
-  if (normalized.pages) write('pages', { site_url: siteUrl, window, rows: pagesOut });
-  if (normalized.crawl) write('crawl', { site_url: siteUrl, window, rows: crawlInWindow });
-  if (normalized.feeds) write('feeds', { site_url: siteUrl, rows: normalized.feeds.rows });
-
-  writeJsonFile(path.join(outRoot, 'latest.json'), {
+  add('traffic', { site_url: siteUrl, window, rows: trafficRows });
+  if (normalized.queries) add('queries', { site_url: siteUrl, window, rows: queriesOut });
+  if (normalized.pages) add('pages', { site_url: siteUrl, window, rows: pagesOut });
+  if (normalized.crawl) add('crawl', { site_url: siteUrl, window, rows: crawlInWindow });
+  if (normalized.feeds) add('feeds', { site_url: siteUrl, rows: normalized.feeds.rows });
+  entries.push([path.join(outRoot, 'latest.json'), {
     fetched_at: now.toISOString(),
     site_url: siteUrl,
     window,
     totals,
     files,
     sections,
-  }, apiKey);
+  }]);
+
+  // 全部の JSON を先に作って確かめてから、日付フォルダを作って書き始める（R13）。
+  writeJsonFiles(entries, apiKey);
 
   const removed = prune(outRoot, KEEP_RUNS);
   emit(log, `[bing] 保存: ${dirName}（期間 ${window ? `${window.start}〜${window.end}` : 'なし'}、`

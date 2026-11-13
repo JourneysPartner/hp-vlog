@@ -338,7 +338,52 @@ async function runFetcher(fake, options = {}) {
         crawlRow('2026-11-10', { CrawledPages: 2, InIndex: 1, CrawlErrors: 0, Code2xx: 1, Code301: 0, Code4xx: 0, Code5xx: 0, BlockedByRobotsTxt: 0, InLinks: 0 }),
       ] }),
     }), { outRoot: tmp3 });
-    assert(crawl.window.conflicting_dates.join(',') === '2026-11-10', 'crawl の食い違いも記録する');
+    assert(crawl.window.conflicting_dates.length === 0, 'crawl の食い違いは window（レポートの期間の行）には出さない');
+    assert(crawl.sections.crawl.conflicting_dates.join(',') === '2026-11-10',
+      'crawl の食い違いは sections.crawl.conflicting_dates に記録する');
+    fs.rmSync(tmp3, { recursive: true, force: true });
+  }
+
+  // ---------------------------------------------------------------- 03 R12
+  console.log('');
+  console.log('=== 6-2. 食い違いの日は期間の中のものだけをレポートに出す ===');
+  {
+    const tmp = tempDir('bing-conflict-outside');
+    const outside = await runFetcher(fakeFetch({
+      GetRankAndTrafficStats: () => response(200, { d: [
+        ...trafficRows(),
+        { Date: bingDate('2026-05-15'), Impressions: 3, Clicks: 0 },
+        { Date: bingDate('2026-05-15'), Impressions: 4, Clicks: 0 },
+      ] }),
+    }), { outRoot: tmp });
+    assert(outside.window.conflicting_dates.length === 0, '期間外の traffic の食い違いは window.conflicting_dates に入らない');
+    assert(outside.sections.traffic.conflicting_dates.join(',') === '2026-05-15',
+      '期間外でも sections.traffic.conflicting_dates には入る');
+    assert(outside.window.end === '2026-11-10' && outside.window.days_reported === 28, '期間は今のまま');
+    fs.rmSync(tmp, { recursive: true, force: true });
+
+    const tmp2 = tempDir('bing-conflict-crawl-window');
+    const crawlConflict = await runFetcher(fakeFetch({
+      GetCrawlStats: () => response(200, { d: [
+        crawlRow('2026-11-09', { CrawledPages: 1, InIndex: 1, CrawlErrors: 0, Code2xx: 1, Code301: 0, Code4xx: 0, Code5xx: 0, BlockedByRobotsTxt: 0, InLinks: 0 }),
+        crawlRow('2026-11-09', { CrawledPages: 2, InIndex: 1, CrawlErrors: 0, Code2xx: 1, Code301: 0, Code4xx: 0, Code5xx: 0, BlockedByRobotsTxt: 0, InLinks: 0 }),
+      ] }),
+    }), { outRoot: tmp2 });
+    assert(crawlConflict.window.conflicting_dates.length === 0, 'crawl だけの食い違いは window.conflicting_dates に入らない');
+    assert(crawlConflict.sections.crawl.conflicting_dates.join(',') === '2026-11-09',
+      'crawl だけの食い違いは sections.crawl.conflicting_dates に入る');
+    fs.rmSync(tmp2, { recursive: true, force: true });
+
+    const tmp3 = tempDir('bing-conflict-latest');
+    const rows = trafficRows().filter(row => row.Date !== bingDate('2026-11-10'));
+    rows.push({ Date: bingDate('2026-11-10'), Impressions: 10, Clicks: 1 });
+    rows.push({ Date: bingDate('2026-11-10'), Impressions: 11, Clicks: 1 });
+    const latestConflict = await runFetcher(fakeFetch({
+      GetRankAndTrafficStats: () => response(200, { d: rows }),
+    }), { outRoot: tmp3 });
+    assert(latestConflict.window.end === '2026-11-10', '最新の日が食い違っても end はその日のまま');
+    assert(latestConflict.window.days_reported === 27, `最新の日が食い違えば days_reported は 27（${latestConflict.window.days_reported}）`);
+    assert(latestConflict.window.conflicting_dates.join(',') === '2026-11-10', 'その日は window.conflicting_dates に出る');
     fs.rmSync(tmp3, { recursive: true, force: true });
   }
 
@@ -453,6 +498,39 @@ async function runFetcher(fake, options = {}) {
     fs.rmSync(tmp5, { recursive: true, force: true });
   }
 
+  // ---------------------------------------------------------------- 03 R17
+  console.log('');
+  console.log('=== 8-2. 成功の応答で本文を読む途中の時間切れ ===');
+  {
+    const tmp = tempDir('bing-body-timeout');
+    let attempts = 0;
+    const retried = await runFetcher(fakeFetch({
+      GetFeeds: () => {
+        attempts++;
+        if (attempts === 1) {
+          const error = new Error('timed out while reading body');
+          error.name = 'TimeoutError';
+          return { ok: true, status: 200, json: async () => { throw error; } };
+        }
+        return response(200, { d: feedRows() });
+      },
+    }), { outRoot: tmp });
+    assert(attempts === 2 && retried.sections.feeds.status === 'ok', '本文を読む途中の時間切れは再試行して成功する');
+    fs.rmSync(tmp, { recursive: true, force: true });
+
+    const tmp2 = tempDir('bing-body-shape');
+    let shapeAttempts = 0;
+    const broken = await runFetcher(fakeFetch({
+      GetFeeds: () => {
+        shapeAttempts++;
+        return { ok: true, status: 200, json: async () => { throw new SyntaxError('broken body'); } };
+      },
+    }), { outRoot: tmp2 });
+    assert(shapeAttempts === 1, '時間切れでない例外は再試行しない');
+    assert(broken.sections.feeds.reason === 'GetFeeds: 応答の形が違います', '時間切れでない例外は「応答の形が違います」');
+    fs.rmSync(tmp2, { recursive: true, force: true });
+  }
+
   console.log('');
   console.log('=== 9. 鍵が漏れない ===');
   {
@@ -490,16 +568,31 @@ async function runFetcher(fake, options = {}) {
       '成功の経路でも鍵が出ない');
     fs.rmSync(tmp3, { recursive: true, force: true });
 
-    // (d) 最後の守り: 保存する値に apikey が混ざったら書かずに止める
+    // (d) 最後の守り: 保存する値に鍵そのものが混ざったら書かずに止める（03 R13）
+    //     「apikey」の文字だけでは止めない（検索語・URL に偶然入ることがあるため）。
     const tmp4 = tempDir('bing-leak-guard');
+    const guardLogs = [];
+    const saved = await runFetcher(fakeFetch({
+      GetFeeds: () => response(200, { d: [{ Url: 'https://example.test/?apikey=x', Type: 'Sitemap' }] }),
+    }), { outRoot: tmp4, logs: guardLogs });
+    assert(saved.sections.feeds.status === 'ok', 'apikey の文字だけなら止めずに取り込む');
+    const savedFeeds = readJson(path.join(tmp4, '20261115', 'feeds.json'));
+    assert(savedFeeds.rows[0].Url === 'https://example.test/?apikey=x', 'apikey の文字はそのまま保存する');
+    assert(fs.existsSync(path.join(tmp4, 'latest.json')), 'latest.json も書く');
+    assert(!guardLogs.join('\n').includes('apikey'), 'ログには apikey を出さない');
+    fs.rmSync(tmp4, { recursive: true, force: true });
+
+    const tmp5 = tempDir('bing-leak-guard-key');
     let guardError = null;
     try {
       await runFetcher(fakeFetch({
-        GetFeeds: () => response(200, { d: [{ Url: 'https://example.test/?apikey=x', Type: 'Sitemap' }] }),
-      }), { outRoot: tmp4 });
+        GetFeeds: () => response(200, { d: [{ Url: `https://example.test/?k=${KEY}`, Type: 'Sitemap' }] }),
+      }), { outRoot: tmp5 });
     } catch (caught) { guardError = caught; }
-    assert(guardError && guardError.message === '[bing] 鍵が含まれるため書き込みを止めました', '鍵らしい文字列は書く直前に止める');
-    fs.rmSync(tmp4, { recursive: true, force: true });
+    assert(guardError && guardError.message === '[bing] 鍵が含まれるため書き込みを止めました',
+      '鍵そのものが混ざったら書く直前に止める');
+    assert(fs.readdirSync(tmp5).length === 0, '日付フォルダも latest.json も書かない');
+    fs.rmSync(tmp5, { recursive: true, force: true });
   }
 
   console.log('');
@@ -525,6 +618,25 @@ async function runFetcher(fake, options = {}) {
       'latest.json に所在と取得日時');
     assert(latest.sections.queries.raw_rows === 3 && latest.sections.queries.used_rows === 3,
       '窓口ごとの行数を記録する');
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  // ---------------------------------------------------------------- 03 R16
+  console.log('');
+  console.log('=== 10-2. 形の記録の項目名を絞る ===');
+  {
+    const tmp = tempDir('bing-shape-keys');
+    const logs = [];
+    await runFetcher(fakeFetch({
+      GetFeeds: () => response(200, { d: [{
+        Url: 'https://mori-zeirishi.net/sitemap.xml',
+        Type: 'Sitemap',
+        'x\n::stop-commands::': 'y',
+      }] }),
+    }), { outRoot: tmp, logs });
+    const shape = logs.find(line => line.startsWith('[bing] GetFeeds:')) || '';
+    assert(!shape.includes('::stop-commands::') && !shape.includes('\n'), '決まった形に合わない項目名は記録に出さない');
+    assert(shape.includes('他 1 個'), `合わない項目名は「他 1 個」と数える（${shape}）`);
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
@@ -562,6 +674,8 @@ async function runFetcher(fake, options = {}) {
     assert(!/secrets\./.test(bingStep.run), 'run の中に secrets を書かない');
     assert(bingStep.run.includes('|| echo "::warning::'), '失敗しても止まらない');
     assert(/if \[ -z "\$BING_WEBMASTER_API_KEY" \]/.test(bingStep.run), '未設定なら何もしない');
+    assert(bingStep['timeout-minutes'] === 10, 'Bing の手順に時間の上限（10 分）がある（03 R14）');
+    assert(bingStep['continue-on-error'] === true, '時間切れ・失敗でも止めない（03 R14）');
 
     const gitAdd = source.slice(source.indexOf('git add data/search-console'));
     assert(gitAdd.startsWith('git add data/search-console data/freshness data/bing-webmaster'),
@@ -788,6 +902,48 @@ async function runFetcher(fake, options = {}) {
     const report = fs.readFileSync(path.join(tmp, 'report.md'), 'utf8');
     assert(report.includes('- 取得日時: 2026-11-15T19:00:00.000Z') && report.includes('| 語01 |'), 'Bing の数字を載せる');
     fs.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  console.log('');
+  console.log('=== 14-8. 巡回の食い違いの日をレポートに出す（03 R12） ===');
+  {
+    const bing = bingFixture();
+    bing.latest.sections.crawl.conflicting_dates = ['2026-11-09', '2026-11-10'];
+    const text = buildSection({ bing });
+    assert(text.includes('- 巡回の数字が食い違ったため除いた日: 2026-11-09, 2026-11-10'),
+      '巡回の箇条書きの最後に食い違った日を出す');
+    const noConflict = bingFixture();
+    noConflict.latest.sections.crawl.conflicting_dates = [];
+    assert(!buildSection({ bing: noConflict }).includes('巡回の数字が食い違ったため除いた日'),
+      '食い違いが無ければ出さない');
+  }
+
+  console.log('');
+  console.log('=== 14-9. Bing の節が壊れていてもレポートを止めない（03 R15） ===');
+  {
+    const broken = reporter.buildReport({
+      latest: { fetched_at: '2026-11-15', range: { start: 'a', end: 'b' }, property: 'x' },
+      queries: [],
+      pages: [],
+      bing: { latest: { fetched_at: '2026-11-15T19:00:00.000Z', sections: {}, files: {} }, queries: { rows: [null] } },
+    });
+    assert(broken.includes('## Bing の数字（Bing Webmaster Tools）'), '見出しは出す');
+    assert(broken.includes('（Bing の数字を読めませんでした。data/bing-webmaster/ の中身を確かめてください）'),
+      'rows に null が混ざっても 1 行に閉じ込める');
+    assert(!broken.includes('Cannot read') && !broken.includes('TypeError'), '例外の文は出さない');
+
+    const broken2 = reporter.buildReport({
+      latest: { fetched_at: '2026-11-15', range: { start: 'a', end: 'b' }, property: 'x' },
+      queries: [],
+      pages: [],
+      bing: {
+        latest: { fetched_at: '2026-11-15T19:00:00.000Z', sections: 'こわれた', files: {} },
+        crawl: { rows: [null] },
+      },
+    });
+    assert(broken2.includes('（Bing の数字を読めませんでした。data/bing-webmaster/ の中身を確かめてください）'),
+      'sections が文字列でも止まらず 1 行に閉じ込める');
+    assert(broken2.includes('## 更新候補（上位 10）'), '後ろの節はそのまま続く');
   }
 
   console.log('');
