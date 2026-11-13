@@ -51,10 +51,22 @@ data/search-console/
 | 場所 | 何があるか |
 |---|---|
 | `scripts/fetch-search-console.js` | 取り込み本体（鍵が無ければスキップ） |
+| `scripts/fetch-bing-webmaster.js` | Bing Webmaster Tools の取り込み（鍵が無ければスキップ） |
+| `data/bing-webmaster/` | Bing の数字の保存先（レポートの「Bing の数字」の節のもと） |
 | `scripts/report-search-console.js` | `report.md` の生成 |
 | `.github/workflows/fetch-search-console.yml` | 週次の実行と PR 作成 |
 | `netlify/functions/admin-analytics-page.js` | 管理画面での表示 |
 | `netlify.toml` の `[functions] included_files` | 関数から `data/search-console/` を読めるようにする設定 |
+
+## Bing Webmaster Tools の取り込み
+
+Bing の数字（検索の表示・クリック、検索語、ページ、巡回、サイトマップ）を週次の取り込みに足しています。Bing が失敗しても、サーチコンソールの取り込み・レポート・PR・通知は今までどおり進みます。
+
+- **鍵**: GitHub Secret `BING_WEBMASTER_API_KEY`（2026-11-13 に毛利が登録済み）。鍵は利用者ごとに 1 つで、サイトごとではありません。作り直したら Secret も更新してください。未設定なら Bing だけスキップし、サーチコンソールの取り込みは今どおり動きます。
+- **取り込むもの**: 検索の表示・クリック（日ごと。ウェブ以外のチャット・ニュース・画像・動画も含む）、検索語・ページ（週ごとの上位だけ。合計は全体ではありません）、巡回（日ごと）、サイトマップ。AI Performance（AI の回答での引用）は API に窓口が無いので取り込みません（月 1 回、画面で確かめます）。
+- **貯まるもの**: `data/bing-webmaster/` に `latest.json`（最新の取り込みの所在）と `YYYYMMDD/` の 5 ファイル（traffic・queries・pages・crawl・feeds）。保持は直近 12 回分で、古い日付は自動で消えます。
+- **うまくいかないとき**: ログに `ErrorCode 3 InvalidApiKey` が出たら鍵の誤りです（Secret を貼り直す）。Bing が失敗してもサーチコンソールの PR は作られ、レポートの「Bing の数字」の節に「今週の Bing の取り込みは失敗したか未設定です」と出ます。
+- **試しに動かす**: Actions →「Fetch Search Console」→ Run workflow で `dry_run` に印を付けると、PR は作らず、結果を成果物 `bing-dry-run` に 3 日置きます。
 
 ## うまくいかないとき
 

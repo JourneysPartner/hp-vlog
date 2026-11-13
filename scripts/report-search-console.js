@@ -44,6 +44,36 @@ function readLinkConfig(filePath = path.join(ROOT, 'data', 'gsc-link-config.json
 }
 
 function readJson(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+
+/**
+ * Bing の取り込み（data/bing-webmaster/）を読む。無い・読めない・壊れているときは null。
+ * 個々のファイルが読めないときは、その項目だけ null にする。
+ */
+function readBingData(bingRoot) {
+  try {
+    const latestPath = path.join(bingRoot, 'latest.json');
+    if (!fs.existsSync(latestPath)) return null;
+    const latest = readJson(latestPath);
+    if (!latest || typeof latest !== 'object' || typeof latest.fetched_at !== 'string') return null;
+    const files = latest.files && typeof latest.files === 'object' ? latest.files : {};
+    const read = (key) => {
+      const rel = files[key];
+      if (typeof rel !== 'string' || !rel) return null;
+      try { return readJson(path.join(bingRoot, rel)); } catch (_) { return null; }
+    };
+    return {
+      latest,
+      traffic: read('traffic'),
+      queries: read('queries'),
+      pages: read('pages'),
+      crawl: read('crawl'),
+      feeds: read('feeds'),
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 function n(v) { return Number(v || 0).toLocaleString('ja-JP'); }
 function pct(v) { return `${(Number(v || 0) * 100).toFixed(1)}%`; }
 function pos(v) { return Number(v || 0).toFixed(1); }
@@ -299,6 +329,141 @@ function markdownLabel(value) {
   return String(value || '').replace(/[\[\]]/g, '');
 }
 
+/** Bing の節で使う小さな整形（数・順位・日付）。 */
+function bingNumber(value) {
+  return value === null || value === undefined || !Number.isFinite(Number(value)) ? '—' : n(value);
+}
+
+function bingPosition(value) {
+  return value === null || value === undefined || !Number.isFinite(Number(value)) ? '—' : pos(value);
+}
+
+function bingSum(rows, key) {
+  const values = rows.map(row => row && row[key]).filter(value => typeof value === 'number' && Number.isFinite(value));
+  return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
+}
+
+function bingFetchedDay(latest) {
+  const at = String((latest && latest.fetched_at) || '');
+  return /^\d{4}-\d{2}-\d{2}/.test(at) ? at.slice(0, 10) : '—';
+}
+
+/** GSC の取得が Bing より 3 日を超えて新しい = 今週の Bing の取り込みが失敗したか未設定。 */
+function bingIsStale(latest, gscLatest) {
+  const bingAt = Date.parse(latest && latest.fetched_at);
+  const gscAt = Date.parse(gscLatest && gscLatest.fetched_at);
+  if (!Number.isFinite(bingAt) || !Number.isFinite(gscAt)) return false;
+  return (gscAt - bingAt) > 3 * 86400000;
+}
+
+/**
+ * 「Bing の数字」の節（2026-11-13 bing-weekly R10）。
+ * 置き場所は「索引の状態」の後、「更新候補（上位 10）」の前。
+ */
+function buildBingSection({ bing = null, gscLatest = null, gscPages = null } = {}) {
+  const lines = ['## Bing の数字（Bing Webmaster Tools）', ''];
+  if (!bing || !bing.latest) {
+    lines.push('（Bing はまだ取り込まれていません。設定は docs/search-console-setup.md の「Bing Webmaster Tools の取り込み」を参照）');
+    return lines;
+  }
+
+  const latest = bing.latest;
+  const sections = latest.sections || {};
+  const window = latest.window || null;
+
+  if (bingIsStale(latest, gscLatest)) {
+    lines.push(`**今週の Bing の取り込みは失敗したか未設定です。以下は ${bingFetchedDay(latest)} の取り込みの数字です。**`);
+    lines.push('');
+  }
+
+  lines.push(`- 取得日時: ${latest.fetched_at}`);
+  if (!window) {
+    lines.push('- 期間: （まだ数字がありません）');
+  } else {
+    lines.push(`- 期間: ${window.start} 〜 ${window.end}（Bing が返した日数 ${bingNumber(window.days_reported)}/28）`);
+    const conflicts = Array.isArray(window.conflicting_dates) ? window.conflicting_dates : [];
+    if (conflicts.length) lines.push(`- Bing の数字が食い違ったため除いた日: ${conflicts.join(', ')}`);
+    const totals = latest.totals || {};
+    lines.push(`- 表示 ${n(totals.impressions)} ／ クリック ${n(totals.clicks)}（ウェブのほか、チャット・ニュース・画像・動画・ナレッジパネルの表示も含みます）`);
+  }
+  if (Array.isArray(gscPages) && gscLatest && gscLatest.range) {
+    const impressions = gscPages.reduce((sum, row) => sum + Number((row && row.impressions) || 0), 0);
+    const clicks = gscPages.reduce((sum, row) => sum + Number((row && row.clicks) || 0), 0);
+    lines.push(`- 参考: Google（ページ別の合計、${gscLatest.range.start}〜${gscLatest.range.end}）表示 ${n(impressions)} ／ クリック ${n(clicks)}`);
+  }
+  lines.push('- AI の回答での引用（AI Performance）は API で取れないため、月 1 回 Bing の画面で確かめます。');
+
+  const queryRows = bing.queries && Array.isArray(bing.queries.rows) ? bing.queries.rows : null;
+  lines.push('');
+  lines.push('### 検索語の上位 20（表示回数順）');
+  lines.push('');
+  if (sections.queries && sections.queries.status === 'failed') {
+    lines.push(`（取得に失敗しました: ${sections.queries.reason || '理由不明'}）`);
+  } else if (!queryRows || queryRows.length === 0) {
+    lines.push('（まだデータがありません）');
+  } else {
+    const queriesSection = sections.queries || {};
+    lines.push(`Bing は週ごとに上位の検索語だけを返すため、この表の合計は全体の数ではありません（期間内の週 ${n(queriesSection.weeks)}、うち上限に達した週 ${n(queriesSection.weeks_at_cap)}）。`);
+    lines.push('');
+    lines.push(table(['検索語', '表示', 'クリック', '平均順位'], queryRows.slice(0, 20).map(row => [
+      linkCell(row.query), n(row.impressions), n(row.clicks), bingPosition(row.position),
+    ])));
+  }
+
+  const pageRows = bing.pages && Array.isArray(bing.pages.rows) ? bing.pages.rows : null;
+  lines.push('');
+  lines.push('### ページの上位 20（クリック順）');
+  lines.push('');
+  if (sections.pages && sections.pages.status === 'failed') {
+    lines.push(`（取得に失敗しました: ${sections.pages.reason || '理由不明'}）`);
+  } else if (!pageRows || pageRows.length === 0) {
+    lines.push('（まだデータがありません）');
+  } else {
+    const top = [...pageRows]
+      .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0)
+        || Number(b.impressions || 0) - Number(a.impressions || 0))
+      .slice(0, 20);
+    lines.push(table(['ページ', '種別', 'クリック', '表示', '平均順位'], top.map(row => [
+      linkCell(row.page), pageKind(row.page), n(row.clicks), n(row.impressions), bingPosition(row.position),
+    ])));
+  }
+
+  const crawlRows = bing.crawl && Array.isArray(bing.crawl.rows)
+    ? [...bing.crawl.rows].sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    : null;
+  lines.push('');
+  lines.push('### 巡回とサイトマップ');
+  lines.push('');
+  if (sections.crawl && sections.crawl.status === 'failed') {
+    lines.push(`（取得に失敗しました: ${sections.crawl.reason || '理由不明'}）`);
+  } else if (!crawlRows || crawlRows.length === 0) {
+    lines.push('（まだデータがありません）');
+  } else {
+    const first = crawlRows[0];
+    const lastRow = crawlRows[crawlRows.length - 1];
+    const difference = typeof lastRow.InIndex === 'number' && typeof first.InIndex === 'number'
+      ? lastRow.InIndex - first.InIndex : null;
+    lines.push(`- 索引にあるページ（InIndex）: ${bingNumber(lastRow.InIndex)}（期間の初日 ${bingNumber(first.InIndex)}、差 ${difference === null ? '—' : signed(difference)}）`);
+    lines.push(`- 期間の合計: 巡回したページ ${bingNumber(bingSum(crawlRows, 'CrawledPages'))} ／ 巡回の誤り ${bingNumber(bingSum(crawlRows, 'CrawlErrors'))} ／ 4xx ${bingNumber(bingSum(crawlRows, 'Code4xx'))} ／ 5xx ${bingNumber(bingSum(crawlRows, 'Code5xx'))} ／ robots.txt で止めた ${bingNumber(bingSum(crawlRows, 'BlockedByRobotsTxt'))}`);
+    lines.push(`- 被リンク（InLinks、最新の日）: ${bingNumber(lastRow.InLinks)}`);
+  }
+
+  const feedRows = bing.feeds && Array.isArray(bing.feeds.rows) ? bing.feeds.rows : [];
+  lines.push('');
+  if (sections.feeds && sections.feeds.status === 'failed') {
+    lines.push(`（取得に失敗しました: ${sections.feeds.reason || '理由不明'}）`);
+  } else if (feedRows.length === 0) {
+    lines.push('（サイトマップの記録はありません）');
+  } else {
+    lines.push(table(['サイトマップ', '種類', '状態', '最後の読み込み', 'URL 数'], feedRows.map(row => [
+      linkCell(row.Url), linkCell(row.Type), linkCell(row.Status),
+      row.LastCrawled ? String(row.LastCrawled) : '—', bingNumber(row.UrlCount),
+    ])));
+  }
+
+  return lines;
+}
+
 function buildFreshnessSection(candidates = []) {
   const lines = ['## 更新候補（上位 10）', ''];
   const top = Array.isArray(candidates) ? candidates.slice(0, 10) : [];
@@ -435,7 +600,7 @@ function buildReport({
   freshnessCandidates = [],
   queryPages = null,
   postContents = new Map(),
-  linkTerms = [], placements = [], linkConfig = DEFAULT_LINK_CONFIG, now = new Date(),
+  linkTerms = [], placements = [], linkConfig = DEFAULT_LINK_CONFIG, bing = null, now = new Date(),
 }) {
   const byImp = [...queries].sort((a, b) => b.impressions - a.impressions);
   const top30 = byImp.slice(0, 30);
@@ -513,6 +678,8 @@ function buildReport({
     pickupConfig,
   }));
   lines.push('');
+  lines.push(...buildBingSection({ bing, gscLatest: latest, gscPages: pages }));
+  lines.push('');
   lines.push(...buildFreshnessSection(freshnessCandidates));
   lines.push('');
   return lines.join('\n');
@@ -559,6 +726,8 @@ function run(options = {}) {
   }
   const posts = readAllPosts();
   const postContents = readPublishedPostContents();
+  const bingRoot = options.bingRoot || path.join(ROOT, 'data', 'bing-webmaster');
+  const bing = readBingData(bingRoot);
   const md = buildReport({
     latest,
     queries,
@@ -572,6 +741,7 @@ function run(options = {}) {
     postContents,
     pickupConfig,
     freshnessCandidates,
+    bing,
     linkTerms: readInternalLinkTerms(path.join(ROOT, 'data', 'internal-link-terms.json')),
     placements: readInternalLinkPlacements(path.join(ROOT, 'data', 'internal-link-placements.json')),
     linkConfig: readLinkConfig(options.linkConfigPath),
@@ -593,6 +763,8 @@ module.exports = {
   newlyIndexed,
   buildIndexStatusSection,
   buildFreshnessSection,
+  buildBingSection,
+  readBingData,
   articleSlug,
   readPublishedPostContents,
   bestImpressionPage,

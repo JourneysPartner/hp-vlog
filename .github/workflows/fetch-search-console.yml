@@ -5,6 +5,7 @@ name: Fetch Search Console
 #
 # 必要な secret:
 #   GSC_SERVICE_ACCOUNT_JSON — サービスアカウントの鍵 JSON（設定手順は docs/search-console-setup.md）
+#   BING_WEBMASTER_API_KEY — Bing Webmaster Tools の API キー（任意。未設定なら Bing だけスキップ）
 # 未設定の場合はスキップして正常終了する。
 #
 # GSC 由来の記事候補はこの週次 PR で人が検収し、マージ後に生成プールへ入る。
@@ -16,6 +17,11 @@ on:
     inputs:
       skip_inspection:
         description: 'URL 検査を飛ばして検索データだけ取り込む'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: '試しに動かす（PR・通知・GSC 候補の更新をせず、結果を成果物に置く）'
         required: false
         default: false
         type: boolean
@@ -64,6 +70,16 @@ jobs:
             fi
           fi
 
+      - name: Fetch from Bing Webmaster Tools
+        env:
+          BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
+        run: |
+          if [ -z "$BING_WEBMASTER_API_KEY" ]; then
+            echo "::notice::BING_WEBMASTER_API_KEY が未設定のため Bing の取り込みをスキップします"
+          else
+            node scripts/fetch-bing-webmaster.js || echo "::warning::Bing の取り込みに失敗しました（サーチコンソールの処理は続けます）"
+          fi
+
       - name: Build freshness candidates and report
         run: |
           node scripts/build-freshness-candidates.js
@@ -71,6 +87,7 @@ jobs:
 
       - name: Update GSC topics
         id: gsc
+        if: ${{ inputs.dry_run != true }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_LUNA_MODEL: ${{ vars.OPENAI_LUNA_MODEL }}
@@ -78,11 +95,12 @@ jobs:
 
       - name: Create PR if changed
         id: pr
+        if: ${{ inputs.dry_run != true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GSC_TOPIC_SUMMARY: ${{ steps.gsc.outputs.summary }}
         run: |
-          if [ -z "$(git status --porcelain -- data/search-console data/freshness data/gsc-topics.json)" ]; then
+          if [ -z "$(git status --porcelain -- data/search-console data/freshness data/gsc-topics.json data/bing-webmaster)" ]; then
             echo "::notice::変更なし。PR は作成しません"
             exit 0
           fi
@@ -93,7 +111,7 @@ jobs:
           STAMP=$(date -u +%Y%m%d)
           BRANCH="search-console/${STAMP}"
           git checkout -b "$BRANCH"
-          git add data/search-console data/freshness
+          git add data/search-console data/freshness data/bing-webmaster
           if [ -f data/gsc-topics.json ]; then
             git add data/gsc-topics.json
           fi
@@ -107,7 +125,7 @@ jobs:
           fi
           if ! PR_URL=$(gh pr create --base main --head "$BRANCH" \
             --title "サーチコンソールの検索語を取り込み (${STAMP})" \
-            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。採用しない候補は削除せず `"status": "rejected"` を付けてください（削除すると翌週また提案されます）。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
+            --body "$(printf '検索語・ページ別の週次取り込みです。マージすると管理画面（/admin/analytics）の「検索語」に反映されます。GSC 由来の記事候補は、この PR で検収してからマージしてください。採用しない候補は削除せず `"status": "rejected"` を付けてください（削除すると翌週また提案されます）。\n\n%s\n\n## 新しい GSC 由来候補\n\n%s\n\n更新候補はレポート末尾に追加しています。\nBing の数字はレポートの「Bing の数字」の節にあります。\n全文: data/search-console/report.md' "$SUMMARY" "$GSC_TOPIC_SUMMARY")"); then
             echo "::error::PR の作成に失敗しました"
             exit 0
           fi
@@ -123,3 +141,14 @@ jobs:
           node scripts/notify-freshness-candidates.js \
             --pr-url "${PR_PR_URL}" \
             || echo "::warning::更新候補の通知に失敗しました（処理は継続）"
+
+      - name: Upload dry-run result
+        if: ${{ inputs.dry_run == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bing-dry-run
+          path: |
+            data/bing-webmaster/
+            data/search-console/report.md
+          retention-days: 3
+          if-no-files-found: warn
