@@ -190,6 +190,8 @@ function normalizedNumbers(text, range, forms) {
       if (bu) i++;
       continue;
     }
+    // 「十分」「不十分」の十は数として読まない。「十分の一」は分数として残す。
+    if (value === '十' && suffix.startsWith('分') && !/^分の[0-9〇零一二三四五六七八九十百千]/.test(suffix)) continue;
     // 「一定」「一般」などの漢数字は、数を示す文脈が無ければ読まない。
     if (!wari && !/[0-9]/.test(value) && !/(?:令和|平成|昭和|第|分の)$/.test(prefix) &&
       !/^(?:年|月|日|円|万|億|%|パーセント|割|分|歳|人|件|か月|ヶ月|カ月|ケ月|箇月)/.test(suffix)) continue;
@@ -657,7 +659,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s9';
+const LOGIC_VERSION = 'plan2-s10';
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
 const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
@@ -987,7 +989,7 @@ async function judgeClaims(claims, evidence, body, callLLM, options = {}) {
         ...(invalidRatio ? { invalid_ratio: true } : {}),
         ...(reason && r && STATUSES.includes(r.status) && r.status !== '資料なし' ? { rejected_answer: {
           status: r.status, evidence: pages.find(p => p.number === evidenceNo)?.id || r.evidence_id,
-          basis: String(r.basis ?? '').slice(0, 40), quote: quote.slice(0, 200),
+          basis: String(r.basis ?? '').slice(0, 40), quote,
         } } : {}),
         ...(status === '裏付けあり' && date && date <= cutoff ? { warning: '注意: 根拠の基準日が古い' } : {}),
       });

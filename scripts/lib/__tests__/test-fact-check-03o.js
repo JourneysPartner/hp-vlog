@@ -262,8 +262,10 @@ test('O7', '落とした答えの番号と引用を行に残し、表へ入れ�
   assert.deepEqual(F.compactRecord({ claims: [r] }).claims[0].rejected_answer, r.rejected_answer);
   const bad = await judge(RIGHT, RIGHT, '1234567890'.repeat(8), { answer: { evidence_id: 99 } });
   assert.equal(bad.rejected_answer.evidence, 99); assert.equal(bad.rejected_answer.basis.length, 40); assert.equal(bad.rejected_answer.quote, '');
-  const long = await judge(WRONG, '基礎控除は110万円です' + '原文の説明'.repeat(45) + '。', '1');
-  assert.equal(long.rejected_answer.quote.length, 200);
+  const longSource = '基礎控除は110万円です' + '原文の説明'.repeat(45) + '。';
+  const long = await judge(WRONG, longSource, '1');
+  assert.equal(long.rejected_answer.quote.length, longSource.length);
+  assert.ok(long.rejected_answer.quote.length > 200);
 });
 test('O8', '抜き出しと再抜き出しだけeffortを変え、未指定時は従来どおり', async () => {
   process.env.FACT_CHECK_EXTRACT_EFFORT = 'low';
@@ -297,7 +299,7 @@ test('O8', '差分記録のextract_effort不一致と古い記録のeffortを確
     assert.equal(same.record.incremental.reused, 1);
     const changed = await F.checkArticle(after, { ...opts, extractEffort: 'low', previousRaw: before, persist: false });
     assert.equal(changed.record.incremental, undefined);
-    assert.equal(changed.record.logic_version, 'plan2-s9');
+    assert.equal(changed.record.logic_version, 'plan2-s10');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 test('O8', '省略したcorrect・資料なしの番号が従来の空欄と同じ記録になる', async () => {
