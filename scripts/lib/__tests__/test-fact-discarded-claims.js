@@ -116,7 +116,7 @@ test('R8: 最初に捨てた金額の主張は承認を止めず、人の確認�
   assert.equal(record.review_items[0].pointed_sentence, original);
   assert.deepEqual(record.discarded_claims, [{ sentence: missing, heading: '', type: '金額', subject: '控除', claim: missing,
     s: 1, status: '本文に見つからない', pointed_sentence: original, stage: '抜き出し', blocks_approval: false }]);
-  assert.equal(record.logic_version, 'plan2-s9');
+  assert.equal(record.logic_version, 'plan2-s10');
   assert.equal(record.summary, '主張 0 件: 裏付けあり 0・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 1 件');
 });
 

@@ -103,11 +103,16 @@ function renderFactRemaining(record) {
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
 const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
+// 200 字ちょうどの引用は、記録の時点で切れている可能性があるため、その旨を添える。
+const QUOTE_TRUNCATED_NOTE = '<div class="small text-muted">この引用は 200 字ちょうどのため、記録の時点で切れている可能性があります（2026-11-13 より前の記録は先頭 200 字だけを残していました）。続きは資料のリンク先で確かめてください。</div>';
+function quoteTruncatedNote(answer) {
+  return String(answer?.quote || '').length === 200 ? QUOTE_TRUNCATED_NOTE : '';
+}
 
 function renderAiSupportedNumberEvidence(record, item) {
   const answer = item.rejected_answer || {};
   const evidence = evidenceRefs(record || {}, item).filter(e => e.id === answer.evidence);
-  return `${renderFactEvidence(record, { ...item, evidence, quote: '', evidence_id: '' }, true)}<blockquote>${escapeHtml(String(answer.quote || ''))}</blockquote>`;
+  return `${renderFactEvidence(record, { ...item, evidence, quote: '', evidence_id: '' }, true)}<blockquote>${escapeHtml(String(answer.quote || ''))}</blockquote>${quoteTruncatedNote(answer)}`;
 }
 
 function factReviewGroups(items) {
@@ -193,7 +198,7 @@ function renderGeneralizedAnswer(record, correction) {
   const ref = evidenceRefs(record, original).find(e => e.id === answer.evidence) || record.evidence?.[answer.evidence];
   const source = ref?.title || ref?.url || '';
   const message = `AI の答え: ${answer.status}${source ? `（${source}）` : ''}／機械が採らなかった理由: ${original.reject_reason || ''}`;
-  return `<div class="small mt-2">${escapeHtml(message)}</div><blockquote>${escapeHtml(String(answer.quote || '').slice(0, 200))}</blockquote>`;
+  return `<div class="small mt-2">${escapeHtml(message)}</div><blockquote>${escapeHtml(String(answer.quote || ''))}</blockquote>${quoteTruncatedNote(answer)}`;
 }
 
 function renderFactCheckSummary(meta, record, body) {
