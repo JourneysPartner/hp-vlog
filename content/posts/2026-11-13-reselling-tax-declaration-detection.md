@@ -59,21 +59,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "計画: 資料が見つからない制度 事業所得と雑所得の区分・給与所得者等の確定申告不要制度"
 summary: "せどりの売上を隠しても税務調査では帳簿や書類の検査が行われ、無申告は税金のほかに無申告加算税と延滞税がかかります。申告が必要になる所得の判定と帳簿の残し方を整理します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ 論点別ルールが未反映: individual_vs_corporate_treatment（表の該当行が現行の制度に合うか確認してください） / 論点別ルールが未反映: withholding_scope（該当箇所が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-13T17:47:20.030+09:00"
+publish_at: "2026-11-14T11:11:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-13T00:07:40.210Z"
-updated_at: "2026-11-13T00:07:40.210Z"
+updated_at: "2026-11-13T17:47:20.030+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 61 件: 裏付けあり 58・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 2・人が確かめる箇所 5 件・AI 裏付けあり・数字未確認 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 せどりで商品を売ると、フリマアプリの販売履歴や振込口座の入出金という形でお金の流れが残ります。申告の時期になると、この売上をどこまで申告すればよいのか、出さなかったら税務署に分かってしまうのか、気になってくるのではないでしょうか。
