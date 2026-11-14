@@ -375,25 +375,38 @@ function compareQuestionNumbers(a, b) {
 }
 
 /**
- * 後ろで見つけた札（indirect）の区切りは、前後の区切りの問番号の間にあるものだけ採る。
+ * kept（区切りとして残った問）の中で、後ろで見つけた札（indirect）の前後を
+ * すぐ隣の kept の区切りだけで見る。前後の 2 つが番号の順（前 < 後）で、
+ * その札が 2 つの間に入らないときだけ、その札を外す候補として返す。
  * 答の中の参照（「問 98 の場合」など）を問の始まりと取り違えないための歯止め。
- * 端に前後の区切りが無いときは、ある側だけと比べる。
+ *
+ * - 前後のどちらかが無いときは外さない（端の問を落とさない）。
+ * - 前後が番号の順でないときは外さない（並びの違う資料で正しい問を落とさない）。
+ * - 目次の区切りは kept に入らないため、前後の区切りとして見ない。
  */
-function filterIndirectMarks(marks) {
-  return marks.filter((mark, i) => {
-    if (!mark.indirect) return true;
-    const prev = marks[i - 1];
-    const next = marks[i + 1];
-    if (prev) {
-      const order = compareQuestionNumbers(prev.card, mark.card);
-      if (order !== null && order >= 0) return false;
-    }
-    if (next) {
-      const order = compareQuestionNumbers(mark.card, next.card);
-      if (order !== null && order >= 0) return false;
-    }
-    return true;
-  });
+function findOutOfOrderIndirectMarks(kept) {
+  const out = [];
+  for (let i = 0; i < kept.length; i++) {
+    const mark = kept[i];
+    if (!mark.indirect) continue;
+    const prev = kept[i - 1];
+    const next = kept[i + 1];
+    if (!prev || !next) continue;
+    if (compareQuestionNumbers(prev.card, next.card) !== -1) continue;
+    const fromPrev = compareQuestionNumbers(prev.card, mark.card);
+    const toNext = compareQuestionNumbers(mark.card, next.card);
+    if (fromPrev === null || toNext === null) continue;
+    // 前後の 2 つの間（前 < 札 < 後）に入るなら、正しい区切りとして残す。
+    if (fromPrev === -1 && toNext === -1) continue;
+    out.push(mark);
+  }
+  return out;
+}
+
+/** 上の判定で外す札を取り除いた一覧を返す。 */
+function filterIndirectMarks(kept) {
+  const drop = new Set(findOutOfOrderIndirectMarks(kept));
+  return kept.filter(mark => !drop.has(mark));
 }
 
 /**
@@ -463,8 +476,9 @@ function findQuestionMarks(flat) {
       const after = flat.slice(cardStart + card[0].length);
       if (/^[《≪〈]/.test(after)) continue;
       if (/^\s*(?:参照|をご参照|を参照|に参照)/.test(after)) continue;
-      // 参照の「問 98 の場合」「問 14 のとき」も問の始まりではない。
-      if (/^\s*の(?:場合|とき)/.test(after)) continue;
+      // 「問 98 の場合」のような参照は (a)（【答】の無い切れ端）と (b)（前後の
+      // 番号の間か）で外す。本物の札のすぐ後ろは 2 行目の書き出しで「の」で
+      // 始まることがあるため、ここでは「の場合」「のとき」を除外しない。
       candidates.push({
         index: heading.index,
         heading: heading[1],
@@ -584,20 +598,9 @@ function splitWithMarks(flat, marks) {
 }
 
 /**
- * 区切りの並びが問番号の順になっているか。抜粋を id 順につないだ入力など、
- * 並びが問番号の順でないときは「前後より大きい・小さい」の判定が使えない。
+ * 区切りの一覧で本文を切り出す。区切りの前後で問番号の並びを見て、答の中の
+ * 参照を問の始まりと取り違えた区切りを外す（呼び出し側で区切り直す）。
  */
-function isAscendingQuestionOrder(marks) {
-  const keys = marks.map(mark => questionNumberKey(mark.card)).filter(Boolean);
-  for (let i = 1; i < keys.length; i++) {
-    const before = keys[i - 1];
-    const after = keys[i];
-    if (after[0] < before[0]) return false;
-    if (after[0] === before[0] && after[1] <= before[1]) return false;
-  }
-  return true;
-}
-
 function splitByQuestion(text) {
   const flat = String(text || '').replace(/\s+/g, ' ').trim();
   let marks = findQuestionMarks(flat);
@@ -605,7 +608,7 @@ function splitByQuestion(text) {
 
   // (a) 後ろで見つけた札の区切りが捨てられる切れ端を作っていたら、その区切りを
   // 外して区切り直す。外すものが無くなるまで繰り返す（直接の区切りは外さない）。
-  // (b) 残った後ろ向きの区切りは、前後の区切りの問番号の間にあるものだけ採る。
+  // (b) 残った後ろ向きの区切りは、すぐ前後の kept の問番号の間にあるものだけ採る。
   for (;;) {
     const { parts, rejected, kept } = splitWithMarks(flat, marks);
     if (rejected.length > 0) {
@@ -614,12 +617,11 @@ function splitByQuestion(text) {
       if (marks.length === 0) return [];
       continue;
     }
-    // (b) は資料の並びが問番号の順のときだけ効かせる。抜粋を id 順につないだ
-    // 入力では「前後より大きい・小さい」が成り立たず、正しい問まで落とすため。
-    if (!isAscendingQuestionOrder(kept)) return parts;
-    const filtered = filterIndirectMarks(marks);
-    if (filtered.length !== marks.length) {
-      marks = filtered;
+    const keptAfter = filterIndirectMarks(kept);
+    if (keptAfter.length !== kept.length) {
+      const keep = new Set(keptAfter);
+      const drop = new Set(kept.filter(mark => !keep.has(mark)));
+      marks = marks.filter(mark => !drop.has(mark));
       if (marks.length === 0) return [];
       continue;
     }
@@ -1317,7 +1319,6 @@ module.exports = {
   splitWithMarks,
   findQuestionMarks,
   filterIndirectMarks,
-  isAscendingQuestionOrder,
   isIgnoredHeading,
   questionNumberKey,
   compareQuestionNumbers,

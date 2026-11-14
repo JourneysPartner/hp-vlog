@@ -17,7 +17,6 @@ const {
   splitByQuestion,
   findQuestionMarks,
   filterIndirectMarks,
-  isAscendingQuestionOrder,
   isIgnoredHeading,
   questionNumberKey,
   compareQuestionNumbers,
@@ -408,12 +407,37 @@ console.log('\n=== G1: 答の中の参照を問の始まりと取り違えない
   assert(JSON.stringify(filterIndirectMarks(gated).map(mark => mark.card))
     === JSON.stringify(['問99', '問100', '問101']),
   '前の区切り以下の問番号の区切りを外す（問98）');
-  assert(isAscendingQuestionOrder([
-    { card: '問99' }, { card: '問100' }, { card: '問101' },
-  ]), '問番号の順の区切りは昇順とみなす');
-  assert(!isAscendingQuestionOrder([
-    { card: '問10' }, { card: '問101' }, { card: '問11' },
-  ]), 'id 順につないだ並びは昇順とみなさない');
+
+  // 前後が同じ問番号（半角の問3 と全角の問３）のときは、前後が順でないので外さない。
+  const equalNeighbours = [
+    { card: '問3' },
+    { card: '問35', indirect: true },
+    { card: '問３' },
+  ];
+  assert(filterIndirectMarks(equalNeighbours).length === 3,
+    '前後の問番号が同じ（問3 と問３）なら後ろ向きの区切りを外さない');
+  // 前後と同じ問番号は「2 つの間」ではないので外す（参照の取り違えを残さない）。
+  const equalEdge = [
+    { card: '問3' },
+    { card: '問3', indirect: true },
+    { card: '問4' },
+  ];
+  assert(JSON.stringify(filterIndirectMarks(equalEdge).map(mark => mark.card))
+    === JSON.stringify(['問3', '問4']),
+  '前の区切りと同じ問番号の区切りは外す');
+  // 前後から外れた番号（問 125）は外す。両端が無いときは外さない。
+  const outside = [
+    { card: '問43' },
+    { card: '問125', indirect: true },
+    { card: '問45' },
+  ];
+  assert(JSON.stringify(filterIndirectMarks(outside).map(mark => mark.card))
+    === JSON.stringify(['問43', '問45']),
+  '前後の間に入らない問番号（問125）の区切りを外す');
+  assert(filterIndirectMarks([
+    { card: '問125', indirect: true },
+    { card: '問45' },
+  ]).length === 2, '前の区切りが無い後ろ向きの区切りは外さない');
 }
 
 console.log('\n=== G1: 区切った前後で文字が消えない（多重集合） ===');
@@ -467,6 +491,89 @@ console.log('\n=== R1: 答の中の参照では区切らない ===');
     assert(body901.replace(/\s+/g, '').includes(line.replace(/\s+/g, '')),
       `参照「${line.slice(0, 16)}…」が問901 の本文に残る`);
   }
+}
+
+console.log('\n=== H1: 後ろで見つけた札を、すぐ前後の区切りで外す ===');
+{
+  const flat = (s) => s.replace(/\s+/g, ' ').trim();
+  const text = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-jirei-poppler-21-43-excerpt.txt'), 'utf8',
+  );
+  const baseParts = splitByQuestion(flat(text));
+  const baseByNo = new Map(baseParts.map(part => [part.qNo, part]));
+  const baseQ43 = baseByNo.get('問43');
+  const baseQ21 = baseByNo.get('問21');
+  assert(!!baseQ43 && !!baseQ21, '事例編の抜粋に問43 と問21 がある');
+
+  // 問44 の入れ子の見出しの直前に参照を足す（poppler の並びのまま）。
+  const marker = '（物流センターの使用料（センターフィー） ）';
+  const add125 = '（関連する事例） 個別事例編の 問 125 もご覧ください。';
+  const parts125 = splitByQuestion(flat(text.replace(marker, `${add125} ${marker}`)));
+  const byNo125 = new Map(parts125.map(part => [part.qNo, part]));
+  assert(!byNo125.has('問125'), '参照の「問 125」を作り物の区切りとして残さない');
+  const q43 = byNo125.get('問43');
+  assert(!!q43 && !!baseQ43
+    && q43.body === baseQ43.body.replace(marker, `${add125} ${marker}`),
+  '問43 の本文が足した参照の分だけ増える');
+  const q21 = byNo125.get('問21');
+  assert(!!q21 && !!baseQ21 && q21.title === baseQ21.title && q21.body === baseQ21.body,
+    '問21 の題名と本文が変わらない');
+
+  // 同じ場所に「問 21」を足すと、問21 の本物の本文が作り物に入れ替わりかける。
+  const add21 = '（関連する事例） 個別事例編の 問 21 もご覧ください。';
+  const parts21 = splitByQuestion(flat(text.replace(marker, `${add21} ${marker}`)));
+  const byNo21 = new Map(parts21.map(part => [part.qNo, part]));
+  const q21after = byNo21.get('問21');
+  assert(!!q21after && !!baseQ21 && q21after.title === baseQ21.title
+    && q21after.body === baseQ21.body,
+  '参照の「問 21」を足しても問21 の題名と本文が変わらない');
+  assert(byNo21.get('問43') && baseQ43
+    && byNo21.get('問43').body === baseQ43.body.replace(marker, `${add21} ${marker}`),
+  '「問 21」を足しても問43 の本文は足した分だけ増える');
+
+  // 問3（半角、中身は問34）と問３（全角）に挟まれた、後ろで見つけた本物の問35 がある。
+  const sorted = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-jirei-poppler-sorted-excerpt.txt'), 'utf8',
+  );
+  const sortedParts = splitByQuestion(flat(sorted));
+  const sortedByNo = new Map(sortedParts.map(part => [part.qNo, part]));
+  assert(sortedByNo.has('問3') && sortedByNo.has('問３'),
+    '抜粋に半角の問3 と全角の問３ が両方ある');
+  const q35 = sortedByNo.get('問35');
+  assert(!!q35 && q35.title === '問35 カタログギフトの販売',
+    '前後の問番号が同じ（問3 と問３）でも問35 を外さない');
+
+  // 目次（直接形、【答】なし）のすぐ後ろの本物の問1 が後ろで札を見つける形。
+  const toc = `（目次）問1 ${'目次にある質問です。'.repeat(8)} ${'·'.repeat(12)} 3`;
+  const real = '（新聞の譲渡） 軽減税率が適用される新聞の譲渡とは 問1 どのようなものですか。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。 【答】 ${'回答本文です。'.repeat(30)}`;
+  const tocParts = splitByQuestion([toc, real, filler(901), filler(902), filler(903), filler(904)].join(' '));
+  const q1 = tocParts.find(part => part.qNo === '問1');
+  assert(!!q1, '目次のすぐ後ろの後ろ向きの問1 が欠けない');
+  assert(!!q1 && q1.title === '問1 新聞の譲渡', '問1 の題名を目次ではなく本物の見出しから採る');
+}
+
+console.log('\n=== H2: 2行目が「の場合」でも、後ろで見つける本物の札を残す ===');
+{
+  const flat = (s) => s.replace(/\s+/g, ' ').trim();
+  const text = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-gaiyo-poppler-17-excerpt.txt'), 'utf8',
+  );
+  const baseParts = splitByQuestion(flat(text));
+  const baseQ17 = baseParts.find(part => part.qNo === '問17');
+  assert(!!baseQ17, '概要編の問17 を抜粋から拾う');
+
+  const from = ' の特例（経過措置）の概要を教えてください。';
+  const to = ' の場合の特例（経過措置）の概要を教えてください。';
+  const mutated = text.replace(from, to);
+  assert(mutated !== text, '問17 の2行目を「の場合…」に変えた');
+  const parts = splitByQuestion(flat(mutated));
+  const q17 = parts.find(part => part.qNo === '問17');
+  assert(!!q17, '2行目が「の場合…」でも問17 が欠けない');
+  assert(parts.length === baseParts.length, '2行目を変えても問の数が変わらない');
+  assert(!!q17 && !!baseQ17 && q17.body === baseQ17.body.replace(from, to),
+    '問17 の本文が変えた所だけ違って残る');
 }
 
 console.log('\n=== R1: 今の形（xpdf の並び）の結果は変えない ===');
