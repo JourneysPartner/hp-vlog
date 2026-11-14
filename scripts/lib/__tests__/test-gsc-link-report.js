@@ -139,7 +139,7 @@ try {
   check('R12: 問題なし', () => assert(section(buildInternalLinkSections({ ...options, linkTerms: [linkTerms[0]] }).join('\n'), '辞書の行き先の点検').includes('（問題ありません）')));
   check('4節は狙った語の直後に既存の順を維持して置く', () => {
     const text = buildReport({ ...options, latest: { fetched_at: 'today', range: { start: 'a', end: 'b' }, property: 'test' } });
-    assert.deepStrictEqual(text.match(/^## .+/gm), ['## 検索語の上位30（表示回数順）', '## 伸ばしやすい語（順位11〜30位で表示回数が多いもの）', '## 狙った語の順位', '## 内部リンクの候補（順位 4〜20 位）', '## 足したリンクのその後', '## 長い質問の検索語', '## 辞書の行き先の点検', '## ページ別の上位30（クリック順）', '## ページ種別ごとの合計', '## 前回との差分（新しく表示され始めた検索語）', '## 索引の状態', '## 更新候補（上位 10）']);
+    assert.deepStrictEqual(text.match(/^## .+/gm), ['## 検索語の上位30（表示回数順）', '## 伸ばしやすい語（順位11〜30位で表示回数が多いもの）', '## 狙った語の順位', '## 内部リンクの候補（順位 4〜20 位）', '## 足したリンクのその後', '## 長い質問の検索語', '## 辞書の行き先の点検', '## ページ別の上位30（クリック順）', '## ページ種別ごとの合計', '## 前回との差分（新しく表示され始めた検索語）', '## 索引の状態', '## Bing の数字（Bing Webmaster Tools）', '## 更新候補（上位 10）']);
   });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gsc-link-report-'));
   try {
