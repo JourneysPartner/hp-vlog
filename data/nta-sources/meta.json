@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "last_crawl_started_at": "2026-10-01T20:02:27.395Z",
-  "last_crawl_finished_at": "2026-10-01T20:50:13.506Z",
-  "last_crawl_duration_seconds": 2866,
+  "last_crawl_started_at": "2026-11-01T19:18:08.505Z",
+  "last_crawl_finished_at": "2026-11-01T19:57:22.496Z",
+  "last_crawl_duration_seconds": 2354,
   "crawl_results": {
-    "fetched": 535,
-    "skipped": 1691,
+    "fetched": 109,
+    "skipped": 2117,
     "deleted": 0,
-    "errors_count": 11
+    "errors_count": 13
   },
   "by_type": {
     "shitsugi": 1550,
-    "taxanswer": 677
+    "taxanswer": 679
   },
   "total_entries_processed": 2226,
   "errors_sample": [
@@ -39,6 +39,16 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5437.htm",
       "reason": "parse_failed",
       "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5437.htm"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm",
+      "reason": "parse_failed",
+      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm"
+    },
+    {
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm",
+      "reason": "parse_failed",
+      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm"
     },
     {
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6950.htm",
