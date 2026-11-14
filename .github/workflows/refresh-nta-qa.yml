@@ -45,6 +45,7 @@ jobs:
       - name: Crawl
         env:
           INPUT_ONLY: ${{ github.event.inputs.only }}
+          NTA_QA_REPORT: ${{ runner.temp }}/nta-qa-report.md
         run: |
           if [ -n "$INPUT_ONLY" ] && [[ ! "$INPUT_ONLY" =~ ^[A-Za-z0-9_.,:/-]+$ ]]; then
             echo "::error::only は英数字と _ - . , : / だけで指定してください。"
@@ -59,10 +60,25 @@ jobs:
         run: |
           node scripts/has-substantive-change.js data/nta-qa >> "$GITHUB_OUTPUT"
 
+      - name: Report skipped sources
+        if: steps.changes.outputs.changed != 'true'
+        env:
+          NTA_QA_REPORT: ${{ runner.temp }}/nta-qa-report.md
+        run: |
+          if [ -s "$NTA_QA_REPORT" ] && grep -q '区切りを見失った問があるため' "$NTA_QA_REPORT"; then
+            while IFS= read -r line; do
+              case "$line" in
+                '- 区切りを見失った問があるため'*) echo "::warning::$line" ;;
+              esac
+            done < "$NTA_QA_REPORT"
+            cat "$NTA_QA_REPORT" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Create PR if changed
         if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NTA_QA_REPORT: ${{ runner.temp }}/nta-qa-report.md
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -82,7 +98,13 @@ jobs:
             console.log('| 本文の総量 | ' + idx.entries.reduce((s, e) => s + (e.char_count_body || 0), 0).toLocaleString() + '文字 |');
           ")
 
+          BODY_FILE="${RUNNER_TEMP:-/tmp}/nta-qa-pr-body.md"
+          {
+            printf '国税庁のQ&A・事例集を取り直しました。内容が変わった資料があります。\n\n%s\n\n' "$SUMMARY"
+            if [ -s "$NTA_QA_REPORT" ]; then cat "$NTA_QA_REPORT"; fi
+            printf '### 検収の観点\n- 改訂された問の内容が妥当か（【令和○年○月改訂】の記載を確認）\n- 既存記事の根拠が変わっていないか\n\nマージすると、以後の記事生成でこの原文が参照されます。\n'
+          } > "$BODY_FILE"
           gh pr create --base main --head "$BRANCH" \
             --title "国税庁Q&Aカタログを更新 (${STAMP})" \
-            --body "$(printf '国税庁のQ&A・事例集を取り直しました。内容が変わった資料があります。\n\n%s\n\n### 検収の観点\n- 改訂された問の内容が妥当か（【令和○年○月改訂】の記載を確認）\n- 既存記事の根拠が変わっていないか\n\nマージすると、以後の記事生成でこの原文が参照されます。' "$SUMMARY")" \
+            --body-file "$BODY_FILE" \
             || echo "::error::PR の作成に失敗しました"

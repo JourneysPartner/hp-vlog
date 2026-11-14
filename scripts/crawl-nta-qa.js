@@ -325,10 +325,135 @@ function parseQaText(raw) {
  * 先頭には目次が付いており、そこにも同じ「（見出し）問N」が並ぶ。本文にだけある
  * 「【答】」と長さ、ページ番号の点線で目次を除外する。
  */
+const QUESTION_CARD_RE = /問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?/g;
+const QUESTION_HEADING_RE = /（([^（）]{2,60})）/g;
+
+/** 見出しが段落の先頭（前が文末かページ番号）にあるか。 */
+function startsParagraph(flat, index) {
+  const before = flat.slice(0, index).replace(/\s+$/, '');
+  if (!before) return true;
+  if (/[。！？]$/.test(before)) return true;
+  // ページ番号の直後は、章の見出しを挟んでいても段落の先頭とみなす。
+  const page = before.match(/- \d+ -([\s\S]{0,40})$/);
+  return !!page && !/[。！？]/.test(page[1]);
+}
+
+/**
+ * 問の始まり（「（見出し）」の位置と、そこに属する「問N」の札）を集める。
+ *
+ * xpdf の並びは「（見出し） 問N 本文…」だが、poppler の並びでは左余白の
+ * 「問N」の札が 1 行目の後ろに来る（「（見出し） 本文… 問N 本文…」）。
+ * 後者も「（見出し）」を問の始まりとして拾う。札の位置だけを後で動かす。
+ */
+function findQuestionMarks(flat) {
+  const directRe = /（([^（）]{2,60})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/g;
+  const direct = [...flat.matchAll(directRe)];
+  const marks = direct.map((m) => {
+    const cardStart = m.index + m[0].length - m[2].length;
+    return {
+      index: m.index,
+      heading: m[1],
+      headingEnd: m.index + m[0].indexOf('）') + 1,
+      card: m[2],
+      cardStart,
+      indirect: false,
+    };
+  });
+  const directHeadingStarts = new Set(marks.map(mark => mark.index));
+  const claimedCards = new Set(marks.map(mark => mark.cardStart));
+  const headings = [...flat.matchAll(QUESTION_HEADING_RE)];
+  const cardRe = new RegExp(QUESTION_CARD_RE.source, 'g');
+
+  // まず「（見出し）」ごとに、200字以内で最初に条件を満たす札を候補にする。
+  const candidates = [];
+  for (const heading of headings) {
+    if (directHeadingStarts.has(heading.index)) continue;
+    // 法令・通達の引用（「（消法２①九の二）」「（基通５－９－12）」など）は見出しではない。
+    if (/消法|消令|基通|附則|別表|通達/.test(heading[1])) continue;
+    // 「（参考）」「（注）」などの欄外の見出しも問の見出しではない。
+    if (/^(?:参考|注|注釈|凡例|目次|はじめに)$/.test(heading[1].trim())) continue;
+    // 文（「…といいます。」など）は見出しではない。
+    if (/。$/.test(heading[1].trim())) continue;
+    const headingEnd = heading.index + heading[0].length;
+    // 見出しは行の先頭にあり、後ろは空白で区切られる。本文中の括弧
+    //（「（スーパーマーケット）を営む」「（又は仕入れ）に係る」など）は拾わない。
+    if (flat[headingEnd] !== ' ') continue;
+    const windowEnd = Math.min(flat.length, headingEnd + 200);
+    const between = flat.slice(headingEnd, windowEnd);
+
+    for (const card of between.matchAll(cardRe)) {
+      const cardStart = headingEnd + card.index;
+      // 間に直接形の「（見出し）＋問番号」が始まっていたら、その見出しに譲る。
+      if (marks.some(mark => mark.index > heading.index && mark.index < cardStart)) break;
+      // 「（見出し）」と「問N」の間に【答】が無いこと。
+      const beforeCard = between.slice(0, card.index);
+      if (beforeCard.includes('【答】')) break;
+      // 見出しの途中で閉じ括弧だけが余る形（入れ子の見出しの断片）は拾わない。
+      let depth = 0;
+      let unbalanced = false;
+      for (const char of beforeCard) {
+        if (char === '（') depth++;
+        else if (char === '）' && --depth < 0) { unbalanced = true; break; }
+      }
+      if (unbalanced) continue;
+      // 答の中の参照を拾わない。
+      //   問115《…》 / （問 80《…》参照） / 【問 17 参照】 / 問 14 をご参照ください
+      if (flat[cardStart - 1] === '（' || flat[cardStart - 1] === '【') continue;
+      const after = flat.slice(cardStart + card[0].length);
+      if (/^[《≪〈]/.test(after)) continue;
+      if (/^\s*(?:参照|をご参照|を参照|に参照)/.test(after)) continue;
+      candidates.push({
+        index: heading.index,
+        heading: heading[1],
+        headingEnd,
+        card: card[0],
+        cardStart,
+        paragraph: startsParagraph(flat, heading.index),
+      });
+      break;
+    }
+  }
+
+  // 同じ札に複数の見出しが立つことがある（本文中の括弧 vs 問の見出し）。
+  // 段落の先頭にある見出しを優先し、その中で札に最も近いものを採る。
+  const byCard = new Map();
+  for (const candidate of candidates) {
+    if (claimedCards.has(candidate.cardStart)) continue;
+    const list = byCard.get(candidate.cardStart) || [];
+    list.push(candidate);
+    byCard.set(candidate.cardStart, list);
+  }
+  for (const [cardStart, list] of byCard) {
+    const paragraph = list.filter(candidate => candidate.paragraph);
+    const pool = paragraph.length > 0 ? paragraph : list;
+    const chosen = pool.reduce((a, b) => (b.index > a.index ? b : a));
+    marks.push({
+      index: chosen.index,
+      heading: chosen.heading,
+      headingEnd: chosen.headingEnd,
+      card: chosen.card,
+      cardStart,
+      indirect: true,
+    });
+    claimedCards.add(cardStart);
+  }
+
+  marks.sort((a, b) => a.index - b.index);
+  return marks;
+}
+
+/** 札を元の位置から取り除き、「（見出し）」の直後に置く（札以外の文字は変えない）。 */
+function relocateQuestionCard(body, headingEnd, cardStart, card) {
+  const heading = body.slice(0, headingEnd);
+  const before = body.slice(headingEnd, cardStart);
+  const after = body.slice(cardStart + card.length);
+  const rest = (before + after).replace(/\s+/g, ' ').trim();
+  return rest ? `${heading} ${card} ${rest}` : `${heading} ${card}`;
+}
+
 function splitByQuestion(text) {
   const flat = String(text || '').replace(/\s+/g, ' ').trim();
-  const re = /（([^（）]{2,60})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/g;
-  const marks = [...flat.matchAll(re)];
+  const marks = findQuestionMarks(flat);
   if (marks.length < 5) return [];   // 分割対象ではない
 
   const out = [];
@@ -336,8 +461,16 @@ function splitByQuestion(text) {
   for (let i = 0; i < marks.length; i++) {
     const start = marks[i].index;
     const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
-    const body = flat.slice(start, end).trim();
-    const qNo = marks[i][2].replace(/\s/g, '');
+    let body = flat.slice(start, end).trim();
+    if (marks[i].indirect) {
+      body = relocateQuestionCard(
+        body,
+        marks[i].headingEnd - start,
+        marks[i].cardStart - start,
+        marks[i].card,
+      );
+    }
+    const qNo = marks[i].card.replace(/\s/g, '');
     // 本文は「【答】」を含む。目次には答が無く、ページ番号の点線がある。
     if (!/【答】/.test(body)) continue;
     if (body.length < 150) continue;
@@ -345,10 +478,10 @@ function splitByQuestion(text) {
     // 同じ問が目次と本文で2回出る。長い方（本文）を採る
     const prev = seen.get(qNo);
     if (prev) {
-      if (body.length > prev.body.length) { prev.body = body; prev.title = `${qNo} ${marks[i][1]}`; }
+      if (body.length > prev.body.length) { prev.body = body; prev.title = `${qNo} ${marks[i].heading}`; }
       continue;
     }
-    const rec = { qNo, title: `${qNo} ${marks[i][1]}`, body };
+    const rec = { qNo, title: `${qNo} ${marks[i].heading}`, body };
     seen.set(qNo, rec);
     out.push(rec);
   }
@@ -452,6 +585,40 @@ function shouldSkipBodyUpdate(existingRecord, newRecord) {
     && newRecord.body.length < existingRecord.body.length * 0.5;
 }
 
+/** 空白をすべて除いた文字の多重集合が同じか（並び順だけの違いをみる）。 */
+function sameCharMultiset(a, b) {
+  const count = (value) => {
+    const map = new Map();
+    for (const char of String(value || '').replace(/\s+/g, '')) {
+      map.set(char, (map.get(char) || 0) + 1);
+    }
+    return map;
+  };
+  const left = count(a);
+  const right = count(b);
+  if (left.size !== right.size) return false;
+  for (const [char, n] of left) {
+    if (right.get(char) !== n) return false;
+  }
+  return true;
+}
+
+/**
+ * PDF の抽出器が変わって文字の並び順だけが変わった場合（本文の文字の
+ * 多重集合が同じで、題名も空白を除けば同じ）は、今ある本文を残す。
+ * 1 字でも違えば本物の改訂として新しい本文を採る。
+ */
+function isReorderOnly(existingRecord, newRecord) {
+  if (!existingRecord || typeof existingRecord.body !== 'string') return false;
+  if (!newRecord || typeof newRecord.body !== 'string') return false;
+  const before = existingRecord.body.replace(/\s+/g, '');
+  const after = newRecord.body.replace(/\s+/g, '');
+  if (before === after) return false;
+  if (!sameCharMultiset(before, after)) return false;
+  if (typeof existingRecord.title !== 'string' || typeof newRecord.title !== 'string') return false;
+  return existingRecord.title.replace(/\s+/g, '') === newRecord.title.replace(/\s+/g, '');
+}
+
 function getStaleSplitFileNames(source, writtenFileNames, existingFileNames, options = {}) {
   if (!source || (!source.split && !source.splitBy) || options.limitSpecified) return [];
   const written = new Set(writtenFileNames || []);
@@ -549,11 +716,12 @@ function dedupeIndexEntries(entries, options = {}) {
 }
 
 function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
-  const dir = path.join(OUT_DIR, sourceKey);
+  const outDir = options.outDir || OUT_DIR;
+  const dir = path.join(outDir, sourceKey);
   fs.mkdirSync(dir, { recursive: true });
   const file = `${doc.id}.json`;
   const relative = path.join(sourceKey, file).replace(/\\/g, '/');
-  const filePath = path.join(OUT_DIR, relative);
+  const filePath = path.join(outDir, relative);
   const title = doc.title || parsed.title || `${source.label} ${doc.id}`;
   const record = {
     id: doc.id,
@@ -575,9 +743,20 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
   try { existingRecord = JSON.parse(fs.readFileSync(filePath, 'utf8')); }
   catch (_) { /* 新規ファイル、または既存ファイルを読み取れない場合は通常どおり保存する */ }
 
+  if (isReorderOnly(existingRecord, record)) {
+    // 文字の並び順だけが違う（本物の改訂ではない）。今ある本文・題名を残す。
+    record.body = existingRecord.body;
+    record.title = existingRecord.title;
+    record.char_count_body = typeof existingRecord.char_count_body === 'number'
+      ? existingRecord.char_count_body
+      : existingRecord.body.length;
+    fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
+    return { relative, record, reordered: true };
+  }
+
   if (shouldSkipBodyUpdate(existingRecord, record)) {
     const warn = typeof options.warn === 'function' ? options.warn : console.warn;
-    const displayPath = path.relative(ROOT, filePath).replace(/\\/g, '/');
+    const displayPath = path.relative(options.root || ROOT, filePath).replace(/\\/g, '/');
     warn(`[warn] 本文が大幅に短くなるため更新を見送りました\n`
       + `       ${displayPath}  ${existingRecord.body.length}字 → ${record.body.length}字\n`
       + '       PDF のテキスト抽出が目次を拾った可能性があります');
@@ -586,6 +765,67 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
 
   fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
   return { relative, record };
+}
+
+/**
+ * その資料（doc.id）の、いまある問のファイルと問番号を読む。
+ * 区切りの取り直しで問が消えていないかを見るのに使う。
+ */
+function readExistingDocEntries(outDir, sourceKey, docId) {
+  const dir = path.join(outDir, sourceKey);
+  const fileNames = fs.existsSync(dir)
+    ? fs.readdirSync(dir)
+      .filter(name => /\.json$/i.test(name)
+        && (name === `${docId}.json` || name.startsWith(`${docId}-`)))
+      .sort()
+    : [];
+  const qNos = new Set();
+  for (const name of fileNames) {
+    try {
+      const record = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+      if (record && record.q_no) qNos.add(record.q_no);
+    } catch (_) { /* 読めないファイルは控えに含めない */ }
+  }
+  return { fileNames, qNos };
+}
+
+function sortQuestionNumbers(qNos) {
+  return [...qNos].sort((a, b) => a.localeCompare(b, 'ja', { numeric: true }));
+}
+
+/** R3 で更新を見送った資料の索引の行を、前のまま残す。 */
+function preservedIndexEntries(entries, sourceKey, filePaths) {
+  const preserved = new Set(filePaths || []);
+  return (entries || []).filter(entry => entry.source_key === sourceKey
+    && preserved.has(entry.file_path));
+}
+
+/** R4: 取り込みの報告（R2 の件数・R3 の見送り・本文短縮の見送り）を Markdown にする。 */
+function buildReport(summary = {}) {
+  const reorderedCount = Number(summary.reorderedCount) || 0;
+  const skippedUpdates = Number(summary.skippedUpdates) || 0;
+  const skippedDocs = Array.isArray(summary.skippedDocs) ? summary.skippedDocs : [];
+  const lines = ['### 取り込みの報告', ''];
+  if (reorderedCount > 0) {
+    lines.push(`- 並び替えだけのため本文を残した ${reorderedCount} 件`);
+  }
+  for (const skipped of skippedDocs) {
+    lines.push(`- 区切りを見失った問があるため ${skipped.docId} は更新していません: `
+      + `${sortQuestionNumbers(skipped.missing || []).join(', ')}`);
+  }
+  if (skippedUpdates > 0) {
+    lines.push(`- 本文が大幅に短くなるため更新を見送った ${skippedUpdates} 件`);
+  }
+  if (lines.length === 2) lines.push('- 特記事項はありません');
+  return `${lines.join('\n')}\n`;
+}
+
+/** R4: NTA_QA_REPORT が指定されていれば報告を書く。指定が無ければ何もしない。 */
+function writeReport(reportPath, summary) {
+  if (!reportPath) return false;
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  fs.writeFileSync(reportPath, buildReport(summary), 'utf8');
+  return true;
 }
 
 function loadIndex() {
@@ -610,6 +850,12 @@ async function crawlSource(sourceKey, source, options = {}) {
   const limit = Number.isInteger(options.limit) && options.limit > 0 ? options.limit : null;
   const delayMs = options.delayMs === undefined ? FETCH_DELAY_MS : options.delayMs;
   const logger = options.logger === undefined ? console : options.logger;
+  const outDir = options.outDir || OUT_DIR;
+  const root = options.root || (outDir === OUT_DIR ? ROOT : outDir);
+  const fetchBufferFn = options.fetchBuffer || fetchBuffer;
+  const extractText = options.extractText
+    || ((buf) => (source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf)));
+  const isSplit = !!(source.split || source.splitBy);
   const log = (m) => { if (logger && logger.log) logger.log(m); };
   const warn = (m) => { if (logger && logger.warn) logger.warn(m); };
 
@@ -617,7 +863,7 @@ async function crawlSource(sourceKey, source, options = {}) {
 
   // 目次ページから PDF リンクを集める
   if (source.indexUrl) {
-    const html = decodeHtml(await fetchBuffer(source.indexUrl));
+    const html = decodeHtml(await fetchBufferFn(source.indexUrl));
     const seen = new Set();
     // href はアンカー付き（…/01.htm#a001）のことがあるので # の手前まで拾う。
     const ext = source.format === 'html' ? 'htm' : 'pdf';
@@ -637,20 +883,30 @@ async function crawlSource(sourceKey, source, options = {}) {
 
   const list = limit ? targets.slice(0, limit) : targets;
   const saved = [];
+  const skippedDocs = [];
+  const protectedFileNames = new Set();
+  const preservedFilePaths = [];
   let failed = 0;
   let skippedUpdates = 0;
+  let reorderedCount = 0;
 
   const save = (doc, parsed, url) => {
-    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn });
+    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn, outDir, root });
     if (result.skipped) skippedUpdates++;
+    if (result.reordered) reorderedCount++;
     saved.push(result);
   };
 
   for (let i = 0; i < list.length; i++) {
     const doc = list[i];
+    let skippedThisDoc = false;
     try {
-      const buf = await fetchBuffer(doc.url);
-      const text = source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf);
+      // R3: 取り込み前に、その資料のいまある問番号を控える。
+      const existingDoc = isSplit
+        ? readExistingDocEntries(outDir, sourceKey, doc.id)
+        : { fileNames: [], qNos: new Set() };
+      const buf = await fetchBufferFn(doc.url);
+      const text = extractText(buf);
       // まとめPDF は問ごとに分ける。分けないと本文の上限で冒頭しか渡らない。
       // まとめPDF の分け方は資料によって違う。
       //   question … 「（見出し）問N …」（軽減税率）
@@ -660,16 +916,38 @@ async function crawlSource(sourceKey, source, options = {}) {
       const parts = splitBy === 'numbered' ? splitByNumberedHeading(text)
         : splitBy === 'paren' ? splitByParenQuestion(text)
         : splitBy === 'question' ? splitByQuestion(text) : [];
-      if (parts.length > 0) {
-        for (const part of resolveEntryIds(doc.id, parts, { warn })) {
-          const sub = { id: part.id, title: part.title };
-          save(sub, part, doc.url);
+
+      if (isSplit) {
+        const newQNos = new Set(parts.map(part => part.qNo));
+        const missing = parts.length > 0
+          ? [...existingDoc.qNos].filter(qNo => !newQNos.has(qNo))
+          : [...existingDoc.qNos];
+        if (existingDoc.qNos.size > 0 && missing.length > 0) {
+          // 今あるはずの問が見つからない。その資料は書かない・消さない。
+          skippedThisDoc = true;
+          const missingSorted = sortQuestionNumbers(missing);
+          skippedDocs.push({ sourceKey, docId: doc.id, missing: missingSorted });
+          for (const fileName of existingDoc.fileNames) {
+            protectedFileNames.add(fileName);
+            preservedFilePaths.push(path.join(sourceKey, fileName).replace(/\\/g, '/'));
+          }
+          warn(`[nta-qa] 区切りを見失った問があるため ${doc.id} は更新していません: `
+            + `${missingSorted.join(', ')}`);
         }
-        log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
-      } else {
-        const parsed = parseQaText(text);
-        if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
-        save(doc, parsed, doc.url);
+      }
+
+      if (!skippedThisDoc) {
+        if (parts.length > 0) {
+          for (const part of resolveEntryIds(doc.id, parts, { warn })) {
+            const sub = { id: part.id, title: part.title };
+            save(sub, part, doc.url);
+          }
+          log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
+        } else {
+          const parsed = parseQaText(text);
+          if (!parsed || parsed.body.length < 50) throw new Error('本文を抽出できませんでした');
+          save(doc, parsed, doc.url);
+        }
       }
     } catch (error) {
       failed++;
@@ -679,7 +957,7 @@ async function crawlSource(sourceKey, source, options = {}) {
     if ((i + 1) % 20 === 0) log(`[nta-qa] ${i + 1}/${list.length}`);
   }
 
-  const sourceDir = path.join(OUT_DIR, sourceKey);
+  const sourceDir = path.join(outDir, sourceKey);
   const existingFileNames = fs.existsSync(sourceDir)
     ? fs.readdirSync(sourceDir, { withFileTypes: true })
       .filter(entry => entry.isFile())
@@ -689,7 +967,7 @@ async function crawlSource(sourceKey, source, options = {}) {
   const staleFileNames = getStaleSplitFileNames(
     source,
     writtenFileNames,
-    existingFileNames,
+    existingFileNames.filter(name => !protectedFileNames.has(name)),
     { limitSpecified },
   );
   for (const fileName of staleFileNames) fs.unlinkSync(path.join(sourceDir, fileName));
@@ -699,8 +977,16 @@ async function crawlSource(sourceKey, source, options = {}) {
   }
 
   log(`[nta-qa] ${source.label}: ${saved.length} 件保存${failed ? `（失敗 ${failed} 件）` : ''}`
-    + `${skippedUpdates ? `（本文短縮による更新見送り ${skippedUpdates} 件）` : ''}`);
-  return { saved, failed, skippedUpdates };
+    + `${skippedUpdates ? `（本文短縮による更新見送り ${skippedUpdates} 件）` : ''}`
+    + `${reorderedCount ? `（並び替えだけのため本文を残した ${reorderedCount} 件）` : ''}`);
+  return {
+    saved,
+    failed,
+    skippedUpdates,
+    reorderedCount,
+    skippedDocs,
+    preservedFilePaths,
+  };
 }
 
 async function main() {
@@ -724,14 +1010,19 @@ async function main() {
   if (keysToRun.some(k => SOURCES[k] && SOURCES[k].format !== 'html')) ensurePdftotext();
 
   const index = loadIndex();
+  const previousEntries = index.entries;
   const keys = keysToRun;
   let skippedUpdates = 0;
+  let reorderedCount = 0;
+  const skippedDocs = [];
   for (const key of keys) {
     const source = SOURCES[key];
     if (!source) { console.error(`[nta-qa] 未知の対象: ${key}`); process.exit(1); }
     const result = await crawlSource(key, source, { limit });
     const { saved } = result;
     skippedUpdates += result.skippedUpdates;
+    reorderedCount += result.reorderedCount || 0;
+    skippedDocs.push(...(result.skippedDocs || []));
     // --only でも他の対象を消さないよう、同じ source_key の分だけ入れ替える
     index.entries = index.entries.filter(e => e.source_key !== key);
     for (const s of saved) {
@@ -743,6 +1034,12 @@ async function main() {
         file_path: s.relative, char_count_body: r.char_count_body, fetched_at: r.fetched_at,
       });
     }
+    // R3 で更新を見送った資料の索引の行は、前のまま残す。
+    for (const entry of preservedIndexEntries(
+      previousEntries, key, result.preservedFilePaths || [],
+    )) {
+      index.entries.push(entry);
+    }
   }
   index.entries = dedupeIndexEntries(index.entries, { warn: console.warn });
   index.entries.sort((a, b) => (a.source_key + a.id).localeCompare(b.source_key + b.id));
@@ -750,6 +1047,12 @@ async function main() {
   if (skippedUpdates > 0) {
     console.warn(`[warn] 本文が大幅に短くなるため ${skippedUpdates} 件の更新を見送りました`);
   }
+  const report = { reorderedCount, skippedDocs, skippedUpdates };
+  const reportPath = process.env.NTA_QA_REPORT;
+  if (reorderedCount > 0 || skippedDocs.length > 0 || skippedUpdates > 0) {
+    console.log(buildReport(report).trimEnd());
+  }
+  writeReport(reportPath, report);
   console.log(`[nta-qa] 完了: 合計 ${index.entries.length} 件 → ${path.relative(ROOT, INDEX_PATH)}`);
 }
 
@@ -765,9 +1068,19 @@ module.exports = {
   looksLikeTableOfContents,
   hasAnswerLikeContent,
   splitByQuestion,
+  findQuestionMarks,
+  relocateQuestionCard,
   splitByNumberedHeading,
   splitByParenQuestion,
   shouldSkipBodyUpdate,
+  isReorderOnly,
+  sameCharMultiset,
+  saveEntry,
+  readExistingDocEntries,
+  buildReport,
+  writeReport,
+  sortQuestionNumbers,
+  preservedIndexEntries,
   getStaleSplitFileNames,
   buildEntryId,
   resolveEntryIds,

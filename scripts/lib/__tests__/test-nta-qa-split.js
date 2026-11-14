@@ -8,13 +8,24 @@
  */
 
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const ROOT = path.join(__dirname, '..', '..', '..');
+const FIXTURES = path.join(__dirname, 'fixtures', 'nta-qa-split');
 const {
   looksLikeTableOfContents,
   splitByQuestion,
+  findQuestionMarks,
   splitByNumberedHeading,
   splitByParenQuestion,
   shouldSkipBodyUpdate,
+  isReorderOnly,
+  sameCharMultiset,
+  saveEntry,
+  crawlSource,
+  buildReport,
+  writeReport,
+  preservedIndexEntries,
   getStaleSplitFileNames,
   buildEntryId,
   resolveEntryIds,
@@ -233,5 +244,230 @@ console.log('\n=== 分割ファイルの孤児判定 ===');
     'splitBy を持つ資料も孤児判定の対象にする');
 }
 
-console.log(`\n結果: ${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+console.log('\n=== R1: poppler の並び（札が1行目の後ろに来る形）===');
+{
+  const text = fs.readFileSync(path.join(FIXTURES, 'keigen-poppler-excerpt.txt'), 'utf8');
+  const parts = splitByQuestion(text);
+  const byNo = new Map(parts.map(part => [part.qNo, part]));
+  const wanted = ['問99', '問100', '問101', '問119', '問120', '問121'];
+  assert(parts.length === wanted.length,
+    `抜粋から ${wanted.length} 問に区切る（実際 ${parts.length} 問）`);
+  for (const qNo of wanted) {
+    const part = byNo.get(qNo);
+    assert(!!part, `${qNo} を別の問として拾う`);
+    if (!part) continue;
+    const heading = part.title.slice(qNo.length + 1);
+    assert(part.body.startsWith(`（${heading}） ${qNo} `),
+      `${qNo} の本文が「（見出し） ${qNo} …」で始まる`);
+  }
+
+  const q99 = byNo.get('問99');
+  const q100 = byNo.get('問100');
+  assert(q99 && !q99.body.includes('問100'),
+    '問99 の本文に問100 の札が入らない');
+  assert(q99 && !q99.body.includes('ホテルが従業員の購読用'),
+    '問99 の本文に問100 の本文が入らない');
+
+  // 札を動かしても、札以外の文字は増減しない。
+  const flat = text.replace(/\s+/g, ' ').trim();
+  const marks = findQuestionMarks(flat).sort((a, b) => a.index - b.index);
+  const mark100 = marks.find(mark => mark.card.replace(/\s/g, '') === '問100');
+  const next = marks.find(mark => mark.index > mark100.index);
+  const rawBody = flat.slice(mark100.index, next ? next.index : flat.length).trim();
+  assert(q100.body !== rawBody, '問100 は札の位置を直している');
+  assert(sameCharMultiset(
+    rawBody.replace(mark100.card, ''),
+    q100.body.replace(mark100.card, ''),
+  ), '札を動かしても札以外の文字の多重集合は同じ');
+}
+
+console.log('\n=== R1: 答の中の参照では区切らない ===');
+{
+  const references = fs.readFileSync(path.join(FIXTURES, 'references.txt'), 'utf8');
+  const filler = (no, extra = '') => `（確認用見出し${no}） 問${no} 本文です。`
+    + `【答】 ${'回答本文です。'.repeat(30)}${extra}`;
+  const text = [
+    filler(901, ` ${references}`),
+    filler(902), filler(903), filler(904), filler(905),
+  ].join(' ');
+  const parts = splitByQuestion(text);
+  assert(parts.length === 5, '参照の「問115」「問 80」を問の始まりにしない');
+  assert(!parts.some(part => part.qNo === '問115' || part.qNo === '問80'),
+    '参照の問番号が分割結果に現れない');
+}
+
+console.log('\n=== R1: 今の形（xpdf の並び）の結果は変えない ===');
+{
+  const expected = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-xpdf-excerpt.json'), 'utf8'));
+  const parts = splitByQuestion(expected.map(entry => entry.body).join(' '));
+  assert(parts.length === expected.length, 'xpdf の抜粋を同じ数に区切る');
+  const byNo = new Map(parts.map(part => [part.qNo, part]));
+  for (const entry of expected) {
+    const part = byNo.get(entry.q_no);
+    assert(!!part, `${entry.q_no} を拾う`);
+    if (!part) continue;
+    assert(part.title === entry.title, `${entry.q_no} の題名が直す前と同じ`);
+    assert(part.body === entry.body, `${entry.q_no} の本文が直す前と同じ`);
+  }
+}
+
+console.log('\n=== R2: 並び替えだけの変化は今の本文を残す ===');
+{
+  const pairs = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'reorder-pairs.json'), 'utf8'));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r2-'));
+  try {
+    const source = {
+      label: '確認用', tax_category: '消費税', tax_category_code: 'shohi', tax_domain: 'consumption_tax',
+    };
+    for (const pair of pairs) {
+      const [sourceKey, file] = pair.name.split('/');
+      const docId = file.replace(/\.json$/, '');
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, file), JSON.stringify({
+        id: docId, title: pair.title, body: pair.existing, char_count_body: pair.existing.length,
+      }, null, 2) + '\n', 'utf8');
+
+      const result = saveEntry(sourceKey, source, { id: docId }, {
+        qNo: pair.name.includes('113') ? '問113' : '問1',
+        title: pair.title,
+        body: pair.incoming,
+      }, 'https://example.test/', { outDir: temp, root: temp, warn() {} });
+      const written = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+      const stillReorderOnly = isReorderOnly(
+        { body: pair.existing, title: pair.title },
+        { body: pair.incoming, title: pair.title },
+      );
+      if (pair.reorderOnly) {
+        assert(stillReorderOnly === true, `${pair.name} は並び替えだけと判定する`);
+        assert(result.reordered === true, `${pair.name} は本文を残したと返す`);
+        assert(written.body === pair.existing, `${pair.name} は今の本文を残す`);
+        assert(written.title === pair.title, `${pair.name} は題名を残す`);
+        assert(written.char_count_body === pair.existing.length,
+          `${pair.name} は char_count_body を残す`);
+      } else {
+        assert(stillReorderOnly === false, `${pair.name} は本物の違いと判定する`);
+        assert(!result.reordered, `${pair.name} は本文を残さない`);
+        assert(written.body === pair.incoming, `${pair.name} は新しい本文を保存する`);
+      }
+    }
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+console.log('\n=== R4: 報告 ===');
+{
+  assert(typeof buildReport === 'function', '報告を作る関数がある');
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-report-'));
+  try {
+    const reportPath = path.join(temp, 'report.md');
+    const summary = {
+      reorderedCount: 120,
+      skippedDocs: [{ docId: 'jirei', missing: ['問100', '問104'] }],
+      skippedUpdates: 3,
+    };
+    assert(writeReport(reportPath, summary) === true, '報告ファイルを書く');
+    const report = fs.readFileSync(reportPath, 'utf8');
+    assert(report.includes('並び替えだけのため本文を残した 120 件'),
+      'R2 の件数を報告に出す');
+    assert(report.includes('jirei は更新していません') && report.includes('問100')
+      && report.includes('問104'), 'R3 の資料 id と問番号を報告に出す');
+    assert(report.includes('本文が大幅に短くなるため更新を見送った 3 件'),
+      '本文短縮の見送りを報告に出す');
+
+    assert(writeReport('', summary) === false, 'NTA_QA_REPORT が無ければ書かない');
+    assert(writeReport(undefined, summary) === false, 'NTA_QA_REPORT が undefined でも書かない');
+    assert(fs.readdirSync(temp).length === 1, '報告先が無ければ余計なファイルを作らない');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+(async () => {
+  console.log('\n=== R3: 問が見つからない資料は更新しない ===');
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r3-'));
+  try {
+    const sourceKey = 'keigen';
+    const source = {
+      label: '確認用軽減税率', tax_category: '消費税', tax_category_code: 'shohi',
+      tax_domain: 'consumption_tax', split: true,
+      docs: [{ id: 'jirei', url: 'https://example.test/jirei.pdf' }],
+    };
+    const makeText = (qNos) => qNos.map(qNo => `（確認用見出し${qNo}） 問${qNo} 本文です。`
+      + ` 【答】 ${'回答本文です。'.repeat(30)}`).join(' ');
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    const existing = (qNo) => ({
+      id: `jirei-${qNo}`,
+      type: 'qa', source_key: sourceKey, source_label: source.label,
+      tax_category: source.tax_category, tax_category_code: source.tax_category_code,
+      tax_domain: source.tax_domain, q_no: `問${qNo}`, digest: false,
+      title: `問${qNo} 既存の題名`, url: source.docs[0].url,
+      body: `既存の本文${qNo}`, char_count_body: `既存の本文${qNo}`.length,
+      fetched_at: '2026-09-01T00:00:00.000Z',
+    });
+    const writeExisting = (qNo) => fs.writeFileSync(
+      path.join(dir, `jirei-${qNo}.json`), JSON.stringify(existing(qNo), null, 2) + '\n', 'utf8');
+    writeExisting(99);
+    writeExisting(100);
+    const before = {
+      99: fs.readFileSync(path.join(dir, 'jirei-99.json'), 'utf8'),
+      100: fs.readFileSync(path.join(dir, 'jirei-100.json'), 'utf8'),
+    };
+
+    const run = (text) => crawlSource(sourceKey, source, {
+      outDir: temp, root: temp, delayMs: 0,
+      fetchBuffer: async () => Buffer.from('dummy'),
+      extractText: () => text,
+    });
+
+    // 問100 が新しい区切りに無い → その資料は書かない・消さない。
+    const missingResult = await run(makeText([99, 101, 901, 902, 903]));
+    assert(missingResult.skippedDocs.length === 1
+      && missingResult.skippedDocs[0].docId === 'jirei',
+      '区切りを見失った資料を記録する');
+    assert(JSON.stringify(missingResult.skippedDocs[0].missing) === JSON.stringify(['問100']),
+      '見つからない問番号を記録する');
+    assert(fs.existsSync(path.join(dir, 'jirei-99.json'))
+      && fs.existsSync(path.join(dir, 'jirei-100.json')), 'その資料のファイルを消さない');
+    assert(fs.readFileSync(path.join(dir, 'jirei-99.json'), 'utf8') === before[99]
+      && fs.readFileSync(path.join(dir, 'jirei-100.json'), 'utf8') === before[100],
+    'その資料のファイルを書き換えない');
+    assert(!fs.existsSync(path.join(dir, 'jirei-101.json')), 'その資料の新しい問も書かない');
+    assert(missingResult.preservedFilePaths.includes('keigen/jirei-99.json')
+      && missingResult.preservedFilePaths.includes('keigen/jirei-100.json'),
+    '索引に残すファイルを返す');
+    const keptIndex = preservedIndexEntries([
+      { source_key: 'keigen', file_path: 'keigen/jirei-99.json', id: 'jirei-99' },
+      { source_key: 'keigen', file_path: 'keigen/jirei-100.json', id: 'jirei-100' },
+      { source_key: 'keigen', file_path: 'keigen/jirei-88.json', id: 'jirei-88' },
+      { source_key: 'gaiyo', file_path: 'keigen/gaiyo-1.json', id: 'gaiyo-1' },
+    ], 'keigen', missingResult.preservedFilePaths);
+    assert(keptIndex.length === 2
+      && keptIndex.every(entry => entry.file_path.startsWith('keigen/jirei-')),
+    'R3 の資料の索引の行だけを前のまま残す');
+
+    // 問が増えるだけなら取り込む。
+    const addedResult = await run(makeText([99, 100, 101, 901, 902, 903]));
+    assert(addedResult.skippedDocs.length === 0, '問が増えるだけなら見送らない');
+    assert(fs.existsSync(path.join(dir, 'jirei-101.json')), '増えた問を書き出す');
+    const updated100 = JSON.parse(fs.readFileSync(path.join(dir, 'jirei-100.json'), 'utf8'));
+    assert(updated100.body.includes('確認用見出し100'), '既存の問を新しい本文で更新する');
+
+    // 報告に R3 の見送りを出す。
+    const report = buildReport({
+      reorderedCount: 0, skippedDocs: missingResult.skippedDocs, skippedUpdates: 0,
+    });
+    assert(report.includes('区切りを見失った問があるため jirei は更新していません: 問100'),
+      '報告に R3 の資料 id と問番号を出す');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+
+  console.log(`\n結果: ${passed} passed, ${failed} failed`);
+  process.exit(failed > 0 ? 1 : 0);
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
