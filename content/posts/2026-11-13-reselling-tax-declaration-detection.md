@@ -1,5 +1,5 @@
 ---
-title: "せどりで確定申告しないとバレない？無申告が税務署に気づかれる流れと加算税"
+title: "せどりで確定申告しなくてもバレない？無申告が税務署に気づかれる流れと加算税"
 slug: "reselling-tax-declaration-detection"
 category: "所得税"
 primary_persona: "reseller_marketplace_seller"
