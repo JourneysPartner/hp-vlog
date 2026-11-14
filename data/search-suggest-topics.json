@@ -1835,7 +1835,51 @@
       "primary_question": "役員報酬の金額はいつまでに決定すれば、損金算入の要件を満たせますか？",
       "reader_problem": "役員報酬を決める時期を逃すと損金にできないのではないかと不安に感じている。",
       "selected_at": "2026-10-25T19:27:02.995Z"
+    },
+    {
+      "slug": "suggest-kensetsu-invoice-6da7ca",
+      "seed_id": "kensetsu-invoice",
+      "phrases": [
+        "一人親方 インボイス 2割特例",
+        "一人親方 インボイス 簡易課税"
+      ],
+      "persona": "construction_solo",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "一人親方はインボイス登録後、2割特例と簡易課税のどちらを選ぶべきですか？",
+      "reader_problem": "利用できる消費税の計算方法や、納税額を抑えやすい選択肢が分からない。",
+      "selected_at": "2026-11-01T20:58:11.738Z"
+    },
+    {
+      "slug": "suggest-creator-youtuber-7dd833",
+      "seed_id": "creator-youtuber",
+      "phrases": [
+        "youtuber 税金 滞納"
+      ],
+      "persona": "youtuber",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "YouTuberが所得税を滞納した場合、どのような手続きや不利益が生じますか？",
+      "reader_problem": "納期限までに税金を払えなかった場合の延滞税や、税務署への相談方法を知りたい。",
+      "selected_at": "2026-11-08T20:56:24.049Z"
+    },
+    {
+      "slug": "suggest-kojin-yotei-4d453d",
+      "seed_id": "kojin-yotei",
+      "phrases": [
+        "消費税 予定納税 払えない",
+        "消費税 予定納税 払えない場合"
+      ],
+      "persona": "general_individual_proprietor",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "消費税の中間納付を払えない場合、どのように対応すればよいのでしょうか？",
+      "reader_problem": "消費税の中間納付が難しく、納付猶予や相談の方法を知りたい。",
+      "selected_at": "2026-11-08T20:56:24.049Z"
     }
   ],
-  "updated_at": "2026-10-27T08:02:32.156Z"
+  "updated_at": "2026-11-08T20:56:24.049Z"
 }
