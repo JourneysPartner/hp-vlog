@@ -8,8 +8,6 @@
  * 止め、作り直しの指示でも空白区切りを禁じる。
  */
 
-const { tokenizeQuery } = require('./target-query');
-
 // 検索語の点検で、題名だけ作り直すきっかけにする fail。
 const RETITLE_TRIGGER_CODES = Object.freeze([
   'title_missing_query',
@@ -66,7 +64,11 @@ function buildRetitlePrompt(body, topic = {}) {
     `想定読者: ${topic.persona || ''}`,
     `主検索語: ${topic.target_query || '（指定なし）'}`,
   ];
-  const tokens = tokenizeQuery(topic.target_query);
+  const tokens = String(topic.target_query || '')
+    .normalize('NFKC')
+    .split(/[\s・、／/]+/u)
+    .map(t => t.trim())
+    .filter(Boolean);
   if (tokens.length > 0) {
     userLines.push(`主検索語の各語: ${tokens.join('／')}`);
   }
@@ -81,8 +83,57 @@ function buildRetitlePrompt(body, topic = {}) {
   return { system, user: userLines.join('\n') };
 }
 
+// 検索語の点検に落ちた題名を、1 回だけ作り直す。
+// 採らないとき・作り直せないとき・失敗したときは、元の題名のまま返す（仮置きにしない）。
+// retry(body, topic) は題名の文字列か null を返す（generate-draft の retryTitleOnce）。
+// lintSeo・checkTitle は seo-lint の lintSeo と draft-normalizer の checkLlmTitle。
+// 返り値 { accepted: boolean, title: string }。accepted が false なら title は元の題名。
+async function retitleForSeo({
+  title, summary, body, topic, seoFails, retry, lintSeo, checkTitle, warn = console.warn,
+}) {
+  const fails = Array.isArray(seoFails) ? seoFails : [];
+  if (!fails.some(code => RETITLE_TRIGGER_CODES.includes(code))) {
+    return { accepted: false, title };
+  }
+
+  const failingTitleCodes = fails.filter(code => String(code).startsWith('title_'));
+  warn(`[seo] 題名が点検に落ちました（${failingTitleCodes.join(', ')}）: "${title}" → 題名だけ作り直します`);
+
+  let retried;
+  try {
+    retried = await retry(body, topic);
+  } catch (e) {
+    warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
+    return { accepted: false, title };
+  }
+
+  if (!retried) {
+    return { accepted: false, title };
+  }
+
+  const retriedSeo = lintSeo({
+    title: retried,
+    summary,
+    body,
+    target_query: topic.target_query,
+    secondary_queries: topic.secondary_queries,
+  });
+  const titleCheck = checkTitle(retried, { macro: topic.macro, article_type: topic.article_type });
+  const decision = decideRetitle({
+    beforeFails: fails,
+    retriedFails: retriedSeo.fails,
+    titleCheck,
+  });
+  if (!decision.accept) {
+    warn(`[seo] 作り直した題名を採用せず（${decision.reason}）: "${retried}" → 元の題名のまま`);
+    return { accepted: false, title };
+  }
+  return { accepted: true, title: retried };
+}
+
 module.exports = {
   RETITLE_TRIGGER_CODES,
   decideRetitle,
   buildRetitlePrompt,
+  retitleForSeo,
 };

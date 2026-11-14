@@ -37,7 +37,7 @@ const {
   resolveTargetQuery, deriveIntentType, findTargetQueryOwner,
 } = require('./lib/target-query');
 const { lintSeo } = require('./lib/seo-lint');
-const { RETITLE_TRIGGER_CODES, decideRetitle, buildRetitlePrompt } = require('./lib/title-retry');
+const { buildRetitlePrompt, retitleForSeo } = require('./lib/title-retry');
 const { createWithdrawalRecorder, findWithdrawnQuery } = require('./lib/withdrawn-topics');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
@@ -1771,38 +1771,23 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       secondary_queries: topic.secondary_queries,
     });
 
-    if (seo.fails.some(code => RETITLE_TRIGGER_CODES.includes(code))) {
-      const failingTitleCodes = seo.fails.filter(code => code.startsWith('title_'));
-      console.warn(`[seo] 題名が点検に落ちました（${failingTitleCodes.join(', ')}）: "${normalized.title}" → 題名だけ作り直します`);
-      try {
-        const retitled = await retryTitleOnce(normalized.body, topic);
-        if (retitled) {
-          const retriedSeo = lintSeo({
-            title: retitled, summary: normalized.summary, body: normalized.body,
-            target_query: topic.target_query, secondary_queries: topic.secondary_queries,
-          });
-          const titleCheck = checkLlmTitle(retitled, { macro: topic.macro, article_type: topic.article_type });
-          const decision = decideRetitle({
-            beforeFails: seo.fails,
-            retriedFails: retriedSeo.fails,
-            titleCheck,
-          });
-          if (decision.accept) {
-            normalized = normalizeGeneratedDraft(normalized.content, topic, {
-              now, pairedTopic, titleOverride: retitled, summaryOverride: normalized.summary,
-            });
-            seo = lintSeo({
-              title: normalized.title, summary: normalized.summary, body: normalized.body,
-              target_query: topic.target_query, secondary_queries: topic.secondary_queries,
-            });
-            console.log(`[seo] 題名を作り直しました: "${normalized.title}"`);
-          } else {
-            console.warn(`[seo] 作り直した題名を採用せず（${decision.reason}）: "${retitled}" → 元の題名のまま`);
-          }
-        }
-      } catch (e) {
-        console.warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
+    try {
+      const retitle = await retitleForSeo({
+        title: normalized.title, summary: normalized.summary, body: normalized.body,
+        topic, seoFails: seo.fails, retry: retryTitleOnce, lintSeo, checkTitle: checkLlmTitle,
+      });
+      if (retitle.accepted) {
+        normalized = normalizeGeneratedDraft(normalized.content, topic, {
+          now, pairedTopic, titleOverride: retitle.title, summaryOverride: normalized.summary,
+        });
+        seo = lintSeo({
+          title: normalized.title, summary: normalized.summary, body: normalized.body,
+          target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+        });
+        console.log(`[seo] 題名を作り直しました: "${normalized.title}"`);
       }
+    } catch (e) {
+      console.warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
     }
 
     if (seo.fails.includes('summary_missing_query')) {
