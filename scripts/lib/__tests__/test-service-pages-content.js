@@ -34,7 +34,7 @@ const SERVICES = ['ebay-export', 'online-seller', 'tax-return', 'bookkeeping', '
 const FLOW = ['お問い合わせ（フォーム・LINE・電話）', '30 分の無料オンライン面談', 'お見積り', 'ご契約', '資料の受け渡し'];
 const ADDED_FAQ = {
   'ebay-export': ['免税事業者ですが、還付は受けられますか。', '還付金はいつ入りますか。', '入金データや売上明細は何を用意すればよいですか。', 'eBay 以外の越境 EC も頼めますか。', '料金はいくらですか。'],
-  'online-seller': ['どのプラットフォームに対応していますか。', '売上の集計はどこまでやってもらえますか。', '副業（会社員）でも頼めますか。', 'note や Kindle、オンラインサロンの収入も同じページの対象ですか。', '会計ソフトは何を使いますか。'],
+  'online-seller': ['どのプラットフォームに対応していますか。', '売上の集計はどこまでやってもらえますか。', '副業（会社員）でも頼めますか。', 'note や Kindle、オンラインサロンの収入も同じページの対象ですか。', '会計ソフトは何を使いますか。', '中国輸入（アリババ・タオバオなどからの仕入れ）も頼めますか。', '中国の仕入先はインボイスを出してくれません。消費税はどうなりますか。'],
   'tax-return': ['申告だけ（スポット）で頼めますか。', '何年も申告していません。相談できますか。', '一人親方ですが、何を用意すればよいですか。', 'YouTube や PR 案件の収入はどう申告しますか。'],
   bookkeeping: ['毎月の流れを教えてください。', '予約システムや POS のデータは使えますか。', '会計ソフトは何を使いますか。'],
   startup: ['設立の手続きはどこまでやってもらえますか。', '法人化すると得ですか。'],
@@ -75,6 +75,16 @@ for (const slug of SERVICES) {
   assert(ebay.includes('還付申告をお受けする条件') && ebay.includes('免税事業者'), 'ebay-export: 還付申告の条件と免税事業者の説明');
   const startup = read('services/startup/index.html');
   assert(startup.includes('法人化を判断する目安') && startup.includes('href="/tools/hojinnari-simulator/"'), 'startup: 法人成りシミュレーターへのリンク');
+  const onlineSeller = read('services/online-seller/index.html');
+  assert(onlineSeller.includes('<h3>中国輸入の仕入れ（関税・輸入消費税・通関書類）</h3>'), 'online-seller: 中国輸入のカード');
+  assert(onlineSeller.includes('<h3 class="service-title">中国輸入（アリババ・タオバオなどからの仕入れ）</h3>'), 'online-seller: 対応している業種に中国輸入');
+  const onlineSellerDescription = (onlineSeller.match(/<meta name="description" content="([^"]*)">/) || [])[1] || '';
+  assert(onlineSellerDescription.includes('中国輸入'), 'online-seller: 説明文に中国輸入');
+  assert(read('services.html').includes('<li>中国輸入の関税・輸入消費税の経理処理と通関書類の整理</li>'), 'services.html: ネット販売のカードに中国輸入');
+  const onlineSellerFaq = jsonLd(onlineSeller).find(item => item && item['@type'] === 'FAQPage');
+  const importTaxFaq = onlineSellerFaq ? (onlineSellerFaq.mainEntity || []).find(item => item.name === '中国の仕入先はインボイスを出してくれません。消費税はどうなりますか。') : null;
+  const importTaxAnswer = importTaxFaq && importTaxFaq.acceptedAnswer ? importTaxFaq.acceptedAnswer.text : '';
+  assert(importTaxAnswer.includes('自分の名義で輸入した場合') && importTaxAnswer.includes('代行業者の名義で輸入している方'), 'online-seller: 輸入消費税の FAQ の答えに条件がある');
 }
 
 console.log('');

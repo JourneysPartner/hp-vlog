@@ -18,7 +18,7 @@ const SERVICE_PAGES = {
   'ebay-export':   { name: 'eBay輸出・越境ECの税務と消費税還付', short: 'eBay輸出・越境ECの税務',
     description: 'eBay輸出の消費税還付・輸出免税・外貨取引・Payoneerの経理まで、輸出セラー特有の税務をまとめて任せられます。', icon: 'bi-globe-americas' },
   'online-seller': { name: 'ネット販売・せどり・フリマの税務を丸ごと任せる', short: 'ネット販売・副業の税務',
-    description: 'Amazon・メルカリ・ヤフオク・BASEなどのネット販売、せどり・転売の記帳から確定申告、インボイス対応まで。', icon: 'bi-bag-check' },
+    description: 'Amazon・メルカリ・ヤフオク・BASEなどのネット販売、せどり・転売、中国輸入の記帳から確定申告、インボイス対応、関税・輸入消費税の経理処理まで。', icon: 'bi-bag-check' },
   'bookkeeping':   { name: '記帳代行（クラウド会計対応）', short: '記帳代行',
     description: '領収書・請求書の整理から仕訳、月次試算表まで。freee・マネーフォワード・弥生に対応。', icon: 'bi-journal-text' },
   'tax-return':    { name: '決算・確定申告（個人・法人）', short: '決算・確定申告',
