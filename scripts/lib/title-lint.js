@@ -59,6 +59,19 @@ function countChar(s, ch) {
   return n;
 }
 
+// 日本語の文字（漢字・ひらがな・カタカナ・長音・々・〆）。
+const JAPANESE_CHAR_CLASS = '\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}ー々〆';
+// 日本語の文字の間にある空白（全角空白は NFKC で半角に揃えてから見る）。
+const JAPANESE_SPACE_RE = new RegExp(
+  `[${JAPANESE_CHAR_CLASS}]\\s+[${JAPANESE_CHAR_CLASS}]`, 'u');
+
+// 日本語の文字の間にある空白を探す。見つかれば、その部分（前後 1 字を含む）を返す。無ければ ''。
+function findJapaneseSpace(title) {
+  const normalized = String(title || '').normalize('NFKC');
+  const match = normalized.match(JAPANESE_SPACE_RE);
+  return match ? match[0] : '';
+}
+
 function lintTitle(title, ctx = {}) {
   const fails = [];
   const warns = [];
@@ -74,6 +87,11 @@ function lintTitle(title, ctx = {}) {
   for (const re of SOFT_WARN_PATTERNS) {
     if (re.test(title)) warns.push(`不自然パターン: ${re}`);
   }
+
+  // 1b. 日本語の文字の間の空白（検索語を空白区切りのまま貼った題名など）
+  // 何か所あっても fail は 1 つだけにする。
+  const japaneseSpace = findJapaneseSpace(title);
+  if (japaneseSpace) fails.push(`日本語の間に空白: "${japaneseSpace}"`);
 
   // 2. 長さ
   if (title.length > MAX_LEN_FAIL) fails.push(`長すぎ: ${title.length} > ${MAX_LEN_FAIL}`);
@@ -161,6 +179,7 @@ function lintAll(topics) {
 module.exports = {
   lintTitle,
   lintAll,
+  findJapaneseSpace,
   HARD_FAIL_PATTERNS,
   CONTRAST_PAIRS,
   SOFT_WARN_PATTERNS,
