@@ -1,0 +1,2367 @@
+{
+  "version": 1,
+  "logic_version": "plan2-s10",
+  "status": "ok",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": false,
+  "checked_at": "2026-11-14T07:43:48.295Z",
+  "body_sha256": "c4b99c59f952f5fd9188d75015d7540834402eb201e860c3b20aff6c71466257",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "結論からいうと、値下げして販売しても、帳簿の在庫金額は仕入れたときの取得価額のままです。",
+      "heading": "",
+      "type": "判定",
+      "subject": "棚卸資産の評価",
+      "claim": "値下げして販売しても、帳簿の在庫金額は仕入時の取得価額のままである",
+      "s": 7,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "ただし、季節商品が売れ残り、今後通常の価額では販売できないことが明らかな場合（著しい陳腐化）は、低価法を選んでいなくても年末の価額まで下げられます。",
+      "heading": "",
+      "type": "要件",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "通常価額で販売できないことが明らかな売れ残り季節商品は、著しい陳腐化に当たる",
+      "s": 8,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。（昭55直所3－19、直法6－8改正）>\n（1）いわゆる季節商品で売れ残ったものについて、今後通常の価額では販売することができないことが既往の実績その他の事情に照らして明らかであること。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:104",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "ただし、季節商品が売れ残り、今後通常の価額では販売できないことが明らかな場合（著しい陳腐化）は、低価法を選んでいなくても年末の価額まで下げられます。",
+      "heading": "",
+      "type": "判定",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "著しい陳腐化があれば、低価法を選んでいなくても年末の価額まで下げられる",
+      "s": 8,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:104",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "低価法を選んでいる店は、同じ種類の在庫をまとめて低価の事実を判定して切り下げます。",
+      "heading": "",
+      "type": "判定",
+      "subject": "低価法",
+      "claim": "低価法では同じ種類の在庫をまとめて低価の事実を判定し切り下げる",
+      "s": 9,
+      "status": "裏付けあり",
+      "quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-9",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:51"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "所得税では、12月31日時点で持っている棚卸資産の価額は、政令で定める評価方法のうちから自分で選定した方法で評価します（所得税法第47条）。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "要件",
+      "subject": "棚卸資産の評価方法",
+      "claim": "12月31日時点の棚卸資産は、政令の評価方法から自ら選定した方法で評価する",
+      "s": 32,
+      "status": "裏付けあり",
+      "quote": "居住者の棚卸資産につき第三十七条第一項（必要経費）の規定によりその者の事業所得の金額の計算上必要経費に算入する金額を算定する場合におけるその算定の基礎となるその年十二月三十一日（その者が年の中途において死亡し又は出国をした場合には、その死亡又は出国の時。以下この条から第五十条までにおいて同じ。）において有する棚卸資産（以下この項において「期末棚卸資産」という。）の価額は、棚卸資産の取得価額の平均額をもつてその年十二月三十一日において有する棚卸資産の評価額とする方法その他の政令で定める評価の方法のうちからその者が当該期末棚卸資産について選定した評価の方法により評価した金額（評価の方法を選定しなかつた場合又は選定した評価の方法により評価しなかつた場合には、評価の方法のうち政令で定める方法により評価した金額）とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:47",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "law:shotokuzei_hou:47",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "所得税では、12月31日時点で持っている棚卸資産の価額は、政令で定める評価方法のうちから自分で選定した方法で評価します（所得税法第47条）。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "番号",
+      "subject": "棚卸資産の評価方法",
+      "claim": "棚卸資産の評価の根拠は所得税法第47条である",
+      "s": 32,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:102",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "law:shotokuzei_hou:47",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "選定しなかった場合や、選定した方法で評価しなかった場合は、最終仕入原価法という方法で評価することになっています（所得税法施行令第102条）。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "判定",
+      "subject": "最終仕入原価法",
+      "claim": "評価方法を選定しなかった場合や選定方法で評価しなかった場合は最終仕入原価法で評価する",
+      "s": 33,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:102",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:99",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:45"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "選定しなかった場合や、選定した方法で評価しなかった場合は、最終仕入原価法という方法で評価することになっています（所得税法施行令第102条）。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "番号",
+      "subject": "最終仕入原価法",
+      "claim": "最終仕入原価法による評価の根拠は所得税法施行令第102条である",
+      "s": 33,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:102",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:99",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:45"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "| 原価法（最終仕入原価法、取得価額の平均額による方法など） | 仕入れたときの取得価額をもとに評価する | 値下げしても帳簿の金額は下がらない。ただし著しい陳腐化があれば年末に切り下げできる |",
+      "heading": "原価法と低価法の違い",
+      "type": "判定",
+      "subject": "原価法",
+      "claim": "原価法は取得価額で評価し、値下げしても帳簿額は下がらないが著しい陳腐化なら切下げ可",
+      "s": 37,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:104"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "低価法を選んでいなくても、年末の棚卸資産が著しく陳腐化している場合は、その部分について年末の価額まで評価を下げられます（所得税法施行令第104条）。",
+      "heading": "原価法でも下げられるとき",
+      "type": "判定",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "著しく陳腐化した年末棚卸資産は、その部分を年末の価額まで評価を下げられる",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:104",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:70"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "低価法を選んでいなくても、年末の棚卸資産が著しく陳腐化している場合は、その部分について年末の価額まで評価を下げられます（所得税法施行令第104条）。",
+      "heading": "原価法でも下げられるとき",
+      "type": "番号",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "著しい陳腐化による評価減の根拠は所得税法施行令第104条である",
+      "s": 43,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_rei:104",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:70"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "アパレルでは、シーズンが終わって売れ残り、今後通常の価額では販売できないことが既往の実績その他の事情に照らして明らかな場合がこれに当たり得ます。",
+      "heading": "原価法でも下げられるとき",
+      "type": "要件",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "売れ残りが今後通常価額で販売できないと実績等から明らかな場合が該当し得る",
+      "s": 44,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。（昭55直所3－19、直法6－8改正）>\n（1）いわゆる季節商品で売れ残ったものについて、今後通常の価額では販売することができないことが既往の実績その他の事情に照らして明らかであること。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:104",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "評価方法を変えるときは税務署長の承認が必要で、新しい方法を採用しようとする年の3月15日までに申請書を提出します（所得税法施行令第101条）。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "手続",
+      "subject": "評価方法の変更",
+      "claim": "棚卸資産の評価方法を変更するには税務署長の承認が必要である",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "居住者は、棚卸資産につき選定した評価の方法（その評価の方法を届け出なかつた者がよるべきこととされている次条第一項に規定する評価の方法を含む。）を変更しようとするときは、納税地の所轄税務署長の承認を受けなければならない。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:101",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "law:shotokuzei_rei:101",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "評価方法を変えるときは税務署長の承認が必要で、新しい方法を採用しようとする年の3月15日までに申請書を提出します（所得税法施行令第101条）。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "期限",
+      "subject": "評価方法の変更",
+      "claim": "変更承認申請書は新方法を採用しようとする年の3月15日までに提出する",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "２　前項の承認を受けようとする居住者は、その新たな評価の方法を採用しようとする年の三月十五日までに、その旨、変更しようとする理由その他財務省令で定める事項を記載した申請書を納税地の所轄税務署長に提出しなければならない。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:101",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "law:shotokuzei_rei:101",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "評価方法を変えるときは税務署長の承認が必要で、新しい方法を採用しようとする年の3月15日までに申請書を提出します（所得税法施行令第101条）。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "番号",
+      "subject": "評価方法の変更",
+      "claim": "評価方法変更の承認申請の根拠は所得税法施行令第101条である",
+      "s": 56,
+      "status": "裏付けあり",
+      "quote": "いったん採用した棚卸資産の評価の方法は特別の事情がない限り継続して適用すべきものであるから、現によっている評価の方法を変更するために令第 101条第2項の規定に基づいてその変更承認申請書を提出した場合において、その現によっている評価の方法を採用してから3年を経過していないときは、その変更することについて特別な理由があるときを除き、同条第3項の相当期間を経過していないときに該当するものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-14",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "law:shotokuzei_rei:101",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "| 期末に売れ残った（低価法を選定していない） | 選定した方法、未選定なら最終仕入原価法で評価する。著しい陳腐化があればその部分を年末の価額まで下げる |",
+      "heading": "自分はどれに当てはまるか",
+      "type": "判定",
+      "subject": "棚卸資産の評価方法",
+      "claim": "低価法未選定の売れ残りは選定方法か最終仕入原価法で評価し、陳腐化分は切り下げる",
+      "s": 78,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:102",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-22",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "| 私用に回した | 家事消費として売上に計上する |",
+      "heading": "自分はどれに当てはまるか",
+      "type": "判定",
+      "subject": "家事消費",
+      "claim": "在庫を私用に回した場合は家事消費として売上に計上する",
+      "s": 81,
+      "status": "裏付けあり",
+      "quote": "居住者がたな卸資産（これに準ずる資産として政令で定めるものを含む。）を家事のために消費した場合又は山林を伐採して家事のために消費した場合には、その消費した時におけるこれらの資産の価額に相当する金額は、その者のその消費した日の属する年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上、総収入金額に算入する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:39",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_rei:96",
+        "tsutatsu:shotoku:39-3",
+        "tsutatsu:shotoku:39-4",
+        "tsutatsu:shotoku:39-1",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:39"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "| 来期から評価方法を変えたい | 3月15日までに承認申請書を出す |",
+      "heading": "自分はどれに当てはまるか",
+      "type": "期限",
+      "subject": "評価方法の変更",
+      "claim": "来期から評価方法を変えるには3月15日までに承認申請書を出す",
+      "s": 82,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3",
+        "tsutatsu:shotoku:48-7"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "値下げしただけでは評価額は動きません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "棚卸資産の評価",
+      "claim": "値下げしただけでは棚卸資産の評価額は動かない",
+      "s": 99,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "<strong>根拠なく決算で在庫を切り下げてしまう。</strong> 切り下げられるのは、著しい陳腐化が認められる場合か、低価法で低価の事実がある場合です。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "棚卸資産の評価減",
+      "claim": "切下げできるのは著しい陳腐化がある場合か、低価法で低価の事実がある場合である",
+      "s": 100,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "資料の番号がこの主張の候補でない",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "law:shotokuzei_rei:104",
+        "basis": "1-4",
+        "quote": ""
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-22",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "選定した方法で評価しなかった場合は、最終仕入原価法で評価することになっています。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "最終仕入原価法",
+      "claim": "選定した方法で評価しなかった場合は最終仕入原価法で評価する",
+      "s": 102,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:102",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:45"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "事業用の在庫を私用に回した分は家事消費として売上に計上し（所得税法第39条）、事業主貸などで処理します。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "家事消費",
+      "claim": "事業用在庫を私用に回した分は家事消費として売上に計上し事業主貸などで処理する",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "居住者がたな卸資産（これに準ずる資産として政令で定めるものを含む。）を家事のために消費した場合又は山林を伐採して家事のために消費した場合には、その消費した時におけるこれらの資産の価額に相当する金額は、その者のその消費した日の属する年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上、総収入金額に算入する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:39",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:39",
+        "tsutatsu:shotoku:39-3",
+        "tsutatsu:shotoku:39-4",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "事業用の在庫を私用に回した分は家事消費として売上に計上し（所得税法第39条）、事業主貸などで処理します。",
+      "heading": "よくある間違い",
+      "type": "番号",
+      "subject": "家事消費",
+      "claim": "家事消費の売上計上の根拠は所得税法第39条である",
+      "s": 109,
+      "status": "裏付けあり",
+      "quote": "居住者がたな卸資産（これに準ずる資産として政令で定めるものを含む。）を家事のために消費した場合又は山林を伐採して家事のために消費した場合には、その消費した時におけるこれらの資産の価額に相当する金額は、その者のその消費した日の属する年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上、総収入金額に算入する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:39",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_rei:96",
+        "law:shotokuzei_hou:39",
+        "tsutatsu:shotoku:39-3",
+        "tsutatsu:shotoku:39-4",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "- 私用に回した分を家事消費として売上に計上している",
+      "heading": "自分で確認できるチェックリスト",
+      "type": "判定",
+      "subject": "家事消費",
+      "claim": "私用に回した分は家事消費として売上に計上する",
+      "s": 115,
+      "status": "裏付けあり",
+      "quote": "居住者がたな卸資産（これに準ずる資産として政令で定めるものを含む。）を家事のために消費した場合又は山林を伐採して家事のために消費した場合には、その消費した時におけるこれらの資産の価額に相当する金額は、その者のその消費した日の属する年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上、総収入金額に算入する。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:39",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_rei:96",
+        "tsutatsu:shotoku:39-3",
+        "tsutatsu:shotoku:39-4",
+        "tsutatsu:shotoku:39-1",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:39"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "期末に著しい陳腐化や低価の事実があれば、その部分を切り下げます。",
+      "heading": "値下げした商品は評価損として落とせますか？",
+      "type": "判定",
+      "subject": "棚卸資産の評価減",
+      "claim": "期末に著しい陳腐化や低価の事実があれば、その部分を切り下げる",
+      "s": 129,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-22",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:104"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "季節商品が売れ残り、今後通常の価額では販売できないことが明らかな場合（著しい陳腐化）は、低価法を選んでいなくても年末の価額まで下げられます。",
+      "heading": "まとめ",
+      "type": "要件",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "通常価額で販売できないことが明らかな売れ残り季節商品は、著しい陳腐化に当たる",
+      "s": 139,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。（昭55直所3－19、直法6－8改正）>\n（1）いわゆる季節商品で売れ残ったものについて、今後通常の価額では販売することができないことが既往の実績その他の事情に照らして明らかであること。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:104",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "季節商品が売れ残り、今後通常の価額では販売できないことが明らかな場合（著しい陳腐化）は、低価法を選んでいなくても年末の価額まで下げられます。",
+      "heading": "まとめ",
+      "type": "判定",
+      "subject": "著しい陳腐化による評価減",
+      "claim": "著しい陳腐化があれば、低価法未選定でも年末の価額まで下げられる",
+      "s": 139,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_rei:104"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "低価法でも、値下げした1点ずつを個別に下げるのではなく、同じ種類の在庫をまとめて「低価の事実」があるかを判定します。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "低価法の判定単位",
+      "claim": "低価の事実は1点ずつでなく、同じ種類の在庫をまとめて判定する",
+      "s": 19,
+      "status": "裏付けあり",
+      "quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-9",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+        "tsutatsu:shotoku:47-9",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-13"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "そして値下げ販売は売上高の話、廃棄は在庫を費用に落とす話で、在庫の評価額を動かす処理ではありません。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "棚卸資産の処理区分",
+      "claim": "値下げ販売は売上高、廃棄は費用化の処理で、在庫の評価額を動かす処理ではない",
+      "s": 20,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-7",
+        "law:shotokuzei_rei:99"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "売上原価は「期首商品＋当期仕入－期末棚卸高」で計算します。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "判定",
+      "subject": "売上原価",
+      "claim": "売上原価は期首商品＋当期仕入－期末棚卸高で計算する",
+      "s": 29,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:37",
+        "law:shotokuzei_hou:47",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:37-1",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "| 低価法 | 低価の事実があるとき、取得価額より低い額で評価する | 売れ残り・型落ちを切り下げられる。判定の単位と記録が必要 |",
+      "heading": "原価法と低価法の違い",
+      "type": "要件",
+      "subject": "低価法",
+      "claim": "低価法は低価の事実があるとき、取得価額より低い額で評価する方法である",
+      "s": 38,
+      "status": "裏付けあり",
+      "quote": "二　低価法（期末棚卸資産をその種類等（前号ヘに掲げる売価還元法により算出した取得価額による原価法により計算した価額を基礎とするものにあつては、種類等又は通常の差益の率。以下この号において同じ。）の異なるごとに区別し、その種類等の同じものについて、前号に掲げる方法のうちいずれかの方法により算出した取得価額による原価法により評価した価額とその年十二月三十一日における価額とのうちいずれか低い価額をもつてその評価額とする方法をいう。）",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:99",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:70_2",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "tsutatsu:shotoku:47-22",
+        "law:shotokuzei_hou:51",
+        "law:shotokuzei_rei:99"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "| 売価還元法 | 売価から原価を逆算して在庫を評価する | 品番が多い店に向く。差益率がおおむね同じものは一区分にできる |",
+      "heading": "原価法と低価法の違い",
+      "type": "判定",
+      "subject": "売価還元法",
+      "claim": "売価還元法では、差益率がおおむね同じものを一区分にできる",
+      "s": 39,
+      "status": "裏付けあり",
+      "quote": "売価還元法により評価額を計算する場合には、その種類の著しく異なるものを除き、通常の差益の率がおおむね同じ棚卸資産は、これをその計算上の一区分とすることができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-5",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "tsutatsu:shotoku:47-7",
+        "tsutatsu:shotoku:47-5",
+        "tsutatsu:shotoku:47-8",
+        "law:shotokuzei_hou:51"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "所得税基本通達では、売価還元法を使う場合、種類の著しく異なるものを除いて、通常の差益率がおおむね同じ棚卸資産は同じ区分として計算できるとされています。",
+      "heading": "原価法と低価法の違い",
+      "type": "要件",
+      "subject": "売価還元法",
+      "claim": "種類の著しく異なるものを除き、通常の差益率がおおむね同じものは同じ区分で計算できる",
+      "s": 40,
+      "status": "裏付けあり",
+      "quote": "売価還元法により評価額を計算する場合には、その種類の著しく異なるものを除き、通常の差益の率がおおむね同じ棚卸資産は、これをその計算上の一区分とすることができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-5",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:51",
+        "tsutatsu:shotoku:47-7",
+        "tsutatsu:shotoku:47-5",
+        "tsutatsu:shotoku:47-6",
+        "law:shotokuzei_hou:70"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "低価の事実の判定は、棚卸資産の種類等を同じくするものごとに行います。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "要件",
+      "subject": "低価法の判定単位",
+      "claim": "低価の事実の判定は、棚卸資産の種類等を同じくするものごとに行う",
+      "s": 48,
+      "status": "裏付けあり",
+      "quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-9",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+        "tsutatsu:shotoku:47-9",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:sochi_shotoku:28の2-2"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "売価還元法を差益率ごとに区分している場合は、その区分ごとです。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "要件",
+      "subject": "低価法の判定単位",
+      "claim": "売価還元法で差益率ごとに区分している場合は、その区分ごとに判定する",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-9",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+        "tsutatsu:shotoku:47-9",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-7"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "事業の種類ごと、棚卸資産の区分ごとに一括して計算することもできます。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "要件",
+      "subject": "低価法の判定単位",
+      "claim": "事業の種類ごと、棚卸資産の区分ごとに一括して計算することもできる",
+      "s": 51,
+      "status": "裏付けあり",
+      "quote": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-9",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:57",
+        "law:shotokuzei_hou:70_2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+        "tsutatsu:shotoku:47-9",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-13"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "前年の12月31日の在庫を低価法で評価していた場合でも、その年の評価額の計算の基礎となる取得価額は、低価法による評価額ではなく、低価法の基礎として選んでいる原価法で評価した価額です。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "判定",
+      "subject": "低価法の翌年の扱い",
+      "claim": "翌年の評価の基礎となる取得価額は、低価法の評価額でなく基礎の原価法による価額",
+      "s": 53,
+      "status": "裏付けあり",
+      "quote": "その年の前年12月31日における棚卸資産につき低価法により評価していた場合のその年12月31日における棚卸資産の評価額の計算の基礎となるその棚卸資産の取得価額は、当該低価法による評価額ではなく、当該低価法の基礎として選定している原価法により評価した価額によることに留意する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-11",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:45"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "申請書には、氏名・住所、事業の種類と棚卸資産の区分、現在の方法と採用した年月日、採用しようとする新しい方法などを書きます。",
+      "heading": "低価法を使うときの3つの注意",
+      "type": "手続",
+      "subject": "評価方法の変更",
+      "claim": "申請書には氏名・住所、事業の種類、現在の方法、新しい方法などを記載する",
+      "s": 57,
+      "status": "裏付けあり",
+      "quote": "一　令第百一条第二項に規定する申請書を提出する者の氏名及び住所\n二　その評価の方法を変更しようとする事業の種類並びに商品又は製品（副産物及び作業くずを除く。）、半製品、仕掛品（半成工事を含む。）、主要原材料及び補助原材料その他の棚卸資産の区分\n三　現によつている評価の方法及びその評価の方法を採用した年月日\n四　採用しようとする新たな評価の方法",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_ki:23",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3",
+        "law:shotokuzei_ki:23"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "この場合、売上は4,000円×30着＝120,000円で計上します。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げ販売の売上は、実際の販売額で計上する",
+      "s": 63,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm",
+        "law:shotokuzei_hou:37"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "帳簿の在庫は1着3,200円のままで、値下げしたからといって下げる処理はありません。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げしても帳簿の在庫金額を下げる処理はなく、原価法でも低価法でも同じ",
+      "s": 64,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "棚卸表から外し、300,000円を売上原価（または廃棄損）として費用に落とします。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "在庫の廃棄",
+      "claim": "廃棄した在庫は棚卸表から外し、取得価額を売上原価または廃棄損として費用化する",
+      "s": 68,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:37",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:47",
+        "tsutatsu:shotoku:47-15",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "低価法を選定していれば、同じ種類の在庫をまとめて低価の事実を判定し、差額30万円を売上原価に計上します。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "低価法",
+      "claim": "低価法選定時は種類ごとに低価の事実を判定し、時価との差額を売上原価に計上する",
+      "s": 72,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:37",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "<strong>前年に切り下げた金額を、翌年の取得価額にしてしまう。</strong> 翌年の取得価額は、低価法の評価額ではなく、基礎となる原価法で評価した価額です。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "低価法の翌年の扱い",
+      "claim": "前年に切り下げた額は翌年の取得価額にならず、原価法の評価額が基礎となる",
+      "s": 103,
+      "status": "裏付けあり",
+      "quote": "その年の前年12月31日における棚卸資産につき低価法により評価していた場合のその年12月31日における棚卸資産の評価額の計算の基礎となるその棚卸資産の取得価額は、当該低価法による評価額ではなく、当該低価法の基礎として選定している原価法により評価した価額によることに留意する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-11",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:45"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "棚卸表は決算に関して作成した書類として5年間の保存が必要です。",
+      "heading": "よくある間違い",
+      "type": "期限",
+      "subject": "棚卸表の保存",
+      "claim": "棚卸表は決算に関して作成した書類として5年間保存が必要",
+      "s": 107,
+      "status": "裏付けあり",
+      "quote": "保存が必要なもの保存期間収入金額や必要経費を記載した帳簿（法定帳簿） 7年業務に関して作成した上記以外の帳簿（任意帳簿） 5年決算に関して作成した棚卸表その他の書類 5年業務に関して作成し、又は受領した請求書、納品書、送り状、領収書などの書類 5年 ※ 令和5年分の確定申告に対する修正申告等から、売上げに関する帳簿を保存していなかったことや帳簿の売上げについて記載が不十分であったことなどが税務調査において把握された場合には、帳簿に記載すべき事項に関する申告漏れに対して通常課される加算税（過少申告加算税・無申告加算税）の割合に5パーセントまたは10パーセントが加重されることとなりました。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "<strong>家族にあげた分や私用した分を経費にしてしまう。</strong> 家事上の費用は必要経費になりません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "家事上の費用",
+      "claim": "家族にあげた分や私用分など家事上の費用は必要経費にならない",
+      "s": 108,
+      "status": "裏付けあり",
+      "quote": "居住者が支出し又は納付する次に掲げるものの額は、その者の不動産所得の金額、事業所得の金額、山林所得の金額又は雑所得の金額の計算上、必要経費に算入しない。一　家事上の経費及びこれに関連する経費で政令で定めるもの",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_hou:45",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_rei:96",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1124.htm",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:37",
+        "law:shotokuzei_hou:56"
+      ]
+    },
+    {
+      "id": "c46",
+      "sentence": "使う方法を決めて手続きを踏む必要があります。",
+      "heading": "低価法は届け出なければ使えませんか？",
+      "type": "手続",
+      "subject": "低価法",
+      "claim": "低価法を使うには、使う方法を決めて手続きを踏む必要がある",
+      "s": 125,
+      "status": "裏付けあり",
+      "quote": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）の規定によるその年十二月三十一日（同項の居住者が年の中途において死亡し又は出国をした場合には、その死亡又は出国の時。以下この款において同じ。）において有する棚卸資産の評価額の計算上選定をすることができる同項に規定する政令で定める評価の方法は、次に掲げる方法（その年分の所得税について青色申告書を提出することにつき税務署長の承認を受けていない場合には、第一号に掲げる方法）とする。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:99",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:51",
+        "law:shotokuzei_hou:70_2",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:70"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "値下げして販売した場合は、実際の販売額で売上を計上するだけで、在庫の簿価を下げる処理ではありません。",
+      "heading": "値下げした商品は評価損として落とせますか？",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げ販売は実際の販売額で売上計上するだけで、在庫の簿価を下げる処理ではない",
+      "s": 128,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_hou:37"
+      ]
+    },
+    {
+      "id": "c48",
+      "sentence": "低価法で切り下げた年でも、翌年の取得価額は低価法の評価額ではなく、基礎となる原価法で評価した価額です。",
+      "heading": "売れ残った在庫を翌年も同じ金額で持ち越せますか？",
+      "type": "判定",
+      "subject": "低価法の翌年の扱い",
+      "claim": "切り下げた年でも翌年の取得価額は、低価法の評価額でなく原価法による価額",
+      "s": 131,
+      "status": "裏付けあり",
+      "quote": "その年の前年12月31日における棚卸資産につき低価法により評価していた場合のその年12月31日における棚卸資産の評価額の計算の基礎となるその棚卸資産の取得価額は、当該低価法による評価額ではなく、当該低価法の基礎として選定している原価法により評価した価額によることに留意する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-11",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:45",
+        "tsutatsu:shotoku:47-11",
+        "tsutatsu:shotoku:47-9",
+        "law:shotokuzei_rei:99",
+        "law:shotokuzei_hou:70"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "売上高は実際に受け取った金額で計上します。",
+      "heading": "原価より安く売ってしまった場合は？",
+      "type": "判定",
+      "subject": "原価割れ販売",
+      "claim": "原価より安く売っても、売上高は実際に受け取った金額で計上する",
+      "s": 134,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:37",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_hou:47",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_hou:70_2"
+      ]
+    },
+    {
+      "id": "c50",
+      "sentence": "売れ残りの評価を下げられるのは、低価法を選定している店だけではありません。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "棚卸資産の評価損",
+      "claim": "売れ残り商品の評価を下げられるのは低価法を選定している店に限られない。",
+      "s": 17,
+      "status": "裏付けあり",
+      "quote": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。",
+      "correct": "",
+      "evidence_id": "law:shotokuzei_rei:104",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102",
+        "law:shotokuzei_rei:104"
+      ]
+    },
+    {
+      "id": "c51",
+      "sentence": "季節商品で売れ残り、今後通常の価額では販売できないことが既往の実績その他の事情に照らして明らかな場合は、著しい陳腐化（令第104条第2号）に該当し得ます。",
+      "heading": "まず結論",
+      "type": "要件",
+      "subject": "棚卸資産の評価損",
+      "claim": "季節商品の売れ残りで今後通常価額で販売できないことが実績等から明らかなら著しい陳腐化に該当し得る。",
+      "s": 18,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。（昭55直所3－19、直法6－8改正）>\n（1）いわゆる季節商品で売れ残ったものについて、今後通常の価額では販売することができないことが既往の実績その他の事情に照らして明らかであること。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102"
+      ]
+    },
+    {
+      "id": "c52",
+      "sentence": "季節商品で売れ残り、今後通常の価額では販売できないことが既往の実績その他の事情に照らして明らかな場合は、著しい陳腐化（令第104条第2号）に該当し得ます。",
+      "heading": "まず結論",
+      "type": "番号",
+      "subject": "棚卸資産の評価損",
+      "claim": "著しい陳腐化の根拠条文は令第104条第2号である。",
+      "s": 18,
+      "status": "裏付けあり",
+      "quote": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-22",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:70",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+        "tsutatsu:shotoku:47-22",
+        "tsutatsu:shotoku:47-11",
+        "law:shotokuzei_rei:102"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "| 来期から評価方法を変えたい | 申請の期限や手続きは国税庁のタックスアンサーなどで確認する |",
+      "heading": "自分はどれに当てはまるか",
+      "type": "手続",
+      "subject": "評価方法の変更",
+      "claim": "来期から評価方法を変えるには申請が必要で、期限と手続は国税庁タックスアンサー等で確認する。",
+      "s": 82,
+      "status": "裏付けあり",
+      "quote": "いったん採用した棚卸資産の評価の方法は特別の事情がない限り継続して適用すべきものであるから、現によっている評価の方法を変更するために令第 101条第2項の規定に基づいてその変更承認申請書を提出した場合において、その現によっている評価の方法を採用してから3年を経過していないときは、その変更することについて特別な理由があるときを除き、同条第3項の相当期間を経過していないときに該当するものとする。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shotoku:47-14",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:45",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3",
+        "tsutatsu:shotoku:48-7"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c18",
+      "sentence": "| 来期から評価方法を変えたい | 3月15日までに承認申請書を出す |",
+      "heading": "自分はどれに当てはまるか",
+      "type": "期限",
+      "subject": "評価方法の変更",
+      "claim": "来期から評価方法を変えるには3月15日までに承認申請書を出す",
+      "s": 82,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "keep": [],
+      "before": "| 来期から評価方法を変えたい | 3月15日までに承認申請書を出す |",
+      "after": "| 来期から評価方法を変えたい | 申請の期限や手続きは国税庁のタックスアンサーなどで確認する |",
+      "generalized": true,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+        "law:shotokuzei_hou:70_2",
+        "law:shotokuzei_hou:57",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+        "tsutatsu:shotoku:47-14",
+        "tsutatsu:shotoku:48の2-3",
+        "tsutatsu:shotoku:48-7"
+      ]
+    }
+  ],
+  "dropped": 0,
+  "discarded": 0,
+  "discarded_claims": [],
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 2582,
+      "output_chars": 2415,
+      "usage": {
+        "input_tokens": 2272,
+        "output_tokens": 2529,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 49248,
+      "output_chars": 2831,
+      "usage": {
+        "input_tokens": 10488,
+        "output_tokens": 4370,
+        "cache_creation_input_tokens": 31739,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 682,
+      "output_chars": 80,
+      "usage": {
+        "input_tokens": 545,
+        "output_tokens": 159,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 495,
+      "output_chars": 109,
+      "usage": {
+        "input_tokens": 431,
+        "output_tokens": 316,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "model": "claude-opus-5-5",
+      "mode": "sync",
+      "input_chars": 42675,
+      "output_chars": 71,
+      "usage": {
+        "input_tokens": 5847,
+        "output_tokens": 364,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 31739
+      }
+    }
+  ],
+  "input_chars_total": 95682,
+  "output_chars_total": 5506,
+  "review_items": [
+    {
+      "id": "c1",
+      "sentence": "結論からいうと、値下げして販売しても、帳簿の在庫金額は仕入れたときの取得価額のままです。",
+      "heading": "",
+      "type": "判定",
+      "subject": "棚卸資産の評価",
+      "claim": "値下げして販売しても、帳簿の在庫金額は仕入時の取得価額のままである",
+      "s": 7,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm:8b41b30270cf099e",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "law:shotokuzei_rei:99:110b0cde3a021bec",
+        "law:shotokuzei_rei:102:d32686d090fd492f"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "値下げしただけでは評価額は動きません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "棚卸資産の評価",
+      "claim": "値下げしただけでは棚卸資産の評価額は動かない",
+      "s": 99,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "law:shotokuzei_hou:70:71ea2ece03fece56",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm:8b41b30270cf099e",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "law:shotokuzei_rei:99:110b0cde3a021bec",
+        "law:shotokuzei_rei:102:d32686d090fd492f"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "<strong>根拠なく決算で在庫を切り下げてしまう。</strong> 切り下げられるのは、著しい陳腐化が認められる場合か、低価法で低価の事実がある場合です。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "棚卸資産の評価減",
+      "claim": "切下げできるのは著しい陳腐化がある場合か、低価法で低価の事実がある場合である",
+      "s": 100,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "資料の番号がこの主張の候補でない",
+      "rejected_answer": {
+        "status": "食い違い",
+        "evidence": "law:shotokuzei_rei:104",
+        "basis": "1-4",
+        "quote": ""
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "law:shotokuzei_hou:70:71ea2ece03fece56",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm:8b41b30270cf099e",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:47-22:868bf0508a09d0c5",
+        "law:shotokuzei_rei:102:d32686d090fd492f"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "そして値下げ販売は売上高の話、廃棄は在庫を費用に落とす話で、在庫の評価額を動かす処理ではありません。",
+      "heading": "まず結論",
+      "type": "判定",
+      "subject": "棚卸資産の処理区分",
+      "claim": "値下げ販売は売上高、廃棄は費用化の処理で、在庫の評価額を動かす処理ではない",
+      "s": 20,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "law:shotokuzei_hou:70:71ea2ece03fece56",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm:9efdc350fa51c024",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:47-7:2653bc1990248285",
+        "law:shotokuzei_rei:99:110b0cde3a021bec"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "売上原価は「期首商品＋当期仕入－期末棚卸高」で計算します。",
+      "heading": "期末在庫の金額が売上原価を決める",
+      "type": "判定",
+      "subject": "売上原価",
+      "claim": "売上原価は期首商品＋当期仕入－期末棚卸高で計算する",
+      "s": 29,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0",
+        "law:shotokuzei_hou:47:f4b5260ccdf18187",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:37-1:dc40aa125b6c3652",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "この場合、売上は4,000円×30着＝120,000円で計上します。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げ販売の売上は、実際の販売額で計上する",
+      "s": 63,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:47-9:75d03d84b163d8dd",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm:65c4c7ab3137c706",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "帳簿の在庫は1着3,200円のままで、値下げしたからといって下げる処理はありません。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げしても帳簿の在庫金額を下げる処理はなく、原価法でも低価法でも同じ",
+      "s": 64,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "law:shotokuzei_rei:102:d32686d090fd492f",
+        "law:shotokuzei_rei:99:110b0cde3a021bec",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "棚卸表から外し、300,000円を売上原価（または廃棄損）として費用に落とします。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "在庫の廃棄",
+      "claim": "廃棄した在庫は棚卸表から外し、取得価額を売上原価または廃棄損として費用化する",
+      "s": 68,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "law:shotokuzei_hou:47:f4b5260ccdf18187",
+        "tsutatsu:shotoku:47-15:186027dd9c81ed6b",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "低価法を選定していれば、同じ種類の在庫をまとめて低価の事実を判定し、差額30万円を売上原価に計上します。",
+      "heading": "実際によくあるケース",
+      "type": "判定",
+      "subject": "低価法",
+      "claim": "低価法選定時は種類ごとに低価の事実を判定し、時価との差額を売上原価に計上する",
+      "s": 72,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:47-9:75d03d84b163d8dd",
+        "law:shotokuzei_rei:99:110b0cde3a021bec",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2"
+      ]
+    },
+    {
+      "id": "c47",
+      "sentence": "値下げして販売した場合は、実際の販売額で売上を計上するだけで、在庫の簿価を下げる処理ではありません。",
+      "heading": "値下げした商品は評価損として落とせますか？",
+      "type": "判定",
+      "subject": "値下げ販売",
+      "claim": "値下げ販売は実際の販売額で売上計上するだけで、在庫の簿価を下げる処理ではない",
+      "s": 128,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "tsutatsu:shotoku:47-9:75d03d84b163d8dd",
+        "law:shotokuzei_rei:102:d32686d090fd492f",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0"
+      ]
+    },
+    {
+      "id": "c49",
+      "sentence": "売上高は実際に受け取った金額で計上します。",
+      "heading": "原価より安く売ってしまった場合は？",
+      "type": "判定",
+      "subject": "原価割れ販売",
+      "claim": "原価より安く売っても、売上高は実際に受け取った金額で計上する",
+      "s": 134,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e",
+        "law:shotokuzei_hou:45:07924c9b853e8fe9",
+        "law:shotokuzei_hou:37:33fc1caaadcc33a0",
+        "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e",
+        "law:shotokuzei_hou:47:f4b5260ccdf18187",
+        "law:shotokuzei_rei:102:d32686d090fd492f",
+        "law:shotokuzei_hou:70_2:70d2a48b32eff9d2"
+      ]
+    }
+  ],
+  "summary": "主張 52 件: 裏付けあり 40・修正 1（食い違い 0・期限 0・具体を外した 1）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 0・人が確かめる箇所 11 件・候補の外の資料で裏付け 7 件",
+  "incremental": {
+    "reused": 0,
+    "rejudged": 52,
+    "subjects": [
+      "棚卸資産の評価",
+      "著しい陳腐化による評価減",
+      "低価法",
+      "棚卸資産の評価方法",
+      "最終仕入原価法",
+      "原価法",
+      "評価方法の変更",
+      "家事消費",
+      "棚卸資産の評価減",
+      "棚卸資産の処理区分",
+      "低価法の判定単位",
+      "売上原価",
+      "売価還元法",
+      "低価法の翌年の扱い",
+      "値下げ販売",
+      "在庫の廃棄",
+      "棚卸表の保存",
+      "家事上の費用",
+      "原価割れ販売",
+      "棚卸資産の評価損",
+      "棚卸資産の評価方法の変更"
+    ]
+  },
+  "remaining": [],
+  "slug": "apparel-inventory-lower-of-cost",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "kind": "taxanswer",
+      "no": "2210",
+      "title": "必要経費の知識",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 45.18,
+      "text_ranges": [
+        [
+          0,
+          2533
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:70_2": {
+      "id": "law:shotokuzei_hou:70_2",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "70_2",
+      "title": "所得税法 特定非常災害に係る純損失の繰越控除の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70_2",
+      "score": 32.17,
+      "text_ranges": [
+        [
+          0,
+          2979
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "kind": "taxanswer",
+      "no": "2080",
+      "title": "白色申告者の記帳・帳簿等保存制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 27.58,
+      "text_ranges": [
+        [
+          0,
+          1613
+        ]
+      ],
+      "text_deflate_base64": "xVjLcuJKEv0VL2ciZmHc7rj3XybmX5RlwBIIBNi8bHcDjQ1qCIRtuG6wMPzLpKokrfiFiazSC9zt6MWNmA0BUlVW5snMk6f4t+fe84b5J18vz8WdnhPtB9/a8jtbLJqee+/PjP+c8Pk2eBr4dtW/dYSh8W3bt6tixIIRCL2OYPLbN4T0FcIcNfCXFd+uBloBwQwuJ8gM2rVoIkz59gphiDBSW8LLejioINi+XaUvrCFmQ4Q2ghXYuu+0EdrKGkIXWRnBRsgjFP3rBa+X1Cuuv/DXEe2tDpRxuWZLWzR2kuPrZdi62m/0XBQmQhmZkTsTd/on9XuLMEZw5DIDYepf9xA6CL0DN3/qnXQk9q6HDBCmCgZuVXnhId6b57tCMAL/LzN4dhGmYeub2kUOEFQOt1p800Rw/NKLWACyRmB3+GpBJ2ognexJs2rZ1NssEfLe253Qa9KrHrISt9oIdW61JBL0RL0St6tw8BVZw9t94bOOfDhCKCFYyjEEE4HJ9TFy4ZdGYDyrCGU2pwj3EtuRitBbady5QXCCEXjuC7IGZ10EHaHHVwv/cZecqp57bgehjhoEdic0n1VgsUMSQaYjFMkmA2QGMvMgm2BSdXXfjrzi820UD2PKOF8t4qrIq7PUKdFDMAN7Rp68P0JjJwnS/rdX7tyok8TtivJv1fjlq/KV95e8pifZ9n9YHybc4cUCd9YqqwFVWZqW/UbnVlVcz3mxENgLOgsmCN9lMTrihyuBM+NETeltNlH7jS4W9n5jqJY+5+ul5z7wrXnYm1OZb5k+DcTDjJe7VEY7hqwc3tbVSoryzjgMcSzr7wsFsV7Sp1FBrcDXS64X6YhfmaKazkACZu5fp6en3uqSF4sExEuBioWVRWuNYP423HENymz/P3HPVholIbffGHHPSp+jjY7sLArTW1V4uelfDyOENPBey+JhFgMmKw/m/OlJfG0nKCbbo2SfHZ3jvZbDfoEPn71VCaGhgjhGXwPPbfLCA1U8y7/nIWXkAOCUbCjx4k6XXAXqIF7Q8cJVNum7rA/PbRGB3a6EobLq8FrFHz+iBokbKeElDsd2yLcLN0md2uLPDGIQSSgI00waD/NATPB2JQEcZikK4V59Zjj2Wk6SMa0hsKwDt2p6YOtxzToIO2QNeZgt6X0Ue6A4X2Ktgf84EJ0rhIloreWsG2cclbVK3JZHuJJHy1p6P6ziSMj1wxFpitnQ//YqAVCzZ4xQSTiTLGogmks//yIPKCPci07V/zqTh2XL8R3Rv6fIuJpj1KOCirk6aYlxWprs/m8obryYfcAm6dK/j5I+/YqQ0lb7KQjirhe2rohRCf9FBF5/KQzNW5UCu/OP3D+R3VO+vj/LuuzGvktxoGyyfDIiPyc6JUsrIXz3r+1IS2UHG0x57xXhQbVqVgUknZKd1n/E1o0EONWf3ptF0Nw9Issn6Upila9segtTKq5aUdVzdmj/sqxSHC5mv8LBt7aUin4tvKyr5vRnRtj65u3YMTIfOB6lmzWCgSmb4Tfdb8uVdSkCHiW7G/JJ0qY2QvOnEmFCmf8d98mETPhTwXuzAq1AdAamwiZbqZKI2we5TFQfzLnVDvvK414wLYsnsk+s2u/QCKPJlfDvlaR40rHSAYl3PO+Cywn/8SThy+jGdIsTuz2OuqvYlWui3iMeo+/ztP3UAtbgtSlRZYyRmqEyGYMEqKj9rLa0Q0IaYS6MppzyKUOE/VrwPFfrw35NDoZ0Pd8k66fhze0haCpbvchP4u38QebeMdhELc029Ud64lBGqFaT8qvJnZv4p3FC7fZRZqGnCoBk2j2NzMSS57oib6WWqPjF06tk/J9bEsMbXlkFAzs7glUa1e4PK4xb+gfl5S8r/AqiUtMAWckvvRyWXdxq6YEn/9XcEyVFPyeMnFV3sWaXsmPn0GRT9zlqDbqbJSJDqplUo8SseXSLyUsvytGVR7Uuy8c86GRNJZwYp9GkqVUB6aScZlkjUXAm3TLL3WCyEz03q6NFqSSsQVJ1R1eCd5Kli7BGqCRKK4krEr0bS9pJLzShdsNXq2DyHB3ByrzU9x2S8/uNHkKVP9bV3uQ56af84OihakZuPCv3PuNFHS82yFy8WOCFnjRe7vTdG5OX+uFlJXEgw4yJGJYcorGTeDQ56i8CZHk1viT6jt/sirzls7VM8/FdEjUzSVis+01FxgpWuctJ45Tfw8uKqE78NyeL5n7ztN8U95sBahVJAdfBaCy5o09hQP7wznR0iQXHW5WpxG9dPqspsSW+96jo3nb+tX3YQpmqjKVAzKCJ9nD9Ifg30UWUHGIskn5xjcRbjmTW1HOHSpDEqJup7Pt4Qon+WpT7yV85wtDEopk7O0UNcud/ogZnn86UxgxG1vkfCM4nenV6lkSuPIt4cdGkF+eoweeT/wE="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+      "kind": "taxanswer",
+      "no": "1110",
+      "title": "災害や盗難などで資産に損害を受けたとき(雑損控除)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 43.05,
+      "text_ranges": [
+        [
+          0,
+          1945
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:shotoku:47-11": {
+      "id": "tsutatsu:shotoku:47-11",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-11",
+      "variant": 0,
+      "title": "所得税基本通達 （前年末において低価法により評価している場合の棚卸資産の取得価額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "その年の前年12月31日における棚卸資産につき低価法により評価していた場合のその年12月31日における棚卸資産の評価額の計算の基礎となるその棚卸資産の取得価額は、当該低価法による評価額ではなく、当該低価法の基礎として選定している原価法により評価した価額によることに留意する。（令7課個2-10、課法12-5、課審5-10改正）>",
+      "score": 230.92,
+      "text_ranges": [
+        [
+          0,
+          164
+        ]
+      ]
+    },
+    "law:shotokuzei_rei:99": {
+      "id": "law:shotokuzei_rei:99",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "99",
+      "title": "所得税法施行令 棚卸資産の評価の方法",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_99",
+      "score": 184.04,
+      "text_ranges": [
+        [
+          0,
+          1805
+        ]
+      ],
+      "text_deflate_base64": "xVjbVupIEH2fr+5qRQJJCIIcRPEAS1QUjGfAWYSrH1PphDz5C7OqOwlJDBcvs+aFh1DdXbX37rq0N2n4o5G4vhYmuM6Jd9PzRyPXYUG38L7UvNsrYTqbSdG/uEWwxe3Ydcqi0nHXPf+5hGBvBppvN4VVRpgg3NCXx4a77iHY3q+ZN2m8L6XZvSXsK4Qhcg25rizF7JUOnRteW3OdknSAec2796UmqkbQLZDN3wV3ZW1YAcEQs1cE23WeA3ZBW0EZ4RTh3nteuPMeQlNYGsKLKM7F9Qp5DaGJ0BHdV1HVpP0LMlBHqyUpe7C9FkfG3cWd6+gIdfoyWicPElUD4RIZl0ElHGiXEFrI9QxcCoqgZ8ZAuU45AIegIPdaEoo6wgDBQHhAMJHrUezDCDS588Wbu+gjPMi1gFzP4Kyi80Y9hKFXGSPUaFVIgbYFXDujJSUm1k1/UJFR9FUUwU1tUxr7FxNxXvauHeQ1z6qK4jztp7I3/UFF6C1/NQ4aU7nh2+bJRF4TVhPhHOFe7vmEcJrBX6lLWNM8P0vyCHkc467DkDEltmwUebI5yMj7UkuSq0COlyAzvHbHaw9TJDJTunSKcJbgnRDIhRrBJkvoySVXyA0EPcGR1D8tvw9jsX6JdTMUCa/RVSLAm7FQt1+gkzFGztVWYlXfPI5znE8pMAQ29ITklwiK9wlqpgvtTkGdu5soDIKTQVIzsZ+C6cgKHyPKCXOvJ3/hyTO5UtBE4Y5+i/OdDkW7+wM76P1GBqIOm8mTSkbit36Qb7WQElkOzbbf+EMKJulfKOkLYy60uxQ98Q5gh9mBWLEzGO1kKAZop6Z15CWvzZDzzds5wmlG6ApZpY+tM7wWOgNWXmKiPYPumTfqeVqVAgx9HiC8yUu7DTD60pBS7mQF8W2yLWTMn1piNhE3xZDp3RwroH+QmBh9gpugz00kzSifHQ9xBgXbn1oRHPGJz+T5V/jbs7ktqtpmoEV81Ik2TiBkdvCnltf4ExQthIeg1VcxqhqlnMmQSjnbvHRXpljVETrIy59lWiemHxZCb/xfZItVXWhHBmOQ/ZmJMDmWFap9Wy5TVS9xLcI2I69UhUkixdMgvbb54QoS5YrIMO2lb6TozP1+RZoRwalqIlkgHKiL2BYm72Imu47wxufmBndxJ9bG55Ghv4KTlZhTK+U9XGYrIy8fQ80xHn4zrR46Ivx+2Nufuz/XyJjXZv4/3F00qDgmGqODxfG/S5zfL1vR/kdg9HNoXlKTcTsma34qCifH46iGhoBdCcehU6e2f03H+5Xix4EpNtuMH8PjZMaOmsShuvQ7zAjEnKyQvk8yfkAYqk0296C+x5B5lTjDd4LiuXJAmF01RojSmBJVAqA9PVN6APqcnvbg9j2pKffOketHnXWotu6iLCqyQ3XxYsb3Mriz7iuzMBPnJH5bvKzDU3KLe0JCe3uY8x2F5Sv9ySf3SXm7R29y/qi5s6YkJdWEhHL9Qmfpzg1kzF1VPpUjic6SScPpyWVyuMtkirha7ZzOooeOOEnHS3J7rESZbiX68SECj6ZFOTsfo+/0BVaD9o9c4APNlcLtaxPx15AMH0ASSCbkezBZJJbkeOiuKginH2ft5BvXYRW+L2tUZ0pm0C1sHz54P6WtaOr+AhZx+jkKnQ86Uy9N5NjcyJAX3xyZL4fIWSQa+cyUzgEKPiVHerVRN3WZeu8Q/Qc5bcQZRbZQJDKdDBhs7i2vuySDt7bKBOQAfTGiN6+S5EaOYqlLEqlQ+hY/HW7fHOkIHbklJ6ErZBC+weU+wMlHK2T8Xw=="
+    },
+    "law:shotokuzei_rei:102": {
+      "id": "law:shotokuzei_rei:102",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "102",
+      "title": "所得税法施行令 棚卸資産の法定評価方法",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_102",
+      "text": "法第四十七条第一項（棚卸資産の売上原価等の計算及びその評価の方法）に規定する評価の方法を選定しなかつた場合又は選定した方法により評価しなかつた場合における政令で定める方法は、第九十九条第一項第一号ホ（棚卸資産の評価の方法）に掲げる最終仕入原価法により算出した取得価額による原価法とする。\n２　税務署長は、居住者が棚卸資産につき選定した評価の方法（評価の方法を届け出なかつた居住者がよるべきこととされている前項に規定する評価の方法を含む。）により評価しなかつた場合において、その居住者が行つた評価の方法が第九十九条第一項に規定する評価の方法のうちいずれかの方法に該当し、かつ、その行つた評価の方法によつてもその居住者の各年分の事業所得の金額の計算を適正に行うことができると認めるときは、その行つた評価の方法により計算した各年分の事業所得の金額を基礎として更正又は決定をすることができる。",
+      "score": 156.47,
+      "text_ranges": [
+        [
+          0,
+          392
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:45": {
+      "id": "law:shotokuzei_hou:45",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "45",
+      "title": "所得税法 家事関連費等の必要経費不算入等",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_45",
+      "score": 14.59,
+      "text_ranges": [
+        [
+          0,
+          2716
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:shotoku:47-22": {
+      "id": "tsutatsu:shotoku:47-22",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-22",
+      "variant": 0,
+      "title": "所得税基本通達 （棚卸資産の著しい陳腐化の例示）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/03.htm",
+      "law_version": "",
+      "text": "令第104条第2号に掲げる「当該資産が著しく陳腐化したこと」とは、棚卸資産そのものには物質的な欠陥がないにもかかわらず、経済的な環境の変化に伴ってその価値が著しく減少し、その価額が今後回復しないと認められる状態にあることをいうのであるから、例えば、商品について次のような事実が生じた場合がこれに該当する。（昭55直所3－19、直法6－8改正）>\n（1）いわゆる季節商品で売れ残ったものについて、今後通常の価額では販売することができないことが既往の実績その他の事情に照らして明らかであること。\n（2）当該商品と用途の面ではおおむね同様のものであるが、型式、性能、品質等が著しく異なる新製品が発売されたことにより、当該商品につき今後通常の方法により販売することができないようになったこと。",
+      "score": 268.23,
+      "text_ranges": [
+        [
+          0,
+          342
+        ]
+      ]
+    },
+    "law:shotokuzei_rei:104": {
+      "id": "law:shotokuzei_rei:104",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "104",
+      "title": "所得税法施行令 棚卸資産の取得価額の特例",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_104",
+      "text": "居住者の有する棚卸資産につき次に掲げる事実が生じた場合には、その事実の生じた日の属する年以後の各年における当該資産の第九十九条第一項（棚卸資産の評価の方法）又は第九十九条の二第一項（棚卸資産の特別な評価の方法）の規定による評価額の計算については、その年十二月三十一日における当該資産の価額をもつて、前条第一項に規定する取得価額とすることができる。一　当該資産が災害により著しく損傷したこと。\n二　当該資産が著しく陳腐化したこと。\n三　前二号に準ずる特別の事実",
+      "score": 102.03,
+      "text_ranges": [
+        [
+          0,
+          229
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:70": {
+      "id": "law:shotokuzei_hou:70",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "70",
+      "title": "所得税法 純損失の繰越控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70",
+      "text": "確定申告書を提出する居住者のその年の前年以前三年内の各年（その年分の所得税につき青色申告書を提出している年に限る。）において生じた純損失の金額（この項の規定により前年以前において控除されたもの及び第百四十二条第二項（純損失の繰戻しによる還付）の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）がある場合には、当該純損失の金額に相当する金額は、政令で定めるところにより、当該確定申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。\n２　確定申告書を提出する居住者のその年の前年以前三年内の各年において生じた純損失の金額（前項の規定の適用を受けるもの及び第百四十二条第二項の規定により還付を受けるべき金額の計算の基礎となつたものを除く。）のうち、当該各年において生じた次に掲げる損失の金額に係るもので政令で定めるものがあるときは、当該政令で定める純損失の金額に相当する金額は、政令で定めるところにより、当該申告書に係る年分の総所得金額、退職所得金額又は山林所得金額の計算上控除する。一　変動所得の金額の計算上生じた損失の金額\n二　被災事業用資産の損失の金額\n３　前項第二号に掲げる被災事業用資産の損失の金額とは、棚卸資産又は第五十一条第一項若しくは第三項（資産損失の必要経費算入）に規定する資産の災害による損失の金額（その災害に関連するやむを得ない支出で政令で定めるものの金額を含むものとし、保険金、損害賠償金その他これらに類するものにより補塡される部分の金額を除く。）で前項第一号に掲げる損失の金額に該当しないものをいう。\n４　第一項又は第二項の規定は、これらの規定に規定する居住者が純損失の金額が生じた年分の所得税につき確定申告書を提出し、かつ、それぞれその後において連続して確定申告書を提出している場合に限り、適用する。\n５　第一項及び第二項の規定による控除は、純損失の繰越控除という。",
+      "score": 13.43,
+      "text_ranges": [
+        [
+          0,
+          814
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:47-9": {
+      "id": "tsutatsu:shotoku:47-9",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-9",
+      "variant": 0,
+      "title": "所得税基本通達 （低価法における低価の事実の判定の単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "低価法における低価の事実の判定は、棚卸資産の種類等を同じくするもの(棚卸資産を通常の差益の率の同じものごとに区分して売価還元法を選定している場合には、通常の差益の率の同じものとする。)について行うべきであるが、事業の種類ごとに、かつ、令第100条第１項((たな卸資産の評価の方法の選定))に規定する棚卸資産の区分ごとに一括して計算することができるものとする。（平19課個2－31、課審4－44改正）>",
+      "score": 203.3,
+      "text_ranges": [
+        [
+          0,
+          200
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:51": {
+      "id": "law:shotokuzei_hou:51",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "51",
+      "title": "所得税法 資産損失の必要経費算入",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_51",
+      "score": 10.77,
+      "text_ranges": [
+        [
+          0,
+          892
+        ]
+      ],
+      "text_deflate_base64": "1VbbctowFHzvV+sooQGMwzU4QBKgXBNAKZB0HEOSjzk+svXEL3Rk2YYAnV4zbV8YI0tHu2d3JdM84z8XQ5ZBEFT/gpz5rk3WRVDryRyjFwcZ+J4lBzPzl4pZhHuaz+WNE0/glaDWRmgiPCHYZjKCCGpjhIn/0kK4QF5AblHLI9EMl2dBrYdwjSD8VR2hqt/CRHp1XYRbyYSRrL36qz7CiEQTOSC3kHMEgTBB6COcIgyRARXryPNRnSKCBqwafbIfkIFcZag/36yz9FwNbxdJZSFLNvXyug7PIrf8ly6xvh53W/S5jLxCpQlyhoxv1rkdqML3rKA2TxbmI+KXCG1dsD9HEOqsrLr2Zp31X69Vw1NnZQ2jZJNYhssOnbb1yB53nkOYqO4NQuMNx2iLsHelafJq2kZ1Mqbsx3QvKuYRlim1cLaQbjddbvRKm6zqnxTr6S7BMAUf78grqtFHKCas75GBgWrsYZ5TplvuzkCbZx7jp6cHA2/fSAngPUftEDmwVroERDjOBsLx3bxW/DUTDiF4LISLFcIkEA5lBnH3GP+wWVeQMXovZ78xX6xlYnoFPOwWfHfrDOot5HnL+CBcuP7q0jxTzpZu91tuSMNA/FGObzX/hUusEqkYzz+Mxw+687+WtoqMBfBMYmmKBi1HtXqhNYhMXUS4l+M71bncJmDHB/IqFzOJoOxq+S9E+c9H8J3FqO3lbM8Xu6qoVvloquRgRlbj8L54c3DptooUK7U9anUQxgh36X2hD/mIkjkPg+mUMjOywfcK8robTKe+y1Qns1lng1pbPmg+ijXJdQ1JhJGuBqfpQWpMlt4RpumRKpNwWNSZixoRz99XTvxNGzH4/esgbaPp266UetArqE4mTqCec3K01Vr0ki3PR6rRP2zdd+4djfBG/77PWWXAb225o5TuDwjV0dvFgHlFwW1kUcf4BGFkohKNtI8aNQnVOM2MJqj5lsgbRuNO/A0TfZ/8Muafze2FPkQTnYzSlLONqHsiHdwdIqGt3YPgJPm58z0rWq71O/LpxvhX"
+    },
+    "law:shotokuzei_hou:47": {
+      "id": "law:shotokuzei_hou:47",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "47",
+      "title": "所得税法 棚卸資産の売上原価等の計算及びその評価の方法",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_47",
+      "text": "居住者の棚卸資産につき第三十七条第一項（必要経費）の規定によりその者の事業所得の金額の計算上必要経費に算入する金額を算定する場合におけるその算定の基礎となるその年十二月三十一日（その者が年の中途において死亡し又は出国をした場合には、その死亡又は出国の時。以下この条から第五十条までにおいて同じ。）において有する棚卸資産（以下この項において「期末棚卸資産」という。）の価額は、棚卸資産の取得価額の平均額をもつてその年十二月三十一日において有する棚卸資産の評価額とする方法その他の政令で定める評価の方法のうちからその者が当該期末棚卸資産について選定した評価の方法により評価した金額（評価の方法を選定しなかつた場合又は選定した評価の方法により評価しなかつた場合には、評価の方法のうち政令で定める方法により評価した金額）とする。\n２　前項の選定をすることができる評価の方法の特例、評価の方法の選定の手続、棚卸資産の評価額の計算の基礎となる棚卸資産の取得価額その他棚卸資産の評価に関し必要な事項は、政令で定める。",
+      "score": 10140.41,
+      "text_ranges": [
+        [
+          0,
+          451
+        ]
+      ]
+    },
+    "law:shotokuzei_rei:96": {
+      "id": "law:shotokuzei_rei:96",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "96",
+      "title": "所得税法施行令 家事関連費",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_96",
+      "text": "法第四十五条第一項第一号（必要経費とされない家事関連費）に規定する政令で定める経費は、次に掲げる経費以外の経費とする。一　家事上の経費に関連する経費の主たる部分が不動産所得、事業所得、山林所得又は雑所得を生ずべき業務の遂行上必要であり、かつ、その必要である部分を明らかに区分することができる場合における当該部分に相当する経費\n二　前号に掲げるもののほか、青色申告書を提出することにつき税務署長の承認を受けている居住者に係る家事上の経費に関連する経費のうち、取引の記録等に基づいて、不動産所得、事業所得又は山林所得を生ずべき業務の遂行上直接必要であつたことが明らかにされる部分の金額に相当する経費",
+      "score": 42.56,
+      "text_ranges": [
+        [
+          0,
+          297
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:57": {
+      "id": "law:shotokuzei_hou:57",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "57",
+      "title": "所得税法 事業に専従する親族がある場合の必要経費の特例等",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_57",
+      "score": 49.41,
+      "text_ranges": [
+        [
+          0,
+          1497
+        ]
+      ],
+      "text_deflate_base64": "3VjLdtpIEN37q7s6gBEShgBGsSHGeHgoYAtiE48sA/6YUrekFb8wp7olIfHw5Mxi5pzZJaK6nrfu7Xb8vRUZz2HnRXytyZ6HvCUbTXHpI9wgNxHaCA7CHGGEUA+dK2HehJvn+PpPBFcaH9GsjrwlGjbCV4QJQgm5KX6Wg00jYmUEJ+wMIqeKvBV4TPkht3G5LuBVGXxHcIP3LoIbTWbSbuzWVfG2ijcPog6B35FPL7I/kz5DmCJw5Cad4q34ZoTQQMZ3awNhKpYcuaG95aK7ovuKnAmjLr8PEebRpCHcW51D4Jty/IQwF9t24JtJvZwjuLt1NXgfB54u39VnEWpUHUyQWbFqmvYgllxs2xSO1VWvSgiVNDFLbNrRj+c0lonckI/D+J5ykz0vHt5RVs63iIyvkVtZD2X3Tb5c6/SUTyrtpGV8+TUe1hHccFESvWdRKeezDX9NAu+KwnUW0rjODWsg7leiWVXGC2SQdslNuzSnhCnnhurtLTLQaWQ+09DTpPO1lTBvci21EQayP4i7bfKf/OpKNo1eZqJRQ3jRB2WjGWx75NkxhT/JAqV9c0PHjYd3+kg0aUhneGTjiKYVOm7uS5JVYg9WPLwL1uv8oBEs2VmEvyb6Y1ZXWHuVL5AHp+x8BO8jQpp7ixzIOLGZh+Wp6o9dbIIrFttgO1SQsGkQPU9s2hmMERy1O0BnuZVLaZGVlkfyQefTtOfBB3kTbytRrdCRAt6SXwOvLszrsPOHNJjY2vvBMdCWB99Fo4qwED9/yjv78AiBsBq6duDVxEc5mkD4y4qe36kPri3KYyqW8jeJMRjofE7vS5ptlryuLo2Ylta4EuVxGt1Jxsf4xW7dQsaSTikXwftYbC36b7OUOdXuQucqYzFh1PUGpkB3Y/gRdpz9bvAq7XAaLDeG3GzeVoFnyH414Sl7jLBFmO7W1ZwB0wai/CTtsU5PdpcIA1qSpqXTSKbFW3HXFNNkbQ6Ws4D1oqUKTcwS+JbsE3OJSlmxzxwZnGu9XDZEs555juDPBLWVsnDf9KYd7HngTdTGzk9iUfYH2cJEz0PSiT4c7Ezgm1Qyb6VEpvLXPMhb4UoJTH+ppxZtSkW9mafKZCPM1JgshCX9m9ZvRnynYNFGxrKZ7dbV8PEx8JjqdUEB9nM91JP/p2r9jl7pbE+C75iN/hPWIVJplo4Anew2MpCPVLi8ekZo5eVRrfRQ1XuroGMGmyuEUmLAW0U+cxA+FKpukHGCAWMHnk/wmeWrhszFRx/hG3WJAt0ht/TZbBPSoKM9heXam0Nagp+DWKI817QSeJeiUrnAL0/kiI/y+UWsTGQw6mbMkZ0P/A4hVR8OfOuASP+FkSqeJJwWqJi3EipOdryEMNWTL7Kie6wHhF/eOp32MftdL+lXj9GR2j1ClYiIPk7VjpJg5+PqcBe7dYe45Zx+6PUhHB7drc4jNpOB/bWLV5HXzqBRX/0Gaf2LTGNPhTgUWNEshY57brnSlBRd/J3n39Pq/QZd7NbXyJjiYqNYMEUKH3zh3u6fITl5PK/SprQdrVT/pIl7apjH3YeMXhM/iUBZGoYH4zwEqSqvS+UVBOtkYW6qYtq1mcdLsi8ZvopJfOrqGHcp8XOeUfjJ0PqNp0MXnxknzAoY4SXkaoO2SSMIJl/KmYzk7rimOpsA9gQI9ouff3Zaiv/q2YXPThFEaq4zzvs6UTxV3lbTNvLoyEuqVnDNffHmgR5tZ0Rc9eKH0hGT7KujDL979qSz6h7mGYpimbTHCdl9mkaO/63MGzG39xSzTr4o+fQe+EMEO4HLpS96G+StTy6O+kjBHlx5o0XfDRtb/ZRRS0O9VvO+13d5TQJpl9LcNm15w6X9QIKT5rP/A0CSw55DUhsKejLixW79DRk7eV3VeR9zUDSB4P2V3K2WYc9NkOVbZ97X1J3sBipGhuytktanqiINM3y9za53n0DtiPo1h9iacBBmKZNQC44fj8j4Xw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+      "kind": "taxanswer",
+      "no": "1181",
+      "title": "納税者が2人以上いる場合の扶養控除の所属の変更",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1181.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 37.3,
+      "text_ranges": [
+        [
+          0,
+          1138
+        ]
+      ],
+      "text_deflate_base64": "1VdbcuJWEN0KG8iHXUnVZC2p7EX3FswgJMDmEQJijBlrNIoUhD3WxIBkeTGteyV9aQupvpJAAmzjpJKq+QPRj9PndLeaX0JPZz31HVu7P/Jp84yPPkfdgE1Nfj8MPT1ayL/W2DKI7+aR2Yk0h8sSC0aR2eEGjQ1SOw83m9D7HK5aQBx21wgfu7HUAOJw+a9Eb8WGxUddIHb8x1f22AcyBqqgAe0BqQOZAFVfdDQzFyAKkCVIBEgfXahc9VJ594J92BTGH/HXtcua74E4IKnhpsmcSeS2I7OTzNuYZaUl8zaXn2KrHQ3uY1vh2gqkNqaQ1OjTBu0H9+yyxbVV6jf5dJaML1igZg+B9tiFDeQJSIBJJZr68s79mxGuOhlV5aJ450syRk63kbcuLOgDmQFVMl8gNhBdUGS84o4AZoIclTX+jCZ1tnaTD5fRQlDUHUXfjENi94KkflOIqCD44jlGwPimgFGvVErs2Pw9xg9DoeBMmPWBthE5bQJtbe1rOUQUrw7kRtTZz0SqJCs8kbi7KyAqcyZACYotcrBABfIFKAWJ8MEaf0J2PoraMhcnGt4CsbDJMnzYZyMgs0oi2qu2S1+g3+IuBUT3oeg2m+ky19yqyxLxkHZeKlFFjaL5rl120RQqYtdWepr22KcRa11jZKJhUvJ+2+hCqpZ4eM9XGru9fM6MNUzWn2PSf8XACI3JpWA4c8yU01AjIZ6FgLLJ2xV2oFw2nZIaPjl8cVPt0LwekFSuuXxxA8TBgbujhcFSDFMgQBS5iYPk5k2T7Qllb+jL/bQ3stUKDbSkykuqlBgslC6rW9DBGg/hYz8MlFrqT2NzEQbKWepf4Tc27Kb+FdMxejJ8iAYPCOLoNnvriigVw9Yun9qx9cSHLtBePFcFBYZgGXVihgdkuVdbqRc0ZJPY/w2G3ZaohV6LrZFFwYjK9Em2eZnqRWMaf/Uw4mDJ5WGuIcpIsABh/wyDClA5GetM/21H5Z7yVawFI88FtLH1cMmcEApB1vPG3M27aNV8PK0yg0d7KrbapZ2W7Q0F+Ur9abQYpP7Vm5ZF6jeZ4YmVfNLWQHvdTn15tz6KnbWPlfaKHS8qf4Wdcb5BThirIxRk9WfzdP7dztMr3RMUTH6fw3F8d///85EhrtwSr3N//A2Ql106tt7evLsX5Q5QbN0eu2St4pIVlw06o32BKb9s8gMiqJy0B29bcQUT89jL/uCmyfu5ctYcu2bUw2vm9F2UqVK5q55/3Z9yTrxwEvxzkfj1mivX2/82XJZCTz8/+1kEldhsk0iTdz/9cF77Gw=="
+    },
+    "law:shotokuzei_rei:101": {
+      "id": "law:shotokuzei_rei:101",
+      "kind": "law",
+      "key": "shotokuzei_rei",
+      "no": "101",
+      "title": "所得税法施行令 棚卸資産の評価の方法の変更手続",
+      "law_version": "2026-05-22",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_101",
+      "text": "居住者は、棚卸資産につき選定した評価の方法（その評価の方法を届け出なかつた者がよるべきこととされている次条第一項に規定する評価の方法を含む。）を変更しようとするときは、納税地の所轄税務署長の承認を受けなければならない。\n２　前項の承認を受けようとする居住者は、その新たな評価の方法を採用しようとする年の三月十五日までに、その旨、変更しようとする理由その他財務省令で定める事項を記載した申請書を納税地の所轄税務署長に提出しなければならない。\n３　税務署長は、前項の申請書の提出があつた場合において、その申請書を提出した居住者が現によつている評価の方法を採用してから相当期間を経過していないとき、又は変更しようとする評価の方法によつてはその者の各年分の事業所得の金額の計算が適正に行われ難いと認めるときは、その申請を却下することができる。\n４　税務署長は、第二項の申請書の提出があつた場合において、その申請につき承認又は却下の処分をするときは、その申請をした居住者に対し、書面によりその旨を通知する。\n５　第二項の申請書の提出があつた場合において、その年十二月三十一日までにその申請につき承認又は却下の処分がなかつたときは、同日においてその承認があつたものとみなす。",
+      "score": 10159.9,
+      "text_ranges": [
+        [
+          0,
+          531
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:47-14": {
+      "id": "tsutatsu:shotoku:47-14",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-14",
+      "variant": 0,
+      "title": "所得税基本通達 （評価方法の変更申請があった場合の「相当期間」）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/02.htm",
+      "law_version": "",
+      "text": "いったん採用した棚卸資産の評価の方法は特別の事情がない限り継続して適用すべきものであるから、現によっている評価の方法を変更するために令第 101条第2項の規定に基づいてその変更承認申請書を提出した場合において、その現によっている評価の方法を採用してから3年を経過していないときは、その変更することについて特別な理由があるときを除き、同条第3項の相当期間を経過していないときに該当するものとする。（昭55直所3－19、直法6－8追加、令7課個2-10、課法12-5、課審5-10改正）>\n（注） その変更承認申請書の提出がその現によっている評価の方法を採用してから3年を経過した後になされた場合であっても、その変更することについて合理的な理由がないと認められるときは、その変更を承認しないことができることに留意する。\n\n〔棚卸資産の取得価額（令第103条関係）〕",
+      "score": 193.6,
+      "text_ranges": [
+        [
+          0,
+          380
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:48の2-3": {
+      "id": "tsutatsu:shotoku:48の2-3",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "48の2-3",
+      "variant": 0,
+      "title": "所得税基本通達 （評価方法の変更申請があった場合の「相当期間」）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/04-2.htm",
+      "law_version": "",
+      "text": "&emsp;47－14の取扱いは、暗号資産の評価の方法について変更承認申請書の提出があった場合における令第119条の４第２項の規定の適用について準用する。（令元課個2-22、課法11-3、課審5-12追加、令2課個2－12、課法11－3、課審5－6、令7課個2-10、課法12-5、課審5-10改正）>",
+      "score": 178.38,
+      "text_ranges": [
+        [
+          0,
+          151
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:39-3": {
+      "id": "tsutatsu:shotoku:39-3",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "39-3",
+      "variant": 0,
+      "title": "所得税基本通達 （準棚卸資産を家事消費した場合の所得区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/06/01.htm",
+      "law_version": "",
+      "text": "令第86条《自家消費の場合のたな卸資産に準ずる資産の範囲》に規定する棚卸資産に準ずる資産（以下この項において「準棚卸資産」という。）を家事のために消費した場合には、当該資産の価額に相当する金額は、当該消費した準棚卸資産の区分に応じ、それぞれ次に掲げる所得の金額の計算上総収入金額に算入する。>\n（1） 事業所得を生ずべき事業に係る準棚卸資産 事業所得\n（2） 不動産所得、山林所得又は雑所得を生ずべき業務に係る準棚卸資産 雑所得",
+      "score": 211.47,
+      "text_ranges": [
+        [
+          0,
+          214
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:39-4": {
+      "id": "tsutatsu:shotoku:39-4",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "39-4",
+      "variant": 0,
+      "title": "所得税基本通達 （山林を家事消費した場合の所得区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/06/01.htm",
+      "law_version": "",
+      "text": "山林を伐採して家事のために消費した場合には、当該山林の価額に相当する金額は、保有期間が5年を超える山林にあっては、山林所得の金額の計算上総収入金額に算入し、保有期間が5年以内の山林にあっては、その消費した者が製材業者又は立木を売買することを業とする者であるときは事業所得、その他の者であるときは雑所得の金額の計算上総収入金額に算入する。（平元直所3－14、直所6－9、直資3－8、平16課資3－9、課個2－27、課審6－17改正）>\n（注） 製材業者が保有期間が5年を超える山林を伐採し、製材その他の加工をして家事のために消費した場合には、当該家事のための消費は山林の家事消費ではなく、棚卸資産の家事消費に当たるのであるが、当該山林が自己の育成に係るものであるときの取扱いについては、23～35共－12参照",
+      "score": 187.45,
+      "text_ranges": [
+        [
+          0,
+          353
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:39-1": {
+      "id": "tsutatsu:shotoku:39-1",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "39-1",
+      "variant": 0,
+      "title": "所得税基本通達 （家事消費又は贈与等をした棚卸資産の価額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/06/01.htm",
+      "law_version": "",
+      "text": "法第39条又は第40条《たな卸資産の贈与等の場合の総収入金額算入》に規定する消費又は贈与、遺贈若しくは譲渡の時における資産の価額に相当する金額は、その消費等をした資産がその消費等をした者の販売用の資産であるときは、当該消費等の時におけるその者の通常他に販売する価額により、その他の資産であるときは、当該消費等の時における通常売買される価額による。>",
+      "score": 161.97,
+      "text_ranges": [
+        [
+          0,
+          174
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:39": {
+      "id": "law:shotokuzei_hou:39",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "39",
+      "title": "所得税法 たな卸資産等の自家消費の場合の総収入金額算入",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_39",
+      "text": "居住者がたな卸資産（これに準ずる資産として政令で定めるものを含む。）を家事のために消費した場合又は山林を伐採して家事のために消費した場合には、その消費した時におけるこれらの資産の価額に相当する金額は、その者のその消費した日の属する年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上、総収入金額に算入する。",
+      "score": 10062.52,
+      "text_ranges": [
+        [
+          0,
+          157
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:48-7": {
+      "id": "tsutatsu:shotoku:48-7",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "48-7",
+      "variant": 0,
+      "title": "所得税基本通達 （評価方法の変更申請があった場合の「相当期間」）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/04.htm",
+      "law_version": "",
+      "text": "47－14の取扱いは、有価証券の評価の方法について変更承認申請書の提出があった場合における令第107条第2項《有価証券の評価の方法の変更手続》の規定の適用について準用する。（昭55直所3－19、直法6－8追加、令7課個2-10、課法12-5、課審5-10改正）>",
+      "score": 167.71,
+      "text_ranges": [
+        [
+          0,
+          131
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+      "kind": "taxanswer",
+      "no": "1379",
+      "title": "修繕費とならないものの判定",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1379.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 19.44,
+      "text_ranges": [
+        [
+          0,
+          1162
+        ]
+      ],
+      "text_deflate_base64": "xVdrctpIEL6KL7BVxk5tcpetvYt6BFhCPGwQ+CGyMgaDDLFIDHGEefgwrZmRfvkKWz16gE28yb+tciGVZqbn6+7v627/FS4HvFn9xBfzD6JrFMT5rWxseNcTs3a4HMh78+8DPt1E33rSq0vHF6bGN+fSq4shi4YQPQTh8gLhDFkxfLLE7T2CL20PYRJuHIRzhCFCEZnFl0/SvEMNkpf4ssi//RN595xdogbizhU3X6N+Sa591CBaVsKgF4MlTr/w0g86denx0g/OLnkLEMYIdwh+NDuRdh/BD599uWhHD0uEEWoQa1c8CAjJ472ogvR78rRMCJ99egEfwUUGCBNhT/nJE0IbWRWZhYyp1Sl/LkVDkN+ryuaEbmQVhA3CJWrsQDlm0a8GYaBFxhdyeAvCUz43XhsdIWNbxOtnaXu8MY30tei6caeFrMmXj3H7B6EBR0GsUCzyI5se1wbImvHkQqFXG+ASmRXrHjfIscyfaTQ7Ed0v8qqYffFSJzV4jXPKq0/cuE1Xcw/fPQ9ufHIW92oIU7Klcp6QggIc1LjVlnY//QJ+5BnSPw8D8kQEDvlQdHltTlg7CzFrU3SZgazCT4t8MU/ceBN+6Z/z0q0KOuF7WRnR3UzOvxIGNkN9hbp5VDj8iFr1LW7WjHpVhD6Cy6/n/NSgi3dxaDUKfIPJ0iijawPhWiWh+LIyk3S3KIPMQCgjjHcDuBcnP4vnNA81sqKwF5E5TYkBZX5ak46fuW6l9ICpYnYDNUD4TKZ8N5qN023kw5AbA+5f5ZH4SabEl94u1pwQvO5y80QhIC/3cO9x/GVlFF5W5kEqXPBjeI6dfnxVF/53AtfopNJP5KiBNO/kaVleFUkMaolXrhEM4kxG0IQ8ZPyIjEvbizWbD0zhzHd06QuvJ0YXwnlWx1P7wl7E2rVC6CJMKab9EtHDmYv6bTQE5Zq7veKYrkhKC12tMFD9YE1pLhAmvAUqvplBbRTpa9o5uVACTnQ74Y0OskoGJufRaJunRidb9TN1+Cr+vbwU/WQPa0aPJfqyI+BkKWeYyuZE1B8QmsisnWQNFJOGCc8SGDnlXyuc0p3oMceWqDITR1HePHH/StozflZB1lQ1pYrwdevgL4R5qUjcUtdVFZVr+0RCqNAf0xDuj/liHi5veblEuPP6d+aJrrvlaK+aF9G0dCsSKCUlLWCEwNTdHl1JcNNchoGmYuS/czDPU/XoMAxOeLksumPxpKnEJcZYztLfNpYmHWGypy9rJymWuKgjM1ULGSkjxRxO4tA+x/INf76DN/M82Z53DW7W+GIuupOEg3xzHm56GdhtQgqHqJ9RJWVL1GeoG9IJ+LpFXFzehoG1F2qqimM6rjrg/xieMKhE3kVKsjwKaeroqrsHvm4pRpGl7KiSzX6/AG8HSFLLiffSXIQb62VlkJDcp1i7Ov74R+GD6g+1vIX9p7FJZuyVWKJxjSoeM5Xi1KyUC+c3+kz5ZWWg3kb9HvUVd2bEVkI581TpdmYkZzZFfYy6Ti/p7Z6wenyQdzw7Go6yFvC+kHlJV9PdMv58Q1XJWO6kYop6B/U7ZENkj5RqrZpsSDrsaxBv+yxZF9cLYV3nY6cwNTFrH38kNplauBwUjui98KmQfNlm4RA1oGchfR7lT/Cz9+P0+SF/gn90EHduYq2fjxAHNEPsTT6/nCCgwtsNYtapQeUKHF4yuLOWXh1hEnduspjb0gmiyUlCvWR1p4z7yaoct3ijr4pwkpTXQcomkZkSaVn9FpXoK3y9UBZdpbBN0gsRrJeVe6B2FLM/A8HmNZtXHKWmikq1p7RpI3QyDtL5cFnhm6rqLQveKe62aN5gkaangyHNqwl5XYW3kW7T4ADZDcFk31SQDSrzvis66+0/BxnBELoID1twFIRK3LvIcLuv5p63diH4Fw=="
+    },
+    "tsutatsu:shotoku:47-13": {
+      "id": "tsutatsu:shotoku:47-13",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-13",
+      "variant": 0,
+      "title": "所得税基本通達 （評価方法の選定単位の細分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/02.htm",
+      "law_version": "",
+      "text": "棚卸資産の評価方法は、事業所別に、又は令第100条第1項に規定する棚卸資産の区分を更に細分してその種類の異なるごとその他合理的な区分ごとに選定することができる。（昭57直所3－1、令7課個2-10、課法12-5、課審5-10改正）>\n（注） 同項に規定する棚卸資産の区分又はその種類を同じくする棚卸資産のうちに個別法を選定することができるものがある場合には、これを区分して個別法を選定することができる。\n\n〔棚卸資産の評価の方法の変更手続（令第101条関係）〕",
+      "score": 145.76,
+      "text_ranges": [
+        [
+          0,
+          230
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm",
+      "kind": "taxanswer",
+      "no": "1300",
+      "title": "所得の区分のあらまし",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 40.47,
+      "text_ranges": [
+        [
+          0,
+          1619
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:shotoku:47-7": {
+      "id": "tsutatsu:shotoku:47-7",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-7",
+      "variant": 0,
+      "title": "所得税基本通達 （売価還元法により評価額を計算する場合のその年中に販売した棚卸資産の対価の総額の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "売価還元法により評価額を計算する場合における令第99条第1項第1号ヘに規定する「その年中に販売した当該棚卸資産の対価の総額」は、その年において販売した棚卸資産の実際の販売価額の合計額によるのであるが、その年において従業員、特定の顧客等特定の者に対する販売について値引きを行っている場合において、その者に対する販売状況が個別に管理されており、その値引きの額が明らかにされているときは、その値引きの額をその販売価額に加算して計算することができるものとする。（平21課個2-29、課審4-52改正）>",
+      "score": 145.04,
+      "text_ranges": [
+        [
+          0,
+          247
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:37": {
+      "id": "law:shotokuzei_hou:37",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "37",
+      "title": "所得税法 必要経費",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_37",
+      "text": "その年分の不動産所得の金額、事業所得の金額又は雑所得の金額（事業所得の金額及び雑所得の金額のうち山林の伐採又は譲渡に係るもの並びに雑所得の金額のうち第三十五条第三項（公的年金等の定義）に規定する公的年金等に係るものを除く。）の計算上必要経費に算入すべき金額は、別段の定めがあるものを除き、これらの所得の総収入金額に係る売上原価その他当該総収入金額を得るため直接に要した費用の額及びその年における販売費、一般管理費その他これらの所得を生ずべき業務について生じた費用（償却費以外の費用でその年において債務の確定しないものを除く。）の額とする。\n２　山林につきその年分の事業所得の金額、山林所得の金額又は雑所得の金額の計算上必要経費に算入すべき金額は、別段の定めがあるものを除き、その山林の植林費、取得に要した費用、管理費、伐採費その他その山林の育成又は譲渡に要した費用（償却費以外の費用でその年において債務の確定しないものを除く。）の額とする。",
+      "score": 43.74,
+      "text_ranges": [
+        [
+          0,
+          420
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:37-1": {
+      "id": "tsutatsu:shotoku:37-1",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "37-1",
+      "variant": 0,
+      "title": "所得税基本通達 （売上原価等の費用の範囲）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/05/05.htm",
+      "law_version": "",
+      "text": "法第37条第1項に規定する「売上原価その他当該総収入金額を得るため直接に要した費用」は、別段の定めのあるものを除き、その年において債務の確定しているものに限るものとする。>",
+      "score": 129.33,
+      "text_ranges": [
+        [
+          0,
+          86
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:47-5": {
+      "id": "tsutatsu:shotoku:47-5",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-5",
+      "variant": 0,
+      "title": "所得税基本通達 （売価還元法の適用区分）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "売価還元法により評価額を計算する場合には、その種類の著しく異なるものを除き、通常の差益の率がおおむね同じ棚卸資産は、これをその計算上の一区分とすることができるものとする。>",
+      "score": 315.45,
+      "text_ranges": [
+        [
+          0,
+          86
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:47-8": {
+      "id": "tsutatsu:shotoku:47-8",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-8",
+      "variant": 0,
+      "title": "所得税基本通達 （原価の率が100％を超える場合の売価還元法の適用）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "売価還元法を適用する場合において、令第99条第1項第1号ヘに規定する原価の率が100％を超えることとなったときでも、その率により期末棚卸資産の評価額を計算することに留意する。（平21課個2-29、課審4-52改正）>",
+      "score": 289.59,
+      "text_ranges": [
+        [
+          0,
+          108
+        ]
+      ]
+    },
+    "tsutatsu:shotoku:47-6": {
+      "id": "tsutatsu:shotoku:47-6",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-6",
+      "variant": 0,
+      "title": "所得税基本通達 （売価還元法により評価額を計算する場合の通常の販売価額の総額の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm",
+      "law_version": "",
+      "text": "売価還元法により評価額を計算する場合における令第99条第1項第1号ヘに規定する「通常の販売価額の総額」は、その年において販売した棚卸資産について値引き、割戻し等を行い、それを売上金額から控除しているような場合であっても、値引き、割戻し等を考慮しないところの販売価額の総額によることに留意する。（平21課個2-29、課審4-52改正）>",
+      "score": 343.66,
+      "text_ranges": [
+        [
+          0,
+          167
+        ]
+      ]
+    },
+    "tsutatsu:sochi_shotoku:28の2-2": {
+      "id": "tsutatsu:sochi_shotoku:28の2-2",
+      "kind": "tsutatsu",
+      "circular": "sochi_shotoku",
+      "no": "28の2-2",
+      "variant": 0,
+      "title": "租税特別措置法に係る所得税の取扱いについて （取得価額の判定単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/28/02.htm",
+      "law_version": "",
+      "text": "措置法第28条の2第1項に規定する少額減価償却資産の取得価額が40万円未満であるかどうかについては、通常1単位として取引されるその単位、例えば、機械及び装置については1台又は1基ごとに、工具、器具及び備品については1個、1組又は1そろいごとに判定し、構築物のうち例えば枕木、電柱等単体では機能を発揮できないものについては、社会通念上一の効用を有すると認められる単位ごとに判定する。（平15課個2-25、課審4-39追加、令８課個2-10、課審5-4改正）",
+      "score": 143.93,
+      "text_ranges": [
+        [
+          0,
+          227
+        ]
+      ]
+    },
+    "law:shotokuzei_ki:23": {
+      "id": "law:shotokuzei_ki:23",
+      "kind": "law",
+      "key": "shotokuzei_ki",
+      "no": "23",
+      "title": "所得税法施行規則 棚卸資産の評価の方法の変更申請書の記載事項",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_23",
+      "text": "令第百一条第二項（棚卸資産の評価の方法の変更手続）に規定する財務省令で定める事項は、次に掲げる事項とする。一　令第百一条第二項に規定する申請書を提出する者の氏名及び住所\n二　その評価の方法を変更しようとする事業の種類並びに商品又は製品（副産物及び作業くずを除く。）、半製品、仕掛品（半成工事を含む。）、主要原材料及び補助原材料その他の棚卸資産の区分\n三　現によつている評価の方法及びその評価の方法を採用した年月日\n四　採用しようとする新たな評価の方法\n五　その他参考となるべき事項",
+      "score": 159.8,
+      "text_ranges": [
+        [
+          0,
+          240
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm",
+      "kind": "shitsugi",
+      "no": "76",
+      "title": "生命保険料控除の限度額計算",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 0,
+      "text_ranges": [
+        [
+          0,
+          1009
+        ]
+      ],
+      "text_deflate_base64": "rZbNUuJAEMdfJac97QFQTvs0+wo+AT2LMIQgQZEUW6tAKSTKGqkSXT71YTqTkBOvsDWTkA8NMbp7SVUm0x/z+3f3xGn3WGttvVy43YXd6donutu9dgcNBHNjUMfUkJxuBgrCFUIPwUA4Q9LAEtidiRO3RRhbLwRJPeJEObBmVVapcANNz2JQDAysZX1z94cpS6dLkhJUCtasWmSNH77/zoSV6tZiweZTt9r6QFrZzXbJcQ63SGSEZwSNkykRTgZM1p8ylWIJnL1g7xFuEEwkFKGCMPY5QxeJgjAR62UEna9AHUtEsmalDf2NYO53Oka4FmYjhPssqEPOicdPcZ0RV5SVhiUQlaMgqSEY6dJGdQWTqXRjUD8TQpHUBWkDQRGQGkKErlCgh9D3ouULu/CK21XZYhTXjG+XEmm+Oi/n83xmXwx5QabKwJoywkMKTASzwJQFox6TcyH3SETaVREoPN78waZqocDmU5G36RgnjD7Z7bl9d7WDIIcbD/lGWrGWQ/aspPcNgmJ3JiLSePOyZnLfz6ME7Niw1mcI+sGbHHvWTI4LaAYn8tWBG6dteKC9Tgn5B27CVpHES+9/IH0tlghW4+sxPnn7F83b2tCHBGPnT995VL2MPKds2HKmZeeutl1RPkvE63ZVCyobCeFtCwZ3rSq2NmS1xvuuNH2/q/GOtSAUVnbCeJEC/HZnYms6Zy/8Bk6jvfiGyoWQ4FI8k2Fzh342bZHBWBjeIAyimnN5yaknuJhZdYT6dkVZkyLcW+vH+HqNLy6XdrmJMHZhZsuXsa7lFHQRqO0c69bqZ3Qyvlsgn5h7keS19OH36ckXCwEj7xTO+S279g5edqstb9v+eR4wTB51Ei8QkF+BCy4fppZ3WprRKz0yS8MOJaebp2MEGhlGoS4p15g1k92uimDGej0+Yr0spMR8kucv//DufSdl+fuQDnJfc7kcq1SkL0ffj46+JaogFYNdHp18oRg3yxd2O7YrGsy47aomZam3iH9rNrA7cwTTrw5yypoaQgtJ3VcuSucwtEu9LaUw3/SbXMr+h/RhdNmb4995/AU="
+    },
+    "tsutatsu:shotoku:47-15": {
+      "id": "tsutatsu:shotoku:47-15",
+      "kind": "tsutatsu",
+      "circular": "shotoku",
+      "no": "47-15",
+      "variant": 0,
+      "title": "所得税基本通達 （棚卸資産の取得価額に算入する費用）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/02.htm",
+      "law_version": "",
+      "text": "令第103条第1項各号に定める棚卸資産の取得価額に算入する費用の額には、次に掲げるような費用の額が含まれることに留意する。ただし、これらの費用の額の合計額が少額（当該棚卸資産の購入の代価又は製造原価のおおむね3%以内の金額とする。）である場合には、その取得価額に算入しないことができるものとする。（昭57直所3－1、令４課個2-13、課法12-16、課審5-９、令7課個2-10、課法12-5、課審5-10改正）>\n（1） 買入事務若しくは検収のために要した費用の額又は製造後における検査若しくは検定のために要した費用の額その他その棚卸資産の整理、選別、手入れ等に要した費用の額\n（2） 販売所等又は製造所等から販売所等へ移管するために要した運賃、荷造費等の費用の額\n（3） 特別の時期に販売するなどのため長期にわたって保管するために要した費用の額\n（注）\n1 (1)から(3)までに掲げる費用の額の合計額が少額かどうかについては、年分ごとに、かつ、種類等を同じくする棚卸資産（事業所別に異なる評価方法を選定している場合又は工場別に原価計算を行っている場合には、事業所又は工場ごとの種類等を同じくする棚卸資産とする。）ごとに判定することができる。\n2 棚卸資産を保管するために要した費用（保険料を含む。）のうち(3)に掲げるもの以外のものの額は、その取得価額に算入しないことができる。",
+      "score": 110.56,
+      "text_ranges": [
+        [
+          0,
+          592
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1124.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1124.htm",
+      "kind": "taxanswer",
+      "no": "1124",
+      "title": "医療費控除の対象となる出産費用の具体例",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1124.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目所得税概要自己または自己と生計を一にする配偶者その他の親族のために医療費を支払った場合には、一定の金額の所得控除を受けることができます。これを医療費控除といいます。 具体例出産に伴う一般的な費用が医療費控除の対象となるかの判断については、次のとおりです。 （1）妊娠と診断されてからの定期検診や検査などの費用、また、通院費用は医療費控除の対象になります。 （注）通院費用については領収書のないものが多いのですが、家計簿などに記録するなどして実際にかかった費用について明確に説明できるようにしておいてください。 （2）出産で入院する際に、電車、バスなどの通常の交通手段によることが困難なため、タクシーを利用した場合、そのタクシー代は医療費控除の対象となります。 （注）実家で出産するために実家に帰省する交通費は医療費控除の対象にはなりません。 （3）入院に際し、寝巻きや洗面具など身の回り品を購入した費用は医療費控除の対象になりません。 （4）病院に対して支払う入院中の食事代は、入院費用の一部として支払われるものですので、一般的には医療費控除の対象になります。しかし、他から出前を取ったり外食したりしたものは、控除の対象にはなりません。 注意事項健康保険組合や共済組合などから出産育児一時金や家族出産育児一時金または、出産費や配偶者出産費などが支給されますので、その金額は医療費控除の額を計算する際に医療費から差し引かなければなりません。 （注）出産の前後の一定期間勤務できないことに基因して、健康保険法等の規定により給付される出産手当金は、医療費を補てんする性格のものではありませんので、医療費控除の計算上差し引く必要はありません。 根拠法令等所法73、所令207、所基通73-3、73-7～9 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 33.87,
+      "text_ranges": [
+        [
+          0,
+          769
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:56": {
+      "id": "law:shotokuzei_hou:56",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "56",
+      "title": "所得税法 事業から対価を受ける親族がある場合の必要経費の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_56",
+      "text": "居住者と生計を一にする配偶者その他の親族がその居住者の営む不動産所得、事業所得又は山林所得を生ずべき事業に従事したことその他の事由により当該事業から対価の支払を受ける場合には、その対価に相当する金額は、その居住者の当該事業に係る不動産所得の金額、事業所得の金額又は山林所得の金額の計算上、必要経費に算入しないものとし、かつ、その親族のその対価に係る各種所得の金額の計算上必要経費に算入されるべき金額は、その居住者の当該事業に係る不動産所得の金額、事業所得の金額又は山林所得の金額の計算上、必要経費に算入する。この場合において、その親族が支払を受けた対価の額及びその親族のその対価に係る各種所得の金額の計算上必要経費に算入されるべき金額は、当該各種所得の金額の計算上ないものとみなす。",
+      "score": 52.59,
+      "text_ranges": [
+        [
+          0,
+          341
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm:6c006a4b48f75d4e": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm",
+      "title": "必要経費の知識",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm"
+    },
+    "law:shotokuzei_hou:70_2:70d2a48b32eff9d2": {
+      "id": "law:shotokuzei_hou:70_2",
+      "title": "所得税法 特定非常災害に係る純損失の繰越控除の特例",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70_2"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm:be7077affe404655": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "title": "白色申告者の記帳・帳簿等保存制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm:8b41b30270cf099e": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm",
+      "title": "災害や盗難などで資産に損害を受けたとき(雑損控除)",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1110.htm"
+    },
+    "tsutatsu:shotoku:47-11:45a9dcad0a37ab6e": {
+      "id": "tsutatsu:shotoku:47-11",
+      "title": "所得税基本通達 （前年末において低価法により評価している場合の棚卸資産の取得価額）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm"
+    },
+    "law:shotokuzei_rei:99:110b0cde3a021bec": {
+      "id": "law:shotokuzei_rei:99",
+      "title": "所得税法施行令 棚卸資産の評価の方法",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_99"
+    },
+    "law:shotokuzei_rei:102:d32686d090fd492f": {
+      "id": "law:shotokuzei_rei:102",
+      "title": "所得税法施行令 棚卸資産の法定評価方法",
+      "url": "https://laws.e-gov.go.jp/law/340CO0000000096#Mp-At_102"
+    },
+    "law:shotokuzei_hou:70:71ea2ece03fece56": {
+      "id": "law:shotokuzei_hou:70",
+      "title": "所得税法 純損失の繰越控除",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_70"
+    },
+    "tsutatsu:shotoku:47-22:868bf0508a09d0c5": {
+      "id": "tsutatsu:shotoku:47-22",
+      "title": "所得税基本通達 （棚卸資産の著しい陳腐化の例示）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/03.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm:9efdc350fa51c024": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm",
+      "title": "所得の区分のあらまし",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1300.htm"
+    },
+    "tsutatsu:shotoku:47-7:2653bc1990248285": {
+      "id": "tsutatsu:shotoku:47-7",
+      "title": "所得税基本通達 （売価還元法により評価額を計算する場合のその年中に販売した棚卸資産の対価の総額の計算）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm"
+    },
+    "law:shotokuzei_hou:45:07924c9b853e8fe9": {
+      "id": "law:shotokuzei_hou:45",
+      "title": "所得税法 家事関連費等の必要経費不算入等",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_45"
+    },
+    "law:shotokuzei_hou:37:33fc1caaadcc33a0": {
+      "id": "law:shotokuzei_hou:37",
+      "title": "所得税法 必要経費",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_37"
+    },
+    "law:shotokuzei_hou:47:f4b5260ccdf18187": {
+      "id": "law:shotokuzei_hou:47",
+      "title": "所得税法 棚卸資産の売上原価等の計算及びその評価の方法",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_47"
+    },
+    "tsutatsu:shotoku:37-1:dc40aa125b6c3652": {
+      "id": "tsutatsu:shotoku:37-1",
+      "title": "所得税基本通達 （売上原価等の費用の範囲）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/05/05.htm"
+    },
+    "tsutatsu:shotoku:47-9:75d03d84b163d8dd": {
+      "id": "tsutatsu:shotoku:47-9",
+      "title": "所得税基本通達 （低価法における低価の事実の判定の単位）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/01.htm"
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm:65c4c7ab3137c706": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm",
+      "title": "生命保険料控除の限度額計算",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/05/76.htm"
+    },
+    "tsutatsu:shotoku:47-15:186027dd9c81ed6b": {
+      "id": "tsutatsu:shotoku:47-15",
+      "title": "所得税基本通達 （棚卸資産の取得価額に算入する費用）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shotoku/08/02.htm"
+    }
+  }
+}
