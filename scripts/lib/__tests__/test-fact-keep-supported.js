@@ -245,7 +245,7 @@ test('6', '却下した回答・理由・引用をエスケープし、要点に
   assert.ok(html.includes('AI の答え: 裏付けあり（&lt;資料&gt;&amp;&quot;題名）／機械が採らなかった理由: 数字が引用の近くに無い&lt;script&gt;'));
   assert.ok(html.includes('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;'));
   assert.equal(html.includes('<script>'), false);
-  assert.equal(html.includes('引'.repeat(201)), false);
+  assert.ok(html.includes('引'.repeat(220)));
   assert.ok(html.includes('AI の答え: 記録なし（&lt;理由&gt;）'));
   const summary = page.renderFactCheckSummary({}, record);
   assert.ok(summary.includes('資料が無く案内に変えた 2 件（うち AI は裏付けありと答えた 1 件）'));
@@ -260,9 +260,9 @@ test('6', 'claims が無い記録は再照合から取得し、題名が無け�
   assert.ok(page.renderFactCheck({}, plain).includes('AI の答え: 資料なし</div>'));
   assert.equal(page.renderFactCheckSummary({}, plain).includes('うち AI は'), false);
 });
-test('7', 'LOGIC_VERSION は plan2-s9', async () => {
+test('7', 'LOGIC_VERSION は plan2-s10', async () => {
   const result = await F.checkFacts('', { ...options, writer_materials: [], callLLM: async () => { throw new Error('空本文で LLM を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s9');
+  assert.equal(result.record.logic_version, 'plan2-s10');
 });
 
 for (const claim of ['No.4508・4510', 'No.4508、4510', '措置法70の2・No.4508', 'No.4508・４５１０', 'No.4508・四五一〇']) {

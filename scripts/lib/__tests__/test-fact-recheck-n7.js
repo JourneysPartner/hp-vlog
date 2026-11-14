@@ -409,10 +409,10 @@ await test('T10 N8: 前に言葉を足す直しでも、誤りの案内文が別
 });
 
 // ── T11: 版 ─────────────────────────────────────────────
-await test('T11 版: 記録の logic_version が plan2-s9', async () => {
+await test('T11 版: 記録の logic_version が plan2-s10', async () => {
   const r = await runG1();
   budget(r.record);
-  assert.equal(r.record.logic_version, 'plan2-s9');
+  assert.equal(r.record.logic_version, 'plan2-s10');
 });
 
 // ── T12: 1 回目の条件確認だけの修正は、今のとおり通す（L2） ───────────
