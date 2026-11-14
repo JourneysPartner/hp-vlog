@@ -356,6 +356,60 @@ console.log('\n=== R2: 並び替えだけの変化は今の本文を残す ===')
   }
 }
 
+console.log('\n=== F1: 空白の位置だけの違いも今の本文を残す ===');
+{
+  const existingBody = '（確認用見出し1） 問1 この取引には軽減税率が適用されますか。'
+    + '【答】具体的な事実関係を確認した上で税率を判定します。'
+    + `${'回答本文です。'.repeat(20)}`;
+  const spacedBody = existingBody
+    .replace('この取引には', 'この取引には ')
+    .replace('【答】具体', '【答】 具体')
+    .replace('税率を判定します。', '税率を判定します 。');
+  assert(spacedBody !== existingBody && spacedBody.replace(/\s+/g, '') === existingBody.replace(/\s+/g, ''),
+    '試験データは空白の位置だけが違う');
+  assert(isReorderOnly(
+    { body: existingBody, title: '問1 確認用見出し1' },
+    { body: spacedBody, title: '問1 確認用見出し1' },
+  ) === true, '空白の位置だけの違いを並び替えと同じ扱いにする');
+  assert(isReorderOnly(
+    { body: existingBody, title: '問1 確認用見出し1' },
+    { body: existingBody, title: '問1 確認用見出し1' },
+  ) === false, '空白まで含めて全く同じ本文は違いと数えない');
+
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-f1-'));
+  try {
+    const sourceKey = 'keigen';
+    const source = {
+      label: '確認用', tax_category: '消費税', tax_category_code: 'shohi', tax_domain: 'consumption_tax',
+    };
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    const write = (body) => fs.writeFileSync(path.join(dir, 'jirei-1.json'), JSON.stringify({
+      id: 'jirei-1', title: '問1 確認用見出し1', body, char_count_body: body.length,
+    }, null, 2) + '\n', 'utf8');
+
+    write(existingBody);
+    const spacedResult = saveEntry(sourceKey, source, { id: 'jirei-1' }, {
+      qNo: '問1', title: '問1 確認用見出し1', body: spacedBody,
+    }, 'https://example.test/', { outDir: temp, root: temp, warn() {} });
+    const spacedWritten = JSON.parse(fs.readFileSync(path.join(dir, 'jirei-1.json'), 'utf8'));
+    assert(spacedResult.reordered === true, '空白の位置だけの違いは本文を残したと返す');
+    assert(spacedWritten.body === existingBody, '空白の位置だけの違いは今の本文を残す');
+    assert(spacedWritten.char_count_body === existingBody.length,
+      '空白の位置だけの違いは char_count_body を残す');
+
+    write(existingBody);
+    const sameResult = saveEntry(sourceKey, source, { id: 'jirei-1' }, {
+      qNo: '問1', title: '問1 確認用見出し1', body: existingBody,
+    }, 'https://example.test/', { outDir: temp, root: temp, warn() {} });
+    const sameWritten = JSON.parse(fs.readFileSync(path.join(dir, 'jirei-1.json'), 'utf8'));
+    assert(!sameResult.reordered, '全く同じ本文は本文を残した件数に入れない');
+    assert(sameWritten.body === existingBody, '全く同じ本文はそのまま保存する');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 console.log('\n=== R4: 報告 ===');
 {
   assert(typeof buildReport === 'function', '報告を作る関数がある');
@@ -369,7 +423,7 @@ console.log('\n=== R4: 報告 ===');
     };
     assert(writeReport(reportPath, summary) === true, '報告ファイルを書く');
     const report = fs.readFileSync(reportPath, 'utf8');
-    assert(report.includes('並び替えだけのため本文を残した 120 件'),
+    assert(report.includes('並び替え・空白の違いだけのため本文を残した 120 件'),
       'R2 の件数を報告に出す');
     assert(report.includes('jirei は更新していません') && report.includes('問100')
       && report.includes('問104'), 'R3 の資料 id と問番号を報告に出す');
@@ -463,6 +517,114 @@ console.log('\n=== R4: 報告 ===');
       '報告に R3 の資料 id と問番号を出す');
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
+  }
+
+  console.log('\n=== F2: 取得に失敗した資料はファイルも索引の行も残す ===');
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-f2-'));
+    try {
+      const sourceKey = 'keigen';
+      const source = {
+        label: '確認用軽減税率', tax_category: '消費税', tax_category_code: 'shohi',
+        tax_domain: 'consumption_tax', split: true,
+        docs: [
+          { id: 'jirei', url: 'https://example.test/jirei.pdf' },
+          { id: 'gaiyo', url: 'https://example.test/gaiyo.pdf' },
+        ],
+      };
+      const makeText = (qNos) => qNos.map(qNo => `（確認用見出し${qNo}） 問${qNo} 本文です。`
+        + ` 【答】 ${'回答本文です。'.repeat(30)}`).join(' ');
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      const writeExisting = (file, body) => fs.writeFileSync(path.join(dir, file),
+        JSON.stringify({ id: file.replace(/\.json$/, ''), body, char_count_body: body.length },
+          null, 2) + '\n', 'utf8');
+      writeExisting('jirei-1.json', '既存の本文1');
+      writeExisting('jirei-2.json', '既存の本文2');
+      writeExisting('gaiyo-1.json', '既存の本文1');
+      const jireiBefore = {
+        1: fs.readFileSync(path.join(dir, 'jirei-1.json'), 'utf8'),
+        2: fs.readFileSync(path.join(dir, 'jirei-2.json'), 'utf8'),
+      };
+
+      const result = await crawlSource(sourceKey, source, {
+        outDir: temp, root: temp, delayMs: 0,
+        fetchBuffer: async (url) => {
+          if (url.includes('jirei')) throw new Error('HTTP 503: 一時的な障害\n詳細は応答本文を参照');
+          return Buffer.from('dummy');
+        },
+        extractText: () => makeText([1, 2, 3, 4, 5]),
+      });
+
+      assert(result.failed === 1, '取得に失敗した資料を数える');
+      assert(result.failedDocs.length === 1
+        && result.failedDocs[0].sourceKey === 'keigen'
+        && result.failedDocs[0].docId === 'jirei', '失敗した資料を記録する');
+      assert(result.failedDocs[0].reason === 'HTTP 503: 一時的な障害',
+        '理由は例外メッセージの1行目だけ');
+      assert(fs.readFileSync(path.join(dir, 'jirei-1.json'), 'utf8') === jireiBefore[1]
+        && fs.readFileSync(path.join(dir, 'jirei-2.json'), 'utf8') === jireiBefore[2],
+      '失敗した資料のファイルを消さない・書き換えない');
+      assert(result.preservedFilePaths.includes('keigen/jirei-1.json')
+        && result.preservedFilePaths.includes('keigen/jirei-2.json'),
+      '失敗した資料の索引に残すファイルを返す');
+      assert(fs.existsSync(path.join(dir, 'gaiyo-5.json')),
+        '他の資料は今までどおり更新する');
+
+      const keptIndex = preservedIndexEntries([
+        { source_key: 'keigen', file_path: 'keigen/jirei-1.json', id: 'jirei-1' },
+        { source_key: 'keigen', file_path: 'keigen/jirei-2.json', id: 'jirei-2' },
+        { source_key: 'keigen', file_path: 'keigen/gaiyo-1.json', id: 'gaiyo-1' },
+      ], 'keigen', result.preservedFilePaths);
+      assert(keptIndex.length === 2
+        && keptIndex.every(entry => entry.file_path.startsWith('keigen/jirei-')),
+      '失敗した資料の索引の行だけを前のまま残す');
+
+      const report = buildReport({
+        reorderedCount: 0, skippedDocs: [], skippedUpdates: 0, failedDocs: result.failedDocs,
+      });
+      assert(report.includes('- 取得できなかったため keigen/jirei は更新していません'
+        + '（HTTP 503: 一時的な障害）'), '報告に取得できなかった資料と理由を出す');
+
+      // 取り出し（pdftotext など）の失敗も同じ扱いにする。
+      const extractResult = await crawlSource(sourceKey, source, {
+        outDir: temp, root: temp, delayMs: 0,
+        fetchBuffer: async () => Buffer.from('dummy'),
+        extractText: () => { throw new Error('pdftotext が失敗しました'); },
+      });
+      assert(extractResult.failedDocs.length === 2
+        && extractResult.failedDocs.every(doc => doc.reason === 'pdftotext が失敗しました'),
+      '取り出しの失敗も資料ごとに記録する');
+      assert(fs.existsSync(path.join(dir, 'jirei-1.json'))
+        && fs.existsSync(path.join(dir, 'gaiyo-5.json')),
+      '取り出しに失敗してもファイルを消さない');
+
+      // 区切らない資料も、取得に失敗したら索引の行を前のまま残す。
+      const plainKey = 'denshi_torihiki';
+      const plainSource = {
+        label: '確認用HTML', tax_category: '帳簿・経費', tax_category_code: 'chobo',
+        tax_domain: 'bookkeeping_expenses', format: 'html',
+        docs: [{ id: '07_1', url: 'https://example.test/07_1.htm' }],
+      };
+      fs.mkdirSync(path.join(temp, plainKey), { recursive: true });
+      fs.writeFileSync(path.join(temp, plainKey, '07_1.json'),
+        JSON.stringify({ id: '07_1', body: '既存の本文' }, null, 2) + '\n', 'utf8');
+      const plainBefore = fs.readFileSync(path.join(temp, plainKey, '07_1.json'), 'utf8');
+      const plainResult = await crawlSource(plainKey, plainSource, {
+        outDir: temp, root: temp, delayMs: 0,
+        fetchBuffer: async () => { throw new Error('x'.repeat(300)); },
+        extractText: () => '',
+      });
+      assert(plainResult.failedDocs.length === 1
+        && plainResult.failedDocs[0].reason.length === 200,
+      '長い理由は200字までにする');
+      assert(plainResult.preservedFilePaths.includes('denshi_torihiki/07_1.json'),
+        '区切らない資料も索引の行を前のまま残す');
+      assert(fs.readFileSync(path.join(temp, plainKey, '07_1.json'), 'utf8') === plainBefore,
+        '区切らない資料のファイルを書き換えない');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
   }
 
   console.log(`\n結果: ${passed} passed, ${failed} failed`);

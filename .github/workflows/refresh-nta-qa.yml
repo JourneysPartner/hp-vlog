@@ -65,10 +65,11 @@ jobs:
         env:
           NTA_QA_REPORT: ${{ runner.temp }}/nta-qa-report.md
         run: |
-          if [ -s "$NTA_QA_REPORT" ] && grep -q '区切りを見失った問があるため' "$NTA_QA_REPORT"; then
+          if [ -s "$NTA_QA_REPORT" ] \
+            && grep -q -e '区切りを見失った問があるため' -e '取得できなかったため' "$NTA_QA_REPORT"; then
             while IFS= read -r line; do
               case "$line" in
-                '- 区切りを見失った問があるため'*) echo "::warning::$line" ;;
+                '- 区切りを見失った問があるため'*|'- 取得できなかったため'*) echo "::warning::$line" ;;
               esac
             done < "$NTA_QA_REPORT"
             cat "$NTA_QA_REPORT" >> "$GITHUB_STEP_SUMMARY"

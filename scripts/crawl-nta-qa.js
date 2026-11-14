@@ -604,16 +604,18 @@ function sameCharMultiset(a, b) {
 }
 
 /**
- * PDF の抽出器が変わって文字の並び順だけが変わった場合（本文の文字の
- * 多重集合が同じで、題名も空白を除けば同じ）は、今ある本文を残す。
- * 1 字でも違えば本物の改訂として新しい本文を採る。
+ * PDF の抽出器が変わって、文字の並び順や空白の位置だけが変わった場合
+ * （空白を除いた本文の文字の多重集合が同じで、題名も空白を除けば同じ）は、
+ * 今ある本文を残す。1 字でも違えば本物の改訂として新しい本文を採る。
+ * 空白まで含めて本文が全く同じ場合は、書き替えるものが無いので数えない。
  */
 function isReorderOnly(existingRecord, newRecord) {
   if (!existingRecord || typeof existingRecord.body !== 'string') return false;
   if (!newRecord || typeof newRecord.body !== 'string') return false;
+  // 空白まで含めて全く同じ本文は違いではない（件数にも入れない）。
+  if (existingRecord.body === newRecord.body) return false;
   const before = existingRecord.body.replace(/\s+/g, '');
   const after = newRecord.body.replace(/\s+/g, '');
-  if (before === after) return false;
   if (!sameCharMultiset(before, after)) return false;
   if (typeof existingRecord.title !== 'string' || typeof newRecord.title !== 'string') return false;
   return existingRecord.title.replace(/\s+/g, '') === newRecord.title.replace(/\s+/g, '');
@@ -793,6 +795,26 @@ function sortQuestionNumbers(qNos) {
   return [...qNos].sort((a, b) => a.localeCompare(b, 'ja', { numeric: true }));
 }
 
+/** 取得・取り出しに失敗した資料が使っているファイル名（消さずに残す対象）。 */
+function existingDocFileNames(outDir, sourceKey, docId, isSplit) {
+  const dir = path.join(outDir, sourceKey);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter(name => /\.json$/i.test(name)
+      && (name === `${docId}.json` || (isSplit && name.startsWith(`${docId}-`))))
+    .sort();
+}
+
+/** 失敗の理由は例外メッセージの 1 行目だけ（200 字まで）にする。 */
+function firstLineReason(error) {
+  const message = error && error.message !== undefined
+    ? String(error.message)
+    : String(error || '');
+  const first = message.split(/\r?\n/)[0].trim();
+  const reason = first || '理由不明';
+  return reason.length > 200 ? reason.slice(0, 200) : reason;
+}
+
 /** R3 で更新を見送った資料の索引の行を、前のまま残す。 */
 function preservedIndexEntries(entries, sourceKey, filePaths) {
   const preserved = new Set(filePaths || []);
@@ -800,18 +822,23 @@ function preservedIndexEntries(entries, sourceKey, filePaths) {
     && preserved.has(entry.file_path));
 }
 
-/** R4: 取り込みの報告（R2 の件数・R3 の見送り・本文短縮の見送り）を Markdown にする。 */
+/** R4: 取り込みの報告（R2 の件数・R3 の見送り・F2 の取得失敗・本文短縮の見送り）を Markdown にする。 */
 function buildReport(summary = {}) {
   const reorderedCount = Number(summary.reorderedCount) || 0;
   const skippedUpdates = Number(summary.skippedUpdates) || 0;
   const skippedDocs = Array.isArray(summary.skippedDocs) ? summary.skippedDocs : [];
+  const failedDocs = Array.isArray(summary.failedDocs) ? summary.failedDocs : [];
   const lines = ['### 取り込みの報告', ''];
   if (reorderedCount > 0) {
-    lines.push(`- 並び替えだけのため本文を残した ${reorderedCount} 件`);
+    lines.push(`- 並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件`);
   }
   for (const skipped of skippedDocs) {
     lines.push(`- 区切りを見失った問があるため ${skipped.docId} は更新していません: `
       + `${sortQuestionNumbers(skipped.missing || []).join(', ')}`);
+  }
+  for (const failedDoc of failedDocs) {
+    lines.push(`- 取得できなかったため ${failedDoc.sourceKey}/${failedDoc.docId} は更新していません`
+      + `（${failedDoc.reason}）`);
   }
   if (skippedUpdates > 0) {
     lines.push(`- 本文が大幅に短くなるため更新を見送った ${skippedUpdates} 件`);
@@ -884,6 +911,7 @@ async function crawlSource(sourceKey, source, options = {}) {
   const list = limit ? targets.slice(0, limit) : targets;
   const saved = [];
   const skippedDocs = [];
+  const failedDocs = [];
   const protectedFileNames = new Set();
   const preservedFilePaths = [];
   let failed = 0;
@@ -951,7 +979,21 @@ async function crawlSource(sourceKey, source, options = {}) {
       }
     } catch (error) {
       failed++;
-      warn(`[nta-qa] ${doc.id} を取得できません: ${error.message}`);
+      // F2: 取得・取り出しに失敗した資料は、ファイルも索引の行も前のまま残す。
+      // 失敗した資料を「古いファイル」として消したり、索引から落としたりしない。
+      const reason = firstLineReason(error);
+      const failedFileNames = existingDocFileNames(outDir, sourceKey, doc.id, isSplit);
+      for (const fileName of failedFileNames) {
+        protectedFileNames.add(fileName);
+        preservedFilePaths.push(path.join(sourceKey, fileName).replace(/\\/g, '/'));
+      }
+      if (!isSplit) {
+        // 区切らない資料は、まだファイルが無くても索引の行を前のまま残す。
+        const filePath = path.join(sourceKey, `${doc.id}.json`).replace(/\\/g, '/');
+        if (!preservedFilePaths.includes(filePath)) preservedFilePaths.push(filePath);
+      }
+      failedDocs.push({ sourceKey, docId: doc.id, reason });
+      warn(`[nta-qa] 取得できなかったため ${sourceKey}/${doc.id} は更新していません（${reason}）`);
     }
     if (i < list.length - 1 && delayMs > 0) await new Promise(r => setTimeout(r, delayMs));
     if ((i + 1) % 20 === 0) log(`[nta-qa] ${i + 1}/${list.length}`);
@@ -978,13 +1020,14 @@ async function crawlSource(sourceKey, source, options = {}) {
 
   log(`[nta-qa] ${source.label}: ${saved.length} 件保存${failed ? `（失敗 ${failed} 件）` : ''}`
     + `${skippedUpdates ? `（本文短縮による更新見送り ${skippedUpdates} 件）` : ''}`
-    + `${reorderedCount ? `（並び替えだけのため本文を残した ${reorderedCount} 件）` : ''}`);
+    + `${reorderedCount ? `（並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件）` : ''}`);
   return {
     saved,
     failed,
     skippedUpdates,
     reorderedCount,
     skippedDocs,
+    failedDocs,
     preservedFilePaths,
   };
 }
@@ -1015,6 +1058,7 @@ async function main() {
   let skippedUpdates = 0;
   let reorderedCount = 0;
   const skippedDocs = [];
+  const failedDocs = [];
   for (const key of keys) {
     const source = SOURCES[key];
     if (!source) { console.error(`[nta-qa] 未知の対象: ${key}`); process.exit(1); }
@@ -1023,6 +1067,7 @@ async function main() {
     skippedUpdates += result.skippedUpdates;
     reorderedCount += result.reorderedCount || 0;
     skippedDocs.push(...(result.skippedDocs || []));
+    failedDocs.push(...(result.failedDocs || []));
     // --only でも他の対象を消さないよう、同じ source_key の分だけ入れ替える
     index.entries = index.entries.filter(e => e.source_key !== key);
     for (const s of saved) {
@@ -1047,9 +1092,10 @@ async function main() {
   if (skippedUpdates > 0) {
     console.warn(`[warn] 本文が大幅に短くなるため ${skippedUpdates} 件の更新を見送りました`);
   }
-  const report = { reorderedCount, skippedDocs, skippedUpdates };
+  const report = { reorderedCount, skippedDocs, skippedUpdates, failedDocs };
   const reportPath = process.env.NTA_QA_REPORT;
-  if (reorderedCount > 0 || skippedDocs.length > 0 || skippedUpdates > 0) {
+  if (reorderedCount > 0 || skippedDocs.length > 0 || skippedUpdates > 0
+    || failedDocs.length > 0) {
     console.log(buildReport(report).trimEnd());
   }
   writeReport(reportPath, report);
