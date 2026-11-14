@@ -16,15 +16,15 @@ reader_problem: "値下げ・処分品の在庫評価が分からない"
 success_outcome: "売れ残り在庫の評価と評価損の考え方が分かる"
 primary_question: "アパレルの場合：アパレルの売れ残り・型落ち在庫はどう評価する？"
 summary: "アパレルの売れ残り在庫は、値下げしても簿価は下がりません。ただし著しい陳腐化があれば原価法でも年末に切り下げでき、低価法なら種類ごとに低価の事実を判定して評価します。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-14T18:16:47.490+09:00"
+publish_at: "2026-11-15T11:47:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-14T07:19:28.394Z"
-updated_at: "2026-11-14T07:43:02.049Z"
+updated_at: "2026-11-14T18:16:47.490+09:00"
 source_bundle: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2210.htm;https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm;所得税法37条;所得税法45条;所得税法51条;所得税法56条;所得税法57条;所得税法70条;所得税法70条の2;所得税法施行令96条"
 tax_terms: "低価法 棚卸資産の評価方法 棚卸資産の評価損"
 fact_plan_status: "ok"
@@ -58,6 +58,7 @@ fact_check_summary: "主張 52 件: 裏付けあり 40・修正 1（食い違い
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 シーズンが終わっても売れ残ったニットや、型落ちになったコートが店頭とバックヤードに残っている。決算が近づくと気になるのが、この在庫をいくらで帳簿に載せるかです。
