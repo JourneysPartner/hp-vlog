@@ -37,6 +37,7 @@ const {
   resolveTargetQuery, deriveIntentType, findTargetQueryOwner,
 } = require('./lib/target-query');
 const { lintSeo } = require('./lib/seo-lint');
+const { buildRetitlePrompt, retitleForSeo } = require('./lib/title-retry');
 const { createWithdrawalRecorder, findWithdrawnQuery } = require('./lib/withdrawn-topics');
 
 // 未マージ下書き（draft/* ブランチ）を重複検知コーパスに含めるための extraCorpus。
@@ -1616,30 +1617,7 @@ ${missingRules.map(r => r.text).join(RULE_SEP)}`
 // 下書きが出来た。本文は6,807文字あり完成していたので、タイトルだけ引き直せば済む。
 // 失敗したら仮置きのままにする（承認側で止まる）。
 async function retryTitleOnce(body, topic) {
-  const heads = (body.match(/^#{2,3} .*$/gm) || []).slice(0, 12).map(h => h.replace(/^#+ /, ''));
-  const lead = body.replace(/^#{1,6} .*$/gm, '').trim().slice(0, 300);
-  const system = [
-    'あなたは日本の税務ブログの編集者です。記事本文に合った日本語のタイトルを1つ作ります。',
-    '制約:',
-    '- 28〜45文字。45文字を超えない。',
-    '- 主検索語が渡されたときは、その語を先頭15文字以内に置く。',
-    '- 末尾に「を解説」「について」「まとめ」を付けない。',
-    '- 「徹底解説」「完全ガイド」「必読」は使わない。',
-    '- 同じ名詞を繰り返さない。',
-    '- 記事に書かれていないことをタイトルにしない。',
-    '出力はタイトルの文字列のみ。前置きも引用符も付けない。',
-  ].join('\n');
-  const user = [
-    `税目カテゴリ: ${topic.category || ''}`,
-    `想定読者: ${topic.persona || ''}`,
-    `主検索語: ${topic.target_query || '（指定なし）'}`,
-    '',
-    '# 記事の見出し',
-    ...heads.map(h => `- ${h}`),
-    '',
-    '# 本文の冒頭',
-    lead,
-  ].join('\n');
+  const { system, user } = buildRetitlePrompt(body, topic);
 
   const raw = (await callSimpleOpenAI({ system, user }, 200)).text;
   const candidate = raw.split(/\r?\n/)[0].replace(/^["'「『]|["'」』]$/g, '').trim();
@@ -1793,31 +1771,23 @@ async function generateArticle(dateStr, topic, pairedTopic) {
       secondary_queries: topic.secondary_queries,
     });
 
-    if (seo.fails.some(code => code === 'title_missing_query' || code === 'title_too_long')) {
-      try {
-        const retitled = await retryTitleOnce(normalized.body, topic);
-        if (retitled) {
-          const retriedSeo = lintSeo({
-            title: retitled, summary: normalized.summary, body: normalized.body,
-            target_query: topic.target_query, secondary_queries: topic.secondary_queries,
-          });
-          const before = seo.fails.filter(code => code.startsWith('title_')).length;
-          const after = retriedSeo.fails.filter(code => code.startsWith('title_')).length;
-          const titleCheck = checkLlmTitle(retitled, { macro: topic.macro, article_type: topic.article_type });
-          if (titleCheck.ok && after < before) {
-            normalized = normalizeGeneratedDraft(normalized.content, topic, {
-              now, pairedTopic, titleOverride: retitled, summaryOverride: normalized.summary,
-            });
-            seo = lintSeo({
-              title: normalized.title, summary: normalized.summary, body: normalized.body,
-              target_query: topic.target_query, secondary_queries: topic.secondary_queries,
-            });
-            console.log(`[seo] 題名を作り直しました: "${normalized.title}"`);
-          }
-        }
-      } catch (e) {
-        console.warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
+    try {
+      const retitle = await retitleForSeo({
+        title: normalized.title, summary: normalized.summary, body: normalized.body,
+        topic, seoFails: seo.fails, retry: retryTitleOnce, lintSeo, checkTitle: checkLlmTitle,
+      });
+      if (retitle.accepted) {
+        normalized = normalizeGeneratedDraft(normalized.content, topic, {
+          now, pairedTopic, titleOverride: retitle.title, summaryOverride: normalized.summary,
+        });
+        seo = lintSeo({
+          title: normalized.title, summary: normalized.summary, body: normalized.body,
+          target_query: topic.target_query, secondary_queries: topic.secondary_queries,
+        });
+        console.log(`[seo] 題名を作り直しました: "${normalized.title}"`);
       }
+    } catch (e) {
+      console.warn(`[seo] 題名の作り直しに失敗（${e.message}）→ 元の題名を維持`);
     }
 
     if (seo.fails.includes('summary_missing_query')) {

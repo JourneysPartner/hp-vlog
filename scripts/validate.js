@@ -13,6 +13,8 @@ const { evaluateSourceGuard } = require('./lib/source-guard');
 const { checkSourceAlignment } = require('./lib/source-alignment');
 const { isPlaceholderTitle } = require('./lib/draft-normalizer');
 const { tokenizeQuery } = require('./lib/target-query');
+const { findJapaneseSpace } = require('./lib/title-lint');
+const { titleHasRawQuery } = require('./lib/seo-lint');
 
 const ROOT      = path.join(__dirname, '..');
 const POSTS_DIR = path.join(ROOT, 'content', 'posts');
@@ -247,6 +249,15 @@ function validateFile(filePath) {
     if (fm.title && fm.title.length > 45) {
       warnings.push(`target_query がある記事の title が長すぎます（${fm.title.length}文字）: 45文字以内推奨`);
     }
+    if (titleHasRawQuery(fm.title, fm.target_query)) {
+      warnings.push(`title に target_query「${fm.target_query}」が空白区切りのまま入っています: 助詞を補って文にしてください`);
+    }
+  }
+  // title の日本語の文字の間の空白は、検索語を空白区切りのまま貼った印。
+  // 人が直した題名の公開を止めないよう、警告だけにする。
+  const japaneseSpaceInTitle = findJapaneseSpace(fm.title);
+  if (japaneseSpaceInTitle) {
+    warnings.push(`title の日本語の間に空白があります（"${japaneseSpaceInTitle}"）: 検索語を空白区切りのまま貼っていないか確認してください`);
   }
   if (fm.intent_type && !['answer', 'decide', 'guide'].includes(fm.intent_type)) {
     errors.push(`intent_type の値が不正: "${fm.intent_type}"`);

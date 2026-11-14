@@ -20,6 +20,14 @@ function includesAll(text, tokens) {
   return tokens.every(token => normalized.includes(token));
 }
 
+// 主検索語を空白で区切ったまま題名に貼っているか。語が 2 つ以上の検索語だけを見る。
+function titleHasRawQuery(title, targetQuery) {
+  const tokens = tokenizeQuery(targetQuery);
+  if (tokens.length < 2) return false;
+  const normalized = normalizedText(title).replace(/\s+/g, ' ');
+  return normalized.includes(tokens.join(' '));
+}
+
 function lintSeo({ title, summary, body, target_query, secondary_queries } = {}) {
   const fails = [];
   const warns = [];
@@ -38,6 +46,7 @@ function lintSeo({ title, summary, body, target_query, secondary_queries } = {})
   }
   if (String(title || '').length > 45) fails.push('title_too_long');
   if (String(title || '').length < 28) warns.push('title_too_short');
+  if (titleHasRawQuery(title, target_query)) fails.push('title_raw_query');
 
   if (!includesAny(String(summary || '').slice(0, 60), tokens)) fails.push('summary_missing_query');
   if (String(summary || '').length > 120) warns.push('summary_too_long');
@@ -72,4 +81,4 @@ function lintSeo({ title, summary, body, target_query, secondary_queries } = {})
   return { fails, warns };
 }
 
-module.exports = { lintSeo };
+module.exports = { lintSeo, titleHasRawQuery };
