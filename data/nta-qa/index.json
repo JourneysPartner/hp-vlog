@@ -15,7 +15,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/cross-kokunai.pdf",
       "file_path": "cross_border/kokunai.json",
       "char_count_body": 11868,
-      "fetched_at": "2026-09-01T08:27:40.389Z"
+      "fetched_at": "2026-11-14T10:00:09.195Z"
     },
     {
       "id": "platform_jigyosha",
@@ -31,7 +31,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/shohi/kazei/pdf/0024004-028_02-2.pdf",
       "file_path": "cross_border/platform_jigyosha.json",
       "char_count_body": 27545,
-      "fetched_at": "2026-09-01T08:27:43.397Z"
+      "fetched_at": "2026-11-14T10:00:12.821Z"
     },
     {
       "id": "platform_kokugai",
@@ -47,7 +47,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/shohi/kazei/pdf/0024004-028_02-1.pdf",
       "file_path": "cross_border/platform_kokugai.json",
       "char_count_body": 15367,
-      "fetched_at": "2026-09-01T08:27:41.806Z"
+      "fetched_at": "2026-11-14T10:00:11.284Z"
     },
     {
       "id": "01",
@@ -63,7 +63,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/01.htm",
       "file_path": "denshi_scan/01.json",
       "char_count_body": 9127,
-      "fetched_at": "2026-09-01T08:13:25.680Z"
+      "fetched_at": "2026-11-14T10:00:01.092Z"
     },
     {
       "id": "02",
@@ -79,7 +79,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/02.htm",
       "file_path": "denshi_scan/02.json",
       "char_count_body": 40389,
-      "fetched_at": "2026-09-01T08:13:27.036Z"
+      "fetched_at": "2026-11-14T10:00:03.002Z"
     },
     {
       "id": "03",
@@ -95,7 +95,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/03.htm",
       "file_path": "denshi_scan/03.json",
       "char_count_body": 3010,
-      "fetched_at": "2026-09-01T08:13:28.305Z"
+      "fetched_at": "2026-11-14T10:00:04.332Z"
     },
     {
       "id": "04",
@@ -111,7 +111,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07scan/04.htm",
       "file_path": "denshi_scan/04.json",
       "char_count_body": 8511,
-      "fetched_at": "2026-09-01T08:13:29.637Z"
+      "fetched_at": "2026-11-14T10:00:05.666Z"
     },
     {
       "id": "01",
@@ -127,7 +127,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07denshi/01.htm",
       "file_path": "denshi_torihiki/01.json",
       "char_count_body": 3942,
-      "fetched_at": "2026-09-01T08:13:24.036Z"
+      "fetched_at": "2026-11-14T09:59:58.774Z"
     },
     {
       "id": "02",
@@ -143,7 +143,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sonota/jirei/07denshi/02.htm",
       "file_path": "denshi_torihiki/02.json",
       "char_count_body": 12595,
-      "fetched_at": "2026-09-01T08:13:25.426Z"
+      "fetched_at": "2026-11-14T10:00:00.450Z"
     },
     {
       "id": "01",
@@ -159,7 +159,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/01.pdf",
       "file_path": "invoice/01.json",
       "char_count_body": 3697,
-      "fetched_at": "2026-09-01T08:09:09.131Z"
+      "fetched_at": "2026-11-14T09:55:20.409Z"
     },
     {
       "id": "02",
@@ -175,7 +175,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02.pdf",
       "file_path": "invoice/02.json",
       "char_count_body": 2358,
-      "fetched_at": "2026-09-01T08:09:10.508Z"
+      "fetched_at": "2026-11-14T09:55:22.333Z"
     },
     {
       "id": "03",
@@ -191,7 +191,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03.pdf",
       "file_path": "invoice/03.json",
       "char_count_body": 421,
-      "fetched_at": "2026-09-01T08:09:11.826Z"
+      "fetched_at": "2026-11-14T09:55:24.151Z"
     },
     {
       "id": "04",
@@ -207,7 +207,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/04.pdf",
       "file_path": "invoice/04.json",
       "char_count_body": 1108,
-      "fetched_at": "2026-09-01T08:09:13.369Z"
+      "fetched_at": "2026-11-14T09:55:26.065Z"
     },
     {
       "id": "05",
@@ -223,7 +223,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/05.pdf",
       "file_path": "invoice/05.json",
       "char_count_body": 449,
-      "fetched_at": "2026-09-01T08:09:15.238Z"
+      "fetched_at": "2026-11-14T09:55:28.074Z"
     },
     {
       "id": "06",
@@ -239,7 +239,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/06.pdf",
       "file_path": "invoice/06.json",
       "char_count_body": 298,
-      "fetched_at": "2026-09-01T08:09:16.889Z"
+      "fetched_at": "2026-11-14T09:55:30.087Z"
     },
     {
       "id": "07",
@@ -255,7 +255,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/07.pdf",
       "file_path": "invoice/07.json",
       "char_count_body": 1089,
-      "fetched_at": "2026-09-01T08:09:18.338Z"
+      "fetched_at": "2026-11-14T09:55:31.517Z"
     },
     {
       "id": "08",
@@ -271,7 +271,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08.pdf",
       "file_path": "invoice/08.json",
       "char_count_body": 1254,
-      "fetched_at": "2026-09-01T08:09:19.753Z"
+      "fetched_at": "2026-11-14T09:55:32.902Z"
     },
     {
       "id": "08-2",
@@ -287,7 +287,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/08-2.pdf",
       "file_path": "invoice/08-2.json",
       "char_count_body": 622,
-      "fetched_at": "2026-09-01T08:09:21.180Z"
+      "fetched_at": "2026-11-14T09:55:34.696Z"
     },
     {
       "id": "09",
@@ -303,7 +303,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/09.pdf",
       "file_path": "invoice/09.json",
       "char_count_body": 1177,
-      "fetched_at": "2026-09-01T08:09:22.607Z"
+      "fetched_at": "2026-11-14T09:55:36.514Z"
     },
     {
       "id": "10",
@@ -319,7 +319,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/10.pdf",
       "file_path": "invoice/10.json",
       "char_count_body": 580,
-      "fetched_at": "2026-09-01T08:09:24.154Z"
+      "fetched_at": "2026-11-14T09:55:37.896Z"
     },
     {
       "id": "100",
@@ -335,7 +335,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/100.pdf",
       "file_path": "invoice/100.json",
       "char_count_body": 1142,
-      "fetched_at": "2026-09-01T08:12:09.772Z"
+      "fetched_at": "2026-11-14T09:58:36.674Z"
     },
     {
       "id": "101",
@@ -351,7 +351,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/101.pdf",
       "file_path": "invoice/101.json",
       "char_count_body": 900,
-      "fetched_at": "2026-09-01T08:12:11.108Z"
+      "fetched_at": "2026-11-14T09:58:38.047Z"
     },
     {
       "id": "101-2",
@@ -367,7 +367,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/101-2.pdf",
       "file_path": "invoice/101-2.json",
       "char_count_body": 1729,
-      "fetched_at": "2026-09-01T08:12:12.453Z"
+      "fetched_at": "2026-11-14T09:58:39.975Z"
     },
     {
       "id": "102",
@@ -383,7 +383,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/102.pdf",
       "file_path": "invoice/102.json",
       "char_count_body": 1835,
-      "fetched_at": "2026-09-01T08:12:13.893Z"
+      "fetched_at": "2026-11-14T09:58:41.983Z"
     },
     {
       "id": "102-2",
@@ -399,7 +399,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/102-2.pdf",
       "file_path": "invoice/102-2.json",
       "char_count_body": 1715,
-      "fetched_at": "2026-09-01T08:12:15.348Z"
+      "fetched_at": "2026-11-14T09:58:43.693Z"
     },
     {
       "id": "103",
@@ -415,7 +415,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103.pdf",
       "file_path": "invoice/103.json",
       "char_count_body": 1898,
-      "fetched_at": "2026-09-01T08:12:16.751Z"
+      "fetched_at": "2026-11-14T09:58:45.063Z"
     },
     {
       "id": "103-2",
@@ -431,7 +431,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-2.pdf",
       "file_path": "invoice/103-2.json",
       "char_count_body": 1580,
-      "fetched_at": "2026-09-01T08:12:18.088Z"
+      "fetched_at": "2026-11-14T09:58:46.951Z"
     },
     {
       "id": "103-3",
@@ -447,7 +447,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-3.pdf",
       "file_path": "invoice/103-3.json",
       "char_count_body": 1370,
-      "fetched_at": "2026-09-01T08:12:19.427Z"
+      "fetched_at": "2026-11-14T09:58:48.553Z"
     },
     {
       "id": "103-4",
@@ -463,7 +463,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/103-4.pdf",
       "file_path": "invoice/103-4.json",
       "char_count_body": 1131,
-      "fetched_at": "2026-09-01T08:12:20.818Z"
+      "fetched_at": "2026-11-14T09:58:49.949Z"
     },
     {
       "id": "104",
@@ -479,7 +479,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/104.pdf",
       "file_path": "invoice/104.json",
       "char_count_body": 955,
-      "fetched_at": "2026-09-01T08:12:22.150Z"
+      "fetched_at": "2026-11-14T09:58:51.319Z"
     },
     {
       "id": "105",
@@ -495,7 +495,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/105.pdf",
       "file_path": "invoice/105.json",
       "char_count_body": 542,
-      "fetched_at": "2026-09-01T08:12:23.639Z"
+      "fetched_at": "2026-11-14T09:58:53.118Z"
     },
     {
       "id": "106",
@@ -511,7 +511,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106.pdf",
       "file_path": "invoice/106.json",
       "char_count_body": 2801,
-      "fetched_at": "2026-09-01T08:12:25.077Z"
+      "fetched_at": "2026-11-14T09:58:54.524Z"
     },
     {
       "id": "106-2",
@@ -527,7 +527,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106-2.pdf",
       "file_path": "invoice/106-2.json",
       "char_count_body": 3504,
-      "fetched_at": "2026-09-01T08:12:26.872Z"
+      "fetched_at": "2026-11-14T09:58:56.462Z"
     },
     {
       "id": "106-3",
@@ -543,7 +543,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/106-3.pdf",
       "file_path": "invoice/106-3.json",
       "char_count_body": 677,
-      "fetched_at": "2026-09-01T08:12:28.215Z"
+      "fetched_at": "2026-11-14T09:58:57.846Z"
     },
     {
       "id": "107",
@@ -559,7 +559,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107.pdf",
       "file_path": "invoice/107.json",
       "char_count_body": 897,
-      "fetched_at": "2026-09-01T08:12:29.788Z"
+      "fetched_at": "2026-11-14T09:58:59.324Z"
     },
     {
       "id": "107-2",
@@ -575,7 +575,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107-2.pdf",
       "file_path": "invoice/107-2.json",
       "char_count_body": 832,
-      "fetched_at": "2026-09-01T08:12:31.350Z"
+      "fetched_at": "2026-11-14T09:59:00.802Z"
     },
     {
       "id": "107-3",
@@ -591,7 +591,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/107-3.pdf",
       "file_path": "invoice/107-3.json",
       "char_count_body": 1804,
-      "fetched_at": "2026-09-01T08:12:32.744Z"
+      "fetched_at": "2026-11-14T09:59:02.189Z"
     },
     {
       "id": "108",
@@ -607,7 +607,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/108.pdf",
       "file_path": "invoice/108.json",
       "char_count_body": 461,
-      "fetched_at": "2026-09-01T08:12:34.298Z"
+      "fetched_at": "2026-11-14T09:59:03.563Z"
     },
     {
       "id": "108-2",
@@ -623,7 +623,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/108-2.pdf",
       "file_path": "invoice/108-2.json",
       "char_count_body": 993,
-      "fetched_at": "2026-09-01T08:12:35.634Z"
+      "fetched_at": "2026-11-14T09:59:05.375Z"
     },
     {
       "id": "109",
@@ -639,7 +639,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/109.pdf",
       "file_path": "invoice/109.json",
       "char_count_body": 1712,
-      "fetched_at": "2026-09-01T08:12:37.222Z"
+      "fetched_at": "2026-11-14T09:59:06.766Z"
     },
     {
       "id": "11",
@@ -655,7 +655,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/11.pdf",
       "file_path": "invoice/11.json",
       "char_count_body": 1832,
-      "fetched_at": "2026-09-01T08:09:25.545Z"
+      "fetched_at": "2026-11-14T09:55:39.279Z"
     },
     {
       "id": "110",
@@ -671,7 +671,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/110.pdf",
       "file_path": "invoice/110.json",
       "char_count_body": 2368,
-      "fetched_at": "2026-09-01T08:12:38.614Z"
+      "fetched_at": "2026-11-14T09:59:08.132Z"
     },
     {
       "id": "110-2",
@@ -687,7 +687,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/110-2.pdf",
       "file_path": "invoice/110-2.json",
       "char_count_body": 772,
-      "fetched_at": "2026-09-01T08:12:39.974Z"
+      "fetched_at": "2026-11-14T09:59:09.619Z"
     },
     {
       "id": "111",
@@ -703,7 +703,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/111.pdf",
       "file_path": "invoice/111.json",
       "char_count_body": 824,
-      "fetched_at": "2026-09-01T08:12:41.427Z"
+      "fetched_at": "2026-11-14T09:59:11.635Z"
     },
     {
       "id": "112",
@@ -719,7 +719,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/112.pdf",
       "file_path": "invoice/112.json",
       "char_count_body": 964,
-      "fetched_at": "2026-09-01T08:12:42.878Z"
+      "fetched_at": "2026-11-14T09:59:13.030Z"
     },
     {
       "id": "113",
@@ -735,7 +735,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113.pdf",
       "file_path": "invoice/113.json",
       "char_count_body": 1919,
-      "fetched_at": "2026-09-01T08:12:44.289Z"
+      "fetched_at": "2026-11-14T09:59:14.404Z"
     },
     {
       "id": "113-2",
@@ -751,7 +751,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-2.pdf",
       "file_path": "invoice/113-2.json",
       "char_count_body": 493,
-      "fetched_at": "2026-09-01T08:12:45.623Z"
+      "fetched_at": "2026-11-14T09:59:16.214Z"
     },
     {
       "id": "113-3",
@@ -767,7 +767,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-3.pdf",
       "file_path": "invoice/113-3.json",
       "char_count_body": 970,
-      "fetched_at": "2026-09-01T08:12:47.047Z"
+      "fetched_at": "2026-11-14T09:59:17.596Z"
     },
     {
       "id": "113-4",
@@ -783,7 +783,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/113-4.pdf",
       "file_path": "invoice/113-4.json",
       "char_count_body": 1311,
-      "fetched_at": "2026-09-01T08:12:48.498Z"
+      "fetched_at": "2026-11-14T09:59:19.193Z"
     },
     {
       "id": "114",
@@ -799,7 +799,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114.pdf",
       "file_path": "invoice/114.json",
       "char_count_body": 985,
-      "fetched_at": "2026-09-01T08:12:49.912Z"
+      "fetched_at": "2026-11-14T09:59:20.998Z"
     },
     {
       "id": "114-2",
@@ -815,7 +815,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/114-2.pdf",
       "file_path": "invoice/114-2.json",
       "char_count_body": 1058,
-      "fetched_at": "2026-09-01T08:12:51.310Z"
+      "fetched_at": "2026-11-14T09:59:22.386Z"
     },
     {
       "id": "115",
@@ -831,7 +831,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/115.pdf",
       "file_path": "invoice/115.json",
       "char_count_body": 1844,
-      "fetched_at": "2026-09-01T08:12:52.671Z"
+      "fetched_at": "2026-11-14T09:59:23.771Z"
     },
     {
       "id": "115-2",
@@ -847,7 +847,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/115-2.pdf",
       "file_path": "invoice/115-2.json",
       "char_count_body": 1535,
-      "fetched_at": "2026-09-01T08:12:54.041Z"
+      "fetched_at": "2026-11-14T09:59:25.571Z"
     },
     {
       "id": "116",
@@ -863,7 +863,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/116.pdf",
       "file_path": "invoice/116.json",
       "char_count_body": 1408,
-      "fetched_at": "2026-09-01T08:12:55.400Z"
+      "fetched_at": "2026-11-14T09:59:26.953Z"
     },
     {
       "id": "116-2",
@@ -879,7 +879,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/116-2.pdf",
       "file_path": "invoice/116-2.json",
       "char_count_body": 1010,
-      "fetched_at": "2026-09-01T08:12:56.746Z"
+      "fetched_at": "2026-11-14T09:59:28.335Z"
     },
     {
       "id": "117",
@@ -895,7 +895,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117.pdf",
       "file_path": "invoice/117.json",
       "char_count_body": 1685,
-      "fetched_at": "2026-09-01T08:12:58.208Z"
+      "fetched_at": "2026-11-14T09:59:30.147Z"
     },
     {
       "id": "117-2",
@@ -911,7 +911,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117-2.pdf",
       "file_path": "invoice/117-2.json",
       "char_count_body": 2055,
-      "fetched_at": "2026-09-01T08:12:59.577Z"
+      "fetched_at": "2026-11-14T09:59:31.636Z"
     },
     {
       "id": "117-3",
@@ -927,7 +927,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/117-3.pdf",
       "file_path": "invoice/117-3.json",
       "char_count_body": 1764,
-      "fetched_at": "2026-09-01T08:13:00.953Z"
+      "fetched_at": "2026-11-14T09:59:33.025Z"
     },
     {
       "id": "118",
@@ -943,7 +943,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/118.pdf",
       "file_path": "invoice/118.json",
       "char_count_body": 2157,
-      "fetched_at": "2026-09-01T08:13:02.405Z"
+      "fetched_at": "2026-11-14T09:59:34.823Z"
     },
     {
       "id": "119",
@@ -959,7 +959,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/119.pdf",
       "file_path": "invoice/119.json",
       "char_count_body": 601,
-      "fetched_at": "2026-09-01T08:13:03.943Z"
+      "fetched_at": "2026-11-14T09:59:36.842Z"
     },
     {
       "id": "12",
@@ -975,7 +975,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/12.pdf",
       "file_path": "invoice/12.json",
       "char_count_body": 808,
-      "fetched_at": "2026-09-01T08:09:26.933Z"
+      "fetched_at": "2026-11-14T09:55:41.291Z"
     },
     {
       "id": "120",
@@ -991,7 +991,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/120.pdf",
       "file_path": "invoice/120.json",
       "char_count_body": 662,
-      "fetched_at": "2026-09-01T08:13:05.445Z"
+      "fetched_at": "2026-11-14T09:59:38.635Z"
     },
     {
       "id": "121",
@@ -1007,7 +1007,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/121.pdf",
       "file_path": "invoice/121.json",
       "char_count_body": 926,
-      "fetched_at": "2026-09-01T08:13:06.938Z"
+      "fetched_at": "2026-11-14T09:59:40.658Z"
     },
     {
       "id": "122",
@@ -1023,7 +1023,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/122.pdf",
       "file_path": "invoice/122.json",
       "char_count_body": 688,
-      "fetched_at": "2026-09-01T08:13:08.376Z"
+      "fetched_at": "2026-11-14T09:59:42.120Z"
     },
     {
       "id": "123",
@@ -1039,7 +1039,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/123.pdf",
       "file_path": "invoice/123.json",
       "char_count_body": 637,
-      "fetched_at": "2026-09-01T08:13:09.787Z"
+      "fetched_at": "2026-11-14T09:59:43.493Z"
     },
     {
       "id": "124",
@@ -1055,7 +1055,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/124.pdf",
       "file_path": "invoice/124.json",
       "char_count_body": 607,
-      "fetched_at": "2026-09-01T08:13:11.229Z"
+      "fetched_at": "2026-11-14T09:59:44.864Z"
     },
     {
       "id": "125",
@@ -1071,7 +1071,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/125.pdf",
       "file_path": "invoice/125.json",
       "char_count_body": 1253,
-      "fetched_at": "2026-09-01T08:13:12.757Z"
+      "fetched_at": "2026-11-14T09:59:46.820Z"
     },
     {
       "id": "126",
@@ -1087,7 +1087,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/126.pdf",
       "file_path": "invoice/126.json",
       "char_count_body": 1194,
-      "fetched_at": "2026-09-01T08:13:14.248Z"
+      "fetched_at": "2026-11-14T09:59:48.203Z"
     },
     {
       "id": "127",
@@ -1103,7 +1103,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/127.pdf",
       "file_path": "invoice/127.json",
       "char_count_body": 1451,
-      "fetched_at": "2026-09-01T08:13:15.829Z"
+      "fetched_at": "2026-11-14T09:59:50.218Z"
     },
     {
       "id": "128",
@@ -1119,7 +1119,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/128.pdf",
       "file_path": "invoice/128.json",
       "char_count_body": 1077,
-      "fetched_at": "2026-09-01T08:13:17.172Z"
+      "fetched_at": "2026-11-14T09:59:51.603Z"
     },
     {
       "id": "129",
@@ -1135,7 +1135,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/129.pdf",
       "file_path": "invoice/129.json",
       "char_count_body": 1131,
-      "fetched_at": "2026-09-01T08:13:18.740Z"
+      "fetched_at": "2026-11-14T09:59:52.980Z"
     },
     {
       "id": "13",
@@ -1151,7 +1151,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/13.pdf",
       "file_path": "invoice/13.json",
       "char_count_body": 1710,
-      "fetched_at": "2026-09-01T08:09:28.328Z"
+      "fetched_at": "2026-11-14T09:55:43.110Z"
     },
     {
       "id": "13-2",
@@ -1167,7 +1167,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/13-2.pdf",
       "file_path": "invoice/13-2.json",
       "char_count_body": 1410,
-      "fetched_at": "2026-09-01T08:09:29.720Z"
+      "fetched_at": "2026-11-14T09:55:44.528Z"
     },
     {
       "id": "130",
@@ -1183,7 +1183,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/130.pdf",
       "file_path": "invoice/130.json",
       "char_count_body": 1809,
-      "fetched_at": "2026-09-01T08:13:20.085Z"
+      "fetched_at": "2026-11-14T09:59:54.378Z"
     },
     {
       "id": "14",
@@ -1199,7 +1199,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/14.pdf",
       "file_path": "invoice/14.json",
       "char_count_body": 432,
-      "fetched_at": "2026-09-01T08:09:31.158Z"
+      "fetched_at": "2026-11-14T09:55:45.900Z"
     },
     {
       "id": "14-2",
@@ -1215,7 +1215,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/14-2.pdf",
       "file_path": "invoice/14-2.json",
       "char_count_body": 1117,
-      "fetched_at": "2026-09-01T08:09:32.667Z"
+      "fetched_at": "2026-11-14T09:55:47.710Z"
     },
     {
       "id": "15",
@@ -1231,7 +1231,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/15.pdf",
       "file_path": "invoice/15.json",
       "char_count_body": 1009,
-      "fetched_at": "2026-09-01T08:09:34.025Z"
+      "fetched_at": "2026-11-14T09:55:49.083Z"
     },
     {
       "id": "16",
@@ -1247,7 +1247,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/16.pdf",
       "file_path": "invoice/16.json",
       "char_count_body": 873,
-      "fetched_at": "2026-09-01T08:09:35.538Z"
+      "fetched_at": "2026-11-14T09:55:50.485Z"
     },
     {
       "id": "17",
@@ -1263,7 +1263,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/17.pdf",
       "file_path": "invoice/17.json",
       "char_count_body": 325,
-      "fetched_at": "2026-09-01T08:09:37.105Z"
+      "fetched_at": "2026-11-14T09:55:52.062Z"
     },
     {
       "id": "17-2",
@@ -1279,7 +1279,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/17-2.pdf",
       "file_path": "invoice/17-2.json",
       "char_count_body": 590,
-      "fetched_at": "2026-09-01T08:09:38.421Z"
+      "fetched_at": "2026-11-14T09:55:53.436Z"
     },
     {
       "id": "18",
@@ -1295,7 +1295,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/18.pdf",
       "file_path": "invoice/18.json",
       "char_count_body": 335,
-      "fetched_at": "2026-09-01T08:09:39.925Z"
+      "fetched_at": "2026-11-14T09:55:55.442Z"
     },
     {
       "id": "19",
@@ -1311,7 +1311,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/19.pdf",
       "file_path": "invoice/19.json",
       "char_count_body": 1428,
-      "fetched_at": "2026-09-01T08:09:41.474Z"
+      "fetched_at": "2026-11-14T09:55:56.922Z"
     },
     {
       "id": "20",
@@ -1327,7 +1327,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/20.pdf",
       "file_path": "invoice/20.json",
       "char_count_body": 485,
-      "fetched_at": "2026-09-01T08:09:42.937Z"
+      "fetched_at": "2026-11-14T09:55:58.400Z"
     },
     {
       "id": "21",
@@ -1343,7 +1343,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/21.pdf",
       "file_path": "invoice/21.json",
       "char_count_body": 667,
-      "fetched_at": "2026-09-01T08:09:44.471Z"
+      "fetched_at": "2026-11-14T09:55:59.769Z"
     },
     {
       "id": "21-2",
@@ -1359,7 +1359,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/21-2.pdf",
       "file_path": "invoice/21-2.json",
       "char_count_body": 1728,
-      "fetched_at": "2026-09-01T08:09:45.915Z"
+      "fetched_at": "2026-11-14T09:56:01.751Z"
     },
     {
       "id": "22",
@@ -1375,7 +1375,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/22.pdf",
       "file_path": "invoice/22.json",
       "char_count_body": 1427,
-      "fetched_at": "2026-09-01T08:09:47.502Z"
+      "fetched_at": "2026-11-14T09:56:03.207Z"
     },
     {
       "id": "23",
@@ -1391,7 +1391,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/23.pdf",
       "file_path": "invoice/23.json",
       "char_count_body": 858,
-      "fetched_at": "2026-09-01T08:09:49.121Z"
+      "fetched_at": "2026-11-14T09:56:04.576Z"
     },
     {
       "id": "24",
@@ -1407,7 +1407,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24.pdf",
       "file_path": "invoice/24.json",
       "char_count_body": 776,
-      "fetched_at": "2026-09-01T08:09:50.688Z"
+      "fetched_at": "2026-11-14T09:56:06.363Z"
     },
     {
       "id": "24-2",
@@ -1423,7 +1423,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-2.pdf",
       "file_path": "invoice/24-2.json",
       "char_count_body": 1112,
-      "fetched_at": "2026-09-01T08:09:52.205Z"
+      "fetched_at": "2026-11-14T09:56:07.732Z"
     },
     {
       "id": "24-3",
@@ -1439,7 +1439,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-3.pdf",
       "file_path": "invoice/24-3.json",
       "char_count_body": 521,
-      "fetched_at": "2026-09-01T08:09:53.795Z"
+      "fetched_at": "2026-11-14T09:56:09.209Z"
     },
     {
       "id": "24-4",
@@ -1455,7 +1455,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-4.pdf",
       "file_path": "invoice/24-4.json",
       "char_count_body": 1262,
-      "fetched_at": "2026-09-01T08:09:55.217Z"
+      "fetched_at": "2026-11-14T09:56:11.122Z"
     },
     {
       "id": "24-5",
@@ -1471,7 +1471,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/24-5.pdf",
       "file_path": "invoice/24-5.json",
       "char_count_body": 866,
-      "fetched_at": "2026-09-01T08:09:57.020Z"
+      "fetched_at": "2026-11-14T09:56:12.507Z"
     },
     {
       "id": "25",
@@ -1487,7 +1487,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/25.pdf",
       "file_path": "invoice/25.json",
       "char_count_body": 625,
-      "fetched_at": "2026-09-01T08:09:58.860Z"
+      "fetched_at": "2026-11-14T09:56:13.989Z"
     },
     {
       "id": "26",
@@ -1503,7 +1503,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/26.pdf",
       "file_path": "invoice/26.json",
       "char_count_body": 452,
-      "fetched_at": "2026-09-01T08:10:00.434Z"
+      "fetched_at": "2026-11-14T09:56:15.359Z"
     },
     {
       "id": "26-2",
@@ -1519,7 +1519,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/26-2.pdf",
       "file_path": "invoice/26-2.json",
       "char_count_body": 1127,
-      "fetched_at": "2026-09-01T08:10:01.789Z"
+      "fetched_at": "2026-11-14T09:56:16.743Z"
     },
     {
       "id": "27",
@@ -1535,7 +1535,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/27.pdf",
       "file_path": "invoice/27.json",
       "char_count_body": 770,
-      "fetched_at": "2026-09-01T08:10:03.253Z"
+      "fetched_at": "2026-11-14T09:56:18.749Z"
     },
     {
       "id": "28",
@@ -1551,7 +1551,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/28.pdf",
       "file_path": "invoice/28.json",
       "char_count_body": 856,
-      "fetched_at": "2026-09-01T08:10:04.722Z"
+      "fetched_at": "2026-11-14T09:56:20.202Z"
     },
     {
       "id": "29",
@@ -1567,7 +1567,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/29.pdf",
       "file_path": "invoice/29.json",
       "char_count_body": 2742,
-      "fetched_at": "2026-09-01T08:10:06.145Z"
+      "fetched_at": "2026-11-14T09:56:21.609Z"
     },
     {
       "id": "30",
@@ -1583,7 +1583,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/30.pdf",
       "file_path": "invoice/30.json",
       "char_count_body": 999,
-      "fetched_at": "2026-09-01T08:10:07.652Z"
+      "fetched_at": "2026-11-14T09:56:23.206Z"
     },
     {
       "id": "31",
@@ -1599,7 +1599,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/31.pdf",
       "file_path": "invoice/31.json",
       "char_count_body": 672,
-      "fetched_at": "2026-09-01T08:10:09.225Z"
+      "fetched_at": "2026-11-14T09:56:24.788Z"
     },
     {
       "id": "32",
@@ -1615,7 +1615,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/32.pdf",
       "file_path": "invoice/32.json",
       "char_count_body": 539,
-      "fetched_at": "2026-09-01T08:10:10.735Z"
+      "fetched_at": "2026-11-14T09:56:26.784Z"
     },
     {
       "id": "33",
@@ -1631,7 +1631,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/33.pdf",
       "file_path": "invoice/33.json",
       "char_count_body": 1048,
-      "fetched_at": "2026-09-01T08:10:12.292Z"
+      "fetched_at": "2026-11-14T09:56:28.625Z"
     },
     {
       "id": "34",
@@ -1647,7 +1647,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/34.pdf",
       "file_path": "invoice/34.json",
       "char_count_body": 1562,
-      "fetched_at": "2026-09-01T08:10:14.210Z"
+      "fetched_at": "2026-11-14T09:56:30.046Z"
     },
     {
       "id": "35",
@@ -1663,7 +1663,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/35.pdf",
       "file_path": "invoice/35.json",
       "char_count_body": 760,
-      "fetched_at": "2026-09-01T08:10:15.781Z"
+      "fetched_at": "2026-11-14T09:56:31.507Z"
     },
     {
       "id": "36",
@@ -1679,7 +1679,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/36.pdf",
       "file_path": "invoice/36.json",
       "char_count_body": 874,
-      "fetched_at": "2026-09-01T08:10:17.479Z"
+      "fetched_at": "2026-11-14T09:56:33.514Z"
     },
     {
       "id": "37",
@@ -1695,7 +1695,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/37.pdf",
       "file_path": "invoice/37.json",
       "char_count_body": 1891,
-      "fetched_at": "2026-09-01T08:10:19.164Z"
+      "fetched_at": "2026-11-14T09:56:34.987Z"
     },
     {
       "id": "38",
@@ -1711,7 +1711,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/38.pdf",
       "file_path": "invoice/38.json",
       "char_count_body": 1713,
-      "fetched_at": "2026-09-01T08:10:20.710Z"
+      "fetched_at": "2026-11-14T09:56:36.998Z"
     },
     {
       "id": "39",
@@ -1727,7 +1727,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/39.pdf",
       "file_path": "invoice/39.json",
       "char_count_body": 563,
-      "fetched_at": "2026-09-01T08:10:22.296Z"
+      "fetched_at": "2026-11-14T09:56:39.016Z"
     },
     {
       "id": "40",
@@ -1743,7 +1743,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/40.pdf",
       "file_path": "invoice/40.json",
       "char_count_body": 1630,
-      "fetched_at": "2026-09-01T08:10:23.675Z"
+      "fetched_at": "2026-11-14T09:56:40.873Z"
     },
     {
       "id": "41",
@@ -1759,7 +1759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/41.pdf",
       "file_path": "invoice/41.json",
       "char_count_body": 553,
-      "fetched_at": "2026-09-01T08:10:25.251Z"
+      "fetched_at": "2026-11-14T09:56:42.880Z"
     },
     {
       "id": "42",
@@ -1775,7 +1775,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/42.pdf",
       "file_path": "invoice/42.json",
       "char_count_body": 508,
-      "fetched_at": "2026-09-01T08:10:26.615Z"
+      "fetched_at": "2026-11-14T09:56:44.258Z"
     },
     {
       "id": "43",
@@ -1791,7 +1791,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/43.pdf",
       "file_path": "invoice/43.json",
       "char_count_body": 351,
-      "fetched_at": "2026-09-01T08:10:28.029Z"
+      "fetched_at": "2026-11-14T09:56:46.068Z"
     },
     {
       "id": "44",
@@ -1807,7 +1807,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/44.pdf",
       "file_path": "invoice/44.json",
       "char_count_body": 291,
-      "fetched_at": "2026-09-01T08:10:29.628Z"
+      "fetched_at": "2026-11-14T09:56:47.462Z"
     },
     {
       "id": "45",
@@ -1823,7 +1823,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/45.pdf",
       "file_path": "invoice/45.json",
       "char_count_body": 1496,
-      "fetched_at": "2026-09-01T08:10:31.368Z"
+      "fetched_at": "2026-11-14T09:56:49.053Z"
     },
     {
       "id": "46",
@@ -1839,7 +1839,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/46.pdf",
       "file_path": "invoice/46.json",
       "char_count_body": 1117,
-      "fetched_at": "2026-09-01T08:10:33.039Z"
+      "fetched_at": "2026-11-14T09:56:50.437Z"
     },
     {
       "id": "47",
@@ -1855,7 +1855,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/47.pdf",
       "file_path": "invoice/47.json",
       "char_count_body": 672,
-      "fetched_at": "2026-09-01T08:10:34.581Z"
+      "fetched_at": "2026-11-14T09:56:52.443Z"
     },
     {
       "id": "48",
@@ -1871,7 +1871,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/48.pdf",
       "file_path": "invoice/48.json",
       "char_count_body": 2995,
-      "fetched_at": "2026-09-01T08:10:36.266Z"
+      "fetched_at": "2026-11-14T09:56:54.572Z"
     },
     {
       "id": "49",
@@ -1887,7 +1887,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49.pdf",
       "file_path": "invoice/49.json",
       "char_count_body": 2710,
-      "fetched_at": "2026-09-01T08:10:37.827Z"
+      "fetched_at": "2026-11-14T09:56:56.047Z"
     },
     {
       "id": "49-2",
@@ -1903,7 +1903,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49-2.pdf",
       "file_path": "invoice/49-2.json",
       "char_count_body": 1725,
-      "fetched_at": "2026-09-01T08:10:39.206Z"
+      "fetched_at": "2026-11-14T09:56:57.428Z"
     },
     {
       "id": "49-3",
@@ -1919,7 +1919,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/49-3.pdf",
       "file_path": "invoice/49-3.json",
       "char_count_body": 1589,
-      "fetched_at": "2026-09-01T08:10:40.578Z"
+      "fetched_at": "2026-11-14T09:56:59.144Z"
     },
     {
       "id": "50",
@@ -1935,7 +1935,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/50.pdf",
       "file_path": "invoice/50.json",
       "char_count_body": 996,
-      "fetched_at": "2026-09-01T08:10:41.908Z"
+      "fetched_at": "2026-11-14T09:57:00.508Z"
     },
     {
       "id": "50-2",
@@ -1951,7 +1951,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/50-2.pdf",
       "file_path": "invoice/50-2.json",
       "char_count_body": 1088,
-      "fetched_at": "2026-09-01T08:10:43.273Z"
+      "fetched_at": "2026-11-14T09:57:01.888Z"
     },
     {
       "id": "51",
@@ -1967,7 +1967,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/51.pdf",
       "file_path": "invoice/51.json",
       "char_count_body": 1656,
-      "fetched_at": "2026-09-01T08:10:44.670Z"
+      "fetched_at": "2026-11-14T09:57:03.709Z"
     },
     {
       "id": "52",
@@ -1983,7 +1983,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/52.pdf",
       "file_path": "invoice/52.json",
       "char_count_body": 349,
-      "fetched_at": "2026-09-01T08:10:46.133Z"
+      "fetched_at": "2026-11-14T09:57:05.079Z"
     },
     {
       "id": "53",
@@ -1999,7 +1999,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/53.pdf",
       "file_path": "invoice/53.json",
       "char_count_body": 1426,
-      "fetched_at": "2026-09-01T08:10:47.610Z"
+      "fetched_at": "2026-11-14T09:57:06.892Z"
     },
     {
       "id": "54",
@@ -2015,7 +2015,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/54.pdf",
       "file_path": "invoice/54.json",
       "char_count_body": 2507,
-      "fetched_at": "2026-09-01T08:10:49.019Z"
+      "fetched_at": "2026-11-14T09:57:08.255Z"
     },
     {
       "id": "55",
@@ -2031,7 +2031,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/55.pdf",
       "file_path": "invoice/55.json",
       "char_count_body": 146,
-      "fetched_at": "2026-09-01T08:10:50.510Z"
+      "fetched_at": "2026-11-14T09:57:10.270Z"
     },
     {
       "id": "56",
@@ -2047,7 +2047,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/56.pdf",
       "file_path": "invoice/56.json",
       "char_count_body": 522,
-      "fetched_at": "2026-09-01T08:10:52.022Z"
+      "fetched_at": "2026-11-14T09:57:12.064Z"
     },
     {
       "id": "57",
@@ -2063,7 +2063,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/57.pdf",
       "file_path": "invoice/57.json",
       "char_count_body": 1641,
-      "fetched_at": "2026-09-01T08:10:53.647Z"
+      "fetched_at": "2026-11-14T09:57:14.078Z"
     },
     {
       "id": "58",
@@ -2079,7 +2079,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/58.pdf",
       "file_path": "invoice/58.json",
       "char_count_body": 2873,
-      "fetched_at": "2026-09-01T08:10:55.033Z"
+      "fetched_at": "2026-11-14T09:57:15.451Z"
     },
     {
       "id": "58-2",
@@ -2095,7 +2095,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/58-2.pdf",
       "file_path": "invoice/58-2.json",
       "char_count_body": 1520,
-      "fetched_at": "2026-09-01T08:10:56.586Z"
+      "fetched_at": "2026-11-14T09:57:16.824Z"
     },
     {
       "id": "59",
@@ -2111,7 +2111,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/59.pdf",
       "file_path": "invoice/59.json",
       "char_count_body": 1362,
-      "fetched_at": "2026-09-01T08:10:58.030Z"
+      "fetched_at": "2026-11-14T09:57:18.828Z"
     },
     {
       "id": "60",
@@ -2127,7 +2127,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/60.pdf",
       "file_path": "invoice/60.json",
       "char_count_body": 977,
-      "fetched_at": "2026-09-01T08:10:59.909Z"
+      "fetched_at": "2026-11-14T09:57:20.835Z"
     },
     {
       "id": "61",
@@ -2143,7 +2143,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/61.pdf",
       "file_path": "invoice/61.json",
       "char_count_body": 876,
-      "fetched_at": "2026-09-01T08:11:01.377Z"
+      "fetched_at": "2026-11-14T09:57:22.635Z"
     },
     {
       "id": "62",
@@ -2159,7 +2159,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/62.pdf",
       "file_path": "invoice/62.json",
       "char_count_body": 1991,
-      "fetched_at": "2026-09-01T08:11:02.897Z"
+      "fetched_at": "2026-11-14T09:57:24.657Z"
     },
     {
       "id": "63",
@@ -2175,7 +2175,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/63.pdf",
       "file_path": "invoice/63.json",
       "char_count_body": 1351,
-      "fetched_at": "2026-09-01T08:11:04.377Z"
+      "fetched_at": "2026-11-14T09:57:26.463Z"
     },
     {
       "id": "64",
@@ -2191,7 +2191,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/64.pdf",
       "file_path": "invoice/64.json",
       "char_count_body": 615,
-      "fetched_at": "2026-09-01T08:11:05.855Z"
+      "fetched_at": "2026-11-14T09:57:28.570Z"
     },
     {
       "id": "65",
@@ -2207,7 +2207,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/65.pdf",
       "file_path": "invoice/65.json",
       "char_count_body": 2327,
-      "fetched_at": "2026-09-01T08:11:07.408Z"
+      "fetched_at": "2026-11-14T09:57:30.046Z"
     },
     {
       "id": "66",
@@ -2223,7 +2223,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/66.pdf",
       "file_path": "invoice/66.json",
       "char_count_body": 1295,
-      "fetched_at": "2026-09-01T08:11:08.825Z"
+      "fetched_at": "2026-11-14T09:57:31.416Z"
     },
     {
       "id": "67",
@@ -2239,7 +2239,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/67.pdf",
       "file_path": "invoice/67.json",
       "char_count_body": 1489,
-      "fetched_at": "2026-09-01T08:11:10.313Z"
+      "fetched_at": "2026-11-14T09:57:33.426Z"
     },
     {
       "id": "68",
@@ -2255,7 +2255,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/68.pdf",
       "file_path": "invoice/68.json",
       "char_count_body": 2166,
-      "fetched_at": "2026-09-01T08:11:11.761Z"
+      "fetched_at": "2026-11-14T09:57:34.908Z"
     },
     {
       "id": "69",
@@ -2271,7 +2271,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/69.pdf",
       "file_path": "invoice/69.json",
       "char_count_body": 2276,
-      "fetched_at": "2026-09-01T08:11:13.260Z"
+      "fetched_at": "2026-11-14T09:57:36.284Z"
     },
     {
       "id": "70",
@@ -2287,7 +2287,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/70.pdf",
       "file_path": "invoice/70.json",
       "char_count_body": 3475,
-      "fetched_at": "2026-09-01T08:11:14.780Z"
+      "fetched_at": "2026-11-14T09:57:38.409Z"
     },
     {
       "id": "71",
@@ -2303,7 +2303,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/71.pdf",
       "file_path": "invoice/71.json",
       "char_count_body": 857,
-      "fetched_at": "2026-09-01T08:11:16.200Z"
+      "fetched_at": "2026-11-14T09:57:39.820Z"
     },
     {
       "id": "72",
@@ -2319,7 +2319,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/72.pdf",
       "file_path": "invoice/72.json",
       "char_count_body": 1400,
-      "fetched_at": "2026-09-01T08:11:17.710Z"
+      "fetched_at": "2026-11-14T09:57:41.845Z"
     },
     {
       "id": "72-2",
@@ -2335,7 +2335,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/72-2.pdf",
       "file_path": "invoice/72-2.json",
       "char_count_body": 1311,
-      "fetched_at": "2026-09-01T08:11:19.129Z"
+      "fetched_at": "2026-11-14T09:57:43.232Z"
     },
     {
       "id": "73",
@@ -2351,7 +2351,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/73.pdf",
       "file_path": "invoice/73.json",
       "char_count_body": 1492,
-      "fetched_at": "2026-09-01T08:11:20.558Z"
+      "fetched_at": "2026-11-14T09:57:44.703Z"
     },
     {
       "id": "74",
@@ -2367,7 +2367,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/74.pdf",
       "file_path": "invoice/74.json",
       "char_count_body": 1080,
-      "fetched_at": "2026-09-01T08:11:21.940Z"
+      "fetched_at": "2026-11-14T09:57:46.287Z"
     },
     {
       "id": "75",
@@ -2383,7 +2383,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/75.pdf",
       "file_path": "invoice/75.json",
       "char_count_body": 519,
-      "fetched_at": "2026-09-01T08:11:23.417Z"
+      "fetched_at": "2026-11-14T09:57:48.077Z"
     },
     {
       "id": "76",
@@ -2399,7 +2399,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/76.pdf",
       "file_path": "invoice/76.json",
       "char_count_body": 1115,
-      "fetched_at": "2026-09-01T08:11:24.802Z"
+      "fetched_at": "2026-11-14T09:57:49.440Z"
     },
     {
       "id": "77",
@@ -2415,7 +2415,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77.pdf",
       "file_path": "invoice/77.json",
       "char_count_body": 1760,
-      "fetched_at": "2026-09-01T08:11:26.376Z"
+      "fetched_at": "2026-11-14T09:57:50.913Z"
     },
     {
       "id": "77-2",
@@ -2431,7 +2431,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77-2.pdf",
       "file_path": "invoice/77-2.json",
       "char_count_body": 2431,
-      "fetched_at": "2026-09-01T08:11:27.826Z"
+      "fetched_at": "2026-11-14T09:57:52.616Z"
     },
     {
       "id": "77-3",
@@ -2447,7 +2447,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/77-3.pdf",
       "file_path": "invoice/77-3.json",
       "char_count_body": 1980,
-      "fetched_at": "2026-09-01T08:11:29.171Z"
+      "fetched_at": "2026-11-14T09:57:54.003Z"
     },
     {
       "id": "78",
@@ -2463,7 +2463,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/78.pdf",
       "file_path": "invoice/78.json",
       "char_count_body": 548,
-      "fetched_at": "2026-09-01T08:11:30.609Z"
+      "fetched_at": "2026-11-14T09:57:55.378Z"
     },
     {
       "id": "79",
@@ -2479,7 +2479,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/79.pdf",
       "file_path": "invoice/79.json",
       "char_count_body": 325,
-      "fetched_at": "2026-09-01T08:11:32.086Z"
+      "fetched_at": "2026-11-14T09:57:56.864Z"
     },
     {
       "id": "80",
@@ -2495,7 +2495,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/80.pdf",
       "file_path": "invoice/80.json",
       "char_count_body": 1038,
-      "fetched_at": "2026-09-01T08:11:33.522Z"
+      "fetched_at": "2026-11-14T09:57:58.229Z"
     },
     {
       "id": "81",
@@ -2511,7 +2511,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/81.pdf",
       "file_path": "invoice/81.json",
       "char_count_body": 2014,
-      "fetched_at": "2026-09-01T08:11:34.954Z"
+      "fetched_at": "2026-11-14T09:57:59.609Z"
     },
     {
       "id": "82",
@@ -2527,7 +2527,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/82.pdf",
       "file_path": "invoice/82.json",
       "char_count_body": 1416,
-      "fetched_at": "2026-09-01T08:11:36.333Z"
+      "fetched_at": "2026-11-14T09:58:00.996Z"
     },
     {
       "id": "83",
@@ -2543,7 +2543,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/83.pdf",
       "file_path": "invoice/83.json",
       "char_count_body": 821,
-      "fetched_at": "2026-09-01T08:11:37.787Z"
+      "fetched_at": "2026-11-14T09:58:02.378Z"
     },
     {
       "id": "84",
@@ -2559,7 +2559,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/84.pdf",
       "file_path": "invoice/84.json",
       "char_count_body": 1544,
-      "fetched_at": "2026-09-01T08:11:39.126Z"
+      "fetched_at": "2026-11-14T09:58:03.755Z"
     },
     {
       "id": "85",
@@ -2575,7 +2575,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/85.pdf",
       "file_path": "invoice/85.json",
       "char_count_body": 989,
-      "fetched_at": "2026-09-01T08:11:40.544Z"
+      "fetched_at": "2026-11-14T09:58:05.127Z"
     },
     {
       "id": "86",
@@ -2591,7 +2591,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/86.pdf",
       "file_path": "invoice/86.json",
       "char_count_body": 1813,
-      "fetched_at": "2026-09-01T08:11:41.875Z"
+      "fetched_at": "2026-11-14T09:58:06.495Z"
     },
     {
       "id": "87",
@@ -2607,7 +2607,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/87.pdf",
       "file_path": "invoice/87.json",
       "char_count_body": 1512,
-      "fetched_at": "2026-09-01T08:11:43.256Z"
+      "fetched_at": "2026-11-14T09:58:08.391Z"
     },
     {
       "id": "88",
@@ -2623,7 +2623,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/88.pdf",
       "file_path": "invoice/88.json",
       "char_count_body": 1685,
-      "fetched_at": "2026-09-01T08:11:44.590Z"
+      "fetched_at": "2026-11-14T09:58:09.753Z"
     },
     {
       "id": "89",
@@ -2639,7 +2639,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/89.pdf",
       "file_path": "invoice/89.json",
       "char_count_body": 587,
-      "fetched_at": "2026-09-01T08:11:46.128Z"
+      "fetched_at": "2026-11-14T09:58:11.124Z"
     },
     {
       "id": "90",
@@ -2655,7 +2655,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/90.pdf",
       "file_path": "invoice/90.json",
       "char_count_body": 2627,
-      "fetched_at": "2026-09-01T08:11:47.774Z"
+      "fetched_at": "2026-11-14T09:58:12.516Z"
     },
     {
       "id": "91",
@@ -2671,7 +2671,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/91.pdf",
       "file_path": "invoice/91.json",
       "char_count_body": 1593,
-      "fetched_at": "2026-09-01T08:11:49.288Z"
+      "fetched_at": "2026-11-14T09:58:13.893Z"
     },
     {
       "id": "92",
@@ -2687,7 +2687,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/92.pdf",
       "file_path": "invoice/92.json",
       "char_count_body": 1449,
-      "fetched_at": "2026-09-01T08:11:50.766Z"
+      "fetched_at": "2026-11-14T09:58:15.913Z"
     },
     {
       "id": "93",
@@ -2703,7 +2703,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/93.pdf",
       "file_path": "invoice/93.json",
       "char_count_body": 1129,
-      "fetched_at": "2026-09-01T08:11:52.106Z"
+      "fetched_at": "2026-11-14T09:58:17.289Z"
     },
     {
       "id": "93-2",
@@ -2719,7 +2719,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/93-2.pdf",
       "file_path": "invoice/93-2.json",
       "char_count_body": 1094,
-      "fetched_at": "2026-09-01T08:11:53.566Z"
+      "fetched_at": "2026-11-14T09:58:19.101Z"
     },
     {
       "id": "94",
@@ -2735,7 +2735,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94.pdf",
       "file_path": "invoice/94.json",
       "char_count_body": 3433,
-      "fetched_at": "2026-09-01T08:11:54.979Z"
+      "fetched_at": "2026-11-14T09:58:20.571Z"
     },
     {
       "id": "94-2",
@@ -2751,7 +2751,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-2.pdf",
       "file_path": "invoice/94-2.json",
       "char_count_body": 701,
-      "fetched_at": "2026-09-01T08:11:56.424Z"
+      "fetched_at": "2026-11-14T09:58:21.949Z"
     },
     {
       "id": "94-3",
@@ -2767,7 +2767,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-3.pdf",
       "file_path": "invoice/94-3.json",
       "char_count_body": 1903,
-      "fetched_at": "2026-09-01T08:11:57.994Z"
+      "fetched_at": "2026-11-14T09:58:23.951Z"
     },
     {
       "id": "94-4",
@@ -2782,8 +2782,8 @@
       "title": "問94－４ 社員食堂での会社負担分に係る仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-4.pdf",
       "file_path": "invoice/94-4.json",
-      "char_count_body": 1147,
-      "fetched_at": "2026-09-01T08:11:59.603Z"
+      "char_count_body": 1149,
+      "fetched_at": "2026-11-14T09:58:25.413Z"
     },
     {
       "id": "95",
@@ -2799,7 +2799,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/95.pdf",
       "file_path": "invoice/95.json",
       "char_count_body": 1192,
-      "fetched_at": "2026-09-01T08:12:01.149Z"
+      "fetched_at": "2026-11-14T09:58:27.215Z"
     },
     {
       "id": "96",
@@ -2815,7 +2815,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/96.pdf",
       "file_path": "invoice/96.json",
       "char_count_body": 1146,
-      "fetched_at": "2026-09-01T08:12:02.589Z"
+      "fetched_at": "2026-11-14T09:58:29.216Z"
     },
     {
       "id": "97",
@@ -2831,7 +2831,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/97.pdf",
       "file_path": "invoice/97.json",
       "char_count_body": 1169,
-      "fetched_at": "2026-09-01T08:12:04.013Z"
+      "fetched_at": "2026-11-14T09:58:31.028Z"
     },
     {
       "id": "98",
@@ -2847,7 +2847,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/98.pdf",
       "file_path": "invoice/98.json",
       "char_count_body": 1060,
-      "fetched_at": "2026-09-01T08:12:05.446Z"
+      "fetched_at": "2026-11-14T09:58:32.541Z"
     },
     {
       "id": "98-2",
@@ -2863,7 +2863,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/98-2.pdf",
       "file_path": "invoice/98-2.json",
       "char_count_body": 846,
-      "fetched_at": "2026-09-01T08:12:06.812Z"
+      "fetched_at": "2026-11-14T09:58:33.921Z"
     },
     {
       "id": "99",
@@ -2879,7 +2879,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/99.pdf",
       "file_path": "invoice/99.json",
       "char_count_body": 1169,
-      "fetched_at": "2026-09-01T08:12:08.263Z"
+      "fetched_at": "2026-11-14T09:58:35.313Z"
     },
     {
       "id": "faq",
@@ -2894,8 +2894,8 @@
       "title": "インボイス制度に関するQ&A（多く寄せられるご質問）",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0521-1334-faq.pdf",
       "file_path": "invoice/faq.json",
-      "char_count_body": 34920,
-      "fetched_at": "2026-09-01T08:13:22.275Z"
+      "char_count_body": 34936,
+      "fetched_at": "2026-11-14T09:59:56.749Z"
     },
     {
       "id": "jireishu",
@@ -2911,7 +2911,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0023007-071.pdf",
       "file_path": "invoice/jireishu.json",
       "char_count_body": 5119,
-      "fetched_at": "2026-09-01T08:13:23.888Z"
+      "fetched_at": "2026-11-14T09:59:58.166Z"
     },
     {
       "id": "faq-1-1",
@@ -2927,7 +2927,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-1.json",
       "char_count_body": 545,
-      "fetched_at": "2026-09-01T09:06:57.455Z"
+      "fetched_at": "2026-11-14T10:00:13.201Z"
     },
     {
       "id": "faq-1-2",
@@ -2943,7 +2943,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-2.json",
       "char_count_body": 645,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "fetched_at": "2026-11-14T10:00:13.202Z"
     },
     {
       "id": "faq-1-3",
@@ -2959,7 +2959,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-3.json",
       "char_count_body": 716,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "fetched_at": "2026-11-14T10:00:13.202Z"
     },
     {
       "id": "faq-1-4",
@@ -2975,7 +2975,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-4.json",
       "char_count_body": 2061,
-      "fetched_at": "2026-09-01T09:06:57.465Z"
+      "fetched_at": "2026-11-14T10:00:13.202Z"
     },
     {
       "id": "faq-1-5",
@@ -2991,7 +2991,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-5.json",
       "char_count_body": 1245,
-      "fetched_at": "2026-09-01T09:06:57.466Z"
+      "fetched_at": "2026-11-14T10:00:13.203Z"
     },
     {
       "id": "faq-1-6",
@@ -3007,7 +3007,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-6.json",
       "char_count_body": 552,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "fetched_at": "2026-11-14T10:00:13.203Z"
     },
     {
       "id": "faq-1-7",
@@ -3023,7 +3023,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-7.json",
       "char_count_body": 412,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "fetched_at": "2026-11-14T10:00:13.204Z"
     },
     {
       "id": "faq-1-8",
@@ -3039,7 +3039,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-1-8.json",
       "char_count_body": 669,
-      "fetched_at": "2026-09-01T09:06:57.467Z"
+      "fetched_at": "2026-11-14T10:00:13.204Z"
     },
     {
       "id": "faq-2-1",
@@ -3055,7 +3055,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-1.json",
       "char_count_body": 418,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "fetched_at": "2026-11-14T10:00:13.204Z"
     },
     {
       "id": "faq-2-10",
@@ -3071,7 +3071,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-10.json",
       "char_count_body": 1570,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "fetched_at": "2026-11-14T10:00:13.209Z"
     },
     {
       "id": "faq-2-11",
@@ -3087,7 +3087,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-11.json",
       "char_count_body": 318,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "fetched_at": "2026-11-14T10:00:13.210Z"
     },
     {
       "id": "faq-2-12",
@@ -3103,7 +3103,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-12.json",
       "char_count_body": 374,
-      "fetched_at": "2026-09-01T09:06:57.472Z"
+      "fetched_at": "2026-11-14T10:00:13.210Z"
     },
     {
       "id": "faq-2-13",
@@ -3119,7 +3119,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-13.json",
       "char_count_body": 781,
-      "fetched_at": "2026-09-01T09:06:57.472Z"
+      "fetched_at": "2026-11-14T10:00:13.210Z"
     },
     {
       "id": "faq-2-2",
@@ -3135,7 +3135,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-2.json",
       "char_count_body": 477,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "fetched_at": "2026-11-14T10:00:13.205Z"
     },
     {
       "id": "faq-2-3",
@@ -3151,7 +3151,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-3.json",
       "char_count_body": 827,
-      "fetched_at": "2026-09-01T09:06:57.468Z"
+      "fetched_at": "2026-11-14T10:00:13.205Z"
     },
     {
       "id": "faq-2-4",
@@ -3167,7 +3167,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-4.json",
       "char_count_body": 2998,
-      "fetched_at": "2026-09-01T09:06:57.469Z"
+      "fetched_at": "2026-11-14T10:00:13.205Z"
     },
     {
       "id": "faq-2-5",
@@ -3183,7 +3183,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-5.json",
       "char_count_body": 911,
-      "fetched_at": "2026-09-01T09:06:57.469Z"
+      "fetched_at": "2026-11-14T10:00:13.206Z"
     },
     {
       "id": "faq-2-6",
@@ -3199,7 +3199,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-6.json",
       "char_count_body": 1161,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "fetched_at": "2026-11-14T10:00:13.206Z"
     },
     {
       "id": "faq-2-7",
@@ -3215,7 +3215,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-7.json",
       "char_count_body": 982,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "fetched_at": "2026-11-14T10:00:13.207Z"
     },
     {
       "id": "faq-2-8",
@@ -3231,7 +3231,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-8.json",
       "char_count_body": 1181,
-      "fetched_at": "2026-09-01T09:06:57.470Z"
+      "fetched_at": "2026-11-14T10:00:13.208Z"
     },
     {
       "id": "faq-2-9",
@@ -3247,7 +3247,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-2-9.json",
       "char_count_body": 1105,
-      "fetched_at": "2026-09-01T09:06:57.471Z"
+      "fetched_at": "2026-11-14T10:00:13.208Z"
     },
     {
       "id": "faq-3-1",
@@ -3263,7 +3263,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1.json",
       "char_count_body": 417,
-      "fetched_at": "2026-09-01T09:06:57.473Z"
+      "fetched_at": "2026-11-14T10:00:13.211Z"
     },
     {
       "id": "faq-3-1-10",
@@ -3279,7 +3279,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-10.json",
       "char_count_body": 1323,
-      "fetched_at": "2026-09-01T09:06:57.476Z"
+      "fetched_at": "2026-11-14T10:00:13.216Z"
     },
     {
       "id": "faq-3-1-11",
@@ -3295,7 +3295,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-11.json",
       "char_count_body": 2145,
-      "fetched_at": "2026-09-01T09:06:57.477Z"
+      "fetched_at": "2026-11-14T10:00:13.217Z"
     },
     {
       "id": "faq-3-1-12",
@@ -3311,7 +3311,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-12.json",
       "char_count_body": 1137,
-      "fetched_at": "2026-09-01T09:06:57.477Z"
+      "fetched_at": "2026-11-14T10:00:13.217Z"
     },
     {
       "id": "faq-3-1-13",
@@ -3327,7 +3327,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-13.json",
       "char_count_body": 591,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "fetched_at": "2026-11-14T10:00:13.217Z"
     },
     {
       "id": "faq-3-1-14",
@@ -3343,7 +3343,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-14.json",
       "char_count_body": 559,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "fetched_at": "2026-11-14T10:00:13.218Z"
     },
     {
       "id": "faq-3-1-2",
@@ -3359,7 +3359,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-2.json",
       "char_count_body": 2311,
-      "fetched_at": "2026-09-01T09:06:57.473Z"
+      "fetched_at": "2026-11-14T10:00:13.212Z"
     },
     {
       "id": "faq-3-1-3",
@@ -3375,7 +3375,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-3.json",
       "char_count_body": 1064,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "fetched_at": "2026-11-14T10:00:13.213Z"
     },
     {
       "id": "faq-3-1-4",
@@ -3391,7 +3391,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-4.json",
       "char_count_body": 1286,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "fetched_at": "2026-11-14T10:00:13.214Z"
     },
     {
       "id": "faq-3-1-5",
@@ -3407,7 +3407,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-5.json",
       "char_count_body": 1518,
-      "fetched_at": "2026-09-01T09:06:57.474Z"
+      "fetched_at": "2026-11-14T10:00:13.214Z"
     },
     {
       "id": "faq-3-1-6",
@@ -3423,7 +3423,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-6.json",
       "char_count_body": 1192,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "fetched_at": "2026-11-14T10:00:13.215Z"
     },
     {
       "id": "faq-3-1-7",
@@ -3439,7 +3439,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-7.json",
       "char_count_body": 1109,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "fetched_at": "2026-11-14T10:00:13.215Z"
     },
     {
       "id": "faq-3-1-8",
@@ -3455,7 +3455,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-8.json",
       "char_count_body": 1285,
-      "fetched_at": "2026-09-01T09:06:57.475Z"
+      "fetched_at": "2026-11-14T10:00:13.216Z"
     },
     {
       "id": "faq-3-1-9",
@@ -3471,7 +3471,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-1-9.json",
       "char_count_body": 1688,
-      "fetched_at": "2026-09-01T09:06:57.476Z"
+      "fetched_at": "2026-11-14T10:00:13.216Z"
     },
     {
       "id": "faq-3-2",
@@ -3487,7 +3487,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2.json",
       "char_count_body": 644,
-      "fetched_at": "2026-09-01T09:06:57.478Z"
+      "fetched_at": "2026-11-14T10:00:13.218Z"
     },
     {
       "id": "faq-3-2-2",
@@ -3503,7 +3503,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-2.json",
       "char_count_body": 431,
-      "fetched_at": "2026-09-01T09:06:57.479Z"
+      "fetched_at": "2026-11-14T10:00:13.219Z"
     },
     {
       "id": "faq-3-2-3",
@@ -3519,7 +3519,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-3.json",
       "char_count_body": 821,
-      "fetched_at": "2026-09-01T09:06:57.479Z"
+      "fetched_at": "2026-11-14T10:00:13.219Z"
     },
     {
       "id": "faq-3-2-4",
@@ -3535,7 +3535,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-3-2-4.json",
       "char_count_body": 618,
-      "fetched_at": "2026-09-01T09:06:57.480Z"
+      "fetched_at": "2026-11-14T10:00:13.219Z"
     },
     {
       "id": "faq-4-1",
@@ -3551,7 +3551,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-4-1.json",
       "char_count_body": 563,
-      "fetched_at": "2026-09-01T09:06:57.480Z"
+      "fetched_at": "2026-11-14T10:00:13.219Z"
     },
     {
       "id": "faq-4-2",
@@ -3567,7 +3567,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-4-2.json",
       "char_count_body": 914,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-11-14T10:00:13.220Z"
     },
     {
       "id": "faq-5-1",
@@ -3583,7 +3583,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-5-1.json",
       "char_count_body": 583,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-11-14T10:00:13.220Z"
     },
     {
       "id": "faq-6-1",
@@ -3599,7 +3599,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-6-1.json",
       "char_count_body": 1024,
-      "fetched_at": "2026-09-01T09:06:57.481Z"
+      "fetched_at": "2026-11-14T10:00:13.220Z"
     },
     {
       "id": "faq-6-2",
@@ -3615,7 +3615,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-6-2.json",
       "char_count_body": 776,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "fetched_at": "2026-11-14T10:00:13.220Z"
     },
     {
       "id": "faq-7-1",
@@ -3631,7 +3631,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-1.json",
       "char_count_body": 427,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "fetched_at": "2026-11-14T10:00:13.221Z"
     },
     {
       "id": "faq-7-2",
@@ -3647,7 +3647,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-2.json",
       "char_count_body": 1095,
-      "fetched_at": "2026-09-01T09:06:57.482Z"
+      "fetched_at": "2026-11-14T10:00:13.221Z"
     },
     {
       "id": "faq-7-3",
@@ -3663,7 +3663,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0025012-067.pdf",
       "file_path": "kasou/faq-7-3.json",
       "char_count_body": 454,
-      "fetched_at": "2026-09-01T09:06:57.483Z"
+      "fetched_at": "2026-11-14T10:00:13.221Z"
     },
     {
       "id": "gaiyo-1",
@@ -3679,7 +3679,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-1.json",
       "char_count_body": 780,
-      "fetched_at": "2026-09-14T16:12:56.473Z"
+      "fetched_at": "2026-11-14T10:00:06.507Z"
     },
     {
       "id": "gaiyo-11",
@@ -3695,7 +3695,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-11.json",
       "char_count_body": 739,
-      "fetched_at": "2026-09-14T16:12:56.472Z"
+      "fetched_at": "2026-11-14T10:00:06.506Z"
     },
     {
       "id": "gaiyo-12",
@@ -3711,7 +3711,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-12.json",
       "char_count_body": 1523,
-      "fetched_at": "2026-09-14T16:12:56.473Z"
+      "fetched_at": "2026-11-14T10:00:06.506Z"
     },
     {
       "id": "gaiyo-13",
@@ -3727,7 +3727,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-13.json",
       "char_count_body": 1316,
-      "fetched_at": "2026-09-14T16:12:56.473Z"
+      "fetched_at": "2026-11-14T10:00:06.507Z"
     },
     {
       "id": "gaiyo-16",
@@ -3743,7 +3743,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-16.json",
       "char_count_body": 1194,
-      "fetched_at": "2026-09-14T16:12:56.474Z"
+      "fetched_at": "2026-11-14T10:00:06.507Z"
     },
     {
       "id": "gaiyo-17",
@@ -3759,7 +3759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-17.json",
       "char_count_body": 1422,
-      "fetched_at": "2026-09-14T16:12:56.474Z"
+      "fetched_at": "2026-11-14T10:00:06.508Z"
     },
     {
       "id": "gaiyo-18",
@@ -3775,7 +3775,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-18.json",
       "char_count_body": 1125,
-      "fetched_at": "2026-09-14T16:12:56.474Z"
+      "fetched_at": "2026-11-14T10:00:06.508Z"
     },
     {
       "id": "gaiyo-19",
@@ -3791,7 +3791,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-19.json",
       "char_count_body": 604,
-      "fetched_at": "2026-09-14T16:12:56.474Z"
+      "fetched_at": "2026-11-14T10:00:06.509Z"
     },
     {
       "id": "gaiyo-1w",
@@ -3807,7 +3807,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-1w.json",
       "char_count_body": 1410,
-      "fetched_at": "2026-09-14T16:12:56.469Z"
+      "fetched_at": "2026-11-14T10:00:06.502Z"
     },
     {
       "id": "gaiyo-20",
@@ -3823,7 +3823,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-20.json",
       "char_count_body": 2220,
-      "fetched_at": "2026-09-14T16:12:56.475Z"
+      "fetched_at": "2026-11-14T10:00:06.509Z"
     },
     {
       "id": "gaiyo-21",
@@ -3839,7 +3839,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-21.json",
       "char_count_body": 454,
-      "fetched_at": "2026-09-14T16:12:56.475Z"
+      "fetched_at": "2026-11-14T10:00:06.510Z"
     },
     {
       "id": "gaiyo-22",
@@ -3855,7 +3855,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-22.json",
       "char_count_body": 585,
-      "fetched_at": "2026-09-14T16:12:56.475Z"
+      "fetched_at": "2026-11-14T10:00:06.510Z"
     },
     {
       "id": "gaiyo-23",
@@ -3871,7 +3871,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-23.json",
       "char_count_body": 399,
-      "fetched_at": "2026-09-14T16:12:56.475Z"
+      "fetched_at": "2026-11-14T10:00:06.511Z"
     },
     {
       "id": "gaiyo-2w",
@@ -3887,7 +3887,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-2w.json",
       "char_count_body": 1698,
-      "fetched_at": "2026-09-14T16:12:56.470Z"
+      "fetched_at": "2026-11-14T10:00:06.503Z"
     },
     {
       "id": "gaiyo-3w",
@@ -3903,7 +3903,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-3w.json",
       "char_count_body": 438,
-      "fetched_at": "2026-09-14T16:12:56.471Z"
+      "fetched_at": "2026-11-14T10:00:06.504Z"
     },
     {
       "id": "gaiyo-4w",
@@ -3919,7 +3919,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-4w.json",
       "char_count_body": 640,
-      "fetched_at": "2026-09-14T16:12:56.471Z"
+      "fetched_at": "2026-11-14T10:00:06.504Z"
     },
     {
       "id": "gaiyo-5w",
@@ -3935,7 +3935,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-5w.json",
       "char_count_body": 755,
-      "fetched_at": "2026-09-14T16:12:56.471Z"
+      "fetched_at": "2026-11-14T10:00:06.504Z"
     },
     {
       "id": "gaiyo-6w",
@@ -3951,7 +3951,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-6w.json",
       "char_count_body": 1156,
-      "fetched_at": "2026-09-14T16:12:56.472Z"
+      "fetched_at": "2026-11-14T10:00:06.504Z"
     },
     {
       "id": "gaiyo-9w",
@@ -3967,7 +3967,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
       "file_path": "keigen/gaiyo-9w.json",
       "char_count_body": 2038,
-      "fetched_at": "2026-09-14T16:12:56.472Z"
+      "fetched_at": "2026-11-14T10:00:06.505Z"
     },
     {
       "id": "jirei-10",
@@ -3983,7 +3983,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-10.json",
       "char_count_body": 406,
-      "fetched_at": "2026-09-14T16:12:57.983Z"
+      "fetched_at": "2026-11-14T10:00:08.228Z"
     },
     {
       "id": "jirei-100",
@@ -3999,7 +3999,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-100.json",
       "char_count_body": 884,
-      "fetched_at": "2026-09-14T16:12:58.001Z"
+      "fetched_at": "2026-11-14T10:00:08.254Z"
     },
     {
       "id": "jirei-101",
@@ -4015,7 +4015,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-101.json",
       "char_count_body": 301,
-      "fetched_at": "2026-09-14T16:12:58.001Z"
+      "fetched_at": "2026-11-14T10:00:08.255Z"
     },
     {
       "id": "jirei-102",
@@ -4031,7 +4031,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-102.json",
       "char_count_body": 743,
-      "fetched_at": "2026-09-14T16:12:58.001Z"
+      "fetched_at": "2026-11-14T10:00:08.255Z"
     },
     {
       "id": "jirei-103",
@@ -4047,7 +4047,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-103.json",
       "char_count_body": 551,
-      "fetched_at": "2026-09-14T16:12:58.001Z"
+      "fetched_at": "2026-11-14T10:00:08.255Z"
     },
     {
       "id": "jirei-104",
@@ -4063,7 +4063,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-104.json",
       "char_count_body": 1839,
-      "fetched_at": "2026-09-14T16:12:58.001Z"
+      "fetched_at": "2026-11-14T10:00:08.256Z"
     },
     {
       "id": "jirei-105",
@@ -4079,7 +4079,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-105.json",
       "char_count_body": 930,
-      "fetched_at": "2026-09-14T16:12:58.002Z"
+      "fetched_at": "2026-11-14T10:00:08.256Z"
     },
     {
       "id": "jirei-106",
@@ -4095,7 +4095,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-106.json",
       "char_count_body": 971,
-      "fetched_at": "2026-09-14T16:12:58.002Z"
+      "fetched_at": "2026-11-14T10:00:08.256Z"
     },
     {
       "id": "jirei-107",
@@ -4111,7 +4111,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-107.json",
       "char_count_body": 1332,
-      "fetched_at": "2026-09-14T16:12:58.002Z"
+      "fetched_at": "2026-11-14T10:00:08.257Z"
     },
     {
       "id": "jirei-108",
@@ -4127,7 +4127,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-108.json",
       "char_count_body": 1049,
-      "fetched_at": "2026-09-14T16:12:58.003Z"
+      "fetched_at": "2026-11-14T10:00:08.257Z"
     },
     {
       "id": "jirei-109",
@@ -4143,7 +4143,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-109.json",
       "char_count_body": 1222,
-      "fetched_at": "2026-09-14T16:12:58.003Z"
+      "fetched_at": "2026-11-14T10:00:08.257Z"
     },
     {
       "id": "jirei-11",
@@ -4159,7 +4159,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-11.json",
       "char_count_body": 215,
-      "fetched_at": "2026-09-14T16:12:57.984Z"
+      "fetched_at": "2026-11-14T10:00:08.228Z"
     },
     {
       "id": "jirei-110",
@@ -4175,7 +4175,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-110.json",
       "char_count_body": 1318,
-      "fetched_at": "2026-09-14T16:12:58.003Z"
+      "fetched_at": "2026-11-14T10:00:08.258Z"
     },
     {
       "id": "jirei-111",
@@ -4191,7 +4191,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-111.json",
       "char_count_body": 1278,
-      "fetched_at": "2026-09-14T16:12:58.003Z"
+      "fetched_at": "2026-11-14T10:00:08.258Z"
     },
     {
       "id": "jirei-112",
@@ -4207,7 +4207,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-112.json",
       "char_count_body": 537,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.259Z"
     },
     {
       "id": "jirei-113",
@@ -4223,7 +4223,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-113.json",
       "char_count_body": 724,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.259Z"
     },
     {
       "id": "jirei-114",
@@ -4239,7 +4239,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-114.json",
       "char_count_body": 800,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.259Z"
     },
     {
       "id": "jirei-115",
@@ -4255,7 +4255,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-115.json",
       "char_count_body": 1181,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.259Z"
     },
     {
       "id": "jirei-116",
@@ -4271,7 +4271,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-116.json",
       "char_count_body": 2049,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.260Z"
     },
     {
       "id": "jirei-117",
@@ -4287,7 +4287,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-117.json",
       "char_count_body": 1015,
-      "fetched_at": "2026-09-14T16:12:58.004Z"
+      "fetched_at": "2026-11-14T10:00:08.260Z"
     },
     {
       "id": "jirei-118",
@@ -4303,7 +4303,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-118.json",
       "char_count_body": 1930,
-      "fetched_at": "2026-09-14T16:12:58.005Z"
+      "fetched_at": "2026-11-14T10:00:08.261Z"
     },
     {
       "id": "jirei-119",
@@ -4319,7 +4319,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-119.json",
       "char_count_body": 1446,
-      "fetched_at": "2026-09-14T16:12:58.005Z"
+      "fetched_at": "2026-11-14T10:00:08.261Z"
     },
     {
       "id": "jirei-12",
@@ -4335,7 +4335,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-12.json",
       "char_count_body": 360,
-      "fetched_at": "2026-09-14T16:12:57.984Z"
+      "fetched_at": "2026-11-14T10:00:08.229Z"
     },
     {
       "id": "jirei-120",
@@ -4351,7 +4351,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-120.json",
       "char_count_body": 1540,
-      "fetched_at": "2026-09-14T16:12:58.005Z"
+      "fetched_at": "2026-11-14T10:00:08.262Z"
     },
     {
       "id": "jirei-121",
@@ -4367,7 +4367,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-121.json",
       "char_count_body": 4827,
-      "fetched_at": "2026-09-14T16:12:58.006Z"
+      "fetched_at": "2026-11-14T10:00:08.262Z"
     },
     {
       "id": "jirei-13",
@@ -4383,7 +4383,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-13.json",
       "char_count_body": 182,
-      "fetched_at": "2026-09-14T16:12:57.984Z"
+      "fetched_at": "2026-11-14T10:00:08.229Z"
     },
     {
       "id": "jirei-14",
@@ -4399,7 +4399,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-14.json",
       "char_count_body": 311,
-      "fetched_at": "2026-09-14T16:12:57.984Z"
+      "fetched_at": "2026-11-14T10:00:08.229Z"
     },
     {
       "id": "jirei-15",
@@ -4415,7 +4415,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-15.json",
       "char_count_body": 206,
-      "fetched_at": "2026-09-14T16:12:57.985Z"
+      "fetched_at": "2026-11-14T10:00:08.230Z"
     },
     {
       "id": "jirei-16",
@@ -4431,7 +4431,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-16.json",
       "char_count_body": 180,
-      "fetched_at": "2026-09-14T16:12:57.985Z"
+      "fetched_at": "2026-11-14T10:00:08.230Z"
     },
     {
       "id": "jirei-17",
@@ -4447,7 +4447,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-17.json",
       "char_count_body": 238,
-      "fetched_at": "2026-09-14T16:12:57.985Z"
+      "fetched_at": "2026-11-14T10:00:08.230Z"
     },
     {
       "id": "jirei-18",
@@ -4463,7 +4463,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-18.json",
       "char_count_body": 264,
-      "fetched_at": "2026-09-14T16:12:57.985Z"
+      "fetched_at": "2026-11-14T10:00:08.230Z"
     },
     {
       "id": "jirei-19",
@@ -4479,7 +4479,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-19.json",
       "char_count_body": 186,
-      "fetched_at": "2026-09-14T16:12:57.985Z"
+      "fetched_at": "2026-11-14T10:00:08.231Z"
     },
     {
       "id": "jirei-1w",
@@ -4495,7 +4495,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-1w.json",
       "char_count_body": 923,
-      "fetched_at": "2026-09-14T16:12:57.979Z"
+      "fetched_at": "2026-11-14T10:00:08.225Z"
     },
     {
       "id": "jirei-20",
@@ -4511,7 +4511,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-20.json",
       "char_count_body": 256,
-      "fetched_at": "2026-09-14T16:12:57.986Z"
+      "fetched_at": "2026-11-14T10:00:08.231Z"
     },
     {
       "id": "jirei-21",
@@ -4527,7 +4527,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-21.json",
       "char_count_body": 350,
-      "fetched_at": "2026-09-14T16:12:57.986Z"
+      "fetched_at": "2026-11-14T10:00:08.231Z"
     },
     {
       "id": "jirei-22",
@@ -4543,7 +4543,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-22.json",
       "char_count_body": 504,
-      "fetched_at": "2026-09-14T16:12:57.986Z"
+      "fetched_at": "2026-11-14T10:00:08.232Z"
     },
     {
       "id": "jirei-23",
@@ -4559,7 +4559,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-23.json",
       "char_count_body": 270,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.232Z"
     },
     {
       "id": "jirei-24",
@@ -4575,7 +4575,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-24.json",
       "char_count_body": 242,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.232Z"
     },
     {
       "id": "jirei-25",
@@ -4591,7 +4591,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-25.json",
       "char_count_body": 557,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.232Z"
     },
     {
       "id": "jirei-26",
@@ -4607,7 +4607,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-26.json",
       "char_count_body": 639,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.233Z"
     },
     {
       "id": "jirei-27",
@@ -4623,7 +4623,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-27.json",
       "char_count_body": 524,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.233Z"
     },
     {
       "id": "jirei-28",
@@ -4639,7 +4639,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-28.json",
       "char_count_body": 407,
-      "fetched_at": "2026-09-14T16:12:57.987Z"
+      "fetched_at": "2026-11-14T10:00:08.233Z"
     },
     {
       "id": "jirei-29",
@@ -4655,7 +4655,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-29.json",
       "char_count_body": 265,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.233Z"
     },
     {
       "id": "jirei-2w",
@@ -4671,7 +4671,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-2w.json",
       "char_count_body": 277,
-      "fetched_at": "2026-09-14T16:12:57.979Z"
+      "fetched_at": "2026-11-14T10:00:08.226Z"
     },
     {
       "id": "jirei-3",
@@ -4687,7 +4687,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-3.json",
       "char_count_body": 484,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.235Z"
     },
     {
       "id": "jirei-30",
@@ -4703,7 +4703,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-30.json",
       "char_count_body": 1130,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.234Z"
     },
     {
       "id": "jirei-31",
@@ -4719,7 +4719,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-31.json",
       "char_count_body": 320,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.234Z"
     },
     {
       "id": "jirei-32",
@@ -4735,7 +4735,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-32.json",
       "char_count_body": 258,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.234Z"
     },
     {
       "id": "jirei-33",
@@ -4751,7 +4751,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-33.json",
       "char_count_body": 212,
-      "fetched_at": "2026-09-14T16:12:57.988Z"
+      "fetched_at": "2026-11-14T10:00:08.235Z"
     },
     {
       "id": "jirei-35",
@@ -4767,7 +4767,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-35.json",
       "char_count_body": 649,
-      "fetched_at": "2026-09-14T16:12:57.989Z"
+      "fetched_at": "2026-11-14T10:00:08.235Z"
     },
     {
       "id": "jirei-36",
@@ -4783,7 +4783,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-36.json",
       "char_count_body": 385,
-      "fetched_at": "2026-09-14T16:12:57.989Z"
+      "fetched_at": "2026-11-14T10:00:08.235Z"
     },
     {
       "id": "jirei-37",
@@ -4799,7 +4799,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-37.json",
       "char_count_body": 626,
-      "fetched_at": "2026-09-14T16:12:57.989Z"
+      "fetched_at": "2026-11-14T10:00:08.236Z"
     },
     {
       "id": "jirei-38",
@@ -4815,7 +4815,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-38.json",
       "char_count_body": 309,
-      "fetched_at": "2026-09-14T16:12:57.989Z"
+      "fetched_at": "2026-11-14T10:00:08.236Z"
     },
     {
       "id": "jirei-39",
@@ -4831,7 +4831,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-39.json",
       "char_count_body": 213,
-      "fetched_at": "2026-09-14T16:12:57.989Z"
+      "fetched_at": "2026-11-14T10:00:08.236Z"
     },
     {
       "id": "jirei-3w",
@@ -4847,7 +4847,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-3w.json",
       "char_count_body": 245,
-      "fetched_at": "2026-09-14T16:12:57.980Z"
+      "fetched_at": "2026-11-14T10:00:08.226Z"
     },
     {
       "id": "jirei-4",
@@ -4863,7 +4863,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-4.json",
       "char_count_body": 731,
-      "fetched_at": "2026-09-14T16:12:57.990Z"
+      "fetched_at": "2026-11-14T10:00:08.237Z"
     },
     {
       "id": "jirei-40",
@@ -4879,7 +4879,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-40.json",
       "char_count_body": 203,
-      "fetched_at": "2026-09-14T16:12:57.990Z"
+      "fetched_at": "2026-11-14T10:00:08.237Z"
     },
     {
       "id": "jirei-41",
@@ -4895,7 +4895,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-41.json",
       "char_count_body": 1016,
-      "fetched_at": "2026-09-14T16:12:57.990Z"
+      "fetched_at": "2026-11-14T10:00:08.237Z"
     },
     {
       "id": "jirei-43",
@@ -4911,7 +4911,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-43.json",
       "char_count_body": 661,
-      "fetched_at": "2026-09-14T16:12:57.990Z"
+      "fetched_at": "2026-11-14T10:00:08.238Z"
     },
     {
       "id": "jirei-45",
@@ -4927,7 +4927,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-45.json",
       "char_count_body": 1438,
-      "fetched_at": "2026-09-14T16:12:57.990Z"
+      "fetched_at": "2026-11-14T10:00:08.238Z"
     },
     {
       "id": "jirei-46",
@@ -4943,7 +4943,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-46.json",
       "char_count_body": 199,
-      "fetched_at": "2026-09-14T16:12:57.991Z"
+      "fetched_at": "2026-11-14T10:00:08.238Z"
     },
     {
       "id": "jirei-47",
@@ -4959,7 +4959,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-47.json",
       "char_count_body": 417,
-      "fetched_at": "2026-09-14T16:12:57.991Z"
+      "fetched_at": "2026-11-14T10:00:08.239Z"
     },
     {
       "id": "jirei-48",
@@ -4975,7 +4975,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-48.json",
       "char_count_body": 401,
-      "fetched_at": "2026-09-14T16:12:57.991Z"
+      "fetched_at": "2026-11-14T10:00:08.239Z"
     },
     {
       "id": "jirei-49",
@@ -4991,7 +4991,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-49.json",
       "char_count_body": 251,
-      "fetched_at": "2026-09-14T16:12:57.991Z"
+      "fetched_at": "2026-11-14T10:00:08.239Z"
     },
     {
       "id": "jirei-4w",
@@ -5007,7 +5007,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-4w.json",
       "char_count_body": 195,
-      "fetched_at": "2026-09-14T16:12:57.980Z"
+      "fetched_at": "2026-11-14T10:00:08.226Z"
     },
     {
       "id": "jirei-50",
@@ -5023,7 +5023,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-50.json",
       "char_count_body": 229,
-      "fetched_at": "2026-09-14T16:12:57.992Z"
+      "fetched_at": "2026-11-14T10:00:08.240Z"
     },
     {
       "id": "jirei-51",
@@ -5039,7 +5039,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-51.json",
       "char_count_body": 770,
-      "fetched_at": "2026-09-14T16:12:57.992Z"
+      "fetched_at": "2026-11-14T10:00:08.240Z"
     },
     {
       "id": "jirei-52",
@@ -5055,7 +5055,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-52.json",
       "char_count_body": 707,
-      "fetched_at": "2026-09-14T16:12:57.992Z"
+      "fetched_at": "2026-11-14T10:00:08.240Z"
     },
     {
       "id": "jirei-53",
@@ -5071,7 +5071,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-53.json",
       "char_count_body": 1209,
-      "fetched_at": "2026-09-14T16:12:57.992Z"
+      "fetched_at": "2026-11-14T10:00:08.241Z"
     },
     {
       "id": "jirei-54",
@@ -5087,7 +5087,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-54.json",
       "char_count_body": 810,
-      "fetched_at": "2026-09-14T16:12:57.992Z"
+      "fetched_at": "2026-11-14T10:00:08.241Z"
     },
     {
       "id": "jirei-55",
@@ -5103,7 +5103,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-55.json",
       "char_count_body": 997,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.241Z"
     },
     {
       "id": "jirei-56",
@@ -5119,7 +5119,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-56.json",
       "char_count_body": 892,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.242Z"
     },
     {
       "id": "jirei-57",
@@ -5135,7 +5135,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-57.json",
       "char_count_body": 810,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.242Z"
     },
     {
       "id": "jirei-58",
@@ -5151,7 +5151,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-58.json",
       "char_count_body": 402,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.242Z"
     },
     {
       "id": "jirei-59",
@@ -5167,7 +5167,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-59.json",
       "char_count_body": 368,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.243Z"
     },
     {
       "id": "jirei-5w",
@@ -5183,7 +5183,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-5w.json",
       "char_count_body": 195,
-      "fetched_at": "2026-09-14T16:12:57.981Z"
+      "fetched_at": "2026-11-14T10:00:08.227Z"
     },
     {
       "id": "jirei-60",
@@ -5199,7 +5199,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-60.json",
       "char_count_body": 444,
-      "fetched_at": "2026-09-14T16:12:57.993Z"
+      "fetched_at": "2026-11-14T10:00:08.243Z"
     },
     {
       "id": "jirei-61",
@@ -5215,7 +5215,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-61.json",
       "char_count_body": 464,
-      "fetched_at": "2026-09-14T16:12:57.994Z"
+      "fetched_at": "2026-11-14T10:00:08.243Z"
     },
     {
       "id": "jirei-62",
@@ -5231,7 +5231,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-62.json",
       "char_count_body": 257,
-      "fetched_at": "2026-09-14T16:12:57.994Z"
+      "fetched_at": "2026-11-14T10:00:08.243Z"
     },
     {
       "id": "jirei-63",
@@ -5247,7 +5247,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-63.json",
       "char_count_body": 320,
-      "fetched_at": "2026-09-14T16:12:57.994Z"
+      "fetched_at": "2026-11-14T10:00:08.244Z"
     },
     {
       "id": "jirei-64",
@@ -5263,7 +5263,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-64.json",
       "char_count_body": 352,
-      "fetched_at": "2026-09-14T16:12:57.994Z"
+      "fetched_at": "2026-11-14T10:00:08.244Z"
     },
     {
       "id": "jirei-65",
@@ -5279,7 +5279,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-65.json",
       "char_count_body": 494,
-      "fetched_at": "2026-09-14T16:12:57.994Z"
+      "fetched_at": "2026-11-14T10:00:08.244Z"
     },
     {
       "id": "jirei-66",
@@ -5295,7 +5295,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-66.json",
       "char_count_body": 433,
-      "fetched_at": "2026-09-14T16:12:57.995Z"
+      "fetched_at": "2026-11-14T10:00:08.244Z"
     },
     {
       "id": "jirei-67",
@@ -5311,7 +5311,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-67.json",
       "char_count_body": 570,
-      "fetched_at": "2026-09-14T16:12:57.995Z"
+      "fetched_at": "2026-11-14T10:00:08.245Z"
     },
     {
       "id": "jirei-68",
@@ -5327,7 +5327,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-68.json",
       "char_count_body": 998,
-      "fetched_at": "2026-09-14T16:12:57.995Z"
+      "fetched_at": "2026-11-14T10:00:08.245Z"
     },
     {
       "id": "jirei-69",
@@ -5343,7 +5343,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-69.json",
       "char_count_body": 552,
-      "fetched_at": "2026-09-14T16:12:57.995Z"
+      "fetched_at": "2026-11-14T10:00:08.245Z"
     },
     {
       "id": "jirei-6w",
@@ -5359,7 +5359,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-6w.json",
       "char_count_body": 224,
-      "fetched_at": "2026-09-14T16:12:57.982Z"
+      "fetched_at": "2026-11-14T10:00:08.227Z"
     },
     {
       "id": "jirei-70",
@@ -5375,7 +5375,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-70.json",
       "char_count_body": 253,
-      "fetched_at": "2026-09-14T16:12:57.995Z"
+      "fetched_at": "2026-11-14T10:00:08.246Z"
     },
     {
       "id": "jirei-71",
@@ -5391,7 +5391,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-71.json",
       "char_count_body": 587,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.246Z"
     },
     {
       "id": "jirei-72",
@@ -5407,7 +5407,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-72.json",
       "char_count_body": 540,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.246Z"
     },
     {
       "id": "jirei-73",
@@ -5423,7 +5423,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-73.json",
       "char_count_body": 301,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.246Z"
     },
     {
       "id": "jirei-74",
@@ -5439,7 +5439,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-74.json",
       "char_count_body": 498,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.247Z"
     },
     {
       "id": "jirei-75",
@@ -5455,7 +5455,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-75.json",
       "char_count_body": 1890,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.247Z"
     },
     {
       "id": "jirei-76",
@@ -5471,7 +5471,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-76.json",
       "char_count_body": 297,
-      "fetched_at": "2026-09-14T16:12:57.996Z"
+      "fetched_at": "2026-11-14T10:00:08.248Z"
     },
     {
       "id": "jirei-77",
@@ -5487,7 +5487,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-77.json",
       "char_count_body": 227,
-      "fetched_at": "2026-09-14T16:12:57.997Z"
+      "fetched_at": "2026-11-14T10:00:08.248Z"
     },
     {
       "id": "jirei-78",
@@ -5503,7 +5503,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-78.json",
       "char_count_body": 329,
-      "fetched_at": "2026-09-14T16:12:57.997Z"
+      "fetched_at": "2026-11-14T10:00:08.248Z"
     },
     {
       "id": "jirei-79",
@@ -5519,7 +5519,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-79.json",
       "char_count_body": 480,
-      "fetched_at": "2026-09-14T16:12:57.997Z"
+      "fetched_at": "2026-11-14T10:00:08.248Z"
     },
     {
       "id": "jirei-7w",
@@ -5535,7 +5535,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-7w.json",
       "char_count_body": 267,
-      "fetched_at": "2026-09-14T16:12:57.982Z"
+      "fetched_at": "2026-11-14T10:00:08.227Z"
     },
     {
       "id": "jirei-8",
@@ -5551,7 +5551,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-8.json",
       "char_count_body": 2169,
-      "fetched_at": "2026-09-14T16:12:57.997Z"
+      "fetched_at": "2026-11-14T10:00:08.249Z"
     },
     {
       "id": "jirei-82",
@@ -5567,7 +5567,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-82.json",
       "char_count_body": 261,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.249Z"
     },
     {
       "id": "jirei-83",
@@ -5583,7 +5583,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-83.json",
       "char_count_body": 437,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.249Z"
     },
     {
       "id": "jirei-84",
@@ -5599,7 +5599,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-84.json",
       "char_count_body": 388,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.250Z"
     },
     {
       "id": "jirei-85",
@@ -5615,7 +5615,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-85.json",
       "char_count_body": 571,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.250Z"
     },
     {
       "id": "jirei-86",
@@ -5631,7 +5631,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-86.json",
       "char_count_body": 404,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.250Z"
     },
     {
       "id": "jirei-87",
@@ -5647,7 +5647,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-87.json",
       "char_count_body": 834,
-      "fetched_at": "2026-09-14T16:12:57.998Z"
+      "fetched_at": "2026-11-14T10:00:08.251Z"
     },
     {
       "id": "jirei-88",
@@ -5663,7 +5663,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-88.json",
       "char_count_body": 645,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.251Z"
     },
     {
       "id": "jirei-89",
@@ -5679,7 +5679,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-89.json",
       "char_count_body": 612,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.251Z"
     },
     {
       "id": "jirei-8w",
@@ -5695,7 +5695,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-8w.json",
       "char_count_body": 316,
-      "fetched_at": "2026-09-14T16:12:57.983Z"
+      "fetched_at": "2026-11-14T10:00:08.228Z"
     },
     {
       "id": "jirei-90",
@@ -5711,7 +5711,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-90.json",
       "char_count_body": 928,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.251Z"
     },
     {
       "id": "jirei-91",
@@ -5727,7 +5727,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-91.json",
       "char_count_body": 434,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.252Z"
     },
     {
       "id": "jirei-92",
@@ -5743,7 +5743,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-92.json",
       "char_count_body": 937,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.252Z"
     },
     {
       "id": "jirei-93",
@@ -5759,7 +5759,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-93.json",
       "char_count_body": 993,
-      "fetched_at": "2026-09-14T16:12:57.999Z"
+      "fetched_at": "2026-11-14T10:00:08.252Z"
     },
     {
       "id": "jirei-94",
@@ -5775,7 +5775,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-94.json",
       "char_count_body": 861,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.253Z"
     },
     {
       "id": "jirei-95",
@@ -5791,7 +5791,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-95.json",
       "char_count_body": 1051,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.253Z"
     },
     {
       "id": "jirei-96",
@@ -5807,7 +5807,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-96.json",
       "char_count_body": 261,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.253Z"
     },
     {
       "id": "jirei-97",
@@ -5823,7 +5823,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-97.json",
       "char_count_body": 265,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.254Z"
     },
     {
       "id": "jirei-98",
@@ -5839,7 +5839,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-98.json",
       "char_count_body": 253,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.254Z"
     },
     {
       "id": "jirei-99",
@@ -5855,7 +5855,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-99.json",
       "char_count_body": 331,
-      "fetched_at": "2026-09-14T16:12:58.000Z"
+      "fetched_at": "2026-11-14T10:00:08.254Z"
     },
     {
       "id": "jirei-9w",
@@ -5871,7 +5871,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
       "file_path": "keigen/jirei-9w.json",
       "char_count_body": 262,
-      "fetched_at": "2026-09-14T16:12:57.983Z"
+      "fetched_at": "2026-11-14T10:00:08.228Z"
     },
     {
       "id": "kaisei_r5",
@@ -5887,7 +5887,7 @@
       "url": "https://www.nta.go.jp/publication/pamph/pdf/0023006-004.pdf",
       "file_path": "sozoku_pamph/kaisei_r5.json",
       "char_count_body": 4987,
-      "fetched_at": "2026-09-01T09:49:54.134Z"
+      "fetched_at": "2026-11-14T10:00:14.587Z"
     },
     {
       "id": "kyoiku_shikin",
@@ -5902,8 +5902,8 @@
       "title": "祖父母などから教育資金の一括贈与を受けた場合の贈与税の非課税制度のあらまし",
       "url": "https://www.nta.go.jp/publication/pamph/sozoku-zoyo/201304/pdf/0023004-114_02.pdf",
       "file_path": "sozoku_pamph/kyoiku_shikin.json",
-      "char_count_body": 6554,
-      "fetched_at": "2026-09-01T09:49:56.817Z"
+      "char_count_body": 6632,
+      "fetched_at": "2026-11-14T10:00:16.099Z"
     },
     {
       "id": "r5kaisei-1-1",
@@ -5919,7 +5919,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-1-1.json",
       "char_count_body": 3309,
-      "fetched_at": "2026-09-01T09:49:52.492Z"
+      "fetched_at": "2026-11-14T10:00:13.537Z"
     },
     {
       "id": "r5kaisei-1-2",
@@ -5935,7 +5935,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-1-2.json",
       "char_count_body": 1589,
-      "fetched_at": "2026-09-01T09:49:52.499Z"
+      "fetched_at": "2026-11-14T10:00:13.538Z"
     },
     {
       "id": "r5kaisei-2-1",
@@ -5951,7 +5951,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-1.json",
       "char_count_body": 1163,
-      "fetched_at": "2026-09-01T09:49:52.500Z"
+      "fetched_at": "2026-11-14T10:00:13.539Z"
     },
     {
       "id": "r5kaisei-2-2",
@@ -5967,7 +5967,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-2.json",
       "char_count_body": 2030,
-      "fetched_at": "2026-09-01T09:49:52.501Z"
+      "fetched_at": "2026-11-14T10:00:13.539Z"
     },
     {
       "id": "r5kaisei-2-3",
@@ -5983,7 +5983,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-3.json",
       "char_count_body": 1195,
-      "fetched_at": "2026-09-01T09:49:52.502Z"
+      "fetched_at": "2026-11-14T10:00:13.539Z"
     },
     {
       "id": "r5kaisei-2-4",
@@ -5999,7 +5999,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-4.json",
       "char_count_body": 1096,
-      "fetched_at": "2026-09-01T09:49:52.503Z"
+      "fetched_at": "2026-11-14T10:00:13.540Z"
     },
     {
       "id": "r5kaisei-2-5",
@@ -6015,7 +6015,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-2-5.json",
       "char_count_body": 1820,
-      "fetched_at": "2026-09-01T09:49:52.503Z"
+      "fetched_at": "2026-11-14T10:00:13.540Z"
     },
     {
       "id": "r5kaisei-3-1",
@@ -6031,7 +6031,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-3-1.json",
       "char_count_body": 1810,
-      "fetched_at": "2026-09-01T09:49:52.504Z"
+      "fetched_at": "2026-11-14T10:00:13.541Z"
     },
     {
       "id": "r5kaisei-4-1",
@@ -6047,7 +6047,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-1.json",
       "char_count_body": 2355,
-      "fetched_at": "2026-09-01T09:49:52.504Z"
+      "fetched_at": "2026-11-14T10:00:13.541Z"
     },
     {
       "id": "r5kaisei-4-2",
@@ -6063,7 +6063,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-2.json",
       "char_count_body": 2318,
-      "fetched_at": "2026-09-01T09:49:52.505Z"
+      "fetched_at": "2026-11-14T10:00:13.542Z"
     },
     {
       "id": "r5kaisei-4-3",
@@ -6079,7 +6079,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-4-3.json",
       "char_count_body": 2972,
-      "fetched_at": "2026-09-01T09:49:52.505Z"
+      "fetched_at": "2026-11-14T10:00:13.542Z"
     },
     {
       "id": "r5kaisei-5-1",
@@ -6095,7 +6095,7 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-5-1.json",
       "char_count_body": 1584,
-      "fetched_at": "2026-09-01T09:49:52.506Z"
+      "fetched_at": "2026-11-14T10:00:13.543Z"
     },
     {
       "id": "r5kaisei-5-2",
@@ -6111,10 +6111,10 @@
       "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
       "file_path": "sozoku/r5kaisei-5-2.json",
       "char_count_body": 1730,
-      "fetched_at": "2026-09-01T09:49:52.506Z"
+      "fetched_at": "2026-11-14T10:00:13.544Z"
     }
   ],
-  "generated_at": "2026-09-14T16:12:58.014Z",
+  "generated_at": "2026-11-14T10:00:16.108Z",
   "total_count": 382,
   "by_source": {
     "cross_border": 3,
