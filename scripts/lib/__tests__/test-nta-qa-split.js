@@ -18,6 +18,7 @@ const {
   findQuestionMarks,
   filterIndirectMarks,
   isIgnoredHeading,
+  tidyHeading,
   questionNumberKey,
   compareQuestionNumbers,
   startsParagraph,
@@ -26,6 +27,7 @@ const {
   shouldSkipBodyUpdate,
   isReorderOnly,
   sameCharMultiset,
+  findSplitOffs,
   titlesDiffer,
   saveEntry,
   crawlSource,
@@ -327,8 +329,9 @@ console.log('\n=== R1: poppler の並び（札が1行目の後ろに来る形）
     assert(!!part, `${qNo} を別の問として拾う`);
     if (!part) continue;
     const heading = part.title.slice(qNo.length + 1);
-    assert(part.body.startsWith(`（${heading}） ${qNo} `),
-      `${qNo} の本文が「（見出し） ${qNo} …」で始まる`);
+    assert(part.body.replace(/\s+/g, '').startsWith(
+      `（${tidyHeading(heading)}）${qNo}`.replace(/\s+/g, ''),
+    ), `${qNo} の本文が「（見出し） ${qNo} …」で始まる`);
   }
 
   const q99 = byNo.get('問99');
@@ -502,8 +505,9 @@ console.log('\n=== H1: 後ろで見つけた札を、すぐ前後の区切りで
   const baseParts = splitByQuestion(flat(text));
   const baseByNo = new Map(baseParts.map(part => [part.qNo, part]));
   const baseQ43 = baseByNo.get('問43');
+  const baseQ44 = baseByNo.get('問44');
   const baseQ21 = baseByNo.get('問21');
-  assert(!!baseQ43 && !!baseQ21, '事例編の抜粋に問43 と問21 がある');
+  assert(!!baseQ43 && !!baseQ44 && !!baseQ21, '事例編の抜粋に問43・問44・問21 がある');
 
   // 問44 の入れ子の見出しの直前に参照を足す（poppler の並びのまま）。
   const marker = '（物流センターの使用料（センターフィー） ）';
@@ -513,8 +517,10 @@ console.log('\n=== H1: 後ろで見つけた札を、すぐ前後の区切りで
   assert(!byNo125.has('問125'), '参照の「問 125」を作り物の区切りとして残さない');
   const q43 = byNo125.get('問43');
   assert(!!q43 && !!baseQ43
-    && q43.body === baseQ43.body.replace(marker, `${add125} ${marker}`),
+    && q43.body === `${baseQ43.body} ${add125}`,
   '問43 の本文が足した参照の分だけ増える');
+  assert(!!byNo125.get('問44') && !!baseQ44 && byNo125.get('問44').body === baseQ44.body,
+    '足した参照は問43 に入り、問44 の本文は変わらない');
   const q21 = byNo125.get('問21');
   assert(!!q21 && !!baseQ21 && q21.title === baseQ21.title && q21.body === baseQ21.body,
     '問21 の題名と本文が変わらない');
@@ -528,8 +534,10 @@ console.log('\n=== H1: 後ろで見つけた札を、すぐ前後の区切りで
     && q21after.body === baseQ21.body,
   '参照の「問 21」を足しても問21 の題名と本文が変わらない');
   assert(byNo21.get('問43') && baseQ43
-    && byNo21.get('問43').body === baseQ43.body.replace(marker, `${add21} ${marker}`),
+    && byNo21.get('問43').body === `${baseQ43.body} ${add21}`,
   '「問 21」を足しても問43 の本文は足した分だけ増える');
+  assert(byNo21.get('問44') && baseQ44 && byNo21.get('問44').body === baseQ44.body,
+    '「問 21」を足しても問44 の本文は変わらない');
 
   // 問3（半角、中身は問34）と問３（全角）に挟まれた、後ろで見つけた本物の問35 がある。
   const sorted = fs.readFileSync(
@@ -574,6 +582,336 @@ console.log('\n=== H2: 2行目が「の場合」でも、後ろで見つける�
   assert(parts.length === baseParts.length, '2行目を変えても問の数が変わらない');
   assert(!!q17 && !!baseQ17 && q17.body === baseQ17.body.replace(from, to),
     '問17 の本文が変えた所だけ違って残る');
+}
+
+console.log('\n=== A1: 入れ子の見出しの問７・問８ を区切る ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const poppler = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-excerpt.txt'), 'utf8');
+  const xpdf = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-xpdf-excerpt.json'), 'utf8'));
+  const sources = [
+    ['poppler', poppler],
+    ['xpdf', xpdf.map(entry => entry.body).join(' ')],
+  ];
+  for (const [label, text] of sources) {
+    const parts = splitByQuestion(flatten(text));
+    const byNo = new Map(parts.map(part => [part.qNo, part]));
+    assert(byNo.has('問７') && byNo.has('問８'), `${label}: 問７・問８ を別の問として区切る`);
+    assert(byNo.has('問６'), `${label}: 問６ が残る`);
+    const q7 = byNo.get('問７');
+    const q8 = byNo.get('問８');
+    assert(q7 && q7.title === '問７ 「飲食店業等を営む者が行う食事の提供」（いわゆる「外食」）の意義',
+      `${label}: 問７ の題名が R2 の形になる`);
+    assert(q8 && q8.title === '問８ 「飲食に用いられる設備」（飲食設備）の意義',
+      `${label}: 問８ の題名が R2 の形になる`);
+    const q6 = byNo.get('問６');
+    assert(!!q6 && !q6.body.includes('問７') && !q6.body.includes('問８'),
+      `${label}: 問６ の本文に問７・問８ の札が入らない`);
+    assert(!!q6 && !q6.body.includes('飲食店業等を営む者が行う食事の提供」 （いわゆる「外食」 ）とは')
+      && !q6.body.includes('「飲食に用いられる設備」 （飲食設備）とは'),
+    `${label}: 問６ の本文に問７・問８ の本文が入らない`);
+  }
+}
+
+console.log('\n=== A2: 入れ子の見出しの問44 を区切る ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const text = fs.readFileSync(path.join(FIXTURES, 'keigen-jirei-poppler-21-43-excerpt.txt'), 'utf8');
+  const parts = splitByQuestion(flatten(text));
+  const byNo = new Map(parts.map(part => [part.qNo, part]));
+  const q44 = byNo.get('問44');
+  const q43 = byNo.get('問43');
+  assert(!!q44, '問44 を別の問として区切る');
+  assert(q44 && q44.title === '問44 物流センターの使用料（センターフィー）',
+    '問44 の題名が「問44 物流センターの使用料（センターフィー）」になる');
+  assert(!!q43 && !q43.body.includes('問44') && !q43.body.includes('（物流センターの使用料（センターフィー） ）'),
+    '問43 の本文に問44 の札・見出しが入らない');
+}
+
+console.log('\n=== A3: 内側の括弧の後ろに空白がある問10 を区切る ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const poppler = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-9-11-excerpt.txt'), 'utf8');
+  const xpdf = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-xpdf-excerpt.json'), 'utf8'));
+  const xpdf9 = xpdf.find(entry => entry.q_no === '問９');
+  const xpdf11 = xpdf.find(entry => entry.q_no === '問11');
+  assert(!!xpdf9 && !!xpdf11, 'xpdf の抜粋に問９・問11 がある');
+  const xpdfRange = [xpdf9.body, xpdf11.body].join(' ');
+  const sources = [
+    ['poppler', [poppler, ...[901, 902, 903, 904].map(filler)].join(' ')],
+    ['xpdf', [xpdfRange, ...[901, 902, 903, 904].map(filler)].join(' ')],
+  ];
+  for (const [label, text] of sources) {
+    const parts = splitByQuestion(flatten(text));
+    const byNo = new Map(parts.map(part => [part.qNo, part]));
+    const q10 = byNo.get('問10');
+    const q9 = byNo.get('問９');
+    assert(!!q10, `${label}: 問10 を別の問として区切る`);
+    assert(q10 && q10.title
+      === '問10 「相手方が指定した場所において行う役務を伴う飲食料品の提供」（いわゆる「ケータリング」）の意義',
+    `${label}: 問10 の題名が R2 の形になる`);
+    assert(!!q9 && !q9.body.includes('問10')
+      && !q9.body.includes('ケータリング」）とは、どのようなものですか'),
+    `${label}: 問９ の本文に問10 の札・本文が入らない`);
+  }
+}
+
+console.log('\n=== A4: 区切った前後で文字が消えない（入れ子の見出しの抜粋） ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const poppler = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-9-11-excerpt.txt'), 'utf8');
+  const xpdf = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-xpdf-excerpt.json'), 'utf8'));
+  const xpdf9 = xpdf.find(entry => entry.q_no === '問９');
+  const xpdf11 = xpdf.find(entry => entry.q_no === '問11');
+  const cases = [
+    ['poppler 概要編', fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-excerpt.txt'), 'utf8')],
+    ['xpdf 概要編', xpdf.map(entry => entry.body).join(' ')],
+    ['poppler 問９〜問11', [poppler, ...[901, 902, 903, 904].map(filler)].join(' ')],
+    ['xpdf 問９〜問11', [[xpdf9.body, xpdf11.body].join(' '), ...[901, 902, 903, 904].map(filler)].join(' ')],
+  ];
+  for (const [label, text] of cases) {
+    const flat = flatten(text);
+    const parts = splitByQuestion(flat);
+    const marks = findQuestionMarks(flat);
+    const start = Math.min(...marks.map(mark => mark.index));
+    assert(parts.length > 0 && sameCharMultiset(
+      parts.map(part => part.body).join(''), flat.slice(start),
+    ), `${label}: 区切った問をつないだ文字が入力（区切りの始まり以降）と同じ`);
+  }
+}
+
+console.log('\n=== A5: 入れ子の見出しで拾わない形 ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const fillers = [901, 902, 903, 904].map(filler);
+  const notPicked = (candidate, qNo, label) => {
+    const flat = flatten([candidate, ...fillers].join(' '));
+    const parts = splitByQuestion(flat);
+    assert(!parts.some(part => part.qNo === qNo), label);
+    assert(!findQuestionMarks(flat).some(mark => mark.card.replace(/\s/g, '') === qNo),
+      `${label}（区切りの一覧にも入れない）`);
+  };
+  notPicked('（外側（内側（さらに内側））の見出し） 問801 本文です。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`, '問801', '2 段の入れ子の見出しは直接形で拾わない');
+  notPicked('（入れ子（注）の見出し） 問802《参照》 本文です。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`, '問802', '入れ子の見出しでも、札の後ろが「《」なら拾わない');
+  notPicked('（入れ子（注）の見出し） 問803 参照してください。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`, '問803', '入れ子の見出しでも、札の後ろが「参照」なら拾わない');
+  notPicked('（入れ子（注）の見出し） 問804 の場合の取扱いです。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`, '問804', '入れ子の見出しでも、札の後ろが「の場合」なら拾わない');
+  notPicked('（消法２①（定義）の規定） 問805 本文です。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`, '問805', '入れ子の見出しでも isIgnoredHeading に当たるなら拾わない');
+
+  // 入れ子の無い直接形は、札の後ろが「《」でも今までどおり拾う（今の動きを変えていない）。
+  const normal = `（普通の見出し） 問806《注》 本文です。 【答】 ${'回答本文です。'.repeat(30)}`;
+  const parts = splitByQuestion(flatten([normal, ...fillers].join(' ')));
+  const q806 = parts.find(part => part.qNo === '問806');
+  assert(!!q806 && q806.title === '問806 普通の見出し',
+    '入れ子の無い直接形は、札の後ろが「《」でも今までどおり拾う');
+}
+
+console.log('\n=== A6: 問10 の見出しの内側の括弧から後ろ向きの区切りを立てない ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const text = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-9-11-excerpt.txt'), 'utf8');
+  const flat = flatten([text, ...[901, 902, 903, 904].map(filler)].join(' '));
+  const marks = findQuestionMarks(flat)
+    .filter(mark => mark.card.replace(/\s/g, '') === '問10');
+  assert(marks.length === 1, '問10 の区切りは 1 つだけ');
+  assert(marks.length === 1 && marks[0].indirect === false,
+    '問10 は直接形で拾い、内側の括弧（いわゆる「ケータリング」）から後ろ向きの区切りを立てない');
+  assert(marks.length === 1 && marks[0].heading.includes('いわゆる「ケータリング」'),
+    '問10 の見出しは外側の括弧まで含む');
+}
+
+console.log('\n=== A8: 題名の整え方 ===');
+{
+  const titles = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-main-titles.json'), 'utf8'));
+  const changed = titles.filter(entry => {
+    const heading = entry.title.slice(entry.q_no.length + 1);
+    return `${entry.q_no} ${tidyHeading(heading)}` !== entry.title;
+  });
+  assert(titles.length === 138, `main の 138 問の題名を資料にしてある（実際 ${titles.length} 問）`);
+  assert(changed.length === 0,
+    `main の 138 問の題名は整え方で変わらない${changed.length ? `（変わった: ${changed.map(e => e.q_no).join(',')}）` : ''}`);
+  assert(`問１ ${tidyHeading('  「軽減税率制度」の概要')}` === '問１ 「軽減税率制度」の概要',
+    'poppler の「問１  「軽減税率制度」の概要」が「問１ 「軽減税率制度」の概要」になる');
+}
+
+console.log('\n=== A9: 分け直しの判定（findSplitOffs） ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const xpdf = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-xpdf-excerpt.json'), 'utf8'));
+  const old6 = xpdf.find(entry => entry.q_no === '問６');
+  const text = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-excerpt.txt'), 'utf8');
+  const parts = splitByQuestion(flatten(text));
+  assert(!!old6 && parts.some(part => part.qNo === '問６'), '分け直しの判定に使う問６ がある');
+  const records = new Map([['問６', { body: old6.body, title: old6.title }]]);
+
+  // (a) くっついた問６ と、poppler で分けた問６・問７・問８ → 分けた先は問７・問８、合う。
+  const a = findSplitOffs(parts, records);
+  const a6 = a.find(item => item.qNo === '問６');
+  assert(!!a6 && JSON.stringify(a6.children) === JSON.stringify(['問７', '問８']),
+    '(a) 分けた先は問７・問８');
+  assert(!!a6 && a6.matches === true, '(a) 文字の多重集合が合う');
+
+  // (b) 新しい問７ の本文を 1 字変える → 分けた先は問７・問８、合わない。
+  const mutated = parts.map(part => (part.qNo === '問７'
+    ? { ...part, body: `${part.body}あ` }
+    : part));
+  const b6 = findSplitOffs(mutated, records).find(item => item.qNo === '問６');
+  assert(!!b6 && JSON.stringify(b6.children) === JSON.stringify(['問７', '問８']),
+    '(b) 1 字変えても分けた先は問７・問８');
+  assert(!!b6 && b6.matches === false, '(b) 文字の多重集合が合わない');
+
+  // (c) X の今の本文に Y の見出し＋札が無い → 分けた先は無い。
+  const c = findSplitOffs(parts, new Map([['問６', { body: '問６ の今の本文だけです。' }]]));
+  assert(c.length === 0, '(c) 見出し＋札が無ければ分けた先は無い');
+
+  // (d) Y が既にファイルのある問でも、分けた先に入る。
+  const d = findSplitOffs(parts, new Map([
+    ['問６', { body: old6.body }],
+    ['問７', { body: '問７ の今の本文です。' }],
+  ]));
+  const d6 = d.find(item => item.qNo === '問６');
+  assert(!!d6 && JSON.stringify(d6.children) === JSON.stringify(['問７', '問８']),
+    '(d) 既にファイルのある問７ でも分けた先に入る');
+
+  // (e) X のすぐ後ろの問が分けた先に当たらなければ、その後ろの問は見ない（止まる）。
+  const synthetic = [
+    { qNo: '問６', title: '問６ 見出し6', body: '（見出し6） 問６ 本文' },
+    { qNo: '問901', title: '問901 見出し901', body: '（見出し901） 問901 本文' },
+    { qNo: '問７', title: '問７ 見出し7', body: '（見出し7） 問７ 本文' },
+  ];
+  const e = findSplitOffs(synthetic, new Map([['問６', { body: '（見出し901） 問901 の本文' }]]));
+  const e6 = e.find(item => item.qNo === '問６');
+  assert(!!e6 && JSON.stringify(e6.children) === JSON.stringify(['問901']),
+    '(e) 次に当たらない問が来たら止まる（問７ は見ない）');
+}
+
+async function testA10() {
+  console.log('\n=== A10: crawlSource の通し（分け直し・合わない・やり直し） ===');
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const sourceKey = 'keigen';
+  const source = {
+    label: '確認用軽減税率', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'consumption_tax', split: true,
+    docs: [{ id: 'gaiyo', url: 'https://example.test/gaiyo.pdf' }],
+  };
+  const xpdf = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-xpdf-excerpt.json'), 'utf8'));
+  const old6 = xpdf.find(entry => entry.q_no === '問６');
+  const poppler = fs.readFileSync(path.join(FIXTURES, 'keigen-gaiyo-poppler-excerpt.txt'), 'utf8');
+  const new6 = splitByQuestion(flatten(poppler)).find(part => part.qNo === '問６');
+  const snapshotFiles = (dir) => {
+    const out = {};
+    for (const name of fs.readdirSync(dir).sort()) {
+      const record = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+      delete record.fetched_at;
+      out[name] = record;
+    }
+    return out;
+  };
+  const write6 = (dir) => fs.writeFileSync(path.join(dir, 'gaiyo-6w.json'), JSON.stringify({
+    id: 'gaiyo-6w', type: 'qa', source_key: sourceKey, source_label: source.label,
+    tax_category: source.tax_category, tax_category_code: source.tax_category_code,
+    tax_domain: source.tax_domain, q_no: '問６', digest: false, title: old6.title,
+    url: source.docs[0].url, body: old6.body, char_count_body: old6.body.length,
+    fetched_at: '2026-09-01T00:00:00.000Z',
+  }, null, 2) + '\n', 'utf8');
+
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-a10-'));
+  try {
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    const run = (text) => crawlSource(sourceKey, source, {
+      outDir: temp, root: temp, delayMs: 0,
+      fetchBuffer: async () => Buffer.from('dummy'),
+      extractText: () => text,
+    });
+
+    // (a) くっついた問６ を分け直す。
+    write6(dir);
+    const result = await run(poppler);
+    const written6 = JSON.parse(fs.readFileSync(path.join(dir, 'gaiyo-6w.json'), 'utf8'));
+    assert(written6.body === new6.body, '(a) 問６ は短い本文（分けた後の問６）で書かれる');
+    assert(!written6.body.includes('問７'), '(a) 問６ の本文に問７ の札が入らない');
+    assert(fs.existsSync(path.join(dir, 'gaiyo-7w.json'))
+      && fs.existsSync(path.join(dir, 'gaiyo-8w.json')), '(a) 問７・問８ のファイルができる');
+    assert(result.splitRejoined.some(item => item.file === 'keigen/gaiyo-6w.json'
+      && JSON.stringify(item.children) === JSON.stringify(['問７', '問８'])),
+    '(a) 報告に分け直しの行を出す');
+    assert(result.skippedUpdates === 0, '(a) 「本文が大幅に短くなる」の件数は 0');
+    assert(result.titleChanges.length === 0, '(a) 題名の変更は報告しない');
+    const report = buildReport({
+      reorderedCount: 0, splitRejoined: result.splitRejoined, skippedUpdates: result.skippedUpdates,
+    });
+    assert(report.includes('- くっついていた問を分けた: keigen/gaiyo-6w.json（問６）→ 問７、問８'),
+      '(a) 報告の分け直しの文');
+    const index = mergeIndexEntries([], [{
+      sourceKey, installed: result.saved, preservedFilePaths: [],
+    }], silentWarnings);
+    assert(index.some(entry => entry.file_path === 'keigen/gaiyo-7w.json')
+      && index.some(entry => entry.file_path === 'keigen/gaiyo-8w.json'),
+    '(a) 問７・問８ の索引の行ができる');
+
+    // (d) 同じ入力でもう一度取り込むと、fetched_at 以外は変わらない。
+    const beforeFiles = snapshotFiles(dir);
+    await run(poppler);
+    assert(JSON.stringify(snapshotFiles(dir)) === JSON.stringify(beforeFiles),
+      '(d) 2 回目はどのファイルも fetched_at 以外は変わらない');
+
+    // (b) 分けた問の文字が合わないときは、問６ の本文を前のまま残す。
+    const mismatchText = poppler.replace(
+      '例えば、レストランやフードコートでの食事の提供があります',
+      '例えば、レストランやフードコートでの食事の提供があります。',
+    );
+    assert(mismatchText !== poppler, '(b) 問７ の本文を 1 字変えた入力を作れた');
+    const tempB = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-a10b-'));
+    try {
+      const dirB = path.join(tempB, sourceKey);
+      fs.mkdirSync(dirB, { recursive: true });
+      write6(dirB);
+      const before6 = fs.readFileSync(path.join(dirB, 'gaiyo-6w.json'), 'utf8');
+      const runB = (text) => crawlSource(sourceKey, source, {
+        outDir: tempB, root: tempB, delayMs: 0,
+        fetchBuffer: async () => Buffer.from('dummy'),
+        extractText: () => text,
+      });
+      const b = await runB(mismatchText);
+      assert(fs.readFileSync(path.join(dirB, 'gaiyo-6w.json'), 'utf8') === before6,
+        '(b) 問６ のファイルが前のまま（バイト単位で同じ）');
+      assert(fs.existsSync(path.join(dirB, 'gaiyo-7w.json'))
+        && fs.existsSync(path.join(dirB, 'gaiyo-8w.json')), '(b) 問７・問８ は書かれる');
+      assert(b.splitMismatched.length === 1
+        && JSON.stringify(b.splitMismatched[0].children) === JSON.stringify(['問７', '問８']),
+      '(b) 合わないことを報告する');
+      assert(b.skippedUpdates === 1, '(b) 「本文が大幅に短くなる」の件数は 1');
+      const reportB = buildReport({
+        reorderedCount: 0, splitMismatched: b.splitMismatched, skippedUpdates: b.skippedUpdates,
+      });
+      assert(reportB.includes('- 分けた問の文字が前の本文と合わないため、keigen/gaiyo-6w.json（問６）の本文は'
+        + '前のまま残しました（分けた問: 問７、問８）'), '(b) 報告の合わない文');
+
+      // (e) 次の月に合う入力で取り込むと、問６ が分け直しで短い本文になる。
+      const e = await runB(poppler);
+      const fixed6 = JSON.parse(fs.readFileSync(path.join(dirB, 'gaiyo-6w.json'), 'utf8'));
+      assert(fixed6.body === new6.body, '(e) 合う入力なら問６ が分け直しで短い本文になる');
+      assert(e.splitRejoined.length === 1 && e.skippedUpdates === 0,
+        '(e) 合う入力では分け直しとして報告し、更新を見送らない');
+    } finally {
+      fs.rmSync(tempB, { recursive: true, force: true });
+    }
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
 }
 
 console.log('\n=== R1: 今の形（xpdf の並び）の結果は変えない ===');
@@ -776,6 +1114,7 @@ console.log('\n=== G7: 索引のつなぎ（同じ種類を消す→保存した
 }
 
 (async () => {
+  await testA10();
   console.log('\n=== R3: 問が見つからない資料は更新しない ===');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r3-'));
   try {
