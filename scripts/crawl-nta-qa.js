@@ -354,6 +354,18 @@ function isIgnoredHeading(text) {
   return false;
 }
 
+/**
+ * 問の見出しの空白を整える（R2）。
+ * `（` `）` `「` `」` の前後の空白を除き、続く空白を 1 つにし、前後の空白を落とす。
+ * 本文には当てない（題名の見出しの部分だけに使う）。
+ */
+function tidyHeading(text) {
+  return String(text || '')
+    .replace(/\s*([（）「」])\s*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** 「問N」「問N-M」を比べるための [N, M] を返す（全角数字は半角として扱う）。 */
 function questionNumberKey(card) {
   const compact = String(card || '').replace(/\s+/g, '').replace(/^問/, '');
@@ -375,20 +387,22 @@ function compareQuestionNumbers(a, b) {
 }
 
 /**
- * kept（区切りとして残った問）の中で、後ろで見つけた札（indirect）の前後を
- * すぐ隣の kept の区切りだけで見る。前後の 2 つが番号の順（前 < 後）で、
- * その札が 2 つの間に入らないときだけ、その札を外す候補として返す。
- * 答の中の参照（「問 98 の場合」など）を問の始まりと取り違えないための歯止め。
+ * kept（区切りとして残った問）の中で、後ろで見つけた札（indirect）と入れ子の
+ * 見出しの区切り（nested）の前後を、すぐ隣の kept の区切りだけで見る。前後の
+ * 2 つが番号の順（前 < 後）で、その札が 2 つの間に入らないときだけ、その札を
+ * 外す候補として返す。答の中の参照（「問 98 の場合」など）を問の始まりと
+ * 取り違えないための歯止め。
  *
  * - 前後のどちらかが無いときは外さない（端の問を落とさない）。
  * - 前後が番号の順でないときは外さない（並びの違う資料で正しい問を落とさない）。
  * - 目次の区切りは kept に入らないため、前後の区切りとして見ない。
+ * - 入れ子の無い直接形は対象にしない（今までどおり）。
  */
 function findOutOfOrderIndirectMarks(kept) {
   const out = [];
   for (let i = 0; i < kept.length; i++) {
     const mark = kept[i];
-    if (!mark.indirect) continue;
+    if (!mark.indirect && !mark.nested) continue;
     const prev = kept[i - 1];
     const next = kept[i + 1];
     if (!prev || !next) continue;
@@ -418,22 +432,47 @@ function filterIndirectMarks(kept) {
  */
 function findQuestionMarks(flat) {
   const directRe = /（([^（）]{2,60})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/g;
+  // R1: 見出しの中に括弧が 1 段だけ入る形（「（「外食」の意義）」「（…（センターフィー））」）も
+  // 直接形として拾う。2 段以上の入れ子は合わなくてよい。
+  const nestedDirectRe = /（((?:[^（）]|（[^（）]{1,40}）){2,80})）\s*(問\s?[\d０-９]+(?:\s?[\-－]\s?[\d０-９]+)?)/g;
+  const directCardStart = m => m.index + m[0].length - m[2].length;
   // 答の中の参照（「（定期購読契約がない場合） 問 98 の場合と同様に…」）は
   // 直接形に見えても問の始まりではない。札の後ろが「の場合」「のとき」なら拾わない。
   const direct = [...flat.matchAll(directRe)].filter((m) => {
-    const cardStart = m.index + m[0].length - m[2].length;
-    const after = flat.slice(cardStart + m[2].length);
+    const after = flat.slice(m.index + m[0].length);
     return !/^\s*の(?:場合|とき)/.test(after);
   });
+  // 入れ子を含む見出しで新しく拾う区切りにだけ、後ろで札を探す側と同じ除外を当てる。
+  // 入れ子の無い直接形は今までどおり（除外を足さない）。
+  const claimedDirectCards = new Set(direct.map(directCardStart));
+  // 入れ子の見出しから拾った区切りには目印を付ける（J1）。
+  const nestedMatches = new Set();
+  for (const m of flat.matchAll(nestedDirectRe)) {
+    if (!/[（）]/.test(m[1])) continue;
+    const cardStart = directCardStart(m);
+    if (claimedDirectCards.has(cardStart)) continue;
+    if (isIgnoredHeading(m[1])) continue;
+    const after = flat.slice(m.index + m[0].length);
+    if (/^\s*の(?:場合|とき)/.test(after)) continue;
+    if (/^[《≪〈]/.test(after)) continue;
+    if (/^\s*(?:参照|をご参照|を参照|に参照)/.test(after)) continue;
+    claimedDirectCards.add(cardStart);
+    nestedMatches.add(m);
+    direct.push(m);
+  }
+  direct.sort((a, b) => a.index - b.index || directCardStart(a) - directCardStart(b));
   const marks = direct.map((m) => {
-    const cardStart = m.index + m[0].length - m[2].length;
+    const cardStart = directCardStart(m);
+    // 見出しの終わりは外側の「）」の直後（入れ子の内側の「）」ではない）。
+    const prefix = m[0].slice(0, m[0].length - m[2].length).replace(/\s+$/, '');
     return {
       index: m.index,
       heading: m[1],
-      headingEnd: m.index + m[0].indexOf('）') + 1,
+      headingEnd: m.index + prefix.length,
       card: m[2],
       cardStart,
       indirect: false,
+      nested: nestedMatches.has(m),
     };
   });
   const directHeadingStarts = new Set(marks.map(mark => mark.index));
@@ -537,8 +576,9 @@ function relocateQuestionCard(body, headingEnd, cardStart, card) {
 }
 
 /**
- * 区切りの一覧で本文を切り出す。捨てた切れ端が後ろで見つけた札（indirect）から
- * 始まっていたら、その札を「区切りではない」として返す（呼び出し側で区切り直す）。
+ * 区切りの一覧で本文を切り出す。捨てた切れ端が後ろで見つけた札（indirect）か
+ * 入れ子の見出しの区切り（nested）から始まっていたら、その札を「区切りではない」
+ * として返す（呼び出し側で区切り直す）。
  */
 function splitWithMarks(flat, marks) {
   const out = [];
@@ -557,38 +597,41 @@ function splitWithMarks(flat, marks) {
         marks[i].card,
       );
     }
+    // 捨てた切れ端を作った区切りは、後ろで見つけた札（indirect）と入れ子の
+    // 見出し（nested）なら外して区切り直す。入れ子の無い直接形は外さない。
+    const rejectable = marks[i].indirect || marks[i].nested;
     const qNo = marks[i].card.replace(/\s/g, '');
     // 本文は「【答】」を含む。目次には答が無く、ページ番号の点線がある。
     if (!/【答】/.test(body)) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     if (body.length < 150) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     if (looksLikeTableOfContents(body)) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     // 同じ問が目次と本文で2回出る。長い方（本文）を採る
     const prev = seen.get(qNo);
     if (prev) {
       if (body.length > prev.record.body.length) {
-        // 負けた側の区切りが後ろで見つけた札なら、区切りから外す。
-        if (prev.mark.indirect) rejected.add(prev.mark);
+        // 負けた側の区切りが後ろで見つけた札か入れ子の見出しなら、区切りから外す。
+        if (prev.mark.indirect || prev.mark.nested) rejected.add(prev.mark);
         const at = kept.indexOf(prev.mark);
         if (at >= 0) kept.splice(at, 1);
         prev.record.body = body;
-        prev.record.title = `${qNo} ${marks[i].heading}`;
+        prev.record.title = `${qNo} ${tidyHeading(marks[i].heading)}`;
         prev.mark = marks[i];
         kept.push(marks[i]);
-      } else if (marks[i].indirect) {
+      } else if (rejectable) {
         rejected.add(marks[i]);
       }
       continue;
     }
-    const rec = { qNo, title: `${qNo} ${marks[i].heading}`, body };
+    const rec = { qNo, title: `${qNo} ${tidyHeading(marks[i].heading)}`, body };
     seen.set(qNo, { record: rec, mark: marks[i] });
     out.push(rec);
     kept.push(marks[i]);
@@ -606,9 +649,11 @@ function splitByQuestion(text) {
   let marks = findQuestionMarks(flat);
   if (marks.length < 5) return [];   // 分割対象ではない
 
-  // (a) 後ろで見つけた札の区切りが捨てられる切れ端を作っていたら、その区切りを
-  // 外して区切り直す。外すものが無くなるまで繰り返す（直接の区切りは外さない）。
-  // (b) 残った後ろ向きの区切りは、すぐ前後の kept の問番号の間にあるものだけ採る。
+  // (a) 後ろで見つけた札・入れ子の見出しの区切りが捨てられる切れ端を作っていたら、
+  // その区切りを外して区切り直す。外すものが無くなるまで繰り返す（入れ子の無い
+  // 直接形の区切りは外さない）。
+  // (b) 残った後ろ向きの区切り・入れ子の見出しの区切りは、すぐ前後の kept の
+  // 問番号の間にあるものだけ採る。
   for (;;) {
     const { parts, rejected, kept } = splitWithMarks(flat, marks);
     if (rejected.length > 0) {
@@ -742,6 +787,56 @@ function sameCharMultiset(a, b) {
     if (right.get(char) !== n) return false;
   }
   return true;
+}
+
+/**
+ * R3: 今ファイルがある問 X のすぐ後ろに、区切り直しで分かれた問（分けた先）があるかを求める。
+ *
+ * parts は本文の順。X のすぐ後ろの問 Y について、空白を除いた
+ * 「（Y の見出し）Y の問番号」が X の今の本文に含まれる間だけ Y を分けた先に入れ、
+ * 含まれない問が来たら止める。分けた先と X の新しい本文をつないだ文字の多重集合が
+ * X の今の本文と同じなら matches: true（分け直し）。
+ *
+ * @returns {Array<{qNo: string, children: string[], matches: boolean, title: string, body: string}>}
+ */
+function findSplitOffs(parts, existingRecordsByQNo) {
+  const list = Array.isArray(parts) ? parts : [];
+  if (list.length === 0) return [];
+  const records = existingRecordsByQNo instanceof Map
+    ? existingRecordsByQNo
+    : new Map(Object.entries(existingRecordsByQNo || {}));
+  const starts = new Map();
+  for (let i = 0; i < list.length; i++) {
+    if (!starts.has(list[i].qNo)) starts.set(list[i].qNo, i);
+  }
+
+  const out = [];
+  for (const [qNo, record] of records) {
+    if (!record || typeof record.body !== 'string') continue;
+    const index = starts.get(qNo);
+    if (index === undefined) continue;
+    const current = record.body.replace(/\s+/g, '');
+    const children = [];
+    const moved = [];
+    for (let i = index + 1; i < list.length; i++) {
+      const next = list[i];
+      const heading = String(next.title || '').slice(String(next.qNo || '').length);
+      const needle = `（${heading}）${next.qNo}`.replace(/\s+/g, '');
+      if (!current.includes(needle)) break;
+      children.push(next.qNo);
+      moved.push(next);
+    }
+    if (children.length === 0) continue;
+    const merged = [list[index], ...moved].map(part => part.body).join('');
+    out.push({
+      qNo,
+      children,
+      matches: sameCharMultiset(record.body, merged),
+      title: list[index].title,
+      body: list[index].body,
+    });
+  }
+  return out;
 }
 
 /**
@@ -909,7 +1004,13 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
     return { relative, record, reordered: true };
   }
 
-  if (shouldSkipBodyUpdate(existingRecord, record)) {
+  if (options.keepTitleIfSame && existingRecord && typeof existingRecord.title === 'string'
+    && !titlesDiffer(existingRecord.title, record.title)) {
+    // R3: 空白を除いて同じ題名なら、今の題名を残す（並びだけの違いで題名を書き替えない）。
+    record.title = existingRecord.title;
+  }
+
+  if (!options.forceBodyUpdate && shouldSkipBodyUpdate(existingRecord, record)) {
     const warn = typeof options.warn === 'function' ? options.warn : console.warn;
     const displayPath = path.relative(options.root || ROOT, filePath).replace(/\\/g, '/');
     warn(`[warn] 本文が大幅に短くなるため更新を見送りました\n`
@@ -935,13 +1036,17 @@ function readExistingDocEntries(outDir, sourceKey, docId) {
       .sort()
     : [];
   const qNos = new Set();
+  const records = new Map();
   for (const name of fileNames) {
     try {
       const record = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
-      if (record && record.q_no) qNos.add(record.q_no);
+      if (record && record.q_no) {
+        qNos.add(record.q_no);
+        if (!records.has(record.q_no)) records.set(record.q_no, { file: name, record });
+      }
     } catch (_) { /* 読めないファイルは控えに含めない */ }
   }
-  return { fileNames, qNos };
+  return { fileNames, qNos, records };
 }
 
 function sortQuestionNumbers(qNos) {
@@ -1016,6 +1121,8 @@ function buildReport(summary = {}) {
   const skippedUpdates = Number(summary.skippedUpdates) || 0;
   const skippedDocs = Array.isArray(summary.skippedDocs) ? summary.skippedDocs : [];
   const failedDocs = Array.isArray(summary.failedDocs) ? summary.failedDocs : [];
+  const splitRejoined = Array.isArray(summary.splitRejoined) ? summary.splitRejoined : [];
+  const splitMismatched = Array.isArray(summary.splitMismatched) ? summary.splitMismatched : [];
   const lines = ['### 取り込みの報告', ''];
   if (reorderedCount > 0) {
     lines.push(`- 並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件`);
@@ -1029,6 +1136,14 @@ function buildReport(summary = {}) {
   }
   for (const change of titleChanges) {
     lines.push(`- ${change.file}: ${change.before} → ${change.after}`);
+  }
+  for (const split of splitRejoined) {
+    lines.push(`- くっついていた問を分けた: ${split.file}（${split.qNo}）→ `
+      + `${(split.children || []).join('、')}`);
+  }
+  for (const split of splitMismatched) {
+    lines.push(`- 分けた問の文字が前の本文と合わないため、${split.file}（${split.qNo}）の本文は`
+      + `前のまま残しました（分けた問: ${(split.children || []).join('、')}）`);
   }
   for (const skipped of skippedDocs) {
     const label = skipped.sourceKey ? `${skipped.sourceKey}/${skipped.docId}` : skipped.docId;
@@ -1113,14 +1228,16 @@ async function crawlSource(sourceKey, source, options = {}) {
   const failedDocs = [];
   const titleChanges = [];
   const reorderedFiles = [];
+  const splitRejoined = [];
+  const splitMismatched = [];
   const protectedFileNames = new Set();
   const preservedFilePaths = [];
   let failed = 0;
   let skippedUpdates = 0;
   let reorderedCount = 0;
 
-  const save = (doc, parsed, url) => {
-    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn, outDir, root });
+  const save = (doc, parsed, url, extra = {}) => {
+    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn, outDir, root, ...extra });
     if (result.skipped) skippedUpdates++;
     if (result.reordered) {
       reorderedCount++;
@@ -1132,6 +1249,7 @@ async function crawlSource(sourceKey, source, options = {}) {
       });
     }
     saved.push(result);
+    return result;
   };
 
   for (let i = 0; i < list.length; i++) {
@@ -1175,9 +1293,30 @@ async function crawlSource(sourceKey, source, options = {}) {
 
       if (!skippedThisDoc) {
         if (parts.length > 0) {
-          for (const part of resolveEntryIds(doc.id, parts, { warn })) {
+          const resolvedParts = resolveEntryIds(doc.id, parts, { warn });
+          // R3: 今ある問 X のすぐ後ろの問が分けた先かを求め、X の本文短縮ガードの
+          // 例外（分け直し）と、合わないときの報告に使う。
+          const existingRecordsByQNo = new Map(
+            [...(existingDoc.records || new Map())].map(([qNo, entry]) => [qNo, entry.record]),
+          );
+          const splitOffs = findSplitOffs(resolvedParts, existingRecordsByQNo);
+          const splitOffByQNo = new Map(splitOffs.map(split => [split.qNo, split]));
+          for (const part of resolvedParts) {
             const sub = { id: part.id, title: part.title };
-            save(sub, part, doc.url);
+            const split = splitOffByQNo.get(part.qNo);
+            const result = save(sub, part, doc.url,
+              split ? { forceBodyUpdate: split.matches, keepTitleIfSame: split.matches } : {});
+            if (!split) continue;
+            if (split.matches) {
+              splitRejoined.push({
+                file: result.relative, qNo: split.qNo, children: split.children,
+              });
+            } else if (result.skipped) {
+              // 合わないときは今までどおり更新ガードに従う（前の本文のまま）。報告に出す。
+              splitMismatched.push({
+                file: result.relative, qNo: split.qNo, children: split.children,
+              });
+            }
           }
           log(`[nta-qa] ${doc.id}: ${parts.length} 問に分割`);
         } else {
@@ -1237,6 +1376,8 @@ async function crawlSource(sourceKey, source, options = {}) {
     reorderedCount,
     reorderedFiles,
     titleChanges,
+    splitRejoined,
+    splitMismatched,
     skippedDocs,
     failedDocs,
     preservedFilePaths,
@@ -1272,6 +1413,8 @@ async function main() {
   const titleChanges = [];
   const skippedDocs = [];
   const failedDocs = [];
+  const splitRejoined = [];
+  const splitMismatched = [];
   const runs = [];
   for (const key of keys) {
     const source = SOURCES[key];
@@ -1281,6 +1424,8 @@ async function main() {
     reorderedCount += result.reorderedCount || 0;
     reorderedFiles.push(...(result.reorderedFiles || []));
     titleChanges.push(...(result.titleChanges || []));
+    splitRejoined.push(...(result.splitRejoined || []));
+    splitMismatched.push(...(result.splitMismatched || []));
     skippedDocs.push(...(result.skippedDocs || []));
     failedDocs.push(...(result.failedDocs || []));
     runs.push({
@@ -1294,9 +1439,11 @@ async function main() {
   if (skippedUpdates > 0) {
     console.warn(`[warn] 本文が大幅に短くなるため ${skippedUpdates} 件の更新を見送りました`);
   }
-  const report = { reorderedCount, reorderedFiles, titleChanges, skippedDocs, skippedUpdates, failedDocs };
+  const report = { reorderedCount, reorderedFiles, titleChanges, splitRejoined, splitMismatched,
+    skippedDocs, skippedUpdates, failedDocs };
   const reportPath = process.env.NTA_QA_REPORT;
-  if (reorderedCount > 0 || titleChanges.length > 0 || skippedDocs.length > 0
+  if (reorderedCount > 0 || titleChanges.length > 0 || splitRejoined.length > 0
+    || splitMismatched.length > 0 || skippedDocs.length > 0
     || skippedUpdates > 0 || failedDocs.length > 0) {
     console.log(buildReport(report).trimEnd());
   }
@@ -1320,6 +1467,7 @@ module.exports = {
   findQuestionMarks,
   filterIndirectMarks,
   isIgnoredHeading,
+  tidyHeading,
   questionNumberKey,
   compareQuestionNumbers,
   startsParagraph,
@@ -1329,6 +1477,7 @@ module.exports = {
   shouldSkipBodyUpdate,
   isReorderOnly,
   sameCharMultiset,
+  findSplitOffs,
   titlesDiffer,
   saveEntry,
   readExistingDocEntries,

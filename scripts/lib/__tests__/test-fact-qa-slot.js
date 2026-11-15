@@ -24,43 +24,19 @@ const snapshot = refs => refs.map(e => [e.id, e.score, e.text_start, e.text.leng
 const qaIds = refs => refs.filter(e => e.id.startsWith('qa:')).map(e => e.id);
 
 const claims = Object.fromEntries(fixture.claims.map(c => [c.id, c]));
-// 変更前の検索の結果（2026-11-09、plan2-s6 のコードで固定の主張から採取した期待値）。
-const BASELINE = {
-  c41: [
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm', 94.22, 0, 1096, '7f2e596b3a9d1c35'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm', 184.04, 0, 1744, '85c4799590a841e6'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm', 133.44, 0, 1127, '49700d580b2d7db9'],
-    ['tsutatsu:shohi:21-1-1', 265.05, 0, 809, 'cb4b7586b53468da'],
-    ['law:shohizei_hou:57_2', 187.64, 800, 2000, 'c01ab9e1f9248011'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm', 130.92, 0, 2000, 'd855441277ceb27f'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6501.htm', 95.76, 0, 2000, 'a45c4de70dcb00cd'],
-  ],
-  c40: [
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6451.htm', 99.47, 0, 1096, '7f2e596b3a9d1c35'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6613.htm', 194.79, 0, 1744, '85c4799590a841e6'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6630.htm', 155.61, 0, 1127, '49700d580b2d7db9'],
-    ['tsutatsu:shohi:21-1-1', 277.32, 0, 809, 'cb4b7586b53468da'],
-    ['law:shohizei_hou:57_2', 204.03, 0, 2000, '22025302bf9233b5'],
-    ['tsutatsu:shohi:1-4-1の2', 196.62, 0, 487, '20efc5c9bf2a6516'],
-    ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6498.htm', 141.67, 0, 2000, 'd855441277ceb27f'],
-  ],
-};
 // 分野の違う固定の主張（所得税・相続税）。
 const INCOME_CLAIM = { id: 'i1', type: '要件', subject: '給与所得の確定申告', claim: '給与収入が2,000万円を超える人は確定申告が必要',
   sentence: '給与収入が2,000万円を超える人は確定申告が必要です。' };
 const INHERITANCE_CLAIM = { id: 'z1', type: '金額', subject: '贈与税の基礎控除', claim: '贈与税の基礎控除は110万円',
   sentence: '贈与税の基礎控除は110万円です。' };
-const INCOME_BASELINE = [
-  ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1900.htm', 163.75, 0, 1469, '572e8860474b3071'],
-  ['https://www.nta.go.jp/law/shitsugi/shotoku/07/16.htm', 193.07, 0, 531, 'efc11dcb47a6239e'],
-  ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1901.htm', 117.97, 0, 836, '22b0b4f47e8659a5'],
-];
-const INHERITANCE_BASELINE = [
-  ['https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm', 75.3, 0, 2000, '02cb59d9ac382336'],
-  ['law:sozokuzei:21_5', 208.73, 0, 25, '94bb53347979dd08'],
-  ['law:sozeki_hou:70_2_4', 193.18, 0, 246, '5e3ef28c92891645'],
-  ['law:sozokuzei:21_11_2', 187.33, 0, 162, '9de100a0a196c8cd'],
-];
+// その呼び出しで必ず高い点になる「わな」の Q&A。主張の文・主題をそのまま題名と本文に入れ、
+// tax_domain をその呼び出しと同じにする。source_key は SCOPES でその主題に当たるもの。
+const INVOICE_TRAP = { sourceKey: 'invoice', taxDomain: 'invoice_system', taxCategoryCode: 'shohi' };
+const INHERITANCE_TRAP = { sourceKey: 'sozoku', taxDomain: 'inheritance_tax', taxCategoryCode: 'sozoku' };
+// 所得税の呼び出し用。Q&A は tax_domain が一致するものしか残らないため、わなも所得税の
+// 分野（tax_domain: 'income_tax'）にする。source_key は scope の語（「インボイス」）で
+// 当たる 'invoice' にする（所得税の資料は scope に無い）。
+const INCOME_TRAP = { sourceKey: 'invoice', taxDomain: 'income_tax', taxCategoryCode: 'shotoku' };
 
 // Q&A を使わない呼び出し（変更前と同じ）。
 function noQaOptions(extra = {}) {
@@ -71,20 +47,114 @@ function noQaOptions(extra = {}) {
 }
 const qaOptions = extra => ({ ...F.articleEvidenceOptions(fixture.meta), ...extra });
 
-test('T1', 'qa_scope_text が無ければ、インボイス・所得税・相続の候補は変更前と完全に同じ', () => {
-  assert.deepEqual(snapshot(E.searchEvidence(claims.c41, noQaOptions())), BASELINE.c41);
-  assert.deepEqual(snapshot(E.searchEvidence(claims.c40, noQaOptions())), BASELINE.c40);
-  assert.deepEqual(snapshot(E.searchEvidence(INCOME_CLAIM, noQaOptions({ tax_domain: 'income_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined }))), INCOME_BASELINE);
-  assert.deepEqual(snapshot(E.searchEvidence(INHERITANCE_CLAIM, noQaOptions({ tax_domain: 'inheritance_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined }))), INHERITANCE_BASELINE);
+// Q&A の読み込み先だけを差し替える（本物の data/ は変えない）。
+const QA_DIR = path.join(root, 'data', 'nta-qa');
+function withQaFiles(entries, files, fn) {
+  const indexPath = path.join(QA_DIR, 'index.json');
+  const original = fs.readFileSync;
+  fs.readFileSync = function (file, ...args) {
+    const resolved = path.resolve(file);
+    if (resolved === path.resolve(indexPath)) {
+      return typeof entries === 'function' ? entries() : JSON.stringify({ version: 1, entries });
+    }
+    const key = [...files.keys()].find(name => path.resolve(path.join(QA_DIR, name)) === resolved);
+    if (key !== undefined) {
+      const value = files.get(key);
+      return typeof value === 'function' ? value() : value;
+    }
+    return original.call(fs, file, ...args);
+  };
+  E.resetQaEvidenceForTest();
+  try { return fn(); } finally {
+    fs.readFileSync = original;
+    E.resetQaEvidenceForTest();
+  }
+}
+const qaQuestion = (body, title, extra = {}) => JSON.stringify({ body, title, ...extra });
+const qaIndexEntry = (id, filePath, extra = {}) => ({ id, type: 'qa', source_key: 'invoice', source_label: '試験のQ&A',
+  tax_category: '消費税', tax_category_code: 'shohi', tax_domain: 'invoice_system', q_no: id, digest: false,
+  title: `問 ${id}`, url: 'https://example.test/qa.pdf', file_path: filePath, ...extra });
+
+/** わなの Q&A を 1 件だけ持つ索引と、その問のファイル。 */
+function trapQa(claim, spec) {
+  const title = claim.subject;
+  const body = [claim.claim, claim.sentence].filter(Boolean).join(' ');
+  const entries = [qaIndexEntry('trap', 'test/trap.json', {
+    source_key: spec.sourceKey, tax_domain: spec.taxDomain,
+    tax_category_code: spec.taxCategoryCode, title,
+  })];
+  return {
+    id: `qa:${spec.sourceKey}/trap`,
+    entries,
+    files: new Map([['test/trap.json', qaQuestion(body, title)]]),
+  };
+}
+
+test('T1', 'qa_scope_text が無ければ、Q&A は候補に何の影響も与えない', () => {
+  const incomeOptions = noQaOptions({ tax_domain: 'income_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined });
+  const inheritanceOptions = noQaOptions({ tax_domain: 'inheritance_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined });
+  // 今と同じ 4 つの呼び出し（オプションも今と同じ）。
+  const calls = [
+    { name: 'c41', claim: claims.c41, options: noQaOptions(), trap: INVOICE_TRAP },
+    { name: 'c40', claim: claims.c40, options: noQaOptions(), trap: INVOICE_TRAP },
+    { name: '所得税', claim: INCOME_CLAIM, options: incomeOptions, trap: INCOME_TRAP },
+    { name: '相続', claim: INHERITANCE_CLAIM, options: inheritanceOptions, trap: INHERITANCE_TRAP },
+  ];
+  for (const call of calls) {
+    // 1. 結果に qa: の id が無い。
+    const real = E.searchEvidence(call.claim, call.options);
+    assert.deepEqual(qaIds(real), [], `${call.name}: 結果に qa: の id が無い`);
+    // 2. 本物の Q&A のままの結果が、Q&A の索引を空にした状態の結果と同じ。
+    const empty = withQaFiles([], new Map(), () => E.searchEvidence(call.claim, call.options));
+    assert.deepEqual(snapshot(real), snapshot(empty), `${call.name}: Q&A の索引を空にした結果と同じ`);
+    // 3. その呼び出しで必ず高い点になるわなの Q&A だけを入れても、2 と同じ。
+    const trap = trapQa(call.claim, call.trap);
+    const trapped = withQaFiles(trap.entries, trap.files, () => E.searchEvidence(call.claim, call.options));
+    assert.deepEqual(snapshot(trapped), snapshot(empty), `${call.name}: わなの Q&A を索引に入れても同じ`);
+  }
+  // 4. わなが効くことの確かめ。
+  const c41Trap = trapQa(claims.c41, INVOICE_TRAP);
+  const c41Ids = withQaFiles(c41Trap.entries, c41Trap.files,
+    () => E.searchEvidence(claims.c41, qaOptions())).map(ref => ref.id);
+  assert.ok(c41Ids.includes(c41Trap.id), 'c41: qa_scope_text を付けるとわなの id が結果に入る');
+  const inheritanceTrap = trapQa(INHERITANCE_CLAIM, INHERITANCE_TRAP);
+  const inheritanceScoped = { ...inheritanceOptions, qa_scope_text: '贈与税の基礎控除' };
+  const inheritanceIds = withQaFiles(inheritanceTrap.entries, inheritanceTrap.files,
+    () => E.searchEvidence(INHERITANCE_CLAIM, inheritanceScoped)).map(ref => ref.id);
+  assert.ok(inheritanceIds.includes(inheritanceTrap.id),
+    '相続: qa_scope_text に「贈与税の基礎控除」を入れるとわなの id が結果に入る');
+  // 所得税のわなも、その分野の呼び出しに scope の語を付けると効く。
+  const incomeTrap = trapQa(INCOME_CLAIM, INCOME_TRAP);
+  const incomeScoped = { ...incomeOptions, qa_scope_text: 'インボイス' };
+  const incomeIds = withQaFiles(incomeTrap.entries, incomeTrap.files,
+    () => E.searchEvidence(INCOME_CLAIM, incomeScoped)).map(ref => ref.id);
+  assert.ok(incomeIds.includes(incomeTrap.id),
+    '所得税: qa_scope_text に「インボイス」を入れると所得税のわなの id が結果に入る');
 });
 
-test('T2', '対象の Q&A が無い記事では、qa_scope_text があっても結果は変更前と同じ', () => {
-  const income = noQaOptions({ tax_domain: 'income_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined,
-    qa_scope_text: '所得税の記事 確定申告 給与所得' });
-  assert.deepEqual(snapshot(E.searchEvidence(INCOME_CLAIM, income)), INCOME_BASELINE);
-  const invoice = noQaOptions({ qa_scope_text: '所得税の記事 確定申告 給与所得' });
-  assert.deepEqual(snapshot(E.searchEvidence(claims.c41, invoice)), BASELINE.c41);
-  // 分野の違う Q&A は tax_domain で落ちる。
+test('T2', '対象の Q&A が無い記事では、qa_scope_text があっても結果は変わらない', () => {
+  const incomePlain = noQaOptions({ tax_domain: 'income_tax', source_url: undefined, source_bundle: undefined, source_supplements: [], tax_terms: undefined });
+  const incomeScoped = { ...incomePlain, qa_scope_text: '所得税の記事 確定申告 給与所得' };
+  // 1. 所得税の呼び出しに qa_scope_text を付けても付けなくても同じ。
+  assert.deepEqual(snapshot(E.searchEvidence(INCOME_CLAIM, incomeScoped)),
+    snapshot(E.searchEvidence(INCOME_CLAIM, incomePlain)), '所得税: qa_scope_text の有無で結果が変わらない');
+  // 2. c41 の noQaOptions に同じ qa_scope_text を付けても付けなくても同じ。
+  const invoicePlain = noQaOptions();
+  const invoiceScoped = noQaOptions({ qa_scope_text: '所得税の記事 確定申告 給与所得' });
+  assert.deepEqual(snapshot(E.searchEvidence(claims.c41, invoiceScoped)),
+    snapshot(E.searchEvidence(claims.c41, invoicePlain)), 'c41: 分野の違う qa_scope_text で結果が変わらない');
+  // 3. 1・2 を、T1 の 3 のわなを入れた状態でも確かめる（所得税の分は所得税の分野のわな）。
+  const trap = trapQa(claims.c41, INVOICE_TRAP);
+  const withTrap = (claim, options) => snapshot(withQaFiles(trap.entries, trap.files,
+    () => E.searchEvidence(claim, options)));
+  const incomeTrap = trapQa(INCOME_CLAIM, INCOME_TRAP);
+  const withIncomeTrap = options => snapshot(withQaFiles(incomeTrap.entries, incomeTrap.files,
+    () => E.searchEvidence(INCOME_CLAIM, options)));
+  assert.deepEqual(withIncomeTrap(incomeScoped), withIncomeTrap(incomePlain),
+    '所得税: 所得税のわなを入れても qa_scope_text の有無で結果が変わらない');
+  assert.deepEqual(withTrap(claims.c41, invoiceScoped), withTrap(claims.c41, invoicePlain),
+    'c41: わなを入れても分野の違う qa_scope_text で結果が変わらない');
+  // 4. 分野の違う Q&A は tax_domain で落ちる。
   assert.deepEqual(qaIds(E.searchEvidence(claims.c41, qaOptions({ tax_domain: 'income_tax' }))), []);
 });
 
@@ -162,34 +232,6 @@ function frames(claim, options) {
     statementTopId: statementTop ? statementTop.e.id : undefined,
     directIds: new Set(scored.filter(r => r.direct).map(r => r.e.id)) };
 }
-
-// Q&A の読み込み先だけを差し替える（本物の data/ は変えない）。
-const QA_DIR = path.join(root, 'data', 'nta-qa');
-function withQaFiles(entries, files, fn) {
-  const indexPath = path.join(QA_DIR, 'index.json');
-  const original = fs.readFileSync;
-  fs.readFileSync = function (file, ...args) {
-    const resolved = path.resolve(file);
-    if (resolved === path.resolve(indexPath)) {
-      return typeof entries === 'function' ? entries() : JSON.stringify({ version: 1, entries });
-    }
-    const key = [...files.keys()].find(name => path.resolve(path.join(QA_DIR, name)) === resolved);
-    if (key !== undefined) {
-      const value = files.get(key);
-      return typeof value === 'function' ? value() : value;
-    }
-    return original.call(fs, file, ...args);
-  };
-  E.resetQaEvidenceForTest();
-  try { return fn(); } finally {
-    fs.readFileSync = original;
-    E.resetQaEvidenceForTest();
-  }
-}
-const qaQuestion = (body, title, extra = {}) => JSON.stringify({ body, title, ...extra });
-const qaIndexEntry = (id, filePath, extra = {}) => ({ id, type: 'qa', source_key: 'invoice', source_label: '試験のQ&A',
-  tax_category: '消費税', tax_category_code: 'shohi', tax_domain: 'invoice_system', q_no: id, digest: false,
-  title: `問 ${id}`, url: 'https://example.test/qa.pdf', file_path: filePath, ...extra });
 
 test('T5', '入れる場所: 空きがあれば末尾に足す／7 件なら 3 枠目→2 枠目の順に置き換える／保護された枠だけなら入れない', () => {
   const c41 = claims.c41;
@@ -349,11 +391,68 @@ test('T11', 'index.json・問のファイル・本文が読めないときは例
 
 test('T12', 'evidenceCatalog の件数と中身は変わらない', () => {
   const catalog = E.evidenceCatalog();
-  // 2026-11-09 時点の目録。data を増やしたときだけ更新する。
-  assert.equal(catalog.entries.length, 13273);
+  const ids = catalog.entries.map(e => e.id);
+  // 1. evidenceCatalog の行に kind qa・id qa: が無い（今のまま）。
   assert.ok(catalog.entries.every(e => e.kind !== 'qa' && !String(e.id).startsWith('qa:')));
-  assert.ok(E.qaEvidenceEntries().length > 0);
-  assert.equal(E.evidenceCatalog().entries.length, 13273);
+  // 2. 件数は 1 以上で、kind が taxanswer・shitsugi・law・tsutatsu の行がそれぞれ 1 件以上ある。
+  assert.ok(catalog.entries.length >= 1, 'evidenceCatalog の件数は 1 以上');
+  for (const kind of ['taxanswer', 'shitsugi', 'law', 'tsutatsu']) {
+    assert.ok(catalog.entries.some(e => e.kind === kind), `kind が ${kind} の行がある`);
+  }
+  // 3. data/nta-qa の下を読もうとすると例外になる状態でも、fact-evidence を読み直した
+  //    別の写しの evidenceCatalog() が成功し、行の id の並びが今の写しと同じ。
+  const qaDir = path.resolve(root, 'data', 'nta-qa');
+  const insideQa = (file) => {
+    try {
+      const resolved = path.resolve(String(file));
+      return resolved === qaDir || resolved.startsWith(qaDir + path.sep);
+    } catch (_) { return false; }
+  };
+  const original = {
+    readFileSync: fs.readFileSync, readdirSync: fs.readdirSync,
+    existsSync: fs.existsSync, statSync: fs.statSync,
+  };
+  const deny = () => { throw new Error('data/nta-qa は読めません'); };
+  const evidencePath = require.resolve('../fact-evidence');
+  const cachedModule = require.cache[evidencePath];
+  try {
+    fs.readFileSync = function (file, ...args) {
+      if (insideQa(file)) deny();
+      return original.readFileSync.call(fs, file, ...args);
+    };
+    fs.readdirSync = function (dir, ...args) {
+      if (insideQa(dir)) deny();
+      return original.readdirSync.call(fs, dir, ...args);
+    };
+    fs.existsSync = function (file) {
+      if (insideQa(file)) deny();
+      return original.existsSync.call(fs, file);
+    };
+    fs.statSync = function (file, ...args) {
+      if (insideQa(file)) deny();
+      return original.statSync.call(fs, file, ...args);
+    };
+    delete require.cache[evidencePath];
+    const fresh = require('../fact-evidence');
+    const freshCatalog = fresh.evidenceCatalog();
+    assert.deepEqual(freshCatalog.entries.map(e => e.id), ids,
+      'data/nta-qa を読めない状態でも evidenceCatalog は同じ id の並びを返す');
+  } finally {
+    fs.readFileSync = original.readFileSync;
+    fs.readdirSync = original.readdirSync;
+    fs.existsSync = original.existsSync;
+    fs.statSync = original.statSync;
+    if (cachedModule) require.cache[evidencePath] = cachedModule;
+  }
+  // 4. qaEvidenceEntries() の件数が index.json の entries の件数（その場で読む）と同じで、1 件以上。
+  const indexEntries = JSON.parse(fs.readFileSync(path.join(root, 'data/nta-qa/index.json'), 'utf8')).entries;
+  const qa = E.qaEvidenceEntries();
+  assert.equal(qa.length, indexEntries.length, 'qaEvidenceEntries の件数が index.json の entries と同じ');
+  assert.ok(qa.length >= 1, 'qaEvidenceEntries の件数は 1 以上');
+  // 5. qaEvidenceEntries() を呼ぶ前と後で、evidenceCatalog() の件数が同じ（今のまま）。
+  const before = E.evidenceCatalog().entries.length;
+  E.qaEvidenceEntries();
+  assert.equal(E.evidenceCatalog().entries.length, before, 'Q&A を読んでも evidenceCatalog の件数は変わらない');
 });
 
 test('R3', 'tax_terms にだけある語（主張の文にも主題にも無い語）は Q&A 枠の点に入らない', () => {

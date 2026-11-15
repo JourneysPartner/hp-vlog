@@ -16,3 +16,23 @@
 7. 指示書と食い違う・決めきれない点は、勝手に決めず報告に【要判断】として書いてください。
 
 最後の報告は日本語で、01 の「報告の形」に沿って書いてください。
+
+---
+
+# OpenCode への依頼文（nta-qa-split 段 2、2026-11-15）
+
+あなたはこのリポジトリ（hp-vlog、枝 `fix/nta-qa-nested-heading`）の実装担当です。
+
+1. `docs/codex-tasks/nta-qa-split/README.md` と `docs/codex-tasks/nta-qa-split/02-nested-heading-and-qa-slot-test.md` を読み、R1〜R6 と試験 A1〜A11・R5・R6 を実装してください。
+2. 参照ファイルは `.tmp-ref/`（`README.txt` に説明）。読むだけにし、変えないでください。試験の資料は `.tmp-ref/` から小さく切り出して、`scripts/lib/__tests__/fixtures/nta-qa-split/` に新しいファイルとして置いてください（既存の資料は変えない）。
+3. 変えてよいファイルは 02 の「この段の厳守事項」にあるものだけです。`data/`・`docs/`・`.tmp-ref/`・ワークフローは変えないでください。
+4. 試験は `sbx` を通して実行してください（例: `sbx node scripts/lib/__tests__/test-nta-qa-split.js`）。少なくとも次を実行し、結果を報告してください。
+   - `scripts/lib/__tests__/test-nta-qa-split.js`（全件通ること）
+   - `scripts/lib/__tests__/test-fact-qa-slot.js`（全件通ること）
+   - `scripts/lib/__tests__/test-nta-qa-scope.js`（全件通ること）
+   - `scripts/lib/__tests__/test-nta-qa.js`（データは変えないので、既存の「軽減税率 140 件以上」の 2 件の失敗は残ります。それ以外の失敗が増えていないこと）
+5. 02 の「受け入れの目安」を自分でも確かめてください。確かめ用の台本は `.tmp-check-nest.js` に置き、残してください（コミットはしません）。直す前のコードの結果と比べるときは、Claude が置いた写し `.tmp-ref/crawl-nta-qa-before.js`（直す前の `scripts/crawl-nta-qa.js` と同じ中身）を require して使ってください。
+6. コミット・push・パッケージのインストールはしないでください。ネットワークにも出ないでください。
+7. 指示書と食い違う・決めきれない点は、勝手に決めず報告に【要判断】として書いてください。
+
+最後の報告は日本語で、02 の「報告の形」に沿って書いてください。

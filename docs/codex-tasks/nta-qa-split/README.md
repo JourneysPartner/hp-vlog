@@ -19,10 +19,11 @@
 ## 段
 | 段 | 内容 | 指示書 |
 |---|---|---|
-| 1 | 区切りの直し・並び替えだけの変化を残す・問が減る取り込みを止める・報告 | `01-split-and-keep.md` |
+| 1 | 区切りの直し・並び替えだけの変化を残す・問が減る取り込みを止める・報告 | `01-split-and-keep.md`（直し 01b〜01d）。PR #780 でマージ済み（2026-11-14） |
+| 2 | 入れ子の括弧の見出しの問（概要編 問７・８・10、事例編 問44）を区切る・照合の Q&A 枠の試験（`test-fact-qa-slot` の T1・T2・T12）を毎月のデータで落ちない形にする | `02-nested-heading-and-qa-slot-test.md`（直し 02b） |
 
 ## 全段共通の厳守事項
-- 変えてよいのは `scripts/crawl-nta-qa.js`、`.github/workflows/refresh-nta-qa.yml`（PR 本文に報告を足す所だけ）、`scripts/lib/__tests__/test-nta-qa-split.js`、新しい試験の資料 `scripts/lib/__tests__/fixtures/nta-qa-split/`。
+- 変えてよいファイルは段ごとの指示書に書く。段 1 は `scripts/crawl-nta-qa.js`、`.github/workflows/refresh-nta-qa.yml`（PR 本文に報告を足す所だけ）、`scripts/lib/__tests__/test-nta-qa-split.js`、新しい試験の資料 `scripts/lib/__tests__/fixtures/nta-qa-split/`。段 2 は 02 の「この段の厳守事項」。
 - `data/nta-qa/` の中身は変えない（取り直しは直しをマージした後に自動実行で行う）。
 - 照合・記事生成のコード（`scripts/lib/fact-evidence.js`、`scripts/lib/nta-qa.js`、`scripts/generate-draft.js` など）は変えない。
 - 他の資料の区切り（`splitByNumberedHeading`・`splitByParenQuestion`）の結果を変えない。
@@ -32,6 +33,10 @@
 ## 国税庁が問を本当に削った・番号を振り直したとき（手で直す手順）
 - 問が欠けた資料は更新しない（R3）ので、国税庁が本当に問を削ったり番号を振り直したりすると、その資料は毎月「区切りを見失った問があるため … は更新していません」と出て、その後の改訂も取り込まれない。
 - 国税庁の資料で削除・振り直しを確かめたら、消えた問のファイル（`data/nta-qa/<source_key>/<doc.id>-<問番号>.json`。全角の問番号のファイルは末尾に `w` が付く、例 `jirei-4w.json`）と `index.json` のその行を手で消す PR を作ってマージし、`refresh-nta-qa.yml` を手動で動かして取り直す。
+
+## 「分けた問の文字が前の本文と合わない」と出たとき（段 2、手で直す手順）
+- くっついていた問を分けたが、前の本文と文字が合わない（同じ月に国税庁が文を直したなど）ため、前の問の本文を残した、という意味。分けた先の問のファイルは作られている。
+- 次の月の取り込みで合えば自動で直る。毎月出続けるときは、国税庁の資料で前の問と分けた先の問を確かめ、前の問のファイル（例 `keigen/gaiyo-6w.json`）を手で消す PR を作ってマージし、`refresh-nta-qa.yml` を手動で動かす（前の問は新しく作られる）。
 
 ## 元に戻す方法
 - この枝の変更を戻す（`git revert`）。データは変えていないので、戻すのはコードだけ。
