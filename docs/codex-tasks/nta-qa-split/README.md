@@ -20,7 +20,7 @@
 | 段 | 内容 | 指示書 |
 |---|---|---|
 | 1 | 区切りの直し・並び替えだけの変化を残す・問が減る取り込みを止める・報告 | `01-split-and-keep.md`（直し 01b〜01d）。PR #780 でマージ済み（2026-11-14） |
-| 2 | 入れ子の括弧の見出しの問（概要編 問７・８・10、事例編 問44）を区切る・照合の Q&A 枠の試験（`test-fact-qa-slot` の T1・T2・T12）を毎月のデータで落ちない形にする | `02-nested-heading-and-qa-slot-test.md` |
+| 2 | 入れ子の括弧の見出しの問（概要編 問７・８・10、事例編 問44）を区切る・照合の Q&A 枠の試験（`test-fact-qa-slot` の T1・T2・T12）を毎月のデータで落ちない形にする | `02-nested-heading-and-qa-slot-test.md`（直し 02b） |
 
 ## 全段共通の厳守事項
 - 変えてよいファイルは段ごとの指示書に書く。段 1 は `scripts/crawl-nta-qa.js`、`.github/workflows/refresh-nta-qa.yml`（PR 本文に報告を足す所だけ）、`scripts/lib/__tests__/test-nta-qa-split.js`、新しい試験の資料 `scripts/lib/__tests__/fixtures/nta-qa-split/`。段 2 は 02 の「この段の厳守事項」。
