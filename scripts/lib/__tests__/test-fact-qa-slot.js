@@ -33,6 +33,10 @@ const INHERITANCE_CLAIM = { id: 'z1', type: '金額', subject: '贈与税の基�
 // tax_domain をその呼び出しと同じにする。source_key は SCOPES でその主題に当たるもの。
 const INVOICE_TRAP = { sourceKey: 'invoice', taxDomain: 'invoice_system', taxCategoryCode: 'shohi' };
 const INHERITANCE_TRAP = { sourceKey: 'sozoku', taxDomain: 'inheritance_tax', taxCategoryCode: 'sozoku' };
+// 所得税の呼び出し用。Q&A は tax_domain が一致するものしか残らないため、わなも所得税の
+// 分野（tax_domain: 'income_tax'）にする。source_key は scope の語（「インボイス」）で
+// 当たる 'invoice' にする（所得税の資料は scope に無い）。
+const INCOME_TRAP = { sourceKey: 'invoice', taxDomain: 'income_tax', taxCategoryCode: 'shotoku' };
 
 // Q&A を使わない呼び出し（変更前と同じ）。
 function noQaOptions(extra = {}) {
@@ -93,7 +97,7 @@ test('T1', 'qa_scope_text が無ければ、Q&A は候補に何の影響も与�
   const calls = [
     { name: 'c41', claim: claims.c41, options: noQaOptions(), trap: INVOICE_TRAP },
     { name: 'c40', claim: claims.c40, options: noQaOptions(), trap: INVOICE_TRAP },
-    { name: '所得税', claim: INCOME_CLAIM, options: incomeOptions, trap: INVOICE_TRAP },
+    { name: '所得税', claim: INCOME_CLAIM, options: incomeOptions, trap: INCOME_TRAP },
     { name: '相続', claim: INHERITANCE_CLAIM, options: inheritanceOptions, trap: INHERITANCE_TRAP },
   ];
   for (const call of calls) {
@@ -119,6 +123,13 @@ test('T1', 'qa_scope_text が無ければ、Q&A は候補に何の影響も与�
     () => E.searchEvidence(INHERITANCE_CLAIM, inheritanceScoped)).map(ref => ref.id);
   assert.ok(inheritanceIds.includes(inheritanceTrap.id),
     '相続: qa_scope_text に「贈与税の基礎控除」を入れるとわなの id が結果に入る');
+  // 所得税のわなも、その分野の呼び出しに scope の語を付けると効く。
+  const incomeTrap = trapQa(INCOME_CLAIM, INCOME_TRAP);
+  const incomeScoped = { ...incomeOptions, qa_scope_text: 'インボイス' };
+  const incomeIds = withQaFiles(incomeTrap.entries, incomeTrap.files,
+    () => E.searchEvidence(INCOME_CLAIM, incomeScoped)).map(ref => ref.id);
+  assert.ok(incomeIds.includes(incomeTrap.id),
+    '所得税: qa_scope_text に「インボイス」を入れると所得税のわなの id が結果に入る');
 });
 
 test('T2', '対象の Q&A が無い記事では、qa_scope_text があっても結果は変わらない', () => {
@@ -132,12 +143,15 @@ test('T2', '対象の Q&A が無い記事では、qa_scope_text があっても�
   const invoiceScoped = noQaOptions({ qa_scope_text: '所得税の記事 確定申告 給与所得' });
   assert.deepEqual(snapshot(E.searchEvidence(claims.c41, invoiceScoped)),
     snapshot(E.searchEvidence(claims.c41, invoicePlain)), 'c41: 分野の違う qa_scope_text で結果が変わらない');
-  // 3. 1・2 を、T1 の 3 のわな（インボイスの分野）を入れた状態でも確かめる。
+  // 3. 1・2 を、T1 の 3 のわなを入れた状態でも確かめる（所得税の分は所得税の分野のわな）。
   const trap = trapQa(claims.c41, INVOICE_TRAP);
   const withTrap = (claim, options) => snapshot(withQaFiles(trap.entries, trap.files,
     () => E.searchEvidence(claim, options)));
-  assert.deepEqual(withTrap(INCOME_CLAIM, incomeScoped), withTrap(INCOME_CLAIM, incomePlain),
-    '所得税: わなを入れても qa_scope_text の有無で結果が変わらない');
+  const incomeTrap = trapQa(INCOME_CLAIM, INCOME_TRAP);
+  const withIncomeTrap = options => snapshot(withQaFiles(incomeTrap.entries, incomeTrap.files,
+    () => E.searchEvidence(INCOME_CLAIM, options)));
+  assert.deepEqual(withIncomeTrap(incomeScoped), withIncomeTrap(incomePlain),
+    '所得税: 所得税のわなを入れても qa_scope_text の有無で結果が変わらない');
   assert.deepEqual(withTrap(claims.c41, invoiceScoped), withTrap(claims.c41, invoicePlain),
     'c41: わなを入れても分野の違う qa_scope_text で結果が変わらない');
   // 4. 分野の違う Q&A は tax_domain で落ちる。

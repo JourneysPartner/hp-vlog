@@ -387,20 +387,22 @@ function compareQuestionNumbers(a, b) {
 }
 
 /**
- * kept（区切りとして残った問）の中で、後ろで見つけた札（indirect）の前後を
- * すぐ隣の kept の区切りだけで見る。前後の 2 つが番号の順（前 < 後）で、
- * その札が 2 つの間に入らないときだけ、その札を外す候補として返す。
- * 答の中の参照（「問 98 の場合」など）を問の始まりと取り違えないための歯止め。
+ * kept（区切りとして残った問）の中で、後ろで見つけた札（indirect）と入れ子の
+ * 見出しの区切り（nested）の前後を、すぐ隣の kept の区切りだけで見る。前後の
+ * 2 つが番号の順（前 < 後）で、その札が 2 つの間に入らないときだけ、その札を
+ * 外す候補として返す。答の中の参照（「問 98 の場合」など）を問の始まりと
+ * 取り違えないための歯止め。
  *
  * - 前後のどちらかが無いときは外さない（端の問を落とさない）。
  * - 前後が番号の順でないときは外さない（並びの違う資料で正しい問を落とさない）。
  * - 目次の区切りは kept に入らないため、前後の区切りとして見ない。
+ * - 入れ子の無い直接形は対象にしない（今までどおり）。
  */
 function findOutOfOrderIndirectMarks(kept) {
   const out = [];
   for (let i = 0; i < kept.length; i++) {
     const mark = kept[i];
-    if (!mark.indirect) continue;
+    if (!mark.indirect && !mark.nested) continue;
     const prev = kept[i - 1];
     const next = kept[i + 1];
     if (!prev || !next) continue;
@@ -443,6 +445,8 @@ function findQuestionMarks(flat) {
   // 入れ子を含む見出しで新しく拾う区切りにだけ、後ろで札を探す側と同じ除外を当てる。
   // 入れ子の無い直接形は今までどおり（除外を足さない）。
   const claimedDirectCards = new Set(direct.map(directCardStart));
+  // 入れ子の見出しから拾った区切りには目印を付ける（J1）。
+  const nestedMatches = new Set();
   for (const m of flat.matchAll(nestedDirectRe)) {
     if (!/[（）]/.test(m[1])) continue;
     const cardStart = directCardStart(m);
@@ -453,6 +457,7 @@ function findQuestionMarks(flat) {
     if (/^[《≪〈]/.test(after)) continue;
     if (/^\s*(?:参照|をご参照|を参照|に参照)/.test(after)) continue;
     claimedDirectCards.add(cardStart);
+    nestedMatches.add(m);
     direct.push(m);
   }
   direct.sort((a, b) => a.index - b.index || directCardStart(a) - directCardStart(b));
@@ -467,6 +472,7 @@ function findQuestionMarks(flat) {
       card: m[2],
       cardStart,
       indirect: false,
+      nested: nestedMatches.has(m),
     };
   });
   const directHeadingStarts = new Set(marks.map(mark => mark.index));
@@ -570,8 +576,9 @@ function relocateQuestionCard(body, headingEnd, cardStart, card) {
 }
 
 /**
- * 区切りの一覧で本文を切り出す。捨てた切れ端が後ろで見つけた札（indirect）から
- * 始まっていたら、その札を「区切りではない」として返す（呼び出し側で区切り直す）。
+ * 区切りの一覧で本文を切り出す。捨てた切れ端が後ろで見つけた札（indirect）か
+ * 入れ子の見出しの区切り（nested）から始まっていたら、その札を「区切りではない」
+ * として返す（呼び出し側で区切り直す）。
  */
 function splitWithMarks(flat, marks) {
   const out = [];
@@ -590,33 +597,36 @@ function splitWithMarks(flat, marks) {
         marks[i].card,
       );
     }
+    // 捨てた切れ端を作った区切りは、後ろで見つけた札（indirect）と入れ子の
+    // 見出し（nested）なら外して区切り直す。入れ子の無い直接形は外さない。
+    const rejectable = marks[i].indirect || marks[i].nested;
     const qNo = marks[i].card.replace(/\s/g, '');
     // 本文は「【答】」を含む。目次には答が無く、ページ番号の点線がある。
     if (!/【答】/.test(body)) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     if (body.length < 150) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     if (looksLikeTableOfContents(body)) {
-      if (marks[i].indirect) rejected.add(marks[i]);
+      if (rejectable) rejected.add(marks[i]);
       continue;
     }
     // 同じ問が目次と本文で2回出る。長い方（本文）を採る
     const prev = seen.get(qNo);
     if (prev) {
       if (body.length > prev.record.body.length) {
-        // 負けた側の区切りが後ろで見つけた札なら、区切りから外す。
-        if (prev.mark.indirect) rejected.add(prev.mark);
+        // 負けた側の区切りが後ろで見つけた札か入れ子の見出しなら、区切りから外す。
+        if (prev.mark.indirect || prev.mark.nested) rejected.add(prev.mark);
         const at = kept.indexOf(prev.mark);
         if (at >= 0) kept.splice(at, 1);
         prev.record.body = body;
         prev.record.title = `${qNo} ${tidyHeading(marks[i].heading)}`;
         prev.mark = marks[i];
         kept.push(marks[i]);
-      } else if (marks[i].indirect) {
+      } else if (rejectable) {
         rejected.add(marks[i]);
       }
       continue;
@@ -639,9 +649,11 @@ function splitByQuestion(text) {
   let marks = findQuestionMarks(flat);
   if (marks.length < 5) return [];   // 分割対象ではない
 
-  // (a) 後ろで見つけた札の区切りが捨てられる切れ端を作っていたら、その区切りを
-  // 外して区切り直す。外すものが無くなるまで繰り返す（直接の区切りは外さない）。
-  // (b) 残った後ろ向きの区切りは、すぐ前後の kept の問番号の間にあるものだけ採る。
+  // (a) 後ろで見つけた札・入れ子の見出しの区切りが捨てられる切れ端を作っていたら、
+  // その区切りを外して区切り直す。外すものが無くなるまで繰り返す（入れ子の無い
+  // 直接形の区切りは外さない）。
+  // (b) 残った後ろ向きの区切り・入れ子の見出しの区切りは、すぐ前後の kept の
+  // 問番号の間にあるものだけ採る。
   for (;;) {
     const { parts, rejected, kept } = splitWithMarks(flat, marks);
     if (rejected.length > 0) {

@@ -716,6 +716,72 @@ console.log('\n=== A5: 入れ子の見出しで拾わない形 ===');
     '入れ子の無い直接形は、札の後ろが「《」でも今までどおり拾う');
 }
 
+console.log('\n=== J1(a): 入れ子の見出しでも、捨てられる切れ端を作る区切りは外す ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no, extra = '') => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${extra}${'回答本文です。'.repeat(30)}`;
+  const refs = [
+    ['問３', '（「飲食料品」（食品表示法に規定する食品）の範囲）問３ で説明したとおり、酒類は含まれません。'],
+    ['問７', '（「飲食料品」（食品表示法に規定する食品）の範囲）問７ と同様に判定します。'],
+  ];
+  for (const [qNo, ref] of refs) {
+    const q902 = filler(902, ref);
+    const flat = flatten([901, 902, 903, 904, 905]
+      .map(no => (no === 902 ? q902 : filler(no))).join(' '));
+    const marks = findQuestionMarks(flat);
+    assert(marks.some(mark => mark.nested === true && mark.card.replace(/\s/g, '') === qNo),
+      `${qNo}: 参照の文の見出しを入れ子の区切りとして拾う（直す前はここで本文が切れる）`);
+    const parts = splitByQuestion(flat);
+    const byNo = new Map(parts.map(part => [part.qNo, part]));
+    const q902Part = byNo.get('問902');
+    assert(!!q902Part && q902Part.body === q902,
+      `${qNo}: 問902 の本文が参照の文を含んだまま切れない`);
+    assert(!byNo.has(qNo), `${qNo}: 参照の文から ${qNo} を区切らない`);
+    assert(parts.length === 5, `${qNo}: 5 問のまま`);
+    const start = Math.min(...marks.map(mark => mark.index));
+    assert(sameCharMultiset(parts.map(part => part.body).join(''), flat.slice(start)),
+      `${qNo}: 区切った問をつないだ文字が入力（目次を除く）と同じ`);
+  }
+}
+
+console.log('\n=== J1(b): 入れ子の見出しの区切りがすぐ前後の問番号の間に無ければ外す ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const stray = '（「飲食料品」（食品表示法に規定する食品）の範囲）問950 本文です。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const base = [901, 902, 903, 904].map(filler);
+
+  // 問901 と問902 の間（前後は 901 < 902 の順）に、番号の順でない入れ子の区切りを置く。
+  const middle = flatten([base[0], stray, base[1], base[2], base[3]].join(' '));
+  assert(findQuestionMarks(middle).some(mark => mark.nested === true
+    && mark.card.replace(/\s/g, '') === '問950'),
+  '前後の番号の間に無い入れ子の区切りも、区切りの一覧では拾う');
+  const parts = splitByQuestion(middle);
+  const byNo = new Map(parts.map(part => [part.qNo, part]));
+  assert(!byNo.has('問950'), '前後の番号の間に無い入れ子の区切りは外す');
+  assert(parts.length === 4, '4 問のまま');
+  const q901 = byNo.get('問901');
+  assert(!!q901 && q901.body === `${base[0]} ${stray}`,
+    '外した区切りの本文は前の問（問901）に残る');
+  const start = Math.min(...findQuestionMarks(middle).map(mark => mark.index));
+  assert(sameCharMultiset(parts.map(part => part.body).join(''), middle.slice(start)),
+    '区切った問をつないだ文字が入力と同じ');
+
+  // 前後のどちらかが無い位置では外さない。
+  for (const [label, text] of [
+    ['先頭', flatten([stray, ...base].join(' '))],
+    ['末尾', flatten([...base, stray].join(' '))],
+  ]) {
+    const got = new Map(splitByQuestion(text).map(part => [part.qNo, part]));
+    assert(got.has('問950'), `${label}: 前後が無い位置の入れ子の区切りは外さない`);
+    assert(!!got.get('問950') && got.get('問950').body === stray,
+      `${label}: 問950 の本文がそのまま残る`);
+  }
+}
+
 console.log('\n=== A6: 問10 の見出しの内側の括弧から後ろ向きの区切りを立てない ===');
 {
   const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
@@ -909,6 +975,51 @@ async function testA10() {
     } finally {
       fs.rmSync(tempB, { recursive: true, force: true });
     }
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+async function testJ1Run() {
+  console.log('\n=== J1: crawlSource の通し（参照の文で問902 の本文を切らない） ===');
+  const sourceKey = 'keigen';
+  const source = {
+    label: '確認用軽減税率', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'consumption_tax', split: true,
+    docs: [{ id: 'gaiyo', url: 'https://example.test/gaiyo.pdf' }],
+  };
+  const filler = (no, extra = '') => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${extra}${'回答本文です。'.repeat(30)}`;
+  const ref = '（「飲食料品」（食品表示法に規定する食品）の範囲）問３ で説明したとおり、酒類は含まれません。';
+  const body902 = filler(902, ref);
+  const text = [901, 902, 903, 904, 905]
+    .map(no => (no === 902 ? body902 : filler(no))).join(' ');
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-j1-'));
+  try {
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'gaiyo-902.json'), JSON.stringify({
+      id: 'gaiyo-902', type: 'qa', source_key: sourceKey, source_label: source.label,
+      tax_category: source.tax_category, tax_category_code: source.tax_category_code,
+      tax_domain: source.tax_domain, q_no: '問902', digest: false,
+      title: '問902 確認用見出し902', url: source.docs[0].url,
+      body: body902, char_count_body: body902.length,
+      fetched_at: '2026-09-01T00:00:00.000Z',
+    }, null, 2) + '\n', 'utf8');
+    const before = JSON.parse(fs.readFileSync(path.join(dir, 'gaiyo-902.json'), 'utf8'));
+    const result = await crawlSource(sourceKey, source, {
+      outDir: temp, root: temp, delayMs: 0,
+      fetchBuffer: async () => Buffer.from('dummy'),
+      extractText: () => text,
+    });
+    const after = JSON.parse(fs.readFileSync(path.join(dir, 'gaiyo-902.json'), 'utf8'));
+    assert(after.body === before.body && after.title === before.title
+      && after.char_count_body === before.char_count_body,
+    '問902 のファイルが同じ本文・題名で書かれる（切れない）');
+    assert(after.body === body902, '問902 の本文が参照の文を含んだまま書かれる');
+    assert(!fs.existsSync(path.join(dir, 'gaiyo-3.json')), '参照の文から問３ のファイルを作らない');
+    assert(result.splitRejoined.length === 0 && result.skippedDocs.length === 0,
+      '分け直し・区切りの見失いを報告しない');
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -1115,6 +1226,7 @@ console.log('\n=== G7: 索引のつなぎ（同じ種類を消す→保存した
 
 (async () => {
   await testA10();
+  await testJ1Run();
   console.log('\n=== R3: 問が見つからない資料は更新しない ===');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r3-'));
   try {
