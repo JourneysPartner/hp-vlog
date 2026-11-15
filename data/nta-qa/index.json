@@ -2782,8 +2782,8 @@
       "title": "問94－４ 社員食堂での会社負担分に係る仕入税額控除",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/94-4.pdf",
       "file_path": "invoice/94-4.json",
-      "char_count_body": 1149,
-      "fetched_at": "2026-11-15T11:31:03.995Z"
+      "char_count_body": 1147,
+      "fetched_at": "2026-09-01T08:11:59.603Z"
     },
     {
       "id": "95",
@@ -2894,8 +2894,8 @@
       "title": "インボイス制度に関するQ&A（多く寄せられるご質問）",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0521-1334-faq.pdf",
       "file_path": "invoice/faq.json",
-      "char_count_body": 34936,
-      "fetched_at": "2026-11-15T11:32:27.932Z"
+      "char_count_body": 34920,
+      "fetched_at": "2026-09-01T08:13:22.275Z"
     },
     {
       "id": "jireishu",
@@ -5966,8 +5966,8 @@
       "title": "祖父母などから教育資金の一括贈与を受けた場合の贈与税の非課税制度のあらまし",
       "url": "https://www.nta.go.jp/publication/pamph/sozoku-zoyo/201304/pdf/0023004-114_02.pdf",
       "file_path": "sozoku_pamph/kyoiku_shikin.json",
-      "char_count_body": 6632,
-      "fetched_at": "2026-11-15T11:32:46.643Z"
+      "char_count_body": 6554,
+      "fetched_at": "2026-09-01T09:49:56.817Z"
     },
     {
       "id": "r5kaisei-1-1",
