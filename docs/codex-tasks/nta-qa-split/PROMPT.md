@@ -36,3 +36,23 @@
 7. 指示書と食い違う・決めきれない点は、勝手に決めず報告に【要判断】として書いてください。
 
 最後の報告は日本語で、02 の「報告の形」に沿って書いてください。
+
+---
+
+# OpenCode への依頼文（nta-qa-split 段 3、2026-11-16）
+
+あなたはこのリポジトリ（hp-vlog、枝 `fix/nta-qa-direct-heading-guard`）の実装担当です。
+
+1. `docs/codex-tasks/nta-qa-split/README.md` と `docs/codex-tasks/nta-qa-split/03-split-digit-card-and-known-drift.md` を読み、K1〜K3 と試験を実装してください。
+2. 参照ファイルは `.tmp-ref/`（`README.txt` に説明）。読むだけにし、変えないでください。直す前のコードは `.tmp-ref/crawl-nta-qa-before.js` を require して比べてください。試験の資料は `.tmp-ref/` から小さく切り出して、`scripts/lib/__tests__/fixtures/nta-qa-split/` に新しいファイルとして置いてください（既存の資料は変えない）。
+3. 変えてよいファイルは 03 の「この段の厳守事項」にあるものだけです。`data/nta-qa/`・`docs/`・`.tmp-ref/`・ワークフローは変えないでください。
+4. 試験は `sbx` を通して実行し、結果を報告してください。
+   - `scripts/lib/__tests__/test-nta-qa-split.js`（全件通ること）
+   - `scripts/lib/__tests__/test-nta-qa-scope.js`（全件通ること）
+   - `scripts/lib/__tests__/test-fact-qa-slot.js`（全件通ること）
+   - `scripts/lib/__tests__/test-nta-qa.js`（全件通ること。データは変えないので軽減税率は 142 件のまま）
+5. 03 の「受け入れの目安」を自分でも確かめてください。確かめ用の台本は `.tmp-check-direct.js` に置き、残してください（コミットはしません）。
+6. コミット・push・パッケージのインストールはしないでください。ネットワークにも出ないでください。
+7. 指示書と食い違う・決めきれない点は、勝手に決めず報告に【要判断】として書いてください。
+
+最後の報告は日本語で、03 の「報告の形」に沿って書いてください。

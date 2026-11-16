@@ -35,6 +35,7 @@ const { execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'data', 'nta-qa');
 const INDEX_PATH = path.join(OUT_DIR, 'index.json');
+const KNOWN_DRIFT_PATH = path.join(ROOT, 'data', 'nta-qa-known-drift.json');
 const FETCH_DELAY_MS = 1200;
 const HOST = 'https://www.nta.go.jp';
 const DOT_LEADER_RE = /[·・．.…]{6,}/;
@@ -376,6 +377,41 @@ function questionNumberKey(card) {
   return [toNumber(m[1]), m[2] === undefined ? 0 : toNumber(m[2])];
 }
 
+/**
+ * K1: 数字の間に空白が 1 つ入った札（「問1 4」）を、並びに合うときだけ 1 つの札として読む。
+ *
+ * poppler では本文の行頭の「問1 4」が「問1」「4」に分かれて出る。そのままでは
+ * 問1（問14）と同じ番号になり、短い方（問15）が捨てられる。区切りを本文の順に
+ * 並べた後、前から順に、次のすべてを満たすときだけ札の文字に「空白＋数字」を含める。
+ *
+ * 1. 札が「問」＋空白 0〜1 個＋半角数字 1〜2 桁だけ（全角数字・枝番付きは対象外）
+ * 2. 札のすぐ後ろが「空白 1 つ＋半角数字 1〜2 桁」で、その後ろが数字でない
+ * 3. そのまま読んだ番号が、すぐ前の区切り（目次も含む）の番号以下
+ * 4. 合わせて読んだ番号 N が、前の区切りの番号 P について P < N ≤ P＋3
+ *
+ * 札の位置（cardStart）は変えない。後ろで見つけた札は relocateQuestionCard が
+ * 札の文字ごと見出しの直後に動かす。
+ */
+function mergeSplitDigitCards(flat, marks) {
+  for (let i = 1; i < marks.length; i++) {
+    const mark = marks[i];
+    if (!/^問 ?[0-9]{1,2}$/.test(mark.card)) continue;
+    const after = flat.slice(mark.cardStart + mark.card.length);
+    const next = after.match(/^ ([0-9]{1,2})(?![0-9])/);
+    if (!next) continue;
+    const previous = marks[i - 1];
+    const compared = compareQuestionNumbers(mark.card, previous.card);
+    if (compared !== -1 && compared !== 0) continue;
+    const previousKey = questionNumberKey(previous.card);
+    if (!previousKey) continue;
+    const mergedNumber = Number(mark.card.replace(/\s/g, '').replace(/^問/, '') + next[1]);
+    if (!(previousKey[0] < mergedNumber && mergedNumber <= previousKey[0] + 3)) continue;
+    mark.card = `${mark.card} ${next[1]}`;
+    mark.splitDigits = true;
+  }
+  return marks;
+}
+
 /** a < b なら -1、a = b なら 0、a > b なら 1。比べられなければ null。 */
 function compareQuestionNumbers(a, b) {
   const left = questionNumberKey(a);
@@ -563,7 +599,8 @@ function findQuestionMarks(flat) {
   }
 
   marks.sort((a, b) => a.index - b.index);
-  return marks;
+  // K1: 数字の間に空白が入った札を、並びに合うときだけまとめて読む。
+  return mergeSplitDigitCards(flat, marks);
 }
 
 /** 札を元の位置から取り除き、「（見出し）」の直後に置く（札以外の文字は変えない）。 */
@@ -580,11 +617,43 @@ function relocateQuestionCard(body, headingEnd, cardStart, card) {
  * 入れ子の見出しの区切り（nested）から始まっていたら、その札を「区切りではない」
  * として返す（呼び出し側で区切り直す）。
  */
-function splitWithMarks(flat, marks) {
+function splitWithMarks(flat, marks, options = {}) {
+  // K2: 入れ子の無い直接形の切れ端も、すぐ前の区切りがこの回で問として残っている
+  // ときだけ外して前の問に戻す。確かめ用に false で今までどおりにもできる。
+  const restoreDirectFragments = options.restoreDirectFragments !== false;
   const out = [];
   const seen = new Map();
   const rejected = new Set();
   const kept = [];
+  // L1: K2 で前の問に戻した切れ端のうち、【答】を含むものを控える。
+  // 戻した先の問番号は、区切り直しが収まった後に splitByQuestion が決める。
+  const restoredDirect = [];
+  const previousOf = new Map();
+  for (let i = 1; i < marks.length; i++) previousOf.set(marks[i], marks[i - 1]);
+  // 捨てる切れ端を作った区切りを外してよいか。後ろで見つけた札（indirect）と
+  // 入れ子の見出し（nested）は今までどおり。入れ子の無い直接形は、その区切りの
+  // すぐ前の区切りがこの回で問として残っているときだけ（K2）。目次に見える切れ端は
+  // 前の問の本文に混ぜず、今までどおり捨てる。
+  const canRestoreDirect = (mark, body) => {
+    if (!restoreDirectFragments) return false;
+    if (looksLikeTableOfContents(body)) return false;
+    return kept.includes(previousOf.get(mark));
+  };
+  const shouldReject = (mark, body) => mark.indirect || mark.nested
+    || canRestoreDirect(mark, body);
+  // L1: K2 で戻す切れ端のうち【答】を含むものは、本物の問を吸い込んでいる
+  // おそれがある。戻したことを報告できるように控える（【答】の無い参照は控えない）。
+  const noteRestoredDirect = (mark, body) => {
+    if (mark.indirect || mark.nested) return;
+    if (!/【答】/.test(body)) return;
+    if (!canRestoreDirect(mark, body)) return;
+    if (restoredDirect.some(item => item.index === mark.index)) return;
+    restoredDirect.push({
+      index: mark.index,
+      qNo: mark.card.replace(/\s/g, ''),
+      heading: mark.heading,
+    });
+  };
   for (let i = 0; i < marks.length; i++) {
     const start = marks[i].index;
     const end = i + 1 < marks.length ? marks[i + 1].index : flat.length;
@@ -597,9 +666,7 @@ function splitWithMarks(flat, marks) {
         marks[i].card,
       );
     }
-    // 捨てた切れ端を作った区切りは、後ろで見つけた札（indirect）と入れ子の
-    // 見出し（nested）なら外して区切り直す。入れ子の無い直接形は外さない。
-    const rejectable = marks[i].indirect || marks[i].nested;
+    const rejectable = shouldReject(marks[i], body);
     const qNo = marks[i].card.replace(/\s/g, '');
     // 本文は「【答】」を含む。目次には答が無く、ページ番号の点線がある。
     if (!/【答】/.test(body)) {
@@ -607,7 +674,10 @@ function splitWithMarks(flat, marks) {
       continue;
     }
     if (body.length < 150) {
-      if (rejectable) rejected.add(marks[i]);
+      if (rejectable) {
+        rejected.add(marks[i]);
+        noteRestoredDirect(marks[i], body);
+      }
       continue;
     }
     if (looksLikeTableOfContents(body)) {
@@ -619,7 +689,12 @@ function splitWithMarks(flat, marks) {
     if (prev) {
       if (body.length > prev.record.body.length) {
         // 負けた側の区切りが後ろで見つけた札か入れ子の見出しなら、区切りから外す。
-        if (prev.mark.indirect || prev.mark.nested) rejected.add(prev.mark);
+        // L1: 前に出てきた切れ端が K2 で前の問に戻る形で【答】を含むなら、後ろが
+        // 負ける形と同じく控える（本物の問を吸い込んでいるおそれがある）。
+        if (shouldReject(prev.mark, prev.record.body)) {
+          rejected.add(prev.mark);
+          noteRestoredDirect(prev.mark, prev.record.body);
+        }
         const at = kept.indexOf(prev.mark);
         if (at >= 0) kept.splice(at, 1);
         prev.record.body = body;
@@ -628,6 +703,7 @@ function splitWithMarks(flat, marks) {
         kept.push(marks[i]);
       } else if (rejectable) {
         rejected.add(marks[i]);
+        noteRestoredDirect(marks[i], body);
       }
       continue;
     }
@@ -637,41 +713,99 @@ function splitWithMarks(flat, marks) {
     kept.push(marks[i]);
   }
   kept.sort((a, b) => a.index - b.index);
-  return { parts: out, rejected: [...rejected], kept };
+  return { parts: out, rejected: [...rejected], kept, restoredDirect };
+}
+
+/** parts（配列）に、K2 で戻した切れ端の一覧を（数え上げに出ない形で）添える。 */
+function withRestoredFragments(parts, fragments) {
+  const list = Array.isArray(parts) ? parts : [];
+  Object.defineProperty(list, 'restoredFragments', {
+    value: Array.isArray(fragments) ? fragments : [],
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
+  return list;
+}
+
+/**
+ * K2 で控えた切れ端に、戻した先の問番号を付ける。
+ * 戻した先は、収束した後の区切りで切れ端より前にある最後の問（切れ端の文字は
+ * その問の本文に入る）。前に残った問が無ければ報告しない。
+ */
+function describeRestoredFragments(restoredDirect, kept) {
+  const list = [];
+  const sorted = [...(restoredDirect || [])].sort((a, b) => a.index - b.index);
+  for (const item of sorted) {
+    let target = null;
+    for (const mark of kept || []) {
+      if (mark.index < item.index) target = mark;
+      else break;
+    }
+    if (!target) continue;
+    list.push({
+      qNo: item.qNo,
+      heading: item.heading,
+      restoredTo: target.card.replace(/\s/g, ''),
+    });
+  }
+  return list;
 }
 
 /**
  * 区切りの一覧で本文を切り出す。区切りの前後で問番号の並びを見て、答の中の
  * 参照を問の始まりと取り違えた区切りを外す（呼び出し側で区切り直す）。
+ *
+ * 戻り値は問の配列。K2 で前の問に戻した切れ端のうち【答】を含むものは、
+ * 配列の `restoredFragments`（列挙しないプロパティ）に
+ * `{ qNo, heading, restoredTo }` で入れる。数え上げ・JSON 化には出ない。
  */
-function splitByQuestion(text) {
+function splitByQuestion(text, options = {}) {
   const flat = String(text || '').replace(/\s+/g, ' ').trim();
   let marks = findQuestionMarks(flat);
-  if (marks.length < 5) return [];   // 分割対象ではない
+  if (marks.length < 5) return withRestoredFragments([], []);   // 分割対象ではない
 
   // (a) 後ろで見つけた札・入れ子の見出しの区切りが捨てられる切れ端を作っていたら、
-  // その区切りを外して区切り直す。外すものが無くなるまで繰り返す（入れ子の無い
-  // 直接形の区切りは外さない）。
+  // その区切りを外して区切り直す。外すものが無くなるまで繰り返す。
   // (b) 残った後ろ向きの区切り・入れ子の見出しの区切りは、すぐ前後の kept の
   // 問番号の間にあるものだけ採る。
-  for (;;) {
-    const { parts, rejected, kept } = splitWithMarks(flat, marks);
-    if (rejected.length > 0) {
-      const drop = new Set(rejected);
-      marks = marks.filter(mark => !drop.has(mark));
-      if (marks.length === 0) return [];
-      continue;
+  // まず今までの 2 つを収束させ、その後に K2（入れ子の無い直接形の切れ端を前の
+  // 問に戻す）を収束させる。先に今までの 2 つを収束させないと、後ろの入れ子の
+  // 区切りが短く切っただけの本物の問まで前の問に戻してしまう。
+  const settle = (restoreDirectFragments) => {
+    // K2 で戻した切れ端は、区切り直しの各回で控える（戻した先は最後に決める）。
+    const restoredDirect = [];
+    for (;;) {
+      const { parts, rejected, kept, restoredDirect: found } = splitWithMarks(flat, marks,
+        { ...options, restoreDirectFragments });
+      for (const item of found || []) {
+        if (!restoredDirect.some(seen => seen.index === item.index)) restoredDirect.push(item);
+      }
+      if (rejected.length > 0) {
+        const drop = new Set(rejected);
+        marks = marks.filter(mark => !drop.has(mark));
+        if (marks.length === 0) return null;
+        continue;
+      }
+      const keptAfter = filterIndirectMarks(kept);
+      if (keptAfter.length !== kept.length) {
+        const keep = new Set(keptAfter);
+        const drop = new Set(kept.filter(mark => !keep.has(mark)));
+        marks = marks.filter(mark => !drop.has(mark));
+        if (marks.length === 0) return null;
+        continue;
+      }
+      return { parts, kept, restoredDirect };
     }
-    const keptAfter = filterIndirectMarks(kept);
-    if (keptAfter.length !== kept.length) {
-      const keep = new Set(keptAfter);
-      const drop = new Set(kept.filter(mark => !keep.has(mark)));
-      marks = marks.filter(mark => !drop.has(mark));
-      if (marks.length === 0) return [];
-      continue;
-    }
-    return parts;
-  }
+  };
+
+  const base = settle(false);
+  if (!base) return withRestoredFragments([], []);
+  if (options.restoreDirectFragments === false) return withRestoredFragments(base.parts, []);
+  const done = settle(true);
+  if (!done) return withRestoredFragments([], []);
+  return withRestoredFragments(done.parts,
+    describeRestoredFragments(done.restoredDirect, done.kept));
 }
 
 /**
@@ -959,6 +1093,58 @@ function titlesDiffer(before, after) {
   return before.replace(/\s+/g, '') !== after.replace(/\s+/g, '');
 }
 
+/** 本文の文字列を UTF-8 のまま sha256（16 進の小文字 64 字）にする。 */
+function bodySha256(body) {
+  return crypto.createHash('sha256').update(String(body || ''), 'utf8').digest('hex');
+}
+
+/**
+ * K3: 既知の取り出しのずれの一覧（data/nta-qa-known-drift.json）を読む。
+ *
+ * ファイルが無いときは空の一覧（今と同じ動き）。JSON が壊れている・形が違うときは
+ * 警告を出して空の一覧として続け、理由を返す（報告に出す。PR が出る側に倒す）。
+ */
+function loadKnownDrift(filePath = KNOWN_DRIFT_PATH, options = {}) {
+  const warn = typeof options.warn === 'function' ? options.warn : console.warn;
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error && error.code === 'ENOENT') return { entries: new Map(), error: null };
+    const reason = firstLineReason(error);
+    warn(`[warn] 既知のずれの一覧を読めませんでした（${reason}）`);
+    return { entries: new Map(), error: reason };
+  }
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.entries)) {
+      throw new Error('entries が配列ではありません');
+    }
+    const entries = new Map();
+    for (const entry of data.entries) {
+      if (!entry || typeof entry.file !== 'string'
+        || typeof entry.keep_body_sha256 !== 'string'
+        || typeof entry.drift_body_sha256 !== 'string') {
+        throw new Error('entries の形が違います');
+      }
+      entries.set(entry.file.replace(/\\/g, '/'), entry);
+    }
+    return { entries, error: null };
+  } catch (error) {
+    const reason = firstLineReason(error);
+    warn(`[warn] 既知のずれの一覧を読めませんでした（${reason}）`);
+    return { entries: new Map(), error: reason };
+  }
+}
+
+/** options.knownDrift（file → 行の Map）から 1 行を引く。 */
+function findKnownDriftEntry(knownDrift, relative) {
+  if (!knownDrift) return null;
+  const key = String(relative || '').replace(/\\/g, '/');
+  if (knownDrift instanceof Map) return knownDrift.get(key) || null;
+  return knownDrift[key] || null;
+}
+
 function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
   const outDir = options.outDir || OUT_DIR;
   const dir = path.join(outDir, sourceKey);
@@ -987,6 +1173,30 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
   try { existingRecord = JSON.parse(fs.readFileSync(filePath, 'utf8')); }
   catch (_) { /* 新規ファイル、または既存ファイルを読み取れない場合は通常どおり保存する */ }
 
+  // K3: 既知の取り出しのずれ（今の本文と、毎回同じに出るずれた本文）に
+  // 両方が全く同じときは、今の本文・題名・字数を残して fetched_at だけ新しくする。
+  // 題名が変わるときは当てない（題名の変更は R2・G2 の道で報告する）。
+  const driftEntry = findKnownDriftEntry(options.knownDrift, relative);
+  let knownDriftMismatch = false;
+  if (driftEntry && existingRecord && typeof existingRecord.body === 'string'
+    && typeof record.body === 'string') {
+    const keptHash = bodySha256(existingRecord.body);
+    const incomingHash = bodySha256(record.body);
+    if (keptHash === driftEntry.keep_body_sha256
+      && incomingHash === driftEntry.drift_body_sha256
+      && !titlesDiffer(existingRecord.title, record.title)) {
+      record.body = existingRecord.body;
+      record.title = typeof existingRecord.title === 'string' ? existingRecord.title : record.title;
+      record.char_count_body = typeof existingRecord.char_count_body === 'number'
+        ? existingRecord.char_count_body
+        : existingRecord.body.length;
+      fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
+      return { relative, record, knownDrift: true };
+    }
+    // 一覧にあるが条件に合わない。本文が今と違うなら、報告に出して今までどおりの道へ。
+    if (existingRecord.body !== record.body) knownDriftMismatch = true;
+  }
+
   // G2: 既にある問の題名が変わったら、報告に出すために前の題名を返す。
   const titleBefore = existingRecord && typeof existingRecord.title === 'string'
     && titlesDiffer(existingRecord.title, record.title)
@@ -1001,7 +1211,7 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
       ? existingRecord.char_count_body
       : existingRecord.body.length;
     fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
-    return { relative, record, reordered: true };
+    return { relative, record, reordered: true, knownDriftMismatch };
   }
 
   if (options.keepTitleIfSame && existingRecord && typeof existingRecord.title === 'string'
@@ -1016,11 +1226,11 @@ function saveEntry(sourceKey, source, doc, parsed, url, options = {}) {
     warn(`[warn] 本文が大幅に短くなるため更新を見送りました\n`
       + `       ${displayPath}  ${existingRecord.body.length}字 → ${record.body.length}字\n`
       + '       PDF のテキスト抽出が目次を拾った可能性があります');
-    return { relative, record: existingRecord, skipped: true };
+    return { relative, record: existingRecord, skipped: true, knownDriftMismatch };
   }
 
   fs.writeFileSync(filePath, JSON.stringify(record, null, 2) + '\n', 'utf8');
-  return { relative, record, titleBefore };
+  return { relative, record, titleBefore, knownDriftMismatch };
 }
 
 /**
@@ -1123,6 +1333,7 @@ function buildReport(summary = {}) {
   const failedDocs = Array.isArray(summary.failedDocs) ? summary.failedDocs : [];
   const splitRejoined = Array.isArray(summary.splitRejoined) ? summary.splitRejoined : [];
   const splitMismatched = Array.isArray(summary.splitMismatched) ? summary.splitMismatched : [];
+  const restoredFragments = Array.isArray(summary.restoredFragments) ? summary.restoredFragments : [];
   const lines = ['### 取り込みの報告', ''];
   if (reorderedCount > 0) {
     lines.push(`- 並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件`);
@@ -1137,6 +1348,18 @@ function buildReport(summary = {}) {
   for (const change of titleChanges) {
     lines.push(`- ${change.file}: ${change.before} → ${change.after}`);
   }
+  const knownDriftFiles = Array.isArray(summary.knownDriftFiles) ? summary.knownDriftFiles : [];
+  if (knownDriftFiles.length > 0) {
+    lines.push(`- 既知の取り出しのずれ（data/nta-qa-known-drift.json）のため本文を残した `
+      + `${knownDriftFiles.length} 件: ${knownDriftFiles.join('、')}`);
+  }
+  for (const file of (Array.isArray(summary.knownDriftMismatch) ? summary.knownDriftMismatch : [])) {
+    lines.push(`- 既知のずれの一覧にある ${file} に、一覧と違う本文が来ました`
+      + '（国税庁の改訂か、取り出しの部品の変化。中身を見てください）');
+  }
+  if (summary.knownDriftError) {
+    lines.push(`- 既知のずれの一覧を読めませんでした（${summary.knownDriftError}）`);
+  }
   for (const split of splitRejoined) {
     lines.push(`- くっついていた問を分けた: ${split.file}（${split.qNo}）→ `
       + `${(split.children || []).join('、')}`);
@@ -1144,6 +1367,12 @@ function buildReport(summary = {}) {
   for (const split of splitMismatched) {
     lines.push(`- 分けた問の文字が前の本文と合わないため、${split.file}（${split.qNo}）の本文は`
       + `前のまま残しました（分けた問: ${(split.children || []).join('、')}）`);
+  }
+  for (const fragment of restoredFragments) {
+    const label = fragment.sourceKey ? `${fragment.sourceKey}/${fragment.docId}` : fragment.docId;
+    lines.push(`- ${label} の ${fragment.qNo}（${fragment.heading}）の切れ端を `
+      + `${fragment.restoredTo} の本文に戻しました`
+      + '（【答】があります。本物の問かもしれません。中身を見てください）');
   }
   for (const skipped of skippedDocs) {
     const label = skipped.sourceKey ? `${skipped.sourceKey}/${skipped.docId}` : skipped.docId;
@@ -1197,6 +1426,9 @@ async function crawlSource(sourceKey, source, options = {}) {
   const extractText = options.extractText
     || ((buf) => (source.format === 'html' ? htmlToText(decodeHtml(buf)) : pdfToText(buf)));
   const isSplit = !!(source.split || source.splitBy);
+  const knownDrift = options.knownDrift instanceof Map
+    ? options.knownDrift
+    : new Map(Object.entries(options.knownDrift || {}));
   const log = (m) => { if (logger && logger.log) logger.log(m); };
   const warn = (m) => { if (logger && logger.warn) logger.warn(m); };
 
@@ -1230,6 +1462,9 @@ async function crawlSource(sourceKey, source, options = {}) {
   const reorderedFiles = [];
   const splitRejoined = [];
   const splitMismatched = [];
+  const restoredFragments = [];
+  const knownDriftFiles = [];
+  const knownDriftMismatch = [];
   const protectedFileNames = new Set();
   const preservedFilePaths = [];
   let failed = 0;
@@ -1237,12 +1472,16 @@ async function crawlSource(sourceKey, source, options = {}) {
   let reorderedCount = 0;
 
   const save = (doc, parsed, url, extra = {}) => {
-    const result = saveEntry(sourceKey, source, doc, parsed, url, { warn, outDir, root, ...extra });
+    const result = saveEntry(sourceKey, source, doc, parsed, url,
+      { warn, outDir, root, knownDrift, ...extra });
     if (result.skipped) skippedUpdates++;
-    if (result.reordered) {
+    if (result.knownDrift) {
+      knownDriftFiles.push(result.relative);
+    } else if (result.reordered) {
       reorderedCount++;
       if (result.relative) reorderedFiles.push(result.relative);
     }
+    if (result.knownDriftMismatch) knownDriftMismatch.push(result.relative);
     if (result.titleBefore) {
       titleChanges.push({
         file: result.relative, before: result.titleBefore, after: result.record.title,
@@ -1293,6 +1532,10 @@ async function crawlSource(sourceKey, source, options = {}) {
 
       if (!skippedThisDoc) {
         if (parts.length > 0) {
+          // L1: K2 で前の問に戻した【答】入りの切れ端を、この資料の報告に集める。
+          for (const fragment of (parts.restoredFragments || [])) {
+            restoredFragments.push({ sourceKey, docId: doc.id, ...fragment });
+          }
           const resolvedParts = resolveEntryIds(doc.id, parts, { warn });
           // R3: 今ある問 X のすぐ後ろの問が分けた先かを求め、X の本文短縮ガードの
           // 例外（分け直し）と、合わないときの報告に使う。
@@ -1368,7 +1611,8 @@ async function crawlSource(sourceKey, source, options = {}) {
 
   log(`[nta-qa] ${source.label}: ${saved.length} 件保存${failed ? `（失敗 ${failed} 件）` : ''}`
     + `${skippedUpdates ? `（本文短縮による更新見送り ${skippedUpdates} 件）` : ''}`
-    + `${reorderedCount ? `（並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件）` : ''}`);
+    + `${reorderedCount ? `（並び替え・空白の違いだけのため本文を残した ${reorderedCount} 件）` : ''}`
+    + `${knownDriftFiles.length ? `（既知の取り出しのずれのため本文を残した ${knownDriftFiles.length} 件）` : ''}`);
   return {
     saved,
     failed,
@@ -1378,6 +1622,9 @@ async function crawlSource(sourceKey, source, options = {}) {
     titleChanges,
     splitRejoined,
     splitMismatched,
+    restoredFragments,
+    knownDriftFiles,
+    knownDriftMismatch,
     skippedDocs,
     failedDocs,
     preservedFilePaths,
@@ -1407,6 +1654,7 @@ async function main() {
   const index = loadIndex();
   const previousEntries = index.entries;
   const keys = keysToRun;
+  const knownDrift = loadKnownDrift(KNOWN_DRIFT_PATH, { warn: console.warn });
   let skippedUpdates = 0;
   let reorderedCount = 0;
   const reorderedFiles = [];
@@ -1415,17 +1663,23 @@ async function main() {
   const failedDocs = [];
   const splitRejoined = [];
   const splitMismatched = [];
+  const restoredFragments = [];
+  const knownDriftFiles = [];
+  const knownDriftMismatch = [];
   const runs = [];
   for (const key of keys) {
     const source = SOURCES[key];
     if (!source) { console.error(`[nta-qa] 未知の対象: ${key}`); process.exit(1); }
-    const result = await crawlSource(key, source, { limit });
+    const result = await crawlSource(key, source, { limit, knownDrift: knownDrift.entries });
     skippedUpdates += result.skippedUpdates;
     reorderedCount += result.reorderedCount || 0;
     reorderedFiles.push(...(result.reorderedFiles || []));
     titleChanges.push(...(result.titleChanges || []));
     splitRejoined.push(...(result.splitRejoined || []));
     splitMismatched.push(...(result.splitMismatched || []));
+    restoredFragments.push(...(result.restoredFragments || []));
+    knownDriftFiles.push(...(result.knownDriftFiles || []));
+    knownDriftMismatch.push(...(result.knownDriftMismatch || []));
     skippedDocs.push(...(result.skippedDocs || []));
     failedDocs.push(...(result.failedDocs || []));
     runs.push({
@@ -1440,10 +1694,15 @@ async function main() {
     console.warn(`[warn] 本文が大幅に短くなるため ${skippedUpdates} 件の更新を見送りました`);
   }
   const report = { reorderedCount, reorderedFiles, titleChanges, splitRejoined, splitMismatched,
+    restoredFragments,
+    knownDriftFiles, knownDriftMismatch, knownDriftError: knownDrift.error,
     skippedDocs, skippedUpdates, failedDocs };
   const reportPath = process.env.NTA_QA_REPORT;
   if (reorderedCount > 0 || titleChanges.length > 0 || splitRejoined.length > 0
-    || splitMismatched.length > 0 || skippedDocs.length > 0
+    || splitMismatched.length > 0 || knownDriftFiles.length > 0
+    || restoredFragments.length > 0
+    || knownDriftMismatch.length > 0 || knownDrift.error
+    || skippedDocs.length > 0
     || skippedUpdates > 0 || failedDocs.length > 0) {
     console.log(buildReport(report).trimEnd());
   }
@@ -1465,6 +1724,7 @@ module.exports = {
   splitByQuestion,
   splitWithMarks,
   findQuestionMarks,
+  mergeSplitDigitCards,
   filterIndirectMarks,
   isIgnoredHeading,
   tidyHeading,
@@ -1479,6 +1739,9 @@ module.exports = {
   sameCharMultiset,
   findSplitOffs,
   titlesDiffer,
+  bodySha256,
+  loadKnownDrift,
+  findKnownDriftEntry,
   saveEntry,
   readExistingDocEntries,
   buildReport,
@@ -1494,4 +1757,5 @@ module.exports = {
   crawlSource,
   OUT_DIR,
   INDEX_PATH,
+  KNOWN_DRIFT_PATH,
 };
