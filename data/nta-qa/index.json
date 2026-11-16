@@ -3666,22 +3666,6 @@
       "fetched_at": "2026-11-15T11:32:44.257Z"
     },
     {
-      "id": "gaiyo-1",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問1",
-      "digest": false,
-      "title": "問1 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
-      "file_path": "keigen/gaiyo-1.json",
-      "char_count_body": 780,
-      "fetched_at": "2026-11-15T11:32:37.087Z"
-    },
-    {
       "id": "gaiyo-10",
       "type": "qa",
       "source_key": "keigen",
@@ -3744,6 +3728,38 @@
       "file_path": "keigen/gaiyo-13.json",
       "char_count_body": 1316,
       "fetched_at": "2026-11-15T11:32:37.086Z"
+    },
+    {
+      "id": "gaiyo-14",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問14",
+      "digest": false,
+      "title": "問14 仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場 合の追記",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-14.json",
+      "char_count_body": 780,
+      "fetched_at": "2026-11-16T10:18:23.730Z"
+    },
+    {
+      "id": "gaiyo-15",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問15",
+      "digest": false,
+      "title": "問15 免税事業者からの課税仕入れの取扱い",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+      "file_path": "keigen/gaiyo-15.json",
+      "char_count_body": 235,
+      "fetched_at": "2026-11-16T10:18:23.730Z"
     },
     {
       "id": "gaiyo-16",
@@ -4722,22 +4738,6 @@
       "fetched_at": "2026-11-15T11:32:38.638Z"
     },
     {
-      "id": "jirei-3",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問3",
-      "digest": false,
-      "title": "問3 通信販売",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-3.json",
-      "char_count_body": 484,
-      "fetched_at": "2026-11-15T11:32:38.651Z"
-    },
-    {
       "id": "jirei-30",
       "type": "qa",
       "source_key": "keigen",
@@ -4800,6 +4800,22 @@
       "file_path": "keigen/jirei-33.json",
       "char_count_body": 212,
       "fetched_at": "2026-11-15T11:32:38.650Z"
+    },
+    {
+      "id": "jirei-34",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問34",
+      "digest": false,
+      "title": "問34 通信販売",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-34.json",
+      "char_count_body": 484,
+      "fetched_at": "2026-11-16T10:18:23.766Z"
     },
     {
       "id": "jirei-35",
@@ -4898,22 +4914,6 @@
       "fetched_at": "2026-11-15T11:32:38.639Z"
     },
     {
-      "id": "jirei-4",
-      "type": "qa",
-      "source_key": "keigen",
-      "source_label": "消費税の軽減税率制度に関するQ&A",
-      "tax_category": "消費税",
-      "tax_category_code": "shohi",
-      "tax_domain": "consumption_tax",
-      "q_no": "問4",
-      "digest": false,
-      "title": "問4 販売奨励金",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-4.json",
-      "char_count_body": 731,
-      "fetched_at": "2026-11-15T11:32:38.654Z"
-    },
-    {
       "id": "jirei-40",
       "type": "qa",
       "source_key": "keigen",
@@ -4944,6 +4944,22 @@
       "file_path": "keigen/jirei-41.json",
       "char_count_body": 1016,
       "fetched_at": "2026-11-15T11:32:38.653Z"
+    },
+    {
+      "id": "jirei-42",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問42",
+      "digest": false,
+      "title": "問42 販売奨励金",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-42.json",
+      "char_count_body": 731,
+      "fetched_at": "2026-11-16T10:18:23.771Z"
     },
     {
       "id": "jirei-43",
@@ -5602,20 +5618,36 @@
       "fetched_at": "2026-11-15T11:32:38.640Z"
     },
     {
-      "id": "jirei-8",
+      "id": "jirei-80",
       "type": "qa",
       "source_key": "keigen",
       "source_label": "消費税の軽減税率制度に関するQ&A",
       "tax_category": "消費税",
       "tax_category_code": "shohi",
       "tax_domain": "consumption_tax",
-      "q_no": "問8",
+      "q_no": "問80",
       "digest": false,
-      "title": "問8 有料老人ホームの飲食料品の提供",
+      "title": "問80 有料老人ホームの飲食料品の提供",
       "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
-      "file_path": "keigen/jirei-8.json",
+      "file_path": "keigen/jirei-80.json",
       "char_count_body": 2169,
-      "fetched_at": "2026-11-15T11:32:38.670Z"
+      "fetched_at": "2026-11-16T10:18:23.789Z"
+    },
+    {
+      "id": "jirei-81",
+      "type": "qa",
+      "source_key": "keigen",
+      "source_label": "消費税の軽減税率制度に関するQ&A",
+      "tax_category": "消費税",
+      "tax_category_code": "shohi",
+      "tax_domain": "consumption_tax",
+      "q_no": "問81",
+      "digest": false,
+      "title": "問81 学生食堂",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/03-01.pdf",
+      "file_path": "keigen/jirei-81.json",
+      "char_count_body": 529,
+      "fetched_at": "2026-11-16T10:18:23.790Z"
     },
     {
       "id": "jirei-82",
@@ -6178,15 +6210,15 @@
       "fetched_at": "2026-11-15T11:32:44.671Z"
     }
   ],
-  "generated_at": "2026-11-15T11:32:46.653Z",
-  "total_count": 386,
+  "generated_at": "2026-11-16T10:18:53.035Z",
+  "total_count": 388,
   "by_source": {
     "cross_border": 3,
     "denshi_scan": 4,
     "denshi_torihiki": 2,
     "invoice": 173,
     "kasou": 47,
-    "keigen": 142,
+    "keigen": 144,
     "sozoku_pamph": 2,
     "sozoku": 13
   }

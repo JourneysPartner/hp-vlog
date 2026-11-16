@@ -1,0 +1,16 @@
+{
+  "id": "gaiyo-15",
+  "type": "qa",
+  "source_key": "keigen",
+  "source_label": "消費税の軽減税率制度に関するQ&A",
+  "tax_category": "消費税",
+  "tax_category_code": "shohi",
+  "tax_domain": "consumption_tax",
+  "q_no": "問15",
+  "digest": false,
+  "title": "問15 免税事業者からの課税仕入れの取扱い",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/02-01.pdf",
+  "body": "（免税事業者からの課税仕入れの取扱い） 問1 5 区分記載請求書等保存方式に移行後であっても免税事業者からの課税仕入れについ て、仕入税額控除ができますか。【令和５年 10 月改訂】 【答】 区分記載請求書等保存方式の下でも、免税事業者等からの課税仕入れについては、令和元 年９月 30 日までと同様に仕入税額控除の適用を受けることができました。 （参考） 区分記載請求書等保存方式の概要は、問 12 をご参照ください。 - 16 - Ⅳ 税額計算等 １ 税額計算の方法",
+  "char_count_body": 235,
+  "fetched_at": "2026-11-16T10:18:23.730Z"
+}
