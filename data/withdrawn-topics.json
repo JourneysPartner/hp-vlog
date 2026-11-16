@@ -131,6 +131,36 @@
       "target_query": "youtuber 税金 いくら",
       "date": "2026-11-11",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/42928547998"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-801e15",
+      "stage": "pregen-dedup",
+      "similar_to": "reselling-tax-declaration-detection",
+      "reason": "せどりの無申告が税務署や勤務先にバレるかという論点（検知の仕組み・リスク・加算税）が既存記事と同一で、personaも同一のため読者からは同じ記事と見える。",
+      "url_slug": "reselling-tax-return-detection",
+      "target_query": "せどり 確定申告 バレる",
+      "date": "2026-11-16",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/43778288698"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-5c3749",
+      "stage": "target-query-withdrawn",
+      "similar_to": "suggest-furima-sedori-1e1ea0",
+      "reason": "狙う検索語「せどり 確定申告 やり方」は取り下げ記録と同じ → 取り下げ",
+      "url_slug": "reselling-tax-return-guide",
+      "target_query": "せどり 確定申告 やり方",
+      "date": "2026-11-16",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/43778288698"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-e85afb",
+      "stage": "target-query-owned",
+      "similar_to": "reselling-tax-declaration-detection",
+      "reason": "狙う検索語「せどり 確定申告 バレない」は reselling-tax-declaration-detection が既に持っている → 取り下げ",
+      "url_slug": "reselling-tax-filing-exposure",
+      "target_query": "せどり 確定申告 バレない",
+      "date": "2026-11-16",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/43778288698"
     }
   ]
 }
