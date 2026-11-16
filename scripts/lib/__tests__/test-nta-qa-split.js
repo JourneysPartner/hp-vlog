@@ -1434,6 +1434,112 @@ console.log('\n=== K2: 入れ子の無い直接形でも、残った問のすぐ
   assert(!!q1 && !!realOnly && q1.body === realOnly.body, '目次の直後の問1 の本文が変わらない');
 }
 
+console.log('\n=== L1: K2 で戻した【答】入りの切れ端は報告に出す ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const reportLine = (fragment) => `- ${fragment.sourceKey}/${fragment.docId} の `
+    + `${fragment.qNo}（${fragment.heading}）の切れ端を ${fragment.restoredTo} の本文に戻しました`
+    + '（【答】があります。本物の問かもしれません。中身を見てください）';
+
+  // (a) 【答】のすぐ後ろに入れ子の無い参照が来る形。短い問903 の切れ端ごと問902 に入る。
+  const ref = '（食品表示法に規定する食品）問３ で説明したとおり、酒類は含まれません。';
+  const shortQuestion = '（確認用見出し903） 問903 短い質問ですか。 【答】 ';
+  const flatA = flatten([filler(901), filler(902), `${shortQuestion}${ref}`, filler(904), filler(905)]
+    .join(' '));
+  const partsA = splitByQuestion(flatA);
+  const byNoA = new Map(partsA.map(part => [part.qNo, part]));
+  const restoredA = partsA.restoredFragments || [];
+  assert(restoredA.length === 1, `(a) 戻した切れ端を 1 件返す（実際 ${restoredA.length} 件）`);
+  assert(restoredA.length === 1 && restoredA[0].qNo === '問903'
+    && restoredA[0].heading === '確認用見出し903' && restoredA[0].restoredTo === '問902',
+  '(a) 切れ端の札・見出し・戻した先の問番号を返す');
+  assert(!byNoA.has('問903') && !!byNoA.get('問902')
+    && byNoA.get('問902').body.includes('短い質問ですか'),
+  '(a) 問903 の切れ端が問902 の本文に入る（今までどおりの区切り）');
+  assert(!Object.keys(partsA).includes('restoredFragments'),
+    '(a) 戻した切れ端の一覧は数え上げ・JSON 化に出ない');
+  {
+    const fragment = { sourceKey: 'keigen', docId: 'jirei', ...restoredA[0] };
+    const report = buildReport({ restoredFragments: [fragment] });
+    assert(report.includes(reportLine(fragment)), '(a) 報告に戻した切れ端の行を出す');
+    assert(report.includes('（【答】があります。本物の問かもしれません。中身を見てください）'),
+      '(a) 報告の行に【答】があることと中身を見ることを書く');
+  }
+
+  // (b) 同じ問番号がもう一度ある形（再掲）。競り負けた再掲が前の問903 に戻る。
+  const reprint = '（再掲） 問903 再掲の本文です。 【答】 再掲の回答です。';
+  const flatB = flatten([filler(901), filler(902), filler(903), reprint, filler(904)].join(' '));
+  const partsB = splitByQuestion(flatB);
+  const byNoB = new Map(partsB.map(part => [part.qNo, part]));
+  const restoredB = partsB.restoredFragments || [];
+  assert(restoredB.length === 1, `(b) 競り負けた再掲を 1 件返す（実際 ${restoredB.length} 件）`);
+  assert(restoredB.length === 1 && restoredB[0].qNo === '問903'
+    && restoredB[0].heading === '再掲' && restoredB[0].restoredTo === '問903',
+  '(b) 再掲の切れ端の札・見出し・戻した先の問番号を返す');
+  assert(partsB.length === 4 && !!byNoB.get('問903')
+    && byNoB.get('問903').body.includes('再掲の本文です'),
+  '(b) 再掲の文字が問903 の本文に入る（今までどおりの区切り）');
+  {
+    const fragment = { sourceKey: 'keigen', docId: 'jirei', ...restoredB[0] };
+    const report = buildReport({ restoredFragments: [fragment] });
+    assert(report.includes(reportLine(fragment)), '(b) 報告に再掲の切れ端の行を出す');
+  }
+
+  // (c) 【答】を含まない参照（答の中の参照）は今までどおり報告しない。
+  const body902 = '（確認用見出し902） 問902 本文です。 【答】 '
+    + `${'回答本文です。'.repeat(20)} ${ref} ${'回答本文です。'.repeat(20)}`;
+  const flatC = flatten([901, 902, 903, 904, 905]
+    .map(no => (no === 902 ? body902 : filler(no))).join(' '));
+  const partsC = splitByQuestion(flatC);
+  assert((partsC.restoredFragments || []).length === 0,
+    '(c) 【答】の無い参照では行を出さない');
+  assert(splitByQuestion(flatA, { restoreDirectFragments: false }).restoredFragments.length === 0,
+    '(c) K2 を止めたときは行を出さない');
+
+  // (d) 今の全文（.tmp-ref）では行が 0。
+  for (const label of ['gaiyo', 'jirei']) {
+    const full = path.join(ROOT, '.tmp-ref', `keigen-${label}-xpdf-full.txt`);
+    if (!fs.existsSync(full)) {
+      console.log(`  -- ${label}: .tmp-ref の全文が無いので確かめない`);
+      continue;
+    }
+    const fullParts = splitByQuestion(fs.readFileSync(full, 'utf8'));
+    assert((fullParts.restoredFragments || []).length === 0,
+      `(d) 今の全文 ${label} では戻した切れ端が 0 件（実際 `
+      + `${(fullParts.restoredFragments || []).length} 件）`);
+  }
+
+  // (e) 同じ問番号の競り負けで、前に出てきた切れ端のほうが負ける形。
+  // 【答】のある短い問903 が先に出て、後ろのもっと長い問903 に負けて問902 に戻る。
+  const first903 = '（確認用見出し903c） 問903 先に来た短い質問ですか。 【答】 '
+    + '短い回答です。'.repeat(15);
+  const longer903 = '（確認用見出し903d） 問903 後ろに来た長い質問ですか。 【答】 '
+    + '長い回答です。'.repeat(40);
+  const flatE = flatten([filler(901), filler(902), first903, longer903, filler(904), filler(905)]
+    .join(' '));
+  const partsE = splitByQuestion(flatE);
+  const byNoE = new Map(partsE.map(part => [part.qNo, part]));
+  const restoredE = partsE.restoredFragments || [];
+  assert(restoredE.length === 1, `(e) 前に出て負けた切れ端を 1 件返す（実際 ${restoredE.length} 件）`);
+  assert(restoredE.length === 1 && restoredE[0].qNo === '問903'
+    && restoredE[0].heading === '確認用見出し903c' && restoredE[0].restoredTo === '問902',
+  '(e) 負けた側の札・見出し・戻した先の問番号を返す');
+  assert(partsE.length === 5 && !!byNoE.get('問903')
+    && byNoE.get('問903').title === '問903 確認用見出し903d',
+  '(e) 採るのは後ろの長い問903 のまま');
+  assert(!!byNoE.get('問902') && byNoE.get('問902').body.includes('先に来た短い質問ですか'),
+    '(e) 先に来た切れ端がすぐ前の問902 の本文に入る（今までどおりの区切り）');
+  {
+    const fragment = { sourceKey: 'keigen', docId: 'jirei', ...restoredE[0] };
+    const report = buildReport({ restoredFragments: [fragment] });
+    assert(report.includes(reportLine(fragment)), '(e) 報告に前に出て負けた切れ端の行を出す');
+    assert(report.includes('- keigen/jirei の 問903（確認用見出し903c）の切れ端を 問902 の本文に戻しました'
+      + '（【答】があります'), '(e) 報告の行に戻した先と【答】の注記を書く');
+  }
+}
+
 console.log('\n=== K3: 既知の取り出しのずれは今の本文を残す ===');
 {
   const sourceKey = 'invoice';
@@ -1465,7 +1571,7 @@ console.log('\n=== K3: 既知の取り出しのずれは今の本文を残す ==
       fs.mkdirSync(dir, { recursive: true });
       writeExisting(dir, keepBody);
       const result = saveEntry(sourceKey, source, { id: '94-4' }, {
-        qNo: '問1', title: '問1 新しい題名', body: driftBody,
+        qNo: '問1', title: '問1 前の題名', body: driftBody,
       }, 'https://example.test/', {
         outDir: temp, root: temp, warn() {}, knownDrift: makeDrift(),
       });
@@ -1580,13 +1686,53 @@ console.log('\n=== K3: 既知の取り出しのずれは今の本文を残す ==
   }
 }
 
+console.log('\n=== L3: 題名が変わるときは K3 を当てない ===');
+{
+  const sourceKey = 'invoice';
+  const source = {
+    label: '確認用インボイス', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'invoice_system',
+  };
+  const keepBody = '（確認用見出し） 【答】 今の本文です。' + '今の本文です。'.repeat(20);
+  const driftBody = '（確認用見出し） 【答】 ずれた本文です。' + 'ずれた本文 です。'.repeat(20);
+  const knownDrift = new Map([['invoice/94-4.json', {
+    file: 'invoice/94-4.json',
+    keep_body_sha256: bodySha256(keepBody),
+    drift_body_sha256: bodySha256(driftBody),
+  }]]);
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-l3-'));
+  try {
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, '94-4.json'), JSON.stringify({
+      id: '94-4', title: '問1 前の題名', body: keepBody, char_count_body: keepBody.length,
+      fetched_at: '2020-01-01T00:00:00.000Z',
+    }, null, 2) + '\n', 'utf8');
+    const result = saveEntry(sourceKey, source, { id: '94-4' }, {
+      qNo: '問1', title: '問1 新しい題名', body: driftBody,
+    }, 'https://example.test/', {
+      outDir: temp, root: temp, warn() {}, knownDrift,
+    });
+    const written = JSON.parse(fs.readFileSync(path.join(dir, '94-4.json'), 'utf8'));
+    assert(!result.knownDrift, '題名が変わるときは既知のずれとして残さない');
+    assert(result.titleBefore === '問1 前の題名', '題名の変更として前の題名を返す');
+    assert(written.title === '問1 新しい題名' && written.body === driftBody,
+      '題名が変わるときは今までどおりの道で書き替える');
+    const report = buildReport({ titleChanges: [{ file: result.relative, before: result.titleBefore, after: result.record.title }] });
+    assert(report.includes('- invoice/94-4.json: 問1 前の題名 → 問1 新しい題名'),
+      '報告に題名の変更の行を出す');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 async function testK3Run() {
   console.log('\n=== K3(f): crawlSource の通し（既知のずれの報告） ===');
   const sourceKey = 'invoice';
   const source = {
     label: '確認用インボイス', tax_category: '消費税', tax_category_code: 'shohi',
     tax_domain: 'invoice_system',
-    docs: [{ id: 'faq', url: 'https://example.test/faq.pdf' }],
+    docs: [{ id: 'faq', url: 'https://example.test/faq.pdf', title: '前の題名' }],
   };
   const keepBody = '（確認用見出し） 【答】 今の本文です。' + '今の本文です。'.repeat(20);
   const driftBody = '（確認用見出し） 【答】 ずれた本文です。' + 'ずれた本文 です。'.repeat(20);
@@ -1623,9 +1769,47 @@ async function testK3Run() {
   }
 }
 
+async function testL1Run() {
+  console.log('\n=== L1(f): crawlSource の通し（戻した切れ端の報告） ===');
+  const sourceKey = 'keigen';
+  const source = {
+    label: '確認用軽減税率', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'consumption_tax', split: true,
+    docs: [{ id: 'jirei', url: 'https://example.test/jirei.pdf' }],
+  };
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const ref = '（食品表示法に規定する食品）問３ で説明したとおり、酒類は含まれません。';
+  const text = [filler(901), filler(902), `（確認用見出し903） 問903 短い質問ですか。 【答】 ${ref}`,
+    filler(904), filler(905)].join(' ');
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-l1f-'));
+  try {
+    const result = await crawlSource(sourceKey, source, {
+      outDir: temp, root: temp, delayMs: 0,
+      fetchBuffer: async () => Buffer.from('dummy'),
+      extractText: () => text,
+    });
+    const fragments = result.restoredFragments || [];
+    assert(fragments.length === 1 && fragments[0].sourceKey === sourceKey
+      && fragments[0].docId === 'jirei' && fragments[0].qNo === '問903'
+      && fragments[0].restoredTo === '問902',
+    '(f) 資料名・切れ端の札・戻した先を集めて返す');
+    const report = buildReport({ restoredFragments: fragments });
+    assert(report.includes('- keigen/jirei の 問903（確認用見出し903）の切れ端を 問902 の本文に戻しました'),
+      '(f) 報告に戻した切れ端の行を出す');
+    const dir = path.join(temp, sourceKey);
+    const written = JSON.parse(fs.readFileSync(path.join(dir, 'jirei-902.json'), 'utf8'));
+    assert(written.body.includes('短い質問ですか'), '(f) 問903 の切れ端が問902 の本文に入る');
+    assert(!fs.existsSync(path.join(dir, 'jirei-903.json')), '(f) 問903 のファイルは作らない');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 (async () => {
   await testA10();
   await testK3Run();
+  await testL1Run();
   await testJ1Run();
   console.log('\n=== R3: 問が見つからない資料は更新しない ===');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r3-'));
