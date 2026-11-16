@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "note": "毎月の取り直し（GitHub の poppler）で、取り出しの部品のずれだけで本文が変わる資料。今の本文（keep）と、毎回同じに出るずれた本文（drift）の sha256。新しい本文が drift と全く同じで、今の本文が keep と全く同じときだけ今の本文を残す。",
+  "entries": [
+    { "file": "invoice/94-4.json", "keep_body_sha256": "427433ab973df72b05d6a3559a12a5972d08b8991c67f37a54b4964fe75ba06a", "drift_body_sha256": "85e3945fe57a94fd22c0d3947ca36ef676845d10a0bd8e962b219afbab45c09a", "reason": "計算例の表の並びが崩れ、「・」が 2 字増える", "decided": "2026-11-14 決定 A・2026-11-16 案 2" },
+    { "file": "invoice/faq.json", "keep_body_sha256": "ac3ac6b33a9de469cd6a8a351ecd56e1e546996bea4034cb59420731fba8e471", "drift_body_sha256": "21e8b729a2f3fec124c9173de9a2e7bc01a0671fe89b48caf866798cf627ab6a", "reason": "「e-Tax」が「eTax」になる", "decided": "2026-11-14 決定 A・2026-11-16 案 2" },
+    { "file": "sozoku_pamph/kyoiku_shikin.json", "keep_body_sha256": "16764853b54b628f92c33bc80402de380326bc3cbd1d7b2b0939c4fa968bb8e0", "drift_body_sha256": "ab11fa1da73da1c593a862017c055e2b39f9a420e32e77edcbd904cab27e7fd5", "reason": "図の並びの違いと、リンクの「制度の詳細へ」6 字", "decided": "2026-11-14 決定 A・2026-11-16 案 2" }
+  ]
+}

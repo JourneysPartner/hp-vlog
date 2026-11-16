@@ -29,6 +29,8 @@ const {
   sameCharMultiset,
   findSplitOffs,
   titlesDiffer,
+  bodySha256,
+  loadKnownDrift,
   saveEntry,
   crawlSource,
   buildReport,
@@ -39,6 +41,7 @@ const {
   buildEntryId,
   resolveEntryIds,
   dedupeIndexEntries,
+  KNOWN_DRIFT_PATH,
 } = require(path.join(ROOT, 'scripts/crawl-nta-qa'));
 
 let passed = 0, failed = 0;
@@ -1224,8 +1227,405 @@ console.log('\n=== G7: 索引のつなぎ（同じ種類を消す→保存した
     '同じ file_path の行は1件だけ残す');
 }
 
+console.log('\n=== K1: 数字の間に空白が入った札を、並びに合うときだけまとめて読む ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const fillers = [901, 902, 903, 904].map(filler);
+
+  // 概要編 問13〜問16。問14 は「問1 4」、問15 は「問1 5」。
+  const gaiyo = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-gaiyo-13-16-xpdf-excerpt.txt'), 'utf8',
+  );
+  const gaiyoFlat = flatten([gaiyo, ...fillers].join(' '));
+  const gaiyoParts = splitByQuestion(gaiyoFlat);
+  const gaiyoByNo = new Map(gaiyoParts.map(part => [part.qNo, part]));
+  const q14 = gaiyoByNo.get('問14');
+  const q15 = gaiyoByNo.get('問15');
+  assert(!!q14 && !!q15, '概要編: 問14・問15 を別の問として区切る');
+  assert(gaiyoParts.length === 8, `概要編: 問13〜問16 と足した 4 問で 8 問（実際 ${gaiyoParts.length} 問）`);
+  assert(q14 && q14.title.startsWith('問14 仕入先から受け取った請求書等'),
+    '概要編: 問14 の題名が「問14 仕入先から…」になる');
+  assert(q15 && q15.title === '問15 免税事業者からの課税仕入れの取扱い',
+    '概要編: 問15 の題名が「問15 免税事業者からの課税仕入れの取扱い」になる');
+  assert(!gaiyoByNo.has('問1'), '概要編: 短い方を問1 として残さない');
+  assert(!!q14 && q14.body.replace(/\s+/g, '').startsWith(
+    '（仕入先から受け取った請求書等に「軽減対象資産の譲渡等である旨」等の記載がなかった場合の追記）問14',
+  ), '概要編: 問14 の本文が「（見出し） 問1 4 …」から始まる');
+  assert(!!q15 && q15.body.replace(/\s+/g, '').startsWith(
+    '（免税事業者からの課税仕入れの取扱い）問15',
+  ), '概要編: 問15 の本文が「（見出し） 問1 5 …」から始まる');
+  const gaiyoMarks = findQuestionMarks(gaiyoFlat);
+  assert(gaiyoMarks.some(mark => mark.splitDigits === true
+    && mark.card.replace(/\s/g, '') === '問14'), '概要編: 合わせて読んだ区切りに splitDigits を付ける');
+  const gaiyoStart = Math.min(...gaiyoMarks.map(mark => mark.index));
+  assert(sameCharMultiset(gaiyoParts.map(part => part.body).join(''), gaiyoFlat.slice(gaiyoStart)),
+    '概要編: 区切った問をつないだ文字が入力と同じ');
+
+  // 事例編 問79〜問82。問80 は「問 8 0」、問81 は「問8 1」。
+  const jirei = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-jirei-79-82-xpdf-excerpt.txt'), 'utf8',
+  );
+  const jireiFlat = flatten([jirei, ...fillers].join(' '));
+  const jireiParts = splitByQuestion(jireiFlat);
+  const jireiByNo = new Map(jireiParts.map(part => [part.qNo, part]));
+  const q80 = jireiByNo.get('問80');
+  const q81 = jireiByNo.get('問81');
+  assert(!!q80 && !!q81, '事例編: 問80・問81 を別の問として区切る');
+  assert(jireiParts.length === 8, `事例編: 問79〜問82 と足した 4 問で 8 問（実際 ${jireiParts.length} 問）`);
+  assert(q80 && q80.title === '問80 有料老人ホームの飲食料品の提供',
+    '事例編: 問80 の題名が「問80 有料老人ホームの飲食料品の提供」になる');
+  assert(q81 && q81.title === '問81 学生食堂', '事例編: 問81 の題名が「問81 学生食堂」になる');
+  assert(!jireiByNo.has('問8'), '事例編: 短い方を問8 として残さない');
+  assert(!!q80 && q80.body.replace(/\s+/g, '').startsWith(
+    '（有料老人ホームの飲食料品の提供）問80',
+  ), '事例編: 問80 の本文が「（見出し） 問 8 0 …」から始まる');
+  assert(!!q81 && q81.body.replace(/\s+/g, '').startsWith('（学生食堂）問81'),
+    '事例編: 問81 の本文が「（見出し） 問8 1 …」から始まる');
+  const jireiStart = Math.min(...findQuestionMarks(jireiFlat).map(mark => mark.index));
+  assert(sameCharMultiset(jireiParts.map(part => part.body).join(''), jireiFlat.slice(jireiStart)),
+    '事例編: 区切った問をつないだ文字が入力と同じ');
+
+  // 目次の「問3 7」「問 8 0」「問8 3」も合わせて読む（問にはならない）。
+  const toc = fs.readFileSync(
+    path.join(FIXTURES, 'keigen-jirei-toc-split-digit-excerpt.txt'), 'utf8',
+  );
+  const tocFlat = flatten(toc);
+  const tocMarks = findQuestionMarks(tocFlat);
+  for (const card of ['問3 7', '問 8 0', '問8 3']) {
+    const mark = tocMarks.find(item => item.card === card);
+    assert(!!mark && mark.splitDigits === true, `目次: 「${card}」を合わせて読む`);
+    assert(!!mark && mark.card.replace(/\s/g, '') === `問${card.replace(/[^0-9]/g, '')}`,
+      `目次: 「${card}」の問番号が ${card.replace(/[^0-9]/g, '')} になる`);
+  }
+  assert(splitByQuestion(tocFlat).length === 0, '目次: 合わせて読んだ目次の区切りを問にしない');
+
+  // 合わせない形（作り物）。
+  const notMerged = (text, card, label) => {
+    const flat = flatten([text, ...[905, 906, 907].map(filler)].join(' '));
+    const mark = findQuestionMarks(flat).find(item => item.card === card);
+    const parts = splitByQuestion(flat);
+    assert(!!mark && !mark.splitDigits, `${label}: 札を合わせない`);
+    return { mark, parts };
+  };
+  {
+    const { parts } = notMerged(
+      `（見出し4） 問4 本文です。 【答】 ${'回答本文です。'.repeat(30)}`
+        + ` （見出し5） 問5 10 月１日から実施します。 【答】 ${'回答本文です。'.repeat(30)}`,
+      '問5',
+      '問4 の後ろの「問5 10 月…」はそのまま読んで並びに合う',
+    );
+    assert(parts.some(part => part.qNo === '問5'), '問4 の後ろの「問5 10 月…」は問5 のまま');
+    assert(!parts.some(part => part.qNo === '問510'), '問5 と 10 を合わせて問510 にしない');
+  }
+  {
+    const { parts } = notMerged(
+      `（見出し13） 問13 本文です。 【答】 ${'回答本文です。'.repeat(30)}`
+        + ` （見出し19） 問1 9 本文です。 【答】 ${'回答本文です。'.repeat(30)}`,
+      '問1',
+      '問13 の後ろの「問1 9」は P＋3 を超える',
+    );
+    assert(!parts.some(part => part.qNo === '問19'), '問13 の後ろの「問1 9」を問19 にしない');
+  }
+  {
+    const { mark } = notMerged(
+      `（見出し2） 問１ 2 本文です。 【答】 ${'回答本文です。'.repeat(30)}`,
+      '問１',
+      '全角の「問１ 2」は対象外',
+    );
+    assert(mark && mark.card === '問１', '全角の「問１ 2」は問１ のまま');
+  }
+  {
+    const { mark } = notMerged(
+      `（見出し94） 問94－4 2 本文です。 【答】 ${'回答本文です。'.repeat(30)}`,
+      '問94－4',
+      '枝番の「問94－4 2」は対象外',
+    );
+    assert(mark && mark.card === '問94－4', '枝番の「問94－4 2」は問94－4 のまま');
+  }
+  {
+    const flat = flatten([
+      `（先頭） 問1 5 本文です。 【答】 ${'回答本文です。'.repeat(30)}`,
+      ...[901, 902, 903, 904].map(filler),
+    ].join(' '));
+    const first = findQuestionMarks(flat)[0];
+    assert(!!first && first.card === '問1' && !first.splitDigits,
+      'すぐ前の区切りが無い先頭の札は合わせない');
+    const parts = splitByQuestion(flat);
+    assert(parts.some(part => part.qNo === '問1') && !parts.some(part => part.qNo === '問15'),
+      '先頭の「問1 5」を問15 にしない');
+  }
+
+  // 後ろで札を見つける形（poppler の並び、作り物）。
+  {
+    const text = [
+      filler(13),
+      '（見出し） 1 行目です。 問1 4 2 行目です。 【答】 ' + '回答本文です。'.repeat(30),
+      filler(901), filler(902), filler(903),
+    ].join(' ');
+    const flat = flatten(text);
+    const mark = findQuestionMarks(flat).find(item => item.splitDigits === true
+      && item.card.replace(/\s/g, '') === '問14');
+    assert(!!mark && mark.indirect === true, 'poppler の並びでも「問1 4」を合わせて読む');
+    const part = splitByQuestion(flat).find(item => item.qNo === '問14');
+    assert(!!part && part.title === '問14 見出し', 'poppler の並び: 題名が「問14 見出し」になる');
+    assert(!!part && part.body.startsWith('（見出し） 問1 4 1 行目です。 2 行目です。'),
+      'poppler の並び: 本文が「（見出し） 問1 4 1 行目…」に整う');
+  }
+}
+
+console.log('\n=== K2: 入れ子の無い直接形でも、残った問のすぐ後ろの切れ端は前の問に戻す ===');
+{
+  const flatten = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  const filler = (no) => `（確認用見出し${no}） 問${no} 本文です。`
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+
+  // 問902 の答の途中の「（食品表示法に規定する食品）問３ …」（入れ子の無い直接形）。
+  const ref = '（食品表示法に規定する食品）問３ で説明したとおり、酒類は含まれません。';
+  const body902 = '（確認用見出し902） 問902 本文です。 【答】 '
+    + `${'回答本文です。'.repeat(20)} ${ref} ${'回答本文です。'.repeat(20)}`;
+  const text = [901, 902, 903, 904, 905]
+    .map(no => (no === 902 ? body902 : filler(no))).join(' ');
+  const flat = flatten(text);
+  const refMark = findQuestionMarks(flat).find(mark => mark.card.replace(/\s/g, '') === '問３');
+  assert(!!refMark && refMark.indirect === false && refMark.nested === false,
+    '参照の文を入れ子の無い直接形の区切りとして拾う');
+  const parts = splitByQuestion(flat);
+  const byNo = new Map(parts.map(part => [part.qNo, part]));
+  assert(!!byNo.get('問902') && byNo.get('問902').body === body902,
+    '問902 の本文が参照の文を含んだまま切れない');
+  assert(!byNo.has('問３'), '参照の文から問３ を区切らない');
+  assert(parts.length === 5, '5 問のまま');
+  const start = Math.min(...findQuestionMarks(flat).map(mark => mark.index));
+  assert(sameCharMultiset(parts.map(part => part.body).join(''), flat.slice(start)),
+    '区切った問をつないだ文字が入力（目次を除く）と同じ');
+
+  // 同じ問番号の競り負け。負けた切れ端の文字がすぐ前の問の本文に戻る。
+  const long = '（確認用見出し903a） 問903 長い本文です。 【答】 '
+    + '長い回答です。'.repeat(40);
+  const short = '（確認用見出し903b） 問903 短い本文です。 【答】 '
+    + '短い回答です。'.repeat(20);
+  const tieText = [filler(901), filler(902), long, short, filler(904), filler(905)].join(' ');
+  const tieFlat = flatten(tieText);
+  const tieParts = splitByQuestion(tieFlat);
+  const tieByNo = new Map(tieParts.map(part => [part.qNo, part]));
+  const q903 = tieByNo.get('問903');
+  assert(!!q903 && q903.body === `${long} ${short}`,
+    '競り負けた切れ端の文字がすぐ前の問903 の本文に戻る');
+  assert(!!q903 && q903.title === '問903 確認用見出し903a',
+    '競り負けた切れ端の題名は前の問の題名のまま');
+  assert(tieParts.length === 5, '競り負けても 5 問のまま');
+  const tieStart = Math.min(...findQuestionMarks(tieFlat).map(mark => mark.index));
+  assert(sameCharMultiset(tieParts.map(part => part.body).join(''), tieFlat.slice(tieStart)),
+    '競り負けても文字がどこにも消えない');
+
+  // 目次の直後の本物の問１ は今までどおり。
+  const toc = `（目次）問1 ${'目次にある質問です。'.repeat(8)} ${'·'.repeat(12)} 3`;
+  const real = '（新聞の譲渡） 軽減税率が適用される新聞の譲渡とは 問1 どのようなものですか。'
+    + ` 【答】 ${'回答本文です。'.repeat(30)}`;
+  const tocParts = splitByQuestion(flatten([toc, real, filler(901), filler(902), filler(903)].join(' ')));
+  const tocByNo = new Map(tocParts.map(part => [part.qNo, part]));
+  const q1 = tocByNo.get('問1');
+  assert(!!q1 && q1.title === '問1 新聞の譲渡', '目次の直後の問1 の題名が変わらない');
+  assert(!!q1 && !q1.body.includes('目次にある質問です'), '目次の文字を問1 の本文に混ぜない');
+  const realOnly = splitByQuestion(flatten([real, filler(901), filler(902), filler(903), filler(904)].join(' ')))
+    .find(part => part.qNo === '問1');
+  assert(!!q1 && !!realOnly && q1.body === realOnly.body, '目次の直後の問1 の本文が変わらない');
+}
+
+console.log('\n=== K3: 既知の取り出しのずれは今の本文を残す ===');
+{
+  const sourceKey = 'invoice';
+  const source = {
+    label: '確認用インボイス', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'invoice_system',
+  };
+  const keepBody = '（確認用見出し） 【答】 今の本文です。' + '今の本文です。'.repeat(20);
+  const driftBody = '（確認用見出し） 【答】 ずれた本文です。' + 'ずれた本文 です。'.repeat(20);
+  const makeDrift = (incomingBody = driftBody, existingBody = keepBody) => new Map([[
+    'invoice/94-4.json',
+    {
+      file: 'invoice/94-4.json',
+      keep_body_sha256: bodySha256(existingBody),
+      drift_body_sha256: bodySha256(incomingBody),
+    },
+  ]]);
+  const writeExisting = (dir, body) => fs.writeFileSync(path.join(dir, '94-4.json'), JSON.stringify({
+    id: '94-4', title: '問1 前の題名', body, char_count_body: body.length,
+    fetched_at: '2020-01-01T00:00:00.000Z',
+  }, null, 2) + '\n', 'utf8');
+  const read = (dir) => JSON.parse(fs.readFileSync(path.join(dir, '94-4.json'), 'utf8'));
+
+  // (a) keep と drift に合う → 今の本文・題名・字数のまま、fetched_at だけ新しい。
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3a-'));
+    try {
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      writeExisting(dir, keepBody);
+      const result = saveEntry(sourceKey, source, { id: '94-4' }, {
+        qNo: '問1', title: '問1 新しい題名', body: driftBody,
+      }, 'https://example.test/', {
+        outDir: temp, root: temp, warn() {}, knownDrift: makeDrift(),
+      });
+      const written = read(dir);
+      assert(result.knownDrift === true, '(a) 既知のずれとして本文を残したと返す');
+      assert(written.body === keepBody && written.title === '問1 前の題名'
+        && written.char_count_body === keepBody.length,
+      '(a) 今の本文・題名・字数を残す');
+      assert(written.fetched_at !== '2020-01-01T00:00:00.000Z', '(a) fetched_at だけ新しくする');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  }
+
+  // (b) 新しい本文が drift と違う → 今までどおりの道で書き、報告に出す。
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3b-'));
+    try {
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      writeExisting(dir, keepBody);
+      const otherBody = `${driftBody}（国税庁が直した）`;
+      const result = saveEntry(sourceKey, source, { id: '94-4' }, {
+        qNo: '問1', title: '問1 前の題名', body: otherBody,
+      }, 'https://example.test/', {
+        outDir: temp, root: temp, warn() {}, knownDrift: makeDrift(),
+      });
+      const written = read(dir);
+      assert(!result.knownDrift, '(b) 既知のずれとしては残さない');
+      assert(result.knownDriftMismatch === true, '(b) 一覧と違う本文が来たと返す');
+      assert(written.body === otherBody, '(b) 今までどおり新しい本文を書く');
+      const report = buildReport({ knownDriftMismatch: ['invoice/94-4.json'] });
+      assert(report.includes('- 既知のずれの一覧にある invoice/94-4.json に、一覧と違う本文が来ました'
+        + '（国税庁の改訂か、取り出しの部品の変化。中身を見てください）'),
+      '(b) 報告に「一覧と違う本文が来ました」の行を出す');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  }
+
+  // (c) 今の本文が keep と違う → 今までどおりの道。
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3c-'));
+    try {
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      const otherExisting = `${keepBody}（前の本文が違う）`;
+      writeExisting(dir, otherExisting);
+      const result = saveEntry(sourceKey, source, { id: '94-4' }, {
+        qNo: '問1', title: '問1 前の題名', body: driftBody,
+      }, 'https://example.test/', {
+        outDir: temp, root: temp, warn() {}, knownDrift: makeDrift(),
+      });
+      assert(!result.knownDrift, '(c) 今の本文が keep と違えば既知のずれにしない');
+      assert(read(dir).body === driftBody, '(c) 今までどおり新しい本文を書く');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  }
+
+  // (d) 一覧に無い資料は今と同じ。
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3d-'));
+    try {
+      const dir = path.join(temp, sourceKey);
+      fs.mkdirSync(dir, { recursive: true });
+      writeExisting(dir, keepBody);
+      const result = saveEntry(sourceKey, source, { id: '94-4' }, {
+        qNo: '問1', title: '問1 前の題名', body: driftBody,
+      }, 'https://example.test/', { outDir: temp, root: temp, warn() {} });
+      assert(!result.knownDrift && !result.knownDriftMismatch, '(d) 一覧に無ければ今と同じ');
+      assert(read(dir).body === driftBody, '(d) 今と同じく新しい本文を書く');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  }
+
+  // (e) 一覧のファイルが無い・壊れている。
+  {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3e-'));
+    try {
+      const missing = loadKnownDrift(path.join(temp, 'missing.json'), { warn() {} });
+      assert(missing.entries.size === 0 && missing.error === null,
+        '(e) 一覧のファイルが無ければ空の一覧（今と同じ）');
+      const brokenPath = path.join(temp, 'broken.json');
+      fs.writeFileSync(brokenPath, '{ "entries": [', 'utf8');
+      const warnings = [];
+      const broken = loadKnownDrift(brokenPath, { warn: (message) => warnings.push(message) });
+      assert(broken.entries.size === 0 && !!broken.error, '(e) 壊れた JSON は空の一覧にする');
+      assert(warnings.length === 1 && warnings[0].includes('既知のずれの一覧を読めませんでした'),
+        '(e) 壊れた JSON は警告を出す');
+      const report = buildReport({ knownDriftError: broken.error });
+      assert(report.includes('- 既知のずれの一覧を読めませんでした（'),
+        '(e) 報告に「既知のずれの一覧を読めませんでした」の行を出す');
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  }
+
+  // (g) 一覧の keep が今の data/nta-qa/ の 3 ファイルの本文の sha256 と同じ。
+  {
+    const drift = loadKnownDrift(KNOWN_DRIFT_PATH, { warn() {} });
+    assert(drift.error === null && drift.entries.size === 3,
+      '(g) data/nta-qa-known-drift.json に 3 件ある');
+    for (const [file, entry] of drift.entries) {
+      const record = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'nta-qa', file), 'utf8'));
+      assert(bodySha256(record.body) === entry.keep_body_sha256,
+        `(g) ${file} の今の本文の sha256 が keep と同じ`);
+      assert(typeof entry.drift_body_sha256 === 'string' && entry.drift_body_sha256.length === 64,
+        `(g) ${file} の drift の sha256 が 64 字ある`);
+    }
+  }
+}
+
+async function testK3Run() {
+  console.log('\n=== K3(f): crawlSource の通し（既知のずれの報告） ===');
+  const sourceKey = 'invoice';
+  const source = {
+    label: '確認用インボイス', tax_category: '消費税', tax_category_code: 'shohi',
+    tax_domain: 'invoice_system',
+    docs: [{ id: 'faq', url: 'https://example.test/faq.pdf' }],
+  };
+  const keepBody = '（確認用見出し） 【答】 今の本文です。' + '今の本文です。'.repeat(20);
+  const driftBody = '（確認用見出し） 【答】 ずれた本文です。' + 'ずれた本文 です。'.repeat(20);
+  const knownDrift = new Map([['invoice/faq.json', {
+    file: 'invoice/faq.json',
+    keep_body_sha256: bodySha256(keepBody),
+    drift_body_sha256: bodySha256(driftBody),
+  }]]);
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-k3f-'));
+  try {
+    const dir = path.join(temp, sourceKey);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'faq.json'), JSON.stringify({
+      id: 'faq', title: '前の題名', body: keepBody, char_count_body: keepBody.length,
+      fetched_at: '2020-01-01T00:00:00.000Z',
+    }, null, 2) + '\n', 'utf8');
+    const result = await crawlSource(sourceKey, source, {
+      outDir: temp, root: temp, delayMs: 0, knownDrift,
+      fetchBuffer: async () => Buffer.from('dummy'),
+      extractText: () => driftBody,
+    });
+    assert(JSON.stringify(result.knownDriftFiles) === JSON.stringify(['invoice/faq.json']),
+      '(f) 既知のずれのため本文を残したファイルを返す');
+    assert(result.knownDriftMismatch.length === 0, '(f) 一覧と違う本文の報告は無い');
+    const report = buildReport({
+      knownDriftFiles: result.knownDriftFiles, knownDriftMismatch: result.knownDriftMismatch,
+    });
+    assert(report.includes('- 既知の取り出しのずれ（data/nta-qa-known-drift.json）のため本文を残した'
+      + ' 1 件: invoice/faq.json'), '(f) 報告に「既知の取り出しのずれのため本文を残した」の行を出す');
+    const written = JSON.parse(fs.readFileSync(path.join(dir, 'faq.json'), 'utf8'));
+    assert(written.body === keepBody && written.title === '前の題名', '(f) 今の本文・題名を残す');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 (async () => {
   await testA10();
+  await testK3Run();
   await testJ1Run();
   console.log('\n=== R3: 問が見つからない資料は更新しない ===');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-qa-r3-'));
