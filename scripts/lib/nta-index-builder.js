@@ -138,7 +138,8 @@ function loadIndex() {
  *   @param {string}   params.startedAt        ISO datetime
  *   @param {string}   params.finishedAt       ISO datetime
  *   @param {Object}   params.results          { fetched, skipped, deleted, deleted_still, deletion_held,
- *                                               restored, gone_unrecorded, errors[] }
+ *                                               restored, gone_unrecorded, errors[],
+ *                                               unlisted?, unlisted_deleted_before? }
  *   @param {Object}   params.byType           { taxanswer: {...}, shitsugi: {...} }
  *   @param {string}   [params.nextScheduledAt]
  *   @param {number}   [params.maxDeletions]
@@ -146,11 +147,15 @@ function loadIndex() {
  *   @param {Array}    [params.deletionHeldEntries]     { type, url, title, file_path, reason }
  *   @param {Array}    [params.restoredEntries]         { type, url, title }
  *   @param {Array}    [params.goneUnrecordedUrls]      URL の配列
+ *   @param {Array}    [params.unlistedEntries]         { type, url, title, file_path, outcome, reason?, final_url? }
+ *   @param {string}   [params.unlistedCheck]          done / skipped_filter / skipped_dry_run / skipped_too_many
+ *   @param {number}   [params.unlistedCheckLimit]     一覧から外れた記録を訪ねる上限
  *   @param {string}   [params.metaFile]       テスト用の書き出し先（既定は meta.json）
  * @returns {string} 保存先パス
  */
 function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt,
   maxDeletions, deletedEntries, deletionHeldEntries, restoredEntries, goneUnrecordedUrls,
+  unlistedEntries, unlistedCheck, unlistedCheckLimit,
   metaFile = META_FILE }) {
   const fetched = results.fetched || 0;
   const skipped = results.skipped || 0;
@@ -171,6 +176,23 @@ function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt
   const heldList = entriesOf(deletionHeldEntries, results.deletion_held_entries).slice().sort((a, b) => String(a.url).localeCompare(String(b.url)));
   const restoredList = entriesOf(restoredEntries, results.restored_entries);
   const goneList = entriesOf(goneUnrecordedUrls, results.gone_unrecorded_urls).slice().sort();
+  const unlistedList = entriesOf(unlistedEntries, results.unlisted_entries)
+    .slice().sort((a, b) => String(a.url).localeCompare(String(b.url)));
+  const unlistedCheckValue = unlistedCheck !== undefined
+    ? unlistedCheck
+    : (results.unlisted_check !== undefined ? results.unlisted_check : null);
+  const unlistedLimitValue = unlistedCheckLimit !== undefined
+    ? unlistedCheckLimit
+    : (results.unlisted_check_limit !== undefined ? results.unlisted_check_limit : null);
+  const unlistedCount = results.unlisted !== undefined ? results.unlisted : unlistedList.length;
+  // 前から削除済みで一覧にも無い記録の数（H3）。crawl_results.unlisted には含めない。
+  const unlistedDeletedBefore = results.unlisted_deleted_before !== undefined
+    ? results.unlisted_deleted_before
+    : unlistedList.filter(entry => entry.outcome === 'deleted_before').length;
+  // 一覧から外れた記録の情報を渡されたときだけ crawl_results.unlisted を出す
+  // （段 1 からある呼び出しの形を変えないため）。
+  const hasUnlistedInfo = results.unlisted !== undefined || unlistedEntries !== undefined
+    || unlistedCheck !== undefined || unlistedCheckLimit !== undefined;
   const max = maxDeletions !== undefined
     ? maxDeletions
     : (results.max_deletions !== undefined ? results.max_deletions : 0);
@@ -189,6 +211,10 @@ function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt
       deletion_held: deletionHeld,
       restored,
       gone_unrecorded: goneUnrecorded,
+      // 一覧から外れた記録の数。既存の呼び出し（渡されない）では項目を足さない。
+      ...(hasUnlistedInfo
+        ? { unlisted: unlistedCount, unlisted_deleted_before: unlistedDeletedBefore }
+        : {}),
       errors_count: (results.errors || []).length,
     },
     by_type: byType || {},
@@ -198,6 +224,9 @@ function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt
     deletion_held_entries: heldList,
     restored_entries: restoredList,
     gone_unrecorded_urls: goneList,
+    unlisted_check: unlistedCheckValue,
+    unlisted_check_limit: unlistedLimitValue,
+    unlisted_entries: unlistedList,
     errors_sample: (results.errors || []).slice(0, 20),
     next_scheduled_at: nextScheduledAt || null,
   };

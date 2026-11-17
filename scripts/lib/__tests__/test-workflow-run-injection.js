@@ -170,14 +170,14 @@ function render(value, values) {
 }
 
 // 実際の run を実行し、外部送信・リポジトリ操作・固定パスへの書き込みを関数で置き換える。
-function runStep(filename, name, makeValues, check) {
+function runStep(filename, name, makeValues, check, extraEnv = {}) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-run-injection-'));
   try {
     const marker = path.join(temp, 'pwned');
     const payload = `題名 "引用" \`文字\` $(touch ${quote(toShellPath(marker))})`;
     const values = makeValues({ payload, multiline: `${payload}\n次の行`, marker: toShellPath(marker) });
     const step = stepIn(filename, name);
-    const env = { ...shellEnvironment };
+    const env = { ...shellEnvironment, ...extraEnv };
     for (const [key, value] of Object.entries(step.env || {})) env[key] = render(value, values);
     env.CAPTURE = toShellPath(path.join(temp, 'commands'));
     env.GITHUB_OUTPUT = toShellPath(path.join(temp, 'output'));
@@ -400,6 +400,88 @@ test('試験3 R2: クロールの出力引数は従来どおり空白で分け�
     runStep('crawl-nta-sources.yml', 'Run crawl', () => ({ 'steps.mode.outputs.args': args }), result => {
       assert.deepStrictEqual(nodeArgs(result), ['scripts/crawl-nta-sources.js', ...expected]);
     });
+  }
+});
+
+function prStepValues({ unlistedCheck = 'done', unlisted = '3' } = {}) {
+  return {
+    'steps.meta.outputs.fetched': '1',
+    'steps.meta.outputs.skipped': '2',
+    'steps.meta.outputs.deleted': '0',
+    'steps.meta.outputs.deleted_still': '0',
+    'steps.meta.outputs.deletion_held': '0',
+    'steps.meta.outputs.restored': '0',
+    'steps.meta.outputs.gone_unrecorded': '0',
+    'steps.meta.outputs.unlisted': unlisted,
+    'steps.meta.outputs.unlisted_check': unlistedCheck,
+    'steps.meta.outputs.errors': '0',
+    'steps.meta.outputs.total': '3',
+    'steps.meta.outputs.duration': '1',
+    'steps.meta.outputs.error_rate': '0.0',
+    'steps.mode.outputs.mode': 'incremental',
+    'github.server_url': 'https://github.example',
+    'github.repository': 'owner/repo',
+    'github.run_id': '123',
+  };
+}
+
+// H6: 報告をつないだ PR 本文が 60,000 字を超えるときは、報告を外して 1 文だけ足す。
+test('試験4 H6: PR 本文が 60,000 字を超えるときは報告をつながず 1 文にする', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-pr-body-long-'));
+  const runnerTemp = path.join(tempRoot, 'runner');
+  fs.mkdirSync(runnerTemp, { recursive: true });
+  fs.writeFileSync(path.join(runnerTemp, 'nta-crawl-report.md'), 'あ'.repeat(70000), 'utf8');
+  try {
+    runStep('crawl-nta-sources.yml', 'Create PR if changes',
+      () => prStepValues({ unlistedCheck: 'done', unlisted: '3' }), result => {
+        success(result);
+        const body = fs.readFileSync(path.join(runnerTemp, 'pr-body.md'), 'utf8');
+        assert.equal(body.includes('あああ'), false, '長すぎる報告は本文に載せない');
+        assert(body.includes('報告が長すぎるため本文に載せていません。全件は Actions の実行の要約（'
+          + 'https://github.example/owner/repo/actions/runs/123）と meta.json にあります'));
+        assert(body.includes('| 国税庁の一覧から外れた記録 | 3 |'), 'done のときは数を出す');
+      }, { RUNNER_TEMP: toShellPath(runnerTemp) });
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+// H6: 60,000 字以内なら今までどおり報告をつなぐ。
+test('試験4 H6: PR 本文が 60,000 字以内なら報告をつなぐ', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-pr-body-short-'));
+  const runnerTemp = path.join(tempRoot, 'runner');
+  fs.mkdirSync(runnerTemp, { recursive: true });
+  fs.writeFileSync(path.join(runnerTemp, 'nta-crawl-report.md'), '## 報告\n短い報告です\n', 'utf8');
+  try {
+    runStep('crawl-nta-sources.yml', 'Create PR if changes',
+      () => prStepValues({ unlistedCheck: 'skipped_too_many', unlisted: '150' }), result => {
+        success(result);
+        const body = fs.readFileSync(path.join(runnerTemp, 'pr-body.md'), 'utf8');
+        assert(body.includes('## 報告'), '短い報告はつなぐ');
+        assert.equal(body.includes('報告が長すぎるため'), false);
+        assert(body.includes('| 国税庁の一覧から外れた記録 | 多すぎるため確かめていない（150 件） |'),
+          'skipped_too_many のときは件数付きの案内');
+      }, { RUNNER_TEMP: toShellPath(runnerTemp) });
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test('試験4 H3: 一覧から外れた記録の行は確かめていないとき「確かめていない」と出す', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-pr-body-filter-'));
+  const runnerTemp = path.join(tempRoot, 'runner');
+  fs.mkdirSync(runnerTemp, { recursive: true });
+  try {
+    for (const check of ['skipped_filter', 'skipped_dry_run', '']) {
+      runStep('crawl-nta-sources.yml', 'Create PR if changes',
+        () => prStepValues({ unlistedCheck: check, unlisted: '0' }), result => {
+          success(result);
+          const body = fs.readFileSync(path.join(runnerTemp, 'pr-body.md'), 'utf8');
+          assert(body.includes('| 国税庁の一覧から外れた記録 | 確かめていない |'), check || '(空)');
+        }, { RUNNER_TEMP: toShellPath(runnerTemp) });
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 });
 
