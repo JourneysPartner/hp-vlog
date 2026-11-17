@@ -750,6 +750,88 @@ async function main() {
     }
   });
 
+  // ── F1 --dry-run ───────────────────────────────────────────
+  await test('F1 --dry-run: taxanswer / shitsugi / all で終了せず、数は 0（NaN でない）', async () => {
+    for (const type of ['taxanswer', 'shitsugi', 'all']) {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-dry-run-'));
+      try {
+        const reportFile = path.join(dir, 'report.md');
+        const { result, exitCode, saved } = await runCrawl({
+          type,
+          taxanswerEntries: [taxentry('5441')],
+          shitsugiEntries: [shitsugiEntry('09')],
+          existing: () => clone(existing5441),
+          argv: ['--type', type, '--incremental', '--dry-run', '--report-file', reportFile],
+        });
+        assert.equal(exitCode, null, `${type}: process.exit を呼ばない`);
+        assert.equal(saved.length, 0, `${type}: 保存 0 件`);
+        for (const key of ['deleted', 'deleted_still', 'deletion_held']) {
+          assert.equal(result[key], 0, `${type}: ${key} は 0`);
+          assert.equal(Number.isNaN(result[key]), false, `${type}: ${key} は NaN でない`);
+          assert.equal(typeof result[key], 'number', `${type}: ${key} は数`);
+        }
+        assert.equal(result.errors.length, 0, `${type}: 失敗なし`);
+        const markdown = fs.readFileSync(reportFile, 'utf8');
+        assert(markdown.includes('## 国税庁で削除されたページ（この PR で「削除済み」の印を付けたもの）: 0 件'), type);
+        assert(markdown.includes('## 上限を超えたため印を付けなかったもの: 0 件（上限 20 件）'), type);
+        assert(markdown.includes('## 国税庁で戻ったページ（「削除済み」の印を外したもの）: 0 件'), type);
+        assert(markdown.includes('## 前から削除済みで、今回も無かったもの: 0 件'), type);
+        assert(markdown.includes('## 国税庁の一覧には載っているがページが無いもの（DB に記録なし・変更なし）: 0 件'), type);
+        assert.equal(markdown.includes('NaN'), false, `${type}: 報告に NaN を出さない`);
+        assert.equal(markdown.split('\n').filter(line => line === 'なし').length, 5,
+          `${type}: 該当なしの節はすべて「なし」`);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+  });
+
+  // ── F2 上限の値が整数でないとき ─────────────────────────────
+  await test('F2 上限が 0 以上の整数でないときは save を呼ばず全件 held', () => {
+    for (const maxDeletions of [undefined, NaN, -1, 1.5, '20']) {
+      const saved = [];
+      const result = deletions.applyPendingDeletions([{ url: 'https://www.nta.go.jp/a.htm' }], {
+        maxDeletions,
+        save: item => saved.push(item),
+      });
+      assert.equal(saved.length, 0, `${String(maxDeletions)}: save 0 回`);
+      assert.deepEqual(Array.from(result.applied), [], `${String(maxDeletions)}: applied 0 件`);
+      assert.equal(result.held.length, 1, `${String(maxDeletions)}: held 1 件`);
+    }
+
+    const savedZero = [];
+    const zero = deletions.applyPendingDeletions([{ url: 'https://www.nta.go.jp/a.htm' }], {
+      maxDeletions: 0,
+      save: item => savedZero.push(item),
+    });
+    assert.equal(savedZero.length, 0, '0: save 0 回');
+    assert.equal(zero.held.length, 1, '0: held 1 件');
+
+    const savedTwenty = [];
+    const twenty = deletions.applyPendingDeletions(
+      Array.from({ length: 20 }, (_, i) => ({ url: `https://www.nta.go.jp/${i}.htm` })),
+      { maxDeletions: 20, save: item => savedTwenty.push(item) });
+    assert.equal(savedTwenty.length, 20, '20: save 20 回');
+    assert.equal(twenty.applied.length, 20);
+    assert.equal(twenty.held.length, 0);
+  });
+
+  // ── F3 戻ったページの行の題名 ───────────────────────────────
+  await test('F3 戻ったページの行は題名の改行を空白にして 1 行に収める', () => {
+    const markdown = deletions.renderReport({
+      restored: [{
+        type: 'shitsugi',
+        title: '戻った\n題名\r\nです',
+        url: 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm',
+      }],
+      maxDeletions: 20,
+    });
+    const lines = markdown.split('\n');
+    const line = lines.find(l => l.startsWith('- 質疑応答事例'));
+    assert.equal(line, '- 質疑応答事例 戻った 題名 です <https://www.nta.go.jp/law/shitsugi/joto/16/09.htm>');
+    assert.equal(lines.some(l => l.includes('題名') && !l.startsWith('- 質疑応答事例')), false);
+  });
+
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
   process.exitCode = failed ? 1 : 0;
 }

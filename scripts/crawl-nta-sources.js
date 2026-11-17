@@ -273,7 +273,16 @@ async function crawlTaxAnswer(args) {
 
   if (args.dryRun) {
     console.log('[taxanswer] --dry-run のため crawl は実行しません。');
-    return { fetched: 0, skipped: 0, errors: [] };
+    // 通常の戻り値と同じ形にする（crawlAll がそのまま集計に使うため）。
+    return {
+      fetched: 0,
+      skipped: 0,
+      deletedStill: 0,
+      errors: [],
+      pendingDeletions: [],
+      goneUnrecorded: [],
+      restored: [],
+    };
   }
 
   const target = Number.isFinite(maxPages) ? Math.min(entries.length, maxPages) : entries.length;
@@ -403,7 +412,16 @@ async function crawlShitsugi(args) {
 
   if (args.dryRun) {
     console.log('[shitsugi] --dry-run のため crawl は実行しません。');
-    return { fetched: 0, skipped: 0, errors: [] };
+    // 通常の戻り値と同じ形にする（crawlAll がそのまま集計に使うため）。
+    return {
+      fetched: 0,
+      skipped: 0,
+      deletedStill: 0,
+      errors: [],
+      pendingDeletions: [],
+      goneUnrecorded: [],
+      restored: [],
+    };
   }
 
   const target = Number.isFinite(maxPages) ? Math.min(entries.length, maxPages) : entries.length;

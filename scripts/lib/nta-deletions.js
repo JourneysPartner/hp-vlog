@@ -57,7 +57,9 @@ function clearDeleted(entry) {
  */
 function applyPendingDeletions(pending, { maxDeletions, save }) {
   const items = Array.isArray(pending) ? pending : [];
-  if (items.length > maxDeletions) {
+  // 上限の値が 0 以上の整数でないときは、比べる前に止める（全件保存に倒れない）。
+  const limitIsValid = Number.isInteger(maxDeletions) && maxDeletions >= 0;
+  if (!limitIsValid || items.length > maxDeletions) {
     return { applied: [], held: items };
   }
   for (const item of items) save(item);
@@ -197,6 +199,12 @@ function cell(value) {
     .replace(/\|/g, '\\|');
 }
 
+// 箇条書きの行で使う。改行だけを空白にする（`|` はそのまま）。
+function oneLine(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/\r\n|\r|\n/g, ' ');
+}
+
 function formatReferences(files) {
   const list = Array.isArray(files) ? files : [];
   if (list.length === 0) return 'なし';
@@ -252,7 +260,7 @@ function renderReport(summary = {}) {
   lines.push('');
   if (restored.length > 0) {
     for (const entry of restored) {
-      lines.push(`- ${typeLabel(entry.type)} ${formatTitle(entry)} <${entry.url}>`);
+      lines.push(`- ${typeLabel(entry.type)} ${oneLine(formatTitle(entry))} <${oneLine(entry.url)}>`);
     }
   } else {
     lines.push('なし');
