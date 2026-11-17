@@ -1,31 +1,42 @@
 {
   "version": 1,
-  "last_crawl_started_at": "2026-11-17T09:07:36.771Z",
-  "last_crawl_finished_at": "2026-11-17T09:45:09.040Z",
-  "last_crawl_duration_seconds": 2252,
+  "last_crawl_started_at": "2026-11-17T11:24:54.189Z",
+  "last_crawl_finished_at": "2026-11-17T12:02:23.270Z",
+  "last_crawl_duration_seconds": 2249,
   "crawl_results": {
-    "fetched": 6,
-    "skipped": 2220,
-    "deleted": 1,
-    "deleted_still": 0,
+    "fetched": 0,
+    "skipped": 2226,
+    "deleted": 2,
+    "deleted_still": 1,
     "deletion_held": 0,
     "restored": 0,
     "gone_unrecorded": 12,
+    "unlisted": 2,
+    "unlisted_deleted_before": 0,
     "errors_count": 0
   },
   "by_type": {
     "shitsugi": 1550,
     "taxanswer": 679
   },
-  "total_entries_processed": 2227,
+  "total_entries_processed": 2229,
   "max_deletions": 20,
   "deleted_entries": [
     {
       "type": "taxanswer",
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm",
-      "title": "研究開発税制について(概要)",
-      "file_path": "taxanswer/hojin/5441.json",
-      "reason": "nta_error_page"
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2882.htm",
+      "title": "恒久的施設（PE）（平成29年から平成30年分）",
+      "file_path": "taxanswer/gensen/2882.json",
+      "reason": "nta_error_page",
+      "unlisted": true
+    },
+    {
+      "type": "taxanswer",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6555.htm",
+      "title": "海外旅行者が出国に際して携帯する物品の輸出免税",
+      "file_path": "taxanswer/shohi/6555.json",
+      "reason": "nta_error_page",
+      "unlisted": true
     }
   ],
   "deletion_held_entries": [],
@@ -43,6 +54,26 @@
     "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm",
     "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6950.htm",
     "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4512.htm"
+  ],
+  "unlisted_check": "done",
+  "unlisted_check_limit": 100,
+  "unlisted_entries": [
+    {
+      "type": "taxanswer",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2882.htm",
+      "title": "恒久的施設（PE）（平成29年から平成30年分）",
+      "file_path": "taxanswer/gensen/2882.json",
+      "outcome": "deleted",
+      "reason": "nta_error_page"
+    },
+    {
+      "type": "taxanswer",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6555.htm",
+      "title": "海外旅行者が出国に際して携帯する物品の輸出免税",
+      "file_path": "taxanswer/shohi/6555.json",
+      "outcome": "deleted",
+      "reason": "nta_error_page"
+    }
   ],
   "errors_sample": [],
   "next_scheduled_at": null
