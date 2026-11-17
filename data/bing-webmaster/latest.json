@@ -1,0 +1,63 @@
+{
+  "fetched_at": "2026-11-15T23:29:36.407Z",
+  "site_url": "https://mori-zeirishi.net/",
+  "window": null,
+  "totals": {
+    "impressions": 0,
+    "clicks": 0
+  },
+  "files": {
+    "traffic": "20261115/traffic.json",
+    "queries": "20261115/queries.json",
+    "pages": "20261115/pages.json",
+    "crawl": "20261115/crawl.json",
+    "feeds": "20261115/feeds.json"
+  },
+  "sections": {
+    "traffic": {
+      "status": "ok",
+      "raw_rows": 0,
+      "dropped_rows": 0,
+      "date_min": null,
+      "date_max": null,
+      "weeks": 0,
+      "weeks_at_cap": 0,
+      "conflicting_dates": []
+    },
+    "queries": {
+      "status": "ok",
+      "raw_rows": 0,
+      "dropped_rows": 0,
+      "used_rows": 0,
+      "weeks": 0,
+      "weeks_at_cap": 0,
+      "date_min": null,
+      "date_max": null
+    },
+    "pages": {
+      "status": "ok",
+      "raw_rows": 0,
+      "dropped_rows": 0,
+      "used_rows": 0,
+      "weeks": 0,
+      "weeks_at_cap": 0,
+      "date_min": null,
+      "date_max": null
+    },
+    "crawl": {
+      "status": "ok",
+      "raw_rows": 0,
+      "dropped_rows": 0,
+      "date_min": null,
+      "date_max": null,
+      "weeks": 0,
+      "weeks_at_cap": 0,
+      "conflicting_dates": []
+    },
+    "feeds": {
+      "status": "ok",
+      "raw_rows": 1,
+      "dropped_rows": 0
+    }
+  }
+}
