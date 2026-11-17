@@ -25,8 +25,11 @@
 | 段 | 中身 | 指示書 |
 |---|---|---|
 | 1 | 判定・上限・報告・復活・題材の除外・ワークフローの PR 本文 | `01-error-page-as-deleted.md` |
+| 2 | 国税庁の一覧から外れた DB の記録も本文で確かめる（段 1 の S7 の穴） | `02-unlisted-records.md` |
 
 段 1 のマージ後、Claude が `crawl-nta-sources.yml` を手動実行（incremental）し、できた PR の本文で No.5441 が「削除済み」になること、残りの 12 件が失敗に数えられないことを確かめる。マージは利用者が削除の一覧を確かめてから。
+
+段 1 は 2026-11-17 に完了（コード #792、データ #793 で No.5441 を削除済み）。#793 の取り込みで、国税庁の一覧から外れた DB の記録 2 件（No.2882・No.6555、どちらもエラーページへ転送）が訪ねられずに生きたまま残ると分かった（段 1 の S7「一覧に無いものは訪ねない」の穴）。利用者が続きとして直すことを了承（11/17）し、段 2 で扱う。段 2 のマージ後も同じく手動実行し、できた PR の本文で 2 件が「削除済み（国税庁の一覧からも外れている）」になることを確かめ、利用者が確かめてからマージする。
 
 ## 全段共通の厳守事項
 
@@ -46,5 +49,6 @@
 - `scripts/crawl-nta-sources.js`: `performIncrementalFetch`・`crawlTaxAnswer`・`crawlShitsugi`・`crawlAll`・`buildAndSaveIndex`・`backfillFigures`
 - `scripts/lib/nta-index-builder.js`: `saveMeta`
 - `scripts/lib/shitsugi-topics.js`: `expandShitsugiTopics`
+- 段 2: `scripts/lib/nta-store.js`（記録の一覧）・`scripts/lib/nta-unlisted.js`（新規、一覧から外れた記録を選ぶ）・`scripts/lib/nta-deletions.js` の `renderReport`
 - `.github/workflows/crawl-nta-sources.yml`
 - 試験の型: `scripts/lib/__tests__/test-freshness-as-of.js` の `crawlWithFigures`（取り込みの CLI を偽の部品で 1 回動かす）
