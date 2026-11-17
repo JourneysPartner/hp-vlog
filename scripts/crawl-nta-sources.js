@@ -263,6 +263,112 @@ function shitsugiFilePath(entry) {
   return `shitsugi/${entry.category}/${String(entry.section).padStart(2, '0')}/${entry.id}.json`;
 }
 
+// 段 2 の部品は、一覧から外れた記録を確かめるときだけ読み込む
+// （--max-pages などで確かめない実行の依存を増やさないため）。
+function unlistedModule() {
+  return require(path.join(ROOT, 'scripts/lib/nta-unlisted'));
+}
+
+// 1 件分の処理を、一覧にある記録と一覧から外れた記録で共有するための仕様。
+// 種類ごとに違うのは、本文を読む部品・保存先・file_path の作り方だけ。
+const TAXANSWER_SPEC = {
+  kind: 'taxanswer',
+  parse: (html, url) => taxanswerParser.parseTaxAnswerHtml(html, url),
+  save: entry => store.saveTaxAnswerEntry(entry),
+  filePath: entry => taxanswerFilePath(entry),
+};
+
+const SHITSUGI_SPEC = {
+  kind: 'shitsugi',
+  parse: (html, url) => shitsugiParser.parseShitsugiHtml(html, url),
+  save: entry => store.saveShitsugiEntry(entry),
+  filePath: entry => shitsugiFilePath(entry),
+};
+
+// ── 1 件分の処理（一覧にある記録と、一覧から外れた記録で同じ処理）────
+// performIncrementalFetch の結果を、保存と報告用の結果に分ける。
+// 一覧から外れた記録では options.rejectForeignRedirect を立て、国税庁の
+// 別のページへ転送されていたら保存しない（U9）。
+async function processEntry(entry, existing, rl, args, spec, options = {}) {
+  const r = await performIncrementalFetch(entry, existing, rl, args);
+
+  if (r.action === 'skipped') {
+    spec.save(r.updatedEntry);
+    return {
+      action: 'skipped',
+      reason: r.reason,
+      restored: r.restored === true,
+      title: r.updatedEntry.title || (existing && existing.title) || '',
+    };
+  }
+
+  if (r.action === 'gone') {
+    if (!existing) return { action: 'gone_unrecorded', reason: r.reason };
+    if (existing.deleted === true) {
+      spec.save(deletions.markDeleted(existing, r.reason, r.checkedAt));
+      return { action: 'deleted_still', reason: r.reason };
+    }
+    return {
+      action: 'gone',
+      reason: r.reason,
+      pending: {
+        kind: spec.kind,
+        entry: deletions.markDeleted(existing, r.reason, r.checkedAt),
+        url: entry.url,
+        title: existing.title || entry.label || '',
+        id: String(entry.id),
+        file_path: spec.filePath(entry),
+        reason: r.reason,
+      },
+    };
+  }
+
+  if (r.action === 'error') {
+    return {
+      action: 'error',
+      reason: r.fetchResult.reason,
+      status: r.fetchResult.status,
+      error: r.fetchResult.error,
+    };
+  }
+
+  // action === 'fetched'
+  // 本文は取れたが国税庁の別のページへ転送されていた（U9）。
+  if (options.rejectForeignRedirect
+    && r.fetchResult.redirected === true
+    && r.fetchResult.finalUrl !== entry.url) {
+    return { action: 'redirected', finalUrl: r.fetchResult.finalUrl };
+  }
+
+  try {
+    const parsed = spec.parse(r.fetchResult.html, entry.url);
+    const stored = {
+      ...parsed,
+      fetched_at: r.fetchResult.fetchedAt,
+      last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
+      html_hash: r.fetchResult.htmlHash,
+      byte_size: r.fetchResult.byteSize,
+      encoding: r.fetchResult.encoding,
+      // HEAD で取れていればそれ、無ければ GET レスポンスから
+      last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
+      etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
+    };
+    const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, args.verbose);
+    spec.save({
+      ...withFigures,
+      ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
+    });
+    return {
+      action: 'fetched',
+      title: parsed.title || '',
+      restored: r.restored || (existing && existing.deleted === true),
+      htmlHash: r.fetchResult.htmlHash,
+    };
+  } catch (e) {
+    return { action: 'parse_error', reason: 'parse_failed', error: e.message };
+  }
+}
+
 // ── タックスアンサーの全件 crawl ────────────────────────────────
 async function crawlTaxAnswer(args) {
   const verbose = args.verbose;
@@ -293,6 +399,8 @@ async function crawlTaxAnswer(args) {
       pendingDeletions: [],
       goneUnrecorded: [],
       restored: [],
+      listedFilePaths: [],
+      listedCategories: [],
     };
   }
 
@@ -308,6 +416,8 @@ async function crawlTaxAnswer(args) {
     pendingDeletions: [],
     goneUnrecorded: [],
     restored: [],
+    listedFilePaths: entries.map(taxanswerFilePath),
+    listedCategories: [...new Set(entries.map(e => `taxanswer/${e.category}`))],
   };
   let i = 0;
 
@@ -317,78 +427,54 @@ async function crawlTaxAnswer(args) {
 
     const existing = store.loadTaxAnswerEntry(entry.category, entry.id);
 
-    const r = await performIncrementalFetch(entry, existing, rl, args);
+    const r = await processEntry(entry, existing, rl, args, TAXANSWER_SPEC);
 
     if (r.action === 'skipped') {
-      store.saveTaxAnswerEntry(r.updatedEntry);
       results.skipped++;
       if (r.restored) {
-        results.restored.push({ kind: 'taxanswer', url: entry.url, title: r.updatedEntry.title || existing.title || '' });
+        results.restored.push({ kind: 'taxanswer', url: entry.url, title: r.title });
       }
       if (verbose) console.log(`  [skip] ${entry.category}/${entry.id} (${r.reason})`);
       continue;
     }
 
+    if (r.action === 'gone_unrecorded') {
+      results.goneUnrecorded.push({ kind: 'taxanswer', url: entry.url, reason: r.reason });
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.id} (${r.reason})`);
+      continue;
+    }
+
+    if (r.action === 'deleted_still') {
+      results.deletedStill++;
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.id} (${r.reason})`);
+      continue;
+    }
+
     if (r.action === 'gone') {
-      if (!existing) {
-        results.goneUnrecorded.push({ kind: 'taxanswer', url: entry.url, reason: r.reason });
-      } else if (existing.deleted === true) {
-        store.saveTaxAnswerEntry(deletions.markDeleted(existing, r.reason, r.checkedAt));
-        results.deletedStill++;
-      } else {
-        results.pendingDeletions.push({
-          kind: 'taxanswer',
-          entry: deletions.markDeleted(existing, r.reason, r.checkedAt),
-          url: entry.url,
-          title: existing.title || entry.label || '',
-          id: String(entry.id),
-          file_path: taxanswerFilePath(entry),
-          reason: r.reason,
-        });
-      }
+      results.pendingDeletions.push(r.pending);
       if (verbose) console.warn(`  [gone] ${entry.category}/${entry.id} (${r.reason})`);
       continue;
     }
 
     if (r.action === 'error') {
-      results.errors.push({
-        url: entry.url,
-        reason: r.fetchResult.reason,
-        status: r.fetchResult.status,
-      });
-      if (verbose) console.warn(`  [error] ${entry.url}: ${r.fetchResult.reason}`);
+      results.errors.push({ url: entry.url, reason: r.reason, status: r.status });
+      if (verbose) console.warn(`  [error] ${entry.url}: ${r.reason}`);
+      continue;
+    }
+
+    if (r.action === 'parse_error') {
+      results.errors.push({ url: entry.url, reason: r.reason, error: r.error });
+      console.warn(`  [parse error] ${entry.url}: ${r.error}`);
       continue;
     }
 
     // action === 'fetched'
-    try {
-      const parsed = taxanswerParser.parseTaxAnswerHtml(r.fetchResult.html, entry.url);
-      const stored = {
-        ...parsed,
-        fetched_at: r.fetchResult.fetchedAt,
-        last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
-        html_hash: r.fetchResult.htmlHash,
-        byte_size: r.fetchResult.byteSize,
-        encoding: r.fetchResult.encoding,
-        // HEAD で取れていればそれ、無ければ GET レスポンスから
-        last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
-        etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
-      };
-      const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
-      store.saveTaxAnswerEntry({
-        ...withFigures,
-        ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
-      });
-      results.fetched++;
-      if (r.restored || (existing && existing.deleted === true)) {
-        results.restored.push({ kind: 'taxanswer', url: entry.url, title: parsed.title || '' });
-      }
-      if (verbose || i % 20 === 0) {
-        console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${parsed.title.slice(0, 30)}`);
-      }
-    } catch (e) {
-      results.errors.push({ url: entry.url, reason: 'parse_failed', error: e.message });
-      console.warn(`  [parse error] ${entry.url}: ${e.message}`);
+    results.fetched++;
+    if (r.restored) {
+      results.restored.push({ kind: 'taxanswer', url: entry.url, title: r.title });
+    }
+    if (verbose || i % 20 === 0) {
+      console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${r.title.slice(0, 30)}`);
     }
   }
 
@@ -432,6 +518,8 @@ async function crawlShitsugi(args) {
       pendingDeletions: [],
       goneUnrecorded: [],
       restored: [],
+      listedFilePaths: [],
+      listedCategories: [],
     };
   }
 
@@ -447,6 +535,8 @@ async function crawlShitsugi(args) {
     pendingDeletions: [],
     goneUnrecorded: [],
     restored: [],
+    listedFilePaths: entries.map(shitsugiFilePath),
+    listedCategories: [...new Set(entries.map(e => `shitsugi/${e.category}`))],
   };
   let i = 0;
 
@@ -456,77 +546,54 @@ async function crawlShitsugi(args) {
 
     const existing = store.readJson(store.shitsugiPath(entry.category, entry.section, entry.id));
 
-    const r = await performIncrementalFetch(entry, existing, rl, args);
+    const r = await processEntry(entry, existing, rl, args, SHITSUGI_SPEC);
 
     if (r.action === 'skipped') {
-      store.saveShitsugiEntry(r.updatedEntry);
       results.skipped++;
       if (r.restored) {
-        results.restored.push({ kind: 'shitsugi', url: entry.url, title: r.updatedEntry.title || existing.title || '' });
+        results.restored.push({ kind: 'shitsugi', url: entry.url, title: r.title });
       }
       if (verbose) console.log(`  [skip] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
       continue;
     }
 
+    if (r.action === 'gone_unrecorded') {
+      results.goneUnrecorded.push({ kind: 'shitsugi', url: entry.url, reason: r.reason });
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
+      continue;
+    }
+
+    if (r.action === 'deleted_still') {
+      results.deletedStill++;
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
+      continue;
+    }
+
     if (r.action === 'gone') {
-      if (!existing) {
-        results.goneUnrecorded.push({ kind: 'shitsugi', url: entry.url, reason: r.reason });
-      } else if (existing.deleted === true) {
-        store.saveShitsugiEntry(deletions.markDeleted(existing, r.reason, r.checkedAt));
-        results.deletedStill++;
-      } else {
-        results.pendingDeletions.push({
-          kind: 'shitsugi',
-          entry: deletions.markDeleted(existing, r.reason, r.checkedAt),
-          url: entry.url,
-          title: existing.title || entry.label || '',
-          id: String(entry.id),
-          file_path: shitsugiFilePath(entry),
-          reason: r.reason,
-        });
-      }
+      results.pendingDeletions.push(r.pending);
       if (verbose) console.warn(`  [gone] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
       continue;
     }
 
     if (r.action === 'error') {
-      results.errors.push({
-        url: entry.url,
-        reason: r.fetchResult.reason,
-        status: r.fetchResult.status,
-      });
-      if (verbose) console.warn(`  [error] ${entry.url}: ${r.fetchResult.reason}`);
+      results.errors.push({ url: entry.url, reason: r.reason, status: r.status });
+      if (verbose) console.warn(`  [error] ${entry.url}: ${r.reason}`);
+      continue;
+    }
+
+    if (r.action === 'parse_error') {
+      results.errors.push({ url: entry.url, reason: r.reason, error: r.error });
+      console.warn(`  [parse error] ${entry.url}: ${r.error}`);
       continue;
     }
 
     // action === 'fetched'
-    try {
-      const parsed = shitsugiParser.parseShitsugiHtml(r.fetchResult.html, entry.url);
-      const stored = {
-        ...parsed,
-        fetched_at: r.fetchResult.fetchedAt,
-        last_checked_at: r.headMeta ? r.headMeta.checkedAt : r.fetchResult.fetchedAt,
-        html_hash: r.fetchResult.htmlHash,
-        byte_size: r.fetchResult.byteSize,
-        encoding: r.fetchResult.encoding,
-        last_modified: (r.headMeta && r.headMeta.lastModified) || r.fetchResult.lastModified || null,
-        etag:          (r.headMeta && r.headMeta.etag)          || r.fetchResult.etag          || null,
-      };
-      const withFigures = await attachFigures(stored, r.fetchResult.html, entry.url, rl, verbose);
-      store.saveShitsugiEntry({
-        ...withFigures,
-        ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
-      });
-      results.fetched++;
-      if (r.restored || (existing && existing.deleted === true)) {
-        results.restored.push({ kind: 'shitsugi', url: entry.url, title: parsed.title || '' });
-      }
-      if (verbose || i % 20 === 0) {
-        console.log(`  [${i}/${target}] ${entry.category}/${entry.section}/${entry.id} ${parsed.title.slice(0, 30)}`);
-      }
-    } catch (e) {
-      results.errors.push({ url: entry.url, reason: 'parse_failed', error: e.message });
-      console.warn(`  [parse error] ${entry.url}: ${e.message}`);
+    results.fetched++;
+    if (r.restored) {
+      results.restored.push({ kind: 'shitsugi', url: entry.url, title: r.title });
+    }
+    if (verbose || i % 20 === 0) {
+      console.log(`  [${i}/${target}] ${entry.category}/${entry.section}/${entry.id} ${r.title.slice(0, 30)}`);
     }
   }
 
@@ -560,6 +627,9 @@ function buildAndSaveIndex(startedAt, results) {
       deletionHeldEntries: results.deletion_held_entries,
       restoredEntries: results.restored_entries,
       goneUnrecordedUrls: results.gone_unrecorded_urls,
+      unlistedEntries: results.unlisted_entries,
+      unlistedCheck: results.unlisted_check,
+      unlistedCheckLimit: results.unlisted_check_limit,
     });
     console.log(`[meta] meta.json: fetched=${results.fetched} skipped=${results.skipped} deleted=${results.deleted} errors=${(results.errors || []).length}`);
   }
@@ -580,6 +650,9 @@ function writeReport(filePath, results, options = {}) {
     goneUnrecorded: results.gone_unrecorded_urls || [],
     maxDeletions: results.max_deletions,
     references,
+    unlisted: results.unlisted_entries || [],
+    unlistedCheck: results.unlisted_check || null,
+    unlistedLimit: results.unlisted_check_limit,
   }, { maxRows: options.maxRows });
   const absolute = path.resolve(filePath);
   fsMod.mkdirSync(path.dirname(absolute), { recursive: true });
@@ -588,17 +661,159 @@ function writeReport(filePath, results, options = {}) {
 }
 
 function metaEntryOf(item) {
-  return {
+  const entry = {
     type: item.kind,
     url: item.url,
     title: item.title,
     file_path: item.file_path,
     reason: item.reason,
   };
+  // 一覧から外れた記録の候補だけ、そのことを残す（一覧にある記録の形は変えない）。
+  if (item.unlisted === true) entry.unlisted = true;
+  return entry;
 }
 
 function byUrl(a, b) {
   return String(a.url).localeCompare(String(b.url));
+}
+
+// ── 国税庁の一覧から外れた DB の記録（段 2）────────────────────
+// U4: 次のどれかなら、一覧から外れた記録を一件も訪ねず、記録も変えない。
+function unlistedSkipState(args) {
+  if (args.dryRun) return 'skipped_dry_run';
+  if (args.type !== 'all' || args.category || args.maxPages !== Infinity) return 'skipped_filter';
+  return null;
+}
+
+const UNLISTED_LOG_ORDER = [
+  'deleted', 'held', 'alive_updated', 'alive_unchanged', 'redirected_elsewhere', 'error',
+  'deleted_before', 'invalid_record', 'category_unlisted', 'not_checked',
+];
+
+/**
+ * 一覧から外れた記録を、本文で確かめる。
+ * 結果は aggregated に足し、報告・meta 用の行の配列を返す。
+ * 新しい削除の可否は applyPendingDeletions の後に決まるので、
+ * 削除の候補は outcome を空にして pending を立てておく。
+ */
+async function checkUnlistedRecords(args, aggregated) {
+  const skipped = unlistedSkipState(args);
+  if (skipped) {
+    console.log(skipped === 'skipped_dry_run'
+      ? '[unlisted] --dry-run のため、一覧から外れた記録は確かめていません'
+      : '[unlisted] 絞り込み（--type・--category・--max-pages）があるため、一覧から外れた記録は確かめていません');
+    // 訪ねないので上限は決まらない（meta.json は null になる）。
+    return { check: skipped, limit: null, entries: [], visited: 0 };
+  }
+
+  const mod = unlistedModule();
+  const limit = mod.UNLISTED_CHECK_LIMIT;
+  const keys = store.listRecordKeys();
+  const selection = mod.selectUnlisted({
+    keys,
+    listedFilePaths: aggregated.listedFilePaths,
+    listedCategories: aggregated.listedCategories,
+    // 一覧にある記録と同じ部品で記録を読む。
+    loadRecord: key => (key.type === 'taxanswer'
+      ? store.loadTaxAnswerEntry(key.category, key.id)
+      : store.readJson(store.shitsugiPath(key.category, key.section, key.id))),
+  });
+
+  const entries = [];
+  const push = (item, outcome, extra = {}) => {
+    entries.push({
+      type: item.key.type,
+      url: item.url,
+      title: item.title || '',
+      file_path: item.key.file_path,
+      outcome,
+      ...extra,
+    });
+  };
+  for (const item of selection.category_unlisted) push(item, 'category_unlisted');
+  for (const item of selection.invalid_record) push(item, 'invalid_record');
+  for (const item of selection.deleted_before) push(item, 'deleted_before');
+
+  const targets = selection.targets;
+  if (targets.length > limit) {
+    // U6: 一覧の取得・読み取りの不具合を疑う。一件も訪ねない。
+    for (const item of targets) push(item, 'not_checked');
+    console.log(`[unlisted] 一覧から外れた記録 ${entries.length} 件 / `
+      + `訪ねる対象 ${targets.length} 件が上限（${limit} 件）を超えたため、一件も訪ねていません`);
+    return { check: 'skipped_too_many', limit, entries, visited: 0 };
+  }
+
+  const rl = new crawler.RateLimiter(1000);
+  let visited = 0;
+  for (const item of targets) {
+    const key = item.key;
+    const spec = key.type === 'taxanswer' ? TAXANSWER_SPEC : SHITSUGI_SPEC;
+    // 一覧の項目の形（{ id, category, url, section? }）は記録から作る。url は記録の url。
+    const entry = { id: String(key.id), category: key.category, url: item.url, label: item.title };
+    if (key.type === 'shitsugi') entry.section = key.section;
+    visited++;
+
+    const r = await processEntry(entry, item.record, rl, args, spec, { rejectForeignRedirect: true });
+
+    if (r.action === 'skipped') {
+      aggregated.skipped++;
+      push(item, 'alive_unchanged');
+      continue;
+    }
+    if (r.action === 'gone') {
+      // 上限は一覧にある記録の候補と合わせて数える（U3）。
+      aggregated.pendingDeletions.push({ ...r.pending, unlisted: true });
+      push(item, null, { reason: r.reason, pending: true });
+      continue;
+    }
+    if (r.action === 'error' || r.action === 'parse_error') {
+      aggregated.errors.push({ url: entry.url, reason: r.reason, status: r.status, error: r.error });
+      push(item, 'error', { reason: r.reason });
+      continue;
+    }
+    if (r.action === 'redirected') {
+      // U9: 国税庁の別のページへ転送されていた。記録は変えず、失敗にも数えない。
+      push(item, 'redirected_elsewhere', { final_url: r.finalUrl });
+      continue;
+    }
+    if (r.action === 'fetched') {
+      aggregated.fetched++;
+      push(item, 'alive_updated');
+      continue;
+    }
+    // gone_unrecorded・deleted_still は記録のある対象では起きない。
+    push(item, 'error', { reason: r.reason });
+  }
+
+  return { check: 'done', limit, entries, visited };
+}
+
+// 新しい削除の可否が決まった後、一覧から外れた記録の結果を確定する。
+function finalizeUnlistedEntries(entries, applied, held) {
+  const appliedPaths = new Set(applied.map(item => item.file_path));
+  const heldPaths = new Set(held.map(item => item.file_path));
+  for (const entry of entries) {
+    if (!entry.pending) continue;
+    entry.outcome = appliedPaths.has(entry.file_path) ? 'deleted'
+      : heldPaths.has(entry.file_path) ? 'held' : null;
+    delete entry.pending;
+  }
+}
+
+function logUnlistedSummary(unlistedCheck) {
+  const entries = unlistedCheck.entries || [];
+  if (unlistedCheck.check !== 'done') return;
+  const mod = unlistedModule();
+  const counts = {};
+  for (const entry of entries) counts[entry.outcome] = (counts[entry.outcome] || 0) + 1;
+  const parts = UNLISTED_LOG_ORDER
+    .filter(outcome => counts[outcome])
+    .map(outcome => {
+      const label = mod.UNLISTED_OUTCOME_LABELS[outcome];
+      return `${typeof label === 'function' ? label({}) : outcome} ${counts[outcome]} 件`;
+    });
+  console.log(`[unlisted] 一覧から外れた記録 ${entries.length} 件 / 訪ねた ${unlistedCheck.visited} 件`
+    + (parts.length ? ` / ${parts.join(' / ')}` : ''));
 }
 
 // ── 全件 crawl の振分け ────────────────────────────────────────
@@ -615,6 +830,9 @@ async function crawlAll(args) {
     pendingDeletions: [],
     goneUnrecorded: [],
     restored: [],
+    // 段 2: 一覧に載っていた項目と、項目が 1 件以上あった分類。
+    listedFilePaths: new Set(),
+    listedCategories: new Set(),
   };
 
   if (args.type === 'taxanswer' || args.type === 'all') {
@@ -627,6 +845,8 @@ async function crawlAll(args) {
       aggregated.pendingDeletions.push(...r.pendingDeletions);
       aggregated.goneUnrecorded.push(...r.goneUnrecorded);
       aggregated.restored.push(...r.restored);
+      for (const filePath of r.listedFilePaths || []) aggregated.listedFilePaths.add(filePath);
+      for (const category of r.listedCategories || []) aggregated.listedCategories.add(category);
     }
   }
   if (args.type === 'shitsugi' || args.type === 'all') {
@@ -639,8 +859,13 @@ async function crawlAll(args) {
       aggregated.pendingDeletions.push(...r.pendingDeletions);
       aggregated.goneUnrecorded.push(...r.goneUnrecorded);
       aggregated.restored.push(...r.restored);
+      for (const filePath of r.listedFilePaths || []) aggregated.listedFilePaths.add(filePath);
+      for (const category of r.listedCategories || []) aggregated.listedCategories.add(category);
     }
   }
+
+  // 段 2: 一覧から外れた DB の記録も本文で確かめる（上限の判定より前）。
+  const unlistedCheck = await checkUnlistedRecords(args, aggregated);
 
   // 上限を超えたら一件も保存しない。超えなければここでまとめて保存する。
   const { applied, held } = deletions.applyPendingDeletions(aggregated.pendingDeletions, {
@@ -657,6 +882,12 @@ async function crawlAll(args) {
     .map(item => ({ type: item.kind, url: item.url, title: item.title }));
   aggregated.gone_unrecorded_urls = [...new Set(aggregated.goneUnrecorded.map(item => item.url))].sort();
   aggregated.max_deletions = args.maxDeletions;
+  // 段 2: 一覧から外れた記録のまとめ（URL の順）。
+  finalizeUnlistedEntries(unlistedCheck.entries, applied, held);
+  aggregated.unlisted_check = unlistedCheck.check;
+  aggregated.unlisted_check_limit = unlistedCheck.limit;
+  aggregated.unlisted_entries = unlistedCheck.entries.slice().sort(byUrl);
+  aggregated.unlisted = aggregated.unlisted_entries.length;
   // meta.json が読む名前（crawl_results）にも同じ数を入れる。
   aggregated.deleted_still = aggregated.deletedStill;
   aggregated.deletion_held = held.length;
@@ -671,6 +902,7 @@ async function crawlAll(args) {
   for (const item of aggregated.restored) {
     console.log(`[restored] ${item.url}`);
   }
+  logUnlistedSummary(unlistedCheck);
 
   if (!args.dryRun && !args.skipIndex) {
     buildAndSaveIndex(startedAt, aggregated);

@@ -132,17 +132,20 @@ jobs:
             DELETION_HELD=$(jq -r '.crawl_results.deletion_held // 0' data/nta-sources/meta.json)
             RESTORED=$(jq -r '.crawl_results.restored // 0' data/nta-sources/meta.json)
             GONE_UNRECORDED=$(jq -r '.crawl_results.gone_unrecorded // 0' data/nta-sources/meta.json)
+            UNLISTED=$(jq -r '.crawl_results.unlisted // 0' data/nta-sources/meta.json)
+            UNLISTED_CHECK=$(jq -r '.unlisted_check // ""' data/nta-sources/meta.json)
             ERRORS=$(jq -r '.crawl_results.errors_count // 0' data/nta-sources/meta.json)
             TOTAL=$(jq -r '.total_entries_processed // 0' data/nta-sources/meta.json)
             DURATION=$(jq -r '.last_crawl_duration_seconds // 0' data/nta-sources/meta.json)
           else
             FETCHED=0; SKIPPED=0; DELETED=0; DELETED_STILL=0; DELETION_HELD=0
-            RESTORED=0; GONE_UNRECORDED=0; ERRORS=0; TOTAL=0; DURATION=0
+            RESTORED=0; GONE_UNRECORDED=0; UNLISTED=0; UNLISTED_CHECK=''; ERRORS=0; TOTAL=0; DURATION=0
           fi
           # backfill-figures は meta.json を書かないので、前回の取り込みの削除の数が
           # 残っている。古い「上限で止めた」警告を出さないよう 0 にする。
           if [ "$MODE" = "backfill-figures" ]; then
             DELETED=0; DELETED_STILL=0; DELETION_HELD=0; RESTORED=0; GONE_UNRECORDED=0
+            UNLISTED=0; UNLISTED_CHECK=''
           fi
           # error_rate（％、小数1桁）
           if [ "$TOTAL" -gt 0 ]; then
@@ -158,6 +161,8 @@ jobs:
             echo "deletion_held=$DELETION_HELD"
             echo "restored=$RESTORED"
             echo "gone_unrecorded=$GONE_UNRECORDED"
+            echo "unlisted=$UNLISTED"
+            echo "unlisted_check=$UNLISTED_CHECK"
             echo "errors=$ERRORS"
             echo "total=$TOTAL"
             echo "duration=$DURATION"
@@ -183,6 +188,7 @@ jobs:
           DELETION_HELD: ${{ steps.meta.outputs.deletion_held }}
           RESTORED: ${{ steps.meta.outputs.restored }}
           GONE_UNRECORDED: ${{ steps.meta.outputs.gone_unrecorded }}
+          UNLISTED: ${{ steps.meta.outputs.unlisted }}
           ERRORS: ${{ steps.meta.outputs.errors }}
           TOTAL: ${{ steps.meta.outputs.total }}
           DURATION: ${{ steps.meta.outputs.duration }}s
@@ -225,6 +231,7 @@ jobs:
           | 上限で止めた | ${DELETION_HELD} |
           | 戻った | ${RESTORED} |
           | 一覧にはあるがページが無い | ${GONE_UNRECORDED} |
+          | 国税庁の一覧から外れた記録 | ${UNLISTED} |
           | errors | ${ERRORS} |
           | total processed | ${TOTAL} |
           | duration | ${DURATION} |
@@ -233,6 +240,7 @@ jobs:
           ## 確認ポイント
           - **新しく削除済みにした資料があれば**：下の一覧で国税庁のページが本当に無いことを確かめてからマージする
           - **上限で止めたものがあれば**：確かめてから、この PR は閉じてから max_deletions を上げて手動で実行し直す
+          - **一覧から外れた記録があれば**：下の節で結果を見る。「ページはある」は国税庁が一覧から外した古いページの可能性がある
           - **大量の deleted があれば**：対象 URL の削除・移転が発生している可能性。国税庁サイトの構造変更を疑う
           - **error_rate が 5% 超なら**：crawl ロジックの問題か NTA サイト構造変更を疑う
           - **fetched が想定より多い**：通常の incremental では数件〜数十件が想定範囲
@@ -261,6 +269,7 @@ jobs:
         env:
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          UNLISTED_CHECK: ${{ steps.meta.outputs.unlisted_check }}
           MODE: ${{ steps.mode.outputs.mode }}
           FETCHED: ${{ steps.meta.outputs.fetched }}
           SKIPPED: ${{ steps.meta.outputs.skipped }}
@@ -303,6 +312,10 @@ jobs:
             WARN_LINE="${WARN_LINE}
           ■ ⚠ 削除の上限で ${DELETION_HELD} 件を止めました：確かめて max_deletions を上げて再実行してください（実行: ${RUN_URL}）"
           fi
+          if [ "$UNLISTED_CHECK" = "skipped_too_many" ]; then
+            WARN_LINE="${WARN_LINE}
+          ■ ⚠ 一覧から外れた記録が多すぎるため確かめていません：一覧の取得の不具合を疑う（実行: ${RUN_URL}）"
+          fi
 
           BODY=$(cat <<BODYEOF
           国税庁ソース DB 月次 crawl ${STATUS_MARK}
@@ -333,6 +346,7 @@ jobs:
           META_DELETION_HELD: ${{ steps.meta.outputs.deletion_held }}
           META_RESTORED: ${{ steps.meta.outputs.restored }}
           META_GONE_UNRECORDED: ${{ steps.meta.outputs.gone_unrecorded }}
+          META_UNLISTED: ${{ steps.meta.outputs.unlisted }}
           META_ERRORS: ${{ steps.meta.outputs.errors }}
           META_TOTAL: ${{ steps.meta.outputs.total }}
           META_DURATION: ${{ steps.meta.outputs.duration }}
@@ -354,6 +368,7 @@ jobs:
             echo "| deletion_held | ${META_DELETION_HELD} |"
             echo "| restored | ${META_RESTORED} |"
             echo "| gone_unrecorded | ${META_GONE_UNRECORDED} |"
+            echo "| unlisted | ${META_UNLISTED} |"
             echo "| errors | ${META_ERRORS} |"
             echo "| total processed | ${META_TOTAL} |"
             echo "| duration | ${META_DURATION}s |"

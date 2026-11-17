@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { unlistedOutcomeLabel } = require('./nta-unlisted');
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -226,9 +227,16 @@ function pushTable(lines, entries, references) {
   lines.push('|---|---|---|---|---|');
   for (const entry of entries) {
     const refs = references && references[entry.url];
+    const reason = reasonLabel(entry.reason)
+      + (entry.unlisted === true ? '（国税庁の一覧からも外れている）' : '');
     lines.push(`| ${cell(typeLabel(entry.type))} | ${cell(formatTitle(entry))} | ${cell(entry.url)} | `
-      + `${cell(reasonLabel(entry.reason))} | ${cell(formatReferences(refs))} |`);
+      + `${cell(reason)} | ${cell(formatReferences(refs))} |`);
   }
+}
+
+// 一覧から外れた記録の表で、行数を超えた分の 1 行。
+function unlistedOverflowLine(hidden) {
+  return `ほか ${hidden} 件（全件は meta.json の \`unlisted_entries\` と、Actions の実行の要約にあります）`;
 }
 
 // 上限（maxRows）を超えた分の 1 行。全件は meta.json と実行の要約にある。
@@ -252,6 +260,9 @@ function renderReport(summary = {}, options = {}) {
   const references = summary.references || {};
   const deletedStill = Number(summary.deletedStill) || 0;
   const maxDeletions = Number(summary.maxDeletions) || 0;
+  const unlisted = Array.isArray(summary.unlisted) ? summary.unlisted : [];
+  const unlistedCheck = summary.unlistedCheck || null;
+  const unlistedLimit = Number.isInteger(summary.unlistedLimit) ? summary.unlistedLimit : 100;
   const maxRows = Number.isInteger(options.maxRows) && options.maxRows >= 0 ? options.maxRows : null;
   const take = (list, limit) => (maxRows === null || limit === null ? list : list.slice(0, limit));
   const deletedShown = take(deleted, maxRows);
@@ -309,6 +320,32 @@ function renderReport(summary = {}, options = {}) {
     if (goneShown.length < goneUnrecorded.length) lines.push(overflowLine(goneUnrecorded.length - goneShown.length));
     lines.push('');
     lines.push('</details>');
+  } else {
+    lines.push('なし');
+  }
+
+  lines.push('');
+  lines.push(`## 国税庁の一覧から外れた DB の記録: ${unlisted.length} 件`);
+  lines.push('');
+  if (unlistedCheck === 'skipped_filter') {
+    lines.push('絞り込み（--type・--category・--max-pages）があるため確かめていません');
+  } else if (unlistedCheck === 'skipped_dry_run') {
+    lines.push('--dry-run のため確かめていません');
+  } else if (unlistedCheck === 'skipped_too_many') {
+    const visitTargets = unlisted.filter(entry => entry.outcome === 'not_checked').length;
+    lines.push(`訪ねる対象が ${visitTargets} 件あり、上限（${unlistedLimit} 件）を超えたため一件も訪ねていません。`
+      + '国税庁の一覧の取得・読み取りの不具合を疑ってください');
+  } else if (unlisted.length > 0) {
+    const unlistedShown = take(unlisted, maxRows);
+    lines.push('| 種類 | 題名 | URL | 結果 |');
+    lines.push('|---|---|---|---|');
+    for (const entry of unlistedShown) {
+      lines.push(`| ${cell(typeLabel(entry.type))} | ${cell(formatTitle(entry))} | ${cell(entry.url)} | `
+        + `${cell(unlistedOutcomeLabel(entry))} |`);
+    }
+    if (unlistedShown.length < unlisted.length) {
+      lines.push(unlistedOverflowLine(unlisted.length - unlistedShown.length));
+    }
   } else {
     lines.push('なし');
   }

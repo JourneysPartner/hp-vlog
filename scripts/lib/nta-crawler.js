@@ -220,6 +220,9 @@ async function fetchPage(url, options = {}) {
     status: result.status,
     lastModified,
     etag,
+    // 転送をたどったかどうかと、最後に取れた URL（段 2 の一覧外の記録の判定用）。
+    redirected: res.redirected === true,
+    finalUrl: res.url || url,
   };
 }
 
