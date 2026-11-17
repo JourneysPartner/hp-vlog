@@ -1,85 +1,49 @@
 {
   "version": 1,
-  "last_crawl_started_at": "2026-11-01T19:18:08.505Z",
-  "last_crawl_finished_at": "2026-11-01T19:57:22.496Z",
-  "last_crawl_duration_seconds": 2354,
+  "last_crawl_started_at": "2026-11-17T09:07:36.771Z",
+  "last_crawl_finished_at": "2026-11-17T09:45:09.040Z",
+  "last_crawl_duration_seconds": 2252,
   "crawl_results": {
-    "fetched": 109,
-    "skipped": 2117,
-    "deleted": 0,
-    "errors_count": 13
+    "fetched": 6,
+    "skipped": 2220,
+    "deleted": 1,
+    "deleted_still": 0,
+    "deletion_held": 0,
+    "restored": 0,
+    "gone_unrecorded": 12,
+    "errors_count": 0
   },
   "by_type": {
     "shitsugi": 1550,
     "taxanswer": 679
   },
-  "total_entries_processed": 2226,
-  "errors_sample": [
+  "total_entries_processed": 2227,
+  "max_deletions": 20,
+  "deleted_entries": [
     {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4512.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4512.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5209.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5209.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5207.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5207.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5435.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5435.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5437.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5437.htm"
-    },
-    {
+      "type": "taxanswer",
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6950.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6950.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/law/shitsugi/joto/16/09.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/law/shitsugi/joto/16/09.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/law/shitsugi/sozoku/10/07.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/law/shitsugi/sozoku/10/07.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/law/shitsugi/hojin/28/03.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/law/shitsugi/hojin/28/03.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/law/shitsugi/hojin/08/08.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/law/shitsugi/hojin/08/08.htm"
-    },
-    {
-      "url": "https://www.nta.go.jp/law/shitsugi/shohi/18/09.htm",
-      "reason": "parse_failed",
-      "error": "bodyArea が見つかりません: https://www.nta.go.jp/law/shitsugi/shohi/18/09.htm"
+      "title": "研究開発税制について(概要)",
+      "file_path": "taxanswer/hojin/5441.json",
+      "reason": "nta_error_page"
     }
   ],
+  "deletion_held_entries": [],
+  "restored_entries": [],
+  "gone_unrecorded_urls": [
+    "https://www.nta.go.jp/law/shitsugi/hojin/08/08.htm",
+    "https://www.nta.go.jp/law/shitsugi/hojin/28/03.htm",
+    "https://www.nta.go.jp/law/shitsugi/joto/16/09.htm",
+    "https://www.nta.go.jp/law/shitsugi/shohi/18/09.htm",
+    "https://www.nta.go.jp/law/shitsugi/sozoku/10/07.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5207.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5209.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5435.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5437.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5770.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6950.htm",
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4512.htm"
+  ],
+  "errors_sample": [],
   "next_scheduled_at": null
 }
