@@ -53,6 +53,7 @@ async function crawlWithFigures(type, previous, images) {
     'nta-figures': { extractFigureRefs: () => images && images.length ? [{ url: 'https://www.nta.go.jp/figure.png' }] : [],
       fetchAndStoreFigures: async () => images },
     'nta-content-change': { detectContentChange },
+    'nta-deletions': require('../nta-deletions'),
   };
   const context = {
     __dirname: path.dirname(filename),

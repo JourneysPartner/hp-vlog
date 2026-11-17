@@ -137,13 +137,44 @@ function loadIndex() {
  * @param {Object} params
  *   @param {string}   params.startedAt        ISO datetime
  *   @param {string}   params.finishedAt       ISO datetime
- *   @param {Object}   params.results          { fetched, skipped, deleted, errors[] }
+ *   @param {Object}   params.results          { fetched, skipped, deleted, deleted_still, deletion_held,
+ *                                               restored, gone_unrecorded, errors[] }
  *   @param {Object}   params.byType           { taxanswer: {...}, shitsugi: {...} }
  *   @param {string}   [params.nextScheduledAt]
+ *   @param {number}   [params.maxDeletions]
+ *   @param {Array}    [params.deletedEntries]          { type, url, title, file_path, reason }
+ *   @param {Array}    [params.deletionHeldEntries]     { type, url, title, file_path, reason }
+ *   @param {Array}    [params.restoredEntries]         { type, url, title }
+ *   @param {Array}    [params.goneUnrecordedUrls]      URL の配列
+ *   @param {string}   [params.metaFile]       テスト用の書き出し先（既定は meta.json）
  * @returns {string} 保存先パス
  */
-function saveMeta({ startedAt, finishedAt, results, byType, nextScheduledAt }) {
-  const totalEntries = (results.fetched || 0) + (results.skipped || 0) + (results.deleted || 0);
+function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt,
+  maxDeletions, deletedEntries, deletionHeldEntries, restoredEntries, goneUnrecordedUrls,
+  metaFile = META_FILE }) {
+  const fetched = results.fetched || 0;
+  const skipped = results.skipped || 0;
+  const deleted = results.deleted || 0;
+  const deletedStill = results.deleted_still || 0;
+  const deletionHeld = results.deletion_held || 0;
+  const restored = Array.isArray(results.restored)
+    ? results.restored.length
+    : (results.restored || 0);
+  const goneUnrecorded = Array.isArray(results.gone_unrecorded)
+    ? results.gone_unrecorded.length
+    : (results.gone_unrecorded || 0);
+  const entriesOf = (explicit, fallback) => {
+    const value = explicit !== undefined ? explicit : fallback;
+    return Array.isArray(value) ? value : [];
+  };
+  const deletedList = entriesOf(deletedEntries, results.deleted_entries).slice().sort((a, b) => String(a.url).localeCompare(String(b.url)));
+  const heldList = entriesOf(deletionHeldEntries, results.deletion_held_entries).slice().sort((a, b) => String(a.url).localeCompare(String(b.url)));
+  const restoredList = entriesOf(restoredEntries, results.restored_entries);
+  const goneList = entriesOf(goneUnrecordedUrls, results.gone_unrecorded_urls).slice().sort();
+  const max = maxDeletions !== undefined
+    ? maxDeletions
+    : (results.max_deletions !== undefined ? results.max_deletions : 0);
+  const totalEntries = fetched + skipped + deleted + deletedStill + deletionHeld;
   const durationMs = new Date(finishedAt) - new Date(startedAt);
   const meta = {
     version: 1,
@@ -151,18 +182,27 @@ function saveMeta({ startedAt, finishedAt, results, byType, nextScheduledAt }) {
     last_crawl_finished_at: finishedAt,
     last_crawl_duration_seconds: Math.round(durationMs / 1000),
     crawl_results: {
-      fetched: results.fetched || 0,
-      skipped: results.skipped || 0,
-      deleted: results.deleted || 0,
+      fetched,
+      skipped,
+      deleted,
+      deleted_still: deletedStill,
+      deletion_held: deletionHeld,
+      restored,
+      gone_unrecorded: goneUnrecorded,
       errors_count: (results.errors || []).length,
     },
     by_type: byType || {},
     total_entries_processed: totalEntries,
+    max_deletions: max,
+    deleted_entries: deletedList,
+    deletion_held_entries: heldList,
+    restored_entries: restoredList,
+    gone_unrecorded_urls: goneList,
     errors_sample: (results.errors || []).slice(0, 20),
     next_scheduled_at: nextScheduledAt || null,
   };
-  store.writeJsonAtomic(META_FILE, meta);
-  return META_FILE;
+  store.writeJsonAtomic(metaFile, meta);
+  return metaFile;
 }
 
 function loadMeta() {

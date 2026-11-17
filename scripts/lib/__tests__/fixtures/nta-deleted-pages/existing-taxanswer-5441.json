@@ -1,0 +1,19 @@
+{
+  "id": "5441",
+  "type": "taxanswer",
+  "tax_category": "法人税",
+  "tax_category_code": "hojin",
+  "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm",
+  "title": "研究開発税制について(概要)",
+  "law_version": "令和8年4月1日現在法令等",
+  "body": "研究開発税制の概要です。",
+  "char_count_body": 14,
+  "fetched_at": "2026-06-21T00:00:00Z",
+  "last_checked_at": "2026-09-01T00:00:00Z",
+  "html_hash": "old-hash-5441",
+  "byte_size": 1024,
+  "encoding": "utf-8",
+  "last_modified": "Wed, 01 Apr 2026 00:00:00 GMT",
+  "etag": "\"etag-5441\"",
+  "first_fetched_at": "2026-06-21T00:00:00Z"
+}

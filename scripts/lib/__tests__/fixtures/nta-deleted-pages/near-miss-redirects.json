@@ -1,0 +1,12 @@
+{
+  "errorPageUrl": "https://www.nta.go.jp/error/404.htm",
+  "nearMisses": [
+    "https://www.nta.go.jp/error/404.html",
+    "https://www.nta.go.jp/error/500.htm",
+    "https://www.nta.go.jp/taxes/error/404.htm",
+    "https://www.nta.go.jp.example.com/error/404.htm",
+    "https://nta.go.jp/error/404.htm",
+    "http://www.nta.go.jp/error/404.htm",
+    "https://www.nta.go.jp:8443/error/404.htm"
+  ]
+}
