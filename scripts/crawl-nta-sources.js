@@ -14,6 +14,9 @@
  *   --dry-run           実 fetch せず、対象 URL のリストアップのみ
  *   --verbose           詳細ログ
  *   --max-pages <N>     最大 N ページで停止（テスト用）
+ *   --max-deletions <N> 一回の実行で新しく「削除済み」にしてよい件数の上限（既定 20）
+ *   --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す（表は 50 行まで）
+ *   --report-full-file <path> 全件の報告ファイルを書き出す（上限なし）
  *   --probe <url>       1 ページだけ fetch して表示（動作確認用）
  *
  * Phase C-1: スクリプト骨子（fetch + 表示まで）
@@ -33,6 +36,7 @@ const store            = require(path.join(ROOT, 'scripts/lib/nta-store'));
 const indexBuilder     = require(path.join(ROOT, 'scripts/lib/nta-index-builder'));
 const figures          = require(path.join(ROOT, 'scripts/lib/nta-figures'));
 const { detectContentChange } = require(path.join(ROOT, 'scripts/lib/nta-content-change'));
+const deletions        = require(path.join(ROOT, 'scripts/lib/nta-deletions'));
 
 // ── 引数パーサ ─────────────────────────────────────────────────
 // ページに図（画像）があれば取得して entry.images に載せる。
@@ -65,6 +69,9 @@ function parseArgs(argv) {
     rebuildIndex: false,
     skipIndex: false,
     backfillFigures: false,
+    maxDeletions: 20,
+    reportFile: null,
+    reportFullFile: null,
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -76,6 +83,36 @@ function parseArgs(argv) {
       case '--dry-run':      args.dryRun = true; break;
       case '--verbose':      args.verbose = true; break;
       case '--max-pages':    args.maxPages = parseInt(argv[++i], 10); break;
+      case '--max-deletions': {
+        const raw = argv[++i];
+        if (raw === undefined || !/^(0|[1-9][0-9]*)$/.test(raw)) {
+          console.error(`--max-deletions は 0 以上の整数で指定してください: ${raw === undefined ? '(値なし)' : raw}`);
+          printHelp();
+          process.exit(2);
+        }
+        args.maxDeletions = parseInt(raw, 10);
+        break;
+      }
+      case '--report-file': {
+        const file = argv[++i];
+        if (!file) {
+          console.error('--report-file には書き出すファイルのパスを指定してください');
+          printHelp();
+          process.exit(2);
+        }
+        args.reportFile = file;
+        break;
+      }
+      case '--report-full-file': {
+        const file = argv[++i];
+        if (!file) {
+          console.error('--report-full-file には書き出すファイルのパスを指定してください');
+          printHelp();
+          process.exit(2);
+        }
+        args.reportFullFile = file;
+        break;
+      }
       case '--probe':        args.probe = argv[++i]; break;
       case '--rebuild-index': args.rebuildIndex = true; break;
       case '--skip-index':   args.skipIndex = true; break;
@@ -101,6 +138,9 @@ Options:
   --dry-run           実 fetch せず対象 URL リストアップ
   --verbose           詳細ログ
   --max-pages <N>     最大 N ページで停止（テスト用）
+  --max-deletions <N> 一回の実行で新しく「削除済み」にしてよい件数の上限（既定 20）
+  --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す（表は 50 行まで）
+  --report-full-file <path> 全件の報告ファイルを書き出す（上限なし）
   --probe <url>       1 ページだけ fetch して表示
   --rebuild-index     crawl をスキップして index.json / meta.json だけ再生成
   --skip-index        crawl 後の index/meta 自動生成をスキップ
@@ -140,16 +180,20 @@ async function probe(url, verbose) {
 
 // ── 共通：差分 crawl の判定 + GET フェッチ ───────────────────────
 // HEAD を先に投げ、Last-Modified/ETag を既存と比較。
-// 戻り値: { action: 'skipped'|'fetched'|'deleted'|'error', stored?, error? }
+// 戻り値: { action: 'skipped'|'fetched'|'gone'|'error', ... }
 //
-// action 'fetched' なら呼び出し側で parser に渡して save する。
+// 'gone' は国税庁でページが無いと分かったもの（エラーページへの転送・404/410）。
+// 削除の印を付けるかどうかは呼び出し側が決める。
+// 'fetched' なら呼び出し側で parser に渡して save する。
 // 'skipped' は last_checked_at だけ更新したものを返す。
-// 'deleted' は { ...existing, deleted: true, last_checked_at } を返す。
 async function performIncrementalFetch(entry, existing, rl, args) {
   // 既存なしなら incremental の対象外 → 全文 GET
   if (!args.incremental || !existing || !existing.html_hash) {
     await rl.wait();
     const fetchResult = await crawler.fetchPage(entry.url);
+    if (!fetchResult.ok && deletions.isGoneReason(fetchResult.reason)) {
+      return { action: 'gone', reason: fetchResult.reason, checkedAt: fetchResult.fetchedAt };
+    }
     return { action: fetchResult.ok ? 'fetched' : 'error', fetchResult };
   }
 
@@ -166,37 +210,57 @@ async function performIncrementalFetch(entry, existing, rl, args) {
     };
   }
 
-  if (decision === 'mark_deleted') {
-    return {
-      action: 'deleted',
-      reason,
-      updatedEntry: { ...existing, deleted: true, last_checked_at: head.checkedAt },
-    };
-  }
+  // 'mark_deleted'（HEAD がエラーページ・404/410）でも本文を 1 回取る。
+  // HEAD と GET で国税庁の扱いが違うと、生きたページを削除の候補にしてしまうため。
+  // 本文が取れたら 'fetch' と同じ流れ、取れなければ本文の失敗の理由で決める。
+  // HEAD の失敗の結果（Last-Modified・ETag）は記録に使わない。
+  const headMeta = decision === 'mark_deleted' ? null : head;
 
   // 'fetch' または 'first_time' → 本文 GET
   await rl.wait();
   const fetchResult = await crawler.fetchPage(entry.url);
   if (!fetchResult.ok) {
-    return { action: 'error', fetchResult, headMeta: head };
+    if (deletions.isGoneReason(fetchResult.reason)) {
+      return { action: 'gone', reason: fetchResult.reason, checkedAt: fetchResult.fetchedAt };
+    }
+    return { action: 'error', fetchResult, headMeta };
   }
 
   // hash が一致するなら、HEAD は変わったが実体は変わらず → skipped 扱い
   if (existing.html_hash && fetchResult.htmlHash === existing.html_hash) {
-    return {
-      action: 'skipped',
-      reason: 'hash_match_after_get',
-      updatedEntry: {
-        ...existing,
-        last_checked_at: head.checkedAt,
-        // 新しい HEAD メタは反映しておく
-        last_modified: head.lastModified || existing.last_modified,
-        etag: head.etag || existing.etag,
-      },
+    const updated = {
+      ...existing,
+      last_checked_at: (headMeta && headMeta.checkedAt) || fetchResult.fetchedAt,
+      // 新しい HEAD メタは反映しておく
+      last_modified: (headMeta && headMeta.lastModified) || existing.last_modified,
+      etag: (headMeta && headMeta.etag) || existing.etag,
     };
+    if (existing.deleted === true) {
+      return {
+        action: 'skipped',
+        reason: 'hash_match_after_get',
+        updatedEntry: deletions.clearDeleted(updated),
+        restored: true,
+      };
+    }
+    return { action: 'skipped', reason: 'hash_match_after_get', updatedEntry: updated };
   }
 
-  return { action: 'fetched', fetchResult, headMeta: head };
+  return {
+    action: 'fetched',
+    fetchResult,
+    headMeta,
+    restored: existing.deleted === true,
+  };
+}
+
+// data/nta-sources/ からの相対パス（index.json の file_path と同じ形）。
+function taxanswerFilePath(entry) {
+  return `taxanswer/${entry.category}/${entry.id}.json`;
+}
+
+function shitsugiFilePath(entry) {
+  return `shitsugi/${entry.category}/${String(entry.section).padStart(2, '0')}/${entry.id}.json`;
 }
 
 // ── タックスアンサーの全件 crawl ────────────────────────────────
@@ -220,14 +284,31 @@ async function crawlTaxAnswer(args) {
 
   if (args.dryRun) {
     console.log('[taxanswer] --dry-run のため crawl は実行しません。');
-    return { fetched: 0, skipped: 0, errors: [] };
+    // 通常の戻り値と同じ形にする（crawlAll がそのまま集計に使うため）。
+    return {
+      fetched: 0,
+      skipped: 0,
+      deletedStill: 0,
+      errors: [],
+      pendingDeletions: [],
+      goneUnrecorded: [],
+      restored: [],
+    };
   }
 
   const target = Number.isFinite(maxPages) ? Math.min(entries.length, maxPages) : entries.length;
   console.log(`[taxanswer] ${target} 件を crawl 開始（rate limit 1 req/sec）…`);
 
   const rl = new crawler.RateLimiter(1000);
-  const results = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
+  const results = {
+    fetched: 0,
+    skipped: 0,
+    deletedStill: 0,
+    errors: [],
+    pendingDeletions: [],
+    goneUnrecorded: [],
+    restored: [],
+  };
   let i = 0;
 
   for (const entry of entries) {
@@ -241,14 +322,31 @@ async function crawlTaxAnswer(args) {
     if (r.action === 'skipped') {
       store.saveTaxAnswerEntry(r.updatedEntry);
       results.skipped++;
+      if (r.restored) {
+        results.restored.push({ kind: 'taxanswer', url: entry.url, title: r.updatedEntry.title || existing.title || '' });
+      }
       if (verbose) console.log(`  [skip] ${entry.category}/${entry.id} (${r.reason})`);
       continue;
     }
 
-    if (r.action === 'deleted') {
-      store.saveTaxAnswerEntry(r.updatedEntry);
-      results.deleted++;
-      console.warn(`  [deleted] ${entry.category}/${entry.id} (HEAD 404)`);
+    if (r.action === 'gone') {
+      if (!existing) {
+        results.goneUnrecorded.push({ kind: 'taxanswer', url: entry.url, reason: r.reason });
+      } else if (existing.deleted === true) {
+        store.saveTaxAnswerEntry(deletions.markDeleted(existing, r.reason, r.checkedAt));
+        results.deletedStill++;
+      } else {
+        results.pendingDeletions.push({
+          kind: 'taxanswer',
+          entry: deletions.markDeleted(existing, r.reason, r.checkedAt),
+          url: entry.url,
+          title: existing.title || entry.label || '',
+          id: String(entry.id),
+          file_path: taxanswerFilePath(entry),
+          reason: r.reason,
+        });
+      }
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.id} (${r.reason})`);
       continue;
     }
 
@@ -282,6 +380,9 @@ async function crawlTaxAnswer(args) {
         ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
       });
       results.fetched++;
+      if (r.restored || (existing && existing.deleted === true)) {
+        results.restored.push({ kind: 'taxanswer', url: entry.url, title: parsed.title || '' });
+      }
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.id} ${parsed.title.slice(0, 30)}`);
       }
@@ -291,7 +392,7 @@ async function crawlTaxAnswer(args) {
     }
   }
 
-  console.log(`\n[taxanswer] 完了: fetched=${results.fetched}, skipped=${results.skipped}, deleted=${results.deleted}, errors=${results.errors.length}`);
+  console.log(`\n[taxanswer] 完了: fetched=${results.fetched}, skipped=${results.skipped}, new_deletions=${results.pendingDeletions.length}, deleted_still=${results.deletedStill}, gone_unrecorded=${results.goneUnrecorded.length}, restored=${results.restored.length}, errors=${results.errors.length}`);
   if (results.errors.length > 0) {
     console.log('[taxanswer] エラー詳細（最大 10 件）:');
     for (const e of results.errors.slice(0, 10)) {
@@ -322,14 +423,31 @@ async function crawlShitsugi(args) {
 
   if (args.dryRun) {
     console.log('[shitsugi] --dry-run のため crawl は実行しません。');
-    return { fetched: 0, skipped: 0, errors: [] };
+    // 通常の戻り値と同じ形にする（crawlAll がそのまま集計に使うため）。
+    return {
+      fetched: 0,
+      skipped: 0,
+      deletedStill: 0,
+      errors: [],
+      pendingDeletions: [],
+      goneUnrecorded: [],
+      restored: [],
+    };
   }
 
   const target = Number.isFinite(maxPages) ? Math.min(entries.length, maxPages) : entries.length;
   console.log(`[shitsugi] ${target} 件を crawl 開始（rate limit 1 req/sec）…`);
 
   const rl = new crawler.RateLimiter(1000);
-  const results = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
+  const results = {
+    fetched: 0,
+    skipped: 0,
+    deletedStill: 0,
+    errors: [],
+    pendingDeletions: [],
+    goneUnrecorded: [],
+    restored: [],
+  };
   let i = 0;
 
   for (const entry of entries) {
@@ -343,14 +461,31 @@ async function crawlShitsugi(args) {
     if (r.action === 'skipped') {
       store.saveShitsugiEntry(r.updatedEntry);
       results.skipped++;
+      if (r.restored) {
+        results.restored.push({ kind: 'shitsugi', url: entry.url, title: r.updatedEntry.title || existing.title || '' });
+      }
       if (verbose) console.log(`  [skip] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
       continue;
     }
 
-    if (r.action === 'deleted') {
-      store.saveShitsugiEntry(r.updatedEntry);
-      results.deleted++;
-      console.warn(`  [deleted] ${entry.category}/${entry.section}/${entry.id} (HEAD 404)`);
+    if (r.action === 'gone') {
+      if (!existing) {
+        results.goneUnrecorded.push({ kind: 'shitsugi', url: entry.url, reason: r.reason });
+      } else if (existing.deleted === true) {
+        store.saveShitsugiEntry(deletions.markDeleted(existing, r.reason, r.checkedAt));
+        results.deletedStill++;
+      } else {
+        results.pendingDeletions.push({
+          kind: 'shitsugi',
+          entry: deletions.markDeleted(existing, r.reason, r.checkedAt),
+          url: entry.url,
+          title: existing.title || entry.label || '',
+          id: String(entry.id),
+          file_path: shitsugiFilePath(entry),
+          reason: r.reason,
+        });
+      }
+      if (verbose) console.warn(`  [gone] ${entry.category}/${entry.section}/${entry.id} (${r.reason})`);
       continue;
     }
 
@@ -383,6 +518,9 @@ async function crawlShitsugi(args) {
         ...detectContentChange(existing, withFigures, r.fetchResult.fetchedAt),
       });
       results.fetched++;
+      if (r.restored || (existing && existing.deleted === true)) {
+        results.restored.push({ kind: 'shitsugi', url: entry.url, title: parsed.title || '' });
+      }
       if (verbose || i % 20 === 0) {
         console.log(`  [${i}/${target}] ${entry.category}/${entry.section}/${entry.id} ${parsed.title.slice(0, 30)}`);
       }
@@ -392,7 +530,7 @@ async function crawlShitsugi(args) {
     }
   }
 
-  console.log(`\n[shitsugi] 完了: fetched=${results.fetched}, skipped=${results.skipped}, deleted=${results.deleted}, errors=${results.errors.length}`);
+  console.log(`\n[shitsugi] 完了: fetched=${results.fetched}, skipped=${results.skipped}, new_deletions=${results.pendingDeletions.length}, deleted_still=${results.deletedStill}, gone_unrecorded=${results.goneUnrecorded.length}, restored=${results.restored.length}, errors=${results.errors.length}`);
   if (results.errors.length > 0) {
     console.log('[shitsugi] エラー詳細（最大 10 件）:');
     for (const e of results.errors.slice(0, 10)) {
@@ -417,24 +555,78 @@ function buildAndSaveIndex(startedAt, results) {
       finishedAt: new Date().toISOString(),
       results,
       byType: indexData.by_type,
+      maxDeletions: results.max_deletions,
+      deletedEntries: results.deleted_entries,
+      deletionHeldEntries: results.deletion_held_entries,
+      restoredEntries: results.restored_entries,
+      goneUnrecordedUrls: results.gone_unrecorded_urls,
     });
-    console.log(`[meta] meta.json: fetched=${results.fetched} skipped=${results.skipped} deleted=${results.deleted} errors=${results.errors.length}`);
+    console.log(`[meta] meta.json: fetched=${results.fetched} skipped=${results.skipped} deleted=${results.deleted} errors=${(results.errors || []).length}`);
   }
+}
+
+// 報告ファイル（PR 本文に貼る Markdown）を書く。--report-file のときだけ fs を読む。
+// options.maxRows を渡すと行数を抑える（PR 本文用）。渡さなければ全件。
+function writeReport(filePath, results, options = {}) {
+  const fsMod = require('fs');
+  const deletedEntries = results.deleted_entries || [];
+  const heldEntries = results.deletion_held_entries || [];
+  const references = deletions.findReferences([...deletedEntries, ...heldEntries], { root: ROOT });
+  const markdown = deletions.renderReport({
+    deleted: deletedEntries,
+    held: heldEntries,
+    restored: results.restored_entries || [],
+    deletedStill: results.deleted_still || 0,
+    goneUnrecorded: results.gone_unrecorded_urls || [],
+    maxDeletions: results.max_deletions,
+    references,
+  }, { maxRows: options.maxRows });
+  const absolute = path.resolve(filePath);
+  fsMod.mkdirSync(path.dirname(absolute), { recursive: true });
+  fsMod.writeFileSync(absolute, markdown, 'utf8');
+  console.log(`[report] 報告ファイルを書き出しました: ${filePath}`);
+}
+
+function metaEntryOf(item) {
+  return {
+    type: item.kind,
+    url: item.url,
+    title: item.title,
+    file_path: item.file_path,
+    reason: item.reason,
+  };
+}
+
+function byUrl(a, b) {
+  return String(a.url).localeCompare(String(b.url));
 }
 
 // ── 全件 crawl の振分け ────────────────────────────────────────
 async function crawlAll(args) {
   const startedAt = new Date().toISOString();
   // 全 type の集計
-  const aggregated = { fetched: 0, skipped: 0, deleted: 0, errors: [] };
+  const aggregated = {
+    fetched: 0,
+    skipped: 0,
+    deleted: 0,
+    deletedStill: 0,
+    deletionHeld: 0,
+    errors: [],
+    pendingDeletions: [],
+    goneUnrecorded: [],
+    restored: [],
+  };
 
   if (args.type === 'taxanswer' || args.type === 'all') {
     const r = await crawlTaxAnswer(args);
     if (r) {
       aggregated.fetched += r.fetched;
       aggregated.skipped += r.skipped;
-      aggregated.deleted += r.deleted;
+      aggregated.deletedStill += r.deletedStill;
       aggregated.errors.push(...r.errors);
+      aggregated.pendingDeletions.push(...r.pendingDeletions);
+      aggregated.goneUnrecorded.push(...r.goneUnrecorded);
+      aggregated.restored.push(...r.restored);
     }
   }
   if (args.type === 'shitsugi' || args.type === 'all') {
@@ -442,14 +634,55 @@ async function crawlAll(args) {
     if (r) {
       aggregated.fetched += r.fetched;
       aggregated.skipped += r.skipped;
-      aggregated.deleted += r.deleted;
+      aggregated.deletedStill += r.deletedStill;
       aggregated.errors.push(...r.errors);
+      aggregated.pendingDeletions.push(...r.pendingDeletions);
+      aggregated.goneUnrecorded.push(...r.goneUnrecorded);
+      aggregated.restored.push(...r.restored);
     }
+  }
+
+  // 上限を超えたら一件も保存しない。超えなければここでまとめて保存する。
+  const { applied, held } = deletions.applyPendingDeletions(aggregated.pendingDeletions, {
+    maxDeletions: args.maxDeletions,
+    save: item => (item.kind === 'taxanswer'
+      ? store.saveTaxAnswerEntry(item.entry)
+      : store.saveShitsugiEntry(item.entry)),
+  });
+  aggregated.deleted = applied.length;
+  aggregated.deletionHeld = held.length;
+  aggregated.deleted_entries = applied.map(metaEntryOf).sort(byUrl);
+  aggregated.deletion_held_entries = held.map(metaEntryOf).sort(byUrl);
+  aggregated.restored_entries = aggregated.restored
+    .map(item => ({ type: item.kind, url: item.url, title: item.title }));
+  aggregated.gone_unrecorded_urls = [...new Set(aggregated.goneUnrecorded.map(item => item.url))].sort();
+  aggregated.max_deletions = args.maxDeletions;
+  // meta.json が読む名前（crawl_results）にも同じ数を入れる。
+  aggregated.deleted_still = aggregated.deletedStill;
+  aggregated.deletion_held = held.length;
+  aggregated.gone_unrecorded = aggregated.gone_unrecorded_urls.length;
+
+  for (const item of applied) {
+    console.log(`[deleted] ${item.url} (${deletions.GONE_REASON_LABELS[item.reason] || item.reason})`);
+  }
+  for (const item of held) {
+    console.log(`[held] ${item.url} (${deletions.GONE_REASON_LABELS[item.reason] || item.reason})`);
+  }
+  for (const item of aggregated.restored) {
+    console.log(`[restored] ${item.url}`);
   }
 
   if (!args.dryRun && !args.skipIndex) {
     buildAndSaveIndex(startedAt, aggregated);
   }
+  if (args.reportFile) {
+    // PR 本文は GitHub の上限（65,536 字）に収めるため、行数を抑えて書く。
+    writeReport(args.reportFile, aggregated, { maxRows: 50 });
+  }
+  if (args.reportFullFile) {
+    writeReport(args.reportFullFile, aggregated);
+  }
+  return aggregated;
 }
 
 // ── 既存レコードへの図のバックフィル ────────────────────────────
@@ -533,7 +766,7 @@ async function main() {
     return;
   }
 
-  await crawlAll(args);
+  return crawlAll(args);
 }
 
 main().catch(e => {

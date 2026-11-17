@@ -27,6 +27,11 @@ on:
         required: false
         default: ''
         type: string
+      max_deletions:
+        description: '新しく削除済みにしてよい件数の上限（空なら 20）。上限で止まった後、人が確かめて上げるときに使う'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -54,9 +59,11 @@ jobs:
         env:
           INPUT_MODE: ${{ github.event.inputs.mode || 'incremental' }}
           INPUT_MAX_PAGES: ${{ github.event.inputs.max_pages }}
+          INPUT_MAX_DELETIONS: ${{ github.event.inputs.max_deletions }}
         run: |
           MODE="${INPUT_MODE}"
           MAX="${INPUT_MAX_PAGES}"
+          MAX_DELETIONS="${INPUT_MAX_DELETIONS}"
           if [[ "$MODE" != "incremental" && "$MODE" != "full" && "$MODE" != "backfill-figures" ]]; then
             echo "::error::mode は incremental、full、backfill-figures のいずれかで指定してください。"
             exit 1
@@ -65,18 +72,32 @@ jobs:
             echo "::error::max_pages は空、または1以上の整数で指定してください。"
             exit 1
           fi
+          if [ -n "$MAX_DELETIONS" ] && [[ ! "$MAX_DELETIONS" =~ ^(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::max_deletions は空、または0以上の整数で指定してください。"
+            exit 1
+          fi
           LIMIT=''
           [ -n "$MAX" ] && LIMIT="--max-pages $MAX"
+          DELETION_LIMIT=''
+          [ -n "$MAX_DELETIONS" ] && DELETION_LIMIT="--max-deletions $MAX_DELETIONS"
           if [ "$MODE" = "full" ]; then
-            echo "args=$LIMIT" >> "$GITHUB_OUTPUT"
+            ARGS="$LIMIT"
           elif [ "$MODE" = "backfill-figures" ]; then
             # 図（画像）の取り込みを既存レコードへ後追いで入れるモード。
             # 通常の incremental は html_hash が変わらないページを HEAD で
             # スキップするため、これを使わないと既存レコードに図が付かない。
-            echo "args=--backfill-figures $LIMIT" >> "$GITHUB_OUTPUT"
+            ARGS="--backfill-figures $LIMIT"
           else
-            echo "args=--incremental $LIMIT" >> "$GITHUB_OUTPUT"
+            ARGS="--incremental $LIMIT"
           fi
+          # 削除の上限は incremental・full のときだけ渡す（backfill-figures は削除判定をしない）。
+          if [ -n "$DELETION_LIMIT" ] && [ "$MODE" != "backfill-figures" ]; then
+            if [ -n "$ARGS" ] && [ "${ARGS: -1}" != " " ]; then
+              ARGS="$ARGS "
+            fi
+            ARGS="$ARGS$DELETION_LIMIT"
+          fi
+          echo "args=$ARGS" >> "$GITHUB_OUTPUT"
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "Mode: $MODE"
 
@@ -87,23 +108,41 @@ jobs:
         run: |
           set -o pipefail
           # Determine crawl mode で R2 の形式確認を済ませた値を、従来どおり空白で分けて渡す。
-          node scripts/crawl-nta-sources.js $CRAWL_ARGS 2>&1 | tee /tmp/crawl.log
+          # 報告ファイルは PR 本文に貼る（--skip-index でも書かれる）。
+          REPORT_ARGS=()
+          if [ -n "${RUNNER_TEMP:-}" ]; then
+            REPORT_ARGS=(--report-file "$RUNNER_TEMP/nta-crawl-report.md"
+              --report-full-file "$RUNNER_TEMP/nta-crawl-report-full.md")
+          fi
+          node scripts/crawl-nta-sources.js $CRAWL_ARGS "${REPORT_ARGS[@]}" 2>&1 | tee /tmp/crawl.log
           echo "log_tail<<EOF" >> "$GITHUB_OUTPUT"
           tail -50 /tmp/crawl.log >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Read meta.json
         id: meta
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
         run: |
           if [ -f data/nta-sources/meta.json ]; then
             FETCHED=$(jq -r '.crawl_results.fetched // 0' data/nta-sources/meta.json)
             SKIPPED=$(jq -r '.crawl_results.skipped // 0' data/nta-sources/meta.json)
             DELETED=$(jq -r '.crawl_results.deleted // 0' data/nta-sources/meta.json)
+            DELETED_STILL=$(jq -r '.crawl_results.deleted_still // 0' data/nta-sources/meta.json)
+            DELETION_HELD=$(jq -r '.crawl_results.deletion_held // 0' data/nta-sources/meta.json)
+            RESTORED=$(jq -r '.crawl_results.restored // 0' data/nta-sources/meta.json)
+            GONE_UNRECORDED=$(jq -r '.crawl_results.gone_unrecorded // 0' data/nta-sources/meta.json)
             ERRORS=$(jq -r '.crawl_results.errors_count // 0' data/nta-sources/meta.json)
             TOTAL=$(jq -r '.total_entries_processed // 0' data/nta-sources/meta.json)
             DURATION=$(jq -r '.last_crawl_duration_seconds // 0' data/nta-sources/meta.json)
           else
-            FETCHED=0; SKIPPED=0; DELETED=0; ERRORS=0; TOTAL=0; DURATION=0
+            FETCHED=0; SKIPPED=0; DELETED=0; DELETED_STILL=0; DELETION_HELD=0
+            RESTORED=0; GONE_UNRECORDED=0; ERRORS=0; TOTAL=0; DURATION=0
+          fi
+          # backfill-figures は meta.json を書かないので、前回の取り込みの削除の数が
+          # 残っている。古い「上限で止めた」警告を出さないよう 0 にする。
+          if [ "$MODE" = "backfill-figures" ]; then
+            DELETED=0; DELETED_STILL=0; DELETION_HELD=0; RESTORED=0; GONE_UNRECORDED=0
           fi
           # error_rate（％、小数1桁）
           if [ "$TOTAL" -gt 0 ]; then
@@ -115,6 +154,10 @@ jobs:
             echo "fetched=$FETCHED"
             echo "skipped=$SKIPPED"
             echo "deleted=$DELETED"
+            echo "deleted_still=$DELETED_STILL"
+            echo "deletion_held=$DELETION_HELD"
+            echo "restored=$RESTORED"
+            echo "gone_unrecorded=$GONE_UNRECORDED"
             echo "errors=$ERRORS"
             echo "total=$TOTAL"
             echo "duration=$DURATION"
@@ -136,6 +179,10 @@ jobs:
           FETCHED: ${{ steps.meta.outputs.fetched }}
           SKIPPED: ${{ steps.meta.outputs.skipped }}
           DELETED: ${{ steps.meta.outputs.deleted }}
+          DELETED_STILL: ${{ steps.meta.outputs.deleted_still }}
+          DELETION_HELD: ${{ steps.meta.outputs.deletion_held }}
+          RESTORED: ${{ steps.meta.outputs.restored }}
+          GONE_UNRECORDED: ${{ steps.meta.outputs.gone_unrecorded }}
           ERRORS: ${{ steps.meta.outputs.errors }}
           TOTAL: ${{ steps.meta.outputs.total }}
           DURATION: ${{ steps.meta.outputs.duration }}s
@@ -165,7 +212,7 @@ jobs:
           git commit -m "$COMMIT_MSG"
           git push origin "$BRANCH"
 
-          PR_BODY=$(cat <<PRBODYEOF
+          cat > "$RUNNER_TEMP/pr-body.md" <<PRBODYEOF
           ## 概要
           国税庁ソース DB の月次自動更新です（mode: ${MODE}）。
 
@@ -173,13 +220,19 @@ jobs:
           |---|---|
           | fetched | ${FETCHED} |
           | skipped | ${SKIPPED} |
-          | deleted | ${DELETED} |
+          | 新しく削除済み | ${DELETED} |
+          | 前から削除済み | ${DELETED_STILL} |
+          | 上限で止めた | ${DELETION_HELD} |
+          | 戻った | ${RESTORED} |
+          | 一覧にはあるがページが無い | ${GONE_UNRECORDED} |
           | errors | ${ERRORS} |
           | total processed | ${TOTAL} |
           | duration | ${DURATION} |
           | error rate | ${ERROR_RATE}% |
 
           ## 確認ポイント
+          - **新しく削除済みにした資料があれば**：下の一覧で国税庁のページが本当に無いことを確かめてからマージする
+          - **上限で止めたものがあれば**：確かめてから、この PR は閉じてから max_deletions を上げて手動で実行し直す
           - **大量の deleted があれば**：対象 URL の削除・移転が発生している可能性。国税庁サイトの構造変更を疑う
           - **error_rate が 5% 超なら**：crawl ロジックの問題か NTA サイト構造変更を疑う
           - **fetched が想定より多い**：通常の incremental では数件〜数十件が想定範囲
@@ -188,11 +241,16 @@ jobs:
           - 内容に問題なければそのまま merge してください
           - 改正情報が反映された場合、関連記事の更新検討も
           PRBODYEOF
-          )
+          if [ "$MODE" != "backfill-figures" ] && [ -f "$RUNNER_TEMP/nta-crawl-report.md" ]; then
+            {
+              echo ""
+              cat "$RUNNER_TEMP/nta-crawl-report.md"
+            } >> "$RUNNER_TEMP/pr-body.md"
+          fi
 
           PR_URL=$(gh pr create \
             --title "chore(nta): 国税庁ソース DB 月次更新 (${DATE})" \
-            --body "$PR_BODY" \
+            --body-file "$RUNNER_TEMP/pr-body.md" \
             --base main \
             --head "$BRANCH")
           echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
@@ -207,11 +265,13 @@ jobs:
           FETCHED: ${{ steps.meta.outputs.fetched }}
           SKIPPED: ${{ steps.meta.outputs.skipped }}
           DELETED: ${{ steps.meta.outputs.deleted }}
+          DELETION_HELD: ${{ steps.meta.outputs.deletion_held }}
           ERRORS: ${{ steps.meta.outputs.errors }}
           DURATION: ${{ steps.meta.outputs.duration }}
           ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
           HAS_CHANGES: ${{ steps.changes.outputs.changed }}
           PR_URL: ${{ steps.pr.outputs.pr_url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           JOB_STATUS: ${{ job.status }}
         run: |
           if [ -z "${CHATWORK_API_TOKEN:-}" ] || [ -z "${CHATWORK_ROOM_ID:-}" ]; then
@@ -239,6 +299,10 @@ jobs:
             WARN_LINE="${WARN_LINE}
           ■ ⚠ deleted 10件以上：大量の URL 削除/移転検知"
           fi
+          if [ "$DELETION_HELD" -ge 1 ]; then
+            WARN_LINE="${WARN_LINE}
+          ■ ⚠ 削除の上限で ${DELETION_HELD} 件を止めました：確かめて max_deletions を上げて再実行してください（実行: ${RUN_URL}）"
+          fi
 
           BODY=$(cat <<BODYEOF
           国税庁ソース DB 月次 crawl ${STATUS_MARK}
@@ -265,6 +329,10 @@ jobs:
           META_FETCHED: ${{ steps.meta.outputs.fetched }}
           META_SKIPPED: ${{ steps.meta.outputs.skipped }}
           META_DELETED: ${{ steps.meta.outputs.deleted }}
+          META_DELETED_STILL: ${{ steps.meta.outputs.deleted_still }}
+          META_DELETION_HELD: ${{ steps.meta.outputs.deletion_held }}
+          META_RESTORED: ${{ steps.meta.outputs.restored }}
+          META_GONE_UNRECORDED: ${{ steps.meta.outputs.gone_unrecorded }}
           META_ERRORS: ${{ steps.meta.outputs.errors }}
           META_TOTAL: ${{ steps.meta.outputs.total }}
           META_DURATION: ${{ steps.meta.outputs.duration }}
@@ -282,6 +350,10 @@ jobs:
             echo "| fetched | ${META_FETCHED} |"
             echo "| skipped | ${META_SKIPPED} |"
             echo "| deleted | ${META_DELETED} |"
+            echo "| deleted_still | ${META_DELETED_STILL} |"
+            echo "| deletion_held | ${META_DELETION_HELD} |"
+            echo "| restored | ${META_RESTORED} |"
+            echo "| gone_unrecorded | ${META_GONE_UNRECORDED} |"
             echo "| errors | ${META_ERRORS} |"
             echo "| total processed | ${META_TOTAL} |"
             echo "| duration | ${META_DURATION}s |"
@@ -295,3 +367,10 @@ jobs:
               echo "| PR | ${PR_PR_URL} |"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+          # 全件の報告（--report-full-file）があれば要約の後ろにつなぐ（G1）。
+          if [ -f "${RUNNER_TEMP:-}/nta-crawl-report-full.md" ]; then
+            {
+              echo ""
+              cat "$RUNNER_TEMP/nta-crawl-report-full.md"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

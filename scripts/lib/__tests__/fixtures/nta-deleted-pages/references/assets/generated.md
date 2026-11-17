@@ -1,0 +1,3 @@
+# 生成物
+
+https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm

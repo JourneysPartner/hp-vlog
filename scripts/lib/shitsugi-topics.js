@@ -186,6 +186,7 @@ function expandShitsugiTopics(options = {}) {
     try {
       if (!file || !fs.existsSync(file)) throw new Error('本文ファイルがありません');
       const sourceEntry = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (sourceEntry.deleted === true) throw new Error('国税庁で削除済みです');
       if (!normalizeText(sourceEntry.shokai_yoshi)) throw new Error('照会要旨が空です');
       const topic = toTopic(candidate, sourceEntry);
       if (!topic.category || !topic.tax_domain || !topic.slug || !topic.persona || !topic.macro) {

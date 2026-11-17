@@ -23,6 +23,21 @@ const DEFAULT_TIMEOUT_MS = 30000;
 const DEFAULT_RATE_LIMIT_MS = 1000;        // 1 req/sec
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000;          // 1s → 2s → 4s
+const NTA_ERROR_PAGE_URL = 'https://www.nta.go.jp/error/404.htm';
+
+// 国税庁でページが消えているときの転送先（/error/404.htm）かどうか。
+// クエリ・ハッシュは見ない。似て非なるホスト・ポート・パスは false。
+function isNtaErrorPageUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:'
+      && parsed.hostname === 'www.nta.go.jp'
+      && parsed.port === ''
+      && parsed.pathname === '/error/404.htm';
+  } catch (e) {
+    return false;
+  }
+}
 
 // ── Rate Limiter ───────────────────────────────────────────────
 // 連続する fetch の間隔を最低 N ms に保つ。複数並列を許容しないシリアル設計。
@@ -122,8 +137,16 @@ async function fetchWithRetry(url, options = {}) {
         });
         clearTimeout(timer);
 
-        // 404 や 410 は再試行しても無駄なので即返す
-        if (res.status === 404 || res.status === 410) {
+        // 国税庁のエラーページへ転送された = 国税庁で削除された。
+        // エラーページ自体の状態が 200 でも 404 でも同じ扱いにする。
+        if (res.redirected === true && isNtaErrorPageUrl(res.url)) {
+          return { ok: false, status: res.status, reason: 'nta_error_page', finalUrl: res.url };
+        }
+
+        // 404 や 410 は再試行しても無駄なので即返す。
+        // ただし転送をたどった後の 404/410 は削除の根拠にしない（似て非なる
+        // 行き先が 404 を返すことがある）。転送された後の 404/410 は http_error。
+        if ((res.status === 404 || res.status === 410) && res.redirected !== true) {
           return { ok: false, status: res.status, reason: 'not_found' };
         }
         // 5xx はリトライ対象
@@ -158,7 +181,7 @@ async function fetchPage(url, options = {}) {
   const result = await fetchWithRetry(url, options);
 
   if (!result.ok) {
-    return { ok: false, url, reason: result.reason, status: result.status, fetchedAt };
+    return { ok: false, url, reason: result.reason, status: result.status, finalUrl: result.finalUrl, fetchedAt };
   }
 
   const res = result.response;
@@ -228,7 +251,10 @@ async function fetchPageHead(url, options = {}) {
           signal: controller.signal,
         });
         clearTimeout(timer);
-        if (res.status === 404 || res.status === 410) {
+        if (res.redirected === true && isNtaErrorPageUrl(res.url)) {
+          return { ok: false, url, reason: 'nta_error_page', status: res.status, finalUrl: res.url, checkedAt };
+        }
+        if ((res.status === 404 || res.status === 410) && res.redirected !== true) {
           return { ok: false, url, reason: 'not_found', status: res.status, checkedAt };
         }
         if (res.status >= 500 && res.status < 600) {
@@ -277,10 +303,17 @@ function decideIncrementalAction(existingEntry, headResult) {
     return { decision: 'first_time', reason: 'no_existing_entry' };
   }
   if (!headResult.ok) {
+    if (headResult.reason === 'nta_error_page') {
+      return { decision: 'mark_deleted', reason: 'head_error_page' };
+    }
     if (headResult.reason === 'not_found') {
       return { decision: 'mark_deleted', reason: 'head_404' };
     }
     return { decision: 'fetch', reason: `head_error:${headResult.reason}` };
+  }
+  // 削除済みの資料は、ETag / Last-Modified が同じでも本文を取り直して復活を確かめる。
+  if (existingEntry.deleted === true) {
+    return { decision: 'fetch', reason: 'recheck_deleted' };
   }
   const { etag, lastModified } = headResult;
   if (etag && existingEntry.etag && etag === existingEntry.etag) {
@@ -296,6 +329,8 @@ function decideIncrementalAction(existingEntry, headResult) {
 module.exports = {
   RateLimiter,
   USER_AGENT,
+  NTA_ERROR_PAGE_URL,
+  isNtaErrorPageUrl,
   detectEncoding,
   decodeBuffer,
   detectMojibake,
