@@ -134,18 +134,20 @@ jobs:
             GONE_UNRECORDED=$(jq -r '.crawl_results.gone_unrecorded // 0' data/nta-sources/meta.json)
             UNLISTED=$(jq -r '.crawl_results.unlisted // 0' data/nta-sources/meta.json)
             UNLISTED_CHECK=$(jq -r '.unlisted_check // ""' data/nta-sources/meta.json)
+            UNLISTED_CATEGORY_UNLISTED=$(jq -r '[.unlisted_entries[]? | select(.outcome == "category_unlisted")] | length' data/nta-sources/meta.json)
             ERRORS=$(jq -r '.crawl_results.errors_count // 0' data/nta-sources/meta.json)
             TOTAL=$(jq -r '.total_entries_processed // 0' data/nta-sources/meta.json)
             DURATION=$(jq -r '.last_crawl_duration_seconds // 0' data/nta-sources/meta.json)
           else
             FETCHED=0; SKIPPED=0; DELETED=0; DELETED_STILL=0; DELETION_HELD=0
             RESTORED=0; GONE_UNRECORDED=0; UNLISTED=0; UNLISTED_CHECK=''; ERRORS=0; TOTAL=0; DURATION=0
+            UNLISTED_CATEGORY_UNLISTED=0
           fi
           # backfill-figures は meta.json を書かないので、前回の取り込みの削除の数が
           # 残っている。古い「上限で止めた」警告を出さないよう 0 にする。
           if [ "$MODE" = "backfill-figures" ]; then
             DELETED=0; DELETED_STILL=0; DELETION_HELD=0; RESTORED=0; GONE_UNRECORDED=0
-            UNLISTED=0; UNLISTED_CHECK=''
+            UNLISTED=0; UNLISTED_CHECK=''; UNLISTED_CATEGORY_UNLISTED=0
           fi
           # error_rate（％、小数1桁）
           if [ "$TOTAL" -gt 0 ]; then
@@ -163,6 +165,7 @@ jobs:
             echo "gone_unrecorded=$GONE_UNRECORDED"
             echo "unlisted=$UNLISTED"
             echo "unlisted_check=$UNLISTED_CHECK"
+            echo "unlisted_category_unlisted=$UNLISTED_CATEGORY_UNLISTED"
             echo "errors=$ERRORS"
             echo "total=$TOTAL"
             echo "duration=$DURATION"
@@ -189,11 +192,13 @@ jobs:
           RESTORED: ${{ steps.meta.outputs.restored }}
           GONE_UNRECORDED: ${{ steps.meta.outputs.gone_unrecorded }}
           UNLISTED: ${{ steps.meta.outputs.unlisted }}
+          UNLISTED_CHECK: ${{ steps.meta.outputs.unlisted_check }}
           ERRORS: ${{ steps.meta.outputs.errors }}
           TOTAL: ${{ steps.meta.outputs.total }}
           DURATION: ${{ steps.meta.outputs.duration }}s
           ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
           MODE: ${{ steps.mode.outputs.mode }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           DATE=$(date -u +%Y-%m-%d)
           # ブランチ名に run_id を付ける。日付だけだと同じ日に 2 回走らせたとき
@@ -218,6 +223,15 @@ jobs:
           git commit -m "$COMMIT_MSG"
           git push origin "$BRANCH"
 
+          # 一覧から外れた記録の行は、確かめたときだけ数を出す（H3）。
+          if [ "$UNLISTED_CHECK" = "done" ]; then
+            UNLISTED_CELL="${UNLISTED}"
+          elif [ "$UNLISTED_CHECK" = "skipped_too_many" ]; then
+            UNLISTED_CELL="多すぎるため確かめていない（${UNLISTED} 件）"
+          else
+            UNLISTED_CELL="確かめていない"
+          fi
+
           cat > "$RUNNER_TEMP/pr-body.md" <<PRBODYEOF
           ## 概要
           国税庁ソース DB の月次自動更新です（mode: ${MODE}）。
@@ -231,7 +245,7 @@ jobs:
           | 上限で止めた | ${DELETION_HELD} |
           | 戻った | ${RESTORED} |
           | 一覧にはあるがページが無い | ${GONE_UNRECORDED} |
-          | 国税庁の一覧から外れた記録 | ${UNLISTED} |
+          | 国税庁の一覧から外れた記録 | ${UNLISTED_CELL} |
           | errors | ${ERRORS} |
           | total processed | ${TOTAL} |
           | duration | ${DURATION} |
@@ -249,7 +263,24 @@ jobs:
           - 内容に問題なければそのまま merge してください
           - 改正情報が反映された場合、関連記事の更新検討も
           PRBODYEOF
+          # PR 本文の字数を確かめる（H6）。GitHub の上限 65,536 は字数で、
+          # 日本語はバイトで数えると 3 倍になるため、`wc -m` で数える。
+          # 報告をつないで 60,000 字を超えるなら、つながずに 1 文だけ足す
+          # （`gh pr create` が失敗して取り込みの結果が失われないようにする）。
+          REPORT_TOO_LONG=''
           if [ "$MODE" != "backfill-figures" ] && [ -f "$RUNNER_TEMP/nta-crawl-report.md" ]; then
+            BODY_CHARS=$(LC_ALL=C.UTF-8 wc -m < "$RUNNER_TEMP/pr-body.md" | tr -d '[:space:]')
+            REPORT_CHARS=$(LC_ALL=C.UTF-8 wc -m < "$RUNNER_TEMP/nta-crawl-report.md" | tr -d '[:space:]')
+            if [ $((BODY_CHARS + REPORT_CHARS)) -gt 60000 ]; then
+              REPORT_TOO_LONG=1
+            fi
+          fi
+          if [ -n "$REPORT_TOO_LONG" ]; then
+            {
+              echo ""
+              echo "報告が長すぎるため本文に載せていません。全件は Actions の実行の要約（${RUN_URL}）と meta.json にあります"
+            } >> "$RUNNER_TEMP/pr-body.md"
+          elif [ "$MODE" != "backfill-figures" ] && [ -f "$RUNNER_TEMP/nta-crawl-report.md" ]; then
             {
               echo ""
               cat "$RUNNER_TEMP/nta-crawl-report.md"
@@ -270,6 +301,7 @@ jobs:
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
           UNLISTED_CHECK: ${{ steps.meta.outputs.unlisted_check }}
+          UNLISTED_CATEGORY_UNLISTED: ${{ steps.meta.outputs.unlisted_category_unlisted }}
           MODE: ${{ steps.mode.outputs.mode }}
           FETCHED: ${{ steps.meta.outputs.fetched }}
           SKIPPED: ${{ steps.meta.outputs.skipped }}
@@ -315,6 +347,11 @@ jobs:
           if [ "$UNLISTED_CHECK" = "skipped_too_many" ]; then
             WARN_LINE="${WARN_LINE}
           ■ ⚠ 一覧から外れた記録が多すぎるため確かめていません：一覧の取得の不具合を疑う（実行: ${RUN_URL}）"
+          fi
+          # 分類の一覧が 1 件も取れなかったときは、一覧の取得の不具合を疑う（H7）。
+          if [ "${UNLISTED_CATEGORY_UNLISTED:-0}" -ge 1 ]; then
+            WARN_LINE="${WARN_LINE}
+          ■ ⚠ 国税庁の一覧で 1 件も取れなかった分類があります：一覧の取得の不具合を疑う（実行: ${RUN_URL}）"
           fi
 
           BODY=$(cat <<BODYEOF

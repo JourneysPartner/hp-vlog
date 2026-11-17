@@ -1546,36 +1546,56 @@ async function main() {
     assert.equal(result.deleted_still, 0);
   });
 
-  await test('V10 U8: URL が正しくない・記録が読めない記録は訪ねない（invalid_record）', async () => {
+  await test('V10 U8: URL が正しくない・記録が読めない・置き場所と違う記録は訪ねない（invalid_record）', async () => {
     const listed = [taEntry('gensen', '1001')];
+    const shitsugiListed = [{
+      id: '01', section: '02', category: 'joto',
+      url: 'https://www.nta.go.jp/law/shitsugi/joto/02/01.htm', label: '一覧',
+    }];
     const records = {
       'taxanswer/gensen/1001': taRecord('gensen', '1001', { etag: '"listed"' }),
       'taxanswer/gensen/2001': (() => { const r = taRecord('gensen', '2001'); delete r.url; return r; })(),
       'taxanswer/gensen/2002': taRecord('gensen', '2002', { url: 'http://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2002.htm' }),
       'taxanswer/gensen/2003': taRecord('gensen', '2003', { url: 'https://www.nta.go.jp.example.com/taxes/shiraberu/taxanswer/gensen/2003.htm' }),
       'taxanswer/gensen/2004': taRecord('gensen', '2004', { url: taEntry('gensen', '9999').url }),
+      // H5: 記録の項目（id・分類・節）が置き場所と違う。
+      'taxanswer/gensen/2006': taRecord('gensen', '2006', { id: '9999' }),
+      'taxanswer/gensen/2007': taRecord('gensen', '2007', { tax_category_code: 'hojin' }),
+      'shitsugi/joto/02/01': shitsugiRecord('joto', '02', '01', { etag: '"listed-shitsugi"' }),
+      'shitsugi/joto/16/02': shitsugiRecord('joto', '16', '02', { section: '15' }),
       // gensen/2005 は記録なし（読めない）
     };
     const visited = [];
     const { result } = await runCrawl({
       type: 'all',
       taxanswerEntries: listed,
+      shitsugiEntries: shitsugiListed,
       recordKeys: [
         taKey('gensen', '1001'),
         taKey('gensen', '2001'), taKey('gensen', '2002'), taKey('gensen', '2003'),
         taKey('gensen', '2004'), taKey('gensen', '2005'),
+        taKey('gensen', '2006'), taKey('gensen', '2007'),
+        shitsugiKey('joto', '02', '01'), shitsugiKey('joto', '16', '02'),
       ],
       existing: loadRecords(records),
       fetchPage: async url => { visited.push(url); return goneGet(); },
       fetchPageHead: async url => {
         visited.push(url);
-        return url === listed[0].url ? aliveHead('"listed"')() : goneHead();
+        if (url === listed[0].url) return aliveHead('"listed"')();
+        if (url === shitsugiListed[0].url) return aliveHead('"listed-shitsugi"')();
+        return goneHead();
       },
     });
     const invalid = result.unlisted_entries.filter(entry => entry.outcome === 'invalid_record');
-    assert.equal(invalid.length, 5);
+    assert.equal(invalid.length, 8, 'URL 5 件（url なし・http・似て非なるホスト・別の id・記録なし）'
+      + '＋置き場所と違う 3 件（id・分類・節）');
     for (const entry of invalid) assert.equal(visited.includes(entry.url), false, `${entry.file_path} は訪ねない`);
     assert.equal(visited.includes(taEntry('gensen', '9999').url), false);
+    for (const filePath of ['taxanswer/gensen/2006.json', 'taxanswer/gensen/2007.json',
+      'shitsugi/joto/16/02.json']) {
+      assert(result.unlisted_entries.some(entry => entry.file_path === filePath
+        && entry.outcome === 'invalid_record'), `${filePath} は invalid_record`);
+    }
   });
 
   await test('V11 U9: 本文は取れたが国税庁の別のページへ転送 → 保存しない（errors にも入れない）', async () => {
@@ -1618,6 +1638,104 @@ async function main() {
     });
     assert(same.saved.some(item => item.entry.id === '2882'), '同じ url なら保存する');
     assert.equal(same.result.unlisted_entries[0].outcome, 'alive_updated');
+  });
+
+  await test('V11b U9: 一覧から外れた記録＋HEAD が別のページへ転送（ETag は同じ）→ 保存しない', async () => {
+    const listed = [taEntry('gensen', '1001')];
+    const record = taRecord('gensen', '2882');
+    const records = {
+      'taxanswer/gensen/1001': taRecord('gensen', '1001', { etag: '"listed"' }),
+      'taxanswer/gensen/2882': record,
+    };
+    const elsewhere = 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm';
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-unlisted-v11b-'));
+    try {
+      const getCalls = [];
+      const { saved, result } = await runCrawl({
+        type: 'all',
+        taxanswerEntries: listed,
+        recordKeys: [taKey('gensen', '1001'), taKey('gensen', '2882')],
+        existing: loadRecords(records),
+        fetchPageHead: routed(
+          () => ({ ok: true, checkedAt: NOW, etag: record.etag, lastModified: 'same', redirected: true, finalUrl: elsewhere }),
+          { [listed[0].url]: aliveHead('"listed"') },
+        ),
+        fetchPage: async url => { getCalls.push(url); return okFetch('unused')(); },
+        argv: ['--type', 'all', '--incremental', '--skip-index', '--report-file', path.join(dir, 'report.md')],
+      });
+      assert.equal(saved.some(item => item.entry.id === '2882'), false, '保存しない');
+      assert.equal(getCalls.includes(record.url), false, 'HEAD の skip で決まる（本文は取りに行かない）');
+      assert.equal(result.errors.length, 0, 'errors に入れない');
+      const entry = result.unlisted_entries.find(item => item.file_path === 'taxanswer/gensen/2882.json');
+      assert.equal(entry.outcome, 'redirected_elsewhere');
+      assert.equal(entry.final_url, elsewhere);
+      const markdown = fs.readFileSync(path.join(dir, 'report.md'), 'utf8');
+      assert(markdown.includes(`国税庁の別のページへ転送（記録は変えない）: ${elsewhere}`));
+      assert.equal(markdown.includes('取れなかった'), false);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test('V11c U9: 一覧から外れた記録＋HEAD は違うが GET の転送で本文の hash が同じ → 保存しない', async () => {
+    const listed = [taEntry('gensen', '1001')];
+    const record = taRecord('gensen', '2882');
+    const records = {
+      'taxanswer/gensen/1001': taRecord('gensen', '1001', { etag: '"listed"' }),
+      'taxanswer/gensen/2882': record,
+    };
+    const elsewhere = 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm';
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-unlisted-v11c-'));
+    try {
+      const { saved, result } = await runCrawl({
+        type: 'all',
+        taxanswerEntries: listed,
+        recordKeys: [taKey('gensen', '1001'), taKey('gensen', '2882')],
+        existing: loadRecords(records),
+        fetchPageHead: routed(changedHead, { [listed[0].url]: aliveHead('"listed"') }),
+        fetchPage: routed(okFetch(record.html_hash, { redirected: true, finalUrl: elsewhere })),
+        argv: ['--type', 'all', '--incremental', '--skip-index', '--report-file', path.join(dir, 'report.md')],
+      });
+      assert.equal(saved.some(item => item.entry.id === '2882'), false, '保存しない');
+      assert.equal(result.errors.length, 0, 'errors に入れない');
+      const entry = result.unlisted_entries.find(item => item.file_path === 'taxanswer/gensen/2882.json');
+      assert.equal(entry.outcome, 'redirected_elsewhere');
+      assert.equal(entry.final_url, elsewhere);
+      const markdown = fs.readFileSync(path.join(dir, 'report.md'), 'utf8');
+      assert(markdown.includes(elsewhere));
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test('V11d U9: 一覧にある記録は同じ応答でも今までどおり保存する', async () => {
+    const listedRecord = taRecord('gensen', '1001', { etag: '"listed"' });
+    const elsewhere = 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm';
+    const listed = [taEntry('gensen', '1001')];
+
+    // (a) HEAD が別のページへ転送（ETag は同じ）→ 今までどおり skip で保存。
+    const headSkip = await runCrawl({
+      taxanswerEntries: listed,
+      existing: loadRecords({ 'taxanswer/gensen/1001': listedRecord }),
+      fetchPageHead: routed(() => ({
+        ok: true, checkedAt: NOW, etag: '"listed"', lastModified: 'same', redirected: true, finalUrl: elsewhere,
+      })),
+      fetchPage: routed(okFetch('unused')),
+    });
+    assert.deepEqual(headSkip.saved.find(item => item.entry.id === '1001').entry,
+      { ...listedRecord, last_checked_at: NOW }, '(a) last_checked_at だけが違う');
+
+    // (b) GET が別のページへ転送だが本文の hash は同じ → 今までどおり hash の一致で保存。
+    const hashMatch = await runCrawl({
+      taxanswerEntries: listed,
+      existing: loadRecords({ 'taxanswer/gensen/1001': listedRecord }),
+      fetchPageHead: routed(changedHead),
+      fetchPage: routed(okFetch(listedRecord.html_hash, { redirected: true, finalUrl: elsewhere })),
+    });
+    const kept = hashMatch.saved.find(item => item.entry.id === '1001').entry;
+    assert.equal(kept.html_hash, listedRecord.html_hash);
+    assert.equal(kept.etag, '"changed"');
+    assert.equal(kept.last_checked_at, NOW);
   });
 
   await test('V12 U10: 変わっていなければ last_checked_at だけ、変わっていれば中身を更新', async () => {
@@ -1771,6 +1889,30 @@ async function main() {
     });
   });
 
+  await test('V15b fetchPageHead: 転送の有無と最後の URL を返す（エラーページは今までどおり）', async () => {
+    const url = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm';
+    await withFakeFetch(() => fakeResponse({ status: 200, url, redirected: false, headers: { etag: '"x"' } }), async () => {
+      const result = await crawler.fetchPageHead(url, { maxRetries: 0 });
+      assert.equal(result.ok, true);
+      assert.equal(result.redirected, false);
+      assert.equal(result.finalUrl, url);
+      assert.equal(result.etag, '"x"');
+    });
+    const destination = 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm';
+    await withFakeFetch(() => fakeResponse({ status: 200, url: destination, redirected: true }), async () => {
+      const result = await crawler.fetchPageHead(url, { maxRetries: 0 });
+      assert.equal(result.ok, true);
+      assert.equal(result.redirected, true);
+      assert.equal(result.finalUrl, destination);
+    });
+    await withFakeFetch(() => fakeResponse({ status: 200, url: crawler.NTA_ERROR_PAGE_URL, redirected: true }), async () => {
+      const result = await crawler.fetchPageHead(url, { maxRetries: 0 });
+      assert.equal(result.ok, false);
+      assert.equal(result.reason, 'nta_error_page');
+      assert.equal(result.finalUrl, crawler.NTA_ERROR_PAGE_URL);
+    });
+  });
+
   await test('V16 saveMeta: 一覧から外れた記録の項目を書く（渡さない呼び出しは今のまま）', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-meta-unlisted-'));
     try {
@@ -1778,7 +1920,7 @@ async function main() {
       indexBuilder.saveMeta({
         startedAt: '2026-11-17T00:00:00Z',
         finishedAt: '2026-11-17T00:01:00Z',
-        results: { fetched: 1, skipped: 0, deleted: 1, unlisted: 2, errors: [] },
+        results: { fetched: 1, skipped: 0, deleted: 1, unlisted: 1, unlisted_deleted_before: 1, errors: [] },
         byType: {},
         maxDeletions: 20,
         deletedEntries: [{ type: 'taxanswer', url: 'https://a', title: 'A', file_path: 'a', reason: 'nta_error_page', unlisted: true }],
@@ -1791,7 +1933,8 @@ async function main() {
         metaFile: file,
       });
       const meta = readJson(file);
-      assert.equal(meta.crawl_results.unlisted, 2);
+      assert.equal(meta.crawl_results.unlisted, 1);
+      assert.equal(meta.crawl_results.unlisted_deleted_before, 1);
       assert.equal(meta.unlisted_check, 'done');
       assert.equal(meta.unlisted_check_limit, 100);
       assert.deepEqual(meta.unlisted_entries.map(entry => entry.url), ['https://a', 'https://b']);
@@ -1805,6 +1948,7 @@ async function main() {
       // 【要判断】T13 の deepEqual を壊さないよう、一覧から外れた記録を渡さない
       // 呼び出しでは crawl_results.unlisted を足さない（ほかの項目は今のまま）。
       assert.equal(minimalMeta.crawl_results.unlisted, undefined);
+      assert.equal(minimalMeta.crawl_results.unlisted_deleted_before, undefined);
       assert.equal(minimalMeta.unlisted_check, null);
       assert.equal(minimalMeta.unlisted_check_limit, null);
       assert.deepEqual(minimalMeta.unlisted_entries, []);
@@ -1828,7 +1972,11 @@ async function main() {
       { type: 'shitsugi', url: 'https://www.nta.go.jp/i.htm', title: 'I', file_path: 'i', outcome: 'category_unlisted' },
     ];
     const markdown = deletions.renderReport({ unlisted: entries, unlistedCheck: 'done', unlistedLimit: 100 });
-    assert(markdown.includes('## 国税庁の一覧から外れた DB の記録: 9 件'));
+    // H3: 前から削除済みは数と表から外し、1 行で出す。
+    assert(markdown.includes('## 国税庁の一覧から外れた DB の記録: 8 件'));
+    assert(markdown.includes('前から削除済みで一覧にも無いもの（訪ねない）: 1 件'));
+    const section = markdown.slice(markdown.indexOf('## 国税庁の一覧から外れた DB の記録'));
+    assert.equal(section.includes('| No.g G |'), false, '表に前から削除済みを出さない');
     assert(markdown.includes('| タックスアンサー | No.a 題名\\|に 改行 |'));
     assert(markdown.includes('新しく削除済みにした'));
     assert(markdown.includes('上限を超えたため印を付けなかった'));
@@ -1836,14 +1984,13 @@ async function main() {
     assert(markdown.includes('ページはある（変わっていない）'));
     assert(markdown.includes('国税庁の別のページへ転送（記録は変えない）: https://www.nta.go.jp/law/x.htm'));
     assert(markdown.includes('取れなかった（HTTP エラー、記録は変えない）'));
-    assert(markdown.includes('前から削除済み（訪ねない）'));
     assert(markdown.includes('記録が読めない・URL が正しくない（訪ねない）'));
     assert(markdown.includes('国税庁の一覧でこの分類が 1 件も取れなかった（訪ねない）'));
 
     const limited = deletions.renderReport({ unlisted: entries, unlistedCheck: 'done', unlistedLimit: 100 },
       { maxRows: 2 });
-    assert(limited.includes('## 国税庁の一覧から外れた DB の記録: 9 件'), '見出しは丸めない');
-    assert(limited.includes('ほか 7 件'));
+    assert(limited.includes('## 国税庁の一覧から外れた DB の記録: 8 件'), '見出しは丸めない');
+    assert(limited.includes('ほか 6 件'));
     assert(limited.includes('`unlisted_entries`'));
     assert.equal(limited.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 2);
 
@@ -1856,16 +2003,112 @@ async function main() {
     ]) {
       const text = deletions.renderReport({ unlisted: [], unlistedCheck: check });
       assert(text.includes(message), check);
+      assert.equal(text.includes('前から削除済みで一覧にも無いもの'), false, `${check}: 0 件なら出さない`);
     }
+    // H2: 多すぎて訪ねなかったときも、done と同じ表とあふれの 1 行を出す。
+    const tooManyEntries = Array.from({ length: 3 }, (_, i) => ({
+      type: 'taxanswer', url: `https://www.nta.go.jp/${i}.htm`, title: `T${i}`, file_path: `f${i}`, outcome: 'not_checked',
+    }));
     const tooMany = deletions.renderReport({
-      unlisted: Array.from({ length: 3 }, (_, i) => ({
-        type: 'taxanswer', url: `https://www.nta.go.jp/${i}.htm`, title: `T${i}`, file_path: `f${i}`, outcome: 'not_checked',
-      })),
+      unlisted: tooManyEntries,
       unlistedCheck: 'skipped_too_many',
       unlistedLimit: 100,
     });
+    assert(tooMany.includes('## 国税庁の一覧から外れた DB の記録: 3 件'));
     assert(tooMany.includes('訪ねる対象が 3 件あり、上限（100 件）を超えたため一件も訪ねていません。'));
     assert(tooMany.includes('国税庁の一覧の取得・読み取りの不具合を疑ってください'));
+    assert(tooMany.includes('| 種類 | 題名 | URL | 結果 |'));
+    assert(tooMany.includes('対象が多すぎるため訪ねなかった'));
+    assert.equal(tooMany.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 3);
+
+    const tooManyLimited = deletions.renderReport({
+      unlisted: tooManyEntries,
+      unlistedCheck: 'skipped_too_many',
+      unlistedLimit: 100,
+    }, { maxRows: 2 });
+    assert.equal(tooManyLimited.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 2);
+    assert(tooManyLimited.includes('ほか 1 件'));
+  });
+
+  await test('H3 報告と数: 前から削除済みは数と表から外し、1 行で出す', async () => {
+    const listed = [taEntry('gensen', '1001')];
+    const records = {
+      'taxanswer/gensen/1001': taRecord('gensen', '1001', { etag: '"listed"' }),
+      'taxanswer/gensen/2882': taRecord('gensen', '2882'),
+      'taxanswer/gensen/2883': taRecord('gensen', '2883', {
+        deleted: true, deleted_reason: 'nta_error_page', deleted_at: '2026-10-01T00:00:00Z',
+      }),
+      'taxanswer/gensen/2884': taRecord('gensen', '2884', {
+        deleted: true, deleted_reason: 'not_found', deleted_at: '2026-10-01T00:00:00Z',
+      }),
+    };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-unlisted-h3-'));
+    try {
+      const reportFile = path.join(dir, 'report.md');
+      const { saved, result } = await runCrawl({
+        type: 'all',
+        taxanswerEntries: listed,
+        recordKeys: [taKey('gensen', '1001'), taKey('gensen', '2882'),
+          taKey('gensen', '2883'), taKey('gensen', '2884')],
+        existing: loadRecords(records),
+        fetchPageHead: routed(goneHead, { [listed[0].url]: aliveHead('"listed"') }),
+        fetchPage: routed(goneGet),
+        argv: ['--type', 'all', '--incremental', '--skip-index', '--report-file', reportFile],
+      });
+      assert.equal(result.unlisted, 1, '新しく確かめた 1 件');
+      assert.equal(result.unlisted_deleted_before, 2, '前から削除済みの 2 件');
+      assert.equal(result.unlisted_entries.length, 3, 'meta の一覧は今までどおり全部');
+      assert.equal(saved.filter(item => item.entry.deleted === true).length, 1, '保存は 1 件だけ');
+
+      const markdown = fs.readFileSync(reportFile, 'utf8');
+      assert(markdown.includes('## 国税庁の一覧から外れた DB の記録: 1 件'));
+      const section = markdown.slice(markdown.indexOf('## 国税庁の一覧から外れた DB の記録'));
+      assert.equal(section.includes('2883'), false, '表に前から削除済みを出さない');
+      assert.equal(section.includes('2884'), false, '表に前から削除済みを出さない');
+      assert(section.includes('前から削除済みで一覧にも無いもの（訪ねない）: 2 件'));
+      assert(section.includes('2882'), '新しく確かめた記録は表に出す');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  await test('H4 ログ: 結果の名前をそのまま出し、崩れた文を出さない', async () => {
+    const listed = [taEntry('gensen', '1001')];
+    const records = {
+      'taxanswer/gensen/1001': taRecord('gensen', '1001', { etag: '"listed"' }),
+      'taxanswer/gensen/2882': taRecord('gensen', '2882'),
+      'taxanswer/gensen/2883': taRecord('gensen', '2883'),
+    };
+    const { logs, result } = await runCrawl({
+      type: 'all',
+      taxanswerEntries: listed,
+      recordKeys: [taKey('gensen', '1001'), taKey('gensen', '2882'), taKey('gensen', '2883')],
+      existing: loadRecords(records),
+      fetchPageHead: routed(changedHead, { [listed[0].url]: aliveHead('"listed"') }),
+      fetchPage: routed(url => (url === records['taxanswer/gensen/2882'].url
+        ? { ok: false, reason: 'http_error', status: 403, fetchedAt: NOW }
+        : goneGet())),
+    });
+    assert.equal(result.unlisted_entries.filter(entry => entry.outcome === 'error').length, 1);
+    const line = logs.find(value => value.startsWith('[unlisted] 一覧から外れた記録'));
+    assert(line, '[unlisted] の 1 行を出す');
+    assert(line.includes('deleted 1 件'), line);
+    assert(line.includes('error 1 件'), line);
+    const text = logs.join('\n');
+    assert.equal(text.includes('（、'), false, '崩れた文を出さない');
+    assert.equal(text.includes('記録は変えない'), false, '報告用のラベルを空の引数で呼ばない');
+    assert.equal(/[:：]\s{2,}\d/.test(text), false, '名前の抜けた文を出さない');
+  });
+
+  await test('H8 上限の案内: 実行し直すときは max_pages を空のままにする 1 文を足す', () => {
+    const markdown = deletions.renderReport({
+      held: [{ type: 'taxanswer', url: 'https://www.nta.go.jp/a.htm', title: 'A', reason: 'nta_error_page' }],
+      maxDeletions: 20,
+    });
+    assert(markdown.includes('（両方をマージしない）。'), '今の 1 文は変えない');
+    assert(markdown.includes('実行し直すときは max_pages を空のままにしてください（入れると一覧から外れた記録を確かめません）'));
+    const noHeld = deletions.renderReport({ held: [], maxDeletions: 20 });
+    assert.equal(noHeld.includes('max_pages を空のままに'), false, '上限で止めていないときは出さない');
   });
 
   await test('V18 U11: V1〜V12 の実行でファイルを消す部品を一度も呼ばない', () => {

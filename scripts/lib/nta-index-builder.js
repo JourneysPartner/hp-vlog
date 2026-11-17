@@ -138,7 +138,8 @@ function loadIndex() {
  *   @param {string}   params.startedAt        ISO datetime
  *   @param {string}   params.finishedAt       ISO datetime
  *   @param {Object}   params.results          { fetched, skipped, deleted, deleted_still, deletion_held,
- *                                               restored, gone_unrecorded, errors[] }
+ *                                               restored, gone_unrecorded, errors[],
+ *                                               unlisted?, unlisted_deleted_before? }
  *   @param {Object}   params.byType           { taxanswer: {...}, shitsugi: {...} }
  *   @param {string}   [params.nextScheduledAt]
  *   @param {number}   [params.maxDeletions]
@@ -184,6 +185,10 @@ function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt
     ? unlistedCheckLimit
     : (results.unlisted_check_limit !== undefined ? results.unlisted_check_limit : null);
   const unlistedCount = results.unlisted !== undefined ? results.unlisted : unlistedList.length;
+  // 前から削除済みで一覧にも無い記録の数（H3）。crawl_results.unlisted には含めない。
+  const unlistedDeletedBefore = results.unlisted_deleted_before !== undefined
+    ? results.unlisted_deleted_before
+    : unlistedList.filter(entry => entry.outcome === 'deleted_before').length;
   // 一覧から外れた記録の情報を渡されたときだけ crawl_results.unlisted を出す
   // （段 1 からある呼び出しの形を変えないため）。
   const hasUnlistedInfo = results.unlisted !== undefined || unlistedEntries !== undefined
@@ -207,7 +212,9 @@ function saveMeta({ startedAt, finishedAt, results = {}, byType, nextScheduledAt
       restored,
       gone_unrecorded: goneUnrecorded,
       // 一覧から外れた記録の数。既存の呼び出し（渡されない）では項目を足さない。
-      ...(hasUnlistedInfo ? { unlisted: unlistedCount } : {}),
+      ...(hasUnlistedInfo
+        ? { unlisted: unlistedCount, unlisted_deleted_before: unlistedDeletedBefore }
+        : {}),
       errors_count: (results.errors || []).length,
     },
     by_type: byType || {},

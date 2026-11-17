@@ -231,7 +231,8 @@ async function fetchPage(url, options = {}) {
 // ボディが空のため、リトライは GET と同じロジックを使う。
 //
 // 戻り値:
-//   { ok: true, url, status, lastModified, etag, contentLength, contentType, checkedAt }
+//   { ok: true, url, status, lastModified, etag, contentLength, contentType, checkedAt,
+//     redirected, finalUrl }
 //   { ok: false, url, reason, status, checkedAt }
 async function fetchPageHead(url, options = {}) {
   const checkedAt = new Date().toISOString();
@@ -276,6 +277,9 @@ async function fetchPageHead(url, options = {}) {
           contentLength: parseInt(res.headers.get('content-length') || '0', 10) || null,
           contentType: res.headers.get('content-type') || null,
           checkedAt,
+          // 転送をたどったかどうかと、最後に取れた URL（段 2 の一覧外の記録の判定用）。
+          redirected: res.redirected === true,
+          finalUrl: res.url || url,
         };
       } finally {
         clearTimeout(timer);

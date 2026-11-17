@@ -8,6 +8,7 @@
  *   - 一覧にある記録は対象外
  *   - 一覧で 1 件も取れなかった分類の記録は訪ねない（一覧の取得の不具合を疑う）
  *   - 記録が読めない・URL が置き場所と合わない記録は訪ねない
+ *   - 記録の id・分類・節が置き場所と合わない記録も訪ねない
  *   - 前から削除済みの記録は訪ねない
  */
 
@@ -64,6 +65,17 @@ function itemOf(key, record, url, title) {
   return { key, record, url, title: title || '' };
 }
 
+// 記録の項目（id・分類・節）が置き場所と合っているか（H5）。
+// 合わない記録は、置き場所から決まる URL を訪ねても別の資料の答えになるため訪ねない。
+function matchesKey(key, record) {
+  if (String(record.id) !== String(key.id)) return false;
+  if (String(record.tax_category_code) !== String(key.category)) return false;
+  if (key.type === 'shitsugi') {
+    return String(record.section).padStart(2, '0') === String(key.section);
+  }
+  return true;
+}
+
 /**
  * 一覧から外れた記録を、扱いごとに分ける。
  *
@@ -93,7 +105,7 @@ function selectUnlisted({ keys, listedFilePaths, listedCategories, loadRecord })
     const record = typeof loadRecord === 'function' ? loadRecord(key) : null;
     const url = record && typeof record.url === 'string' ? record.url : '';
     const title = record && record.title ? record.title : '';
-    if (!record || !url || url !== canonical) {
+    if (!record || !url || !matchesKey(key, record) || url !== canonical) {
       result.invalid_record.push(itemOf(key, record, url || canonical, title));
       continue;
     }

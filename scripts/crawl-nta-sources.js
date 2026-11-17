@@ -207,6 +207,8 @@ async function performIncrementalFetch(entry, existing, rl, args) {
       action: 'skipped',
       reason,
       updatedEntry: { ...existing, last_checked_at: head.checkedAt },
+      // 判断の元になった応答（転送の確認用）。
+      head,
     };
   }
 
@@ -241,9 +243,11 @@ async function performIncrementalFetch(entry, existing, rl, args) {
         reason: 'hash_match_after_get',
         updatedEntry: deletions.clearDeleted(updated),
         restored: true,
+        // 判断の元になった応答（転送の確認用）。
+        fetchResult,
       };
     }
-    return { action: 'skipped', reason: 'hash_match_after_get', updatedEntry: updated };
+    return { action: 'skipped', reason: 'hash_match_after_get', updatedEntry: updated, fetchResult };
   }
 
   return {
@@ -292,6 +296,17 @@ const SHITSUGI_SPEC = {
 async function processEntry(entry, existing, rl, args, spec, options = {}) {
   const r = await performIncrementalFetch(entry, existing, rl, args);
 
+  // U9: 一覧から外れた記録は、判断の元になった応答（HEAD の skip なら HEAD、
+  // 本文の hash の一致なら GET）が国税庁の別のページへ転送されていたら、保存しない。
+  if (options.rejectForeignRedirect && (r.action === 'skipped' || r.action === 'fetched')) {
+    const source = r.action === 'skipped'
+      ? (r.head || r.fetchResult)
+      : r.fetchResult;
+    if (source && source.redirected === true && source.finalUrl !== entry.url) {
+      return { action: 'redirected', finalUrl: source.finalUrl };
+    }
+  }
+
   if (r.action === 'skipped') {
     spec.save(r.updatedEntry);
     return {
@@ -333,13 +348,6 @@ async function processEntry(entry, existing, rl, args, spec, options = {}) {
   }
 
   // action === 'fetched'
-  // 本文は取れたが国税庁の別のページへ転送されていた（U9）。
-  if (options.rejectForeignRedirect
-    && r.fetchResult.redirected === true
-    && r.fetchResult.finalUrl !== entry.url) {
-    return { action: 'redirected', finalUrl: r.fetchResult.finalUrl };
-  }
-
   try {
     const parsed = spec.parse(r.fetchResult.html, entry.url);
     const stored = {
@@ -803,15 +811,13 @@ function finalizeUnlistedEntries(entries, applied, held) {
 function logUnlistedSummary(unlistedCheck) {
   const entries = unlistedCheck.entries || [];
   if (unlistedCheck.check !== 'done') return;
-  const mod = unlistedModule();
   const counts = {};
   for (const entry of entries) counts[entry.outcome] = (counts[entry.outcome] || 0) + 1;
+  // 結果の名前（outcome）をそのまま出す。報告用のラベルは引数（行き先・理由）が
+  // 要るので、ここで空の引数で呼ぶと文が崩れる（H4）。
   const parts = UNLISTED_LOG_ORDER
     .filter(outcome => counts[outcome])
-    .map(outcome => {
-      const label = mod.UNLISTED_OUTCOME_LABELS[outcome];
-      return `${typeof label === 'function' ? label({}) : outcome} ${counts[outcome]} 件`;
-    });
+    .map(outcome => `${outcome} ${counts[outcome]} 件`);
   console.log(`[unlisted] 一覧から外れた記録 ${entries.length} 件 / 訪ねた ${unlistedCheck.visited} 件`
     + (parts.length ? ` / ${parts.join(' / ')}` : ''));
 }
@@ -887,7 +893,11 @@ async function crawlAll(args) {
   aggregated.unlisted_check = unlistedCheck.check;
   aggregated.unlisted_check_limit = unlistedCheck.limit;
   aggregated.unlisted_entries = unlistedCheck.entries.slice().sort(byUrl);
-  aggregated.unlisted = aggregated.unlisted_entries.length;
+  // 前から削除済みの記録は「今回の一覧から外れた記録」の数から外し、別に数える（H3）。
+  // meta.json の unlisted_entries は今までどおり deleted_before も含める。
+  aggregated.unlisted_deleted_before = aggregated.unlisted_entries
+    .filter(entry => entry.outcome === 'deleted_before').length;
+  aggregated.unlisted = aggregated.unlisted_entries.length - aggregated.unlisted_deleted_before;
   // meta.json が読む名前（crawl_results）にも同じ数を入れる。
   aggregated.deleted_still = aggregated.deletedStill;
   aggregated.deletion_held = held.length;
