@@ -72,7 +72,12 @@ const SEARCH_DIRS = [
   'data/tax-simulator',
   'scripts/lib',
 ];
-const SEARCH_FILES = ['scripts/topic-pool.js'];
+const SEARCH_FILES = [
+  'scripts/topic-pool.js',
+  // 国税庁の URL を持つデータ（題材の候補・出典の昇格）も「使っている所」に数える。
+  'data/nta-shitsugi-topics-candidate.json',
+  'data/curated-source-promotions.json',
+];
 const SEARCH_EXTENSIONS = new Set(['.md', '.json', '.js', '.yml']);
 
 function collectFiles(root, relativeDir, acc) {
@@ -226,10 +231,20 @@ function pushTable(lines, entries, references) {
   }
 }
 
+// 上限（maxRows）を超えた分の 1 行。全件は meta.json と実行の要約にある。
+function overflowLine(hidden) {
+  return `ほか ${hidden} 件（全件は meta.json の \`deleted_entries\`・\`deletion_held_entries\`・`
+    + '`restored_entries`・`gone_unrecorded_urls` と、Actions の実行の要約にあります）';
+}
+
 /**
  * PR 本文に貼る Markdown（R6）を返す。節は毎回すべて出す。
+ *
+ * options.maxRows を渡すと、表・箇条書き・URL の一覧の行数を抑える
+ * （PR 本文の上限に収めるため）。見出しの件数は丸めずに全件の数を出す。
+ * 渡さないときは全件を出す。
  */
-function renderReport(summary = {}) {
+function renderReport(summary = {}, options = {}) {
   const deleted = Array.isArray(summary.deleted) ? summary.deleted : [];
   const held = Array.isArray(summary.held) ? summary.held : [];
   const restored = Array.isArray(summary.restored) ? summary.restored : [];
@@ -237,20 +252,33 @@ function renderReport(summary = {}) {
   const references = summary.references || {};
   const deletedStill = Number(summary.deletedStill) || 0;
   const maxDeletions = Number(summary.maxDeletions) || 0;
+  const maxRows = Number.isInteger(options.maxRows) && options.maxRows >= 0 ? options.maxRows : null;
+  const take = (list, limit) => (maxRows === null || limit === null ? list : list.slice(0, limit));
+  const deletedShown = take(deleted, maxRows);
+  const heldShown = take(held, maxRows);
+  const restoredShown = take(restored, maxRows);
+  // 一覧にはあるがページが無いものは URL だけなので、表より多く出せる。
+  const goneShown = take(goneUnrecorded, maxRows === null ? null : maxRows * 2);
   const lines = [];
 
   lines.push(`## 国税庁で削除されたページ（この PR で「削除済み」の印を付けたもの）: ${deleted.length} 件`);
   lines.push('');
-  if (deleted.length > 0) pushTable(lines, deleted, references);
-  else lines.push('なし');
+  if (deleted.length > 0) {
+    pushTable(lines, deletedShown, references);
+    if (deletedShown.length < deleted.length) lines.push(overflowLine(deleted.length - deletedShown.length));
+  } else {
+    lines.push('なし');
+  }
 
   lines.push('');
   lines.push(`## 上限を超えたため印を付けなかったもの: ${held.length} 件（上限 ${maxDeletions} 件）`);
   lines.push('');
   if (held.length > 0) {
-    lines.push(`本当に削除なら、Actions の「Crawl NTA Sources」を、max_deletions に ${held.length} 以上を入れて手動で実行し直してください。`);
+    lines.push('本当に削除なら、この PR は閉じてから、Actions の『Crawl NTA Sources』を '
+      + `max_deletions に ${held.length} 以上を入れて手動で実行し直してください（両方をマージしない）。`);
     lines.push('');
-    pushTable(lines, held, references);
+    pushTable(lines, heldShown, references);
+    if (heldShown.length < held.length) lines.push(overflowLine(held.length - heldShown.length));
   } else {
     lines.push('なし');
   }
@@ -259,9 +287,10 @@ function renderReport(summary = {}) {
   lines.push(`## 国税庁で戻ったページ（「削除済み」の印を外したもの）: ${restored.length} 件`);
   lines.push('');
   if (restored.length > 0) {
-    for (const entry of restored) {
+    for (const entry of restoredShown) {
       lines.push(`- ${typeLabel(entry.type)} ${oneLine(formatTitle(entry))} <${oneLine(entry.url)}>`);
     }
+    if (restoredShown.length < restored.length) lines.push(overflowLine(restored.length - restoredShown.length));
   } else {
     lines.push('なし');
   }
@@ -276,7 +305,8 @@ function renderReport(summary = {}) {
   if (goneUnrecorded.length > 0) {
     lines.push('<details><summary>URL の一覧</summary>');
     lines.push('');
-    for (const url of goneUnrecorded) lines.push(`- ${url}`);
+    for (const url of goneShown) lines.push(`- ${url}`);
+    if (goneShown.length < goneUnrecorded.length) lines.push(overflowLine(goneUnrecorded.length - goneShown.length));
     lines.push('');
     lines.push('</details>');
   } else {

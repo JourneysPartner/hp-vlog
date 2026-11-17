@@ -143,8 +143,10 @@ async function fetchWithRetry(url, options = {}) {
           return { ok: false, status: res.status, reason: 'nta_error_page', finalUrl: res.url };
         }
 
-        // 404 や 410 は再試行しても無駄なので即返す
-        if (res.status === 404 || res.status === 410) {
+        // 404 や 410 は再試行しても無駄なので即返す。
+        // ただし転送をたどった後の 404/410 は削除の根拠にしない（似て非なる
+        // 行き先が 404 を返すことがある）。転送された後の 404/410 は http_error。
+        if ((res.status === 404 || res.status === 410) && res.redirected !== true) {
           return { ok: false, status: res.status, reason: 'not_found' };
         }
         // 5xx はリトライ対象
@@ -252,7 +254,7 @@ async function fetchPageHead(url, options = {}) {
         if (res.redirected === true && isNtaErrorPageUrl(res.url)) {
           return { ok: false, url, reason: 'nta_error_page', status: res.status, finalUrl: res.url, checkedAt };
         }
-        if (res.status === 404 || res.status === 410) {
+        if ((res.status === 404 || res.status === 410) && res.redirected !== true) {
           return { ok: false, url, reason: 'not_found', status: res.status, checkedAt };
         }
         if (res.status >= 500 && res.status < 600) {

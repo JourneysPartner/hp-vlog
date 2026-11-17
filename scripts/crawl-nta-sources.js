@@ -15,7 +15,8 @@
  *   --verbose           詳細ログ
  *   --max-pages <N>     最大 N ページで停止（テスト用）
  *   --max-deletions <N> 一回の実行で新しく「削除済み」にしてよい件数の上限（既定 20）
- *   --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す
+ *   --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す（表は 50 行まで）
+ *   --report-full-file <path> 全件の報告ファイルを書き出す（上限なし）
  *   --probe <url>       1 ページだけ fetch して表示（動作確認用）
  *
  * Phase C-1: スクリプト骨子（fetch + 表示まで）
@@ -70,6 +71,7 @@ function parseArgs(argv) {
     backfillFigures: false,
     maxDeletions: 20,
     reportFile: null,
+    reportFullFile: null,
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -101,6 +103,16 @@ function parseArgs(argv) {
         args.reportFile = file;
         break;
       }
+      case '--report-full-file': {
+        const file = argv[++i];
+        if (!file) {
+          console.error('--report-full-file には書き出すファイルのパスを指定してください');
+          printHelp();
+          process.exit(2);
+        }
+        args.reportFullFile = file;
+        break;
+      }
       case '--probe':        args.probe = argv[++i]; break;
       case '--rebuild-index': args.rebuildIndex = true; break;
       case '--skip-index':   args.skipIndex = true; break;
@@ -127,7 +139,8 @@ Options:
   --verbose           詳細ログ
   --max-pages <N>     最大 N ページで停止（テスト用）
   --max-deletions <N> 一回の実行で新しく「削除済み」にしてよい件数の上限（既定 20）
-  --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す
+  --report-file <path> PR 本文に貼る Markdown の報告ファイルを書き出す（表は 50 行まで）
+  --report-full-file <path> 全件の報告ファイルを書き出す（上限なし）
   --probe <url>       1 ページだけ fetch して表示
   --rebuild-index     crawl をスキップして index.json / meta.json だけ再生成
   --skip-index        crawl 後の index/meta 自動生成をスキップ
@@ -197,13 +210,11 @@ async function performIncrementalFetch(entry, existing, rl, args) {
     };
   }
 
-  if (decision === 'mark_deleted') {
-    return {
-      action: 'gone',
-      reason: reason === 'head_error_page' ? 'nta_error_page' : 'not_found',
-      checkedAt: head.checkedAt,
-    };
-  }
+  // 'mark_deleted'（HEAD がエラーページ・404/410）でも本文を 1 回取る。
+  // HEAD と GET で国税庁の扱いが違うと、生きたページを削除の候補にしてしまうため。
+  // 本文が取れたら 'fetch' と同じ流れ、取れなければ本文の失敗の理由で決める。
+  // HEAD の失敗の結果（Last-Modified・ETag）は記録に使わない。
+  const headMeta = decision === 'mark_deleted' ? null : head;
 
   // 'fetch' または 'first_time' → 本文 GET
   await rl.wait();
@@ -212,17 +223,17 @@ async function performIncrementalFetch(entry, existing, rl, args) {
     if (deletions.isGoneReason(fetchResult.reason)) {
       return { action: 'gone', reason: fetchResult.reason, checkedAt: fetchResult.fetchedAt };
     }
-    return { action: 'error', fetchResult, headMeta: head };
+    return { action: 'error', fetchResult, headMeta };
   }
 
   // hash が一致するなら、HEAD は変わったが実体は変わらず → skipped 扱い
   if (existing.html_hash && fetchResult.htmlHash === existing.html_hash) {
     const updated = {
       ...existing,
-      last_checked_at: head.checkedAt || fetchResult.fetchedAt,
+      last_checked_at: (headMeta && headMeta.checkedAt) || fetchResult.fetchedAt,
       // 新しい HEAD メタは反映しておく
-      last_modified: head.lastModified || existing.last_modified,
-      etag: head.etag || existing.etag,
+      last_modified: (headMeta && headMeta.lastModified) || existing.last_modified,
+      etag: (headMeta && headMeta.etag) || existing.etag,
     };
     if (existing.deleted === true) {
       return {
@@ -238,7 +249,7 @@ async function performIncrementalFetch(entry, existing, rl, args) {
   return {
     action: 'fetched',
     fetchResult,
-    headMeta: head,
+    headMeta,
     restored: existing.deleted === true,
   };
 }
@@ -555,7 +566,8 @@ function buildAndSaveIndex(startedAt, results) {
 }
 
 // 報告ファイル（PR 本文に貼る Markdown）を書く。--report-file のときだけ fs を読む。
-function writeReport(filePath, results) {
+// options.maxRows を渡すと行数を抑える（PR 本文用）。渡さなければ全件。
+function writeReport(filePath, results, options = {}) {
   const fsMod = require('fs');
   const deletedEntries = results.deleted_entries || [];
   const heldEntries = results.deletion_held_entries || [];
@@ -568,7 +580,7 @@ function writeReport(filePath, results) {
     goneUnrecorded: results.gone_unrecorded_urls || [],
     maxDeletions: results.max_deletions,
     references,
-  });
+  }, { maxRows: options.maxRows });
   const absolute = path.resolve(filePath);
   fsMod.mkdirSync(path.dirname(absolute), { recursive: true });
   fsMod.writeFileSync(absolute, markdown, 'utf8');
@@ -664,7 +676,11 @@ async function crawlAll(args) {
     buildAndSaveIndex(startedAt, aggregated);
   }
   if (args.reportFile) {
-    writeReport(args.reportFile, aggregated);
+    // PR 本文は GitHub の上限（65,536 字）に収めるため、行数を抑えて書く。
+    writeReport(args.reportFile, aggregated, { maxRows: 50 });
+  }
+  if (args.reportFullFile) {
+    writeReport(args.reportFullFile, aggregated);
   }
   return aggregated;
 }

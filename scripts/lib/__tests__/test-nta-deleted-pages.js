@@ -271,31 +271,58 @@ async function main() {
     }
   });
 
-  // ── T3 似て非なる行き先 ─────────────────────────────────────
-  await test('T3 S3 の似て非なる行き先は nta_error_page にしない', async () => {
+  // ── T3 似て非なる行き先（G3・G7(d)）───────────────────────────
+  await test('T3 S3 の似て非なる行き先は nta_error_page・not_found にしない（GET/HEAD、状態 200/404）', async () => {
+    const origin = 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm';
     assert.equal(nearMisses.errorPageUrl, crawler.NTA_ERROR_PAGE_URL);
     for (const url of nearMisses.nearMisses) {
-      await withFakeFetch(() => fakeResponse({ status: 200, url, redirected: true }), async () => {
-        const result = await crawler.fetchWithRetry('https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm', { maxRetries: 0 });
-        assert.equal(result.ok, true, url);
-        assert.notEqual(result.reason, 'nta_error_page', url);
-      });
+      for (const status of [200, 404]) {
+        const label = `${url} / 状態 ${status}`;
+        await withFakeFetch(() => fakeResponse({ status, url, redirected: true }), async calls => {
+          const result = await crawler.fetchWithRetry(origin, { maxRetries: 0 });
+          assert.notEqual(result.reason, 'nta_error_page', `GET: ${label}`);
+          assert.notEqual(result.reason, 'not_found', `GET: ${label}`);
+          assert.equal(result.ok, status === 200, `GET: ${label}`);
+          assert.equal(calls.length, 1, `GET: ${label}`);
+        });
+        await withFakeFetch(() => fakeResponse({ status, url, redirected: true }), async calls => {
+          const result = await crawler.fetchPageHead(origin, { maxRetries: 0 });
+          assert.notEqual(result.reason, 'nta_error_page', `HEAD: ${label}`);
+          assert.notEqual(result.reason, 'not_found', `HEAD: ${label}`);
+          assert.equal(result.ok, status === 200, `HEAD: ${label}`);
+          assert.equal(calls.length, 1, `HEAD: ${label}`);
+          assert.equal(calls[0].options.method, 'HEAD', `HEAD: ${label}`);
+        });
+      }
     }
     // 転送されていない応答は、行き先がエラーページでも削除にしない。
     await withFakeFetch(
       () => fakeResponse({ status: 200, url: crawler.NTA_ERROR_PAGE_URL, redirected: false }),
       async () => {
-        const result = await crawler.fetchWithRetry('https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/5441.htm', { maxRetries: 0 });
+        const result = await crawler.fetchWithRetry(origin, { maxRetries: 0 });
         assert.equal(result.ok, true);
       });
     // 国税庁の別のページへの転送は削除にしない。
     await withFakeFetch(
       () => fakeResponse({ status: 200, url: 'https://www.nta.go.jp/law/shitsugi/joto/16/09.htm', redirected: true }),
       async () => {
-        const result = await crawler.fetchWithRetry('https://www.nta.go.jp/law/shitsugi/joto/16/09.htm', { maxRetries: 0 });
+        const result = await crawler.fetchWithRetry(origin, { maxRetries: 0 });
         assert.equal(result.ok, true);
         assert.notEqual(result.reason, 'nta_error_page');
       });
+    // 転送されずに 404/410 が返ったときは、今までどおり not_found（GET と HEAD）。
+    for (const status of [404, 410]) {
+      await withFakeFetch(() => fakeResponse({ status, url: origin, redirected: false }), async () => {
+        const get = await crawler.fetchWithRetry(origin, { maxRetries: 0 });
+        assert.equal(get.reason, 'not_found', `GET 転送なし ${status}`);
+        assert.equal(get.status, status);
+      });
+      await withFakeFetch(() => fakeResponse({ status, url: origin, redirected: false }), async () => {
+        const head = await crawler.fetchPageHead(origin, { maxRetries: 0 });
+        assert.equal(head.reason, 'not_found', `HEAD 転送なし ${status}`);
+        assert.equal(head.status, status);
+      });
+    }
   });
 
   // ── T4 decideIncrementalAction ──────────────────────────────
@@ -677,8 +704,8 @@ async function main() {
     }
   });
 
-  // ── T15 --backfill-figures ─────────────────────────────────
-  await test('T15 --backfill-figures: エラーページへ転送されたら記録を書き換えない', async () => {
+  // ── T15 --backfill-figures（G7(a)）───────────────────────────
+  await test('T15 --backfill-figures: 本物の fetchPage でエラーページへ転送されたら記録を書き換えない', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-backfill-deleted-'));
     try {
       const sources = path.join(dir, 'nta-sources');
@@ -687,19 +714,27 @@ async function main() {
       const file = path.join(recordDir, '5441.json');
       fs.writeFileSync(file, JSON.stringify(existing5441), 'utf8');
       const before = fs.readFileSync(file, 'utf8');
-      const dependencies = baseDependencies({
-        fetchPage: async () => ({ ok: false, reason: 'nta_error_page', status: 200,
-          finalUrl: crawler.NTA_ERROR_PAGE_URL, fetchedAt: NOW }),
-        extra: {
-          'nta-store': {
-            NTA_SOURCES_DIR: sources,
-            readJson: target => JSON.parse(fs.readFileSync(target, 'utf8')),
-            writeJsonAtomic: () => { throw new Error('記録を書き換えてはいけません'); },
-          },
-        },
-      });
-      const { exitCode } = await runCli({ argv: ['--backfill-figures'], dependencies });
-      assert.equal(exitCode, null);
+      // 本物の nta-crawler（fetchPage）に、302 でエラーページへ転送する偽の fetch を
+      // 食わせる。偽の応答は状態 200・redirected が true・url がエラーページ。
+      await withFakeFetch(
+        () => fakeResponse({ status: 200, url: crawler.NTA_ERROR_PAGE_URL, redirected: true,
+          body: '<html><body>国税庁のエラーページ</body></html>' }),
+        async calls => {
+          const dependencies = baseDependencies({
+            extra: {
+              'nta-crawler': crawler,
+              'nta-store': {
+                NTA_SOURCES_DIR: sources,
+                readJson: target => JSON.parse(fs.readFileSync(target, 'utf8')),
+                writeJsonAtomic: () => { throw new Error('記録を書き換えてはいけません'); },
+              },
+            },
+          });
+          const { exitCode } = await runCli({ argv: ['--backfill-figures'], dependencies });
+          assert.equal(exitCode, null);
+          assert.equal(calls.length, 1, '本文は 1 回だけ取る');
+          assert.equal(calls[0].options.method, undefined, 'GET で取る');
+        });
       assert.equal(fs.readFileSync(file, 'utf8'), before);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -830,6 +865,225 @@ async function main() {
     const line = lines.find(l => l.startsWith('- 質疑応答事例'));
     assert.equal(line, '- 質疑応答事例 戻った 題名 です <https://www.nta.go.jp/law/shitsugi/joto/16/09.htm>');
     assert.equal(lines.some(l => l.includes('題名') && !l.startsWith('- 質疑応答事例')), false);
+  });
+
+  // ── G1 報告の行数の上限 ────────────────────────────────────
+  await test('G1 報告の上限: 見出しは全件・表は 50 行・「ほか 900 件」、全件なら 500 行', () => {
+    const held = Array.from({ length: 500 }, (_, i) => ({
+      type: 'taxanswer',
+      url: `https://www.nta.go.jp/taxes/shiraberu/taxanswer/hojin/${6000 + i}.htm`,
+      title: `題名 ${i}`,
+      file_path: `taxanswer/hojin/${6000 + i}.json`,
+      reason: 'nta_error_page',
+    }));
+    const gone = Array.from({ length: 1000 }, (_, i) => `https://www.nta.go.jp/gone/${i}.htm`);
+    const markdown = deletions.renderReport({ held, goneUnrecorded: gone, maxDeletions: 20 },
+      { maxRows: 50 });
+    assert(markdown.length < 60000, `PR 用は 60,000 字未満（実際 ${markdown.length} 字）`);
+    assert(markdown.includes('## 上限を超えたため印を付けなかったもの: 500 件（上限 20 件）'));
+    assert(markdown.includes('## 国税庁の一覧には載っているがページが無いもの（DB に記録なし・変更なし）: 1000 件'));
+    assert(markdown.includes('ほか 450 件'));
+    assert(markdown.includes('ほか 900 件'));
+    assert.equal(markdown.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 50);
+
+    const full = deletions.renderReport({ held, goneUnrecorded: gone, maxDeletions: 20 });
+    assert.equal(full.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 500);
+    assert.equal(full.includes('ほか 450 件'), false);
+    assert(full.length > markdown.length);
+  });
+
+  await test('G1 CLI: --report-file は 50 行まで・--report-full-file は全件、両方を同時に書ける', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nta-report-both-'));
+    try {
+      const prFile = path.join(dir, 'pr', 'report.md');
+      const fullFile = path.join(dir, 'full', 'report.md');
+      const { saved, result } = await runCrawl({
+        taxanswerEntries: Array.from({ length: 60 }, (_, i) => taxentry(6001 + i)),
+        existing: (ref, kind) => (kind === 'taxanswer' ? existingRecord(taxentry(ref.id), kind) : null),
+        argv: ['--type', 'taxanswer', '--incremental', '--skip-index', '--max-deletions', '0',
+          '--report-file', prFile, '--report-full-file', fullFile],
+      });
+      assert.equal(saved.length, 0);
+      assert.equal(result.deletion_held, 60);
+      const pr = fs.readFileSync(prFile, 'utf8');
+      const full = fs.readFileSync(fullFile, 'utf8');
+      assert(pr.length < 60000);
+      assert(pr.includes('## 上限を超えたため印を付けなかったもの: 60 件（上限 0 件）'));
+      assert.equal(pr.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 50);
+      assert(pr.includes('ほか 10 件'));
+      assert.equal(full.split('\n').filter(line => line.startsWith('| タックスアンサー |')).length, 60);
+      assert.equal(full.includes('ほか 10 件'), false);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // ── G2 上限で止めたときの案内 ──────────────────────────────
+  await test('G2 上限の案内: この PR は閉じてから…（両方をマージしない）', () => {
+    const markdown = deletions.renderReport({
+      held: [{ type: 'taxanswer', url: 'https://www.nta.go.jp/a.htm', title: 'A', reason: 'nta_error_page' }],
+      maxDeletions: 20,
+    });
+    assert(markdown.includes('本当に削除なら、この PR は閉じてから、Actions の『Crawl NTA Sources』を '
+      + 'max_deletions に 1 以上を入れて手動で実行し直してください（両方をマージしない）。'));
+  });
+
+  // ── G4 HEAD だけで削除にしない ─────────────────────────────
+  await test('G4 HEAD だけで削除にしない: 本文が取れれば保存・取れなければ失敗・無いなら削除', async () => {
+    const url = taxentry('5441').url;
+    const headErrorPage = async () => ({ ok: false, reason: 'nta_error_page', status: 200,
+      url, finalUrl: crawler.NTA_ERROR_PAGE_URL, checkedAt: NOW });
+    const withExisting = { existing: (ref, kind) => (kind === 'taxanswer'
+      ? existingRecord(taxentry('5441'), 'taxanswer') : null) };
+
+    // (1) HEAD がエラーページ＋本文が取れる → 削除の印は付かず普通に保存
+    const live = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      ...withExisting,
+      fetchPageHead: headErrorPage,
+      fetchPage: okFetch('new-hash-5441'),
+    });
+    assert.equal(live.saved.length, 1);
+    assert.equal(Object.hasOwn(live.saved[0].entry, 'deleted'), false);
+    assert.equal(live.saved[0].entry.html_hash, 'new-hash-5441');
+    // HEAD の失敗の結果は使わず、本文の取得の ETag・Last-Modified を使う
+    assert.equal(live.saved[0].entry.etag, '"new-hash-5441"');
+    assert.equal(live.saved[0].entry.last_modified, 'Thu, 01 Oct 2026 00:00:00 GMT');
+    assert.equal(live.result.deleted, 0);
+    assert.equal(live.result.errors.length, 0);
+
+    // (2) 既存が削除済み＋本文が取れる（hash が同じ）→ 印が外れ restored に入る
+    const previous = { ...existingRecord(taxentry('5441'), 'taxanswer'), deleted: true,
+      deleted_reason: 'not_found', deleted_at: '2026-10-01T00:00:00Z' };
+    const back = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      existing: (ref, kind) => (kind === 'taxanswer' ? clone(previous) : null),
+      fetchPageHead: headErrorPage,
+      fetchPage: okFetch('hash-5441'),
+    });
+    assert.equal(back.saved.length, 1);
+    for (const key of ['deleted', 'deleted_reason', 'deleted_at']) {
+      assert.equal(Object.hasOwn(back.saved[0].entry, key), false, `${key} を残さない`);
+    }
+    assert.equal(back.result.restored_entries.length, 1);
+    assert.equal(back.result.deleted, 0);
+
+    // (3) HEAD がエラーページ＋本文もエラーページ → 新しい削除
+    const gone = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      ...withExisting,
+      fetchPageHead: headErrorPage,
+      fetchPage: async () => ({ ok: false, reason: 'nta_error_page', status: 200,
+        finalUrl: crawler.NTA_ERROR_PAGE_URL, fetchedAt: NOW }),
+    });
+    assert.equal(gone.saved.length, 1);
+    assert.equal(gone.saved[0].entry.deleted, true);
+    assert.equal(gone.saved[0].entry.deleted_reason, 'nta_error_page');
+    assert.equal(gone.result.deleted, 1);
+
+    // (4) HEAD が 404＋本文が retry_exhausted → 失敗、保存なし
+    const failed = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      ...withExisting,
+      fetchPageHead: async () => ({ ok: false, reason: 'not_found', status: 404, url, checkedAt: NOW }),
+      fetchPage: async () => ({ ok: false, reason: 'retry_exhausted', status: 0, fetchedAt: NOW }),
+    });
+    assert.equal(failed.saved.length, 0);
+    assert.equal(failed.result.deleted, 0);
+    assert.equal(failed.result.deletion_held, 0);
+    assert.equal(failed.result.errors.length, 1);
+    assert.equal(failed.result.errors[0].reason, 'retry_exhausted');
+  });
+
+  // ── G6 使っている所を探すファイル ──────────────────────────
+  await test('G6 findReferences: 題材の候補・出典の昇格のファイルも探す', () => {
+    const root = path.join(FIXTURES, 'references-g6');
+    const item = { type: 'shitsugi', url: shitsugiEntry('09').url };
+    const result = deletions.findReferences([item], { root });
+    assert.deepEqual(result[item.url], [
+      'data/curated-source-promotions.json',
+      'data/nta-shitsugi-topics-candidate.json',
+    ]);
+  });
+
+  // ── G7(b) --full / --incremental の本文エラーページ ────────
+  await test('G7(b) --full でも新しい削除と上限、--incremental の本文エラーページ', async () => {
+    const existing = (ref, kind) => (kind === 'taxanswer'
+      ? existingRecord(taxentry(ref.id), kind) : null);
+    // --full（--incremental なし）で記録あり＋本文がエラーページ → 新しい削除
+    const full = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      existing,
+      argv: ['--type', 'taxanswer', '--skip-index'],
+    });
+    assert.equal(full.exitCode, null);
+    assert.equal(full.saved.length, 1);
+    assert.equal(full.saved[0].entry.deleted, true);
+    assert.equal(full.result.deleted, 1);
+
+    // --full でも上限が効く（21 件・上限 20 → 保存 0）
+    const over = await runCrawl({
+      taxanswerEntries: Array.from({ length: 21 }, (_, i) => taxentry(6001 + i)),
+      existing,
+      argv: ['--type', 'taxanswer', '--skip-index', '--max-deletions', '20'],
+    });
+    assert.equal(over.saved.length, 0);
+    assert.equal(over.result.deleted, 0);
+    assert.equal(over.result.deletion_held, 21);
+
+    // --incremental で HEAD が通り本文がエラーページ → 新しい削除
+    const incremental = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      existing,
+      fetchPageHead: async () => ({ ok: true, checkedAt: NOW, etag: '"changed"', lastModified: 'changed' }),
+      argv: ['--type', 'taxanswer', '--incremental', '--skip-index'],
+    });
+    assert.equal(incremental.saved.length, 1);
+    assert.equal(incremental.saved[0].entry.deleted, true);
+    assert.equal(incremental.result.deleted, 1);
+  });
+
+  // ── G7(c) 本文を読む部品の例外 ─────────────────────────────
+  await test('G7(c) bodyArea が見つからない例外は失敗に数え、保存も削除の印もしない', async () => {
+    const { saved, result, exitCode } = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      existing: (ref, kind) => (kind === 'taxanswer' ? existingRecord(taxentry('5441'), 'taxanswer') : null),
+      fetchPageHead: async () => ({ ok: true, checkedAt: NOW, etag: '"changed"', lastModified: 'changed' }),
+      fetchPage: okFetch('new-hash'),
+      extra: {
+        'nta-parsers/taxanswer': {
+          parseTaxAnswerHtml: () => { throw new Error('bodyArea が見つかりません'); },
+        },
+      },
+    });
+    assert.equal(exitCode, null);
+    assert.equal(saved.length, 0);
+    assert.equal(result.deleted, 0);
+    assert.equal(result.deletion_held, 0);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].reason, 'parse_failed');
+    assert(result.errors[0].error.includes('bodyArea が見つかりません'));
+  });
+
+  // ── G7(e) 削除済み＋ETag 同じでも本文を取り直す ────────────
+  await test('G7(e) 削除済み＋HEAD が通り ETag が同じでも本文を取り直して印を外す', async () => {
+    let fetched = 0;
+    const previous = { ...existingRecord(taxentry('5441'), 'taxanswer'), deleted: true,
+      deleted_reason: 'nta_error_page', deleted_at: '2026-10-01T00:00:00Z' };
+    const { saved, result } = await runCrawl({
+      taxanswerEntries: [taxentry('5441')],
+      existing: (ref, kind) => (kind === 'taxanswer' ? clone(previous) : null),
+      fetchPageHead: async () => ({ ok: true, checkedAt: NOW,
+        etag: previous.etag, lastModified: previous.last_modified }),
+      fetchPage: async () => { fetched++; return okFetch('new-hash')(); },
+    });
+    assert.equal(fetched, 1, '本文を取り直す');
+    assert.equal(saved.length, 1);
+    for (const key of ['deleted', 'deleted_reason', 'deleted_at']) {
+      assert.equal(Object.hasOwn(saved[0].entry, key), false, `${key} を残さない`);
+    }
+    assert.equal(result.restored_entries.length, 1);
+    assert.equal(result.restored_entries[0].url, taxentry('5441').url);
   });
 
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);

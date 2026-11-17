@@ -111,7 +111,8 @@ jobs:
           # 報告ファイルは PR 本文に貼る（--skip-index でも書かれる）。
           REPORT_ARGS=()
           if [ -n "${RUNNER_TEMP:-}" ]; then
-            REPORT_ARGS=(--report-file "$RUNNER_TEMP/nta-crawl-report.md")
+            REPORT_ARGS=(--report-file "$RUNNER_TEMP/nta-crawl-report.md"
+              --report-full-file "$RUNNER_TEMP/nta-crawl-report-full.md")
           fi
           node scripts/crawl-nta-sources.js $CRAWL_ARGS "${REPORT_ARGS[@]}" 2>&1 | tee /tmp/crawl.log
           echo "log_tail<<EOF" >> "$GITHUB_OUTPUT"
@@ -120,6 +121,8 @@ jobs:
 
       - name: Read meta.json
         id: meta
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
         run: |
           if [ -f data/nta-sources/meta.json ]; then
             FETCHED=$(jq -r '.crawl_results.fetched // 0' data/nta-sources/meta.json)
@@ -135,6 +138,11 @@ jobs:
           else
             FETCHED=0; SKIPPED=0; DELETED=0; DELETED_STILL=0; DELETION_HELD=0
             RESTORED=0; GONE_UNRECORDED=0; ERRORS=0; TOTAL=0; DURATION=0
+          fi
+          # backfill-figures は meta.json を書かないので、前回の取り込みの削除の数が
+          # 残っている。古い「上限で止めた」警告を出さないよう 0 にする。
+          if [ "$MODE" = "backfill-figures" ]; then
+            DELETED=0; DELETED_STILL=0; DELETION_HELD=0; RESTORED=0; GONE_UNRECORDED=0
           fi
           # error_rate（％、小数1桁）
           if [ "$TOTAL" -gt 0 ]; then
@@ -224,7 +232,7 @@ jobs:
 
           ## 確認ポイント
           - **新しく削除済みにした資料があれば**：下の一覧で国税庁のページが本当に無いことを確かめてからマージする
-          - **上限で止めたものがあれば**：確かめてから max_deletions を上げて手動で実行し直す
+          - **上限で止めたものがあれば**：確かめてから、この PR は閉じてから max_deletions を上げて手動で実行し直す
           - **大量の deleted があれば**：対象 URL の削除・移転が発生している可能性。国税庁サイトの構造変更を疑う
           - **error_rate が 5% 超なら**：crawl ロジックの問題か NTA サイト構造変更を疑う
           - **fetched が想定より多い**：通常の incremental では数件〜数十件が想定範囲
@@ -263,6 +271,7 @@ jobs:
           ERROR_RATE: ${{ steps.meta.outputs.error_rate }}
           HAS_CHANGES: ${{ steps.changes.outputs.changed }}
           PR_URL: ${{ steps.pr.outputs.pr_url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           JOB_STATUS: ${{ job.status }}
         run: |
           if [ -z "${CHATWORK_API_TOKEN:-}" ] || [ -z "${CHATWORK_ROOM_ID:-}" ]; then
@@ -292,7 +301,7 @@ jobs:
           fi
           if [ "$DELETION_HELD" -ge 1 ]; then
             WARN_LINE="${WARN_LINE}
-          ■ ⚠ 削除の上限で ${DELETION_HELD} 件を止めました：確かめて max_deletions を上げて再実行してください"
+          ■ ⚠ 削除の上限で ${DELETION_HELD} 件を止めました：確かめて max_deletions を上げて再実行してください（実行: ${RUN_URL}）"
           fi
 
           BODY=$(cat <<BODYEOF
@@ -358,3 +367,10 @@ jobs:
               echo "| PR | ${PR_PR_URL} |"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+          # 全件の報告（--report-full-file）があれば要約の後ろにつなぐ（G1）。
+          if [ -f "${RUNNER_TEMP:-}/nta-crawl-report-full.md" ]; then
+            {
+              echo ""
+              cat "$RUNNER_TEMP/nta-crawl-report-full.md"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
