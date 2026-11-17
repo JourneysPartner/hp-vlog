@@ -46,6 +46,7 @@ preview_url: ""
 created_at: "2026-08-10T00:05:43.703Z"
 updated_at: "2026-08-12T12:01:14.546+09:00"
 publish_slot: "morning"
+reviewed_at: "2026-11-17T16:43:10.804+09:00"
 ---
 ## この記事でわかること
 
