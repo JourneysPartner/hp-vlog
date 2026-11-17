@@ -19,10 +19,13 @@
   "char_count_body": 949,
   "first_fetched_at": "2026-06-21T13:58:50.623Z",
   "fetched_at": "2026-10-01T20:23:06.417Z",
-  "last_checked_at": "2026-10-01T20:23:05.417Z",
+  "last_checked_at": "2026-11-17T12:02:22.706Z",
   "html_hash": "65ca63443cd35a3c7104c3bfbfceb869bc3cf805356fc5c2f823e8dcef431766",
   "byte_size": 14520,
   "encoding": "utf-8",
   "last_modified": "Tue, 15 Sep 2026 08:57:56 GMT",
-  "etag": "\"38b8-65b81bf2988d8\""
+  "etag": "\"38b8-65b81bf2988d8\"",
+  "deleted": true,
+  "deleted_reason": "nta_error_page",
+  "deleted_at": "2026-11-17T12:02:22.706Z"
 }

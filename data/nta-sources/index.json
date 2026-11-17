@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-11-17T09:45:09.023Z",
+  "generated_at": "2026-11-17T12:02:23.263Z",
   "total_count": 2229,
   "by_type": {
     "shitsugi": 1550,
@@ -30611,7 +30611,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/gensen/2882.htm",
       "file_path": "taxanswer/gensen/2882.json",
       "char_count_body": 1310,
-      "deleted": false,
+      "deleted": true,
       "fetched_at": "2026-06-21T13:52:27.608Z",
       "last_modified": "Mon, 20 Oct 2025 05:00:01 GMT",
       "first_fetched_at": "2026-06-21T13:52:27.608Z",
@@ -36292,7 +36292,7 @@
       "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6555.htm",
       "file_path": "taxanswer/shohi/6555.json",
       "char_count_body": 949,
-      "deleted": false,
+      "deleted": true,
       "fetched_at": "2026-10-01T20:23:06.417Z",
       "last_modified": "Tue, 15 Sep 2026 08:57:56 GMT",
       "first_fetched_at": "2026-06-21T13:58:50.623Z",
