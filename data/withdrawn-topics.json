@@ -161,6 +161,26 @@
       "target_query": "せどり 確定申告 バレない",
       "date": "2026-11-16",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/43778288698"
+    },
+    {
+      "topic_id": "suggest-creator-nagesen-7f0d10",
+      "stage": "target-query-owned",
+      "similar_to": "tip-income-tax-threshold",
+      "reason": "狙う検索語「投げ銭 税金 いくら」は tip-income-tax-threshold が既に持っている → 取り下げ",
+      "url_slug": "streaming-tips-tax-threshold",
+      "target_query": "投げ銭 税金 いくら",
+      "date": "2026-11-18",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/44204874526"
+    },
+    {
+      "topic_id": "suggest-creator-nagesen-300a9b",
+      "stage": "target-query-owned",
+      "similar_to": "tip-income-tax-threshold",
+      "reason": "狙う検索語「投げ銭 税金 いくら」は tip-income-tax-threshold が既に持っている → 取り下げ",
+      "url_slug": "live-stream-tip-income-tax",
+      "target_query": "投げ銭 税金 いくら",
+      "date": "2026-11-18",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/44204874526"
     }
   ]
 }
