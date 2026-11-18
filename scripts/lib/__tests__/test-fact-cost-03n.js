@@ -29,7 +29,13 @@ function taskOf(params) {
 function answer(params) {
   const user = params.messages[0].content.at(-1).text;
   let rows;
-  if (taskOf(params) === 'extract') {
+  let payload = null;
+  try { payload = JSON.parse(user); } catch (_) { /* 本文の抜き出しは JSON ではない */ }
+  if (payload && Array.isArray(payload.corrections) && typeof payload.body === 'string' &&
+      !payload.corrections.some(c => c && Object.hasOwn(c, 'sentence'))) {
+    // 直した後の食い違いの確認（consistency_check）。この試験では指摘なしで返す。
+    rows = [];
+  } else if (taskOf(params) === 'extract') {
     rows = [...user.matchAll(/^\[(\d+)\] (.*)$/gm)].filter(m => /^(基礎控除|特別控除)/.test(m[2]))
       .map(m => ({ s: Number(m[1]), type: '金額', subject: m[2].startsWith('基礎') ? '基礎控除' : '特別控除', claim: m[2] }));
   } else if (taskOf(params) === 'repair') {
@@ -131,9 +137,9 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     try {
       const r = await F.checkFacts(WRONG, OPTIONS);
       assert.equal(r.record.status, 'ok');
-      assert.deepEqual(r.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
+      assert.deepEqual(r.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge', 'consistency_check']);
       assert.deepEqual(wire.calls.map(c => c.init.body), sent);
-      assert.equal(r.record.logic_version, 'plan2-s10');
+      assert.equal(r.record.logic_version, 'plan2-s11');
     } finally { CM.generateContent = saved; }
   });
   for (const effort of ['', 'medium']) await test('N1', `2 Sonnet照合の思考設定を分離、effort=${effort || '指定なし'}、書き手は維持`, async () => {
@@ -158,7 +164,7 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     const r = await F.checkFacts(WRONG, OPTIONS);
     assert.equal(r.record.status, 'ok'); assert.equal(r.record.model, 'claude-opus-5-5');
     assert.equal(r.record.extract_model, 'claude-sonnet-5-5'); assert.equal(r.record.effort, 'high');
-    assert.deepEqual(r.record.calls.map(c => c.model), ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5']);
+    assert.deepEqual(r.record.calls.map(c => c.model), ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5', 'claude-opus-5-5']);
     assert.deepEqual(wire.calls.map(c => c.params.model), r.record.calls.map(c => c.model));
   });
   for (const effort of ['low', 'medium', 'high', 'xhigh', 'max']) await test('N1', `4 有効なeffort ${effort}`, async () => {
@@ -223,8 +229,8 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
     const wire = transport(c => c.stage === 'status' ? response({ processing_status: 'in_progress' }) : undefined);
     const r = await F.checkFacts(WRONG, { ...OPTIONS, batch: true, batchMaxWaitMinutes: 1, batchPollSeconds: 17, batchRuntime: fake });
     assert.equal(r.record.status, 'ok'); assert.equal(wire.count('create'), 1); assert.equal(wire.count('cancel'), 1);
-    assert.deepEqual(r.record.calls.map(c => c.mode), ['sync-fallback', 'sync', 'sync', 'sync', 'sync']);
-    assert.equal(wire.count('sync'), 5); assert.equal(fake.now(), 120000);
+    assert.deepEqual(r.record.calls.map(c => c.mode), ['sync-fallback', 'sync', 'sync', 'sync', 'sync', 'sync']);
+    assert.equal(wire.count('sync'), 6); assert.equal(fake.now(), 120000);
     assert.ok(fake.sleeps.every(ms => ms <= 17000));
     assert.equal(r.record.calls[0].batch_error, 'BatchTimeoutError');
   });
@@ -234,7 +240,7 @@ const raw = body => `---\nslug: fact-cost-03n\nrecommendation: publish\n---\n${b
       c.task === 'extract' && c.batch.polls > 1 ? 'ended' : 'in_progress' }) : undefined);
     const r = await F.checkFacts(WRONG, { ...OPTIONS, batch: true, batchMaxWaitMinutes: 1, batchPollSeconds: 40, batchRuntime: fake });
     assert.equal(r.record.status, 'ok'); assert.equal(wire.count('create'), 1); assert.equal(wire.count('cancel'), 0);
-    assert.deepEqual(r.record.calls.map(c => c.mode), ['batch', 'sync', 'sync', 'sync', 'sync']);
+    assert.deepEqual(r.record.calls.map(c => c.mode), ['batch', 'sync', 'sync', 'sync', 'sync', 'sync']);
     assert.equal(r.record.calls[0].wait_seconds, 40); assert.equal(r.record.calls[1].wait_seconds, 0);
     assert.equal(fake.now(), 40000);
   });

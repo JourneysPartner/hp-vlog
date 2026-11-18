@@ -53,7 +53,7 @@ async function main() {
       postsDir: dir, generateArticle: async () => ({ content: raw(wrong), model: '偽のモデル' }),
       selfCheck: () => {}, checkGenerated: async () => ({ duplicate: false }),
       factCheck: (content, options) => F.checkArticle(content, { ...options, searchEvidence: () => [{ id: 'e1', text: correct }],
-        callLLM: async request => request.task === 'extract' ? [claim(bodyText(request.user).trim())]
+        callLLM: async request => request.task === 'consistency_check' ? [] : request.task === 'extract' ? [claim(bodyText(request.user).trim())]
           : request.task === 'repair' ? correct
             : [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: 'e1' }] }),
     });

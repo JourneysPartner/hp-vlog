@@ -92,7 +92,8 @@ test('G1', '2: 全段を偽Gatewayへ送り、64,000 tokens・900秒・使用量
       const pair = JSON.parse(user); answer = condition(pair.article === wrong ? '不一致' : '一致', fixed);
     } else {
       const p = JSON.parse(user);
-      if (p.corrections) answer = p.corrections.map(c => ({ id: c.id, replacement: c.type === '金額' ? p.previous ? '限度額は200万円です。' : c.sentence : fixed }));
+      if (p.corrections && typeof p.body === 'string') answer = [];
+      else if (p.corrections) answer = p.corrections.map(c => ({ id: c.id, replacement: c.type === '金額' ? p.previous ? '限度額は200万円です。' : c.sentence : fixed }));
       else answer = p.claims.map(c => {
         if (c.claim.includes('申請書') && p.claims.length > 1) return { id: c.id, status: '資料なし' };
         return { id: c.id, status: c.type === '金額' && round === 1 ? '食い違い' : '裏付けあり', evidence_id: c.evidence_ids[0],
@@ -152,6 +153,7 @@ test('S3', '背景の再現: 受贈者の「または」を条件確認で捕捉
   const source = ref('gift', '相続時精算課税', correct); let extracts = 0;
   const result = await F.checkFacts(wrong, { ...opts, repair: true, writer_materials: ['ta:4103'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') return extract(req, '要件', '相続時精算課税');
       if (req.task === 'condition_check') return { verdict: extracts++ ? '一致' : '不一致', conditions: [{ article: '直系卑属または推定相続人', source: '直系卑属である推定相続人または孫', match: '不一致' }], correct };
       if (req.task === 'repair') return [{ id: 'c1', replacement: correct }];
@@ -186,6 +188,7 @@ test('S1', '3: 所令101の候補外の食い違いが段Bで消えず修正・�
   const options = { ...opts, writer_materials: ['law:shotokuzei_rei:101'], loadEvidenceText: e => e.text,
     searchWriterEvidence: c => c.subject === subject ? [other] : [law], searchEvidence: c => c.subject === subject ? [other] : [law],
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') return extract(req, '手続').map(c => ({ ...c, subject: c.claim.includes('変更には') ? subject : '別制度' }));
       if (req.task === 'condition_check') return condition();
       if (req.task === 'repair') return [{ id: 'c1', replacement: fixed }];
@@ -284,6 +287,7 @@ test('S5', '背景の再現: みなし仕入率の修正を、同じ行の変わ
   const source = ref('rate', '建設業のみなし仕入率', '建設業は第3種事業でみなし仕入率は70%です。'); let extracts = 0;
   const result = await F.checkFacts('## 試算\n' + row, { ...opts, repair: true, writer_materials: ['ta:6509'], searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') { extracts++; const s = +req.user.match(/^\[(\d+)\] \|/m)[1]; return [
         { s, type: '割合', subject: '建設業のみなし仕入率', claim: extracts === 1 ? 'みなし仕入率は60%です。' : 'みなし仕入率は70%です。' },
         ...(extracts > 1 ? [{ s, type: '割合', subject: '建設業のみなし仕入率', claim: '売上税額に30%を掛けます。' }] : []),
@@ -349,6 +353,7 @@ for (const [label, initial, changed] of [['新たな同じ数字', false, false]
   const source = ref('unchanged', 'みなし仕入率', 'みなし仕入率は70%です。'); let round = 0;
   const r = await F.checkFacts(before, { ...opts, ...writer, repair: true, searchWriterEvidence: () => [source], searchEvidence: () => [source], loadEvidenceText: e => e.text,
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') { round++; const s = +req.user.match(/^\[(\d+)\]/m)[1]; return [
         { s, type: '割合', subject: 'みなし仕入率', claim: `みなし仕入率${round === 1 ? 60 : 70}%` },
         ...(initial || round > 1 ? [{ s, type: '割合', subject: 'みなし仕入率', claim: `売上税額に${round > 1 && changed ? 40 : 30}%を掛けます。` }] : []),
@@ -407,7 +412,7 @@ test('従来互換', '9: 資料なし・全欠落・切替falseは同じ呼び�
   assert.equal(F.config({}).provider, 'anthropic'); assert.equal(F.config({}).model, 'claude-opus-5-5');
 });
 test('版', '10: 記録のLOGIC_VERSIONはplan2', async () => {
-  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s10');
+  const r = await F.checkFacts('', { ...opts }); assert.equal(r.record.logic_version, 'plan2-s11');
 });
 
 const catalogRef = id => { const r = W.resolveMaterial(id); assert(r, id); return { ...r, text: r.text.split('関連リンク')[0] }; };
@@ -534,6 +539,7 @@ for (const [ids,subject,ownId,outsideId] of siblingCases) {
     const own = catalogRef('ta:' + ownId), outside = catalogRef('ta:' + outsideId), body = '申請する対象者を確認します。\n他の制度を確認します。';
     const r = await F.checkFacts(body,{ ...opts,repair:true,writer_materials:ids.map(id=>'ta:'+id), searchWriterEvidence:c=>c.subject===subject?[own]:[outside], searchEvidence:()=>[own,outside],loadEvidenceText:e=>e.text,
       callLLM:async req=>{
+        if(req.task==='consistency_check')return[];
         if(req.task==='extract') return extract(req,'要件').map((c,i)=>({...c,subject:i===0?subject:'別制度'}));
         if(req.task==='condition_check') return { verdict:'不一致', conditions:[{article:'申請する対象者',source:'別の対象者',match:'不一致'}],correct:'別の対象者が申請します。' };
         if(req.task==='repair') return [{id:'c1',replacement:'別の対象者が申請します。'}];
@@ -546,6 +552,7 @@ test('02b-H2','題名が一致する所令101の候補外資料なら条件の�
   const law=catalogRef('law:shotokuzei_rei:101'),other=ref('law-decoy','別制度','別制度の申請者の手続を説明します。'),subject='棚卸資産の評価の方法の変更手続';
   const original='変更には届出が必要です。',fixed='変更には承認が必要です。';let round=0;
   const r=await F.checkFacts(original+'\n別制度の申請書を確認します。',{...opts,repair:true,writer_materials:['law:shotokuzei_rei:101'],loadEvidenceText:e=>e.text,searchWriterEvidence:c=>c.subject===subject?[other]:[law],searchEvidence:()=>[other],callLLM:async req=>{
+    if(req.task==='consistency_check')return[];
     if(req.task==='extract'){round++;return extract(req,'手続').map(c=>({...c,subject:c.claim.includes('変更には')?subject:'別制度'}));}
     if(req.task==='condition_check')return round===1?{verdict:'不一致',conditions:[{article:'届出の申請者',source:'承認を受ける申請者',match:'不一致'}],correct:fixed}:condition();
     if(req.task==='repair')return[{id:'c1',replacement:fixed}];
@@ -568,13 +575,14 @@ for(const kind of ['不一致行なし','元と同じ','記号だけ','句読点
   const original=kind==='直接'?'必要な都度支払います。':kind==='原則'?'申請書を提出します。':kind==='など'?'子などが対象です。':'18歳以上の子が対象です。';
   const source=ref('m1','対象者',original), correct=kind==='直接'?'必要な都度直接支払います。':kind==='原則'?'原則、申請書を提出します。':kind==='など'?'子が対象です。':kind==='句読点だけ'?'「18歳以上の子」が対象です!':kind==='記号だけ'?' **18歳以上の子が対象です。** ':kind==='元と同じ'?original:'18歳以上の孫が対象です。';
   const r=await F.checkFacts(original,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,
-    callLLM:async req=>req.task==='extract'?extract(req,'要件'):req.task==='condition_check'?{verdict:'不一致',conditions:[{article:original,source:correct,match:kind==='不一致行なし'?'一致':'不一致'}],correct}:supported(req)});
+    callLLM:async req=>req.task==='extract'?extract(req,'要件'):req.task==='condition_check'?{verdict:'不一致',conditions:[{article:original,source:correct,match:kind==='不一致行なし'?'一致':'不一致'}],correct}:req.task==='consistency_check'?[]:supported(req)});
   assert.equal(r.body,original);assert.equal(r.record.status,'ok');assert.equal(r.record.claims[0].status,'裏付けあり');assert(!r.record.calls.some(c=>c.task==='repair'));
 });
 test('02b-M1','数字の桁区切りだけの誤警報では修正を呼ばず、小数点の違いは実際の条件差として直す',async()=>{
   for(const [original,fixed,changes] of [['限度額は1,000万円です。','限度額は1000万円です。',false],['対象年齢は18歳で申請書を提出します。','対象年齢は1.8歳で申請書を提出します。',true]]){
     const source=ref('m1-numeric','限度額と対象年齢',fixed);let round=0;
     const r=await F.checkFacts(original,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
+      if(req.task==='consistency_check')return[];
       if(req.task==='extract'){round++;return extract(req,'要件','対象年齢');}
       if(req.task==='condition_check')return round>1?condition():{verdict:'不一致',conditions:[{article:original,source:fixed,match:'不一致'}],correct:fixed};
       if(req.task==='repair')return[{id:'c1',replacement:fixed}];return supported(req);
@@ -585,6 +593,7 @@ for(const failure of ['同じ修正','修正失敗','再照合資料なし','再
   const original='18歳以上の子が対象です。',fixed='18歳以上の孫が対象です。',source=ref('m1-fallback','対象者',fixed); let round=0;
   const r=await F.checkFacts(original,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,
     callLLM:async req=>{
+      if(req.task==='consistency_check')return[];
       if(req.task==='extract'){round++;return extract(req,'要件');}
       if(req.task==='condition_check')return {verdict:'不一致',conditions:[{article:round>1?'孫':'子',source:round>1?'子':'孫',match:'不一致'}],correct:round>1?original:fixed};
       if(['repair','retry_repair'].includes(req.task)){if(failure==='修正失敗')throw Error('secret');return [{id:'c1',replacement:failure==='同じ修正'?original:fixed}];}
@@ -607,6 +616,7 @@ test('02b-M1','複数文の条件修正が再照合できなければ丸ごと�
   const original='18歳以上の子が対象です。', proposal='18歳以上の孫が対象です。申請書の案内も確認してください。';
   const source=ref('mixed-rollback','対象者と限度額','18歳以上の孫が対象です。\n限度額は200万円です。');let round=0;
   const r=await F.checkFacts(original+'\n限度額は100万円です。',{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
+    if(req.task==='consistency_check')return[];
     if(req.task==='extract'){round++;return extract(req).map(c=>({...c,type:c.claim.includes('万円')?'金額':'要件',subject:c.claim.includes('万円')?'限度額':'対象者'}));}
     if(req.task==='condition_check')return{verdict:'不一致',conditions:[{article:'子',source:'孫',match:'不一致'}],correct:proposal};
     if(req.task==='repair')return[{id:'c1',replacement:proposal},{id:'c2',replacement:'限度額は200万円です。'}];
@@ -616,6 +626,7 @@ test('02b-M1','複数文の条件修正が再照合できなければ丸ごと�
 test('02b-M1','条件修正が複数あるときも未確認の案だけ戻し、確かめ済みの別の条件修正を保つ',async()=>{
   const body='甲の対象者は18歳以上の子です。\n乙の対象者は18歳以上の子です。',source=ref('conditions-partial','対象者',body.replaceAll('子','孫'));let round=0;
   const r=await F.checkFacts(body,{...opts,...writer,repair:true,searchWriterEvidence:()=>[source],searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
+    if(req.task==='consistency_check')return[];
     if(req.task==='extract'){round++;return extract(req,'要件').map(c=>({...c,subject:c.claim.startsWith('甲')?'甲制度':'乙制度'}));}
     if(req.task==='condition_check'){const article=JSON.parse(req.user).article;return round>1?condition():{verdict:'不一致',conditions:[{article:'子',source:'孫',match:'不一致'}],correct:article.replace('子','孫')};}
     if(req.task==='repair')return JSON.parse(req.user).corrections.map(c=>({id:c.id,replacement:c.sentence.replace('子','孫')}));
@@ -880,6 +891,7 @@ for (const setting of [undefined, '', 'false']) test('02d-既定', `未設定・
           resolvedWriterMaterials:[source],searchWriterEvidence:()=>{throw Error('既定では書き手の資料を検索しない');},
           searchEvidence:()=>[source],loadEvidenceText:e=>e.text,callLLM:async req=>{
             calls.push(Object.fromEntries(Object.entries(req).filter(([key])=>key!=='signal')));
+            if(req.task==='consistency_check')return[];
             if(req.task==='extract'){round++;return extract(req,scenario==='資料なし'?'要件':'金額','贈与税の配偶者控除');}
             if(req.task==='repair')return JSON.parse(req.user).corrections.map(c=>({id:c.id,replacement:scenario==='従来の修正'?c.sentence.replace('2,500','2,000'):c.sentence}));
             return JSON.parse(req.user).claims.map(c=>scenario==='資料なし'?{id:c.id,status:'資料なし'}:scenario==='確認落ち'

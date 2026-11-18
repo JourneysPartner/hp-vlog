@@ -101,6 +101,28 @@ function renderFactRemaining(record) {
     ${remaining.some(c => c.status === '資料なし') ? `<div class="alert alert-warning">資料なしの記述が未解決です。${remaining.filter(c => c.status === '資料なし').map(c => `<p>${factSentence(c.sentence)}</p>`).join('')}</div>` : ''}`;
 }
 
+function renderFactConsistency(record, detail = false) {
+  const consistency = record?.consistency;
+  if (!consistency || typeof consistency !== 'object') return '';
+  const findings = Array.isArray(consistency.findings) ? consistency.findings.filter(f => f && typeof f === 'object') : [];
+  const dropped = detail && Number.isInteger(consistency.dropped) && consistency.dropped >= 1
+    ? `<p class="small">AI が挙げたが採らなかった ${escapeHtml(consistency.dropped)} 件</p>` : '';
+  // 見出しそのものが指摘のときは「本文の見出し」と出す（R21）。引き継いだ行には前回の旨を添える（R17）。
+  const place = f => f.where === 'title' ? '題名' : f.where === 'summary' ? '要約'
+    : `本文${f.heading_unit ? 'の見出し' : f.heading ? `（${f.heading}）` : ''}`;
+  const list = findings.length
+    ? `<div class="alert alert-danger"><h3 class="h6">直した内容と食い違う箇所 ${findings.length} 件</h3>${dropped}${findings.map(f =>
+      `<div class="border rounded p-3 mb-2"><div class="small">${escapeHtml(place(f))}${f.carried ? '（前回の照合から引き継ぎ）' : ''}</div><div>${escapeHtml(f.text || '')}</div>${f.reason ? `<div class="small">${escapeHtml(f.reason)}</div>` : ''}${f.suggestion ? `<div class="small">書き方の例: ${escapeHtml(f.suggestion)}</div>` : ''}</div>`).join('')}</div>`
+    : '';
+  if (consistency.failed) {
+    // 失敗の文だけでなく、引き継いだ指摘や今回の指摘も続けて出す（R24）。
+    const carried = consistency.carried_failure ? '（前回の照合から引き継ぎ）' : '';
+    return `<div class="alert alert-danger">直した内容と食い違う所を確かめられませんでした（自動の確認が失敗しました）。差し戻すか、内容を確かめてから確認欄に印を付けてください${carried}</div>${list}`;
+  }
+  if (!findings.length) return dropped ? `<div>${dropped}</div>` : '';
+  return list;
+}
+
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
 const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
 // 200 字ちょうどの引用は、記録の時点で切れている可能性があるため、その旨を添える。
@@ -211,18 +233,20 @@ function renderFactCheckSummary(meta, record, body) {
   const outsideCount = usable ? outsideCandidateClaims(record).length : 0;
   const discardedClaims = usable && Array.isArray(record.discarded_claims) ? record.discarded_claims.filter(c => c && typeof c === 'object') : null;
   const discardedBlocking = status === 'revise' && discardedClaims ? discardedClaims.filter(c => c.blocks_approval) : [];
-  const rejectedSupported = corrections.filter(c => c.generalized && originalFactClaim(record, c)?.rejected_answer?.status === '裏付けあり').length;
+  const rejectedSupported = corrections.filter(c => c.resolved && c.generalized && originalFactClaim(record, c)?.rejected_answer?.status === '裏付けあり').length;
+  const unresolvedCorrections = corrections.filter(c => !c.resolved).length;
   return `<div class="card mb-4" id="factCheckSummary"><div class="card-header bg-white fw-bold">照合の要点</div><div class="card-body">
     <p><strong>状態:</strong> ${escapeHtml(label)}</p>
     ${blocking ? '<div class="alert alert-danger">照合で承認が止まっています（下の確認欄に印を付ければ公開できます）</div>' : ''}
     ${stale || unreadable || status === 'not_run' ? `<div class="alert alert-warning">${stale ? 'この記録は今の本文と一致しません（古い記録）' : unreadable ? '照合の記録を読めませんでした' : '未実施'}</div>` : ''}
-    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.generalized).length} 件${rejectedSupported ? `（うち AI は裏付けありと答えた ${rejectedSupported} 件）` : ''}</p>
+    ${usable ? `<p>本文の変更: 直した ${corrections.filter(c => c.resolved && !c.generalized).length} 件・資料が無く案内に変えた ${corrections.filter(c => c.resolved && c.generalized).length} 件${rejectedSupported ? `（うち AI は裏付けありと答えた ${rejectedSupported} 件）` : ''}${unresolvedCorrections ? `・採れなかった直し ${unresolvedCorrections} 件` : ''}</p>
     ${items.length ? `<p>人が確かめる箇所 ${items.length} 件（${factReviewCounts(items)}）</p>` : ''}
     ${aiSupportedNumbers.length ? `<div class="alert alert-warning"><h3 class="h6">AI は裏付けありと答えたが、数字を機械で確かめられなかった文 ${aiSupportedNumbers.length} 件（公開前に数字を確かめてください）</h3>${aiSupportedNumbers.map(c => `<div class="border rounded p-3 mb-2"><div>${factSentence(c.sentence)}</div>${renderAiSupportedNumberEvidence(record, c)}</div>`).join('')}</div>` : ''}
     ${discardedBlocking.length ? `<div class="alert alert-danger">数字を照合できなかった主張 ${discardedBlocking.length} 件で承認が止まっています。${discardedBlocking.map(c => `<p>${factSentence(c.pointed_sentence ?? c.sentence)}／要約: ${escapeHtml(c.claim)}</p>`).join('')}<a href="#factCheck">詳しくは本文の後ろの「捨てた主張」</a></div>` : ''}
     ${!discardedClaims && record.discarded > 0 ? `<p>捨てた主張 ${escapeHtml(record.discarded)} 件（この記録には主張の一覧がありません）</p>` : ''}
     ${outsideCount ? `<p>候補の外の資料で裏付け ${outsideCount} 件</p>` : ''}
-    ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}` : ''}
+    ${(record.remaining || []).some(c => ['食い違い', '期限の書き漏れ', '資料なし'].includes(c.status)) ? renderFactRemaining(record) : ''}
+    ${renderFactConsistency(record)}` : ''}
     <a href="#factCheck">詳細は本文の後ろ</a>
     </div></div>`;
 }
@@ -246,6 +270,7 @@ function renderFactCheck(meta, record, body) {
     ${usable ? `<h3 class="h6">直した箇所</h3>${pairs((record.corrections || []).filter(c => !c.generalized))}
     <h3 class="h6">資料が無く案内に変えた箇所</h3>${pairs((record.corrections || []).filter(c => c.generalized))}
     ${renderFactRemaining(record)}
+    ${renderFactConsistency(record, true)}
     ${renderFactReviewItems(record.review_items || [], record)}
     ${renderFactDiscarded(record, status)}
     ${renderFactOutsideCandidates(record)}` : stale || unreadable ? '' : '<p>照合の記録なし</p>'}

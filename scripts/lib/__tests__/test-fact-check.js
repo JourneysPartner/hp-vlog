@@ -30,6 +30,7 @@ function fake(options = {}) {
   const calls = [];
   const fn = async request => {
     calls.push(request);
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(wrong)) return [c()];
       if (request.user.includes(correct)) return [c(correct)];
@@ -145,7 +146,7 @@ async function main() {
     assert.ok(!llm.calls.filter(x => x.task === 'extract')[1].user.includes('そのまま残します'));
     assert.equal(r.record.corrections[0].before, wrong); assert.equal(r.record.corrections[0].after, correct);
     assert.equal(JSON.parse(llm.calls.find(x => x.task === 'repair').user).corrections[0].quote, correct);
-    assert.equal(r.record.calls.length, 5);
+    assert.equal(r.record.calls.length, 6);
     console.log('照合費用の実測（偽LLM）:', JSON.stringify(r.record.calls));
   });
   await test('R4', '再照合で食い違いが残ったら1回だけ直し、だめなら元の文に戻す', async () => {
@@ -160,6 +161,7 @@ async function main() {
     const original = `## 制度\n${sentence}\n本文はそのまま残します。`;
     const source = [{ ...evidence[0], text: deadline }];
     const callLLM = async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') return [c(req.user.includes(deadline) ? deadline : sentence, '期限', { subject: '住宅取得等資金' })];
       if (req.task === 'judge') return readPayload(req).claims.map(x => ({ id: x.id, status: x.sentence === sentence ? '期限の書き漏れ' : '裏付けあり', quote: deadline, correct: deadline }));
       return [{ id: 'c1', replacement: sentence + deadline }];

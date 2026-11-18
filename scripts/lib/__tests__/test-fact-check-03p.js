@@ -35,6 +35,7 @@ async function scenario({ body = WRONG + '\n' + WRONG_DATE, replacements = [WRON
   const requests = [];
   const result = await F.checkFacts(body, { ...options, searchEvidence, callLLM: async request => {
     requests.push(request);
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       extracts++;
       return [...request.user.matchAll(/^\[(\d+)\] (.*)$/gm)].filter(m => !/^#/.test(m[2]) && (extracts === 1 || extractFilter(m[2])))

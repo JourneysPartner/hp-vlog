@@ -37,6 +37,7 @@ async function scenario({ writer = false, status = '裏付けあり', mixed = fa
         ? { id: c.id, status: '裏付けあり', evidence_id: amountRef.id, quote: right }
         : { id: c.id, status, evidence_id: tableRef.id, quote: table, correct: status === '裏付けあり' ? '' : wrong });
     if (req.task === 'condition_check') return { verdict: '一致', conditions: [] };
+    if (req.task === 'consistency_check') return [];
     if (req.task === 'repair') {
       const corrections = JSON.parse(req.user).corrections;
       targets.push(...corrections);

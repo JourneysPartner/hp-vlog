@@ -43,6 +43,7 @@ const G_BODY = `## 制度\n${G_S}\n`;
 
 async function runG1() {
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(G_B)) return [row(G_A, '手続', '制度G', G_A), row(G_B, '手続', '制度G', G_B)];
       return [row(G_S, '手続', '制度G', G_S)];
@@ -77,6 +78,7 @@ await test('T1 1 回目・置き換えが 2 文: 元の誤りを含む 2 文目�
 await test('T2 1 回目・1 文から主張 2 つ: 片方が資料なしなら止める', async () => {
   const X1 = G_B;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(X1)) return [row(X1, '要件', '制度G', '届出書の提出が必要'), row(X1, '手続', '制度G', '郵送で出せる')];
       return [row(G_S, '手続', '制度G', G_S)];
@@ -101,6 +103,7 @@ await test('T2 1 回目・1 文から主張 2 つ: 片方が資料なしなら�
 
 await test('T3 1 回目・含む文から主張なし: 行が無いので止める', async () => {
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(G_B)) return [row(G_A, '手続', '制度G', G_A)];
       return [row(G_S, '手続', '制度G', G_S)];
@@ -127,6 +130,7 @@ await test('T4 1 回目・前に言葉を足して正しく直った: 含む文�
   const X1 = '開業した年は制度Hの届出書を提出します。';
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(X1)) return [row(X1, '手続', '制度H', X1)];
       return [row(S, '手続', '制度H', S)];
@@ -157,6 +161,7 @@ await test('T5 1 回目・期限の書き漏れは今と同じ: 含む文に資�
   const X1 = S + DEADLINE;
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(DEADLINE)) return [row(S, '手続', '制度L', S), row(S, '判定', '制度L', '提出の期限は資料で確認が必要'),
         row(DEADLINE, '期限', '制度L', DEADLINE)];
@@ -197,6 +202,7 @@ await test('T6 2 回目・前に言葉を足した直しが資料なしなら、
   const body = `## 制度\n${S}\n`;
   let judges = 0;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '手続', '制度F', B2)];
       if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B)];
@@ -238,6 +244,7 @@ await test('T7 2 回目・含む文から 2 つの主張がどちらも裏付け
   const GOOD = '開業した年は制度Bの届出書を提出します。';
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(GOOD)) return [row(GOOD, '手続', '制度B', GOOD), row(GOOD, '要件', '制度B', '届出書の提出が必要')];
       if (request.user.includes(BAD)) return [row(BAD, '手続', '制度B', BAD)];
@@ -276,6 +283,7 @@ await test('T8 2 回目・期限の書き漏れの行は今と同じく消す', 
   const body = `## 制度\n${S}\n`;
   let judges = 0;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(DEADLINE)) return [row(A, '手続', '制度M', A), row(T, '手続', '制度M', T),
         row(T, '判定', '制度M', '提出の期限は資料で確認が必要'), row(DEADLINE, '期限', '制度M', DEADLINE)];
@@ -323,6 +331,7 @@ await test('T9 2 回目・残した置き換えの中の元の誤りを含む文
   const body = `## 制度\n${S}\n`;
   let judges = 0;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(E2)) return [row(SP, '手続', '制度K', SP), row(E2, '手続', '制度K', E2)];
       if (request.user.includes(E)) return [row(SP, '手続', '制度K', SP), row(E, '手続', '制度K', E)];
@@ -377,6 +386,7 @@ await test('T10 N8: 前に言葉を足す直しでも、誤りの案内文が別
     const source = ref('gift', '制度資料', `${GEN_T}\n${GEN_C}\n${BAD}\n${GOOD}\n${CORRECT_BAD}\n${T}\n${C}\n${filler.join('\n')}\n`);
     const fn = async request => {
       if (request.task === 'condition_check') return { verdict: '一致', conditions: [] };
+      if (request.task === 'consistency_check') return [];
       if (request.task === 'extract') {
         if (request.user.includes(GOOD)) return [row(GOOD, '手続', '試験制度', GOOD)];
         if (request.user.includes(BAD)) return [row(BAD, '手続', '試験制度', BAD)];
@@ -409,10 +419,10 @@ await test('T10 N8: 前に言葉を足す直しでも、誤りの案内文が別
 });
 
 // ── T11: 版 ─────────────────────────────────────────────
-await test('T11 版: 記録の logic_version が plan2-s10', async () => {
+await test('T11 版: 記録の logic_version が plan2-s11', async () => {
   const r = await runG1();
   budget(r.record);
-  assert.equal(r.record.logic_version, 'plan2-s10');
+  assert.equal(r.record.logic_version, 'plan2-s11');
 });
 
 // ── T12: 1 回目の条件確認だけの修正は、今のとおり通す（L2） ───────────
@@ -432,6 +442,7 @@ await test('T12 条件確認だけの修正は、置き換えの含む文に資�
           conditions: [{ article: '提出する書類', source: '開業した年の届出書', match: '不一致' }] };
         return { verdict: '一致', conditions: [] };
       }
+      if (request.task === 'consistency_check') return [];
       if (request.task === 'extract') {
         if (request.user.includes(X1)) return [row(X1, '手続', '制度H', X1), row(X1, '判定', '制度H', MISSING)];
         return [row(S, '手続', '制度H', S)];
@@ -476,6 +487,7 @@ await test('T13 2 回目・B2 の 2 つの主張のどちらかが資料なし�
   const X1 = A + B;
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '要件', '制度F', REQUIRED), row(B2, '手続', '制度F', MAIL)];
       if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B)];
@@ -509,6 +521,7 @@ await test('T14 1 回目・含む文が 2 つあり片方が資料なしなら�
   const E = '例外として、制度Gの届出書は郵送で出せます。';
   const X1 = B + E;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(E)) return [row(B, '手続', '制度G', B), row(E, '手続', '制度G', E)];
       return [row(G_S, '手続', '制度G', G_S)];
@@ -545,6 +558,7 @@ await test('T15 2 回目・止めない行は今のとおり消し、止める�
   const X1 = A + B + N;
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '手続', '制度F', B2), row(N, '手続', '制度F', SECOND_CLAIM)];
       if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B), row(N, '手続', '制度F', FIRST_CLAIM)];
@@ -578,6 +592,7 @@ await test('T16 1 回目・後ろに句を足した直しの 2 文目が資料�
   const B2 = '制度Gの届出書は郵送で出せますが、例外があります。';
   const X1 = G_A + B2;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(B2)) return [row(G_A, '手続', '制度G', G_A), row(B2, '手続', '制度G', B2)];
       return [row(G_S, '手続', '制度G', G_S)];
@@ -611,6 +626,7 @@ await test('T17 2 回目・後ろに句を足した直しが資料なしなら�
   const X1 = A + B;
   const body = `## 制度\n${S}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(B2)) return [row(A, '手続', '制度F', A), row(B2, '手続', '制度F', B2)];
       if (request.user.includes(B)) return [row(A, '手続', '制度F', A), row(B, '手続', '制度F', B)];
@@ -648,6 +664,7 @@ await test('T18 R10: 記事の別の所の問いの文では止めず、置き�
   const QUESTION = '制度Bの届出書を提出しますか？';
   const body = `## 制度\n${S}\n${HEADING}\n${QUESTION}\n`;
   const fn = async request => {
+    if (request.task === 'consistency_check') return [];
     if (request.task === 'extract') {
       if (request.user.includes(GOOD2)) return [row(GOOD2, '手続', '制度B', GOOD2)];
       if (request.user.includes(BAD)) return [row(BAD, '手続', '制度B', BAD)];
@@ -694,6 +711,7 @@ await test('T19 R10: 置き換えた文の中では、後ろに句を足した�
     const source = ref('gift', '制度資料', `${GEN_T}\n${GEN_C}\n${BAD}\n${GOOD}\n${CORRECT_BAD}\n${T}\n${C}\n${filler.join('\n')}\n`);
     const fn = async request => {
       if (request.task === 'condition_check') return { verdict: '一致', conditions: [] };
+      if (request.task === 'consistency_check') return [];
       if (request.task === 'extract') {
         if (request.user.includes(GOOD)) return [row(GOOD, '手続', '試験制度', GOOD)];
         if (request.user.includes(BAD)) return [row(BAD, '手続', '試験制度', BAD)];

@@ -149,7 +149,7 @@ test('8', '画面は全文を出す（T7）', () => {
 test('9', '版（R3）', async () => {
   const result = await F.checkFacts('', { enabled: true, now, provider: 'anthropic', model: 'claude-opus-5-5', writer_materials: [],
     callLLM: async () => { throw new Error('空本文で AI を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s10');
+  assert.equal(result.record.logic_version, 'plan2-s11');
 });
 
 (async () => {

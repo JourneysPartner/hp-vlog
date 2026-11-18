@@ -659,7 +659,7 @@ function claimKey(c) {
 }
 
 // 照合の作り（抜き出しの重複除去・判定の指示文など）を変えたら上げる。版の違う記録は差し戻しで使い回さない。
-const LOGIC_VERSION = 'plan2-s10';
+const LOGIC_VERSION = 'plan2-s11';
 
 const AI_SUPPORTED_NUMBERS_REVIEW = 'AI は裏付けあり（数字は機械で確かめられなかった）';
 const REVERTED_FIX_REVIEW = '自動修正を元の文に戻した（修正案を確かめる）';
@@ -705,6 +705,14 @@ function isCalculatedClaim(c) {
 }
 
 const CONDITION_SYSTEM = '記事の文が、根拠の文と同じ条件を述べているかを確かめます。記事の文に書かれた条件（誰が・誰に・年齢・続柄・「かつ」と「または」・日付や期限・金額・回数・場所）を1つずつ挙げ、根拠の文での書き方と比べてください。言い換えは一致としてよい。ただし、対象が広がる・狭まる、「かつ」と「または」の取り違え、対象者や条件の追加・欠落、日付・期限・金額の違いは不一致です。根拠の文に書かれていない条件は記載なしです。記事の文が根拠の文の条件の一部だけを書いていて、書いた部分が正しいなら一致です（書いていない条件があるだけでは不一致にしない）。ただし、書いていない条件のせいで記事の文が誤った意味になる場合（例: 「AかつB」が要件なのに「Aなら対象」と書く）は不一致です。不一致のときは correct に、根拠の文に合わせて記事の文を直した文（記事の文と同じ形・長さ）を書いてください。出力はJSONだけ: {"conditions":[{"article":"記事の条件","source":"根拠での書き方","match":"一致|不一致|記載なし"}],"verdict":"一致|不一致|記載なし","correct":"不一致のときだけ"}';
+
+// 直した後の本文と、題名・要約・本文の他の箇所との食い違いを探す（B）。
+const CONSISTENCY_SYSTEM = `記事の一部の文を、資料に合わせて直しました。corrections の before が直す前の文、after が直した後の文、correct が資料に基づく正しい内容です。
+記事の題名（title）・要約（summary）・本文（body。[番号] 付き、見出しを含む）の中から、直した後の内容と矛盾する記述を全部挙げてください。
+矛盾する記述とは、直す前の誤った内容を前提にしている記述、直す前の誤った内容を言い換えて繰り返している記述、直した後の内容と同時には成り立たない記述です。
+直した文（after）そのものは挙げない。矛盾しない記述や、詳しさが違うだけの記述は挙げない。記憶で補わず、corrections の correct と after だけを基準にする。
+出力は JSON 配列だけです: [{"where":"title" または "summary" または本文の番号,"text":"該当する記述を元の文字のまま","correction":"直しの id","reason":"何が矛盾するか（1文）","suggestion":"直した内容に合わせた書き方の例（1文）"}]
+無ければ [] を出力してください。`;
 
 function sentenceContext(body, sentence) {
   const units = splitUnits(body), at = units.findIndex(u => !u.heading && u.text === sentence);
@@ -1221,9 +1229,20 @@ function repairNumberGuards(findings) {
     const keepNumbers = expandYearDates([...keep.flatMap(c => normalizedNumbers(c.claim)), ...(f.supported_numbers || []).flatMap(n => normalizedNumbers(n))], f.sentence)
       .filter(n => originalNumbers.includes(n));
     const summaryNumbers = normalizedNumbers(f.claim);
+    // 同じ文の食い違い・期限の直しが正しいとする数字は、その直しのために残してよい（S1）。
+    // ただし、その数字を資料の文（quote・quote_notes・keep_numbers）で確かめられているものに限る（R18）。
+    const siblingNumbers = findings
+      .filter(g => g !== f && g.sentence === f.sentence && ['食い違い', '期限の書き漏れ'].includes(g.status))
+      .flatMap(g => {
+        const candidates = [g.correct || '', g.quote_notes || '', ...(g.keep_numbers || [])]
+          .flatMap(text => expandYearDates(normalizedNumbers(text), text));
+        const evidenceNumbers = [g.quote || '', g.quote_notes || ''].flatMap(text => expandYearDates(normalizedNumbers(text), text))
+          .concat((g.keep_numbers || []).flatMap(text => expandYearDates(normalizedNumbers(text), text)));
+        return candidates.filter(n => n !== null && evidenceNumbers.includes(n));
+      });
     const removeNumbers = expandYearDates(f.supported_numbers && !summaryNumbers.length ? originalNumbers : summaryNumbers, f.sentence)
-      .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n));
-    return [f, { originalNumbers, keepNumbers, removeNumbers }];
+      .filter(n => originalNumbers.includes(n) && !keepNumbers.includes(n) && !siblingNumbers.includes(n));
+    return [f, { originalNumbers, keepNumbers, siblingNumbers, removeNumbers }];
   }));
   const rowRemovals = new Map();
   for (const [f, guard] of numberGuards) if (tableCells(f.sentence)) {
@@ -1233,16 +1252,28 @@ function repairNumberGuards(findings) {
 }
 
 function repairInstructions(findings) {
-  const { rowRemovals } = repairNumberGuards(findings);
-  return findings.map(f => ({ ...f,
-    ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
-    instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない。quote・quote_notes に例外（「〜の場合を除く」「ただし〜」など）や、別の判定のしかた・選択肢（「〜に代えて〜で判定することもできる」「いずれかを選べる」など）が書かれているときは、それを落とさずに書く' :
-      f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
-        f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
-          '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
-          (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : '')) +
-          (f.status === '資料なし' && rowRemovals.get(f.sentence)?.length ? '。表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す' : ''),
-  }));
+  const { rowRemovals, numberGuards } = repairNumberGuards(findings);
+  const sentenceCounts = new Map();
+  for (const f of findings) sentenceCounts.set(f.sentence, (sentenceCounts.get(f.sentence) || 0) + 1);
+  return findings.map(f => {
+    const grouped = sentenceCounts.get(f.sentence) > 1;
+    const sameSentenceIds = grouped ? findings.filter(g => g.sentence === f.sentence).map(g => g.id) : [];
+    const siblingNumbers = numberGuards.get(f)?.siblingNumbers || [];
+    const shared = grouped
+      ? '。この文には same_sentence_ids の指摘が全部かかっています。全部の指摘を満たす1つの置き換えを作り、どの id にも同じ replacement を返す'
+        + (f.status === '資料なし' && siblingNumbers.length ? '。同じ文の食い違い・期限の直し（correct）にある数字は、その直しのために残してよい。外すのは資料の無い部分だけ' : '')
+      : '';
+    return { ...f,
+      ...(grouped ? { same_sentence_ids: sameSentenceIds } : {}),
+      ...(f.supported_numbers ? { keep_numbers: f.supported_numbers } : {}),
+      instruction: (f.status === '食い違い' ? '根拠の原文に合わせて、この文だけを直す。正しい内容は correct に従う。quote_notes に、条件によって別の額・要件になると書かれているときは、その条件と額も落とさずに書く。元の文が過去の年分を扱っていない限り、過去の年分の扱い（「令和元年以前は」など）は書かない。quote・quote_notes に例外（「〜の場合を除く」「ただし〜」など）や、別の判定のしかた・選択肢（「〜に代えて〜で判定することもできる」「いずれかを選べる」など）が書かれているときは、それを落とさずに書く' :
+        f.status === '期限の書き漏れ' ? 'この制度の説明に、根拠の適用期限を1文で足す' :
+          f.type === '番号' ? '資料が無い番号を消し、番号を推測せず内容だけにする' :
+            '資料が無い具体的な要件・金額・割合・期限・適用年・手続・判定を外し、「詳しくは国税庁の〇〇で確認」程度の案内に置き換える。keep にある裏付けのある内容（数字を含む）は残し、資料が無い部分だけを外す' +
+            (f.supported_numbers ? '。keep_numbers の数字は表記どおり残し、それ以外の資料の無い数字だけを外す' : '')) +
+            (f.status === '資料なし' && rowRemovals.get(f.sentence)?.length ? '。表の行は、外す数字のある列だけを書き換え、他の列は元のまま残す' : '') + shared,
+    };
+  });
 }
 
 function correctionPairs(before, after, findings, replacements) {
@@ -1323,7 +1354,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
     }
     // 具体を外す修正だけで、裏付けのある数字を守り、資料の無い数字を残さない。
     if (!reason && f.status === '資料なし') {
-      const { originalNumbers, keepNumbers, removeNumbers } = numberGuards.get(f);
+      const { originalNumbers, keepNumbers, siblingNumbers, removeNumbers } = numberGuards.get(f);
       const revisedNumbers = normalizedNumbers(replacement);
       const keep = f.keep || [];
       const rowRemoveNumbers = rowRemovals.get(f.sentence) || [];
@@ -1339,7 +1370,7 @@ async function repairBody(body, findings, callLLM, options = {}) {
         if (originalNumbers.includes(null) && (keep.length || f.supported_numbers?.length)) reason = '数字を読めないため確かめられません';
         else if (!keepNumbers.every(n => revisedNumbers.includes(n))) reason = '裏付けのある数字を消しています';
         else if (removeNumbers.some(n => revisedNumbers.includes(n))) reason = '資料の無い数字が残っています';
-        else if (enhanced && REVIEW_TYPES.has(f.type) && checkedNumbers.some(n => !keepNumbers.includes(n))) reason = '資料の無い数字が残っています';
+        else if (enhanced && REVIEW_TYPES.has(f.type) && checkedNumbers.some(n => !keepNumbers.includes(n) && !siblingNumbers.includes(n))) reason = '資料の無い数字が残っています';
       }
     }
     if (reason) rejected.set(f.id, reason);
@@ -1971,17 +2002,123 @@ async function checkFacts(body, options = {}) {
       reviewCondition(c);
       record.corrections = record.corrections.filter(f => !(f.id === c.id && f.condition_mismatch && !f.resolved));
     }
+    // 直した後の本文と、題名・要約・本文の他の箇所との食い違いを探す（B）。本文は変えない（S3）。
+    // 実際に本文へ入った食い違い・期限の直しがあり、直しを止めていないときだけ動く（S5）。
+    const title = String(options.article_meta?.title || '');
+    const summaryText = String(options.article_meta?.summary || '');
+    const applied = record.corrections.filter(f => f.resolved && ['食い違い', '期限の書き漏れ'].includes(f.status) &&
+      typeof f.after === 'string' && f.after && revisedBody.includes(f.after));
+    if (applied.length && options.repair !== false) {
+      const bodyUnits = splitUnits(revisedBody);
+      const appliedByCorrection = new Map(applied.map(f => [f.id, f]));
+      // 直した文が出てくる位置（全部の出現）。単位との重なりで「直した文そのもの」を判じる（R20）。
+      const fixedRanges = applied.flatMap(f => {
+        const ranges = [];
+        for (let at = revisedBody.indexOf(f.after); at >= 0; at = revisedBody.indexOf(f.after, at + 1)) ranges.push([at, at + f.after.length]);
+        return ranges;
+      });
+      const headingBefore = s => bodyUnits.filter(u => u.heading && u.s < s).at(-1)?.text.replace(/^\s*#{1,6}\s+/, '') || '';
+      try {
+        // 記録の task を consistency_check そのものにする（recheck_ を付けない）。
+        rechecking = false; again = false;
+        const answer = await call({ task: 'consistency_check', maxTokens: 4000, system: CONSISTENCY_SYSTEM,
+          user: JSON.stringify({
+            corrections: applied.map(f => ({ id: f.id, before: f.before, after: f.after, correct: f.correct || '' })),
+            title, summary: summaryText,
+            body: renderUnits(bodyUnits),
+          }) });
+        const rows = parseJson(answer);
+        if (!Array.isArray(rows)) throw new Error('直した内容との食い違いの答えが配列ではありません');
+        const findings = [], seen = new Set();
+        let dropped = 0;
+        for (const row of rows) {
+          // 形の違いは答え全体を失敗にする（R16）。中身の違いだけをこの行の dropped にする。
+          if (!row || typeof row !== 'object' || Array.isArray(row)) throw new Error('直した内容との食い違いの行がオブジェクトではありません');
+          const whereText = typeof row.where === 'string' ? row.where.trim() : '';
+          const key = whereText === 'title' || whereText === 'summary' ? whereText : unitNumber(row.where);
+          if (!(key === 'title' || key === 'summary' || Number.isInteger(key))) throw new Error('直した内容との食い違いの場所を読めません');
+          if (typeof row.text !== 'string' || !row.text.trim()) throw new Error('直した内容との食い違いの記述を読めません');
+          if (typeof row.correction !== 'string') throw new Error('直した内容との食い違いの直しの id を読めません');
+          const text = row.text.trim(), correction = row.correction.trim();
+          const unit = key === 'title' || key === 'summary' ? null : bodyUnits.find(u => u.s === key) || null;
+          // 番号に当たる単位が無い（中身の違い）。
+          if (!unit && !(key === 'title' || key === 'summary')) { dropped++; continue; }
+          const targets = key === 'title' ? [title] : key === 'summary' ? [summaryText]
+            : unit.heading ? [unit.text, unit.text.replace(/^\s*#{1,6}\s+/, '')] : [unit.text];
+          // 記事にその文字のまま在るものだけを採る（S6）。
+          if (!targets.some(target => target.includes(text))) { dropped++; continue; }
+          // 直した文そのものは指摘にしない（S6・R20）。単位の範囲が直した文の範囲と重なるときだけ捨てる。
+          if (unit && fixedRanges.some(([start, end]) => unit.start < end && start < unit.end)) { dropped++; continue; }
+          if (!appliedByCorrection.has(correction)) { dropped++; continue; }
+          const dedupe = `${key === 'title' || key === 'summary' ? key : 'body:' + key}\n${text}`;
+          if (seen.has(dedupe)) continue;
+          seen.add(dedupe);
+          findings.push({ where: key === 'title' || key === 'summary' ? key : 'body',
+            s: unit ? unit.s : null,
+            ...(unit?.heading ? { heading_unit: true, heading: '' } : { heading: unit ? headingBefore(unit.s) : '' }),
+            text: text.slice(0, 300),
+            correction_id: correction,
+            reason: typeof row.reason === 'string' ? row.reason.trim().slice(0, 300) : '',
+            suggestion: typeof row.suggestion === 'string' ? row.suggestion.trim().slice(0, 300) : '' });
+        }
+        record.consistency = { checked: true, corrections: applied.map(f => f.id), afters: applied.map(f => f.after), findings, dropped };
+      } catch (error) {
+        // 中断は今の他の呼び出しと同じくそのまま投げる（S4）。
+        if (options.signal?.aborted) throw error;
+        record.consistency = { checked: false, failed: true, corrections: applied.map(f => f.id), afters: applied.map(f => f.after),
+          findings: [], dropped: 0, error: contentModel.safeDiagnostic(error) };
+      }
+    }
+    // 前回の照合で止めた理由を、その文字が今もそのまま在るときだけ引き継ぐ（R17）。
+    const previousConsistency = options.previous_consistency && typeof options.previous_consistency === 'object' &&
+      !Array.isArray(options.previous_consistency) ? options.previous_consistency : null;
+    if (previousConsistency) {
+      const carriedFindings = [];
+      for (const f of Array.isArray(previousConsistency.findings) ? previousConsistency.findings : []) {
+        if (!f || typeof f !== 'object' || Array.isArray(f) || typeof f.where !== 'string' || typeof f.text !== 'string') continue;
+        if (!['title', 'summary', 'body'].includes(f.where)) continue;
+        const here = f.where === 'title' ? title : f.where === 'summary' ? summaryText : revisedBody;
+        if (!f.text || !here.includes(f.text)) continue;
+        if (record.consistency?.findings?.some(g => g.where === f.where && g.text === f.text)) continue;
+        if (carriedFindings.some(g => g.where === f.where && g.text === f.text)) continue;
+        carriedFindings.push({ ...f, carried: true });
+      }
+      const previousAfters = (Array.isArray(options.previous_consistency_afters) ? options.previous_consistency_afters : [])
+        .filter(after => typeof after === 'string' && after);
+      // 今回 B が成功し、前回の直した文を全部そのまま確かめたなら、引き継がない（R24）。
+      const verifiedByCurrent = record.consistency?.checked === true &&
+        previousAfters.every(after => applied.some(f => f.after === after));
+      const carriedFailure = previousConsistency.failed === true &&
+        previousAfters.length > 0 && previousAfters.every(after => revisedBody.includes(after)) && !verifiedByCurrent;
+      if (carriedFailure) {
+        if (record.consistency) {
+          record.consistency.failed = true;
+          record.consistency.carried_failure = true;
+          const currentAfters = Array.isArray(record.consistency.afters) ? record.consistency.afters : [];
+          record.consistency.afters = [...new Set([...currentAfters, ...previousAfters])];
+        } else {
+          record.consistency = { checked: false, failed: true, carried: true, corrections: [], afters: previousAfters, findings: [], dropped: 0 };
+        }
+      }
+      if (carriedFindings.length) {
+        if (!record.consistency) record.consistency = { checked: true, carried: true, corrections: [], findings: [], dropped: 0 };
+        record.consistency.findings.push(...carriedFindings);
+      }
+    }
     const unresolved = actionableClaims.filter(c => c.status !== '裏付けあり' && !record.corrections.find(f => f.id === c.id)?.resolved);
     const pending = [...unresolved, ...record.rechecked.filter(c => c.status !== '裏付けあり' && !(writerIds.length && c.unchanged_numeric))];
     for (const c of pending) if (!blockingFinding(c)) addReviewItem(c);
     record.remaining = pending.filter(blockingFinding);
     const mismatches = record.remaining.filter(c => ['食い違い', '期限の書き漏れ'].includes(c.status)).length;
+    const consistencyBlocks = Boolean(record.consistency && (record.consistency.failed || record.consistency.findings.length > 0));
     // 数字の未照合と、種類を問わない食い違い・期限の書き漏れは引き続き止める。
-    record.status = record.remaining.length || uncheckedNumeric ? 'revise' : 'ok';
+    record.status = record.remaining.length || uncheckedNumeric || consistencyBlocks ? 'revise' : 'ok';
     const repaired = record.corrections.filter(c => c.resolved).length;
     record.summary = `主張 ${record.claims.length} 件: 裏付けあり ${record.claims.filter(c => c.status === '裏付けあり').length}・修正 ${repaired}（食い違い ${record.corrections.filter(c => c.resolved && c.status === '食い違い').length}・期限 ${record.corrections.filter(c => c.resolved && c.status === '期限の書き漏れ').length}・具体を外した ${record.corrections.filter(c => c.resolved && c.generalized).length}）・残った食い違い ${mismatches}・未解決 ${record.remaining.length}・上限で未照合 ${record.dropped}${record.repair_retry?.reverted ? `・元の文に戻した ${record.repair_retry.reverted}` : ''}`;
     record.summary += `・捨てた主張 ${record.discarded}`;
     record.summary += `・人が確かめる箇所 ${record.review_items.length} 件`;
+    if (record.consistency?.findings?.length) record.summary += `・直した内容と食い違う箇所 ${record.consistency.findings.length} 件`;
+    if (record.consistency?.failed) record.summary += '・直した内容との食い違いを確かめられませんでした';
     if (aiSupportedNumbers.length) record.summary += `・AI 裏付けあり・数字未確認 ${aiSupportedNumbers.length} 件`;
     if (writerIds.length && record.calculated_skipped) record.summary += `・試算の数字として照合しなかった ${record.calculated_skipped} 件`;
     if (writerIds.length && missingReview.length && tooManyMissing) record.summary += '・資料なしが多いため具体を外していません';
@@ -2070,6 +2207,23 @@ async function checkArticle(raw, options = {}) {
   const { data: meta, content: body } = matter(raw);
   const slug = String(meta.slug || options.slug || '');
   const file = recordPath(slug, options.recordDir);
+  // 前回の照合で止めた理由を引き継ぐ（R17）。読めない・壊れている記録では引き継がず、照合は続ける。
+  let previousConsistency = {};
+  let previousRecordConsistency = null;
+  try {
+    const prior = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (prior && typeof prior === 'object' && !Array.isArray(prior) && prior.slug === slug &&
+        prior.consistency && typeof prior.consistency === 'object' && !Array.isArray(prior.consistency)) {
+      // 新しい記録は直した文そのもの（afters）を使う。id は照合ごとに振り直されるので、無い古い記録だけ id で引く（R24）。
+      const ids = new Set(Array.isArray(prior.consistency.corrections) ? prior.consistency.corrections : []);
+      const afters = Array.isArray(prior.consistency.afters)
+        ? prior.consistency.afters.filter(after => typeof after === 'string' && after)
+        : (Array.isArray(prior.corrections) ? prior.corrections : [])
+          .filter(c => c && ids.has(c.id) && typeof c.after === 'string' && c.after).map(c => c.after);
+      previousConsistency = { previous_consistency: prior.consistency, previous_consistency_afters: afters };
+      previousRecordConsistency = { consistency: prior.consistency, afters };
+    }
+  } catch (_) { /* 記録が無い・読めないときは今までどおり照合する。 */ }
   let incremental = {};
   if (typeof options.previousRaw === 'string') {
     try {
@@ -2111,8 +2265,18 @@ async function checkArticle(raw, options = {}) {
       }
     } catch (_) { /* 読めない記録は使い回さず、全体を照合する。 */ }
   }
-  const result = await checkFacts(body, { ...articleEvidenceOptions(meta), ...options, ...incremental });
+  const result = await checkFacts(body, { ...articleEvidenceOptions(meta), ...options, ...incremental, ...previousConsistency,
+    article_meta: { title: String(meta.title || ''), summary: String(meta.summary || '') } });
   result.record.slug = slug;
+  // 照合できなかった回も、前回の止めた理由を記録に残して引き継ぎを切らさない（R25）。
+  // 状態・要約・止めるかは今の not_run の扱いのまま変えない。
+  if (result.record.status === 'not_run' && !result.record.consistency && previousRecordConsistency) {
+    const prior = previousRecordConsistency.consistency;
+    const findings = (Array.isArray(prior.findings) ? prior.findings : [])
+      .filter(f => f && typeof f === 'object' && !Array.isArray(f))
+      .map(f => ({ ...f, carried: true }));
+    result.record.consistency = { ...prior, carried: true, findings, afters: previousRecordConsistency.afters };
+  }
   if (options.persist !== false) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(compactRecord(result.record), null, 2) + '\n', 'utf8');

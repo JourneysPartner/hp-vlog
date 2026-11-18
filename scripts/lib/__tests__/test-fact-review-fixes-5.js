@@ -153,6 +153,7 @@ async function main() {
     const body = `## ${subject}\n${intro}\n${wrong}`;
     const sent = [];
     const result = await F.checkFacts(body, options({ searchEvidence: () => [ref(`${subject}の対象は配偶者だけに限りません。`)], callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') return extracted(req, [claim(wrong, { type: '要件', subject, claim: '対象は配偶者だけ' }), claim(correct, { type: '要件', subject, claim: correct })]);
       if (req.task === 'repair') {
         assert.deepEqual(JSON.parse(req.user).corrections.map(c => c.sentence), [wrong]);

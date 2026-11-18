@@ -224,6 +224,7 @@ async function main() {
     const result = await F.checkFacts(body, options({ searchEvidence: c => c.sentence === wrong ? [ref('住宅取得の説明です。', primary), correctionSource]
       : [ref('住宅取得の説明です。', primary), ...Array.from({ length: 6 }, (_, i) => ref('別の制度の説明です。', `候補${i}`))], callLLM: async request => {
       if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct, '要件', changedSubject && !request.user.includes(wrong) ? '居住要件' : '贈与税の配偶者控除')];
+      if (request.task === 'consistency_check') return [];
       if (request.task === 'repair') return body.replace(wrong, correct);
       const c = readPayload(request).claims[0];
       assert.ok(c.evidence_ids.some(id => readPayload(request).evidence.find(e => e.id === id)?.url === correctionSource.url));
@@ -237,6 +238,7 @@ async function main() {
     const result = await F.checkFacts(wrong, options({ searchEvidence: c => [c.sentence === wrong ? correctionSource : { ...correctionSource, text: '関係しない原文の別の範囲です。' }],
       callLLM: async request => {
         if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct, '要件')];
+        if (request.task === 'consistency_check') return [];
         if (request.task === 'repair') return correct;
         assert.ok(readPayload(request).evidence[0].text.includes(correct));
         return [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: correctionSource.id }];
@@ -257,10 +259,11 @@ async function main() {
     try {
       const result = await F.checkArticle(raw(wrong), options({ persist: true, recordDir: dir, searchEvidence: () => [correctionSource], callLLM: async request => {
         if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct, '要件')];
+        if (request.task === 'consistency_check') return [];
         if (request.task === 'repair') return correct;
         return [{ id: 'c1', status: request.user.includes(wrong) ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: correctionSource.id }];
       } }));
-      assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
+      assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge', 'consistency_check']);
       assert.equal(result.record.input_chars_total, result.record.calls.reduce((sum, c) => sum + c.input_chars, 0));
       assert.equal(JSON.parse(fs.readFileSync(result.recordFile, 'utf8')).input_chars_total, result.record.input_chars_total);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }

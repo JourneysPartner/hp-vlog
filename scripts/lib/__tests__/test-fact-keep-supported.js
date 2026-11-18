@@ -180,6 +180,7 @@ async function checkExample({ wrong = false, writer = false, recheckNumber = fal
         evidence_id: c.type === '金額' ? ref4452.id : ref4508.id, quote: c.type === '金額' ? quote : c45.quote,
         correct: mismatch && c.type === '金額' && !req.user.includes(repairReplacement) ? repairReplacement : '' });
     if (req.task === 'condition_check') return { verdict: '一致', conditions: [] };
+    if (req.task === 'consistency_check') return [];
     if (req.task === 'repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: repairReplacement }));
     throw new Error('予期しない偽LLM呼び出し: ' + req.task);
   };
@@ -260,9 +261,9 @@ test('6', 'claims が無い記録は再照合から取得し、題名が無け�
   assert.ok(page.renderFactCheck({}, plain).includes('AI の答え: 資料なし</div>'));
   assert.equal(page.renderFactCheckSummary({}, plain).includes('うち AI は'), false);
 });
-test('7', 'LOGIC_VERSION は plan2-s10', async () => {
+test('7', 'LOGIC_VERSION は plan2-s11', async () => {
   const result = await F.checkFacts('', { ...options, writer_materials: [], callLLM: async () => { throw new Error('空本文で LLM を呼ばない'); } });
-  assert.equal(result.record.logic_version, 'plan2-s10');
+  assert.equal(result.record.logic_version, 'plan2-s11');
 });
 
 for (const claim of ['No.4508・4510', 'No.4508、4510', '措置法70の2・No.4508', 'No.4508・４５１０', 'No.4508・四五一〇']) {

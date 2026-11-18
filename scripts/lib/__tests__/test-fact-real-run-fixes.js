@@ -120,6 +120,7 @@ async function main() {
     const body = `## 制度\n${wrong}\n${untouched}`;
     const result = await F.checkArticle(raw(body), options({ searchEvidence: () => [ref(correct)], callLLM: async request => {
       if (request.task === 'extract') return [claim(request.user.includes(wrong) ? wrong : correct)];
+      if (request.task === 'consistency_check') return [];
       if (request.task === 'judge') return readPayload(request).claims.map(c => ({ id: c.id,
         status: c.sentence === wrong ? '食い違い' : '裏付けあり', quote: correct, correct, evidence_id: '資料1' }));
       return body.replace(wrong, correct);
