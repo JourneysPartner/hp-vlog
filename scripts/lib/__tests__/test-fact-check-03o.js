@@ -63,7 +63,13 @@ function transport(hook = () => undefined) {
     const user = params.messages[0].content.at(-1).text;
     let task = 'extract';
     try { task = JSON.parse(user).corrections ? 'repair' : 'judge'; } catch (_) { /* 抜き出しは番号付き本文。 */ }
-    const message = { content: [{ type: 'text', text: JSON.stringify(fake({ task, user, system: params.system.map(s => s.text).join('\n') })) }], stop_reason: 'end_turn' };
+    // 直した後の食い違いの確認（consistency_check）は、この試験では指摘なしで返す。
+    let payload = null;
+    try { payload = JSON.parse(user); } catch (_) { /* 抜き出しは JSON ではない */ }
+    const answer = payload && Array.isArray(payload.corrections) && typeof payload.body === 'string' &&
+      !payload.corrections.some(c => c && Object.hasOwn(c, 'sentence'))
+      ? [] : fake({ task, user, system: params.system.map(s => s.text).join('\n') });
+    const message = { content: [{ type: 'text', text: JSON.stringify(answer) }], stop_reason: 'end_turn' };
     return stage === 'sync' ? reply(message) : reply(JSON.stringify({ custom_id: batch.item.custom_id, result: { type: 'succeeded', message } }));
   };
   return calls;
@@ -272,13 +278,13 @@ test('O8', '抜き出しと再抜き出しだけeffortを変え、未指定時�
   const envCalls = transport();
   const envResult = await F.checkFacts(WRONG, { ...options, effort: 'high', searchEvidence: () => [ref(RIGHT)], loadEvidenceText: e => e.text });
   assert.equal(envResult.record.extract_effort, 'low');
-  assert.deepEqual(envCalls.map(c => c.params.output_config.effort), ['low', 'high', 'high', 'low', 'high']);
+  assert.deepEqual(envCalls.map(c => c.params.output_config.effort), ['low', 'high', 'high', 'low', 'high', 'high']);
   delete process.env.FACT_CHECK_EXTRACT_EFFORT;
   for (const effort of [undefined, 'high']) for (const extractEffort of [undefined, 'low']) {
     const calls = transport();
     const result = await F.checkFacts(WRONG, { ...options, effort, extractEffort, searchEvidence: () => [ref(RIGHT)], loadEvidenceText: e => e.text });
     assert.equal(result.record.status, 'ok'); assert.equal(result.record.extract_effort, extractEffort || effort || null);
-    assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge']);
+    assert.deepEqual(result.record.calls.map(c => c.task), ['extract', 'judge', 'repair', 'recheck_extract', 'recheck_judge', 'consistency_check']);
     calls.forEach((c, i) => assert.deepEqual(c.params.output_config, ([0, 3].includes(i) ? extractEffort || effort : effort) ? { effort: [0, 3].includes(i) ? extractEffort || effort : effort } : undefined));
   }
 });
@@ -299,7 +305,7 @@ test('O8', '差分記録のextract_effort不一致と古い記録のeffortを確
     assert.equal(same.record.incremental.reused, 1);
     const changed = await F.checkArticle(after, { ...opts, extractEffort: 'low', previousRaw: before, persist: false });
     assert.equal(changed.record.incremental, undefined);
-    assert.equal(changed.record.logic_version, 'plan2-s10');
+    assert.equal(changed.record.logic_version, 'plan2-s11');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 test('O8', '省略したcorrect・資料なしの番号が従来の空欄と同じ記録になる', async () => {

@@ -78,6 +78,7 @@ function pr755({ second = SECOND_755, secondStatus = '裏付けあり', failSeco
       if (failSecondRepair && data.corrections.some(c => c.earlier_fix)) throw new Error('2回目の修正の失敗');
       return data.corrections.map(c => ({ id: c.id, replacement: c.earlier_fix ? second : FIRST_755 }));
     }
+    if (request.task === 'consistency_check') return [];
     throw new Error('未定義の呼び出し: ' + request.task);
   };
   return { fn, calls, repairs, judges };
@@ -121,6 +122,7 @@ function pr744({ secondStatus = '裏付けあり' } = {}) {
       const data = JSON.parse(request.user);
       return data.corrections.map(c => ({ id: c.id, replacement: c.earlier_fix ? SECOND_744 : FIRST_744 }));
     }
+    if (request.task === 'consistency_check') return [];
     throw new Error('未定義の呼び出し: ' + request.task);
   };
   return { fn, calls };
@@ -156,6 +158,7 @@ async function main() {
         ? { id: c.id, status: '裏付けあり', quote: correct, evidence_id: 'doc' }
         : { id: c.id, status: '食い違い', quote: correct, correct, evidence_id: 'doc' });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id, replacement: correct }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fake, searchEvidence: () => [ref('doc', '試験資料', correct)], loadEvidenceText: e => e.text });
@@ -292,6 +295,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.sentence === A ? AC : c.earlier_fix ? B2 : BC }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn, searchEvidence: () => [ref('doc', '試験資料', `${AC}\n${BC}\n${B2}\n`)], loadEvidenceText: e => e.text });
@@ -331,6 +335,7 @@ async function main() {
       }
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.sentence === S ? X1 : X2_FIRST }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,
@@ -372,6 +377,7 @@ async function main() {
         });
         if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
           replacement: c.sentence === A ? AF : c.earlier_fix ? B2 : BC }));
+        if (request.task === 'consistency_check') return [];
         throw new Error('未定義: ' + request.task);
       };
       const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
@@ -412,6 +418,7 @@ async function main() {
           return { id: c.id, status: '裏付けあり', quote: c.sentence, evidence_id: 'gift' };
         });
         if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id, replacement: GEN }));
+        if (request.task === 'consistency_check') return [];
         throw new Error('未定義: ' + request.task);
       };
       const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
@@ -447,6 +454,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? second : original + deadline }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn, searchEvidence: () => [ref('doc', '試験資料', `${bad}\n`), ref('doc2', '別の資料', `${deadline}\n`)], loadEvidenceText: e => e.text });
@@ -564,6 +572,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? SECOND : X1 }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,
@@ -628,6 +637,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.sentence === A ? A1 : c.sentence === B ? B1 : c.sentence === A1 ? A2 : B2 }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     // 1 回目の置き換えを含む本文は通し、元の文に戻した作り直しだけを偽にする（対象 2 つ・片方は 2 回目で直る）。
@@ -670,6 +680,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? GOOD : X1 }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,
@@ -716,6 +727,7 @@ async function main() {
         });
         if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
           replacement: c.sentence === T ? GEN_T : c.sentence === C ? GEN_C : GOOD }));
+        if (request.task === 'consistency_check') return [];
         throw new Error('未定義: ' + request.task);
       };
       const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
@@ -767,6 +779,7 @@ async function main() {
         });
         if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
           replacement: c.sentence === S ? X1 : c.earlier_fix ? FIX2 : X2 }));
+        if (request.task === 'consistency_check') return [];
         throw new Error('未定義: ' + request.task);
       };
       const r = await F.checkFacts(body, { ...options, writer_materials: ['ta:4103'], resolvedWriterMaterials: [source],
@@ -804,6 +817,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? GOOD : BAD }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,
@@ -842,6 +856,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? C : X1 }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,
@@ -880,6 +895,7 @@ async function main() {
       });
       if (request.task === 'repair') return JSON.parse(request.user).corrections.map(c => ({ id: c.id,
         replacement: c.earlier_fix ? REPEAT : X1 }));
+      if (request.task === 'consistency_check') return [];
       throw new Error('未定義: ' + request.task);
     };
     const r = await F.checkFacts(body, { ...options, callLLM: fn,

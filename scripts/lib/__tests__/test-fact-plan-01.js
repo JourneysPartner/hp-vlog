@@ -313,7 +313,7 @@ test('P5', '段Aの資料なしだけ段Bへ・食い違い/期限は維持・Ba
   assert.equal(r.record.stages.A.input_chars, r.record.calls.filter(c => c.task === 'judge').reduce((n, c) => n + c.input_chars, 0));
   assert.equal(r.record.stages.B.input_chars, r.record.calls.filter(c => c.task === 'stage_b_judge').reduce((n, c) => n + c.input_chars, 0));
   assert(r.record.stages.A.input_chars > 0 && r.record.stages.B.input_chars > 0);
-  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2-s10');
+  assert(r.record.summary.includes('書き手の資料で判定 3 件・全体を探した 1 件')); assert.equal(r.record.logic_version, 'plan2-s11');
 });
 test('P5', '既定の呼び出し部でも段BだけBatchを渡さず即時で呼ぶ', async () => {
   const a = ref('default-a', '試験制度は100万円です。'), b = ref('default-b', a.text), original = CM.generateContent, calls = [];
@@ -392,6 +392,7 @@ for (const retry of [false, true]) test('P5', `再照合の必須根拠を段A�
   const r = await F.checkFacts(before, { ...opts, repair: true, writer_materials: ['ta:4452'],
     searchWriterEvidence: () => [extracts > 1 ? decoy : original], searchEvidence: () => [original, decoy], loadEvidenceText: e => e.text,
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') { extracts++; return extracted(req); }
       if (req.task === 'repair') return [{ id: 'c1', replacement: after }];
       const input = H.readPayload(req), pages = H.materials(req);
@@ -563,6 +564,7 @@ for (const count of [5, 7]) test('01b-F6', `必須根拠${count}件は再照合�
   const result = await F.checkFacts(before, { ...opts, repair: true, writer_materials: ['ta:4452'], loadEvidenceText: e => e.text,
     searchWriterEvidence: c => [refs[Number(c.id.slice(1)) - 1] || extra], searchEvidence: () => extracts === 1 ? refs : [extra],
     callLLM: async req => {
+      if (req.task === 'consistency_check') return [];
       if (req.task === 'extract') { extracts++; const rows = extracted(req); return (extracts === 1 ? rows : rows.slice(0, 1)).map(c => ({ ...c, subject: '共通制度' })); }
       if (req.task === 'repair') return JSON.parse(req.user).corrections.map(c => ({ id: c.id, replacement: after }));
       const input = H.readPayload(req), pages = H.materials(req);
