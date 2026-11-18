@@ -17,6 +17,10 @@ concurrency:
   group: export-contact-transitions
   cancel-in-progress: false
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   export:
     runs-on: ubuntu-latest
