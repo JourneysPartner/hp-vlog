@@ -45,7 +45,7 @@ R7 の確かめを 2 つに分ける。
   - `previous_consistency.failed === true` で、今回 B が動いておらず（`record.consistency` が無い）、`previous_consistency_afters` が 1 件以上あって全部が最後の本文に在るなら、`failed` を引き継ぐ（`carried: true`）。
   - 引き継いだものは、R8 の状態・要約の式でそのまま止める理由になる。
 - 画面では、引き継いだ行に `（前回の照合から引き継ぎ）` を添える。
-- `repair: false`（公開済みの一括照合など、`checkFacts` を直接呼ぶ所）は `previous_consistency` を渡さないので変わらない。
+- `checkFacts` を直接呼ぶ所（公開済みの一括照合など）は `previous_consistency` を渡さないので変わらない。`checkArticle` を通る道は、`repair: false` でも引き継ぐ（その道も記録のファイルを上書きするので、引き継ぐ方が安全。01c の R27 で文を直した）。
 
 ### R18（Medium）A で外す数字を、資料の文に在る数字だけにする
 
