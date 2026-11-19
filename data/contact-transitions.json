@@ -1,14 +1,16 @@
 {
   "note": "どのページから問い合わせページへ進んだか（byFrom）と、送信完了の前にどのページを見ていたか（submittedFrom）の実測（直近90日）。週次で更新。",
-  "updated_at": "2026-11-08T21:52:49.657Z",
+  "updated_at": "2026-11-19T07:21:17.846Z",
   "days": 90,
   "byFrom": {
     "/services.html": 1,
-    "/": 4,
+    "/": 6,
     "/services/ebay-export/": 3,
-    "/pricing/": 2
+    "/pricing/": 2,
+    "/about.html": 2
   },
   "submittedFrom": {
-    "/services/ebay-export/": 1
+    "/services/ebay-export/": 1,
+    "/about.html": 1
   }
 }
