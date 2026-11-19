@@ -488,13 +488,13 @@ ${renderAdminNav('candidates')}
         headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
         body: JSON.stringify({ sha: state.sha, updates }),
       });
-      if (res.status === 401) { location.reload(); throw new Error('401'); }
+      if (res.status === 401) throw new Error('SESSION_EXPIRED');
       const data = await res.json();
       if (res.status === 409) {
         // sha 競合 → 再 fetch して再試行
         setIndicator('saving', '競合検出、再取得中…');
         const reload = await fetch(API_LIST);
-        if (reload.status === 401) { location.reload(); throw new Error('401'); }
+        if (reload.status === 401) throw new Error('SESSION_EXPIRED');
         const fresh = await reload.json();
         state.sha = fresh.sha;
         // pending を再投入
@@ -508,7 +508,9 @@ ${renderAdminNav('candidates')}
       state.sha = data.sha;
       setIndicator('saved', '保存済（採用 ' + data.adopted_count + ' / 除外 ' + (data.rejected_count != null ? data.rejected_count : '?') + ' 件）');
     } catch (e) {
-      setIndicator('error', '保存失敗: ' + e.message);
+      setIndicator('error', e.message === 'SESSION_EXPIRED'
+        ? 'ログインが切れたため保存していません。ページを開き直してログインしてください。'
+        : '保存失敗: ' + e.message);
       // pending を戻す（次回保存で再試行）
       for (const [url, u] of Object.entries(updates)) {
         if (!state.pendingUpdates[url]) state.pendingUpdates[url] = u;

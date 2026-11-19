@@ -71,13 +71,19 @@ function reload(modulePath) {
   const r5 = requireAdminPage({ httpMethod: 'GET', headers: { authorization: BASIC } }, '/admin/articles');
   assert(r5.response && r5.response.statusCode === 401, '画面は Basic では通らない');
   const { requireAnalyticsRead } = adminAuth;
-  const analytics = await requireAnalyticsRead({ httpMethod: 'GET', headers: { authorization: BASIC } });
+  const analytics = await requireAnalyticsRead({ httpMethod: 'GET', headers: { authorization: BASIC, host: 'mori-zeirishi.net' } });
   assert(!analytics.response, '自動処理用の読み取りは Basic で通る');
+  const analyticsWithRawUrl = await requireAnalyticsRead({
+    httpMethod: 'GET',
+    rawUrl: 'https://mori-zeirishi.net/admin/api/analytics',
+    headers: { authorization: BASIC, host: 'mori-zeirishi.net' },
+  });
+  assert(!analyticsWithRawUrl.response, '本番の住所の rawUrl なら通る');
 
   // ── 6. ID の大文字小文字を区別 ────────────────────────────────
   console.log('\n=== Test 6: 大文字小文字区別 ===');
   const wrongCase = 'Basic ' + Buffer.from('試験用の自動処理id:試験用の自動処理パスワード').toString('base64');
-  const r6 = await requireAnalyticsRead({ httpMethod: 'GET', headers: { authorization: wrongCase } });
+  const r6 = await requireAnalyticsRead({ httpMethod: 'GET', headers: { authorization: wrongCase, host: 'mori-zeirishi.net' } });
   assert(r6.response && r6.response.statusCode === 401, '大文字小文字を区別');
 
   // ── 7. admin-articles-page: セッション無し → 401、ログイン後 → 200 ──
@@ -141,6 +147,18 @@ function reload(modulePath) {
     body: '{}',
   }));
   assert(c5.statusCode === 400, '必須項目欠落は400');
+
+  // ── 10. 候補画面: 保存の 401 は再読み込みせず、理由を出す ────────
+  console.log('\n=== Test 10: 候補画面の保存の401は再読み込みしない ===');
+  const candidatesPage = reload(path.join(ROOT, 'netlify/functions/admin-candidates-page.js'));
+  const cp = await candidatesPage.handler(authenticatedEvent({ httpMethod: 'GET' }));
+  assert(cp.statusCode === 200, '候補画面は200');
+  const doSave = cp.body.slice(cp.body.indexOf('async function doSave()'), cp.body.indexOf('function setIndicator'));
+  assert(doSave.includes('ログインが切れたため保存していません。ページを開き直してログインしてください。'), '保存の401で理由を出す');
+  assert(!doSave.includes('location.reload()'), '保存の道では再読み込みしない');
+  assert(doSave.includes("throw new Error('SESSION_EXPIRED')"), '保存の401は専用の印で失敗の扱いへ回す');
+  const init = cp.body.slice(cp.body.indexOf('async function init()'), cp.body.indexOf('// ── フィルタオプション組み立て'));
+  assert(init.includes('location.reload()'), '一覧の読み込みの401は今までどおり再読み込みする');
 
   console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
   process.exit(failed === 0 ? 0 : 1);

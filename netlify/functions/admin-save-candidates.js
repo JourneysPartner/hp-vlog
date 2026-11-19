@@ -25,7 +25,7 @@ const CANDIDATES_FILE = 'data/nta-shitsugi-topics-candidate.json';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+    return { statusCode: 405, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
   const auth = requireAdminAction(event);
@@ -35,13 +35,13 @@ exports.handler = async (event) => {
   try {
     body = JSON.parse(event.body || '{}');
   } catch (e) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'invalid JSON' }) };
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'invalid JSON' }) };
   }
 
   const updates = body.updates || {};
   const clientSha = body.sha;
   if (typeof updates !== 'object' || updates === null) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'updates must be object' }) };
+    return { statusCode: 400, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'updates must be object' }) };
   }
 
   try {
@@ -52,7 +52,7 @@ exports.handler = async (event) => {
     if (clientSha && clientSha !== file.sha) {
       return {
         statusCode: 409,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
         body: JSON.stringify({
           error: 'sha_conflict',
           message: '他の更新が先に commit されました。ページをリロードしてから再度保存してください。',
@@ -102,7 +102,7 @@ exports.handler = async (event) => {
     if (appliedCount === 0) {
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
         body: JSON.stringify({
           ok: true,
           message: 'no changes',
@@ -122,7 +122,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       body: JSON.stringify({
         ok: true,
         applied: appliedCount,
@@ -135,7 +135,7 @@ exports.handler = async (event) => {
     console.error('[admin-save-candidates]', e.message);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       body: JSON.stringify({ error: e.message }),
     };
   }

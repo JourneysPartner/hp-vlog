@@ -21,6 +21,10 @@
 const crypto = require('crypto');
 const defaultReviewAuth = require('./review-auth');
 
+// 自動処理用の読み取りを許す本番の住所。プレビュー・ブランチのデプロイは通さない。
+const PRODUCTION_HOST = 'mori-zeirishi.net';
+const PRODUCTION_ORIGIN = 'https://mori-zeirishi.net';
+
 const sha256 = value => crypto.createHash('sha256').update(value).digest();
 
 const jsonHeaders = Object.freeze({
@@ -92,6 +96,14 @@ function createAdminAuth({
     if (event.httpMethod !== 'GET') return false;
     // プレビューでは自動処理の ID・パスワードを使えない。
     if (env.CONTEXT && env.CONTEXT !== 'production') return false;
+    // 動いている関数には CONTEXT が入らない見込みなので、宛先の住所でも本番だけに限る。
+    // host が無い・重複・本番以外なら通さない（singleHeader は重複を null にする）。
+    if (singleHeader(event, 'host') !== PRODUCTION_HOST) return false;
+    if (event.rawUrl !== undefined && event.rawUrl !== null) {
+      let origin;
+      try { origin = new URL(event.rawUrl).origin; } catch { return false; }
+      if (origin !== PRODUCTION_ORIGIN) return false;
+    }
     const expectedUser = env.ADMIN_BASIC_USER;
     const expectedPass = env.ADMIN_BASIC_PASS;
     if (typeof expectedUser !== 'string' || expectedUser === '') return false;

@@ -22,7 +22,7 @@ exports.handler = async (event) => {
   if (auth.response) return auth.response;  // 401/503 のときは早期 return
 
   if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+    return { statusCode: 405, headers: { 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
   try {
@@ -61,7 +61,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
       body: JSON.stringify({
         version: data.version,
         generated_at: data.generated_at,
@@ -75,7 +75,7 @@ exports.handler = async (event) => {
     console.error('[admin-list-candidates]', e.message);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       body: JSON.stringify({ error: e.message }),
     };
   }

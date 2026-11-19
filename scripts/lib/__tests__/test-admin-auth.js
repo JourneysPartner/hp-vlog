@@ -251,15 +251,31 @@ function checkPageHeaders(response) {
         const response = await handlers[key].handler({ httpMethod: 'POST', headers: { authorization: basic }, body: JSON.stringify(jsBody()) });
         assert.ok([401, 403].includes(response.statusCode), key);
       }
+      // 送り元・形式・host がそろっていても、Cookie が無ければ中身に届かない。
+      githubCalls.length = 0;
+      for (const key of WRITE_FILES) {
+        const response = await handlers[key].handler({
+          httpMethod: 'POST',
+          headers: { authorization: basic, origin: ORIGIN, 'content-type': 'application/json', host: 'mori-zeirishi.net' },
+          body: JSON.stringify(jsBody()),
+        });
+        assert.equal(response.statusCode, 401, `${key}: Cookie 無しは401`);
+        assert.equal(response.headers['WWW-Authenticate'], undefined);
+      }
+      assert.equal(githubCalls.length, 0, 'Cookie 無しでは GitHub を呼ばない');
       const blobCalls = [];
       const posted = await handlers.listAnalytics.handler(
-        { httpMethod: 'POST', headers: { authorization: basic } },
+        { httpMethod: 'POST', headers: { authorization: basic, host: 'mori-zeirishi.net' } },
         { getStoreFn: () => { blobCalls.push(1); return fakeStore(); } });
       assert.equal(posted.statusCode, 401, 'GET以外では自動処理用の読み取りも通らない');
       assert.equal(blobCalls.length, 0);
 
       const get = await handlers.listAnalytics.handler(
-        { httpMethod: 'GET', headers: { authorization: basic } },
+        {
+          httpMethod: 'GET',
+          rawUrl: 'https://mori-zeirishi.net/admin/api/analytics',
+          headers: { authorization: basic, host: 'mori-zeirishi.net' },
+        },
         { getStoreFn: () => { blobCalls.push(1); return fakeStore(); } });
       assert.equal(get.statusCode, 200);
       assert.equal(blobCalls.length, 1);
@@ -320,13 +336,20 @@ function checkPageHeaders(response) {
         ['別セッションの合言葉', { 'x-review-token': csrfOf(authenticatedEvent({})) }, 403],
         ['違うOrigin', { origin: 'https://deploy-preview-1--x.netlify.app' }, 403],
         ['OriginもRefererも無し', { origin: undefined, referer: undefined }, 403],
+        ['OriginもRefererもキーごと無し', {}, 403, ['origin', 'referer']],
         ['Content-Typeがtext/plain', { 'content-type': 'text/plain' }, 403],
       ];
       for (const key of WRITE_FILES) {
-        for (const [label, headers, status] of cases) {
+        for (const [label, headers, status, removeKeys] of cases) {
           githubCalls.length = 0;
           const base = writeEvent();
-          const event = { ...base, headers: { ...base.headers, ...headers } };
+          const merged = { ...base.headers, ...headers };
+          for (const name of removeKeys || []) {
+            for (const headerName of Object.keys(merged)) {
+              if (headerName.toLowerCase() === name) delete merged[headerName];
+            }
+          }
+          const event = { ...base, headers: merged };
           const harness = key === 'freshnessAction' ? freshnessDeps() : null;
           const response = harness
             ? await handlers[key]._handler(event, harness.deps)
@@ -361,7 +384,11 @@ function checkPageHeaders(response) {
         body: JSON.stringify({ sha: '試験の版', updates: { 'https://example.invalid/topic': { adopted: true } } }),
       }));
       assert.equal(saved.statusCode, 200);
+      assert.equal(saved.headers['Cache-Control'], 'no-store', 'save の応答は保存しない');
       assert.ok(githubCalls.includes('getFile') && githubCalls.includes('putFile'), 'save は認証後に中身へ進む');
+      const listed = await handlers.listCandidates.handler(authenticatedEvent({ httpMethod: 'GET' }));
+      assert.equal(listed.statusCode, 200);
+      assert.equal(listed.headers['Cache-Control'], 'no-store', 'list の応答は保存しない');
       const freshness = freshnessDeps();
       const refreshed = await handlers.freshnessAction._handler(authenticatedEvent({
         httpMethod: 'POST',
@@ -383,12 +410,20 @@ function checkPageHeaders(response) {
       const review = reviewAuth.createReviewAuth({ env, log: entry => logs.push(entry) });
       const admin = adminAuth.createAdminAuth({ reviewAuth: review, env, sleep: async ms => { sleeps.push(ms); } });
       const basic = (id, password) => 'Basic ' + Buffer.from(`${id}:${password}`).toString('base64');
-      const read = headers => admin.requireAnalyticsRead({ httpMethod: 'GET', headers });
+      const productionHost = 'mori-zeirishi.net';
+      const read = headers => admin.requireAnalyticsRead({ httpMethod: 'GET', headers: { host: productionHost, ...headers } });
 
       const ok = await read({ authorization: basic(BASIC_USER, BASIC_PASS) });
       assert.equal(ok.response, undefined);
       assert.deepEqual(sleeps, []);
       assert.ok(logs.some(entry => entry.reason === '自動処理の読み取り'));
+      const okWithRawUrl = await admin.requireAnalyticsRead({
+        httpMethod: 'GET',
+        rawUrl: 'https://mori-zeirishi.net/admin/api/analytics',
+        headers: { host: productionHost, authorization: basic(BASIC_USER, BASIC_PASS) },
+      });
+      assert.equal(okWithRawUrl.response, undefined, '本番の住所の rawUrl なら通る');
+      assert.deepEqual(sleeps, []);
 
       const failures = [
         ['パスワード違い', { authorization: basic(BASIC_USER, '違うパスワード') }],
@@ -428,6 +463,25 @@ function checkPageHeaders(response) {
       assert.deepEqual(sleeps, [1000]);
       env.CONTEXT = 'production';
 
+      // 動いている関数には CONTEXT が入らない見込み。宛先の住所でも本番だけに限る。
+      for (const [label, event] of [
+        ['プレビューのhost', { headers: { host: 'deploy-preview-1--x.netlify.app', authorization: basic(BASIC_USER, BASIC_PASS) } }],
+        ['host無し', { headers: { authorization: basic(BASIC_USER, BASIC_PASS) } }],
+        ['本番hostでもrawUrlがプレビュー', {
+          rawUrl: 'https://deploy-preview-1--x.netlify.app/admin/api/analytics',
+          headers: { host: productionHost, authorization: basic(BASIC_USER, BASIC_PASS) },
+        }],
+        ['rawUrlが読めない', { rawUrl: 'これはURLではない', headers: { host: productionHost, authorization: basic(BASIC_USER, BASIC_PASS) } }],
+        ['hostが重複', { headers: { host: productionHost, Host: productionHost, authorization: basic(BASIC_USER, BASIC_PASS) } }],
+      ]) {
+        sleeps.length = 0;
+        const response = await admin.requireAnalyticsRead({ httpMethod: 'GET', ...event });
+        assert.equal(response.response.statusCode, 401, `${label}: 通さない`);
+        assert.deepEqual(sleeps, [1000], `${label}: 1秒待つ`);
+        assert.equal(response.response.headers['WWW-Authenticate'], undefined, `${label}: 認証の小窓なし`);
+        assert.equal(JSON.parse(response.response.body).error, '認証に失敗しました', label);
+      }
+
       sleeps.length = 0;
       const duplicateHeaders = await read({ authorization: basic(BASIC_USER, BASIC_PASS), Authorization: basic(BASIC_USER, BASIC_PASS) });
       assert.equal(duplicateHeaders.response.statusCode, 401, '同名ヘッダが2つなら通らない');
@@ -443,6 +497,10 @@ function checkPageHeaders(response) {
       delete env.CONTEXT;
       const noContext = await read({ authorization: basic(BASIC_USER, BASIC_PASS) });
       assert.equal(noContext.response, undefined, 'CONTEXT が未設定でも本番と同じ扱い');
+      sleeps.length = 0;
+      const noContextPreview = await read({ host: 'deploy-preview-1--x.netlify.app', authorization: basic(BASIC_USER, BASIC_PASS) });
+      assert.equal(noContextPreview.response.statusCode, 401, 'CONTEXT が未設定でもプレビューの host は通らない');
+      assert.deepEqual(sleeps, [1000]);
       env.CONTEXT = 'production';
 
       const { key } = review.configuration({});
@@ -458,11 +516,20 @@ function checkPageHeaders(response) {
       // ハンドラ全体でも、誤った Basic では Blobs を読まない。
       const blobCalls = [];
       const wrong = await handlers.listAnalytics.handler(
-        { httpMethod: 'GET', headers: { authorization: basic(BASIC_USER, '違うパスワード') } },
+        { httpMethod: 'GET', headers: { host: productionHost, authorization: basic(BASIC_USER, '違うパスワード') } },
         { getStoreFn: () => { blobCalls.push(1); return fakeStore(); } });
       assert.equal(wrong.statusCode, 401);
       assert.equal(wrong.headers['WWW-Authenticate'], undefined);
       assert.equal(blobCalls.length, 0);
+
+      // ハンドラ全体でも、プレビューの host では Blobs を読まない。
+      const previewBlobCalls = [];
+      const previewHandler = await handlers.listAnalytics.handler(
+        { httpMethod: 'GET', headers: { host: 'deploy-preview-1--x.netlify.app', authorization: basic(BASIC_USER, BASIC_PASS) } },
+        { getStoreFn: () => { previewBlobCalls.push(1); return fakeStore(); } });
+      assert.equal(previewHandler.statusCode, 401, 'プレビューの host では通らない');
+      assert.equal(previewHandler.headers['WWW-Authenticate'], undefined);
+      assert.equal(previewBlobCalls.length, 0, 'プレビューの host では Blobs を読まない');
     });
 
     await test(7, 'safeNext は管理画面の道筋だけを通す', async () => {

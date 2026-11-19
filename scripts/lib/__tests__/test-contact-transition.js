@@ -460,7 +460,7 @@ function makeStore() {
         sourceListCalls++;
         for (let i = 0; i < sourceKeys.length; i += 3) yield { blobs: sourceKeys.slice(i, i + 3).map(key => ({ key })) };
       } };
-      const event = { httpMethod: 'GET', headers: { authorization: 'Basic ' + Buffer.from('analytics-test:analytics-test-pass').toString('base64') } };
+      const event = { httpMethod: 'GET', headers: { authorization: 'Basic ' + Buffer.from('analytics-test:analytics-test-pass').toString('base64'), host: 'mori-zeirishi.net' } };
       const response = await handler(event, { getStoreFn: () => store });
       strict.equal(response.statusCode, 200);
       const data = JSON.parse(response.body);
