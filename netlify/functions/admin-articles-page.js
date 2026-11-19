@@ -5,14 +5,14 @@
  *
  * GET /admin/articles
  *
- * 必須認証: HTTP Basic（ADMIN_BASIC_USER / ADMIN_BASIC_PASS）
+ * 必須認証: 承認画面と同じセッション Cookie（POST /review-login でログイン）
  * 認証通過後、SPA 風の HTML を返す。実際のデータは
  *   GET /admin/api/list（admin-list-articles.js）
  *   POST /admin/api/change（admin-change-article-status.js）
- * から取得する。これらの API も Basic 認証を必須化している。
+ * から取得する。これらの API も同じセッションと合言葉を必須にしている。
  */
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminPage } = require('./lib/admin-auth');
 const { renderAdminNav } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
@@ -153,8 +153,9 @@ ${renderAdminNav('articles')}
 
 <div class="toast-area" id="toast-area"></div>
 
-<script>
+<script nonce="{{NONCE}}">
 (function () {
+  const REVIEW_TOKEN = "{{TOKEN}}";
   const STATE = { items: [], filterStatus: 'all', search: '' };
 
   const STATUS_LABELS = {
@@ -214,7 +215,7 @@ ${renderAdminNav('articles')}
     document.getElementById('loading').classList.remove('d-none');
     return fetch('/admin/api/list', { credentials: 'same-origin', cache: 'no-store' })
       .then(function (res) {
-        if (res.status === 401) { toast('認証エラー: 再ログインしてください', true); throw new Error('401'); }
+        if (res.status === 401) { location.reload(); throw new Error('401'); }
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
@@ -332,11 +333,11 @@ ${renderAdminNav('articles')}
     fetch('/admin/api/change', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
       body: JSON.stringify({ filename: filename, action: action }),
     })
       .then(function (res) {
-        if (res.status === 401) { toast('認証エラー: 再ログインしてください', true); throw new Error('401'); }
+        if (res.status === 401) { location.reload(); throw new Error('401'); }
         return res.json().then(function (data) { return { ok: res.ok, data: data }; });
       })
       .then(function (r) {
@@ -376,16 +377,12 @@ ${renderAdminNav('articles')}
 </html>`;
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  const auth = requireAdminPage(event, '/admin/articles');
+  if (auth.response) return auth.response;
 
   return {
     statusCode: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow',
-    },
-    body: HTML,
+    headers: { ...auth.headers },
+    body: HTML.replace(/\{\{NONCE\}\}/g, auth.nonce).replace('"{{TOKEN}}"', JSON.stringify(auth.csrfToken)),
   };
 };

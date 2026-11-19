@@ -6,7 +6,7 @@
  * GET /admin/api/list
  *   → content/posts 配下を GitHub API で取得し、frontmatter をパースして返す
  *
- * 必須認証: HTTP Basic（ADMIN_BASIC_USER / ADMIN_BASIC_PASS）
+ * 必須認証: 承認画面と同じセッション Cookie（POST /review-login でログイン）
  *
  * 返り値（JSON）:
  *   {
@@ -25,7 +25,7 @@
  *   }
  */
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminRead } = require('./lib/admin-auth');
 const { listDirectory, getFile } = require('./lib/github-api');
 
 function parseFrontmatter(raw) {
@@ -49,8 +49,8 @@ function siteOrigin(event) {
 }
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  const auth = requireAdminRead(event);
+  if (auth.response) return auth.response;
 
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };

@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { authenticatedEvent } = require('./review-auth-test-helpers');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const FUNCTION_ROOT = path.join(ROOT, 'netlify', 'functions');
@@ -18,17 +19,13 @@ function assert(condition, label) {
   }
 }
 
-function authHeader(user = 'admin', pass = 's3cret') {
-  return 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
-}
-
 function count(haystack, needle) {
   return (haystack.match(new RegExp(needle, 'g')) || []).length;
 }
 
 (async () => {
-  process.env.ADMIN_BASIC_USER = 'admin';
-  process.env.ADMIN_BASIC_PASS = 's3cret';
+  // ログインした状態の要求を作る手助けが、承認画面と同じ環境変数を用意する。
+  authenticatedEvent({});
 
   const { renderAdminNav } = require(path.join(FUNCTION_ROOT, 'lib', 'admin-nav.js'));
   for (const key of ['home', 'articles', 'candidates', 'analytics']) {
@@ -46,9 +43,10 @@ function count(haystack, needle) {
   const adminHome = require(path.join(FUNCTION_ROOT, 'admin-home.js'));
   const unauth = await adminHome.handler({ httpMethod: 'GET', headers: {} });
   assert(unauth.statusCode === 401, 'admin-home: unauthenticated request is 401');
-  assert(unauth.headers && unauth.headers['WWW-Authenticate'], 'admin-home: 401 has challenge');
+  assert(!(unauth.headers && unauth.headers['WWW-Authenticate']), 'admin-home: 401 has no browser challenge');
+  assert((unauth.body || '').includes('<title>管理画面にログイン</title>'), 'admin-home: 401 shows the login page');
 
-  const get = await adminHome.handler({ httpMethod: 'GET', headers: { authorization: authHeader() } });
+  const get = await adminHome.handler(authenticatedEvent({ httpMethod: 'GET' }));
   assert(get.statusCode === 200, 'admin-home: authenticated GET is 200');
   assert(get.headers && get.headers['Content-Type'].includes('text/html'), 'admin-home: response is HTML');
   assert(get.headers && get.headers['Cache-Control'] === 'no-store', 'admin-home: dashboard is not cached');
@@ -61,7 +59,7 @@ function count(haystack, needle) {
   assert(get.body && get.body.includes('href="/admin/analytics"'), 'admin-home: analytics card is present');
   assert(get.body && get.body.includes('HP設定') && get.body.includes('準備中'), 'admin-home: settings placeholder is present');
 
-  const post = await adminHome.handler({ httpMethod: 'POST', headers: { authorization: authHeader() } });
+  const post = await adminHome.handler(authenticatedEvent({ httpMethod: 'POST' }));
   assert(post.statusCode === 405, 'admin-home: authenticated non-GET is 405');
   assert(post.headers && post.headers.Allow === 'GET', 'admin-home: 405 allows GET only');
 
@@ -71,7 +69,7 @@ function count(haystack, needle) {
     ['admin-analytics-page.js', 'analytics'],
   ]) {
     const page = require(path.join(FUNCTION_ROOT, name));
-    const response = await page.handler({ httpMethod: 'GET', headers: { authorization: authHeader() } });
+    const response = await page.handler(authenticatedEvent({ httpMethod: 'GET' }));
     assert(response.statusCode === 200, `${name}: authenticated GET is 200`);
     assert(count(response.body || '', '<nav class="admin-nav"') === 1, `${name}: nav is injected once`);
     assert((response.body || '').includes(`href="/admin/${key}"`), `${name}: current route is present`);

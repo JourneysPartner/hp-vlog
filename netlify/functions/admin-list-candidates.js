@@ -5,21 +5,21 @@
  *
  * GET /admin/api/candidates/list
  *
- * 必須認証: HTTP Basic（ADMIN_BASIC_USER / ADMIN_BASIC_PASS）
+ * 必須認証: 承認画面と同じセッション Cookie（POST /review-login でログイン）
  *
  * GitHub 上の data/nta-shitsugi-topics-candidate.json を取得して、
  * フロントエンドが必要なフィールドだけに整形して返す。
  * sha も返し、後続の save API で楽観的並行制御に使う。
  */
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminRead } = require('./lib/admin-auth');
 const { getFile } = require('./lib/github-api');
 
 const CANDIDATES_FILE = 'data/nta-shitsugi-topics-candidate.json';
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;  // 401/503 のときは早期 return
+  const auth = requireAdminRead(event);
+  if (auth.response) return auth.response;  // 401/503 のときは早期 return
 
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };

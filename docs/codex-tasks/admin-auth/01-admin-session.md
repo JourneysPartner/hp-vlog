@@ -8,6 +8,8 @@
 - 「セッション」＝ `lib/review-auth.js` が発行・検証する Cookie `__Host-review_session`
 - 「合言葉」＝ `reviewAuth.csrfToken(session, key)`（ヘッダ `X-Review-Token` で送る）
 
+> **実装後の訂正（2026-11-19）**: A1 の `/admin` は一覧に入れていない。承認画面の既存の試験（`test-review-auth.js` の試験 5・F7）が `safeNext('/admin') === '/review'` を固定しており、その試験を直さないことを優先した。`ADMIN_PAGES` は `/admin/articles`・`/admin/candidates`・`/admin/freshness`・`/admin/analytics` の 4 つで、管理トップ（`/admin`）でログインした後は `/admin/articles` を開く。以下の「5 つの道筋」はこの 4 つに読み替える。
+
 ## A `lib/review-auth.js` に足すもの（これ以外は変えない）
 
 ### A1 `safeNext` が管理画面の 5 つの道筋も通す

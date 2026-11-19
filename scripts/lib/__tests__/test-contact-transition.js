@@ -18,6 +18,7 @@ const ROOT = path.join(__dirname, '..', '..', '..');
 const A = require(path.join(ROOT, 'netlify/functions/lib/analytics-store'));
 const { priorityBreakdown } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
 const IS = require(path.join(ROOT, 'scripts/lib/inquiry-signals'));
+const { authenticatedEvent } = require('./review-auth-test-helpers');
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -547,10 +548,12 @@ function makeStore() {
         strict.deepEqual(withoutLine.lineFrom, {});
         strict.ok(withoutLine.daily.every(row => Object.keys(row.lineFrom).length === 0));
       });
+      // 認証の設定を用意する（この要求自体は使わない）。未ログインは 401 になる。
+      authenticatedEvent({});
       const unauthorized = await handler({ httpMethod: 'GET', headers: {} }, { getStoreFn: () => { throw new Error('auth bypassed'); } });
       assert(unauthorized.statusCode === 401, '注入ストアでも管理APIの認証は必須');
 
-      const page = await require(path.join(ROOT, 'netlify/functions/admin-analytics-page')).handler(event);
+      const page = await require(path.join(ROOT, 'netlify/functions/admin-analytics-page')).handler(authenticatedEvent({ httpMethod: 'GET' }));
       strict.ok(page.body.includes('送信完了につながったページ'));
       strict.ok(page.body.includes('選択中の期間に、このページを見たあと問い合わせを送った回数です（同じ画面の中で続けて見た場合だけ数えます）。'));
       strict.ok(page.body.includes('LINE 相談につながったページ'));
@@ -562,7 +565,7 @@ function makeStore() {
       };
       const uiData = structuredClone(data);
       for (let i = 0; i < 11; i++) uiData.daily.at(-1).submittedFrom[`/blog/top-${i}/`] = 10 + i;
-      vm.runInNewContext(page.body.match(/<script>([\s\S]*?)<\/script>/)[1], {
+      vm.runInNewContext(page.body.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1], {
         document: { getElementById: element, querySelectorAll: () => [] },
         fetch: async url => ({ ok: true, json: async () => url.includes('/api/') ? uiData : {
           '/blog/top-10/': '<記事名>', '/blog/x/': '<LINE記事>', '/contact.html': 'お問い合わせ',

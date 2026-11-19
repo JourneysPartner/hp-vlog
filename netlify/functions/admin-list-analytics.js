@@ -1,7 +1,7 @@
 'use strict';
 
 const { connectLambda, getStore } = require('@netlify/blobs');
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAnalyticsRead } = require('./lib/admin-auth');
 const { jstDate, dateOffset, countPrefix, transitionKey, submissionKey, lineKey, listPrefixKeys, parseSourceKey } = require('./lib/analytics-store');
 
 async function mapWithConcurrency(items, concurrency, fn) {
@@ -25,8 +25,8 @@ function sumRows(rows) {
 }
 
 exports.handler = async (event, { getStoreFn = getStore } = {}) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  const auth = await requireAnalyticsRead(event);
+  if (auth.response) return auth.response;
   if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {

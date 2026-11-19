@@ -4,6 +4,7 @@ const path = require('path');
 const api = require('../../../netlify/functions/lib/github-api');
 const page = require('../../../netlify/functions/admin-freshness-page');
 const action = require('../../../netlify/functions/admin-freshness-action');
+const { authenticatedEvent } = require('./review-auth-test-helpers');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 let passed = 0;
@@ -26,13 +27,7 @@ const articleText = [
   'source_url: "https://www.nta.go.jp/example"',
   '---', '記事本文', '',
 ].join('\n');
-const authEvent = {
-  headers: {
-    authorization: `Basic ${Buffer.from('admin:password').toString('base64')}`,
-    'content-type': 'application/json',
-    origin: 'https://mori-zeirishi.net',
-  },
-};
+const authEvent = authenticatedEvent({});
 function event(actionName, slug = candidate.slug, headers = {}) {
   return {
     ...authEvent,
@@ -89,16 +84,16 @@ async function main() {
   {
     const noType = setup();
     const noTypeResponse = await action._handler(event('reviewed', candidate.slug, { 'content-type': 'text/plain' }), noType.deps);
-    assert(noTypeResponse.statusCode === 415, 'JSON以外のPOSTは415で断る');
+    assert(noTypeResponse.statusCode === 403, 'JSON以外のPOSTは403で断る');
     const wrongOrigin = setup();
     const originResponse = await action._handler(event('reviewed', candidate.slug, { origin: 'https://example.invalid' }), wrongOrigin.deps);
     assert(originResponse.statusCode === 403, '異なるOriginは403で断る');
     const absentOrigin = setup();
     const absentResponse = await action._handler(event('reviewed', candidate.slug, { origin: '', 'sec-fetch-site': '' }), absentOrigin.deps);
-    assert(absentResponse.statusCode === 403, 'OriginとSec-Fetch-Siteが無いPOSTは403で断る');
+    assert(absentResponse.statusCode === 403, 'OriginとRefererが無いPOSTは403で断る');
     const fallbackOrigin = setup();
     const fallbackResponse = await action._handler(event('reviewed', 'bad.slug', { origin: '', 'sec-fetch-site': 'same-origin' }), fallbackOrigin.deps);
-    assert(fallbackResponse.statusCode === 400, 'Originが無い場合はsame-originのSec-Fetch-Siteを使う');
+    assert(fallbackResponse.statusCode === 403, 'Sec-Fetch-Siteだけでは送り元を確認できない');
     const invalid = setup();
     const invalidResponse = await action._handler(event('reviewed', '../bad'), invalid.deps);
     assert(invalidResponse.statusCode === 400 && invalid.state.gets.length === 0, '不正slugをGitHub取得前に断る');
