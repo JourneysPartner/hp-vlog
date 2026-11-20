@@ -21,4 +21,38 @@ function authenticatedEvent(event) {
   } };
 }
 
-module.exports = { authenticatedEvent };
+// 実物の認証の部品（review-auth・admin-auth）はそのままに、Blobs の保存先だけを
+// 試験用のものに差し替える。入口のモジュールを読み込む前に呼ぶ。
+function useTestBlobs(store, { sleep = async () => {} } = {}) {
+  const authPath = require.resolve('../../../netlify/functions/lib/review-auth');
+  const adminPath = require.resolve('../../../netlify/functions/lib/admin-auth');
+  const real = require(authPath);
+  const instance = real.createReviewAuth({ env: process.env, getStoreFn: () => store, sleep, log: () => {} });
+  require.cache[authPath].exports = { ...real, ...instance };
+  delete require.cache[adminPath];
+  return instance;
+}
+
+// 失敗回数の記録用の偽物。実物と同じ条件付きの書き込みと版を扱う。
+function memoryRateStore() {
+  const records = new Map();
+  const etags = new Map();
+  let version = 0;
+  return {
+    records,
+    etags,
+    async getWithMetadata(key) {
+      return records.has(key) ? { data: structuredClone(records.get(key)), etag: etags.get(key), metadata: {} } : null;
+    },
+    async set(key, serialized, condition) {
+      const modified = condition && condition.onlyIfNew ? !records.has(key) : records.has(key) && condition && condition.onlyIfMatch === etags.get(key);
+      if (!modified) return { modified: false };
+      records.set(key, JSON.parse(serialized));
+      etags.set(key, `版${++version}`);
+      return { modified: true, etag: etags.get(key) };
+    },
+    async delete(key) { records.delete(key); etags.delete(key); },
+  };
+}
+
+module.exports = { authenticatedEvent, useTestBlobs, memoryRateStore };

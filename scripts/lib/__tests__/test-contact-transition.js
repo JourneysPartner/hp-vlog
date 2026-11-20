@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, '..', '..', '..');
 const A = require(path.join(ROOT, 'netlify/functions/lib/analytics-store'));
 const { priorityBreakdown } = require(path.join(ROOT, 'scripts/lib/topic-selector'));
 const IS = require(path.join(ROOT, 'scripts/lib/inquiry-signals'));
-const { authenticatedEvent } = require('./review-auth-test-helpers');
+const { authenticatedEvent, useTestBlobs, memoryRateStore } = require('./review-auth-test-helpers');
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -423,6 +423,8 @@ function makeStore() {
     process.env.ADMIN_BASIC_USER = 'analytics-test';
     process.env.ADMIN_BASIC_PASS = 'analytics-test-pass';
     try {
+      // 自動処理用の読み取りの失敗回数は Blobs に置く。保存先だけ試験用にする。
+      useTestBlobs(memoryRateStore());
       const { handler } = require(path.join(ROOT, 'netlify/functions/admin-list-analytics'));
       const today = A.jstDate();
       const yesterday = A.dateOffset(today, -1), older = A.dateOffset(today, -40);

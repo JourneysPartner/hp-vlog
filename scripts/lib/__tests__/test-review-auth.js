@@ -253,7 +253,7 @@ async function main() {
     assert.equal(decodeURIComponent(response.body.match(/name="next" value="([^"]+)"/)[1]), '/review?file=x.md&ref=draft%2Fx');
   });
 
-  await test(7, 'IP5回・全体30回、停止時間・通知1回・成功時のIP解除', async () => {
+  await test(7, 'IP5回・全体10回、停止時間・通知1回・成功時のIP解除', async () => {
     const h = setup();
     for (let i = 0; i < 5; i++) assert.equal((await h.auth.login(h.event('間違えた試験用のパスワード'))).statusCode, 401);
     assert.equal((await h.auth.login(h.event())).statusCode, 429);
@@ -266,7 +266,7 @@ async function main() {
     assert.equal(cleared.records.get('global').count, 5); assert.equal(cleared.records.size, 1);
     for (let i = 0; i < 4; i++) assert.equal((await cleared.auth.login(cleared.event('間違えた試験用のパスワード'))).statusCode, 401);
     const global = setup();
-    for (let i = 0; i < 30; i++) assert.equal((await global.auth.login(global.event('間違えた試験用のパスワード', `192.0.2.${i + 1}`))).statusCode, 401);
+    for (let i = 0; i < 10; i++) assert.equal((await global.auth.login(global.event('間違えた試験用のパスワード', `192.0.2.${i + 1}`))).statusCode, 401);
     for (let i = 0; i < 3; i++) assert.equal((await global.auth.login(global.event(PASSWORD, `198.51.100.${i + 1}`))).statusCode, 429);
     assert.deepEqual(global.notices, [['review_auth_locked', {}]]);
     const message = notify.buildMessage('review_auth_locked', {});
@@ -462,7 +462,8 @@ async function main() {
   await testFixes();
   await testFixes2();
   await testFixes3();
-  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3・G4・H1〜H3: PASS ${passed} / FAIL ${failed}`);
+  await testFixes4();
+  console.log(`試験01の1〜15・01bのF1〜F8・01cのG1〜G3・G4・H1〜H3・D1: PASS ${passed} / FAIL ${failed}`);
   if (failed) process.exitCode = 1;
 }
 
@@ -508,7 +509,7 @@ async function testFixes() {
     const different = setup({ ioDelay: 2 });
     const differentResponses = await Promise.all(Array.from({ length: 200 }, (_, i) => different.auth.login(different.event(wrong, `192.0.2.${i + 1}`))));
     const differentCount = different.comparisons();
-    assert.ok(differentCount > 0 && differentCount <= 30);
+    assert.ok(differentCount > 0 && differentCount <= 10);
     assert.equal(differentResponses.filter(response => response.statusCode === 401).length, differentCount);
     assert.equal(differentResponses.filter(response => response.statusCode === 429).length, 200 - differentCount);
     for (const h of [same, different]) {
@@ -517,10 +518,10 @@ async function testFixes() {
       assert.ok(writes.some(entry => entry.key === 'global'));
     }
     // 全体の最後の枠と通知も、同時要求の後に一度だけ確保される。
-    for (let i = differentCount; i < 30; i++) assert.equal((await different.auth.login(different.event(wrong, `198.51.100.${i + 1}`))).statusCode, 401);
+    for (let i = differentCount; i < 10; i++) assert.equal((await different.auth.login(different.event(wrong, `198.51.100.${i + 1}`))).statusCode, 401);
     const blocked = await Promise.all(Array.from({ length: 200 }, (_, i) => different.auth.login(different.event(PASSWORD, `203.0.113.${i + 1}`))));
     assert.ok(blocked.every(response => response.statusCode === 429));
-    assert.equal(different.comparisons(), 30); assert.equal(different.notices.length, 1);
+    assert.equal(different.comparisons(), 10); assert.equal(different.notices.length, 1);
     for (const conflictKey of ['ip', 'global']) {
       const h = setup();
       const write = h.store.set;
@@ -695,7 +696,7 @@ async function testFixes2() {
       const concurrent = setup({ realBlobs: http });
       const responses = await Promise.all(Array.from({ length: 200 }, (_, i) => concurrent.auth.login(concurrent.event(wrong, sameIp ? '192.0.2.1' : `192.0.2.${i + 1}`))));
       const count = concurrent.comparisons();
-      assert.ok(count > 0 && count <= (sameIp ? 5 : 30));
+      assert.ok(count > 0 && count <= (sameIp ? 5 : 10));
       assert.equal(responses.filter(response => response.statusCode === 401).length, count);
       assert.equal(responses.filter(response => response.statusCode === 429).length, 200 - count);
       assert.ok(http.requests.some(request => request.method === 'PUT' && request.status === 412));
@@ -880,7 +881,7 @@ async function testFixes2() {
       for (const blocked of [false, true]) {
         const http = createBlobsHttp();
         const stale = setup({ realBlobs: http });
-        const attempts = blocked ? target === 'ip' ? 5 : 30 : 2;
+        const attempts = blocked ? target === 'ip' ? 5 : 10 : 2;
         for (let i = 0; i < attempts; i++) {
           assert.equal((await stale.auth.login(stale.event(wrong, target === 'ip' ? '192.0.2.1' : `192.0.2.${i + 1}`))).statusCode, 401);
         }
@@ -1065,6 +1066,68 @@ async function testFixes3() {
       assert.equal(button.disabled, false); assert.equal(button.textContent, 'レビュー画面を開く');
     }
     assert.equal(prevented, 0);
+  });
+}
+
+async function testFixes4() {
+  await test('D1', '入口で弾かれた管理画面の要求は管理画面のログイン画面へ戻し、Blobsに触れない', async () => {
+    const nextOf = response => decodeURIComponent(response.body.match(/name="next" value="([^"]+)"/)[1]);
+    // 送り元の誤り（本文は form）
+    const h = setup();
+    const wrongOrigin = h.event(PASSWORD, '192.0.2.1', '/admin/articles');
+    wrongOrigin.headers.origin = 'https://evil.example';
+    const originResponse = await h.auth.login(wrongOrigin);
+    assert.equal(originResponse.statusCode, 403);
+    assert.match(originResponse.body, /<title>管理画面にログイン<\/title>/);
+    assert.match(originResponse.body, /管理画面を開き直してからログインしてください/);
+    assert.equal(nextOf(originResponse), '/admin/articles');
+    assert.equal(originResponse.headers['Set-Cookie'], undefined);
+    assert.equal(h.comparisons(), 0);
+    assert.equal(h.operations.length, 0);
+
+    // 形式の誤り（Content-Type は form でないが、本文は form）
+    const plain = h.event(PASSWORD, '192.0.2.1', '/admin/candidates');
+    plain.headers['content-type'] = 'text/plain';
+    const plainResponse = await h.auth.login(plain);
+    assert.equal(plainResponse.statusCode, 403);
+    assert.match(plainResponse.body, /<title>管理画面にログイン<\/title>/);
+    assert.match(plainResponse.body, /管理画面を開き直してからログインしてください/);
+    assert.equal(nextOf(plainResponse), '/admin/candidates');
+    assert.equal(h.comparisons(), 0);
+    assert.equal(h.operations.length, 0);
+
+    // 設定の誤り（文は今のまま、行き先だけ管理画面）
+    const missing = setup({ env: { REVIEW_PASSWORD: undefined } });
+    const missingResponse = await missing.auth.login(missing.event(PASSWORD, '192.0.2.1', '/admin/freshness'));
+    assert.equal(missingResponse.statusCode, 503);
+    assert.match(missingResponse.body, /<title>管理画面にログイン<\/title>/);
+    assert.match(missingResponse.body, /現在ログインできません。しばらくしてからお試しください/);
+    assert.equal(nextOf(missingResponse), '/admin/freshness');
+    assert.equal(missing.comparisons(), 0);
+    assert.equal(missing.operations.length, 0);
+
+    // 承認画面の next・next なし・form でない本文・GET は今と同じ
+    const badOriginReview = h.event(PASSWORD, '192.0.2.1', '/review?file=x.md&ref=draft%2Fx');
+    badOriginReview.headers.origin = 'https://evil.example';
+    for (const [label, response, expected] of [
+      ['承認画面の next', await h.auth.login(badOriginReview), '/review?file=x.md&ref=draft%2Fx'],
+      ['next なし', await h.auth.login({ httpMethod: 'POST', headers: { origin: 'https://evil.example', host: 'mori-zeirishi.net', 'content-type': 'application/x-www-form-urlencoded' }, body: 'password=x' }), '/review'],
+      ['form でない本文', await h.auth.login({ httpMethod: 'POST', headers: { origin: 'https://evil.example', host: 'mori-zeirishi.net', 'content-type': 'application/json' }, body: JSON.stringify({ next: '/admin/articles' }) }), '/review'],
+      ['GET', await h.auth.login({ httpMethod: 'GET', headers: {} }), '/review'],
+    ]) {
+      assert.equal(response.statusCode, label === 'GET' ? 405 : 403);
+      assert.match(response.body, /<title>レビュー画面にログイン<\/title>/, label);
+      if (label !== 'GET') assert.match(response.body, /レビュー画面を開き直してからログインしてください/, label);
+      assert.equal(nextOf(response), expected, label);
+    }
+    // 管理画面の一覧に無い道筋は管理画面にしない。
+    const unknown = h.event(PASSWORD, '192.0.2.1', '/admin');
+    unknown.headers.origin = 'https://evil.example';
+    const unknownResponse = await h.auth.login(unknown);
+    assert.match(unknownResponse.body, /<title>レビュー画面にログイン<\/title>/);
+    assert.equal(nextOf(unknownResponse), '/review');
+    assert.equal(h.comparisons(), 0);
+    assert.equal(h.operations.length, 0);
   });
 }
 

@@ -163,5 +163,15 @@ console.log('=== 税シミュレーターのマスター鮮度通知 ===');
     '任意項目が無くても本文と空行が壊れない');
 }
 
+console.log('');
+console.log('=== 自動処理の読み取りの停止通知 ===');
+{
+  const locked = buildMessage('admin_basic_locked', {});
+  assert(locked.subject === '【ブログ】自動処理の読み取りを一時停止しました', '件名が指定どおり');
+  assert(locked.body === 'アクセス解析の自動処理用の ID・パスワードの失敗回数が上限に達したため、1時間止めました。心当たりがない場合は、認証設定とアクセス状況を確認してください。',
+    '本文が指定どおり（ID・パスワードそのものは入れない）');
+  assert(!/Basic |[0-9a-f]{16}|@/.test(locked.body), '秘密や認証情報の形を入れない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);

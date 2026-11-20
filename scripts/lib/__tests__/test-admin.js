@@ -7,7 +7,8 @@
  */
 
 const path = require('path');
-const { authenticatedEvent } = require('./review-auth-test-helpers');
+const { authenticatedEvent, memoryRateStore } = require('./review-auth-test-helpers');
+const reviewAuth = require('../../../netlify/functions/lib/review-auth');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const ORIGIN = 'https://mori-zeirishi.net';
@@ -31,6 +32,11 @@ function clearEnv() {
 function reload(modulePath) {
   delete require.cache[require.resolve(modulePath)];
   return require(modulePath);
+}
+
+// 失敗回数の記録用の偽物。実物と同じ条件付きの書き込みの形にする。
+function memoryStore() {
+  return memoryRateStore();
 }
 
 (async () => {
@@ -70,7 +76,9 @@ function reload(modulePath) {
   process.env.ADMIN_BASIC_PASS = '試験用の自動処理パスワード';
   const r5 = requireAdminPage({ httpMethod: 'GET', headers: { authorization: BASIC } }, '/admin/articles');
   assert(r5.response && r5.response.statusCode === 401, '画面は Basic では通らない');
-  const { requireAnalyticsRead } = adminAuth;
+  // 自動処理用の読み取りも、失敗回数の記録を実物と同じ形で確かめる（Blobs だけ偽物）。
+  const review = reviewAuth.createReviewAuth({ getStoreFn: () => memoryStore(), sleep: async () => {}, log: () => {} });
+  const { requireAnalyticsRead } = adminAuth.createAdminAuth({ reviewAuth: review, sleep: async () => {} });
   const analytics = await requireAnalyticsRead({ httpMethod: 'GET', headers: { authorization: BASIC, host: 'mori-zeirishi.net' } });
   assert(!analytics.response, '自動処理用の読み取りは Basic で通る');
   const analyticsWithRawUrl = await requireAnalyticsRead({

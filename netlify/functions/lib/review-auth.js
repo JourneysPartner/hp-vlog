@@ -6,6 +6,14 @@ const { connectLambda, getStore } = require('@netlify/blobs');
 const ORIGIN = 'https://mori-zeirishi.net';
 const COOKIE_NAME = '__Host-review_session';
 const TTL = 43200;
+
+// 失敗回数の枠。ログインと自動処理の読み取りで数え方は同じで、記録の名前だけを分ける。
+// 数字はここにまとめ、ほかの場所へ散らさない。
+const IP_WINDOW_MS = 900000;
+const IP_LIMIT = 5;
+const GLOBAL_WINDOW_MS = 3600000;
+const GLOBAL_LOGIN_LIMIT = 10;
+const BASIC_GLOBAL_LIMIT = 10;
 const sha256 = value => crypto.createHash('sha256').update(value).digest();
 const hmac = (key, value) => crypto.createHmac('sha256', key).update(value).digest();
 const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -243,17 +251,82 @@ window.addEventListener('pageshow', event => {
     audit(event, conflict ? 'ログイン記録の競合' : 'ログイン試行回数の上限');
     return loginPage(next, 429, conflict ? '1 分ほど待ってからもう一度お試しください' : 'しばらくしてからお試しください');
   }
+  // 入口の最初の確認で弾かれたときの行き先。本文は行き先を決めるためだけに読む。
+  // form の Content-Type でなくても、本文が form（next=…）として読めるなら行き先だけは本文から取る。
+  function formNext(event) {
+    if (event.httpMethod !== 'POST') return '/review';
+    try {
+      const type = (header(event, 'content-type') || '').split(';')[0].trim().toLowerCase();
+      const body = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf8') : event.body || '';
+      if (type !== 'application/x-www-form-urlencoded' && !/(?:^|&)next=/.test(body)) return '/review';
+      return safeNext(new URLSearchParams(body).get('next'));
+    } catch { return '/review'; }
+  }
+  function reopenMessage(next) {
+    return ADMIN_PAGES.includes(next)
+      ? '管理画面を開き直してからログインしてください'
+      : 'レビュー画面を開き直してからログインしてください';
+  }
+  // ログインと自動処理の読み取りで同じ数え方を使う。記録の名前と上限だけを呼び出し側が決める。
+  // 戻り値: { status: 'reserved', notify } / { status: 'blocked' } / { status: 'conflict' }
+  async function reserveAttempts(store, { ipKey, globalKey, ipLimit = IP_LIMIT, globalLimit }) {
+    const at = now();
+    const ipRate = await readRate(store, ipKey, IP_WINDOW_MS, at);
+    const globalRate = await readRate(store, globalKey, GLOBAL_WINDOW_MS, at);
+    const ip = ipRate.record;
+    const global = globalRate.record;
+    if (ip.blockedUntil > at || global.blockedUntil > at) return { status: 'blocked' };
+    // 照合より先に両方の枠を確保する。競合時は再試行も照合もしない。
+    ip.count++;
+    global.count++;
+    if (ip.count >= ipLimit) ip.blockedUntil = at + IP_WINDOW_MS;
+    const notify = global.count >= globalLimit && !global.notified;
+    if (global.count >= globalLimit) { global.blockedUntil = at + GLOBAL_WINDOW_MS; global.notified = true; }
+    let ipEtag;
+    for (const [key, record, condition] of [[ipKey, ip, ipRate.condition], [globalKey, global, globalRate.condition]]) {
+      const result = await store.set(key, JSON.stringify(record), condition);
+      if (result?.modified === false) {
+        if (key === globalKey) {
+          // 自分が確保した版が残っている場合だけ戻す。他の要求の更新は上書きしない。
+          if (typeof ipEtag !== 'string' || !ipEtag) throw new Error('IP記録の版が不明');
+          const restored = await store.set(ipKey, ipRate.previous, { onlyIfMatch: ipEtag });
+          if (restored?.modified !== true && restored?.modified !== false) throw new Error('IP記録の復元に失敗');
+        }
+        return { status: 'conflict' };
+      }
+      if (result?.modified !== true) throw new Error('失敗回数の保存に失敗');
+      if (key === ipKey) ipEtag = result.etag;
+    }
+    return { status: 'reserved', notify };
+  }
+  // 自動処理用の読み取りの枠。ログインの記録（ip/…・global）とは別の名前にする。
+  async function reserveBasicAttempt(event) {
+    try {
+      if (getStoreFn === getStore) connectLambda(event);
+      const store = getStoreFn({ name: 'review-auth', fetch: blobsFetch });
+      const hash = ipHash(event);
+      const ipKey = `basic-ip/${hash === null ? 'unknown' : hash}`;
+      const reservation = await reserveAttempts(store, { ipKey, globalKey: 'basic-global', globalLimit: BASIC_GLOBAL_LIMIT });
+      if (reservation.status === 'reserved' && reservation.notify) {
+        try { await notify('admin_basic_locked', {}); }
+        catch { audit(event, '上限通知の失敗'); }
+      }
+      if (reservation.status !== 'reserved') return reservation;
+      return { ...reservation, clearIp: async () => { await store.delete(ipKey); } };
+    } catch { return { status: 'error' }; }
+  }
   async function login(event) {
     if (event.httpMethod !== 'POST') return loginPage('/review', 405, 'レビュー画面からログインしてください');
+    const fallback = formNext(event);
     const config = configuration(event);
-    if (config.response) return loginPage('/review', 503, '現在ログインできません。しばらくしてからお試しください');
+    if (config.response) return loginPage(fallback, 503, '現在ログインできません。しばらくしてからお試しください');
     if (!validOrigin(event)) {
       audit(event, 'CSRF送り元不正');
-      return loginPage('/review', 403, 'レビュー画面を開き直してからログインしてください');
+      return loginPage(fallback, 403, reopenMessage(fallback));
     }
     if ((header(event, 'content-type') || '').split(';')[0].trim().toLowerCase() !== 'application/x-www-form-urlencoded') {
       audit(event, 'CSRFログイン形式不正');
-      return loginPage('/review', 403, 'レビュー画面を開き直してからログインしてください');
+      return loginPage(fallback, 403, reopenMessage(fallback));
     }
     const form = new URLSearchParams(event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf8') : event.body || '');
     const next = safeNext(form.get('next'));
@@ -262,34 +335,9 @@ window.addEventListener('pageshow', event => {
       // connectLambdaの接続では通常の読み込みを使い、古い記録は照合前の条件付き書き込みで止める。
       const store = getStoreFn({ name: 'review-auth', fetch: blobsFetch });
       const ipKey = `ip/${ipHash(event)}`;
-      const at = now();
-      const ipRate = await readRate(store, ipKey, 900000, at);
-      const globalRate = await readRate(store, 'global', 3600000, at);
-      const ip = ipRate.record;
-      const global = globalRate.record;
-      if (ip.blockedUntil > at || global.blockedUntil > at) return limited(next, event);
-      // 照合より先に両方の枠を確保する。競合時は再試行も照合もしない。
-      ip.count++;
-      global.count++;
-      if (ip.count >= 5) ip.blockedUntil = at + 900000;
-      const shouldNotify = global.count >= 30 && !global.notified;
-      if (global.count >= 30) { global.blockedUntil = at + 3600000; global.notified = true; }
-      let ipEtag;
-      for (const [key, record, condition] of [[ipKey, ip, ipRate.condition], ['global', global, globalRate.condition]]) {
-        const result = await store.set(key, JSON.stringify(record), condition);
-        if (result?.modified === false) {
-          if (key === 'global') {
-            // 自分が確保した版が残っている場合だけ戻す。他の要求の更新は上書きしない。
-            if (typeof ipEtag !== 'string' || !ipEtag) throw new Error('IP記録の版が不明');
-            const restored = await store.set(ipKey, ipRate.previous, { onlyIfMatch: ipEtag });
-            if (restored?.modified !== true && restored?.modified !== false) throw new Error('IP記録の復元に失敗');
-          }
-          return limited(next, event, true);
-        }
-        if (result?.modified !== true) throw new Error('失敗回数の保存に失敗');
-        if (key === ipKey) ipEtag = result.etag;
-      }
-      if (shouldNotify) {
+      const reservation = await reserveAttempts(store, { ipKey, globalKey: 'global', globalLimit: GLOBAL_LOGIN_LIMIT });
+      if (reservation.status !== 'reserved') return limited(next, event, reservation.status === 'conflict');
+      if (reservation.notify) {
         try { await notify('review_auth_locked', {}); }
         catch { audit(event, '上限通知の失敗'); }
       }
@@ -313,7 +361,7 @@ window.addEventListener('pageshow', event => {
     if (auth.response) return auth.response;
     return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Set-Cookie': cookie('', 0) }, body: JSON.stringify({ message: 'ログアウトしました' }) };
   }
-  return { configuration, issueSession, verifySession, csrfToken, requireSession, requireAction, loginPage, pageNext, login, logout, audit };
+  return { configuration, issueSession, verifySession, csrfToken, requireSession, requireAction, loginPage, pageNext, login, logout, audit, reserveBasicAttempt };
 }
 
 module.exports = { ...createReviewAuth(), createReviewAuth, pageHeaders, safeNext, escapeHtml, COOKIE_NAME, TTL, ADMIN_PAGES };

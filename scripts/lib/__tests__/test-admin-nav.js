@@ -38,6 +38,13 @@ function count(haystack, needle) {
     assert(markup.includes('HP設定') && markup.includes('準備中'), `${key}: settings placeholder is present`);
     assert(!markup.includes('/admin/settings'), `${key}: settings has no href`);
     assert(!/https?:\/\//.test(html), `${key}: nav has no external URL`);
+    // A: ログアウトはボタンで、リンクの並びの最後に置く。
+    assert(markup.includes('<button type="button" class="admin-nav__logout" id="admin-logout">ログアウト</button>'), `${key}: logout button is a plain button`);
+    assert(markup.indexOf('id="admin-logout"') > markup.indexOf('/admin/analytics'), `${key}: logout comes after the links`);
+    const hrefs = [...markup.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
+    assert(JSON.stringify(hrefs) === JSON.stringify(['/admin', '/admin/articles', '/admin/candidates', '/admin/freshness', '/admin/analytics']), `${key}: link order is unchanged`);
+    assert(!/<[^>]*\son\w+\s*=/i.test(html), `${key}: no inline event attribute`);
+    assert(markup.includes('id="admin-nav-error"'), `${key}: failure message area exists`);
   }
 
   const adminHome = require(path.join(FUNCTION_ROOT, 'admin-home.js'));

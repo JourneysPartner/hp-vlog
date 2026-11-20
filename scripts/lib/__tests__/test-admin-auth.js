@@ -16,7 +16,7 @@ const path = require('path');
 const reviewAuth = require('../../../netlify/functions/lib/review-auth');
 const adminAuth = require('../../../netlify/functions/lib/admin-auth');
 const GITHUB = require('../../../netlify/functions/lib/github-api');
-const { authenticatedEvent } = require('./review-auth-test-helpers');
+const { authenticatedEvent, useTestBlobs, memoryRateStore } = require('./review-auth-test-helpers');
 
 const ROOT = path.join(__dirname, '..', '..', '..');
 const FUNCTIONS = path.join(ROOT, 'netlify', 'functions');
@@ -125,6 +125,50 @@ function fakeStore() {
   };
 }
 
+// 失敗回数の記録用。条件付きの書き込みと版を、実物と同じ形で扱う。
+function memoryStore() {
+  return memoryRateStore();
+}
+
+// 自動処理用の読み取りの試験。実物の createReviewAuth / createAdminAuth に、
+// 時計・待ち時間・通知・Blobs・照合の回数を差し込む。
+function basicHarness(options = {}) {
+  let time = Date.parse('2026-11-20T09:00:00Z');
+  const memory = memoryStore();
+  const store = options.store ? options.store(memory) : memory;
+  const sleeps = [], notices = [], logs = [], comparisons = [];
+  const env = {
+    REVIEW_PASSWORD: PASSWORD,
+    REVIEW_SESSION_SECRET: process.env.REVIEW_SESSION_SECRET,
+    CONTEXT: 'production',
+    ADMIN_BASIC_USER: BASIC_USER,
+    ADMIN_BASIC_PASS: BASIC_PASS,
+    ...options.env,
+  };
+  const compare = value => crypto.timingSafeEqual(crypto.createHash('sha256').update(value[0]).digest(), crypto.createHash('sha256').update(value[1]).digest());
+  const review = reviewAuth.createReviewAuth({
+    env,
+    now: () => time,
+    getStoreFn: () => store,
+    sleep: async ms => { sleeps.push(ms); },
+    notify: async (...args) => { notices.push(args); },
+    log: entry => { logs.push(entry); },
+    comparePassword: (input, expected) => compare([input, expected]),
+  });
+  const admin = adminAuth.createAdminAuth({
+    reviewAuth: review,
+    env,
+    sleep: async ms => { sleeps.push(ms); },
+    compareBasic: (input, expected) => { comparisons.push(memory.records.size); return compare([input, expected]); },
+  });
+  const basic = (id, password) => 'Basic ' + Buffer.from(`${id}:${password}`).toString('base64');
+  return {
+    env, review, records: memory.records, sleeps, notices, logs, comparisons, basic,
+    read: (headers = {}, rest = {}) => admin.requireAnalyticsRead({ httpMethod: 'GET', ...rest, headers: { host: 'mori-zeirishi.net', ...headers } }),
+    advance: ms => { time += ms; },
+  };
+}
+
 const realReadFileSync = fs.readFileSync;
 let fsReads = 0;
 
@@ -201,6 +245,9 @@ function checkPageHeaders(response) {
   process.env.ADMIN_BASIC_PASS = BASIC_PASS;
 
   stubGithub();
+  // ハンドラは読み込み時に入口の関数を取り込む。Blobs の保存先だけを試験用にしてから読み込む。
+  const handlerBlobs = memoryStore();
+  useTestBlobs(handlerBlobs);
   const handlers = loadAdmin();
 
   try {
@@ -280,6 +327,8 @@ function checkPageHeaders(response) {
       assert.equal(get.statusCode, 200);
       assert.equal(blobCalls.length, 1);
       assert.equal(githubCalls.length, 0);
+      assert.ok(handlerBlobs.records.has('basic-global'), '自動処理用の読み取りの回数を記録する');
+      assert.ok(![...handlerBlobs.records.keys()].some(key => key.startsWith('basic-ip/')), '成功したら IP の記録を消す');
     });
 
     await test(3, '壊れた Cookie（署名・期限・別のパスワード）は11本とも通らない', async () => {
@@ -308,22 +357,30 @@ function checkPageHeaders(response) {
       }
     });
 
-    await test(4, 'ログインした状態の画面5本はCSP・nonce・合言葉がそろう', async () => {
+    await test(4, 'ログインした状態の画面5本はCSP・nonce・合言葉・ログアウトのボタンがそろう', async () => {
       for (const [key] of PAGES) {
         const event = authenticatedEvent({ httpMethod: 'GET' });
+        const token = csrfOf(event);
         const response = await handlers[key].handler(event);
         assert.equal(response.statusCode, 200, key);
         const nonce = checkPageHeaders(response);
         const nextResponse = await handlers[key].handler(authenticatedEvent({ httpMethod: 'GET' }));
         const nextNonce = nextResponse.headers['Content-Security-Policy'].match(/script-src 'nonce-([^']+)'/)[1];
         assert.notEqual(nonce, nextNonce, `${key}: nonce は要求ごとに違う`);
+        // A: 5 本とも、nonce 付きの script に合言葉とログアウトの処理を持つ。
+        assert.ok(response.body.includes(`const REVIEW_TOKEN = ${JSON.stringify(token)};`), `${key}: 合言葉を埋め込む`);
+        assert.ok(response.body.includes('id="admin-logout"') && response.body.includes('>ログアウト</button>'), `${key}: ログアウトのボタン`);
+        assert.ok(response.body.includes("document.getElementById('admin-logout')"), `${key}: script でボタンに処理を付ける`);
+        assert.ok(response.body.includes("fetch('/review-logout'"), `${key}: ログアウトの宛先`);
+        assert.ok(response.body.includes("location.assign('/admin/articles')"), `${key}: 戻り先は管理画面`);
+        const scripts = [...response.body.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(match => match[1]);
+        assert.ok(scripts.some(script => script.includes("getElementById('admin-logout')") && script.includes('addEventListener')), `${key}: 処理は nonce 付き script の中`);
+        assert.ok(!/(?:^|\s)on[a-z]+\s*=/i.test(response.body.replace(/<script\b[\s\S]*?<\/script>/g, '')), `${key}: 属性に処理を書かない`);
       }
-      for (const key of ['articles', 'candidates', 'freshness']) {
+      for (const key of Object.keys(ADMIN_FILES).filter(name => PAGES.some(([page]) => page === name))) {
         const event = authenticatedEvent({ httpMethod: 'GET' });
         const token = csrfOf(event);
         const response = await handlers[key].handler(event);
-        assert.equal(response.statusCode, 200, key);
-        assert.ok(response.body.includes(`const REVIEW_TOKEN = ${JSON.stringify(token)};`), `${key}: 合言葉を埋め込む`);
         assert.ok(response.body.includes('X-Review-Token'), `${key}: 送り方を書く`);
         assert.notEqual(token, csrfOf(authenticatedEvent({})), `${key}: 別のセッションでは合言葉が違う`);
       }
@@ -407,7 +464,7 @@ function checkPageHeaders(response) {
         ADMIN_BASIC_PASS: BASIC_PASS,
       };
       const sleeps = [], logs = [];
-      const review = reviewAuth.createReviewAuth({ env, log: entry => logs.push(entry) });
+      const review = reviewAuth.createReviewAuth({ env, getStoreFn: () => memoryStore(), log: entry => logs.push(entry) });
       const admin = adminAuth.createAdminAuth({ reviewAuth: review, env, sleep: async ms => { sleeps.push(ms); } });
       const basic = (id, password) => 'Basic ' + Buffer.from(`${id}:${password}`).toString('base64');
       const productionHost = 'mori-zeirishi.net';
@@ -604,6 +661,153 @@ function checkPageHeaders(response) {
         const text = fs.readFileSync(path.join(FUNCTIONS, file), 'utf8');
         assert.match(text, guard, `${file}: 新しい入口を呼ぶ`);
       }
+    });
+    await test(11, '自動処理用の読み取り: 5回・10回で止まり、照合より前に枠を確保する', async () => {
+      // 正しい ID・パスワードは通り、IP の記録を消す。
+      const ok = basicHarness();
+      const passed = await ok.read({ authorization: ok.basic(BASIC_USER, BASIC_PASS) });
+      assert.equal(passed.response, undefined);
+      assert.equal(passed.basic, true);
+      assert.equal(ok.records.get('basic-global').count, 1);
+      assert.ok(![...ok.records.keys()].some(key => key.startsWith('basic-ip/')));
+      assert.deepEqual(ok.sleeps, []);
+      assert.ok(ok.logs.some(entry => entry.reason === '自動処理の読み取り'));
+
+      // 違えば 401・1 秒待つ。照合の時点で枠はもう書かれている（確保が先）。
+      const wrong = basicHarness();
+      const failed = await wrong.read({ authorization: wrong.basic(BASIC_USER, '違う試験用のパスワード') });
+      assert.equal(failed.response.statusCode, 401);
+      assert.deepEqual(wrong.sleeps, [1000]);
+      assert.equal(wrong.comparisons.length, 2, 'ID とパスワードの両方を必ず比べる');
+      assert.deepEqual(wrong.comparisons.slice(0, 2), [2, 2], '照合の前に basic-ip と basic-global を書く');
+      assert.equal([...wrong.records.keys()].filter(key => key.startsWith('basic-ip/')).length, 1);
+      assert.equal(wrong.logs.at(-1).reason, '自動処理の読み取りの失敗');
+      assert.equal(failed.response.headers['WWW-Authenticate'], undefined);
+
+      // 同じ IP で 5 回違えると、正しい ID・パスワードでも 429（照合しない）。15 分後に戻る。
+      const ip = basicHarness();
+      for (let i = 0; i < 5; i++) {
+        const response = await ip.read({ authorization: ip.basic(BASIC_USER, `違うパスワード${i}`), 'x-nf-client-connection-ip': '192.0.2.1' });
+        assert.equal(response.response.statusCode, 401);
+      }
+      const before = ip.comparisons.length;
+      const blocked = await ip.read({ authorization: ip.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '192.0.2.1' });
+      assert.equal(blocked.response.statusCode, 429);
+      assert.equal(blocked.response.headers['Cache-Control'], 'no-store');
+      assert.equal(JSON.parse(blocked.response.body).error, 'しばらくしてからお試しください');
+      assert.equal(ip.comparisons.length, before, '止まっている間は照合しない');
+      assert.deepEqual(ip.sleeps, [1000, 1000, 1000, 1000, 1000], '429 では待たない');
+      assert.equal(ip.logs.at(-1).reason, '自動処理の読み取りの上限');
+      // 別の IP は止まっていない。
+      assert.equal((await ip.read({ authorization: ip.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '192.0.2.2' })).response, undefined);
+      ip.advance(899999);
+      assert.equal((await ip.read({ authorization: ip.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '192.0.2.1' })).response.statusCode, 429);
+      ip.advance(1);
+      assert.equal((await ip.read({ authorization: ip.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '192.0.2.1' })).response, undefined);
+
+      // 別々の IP で全体 10 回違えると 429・通知 1 回・1 時間後に戻る。
+      const global = basicHarness();
+      for (let i = 0; i < 10; i++) {
+        const response = await global.read({ authorization: global.basic(BASIC_USER, `違うパスワード${i}`), 'x-nf-client-connection-ip': `198.51.100.${i + 1}` });
+        assert.equal(response.response.statusCode, 401);
+      }
+      assert.deepEqual(global.notices, [['admin_basic_locked', {}]]);
+      const capped = await global.read({ authorization: global.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '203.0.113.1' });
+      assert.equal(capped.response.statusCode, 429, '上限の間は正しい ID・パスワードでも通さない');
+      assert.equal(global.comparisons.length, 20);
+      assert.equal(global.logs.filter(entry => entry.reason === '自動処理の読み取りの上限').length, 1);
+      assert.ok([...global.records.keys()].every(key => key.startsWith('basic-')), 'ログインの記録と混ぜない');
+      global.advance(3599999);
+      assert.equal((await global.read({ authorization: global.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '203.0.113.2' })).response.statusCode, 429);
+      global.advance(1);
+      assert.equal((await global.read({ authorization: global.basic(BASIC_USER, BASIC_PASS), 'x-nf-client-connection-ip': '203.0.113.3' })).response, undefined);
+      assert.equal(global.notices.length, 1, '通知は 1 回だけ');
+    });
+
+    await test(12, '自動処理用の読み取り: 記録の失敗・前提の欠落・セッションでは数えない', async () => {
+      // 記録の読み書きに失敗したら照合しない（503）。競合も照合しない（429）。
+      for (const [label, decorate, status, reason] of [
+        ['読む', base => ({ ...base, getWithMetadata: async () => { throw new Error('試験用の障害'); } }), 503, '自動処理の読み取りの記録の読み書き失敗'],
+        ['書く', base => ({ ...base, set: async () => { throw new Error('試験用の障害'); } }), 503, '自動処理の読み取りの記録の読み書き失敗'],
+        ['競合', base => ({ ...base, set: async () => ({ modified: false }) }), 429, '自動処理の読み取りの上限'],
+      ]) {
+        const h = basicHarness({ store: decorate });
+        const response = await h.read({ authorization: h.basic(BASIC_USER, BASIC_PASS) });
+        assert.equal(response.response.statusCode, status, label);
+        assert.equal(response.response.headers['WWW-Authenticate'], undefined, label);
+        assert.equal(h.comparisons.length, 0, `${label}: 照合しない`);
+        assert.deepEqual(h.sleeps, [], label);
+        assert.equal(h.logs.at(-1).reason, reason, label);
+      }
+      // 消せないときも通さない。
+      const undeletable = basicHarness({ store: base => ({ ...base, delete: async () => { throw new Error('試験用の障害'); } }) });
+      const failedDelete = await undeletable.read({ authorization: undeletable.basic(BASIC_USER, BASIC_PASS) });
+      assert.equal(failedDelete.response.statusCode, 503);
+      assert.equal(failedDelete.basic, undefined);
+      assert.equal(undeletable.logs.at(-1).reason, '自動処理の読み取りの記録の読み書き失敗');
+
+      // 秘密に関係しない前提が欠けたら、数えずに 401（1 秒待つ）。
+      const none = basicHarness();
+      const good = none.basic(BASIC_USER, BASIC_PASS);
+      for (const [label, headers, rest] of [
+        ['POST', { authorization: good }, { httpMethod: 'POST' }],
+        ['プレビューの host', { host: 'deploy-preview-1--x.netlify.app', authorization: good }, {}],
+        ['rawUrl がプレビュー', { authorization: good }, { rawUrl: 'https://deploy-preview-1--x.netlify.app/admin/api/analytics' }],
+        ['Basic の形の誤り', { authorization: 'Basic 試験用の値' }, {}],
+      ]) {
+        none.sleeps.length = 0;
+        const response = await none.read(headers, rest);
+        assert.equal(response.response.statusCode, 401, label);
+        assert.deepEqual(none.sleeps, [1000], `${label}: 1 秒待つ`);
+        assert.equal(response.response.headers['WWW-Authenticate'], undefined, label);
+      }
+      assert.equal(none.records.size, 0, '前提が欠けた要求は数えない');
+
+      for (const [label, options] of [
+        ['ID 未設定', { env: { ADMIN_BASIC_USER: undefined } }],
+        ['パスワード未設定', { env: { ADMIN_BASIC_PASS: undefined } }],
+        ['プレビュー', { env: { CONTEXT: 'deploy-preview' } }],
+      ]) {
+        const h = basicHarness(options);
+        const response = await h.read({ authorization: h.basic(BASIC_USER, BASIC_PASS) });
+        assert.equal(response.response.statusCode, 401, label);
+        assert.equal(h.records.size, 0, `${label}: 数えない`);
+      }
+
+      // セッションがあれば Basic を見ない（回数を数えない）。
+      const session = basicHarness();
+      const { key } = session.review.configuration({});
+      const cookie = `${reviewAuth.COOKIE_NAME}=${session.review.issueSession(key)}`;
+      const withSession = await session.read({ cookie, authorization: session.basic(BASIC_USER, '違う試験用のパスワード') });
+      assert.equal(withSession.response, undefined);
+      assert.equal(withSession.session.v, 1);
+      assert.equal(session.records.size, 0);
+      const bearer = await session.read({ authorization: 'Bearer 試験用の値' });
+      assert.equal(bearer.response.statusCode, 401);
+      assert.deepEqual(session.sleeps, []);
+
+      // B の失敗は、人のログインの記録（ip/…・global）を増やさない。
+      const mixed = basicHarness();
+      for (let i = 0; i < 3; i++) {
+        await mixed.read({ authorization: mixed.basic(BASIC_USER, `違うパスワード${i}`), 'x-nf-client-connection-ip': '192.0.2.1' });
+      }
+      assert.ok(![...mixed.records.keys()].some(name => name === 'global' || name.startsWith('ip/')));
+      const basicIpKey = [...mixed.records.keys()].find(name => name.startsWith('basic-ip/'));
+      const basicIpBefore = JSON.stringify(mixed.records.get(basicIpKey));
+      const login = await mixed.review.login({
+        httpMethod: 'POST',
+        headers: { origin: ORIGIN, host: 'mori-zeirishi.net', 'content-type': 'application/x-www-form-urlencoded', 'x-nf-client-connection-ip': '192.0.2.1' },
+        body: new URLSearchParams({ password: PASSWORD, next: '/admin/articles' }).toString(),
+      });
+      assert.equal(login.statusCode, 303);
+      assert.ok(mixed.records.has('global'), 'ログインの記録は今までどおり global に置く');
+      assert.equal(JSON.stringify(mixed.records.get(basicIpKey)), basicIpBefore, 'ログインは自動処理用の IP の記録を消さない');
+
+      // 記録にも応答にも秘密を出さない。
+      const serialized = JSON.stringify([...none.logs, ...undeletable.logs, ...mixed.logs, ...session.logs]);
+      for (const secret of [BASIC_USER, BASIC_PASS, '違う試験用のパスワード', '192.0.2.1']) assert.ok(!serialized.includes(secret));
+      for (const entry of [...none.logs, ...undeletable.logs]) assert.deepEqual(Object.keys(entry).sort(), ['ipHash', 'reason', 'time']);
+      assert.ok(undeletable.logs.some(entry => entry.reason === '自動処理の読み取りの記録の読み書き失敗'));
     });
   } finally {
     restoreGithub();

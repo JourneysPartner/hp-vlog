@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const { requireAdminPage } = require('./lib/admin-auth');
 const githubApi = require('./lib/github-api');
-const { renderAdminNav } = require('./lib/admin-nav');
+const { renderAdminNav, ADMIN_LOGOUT_SCRIPT } = require('./lib/admin-nav');
 
 const scriptJson = value => JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
@@ -11,6 +11,14 @@ function escapeHtml(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// href に入れてよいのは https・http と、/ で始まり // で始まらない道筋だけ。
+function safeHref(value) {
+  const url = String(value == null ? '' : value);
+  const lower = url.toLowerCase();
+  if (url.includes('\\')) return '#';
+  return lower.startsWith('https://') || lower.startsWith('http://') || (url.startsWith('/') && !url.startsWith('//')) ? url : '#';
 }
 
 function renderPage(candidates, pullRequests, security = {}) {
@@ -34,7 +42,7 @@ function renderPage(candidates, pullRequests, security = {}) {
       return `<li>${tag}${escapeHtml(reason.detail)}（${escapeHtml(reason.where)}）</li>`;
     }).join('');
     const action = pr
-      ? `<p class="status">更新案あり：<a href="${escapeHtml(pr.html_url || pr.url || '#')}" target="_blank" rel="noopener">Pull Request</a> · <a href="${escapeHtml(reviewUrl)}">レビュー画面</a></p>`
+      ? `<p class="status">更新案あり：<a href="${escapeHtml(safeHref(pr.html_url || pr.url || '#'))}" target="_blank" rel="noopener">Pull Request</a> · <a href="${escapeHtml(safeHref(reviewUrl))}">レビュー画面</a></p>`
       : !supportedSlug
         ? '<p class="muted">slug に英小文字・数字・ハイフン・下線以外の文字があるため、この画面からの操作はできません。</p>'
         : candidate.refreshable
@@ -44,7 +52,7 @@ function renderPage(candidates, pullRequests, security = {}) {
       ? `<button class="action secondary" data-action="reviewed" data-slug="${escapeHtml(slug)}">確認済み（変更なし）</button>`
       : '';
     return `<article class="candidate">
-      <h2><a href="${escapeHtml(candidate.url || `https://mori-zeirishi.net/blog/${encodeURIComponent(slug)}/`)}" target="_blank" rel="noopener">${escapeHtml(candidate.title || slug)}</a></h2>
+      <h2><a href="${escapeHtml(safeHref(candidate.url || `https://mori-zeirishi.net/blog/${encodeURIComponent(slug)}/`))}" target="_blank" rel="noopener">${escapeHtml(candidate.title || slug)}</a></h2>
       <p>スコア ${escapeHtml(candidate.score)} · 表示回数 ${escapeHtml(candidate.impressions28d)} 回</p>
       <ul>${reasons}</ul>
       ${asOfOnly && supportedSlug && !pr ? `<p class="muted">${escapeHtml('内容の変更はありません。記事の記述が今も正しいか確かめて「確認済み（変更なし）」を押してください。')}</p>` : ''}
@@ -73,6 +81,7 @@ function renderPage(candidates, pullRequests, security = {}) {
           result.textContent=data.message||'処理が完了しました。';
         }catch(error){result.textContent=error.message;button.disabled=false;}
       }));
+      ${ADMIN_LOGOUT_SCRIPT}
     </script></body></html>`;
 }
 
