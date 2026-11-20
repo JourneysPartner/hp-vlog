@@ -146,8 +146,50 @@ async function getFile(filepath, ref) {
     throw new Error(`GitHub GET ${res.status}: ${text}`);
   }
   const data = await res.json();
-  const content = Buffer.from(data.content, 'base64').toString('utf8');
-  return { content, sha: data.sha };
+
+  // contents API は 1MB を超えるファイルでは中身を返さない（encoding が "none"、
+  // content は空文字）。そのときは同じ答えの sha で blob API から読む。
+  // blob は sha で固定されるため、間に別の保存が入っても版を取り違えない。
+  if (!data || typeof data.type !== 'string' || data.type !== 'file') {
+    throw new Error(`GitHub GET: ファイルではありません (type=${data && data.type})`);
+  }
+
+  let bytes;
+  if (data.encoding === 'base64') {
+    if (typeof data.content !== 'string') {
+      throw new Error('GitHub GET: 中身がありません (encoding=base64)');
+    }
+    bytes = Buffer.from(data.content, 'base64');
+  } else if (data.encoding === 'none') {
+    // sha は blob API の URL に置くため、形を先に確かめる（40 桁の小文字 16 進数）。
+    if (typeof data.sha !== 'string' || !/^[0-9a-f]{40}$/.test(data.sha)) {
+      throw new Error('GitHub GET: 1MB を超えるファイルの sha が不正です');
+    }
+    const blobUrl = `${API_BASE}/repos/${REPO()}/git/blobs/${data.sha}`;
+    const blobRes = await fetch(blobUrl, { headers: h });
+    if (!blobRes.ok) {
+      if (blobRes.status === 403 || blobRes.status === 429) logRateLimit(blobRes, 'getFile blob');
+      const text = await blobRes.text();
+      throw new Error(`GitHub GET blob ${blobRes.status}: ${text}`);
+    }
+    const blob = await blobRes.json();
+    if (blob.encoding !== 'base64') {
+      throw new Error(`GitHub GET blob: encoding が base64 ではありません (${blob.encoding})`);
+    }
+    if (blob.sha !== data.sha) {
+      throw new Error('GitHub GET blob: sha が contents の sha と違います');
+    }
+    bytes = Buffer.from(blob.content, 'base64');
+  } else {
+    throw new Error(`GitHub GET: 対応していない encoding です (${data.encoding})`);
+  }
+
+  // 読めたつもりで途中のバイト列を返さないよう、大きさを必ず突き合わせる。
+  if (typeof data.size === 'number' && bytes.length !== data.size) {
+    throw new Error(`GitHub GET: 中身の大きさが size と違います (${bytes.length} バイト、size=${data.size})`);
+  }
+
+  return { content: bytes.toString('utf8'), sha: data.sha };
 }
 
 // ── ファイル書き戻し (PUT) ──────────────────────────────────────────────

@@ -1151,7 +1151,13 @@ async function main() {
         ok: true,
         status: 200,
         headers: { get: () => null },
-        json: async () => ({ content: Buffer.from('x').toString('base64'), sha: 's' }),
+        json: async () => ({
+          type: 'file',
+          encoding: 'base64',
+          size: 1,
+          content: Buffer.from('x').toString('base64'),
+          sha: 's',
+        }),
         text: async () => '',
       };
     };
