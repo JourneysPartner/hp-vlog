@@ -17,7 +17,9 @@ function escapeHtml(value) {
 function safeHref(value) {
   const url = String(value == null ? '' : value);
   const lower = url.toLowerCase();
-  if (url.includes('\\')) return '#';
+  // タブ・改行・空白などの制御文字はブラウザが URL を読むときに取り除くため、
+  // 取り除いた結果が // で始まる外のサイトになる値をここで落とす。
+  if (/[\\\x00-\x20\x7f]/.test(url)) return '#';
   return lower.startsWith('https://') || lower.startsWith('http://') || (url.startsWith('/') && !url.startsWith('//')) ? url : '#';
 }
 

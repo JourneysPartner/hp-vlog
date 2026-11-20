@@ -185,6 +185,74 @@ function scriptBody(body) {
     assert.equal(safe('//evil.example'), '#');
   });
 
+  await test('候補管理: 適合の点をエスケープする', async () => {
+    const page = require(path.join(FUNCTIONS, 'admin-candidates-page'));
+    const response = await page.handler(authenticatedEvent({ httpMethod: 'GET' }));
+    const dom = fakeDom();
+    const candidates = [
+      {
+        idx: 1, shitsugi_url: 'https://example.invalid/a', shitsugi_title: '点が文字列', tax_category: '所得税',
+        auto_score: TAG, target_segments: [], auto_reasons: [], article_potential: 'low', adopted: false, rejected: false,
+      },
+      {
+        idx: 2, shitsugi_url: 'https://example.invalid/b', shitsugi_title: '点が数', tax_category: '所得税',
+        score: 42, auto_score: null, target_segments: [], auto_reasons: [], article_potential: 'high', adopted: false, rejected: false,
+      },
+    ];
+    await drawScript(response.body, {
+      document: dom.document,
+      fetch: async () => ({ status: 200, ok: true, json: async () => ({ candidates, summary: {}, sha: '版' }) }),
+      location: { reload() {} }, setTimeout: () => 0, confirm: () => false, alert: () => {},
+      Option: function Option(text, value) { this.text = text; this.value = value; },
+    });
+    const html = dom.element('tbody').innerHTML;
+    const cells = [...html.matchAll(/<td class="score"><span class="[^"]*">([\s\S]*?)<\/span><\/td>/g)].map(m => m[1]);
+    assert.equal(cells.length, 2, '点の欄が 2 つある');
+    assert.ok(cells[0].includes('&lt;img src=x onerror=alert(1)&gt;'), '点が文字列なら実体参照にする');
+    assert.ok(!cells[0].includes('<img'), '点をそのまま出さない');
+    assert.equal(cells[1], '42', '普通の数は今までどおり出す');
+  });
+
+  await test('記事管理・候補管理: safeHref はタブ・改行・空白をはさんだ URL を通さない', async () => {
+    const rejected = [
+      '/\t/evil.example', '/\n/evil.example', '/\r/evil.example',
+      'java\tscript:alert(1)', ' https://example.invalid/',
+    ];
+    for (const name of ['admin-articles-page', 'admin-candidates-page']) {
+      const page = require(path.join(FUNCTIONS, name));
+      const response = await page.handler(authenticatedEvent({ httpMethod: 'GET' }));
+      const source = scriptBody(response.body).match(/function safeHref\(s\) \{[\s\S]*?\n  \}/)[0];
+      const { safeHref: safe } = vm.runInNewContext(`${source}\n({ safeHref })`);
+      for (const payload of rejected) {
+        assert.equal(safe(payload), '#', `${name}: ${JSON.stringify(payload)}`);
+      }
+      assert.equal(safe('https://example.invalid/x'), 'https://example.invalid/x', `${name}: https は通す`);
+      assert.equal(safe('/blog/x/'), '/blog/x/', `${name}: / で始まる道筋は通す`);
+    }
+  });
+
+  await test('更新候補: safeHref はタブ・改行・空白をはさんだ URL を通さない', async () => {
+    const file = fs.readFileSync(path.join(FUNCTIONS, 'admin-freshness-page.js'), 'utf8');
+    const source = file.match(/function safeHref\(value\) \{[\s\S]*?\n\}/)[0];
+    const { safeHref: safe } = vm.runInNewContext(`${source}\n({ safeHref })`);
+    const rejected = [
+      '/\t/evil.example', '/\n/evil.example', '/\r/evil.example',
+      'java\tscript:alert(1)', ' https://example.invalid/',
+    ];
+    for (const payload of rejected) {
+      assert.equal(safe(payload), '#', JSON.stringify(payload));
+    }
+    assert.equal(safe('https://example.invalid/x'), 'https://example.invalid/x', 'https は通す');
+    assert.equal(safe('/blog/x/'), '/blog/x/', '/ で始まる道筋は通す');
+
+    const page = require(path.join(FUNCTIONS, 'admin-freshness-page'));
+    const html = page.renderPage([
+      { slug: 'shiken', file: 'shiken.md', title: '正常な記事', url: '/\t/evil.example', refreshable: false, reasons: [] },
+    ], [], { nonce: '試験用のnonce', csrfToken: '試験用の合言葉' });
+    assert.ok(!html.includes('//evil.example'), '画面にも通さない');
+    assert.ok(html.includes('href="#"'), 'href は # になる');
+  });
+
   await test('更新候補: 記事と PR の URL を確かめ、理由と題名をエスケープする', async () => {
     const page = require(path.join(FUNCTIONS, 'admin-freshness-page'));
     const html = page.renderPage([

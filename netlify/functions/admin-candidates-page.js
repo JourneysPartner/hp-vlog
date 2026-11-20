@@ -377,7 +377,7 @@ ${renderAdminNav('candidates')}
       return '<tr class="' + cls + '" data-url="' + dataUrl + '">' +
         '<td class="num">' + c.idx + '</td>' +
         '<td>' + badge + '</td>' +
-        '<td class="score"><span class="' + potCls + '">' + (c.auto_score != null ? c.auto_score : c.score) + '</span></td>' +
+        '<td class="score"><span class="' + potCls + '">' + escapeHtml(c.auto_score != null ? c.auto_score : c.score) + '</span></td>' +
         '<td class="tax">' + escapeHtml(c.tax_category || '') + '</td>' +
         '<td class="persona">' + escapeHtml(personaLabel) + '</td>' +
         '<td class="title">' + escapeHtml(c.shitsugi_title || '') +
@@ -399,6 +399,12 @@ ${renderAdminNav('candidates')}
     const url = String(s == null ? '' : s);
     const lower = url.toLowerCase();
     if (url.includes(String.fromCharCode(92))) return '#';
+    // タブ・改行・空白などの制御文字はブラウザが URL を読むときに取り除くため、
+    // 取り除いた結果が // で始まる外のサイトになる値をここで落とす。
+    for (let i = 0; i < url.length; i++) {
+      const code = url.charCodeAt(i);
+      if (code <= 32 || code === 127) return '#';
+    }
     return lower.startsWith('https://') || lower.startsWith('http://') || (url.startsWith('/') && !url.startsWith('//')) ? url : '#';
   }
 
