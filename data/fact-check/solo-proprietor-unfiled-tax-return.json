@@ -1,0 +1,2101 @@
+{
+  "version": 1,
+  "logic_version": "plan2-s11",
+  "status": "ok",
+  "model": "claude-opus-5-5",
+  "provider": "anthropic",
+  "extract_model": "claude-opus-5-5",
+  "effort": null,
+  "extract_effort": null,
+  "batch": true,
+  "checked_at": "2026-11-20T00:08:42.995Z",
+  "body_sha256": "31946603e3297ffdcc40e31e49f7a99d8b4821511b4f62cd2b05d11efc0f9ae8",
+  "claims": [
+    {
+      "id": "c1",
+      "sentence": "確定申告をしていなくても、今から期限後申告をすれば手続き自体は済みます。",
+      "heading": "",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "申告期限を過ぎていても期限後申告をすれば申告手続は済む",
+      "s": 1,
+      "status": "裏付けあり",
+      "quote": "しかし、期限内に確定申告を忘れた場合でも、その事実を把握した際には、できるだけ早く申告するようにしてください。この場合は、期限後申告として取り扱われます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:151_5"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "ただし納める税金に加えて、無申告加算税と延滞税がかかります。",
+      "heading": "",
+      "type": "判定",
+      "subject": "無申告加算税",
+      "claim": "期限後申告では本税に加え無申告加算税と延滞税がかかる",
+      "s": 2,
+      "status": "裏付けあり",
+      "quote": "また、期限後申告をしたり、所得金額の決定を受けたりすると、申告内容等によっては、納める税金のほかに無申告加算税が課されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "税務署からの連絡を待たず、自分から期限後申告をしてください。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "税務署の連絡を待たず自分から期限後申告をする",
+      "s": 13,
+      "status": "裏付けあり",
+      "quote": "しかし、期限内に確定申告を忘れた場合でも、その事実を把握した際には、できるだけ早く申告するようにしてください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:151_5"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "国税庁も、期限内に確定申告を忘れた場合でも、その事実を把握した際にはできるだけ早く申告するよう案内しています。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "国税庁は申告漏れに気付いたらできるだけ早く申告するよう案内している",
+      "s": 14,
+      "status": "裏付けあり",
+      "quote": "しかし、期限内に確定申告を忘れた場合でも、その事実を把握した際には、できるだけ早く申告するようにしてください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "申告先は納税地を所轄する税務署です。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "申告先は納税地を所轄する税務署である",
+      "s": 15,
+      "status": "裏付けあり",
+      "quote": "手続き申告先等所轄税務署根拠法令等所法120、通法18、35、60、66、通令27の2、措法94、平28改正通法附則54③、令4改正通則法附則20②、令5改正通則法附則23③",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:151_5"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "申告書は国税庁の「確定申告書等作成コーナー」で作成でき、e-Taxで送信するか、印刷して郵送・持参で提出できます。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "申告書は確定申告書等作成コーナーで作成し、e-Taxまたは郵送・持参で提出する",
+      "s": 16,
+      "status": "裏付けあり",
+      "quote": "なお、国税庁ホームページ「確定申告書等作成コーナー」では、画面の案内に従って金額等を入力することにより、税額などが自動計算され、確定申告書が作成できます。作成したデータは、電子申告（e‐Tax）や印刷して税務署に郵送等で提出することができます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c7",
+      "sentence": "期限後申告で納める税金は、申告書を提出した日が納期限になります。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "期限",
+      "subject": "期限後申告",
+      "claim": "期限後申告で納める税金は申告書の提出日が納期限となる",
+      "s": 17,
+      "status": "裏付けあり",
+      "quote": "延滞税期限後申告によって納める税金は、申告書を提出した日が納期限となりますので、その日に納めてください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:151_5"
+      ]
+    },
+    {
+      "id": "c8",
+      "sentence": "その日までに納付し、納付の日までの延滞税をあわせて納めます。",
+      "heading": "確定申告してないときは、まず何をするか",
+      "type": "判定",
+      "subject": "延滞税",
+      "claim": "期限後申告では納付日までの延滞税もあわせて納める",
+      "s": 18,
+      "status": "裏付けあり",
+      "quote": "また、この場合は、納付の日までの延滞税を併せて納付する必要があります(延滞税の計算方法については、こちらを参照してください。)。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "law:tsusoku_hou:60",
+        "law:tsusoku_hou:61",
+        "law:shotokuzei_hou:119",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c9",
+      "sentence": "無申告加算税は、期限後申告をしたり税務署から決定を受けたりしたときに、納める税金とは別に課されるものです。",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "要件",
+      "subject": "無申告加算税",
+      "claim": "期限後申告や決定を受けたとき、本税とは別に無申告加算税が課される",
+      "s": 21,
+      "status": "裏付けあり",
+      "quote": "また、期限後申告をしたり、所得金額の決定を受けたりすると、申告内容等によっては、納める税金のほかに無申告加算税が課されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c10",
+      "sentence": "割合は、申告がどのタイミングで行われたかで変わります。",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "無申告加算税の割合は申告のタイミングで変わる",
+      "s": 22,
+      "status": "裏付けあり",
+      "quote": "加算税 1 税務署からの調査の事前通知の前に自主的に期限後申告をした場合税務署からの調査の事前通知の前に自主的に期限後申告をした場合は、納付すべき税金のほかに、納付すべき税金に5パーセントの割合を乗じた金額の無申告加算税がかかります。 2 税務署からの調査の事前通知の後に期限後申告をした場合（調査による決定を予知する前の期限後申告） （1） 税務署からの調査の事前通知の後に期限後申告をした場合（調査による決定を予知する前の期限後申告）には、納付すべき税金のほかに、納付すべき税金に10パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c11",
+      "sentence": "| 申告のタイミング | 令和5年分以降の割合 |",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "適用年",
+      "subject": "無申告加算税",
+      "claim": "表の割合は令和5年分以降に適用される",
+      "s": 23,
+      "status": "裏付けあり",
+      "quote": "また、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は10パーセント、50万円を超え300万円までの部分は15パーセント、300万円を超える部分は25パーセントの割合になります。\n…\nまた、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は15パーセント、50万円を超え300万円までの部分は20パーセント、300万円を超える部分は30パーセントの割合になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c12",
+      "sentence": "| 調査の事前通知前に自主的に期限後申告 | 納付すべき税金の5％ |",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "調査の事前通知前に自主的に期限後申告した場合は納付税額の5％",
+      "s": 25,
+      "status": "裏付けあり",
+      "quote": "加算税 1 税務署からの調査の事前通知の前に自主的に期限後申告をした場合税務署からの調査の事前通知の前に自主的に期限後申告をした場合は、納付すべき税金のほかに、納付すべき税金に5パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c13",
+      "sentence": "| 調査の事前通知後に申告（決定を予知する前） | 50万円まで10％、50万円超300万円まで15％、300万円超25％ |",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "事前通知後の申告は50万円まで10％、300万円まで15％、超過分25％",
+      "s": 26,
+      "status": "裏付けあり",
+      "quote": "また、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は10パーセント、50万円を超え300万円までの部分は15パーセント、300万円を超える部分は25パーセントの割合になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c14",
+      "sentence": "| 調査を受けた後・決定を受けた後に申告 | 50万円まで15％、50万円超300万円まで20％、300万円超30％ |",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "調査後・決定後の申告は50万円まで15％、300万円まで20％、超過分30％",
+      "s": 27,
+      "status": "裏付けあり",
+      "quote": "また、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は15パーセント、50万円を超え300万円までの部分は20パーセント、300万円を超える部分は30パーセントの割合になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c15",
+      "sentence": "すでに申告期限が過ぎた古い年分については、割合が異なる場合があります。",
+      "heading": "無申告加算税はどのくらいかかるか",
+      "type": "適用年",
+      "subject": "無申告加算税",
+      "claim": "申告期限が過ぎた古い年分は割合が異なる場合がある",
+      "s": 28,
+      "status": "裏付けあり",
+      "quote": "ただし、納付すべき税金が50万円を超えている場合、その超えている部分については15パーセントの割合になります。 また、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は10パーセント、50万円を超え300万円までの部分は15パーセント、300万円を超える部分は25パーセントの割合になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c16",
+      "sentence": "さらに、税務署の調査で帳簿の提示を求められた際に応じなかった場合や、帳簿への売上金額の記載が本来記載すべき金額の2分の1未満だった場合は10％、3分の2未満だった場合は5％が加算されます。",
+      "heading": "自主申告かどうかで負担はこれだけ変わる",
+      "type": "要件",
+      "subject": "帳簿不提示等の加算",
+      "claim": "調査で帳簿の提示に応じない場合や売上の記載不足がある場合に加算税が加重される",
+      "s": 37,
+      "status": "裏付けあり",
+      "quote": "4 令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）について、税務署の調査において、帳簿の提示または提出を求められた際に帳簿の提示等をしなかった場合および帳簿への売上金額の記載等が本来記載等をすべき金額の2分の1未満だった場合は、納付すべき税金に10パーセントの割合を乗じて計算した金額が無申告加算税に加算されます。また、帳簿への売上金額の記載等が本来記載等をすべき金額の3分の2未満だった場合は、納付すべき税金に5パーセントの割合を乗じて計算した金額が無申告加算税に加算されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c17",
+      "sentence": "さらに、税務署の調査で帳簿の提示を求められた際に応じなかった場合や、帳簿への売上金額の記載が本来記載すべき金額の2分の1未満だった場合は10％、3分の2未満だった場合は5％が加算されます。",
+      "heading": "自主申告かどうかで負担はこれだけ変わる",
+      "type": "割合",
+      "subject": "帳簿不提示等の加算",
+      "claim": "不提示または売上記載が2分の1未満なら10％、3分の2未満なら5％が加算される",
+      "s": 37,
+      "status": "裏付けあり",
+      "quote": "4 令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）について、税務署の調査において、帳簿の提示または提出を求められた際に帳簿の提示等をしなかった場合および帳簿への売上金額の記載等が本来記載等をすべき金額の2分の1未満だった場合は、納付すべき税金に10パーセントの割合を乗じて計算した金額が無申告加算税に加算されます。また、帳簿への売上金額の記載等が本来記載等をすべき金額の3分の2未満だった場合は、納付すべき税金に5パーセントの割合を乗じて計算した金額が無申告加算税に加算されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c18",
+      "sentence": "事業所得がある人は、所得金額から所得控除を引いて残りが出れば確定申告が必要です。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "要件",
+      "subject": "確定申告義務",
+      "claim": "事業所得から所得控除を引いて残額があれば確定申告が必要",
+      "s": 49,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物確定申告をする必要がある方その年分の所得金額の合計額が所得控除の合計額を超える場合で、その超える額に対する税額が、配当控除額と年末調整の際に控除を受けた住宅借入金等特別控除額の合計額を超える人は、確定申告をする必要があります（控除しきれなかった外国税額控除の額、源泉徴収税額または予定納税の額がある場合を除きます。なお、この取扱いは確定申告書の提出期限が令和4年1月1日以後となる確定申告書について適用され、当該提出期限が同日前となる場合にはこれらの控除しきれなかった額があったとしても確定申告をしなければならないこととなります。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c19",
+      "sentence": "令和8年分の基礎控除は104万円です。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "金額",
+      "subject": "基礎控除",
+      "claim": "令和8年分の基礎控除は104万円",
+      "s": 50,
+      "status": "食い違い",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額です。合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:83",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "law:shotokuzei_hou:86",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:120"
+      ]
+    },
+    {
+      "id": "c20",
+      "sentence": "令和8年分の基礎控除は104万円です。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "適用年",
+      "subject": "基礎控除",
+      "claim": "基礎控除104万円は令和8年分の額である",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円 ０円 (注１) 令和8年分の上記規定は、令和8年12月1日に施行されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:83",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "law:shotokuzei_hou:86",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:120"
+      ]
+    },
+    {
+      "id": "c21",
+      "sentence": "ただし基礎控除だけで申告の要否が決まるわけではなく、社会保険料控除や扶養控除なども含めて判断します。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "判定",
+      "subject": "確定申告義務",
+      "claim": "申告要否は基礎控除だけでなく社会保険料控除等も含めて判断する",
+      "s": 51,
+      "status": "裏付けあり",
+      "quote": "対象者または対象物確定申告をする必要がある方その年分の所得金額の合計額が所得控除の合計額を超える場合で、その超える額に対する税額が、配当控除額と年末調整の際に控除を受けた住宅借入金等特別控除額の合計額を超える人は、確定申告をする必要があります（控除しきれなかった外国税額控除の額、源泉徴収税額または予定納税の額がある場合を除きます。なお、この取扱いは確定申告書の提出期限が令和4年1月1日以後となる確定申告書について適用され、当該提出期限が同日前となる場合にはこれらの控除しきれなかった額があったとしても確定申告をしなければならないこととなります。）。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1130.htm",
+        "law:shotokuzei_ki:74"
+      ]
+    },
+    {
+      "id": "c22",
+      "sentence": "申告していないのが令和7年分以前であれば、期限はすでに過ぎています。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "期限",
+      "subject": "確定申告",
+      "claim": "令和7年分以前の申告期限はすでに過ぎている",
+      "s": 52,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "basis": "12",
+        "quote": "申告等の期限申告および納付の期限は、原則として、その年の翌年3月15日です。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:79"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "令和8年分は令和9年3月15日が期限なので、まだ間に合います。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "期限",
+      "subject": "確定申告",
+      "claim": "令和8年分の確定申告期限は令和9年3月15日",
+      "s": 53,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "basis": "12",
+        "quote": "申告等の期限申告および納付の期限は、原則として、その年の翌年3月15日です。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:79"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "- 「時効が来るまで放っておけば消える」：放置しても税額は確定しません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "無申告",
+      "claim": "申告せず放置しても税額は確定しない",
+      "s": 56,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c25",
+      "sentence": "税務署から決定を受ければ、加算税と延滞税がかかります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "決定",
+      "claim": "税務署の決定を受けると加算税と延滞税がかかる",
+      "s": 57,
+      "status": "裏付けあり",
+      "quote": "次の各号のいずれかに該当する場合には、当該納税者に対し、当該各号に規定する申告、更正又は決定に基づき第三十五条第二項（申告納税方式による国税等の納付）の規定により納付すべき税額に百分の十五の割合（期限後申告書又は第二号の修正申告書の提出が、その申告に係る国税についての調査があつたことにより当該国税について更正又は決定があるべきことを予知してされたものでないときは、百分の十の割合）を乗じて計算した金額に相当する無申告加算税を課する。ただし、期限内申告書の提出がなかつたことについて正当な理由があると認められる場合は、この限りでない。一　期限後申告書の提出又は第二十五条（決定）の規定による決定があつた場合",
+      "correct": "",
+      "evidence_id": "law:tsusoku_hou:66",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:79"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "- 「売上が少ないから申告しなくてよい」：所得税がかからない場合でも、住民税の申告が必要になることがあります。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "住民税申告",
+      "claim": "所得税がかからない場合でも住民税の申告が必要になることがある",
+      "s": 58,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm",
+        "law:tsusoku_hou:18"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "所得税の確定申告書は個人住民税の申告書も兼ねています。",
+      "heading": "よくある間違い",
+      "type": "手続",
+      "subject": "住民税申告",
+      "claim": "所得税の確定申告書は個人住民税の申告書を兼ねる",
+      "s": 59,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:18",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c28",
+      "sentence": "- 「加算税だけ払えば済む」：延滞税が別にかかります。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "延滞税",
+      "claim": "加算税とは別に延滞税がかかる",
+      "s": 60,
+      "status": "裏付けあり",
+      "quote": "また、この場合は、納付の日までの延滞税を併せて納付する必要があります(延滞税の計算方法については、こちらを参照してください。)。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "law:tsusoku_hou:60",
+        "law:tsusoku_hou:61",
+        "law:shotokuzei_hou:119",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c29",
+      "sentence": "- 「期限後でも青色申告特別控除65万円が使える」：55万円・65万円の控除は確定申告期限までに申告書を提出することが要件です。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "青色申告特別控除",
+      "claim": "55万円・65万円控除は確定申告期限内の申告書提出が要件",
+      "s": 61,
+      "status": "裏付けあり",
+      "quote": "（注4）還付申告書等を提出する方であっても、55万円または65万円の青色申告特別控除の適用を受けるためには、その年分の確定申告期限（翌年3月15日）までに当該申告書を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-6",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c30",
+      "sentence": "- 「期限後でも青色申告特別控除65万円が使える」：55万円・65万円の控除は確定申告期限までに申告書を提出することが要件です。",
+      "heading": "よくある間違い",
+      "type": "金額",
+      "subject": "青色申告特別控除",
+      "claim": "青色申告特別控除には55万円と65万円の控除がある",
+      "s": 61,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目所得税概要青色申告者に対しては種々の特典がありますが、その1つに所得金額から55万円（一定の要件を満たす場合は65万円）または10万円を控除するという青色申告特別控除があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "tsutatsu:sochi_shotoku:25の2-6",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c31",
+      "sentence": "期限後申告では適用できません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "青色申告特別控除",
+      "claim": "期限後申告では55万円・65万円控除を適用できない",
+      "s": 62,
+      "status": "裏付けあり",
+      "quote": "（注4）還付申告書等を提出する方であっても、55万円または65万円の青色申告特別控除の適用を受けるためには、その年分の確定申告期限（翌年3月15日）までに当該申告書を提出する必要があります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+        "law:sozeki_hou:25_2",
+        "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c32",
+      "sentence": "- 納付すべき税金が50万円を超えそうな場合（加算税の割合が上がる境目です）",
+      "heading": "税理士に相談したほうがいいケース",
+      "type": "金額",
+      "subject": "無申告加算税",
+      "claim": "納付税額50万円が加算税の割合が上がる境目である",
+      "s": 64,
+      "status": "裏付けあり",
+      "quote": "ただし、納付すべき税金が50万円を超えている場合、その超えている部分については15パーセントの割合になります。 また、令和6年1月1日以後に法定申告期限が到来するもの（令和5年分以降）については、納付すべき税金が、50万円までの部分は10パーセント、50万円を超え300万円までの部分は15パーセント、300万円を超える部分は25パーセントの割合になります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:69"
+      ]
+    },
+    {
+      "id": "c33",
+      "sentence": "調査の事前通知前に自主的に期限後申告をすると、無申告加算税は納付すべき税金の5％です。",
+      "heading": "税務署から連絡が来る前に申告すれば、加算税は安くなりますか？",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "事前通知前の自主的な期限後申告は納付税額の5％",
+      "s": 73,
+      "status": "裏付けあり",
+      "quote": "加算税 1 税務署からの調査の事前通知の前に自主的に期限後申告をした場合税務署からの調査の事前通知の前に自主的に期限後申告をした場合は、納付すべき税金のほかに、納付すべき税金に5パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c34",
+      "sentence": "通知後に申告すると10％以上に上がります。",
+      "heading": "税務署から連絡が来る前に申告すれば、加算税は安くなりますか？",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "事前通知後に申告すると10％以上に上がる",
+      "s": 74,
+      "status": "裏付けあり",
+      "quote": "2 税務署からの調査の事前通知の後に期限後申告をした場合（調査による決定を予知する前の期限後申告） （1） 税務署からの調査の事前通知の後に期限後申告をした場合（調査による決定を予知する前の期限後申告）には、納付すべき税金のほかに、納付すべき税金に10パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c35",
+      "sentence": "法定申告期限から1か月以内に自主的に期限後申告し、納付すべき税金の全額を法定納期限までに納付しているなど、一定要件を満たす場合は無申告加算税がかかりません。",
+      "heading": "期限後申告でも加算税がかからない場合はありますか？",
+      "type": "期限",
+      "subject": "無申告加算税",
+      "claim": "法定申告期限から1か月以内の自主的な期限後申告が不適用の条件",
+      "s": 77,
+      "status": "裏付けあり",
+      "quote": "5 期限後申告であっても、次の要件をすべて満たす場合には無申告加算税はかかりません。 (1) その期限後申告が、法定申告期限から1か月以内に自主的に行われていること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c36",
+      "sentence": "法定申告期限から1か月以内に自主的に期限後申告し、納付すべき税金の全額を法定納期限までに納付しているなど、一定要件を満たす場合は無申告加算税がかかりません。",
+      "heading": "期限後申告でも加算税がかからない場合はありますか？",
+      "type": "要件",
+      "subject": "無申告加算税",
+      "claim": "納付税額の全額を法定納期限までに納付していること等が不適用の要件",
+      "s": 77,
+      "status": "裏付けあり",
+      "quote": "(1) その期限後申告が、法定申告期限から1か月以内に自主的に行われていること。 (2) 期限内申告をする意思があったと認められる一定の場合に該当すること。 なお、一定の場合とは、次のイおよびロのいずれにも該当する場合をいいます。 イその期限後申告に係る納付すべき税金の全額を法定納期限（口座振替納付の手続をした場合は期限後申告書を提出した日）までに納付していること。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c37",
+      "sentence": "法定申告期限から1か月以内に自主的に期限後申告し、納付すべき税金の全額を法定納期限までに納付しているなど、一定要件を満たす場合は無申告加算税がかかりません。",
+      "heading": "期限後申告でも加算税がかからない場合はありますか？",
+      "type": "判定",
+      "subject": "無申告加算税",
+      "claim": "一定要件を満たす期限後申告には無申告加算税がかからない",
+      "s": 77,
+      "status": "裏付けあり",
+      "quote": "5 期限後申告であっても、次の要件をすべて満たす場合には無申告加算税はかかりません。 (1) その期限後申告が、法定申告期限から1か月以内に自主的に行われていること。 (2) 期限内申告をする意思があったと認められる一定の場合に該当すること。 なお、一定の場合とは、次のイおよびロのいずれにも該当する場合をいいます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c38",
+      "sentence": "過去5年間に無申告加算税や重加算税を課されたことがないことも要件です。",
+      "heading": "期限後申告でも加算税がかからない場合はありますか？",
+      "type": "要件",
+      "subject": "無申告加算税",
+      "claim": "過去5年間に無申告加算税・重加算税を課されていないことも要件",
+      "s": 78,
+      "status": "裏付けあり",
+      "quote": "ロその期限後申告書を提出した日の前日から起算して5年前までの間に、無申告加算税または重加算税を課されたことがなく、かつ、期限内申告をする意思があったと認められる場合の無申告加算税の不適用を受けていないこと。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:68",
+        "law:tsusoku_hou:65"
+      ]
+    },
+    {
+      "id": "c39",
+      "sentence": "調査を受けた後や決定を受けた後に申告した場合は、無申告加算税の割合が15％以上に上がります。",
+      "heading": "申告しないまま税務署から決定を受けるとどうなりますか？",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "調査後・決定後の申告では無申告加算税が15％以上に上がる",
+      "s": 80,
+      "status": "裏付けあり",
+      "quote": "3 税務署の調査を受けた後に期限後申告をした場合（調査による決定を予知した期限後申告） (1) 税務署の調査を受けた後に期限後申告をした場合や税務署から申告納税額の決定を受けた場合には、納付すべき税金のほかに、納付すべき税金に15パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    },
+    {
+      "id": "c40",
+      "sentence": "これに延滞税も加わります。",
+      "heading": "申告しないまま税務署から決定を受けるとどうなりますか？",
+      "type": "判定",
+      "subject": "延滞税",
+      "claim": "決定後の申告でも延滞税が加わる",
+      "s": 81,
+      "status": "裏付けあり",
+      "quote": "納税者は、次の各号のいずれかに該当するときは、延滞税を納付しなければならない。一　期限内申告書を提出した場合において、当該申告書の提出により納付すべき国税をその法定納期限までに完納しないとき。\n二　期限後申告書若しくは修正申告書を提出し、又は更正若しくは第二十五条（決定）の規定による決定を受けた場合において、第三十五条第二項（申告納税方式による国税等の納付）の規定により納付すべき国税があるとき。",
+      "correct": "",
+      "evidence_id": "law:tsusoku_hou:60",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "law:tsusoku_hou:60",
+        "law:tsusoku_hou:61",
+        "law:shotokuzei_hou:119",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c41",
+      "sentence": "消費税の課税事業者であれば、消費税の確定申告も別に必要です。",
+      "heading": "消費税も申告し直す必要はありますか？",
+      "type": "要件",
+      "subject": "消費税確定申告",
+      "claim": "消費税の課税事業者は消費税の確定申告も別途必要",
+      "s": 84,
+      "status": "裏付けあり",
+      "quote": "事業者（第九条第一項本文の規定により消費税を納める義務が免除される事業者を除く。）は、課税期間ごとに、当該課税期間の末日の翌日から二月以内に、次に掲げる事項を記載した申告書を税務署長に提出しなければならない。",
+      "correct": "",
+      "evidence_id": "law:shohizei_hou:45",
+      "evidence_outside_candidates": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shohizei_hou:45"
+      ]
+    },
+    {
+      "id": "c42",
+      "sentence": "課税資産の譲渡等や特定課税仕入れがなく納付税額がなければ、確定申告の義務はありません。",
+      "heading": "消費税も申告し直す必要はありますか？",
+      "type": "判定",
+      "subject": "消費税確定申告",
+      "claim": "課税資産の譲渡等がなく納付税額がなければ申告義務はない",
+      "s": 85,
+      "status": "裏付けあり",
+      "quote": "[令和8年4月1日現在法令等] 対象税目消費税概要課税事業者でも国内における課税資産の譲渡等および特定課税仕入れがなく、かつ、納付税額がないときは、確定申告の義務はありません。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6605.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:shohizei_hou:49",
+        "law:shohizei_hou:45",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6605.htm"
+      ]
+    },
+    {
+      "id": "c43",
+      "sentence": "課税事業者かどうかの判定は、課税売上高の状況によって変わるため、年分ごとに確認が必要です。",
+      "heading": "消費税も申告し直す必要はありますか？",
+      "type": "判定",
+      "subject": "消費税確定申告",
+      "claim": "課税事業者かどうかは課税売上高により年分ごとに判定する",
+      "s": 86,
+      "status": "裏付けあり",
+      "quote": "基準期間である課税期間において免税事業者であった事業者が、当該基準期間である課税期間中に国内において行った課税資産の譲渡等については消費税等が課されていない。したがって、その事業者の基準期間における課税売上高の算定に当たっては、免税事業者であった基準期間である課税期間中に当該事業者が国内において行った課税資産の譲渡等に伴って収受し、又は収受すべき金銭等の全額が当該事業者のその基準期間における課税売上高となることに留意する。",
+      "correct": "",
+      "evidence_id": "tsutatsu:shohi:1-4-5",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "tsutatsu:shohi:1-4-5",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+        "law:tsusoku_hou:66"
+      ]
+    },
+    {
+      "id": "c44",
+      "sentence": "確定申告をしていない場合の対応は、税務署に連絡する前に自分から期限後申告をすることです。",
+      "heading": "まとめ",
+      "type": "手続",
+      "subject": "期限後申告",
+      "claim": "無申告の場合は税務署の連絡前に自分から期限後申告をする",
+      "s": 88,
+      "status": "裏付けあり",
+      "quote": "しかし、期限内に確定申告を忘れた場合でも、その事実を把握した際には、できるだけ早く申告するようにしてください。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:120",
+        "law:shotokuzei_hou:2",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:18",
+        "law:tsusoku_hou:66",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+      ]
+    },
+    {
+      "id": "c45",
+      "sentence": "無申告加算税は自主申告なら5％、調査後は15％以上に上がり、さらに延滞税がかかります。",
+      "heading": "まとめ",
+      "type": "割合",
+      "subject": "無申告加算税",
+      "claim": "自主申告なら5％、調査後は15％以上となり延滞税もかかる",
+      "s": 89,
+      "status": "裏付けあり",
+      "quote": "加算税 1 税務署からの調査の事前通知の前に自主的に期限後申告をした場合税務署からの調査の事前通知の前に自主的に期限後申告をした場合は、納付すべき税金のほかに、納付すべき税金に5パーセントの割合を乗じた金額の無申告加算税がかかります。\n…\n3 税務署の調査を受けた後に期限後申告をした場合（調査による決定を予知した期限後申告） (1) 税務署の調査を受けた後に期限後申告をした場合や税務署から申告納税額の決定を受けた場合には、納付すべき税金のほかに、納付すべき税金に15パーセントの割合を乗じた金額の無申告加算税がかかります。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "law:shotokuzei_hou:2",
+        "law:shotokuzei_hou:120",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "law:tsusoku_hou:66",
+        "law:tsusoku_hou:65",
+        "law:tsusoku_hou:68"
+      ]
+    }
+  ],
+  "rechecked": [
+    {
+      "id": "c1",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "適用年",
+      "subject": "基礎控除",
+      "claim": "記事の基礎控除額は令和8年分の所得に適用される額である。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円 ０円 (注１) 令和8年分の上記規定は、令和8年12月1日に施行されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    },
+    {
+      "id": "c2",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "金額",
+      "subject": "基礎控除",
+      "claim": "令和8年分の基礎控除は、合計所得金額132万円以下の場合104万円である。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    },
+    {
+      "id": "c3",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "要件",
+      "subject": "基礎控除",
+      "claim": "基礎控除104万円の適用は納税者本人の合計所得金額132万円以下が条件である。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "基礎控除の金額基礎控除は、納税者本人の合計所得金額に応じてそれぞれ次のとおりとなります。 納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    },
+    {
+      "id": "c4",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "判定",
+      "subject": "基礎控除",
+      "claim": "合計所得金額が132万円を超えると基礎控除額は少なくなる。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "基礎控除の金額基礎控除は、納税者本人の合計所得金額に応じてそれぞれ次のとおりとなります。 納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    },
+    {
+      "id": "c5",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "金額",
+      "subject": "基礎控除",
+      "claim": "合計所得金額2,350万円超2,400万円以下の基礎控除は48万円である。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    },
+    {
+      "id": "c6",
+      "sentence": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "金額",
+      "subject": "基礎控除",
+      "claim": "合計所得金額2,500万円超の基礎控除は0円である。",
+      "s": 50,
+      "status": "裏付けあり",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円 ０円 (注１) 令和8年分の上記規定は、令和8年12月1日に施行されます。",
+      "correct": "",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7",
+        "law:shotokuzei_hou:83:b490486905577a7a",
+        "law:shotokuzei_hou:86:0678617fe900301c",
+        "law:tsusoku_hou:66:2e7dd75821081c7e",
+        "law:shotokuzei_hou:2:e37fcc906a1e7d80"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "c19",
+      "sentence": "令和8年分の基礎控除は104万円です。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "金額",
+      "subject": "基礎控除",
+      "claim": "令和8年分の基礎控除は104万円",
+      "s": 50,
+      "status": "食い違い",
+      "quote": "納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円",
+      "correct": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額です。合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "evidence_id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "keep": [],
+      "before": "令和8年分の基礎控除は104万円です。",
+      "after": "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。",
+      "generalized": false,
+      "resolved": true,
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+        "law:shotokuzei_hou:83",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+        "law:shotokuzei_hou:86",
+        "law:tsusoku_hou:66",
+        "law:shotokuzei_hou:120"
+      ]
+    }
+  ],
+  "dropped": 0,
+  "discarded": 0,
+  "discarded_claims": [],
+  "calls": [
+    {
+      "task": "extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 4001,
+      "output_chars": 3498,
+      "wait_seconds": 90,
+      "usage": {
+        "input_tokens": 3519,
+        "output_tokens": 3575,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 56958,
+      "output_chars": 2719,
+      "wait_seconds": 151,
+      "usage": {
+        "input_tokens": 49188,
+        "output_tokens": 5476,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "repair",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 1233,
+      "output_chars": 142,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 1003,
+        "output_tokens": 625,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_extract",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 559,
+      "output_chars": 559,
+      "wait_seconds": 151,
+      "usage": {
+        "input_tokens": 486,
+        "output_tokens": 852,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "recheck_judge",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 17672,
+      "output_chars": 363,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 15396,
+        "output_tokens": 962,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    },
+    {
+      "task": "consistency_check",
+      "model": "claude-opus-5-5",
+      "mode": "batch",
+      "input_chars": 4744,
+      "output_chars": 2,
+      "wait_seconds": 121,
+      "usage": {
+        "input_tokens": 4082,
+        "output_tokens": 132,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    }
+  ],
+  "input_chars_total": 85167,
+  "output_chars_total": 7283,
+  "review_items": [
+    {
+      "id": "c22",
+      "sentence": "申告していないのが令和7年分以前であれば、期限はすでに過ぎています。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "期限",
+      "subject": "確定申告",
+      "claim": "令和7年分以前の申告期限はすでに過ぎている",
+      "s": 52,
+      "status": "AI は裏付けあり（数字は機械で確かめられなかった）",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "basis": "12",
+        "quote": "申告等の期限申告および納付の期限は、原則として、その年の翌年3月15日です。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53",
+        "law:shotokuzei_hou:120:76f82f991718d9cb",
+        "law:shotokuzei_hou:2:32355778b96e1731",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm:c78e8e319b96a3fd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:04705bf12bebe53a",
+        "law:shotokuzei_hou:79:ba00b4a0eadec6ad"
+      ]
+    },
+    {
+      "id": "c23",
+      "sentence": "令和8年分は令和9年3月15日が期限なので、まだ間に合います。",
+      "heading": "一人親方で申告が必要になる人",
+      "type": "期限",
+      "subject": "確定申告",
+      "claim": "令和8年分の確定申告期限は令和9年3月15日",
+      "s": 53,
+      "status": "AI は裏付けあり（数字は機械で確かめられなかった）",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "reject_reason": "引用が短い・数字が引用の近くに無い",
+      "rejected_answer": {
+        "status": "裏付けあり",
+        "evidence": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+        "basis": "12",
+        "quote": "申告等の期限申告および納付の期限は、原則として、その年の翌年3月15日です。"
+      },
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53",
+        "law:shotokuzei_hou:120:76f82f991718d9cb",
+        "law:shotokuzei_hou:2:32355778b96e1731",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm:c78e8e319b96a3fd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:04705bf12bebe53a",
+        "law:shotokuzei_hou:79:ba00b4a0eadec6ad"
+      ]
+    },
+    {
+      "id": "c24",
+      "sentence": "- 「時効が来るまで放っておけば消える」：放置しても税額は確定しません。",
+      "heading": "よくある間違い",
+      "type": "判定",
+      "subject": "無申告",
+      "claim": "申告せず放置しても税額は確定しない",
+      "s": 56,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53",
+        "law:shotokuzei_hou:120:76f82f991718d9cb",
+        "law:shotokuzei_hou:2:32355778b96e1731",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019",
+        "law:tsusoku_hou:66:d50636e4b91f3b1c",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm:c78e8e319b96a3fd",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:04705bf12bebe53a"
+      ]
+    },
+    {
+      "id": "c26",
+      "sentence": "- 「売上が少ないから申告しなくてよい」：所得税がかからない場合でも、住民税の申告が必要になることがあります。",
+      "heading": "よくある間違い",
+      "type": "要件",
+      "subject": "住民税申告",
+      "claim": "所得税がかからない場合でも住民税の申告が必要になることがある",
+      "s": 58,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53",
+        "law:shotokuzei_hou:120:76f82f991718d9cb",
+        "law:shotokuzei_hou:2:32355778b96e1731",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019",
+        "law:tsusoku_hou:66:d50636e4b91f3b1c",
+        "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm:cc2c70492eb3f101",
+        "law:tsusoku_hou:18:1bf01876afd1c9a7"
+      ]
+    },
+    {
+      "id": "c27",
+      "sentence": "所得税の確定申告書は個人住民税の申告書も兼ねています。",
+      "heading": "よくある間違い",
+      "type": "手続",
+      "subject": "住民税申告",
+      "claim": "所得税の確定申告書は個人住民税の申告書を兼ねる",
+      "s": 59,
+      "status": "資料なし",
+      "quote": "",
+      "correct": "",
+      "evidence_id": "",
+      "evidence_ids": [
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53",
+        "law:shotokuzei_hou:120:76f82f991718d9cb",
+        "law:shotokuzei_hou:2:32355778b96e1731",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019",
+        "law:tsusoku_hou:66:d50636e4b91f3b1c",
+        "law:tsusoku_hou:18:1bf01876afd1c9a7",
+        "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:04705bf12bebe53a"
+      ]
+    }
+  ],
+  "summary": "主張 45 件: 裏付けあり 39・修正 1（食い違い 1・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・AI 裏付けあり・数字未確認 2 件・候補の外の資料で裏付け 1 件",
+  "consistency": {
+    "checked": true,
+    "corrections": [
+      "c19"
+    ],
+    "afters": [
+      "令和8年分の基礎控除104万円は、納税者本人の合計所得金額が132万円以下の場合の額で、合計所得金額がそれより多い場合は控除額が少なくなります（例: 2,350万円超2,400万円以下は48万円、2,500万円超は0円）。"
+    ],
+    "findings": [],
+    "dropped": 0
+  },
+  "remaining": [],
+  "slug": "solo-proprietor-unfiled-tax-return",
+  "evidence": {
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "kind": "taxanswer",
+      "no": "2024",
+      "title": "確定申告を忘れたとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 131.81,
+      "text_ranges": [
+        [
+          0,
+          2536
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:120": {
+      "id": "law:shotokuzei_hou:120",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "120",
+      "title": "所得税法 確定所得申告",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_120",
+      "score": 60.79,
+      "text_ranges": [
+        [
+          0,
+          3564
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:2": {
+      "id": "law:shotokuzei_hou:2",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "2",
+      "title": "所得税法 定義",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_2",
+      "score": 58.06,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "kind": "taxanswer",
+      "no": "2020",
+      "title": "確定申告",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 56.97,
+      "text_ranges": [
+        [
+          0,
+          1649
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:tsusoku_hou:18": {
+      "id": "law:tsusoku_hou:18",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "18",
+      "title": "国税通則法 期限後申告",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_18",
+      "text": "期限内申告書を提出すべきであつた者（所得税法第百二十三条第一項（確定損失申告）、第百二十五条第三項（年の中途で死亡した場合の確定損失申告）又は第百二十七条第三項（年の中途で出国をする場合の確定損失申告）（これらの規定を同法第百六十六条（非居住者に対する準用）において準用する場合を含む。）の規定による申告書を提出することができる者でその提出期限内に当該申告書を提出しなかつたもの及びこれらの者の相続人その他これらの者の財産に属する権利義務を包括して承継した者（法人が分割をした場合にあつては、第七条の二第四項（信託に係る国税の納付義務の承継）の規定により当該分割をした法人の国税を納める義務を承継した法人に限る。）を含む。）は、その提出期限後においても、第二十五条（決定）の規定による決定があるまでは、納税申告書を税務署長に提出することができる。\n２　前項の規定により提出する納税申告書は、期限後申告書という。\n３　期限後申告書には、その申告に係る国税の期限内申告書に記載すべきものとされている事項を記載し、その期限内申告書に添付すべきものとされている書類があるときは当該書類を添付しなければならない。",
+      "score": 190.35,
+      "text_ranges": [
+        [
+          0,
+          501
+        ]
+      ]
+    },
+    "law:tsusoku_hou:66": {
+      "id": "law:tsusoku_hou:66",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "66",
+      "title": "国税通則法 無申告加算税",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_66",
+      "score": 150.64,
+      "text_ranges": [
+        [
+          0,
+          3520
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:151_5": {
+      "id": "law:shotokuzei_hou:151_5",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "151_5",
+      "title": "所得税法 遺産分割等があつた場合の期限後申告等の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_151_5",
+      "score": 131.9,
+      "text_ranges": [
+        [
+          0,
+          1074
+        ]
+      ],
+      "text_deflate_base64": "vVbZdtowEH3vV2tUEmxsZwETQkhK6BKgBjcsJzVm6ceMZNlP/EKPJNuYgJOm2zl+MEKeuXNn5s6I0Ui0Nyy0uQMsdKO7nhiNWECS+5PtyuCLOYLPgnFCXIR+NF6ysIfQQujy+zm/MBB88THk/o1wZ/yytl2ZCH78cM79GwQPqYHU0n9FnQDBj84veDWMbrtJ+4JvbARPuF2Ea4RuNOoVvSN4mZ02UiuBULifuHHKzakYSy8stIQ72a4MtvzCAguhIe3f9aRfqCFUEB6Q2GUfInEQBuraKRKqkGvANTEa8ZMxd0BZ81lgFjmJ5wYLzpSp9H5y94FPTtj6PCYK9qwq3E8Itugv4+XHZ3TF42kU9CKT8E1L4xHmgm2sfersBIbCHSA0kdoIXflQiK4e1bsnyrP2Ev+0rvmXlMICwYkfgC2fJObhlK8bmmrF5EA9XxE+S/C76HzRCcTTDQtDhG9IgK8b8XBaSjLYu/y2viBYSE3e6US3Mmv8VNKVGyl6ySrNV1/5fPJBY+OLOTdO5XlWQseiayEB6Qs+58bT+8rj3knRQlafu0qYO2x5ndMlBmdJz0Faz85biqJLlaNH+U5NdVJBQt9tV3Uk5FeoyRh/vf7+tERC+w0lsisFG6GP4CC1/mfFaIH4vfrgF38aqU5hAwkp6TbzFQcvql15/P++CF5F/r+K4O91/EspdHUKS+Sx9opdrZMSol2qG0XlkcFbafyp5ns6ZjGXAsJvH2UwJonXFfnTaov1NGl+L/JyTJq8eHAdyxmRQlJBUu1IT5OkeinViUA6XAZnCL48gTtZQMsrXWR6tqoPnWgiZzfSetyz9Rx8t101X+TLOgTHz2sIM246+n5qFDz+bZPmsLOW0kluuFmNZs2CTT+rXw1IzWxFRDSSg1yBA5XbgUwvdXIYSCgLCBJSTlm/bJnY60s1ErL8ZW1EKYJ/iEphsJHWn0Ukm9UBFrwvyux2ZeQuCuvRPpL9Cwr2AOGHKqO2zAcL7b8QpBKfo0GmydP2s8w9C/swWhbawrvX81wBeK9+bhD6cm1U92XXqzkpNkNutXer4tgsLjssGCOxo1kz3yI15mxBo0hrEoPCubs5dw6uWSpnKk/EzptAA1Yy6KokkVRRQ7e41h0Isp23V767PeP/YH07ltpj+8U+8nauVFf7nZeTq/V6o1r+raqdXktohS2vk+qlTHlnXezO2LOiCY0GQ83dm3Y5yelinlw14p7N1j8yAazseZckPsieblNeW+yE98mIlid5/D8B"
+    },
+    "law:tsusoku_hou:65": {
+      "id": "law:tsusoku_hou:65",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "65",
+      "title": "国税通則法 過少申告加算税",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_65",
+      "score": 137.85,
+      "text_ranges": [
+        [
+          0,
+          3337
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:tsusoku_hou:68": {
+      "id": "law:tsusoku_hou:68",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "68",
+      "title": "国税通則法 重加算税",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_68",
+      "score": 116.22,
+      "text_ranges": [
+        [
+          0,
+          1867
+        ]
+      ],
+      "text_deflate_base64": "7VhdV+JIEH2fX52KMCaEEASUQcYBVoVIIK7IHiGg/phKp5Mn/sKe/gpJAGU9O8d58E06Xd1VdW/drpJOJqQ8JTaEQSu6GtDJJFxoSb+8WRsJ1MjfZ7T1SM4qpNKnfpu6tc3aRPDjoUP8SwQvvpuR5yZCB3WL9OekbmzWRvjqR9NrYRh1Fwh+5NTJaYBQRQ0QrhB88RXBC191Ztt9pm4NwUO4QSghDNkt49eot2JWoPP1HkITwWXbdAP1CnluMgd2bKPuPJpeS0PdQlgi2NJWb4SBQXu3CG1+yznqVXayriP4CCOEMUJJxIJ6I+ncIDio6TxwD6Ei3dOAzm3q1mKtzC9iQSlP/Hg8o24tcjtRcEGnJnEMhHvq1pKBTac8ga5B/TYz6QX0psaDGqeuhoFF/B77WnaTE1eYM1xOmP/JZT9uPTP/NZCfVn58XRYrCBbLg8rzW5tZPl2WFt1G8EgvQLhFsEVcKXzS+ckkDKqMJwtT8cQUPFHZ9mPPih5kohRDGDHEBvE16i6YyWSQ9Mv5fFYL21CzuXslhO8y/3pDEUlgV1Ih2Aj3LEDOhwwuHrl/EbFHrddwdYMwYl7pwFO9jV3QCTXYy3mWxoH9LmoC383akAznP4/GenQYKUFRES8jp+JqCpmj6qIa/aihbnIOjCT55ea0ForpOv5e5er2XhWjKxA5JskqG4x+yekZM9cbUW3EC40tqjSaqTgcAMULV9cIRhrIG6AgeLTzQozvCH64MIXcMUTMmSjzcNlG+IEw3OMeeLS7SFUuObW3PuiNeDwT66jp3zbrBmoaVZJKytOCpNLS4AN6SupVXi09hD5CO+ouYkvol4NwT+pVecvyim9LT/MTuKMtN8VeHCjrOV/kn6XRwpnoIeAOf+n1R/Q6ejwn/qWE8mcv6dQRXnhmvCLKWwHtIlymV+yeQF6qu+ZZ1hXF+vdL827tfOny5+ryPkQ+KMqk2yU2/A5FbqKmEdPOCvEHBFcAsJXagG3I1kPaEL2rv8eL1OfKSk4i9Yb4KZVibu8KTbj6wU8by6vz9U/dGrE69HmWnD9t5fXir+T86YBAWKxgNAgXtjj8q+z/kLLfh8gf0YuRlzlxatnib4ni36nMPWVfqMNoMmA+1UvEeeKAldiDyQCwWB+npETqgmkfd75okYayJPghxHmSE1PGJEeLjP+5gGUZ3PMibzLf9FwvyWlnoe7w9cuD2w7xALxDJtnh7liBP17d9YaIMe+Mm+IaLrQ8rDl//u867+2Ut522SHs7o4P//dBANk3ZNop3vtmWnDl8VqG9W0Uzc/8kIeZxRk41JZ24PNUe02WeqM3aZDuLx+6ibxX2cLmXc3e4ug0XFlc0X1yXlgmpVxmI/KLcW7hzGnHaCGc8+U0JBNspM6wej+0MEbVvOVts/gd7CeJ/nhQlhmHQIss5MRnKfIN4hPzkoqlImxlf3ku7cLLgP/enMPf45OFXyjHa9XOT0L7+lI0Osh/hkSqCKZ1SBFOvRbZL+BYGVdQ0+ep+iHCytz8Q/G54cgj62eN59IlxJWFQYZPlXKDCsu9UEB4ZBlqZr3t582pyYZGRJWo4OwNu1kbhIjnBHZgTs29j6qocTF7uiNVhz6xRp5686z/5/MY5eZ/N9+E3l6wzepcERbwrKS3eOkGBFT8O4/FMIsiqtKOGZTce2+KRFwT6Fw=="
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "kind": "taxanswer",
+      "no": "1191",
+      "title": "配偶者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 20.17,
+      "text_ranges": [
+        [
+          0,
+          1248
+        ]
+      ],
+      "text_deflate_base64": "7VfJUuNIEP0Vf8B0DJYX4DrRMZe+9H1i/qWyBtOSVzBeGnAHmMFGYJABMYQXYf6lU1WST/qFiaqS5A2PuzlPhMMhlXLPly+lP9zxJasWd9jwKc1bepI3O15lwlomt+vu+NK7M/5MsP7Ef2h7Ztk7tbhB2KTpmWXepX4XvKeSZ5Z9kkPozR7ZdXeQR7B4+Wp6fKnUp7kSg2cpWUTYQ1pg50/sQEfoIfSRgDsgzDpBsKZfDqftklCXBpURhCKrNBEOkRpIiwgThGMkFOFI3NJqbD+SN4UX8QslEysSoSd1K12KOMKntBr5K8RJ8tatOxohWOxA901dxReGSwAhj1RHsNekbbHh0/TlQiRMdaR5fttGsPy2iWDJcPNI87IcN/Iiivt9AcVZuQPi67fruuETcEejNx8ldre23MEXtr/vjjvuoJBI7ajbRDq6iCX859xuZlFay4ZCKS2Szsykk79sLVlPpkKxZKQYODq3zWTgGIl59ExPWsyyw5IuYmi1xe64gdCLVdS5tq08BI7uGUOmd94y2U+H8SEBdlBkD7n/kN3ORBYNhGLk/QqhNOujSkdbSGcGRbj2aqacjRuEPd4YCnUCP4Q9KK6UUzqnAkcCmAWEy/nyrDOT1eIGBY7+nYwDx0imUvOGA0dXlLHNhk9M30foZ0I4IK36zzkEfUlFDLdU0SKVAlJDHWWjo4mMuJ/ebIsNba4fpLZWjbHcX0vmUivmtKVsjKhSBVnznqiUYI3uEqJU85f7NTeUgolAdXCh7/LibJ0pRTu8Raa9rwhXcbzCxrEw9jMh/BhYQpbaBIYee20hfEXoevX7ZU76TsaJ2eZIauHqEFug8eK3iwh1QctR43fmexVBXUrQQuTvSplW+rzZYUYpTnLauHBfqRyN69UeISnOuRl1PbPM9GdeG/K7v8XQRXtJJHo28i7LcQmZozZV1bszlI/AMQLnIXD2A6cdQ13YzfCWLh/qnz/+/qu2u/vpNwEeUkJaRah5FyP/poRQQTgXqcHejLpXNoEpy1lQLfL6e+z0cb2kzBC+qf2BYMlip1S1La8y4TYoqlD7JC2LY/ldcMfPcrMcIwxlrXrs5SgsGkwi/2HZE7K4+ffvvwUOisdtbs2/yc/9laV+ivQoZEvB/Pz+kNt1mVBFvh6o5VmYq1E4vmr+Akdn+zlvABFkLBlx379+lNk3553IBkpXgpXn3mVMr3bmmzrSqjsgEnBNWbi92ZwrvVTgGGKtN442UWrMntw2FY7W0ej7SXNJM6ZDd6ymKabDVfKLs/L+6bqDsgTO6/yGU+esUma5jmh2KrthKywxbRxVdimm5NYyIyfiKv3PMZs5JnD0dOAY029V33j0ajY7zCtSd0cF3rlj95RNjiIyUTCOyIRWp+REcbx4+x51kc76z2t9btRnPKDwL99OolUnFxv0veOXTa6vFhQJDb8p5LPQSviVYVz/7HcEbwz5+ZAXzuNPFm4Qbtc1JLC9iwR2UuoPLHG0kxEkZxB2NpqSE+1DOosEtA/pbcl9N9yup5OCZrOJfwE="
+    },
+    "law:tsusoku_hou:60": {
+      "id": "law:tsusoku_hou:60",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "60",
+      "title": "国税通則法 延滞税",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_60",
+      "score": 161.88,
+      "text_ranges": [
+        [
+          0,
+          856
+        ]
+      ],
+      "text_deflate_base64": "pVbRVuJIEH33q1ONjAkkBAVFRCe4A4gDNCqsGxKEj6lUN3niF/Z0dxKiI86enbdAuqpu1b11O3LpyXFjZ1UR5miBmN4jcGqekv8PAkc4RbhB5iLUESa7xxd6ayF0kdURxgieiaL4VcTf5biB7EIuvSS+Rugg/EQ417FP6pk5+p9TtFgSWmhZ4jZIu036VpXtBZ3XRC9EdiH8Jp1FOjyg/pKaNsIEoaaRjFStt9bu8eUQAjwPmSCzkdVyAF2EFYJHvTcDDOFOHV5cEr+RS89UR9ggPCBMiLty6eWwT7PuLHaSRO4B68YtCu/qQ33aR5gnWy5mPz5vwwLybYS56C3F7Ec5Sk6nSeSSB0nUFnf3+7UtniPiN/u1g8B3I5/4Td5V3bxCdkF+R431yHRUztApcpoSab+6X9sGntR8i6sVrf0iuZmRnKm6ZnyfYTgyWXAR2EEQamShg5ZlKik1nddkMPwtdENsdvjLkqoZ1Vhbi3SSo+wWnaAFSeiZWKr1Je+YP9Mzr/hJfg1hkUJDWH0jkLQ7UMRYTDV/RC+0cREmB1TltqnXQ8tKItsE6OYnyVbNRjgWbTp/qMO20mHUFAuHNkvyDV/vGPz/2ffrC7Sswx4DT+/z5Xa8tF/NLeGzaf9STxG0bIumR4NnJanVk7BjhE4ZccpOk/g6PTvXhdwUGjR40CgZwgAhQGhpfJ8rIX871p2o8wX1u3VI1aGS7/iZ/HlJeKNke6eov32iIFCWxhxaXypd+VfKn5iLrC6dR2qBGtZ8Y9oUr/buJTYboloLFuJlJYOFZDO1S4tLOZ2qlQsr2cqFjlk5Wl/qzLVCCNQIVKyZg4KtxQ/8Q85iD3XF36/ix/APYtaaSOIr0d4m8QDhQVsJlBgsg9H3wC8nRWeIFhPT+7Kt6GYtI4xil6npIlznpbncuipWT9sgKcSay7Gb5c9kypWKrlrqoTMUl0+Ki+2tzgmZvm9/6kAuxw2tnwmtluSBWsFKTNUZVs6xskYWY2WBFVsVdV6U57CLZNVRqWC0G9uSd8xVo5OMs422mJZf39h3WdUUv8qlZwxdOo8GQyYz4ORfiVdbJ3QLGZe8bl7gL53MHaIXpnd/IbiyGyH0MjVCYMaexMMkrGvN87RfTcIRwkIZ0XRK1ZnWnpNrz0r7VXMTUK+nNlcbnTHM7CbInVm6r0lkG9/PcfKyCVDVS7sDzeMxft9Rlk3m4Dvv2E8iV9wqCuTfat+P8/5RjV+QnoQVrMTqxvkzxk/265a6tIoJ6g0sfxqVP3IMIJ2C50k5BZEcNDJLerdaDJmvSIXRf/k6Otmv2+/N+DCDr0vmg+H0/N10pkyrxw87V+r4Xw=="
+    },
+    "law:tsusoku_hou:61": {
+      "id": "law:tsusoku_hou:61",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "61",
+      "title": "国税通則法 延滞税の額の計算の基礎となる期間の特例",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_61",
+      "score": 136.83,
+      "text_ranges": [
+        [
+          0,
+          1759
+        ]
+      ],
+      "text_deflate_base64": "zVjbeto4EL7fp/aoIcVgYw5JKdDW0IZA48TdbegXAkl4mLFsfMUr7DeSfLahJJtu7oyQ5vDPPwfJ27j+zbfg7JZ3Gv5ouXuoc3hE1kD4jOB66w/e0vRvviG424kRsBWCg6yOrMFHj8G8hazLayYyAzXgVh3hh1oHN2Qn3vojbbD6CB0EO1iYwby11WoIBn/sbb//jDY7CBcIJwiXpOhq49trBAOBiXUboYcwT1RXnPVHC2GqOMiaCPcIpjrLut6qHthThD7ttNr8/Up821JaGgH/ehKOa0JyQ1mlGYF+z92hl4ULNVMYdoJwihrbPejIuuHgAsFSP8GVuiQ40sI/BXIa1XM6HjkbQ+dtCKjEqrZR5bjC9rC/SdT4eMHb9aw08K8nCC5vn3DrDsEV60NhWxPBIdseewgDEb65CN8P8jobo1JUY9CChUmYwEASoIxjQqZu+p8nwfW1t1Jeby8t7g6ldv+THX7okVVMV6Apmx3awyDZw7p+ayZA6EsfIxhdJZB1Q/genM2VXxrzlhpqmoy+dCrniIxLCcM/2eGgzU9rKSiMiMwyxJe0kzVLwZca/dtz7g6VBCFQuuktNX6/QNYNfhkhtBQO/Sl/MshrAUKe/zntMT/F5pw78meoDQN7Ks8GgxXCCJkuyakiHiFzrJ0E5sYQH0nUXtVgoesJYUbWCjL85a2MF4X2yUhXIpne4ftOSapThthERHBlzqecnPlnG299gTCLyYqMIbi7h7q3nnrLJmqGFLh1mv4/bH9F420HmUbElWeppLrcuuNWA+G2WC5520D4GFeEowlagCJO+HR9KYZ8++sucPsyD98cm1/TqTdB/d1DFzWtoDVTqnO1OZi3wolJDPva540xWUY6ko5EVCN9Tjj5osqn4LEAV3TyAtGVJxWsLfY3/rUfTszK/naooRVTPSPwmFquKkUJUYop1KDxgbQ3SWDUIY+RGZOvvG3GofGXI/53538Jjb8c/W5o9mV1hoHZ6KRnzPy4cYycfaMHDVZHR0fRRkYh3wkmJoITjJbxrJTkUQSswMcJ4SwaplSuhu/mvH66J0YxUanfymmlOkbZQl8yYWXmINrQFBXKojoCw6OmMDE5On7rJ0I3/mv3UC8fzHNlJz3DHpgT1UhOEqrBiWijPCX7l5ocD3MWppGU3fR50+JrJbiYHsR6pgmJBBd9iwp97roWjWYLU+nVTcEulu3rSSrl9suLUbFjZfL95VPYC4UmeZuRYEQfrhydqO7YK4QpghX9VYFF23hee6/C66gOX9qWntfne6hp/qrt3+r8acGtVnCjRyyLU2SWveklaRGTaN/dT3WSN3RnEy1iTPujnh9fznPsjvByosTqI1ypRp1+y4hcO/QWYKTJRAVPuF+BagGxV3hnEdVO5ybw2o0Kx1ILxzWyTdxECJxOI7AVcZPyLxiS2/M77zURkueZ0TpXWYW/qk3RekNE4YpsjopoIVKH773SWmlqaYak+8ZR8ktTeo+i6jqnmzk2qPxRbzMmvbs8y/M06P+tn5Fwt+jVvw=="
+    },
+    "law:shotokuzei_hou:119": {
+      "id": "law:shotokuzei_hou:119",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "119",
+      "title": "所得税法 予定納税額に係る延滞税の特例",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_119",
+      "text": "次の各号に掲げる予定納税額について国税通則法第六十条第二項（延滞税）の規定により延滞税の額の計算をする場合には、当該各号に掲げる期間は、その計算の基礎となる期間に算入しないものとし、同項中「納期限（延納又は物納の許可の取消しがあつた場合には、その取消しに係る書面が発せられた日。以下この項並びに第六十三条第一項、第四項及び第五項（納税の猶予等の場合の延滞税の免除）において同じ。）までの期間又は納期限」とあるのは、「所得税法第百十九条各号に掲げる期間の末日」とする。一　税務署長が第百六条第一項（予定納税額等の通知）の規定による通知に係る書面を第百四条第一項（予定納税額の納付）の規定により第一期において納付すべき予定納税額（第百十五条（出国をする場合の予定納税額の納期限の特例）の規定により納付すべきこととなつたものを除く。以下この条において同じ。）の納期限の一月前までに発しなかつた場合における当該予定納税額当該納期限の翌日から、その通知に係る書面を発した日から起算して一月を経過した日（同日がその年分の所得税に係る確定申告期限後となる場合には、その確定申告期限。以下この条において同じ。）までの期間\n二　税務署長が前号の通知に係る書面を第百四条第一項の規定により第二期において納付すべき予定納税額の納期限の一月前までに発しなかつた場合における当該予定納税額当該納期限の翌日から、その通知に係る書面を発した日から起算して一月を経過した日までの期間\n三　税務署長が第百九条第一項（特別農業所得者に対する予定納税額等の通知）の規定による通知に係る書面を第百七条第一項（特別農業所得者の予定納税額の納付）の規定により第二期において納付すべき予定納税額の納期限の一月前までに発しなかつた場合における当該予定納税額当該納期限の翌日から、その通知に係る書面を発した日から起算して一月を経過した日までの期間",
+      "score": 135.36,
+      "text_ranges": [
+        [
+          0,
+          798
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "kind": "taxanswer",
+      "no": "2080",
+      "title": "白色申告者の記帳・帳簿等保存制度",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2080.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 85.25,
+      "text_ranges": [
+        [
+          0,
+          1613
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+      "kind": "taxanswer",
+      "no": "2026",
+      "title": "確定申告を間違えたとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 141,
+      "text_ranges": [
+        [
+          0,
+          1689
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:83": {
+      "id": "law:shotokuzei_hou:83",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "83",
+      "title": "所得税法 配偶者控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_83",
+      "text": "居住者が控除対象配偶者を有する場合には、その居住者のその年分の総所得金額、退職所得金額又は山林所得金額から次の各号に掲げる場合の区分に応じ当該各号に定める金額を控除する。一　その居住者の第二条第一項第三十号（定義）に規定する合計所得金額（以下この項、次条第一項、第八十四条の二第一項（特定親族特別控除）及び第八十六条第一項（基礎控除）において「合計所得金額」という。）が九百万円以下である場合三十八万円（その控除対象配偶者が老人控除対象配偶者である場合には、四十八万円）\n二　その居住者の合計所得金額が九百万円を超え九百五十万円以下である場合二十六万円（その控除対象配偶者が老人控除対象配偶者である場合には、三十二万円）\n三　その居住者の合計所得金額が九百五十万円を超え千万円以下である場合十三万円（その控除対象配偶者が老人控除対象配偶者である場合には、十六万円）\n２　前項の規定による控除は、配偶者控除という。",
+      "score": 48.75,
+      "text_ranges": [
+        [
+          0,
+          406
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "kind": "taxanswer",
+      "no": "1199",
+      "title": "基礎控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目所得税概要確定申告や年末調整において所得税額の計算をする場合に、総所得金額などから差し引くことができる控除の1つに基礎控除があります。 基礎控除の金額基礎控除は、納税者本人の合計所得金額に応じてそれぞれ次のとおりとなります。 納税者本人の合計所得金額控除額令和6年分以前令和7年分令和8年分令和9年分以後令和10年分以後 132万円以下 48万円 95万円 104万円 99万円 132万円超 336万円以下 88万円 62万円 336万円超 489万円以下 68万円 489万円超 655万円以下 63万円 67万円 655万円超2,350万円以下 58万円 62万円 2,350万円超2,400万円以下 48万円 48万円 48万円 2,400万円超2,450万円以下 32万円 32万円 32万円 32万円 2,450万円超2,500万円以下 16万円 16万円 16万円 16万円 2,500万円超 ０円 ０円 ０円 ０円 (注１) 令和8年分の上記規定は、令和8年12月1日に施行されます。施行日前の適用関係などについては、「令和8年度税制改正（所得税の基礎控除の引上げ等関係）Ｑ＆Ａ（令和8年5月）（PDF/299KB）」をご確認ください。 (注２) 令和8年11月30日以前に、令和8年分の所得税の死亡又は出国に伴う準確定申告書の提出をする方は、令和7年分以前と同様に改正前の基礎控除の金額を適用しますので、令和8年11月30日以前に提出された準確定申告書については、令和8年12月1日以後、更正の請求により改正後の基礎控除の金額を適用することができます。 (注３) 令和7年分以後の基礎控除の金額は、居住者でない場合、令和7年分は58万円、令和8年分以後は62万円が最高額となります。 (注４) 令和元年分以前の基礎控除の金額は、納税者本人の合計所得金額にかかわらず、一律38万円です。 根拠法令等所法86、措法41の16の2 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 202.12,
+      "text_ranges": [
+        [
+          0,
+          842
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:86": {
+      "id": "law:shotokuzei_hou:86",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "86",
+      "title": "所得税法 基礎控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_86",
+      "text": "合計所得金額が二千五百万円以下である居住者については、その者のその年分の総所得金額、退職所得金額又は山林所得金額から次の各号に掲げる場合の区分に応じ当該各号に定める金額を控除する。一　その居住者の合計所得金額が二千三百五十万円以下である場合五十八万円\n二　その居住者の合計所得金額が二千三百五十万円を超え二千四百万円以下である場合四十八万円\n三　その居住者の合計所得金額が二千四百万円を超え二千四百五十万円以下である場合三十二万円\n四　その居住者の合計所得金額が二千四百五十万円を超え二千五百万円以下である場合十六万円\n２　前項の規定による控除は、基礎控除という。",
+      "score": 153.15,
+      "text_ranges": [
+        [
+          0,
+          282
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1130.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1130.htm",
+      "kind": "taxanswer",
+      "no": "1130",
+      "title": "社会保険料控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1130.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 122.95,
+      "text_ranges": [
+        [
+          0,
+          1748
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_ki:74": {
+      "id": "law:shotokuzei_ki:74",
+      "kind": "law",
+      "key": "shotokuzei_ki",
+      "no": "74",
+      "title": "所得税法施行規則 従たる給与についての扶養控除等申告書の記載事項",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340M50000040011#Mp-At_74",
+      "text": "法第百九十五条第一項第五号（従たる給与についての扶養控除等申告書）に規定する財務省令で定める事項は、次に掲げる事項とする。一　法第百九十五条第一項の規定による申告書を提出する者（以下この項において「申告者」という。）の氏名、住所及び個人番号\n二　源泉控除対象配偶者の生年月日、住所及びその合計所得金額の見積額\n三　源泉控除対象親族の生年月日、住所、申告者との続柄及びその合計所得金額の見積額\n四　法第百九十四条第一項（給与所得者の扶養控除等申告書）に規定する主たる給与等の支払者の氏名又は名称並びにその支払者からその年中に支払を受けるべき給与等の収入金額の見積額、当該見積額から当該給与等から控除される法第七十四条第二項（社会保険料控除）に規定する社会保険料の金額の見積額及び法第七十五条第二項（小規模企業共済等掛金控除）に規定する小規模企業共済等掛金の額の見積額を控除した金額並びに申告者につき認められる障害者控除の額、寡婦控除の額、ひとり親控除の額、勤労学生控除の額、源泉控除対象配偶者について控除を受ける配偶者控除の額又は配偶者特別控除の額、源泉控除対象親族について控除を受ける扶養控除の額又は特定親族特別控除の額及び基礎控除の額に相当する金額の合計額\n五　その他参考となるべき事項\n２　法第百九十五条第三項に規定する財務省令で定める事項は、次に掲げる事項とする。一　法第百九十五条第三項の規定による申告書を提出する者の氏名、住所及び個人番号\n二　法第百九十五条第三項の規定により経由すべき同条第一項に規定する従たる給与等の支払者の氏名又は名称\n三　その他参考となるべき事項\n３　法第百九十五条第六項に規定する従たる給与についての扶養控除等申告書を受理した同条第一項に規定する従たる給与等の支払者は、当該申告書に、当該従たる給与等の支払者の個人番号又は法人番号を付記するものとする。",
+      "score": 117.2,
+      "text_ranges": [
+        [
+          0,
+          794
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:79": {
+      "id": "law:shotokuzei_hou:79",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "79",
+      "title": "所得税法 障害者控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_79",
+      "text": "居住者が障害者である場合には、その者のその年分の総所得金額、退職所得金額又は山林所得金額から二十七万円（その者が特別障害者である場合には、四十万円）を控除する。\n２　居住者の同一生計配偶者又は扶養親族が障害者である場合には、その居住者のその年分の総所得金額、退職所得金額又は山林所得金額から、その障害者一人につき二十七万円（その者が特別障害者である場合には、四十万円）を控除する。\n３　居住者の同一生計配偶者又は扶養親族が特別障害者で、かつ、その居住者又はその居住者の配偶者若しくはその居住者と生計を一にするその他の親族のいずれかとの同居を常況としている者である場合には、前項の規定にかかわらず、その居住者のその年分の総所得金額、退職所得金額又は山林所得金額から、その特別障害者一人につき七十五万円を控除する。\n４　前三項の規定による控除は、障害者控除という。",
+      "score": 7.64,
+      "text_ranges": [
+        [
+          0,
+          380
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm",
+      "kind": "shitsugi",
+      "no": "09",
+      "title": "退職して帰国した外国人の住民税の負担",
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm",
+      "text": "内国法人A社の従業員である英国人Bは、本年2月に退職し帰国しました。Bの給与に対する所得税については、既に年末調整も終わっていますが、帰国後Bに対し住民税が賦課されました。この住民税については、Bとの契約によりA社が負担することになっていますが、A社が負担する住民税相当額について、源泉徴収の対象となりますか。 国内源泉所得として源泉徴収を要します。 会社が負担する住民税相当額は、過去における国内勤務の対価と認められるので、所得税法第161条第1項第12号イ《国内源泉所得》に掲げる給与に該当します。 具体的には、その負担額を税引後の手取金額として源泉徴収税額を算出し、源泉徴収を行うこととなります。",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 114.99,
+      "text_ranges": [
+        [
+          0,
+          301
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "kind": "taxanswer",
+      "no": "2072",
+      "title": "青色申告特別控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2072.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 351.66,
+      "text_ranges": [
+        [
+          0,
+          1957
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "tsutatsu:sochi_shotoku:25の2-6": {
+      "id": "tsutatsu:sochi_shotoku:25の2-6",
+      "kind": "tsutatsu",
+      "circular": "sochi_shotoku",
+      "no": "25の2-6",
+      "variant": 0,
+      "title": "租税特別措置法に係る所得税の取扱いについて （65万円又は75万円の青色申告特別控除における確定申告書の提出期限の意義）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kobetsu/shotoku/sochiho/801226/sinkoku/57/25/01.htm",
+      "law_version": "",
+      "text": "措置法第25条の２第７項に規定する「提出期限」とは、措置法第２条第１項第14号（（用語の意義））に規定する確定申告期限をいうことに留意する。（令3課個2-23、課審5-11追加、令８課個2-10、課審5-4改正）\r\n(注) 措置法第２条第１項第14号に規定する確定申告期限とは、法第120条第１項（（確定所得申告））（法第166条（（申告、納付及び還付））において準用する場合を含む。）の規定による申告書の提出期限をいい、年の中途において死亡し、又は出国をした場合には、法第125条第１項（（年の中途で死亡した場合の確定申告））又は法第127条第１項（（年の中途で出国をする場合の確定申告））（これらの規定を法第166条において準用する場合を含む。）の規定による申告書の提出期限をいうのであるから、法第122条第１項（（還付等を受けるための申告））の規定による申告書その他提出期限のない申告書を提出する者であっても、措置法第25条の２第４項の規定の適用を受けるためには、その年の確定申告期限までに当該申告書に記載すべき事項に係る情報を送信する必要があることに留意する。",
+      "score": 314.33,
+      "text_ranges": [
+        [
+          0,
+          484
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm": {
+      "id": "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+      "kind": "shitsugi",
+      "no": "04",
+      "title": "青色申告特別控除（55万円）と確定申告の要否",
+      "url": "https://www.nta.go.jp/law/shitsugi/shotoku/07/04.htm",
+      "law_version": "令和7年8月1日現在の法令・通達等",
+      "score": 312.73,
+      "text_ranges": [
+        [
+          0,
+          1161
+        ]
+      ],
+      "text_deflate_base64": "xVbbctpIEP2VfMA+GFe8W/t36kkwEuJ+NTZeTAJIASJSwNoCZPiY1sxIT/qFrZmRsIB412Vvym9imOnL6dOnm1uAMEMNfLdIzSZvfA3mrr+5QqgiOP7aZMPvSGq0dY+kjmAh5JHkUYPwthYYc95Y0GoewWHGLhgXxc1yW74dIXxG2CJ0UCOsO6WrJcIEYSDPR2mPzNDoti3cbVoIE/73yHdL6jDydLpasu4kGO9Yc8lcPfIMhAICEWEk9j9wkYaj3FD9Utg6tp7yLRNOJ8CNFdWHrGSFnQE1ijIf8SrMVcN+EaHwx0ffzdHLS4kAQWIi9JAAasCtHrdLiYExf3TYosmn0/MLBCfyauy2z6fTyKuHd1n5UaXlBwTnOfeRp6uPsF+8uFBeZc5OMCpT5xpJLYRvvGEjtBF69G5JK7rMbvZTTJMUZpk/kxRshPEheinEAy17ilW6BgiFoF9AUkZSQOipt/y74W+GdNA6he78TPn1N0PfNRGcdMj8y5o61woFduOK1+UKza2R1IIRyBTHMhAbwUGoyw9LhC1+WjLjfGBfKa5Spxe2vvg7InhoFFm5Iu93kJhhp6J4K5kySzNFxcvtEoJzHA+pxfFII3SXlVHN9lEF2icEPUZS0PIzgik/LBE8ySFcihMBctbyvWsJ7xvdn7A/8qoIJjM04YoY+5II640ZM5rHfUnM/yw5wq2oVRJl2uZTaX87OzuqrhXHJgyYwmRiKW2AZu3wk532ydYVtjDodknLJVrWEWZHlENoSr7F4ac4lN8LSjonWs4jLEJNC+BBnbyUn3GDHzUWLfWokZN0aitvr6LNvm43SOqi1RMjSjQy55lEL6ppvRACoJEPCddV1lUhQ1rhNVlrRZmJSIwtmv5m8CQvMEGiI8k/15mqOif/iguBfRV4RmAOJUZlwfOrEl/+YDduTMaHjRgtsrf9zf0ezUTQZImJyY2VvzXFkwOtUy1nBbbOnbZSvzgdUpN/xfMmDSvtrVl3GmrXITQy55nIK0ZeK0ZTyonDyeo9VPxkBJ3SJpE71SVFkY3Z4Y/zsPnw7MAlJtVMf70WHaMBdRf8x47duGH/L4QJ7a0Rhqpd/Mcu0ysKxWDuUq1HZ1uetYK+rYCPayUvnNL74KTbE+oqsLcQJkkKB9NJye9BnWPNFDIeefpLC9AK77Kyfonwv74BTobcYz34Nv9/5vLzXE36i+oDyYN0pU8Gs9gy4E68/zeKstu+AulUOF5I0czZe1D0qQAxcvubxERCJDfsA+FPceZ9GfBTwA4YMHp77duy/AWEr/F8e9ogDlbdNyAw+wXap0AQa3RqCaCVgrJ6RND48raw3ysiT//9YwrdBJhkkdgvtMngFvPkPptaw2J6/LqF6x8="
+    },
+    "law:sozeki_hou:25_2": {
+      "id": "law:sozeki_hou:25_2",
+      "kind": "law",
+      "key": "sozeki_hou",
+      "no": "25_2",
+      "title": "租税特別措置法 青色申告特別控除",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/332AC0000000026#Mp-At_25_2",
+      "score": 282.6,
+      "text_ranges": [
+        [
+          0,
+          1793
+        ]
+      ],
+      "text_deflate_base64": "3VjZdtpIEH3PV3c3BgskQGE1lm2sxMHyYEQCnhjE9jGl1vLEL+RUt1oIEMTxJHPOzCO9lKpu3bpVTXzbiMqTsDXlHyuBNQPWCOomv/SA9oDpQJtAHaBDoA9Aq6FT43ovXE3i9itQNyhvor+qwBq83gX6EegA6AUwnRPd9zygLtDbc8fmL1wrbZda+Pzsz8rxfRGoGw3q3L0G6sb0KWw5u1vqPLBG3HsAWgfCtssyUNefVbneDlufgzLh6y7evfwY21Ug1Pf04MvoYJ3XNaBj/u1bcNc9vELHQKhcDJ1aMG2jb57Bq5QXR8GtLX+iq4SmW/6skN2S9mVQuOsZye5hjENgGrBK5Gih2wXaBdr/rbHowMrBsw10GNQmQBvAdLXlAi0BtTER9BqYAVT3VzWgF8kB1ghqjwJn9ErdchJWEObPCBAiYr/kpdIH3zOAkP8QcNulFjzbyj7JJx81gDJk3v0LNzVRBsgPbopA6FCdR1DCh7W/vPY3t3HPixwv7LG0bILWOCi3s1QGOgdaVbAO+XjNNzfSTlxwkOWp/xm6p1AkANZfxScqIosDbhpAr2RVnKWFy00tcrTYrn7YLhuYxnI1F19Fgd6+uwjBb+dpfF/CfKRfFCz7sF02gZD4D2rU40Ek0tG9GFgjbPWxTAQKcgsNdr4DI8AYUBfZtM99XhztEfwUxTKkiEjxSNwMSTdpM+ytuWWJkhqeMJtkDm+tmtHTJPFWgcNn0/DrJrBmsX2Hn2Y9oJq/uFLINIUUDN+i22eENwfDXbKH/kaUVL3Dl1gTkXMVGxNRxMq+qLbtUkv8YWXhTL4df0a4domklgapy0tF7s7R8tM0fPmKZXriE4I2uBhNbOTMDfUXD0AfEUlGs3Uf90zJSJGURAYkSv8MjXE2v7l6uRPFPMl8nyiedemPdw3fawl1b/1y7/jXsdiTylZGKvekX2mJkdsYUhJFTxO+ah4spvKNc8c+6tGA+ovvAvUd3oixR4D2hR0mdh9llxJIV7MtSioEr7/6sxEQ4wB4IDI58q6bkJoYiXQdHutKJ1WMCmvWUM0yK8aG8KqaTXtaLipqMdPl4plVKUW6UzWqQBhiIChyAxnIyfPoXhNYNSuWsbXgI1PSJXjqA2v4q40ICqP2VzeBZia+WavQqcWdT/6GHfjpb2756CrozJHBIxStsDz31zrqR+eTvB5M23ytb5can08DzUSKz1/k4o7WXovXX7fLMrYRy8oqfaYAWtn1SP8iXK2n89Mxqm8BhK+bSDbVPfYDVMqdkat0PpOzSPZzsbUIP9Pw+kKpr8tZT7YaXq8AnUq4ksFAfO6nV04eMxNPkLp5nmSTyy89XrGgcAfsAdgYCiMotIF9hsIQCveKFbp0D9uIbSheXaQMxwyegeht4fxOBNT6+yPdnzXSEYNb1tu5lEjWTqOOW+5+LyUskf+DZpp2A6yiTx53r3fjH3Xl+Bfc9NEWXQutGaKAFor8/ltMrv2NHVRIZDfRlZeFquR+ZBtBa4MWak5MJqJKzxanZWXrM+ytEw0VqpqUaNqjTgxjuV1Bpko6zC8HoVkK/74I560D6flVIZM8OEIMR6AIR5deOsTG90WM9HD0P55LNaG/ib4HXSchopnbcvVkAMiMtWkvVd14B7h0Aw+bQ5ylk7eLsP/zxjDkfQ/oF6DVt0OkpLwtumk/msw46fPxOiw+RraDFDKroZUMDgI6pKW/6LxvfDgOObiqhS9fzyQlFRHJDeyvhPobWxI46a/iadQGQs68jt/xevvpXHjqldbJuiL/0VG6kfc0SYcT9Yg9nHnyBASfR8k7Buel7NSRaMvRP0Pq0xjzcU287W+nP09/3EIi+LMB0CnyOneM/F9x3w1eF6KvyX9YKuI5pWNyT2kYaySv0jztV/8HYInsNxox3WUHVMJ+AA=="
+    },
+    "law:tsusoku_hou:69": {
+      "id": "law:tsusoku_hou:69",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "69",
+      "title": "国税通則法 加算税の税目",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_69",
+      "text": "過少申告加算税、無申告加算税、不納付加算税及び重加算税（以下「加算税」という。）は、その額の計算の基礎となる税額の属する税目の国税とする。",
+      "score": 133.84,
+      "text_ranges": [
+        [
+          0,
+          69
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+      "kind": "taxanswer",
+      "no": "6610",
+      "title": "法人に係る消費税の確定申告書の提出期限について",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6610.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 146.2,
+      "text_ranges": [
+        [
+          0,
+          1068
+        ]
+      ],
+      "text_deflate_base64": "nVbbVuJIFP0Vf0Fb18y/9Jp/ySnBSUgQRJBG6Fa7JaZlKC/YNHc+5qSqwpO/MOtUJSFBvMy8sIBVdWqfvfe5fA6n16Lm/SnGT/uyY+/KZldVFqITyEEjnF6rvvPXjrhbRA9XKjhWbS6HdvQ4VcGx9Fnkg/o+Efxc1QfipCTbIwQuK1Xx90R2LlatKsWYTJ5ndnT7qILjcOLKbj+yigi9VauKzEWLPc8chDu0wJyhi2en6RXzE4ErZxwuXAS+gp+qHiCriUoT4QTBRyggc8Xlk6jaCDx3kdVEtYewRFggtNBi4bQbjlxR9RC+JK/XEQKEHsLXzevA1S8WTo4or2YXwUXm7CG4smOH0644okzQAvVUVsGx6Nwjq0nHiuYFeoy59KfbUvPHVeM3Qi/ljuJuEMdqhjiEJsItJcY8hHv6zkoafRsZ8SIHAYG22E76Y0eOioo3w1GfcGrOdTolYgZ8yd1w3ooer1T9B4JnXtbvXCSk9YwEhoHkgEmZi4dvJpssM3lauFp6KT+7WX6eZ/ZLWj96mSjLYeeyY4mFR6Dso1WxrPoOghddecgqxNfaBbmEsgfinJyy/rJAuNEW6P0/PUiG+I42PIWeDleN30YFynjQCEclBI6W93axpHfXbrfKWwzP3LSs5CDYfZ455tueTsT7uB3R8lJHZpMwKMRDiaC1R4Qix8Z218QHWM2c2fCOKX0xfhIT38D99DxzSGYjZ7WQPbFhkK0OROiFS0ZsvFJV2i6GWC+2VcJvQ4sZd4QdrW+JeMsp6eVPX6QtIfNgCZmNMBCde3k2zgF5KofTL5qia1OFWa5eiRwnJOyfol+lOKwWzn+R08BPAhINYlmMfCCtgSVubK07AlkC2T0e9vBwhofNlXWueFPYQzHxk75ANjL/R/5t0jLIO6lxKYltzn6zF29aI366X02e4KIYaDK8dbsx0TJBkDEqGGrKSy1ORi8D8l3JWS1BS4TpmPA6qq86/jf9mYv/Vlmsa+IDmuxt12QNwVvj4p4oBrJ+tyqWV2fftSdqsuMknaiiP39QTnAaTy5mIyvldebSWUa31EBEaSxKbaLk+sFc3FDpP2mej3aUYKDmvSnplt5l6ytBIkuAUI4x1MdaIh8tT/Bz+c+C3uLnyEB3eZOj+y48VR9EPfdF23pdIuPEj7fClAG4IwbMXCFFCrHLMrlse/0u83o8QrSUl6SvQfJxObYOCLMRaUibQr9fN+xFj0zmXKZtv9qqaZDLdoeWSBKNi/Zc3p8g8HB2kvzZE/NTTVU6rG+IEjKmT5WfDpRkQNMaEBPp5WYxnaSGHPkVs7C8HJWJPT0dp7xOiPrLDUJdDgJZqOiquqSkoaAFiSeCKal181rTmQB+ZwJ6b4y17N6zfyCb3WTr0XxkNloTPhvp5V4bL+mRVUzRbizd0nHV8ByhbDQXRVv1HbMepIuBvBxL9zJd/eXQloPG/gFasH+AwPdMs5CDxh/6586/"
+    },
+    "law:shohizei_hou:45": {
+      "id": "law:shohizei_hou:45",
+      "kind": "law",
+      "key": "shohizei_hou",
+      "no": "45",
+      "title": "消費税法 課税資産の譲渡等及び特定課税仕入れについての確定申告",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/363AC0000000108#Mp-At_45",
+      "score": 250.8,
+      "text_ranges": [
+        [
+          0,
+          1820
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shohizei_hou:49": {
+      "id": "law:shohizei_hou:49",
+      "kind": "law",
+      "key": "shohizei_hou",
+      "no": "49",
+      "title": "消費税法 課税資産の譲渡等及び特定課税仕入れについての確定申告による納付",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/363AC0000000108#Mp-At_49",
+      "text": "第四十五条第一項の規定による申告書を提出した者は、当該申告書に記載した同項第四号に掲げる消費税額（同項第六号の規定に該当する場合には、同号に掲げる消費税額）があるときは、当該申告書の提出期限までに、当該消費税額に相当する消費税を国に納付しなければならない。",
+      "score": 253.47,
+      "text_ranges": [
+        [
+          0,
+          128
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6605.htm": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6605.htm",
+      "kind": "taxanswer",
+      "no": "6605",
+      "title": "納付税額がないときの確定申告",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6605.htm",
+      "text": "[令和8年4月1日現在法令等] 対象税目消費税概要課税事業者でも国内における課税資産の譲渡等および特定課税仕入れがなく、かつ、納付税額がないときは、確定申告の義務はありません。 なお、この場合でも、課税仕入れに対する消費税額や中間納付額があるときは還付申告をすることができます。 根拠法令等消法45、46、消基通15-2-5 ",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 208.17,
+      "text_ranges": [
+        [
+          0,
+          163
+        ]
+      ]
+    },
+    "tsutatsu:shohi:1-4-5": {
+      "id": "tsutatsu:shohi:1-4-5",
+      "kind": "tsutatsu",
+      "circular": "shohi",
+      "no": "1-4-5",
+      "variant": 0,
+      "title": "消費税法基本通達 （基準期間が免税事業者であった場合の課税売上高）",
+      "url": "https://www.nta.go.jp/law/tsutatsu/kihon/shohi/01/04.htm",
+      "law_version": "",
+      "text": "基準期間である課税期間において免税事業者であった事業者が、当該基準期間である課税期間中に国内において行った課税資産の譲渡等については消費税等が課されていない。したがって、その事業者の基準期間における課税売上高の算定に当たっては、免税事業者であった基準期間である課税期間中に当該事業者が国内において行った課税資産の譲渡等に伴って収受し、又は収受すべき金銭等の全額が当該事業者のその基準期間における課税売上高となることに留意する。（平9課消2－5により改正）p>",
+      "score": 144.86,
+      "text_ranges": [
+        [
+          0,
+          229
+        ]
+      ]
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:af22d0809dd972ce": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "kind": "taxanswer",
+      "no": "2024",
+      "title": "確定申告を忘れたとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 87.46,
+      "text_ranges": [
+        [
+          0,
+          2536
+        ]
+      ],
+      "text_deflate_base64": "3VnJWiJJEH4Vju1NUJye95jbfHOYw7zDHCsTkSoWWVxQ0UFcEKEpWqFtNuFdjMosOPkK80Vm1gIUtnbbds9cFIrIyIg/Iv+IjPrdGlywQvo963XW+bEe5sVLOztixzXe3rMGF3bT+CPEWqPJTcWubdslkxsaGxXt2jav0kmVeF/be0CugLR4a5v1OmGlC0gKqBGO8GN9TX4fCTEzzHqd6f4OkIa9WwZyAKQsdQFpALkAsgmkChqxx2nW6+D68Iarbw2/Rv3qlKqzPjOP7N02yyeBFiaVNOrRPCuBFuxOxhocADkEmgKyA6QmdqwDOccdcd8R/qrREJAi7keKqOK4PD3Msa344jZsfAA0DaTMTjssp6NBlIJGgJwAMa1+iplloAWeTPJsRegsT49KYteWELsCkhHWnALJ8+I1kKxSLq2kOpAtIV8UJmaF5J7wjQofTGfrlmfqKO0oqcmFLLsPNMmNG6BZYbDn5whIOWAlLUhzgSZdFKeJ/LSSAWLyG0QB/c8WgeSVmMK1hqETSthWnJk9u2mgA+iJhBkNtTsZoARoyq5tTxN5ICaQgUC8YW9W1PLkqW2K0JH0pH6Lbs+aXgeCxrHSvV3bZn0CsRLEhhA7hdgRfqBd0NL+iPFS124a1v0x13NA20I4iX+1jMxgYfpgenKGTlZ0GXM22pGmS//RH1pg8UuWLM3nEtUlXugVIlUHco3WJ+ostTep6bZZVG5oZM4wIGllmEwKx0/noQhGLCH8GktTp6UBa+akhseh/teDlvvtz78fhwbQTZb5yPTPMvqITurQvr8F0pjGPk01ImJyxbM5lujP+pCe2z7kRiEUDvkU4VkEYk7qY14eqFw3MlPtyC5fYlIaGSCNSaJudQf20SaQxrIEk+n7/TS7+aaOPukBySxm3XKZRhRieQH7AGJtiOnCiFtUTQtWrygZzD0bgekr9kiJQ+LgGnkJmqP0F/18HOrOcpmHKfeUWn1d6ME4C/jMOVWPQyP0ONTD+P+nssplym+JX3j1uwQQzyOScXH51unoqtVNsK0trEh3cSC6qjM0pZLTKRVzv05jNaZvzdRD0govT0RZxmatU8Qui/yGrzBbg0sVuvaex0ACeyBppn/kJ5dO+aFAzMehLpVEWa/D9C1rcDk9zDjR8ex7AgfQiAuFW7eVj63F+PikHeDWVpevX8BFI564i7yHaivyEiTfRVZCbwViQAVvWGOK+SJWSf5jvQ5WPqyobTw5Wlw88Ro0v86AdEaDiqKXaAUle8ManMtk9KouTU0TmSUFueyrHVS1AKqClIG0/EpkWgCpTeqy/hvOc7nk6dP+vJNcdeps0Xeq04GOys/zjcWanwMd9vP1Oq/EeygcwMPvwiuvsD/QzTkil2J2J+P0JgFdnFMxX4N0v0/VfHPSjSxPuf826QaQ5ktIdxGXL5Hu2kuQRNL9CU5B0uVlmTFz24k2WrAe3g/K4laKBO3eViefPjtUVBWBlH3Owu115qL6JHkHEEupw5vnLt0qf7BbQ56RMM2wtcgvvAoc5vyYi9xSSmbInhaeQfY/nrbd++CbHj6rm5zUDtAhYRTfrtv3JgZ/oZTLe3BgNRef5wu6FPgf1PQfkhY05YTCFJgdCbdSQNJTcm3v1uazZ/0Ne7wAYpslG9Zt2x/HGP1szr7oe2dbXthpgd9QD2pnpjS3Ss4pBHB14fm5j9ucZFNLugj9+a3VTboVeVI7mAwNyXD8+AM/ufSeoFoVTVc+IvM1zI/rvK+JIn3+vEv42/CDW5tf0ec16XPkK3x+Tnv0zZQYDS1cJ66calWVk0r+oYKOV4k1uPP5WBX+lIEc+nvCoK1bs11aCeiOKODhlVBgzZSNSdCJEuNiICl+rOPJE7M3/5wHZ7pqfKk6NkVSql9w57S+XgAPJ9/Mcu3EX6gXycrqarJquu5Orm/Z/c7McGymyMwvqKkJrMAT6IV7xiDWnCWhBlDq1+70KgUh4x9Co5ZACFUZWdags3gNc4UWFMydjNTwONRZ9pz1r3i6xUtjZ7nJjZR9d7Q4OJvbF6eUtOBMDYuy43Hahisf0xcDIiRgCHAmUOlz2qj5BiooOV/UztSxfGKnl0Ky9s39vyKfHAgDLzam1c2oKuS1nfL9Q138dTBjgzs++AdfsSwkgDtPX5ikt9z5+xJo024+CM99jTem6ZXX7KJwQ+lfePkQcrNNRl3l0EKDhCN40W5jx7l/JiG0P2dZTlcTdi0jYKB2/CrwNYd3rVp84eGlsK+ndmFDLr3/hKQkcHJf/rBxfFIlTnOjvH/nLcNKgMzL93vi5daCT2hHRQT7KcNX0HgHl4xKg7huNw1uaJN7727CT3s8deq+duOGxtt74cgqzvi1I/z8Hq9XUdDIBj7c2JC/WIOLyC9YgDBbt+u8vffrOla4Xjvynu/2ePNcLp8ebjIjEV1/yJ/J/njd/ZUZCVcgsvqQr0iBaLDA2kP+LPQv"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:a73bb5970986e2f7": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "kind": "taxanswer",
+      "no": "1191",
+      "title": "配偶者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "law_version": "令和8年4月1日現在法令等",
+      "score": 122.67,
+      "text_ranges": [
+        [
+          0,
+          1248
+        ]
+      ],
+      "text_deflate_base64": "7VfJUuNIEP0Vf8B0DJYX4DrRMZe+9H1i/qWyBtOSVzBeGnAHmMFGYJABMYQXYf6lU1WST/qFiaqS5A2PuzlPhMMhlXLPly+lP9zxJasWd9jwKc1bepI3O15lwlomt+vu+NK7M/5MsP7Ef2h7Ztk7tbhB2KTpmWXepX4XvKeSZ5Z9kkPozR7ZdXeQR7B4+Wp6fKnUp7kSg2cpWUTYQ1pg50/sQEfoIfSRgDsgzDpBsKZfDqftklCXBpURhCKrNBEOkRpIiwgThGMkFOFI3NJqbD+SN4UX8QslEysSoSd1K12KOMKntBr5K8RJ8tatOxohWOxA901dxReGSwAhj1RHsNekbbHh0/TlQiRMdaR5fttGsPy2iWDJcPNI87IcN/Iiivt9AcVZuQPi67fruuETcEejNx8ldre23MEXtr/vjjvuoJBI7ajbRDq6iCX859xuZlFay4ZCKS2Szsykk79sLVlPpkKxZKQYODq3zWTgGIl59ExPWsyyw5IuYmi1xe64gdCLVdS5tq08BI7uGUOmd94y2U+H8SEBdlBkD7n/kN3ORBYNhGLk/QqhNOujSkdbSGcGRbj2aqacjRuEPd4YCnUCP4Q9KK6UUzqnAkcCmAWEy/nyrDOT1eIGBY7+nYwDx0imUvOGA0dXlLHNhk9M30foZ0I4IK36zzkEfUlFDLdU0SKVAlJDHWWjo4mMuJ/ebIsNba4fpLZWjbHcX0vmUivmtKVsjKhSBVnznqiUYI3uEqJU85f7NTeUgolAdXCh7/LibJ0pRTu8Raa9rwhXcbzCxrEw9jMh/BhYQpbaBIYee20hfEXoevX7ZU76TsaJ2eZIauHqEFug8eK3iwh1QctR43fmexVBXUrQQuTvSplW+rzZYUYpTnLauHBfqRyN69UeISnOuRl1PbPM9GdeG/K7v8XQRXtJJHo28i7LcQmZozZV1bszlI/AMQLnIXD2A6cdQ13YzfCWLh/qnz/+/qu2u/vpNwEeUkJaRah5FyP/poRQQTgXqcHejLpXNoEpy1lQLfL6e+z0cb2kzBC+qf2BYMlip1S1La8y4TYoqlD7JC2LY/ldcMfPcrMcIwxlrXrs5SgsGkwi/2HZE7K4+ffvvwUOisdtbs2/yc/9laV+ivQoZEvB/Pz+kNt1mVBFvh6o5VmYq1E4vmr+Akdn+zlvABFkLBlx379+lNk3553IBkpXgpXn3mVMr3bmmzrSqjsgEnBNWbi92ZwrvVTgGGKtN442UWrMntw2FY7W0ej7SXNJM6ZDd6ymKabDVfKLs/L+6bqDsgTO6/yGU+esUma5jmh2KrthKywxbRxVdimm5NYyIyfiKv3PMZs5JnD0dOAY029V33j0ajY7zCtSd0cF3rlj95RNjiIyUTCOyIRWp+REcbx4+x51kc76z2t9btRnPKDwL99OolUnFxv0veOXTa6vFhQJDb8p5LPQSviVYVz/7HcEbwz5+ZAXzuNPFm4Qbtc1JLC9iwR2UuoPLHG0kxEkZxB2NpqSE+1DOosEtA/pbcl9N9yup5OCZrOJfwE="
+    },
+    "law:shotokuzei_hou:83:b490486905577a7a": {
+      "id": "law:shotokuzei_hou:83",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "83",
+      "title": "所得税法 配偶者控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_83",
+      "text": "居住者が控除対象配偶者を有する場合には、その居住者のその年分の総所得金額、退職所得金額又は山林所得金額から次の各号に掲げる場合の区分に応じ当該各号に定める金額を控除する。一　その居住者の第二条第一項第三十号（定義）に規定する合計所得金額（以下この項、次条第一項、第八十四条の二第一項（特定親族特別控除）及び第八十六条第一項（基礎控除）において「合計所得金額」という。）が九百万円以下である場合三十八万円（その控除対象配偶者が老人控除対象配偶者である場合には、四十八万円）\n二　その居住者の合計所得金額が九百万円を超え九百五十万円以下である場合二十六万円（その控除対象配偶者が老人控除対象配偶者である場合には、三十二万円）\n三　その居住者の合計所得金額が九百五十万円を超え千万円以下である場合十三万円（その控除対象配偶者が老人控除対象配偶者である場合には、十六万円）\n２　前項の規定による控除は、配偶者控除という。",
+      "score": 74.84,
+      "text_ranges": [
+        [
+          0,
+          406
+        ]
+      ]
+    },
+    "law:shotokuzei_hou:86:0678617fe900301c": {
+      "id": "law:shotokuzei_hou:86",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "86",
+      "title": "所得税法 基礎控除",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_86",
+      "text": "合計所得金額が二千五百万円以下である居住者については、その者のその年分の総所得金額、退職所得金額又は山林所得金額から次の各号に掲げる場合の区分に応じ当該各号に定める金額を控除する。一　その居住者の合計所得金額が二千三百五十万円以下である場合五十八万円\n二　その居住者の合計所得金額が二千三百五十万円を超え二千四百万円以下である場合四十八万円\n三　その居住者の合計所得金額が二千四百万円を超え二千四百五十万円以下である場合三十二万円\n四　その居住者の合計所得金額が二千四百五十万円を超え二千五百万円以下である場合十六万円\n２　前項の規定による控除は、基礎控除という。",
+      "score": 179.24,
+      "text_ranges": [
+        [
+          0,
+          282
+        ]
+      ]
+    },
+    "law:tsusoku_hou:66:2e7dd75821081c7e": {
+      "id": "law:tsusoku_hou:66",
+      "kind": "law",
+      "key": "tsusoku_hou",
+      "no": "66",
+      "title": "国税通則法 無申告加算税",
+      "law_version": "2026-11-01",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_66",
+      "score": 152.99,
+      "text_ranges": [
+        [
+          0,
+          3520
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "law:shotokuzei_hou:2:e37fcc906a1e7d80": {
+      "id": "law:shotokuzei_hou:2",
+      "kind": "law",
+      "key": "shotokuzei_hou",
+      "no": "2",
+      "title": "所得税法 定義",
+      "law_version": "2026-10-01",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_2",
+      "score": 62.64,
+      "text_ranges": [
+        [
+          0,
+          2000
+        ]
+      ],
+      "text_deflate_base64": "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"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm:a4bfb0d861057f53": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm",
+      "title": "確定申告を忘れたとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm"
+    },
+    "law:shotokuzei_hou:120:76f82f991718d9cb": {
+      "id": "law:shotokuzei_hou:120",
+      "title": "所得税法 確定所得申告",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_120"
+    },
+    "law:shotokuzei_hou:2:32355778b96e1731": {
+      "id": "law:shotokuzei_hou:2",
+      "title": "所得税法 定義",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_2"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm:9e48420b3462b019": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm",
+      "title": "確定申告",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm:c78e8e319b96a3fd": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm",
+      "title": "確定申告を間違えたとき",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm"
+    },
+    "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm:04705bf12bebe53a": {
+      "id": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm",
+      "title": "配偶者控除",
+      "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1191.htm"
+    },
+    "law:shotokuzei_hou:79:ba00b4a0eadec6ad": {
+      "id": "law:shotokuzei_hou:79",
+      "title": "所得税法 障害者控除",
+      "url": "https://laws.e-gov.go.jp/law/340AC0000000033#Mp-At_79"
+    },
+    "law:tsusoku_hou:66:d50636e4b91f3b1c": {
+      "id": "law:tsusoku_hou:66",
+      "title": "国税通則法 無申告加算税",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_66"
+    },
+    "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm:cc2c70492eb3f101": {
+      "id": "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm",
+      "title": "退職して帰国した外国人の住民税の負担",
+      "url": "https://www.nta.go.jp/law/shitsugi/gensen/06/09.htm"
+    },
+    "law:tsusoku_hou:18:1bf01876afd1c9a7": {
+      "id": "law:tsusoku_hou:18",
+      "title": "国税通則法 期限後申告",
+      "url": "https://laws.e-gov.go.jp/law/337AC0000000066#Mp-At_18"
+    }
+  }
+}
