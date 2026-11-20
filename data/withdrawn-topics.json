@@ -181,6 +181,16 @@
       "target_query": "投げ銭 税金 いくら",
       "date": "2026-11-18",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/44204874526"
+    },
+    {
+      "topic_id": "suggest-furima-sedori-b9270f",
+      "stage": "pregen-dedup",
+      "similar_to": "mercari-yahoo-auction-tax-filing-threshold",
+      "reason": "せどり（メルカリ等フリマ・転売）の利益がいくらになったら確定申告が必要かという申告義務の基準ラインという論点が同一のため。",
+      "url_slug": "reselling-tax-filing-threshold",
+      "target_query": "せどり 確定申告 いくら",
+      "date": "2026-11-20",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/44642966397"
     }
   ]
 }
