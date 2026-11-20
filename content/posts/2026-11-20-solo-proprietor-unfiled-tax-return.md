@@ -47,21 +47,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: ""
 summary: "一人親方で確定申告をしていない場合、今から期限後申告をすれば手続きは済みます。ただし無申告加算税と延滞税がかかり、自主申告なら5％、調査後は15％以上に上がります。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ 論点別ルールが未反映: individual_vs_corporate_treatment（該当箇所が現行の制度に合うか確認してください） / 論点別ルールが未反映: withholding_scope（該当箇所が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-20T14:54:42.215+09:00"
+publish_at: "2026-11-21T11:48:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-20T00:07:20.392Z"
-updated_at: "2026-11-20T00:07:20.392Z"
+updated_at: "2026-11-20T14:54:42.215+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 45 件: 裏付けあり 39・修正 1（食い違い 1・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・AI 裏付けあり・数字未確認 2 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 確定申告をしていなくても、今から期限後申告をすれば手続き自体は済みます。ただし納める税金に加えて、無申告加算税と延滞税がかかります。
