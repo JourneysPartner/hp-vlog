@@ -11,6 +11,7 @@
  * 自動処理（.github/workflows/export-contact-transitions.yml）だけは、
  * 本番の GET /admin/api/analytics に限り、ADMIN_BASIC_USER / ADMIN_BASIC_PASS で
  * 読み取りを許す（ほかの画面・処理・GET 以外には使えない）。
+ * この読み取りの失敗回数は、ログインとは別の記録（basic-ip/…・basic-global）で数える。
  *
  * 守ること:
  *   - 認証を通らない要求は、GitHub・Blobs・自動処理に触れない。
@@ -63,6 +64,7 @@ function createAdminAuth({
   reviewAuth = defaultReviewAuth,
   env = process.env,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  compareBasic = (input, expected) => crypto.timingSafeEqual(sha256(input), sha256(expected)),
 } = {}) {
   // 画面 5 本用。pagePath は関数ごとの固定の文字列だけを渡す。
   function requireAdminPage(event, pagePath) {
@@ -92,46 +94,82 @@ function createAdminAuth({
   }
 
   // 自動処理用の読み取り。admin-list-analytics だけが使う。
-  function basicReadAllowed(event, authorization) {
-    if (event.httpMethod !== 'GET') return false;
+  // 秘密に関係しない前提（GET・本番の宛先・設定・Basic の形）を確かめる。欠けたら null。
+  function basicReadRequest(event, authorization) {
+    if (event.httpMethod !== 'GET') return null;
     // プレビューでは自動処理の ID・パスワードを使えない。
-    if (env.CONTEXT && env.CONTEXT !== 'production') return false;
+    if (env.CONTEXT && env.CONTEXT !== 'production') return null;
     // 動いている関数には CONTEXT が入らない見込みなので、宛先の住所でも本番だけに限る。
     // host が無い・重複・本番以外なら通さない（singleHeader は重複を null にする）。
-    if (singleHeader(event, 'host') !== PRODUCTION_HOST) return false;
+    if (singleHeader(event, 'host') !== PRODUCTION_HOST) return null;
     if (event.rawUrl !== undefined && event.rawUrl !== null) {
       let origin;
-      try { origin = new URL(event.rawUrl).origin; } catch { return false; }
-      if (origin !== PRODUCTION_ORIGIN) return false;
+      try { origin = new URL(event.rawUrl).origin; } catch { return null; }
+      if (origin !== PRODUCTION_ORIGIN) return null;
     }
     const expectedUser = env.ADMIN_BASIC_USER;
     const expectedPass = env.ADMIN_BASIC_PASS;
-    if (typeof expectedUser !== 'string' || expectedUser === '') return false;
-    if (typeof expectedPass !== 'string' || expectedPass === '') return false;
+    if (typeof expectedUser !== 'string' || expectedUser === '') return null;
+    if (typeof expectedPass !== 'string' || expectedPass === '') return null;
     const decoded = decodeBasic(authorization);
-    if (!decoded) return false;
-    // 片方が違っても両方の比較を行い、比べた時間から当たりを絞らせない。
-    const idMatches = crypto.timingSafeEqual(sha256(decoded.id), sha256(expectedUser));
-    const passwordMatches = crypto.timingSafeEqual(sha256(decoded.password), sha256(expectedPass));
+    if (!decoded) return null;
+    return { decoded, expectedUser, expectedPass };
+  }
+
+  // 片方が違っても両方の比較を行い、比べた時間から当たりを絞らせない。
+  function basicReadMatches(request) {
+    const idMatches = compareBasic(request.decoded.id, request.expectedUser);
+    const passwordMatches = compareBasic(request.decoded.password, request.expectedPass);
     return idMatches && passwordMatches;
   }
 
+  // 失敗は 1 秒待つ。応答にブラウザの認証の小窓を出すヘッダは付けない。
+  function basicFailure(event) {
+    reviewAuth.audit(event, '自動処理の読み取りの失敗');
+    return { response: { statusCode: 401, headers: { ...jsonHeaders }, body: JSON.stringify({ error: '認証に失敗しました' }) } };
+  }
+
   async function requireAnalyticsRead(event) {
+    // 1. セッションが有効なら、今と同じくそのまま通す（回数を数えない）。
     const session = reviewAuth.requireSession(event);
     if (!session.response) return session;
 
-    // 重複した Authorization は singleHeader が null にして、ここへ来ない。
+    // 2. Basic でなければ、今と同じ（セッションの 401・503）。
+    //    重複した Authorization は singleHeader が null にして、ここへ来ない。
     const authorization = singleHeader(event, 'authorization');
     if (typeof authorization !== 'string' || !authorization.startsWith('Basic ')) return session;
 
-    if (basicReadAllowed(event, authorization)) {
-      reviewAuth.audit(event, '自動処理の読み取り');
-      return { basic: true };
+    // 3. 前提が欠けたら、回数を数えずに 401（1 秒待つ）。
+    const request = basicReadRequest(event, authorization);
+    if (!request) {
+      await sleep(1000);
+      return basicFailure(event);
     }
-    // 失敗は 1 秒待つ。応答にブラウザの認証の小窓を出すヘッダは付けない。
-    await sleep(1000);
-    reviewAuth.audit(event, '自動処理の読み取りの失敗');
-    return { response: { statusCode: 401, headers: { ...jsonHeaders }, body: JSON.stringify({ error: '認証に失敗しました' }) } };
+
+    // 4. 照合より先に枠を確保する。止まっている・競合したら照合しない。
+    const reservation = await reviewAuth.reserveBasicAttempt(event);
+    if (reservation.status === 'error') {
+      reviewAuth.audit(event, '自動処理の読み取りの記録の読み書き失敗');
+      return { response: { statusCode: 503, headers: { ...jsonHeaders }, body: JSON.stringify({ error: 'しばらくしてからお試しください' }) } };
+    }
+    if (reservation.status !== 'reserved') {
+      reviewAuth.audit(event, '自動処理の読み取りの上限');
+      return { response: { statusCode: 429, headers: { ...jsonHeaders }, body: JSON.stringify({ error: 'しばらくしてからお試しください' }) } };
+    }
+
+    // 5. ID・パスワードを照合し、合えば IP ごとの記録を消す。
+    if (!basicReadMatches(request)) {
+      await sleep(1000);
+      return basicFailure(event);
+    }
+    try {
+      await reservation.clearIp();
+    } catch {
+      reviewAuth.audit(event, '自動処理の読み取りの記録の読み書き失敗');
+      return { response: { statusCode: 503, headers: { ...jsonHeaders }, body: JSON.stringify({ error: 'しばらくしてからお試しください' }) } };
+    }
+    reviewAuth.audit(event, '自動処理の読み取り');
+    return { basic: true };
   }
 
   return { requireAdminPage, requireAdminRead, requireAdminAction, requireAnalyticsRead };

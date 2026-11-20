@@ -45,7 +45,8 @@ const ADMIN_NAV_STYLE = `<style>
   padding: 0;
 }
 .admin-nav .admin-nav__link,
-.admin-nav .admin-nav__disabled {
+.admin-nav .admin-nav__disabled,
+.admin-nav .admin-nav__logout {
   align-items: center;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -86,13 +87,36 @@ const ADMIN_NAV_STYLE = `<style>
   font-size: .68rem;
   padding: .12rem .35rem;
 }
+.admin-nav .admin-nav__logout {
+  background: none;
+  color: #0b2045;
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-nav .admin-nav__logout:hover,
+.admin-nav .admin-nav__logout:focus-visible {
+  background: #fff3ed;
+  border-color: #e85320;
+  color: #a93815;
+  outline: none;
+}
+.admin-nav .admin-nav__logout:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+.admin-nav .admin-nav__error {
+  color: #b42318;
+  font-size: .78rem;
+  margin-left: .35rem;
+}
 @media (max-width: 520px) {
   .admin-nav .admin-nav__list {
     padding-left: .5rem;
     padding-right: .5rem;
   }
   .admin-nav .admin-nav__link,
-  .admin-nav .admin-nav__disabled {
+  .admin-nav .admin-nav__disabled,
+  .admin-nav .admin-nav__logout {
     font-size: .8rem;
     padding-left: .65rem;
     padding-right: .65rem;
@@ -109,6 +133,35 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+// script の中に埋める値。`</script>` で抜けられないように < > & を変える。
+function scriptJson(value) {
+  return JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+}
+
+// 各画面の nonce 付き script に埋めるログアウトの処理。属性には書かない。
+// 埋める先の script に `const REVIEW_TOKEN = …` が必要。
+const ADMIN_LOGOUT_SCRIPT = `const adminLogoutButton = document.getElementById('admin-logout');
+if (adminLogoutButton) {
+  adminLogoutButton.addEventListener('click', async () => {
+    if (adminLogoutButton.disabled) return;
+    adminLogoutButton.disabled = true;
+    const adminLogoutError = document.getElementById('admin-nav-error');
+    try {
+      const response = await fetch('/review-logout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
+        body: '{}',
+      });
+      if (response.status === 200 || response.status === 401) { location.assign('/admin/articles'); return; }
+      throw new Error('ログアウトできませんでした。');
+    } catch (error) {
+      if (adminLogoutError) adminLogoutError.textContent = error.message;
+      adminLogoutButton.disabled = false;
+    }
+  });
+}`;
+
 function renderAdminNav(current) {
   const currentKey = String(current || '');
   const items = ADMIN_NAV_ITEMS.map((item) => {
@@ -119,8 +172,9 @@ function renderAdminNav(current) {
     const active = item.key === currentKey ? ' aria-current="page"' : '';
     return `<li class="admin-nav__item"><a class="admin-nav__link" href="${escapeHtml(item.href)}"${active}>${icon}<span>${escapeHtml(item.label)}</span></a></li>`;
   }).join('');
+  const logout = '<li class="admin-nav__item"><button type="button" class="admin-nav__logout" id="admin-logout">ログアウト</button><span class="admin-nav__error" id="admin-nav-error" role="alert"></span></li>';
 
-  return `${ADMIN_NAV_STYLE}<nav class="admin-nav" aria-label="管理メニュー"><div class="admin-nav__scroll"><ul class="admin-nav__list">${items}</ul></div></nav>`;
+  return `${ADMIN_NAV_STYLE}<nav class="admin-nav" aria-label="管理メニュー"><div class="admin-nav__scroll"><ul class="admin-nav__list">${items}${logout}</ul></div></nav>`;
 }
 
-module.exports = { renderAdminNav, ADMIN_NAV_ITEMS };
+module.exports = { renderAdminNav, ADMIN_NAV_ITEMS, ADMIN_LOGOUT_SCRIPT, scriptJson };

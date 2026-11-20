@@ -1,7 +1,7 @@
 'use strict';
 
 const { requireAdminPage } = require('./lib/admin-auth');
-const { renderAdminNav, ADMIN_NAV_ITEMS } = require('./lib/admin-nav');
+const { renderAdminNav, ADMIN_NAV_ITEMS, ADMIN_LOGOUT_SCRIPT, scriptJson } = require('./lib/admin-nav');
 
 const DESCRIPTIONS = Object.freeze({
   articles: '記事の公開状態、予約、レビュー状況を確認・変更します。',
@@ -81,6 +81,10 @@ ${renderAdminNav('home')}
     ${renderDashboardCards()}
   </section>
 </main>
+<script nonce="{{NONCE}}">
+const REVIEW_TOKEN = {{TOKEN}};
+{{LOGOUT_SCRIPT}}
+</script>
 </body>
 </html>`;
 
@@ -104,6 +108,8 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...auth.headers },
-    body: HTML,
+    body: HTML.replace(/\{\{NONCE\}\}/g, () => auth.nonce)
+      .replace('{{TOKEN}}', () => scriptJson(auth.csrfToken))
+      .replace('{{LOGOUT_SCRIPT}}', () => ADMIN_LOGOUT_SCRIPT),
   };
 };

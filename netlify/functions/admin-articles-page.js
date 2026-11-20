@@ -13,7 +13,7 @@
  */
 
 const { requireAdminPage } = require('./lib/admin-auth');
-const { renderAdminNav } = require('./lib/admin-nav');
+const { renderAdminNav, ADMIN_LOGOUT_SCRIPT, scriptJson } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -155,7 +155,7 @@ ${renderAdminNav('articles')}
 
 <script nonce="{{NONCE}}">
 (function () {
-  const REVIEW_TOKEN = "{{TOKEN}}";
+  const REVIEW_TOKEN = {{TOKEN}};
   const STATE = { items: [], filterStatus: 'all', search: '' };
 
   const STATUS_LABELS = {
@@ -189,6 +189,20 @@ ${renderAdminNav('articles')}
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // href に入れてよいのは https・http と、/ で始まり // で始まらない道筋だけ。
+  function safeHref(s) {
+    const url = String(s == null ? '' : s);
+    const lower = url.toLowerCase();
+    if (url.includes(String.fromCharCode(92))) return '#';
+    // タブ・改行・空白などの制御文字はブラウザが URL を読むときに取り除くため、
+    // 取り除いた結果が // で始まる外のサイトになる値をここで落とす。
+    for (let i = 0; i < url.length; i++) {
+      const code = url.charCodeAt(i);
+      if (code <= 32 || code === 127) return '#';
+    }
+    return lower.startsWith('https://') || lower.startsWith('http://') || (url.startsWith('/') && !url.startsWith('//')) ? url : '#';
   }
 
   function fmtDate(s) {
@@ -280,12 +294,12 @@ ${renderAdminNav('articles')}
 
     const links = [];
     if (it.publicUrl && it.review_status === 'published') {
-      links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(it.publicUrl)
+      links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(safeHref(it.publicUrl))
         + '"><i class="bi bi-box-arrow-up-right"></i> 公開URL</a>');
     }
-    links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(it.reviewUrl)
+    links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(safeHref(it.reviewUrl))
       + '"><i class="bi bi-search"></i> レビュー画面</a>');
-    links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(it.githubUrl)
+    links.push('<a class="btn btn-link-outline" target="_blank" href="' + escHtml(safeHref(it.githubUrl))
       + '"><i class="bi bi-github"></i> GitHub</a>');
 
     let actionBtns = '';
@@ -371,6 +385,9 @@ ${renderAdminNav('articles')}
 
   // 初回読み込み
   fetchList();
+
+  // ログアウト（管理メニューのボタン）
+{{LOGOUT_SCRIPT}}
 })();
 </script>
 </body>
@@ -383,6 +400,8 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...auth.headers },
-    body: HTML.replace(/\{\{NONCE\}\}/g, auth.nonce).replace('"{{TOKEN}}"', JSON.stringify(auth.csrfToken)),
+    body: HTML.replace(/\{\{NONCE\}\}/g, () => auth.nonce)
+      .replace('{{TOKEN}}', () => scriptJson(auth.csrfToken))
+      .replace('{{LOGOUT_SCRIPT}}', () => ADMIN_LOGOUT_SCRIPT),
   };
 };

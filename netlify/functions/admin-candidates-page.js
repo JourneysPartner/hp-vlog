@@ -16,7 +16,7 @@
  */
 
 const { requireAdminPage } = require('./lib/admin-auth');
-const { renderAdminNav } = require('./lib/admin-nav');
+const { renderAdminNav, ADMIN_LOGOUT_SCRIPT, scriptJson } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -223,7 +223,7 @@ ${renderAdminNav('candidates')}
 <script nonce="{{NONCE}}">
 'use strict';
 (() => {
-  const REVIEW_TOKEN = "{{TOKEN}}";
+  const REVIEW_TOKEN = {{TOKEN}};
   const API_LIST = '/admin/api/candidates/list';
   const API_SAVE = '/admin/api/candidates/save';
 
@@ -277,7 +277,7 @@ ${renderAdminNav('candidates')}
       render();
       setIndicator('saved', '保存済');
     } catch (e) {
-      $('tbody').innerHTML = '<tr><td colspan="9" class="loading">読込失敗: ' + e.message + '</td></tr>';
+      $('tbody').innerHTML = '<tr><td colspan="9" class="loading">読込失敗: ' + escapeHtml(e.message) + '</td></tr>';
       setIndicator('error', '読込失敗');
     }
   }
@@ -366,23 +366,25 @@ ${renderAdminNav('candidates')}
     const html = items.map(c => {
       const personaLabel = PERSONA_LABELS[c.proposed_persona] || c.proposed_persona || '-';
       const cls = [c.adopted ? 'adopted' : '', c.rejected ? 'rejected' : '', c.shitsugi_url === state.currentUrl ? 'current' : ''].filter(Boolean).join(' ');
-      const safeUrl = (c.shitsugi_url || '').replace(/"/g, '&quot;');
+      // data-url は元の値をそのまま持ち、href は scheme を確かめたものにする。
+      const dataUrl = escapeHtml(c.shitsugi_url || '');
+      const linkUrl = escapeHtml(safeHref(c.shitsugi_url));
       const dec = c.auto_decision || '';
-      const badge = dec ? '<span class="badge ' + dec + '">' + (DECISION_LABEL[dec] || dec) + '</span>' : '';
+      const badge = dec ? '<span class="badge ' + escapeHtml(dec) + '">' + escapeHtml(DECISION_LABEL[dec] || dec) + '</span>' : '';
       const potCls = c.article_potential === 'high' ? 'pot-high' : (c.article_potential === 'medium' ? 'pot-medium' : 'pot-low');
       const segs = (c.target_segments || []).map(s => '<span class="segtag">' + escapeHtml(SEG_LABEL[s] || s) + '</span>').join('');
       const reasons = (c.auto_reasons || []).slice(0, 3).map(escapeHtml).join(' / ');
-      return '<tr class="' + cls + '" data-url="' + safeUrl + '">' +
+      return '<tr class="' + cls + '" data-url="' + dataUrl + '">' +
         '<td class="num">' + c.idx + '</td>' +
         '<td>' + badge + '</td>' +
-        '<td class="score"><span class="' + potCls + '">' + (c.auto_score != null ? c.auto_score : c.score) + '</span></td>' +
+        '<td class="score"><span class="' + potCls + '">' + escapeHtml(c.auto_score != null ? c.auto_score : c.score) + '</span></td>' +
         '<td class="tax">' + escapeHtml(c.tax_category || '') + '</td>' +
         '<td class="persona">' + escapeHtml(personaLabel) + '</td>' +
         '<td class="title">' + escapeHtml(c.shitsugi_title || '') +
           '<div class="reasons">' + segs + (reasons ? ' ' + reasons : '') + '</div></td>' +
-        '<td class="link"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">原文</a></td>' +
-        '<td class="adopt"><input type="checkbox" data-kind="adopted" data-url="' + safeUrl + '"' + (c.adopted ? ' checked' : '') + '></td>' +
-        '<td class="reject"><input type="checkbox" data-kind="rejected" data-url="' + safeUrl + '"' + (c.rejected ? ' checked' : '') + '></td>' +
+        '<td class="link"><a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer">原文</a></td>' +
+        '<td class="adopt"><input type="checkbox" data-kind="adopted" data-url="' + dataUrl + '"' + (c.adopted ? ' checked' : '') + '></td>' +
+        '<td class="reject"><input type="checkbox" data-kind="rejected" data-url="' + dataUrl + '"' + (c.rejected ? ' checked' : '') + '></td>' +
       '</tr>';
     }).join('');
     tbody.innerHTML = html;
@@ -390,6 +392,20 @@ ${renderAdminNav('candidates')}
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
+  }
+
+  // href に入れてよいのは https・http と、/ で始まり // で始まらない道筋だけ。
+  function safeHref(s) {
+    const url = String(s == null ? '' : s);
+    const lower = url.toLowerCase();
+    if (url.includes(String.fromCharCode(92))) return '#';
+    // タブ・改行・空白などの制御文字はブラウザが URL を読むときに取り除くため、
+    // 取り除いた結果が // で始まる外のサイトになる値をここで落とす。
+    for (let i = 0; i < url.length; i++) {
+      const code = url.charCodeAt(i);
+      if (code <= 32 || code === 127) return '#';
+    }
+    return lower.startsWith('https://') || lower.startsWith('http://') || (url.startsWith('/') && !url.startsWith('//')) ? url : '#';
   }
 
   // ── イベントハンドラ ────────────────────────────────────────
@@ -524,6 +540,9 @@ ${renderAdminNav('candidates')}
     el.textContent = text;
   }
 
+  // ログアウト（管理メニューのボタン）
+{{LOGOUT_SCRIPT}}
+
   init();
 })();
 </script>
@@ -542,6 +561,8 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...auth.headers },
-    body: HTML.replace(/\{\{NONCE\}\}/g, auth.nonce).replace('"{{TOKEN}}"', JSON.stringify(auth.csrfToken)),
+    body: HTML.replace(/\{\{NONCE\}\}/g, () => auth.nonce)
+      .replace('{{TOKEN}}', () => scriptJson(auth.csrfToken))
+      .replace('{{LOGOUT_SCRIPT}}', () => ADMIN_LOGOUT_SCRIPT),
   };
 };

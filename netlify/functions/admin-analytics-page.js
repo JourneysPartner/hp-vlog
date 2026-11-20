@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { requireAdminPage } = require('./lib/admin-auth');
-const { renderAdminNav } = require('./lib/admin-nav');
+const { renderAdminNav, ADMIN_LOGOUT_SCRIPT, scriptJson } = require('./lib/admin-nav');
 
 // サーチコンソールの週次レポート（data/search-console/report.md）。
 // netlify.toml の [functions] included_files で関数に同梱している。
@@ -45,7 +45,7 @@ const HTML = `<!doctype html>
 <section class="panel sources-panel"><h2>流入元</h2><p class="notice">サイトに入ってきた 1 回を 1 訪問と数えます。『不明』は、ブックマークやアプリからの移動など、直前のサイトが届かなかった訪問です。操作ありは、スクロールやタップなどがあった訪問です。自動アクセスを完全には見分けられません。検索語は分かりません。</p><p class="notice" id="sources-since"></p><div class="sources-scroll" id="sources-table"></div><h3>他のサイト・印付きリンクの内訳</h3><ol id="source-details"></ol></section>
 <section class="panel"><h2>人気ページ Top 10</h2><ol id="top"></ol></section><div class="from-panels"><section class="panel"><h2>問い合わせにつながったページ</h2><p class="notice">選択中の期間に、このページから問い合わせページへ進んだ回数です。</p><ol id="contact-from"></ol></section><section class="panel"><h2>送信完了につながったページ</h2><p class="notice">選択中の期間に、このページを見たあと問い合わせを送った回数です（同じ画面の中で続けて見た場合だけ数えます）。</p><ol id="submitted-from"></ol></section><section class="panel"><h2>LINE 相談につながったページ</h2><p id="line-total"></p><p class="notice">選択中の期間に、お問い合わせページの『LINEで相談する』が押された回数です。ページ名は、問い合わせページの前に見ていたページです（直接来た場合は『お問い合わせ』）。同じ人が 1 分以内に続けて押した分は 1 回と数えます。友だち追加まで進んだかは、LINE 公式アカウントの管理画面で確かめてください。</p><ol id="line-from"></ol></section></div>{{SEARCH_CONSOLE}}</main>
 <script nonce="{{NONCE}}">
-(() => { let state={data:null,map:{},days:30,chart:null}; const n=x=>Number(x||0).toLocaleString('ja-JP');
+(() => { const REVIEW_TOKEN = {{TOKEN}}; let state={data:null,map:{},days:30,chart:null}; const n=x=>Number(x||0).toLocaleString('ja-JP');
 function totals(rows){return rows.reduce((a,r)=>({pageviews:a.pageviews+r.pageviews,visitors:a.visitors+r.visitors}),{pageviews:0,visitors:0})}
 function renderCards(s){const items=[['今日',s.today],['昨日',s.yesterday],['直近7日',s.sevenDays],['直近30日',s.thirtyDays]];document.getElementById('cards').innerHTML=items.map(x=>'<div class="card"><div class="label">'+x[0]+'</div><div class="stat"><div><b>'+n(x[1].visitors)+'</b><br><span>訪問者</span></div><div><b>'+n(x[1].pageviews)+'</b><br><span>PV</span></div></div></div>').join('')}
 const WEEK=['日','月','火','水','木','金','土'];
@@ -98,6 +98,7 @@ chartEl.addEventListener('pointermove',onPointer);chartEl.addEventListener('poin
 chartEl.addEventListener('keydown',e=>{const c=state.chart;if(!c||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();showTip((c.index===null?c.rows.length:c.index)+(e.key==='ArrowLeft'?-1:1))});
 if(typeof ResizeObserver==='function')new ResizeObserver(()=>{const c=state.chart;if(c&&Math.max(320,chartEl.clientWidth)!==c.W)renderChart(c.rows)}).observe(chartEl);
 Promise.all([fetch('/admin/api/analytics',{credentials:'same-origin',cache:'no-store'}),fetch('/analytics-page-map.json',{cache:'no-store'})]).then(async([a,m])=>{if(a.status===401){location.reload();throw new Error('401');}if(!a.ok)throw new Error('HTTP '+a.status);state.data=await a.json();if(!state.data.ok)throw new Error('API error');state.map=m.ok?await m.json():{};renderCards(state.data.summaries);render()}).catch(e=>{document.getElementById('cards').innerHTML='<p class="error">読み込みに失敗しました: '+escapeHtml(e.message)+'</p>'});
+${ADMIN_LOGOUT_SCRIPT}
 })();
 </script></body></html>`;
 
@@ -108,7 +109,9 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...auth.headers },
-    body: HTML.replace(/\{\{NONCE\}\}/g, auth.nonce).replace('{{SEARCH_CONSOLE}}', () => renderSearchConsoleSection()),
+    body: HTML.replace(/\{\{NONCE\}\}/g, () => auth.nonce)
+      .replace('{{TOKEN}}', () => scriptJson(auth.csrfToken))
+      .replace('{{SEARCH_CONSOLE}}', () => renderSearchConsoleSection()),
   };
 };
 
