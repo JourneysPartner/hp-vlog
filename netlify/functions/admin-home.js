@@ -1,6 +1,6 @@
 'use strict';
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminPage } = require('./lib/admin-auth');
 const { renderAdminNav, ADMIN_NAV_ITEMS } = require('./lib/admin-nav');
 
 const DESCRIPTIONS = Object.freeze({
@@ -85,8 +85,9 @@ ${renderAdminNav('home')}
 </html>`;
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  // 管理トップは、ログイン後は最初の画面（記事管理）へ戻す。
+  const auth = requireAdminPage(event, '/admin/articles');
+  if (auth.response) return auth.response;
 
   if (event.httpMethod !== 'GET') {
     return {
@@ -102,11 +103,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow',
-    },
+    headers: { ...auth.headers },
     body: HTML,
   };
 };

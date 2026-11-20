@@ -1,8 +1,11 @@
 'use strict';
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const crypto = require('crypto');
+const { requireAdminPage } = require('./lib/admin-auth');
 const githubApi = require('./lib/github-api');
 const { renderAdminNav } = require('./lib/admin-nav');
+
+const scriptJson = value => JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -10,7 +13,9 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function renderPage(candidates, pullRequests) {
+function renderPage(candidates, pullRequests, security = {}) {
+  const nonce = security.nonce || crypto.randomBytes(18).toString('base64url');
+  const csrfToken = security.csrfToken || '';
   const prByBranch = new Map((pullRequests || []).map(pr => [
     pr && pr.head && pr.head.ref, pr,
   ]).filter(([branch]) => branch));
@@ -57,11 +62,13 @@ function renderPage(candidates, pullRequests) {
     </style></head><body>${renderAdminNav('freshness')}<main><h1>記事の更新候補</h1>
     <p>候補の理由を確認し、必要な記事だけ更新案を作成します。公開中の記事は、承認後に反映されます。</p>
     ${cards || '<p class="empty">現在、更新候補はありません。</p>'}
-    </main><script>
+    </main><script nonce="${nonce}">
+      const REVIEW_TOKEN = ${scriptJson(csrfToken)};
       document.querySelectorAll('.action').forEach(button=>button.addEventListener('click',async()=>{
         const card=button.closest('.candidate');const result=card.querySelector('.result');
         button.disabled=true;result.textContent='処理しています…';
-        try{const response=await fetch('/admin/api/freshness/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:button.dataset.action,slug:button.dataset.slug})});
+        try{const response=await fetch('/admin/api/freshness/action',{method:'POST',headers:{'Content-Type':'application/json','X-Review-Token':REVIEW_TOKEN},body:JSON.stringify({action:button.dataset.action,slug:button.dataset.slug})});
+          if(response.status===401){location.reload();throw new Error('401');}
           const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||'処理に失敗しました。');
           result.textContent=data.message||'処理が完了しました。';
         }catch(error){result.textContent=error.message;button.disabled=false;}
@@ -70,8 +77,8 @@ function renderPage(candidates, pullRequests) {
 }
 
 async function handler(event, injected = {}) {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  const auth = requireAdminPage(event, '/admin/freshness');
+  if (auth.response) return auth.response;
   if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
   const getFile = injected.getFile || githubApi.getFile;
   const listOpenPRs = injected.listOpenPRs || githubApi.listOpenPRs;
@@ -83,14 +90,14 @@ async function handler(event, injected = {}) {
     const data = JSON.parse(file.content);
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
-      body: renderPage(data.candidates || [], pullRequests),
+      headers: { ...auth.headers },
+      body: renderPage(data.candidates || [], pullRequests, { nonce: auth.nonce, csrfToken: auth.csrfToken }),
     };
   } catch (_) {
     console.error('[admin-freshness-page] 更新候補を取得できませんでした');
     return {
       statusCode: 503,
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers: { ...auth.headers },
       body: '<!doctype html><html lang="ja"><meta charset="utf-8"><h1>更新候補を表示できません</h1><p>しばらくしてから再度お試しください。</p></html>',
     };
   }

@@ -5,7 +5,7 @@
  *
  * GET /admin/candidates
  *
- * 必須認証: HTTP Basic
+ * 必須認証: 承認画面と同じセッション Cookie（POST /review-login でログイン）
  *
  * テーブル形式の UI:
  *   - 番号 / 税目 / ペルソナ / タイトル / 原文リンク / 採用チェック
@@ -15,7 +15,7 @@
  *   - 保存中インジケータ
  */
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminPage } = require('./lib/admin-auth');
 const { renderAdminNav } = require('./lib/admin-nav');
 
 const HTML = `<!DOCTYPE html>
@@ -220,9 +220,10 @@ ${renderAdminNav('candidates')}
   </table>
 </div>
 
-<script>
+<script nonce="{{NONCE}}">
 'use strict';
 (() => {
+  const REVIEW_TOKEN = "{{TOKEN}}";
   const API_LIST = '/admin/api/candidates/list';
   const API_SAVE = '/admin/api/candidates/save';
 
@@ -263,6 +264,7 @@ ${renderAdminNav('candidates')}
     setIndicator('loading', '読込中…');
     try {
       const res = await fetch(API_LIST);
+      if (res.status === 401) { location.reload(); throw new Error('401'); }
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       state.sha = data.sha;
@@ -483,14 +485,16 @@ ${renderAdminNav('candidates')}
     try {
       const res = await fetch(API_SAVE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Review-Token': REVIEW_TOKEN },
         body: JSON.stringify({ sha: state.sha, updates }),
       });
+      if (res.status === 401) throw new Error('SESSION_EXPIRED');
       const data = await res.json();
       if (res.status === 409) {
         // sha 競合 → 再 fetch して再試行
         setIndicator('saving', '競合検出、再取得中…');
         const reload = await fetch(API_LIST);
+        if (reload.status === 401) throw new Error('SESSION_EXPIRED');
         const fresh = await reload.json();
         state.sha = fresh.sha;
         // pending を再投入
@@ -504,7 +508,9 @@ ${renderAdminNav('candidates')}
       state.sha = data.sha;
       setIndicator('saved', '保存済（採用 ' + data.adopted_count + ' / 除外 ' + (data.rejected_count != null ? data.rejected_count : '?') + ' 件）');
     } catch (e) {
-      setIndicator('error', '保存失敗: ' + e.message);
+      setIndicator('error', e.message === 'SESSION_EXPIRED'
+        ? 'ログインが切れたため保存していません。ページを開き直してログインしてください。'
+        : '保存失敗: ' + e.message);
       // pending を戻す（次回保存で再試行）
       for (const [url, u] of Object.entries(updates)) {
         if (!state.pendingUpdates[url]) state.pendingUpdates[url] = u;
@@ -526,8 +532,8 @@ ${renderAdminNav('candidates')}
 `;
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
+  const auth = requireAdminPage(event, '/admin/candidates');
+  if (auth.response) return auth.response;
 
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -535,11 +541,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow',
-    },
-    body: HTML,
+    headers: { ...auth.headers },
+    body: HTML.replace(/\{\{NONCE\}\}/g, auth.nonce).replace('"{{TOKEN}}"', JSON.stringify(auth.csrfToken)),
   };
 };

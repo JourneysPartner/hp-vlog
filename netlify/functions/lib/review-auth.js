@@ -32,8 +32,20 @@ function decode(value, bytes) {
   return result.toString('base64url') === value && (!bytes || result.length === bytes) ? result : null;
 }
 
+// ログイン後に戻してよい管理画面の道筋。要求の中身からは作らない。
+// 管理トップ（/admin）は、既存の承認画面の試験が「戻してはいけない道筋」として
+// 固定しているため、ここには入れず、管理トップの入口は /admin/articles を使う。
+const ADMIN_PAGES = Object.freeze([
+  '/admin/articles',
+  '/admin/candidates',
+  '/admin/freshness',
+  '/admin/analytics',
+]);
+
 function safeNext(value) {
-  if (typeof value !== 'string' || !value.startsWith('/review?')) return '/review';
+  if (typeof value !== 'string') return '/review';
+  if (ADMIN_PAGES.includes(value)) return value;
+  if (!value.startsWith('/review?')) return '/review';
   try {
     // 二重に符号化された制御文字もリダイレクトに持ち込まない。
     let decoded = value;
@@ -184,9 +196,11 @@ function createReviewAuth({ env = process.env, now = () => Date.now(), getStoreF
   function loginPage(next, statusCode = 401, message = '') {
     const nonce = crypto.randomBytes(18).toString('base64url');
     // next 全体を符号化し、未認証の HTML にファイル名を直接載せない。
-    const encodedNext = [...Buffer.from(safeNext(next))].map(byte => `%${byte.toString(16).padStart(2, '0')}`).join('');
-    return { statusCode, headers: pageHeaders(nonce), body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>レビュー画面にログイン</title>
-<style>body{font-family:sans-serif;background:#f5f5f5;color:#0b2045;margin:0;padding:2rem}.box{max-width:400px;margin:4rem auto;background:white;padding:2rem;border-radius:12px}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:1rem}button{background:#0b2045;color:white;border:0;border-radius:6px}</style></head><body><main class="box"><h1>レビュー画面にログイン</h1><p role="alert">${escapeHtml(message)}</p><form method="post" action="/review-login"><label for="password">パスワード</label><input id="password" name="password" type="password" autocomplete="current-password" autofocus required><input type="hidden" name="next" value="${escapeHtml(encodedNext)}"><button type="submit">レビュー画面を開く</button></form><script nonce="${nonce}">
+    const destination = safeNext(next);
+    const adminPage = ADMIN_PAGES.includes(destination);
+    const encodedNext = [...Buffer.from(destination)].map(byte => `%${byte.toString(16).padStart(2, '0')}`).join('');
+    return { statusCode, headers: pageHeaders(nonce), body: `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${adminPage ? '管理画面にログイン' : 'レビュー画面にログイン'}</title>
+<style>body{font-family:sans-serif;background:#f5f5f5;color:#0b2045;margin:0;padding:2rem}.box{max-width:400px;margin:4rem auto;background:white;padding:2rem;border-radius:12px}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:1rem}button{background:#0b2045;color:white;border:0;border-radius:6px}</style></head><body><main class="box"><h1>${adminPage ? '管理画面にログイン' : 'レビュー画面にログイン'}</h1><p role="alert">${escapeHtml(message)}</p><form method="post" action="/review-login"><label for="password">パスワード</label><input id="password" name="password" type="password" autocomplete="current-password" autofocus required><input type="hidden" name="next" value="${escapeHtml(encodedNext)}"><button type="submit">${adminPage ? '管理画面を開く' : 'レビュー画面を開く'}</button></form><script nonce="${nonce}">
 const next = document.querySelector('input[name="next"]');
 next.value = decodeURIComponent(next.value);
 const form = document.querySelector('form');
@@ -299,7 +313,7 @@ window.addEventListener('pageshow', event => {
     if (auth.response) return auth.response;
     return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Set-Cookie': cookie('', 0) }, body: JSON.stringify({ message: 'ログアウトしました' }) };
   }
-  return { configuration, issueSession, verifySession, csrfToken, requireSession, requireAction, loginPage, pageNext, login, logout };
+  return { configuration, issueSession, verifySession, csrfToken, requireSession, requireAction, loginPage, pageNext, login, logout, audit };
 }
 
-module.exports = { ...createReviewAuth(), createReviewAuth, pageHeaders, safeNext, escapeHtml, COOKIE_NAME, TTL };
+module.exports = { ...createReviewAuth(), createReviewAuth, pageHeaders, safeNext, escapeHtml, COOKIE_NAME, TTL, ADMIN_PAGES };

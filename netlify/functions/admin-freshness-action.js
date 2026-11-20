@@ -1,11 +1,10 @@
 'use strict';
 
 const matter = require('gray-matter');
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminAction } = require('./lib/admin-auth');
 const githubApi = require('./lib/github-api');
 
 const CANDIDATES_FILE = 'data/freshness/candidates.json';
-const SITE_ORIGIN = 'https://mori-zeirishi.net';
 
 function response(statusCode, payload) {
   return {
@@ -19,30 +18,12 @@ function refreshBranch(slug) {
   return `draft/refresh-${slug}`;
 }
 
-function headerValue(headers, name) {
-  const key = Object.keys(headers || {}).find(value => value.toLowerCase() === name.toLowerCase());
-  return key ? String(headers[key] || '').trim() : '';
-}
-
-function isSameOriginRequest(headers) {
-  const origin = headerValue(headers, 'origin');
-  if (origin) {
-    try { return new URL(origin).origin === SITE_ORIGIN; }
-    catch (_) { return false; }
-  }
-  return headerValue(headers, 'sec-fetch-site') === 'same-origin';
-}
-
 async function handler(event, injected = {}) {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
   if (event.httpMethod !== 'POST') return response(405, { error: 'method_not_allowed', message: 'POSTで操作してください。' });
-  if (!/^application\/json(?:\s*;|\s*$)/i.test(headerValue(event.headers, 'content-type'))) {
-    return response(415, { error: 'unsupported_media_type', message: 'JSON形式で送信してください。' });
-  }
-  if (!isSameOriginRequest(event.headers)) {
-    return response(403, { error: 'forbidden_origin', message: 'この画面から操作してください。' });
-  }
+
+  // 送り元・セッション・合言葉・Content-Type は requireAdminAction が 1 か所で見る。
+  const auth = requireAdminAction(event);
+  if (auth.response) return auth.response;
 
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (_) {
@@ -132,4 +113,3 @@ async function handler(event, injected = {}) {
 exports.handler = handler;
 exports._handler = handler;
 exports.refreshBranch = refreshBranch;
-exports.isSameOriginRequest = isSameOriginRequest;

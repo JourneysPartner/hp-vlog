@@ -10,7 +10,7 @@
  *     action: "unpublish" | "cancel_publish"
  *   }
  *
- * 必須認証: HTTP Basic（ADMIN_BASIC_USER / ADMIN_BASIC_PASS）
+ * 必須認証: 承認画面と同じセッション Cookie ＋ 合言葉（X-Review-Token）
  *
  * 動作:
  *   action="unpublish":
@@ -26,7 +26,7 @@
  * 既存のレビュー機能（review-approve など）と重複しないため、main 直 commit のみを行う。
  */
 
-const { requireBasicAuth } = require('./lib/admin-auth');
+const { requireAdminAction } = require('./lib/admin-auth');
 const { getFile, putFile, updateFrontmatter, nowJST } = require('./lib/github-api');
 
 function parseFrontmatter(raw) {
@@ -50,12 +50,12 @@ function jsonRes(statusCode, payload) {
 }
 
 exports.handler = async (event) => {
-  const auth = requireBasicAuth(event);
-  if (auth) return auth;
-
   if (event.httpMethod !== 'POST') {
     return jsonRes(405, { ok: false, error: 'Method Not Allowed' });
   }
+
+  const auth = requireAdminAction(event);
+  if (auth.response) return auth.response;
 
   let body;
   try {
