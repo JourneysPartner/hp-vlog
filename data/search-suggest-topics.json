@@ -1879,7 +1879,144 @@
       "primary_question": "消費税の中間納付を払えない場合、どのように対応すればよいのでしょうか？",
       "reader_problem": "消費税の中間納付が難しく、納付猶予や相談の方法を知りたい。",
       "selected_at": "2026-11-08T20:56:24.049Z"
+    },
+    {
+      "slug": "suggest-ec-kakutei-3a064c",
+      "seed_id": "ec-kakutei",
+      "phrases": [
+        "ネットショップ 確定申告 いくらから"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "ネットショップの所得がいくらになったら確定申告が必要ですか？",
+      "reader_problem": "売上と利益のどちらを基準に申告の要否を判断するのか、また自分に申告義務があるのかわからない。",
+      "selected_at": "2026-11-22T22:18:08.813Z"
+    },
+    {
+      "slug": "suggest-ec-kanzei-kamoku-41c07f",
+      "seed_id": "ec-kanzei-kamoku",
+      "phrases": [
+        "関税 勘定科目 輸入",
+        "関税 勘定科目 消費税",
+        "関税 勘定科目 仕訳",
+        "関税 勘定科目 租税 公課",
+        "関税 勘定科目 仕 入 以外"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "bookkeeping_expenses",
+      "category": "帳簿・経費",
+      "article_type": "basic_explainer",
+      "primary_question": "輸入時に支払った関税は、どの勘定科目でどのように仕訳すればよいですか？",
+      "reader_problem": "関税を仕入原価に含めるのか租税公課などで処理するのか判断できない。",
+      "selected_at": "2026-11-22T22:18:08.813Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-shiwake-f8fcbd",
+      "seed_id": "ec-yunyu-shiwake",
+      "phrases": [
+        "輸入消費税 仕訳 税込経理",
+        "輸入消費税 仕訳 税抜経理",
+        "輸入消費税 仕訳 税込"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "comparison_decision",
+      "primary_question": "輸入消費税は、税込経理と税抜経理でどのように仕訳が変わりますか？",
+      "reader_problem": "自社の経理方式に合わせた輸入消費税の仕訳方法がわからない。",
+      "selected_at": "2026-11-22T22:18:08.813Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-shiwake-810b2e",
+      "seed_id": "ec-yunyu-shiwake",
+      "phrases": [
+        "簡易課税 輸入消費税 仕訳"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "簡易課税を適用している事業者は、輸入消費税をどのように仕訳すればよいですか？",
+      "reader_problem": "簡易課税の場合に輸入消費税を仕入税額控除として扱えるのか、帳簿上どう処理するのかわからない。",
+      "selected_at": "2026-11-22T22:18:08.813Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-kojo-8f1436",
+      "seed_id": "ec-yunyu-kojo",
+      "phrases": [
+        "輸入消費税 控除 仕組み",
+        "輸入消費税 控除 時期"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "輸入消費税は、どのような条件でいつ仕入税額控除できますか？",
+      "reader_problem": "控除を受けるための要件や、申告で控除できる時期がわからない。",
+      "selected_at": "2026-11-22T22:18:08.814Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-kojo-9d1baf",
+      "seed_id": "ec-yunyu-kojo",
+      "phrases": [
+        "輸入消費税 控除対象外消費税"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "輸入消費税が仕入税額控除の対象外になるのはどのような場合ですか？",
+      "reader_problem": "輸入時に支払った消費税を控除できないケースや、その場合の会計処理がわからない。",
+      "selected_at": "2026-11-22T22:18:08.814Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-menzei-4abf66",
+      "seed_id": "ec-yunyu-menzei",
+      "phrases": [
+        "輸入消費税 免税事業者 仕訳",
+        "輸入消費税 勘定科目 免税事業者"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "免税事業者は、輸入時に支払った消費税をどのように仕訳すればよいですか？",
+      "reader_problem": "仕入税額控除を受けられない輸入消費税を、どの勘定科目で処理すべきかわからない。",
+      "selected_at": "2026-11-22T22:18:08.814Z"
+    },
+    {
+      "slug": "suggest-ec-yunyu-menzei-bf50a4",
+      "seed_id": "ec-yunyu-menzei",
+      "phrases": [
+        "免税事業者 輸入消費税 還付"
+      ],
+      "persona": "domestic_ec_seller",
+      "tax_domain": "consumption_tax",
+      "category": "消費税",
+      "article_type": "basic_explainer",
+      "primary_question": "免税事業者は、輸入時に支払った消費税の還付を受けられますか？",
+      "reader_problem": "輸入で負担した消費税について、還付を受けられる条件があるのか知りたい。",
+      "selected_at": "2026-11-22T22:18:08.814Z"
+    },
+    {
+      "slug": "suggest-furima-mercari-c5892e",
+      "seed_id": "furima-mercari",
+      "phrases": [
+        "メルカリ 売上 税金 かかる",
+        "メルカリ 売上 税金 不用品",
+        "メルカリ 売上 税金 いくら",
+        "メルカリ 売上 税金 いくら から"
+      ],
+      "persona": "reseller_marketplace_seller",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "comparison_decision",
+      "primary_question": "メルカリの売上は、不用品の売却と継続的な販売で税金の扱いや申告がどう変わりますか？",
+      "reader_problem": "メルカリの売上がいくらから課税・申告の対象になるのか、不用品を売った場合も含めて判断できない。",
+      "selected_at": "2026-11-22T22:18:08.814Z"
     }
   ],
-  "updated_at": "2026-11-08T20:56:24.049Z"
+  "updated_at": "2026-11-22T22:18:08.814Z"
 }
