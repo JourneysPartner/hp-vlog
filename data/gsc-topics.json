@@ -97,7 +97,23 @@
       "status": "rejected",
       "rejected_at": "2026-09-28",
       "reject_reason": "既存の小売レジ売上記事の題名に語があり 28 位。既存記事の充実が先"
+    },
+    {
+      "slug": "gsc-95228694",
+      "phrases": [
+        "確定申告 建設"
+      ],
+      "impressions": 12,
+      "position": 28.1,
+      "page": "https://mori-zeirishi.net/blog/macro/construction/",
+      "persona": "construction_solo",
+      "tax_domain": "income_tax",
+      "category": "所得税",
+      "article_type": "basic_explainer",
+      "primary_question": "建設業の個人事業主は、確定申告で何を申告すればよいですか？",
+      "reader_problem": "建設業を個人で営んでいるものの、確定申告の対象や手続きがわからず困っている。",
+      "selected_at": "2026-11-23T00:15:33.322Z"
     }
   ],
-  "updated_at": "2026-09-28T11:39:44.485Z"
+  "updated_at": "2026-11-23T00:15:33.322Z"
 }

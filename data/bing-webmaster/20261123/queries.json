@@ -1,0 +1,419 @@
+{
+  "site_url": "https://mori-zeirishi.net/",
+  "window": {
+    "start": "2026-10-25",
+    "end": "2026-11-21",
+    "days_reported": 8,
+    "conflicting_dates": []
+  },
+  "rows": [
+    {
+      "query": "商品券 消費税",
+      "impressions": 163,
+      "clicks": 2,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "高額特定資産",
+      "impressions": 94,
+      "clicks": 3,
+      "position": 5,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "特定課税仕入れとは",
+      "impressions": 45,
+      "clicks": 0,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "ギフトカード 消費税",
+      "impressions": 40,
+      "clicks": 1,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "自動販売機特例",
+      "impressions": 24,
+      "clicks": 0,
+      "position": 5,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "自販機特例",
+      "impressions": 13,
+      "clicks": 0,
+      "position": 5,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "旅費 日当 消費税",
+      "impressions": 11,
+      "clicks": 0,
+      "position": 7,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "ebay commerce inc. san jos　消費税",
+      "impressions": 8,
+      "clicks": 2,
+      "position": 7,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "商品券　消費税",
+      "impressions": 7,
+      "clicks": 1,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "相続税精算課税で取得した株式を売却可能か",
+      "impressions": 6,
+      "clicks": 1,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "輸入消費税 還付",
+      "impressions": 5,
+      "clicks": 2,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "消費税 高額特定資産",
+      "impressions": 5,
+      "clicks": 1,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "旅費 消費税",
+      "impressions": 5,
+      "clicks": 0,
+      "position": 7,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外からの仕入れ 消費税",
+      "impressions": 4,
+      "clicks": 2,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "年末調整　保険料控除　契約者が配偶者　証明書類",
+      "impressions": 2,
+      "clicks": 2,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "ebay取引手数料　消費税",
+      "impressions": 2,
+      "clicks": 1,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "商品券 課税区分 非課税 不課税",
+      "impressions": 2,
+      "clicks": 1,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "商品券購入 仕訳 非課税 不課税",
+      "impressions": 2,
+      "clicks": 1,
+      "position": 1,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "個人事業主 家族従業員",
+      "impressions": 2,
+      "clicks": 0,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "香港　電子書籍の印税・確定申告",
+      "impressions": 2,
+      "clicks": 0,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "仕入れ消費税",
+      "impressions": 2,
+      "clicks": 0,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外仕入れは免税事業者か",
+      "impressions": 1,
+      "clicks": 2,
+      "position": 1,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外通販サイトからの仕入　消費税控除",
+      "impressions": 1,
+      "clicks": 2,
+      "position": 1,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "冷凍食品の賞味期限切れロスの引当は必要か",
+      "impressions": 1,
+      "clicks": 1,
+      "position": 1,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "\"国際通信\" 消費税 \"プロバイダ\" or \"インターネット\" 輸出免税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "t番号　レシート",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 9,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "youtube炎で　臨時収入",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "アイス券 消費税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 8,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "イベントで使う商品引換チケット 消費税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "スイス 個人事業主 家族を雇用",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "タックスアンサー　一括償却資産　360万",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 10,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "リース #TAB#賃貸借処理",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 7,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "リース賃貸借処理計算",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 5,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "レジの金握りしめて",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外 取り引き 消費税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外での交通費　消費税区分",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "海外日当　課税区分",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "学資保険一時金は確定申告が必要ですか",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 8,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "個人事業主 家族を従業員とする場合注意は？",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "固定資産1000万 消費税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 2,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "高額特定資産とは",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 5,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "国外取引　消費税",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 10,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "国税庁 no.5211 役員に対する給与 定期同額給与 事前確定届出給与 設立 2月",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "使用期限切れ　商品　会計処理",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 7,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "自販機特例 コインロッカー",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 4,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "住宅は80パーセント 相続",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "商品の期限切れ　特損にする",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 3,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "消費税1% イートイン　持ち帰り",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 10,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "食品 pb商品 消費期限 切れ 廃棄 処分",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "日本で海外から物を買ったら消費税を払う？",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 1,
+      "click_position": null,
+      "weeks": 1
+    },
+    {
+      "query": "日本は海外から物を買ったら消費税を払う？",
+      "impressions": 1,
+      "clicks": 0,
+      "position": 6,
+      "click_position": null,
+      "weeks": 1
+    }
+  ]
+}

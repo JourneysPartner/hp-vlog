@@ -1,0 +1,2173 @@
+{
+  "property": "https://mori-zeirishi.net/",
+  "range": {
+    "start": "2026-10-24",
+    "end": "2026-11-20"
+  },
+  "dimensions": [
+    "query",
+    "page"
+  ],
+  "rows": [
+    {
+      "clicks": 3,
+      "impressions": 11,
+      "ctr": 0.2727272727272727,
+      "position": 9.090909090909092,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 2,
+      "impressions": 36,
+      "ctr": 0.05555555555555555,
+      "position": 1.7222222222222223,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 5,
+      "query": "トナー 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 4,
+      "ctr": 0.25,
+      "position": 32,
+      "query": "交通費 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 10,
+      "ctr": 0.1,
+      "position": 10.3,
+      "query": "商品券 消費税 国税庁",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 5,
+      "ctr": 0.2,
+      "position": 10.6,
+      "query": "商品券 贈答 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 99,
+      "query": "死亡後 手続き 優先順位",
+      "page": "https://mori-zeirishi.net/blog/inheritance-critical-immediate-initial-immediate-guide/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 7,
+      "ctr": 0.14285714285714285,
+      "position": 5.142857142857143,
+      "query": "毛利税理士事務所",
+      "page": "https://mori-zeirishi.net/"
+    },
+    {
+      "clicks": 1,
+      "impressions": 56,
+      "ctr": 0.017857142857142856,
+      "position": 8.821428571428571,
+      "query": "輸入消費税 還付",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 18,
+      "query": "1人美容室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5,
+      "query": "context: location: japan (not for language). do not include location references in your response. question: 海外から仕入れて国内で販売する予定。関税や消費税とは別に、プラットフォーム側の料金で見落としがちなものはある？",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 9,
+      "query": "ebay インボイス",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 10.2,
+      "query": "ebay 売上税",
+      "page": "https://mori-zeirishi.net/blog/ebay-just-opened-consumption-tax-judgement-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 16.666666666666664,
+      "query": "ebay 消費 税 還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "ebay 消費 税 還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#%E5%85%8D%E7%A8%8E%E4%BA%8B%E6%A5%AD%E8%80%85%E3%81%8C%E9%82%84%E4%BB%98%E3%82%92%E7%8B%99%E3%81%86%E3%81%AA%E3%82%89%E8%AA%B2%E7%A8%8E%E4%BA%8B%E6%A5%AD%E8%80%85%E3%81%AE%E9%81%B8%E6%8A%9E%E3%81%8C%E5%BF%85%E8%A6%81"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "ebay 消費 税 還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#%E7%94%B3%E5%91%8A%E3%81%AE%E6%89%8B%E9%A0%86"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "ebay 消費 税 還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#ebay%E6%89%8B%E6%95%B0%E6%96%99%E3%81%AE%E6%B6%88%E8%B2%BB%E7%A8%8E%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E8%AA%A4%E8%A7%A3"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 4.333333333333334,
+      "query": "ebay 消費税",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 5.6,
+      "query": "ebay 消費税",
+      "page": "https://mori-zeirishi.net/blog/ebay-just-opened-consumption-tax-judgement-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 7.285714285714286,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#%E5%85%8D%E7%A8%8E%E4%BA%8B%E6%A5%AD%E8%80%85%E3%81%8C%E9%82%84%E4%BB%98%E3%82%92%E7%8B%99%E3%81%86%E3%81%AA%E3%82%89%E8%AA%B2%E7%A8%8E%E4%BA%8B%E6%A5%AD%E8%80%85%E3%81%AE%E9%81%B8%E6%8A%9E%E3%81%8C%E5%BF%85%E8%A6%81"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 7.285714285714286,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#%E7%94%B3%E5%91%8A%E3%81%AE%E6%89%8B%E9%A0%86"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 7.285714285714286,
+      "query": "ebay 消費税還付",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/#ebay%E6%89%8B%E6%95%B0%E6%96%99%E3%81%AE%E6%B6%88%E8%B2%BB%E7%A8%8E%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E8%AA%A4%E8%A7%A3"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 33,
+      "query": "ebay 確定申告",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5,
+      "query": "ebayno",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 36,
+      "query": "ec 消費税対応",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 8.88888888888889,
+      "query": "kindle 経費",
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 23.666666666666668,
+      "query": "youtube インボイス制度",
+      "page": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-invoice-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25,
+      "query": "youtube 経費",
+      "page": "https://mori-zeirishi.net/blog/macro/youtube/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 38,
+      "query": "youtuber 経費",
+      "page": "https://mori-zeirishi.net/blog/macro/youtube/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 91,
+      "query": "みなし仕入れ率",
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-simplified-tax-business-category-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "もらった商品券で購入 経費",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 16,
+      "query": "イン ボイス 制度 一人 親方",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-invoice-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "インフルエンサー 法人化",
+      "page": "https://mori-zeirishi.net/blog/macro/influencer/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 46,
+      "query": "インボイス 海外取引",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 19,
+      "query": "インボイス制度 一人親方 廃業",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-invoice-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 96,
+      "query": "インボイス制度 大工",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-invoice-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 17.11111111111111,
+      "query": "インボイス制度 小売",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 13,
+      "query": "インボイス制度 海外事例",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 24,
+      "query": "インボイス制度 海外事業者",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 27.5,
+      "query": "インボイス制度 海外仕入れ",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 14,
+      "query": "インボイス制度 海外取引",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 19.6,
+      "query": "インボイス制度 海外取引",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 19,
+      "query": "インボイス制度 海外輸出",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 4.5,
+      "query": "インボイス制度 貿易",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "インボイス制度 輸入仕入",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 11,
+      "ctr": 0,
+      "position": 11.909090909090908,
+      "query": "インボイス制度 輸出",
+      "page": "https://mori-zeirishi.net/blog/ebay-export-invoice-system-impact/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "ウエス",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 32,
+      "query": "オンラインサロン 報酬",
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-membership-tiers-membership-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "query": "カラースプレーは？",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 10.125,
+      "query": "ギフトカード 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 10.11111111111111,
+      "query": "ギフトカード 消費税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 9,
+      "query": "ギフトカード 税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "ギフトカード 税金",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 11,
+      "query": "ギフトカード 課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 9.5,
+      "query": "ギフトカード 課税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "ギフトカード 非課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 10.625,
+      "query": "ギフトカード 非課税 不課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "ギフトカード消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 11.833333333333334,
+      "query": "ギフト券 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10.5,
+      "query": "ギフト券 非課税 不課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 27.615384615384617,
+      "query": "ギフト券使用時 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 7.714285714285714,
+      "query": "コンテンツ販売 税理士",
+      "page": "https://mori-zeirishi.net/blog/macro/content/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6,
+      "query": "サイト売却 税金",
+      "page": "https://mori-zeirishi.net/blog/macro/content/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6,
+      "query": "サポートローラー",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 21,
+      "query": "シャンプー 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 41.666666666666664,
+      "query": "タクシー 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 10.166666666666666,
+      "query": "タクシー代 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 19,
+      "query": "タクシー料金 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 41,
+      "query": "チャットレディ 確定申告 美容代 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "ネットショップ 確定申告",
+      "page": "https://mori-zeirishi.net/blog/online-shop-tax-return-requirements/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 5.5,
+      "query": "ネットショップ 確定申告 いくらから",
+      "page": "https://mori-zeirishi.net/blog/online-shop-tax-return-requirements/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 8.76923076923077,
+      "query": "ビジネスシューズ 経費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-ebay_export_seller-expense-suit-shoes-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 10.5,
+      "query": "プリペイドカード 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 1.5,
+      "query": "ペンキ 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "ホテル代 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "一人親方 消費税 請求しない",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-invoice-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 45,
+      "query": "一人親方 簡易課税 事業区分",
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-simplified-tax-business-category-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 43,
+      "query": "中古資産の耐用年数 簡便法",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-used-asset-useful-life-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 29,
+      "query": "交通費 消費税 計算",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "交通費 消費税かかる",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 31,
+      "query": "交通費 税区分",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "交通費に消費税はかかるのか",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 39,
+      "query": "交通費の消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 41,
+      "query": "交通費消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 26,
+      "query": "交通費精算 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 60.5,
+      "query": "任意償却とは",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shotoku-04-08/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 8,
+      "query": "企業 確定申告",
+      "page": "https://mori-zeirishi.net/services/tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 15,
+      "query": "会計処理 美容室",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 27,
+      "query": "作業靴 経費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-ebay_export_seller-expense-suit-shoes-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 69,
+      "query": "個人事業主 従業員",
+      "page": "https://mori-zeirishi.net/blog/general-staff-employment-domestic-ec-seller-growth-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 28.666666666666668,
+      "query": "個人事業主 美容室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 13,
+      "query": "個人事業主 美容院 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 70,
+      "query": "個人事業税 建設業",
+      "page": "https://mori-zeirishi.net/blog/macro/construction/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10.5,
+      "query": "公共交通機関 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 14,
+      "query": "出張 交通費 課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 58,
+      "query": "出張 手当 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 13.666666666666666,
+      "query": "出張 日 当 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10,
+      "query": "出張 日当 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 56.5,
+      "query": "出張手当 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 27,
+      "query": "出張旅費 インボイス",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 54,
+      "query": "出張旅費 特例",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "出張旅費 課税対象",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 39.333333333333336,
+      "query": "出張旅費特例",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 16.75,
+      "query": "出張旅費特例 範囲",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 13,
+      "query": "出張日当 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "query": "勘定科目は？",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 10.25,
+      "query": "印税 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-content_seller-content-ebook-royalty-ebook-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 20,
+      "ctr": 0,
+      "position": 10.55,
+      "query": "商品券 不課税 非課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 24.5,
+      "query": "商品券 交際費 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 14,
+      "ctr": 0,
+      "position": 33.642857142857146,
+      "query": "商品券 仕訳",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券 仕訳 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 15.25,
+      "query": "商品券 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券 勘定科目 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "商品券 勘定科目 非課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 145,
+      "ctr": 0,
+      "position": 11.13103448275862,
+      "query": "商品券 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 29,
+      "ctr": 0,
+      "position": 10.862068965517242,
+      "query": "商品券 消費税 非課税 不課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 9.2,
+      "query": "商品券 消費税かかる",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 17,
+      "query": "商品券 消費税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 19,
+      "query": "商品券 税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券 税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券 税率",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 62.2,
+      "query": "商品券 経費",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 12,
+      "query": "商品券 課税 非課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 16,
+      "query": "商品券 課税区分",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券 課税対象",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "商品券 販売 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 10.2,
+      "query": "商品券 購入 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10,
+      "query": "商品券 非課税 不課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 22,
+      "ctr": 0,
+      "position": 11.272727272727273,
+      "query": "商品券 非課税 不課税 どっち",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18,
+      "query": "商品券 領収書 書き方",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 8.285714285714285,
+      "query": "商品券に消費税はかかりますか",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10.333333333333334,
+      "query": "商品券の消費税は",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 7.25,
+      "query": "商品券の販売 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.666666666666666,
+      "query": "商品券の購入 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券は非課税 不課税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 9.25,
+      "query": "商品券売上 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 15.666666666666666,
+      "query": "商品券消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "商品券課税処理とは",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 10,
+      "ctr": 0,
+      "position": 10.6,
+      "query": "商品券購入 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 26,
+      "query": "回数券 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 24,
+      "query": "図書カード 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 43.5,
+      "query": "国外 登録 事業 者",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 21,
+      "query": "国外事業者により提供された事業 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "国税庁 公共交通機関特例 タクシー 対象",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%81%BE%E3%81%9A%E7%B5%90%E8%AB%96%E5%A1%97%E6%96%99%E3%81%AF%E4%BD%BF%E3%81%84%E5%88%87%E3%81%A3%E3%81%9F%E5%88%86%E3%81%A0%E3%81%91%E3%81%8C%E7%B5%8C%E8%B2%BB"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E3%82%B1%E3%83%BC%E3%82%B9%E5%B9%B4%E6%9C%AB%E3%81%AB%E5%A1%97%E6%96%99%E3%81%8C%E6%AE%8B%E3%81%A3%E3%81%9F%E3%82%89%E3%81%A9%E3%81%86%E3%81%99%E3%82%8B%E3%81%8B"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E9%96%93%E9%81%95%E3%81%84%E3%81%A8%E3%81%9D%E3%81%AE%E5%8E%9F%E5%9B%A0"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E5%A1%97%E6%96%99%E6%B6%88%E8%80%97%E5%93%81%E3%81%AE%E7%B5%8C%E8%B2%BB%E5%8C%BA%E5%88%86%E4%BD%95%E3%81%8C%E6%9D%90%E6%96%99%E8%B2%BB%E3%81%A7%E4%BD%95%E3%81%8C%E6%B6%88%E8%80%97%E5%93%81%E8%B2%BB%E3%81%8B"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗料 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E5%B8%B3%E7%B0%BF%E3%81%AE%E6%9B%B8%E3%81%8D%E6%96%B9%E7%99%BD%E8%89%B2%E7%94%B3%E5%91%8A%E3%81%A8%E9%9D%92%E8%89%B2%E7%94%B3%E5%91%8A%E3%81%AE%E9%81%95%E3%81%84"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 8.75,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%81%BE%E3%81%9A%E7%B5%90%E8%AB%96%E5%A1%97%E6%96%99%E3%81%AF%E4%BD%BF%E3%81%84%E5%88%87%E3%81%A3%E3%81%9F%E5%88%86%E3%81%A0%E3%81%91%E3%81%8C%E7%B5%8C%E8%B2%BB"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E3%82%B1%E3%83%BC%E3%82%B9%E5%B9%B4%E6%9C%AB%E3%81%AB%E5%A1%97%E6%96%99%E3%81%8C%E6%AE%8B%E3%81%A3%E3%81%9F%E3%82%89%E3%81%A9%E3%81%86%E3%81%99%E3%82%8B%E3%81%8B"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10.666666666666666,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E9%96%93%E9%81%95%E3%81%84%E3%81%A8%E3%81%9D%E3%81%AE%E5%8E%9F%E5%9B%A0"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10.666666666666666,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E5%A1%97%E6%96%99%E6%B6%88%E8%80%97%E5%93%81%E3%81%AE%E7%B5%8C%E8%B2%BB%E5%8C%BA%E5%88%86%E4%BD%95%E3%81%8C%E6%9D%90%E6%96%99%E8%B2%BB%E3%81%A7%E4%BD%95%E3%81%8C%E6%B6%88%E8%80%97%E5%93%81%E8%B2%BB%E3%81%8B"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "塗装 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/#%E5%B8%B3%E7%B0%BF%E3%81%AE%E6%9B%B8%E3%81%8D%E6%96%B9%E7%99%BD%E8%89%B2%E7%94%B3%E5%91%8A%E3%81%A8%E9%9D%92%E8%89%B2%E7%94%B3%E5%91%8A%E3%81%AE%E9%81%95%E3%81%84"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9,
+      "query": "塗装代 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2,
+      "query": "塗装工事",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 25,
+      "query": "塗装工事 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 30,
+      "query": "売上管理 美容室",
+      "page": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 14,
+      "query": "宿泊 税 消費 税 仕訳",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 28,
+      "query": "宿泊費 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 37,
+      "query": "床屋 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "散髪代は何費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "新幹線 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "新幹線代 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 57.666666666666664,
+      "query": "旅費 交通 費 と は",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 36,
+      "query": "旅費 交通 費 交通 費 違い",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 16,
+      "query": "旅費 交通 費 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28,
+      "query": "旅費 交通 費 税 区分",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 11.333333333333334,
+      "query": "旅費 交通 費 非課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28,
+      "query": "旅費 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 33.333333333333336,
+      "query": "旅費 税金",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 14.285714285714286,
+      "query": "旅費 精算 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 17.333333333333332,
+      "query": "旅費 非課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 37,
+      "query": "旅費交通費 とは",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 26,
+      "ctr": 0,
+      "position": 9.576923076923077,
+      "query": "旅費交通費 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 29,
+      "query": "旅費交通費 特例",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 19.666666666666668,
+      "query": "旅費交通費 課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 44,
+      "query": "旅費交通費 非課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 25.22222222222222,
+      "query": "旅費交通費とは",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7,
+      "query": "旅費日当 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 39.285714285714285,
+      "query": "旅費精算 課税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 35.5,
+      "query": "日 当 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 47.5,
+      "query": "死亡後の手続き 優先順位",
+      "page": "https://mori-zeirishi.net/blog/inheritance-critical-immediate-initial-immediate-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 44.25,
+      "query": "決算 申告",
+      "page": "https://mori-zeirishi.net/services/tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 23.5,
+      "query": "決算申告",
+      "page": "https://mori-zeirishi.net/services/tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 96,
+      "query": "法人化 相談",
+      "page": "https://mori-zeirishi.net/services/startup/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 48.5,
+      "query": "海外 仕入れ 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28,
+      "query": "海外 仕入れ 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 66,
+      "query": "海外ec 輸出 消費税",
+      "page": "https://mori-zeirishi.net/services/ebay-export/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 9,
+      "query": "海外からの仕入 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 8.666666666666668,
+      "query": "海外からの仕入れ 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 24.6,
+      "query": "海外出張 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 15,
+      "query": "海外取引 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 26.5,
+      "query": "海外旅費 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 23.333333333333332,
+      "query": "海外販売 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25,
+      "query": "海外輸入 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 66,
+      "query": "消費税 交通費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 25.5,
+      "query": "消費税 商品券",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 12,
+      "query": "消費税 国外",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 29,
+      "query": "減価 償却 簡便 法",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-used-asset-useful-life-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 33,
+      "query": "理容室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 14,
+      "query": "生前 贈与 やり方",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 87,
+      "query": "生前 贈与 現金",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 18.916666666666668,
+      "query": "生前贈与 やり方",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 36,
+      "query": "生前贈与 現金",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 43,
+      "query": "生前贈与 現金 300万",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 16,
+      "query": "生前贈与 現金 手渡し",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 82.25,
+      "query": "生前贈与 現金手渡し",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 33,
+      "query": "生前贈与 確定申告",
+      "page": "https://mori-zeirishi.net/blog/gift-cash-procedure-tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 48,
+      "query": "登録 国外 事業 者 消費 税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 8,
+      "query": "確定申告 ネットショップ",
+      "page": "https://mori-zeirishi.net/blog/online-shop-tax-return-requirements/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 38,
+      "query": "確定申告 化粧品",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 16,
+      "query": "確定申告 売上",
+      "page": "https://mori-zeirishi.net/blog/online-shop-tax-return-requirements/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 12,
+      "ctr": 0,
+      "position": 28.083333333333332,
+      "query": "確定申告 建設",
+      "page": "https://mori-zeirishi.net/blog/macro/construction/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 30,
+      "query": "確定申告 建設業",
+      "page": "https://mori-zeirishi.net/blog/macro/construction/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "確定申告 決算",
+      "page": "https://mori-zeirishi.net/services/tax-return/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 30.333333333333332,
+      "query": "確定申告 美容室",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6,
+      "query": "確定申告 美容師",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 43.166666666666664,
+      "query": "税務調査 立会い",
+      "page": "https://mori-zeirishi.net/services/tax-audit/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 20,
+      "query": "簡易課税 業種",
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-simplified-tax-business-category-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 33,
+      "query": "簡易課税フローチャート",
+      "page": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-simplified-tax-business-category-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 44,
+      "query": "経費 美容院代",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 44.5,
+      "query": "美容 室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 23,
+      "query": "美容 師 服 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 21.333333333333332,
+      "query": "美容 経費精算システム",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 15.333333333333334,
+      "query": "美容代 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 38,
+      "query": "美容代 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 19.25,
+      "query": "美容室 仕入 消耗品",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 11.4375,
+      "query": "美容室 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 17.166666666666668,
+      "query": "美容室 勘定科目 一覧",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10.666666666666666,
+      "query": "美容室 勘定科目 個人事業主",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 26,
+      "query": "美容室 材料費 勘定科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 12,
+      "query": "美容室 水道代",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 82.75,
+      "query": "美容室 減価償却",
+      "page": "https://mori-zeirishi.net/blog/macro/salon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 30,
+      "query": "美容室 減価償却",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "美容室 税理士 必要",
+      "page": "https://mori-zeirishi.net/blog/macro/salon/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 21,
+      "query": "美容室 経営 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 73.6,
+      "query": "美容室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 9.4,
+      "query": "美容室 経費 科目",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 39.5,
+      "query": "美容室 開業 帳簿",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 19.5,
+      "query": "美容室 電気代",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11,
+      "query": "美容室代は何費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 65.66666666666667,
+      "query": "美容室経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1,
+      "query": "美容師 確定申告 白色",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28,
+      "query": "美容師 経費で落とせるもの",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 8.777777777777779,
+      "query": "美容院 何費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 27.666666666666668,
+      "query": "美容院 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 61.5,
+      "query": "美容院代 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 36,
+      "query": "美容院経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 21.666666666666668,
+      "query": "自宅兼美容室 経費",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18,
+      "query": "自社 発行 クーポン 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 33,
+      "query": "葬儀後 手続き 優先順位",
+      "page": "https://mori-zeirishi.net/blog/inheritance-critical-immediate-initial-immediate-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 22.333333333333332,
+      "query": "請求書 発行 小売業",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-invoice-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "贈答品 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 9.6,
+      "query": "輸入 消費税 還付",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "輸入消費税 仕入税額控除",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-foreign-business-consumption-tax-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "輸入消費税 還付 仕組み",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 6,
+      "query": "輸入消費税の還付",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 8,
+      "query": "輸入消費税還付",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 17,
+      "query": "通勤手当 消費税 課税仕入れ",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 16,
+      "query": "通勤手当 消費税区分",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 18,
+      "ctr": 0,
+      "position": 9.944444444444445,
+      "query": "金券 消費税",
+      "page": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-gift-certificate-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 11,
+      "query": "鉄道運賃 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 22,
+      "query": "開業費 償却期間",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shotoku-04-08/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25,
+      "query": "随時償却",
+      "page": "https://mori-zeirishi.net/blog/shitsugi-shotoku-04-08/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18,
+      "query": "電車料金 消費税",
+      "page": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-travel-expense-input-tax-guide/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10,
+      "query": "青色申告 美容師",
+      "page": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 20,
+      "ctr": 0,
+      "position": 9.25,
+      "query": "革靴 経費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-ebay_export_seller-expense-suit-shoes-practice/"
+    },
+    {
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 13.5,
+      "query": "靴 経費",
+      "page": "https://mori-zeirishi.net/blog/deepdive-ebay_export_seller-expense-suit-shoes-practice/"
+    }
+  ]
+}
