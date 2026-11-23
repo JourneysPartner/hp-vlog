@@ -191,6 +191,26 @@
       "target_query": "せどり 確定申告 いくら",
       "date": "2026-11-20",
       "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/44642966397"
+    },
+    {
+      "topic_id": "suggest-content-note-5bacd4",
+      "stage": "pregen-dedup",
+      "similar_to": "newseg-content_seller-content-note-revenue-guide",
+      "reason": "note収益に税金がかかるか・確定申告が必要かという中心疑問が既存のnote・Brain収益の申告判断記事と同一で、personaも同じcontent_sellerのため読者からは同じ記事に見える。",
+      "url_slug": "note-earnings-tax-filing-guide",
+      "target_query": "note 収益 税金",
+      "date": "2026-11-23",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/45086695901"
+    },
+    {
+      "topic_id": "suggest-creator-youtuber-98c4af",
+      "stage": "target-query-withdrawn",
+      "similar_to": "suggest-creator-youtuber-ae05b3",
+      "reason": "狙う検索語「youtuber 税金 いくら」は取り下げ記録と同じ → 取り下げ",
+      "url_slug": "youtuber-income-tax-threshold",
+      "target_query": "youtuber 税金 いくら",
+      "date": "2026-11-23",
+      "run_url": "https://github.com/JourneysPartner/hp-vlog/actions/runs/45086695901"
     }
   ]
 }
