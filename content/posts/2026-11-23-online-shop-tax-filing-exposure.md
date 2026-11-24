@@ -72,7 +72,7 @@ fact_check_version: 1
 fact_check_status: "revise"
 fact_check_summary: "主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
-fact_check_prev_recommendation: "revise"
+fact_check_prev_recommendation: "publish"
 fact_check_blocking: true
 ---
 
