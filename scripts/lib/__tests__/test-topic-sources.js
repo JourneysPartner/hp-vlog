@@ -7,6 +7,7 @@ const {
   selectSourcesPerTerm,
   splitPrimaryAndSupplements,
 } = require(path.join(ROOT, 'scripts/lib/topic-sources'));
+const { evaluateSourceGuard } = require(path.join(ROOT, 'scripts/lib/source-guard'));
 
 let passed = 0, failed = 0;
 function assert(cond, label) {
@@ -106,7 +107,137 @@ async function main() {
     assert(empty.primary === null && empty.supplements.length === 0, '空配列なら正本は null');
   }
 
-  console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
+  console.log('\n=== Test 4: 11/23 の再現（実カタログ） ===');
+{
+  // run 45086695901 の4件。段 D の No.9205 が最高確信度でもカタログ外なので正本にしない。
+  const results = [
+    { term: '延滞税', no: '9205', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/osirase/9205.htm', confidence: 1 },
+    { term: '法定調書', no: 'N/A', url: 'https://www.nta.go.jp/publication/pamph/hotei/tebiki2024/index.htm', confidence: 0.99 },
+    { term: '無申告加算税', no: '2024', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm', confidence: 0.93 },
+    { term: '重加算税', no: '2026', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm', confidence: 0.68 },
+  ];
+  const split = splitPrimaryAndSupplements(results);
+  assert(split.primary && split.primary.no === '2024',
+    'カタログ収録の No.2024 が正本になる');
+  assert(split.supplements.length === 3
+    && split.supplements.map(s => s.no).join(',') === '9205,N/A,2026',
+  '補助は 9205・N/A・2026 の確信度順で3件');
+
+  const withPrimary = (primary, supplements) => {
+    const meta = {
+      source_url: primary.url,
+      source_title: primary.title || '',
+      source_provenance: 'llm-auto',
+      source_confidence: primary.confidence,
+      source_term: primary.term,
+      source_guard_version: 1,
+      review_status: 'draft',
+      tax_domain: 'income_tax',
+    };
+    supplements.forEach((s, i) => {
+      const n = i + 2;
+      meta[`source_${n}_url`] = s.url;
+      meta[`source_${n}_title`] = s.title || '';
+      meta[`source_${n}_term`] = s.term;
+      meta[`source_${n}_confidence`] = s.confidence;
+    });
+    return meta;
+  };
+  const approved = evaluateSourceGuard(withPrimary(split.primary, split.supplements), { stage: 'approve' });
+  assert(approved.blocked === false, '選ばれた正本は承認段階のガードを通る');
+  const blocked = evaluateSourceGuard(withPrimary(results[0], split.supplements), { stage: 'approve' });
+  assert(blocked.blocked === true, '正本を No.9205 にすると従来どおり止まる（判定は変えていない）');
+}
+
+console.log('\n=== Test 5: 資格のある候補が無い ===');
+{
+  const results = [
+    { term: '先の論点', no: '1000', url: 'https://example.com/a', confidence: 0.95 },
+    { term: '後の論点', no: '1001', url: 'https://example.com/b', confidence: 0.9 },
+  ];
+  const split = splitPrimaryAndSupplements(results, { isEligiblePrimary: () => false });
+  assert(split.primary.no === '1000', '資格なしなら最高確信度が正本になる（今までの動き）');
+  assert(split.skipped.length === 0, '飛ばしていなければ skipped は空');
+}
+
+console.log('\n=== Test 6: 資格はあるが確信度 0.9 未満 ===');
+{
+  // 本物の判定。カタログ収録でも確信度が 0.9 未満なら承認時のガードは通らない。
+  const results = [
+    { term: '無申告加算税', no: '2024', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm', confidence: 0.85 },
+    { term: '延滞税', no: '9205', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/osirase/9205.htm', confidence: 1 },
+  ];
+  const split = splitPrimaryAndSupplements(results);
+  assert(split.primary.no === '9205', '資格のある候補が無いので最高確信度の No.9205 が正本になる');
+  assert(split.supplements.length === 1 && split.supplements[0].no === '2024',
+    '飛ばした No.2024 は補助に回る');
+}
+
+console.log('\n=== Test 7: 同点 ===');
+{
+  const results = [
+    { term: '先の論点', no: '2024', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm', confidence: 0.95 },
+    { term: '後の論点', no: '2026', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm', confidence: 0.95 },
+  ];
+  const split = splitPrimaryAndSupplements(results);
+  assert(split.primary.term === '先の論点', '資格のある2件が同点なら入力順の先が正本になる');
+}
+
+console.log('\n=== Test 8: 判定が例外 ===');
+{
+  const results = [
+    { term: '第一論点', no: '1', url: 'https://example.com/1', confidence: 0.99 },
+    { term: '第二論点', no: '2', url: 'https://example.com/2', confidence: 0.95 },
+    { term: '第三論点', no: '3', url: 'https://example.com/3', confidence: 0.9 },
+  ];
+  const split = splitPrimaryAndSupplements(results, {
+    isEligiblePrimary: (item) => {
+      if (item.term === '第一論点') throw new Error('テスト用失敗');
+      return item.term === '第三論点';
+    },
+  });
+  assert(split.primary.term === '第三論点', '例外の候補は飛ばして次の資格候補を正本にする');
+  assert(split.skipped.map(s => s.term).join(',') === '第一論点,第二論点',
+    '飛ばした候補が skipped に順番どおり入る');
+
+  const allThrow = splitPrimaryAndSupplements(results, {
+    isEligiblePrimary: () => { throw new Error('テスト用失敗'); },
+  });
+  assert(allThrow.primary.term === '第一論点', '全部が例外なら最高確信度が正本になる（生成は止めない）');
+}
+
+console.log('\n=== Test 9: 補助の件数 ===');
+{
+  const results = ['a', 'b', 'c', 'd', 'e', 'f'].map((key, i) => ({
+    term: `論点${key}`, no: String(i), url: `https://example.com/${key}`, confidence: 0.99 - i * 0.01,
+  }));
+  const split = splitPrimaryAndSupplements(results, {
+    isEligiblePrimary: item => item.term === '論点c',
+  });
+  assert(split.primary.term === '論点c', '3番目の候補を正本にする');
+  assert(split.supplements.length === 3, '正本が3番目でも補助は3件');
+  assert(!split.supplements.includes(split.primary), '補助に正本を含めない');
+  assert(split.supplements.map(s => s.term).join(',') === '論点a,論点b,論点d',
+    '補助は確信度順のまま正本の次から詰める');
+}
+
+console.log('\n=== Test 10: skipped の中身 ===');
+{
+  const results = [
+    { term: '延滞税', no: '9205', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/osirase/9205.htm', confidence: 1 },
+    { term: '法定調書', no: 'N/A', url: 'https://www.nta.go.jp/publication/pamph/hotei/tebiki2024/index.htm', confidence: 0.99 },
+    { term: '無申告加算税', no: '2024', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm', confidence: 0.93 },
+  ];
+  const split = splitPrimaryAndSupplements(results);
+  assert(split.skipped.map(s => s.no).join(',') === '9205,N/A',
+    'skipped は正本より前で飛ばした候補（通知ログの1行目に使う）');
+  const noSkip = splitPrimaryAndSupplements([
+    { term: '一個だけ', no: '2024', url: 'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm', confidence: 0.95 },
+  ]);
+  assert(noSkip.skipped.length === 0, '先頭が資格ありなら skipped は空');
+}
+
+console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
   process.exit(failed === 0 ? 0 : 1);
 }
 

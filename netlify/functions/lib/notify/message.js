@@ -273,7 +273,7 @@ function buildMessage(event, data) {
           `■ タイトル: ${title || filename}`,
           reasonLines ? `■ 理由:\n${reasonLines}` : '',
           '',
-          'レビュー画面から出典を修正した上で、再度「そのまま公開」を押してください。',
+          'レビュー画面では出典を変更できません。下書きの PR で出典の欄を直してから（担当者に依頼してください）、再度「そのまま公開」を押してください。',
         ].filter(Boolean).join('\n'),
       };
     }

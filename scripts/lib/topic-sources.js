@@ -58,17 +58,51 @@ async function selectSourcesPerTerm(topic, terms, resolveSource) {
 /**
  * 論点ごとの結果から、frontmatter の正本と補助出典を分ける。
  * 同点では論点語の重要順である入力順を崩さない。
- * @returns {{ primary: Object|null, supplements: Array }}
+ *
+ * 正本は「承認時の出典ガードを通る候補」の中から最も確信度が高いものにする。
+ * #806（2026-11-23）ではカタログ外の段 D（No.9205）が最高確信度になり、そのまま
+ * 正本にすると承認段階のガードで必ず止まった。判定は承認時と同じ
+ * evaluateLlmAutoSource を使い、基準を二重に持たない。
+ * 資格のある候補が 1 つも無ければ、これまでどおり最高確信度を正本にする。
+ *
+ * @param {Array} results [{ term, no, url, confidence, ... }]
+ * @param {{ isEligiblePrimary?: Function }} options 試験用に資格判定を差し替えられる
+ * @returns {{ primary: Object|null, supplements: Array, skipped: Array }}
+ *   skipped は正本より前（高確信度）で飛ばした候補。飛ばしていなければ空配列。
  */
-function splitPrimaryAndSupplements(results) {
+function splitPrimaryAndSupplements(results, options = {}) {
   if (!Array.isArray(results) || results.length === 0) {
-    return { primary: null, supplements: [] };
+    return { primary: null, supplements: [], skipped: [] };
   }
   const sorted = results
     .map((item, index) => ({ item, index }))
     .sort((a, b) => Number(b.item.confidence) - Number(a.item.confidence) || a.index - b.index)
     .map(({ item }) => item);
-  return { primary: sorted[0], supplements: sorted.slice(1, 4) };
+
+  const isEligiblePrimary = typeof options.isEligiblePrimary === 'function'
+    ? options.isEligiblePrimary
+    // 遅延 require: source-alignment は tax-authority-refs・law-sources を読むだけで、
+    // このファイルは読まないため循環しない。
+    : (item) => require('./source-alignment')
+      .evaluateLlmAutoSource({ source_url: item.url, source_confidence: item.confidence }).ok;
+
+  let primaryIndex = -1;
+  for (let i = 0; i < sorted.length; i++) {
+    let eligible = false;
+    try {
+      eligible = Boolean(isEligiblePrimary(sorted[i]));
+    } catch (_error) {
+      // 判定の失敗で生成を止めない。その候補は資格なしとして次を見る。
+      eligible = false;
+    }
+    if (eligible) { primaryIndex = i; break; }
+  }
+  // 資格のある候補が無ければ従来どおり最高確信度を正本にする。
+  if (primaryIndex < 0) primaryIndex = 0;
+
+  const primary = sorted[primaryIndex];
+  const supplements = sorted.filter((_, i) => i !== primaryIndex).slice(0, 3);
+  return { primary, supplements, skipped: sorted.slice(0, primaryIndex) };
 }
 
 module.exports = {

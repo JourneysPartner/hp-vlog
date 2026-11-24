@@ -108,7 +108,7 @@ async function enrichSourceWithLLM(topic) {
         console.log(`[source] 論点別選定: ${picked.term} → No.${picked.no} ` +
           `conf=${picked.confidence} (${picked.tier})`);
       }
-      const { primary, supplements } = splitPrimaryAndSupplements(results);
+      const { primary, supplements, skipped } = splitPrimaryAndSupplements(results);
       if (primary) {
         topic.source_url = primary.url;
         topic.source_title = primary.title;
@@ -116,6 +116,9 @@ async function enrichSourceWithLLM(topic) {
         topic.source_confidence = primary.confidence;
         topic.source_term = primary.term;
         topic.source_supplements = supplements;
+        if (skipped.length > 0) {
+          console.log(`[source] 正本: カタログ外または確信度不足の No.${skipped[0].no}「${skipped[0].term}」を補助に回した`);
+        }
         console.log(`[source] 正本: No.${primary.no} conf=${primary.confidence}` +
           `「${primary.term}」/ 補助${supplements.length}件`);
       } else {
