@@ -56,24 +56,30 @@ source_alignment_score: 4
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
-recommendation: "revise"
+recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 重加算税（0.68） / 計画: 資料が見つからない制度 推計課税 / 【事実の照合】主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件【/事実の照合】"
 summary: "ネットショップの売上は入出金記録や支払調書などから後で把握されることがあります。無申告は加算税5〜30%と延滞税、悪質なら重加算税40%の対象です。"
-review_status: "draft"
+review_status: "approved"
 review_comment: ""
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-24T17:57:03.243+09:00"
+publish_at: "2026-11-25T11:54:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-23T00:08:38.759Z"
-updated_at: "2026-11-23T04:55:21.188Z"
+updated_at: "2026-11-24T17:57:03.243+09:00"
 fact_check_version: 1
 fact_check_status: "revise"
 fact_check_summary: "主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: true
+publish_slot: "morning"
+fact_check_override: true
+fact_check_override_at: "2026-11-24T17:57:03.243+09:00"
+fact_check_override_status: "revise"
+fact_check_override_summary: "主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件"
+fact_check_override_sha: "fcb95c3929c3123254cc829a1c24fe59231b66ab"
 ---
 
 ネットショップの売上を申告していない。決算が近づくたびに、そのことが頭から離れないという方は少なくありません。モールの売上は自分の口座に振り込まれ、レシートを自分で発行しているわけでもないため、外から見えにくいように感じるのだと思います。
