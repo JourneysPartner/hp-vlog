@@ -9,20 +9,20 @@ article_role: "main"
 related_slug: ""
 related_title: ""
 related_link_text: ""
-source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/osirase/9205.htm"
-source_title: "No.9205 延滞税について｜国税庁"
+source_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm"
+source_title: "No.2024 確定申告を忘れたとき｜国税庁"
 source_provenance: "llm-auto"
-source_confidence: 1
-source_term: "延滞税"
+source_confidence: 0.93
+source_term: "無申告加算税"
 source_guard_version: 1
 source_2_url: "https://www.nta.go.jp/publication/pamph/hotei/tebiki2024/index.htm"
 source_2_title: "令和6年分 給与所得の源泉徴収票等の法定調書の作成と提出の手引｜国税庁"
 source_2_term: "法定調書"
 source_2_confidence: 0.99
-source_3_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm"
-source_3_title: "確定申告を忘れたとき"
-source_3_term: "無申告加算税"
-source_3_confidence: 0.93
+source_3_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/osirase/9205.htm"
+source_3_title: "No.9205 延滞税について｜国税庁"
+source_3_term: "延滞税"
+source_3_confidence: 1
 source_4_url: "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2026.htm"
 source_4_title: "No.2026 確定申告を間違えたとき｜国税庁"
 source_4_term: "重加算税"
@@ -52,12 +52,12 @@ intent_type: "answer"
 customer_segment: "ec_seller"
 customer_fit_score: 4
 search_intent_score: 4
-source_alignment_score: 3
+source_alignment_score: 4
 practical_usefulness_score: 5
 lead_value_score: 3
 tax_risk_score: 3
 recommendation: "revise"
-review_warning: "出典: LLM選定の出典がカタログ未収録 / 計画: 資料が見つからない制度 推計課税 / 【事実の照合】主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件【/事実の照合】"
+review_warning: "出典: 補助出典の確信度が低い論点: 重加算税（0.68） / 計画: 資料が見つからない制度 推計課税 / 【事実の照合】主張 42 件: 裏付けあり 35・修正 2（食い違い 0・期限 0・具体を外した 2）・残った食い違い 1・未解決 1・上限で未照合 0・捨てた主張 0・人が確かめる箇所 5 件・候補の外の資料で裏付け 1 件【/事実の照合】"
 summary: "ネットショップの売上は入出金記録や支払調書などから後で把握されることがあります。無申告は加算税5〜30%と延滞税、悪質なら重加算税40%の対象です。"
 review_status: "draft"
 review_comment: ""
