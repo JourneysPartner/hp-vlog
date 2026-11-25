@@ -59,21 +59,22 @@ tax_risk_score: 3
 recommendation: "publish"
 review_warning: "出典: 補助出典の確信度が低い論点: 純損失の繰越控除（0.72） / 計画: 資料が見つからない制度 事業所得と雑所得の区分・開業届出書の提出"
 summary: "せどりが赤字でも、給与所得者はせどりの所得が20万円を超えると申告が必要です。赤字を給与と相殺できるのは事業所得のときで、雑所得の赤字は他の所得と通算できません。"
-review_status: "draft"
+review_status: "approved"
 review_comment: "⚠ 論点別ルールが未反映: withholding_scope（該当箇所が現行の制度に合うか確認してください）"
-approved_at: ""
-publish_at: ""
+approved_at: "2026-11-25T16:05:31.776+09:00"
+publish_at: "2026-11-26T11:46:00.000+09:00"
 published_at: ""
 pr_number: ""
 preview_url: ""
 created_at: "2026-11-25T00:06:21.135Z"
-updated_at: "2026-11-25T00:06:21.135Z"
+updated_at: "2026-11-25T16:05:31.776+09:00"
 fact_check_version: 1
 fact_check_status: "ok"
 fact_check_summary: "主張 45 件: 裏付けあり 40・修正 0（食い違い 0・期限 0・具体を外した 0）・残った食い違い 0・未解決 0・上限で未照合 0・捨てた主張 1・人が確かめる箇所 6 件・候補の外の資料で裏付け 6 件"
 fact_check_model: "claude-opus-5-5"
 fact_check_prev_recommendation: "publish"
 fact_check_blocking: false
+publish_slot: "morning"
 ---
 
 仕入れが重なって、年末に通帳を見たらせどりは赤字だった。そんなときに気になるのが確定申告の扱いです。売上が利益を下回っているのだから申告は要らないのでは、と思う方も多いはずです。ただ、実際には次のような点で迷うものです。
