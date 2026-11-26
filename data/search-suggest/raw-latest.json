@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-08T20:53:48.021Z",
+  "fetched_at": "2026-11-22T22:15:20.753Z",
   "seeds": [
     {
       "id": "ec-kakutei",
@@ -7,6 +7,7 @@
       "persona_hint": "domestic_ec_seller",
       "phrases": [
         "ネットショップ 確定申告 やり方",
+        "ネットショップ 確定申告 いくらから",
         "ネットショップ 確定申告 バレる",
         "ネットショップ 売上 確定申告",
         "副業 ネットショップ 確定申告",
@@ -27,6 +28,70 @@
       "term": "amazon 販売 税金",
       "persona_hint": "domestic_ec_seller",
       "phrases": []
+    },
+    {
+      "id": "ec-kanzei-kamoku",
+      "term": "関税 勘定科目",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "関税 勘定科目 輸入",
+        "関税 勘定科目 消費税",
+        "関税 勘定科目 仕訳",
+        "関税 勘定科目 租税 公課",
+        "関税 勘定科目 仕 入 以外"
+      ]
+    },
+    {
+      "id": "ec-yunyu-shiwake",
+      "term": "輸入消費税 仕訳",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "輸入消費税 仕訳 税込経理",
+        "輸入消費税 仕訳 税抜経理",
+        "輸入消費税 仕訳 税込",
+        "輸入消費税 仕訳 tkc",
+        "輸入消費税 仕訳 弥生会計",
+        "輸入消費税 仕訳 弥生",
+        "簡易課税 輸入消費税 仕訳",
+        "免税事業者 輸入消費税 仕訳",
+        "freee 輸入消費税 仕訳"
+      ]
+    },
+    {
+      "id": "ec-yunyu-kojo",
+      "term": "輸入消費税 控除",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "輸入消費税 控除 仕組み",
+        "輸入消費税 控除 時期",
+        "輸入消費税 控除対象外消費税"
+      ]
+    },
+    {
+      "id": "ec-yunyu-menzei",
+      "term": "輸入消費税 免税事業者",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "輸入消費税 免税事業者 仕訳",
+        "輸入消費税 勘定科目 免税事業者",
+        "免税事業者 輸入消費税 還付"
+      ]
+    },
+    {
+      "id": "ec-yunyu-kyoka",
+      "term": "輸入許可通知書",
+      "persona_hint": "domestic_ec_seller",
+      "phrases": [
+        "輸入許可通知書 英語",
+        "輸入許可通知書とは",
+        "輸入許可通知書 サンプル",
+        "輸入許可通知書 発行 されない 場合",
+        "輸入許可通知書 dhl",
+        "輸入許可通知書 ダウンロード",
+        "輸入許可通知書 fedex",
+        "輸入許可通知書 消費税",
+        "輸入許可通知書 いつ発行"
+      ]
     },
     {
       "id": "ec-kaigai",
@@ -261,8 +326,7 @@
       "term": "青色申告 メリット",
       "persona_hint": "general_individual_proprietor",
       "phrases": [
-        "青色申告 メリット デメリット",
-        "青色申告 メリット 個人"
+        "青色申告 メリット デメリット"
       ]
     },
     {
@@ -466,11 +530,11 @@
       "persona_hint": "inheritance_client",
       "phrases": [
         "土地 相続税 計算方法",
-        "土地 相続税 計算 シュミレーション",
         "土地 相続税 計算式",
         "土地 相続税 計算の仕方",
         "土地 相続税 計算 路線価",
         "土地 家屋 相続税 計算",
+        "土地 建物 相続税 計算",
         "国税庁 土地 相続税 計算",
         "相続税 土地 評価額 計算方法",
         "相続税 土地 建物 計算方法"
