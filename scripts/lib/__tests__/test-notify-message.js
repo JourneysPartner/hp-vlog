@@ -173,5 +173,20 @@ console.log('=== 自動処理の読み取りの停止通知 ===');
   assert(!/Basic |[0-9a-f]{16}|@/.test(locked.body), '秘密や認証情報の形を入れない');
 }
 
+console.log('');
+console.log('=== 出典ガードで止まったときの通知 ===');
+{
+  const m = buildMessage('source_blocked', {
+    title: '記事題名',
+    filename: 'content/blog/x.md',
+    reasons: ['needs_source_review: LLM選定の出典がカタログ未収録'],
+  });
+  assert(m.body.includes('レビュー画面では出典を変更できません。下書きの PR で出典の欄を直してから（担当者に依頼してください）、再度「そのまま公開」を押してください。'),
+    '出典を変えられる場所（下書きの PR）と依頼先を案内する');
+  assert(!m.body.includes('レビュー画面から出典を修正'), '画面で直せるかのような古い案内をしない');
+  assert(/出典ガードにより承認をブロックしました/.test(m.subject)
+    && m.body.includes('LLM選定の出典がカタログ未収録'), '件名・理由の行は変えない');
+}
+
 console.log(`\n=== 結果 ===\nPASS: ${passed} / FAIL: ${failed}`);
 process.exit(failed === 0 ? 0 : 1);
