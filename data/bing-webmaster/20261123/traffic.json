@@ -1,0 +1,51 @@
+{
+  "site_url": "https://mori-zeirishi.net/",
+  "window": {
+    "start": "2026-10-25",
+    "end": "2026-11-21",
+    "days_reported": 8,
+    "conflicting_dates": []
+  },
+  "rows": [
+    {
+      "date": "2026-11-14",
+      "impressions": 0,
+      "clicks": 0
+    },
+    {
+      "date": "2026-11-15",
+      "impressions": 1080,
+      "clicks": 39
+    },
+    {
+      "date": "2026-11-16",
+      "impressions": 1429,
+      "clicks": 58
+    },
+    {
+      "date": "2026-11-17",
+      "impressions": 1438,
+      "clicks": 66
+    },
+    {
+      "date": "2026-11-18",
+      "impressions": 1373,
+      "clicks": 70
+    },
+    {
+      "date": "2026-11-19",
+      "impressions": 1312,
+      "clicks": 50
+    },
+    {
+      "date": "2026-11-20",
+      "impressions": 333,
+      "clicks": 13
+    },
+    {
+      "date": "2026-11-21",
+      "impressions": 160,
+      "clicks": 8
+    }
+  ]
+}

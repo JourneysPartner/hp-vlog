@@ -1,56 +1,61 @@
 {
-  "fetched_at": "2026-11-15T23:29:36.407Z",
+  "fetched_at": "2026-11-23T00:15:24.373Z",
   "site_url": "https://mori-zeirishi.net/",
-  "window": null,
+  "window": {
+    "start": "2026-10-25",
+    "end": "2026-11-21",
+    "days_reported": 8,
+    "conflicting_dates": []
+  },
   "totals": {
-    "impressions": 0,
-    "clicks": 0
+    "impressions": 7125,
+    "clicks": 304
   },
   "files": {
-    "traffic": "20261115/traffic.json",
-    "queries": "20261115/queries.json",
-    "pages": "20261115/pages.json",
-    "crawl": "20261115/crawl.json",
-    "feeds": "20261115/feeds.json"
+    "traffic": "20261123/traffic.json",
+    "queries": "20261123/queries.json",
+    "pages": "20261123/pages.json",
+    "crawl": "20261123/crawl.json",
+    "feeds": "20261123/feeds.json"
   },
   "sections": {
     "traffic": {
       "status": "ok",
-      "raw_rows": 0,
+      "raw_rows": 8,
       "dropped_rows": 0,
-      "date_min": null,
-      "date_max": null,
-      "weeks": 0,
+      "date_min": "2026-11-14",
+      "date_max": "2026-11-21",
+      "weeks": 8,
       "weeks_at_cap": 0,
       "conflicting_dates": []
     },
     "queries": {
       "status": "ok",
-      "raw_rows": 0,
+      "raw_rows": 51,
       "dropped_rows": 0,
-      "used_rows": 0,
-      "weeks": 0,
+      "used_rows": 51,
+      "weeks": 1,
       "weeks_at_cap": 0,
-      "date_min": null,
-      "date_max": null
+      "date_min": "2026-11-20",
+      "date_max": "2026-11-20"
     },
     "pages": {
       "status": "ok",
-      "raw_rows": 0,
+      "raw_rows": 38,
       "dropped_rows": 0,
-      "used_rows": 0,
-      "weeks": 0,
+      "used_rows": 38,
+      "weeks": 1,
       "weeks_at_cap": 0,
-      "date_min": null,
-      "date_max": null
+      "date_min": "2026-11-20",
+      "date_max": "2026-11-20"
     },
     "crawl": {
       "status": "ok",
-      "raw_rows": 0,
+      "raw_rows": 8,
       "dropped_rows": 0,
-      "date_min": null,
-      "date_max": null,
-      "weeks": 0,
+      "date_min": "2026-11-14",
+      "date_max": "2026-11-21",
+      "weeks": 8,
       "weeks_at_cap": 0,
       "conflicting_dates": []
     },

@@ -1,197 +1,12 @@
 {
-  "generatedAt": "2026-11-15T23:29:38.711Z",
+  "generatedAt": "2026-11-23T00:15:26.246Z",
   "candidates": [
-    {
-      "slug": "deepdive-influencer_creator-creator-royalty-income-guide",
-      "url": "https://mori-zeirishi.net/blog/deepdive-influencer_creator-creator-royalty-income-guide/",
-      "title": "印税・版権収入の確定申告はどうする？所得区分と源泉徴収の扱いを解説",
-      "score": 9.45,
-      "impressions28d": 97,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2795「原稿料や講演料等を支払ったとき」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        },
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和4年分」を含む",
-          "where": "## 所得区分：事業所得か雑所得か"
-        }
-      ],
-      "file": "2026-09-13-deepdive-influencer_creator-creator-royalty-income-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "ebay-export-consumption-tax-refund-complete-guide",
-      "url": "https://mori-zeirishi.net/blog/ebay-export-consumption-tax-refund-complete-guide/",
-      "title": "eBay輸出の消費税還付｜仕組み・要件・必要書類・申告手順をまとめて解説",
-      "score": 8,
-      "impressions28d": 20,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6615「確定申告書等に添付することとなる書類」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        },
-        {
-          "kind": "search_decline",
-          "detail": "表示回数が 198 → 7 → 14 → 20 と低下",
-          "where": "検索結果"
-        }
-      ],
-      "file": "2026-09-27-ebay-export-consumption-tax-refund-complete-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "ebay-growth-incorporation-threshold-guide",
-      "url": "https://mori-zeirishi.net/blog/ebay-growth-incorporation-threshold-guide/",
-      "title": "eBayセラーが法人成りすべきタイミングはいつ？売上拡大期の判断軸を整理",
-      "score": 6.65,
-      "impressions28d": 8,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2260「所得税の税率」の本文が 2026-11-02 に改訂",
-          "where": "出典欄"
-        },
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和7年分」を含む",
-          "where": "## 軸① 所得税の転換点：「課税所得800万〜900万円前後」が検討の目安"
-        }
-      ],
-      "file": "2026-06-08-ebay-growth-incorporation-threshold-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "general-social-insurance-misconception-reseller-marketplace-seller-growth-practice",
-      "url": "https://mori-zeirishi.net/blog/general-social-insurance-misconception-reseller-marketplace-seller-growth-practice/",
-      "title": "社会保険の扶養と税の扶養はどう違う？フリマ・転売セラーの実務処理を解説",
-      "score": 6.45,
-      "impressions28d": 6,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.1190「配偶者の所得がいくらまでなら配偶者控除が受けられるか」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        },
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和7年分」を含む",
-          "where": "## まず結論：2つの扶養は制度が完全に別物"
-        }
-      ],
-      "file": "2026-09-03-general-social-insurance-misconception-reseller-marketplace-seller-growth-practice.md",
-      "refreshable": true
-    },
-    {
-      "slug": "newseg-construction_solo-construction-consumables-painting-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-consumables-painting-guide/",
-      "title": "塗料・ペンキの勘定科目は？塗装工の消耗品費・材料費の分け方と年末在庫の処理",
-      "score": 6,
-      "impressions28d": 735,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-08-26-newseg-construction_solo-construction-consumables-painting-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "ebay-taxable-vs-exempt-business",
-      "url": "https://mori-zeirishi.net/blog/ebay-taxable-vs-exempt-business/",
-      "title": "eBay輸出で課税事業者になるべき？免税事業者との違いとメリット・デメリット",
-      "score": 6,
-      "impressions28d": 31,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-05-03-ebay-taxable-vs-exempt-business.md",
-      "refreshable": true
-    },
-    {
-      "slug": "newseg-retail_store-retail-return-handling-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-retail_store-retail-return-handling-guide/",
-      "title": "小売店の返品処理、消費税はどう調整する？売上返品・仕入返品の基本",
-      "score": 5.82,
-      "impressions28d": 150,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6359「値引き、返品、割戻しなどを行った場合の税額の調整(売上げに係る対価の返還等)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-08-10-newseg-retail_store-retail-return-handling-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "suggest-salon-biyoushitsu-a6bfe4",
-      "url": "https://mori-zeirishi.net/blog/suggest-salon-biyoushitsu-a6bfe4/",
-      "title": "美容室の経費にできるものと勘定科目の分け方｜個人事業主向けに解説",
-      "score": 5.79,
-      "impressions28d": 137,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-09-07-suggest-salon-biyoushitsu-a6bfe4.md",
-      "refreshable": true
-    },
-    {
-      "slug": "deepdive-domestic_ec_seller-import-tax-refund-detail-guide",
-      "url": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-import-tax-refund-detail-guide/",
-      "title": "輸入消費税は還付申告できる？国内ECセラーが押さえるべき手続きと必要書類",
-      "score": 5.76,
-      "impressions28d": 131,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-07-15-deepdive-domestic_ec_seller-import-tax-refund-detail-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "newseg-construction_solo-construction-bookkeeping-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-bookkeeping-guide/",
-      "title": "1人親方の確定申告に必要な帳簿・書類は？記帳の基本と保存期間を解説",
-      "score": 5.7,
-      "impressions28d": 2,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.2080「白色申告者の記帳・帳簿等保存制度」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        },
-        {
-          "kind": "fiscal_year",
-          "detail": "「令和5年分」を含む",
-          "where": "## よくある間違い：こうして記帳・保存が後手に回る"
-        }
-      ],
-      "file": "2026-08-19-newseg-construction_solo-construction-bookkeeping-guide.md",
-      "refreshable": true
-    },
     {
       "slug": "newseg-wholesale-wholesale-food-loss-food-guide",
       "url": "https://mori-zeirishi.net/blog/newseg-wholesale-wholesale-food-loss-food-guide/",
       "title": "食品卸の廃棄・期限切れロスはどう処理する？経費計上と在庫調整の基本",
-      "score": 5.64,
-      "impressions28d": 95,
+      "score": 5.73,
+      "impressions28d": 114,
       "reasons": [
         {
           "kind": "source_updated",
@@ -206,8 +21,8 @@
       "slug": "deepdive-ebay_export_seller-expense-suit-shoes-practice",
       "url": "https://mori-zeirishi.net/blog/deepdive-ebay_export_seller-expense-suit-shoes-practice/",
       "title": "スーツ・ビジネス靴をeBay事業の経費にできる？ケース別の判断基準と証憑のポイント",
-      "score": 5.58,
-      "impressions28d": 79,
+      "score": 5.67,
+      "impressions28d": 111,
       "reasons": [
         {
           "kind": "source_updated",
@@ -219,43 +34,11 @@
       "refreshable": true
     },
     {
-      "slug": "amazon-growth-consumption-tax-judgement-practice",
-      "url": "https://mori-zeirishi.net/blog/amazon-growth-consumption-tax-judgement-practice/",
-      "title": "AmazonセラーがつまずくECの消費税課税事業者の判定｜ケース別の処理ポイント",
-      "score": 5.46,
-      "impressions28d": 57,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-06-12-amazon-growth-consumption-tax-judgement-practice.md",
-      "refreshable": true
-    },
-    {
-      "slug": "ebay-growth-platform-fee-treatment-practice",
-      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-practice/",
-      "title": "eBay手数料の消費税、仕訳と課税区分はどうする？インボイス対応の実務例",
-      "score": 5.43,
-      "impressions28d": 57,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-07-02-ebay-growth-platform-fee-treatment-practice.md",
-      "refreshable": true
-    },
-    {
       "slug": "deepdive-domestic_ec_seller-used-asset-useful-life-practice",
       "url": "https://mori-zeirishi.net/blog/deepdive-domestic_ec_seller-used-asset-useful-life-practice/",
       "title": "中古資産の耐用年数、ケース別に計算できていますか？簡便法の判断に迷う場面を整理",
-      "score": 5.37,
-      "impressions28d": 54,
+      "score": 5.52,
+      "impressions28d": 97,
       "reasons": [
         {
           "kind": "source_updated",
@@ -267,11 +50,27 @@
       "refreshable": true
     },
     {
+      "slug": "amazon-growth-consumption-tax-judgement-practice",
+      "url": "https://mori-zeirishi.net/blog/amazon-growth-consumption-tax-judgement-practice/",
+      "title": "AmazonセラーがつまずくECの消費税課税事業者の判定｜ケース別の処理ポイント",
+      "score": 5.49,
+      "impressions28d": 92,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-06-12-amazon-growth-consumption-tax-judgement-practice.md",
+      "refreshable": true
+    },
+    {
       "slug": "youtube-side-business-withholding-treatment-guide",
       "url": "https://mori-zeirishi.net/blog/youtube-side-business-withholding-treatment-guide/",
       "title": "YouTubeの収入に源泉徴収はある？AdSenseは原則なし・PR案件はあり｜副業の確定申告での処理",
-      "score": 5.34,
-      "impressions28d": 49,
+      "score": 5.4,
+      "impressions28d": 50,
       "reasons": [
         {
           "kind": "source_updated",
@@ -283,43 +82,11 @@
       "refreshable": true
     },
     {
-      "slug": "influencer-general-growth-income-classification-guide",
-      "url": "https://mori-zeirishi.net/blog/influencer-general-growth-income-classification-guide/",
-      "title": "X（旧Twitter）の収入は事業所得？雑所得？売上拡大期の判断基準を整理する",
-      "score": 5.25,
-      "impressions28d": 46,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-06-19-influencer-general-growth-income-classification-guide.md",
-      "refreshable": true
-    },
-    {
-      "slug": "ebay-growth-platform-fee-treatment-guide",
-      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-guide/",
-      "title": "eBayのプラットフォーム手数料、消費税はどう処理する？インボイスと仕入税額控除",
-      "score": 5.16,
-      "impressions28d": 37,
-      "reasons": [
-        {
-          "kind": "source_updated",
-          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
-          "where": "出典欄"
-        }
-      ],
-      "file": "2026-07-02-ebay-growth-platform-fee-treatment-guide.md",
-      "refreshable": true
-    },
-    {
       "slug": "deepdive-general_individual_proprietor-simplified-tax-business-category-guide",
       "url": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-simplified-tax-business-category-guide/",
       "title": "簡易課税の業種区分はどう判定する？みなし仕入率の選び方と複数事業の扱い",
-      "score": 5.13,
-      "impressions28d": 32,
+      "score": 5.34,
+      "impressions28d": 46,
       "reasons": [
         {
           "kind": "source_updated",
@@ -331,19 +98,72 @@
       "refreshable": true
     },
     {
-      "slug": "deepdive-general_individual_proprietor-lease-transaction-guide",
-      "url": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-lease-transaction-guide/",
-      "title": "リース料の勘定科目と経費処理｜売買処理か賃貸借処理かの判断基準（フルペイアウト・中途解約不可）",
-      "score": 5.04,
-      "impressions28d": 30,
+      "slug": "amazon-just-opened-incorporation-threshold-practice",
+      "url": "https://mori-zeirishi.net/blog/amazon-just-opened-incorporation-threshold-practice/",
+      "title": "Amazon物販で法人成りするとき、実務で何をどの順番で動けばいい？",
+      "score": 5.32,
+      "impressions28d": 7,
       "reasons": [
         {
           "kind": "source_updated",
-          "detail": "No.5702「リース取引についての取扱いの概要(平成20年4月1日以後契約分)」の本文が 2026-11-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "detail": "No.2260「所得税の税率」の本文が 2026-11-17 に改訂",
+          "where": "出典欄"
+        },
+        {
+          "kind": "search_decline",
+          "detail": "表示回数が 41 → 26 → 16 → 7 と低下",
+          "where": "検索結果"
+        }
+      ],
+      "file": "2026-06-30-amazon-just-opened-incorporation-threshold-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "influencer-general-growth-income-classification-guide",
+      "url": "https://mori-zeirishi.net/blog/influencer-general-growth-income-classification-guide/",
+      "title": "X（旧Twitter）の収入は事業所得？雑所得？売上拡大期の判断基準を整理する",
+      "score": 5.25,
+      "impressions28d": 44,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
           "where": "出典欄"
         }
       ],
-      "file": "2026-08-20-deepdive-general_individual_proprietor-lease-transaction-guide.md",
+      "file": "2026-06-19-influencer-general-growth-income-classification-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-growth-platform-fee-treatment-practice",
+      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-practice/",
+      "title": "eBay手数料の消費税、仕訳と課税区分はどうする？インボイス対応の実務例",
+      "score": 5.22,
+      "impressions28d": 42,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-02-ebay-growth-platform-fee-treatment-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-growth-platform-fee-treatment-guide",
+      "url": "https://mori-zeirishi.net/blog/ebay-growth-platform-fee-treatment-guide/",
+      "title": "eBayのプラットフォーム手数料、消費税はどう処理する？インボイスと仕入税額控除",
+      "score": 5.1,
+      "impressions28d": 35,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6501「納税義務の免除」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-02-ebay-growth-platform-fee-treatment-guide.md",
       "refreshable": true
     },
     {
@@ -452,42 +272,79 @@
       "refreshable": true
     },
     {
-      "slug": "deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide",
-      "url": "https://mori-zeirishi.net/blog/deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide/",
-      "title": "美容室の簡易課税は第何種？みなし仕入率50%と原則課税の有利判定",
-      "score": 4.83,
-      "impressions28d": 25,
+      "slug": "newseg-youtuber-youtube-gaming-capture-live-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-live-guide/",
+      "title": "ライブ配信者の機材費はどう処理する？取得価額別の経費・減価償却と少額特例の活用法",
+      "score": 4.92,
+      "impressions28d": 30,
       "reasons": [
         {
           "kind": "source_updated",
-          "detail": "No.6505「簡易課税制度」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "detail": "No.2100「減価償却のあらまし」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
           "where": "出典欄"
         }
       ],
-      "file": "2026-09-10-deepdive-beauty_salon_owner-simplified-vs-standard-judgment-guide.md",
+      "file": "2026-08-25-newseg-youtuber-youtube-gaming-capture-live-guide.md",
       "refreshable": true
     },
     {
-      "slug": "influencer-general-growth-recognition-timing-guide",
-      "url": "https://mori-zeirishi.net/blog/influencer-general-growth-recognition-timing-guide/",
-      "title": "X（旧Twitter）の収益はいつ売上にする？収入源別の計上タイミングを解説",
-      "score": 4.74,
+      "slug": "deepdive-general_individual_proprietor-lease-transaction-guide",
+      "url": "https://mori-zeirishi.net/blog/deepdive-general_individual_proprietor-lease-transaction-guide/",
+      "title": "リース料の勘定科目と経費処理｜売買処理か賃貸借処理かの判断基準（フルペイアウト・中途解約不可）",
+      "score": 4.89,
+      "impressions28d": 28,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.5702「リース取引についての取扱いの概要(平成20年4月1日以後契約分)」の本文が 2026-11-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-20-deepdive-general_individual_proprietor-lease-transaction-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-material-cost-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-material-cost-practice/",
+      "title": "1人親方が材料費を立て替えたときの仕訳・請求はどうする？具体例で解説",
+      "score": 4.84,
+      "impressions28d": 4,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        },
+        {
+          "kind": "search_decline",
+          "detail": "表示回数が 40 → 44 → 2 → 4 と低下",
+          "where": "検索結果"
+        }
+      ],
+      "file": "2026-07-08-newseg-construction_solo-construction-material-cost-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-labor-cost-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-labor-cost-guide/",
+      "title": "1人親方の人工代は外注費？給与？判定ポイントと源泉徴収の要否を解説",
+      "score": 4.77,
       "impressions28d": 25,
       "reasons": [
         {
           "kind": "source_updated",
-          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "detail": "No.2792「源泉徴収が必要な報酬・料金等とは」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
           "where": "出典欄"
         }
       ],
-      "file": "2026-07-14-influencer-general-growth-recognition-timing-guide.md",
+      "file": "2026-07-08-newseg-construction_solo-construction-labor-cost-guide.md",
       "refreshable": true
     },
     {
       "slug": "newseg-construction_solo-construction-vehicle-expense-practice",
       "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-vehicle-expense-practice/",
       "title": "1人親方の車両費・ガソリン代はどこまで経費にできる？家事按分の考え方と仕訳例",
-      "score": 4.71,
+      "score": 4.74,
       "impressions28d": 25,
       "reasons": [
         {
@@ -500,11 +357,27 @@
       "refreshable": true
     },
     {
-      "slug": "newseg-youtuber-youtube-gaming-capture-live-guide",
-      "url": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-live-guide/",
-      "title": "ライブ配信者の機材費はどう処理する？取得価額別の経費・減価償却と少額特例の活用法",
-      "score": 4.68,
-      "impressions28d": 25,
+      "slug": "influencer-general-growth-recognition-timing-guide",
+      "url": "https://mori-zeirishi.net/blog/influencer-general-growth-recognition-timing-guide/",
+      "title": "X（旧Twitter）の収益はいつ売上にする？収入源別の計上タイミングを解説",
+      "score": 4.65,
+      "impressions28d": 22,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.1350「事業所得の課税のしくみ(事業所得)」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-14-influencer-general-growth-recognition-timing-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-youtuber-youtube-gaming-capture-gaming-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-youtuber-youtube-gaming-capture-gaming-guide/",
+      "title": "ゲーム機・配信機材は経費にできる？ゲーム実況をする個人事業主の減価償却と少額特例",
+      "score": 4.62,
+      "impressions28d": 20,
       "reasons": [
         {
           "kind": "source_updated",
@@ -512,15 +385,15 @@
           "where": "出典欄"
         }
       ],
-      "file": "2026-08-25-newseg-youtuber-youtube-gaming-capture-live-guide.md",
+      "file": "2026-08-25-newseg-youtuber-youtube-gaming-capture-gaming-guide.md",
       "refreshable": true
     },
     {
       "slug": "hair-salon-pre-opening-cash-management-practice",
       "url": "https://mori-zeirishi.net/blog/hair-salon-pre-opening-cash-management-practice/",
       "title": "美容室の現金売上、どう管理すればいい？実務でつまずかないための処理ポイント",
-      "score": 4.62,
-      "impressions28d": 23,
+      "score": 4.53,
+      "impressions28d": 18,
       "reasons": [
         {
           "kind": "source_updated",
@@ -529,6 +402,123 @@
         }
       ],
       "file": "2026-05-31-hair-salon-pre-opening-cash-management-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-tools-expense-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-tools-expense-guide/",
+      "title": "1人親方の工具・作業着・ガソリン代は経費になる？判断基準と注意点を解説",
+      "score": 4.47,
+      "impressions28d": 15,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-24-newseg-construction_solo-construction-tools-expense-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-invoice-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-invoice-practice/",
+      "title": "コンテンツ販売でインボイス登録は必要？個人向け販売の判断基準と仕訳例",
+      "score": 4.41,
+      "impressions28d": 15,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6498「適格請求書等保存方式（インボイス制度）」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-16-newseg-content_seller-content-invoice-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-qualification-cost-electrical-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-qualification-cost-electrical-practice/",
+      "title": "電気工事・配管の資格更新費や専用工具は経費になる？仕訳の具体例で解説",
+      "score": 4.26,
+      "impressions28d": 13,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2210「必要経費の知識」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-19-newseg-construction_solo-construction-qualification-cost-electrical-practice.md",
+      "refreshable": true
+    },
+    {
+      "slug": "ebay-growth-incorporation-threshold-guide",
+      "url": "https://mori-zeirishi.net/blog/ebay-growth-incorporation-threshold-guide/",
+      "title": "eBayセラーが法人成りすべきタイミングはいつ？売上拡大期の判断軸を整理",
+      "score": 4.17,
+      "impressions28d": 11,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2260「所得税の税率」の本文が 2026-11-17 に改訂",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-06-08-ebay-growth-incorporation-threshold-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-construction_solo-construction-withholding-received-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-construction_solo-construction-withholding-received-guide/",
+      "title": "元請けから源泉徴収された1人親方の確定申告｜申告と還付の流れを解説",
+      "score": 4.14,
+      "impressions28d": 11,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.2792「源泉徴収が必要な報酬・料金等とは」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-08-09-newseg-construction_solo-construction-withholding-received-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-note-revenue-guide",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-note-revenue-guide/",
+      "title": "noteやBrainの収益は確定申告が必要？売上計上のタイミングと申告判断を解説",
+      "score": 4.11,
+      "impressions28d": 11,
+      "reasons": [
+        {
+          "kind": "source_as_of_updated",
+          "detail": "No.2200「収入金額とその計算」の基準日が 2026-10-02 に「令和8年4月1日現在法令等」へ更新（内容の変更なし）",
+          "where": "出典欄"
+        },
+        {
+          "kind": "fiscal_year",
+          "detail": "「令和7年分」を含む",
+          "where": "## まず結論"
+        }
+      ],
+      "file": "2026-07-07-newseg-content_seller-content-note-revenue-guide.md",
+      "refreshable": true
+    },
+    {
+      "slug": "newseg-content_seller-content-platform-fee-practice",
+      "url": "https://mori-zeirishi.net/blog/newseg-content_seller-content-platform-fee-practice/",
+      "title": "コンテンツ販売の決済手数料はどう仕訳する？消費税区分と総額計上の具体例",
+      "score": 4.02,
+      "impressions28d": 9,
+      "reasons": [
+        {
+          "kind": "source_updated",
+          "detail": "No.6451「仕入税額控除の対象となるもの」の本文が 2026-10-02 に改訂（令和8年4月1日現在法令等 に更新）",
+          "where": "出典欄"
+        }
+      ],
+      "file": "2026-07-23-newseg-content_seller-content-platform-fee-practice.md",
       "refreshable": true
     }
   ]

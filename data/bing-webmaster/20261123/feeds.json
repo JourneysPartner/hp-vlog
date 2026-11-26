@@ -1,0 +1,15 @@
+{
+  "site_url": "https://mori-zeirishi.net/",
+  "rows": [
+    {
+      "Url": "https://mori-zeirishi.net/sitemap.xml",
+      "Type": "Sitemap",
+      "Status": "Success",
+      "UrlCount": 318,
+      "FileSize": 0,
+      "Compressed": false,
+      "Submitted": "2026-11-13",
+      "LastCrawled": "2026-11-20"
+    }
+  ]
+}
